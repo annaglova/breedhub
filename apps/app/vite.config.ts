@@ -1,17 +1,17 @@
 import react from "@vitejs/plugin-react";
-import { resolve } from "path";
+import * as path from "path";
 import { defineConfig } from "vite";
 
 export default defineConfig({
-  root: "./", // apps/app/ буде root
+  root: __dirname,
   plugins: [react()],
   resolve: {
     alias: {
-      "@": resolve(__dirname, "src"), // імпорт через @ працюватиме у коді
+      "@": path.resolve(__dirname, "src"),
     },
   },
   build: {
-    outDir: "../../dist/app", // відносно apps/app/
+    outDir: "../../dist/app",
     emptyOutDir: true,
   },
   server: {
