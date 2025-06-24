@@ -31,6 +31,16 @@ export default tseslint.config({
 })
 ```
 
+## Running the landing page
+
+To start the landing application, execute the following command from the project root:
+
+```bash
+pnpm dev:landing
+```
+
+Running `pnpm dev` inside `apps/landing` does not work because that folder lacks its own `package.json`. The `dev:landing` script runs Vite with the configuration defined in `apps/landing/vite.config.ts`.
+
 You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
 
 ```js
