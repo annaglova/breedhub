@@ -35,7 +35,7 @@ export default {
           800: "rgb(var(--primary-800))",
           900: "rgb(var(--primary-900))",
           950: "rgb(var(--primary-950))",
-          DEFAULT: "#673ab7",
+          DEFAULT: "rgb(var(--primary))",
         },
         accent: {
           100: "rgb(var(--accent-100))",
