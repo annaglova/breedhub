@@ -2,6 +2,64 @@
 
 /* Reset CSS, базові стилі */
 @layer base {
+  :root {
+    --surface-ground: 248 250 252; /* slate 50 */
+    --hover-surface-ground: 241 245 249; /* slate 100 */
+    --card-ground: 255 255 255;
+    --even-card-ground: 248 250 252; /* slate 50 */
+    --modal-card-ground: 248 250 252; /* slate 50 */
+    --hover-card-ground: 241 245 249; /* slate 100 */
+    --focus-card-ground: 237 231 246; /* primary 50 */
+    --footer-ground: 71 85 105; /* slate 600 */
+    --header-ground: 241 245 249; /* slate 100 */
+    --hover-header-ground: 226 232 240; /* slate 200 */
+    --surface-border: 226 232 240; /* slate 200 */
+    --sidebar-shadow: 0px 4px 50px #d9ddfc;
+    --text-color: 30 41 59; /* slate 800 */
+    --sub-header-color: 71 85 105; /* slate 600 */
+    --sub-header-active: 103 58 183; /* purple 500 */
+    --pet-template: 226 232 240; /* slate 200 */
+    /* Primary color*/
+    --primary: 103 58 183; /* purple500 */
+    --primary-hover: 94 53 177; /* purple 600 */
+    --primary-50: 237 231 246; /* purple50 */
+    --primary-100: 209 196 233; /* purple 100 */
+    --primary-200: 179 157 219; /* purple 200 */
+    --primary-300: 149 117 205; /* purple 300 */
+    --primary-400: 126 87 194; /* purple 400 */
+    --primary-500: 103 58 183; /* purple 500 */
+    --primary-600: 94 53 177; /* purple 600 */
+    --primary-700: 81 45 168; /* purple 700 */
+    --primary-800: 69 39 160; /* purple 800 */
+    --primary-900: 49 27 146; /* purple 900 */
+    --primary-950: 39 18 115; /* purple 950 */
+    /* Accent color*/
+    --accent: 219 39 119; /* pink 600 */
+    --accent-50: 253 242 248; /* pink 50 */
+    --accent-100: 252 231 243; /* pink 100 */
+    --accent-200: 251 207 232; /* pink 200 */
+    --accent-300: 249 168 212; /* pink 300 */
+    --accent-400: 244 114 182; /* pink4 00 */
+    --accent-500: 236 72 153; /* pink 500 */
+    --accent-600: 219 39 119; /* pink 600 */
+    --accent-700: 190 24 93; /* pink 700 */
+    --accent-800: 157 23 77; /* pink 800 */
+    --accent-900: 131 24 67; /* pink 900 */
+    --accent-950: 80 7 36; /* pink 950 */
+    /* Secondary color*/
+    --secondary: 100 116 139; /* slate 500 */
+    --secondary-50: 248 250 252; /* slate 50 */
+    --secondary-100: 241 245 249; /* slate 100 */
+    --secondary-200: 226 232 240; /* slate 200 */
+    --secondary-300: 203 213 225; /* slate 300 */
+    --secondary-400: 148 163 184; /* slate 400 */
+    --secondary-500: 100 116 139; /* slate 500 */
+    --secondary-600: 71 85 105; /* slate 600 */
+    --secondary-700: 51 65 85; /* slate 700 */
+    --secondary-800: 30 41 59; /* slate 800 */
+    --secondary-900: 15 23 42; /* slate 900 */
+    --secondary-950: 2 6 23; /* slate 950 */
+  }
   * {
     box-sizing: border-box;
     text-rendering: optimizeLegibility;
@@ -44,11 +102,6 @@
     vertical-align: top;
   }
 
-  input[disabled] {
-    opacity: 1;
-    -webkit-text-fill-color: currentColor;
-  }
-
   button {
     font-size: 0.875rem !important;
   }
@@ -80,10 +133,6 @@
         }
       }
     }
-  }
-
-  [disabled] * {
-    @apply text-disabled;
   }
 
   @media print {

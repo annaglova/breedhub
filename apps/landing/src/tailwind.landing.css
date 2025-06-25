@@ -1,0 +1,5 @@
+@layer base {
+  :root {
+    --surface-ground: 248 250 252; /* slate 50 */
+  }
+}

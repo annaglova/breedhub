@@ -3,7 +3,7 @@ import * as path from "path";
 import { defineConfig } from "vite";
 
 export default defineConfig({
-  root: __dirname, // гарантовано працює незалежно від точки запуску
+  root: __dirname,
   plugins: [react()],
   resolve: {
     alias: {
