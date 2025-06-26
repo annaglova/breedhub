@@ -1,0 +1,132 @@
+/* apps/shared/theme/custom-theme.css */
+/* !!! Підключай ПІСЛЯ lara-light-blue та primereact.min.css !!! */
+
+/* Використовує root-змінні, які підключаються через tailwind.base.css */
+
+:root {
+  /* Primary color overrides */
+  --primary-50: rgb(var(--primary-50));
+  --primary-100: rgb(var(--primary-100));
+  --primary-200: rgb(var(--primary-200));
+  --primary-300: rgb(var(--primary-300));
+  --primary-400: rgb(var(--primary-400));
+  --primary-500: rgb(var(--primary-500));
+  --primary-600: rgb(var(--primary-600));
+  --primary-700: rgb(var(--primary-700));
+  --primary-800: rgb(var(--primary-800));
+  --primary-900: rgb(var(--primary-900));
+  --primary-950: rgb(var(--primary-950));
+
+  /* Accent color overrides */
+  --accent-50: rgb(var(--accent-50));
+  --accent-100: rgb(var(--accent-100));
+  --accent-200: rgb(var(--accent-200));
+  --accent-300: rgb(var(--accent-300));
+  --accent-400: rgb(var(--accent-400));
+  --accent-500: rgb(var(--accent-500));
+  --accent-600: rgb(var(--accent-600));
+  --accent-700: rgb(var(--accent-700));
+  --accent-800: rgb(var(--accent-800));
+  --accent-900: rgb(var(--accent-900));
+  --accent-950: rgb(var(--accent-950));
+}
+
+/* Override кнопок PrimeReact */
+.p-button-secondary {
+  background: rgb(var(--surface-600)) !important;
+  border-color: rgb(var(--surface-600)) !important;
+  color: rgb(var(--surface-0)) !important;
+}
+.p-button-secondary:hover {
+  background: rgb(var(--surface-500)) !important;
+  border-color: rgb(var(--surface-500)) !important;
+  color: rgb(var(--surface-0)) !important;
+}
+.p-button-secondary:active,
+.p-button-secondary.p-button-active {
+  background: rgb(var(--surface-700)) !important;
+  border-color: rgb(var(--surface-700)) !important;
+  color: rgb(var(--surface-0)) !important;
+}
+
+/* Info-кнопки */
+.p-button-info {
+  background: rgb(var(--accent-700)) !important;
+  border-color: rgb(var(--accent-700)) !important;
+}
+.p-button-info:hover {
+  background: rgb(var(--accent-600)) !important;
+  border-color: rgb(var(--accent-600)) !important;
+}
+.p-button-info:active,
+.p-button-info.p-button-active {
+  background: rgb(var(--accent-700)) !important;
+  border-color: rgb(var(--accent-700)) !important;
+}
+
+/* Outlined Secondary */
+.p-button-outlined.p-button-secondary {
+  border-color: rgb(var(--surface-600)) !important;
+  color: rgb(var(--surface-600)) !important;
+}
+.p-button-outlined.p-button-secondary:hover {
+  border-color: rgb(var(--surface-500)) !important;
+  color: rgb(var(--surface-500)) !important;
+}
+.p-button-outlined.p-button-secondary:active,
+.p-button-outlined.p-button-secondary.p-button-active {
+  border-color: rgb(var(--surface-700)) !important;
+  color: rgb(var(--surface-700)) !important;
+}
+
+/* Chip */
+.p-chip {
+  background: rgb(var(--primary-500)) !important;
+  color: rgb(var(--surface-0)) !important;
+}
+
+/* Поля форми */
+.p-inputtext,
+.p-dropdown {
+  background: rgb(var(--surface-0)) !important;
+  color: rgb(var(--surface-800)) !important;
+}
+
+/* Прогрес-спіннер */
+.p-progress-spinner-circle {
+  stroke: rgb(var(--primary-500)) !important;
+}
+.p-progress-spinner-circle[stroke="var(--surface-400)"] {
+  stroke: rgb(var(--surface-400)) !important;
+}
+
+/* Tabs */
+.p-tabview-nav {
+  background: transparent !important;
+}
+.p-tabview-nav li .p-tabview-nav-link {
+  border-width: 0 0 1px 0 !important;
+  border-color: rgb(var(--surface-300)) !important;
+  background: transparent !important;
+}
+.p-tabview-nav li.p-highlight .p-tabview-nav-link {
+  border-color: rgb(var(--primary-500)) !important;
+}
+.p-tabview-nav li .p-tabview-nav-link:hover {
+  border-color: rgb(var(--surface-400)) !important;
+}
+
+/* Form Field (input, select) background/hover */
+.p-inputtext:focus,
+.p-dropdown:focus {
+  background: rgb(var(--surface-0)) !important;
+  color: rgb(var(--surface-900)) !important;
+}
+
+/* Тексти */
+body,
+.p-component {
+  color: rgb(var(--surface-800));
+}
+
+/* Свій кастомний стиль — тут */

@@ -1,7 +1,11 @@
-@import "../../../tailwind.base.css";
-@import "./tailwind.landing.css";
+@import "../../../tailwind.base.css"; /* Тут root-змінні */
+@import "./tailwind.landing.css"; /* Ваш кастомний Tailwind-стиль */
+@import "primereact/resources/themes/lara-light-blue/theme.css";
+@import "primereact/resources/primereact.min.css";
+@import "primeicons/primeicons.css";
+@import "@shared/theme/custom-theme.css";
 
-:root {
+Override-стилі для PrimeReact */ :root {
   body {
     margin: 0;
     display: flex;

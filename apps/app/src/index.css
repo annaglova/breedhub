@@ -1,5 +1,9 @@
 @import "../../../tailwind.base.css";
 @import "./tailwind.theme.css";
+@import "primereact/resources/themes/lara-light-blue/theme.css";
+@import "primereact/resources/primereact.min.css";
+@import "primeicons/primeicons.css";
+@import "@shared/theme/custom-theme.css"; /* Override-стилі для PrimeReact */
 
 :root {
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
