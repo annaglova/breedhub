@@ -23,9 +23,8 @@ export default function Footer() {
                 </span>
               </a>
               <div className="space-x-6 self-end md:self-center">
-                {/* TODO: Replace with actual icon components */}
-                <span className="text-2xl">🌐</span>
-                <span className="text-2xl">💬</span>
+                <i className="pi pi-facebook" style={{ fontSize: "2rem" }} />
+                <i className="pi pi-discord" style={{ fontSize: "2rem" }} />
               </div>
             </div>
           </div>
@@ -79,9 +78,8 @@ export default function Footer() {
               </span>
             </a>
             <div className="space-x-6 self-center xl:self-end">
-              {/* TODO: Replace with actual icon components */}
-              <span className="text-2xl">🌐</span>
-              <span className="text-2xl">💬</span>
+              <i className="pi pi-facebook" style={{ fontSize: "2rem" }} />
+              <i className="pi pi-discord" style={{ fontSize: "2rem" }} />
             </div>
           </div>
         </div>

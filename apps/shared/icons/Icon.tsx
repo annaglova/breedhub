@@ -1,5 +1,5 @@
 import type { FC, SVGProps } from "react";
-import * as icons from "../icons";
+import * as icons from ".";
 
 type IconComponent = FC<SVGProps<SVGSVGElement>>;
 const iconMap = icons as Record<string, IconComponent>;
