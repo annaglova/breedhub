@@ -4,10 +4,11 @@
     "composite": true,
     "baseUrl": "./",
     "paths": {
-      "@/*": ["src/*"], // alias тільки для цього apps
+      "@/*": ["src/*"],
       "@components/*": ["src/components/*"],
-      "@pages/*": ["src/pages/*"]
+      "@pages/*": ["src/pages/*"],
+      "@shared/*": ["../shared/*"]
     }
   },
-  "include": ["src"]
+  "include": ["src", "../shared/**/*"]
 }

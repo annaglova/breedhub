@@ -1,36 +1,30 @@
-// shared/icons/Icon.tsx
-
+import type { FC, SVGProps } from "react";
 import * as icons from "../icons";
 
-type IconProps = {
-  icon: string; // наприклад: 'features/bug_report' або 'menu/settings'
-  size?: number | string;
-  className?: string;
-  [key: string]: any;
-};
+type IconComponent = FC<SVGProps<SVGSVGElement>>;
+const iconMap = icons as Record<string, IconComponent>;
 
-// Функція для створення імені експорту з шляху
-function toExportName(path: string) {
-  // features/bug_report -> FeaturesBugReportIcon
-  return (
-    path
-      .split(/[\/_-]/)
-      .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-      .join("") + "Icon"
-  );
+export interface IconProps extends SVGProps<SVGSVGElement> {
+  icon: string;
+  size?: number;
+  className?: string;
 }
 
-export function Icon({
+export const Icon: React.FC<IconProps> = ({
   icon,
   size = 24,
-  className = "",
+  className,
   ...props
-}: IconProps) {
+}) => {
+  const toExportName = (path: string) =>
+    path
+      .split(/[-_/]/)
+      .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+      .join("") + "Icon";
   const exportName = toExportName(icon);
-  const SvgIcon = (icons as any)[exportName];
+  const SvgIcon = iconMap[exportName];
 
   if (!SvgIcon) {
-    // Можна повернути дефолтну іконку або null
     return <span style={{ color: "red" }}>Icon not found: {exportName}</span>;
   }
 
@@ -43,4 +37,4 @@ export function Icon({
       aria-label={icon}
     />
   );
-}
+};
