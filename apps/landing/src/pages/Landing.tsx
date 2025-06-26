@@ -1,3 +1,5 @@
+import { ReactComponent as LandingFigure } from "@/assets/landing-figure.svg";
+
 import { useState } from "react";
 
 // Заглушки для даних. Замінюй на API чи store, коли треба
@@ -61,7 +63,8 @@ export default function Landing() {
     <div className="pb-26 relative flex w-full min-w-[100vw] flex-col items-center justify-center overflow-hidden bg-white">
       {/* SVG/фон */}
       <div className="right-[-30vw] top-[-13vw] w-full md:right-[-47vw] md:top-[-17vw] xxl:top-[-25vw] xxxl:top-[-32vw] absolute">
-        {/* <SvgIcon name="landing-figure" style={{ width: "80%" }} /> */}
+        <LandingFigure style={{ width: "80%" }} />
+        {/* <LandingFigure className="w-4/5" /> */}
       </div>
       {/* Header */}
       <div className="z-49 max-w-11xl flex h-16 w-full items-center px-6 lg:px-40 sm:h-20 sm:px-10 xxl:px-60"></div>

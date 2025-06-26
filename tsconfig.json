@@ -1,5 +1,11 @@
 {
-  "files": [],
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"] // цей alias буде працювати для src у root (якщо треба інше – див. нижче)
+    }
+  },
+  "include": ["apps/**/*"],
   "references": [
     { "path": "./apps/app" },
     { "path": "./apps/landing" },
