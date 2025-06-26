@@ -1,4 +1,5 @@
 // landing/src/components/Footer.tsx
+import LogoWhite from "@shared/icons/logo/logo-white.svg?react";
 import { Link } from "react-router-dom";
 
 export default function Footer() {
@@ -7,13 +8,7 @@ export default function Footer() {
       <div className="grid w-full grid-cols-2 justify-between gap-10 uppercase md:flex">
         <div className="order-4 flex flex-col space-y-2 md:order-1">
           {/* Logo */}
-          <div className="block">
-            <img
-              className="h-21 opacity-60"
-              src="/assets/images/logo/logo-white.svg"
-              alt="Breedhub Logo"
-            />
-          </div>
+          <LogoWhite className="h-21 w-auto" aria-label="Breedhub Logo" />
           {/* Contact (Desktop, hidden on mobile) */}
           <div className="hidden md:flex xl:hidden">
             <div className="flex flex-col md:space-y-2">
