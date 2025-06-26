@@ -1,3 +1,6 @@
-import { ReactComponent as Figure } from "@/assets/landing-figure.svg";
-const JustTest = () => <Figure />;
-export default JustTest;
+import LandingFigure from "@/assets/landing-figure.svg?react";
+// або
+
+export function Test() {
+  return <LandingFigure style={{ width: 120, height: 120 }} />;
+}
