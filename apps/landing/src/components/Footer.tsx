@@ -8,7 +8,12 @@ export default function Footer() {
       <div className="grid w-full grid-cols-2 justify-between gap-10 uppercase md:flex">
         <div className="order-4 flex flex-col space-y-2 md:order-1">
           {/* Logo */}
-          <LogoWhite className="h-21 w-auto" aria-label="Breedhub Logo" />
+          <LogoWhite
+            className="h-21 w-auto"
+            aria-label="Breedhub Logo"
+            role="img"
+            focusable="false"
+          />
           {/* Contact (Desktop, hidden on mobile) */}
           <div className="hidden md:flex xl:hidden">
             <div className="flex flex-col md:space-y-2">
@@ -83,7 +88,7 @@ export default function Footer() {
       <div className="my-5 h-[1px] w-full bg-white/30"></div>
 
       <span className="self-start font-medium">
-        Breedhub &copy; 2024 | With ♥ from Ukraine
+        Breedhub &copy; {new Date().getFullYear()} | With ♥ from Ukraine
       </span>
     </div>
   );
