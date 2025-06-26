@@ -1,4 +1,4 @@
-import LandingFigure from "@/assets/landing-figure.svg?react";
+import LandingFigure from "@/assets/backgrounds/landing-figure.svg?react";
 
 import { useState } from "react";
 
