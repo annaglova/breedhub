@@ -20,12 +20,12 @@ function toExportName(path: string) {
   );
 }
 
-export const Icon: React.FC<IconProps> = ({
+export function Icon({
   icon,
   size = 24,
   className = "",
   ...props
-}) => {
+}: IconProps) {
   const exportName = toExportName(icon);
   const SvgIcon = (icons as any)[exportName];
 
@@ -43,4 +43,4 @@ export const Icon: React.FC<IconProps> = ({
       aria-label={icon}
     />
   );
-};
+}
