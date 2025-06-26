@@ -9,7 +9,9 @@
     "dev:landing": "vite --config apps/landing/vite.config.ts",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "shared-icons:gen": "node apps/shared/icons/generate-icons-index.cjs",
+    "shared-icons:watch": "chokidar 'apps/shared/icons/**/*.svg' -c npm run shared-icons:gen"
   },
   "dependencies": {
     "primeicons": "^7.0.0",

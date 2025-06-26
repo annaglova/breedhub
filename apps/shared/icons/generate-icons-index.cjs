@@ -1,7 +1,7 @@
 const fs = require("fs");
 const path = require("path");
 
-const ICONS_DIR = "./apps/shared/icons";
+const ICONS_DIR = __dirname;
 const OUTPUT_FILE = path.join(ICONS_DIR, "index.ts");
 
 function toPascalCase(str) {
