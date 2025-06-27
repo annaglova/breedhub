@@ -14,9 +14,15 @@ importers:
       class-variance-authority:
         specifier: ^0.7.0
         version: 0.7.1
+      clsx:
+        specifier: ^2.1.1
+        version: 2.1.1
       react:
         specifier: ^18.0.0
         version: 18.3.1
+      tailwind-merge:
+        specifier: ^3.3.1
+        version: 3.3.1
 
 packages:
 
@@ -56,6 +62,9 @@ packages:
     resolution: {integrity: sha512-wS+hAgJShR0KhEvPJArfuPVN1+Hz1t0Y6n5jLrGQbkb4urgPE/0Rve+1kMB1v/oWgHgm4WIcV+i7F2pTVj+2iQ==}
     engines: {node: '>=0.10.0'}
 
+  tailwind-merge@3.3.1:
+    resolution: {integrity: sha512-gBXpgUm/3rp1lMZZrM/w7D8GKqshif0zAymAhbCyIt8KMe+0v9DQ7cdYLR4FHH/cKpdTXb+A/tKKU3eolfsI+g==}
+
 snapshots:
 
   '@radix-ui/react-compose-refs@1.1.2(react@18.3.1)':
@@ -82,3 +91,5 @@ snapshots:
   react@18.3.1:
     dependencies:
       loose-envify: 1.4.0
+
+  tailwind-merge@3.3.1: {}

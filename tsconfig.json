@@ -9,6 +9,7 @@
   "references": [
     { "path": "./apps/app" },
     { "path": "./apps/landing" },
-    { "path": "./tsconfig.node.json" }
+    { "path": "./tsconfig.node.json" },
+    { "path": "./packages/ui" }
   ]
 }

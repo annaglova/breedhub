@@ -1,7 +1,8 @@
 {
   "compilerOptions": {
+    "moduleResolution": "nodenext",
     "target": "ESNext",
-    "module": "ESNext",
+    "module": "NodeNext",
     "jsx": "react-jsx",
     "declaration": true,
     "declarationMap": true,
@@ -10,6 +11,7 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
+    "composite": true,
     "baseUrl": ".",
     "paths": {
       "@/*": ["./*"]
