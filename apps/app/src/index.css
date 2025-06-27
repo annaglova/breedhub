@@ -4,6 +4,7 @@
 @import "primereact/resources/primereact.min.css";
 @import "primeicons/primeicons.css";
 @import "@shared/theme/custom-theme.css"; /* Override-стилі для PrimeReact */
+/* test */
 
 :root {
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
