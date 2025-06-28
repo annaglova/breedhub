@@ -66,11 +66,11 @@ export default function Application() {
         <div className="flex flex-col items-center justify-center pt-14 sm:pt-32">
           <div className="max-w-screen px-6 sm:px-10 md:max-w-6xl lg:px-0">
             {/* Page header */}
-            <div className="relative space-y-3 text-center font-mono font-extrabold leading-tight tracking-wide text-white">
-              <div className="text-6xl md:text-7xl">Let's get started</div>
-              <div className="text-2xl md:text-3xl">
-                with your <span className="font-sans">AWESOME</span> spaces
-              </div>
+            <div className="relative space-y-3 text-center  text-white">
+              <h1>Let's get started</h1>
+              <h3>
+                with your <span className="font-bold">AWESOME</span> spaces
+              </h3>
             </div>
             {/* Grid for cards */}
             <div className="mt-10 grid gap-14 md:grid-cols-2 sm:mt-20">
