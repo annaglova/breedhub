@@ -5,9 +5,23 @@
     "module": "nodenext",
     "jsx": "react-jsx",
     "strict": true,
-    "baseUrl": ".", // <--- ключове!
+    "baseUrl": ".",
+    // "paths": {
+    //   "@/*": ["packages/ui/*"]
+    // }
     "paths": {
-      "@/*": ["packages/ui/*"]
+      "@app/*": ["apps/app/*"],
+      "@landing/*": ["apps/landing/*"],
+      "@shared/*": ["apps/shared/*"],
+      "@ui/*": ["packages/ui/*"],
+      "@ui": ["packages/ui"],
+
+      // Далі для зручності прямі шляхи до компонентів, якщо потрібно
+      "@ui/components/*": ["packages/ui/components/*"],
+      "@ui/utils/*": ["packages/ui/utils/*"],
+
+      "@types/*": ["packages/types/*"],
+      "@utils/*": ["packages/utils/*"]
     }
   }
 }

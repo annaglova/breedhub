@@ -8,8 +8,10 @@ export default defineConfig({
   plugins: [react(), svgr()],
   resolve: {
     alias: {
+      "@ui": path.resolve(__dirname, "../../packages/ui"),
+      "@ui/components": path.resolve(__dirname, "../../packages/ui/components"),
+      "@shared": path.resolve(__dirname, "../../apps/shared"),
       "@": path.resolve(__dirname, "src"),
-      "@shared": path.resolve(__dirname, "../shared"),
     },
   },
   build: {

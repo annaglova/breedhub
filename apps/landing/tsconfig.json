@@ -4,11 +4,11 @@
     "composite": true,
     "baseUrl": "./",
     "paths": {
-      "@/*": ["src/*"],
-      "@components/*": ["src/components/*"],
-      "@pages/*": ["src/pages/*"],
-      "@shared/*": ["../shared/*"]
+      "@ui/*": ["../../packages/ui/*"],
+      "@ui/components/*": ["../../packages/ui/components/*"],
+      "@shared/*": ["../shared/*"],
+      "@/*": ["src/*"]
     }
   },
-  "include": ["src", "../shared/**/*"]
+  "include": ["src", "../shared/**/*", "../../packages/ui/**/*"]
 }
