@@ -4,6 +4,10 @@
     "target": "esnext",
     "module": "nodenext",
     "jsx": "react-jsx",
-    "strict": true
+    "strict": true,
+    "baseUrl": ".", // <--- ключове!
+    "paths": {
+      "@/*": ["packages/ui/*"]
+    }
   }
 }
