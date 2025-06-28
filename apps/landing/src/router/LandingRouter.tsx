@@ -1,7 +1,8 @@
 // landing/src/router/LandingRouter.tsx
+import About from "@/pages/About";
+import Application from "@/pages/Application";
+import Landing from "@/pages/Landing";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
-import About from "../pages/About";
-import Landing from "../pages/Landing";
 
 // Якщо буде спільний Layout (Header/Footer), обгорни тут
 export default function LandingRouter() {
@@ -10,8 +11,8 @@ export default function LandingRouter() {
       <Routes>
         <Route path="/" element={<Landing />} />
         <Route path="/about" element={<About />} />
-        {/* <Route path="/application" element={<Application />} />
-        <Route path="/cookie" element={<Cookie />} />
+        <Route path="/application" element={<Application />} />
+        {/*  <Route path="/cookie" element={<Cookie />} />
         <Route path="/payment" element={<Payment />} />
         <Route path="/prepayments" element={<Prepayments />} />
         <Route path="/pricing" element={<Pricing />} />
