@@ -79,8 +79,8 @@ export default {
         "focus-card-ground": "rgb(var(--focus-card-ground))",
       },
       fontFamily: {
-        mono: [`"Roboto"`, ..._fontFamily.mono],
-        sans: [`"Nunito"`, ..._fontFamily.sans],
+        mono: ['"Roboto Mono"', ..._fontFamily.mono],
+        sans: ['"Nunito"', '"Roboto"', ..._fontFamily.sans],
       },
       spacing: {
         0.75: "0.1875rem",

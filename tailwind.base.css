@@ -92,6 +92,25 @@
     font-feature-settings: "salt";
   }
 
+  h1 {
+    @apply font-sans text-6xl md:text-7xl leading-tight;
+    font-family: "Roboto", Arial, sans-serif;
+    font-weight: 500;
+    letter-spacing: 0.015em;
+  }
+  h2 {
+    @apply font-sans text-4xl leading-tight;
+    font-family: "Roboto", Arial, sans-serif;
+    font-weight: 500;
+    letter-spacing: 0.015em;
+  }
+  h3 {
+    @apply font-sans text-2xl md:text-3xl leading-tight;
+    font-family: "Roboto", Arial, sans-serif;
+    font-weight: 500;
+    letter-spacing: 0.015em;
+  }
+
   hr {
     margin: 32px 0;
     border-bottom-width: 1px;

@@ -14,11 +14,9 @@ export default function About() {
         <div className="flex flex-col items-center justify-center pt-14 sm:pt-32">
           <div className="max-w-screen px-6 sm:px-10 md:max-w-6xl lg:px-0">
             {/* Page header */}
-            <div className="relative space-y-3 text-center font-mono font-extrabold leading-tight tracking-wide text-white">
-              <div className="text-6xl md:text-7xl">
-                Hello, from the Breedhub team!
-              </div>
-              <div className="text-2xl md:text-3xl">So who are we?</div>
+            <div className="relative space-y-3 text-center text-white">
+              <h1>Hello, from the Breedhub team!</h1>
+              <h3>So who are we?</h3>
             </div>
             <div className="sm:mt-22 relative mt-14 flex flex-col items-center justify-center space-y-8 rounded-2xl bg-white/50 p-8 text-xl">
               <p className="leading-8">
@@ -29,9 +27,9 @@ export default function About() {
                 involved in this sphere. And we like to give the best Service
                 for breeders and dog fans.
               </p>
-              <span className="text-primary pb-3 text-4xl font-bold">
+              <h2 className="text-primary pb-4 pt-1">
                 Our mission is a popularisation of professional breeding
-              </span>
+              </h2>
               <p className="leading-8">
                 We are deeply interested in our users' satisfaction with Breed
                 Pride Services. We'd like you to share your opinion of a Breed
