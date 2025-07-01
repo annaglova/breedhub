@@ -5,7 +5,7 @@ import breedImg from "@/assets/images/breed-space.jpeg";
 import kennelImg from "@/assets/images/kennel-space.jpeg";
 import litterImg from "@/assets/images/litter-space.jpeg";
 import petImg from "@/assets/images/pet-space.jpeg";
-import LandingLayout from "@/components/LandingLayout";
+import LandingLayout from "@/layouts/LandingLayout";
 
 // Якщо SpaceLinkCard вже є — імпортуємо його.
 // Якщо ні — можу дати швидкий шаблон для нього!

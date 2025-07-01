@@ -1,6 +1,6 @@
 // landing/src/pages/About.tsx
 import LandingFigure from "@/assets/backgrounds/landing-figure.svg?react";
-import LandingLayout from "../components/LandingLayout";
+import LandingLayout from "@/layouts/LandingLayout";
 
 export default function About() {
   return (

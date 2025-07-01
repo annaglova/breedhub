@@ -1,7 +1,7 @@
-// apps/landing/src/components/LandingLayout.tsx
+// apps/landing/src/layouts/LandingLayout.tsx
 
 import React from "react";
-import Footer from "./Footer";
+import Footer from "@/components/Footer";
 
 interface LandingLayoutProps {
   children: React.ReactNode;
