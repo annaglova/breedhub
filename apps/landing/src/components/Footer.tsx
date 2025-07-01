@@ -60,7 +60,7 @@ export default function Footer() {
             <Link to="/app">App</Link>
             <Link to="/product">Product</Link>
             <Link to="/pricing">Pricing</Link>
-            <Link to="/about-us">About</Link>
+            <Link to="/about">About</Link>
             <Link to="/terms-and-conditions">Terms</Link>
             <Link to="/privacy-policy">Privacy</Link>
           </div>
