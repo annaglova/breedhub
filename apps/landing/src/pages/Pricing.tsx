@@ -6,7 +6,7 @@ import FeatureBlock from "@/components/FeatureBlock";
 import FeatureTier from "@/components/FeatureTier";
 import { FEATURE_BLOCKS } from "@/constants/featureBlocks";
 import { TIERS, YEARLY_NUMBER } from "@/constants/pricing";
-import PricingBgFigure from "@/assets/backgrounds/pricing-bg-figure.svg?react";
+import HeaderFigure from "@/assets/backgrounds/header-figure.svg?react";
 
 export default function Pricing() {
   const [selectedBillingType, setSelectedBillingType] = useState(YEARLY_NUMBER);
@@ -36,7 +36,7 @@ export default function Pricing() {
     <div className="relative min-h-screen bg-white overflow-hidden">
       {/* Background SVG */}
       <div className="absolute top-0 right-0 w-full h-full pointer-events-none">
-        <PricingBgFigure className="absolute top-[-20%] right-[-30%] w-[150%] h-auto opacity-50" />
+        <HeaderFigure className="absolute top-[-20%] right-[-30%] w-[150%] h-auto opacity-50" />
       </div>
 
       {/* Content */}
