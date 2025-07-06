@@ -1,5 +1,7 @@
 import React from 'react';
-import { Button, Avatar, Badge } from 'ui';
+import { Button } from '@ui/components/button';
+import { Avatar } from '@ui/components/avatar';
+import { Badge } from '@ui/components/badge';
 import { useAuth } from '@/core/auth';
 import { useApp } from '@/store/hooks';
 import { useNavigationSync } from '@/shared/hooks';

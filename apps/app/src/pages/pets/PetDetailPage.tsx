@@ -1,6 +1,10 @@
 import React from 'react';
 import { useParams } from 'react-router-dom';
-import { Button, Card, Badge, Avatar, Tabs, TabsContent, TabsList, TabsTrigger } from 'ui';
+import { Button } from '@ui/components/button';
+import { Card } from '@ui/components/card';
+import { Badge } from '@ui/components/badge';
+import { Avatar } from '@ui/components/avatar';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@ui/components/tabs';
 import { useNavigationSync } from '@/shared/hooks';
 import { usePet } from '@/core/api';
 

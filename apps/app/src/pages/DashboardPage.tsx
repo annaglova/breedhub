@@ -1,5 +1,9 @@
 import React from 'react';
-import { Card, Button, Badge, Avatar, Progress } from 'ui';
+import { Card } from '@ui/components/card';
+import { Button } from '@ui/components/button';
+import { Badge } from '@ui/components/badge';
+import { Avatar } from '@ui/components/avatar';
+import { Progress } from '@ui/components/progress';
 import { useNavigationSync } from '@/shared/hooks';
 
 export function DashboardPage() {

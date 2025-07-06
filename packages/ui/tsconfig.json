@@ -5,5 +5,5 @@
     "outDir": "dist"
     // тут можеш override-ити baseUrl якщо треба
   },
-  "include": ["components", "lib", "index.ts"]
+  "include": ["components", "lib", "utils", "index.ts"]
 }

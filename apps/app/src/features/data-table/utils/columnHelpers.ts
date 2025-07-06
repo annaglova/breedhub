@@ -1,5 +1,7 @@
 import { type ColumnDef } from '@tanstack/react-table';
-import { Badge, Checkbox, Avatar } from 'ui';
+import { Badge } from '@ui/components/badge';
+import { Checkbox } from '@ui/components/checkbox';
+import { Avatar } from '@ui/components/avatar';
 import { DataTableColumnHeader } from '../components/DataTableColumnHeader';
 import { formatDate, formatDateTime } from '@/shared/utils';
 

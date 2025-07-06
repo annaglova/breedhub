@@ -1,5 +1,6 @@
 import React from 'react';
-import { Button, Card } from 'ui';
+import { Button } from '@ui/components/button';
+import { Card } from '@ui/components/card';
 import { useNavigationSync } from '@/shared/hooks';
 
 export function KennelsListPage() {

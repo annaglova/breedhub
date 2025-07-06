@@ -1,6 +1,7 @@
 // apps/landing/src/layouts/LandingLayout.tsx
 
 import Footer from "@/components/Footer";
+import LandingMenu from "@/components/LandingMenu";
 import React from "react";
 
 interface LandingLayoutProps {
@@ -10,7 +11,8 @@ interface LandingLayoutProps {
 export default function LandingLayout({ children }: LandingLayoutProps) {
   return (
     <div className="min-h-screen flex flex-col w-full">
-      <main className="flex-1 flex flex-col">{children}</main>
+      <LandingMenu />
+      <main className="flex-1 flex flex-col pt-16">{children}</main>
       <Footer />
     </div>
   );

@@ -1,6 +1,7 @@
 import React from 'react';
 import { useParams } from 'react-router-dom';
-import { Button, Card } from 'ui';
+import { Button } from '@ui/components/button';
+import { Card } from '@ui/components/card';
 import { useNavigationSync } from '@/shared/hooks';
 
 export function EventEditPage() {

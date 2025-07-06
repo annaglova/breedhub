@@ -1,12 +1,14 @@
 import React from 'react';
 import { type Row } from '@tanstack/react-table';
+import { Button } from '@ui/components/button';
 import {
-  Button,
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+} from '@ui/components/dialog';
+import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -16,7 +18,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from 'ui';
+} from '@ui/components/alert-dialog';
 import { cn } from '@/shared/utils';
 
 interface DataTableRowActionsProps<TData> {

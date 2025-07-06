@@ -6,9 +6,6 @@
     "jsx": "react-jsx",
     "strict": true,
     "baseUrl": ".",
-    // "paths": {
-    //   "@/*": ["packages/ui/*"]
-    // }
     "paths": {
       "@app/*": ["apps/app/*"],
       "@landing/*": ["apps/landing/*"],
@@ -19,6 +16,7 @@
       // Далі для зручності прямі шляхи до компонентів, якщо потрібно
       "@ui/components/*": ["packages/ui/components/*"],
       "@ui/utils/*": ["packages/ui/utils/*"],
+      "@ui/lib/*": ["packages/ui/lib/*"],
 
       "@types/*": ["packages/types/*"],
       "@utils/*": ["packages/utils/*"]

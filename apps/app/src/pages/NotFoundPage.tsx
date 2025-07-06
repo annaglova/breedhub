@@ -1,5 +1,5 @@
 import React from 'react';
-import { Button } from 'ui';
+import { Button } from '@ui/components/button';
 import { useNavigationSync } from '@/shared/hooks';
 
 export function NotFoundPage() {
