@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@ui/components/button';
 import { cn } from '@/utils';
+import LogoText from '@shared/icons/logo/logo-text.svg?react';
+import LogoTextWhite from '@shared/icons/logo/logo-text-white.svg?react';
 
 interface MenuItemProps {
   to: string;
@@ -105,7 +107,6 @@ export default function LandingMenuAdvanced({ className, variant = 'default' }: 
   }, [location]);
 
   const menuItems = [
-    { to: '/', label: 'Home' },
     { to: '/product', label: 'Product' },
     { to: '/pricing', label: 'Pricing' },
     { to: '/about', label: 'About' },
@@ -205,29 +206,18 @@ export default function LandingMenuAdvanced({ className, variant = 'default' }: 
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
             <div className="flex items-center">
-              <Link to="/" className="flex items-center space-x-2 group">
-                <div className="h-8 w-8 bg-primary-600 rounded-lg flex items-center justify-center group-hover:bg-primary-700 transition-colors">
-                  <span className="text-white font-bold text-lg">B</span>
-                </div>
-                <span className="text-xl font-bold text-gray-900">BreedHub</span>
+              <Link to="/" className="flex items-center group">
+                {variant === 'transparent' && !isScrolled ? (
+                  <LogoTextWhite className="h-8 w-auto transition-opacity group-hover:opacity-80" />
+                ) : (
+                  <LogoText className="h-8 w-auto transition-opacity group-hover:opacity-80" />
+                )}
               </Link>
             </div>
 
             {/* Desktop Menu */}
             <div className="hidden lg:flex items-center space-x-8">
               <div className="flex items-center space-x-1">
-                <Link
-                  to="/"
-                  className={cn(
-                    'px-4 py-2 text-sm font-medium rounded-md transition-colors duration-200',
-                    location.pathname === '/'
-                      ? 'text-primary-600 bg-primary-50'
-                      : 'text-gray-700 hover:text-primary-600 hover:bg-gray-50'
-                  )}
-                >
-                  Home
-                </Link>
-                
                 <DropdownMenu label="Product" items={productDropdownItems} />
                 
                 <Link
@@ -321,12 +311,7 @@ export default function LandingMenuAdvanced({ className, variant = 'default' }: 
         >
           {/* Sidebar Header */}
           <div className="flex items-center justify-between p-4 border-b">
-            <div className="flex items-center space-x-2">
-              <div className="h-8 w-8 bg-primary-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-lg">B</span>
-              </div>
-              <span className="text-xl font-bold text-gray-900">BreedHub</span>
-            </div>
+            <LogoText className="h-8 w-auto" />
             <Button
               variant="ghost"
               size="sm"

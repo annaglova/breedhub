@@ -12,7 +12,7 @@ export default function LandingLayout({ children }: LandingLayoutProps) {
   return (
     <div className="min-h-screen flex flex-col w-full">
       <LandingMenu />
-      <main className="flex-1 flex flex-col pt-16">{children}</main>
+      <main className="flex-1 flex flex-col ">{children}</main>
       <Footer />
     </div>
   );

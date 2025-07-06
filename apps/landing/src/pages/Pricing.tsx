@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import Footer from "@/components/Footer";
+import LandingLayout from "@/layouts/LandingLayout";
 import TierSelector from "@/components/TierSelector";
 import FeatureBlock from "@/components/FeatureBlock";
 import FeatureTier from "@/components/FeatureTier";
@@ -33,16 +33,17 @@ export default function Pricing() {
   ];
 
   return (
-    <div className="relative min-h-screen bg-white overflow-hidden">
-      {/* Background SVG */}
-      <div className="absolute top-0 right-0 w-full h-full pointer-events-none">
-        <HeaderFigure className="absolute top-[-20%] right-[-30%] w-[150%] h-auto opacity-50" />
-      </div>
+    <LandingLayout>
+      <div className="relative bg-white overflow-hidden">
+        {/* Background SVG */}
+        <div className="absolute top-0 right-0 w-full h-full pointer-events-none">
+          <HeaderFigure className="absolute top-[-20%] right-[-30%] w-[150%] h-auto opacity-50" />
+        </div>
 
-      {/* Content */}
-      <div className="relative z-10">
-        {/* Header */}
-        <div className="container mx-auto px-6 py-20 text-center">
+        {/* Content */}
+        <div className="relative z-10">
+          {/* Header */}
+          <div className="container mx-auto px-6 py-20 text-center">
           <h1 className="text-5xl md:text-6xl font-bold mb-6">
             Choose Your Plan
           </h1>
@@ -194,9 +195,8 @@ export default function Pricing() {
           </div>
         </div>
 
-        {/* Footer */}
-        <Footer />
+        </div>
       </div>
-    </div>
+    </LandingLayout>
   );
 }
