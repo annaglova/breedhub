@@ -221,7 +221,7 @@ export default function Landing() {
           padding: 0 0 5px 1rem !important;
         }
       `}</style>
-      <div className="pb-26 relative flex w-full min-w-[100vw] flex-col items-center justify-center overflow-hidden bg-white">
+      <div className="pb-20 relative flex w-full min-w-[100vw] flex-col items-center justify-center overflow-hidden">
         {/* SVG/фон */}
         <div className="right-[-30vw] top-[-13vw] w-full md:right-[-47vw] md:top-[-17vw] xxl:top-[-25vw] xxxl:top-[-32vw] absolute">
           <LandingFigure style={{ width: "80%" }} />

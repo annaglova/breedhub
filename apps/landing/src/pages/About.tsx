@@ -5,7 +5,7 @@ import LandingLayout from "@/layouts/LandingLayout";
 export default function About() {
   return (
     <LandingLayout>
-      <div className="pb-26 relative flex min-h-[calc(100vh-197px)] w-full min-w-[100vw] flex-col overflow-hidden bg-white">
+      <div className="pb-20 relative flex min-h-[calc(100vh-197px)] w-full min-w-[100vw] flex-col overflow-hidden">
         {/* Background */}
         <div className="xxl:top-[-64vw] absolute right-[-7vw] top-[-23vw] w-full md:right-[-10vw] md:top-[-47vw] lg:top-[-59vw]">
           <LandingFigure style={{ width: "100vw" }} />
@@ -27,7 +27,7 @@ export default function About() {
                 involved in this sphere. And we like to give the best Service
                 for breeders and dog fans.
               </p>
-              <h2 className="text-primary pb-4 pt-1">
+              <h2 className="text-primary pb-4 pt-1 text-center">
                 Our mission is a popularisation of professional breeding
               </h2>
               <p className="leading-8">

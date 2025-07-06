@@ -1,0 +1,144 @@
+html {
+  font-size: 15px; /* базово — маленькі екрани */
+}
+
+@media (max-width: 639.98px) {
+  /* Телефони */
+  html {
+    font-size: 15px;
+  }
+}
+@media (min-width: 640px) and (max-width: 767.98px) {
+  /* Великі телефони/маленькі планшети */
+  html {
+    font-size: 16px;
+  }
+}
+@media (min-width: 768px) and (max-width: 1023.98px) {
+  /* Планшети */
+  html {
+    font-size: 17px;
+  }
+}
+@media (min-width: 1024px) and (max-width: 1279.98px) {
+  /* Маленькі ноутбуки, великі планшети */
+  html {
+    font-size: 16px;
+  }
+}
+@media (min-width: 1280px) and (max-width: 1535.98px) {
+  /* Стандартні десктопи */
+  html {
+    font-size: 15px;
+  }
+}
+@media (min-width: 1536px) and (max-width: 1959.98px) {
+  /* Великі десктопи */
+  html {
+    font-size: 14.2px;
+  }
+}
+@media (min-width: 1960px) {
+  /* Дуже великі монітори */
+  html {
+    font-size: 13px;
+  }
+}
+
+h1,
+h2,
+h3 {
+  font-family: "Roboto", Arial, sans-serif;
+  font-weight: 500;
+  letter-spacing: 0.015em;
+}
+
+/* H1 */
+h1 {
+  line-height: 1.1;
+  font-size: 2rem; /* mobile, ~32px */
+  font-weight: 600;
+}
+@media (min-width: 480px) {
+  h1 {
+    font-size: 2.2rem; /* трохи більше для середніх мобілок */
+  }
+}
+@media (min-width: 640px) {
+  h1 {
+    font-size: 2.6rem; /* sm/tablet */
+  }
+}
+@media (min-width: 1024px) {
+  h1 {
+    font-size: 3.2rem; /* desktop */
+  }
+}
+@media (min-width: 1440px) {
+  h1 {
+    font-size: 3.6rem; /* великий десктоп */
+  }
+}
+
+/* H2 */
+h2 {
+  line-height: 1.15;
+  font-size: 1.3rem; /* mobile */
+  font-weight: 500;
+}
+@media (min-width: 480px) {
+  h2 {
+    font-size: 1.5rem;
+  }
+}
+@media (min-width: 640px) {
+  h2 {
+    font-size: 1.8rem; /* sm/tablet */
+  }
+}
+@media (min-width: 1024px) {
+  h2 {
+    font-size: 2.1rem; /* desktop */
+  }
+}
+@media (min-width: 1440px) {
+  h2 {
+    font-size: 2.3rem; /* великий десктоп */
+  }
+}
+
+/* H3 */
+h3 {
+  line-height: 1.2;
+  font-size: 1rem; /* mobile */
+  font-weight: 500;
+}
+@media (min-width: 480px) {
+  h3 {
+    font-size: 1.13rem;
+  }
+}
+@media (min-width: 640px) {
+  h3 {
+    font-size: 1.28rem; /* sm/tablet */
+  }
+}
+@media (min-width: 1024px) {
+  h3 {
+    font-size: 1.5rem; /* desktop */
+  }
+}
+@media (min-width: 1440px) {
+  h3 {
+    font-size: 1.7rem; /* великий десктоп */
+  }
+}
+
+/* Приклад контейнера */
+.container {
+  max-width: 1280px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+}
