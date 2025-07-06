@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@ui/components/button';
 import { cn } from '@/utils';
+import LogoText from '@shared/icons/logo/logo-text.svg?react';
 
 interface MenuItemProps {
   to: string;
@@ -43,6 +44,9 @@ export default function LandingMenu({ className }: LandingMenuProps) {
       setIsScrolled(window.scrollY > 10);
     };
 
+    // Check initial scroll position
+    handleScroll();
+
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
@@ -54,7 +58,6 @@ export default function LandingMenu({ className }: LandingMenuProps) {
   }, [location]);
 
   const menuItems = [
-    { to: '/', label: 'Home' },
     { to: '/product', label: 'Product' },
     { to: '/pricing', label: 'Pricing' },
     { to: '/about', label: 'About' },
@@ -70,19 +73,20 @@ export default function LandingMenu({ className }: LandingMenuProps) {
       <nav
         className={cn(
           'fixed top-0 left-0 right-0 z-50 transition-all duration-300',
-          isScrolled ? 'bg-white/95 backdrop-blur-sm shadow-md' : 'bg-transparent',
           className
         )}
+        style={{
+          backgroundColor: isScrolled ? 'rgba(255, 255, 255, 0.95)' : 'transparent',
+          backdropFilter: isScrolled ? 'blur(8px)' : 'none',
+          boxShadow: isScrolled ? '0 4px 6px -1px rgba(0, 0, 0, 0.1)' : 'none'
+        }}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
             <div className="flex items-center">
-              <Link to="/" className="flex items-center space-x-2">
-                <div className="h-8 w-8 bg-primary-600 rounded-lg flex items-center justify-center">
-                  <span className="text-white font-bold text-lg">B</span>
-                </div>
-                <span className="text-xl font-bold text-gray-900">BreedHub</span>
+              <Link to="/" className="flex items-center">
+                <LogoText className="h-8 w-auto" />
               </Link>
             </div>
 
@@ -167,12 +171,7 @@ export default function LandingMenu({ className }: LandingMenuProps) {
         >
           {/* Sidebar Header */}
           <div className="flex items-center justify-between p-4 border-b">
-            <div className="flex items-center space-x-2">
-              <div className="h-8 w-8 bg-primary-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-lg">B</span>
-              </div>
-              <span className="text-xl font-bold text-gray-900">BreedHub</span>
-            </div>
+            <LogoText className="h-8 w-auto" />
             <Button
               variant="ghost"
               size="sm"

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import Footer from "@/components/Footer";
+import LandingLayout from "@/layouts/LandingLayout";
 import FeatureBlock from "@/components/FeatureBlock";
 import LandingFigure from "@/assets/backgrounds/landing-figure.svg?react";
 import type { PublicProductService } from "@/components/FeatureBlock";
@@ -167,16 +167,17 @@ export default function Product() {
   }, []);
 
   return (
-    <div className="relative min-h-screen bg-white overflow-hidden">
-      {/* Background SVG */}
-      <div className="absolute right-[-30vw] top-[-13vw] w-full md:right-[-47vw] md:top-[-17vw] xxl:top-[-25vw] xxxl:top-[-32vw]">
-        <LandingFigure style={{ width: "80%" }} />
-      </div>
+    <LandingLayout>
+      <div className="relative bg-white overflow-hidden">
+        {/* Background SVG */}
+        <div className="absolute right-[-30vw] top-[-13vw] w-full md:right-[-47vw] md:top-[-17vw] xxl:top-[-25vw] xxxl:top-[-32vw]">
+          <LandingFigure style={{ width: "80%" }} />
+        </div>
 
-      {/* Content */}
-      <div className="relative z-10">
-        {/* Header Section */}
-        <div className="container mx-auto px-6 py-20 text-center">
+        {/* Content */}
+        <div className="relative z-10">
+          {/* Header Section */}
+          <div className="container mx-auto px-6 py-20 text-center">
           <h1 className="text-5xl md:text-6xl font-bold mb-6">
             Everything You Need for
             <span className="text-primary-500"> Professional </span>
@@ -262,9 +263,8 @@ export default function Product() {
           </div>
         </div>
 
-        {/* Footer */}
-        <Footer />
+        </div>
       </div>
-    </div>
+    </LandingLayout>
   );
 }
