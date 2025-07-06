@@ -3,7 +3,10 @@ import { Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Button, Input, Label, Alert } from 'ui';
+import { Button } from '@ui/components/button';
+import { Input } from '@ui/components/input';
+import { Label } from '@ui/components/label';
+import { Alert } from '@ui/components/alert';
 import { useAuth } from '@/core/auth';
 
 const loginSchema = z.object({

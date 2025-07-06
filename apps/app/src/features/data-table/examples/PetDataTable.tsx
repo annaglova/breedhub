@@ -1,6 +1,8 @@
 import React from 'react';
 import { type ColumnDef } from '@tanstack/react-table';
-import { Badge, Avatar, Button } from 'ui';
+import { Badge } from '@ui/components/badge';
+import { Avatar } from '@ui/components/avatar';
+import { Button } from '@ui/components/button';
 import { 
   DataTable, 
   DataTableRowActions, 

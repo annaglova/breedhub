@@ -1,16 +1,16 @@
 import React from 'react';
 import { type Table } from '@tanstack/react-table';
+import { Button } from '@ui/components/button';
+import { Input } from '@ui/components/input';
+import { Badge } from '@ui/components/badge';
 import {
-  Button,
-  Input,
-  Badge,
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-  Checkbox,
-} from 'ui';
+} from '@ui/components/dialog';
+import { Checkbox } from '@ui/components/checkbox';
 import { cn } from '@/shared/utils';
 
 interface DataTableToolbarProps<TData> {

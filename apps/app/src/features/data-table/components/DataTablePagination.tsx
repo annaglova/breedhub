@@ -1,13 +1,13 @@
 import React from 'react';
 import { type Table } from '@tanstack/react-table';
+import { Button } from '@ui/components/button';
 import {
-  Button,
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from 'ui';
+} from '@ui/components/select';
 import { cn } from '@/shared/utils';
 
 interface DataTablePaginationProps<TData> {

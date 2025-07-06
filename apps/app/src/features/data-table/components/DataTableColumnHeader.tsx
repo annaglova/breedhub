@@ -1,6 +1,6 @@
 import React from 'react';
 import { type Column } from '@tanstack/react-table';
-import { Button } from 'ui';
+import { Button } from '@ui/components/button';
 import { cn } from '@/shared/utils';
 
 interface DataTableColumnHeaderProps<TData, TValue> {

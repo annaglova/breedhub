@@ -9,7 +9,7 @@ import {
   TableRow,
   TableEmpty,
   TableSkeleton,
-} from 'ui';
+} from '@ui/components/table';
 import { cn } from '@/shared/utils';
 import { useDataTable, type DataTableConfig } from '../hooks/useDataTable';
 import { DataTablePagination } from './DataTablePagination';
