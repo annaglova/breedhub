@@ -10,11 +10,13 @@ import Cookie from "@/pages/Cookie";
 import Payment from "@/pages/Payment";
 import Prepayments from "@/pages/Prepayments";
 import NotFound from "@/pages/NotFound";
+import ScrollToTop from "@/components/ScrollToTop";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 
 export default function LandingRouter() {
   return (
     <BrowserRouter>
+      <ScrollToTop />
       <Routes>
         {/* Main pages */}
         <Route path="/" element={<Landing />} />
