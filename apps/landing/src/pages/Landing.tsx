@@ -221,14 +221,13 @@ export default function Landing() {
           padding: 0 0 5px 1rem !important;
         }
       `}</style>
-      <div className="pb-20 relative flex w-full min-w-[100vw] flex-col items-center justify-center overflow-hidden">
+      <div className="relative flex w-full min-w-[100vw] flex-col items-center justify-center overflow-hidden">
         {/* SVG/фон */}
         <div className="right-[-30vw] top-[-13vw] w-full md:right-[-47vw] md:top-[-17vw] xxl:top-[-25vw] xxxl:top-[-32vw] absolute">
           <LandingFigure style={{ width: "80%" }} />
-          {/* <LandingFigure className="w-4/5" /> */}
         </div>
         {/* Page space */}
-        <div className="max-w-11xl relative mt-8 flex w-full min-w-0 flex-auto flex-col items-center px-6 lg:px-40 sm:px-10">
+        <div className="max-w-11xl relative mt-16 flex w-full min-w-0 flex-auto flex-col items-center px-6 lg:px-40 sm:px-10">
           {/* General info */}
           <div className="flex flex-col md:space-x-18 md:pl-22 md:flex-row md:border-l">
             <div className="order-2 flex w-[100%] flex-col justify-center space-y-8 md:order-1 md:w-[70%] sm:space-y-12">
