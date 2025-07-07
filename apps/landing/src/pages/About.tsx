@@ -5,7 +5,7 @@ import LandingLayout from "@/layouts/LandingLayout";
 export default function About() {
   return (
     <LandingLayout>
-      <div className="pb-20 relative flex min-h-[calc(100vh-197px)] w-full min-w-[100vw] flex-col overflow-hidden">
+      <div className="pb-20 relative overflow-hidden">
         {/* Background */}
         <div className="xxl:top-[-64vw] absolute right-[-7vw] top-[-23vw] w-full md:right-[-10vw] md:top-[-47vw] lg:top-[-59vw]">
           <LandingFigure style={{ width: "100vw" }} />

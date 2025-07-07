@@ -77,7 +77,7 @@ export default function LandingMenu({ className }: LandingMenuProps) {
         )}
         style={{
           backgroundColor: isScrolled
-            ? "rgba(255, 255, 255, 0.85)"
+            ? "rgba(255, 255, 255, 0.65)"
             : "transparent",
           backdropFilter: isScrolled ? "blur(8px)" : "none",
           boxShadow: isScrolled ? "0 4px 6px -1px rgba(0, 0, 0, 0.1)" : "none",
