@@ -187,7 +187,7 @@ export default function Product() {
         </div>
         {/* Content */}
         <div className="flex flex-col items-center justify-center pt-14 sm:pt-32">
-          <div className="max-w-screen px-6 sm:px-10 md:max-w-6xl lg:px-0">
+          <div className="landing-content-container">
             {/* Header Section */}
             <div className="relative space-y-3 text-center">
               <h1>

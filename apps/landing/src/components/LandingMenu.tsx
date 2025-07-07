@@ -10,7 +10,12 @@ interface MenuItemProps {
   onClick?: () => void;
 }
 
-const MenuItem: React.FC<MenuItemProps> = ({ to, label, onClick }) => {
+const MenuItem: React.FC<MenuItemProps & { isScrolled?: boolean }> = ({
+  to,
+  label,
+  onClick,
+  isScrolled,
+}) => {
   const location = useLocation();
   const isActive = location.pathname === to;
 
@@ -19,11 +24,18 @@ const MenuItem: React.FC<MenuItemProps> = ({ to, label, onClick }) => {
       to={to}
       onClick={onClick}
       className={cn(
-        "px-4 py-2 text-sm font-medium rounded-md transition-colors duration-200",
+        "px-4 py-2 text-base font-medium rounded-full transition-all duration-200",
         isActive
-          ? "text-primary-600 bg-primary-50"
+          ? "text-primary-600"
           : "text-gray-700 hover:text-primary-600 hover:bg-gray-50"
       )}
+      style={{
+        backgroundColor: isActive
+          ? isScrolled
+            ? "rgb(237 231 246)" // primary-50 full opacity
+            : "rgba(237, 231, 246, 0.75)" // primary-50 with 75% opacity
+          : "transparent",
+      }}
     >
       {label}
     </Link>
@@ -57,10 +69,11 @@ export default function LandingMenu({ className }: LandingMenuProps) {
     setIsMobileMenuOpen(false);
   }, [location]);
 
-  const menuItems = [
-    { to: "/product", label: "Product" },
-    { to: "/pricing", label: "Pricing" },
-    { to: "/about", label: "About" },
+  const spaceItems = [
+    { to: "/pets", label: "Pets" },
+    { to: "/litters", label: "Litters" },
+    { to: "/kennels", label: "Kennels" },
+    { to: "/breeds", label: "Breeds" },
   ];
 
   const toggleMobileMenu = () => {
@@ -73,6 +86,8 @@ export default function LandingMenu({ className }: LandingMenuProps) {
       <nav
         className={cn(
           "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
+          isMobileMenuOpen &&
+            "md:opacity-100 opacity-30 pointer-events-none md:pointer-events-auto",
           className
         )}
         style={{
@@ -83,68 +98,109 @@ export default function LandingMenu({ className }: LandingMenuProps) {
           boxShadow: isScrolled ? "0 4px 6px -1px rgba(0, 0, 0, 0.1)" : "none",
         }}
       >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            {/* Logo */}
-            <div className="flex items-center">
-              <Link to="/" className="flex items-center">
-                <LogoText className="h-8 w-auto" />
-              </Link>
-            </div>
+        <div className="flex items-center justify-between h-16 px-4 sm:px-6 lg:px-8">
+          {/* Logo - Fixed position */}
+          <div className="flex items-center">
+            <Link to="/" className="flex items-center">
+              <LogoText className="h-8 w-auto" />
+            </Link>
+          </div>
 
-            {/* Desktop Menu */}
-            <div className="hidden md:flex items-center space-x-8">
+          {/* Desktop Menu - Different layout based on screen size */}
+          <div className="hidden md:flex items-center">
+            {/* Menu for screens < 1536px - standard layout */}
+            <div className="2xl:hidden flex items-center space-x-8">
+              {/* Menu items */}
               <div className="flex items-center space-x-1">
-                {menuItems.map((item) => (
-                  <MenuItem key={item.to} to={item.to} label={item.label} />
-                ))}
+                <MenuItem
+                  to="/product"
+                  label="Product"
+                  isScrolled={isScrolled}
+                />
+                <MenuItem
+                  to="/pricing"
+                  label="Pricing"
+                  isScrolled={isScrolled}
+                />
+                <MenuItem to="/about" label="About" isScrolled={isScrolled} />
               </div>
-
-              {/* Auth Buttons */}
-              <div className="flex items-center space-x-3 ml-6">
+              
+              {/* Auth buttons */}
+              <div className="flex items-center space-x-3">
                 <a href="/app">
-                  <Button variant="ghost" size="sm">
+                  <Button
+                    variant="outline"
+                    className="rounded-full border-gray-300 text-gray-500 hover:border-gray-400 hover:text-gray-600 text-base px-5 py-2"
+                  >
                     Sign In
                   </Button>
                 </a>
                 <Link to="/pricing">
-                  <Button size="sm">Get Started</Button>
+                  <Button className="rounded-full text-base px-5 py-2">
+                    Get Started
+                  </Button>
                 </Link>
               </div>
             </div>
-
-            {/* Mobile Menu Button */}
-            <div className="md:hidden">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={toggleMobileMenu}
-                className="p-2"
-              >
-                <svg
-                  className="h-6 w-6"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  {isMobileMenuOpen ? (
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M6 18L18 6M6 6l12 12"
-                    />
-                  ) : (
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M4 6h16M4 12h16M4 18h16"
-                    />
-                  )}
-                </svg>
-              </Button>
+            
+            {/* Menu for screens >= 1536px (2xl) - container-based layout */}
+            <div className="hidden 2xl:flex items-center justify-center absolute left-0 right-0">
+              <div className="landing-content-container">
+                <div className="flex items-center justify-end space-x-1">
+                  <MenuItem
+                    to="/product"
+                    label="Product"
+                    isScrolled={isScrolled}
+                  />
+                  <MenuItem
+                    to="/pricing"
+                    label="Pricing"
+                    isScrolled={isScrolled}
+                  />
+                  <MenuItem to="/about" label="About" isScrolled={isScrolled} />
+                </div>
+              </div>
             </div>
+          </div>
+          
+          {/* Auth Buttons for 2xl screens - Fixed position */}
+          <div className="hidden 2xl:flex items-center space-x-3">
+            <a href="/app">
+              <Button
+                variant="outline"
+                className="rounded-full border-gray-300 text-gray-500 hover:border-gray-400 hover:text-gray-600 text-base px-5 py-2"
+              >
+                Sign In
+              </Button>
+            </a>
+            <Link to="/pricing">
+              <Button className="rounded-full text-base px-5 py-2">
+                Get Started
+              </Button>
+            </Link>
+          </div>
+
+          {/* Mobile Menu Button */}
+          <div className="md:hidden">
+            <button
+              onClick={toggleMobileMenu}
+              className="p-2 text-gray-700 hover:text-primary-600 transition-colors focus:outline-none"
+              aria-label="Toggle menu"
+            >
+              <svg
+                className="h-6 w-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 6h16M4 12h16M4 18h16"
+                />
+              </svg>
+            </button>
           </div>
         </div>
       </nav>
@@ -152,7 +208,7 @@ export default function LandingMenu({ className }: LandingMenuProps) {
       {/* Mobile Sidebar */}
       <div
         className={cn(
-          "fixed inset-0 z-40 md:hidden transition-opacity duration-300",
+          "fixed inset-0 z-[60] md:hidden transition-opacity duration-300",
           isMobileMenuOpen
             ? "opacity-100 pointer-events-auto"
             : "opacity-0 pointer-events-none"
@@ -170,15 +226,29 @@ export default function LandingMenu({ className }: LandingMenuProps) {
             "absolute right-0 top-0 h-full w-64 bg-white shadow-xl transform transition-transform duration-300",
             isMobileMenuOpen ? "translate-x-0" : "translate-x-full"
           )}
+          style={{
+            backgroundColor: "white",
+            opacity: 1,
+          }}
         >
           {/* Sidebar Header */}
-          <div className="flex items-center justify-between p-4 border-b">
-            <LogoText className="h-8 w-auto" />
-            <Button
-              variant="ghost"
-              size="sm"
+          <div className="flex items-center justify-between p-4 border-b bg-gray-50">
+            <Link
+              to="/"
               onClick={() => setIsMobileMenuOpen(false)}
-              className="p-1"
+              className="block"
+            >
+              <h2 className="text-xl font-bold text-primary-600 hover:text-primary-700 transition-colors">
+                Breedhub
+              </h2>
+              <p className="text-xs text-gray-500 uppercase tracking-wider">
+                Menu
+              </p>
+            </Link>
+            <button
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="p-2 text-gray-500 hover:text-gray-700 transition-colors rounded-md hover:bg-gray-200"
+              aria-label="Close menu"
             >
               <svg
                 className="h-5 w-5"
@@ -193,26 +263,124 @@ export default function LandingMenu({ className }: LandingMenuProps) {
                   d="M6 18L18 6M6 6l12 12"
                 />
               </svg>
-            </Button>
+            </button>
           </div>
 
           {/* Sidebar Navigation */}
-          <nav className="flex flex-col p-4 space-y-1">
-            {menuItems.map((item) => (
-              <Link
-                key={item.to}
-                to={item.to}
-                onClick={() => setIsMobileMenuOpen(false)}
-                className={cn(
-                  "px-4 py-3 text-base font-medium rounded-md transition-colors duration-200",
-                  location.pathname === item.to
-                    ? "text-primary-600 bg-primary-50"
-                    : "text-gray-700 hover:text-primary-600 hover:bg-gray-50"
-                )}
-              >
-                {item.label}
-              </Link>
-            ))}
+          <nav className="flex flex-col p-4 space-y-6">
+            {/* Services section */}
+            <div>
+              <p className="px-4 pb-2 text-xs font-bold text-gray-400 uppercase tracking-wider">
+                Services
+              </p>
+              <div className="space-y-1">
+                <Link
+                  to="/product"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className={cn(
+                    "block px-4 py-2 ml-2 text-sm font-medium rounded-md transition-colors duration-200",
+                    location.pathname === "/product"
+                      ? "text-primary-600 bg-primary-50"
+                      : "text-gray-700 hover:text-primary-600 hover:bg-gray-50"
+                  )}
+                >
+                  Product
+                </Link>
+                <Link
+                  to="/pricing"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className={cn(
+                    "block px-4 py-2 ml-2 text-sm font-medium rounded-md transition-colors duration-200",
+                    location.pathname === "/pricing"
+                      ? "text-primary-600 bg-primary-50"
+                      : "text-gray-700 hover:text-primary-600 hover:bg-gray-50"
+                  )}
+                >
+                  Pricing
+                </Link>
+                <Link
+                  to="/app"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className={cn(
+                    "block px-4 py-2 ml-2 text-sm font-medium rounded-md transition-colors duration-200",
+                    location.pathname === "/app"
+                      ? "text-primary-600 bg-primary-50"
+                      : "text-gray-700 hover:text-primary-600 hover:bg-gray-50"
+                  )}
+                >
+                  App
+                </Link>
+                <Link
+                  to="/about"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className={cn(
+                    "block px-4 py-2 ml-2 text-sm font-medium rounded-md transition-colors duration-200",
+                    location.pathname === "/about"
+                      ? "text-primary-600 bg-primary-50"
+                      : "text-gray-700 hover:text-primary-600 hover:bg-gray-50"
+                  )}
+                >
+                  About
+                </Link>
+              </div>
+            </div>
+
+            {/* Spaces section */}
+            <div>
+              <p className="px-4 pb-2 text-xs font-bold text-gray-400 uppercase tracking-wider">
+                Spaces
+              </p>
+              <div className="space-y-1">
+                {spaceItems.map((item) => (
+                  <Link
+                    key={item.to}
+                    to={item.to}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className={cn(
+                      "block px-4 py-2 ml-2 text-sm font-medium rounded-md transition-colors duration-200",
+                      location.pathname === item.to
+                        ? "text-primary-600 bg-primary-50"
+                        : "text-gray-700 hover:text-primary-600 hover:bg-gray-50"
+                    )}
+                  >
+                    {item.label}
+                  </Link>
+                ))}
+              </div>
+            </div>
+
+            {/* Terms section */}
+            <div>
+              <p className="px-4 pb-2 text-xs font-bold text-gray-400 uppercase tracking-wider">
+                Terms
+              </p>
+              <div className="space-y-1">
+                <Link
+                  to="/terms-and-conditions"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className={cn(
+                    "block px-4 py-2 ml-2 text-sm font-medium rounded-md transition-colors duration-200",
+                    location.pathname === "/terms-and-conditions"
+                      ? "text-primary-600 bg-primary-50"
+                      : "text-gray-700 hover:text-primary-600 hover:bg-gray-50"
+                  )}
+                >
+                  Terms & Conditions
+                </Link>
+                <Link
+                  to="/privacy-policy"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className={cn(
+                    "block px-4 py-2 ml-2 text-sm font-medium rounded-md transition-colors duration-200",
+                    location.pathname === "/privacy-policy"
+                      ? "text-primary-600 bg-primary-50"
+                      : "text-gray-700 hover:text-primary-600 hover:bg-gray-50"
+                  )}
+                >
+                  Privacy Policy
+                </Link>
+              </div>
+            </div>
           </nav>
 
           {/* Sidebar Auth Buttons */}

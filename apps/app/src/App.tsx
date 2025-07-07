@@ -10,15 +10,17 @@ import "./App.css";
 
 function App() {
   return (
-    <Provider store={store}>
-      <QueryClientProvider client={queryClient}>
-        <AuthProvider>
-          <ViewportProvider>
-            <AppRouter />
-          </ViewportProvider>
-        </AuthProvider>
-      </QueryClientProvider>
-    </Provider>
+    <div data-theme="prime">
+      <Provider store={store}>
+        <QueryClientProvider client={queryClient}>
+          <AuthProvider>
+            <ViewportProvider>
+              <AppRouter />
+            </ViewportProvider>
+          </AuthProvider>
+        </QueryClientProvider>
+      </Provider>
+    </div>
   );
 }
 
