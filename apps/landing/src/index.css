@@ -5,3 +5,13 @@
 @import "@shared/theme/tailwind.base.css";
 @import "@shared/theme/global.css";
 @import "./tailwind.landing.css";
+
+/* Hide cursor on landing pages */
+.no-cursor,
+.no-cursor * {
+  cursor: none !important;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
