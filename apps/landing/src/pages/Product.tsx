@@ -182,100 +182,99 @@ export default function Product() {
     <LandingLayout>
       <div className="relative overflow-hidden">
         {/* Background SVG */}
-        <div className="absolute right-[-30vw] top-[-13vw] w-full md:right-[-47vw] md:top-[-17vw] xxl:top-[-25vw] xxxl:top-[-32vw]">
-          <LandingFigure style={{ width: "80%" }} />
+        <div className="absolute right-[-7vw] top-[-23vw] w-full md:right-[-17vw] md:top-[-27vw] xxl:top-[-35vw] xxxl:top-[-42vw] -z-1">
+          <LandingFigure style={{ width: "100%" }} />
         </div>
-
         {/* Content */}
-        <div className="relative z-10">
-          {/* Header Section */}
-          <div className="container mx-auto px-6 py-20 text-center">
-            <h1>
-              Everything You Need for
-              <span className="text-white"> Professional </span>
-              Breeding
-            </h1>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Discover the comprehensive suite of tools designed to streamline
-              your breeding program, connect with the community, and grow your
-              kennel's success.
-            </p>
-          </div>
-
-          {/* Features Section */}
-          <div className="container mx-auto px-6 pb-20">
-            {isLoading ? (
-              <div className="text-center py-20">
-                <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500"></div>
-                <p className="mt-4 text-gray-600">Loading features...</p>
-              </div>
-            ) : (
-              <div className="space-y-16">
-                {services.map((service) => (
-                  <FeatureBlock key={service.id} service={service} />
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* CTA Section */}
-          <div className="bg-gradient-to-r from-primary-50 to-pink-50 py-20">
-            <div className="container mx-auto px-6 text-center">
-              <h2 className="text-4xl font-bold mb-6">
-                Ready to Transform Your Breeding Program?
-              </h2>
-              <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
-                Join thousands of professional breeders who are already using
-                BreedHub to manage their breeding programs more efficiently.
+        <div className="flex flex-col items-center justify-center pt-14 sm:pt-32">
+          <div className="max-w-screen px-6 sm:px-10 md:max-w-6xl lg:px-0">
+            {/* Header Section */}
+            <div className="relative space-y-3 text-center">
+              <h1>
+                Everything You Need for
+                <span className="text-white"> Professional </span>
+                Breeding
+              </h1>
+              <p className="text-2xl text-gray-600 xl:text-white max-w-3xl mx-auto mt-2">
+                Discover the comprehensive suite of tools designed to streamline
+                your breeding program, connect with the community, and grow your
+                kennel's success
               </p>
-              <div className="flex justify-center gap-4">
-                <Link to="/pricing">
-                  <button className="bg-primary-500 hover:bg-primary-600 text-white font-bold py-4 px-8 rounded-xl shadow-lg transition duration-200">
-                    View Pricing
-                  </button>
-                </Link>
-                <Link to="/app">
-                  <button className="bg-white hover:bg-gray-50 text-primary-500 font-bold py-4 px-8 rounded-xl shadow-lg transition duration-200 border-2 border-primary-500">
-                    Try Free Forever
-                  </button>
-                </Link>
-              </div>
+            </div>
+
+            {/* Features Section */}
+            <div className="mx-auto pb-20 sm:mt-22  mt-14  rounded-2xl bg-white/50 px-8 py-10">
+              {isLoading ? (
+                <div className="text-center py-20">
+                  <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500"></div>
+                  <p className="mt-4 text-gray-600">Loading features...</p>
+                </div>
+              ) : (
+                <div className="space-y-16">
+                  {services.map((service) => (
+                    <FeatureBlock key={service.id} service={service} />
+                  ))}
+                </div>
+              )}
             </div>
           </div>
-
-          {/* Additional Info Section */}
-          <div className="container mx-auto px-6 py-20">
-            <div className="grid md:grid-cols-3 gap-8">
-              <div className="text-center">
-                <div className="bg-primary-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                  <i className="pi pi-shield text-primary-500 text-2xl" />
-                </div>
-                <h3 className="text-xl font-bold mb-2">Secure & Private</h3>
-                <p className="text-gray-600">
-                  Your data is protected with enterprise-grade security. Control
-                  who sees what.
-                </p>
+        </div>{" "}
+        {/* CTA Section */}
+        <div className="bg-gradient-to-r from-primary-50 to-pink-50 py-20">
+          <div className="container mx-auto px-6 text-center">
+            <h2 className="text-4xl font-bold mb-6">
+              Ready to Transform Your Breeding Program?
+            </h2>
+            <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
+              Join thousands of professional breeders who are already using
+              BreedHub to manage their breeding programs more efficiently.
+            </p>
+            <div className="flex justify-center gap-4">
+              <Link to="/pricing">
+                <button className="bg-primary-500 hover:bg-primary-600 text-white font-bold py-4 px-8 rounded-xl shadow-lg transition duration-200">
+                  View Pricing
+                </button>
+              </Link>
+              <Link to="/app">
+                <button className="bg-white hover:bg-gray-50 text-primary-500 font-bold py-4 px-8 rounded-xl shadow-lg transition duration-200 border-2 border-primary-500">
+                  Try Free Forever
+                </button>
+              </Link>
+            </div>
+          </div>
+        </div>
+        {/* Additional Info Section */}
+        <div className="container mx-auto px-6 py-20">
+          <div className="grid md:grid-cols-3 gap-8">
+            <div className="text-center">
+              <div className="bg-primary-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                <i className="pi pi-shield text-primary-500 text-2xl" />
               </div>
-              <div className="text-center">
-                <div className="bg-green-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                  <i className="pi pi-mobile text-green-500 text-2xl" />
-                </div>
-                <h3 className="text-xl font-bold mb-2">Mobile Ready</h3>
-                <p className="text-gray-600">
-                  Access your data anywhere with our mobile-optimized
-                  progressive web app.
-                </p>
+              <h3 className="text-xl font-bold mb-2">Secure & Private</h3>
+              <p className="text-gray-600">
+                Your data is protected with enterprise-grade security. Control
+                who sees what.
+              </p>
+            </div>
+            <div className="text-center">
+              <div className="bg-green-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                <i className="pi pi-mobile text-green-500 text-2xl" />
               </div>
-              <div className="text-center">
-                <div className="bg-purple-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                  <i className="pi pi-users text-purple-500 text-2xl" />
-                </div>
-                <h3 className="text-xl font-bold mb-2">Community Driven</h3>
-                <p className="text-gray-600">
-                  Built by breeders, for breeders. Your feedback shapes our
-                  development.
-                </p>
+              <h3 className="text-xl font-bold mb-2">Mobile Ready</h3>
+              <p className="text-gray-600">
+                Access your data anywhere with our mobile-optimized progressive
+                web app.
+              </p>
+            </div>
+            <div className="text-center">
+              <div className="bg-purple-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                <i className="pi pi-users text-purple-500 text-2xl" />
               </div>
+              <h3 className="text-xl font-bold mb-2">Community Driven</h3>
+              <p className="text-gray-600">
+                Built by breeders, for breeders. Your feedback shapes our
+                development.
+              </p>
             </div>
           </div>
         </div>
