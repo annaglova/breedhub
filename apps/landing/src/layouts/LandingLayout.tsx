@@ -10,7 +10,7 @@ interface LandingLayoutProps {
 
 export default function LandingLayout({ children }: LandingLayoutProps) {
   return (
-    <div className="min-h-screen flex flex-col w-full landing-cursor">
+    <div className="min-h-screen flex flex-col w-full landing-cursor" data-theme="prime">
       <LandingMenu />
       <main className="flex-1 flex flex-col ">{children}</main>
       <Footer />

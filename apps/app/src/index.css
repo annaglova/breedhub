@@ -4,4 +4,5 @@
 
 @import "@shared/theme/tailwind.base.css";
 @import "@shared/theme/global.css";
+@import "@shared/theme/custom-theme.css";
 @import "./tailwind.theme.css";
