@@ -101,8 +101,8 @@ export default function LandingMenu({ className }: LandingMenuProps) {
         <div className="flex items-center justify-between h-16 px-4 sm:px-6 lg:px-8">
           {/* Logo - Fixed position */}
           <div className="flex items-center">
-            <Link to="/" className="flex items-center">
-              <LogoText className="h-8 w-auto" />
+            <Link to="/" className="flex items-center cursor-pointer relative z-10">
+              <LogoText className="h-8 w-auto cursor-pointer" />
             </Link>
           </div>
 
