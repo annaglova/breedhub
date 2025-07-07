@@ -6,12 +6,43 @@
 @import "@shared/theme/global.css";
 @import "./tailwind.landing.css";
 
-/* Hide cursor on landing pages */
-.no-cursor,
-.no-cursor * {
-  cursor: none !important;
+/* Default cursor for landing pages */
+.landing-cursor,
+.landing-cursor * {
+  cursor: default;
+}
+
+/* Remove text cursor on text elements */
+.landing-cursor p,
+.landing-cursor span,
+.landing-cursor h1,
+.landing-cursor h2,
+.landing-cursor h3,
+.landing-cursor h4,
+.landing-cursor h5,
+.landing-cursor h6,
+.landing-cursor div,
+.landing-cursor li,
+.landing-cursor td,
+.landing-cursor th,
+.landing-cursor label,
+.landing-cursor em,
+.landing-cursor strong,
+.landing-cursor article,
+.landing-cursor section {
+  cursor: default !important;
   -webkit-user-select: none;
   -moz-user-select: none;
   -ms-user-select: none;
   user-select: none;
+}
+
+/* Pointer cursor for interactive elements */
+.landing-cursor a,
+.landing-cursor button,
+.landing-cursor [role="button"],
+.landing-cursor input[type="submit"],
+.landing-cursor input[type="button"],
+.landing-cursor .cursor-pointer {
+  cursor: pointer !important;
 }
