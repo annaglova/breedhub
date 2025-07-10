@@ -4,7 +4,7 @@ import Feature, { type FeatureStatus } from "./Feature";
 export interface PublicConfItem {
   description: string;
   id: string;
-  inventoryNumber: string;
+  icon: string;
   name: string;
   status: FeatureStatus;
   url: string;
@@ -12,7 +12,7 @@ export interface PublicConfItem {
 
 export interface PublicProductService {
   confItems: PublicConfItem[];
-  description: string; // This is used as the color
+  color: string;
   id: string;
   name: string;
   url: string;
@@ -29,7 +29,7 @@ export default function FeatureBlock({ service }: FeatureBlockProps) {
     <div className="flex flex-col">
       <div
         className="rounded-full px-5 py-3 text-xl font-bold uppercase text-white"
-        style={{ backgroundColor: service.description }}
+        style={{ backgroundColor: service.color }}
       >
         {service.name}
       </div>
@@ -37,8 +37,8 @@ export default function FeatureBlock({ service }: FeatureBlockProps) {
         {service.confItems?.map((feature) => (
           <Feature
             key={feature.id}
-            iconName={feature.inventoryNumber}
-            bgColor={service.description}
+            iconName={feature.icon}
+            bgColor={service.color}
             featureName={feature.name}
             featureDescription={feature.description}
             featureStatus={feature.status}

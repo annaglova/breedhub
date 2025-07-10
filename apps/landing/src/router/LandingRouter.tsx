@@ -11,7 +11,6 @@ import Pricing from "@/pages/Pricing";
 import Privacy from "@/pages/Privacy";
 import Product from "@/pages/Product";
 import Terms from "@/pages/Terms";
-import TestSupabase from "@/pages/TestSupabase";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 
 export default function LandingRouter() {
@@ -32,9 +31,6 @@ export default function LandingRouter() {
         <Route path="/payment" element={<Payment />} />
         <Route path="/prepayments" element={<Prepayments />} />
 
-        {/* Test page */}
-        <Route path="/test-supabase" element={<TestSupabase />} />
-        
         {/* Legal pages */}
         <Route path="/terms" element={<Terms />} />
         <Route path="/terms-and-conditions" element={<Terms />} />
