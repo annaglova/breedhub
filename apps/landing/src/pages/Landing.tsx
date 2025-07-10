@@ -393,9 +393,9 @@ export default function Landing() {
                       edit data is fast and easy.
                     </p>
                   </div>
-                  <div className="order-1 h-auto min-w-[50%] overflow-hidden rounded-2xl border shadow-lg xl:order-2">
+                  <div className="order-1 h-[400px] min-w-[50%] overflow-hidden rounded-2xl border xl:order-2">
                     <img
-                      className="min-h-[100%] min-w-[100%] shrink-0 object-cover"
+                      className="h-full w-full object-cover"
                       src={PetSpaceImage}
                       alt="Pedigree management interface"
                     />
@@ -425,9 +425,9 @@ export default function Landing() {
                       site quickly and easily.
                     </p>
                   </div>
-                  <div className="order-1 h-auto w-full overflow-hidden rounded-2xl xl:order-2">
+                  <div className="order-1 h-[400px] min-w-[50%] overflow-hidden rounded-2xl border xl:order-2">
                     <img
-                      className="min-h-[100%] min-w-[100%] shrink-0 object-cover"
+                      className="h-full w-full object-cover"
                       src={KennelSpaceImage}
                       alt="Kennel website management"
                     />
@@ -450,9 +450,9 @@ export default function Landing() {
                       more interesting and important work - breeding.
                     </p>
                   </div>
-                  <div className="order-1 h-auto w-full overflow-hidden rounded-2xl xl:order-2">
+                  <div className="order-1 h-[400px] min-w-[50%] overflow-hidden rounded-2xl border xl:order-2">
                     <img
-                      className="min-h-[100%] min-w-[100%] shrink-0 object-cover"
+                      className="h-full w-full object-cover"
                       src={BreedSpaceImage}
                       alt="Breeding work management"
                     />
@@ -575,13 +575,16 @@ export default function Landing() {
                 </div>
 
                 {/* Breeds rating */}
-                <div className="order-1 text-secondary flex w-full min-w-[40%] flex-col items-end rounded-2xl border-slate-100 bg-white p-8 shadow-sm xl:order-2">
-                  <p className="mb-3 font-semibold">Top-supported breeds</p>
-                  {topAchievementBreeds.slice(0, 7).map((breed, i) => (
-                    <div className="mt-3 flex w-full" key={i}>
-                      <BreedProgress breed={breed} />
-                    </div>
-                  ))}
+                <div className="order-1 relative text-secondary flex h-[500px] min-w-[50%] flex-col items-end rounded-2xl border bg-white xl:order-2">
+                  <div className="h-full overflow-auto p-8">
+                    <p className="mb-3 font-semibold">Top-supported breeds</p>
+                    {topAchievementBreeds.slice(0, 7).map((breed, i) => (
+                      <div className="mt-3 flex w-full" key={i}>
+                        <BreedProgress breed={breed} />
+                      </div>
+                    ))}
+                  </div>
+                  <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-white to-transparent pointer-events-none rounded-b-2xl"></div>
                 </div>
               </div>
 
@@ -610,8 +613,8 @@ export default function Landing() {
                 </div>
 
                 {/* Goals info */}
-                <div className="order-1 flex min-w-[60%] flex-col xl:order-2">
-                  <div className="rounded-2xl border-slate-100 bg-white p-8 shadow-sm">
+                <div className="order-1 relative flex h-[500px] min-w-[50%] flex-col rounded-2xl border bg-white xl:order-2">
+                  <div className="h-full overflow-auto p-8">
                     {/* Header */}
                     <div className="grid grid-cols-[42px_auto] sm:grid-cols-[104px_auto] items-center gap-3 border-b pb-2 font-semibold">
                       <div className="hidden text-center sm:block">
@@ -658,7 +661,8 @@ export default function Landing() {
                       </div>
                     </div>
                   </div>
-                  <p className="mt-3 text-sm">
+                  <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-white to-transparent pointer-events-none rounded-b-2xl"></div>
+                  <p className="mt-3 text-sm px-8">
                     * The table shows the <b>total amount per month</b> from the
                     breed's community
                   </p>
@@ -696,8 +700,8 @@ export default function Landing() {
                 </div>
 
                 {/* Timeline info */}
-                <div className="order-1 flex min-w-[65%] flex-col xl:order-2">
-                  <div className="rounded-2xl border-slate-100 bg-white p-8 shadow-sm">
+                <div className="order-1 relative flex h-[500px] min-w-[50%] flex-col rounded-2xl border bg-white xl:order-2">
+                  <div className="h-full overflow-auto p-8">
                     <Timeline className="customized-timeline">
                       {achievements.map((achievement, index) => (
                         <TimelineItem
@@ -721,6 +725,7 @@ export default function Landing() {
                       ))}
                     </Timeline>
                   </div>
+                  <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-white to-transparent pointer-events-none rounded-b-2xl"></div>
                 </div>
               </div>
             </div>
