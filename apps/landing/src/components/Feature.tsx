@@ -1,4 +1,5 @@
 import React from "react";
+import { getFeatureIcon } from "./FeatureIcons";
 
 export interface FeatureStatus {
   id: string;
@@ -21,14 +22,16 @@ export default function Feature({
   featureDescription,
   featureStatus,
 }: FeatureProps) {
+  const IconComponent = iconName ? getFeatureIcon(iconName) : null;
+  
   return (
     <div className="flex space-x-4">
       <div
         className="flex h-12 w-12 min-w-[3rem] items-center justify-center rounded-full text-white"
         style={{ backgroundColor: bgColor }}
       >
-        {iconName && (
-          <i className={`pi pi-${iconName}`} style={{ fontSize: "1.25rem" }} />
+        {IconComponent && (
+          <IconComponent className="h-6 w-6" style={{ fill: "currentColor" }} />
         )}
       </div>
       <div className="space-y-1">

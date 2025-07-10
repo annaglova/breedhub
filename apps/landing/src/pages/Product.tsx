@@ -11,7 +11,7 @@ const mockProductData: PublicProductService[] = [
   {
     id: "1",
     name: "Core Features",
-    description: "#6366F1",
+    color: "#6366F1",
     url: "",
     confItems: [
       {
@@ -19,7 +19,7 @@ const mockProductData: PublicProductService[] = [
         name: "Comprehensive Pedigree Management",
         description:
           "Create, edit, and manage unlimited generations of pedigrees with our intuitive interface",
-        inventoryNumber: "sitemap",
+        icon: "sitemap",
         status: { id: "active", name: "", url: "" },
         url: "",
       },
@@ -28,7 +28,7 @@ const mockProductData: PublicProductService[] = [
         name: "Test Matings Calculator",
         description:
           "Plan your breeding programs with our advanced genetic calculator and COI analysis",
-        inventoryNumber: "calculator",
+        icon: "calculator",
         status: { id: "active", name: "", url: "" },
         url: "",
       },
@@ -37,7 +37,7 @@ const mockProductData: PublicProductService[] = [
         name: "Health Records Tracking",
         description:
           "Keep detailed health records, vaccinations, and medical history for all your pets",
-        inventoryNumber: "heart",
+        icon: "heart",
         status: { id: "active", name: "", url: "" },
         url: "",
       },
@@ -46,7 +46,7 @@ const mockProductData: PublicProductService[] = [
   {
     id: "2",
     name: "Kennel Management",
-    description: "#10B981",
+    color: "#10B981",
     url: "",
     confItems: [
       {
@@ -54,7 +54,7 @@ const mockProductData: PublicProductService[] = [
         name: "Professional Kennel Website",
         description:
           "Get a stunning, SEO-optimized website for your kennel with customizable themes",
-        inventoryNumber: "globe",
+        icon: "globe",
         status: { id: "active", name: "", url: "" },
         url: "",
       },
@@ -63,7 +63,7 @@ const mockProductData: PublicProductService[] = [
         name: "Litter Management System",
         description:
           "Track litters from planning to placement, including weight charts and milestones",
-        inventoryNumber: "users",
+        icon: "users",
         status: { id: "active", name: "", url: "" },
         url: "",
       },
@@ -72,7 +72,7 @@ const mockProductData: PublicProductService[] = [
         name: "Client Communication Portal",
         description:
           "Stay connected with puppy buyers through our integrated messaging system",
-        inventoryNumber: "comments",
+        icon: "comments",
         status: { id: "coming-soon", name: "Coming soon", url: "" },
         url: "",
       },
@@ -81,7 +81,7 @@ const mockProductData: PublicProductService[] = [
   {
     id: "3",
     name: "Community & Social",
-    description: "#EC4899",
+    color: "#EC4899",
     url: "",
     confItems: [
       {
@@ -89,7 +89,7 @@ const mockProductData: PublicProductService[] = [
         name: "Breeder Network",
         description:
           "Connect with breeders worldwide, share knowledge, and find breeding partners",
-        inventoryNumber: "share-alt",
+        icon: "share-alt",
         status: { id: "active", name: "", url: "" },
         url: "",
       },
@@ -98,7 +98,7 @@ const mockProductData: PublicProductService[] = [
         name: "Show Results Database",
         description:
           "Access comprehensive show results and track your competition achievements",
-        inventoryNumber: "trophy",
+        icon: "trophy",
         status: { id: "active", name: "", url: "" },
         url: "",
       },
@@ -107,7 +107,7 @@ const mockProductData: PublicProductService[] = [
         name: "Breed-Specific Forums",
         description:
           "Join discussions with other enthusiasts about your favorite breeds",
-        inventoryNumber: "comments",
+        icon: "comments",
         status: { id: "coming-soon", name: "Coming soon", url: "" },
         url: "",
       },
@@ -116,7 +116,7 @@ const mockProductData: PublicProductService[] = [
   {
     id: "4",
     name: "Analytics & Insights",
-    description: "#F59E0B",
+    color: "#F59E0B",
     url: "",
     confItems: [
       {
@@ -124,7 +124,7 @@ const mockProductData: PublicProductService[] = [
         name: "Breeding Statistics",
         description:
           "Analyze your breeding program's success with detailed statistics and reports",
-        inventoryNumber: "chart-bar",
+        icon: "chart-bar",
         status: { id: "active", name: "", url: "" },
         url: "",
       },
@@ -133,7 +133,7 @@ const mockProductData: PublicProductService[] = [
         name: "Financial Tracking",
         description:
           "Monitor income and expenses related to your breeding activities",
-        inventoryNumber: "wallet",
+        icon: "wallet",
         status: { id: "coming-soon", name: "Coming soon", url: "" },
         url: "",
       },
@@ -142,7 +142,7 @@ const mockProductData: PublicProductService[] = [
         name: "Performance Analytics",
         description:
           "Track your kennel's performance metrics and compare with industry standards",
-        inventoryNumber: "chart-line",
+        icon: "chart-line",
         status: { id: "coming-soon", name: "Coming soon", url: "" },
         url: "",
       },
@@ -164,12 +164,12 @@ export default function Product() {
         
         if (services && services.length > 0) {
           // Transform service_item data to match component structure
-          const transformedData: PublicProductService[] = services.map((service, index) => ({
-            id: service.id || `service-${index}`,
+          const transformedData: PublicProductService[] = services.map((service) => ({
+            id: service.id,
             name: service.name,
-            description: service.color || '#6366F1', // Using color field for the service color
-            url: '',
-            confItems: mockProductData[index % mockProductData.length]?.confItems || [] // Keep mock items for now
+            color: service.color || '#6366F1',
+            url: service.url || '',
+            confItems: service.confItems || [] // Use real conf_items from database
           }));
           
           setServices(transformedData);
