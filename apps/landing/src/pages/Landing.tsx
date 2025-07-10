@@ -3,6 +3,7 @@ import BreedSpaceImage from "@/assets/images/breed-space.jpeg";
 import KennelSpaceImage from "@/assets/images/kennel-space.jpeg";
 import PetSpaceImage from "@/assets/images/pet-space.jpeg";
 import { BreedProgress, type Breed } from "@/components/BreedProgress";
+import { TabHeader } from "@/components/TabHeader";
 import LandingLayout from "@/layouts/LandingLayout";
 import {
   Timeline,
@@ -153,72 +154,171 @@ const statisticsData = [
     href: "/kennels",
   },
   {
-    value: "850+",
-    label: "Breeding records",
-    color: "from-green-100",
-  },
-  {
     value: "120+",
     label: "Events",
     color: "from-orange-100",
     href: "/events",
   },
-  {
-    value: "45+",
-    label: "Breeds supported",
-    color: "from-pink-100",
-    href: "/breeds",
-  },
-  {
-    value: "320+",
-    label: "Litters tracked",
-    color: "from-indigo-100",
-    href: "/litters",
-  },
 ];
 
-// Tab Header Component
-interface TabHeaderProps {
-  value: number;
-  tabForm: number;
-  name: string;
-  activeTab: number;
-  onTabChange: (value: number) => void;
-}
-
-function TabHeader({
-  value,
-  tabForm,
-  name,
-  activeTab,
-  onTabChange,
-}: TabHeaderProps) {
-  return (
-    <div className="mr-2 flex shrink-0 text-center last:mr-0">
-      <button
-        className={`block px-5 py-3 font-bold uppercase leading-normal transition-colors ${
-          activeTab === value
-            ? "text-primary border-b-2 border-primary"
-            : "text-slate-400 hover:text-slate-600"
-        }`}
-        onClick={() => onTabChange(value)}
-      >
-        {name}
-      </button>
-    </div>
-  );
-}
 
 export default function Landing() {
-  // Tabs for main and breeds section
   const [openTab, setOpenTab] = useState(1);
   const [openBreedTab, setOpenBreedTab] = useState(1);
+  
+  // Prepare tabs content for first tabs section
+  const mainTabs = [
+    {
+      value: 1,
+      label: "Pedigree",
+      content: (
+        <>
+          <div className="order-2 flex flex-col space-y-8 xl:order-1">
+            <p className="mt-6 text-6xl font-semibold">
+              Common data in a{" "}
+              <span className="text-primary">convenient</span> format
+            </p>
+            <p className="text-lg leading-8">
+              View and change the pedigree of your pet from any device.
+              We've made it comfortable for you.
+              <br />
+              <br />
+              The convenient format of all data is in your hands. Add or
+              edit data is fast and easy.
+            </p>
+          </div>
+          <div className="order-1 h-[400px] min-w-[50%] overflow-hidden rounded-2xl border xl:order-2">
+            <img
+              className="h-full w-full object-cover"
+              src={PetSpaceImage}
+              alt="Pedigree management interface"
+            />
+          </div>
+        </>
+      ),
+    },
+    {
+      value: 2,
+      label: "Site",
+      content: (
+        <>
+          <div className="order-2 flex flex-col space-y-8 xl:order-1">
+            <p className="mt-6 text-6xl font-semibold">
+              Fantastic site for your kennel with{" "}
+              <span className="text-primary">up-to-date</span>{" "}
+              information on it
+            </p>
+            <p className="text-lg leading-8">
+              Save your time and effort. Your site is{" "}
+              <span className="decoration-primary-400 underline decoration-2">
+                here
+              </span>{" "}
+              already!
+              <br />
+              Change different styles of your site or make your one.
+              Control what public data you want to show. Manage your
+              site quickly and easily.
+            </p>
+          </div>
+          <div className="order-1 h-[400px] min-w-[50%] overflow-hidden rounded-2xl border xl:order-2">
+            <img
+              className="h-full w-full object-cover"
+              src={KennelSpaceImage}
+              alt="Kennel website management"
+            />
+          </div>
+        </>
+      ),
+    },
+    {
+      value: 3,
+      label: "Kennel",
+      content: (
+        <>
+          <div className="order-2 flex flex-col space-y-8 xl:order-1">
+            <p className="mt-6 text-6xl font-semibold">
+              Your breeding work is the{" "}
+              <span className="text-primary">foundation</span>
+            </p>
+            <p className="text-lg leading-8">
+              Manage your breeding work in one app. Make less iterative
+              manual work and routine. We stand for saving your time for
+              more interesting and important work - breeding.
+            </p>
+          </div>
+          <div className="order-1 h-[400px] min-w-[50%] overflow-hidden rounded-2xl border xl:order-2">
+            <img
+              className="h-full w-full object-cover"
+              src={BreedSpaceImage}
+              alt="Breeding work management"
+            />
+          </div>
+        </>
+      ),
+    },
+  ];
 
   return (
     <LandingLayout>
       <style>{`
         .customized-timeline .space-y-1 {
           padding: 0 0 5px 1rem !important;
+        }
+        
+        /* Override Prime theme button hover styles with higher specificity */
+        [data-theme="prime"] .active-tab-button:hover:not(:disabled) {
+          background-color: transparent !important;
+          background: transparent !important;
+        }
+        
+        [data-theme="prime"] .active-tab-button:focus:not(:disabled) {
+          background-color: transparent !important;
+          background: transparent !important;
+          outline: none !important;
+          box-shadow: none !important;
+        }
+        
+        [data-theme="prime"] .active-tab-button:active:not(:disabled) {
+          background-color: transparent !important;
+          background: transparent !important;
+        }
+        
+        /* Also override for body selector to be even more specific */
+        body [data-theme="prime"] .active-tab-button:hover:not(:disabled) {
+          background-color: transparent !important;
+          background: transparent !important;
+        }
+        
+        /* Preserve border-bottom for active tabs */
+        .active-tab-button.border-primary {
+          border-bottom-color: rgb(var(--primary-500)) !important;
+        }
+        
+        .active-tab-button.border-pink-600 {
+          border-bottom-color: rgb(var(--pink-600)) !important;
+        }
+        
+        /* Preserve border color on hover for active tabs */
+        [data-theme="prime"] .active-tab-button.border-primary:hover:not(:disabled) {
+          border-bottom-color: rgb(var(--primary-500)) !important;
+        }
+        
+        [data-theme="prime"] .active-tab-button.border-pink-600:hover:not(:disabled) {
+          border-bottom-color: rgb(var(--pink-600)) !important;
+        }
+        
+        body [data-theme="prime"] .active-tab-button.border-primary:hover:not(:disabled) {
+          border-bottom-color: rgb(var(--primary-500)) !important;
+        }
+        
+        body [data-theme="prime"] .active-tab-button.border-pink-600:hover:not(:disabled) {
+          border-bottom-color: rgb(var(--pink-600)) !important;
+        }
+        
+        /* Specific styles for active tabs */
+        .active-tab-button {
+          background-color: transparent !important;
+          background: transparent !important;
         }
       `}</style>
       <div className="relative flex w-full min-w-[100vw] flex-col items-center justify-center overflow-hidden">
@@ -314,7 +414,6 @@ export default function Landing() {
             <li>
               <TabHeader
                 value={1}
-                tabForm={1}
                 name="Pedigree"
                 activeTab={openTab}
                 onTabChange={setOpenTab}
@@ -323,7 +422,6 @@ export default function Landing() {
             <li>
               <TabHeader
                 value={2}
-                tabForm={1}
                 name="Site"
                 activeTab={openTab}
                 onTabChange={setOpenTab}
@@ -332,7 +430,6 @@ export default function Landing() {
             <li>
               <TabHeader
                 value={3}
-                tabForm={1}
                 name="Kennel"
                 activeTab={openTab}
                 onTabChange={setOpenTab}
@@ -346,7 +443,6 @@ export default function Landing() {
                 <li>
                   <TabHeader
                     value={1}
-                    tabForm={1}
                     name="Pedigree"
                     activeTab={openTab}
                     onTabChange={setOpenTab}
@@ -355,7 +451,6 @@ export default function Landing() {
                 <li>
                   <TabHeader
                     value={2}
-                    tabForm={1}
                     name="Site"
                     activeTab={openTab}
                     onTabChange={setOpenTab}
@@ -364,7 +459,6 @@ export default function Landing() {
                 <li>
                   <TabHeader
                     value={3}
-                    tabForm={1}
                     name="Kennel"
                     activeTab={openTab}
                     onTabChange={setOpenTab}
@@ -489,28 +583,28 @@ export default function Landing() {
             <li>
               <TabHeader
                 value={1}
-                tabForm={2}
                 name="Breed's rating"
                 activeTab={openBreedTab}
                 onTabChange={setOpenBreedTab}
+                variant="pink"
               />
             </li>
             <li>
               <TabHeader
                 value={2}
-                tabForm={2}
                 name="Breed's goals"
                 activeTab={openBreedTab}
                 onTabChange={setOpenBreedTab}
+                variant="pink"
               />
             </li>
             <li>
               <TabHeader
                 value={3}
-                tabForm={2}
                 name="Breed's support level"
                 activeTab={openBreedTab}
                 onTabChange={setOpenBreedTab}
+                variant="pink"
               />
             </li>
           </ul>
@@ -519,28 +613,28 @@ export default function Landing() {
               <li>
                 <TabHeader
                   value={1}
-                  tabForm={2}
                   name="Breed's rating"
                   activeTab={openBreedTab}
                   onTabChange={setOpenBreedTab}
+                  variant="pink"
                 />
               </li>
               <li>
                 <TabHeader
                   value={2}
-                  tabForm={2}
                   name="Breed's goals"
                   activeTab={openBreedTab}
                   onTabChange={setOpenBreedTab}
+                  variant="pink"
                 />
               </li>
               <li>
                 <TabHeader
                   value={3}
-                  tabForm={2}
                   name="Breed's support level"
                   activeTab={openBreedTab}
                   onTabChange={setOpenBreedTab}
+                  variant="pink"
                 />
               </li>
             </ul>
