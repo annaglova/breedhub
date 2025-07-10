@@ -2,6 +2,7 @@ import LandingFigure from "@/assets/backgrounds/landing-figure.svg?react";
 import type { PublicProductService } from "@/components/FeatureBlock";
 import FeatureBlock from "@/components/FeatureBlock";
 import LandingLayout from "@/layouts/LandingLayout";
+import { landingService } from "@/services/api.service";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
@@ -154,23 +155,34 @@ export default function Product() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Simulate API call - replace with actual API integration
     const fetchProductData = async () => {
       try {
-        // Uncomment when API is ready
-        // const response = await fetch('https://dev.dogarray.com/0/BreedprideLandingApi/product');
-        // const data = await response.json();
-        // if (data.result?.isSuccess) {
-        //   setServices(data.result.data.Services);
-        // }
-
-        // Using mock data for now
-        setTimeout(() => {
+        setIsLoading(true);
+        
+        // Try to fetch real data from Supabase
+        const services = await landingService.getActiveServices();
+        
+        if (services && services.length > 0) {
+          // Transform service_item data to match component structure
+          const transformedData: PublicProductService[] = services.map((service, index) => ({
+            id: service.id || `service-${index}`,
+            name: service.name,
+            description: service.color || '#6366F1', // Using color field for the service color
+            url: '',
+            confItems: mockProductData[index % mockProductData.length]?.confItems || [] // Keep mock items for now
+          }));
+          
+          setServices(transformedData);
+        } else {
+          // Fallback to mock data if no real data available
+          console.log('No services found, using mock data');
           setServices(mockProductData);
-          setIsLoading(false);
-        }, 500);
+        }
       } catch (error) {
         console.error("Error fetching product data:", error);
+        // Fallback to mock data on error
+        setServices(mockProductData);
+      } finally {
         setIsLoading(false);
       }
     };
