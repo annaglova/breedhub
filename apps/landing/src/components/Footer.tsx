@@ -57,9 +57,9 @@ export default function Footer() {
         <div className="order-2 flex justify-center space-x-6 md:order-3">
           <span className="opacity-70 tracking-wide">for users</span>
           <div className="grid gap-x-10 gap-y-2 font-bold xl:grid-flow-col xl:grid-rows-3">
-            <Link to="/app">App</Link>
             <Link to="/product">Product</Link>
             <Link to="/pricing">Pricing</Link>
+            <Link to="/app">App</Link>
             <Link to="/about">About</Link>
             <Link to="/terms-and-conditions">Terms</Link>
             <Link to="/privacy-policy">Privacy</Link>

@@ -98,11 +98,14 @@ export default function LandingMenu({ className }: LandingMenuProps) {
           boxShadow: isScrolled ? "0 4px 6px -1px rgba(0, 0, 0, 0.1)" : "none",
         }}
       >
-        <div className="flex items-center justify-between h-16 px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between px-4 sm:px-6 lg:px-8 py-3">
           {/* Logo - Fixed position */}
           <div className="flex items-center">
-            <Link to="/" className="flex items-center cursor-pointer relative z-10">
-              <LogoText className="h-8 w-auto cursor-pointer" />
+            <Link
+              to="/"
+              className="flex items-center cursor-pointer relative z-10"
+            >
+              <LogoText className="h-9 w-auto cursor-pointer" />
             </Link>
           </div>
 
@@ -124,7 +127,7 @@ export default function LandingMenu({ className }: LandingMenuProps) {
                 />
                 <MenuItem to="/about" label="About" isScrolled={isScrolled} />
               </div>
-              
+
               {/* Auth buttons */}
               <div className="flex items-center space-x-3">
                 <a href="/app">
@@ -142,7 +145,7 @@ export default function LandingMenu({ className }: LandingMenuProps) {
                 </Link>
               </div>
             </div>
-            
+
             {/* Menu for screens >= 1536px (2xl) - container-based layout */}
             <div className="hidden 2xl:flex items-center justify-center absolute left-0 right-0">
               <div className="landing-content-container">
@@ -162,7 +165,7 @@ export default function LandingMenu({ className }: LandingMenuProps) {
               </div>
             </div>
           </div>
-          
+
           {/* Auth Buttons for 2xl screens - Fixed position */}
           <div className="hidden 2xl:flex items-center space-x-3">
             <a href="/app">

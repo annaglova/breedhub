@@ -1,0 +1,194 @@
+/* Landing page specific theme - takes precedence over prime theme */
+
+/* Raised button styles for landing page */
+.landing-raised-button {
+  @apply px-6 py-4 rounded-xl font-bold leading-tight text-white shadow-md transition-all duration-150 ease-in-out transform border;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Primary variant */
+.landing-raised-button-primary {
+  @apply bg-primary-500 shadow-primary-200 border-primary-500;
+}
+
+.landing-raised-button-primary:hover {
+  @apply bg-primary-600 shadow-lg shadow-primary-200 border-primary-600;
+  transform: translateY(-1px);
+}
+
+.landing-raised-button-primary:focus {
+  @apply bg-primary-600 shadow-lg shadow-primary-200 border-primary-600 outline-none;
+}
+
+.landing-raised-button-primary:active {
+  @apply bg-primary-700 shadow-md shadow-primary-200 border-primary-700;
+  transform: translateY(0) scale(0.98);
+  transition: transform 0.1s;
+}
+
+/* Pink variant */
+.landing-raised-button-pink {
+  @apply bg-pink-500 shadow-pink-200 border-pink-500;
+}
+
+.landing-raised-button-pink:hover {
+  @apply bg-pink-600 shadow-lg shadow-pink-200 border-pink-600;
+  transform: translateY(-1px);
+}
+
+.landing-raised-button-pink:focus {
+  @apply bg-pink-600 shadow-lg shadow-pink-200 border-pink-600 outline-none;
+}
+
+.landing-raised-button-pink:active {
+  @apply bg-pink-700 shadow-md shadow-pink-200 border-pink-700;
+  transform: translateY(0) scale(0.98);
+  transition: transform 0.1s;
+}
+
+/* Outline variant - with important to override prime theme */
+.landing-raised-button-outline {
+  @apply bg-white text-primary-500 shadow-none;
+  border-color: rgb(var(--primary-500)) !important;
+}
+
+.landing-raised-button-outline:hover {
+  @apply bg-slate-50 text-primary-600;
+  border-color: rgb(var(--primary-600)) !important;
+  transform: translateY(-1px);
+}
+
+.landing-raised-button-outline:focus {
+  @apply bg-slate-50 text-primary-600 outline-none;
+  border-color: rgb(var(--primary-600)) !important;
+}
+
+.landing-raised-button-outline:active {
+  @apply bg-white text-primary-700;
+  border-color: rgb(var(--primary-700)) !important;
+  transform: translateY(0) scale(0.98);
+  transition: transform 0.1s;
+}
+
+/* Flat variant - simple button without shadows */
+.landing-raised-button-flat {
+  @apply bg-primary-500 border-primary-500 shadow-none;
+}
+
+.landing-raised-button-flat:hover {
+  @apply bg-primary-600 border-primary-600;
+  transform: translateY(-1px);
+}
+
+.landing-raised-button-flat:focus {
+  @apply bg-primary-600 border-primary-600 outline-none;
+}
+
+.landing-raised-button-flat:active {
+  @apply bg-primary-700 border-primary-700;
+  transform: translateY(0) scale(0.98);
+  transition: transform 0.1s;
+}
+
+/* Override prime theme for landing buttons */
+[data-theme="prime"] button.landing-raised-button {
+  border-width: 1px !important;
+  border-style: solid !important;
+}
+
+[data-theme="prime"] button.landing-raised-button-primary {
+  border-color: rgb(var(--primary-500)) !important;
+}
+
+[data-theme="prime"] button.landing-raised-button-primary:hover {
+  border-color: rgb(var(--primary-600)) !important;
+}
+
+[data-theme="prime"] button.landing-raised-button-primary:active {
+  border-color: rgb(var(--primary-700)) !important;
+}
+
+[data-theme="prime"] button.landing-raised-button-pink {
+  border-color: rgb(236, 72, 153) !important;
+}
+
+[data-theme="prime"] button.landing-raised-button-pink:hover {
+  border-color: rgb(219, 39, 119) !important;
+}
+
+[data-theme="prime"] button.landing-raised-button-pink:active {
+  border-color: rgb(190, 24, 93) !important;
+}
+
+[data-theme="prime"] button.landing-raised-button-flat {
+  border-color: rgb(var(--primary-500)) !important;
+}
+
+[data-theme="prime"] button.landing-raised-button-flat:hover {
+  border-color: rgb(var(--primary-600)) !important;
+}
+
+[data-theme="prime"] button.landing-raised-button-flat:active {
+  border-color: rgb(var(--primary-700)) !important;
+}
+
+[data-theme="prime"] button.landing-raised-button-outline {
+  border-color: rgb(var(--primary-500)) !important;
+}
+
+[data-theme="prime"] button.landing-raised-button-outline:hover {
+  border-color: rgb(var(--primary-600)) !important;
+}
+
+[data-theme="prime"] button.landing-raised-button-outline:active {
+  border-color: rgb(var(--primary-700)) !important;
+}
+
+/* Ripple animation for buttons */
+@keyframes landing-ripple {
+  0% {
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    opacity: 1;
+  }
+  100% {
+    top: 50%;
+    left: 50%;
+    width: 300px;
+    height: 300px;
+    margin-left: -150px;
+    margin-top: -150px;
+    opacity: 0;
+  }
+}
+
+.landing-raised-button::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.4);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.landing-raised-button:active::after {
+  animation: landing-ripple 0.6s ease-out;
+}
+
+/* Disable animation for reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .landing-raised-button {
+    transition: none;
+  }
+  
+  .landing-raised-button:active::after {
+    animation: none;
+  }
+}
