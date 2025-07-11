@@ -158,24 +158,26 @@ export default function Product() {
     const fetchProductData = async () => {
       try {
         setIsLoading(true);
-        
+
         // Try to fetch real data from Supabase
         const services = await landingService.getActiveServices();
-        
+
         if (services && services.length > 0) {
           // Transform service_item data to match component structure
-          const transformedData: PublicProductService[] = services.map((service) => ({
-            id: service.id,
-            name: service.name,
-            color: service.color || '#6366F1',
-            url: service.url || '',
-            confItems: service.confItems || [] // Use real conf_items from database
-          }));
-          
+          const transformedData: PublicProductService[] = services.map(
+            (service) => ({
+              id: service.id,
+              name: service.name,
+              color: service.color || "#6366F1",
+              url: service.url || "",
+              confItems: service.confItems || [], // Use real conf_items from database
+            })
+          );
+
           setServices(transformedData);
         } else {
           // Fallback to mock data if no real data available
-          console.log('No services found, using mock data');
+          console.log("No services found, using mock data");
           setServices(mockProductData);
         }
       } catch (error) {
@@ -215,7 +217,7 @@ export default function Product() {
             </div>
 
             {/* Features Section */}
-            <div className="mx-auto pb-20 sm:mt-22  mt-14  rounded-2xl bg-white/50 px-8 py-10">
+            <div className="mx-auto pb-20 sm:mt-22  mt-14  rounded-2xl bg-white/50 px-8 py-10 mb-5">
               {isLoading ? (
                 <div className="text-center py-20">
                   <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500"></div>
@@ -243,12 +245,12 @@ export default function Product() {
             </p>
             <div className="flex justify-center gap-4">
               <Link to="/pricing">
-                <button className="bg-primary-500 hover:bg-primary-600 text-white font-bold py-4 px-8 rounded-xl shadow-lg transition duration-200">
+                <button className="landing-raised-button landing-raised-button-flat">
                   View Pricing
                 </button>
               </Link>
               <Link to="/app">
-                <button className="bg-white hover:bg-gray-50 text-primary-500 font-bold py-4 px-8 rounded-xl shadow-lg transition duration-200 border-2 border-primary-500">
+                <button className="landing-raised-button landing-raised-button-outline">
                   Try Free Forever
                 </button>
               </Link>

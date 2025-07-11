@@ -5,23 +5,20 @@ import LandingFigure from "@/assets/backgrounds/landing-figure.svg?react";
 export default function Privacy() {
   return (
     <LandingLayout>
-      <div className="relative bg-white overflow-hidden">
-        {/* Background SVG */}
-        <div className="absolute right-[-30vw] top-[-13vw] w-full md:right-[-47vw] md:top-[-17vw] xxl:top-[-25vw] xxxl:top-[-32vw]">
-          <LandingFigure style={{ width: "80%" }} />
+      <div className="pb-20 relative overflow-hidden">
+        {/* Background */}
+        <div className="xxl:top-[-64vw] absolute right-[-7vw] top-[-23vw] w-full md:right-[-10vw] md:top-[-47vw] lg:top-[-59vw]">
+          <LandingFigure style={{ width: "100vw" }} />
         </div>
 
-        {/* Content */}
-        <div className="relative z-10">
-          <div className="container mx-auto px-6 py-20 max-w-4xl">
-          <h1 className="text-4xl md:text-5xl font-bold mb-8 text-center">
-            Privacy Policy
-          </h1>
-          
-          <div className="prose prose-lg max-w-none">
-            <p className="text-gray-600 mb-8 text-center">
-              Last updated: {new Date().toLocaleDateString()}
-            </p>
+        <div className="flex flex-col items-center justify-center pt-14 sm:pt-32">
+          <div className="landing-content-container">
+            {/* Page header */}
+            <div className="relative space-y-3 text-center text-white">
+              <h1>Privacy Policy</h1>
+            </div>
+            <div className="sm:mt-22 relative mt-14 flex flex-col items-center justify-center space-y-8 rounded-2xl bg-white/50 p-8">
+              <div className="prose prose-lg max-w-none w-full">
 
             <section className="mb-8">
               <h2 className="text-2xl font-semibold mb-4">1. Introduction</h2>
@@ -138,9 +135,12 @@ export default function Privacy() {
                 Address: Breedhub, Ukraine
               </p>
             </section>
+              </div>
+              <p className="text-gray-500 text-sm text-center mt-8">
+                Last updated: {new Date().toLocaleDateString()}
+              </p>
+            </div>
           </div>
-        </div>
-
         </div>
       </div>
     </LandingLayout>

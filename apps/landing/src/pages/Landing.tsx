@@ -161,11 +161,10 @@ const statisticsData = [
   },
 ];
 
-
 export default function Landing() {
   const [openTab, setOpenTab] = useState(1);
   const [openBreedTab, setOpenBreedTab] = useState(1);
-  
+
   // Prepare tabs content for first tabs section
   const mainTabs = [
     {
@@ -175,16 +174,16 @@ export default function Landing() {
         <>
           <div className="order-2 flex flex-col space-y-8 xl:order-1">
             <p className="mt-6 text-6xl font-semibold">
-              Common data in a{" "}
-              <span className="text-primary">convenient</span> format
+              Common data in a <span className="text-primary">convenient</span>{" "}
+              format
             </p>
             <p className="text-lg leading-8">
-              View and change the pedigree of your pet from any device.
-              We've made it comfortable for you.
+              View and change the pedigree of your pet from any device. We've
+              made it comfortable for you.
               <br />
               <br />
-              The convenient format of all data is in your hands. Add or
-              edit data is fast and easy.
+              The convenient format of all data is in your hands. Add or edit
+              data is fast and easy.
             </p>
           </div>
           <div className="order-1 h-[400px] min-w-[50%] overflow-hidden rounded-2xl border xl:order-2">
@@ -205,8 +204,7 @@ export default function Landing() {
           <div className="order-2 flex flex-col space-y-8 xl:order-1">
             <p className="mt-6 text-6xl font-semibold">
               Fantastic site for your kennel with{" "}
-              <span className="text-primary">up-to-date</span>{" "}
-              information on it
+              <span className="text-primary">up-to-date</span> information on it
             </p>
             <p className="text-lg leading-8">
               Save your time and effort. Your site is{" "}
@@ -215,9 +213,9 @@ export default function Landing() {
               </span>{" "}
               already!
               <br />
-              Change different styles of your site or make your one.
-              Control what public data you want to show. Manage your
-              site quickly and easily.
+              Change different styles of your site or make your one. Control
+              what public data you want to show. Manage your site quickly and
+              easily.
             </p>
           </div>
           <div className="order-1 h-[400px] min-w-[50%] overflow-hidden rounded-2xl border xl:order-2">
@@ -241,9 +239,9 @@ export default function Landing() {
               <span className="text-primary">foundation</span>
             </p>
             <p className="text-lg leading-8">
-              Manage your breeding work in one app. Make less iterative
-              manual work and routine. We stand for saving your time for
-              more interesting and important work - breeding.
+              Manage your breeding work in one app. Make less iterative manual
+              work and routine. We stand for saving your time for more
+              interesting and important work - breeding.
             </p>
           </div>
           <div className="order-1 h-[400px] min-w-[50%] overflow-hidden rounded-2xl border xl:order-2">
@@ -332,11 +330,11 @@ export default function Landing() {
           <div className="flex flex-col md:space-x-18 md:pl-22 md:flex-row md:border-l">
             <div className="order-2 flex w-[100%] flex-col justify-center space-y-8 md:order-1 md:w-[70%] sm:space-y-12">
               <div className="flex w-full flex-col">
-                <p className="font-mono text-5xl font-extrabold tracking-wider md:text-6xl xl:text-7xl">
-                  United by the popularization of
+                <h1 className="">
+                  Elevating
                   <span className="text-primary"> professional </span>
                   breeding
-                </p>
+                </h1>
                 <em className="text-secondary mt-2">
                   All necessary for a professional breeder in one app
                 </em>
@@ -355,12 +353,12 @@ export default function Landing() {
                 <Link to="/pricing">
                   <button
                     type="button"
-                    className="w-36 rounded-xl bg-pink-500 px-6 py-4 font-bold leading-tight text-white shadow-lg shadow-pink-300 transition duration-150 ease-in-out active:bg-pink-700 active:shadow-xl active:shadow-pink-300 focus:bg-pink-600 focus:shadow-xl focus:shadow-pink-300 hover:bg-pink-600 hover:shadow-xl hover:shadow-pink-300"
+                    className="landing-raised-button landing-raised-button-pink w-36"
                   >
                     Get Started
                   </button>
                 </Link>
-                <div className="text-sm font-bold uppercase text-slate-300">
+                <div className="text-sm font-bold uppercase text-slate-400">
                   <p>Free forever</p>
                   <p>No credit card</p>
                 </div>
@@ -475,16 +473,16 @@ export default function Landing() {
                 >
                   <div className="order-2 flex flex-col space-y-8 xl:order-1">
                     <p className="mt-6 text-6xl font-semibold">
-                      Common data in a{" "}
-                      <span className="text-primary">convenient</span> format
+                      Professional pedigrees{" "}
+                      <span className="text-primary">simplified</span>
                     </p>
                     <p className="text-lg leading-8">
-                      View and change the pedigree of your pet from any device.
-                      We've made it comfortable for you.
+                      Create, manage, and share detailed pedigrees with just a few clicks. 
+                      Access your complete breeding history from any device, anytime.
                       <br />
                       <br />
-                      The convenient format of all data is in your hands. Add or
-                      edit data is fast and easy.
+                      Track bloodlines, health records, and achievements in one 
+                      centralized platform designed for serious breeders.
                     </p>
                   </div>
                   <div className="order-1 h-[400px] min-w-[50%] overflow-hidden rounded-2xl border xl:order-2">
@@ -503,20 +501,17 @@ export default function Landing() {
                 >
                   <div className="order-2 flex flex-col space-y-8 xl:order-1">
                     <p className="mt-6 text-6xl font-semibold">
-                      Fantastic site for your kennel with{" "}
-                      <span className="text-primary">up-to-date</span>{" "}
-                      information on it
+                      Your kennel's{" "}
+                      <span className="text-primary">online presence</span>{" "}
+                      made easy
                     </p>
                     <p className="text-lg leading-8">
-                      Save your time and effort. Your site is{" "}
-                      <span className="decoration-primary-400 underline decoration-2">
-                        here
-                      </span>{" "}
-                      already!
+                      Get a professional website for your kennel in minutes. 
+                      Choose from beautiful templates or customize your own design.
                       <br />
-                      Change different styles of your site or make your one.
-                      Control what public data you want to show. Manage your
-                      site quickly and easily.
+                      <br />
+                      Showcase your dogs, upcoming litters, and achievements. 
+                      Control exactly what information you share with the public.
                     </p>
                   </div>
                   <div className="order-1 h-[400px] min-w-[50%] overflow-hidden rounded-2xl border xl:order-2">
@@ -535,13 +530,16 @@ export default function Landing() {
                 >
                   <div className="order-2 flex flex-col space-y-8 xl:order-1">
                     <p className="mt-6 text-6xl font-semibold">
-                      Your breeding work is the{" "}
-                      <span className="text-primary">foundation</span>
+                      Breeding management{" "}
+                      <span className="text-primary">reimagined</span>
                     </p>
                     <p className="text-lg leading-8">
-                      Manage your breeding work in one app. Make less iterative
-                      manual work and routine. We stand for saving your time for
-                      more interesting and important work - breeding.
+                      Streamline your entire breeding program from planning to puppies. 
+                      Track heat cycles, manage matings, and monitor litter progress 
+                      all in one place.
+                      <br />
+                      <br />
+                      Spend less time on paperwork and more time doing what you love.
                     </p>
                   </div>
                   <div className="order-1 h-[400px] min-w-[50%] overflow-hidden rounded-2xl border xl:order-2">
@@ -557,7 +555,7 @@ export default function Landing() {
               <Link to="/pricing">
                 <button
                   type="button"
-                  className="bg-primary-400 shadow-primary-300 mt-3 w-36 rounded-xl px-6 py-4 font-bold leading-tight text-white shadow-lg transition duration-150 ease-in-out active:bg-primary-600 active:shadow-primary-300 active:shadow-xl focus:bg-primary focus:shadow-primary-300 focus:shadow-xl hover:bg-primary hover:shadow-primary-300 hover:shadow-xl sm:mt-5 xl:mt-0"
+                  className="landing-raised-button landing-raised-button-primary mt-3 w-36 sm:mt-5 xl:mt-0"
                 >
                   Get Started
                 </button>
@@ -649,22 +647,21 @@ export default function Landing() {
               >
                 <div className="order-2 flex flex-col space-y-8 xl:order-1">
                   <p className="mt-6 text-6xl font-semibold">
-                    Promote your favorite breed. Make it the{" "}
-                    <span className="text-pink-600">top-supported</span> one
+                    Power up your{" "}
+                    <span className="text-pink-600">favorite breed</span>
                   </p>
                   <p className="text-lg leading-8">
-                    Stand for your breed - contribute to your breed's
-                    development and promotion. The more Patreons (paid users) a
-                    breed has - the more additional functional features and
-                    privileges a breed has in your system.
+                    Join a community of passionate breeders who share your dedication. 
+                    When more breeders support a breed, everyone benefits with enhanced 
+                    features and specialized tools.
                     <br />
                     <br />
-                    You'll get our{" "}
+                    Your subscription unlocks{" "}
                     <span className="underline decoration-pink-500 decoration-2">
-                      professional/prime
+                      premium features
                     </span>{" "}
-                    product for your payment. And we'll get a response from you
-                    - what breed we have to pay more attention to.
+                    while helping us prioritize development for the breeds that matter 
+                    most to our community.
                   </p>
                 </div>
 
@@ -690,19 +687,20 @@ export default function Landing() {
               >
                 <div className="order-2 flex flex-col space-y-8 xl:order-1">
                   <p className="mt-6 text-6xl font-semibold">
-                    Main <span className="text-pink-600">goals</span> for a
-                    breed
+                    Unlock new{" "}
+                    <span className="text-pink-600">breed features</span>
                   </p>
                   <p className="text-lg leading-8">
-                    With each executed breed's goal, we open up new
-                    opportunities for{" "}
+                    Watch your breed evolve with community-driven milestones. As support 
+                    grows, we unlock powerful new features for{" "}
                     <span className="underline decoration-pink-500 decoration-2">
-                      all
+                      everyone
                     </span>{" "}
-                    members of the community in that breed.
+                    in that breed community.
                     <br />
                     <br />
-                    The more interest per month you show closer the goal is.
+                    Every contribution counts towards reaching the next milestone and 
+                    enhancing the platform for all breed enthusiasts.
                   </p>
                 </div>
 
@@ -771,25 +769,23 @@ export default function Landing() {
               >
                 <div className="order-2 flex flex-col space-y-8 xl:order-1">
                   <p className="mt-6 text-6xl font-semibold">
-                    Support <span className="text-pink-600">levels</span> for
-                    the breeds
+                    Growing{" "}
+                    <span className="text-pink-600">together</span>
                   </p>
                   <p className="text-lg leading-8">
-                    To be more{" "}
+                    We believe in rewarding active communities. Our six-tier support 
+                    system ensures that breeds with the most{" "}
                     <span className="underline decoration-pink-500 decoration-2">
-                      focused
+                      engaged members
                     </span>{" "}
-                    on the needs of our active users, we have implemented six
-                    levels of support. Each next level brings additional
-                    features to breed users.
+                    get priority features and dedicated support.
                     <br />
                     <br />
-                    All breeds have{" "}
+                    Every breed starts with{" "}
                     <span className="underline decoration-pink-500 decoration-2">
-                      Zero support level
+                      essential features
                     </span>{" "}
-                    from the beginning. That means - using only common breed
-                    functional without specific breed features and bug reports.
+                    and can unlock advanced tools as the community grows and thrives.
                   </p>
                 </div>
 
@@ -828,7 +824,7 @@ export default function Landing() {
             <Link to="/pricing">
               <button
                 type="button"
-                className="mt-3 w-36 rounded-xl bg-pink-500 px-6 py-4 font-bold leading-tight text-white shadow-lg shadow-pink-300 transition duration-150 ease-in-out active:bg-pink-700 active:shadow-xl active:shadow-pink-300 focus:bg-pink-600 focus:shadow-xl focus:shadow-pink-300 hover:bg-pink-600 hover:shadow-xl hover:shadow-pink-300 sm:mt-5 xl:mt-0"
+                className="landing-raised-button landing-raised-button-pink mt-3 w-36 sm:mt-5 xl:mt-0"
               >
                 Get Started
               </button>
@@ -848,12 +844,12 @@ export default function Landing() {
               </p>
               <div className="flex justify-center items-center space-x-4">
                 <Link to="/pricing">
-                  <button className="bg-primary-500 hover:bg-primary-600 text-white font-bold py-4 px-8 rounded-xl shadow-lg transition duration-200">
+                  <button className="landing-raised-button landing-raised-button-flat">
                     Get Started Free
                   </button>
                 </Link>
-                <Link to="/about">
-                  <button className="border-2 border-primary-500 text-primary-500 hover:bg-primary-50 font-bold py-4 px-8 rounded-xl transition duration-200">
+                <Link to="/product">
+                  <button className="landing-raised-button landing-raised-button-outline">
                     Learn More
                   </button>
                 </Link>
