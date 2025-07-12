@@ -487,3 +487,74 @@ body button:focus-visible {
   border-radius: 4px;
   font-size: 0.875rem;
 }
+
+/* Tooltip component styling for PrimeReact theme */
+/* Note: Tooltips are rendered in a portal outside the data-theme container */
+[data-slot="tooltip-content"] {
+  background-color: rgba(0, 0, 0, 0.6) !important;
+  color: #ffffff !important;
+  padding: 0.5rem 0.75rem !important;
+  border-radius: 6px !important;
+  font-size: 0.875rem !important;
+  font-family: var(--font-sans) !important;
+  font-weight: 400 !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
+  max-width: 300px !important;
+  word-wrap: break-word !important;
+  line-height: 1.5 !important;
+  cursor: default !important;
+  user-select: none !important;
+}
+
+/* Tooltip arrow styling - proper triangle */
+[data-slot="tooltip-content"] .bg-primary.fill-primary {
+  background-color: transparent !important;
+  fill: transparent !important;
+  border-style: solid !important;
+  border-width: 0 !important;
+}
+
+/* Arrow styles based on tooltip position */
+[data-slot="tooltip-content"][data-side="top"] .bg-primary.fill-primary {
+  border-left: 5px solid transparent !important;
+  border-right: 5px solid transparent !important;
+  border-top: 5px solid rgba(0, 0, 0, 0.6) !important;
+  transform: translateY(50%) !important;
+}
+
+[data-slot="tooltip-content"][data-side="bottom"] .bg-primary.fill-primary {
+  border-left: 5px solid transparent !important;
+  border-right: 5px solid transparent !important;
+  border-bottom: 5px solid rgba(0, 0, 0, 0.6) !important;
+  transform: translateY(-50%) !important;
+}
+
+[data-slot="tooltip-content"][data-side="left"] .bg-primary.fill-primary {
+  border-top: 5px solid transparent !important;
+  border-bottom: 5px solid transparent !important;
+  border-left: 5px solid rgba(0, 0, 0, 0.6) !important;
+  transform: translateX(50%) !important;
+}
+
+[data-slot="tooltip-content"][data-side="right"] .bg-primary.fill-primary {
+  border-top: 5px solid transparent !important;
+  border-bottom: 5px solid transparent !important;
+  border-right: 5px solid rgba(0, 0, 0, 0.6) !important;
+  transform: translateX(-50%) !important;
+}
+
+/* Override the default primary background and text color classes */
+[data-slot="tooltip-content"].bg-primary {
+  background-color: rgba(0, 0, 0, 0.6) !important;
+}
+
+[data-slot="tooltip-content"].text-primary-foreground {
+  color: #ffffff !important;
+}
+
+/* Ensure text is white and no text cursor */
+[data-slot="tooltip-content"] * {
+  color: #ffffff !important;
+  cursor: default !important;
+  user-select: none !important;
+}
