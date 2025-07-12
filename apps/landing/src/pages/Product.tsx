@@ -165,7 +165,7 @@ export default function Product() {
         if (services && services.length > 0) {
           // Transform service_item data to match component structure
           const transformedData: PublicProductService[] = services.map(
-            (service) => ({
+            (service: any) => ({
               id: service.id,
               name: service.name,
               color: service.color || "#6366F1",
@@ -217,7 +217,7 @@ export default function Product() {
             </div>
 
             {/* Features Section */}
-            <div className="mx-auto pb-20 sm:mt-22  mt-14  rounded-2xl bg-white/50 px-8 py-10 mb-5">
+            <div className="landing-content-card">
               {isLoading ? (
                 <div className="text-center py-20">
                   <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500"></div>

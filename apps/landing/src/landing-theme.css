@@ -1,5 +1,56 @@
 /* Landing page specific theme - takes precedence over prime theme */
 
+/* Default cursor for landing pages */
+.landing-cursor,
+.landing-cursor * {
+  cursor: default;
+}
+
+/* Remove text cursor on text elements */
+.landing-cursor p,
+.landing-cursor span,
+.landing-cursor h1,
+.landing-cursor h2,
+.landing-cursor h3,
+.landing-cursor h4,
+.landing-cursor h5,
+.landing-cursor h6,
+.landing-cursor div,
+.landing-cursor li,
+.landing-cursor td,
+.landing-cursor th,
+.landing-cursor label,
+.landing-cursor em,
+.landing-cursor strong,
+.landing-cursor article,
+.landing-cursor section {
+  cursor: default !important;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* Pointer cursor for interactive elements */
+.landing-cursor a,
+.landing-cursor button,
+.landing-cursor [role="button"],
+.landing-cursor input[type="submit"],
+.landing-cursor input[type="button"],
+.landing-cursor .cursor-pointer {
+  cursor: pointer !important;
+}
+
+/* Landing content container */
+.landing-content-container {
+  @apply max-w-screen px-6 sm:px-10 md:max-w-6xl lg:px-0 mx-auto w-full;
+}
+
+/* Landing content card - reusable container for content sections */
+.landing-content-card {
+  @apply mx-auto pb-20 sm:mt-22 mt-14 rounded-2xl bg-white/50 shadow-md px-12 py-10 mb-20;
+}
+
 /* Raised button styles for landing page */
 .landing-raised-button {
   @apply px-6 py-4 rounded-xl font-bold leading-tight text-white shadow-md transition-all duration-150 ease-in-out transform border;

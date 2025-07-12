@@ -7,37 +7,46 @@ export default function About() {
     <LandingLayout>
       <div className="pb-20 relative overflow-hidden">
         {/* Background */}
-        <div className="xxl:top-[-64vw] absolute right-[-7vw] top-[-23vw] w-full md:right-[-10vw] md:top-[-47vw] lg:top-[-59vw]">
+        <div className="xxl:top-[-64vw] absolute right-[-7vw] top-[-23vw] w-full md:right-[-10vw] md:top-[-47vw] lg:top-[-59vw] -z-1">
           <LandingFigure style={{ width: "100vw" }} />
         </div>
 
         <div className="flex flex-col items-center justify-center pt-14 sm:pt-32">
           <div className="landing-content-container">
             {/* Page header */}
-            <div className="relative space-y-3 text-center text-white">
-              <h1>Hello, from the Breedhub team!</h1>
-              <h3>So who are we?</h3>
-            </div>
-            <div className="sm:mt-22 relative mt-14 flex flex-col items-center justify-center space-y-8 rounded-2xl bg-white/50 p-8 text-xl">
-              <p className="leading-8">
-                We are the team of enthusiastic programmers. Such happened that
-                we gathered together around one idea - to make some fabulous
-                space for a dog people community. This idea came not from
-                nothing - we are the same dog people like you. So we are deeply
-                involved in this sphere. And we like to give the best Service
-                for breeders and dog fans.
+            <div className="relative space-y-3 text-center">
+              <h1 className="text-white">Hello, from the Breedhub team!</h1>
+              <p className="text-2xl text-gray-600 xl:text-white max-w-3xl mx-auto mt-2">
+                We're passionate breeders and developers united by a common mission - 
+                making professional breeding accessible and enjoyable for everyone
               </p>
-              <h2 className="text-primary pb-4 pt-1 text-center">
-                Our mission is a popularisation of professional breeding
+            </div>
+            <div className="landing-content-card">
+              <p className="leading-8">
+                We are a team of passionate developers and professional breeders who 
+                came together with a shared vision - to revolutionize how breeding 
+                communities connect and manage their programs. As breeders ourselves, 
+                we understand the challenges you face daily, from pedigree management 
+                to health tracking, from finding the right breeding partners to 
+                showcasing your achievements.
+              </p>
+              <h2 className="text-primary pb-4 pt-8 text-center text-3xl font-semibold">
+                Our mission: Elevating professional breeding worldwide
               </h2>
               <p className="leading-8">
-                We are deeply interested in our users' satisfaction with Breed
-                Pride Services. We'd like you to share your opinion of a Breed
-                Pride functional. Every proposal will be listened. The most
-                popular and needed features will be implemented. <br />
-                We hope you will like Breedhub. We are always open to
-                communication to make our product more comfortable and valuable
-                for you. We are glad to see you on our platform. You are welcome
+                We believe that professional breeding deserves professional tools. 
+                That's why we've built BreedHub - a comprehensive platform that brings 
+                together everything you need in one place. But we're more than just 
+                software; we're a community-driven platform that evolves with your needs.
+              </p>
+              <p className="leading-8 mt-6">
+                Your feedback shapes our future. We actively listen to our users and 
+                implement the features that matter most to you. Whether you're a 
+                seasoned breeder with decades of experience or just starting your 
+                journey, BreedHub is designed to grow with you.
+              </p>
+              <p className="leading-8 mt-6 text-center font-semibold text-primary">
+                Welcome to BreedHub - where passion meets professionalism.
               </p>
             </div>
           </div>
