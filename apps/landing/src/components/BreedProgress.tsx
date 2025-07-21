@@ -27,7 +27,7 @@ export function BreedProgress({
   // Текст тултіпа
   const toolTipText = React.useMemo(
     () =>
-      `${breed.Name}
+      `${breed.Name.toUpperCase()}
 Pet profiles - ${breed.PetProfileCount}
 Kennels - ${breed.KennelCount}
 Patrons - ${breed.PatronCount}
@@ -47,7 +47,7 @@ Breed's support level - ${breed.LastAchievement?.Name ?? "-"}`,
             <div className="mr-2">
               {mode === "col" && (
                 <>
-                  <div className="lg:w-62 w-40 text-right sm:w-52">
+                  <div className="lg:w-62 w-40 text-right sm:w-52 uppercase">
                     {breed.Name}
                   </div>
                   {!simpleView && (
@@ -61,7 +61,9 @@ Breed's support level - ${breed.LastAchievement?.Name ?? "-"}`,
 
             {mode === "row" && (
               <div className="flex w-full">
-                <div className="flex w-full truncate">{breed.Name}</div>
+                <div className="flex w-full truncate uppercase">
+                  {breed.Name}
+                </div>
                 <div className="w-13 text-end">
                   {breed.AchievementProgress}%
                 </div>
@@ -93,7 +95,7 @@ Breed's support level - ${breed.LastAchievement?.Name ?? "-"}`,
           </div>
         </TooltipTrigger>
         <TooltipContent side="top" align="center">
-          <pre className="text-xs">{toolTipText}</pre>
+          <div className="whitespace-pre-line">{toolTipText}</div>
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>

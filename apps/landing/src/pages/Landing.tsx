@@ -358,7 +358,7 @@ export default function Landing() {
                     Get Started
                   </button>
                 </Link>
-                <div className="text-sm font-bold uppercase text-slate-400">
+                <div className="text-md font-semi-bold  text-secondary">
                   <p>Free forever</p>
                   <p>No credit card</p>
                 </div>
@@ -477,11 +477,12 @@ export default function Landing() {
                       <span className="text-primary">simplified</span>
                     </p>
                     <p className="text-lg leading-8">
-                      Create, manage, and share detailed pedigrees with just a few clicks. 
-                      Access your complete breeding history from any device, anytime.
+                      Create, manage, and share detailed pedigrees with just a
+                      few clicks. Access your complete breeding history from any
+                      device, anytime.
                       <br />
                       <br />
-                      Track bloodlines, health records, and achievements in one 
+                      Track bloodlines, health records, and achievements in one
                       centralized platform designed for serious breeders.
                     </p>
                   </div>
@@ -502,16 +503,18 @@ export default function Landing() {
                   <div className="order-2 flex flex-col space-y-8 xl:order-1">
                     <p className="mt-6 text-6xl font-semibold">
                       Your kennel's{" "}
-                      <span className="text-primary">online presence</span>{" "}
-                      made easy
+                      <span className="text-primary">online presence</span> made
+                      easy
                     </p>
                     <p className="text-lg leading-8">
-                      Get a professional website for your kennel in minutes. 
-                      Choose from beautiful templates or customize your own design.
+                      Get a professional website for your kennel in minutes.
+                      Choose from beautiful templates or customize your own
+                      design.
                       <br />
                       <br />
-                      Showcase your dogs, upcoming litters, and achievements. 
-                      Control exactly what information you share with the public.
+                      Showcase your dogs, upcoming litters, and achievements.
+                      Control exactly what information you share with the
+                      public.
                     </p>
                   </div>
                   <div className="order-1 h-[400px] min-w-[50%] overflow-hidden rounded-2xl border xl:order-2">
@@ -534,12 +537,13 @@ export default function Landing() {
                       <span className="text-primary">reimagined</span>
                     </p>
                     <p className="text-lg leading-8">
-                      Streamline your entire breeding program from planning to puppies. 
-                      Track heat cycles, manage matings, and monitor litter progress 
-                      all in one place.
+                      Streamline your entire breeding program from planning to
+                      puppies. Track heat cycles, manage matings, and monitor
+                      litter progress all in one place.
                       <br />
                       <br />
-                      Spend less time on paperwork and more time doing what you love.
+                      Spend less time on paperwork and more time doing what you
+                      love.
                     </p>
                   </div>
                   <div className="order-1 h-[400px] min-w-[50%] overflow-hidden rounded-2xl border xl:order-2">
@@ -651,17 +655,17 @@ export default function Landing() {
                     <span className="text-pink-600">favorite breed</span>
                   </p>
                   <p className="text-lg leading-8">
-                    Join a community of passionate breeders who share your dedication. 
-                    When more breeders support a breed, everyone benefits with enhanced 
-                    features and specialized tools.
+                    Join a community of passionate breeders who share your
+                    dedication. When more breeders support a breed, everyone
+                    benefits with enhanced features and specialized tools.
                     <br />
                     <br />
                     Your subscription unlocks{" "}
                     <span className="underline decoration-pink-500 decoration-2">
                       premium features
                     </span>{" "}
-                    while helping us prioritize development for the breeds that matter 
-                    most to our community.
+                    while helping us prioritize development for the breeds that
+                    matter most to our community.
                   </p>
                 </div>
 
@@ -691,16 +695,17 @@ export default function Landing() {
                     <span className="text-pink-600">breed features</span>
                   </p>
                   <p className="text-lg leading-8">
-                    Watch your breed evolve with community-driven milestones. As support 
-                    grows, we unlock powerful new features for{" "}
+                    Watch your breed evolve with community-driven milestones. As
+                    support grows, we unlock powerful new features for{" "}
                     <span className="underline decoration-pink-500 decoration-2">
                       everyone
                     </span>{" "}
                     in that breed community.
                     <br />
                     <br />
-                    Every contribution counts towards reaching the next milestone and 
-                    enhancing the platform for all breed enthusiasts.
+                    Every contribution counts towards reaching the next
+                    milestone and enhancing the platform for all breed
+                    enthusiasts.
                   </p>
                 </div>
 
@@ -769,12 +774,11 @@ export default function Landing() {
               >
                 <div className="order-2 flex flex-col space-y-8 xl:order-1">
                   <p className="mt-6 text-6xl font-semibold">
-                    Growing{" "}
-                    <span className="text-pink-600">together</span>
+                    Growing <span className="text-pink-600">together</span>
                   </p>
                   <p className="text-lg leading-8">
-                    We believe in rewarding active communities. Our six-tier support 
-                    system ensures that breeds with the most{" "}
+                    We believe in rewarding active communities. Our six-tier
+                    support system ensures that breeds with the most{" "}
                     <span className="underline decoration-pink-500 decoration-2">
                       engaged members
                     </span>{" "}
@@ -785,7 +789,8 @@ export default function Landing() {
                     <span className="underline decoration-pink-500 decoration-2">
                       essential features
                     </span>{" "}
-                    and can unlock advanced tools as the community grows and thrives.
+                    and can unlock advanced tools as the community grows and
+                    thrives.
                   </p>
                 </div>
 
