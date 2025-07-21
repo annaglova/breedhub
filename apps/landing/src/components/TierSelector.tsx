@@ -111,7 +111,7 @@ export default function TierSelector({
   return (
     <div className="w-full">
       {/* Billing Type Selector */}
-      <div className="flex justify-center mb-8">
+      <div className="flex justify-center mb-14">
         <div className="inline-flex rounded-full bg-white/50 p-[3px] shadow-inner border border-white">
           {billingTypes.map((type) => (
             <button
@@ -154,26 +154,28 @@ export default function TierSelector({
       {/* Tier Cards */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {TIERS.map((tier, index) => (
-          <div
-            key={index}
-            className={`
-              tier-card relative rounded-lg border-2 bg-white p-6 transition-all hover:shadow-md
-              ${
-                tier.isPopular
-                  ? "border-primary-500 shadow-sm"
-                  : "border-gray-200"
-              }
-              ${tier.isComingSoon ? "coming-soon" : ""}
-            `}
-          >
-            {/* Popular Badge */}
+          <div key={index} className="tier-card-wrapper">
+            {/* Popular Badge - Outside the card */}
             {tier.isPopular && (
-              <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                <span className="bg-primary-500 text-white px-3 py-1 rounded-full text-xs font-bold uppercase">
+              <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-50">
+                <span className="bg-primary-500 text-white px-3 py-1 rounded-full text-md font-bold uppercase">
                   Popular
                 </span>
               </div>
             )}
+            
+            {/* Card with overflow hidden */}
+            <div
+              className={`
+                tier-card tier-card-content relative rounded-lg border bg-white px-6 py-8 flex flex-col h-full
+                ${
+                  tier.isPopular
+                    ? "border-primary outline outline-2 outline-offset-2 outline-primary"
+                    : "border-gray-200"
+                }
+                ${tier.isComingSoon ? "coming-soon" : ""}
+              `}
+            >
 
             {/* Coming Soon Banner */}
             {tier.isComingSoon && (
@@ -183,7 +185,7 @@ export default function TierSelector({
             )}
 
             {/* Tier Content */}
-            <div className="mb-6 text-center">
+            <div className="mb-8 text-center">
               <h3 className="text-xl font-bold mb-2 uppercase">{tier.name}</h3>
               <p className=" text-gray-600">{tier.description}</p>
             </div>
@@ -251,7 +253,7 @@ export default function TierSelector({
             </button>
 
             {/* Features */}
-            <div className="space-y-3">
+            <div className="space-y-3 mt-auto">
               {tier.featuresHeader && (
                 <p className="text-md font-medium text-gray-700 mb-2 uppercase text-center">
                   {tier.featuresHeader}
@@ -275,6 +277,7 @@ export default function TierSelector({
                   <span className=" text-gray-700">{feature.name}</span>
                 </div>
               ))}
+            </div>
             </div>
           </div>
         ))}
