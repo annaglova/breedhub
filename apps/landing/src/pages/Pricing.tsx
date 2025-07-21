@@ -61,14 +61,17 @@ export default function Pricing() {
 
           {/* Features Comparison Section */}
           <div className="bg-gray-50 py-20">
-            <div className="container mx-auto px-6">
+            <div className="landing-content-container mx-auto px-6">
               <h2 className="text-4xl font-bold text-center mb-12">
                 Compare Features
               </h2>
 
               {/* Desktop Features Table */}
               <div className="hidden lg:block max-w-5xl mx-auto">
-                <div className="grid mb-8" style={{ gridTemplateColumns: 'auto 112px 112px 112px' }}>
+                <div
+                  className="grid mb-8"
+                  style={{ gridTemplateColumns: "auto 112px 112px 112px" }}
+                >
                   <div></div>
                   {TIERS.slice(0, 3).map((tier, index) => (
                     <div key={index} className="text-center self-center">
@@ -80,8 +83,16 @@ export default function Pricing() {
                 {/* Feature Categories */}
                 {FEATURE_BLOCKS.map((category, catIndex) => (
                   <div key={catIndex} className="mb-8">
-                    <div className="rounded-lg p-3 mb-2" style={{ backgroundColor: (category.color || '#6366f1') + '20' }}>
-                      <h3 className="text-lg font-bold" style={{ color: category.color || '#6366f1' }}>
+                    <div
+                      className="rounded-lg p-3 mb-2"
+                      style={{
+                        backgroundColor: (category.color || "#6366f1") + "20",
+                      }}
+                    >
+                      <h3
+                        className="text-lg font-bold"
+                        style={{ color: category.color || "#6366f1" }}
+                      >
                         {category.name}
                       </h3>
                     </div>
@@ -89,7 +100,9 @@ export default function Pricing() {
                       <div
                         key={featIndex}
                         className="grid py-2 hover:bg-gray-50"
-                        style={{ gridTemplateColumns: '15px auto 112px 112px 112px' }}
+                        style={{
+                          gridTemplateColumns: "15px auto 112px 112px 112px",
+                        }}
                       >
                         <div></div>
                         <div className="pr-4">
@@ -143,8 +156,16 @@ export default function Pricing() {
                 {/* Mobile Features List */}
                 {FEATURE_BLOCKS.map((category, catIndex) => (
                   <div key={catIndex} className="mb-6">
-                    <div className="rounded-lg p-3 mb-2" style={{ backgroundColor: (category.color || '#6366f1') + '20' }}>
-                      <h3 className="text-base font-bold" style={{ color: category.color || '#6366f1' }}>
+                    <div
+                      className="rounded-lg p-3 mb-2"
+                      style={{
+                        backgroundColor: (category.color || "#6366f1") + "20",
+                      }}
+                    >
+                      <h3
+                        className="text-base font-bold"
+                        style={{ color: category.color || "#6366f1" }}
+                      >
                         {category.name}
                       </h3>
                     </div>
@@ -152,7 +173,7 @@ export default function Pricing() {
                       <div
                         key={featIndex}
                         className="grid py-2"
-                        style={{ gridTemplateColumns: 'auto 64px' }}
+                        style={{ gridTemplateColumns: "auto 64px" }}
                       >
                         <div className="pr-2">
                           <div className="flex items-center gap-2">
