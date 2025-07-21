@@ -1,12 +1,13 @@
-import React, { useState } from "react";
-import { Link } from "react-router-dom";
-import { 
-  TIERS, 
-  THREE_YEARLY_NUMBER, 
-  YEARLY_NUMBER, 
+import {
   MONTHLY_NUMBER,
-  type Tier
+  THREE_YEARLY_NUMBER,
+  TIERS,
+  YEARLY_NUMBER,
+  type Tier,
 } from "@/constants/pricing";
+import { useState } from "react";
+import { Link } from "react-router-dom";
+import "./TierSelector.css";
 
 interface TierSelectorProps {
   onBillingTypeChange?: (type: number) => void;
@@ -14,12 +15,30 @@ interface TierSelectorProps {
 }
 
 const billingTypes = [
-  { value: THREE_YEARLY_NUMBER, label: "3 yearly", discount: "Save 33%" },
-  { value: YEARLY_NUMBER, label: "Yearly", discount: "Save 25%" },
-  { value: MONTHLY_NUMBER, label: "Monthly", discount: "" },
+  {
+    value: THREE_YEARLY_NUMBER,
+    label: "3 yearly billing",
+    labelShort: "3 yearly",
+    discount: "33%",
+  },
+  {
+    value: YEARLY_NUMBER,
+    label: "Yearly billing",
+    labelShort: "Yearly",
+    discount: "25%",
+  },
+  {
+    value: MONTHLY_NUMBER,
+    label: "Monthly billing",
+    labelShort: "Monthly",
+    discount: "",
+  },
 ];
 
-export default function TierSelector({ onBillingTypeChange, breedId }: TierSelectorProps) {
+export default function TierSelector({
+  onBillingTypeChange,
+  breedId,
+}: TierSelectorProps) {
   const [selectedBillingType, setSelectedBillingType] = useState(YEARLY_NUMBER);
   const [customPrice, setCustomPrice] = useState<number>(20);
 
@@ -29,51 +48,103 @@ export default function TierSelector({ onBillingTypeChange, breedId }: TierSelec
   };
 
   const formatPrice = (tier: Tier): string => {
-    const price = tier.prices[selectedBillingType]?.value || 0;
-    
+    const priceData = tier.prices[selectedBillingType];
+    const price = priceData?.value || 0;
+
     if (tier.name === "Supreme Patron") {
       return `$${customPrice}`;
     }
-    
+
     if (price === 0) {
       return "Free";
     }
-    
-    return `$${price}`;
+
+    // For 3 yearly and yearly, show monthly price; for monthly, show actual price
+    return `$${price.toFixed(2)}`;
   };
 
-  const getPriceSubtext = (tier: Tier): string => {
+  const getAlternativePricing = (tier: Tier) => {
     if (tier.name === "Supreme Patron") {
-      return "per month";
+      return (
+        <div className="text-gray-500  space-y-1">
+          <div>
+            Minimum payment is <span className="font-bold">$20.00</span>
+          </div>
+          <div>Monthly subscription only</div>
+        </div>
+      );
     }
-    
-    const billingLabel = billingTypes[selectedBillingType].label.toLowerCase();
-    if (billingLabel === "3 yearly") {
-      return "per month";
+
+    const alternatives = [];
+
+    // Show other billing options (not the selected one)
+    if (selectedBillingType !== THREE_YEARLY_NUMBER) {
+      const price = tier.prices[THREE_YEARLY_NUMBER]?.value || 0;
+      alternatives.push(
+        <div key="3yearly">
+          <span className="font-bold">${price.toFixed(2)}</span> billed 3 yearly
+        </div>
+      );
     }
-    return `per ${billingLabel === "yearly" ? "year" : "month"}`;
+
+    if (selectedBillingType !== YEARLY_NUMBER) {
+      const price = tier.prices[YEARLY_NUMBER]?.value || 0;
+      alternatives.push(
+        <div key="yearly">
+          <span className="font-bold">${price.toFixed(2)}</span> billed yearly
+        </div>
+      );
+    }
+
+    if (selectedBillingType !== MONTHLY_NUMBER) {
+      const price = tier.prices[MONTHLY_NUMBER]?.value || 0;
+      alternatives.push(
+        <div key="monthly">
+          <span className="font-bold">${price.toFixed(2)}</span> billed monthly
+        </div>
+      );
+    }
+
+    return <div className="text-gray-500 space-y-1">{alternatives}</div>;
   };
 
   return (
     <div className="w-full">
       {/* Billing Type Selector */}
       <div className="flex justify-center mb-8">
-        <div className="inline-flex rounded-full bg-gray-100 p-1">
+        <div className="inline-flex rounded-full bg-white/50 p-[3px] shadow-inner border border-white">
           {billingTypes.map((type) => (
             <button
               key={type.value}
               onClick={() => handleBillingTypeChange(type.value)}
               className={`
-                relative px-6 py-2 rounded-full text-sm font-medium transition-all
-                ${selectedBillingType === type.value
-                  ? "bg-white text-gray-900 shadow-sm"
-                  : "text-gray-600 hover:text-gray-900"
+                relative px-4 sm:px-6 py-3 rounded-full transition-all duration-200 text-base
+                ${
+                  selectedBillingType === type.value
+                    ? "bg-white text-gray-900 shadow-md cursor-pointer"
+                    : "text-gray-600 hover:text-gray-900 hover:bg-white/50 cursor-pointer"
                 }
               `}
             >
-              {type.label}
+              <span className="hidden sm:inline cursor-pointer">
+                {type.label}
+              </span>
+              <span className="sm:hidden cursor-pointer">
+                {type.labelShort}
+              </span>
               {type.discount && (
-                <span className="ml-2 text-xs text-green-600">{type.discount}</span>
+                <span
+                  className={`
+                  ml-1.5 text-xs font-bold cursor-pointer
+                  ${
+                    selectedBillingType === type.value
+                      ? "text-green-600"
+                      : "text-gray-500"
+                  }
+                `}
+                >
+                  Save {type.discount}
+                </span>
               )}
             </button>
           ))}
@@ -81,14 +152,18 @@ export default function TierSelector({ onBillingTypeChange, breedId }: TierSelec
       </div>
 
       {/* Tier Cards */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {TIERS.map((tier, index) => (
           <div
             key={index}
             className={`
-              relative rounded-2xl border bg-white p-6 shadow-sm transition-shadow hover:shadow-lg
-              ${tier.isPopular ? "border-primary-500 ring-2 ring-primary-500" : "border-gray-200"}
-              ${tier.isComingSoon ? "opacity-75" : ""}
+              tier-card relative rounded-lg border-2 bg-white p-6 transition-all hover:shadow-md
+              ${
+                tier.isPopular
+                  ? "border-primary-500 shadow-sm"
+                  : "border-gray-200"
+              }
+              ${tier.isComingSoon ? "coming-soon" : ""}
             `}
           >
             {/* Popular Badge */}
@@ -100,79 +175,107 @@ export default function TierSelector({ onBillingTypeChange, breedId }: TierSelec
               </div>
             )}
 
-            {/* Coming Soon Overlay */}
+            {/* Coming Soon Banner */}
             {tier.isComingSoon && (
-              <div className="absolute inset-0 flex items-center justify-center rounded-2xl bg-gray-900/80 z-10">
-                <span className="text-white text-xl font-bold">Coming Soon</span>
+              <div className="coming-soon-banner">
+                <div className="coming-soon-banner-content">Coming Soon</div>
               </div>
             )}
 
             {/* Tier Content */}
-            <div className="mb-6">
-              <h3 className="text-xl font-bold mb-2">{tier.name}</h3>
-              <p className="text-sm text-gray-600">{tier.description}</p>
+            <div className="mb-6 text-center">
+              <h3 className="text-xl font-bold mb-2 uppercase">{tier.name}</h3>
+              <p className=" text-gray-600">{tier.description}</p>
             </div>
 
             {/* Price */}
-            <div className="mb-6">
+            <div className="mb-4 text-center">
               {tier.name === "Supreme Patron" ? (
-                <div className="flex items-baseline gap-2">
+                <div className="flex items-baseline gap-2 justify-center">
                   <span className="text-3xl font-bold">$</span>
                   <input
                     type="number"
                     min="10"
                     value={customPrice}
                     onChange={(e) => setCustomPrice(Number(e.target.value))}
-                    className="w-20 text-3xl font-bold border-b-2 border-gray-300 focus:border-primary-500 outline-none"
+                    className="w-20 text-3xl font-bold border-b-2 border-gray-300 focus:border-primary-500 outline-none text-center"
                   />
-                  <span className="text-sm text-gray-600">{getPriceSubtext(tier)}</span>
+                  <span className=" text-gray-600 uppercase text-md">
+                    per month
+                  </span>
                 </div>
               ) : (
-                <div className="flex items-baseline gap-1">
-                  <span className="text-3xl font-bold">{formatPrice(tier)}</span>
-                  {formatPrice(tier) !== "Free" && (
-                    <span className="text-sm text-gray-600">{getPriceSubtext(tier)}</span>
+                <div>
+                  <div className="text-3xl font-bold">{formatPrice(tier)}</div>
+                  {formatPrice(tier) !== "Free" ? (
+                    <div className="text-gray-600 mt-1 uppercase text-md">
+                      per month
+                    </div>
+                  ) : (
+                    <div className="h-6"></div>
                   )}
                 </div>
               )}
             </div>
 
+            {/* Alternative Pricing */}
+            <div className="mb-6">{getAlternativePricing(tier)}</div>
+
+            {/* CTA Button */}
+            <button
+              className={`
+               landing-raised-button landing-raised-button-primary w-full py-2.5 rounded-md mb-6
+                ${
+                  tier.isComingSoon
+                    ? "opacity-50 cursor-not-allowed pointer-events-none"
+                    : ""
+                }
+              `}
+            >
+              <Link
+                to={
+                  tier.name === "Free forever"
+                    ? "/app"
+                    : `/payment?product=${encodeURIComponent(
+                        tier.name
+                      )}&billingType=${selectedBillingType}${
+                        tier.name === "Supreme Patron"
+                          ? `&customPrice=${customPrice}`
+                          : ""
+                      }${breedId ? `&breed=${breedId}` : ""}`
+                }
+                className="block w-full h-full"
+              >
+                {tier.callToActionText || "Get Started"}
+              </Link>
+            </button>
+
             {/* Features */}
-            <div className="mb-6 space-y-3">
+            <div className="space-y-3">
               {tier.featuresHeader && (
-                <p className="text-sm font-medium text-gray-700 mb-2">
+                <p className="text-md font-medium text-gray-700 mb-2 uppercase text-center">
                   {tier.featuresHeader}
                 </p>
               )}
               {tier.features.map((feature, fIndex) => (
                 <div key={fIndex} className="flex items-start gap-2">
-                  <i className="pi pi-check text-green-500 mt-0.5" />
-                  <span className="text-sm">{feature.name}</span>
+                  <svg
+                    className="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M5 13l4 4L19 7"
+                    />
+                  </svg>
+                  <span className=" text-gray-700">{feature.name}</span>
                 </div>
               ))}
             </div>
-
-            {/* CTA Button */}
-            <Link
-              to={
-                tier.name === "Free forever"
-                  ? "/app"
-                  : `/payment?product=${encodeURIComponent(tier.name)}&billingType=${selectedBillingType}${
-                      tier.name === "Supreme Patron" ? `&customPrice=${customPrice}` : ""
-                    }${breedId ? `&breed=${breedId}` : ""}`
-              }
-              className={`
-                block w-full text-center py-3 px-4 rounded-lg font-medium transition-colors
-                ${tier.isComingSoon
-                  ? "bg-gray-300 text-gray-500 cursor-not-allowed pointer-events-none"
-                  : tier.isPopular
-                  ? "bg-primary-500 text-white hover:bg-primary-600"
-                  : "bg-gray-100 text-gray-900 hover:bg-gray-200"
-                }
-              `}
-            >
-              {tier.callToActionText || "Get Started"}
-            </Link>
           </div>
         ))}
       </div>

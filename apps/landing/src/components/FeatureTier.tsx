@@ -10,8 +10,10 @@ export default function FeatureTier({ featureTier }: FeatureTierProps) {
   // If featureTier is true, show checkmark
   if (featureTier === true) {
     return (
-      <div className="item">
-        <i className="pi pi-check font-bold text-green-500" />
+      <div className="flex justify-center">
+        <svg className="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+        </svg>
       </div>
     );
   }
@@ -19,16 +21,18 @@ export default function FeatureTier({ featureTier }: FeatureTierProps) {
   // If featureTier is a string (like "100 MB/50 photos"), show the text
   if (typeof featureTier === "string" && featureTier.length > 0) {
     return (
-      <div className="item">
-        <span className="text-sm font-medium">{featureTier}</span>
+      <div className="text-center">
+        <span className="text-sm font-medium text-gray-700">{featureTier}</span>
       </div>
     );
   }
 
   // If featureTier is false or null, show minus sign
   return (
-    <div className="item">
-      <i className="pi pi-minus font-bold text-gray-400" />
+    <div className="flex justify-center">
+      <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
+      </svg>
     </div>
   );
 }

@@ -1,0 +1,39 @@
+/* Coming Soon Banner styles */
+.coming-soon-banner {
+  position: absolute;
+  right: -32px;
+  top: 25px;
+  transform: rotate(45deg);
+  transform-origin: center;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.coming-soon-banner-content {
+  background-color: #fcd34d;
+  color: #1f2937;
+  padding: 6px 45px;
+  text-align: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  white-space: nowrap;
+  letter-spacing: 0.025em;
+}
+
+/* Ensure the card has overflow hidden for the banner */
+.tier-card {
+  overflow: hidden;
+  position: relative;
+}
+
+/* Add subtle overlay for coming soon cards */
+.tier-card.coming-soon::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.3);
+  pointer-events: none;
+  z-index: 5;
+}
