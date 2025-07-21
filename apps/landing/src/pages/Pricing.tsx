@@ -40,16 +40,14 @@ export default function Pricing() {
       <div className="relative  overflow-hidden">
         {/* Background SVG */}
         <div className="absolute top-0 right-0 w-full h-full pointer-events-none">
-          <HeaderFigure className="absolute top-[-20%] right-[-30%] w-[150%] h-auto opacity-50" />
+          <HeaderFigure className="absolute top-[-20%] right-[-30%] w-[150%] h-auto" />
         </div>
 
         {/* Content */}
         <div className="relative z-10">
           {/* Header */}
           <div className="container mx-auto px-6 pt-14 sm:pt-32 text-center">
-            <h1>
-              Choose Your <span className="text-white">Plan</span>
-            </h1>
+            <h1 className="text-white">Choose Your Plan</h1>
             <p className="text-2xl text-gray-600 xl:text-white max-w-3xl mx-auto mt-2">
               Join thousands of professional breeders who trust BreedHub to
               manage their breeding programs

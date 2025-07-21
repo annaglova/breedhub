@@ -111,7 +111,7 @@ export default function TierSelector({
   };
 
   return (
-    <div className="w-full">
+    <div className="w-full flex flex-col items-center">
       {/* Billing Type Selector */}
       <div className="flex justify-center mb-14">
         <div className="inline-flex rounded-full bg-white/50 p-[3px] shadow-inner border border-white">
@@ -154,7 +154,8 @@ export default function TierSelector({
       </div>
 
       {/* Tier Cards */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 max-w-screen md:max-w-6xl">
         {TIERS.map((tier, index) => (
           <div key={index} className="tier-card-wrapper">
             {/* Popular Badge - Outside the card */}
@@ -312,7 +313,7 @@ export default function TierSelector({
                 {tier.features.map((feature, fIndex) => (
                   <div key={fIndex} className="flex items-start gap-2">
                     <svg
-                      className="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5"
+                      className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
