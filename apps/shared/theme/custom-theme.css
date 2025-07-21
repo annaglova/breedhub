@@ -42,7 +42,8 @@ body button:focus-visible {
   font-weight: 500;
   padding: 0.75rem 1.25rem;
   border-radius: 6px;
-  transition: background-color 0.2s, color 0.2s, border-color 0.2s, box-shadow 0.2s, transform 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  transition: background-color 0.2s, color 0.2s, border-color 0.2s,
+    box-shadow 0.2s, transform 150ms cubic-bezier(0.4, 0, 0.2, 1);
   outline-color: transparent;
   position: relative;
   overflow: hidden;
@@ -89,7 +90,8 @@ body button:focus-visible {
   border-color: rgb(var(--secondary-300)) !important;
 }
 
-[data-theme="prime"] button[class*="hover:bg-accent"]:focus-visible:not(:disabled),
+[data-theme="prime"]
+  button[class*="hover:bg-accent"]:focus-visible:not(:disabled),
 [data-theme="prime"] button[class*="border"]:focus-visible:not(:disabled) {
   outline: 2px solid rgb(var(--primary-300)) !important;
   outline-offset: 2px !important;
@@ -117,7 +119,8 @@ body button:focus-visible {
 }
 
 [data-theme="prime"] button.bg-destructive:focus-visible:not(:disabled),
-[data-theme="prime"] button[class*="bg-destructive"]:focus-visible:not(:disabled) {
+[data-theme="prime"]
+  button[class*="bg-destructive"]:focus-visible:not(:disabled) {
   outline: 2px solid rgba(220, 38, 38, 0.5) !important;
   outline-offset: 2px !important;
 }
@@ -149,7 +152,8 @@ body button:focus-visible {
   padding: 0.75rem 0.75rem;
   border: 1px solid rgb(var(--surface-border));
   border-radius: 6px;
-  transition: background-color 0.2s, color 0.2s, border-color 0.2s, box-shadow 0.2s;
+  transition: background-color 0.2s, color 0.2s, border-color 0.2s,
+    box-shadow 0.2s;
   outline-color: transparent;
 }
 
@@ -167,7 +171,8 @@ body button:focus-visible {
 [data-theme="prime"] [class*="rounded-lg"][class*="border"] {
   background: rgb(var(--card-ground));
   color: rgb(var(--text-color));
-  box-shadow: 0 2px 1px -1px rgba(0,0,0,.2), 0 1px 1px 0 rgba(0,0,0,.14), 0 1px 3px 0 rgba(0,0,0,.12);
+  box-shadow: 0 2px 1px -1px rgba(0, 0, 0, 0.2), 0 1px 1px 0 rgba(0, 0, 0, 0.14),
+    0 1px 3px 0 rgba(0, 0, 0, 0.12);
   border-radius: 6px;
   border: 1px solid rgb(var(--surface-border));
 }
@@ -176,7 +181,8 @@ body button:focus-visible {
 [data-theme="prime"] [role="dialog"] {
   background: rgb(var(--modal-card-ground));
   border-radius: 6px;
-  box-shadow: 0 11px 15px -7px rgba(0,0,0,.2), 0 24px 38px 3px rgba(0,0,0,.14), 0 9px 46px 8px rgba(0,0,0,.12);
+  box-shadow: 0 11px 15px -7px rgba(0, 0, 0, 0.2),
+    0 24px 38px 3px rgba(0, 0, 0, 0.14), 0 9px 46px 8px rgba(0, 0, 0, 0.12);
 }
 
 [data-theme="prime"] [role="dialog"] [class*="text-lg"] {
@@ -254,7 +260,8 @@ body button:focus-visible {
   height: 1.25rem;
   border: 2px solid rgb(var(--surface-border));
   border-radius: 4px;
-  transition: background-color 0.2s, color 0.2s, border-color 0.2s, box-shadow 0.2s;
+  transition: background-color 0.2s, color 0.2s, border-color 0.2s,
+    box-shadow 0.2s;
   cursor: pointer;
 }
 
@@ -274,7 +281,8 @@ body button:focus-visible {
   border: 1px solid rgb(var(--surface-border));
   border-radius: 6px;
   padding: 0.75rem;
-  transition: background-color 0.2s, color 0.2s, border-color 0.2s, box-shadow 0.2s;
+  transition: background-color 0.2s, color 0.2s, border-color 0.2s,
+    box-shadow 0.2s;
 }
 
 [data-theme="prime"] [role="combobox"]:focus {
@@ -294,7 +302,8 @@ body button:focus-visible {
   background: transparent;
   border: none;
   border-bottom: 2px solid transparent;
-  transition: background-color 0.2s, color 0.2s, border-color 0.2s, box-shadow 0.2s;
+  transition: background-color 0.2s, color 0.2s, border-color 0.2s,
+    box-shadow 0.2s;
 }
 
 [data-theme="prime"] [role="tab"][aria-selected="true"] {
@@ -353,7 +362,8 @@ body button:focus-visible {
 }
 
 /* Avatar styles */
-[data-theme="prime"] [class*="relative"][class*="overflow-hidden"][class*="rounded-full"] {
+[data-theme="prime"]
+  [class*="relative"][class*="overflow-hidden"][class*="rounded-full"] {
   border: 2px solid rgb(var(--surface-border));
 }
 
@@ -485,7 +495,7 @@ body button:focus-visible {
   color: white;
   padding: 0.5rem 0.75rem;
   border-radius: 4px;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
 }
 
 /* Tooltip component styling for PrimeReact theme */
@@ -495,10 +505,11 @@ body button:focus-visible {
   color: #ffffff !important;
   padding: 0.5rem 0.75rem !important;
   border-radius: 6px !important;
-  font-size: 0.875rem !important;
+  font-size: 0.8125rem !important;
   font-family: var(--font-sans) !important;
   font-weight: 400 !important;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
   max-width: 300px !important;
   word-wrap: break-word !important;
   line-height: 1.5 !important;
