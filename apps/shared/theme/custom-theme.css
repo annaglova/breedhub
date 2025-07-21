@@ -569,3 +569,37 @@ body button:focus-visible {
   cursor: default !important;
   user-select: none !important;
 }
+
+/* Custom Input Component Styles */
+input.custom-input {
+  width: 100%;
+  padding: 0.5rem 0.75rem !important;
+  border: 1px solid #d1d5db !important;
+  border-radius: 0.375rem !important;
+  transition: all 200ms ease !important;
+  outline: none !important;
+}
+
+input.custom-input:hover:not(:focus) {
+  border-color: rgb(var(--primary-500)) !important;
+}
+
+input.custom-input:focus {
+  border-color: rgb(var(--primary-500)) !important;
+  outline: 3px solid rgb(var(--primary-500) / 0.4) !important;
+  outline-offset: 0 !important;
+}
+
+input.custom-input.error {
+  border-color: #ef4444 !important;
+}
+
+input.custom-input.error:hover:not(:focus) {
+  border-color: #dc2626 !important;
+}
+
+input.custom-input.error:focus {
+  border-color: #ef4444 !important;
+  outline: 3px solid rgba(239, 68, 68, 0.4) !important;
+  outline-offset: 0 !important;
+}

@@ -14,7 +14,11 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
             {label}
           </label>
         )}
-        <input ref={ref} className={`w-full ${className}`} {...props} />
+        <input 
+          ref={ref} 
+          className={`custom-input ${error ? 'error' : ''} ${className}`} 
+          {...props} 
+        />
         <div className="h-5 mt-1">
           {error && (
             <p className="text-red-500 text-sm text-left">{error}</p>
