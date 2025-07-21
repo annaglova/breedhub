@@ -197,57 +197,57 @@ export default function TierSelector({
               <div className="mb-4 text-center">
                 {tier.name === "Supreme Patron" ? (
                   <div>
-                    <div className="flex items-baseline gap-2 justify-center">
-                      <span className="text-3xl font-bold">$</span>
-                      <div className="w-full">
-                        <Input
-                          type="number"
-                          value={customPrice}
-                          onChange={(e) => {
-                            const inputValue = e.target.value;
-                            const value = Number(inputValue);
-                            
-                            // Handle empty input
-                            if (inputValue === "") {
-                              setCustomPrice(0);
-                              setPriceError("");
-                              return;
-                            }
-                            
-                            // Remove leading zeros
-                            const cleanValue = value.toString();
-                            if (cleanValue !== inputValue) {
-                              e.target.value = cleanValue;
-                            }
-                            
-                            setCustomPrice(value);
+                    <div className="flex  gap-2 justify-center">
+                      <span className="text-3xl font-bold mt-1 mr-1">$</span>
 
-                            // Show error if out of bounds
-                            if (value < 20) {
-                              setPriceError("Minimum amount is $20");
-                            } else if (value > 100) {
-                              setPriceError("Maximum amount is $100");
-                            } else {
-                              setPriceError("");
-                            }
-                          }}
-                          onBlur={(e) => {
-                            const value = Number(e.target.value);
+                      <Input
+                        type="number"
+                        value={customPrice}
+                        onChange={(e) => {
+                          const inputValue = e.target.value;
+                          const value = Number(inputValue);
 
-                            // Validate bounds on blur
-                            if (value < 20 || isNaN(value)) {
-                              setCustomPrice(20);
-                              setPriceError("");
-                            } else if (value > 100) {
-                              setCustomPrice(100);
-                              setPriceError("");
-                            }
-                          }}
-                          className="text-3xl py-2 font-bold border-b-2 border-gray-300 focus:border-primary-500 outline-none text-center"
-                          error={priceError}
-                        />
-                      </div>
-                      <span className=" text-gray-600 uppercase text-md">
+                          // Handle empty input
+                          if (inputValue === "") {
+                            setCustomPrice(0);
+                            setPriceError("");
+                            return;
+                          }
+
+                          // Remove leading zeros
+                          const cleanValue = value.toString();
+                          if (cleanValue !== inputValue) {
+                            e.target.value = cleanValue;
+                          }
+
+                          setCustomPrice(value);
+
+                          // Show error if out of bounds
+                          if (value < 20) {
+                            setPriceError("Minimum amount is $20");
+                          } else if (value > 100) {
+                            setPriceError("Maximum amount is $100");
+                          } else {
+                            setPriceError("");
+                          }
+                        }}
+                        onBlur={(e) => {
+                          const value = Number(e.target.value);
+
+                          // Validate bounds on blur
+                          if (value < 20 || isNaN(value)) {
+                            setCustomPrice(20);
+                            setPriceError("");
+                          } else if (value > 100) {
+                            setCustomPrice(100);
+                            setPriceError("");
+                          }
+                        }}
+                        className="text-xl font-bold text-center"
+                        error={priceError}
+                      />
+
+                      <span className=" text-gray-600 uppercase text-md mt-1">
                         per month
                       </span>
                     </div>
