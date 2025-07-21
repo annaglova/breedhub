@@ -22,8 +22,13 @@
   letter-spacing: 0.025em;
 }
 
-/* Ensure the card has overflow hidden for the banner */
-.tier-card {
+/* Ensure the card wrapper has no overflow restrictions */
+.tier-card-wrapper {
+  position: relative;
+}
+
+/* Card content with overflow hidden for coming soon banner */
+.tier-card-content {
   overflow: hidden;
   position: relative;
 }
