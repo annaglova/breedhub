@@ -66,11 +66,11 @@ export default function Pricing() {
 
             {/* Desktop Features Table */}
             <div className="hidden lg:block">
-              <div className="grid grid-cols-5 gap-4 mb-8">
-                <div className="col-span-2"></div>
+              <div className="grid grid-cols-4 gap-4 mb-8">
+                <div></div>
                 {TIERS.slice(0, 3).map((tier, index) => (
                   <div key={index} className="text-center">
-                    <h4 className="font-bold">{tier.name}</h4>
+                    <h4 className="font-bold text-lg">{tier.name}</h4>
                   </div>
                 ))}
               </div>
@@ -78,12 +78,14 @@ export default function Pricing() {
               {/* Feature Categories */}
               {FEATURE_BLOCKS.map((category, catIndex) => (
                 <div key={catIndex} className="mb-12">
-                  <h3 className="text-xl font-bold mb-6 text-primary-600">
-                    {category.name}
-                  </h3>
+                  <div className="bg-red-50 rounded-lg p-3 mb-4">
+                    <h3 className="text-lg font-bold text-red-700">
+                      {category.name}
+                    </h3>
+                  </div>
                   {category.features.map((feature, featIndex) => (
-                    <div key={featIndex} className="grid grid-cols-5 gap-4 py-3 border-b border-gray-200">
-                      <div className="col-span-2">
+                    <div key={featIndex} className="grid grid-cols-4 gap-4 py-3 border-b border-gray-200">
+                      <div>
                         <p className="font-medium">{feature.name}</p>
                         {feature.status === "COMING SOON" && (
                           <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded">
@@ -102,6 +104,27 @@ export default function Pricing() {
                       </div>
                     </div>
                   ))}
+                  {/* Action buttons row */}
+                  <div className="grid grid-cols-4 gap-4 py-4 mt-2">
+                    <div></div>
+                    <div className="text-center">
+                      <Link to="/app" className="text-primary-500 hover:text-primary-600 font-medium text-sm">
+                        Get Started →
+                      </Link>
+                    </div>
+                    <div className="text-center">
+                      <Link to={`/payment?product=${encodeURIComponent(TIERS[1].name)}&billingType=${selectedBillingType}`} 
+                        className="text-primary-500 hover:text-primary-600 font-medium text-sm">
+                        Choose Plan →
+                      </Link>
+                    </div>
+                    <div className="text-center">
+                      <Link to={`/payment?product=${encodeURIComponent(TIERS[2].name)}&billingType=${selectedBillingType}`} 
+                        className="text-primary-500 hover:text-primary-600 font-medium text-sm">
+                        Choose Plan →
+                      </Link>
+                    </div>
+                  </div>
                 </div>
               ))}
             </div>
@@ -131,9 +154,11 @@ export default function Pricing() {
               {/* Mobile Features List */}
               {FEATURE_BLOCKS.map((category, catIndex) => (
                 <div key={catIndex} className="mb-8">
-                  <h3 className="text-lg font-bold mb-4 text-primary-600">
-                    {category.name}
-                  </h3>
+                  <div className="bg-red-50 rounded-lg p-3 mb-4">
+                    <h3 className="text-base font-bold text-red-700">
+                      {category.name}
+                    </h3>
+                  </div>
                   {category.features.map((feature, featIndex) => (
                     <div key={featIndex} className="py-3 border-b border-gray-200">
                       <div className="flex justify-between items-start">
@@ -170,9 +195,11 @@ export default function Pricing() {
           </h2>
           <div className="max-w-3xl mx-auto">
             {faqItems.map((item, index) => (
-              <div key={index} className="mb-6 p-6 bg-gray-50 rounded-lg">
-                <h3 className="font-bold mb-2">{item.question}</h3>
-                <p className="text-gray-600">{item.answer}</p>
+              <div key={index} className="mb-4 border border-gray-200 rounded-lg overflow-hidden">
+                <div className="p-6 bg-white hover:bg-gray-50 transition-colors">
+                  <h3 className="font-bold text-gray-900 mb-2">{item.question}</h3>
+                  <p className="text-gray-600">{item.answer}</p>
+                </div>
               </div>
             ))}
           </div>
