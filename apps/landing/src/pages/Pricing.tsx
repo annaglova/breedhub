@@ -67,11 +67,11 @@ export default function Pricing() {
               </h2>
 
               {/* Desktop Features Table */}
-              <div className="hidden lg:block">
-                <div className="grid grid-cols-4 gap-4 mb-8">
+              <div className="hidden lg:block max-w-5xl mx-auto">
+                <div className="grid mb-8" style={{ gridTemplateColumns: 'auto 112px 112px 112px' }}>
                   <div></div>
                   {TIERS.slice(0, 3).map((tier, index) => (
-                    <div key={index} className="text-center">
+                    <div key={index} className="text-center self-center">
                       <h4 className="font-bold text-lg">{tier.name}</h4>
                     </div>
                   ))}
@@ -79,68 +79,40 @@ export default function Pricing() {
 
                 {/* Feature Categories */}
                 {FEATURE_BLOCKS.map((category, catIndex) => (
-                  <div key={catIndex} className="mb-12">
-                    <div className="bg-red-50 rounded-lg p-3 mb-4">
-                      <h3 className="text-xl font-bold text-red-700">
+                  <div key={catIndex} className="mb-8">
+                    <div className="rounded-lg p-3 mb-2" style={{ backgroundColor: (category.color || '#6366f1') + '20' }}>
+                      <h3 className="text-lg font-bold" style={{ color: category.color || '#6366f1' }}>
                         {category.name}
                       </h3>
                     </div>
                     {category.features.map((feature, featIndex) => (
                       <div
                         key={featIndex}
-                        className="grid grid-cols-4 gap-4 py-3 border-b border-gray-200"
+                        className="grid py-2 hover:bg-gray-50"
+                        style={{ gridTemplateColumns: '15px auto 112px 112px 112px' }}
                       >
-                        <div>
-                          <p className="font-medium">{feature.name}</p>
-                          {feature.status === "COMING SOON" && (
-                            <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded">
-                              Coming Soon
-                            </span>
-                          )}
+                        <div></div>
+                        <div className="pr-4">
+                          <div className="flex items-center gap-2">
+                            <p className="text-sm">{feature.name}</p>
+                            {feature.status === "COMING SOON" && (
+                              <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded">
+                                Coming Soon
+                              </span>
+                            )}
+                          </div>
                         </div>
-                        <div className="text-center">
+                        <div className="text-center self-center">
                           <FeatureTier featureTier={feature.tier1} />
                         </div>
-                        <div className="text-center">
+                        <div className="text-center self-center">
                           <FeatureTier featureTier={feature.tier2} />
                         </div>
-                        <div className="text-center">
+                        <div className="text-center self-center">
                           <FeatureTier featureTier={feature.tier3} />
                         </div>
                       </div>
                     ))}
-                    {/* Action buttons row */}
-                    <div className="grid grid-cols-4 gap-4 py-4 mt-2">
-                      <div></div>
-                      <div className="text-center">
-                        <Link
-                          to="/app"
-                          className="text-primary-500 hover:text-primary-600 font-medium text-sm"
-                        >
-                          Get Started →
-                        </Link>
-                      </div>
-                      <div className="text-center">
-                        <Link
-                          to={`/payment?product=${encodeURIComponent(
-                            TIERS[1].name
-                          )}&billingType=${selectedBillingType}`}
-                          className="text-primary-500 hover:text-primary-600 font-medium text-sm"
-                        >
-                          Choose Plan →
-                        </Link>
-                      </div>
-                      <div className="text-center">
-                        <Link
-                          to={`/payment?product=${encodeURIComponent(
-                            TIERS[2].name
-                          )}&billingType=${selectedBillingType}`}
-                          className="text-primary-500 hover:text-primary-600 font-medium text-sm"
-                        >
-                          Choose Plan →
-                        </Link>
-                      </div>
-                    </div>
                   </div>
                 ))}
               </div>
@@ -170,39 +142,38 @@ export default function Pricing() {
 
                 {/* Mobile Features List */}
                 {FEATURE_BLOCKS.map((category, catIndex) => (
-                  <div key={catIndex} className="mb-8">
-                    <div className="bg-red-50 rounded-lg p-3 mb-4">
-                      <h3 className="text-xl font-bold text-red-700">
+                  <div key={catIndex} className="mb-6">
+                    <div className="rounded-lg p-3 mb-2" style={{ backgroundColor: (category.color || '#6366f1') + '20' }}>
+                      <h3 className="text-base font-bold" style={{ color: category.color || '#6366f1' }}>
                         {category.name}
                       </h3>
                     </div>
                     {category.features.map((feature, featIndex) => (
                       <div
                         key={featIndex}
-                        className="py-3 border-b border-gray-200"
+                        className="grid py-2"
+                        style={{ gridTemplateColumns: 'auto 64px' }}
                       >
-                        <div className="flex justify-between items-start">
-                          <div className="flex-1 pr-4">
-                            <p className="font-medium text-sm">
-                              {feature.name}
-                            </p>
+                        <div className="pr-2">
+                          <div className="flex items-center gap-2">
+                            <p className="text-sm">{feature.name}</p>
                             {feature.status === "COMING SOON" && (
-                              <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded inline-block mt-1">
+                              <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded">
                                 Coming Soon
                               </span>
                             )}
                           </div>
-                          <div>
-                            <FeatureTier
-                              featureTier={
-                                showMobileTier === 0
-                                  ? feature.tier1
-                                  : showMobileTier === 1
-                                  ? feature.tier2
-                                  : feature.tier3
-                              }
-                            />
-                          </div>
+                        </div>
+                        <div className="text-center self-center">
+                          <FeatureTier
+                            featureTier={
+                              showMobileTier === 0
+                                ? feature.tier1
+                                : showMobileTier === 1
+                                ? feature.tier2
+                                : feature.tier3
+                            }
+                          />
                         </div>
                       </div>
                     ))}
