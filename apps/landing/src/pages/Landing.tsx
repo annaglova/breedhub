@@ -839,7 +839,7 @@ export default function Landing() {
 
           {/* Call to Action Section */}
           <div className="mt-20 mb-16 w-full text-center">
-            <div className="bg-gradient-to-r from-primary-50 to-pink-50 rounded-3xl p-12">
+            <div className="bg-gradient-to-r from-pink-50 to-primary-50 rounded-3xl p-12">
               <h2 className="text-4xl font-bold text-gray-900 mb-4">
                 Ready to start your breeding journey?
               </h2>
