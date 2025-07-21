@@ -137,7 +137,7 @@ export default function TierSelector({
               {type.discount && (
                 <span
                   className={`
-                  ml-1.5 text-xs font-bold cursor-pointer
+                  ml-1.5 text-base font-bold cursor-pointer
                   ${
                     selectedBillingType === type.value
                       ? "text-green-600"
@@ -186,15 +186,17 @@ export default function TierSelector({
               )}
 
               {/* Tier Content */}
-              <div className="mb-8 text-center">
+              <div className="mb-8 flex flex-col items-center">
                 <h3 className="text-xl font-bold mb-2 uppercase">
                   {tier.name}
                 </h3>
-                <p className=" text-gray-600">{tier.description}</p>
+                <p className=" text-gray-600 w-3/4 text-center">
+                  {tier.description}
+                </p>
               </div>
 
               {/* Price */}
-              <div className="mb-4 text-center">
+              <div className="mb-4 text-center h-[69px]">
                 {tier.name === "Supreme Patron" ? (
                   <div>
                     <div className="flex  gap-2 justify-center">

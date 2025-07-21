@@ -32,16 +32,16 @@ export const MONTHLY = 'monthly';
 export const TIERS: Tier[] = [
   {
     callToActionText: 'Free Forever',
-    description: 'Best for personal use',
+    description: 'Perfect for hobby breeders and getting started',
     features: [
       {
-        name: 'Unlimited pedigree generations',
+        name: 'Create and manage unlimited pedigree trees',
       },
       {
-        name: 'Test matings',
+        name: 'Test matings with COI calculation',
       },
       {
-        name: 'Marketplace',
+        name: 'Access to breeders marketplace',
       },
     ],
     featuresHeader: '',
@@ -65,7 +65,7 @@ export const TIERS: Tier[] = [
   },
   {
     callToActionText: 'Get Started',
-    description: 'Best for a professional breeder',
+    description: 'Everything you need to manage your breeding program',
     features: [
       {
         name: 'Litter management',
@@ -74,7 +74,7 @@ export const TIERS: Tier[] = [
         name: 'Kennel management',
       },
       {
-        name: 'An ability to manage the publicity of your data',
+        name: 'Privacy controls for your breeding data',
       },
     ],
     featuresHeader: 'Everything in free forever and',
@@ -103,13 +103,13 @@ export const TIERS: Tier[] = [
   },
   {
     callToActionText: 'Become a Patron',
-    description: 'Pay what you want',
+    description: 'Support the breed you love with flexible contribution',
     features: [
       {
-        name: 'An ability to become a Top Patron of your favorite breed',
+        name: 'Get recognized as a Top Patron of your breed',
       },
       {
-        name: 'An additional contribution to your favorite breed on its way to being a most supported one',
+        name: 'Help promote and support your favorite breed community',
       },
     ],
     featuresHeader: 'Everything in professional and',
@@ -133,16 +133,16 @@ export const TIERS: Tier[] = [
   },
   {
     callToActionText: 'Get Started',
-    description: 'Best for a professional kennel',
+    description: 'Complete kennel management with your own website',
     features: [
       {
         name: 'Kennel site',
       },
       {
-        name: 'Various site skins',
+        name: 'Multiple professional website themes',
       },
       {
-        name: 'Pages visits analytics',
+        name: 'Detailed visitor analytics and insights',
       },
     ],
     featuresHeader: 'Everything in professional and',
