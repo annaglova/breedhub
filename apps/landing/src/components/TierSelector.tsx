@@ -7,6 +7,7 @@ import {
 } from "@/constants/pricing";
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import Input from "./Input";
 import "./TierSelector.css";
 
 interface TierSelectorProps {
@@ -41,6 +42,7 @@ export default function TierSelector({
 }: TierSelectorProps) {
   const [selectedBillingType, setSelectedBillingType] = useState(YEARLY_NUMBER);
   const [customPrice, setCustomPrice] = useState<number>(20);
+  const [priceError, setPriceError] = useState<string>("");
 
   const handleBillingTypeChange = (type: number) => {
     setSelectedBillingType(type);
@@ -163,7 +165,7 @@ export default function TierSelector({
                 </span>
               </div>
             )}
-            
+
             {/* Card with overflow hidden */}
             <div
               className={`
@@ -176,56 +178,102 @@ export default function TierSelector({
                 ${tier.isComingSoon ? "coming-soon" : ""}
               `}
             >
-
-            {/* Coming Soon Banner */}
-            {tier.isComingSoon && (
-              <div className="coming-soon-banner">
-                <div className="coming-soon-banner-content">Coming Soon</div>
-              </div>
-            )}
-
-            {/* Tier Content */}
-            <div className="mb-8 text-center">
-              <h3 className="text-xl font-bold mb-2 uppercase">{tier.name}</h3>
-              <p className=" text-gray-600">{tier.description}</p>
-            </div>
-
-            {/* Price */}
-            <div className="mb-4 text-center">
-              {tier.name === "Supreme Patron" ? (
-                <div className="flex items-baseline gap-2 justify-center">
-                  <span className="text-3xl font-bold">$</span>
-                  <input
-                    type="number"
-                    min="10"
-                    value={customPrice}
-                    onChange={(e) => setCustomPrice(Number(e.target.value))}
-                    className="w-20 text-3xl font-bold border-b-2 border-gray-300 focus:border-primary-500 outline-none text-center"
-                  />
-                  <span className=" text-gray-600 uppercase text-md">
-                    per month
-                  </span>
-                </div>
-              ) : (
-                <div>
-                  <div className="text-3xl font-bold">{formatPrice(tier)}</div>
-                  {formatPrice(tier) !== "Free" ? (
-                    <div className="text-gray-600 mt-1 uppercase text-md">
-                      per month
-                    </div>
-                  ) : (
-                    <div className="h-6"></div>
-                  )}
+              {/* Coming Soon Banner */}
+              {tier.isComingSoon && (
+                <div className="coming-soon-banner">
+                  <div className="coming-soon-banner-content">Coming Soon</div>
                 </div>
               )}
-            </div>
 
-            {/* Alternative Pricing */}
-            <div className="mb-6">{getAlternativePricing(tier)}</div>
+              {/* Tier Content */}
+              <div className="mb-8 text-center">
+                <h3 className="text-xl font-bold mb-2 uppercase">
+                  {tier.name}
+                </h3>
+                <p className=" text-gray-600">{tier.description}</p>
+              </div>
 
-            {/* CTA Button */}
-            <button
-              className={`
+              {/* Price */}
+              <div className="mb-4 text-center">
+                {tier.name === "Supreme Patron" ? (
+                  <div>
+                    <div className="flex items-baseline gap-2 justify-center">
+                      <span className="text-3xl font-bold">$</span>
+                      <div className="w-full">
+                        <Input
+                          type="number"
+                          value={customPrice}
+                          onChange={(e) => {
+                            const inputValue = e.target.value;
+                            const value = Number(inputValue);
+                            
+                            // Handle empty input
+                            if (inputValue === "") {
+                              setCustomPrice(0);
+                              setPriceError("");
+                              return;
+                            }
+                            
+                            // Remove leading zeros
+                            const cleanValue = value.toString();
+                            if (cleanValue !== inputValue) {
+                              e.target.value = cleanValue;
+                            }
+                            
+                            setCustomPrice(value);
+
+                            // Show error if out of bounds
+                            if (value < 20) {
+                              setPriceError("Minimum amount is $20");
+                            } else if (value > 100) {
+                              setPriceError("Maximum amount is $100");
+                            } else {
+                              setPriceError("");
+                            }
+                          }}
+                          onBlur={(e) => {
+                            const value = Number(e.target.value);
+
+                            // Validate bounds on blur
+                            if (value < 20 || isNaN(value)) {
+                              setCustomPrice(20);
+                              setPriceError("");
+                            } else if (value > 100) {
+                              setCustomPrice(100);
+                              setPriceError("");
+                            }
+                          }}
+                          className="text-3xl py-2 font-bold border-b-2 border-gray-300 focus:border-primary-500 outline-none text-center"
+                          error={priceError}
+                        />
+                      </div>
+                      <span className=" text-gray-600 uppercase text-md">
+                        per month
+                      </span>
+                    </div>
+                  </div>
+                ) : (
+                  <div>
+                    <div className="text-3xl font-bold">
+                      {formatPrice(tier)}
+                    </div>
+                    {formatPrice(tier) !== "Free" ? (
+                      <div className="text-gray-600 mt-1 uppercase text-md">
+                        per month
+                      </div>
+                    ) : (
+                      <div className="h-6"></div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Alternative Pricing */}
+              <div className="mb-6">{getAlternativePricing(tier)}</div>
+
+              {/* CTA Button */}
+              <button
+                className={`
                landing-raised-button landing-raised-button-primary w-full py-2.5 rounded-md mb-6
                 ${
                   tier.isComingSoon
@@ -233,51 +281,51 @@ export default function TierSelector({
                     : ""
                 }
               `}
-            >
-              <Link
-                to={
-                  tier.name === "Free forever"
-                    ? "/app"
-                    : `/payment?product=${encodeURIComponent(
-                        tier.name
-                      )}&billingType=${selectedBillingType}${
-                        tier.name === "Supreme Patron"
-                          ? `&customPrice=${customPrice}`
-                          : ""
-                      }${breedId ? `&breed=${breedId}` : ""}`
-                }
-                className="block w-full h-full"
               >
-                {tier.callToActionText || "Get Started"}
-              </Link>
-            </button>
+                <Link
+                  to={
+                    tier.name === "Free forever"
+                      ? "/app"
+                      : `/payment?product=${encodeURIComponent(
+                          tier.name
+                        )}&billingType=${selectedBillingType}${
+                          tier.name === "Supreme Patron"
+                            ? `&customPrice=${customPrice}`
+                            : ""
+                        }${breedId ? `&breed=${breedId}` : ""}`
+                  }
+                  className="block w-full h-full"
+                >
+                  {tier.callToActionText || "Get Started"}
+                </Link>
+              </button>
 
-            {/* Features */}
-            <div className="space-y-3 mt-auto">
-              {tier.featuresHeader && (
-                <p className="text-md font-medium text-gray-700 mb-2 uppercase text-center">
-                  {tier.featuresHeader}
-                </p>
-              )}
-              {tier.features.map((feature, fIndex) => (
-                <div key={fIndex} className="flex items-start gap-2">
-                  <svg
-                    className="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M5 13l4 4L19 7"
-                    />
-                  </svg>
-                  <span className=" text-gray-700">{feature.name}</span>
-                </div>
-              ))}
-            </div>
+              {/* Features */}
+              <div className="space-y-3 mt-auto">
+                {tier.featuresHeader && (
+                  <p className="text-md font-medium text-gray-700 mb-2 uppercase text-center">
+                    {tier.featuresHeader}
+                  </p>
+                )}
+                {tier.features.map((feature, fIndex) => (
+                  <div key={fIndex} className="flex items-start gap-2">
+                    <svg
+                      className="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M5 13l4 4L19 7"
+                      />
+                    </svg>
+                    <span className=" text-gray-700">{feature.name}</span>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         ))}
