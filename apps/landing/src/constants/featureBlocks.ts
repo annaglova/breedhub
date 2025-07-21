@@ -9,11 +9,14 @@ export interface FeatureDetail {
 
 export interface FeatureCategory {
   name: string;
+  color?: string;
   features: FeatureDetail[];
 }
 
 export const FEATURE_BLOCKS: FeatureCategory[] = [
   {
+    name: 'Common',
+    color: '#6366f1',
     features: [
       {
         description: 'The ability to use Breedhub directly from your mobile',
