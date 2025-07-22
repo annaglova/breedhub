@@ -1,0 +1,171 @@
+import HeaderFigure from "@/assets/backgrounds/header-figure.svg?react";
+import { Button } from "@shared/ui/button";
+import { Input } from "@shared/ui/input";
+import { Label } from "@shared/ui/label";
+import { useState } from "react";
+import { Link } from "react-router-dom";
+
+export default function ForgotPassword() {
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
+  const [email, setEmail] = useState("");
+  const [error, setError] = useState("");
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+
+    if (!email) {
+      setError("Email is required");
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setError("Please enter a valid email address");
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      // TODO: Implement actual password reset
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      setIsSuccess(true);
+    } catch (error) {
+      setError("Email does not found! Are you sure you are already a member?");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <div className="relative flex min-h-screen w-full flex-col bg-gradient-to-br from-primary-50 via-white to-primary-50">
+      {/* Background SVG */}
+      <div className="absolute bottom-0 left-0 w-full h-full pointer-events-none overflow-hidden opacity-10">
+        <HeaderFigure className="absolute bottom-[-50%] left-[-20%] w-[140%] h-auto" />
+      </div>
+
+      {/* Header */}
+      <div className="relative z-10 flex w-full items-center justify-between p-8 sm:px-14">
+        <Link to="/" className="flex items-center">
+          <img
+            className="h-10"
+            src="/assets/images/logo/logo-text.svg"
+            alt="BreedHub logo"
+          />
+        </Link>
+        <div className="flex items-center gap-4">
+          <span className="hidden text-gray-600 sm:block">Return to</span>
+          <Link to="/sign-in">
+            <Button className="landing-raised-button landing-raised-button-pink">
+              Login page
+            </Button>
+          </Link>
+        </div>
+      </div>
+
+      {/* Content */}
+      <div className="relative z-10 flex flex-1 items-center justify-center px-6 pb-8 pt-8 sm:px-8">
+        <div className="w-full max-w-sm">
+          <div className="bg-white rounded-2xl shadow-xl p-8 sm:p-10">
+            {!isSuccess ? (
+              <>
+                {/* Title */}
+                <div className="text-center">
+                  <h1 className="text-3xl font-bold tracking-tight text-gray-900">
+                    Forgot password?
+                  </h1>
+                  <p className="mt-2 text-gray-600">
+                    Fill the form to reset your password
+                  </p>
+                </div>
+
+                {/* Form */}
+                <form onSubmit={handleSubmit} className="mt-8">
+                  <div>
+                    <Label htmlFor="email">Email address</Label>
+                    <Input
+                      id="email"
+                      name="email"
+                      type="email"
+                      autoComplete="email"
+                      required
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className={error ? "border-red-500" : ""}
+                      placeholder="Enter your email"
+                    />
+                    {error && (
+                      <p className="mt-1 text-sm text-red-600">{error}</p>
+                    )}
+                  </div>
+
+                  <Button
+                    type="submit"
+                    disabled={isLoading}
+                    className="mt-6 w-full landing-raised-button landing-raised-button-primary"
+                  >
+                    {isLoading ? "Sending..." : "Send reset link"}
+                  </Button>
+                </form>
+
+                {/* Back to login link */}
+                <p className="mt-6 text-center text-sm text-gray-600">
+                  Remember your password?{" "}
+                  <Link
+                    to="/sign-in"
+                    className="font-medium text-primary-600 hover:text-primary-500"
+                  >
+                    Sign in
+                  </Link>
+                </p>
+              </>
+            ) : (
+              <>
+                {/* Success Message */}
+                <div className="text-center">
+                  <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
+                    <svg
+                      className="h-8 w-8 text-green-600"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M5 13l4 4L19 7"
+                      />
+                    </svg>
+                  </div>
+                  <h2 className="mt-4 text-2xl font-bold text-gray-900">
+                    Check your email
+                  </h2>
+                  <p className="mt-2 text-gray-600">
+                    Password reset sent! You'll receive an email if you are registered on our system.
+                  </p>
+                  <p className="mt-1 text-sm text-gray-500">
+                    Sent to: {email}
+                  </p>
+                </div>
+
+                <Link to="/sign-in">
+                  <Button className="mt-8 w-full landing-raised-button landing-raised-button-outline">
+                    Back to sign in
+                  </Button>
+                </Link>
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Footer */}
+      <div className="relative z-10 flex h-20 w-full items-center px-6 sm:h-24 md:px-8">
+        <span className="text-sm text-gray-600">BreedHub &copy; 2024</span>
+      </div>
+    </div>
+  );
+}

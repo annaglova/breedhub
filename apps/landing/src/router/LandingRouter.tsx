@@ -2,6 +2,14 @@
 import ScrollToTop from "@/components/ScrollToTop";
 import About from "@/pages/About";
 import Application from "@/pages/Application";
+import {
+  ConfirmationRequired,
+  ForgotPassword,
+  ResetPassword,
+  SignIn,
+  SignOut,
+  SignUp,
+} from "@/pages/auth";
 import Cookie from "@/pages/Cookie";
 import Landing from "@/pages/Landing";
 import NotFound from "@/pages/NotFound";
@@ -30,6 +38,14 @@ export default function LandingRouter() {
         {/* Payment pages */}
         <Route path="/payment" element={<Payment />} />
         <Route path="/prepayments" element={<Prepayments />} />
+
+        {/* Auth pages */}
+        <Route path="/sign-in" element={<SignIn />} />
+        <Route path="/sign-up" element={<SignUp />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/confirmation-required" element={<ConfirmationRequired />} />
+        <Route path="/sign-out" element={<SignOut />} />
 
         {/* Legal pages */}
         <Route path="/terms" element={<Terms />} />
