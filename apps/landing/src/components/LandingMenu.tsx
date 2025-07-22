@@ -88,6 +88,7 @@ export default function LandingMenu({ className }: LandingMenuProps) {
           "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
           isMobileMenuOpen &&
             "md:opacity-100 opacity-30 pointer-events-none md:pointer-events-auto",
+          isScrolled && "menu-scrolled",
           className
         )}
         style={{
@@ -131,17 +132,14 @@ export default function LandingMenu({ className }: LandingMenuProps) {
               {/* Auth buttons */}
               <div className="flex items-center space-x-3">
                 <a href="/app">
-                  <Button
-                    variant="outline"
-                    className="rounded-full border-gray-300 text-gray-500 hover:border-gray-400 hover:text-gray-600 text-base px-5 py-2"
-                  >
+                  <button className="landing-menu-button landing-menu-button-outline">
                     Sign In
-                  </Button>
+                  </button>
                 </a>
                 <Link to="/pricing">
-                  <Button className="rounded-full text-base px-5 py-2">
+                  <button className="landing-menu-button landing-menu-button-primary">
                     Get Started
-                  </Button>
+                  </button>
                 </Link>
               </div>
             </div>
@@ -169,17 +167,14 @@ export default function LandingMenu({ className }: LandingMenuProps) {
           {/* Auth Buttons for 2xl screens - Fixed position */}
           <div className="hidden 2xl:flex items-center space-x-3">
             <a href="/app">
-              <Button
-                variant="outline"
-                className="rounded-full border-gray-300 text-gray-500 hover:border-gray-400 hover:text-gray-600 text-base px-5 py-2"
-              >
+              <button className="landing-menu-button landing-menu-button-outline">
                 Sign In
-              </Button>
+              </button>
             </a>
             <Link to="/pricing">
-              <Button className="rounded-full text-base px-5 py-2">
+              <button className="landing-menu-button landing-menu-button-primary">
                 Get Started
-              </Button>
+              </button>
             </Link>
           </div>
 
