@@ -1,4 +1,5 @@
 import HeaderFigure from "@/assets/backgrounds/header-figure.svg?react";
+import LandingFigure from "@/assets/backgrounds/landing-figure.svg?react";
 import FeatureTier from "@/components/FeatureTier";
 import TierSelector from "@/components/TierSelector";
 import { FEATURE_BLOCKS } from "@/constants/featureBlocks";
@@ -231,7 +232,73 @@ export default function Pricing() {
               </div>
             </div>
           </div>
+          {/* Gift Subscription Section */}
+          <div className="relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-primary-500 to-accent-500 opacity-90"></div>
 
+            {/* Background SVG Pattern */}
+            <div className="absolute inset-0 opacity-10">
+              <LandingFigure className="absolute -right-1/4 -top-1/4 w-full h-full transform rotate-12" />
+              <LandingFigure className="absolute -left-1/4 -bottom-1/4 w-full h-full transform -rotate-12" />
+            </div>
+
+            <div className="relative z-10 container mx-auto px-6 py-20">
+              <div className="max-w-3xl mx-auto text-center">
+                {/* Gift Icon */}
+                <div className="mb-6 inline-flex items-center justify-center w-20 h-20 bg-white/20 rounded-full backdrop-blur-sm">
+                  <svg
+                    className="w-10 h-10 text-white"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"
+                    />
+                  </svg>
+                </div>
+
+                <h2 className="text-5xl font-bold mb-6 text-white">
+                  Gift a Subscription
+                </h2>
+
+                <p className="text-xl text-white/90 mb-10 max-w-2xl mx-auto leading-relaxed">
+                  Give the gift of professional breeding management.
+                  <span className="block mt-2">
+                    Perfect for fellow breeders or kennel owners.
+                  </span>
+                </p>
+
+                <div className="space-y-4">
+                  <Link to="/payment?gift=true">
+                    <button className="group relative inline-flex items-center gap-3 bg-white text-primary-600 font-bold py-5 px-10 rounded-full shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300">
+                      <span className="text-lg">Buy Gift Subscription</span>
+                      <svg
+                        className="w-5 h-5 group-hover:translate-x-1 transition-transform"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M17 8l4 4m0 0l-4 4m4-4H3"
+                        />
+                      </svg>
+                    </button>
+                  </Link>
+
+                  <p className="text-white/70 text-sm">
+                    Available for all subscription tiers • Instant delivery
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
           {/* FAQ Section */}
           <div className="container mx-auto px-6 py-20">
             <h2 className="text-4xl font-bold text-center mb-12">
@@ -251,22 +318,6 @@ export default function Pricing() {
                   </div>
                 </div>
               ))}
-            </div>
-          </div>
-
-          {/* Gift Subscription Section */}
-          <div className="bg-gradient-to-r from-primary-50 to-pink-50 py-16">
-            <div className="container mx-auto px-6 text-center">
-              <h2 className="text-4xl font-bold mb-4">Gift a Subscription</h2>
-              <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
-                Give the gift of professional breeding management. Perfect for
-                fellow breeders or kennel owners.
-              </p>
-              <Link to="/payment?gift=true">
-                <button className="bg-primary-500 hover:bg-primary-600 text-white font-bold py-4 px-8 rounded-xl shadow-lg transition duration-200">
-                  Buy Gift Subscription
-                </button>
-              </Link>
             </div>
           </div>
         </div>
