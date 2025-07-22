@@ -259,3 +259,47 @@
   @apply bg-transparent text-white shadow-xl;
   @apply border-2 border-white/30 hover:border-white/50;
 }
+
+/* Menu Buttons */
+.landing-menu-button {
+  @apply rounded-full font-medium text-base px-6 py-2.5 shadow-md transform transition-all duration-300;
+  @apply hover:scale-105;
+  position: relative;
+  overflow: hidden;
+}
+
+.landing-menu-button-outline {
+  background-color: transparent !important;
+  color: white;
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.landing-menu-button-outline:hover {
+  background-color: transparent !important;
+  border-color: rgba(255, 255, 255, 0.8);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+/* Scrolled state for outline button */
+.menu-scrolled .landing-menu-button-outline {
+  color: rgb(var(--primary-600));
+  border-color: rgb(var(--primary-500) / 0.3);
+}
+
+.menu-scrolled .landing-menu-button-outline:hover {
+  border-color: rgb(var(--primary-500) / 0.5);
+}
+
+.landing-menu-button-primary {
+  background-color: rgb(var(--primary-500)) !important;
+  color: white;
+  border: 2px solid rgb(var(--primary-500));
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.landing-menu-button-primary:hover {
+  background-color: rgb(var(--primary-500)) !important;
+  border-color: rgb(var(--primary-500));
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
