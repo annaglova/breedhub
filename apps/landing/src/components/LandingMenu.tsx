@@ -74,7 +74,7 @@ const MenuItem: React.FC<MenuItemProps & { isScrolled?: boolean }> = ({
       to={to}
       onClick={onClick}
       className={cn(
-        "px-5 py-2.5 text-base font-bold rounded-full transition-all duration-200 inline-flex items-center gap-2",
+        "px-6 py-2.5 text-base font-bold rounded-full transition-all duration-200 inline-flex items-center gap-2",
         isActive
           ? isScrolled
             ? "text-primary-600"
@@ -126,11 +126,17 @@ interface LandingMenuProps {
 export default function LandingMenu({ className }: LandingMenuProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [scrollOpacity, setScrollOpacity] = useState(0);
 
   // Handle scroll for menu background
   useEffect(() => {
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 10);
+      const scrollY = window.scrollY;
+      setIsScrolled(scrollY > 10);
+      
+      // Calculate opacity based on scroll position (0-100px range)
+      const opacity = Math.min(scrollY / 100, 0.65);
+      setScrollOpacity(opacity);
     };
 
     // Check initial scroll position
@@ -169,21 +175,19 @@ export default function LandingMenu({ className }: LandingMenuProps) {
           className
         )}
         style={{
-          backgroundColor: isScrolled
-            ? "rgba(255, 255, 255, 0.65)"
-            : "transparent",
-          backdropFilter: isScrolled ? "blur(8px)" : "none",
-          boxShadow: isScrolled ? "0 4px 6px -1px rgba(0, 0, 0, 0.1)" : "none",
+          backgroundColor: `rgba(255, 255, 255, ${scrollOpacity})`,
+          backdropFilter: scrollOpacity > 0 ? `blur(${scrollOpacity * 12}px)` : "none",
+          boxShadow: scrollOpacity > 0 ? `0 4px 6px -1px rgba(0, 0, 0, ${scrollOpacity * 0.15})` : "none",
         }}
       >
-        <div className="flex items-center justify-between px-4 sm:px-6 lg:px-8 py-3">
+        <div className="flex items-center justify-between px-4 sm:px-6 lg:px-8 py-4">
           {/* Logo - Fixed position */}
           <div className="flex items-center">
             <Link
               to="/"
               className="flex items-center cursor-pointer relative z-10"
             >
-              <LogoText className="h-9 w-auto cursor-pointer" />
+              <LogoText className="h-10 w-auto cursor-pointer" />
             </Link>
           </div>
 
