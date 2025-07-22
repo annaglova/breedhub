@@ -241,7 +241,7 @@ export default function Pricing() {
               {faqItems.map((item, index) => (
                 <div
                   key={index}
-                  className="mb-4 border border-gray-100 rounded-lg overflow-hidden"
+                  className="mb-4 border border-gray-200 rounded-lg overflow-hidden shadow-sm"
                 >
                   <div className="p-6 bg-white hover:bg-gray-50 transition-colors">
                     <h3 className="text-xl font-bold text-gray-900 mb-2">
