@@ -102,8 +102,8 @@ const MenuItem: React.FC<MenuItemProps & { isScrolled?: boolean }> = ({
             ? "rgba(0, 0, 0, 0.05)"
             : "rgba(255, 255, 255, 0.1)";
           e.currentTarget.style.borderColor = isScrolled
-            ? "rgba(0, 0, 0, 0.05)"
-            : "rgba(255, 255, 255, 0.1)";
+            ? "rgba(0, 0, 0, 0.001)"
+            : "rgba(255, 255, 255, 0.01)";
         }
       }}
       onMouseLeave={(e) => {
