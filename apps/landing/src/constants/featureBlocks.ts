@@ -15,12 +15,12 @@ export interface FeatureCategory {
 
 export const FEATURE_BLOCKS: FeatureCategory[] = [
   {
-    name: 'Common',
+    name: 'Core Features',
     color: '#6366f1',
     features: [
       {
-        description: 'The ability to use Breedhub directly from your mobile',
-        name: 'Mobile app (with PWA)',
+        description: 'Access BreedHub on any device with our Progressive Web App technology',
+        name: 'Mobile App & PWA',
         status: '',
         tier1: true,
         tier2: true,
@@ -28,8 +28,8 @@ export const FEATURE_BLOCKS: FeatureCategory[] = [
       },
       {
         description:
-          "If you are the owner of a multi-breed kennel you don't need to register a few times on a different breed basis. It is enough to register once in the system to have the ability to work with more than 400 breeds of pets in one place",
-        name: 'Single auth and simple data management for a multi-breed kennel',
+          'Manage multiple breeds from a single account - supporting over 400 breeds in one unified platform',
+        name: 'Multi-Breed Management',
         status: '',
         tier1: true,
         tier2: true,
@@ -143,15 +143,15 @@ export const FEATURE_BLOCKS: FeatureCategory[] = [
         tier3: true,
       },
     ],
-    name: 'Common',
+    name: 'Core Features',
     color: '#6366f1',
   },
   {
     features: [
       {
         description:
-          'The public page of your kennel stands for replacing your kennel site. We provide the instrument of publishing actual info about your producers, upcoming or present litters and pets for sale',
-        name: 'The public page of your kennel, which fully replaces your site',
+          'Get a stunning, SEO-optimized website for your kennel with customizable themes and automatic content updates',
+        name: 'Professional Kennel Website',
         status: '',
         tier1: true,
         tier2: true,
@@ -176,14 +176,14 @@ export const FEATURE_BLOCKS: FeatureCategory[] = [
         tier3: true,
       },
     ],
-    name: 'SEO',
+    name: 'Website & Marketing',
     color: '#10b981',
   },
   {
     features: [
       {
-        description: 'The instrument for the planning of breeding work',
-        name: 'Testmatings',
+        description: 'Plan your breeding programs with advanced genetic calculator and COI analysis',
+        name: 'Test Matings Calculator',
         status: '',
         tier1: true,
         tier2: true,
@@ -191,8 +191,8 @@ export const FEATURE_BLOCKS: FeatureCategory[] = [
       },
       {
         description:
-          'The instrument for breeding work with litters - fixation of the diynamic of weight growth, comments, vaccinations and deworming terms',
-        name: 'Litters management',
+          'Track litters from planning to placement, including weight charts, milestones, vaccinations and health records',
+        name: 'Litter Management System',
         status: '',
         tier1: false,
         tier2: true,
@@ -208,8 +208,8 @@ export const FEATURE_BLOCKS: FeatureCategory[] = [
         tier3: true,
       },
       {
-        description: 'Vaccinations and deworming terms with notes',
-        name: 'Health management',
+        description: 'Keep detailed health records, vaccinations, and medical history for all your pets',
+        name: 'Health Records Tracking',
         status: 'COMING SOON',
         tier1: false,
         tier2: false,
@@ -265,8 +265,8 @@ export const FEATURE_BLOCKS: FeatureCategory[] = [
     features: [
       {
         description:
-          'Any instance in the system can be followed - person, kennel, pet or event',
-        name: 'Following for your favorites pets, persons, kennels, events',
+          'Connect with breeders worldwide, follow your favorite kennels, pets and events',
+        name: 'Breeder Network',
         status: 'COMING SOON',
         tier1: true,
         tier2: true,
@@ -317,8 +317,8 @@ export const FEATURE_BLOCKS: FeatureCategory[] = [
         tier3: true,
       },
     ],
-    name: 'Social network',
-    color: '#3b82f6',
+    name: 'Community & Social',
+    color: '#EC4899',
   },
   {
     features: [
@@ -376,5 +376,35 @@ export const FEATURE_BLOCKS: FeatureCategory[] = [
     ],
     name: 'Support',
     color: '#64748b',
+  },
+  {
+    name: 'Analytics & Insights',
+    color: '#F59E0B',
+    features: [
+      {
+        description: 'Analyze your breeding program\'s success with detailed statistics and reports',
+        name: 'Breeding Statistics',
+        status: '',
+        tier1: false,
+        tier2: true,
+        tier3: true,
+      },
+      {
+        description: 'Track your kennel\'s performance metrics and compare with industry standards',
+        name: 'Performance Analytics',
+        status: 'COMING SOON',
+        tier1: false,
+        tier2: false,
+        tier3: true,
+      },
+      {
+        description: 'Monitor income and expenses related to your breeding activities',
+        name: 'Financial Tracking',
+        status: 'COMING SOON',
+        tier1: false,
+        tier2: false,
+        tier3: true,
+      },
+    ],
   },
 ];
