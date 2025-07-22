@@ -242,7 +242,7 @@ export default function Pricing() {
               <LandingFigure className="absolute -left-1/4 -bottom-1/4 w-full h-full transform -rotate-12" />
             </div>
 
-            <div className="relative z-10 container mx-auto px-6 py-20">
+            <div className="relative z-10 container mx-auto px-6 py-16">
               <div className="max-w-3xl mx-auto text-center">
                 {/* Gift Icon */}
                 <div className="mb-6 inline-flex items-center justify-center w-20 h-20 bg-white/20 rounded-full backdrop-blur-sm">
@@ -274,7 +274,7 @@ export default function Pricing() {
 
                 <div className="space-y-4">
                   <Link to="/payment?gift=true">
-                    <button className="group relative inline-flex items-center gap-3 bg-white text-primary-600 font-bold py-5 px-10 rounded-full shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300">
+                    <button className="group landing-cta-button landing-cta-button-primary">
                       <span className="text-lg">Buy Gift Subscription</span>
                       <svg
                         className="w-5 h-5 group-hover:translate-x-1 transition-transform"
