@@ -24,16 +24,20 @@ const MenuItem: React.FC<MenuItemProps & { isScrolled?: boolean }> = ({
       to={to}
       onClick={onClick}
       className={cn(
-        "px-4 py-2 text-base font-medium rounded-full transition-all duration-200",
+        "px-5 py-2.5 text-base font-medium rounded-full transition-all duration-200",
         isActive
-          ? "text-primary-600"
-          : "text-gray-700 hover:text-primary-600 hover:bg-gray-50"
+          ? isScrolled
+            ? "text-primary-600"
+            : "text-white"
+          : isScrolled
+            ? "text-gray-700 hover:text-primary-600 hover:bg-gray-50"
+            : "text-white/80 hover:text-white hover:bg-white/10"
       )}
       style={{
         backgroundColor: isActive
           ? isScrolled
             ? "rgb(237 231 246)" // primary-50 full opacity
-            : "rgba(237, 231, 246, 0.75)" // primary-50 with 75% opacity
+            : "rgba(237, 231, 246, 0.15)" // primary-50 with 15% opacity for white text visibility
           : "transparent",
       }}
     >
@@ -268,7 +272,7 @@ export default function LandingMenu({ className }: LandingMenuProps) {
           <nav className="flex flex-col p-4 space-y-6">
             {/* Services section */}
             <div>
-              <p className="px-4 pb-2 text-xs font-bold text-gray-400 uppercase tracking-wider">
+              <p className="px-4 pb-2 text-sm font-bold text-gray-400 uppercase tracking-wider">
                 Services
               </p>
               <div className="space-y-1">
@@ -276,7 +280,7 @@ export default function LandingMenu({ className }: LandingMenuProps) {
                   to="/product"
                   onClick={() => setIsMobileMenuOpen(false)}
                   className={cn(
-                    "block px-4 py-2 ml-2 text-sm font-medium rounded-md transition-colors duration-200",
+                    "block px-4 py-2 ml-2 text-base font-medium rounded-md transition-colors duration-200",
                     location.pathname === "/product"
                       ? "text-primary-600 bg-primary-50"
                       : "text-gray-700 hover:text-primary-600 hover:bg-gray-50"
@@ -288,7 +292,7 @@ export default function LandingMenu({ className }: LandingMenuProps) {
                   to="/pricing"
                   onClick={() => setIsMobileMenuOpen(false)}
                   className={cn(
-                    "block px-4 py-2 ml-2 text-sm font-medium rounded-md transition-colors duration-200",
+                    "block px-4 py-2 ml-2 text-base font-medium rounded-md transition-colors duration-200",
                     location.pathname === "/pricing"
                       ? "text-primary-600 bg-primary-50"
                       : "text-gray-700 hover:text-primary-600 hover:bg-gray-50"
@@ -300,7 +304,7 @@ export default function LandingMenu({ className }: LandingMenuProps) {
                   to="/app"
                   onClick={() => setIsMobileMenuOpen(false)}
                   className={cn(
-                    "block px-4 py-2 ml-2 text-sm font-medium rounded-md transition-colors duration-200",
+                    "block px-4 py-2 ml-2 text-base font-medium rounded-md transition-colors duration-200",
                     location.pathname === "/app"
                       ? "text-primary-600 bg-primary-50"
                       : "text-gray-700 hover:text-primary-600 hover:bg-gray-50"
@@ -312,7 +316,7 @@ export default function LandingMenu({ className }: LandingMenuProps) {
                   to="/about"
                   onClick={() => setIsMobileMenuOpen(false)}
                   className={cn(
-                    "block px-4 py-2 ml-2 text-sm font-medium rounded-md transition-colors duration-200",
+                    "block px-4 py-2 ml-2 text-base font-medium rounded-md transition-colors duration-200",
                     location.pathname === "/about"
                       ? "text-primary-600 bg-primary-50"
                       : "text-gray-700 hover:text-primary-600 hover:bg-gray-50"
@@ -325,7 +329,7 @@ export default function LandingMenu({ className }: LandingMenuProps) {
 
             {/* Spaces section */}
             <div>
-              <p className="px-4 pb-2 text-xs font-bold text-gray-400 uppercase tracking-wider">
+              <p className="px-4 pb-2 text-sm font-bold text-gray-400 uppercase tracking-wider">
                 Spaces
               </p>
               <div className="space-y-1">
@@ -335,7 +339,7 @@ export default function LandingMenu({ className }: LandingMenuProps) {
                     to={item.to}
                     onClick={() => setIsMobileMenuOpen(false)}
                     className={cn(
-                      "block px-4 py-2 ml-2 text-sm font-medium rounded-md transition-colors duration-200",
+                      "block px-4 py-2 ml-2 text-base font-medium rounded-md transition-colors duration-200",
                       location.pathname === item.to
                         ? "text-primary-600 bg-primary-50"
                         : "text-gray-700 hover:text-primary-600 hover:bg-gray-50"
@@ -349,7 +353,7 @@ export default function LandingMenu({ className }: LandingMenuProps) {
 
             {/* Terms section */}
             <div>
-              <p className="px-4 pb-2 text-xs font-bold text-gray-400 uppercase tracking-wider">
+              <p className="px-4 pb-2 text-sm font-bold text-gray-400 uppercase tracking-wider">
                 Terms
               </p>
               <div className="space-y-1">
@@ -357,7 +361,7 @@ export default function LandingMenu({ className }: LandingMenuProps) {
                   to="/terms-and-conditions"
                   onClick={() => setIsMobileMenuOpen(false)}
                   className={cn(
-                    "block px-4 py-2 ml-2 text-sm font-medium rounded-md transition-colors duration-200",
+                    "block px-4 py-2 ml-2 text-base font-medium rounded-md transition-colors duration-200",
                     location.pathname === "/terms-and-conditions"
                       ? "text-primary-600 bg-primary-50"
                       : "text-gray-700 hover:text-primary-600 hover:bg-gray-50"
@@ -369,7 +373,7 @@ export default function LandingMenu({ className }: LandingMenuProps) {
                   to="/privacy-policy"
                   onClick={() => setIsMobileMenuOpen(false)}
                   className={cn(
-                    "block px-4 py-2 ml-2 text-sm font-medium rounded-md transition-colors duration-200",
+                    "block px-4 py-2 ml-2 text-base font-medium rounded-md transition-colors duration-200",
                     location.pathname === "/privacy-policy"
                       ? "text-primary-600 bg-primary-50"
                       : "text-gray-700 hover:text-primary-600 hover:bg-gray-50"
@@ -385,21 +389,23 @@ export default function LandingMenu({ className }: LandingMenuProps) {
           <div className="absolute bottom-0 left-0 right-0 p-4 border-t bg-white">
             <div className="space-y-2">
               <a href="/app" className="block">
-                <Button
-                  variant="outline"
-                  className="w-full"
+                <button
+                  className="w-full rounded-md font-medium text-base py-2.5 px-5 text-primary-600 bg-transparent transition-all duration-300"
+                  style={{
+                    border: `2px solid rgb(var(--primary-500) / 0.3)`,
+                  }}
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   Sign In
-                </Button>
+                </button>
               </a>
               <Link to="/pricing" className="block">
-                <Button
-                  className="w-full"
+                <button
+                  className="w-full rounded-md font-medium text-base py-2.5 px-5 text-white bg-primary-500 transition-all duration-300"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   Get Started
-                </Button>
+                </button>
               </Link>
             </div>
           </div>
