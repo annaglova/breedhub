@@ -1,7 +1,7 @@
 import HeaderFigure from "@/assets/backgrounds/header-figure.svg?react";
-import { Button } from "@shared/ui/button";
-import { Input } from "@shared/ui/input";
-import { Label } from "@shared/ui/label";
+import { Button } from "@ui/components/button";
+import { Input } from "@ui/components/input";
+import { Label } from "@ui/components/label";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 

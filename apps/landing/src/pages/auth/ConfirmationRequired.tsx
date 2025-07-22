@@ -1,5 +1,5 @@
 import HeaderFigure from "@/assets/backgrounds/header-figure.svg?react";
-import { Button } from "@shared/ui/button";
+import { Button } from "@ui/components/button";
 import { Link } from "react-router-dom";
 
 export default function ConfirmationRequired() {
