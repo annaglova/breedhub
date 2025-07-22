@@ -61,7 +61,7 @@ export default function Pricing() {
 
           {/* Features Comparison Section */}
           <div className="bg-gray-50 py-20">
-            <div className="landing-content-container mx-auto px-6">
+            <div className="landing-content-container">
               <h2 className="text-4xl font-bold text-center mb-12">
                 Compare Features
               </h2>
