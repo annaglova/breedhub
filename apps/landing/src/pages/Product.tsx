@@ -234,26 +234,79 @@ export default function Product() {
           </div>
         </div>{" "}
         {/* CTA Section */}
-        <div className="bg-gradient-to-r from-primary-50 to-pink-50 py-20">
-          <div className="container mx-auto px-6 text-center">
-            <h2 className="text-4xl font-bold mb-6">
-              Ready to Transform Your Breeding Program?
-            </h2>
-            <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
-              Join thousands of professional breeders who are already using
-              BreedHub to manage their breeding programs more efficiently.
-            </p>
-            <div className="flex justify-center gap-4">
-              <Link to="/pricing">
-                <button className="landing-raised-button landing-raised-button-flat">
-                  View Pricing
-                </button>
-              </Link>
-              <Link to="/app">
-                <button className="landing-raised-button landing-raised-button-outline">
-                  Try Free Forever
-                </button>
-              </Link>
+        <div className="relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-br from-primary-500 to-accent-500 opacity-90"></div>
+          
+          {/* Background SVG Pattern */}
+          <div className="absolute inset-0 opacity-10">
+            <LandingFigure className="absolute -right-1/4 -top-1/4 w-full h-full transform rotate-12" />
+            <LandingFigure className="absolute -left-1/4 -bottom-1/4 w-full h-full transform -rotate-12" />
+          </div>
+          
+          <div className="relative z-10 container mx-auto px-6 py-16">
+            <div className="text-center">
+              {/* Icon */}
+              <div className="mb-6 inline-flex items-center justify-center w-20 h-20 bg-white/20 rounded-full backdrop-blur-sm">
+                <svg
+                  className="w-10 h-10 text-white"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M13 10V3L4 14h7v7l9-11h-7z"
+                  />
+                </svg>
+              </div>
+              
+              <h2 className="text-5xl font-bold mb-6 text-white">
+                Ready to Transform Your Breeding Program?
+              </h2>
+              <p className="text-xl text-white/90 mb-10 max-w-2xl mx-auto leading-relaxed">
+                Join thousands of professional breeders who are already using
+                BreedHub to manage their breeding programs more efficiently.
+              </p>
+              <div className="flex justify-center gap-4">
+                <Link to="/pricing">
+                  <button className="group landing-cta-button landing-cta-button-primary">
+                    <span className="text-lg">View Pricing</span>
+                    <svg
+                      className="w-5 h-5 group-hover:translate-x-1 transition-transform"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M17 8l4 4m0 0l-4 4m4-4H3"
+                      />
+                    </svg>
+                  </button>
+                </Link>
+                <Link to="/app">
+                  <button className="group landing-cta-button landing-cta-button-outline">
+                    <span className="text-lg">Try Free Forever</span>
+                    <svg
+                      className="w-5 h-5 group-hover:translate-x-1 transition-transform"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9 5l7 7-7 7"
+                      />
+                    </svg>
+                  </button>
+                </Link>
+              </div>
             </div>
           </div>
         </div>

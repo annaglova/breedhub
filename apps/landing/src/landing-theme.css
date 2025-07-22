@@ -243,3 +243,19 @@
     animation: none;
   }
 }
+
+/* CTA Section Buttons */
+.landing-cta-button {
+  @apply relative inline-flex items-center gap-3 font-bold py-4 px-8 rounded-full transform transition-all duration-300;
+  @apply hover:scale-105 hover:shadow-2xl;
+}
+
+.landing-cta-button-primary {
+  @apply bg-white text-primary-600 shadow-xl;
+  @apply border-2 border-white;
+}
+
+.landing-cta-button-outline {
+  @apply bg-transparent text-white shadow-xl;
+  @apply border-2 border-white/30 hover:border-white/50;
+}
