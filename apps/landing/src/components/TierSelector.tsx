@@ -114,7 +114,7 @@ export default function TierSelector({
     <div className="w-full flex flex-col items-center">
       {/* Billing Type Selector */}
       <div className="flex justify-center mb-14">
-        <div className="inline-flex rounded-full bg-white/50 p-[3px] shadow-inner border border-white">
+        <div className="inline-flex rounded-full bg-white/10 p-[3px] shadow-inner border-2 border-white/30">
           {billingTypes.map((type) => (
             <button
               key={type.value}
@@ -123,8 +123,8 @@ export default function TierSelector({
                 relative px-4 sm:px-6 py-3 rounded-full transition-all duration-200 text-base
                 ${
                   selectedBillingType === type.value
-                    ? "bg-white text-gray-900 shadow-md cursor-pointer"
-                    : "text-gray-600 hover:text-gray-900 hover:bg-white/50 cursor-pointer"
+                    ? "bg-white/85 text-gray-700 shadow-md cursor-pointer"
+                    : "text-gray-600 hover:text-gray-700 hover:bg-white/30 cursor-pointer"
                 }
               `}
             >
