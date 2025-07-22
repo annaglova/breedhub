@@ -236,13 +236,13 @@ export default function Product() {
         {/* CTA Section */}
         <div className="relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-br from-primary-500 to-accent-500 opacity-90"></div>
-          
+
           {/* Background SVG Pattern */}
           <div className="absolute inset-0 opacity-10">
             <LandingFigure className="absolute -right-1/4 -top-1/4 w-full h-full transform rotate-12" />
             <LandingFigure className="absolute -left-1/4 -bottom-1/4 w-full h-full transform -rotate-12" />
           </div>
-          
+
           <div className="relative z-10 container mx-auto px-6 py-16">
             <div className="text-center">
               {/* Icon */}
@@ -261,7 +261,7 @@ export default function Product() {
                   />
                 </svg>
               </div>
-              
+
               <h2 className="text-5xl font-bold mb-6 text-white">
                 Ready to Transform Your Breeding Program?
               </h2>
@@ -314,7 +314,7 @@ export default function Product() {
         <div className="container mx-auto px-6 py-20">
           <div className="grid md:grid-cols-3 gap-8">
             <div className="text-center">
-              <div className="bg-primary-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+              <div className="bg-primary-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4 shadow-sm">
                 <i className="pi pi-shield text-primary-500 text-2xl" />
               </div>
               <h3 className="text-xl font-bold mb-2">Secure & Private</h3>
@@ -324,7 +324,7 @@ export default function Product() {
               </p>
             </div>
             <div className="text-center">
-              <div className="bg-green-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+              <div className="bg-green-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4 shadow-sm">
                 <i className="pi pi-mobile text-green-500 text-2xl" />
               </div>
               <h3 className="text-xl font-bold mb-2">Mobile Ready</h3>
@@ -334,7 +334,7 @@ export default function Product() {
               </p>
             </div>
             <div className="text-center">
-              <div className="bg-purple-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+              <div className="bg-purple-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4 shadow-sm">
                 <i className="pi pi-users text-purple-500 text-2xl" />
               </div>
               <h3 className="text-xl font-bold mb-2">Community Driven</h3>
