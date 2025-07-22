@@ -144,6 +144,7 @@ export const FEATURE_BLOCKS: FeatureCategory[] = [
       },
     ],
     name: 'Common',
+    color: '#6366f1',
   },
   {
     features: [
@@ -176,6 +177,7 @@ export const FEATURE_BLOCKS: FeatureCategory[] = [
       },
     ],
     name: 'SEO',
+    color: '#10b981',
   },
   {
     features: [
@@ -215,6 +217,7 @@ export const FEATURE_BLOCKS: FeatureCategory[] = [
       },
     ],
     name: 'Kennel management',
+    color: '#f59e0b',
   },
   {
     features: [
@@ -256,6 +259,7 @@ export const FEATURE_BLOCKS: FeatureCategory[] = [
       },
     ],
     name: 'Collections',
+    color: '#8b5cf6',
   },
   {
     features: [
@@ -314,6 +318,7 @@ export const FEATURE_BLOCKS: FeatureCategory[] = [
       },
     ],
     name: 'Social network',
+    color: '#3b82f6',
   },
   {
     features: [
@@ -337,6 +342,7 @@ export const FEATURE_BLOCKS: FeatureCategory[] = [
       },
     ],
     name: 'Verification',
+    color: '#ef4444',
   },
   {
     features: [
@@ -369,5 +375,6 @@ export const FEATURE_BLOCKS: FeatureCategory[] = [
       },
     ],
     name: 'Support',
+    color: '#64748b',
   },
 ];

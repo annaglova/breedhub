@@ -1,5 +1,3 @@
-import React from "react";
-
 export type TierValue = boolean | string | null;
 
 export interface FeatureTierProps {
@@ -11,8 +9,18 @@ export default function FeatureTier({ featureTier }: FeatureTierProps) {
   if (featureTier === true) {
     return (
       <div className="flex justify-center">
-        <svg className="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+        <svg
+          className="w-5 h-5 text-green-500 flex-shrink-0"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M5 13l4 4L19 7"
+          />
         </svg>
       </div>
     );
@@ -30,8 +38,18 @@ export default function FeatureTier({ featureTier }: FeatureTierProps) {
   // If featureTier is false or null, show minus sign
   return (
     <div className="flex justify-center">
-      <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
+      <svg
+        className="w-5 h-5 text-gray-400 flex-shrink-0"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2}
+          d="M20 12H4"
+        />
       </svg>
     </div>
   );
