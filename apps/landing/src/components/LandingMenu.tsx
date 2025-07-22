@@ -74,7 +74,7 @@ const MenuItem: React.FC<MenuItemProps & { isScrolled?: boolean }> = ({
       to={to}
       onClick={onClick}
       className={cn(
-        "px-5 py-2.5 text-base font-medium rounded-full transition-all duration-200 inline-flex items-center gap-2",
+        "px-5 py-2.5 text-base font-bold rounded-full transition-all duration-200 inline-flex items-center gap-2",
         isActive
           ? isScrolled
             ? "text-primary-600"
