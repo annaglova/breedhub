@@ -1,6 +1,5 @@
 import { cn } from "@/utils";
 import LogoText from "@shared/icons/logo/logo-text.svg?react";
-import { Button } from "@ui/components/button";
 import React, { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 
@@ -19,19 +18,70 @@ const MenuItem: React.FC<MenuItemProps & { isScrolled?: boolean }> = ({
   const location = useLocation();
   const isActive = location.pathname === to;
 
+  // Icon mapping
+  const getIcon = () => {
+    switch (to) {
+      case "/product":
+        return (
+          <svg
+            className="w-5 h-5 opacity-70"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            viewBox="0 0 24 24"
+          >
+            <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
+            <line x1="12" y1="18" x2="12.01" y2="18"></line>
+          </svg>
+        );
+      case "/pricing":
+        return (
+          <svg
+            className="w-5 h-5 opacity-70"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            viewBox="0 0 24 24"
+          >
+            <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"></path>
+            <path d="M3 5v14a2 2 0 0 0 2 2h16v-5"></path>
+            <path d="M18 12a2 2 0 0 0 0 4h4v-4Z"></path>
+          </svg>
+        );
+      case "/about":
+        return (
+          <svg
+            className="w-5 h-5 opacity-70"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            viewBox="0 0 24 24"
+          >
+            <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"></path>
+            <path d="M14 2v4a2 2 0 0 0 2 2h4"></path>
+            <path d="M10 9H8"></path>
+            <path d="M16 13H8"></path>
+            <path d="M16 17H8"></path>
+          </svg>
+        );
+      default:
+        return null;
+    }
+  };
+
   return (
     <Link
       to={to}
       onClick={onClick}
       className={cn(
-        "px-5 py-2.5 text-base font-medium rounded-full transition-all duration-200",
+        "px-5 py-2.5 text-base font-medium rounded-full transition-all duration-200 inline-flex items-center gap-2",
         isActive
           ? isScrolled
             ? "text-primary-600"
             : "text-white"
           : isScrolled
-            ? "text-gray-700 hover:text-primary-600 hover:bg-gray-50"
-            : "text-white/80 hover:text-white hover:bg-white/10"
+          ? "text-gray-700 hover:text-primary-600"
+          : "text-white/80 hover:text-white"
       )}
       style={{
         backgroundColor: isActive
@@ -39,8 +89,31 @@ const MenuItem: React.FC<MenuItemProps & { isScrolled?: boolean }> = ({
             ? "rgb(237 231 246)" // primary-50 full opacity
             : "rgba(237, 231, 246, 0.15)" // primary-50 with 15% opacity for white text visibility
           : "transparent",
+        border: "2px solid",
+        borderColor: isActive
+          ? isScrolled
+            ? "rgb(237 231 246)" // same color as background
+            : "rgba(237, 231, 246, 0.01)" // same color as background
+          : "transparent", // transparent for inactive
+      }}
+      onMouseEnter={(e) => {
+        if (!isActive) {
+          e.currentTarget.style.backgroundColor = isScrolled
+            ? "rgba(0, 0, 0, 0.05)"
+            : "rgba(255, 255, 255, 0.1)";
+          e.currentTarget.style.borderColor = isScrolled
+            ? "rgba(0, 0, 0, 0.05)"
+            : "rgba(255, 255, 255, 0.1)";
+        }
+      }}
+      onMouseLeave={(e) => {
+        if (!isActive) {
+          e.currentTarget.style.backgroundColor = "transparent";
+          e.currentTarget.style.borderColor = "transparent";
+        }
       }}
     >
+      {getIcon()}
       {label}
     </Link>
   );
