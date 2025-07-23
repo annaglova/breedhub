@@ -5,8 +5,12 @@ import { FormInput } from "@shared/components/auth/FormInput";
 import { PasswordStrength } from "@shared/components/auth/PasswordStrength";
 import { Spinner } from "@shared/components/auth/Spinner";
 import AuthLayout from "@shared/layouts/AuthLayout";
+import { resetPasswordSchema, type ResetPasswordFormData } from "@shared/utils/authSchemas";
+import { sanitizeErrorMessage, secureErrorMessages, logSecurityEvent } from "@shared/utils/securityUtils";
 import { Button } from "@ui/components/button";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
+import { useForm } from "react-hook-form";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 
 export default function ResetPassword() {
@@ -15,38 +19,25 @@ export default function ResetPassword() {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showPasswordConfirm, setShowPasswordConfirm] = useState(false);
-  const [formData, setFormData] = useState({
-    password: "",
-    passwordConfirm: "",
-  });
-  const [errors, setErrors] = useState({
-    password: "",
-    passwordConfirm: "",
-    general: "",
-  });
-  const [touched, setTouched] = useState({
-    password: false,
-    passwordConfirm: false,
+  const [generalError, setGeneralError] = useState("");
+  
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, touchedFields },
+    watch,
+  } = useForm<ResetPasswordFormData>({
+    resolver: zodResolver(resetPasswordSchema),
+    defaultValues: {
+      password: "",
+      passwordConfirm: "",
+    },
   });
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setErrors({ password: "", passwordConfirm: "", general: "" });
-    setTouched({ password: true, passwordConfirm: true });
+  const watchPassword = watch("password");
 
-    // Validation
-    if (!formData.password || formData.password.length < 8) {
-      setErrors((prev) => ({ ...prev, password: "Password must be at least 8 characters" }));
-      return;
-    }
-    if (!formData.passwordConfirm) {
-      setErrors((prev) => ({ ...prev, passwordConfirm: "Please confirm your password" }));
-      return;
-    }
-    if (formData.password !== formData.passwordConfirm) {
-      setErrors((prev) => ({ ...prev, passwordConfirm: "Passwords do not match" }));
-      return;
-    }
+  const onSubmit = async (data: ResetPasswordFormData) => {
+    setGeneralError("");
 
     setIsLoading(true);
 
@@ -57,12 +48,20 @@ export default function ResetPassword() {
         throw new Error("Invalid reset link");
       }
       
+      // Log the attempt
+      logSecurityEvent({
+        type: 'password_reset',
+        details: { token: token.substring(0, 8) + '...' },
+      });
+      
       await new Promise((resolve) => setTimeout(resolve, 1000));
       
       // Show success message and redirect
       navigate("/sign-in?reset=success");
     } catch (error) {
-      setErrors({ ...errors, general: "Something went wrong, please try again." });
+      const errorMessage = sanitizeErrorMessage(error);
+      setGeneralError(errorMessage);
+      
       const form = document.getElementById("reset-form");
       form?.classList.add("animate-shake");
       setTimeout(() => form?.classList.remove("animate-shake"), 500);
@@ -111,34 +110,30 @@ export default function ResetPassword() {
             </div>
 
               {/* Form */}
-              <form id="reset-form" onSubmit={handleSubmit} className="mt-8">
+              <form id="reset-form" onSubmit={handleSubmit(onSubmit)} className="mt-8">
                 <div className="space-y-4">
                   <div>
                     <FormInput
                       label="New password"
                       type={showPassword ? "text" : "password"}
-                      value={formData.password}
-                      onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                      onBlur={() => setTouched({ ...touched, password: true })}
-                      error={errors.password}
-                      touched={touched.password}
+                      {...register("password")}
+                      error={errors.password?.message}
+                      touched={touchedFields.password}
                       autoComplete="new-password"
                       icon={<i className="pi pi-lock" />}
                       showPasswordToggle
                       onPasswordToggleChange={setShowPassword}
                       aria-label="New password"
                     />
-                    {formData.password && <PasswordStrength password={formData.password} className="mt-2" />}
+                    {watchPassword && <PasswordStrength password={watchPassword} className="mt-2" />}
                   </div>
 
                   <FormInput
                     label="Confirm new password"
                     type={showPasswordConfirm ? "text" : "password"}
-                    value={formData.passwordConfirm}
-                    onChange={(e) => setFormData({ ...formData, passwordConfirm: e.target.value })}
-                    onBlur={() => setTouched({ ...touched, passwordConfirm: true })}
-                    error={errors.passwordConfirm}
-                    touched={touched.passwordConfirm}
+                    {...register("passwordConfirm")}
+                    error={errors.passwordConfirm?.message}
+                    touched={touchedFields.passwordConfirm}
                     autoComplete="new-password"
                     icon={<i className="pi pi-lock" />}
                     showPasswordToggle
@@ -147,11 +142,11 @@ export default function ResetPassword() {
                   />
                 </div>
 
-                {errors.general && (
+                {generalError && (
                   <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-md animate-slideDown">
                     <p className="text-sm text-red-600 flex items-center">
                       <i className="pi pi-exclamation-circle mr-2" />
-                      {errors.general}
+                      {generalError}
                     </p>
                   </div>
                 )}

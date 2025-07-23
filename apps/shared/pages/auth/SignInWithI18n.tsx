@@ -5,8 +5,9 @@ import { FormInput } from "@shared/components/auth/FormInput";
 import { SocialLoginButtons } from "@shared/components/auth/SocialLoginButtons";
 import { Spinner } from "@shared/components/auth/Spinner";
 import { useRateLimiter } from "@shared/hooks/useRateLimiter";
+import { useTranslations } from "@shared/i18n";
 import AuthLayout from "@shared/layouts/AuthLayout";
-import { sanitizeErrorMessage, secureErrorMessages, logSecurityEvent, hashForLogging } from "@shared/utils/securityUtils";
+import { sanitizeErrorMessage, logSecurityEvent, hashForLogging } from "@shared/utils/securityUtils";
 import { signInSchema, type SignInFormData } from "@shared/utils/authSchemas";
 import { Button } from "@ui/components/button";
 import { Checkbox } from "@ui/components/checkbox";
@@ -15,12 +16,13 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 
-export default function SignIn() {
+export default function SignInWithI18n() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [generalError, setGeneralError] = useState("");
+  const t = useTranslations();
   
   const { checkRateLimit, recordAttempt, clearAttempts, remainingAttempts } = useRateLimiter('login');
   
@@ -29,7 +31,6 @@ export default function SignIn() {
     handleSubmit,
     formState: { errors, touchedFields },
     watch,
-    setValue,
   } = useForm<SignInFormData>({
     resolver: zodResolver(signInSchema),
     defaultValues: {
@@ -39,15 +40,13 @@ export default function SignIn() {
     },
   });
 
-  const watchEmail = watch("email");
-
   const onSubmit = async (data: SignInFormData) => {
     setGeneralError("");
 
     // Check rate limit first
     const rateLimitCheck = checkRateLimit(data.email);
     if (!rateLimitCheck.allowed) {
-      setGeneralError(rateLimitCheck.message || secureErrorMessages.tooManyAttempts);
+      setGeneralError(rateLimitCheck.message || t.auth.errors.tooManyAttempts);
       logSecurityEvent({
         type: 'rate_limit',
         email: hashForLogging(data.email),
@@ -68,9 +67,7 @@ export default function SignIn() {
       });
 
       // TODO: Implement actual authentication
-      // For now, simulate a login
       await new Promise((resolve, reject) => setTimeout(() => {
-        // Simulate random success/failure for demo
         if (Math.random() > 0.5) {
           resolve(true);
         } else {
@@ -109,7 +106,10 @@ export default function SignIn() {
       
       // Show remaining attempts if getting low
       if (remainingAttempts > 0 && remainingAttempts <= 2) {
-        setGeneralError(`${errorMessage} (${remainingAttempts} attempt${remainingAttempts === 1 ? '' : 's'} remaining)`);
+        const attemptText = remainingAttempts === 1 
+          ? t.auth.errors.attemptsRemaining 
+          : t.auth.errors.attemptsRemainingPlural;
+        setGeneralError(`${errorMessage} (${remainingAttempts} ${attemptText})`);
       }
     } finally {
       setIsLoading(false);
@@ -123,7 +123,7 @@ export default function SignIn() {
       const redirectURL = searchParams.get("redirectURL") || "/app";
       navigate(redirectURL);
     } catch (error) {
-      setErrors({ ...errors, general: `${provider} login failed` });
+      setGeneralError(`${provider} login failed`);
     }
   };
 
@@ -150,10 +150,10 @@ export default function SignIn() {
               {/* Title */}
               <div className="text-center">
                 <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-gray-900">
-                  Welcome back!
+                  {t.auth.signIn.title}
                 </h1>
                 <p className="mt-2 text-sm sm:text-base text-gray-600">
-                  Sign in to your account to continue
+                  {t.auth.signIn.subtitle}
                 </p>
               </div>
 
@@ -164,7 +164,6 @@ export default function SignIn() {
                   onGoogleLogin={() => handleSocialLogin("google")}
                   onAppleLogin={() => handleSocialLogin("apple")}
                 />
-
               </div>
 
               {/* Divider */}
@@ -174,7 +173,7 @@ export default function SignIn() {
                 </div>
                 <div className="relative flex justify-center text-sm sm:text-base">
                   <span className="bg-white px-2 text-gray-500">
-                    Or continue with email
+                    {t.auth.signIn.orContinueWith}
                   </span>
                 </div>
               </div>
@@ -183,18 +182,18 @@ export default function SignIn() {
               <form id="signin-form" onSubmit={handleSubmit(onSubmit)} className="mt-6">
                 <div className="space-y-4">
                   <FormInput
-                    label="Email address"
+                    label={t.auth.signIn.emailLabel}
                     type="email"
                     {...register("email")}
                     error={errors.email?.message}
                     touched={touchedFields.email}
                     autoComplete="email"
                     icon={<i className="pi pi-envelope" />}
-                    aria-label="Email address"
+                    aria-label={t.auth.signIn.emailLabel}
                   />
 
                   <FormInput
-                    label="Password"
+                    label={t.auth.signIn.passwordLabel}
                     type={showPassword ? "text" : "password"}
                     {...register("password")}
                     error={errors.password?.message}
@@ -203,7 +202,7 @@ export default function SignIn() {
                     icon={<i className="pi pi-lock" />}
                     showPasswordToggle
                     onPasswordToggleChange={setShowPassword}
-                    aria-label="Password"
+                    aria-label={t.auth.signIn.passwordLabel}
                   />
                 </div>
 
@@ -227,14 +226,14 @@ export default function SignIn() {
                       htmlFor="remember"
                       className="ml-2 text-sm text-gray-600 cursor-pointer"
                     >
-                      Remember me
+                      {t.auth.signIn.rememberMe}
                     </label>
                   </div>
                   <Link
                     to="/forgot-password"
                     className="text-sm text-primary-600 hover:text-primary-500 transition-colors"
                   >
-                    Forgot your password?
+                    {t.auth.signIn.forgotPassword}
                   </Link>
                 </div>
 
@@ -246,22 +245,22 @@ export default function SignIn() {
                   {isLoading ? (
                     <div className="flex items-center justify-center">
                       <Spinner className="mr-2" />
-                      Signing in...
+                      {t.auth.signIn.signInButton}...
                     </div>
                   ) : (
-                    "Sign in"
+                    t.auth.signIn.signInButton
                   )}
                 </Button>
               </form>
 
               {/* Sign up link */}
               <p className="mt-6 text-center text-sm sm:text-base text-gray-600">
-                Don't have an account?{" "}
+                {t.auth.signIn.noAccount}{" "}
                 <Link
                   to="/sign-up"
                   className="font-medium text-primary-600 hover:text-primary-500 transition-colors"
                 >
-                  Sign up
+                  {t.auth.signIn.signUpLink}
                 </Link>
               </p>
             </div>

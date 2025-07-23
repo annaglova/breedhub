@@ -39,7 +39,7 @@ export function SocialLoginButtons({
         <Button
           onClick={() => handleSocialLogin("facebook", onFacebookLogin)}
           disabled={loadingProvider !== null}
-          className="w-full bg-[#1877F2] hover:bg-[#166FE5] text-white h-12 text-base font-medium"
+          className="w-full bg-[#1877F2] hover:bg-[#166FE5] text-white h-10 sm:h-12 text-sm sm:text-base font-medium"
         >
           {loadingProvider === "facebook" ? (
             <Spinner className="mr-2" />
@@ -57,7 +57,7 @@ export function SocialLoginButtons({
           onClick={() => handleSocialLogin("google", onGoogleLogin)}
           disabled={loadingProvider !== null}
           variant="outline"
-          className="w-full h-12 text-base font-medium border-gray-300 hover:bg-gray-50"
+          className="w-full h-10 sm:h-12 text-sm sm:text-base font-medium border-gray-300 hover:bg-gray-50"
         >
           {loadingProvider === "google" ? (
             <Spinner className="mr-2 text-gray-600" />
@@ -91,7 +91,7 @@ export function SocialLoginButtons({
         <Button
           onClick={() => handleSocialLogin("apple", onAppleLogin)}
           disabled={loadingProvider !== null}
-          className="w-full bg-black hover:bg-gray-900 text-white h-12 text-base font-medium"
+          className="w-full bg-black hover:bg-gray-900 text-white h-10 sm:h-12 text-sm sm:text-base font-medium"
         >
           {loadingProvider === "apple" ? (
             <Spinner className="mr-2" />

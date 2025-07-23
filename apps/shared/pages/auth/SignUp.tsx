@@ -6,7 +6,9 @@ import { PasswordStrength } from "@shared/components/auth/PasswordStrength";
 import { SocialLoginButtons } from "@shared/components/auth/SocialLoginButtons";
 import { Spinner } from "@shared/components/auth/Spinner";
 import { useEmailValidation } from "@shared/hooks/useEmailValidation";
+import { useRateLimiter } from "@shared/hooks/useRateLimiter";
 import AuthLayout from "@shared/layouts/AuthLayout";
+import { sanitizeErrorMessage, secureErrorMessages, logSecurityEvent, hashForLogging, validatePasswordStrength } from "@shared/utils/securityUtils";
 import { Button } from "@ui/components/button";
 import { Checkbox } from "@ui/components/checkbox";
 import { useState } from "react";
@@ -38,11 +40,23 @@ export default function SignUp() {
   });
 
   const { validateEmail, error: emailError } = useEmailValidation();
+  const { checkRateLimit, recordAttempt } = useRateLimiter('registration');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrors({ name: "", email: "", password: "", agreements: "", general: "" });
     setTouched({ name: true, email: true, password: true, kennel: true });
+
+    // Check rate limit first
+    const rateLimitCheck = checkRateLimit(formData.email);
+    if (!rateLimitCheck.allowed) {
+      setErrors((prev) => ({ ...prev, general: rateLimitCheck.message || secureErrorMessages.tooManyAttempts }));
+      logSecurityEvent({
+        type: 'rate_limit',
+        email: hashForLogging(formData.email),
+      });
+      return;
+    }
 
     // Validation
     if (!formData.name || formData.name.trim().length < 2) {
@@ -56,24 +70,42 @@ export default function SignUp() {
       return;
     }
     
-    if (!formData.password || formData.password.length < 8) {
-      setErrors((prev) => ({ ...prev, password: "Password must be at least 8 characters" }));
+    // Validate password strength
+    const passwordValidation = validatePasswordStrength(formData.password);
+    if (!passwordValidation.isValid) {
+      setErrors((prev) => ({ ...prev, password: passwordValidation.errors[0] }));
       return;
     }
     
     if (!formData.agreements) {
-      setErrors((prev) => ({ ...prev, agreements: "You must agree to the terms" }));
+      setErrors((prev) => ({ ...prev, agreements: secureErrorMessages.termsRequired }));
       return;
     }
 
     setIsLoading(true);
 
     try {
+      // Record the attempt
+      recordAttempt(formData.email);
+      
+      // Log the attempt
+      logSecurityEvent({
+        type: 'registration',
+        email: hashForLogging(formData.email),
+      });
+
       // TODO: Implement actual registration
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      await new Promise((resolve, reject) => setTimeout(() => {
+        // Simulate success for demo
+        resolve(true);
+      }, 1000));
+      
       navigate("/confirmation-required");
     } catch (error) {
-      setErrors({ ...errors, general: "Something went wrong, please try again." });
+      // Use secure error message
+      const errorMessage = sanitizeErrorMessage(error);
+      setErrors({ ...errors, general: errorMessage });
+      
       const form = document.getElementById("signup-form");
       form?.classList.add("animate-shake");
       setTimeout(() => form?.classList.remove("animate-shake"), 500);
@@ -154,16 +186,14 @@ export default function SignUp() {
             </div>
 
               {/* Sign Up Form */}
-              <form id="signup-form" onSubmit={handleSubmit} className="mt-6">
+              <form id="signup-form" onSubmit={handleSubmit(onSubmit)} className="mt-6">
                 <div className="space-y-4">
                   <FormInput
                     label="Full name"
                     type="text"
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    onBlur={() => setTouched({ ...touched, name: true })}
-                    error={errors.name}
-                    touched={touched.name}
+                    {...register("name")}
+                    error={errors.name?.message}
+                    touched={touchedFields.name}
                     autoComplete="name"
                     icon={<i className="pi pi-user" />}
                     aria-label="Full name"
@@ -172,11 +202,9 @@ export default function SignUp() {
                   <FormInput
                     label="Email address"
                     type="email"
-                    value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    onBlur={() => setTouched({ ...touched, email: true })}
-                    error={errors.email || (touched.email && emailError)}
-                    touched={touched.email}
+                    {...register("email")}
+                    error={errors.email?.message}
+                    touched={touchedFields.email}
                     autoComplete="email"
                     icon={<i className="pi pi-envelope" />}
                     aria-label="Email address"
@@ -186,40 +214,35 @@ export default function SignUp() {
                     <FormInput
                       label="Password"
                       type={showPassword ? "text" : "password"}
-                      value={formData.password}
-                      onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                      onBlur={() => setTouched({ ...touched, password: true })}
-                      error={errors.password}
-                      touched={touched.password}
+                      {...register("password")}
+                      error={errors.password?.message}
+                      touched={touchedFields.password}
                       autoComplete="new-password"
                       icon={<i className="pi pi-lock" />}
                       showPasswordToggle
                       onPasswordToggleChange={setShowPassword}
                       aria-label="Password"
                     />
-                    {formData.password && <PasswordStrength password={formData.password} className="mt-2" />}
+                    {watchPassword && <PasswordStrength password={watchPassword} className="mt-2" />}
                   </div>
 
                   <FormInput
                     label="Kennel (optional)"
                     type="text"
-                    value={formData.kennel}
-                    onChange={(e) => setFormData({ ...formData, kennel: e.target.value })}
-                    onBlur={() => setTouched({ ...touched, kennel: true })}
-                    touched={touched.kennel}
+                    {...register("kennel")}
+                    error={errors.kennel?.message}
+                    touched={touchedFields.kennel}
                     icon={<i className="pi pi-building" />}
                     aria-label="Kennel name"
                   />
 
-                <div className="flex items-start">
-                  <Checkbox
-                    id="agreements"
-                    checked={formData.agreements}
-                    onCheckedChange={(checked) =>
-                      setFormData({ ...formData, agreements: checked as boolean })
-                    }
-                    className={errors.agreements ? "border-red-500" : ""}
-                  />
+                <div className="space-y-1">
+                  <div className="flex items-start">
+                    <Checkbox
+                      id="agreements"
+                      {...register("agreements")}
+                      className={errors.agreements ? "border-red-500" : ""}
+                    />
                   <label
                     htmlFor="agreements"
                     className="ml-2 text-base text-gray-600"
@@ -239,17 +262,18 @@ export default function SignUp() {
                       Privacy Policy
                     </Link>
                   </label>
+                  </div>
+                  {errors.agreements && (
+                    <p className="text-sm text-red-600 ml-6">{errors.agreements.message}</p>
+                  )}
                 </div>
-                {errors.agreements && (
-                  <p className="mt-1 text-sm text-red-600">{errors.agreements}</p>
-                )}
               </div>
 
-                {errors.general && (
+                {generalError && (
                   <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-md animate-slideDown">
                     <p className="text-sm text-red-600 flex items-center">
                       <i className="pi pi-exclamation-circle mr-2" />
-                      {errors.general}
+                      {generalError}
                     </p>
                   </div>
                 )}

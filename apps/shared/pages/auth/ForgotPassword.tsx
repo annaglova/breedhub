@@ -3,40 +3,69 @@ import { AuthFooter } from "@shared/components/auth/AuthFooter";
 import { AuthHeader } from "@shared/components/auth/AuthHeader";
 import { FormInput } from "@shared/components/auth/FormInput";
 import { Spinner } from "@shared/components/auth/Spinner";
-import { useEmailValidation } from "@shared/hooks/useEmailValidation";
+import { useRateLimiter } from "@shared/hooks/useRateLimiter";
 import AuthLayout from "@shared/layouts/AuthLayout";
+import { secureErrorMessages, logSecurityEvent, hashForLogging } from "@shared/utils/securityUtils";
+import { forgotPasswordSchema, type ForgotPasswordFormData } from "@shared/utils/authSchemas";
 import { Button } from "@ui/components/button";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
+import { useForm } from "react-hook-form";
 import { Link } from "react-router-dom";
 
 export default function ForgotPassword() {
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
-  const [email, setEmail] = useState("");
-  const [error, setError] = useState("");
-  const [touched, setTouched] = useState(false);
+  const [generalError, setGeneralError] = useState("");
   
-  const { validateEmail, error: emailError } = useEmailValidation();
+  const { checkRateLimit, recordAttempt } = useRateLimiter('passwordReset');
+  
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, touchedFields },
+    watch,
+  } = useForm<ForgotPasswordFormData>({
+    resolver: zodResolver(forgotPasswordSchema),
+    defaultValues: {
+      email: "",
+    },
+  });
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
-    setTouched(true);
+  const watchEmail = watch("email");
 
-    const isEmailValid = await validateEmail(email);
-    if (!isEmailValid) {
-      setError(emailError);
+  const onSubmit = async (data: ForgotPasswordFormData) => {
+    setGeneralError("");
+
+    // Check rate limit first
+    const rateLimitCheck = checkRateLimit(data.email);
+    if (!rateLimitCheck.allowed) {
+      setGeneralError(rateLimitCheck.message || secureErrorMessages.tooManyAttempts);
+      logSecurityEvent({
+        type: 'rate_limit',
+        email: hashForLogging(data.email),
+      });
       return;
     }
 
     setIsLoading(true);
 
     try {
+      // Record the attempt
+      recordAttempt(data.email);
+      
+      // Log the attempt
+      logSecurityEvent({
+        type: 'password_reset',
+        email: hashForLogging(data.email),
+      });
+
       // TODO: Implement actual password reset
       await new Promise((resolve) => setTimeout(resolve, 1000));
       setIsSuccess(true);
     } catch (error) {
-      setError("Email does not found! Are you sure you are already a member?");
+      // Always show the same message for security (no user enumeration)
+      setGeneralError(secureErrorMessages.resetFailed);
     } finally {
       setIsLoading(false);
     }
@@ -84,15 +113,13 @@ export default function ForgotPassword() {
                 </div>
 
                 {/* Form */}
-                <form onSubmit={handleSubmit} className="mt-8">
+                <form onSubmit={handleSubmit(onSubmit)} className="mt-8">
                   <FormInput
                     label="Email address"
                     type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    onBlur={() => setTouched(true)}
-                    error={error || (touched && emailError)}
-                    touched={touched}
+                    {...register("email")}
+                    error={errors.email?.message || generalError}
+                    touched={touchedFields.email}
                     autoComplete="email"
                     icon={<i className="pi pi-envelope" />}
                     placeholder="Enter your email"
@@ -152,7 +179,7 @@ export default function ForgotPassword() {
                     Password reset sent! You'll receive an email if you are registered on our system.
                   </p>
                   <p className="mt-1 text-base text-gray-500">
-                    Sent to: {email}
+                    Sent to: {watchEmail}
                   </p>
                 </div>
 
