@@ -1,4 +1,5 @@
-import HeaderFigure from "@/assets/backgrounds/header-figure.svg?react";
+import FooterFigure from "@/assets/backgrounds/footer-figure.svg?react";
+import LogoText from "@shared/icons/logo/logo-text.svg?react";
 import { Button } from "@ui/components/button";
 import { Input } from "@ui/components/input";
 import { Label } from "@ui/components/label";
@@ -40,21 +41,19 @@ export default function ForgotPassword() {
   };
 
   return (
-    <div className="relative flex min-h-screen w-full flex-col bg-gradient-to-br from-primary-50 via-white to-primary-50">
+    <div className="relative flex min-h-screen w-full flex-col bg-white">
       {/* Background SVG */}
-      <div className="absolute bottom-0 left-0 w-full h-full pointer-events-none overflow-hidden opacity-10">
-        <HeaderFigure className="absolute bottom-[-50%] left-[-20%] w-[140%] h-auto" />
+      <div className="absolute bottom-0 w-full pointer-events-none z-0">
+        <FooterFigure className="w-full h-auto" />
       </div>
 
       {/* Header */}
-      <div className="relative z-10 flex w-full items-center justify-between p-8 sm:px-14">
-        <Link to="/" className="flex items-center">
-          <img
-            className="h-10"
-            src="/assets/images/logo/logo-text.svg"
-            alt="BreedHub logo"
-          />
-        </Link>
+      <div className="relative z-10 flex w-full items-center justify-between px-4 sm:px-6 lg:px-8 py-4">
+        <div className="flex items-center">
+          <Link to="/" className="flex items-center cursor-pointer relative z-10">
+            <LogoText className="h-10 w-auto cursor-pointer mt-1" />
+          </Link>
+        </div>
         <div className="flex items-center gap-4">
           <span className="hidden text-gray-600 sm:block">Return to</span>
           <Link to="/sign-in">
@@ -164,7 +163,9 @@ export default function ForgotPassword() {
 
       {/* Footer */}
       <div className="relative z-10 flex h-20 w-full items-center px-6 sm:h-24 md:px-8">
-        <span className="text-sm text-gray-600">BreedHub &copy; 2024</span>
+        <span className="font-medium text-white">
+          Breedhub &copy; {new Date().getFullYear()} | With ♥ from Ukraine
+        </span>
       </div>
     </div>
   );
