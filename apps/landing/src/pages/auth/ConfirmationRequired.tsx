@@ -32,7 +32,7 @@ export default function ConfirmationRequired() {
 
       {/* Content */}
       <div className="relative z-10 flex flex-1 items-center justify-center px-6 pb-8 pt-8 sm:px-8">
-        <div className="w-full max-w-sm">
+        <div className="w-full max-w-md">
           <div className="bg-white rounded-2xl shadow-xl p-8 sm:p-10">
             {/* Icon */}
             <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-primary-100 shadow-sm">
@@ -56,7 +56,7 @@ export default function ConfirmationRequired() {
               <h1 className="text-3xl font-bold tracking-tight text-gray-900">
                 Confirmation required
               </h1>
-              <p className="mt-4 text-gray-600">
+              <p className="mt-4 text-base text-gray-600">
                 A confirmation mail with instructions has been sent to your email
                 address. Follow those instructions to confirm your email address
                 and activate your account.
@@ -65,10 +65,10 @@ export default function ConfirmationRequired() {
 
             {/* Tips */}
             <div className="mt-8 rounded-lg bg-gray-50 p-4">
-              <h3 className="text-sm font-medium text-gray-900">
+              <h3 className="text-base font-medium text-gray-900">
                 Didn't receive an email?
               </h3>
-              <ul className="mt-2 space-y-1 text-sm text-gray-600">
+              <ul className="mt-2 space-y-1 text-base text-gray-600">
                 <li>• Check your spam or junk folder</li>
                 <li>• Verify that you entered the correct email address</li>
                 <li>• Wait a few minutes for the email to arrive</li>
@@ -78,7 +78,7 @@ export default function ConfirmationRequired() {
             {/* Resend button */}
             <button
               type="button"
-              className="mt-6 w-full text-center text-sm text-primary-600 hover:text-primary-500"
+              className="mt-6 w-full text-center text-base text-primary-600 hover:text-primary-500"
             >
               Resend confirmation email
             </button>
@@ -88,7 +88,7 @@ export default function ConfirmationRequired() {
 
       {/* Footer */}
       <div className="relative z-10 flex h-20 w-full items-center px-6 sm:h-24 md:px-8">
-        <span className="font-medium text-white">
+        <span className="font-medium text-base text-white">
           Breedhub &copy; {new Date().getFullYear()} | With ♥ from Ukraine
         </span>
       </div>

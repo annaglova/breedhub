@@ -92,7 +92,7 @@ export default function ResetPassword() {
 
       {/* Content */}
       <div className="relative z-10 flex flex-1 items-center justify-center px-6 pb-8 pt-8 sm:px-8">
-        <div className="w-full max-w-sm">
+        <div className="w-full max-w-md">
           <div className="bg-white rounded-2xl shadow-xl p-8 sm:p-10">
             {/* Icon */}
             <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-purple-100 shadow-sm mb-6">
@@ -104,7 +104,7 @@ export default function ResetPassword() {
               <h1 className="text-3xl font-bold tracking-tight text-gray-900">
                 Reset your password
               </h1>
-              <p className="mt-2 text-gray-600">
+              <p className="mt-2 text-base text-gray-600">
                 Create a new password for your account
               </p>
             </div>
@@ -113,10 +113,10 @@ export default function ResetPassword() {
             <form onSubmit={handleSubmit} className="mt-8">
               <div className="space-y-4">
                 <div>
-                  <Label htmlFor="password">New password</Label>
+                  <Label htmlFor="password" className="text-base font-medium">New password</Label>
                   <div className="relative">
                     <div className="absolute left-3 top-1/2 -translate-y-1/2">
-                      <i className="pi pi-lock text-gray-400 text-sm" />
+                      <i className="pi pi-lock text-gray-400 text-base" />
                     </div>
                     <Input
                       id="password"
@@ -128,7 +128,7 @@ export default function ResetPassword() {
                       onChange={(e) =>
                         setFormData({ ...formData, password: e.target.value })
                       }
-                      className={`pl-10 pr-10 ${errors.password ? "border-red-500" : ""}`}
+                      className={`pl-10 pr-10 text-base ${errors.password ? "border-red-500" : ""}`}
                     />
                     <button
                       type="button"
@@ -150,14 +150,14 @@ export default function ResetPassword() {
                   {errors.password && (
                     <p className="mt-1 text-sm text-red-600">{errors.password}</p>
                   )}
-                  <p className="mt-1 text-xs text-gray-500">Must be at least 8 characters</p>
+                  <p className="mt-1 text-base text-gray-500">Must be at least 8 characters</p>
                 </div>
 
                 <div>
-                  <Label htmlFor="passwordConfirm">Confirm new password</Label>
+                  <Label htmlFor="passwordConfirm" className="text-base font-medium">Confirm new password</Label>
                   <div className="relative">
                     <div className="absolute left-3 top-1/2 -translate-y-1/2">
-                      <i className="pi pi-lock text-gray-400 text-sm" />
+                      <i className="pi pi-lock text-gray-400 text-base" />
                     </div>
                     <Input
                       id="passwordConfirm"
@@ -169,7 +169,7 @@ export default function ResetPassword() {
                       onChange={(e) =>
                         setFormData({ ...formData, passwordConfirm: e.target.value })
                       }
-                      className={`pl-10 pr-10 ${errors.passwordConfirm ? "border-red-500" : ""}`}
+                      className={`pl-10 pr-10 text-base ${errors.passwordConfirm ? "border-red-500" : ""}`}
                     />
                     <button
                       type="button"
@@ -214,7 +214,7 @@ export default function ResetPassword() {
 
       {/* Footer */}
       <div className="relative z-10 flex h-20 w-full items-center px-6 sm:h-24 md:px-8">
-        <span className="font-medium text-white">
+        <span className="font-medium text-base text-white">
           Breedhub &copy; {new Date().getFullYear()} | With ♥ from Ukraine
         </span>
       </div>
