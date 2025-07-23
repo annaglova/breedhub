@@ -9,7 +9,7 @@ import {
   SignIn,
   SignOut,
   SignUp,
-} from "@/pages/auth";
+} from "@shared/pages/auth";
 import Cookie from "@/pages/Cookie";
 import Landing from "@/pages/Landing";
 import NotFound from "@/pages/NotFound";

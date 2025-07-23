@@ -1,5 +1,5 @@
-import AuthLayout from "@/layouts/AuthLayout";
-import FooterFigure from "@/assets/backgrounds/footer-figure.svg?react";
+import AuthLayout from "@shared/layouts/AuthLayout";
+import FooterFigure from "@shared/assets/backgrounds/footer-figure.svg?react";
 import LogoText from "@shared/icons/logo/logo-text.svg?react";
 import { Button } from "@ui/components/button";
 import { Link } from "react-router-dom";
