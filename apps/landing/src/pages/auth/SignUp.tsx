@@ -1,3 +1,4 @@
+import AuthLayout from "@/layouts/AuthLayout";
 import FooterFigure from "@/assets/backgrounds/footer-figure.svg?react";
 import LogoText from "@shared/icons/logo/logo-text.svg?react";
 import { Button } from "@ui/components/button";
@@ -75,7 +76,8 @@ export default function SignUp() {
   };
 
   return (
-    <div className="relative flex min-h-screen w-full flex-col bg-white">
+    <AuthLayout>
+      <div className="relative flex min-h-screen w-full flex-col bg-white">
       {/* Background SVG */}
       <div className="absolute bottom-0 w-full pointer-events-none z-0">
         <FooterFigure className="w-full h-auto" />
@@ -85,7 +87,7 @@ export default function SignUp() {
       <div className="relative z-10 flex w-full items-center justify-between px-4 sm:px-6 lg:px-8 py-4">
         <div className="flex items-center">
           <Link to="/" className="flex items-center cursor-pointer relative z-10">
-            <LogoText className="h-10 w-auto cursor-pointer mt-1" />
+            <LogoText className="h-10 w-auto cursor-pointer mt-0.5" />
           </Link>
         </div>
         <div className="flex items-center gap-4">
@@ -104,6 +106,11 @@ export default function SignUp() {
       <div className="relative z-10 flex flex-1 items-center justify-center px-6 pb-8 pt-8 sm:px-8">
         <div className="w-full max-w-sm">
           <div className="bg-white rounded-2xl shadow-xl p-8 sm:p-10">
+            {/* Icon */}
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-primary-100 shadow-sm mb-6">
+              <i className="pi pi-user-plus text-2xl text-primary-600" />
+            </div>
+
             {/* Title */}
             <div className="text-center">
               <h1 className="text-3xl font-bold tracking-tight text-gray-900">
@@ -121,7 +128,9 @@ export default function SignUp() {
                 disabled={isLoading}
                 className="w-full bg-[#1877F2] hover:bg-[#166FE5] text-white"
               >
-                <i className="pi pi-facebook mr-2" />
+                <div className="bg-white/20 rounded-full w-6 h-6 flex items-center justify-center mr-2 shadow-sm">
+                  <i className="pi pi-facebook text-white" />
+                </div>
                 Start with Facebook
               </Button>
             </div>
@@ -141,18 +150,23 @@ export default function SignUp() {
               <div className="space-y-4">
                 <div>
                   <Label htmlFor="name">Full name</Label>
-                  <Input
-                    id="name"
-                    name="name"
-                    type="text"
-                    autoComplete="name"
-                    required
-                    value={formData.name}
-                    onChange={(e) =>
-                      setFormData({ ...formData, name: e.target.value })
-                    }
-                    className={errors.name ? "border-red-500" : ""}
-                  />
+                  <div className="relative">
+                    <div className="absolute left-3 top-1/2 -translate-y-1/2">
+                      <i className="pi pi-user text-gray-400 text-sm" />
+                    </div>
+                    <Input
+                      id="name"
+                      name="name"
+                      type="text"
+                      autoComplete="name"
+                      required
+                      value={formData.name}
+                      onChange={(e) =>
+                        setFormData({ ...formData, name: e.target.value })
+                      }
+                      className={`pl-10 ${errors.name ? "border-red-500" : ""}`}
+                    />
+                  </div>
                   {errors.name && (
                     <p className="mt-1 text-sm text-red-600">{errors.name}</p>
                   )}
@@ -160,18 +174,23 @@ export default function SignUp() {
 
                 <div>
                   <Label htmlFor="email">Email address</Label>
-                  <Input
-                    id="email"
-                    name="email"
-                    type="email"
-                    autoComplete="email"
-                    required
-                    value={formData.email}
-                    onChange={(e) =>
-                      setFormData({ ...formData, email: e.target.value })
-                    }
-                    className={errors.email ? "border-red-500" : ""}
-                  />
+                  <div className="relative">
+                    <div className="absolute left-3 top-1/2 -translate-y-1/2">
+                      <i className="pi pi-envelope text-gray-400 text-sm" />
+                    </div>
+                    <Input
+                      id="email"
+                      name="email"
+                      type="email"
+                      autoComplete="email"
+                      required
+                      value={formData.email}
+                      onChange={(e) =>
+                        setFormData({ ...formData, email: e.target.value })
+                      }
+                      className={`pl-10 ${errors.email ? "border-red-500" : ""}`}
+                    />
+                  </div>
                   {errors.email && (
                     <p className="mt-1 text-sm text-red-600">{errors.email}</p>
                   )}
@@ -180,6 +199,9 @@ export default function SignUp() {
                 <div>
                   <Label htmlFor="password">Password</Label>
                   <div className="relative">
+                    <div className="absolute left-3 top-1/2 -translate-y-1/2">
+                      <i className="pi pi-lock text-gray-400 text-sm" />
+                    </div>
                     <Input
                       id="password"
                       name="password"
@@ -190,7 +212,7 @@ export default function SignUp() {
                       onChange={(e) =>
                         setFormData({ ...formData, password: e.target.value })
                       }
-                      className={errors.password ? "border-red-500 pr-10" : "pr-10"}
+                      className={`pl-10 pr-10 ${errors.password ? "border-red-500" : ""}`}
                     />
                     <button
                       type="button"
@@ -216,15 +238,21 @@ export default function SignUp() {
 
                 <div>
                   <Label htmlFor="kennel">Kennel (optional)</Label>
-                  <Input
-                    id="kennel"
-                    name="kennel"
-                    type="text"
-                    value={formData.kennel}
-                    onChange={(e) =>
-                      setFormData({ ...formData, kennel: e.target.value })
-                    }
-                  />
+                  <div className="relative">
+                    <div className="absolute left-3 top-1/2 -translate-y-1/2">
+                      <i className="pi pi-building text-gray-400 text-sm" />
+                    </div>
+                    <Input
+                      id="kennel"
+                      name="kennel"
+                      type="text"
+                      value={formData.kennel}
+                      onChange={(e) =>
+                        setFormData({ ...formData, kennel: e.target.value })
+                      }
+                      className="pl-10"
+                    />
+                  </div>
                 </div>
 
                 <div className="flex items-start">
@@ -286,5 +314,6 @@ export default function SignUp() {
         </span>
       </div>
     </div>
+    </AuthLayout>
   );
 }

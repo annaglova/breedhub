@@ -1,4 +1,5 @@
 import FooterFigure from "@/assets/backgrounds/footer-figure.svg?react";
+import AuthLayout from "@/layouts/AuthLayout";
 import LogoText from "@shared/icons/logo/logo-text.svg?react";
 import { Button } from "@ui/components/button";
 import { Input } from "@ui/components/input";
@@ -66,7 +67,8 @@ export default function SignIn() {
   };
 
   return (
-    <div className="relative flex min-h-screen w-full flex-col bg-white">
+    <AuthLayout>
+      <div className="relative flex min-h-screen w-full flex-col bg-white">
       {/* Background SVG */}
       <div className="absolute bottom-0 w-full pointer-events-none z-0">
         <FooterFigure className="w-full h-auto" />
@@ -75,8 +77,11 @@ export default function SignIn() {
       {/* Header */}
       <div className="relative z-10 flex w-full items-center justify-between px-4 sm:px-6 lg:px-8 py-4">
         <div className="flex items-center">
-          <Link to="/" className="flex items-center cursor-pointer relative z-10">
-            <LogoText className="h-10 w-auto cursor-pointer mt-1" />
+          <Link
+            to="/"
+            className="flex items-center cursor-pointer relative z-10"
+          >
+            <LogoText className="h-10 w-auto cursor-pointer mt-0.5" />
           </Link>
         </div>
       </div>
@@ -85,6 +90,11 @@ export default function SignIn() {
       <div className="relative z-10 flex flex-1 items-center justify-center px-6 pb-8 pt-8 sm:px-8">
         <div className="w-full max-w-sm">
           <div className="bg-white rounded-2xl shadow-xl p-8 sm:p-10">
+            {/* Icon */}
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-primary-100 shadow-sm mb-6">
+              <i className="pi pi-user text-2xl text-primary-600" />
+            </div>
+
             {/* Title */}
             <div className="text-center">
               <h1 className="text-3xl font-bold tracking-tight text-gray-900">
@@ -102,7 +112,9 @@ export default function SignIn() {
                 disabled={isLoading}
                 className="w-full bg-[#1877F2] hover:bg-[#166FE5] text-white"
               >
-                <i className="pi pi-facebook mr-2" />
+                <div className="bg-white/20 rounded-full w-6 h-6 flex items-center justify-center mr-2 shadow-sm">
+                  <i className="pi pi-facebook text-white" />
+                </div>
                 Continue with Facebook
               </Button>
               <Button
@@ -111,7 +123,8 @@ export default function SignIn() {
                 variant="outline"
                 className="w-full"
               >
-                <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
+                <div className="bg-gray-100 rounded-full w-6 h-6 flex items-center justify-center mr-2 shadow-sm p-1">
+                  <svg className="w-4 h-4" viewBox="0 0 24 24">
                   <path
                     fill="#4285F4"
                     d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -128,7 +141,8 @@ export default function SignIn() {
                     fill="#EA4335"
                     d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
                   />
-                </svg>
+                  </svg>
+                </div>
                 Continue with Google
               </Button>
             </div>
@@ -139,7 +153,9 @@ export default function SignIn() {
                 <div className="w-full border-t border-gray-300" />
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="bg-white px-2 text-gray-500">Or continue with email</span>
+                <span className="bg-white px-2 text-gray-500">
+                  Or continue with email
+                </span>
               </div>
             </div>
 
@@ -148,18 +164,23 @@ export default function SignIn() {
               <div className="space-y-4">
                 <div>
                   <Label htmlFor="email">Email address</Label>
-                  <Input
-                    id="email"
-                    name="email"
-                    type="email"
-                    autoComplete="email"
-                    required
-                    value={formData.email}
-                    onChange={(e) =>
-                      setFormData({ ...formData, email: e.target.value })
-                    }
-                    className={errors.email ? "border-red-500" : ""}
-                  />
+                  <div className="relative">
+                    <div className="absolute left-3 top-1/2 -translate-y-1/2">
+                      <i className="pi pi-envelope text-gray-400 text-sm" />
+                    </div>
+                    <Input
+                      id="email"
+                      name="email"
+                      type="email"
+                      autoComplete="email"
+                      required
+                      value={formData.email}
+                      onChange={(e) =>
+                        setFormData({ ...formData, email: e.target.value })
+                      }
+                      className={`pl-10 ${errors.email ? "border-red-500" : ""}`}
+                    />
+                  </div>
                   {errors.email && (
                     <p className="mt-1 text-sm text-red-600">{errors.email}</p>
                   )}
@@ -167,20 +188,27 @@ export default function SignIn() {
 
                 <div>
                   <Label htmlFor="password">Password</Label>
-                  <Input
-                    id="password"
-                    name="password"
-                    type="password"
-                    autoComplete="current-password"
-                    required
-                    value={formData.password}
-                    onChange={(e) =>
-                      setFormData({ ...formData, password: e.target.value })
-                    }
-                    className={errors.password ? "border-red-500" : ""}
-                  />
+                  <div className="relative">
+                    <div className="absolute left-3 top-1/2 -translate-y-1/2">
+                      <i className="pi pi-lock text-gray-400 text-sm" />
+                    </div>
+                    <Input
+                      id="password"
+                      name="password"
+                      type="password"
+                      autoComplete="current-password"
+                      required
+                      value={formData.password}
+                      onChange={(e) =>
+                        setFormData({ ...formData, password: e.target.value })
+                      }
+                      className={`pl-10 ${errors.password ? "border-red-500" : ""}`}
+                    />
+                  </div>
                   {errors.password && (
-                    <p className="mt-1 text-sm text-red-600">{errors.password}</p>
+                    <p className="mt-1 text-sm text-red-600">
+                      {errors.password}
+                    </p>
                   )}
                 </div>
               </div>
@@ -230,5 +258,6 @@ export default function SignIn() {
         </span>
       </div>
     </div>
+    </AuthLayout>
   );
 }

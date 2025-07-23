@@ -1,3 +1,4 @@
+import AuthLayout from "@/layouts/AuthLayout";
 import FooterFigure from "@/assets/backgrounds/footer-figure.svg?react";
 import LogoText from "@shared/icons/logo/logo-text.svg?react";
 import { Button } from "@ui/components/button";
@@ -41,7 +42,8 @@ export default function ForgotPassword() {
   };
 
   return (
-    <div className="relative flex min-h-screen w-full flex-col bg-white">
+    <AuthLayout>
+      <div className="relative flex min-h-screen w-full flex-col bg-white">
       {/* Background SVG */}
       <div className="absolute bottom-0 w-full pointer-events-none z-0">
         <FooterFigure className="w-full h-auto" />
@@ -51,7 +53,7 @@ export default function ForgotPassword() {
       <div className="relative z-10 flex w-full items-center justify-between px-4 sm:px-6 lg:px-8 py-4">
         <div className="flex items-center">
           <Link to="/" className="flex items-center cursor-pointer relative z-10">
-            <LogoText className="h-10 w-auto cursor-pointer mt-1" />
+            <LogoText className="h-10 w-auto cursor-pointer mt-0.5" />
           </Link>
         </div>
         <div className="flex items-center gap-4">
@@ -70,6 +72,11 @@ export default function ForgotPassword() {
           <div className="bg-white rounded-2xl shadow-xl p-8 sm:p-10">
             {!isSuccess ? (
               <>
+                {/* Icon */}
+                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-blue-100 shadow-sm mb-6">
+                  <i className="pi pi-question-circle text-2xl text-blue-600" />
+                </div>
+
                 {/* Title */}
                 <div className="text-center">
                   <h1 className="text-3xl font-bold tracking-tight text-gray-900">
@@ -84,17 +91,22 @@ export default function ForgotPassword() {
                 <form onSubmit={handleSubmit} className="mt-8">
                   <div>
                     <Label htmlFor="email">Email address</Label>
-                    <Input
-                      id="email"
-                      name="email"
-                      type="email"
-                      autoComplete="email"
-                      required
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      className={error ? "border-red-500" : ""}
-                      placeholder="Enter your email"
-                    />
+                    <div className="relative">
+                      <div className="absolute left-3 top-1/2 -translate-y-1/2">
+                        <i className="pi pi-envelope text-gray-400 text-sm" />
+                      </div>
+                      <Input
+                        id="email"
+                        name="email"
+                        type="email"
+                        autoComplete="email"
+                        required
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        className={`pl-10 ${error ? "border-red-500" : ""}`}
+                        placeholder="Enter your email"
+                      />
+                    </div>
                     {error && (
                       <p className="mt-1 text-sm text-red-600">{error}</p>
                     )}
@@ -124,7 +136,7 @@ export default function ForgotPassword() {
               <>
                 {/* Success Message */}
                 <div className="text-center">
-                  <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
+                  <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-100 shadow-sm">
                     <svg
                       className="h-8 w-8 text-green-600"
                       fill="none"
@@ -168,5 +180,6 @@ export default function ForgotPassword() {
         </span>
       </div>
     </div>
+    </AuthLayout>
   );
 }
