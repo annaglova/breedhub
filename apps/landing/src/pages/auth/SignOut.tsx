@@ -57,7 +57,7 @@ export default function SignOut() {
 
       {/* Content */}
       <div className="relative z-10 flex flex-1 items-center justify-center px-6 pb-8 pt-8 sm:px-8">
-        <div className="w-full max-w-sm">
+        <div className="w-full max-w-md">
           <div className="bg-white rounded-2xl shadow-xl p-8 sm:p-10">
             <div className="text-center">
               <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-100 shadow-sm">
@@ -78,10 +78,10 @@ export default function SignOut() {
               <h2 className="mt-4 text-2xl font-bold text-gray-900">
                 You are signed out
               </h2>
-              <p className="mt-2 text-gray-600">
+              <p className="mt-2 text-base text-gray-600">
                 Thank you for using Breedhub. Till next time!
               </p>
-              <p className="mt-6 text-sm text-gray-500">
+              <p className="mt-6 text-base text-gray-500">
                 Redirecting to homepage in {countdown}...
               </p>
             </div>
@@ -91,7 +91,7 @@ export default function SignOut() {
 
       {/* Footer */}
       <div className="relative z-10 flex h-20 w-full items-center px-6 sm:h-24 md:px-8">
-        <span className="font-medium text-white">
+        <span className="font-medium text-base text-white">
           Breedhub &copy; {new Date().getFullYear()} | With ♥ from Ukraine
         </span>
       </div>

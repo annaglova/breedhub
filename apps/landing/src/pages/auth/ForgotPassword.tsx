@@ -68,7 +68,7 @@ export default function ForgotPassword() {
 
       {/* Content */}
       <div className="relative z-10 flex flex-1 items-center justify-center px-6 pb-8 pt-8 sm:px-8">
-        <div className="w-full max-w-sm">
+        <div className="w-full max-w-md">
           <div className="bg-white rounded-2xl shadow-xl p-8 sm:p-10">
             {!isSuccess ? (
               <>
@@ -82,7 +82,7 @@ export default function ForgotPassword() {
                   <h1 className="text-3xl font-bold tracking-tight text-gray-900">
                     Forgot password?
                   </h1>
-                  <p className="mt-2 text-gray-600">
+                  <p className="mt-2 text-base text-gray-600">
                     Fill the form to reset your password
                   </p>
                 </div>
@@ -90,10 +90,10 @@ export default function ForgotPassword() {
                 {/* Form */}
                 <form onSubmit={handleSubmit} className="mt-8">
                   <div>
-                    <Label htmlFor="email">Email address</Label>
+                    <Label htmlFor="email" className="text-base font-medium">Email address</Label>
                     <div className="relative">
                       <div className="absolute left-3 top-1/2 -translate-y-1/2">
-                        <i className="pi pi-envelope text-gray-400 text-sm" />
+                        <i className="pi pi-envelope text-gray-400 text-base" />
                       </div>
                       <Input
                         id="email"
@@ -103,7 +103,7 @@ export default function ForgotPassword() {
                         required
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
-                        className={`pl-10 ${error ? "border-red-500" : ""}`}
+                        className={`pl-10 text-base ${error ? "border-red-500" : ""}`}
                         placeholder="Enter your email"
                       />
                     </div>
@@ -122,7 +122,7 @@ export default function ForgotPassword() {
                 </form>
 
                 {/* Back to login link */}
-                <p className="mt-6 text-center text-sm text-gray-600">
+                <p className="mt-6 text-center text-base text-gray-600">
                   Remember your password?{" "}
                   <Link
                     to="/sign-in"
@@ -154,10 +154,10 @@ export default function ForgotPassword() {
                   <h2 className="mt-4 text-2xl font-bold text-gray-900">
                     Check your email
                   </h2>
-                  <p className="mt-2 text-gray-600">
+                  <p className="mt-2 text-base text-gray-600">
                     Password reset sent! You'll receive an email if you are registered on our system.
                   </p>
-                  <p className="mt-1 text-sm text-gray-500">
+                  <p className="mt-1 text-base text-gray-500">
                     Sent to: {email}
                   </p>
                 </div>
@@ -175,7 +175,7 @@ export default function ForgotPassword() {
 
       {/* Footer */}
       <div className="relative z-10 flex h-20 w-full items-center px-6 sm:h-24 md:px-8">
-        <span className="font-medium text-white">
+        <span className="font-medium text-base text-white">
           Breedhub &copy; {new Date().getFullYear()} | With ♥ from Ukraine
         </span>
       </div>

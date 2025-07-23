@@ -88,7 +88,7 @@ export default function SignIn() {
 
       {/* Content */}
       <div className="relative z-10 flex flex-1 items-center justify-center px-6 pb-8 pt-8 sm:px-8">
-        <div className="w-full max-w-sm">
+        <div className="w-full max-w-md">
           <div className="bg-white rounded-2xl shadow-xl p-8 sm:p-10">
             {/* Icon */}
             <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-primary-100 shadow-sm mb-6">
@@ -100,7 +100,7 @@ export default function SignIn() {
               <h1 className="text-3xl font-bold tracking-tight text-gray-900">
                 Welcome back!
               </h1>
-              <p className="mt-2 text-gray-600">
+              <p className="mt-2 text-base text-gray-600">
                 Sign in to your account to continue
               </p>
             </div>
@@ -152,7 +152,7 @@ export default function SignIn() {
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-gray-300" />
               </div>
-              <div className="relative flex justify-center text-sm">
+              <div className="relative flex justify-center text-base">
                 <span className="bg-white px-2 text-gray-500">
                   Or continue with email
                 </span>
@@ -163,10 +163,10 @@ export default function SignIn() {
             <form onSubmit={handleSubmit} className="mt-6">
               <div className="space-y-4">
                 <div>
-                  <Label htmlFor="email">Email address</Label>
+                  <Label htmlFor="email" className="text-base font-medium">Email address</Label>
                   <div className="relative">
                     <div className="absolute left-3 top-1/2 -translate-y-1/2">
-                      <i className="pi pi-envelope text-gray-400 text-sm" />
+                      <i className="pi pi-envelope text-gray-400 text-base" />
                     </div>
                     <Input
                       id="email"
@@ -178,7 +178,7 @@ export default function SignIn() {
                       onChange={(e) =>
                         setFormData({ ...formData, email: e.target.value })
                       }
-                      className={`pl-10 ${errors.email ? "border-red-500" : ""}`}
+                      className={`pl-10 text-base ${errors.email ? "border-red-500" : ""}`}
                     />
                   </div>
                   {errors.email && (
@@ -187,10 +187,10 @@ export default function SignIn() {
                 </div>
 
                 <div>
-                  <Label htmlFor="password">Password</Label>
+                  <Label htmlFor="password" className="text-base font-medium">Password</Label>
                   <div className="relative">
                     <div className="absolute left-3 top-1/2 -translate-y-1/2">
-                      <i className="pi pi-lock text-gray-400 text-sm" />
+                      <i className="pi pi-lock text-gray-400 text-base" />
                     </div>
                     <Input
                       id="password"
@@ -202,7 +202,7 @@ export default function SignIn() {
                       onChange={(e) =>
                         setFormData({ ...formData, password: e.target.value })
                       }
-                      className={`pl-10 ${errors.password ? "border-red-500" : ""}`}
+                      className={`pl-10 text-base ${errors.password ? "border-red-500" : ""}`}
                     />
                   </div>
                   {errors.password && (
@@ -222,7 +222,7 @@ export default function SignIn() {
               <div className="mt-4 flex items-center justify-end">
                 <Link
                   to="/forgot-password"
-                  className="text-sm text-primary-600 hover:text-primary-500"
+                  className="text-base text-primary-600 hover:text-primary-500"
                 >
                   Forgot your password?
                 </Link>
@@ -238,7 +238,7 @@ export default function SignIn() {
             </form>
 
             {/* Sign up link */}
-            <p className="mt-6 text-center text-sm text-gray-600">
+            <p className="mt-6 text-center text-base text-gray-600">
               Don't have an account?{" "}
               <Link
                 to="/sign-up"
@@ -253,7 +253,7 @@ export default function SignIn() {
 
       {/* Footer */}
       <div className="relative z-10 flex h-20 w-full items-center px-6 sm:h-24 md:px-8">
-        <span className="font-medium text-white">
+        <span className="font-medium text-base text-white">
           Breedhub &copy; {new Date().getFullYear()} | With ♥ from Ukraine
         </span>
       </div>

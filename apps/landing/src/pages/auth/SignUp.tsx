@@ -104,7 +104,7 @@ export default function SignUp() {
 
       {/* Content */}
       <div className="relative z-10 flex flex-1 items-center justify-center px-6 pb-8 pt-8 sm:px-8">
-        <div className="w-full max-w-sm">
+        <div className="w-full max-w-md">
           <div className="bg-white rounded-2xl shadow-xl p-8 sm:p-10">
             {/* Icon */}
             <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-primary-100 shadow-sm mb-6">
@@ -116,7 +116,7 @@ export default function SignUp() {
               <h1 className="text-3xl font-bold tracking-tight text-gray-900">
                 Let's get started!
               </h1>
-              <p className="mt-2 text-gray-600">
+              <p className="mt-2 text-base text-gray-600">
                 Create your account to begin
               </p>
             </div>
@@ -140,7 +140,7 @@ export default function SignUp() {
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-gray-300" />
               </div>
-              <div className="relative flex justify-center text-sm">
+              <div className="relative flex justify-center text-base">
                 <span className="bg-white px-2 text-gray-500">Or sign up with email</span>
               </div>
             </div>
@@ -149,10 +149,10 @@ export default function SignUp() {
             <form onSubmit={handleSubmit} className="mt-6">
               <div className="space-y-4">
                 <div>
-                  <Label htmlFor="name">Full name</Label>
+                  <Label htmlFor="name" className="text-base font-medium">Full name</Label>
                   <div className="relative">
                     <div className="absolute left-3 top-1/2 -translate-y-1/2">
-                      <i className="pi pi-user text-gray-400 text-sm" />
+                      <i className="pi pi-user text-gray-400 text-base" />
                     </div>
                     <Input
                       id="name"
@@ -164,7 +164,7 @@ export default function SignUp() {
                       onChange={(e) =>
                         setFormData({ ...formData, name: e.target.value })
                       }
-                      className={`pl-10 ${errors.name ? "border-red-500" : ""}`}
+                      className={`pl-10 text-base ${errors.name ? "border-red-500" : ""}`}
                     />
                   </div>
                   {errors.name && (
@@ -173,10 +173,10 @@ export default function SignUp() {
                 </div>
 
                 <div>
-                  <Label htmlFor="email">Email address</Label>
+                  <Label htmlFor="email" className="text-base font-medium">Email address</Label>
                   <div className="relative">
                     <div className="absolute left-3 top-1/2 -translate-y-1/2">
-                      <i className="pi pi-envelope text-gray-400 text-sm" />
+                      <i className="pi pi-envelope text-gray-400 text-base" />
                     </div>
                     <Input
                       id="email"
@@ -188,7 +188,7 @@ export default function SignUp() {
                       onChange={(e) =>
                         setFormData({ ...formData, email: e.target.value })
                       }
-                      className={`pl-10 ${errors.email ? "border-red-500" : ""}`}
+                      className={`pl-10 text-base ${errors.email ? "border-red-500" : ""}`}
                     />
                   </div>
                   {errors.email && (
@@ -197,10 +197,10 @@ export default function SignUp() {
                 </div>
 
                 <div>
-                  <Label htmlFor="password">Password</Label>
+                  <Label htmlFor="password" className="text-base font-medium">Password</Label>
                   <div className="relative">
                     <div className="absolute left-3 top-1/2 -translate-y-1/2">
-                      <i className="pi pi-lock text-gray-400 text-sm" />
+                      <i className="pi pi-lock text-gray-400 text-base" />
                     </div>
                     <Input
                       id="password"
@@ -212,7 +212,7 @@ export default function SignUp() {
                       onChange={(e) =>
                         setFormData({ ...formData, password: e.target.value })
                       }
-                      className={`pl-10 pr-10 ${errors.password ? "border-red-500" : ""}`}
+                      className={`pl-10 pr-10 text-base ${errors.password ? "border-red-500" : ""}`}
                     />
                     <button
                       type="button"
@@ -237,10 +237,10 @@ export default function SignUp() {
                 </div>
 
                 <div>
-                  <Label htmlFor="kennel">Kennel (optional)</Label>
+                  <Label htmlFor="kennel" className="text-base font-medium">Kennel (optional)</Label>
                   <div className="relative">
                     <div className="absolute left-3 top-1/2 -translate-y-1/2">
-                      <i className="pi pi-building text-gray-400 text-sm" />
+                      <i className="pi pi-building text-gray-400 text-base" />
                     </div>
                     <Input
                       id="kennel"
@@ -250,7 +250,7 @@ export default function SignUp() {
                       onChange={(e) =>
                         setFormData({ ...formData, kennel: e.target.value })
                       }
-                      className="pl-10"
+                      className="pl-10 text-base"
                     />
                   </div>
                 </div>
@@ -266,7 +266,7 @@ export default function SignUp() {
                   />
                   <label
                     htmlFor="agreements"
-                    className="ml-2 text-sm text-gray-600"
+                    className="ml-2 text-base text-gray-600"
                   >
                     I agree to the{" "}
                     <Link
@@ -309,7 +309,7 @@ export default function SignUp() {
 
       {/* Footer */}
       <div className="relative z-10 flex h-20 w-full items-center px-6 sm:h-24 md:px-8">
-        <span className="font-medium text-white">
+        <span className="font-medium text-base text-white">
           Breedhub &copy; {new Date().getFullYear()} | With ♥ from Ukraine
         </span>
       </div>
