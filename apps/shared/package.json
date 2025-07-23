@@ -1,0 +1,12 @@
+{
+  "name": "@breedhub/shared",
+  "version": "0.0.1",
+  "private": true,
+  "exports": {
+    "./pages/auth": "./pages/auth/index.ts",
+    "./pages/auth/*": "./pages/auth/*.tsx",
+    "./layouts/*": "./layouts/*.tsx",
+    "./assets/*": "./assets/*",
+    "./icons/*": "./icons/*"
+  }
+}
