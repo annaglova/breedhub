@@ -6,32 +6,34 @@ interface AuthHeaderProps {
   rightButtonText?: string;
   rightButtonLink?: string;
   rightButtonLabel?: string;
+  rightContent?: React.ReactNode;
 }
 
 export function AuthHeader({
   rightButtonText = "Sign in",
   rightButtonLink = "/sign-in",
   rightButtonLabel = "Return to",
+  rightContent,
 }: AuthHeaderProps) {
   return (
-    <div className="relative z-10 flex w-full items-center justify-between px-4 sm:px-6 lg:px-8 py-4">
+    <div className="relative z-10 flex w-full items-center justify-between px-4 sm:px-6 lg:px-8 py-3 sm:py-4">
       <div className="flex items-center">
         <Link 
           to="/" 
           className="flex items-center cursor-pointer relative z-10 focus:outline-none focus:ring-2 focus:ring-primary-500 rounded"
           aria-label="Go to homepage"
         >
-          <LogoText className="h-10 w-auto cursor-pointer mt-0.5" />
+          <LogoText className="h-8 sm:h-10 w-auto cursor-pointer mt-0.5" />
         </Link>
       </div>
-      {rightButtonLink && (
-        <div className="flex items-center gap-4">
-          <span className="hidden text-gray-600 sm:block text-base">
+      {rightContent ? rightContent : rightButtonLink && (
+        <div className="flex items-center gap-2 sm:gap-4">
+          <span className="hidden text-gray-600 sm:block text-sm sm:text-base">
             {rightButtonLabel}
           </span>
           <Link to={rightButtonLink}>
             <Button 
-              className="landing-raised-button landing-raised-button-pink"
+              className="landing-raised-button landing-raised-button-pink text-sm sm:text-base px-3 sm:px-4 py-2"
               aria-label={rightButtonText}
             >
               {rightButtonText}

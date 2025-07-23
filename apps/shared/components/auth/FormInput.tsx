@@ -27,7 +27,7 @@ export const FormInput = forwardRef<HTMLInputElement, FormInputProps>(
           <Label 
             htmlFor={props.id} 
             className={cn(
-              "text-base font-medium transition-colors",
+              "text-sm sm:text-base font-medium transition-colors",
               hasError && "text-red-600",
               isFocused && !hasError && "text-primary-600"
             )}
@@ -54,7 +54,7 @@ export const FormInput = forwardRef<HTMLInputElement, FormInputProps>(
             ref={ref}
             type={inputType}
             className={cn(
-              "text-base transition-all",
+              "text-sm sm:text-base transition-all",
               icon && "pl-10",
               showPasswordToggle && "pr-10",
               hasError && "border-red-500 focus:ring-red-500",
