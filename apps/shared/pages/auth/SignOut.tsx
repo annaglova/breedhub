@@ -1,6 +1,7 @@
-import AuthLayout from "@shared/layouts/AuthLayout";
 import FooterFigure from "@shared/assets/backgrounds/footer-figure.svg?react";
-import LogoText from "@shared/icons/logo/logo-text.svg?react";
+import { AuthFooter } from "@shared/components/auth/AuthFooter";
+import { AuthHeader } from "@shared/components/auth/AuthHeader";
+import AuthLayout from "@shared/layouts/AuthLayout";
 import { Button } from "@ui/components/button";
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
@@ -32,33 +33,28 @@ export default function SignOut() {
 
   return (
     <AuthLayout>
-      <div className="relative flex min-h-screen w-full flex-col bg-white">
-      {/* Background SVG */}
-      <div className="absolute bottom-0 w-full pointer-events-none z-0">
-        <FooterFigure className="w-full h-auto" />
-      </div>
-
-      {/* Header */}
-      <div className="relative z-10 flex w-full items-center justify-between px-4 sm:px-6 lg:px-8 py-4">
-        <div className="flex items-center">
-          <Link to="/" className="flex items-center cursor-pointer relative z-10">
-            <LogoText className="h-10 w-auto cursor-pointer mt-0.5" />
-          </Link>
+      <div className="relative flex min-h-screen w-full flex-col bg-white animate-fadeIn">
+        {/* Background SVG */}
+        <div className="absolute bottom-0 w-full pointer-events-none z-0">
+          <FooterFigure className="w-full h-auto" />
         </div>
-        <div className="flex items-center gap-4">
-          <span className="hidden text-gray-600 sm:block">Go to</span>
-          <Link to="/">
-            <Button className="landing-raised-button landing-raised-button-pink">
-              Homepage
-            </Button>
-          </Link>
-        </div>
-      </div>
 
-      {/* Content */}
-      <div className="relative z-10 flex flex-1 items-center justify-center px-6 pb-8 pt-8 sm:px-8">
-        <div className="w-full max-w-md">
-          <div className="bg-white rounded-2xl shadow-xl p-8 sm:p-10">
+        {/* Header */}
+        <AuthHeader rightContent={
+          <div className="flex items-center gap-4">
+            <span className="hidden text-gray-600 sm:block">Go to</span>
+            <Link to="/">
+              <Button className="landing-raised-button landing-raised-button-pink">
+                Homepage
+              </Button>
+            </Link>
+          </div>
+        } />
+
+        {/* Content */}
+        <div className="relative z-10 flex flex-1 items-center justify-center px-6 pb-8 pt-8 sm:px-8">
+          <div className="w-full max-w-md animate-scaleIn">
+            <div className="bg-white rounded-2xl shadow-xl p-8 sm:p-10">
             <div className="text-center">
               <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-100 shadow-sm">
                 <svg
@@ -90,11 +86,7 @@ export default function SignOut() {
       </div>
 
       {/* Footer */}
-      <div className="relative z-10 flex h-20 w-full items-center px-6 sm:h-24 md:px-8">
-        <span className="font-medium text-base text-white">
-          Breedhub &copy; {new Date().getFullYear()} | With ♥ from Ukraine
-        </span>
-      </div>
+      <AuthFooter />
     </div>
     </AuthLayout>
   );

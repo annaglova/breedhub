@@ -1,10 +1,14 @@
-import AuthLayout from "@shared/layouts/AuthLayout";
 import FooterFigure from "@shared/assets/backgrounds/footer-figure.svg?react";
-import LogoText from "@shared/icons/logo/logo-text.svg?react";
+import { AuthFooter } from "@shared/components/auth/AuthFooter";
+import { AuthHeader } from "@shared/components/auth/AuthHeader";
+import { FormInput } from "@shared/components/auth/FormInput";
+import { PasswordStrength } from "@shared/components/auth/PasswordStrength";
+import { SocialLoginButtons } from "@shared/components/auth/SocialLoginButtons";
+import { Spinner } from "@shared/components/auth/Spinner";
+import { useEmailValidation } from "@shared/hooks/useEmailValidation";
+import AuthLayout from "@shared/layouts/AuthLayout";
 import { Button } from "@ui/components/button";
 import { Checkbox } from "@ui/components/checkbox";
-import { Input } from "@ui/components/input";
-import { Label } from "@ui/components/label";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
@@ -26,24 +30,37 @@ export default function SignUp() {
     agreements: "",
     general: "",
   });
+  const [touched, setTouched] = useState({
+    name: false,
+    email: false,
+    password: false,
+    kennel: false,
+  });
+
+  const { validateEmail, error: emailError } = useEmailValidation();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrors({ name: "", email: "", password: "", agreements: "", general: "" });
+    setTouched({ name: true, email: true, password: true, kennel: true });
 
     // Validation
-    if (!formData.name) {
-      setErrors((prev) => ({ ...prev, name: "Full name is required" }));
+    if (!formData.name || formData.name.trim().length < 2) {
+      setErrors((prev) => ({ ...prev, name: "Please enter your full name" }));
       return;
     }
-    if (!formData.email) {
-      setErrors((prev) => ({ ...prev, email: "Email is required" }));
+    
+    const isEmailValid = await validateEmail(formData.email);
+    if (!isEmailValid) {
+      setErrors((prev) => ({ ...prev, email: emailError }));
       return;
     }
-    if (!formData.password) {
-      setErrors((prev) => ({ ...prev, password: "Password is required" }));
+    
+    if (!formData.password || formData.password.length < 8) {
+      setErrors((prev) => ({ ...prev, password: "Password must be at least 8 characters" }));
       return;
     }
+    
     if (!formData.agreements) {
       setErrors((prev) => ({ ...prev, agreements: "You must agree to the terms" }));
       return;
@@ -57,55 +74,50 @@ export default function SignUp() {
       navigate("/confirmation-required");
     } catch (error) {
       setErrors({ ...errors, general: "Something went wrong, please try again." });
+      const form = document.getElementById("signup-form");
+      form?.classList.add("animate-shake");
+      setTimeout(() => form?.classList.remove("animate-shake"), 500);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleSocialSignUp = async (provider: "facebook") => {
-    setIsLoading(true);
+  const handleSocialSignUp = async (provider: "facebook" | "google" | "apple") => {
     try {
       // TODO: Implement social sign up
       await new Promise((resolve) => setTimeout(resolve, 1000));
       navigate("/confirmation-required");
     } catch (error) {
       setErrors({ ...errors, general: `${provider} sign up failed` });
-    } finally {
-      setIsLoading(false);
     }
   };
 
   return (
     <AuthLayout>
-      <div className="relative flex min-h-screen w-full flex-col bg-white">
-      {/* Background SVG */}
-      <div className="absolute bottom-0 w-full pointer-events-none z-0">
-        <FooterFigure className="w-full h-auto" />
-      </div>
-
-      {/* Header */}
-      <div className="relative z-10 flex w-full items-center justify-between px-4 sm:px-6 lg:px-8 py-4">
-        <div className="flex items-center">
-          <Link to="/" className="flex items-center cursor-pointer relative z-10">
-            <LogoText className="h-10 w-auto cursor-pointer mt-0.5" />
-          </Link>
+      <div className="relative flex min-h-screen w-full flex-col bg-white animate-fadeIn">
+        {/* Background SVG */}
+        <div className="absolute bottom-0 w-full pointer-events-none z-0">
+          <FooterFigure className="w-full h-auto" />
         </div>
-        <div className="flex items-center gap-4">
-          <span className="hidden text-gray-600 sm:block">
-            Already have an account?
-          </span>
-          <Link to="/sign-in">
-            <Button className="landing-raised-button landing-raised-button-pink">
-              Sign in
-            </Button>
-          </Link>
-        </div>
-      </div>
 
-      {/* Content */}
-      <div className="relative z-10 flex flex-1 items-center justify-center px-6 pb-8 pt-8 sm:px-8">
-        <div className="w-full max-w-md">
-          <div className="bg-white rounded-2xl shadow-xl p-8 sm:p-10">
+        {/* Header */}
+        <AuthHeader rightContent={
+          <div className="flex items-center gap-4">
+            <span className="hidden text-gray-600 sm:block">
+              Already have an account?
+            </span>
+            <Link to="/sign-in">
+              <Button className="landing-raised-button landing-raised-button-pink">
+                Sign in
+              </Button>
+            </Link>
+          </div>
+        } />
+
+        {/* Content */}
+        <div className="relative z-10 flex flex-1 items-center justify-center px-6 pb-8 pt-8 sm:px-8">
+          <div className="w-full max-w-md animate-scaleIn">
+            <div className="bg-white rounded-2xl shadow-xl p-8 sm:p-10">
             {/* Icon */}
             <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-primary-100 shadow-sm mb-6">
               <i className="pi pi-user-plus text-2xl text-primary-600" />
@@ -121,19 +133,15 @@ export default function SignUp() {
               </p>
             </div>
 
-            {/* Social Sign Up */}
-            <div className="mt-8">
-              <Button
-                onClick={() => handleSocialSignUp("facebook")}
-                disabled={isLoading}
-                className="w-full bg-[#1877F2] hover:bg-[#166FE5] text-white"
-              >
-                <div className="bg-white/20 rounded-full w-6 h-6 flex items-center justify-center mr-2 shadow-sm">
-                  <i className="pi pi-facebook text-white" />
-                </div>
-                Start with Facebook
-              </Button>
-            </div>
+              {/* Social Sign Up */}
+              <div className="mt-8">
+                <SocialLoginButtons
+                  onFacebookLogin={() => handleSocialSignUp("facebook")}
+                  onGoogleLogin={() => handleSocialSignUp("google")}
+                  onAppleLogin={() => handleSocialSignUp("apple")}
+                  signUpMode
+                />
+              </div>
 
             {/* Divider */}
             <div className="relative mt-8">
@@ -145,115 +153,63 @@ export default function SignUp() {
               </div>
             </div>
 
-            {/* Sign Up Form */}
-            <form onSubmit={handleSubmit} className="mt-6">
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="name" className="text-base font-medium">Full name</Label>
-                  <div className="relative">
-                    <div className="absolute left-3 top-1/2 -translate-y-1/2">
-                      <i className="pi pi-user text-gray-400 text-base" />
-                    </div>
-                    <Input
-                      id="name"
-                      name="name"
-                      type="text"
-                      autoComplete="name"
-                      required
-                      value={formData.name}
-                      onChange={(e) =>
-                        setFormData({ ...formData, name: e.target.value })
-                      }
-                      className={`pl-10 text-base ${errors.name ? "border-red-500" : ""}`}
-                    />
-                  </div>
-                  {errors.name && (
-                    <p className="mt-1 text-sm text-red-600">{errors.name}</p>
-                  )}
-                </div>
+              {/* Sign Up Form */}
+              <form id="signup-form" onSubmit={handleSubmit} className="mt-6">
+                <div className="space-y-4">
+                  <FormInput
+                    label="Full name"
+                    type="text"
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    onBlur={() => setTouched({ ...touched, name: true })}
+                    error={errors.name}
+                    touched={touched.name}
+                    autoComplete="name"
+                    icon={<i className="pi pi-user" />}
+                    aria-label="Full name"
+                  />
 
-                <div>
-                  <Label htmlFor="email" className="text-base font-medium">Email address</Label>
-                  <div className="relative">
-                    <div className="absolute left-3 top-1/2 -translate-y-1/2">
-                      <i className="pi pi-envelope text-gray-400 text-base" />
-                    </div>
-                    <Input
-                      id="email"
-                      name="email"
-                      type="email"
-                      autoComplete="email"
-                      required
-                      value={formData.email}
-                      onChange={(e) =>
-                        setFormData({ ...formData, email: e.target.value })
-                      }
-                      className={`pl-10 text-base ${errors.email ? "border-red-500" : ""}`}
-                    />
-                  </div>
-                  {errors.email && (
-                    <p className="mt-1 text-sm text-red-600">{errors.email}</p>
-                  )}
-                </div>
+                  <FormInput
+                    label="Email address"
+                    type="email"
+                    value={formData.email}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    onBlur={() => setTouched({ ...touched, email: true })}
+                    error={errors.email || (touched.email && emailError)}
+                    touched={touched.email}
+                    autoComplete="email"
+                    icon={<i className="pi pi-envelope" />}
+                    aria-label="Email address"
+                  />
 
-                <div>
-                  <Label htmlFor="password" className="text-base font-medium">Password</Label>
-                  <div className="relative">
-                    <div className="absolute left-3 top-1/2 -translate-y-1/2">
-                      <i className="pi pi-lock text-gray-400 text-base" />
-                    </div>
-                    <Input
-                      id="password"
-                      name="password"
+                  <div>
+                    <FormInput
+                      label="Password"
                       type={showPassword ? "text" : "password"}
-                      autoComplete="new-password"
-                      required
                       value={formData.password}
-                      onChange={(e) =>
-                        setFormData({ ...formData, password: e.target.value })
-                      }
-                      className={`pl-10 pr-10 text-base ${errors.password ? "border-red-500" : ""}`}
+                      onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                      onBlur={() => setTouched({ ...touched, password: true })}
+                      error={errors.password}
+                      touched={touched.password}
+                      autoComplete="new-password"
+                      icon={<i className="pi pi-lock" />}
+                      showPasswordToggle
+                      onPasswordToggleChange={setShowPassword}
+                      aria-label="Password"
                     />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                    >
-                      {showPassword ? (
-                        <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
-                        </svg>
-                      ) : (
-                        <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                        </svg>
-                      )}
-                    </button>
+                    {formData.password && <PasswordStrength password={formData.password} className="mt-2" />}
                   </div>
-                  {errors.password && (
-                    <p className="mt-1 text-sm text-red-600">{errors.password}</p>
-                  )}
-                </div>
 
-                <div>
-                  <Label htmlFor="kennel" className="text-base font-medium">Kennel (optional)</Label>
-                  <div className="relative">
-                    <div className="absolute left-3 top-1/2 -translate-y-1/2">
-                      <i className="pi pi-building text-gray-400 text-base" />
-                    </div>
-                    <Input
-                      id="kennel"
-                      name="kennel"
-                      type="text"
-                      value={formData.kennel}
-                      onChange={(e) =>
-                        setFormData({ ...formData, kennel: e.target.value })
-                      }
-                      className="pl-10 text-base"
-                    />
-                  </div>
-                </div>
+                  <FormInput
+                    label="Kennel (optional)"
+                    type="text"
+                    value={formData.kennel}
+                    onChange={(e) => setFormData({ ...formData, kennel: e.target.value })}
+                    onBlur={() => setTouched({ ...touched, kennel: true })}
+                    touched={touched.kennel}
+                    icon={<i className="pi pi-building" />}
+                    aria-label="Kennel name"
+                  />
 
                 <div className="flex items-start">
                   <Checkbox
@@ -289,31 +245,37 @@ export default function SignUp() {
                 )}
               </div>
 
-              {errors.general && (
-                <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-md">
-                  <p className="text-sm text-red-600">{errors.general}</p>
-                </div>
-              )}
+                {errors.general && (
+                  <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-md animate-slideDown">
+                    <p className="text-sm text-red-600 flex items-center">
+                      <i className="pi pi-exclamation-circle mr-2" />
+                      {errors.general}
+                    </p>
+                  </div>
+                )}
 
-              <Button
-                type="submit"
-                disabled={isLoading}
-                className="mt-6 w-full landing-raised-button landing-raised-button-primary"
-              >
-                {isLoading ? "Creating account..." : "Create your account"}
-              </Button>
-            </form>
+                <Button
+                  type="submit"
+                  disabled={isLoading}
+                  className="mt-6 w-full landing-raised-button landing-raised-button-primary relative"
+                >
+                  {isLoading ? (
+                    <div className="flex items-center justify-center">
+                      <Spinner className="mr-2" />
+                      Creating account...
+                    </div>
+                  ) : (
+                    "Create your account"
+                  )}
+                </Button>
+              </form>
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Footer */}
-      <div className="relative z-10 flex h-20 w-full items-center px-6 sm:h-24 md:px-8">
-        <span className="font-medium text-base text-white">
-          Breedhub &copy; {new Date().getFullYear()} | With ♥ from Ukraine
-        </span>
+        {/* Footer */}
+        <AuthFooter />
       </div>
-    </div>
     </AuthLayout>
   );
 }

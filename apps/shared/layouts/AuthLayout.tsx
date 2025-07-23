@@ -1,3 +1,4 @@
+import "@shared/styles/animations.css";
 import "primeicons/primeicons.css";
 import React from "react";
 
