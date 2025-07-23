@@ -1,8 +1,12 @@
-import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import FooterFigure from "@/assets/backgrounds/footer-figure.svg?react";
+import LogoText from "@shared/icons/logo/logo-text.svg?react";
+import { Button } from "@ui/components/button";
+import { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 
 export default function SignOut() {
   const navigate = useNavigate();
+  const [countdown, setCountdown] = useState(3);
 
   useEffect(() => {
     // TODO: Implement actual sign out logic
@@ -10,40 +14,84 @@ export default function SignOut() {
     // - Clear user data from store
     // - Call API to invalidate session
     
-    // Redirect to sign in page after sign out
-    const timer = setTimeout(() => {
-      navigate("/sign-in");
+    // Countdown timer
+    const timer = setInterval(() => {
+      setCountdown((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          navigate("/");
+          return 0;
+        }
+        return prev - 1;
+      });
     }, 1000);
 
-    return () => clearTimeout(timer);
+    return () => clearInterval(timer);
   }, [navigate]);
 
   return (
-    <div className="flex min-h-screen w-full items-center justify-center bg-gradient-to-br from-primary-50 via-white to-primary-50">
-      <div className="text-center">
-        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-primary-100">
-          <svg
-            className="h-8 w-8 text-primary-600 animate-spin"
-            fill="none"
-            viewBox="0 0 24 24"
-          >
-            <circle
-              className="opacity-25"
-              cx="12"
-              cy="12"
-              r="10"
-              stroke="currentColor"
-              strokeWidth="4"
-            />
-            <path
-              className="opacity-75"
-              fill="currentColor"
-              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-            />
-          </svg>
+    <div className="relative flex min-h-screen w-full flex-col bg-white">
+      {/* Background SVG */}
+      <div className="absolute bottom-0 w-full pointer-events-none z-0">
+        <FooterFigure className="w-full h-auto" />
+      </div>
+
+      {/* Header */}
+      <div className="relative z-10 flex w-full items-center justify-between px-4 sm:px-6 lg:px-8 py-4">
+        <div className="flex items-center">
+          <Link to="/" className="flex items-center cursor-pointer relative z-10">
+            <LogoText className="h-10 w-auto cursor-pointer mt-1" />
+          </Link>
         </div>
-        <h2 className="mt-4 text-xl font-semibold text-gray-900">Signing out...</h2>
-        <p className="mt-2 text-gray-600">You will be redirected shortly</p>
+        <div className="flex items-center gap-4">
+          <span className="hidden text-gray-600 sm:block">Go to</span>
+          <Link to="/">
+            <Button className="landing-raised-button landing-raised-button-pink">
+              Homepage
+            </Button>
+          </Link>
+        </div>
+      </div>
+
+      {/* Content */}
+      <div className="relative z-10 flex flex-1 items-center justify-center px-6 pb-8 pt-8 sm:px-8">
+        <div className="w-full max-w-sm">
+          <div className="bg-white rounded-2xl shadow-xl p-8 sm:p-10">
+            <div className="text-center">
+              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
+                <svg
+                  className="h-8 w-8 text-green-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M5 13l4 4L19 7"
+                  />
+                </svg>
+              </div>
+              <h2 className="mt-4 text-2xl font-bold text-gray-900">
+                You are signed out
+              </h2>
+              <p className="mt-2 text-gray-600">
+                Thank you for using Breedhub. Till next time!
+              </p>
+              <p className="mt-6 text-sm text-gray-500">
+                Redirecting to homepage in {countdown}...
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Footer */}
+      <div className="relative z-10 flex h-20 w-full items-center px-6 sm:h-24 md:px-8">
+        <span className="font-medium text-white">
+          Breedhub &copy; {new Date().getFullYear()} | With ♥ from Ukraine
+        </span>
       </div>
     </div>
   );
