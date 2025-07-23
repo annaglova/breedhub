@@ -1,3 +1,4 @@
+import AuthLayout from "@/layouts/AuthLayout";
 import FooterFigure from "@/assets/backgrounds/footer-figure.svg?react";
 import LogoText from "@shared/icons/logo/logo-text.svg?react";
 import { Button } from "@ui/components/button";
@@ -65,7 +66,8 @@ export default function ResetPassword() {
   };
 
   return (
-    <div className="relative flex min-h-screen w-full flex-col bg-white">
+    <AuthLayout>
+      <div className="relative flex min-h-screen w-full flex-col bg-white">
       {/* Background SVG */}
       <div className="absolute bottom-0 w-full pointer-events-none z-0">
         <FooterFigure className="w-full h-auto" />
@@ -75,7 +77,7 @@ export default function ResetPassword() {
       <div className="relative z-10 flex w-full items-center justify-between px-4 sm:px-6 lg:px-8 py-4">
         <div className="flex items-center">
           <Link to="/" className="flex items-center cursor-pointer relative z-10">
-            <LogoText className="h-10 w-auto cursor-pointer mt-1" />
+            <LogoText className="h-10 w-auto cursor-pointer mt-0.5" />
           </Link>
         </div>
         <div className="flex items-center gap-4">
@@ -92,6 +94,11 @@ export default function ResetPassword() {
       <div className="relative z-10 flex flex-1 items-center justify-center px-6 pb-8 pt-8 sm:px-8">
         <div className="w-full max-w-sm">
           <div className="bg-white rounded-2xl shadow-xl p-8 sm:p-10">
+            {/* Icon */}
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-purple-100 shadow-sm mb-6">
+              <i className="pi pi-key text-2xl text-purple-600" />
+            </div>
+
             {/* Title */}
             <div className="text-center">
               <h1 className="text-3xl font-bold tracking-tight text-gray-900">
@@ -108,6 +115,9 @@ export default function ResetPassword() {
                 <div>
                   <Label htmlFor="password">New password</Label>
                   <div className="relative">
+                    <div className="absolute left-3 top-1/2 -translate-y-1/2">
+                      <i className="pi pi-lock text-gray-400 text-sm" />
+                    </div>
                     <Input
                       id="password"
                       name="password"
@@ -118,7 +128,7 @@ export default function ResetPassword() {
                       onChange={(e) =>
                         setFormData({ ...formData, password: e.target.value })
                       }
-                      className={errors.password ? "border-red-500 pr-10" : "pr-10"}
+                      className={`pl-10 pr-10 ${errors.password ? "border-red-500" : ""}`}
                     />
                     <button
                       type="button"
@@ -146,6 +156,9 @@ export default function ResetPassword() {
                 <div>
                   <Label htmlFor="passwordConfirm">Confirm new password</Label>
                   <div className="relative">
+                    <div className="absolute left-3 top-1/2 -translate-y-1/2">
+                      <i className="pi pi-lock text-gray-400 text-sm" />
+                    </div>
                     <Input
                       id="passwordConfirm"
                       name="passwordConfirm"
@@ -156,7 +169,7 @@ export default function ResetPassword() {
                       onChange={(e) =>
                         setFormData({ ...formData, passwordConfirm: e.target.value })
                       }
-                      className={errors.passwordConfirm ? "border-red-500 pr-10" : "pr-10"}
+                      className={`pl-10 pr-10 ${errors.passwordConfirm ? "border-red-500" : ""}`}
                     />
                     <button
                       type="button"
@@ -206,5 +219,6 @@ export default function ResetPassword() {
         </span>
       </div>
     </div>
+    </AuthLayout>
   );
 }

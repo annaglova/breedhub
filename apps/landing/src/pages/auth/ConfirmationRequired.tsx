@@ -1,3 +1,4 @@
+import AuthLayout from "@/layouts/AuthLayout";
 import FooterFigure from "@/assets/backgrounds/footer-figure.svg?react";
 import LogoText from "@shared/icons/logo/logo-text.svg?react";
 import { Button } from "@ui/components/button";
@@ -5,7 +6,8 @@ import { Link } from "react-router-dom";
 
 export default function ConfirmationRequired() {
   return (
-    <div className="relative flex min-h-screen w-full flex-col bg-white">
+    <AuthLayout>
+      <div className="relative flex min-h-screen w-full flex-col bg-white">
       {/* Background SVG */}
       <div className="absolute bottom-0 w-full pointer-events-none z-0">
         <FooterFigure className="w-full h-auto" />
@@ -15,7 +17,7 @@ export default function ConfirmationRequired() {
       <div className="relative z-10 flex w-full items-center justify-between px-4 sm:px-6 lg:px-8 py-4">
         <div className="flex items-center">
           <Link to="/" className="flex items-center cursor-pointer relative z-10">
-            <LogoText className="h-10 w-auto cursor-pointer mt-1" />
+            <LogoText className="h-10 w-auto cursor-pointer mt-0.5" />
           </Link>
         </div>
         <div className="flex items-center gap-4">
@@ -33,7 +35,7 @@ export default function ConfirmationRequired() {
         <div className="w-full max-w-sm">
           <div className="bg-white rounded-2xl shadow-xl p-8 sm:p-10">
             {/* Icon */}
-            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-primary-100">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-primary-100 shadow-sm">
               <svg
                 className="h-8 w-8 text-primary-600"
                 fill="none"
@@ -91,5 +93,6 @@ export default function ConfirmationRequired() {
         </span>
       </div>
     </div>
+    </AuthLayout>
   );
 }
