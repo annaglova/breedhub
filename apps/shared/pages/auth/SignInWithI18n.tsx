@@ -129,7 +129,7 @@ export default function SignInWithI18n() {
 
   return (
     <AuthLayout>
-      <div className="relative flex min-h-screen w-full flex-col bg-white animate-fadeIn">
+      <div className="relative flex min-h-screen w-full flex-col">
         {/* Background SVG */}
         <div className="absolute bottom-0 w-full pointer-events-none z-0">
           <FooterFigure className="w-full h-auto" />

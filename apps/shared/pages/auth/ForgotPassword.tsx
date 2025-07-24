@@ -73,7 +73,7 @@ export default function ForgotPassword() {
 
   return (
     <AuthLayout>
-      <div className="relative flex min-h-screen w-full flex-col bg-white animate-fadeIn">
+      <div className="relative flex min-h-screen w-full flex-col">
         {/* Background SVG */}
         <div className="absolute bottom-0 w-full pointer-events-none z-0">
           <FooterFigure className="w-full h-auto" />
@@ -94,7 +94,7 @@ export default function ForgotPassword() {
         {/* Content */}
         <div className="relative z-10 flex flex-1 items-center justify-center px-6 pb-8 pt-8 sm:px-8">
           <div className="w-full max-w-md animate-scaleIn">
-            <div className="bg-white rounded-2xl shadow-xl p-8 sm:p-10">
+            <div className="bg-white rounded-2xl shadow-xl p-8 sm:p-10 border border-gray-100">
             {!isSuccess ? (
               <>
                 {/* Icon */}
