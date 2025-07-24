@@ -129,7 +129,7 @@ export default function SignIn() {
 
   return (
     <AuthLayout>
-      <div className="relative flex min-h-screen w-full flex-col bg-white animate-fadeIn">
+      <div className="relative flex min-h-screen w-full flex-col">
         {/* Background SVG */}
         <div className="absolute bottom-0 w-full pointer-events-none z-0">
           <FooterFigure className="w-full h-auto" />
@@ -141,7 +141,7 @@ export default function SignIn() {
         {/* Content */}
         <div className="relative z-10 flex flex-1 items-center justify-center px-4 sm:px-6 pb-4 sm:pb-8 pt-4 sm:pt-8">
           <div className="w-full max-w-md animate-scaleIn">
-            <div className="bg-white rounded-xl sm:rounded-2xl shadow-xl p-6 sm:p-8 md:p-10">
+            <div className="bg-white rounded-xl sm:rounded-2xl shadow-xl p-6 sm:p-8 md:p-10 border border-gray-100">
               {/* Icon */}
               <div className="mx-auto flex h-14 w-14 sm:h-16 sm:w-16 items-center justify-center rounded-full bg-primary-100 shadow-sm mb-4 sm:mb-6">
                 <i className="pi pi-user text-xl sm:text-2xl text-primary-600" />

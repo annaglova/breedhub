@@ -72,7 +72,7 @@ export default function ResetPassword() {
 
   return (
     <AuthLayout>
-      <div className="relative flex min-h-screen w-full flex-col bg-white animate-fadeIn">
+      <div className="relative flex min-h-screen w-full flex-col">
         {/* Background SVG */}
         <div className="absolute bottom-0 w-full pointer-events-none z-0">
           <FooterFigure className="w-full h-auto" />
@@ -93,7 +93,7 @@ export default function ResetPassword() {
         {/* Content */}
         <div className="relative z-10 flex flex-1 items-center justify-center px-6 pb-8 pt-8 sm:px-8">
           <div className="w-full max-w-md animate-scaleIn">
-            <div className="bg-white rounded-2xl shadow-xl p-8 sm:p-10">
+            <div className="bg-white rounded-2xl shadow-xl p-8 sm:p-10 border border-gray-100">
             {/* Icon */}
             <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-purple-100 shadow-sm mb-6">
               <i className="pi pi-key text-2xl text-purple-600" />
