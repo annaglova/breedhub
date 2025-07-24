@@ -123,7 +123,7 @@ export default function SignIn() {
       const redirectURL = searchParams.get("redirectURL") || "/app";
       navigate(redirectURL);
     } catch (error) {
-      setErrors({ ...errors, general: `${provider} login failed` });
+      setGeneralError(`${provider} login failed`);
     }
   };
 

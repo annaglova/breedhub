@@ -98,8 +98,8 @@ export default function ForgotPassword() {
             {!isSuccess ? (
               <>
                 {/* Icon */}
-                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-blue-100 shadow-sm mb-6">
-                  <i className="pi pi-question-circle text-2xl text-blue-600" />
+                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-primary-100 shadow-sm mb-6">
+                  <i className="pi pi-question-circle text-2xl text-primary-600" />
                 </div>
 
                 {/* Title */}

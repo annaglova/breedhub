@@ -61,7 +61,7 @@ export const FormInput = forwardRef<HTMLInputElement, FormInputProps>(
               isFocused && !hasError && "border-primary-500 ring-2 ring-primary-500/20",
               className
             )}
-            aria-invalid={hasError}
+            aria-invalid={hasError ? "true" : undefined}
             aria-describedby={hasError ? `${props.id}-error` : undefined}
             onFocus={() => setIsFocused(true)}
             onBlur={(e) => {
