@@ -186,14 +186,15 @@ export default function SignUp() {
             </div>
 
               {/* Sign Up Form */}
-              <form id="signup-form" onSubmit={handleSubmit(onSubmit)} className="mt-6">
+              <form id="signup-form" onSubmit={handleSubmit} className="mt-6">
                 <div className="space-y-4">
                   <FormInput
                     label="Full name"
                     type="text"
-                    {...register("name")}
-                    error={errors.name?.message}
-                    touched={touchedFields.name}
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    error={errors.name}
+                    touched={touched.name}
                     autoComplete="name"
                     icon={<i className="pi pi-user" />}
                     aria-label="Full name"
@@ -202,9 +203,10 @@ export default function SignUp() {
                   <FormInput
                     label="Email address"
                     type="email"
-                    {...register("email")}
-                    error={errors.email?.message}
-                    touched={touchedFields.email}
+                    value={formData.email}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    error={errors.email}
+                    touched={touched.email}
                     autoComplete="email"
                     icon={<i className="pi pi-envelope" />}
                     aria-label="Email address"
@@ -214,24 +216,26 @@ export default function SignUp() {
                     <FormInput
                       label="Password"
                       type={showPassword ? "text" : "password"}
-                      {...register("password")}
-                      error={errors.password?.message}
-                      touched={touchedFields.password}
+                      value={formData.password}
+                      onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                      error={errors.password}
+                      touched={touched.password}
                       autoComplete="new-password"
                       icon={<i className="pi pi-lock" />}
                       showPasswordToggle
                       onPasswordToggleChange={setShowPassword}
                       aria-label="Password"
                     />
-                    {watchPassword && <PasswordStrength password={watchPassword} className="mt-2" />}
+                    {formData.password && <PasswordStrength password={formData.password} className="mt-2" />}
                   </div>
 
                   <FormInput
                     label="Kennel (optional)"
                     type="text"
-                    {...register("kennel")}
-                    error={errors.kennel?.message}
-                    touched={touchedFields.kennel}
+                    value={formData.kennel}
+                    onChange={(e) => setFormData({ ...formData, kennel: e.target.value })}
+                    error=""
+                    touched={touched.kennel}
                     icon={<i className="pi pi-building" />}
                     aria-label="Kennel name"
                   />
@@ -240,7 +244,8 @@ export default function SignUp() {
                   <div className="flex items-start">
                     <Checkbox
                       id="agreements"
-                      {...register("agreements")}
+                      checked={formData.agreements}
+                      onCheckedChange={(checked) => setFormData({ ...formData, agreements: !!checked })}
                       className={errors.agreements ? "border-red-500" : ""}
                     />
                   <label
@@ -264,16 +269,16 @@ export default function SignUp() {
                   </label>
                   </div>
                   {errors.agreements && (
-                    <p className="text-sm text-red-600 ml-6">{errors.agreements.message}</p>
+                    <p className="text-sm text-red-600 ml-6">{errors.agreements}</p>
                   )}
                 </div>
               </div>
 
-                {generalError && (
+                {errors.general && (
                   <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-md animate-slideDown">
                     <p className="text-sm text-red-600 flex items-center">
                       <i className="pi pi-exclamation-circle mr-2" />
-                      {generalError}
+                      {errors.general}
                     </p>
                   </div>
                 )}
