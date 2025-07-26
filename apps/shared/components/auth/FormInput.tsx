@@ -36,8 +36,10 @@ export const FormInput = forwardRef<HTMLInputElement, FormInputProps>(
           </Label>
         )}
         <div className="relative">
-          {icon && (
-            <div className="absolute left-3 top-1/2 -translate-y-1/2">
+          <Input
+            ref={ref}
+            type={inputType}
+            startIcon={icon && (
               <span 
                 className={cn(
                   "text-base transition-colors",
@@ -48,14 +50,9 @@ export const FormInput = forwardRef<HTMLInputElement, FormInputProps>(
               >
                 {icon}
               </span>
-            </div>
-          )}
-          <Input
-            ref={ref}
-            type={inputType}
+            )}
             className={cn(
               "text-sm sm:text-base transition-all",
-              icon && "pl-10",
               showPasswordToggle && "pr-10",
               hasError && "border-red-500 focus:ring-red-500",
               isFocused && !hasError && "border-primary-500 ring-2 ring-primary-500/20",

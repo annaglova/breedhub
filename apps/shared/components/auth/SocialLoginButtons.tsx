@@ -36,10 +36,10 @@ export function SocialLoginButtons({
   return (
     <div className={cn("space-y-3", className)}>
       {onFacebookLogin && (
-        <Button
+        <button
           onClick={() => handleSocialLogin("facebook", onFacebookLogin)}
           disabled={loadingProvider !== null}
-          className="w-full bg-[#1877F2] hover:bg-[#166FE5] text-white h-10 sm:h-12 text-sm sm:text-base font-medium"
+          className="w-full bg-[#1877F2] hover:bg-[#166FE5] text-white h-10 sm:h-12 text-sm sm:text-base font-medium rounded-md transition-all inline-flex items-center justify-center gap-2 disabled:pointer-events-none disabled:opacity-50"
         >
           {loadingProvider === "facebook" ? (
             <Spinner className="mr-2" />
@@ -49,7 +49,7 @@ export function SocialLoginButtons({
             </div>
           )}
           {signUpMode ? "Start with Facebook" : "Continue with Facebook"}
-        </Button>
+        </button>
       )}
 
       {onGoogleLogin && (
@@ -88,10 +88,10 @@ export function SocialLoginButtons({
       )}
 
       {onAppleLogin && (
-        <Button
+        <button
           onClick={() => handleSocialLogin("apple", onAppleLogin)}
           disabled={loadingProvider !== null}
-          className="w-full bg-black hover:bg-gray-900 text-white h-10 sm:h-12 text-sm sm:text-base font-medium"
+          className="w-full bg-black hover:bg-gray-900 text-white h-10 sm:h-12 text-sm sm:text-base font-medium rounded-md transition-all inline-flex items-center justify-center gap-2 disabled:pointer-events-none disabled:opacity-50"
         >
           {loadingProvider === "apple" ? (
             <Spinner className="mr-2" />
@@ -101,7 +101,7 @@ export function SocialLoginButtons({
             </div>
           )}
           {signUpMode ? "Start with Apple" : "Continue with Apple"}
-        </Button>
+        </button>
       )}
     </div>
   );
