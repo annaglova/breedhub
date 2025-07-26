@@ -570,6 +570,18 @@ body button:focus-visible {
   user-select: none !important;
 }
 
+/* Override default input text size */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+input[type="tel"],
+input[type="url"],
+input[type="search"],
+textarea {
+  font-size: 1rem !important; /* text-base */
+}
+
 /* Custom Input Component Styles */
 input.custom-input {
   width: 100%;
