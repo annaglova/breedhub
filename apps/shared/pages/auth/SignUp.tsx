@@ -196,7 +196,7 @@ export default function SignUp() {
                     error={errors.name}
                     touched={touched.name}
                     autoComplete="name"
-                    icon={<i className="pi pi-user" />}
+                    icon={<i className="pi pi-user text-base" />}
                     aria-label="Full name"
                   />
 
@@ -208,7 +208,7 @@ export default function SignUp() {
                     error={errors.email}
                     touched={touched.email}
                     autoComplete="email"
-                    icon={<i className="pi pi-envelope" />}
+                    icon={<i className="pi pi-envelope text-base" />}
                     aria-label="Email address"
                   />
 
@@ -221,7 +221,7 @@ export default function SignUp() {
                       error={errors.password}
                       touched={touched.password}
                       autoComplete="new-password"
-                      icon={<i className="pi pi-lock" />}
+                      icon={<i className="pi pi-lock text-base" />}
                       showPasswordToggle
                       onPasswordToggleChange={setShowPassword}
                       aria-label="Password"
@@ -236,7 +236,7 @@ export default function SignUp() {
                     onChange={(e) => setFormData({ ...formData, kennel: e.target.value })}
                     error=""
                     touched={touched.kennel}
-                    icon={<i className="pi pi-building" />}
+                    icon={<i className="pi pi-building text-base" />}
                     aria-label="Kennel name"
                   />
 

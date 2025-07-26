@@ -189,7 +189,7 @@ export default function SignIn() {
                     error={errors.email?.message}
                     touched={touchedFields.email}
                     autoComplete="email"
-                    icon={<i className="pi pi-envelope" />}
+                    icon={<i className="pi pi-envelope text-base" />}
                     aria-label="Email address"
                   />
 
@@ -200,7 +200,7 @@ export default function SignIn() {
                     error={errors.password?.message}
                     touched={touchedFields.password}
                     autoComplete="current-password"
-                    icon={<i className="pi pi-lock" />}
+                    icon={<i className="pi pi-lock text-base" />}
                     showPasswordToggle
                     onPasswordToggleChange={setShowPassword}
                     aria-label="Password"

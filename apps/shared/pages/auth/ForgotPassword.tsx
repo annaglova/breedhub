@@ -121,7 +121,7 @@ export default function ForgotPassword() {
                     error={errors.email?.message || generalError}
                     touched={touchedFields.email}
                     autoComplete="email"
-                    icon={<i className="pi pi-envelope" />}
+                    icon={<i className="pi pi-envelope text-base" />}
                     placeholder="Enter your email"
                     aria-label="Email address"
                   />

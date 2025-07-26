@@ -120,7 +120,7 @@ export default function ResetPassword() {
                       error={errors.password?.message}
                       touched={touchedFields.password}
                       autoComplete="new-password"
-                      icon={<i className="pi pi-lock" />}
+                      icon={<i className="pi pi-lock text-base" />}
                       showPasswordToggle
                       onPasswordToggleChange={setShowPassword}
                       aria-label="New password"
@@ -135,7 +135,7 @@ export default function ResetPassword() {
                     error={errors.passwordConfirm?.message}
                     touched={touchedFields.passwordConfirm}
                     autoComplete="new-password"
-                    icon={<i className="pi pi-lock" />}
+                    icon={<i className="pi pi-lock text-base" />}
                     showPasswordToggle
                     onPasswordToggleChange={setShowPasswordConfirm}
                     aria-label="Confirm new password"
