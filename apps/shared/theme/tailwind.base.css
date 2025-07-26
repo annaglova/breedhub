@@ -61,6 +61,18 @@
     --secondary-800: 30 41 59; /* slate 800 */
     --secondary-900: 15 23 42; /* slate 900 */
     --secondary-950: 2 6 23; /* slate 950 */
+    
+    /* Input state variables */
+    --input-border-default: #d1d5db; /* gray-300 */
+    --input-border-hover: rgb(var(--primary-500));
+    --input-border-focus: rgb(var(--primary-500));
+    --input-outline-width: 3px;
+    --input-outline-opacity: 0.2;
+    --input-outline-focus: rgb(var(--primary-500) / var(--input-outline-opacity));
+    
+    --input-border-error: #ef4444; /* red-500 */
+    --input-border-error-hover: #dc2626; /* red-600 */
+    --input-outline-error: rgba(239, 68, 68, var(--input-outline-opacity));
   }
   * {
     box-sizing: border-box;
@@ -68,11 +80,7 @@
     -webkit-tap-highlight-color: transparent;
   }
 
-  *:focus-visible {
-    outline: 2px solid var(--primary, #6b21a8);
-    outline-offset: 2px;
-    transition: outline 0.2s;
-  }
+  /* Removed global focus-visible styles to allow custom input focus styles */
 
   body {
     background: #fff;
