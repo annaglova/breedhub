@@ -4,13 +4,13 @@ import * as React from "react";
 import { cn } from "@ui/lib/utils";
 
 const inputVariants = cva(
-  "flex w-full rounded-md border bg-white text-gray-900 transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-gray-900 placeholder:text-gray-500 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50",
+  "flex w-full rounded-md border bg-white text-gray-900 transition-all file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-gray-900 placeholder:text-gray-500 disabled:cursor-not-allowed disabled:opacity-50",
   {
     variants: {
       variant: {
-        default: "border-gray-300 focus-visible:border-primary-500 focus-visible:ring-primary-500/20 focus-visible:ring-4",
-        destructive: "border-red-500 focus-visible:border-red-500 focus-visible:ring-red-500/20 focus-visible:ring-4",
-        ghost: "border-transparent bg-transparent focus-visible:border-primary-500 focus-visible:ring-primary-500/20 focus-visible:ring-4",
+        default: "border-gray-300 hover:border-primary-500 focus:border-primary-500 focus:outline focus:outline-[3px] focus:outline-primary-500/20 focus:outline-offset-0 disabled:hover:border-gray-300",
+        destructive: "border-red-500 hover:border-red-600 focus:border-red-500 focus:outline focus:outline-[3px] focus:outline-red-500/20 focus:outline-offset-0 disabled:hover:border-red-500",
+        ghost: "border-transparent bg-transparent hover:border-primary-500 focus-visible:border-primary-500 focus-visible:ring-primary-500/20 focus-visible:ring-4 disabled:hover:border-transparent",
       },
       size: {
         default: "h-9 px-3 py-2 text-sm",
