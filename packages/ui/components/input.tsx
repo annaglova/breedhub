@@ -4,13 +4,13 @@ import * as React from "react";
 import { cn } from "@ui/lib/utils";
 
 const inputVariants = cva(
-  "flex w-full rounded-md border bg-background text-foreground transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50",
+  "flex w-full rounded-md border bg-white text-gray-900 transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-gray-900 placeholder:text-gray-500 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50",
   {
     variants: {
       variant: {
-        default: "border-input focus-visible:border-ring focus-visible:ring-ring/20 focus-visible:ring-4",
-        destructive: "border-destructive focus-visible:border-destructive focus-visible:ring-destructive/20 focus-visible:ring-4",
-        ghost: "border-transparent bg-transparent focus-visible:border-ring focus-visible:ring-ring/20 focus-visible:ring-4",
+        default: "border-gray-300 focus-visible:border-primary-500 focus-visible:ring-primary-500/20 focus-visible:ring-4",
+        destructive: "border-red-500 focus-visible:border-red-500 focus-visible:ring-red-500/20 focus-visible:ring-4",
+        ghost: "border-transparent bg-transparent focus-visible:border-primary-500 focus-visible:ring-primary-500/20 focus-visible:ring-4",
       },
       size: {
         default: "h-9 px-3 py-2 text-sm",
@@ -40,7 +40,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
       return (
         <div className="relative flex items-center">
           {startIcon && (
-            <div className="absolute left-3 z-10 flex items-center pointer-events-none text-muted-foreground">
+            <div className="absolute left-3 z-10 flex items-center pointer-events-none text-gray-400">
               {startIcon}
             </div>
           )}
@@ -55,7 +55,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             {...props}
           />
           {endIcon && (
-            <div className="absolute right-3 z-10 flex items-center pointer-events-none text-muted-foreground">
+            <div className="absolute right-3 z-10 flex items-center pointer-events-none text-gray-400">
               {endIcon}
             </div>
           )}
