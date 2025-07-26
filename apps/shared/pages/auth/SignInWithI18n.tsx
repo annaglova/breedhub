@@ -188,7 +188,7 @@ export default function SignInWithI18n() {
                     error={errors.email?.message}
                     touched={touchedFields.email}
                     autoComplete="email"
-                    icon={<i className="pi pi-envelope" />}
+                    icon={<i className="pi pi-envelope text-base" />}
                     aria-label={t.auth.signIn.emailLabel}
                   />
 
@@ -199,7 +199,7 @@ export default function SignInWithI18n() {
                     error={errors.password?.message}
                     touched={touchedFields.password}
                     autoComplete="current-password"
-                    icon={<i className="pi pi-lock" />}
+                    icon={<i className="pi pi-lock text-base" />}
                     showPasswordToggle
                     onPasswordToggleChange={setShowPassword}
                     aria-label={t.auth.signIn.passwordLabel}

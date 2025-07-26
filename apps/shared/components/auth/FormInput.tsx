@@ -36,23 +36,21 @@ export const FormInput = forwardRef<HTMLInputElement, FormInputProps>(
           </Label>
         )}
         <div className="relative">
+          {icon && (
+            <div className={cn(
+              "absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none transition-colors z-10",
+              hasError ? "text-red-400" : "text-gray-400",
+              isFocused && !hasError && "text-primary-600"
+            )}>
+              {icon}
+            </div>
+          )}
           <Input
             ref={ref}
             type={inputType}
-            startIcon={icon && (
-              <span 
-                className={cn(
-                  "text-base transition-colors",
-                  hasError ? "text-red-400" : "text-gray-400",
-                  isFocused && !hasError && "text-primary-600"
-                )} 
-                aria-hidden="true"
-              >
-                {icon}
-              </span>
-            )}
             className={cn(
               "text-sm sm:text-base transition-all",
+              icon && "pl-10",
               showPasswordToggle && "pr-10",
               hasError && "border-red-500 focus:ring-red-500",
               isFocused && !hasError && "border-primary-500 ring-2 ring-primary-500/20",
@@ -76,7 +74,7 @@ export const FormInput = forwardRef<HTMLInputElement, FormInputProps>(
                 onPasswordToggleChange?.(newValue);
               }}
               className={cn(
-                "absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-sm transition-colors",
+                "absolute inset-y-0 right-0 pr-3 flex items-center transition-colors",
                 "hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500",
                 hasError ? "text-red-400" : "text-gray-400"
               )}

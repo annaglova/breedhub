@@ -38,9 +38,9 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
 
     if (hasIcons) {
       return (
-        <div className="relative flex items-center">
+        <div className="relative">
           {startIcon && (
-            <div className="absolute left-3 z-10 flex items-center pointer-events-none text-gray-400">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
               {startIcon}
             </div>
           )}
@@ -55,7 +55,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             {...props}
           />
           {endIcon && (
-            <div className="absolute right-3 z-10 flex items-center pointer-events-none text-gray-400">
+            <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-gray-400">
               {endIcon}
             </div>
           )}
