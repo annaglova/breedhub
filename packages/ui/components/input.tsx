@@ -9,7 +9,7 @@ const inputVariants = cva(
     variants: {
       variant: {
         default: "border-gray-300 hover:border-primary-500 focus:border-primary-500 focus:outline focus:outline-[3px] focus:outline-primary-500/20 focus:outline-offset-0 disabled:hover:border-gray-300",
-        destructive: "border-red-500 hover:border-red-600 focus:border-red-500 focus:outline focus:outline-[3px] focus:outline-red-500/20 focus:outline-offset-0 disabled:hover:border-red-500",
+        destructive: "border-warning-500 hover:border-warning-600 focus:border-warning-500 focus:outline focus:outline-[3px] focus:outline-warning-500/20 focus:outline-offset-0 disabled:hover:border-warning-500",
         ghost: "border-transparent bg-transparent hover:border-primary-500 focus-visible:border-primary-500 focus-visible:ring-primary-500/20 focus-visible:ring-4 disabled:hover:border-transparent",
       },
       size: {

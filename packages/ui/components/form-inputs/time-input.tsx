@@ -12,6 +12,7 @@ interface TimeOption {
 interface TimeInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'value' | 'onChange' | 'type'> {
   label?: string;
   error?: string;
+  helperText?: string;
   required?: boolean;
   value?: string;
   onValueChange?: (time: string) => void;
@@ -49,7 +50,8 @@ const generateTimeOptions = (use24Hour: boolean, step: number = 30): TimeOption[
 export const TimeInput = forwardRef<HTMLInputElement, TimeInputProps>(
   ({ 
     label, 
-    error, 
+    error,
+    helperText, 
     required,
     value,
     onValueChange,
@@ -164,11 +166,12 @@ export const TimeInput = forwardRef<HTMLInputElement, TimeInputProps>(
       </div>
     );
 
-    if (label || error) {
+    if (label || error || helperText) {
       return (
         <FormField
           label={label}
           error={error}
+          helperText={!error ? helperText : undefined}
           required={required}
           className={fieldClassName}
         >

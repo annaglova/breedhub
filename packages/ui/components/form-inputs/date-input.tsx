@@ -10,6 +10,7 @@ import "react-day-picker/dist/style.css";
 interface DateInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'value' | 'onChange' | 'type'> {
   label?: string;
   error?: string;
+  helperText?: string;
   required?: boolean;
   value?: Date | null;
   onValueChange?: (date: Date | null) => void;
@@ -24,7 +25,8 @@ interface DateInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement
 export const DateInput = forwardRef<HTMLInputElement, DateInputProps>(
   ({ 
     label, 
-    error, 
+    error,
+    helperText, 
     required,
     value,
     onValueChange,
@@ -133,11 +135,12 @@ export const DateInput = forwardRef<HTMLInputElement, DateInputProps>(
       </div>
     );
 
-    if (label || error) {
+    if (label || error || helperText) {
       return (
         <FormField
           label={label}
           error={error}
+          helperText={!error ? helperText : undefined}
           required={required}
           className={fieldClassName}
         >

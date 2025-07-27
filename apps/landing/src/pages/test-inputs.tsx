@@ -68,7 +68,8 @@ export default function TestInputsPage() {
     if (!formData.password) newErrors.password = "Password is required";
     else if (formData.password.length < 8) newErrors.password = "Password must be at least 8 characters";
     if (!formData.number) newErrors.number = "Number is required";
-    else if (parseFloat(formData.number) < 0) newErrors.number = "Number must be positive";
+    else if (parseFloat(formData.number) < 5) newErrors.number = "Number must be at least 5";
+    else if (parseFloat(formData.number) > 10) newErrors.number = "Number must be at most 10";
     if (!formData.country) newErrors.country = "Please select a country";
     if (!formData.breed) newErrors.breed = "Please select a breed";
     
@@ -132,14 +133,16 @@ export default function TestInputsPage() {
             <div>
               <h3 className="text-lg font-semibold mb-2">Number Input</h3>
               <NumberInput
+                id="age-input"
                 label="Age"
                 placeholder="Enter your age"
+                helperText="Please enter your age in years (5-10)"
                 value={formData.number}
                 onChange={(e) => setFormData({ ...formData, number: e.target.value })}
                 error={errors.number}
                 required
-                min={0}
-                max={150}
+                min={5}
+                max={10}
               />
             </div>
 

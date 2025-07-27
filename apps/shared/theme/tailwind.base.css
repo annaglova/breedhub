@@ -62,6 +62,19 @@
     --secondary-900: 15 23 42; /* slate 900 */
     --secondary-950: 2 6 23; /* slate 950 */
     
+    /* Warning/Error color variables */
+    --warning-50: 254 242 242; /* red-50 */
+    --warning-100: 254 226 226; /* red-100 */
+    --warning-200: 254 202 202; /* red-200 */
+    --warning-300: 252 165 165; /* red-300 */
+    --warning-400: 248 113 113; /* red-400 */
+    --warning-500: 239 68 68; /* red-500 */
+    --warning-600: 220 38 38; /* red-600 */
+    --warning-700: 185 28 28; /* red-700 */
+    --warning-800: 153 27 27; /* red-800 */
+    --warning-900: 127 29 29; /* red-900 */
+    --warning-950: 69 10 10; /* red-950 */
+    
     /* Input state variables */
     --input-border-default: #d1d5db; /* gray-300 */
     --input-border-hover: rgb(var(--primary-500));
@@ -70,9 +83,9 @@
     --input-outline-opacity: 0.2;
     --input-outline-focus: rgb(var(--primary-500) / var(--input-outline-opacity));
     
-    --input-border-error: #ef4444; /* red-500 */
-    --input-border-error-hover: #dc2626; /* red-600 */
-    --input-outline-error: rgba(239, 68, 68, var(--input-outline-opacity));
+    --input-border-error: rgb(var(--warning-500));
+    --input-border-error-hover: rgb(var(--warning-600));
+    --input-outline-error: rgb(var(--warning-500) / var(--input-outline-opacity));
     
     /* shadcn/ui CSS variables */
     --background: 0 0% 100%; /* white */
@@ -101,6 +114,10 @@
     
     --destructive: 0 84.2% 60.2%; /* red */
     --destructive-foreground: 0 0% 100%; /* white */
+    
+    /* RGB format for destructive/warning */
+    --destructive-rgb: 239 68 68; /* red-500 */
+    --destructive-foreground-rgb: 255 255 255; /* white */
     
     --ring: 262.1 83.3% 57.8%; /* purple - same as primary */
     

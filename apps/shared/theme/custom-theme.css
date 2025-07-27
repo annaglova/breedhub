@@ -198,3 +198,25 @@ input.custom-input.error:focus {
   --rdp-outline: 2px solid rgb(var(--primary-500));
   --rdp-outline-selected: 2px solid rgb(var(--primary-500));
 }
+
+/* Force warning colors for inputs with destructive variant */
+input.border-warning-500,
+.border-warning-500 input {
+  border-color: rgb(var(--warning-500)) !important;
+}
+
+input.border-warning-500:hover:not(:focus):not(:disabled),
+.border-warning-500:hover:not(:focus):not(:disabled) input {
+  border-color: rgb(var(--warning-600)) !important;
+}
+
+input.border-warning-500:focus,
+.border-warning-500:focus input {
+  border-color: rgb(var(--warning-500)) !important;
+  outline-color: rgb(var(--warning-500) / 0.2) !important;
+}
+
+/* Force warning text color */
+.text-warning-500 {
+  color: rgb(var(--warning-500)) !important;
+}

@@ -6,6 +6,7 @@ import { cn } from "@ui/lib/utils";
 interface TextareaInputProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
   label?: string;
   error?: string;
+  helperText?: string;
   required?: boolean;
   fieldClassName?: string;
   showCharCount?: boolean;
@@ -15,7 +16,8 @@ interface TextareaInputProps extends React.TextareaHTMLAttributes<HTMLTextAreaEl
 export const TextareaInput = forwardRef<HTMLTextAreaElement, TextareaInputProps>(
   ({ 
     label, 
-    error, 
+    error,
+    helperText, 
     required, 
     className, 
     fieldClassName,
@@ -56,11 +58,12 @@ export const TextareaInput = forwardRef<HTMLTextAreaElement, TextareaInputProps>
       </>
     );
 
-    if (label || error) {
+    if (label || error || helperText) {
       return (
         <FormField
           label={label}
           error={error}
+          helperText={!error ? helperText : undefined}
           required={required}
           className={fieldClassName}
         >
