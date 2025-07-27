@@ -206,13 +206,13 @@ input.custom-input.error:focus {
   color: rgb(var(--primary-700)) !important;
   border: none !important;
   outline: none !important;
-  font-weight: normal !important;
+  font-weight: bold !important;
 }
 
 .rdp-selected .rdp-day_button:hover {
   background-color: rgb(var(--primary-50)) !important;
   color: rgb(var(--primary-700)) !important;
-  font-weight: normal !important;
+  font-weight: bold !important;
 }
 
 /* Hover on dates - light gray like dropdown with rounded */
@@ -233,9 +233,9 @@ input.custom-input.error:focus {
 }
 
 /* Today's date - primary color text */
-button[aria-current="date"] {
+.rdp-today:not(.rdp-outside) {
   color: rgb(var(--primary-700)) !important;
-  font-weight: normal !important;
+  font-weight: bold !important;
 }
 
 /* Force warning colors for inputs with destructive variant */
