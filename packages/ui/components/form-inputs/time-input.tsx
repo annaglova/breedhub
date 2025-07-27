@@ -76,6 +76,11 @@ export const TimeInput = forwardRef<HTMLInputElement, TimeInputProps>(
       return true;
     });
 
+    // Update input value when value prop changes
+    React.useEffect(() => {
+      setInputValue(value || "");
+    }, [value]);
+
     // Handle clicks outside
     React.useEffect(() => {
       const handleClickOutside = (e: MouseEvent) => {
@@ -124,7 +129,7 @@ export const TimeInput = forwardRef<HTMLInputElement, TimeInputProps>(
           )}
           <Input
             ref={ref}
-            type="time"
+            type="text"
             value={inputValue}
             onChange={handleInputChange}
             onFocus={() => !disabled && setIsOpen(true)}
@@ -140,15 +145,15 @@ export const TimeInput = forwardRef<HTMLInputElement, TimeInputProps>(
         </div>
 
         {isOpen && !disabled && (
-          <div className="absolute z-50 mt-1 w-full bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-auto">
+          <div className="absolute z-50 mt-1 w-full bg-white border border-gray-200 rounded-md shadow-lg" style={{ maxHeight: '320px', overflowY: 'auto' }}>
             {filteredOptions.map((option) => (
               <button
                 key={option.value}
                 type="button"
                 onClick={() => handleTimeSelect(option.value)}
                 className={cn(
-                  "w-full px-3 py-2 text-left text-base hover:bg-gray-100 focus:bg-gray-100 focus:outline-none",
-                  value === option.value && "bg-primary-50 text-primary-600 font-medium"
+                  "w-full px-3 py-2 text-left !text-base hover:bg-gray-100 focus:bg-gray-100 focus:outline-none",
+                  inputValue === option.value && "bg-primary-50 text-primary-600 font-medium"
                 )}
               >
                 {option.label}

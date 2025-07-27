@@ -147,13 +147,13 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
                 key={option.value}
                 onClick={() => handleSelect(option)}
                 className={cn(
-                  "px-3 py-2 cursor-pointer transition-colors",
+                  "px-3 py-2 text-base cursor-pointer transition-colors",
                   "hover:bg-gray-100",
                   highlightedIndex === index && "bg-gray-100",
                   option.value === value && "bg-primary-50 text-primary-700"
                 )}
               >
-                <div className="font-medium">{option.label}</div>
+                <div className="!text-base font-medium">{option.label}</div>
                 {option.description && (
                   <div className="text-sm text-gray-500">{option.description}</div>
                 )}

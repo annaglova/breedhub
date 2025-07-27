@@ -111,7 +111,7 @@ export const DropdownInput = forwardRef<HTMLInputElement, DropdownInputProps>(
                   key={option.value}
                   onClick={() => handleSelect(option)}
                   className={cn(
-                    "px-3 py-2 cursor-pointer transition-colors flex items-center justify-between",
+                    "px-3 py-2 text-base cursor-pointer transition-colors flex items-center justify-between",
                     "hover:bg-gray-100",
                     option.disabled && "opacity-50 cursor-not-allowed",
                     option.value === value && "bg-primary-50 text-primary-700"
@@ -120,7 +120,7 @@ export const DropdownInput = forwardRef<HTMLInputElement, DropdownInputProps>(
                   aria-selected={option.value === value}
                   aria-disabled={option.disabled}
                 >
-                  <span>{option.label}</span>
+                  <span className="!text-base">{option.label}</span>
                   {option.value === value && (
                     <Check className="h-4 w-4 text-primary-600" />
                   )}
