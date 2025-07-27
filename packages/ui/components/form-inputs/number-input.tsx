@@ -29,24 +29,24 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(
     const inputElement = (
       <div className="relative">
         {prefix && (
-          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 select-none">
-            {prefix}
-          </span>
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+            <span className="select-none">{prefix}</span>
+          </div>
         )}
         <Input
           ref={ref}
           type="number"
           className={cn(
-            prefix && "pl-8",
+            prefix && "pl-10",
             suffix && "pr-16",
             className
           )}
           {...props}
         />
         {suffix && (
-          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 select-none">
-            {suffix}
-          </span>
+          <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-gray-400">
+            <span className="select-none">{suffix}</span>
+          </div>
         )}
       </div>
     );
