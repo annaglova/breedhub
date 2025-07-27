@@ -195,6 +195,43 @@ input.custom-input.error:focus {
   --rdp-background-color: rgb(var(--primary-500));
 }
 
+/* Set consistent font size for all day buttons */
+.rdp-day_button {
+  font-size: 1rem !important; /* 16px */
+}
+
+/* Selected date - light primary background like dropdown */
+.rdp-selected .rdp-day_button {
+  background-color: rgb(var(--primary-50)) !important;
+  color: rgb(var(--primary-700)) !important;
+  border: none !important;
+  outline: none !important;
+  font-weight: normal !important;
+}
+
+.rdp-selected .rdp-day_button:hover {
+  background-color: rgb(var(--primary-50)) !important;
+  color: rgb(var(--primary-700)) !important;
+  font-weight: normal !important;
+}
+
+/* Hover on dates - light gray like dropdown with rounded */
+.rdp-day:not(.rdp-selected) .rdp-day_button:hover {
+  background-color: #f3f4f6 !important;
+  border-radius: 9999px !important;
+}
+
+/* Force dropdown text size to match input text size - but not for calendar */
+.absolute.z-50.mt-1.w-full:not(.rdp) span,
+.absolute.z-50.mt-1.w-full:not(.rdp) div {
+  font-size: 1rem !important; /* 16px - same as inputs */
+}
+
+/* Calendar dropdown selects should keep their normal size */
+.rdp select {
+  font-size: 0.875rem !important; /* 14px */
+}
+
 /* Force warning colors for inputs with destructive variant */
 input.border-warning-500,
 .border-warning-500 input {

@@ -155,7 +155,7 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
                   option.value === value && "bg-primary-50 text-primary-700"
                 )}
               >
-                <div className="!text-base font-medium">{option.label}</div>
+                <div className="!text-[16px] font-medium">{option.label}</div>
                 {option.description && (
                   <div className="text-sm text-gray-500">{option.description}</div>
                 )}

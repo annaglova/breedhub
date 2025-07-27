@@ -122,7 +122,7 @@ export const DropdownInput = forwardRef<HTMLInputElement, DropdownInputProps>(
                   aria-selected={option.value === value}
                   aria-disabled={option.disabled}
                 >
-                  <span className="!text-base">{option.label}</span>
+                  <span className="!text-[16px]">{option.label}</span>
                   {option.value === value && (
                     <Check className="h-4 w-4 text-primary-600" />
                   )}
