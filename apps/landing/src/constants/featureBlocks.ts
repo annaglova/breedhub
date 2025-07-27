@@ -143,8 +143,6 @@ export const FEATURE_BLOCKS: FeatureCategory[] = [
         tier3: true,
       },
     ],
-    name: 'Core Features',
-    color: '#6366f1',
   },
   {
     features: [

@@ -188,15 +188,11 @@ input.custom-input.error:focus {
   outline-offset: 0 !important;
 }
 
-/* Calendar (react-day-picker) fixes */
+/* Calendar (react-day-picker) - only essential overrides */
 .rdp {
-  --rdp-cell-size: 40px;
+  --rdp-cell-size: 36px;
   --rdp-accent-color: rgb(var(--primary-500));
   --rdp-background-color: rgb(var(--primary-500));
-  --rdp-accent-color-dark: rgb(var(--primary-500));
-  --rdp-background-color-dark: rgb(var(--primary-500));
-  --rdp-outline: 2px solid rgb(var(--primary-500));
-  --rdp-outline-selected: 2px solid rgb(var(--primary-500));
 }
 
 /* Force warning colors for inputs with destructive variant */
