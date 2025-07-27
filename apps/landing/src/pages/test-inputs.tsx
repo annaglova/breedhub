@@ -140,7 +140,6 @@ export default function TestInputsPage() {
                 required
                 min={0}
                 max={150}
-                suffix="years"
               />
             </div>
 

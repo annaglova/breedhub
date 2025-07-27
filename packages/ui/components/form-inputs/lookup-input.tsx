@@ -141,7 +141,7 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
         </div>
 
         {isOpen && filteredOptions.length > 0 && (
-          <div className="absolute z-50 mt-1 w-full bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-auto">
+          <div className="absolute z-50 mt-1 w-full bg-white border border-gray-200 rounded-md shadow-lg max-h-[40vh] overflow-auto">
             {filteredOptions.map((option, index) => (
               <div
                 key={option.value}
