@@ -122,6 +122,9 @@ export const DateInput = forwardRef<HTMLInputElement, DateInputProps>(
               mode="single"
               selected={value || undefined}
               onSelect={handleCalendarSelect}
+              fromYear={1900}
+              toYear={2030}
+              captionLayout="dropdown"
               disabled={(date) => {
                 if (minDate && date < minDate) return true;
                 if (maxDate && date > maxDate) return true;
