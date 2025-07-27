@@ -23,6 +23,11 @@ export default {
         purple: {
           10: "#fbfafc",
         },
+        border: "hsl(var(--border))",
+        input: "hsl(var(--input))",
+        ring: "hsl(var(--ring))",
+        background: "hsl(var(--background))",
+        foreground: "hsl(var(--foreground))",
         primary: {
           100: "rgb(var(--primary-100))",
           200: "rgb(var(--primary-200))",
@@ -35,7 +40,8 @@ export default {
           800: "rgb(var(--primary-800))",
           900: "rgb(var(--primary-900))",
           950: "rgb(var(--primary-950))",
-          DEFAULT: "rgb(var(--primary))",
+          DEFAULT: "hsl(var(--primary))",
+          foreground: "hsl(var(--primary-foreground))",
         },
         accent: {
           100: "rgb(var(--accent-100))",
@@ -49,7 +55,8 @@ export default {
           800: "rgb(var(--accent-800))",
           900: "rgb(var(--accent-900))",
           950: "rgb(var(--accent-950))",
-          DEFAULT: "rgb(var(--accent))",
+          DEFAULT: "hsl(var(--accent))",
+          foreground: "hsl(var(--accent-foreground))",
         },
         secondary: {
           50: "rgb(var(--secondary-50))",
@@ -63,7 +70,24 @@ export default {
           800: "rgb(var(--secondary-800))",
           900: "rgb(var(--secondary-900))",
           950: "rgb(var(--secondary-950))",
-          DEFAULT: "rgb(var(--secondary))",
+          DEFAULT: "hsl(var(--secondary))",
+          foreground: "hsl(var(--secondary-foreground))",
+        },
+        destructive: {
+          DEFAULT: "hsl(var(--destructive))",
+          foreground: "hsl(var(--destructive-foreground))",
+        },
+        muted: {
+          DEFAULT: "hsl(var(--muted))",
+          foreground: "hsl(var(--muted-foreground))",
+        },
+        popover: {
+          DEFAULT: "hsl(var(--popover))",
+          foreground: "hsl(var(--popover-foreground))",
+        },
+        card: {
+          DEFAULT: "hsl(var(--card))",
+          foreground: "hsl(var(--card-foreground))",
         },
         "surface-ground": "rgb(var(--surface-ground))",
         "card-ground": "rgb(var(--card-ground))",

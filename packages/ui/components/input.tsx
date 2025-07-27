@@ -13,9 +13,9 @@ const inputVariants = cva(
         ghost: "border-transparent bg-transparent hover:border-primary-500 focus-visible:border-primary-500 focus-visible:ring-primary-500/20 focus-visible:ring-4 disabled:hover:border-transparent",
       },
       size: {
-        default: "h-9 px-3 py-2 text-sm",
-        sm: "h-8 px-2.5 py-1.5 text-xs",
-        lg: "h-10 px-4 py-3 text-base",
+        default: "h-10 px-3 py-2 text-base",
+        sm: "h-8 px-2.5 py-1.5 text-sm",
+        lg: "h-11 px-4 py-3 text-lg",
       },
     },
     defaultVariants: {

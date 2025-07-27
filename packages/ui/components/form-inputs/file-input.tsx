@@ -160,7 +160,7 @@ export const FileInput = forwardRef<HTMLInputElement, FileInputProps>(
           )}
         >
           <Upload className="mb-2 h-8 w-8 text-gray-400" />
-          <p className="text-sm font-medium text-gray-700">
+          <p className="text-base font-medium text-gray-700">
             {dragActive ? "Drop files here" : "Drop files here or click to browse"}
           </p>
           <p className="mt-1 text-xs text-gray-500">
@@ -180,7 +180,7 @@ export const FileInput = forwardRef<HTMLInputElement, FileInputProps>(
                 <div className="flex items-center space-x-3">
                   <div className="text-gray-500">{getFileIcon(file)}</div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-700 truncate">
+                    <p className="text-base font-medium text-gray-700 truncate">
                       {file.name}
                     </p>
                     <p className="text-xs text-gray-500">

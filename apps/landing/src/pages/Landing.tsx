@@ -263,26 +263,20 @@ export default function Landing() {
           padding: 0 0 5px 1rem !important;
         }
         
-        /* Override Prime theme button hover styles with higher specificity */
-        [data-theme="prime"] .active-tab-button:hover:not(:disabled) {
+        /* Active tab button styles */
+        .active-tab-button:hover:not(:disabled) {
           background-color: transparent !important;
           background: transparent !important;
         }
         
-        [data-theme="prime"] .active-tab-button:focus:not(:disabled) {
+        .active-tab-button:focus:not(:disabled) {
           background-color: transparent !important;
           background: transparent !important;
           outline: none !important;
           box-shadow: none !important;
         }
         
-        [data-theme="prime"] .active-tab-button:active:not(:disabled) {
-          background-color: transparent !important;
-          background: transparent !important;
-        }
-        
-        /* Also override for body selector to be even more specific */
-        body [data-theme="prime"] .active-tab-button:hover:not(:disabled) {
+        .active-tab-button:active:not(:disabled) {
           background-color: transparent !important;
           background: transparent !important;
         }
@@ -297,19 +291,11 @@ export default function Landing() {
         }
         
         /* Preserve border color on hover for active tabs */
-        [data-theme="prime"] .active-tab-button.border-primary:hover:not(:disabled) {
+        .active-tab-button.border-primary:hover:not(:disabled) {
           border-bottom-color: rgb(var(--primary-500)) !important;
         }
         
-        [data-theme="prime"] .active-tab-button.border-pink-600:hover:not(:disabled) {
-          border-bottom-color: rgb(var(--pink-600)) !important;
-        }
-        
-        body [data-theme="prime"] .active-tab-button.border-primary:hover:not(:disabled) {
-          border-bottom-color: rgb(var(--primary-500)) !important;
-        }
-        
-        body [data-theme="prime"] .active-tab-button.border-pink-600:hover:not(:disabled) {
+        .active-tab-button.border-pink-600:hover:not(:disabled) {
           border-bottom-color: rgb(var(--pink-600)) !important;
         }
         

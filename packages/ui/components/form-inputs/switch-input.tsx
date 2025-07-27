@@ -42,7 +42,7 @@ export const SwitchInput = forwardRef<HTMLButtonElement, SwitchInputProps>(
             {switchLabel && (
               <label
                 className={cn(
-                  "text-sm font-medium leading-none",
+                  "text-base font-medium leading-none",
                   disabled && "cursor-not-allowed opacity-70"
                 )}
               >

@@ -303,7 +303,6 @@ export default function TestInputsPage() {
             <NumberInput
               placeholder="Price"
               prefix="$"
-              suffix=".00"
               min={0}
               step={0.01}
             />
