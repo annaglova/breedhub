@@ -2,6 +2,7 @@ import { Button } from "@ui/components/button";
 import { Input } from "@ui/components/input";
 import { cn } from "@ui/lib/utils";
 import { useEffect, useState } from "react";
+import { CheckCircle, RefreshCw } from "lucide-react";
 
 interface SimpleCaptchaProps {
   onVerify: (isValid: boolean) => void;
@@ -49,7 +50,7 @@ export function SimpleCaptcha({ onVerify, className }: SimpleCaptchaProps) {
     return (
       <div className={cn("p-4 bg-green-50 border border-green-200 rounded-lg", className)}>
         <div className="flex items-center text-green-700">
-          <i className="pi pi-check-circle mr-2" />
+          <CheckCircle className="w-4 h-4 mr-2" />
           <span className="text-sm font-medium">Verified! You can proceed.</span>
         </div>
       </div>
@@ -87,7 +88,7 @@ export function SimpleCaptcha({ onVerify, className }: SimpleCaptchaProps) {
           className="text-sm text-gray-500 hover:text-gray-700"
           title="Generate new question"
         >
-          <i className="pi pi-refresh" />
+          <RefreshCw className="w-4 h-4" />
         </button>
       </div>
       {error && (

@@ -2,6 +2,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import Footer from "@/components/Footer";
 import LandingFigure from "@/assets/backgrounds/landing-figure.svg?react";
+import { AlertTriangle, Home, ArrowLeft } from "lucide-react";
 
 export default function NotFound() {
   return (
@@ -18,7 +19,7 @@ export default function NotFound() {
             {/* 404 Icon */}
             <div className="mb-8">
               <div className="inline-flex items-center justify-center w-32 h-32 rounded-full bg-red-100">
-                <i className="pi pi-exclamation-triangle text-red-500 text-6xl" />
+                <AlertTriangle className="text-red-500 w-16 h-16" />
               </div>
             </div>
 
@@ -35,7 +36,7 @@ export default function NotFound() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link to="/">
                 <button className="w-full sm:w-auto bg-primary-500 text-white px-6 py-3 rounded-lg font-medium hover:bg-primary-600 transition">
-                  <i className="pi pi-home mr-2" />
+                  <Home className="inline-block w-4 h-4 mr-2" />
                   Go to Homepage
                 </button>
               </Link>
@@ -43,7 +44,7 @@ export default function NotFound() {
                 onClick={() => window.history.back()}
                 className="w-full sm:w-auto bg-gray-200 text-gray-700 px-6 py-3 rounded-lg font-medium hover:bg-gray-300 transition"
               >
-                <i className="pi pi-arrow-left mr-2" />
+                <ArrowLeft className="inline-block w-4 h-4 mr-2" />
                 Go Back
               </button>
             </div>

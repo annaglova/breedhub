@@ -12,6 +12,7 @@ import {
 } from "@ui/components/timeline";
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { Check } from "lucide-react";
 
 // Mock data - replace with API calls when ready
 const topAchievementBreeds: Breed[] = [
@@ -787,7 +788,7 @@ export default function Landing() {
                       {achievements.map((achievement, index) => (
                         <TimelineItem
                           key={achievement.Name}
-                          dot={<i className="pi pi-check" />}
+                          dot={<Check className="w-4 h-4" />}
                           dotVariant="primary"
                           isLast={index === achievements.length - 1}
                         >

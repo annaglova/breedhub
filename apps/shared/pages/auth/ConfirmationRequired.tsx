@@ -6,6 +6,7 @@ import AuthLayout from "@shared/layouts/AuthLayout";
 import { Button } from "@ui/components/button";
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { Check } from "lucide-react";
 
 export default function ConfirmationRequired() {
   const [isResending, setIsResending] = useState(false);
@@ -107,7 +108,7 @@ export default function ConfirmationRequired() {
                   </>
                 ) : resendSuccess ? (
                   <>
-                    <i className="pi pi-check mr-2 text-green-600" />
+                    <Check className="w-4 h-4 mr-2 text-green-600" />
                     Email sent successfully!
                   </>
                 ) : (

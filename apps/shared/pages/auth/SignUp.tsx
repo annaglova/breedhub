@@ -13,6 +13,7 @@ import { Button } from "@ui/components/button";
 import { Checkbox } from "@ui/components/checkbox";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { UserPlus, User, Mail, Lock, Building, AlertCircle } from "lucide-react";
 
 export default function SignUp() {
   const navigate = useNavigate();
@@ -152,7 +153,7 @@ export default function SignUp() {
             <div className="bg-white rounded-2xl shadow-xl p-8 sm:p-10 border border-gray-100">
             {/* Icon */}
             <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-primary-100 shadow-sm mb-6">
-              <i className="pi pi-user-plus text-2xl text-primary-600" />
+              <UserPlus className="w-8 h-8 text-primary-600" />
             </div>
 
             {/* Title */}
@@ -196,7 +197,7 @@ export default function SignUp() {
                     error={errors.name}
                     touched={touched.name}
                     autoComplete="name"
-                    icon={<i className="pi pi-user text-base" />}
+                    icon={<User className="w-4 h-4" />}
                     aria-label="Full name"
                   />
 
@@ -208,7 +209,7 @@ export default function SignUp() {
                     error={errors.email}
                     touched={touched.email}
                     autoComplete="email"
-                    icon={<i className="pi pi-envelope text-base" />}
+                    icon={<Mail className="w-4 h-4" />}
                     aria-label="Email address"
                   />
 
@@ -221,7 +222,7 @@ export default function SignUp() {
                       error={errors.password}
                       touched={touched.password}
                       autoComplete="new-password"
-                      icon={<i className="pi pi-lock text-base" />}
+                      icon={<Lock className="w-4 h-4" />}
                       showPasswordToggle
                       onPasswordToggleChange={setShowPassword}
                       aria-label="Password"
@@ -236,7 +237,7 @@ export default function SignUp() {
                     onChange={(e) => setFormData({ ...formData, kennel: e.target.value })}
                     error=""
                     touched={touched.kennel}
-                    icon={<i className="pi pi-building text-base" />}
+                    icon={<Building className="w-4 h-4" />}
                     aria-label="Kennel name"
                   />
 
@@ -277,7 +278,7 @@ export default function SignUp() {
                 {errors.general && (
                   <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-md animate-slideDown">
                     <p className="text-sm text-red-600 flex items-center">
-                      <i className="pi pi-exclamation-circle mr-2" />
+                      <AlertCircle className="w-4 h-4 mr-2" />
                       {errors.general}
                     </p>
                   </div>

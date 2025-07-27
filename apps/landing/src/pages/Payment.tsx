@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { TIERS, THREE_YEARLY, YEARLY, MONTHLY } from "@/constants/pricing";
+import { AlertCircle } from "lucide-react";
 
 // Fondy configuration
 const FONDY_MERCHANT_ID = 1396424;
@@ -167,7 +168,7 @@ export default function Payment() {
         {error && (
           <div className="bg-white rounded-lg shadow-lg p-8 text-center">
             <div className="text-red-500 mb-4">
-              <i className="pi pi-exclamation-circle text-4xl" />
+              <AlertCircle className="w-12 h-12" />
             </div>
             <h2 className="text-2xl font-bold mb-2">Payment Error</h2>
             <p className="text-gray-600 mb-6">{error}</p>

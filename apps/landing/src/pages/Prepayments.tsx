@@ -4,6 +4,7 @@ import Footer from "@/components/Footer";
 import TierSelector from "@/components/TierSelector";
 import LandingFigure from "@/assets/backgrounds/landing-figure.svg?react";
 import LogoWhite from "@shared/icons/logo/logo-white.svg?react";
+import { Info, ArrowLeft } from "lucide-react";
 
 // Mock breed data - replace with API call when ready
 const mockBreeds = [
@@ -130,7 +131,7 @@ export default function Prepayments() {
 
                 <div className="bg-blue-50 rounded-lg p-4 mb-6">
                   <p className="text-sm text-blue-700">
-                    <i className="pi pi-info-circle mr-2" />
+                    <Info className="inline-block w-4 h-4 mr-2" />
                     By selecting a breed, you'll be supporting its community and helping improve 
                     breeding data and resources for all {selectedBreedName || "breed"} enthusiasts.
                   </p>
@@ -151,7 +152,7 @@ export default function Prepayments() {
                   onClick={handleBackToBreedSelection}
                   className="text-gray-500 hover:text-gray-700 mb-4 inline-flex items-center"
                 >
-                  <i className="pi pi-arrow-left mr-2" />
+                  <ArrowLeft className="inline-block w-4 h-4 mr-2" />
                   Back to breed selection
                 </button>
                 <h1 className="text-4xl md:text-5xl font-bold mb-4">
