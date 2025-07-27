@@ -7,6 +7,7 @@ import { Mail } from "lucide-react";
 interface EmailInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'type'> {
   label?: string;
   error?: string;
+  helperText?: string;
   required?: boolean;
   fieldClassName?: string;
 }
@@ -14,7 +15,8 @@ interface EmailInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElemen
 export const EmailInput = forwardRef<HTMLInputElement, EmailInputProps>(
   ({ 
     label, 
-    error, 
+    error,
+    helperText, 
     required, 
     className, 
     fieldClassName,
@@ -38,11 +40,12 @@ export const EmailInput = forwardRef<HTMLInputElement, EmailInputProps>(
       </div>
     );
 
-    if (label || error) {
+    if (label || error || helperText) {
       return (
         <FormField
           label={label}
           error={error}
+          helperText={!error ? helperText : undefined}
           required={required}
           className={fieldClassName}
         >

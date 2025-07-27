@@ -6,6 +6,7 @@ import { cn } from "@ui/lib/utils";
 interface CheckboxInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'type' | 'value' | 'onChange'> {
   label?: string;
   error?: string;
+  helperText?: string;
   required?: boolean;
   checked?: boolean;
   onCheckedChange?: (checked: boolean) => void;
@@ -17,7 +18,8 @@ interface CheckboxInputProps extends Omit<React.InputHTMLAttributes<HTMLInputEle
 export const CheckboxInput = forwardRef<HTMLInputElement, CheckboxInputProps>(
   ({ 
     label, 
-    error, 
+    error,
+    helperText, 
     required,
     checked,
     onCheckedChange,
@@ -53,11 +55,12 @@ export const CheckboxInput = forwardRef<HTMLInputElement, CheckboxInputProps>(
       </div>
     );
 
-    if (label || error) {
+    if (label || error || helperText) {
       return (
         <FormField
           label={label}
           error={error}
+          helperText={!error ? helperText : undefined}
           required={required}
           className={fieldClassName}
         >

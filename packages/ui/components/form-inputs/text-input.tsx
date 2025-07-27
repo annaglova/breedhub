@@ -6,6 +6,7 @@ import { cn } from "@ui/lib/utils";
 interface TextInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'type'> {
   label?: string;
   error?: string;
+  helperText?: string;
   required?: boolean;
   icon?: React.ReactNode;
   fieldClassName?: string;
@@ -14,7 +15,8 @@ interface TextInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement
 export const TextInput = forwardRef<HTMLInputElement, TextInputProps>(
   ({ 
     label, 
-    error, 
+    error,
+    helperText, 
     required, 
     className, 
     fieldClassName,
@@ -40,11 +42,12 @@ export const TextInput = forwardRef<HTMLInputElement, TextInputProps>(
       </div>
     );
 
-    if (label || error) {
+    if (label || error || helperText) {
       return (
         <FormField
           label={label}
           error={error}
+          helperText={!error ? helperText : undefined}
           required={required}
           className={fieldClassName}
         >

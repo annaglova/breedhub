@@ -7,6 +7,7 @@ import { Upload, X, File, Image, FileText } from "lucide-react";
 interface FileInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'type' | 'value' | 'onChange'> {
   label?: string;
   error?: string;
+  helperText?: string;
   required?: boolean;
   value?: File | File[] | null;
   onValueChange?: (files: File | File[] | null) => void;
@@ -35,7 +36,8 @@ const getFileIcon = (file: File) => {
 export const FileInput = forwardRef<HTMLInputElement, FileInputProps>(
   ({ 
     label, 
-    error, 
+    error,
+    helperText, 
     required,
     value,
     onValueChange,
@@ -207,11 +209,12 @@ export const FileInput = forwardRef<HTMLInputElement, FileInputProps>(
       </div>
     );
 
-    if (label || error || validationError) {
+    if (label || error || validationError || helperText) {
       return (
         <FormField
           label={label}
           error={error || validationError || undefined}
+          helperText={!(error || validationError) ? helperText : undefined}
           required={required}
           className={fieldClassName}
         >

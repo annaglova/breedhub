@@ -7,6 +7,7 @@ import { Eye, EyeOff, Lock } from "lucide-react";
 interface PasswordInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'type'> {
   label?: string;
   error?: string;
+  helperText?: string;
   required?: boolean;
   showStrengthIndicator?: boolean;
   onStrengthChange?: (strength: number) => void;
@@ -40,7 +41,8 @@ const calculatePasswordStrength = (password: string): { score: number; label: st
 export const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(
   ({ 
     label, 
-    error, 
+    error,
+    helperText, 
     required, 
     className, 
     fieldClassName,
@@ -135,11 +137,12 @@ export const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(
       </>
     );
 
-    if (label || error) {
+    if (label || error || helperText) {
       return (
         <FormField
           label={label}
           error={error}
+          helperText={!error ? helperText : undefined}
           required={required}
           className={fieldClassName}
         >

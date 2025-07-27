@@ -6,6 +6,7 @@ import { cn } from "@ui/lib/utils";
 interface SwitchInputProps {
   label?: string;
   error?: string;
+  helperText?: string;
   required?: boolean;
   checked?: boolean;
   onCheckedChange?: (checked: boolean) => void;
@@ -19,7 +20,8 @@ interface SwitchInputProps {
 export const SwitchInput = forwardRef<HTMLButtonElement, SwitchInputProps>(
   ({ 
     label, 
-    error, 
+    error,
+    helperText, 
     required,
     checked,
     onCheckedChange,
@@ -58,11 +60,12 @@ export const SwitchInput = forwardRef<HTMLButtonElement, SwitchInputProps>(
       </div>
     );
 
-    if (label || error) {
+    if (label || error || helperText) {
       return (
         <FormField
           label={label}
           error={error}
+          helperText={!error ? helperText : undefined}
           required={required}
           className={fieldClassName}
         >

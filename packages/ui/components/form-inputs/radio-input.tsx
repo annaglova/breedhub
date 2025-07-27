@@ -14,6 +14,7 @@ interface RadioOption {
 interface RadioInputProps {
   label?: string;
   error?: string;
+  helperText?: string;
   required?: boolean;
   value?: string;
   onValueChange?: (value: string) => void;
@@ -27,7 +28,8 @@ interface RadioInputProps {
 export const RadioInput = forwardRef<HTMLDivElement, RadioInputProps>(
   ({ 
     label, 
-    error, 
+    error,
+    helperText, 
     required,
     value,
     onValueChange,
@@ -75,11 +77,12 @@ export const RadioInput = forwardRef<HTMLDivElement, RadioInputProps>(
       </RadioGroup>
     );
 
-    if (label || error) {
+    if (label || error || helperText) {
       return (
         <FormField
           label={label}
           error={error}
+          helperText={!error ? helperText : undefined}
           required={required}
           className={fieldClassName}
         >

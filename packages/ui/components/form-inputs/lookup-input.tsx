@@ -13,6 +13,7 @@ interface LookupOption {
 interface LookupInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'value' | 'onChange'> {
   label?: string;
   error?: string;
+  helperText?: string;
   required?: boolean;
   options: LookupOption[];
   value?: string;
@@ -25,7 +26,8 @@ interface LookupInputProps extends Omit<React.InputHTMLAttributes<HTMLInputEleme
 export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
   ({ 
     label, 
-    error, 
+    error,
+    helperText, 
     required, 
     options,
     value,
@@ -172,11 +174,12 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
       </div>
     );
 
-    if (label || error) {
+    if (label || error || helperText) {
       return (
         <FormField
           label={label}
           error={error}
+          helperText={!error ? helperText : undefined}
           required={required}
           className={fieldClassName}
         >

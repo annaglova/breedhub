@@ -13,6 +13,7 @@ interface DropdownOption {
 interface DropdownInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'value' | 'onChange'> {
   label?: string;
   error?: string;
+  helperText?: string;
   required?: boolean;
   placeholder?: string;
   options: DropdownOption[];
@@ -26,7 +27,8 @@ interface DropdownInputProps extends Omit<React.InputHTMLAttributes<HTMLInputEle
 export const DropdownInput = forwardRef<HTMLInputElement, DropdownInputProps>(
   ({ 
     label, 
-    error, 
+    error,
+    helperText, 
     required, 
     placeholder = "Select an option",
     options,
@@ -132,11 +134,12 @@ export const DropdownInput = forwardRef<HTMLInputElement, DropdownInputProps>(
       </div>
     );
 
-    if (label || error) {
+    if (label || error || helperText) {
       return (
         <FormField
           label={label}
           error={error}
+          helperText={!error ? helperText : undefined}
           required={required}
           className={fieldClassName}
         >
