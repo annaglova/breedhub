@@ -15,6 +15,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { User, Mail, Lock, AlertCircle } from "lucide-react";
 
 export default function SignInWithI18n() {
   const navigate = useNavigate();
@@ -144,7 +145,7 @@ export default function SignInWithI18n() {
             <div className="bg-white rounded-xl sm:rounded-2xl shadow-xl p-6 sm:p-8 md:p-10">
               {/* Icon */}
               <div className="mx-auto flex h-14 w-14 sm:h-16 sm:w-16 items-center justify-center rounded-full bg-primary-100 shadow-sm mb-4 sm:mb-6">
-                <i className="pi pi-user text-xl sm:text-2xl text-primary-600" />
+                <User className="w-6 h-6 sm:w-8 sm:h-8 text-primary-600" />
               </div>
 
               {/* Title */}
@@ -188,7 +189,7 @@ export default function SignInWithI18n() {
                     error={errors.email?.message}
                     touched={touchedFields.email}
                     autoComplete="email"
-                    icon={<i className="pi pi-envelope text-base" />}
+                    icon={<Mail className="w-4 h-4" />}
                     aria-label={t.auth.signIn.emailLabel}
                   />
 
@@ -199,7 +200,7 @@ export default function SignInWithI18n() {
                     error={errors.password?.message}
                     touched={touchedFields.password}
                     autoComplete="current-password"
-                    icon={<i className="pi pi-lock text-base" />}
+                    icon={<Lock className="w-4 h-4" />}
                     showPasswordToggle
                     onPasswordToggleChange={setShowPassword}
                     aria-label={t.auth.signIn.passwordLabel}
@@ -209,7 +210,7 @@ export default function SignInWithI18n() {
                 {generalError && (
                   <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-md animate-slideDown">
                     <p className="text-sm text-red-600 flex items-center">
-                      <i className="pi pi-exclamation-circle mr-2" />
+                      <AlertCircle className="w-4 h-4 mr-2" />
                       {generalError}
                     </p>
                   </div>

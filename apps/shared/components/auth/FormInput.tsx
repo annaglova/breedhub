@@ -2,6 +2,7 @@ import { Input } from "@ui/components/input";
 import { Label } from "@ui/components/label";
 import { cn } from "@ui/lib/utils";
 import { forwardRef, useState } from "react";
+import { Eye, EyeOff, AlertCircle } from "lucide-react";
 
 interface FormInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label?: string;
@@ -80,13 +81,13 @@ export const FormInput = forwardRef<HTMLInputElement, FormInputProps>(
               )}
               aria-label={showPassword ? "Hide password" : "Show password"}
             >
-              <i className={cn("pi text-base", showPassword ? "pi-eye-slash" : "pi-eye")} />
+              {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
             </button>
           )}
         </div>
         {hasError && (
           <p id={`${props.id}-error`} className="text-sm text-red-600 animate-slideDown">
-            <i className="pi pi-exclamation-circle mr-1" />
+            <AlertCircle className="w-3 h-3 mr-1 inline-block" />
             {error}
           </p>
         )}

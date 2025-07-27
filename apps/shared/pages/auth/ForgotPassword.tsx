@@ -12,6 +12,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Link } from "react-router-dom";
+import { HelpCircle, Mail } from "lucide-react";
 
 export default function ForgotPassword() {
   const [isLoading, setIsLoading] = useState(false);
@@ -99,7 +100,7 @@ export default function ForgotPassword() {
               <>
                 {/* Icon */}
                 <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-primary-100 shadow-sm mb-6">
-                  <i className="pi pi-question-circle text-2xl text-primary-600" />
+                  <HelpCircle className="w-8 h-8 text-primary-600" />
                 </div>
 
                 {/* Title */}
@@ -121,7 +122,7 @@ export default function ForgotPassword() {
                     error={errors.email?.message || generalError}
                     touched={touchedFields.email}
                     autoComplete="email"
-                    icon={<i className="pi pi-envelope text-base" />}
+                    icon={<Mail className="w-4 h-4" />}
                     placeholder="Enter your email"
                     aria-label="Email address"
                   />

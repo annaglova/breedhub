@@ -6,6 +6,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@ui/components/dropdown-menu';
+import { ChevronDown, Check } from 'lucide-react';
 
 const languages = [
   { code: 'en', name: 'English', flag: '🇬🇧' },
@@ -22,7 +23,7 @@ export function LanguageSwitcher() {
         <Button variant="ghost" size="sm" className="h-8 px-2">
           <span className="mr-1">{currentLang?.flag}</span>
           <span className="hidden sm:inline">{currentLang?.name}</span>
-          <i className="pi pi-chevron-down ml-1 text-xs" />
+          <ChevronDown className="w-3 h-3 ml-1" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
@@ -35,7 +36,7 @@ export function LanguageSwitcher() {
             <span className="mr-2">{lang.flag}</span>
             {lang.name}
             {lang.code === language && (
-              <i className="pi pi-check ml-auto text-primary-600" />
+              <Check className="w-4 h-4 ml-auto text-primary-600" />
             )}
           </DropdownMenuItem>
         ))}

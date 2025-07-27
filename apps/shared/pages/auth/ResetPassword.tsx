@@ -12,6 +12,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { Key, Lock, AlertCircle } from "lucide-react";
 
 export default function ResetPassword() {
   const navigate = useNavigate();
@@ -96,7 +97,7 @@ export default function ResetPassword() {
             <div className="bg-white rounded-2xl shadow-xl p-8 sm:p-10 border border-gray-100">
             {/* Icon */}
             <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-purple-100 shadow-sm mb-6">
-              <i className="pi pi-key text-2xl text-purple-600" />
+              <Key className="w-8 h-8 text-purple-600" />
             </div>
 
             {/* Title */}
@@ -120,7 +121,7 @@ export default function ResetPassword() {
                       error={errors.password?.message}
                       touched={touchedFields.password}
                       autoComplete="new-password"
-                      icon={<i className="pi pi-lock text-base" />}
+                      icon={<Lock className="w-4 h-4" />}
                       showPasswordToggle
                       onPasswordToggleChange={setShowPassword}
                       aria-label="New password"
@@ -135,7 +136,7 @@ export default function ResetPassword() {
                     error={errors.passwordConfirm?.message}
                     touched={touchedFields.passwordConfirm}
                     autoComplete="new-password"
-                    icon={<i className="pi pi-lock text-base" />}
+                    icon={<Lock className="w-4 h-4" />}
                     showPasswordToggle
                     onPasswordToggleChange={setShowPasswordConfirm}
                     aria-label="Confirm new password"
@@ -145,7 +146,7 @@ export default function ResetPassword() {
                 {generalError && (
                   <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-md animate-slideDown">
                     <p className="text-sm text-red-600 flex items-center">
-                      <i className="pi pi-exclamation-circle mr-2" />
+                      <AlertCircle className="w-4 h-4 mr-2" />
                       {generalError}
                     </p>
                   </div>

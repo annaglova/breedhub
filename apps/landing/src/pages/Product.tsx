@@ -5,6 +5,7 @@ import LandingLayout from "@/layouts/LandingLayout";
 import { landingService } from "@/services/api.service";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { Shield, Smartphone, Users } from "lucide-react";
 
 // Mock data - replace with API call when ready
 const mockProductData: PublicProductService[] = [
@@ -315,7 +316,7 @@ export default function Product() {
           <div className="grid md:grid-cols-3 gap-8">
             <div className="text-center">
               <div className="bg-primary-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4 shadow-sm">
-                <i className="pi pi-shield text-primary-500 text-2xl" />
+                <Shield className="text-primary-500 w-8 h-8" />
               </div>
               <h3 className="text-xl font-bold mb-2">Secure & Private</h3>
               <p className="text-gray-600">
@@ -325,7 +326,7 @@ export default function Product() {
             </div>
             <div className="text-center">
               <div className="bg-green-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4 shadow-sm">
-                <i className="pi pi-mobile text-green-500 text-2xl" />
+                <Smartphone className="text-green-500 w-8 h-8" />
               </div>
               <h3 className="text-xl font-bold mb-2">Mobile Ready</h3>
               <p className="text-gray-600">
@@ -335,7 +336,7 @@ export default function Product() {
             </div>
             <div className="text-center">
               <div className="bg-purple-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4 shadow-sm">
-                <i className="pi pi-users text-purple-500 text-2xl" />
+                <Users className="text-purple-500 w-8 h-8" />
               </div>
               <h3 className="text-xl font-bold mb-2">Community Driven</h3>
               <p className="text-gray-600">
