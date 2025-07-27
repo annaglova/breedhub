@@ -232,6 +232,12 @@ input.custom-input.error:focus {
   font-size: 0.875rem !important; /* 14px */
 }
 
+/* Today's date - primary color text */
+button[aria-current="date"] {
+  color: rgb(var(--primary-700)) !important;
+  font-weight: normal !important;
+}
+
 /* Force warning colors for inputs with destructive variant */
 input.border-warning-500,
 .border-warning-500 input {
