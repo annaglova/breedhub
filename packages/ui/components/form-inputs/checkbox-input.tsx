@@ -31,20 +31,19 @@ export const CheckboxInput = forwardRef<HTMLInputElement, CheckboxInputProps>(
     ...props 
   }, ref) => {
     const checkboxElement = (
-      <div className={cn("flex items-start space-x-3", className)}>
+      <div className={cn("flex items-center space-x-3", className)}>
         <Checkbox
           ref={ref}
           checked={indeterminate ? "indeterminate" : checked}
           onCheckedChange={onCheckedChange}
           disabled={disabled}
-          className="mt-0.5"
           {...props}
         />
         {checkboxLabel && (
           <label
             htmlFor={props.id}
             className={cn(
-              "text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70",
+              "text-base font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70",
               disabled && "cursor-not-allowed opacity-70"
             )}
           >

@@ -51,12 +51,11 @@ export const RadioInput = forwardRef<HTMLDivElement, RadioInputProps>(
         )}
       >
         {options.map((option) => (
-          <div key={option.value} className="flex items-start space-x-2">
+          <div key={option.value} className="flex items-center space-x-3">
             <RadioGroupItem
               value={option.value}
               id={`radio-${option.value}`}
               disabled={option.disabled || disabled}
-              className="mt-0.5"
             />
             <div className="flex-1">
               <Label
@@ -69,7 +68,7 @@ export const RadioInput = forwardRef<HTMLDivElement, RadioInputProps>(
                 {option.label}
               </Label>
               {option.description && (
-                <p className="text-xs text-gray-500 mt-1">{option.description}</p>
+                <p className="text-sm text-gray-500 mt-1">{option.description}</p>
               )}
             </div>
           </div>
