@@ -7,6 +7,7 @@ export default {
     "./apps/landing/src/**/*.{js,ts,jsx,tsx}",
     "./apps/landing/index.html",
     "./apps/app/index.html",
+    "./packages/ui/**/*.{js,ts,jsx,tsx}",
   ],
   darkMode: "class",
   important: true,
