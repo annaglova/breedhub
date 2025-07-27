@@ -142,59 +142,7 @@
   transition: transform 0.1s;
 }
 
-/* Override prime theme for landing buttons */
-[data-theme="prime"] button.landing-raised-button {
-  border-width: 1px !important;
-  border-style: solid !important;
-}
-
-[data-theme="prime"] button.landing-raised-button-primary {
-  border-color: rgb(var(--primary-500)) !important;
-}
-
-[data-theme="prime"] button.landing-raised-button-primary:hover {
-  border-color: rgb(var(--primary-600)) !important;
-}
-
-[data-theme="prime"] button.landing-raised-button-primary:active {
-  border-color: rgb(var(--primary-700)) !important;
-}
-
-[data-theme="prime"] button.landing-raised-button-pink {
-  border-color: rgb(236, 72, 153) !important;
-}
-
-[data-theme="prime"] button.landing-raised-button-pink:hover {
-  border-color: rgb(219, 39, 119) !important;
-}
-
-[data-theme="prime"] button.landing-raised-button-pink:active {
-  border-color: rgb(190, 24, 93) !important;
-}
-
-[data-theme="prime"] button.landing-raised-button-flat {
-  border-color: rgb(var(--primary-500)) !important;
-}
-
-[data-theme="prime"] button.landing-raised-button-flat:hover {
-  border-color: rgb(var(--primary-600)) !important;
-}
-
-[data-theme="prime"] button.landing-raised-button-flat:active {
-  border-color: rgb(var(--primary-700)) !important;
-}
-
-[data-theme="prime"] button.landing-raised-button-outline {
-  border-color: rgb(var(--primary-500)) !important;
-}
-
-[data-theme="prime"] button.landing-raised-button-outline:hover {
-  border-color: rgb(var(--primary-600)) !important;
-}
-
-[data-theme="prime"] button.landing-raised-button-outline:active {
-  border-color: rgb(var(--primary-700)) !important;
-}
+/* Removed PrimeReact theme overrides - no longer needed */
 
 /* Ripple animation for buttons */
 @keyframes landing-ripple {

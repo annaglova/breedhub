@@ -1,5 +1,4 @@
 import { supabase } from '../supabase';
-import { toast } from 'primereact/toast';
 
 /**
  * Environment конфігурація для API
@@ -64,7 +63,7 @@ export class ApiService {
    * Показати повідомлення про успіх
    */
   private showSuccessMessage(message: string) {
-    // TODO: Інтегрувати з PrimeReact Toast
+    // TODO: Інтегрувати з системою сповіщень
     console.log(`✅ Success: ${message}`);
   }
 
@@ -72,7 +71,7 @@ export class ApiService {
    * Показати повідомлення про помилку
    */
   private showErrorMessage(error: string) {
-    // TODO: Інтегрувати з PrimeReact Toast
+    // TODO: Інтегрувати з системою сповіщень
     console.error(`❌ Error: ${error}`);
   }
 

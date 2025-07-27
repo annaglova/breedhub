@@ -1,6 +1,4 @@
-/* @import "primereact/resources/themes/lara-light-blue/theme.css"; */
-/* @import "primereact/resources/primereact.min.css"; */
-@import "primeicons/primeicons.css";
+/* Removed PrimeReact imports - using custom design system */
 
 @import "@shared/theme/tailwind.base.css";
 @import "@shared/theme/global.css";

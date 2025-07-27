@@ -5,6 +5,7 @@ import { Calendar } from "../calendar";
 import { cn } from "@ui/lib/utils";
 import { CalendarIcon } from "lucide-react";
 import { format, parse, isValid } from "date-fns";
+import "react-day-picker/dist/style.css";
 
 interface DateInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'value' | 'onChange' | 'type'> {
   label?: string;

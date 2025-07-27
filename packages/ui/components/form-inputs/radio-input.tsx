@@ -60,7 +60,7 @@ export const RadioInput = forwardRef<HTMLDivElement, RadioInputProps>(
               <Label
                 htmlFor={`radio-${option.value}`}
                 className={cn(
-                  "text-sm font-medium leading-none",
+                  "text-base font-medium leading-none",
                   (option.disabled || disabled) && "cursor-not-allowed opacity-70"
                 )}
               >

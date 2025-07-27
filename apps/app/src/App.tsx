@@ -10,7 +10,7 @@ import "./App.css";
 
 function App() {
   return (
-    <div data-theme="prime">
+    <div>
       <Provider store={store}>
         <QueryClientProvider client={queryClient}>
           <AuthProvider>
