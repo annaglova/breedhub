@@ -154,8 +154,8 @@ export const TimeInput = forwardRef<HTMLInputElement, TimeInputProps>(
                 type="button"
                 onClick={() => handleTimeSelect(option.value)}
                 className={cn(
-                  "w-full px-3 py-2 text-left !text-base hover:bg-gray-100 focus:bg-gray-100 focus:outline-none",
-                  inputValue === option.value && "bg-primary-50 text-primary-600 font-medium"
+                  "w-full px-3 py-2 text-left hover:bg-gray-100 focus:bg-gray-100 focus:outline-none",
+                  inputValue === option.value && "bg-primary-50 text-primary-700"
                 )}
               >
                 {option.label}
