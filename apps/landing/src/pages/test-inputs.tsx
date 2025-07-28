@@ -42,7 +42,7 @@ export default function TestInputsPage() {
     text: "",
     email: "",
     password: "",
-    number: "",
+    number: "5",
     country: "",
     breed: "",
     date: null as Date | null,
