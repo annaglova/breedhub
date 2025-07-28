@@ -54,9 +54,9 @@ export default function ConfirmationRequired() {
           <div className="w-full max-w-md animate-scaleIn">
             <div className="bg-white rounded-2xl shadow-xl p-8 sm:p-10 border border-gray-100">
               {/* Icon */}
-              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-primary-100 shadow-sm">
+              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-purple-100 shadow-sm">
                 <svg
-                  className="h-8 w-8 text-primary-600"
+                  className="h-8 w-8 text-purple-600"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"

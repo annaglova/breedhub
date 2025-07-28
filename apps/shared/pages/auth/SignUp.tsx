@@ -152,8 +152,8 @@ export default function SignUp() {
           <div className="w-full max-w-md animate-scaleIn">
             <div className="bg-white rounded-2xl shadow-xl p-8 sm:p-10 border border-gray-100">
             {/* Icon */}
-            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-primary-100 shadow-sm mb-6">
-              <UserPlus className="w-8 h-8 text-primary-600" />
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-purple-100 shadow-sm mb-6">
+              <UserPlus className="w-8 h-8 text-purple-600" />
             </div>
 
             {/* Title */}
