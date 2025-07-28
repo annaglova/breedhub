@@ -1,11 +1,10 @@
 import React, { forwardRef, useState, useRef } from "react";
 import { Input } from "../input";
 import { FormField } from "../form-field";
-import { Calendar } from "../calendar";
+import { CustomCalendar } from "../custom-calendar";
 import { cn } from "@ui/lib/utils";
 import { CalendarIcon } from "lucide-react";
 import { format, parse, isValid } from "date-fns";
-import "react-day-picker/dist/style.css";
 
 interface DateInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'value' | 'onChange' | 'type'> {
   label?: string;
@@ -117,21 +116,17 @@ export const DateInput = forwardRef<HTMLInputElement, DateInputProps>(
         </div>
 
         {isOpen && !disabled && (
-          <div className="absolute z-50 mt-1 bg-white border border-gray-200 rounded-md shadow-lg p-3">
-            <Calendar
-              mode="single"
+          <div className="absolute z-50 mt-1 shadow-lg">
+            <CustomCalendar
               selected={value || undefined}
               onSelect={handleCalendarSelect}
               fromYear={1900}
               toYear={2030}
-              captionLayout="dropdown"
               disabled={(date) => {
                 if (minDate && date < minDate) return true;
                 if (maxDate && date > maxDate) return true;
                 return false;
               }}
-              initialFocus
-              className="p-0"
             />
           </div>
         )}

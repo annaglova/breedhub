@@ -124,8 +124,6 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(
           value={value}
           onChange={handleChange}
           onBlur={handleBlur}
-          min={min}
-          max={max}
           variant={displayError ? "destructive" : "default"}
           className={cn(
             prefix && "pl-10",
