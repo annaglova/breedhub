@@ -144,8 +144,8 @@ export default function SignInWithI18n() {
           <div className="w-full max-w-md animate-scaleIn">
             <div className="bg-white rounded-xl sm:rounded-2xl shadow-xl p-6 sm:p-8 md:p-10">
               {/* Icon */}
-              <div className="mx-auto flex h-14 w-14 sm:h-16 sm:w-16 items-center justify-center rounded-full bg-primary-100 shadow-sm mb-4 sm:mb-6">
-                <User className="w-6 h-6 sm:w-8 sm:h-8 text-primary-600" />
+              <div className="mx-auto flex h-14 w-14 sm:h-16 sm:w-16 items-center justify-center rounded-full bg-purple-100 shadow-sm mb-4 sm:mb-6">
+                <User className="w-6 h-6 sm:w-8 sm:h-8 text-purple-600" />
               </div>
 
               {/* Title */}
