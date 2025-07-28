@@ -35,8 +35,6 @@
 .landing-cursor a,
 .landing-cursor button,
 .landing-cursor [role="button"],
-.landing-cursor input[type="submit"],
-.landing-cursor input[type="button"],
 .landing-cursor .cursor-pointer {
   cursor: pointer !important;
 }

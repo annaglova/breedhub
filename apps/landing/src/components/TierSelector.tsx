@@ -5,9 +5,9 @@ import {
   YEARLY_NUMBER,
   type Tier,
 } from "@/constants/pricing";
+import { NumberInput } from "@ui/components/form-inputs/number-input";
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import Input from "./Input";
 import "./TierSelector.css";
 
 interface TierSelectorProps {
@@ -41,7 +41,7 @@ export default function TierSelector({
   breedId,
 }: TierSelectorProps) {
   const [selectedBillingType, setSelectedBillingType] = useState(YEARLY_NUMBER);
-  const [customPrice, setCustomPrice] = useState<number>(20);
+  const [customPrice, setCustomPrice] = useState<string>("20");
   const [priceError, setPriceError] = useState<string>("");
 
   const handleBillingTypeChange = (type: number) => {
@@ -200,57 +200,31 @@ export default function TierSelector({
               <div className="mb-4 text-center h-[69px]">
                 {tier.name === "Supreme Patron" ? (
                   <div>
-                    <div className="flex  gap-2 justify-center">
-                      <span className="text-3xl font-bold mt-1 mr-1">$</span>
+                    <div className="flex gap-2 justify-center">
+                      <span className="text-3xl font-bold mr-1">$</span>
 
-                      <Input
-                        type="number"
+                      <NumberInput
                         value={customPrice}
                         onChange={(e) => {
-                          const inputValue = e.target.value;
-                          const value = Number(inputValue);
-
-                          // Handle empty input
-                          if (inputValue === "") {
-                            setCustomPrice(0);
-                            setPriceError("");
-                            return;
-                          }
-
-                          // Remove leading zeros
-                          const cleanValue = value.toString();
-                          if (cleanValue !== inputValue) {
-                            e.target.value = cleanValue;
-                          }
-
-                          setCustomPrice(value);
+                          setCustomPrice(e.target.value);
 
                           // Show error if out of bounds
-                          if (value < 20) {
+                          const numValue = Number(e.target.value);
+                          if (e.target.value && numValue < 20) {
                             setPriceError("Minimum amount is $20");
-                          } else if (value > 100) {
+                          } else if (e.target.value && numValue > 100) {
                             setPriceError("Maximum amount is $100");
                           } else {
                             setPriceError("");
                           }
                         }}
-                        onBlur={(e) => {
-                          const value = Number(e.target.value);
-
-                          // Validate bounds on blur
-                          if (value < 20 || isNaN(value)) {
-                            setCustomPrice(20);
-                            setPriceError("");
-                          } else if (value > 100) {
-                            setCustomPrice(100);
-                            setPriceError("");
-                          }
-                        }}
-                        className="text-xl font-bold text-center"
+                        min={20}
+                        max={100}
+                        className="text-xl font-bold text-center w-full "
                         error={priceError}
                       />
 
-                      <span className=" text-gray-600 uppercase text-md mt-1">
+                      <span className="text-gray-600 uppercase text-md  max-w-14">
                         per month
                       </span>
                     </div>
