@@ -1,6 +1,7 @@
 import FooterFigure from "@shared/assets/backgrounds/footer-figure.svg?react";
 import { AuthFooter } from "@shared/components/auth/AuthFooter";
 import { AuthHeader } from "@shared/components/auth/AuthHeader";
+import { AuthButton } from "@shared/components/auth/AuthButton";
 import { Spinner } from "@shared/components/auth/Spinner";
 import AuthLayout from "@shared/layouts/AuthLayout";
 import { Button } from "@ui/components/button";
@@ -40,11 +41,9 @@ export default function ConfirmationRequired() {
           rightContent={
             <div className="flex items-center gap-4">
               <span className="hidden text-gray-600 sm:block">Return to</span>
-              <Link to="/sign-in">
-                <Button className="landing-raised-button landing-raised-button-pink">
-                  Login page
-                </Button>
-              </Link>
+              <AuthButton to="/sign-in">
+                Login page
+              </AuthButton>
             </div>
           }
         />

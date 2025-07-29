@@ -1,6 +1,7 @@
 import FooterFigure from "@shared/assets/backgrounds/footer-figure.svg?react";
 import { AuthFooter } from "@shared/components/auth/AuthFooter";
 import { AuthHeader } from "@shared/components/auth/AuthHeader";
+import { AuthButton } from "@shared/components/auth/AuthButton";
 import { FormInput } from "@shared/components/auth/FormInput";
 import { PasswordStrength } from "@shared/components/auth/PasswordStrength";
 import { SocialLoginButtons } from "@shared/components/auth/SocialLoginButtons";
@@ -139,11 +140,9 @@ export default function SignUp() {
             <span className="hidden text-gray-600 sm:block">
               Already have an account?
             </span>
-            <Link to="/sign-in">
-              <Button className="landing-raised-button landing-raised-button-pink">
-                Sign in
-              </Button>
-            </Link>
+            <AuthButton to="/sign-in">
+              Sign in
+            </AuthButton>
           </div>
         } />
 
