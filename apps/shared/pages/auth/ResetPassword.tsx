@@ -3,6 +3,7 @@ import { AuthFooter } from "@shared/components/auth/AuthFooter";
 import { AuthHeader } from "@shared/components/auth/AuthHeader";
 import { AuthButton } from "@shared/components/auth/AuthButton";
 import { FormInput } from "@shared/components/auth/FormInput";
+import { AuthFormWrapper } from "@ui/components/auth-forms";
 import { PasswordStrength } from "@shared/components/auth/PasswordStrength";
 import { Spinner } from "@shared/components/auth/Spinner";
 import AuthLayout from "@shared/layouts/AuthLayout";
@@ -64,9 +65,7 @@ export default function ResetPassword() {
       const errorMessage = sanitizeErrorMessage(error);
       setGeneralError(errorMessage);
       
-      const form = document.getElementById("reset-form");
-      form?.classList.add("animate-shake");
-      setTimeout(() => form?.classList.remove("animate-shake"), 500);
+      // Shake animation handled by AuthFormWrapper
     } finally {
       setIsLoading(false);
     }
@@ -110,7 +109,12 @@ export default function ResetPassword() {
             </div>
 
               {/* Form */}
-              <form id="reset-form" onSubmit={handleSubmit(onSubmit)} className="mt-8">
+              <AuthFormWrapper 
+                formId="reset-form" 
+                onSubmit={handleSubmit(onSubmit)} 
+                isLoading={isLoading}
+                className="mt-8"
+              >
                 <div className="space-y-4">
                   <div>
                     <FormInput
@@ -165,7 +169,7 @@ export default function ResetPassword() {
                     "Reset your password"
                   )}
                 </Button>
-              </form>
+              </AuthFormWrapper>
             </div>
           </div>
         </div>

@@ -2,6 +2,7 @@ import FooterFigure from "@shared/assets/backgrounds/footer-figure.svg?react";
 import { AuthFooter } from "@shared/components/auth/AuthFooter";
 import { AuthHeader } from "@shared/components/auth/AuthHeader";
 import { FormInput } from "@shared/components/auth/FormInput";
+import { AuthFormWrapper } from "@ui/components/auth-forms";
 import { SocialLoginButtons } from "@shared/components/auth/SocialLoginButtons";
 import { Spinner } from "@shared/components/auth/Spinner";
 import { useRateLimiter } from "@shared/hooks/useRateLimiter";
@@ -103,10 +104,7 @@ export default function SignIn() {
         details: { remainingAttempts },
       });
       
-      // Add shake animation to form
-      const form = document.getElementById("signin-form");
-      form?.classList.add("animate-shake");
-      setTimeout(() => form?.classList.remove("animate-shake"), 500);
+      // Shake animation handled by AuthFormWrapper
       
       // Show remaining attempts if getting low
       if (remainingAttempts > 0 && remainingAttempts <= 2) {
@@ -181,7 +179,11 @@ export default function SignIn() {
               </div>
 
               {/* Sign In Form */}
-              <form id="signin-form" onSubmit={handleSubmit(onSubmit)} className="mt-6">
+              <AuthFormWrapper 
+                formId="signin-form" 
+                onSubmit={handleSubmit(onSubmit)} 
+                isLoading={isLoading}
+              >
                 <div className="space-y-4">
                   <FormInput
                     label="Email address"
@@ -253,7 +255,7 @@ export default function SignIn() {
                     "Sign in"
                   )}
                 </Button>
-              </form>
+              </AuthFormWrapper>
 
               {/* Sign up link */}
               <p className="mt-6 text-center text-sm sm:text-base text-gray-600">

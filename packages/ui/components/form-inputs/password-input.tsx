@@ -13,6 +13,8 @@ interface PasswordInputProps extends Omit<React.InputHTMLAttributes<HTMLInputEle
   onStrengthChange?: (strength: number) => void;
   fieldClassName?: string;
   showIcon?: boolean;
+  touched?: boolean;
+  onPasswordToggleChange?: (show: boolean) => void;
 }
 
 // Simple password strength calculator
@@ -49,12 +51,16 @@ export const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(
     showStrengthIndicator = false,
     onStrengthChange,
     showIcon = true,
+    touched = true,
+    onPasswordToggleChange,
     value,
     onChange,
     ...props 
   }, ref) => {
     const [showPassword, setShowPassword] = useState(false);
     const [strength, setStrength] = useState({ score: 0, label: "", color: "" });
+    const [isFocused, setIsFocused] = React.useState(false);
+    const hasError = touched && error;
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       const newValue = e.target.value;
@@ -72,7 +78,11 @@ export const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(
       <>
         <div className="relative">
           {showIcon && (
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+            <div className={cn(
+              "absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none transition-colors z-10",
+              hasError ? "text-red-400" : "text-gray-400",
+              isFocused && !hasError && "text-primary-600"
+            )}>
               <Lock className="h-4 w-4" />
             </div>
           )}
@@ -82,17 +92,36 @@ export const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(
             value={value}
             onChange={handleChange}
             className={cn(
+              "transition-all",
               showIcon && "pl-10",
               "pr-10",
+              hasError && "border-red-500 focus:ring-red-500",
+              isFocused && !hasError && "border-primary-500 ring-2 ring-primary-500/20",
               className
             )}
             autoComplete="current-password"
+            aria-invalid={hasError ? "true" : undefined}
+            aria-describedby={hasError ? `${props.id}-error` : undefined}
+            onFocus={() => setIsFocused(true)}
+            onBlur={(e) => {
+              setIsFocused(false);
+              props.onBlur?.(e);
+            }}
             {...props}
           />
           <button
             type="button"
-            onClick={() => setShowPassword(!showPassword)}
-            className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
+            onClick={() => {
+              const newValue = !showPassword;
+              setShowPassword(newValue);
+              onPasswordToggleChange?.(newValue);
+            }}
+            className={cn(
+              "absolute inset-y-0 right-0 pr-3 flex items-center transition-colors",
+              "hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-primary-500 rounded",
+              hasError ? "text-red-400" : "text-gray-400"
+            )}
+            aria-label={showPassword ? "Hide password" : "Show password"}
             tabIndex={-1}
           >
             {showPassword ? (
@@ -141,10 +170,15 @@ export const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(
       return (
         <FormField
           label={label}
-          error={error}
-          helperText={!error ? helperText : undefined}
+          error={hasError ? error : undefined}
+          helperText={!hasError ? helperText : undefined}
           required={required}
           className={fieldClassName}
+          labelClassName={cn(
+            "transition-colors",
+            hasError && "text-red-600",
+            isFocused && !hasError && "text-primary-600"
+          )}
         >
           {inputElement}
         </FormField>

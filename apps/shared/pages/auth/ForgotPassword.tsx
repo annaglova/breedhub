@@ -3,6 +3,7 @@ import { AuthFooter } from "@shared/components/auth/AuthFooter";
 import { AuthHeader } from "@shared/components/auth/AuthHeader";
 import { AuthButton } from "@shared/components/auth/AuthButton";
 import { FormInput } from "@shared/components/auth/FormInput";
+import { AuthFormWrapper } from "@ui/components/auth-forms";
 import { Spinner } from "@shared/components/auth/Spinner";
 import { useRateLimiter } from "@shared/hooks/useRateLimiter";
 import AuthLayout from "@shared/layouts/AuthLayout";
@@ -113,7 +114,12 @@ export default function ForgotPassword() {
                 </div>
 
                 {/* Form */}
-                <form onSubmit={handleSubmit(onSubmit)} className="mt-8">
+                <AuthFormWrapper 
+                  formId="forgot-password-form" 
+                  onSubmit={handleSubmit(onSubmit)} 
+                  isLoading={isLoading}
+                  className="mt-8"
+                >
                   <FormInput
                     label="Email address"
                     type="email"
@@ -140,7 +146,7 @@ export default function ForgotPassword() {
                       "Send reset link"
                     )}
                   </Button>
-                </form>
+                </AuthFormWrapper>
 
                 {/* Back to login link */}
                 <p className="mt-6 text-center text-base text-gray-600">
