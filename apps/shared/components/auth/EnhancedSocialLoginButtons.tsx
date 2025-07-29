@@ -1,7 +1,7 @@
 import { Spinner } from "@shared/components/auth/Spinner";
 import { cn } from "@ui/lib/utils";
-import { useState } from "react";
 import { Facebook } from "lucide-react";
+import { useState } from "react";
 
 interface EnhancedSocialLoginButtonsProps {
   onFacebookLogin?: () => Promise<void>;
@@ -20,9 +20,12 @@ export function EnhancedSocialLoginButtons({
 }: EnhancedSocialLoginButtonsProps) {
   const [loadingProvider, setLoadingProvider] = useState<string | null>(null);
 
-  const handleSocialLogin = async (provider: string, handler?: () => Promise<void>) => {
+  const handleSocialLogin = async (
+    provider: string,
+    handler?: () => Promise<void>
+  ) => {
     if (!handler || loadingProvider) return;
-    
+
     setLoadingProvider(provider);
     try {
       await handler();
@@ -33,15 +36,19 @@ export function EnhancedSocialLoginButtons({
     }
   };
 
-  const buttonBaseClass = "group relative w-full h-12 font-medium rounded-xl transition-all transform hover:scale-[1.02] hover:shadow-lg inline-flex items-center justify-center gap-3 disabled:pointer-events-none disabled:opacity-50";
+  const buttonBaseClass =
+    "group relative w-full h-12 font-medium rounded-xl transition-all transform hover:scale-[1.02] hover:shadow-lg inline-flex items-center justify-center gap-3 disabled:pointer-events-none disabled:opacity-50";
 
   return (
-    <div className={cn("space-y-5", className)}>
+    <div className={cn("space-y-7", className)}>
       {onFacebookLogin && (
         <button
           onClick={() => handleSocialLogin("facebook", onFacebookLogin)}
           disabled={loadingProvider !== null}
-          className={cn(buttonBaseClass, "bg-[#1877F2] hover:bg-[#166FE5] text-white")}
+          className={cn(
+            buttonBaseClass,
+            "bg-[#1877F2] hover:bg-[#166FE5] text-white"
+          )}
         >
           <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-xl" />
           {loadingProvider === "facebook" ? (
@@ -51,7 +58,9 @@ export function EnhancedSocialLoginButtons({
               <div className="bg-white/20 p-1.5 rounded-lg">
                 <Facebook className="w-5 h-5" />
               </div>
-              <span>{signUpMode ? "Start with Facebook" : "Continue with Facebook"}</span>
+              <span>
+                {signUpMode ? "Start with Facebook" : "Continue with Facebook"}
+              </span>
             </>
           )}
         </button>
@@ -61,7 +70,10 @@ export function EnhancedSocialLoginButtons({
         <button
           onClick={() => handleSocialLogin("google", onGoogleLogin)}
           disabled={loadingProvider !== null}
-          className={cn(buttonBaseClass, "bg-white border-2 border-gray-200 hover:border-gray-300 text-gray-700")}
+          className={cn(
+            buttonBaseClass,
+            "bg-white border-2 border-gray-200 hover:border-gray-300 text-gray-700"
+          )}
         >
           {loadingProvider === "google" ? (
             <Spinner className="w-5 h-5 text-gray-600" />
@@ -85,7 +97,9 @@ export function EnhancedSocialLoginButtons({
                   d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
                 />
               </svg>
-              <span>{signUpMode ? "Start with Google" : "Continue with Google"}</span>
+              <span>
+                {signUpMode ? "Start with Google" : "Continue with Google"}
+              </span>
             </>
           )}
         </button>
@@ -95,7 +109,10 @@ export function EnhancedSocialLoginButtons({
         <button
           onClick={() => handleSocialLogin("apple", onAppleLogin)}
           disabled={loadingProvider !== null}
-          className={cn(buttonBaseClass, "bg-black hover:bg-gray-900 text-white")}
+          className={cn(
+            buttonBaseClass,
+            "bg-black hover:bg-gray-900 text-white"
+          )}
         >
           {loadingProvider === "apple" ? (
             <Spinner className="w-5 h-5" />
@@ -104,7 +121,9 @@ export function EnhancedSocialLoginButtons({
               <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.09 1.013 1.454 2.208 3.09 3.792 3.039 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.35.987 3.96.948 1.637-.026 2.676-1.48 3.676-2.948 1.156-1.688 1.636-3.325 1.662-3.415-.039-.013-3.182-1.221-3.22-4.857-.026-3.04 2.48-4.494 2.597-4.559-1.429-2.09-3.623-2.324-4.39-2.376-2-.156-3.675 1.09-4.61 1.09zM15.53 3.83c.843-1.012 1.4-2.427 1.245-3.83-1.207.052-2.662.805-3.532 1.818-.78.896-1.454 2.338-1.273 3.714 1.338.104 2.715-.688 3.559-1.701" />
               </svg>
-              <span>{signUpMode ? "Start with Apple" : "Continue with Apple"}</span>
+              <span>
+                {signUpMode ? "Start with Apple" : "Continue with Apple"}
+              </span>
             </>
           )}
         </button>
