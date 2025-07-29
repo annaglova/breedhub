@@ -137,7 +137,7 @@ export default function SignIn() {
         </div>
 
         {/* Header */}
-        <AuthHeader />
+        <AuthHeader rightContent={<></>} />
 
         {/* Content */}
         <div className="relative z-10 flex flex-1 items-center justify-center px-4 sm:px-6 pb-4 sm:pb-8 pt-4 sm:pt-8">

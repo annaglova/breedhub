@@ -5,6 +5,7 @@ export default {
   content: [
     "./apps/app/src/**/*.{js,ts,jsx,tsx}",
     "./apps/landing/src/**/*.{js,ts,jsx,tsx}",
+    "./apps/shared/**/*.{js,ts,jsx,tsx}",
     "./apps/landing/index.html",
     "./apps/app/index.html",
     "./packages/ui/**/*.{js,ts,jsx,tsx}",

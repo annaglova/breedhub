@@ -1,5 +1,4 @@
 import LogoText from "@shared/icons/logo/logo-text.svg?react";
-import { Button } from "@ui/components/button";
 import { Link } from "react-router-dom";
 
 interface AuthHeaderProps {
@@ -23,7 +22,10 @@ export function AuthHeader({
           className="flex items-center cursor-pointer relative z-10 focus:outline-none focus:ring-2 focus:ring-primary-500 rounded"
           aria-label="Go to homepage"
         >
-          <LogoText className="h-10 w-auto cursor-pointer" style={{ marginTop: '6px' }} />
+          <LogoText
+            className="h-10 w-auto cursor-pointer"
+            style={{ marginTop: "6px" }}
+          />
         </Link>
       </div>
       {rightContent
@@ -34,12 +36,12 @@ export function AuthHeader({
                 {rightButtonLabel}
               </span>
               <Link to={rightButtonLink}>
-                <Button
-                  className="landing-raised-button landing-raised-button-pink text-sm sm:text-base px-3 sm:px-4 py-2"
+                <button
+                  className="rounded-full font-medium text-base px-6 py-2.5 transform transition-all duration-300 hover:scale-105 text-white relative overflow-hidden bg-primary-500 hover:bg-primary-600 border-2 border-primary-500 hover:border-primary-600"
                   aria-label={rightButtonText}
                 >
                   {rightButtonText}
-                </Button>
+                </button>
               </Link>
             </div>
           )}

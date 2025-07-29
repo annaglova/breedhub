@@ -1,6 +1,7 @@
 import FooterFigure from "@shared/assets/backgrounds/footer-figure.svg?react";
 import { AuthFooter } from "@shared/components/auth/AuthFooter";
 import { AuthHeader } from "@shared/components/auth/AuthHeader";
+import { AuthButton } from "@shared/components/auth/AuthButton";
 import { FormInput } from "@shared/components/auth/FormInput";
 import { PasswordStrength } from "@shared/components/auth/PasswordStrength";
 import { Spinner } from "@shared/components/auth/Spinner";
@@ -83,11 +84,9 @@ export default function ResetPassword() {
         <AuthHeader rightContent={
           <div className="flex items-center gap-4">
             <span className="hidden text-gray-600 sm:block">Return to</span>
-            <Link to="/sign-in">
-              <Button className="landing-raised-button landing-raised-button-pink">
-                Login page
-              </Button>
-            </Link>
+            <AuthButton to="/sign-in">
+              Login page
+            </AuthButton>
           </div>
         } />
 

@@ -1,6 +1,7 @@
 import FooterFigure from "@shared/assets/backgrounds/footer-figure.svg?react";
 import { AuthFooter } from "@shared/components/auth/AuthFooter";
 import { AuthHeader } from "@shared/components/auth/AuthHeader";
+import { AuthButton } from "@shared/components/auth/AuthButton";
 import AuthLayout from "@shared/layouts/AuthLayout";
 import { Button } from "@ui/components/button";
 import { useEffect, useState } from "react";
@@ -43,11 +44,9 @@ export default function SignOut() {
         <AuthHeader rightContent={
           <div className="flex items-center gap-4">
             <span className="hidden text-gray-600 sm:block">Go to</span>
-            <Link to="/">
-              <Button className="landing-raised-button landing-raised-button-pink">
-                Homepage
-              </Button>
-            </Link>
+            <AuthButton to="/">
+              Homepage
+            </AuthButton>
           </div>
         } />
 
