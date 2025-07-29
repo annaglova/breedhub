@@ -175,7 +175,7 @@ export default function SignIn() {
               </div>
 
               {/* Tab Navigation */}
-              <div className="flex rounded-lg bg-gray-100 p-[2px] mb-4 sm:mb-6">
+              <div className="flex rounded-lg bg-gray-100 p-[2px] mb-6 sm:mb-6">
                 <button
                   onClick={() => setAuthMode("social")}
                   className={cn(
@@ -274,7 +274,7 @@ export default function SignIn() {
                           </div>
                         )}
 
-                        <div className="mt-4 flex items-center justify-between">
+                        <div className="py-1 flex items-center justify-between ">
                           <div className="flex items-center">
                             <Checkbox
                               id="remember"
