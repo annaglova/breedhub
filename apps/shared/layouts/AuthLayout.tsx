@@ -8,7 +8,7 @@ interface AuthLayoutProps {
 
 export default function AuthLayout({ children }: AuthLayoutProps) {
   return (
-    <div className="min-h-screen min-h-[100dvh]">
+    <div className="min-h-screen min-h-[100dvh] select-none">
       <MobileOptimizations />
       {children}
     </div>
