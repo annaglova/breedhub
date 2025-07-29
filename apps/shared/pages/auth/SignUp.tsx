@@ -3,6 +3,7 @@ import { AuthFooter } from "@shared/components/auth/AuthFooter";
 import { AuthHeader } from "@shared/components/auth/AuthHeader";
 import { AuthButton } from "@shared/components/auth/AuthButton";
 import { FormInput } from "@shared/components/auth/FormInput";
+import { AuthFormWrapper } from "@ui/components/auth-forms";
 import { PasswordStrength } from "@shared/components/auth/PasswordStrength";
 import { SocialLoginButtons } from "@shared/components/auth/SocialLoginButtons";
 import { Spinner } from "@shared/components/auth/Spinner";
@@ -108,9 +109,7 @@ export default function SignUp() {
       const errorMessage = sanitizeErrorMessage(error);
       setErrors({ ...errors, general: errorMessage });
       
-      const form = document.getElementById("signup-form");
-      form?.classList.add("animate-shake");
-      setTimeout(() => form?.classList.remove("animate-shake"), 500);
+      // Shake animation handled by AuthFormWrapper
     } finally {
       setIsLoading(false);
     }
@@ -186,7 +185,11 @@ export default function SignUp() {
             </div>
 
               {/* Sign Up Form */}
-              <form id="signup-form" onSubmit={handleSubmit} className="mt-6">
+              <AuthFormWrapper 
+                formId="signup-form" 
+                onSubmit={handleSubmit} 
+                isLoading={isLoading}
+              >
                 <div className="space-y-4">
                   <FormInput
                     label="Full name"
@@ -297,7 +300,7 @@ export default function SignUp() {
                     "Create your account"
                   )}
                 </Button>
-              </form>
+              </AuthFormWrapper>
             </div>
           </div>
         </div>

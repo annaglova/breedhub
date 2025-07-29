@@ -10,6 +10,8 @@ interface EmailInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElemen
   helperText?: string;
   required?: boolean;
   fieldClassName?: string;
+  touched?: boolean;
+  icon?: React.ReactNode;
 }
 
 export const EmailInput = forwardRef<HTMLInputElement, EmailInputProps>(
@@ -20,21 +22,39 @@ export const EmailInput = forwardRef<HTMLInputElement, EmailInputProps>(
     required, 
     className, 
     fieldClassName,
+    touched = true,
+    icon,
     ...props 
   }, ref) => {
+    const [isFocused, setIsFocused] = React.useState(false);
+    const hasError = touched && error;
+    const defaultIcon = <Mail className="h-4 w-4" />;
     const inputElement = (
       <div className="relative">
-        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
-          <Mail className="h-4 w-4" />
+        <div className={cn(
+          "absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none transition-colors z-10",
+          hasError ? "text-red-400" : "text-gray-400",
+          isFocused && !hasError && "text-primary-600"
+        )}>
+          {icon || defaultIcon}
         </div>
         <Input
           ref={ref}
           type="email"
           className={cn(
-            "pl-10",
+            "transition-all pl-10",
+            hasError && "border-red-500 focus:ring-red-500",
+            isFocused && !hasError && "border-primary-500 ring-2 ring-primary-500/20",
             className
           )}
           autoComplete="email"
+          aria-invalid={hasError ? "true" : undefined}
+          aria-describedby={hasError ? `${props.id}-error` : undefined}
+          onFocus={() => setIsFocused(true)}
+          onBlur={(e) => {
+            setIsFocused(false);
+            props.onBlur?.(e);
+          }}
           {...props}
         />
       </div>
@@ -44,10 +64,15 @@ export const EmailInput = forwardRef<HTMLInputElement, EmailInputProps>(
       return (
         <FormField
           label={label}
-          error={error}
-          helperText={!error ? helperText : undefined}
+          error={hasError ? error : undefined}
+          helperText={!hasError ? helperText : undefined}
           required={required}
           className={fieldClassName}
+          labelClassName={cn(
+            "transition-colors",
+            hasError && "text-red-600",
+            isFocused && !hasError && "text-primary-600"
+          )}
         >
           {inputElement}
         </FormField>

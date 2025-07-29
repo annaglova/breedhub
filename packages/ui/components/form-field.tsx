@@ -9,15 +9,16 @@ interface FormFieldProps {
   helperText?: string;
   required?: boolean;
   className?: string;
+  labelClassName?: string;
   children: React.ReactElement;
 }
 
 export const FormField = forwardRef<HTMLDivElement, FormFieldProps>(
-  ({ label, error, helperText, required, className, children }, ref) => {
+  ({ label, error, helperText, required, className, labelClassName, children }, ref) => {
     return (
       <div ref={ref} className={cn("", className)}>
         {label && (
-          <Label className="block text-base font-medium text-gray-700 mb-1">
+          <Label className={cn("block text-base font-medium text-gray-700 mb-1", labelClassName)}>
             {label}
             {required && <span className="text-warning-500 ml-1">*</span>}
           </Label>
@@ -39,7 +40,7 @@ export const FormField = forwardRef<HTMLDivElement, FormFieldProps>(
           {error ? (
             <p
               id={`${children.props.id}-error`}
-              className="text-warning-500 text-sm text-left flex items-center"
+              className="text-warning-500 text-sm text-left flex items-center animate-slideDown"
             >
               <AlertCircle className="h-3 w-3 mr-1 flex-shrink-0" />
               <span>{error}</span>
