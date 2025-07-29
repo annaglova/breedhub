@@ -23,7 +23,7 @@ export const FormInput = forwardRef<HTMLInputElement, FormInputProps>(
     const hasError = touched && error;
 
     return (
-      <div className="space-y-2">
+      <div className="space-y-1">
         {label && (
           <Label 
             htmlFor={props.id} 
