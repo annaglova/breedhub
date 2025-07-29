@@ -5,7 +5,7 @@ import {
   YEARLY_NUMBER,
   type Tier,
 } from "@/constants/pricing";
-import { NumberInput } from "@ui/components/form-inputs/number-input";
+import { Input } from "@ui/components/input";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import "./TierSelector.css";
@@ -203,26 +203,40 @@ export default function TierSelector({
                     <div className="flex gap-2 justify-center">
                       <span className="text-3xl font-bold mr-1">$</span>
 
-                      <NumberInput
-                        value={customPrice}
-                        onChange={(e) => {
-                          setCustomPrice(e.target.value);
+                      <div className="w-full">
+                        <Input
+                          type="number"
+                          value={customPrice}
+                          onChange={(e) => {
+                            setCustomPrice(e.target.value);
 
-                          // Show error if out of bounds
-                          const numValue = Number(e.target.value);
-                          if (e.target.value && numValue < 20) {
-                            setPriceError("Minimum amount is $20");
-                          } else if (e.target.value && numValue > 100) {
-                            setPriceError("Maximum amount is $100");
-                          } else {
-                            setPriceError("");
-                          }
-                        }}
-                        min={20}
-                        max={100}
-                        className="text-xl font-bold text-center w-full "
-                        error={priceError}
-                      />
+                            // Show error if out of bounds
+                            const numValue = Number(e.target.value);
+                            if (e.target.value && numValue < 20) {
+                              setPriceError("Minimum amount is $20");
+                            } else if (e.target.value && numValue > 100) {
+                              setPriceError("Maximum amount is $100");
+                            } else {
+                              setPriceError("");
+                            }
+                          }}
+                          onBlur={(e) => {
+                            const numValue = Number(e.target.value);
+                            if (!e.target.value || numValue < 20) {
+                              setCustomPrice("20");
+                              setPriceError("");
+                            } else if (numValue > 100) {
+                              setCustomPrice("100");
+                              setPriceError("");
+                            }
+                          }}
+                          className="text-xl font-bold text-center"
+                          variant={priceError ? "destructive" : "default"}
+                        />
+                        {priceError && (
+                          <div className="text-warning-500 text-sm mt-1 text-left">{priceError}</div>
+                        )}
+                      </div>
 
                       <span className="text-gray-600 uppercase text-md  max-w-14">
                         per month
