@@ -1,3 +1,4 @@
+import { zodResolver } from "@hookform/resolvers/zod";
 import FooterFigure from "@shared/assets/backgrounds/footer-figure.svg?react";
 import { AuthButton } from "@shared/components/auth/AuthButton";
 import { AuthFooter } from "@shared/components/auth/AuthFooter";
@@ -6,9 +7,9 @@ import { EnhancedSocialLoginButtons } from "@shared/components/auth/EnhancedSoci
 import { PasswordStrength } from "@shared/components/auth/PasswordStrength";
 import { Spinner } from "@shared/components/auth/Spinner";
 import { TextInput, EmailInput, PasswordInput } from "@ui/components/form-inputs";
-import { useEmailValidation } from "@shared/hooks/useEmailValidation";
 import { useRateLimiter } from "@shared/hooks/useRateLimiter";
 import AuthLayout from "@shared/layouts/AuthLayout";
+import { signUpSchema, type SignUpFormData } from "@shared/utils/authSchemas";
 import {
   hashForLogging,
   logSecurityEvent,
@@ -29,88 +30,50 @@ import {
   UserPlus,
 } from "lucide-react";
 import { useState } from "react";
+import { useForm } from "react-hook-form";
 import { Link, useNavigate } from "react-router-dom";
 
 export default function SignUp() {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [authMode, setAuthMode] = useState<"social" | "email">("social");
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    password: "",
-    kennel: "",
-    agreements: false,
-  });
-  const [errors, setErrors] = useState({
-    name: "",
-    email: "",
-    password: "",
-    agreements: "",
-    general: "",
-  });
-  const [touched, setTouched] = useState({
-    name: false,
-    email: false,
-    password: false,
-    kennel: false,
-  });
+  const [generalError, setGeneralError] = useState("");
 
-  const { validateEmail, error: emailError } = useEmailValidation();
   const { checkRateLimit, recordAttempt } = useRateLimiter("registration");
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setErrors({
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, touchedFields },
+    watch,
+    setValue,
+  } = useForm<SignUpFormData>({
+    resolver: zodResolver(signUpSchema),
+    mode: "onTouched",
+    defaultValues: {
       name: "",
       email: "",
       password: "",
-      agreements: "",
-      general: "",
-    });
-    setTouched({ name: true, email: true, password: true, kennel: true });
+      kennel: "",
+      agreements: false,
+    },
+  });
+
+  const watchPassword = watch("password");
+
+  const onSubmit = async (data: SignUpFormData) => {
+    setGeneralError("");
 
     // Check rate limit first
-    const rateLimitCheck = checkRateLimit(formData.email);
+    const rateLimitCheck = checkRateLimit(data.email);
     if (!rateLimitCheck.allowed) {
-      setErrors((prev) => ({
-        ...prev,
-        general: rateLimitCheck.message || secureErrorMessages.tooManyAttempts,
-      }));
+      setGeneralError(
+        rateLimitCheck.message || secureErrorMessages.tooManyAttempts
+      );
       logSecurityEvent({
         type: "rate_limit",
-        email: hashForLogging(formData.email),
+        email: hashForLogging(data.email),
       });
-      return;
-    }
-
-    // Validation
-    if (!formData.name || formData.name.trim().length < 2) {
-      setErrors((prev) => ({ ...prev, name: "Please enter your full name" }));
-      return;
-    }
-
-    const isEmailValid = await validateEmail(formData.email);
-    if (!isEmailValid) {
-      setErrors((prev) => ({ ...prev, email: emailError }));
-      return;
-    }
-
-    // Validate password strength
-    const passwordValidation = validatePasswordStrength(formData.password);
-    if (!passwordValidation.isValid) {
-      setErrors((prev) => ({
-        ...prev,
-        password: passwordValidation.errors[0],
-      }));
-      return;
-    }
-
-    if (!formData.agreements) {
-      setErrors((prev) => ({
-        ...prev,
-        agreements: secureErrorMessages.termsRequired,
-      }));
       return;
     }
 
@@ -118,16 +81,16 @@ export default function SignUp() {
 
     try {
       // Record the attempt
-      recordAttempt(formData.email);
+      recordAttempt(data.email);
 
       // Log the attempt
       logSecurityEvent({
         type: "registration",
-        email: hashForLogging(formData.email),
+        email: hashForLogging(data.email),
       });
 
       // TODO: Implement actual registration
-      await new Promise((resolve, reject) =>
+      await new Promise((resolve) =>
         setTimeout(() => {
           // Simulate success for demo
           resolve(true);
@@ -138,7 +101,7 @@ export default function SignUp() {
     } catch (error) {
       // Use secure error message
       const errorMessage = sanitizeErrorMessage(error);
-      setErrors({ ...errors, general: errorMessage });
+      setGeneralError(errorMessage);
 
       // Shake animation handled by AuthFormWrapper
     } finally {
@@ -154,7 +117,7 @@ export default function SignUp() {
       await new Promise((resolve) => setTimeout(resolve, 1000));
       navigate("/confirmation-required");
     } catch (error) {
-      setErrors({ ...errors, general: `${provider} sign up failed` });
+      setGeneralError(`${provider} sign up failed`);
     }
   };
 
@@ -260,19 +223,16 @@ export default function SignUp() {
                   <div className="flex flex-col justify-center h-full">
                     <AuthFormWrapper
                       formId="signup-form"
-                      onSubmit={handleSubmit}
+                      onSubmit={handleSubmit(onSubmit)}
                       isLoading={isLoading}
                       className="mt-0"
                     >
                       <div className="space-y-3">
                         <TextInput
                           label="Full name"
-                          value={formData.name}
-                          onChange={(e) =>
-                            setFormData({ ...formData, name: e.target.value })
-                          }
-                          error={errors.name}
-                          touched={touched.name}
+                          {...register("name")}
+                          error={errors.name?.message}
+                          touched={touchedFields.name}
                           autoComplete="name"
                           icon={<User className="w-4 h-4" />}
                           aria-label="Full name"
@@ -281,12 +241,9 @@ export default function SignUp() {
 
                         <EmailInput
                           label="Email address"
-                          value={formData.email}
-                          onChange={(e) =>
-                            setFormData({ ...formData, email: e.target.value })
-                          }
-                          error={errors.email}
-                          touched={touched.email}
+                          {...register("email")}
+                          error={errors.email?.message}
+                          touched={touchedFields.email}
                           autoComplete="email"
                           icon={<Mail className="w-4 h-4" />}
                           aria-label="Email address"
@@ -296,23 +253,17 @@ export default function SignUp() {
                         <div>
                           <PasswordInput
                             label="Password"
-                            value={formData.password}
-                            onChange={(e) =>
-                              setFormData({
-                                ...formData,
-                                password: e.target.value,
-                              })
-                            }
-                            error={errors.password}
-                            touched={touched.password}
+                            {...register("password")}
+                            error={errors.password?.message}
+                            touched={touchedFields.password}
                             autoComplete="new-password"
                             showIcon
                             aria-label="Password"
                             placeholder="Create a password"
                           />
-                          {formData.password && (
+                          {watchPassword && (
                             <PasswordStrength
-                              password={formData.password}
+                              password={watchPassword}
                               className="mt-2"
                             />
                           )}
@@ -320,12 +271,9 @@ export default function SignUp() {
 
                         <TextInput
                           label="Kennel (optional)"
-                          value={formData.kennel}
-                          onChange={(e) =>
-                            setFormData({ ...formData, kennel: e.target.value })
-                          }
-                          error=""
-                          touched={touched.kennel}
+                          {...register("kennel")}
+                          error={errors.kennel?.message}
+                          touched={touchedFields.kennel}
                           icon={<Building className="w-4 h-4" />}
                           aria-label="Kennel name"
                           placeholder="Enter your kennel name"
@@ -335,13 +283,7 @@ export default function SignUp() {
                           <div className="flex items-start">
                             <Checkbox
                               id="agreements"
-                              checked={formData.agreements}
-                              onCheckedChange={(checked) =>
-                                setFormData({
-                                  ...formData,
-                                  agreements: !!checked,
-                                })
-                              }
+                              {...register("agreements")}
                               className={
                                 errors.agreements ? "border-red-500" : ""
                               }
@@ -368,17 +310,17 @@ export default function SignUp() {
                           </div>
                           {errors.agreements && (
                             <p className="text-sm text-red-600 ml-6">
-                              {errors.agreements}
+                              {errors.agreements.message}
                             </p>
                           )}
                         </div>
                       </div>
 
-                      {errors.general && (
-                        <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-md animate-slideDown">
+                      {generalError && (
+                        <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-md animate-fadeIn">
                           <p className="text-sm text-red-600 flex items-center">
                             <AlertCircle className="w-4 h-4 mr-2" />
-                            {errors.general}
+                            {generalError}
                           </p>
                         </div>
                       )}
