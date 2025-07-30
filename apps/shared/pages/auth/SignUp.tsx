@@ -3,9 +3,9 @@ import { AuthButton } from "@shared/components/auth/AuthButton";
 import { AuthFooter } from "@shared/components/auth/AuthFooter";
 import { AuthHeader } from "@shared/components/auth/AuthHeader";
 import { EnhancedSocialLoginButtons } from "@shared/components/auth/EnhancedSocialLoginButtons";
-import { FormInput } from "@shared/components/auth/FormInput";
 import { PasswordStrength } from "@shared/components/auth/PasswordStrength";
 import { Spinner } from "@shared/components/auth/Spinner";
+import { TextInput, EmailInput, PasswordInput } from "@ui/components/form-inputs";
 import { useEmailValidation } from "@shared/hooks/useEmailValidation";
 import { useRateLimiter } from "@shared/hooks/useRateLimiter";
 import AuthLayout from "@shared/layouts/AuthLayout";
@@ -34,7 +34,6 @@ import { Link, useNavigate } from "react-router-dom";
 export default function SignUp() {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
   const [authMode, setAuthMode] = useState<"social" | "email">("social");
   const [formData, setFormData] = useState({
     name: "",
@@ -266,9 +265,8 @@ export default function SignUp() {
                       className="mt-0"
                     >
                       <div className="space-y-3">
-                        <FormInput
+                        <TextInput
                           label="Full name"
-                          type="text"
                           value={formData.name}
                           onChange={(e) =>
                             setFormData({ ...formData, name: e.target.value })
@@ -278,11 +276,11 @@ export default function SignUp() {
                           autoComplete="name"
                           icon={<User className="w-4 h-4" />}
                           aria-label="Full name"
+                          placeholder="Enter your full name"
                         />
 
-                        <FormInput
+                        <EmailInput
                           label="Email address"
-                          type="email"
                           value={formData.email}
                           onChange={(e) =>
                             setFormData({ ...formData, email: e.target.value })
@@ -292,12 +290,12 @@ export default function SignUp() {
                           autoComplete="email"
                           icon={<Mail className="w-4 h-4" />}
                           aria-label="Email address"
+                          placeholder="Enter your email"
                         />
 
                         <div>
-                          <FormInput
+                          <PasswordInput
                             label="Password"
-                            type={showPassword ? "text" : "password"}
                             value={formData.password}
                             onChange={(e) =>
                               setFormData({
@@ -308,10 +306,9 @@ export default function SignUp() {
                             error={errors.password}
                             touched={touched.password}
                             autoComplete="new-password"
-                            icon={<Lock className="w-4 h-4" />}
-                            showPasswordToggle
-                            onPasswordToggleChange={setShowPassword}
+                            showIcon
                             aria-label="Password"
+                            placeholder="Create a password"
                           />
                           {formData.password && (
                             <PasswordStrength
@@ -321,9 +318,8 @@ export default function SignUp() {
                           )}
                         </div>
 
-                        <FormInput
+                        <TextInput
                           label="Kennel (optional)"
-                          type="text"
                           value={formData.kennel}
                           onChange={(e) =>
                             setFormData({ ...formData, kennel: e.target.value })
@@ -332,6 +328,7 @@ export default function SignUp() {
                           touched={touched.kennel}
                           icon={<Building className="w-4 h-4" />}
                           aria-label="Kennel name"
+                          placeholder="Enter your kennel name"
                         />
 
                         <div className="space-y-1 py-1">

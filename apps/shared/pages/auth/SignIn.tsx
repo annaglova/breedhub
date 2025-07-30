@@ -3,8 +3,8 @@ import FooterFigure from "@shared/assets/backgrounds/footer-figure.svg?react";
 import { AuthFooter } from "@shared/components/auth/AuthFooter";
 import { AuthHeader } from "@shared/components/auth/AuthHeader";
 import { EnhancedSocialLoginButtons } from "@shared/components/auth/EnhancedSocialLoginButtons";
-import { FormInput } from "@shared/components/auth/FormInput";
 import { Spinner } from "@shared/components/auth/Spinner";
+import { EmailInput, PasswordInput } from "@ui/components/form-inputs";
 import { useRateLimiter } from "@shared/hooks/useRateLimiter";
 import AuthLayout from "@shared/layouts/AuthLayout";
 import { signInSchema, type SignInFormData } from "@shared/utils/authSchemas";
@@ -27,7 +27,6 @@ export default function SignIn() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [isLoading, setIsLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
   const [generalError, setGeneralError] = useState("");
   const [authMode, setAuthMode] = useState<"social" | "email">("social");
 
@@ -241,28 +240,26 @@ export default function SignIn() {
                       className="mt-0"
                     >
                       <div className="space-y-4">
-                        <FormInput
+                        <EmailInput
                           label="Email address"
-                          type="email"
                           {...register("email")}
                           error={errors.email?.message}
                           touched={touchedFields.email}
                           autoComplete="email"
                           icon={<Mail className="w-4 h-4" />}
                           aria-label="Email address"
+                          placeholder="Enter your email"
                         />
 
-                        <FormInput
+                        <PasswordInput
                           label="Password"
-                          type={showPassword ? "text" : "password"}
                           {...register("password")}
                           error={errors.password?.message}
                           touched={touchedFields.password}
                           autoComplete="current-password"
-                          icon={<Lock className="w-4 h-4" />}
-                          showPasswordToggle
-                          onPasswordToggleChange={setShowPassword}
+                          showIcon
                           aria-label="Password"
+                          placeholder="Enter your password"
                         />
 
                         {generalError && (
