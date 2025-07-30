@@ -40,7 +40,7 @@ export const FormField = forwardRef<HTMLDivElement, FormFieldProps>(
           {error ? (
             <p
               id={`${children.props.id}-error`}
-              className="text-warning-500 text-sm text-left flex items-center animate-slideDown"
+              className="text-warning-500 text-sm text-left flex items-center animate-fadeIn"
             >
               <AlertCircle className="h-3 w-3 mr-1 flex-shrink-0" />
               <span>{error}</span>

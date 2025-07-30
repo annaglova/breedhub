@@ -9,13 +9,14 @@ import { Label } from '@ui/components/label';
 import { Alert } from '@ui/components/alert';
 import { Checkbox } from '@ui/components/checkbox';
 import { useAuth } from '@/core/auth';
+import { emailValidator, passwordValidator, nameValidator, mustBeTrue, requiredString } from '@shared/utils/validation';
 
 const registerSchema = z.object({
-  fullName: z.string().min(2, 'Full name must be at least 2 characters'),
-  email: z.string().email('Please enter a valid email address'),
-  password: z.string().min(8, 'Password must be at least 8 characters'),
-  confirmPassword: z.string(),
-  agreedToTerms: z.boolean().refine(val => val === true, 'You must agree to the terms and conditions'),
+  fullName: nameValidator,
+  email: emailValidator,
+  password: passwordValidator,
+  confirmPassword: requiredString('Password confirmation'),
+  agreedToTerms: mustBeTrue('You must agree to the terms and conditions'),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Passwords don't match",
   path: ["confirmPassword"],
