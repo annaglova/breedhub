@@ -1,7 +1,7 @@
 import FooterFigure from "@shared/assets/backgrounds/footer-figure.svg?react";
 import { AuthFooter } from "@shared/components/auth/AuthFooter";
 import { AuthHeader } from "@shared/components/auth/AuthHeader";
-import { FormInput } from "@shared/components/auth/FormInput";
+import { EmailInput, PasswordInput } from "@ui/components/form-inputs";
 import { SocialLoginButtons } from "@shared/components/auth/SocialLoginButtons";
 import { AuthFormWrapper } from "@ui/components/auth-forms";
 import { Spinner } from "@shared/components/auth/Spinner";
@@ -22,7 +22,6 @@ export default function SignInWithI18n() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [isLoading, setIsLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
   const [generalError, setGeneralError] = useState("");
   const t = useTranslations();
   
@@ -184,28 +183,26 @@ export default function SignInWithI18n() {
                 isLoading={isLoading}
               >
                 <div className="space-y-4">
-                  <FormInput
+                  <EmailInput
                     label={t.auth.signIn.emailLabel}
-                    type="email"
                     {...register("email")}
                     error={errors.email?.message}
                     touched={touchedFields.email}
                     autoComplete="email"
                     icon={<Mail className="w-4 h-4" />}
                     aria-label={t.auth.signIn.emailLabel}
+                    placeholder={t.auth.signIn.emailPlaceholder || "Enter your email"}
                   />
 
-                  <FormInput
+                  <PasswordInput
                     label={t.auth.signIn.passwordLabel}
-                    type={showPassword ? "text" : "password"}
                     {...register("password")}
                     error={errors.password?.message}
                     touched={touchedFields.password}
                     autoComplete="current-password"
-                    icon={<Lock className="w-4 h-4" />}
-                    showPasswordToggle
-                    onPasswordToggleChange={setShowPassword}
+                    showIcon
                     aria-label={t.auth.signIn.passwordLabel}
+                    placeholder={t.auth.signIn.passwordPlaceholder || "Enter your password"}
                   />
                 </div>
 

@@ -2,7 +2,7 @@ import FooterFigure from "@shared/assets/backgrounds/footer-figure.svg?react";
 import { AuthFooter } from "@shared/components/auth/AuthFooter";
 import { AuthHeader } from "@shared/components/auth/AuthHeader";
 import { AuthButton } from "@shared/components/auth/AuthButton";
-import { FormInput } from "@shared/components/auth/FormInput";
+import { PasswordInput } from "@ui/components/form-inputs";
 import { AuthFormWrapper } from "@ui/components/auth-forms";
 import { PasswordStrength } from "@shared/components/auth/PasswordStrength";
 import { Spinner } from "@shared/components/auth/Spinner";
@@ -20,8 +20,6 @@ export default function ResetPassword() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [isLoading, setIsLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
-  const [showPasswordConfirm, setShowPasswordConfirm] = useState(false);
   const [generalError, setGeneralError] = useState("");
   
   const {
@@ -117,32 +115,28 @@ export default function ResetPassword() {
               >
                 <div className="space-y-4">
                   <div>
-                    <FormInput
+                    <PasswordInput
                       label="New password"
-                      type={showPassword ? "text" : "password"}
                       {...register("password")}
                       error={errors.password?.message}
                       touched={touchedFields.password}
                       autoComplete="new-password"
-                      icon={<Lock className="w-4 h-4" />}
-                      showPasswordToggle
-                      onPasswordToggleChange={setShowPassword}
+                      showIcon
                       aria-label="New password"
+                      placeholder="Enter new password"
                     />
                     {watchPassword && <PasswordStrength password={watchPassword} className="mt-2" />}
                   </div>
 
-                  <FormInput
+                  <PasswordInput
                     label="Confirm new password"
-                    type={showPasswordConfirm ? "text" : "password"}
                     {...register("passwordConfirm")}
                     error={errors.passwordConfirm?.message}
                     touched={touchedFields.passwordConfirm}
                     autoComplete="new-password"
-                    icon={<Lock className="w-4 h-4" />}
-                    showPasswordToggle
-                    onPasswordToggleChange={setShowPasswordConfirm}
+                    showIcon
                     aria-label="Confirm new password"
+                    placeholder="Confirm new password"
                   />
                 </div>
 
