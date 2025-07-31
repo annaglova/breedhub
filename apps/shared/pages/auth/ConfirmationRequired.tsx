@@ -4,13 +4,16 @@ import { AuthHeader } from "@shared/components/auth/AuthHeader";
 import { AuthButton } from "@shared/components/auth/AuthButton";
 import AuthLayout from "@shared/layouts/AuthLayout";
 import { Button } from "@ui/components/button";
+import { useToast } from "@ui/hooks/use-toast";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Check } from "lucide-react";
+import { Spinner } from "@shared/components/auth/Spinner";
 
 export default function ConfirmationRequired() {
   const [isResending, setIsResending] = useState(false);
   const [resendSuccess, setResendSuccess] = useState(false);
+  const { toast } = useToast();
 
   const handleResendEmail = async () => {
     setIsResending(true);
@@ -20,7 +23,18 @@ export default function ConfirmationRequired() {
       // TODO: Implement actual resend logic
       await new Promise((resolve) => setTimeout(resolve, 1500));
       setResendSuccess(true);
+      
+      toast({
+        variant: "success",
+        title: "Email resent!",
+        description: "Check your inbox for the confirmation email.",
+      });
     } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Failed to resend",
+        description: "Unable to resend confirmation email. Please try again later.",
+      });
       console.error("Failed to resend email", error);
     } finally {
       setIsResending(false);

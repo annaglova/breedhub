@@ -9,17 +9,20 @@ import AuthLayout from "@shared/layouts/AuthLayout";
 import { resetPasswordSchema, type ResetPasswordFormData } from "@shared/utils/authSchemas";
 import { sanitizeErrorMessage, secureErrorMessages, logSecurityEvent } from "@shared/utils/securityUtils";
 import { Button } from "@ui/components/button";
+import { useToast } from "@ui/hooks/use-toast";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Key, Lock, AlertCircle } from "lucide-react";
+import { Spinner } from "@shared/components/auth/Spinner";
 
 export default function ResetPassword() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [isLoading, setIsLoading] = useState(false);
   const [generalError, setGeneralError] = useState("");
+  const { toast } = useToast();
   
   const {
     register,
@@ -57,7 +60,14 @@ export default function ResetPassword() {
       
       await new Promise((resolve) => setTimeout(resolve, 1000));
       
-      // Show success message and redirect
+      // Show success message
+      toast({
+        variant: "success",
+        title: "Password reset!",
+        description: "Your password has been successfully reset.",
+      });
+      
+      // Redirect
       navigate("/sign-in?reset=success");
     } catch (error) {
       const errorMessage = sanitizeErrorMessage(error);

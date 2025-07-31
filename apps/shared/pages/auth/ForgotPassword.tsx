@@ -9,16 +9,19 @@ import AuthLayout from "@shared/layouts/AuthLayout";
 import { secureErrorMessages, logSecurityEvent, hashForLogging } from "@shared/utils/securityUtils";
 import { forgotPasswordSchema, type ForgotPasswordFormData } from "@shared/utils/authSchemas";
 import { Button } from "@ui/components/button";
+import { useToast } from "@ui/hooks/use-toast";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Link } from "react-router-dom";
 import { HelpCircle, Mail } from "lucide-react";
+import { Spinner } from "@shared/components/auth/Spinner";
 
 export default function ForgotPassword() {
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [generalError, setGeneralError] = useState("");
+  const { toast } = useToast();
   
   const { checkRateLimit, recordAttempt } = useRateLimiter('passwordReset');
   
@@ -48,6 +51,11 @@ export default function ForgotPassword() {
         type: 'rate_limit',
         email: hashForLogging(data.email),
       });
+      toast({
+        variant: "destructive",
+        title: "Too many attempts",
+        description: rateLimitCheck.message || secureErrorMessages.tooManyAttempts,
+      });
       return;
     }
 
@@ -66,6 +74,12 @@ export default function ForgotPassword() {
       // TODO: Implement actual password reset
       await new Promise((resolve) => setTimeout(resolve, 1000));
       setIsSuccess(true);
+      
+      toast({
+        variant: "success",
+        title: "Email sent!",
+        description: "Check your inbox for password reset instructions.",
+      });
     } catch (error) {
       // Always show the same message for security (no user enumeration)
       setGeneralError(secureErrorMessages.resetFailed);

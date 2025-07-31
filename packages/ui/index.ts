@@ -26,7 +26,11 @@ export * from "./components/timeline";
 
 // Feedback Components
 export * from "./components/toast";
+export * from "./components/toaster";
 export * from "./components/alert";
 
 // Utility Components
 export * from "./components/tooltip";
+
+// Hooks
+export * from "./hooks/use-toast";

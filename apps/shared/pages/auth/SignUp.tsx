@@ -6,7 +6,9 @@ import { AuthHeader } from "@shared/components/auth/AuthHeader";
 import { EnhancedSocialLoginButtons } from "@shared/components/auth/EnhancedSocialLoginButtons";
 import { PasswordStrength } from "@shared/components/auth/PasswordStrength";
 import { LoadingButton } from "@shared/components/auth/LoadingButton";
+import { AuthPageWrapper } from "@shared/components/auth/AuthPageWrapper";
 import { useRateLimiter } from "@shared/hooks/useRateLimiter";
+import { useSwipeGesture } from "@shared/hooks/useSwipeGesture";
 import AuthLayout from "@shared/layouts/AuthLayout";
 import { signUpSchema, type SignUpFormData } from "@shared/utils/authSchemas";
 import {
@@ -23,6 +25,7 @@ import {
   PasswordInput,
   TextInput,
 } from "@ui/components/form-inputs";
+import { useToast } from "@ui/hooks/use-toast";
 import { cn } from "@ui/lib/utils";
 import { AlertCircle, Mail, User, UserPlus } from "lucide-react";
 import { useState } from "react";
@@ -34,6 +37,7 @@ export default function SignUp() {
   const [isLoading, setIsLoading] = useState(false);
   const [authMode, setAuthMode] = useState<"social" | "email">("social");
   const [generalError, setGeneralError] = useState("");
+  const { toast } = useToast();
 
   const { checkRateLimit, recordAttempt } = useRateLimiter("registration");
 
@@ -56,6 +60,20 @@ export default function SignUp() {
 
   const watchPassword = watch("password");
 
+  // Swipe gesture handlers
+  const swipeRef = useSwipeGesture<HTMLDivElement>({
+    onSwipeLeft: () => {
+      if (authMode === "social") {
+        setAuthMode("email");
+      }
+    },
+    onSwipeRight: () => {
+      if (authMode === "email") {
+        setAuthMode("social");
+      }
+    },
+  });
+
   const onSubmit = async (data: SignUpFormData) => {
     setGeneralError("");
 
@@ -68,6 +86,11 @@ export default function SignUp() {
       logSecurityEvent({
         type: "rate_limit",
         email: hashForLogging(data.email),
+      });
+      toast({
+        variant: "destructive",
+        title: "Too many attempts",
+        description: rateLimitCheck.message || secureErrorMessages.tooManyAttempts,
       });
       return;
     }
@@ -92,6 +115,12 @@ export default function SignUp() {
         }, 1000)
       );
 
+      toast({
+        variant: "success",
+        title: "Account created!",
+        description: "Please check your email to confirm your account.",
+      });
+
       navigate("/confirmation-required");
     } catch (error) {
       // Use secure error message
@@ -110,15 +139,28 @@ export default function SignUp() {
     try {
       // TODO: Implement social sign up
       await new Promise((resolve) => setTimeout(resolve, 1000));
+      
+      toast({
+        variant: "success",
+        title: "Account created!",
+        description: `Successfully signed up with ${provider}.`,
+      });
+      
       navigate("/confirmation-required");
     } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Sign up failed",
+        description: `Could not sign up with ${provider}. Please try again.`,
+      });
       setGeneralError(`${provider} sign up failed`);
     }
   };
 
   return (
-    <AuthLayout>
-      <div className="relative flex min-h-screen w-full flex-col">
+    <AuthPageWrapper>
+      <AuthLayout>
+        <div className="relative flex min-h-screen w-full flex-col">
         {/* Background SVG */}
         <div className="absolute bottom-0 w-full pointer-events-none z-0">
           <FooterFigure className="w-full h-auto" />
@@ -182,7 +224,7 @@ export default function SignUp() {
               </div>
 
               {/* Animated Content */}
-              <div className="relative h-auto sm:h-[360px]">
+              <div className="relative h-auto sm:h-[360px]" ref={swipeRef}>
                 {/* Social Sign Up Tab */}
                 <div
                   className={cn(
@@ -342,5 +384,6 @@ export default function SignUp() {
         <AuthFooter />
       </div>
     </AuthLayout>
+    </AuthPageWrapper>
   );
 }
