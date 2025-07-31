@@ -210,7 +210,7 @@ export default function SignIn() {
                       : "opacity-0 -translate-y-4 pointer-events-none sm:absolute hidden"
                   )}
                 >
-                  <div className="space-y-4">
+                  <div className="space-y-1">
                     <EnhancedSocialLoginButtons
                       onFacebookLogin={() => handleSocialLogin("facebook")}
                       onGoogleLogin={() => handleSocialLogin("google")}
