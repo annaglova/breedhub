@@ -86,7 +86,7 @@ export default function ForgotPassword() {
         {/* Header */}
         <AuthHeader rightContent={
           <div className="flex items-center gap-4">
-            <span className="hidden text-gray-600 sm:block">Return to</span>
+            <span className="hidden text-gray-700 sm:block">Return to</span>
             <AuthButton to="/sign-in">
               Login page
             </AuthButton>
@@ -109,7 +109,7 @@ export default function ForgotPassword() {
                   <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-gray-900">
                     Forgot password?
                   </h1>
-                  <p className="mt-1 text-sm text-gray-600">
+                  <p className="mt-1 text-sm text-gray-700">
                     Fill the form to reset your password
                   </p>
                 </div>
@@ -149,7 +149,7 @@ export default function ForgotPassword() {
                 </AuthFormWrapper>
 
                 {/* Back to login link */}
-                <p className="mt-6 text-center text-sm sm:text-base text-gray-600">
+                <p className="mt-6 text-center text-sm sm:text-base text-gray-700">
                   Remember your password?{" "}
                   <Link
                     to="/sign-in"
@@ -181,7 +181,7 @@ export default function ForgotPassword() {
                   <h2 className="mt-3 sm:mt-4 text-xl sm:text-2xl font-bold text-gray-900">
                     Check your email
                   </h2>
-                  <p className="mt-1 sm:mt-2 text-sm sm:text-base text-gray-600">
+                  <p className="mt-1 sm:mt-2 text-sm sm:text-base text-gray-700">
                     Password reset sent! You'll receive an email if you are registered on our system.
                   </p>
                   <p className="mt-1 text-sm sm:text-base text-gray-500">
