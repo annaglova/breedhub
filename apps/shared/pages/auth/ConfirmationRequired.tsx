@@ -49,13 +49,13 @@ export default function ConfirmationRequired() {
         />
 
         {/* Content */}
-        <div className="relative z-10 flex flex-1 items-center justify-center px-6 pb-8 pt-8 sm:px-8">
-          <div className="w-full max-w-md animate-scaleIn">
-            <div className="bg-white rounded-2xl shadow-xl p-8 sm:p-10 border border-gray-100">
+        <div className="relative z-10 flex flex-1 items-start sm:items-center justify-center px-0 sm:px-6 pb-4 sm:pb-8 pt-2 sm:pt-4">
+          <div className="w-full sm:max-w-md animate-scaleIn">
+            <div className="bg-transparent sm:bg-white rounded-none sm:rounded-xl sm:shadow-xl p-4 sm:p-6 lg:p-8 sm:border sm:border-gray-100">
               {/* Icon */}
-              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-purple-100 shadow-sm">
+              <div className="mx-auto flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-purple-100 shadow-sm">
                 <svg
-                  className="h-8 w-8 text-purple-600"
+                  className="h-5 w-5 sm:w-6 sm:h-6 text-purple-600"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -70,11 +70,11 @@ export default function ConfirmationRequired() {
               </div>
 
               {/* Title */}
-              <div className="mt-6 text-center">
-                <h1 className="text-3xl font-bold tracking-tight text-gray-900">
+              <div className="mt-3 sm:mt-4 text-center mb-4 sm:mb-6">
+                <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-gray-900">
                   Confirmation required
                 </h1>
-                <p className="mt-4 text-base text-gray-600">
+                <p className="mt-2 sm:mt-3 text-sm sm:text-base text-gray-600">
                   A confirmation mail with instructions has been sent to your
                   email address. Follow those instructions to confirm your email
                   address and activate your account.
@@ -82,11 +82,11 @@ export default function ConfirmationRequired() {
               </div>
 
               {/* Tips */}
-              <div className="mt-8 rounded-lg bg-gray-50 p-4">
-                <h3 className="text-base font-medium text-gray-900">
+              <div className="mt-4 sm:mt-6 rounded-lg bg-gray-50 p-3 sm:p-4">
+                <h3 className="text-sm sm:text-base font-medium text-gray-900">
                   Didn't receive an email?
                 </h3>
-                <ul className="mt-2 space-y-1 text-base text-gray-600">
+                <ul className="mt-2 space-y-1 text-xs sm:text-sm text-gray-600">
                   <li>• Check your spam or junk folder</li>
                   <li>• Verify that you entered the correct email address</li>
                   <li>• Wait a few minutes for the email to arrive</li>
@@ -98,7 +98,7 @@ export default function ConfirmationRequired() {
                 type="button"
                 onClick={handleResendEmail}
                 disabled={isResending || resendSuccess}
-                className="mt-6 w-full text-center text-base text-primary-600 hover:text-primary-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center"
+                className="mt-4 sm:mt-6 w-full text-center text-sm sm:text-base text-primary-600 hover:text-primary-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center"
               >
                 {isResending ? (
                   <>

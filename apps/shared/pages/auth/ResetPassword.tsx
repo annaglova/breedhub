@@ -89,20 +89,20 @@ export default function ResetPassword() {
         } />
 
         {/* Content */}
-        <div className="relative z-10 flex flex-1 items-center justify-center px-6 pb-8 pt-8 sm:px-8">
-          <div className="w-full max-w-md animate-scaleIn">
-            <div className="bg-white rounded-2xl shadow-xl p-8 sm:p-10 border border-gray-100">
+        <div className="relative z-10 flex flex-1 items-start sm:items-center justify-center px-0 sm:px-6 pb-4 sm:pb-8 pt-2 sm:pt-4">
+          <div className="w-full sm:max-w-md animate-scaleIn">
+            <div className="bg-transparent sm:bg-white rounded-none sm:rounded-xl sm:shadow-xl p-4 sm:p-6 lg:p-8 sm:border sm:border-gray-100">
             {/* Icon */}
-            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-purple-100 shadow-sm mb-6">
-              <Key className="w-8 h-8 text-purple-600" />
+            <div className="mx-auto flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-purple-100 shadow-sm mb-3 sm:mb-4">
+              <Key className="w-5 h-5 sm:w-6 sm:h-6 text-purple-600" />
             </div>
 
             {/* Title */}
-            <div className="text-center">
-              <h1 className="text-3xl font-bold tracking-tight text-gray-900">
+            <div className="text-center mb-4 sm:mb-6">
+              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-gray-900">
                 Reset your password
               </h1>
-              <p className="mt-2 text-base text-gray-600">
+              <p className="mt-1 text-sm text-gray-600">
                 Create a new password for your account
               </p>
             </div>
@@ -112,9 +112,9 @@ export default function ResetPassword() {
                 formId="reset-form" 
                 onSubmit={handleSubmit(onSubmit)} 
                 isLoading={isLoading}
-                className="mt-8"
+                className="mt-0"
               >
-                <div className="space-y-4">
+                <div className="space-y-1">
                   <div>
                     <PasswordInput
                       label="New password"
@@ -126,7 +126,11 @@ export default function ResetPassword() {
                       aria-label="New password"
                       placeholder="Enter new password"
                     />
-                    {watchPassword && <PasswordStrength password={watchPassword} className="mt-2" />}
+                    <div className="h-12 mt-2">
+                      {watchPassword && (
+                        <PasswordStrength password={watchPassword} />
+                      )}
+                    </div>
                   </div>
 
                   <PasswordInput
@@ -153,7 +157,7 @@ export default function ResetPassword() {
                 <Button
                   type="submit"
                   disabled={isLoading}
-                  className="mt-6 w-full landing-raised-button landing-raised-button-primary relative"
+                  className="mt-6 w-full h-12 bg-primary-500 hover:bg-primary-600 text-white text-base font-semibold rounded-xl transition-all transform hover:scale-[1.02] hover:shadow-lg"
                 >
                   {isLoading ? (
                     <div className="flex items-center justify-center">

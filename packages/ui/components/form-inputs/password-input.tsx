@@ -2,7 +2,13 @@ import React, { forwardRef, useState } from "react";
 import { Input } from "../input";
 import { FormField } from "../form-field";
 import { cn } from "@ui/lib/utils";
-import { Eye, EyeOff, Lock, Check } from "lucide-react";
+import { Eye, EyeOff, Lock, Check, Info, AlertCircle } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "../tooltip";
 
 interface PasswordInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'type'> {
   label?: string;
@@ -169,21 +175,53 @@ export const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(
 
     if (label || error || helperText) {
       return (
-        <FormField
-          label={label}
-          error={hasError ? error : undefined}
-          helperText={!hasError ? helperText : undefined}
-          required={required}
-          className={fieldClassName}
-          labelClassName={cn(
-            "transition-colors",
-            hasError ? "text-red-600" :
-            isValid ? "text-green-600" :
-            "text-gray-700 group-focus-within:text-primary-600"
+        <div className={cn("group", fieldClassName)}>
+          {label && (
+            <div className={cn(
+              "flex items-center gap-1 mb-1",
+              "text-base font-medium transition-colors",
+              hasError ? "text-red-600" :
+              isValid ? "text-green-600" :
+              "text-gray-700 group-focus-within:text-primary-600"
+            )}>
+              <span>{label}</span>
+              {required && <span className="text-warning-500">*</span>}
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button type="button" className="inline-flex items-center p-0 border-0 bg-transparent">
+                      <Info className="h-3.5 w-3.5 text-gray-400 hover:text-gray-600 cursor-help" />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent side="top" align="center">
+                    <div className="text-sm">
+                      <p className="font-medium mb-1">Password requirements:</p>
+                      <ul className="space-y-0.5">
+                        <li>• At least 8 characters</li>
+                        <li>• One uppercase letter (A-Z)</li>
+                        <li>• One lowercase letter (a-z)</li>
+                        <li>• One number (0-9)</li>
+                      </ul>
+                    </div>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
           )}
-        >
           {inputElement}
-        </FormField>
+          <div className="h-5 mt-1">
+            {hasError && error ? (
+              <p className="text-warning-500 text-sm text-left flex items-center animate-fadeIn">
+                <AlertCircle className="h-3 w-3 mr-1 flex-shrink-0" />
+                <span>{error}</span>
+              </p>
+            ) : !hasError && helperText ? (
+              <p className="text-gray-500 text-sm text-left">
+                {helperText}
+              </p>
+            ) : null}
+          </div>
+        </div>
       );
     }
 
