@@ -130,6 +130,90 @@
   }
 
   /* Removed global focus-visible styles to allow custom input focus styles */
+  
+  /* Remove default browser outline on all elements */
+  *:focus {
+    outline: none !important;
+  }
+  
+  *:focus-visible {
+    outline: none !important;
+  }
+  
+  /* Specific rules for form elements */
+  input:focus,
+  input:focus-visible,
+  textarea:focus,
+  textarea:focus-visible,
+  select:focus,
+  select:focus-visible,
+  button:focus,
+  button:focus-visible {
+    outline: none !important;
+    outline-width: 0 !important;
+    outline-style: none !important;
+  }
+  
+  /* Remove webkit default styling */
+  input::-webkit-outer-spin-button,
+  input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  
+  input[type=number] {
+    -moz-appearance: textfield;
+  }
+  
+  /* Remove outline from buttons and during screenshots */
+  button:focus,
+  button:focus-visible,
+  button:focus-within,
+  button:active,
+  button[type="button"]:focus,
+  button[type="button"]:focus-visible,
+  button[type="button"]:focus-within,
+  button[type="button"]:active,
+  [role="button"]:focus,
+  [role="button"]:focus-visible {
+    outline: none !important;
+    outline-width: 0 !important;
+    outline-offset: 0 !important;
+  }
+  
+  /* Remove outline during print/screenshot capture */
+  @media print {
+    button,
+    button:focus,
+    button:focus-visible {
+      outline: none !important;
+    }
+  }
+  
+  /* Force remove outline with higher specificity */
+  .flex.rounded-lg.bg-gray-100 button:focus,
+  .flex.rounded-lg.bg-gray-100 button:focus-visible {
+    outline: none !important;
+  }
+  
+  /* Remove box-shadow from tab buttons */
+  .flex.rounded-lg.bg-gray-100 button {
+    --tw-ring-offset-shadow: 0 0 transparent !important;
+    --tw-ring-shadow: 0 0 transparent !important;
+    --tw-shadow: 0 0 transparent !important;
+    box-shadow: none !important;
+  }
+  
+  /* Ensure shadow is removed in all states */
+  .flex.rounded-lg.bg-gray-100 button:focus,
+  .flex.rounded-lg.bg-gray-100 button:focus-visible,
+  .flex.rounded-lg.bg-gray-100 button:active,
+  .flex.rounded-lg.bg-gray-100 button:hover {
+    --tw-ring-offset-shadow: 0 0 transparent !important;
+    --tw-ring-shadow: 0 0 transparent !important;
+    --tw-shadow: 0 0 transparent !important;
+    box-shadow: none !important;
+  }
 
   body {
     background: #fff;

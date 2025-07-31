@@ -29,8 +29,8 @@ button.bg-destructive:active:not(:disabled) {
 
 /* Focus styles for all buttons */
 button:focus-visible {
-  outline: 2px solid rgb(var(--primary-400)) !important;
-  outline-offset: 2px !important;
+  outline: none !important;
+  box-shadow: 0 0 0 3px rgb(var(--primary-400) / 0.2) !important;
 }
 
 /* Removed PrimeReact button styles - using custom design system */
