@@ -4,7 +4,6 @@ import { AuthHeader } from "@shared/components/auth/AuthHeader";
 import { AuthButton } from "@shared/components/auth/AuthButton";
 import { EmailInput } from "@ui/components/form-inputs";
 import { AuthFormWrapper } from "@ui/components/auth-forms";
-import { Spinner } from "@shared/components/auth/Spinner";
 import { useRateLimiter } from "@shared/hooks/useRateLimiter";
 import AuthLayout from "@shared/layouts/AuthLayout";
 import { secureErrorMessages, logSecurityEvent, hashForLogging } from "@shared/utils/securityUtils";
