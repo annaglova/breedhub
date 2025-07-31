@@ -3,7 +3,6 @@ import { Input } from "../input";
 import { FormField } from "../form-field";
 import { cn } from "@ui/lib/utils";
 import { Eye, EyeOff, Lock, Check } from "lucide-react";
-import { determineFieldState, getFieldStateClasses } from "@ui/lib/form-utils";
 
 interface PasswordInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'type'> {
   label?: string;
@@ -60,22 +59,9 @@ export const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(
   }, ref) => {
     const [showPassword, setShowPassword] = useState(false);
     const [strength, setStrength] = useState({ score: 0, label: "", color: "" });
-    const [isFocused, setIsFocused] = React.useState(false);
-    const [isHovered, setIsHovered] = React.useState(false);
     
     const hasError = touched && !!error;
     const isValid = touched && !error && value && value !== "";
-    
-    const fieldState = determineFieldState({
-      isFocused,
-      isHovered,
-      hasError,
-      isValid,
-      isDisabled: props.disabled,
-      touched,
-    });
-    
-    const stateClasses = getFieldStateClasses(fieldState, showIcon);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       const newValue = e.target.value;
@@ -90,43 +76,38 @@ export const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(
     };
 
     const inputElement = (
-      <>
-        <div 
-          className="relative"
-          onMouseEnter={() => setIsHovered(true)}
-          onMouseLeave={() => setIsHovered(false)}
-        >
-          {showIcon && (
-            <div className={cn(
-              "absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none transition-colors z-10",
-              stateClasses.icon
-            )}>
-              <Lock className="h-4 w-4" />
-            </div>
-          )}
+      <div className="group/field relative">
           <Input
             ref={ref}
             type={showPassword ? "text" : "password"}
             value={value}
             onChange={handleChange}
             className={cn(
-              stateClasses.input,
-              "pr-10",
-              isValid && "pr-16",
+              "peer transition-all duration-200 pr-10",
+              props.disabled && "bg-gray-50 border-gray-200 text-gray-500 cursor-not-allowed",
+              hasError && "border-red-500 hover:border-red-600 focus:border-red-500 focus:ring-2 focus:ring-red-500/20",
+              isValid && !props.disabled && "border-green-500 hover:border-green-600 focus:border-green-500 focus:ring-2 focus:ring-green-500/20 pr-16",
+              !hasError && !isValid && !props.disabled && "border-gray-300 hover:border-gray-400 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20",
+              showIcon && "pl-10",
               className
             )}
             autoComplete="current-password"
             aria-invalid={hasError ? "true" : undefined}
             aria-describedby={hasError ? `${props.id}-error` : undefined}
-            onFocus={() => setIsFocused(true)}
-            onBlur={(e) => {
-              setIsFocused(false);
-              props.onBlur?.(e);
-            }}
             {...props}
           />
-          {isValid && !isFocused && (
-            <div className="absolute inset-y-0 right-10 pr-3 flex items-center pointer-events-none z-10">
+          {showIcon && (
+            <div className={cn(
+              "absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none transition-colors z-10 top-0",
+              hasError ? "text-red-400 peer-focus:text-red-500" : 
+              isValid ? "text-green-500 peer-focus:text-green-600" :
+              "text-gray-400 peer-focus:text-primary-600 peer-hover:text-gray-500"
+            )}>
+              <Lock className="h-4 w-4" />
+            </div>
+          )}
+          {isValid && (
+            <div className="absolute inset-y-0 right-10 pr-3 flex items-center pointer-events-none z-10 peer-focus:opacity-0">
               <Check className="h-4 w-4 text-green-500" />
             </div>
           )}
@@ -138,10 +119,10 @@ export const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(
               onPasswordToggleChange?.(newValue);
             }}
             className={cn(
-              "absolute inset-y-0 right-0 pr-3 flex items-center transition-colors",
+              "absolute inset-y-0 right-0 pr-3 flex items-center transition-colors z-10",
               "hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-primary-500 rounded",
-              fieldState === "error" ? "text-red-400" : 
-              fieldState === "focus" ? "text-primary-600" : "text-gray-400"
+              hasError ? "text-red-400 peer-focus:text-red-500" : 
+              "text-gray-400 peer-focus:text-primary-600"
             )}
             aria-label={showPassword ? "Hide password" : "Show password"}
             tabIndex={-1}
@@ -152,8 +133,6 @@ export const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(
               <Eye className="h-4 w-4" />
             )}
           </button>
-        </div>
-        
         {showStrengthIndicator && value && (
           <div className="mt-2 space-y-1">
             <div className="flex items-center justify-between text-xs">
@@ -185,7 +164,7 @@ export const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(
             </div>
           </div>
         )}
-      </>
+      </div>
     );
 
     if (label || error || helperText) {
@@ -198,7 +177,9 @@ export const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(
           className={fieldClassName}
           labelClassName={cn(
             "transition-colors",
-            stateClasses.label
+            hasError ? "text-red-600" :
+            isValid ? "text-green-600" :
+            "text-gray-700 group-focus-within:text-primary-600"
           )}
         >
           {inputElement}
