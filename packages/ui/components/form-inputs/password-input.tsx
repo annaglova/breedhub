@@ -2,7 +2,8 @@ import React, { forwardRef, useState } from "react";
 import { Input } from "../input";
 import { FormField } from "../form-field";
 import { cn } from "@ui/lib/utils";
-import { Eye, EyeOff, Lock } from "lucide-react";
+import { Eye, EyeOff, Lock, Check } from "lucide-react";
+import { determineFieldState, getFieldStateClasses } from "@ui/lib/form-utils";
 
 interface PasswordInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'type'> {
   label?: string;
@@ -60,7 +61,21 @@ export const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(
     const [showPassword, setShowPassword] = useState(false);
     const [strength, setStrength] = useState({ score: 0, label: "", color: "" });
     const [isFocused, setIsFocused] = React.useState(false);
-    const hasError = touched && error;
+    const [isHovered, setIsHovered] = React.useState(false);
+    
+    const hasError = touched && !!error;
+    const isValid = touched && !error && value && value !== "";
+    
+    const fieldState = determineFieldState({
+      isFocused,
+      isHovered,
+      hasError,
+      isValid,
+      isDisabled: props.disabled,
+      touched,
+    });
+    
+    const stateClasses = getFieldStateClasses(fieldState, showIcon);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       const newValue = e.target.value;
@@ -76,12 +91,15 @@ export const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(
 
     const inputElement = (
       <>
-        <div className="relative">
+        <div 
+          className="relative"
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
+        >
           {showIcon && (
             <div className={cn(
               "absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none transition-colors z-10",
-              hasError ? "text-red-400" : "text-gray-400",
-              isFocused && !hasError && "text-primary-600"
+              stateClasses.icon
             )}>
               <Lock className="h-4 w-4" />
             </div>
@@ -92,11 +110,9 @@ export const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(
             value={value}
             onChange={handleChange}
             className={cn(
-              "transition-all",
-              showIcon && "pl-10",
+              stateClasses.input,
               "pr-10",
-              hasError && "border-red-500 focus:ring-red-500",
-              isFocused && !hasError && "border-primary-500 ring-2 ring-primary-500/20",
+              isValid && "pr-16",
               className
             )}
             autoComplete="current-password"
@@ -109,6 +125,11 @@ export const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(
             }}
             {...props}
           />
+          {isValid && !isFocused && (
+            <div className="absolute inset-y-0 right-10 pr-3 flex items-center pointer-events-none z-10">
+              <Check className="h-4 w-4 text-green-500" />
+            </div>
+          )}
           <button
             type="button"
             onClick={() => {
@@ -119,7 +140,8 @@ export const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(
             className={cn(
               "absolute inset-y-0 right-0 pr-3 flex items-center transition-colors",
               "hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-primary-500 rounded",
-              hasError ? "text-red-400" : "text-gray-400"
+              fieldState === "error" ? "text-red-400" : 
+              fieldState === "focus" ? "text-primary-600" : "text-gray-400"
             )}
             aria-label={showPassword ? "Hide password" : "Show password"}
             tabIndex={-1}
@@ -176,8 +198,7 @@ export const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(
           className={fieldClassName}
           labelClassName={cn(
             "transition-colors",
-            hasError && "text-red-600",
-            isFocused && !hasError && "text-primary-600"
+            stateClasses.label
           )}
         >
           {inputElement}

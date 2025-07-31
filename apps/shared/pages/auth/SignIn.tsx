@@ -4,7 +4,6 @@ import { AuthFooter } from "@shared/components/auth/AuthFooter";
 import { AuthHeader } from "@shared/components/auth/AuthHeader";
 import { EnhancedSocialLoginButtons } from "@shared/components/auth/EnhancedSocialLoginButtons";
 import { Spinner } from "@shared/components/auth/Spinner";
-import { EmailInput, PasswordInput } from "@ui/components/form-inputs";
 import { useRateLimiter } from "@shared/hooks/useRateLimiter";
 import AuthLayout from "@shared/layouts/AuthLayout";
 import { signInSchema, type SignInFormData } from "@shared/utils/authSchemas";
@@ -17,8 +16,9 @@ import {
 import { AuthFormWrapper } from "@ui/components/auth-forms";
 import { Button } from "@ui/components/button";
 import { Checkbox } from "@ui/components/checkbox";
+import { EmailInput, PasswordInput } from "@ui/components/form-inputs";
 import { cn } from "@ui/lib/utils";
-import { AlertCircle, Lock, Mail, User } from "lucide-react";
+import { AlertCircle, Mail, User } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
@@ -200,7 +200,7 @@ export default function SignIn() {
               </div>
 
               {/* Animated Content */}
-              <div className="relative h-auto sm:h-[220px]">
+              <div className="relative h-auto sm:h-[230px]">
                 {/* Social Login Tab */}
                 <div
                   className={cn(
@@ -239,7 +239,7 @@ export default function SignIn() {
                       isLoading={isLoading}
                       className="mt-0"
                     >
-                      <div className="space-y-4">
+                      <div className="space-y-1">
                         <EmailInput
                           label="Email address"
                           {...register("email")}

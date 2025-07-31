@@ -2,19 +2,12 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
+import { signInSchema, type SignInFormData } from '@shared/utils/authSchemas';
 import { Button } from '@ui/components/button';
 import { Input } from '@ui/components/input';
 import { Label } from '@ui/components/label';
 import { Alert } from '@ui/components/alert';
 import { useAuth } from '@/core/auth';
-
-const loginSchema = z.object({
-  email: z.string().email('Please enter a valid email address'),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
-});
-
-type LoginFormData = z.infer<typeof loginSchema>;
 
 export function LoginPage() {
   const { signIn, signInWithGoogle, isLoading } = useAuth();
@@ -24,11 +17,11 @@ export function LoginPage() {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-  } = useForm<LoginFormData>({
-    resolver: zodResolver(loginSchema),
+  } = useForm<SignInFormData>({
+    resolver: zodResolver(signInSchema),
   });
 
-  const onSubmit = async (data: LoginFormData) => {
+  const onSubmit = async (data: SignInFormData) => {
     try {
       setError(null);
       await signIn(data.email, data.password);
