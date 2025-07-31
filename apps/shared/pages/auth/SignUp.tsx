@@ -5,7 +5,7 @@ import { AuthFooter } from "@shared/components/auth/AuthFooter";
 import { AuthHeader } from "@shared/components/auth/AuthHeader";
 import { EnhancedSocialLoginButtons } from "@shared/components/auth/EnhancedSocialLoginButtons";
 import { PasswordStrength } from "@shared/components/auth/PasswordStrength";
-import { Spinner } from "@shared/components/auth/Spinner";
+import { LoadingButton } from "@shared/components/auth/LoadingButton";
 import { useRateLimiter } from "@shared/hooks/useRateLimiter";
 import AuthLayout from "@shared/layouts/AuthLayout";
 import { signUpSchema, type SignUpFormData } from "@shared/utils/authSchemas";
@@ -311,20 +311,14 @@ export default function SignUp() {
                         </div>
                       )}
 
-                      <Button
+                      <LoadingButton
                         type="submit"
-                        disabled={isLoading}
+                        isLoading={isLoading}
+                        loadingText="Creating account..."
                         className="mt-4 w-full h-12 bg-primary-500 hover:bg-primary-600 text-white text-base font-semibold rounded-xl transition-all transform hover:scale-[1.02] hover:shadow-lg"
                       >
-                        {isLoading ? (
-                          <div className="flex items-center justify-center">
-                            <Spinner className="mr-2" />
-                            Creating account...
-                          </div>
-                        ) : (
-                          "Create your account"
-                        )}
-                      </Button>
+                        Create your account
+                      </LoadingButton>
                     </AuthFormWrapper>
                   </div>
                 </div>

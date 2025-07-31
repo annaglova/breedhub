@@ -3,7 +3,6 @@ import FooterFigure from "@shared/assets/backgrounds/footer-figure.svg?react";
 import { AuthFooter } from "@shared/components/auth/AuthFooter";
 import { AuthHeader } from "@shared/components/auth/AuthHeader";
 import { EnhancedSocialLoginButtons } from "@shared/components/auth/EnhancedSocialLoginButtons";
-import { Spinner } from "@shared/components/auth/Spinner";
 import { useRateLimiter } from "@shared/hooks/useRateLimiter";
 import AuthLayout from "@shared/layouts/AuthLayout";
 import { signInSchema, type SignInFormData } from "@shared/utils/authSchemas";
@@ -15,6 +14,7 @@ import {
   errorHints,
 } from "@shared/utils/securityUtils";
 import { ErrorWithHints } from "@shared/components/auth/ErrorWithHints";
+import { LoadingButton } from "@shared/components/auth/LoadingButton";
 import { AuthFormWrapper } from "@ui/components/auth-forms";
 import { Button } from "@ui/components/button";
 import { Checkbox } from "@ui/components/checkbox";
@@ -312,20 +312,14 @@ export default function SignIn() {
                         </div>
                       </div>
 
-                      <Button
+                      <LoadingButton
                         type="submit"
-                        disabled={isLoading}
+                        isLoading={isLoading}
+                        loadingText="Signing in..."
                         className="mt-6 w-full h-12 bg-primary-500 hover:bg-primary-600 text-white text-base font-semibold rounded-xl transition-all transform hover:scale-[1.02] hover:shadow-lg"
                       >
-                        {isLoading ? (
-                          <div className="flex items-center justify-center">
-                            <Spinner className="mr-2" />
-                            Signing in...
-                          </div>
-                        ) : (
-                          "Sign in"
-                        )}
-                      </Button>
+                        Sign in
+                      </LoadingButton>
                     </AuthFormWrapper>
                   </div>
                 </div>

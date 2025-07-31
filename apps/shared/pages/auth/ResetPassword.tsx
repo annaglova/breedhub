@@ -5,7 +5,6 @@ import { AuthButton } from "@shared/components/auth/AuthButton";
 import { PasswordInput } from "@ui/components/form-inputs";
 import { AuthFormWrapper } from "@ui/components/auth-forms";
 import { PasswordStrength } from "@shared/components/auth/PasswordStrength";
-import { Spinner } from "@shared/components/auth/Spinner";
 import AuthLayout from "@shared/layouts/AuthLayout";
 import { resetPasswordSchema, type ResetPasswordFormData } from "@shared/utils/authSchemas";
 import { sanitizeErrorMessage, secureErrorMessages, logSecurityEvent } from "@shared/utils/securityUtils";
