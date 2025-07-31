@@ -21,7 +21,7 @@ import { AuthPageWrapper } from "@shared/components/auth/AuthPageWrapper";
 import { AuthFormWrapper } from "@ui/components/auth-forms";
 import { Button } from "@ui/components/button";
 import { Checkbox } from "@ui/components/checkbox";
-import { EmailInput, PasswordInput } from "@ui/components/form-inputs";
+import { EmailInputWithValidation, PasswordInput } from "@ui/components/form-inputs";
 import { useToast } from "@ui/hooks/use-toast";
 import { cn } from "@ui/lib/utils";
 import { AlertCircle, Mail, User } from "lucide-react";
@@ -295,7 +295,7 @@ export default function SignIn() {
                       className="mt-0"
                     >
                       <div className="space-y-1">
-                        <EmailInput
+                        <EmailInputWithValidation
                           label="Email address"
                           {...register("email")}
                           error={errors.email?.message}
@@ -304,6 +304,8 @@ export default function SignIn() {
                           icon={<Mail className="w-4 h-4" />}
                           aria-label="Email address"
                           placeholder="Enter your email"
+                          showSuggestions={true}
+                          validateAsync={true}
                         />
 
                         <PasswordInput

@@ -2,7 +2,7 @@ import FooterFigure from "@shared/assets/backgrounds/footer-figure.svg?react";
 import { AuthFooter } from "@shared/components/auth/AuthFooter";
 import { AuthHeader } from "@shared/components/auth/AuthHeader";
 import { AuthButton } from "@shared/components/auth/AuthButton";
-import { EmailInput } from "@ui/components/form-inputs";
+import { EmailInputWithValidation } from "@ui/components/form-inputs";
 import { AuthFormWrapper } from "@ui/components/auth-forms";
 import { useRateLimiter } from "@shared/hooks/useRateLimiter";
 import AuthLayout from "@shared/layouts/AuthLayout";
@@ -136,7 +136,7 @@ export default function ForgotPassword() {
                   isLoading={isLoading}
                   className="mt-0"
                 >
-                  <EmailInput
+                  <EmailInputWithValidation
                     label="Email address"
                     {...register("email")}
                     error={errors.email?.message || generalError}
@@ -145,6 +145,8 @@ export default function ForgotPassword() {
                     icon={<Mail className="w-4 h-4" />}
                     placeholder="Enter your email"
                     aria-label="Email address"
+                    showSuggestions={true}
+                    validateAsync={true}
                   />
 
                   <Button
