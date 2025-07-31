@@ -1,4 +1,6 @@
-import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import {
   NumberInput,
   TextInput,
@@ -15,6 +17,13 @@ import {
   SwitchInput,
 } from "@ui/components/form-inputs";
 import { User, Pencil } from "lucide-react";
+import {
+  emailValidator,
+  simplePasswordValidator,
+  requiredString,
+  optionalString,
+  createEnumValidator
+} from "@shared/utils/validation";
 
 const countryOptions = [
   { value: "us", label: "United States" },
@@ -37,48 +46,60 @@ const dogBreedOptions = [
   { value: "boxer", label: "Boxer", description: "Fun-loving and loyal" },
 ];
 
+// Define validation schema
+const testFormSchema = z.object({
+  text: requiredString("Full name"),
+  email: emailValidator,
+  password: simplePasswordValidator,
+  number: z.string()
+    .min(1, "Number is required")
+    .refine((val) => !isNaN(parseFloat(val)), "Must be a valid number")
+    .refine((val) => parseFloat(val) >= 5, "Number must be at least 5")
+    .refine((val) => parseFloat(val) <= 10, "Number must be at most 10"),
+  country: requiredString("Country"),
+  breed: requiredString("Breed"),
+  date: z.date().nullable().optional(),
+  description: optionalString,
+  file: z.instanceof(File).nullable().optional(),
+  agree: z.boolean().refine((val) => val === true, "You must agree to the terms"),
+  gender: optionalString,
+  time: optionalString,
+  notifications: z.boolean()
+});
+
+type TestFormData = z.infer<typeof testFormSchema>;
+
 export default function TestInputsPage() {
-  const [formData, setFormData] = useState({
-    text: "",
-    email: "",
-    password: "",
-    number: "5",
-    country: "",
-    breed: "",
-    date: null as Date | null,
-    description: "",
-    file: null as File | null,
-    agree: false,
-    gender: "",
-    time: "",
-    notifications: false,
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, touchedFields },
+    setValue,
+    watch,
+    control
+  } = useForm<TestFormData>({
+    resolver: zodResolver(testFormSchema),
+    mode: "onTouched", // Validate on blur
+    defaultValues: {
+      text: "",
+      email: "",
+      password: "",
+      number: "5",
+      country: "",
+      breed: "",
+      date: null,
+      description: "",
+      file: null,
+      agree: false,
+      gender: "",
+      time: "",
+      notifications: false,
+    }
   });
 
-  const [errors, setErrors] = useState<Record<string, string>>({});
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    // Simple validation
-    const newErrors: Record<string, string> = {};
-    
-    if (!formData.text) newErrors.text = "Text field is required";
-    if (!formData.email) newErrors.email = "Email is required";
-    else if (!/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = "Invalid email format";
-    if (!formData.password) newErrors.password = "Password is required";
-    else if (formData.password.length < 8) newErrors.password = "Password must be at least 8 characters";
-    if (!formData.number) newErrors.number = "Number is required";
-    else if (parseFloat(formData.number) < 5) newErrors.number = "Number must be at least 5";
-    else if (parseFloat(formData.number) > 10) newErrors.number = "Number must be at most 10";
-    if (!formData.country) newErrors.country = "Please select a country";
-    if (!formData.breed) newErrors.breed = "Please select a breed";
-    
-    setErrors(newErrors);
-    
-    if (Object.keys(newErrors).length === 0) {
-      alert("Form submitted successfully!");
-      console.log("Form data:", formData);
-    }
+  const onSubmit = (data: TestFormData) => {
+    alert("Form submitted successfully!");
+    console.log("Form data:", data);
   };
 
   return (
@@ -87,16 +108,16 @@ export default function TestInputsPage() {
         <h1 className="text-3xl font-bold text-gray-900 mb-8">Form Inputs Test Page</h1>
         
         <div className="bg-white rounded-lg shadow-md p-8">
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             {/* Text Input */}
             <div>
               <h3 className="text-lg font-semibold mb-2">Text Input</h3>
               <TextInput
                 label="Full Name"
                 placeholder="Enter your full name"
-                value={formData.text}
-                onChange={(e) => setFormData({ ...formData, text: e.target.value })}
-                error={errors.text}
+                {...register("text")}
+                error={errors.text?.message}
+                touched={touchedFields.text}
                 required
                 icon={<User className="h-4 w-4" />}
               />
@@ -108,9 +129,9 @@ export default function TestInputsPage() {
               <EmailInput
                 label="Email Address"
                 placeholder="your@email.com"
-                value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                error={errors.email}
+                {...register("email")}
+                error={errors.email?.message}
+                touched={touchedFields.email}
                 required
               />
             </div>
@@ -121,9 +142,9 @@ export default function TestInputsPage() {
               <PasswordInput
                 label="Password"
                 placeholder="Enter your password"
-                value={formData.password}
-                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                error={errors.password}
+                {...register("password")}
+                error={errors.password?.message}
+                touched={touchedFields.password}
                 required
                 showStrengthIndicator
               />
@@ -137,9 +158,9 @@ export default function TestInputsPage() {
                 label="Age"
                 placeholder="Enter your age"
                 helperText="Please enter your age in years (5-10)"
-                value={formData.number}
-                onChange={(e) => setFormData({ ...formData, number: e.target.value })}
-                error={errors.number}
+                {...register("number")}
+                error={errors.number?.message}
+                touched={touchedFields.number}
                 required
                 min={5}
                 max={10}
@@ -153,9 +174,10 @@ export default function TestInputsPage() {
                 label="Country"
                 placeholder="Select your country"
                 options={countryOptions}
-                value={formData.country}
-                onValueChange={(value) => setFormData({ ...formData, country: value })}
-                error={errors.country}
+                value={watch("country")}
+                onValueChange={(value) => setValue("country", value, { shouldValidate: true })}
+                error={errors.country?.message}
+                touched={touchedFields.country}
                 required
               />
             </div>
@@ -167,9 +189,10 @@ export default function TestInputsPage() {
                 label="Dog Breed"
                 placeholder="Search for a breed..."
                 options={dogBreedOptions}
-                value={formData.breed}
-                onValueChange={(value) => setFormData({ ...formData, breed: value })}
-                error={errors.breed}
+                value={watch("breed")}
+                onValueChange={(value) => setValue("breed", value, { shouldValidate: true })}
+                error={errors.breed?.message}
+                touched={touchedFields.breed}
                 required
               />
             </div>
@@ -179,8 +202,8 @@ export default function TestInputsPage() {
               <h3 className="text-lg font-semibold mb-2">Date Input</h3>
               <DateInput
                 label="Birth Date"
-                value={formData.date}
-                onValueChange={(date) => setFormData({ ...formData, date })}
+                value={watch("date")}
+                onValueChange={(date) => setValue("date", date)}
                 minDate={new Date(2020, 0, 1)}
                 maxDate={new Date()}
                 placeholder="Select a date"
@@ -193,8 +216,9 @@ export default function TestInputsPage() {
               <TextareaInput
                 label="Description"
                 placeholder="Tell us about your dog..."
-                value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                {...register("description")}
+                error={errors.description?.message}
+                touched={touchedFields.description}
                 showCharCount
                 maxChars={200}
                 rows={4}
@@ -206,11 +230,12 @@ export default function TestInputsPage() {
               <h3 className="text-lg font-semibold mb-2">File Input</h3>
               <FileInput
                 label="Upload Photo"
-                value={formData.file}
-                onValueChange={(file) => setFormData({ ...formData, file })}
+                value={watch("file")}
+                onValueChange={(file) => setValue("file", file)}
                 accept="image/*"
                 maxSize={5 * 1024 * 1024} // 5MB
                 showPreview
+                error={errors.file?.message}
               />
             </div>
 
@@ -218,10 +243,11 @@ export default function TestInputsPage() {
             <div>
               <h3 className="text-lg font-semibold mb-2">Checkbox Input</h3>
               <CheckboxInput
-                checked={formData.agree}
-                onCheckedChange={(checked) => setFormData({ ...formData, agree: checked })}
+                checked={watch("agree")}
+                onCheckedChange={(checked) => setValue("agree", checked, { shouldValidate: true })}
                 checkboxLabel="I agree to the terms and conditions"
                 required
+                error={errors.agree?.message}
               />
             </div>
 
@@ -230,14 +256,15 @@ export default function TestInputsPage() {
               <h3 className="text-lg font-semibold mb-2">Radio Input</h3>
               <RadioInput
                 label="Select Gender"
-                value={formData.gender}
-                onValueChange={(value) => setFormData({ ...formData, gender: value })}
+                value={watch("gender")}
+                onValueChange={(value) => setValue("gender", value, { shouldValidate: true })}
                 options={[
                   { value: "male", label: "Male", description: "For male dogs" },
                   { value: "female", label: "Female", description: "For female dogs" },
                   { value: "other", label: "Other / Not specified" },
                 ]}
                 required
+                error={errors.gender?.message}
               />
             </div>
 
@@ -246,10 +273,11 @@ export default function TestInputsPage() {
               <h3 className="text-lg font-semibold mb-2">Time Input</h3>
               <TimeInput
                 label="Feeding Time"
-                value={formData.time}
-                onValueChange={(time) => setFormData({ ...formData, time })}
+                value={watch("time")}
+                onValueChange={(time) => setValue("time", time)}
                 placeholder="Select time"
                 step={15} // 15 minute intervals
+                error={errors.time?.message}
               />
             </div>
 
@@ -258,10 +286,11 @@ export default function TestInputsPage() {
               <h3 className="text-lg font-semibold mb-2">Switch Input</h3>
               <SwitchInput
                 label="Notification Settings"
-                checked={formData.notifications}
-                onCheckedChange={(checked) => setFormData({ ...formData, notifications: checked })}
+                checked={watch("notifications")}
+                onCheckedChange={(checked) => setValue("notifications", checked)}
                 switchLabel="Email notifications"
                 description="Receive email updates about your dog's activities"
+                error={errors.notifications?.message}
               />
             </div>
 
@@ -279,7 +308,7 @@ export default function TestInputsPage() {
           {/* Form Data Display */}
           <div className="mt-8 p-4 bg-gray-100 rounded-md">
             <h3 className="text-lg font-semibold mb-2">Form Data:</h3>
-            <pre className="text-sm">{JSON.stringify(formData, null, 2)}</pre>
+            <pre className="text-sm">{JSON.stringify(watch(), null, 2)}</pre>
           </div>
         </div>
 
