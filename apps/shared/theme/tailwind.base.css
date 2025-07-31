@@ -215,6 +215,43 @@
     box-shadow: none !important;
   }
 
+  /* Auto-fill styles */
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus,
+  input:-webkit-autofill:active {
+    -webkit-transition: background-color 5000s ease-in-out 0s;
+    transition: background-color 5000s ease-in-out 0s;
+    -webkit-text-fill-color: rgb(17 24 39) !important; /* gray-900 */
+    font-weight: 500;
+  }
+
+  /* Auto-fill styles for dark mode */
+  @media (prefers-color-scheme: dark) {
+    input:-webkit-autofill,
+    input:-webkit-autofill:hover,
+    input:-webkit-autofill:focus,
+    input:-webkit-autofill:active {
+      -webkit-text-fill-color: rgb(243 244 246) !important; /* gray-100 */
+    }
+  }
+
+  /* Auto-fill animation for detection */
+  @keyframes onAutoFillStart {
+    from { /**/ }
+    to { /**/ }
+  }
+
+  input:-webkit-autofill {
+    animation: onAutoFillStart 0.1s;
+  }
+
+  /* Visual indicator for auto-filled inputs */
+  input[data-autofilled="true"] {
+    background-color: rgb(239 246 255) !important; /* blue-50 */
+    border-color: rgb(147 197 253) !important; /* blue-300 */
+  }
+
   body {
     background: #fff;
     color: rgb(var(--text-color, 30 41 59));
