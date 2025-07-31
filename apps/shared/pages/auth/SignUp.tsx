@@ -7,6 +7,7 @@ import { EnhancedSocialLoginButtons } from "@shared/components/auth/EnhancedSoci
 import { PasswordStrength } from "@shared/components/auth/PasswordStrength";
 import { LoadingButton } from "@shared/components/auth/LoadingButton";
 import { AuthPageWrapper } from "@shared/components/auth/AuthPageWrapper";
+import { TabNavigation } from "@shared/components/auth/TabNavigation";
 import { useRateLimiter } from "@shared/hooks/useRateLimiter";
 import { useSwipeGesture } from "@shared/hooks/useSwipeGesture";
 import AuthLayout from "@shared/layouts/AuthLayout";
@@ -198,35 +199,23 @@ export default function SignUp() {
               </div>
 
               {/* Tab Navigation */}
-              <div className="flex rounded-lg bg-gray-100 p-[2px] mb-6 sm:mb-4">
-                <button
-                  onClick={() => setAuthMode("social")}
-                  className={cn(
-                    "flex-1 py-2.5 px-4 text-base font-medium rounded-md transition-all",
-                    authMode === "social"
-                      ? "bg-white text-gray-900 shadow-sm"
-                      : "text-gray-400 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:ring-offset-2"
-                  )}
-                >
-                  Quick Sign Up
-                </button>
-                <button
-                  onClick={() => setAuthMode("email")}
-                  className={cn(
-                    "flex-1 py-2 px-4 text-base font-medium rounded-md transition-all",
-                    authMode === "email"
-                      ? "bg-white text-gray-900 shadow-sm"
-                      : "text-gray-400 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:ring-offset-2"
-                  )}
-                >
-                  Email
-                </button>
-              </div>
+              <TabNavigation
+                tabs={[
+                  { id: "social", label: "Quick Sign Up" },
+                  { id: "email", label: "Email" }
+                ]}
+                activeTab={authMode}
+                onTabChange={(tabId) => setAuthMode(tabId as "social" | "email")}
+                className="mb-6 sm:mb-4"
+              />
 
               {/* Animated Content */}
               <div className="relative h-auto sm:h-[360px]" ref={swipeRef}>
                 {/* Social Sign Up Tab */}
                 <div
+                  id="tabpanel-social"
+                  role="tabpanel"
+                  aria-labelledby="tab-social"
                   className={cn(
                     "sm:absolute sm:inset-0 transition-all duration-300 ease-in-out flex flex-col justify-center",
                     authMode === "social"
@@ -250,6 +239,9 @@ export default function SignUp() {
 
                 {/* Email Sign Up Tab */}
                 <div
+                  id="tabpanel-email"
+                  role="tabpanel"
+                  aria-labelledby="tab-email"
                   className={cn(
                     "sm:absolute sm:inset-0 transition-all duration-300 ease-in-out flex flex-col justify-center",
                     authMode === "email"
