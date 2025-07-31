@@ -6,7 +6,6 @@ import { AuthHeader } from "@shared/components/auth/AuthHeader";
 import { EnhancedSocialLoginButtons } from "@shared/components/auth/EnhancedSocialLoginButtons";
 import { PasswordStrength } from "@shared/components/auth/PasswordStrength";
 import { Spinner } from "@shared/components/auth/Spinner";
-import { TextInput, EmailInput, PasswordInput } from "@ui/components/form-inputs";
 import { useRateLimiter } from "@shared/hooks/useRateLimiter";
 import AuthLayout from "@shared/layouts/AuthLayout";
 import { signUpSchema, type SignUpFormData } from "@shared/utils/authSchemas";
@@ -15,20 +14,17 @@ import {
   logSecurityEvent,
   sanitizeErrorMessage,
   secureErrorMessages,
-  validatePasswordStrength,
 } from "@shared/utils/securityUtils";
 import { AuthFormWrapper } from "@ui/components/auth-forms";
 import { Button } from "@ui/components/button";
 import { Checkbox } from "@ui/components/checkbox";
-import { cn } from "@ui/lib/utils";
 import {
-  AlertCircle,
-  Building,
-  Lock,
-  Mail,
-  User,
-  UserPlus,
-} from "lucide-react";
+  EmailInput,
+  PasswordInput,
+  TextInput,
+} from "@ui/components/form-inputs";
+import { cn } from "@ui/lib/utils";
+import { AlertCircle, Mail, User, UserPlus } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Link, useNavigate } from "react-router-dom";
@@ -54,7 +50,6 @@ export default function SignUp() {
       name: "",
       email: "",
       password: "",
-      kennel: "",
       agreements: false,
     },
   });
@@ -161,7 +156,7 @@ export default function SignUp() {
               </div>
 
               {/* Tab Navigation */}
-              <div className="flex rounded-lg bg-gray-100 p-[2px] mb-6 sm:mb-7">
+              <div className="flex rounded-lg bg-gray-100 p-[2px] mb-6 sm:mb-4">
                 <button
                   onClick={() => setAuthMode("social")}
                   className={cn(
@@ -187,7 +182,7 @@ export default function SignUp() {
               </div>
 
               {/* Animated Content */}
-              <div className="relative h-auto sm:h-[380px]">
+              <div className="relative h-auto sm:h-[360px]">
                 {/* Social Sign Up Tab */}
                 <div
                   className={cn(
@@ -197,7 +192,7 @@ export default function SignUp() {
                       : "opacity-0 -translate-y-4 pointer-events-none sm:absolute hidden"
                   )}
                 >
-                  <div className="space-y-4">
+                  <div className="space-y-4 mt-2 sm:mt-0">
                     <EnhancedSocialLoginButtons
                       onFacebookLogin={() => handleSocialSignUp("facebook")}
                       onGoogleLogin={() => handleSocialSignUp("google")}
@@ -220,14 +215,14 @@ export default function SignUp() {
                       : "opacity-0 translate-y-4 pointer-events-none sm:absolute hidden"
                   )}
                 >
-                  <div className="flex flex-col justify-center h-full">
+                  <div className="flex flex-col justify-start h-full pt-0">
                     <AuthFormWrapper
                       formId="signup-form"
                       onSubmit={handleSubmit(onSubmit)}
                       isLoading={isLoading}
                       className="mt-0"
                     >
-                      <div className="space-y-3">
+                      <div className="space-y-1">
                         <TextInput
                           label="Full name"
                           {...register("name")}
@@ -261,25 +256,14 @@ export default function SignUp() {
                             aria-label="Password"
                             placeholder="Create a password"
                           />
-                          {watchPassword && (
-                            <PasswordStrength
-                              password={watchPassword}
-                              className="mt-2"
-                            />
-                          )}
+                          <div className="h-12 mt-2">
+                            {watchPassword && (
+                              <PasswordStrength password={watchPassword} />
+                            )}
+                          </div>
                         </div>
 
-                        <TextInput
-                          label="Kennel (optional)"
-                          {...register("kennel")}
-                          error={errors.kennel?.message}
-                          touched={touchedFields.kennel}
-                          icon={<Building className="w-4 h-4" />}
-                          aria-label="Kennel name"
-                          placeholder="Enter your kennel name"
-                        />
-
-                        <div className="space-y-1 py-1">
+                        <div className="space-y-1 pb-1">
                           <div className="flex items-start">
                             <Checkbox
                               id="agreements"
@@ -308,11 +292,13 @@ export default function SignUp() {
                               </Link>
                             </label>
                           </div>
-                          {errors.agreements && (
-                            <p className="text-sm text-red-600 ml-6">
-                              {errors.agreements.message}
-                            </p>
-                          )}
+                          <div className="h-5 ml-6">
+                            {errors.agreements && (
+                              <p className="text-sm text-red-600 animate-fadeIn">
+                                {errors.agreements.message}
+                              </p>
+                            )}
+                          </div>
                         </div>
                       </div>
 
@@ -328,7 +314,7 @@ export default function SignUp() {
                       <Button
                         type="submit"
                         disabled={isLoading}
-                        className="mt-4 w-full h-12 bg-primary-500 hover:bg-primary-600 text-white text-base font-medium rounded-xl transition-all transform hover:scale-[1.02] hover:shadow-lg"
+                        className="mt-4 w-full h-12 bg-primary-500 hover:bg-primary-600 text-white text-base font-semibold rounded-xl transition-all transform hover:scale-[1.02] hover:shadow-lg"
                       >
                         {isLoading ? (
                           <div className="flex items-center justify-center">

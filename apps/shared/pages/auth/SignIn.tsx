@@ -175,7 +175,7 @@ export default function SignIn() {
               </div>
 
               {/* Tab Navigation */}
-              <div className="flex rounded-lg bg-gray-100 p-[2px] mb-6 sm:mb-6">
+              <div className="flex rounded-lg bg-gray-100 p-[2px] mb-6 sm:mb-4">
                 <button
                   onClick={() => setAuthMode("social")}
                   className={cn(
@@ -211,7 +211,7 @@ export default function SignIn() {
                       : "opacity-0 -translate-y-4 pointer-events-none sm:absolute hidden"
                   )}
                 >
-                  <div className="space-y-1">
+                  <div className="space-y-1 mt-2 sm:mt-0">
                     <EnhancedSocialLoginButtons
                       onFacebookLogin={() => handleSocialLogin("facebook")}
                       onGoogleLogin={() => handleSocialLogin("google")}
@@ -233,7 +233,7 @@ export default function SignIn() {
                       : "opacity-0 translate-y-4 pointer-events-none sm:absolute hidden"
                   )}
                 >
-                  <div className="flex flex-col justify-center h-full">
+                  <div className="flex flex-col justify-start h-full pt-0">
                     <AuthFormWrapper
                       formId="signin-form"
                       onSubmit={handleSubmit(onSubmit)}
@@ -298,7 +298,7 @@ export default function SignIn() {
                       <Button
                         type="submit"
                         disabled={isLoading}
-                        className="mt-6 w-full h-12 bg-primary-500 hover:bg-primary-600 text-white text-base font-medium rounded-xl transition-all transform hover:scale-[1.02] hover:shadow-lg"
+                        className="mt-6 w-full h-12 bg-primary-500 hover:bg-primary-600 text-white text-base font-semibold rounded-xl transition-all transform hover:scale-[1.02] hover:shadow-lg"
                       >
                         {isLoading ? (
                           <div className="flex items-center justify-center">

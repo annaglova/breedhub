@@ -94,22 +94,22 @@ export default function ForgotPassword() {
         } />
 
         {/* Content */}
-        <div className="relative z-10 flex flex-1 items-center justify-center px-6 pb-8 pt-8 sm:px-8">
-          <div className="w-full max-w-md animate-scaleIn">
-            <div className="bg-white rounded-2xl shadow-xl p-8 sm:p-10 border border-gray-100">
+        <div className="relative z-10 flex flex-1 items-start sm:items-center justify-center px-0 sm:px-6 pb-4 sm:pb-8 pt-2 sm:pt-4">
+          <div className="w-full sm:max-w-md animate-scaleIn">
+            <div className="bg-transparent sm:bg-white rounded-none sm:rounded-xl sm:shadow-xl p-4 sm:p-6 lg:p-8 sm:border sm:border-gray-100">
             {!isSuccess ? (
               <>
                 {/* Icon */}
-                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-purple-100 shadow-sm mb-6">
-                  <HelpCircle className="w-8 h-8 text-purple-600" />
+                <div className="mx-auto flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-purple-100 shadow-sm mb-3 sm:mb-4">
+                  <HelpCircle className="w-5 h-5 sm:w-6 sm:h-6 text-purple-600" />
                 </div>
 
                 {/* Title */}
-                <div className="text-center">
-                  <h1 className="text-3xl font-bold tracking-tight text-gray-900">
+                <div className="text-center mb-4 sm:mb-6">
+                  <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-gray-900">
                     Forgot password?
                   </h1>
-                  <p className="mt-2 text-base text-gray-600">
+                  <p className="mt-1 text-sm text-gray-600">
                     Fill the form to reset your password
                   </p>
                 </div>
@@ -119,7 +119,7 @@ export default function ForgotPassword() {
                   formId="forgot-password-form" 
                   onSubmit={handleSubmit(onSubmit)} 
                   isLoading={isLoading}
-                  className="mt-8"
+                  className="mt-0"
                 >
                   <EmailInput
                     label="Email address"
@@ -135,7 +135,7 @@ export default function ForgotPassword() {
                   <Button
                     type="submit"
                     disabled={isLoading}
-                    className="mt-6 w-full landing-raised-button landing-raised-button-primary relative"
+                    className="mt-6 w-full h-12 bg-primary-500 hover:bg-primary-600 text-white text-base font-semibold rounded-xl transition-all transform hover:scale-[1.02] hover:shadow-lg"
                   >
                     {isLoading ? (
                       <div className="flex items-center justify-center">
@@ -149,7 +149,7 @@ export default function ForgotPassword() {
                 </AuthFormWrapper>
 
                 {/* Back to login link */}
-                <p className="mt-6 text-center text-base text-gray-600">
+                <p className="mt-6 text-center text-sm sm:text-base text-gray-600">
                   Remember your password?{" "}
                   <Link
                     to="/sign-in"
@@ -163,9 +163,9 @@ export default function ForgotPassword() {
               <>
                 {/* Success Message */}
                 <div className="text-center">
-                  <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-100 shadow-sm">
+                  <div className="mx-auto flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-green-100 shadow-sm">
                     <svg
-                      className="h-8 w-8 text-green-600"
+                      className="h-5 w-5 sm:w-6 sm:h-6 text-green-600"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -178,19 +178,19 @@ export default function ForgotPassword() {
                       />
                     </svg>
                   </div>
-                  <h2 className="mt-4 text-2xl font-bold text-gray-900">
+                  <h2 className="mt-3 sm:mt-4 text-xl sm:text-2xl font-bold text-gray-900">
                     Check your email
                   </h2>
-                  <p className="mt-2 text-base text-gray-600">
+                  <p className="mt-1 sm:mt-2 text-sm sm:text-base text-gray-600">
                     Password reset sent! You'll receive an email if you are registered on our system.
                   </p>
-                  <p className="mt-1 text-base text-gray-500">
+                  <p className="mt-1 text-sm sm:text-base text-gray-500">
                     Sent to: {watchEmail}
                   </p>
                 </div>
 
                 <Link to="/sign-in">
-                  <Button className="mt-8 w-full landing-raised-button landing-raised-button-outline">
+                  <Button className="mt-6 sm:mt-8 w-full h-12 bg-white hover:bg-gray-50 border border-gray-300 text-gray-700 text-base font-semibold rounded-xl transition-all">
                     Back to sign in
                   </Button>
                 </Link>

@@ -13,10 +13,10 @@ export const emailValidator = z
 // Password validation with multiple rules
 export const passwordValidator = z
   .string()
-  .min(8, "Password must be at least 8 characters")
-  .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
-  .regex(/[a-z]/, "Password must contain at least one lowercase letter")
-  .regex(/[0-9]/, "Password must contain at least one number");
+  .min(8, "Password does not meet requirements")
+  .regex(/[A-Z]/, "Password does not meet requirements")
+  .regex(/[a-z]/, "Password does not meet requirements")
+  .regex(/[0-9]/, "Password does not meet requirements");
 
 // Simple password for less strict requirements
 export const simplePasswordValidator = z

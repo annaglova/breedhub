@@ -1,6 +1,5 @@
 import { cn } from "@ui/lib/utils";
 import { useEffect, useState } from "react";
-import { Info } from "lucide-react";
 
 interface PasswordStrengthProps {
   password: string;
@@ -93,16 +92,6 @@ export function PasswordStrength({ password, className }: PasswordStrengthProps)
           />
         ))}
       </div>
-      {feedback.length > 0 && (
-        <ul className="text-xs text-gray-500 space-y-1">
-          {feedback.map((item, i) => (
-            <li key={i} className="flex items-center">
-              <Info className="w-3 h-3 mr-1 inline-block" />
-              {item}
-            </li>
-          ))}
-        </ul>
-      )}
     </div>
   );
 }

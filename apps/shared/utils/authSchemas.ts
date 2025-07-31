@@ -4,7 +4,6 @@ import {
   passwordValidator,
   nameValidator,
   requiredString,
-  optionalString,
   mustBeTrue
 } from './validation';
 
@@ -22,7 +21,6 @@ export const signUpSchema = z.object({
   name: nameValidator,
   email: emailValidator,
   password: passwordValidator,
-  kennel: optionalString,
   agreements: mustBeTrue('You must agree to the terms of service'),
 });
 
