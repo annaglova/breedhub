@@ -1,6 +1,7 @@
 export { NumberInput } from './number-input';
 export { TextInput } from './text-input';
 export { EmailInput } from './email-input';
+export { EmailInputWithValidation } from './email-input-with-validation';
 export { PasswordInput } from './password-input';
 export { DropdownInput } from './dropdown-input';
 export { LookupInput } from './lookup-input';

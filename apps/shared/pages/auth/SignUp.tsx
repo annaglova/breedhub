@@ -22,7 +22,7 @@ import { AuthFormWrapper } from "@ui/components/auth-forms";
 import { Button } from "@ui/components/button";
 import { Checkbox } from "@ui/components/checkbox";
 import {
-  EmailInput,
+  EmailInputWithValidation,
   PasswordInput,
   TextInput,
 } from "@ui/components/form-inputs";
@@ -268,7 +268,7 @@ export default function SignUp() {
                           placeholder="Enter your full name"
                         />
 
-                        <EmailInput
+                        <EmailInputWithValidation
                           label="Email address"
                           {...register("email")}
                           error={errors.email?.message}
@@ -277,6 +277,8 @@ export default function SignUp() {
                           icon={<Mail className="w-4 h-4" />}
                           aria-label="Email address"
                           placeholder="Enter your email"
+                          showSuggestions={true}
+                          validateAsync={true}
                         />
 
                         <div>
