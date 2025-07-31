@@ -88,14 +88,22 @@ export default function ResetPassword() {
         </div>
 
         {/* Header */}
-        <AuthHeader rightContent={
-          <div className="flex items-center gap-4">
-            <span className="hidden text-gray-700 sm:block">Return to</span>
-            <AuthButton to="/sign-in">
-              Login page
-            </AuthButton>
-          </div>
-        } />
+        <AuthHeader 
+          showBackButton={true}
+          backButtonTo="/sign-in"
+          breadcrumbs={[
+            { label: "Sign In", href: "/sign-in" },
+            { label: "Reset Password", current: true }
+          ]}
+          rightContent={
+            <div className="flex items-center gap-4">
+              <span className="hidden text-gray-700 sm:block">Return to</span>
+              <AuthButton to="/sign-in">
+                Login page
+              </AuthButton>
+            </div>
+          } 
+        />
 
         {/* Content */}
         <div className="relative z-10 flex flex-1 items-start sm:items-center justify-center px-0 sm:px-6 pb-4 sm:pb-8 pt-2 sm:pt-4">
