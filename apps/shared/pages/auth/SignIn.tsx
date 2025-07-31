@@ -12,7 +12,9 @@ import {
   logSecurityEvent,
   sanitizeErrorMessage,
   secureErrorMessages,
+  errorHints,
 } from "@shared/utils/securityUtils";
+import { ErrorWithHints } from "@shared/components/auth/ErrorWithHints";
 import { AuthFormWrapper } from "@ui/components/auth-forms";
 import { Button } from "@ui/components/button";
 import { Checkbox } from "@ui/components/checkbox";
@@ -50,6 +52,23 @@ export default function SignIn() {
   });
 
   const watchEmail = watch("email");
+
+  const getErrorHints = (error: string): string[] | undefined => {
+    // Map error messages to hints
+    if (error.includes("Invalid email or password")) {
+      return errorHints.invalidCredentials.hints;
+    }
+    if (error.includes("locked")) {
+      return errorHints.accountLocked.hints;
+    }
+    if (error.includes("too many attempts") || error.includes("Too many attempts")) {
+      return errorHints.tooManyAttempts.hints;
+    }
+    if (error.includes("Network error")) {
+      return errorHints.networkError.hints;
+    }
+    return undefined;
+  };
 
   const onSubmit = async (data: SignInFormData) => {
     setGeneralError("");
@@ -264,12 +283,10 @@ export default function SignIn() {
                         />
 
                         {generalError && (
-                          <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-md animate-slideDown">
-                            <p className="text-sm text-red-600 flex items-center">
-                              <AlertCircle className="w-4 h-4 mr-2" />
-                              {generalError}
-                            </p>
-                          </div>
+                          <ErrorWithHints 
+                            error={generalError}
+                            hints={getErrorHints(generalError)}
+                          />
                         )}
 
                         <div className="py-1 flex items-center justify-between ">

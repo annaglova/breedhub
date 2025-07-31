@@ -31,6 +31,49 @@ export const secureErrorMessages = {
   termsRequired: "You must agree to the terms of service",
 };
 
+// Error hints for better UX
+export const errorHints = {
+  invalidCredentials: {
+    message: "Invalid email or password",
+    hints: [
+      "Check your email for typos",
+      "Make sure Caps Lock is off",
+      "Try resetting your password if you've forgotten it"
+    ]
+  },
+  accountLocked: {
+    message: "Account temporarily locked",
+    hints: [
+      "Wait 15 minutes before trying again",
+      "Contact support if this persists"
+    ]
+  },
+  accountNotVerified: {
+    message: "Email not verified",
+    hints: [
+      "Check your email for verification link",
+      "Check spam folder",
+      "Request new verification email"
+    ]
+  },
+  networkError: {
+    message: "Connection problem",
+    hints: [
+      "Check your internet connection",
+      "Try refreshing the page",
+      "Disable VPN if using one"
+    ]
+  },
+  tooManyAttempts: {
+    message: "Too many attempts",
+    hints: [
+      "Wait a few minutes before trying again",
+      "Try resetting your password",
+      "Contact support if you're locked out"
+    ]
+  }
+};
+
 /**
  * Sanitize error messages to prevent information leakage
  */
