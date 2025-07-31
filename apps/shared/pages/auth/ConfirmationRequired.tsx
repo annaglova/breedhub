@@ -51,12 +51,6 @@ export default function ConfirmationRequired() {
 
         {/* Header */}
         <AuthHeader
-          showBackButton={true}
-          backButtonTo="/sign-up"
-          breadcrumbs={[
-            { label: "Sign Up", href: "/sign-up" },
-            { label: "Confirm Email", current: true }
-          ]}
           rightContent={
             <div className="flex items-center gap-4">
               <span className="hidden text-gray-700 sm:block">Return to</span>

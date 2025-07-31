@@ -147,9 +147,6 @@ export default function SignUpMultiStep() {
 
           {/* Header */}
           <AuthHeader
-            breadcrumbs={[
-              { label: "Sign Up", current: true }
-            ]}
             rightContent={
               <div className="flex items-center gap-4">
                 <span className="hidden text-gray-700 sm:block">

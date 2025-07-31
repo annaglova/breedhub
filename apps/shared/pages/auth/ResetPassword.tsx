@@ -89,12 +89,6 @@ export default function ResetPassword() {
 
         {/* Header */}
         <AuthHeader 
-          showBackButton={true}
-          backButtonTo="/sign-in"
-          breadcrumbs={[
-            { label: "Sign In", href: "/sign-in" },
-            { label: "Reset Password", current: true }
-          ]}
           rightContent={
             <div className="flex items-center gap-4">
               <span className="hidden text-gray-700 sm:block">Return to</span>
