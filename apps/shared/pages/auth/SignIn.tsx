@@ -41,6 +41,7 @@ export default function SignIn() {
     setValue,
   } = useForm<SignInFormData>({
     resolver: zodResolver(signInSchema),
+    mode: "onChange",
     defaultValues: {
       email: "",
       password: "",

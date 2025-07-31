@@ -29,6 +29,7 @@ export default function ResetPassword() {
     watch,
   } = useForm<ResetPasswordFormData>({
     resolver: zodResolver(resetPasswordSchema),
+    mode: "onChange",
     defaultValues: {
       password: "",
       passwordConfirm: "",

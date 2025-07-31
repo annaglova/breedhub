@@ -49,7 +49,7 @@ export default function SignUp() {
     setValue,
   } = useForm<SignUpFormData>({
     resolver: zodResolver(signUpSchema),
-    mode: "onTouched",
+    mode: "onChange",
     defaultValues: {
       name: "",
       email: "",

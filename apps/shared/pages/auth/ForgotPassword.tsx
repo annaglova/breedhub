@@ -30,6 +30,7 @@ export default function ForgotPassword() {
     watch,
   } = useForm<ForgotPasswordFormData>({
     resolver: zodResolver(forgotPasswordSchema),
+    mode: "onChange",
     defaultValues: {
       email: "",
     },
