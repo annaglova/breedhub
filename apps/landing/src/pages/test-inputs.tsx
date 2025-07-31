@@ -79,7 +79,7 @@ export default function TestInputsPage() {
     control
   } = useForm<TestFormData>({
     resolver: zodResolver(testFormSchema),
-    mode: "onTouched", // Validate on blur
+    mode: "onChange", // Real-time validation
     defaultValues: {
       text: "",
       email: "",
