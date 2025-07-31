@@ -1,9 +1,10 @@
-import React, { forwardRef, useEffect, useState } from "react";
+import React, { forwardRef, useEffect, useState, useRef } from "react";
 import { Input } from "../input";
 import { FormField } from "../form-field";
 import { cn } from "@ui/lib/utils";
 import { Mail, Check, AlertCircle, Loader2, Info } from "lucide-react";
 import { useDebouncedValidation } from "@shared/hooks/useDebouncedValidation";
+import { useAutoFillDetection } from "@shared/hooks/useAutoFillDetection";
 import { validateEmailAsync } from "@shared/utils/emailValidation";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../tooltip";
 
@@ -40,6 +41,16 @@ export const EmailInputWithValidation = forwardRef<HTMLInputElement, EmailInputW
     const [localValue, setLocalValue] = useState(value || "");
     const [suggestion, setSuggestion] = useState<string | null>(null);
     const [isDisposable, setIsDisposable] = useState(false);
+    
+    const inputRef = useRef<HTMLInputElement>(null);
+    const isAutoFilled = useAutoFillDetection(inputRef, {
+      onAutoFill: (filled) => {
+        if (filled && inputRef.current?.value) {
+          // Trigger validation when auto-filled
+          setLocalValue(inputRef.current.value);
+        }
+      }
+    });
 
     // Use debounced validation
     const { 
@@ -120,16 +131,27 @@ export const EmailInputWithValidation = forwardRef<HTMLInputElement, EmailInputW
     const inputElement = (
       <div className="group/field relative">
         <Input
-          ref={ref}
+          ref={(el) => {
+            inputRef.current = el;
+            if (ref) {
+              if (typeof ref === 'function') {
+                ref(el);
+              } else {
+                ref.current = el;
+              }
+            }
+          }}
           type="email"
           value={localValue}
           onChange={handleChange}
+          data-autofilled={isAutoFilled ? "true" : undefined}
           className={cn(
             "peer transition-all duration-200 pl-10",
             props.disabled && "bg-gray-50 border-gray-200 text-gray-500 cursor-not-allowed",
             hasError && "border-red-500 hover:border-red-600 focus:border-red-500 focus:ring-2 focus:ring-red-500/20",
             isValid && !props.disabled && !isDisposable && "border-green-500 hover:border-green-600 focus:border-green-500 focus:ring-2 focus:ring-green-500/20 pr-10",
             isDisposable && "border-yellow-500 hover:border-yellow-600 focus:border-yellow-500 focus:ring-2 focus:ring-yellow-500/20",
+            isAutoFilled && "!bg-blue-50 !border-blue-300",
             !hasError && !isValid && !props.disabled && "border-gray-300 hover:border-gray-400 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20",
             className
           )}
