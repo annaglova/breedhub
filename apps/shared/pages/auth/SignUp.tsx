@@ -128,7 +128,7 @@ export default function SignUp() {
         <AuthHeader
           rightContent={
             <div className="flex items-center gap-4">
-              <span className="hidden text-gray-600 sm:block">
+              <span className="hidden text-gray-700 sm:block">
                 Already have an account?
               </span>
               <AuthButton to="/sign-in">Sign in</AuthButton>
@@ -150,7 +150,7 @@ export default function SignUp() {
                 <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-gray-900">
                   Let's get started!
                 </h1>
-                <p className="mt-1 text-sm text-gray-600">
+                <p className="mt-1 text-sm text-gray-700">
                   Create your account to begin
                 </p>
               </div>
@@ -163,7 +163,7 @@ export default function SignUp() {
                     "flex-1 py-2.5 px-4 text-base font-medium rounded-md transition-all",
                     authMode === "social"
                       ? "bg-white text-gray-900 shadow-sm"
-                      : "text-gray-400 hover:text-gray-700"
+                      : "text-gray-400 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:ring-offset-2"
                   )}
                 >
                   Quick Sign Up
@@ -174,7 +174,7 @@ export default function SignUp() {
                     "flex-1 py-2 px-4 text-base font-medium rounded-md transition-all",
                     authMode === "email"
                       ? "bg-white text-gray-900 shadow-sm"
-                      : "text-gray-400 hover:text-gray-700"
+                      : "text-gray-400 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:ring-offset-2"
                   )}
                 >
                   Email
@@ -274,19 +274,19 @@ export default function SignUp() {
                             />
                             <label
                               htmlFor="agreements"
-                              className="ml-2 text-base text-gray-600"
+                              className="ml-2 text-base text-gray-700"
                             >
                               I agree to the{" "}
                               <Link
                                 to="/terms-and-conditions"
-                                className="text-primary-600 hover:text-primary-500"
+                                className="text-primary-600 hover:text-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20 rounded"
                               >
                                 Terms of Service
                               </Link>{" "}
                               and{" "}
                               <Link
                                 to="/privacy-policy"
-                                className="text-primary-600 hover:text-primary-500"
+                                className="text-primary-600 hover:text-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20 rounded"
                               >
                                 Privacy Policy
                               </Link>
@@ -331,11 +331,11 @@ export default function SignUp() {
               </div>
 
               {/* Sign in link */}
-              <p className="mt-6 text-center text-sm sm:text-base text-gray-600">
+              <p className="mt-6 text-center text-sm sm:text-base text-gray-700">
                 Already have an account?{" "}
                 <Link
                   to="/sign-in"
-                  className="font-medium text-primary-600 hover:text-primary-500 transition-colors"
+                  className="font-medium text-primary-600 hover:text-primary-500 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500/20 rounded"
                 >
                   Sign in
                 </Link>

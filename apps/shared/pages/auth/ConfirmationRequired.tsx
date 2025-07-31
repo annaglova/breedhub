@@ -40,7 +40,7 @@ export default function ConfirmationRequired() {
         <AuthHeader
           rightContent={
             <div className="flex items-center gap-4">
-              <span className="hidden text-gray-600 sm:block">Return to</span>
+              <span className="hidden text-gray-700 sm:block">Return to</span>
               <AuthButton to="/sign-in">
                 Login page
               </AuthButton>
@@ -74,7 +74,7 @@ export default function ConfirmationRequired() {
                 <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-gray-900">
                   Confirmation required
                 </h1>
-                <p className="mt-2 sm:mt-3 text-sm sm:text-base text-gray-600">
+                <p className="mt-2 sm:mt-3 text-sm sm:text-base text-gray-700">
                   A confirmation mail with instructions has been sent to your
                   email address. Follow those instructions to confirm your email
                   address and activate your account.
@@ -86,7 +86,7 @@ export default function ConfirmationRequired() {
                 <h3 className="text-sm sm:text-base font-medium text-gray-900">
                   Didn't receive an email?
                 </h3>
-                <ul className="mt-2 space-y-1 text-xs sm:text-sm text-gray-600">
+                <ul className="mt-2 space-y-1 text-xs sm:text-sm text-gray-700">
                   <li>• Check your spam or junk folder</li>
                   <li>• Verify that you entered the correct email address</li>
                   <li>• Wait a few minutes for the email to arrive</li>

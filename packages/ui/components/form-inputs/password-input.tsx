@@ -81,10 +81,39 @@ export const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(
       onChange?.(e);
     };
 
+    const inputRef = React.useRef<HTMLInputElement>(null);
+
+    const handleToggleVisibility = () => {
+      // Save cursor position before toggle
+      const start = inputRef.current?.selectionStart || 0;
+      const end = inputRef.current?.selectionEnd || 0;
+      
+      const newValue = !showPassword;
+      setShowPassword(newValue);
+      onPasswordToggleChange?.(newValue);
+      
+      // Restore cursor position after React re-render
+      requestAnimationFrame(() => {
+        if (inputRef.current) {
+          inputRef.current.setSelectionRange(start, end);
+          inputRef.current.focus();
+        }
+      });
+    };
+
     const inputElement = (
       <div className="group/field relative">
           <Input
-            ref={ref}
+            ref={(el) => {
+              inputRef.current = el;
+              if (ref) {
+                if (typeof ref === 'function') {
+                  ref(el);
+                } else {
+                  ref.current = el;
+                }
+              }
+            }}
             type={showPassword ? "text" : "password"}
             value={value}
             onChange={handleChange}
@@ -119,11 +148,7 @@ export const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(
           )}
           <button
             type="button"
-            onClick={() => {
-              const newValue = !showPassword;
-              setShowPassword(newValue);
-              onPasswordToggleChange?.(newValue);
-            }}
+            onClick={handleToggleVisibility}
             className={cn(
               "absolute inset-y-0 right-0 pr-3 flex items-center transition-colors z-10",
               "hover:text-gray-600 focus:outline-none rounded",

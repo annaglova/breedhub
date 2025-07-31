@@ -150,7 +150,7 @@ export default function SignInWithI18n() {
                 <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-gray-900">
                   {t.auth.signIn.title}
                 </h1>
-                <p className="mt-2 text-sm sm:text-base text-gray-600">
+                <p className="mt-2 text-sm sm:text-base text-gray-700">
                   {t.auth.signIn.subtitle}
                 </p>
               </div>
@@ -224,14 +224,14 @@ export default function SignInWithI18n() {
                     />
                     <label
                       htmlFor="remember"
-                      className="ml-2 text-sm text-gray-600 cursor-pointer"
+                      className="ml-2 text-sm text-gray-700 cursor-pointer"
                     >
                       {t.auth.signIn.rememberMe}
                     </label>
                   </div>
                   <Link
                     to="/forgot-password"
-                    className="text-sm text-primary-600 hover:text-primary-500 transition-colors"
+                    className="text-sm text-primary-600 hover:text-primary-500 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500/20 rounded"
                   >
                     {t.auth.signIn.forgotPassword}
                   </Link>
@@ -254,11 +254,11 @@ export default function SignInWithI18n() {
               </AuthFormWrapper>
 
               {/* Sign up link */}
-              <p className="mt-6 text-center text-sm sm:text-base text-gray-600">
+              <p className="mt-6 text-center text-sm sm:text-base text-gray-700">
                 {t.auth.signIn.noAccount}{" "}
                 <Link
                   to="/sign-up"
-                  className="font-medium text-primary-600 hover:text-primary-500 transition-colors"
+                  className="font-medium text-primary-600 hover:text-primary-500 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500/20 rounded"
                 >
                   {t.auth.signIn.signUpLink}
                 </Link>
