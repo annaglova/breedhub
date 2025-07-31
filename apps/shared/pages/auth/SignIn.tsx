@@ -4,6 +4,7 @@ import { AuthFooter } from "@shared/components/auth/AuthFooter";
 import { AuthHeader } from "@shared/components/auth/AuthHeader";
 import { EnhancedSocialLoginButtons } from "@shared/components/auth/EnhancedSocialLoginButtons";
 import { useRateLimiter } from "@shared/hooks/useRateLimiter";
+import { useSwipeGesture } from "@shared/hooks/useSwipeGesture";
 import AuthLayout from "@shared/layouts/AuthLayout";
 import { signInSchema, type SignInFormData } from "@shared/utils/authSchemas";
 import {
@@ -15,10 +16,12 @@ import {
 } from "@shared/utils/securityUtils";
 import { ErrorWithHints } from "@shared/components/auth/ErrorWithHints";
 import { LoadingButton } from "@shared/components/auth/LoadingButton";
+import { AuthPageWrapper } from "@shared/components/auth/AuthPageWrapper";
 import { AuthFormWrapper } from "@ui/components/auth-forms";
 import { Button } from "@ui/components/button";
 import { Checkbox } from "@ui/components/checkbox";
 import { EmailInput, PasswordInput } from "@ui/components/form-inputs";
+import { useToast } from "@ui/hooks/use-toast";
 import { cn } from "@ui/lib/utils";
 import { AlertCircle, Mail, User } from "lucide-react";
 import { useState } from "react";
@@ -31,6 +34,7 @@ export default function SignIn() {
   const [isLoading, setIsLoading] = useState(false);
   const [generalError, setGeneralError] = useState("");
   const [authMode, setAuthMode] = useState<"social" | "email">("social");
+  const { toast } = useToast();
 
   const { checkRateLimit, recordAttempt, clearAttempts, remainingAttempts } =
     useRateLimiter("login");
@@ -52,6 +56,20 @@ export default function SignIn() {
   });
 
   const watchEmail = watch("email");
+
+  // Swipe gesture handlers
+  const swipeRef = useSwipeGesture<HTMLDivElement>({
+    onSwipeLeft: () => {
+      if (authMode === "social") {
+        setAuthMode("email");
+      }
+    },
+    onSwipeRight: () => {
+      if (authMode === "email") {
+        setAuthMode("social");
+      }
+    },
+  });
 
   const getErrorHints = (error: string): string[] | undefined => {
     // Map error messages to hints
@@ -82,6 +100,11 @@ export default function SignIn() {
       logSecurityEvent({
         type: "rate_limit",
         email: hashForLogging(data.email),
+      });
+      toast({
+        variant: "destructive",
+        title: "Too many attempts",
+        description: rateLimitCheck.message || secureErrorMessages.tooManyAttempts,
       });
       return;
     }
@@ -120,6 +143,13 @@ export default function SignIn() {
         email: hashForLogging(data.email),
       });
 
+      // Show success toast
+      toast({
+        variant: "success",
+        title: "Welcome back!",
+        description: "You have successfully signed in.",
+      });
+
       // Get redirect URL from query params or default to /app
       const redirectURL = searchParams.get("redirectURL") || "/app";
       navigate(redirectURL);
@@ -156,16 +186,29 @@ export default function SignIn() {
     try {
       // TODO: Implement social login
       await new Promise((resolve) => setTimeout(resolve, 1000));
+      
+      toast({
+        variant: "success",
+        title: "Welcome back!",
+        description: `Successfully signed in with ${provider}.`,
+      });
+      
       const redirectURL = searchParams.get("redirectURL") || "/app";
       navigate(redirectURL);
     } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Sign in failed",
+        description: `Could not sign in with ${provider}. Please try again.`,
+      });
       setGeneralError(`${provider} login failed`);
     }
   };
 
   return (
-    <AuthLayout>
-      <div className="relative flex min-h-screen w-full flex-col">
+    <AuthPageWrapper>
+      <AuthLayout>
+        <div className="relative flex min-h-screen w-full flex-col">
         {/* Background SVG */}
         <div className="absolute bottom-0 w-full pointer-events-none z-0">
           <FooterFigure className="w-full h-auto" />
@@ -220,7 +263,7 @@ export default function SignIn() {
               </div>
 
               {/* Animated Content */}
-              <div className="relative h-auto sm:h-[230px]">
+              <div className="relative h-auto sm:h-[230px]" ref={swipeRef}>
                 {/* Social Login Tab */}
                 <div
                   className={cn(
@@ -343,5 +386,6 @@ export default function SignIn() {
         <AuthFooter />
       </div>
     </AuthLayout>
+    </AuthPageWrapper>
   );
 }
