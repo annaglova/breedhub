@@ -126,7 +126,7 @@ export const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(
             }}
             className={cn(
               "absolute inset-y-0 right-0 pr-3 flex items-center transition-colors z-10",
-              "hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-primary-500 rounded",
+              "hover:text-gray-600 focus:outline-none rounded",
               hasError ? "text-red-400 peer-focus:text-red-500" : 
               "text-gray-400 peer-focus:text-primary-600"
             )}
