@@ -10,6 +10,7 @@ import {
   Timeline,
   TimelineContent,
   TimelineItem,
+  AlternatingTimeline,
 } from "@ui/components/timeline";
 import { useState } from "react";
 import { Link } from "react-router-dom";
@@ -263,10 +264,6 @@ export default function Landing() {
   return (
     <LandingLayout>
       <style>{`
-        .customized-timeline .space-y-1 {
-          padding: 0 0 5px 1rem !important;
-        }
-        
         /* Active tab button styles */
         .active-tab-button:hover:not(:disabled) {
           background-color: transparent !important;
@@ -315,7 +312,7 @@ export default function Landing() {
           <LandingFigure style={{ width: "80%" }} />
         </div>
         {/* Page space */}
-        <div className="max-w-11xl relative mt-16 flex w-full min-w-0 flex-auto flex-col items-center px-6 lg:px-40 sm:px-10">
+        <div className="max-w-11xl relative mt-24 flex w-full min-w-0 flex-auto flex-col items-center px-6 lg:px-40 sm:px-10 md:mt-32">
           {/* General info */}
           <div className="flex flex-col md:space-x-18 md:pl-22 md:flex-row md:border-l">
             <div className="order-2 flex w-[100%] flex-col justify-center space-y-8 md:order-1 md:w-[70%] sm:space-y-12">
@@ -660,14 +657,14 @@ export default function Landing() {
                 </div>
 
                 {/* Breeds rating */}
-                <div className="order-1 relative text-secondary flex h-[500px] min-w-[50%] flex-col items-end rounded-2xl border bg-white xl:order-2">
-                  <div className="h-full overflow-auto p-8">
+                <div className="order-1 relative text-secondary flex h-[500px] w-full flex-col items-end rounded-2xl border bg-white xl:order-2 xl:min-w-[50%]">
+                  <div className="h-full w-full overflow-y-auto overflow-x-hidden p-8">
                     <p className="mb-3 font-semibold">Top-supported breeds</p>
-                    {topAchievementBreeds.slice(0, 7).map((breed, i) => (
-                      <div className="mt-3 flex w-full" key={i}>
-                        <BreedProgress breed={breed} />
-                      </div>
-                    ))}
+                    <div className="space-y-3">
+                      {topAchievementBreeds.slice(0, 7).map((breed, i) => (
+                        <BreedProgress breed={breed} key={i} />
+                      ))}
+                    </div>
                   </div>
                   <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-white to-transparent pointer-events-none rounded-b-2xl"></div>
                 </div>
@@ -785,32 +782,28 @@ export default function Landing() {
                 </div>
 
                 {/* Timeline info */}
-                <div className="order-1 relative flex h-[500px] min-w-[50%] flex-col rounded-2xl border bg-white xl:order-2">
-                  <div className="h-full overflow-auto p-8">
-                    <Timeline className="customized-timeline">
-                      {achievements.map((achievement, index) => (
-                        <TimelineItem
-                          key={achievement.Name}
-                          dot={<Check className="w-4 h-4" />}
-                          dotVariant="primary"
-                          isLast={index === achievements.length - 1}
-                        >
-                          <TimelineContent>
-                            <div className="flex flex-col px-5 py-3">
-                              <div className="text-lg font-bold">
-                                {achievement.Name}
-                              </div>
-                              <div className="text-secondary text-sm">
-                                {achievement.IntValue} $ per month
-                              </div>
-                              <div className="">{achievement.Description}</div>
-                            </div>
-                          </TimelineContent>
-                        </TimelineItem>
-                      ))}
-                    </Timeline>
+                <div className="order-1 relative flex h-[500px] w-full flex-col rounded-2xl border bg-gray-50 xl:order-2 xl:min-w-[50%]">
+                  <div className="h-full overflow-y-auto overflow-x-hidden p-6 md:p-10">
+                    <AlternatingTimeline
+                      items={achievements.map((achievement) => ({
+                        id: achievement.Name,
+                        title: achievement.Name,
+                        description: achievement.Description,
+                        date: `$${achievement.IntValue} per month`,
+                        icon: achievement.Active ? (
+                          <Check className="w-4 h-4" />
+                        ) : (
+                          <div className="w-2 h-2 bg-current rounded-full" />
+                        ),
+                        variant: achievement.Active ? "primary" : "inactive",
+                      }))}
+                      connectorVariant="primary"
+                      showCards={true}
+                      size="default"
+                      layout="left"
+                    />
                   </div>
-                  <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-white to-transparent pointer-events-none rounded-b-2xl"></div>
+                  <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-gray-50 to-transparent pointer-events-none rounded-b-2xl"></div>
                 </div>
               </div>
             </div>
