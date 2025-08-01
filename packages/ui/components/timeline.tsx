@@ -13,6 +13,12 @@ const timelineVariants = cva(
         vertical: "flex flex-col",
         horizontal: "flex flex-row items-center overflow-x-auto",
       },
+      layout: {
+        default: "",
+        left: "",
+        right: "",
+        alternating: "",
+      },
       size: {
         sm: "",
         default: "",
@@ -21,6 +27,7 @@ const timelineVariants = cva(
     },
     defaultVariants: {
       orientation: "vertical",
+      layout: "default",
       size: "default",
     },
   }
@@ -34,6 +41,12 @@ const timelineItemVariants = cva(
         vertical: "pb-8 last:pb-0",
         horizontal: "pr-8 last:pr-0 flex-shrink-0",
       },
+      layout: {
+        default: "",
+        left: "md:justify-start",
+        right: "md:justify-end",
+        alternating: "",
+      },
       size: {
         sm: "gap-2",
         default: "gap-3",
@@ -42,6 +55,7 @@ const timelineItemVariants = cva(
     },
     defaultVariants: {
       orientation: "vertical",
+      layout: "default",
       size: "default",
     },
   }
@@ -55,23 +69,31 @@ const timelineConnectorVariants = cva(
         vertical: "left-[15px] top-[30px] h-full w-[2px] last:hidden",
         horizontal: "top-[15px] left-[30px] w-full h-[2px] last:hidden",
       },
+      layout: {
+        default: "",
+        left: "md:left-[calc(100%-15px)]",
+        right: "md:left-[15px]",
+        alternating: "",
+      },
       variant: {
         default: "bg-border",
         success: "bg-green-300",
         warning: "bg-yellow-300",
         destructive: "bg-red-300",
         primary: "bg-primary/30",
+        dashed: "bg-gradient-to-b from-primary/30 via-transparent to-primary/30 bg-[length:2px_8px]",
       },
     },
     defaultVariants: {
       orientation: "vertical",
+      layout: "default",
       variant: "default",
     },
   }
 );
 
 const timelineDotVariants = cva(
-  "relative z-10 flex items-center justify-center rounded-full border-2 bg-background",
+  "relative z-10 flex items-center justify-center rounded-full border-2 transition-all duration-200",
   {
     variants: {
       size: {
@@ -80,12 +102,13 @@ const timelineDotVariants = cva(
         lg: "h-10 w-10",
       },
       variant: {
-        default: "border-border",
-        success: "border-green-500 text-green-500",
-        warning: "border-yellow-500 text-yellow-500",
-        destructive: "border-red-500 text-red-500",
-        primary: "border-primary text-primary",
-        filled: "border-primary bg-primary text-primary-foreground",
+        default: "border-secondary-400 bg-white text-secondary-400",
+        success: "border-primary bg-primary text-white",
+        warning: "border-yellow-500 text-yellow-500 bg-white",
+        destructive: "border-red-500 text-red-500 bg-white",
+        primary: "border-primary bg-primary text-white",
+        filled: "border-primary bg-primary text-white",
+        inactive: "border-secondary-300 bg-white text-secondary-300",
       },
     },
     defaultVariants: {
@@ -100,10 +123,10 @@ interface TimelineProps
     VariantProps<typeof timelineVariants> {}
 
 const Timeline = React.forwardRef<HTMLDivElement, TimelineProps>(
-  ({ className, orientation, size, ...props }, ref) => (
+  ({ className, orientation, layout, size, ...props }, ref) => (
     <div
       ref={ref}
-      className={cn(timelineVariants({ orientation, size }), className)}
+      className={cn(timelineVariants({ orientation, layout, size }), className)}
       {...props}
     />
   )
@@ -118,27 +141,51 @@ interface TimelineItemProps
   dotSize?: VariantProps<typeof timelineDotVariants>['size'];
   connectorVariant?: VariantProps<typeof timelineConnectorVariants>['variant'];
   isLast?: boolean;
+  index?: number;
+  card?: boolean;
 }
 
 const TimelineItem = React.forwardRef<HTMLDivElement, TimelineItemProps>(
   ({ 
     className, 
     orientation, 
+    layout,
     size, 
     dot, 
     dotVariant, 
     dotSize, 
     connectorVariant,
     isLast,
+    index = 0,
+    card = false,
     children, 
     ...props 
-  }, ref) => (
-    <div
-      ref={ref}
-      className={cn(timelineItemVariants({ orientation, size }), className)}
-      {...props}
-    >
-      <div className="flex flex-col items-center">
+  }, ref) => {
+    // Determine layout for alternating pattern
+    const isEven = index % 2 === 0;
+    const itemLayout = layout === 'alternating' 
+      ? (isEven ? 'left' : 'right') 
+      : layout;
+
+    // Content with optional card styling
+    const content = (
+      <div className={cn(
+        "flex-1 min-w-0",
+        card && "bg-white border border-gray-200 rounded-lg p-4 shadow-sm",
+        itemLayout === 'left' && "md:pr-8 md:text-right",
+        itemLayout === 'right' && "md:pl-8 md:text-left",
+        layout === 'alternating' && "md:w-[calc(50%-2rem)]"
+      )}>
+        {children}
+      </div>
+    );
+
+    // Dot element with connector
+    const dotElement = (
+      <div className={cn(
+        "flex flex-col items-center",
+        layout === 'alternating' && "md:absolute md:left-1/2 md:-translate-x-1/2"
+      )}>
         <div className={cn(timelineDotVariants({ size: dotSize || size, variant: dotVariant }))}>
           {dot}
         </div>
@@ -147,17 +194,46 @@ const TimelineItem = React.forwardRef<HTMLDivElement, TimelineItemProps>(
             className={cn(
               timelineConnectorVariants({ 
                 orientation, 
+                layout: itemLayout,
                 variant: connectorVariant 
               })
             )} 
           />
         )}
       </div>
-      <div className="flex-1 min-w-0">
-        {children}
+    );
+
+    return (
+      <div
+        ref={ref}
+        className={cn(
+          timelineItemVariants({ orientation, layout: itemLayout, size }),
+          layout === 'alternating' && "md:relative",
+          className
+        )}
+        {...props}
+      >
+        {itemLayout === 'right' && layout !== 'default' ? (
+          <>
+            <div className="hidden md:block md:flex-1" />
+            {dotElement}
+            {content}
+          </>
+        ) : itemLayout === 'left' && layout !== 'default' ? (
+          <>
+            {content}
+            {dotElement}
+            <div className="hidden md:block md:flex-1" />
+          </>
+        ) : (
+          <>
+            {dotElement}
+            {content}
+          </>
+        )}
       </div>
-    </div>
-  )
+    );
+  }
 );
 TimelineItem.displayName = "TimelineItem";
 
@@ -172,6 +248,22 @@ const TimelineContent = React.forwardRef<
   />
 ));
 TimelineContent.displayName = "TimelineContent";
+
+// Timeline Card component for enhanced styling
+const TimelineCard = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn(
+      "bg-white border border-gray-200 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow",
+      className
+    )}
+    {...props}
+  />
+));
+TimelineCard.displayName = "TimelineCard";
 
 const TimelineTitle = React.forwardRef<
   HTMLHeadingElement,
@@ -208,6 +300,147 @@ const TimelineTime = React.forwardRef<
   />
 ));
 TimelineTime.displayName = "TimelineTime";
+
+// Alternating Timeline Component
+interface AlternatingTimelineProps {
+  items: Array<{
+    id: string;
+    title: string;
+    description?: string;
+    date?: string;
+    icon?: React.ReactNode;
+    variant?: VariantProps<typeof timelineDotVariants>['variant'];
+    content?: React.ReactNode;
+  }>;
+  className?: string;
+  size?: VariantProps<typeof timelineVariants>['size'];
+  connectorVariant?: VariantProps<typeof timelineConnectorVariants>['variant'];
+  showCards?: boolean;
+  layout?: 'alternating' | 'left' | 'right';
+}
+
+const AlternatingTimeline = React.forwardRef<HTMLDivElement, AlternatingTimelineProps>(
+  ({ items, className, size = "default", connectorVariant = "primary", showCards = true, layout = "alternating" }, ref) => {
+    return (
+      <div ref={ref} className={cn("relative", className)}>
+        {/* Central line */}
+        <div className={cn(
+          "absolute top-0 bottom-0 w-0.5 bg-primary/30",
+          layout === "alternating" && "left-6 md:left-1/2 md:-translate-x-1/2",
+          layout === "left" && "left-6 md:left-0",
+          layout === "right" && "right-6 md:right-0"
+        )} />
+        
+        {/* Timeline items */}
+        <div className="relative space-y-8">
+          {items.map((item, index) => {
+            const isEven = index % 2 === 0;
+            const position = layout === "alternating" 
+              ? (isEven ? "left" : "right")
+              : layout;
+            
+            return (
+              <div
+                key={item.id}
+                className={cn(
+                  "relative flex items-center",
+                  layout === "alternating" && "justify-center",
+                  layout === "left" && "justify-start",
+                  layout === "right" && "justify-end"
+                )}
+              >
+                {/* Left card */}
+                {position === "left" && (
+                  <div className={cn(
+                    "w-full md:w-5/12",
+                    layout === "alternating" && "md:text-right md:pr-8",
+                    layout === "left" && "pl-12"
+                  )}>
+                    {showCards ? (
+                      <TimelineCard>
+                        <TimelineContent>
+                          <TimelineTitle>{item.title}</TimelineTitle>
+                          {item.description && (
+                            <TimelineDescription>{item.description}</TimelineDescription>
+                          )}
+                          {item.date && <TimelineTime>{item.date}</TimelineTime>}
+                          {item.content && <div className="mt-2">{item.content}</div>}
+                        </TimelineContent>
+                      </TimelineCard>
+                    ) : (
+                      <TimelineContent>
+                        <TimelineTitle>{item.title}</TimelineTitle>
+                        {item.description && (
+                          <TimelineDescription>{item.description}</TimelineDescription>
+                        )}
+                        {item.date && <TimelineTime>{item.date}</TimelineTime>}
+                        {item.content && <div className="mt-2">{item.content}</div>}
+                      </TimelineContent>
+                    )}
+                  </div>
+                )}
+                
+                {/* Empty space for right-aligned items */}
+                {position === "right" && layout === "alternating" && (
+                  <div className="w-5/12" />
+                )}
+                
+                {/* Dot */}
+                <div className={cn(
+                  "absolute z-10",
+                  layout === "alternating" && "left-6 md:left-1/2 md:-translate-x-1/2",
+                  layout === "left" && "left-6 md:left-0 md:-translate-x-1/2",
+                  layout === "right" && "right-6 md:right-0 md:translate-x-1/2"
+                )}>
+                  <div className={cn(timelineDotVariants({ size: size, variant: item.variant }))}>
+                    {item.icon}
+                  </div>
+                </div>
+                
+                {/* Empty space for left-aligned items */}
+                {position === "left" && layout === "alternating" && (
+                  <div className="w-5/12" />
+                )}
+                
+                {/* Right card */}
+                {position === "right" && (
+                  <div className={cn(
+                    "w-full md:w-5/12",
+                    layout === "alternating" && "md:text-left md:pl-8",
+                    layout === "right" && "pr-12"
+                  )}>
+                    {showCards ? (
+                      <TimelineCard>
+                        <TimelineContent>
+                          <TimelineTitle>{item.title}</TimelineTitle>
+                          {item.description && (
+                            <TimelineDescription>{item.description}</TimelineDescription>
+                          )}
+                          {item.date && <TimelineTime>{item.date}</TimelineTime>}
+                          {item.content && <div className="mt-2">{item.content}</div>}
+                        </TimelineContent>
+                      </TimelineCard>
+                    ) : (
+                      <TimelineContent>
+                        <TimelineTitle>{item.title}</TimelineTitle>
+                        {item.description && (
+                          <TimelineDescription>{item.description}</TimelineDescription>
+                        )}
+                        {item.date && <TimelineTime>{item.date}</TimelineTime>}
+                        {item.content && <div className="mt-2">{item.content}</div>}
+                      </TimelineContent>
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  }
+);
+AlternatingTimeline.displayName = "AlternatingTimeline";
 
 // Enhanced Timeline Components
 
@@ -404,9 +637,11 @@ export {
   Timeline,
   TimelineItem,
   TimelineContent,
+  TimelineCard,
   TimelineTitle,
   TimelineDescription,
   TimelineTime,
+  AlternatingTimeline,
   GroupedTimeline,
   PetLifeTimeline,
   timelineVariants,
