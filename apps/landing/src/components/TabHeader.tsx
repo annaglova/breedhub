@@ -113,7 +113,7 @@ export function TabHeader({
         className={`block px-3 sm:px-5 py-2 sm:py-3 text-sm sm:text-base font-bold uppercase leading-normal whitespace-nowrap ${
           isActive
             ? `${activeText} border-b-2 ${activeBorder} active-tab-button`
-            : "text-slate-400 hover:text-slate-600"
+            : "text-slate-500 hover:text-slate-700"
         }`}
         onClick={() => onTabChange(value)}
         onKeyDown={handleKeyDown}

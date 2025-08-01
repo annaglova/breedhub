@@ -11,8 +11,13 @@ interface LandingLayoutProps {
 export default function LandingLayout({ children }: LandingLayoutProps) {
   return (
     <div className="min-h-screen flex flex-col w-full landing-cursor">
+      <a href="#main-content" className="skip-link">
+        Skip to main content
+      </a>
       <LandingMenu />
-      <main className="flex-1 flex flex-col ">{children}</main>
+      <main id="main-content" className="flex-1 flex flex-col" tabIndex={-1}>
+        {children}
+      </main>
       <Footer />
     </div>
   );

@@ -1,0 +1,89 @@
+/* Focus styles for keyboard navigation accessibility */
+
+/* Base focus styles for all interactive elements */
+.focus-visible-styles:focus-visible {
+  @apply outline-none ring-2 ring-primary-500 ring-offset-2;
+}
+
+/* Button focus styles */
+button:focus-visible,
+.landing-raised-button:focus-visible,
+.landing-cta-button:focus-visible,
+.landing-menu-button:focus-visible {
+  @apply outline-none ring-2 ring-primary-500 ring-offset-2;
+}
+
+/* Link focus styles */
+a:focus-visible {
+  @apply outline-none ring-2 ring-primary-500 ring-offset-2 rounded;
+}
+
+/* Tab focus styles */
+.active-tab-button:focus-visible {
+  @apply outline-none ring-2 ring-primary-500 ring-offset-2;
+}
+
+/* Form element focus styles */
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  @apply outline-none ring-2 ring-primary-500 ring-offset-2;
+}
+
+/* Card/clickable container focus styles */
+.cursor-pointer:focus-visible,
+[role="button"]:focus-visible {
+  @apply outline-none ring-2 ring-primary-500 ring-offset-2 rounded-lg;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  button:focus-visible,
+  a:focus-visible,
+  input:focus-visible,
+  textarea:focus-visible,
+  select:focus-visible,
+  .cursor-pointer:focus-visible,
+  [role="button"]:focus-visible {
+    outline: 2px solid rgb(var(--primary-600));
+    outline-offset: 2px;
+  }
+}
+
+/* Dark mode focus styles */
+@media (prefers-color-scheme: dark) {
+  button:focus-visible,
+  a:focus-visible,
+  input:focus-visible,
+  textarea:focus-visible,
+  select:focus-visible {
+    @apply ring-primary-400 ring-offset-gray-900;
+  }
+}
+
+/* Skip links for screen readers */
+.skip-link {
+  @apply absolute left-0 top-0 -translate-y-full focus:translate-y-0;
+  @apply bg-primary-600 text-white px-4 py-2 z-50;
+  @apply focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2;
+}
+
+/* High contrast mode improvements */
+@media (prefers-contrast: high) {
+  .text-secondary-600 {
+    @apply text-secondary-800;
+  }
+  
+  .text-slate-500 {
+    @apply text-slate-700;
+  }
+  
+  .border {
+    @apply border-2;
+  }
+  
+  button,
+  a {
+    @apply font-bold;
+  }
+}

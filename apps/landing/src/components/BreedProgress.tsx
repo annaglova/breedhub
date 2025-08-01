@@ -51,7 +51,7 @@ Breed's support level - ${breed.LastAchievement?.Name ?? "-"}`,
                     {breed.Name}
                   </div>
                   {!simpleView && (
-                    <div className="text-secondary text-md text-end">
+                    <div className="text-secondary-600 text-md text-end">
                       Pet profiles: {breed.PetProfileCount}
                     </div>
                   )}
@@ -85,7 +85,7 @@ Breed's support level - ${breed.LastAchievement?.Name ?? "-"}`,
                 <div className="ml-2">
                   <div className="w-13">{breed.AchievementProgress}%</div>
                   {!simpleView && (
-                    <div className="text-secondary text-md w-32">
+                    <div className="text-secondary-600 text-md w-32">
                       {breed.LastAchievement?.Name}
                     </div>
                   )}
