@@ -322,12 +322,12 @@ export default function Landing() {
                   <span className="text-primary"> professional </span>
                   breeding
                 </h1>
-                <em className="text-secondary mt-2">
+                <em className="text-secondary-600 mt-2">
                   All necessary for a professional breeder in one app
                 </em>
               </div>
               {/* Breeds rating */}
-              <div className="text-secondary flex flex-col">
+              <div className="text-secondary-600 flex flex-col">
                 <p className="mb-5 font-semibold uppercase">
                   Top-supported breeds
                 </p>
@@ -345,7 +345,7 @@ export default function Landing() {
                     Get Started
                   </button>
                 </Link>
-                <div className="text-md font-semi-bold  text-secondary">
+                <div className="text-md font-semi-bold  text-secondary-600">
                   <p>Free forever</p>
                   <p>No credit card</p>
                 </div>
@@ -363,7 +363,7 @@ export default function Landing() {
 
           {/* Key indicators */}
           <div className="mt-18 flex w-full flex-col items-center xl:flex-row">
-            <div className="text-secondary mb-6 shrink-0 text-start text-4xl font-semibold xl:mb-0 xl:mr-6">
+            <div className="text-secondary-600 mb-6 shrink-0 text-start text-4xl font-semibold xl:mb-0 xl:mr-6">
               Best pet's knowledge base
             </div>
             <div className="grid w-full gap-3 md:grid-cols-3 sm:grid-cols-2">
@@ -375,7 +375,7 @@ export default function Landing() {
                       className={`flex flex-col items-center rounded-l-full bg-gradient-to-r to-transparent px-4 py-3 transition-transform hover:scale-105 ${stat.color}`}
                     >
                       <span className="text-3xl font-bold">{stat.value}</span>
-                      <span className="text-secondary text-lg font-semibold uppercase">
+                      <span className="text-secondary-600 text-lg font-semibold uppercase">
                         {stat.label}
                       </span>
                     </Link>
@@ -384,7 +384,7 @@ export default function Landing() {
                       className={`flex flex-col items-center rounded-l-full bg-gradient-to-r to-transparent px-4 py-3 ${stat.color}`}
                     >
                       <span className="text-3xl font-bold">{stat.value}</span>
-                      <span className="text-secondary text-lg font-semibold uppercase">
+                      <span className="text-secondary-600 text-lg font-semibold uppercase">
                         {stat.label}
                       </span>
                     </div>
@@ -570,7 +570,7 @@ export default function Landing() {
 
           {/* Top breeds by rating */}
           <div className="mt-22 max-w-screen mb-5 w-full lg:px-0 md:max-w-4xl md:px-6 sm:px-10">
-            <div className="text-secondary mb-6 w-full text-center text-4xl font-semibold xl:mb-0 xl:mr-6">
+            <div className="text-secondary-600 mb-6 w-full text-center text-4xl font-semibold xl:mb-0 xl:mr-6">
               Top Breeds by Pet Profiles
             </div>
             <div className="space-y-3">
@@ -683,7 +683,7 @@ export default function Landing() {
                 </div>
 
                 {/* Breeds rating */}
-                <div className="order-1 relative text-secondary flex h-[500px] w-full flex-col items-end rounded-2xl border bg-white xl:order-2 xl:min-w-[50%]">
+                <div className="order-1 relative text-secondary-600 flex h-[500px] w-full flex-col items-end rounded-2xl border bg-white xl:order-2 xl:min-w-[50%]">
                   <div className="h-full w-full overflow-y-auto overflow-x-hidden p-8">
                     <p className="mb-3 font-semibold">Top-supported breeds</p>
                     <div className="space-y-3">

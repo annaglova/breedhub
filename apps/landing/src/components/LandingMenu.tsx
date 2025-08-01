@@ -263,7 +263,7 @@ export default function LandingMenu({ className }: LandingMenuProps) {
           <div className="md:hidden">
             <button
               onClick={toggleMobileMenu}
-              className="p-3 min-w-[44px] min-h-[44px] text-gray-700 hover:text-primary-600 transition-colors focus:outline-none"
+              className="p-3 min-w-[44px] min-h-[44px] text-gray-700 hover:text-primary-600 transition-colors"
               aria-label="Toggle menu"
             >
               <svg
