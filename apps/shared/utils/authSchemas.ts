@@ -18,13 +18,23 @@ export type SignInFormData = z.infer<typeof signInSchema>;
 
 // Sign Up schema - using strong password validation
 export const signUpSchema = z.object({
-  name: nameValidator,
   email: emailValidator,
   password: passwordValidator,
   agreements: mustBeTrue('You must agree to the terms of service'),
 });
 
 export type SignUpFormData = z.infer<typeof signUpSchema>;
+
+// Sign Up with Profile schema (for multi-step form)
+export const signUpWithProfileSchema = z.object({
+  name: nameValidator,
+  email: emailValidator,
+  password: passwordValidator,
+  kennelName: z.string().optional(),
+  agreements: mustBeTrue('You must agree to the terms of service'),
+});
+
+export type SignUpWithProfileFormData = z.infer<typeof signUpWithProfileSchema>;
 
 // Forgot Password schema
 export const forgotPasswordSchema = z.object({

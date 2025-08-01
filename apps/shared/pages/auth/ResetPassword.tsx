@@ -1,21 +1,27 @@
+import { zodResolver } from "@hookform/resolvers/zod";
 import FooterFigure from "@shared/assets/backgrounds/footer-figure.svg?react";
+import { AuthButton } from "@shared/components/auth/AuthButton";
 import { AuthFooter } from "@shared/components/auth/AuthFooter";
 import { AuthHeader } from "@shared/components/auth/AuthHeader";
-import { AuthButton } from "@shared/components/auth/AuthButton";
-import { PasswordInput } from "@ui/components/form-inputs";
-import { AuthFormWrapper } from "@ui/components/auth-forms";
-import { PasswordStrength } from "@shared/components/auth/PasswordStrength";
+import { PasswordRequirements } from "@shared/components/auth/PasswordRequirements";
+import { Spinner } from "@shared/components/auth/Spinner";
 import AuthLayout from "@shared/layouts/AuthLayout";
-import { resetPasswordSchema, type ResetPasswordFormData } from "@shared/utils/authSchemas";
-import { sanitizeErrorMessage, secureErrorMessages, logSecurityEvent } from "@shared/utils/securityUtils";
+import {
+  resetPasswordSchema,
+  type ResetPasswordFormData,
+} from "@shared/utils/authSchemas";
+import {
+  logSecurityEvent,
+  sanitizeErrorMessage,
+} from "@shared/utils/securityUtils";
+import { AuthFormWrapper } from "@ui/components/auth-forms";
 import { Button } from "@ui/components/button";
+import { PasswordInput } from "@ui/components/form-inputs";
 import { useToast } from "@ui/hooks/use-toast";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { AlertCircle, Key } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import { Key, Lock, AlertCircle } from "lucide-react";
-import { Spinner } from "@shared/components/auth/Spinner";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 export default function ResetPassword() {
   const navigate = useNavigate();
@@ -23,7 +29,7 @@ export default function ResetPassword() {
   const [isLoading, setIsLoading] = useState(false);
   const [generalError, setGeneralError] = useState("");
   const { toast } = useToast();
-  
+
   const {
     register,
     handleSubmit,
@@ -51,28 +57,28 @@ export default function ResetPassword() {
       if (!token) {
         throw new Error("Invalid reset link");
       }
-      
+
       // Log the attempt
       logSecurityEvent({
-        type: 'password_reset',
-        details: { token: token.substring(0, 8) + '...' },
+        type: "password_reset",
+        details: { token: token.substring(0, 8) + "..." },
       });
-      
+
       await new Promise((resolve) => setTimeout(resolve, 1000));
-      
+
       // Show success message
       toast({
         variant: "success",
         title: "Password reset!",
         description: "Your password has been successfully reset.",
       });
-      
+
       // Redirect
       navigate("/sign-in?reset=success");
     } catch (error) {
       const errorMessage = sanitizeErrorMessage(error);
       setGeneralError(errorMessage);
-      
+
       // Shake animation handled by AuthFormWrapper
     } finally {
       setIsLoading(false);
@@ -88,44 +94,42 @@ export default function ResetPassword() {
         </div>
 
         {/* Header */}
-        <AuthHeader 
+        <AuthHeader
           rightContent={
             <div className="flex items-center gap-4">
               <span className="hidden text-gray-700 sm:block">Return to</span>
-              <AuthButton to="/sign-in">
-                Login page
-              </AuthButton>
+              <AuthButton to="/sign-in">Login page</AuthButton>
             </div>
-          } 
+          }
         />
 
         {/* Content */}
         <div className="relative z-10 flex flex-1 items-start sm:items-center justify-center px-0 sm:px-6 pb-4 sm:pb-8 pt-2 sm:pt-4">
           <div className="w-full sm:max-w-md animate-scaleIn">
             <div className="bg-transparent sm:bg-white rounded-none sm:rounded-xl sm:shadow-xl p-4 sm:p-6 lg:p-8 sm:border sm:border-gray-100">
-            {/* Icon */}
-            <div className="mx-auto flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-purple-100 shadow-sm mb-3 sm:mb-4">
-              <Key className="w-5 h-5 sm:w-6 sm:h-6 text-purple-600" />
-            </div>
+              {/* Icon */}
+              <div className="mx-auto flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-purple-100 shadow-sm mb-3 sm:mb-4">
+                <Key className="w-5 h-5 sm:w-6 sm:h-6 text-purple-600" />
+              </div>
 
-            {/* Title */}
-            <div className="text-center mb-4 sm:mb-6">
-              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-gray-900">
-                Reset your password
-              </h1>
-              <p className="mt-1 text-sm text-gray-700">
-                Create a new password for your account
-              </p>
-            </div>
+              {/* Title */}
+              <div className="text-center mb-4 sm:mb-6">
+                <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-gray-900">
+                  Reset your password
+                </h1>
+                <p className="mt-1 text-sm text-gray-700">
+                  Create a new password for your account
+                </p>
+              </div>
 
               {/* Form */}
-              <AuthFormWrapper 
-                formId="reset-form" 
-                onSubmit={handleSubmit(onSubmit)} 
+              <AuthFormWrapper
+                formId="reset-form"
+                onSubmit={handleSubmit(onSubmit)}
                 isLoading={isLoading}
                 className="mt-0"
               >
-                <div className="space-y-1">
+                <div className="space-y-3">
                   <div>
                     <PasswordInput
                       label="New password"
@@ -136,11 +140,14 @@ export default function ResetPassword() {
                       showIcon
                       aria-label="New password"
                       placeholder="Enter new password"
+                      helperText="Password must comply with security requirements"
                     />
-                    <div className="h-12 mt-2">
-                      {watchPassword && (
-                        <PasswordStrength password={watchPassword} />
-                      )}
+                    <div className="mt-3">
+                      <PasswordRequirements
+                        password={watchPassword}
+                        showTitle={true}
+                        compact={false}
+                      />
                     </div>
                   </div>
 
