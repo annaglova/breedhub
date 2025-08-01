@@ -1,7 +1,10 @@
 import LandingFigure from "@/assets/backgrounds/landing-figure.svg?react";
 import LandingLayout from "@/layouts/LandingLayout";
+import { usePageTitle } from "@/hooks/usePageTitle";
 
 export default function Privacy() {
+  usePageTitle("Privacy Policy");
+
   return (
     <LandingLayout>
       <div className="pb-20 relative overflow-hidden">

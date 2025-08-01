@@ -2,9 +2,12 @@ import React from "react";
 import { Link } from "react-router-dom";
 import Footer from "@/components/Footer";
 import LandingFigure from "@/assets/backgrounds/landing-figure.svg?react";
+import { usePageTitle } from "@/hooks/usePageTitle";
 import { AlertTriangle, Home, ArrowLeft } from "lucide-react";
 
 export default function NotFound() {
+  usePageTitle("Page Not Found");
+
   return (
     <div className="relative min-h-screen bg-white overflow-hidden">
       {/* Background SVG */}

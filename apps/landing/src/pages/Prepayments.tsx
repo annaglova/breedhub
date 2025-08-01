@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { usePageTitle } from "@/hooks/usePageTitle";
 import Footer from "@/components/Footer";
 import TierSelector from "@/components/TierSelector";
 import LandingFigure from "@/assets/backgrounds/landing-figure.svg?react";
@@ -21,6 +22,8 @@ const mockBreeds = [
 ];
 
 export default function Prepayments() {
+  usePageTitle("Prepayments");
+
   const navigate = useNavigate();
   const [selectedBreed, setSelectedBreed] = useState<string>("");
   const [selectedBreedName, setSelectedBreedName] = useState<string>("");

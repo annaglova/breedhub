@@ -1,6 +1,7 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { usePageTitle } from "@/hooks/usePageTitle";
 import {
   NumberInput,
   TextInput,
@@ -70,6 +71,8 @@ const testFormSchema = z.object({
 type TestFormData = z.infer<typeof testFormSchema>;
 
 export default function TestInputsPage() {
+  usePageTitle("Test Inputs");
+
   const {
     register,
     handleSubmit,
