@@ -61,7 +61,7 @@
     --secondary-800: 30 41 59; /* slate 800 */
     --secondary-900: 15 23 42; /* slate 900 */
     --secondary-950: 2 6 23; /* slate 950 */
-    
+
     /* Warning/Error color variables */
     --warning-50: 254 242 242; /* red-50 */
     --warning-100: 254 226 226; /* red-100 */
@@ -74,53 +74,57 @@
     --warning-800: 153 27 27; /* red-800 */
     --warning-900: 127 29 29; /* red-900 */
     --warning-950: 69 10 10; /* red-950 */
-    
+
     /* Input state variables */
     --input-border-default: #d1d5db; /* gray-300 */
     --input-border-hover: rgb(var(--primary-500));
     --input-border-focus: rgb(var(--primary-500));
     --input-outline-width: 3px;
     --input-outline-opacity: 0.2;
-    --input-outline-focus: rgb(var(--primary-500) / var(--input-outline-opacity));
-    
+    --input-outline-focus: rgb(
+      var(--primary-500) / var(--input-outline-opacity)
+    );
+
     --input-border-error: rgb(var(--warning-500));
     --input-border-error-hover: rgb(var(--warning-600));
-    --input-outline-error: rgb(var(--warning-500) / var(--input-outline-opacity));
-    
-    /* shadcn/ui CSS variables */
-    --background: 0 0% 100%; /* white */
-    --foreground: 222.2 84% 4.9%; /* near black */
-    
-    --muted: 210 40% 96.1%; /* light gray */
-    --muted-foreground: 215.4 16.3% 46.9%; /* gray text */
-    
-    --popover: 0 0% 100%; /* white */
-    --popover-foreground: 222.2 84% 4.9%; /* near black */
-    
-    --card: 0 0% 100%; /* white */
-    --card-foreground: 222.2 84% 4.9%; /* near black */
-    
-    --border: 214.3 31.8% 91.4%; /* light gray border */
-    --input: 214.3 31.8% 91.4%; /* light gray input border */
-    
-    --primary: 262.1 83.3% 57.8%; /* purple - same as our primary */
-    --primary-foreground: 0 0% 100%; /* white */
-    
-    --secondary: 210 40% 96.1%; /* light gray */
-    --secondary-foreground: 222.2 47.4% 11.2%; /* dark gray */
-    
-    --accent: 210 40% 96.1%; /* light gray */
-    --accent-foreground: 222.2 47.4% 11.2%; /* dark gray */
-    
-    --destructive: 0 84.2% 60.2%; /* red */
-    --destructive-foreground: 0 0% 100%; /* white */
-    
+    --input-outline-error: rgb(
+      var(--warning-500) / var(--input-outline-opacity)
+    );
+
+    /* shadcn/ui CSS variables - RGB format */
+    --background: 255 255 255; /* white */
+    --foreground: 20 14 34; /* near black */
+
+    --muted: 245 245 245; /* light gray */
+    --muted-foreground: 107 114 128; /* gray text */
+
+    --popover: 255 255 255; /* white */
+    --popover-foreground: 20 14 34; /* near black */
+
+    --card: 255 255 255; /* white */
+    --card-foreground: 20 14 34; /* near black */
+
+    --border: 229 231 235; /* light gray border */
+    --input: 229 231 235; /* light gray input border */
+
+    /* --primary: використовується з рядка 25 */
+    --primary-foreground: 255 255 255; /* white */
+
+    /* --secondary: використовується з рядка 52 */
+    --secondary-foreground: 255 255 255; /* white text on secondary */
+
+    /* --accent: використовується з рядка 39 */
+    --accent-foreground: 255 255 255; /* white */
+
+    --destructive: 239 68 68; /* red 500 */
+    --destructive-foreground: 255 255 255; /* white */
+
     /* RGB format for destructive/warning */
     --destructive-rgb: 239 68 68; /* red-500 */
     --destructive-foreground-rgb: 255 255 255; /* white */
-    
-    --ring: 262.1 83.3% 57.8%; /* purple - same as primary */
-    
+
+    --ring: 103 58 183; /* purple 500 - same as primary */
+
     --radius: 0.375rem; /* border radius */
   }
   * {
@@ -130,16 +134,16 @@
   }
 
   /* Removed global focus-visible styles to allow custom input focus styles */
-  
+
   /* Remove default browser outline on all elements */
   *:focus {
     outline: none !important;
   }
-  
+
   *:focus-visible {
     outline: none !important;
   }
-  
+
   /* Specific rules for form elements */
   input:focus,
   input:focus-visible,
@@ -153,18 +157,18 @@
     outline-width: 0 !important;
     outline-style: none !important;
   }
-  
+
   /* Remove webkit default styling */
   input::-webkit-outer-spin-button,
   input::-webkit-inner-spin-button {
     -webkit-appearance: none;
     margin: 0;
   }
-  
-  input[type=number] {
+
+  input[type="number"] {
     -moz-appearance: textfield;
   }
-  
+
   /* Remove outline from buttons and during screenshots */
   button:focus,
   button:focus-visible,
@@ -180,7 +184,7 @@
     outline-width: 0 !important;
     outline-offset: 0 !important;
   }
-  
+
   /* Remove outline during print/screenshot capture */
   @media print {
     button,
@@ -189,13 +193,13 @@
       outline: none !important;
     }
   }
-  
+
   /* Force remove outline with higher specificity */
   .flex.rounded-lg.bg-gray-100 button:focus,
   .flex.rounded-lg.bg-gray-100 button:focus-visible {
     outline: none !important;
   }
-  
+
   /* Remove box-shadow from tab buttons */
   .flex.rounded-lg.bg-gray-100 button {
     --tw-ring-offset-shadow: 0 0 transparent !important;
@@ -203,7 +207,7 @@
     --tw-shadow: 0 0 transparent !important;
     box-shadow: none !important;
   }
-  
+
   /* Ensure shadow is removed in all states */
   .flex.rounded-lg.bg-gray-100 button:focus,
   .flex.rounded-lg.bg-gray-100 button:focus-visible,
@@ -238,8 +242,12 @@
 
   /* Auto-fill animation for detection */
   @keyframes onAutoFillStart {
-    from { /**/ }
-    to { /**/ }
+    from {
+      /**/
+    }
+    to {
+      /**/
+    }
   }
 
   input:-webkit-autofill {
