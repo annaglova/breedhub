@@ -263,7 +263,7 @@ export default function LandingMenu({ className }: LandingMenuProps) {
           <div className="md:hidden">
             <button
               onClick={toggleMobileMenu}
-              className="p-2 text-gray-700 hover:text-primary-600 transition-colors focus:outline-none"
+              className="p-3 min-w-[44px] min-h-[44px] text-gray-700 hover:text-primary-600 transition-colors focus:outline-none"
               aria-label="Toggle menu"
             >
               <svg
@@ -326,7 +326,7 @@ export default function LandingMenu({ className }: LandingMenuProps) {
             </Link>
             <button
               onClick={() => setIsMobileMenuOpen(false)}
-              className="p-2 text-gray-500 hover:text-gray-700 transition-colors rounded-md hover:bg-gray-200"
+              className="p-3 min-w-[44px] min-h-[44px] text-gray-500 hover:text-gray-700 transition-colors rounded-md hover:bg-gray-200"
               aria-label="Close menu"
             >
               <svg
@@ -467,7 +467,7 @@ export default function LandingMenu({ className }: LandingMenuProps) {
             <div className="space-y-2">
               <a href="/app" className="block">
                 <button
-                  className="w-full rounded-md font-medium text-base py-2.5 px-5 text-primary-600 bg-transparent transition-all duration-300"
+                  className="w-full rounded-md font-medium text-base py-3 px-5 text-primary-600 bg-transparent transition-all duration-300 min-h-[44px]"
                   style={{
                     border: `2px solid rgb(var(--primary-500) / 0.3)`,
                   }}
@@ -478,7 +478,7 @@ export default function LandingMenu({ className }: LandingMenuProps) {
               </a>
               <Link to="/pricing" className="block">
                 <button
-                  className="w-full rounded-md font-medium text-base py-2.5 px-5 text-white bg-primary-500 transition-all duration-300"
+                  className="w-full rounded-md font-medium text-base py-3 px-5 text-white bg-primary-500 transition-all duration-300 min-h-[44px]"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   Get Started
