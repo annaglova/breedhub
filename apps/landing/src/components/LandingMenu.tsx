@@ -185,9 +185,9 @@ export default function LandingMenu({ className }: LandingMenuProps) {
           <div className="flex items-center">
             <Link
               to="/"
-              className="flex items-center cursor-pointer relative z-10"
+              className="flex items-center relative z-10 p-2 -m-2"
             >
-              <LogoText className="h-10 w-auto cursor-pointer" />
+              <LogoText className="h-10 w-auto pointer-events-none" />
             </Link>
           </div>
 
