@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
+import { usePageTitle } from "@/hooks/usePageTitle";
 import { TIERS, THREE_YEARLY, YEARLY, MONTHLY } from "@/constants/pricing";
 import { AlertCircle } from "lucide-react";
 
@@ -30,6 +31,8 @@ declare global {
 }
 
 export default function Payment() {
+  usePageTitle("Payment");
+
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const checkoutRef = useRef<HTMLDivElement>(null);

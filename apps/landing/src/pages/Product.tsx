@@ -2,6 +2,7 @@ import LandingFigure from "@/assets/backgrounds/landing-figure.svg?react";
 import type { PublicProductService } from "@/components/FeatureBlock";
 import FeatureBlock from "@/components/FeatureBlock";
 import LandingLayout from "@/layouts/LandingLayout";
+import { usePageTitle } from "@/hooks/usePageTitle";
 import { landingService } from "@/services/api.service";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
@@ -152,6 +153,8 @@ const mockProductData: PublicProductService[] = [
 ];
 
 export default function Product() {
+  usePageTitle("Features");
+
   const [services, setServices] = useState<PublicProductService[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 

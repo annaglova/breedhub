@@ -5,6 +5,7 @@ import PetSpaceImage from "@/assets/images/pet-space.jpeg";
 import { BreedProgress, type Breed } from "@/components/BreedProgress";
 import { TabHeader } from "@/components/TabHeader";
 import LandingLayout from "@/layouts/LandingLayout";
+import { usePageTitle } from "@/hooks/usePageTitle";
 import {
   Timeline,
   TimelineContent,
@@ -163,6 +164,8 @@ const statisticsData = [
 ];
 
 export default function Landing() {
+  usePageTitle("Home");
+  
   const [openTab, setOpenTab] = useState(1);
   const [openBreedTab, setOpenBreedTab] = useState(1);
 

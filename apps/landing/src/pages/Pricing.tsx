@@ -2,6 +2,7 @@ import HeaderFigure from "@/assets/backgrounds/header-figure.svg?react";
 import LandingFigure from "@/assets/backgrounds/landing-figure.svg?react";
 import FeatureTier from "@/components/FeatureTier";
 import TierSelector from "@/components/TierSelector";
+import { usePageTitle } from "@/hooks/usePageTitle";
 import { FEATURE_BLOCKS } from "@/constants/featureBlocks";
 import { TIERS, YEARLY_NUMBER } from "@/constants/pricing";
 import LandingLayout from "@/layouts/LandingLayout";
@@ -9,6 +10,8 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 
 export default function Pricing() {
+  usePageTitle("Pricing");
+
   const [selectedBillingType, setSelectedBillingType] = useState(YEARLY_NUMBER);
   const [showMobileTier, setShowMobileTier] = useState(0);
 

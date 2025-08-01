@@ -1,8 +1,11 @@
 import React from "react";
 import Footer from "@/components/Footer";
 import LandingFigure from "@/assets/backgrounds/landing-figure.svg?react";
+import { usePageTitle } from "@/hooks/usePageTitle";
 
 export default function Cookie() {
+  usePageTitle("Cookie Policy");
+
   return (
     <div className="relative min-h-screen bg-white overflow-hidden">
       {/* Background SVG */}
