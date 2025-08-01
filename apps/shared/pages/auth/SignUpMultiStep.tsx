@@ -7,8 +7,9 @@ import { LoadingButton } from "@shared/components/auth/LoadingButton";
 import { AuthPageWrapper } from "@shared/components/auth/AuthPageWrapper";
 import { ProgressIndicator, ProgressStep } from "@shared/components/auth/ProgressIndicator";
 import { BackButton } from "@shared/components/auth/BackButton";
+import { PasswordRequirements } from "@shared/components/auth/PasswordRequirements";
 import AuthLayout from "@shared/layouts/AuthLayout";
-import { signUpSchema, type SignUpFormData } from "@shared/utils/authSchemas";
+import { signUpWithProfileSchema, type SignUpWithProfileFormData } from "@shared/utils/authSchemas";
 import { AuthFormWrapper } from "@ui/components/auth-forms";
 import { Button } from "@ui/components/button";
 import { Checkbox } from "@ui/components/checkbox";
@@ -24,16 +25,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Link, useNavigate } from "react-router-dom";
 
-interface StepFormData {
-  // Step 1
-  name: string;
-  email: string;
-  // Step 2
-  password: string;
-  // Step 3
-  kennelName?: string;
-  agreements: boolean;
-}
+type StepFormData = SignUpWithProfileFormData;
 
 export default function SignUpMultiStep() {
   const navigate = useNavigate();
@@ -70,10 +62,12 @@ export default function SignUpMultiStep() {
     watch,
     trigger,
   } = useForm<StepFormData>({
-    resolver: zodResolver(signUpSchema),
+    resolver: zodResolver(signUpWithProfileSchema),
     mode: "onChange",
     defaultValues: formData,
   });
+
+  const watchPassword = watch("password");
 
   const handleNext = async () => {
     let fieldsToValidate: (keyof StepFormData)[] = [];
@@ -224,13 +218,15 @@ export default function SignUpMultiStep() {
                         autoComplete="new-password"
                         showIcon
                         placeholder="Create a strong password"
+                        helperText="Password must comply with security requirements"
                       />
                       
-                      <div className="bg-blue-50 p-3 rounded-md">
-                        <p className="text-sm text-blue-800">
-                          Your password should be at least 8 characters long and include 
-                          uppercase, lowercase, numbers, and symbols.
-                        </p>
+                      <div className="mt-3">
+                        <PasswordRequirements 
+                          password={watchPassword} 
+                          showTitle={true}
+                          compact={false}
+                        />
                       </div>
                     </div>
                   )}

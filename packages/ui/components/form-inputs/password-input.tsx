@@ -2,13 +2,7 @@ import React, { forwardRef, useState } from "react";
 import { Input } from "../input";
 import { FormField } from "../form-field";
 import { cn } from "@ui/lib/utils";
-import { Eye, EyeOff, Lock, Check, Info, AlertCircle } from "lucide-react";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "../tooltip";
+import { Eye, EyeOff, Lock, Check, AlertCircle } from "lucide-react";
 
 interface PasswordInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'type'> {
   label?: string;
@@ -211,26 +205,6 @@ export const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(
             )}>
               <span>{label}</span>
               {required && <span className="text-warning-500">*</span>}
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <button type="button" className="inline-flex items-center p-0 border-0 bg-transparent">
-                      <Info className="h-3.5 w-3.5 text-gray-400 hover:text-gray-600 cursor-help" />
-                    </button>
-                  </TooltipTrigger>
-                  <TooltipContent side="top" align="center">
-                    <div className="text-sm">
-                      <p className="font-medium mb-1">Password requirements:</p>
-                      <ul className="space-y-0.5">
-                        <li>• At least 8 characters</li>
-                        <li>• One uppercase letter (A-Z)</li>
-                        <li>• One lowercase letter (a-z)</li>
-                        <li>• One number (0-9)</li>
-                      </ul>
-                    </div>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
             </div>
           )}
           {inputElement}
