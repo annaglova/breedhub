@@ -178,7 +178,7 @@ export default function Landing() {
       content: (
         <>
           <div className="order-2 flex flex-col space-y-8 xl:order-1">
-            <p className="mt-6 text-6xl font-semibold">
+            <p className="mt-6 text-4xl sm:text-5xl lg:text-6xl font-semibold">
               Common data in a <span className="text-primary">convenient</span>{" "}
               format
             </p>
@@ -207,7 +207,7 @@ export default function Landing() {
       content: (
         <>
           <div className="order-2 flex flex-col space-y-8 xl:order-1">
-            <p className="mt-6 text-6xl font-semibold">
+            <p className="mt-6 text-4xl sm:text-5xl lg:text-6xl font-semibold">
               Fantastic site for your kennel with{" "}
               <span className="text-primary">up-to-date</span> information on it
             </p>
@@ -239,7 +239,7 @@ export default function Landing() {
       content: (
         <>
           <div className="order-2 flex flex-col space-y-8 xl:order-1">
-            <p className="mt-6 text-6xl font-semibold">
+            <p className="mt-6 text-4xl sm:text-5xl lg:text-6xl font-semibold">
               Your breeding work is the{" "}
               <span className="text-primary">foundation</span>
             </p>
@@ -395,7 +395,7 @@ export default function Landing() {
           </div>
 
           {/* Tabs — мобільна версія */}
-          <ul className="mt-18 flex list-none overflow-x-auto md:hidden" role="tablist">
+          <ul className="mt-18 flex list-none overflow-x-auto scrollbar-hide md:hidden" role="tablist">
             <li>
               <TabHeader
                 value={1}
@@ -466,7 +466,7 @@ export default function Landing() {
                   }`}
                 >
                   <div className="order-2 flex flex-col space-y-8 xl:order-1">
-                    <p className="mt-6 text-6xl font-semibold">
+                    <p className="mt-6 text-4xl sm:text-5xl lg:text-6xl font-semibold">
                       Professional pedigrees{" "}
                       <span className="text-primary">simplified</span>
                     </p>
@@ -498,7 +498,7 @@ export default function Landing() {
                   }`}
                 >
                   <div className="order-2 flex flex-col space-y-8 xl:order-1">
-                    <p className="mt-6 text-6xl font-semibold">
+                    <p className="mt-6 text-4xl sm:text-5xl lg:text-6xl font-semibold">
                       Your kennel's{" "}
                       <span className="text-primary">online presence</span> made
                       easy
@@ -532,7 +532,7 @@ export default function Landing() {
                   }`}
                 >
                   <div className="order-2 flex flex-col space-y-8 xl:order-1">
-                    <p className="mt-6 text-6xl font-semibold">
+                    <p className="mt-6 text-4xl sm:text-5xl lg:text-6xl font-semibold">
                       Breeding management{" "}
                       <span className="text-primary">reimagined</span>
                     </p>
@@ -581,7 +581,7 @@ export default function Landing() {
           </div>
 
           {/* Breed promotion */}
-          <ul className="mt-18 flex list-none overflow-x-auto md:hidden" role="tablist">
+          <ul className="mt-18 flex list-none overflow-x-auto scrollbar-hide md:hidden" role="tablist">
             <li>
               <TabHeader
                 value={1}
@@ -663,7 +663,7 @@ export default function Landing() {
                 }`}
               >
                 <div className="order-2 flex flex-col space-y-8 xl:order-1">
-                  <p className="mt-6 text-6xl font-semibold">
+                  <p className="mt-6 text-4xl sm:text-5xl lg:text-6xl font-semibold">
                     Power up your{" "}
                     <span className="text-pink-600">favorite breed</span>
                   </p>
@@ -706,7 +706,7 @@ export default function Landing() {
                 }`}
               >
                 <div className="order-2 flex flex-col space-y-8 xl:order-1">
-                  <p className="mt-6 text-6xl font-semibold">
+                  <p className="mt-6 text-4xl sm:text-5xl lg:text-6xl font-semibold">
                     Unlock new{" "}
                     <span className="text-pink-600">breed features</span>
                   </p>
@@ -792,7 +792,7 @@ export default function Landing() {
                 }`}
               >
                 <div className="order-2 flex flex-col space-y-8 xl:order-1">
-                  <p className="mt-6 text-6xl font-semibold">
+                  <p className="mt-6 text-4xl sm:text-5xl lg:text-6xl font-semibold">
                     Growing <span className="text-pink-600">together</span>
                   </p>
                   <p className="text-lg leading-8">
@@ -881,7 +881,7 @@ export default function Landing() {
                   </svg>
                 </div>
                 
-                <h2 className="text-5xl font-bold text-white mb-6">
+                <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-6">
                   Ready to start your breeding journey?
                 </h2>
                 <p className="text-xl text-white/90 mb-10 max-w-2xl mx-auto leading-relaxed">

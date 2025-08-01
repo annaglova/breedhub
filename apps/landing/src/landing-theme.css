@@ -52,6 +52,7 @@
 /* Raised button styles for landing page */
 .landing-raised-button {
   @apply px-6 py-4 rounded-xl font-bold leading-tight text-white shadow-md transition-all duration-150 ease-in-out transform border;
+  @apply min-h-[44px];
   position: relative;
   overflow: hidden;
 }
@@ -193,7 +194,7 @@
 /* CTA Section Buttons */
 .landing-cta-button {
   @apply relative inline-flex items-center gap-3 font-bold py-4 px-8 rounded-full transform transition-all duration-300;
-  @apply hover:scale-105 hover:shadow-2xl;
+  @apply hover:scale-105 hover:shadow-2xl min-h-[44px];
 }
 
 .landing-cta-button-primary {
@@ -208,8 +209,8 @@
 
 /* Menu Buttons */
 .landing-menu-button {
-  @apply rounded-full font-medium text-base px-6 py-2.5 transform transition-all duration-300;
-  @apply hover:scale-105;
+  @apply rounded-full font-medium text-base px-6 py-3 transform transition-all duration-300;
+  @apply hover:scale-105 min-h-[44px];
   position: relative;
   overflow: hidden;
 }
@@ -244,4 +245,28 @@
 .landing-menu-button-primary:hover {
   background-color: rgb(var(--primary-500)) !important;
   border-color: rgb(var(--primary-500));
+}
+
+/* Hide scrollbar for tab lists */
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;  /* Chrome, Safari and Opera */
+}
+
+/* Tab scroll indicator */
+.tab-scroll-indicator {
+  position: relative;
+}
+.tab-scroll-indicator::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 40px;
+  background: linear-gradient(to right, transparent, white);
+  pointer-events: none;
 }

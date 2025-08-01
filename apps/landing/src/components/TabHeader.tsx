@@ -110,7 +110,7 @@ export function TabHeader({
         aria-controls={`tabpanel${idPrefix}-${value}`}
         id={`tab${idPrefix}-${value}`}
         tabIndex={tabIndex !== undefined ? tabIndex : (isActive ? 0 : -1)}
-        className={`block px-5 py-3 font-bold uppercase leading-normal ${
+        className={`block px-3 sm:px-5 py-2 sm:py-3 text-sm sm:text-base font-bold uppercase leading-normal whitespace-nowrap ${
           isActive
             ? `${activeText} border-b-2 ${activeBorder} active-tab-button`
             : "text-slate-400 hover:text-slate-600"
