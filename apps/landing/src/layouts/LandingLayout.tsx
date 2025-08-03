@@ -2,6 +2,7 @@
 
 import Footer from "@/components/Footer";
 import LandingMenu from "@/components/LandingMenu";
+import { MobileStickyButton } from "@/components/MobileStickyButton";
 import React from "react";
 
 interface LandingLayoutProps {
@@ -19,6 +20,7 @@ export default function LandingLayout({ children }: LandingLayoutProps) {
         {children}
       </main>
       <Footer />
+      <MobileStickyButton />
     </div>
   );
 }

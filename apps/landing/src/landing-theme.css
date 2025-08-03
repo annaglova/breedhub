@@ -39,6 +39,14 @@
   cursor: pointer !important;
 }
 
+/* Ensure all children of interactive elements also have pointer cursor */
+.landing-cursor a *,
+.landing-cursor button *,
+.landing-cursor [role="button"] *,
+.landing-cursor .cursor-pointer * {
+  cursor: pointer !important;
+}
+
 /* Landing content container */
 .landing-content-container {
   @apply max-w-screen px-6 sm:px-10 md:max-w-6xl lg:px-0 mx-auto w-full;
@@ -51,10 +59,13 @@
 
 /* Raised button styles for landing page */
 .landing-raised-button {
-  @apply px-6 py-4 rounded-xl font-bold leading-tight text-white shadow-md transition-all duration-150 ease-in-out transform border;
+  @apply px-6 py-4 rounded-xl font-bold leading-normal text-white shadow-md transition-all duration-150 ease-in-out transform border;
   @apply min-h-[44px];
   position: relative;
   overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* Primary variant */
@@ -101,6 +112,26 @@
 .landing-raised-button-outline {
   @apply bg-white text-primary-500 shadow-none;
   border-color: rgb(var(--primary-500)) !important;
+}
+
+/* Secondary variant - less prominent */
+.landing-raised-button-secondary {
+  @apply bg-secondary-100 text-secondary-700 shadow-sm border-secondary-200;
+}
+
+.landing-raised-button-secondary:hover {
+  @apply bg-secondary-200 text-secondary-800 shadow-md border-secondary-300;
+  transform: translateY(-1px);
+}
+
+.landing-raised-button-secondary:focus {
+  @apply bg-secondary-200 text-secondary-800 border-secondary-300;
+}
+
+.landing-raised-button-secondary:active {
+  @apply bg-secondary-300 text-secondary-900 border-secondary-400;
+  transform: translateY(0) scale(0.98);
+  transition: transform 0.1s;
 }
 
 .landing-raised-button-outline:hover {
@@ -274,4 +305,41 @@
 /* Better contrast for secondary text */
 .text-secondary-contrast {
   @apply text-secondary-600;
+}
+
+/* Animations */
+@keyframes slide-up {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+.animate-slide-up {
+  animation: slide-up 0.3s ease-out;
+}
+
+/* Removed pulse animation - too distracting */
+
+/* Shimmer animation for skeleton loading */
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+.animate-shimmer {
+  background: linear-gradient(
+    90deg,
+    #f0f0f0 0px,
+    #f8f8f8 40px,
+    #f0f0f0 80px
+  );
+  background-size: 1000px 100%;
+  animation: shimmer 2s infinite linear;
 }
