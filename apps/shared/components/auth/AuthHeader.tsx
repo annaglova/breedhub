@@ -19,12 +19,13 @@ export function AuthHeader({
       <div className="flex items-center">
         <Link
           to="/"
-          className="flex items-center cursor-pointer relative z-10 focus:outline-none focus:ring-2 focus:ring-primary-500 rounded"
+          className="flex items-center cursor-pointer relative z-10 rounded p-2 -m-2"
           aria-label="Go to homepage"
+          style={{ border: 'none', outline: 'none', boxShadow: 'none' }}
         >
           <LogoText
             className="h-10 w-auto cursor-pointer"
-            style={{ marginTop: "6px" }}
+            style={{ marginTop: "6px", border: 'none', outline: 'none', boxShadow: 'none' }}
           />
         </Link>
       </div>

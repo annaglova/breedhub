@@ -1,4 +1,6 @@
 import { cn } from "@ui/lib/utils";
+import LogoText from "@shared/icons/logo/logo-text.svg?react";
+import { Link } from "react-router-dom";
 
 interface AuthFormSkeletonProps {
   className?: string;
@@ -59,7 +61,9 @@ export function AuthLayoutSkeleton() {
     <div className="relative flex min-h-screen w-full flex-col animate-pulse">
       {/* Header skeleton */}
       <div className="relative z-20 flex items-center justify-between px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
-        <div className="h-8 w-24 bg-gray-200 rounded" />
+        <Link to="/" className="p-2 -m-2" style={{ border: 'none', outline: 'none', boxShadow: 'none' }}>
+          <LogoText className="h-8 w-auto" style={{ border: 'none', outline: 'none', boxShadow: 'none' }} />
+        </Link>
         <div className="flex items-center gap-4">
           <div className="h-4 w-20 bg-gray-200 rounded hidden sm:block" />
           <div className="h-10 w-24 bg-gray-200 rounded-md" />
