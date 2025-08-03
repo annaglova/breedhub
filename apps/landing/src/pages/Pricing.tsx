@@ -2,9 +2,9 @@ import HeaderFigure from "@/assets/backgrounds/header-figure.svg?react";
 import LandingFigure from "@/assets/backgrounds/landing-figure.svg?react";
 import FeatureTier from "@/components/FeatureTier";
 import TierSelector from "@/components/TierSelector";
-import { usePageTitle } from "@/hooks/usePageTitle";
 import { FEATURE_BLOCKS } from "@/constants/featureBlocks";
 import { TIERS, YEARLY_NUMBER } from "@/constants/pricing";
+import { usePageTitle } from "@/hooks/usePageTitle";
 import LandingLayout from "@/layouts/LandingLayout";
 import { useState } from "react";
 import { Link } from "react-router-dom";
@@ -51,7 +51,9 @@ export default function Pricing() {
         <div className="relative z-10">
           {/* Header */}
           <div className="container mx-auto px-6 pt-14 sm:pt-32 text-center">
-            <h1 className="text-white tracking-tight leading-tight">Choose Your Plan</h1>
+            <h1 className="text-white tracking-tight leading-tight">
+              Choose Your Plan
+            </h1>
             <p className="text-2xl text-gray-600 xl:text-white max-w-3xl mx-auto mt-2 tracking-wide leading-relaxed">
               Join thousands of professional breeders who trust BreedHub to
               manage their breeding programs
@@ -248,7 +250,7 @@ export default function Pricing() {
             <div className="relative z-10 container mx-auto px-6 py-16">
               <div className="max-w-3xl mx-auto text-center">
                 {/* Gift Icon */}
-                <div className="mb-6 inline-flex items-center justify-center w-20 h-20 bg-white/20 rounded-full backdrop-blur-sm">
+                <div className="mb-6 inline-flex items-center justify-center w-20 h-20 bg-white/20 rounded-full backdrop-blur-sm shadow-md">
                   <svg
                     className="w-10 h-10 text-white"
                     fill="none"
