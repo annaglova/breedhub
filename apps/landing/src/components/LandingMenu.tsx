@@ -25,7 +25,7 @@ const MenuItem: React.FC<MenuItemProps & { isScrolled?: boolean }> = ({
       case "/product":
         return (
           <svg
-            className="w-5 h-5 opacity-70"
+            className="w-5 h-5 opacity-90"
             fill="none"
             stroke="currentColor"
             strokeWidth="2"
@@ -38,7 +38,7 @@ const MenuItem: React.FC<MenuItemProps & { isScrolled?: boolean }> = ({
       case "/pricing":
         return (
           <svg
-            className="w-5 h-5 opacity-70"
+            className="w-5 h-5 opacity-90"
             fill="none"
             stroke="currentColor"
             strokeWidth="2"
@@ -52,7 +52,7 @@ const MenuItem: React.FC<MenuItemProps & { isScrolled?: boolean }> = ({
       case "/about":
         return (
           <svg
-            className="w-5 h-5 opacity-70"
+            className="w-5 h-5 opacity-90"
             fill="none"
             stroke="currentColor"
             strokeWidth="2"
@@ -78,30 +78,30 @@ const MenuItem: React.FC<MenuItemProps & { isScrolled?: boolean }> = ({
         "px-6 py-2.5 text-base font-bold rounded-full transition-all duration-200 inline-flex items-center gap-2",
         isActive
           ? isScrolled
-            ? "text-primary-600"
-            : "text-white"
+            ? "text-primary-600 font-bold"
+            : "text-white font-bold"
           : isScrolled
-          ? "text-gray-700 hover:text-primary-600"
-          : "text-white/80 hover:text-white"
+          ? "text-gray-700 hover:text-primary-600 font-medium"
+          : "text-white hover:text-white font-medium"
       )}
       style={{
         backgroundColor: isActive
           ? isScrolled
-            ? "rgb(237 231 246)" // primary-50 full opacity
-            : "rgba(237, 231, 246, 0.15)" // primary-50 with 15% opacity for white text visibility
+            ? "rgb(233 221 249)" // більш насичений primary-100
+            : "rgba(233, 221, 249, 0.2)" // primary-100 with 20% opacity
           : "transparent",
         border: "2px solid",
         borderColor: isActive
           ? isScrolled
-            ? "rgb(237 231 246)" // same color as background
-            : "rgba(237, 231, 246, 0.01)" // same color as background
+            ? "rgb(233 221 249)" // same color as background
+            : "rgba(233, 221, 249, 0.02)" // same color as background
           : "transparent", // transparent for inactive
       }}
       onMouseEnter={(e) => {
         if (!isActive) {
           e.currentTarget.style.backgroundColor = isScrolled
-            ? "rgba(0, 0, 0, 0.05)"
-            : "rgba(255, 255, 255, 0.1)";
+            ? "rgba(107, 58, 183, 0.08)" // primary hover
+            : "rgba(255, 255, 255, 0.15)";
           e.currentTarget.style.borderColor = isScrolled
             ? "rgba(0, 0, 0, 0.001)"
             : "rgba(255, 255, 255, 0.01)";
@@ -325,7 +325,7 @@ export default function LandingMenu({ className }: LandingMenuProps) {
               <h2 className="text-xl font-bold text-primary-600 hover:text-primary-700 transition-colors">
                 Breedhub
               </h2>
-              <p className="text-xs text-gray-500 uppercase tracking-wider">
+              <p className="text-xs text-gray-600 uppercase tracking-wider font-medium">
                 Menu
               </p>
             </Link>
@@ -354,7 +354,7 @@ export default function LandingMenu({ className }: LandingMenuProps) {
           <nav className="flex flex-col p-4 space-y-6">
             {/* Services section */}
             <div>
-              <p className="px-4 pb-2 text-sm font-bold text-gray-400 uppercase tracking-wider">
+              <p className="px-4 pb-2 text-sm font-bold text-gray-600 uppercase tracking-wider">
                 Services
               </p>
               <div className="space-y-1">
@@ -364,8 +364,8 @@ export default function LandingMenu({ className }: LandingMenuProps) {
                   className={cn(
                     "block px-4 py-2 ml-2 text-base font-medium rounded-md transition-colors duration-200",
                     location.pathname === "/product"
-                      ? "text-primary-600 bg-primary-50"
-                      : "text-gray-700 hover:text-primary-600 hover:bg-gray-50"
+                      ? "text-primary-600 bg-primary-50 font-bold"
+                      : "text-gray-700 hover:text-primary-600 hover:bg-primary-50 font-medium"
                   )}
                 >
                   Product
@@ -376,8 +376,8 @@ export default function LandingMenu({ className }: LandingMenuProps) {
                   className={cn(
                     "block px-4 py-2 ml-2 text-base font-medium rounded-md transition-colors duration-200",
                     location.pathname === "/pricing"
-                      ? "text-primary-600 bg-primary-50"
-                      : "text-gray-700 hover:text-primary-600 hover:bg-gray-50"
+                      ? "text-primary-600 bg-primary-50 font-bold"
+                      : "text-gray-700 hover:text-primary-600 hover:bg-primary-50 font-medium"
                   )}
                 >
                   Pricing
@@ -388,8 +388,8 @@ export default function LandingMenu({ className }: LandingMenuProps) {
                   className={cn(
                     "block px-4 py-2 ml-2 text-base font-medium rounded-md transition-colors duration-200",
                     location.pathname === "/sign-in"
-                      ? "text-primary-600 bg-primary-50"
-                      : "text-gray-700 hover:text-primary-600 hover:bg-gray-50"
+                      ? "text-primary-600 bg-primary-50 font-bold"
+                      : "text-gray-700 hover:text-primary-600 hover:bg-primary-50 font-medium"
                   )}
                 >
                   Sign In
@@ -400,8 +400,8 @@ export default function LandingMenu({ className }: LandingMenuProps) {
                   className={cn(
                     "block px-4 py-2 ml-2 text-base font-medium rounded-md transition-colors duration-200",
                     location.pathname === "/about"
-                      ? "text-primary-600 bg-primary-50"
-                      : "text-gray-700 hover:text-primary-600 hover:bg-gray-50"
+                      ? "text-primary-600 bg-primary-50 font-bold"
+                      : "text-gray-700 hover:text-primary-600 hover:bg-primary-50 font-medium"
                   )}
                 >
                   About
@@ -411,7 +411,7 @@ export default function LandingMenu({ className }: LandingMenuProps) {
 
             {/* Spaces section */}
             <div>
-              <p className="px-4 pb-2 text-sm font-bold text-gray-400 uppercase tracking-wider">
+              <p className="px-4 pb-2 text-sm font-bold text-gray-600 uppercase tracking-wider">
                 Spaces
               </p>
               <div className="space-y-1">
@@ -423,8 +423,8 @@ export default function LandingMenu({ className }: LandingMenuProps) {
                     className={cn(
                       "block px-4 py-2 ml-2 text-base font-medium rounded-md transition-colors duration-200",
                       location.pathname === item.to
-                        ? "text-primary-600 bg-primary-50"
-                        : "text-gray-700 hover:text-primary-600 hover:bg-gray-50"
+                        ? "text-primary-600 bg-primary-50 font-bold"
+                        : "text-gray-700 hover:text-primary-600 hover:bg-primary-50 font-medium"
                     )}
                   >
                     {item.label}
@@ -435,7 +435,7 @@ export default function LandingMenu({ className }: LandingMenuProps) {
 
             {/* Terms section */}
             <div>
-              <p className="px-4 pb-2 text-sm font-bold text-gray-400 uppercase tracking-wider">
+              <p className="px-4 pb-2 text-sm font-bold text-gray-600 uppercase tracking-wider">
                 Terms
               </p>
               <div className="space-y-1">
@@ -445,8 +445,8 @@ export default function LandingMenu({ className }: LandingMenuProps) {
                   className={cn(
                     "block px-4 py-2 ml-2 text-base font-medium rounded-md transition-colors duration-200",
                     location.pathname === "/terms-and-conditions"
-                      ? "text-primary-600 bg-primary-50"
-                      : "text-gray-700 hover:text-primary-600 hover:bg-gray-50"
+                      ? "text-primary-600 bg-primary-50 font-bold"
+                      : "text-gray-700 hover:text-primary-600 hover:bg-primary-50 font-medium"
                   )}
                 >
                   Terms & Conditions
@@ -457,8 +457,8 @@ export default function LandingMenu({ className }: LandingMenuProps) {
                   className={cn(
                     "block px-4 py-2 ml-2 text-base font-medium rounded-md transition-colors duration-200",
                     location.pathname === "/privacy-policy"
-                      ? "text-primary-600 bg-primary-50"
-                      : "text-gray-700 hover:text-primary-600 hover:bg-gray-50"
+                      ? "text-primary-600 bg-primary-50 font-bold"
+                      : "text-gray-700 hover:text-primary-600 hover:bg-primary-50 font-medium"
                   )}
                 >
                   Privacy Policy
