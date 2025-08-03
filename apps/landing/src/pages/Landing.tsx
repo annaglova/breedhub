@@ -199,8 +199,8 @@ export default function Landing() {
         <>
           <div className="order-2 flex flex-col space-y-8 xl:order-1">
             <p className="mt-8 text-4xl sm:text-5xl lg:text-6xl font-semibold">
-              Common data in a <span className="text-primary">convenient</span>{" "}
-              format
+              <span className="bg-gradient-to-r from-slate-800 via-slate-700 to-slate-600 bg-clip-text text-transparent">Common data in a</span> <span className="bg-gradient-to-r from-primary-500 to-accent-500 bg-clip-text text-transparent">convenient</span>{" "}
+              <span className="bg-gradient-to-r from-slate-600 via-slate-700 to-slate-800 bg-clip-text text-transparent">format</span>
             </p>
             <p className="text-lg leading-8">
               View and change the pedigree of your pet from any device. We've
@@ -229,8 +229,8 @@ export default function Landing() {
         <>
           <div className="order-2 flex flex-col space-y-8 xl:order-1">
             <p className="mt-8 text-4xl sm:text-5xl lg:text-6xl font-semibold">
-              Fantastic site for your kennel with{" "}
-              <span className="text-primary">up-to-date</span> information on it
+              <span className="bg-gradient-to-r from-slate-800 via-slate-700 to-slate-600 bg-clip-text text-transparent">Fantastic site for your kennel with</span>{" "}
+              <span className="bg-gradient-to-r from-primary-500 to-accent-500 bg-clip-text text-transparent">up-to-date</span> <span className="bg-gradient-to-r from-slate-600 via-slate-700 to-slate-800 bg-clip-text text-transparent">information on it</span>
             </p>
             <p className="text-lg leading-8">
               Save your time and effort. Your site is{" "}
@@ -262,8 +262,8 @@ export default function Landing() {
         <>
           <div className="order-2 flex flex-col space-y-8 xl:order-1">
             <p className="mt-8 text-4xl sm:text-5xl lg:text-6xl font-semibold">
-              Your breeding work is the{" "}
-              <span className="text-primary">foundation</span>
+              <span className="bg-gradient-to-r from-slate-800 via-slate-700 to-slate-600 bg-clip-text text-transparent">Your breeding work is the</span>{" "}
+              <span className="bg-gradient-to-r from-primary-500 to-accent-500 bg-clip-text text-transparent">foundation</span>
             </p>
             <p className="text-lg leading-8">
               Manage your breeding work in one app. Make less iterative manual
@@ -342,7 +342,7 @@ export default function Landing() {
               <div className="flex w-full flex-col">
                 <h1 className="">
                   Elevating
-                  <span className="text-primary"> professional </span>
+                  <span className="bg-gradient-to-r from-primary-500 to-accent-500 bg-clip-text text-transparent"> professional </span>
                   breeding
                 </h1>
                 <em className="text-secondary-600 mt-4">
@@ -513,8 +513,8 @@ export default function Landing() {
                 >
                   <div className="order-2 flex flex-col space-y-8 xl:order-1">
                     <p className="mt-8 text-4xl sm:text-5xl lg:text-6xl font-semibold">
-                      Professional pedigrees{" "}
-                      <span className="text-primary">simplified</span>
+                      <span className="bg-gradient-to-r from-slate-800 via-slate-700 to-slate-600 bg-clip-text text-transparent">Professional pedigrees</span>{" "}
+                      <span className="bg-gradient-to-r from-primary-500 to-accent-500 bg-clip-text text-transparent">simplified</span>
                     </p>
                     <p className="text-lg leading-8">
                       Create, manage, and share detailed pedigrees with just a
@@ -546,9 +546,9 @@ export default function Landing() {
                 >
                   <div className="order-2 flex flex-col space-y-8 xl:order-1">
                     <p className="mt-8 text-4xl sm:text-5xl lg:text-6xl font-semibold">
-                      Your kennel's{" "}
-                      <span className="text-primary">online presence</span> made
-                      easy
+                      <span className="bg-gradient-to-r from-slate-800 via-slate-700 to-slate-600 bg-clip-text text-transparent">Your kennel's</span>{" "}
+                      <span className="bg-gradient-to-r from-primary-500 to-accent-500 bg-clip-text text-transparent">online presence</span> <span className="bg-gradient-to-r from-slate-600 via-slate-700 to-slate-800 bg-clip-text text-transparent">made
+                      easy</span>
                     </p>
                     <p className="text-lg leading-8">
                       Get a professional website for your kennel in minutes.
@@ -581,8 +581,8 @@ export default function Landing() {
                 >
                   <div className="order-2 flex flex-col space-y-8 xl:order-1">
                     <p className="mt-8 text-4xl sm:text-5xl lg:text-6xl font-semibold">
-                      Breeding management{" "}
-                      <span className="text-primary">reimagined</span>
+                      <span className="bg-gradient-to-r from-slate-800 via-slate-700 to-slate-600 bg-clip-text text-transparent">Breeding management</span>{" "}
+                      <span className="bg-gradient-to-r from-primary-500 to-accent-500 bg-clip-text text-transparent">reimagined</span>
                     </p>
                     <p className="text-lg leading-8">
                       Streamline your entire breeding program from planning to
@@ -712,8 +712,8 @@ export default function Landing() {
               >
                 <div className="order-2 flex flex-col space-y-8 xl:order-1">
                   <p className="mt-8 text-4xl sm:text-5xl lg:text-6xl font-semibold">
-                    Power up your{" "}
-                    <span className="text-pink-600">favorite breed</span>
+                    <span className="bg-gradient-to-r from-slate-800 via-slate-700 to-slate-600 bg-clip-text text-transparent">Power up your</span>{" "}
+                    <span className="bg-gradient-to-r from-pink-500 to-purple-500 bg-clip-text text-transparent">favorite breed</span>
                   </p>
                   <p className="text-lg leading-8">
                     Join a community of passionate breeders who share your
@@ -755,8 +755,8 @@ export default function Landing() {
               >
                 <div className="order-2 flex flex-col space-y-8 xl:order-1">
                   <p className="mt-8 text-4xl sm:text-5xl lg:text-6xl font-semibold">
-                    Unlock new{" "}
-                    <span className="text-pink-600">breed features</span>
+                    <span className="bg-gradient-to-r from-slate-800 via-slate-700 to-slate-600 bg-clip-text text-transparent">Unlock new</span>{" "}
+                    <span className="bg-gradient-to-r from-pink-500 to-purple-500 bg-clip-text text-transparent">breed features</span>
                   </p>
                   <p className="text-lg leading-8">
                     Watch your breed evolve with community-driven milestones. As
@@ -841,7 +841,7 @@ export default function Landing() {
               >
                 <div className="order-2 flex flex-col space-y-8 xl:order-1">
                   <p className="mt-8 text-4xl sm:text-5xl lg:text-6xl font-semibold">
-                    Growing <span className="text-pink-600">together</span>
+                    <span className="bg-gradient-to-r from-slate-800 via-slate-700 to-slate-600 bg-clip-text text-transparent">Growing</span> <span className="bg-gradient-to-r from-pink-500 to-purple-500 bg-clip-text text-transparent">together</span>
                   </p>
                   <p className="text-lg leading-8">
                     We believe in rewarding active communities. Our six-tier

@@ -208,10 +208,8 @@ export default function Product() {
           <div className="landing-content-container">
             {/* Header Section */}
             <div className="relative space-y-3 text-center">
-              <h1>
-                Everything You Need for
-                <span className="text-white"> Professional </span>
-                Breeding
+              <h1 className="text-white">
+                Everything You Need for Professional Breeding
               </h1>
               <p className="text-2xl text-gray-600 xl:text-white max-w-3xl mx-auto mt-2">
                 Discover the comprehensive suite of tools designed to streamline
