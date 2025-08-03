@@ -67,8 +67,8 @@ export default function Application() {
           <div className="landing-content-container">
             {/* Page header */}
             <div className="relative space-y-3 text-center  text-white">
-              <h1>Let's get started</h1>
-              <h3>
+              <h1 className="tracking-tight leading-tight">Let's get started</h1>
+              <h3 className="tracking-wide leading-relaxed">
                 with your <span className="font-bold">AWESOME</span> spaces
               </h3>
             </div>

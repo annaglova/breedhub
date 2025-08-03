@@ -16,7 +16,7 @@ export default function Cookie() {
       {/* Content */}
       <div className="relative z-10">
         <div className="container mx-auto px-6 py-20 max-w-4xl">
-          <h1 className="text-4xl md:text-5xl font-bold mb-8 text-center">
+          <h1 className="text-4xl md:text-5xl font-bold mb-8 text-center tracking-tight leading-tight">
             Cookie Policy
           </h1>
           
@@ -26,16 +26,16 @@ export default function Cookie() {
             </p>
 
             <section className="mb-8">
-              <h2 className="text-2xl font-semibold mb-4">1. What Are Cookies</h2>
-              <p className="text-gray-700 mb-4">
+              <h2 className="text-2xl font-semibold mb-4 tracking-wide">1. What Are Cookies</h2>
+              <p className="text-gray-700 mb-4 leading-relaxed">
                 Cookies are small text files that are placed on your computer or mobile device when you visit a website. 
                 They are widely used to make websites work more efficiently and provide information to the owners of the site.
               </p>
             </section>
 
             <section className="mb-8">
-              <h2 className="text-2xl font-semibold mb-4">2. How We Use Cookies</h2>
-              <p className="text-gray-700 mb-4">
+              <h2 className="text-2xl font-semibold mb-4 tracking-wide">2. How We Use Cookies</h2>
+              <p className="text-gray-700 mb-4 leading-relaxed">
                 BreedHub uses cookies and similar tracking technologies to improve your browsing experience and to better 
                 understand how you use our platform. We use cookies for the following purposes:
               </p>
@@ -48,10 +48,10 @@ export default function Cookie() {
             </section>
 
             <section className="mb-8">
-              <h2 className="text-2xl font-semibold mb-4">3. Types of Cookies We Use</h2>
+              <h2 className="text-2xl font-semibold mb-4 tracking-wide">3. Types of Cookies We Use</h2>
               
               <h3 className="text-xl font-semibold mb-2 mt-4">Session Cookies</h3>
-              <p className="text-gray-700 mb-4">
+              <p className="text-gray-700 mb-4 leading-relaxed">
                 These are temporary cookies that expire when you close your browser. We use session cookies to:
               </p>
               <ul className="list-disc pl-6 text-gray-700 mb-4">
@@ -61,7 +61,7 @@ export default function Cookie() {
               </ul>
 
               <h3 className="text-xl font-semibold mb-2 mt-4">Persistent Cookies</h3>
-              <p className="text-gray-700 mb-4">
+              <p className="text-gray-700 mb-4 leading-relaxed">
                 These cookies remain on your device for a set period. We use persistent cookies to:
               </p>
               <ul className="list-disc pl-6 text-gray-700 mb-4">
@@ -72,8 +72,8 @@ export default function Cookie() {
             </section>
 
             <section className="mb-8">
-              <h2 className="text-2xl font-semibold mb-4">4. Third-Party Cookies</h2>
-              <p className="text-gray-700 mb-4">
+              <h2 className="text-2xl font-semibold mb-4 tracking-wide">4. Third-Party Cookies</h2>
+              <p className="text-gray-700 mb-4 leading-relaxed">
                 We may use third-party services that set their own cookies, including:
               </p>
               <ul className="list-disc pl-6 text-gray-700 mb-4">
@@ -81,14 +81,14 @@ export default function Cookie() {
                 <li><strong>Supabase:</strong> For authentication and data storage</li>
                 <li><strong>Payment processors:</strong> To handle secure transactions</li>
               </ul>
-              <p className="text-gray-700 mb-4">
+              <p className="text-gray-700 mb-4 leading-relaxed">
                 These third parties may use cookies to collect information about your online activities across different websites.
               </p>
             </section>
 
             <section className="mb-8">
-              <h2 className="text-2xl font-semibold mb-4">5. Cookie Settings and Preferences</h2>
-              <p className="text-gray-700 mb-4">
+              <h2 className="text-2xl font-semibold mb-4 tracking-wide">5. Cookie Settings and Preferences</h2>
+              <p className="text-gray-700 mb-4 leading-relaxed">
                 You can control and manage cookies in various ways:
               </p>
               <ul className="list-disc pl-6 text-gray-700 mb-4">
@@ -96,14 +96,14 @@ export default function Cookie() {
                 <li><strong>Device settings:</strong> Mobile devices may have settings to control cookies</li>
                 <li><strong>Third-party tools:</strong> Various browser plugins can block tracking cookies</li>
               </ul>
-              <p className="text-gray-700 mb-4">
+              <p className="text-gray-700 mb-4 leading-relaxed">
                 Please note that blocking certain cookies may impact the functionality of our platform.
               </p>
             </section>
 
             <section className="mb-8">
-              <h2 className="text-2xl font-semibold mb-4">6. How to Manage Cookies</h2>
-              <p className="text-gray-700 mb-4">
+              <h2 className="text-2xl font-semibold mb-4 tracking-wide">6. How to Manage Cookies</h2>
+              <p className="text-gray-700 mb-4 leading-relaxed">
                 You can manage cookies through your browser settings. Here are links to cookie management information for popular browsers:
               </p>
               <ul className="list-disc pl-6 text-gray-700 mb-4">
@@ -115,23 +115,23 @@ export default function Cookie() {
             </section>
 
             <section className="mb-8">
-              <h2 className="text-2xl font-semibold mb-4">7. Do Not Track Signals</h2>
-              <p className="text-gray-700 mb-4">
+              <h2 className="text-2xl font-semibold mb-4 tracking-wide">7. Do Not Track Signals</h2>
+              <p className="text-gray-700 mb-4 leading-relaxed">
                 Some browsers offer a "Do Not Track" (DNT) option. Because there is no industry standard for DNT signals, 
                 our platform does not currently respond to DNT signals.
               </p>
             </section>
 
             <section className="mb-8">
-              <h2 className="text-2xl font-semibold mb-4">8. Updates to This Policy</h2>
-              <p className="text-gray-700 mb-4">
+              <h2 className="text-2xl font-semibold mb-4 tracking-wide">8. Updates to This Policy</h2>
+              <p className="text-gray-700 mb-4 leading-relaxed">
                 We may update this Cookie Policy from time to time to reflect changes in our practices or for other operational, 
                 legal, or regulatory reasons. We will notify you of any material changes by posting the new Cookie Policy on this page.
               </p>
             </section>
 
             <section className="mb-8">
-              <h2 className="text-2xl font-semibold mb-4">9. Contact Us</h2>
+              <h2 className="text-2xl font-semibold mb-4 tracking-wide">9. Contact Us</h2>
               <p className="text-gray-700">
                 If you have any questions about our use of cookies, please contact us at:
               </p>
