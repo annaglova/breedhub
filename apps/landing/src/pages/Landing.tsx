@@ -362,7 +362,7 @@ export default function Landing() {
               <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
                 <LoadingButton
                   to="/pricing"
-                  className="landing-raised-button landing-raised-button-pink px-8 py-4 text-lg"
+                  className="landing-raised-button landing-raised-button-pink px-10 py-4 text-lg min-w-[180px]"
                   loadingText="Getting started..."
                 >
                   Start for Free
