@@ -176,6 +176,19 @@ export default function Landing() {
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [location.pathname]);
+  
+  // Preload critical images for better performance
+  useEffect(() => {
+    const link = document.createElement('link');
+    link.rel = 'preload';
+    link.as = 'image';
+    link.href = PetSpaceImage;
+    document.head.appendChild(link);
+    
+    return () => {
+      document.head.removeChild(link);
+    };
+  }, []);
 
   // Prepare tabs content for first tabs section
   const mainTabs = [
@@ -203,6 +216,7 @@ export default function Landing() {
               className="h-full w-full object-cover"
               src={PetSpaceImage}
               alt="Pedigree management interface"
+              loading="lazy"
             />
           </div>
         </>
@@ -235,6 +249,7 @@ export default function Landing() {
               className="h-full w-full object-cover"
               src={KennelSpaceImage}
               alt="Kennel website management"
+              loading="lazy"
             />
           </div>
         </>
@@ -261,6 +276,7 @@ export default function Landing() {
               className="h-full w-full object-cover"
               src={BreedSpaceImage}
               alt="Breeding work management"
+              loading="lazy"
             />
           </div>
         </>
@@ -386,6 +402,7 @@ export default function Landing() {
                 className="min-h-[100%] min-w-[100%] shrink-0 object-cover"
                 src={PetSpaceImage}
                 alt="Pet management dashboard"
+                loading="eager"
               />
             </div>
           </div>
@@ -514,6 +531,7 @@ export default function Landing() {
                       className="h-full w-full object-cover"
                       src={PetSpaceImage}
                       alt="Pedigree management interface"
+                      loading="lazy"
                     />
                   </div>
                 </div>
@@ -548,6 +566,7 @@ export default function Landing() {
                       className="h-full w-full object-cover"
                       src={KennelSpaceImage}
                       alt="Kennel website management"
+                      loading="lazy"
                     />
                   </div>
                 </div>
@@ -580,6 +599,7 @@ export default function Landing() {
                       className="h-full w-full object-cover"
                       src={BreedSpaceImage}
                       alt="Breeding work management"
+                      loading="lazy"
                     />
                   </div>
                 </div>
