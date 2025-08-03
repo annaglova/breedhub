@@ -198,7 +198,7 @@ export default function Landing() {
       content: (
         <>
           <div className="order-2 flex flex-col space-y-8 xl:order-1">
-            <p className="mt-6 text-4xl sm:text-5xl lg:text-6xl font-semibold">
+            <p className="mt-8 text-4xl sm:text-5xl lg:text-6xl font-semibold">
               Common data in a <span className="text-primary">convenient</span>{" "}
               format
             </p>
@@ -228,7 +228,7 @@ export default function Landing() {
       content: (
         <>
           <div className="order-2 flex flex-col space-y-8 xl:order-1">
-            <p className="mt-6 text-4xl sm:text-5xl lg:text-6xl font-semibold">
+            <p className="mt-8 text-4xl sm:text-5xl lg:text-6xl font-semibold">
               Fantastic site for your kennel with{" "}
               <span className="text-primary">up-to-date</span> information on it
             </p>
@@ -261,7 +261,7 @@ export default function Landing() {
       content: (
         <>
           <div className="order-2 flex flex-col space-y-8 xl:order-1">
-            <p className="mt-6 text-4xl sm:text-5xl lg:text-6xl font-semibold">
+            <p className="mt-8 text-4xl sm:text-5xl lg:text-6xl font-semibold">
               Your breeding work is the{" "}
               <span className="text-primary">foundation</span>
             </p>
@@ -337,15 +337,15 @@ export default function Landing() {
         {/* Page space */}
         <div className="max-w-11xl relative mt-24 flex w-full min-w-0 flex-auto flex-col items-center px-6 lg:px-40 sm:px-10 md:mt-32">
           {/* General info */}
-          <div className="flex flex-col md:space-x-18 md:pl-22 md:flex-row md:border-l">
-            <div className="order-2 flex w-[100%] flex-col justify-center space-y-8 md:order-1 md:w-[70%] sm:space-y-12">
+          <div className="flex flex-col md:space-x-24 md:pl-24 md:flex-row md:border-l">
+            <div className="order-2 flex w-[100%] flex-col justify-center space-y-10 md:order-1 md:w-[70%] sm:space-y-14">
               <div className="flex w-full flex-col">
                 <h1 className="">
                   Elevating
                   <span className="text-primary"> professional </span>
                   breeding
                 </h1>
-                <em className="text-secondary-600 mt-2">
+                <em className="text-secondary-600 mt-4">
                   All necessary for a professional breeder in one app
                 </em>
               </div>
@@ -375,7 +375,7 @@ export default function Landing() {
                 </div>
               </div>
               {/* Benefits list */}
-              <div className="flex flex-wrap gap-3 mt-6">
+              <div className="flex flex-wrap gap-3 mt-8">
                 <div className="flex items-center gap-2 text-sm text-secondary-600">
                   <svg className="w-5 h-5 text-primary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
@@ -397,7 +397,7 @@ export default function Landing() {
               </div>
             </div>
             {/* Image */}
-            <div className="order-1 mb-6 flex h-auto w-full overflow-hidden rounded-2xl shadow-xl md:order-2 md:mt-0">
+            <div className="order-1 mb-10 flex h-auto w-full overflow-hidden rounded-2xl shadow-xl md:order-2 md:mt-0 md:mb-0">
               <img
                 className="min-h-[100%] min-w-[100%] shrink-0 object-cover"
                 src={PetSpaceImage}
@@ -408,8 +408,8 @@ export default function Landing() {
           </div>
 
           {/* Key indicators */}
-          <div className="mt-18 flex w-full flex-col items-center xl:flex-row">
-            <div className="text-secondary-600 mb-6 shrink-0 text-start text-4xl font-semibold xl:mb-0 xl:mr-6">
+          <div className="mt-24 flex w-full flex-col items-center xl:flex-row md:mt-32">
+            <div className="text-secondary-600 mb-8 shrink-0 text-start text-4xl font-semibold xl:mb-0 xl:mr-12">
               Best pet's knowledge base
             </div>
             <div className="grid w-full gap-3 md:grid-cols-3 sm:grid-cols-2">
@@ -441,7 +441,7 @@ export default function Landing() {
           </div>
 
           {/* Tabs — мобільна версія */}
-          <ul className="mt-18 flex list-none overflow-x-auto scrollbar-hide md:hidden" role="tablist">
+          <ul className="mt-24 flex list-none overflow-x-auto scrollbar-hide md:hidden" role="tablist">
             <li>
               <TabHeader
                 value={1}
@@ -470,8 +470,8 @@ export default function Landing() {
             </li>
           </ul>
           {/* Tabs — десктоп */}
-          <div className="border-primary-50 mt-6 flex w-full flex-col overflow-hidden rounded-[3rem] border bg-purple-50/50 pt-6 shadow-md shadow-slate-200 md:mt-18 sm:pt-8 xl:pt-16">
-            <div className="px-6 pb-6 md:px-18 sm:px-8 sm:pb-8 xl:px-32 xl:pb-12">
+          <div className="border-primary-50 mt-10 flex w-full flex-col overflow-hidden rounded-[3rem] border bg-purple-50/50 pt-8 shadow-md shadow-slate-200 md:mt-24 sm:pt-12 xl:pt-16">
+            <div className="px-8 pb-8 md:px-20 sm:px-10 sm:pb-10 xl:px-32 xl:pb-16">
               <ul className="hidden w-[50%] list-none flex-wrap pb-4 pt-3 md:flex" role="tablist">
                 <li>
                   <TabHeader
@@ -512,7 +512,7 @@ export default function Landing() {
                   }`}
                 >
                   <div className="order-2 flex flex-col space-y-8 xl:order-1">
-                    <p className="mt-6 text-4xl sm:text-5xl lg:text-6xl font-semibold">
+                    <p className="mt-8 text-4xl sm:text-5xl lg:text-6xl font-semibold">
                       Professional pedigrees{" "}
                       <span className="text-primary">simplified</span>
                     </p>
@@ -545,7 +545,7 @@ export default function Landing() {
                   }`}
                 >
                   <div className="order-2 flex flex-col space-y-8 xl:order-1">
-                    <p className="mt-6 text-4xl sm:text-5xl lg:text-6xl font-semibold">
+                    <p className="mt-8 text-4xl sm:text-5xl lg:text-6xl font-semibold">
                       Your kennel's{" "}
                       <span className="text-primary">online presence</span> made
                       easy
@@ -580,7 +580,7 @@ export default function Landing() {
                   }`}
                 >
                   <div className="order-2 flex flex-col space-y-8 xl:order-1">
-                    <p className="mt-6 text-4xl sm:text-5xl lg:text-6xl font-semibold">
+                    <p className="mt-8 text-4xl sm:text-5xl lg:text-6xl font-semibold">
                       Breeding management{" "}
                       <span className="text-primary">reimagined</span>
                     </p>
@@ -613,12 +613,12 @@ export default function Landing() {
                 See All Features
               </LoadingButton>
             </div>
-            <div className="bg-primary-100/50 w-full py-10"></div>
+            <div className="bg-primary-100/50 w-full py-14"></div>
           </div>
 
           {/* Top breeds by rating */}
-          <div className="mt-22 max-w-screen mb-5 w-full lg:px-0 md:max-w-4xl md:px-6 sm:px-10">
-            <div className="text-secondary-600 mb-6 w-full text-center text-4xl font-semibold xl:mb-0 xl:mr-6">
+          <div className="mt-32 max-w-screen mb-10 w-full lg:px-0 md:max-w-4xl md:px-6 sm:px-10 md:mt-40">
+            <div className="text-secondary-600 mb-10 w-full text-center text-4xl font-semibold">
               Top Breeds by Pet Profiles
             </div>
             <div className="space-y-3">
@@ -629,7 +629,7 @@ export default function Landing() {
           </div>
 
           {/* Breed promotion */}
-          <ul className="mt-18 flex list-none overflow-x-auto scrollbar-hide md:hidden" role="tablist">
+          <ul className="mt-32 flex list-none overflow-x-auto scrollbar-hide md:hidden md:mt-40" role="tablist">
             <li>
               <TabHeader
                 value={1}
@@ -663,7 +663,7 @@ export default function Landing() {
               />
             </li>
           </ul>
-          <div className="mt-6 flex w-full flex-col rounded-[3rem] border border-pink-100 bg-pink-50/50 px-6 pb-20 pt-6 shadow-md shadow-slate-200 md:mt-18 md:px-18 sm:px-8 sm:pt-8 xl:px-32 xl:pt-16">
+          <div className="mt-10 flex w-full flex-col rounded-[3rem] border border-pink-100 bg-pink-50/50 px-8 pb-24 pt-8 shadow-md shadow-slate-200 md:mt-24 md:px-20 sm:px-10 sm:pt-12 xl:px-32 xl:pt-16">
             <ul className="hidden w-[70%] list-none flex-wrap pb-4 pt-3 md:flex xl:w-[65%]" role="tablist">
               <li>
                 <TabHeader
@@ -711,7 +711,7 @@ export default function Landing() {
                 }`}
               >
                 <div className="order-2 flex flex-col space-y-8 xl:order-1">
-                  <p className="mt-6 text-4xl sm:text-5xl lg:text-6xl font-semibold">
+                  <p className="mt-8 text-4xl sm:text-5xl lg:text-6xl font-semibold">
                     Power up your{" "}
                     <span className="text-pink-600">favorite breed</span>
                   </p>
@@ -754,7 +754,7 @@ export default function Landing() {
                 }`}
               >
                 <div className="order-2 flex flex-col space-y-8 xl:order-1">
-                  <p className="mt-6 text-4xl sm:text-5xl lg:text-6xl font-semibold">
+                  <p className="mt-8 text-4xl sm:text-5xl lg:text-6xl font-semibold">
                     Unlock new{" "}
                     <span className="text-pink-600">breed features</span>
                   </p>
@@ -840,7 +840,7 @@ export default function Landing() {
                 }`}
               >
                 <div className="order-2 flex flex-col space-y-8 xl:order-1">
-                  <p className="mt-6 text-4xl sm:text-5xl lg:text-6xl font-semibold">
+                  <p className="mt-8 text-4xl sm:text-5xl lg:text-6xl font-semibold">
                     Growing <span className="text-pink-600">together</span>
                   </p>
                   <p className="text-lg leading-8">
@@ -900,7 +900,7 @@ export default function Landing() {
           </div>
 
           {/* Call to Action Section */}
-          <div className="mt-20 mb-16 w-full">
+          <div className="mt-32 mb-20 w-full md:mt-40">
             <div className="relative overflow-hidden rounded-3xl">
               <div className="absolute inset-0 bg-gradient-to-br from-primary-500 to-accent-500 opacity-90"></div>
               
@@ -910,7 +910,7 @@ export default function Landing() {
                 <LandingFigure className="absolute -left-1/4 -bottom-1/4 w-full h-full transform -rotate-12" />
               </div>
               
-              <div className="relative z-10 p-12 text-center">
+              <div className="relative z-10 p-16 text-center md:p-20 lg:p-24">
                 {/* Icon */}
                 <div className="mb-6 inline-flex items-center justify-center w-20 h-20 bg-white/20 rounded-full backdrop-blur-sm">
                   <svg
@@ -928,10 +928,10 @@ export default function Landing() {
                   </svg>
                 </div>
                 
-                <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-6">
+                <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-8">
                   Ready to start your breeding journey?
                 </h2>
-                <p className="text-xl text-white/90 mb-10 max-w-2xl mx-auto leading-relaxed">
+                <p className="text-xl text-white/90 mb-12 max-w-2xl mx-auto leading-relaxed">
                   Join thousands of professional breeders who trust BreedHub to
                   manage their breeding programs efficiently.
                 </p>
