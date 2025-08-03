@@ -186,10 +186,9 @@ export default function LandingMenu({ className }: LandingMenuProps) {
           <div className="flex items-center">
             <Link
               to="/"
-              className="flex items-center relative z-10 p-2 -m-2 cursor-pointer"
-              style={{ outline: 'none', border: 'none', boxShadow: 'none' }}
+              className="flex items-center relative z-10 p-2 -m-2 cursor-pointer logo-no-border"
             >
-              <LogoText className="h-10 w-auto" style={{ outline: 'none', border: 'none', boxShadow: 'none' }} />
+              <LogoText className="h-10 w-auto logo-no-border" />
             </Link>
           </div>
 
