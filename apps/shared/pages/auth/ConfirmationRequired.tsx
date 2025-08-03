@@ -87,7 +87,7 @@ export default function ConfirmationRequired() {
                 <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-gray-900">
                   Confirmation required
                 </h1>
-                <p className="mt-2 sm:mt-3 text-sm sm:text-base text-gray-700">
+                <p className="mt-3 sm:mt-4 text-base text-gray-700">
                   A confirmation mail with instructions has been sent to your
                   email address. Follow those instructions to confirm your email
                   address and activate your account.
@@ -96,10 +96,10 @@ export default function ConfirmationRequired() {
 
               {/* Tips */}
               <div className="mt-4 sm:mt-6 rounded-lg bg-gray-50 p-3 sm:p-4">
-                <h3 className="text-sm sm:text-base font-medium text-gray-900">
+                <h3 className="text-base font-medium text-gray-900">
                   Didn't receive an email?
                 </h3>
-                <ul className="mt-2 space-y-1 text-xs sm:text-sm text-gray-700">
+                <ul className="mt-2 space-y-1.5 text-base text-gray-700">
                   <li>• Check your spam or junk folder</li>
                   <li>• Verify that you entered the correct email address</li>
                   <li>• Wait a few minutes for the email to arrive</li>
@@ -111,7 +111,7 @@ export default function ConfirmationRequired() {
                 type="button"
                 onClick={handleResendEmail}
                 disabled={isResending || resendSuccess}
-                className="mt-4 sm:mt-6 w-full text-center text-sm sm:text-base text-primary-600 hover:text-primary-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center"
+                className="mt-4 sm:mt-6 w-full text-center text-base text-primary-600 hover:text-primary-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center font-medium"
               >
                 {isResending ? (
                   <>
@@ -129,7 +129,7 @@ export default function ConfirmationRequired() {
               </button>
 
               {resendSuccess && (
-                <p className="mt-2 text-center text-sm text-green-600 animate-slideDown">
+                <p className="mt-2 text-center text-base text-green-600 animate-slideDown">
                   Check your inbox for the new confirmation email
                 </p>
               )}

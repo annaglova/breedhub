@@ -2,6 +2,7 @@ import { cn } from "@/utils";
 import LogoText from "@shared/icons/logo/logo-text.svg?react";
 import React, { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
+import { LoadingButton } from "@/components/LoadingButton";
 
 interface MenuItemProps {
   to: string;
@@ -185,9 +186,10 @@ export default function LandingMenu({ className }: LandingMenuProps) {
           <div className="flex items-center">
             <Link
               to="/"
-              className="flex items-center relative z-10 p-2 -m-2"
+              className="flex items-center relative z-10 p-2 -m-2 cursor-pointer"
+              style={{ outline: 'none', border: 'none', boxShadow: 'none' }}
             >
-              <LogoText className="h-10 w-auto pointer-events-none" />
+              <LogoText className="h-10 w-auto" style={{ outline: 'none', border: 'none', boxShadow: 'none' }} />
             </Link>
           </div>
 
@@ -212,16 +214,18 @@ export default function LandingMenu({ className }: LandingMenuProps) {
 
               {/* Auth buttons */}
               <div className="flex items-center space-x-3">
-                <a href="/app">
+                <a href="/sign-in">
                   <button className="landing-menu-button landing-menu-button-outline">
                     Sign In
                   </button>
                 </a>
-                <Link to="/pricing">
-                  <button className="landing-menu-button landing-menu-button-primary">
-                    Get Started
-                  </button>
-                </Link>
+                <LoadingButton
+                  to="/pricing"
+                  className="landing-menu-button landing-menu-button-primary"
+                  loadingText="Loading..."
+                >
+                  Get Started
+                </LoadingButton>
               </div>
             </div>
 
@@ -247,16 +251,18 @@ export default function LandingMenu({ className }: LandingMenuProps) {
 
           {/* Auth Buttons for 2xl screens - Fixed position */}
           <div className="hidden 2xl:flex items-center space-x-3">
-            <a href="/app">
+            <a href="/sign-in">
               <button className="landing-menu-button landing-menu-button-outline">
                 Sign In
               </button>
             </a>
-            <Link to="/pricing">
-              <button className="landing-menu-button landing-menu-button-primary">
-                Get Started
-              </button>
-            </Link>
+            <LoadingButton
+              to="/pricing"
+              className="landing-menu-button landing-menu-button-primary"
+              loadingText="Loading..."
+            >
+              Get Started
+            </LoadingButton>
           </div>
 
           {/* Mobile Menu Button */}
@@ -378,16 +384,16 @@ export default function LandingMenu({ className }: LandingMenuProps) {
                   Pricing
                 </Link>
                 <Link
-                  to="/app"
+                  to="/sign-in"
                   onClick={() => setIsMobileMenuOpen(false)}
                   className={cn(
                     "block px-4 py-2 ml-2 text-base font-medium rounded-md transition-colors duration-200",
-                    location.pathname === "/app"
+                    location.pathname === "/sign-in"
                       ? "text-primary-600 bg-primary-50"
                       : "text-gray-700 hover:text-primary-600 hover:bg-gray-50"
                   )}
                 >
-                  App
+                  Sign In
                 </Link>
                 <Link
                   to="/about"
@@ -465,7 +471,7 @@ export default function LandingMenu({ className }: LandingMenuProps) {
           {/* Sidebar Auth Buttons */}
           <div className="absolute bottom-0 left-0 right-0 p-4 border-t bg-white">
             <div className="space-y-2">
-              <a href="/app" className="block">
+              <a href="/auth/sign-in" className="block">
                 <button
                   className="w-full rounded-md font-medium text-base py-3 px-5 text-primary-600 bg-transparent transition-all duration-300 min-h-[44px]"
                   style={{

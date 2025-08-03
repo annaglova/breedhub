@@ -4,6 +4,7 @@ import KennelSpaceImage from "@/assets/images/kennel-space.jpeg";
 import PetSpaceImage from "@/assets/images/pet-space.jpeg";
 import { BreedProgress, type Breed } from "@/components/BreedProgress";
 import { TabHeader } from "@/components/TabHeader";
+import { LoadingButton } from "@/components/LoadingButton";
 import LandingLayout from "@/layouts/LandingLayout";
 import { usePageTitle } from "@/hooks/usePageTitle";
 import {
@@ -12,8 +13,8 @@ import {
   TimelineItem,
   AlternatingTimeline,
 } from "@ui/components/timeline";
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Link, useLocation } from "react-router-dom";
 import { Check } from "lucide-react";
 
 // Mock data - replace with API calls when ready
@@ -166,9 +167,15 @@ const statisticsData = [
 
 export default function Landing() {
   usePageTitle("Home");
+  const location = useLocation();
   
   const [openTab, setOpenTab] = useState(1);
   const [openBreedTab, setOpenBreedTab] = useState(1);
+  
+  // Scroll to top when navigating to this page
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [location.pathname]);
 
   // Prepare tabs content for first tabs section
   const mainTabs = [
@@ -336,18 +343,40 @@ export default function Landing() {
                 ))}
               </div>
               {/* Action button */}
-              <div className="flex items-center space-x-3">
-                <Link to="/pricing">
-                  <button
-                    type="button"
-                    className="landing-raised-button landing-raised-button-pink w-36"
-                  >
-                    Get Started
-                  </button>
-                </Link>
-                <div className="text-md font-semi-bold  text-secondary-600">
-                  <p>Free forever</p>
-                  <p>No credit card</p>
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                <LoadingButton
+                  to="/pricing"
+                  className="landing-raised-button landing-raised-button-pink px-8 py-4 text-lg"
+                  loadingText="Getting started..."
+                >
+                  Start for Free
+                </LoadingButton>
+                <div className="flex items-center gap-2 text-sm text-secondary-600">
+                  <svg className="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  </svg>
+                  <span>Free forever • No credit card required</span>
+                </div>
+              </div>
+              {/* Benefits list */}
+              <div className="flex flex-wrap gap-3 mt-6">
+                <div className="flex items-center gap-2 text-sm text-secondary-600">
+                  <svg className="w-5 h-5 text-primary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span>All-in-one platform</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm text-secondary-600">
+                  <svg className="w-5 h-5 text-primary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span>No setup required</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm text-secondary-600">
+                  <svg className="w-5 h-5 text-primary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span>Cancel anytime</span>
                 </div>
               </div>
             </div>
@@ -556,14 +585,13 @@ export default function Landing() {
                 </div>
               </div>
               {/* Action button */}
-              <Link to="/pricing">
-                <button
-                  type="button"
-                  className="landing-raised-button landing-raised-button-primary mt-3 w-36 sm:mt-5 xl:mt-0"
-                >
-                  Get Started
-                </button>
-              </Link>
+              <LoadingButton
+                to="/product"
+                className="landing-raised-button landing-raised-button-primary mt-3 min-w-[180px] px-6 sm:mt-5 xl:mt-0"
+                loadingText="Loading features..."
+              >
+                See All Features
+              </LoadingButton>
             </div>
             <div className="bg-primary-100/50 w-full py-10"></div>
           </div>
@@ -841,14 +869,13 @@ export default function Landing() {
             </div>
 
             {/* Action button */}
-            <Link to="/pricing">
-              <button
-                type="button"
-                className="landing-raised-button landing-raised-button-pink mt-3 w-36 sm:mt-5 xl:mt-0"
-              >
-                Get Started
-              </button>
-            </Link>
+            <LoadingButton
+              to="/breeds"
+              className="landing-raised-button landing-raised-button-pink mt-3 w-fit px-6 sm:mt-5 xl:mt-0"
+              loadingText="Loading breeds..."
+            >
+              Choose Your Breed
+            </LoadingButton>
             <div className="mt-6 w-full rounded-full bg-pink-100 py-1 sm:mt-8 xl:mt-10"></div>
           </div>
 
@@ -889,24 +916,26 @@ export default function Landing() {
                   manage their breeding programs efficiently.
                 </p>
                 <div className="flex justify-center items-center gap-4">
-                  <Link to="/pricing">
-                    <button className="group landing-cta-button landing-cta-button-primary">
-                      <span className="text-lg">Get Started Free</span>
-                      <svg
-                        className="w-5 h-5 group-hover:translate-x-1 transition-transform"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M17 8l4 4m0 0l-4 4m4-4H3"
-                        />
-                      </svg>
-                    </button>
-                  </Link>
+                  <LoadingButton
+                    to="/pricing"
+                    className="group landing-cta-button landing-cta-button-primary"
+                    loadingText="Getting started..."
+                  >
+                    <span className="text-lg">Start for Free</span>
+                    <svg
+                      className="w-5 h-5 group-hover:translate-x-1 transition-transform"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M17 8l4 4m0 0l-4 4m4-4H3"
+                      />
+                    </svg>
+                  </LoadingButton>
                   <Link to="/product">
                     <button className="group landing-cta-button landing-cta-button-outline">
                       <span className="text-lg">Learn More</span>
