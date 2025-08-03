@@ -114,7 +114,7 @@ export default function TierSelector({
     <div className="w-full flex flex-col items-center">
       {/* Billing Type Selector */}
       <div className="flex justify-center mb-14">
-        <div className="inline-flex rounded-full bg-white/10 p-[3px] shadow-inner border-2 border-white/30">
+        <div className="inline-flex rounded-full bg-white/10 p-[3px] shadow-inner border-2 border-white/40">
           {billingTypes.map((type) => (
             <button
               key={type.value}
@@ -123,7 +123,7 @@ export default function TierSelector({
                 relative px-4 sm:px-6 py-3 rounded-full transition-all duration-200 text-base
                 ${
                   selectedBillingType === type.value
-                    ? "bg-white/85 text-gray-700 shadow-md cursor-pointer"
+                    ? "bg-white/90 text-gray-700 shadow-md cursor-pointer font-bold"
                     : "text-gray-600 hover:text-gray-700 hover:bg-white/30 cursor-pointer"
                 }
               `}
@@ -170,7 +170,7 @@ export default function TierSelector({
             {/* Card with overflow hidden */}
             <div
               className={`
-                tier-card tier-card-content relative rounded-lg border bg-white px-6 py-8 flex flex-col h-full
+                tier-card tier-card-content relative rounded-lg border bg-white px-6 py-8 flex flex-col h-full shadow-lg
                 ${
                   tier.isPopular
                     ? "border-primary outline outline-2 outline-offset-2 outline-primary"
@@ -234,7 +234,9 @@ export default function TierSelector({
                           variant={priceError ? "destructive" : "default"}
                         />
                         {priceError && (
-                          <div className="text-warning-500 text-sm mt-1 text-left">{priceError}</div>
+                          <div className="text-warning-500 text-sm mt-1 text-left">
+                            {priceError}
+                          </div>
                         )}
                       </div>
 

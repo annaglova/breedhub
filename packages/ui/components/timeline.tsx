@@ -323,14 +323,6 @@ const AlternatingTimeline = React.forwardRef<HTMLDivElement, AlternatingTimeline
   ({ items, className, size = "default", connectorVariant = "primary", showCards = true, layout = "alternating" }, ref) => {
     return (
       <div ref={ref} className={cn("relative", className)}>
-        {/* Central line */}
-        <div className={cn(
-          "absolute top-0 bottom-0 w-0.5 bg-primary/30",
-          layout === "alternating" && "left-6 md:left-1/2 md:-translate-x-1/2",
-          layout === "left" && "left-6 md:left-0",
-          layout === "right" && "right-6 md:right-0"
-        )} />
-        
         {/* Timeline items */}
         <div className="relative space-y-8">
           {items.map((item, index) => {
@@ -385,7 +377,7 @@ const AlternatingTimeline = React.forwardRef<HTMLDivElement, AlternatingTimeline
                   <div className="w-5/12" />
                 )}
                 
-                {/* Dot */}
+                {/* Dot with connector */}
                 <div className={cn(
                   "absolute z-10",
                   layout === "alternating" && "left-6 md:left-1/2 md:-translate-x-1/2",
@@ -395,6 +387,13 @@ const AlternatingTimeline = React.forwardRef<HTMLDivElement, AlternatingTimeline
                   <div className={cn(timelineDotVariants({ size: size, variant: item.variant }))}>
                     {item.icon}
                   </div>
+                  {/* Connector line to next item */}
+                  {index < items.length - 1 && (
+                    <div 
+                      className="absolute top-8 left-1/2 -translate-x-1/2 w-0.5 bg-primary/30"
+                      style={{ height: 'calc(100% + 2rem)' }}
+                    />
+                  )}
                 </div>
                 
                 {/* Empty space for left-aligned items */}

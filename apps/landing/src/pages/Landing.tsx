@@ -3,19 +3,14 @@ import BreedSpaceImage from "@/assets/images/breed-space.jpeg";
 import KennelSpaceImage from "@/assets/images/kennel-space.jpeg";
 import PetSpaceImage from "@/assets/images/pet-space.jpeg";
 import { BreedProgress, type Breed } from "@/components/BreedProgress";
-import { TabHeader } from "@/components/TabHeader";
 import { LoadingButton } from "@/components/LoadingButton";
-import LandingLayout from "@/layouts/LandingLayout";
+import { TabHeader } from "@/components/TabHeader";
 import { usePageTitle } from "@/hooks/usePageTitle";
-import {
-  Timeline,
-  TimelineContent,
-  TimelineItem,
-  AlternatingTimeline,
-} from "@ui/components/timeline";
-import { useState, useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
+import LandingLayout from "@/layouts/LandingLayout";
+import { AlternatingTimeline } from "@ui/components/timeline";
 import { Check } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Link, useLocation } from "react-router-dom";
 
 // Mock data - replace with API calls when ready
 const topAchievementBreeds: Breed[] = [
@@ -168,23 +163,23 @@ const statisticsData = [
 export default function Landing() {
   usePageTitle("Home");
   const location = useLocation();
-  
+
   const [openTab, setOpenTab] = useState(1);
   const [openBreedTab, setOpenBreedTab] = useState(1);
-  
+
   // Scroll to top when navigating to this page
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [location.pathname]);
-  
+
   // Preload critical images for better performance
   useEffect(() => {
-    const link = document.createElement('link');
-    link.rel = 'preload';
-    link.as = 'image';
+    const link = document.createElement("link");
+    link.rel = "preload";
+    link.as = "image";
     link.href = PetSpaceImage;
     document.head.appendChild(link);
-    
+
     return () => {
       document.head.removeChild(link);
     };
@@ -199,8 +194,15 @@ export default function Landing() {
         <>
           <div className="order-2 flex flex-col space-y-8 xl:order-1">
             <p className="mt-8 text-4xl sm:text-5xl lg:text-6xl font-semibold tracking-tight leading-tight">
-              <span className="bg-gradient-to-r from-slate-800 via-slate-700 to-slate-600 bg-clip-text text-transparent">Common data in a</span> <span className="bg-gradient-to-r from-primary-500 to-accent-500 bg-clip-text text-transparent">convenient</span>{" "}
-              <span className="bg-gradient-to-r from-slate-600 via-slate-700 to-slate-800 bg-clip-text text-transparent">format</span>
+              <span className="bg-gradient-to-r from-slate-800 via-slate-700 to-slate-600 bg-clip-text text-transparent">
+                Common data in a
+              </span>{" "}
+              <span className="bg-gradient-to-r from-primary-500 to-accent-500 bg-clip-text text-transparent">
+                convenient
+              </span>{" "}
+              <span className="bg-gradient-to-r from-slate-600 via-slate-700 to-slate-800 bg-clip-text text-transparent">
+                format
+              </span>
             </p>
             <p className="text-lg leading-relaxed tracking-wide">
               View and change the pedigree of your pet from any device. We've
@@ -229,8 +231,15 @@ export default function Landing() {
         <>
           <div className="order-2 flex flex-col space-y-8 xl:order-1">
             <p className="mt-8 text-4xl sm:text-5xl lg:text-6xl font-semibold tracking-tight leading-tight">
-              <span className="bg-gradient-to-r from-slate-800 via-slate-700 to-slate-600 bg-clip-text text-transparent">Fantastic site for your kennel with</span>{" "}
-              <span className="bg-gradient-to-r from-primary-500 to-accent-500 bg-clip-text text-transparent">up-to-date</span> <span className="bg-gradient-to-r from-slate-600 via-slate-700 to-slate-800 bg-clip-text text-transparent">information on it</span>
+              <span className="bg-gradient-to-r from-slate-800 via-slate-700 to-slate-600 bg-clip-text text-transparent">
+                Fantastic site for your kennel with
+              </span>{" "}
+              <span className="bg-gradient-to-r from-primary-500 to-accent-500 bg-clip-text text-transparent">
+                up-to-date
+              </span>{" "}
+              <span className="bg-gradient-to-r from-slate-600 via-slate-700 to-slate-800 bg-clip-text text-transparent">
+                information on it
+              </span>
             </p>
             <p className="text-lg leading-relaxed tracking-wide">
               Save your time and effort. Your site is{" "}
@@ -262,8 +271,12 @@ export default function Landing() {
         <>
           <div className="order-2 flex flex-col space-y-8 xl:order-1">
             <p className="mt-8 text-4xl sm:text-5xl lg:text-6xl font-semibold tracking-tight leading-tight">
-              <span className="bg-gradient-to-r from-slate-800 via-slate-700 to-slate-600 bg-clip-text text-transparent">Your breeding work is the</span>{" "}
-              <span className="bg-gradient-to-r from-primary-500 to-accent-500 bg-clip-text text-transparent">foundation</span>
+              <span className="bg-gradient-to-r from-slate-800 via-slate-700 to-slate-600 bg-clip-text text-transparent">
+                Your breeding work is the
+              </span>{" "}
+              <span className="bg-gradient-to-r from-primary-500 to-accent-500 bg-clip-text text-transparent">
+                foundation
+              </span>
             </p>
             <p className="text-lg leading-relaxed tracking-wide">
               Manage your breeding work in one app. Make less iterative manual
@@ -342,7 +355,10 @@ export default function Landing() {
               <div className="flex w-full flex-col">
                 <h1 className="tracking-tight leading-tight">
                   Elevating
-                  <span className="bg-gradient-to-r from-primary-500 to-accent-500 bg-clip-text text-transparent"> professional </span>
+                  <span className="bg-gradient-to-r from-primary-500 to-accent-500 bg-clip-text text-transparent">
+                    {" "}
+                    professional{" "}
+                  </span>
                   breeding
                 </h1>
                 <em className="text-secondary-600 mt-4 text-lg tracking-wide leading-relaxed">
@@ -368,8 +384,16 @@ export default function Landing() {
                   Start for Free
                 </LoadingButton>
                 <div className="flex items-center gap-2 text-sm text-secondary-600">
-                  <svg className="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  <svg
+                    className="w-5 h-5 text-green-500"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                      clipRule="evenodd"
+                    />
                   </svg>
                   <span>Free forever • No credit card required</span>
                 </div>
@@ -377,20 +401,50 @@ export default function Landing() {
               {/* Benefits list */}
               <div className="flex flex-wrap gap-3 mt-8">
                 <div className="flex items-center gap-2 text-sm text-secondary-600">
-                  <svg className="w-5 h-5 text-primary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  <svg
+                    className="w-5 h-5 text-primary-500"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M5 13l4 4L19 7"
+                    />
                   </svg>
                   <span>All-in-one platform</span>
                 </div>
                 <div className="flex items-center gap-2 text-sm text-secondary-600">
-                  <svg className="w-5 h-5 text-primary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  <svg
+                    className="w-5 h-5 text-primary-500"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M5 13l4 4L19 7"
+                    />
                   </svg>
                   <span>No setup required</span>
                 </div>
                 <div className="flex items-center gap-2 text-sm text-secondary-600">
-                  <svg className="w-5 h-5 text-primary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  <svg
+                    className="w-5 h-5 text-primary-500"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M5 13l4 4L19 7"
+                    />
                   </svg>
                   <span>Cancel anytime</span>
                 </div>
@@ -441,7 +495,10 @@ export default function Landing() {
           </div>
 
           {/* Tabs — мобільна версія */}
-          <ul className="mt-24 flex list-none overflow-x-auto scrollbar-hide md:hidden" role="tablist">
+          <ul
+            className="mt-24 flex list-none overflow-x-auto scrollbar-hide md:hidden"
+            role="tablist"
+          >
             <li>
               <TabHeader
                 value={1}
@@ -472,7 +529,10 @@ export default function Landing() {
           {/* Tabs — десктоп */}
           <div className="border-primary-50 mt-10 flex w-full flex-col overflow-hidden rounded-[3rem] border bg-purple-50/50 pt-8 shadow-xl shadow-slate-300 md:mt-24 sm:pt-12 xl:pt-16">
             <div className="px-8 pb-8 md:px-20 sm:px-10 sm:pb-10 xl:px-32 xl:pb-16">
-              <ul className="hidden w-[50%] list-none flex-wrap pb-4 pt-3 md:flex" role="tablist">
+              <ul
+                className="hidden w-[50%] list-none flex-wrap pb-4 pt-3 md:flex"
+                role="tablist"
+              >
                 <li>
                   <TabHeader
                     value={1}
@@ -513,8 +573,12 @@ export default function Landing() {
                 >
                   <div className="order-2 flex flex-col space-y-8 xl:order-1">
                     <p className="mt-8 text-4xl sm:text-5xl lg:text-6xl font-semibold tracking-tight leading-tight">
-                      <span className="bg-gradient-to-r from-slate-800 via-slate-700 to-slate-600 bg-clip-text text-transparent">Professional pedigrees</span>{" "}
-                      <span className="bg-gradient-to-r from-primary-500 to-accent-500 bg-clip-text text-transparent">simplified</span>
+                      <span className="bg-gradient-to-r from-slate-800 via-slate-700 to-slate-600 bg-clip-text text-transparent">
+                        Professional pedigrees
+                      </span>{" "}
+                      <span className="bg-gradient-to-r from-primary-500 to-accent-500 bg-clip-text text-transparent">
+                        simplified
+                      </span>
                     </p>
                     <p className="text-lg leading-relaxed tracking-wide">
                       Create, manage, and share detailed pedigrees with just a
@@ -546,9 +610,15 @@ export default function Landing() {
                 >
                   <div className="order-2 flex flex-col space-y-8 xl:order-1">
                     <p className="mt-8 text-4xl sm:text-5xl lg:text-6xl font-semibold tracking-tight leading-tight">
-                      <span className="bg-gradient-to-r from-slate-800 via-slate-700 to-slate-600 bg-clip-text text-transparent">Your kennel's</span>{" "}
-                      <span className="bg-gradient-to-r from-primary-500 to-accent-500 bg-clip-text text-transparent">online presence</span> <span className="bg-gradient-to-r from-slate-600 via-slate-700 to-slate-800 bg-clip-text text-transparent">made
-                      easy</span>
+                      <span className="bg-gradient-to-r from-slate-800 via-slate-700 to-slate-600 bg-clip-text text-transparent">
+                        Your kennel's
+                      </span>{" "}
+                      <span className="bg-gradient-to-r from-primary-500 to-accent-500 bg-clip-text text-transparent">
+                        online presence
+                      </span>{" "}
+                      <span className="bg-gradient-to-r from-slate-600 via-slate-700 to-slate-800 bg-clip-text text-transparent">
+                        made easy
+                      </span>
                     </p>
                     <p className="text-lg leading-relaxed tracking-wide">
                       Get a professional website for your kennel in minutes.
@@ -581,8 +651,12 @@ export default function Landing() {
                 >
                   <div className="order-2 flex flex-col space-y-8 xl:order-1">
                     <p className="mt-8 text-4xl sm:text-5xl lg:text-6xl font-semibold tracking-tight leading-tight">
-                      <span className="bg-gradient-to-r from-slate-800 via-slate-700 to-slate-600 bg-clip-text text-transparent">Breeding management</span>{" "}
-                      <span className="bg-gradient-to-r from-primary-500 to-accent-500 bg-clip-text text-transparent">reimagined</span>
+                      <span className="bg-gradient-to-r from-slate-800 via-slate-700 to-slate-600 bg-clip-text text-transparent">
+                        Breeding management
+                      </span>{" "}
+                      <span className="bg-gradient-to-r from-primary-500 to-accent-500 bg-clip-text text-transparent">
+                        reimagined
+                      </span>
                     </p>
                     <p className="text-lg leading-relaxed tracking-wide">
                       Streamline your entire breeding program from planning to
@@ -629,7 +703,10 @@ export default function Landing() {
           </div>
 
           {/* Breed promotion */}
-          <ul className="mt-32 flex list-none overflow-x-auto scrollbar-hide md:hidden md:mt-40" role="tablist">
+          <ul
+            className="mt-32 flex list-none overflow-x-auto scrollbar-hide md:hidden md:mt-40"
+            role="tablist"
+          >
             <li>
               <TabHeader
                 value={1}
@@ -664,7 +741,10 @@ export default function Landing() {
             </li>
           </ul>
           <div className="mt-10 flex w-full flex-col rounded-[3rem] border border-pink-100 bg-pink-50/50 px-8 pb-24 pt-8 shadow-xl shadow-slate-300 md:mt-24 md:px-20 sm:px-10 sm:pt-12 xl:px-32 xl:pt-16">
-            <ul className="hidden w-[70%] list-none flex-wrap pb-4 pt-3 md:flex xl:w-[65%]" role="tablist">
+            <ul
+              className="hidden w-[70%] list-none flex-wrap pb-4 pt-3 md:flex xl:w-[65%]"
+              role="tablist"
+            >
               <li>
                 <TabHeader
                   value={1}
@@ -712,8 +792,12 @@ export default function Landing() {
               >
                 <div className="order-2 flex flex-col space-y-8 xl:order-1">
                   <p className="mt-8 text-4xl sm:text-5xl lg:text-6xl font-semibold tracking-tight leading-tight">
-                    <span className="bg-gradient-to-r from-slate-800 via-slate-700 to-slate-600 bg-clip-text text-transparent">Power up your</span>{" "}
-                    <span className="bg-gradient-to-r from-pink-500 to-purple-500 bg-clip-text text-transparent">favorite breed</span>
+                    <span className="bg-gradient-to-r from-slate-800 via-slate-700 to-slate-600 bg-clip-text text-transparent">
+                      Power up your
+                    </span>{" "}
+                    <span className="bg-gradient-to-r from-pink-500 to-purple-500 bg-clip-text text-transparent">
+                      favorite breed
+                    </span>
                   </p>
                   <p className="text-lg leading-relaxed tracking-wide">
                     Join a community of passionate breeders who share your
@@ -755,8 +839,12 @@ export default function Landing() {
               >
                 <div className="order-2 flex flex-col space-y-8 xl:order-1">
                   <p className="mt-8 text-4xl sm:text-5xl lg:text-6xl font-semibold tracking-tight leading-tight">
-                    <span className="bg-gradient-to-r from-slate-800 via-slate-700 to-slate-600 bg-clip-text text-transparent">Unlock new</span>{" "}
-                    <span className="bg-gradient-to-r from-pink-500 to-purple-500 bg-clip-text text-transparent">breed features</span>
+                    <span className="bg-gradient-to-r from-slate-800 via-slate-700 to-slate-600 bg-clip-text text-transparent">
+                      Unlock new
+                    </span>{" "}
+                    <span className="bg-gradient-to-r from-pink-500 to-purple-500 bg-clip-text text-transparent">
+                      breed features
+                    </span>
                   </p>
                   <p className="text-lg leading-relaxed tracking-wide">
                     Watch your breed evolve with community-driven milestones. As
@@ -841,7 +929,12 @@ export default function Landing() {
               >
                 <div className="order-2 flex flex-col space-y-8 xl:order-1">
                   <p className="mt-8 text-4xl sm:text-5xl lg:text-6xl font-semibold tracking-tight leading-tight">
-                    <span className="bg-gradient-to-r from-slate-800 via-slate-700 to-slate-600 bg-clip-text text-transparent">Growing</span> <span className="bg-gradient-to-r from-pink-500 to-purple-500 bg-clip-text text-transparent">together</span>
+                    <span className="bg-gradient-to-r from-slate-800 via-slate-700 to-slate-600 bg-clip-text text-transparent">
+                      Growing
+                    </span>{" "}
+                    <span className="bg-gradient-to-r from-pink-500 to-purple-500 bg-clip-text text-transparent">
+                      together
+                    </span>
                   </p>
                   <p className="text-lg leading-relaxed tracking-wide">
                     We believe in rewarding active communities. Our six-tier
@@ -903,16 +996,16 @@ export default function Landing() {
           <div className="mt-32 mb-20 w-full md:mt-40">
             <div className="relative overflow-hidden rounded-3xl">
               <div className="absolute inset-0 bg-gradient-to-br from-primary-500 to-accent-500 opacity-90"></div>
-              
+
               {/* Background SVG Pattern */}
               <div className="absolute inset-0 opacity-10">
                 <LandingFigure className="absolute -right-1/4 -top-1/4 w-full h-full transform rotate-12" />
                 <LandingFigure className="absolute -left-1/4 -bottom-1/4 w-full h-full transform -rotate-12" />
               </div>
-              
+
               <div className="relative z-10 p-16 text-center md:p-20 lg:p-24">
                 {/* Icon */}
-                <div className="mb-6 inline-flex items-center justify-center w-20 h-20 bg-white/20 rounded-full backdrop-blur-sm">
+                <div className="mb-6 inline-flex items-center justify-center w-20 h-20 bg-white/20 rounded-full backdrop-blur-sm shadow-md">
                   <svg
                     className="w-10 h-10 text-white"
                     fill="none"
@@ -927,7 +1020,7 @@ export default function Landing() {
                     />
                   </svg>
                 </div>
-                
+
                 <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-8 tracking-tight leading-tight">
                   Ready to start your breeding journey?
                 </h2>
