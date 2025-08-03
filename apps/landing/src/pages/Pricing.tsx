@@ -51,8 +51,8 @@ export default function Pricing() {
         <div className="relative z-10">
           {/* Header */}
           <div className="container mx-auto px-6 pt-14 sm:pt-32 text-center">
-            <h1 className="text-white">Choose Your Plan</h1>
-            <p className="text-2xl text-gray-600 xl:text-white max-w-3xl mx-auto mt-2">
+            <h1 className="text-white tracking-tight leading-tight">Choose Your Plan</h1>
+            <p className="text-2xl text-gray-600 xl:text-white max-w-3xl mx-auto mt-2 tracking-wide leading-relaxed">
               Join thousands of professional breeders who trust BreedHub to
               manage their breeding programs
             </p>
@@ -66,7 +66,7 @@ export default function Pricing() {
           {/* Features Comparison Section */}
           <div className="bg-gray-50 py-20">
             <div className="landing-content-container">
-              <h2 className="text-4xl font-bold text-center mb-12">
+              <h2 className="text-4xl font-bold text-center mb-12 tracking-tight">
                 Compare Features
               </h2>
 
@@ -264,11 +264,11 @@ export default function Pricing() {
                   </svg>
                 </div>
 
-                <h2 className="text-5xl font-bold mb-6 text-white">
+                <h2 className="text-5xl font-bold mb-6 text-white tracking-tight leading-tight">
                   Gift a Subscription
                 </h2>
 
-                <p className="text-xl text-white/90 mb-10 max-w-2xl mx-auto leading-relaxed">
+                <p className="text-xl text-white/90 mb-10 max-w-2xl mx-auto leading-relaxed tracking-wide">
                   Give the gift of professional breeding management.
                   <span className="block mt-2">
                     Perfect for fellow breeders or kennel owners.
@@ -304,7 +304,7 @@ export default function Pricing() {
           </div>
           {/* FAQ Section */}
           <div className="container mx-auto px-6 py-20">
-            <h2 className="text-4xl font-bold text-center mb-12">
+            <h2 className="text-4xl font-bold text-center mb-12 tracking-tight">
               Frequently Asked Questions
             </h2>
             <div className="max-w-3xl mx-auto">
@@ -314,7 +314,7 @@ export default function Pricing() {
                   className="mb-4 border border-gray-200 rounded-lg overflow-hidden shadow-sm"
                 >
                   <div className="p-6 bg-white hover:bg-gray-50 transition-colors">
-                    <h3 className="text-xl font-bold text-gray-900 mb-2">
+                    <h3 className="text-xl font-bold text-gray-900 mb-2 tracking-wide">
                       {item.question}
                     </h3>
                     <p className="text-gray-600">{item.answer}</p>

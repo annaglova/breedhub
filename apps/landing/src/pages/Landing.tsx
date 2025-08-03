@@ -198,11 +198,11 @@ export default function Landing() {
       content: (
         <>
           <div className="order-2 flex flex-col space-y-8 xl:order-1">
-            <p className="mt-8 text-4xl sm:text-5xl lg:text-6xl font-semibold">
+            <p className="mt-8 text-4xl sm:text-5xl lg:text-6xl font-semibold tracking-tight leading-tight">
               <span className="bg-gradient-to-r from-slate-800 via-slate-700 to-slate-600 bg-clip-text text-transparent">Common data in a</span> <span className="bg-gradient-to-r from-primary-500 to-accent-500 bg-clip-text text-transparent">convenient</span>{" "}
               <span className="bg-gradient-to-r from-slate-600 via-slate-700 to-slate-800 bg-clip-text text-transparent">format</span>
             </p>
-            <p className="text-lg leading-8">
+            <p className="text-lg leading-relaxed tracking-wide">
               View and change the pedigree of your pet from any device. We've
               made it comfortable for you.
               <br />
@@ -228,11 +228,11 @@ export default function Landing() {
       content: (
         <>
           <div className="order-2 flex flex-col space-y-8 xl:order-1">
-            <p className="mt-8 text-4xl sm:text-5xl lg:text-6xl font-semibold">
+            <p className="mt-8 text-4xl sm:text-5xl lg:text-6xl font-semibold tracking-tight leading-tight">
               <span className="bg-gradient-to-r from-slate-800 via-slate-700 to-slate-600 bg-clip-text text-transparent">Fantastic site for your kennel with</span>{" "}
               <span className="bg-gradient-to-r from-primary-500 to-accent-500 bg-clip-text text-transparent">up-to-date</span> <span className="bg-gradient-to-r from-slate-600 via-slate-700 to-slate-800 bg-clip-text text-transparent">information on it</span>
             </p>
-            <p className="text-lg leading-8">
+            <p className="text-lg leading-relaxed tracking-wide">
               Save your time and effort. Your site is{" "}
               <span className="decoration-primary-400 underline decoration-2">
                 here
@@ -261,11 +261,11 @@ export default function Landing() {
       content: (
         <>
           <div className="order-2 flex flex-col space-y-8 xl:order-1">
-            <p className="mt-8 text-4xl sm:text-5xl lg:text-6xl font-semibold">
+            <p className="mt-8 text-4xl sm:text-5xl lg:text-6xl font-semibold tracking-tight leading-tight">
               <span className="bg-gradient-to-r from-slate-800 via-slate-700 to-slate-600 bg-clip-text text-transparent">Your breeding work is the</span>{" "}
               <span className="bg-gradient-to-r from-primary-500 to-accent-500 bg-clip-text text-transparent">foundation</span>
             </p>
-            <p className="text-lg leading-8">
+            <p className="text-lg leading-relaxed tracking-wide">
               Manage your breeding work in one app. Make less iterative manual
               work and routine. We stand for saving your time for more
               interesting and important work - breeding.
@@ -340,18 +340,18 @@ export default function Landing() {
           <div className="flex flex-col md:space-x-24 md:pl-24 md:flex-row md:border-l">
             <div className="order-2 flex w-[100%] flex-col justify-center space-y-10 md:order-1 md:w-[70%] sm:space-y-14">
               <div className="flex w-full flex-col">
-                <h1 className="">
+                <h1 className="tracking-tight leading-tight">
                   Elevating
                   <span className="bg-gradient-to-r from-primary-500 to-accent-500 bg-clip-text text-transparent"> professional </span>
                   breeding
                 </h1>
-                <em className="text-secondary-600 mt-4">
+                <em className="text-secondary-600 mt-4 text-lg tracking-wide leading-relaxed">
                   All necessary for a professional breeder in one app
                 </em>
               </div>
               {/* Breeds rating */}
               <div className="text-secondary-600 flex flex-col">
-                <p className="mb-5 font-semibold uppercase">
+                <p className="mb-5 font-semibold uppercase tracking-wider">
                   Top-supported breeds
                 </p>
                 {topAchievementBreeds.slice(0, 3).map((breed, i) => (
@@ -397,9 +397,9 @@ export default function Landing() {
               </div>
             </div>
             {/* Image */}
-            <div className="order-1 mb-10 flex h-auto w-full overflow-hidden rounded-2xl shadow-xl md:order-2 md:mt-0 md:mb-0">
+            <div className="order-1 mb-10 flex h-auto w-full overflow-hidden rounded-2xl shadow-xl transition-shadow duration-300 hover:shadow-2xl md:order-2 md:mt-0 md:mb-0 group">
               <img
-                className="min-h-[100%] min-w-[100%] shrink-0 object-cover"
+                className="min-h-[100%] min-w-[100%] shrink-0 object-cover transition-transform duration-700 group-hover:scale-105"
                 src={PetSpaceImage}
                 alt="Pet management dashboard"
                 loading="eager"
@@ -470,7 +470,7 @@ export default function Landing() {
             </li>
           </ul>
           {/* Tabs — десктоп */}
-          <div className="border-primary-50 mt-10 flex w-full flex-col overflow-hidden rounded-[3rem] border bg-purple-50/50 pt-8 shadow-md shadow-slate-200 md:mt-24 sm:pt-12 xl:pt-16">
+          <div className="border-primary-50 mt-10 flex w-full flex-col overflow-hidden rounded-[3rem] border bg-purple-50/50 pt-8 shadow-xl shadow-slate-300 md:mt-24 sm:pt-12 xl:pt-16">
             <div className="px-8 pb-8 md:px-20 sm:px-10 sm:pb-10 xl:px-32 xl:pb-16">
               <ul className="hidden w-[50%] list-none flex-wrap pb-4 pt-3 md:flex" role="tablist">
                 <li>
@@ -512,11 +512,11 @@ export default function Landing() {
                   }`}
                 >
                   <div className="order-2 flex flex-col space-y-8 xl:order-1">
-                    <p className="mt-8 text-4xl sm:text-5xl lg:text-6xl font-semibold">
+                    <p className="mt-8 text-4xl sm:text-5xl lg:text-6xl font-semibold tracking-tight leading-tight">
                       <span className="bg-gradient-to-r from-slate-800 via-slate-700 to-slate-600 bg-clip-text text-transparent">Professional pedigrees</span>{" "}
                       <span className="bg-gradient-to-r from-primary-500 to-accent-500 bg-clip-text text-transparent">simplified</span>
                     </p>
-                    <p className="text-lg leading-8">
+                    <p className="text-lg leading-relaxed tracking-wide">
                       Create, manage, and share detailed pedigrees with just a
                       few clicks. Access your complete breeding history from any
                       device, anytime.
@@ -526,9 +526,9 @@ export default function Landing() {
                       centralized platform designed for serious breeders.
                     </p>
                   </div>
-                  <div className="order-1 h-[400px] min-w-[50%] overflow-hidden rounded-2xl border xl:order-2">
+                  <div className="order-1 h-[400px] min-w-[50%] overflow-hidden rounded-2xl border shadow-lg transition-shadow duration-300 hover:shadow-xl xl:order-2 group">
                     <img
-                      className="h-full w-full object-cover"
+                      className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                       src={PetSpaceImage}
                       alt="Pedigree management interface"
                       loading="lazy"
@@ -545,12 +545,12 @@ export default function Landing() {
                   }`}
                 >
                   <div className="order-2 flex flex-col space-y-8 xl:order-1">
-                    <p className="mt-8 text-4xl sm:text-5xl lg:text-6xl font-semibold">
+                    <p className="mt-8 text-4xl sm:text-5xl lg:text-6xl font-semibold tracking-tight leading-tight">
                       <span className="bg-gradient-to-r from-slate-800 via-slate-700 to-slate-600 bg-clip-text text-transparent">Your kennel's</span>{" "}
                       <span className="bg-gradient-to-r from-primary-500 to-accent-500 bg-clip-text text-transparent">online presence</span> <span className="bg-gradient-to-r from-slate-600 via-slate-700 to-slate-800 bg-clip-text text-transparent">made
                       easy</span>
                     </p>
-                    <p className="text-lg leading-8">
+                    <p className="text-lg leading-relaxed tracking-wide">
                       Get a professional website for your kennel in minutes.
                       Choose from beautiful templates or customize your own
                       design.
@@ -561,9 +561,9 @@ export default function Landing() {
                       public.
                     </p>
                   </div>
-                  <div className="order-1 h-[400px] min-w-[50%] overflow-hidden rounded-2xl border xl:order-2">
+                  <div className="order-1 h-[400px] min-w-[50%] overflow-hidden rounded-2xl border shadow-lg transition-shadow duration-300 hover:shadow-xl xl:order-2 group">
                     <img
-                      className="h-full w-full object-cover"
+                      className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                       src={KennelSpaceImage}
                       alt="Kennel website management"
                       loading="lazy"
@@ -580,11 +580,11 @@ export default function Landing() {
                   }`}
                 >
                   <div className="order-2 flex flex-col space-y-8 xl:order-1">
-                    <p className="mt-8 text-4xl sm:text-5xl lg:text-6xl font-semibold">
+                    <p className="mt-8 text-4xl sm:text-5xl lg:text-6xl font-semibold tracking-tight leading-tight">
                       <span className="bg-gradient-to-r from-slate-800 via-slate-700 to-slate-600 bg-clip-text text-transparent">Breeding management</span>{" "}
                       <span className="bg-gradient-to-r from-primary-500 to-accent-500 bg-clip-text text-transparent">reimagined</span>
                     </p>
-                    <p className="text-lg leading-8">
+                    <p className="text-lg leading-relaxed tracking-wide">
                       Streamline your entire breeding program from planning to
                       puppies. Track heat cycles, manage matings, and monitor
                       litter progress all in one place.
@@ -594,9 +594,9 @@ export default function Landing() {
                       love.
                     </p>
                   </div>
-                  <div className="order-1 h-[400px] min-w-[50%] overflow-hidden rounded-2xl border xl:order-2">
+                  <div className="order-1 h-[400px] min-w-[50%] overflow-hidden rounded-2xl border shadow-lg transition-shadow duration-300 hover:shadow-xl xl:order-2 group">
                     <img
-                      className="h-full w-full object-cover"
+                      className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                       src={BreedSpaceImage}
                       alt="Breeding work management"
                       loading="lazy"
@@ -663,7 +663,7 @@ export default function Landing() {
               />
             </li>
           </ul>
-          <div className="mt-10 flex w-full flex-col rounded-[3rem] border border-pink-100 bg-pink-50/50 px-8 pb-24 pt-8 shadow-md shadow-slate-200 md:mt-24 md:px-20 sm:px-10 sm:pt-12 xl:px-32 xl:pt-16">
+          <div className="mt-10 flex w-full flex-col rounded-[3rem] border border-pink-100 bg-pink-50/50 px-8 pb-24 pt-8 shadow-xl shadow-slate-300 md:mt-24 md:px-20 sm:px-10 sm:pt-12 xl:px-32 xl:pt-16">
             <ul className="hidden w-[70%] list-none flex-wrap pb-4 pt-3 md:flex xl:w-[65%]" role="tablist">
               <li>
                 <TabHeader
@@ -711,11 +711,11 @@ export default function Landing() {
                 }`}
               >
                 <div className="order-2 flex flex-col space-y-8 xl:order-1">
-                  <p className="mt-8 text-4xl sm:text-5xl lg:text-6xl font-semibold">
+                  <p className="mt-8 text-4xl sm:text-5xl lg:text-6xl font-semibold tracking-tight leading-tight">
                     <span className="bg-gradient-to-r from-slate-800 via-slate-700 to-slate-600 bg-clip-text text-transparent">Power up your</span>{" "}
                     <span className="bg-gradient-to-r from-pink-500 to-purple-500 bg-clip-text text-transparent">favorite breed</span>
                   </p>
-                  <p className="text-lg leading-8">
+                  <p className="text-lg leading-relaxed tracking-wide">
                     Join a community of passionate breeders who share your
                     dedication. When more breeders support a breed, everyone
                     benefits with enhanced features and specialized tools.
@@ -731,7 +731,7 @@ export default function Landing() {
                 </div>
 
                 {/* Breeds rating */}
-                <div className="order-1 relative text-secondary-600 flex h-[500px] w-full flex-col items-end rounded-2xl border bg-white xl:order-2 xl:min-w-[50%]">
+                <div className="order-1 relative text-secondary-600 flex h-[500px] w-full flex-col items-end rounded-2xl border bg-white shadow-lg transition-shadow duration-300 hover:shadow-xl xl:order-2 xl:min-w-[50%]">
                   <div className="h-full w-full overflow-y-auto overflow-x-hidden p-8">
                     <p className="mb-3 font-semibold">Top-supported breeds</p>
                     <div className="space-y-3">
@@ -754,11 +754,11 @@ export default function Landing() {
                 }`}
               >
                 <div className="order-2 flex flex-col space-y-8 xl:order-1">
-                  <p className="mt-8 text-4xl sm:text-5xl lg:text-6xl font-semibold">
+                  <p className="mt-8 text-4xl sm:text-5xl lg:text-6xl font-semibold tracking-tight leading-tight">
                     <span className="bg-gradient-to-r from-slate-800 via-slate-700 to-slate-600 bg-clip-text text-transparent">Unlock new</span>{" "}
                     <span className="bg-gradient-to-r from-pink-500 to-purple-500 bg-clip-text text-transparent">breed features</span>
                   </p>
-                  <p className="text-lg leading-8">
+                  <p className="text-lg leading-relaxed tracking-wide">
                     Watch your breed evolve with community-driven milestones. As
                     support grows, we unlock powerful new features for{" "}
                     <span className="underline decoration-pink-500 decoration-2">
@@ -774,7 +774,7 @@ export default function Landing() {
                 </div>
 
                 {/* Goals info */}
-                <div className="order-1 relative flex h-[500px] min-w-[50%] flex-col rounded-2xl border bg-white xl:order-2">
+                <div className="order-1 relative flex h-[500px] min-w-[50%] flex-col rounded-2xl border bg-white shadow-lg transition-shadow duration-300 hover:shadow-xl xl:order-2">
                   <div className="h-full overflow-auto p-8">
                     {/* Header */}
                     <div className="grid grid-cols-[42px_auto] sm:grid-cols-[104px_auto] items-center gap-3 border-b pb-2 font-semibold">
@@ -840,10 +840,10 @@ export default function Landing() {
                 }`}
               >
                 <div className="order-2 flex flex-col space-y-8 xl:order-1">
-                  <p className="mt-8 text-4xl sm:text-5xl lg:text-6xl font-semibold">
+                  <p className="mt-8 text-4xl sm:text-5xl lg:text-6xl font-semibold tracking-tight leading-tight">
                     <span className="bg-gradient-to-r from-slate-800 via-slate-700 to-slate-600 bg-clip-text text-transparent">Growing</span> <span className="bg-gradient-to-r from-pink-500 to-purple-500 bg-clip-text text-transparent">together</span>
                   </p>
-                  <p className="text-lg leading-8">
+                  <p className="text-lg leading-relaxed tracking-wide">
                     We believe in rewarding active communities. Our six-tier
                     support system ensures that breeds with the most{" "}
                     <span className="underline decoration-pink-500 decoration-2">
@@ -862,7 +862,7 @@ export default function Landing() {
                 </div>
 
                 {/* Timeline info */}
-                <div className="order-1 relative flex h-[500px] w-full flex-col rounded-2xl border bg-gray-50 xl:order-2 xl:min-w-[50%]">
+                <div className="order-1 relative flex h-[500px] w-full flex-col rounded-2xl border bg-gray-50 shadow-lg transition-shadow duration-300 hover:shadow-xl xl:order-2 xl:min-w-[50%]">
                   <div className="h-full overflow-y-auto overflow-x-hidden p-6 md:p-10">
                     <AlternatingTimeline
                       items={achievements.map((achievement) => ({
@@ -928,10 +928,10 @@ export default function Landing() {
                   </svg>
                 </div>
                 
-                <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-8">
+                <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-8 tracking-tight leading-tight">
                   Ready to start your breeding journey?
                 </h2>
-                <p className="text-xl text-white/90 mb-12 max-w-2xl mx-auto leading-relaxed">
+                <p className="text-xl text-white/90 mb-12 max-w-2xl mx-auto leading-relaxed tracking-wide">
                   Join thousands of professional breeders who trust BreedHub to
                   manage their breeding programs efficiently.
                 </p>

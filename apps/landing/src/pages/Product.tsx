@@ -208,10 +208,10 @@ export default function Product() {
           <div className="landing-content-container">
             {/* Header Section */}
             <div className="relative space-y-3 text-center">
-              <h1 className="text-white">
+              <h1 className="text-white tracking-tight leading-tight">
                 Everything You Need for Professional Breeding
               </h1>
-              <p className="text-2xl text-gray-600 xl:text-white max-w-3xl mx-auto mt-2">
+              <p className="text-2xl text-gray-600 xl:text-white max-w-3xl mx-auto mt-2 tracking-wide leading-relaxed">
                 Discover the comprehensive suite of tools designed to streamline
                 your breeding program, connect with the community, and grow your
                 kennel's success
@@ -264,10 +264,10 @@ export default function Product() {
                 </svg>
               </div>
 
-              <h2 className="text-5xl font-bold mb-6 text-white">
+              <h2 className="text-5xl font-bold mb-6 text-white tracking-tight leading-tight">
                 Ready to Transform Your Breeding Program?
               </h2>
-              <p className="text-xl text-white/90 mb-10 max-w-2xl mx-auto leading-relaxed">
+              <p className="text-xl text-white/90 mb-10 max-w-2xl mx-auto leading-relaxed tracking-wide">
                 Join thousands of professional breeders who are already using
                 BreedHub to manage their breeding programs more efficiently.
               </p>
@@ -319,8 +319,8 @@ export default function Product() {
               <div className="bg-primary-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4 shadow-sm">
                 <Shield className="text-primary-500 w-8 h-8" />
               </div>
-              <h3 className="text-xl font-bold mb-2">Secure & Private</h3>
-              <p className="text-gray-600">
+              <h3 className="text-xl font-bold mb-2 tracking-wide">Secure & Private</h3>
+              <p className="text-gray-600 leading-relaxed">
                 Your data is protected with enterprise-grade security. Control
                 who sees what.
               </p>
@@ -329,8 +329,8 @@ export default function Product() {
               <div className="bg-green-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4 shadow-sm">
                 <Smartphone className="text-green-500 w-8 h-8" />
               </div>
-              <h3 className="text-xl font-bold mb-2">Mobile Ready</h3>
-              <p className="text-gray-600">
+              <h3 className="text-xl font-bold mb-2 tracking-wide">Mobile Ready</h3>
+              <p className="text-gray-600 leading-relaxed">
                 Access your data anywhere with our mobile-optimized progressive
                 web app.
               </p>
@@ -339,8 +339,8 @@ export default function Product() {
               <div className="bg-purple-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4 shadow-sm">
                 <Users className="text-purple-500 w-8 h-8" />
               </div>
-              <h3 className="text-xl font-bold mb-2">Community Driven</h3>
-              <p className="text-gray-600">
+              <h3 className="text-xl font-bold mb-2 tracking-wide">Community Driven</h3>
+              <p className="text-gray-600 leading-relaxed">
                 Built by breeders, for breeders. Your feedback shapes our
                 development.
               </p>
