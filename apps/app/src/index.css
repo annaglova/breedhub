@@ -4,3 +4,9 @@
 @import "@shared/theme/global.css";
 @import "@shared/theme/custom-theme.css";
 @import "./tailwind.theme.css";
+
+/* Layout container styles */
+.layout-container {
+  height: 100vh;
+  overflow: hidden;
+}

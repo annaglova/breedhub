@@ -1,125 +1,144 @@
 import React from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import { Home, ShoppingBag, Heart, Moon, Sun, Menu, User } from 'lucide-react';
 import { Button } from '@ui/components/button';
-import { Avatar } from '@ui/components/avatar';
-import { Badge } from '@ui/components/badge';
-import { useAuth } from '@/core/auth';
-import { useApp } from '@/store/hooks';
-import { useNavigationSync } from '@/shared/hooks';
-import { useLocation } from 'react-router-dom';
-import { Menu, Search, Bell, ChevronDown, LogIn } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@ui/components/dropdown-menu';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@ui/components/tooltip';
+import { cn } from '@ui/lib/utils';
+import { useTheme } from '@/hooks/useTheme';
 
-export function Header() {
-  const { user, logout } = useAuth();
-  const { sidebarOpen, toggleSidebar, notifications } = useApp();
-  const { navigateTo } = useNavigationSync();
+interface HeaderProps {
+  onMenuClick?: () => void;
+  isMobileSidebarOpen?: boolean;
+  isHome?: boolean;
+}
+
+export function Header({ onMenuClick, isHome = false }: HeaderProps) {
   const location = useLocation();
-  
-  // Public routes that don't need auth
-  const publicRoutes = ['/breeds', '/pets', '/kennels'];
-  const isPublicRoute = publicRoutes.some(route => location.pathname.startsWith(route));
+  const { theme, toggleTheme } = useTheme();
 
-  const unreadNotifications = notifications?.length || 0;
+  const navItems = [
+    { id: 'home', icon: Home, label: 'Home', path: '/' },
+    { id: 'marketplace', icon: ShoppingBag, label: 'Marketplace', path: '/marketplace' },
+    { id: 'mating', icon: Heart, label: 'Test mating', path: '/mating' },
+  ];
 
   return (
-    <header className="fixed top-0 right-0 left-0 z-30 bg-white border-b border-gray-200 h-16">
-      <div className={`flex items-center justify-between h-full px-4 transition-all duration-300 ${
-        sidebarOpen ? 'lg:ml-64' : 'lg:ml-16'
-      }`}>
-        {/* Left side */}
-        <div className="flex items-center space-x-4">
+    <TooltipProvider>
+      <header className={cn(
+        "layout-topbar w-full flex items-center justify-between",
+        "md:pt-2 lg:pb-2",
+        "3xl:justify-center"
+      )}>
+        <div className="flex items-center justify-between w-full h-16 px-4 md:px-6">
           {/* Mobile menu button */}
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={toggleSidebar}
-            className="lg:hidden"
-          >
-            <Menu className="h-5 w-5" />
-          </Button>
-          
-          {/* Search */}
-          <div className="hidden md:block">
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Search className="h-4 w-4 text-gray-400" />
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="topbar-menubutton md:hidden ml-3"
+                onClick={onMenuClick}
+                aria-label="Menu"
+              >
+                <Menu className="h-5 w-5 text-sub-header-color" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom">
+              <p>Menu</p>
+            </TooltipContent>
+          </Tooltip>
+
+          {/* Navigation tabs - only show if not home */}
+          {!isHome && (
+            <nav className="flex-1 flex justify-center">
+              <div className="flex items-center">
+                {navItems.map((item) => {
+                  const Icon = item.icon;
+                  const isActive = location.pathname === item.path || 
+                                 (item.path === '/' && location.pathname.startsWith('/breeds'));
+                  
+                  return (
+                    <Tooltip key={item.id}>
+                      <TooltipTrigger asChild>
+                        <Link
+                          to={item.path}
+                          className={cn(
+                            "flex items-center justify-center",
+                            "px-6 sm:px-10 md:px-16 lg:px-22",
+                            "py-3 transition-colors"
+                          )}
+                        >
+                          <Icon 
+                            className={cn(
+                              "h-5 w-5",
+                              isActive ? "text-sub-header-active" : "text-sub-header-color"
+                            )} 
+                          />
+                        </Link>
+                      </TooltipTrigger>
+                      <TooltipContent side="bottom">
+                        <p>{item.label}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  );
+                })}
               </div>
-              <input
-                type="text"
-                placeholder="Search pets, breeds, kennels..."
-                className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-              />
-            </div>
+            </nav>
+          )}
+
+          {/* Right side menu */}
+          <div className={cn(
+            "flex items-center gap-3 mr-3 md:mr-0",
+            "3xl:absolute 3xl:right-[2.15rem]"
+          )}>
+            {/* Dark mode toggle */}
+            <Button
+              variant="default"
+              size="sm"
+              onClick={toggleTheme}
+              className="bg-primary"
+            >
+              {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+              <span className="ml-2">Dark</span>
+            </Button>
+
+            {/* User menu */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="h-10 w-10 rounded-full border overflow-hidden p-0"
+                  aria-label="Profile"
+                >
+                  <div className="h-full w-full bg-gray-200 flex items-center justify-center">
+                    <User className="h-5 w-5 text-gray-600" />
+                  </div>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuItem>
+                  Sign In
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  Register
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
-
-        {/* Right side */}
-        <div className="flex items-center space-x-4">
-          {user ? (
-            <>
-              {/* Notifications */}
-              <div className="relative">
-                <Button variant="ghost" size="sm" className="relative">
-                  <Bell className="h-5 w-5" />
-                  {unreadNotifications > 0 && (
-                    <Badge 
-                      variant="destructive" 
-                      className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center text-xs"
-                    >
-                      {unreadNotifications}
-                    </Badge>
-                  )}
-                </Button>
-              </div>
-
-              {/* User menu */}
-              <div className="relative">
-                <div className="flex items-center space-x-3">
-                  <div className="hidden md:block text-right">
-                    <div className="text-sm font-medium text-gray-900">
-                      {user?.user_metadata?.full_name || user?.email}
-                    </div>
-                    <div className="text-xs text-gray-500">
-                      {user?.user_metadata?.role || 'Breeder'}
-                    </div>
-                  </div>
-                  
-                  <Avatar className="h-8 w-8">
-                    {user?.user_metadata?.avatar_url ? (
-                      <img src={user.user_metadata.avatar_url} alt="User avatar" />
-                    ) : (
-                      <div className="flex items-center justify-center bg-indigo-500 text-white">
-                        {(user?.user_metadata?.full_name || user?.email || 'U')[0].toUpperCase()}
-                      </div>
-                    )}
-                  </Avatar>
-                  
-                  {/* Dropdown menu trigger */}
-                  <Button variant="ghost" size="sm">
-                    <ChevronDown className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            </>
-          ) : (
-            <>
-              {/* Public navigation links */}
-              <Button variant="ghost" onClick={() => navigateTo('/breeds')}>
-                Breeds
-              </Button>
-              <Button variant="ghost" onClick={() => navigateTo('/pets')}>
-                Pets
-              </Button>
-              <Button variant="ghost" onClick={() => navigateTo('/kennels')}>
-                Kennels
-              </Button>
-              <Button onClick={() => navigateTo('/auth/login')}>
-                <LogIn className="mr-2 h-4 w-4" />
-                Login
-              </Button>
-            </>
-          )}
-        </div>
-      </div>
-    </header>
+      </header>
+    </TooltipProvider>
   );
 }
