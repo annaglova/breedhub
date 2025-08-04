@@ -955,7 +955,7 @@ export default function Landing() {
                 </div>
 
                 {/* Timeline info */}
-                <div className="order-1 relative flex h-[500px] w-full flex-col rounded-2xl border bg-gray-50 shadow-lg transition-shadow duration-300 hover:shadow-xl xl:order-2 xl:min-w-[50%]">
+                <div className="order-1 relative flex h-[500px] w-full flex-col rounded-2xl border bg-white shadow-lg transition-shadow duration-300 hover:shadow-xl xl:order-2 xl:min-w-[50%]">
                   <div className="h-full overflow-y-auto overflow-x-hidden p-6 md:p-10">
                     <AlternatingTimeline
                       items={achievements.map((achievement) => ({
@@ -976,7 +976,7 @@ export default function Landing() {
                       layout="left"
                     />
                   </div>
-                  <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-gray-50 to-transparent pointer-events-none rounded-b-2xl"></div>
+                  <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-white to-transparent pointer-events-none rounded-b-2xl"></div>
                 </div>
               </div>
             </div>
