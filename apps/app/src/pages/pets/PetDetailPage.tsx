@@ -7,12 +7,12 @@ import { Badge } from '@ui/components/badge';
 import { Avatar } from '@ui/components/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@ui/components/tabs';
 import { useNavigationSync } from '@/shared/hooks';
-import { usePet } from '@/core/api';
+import { useMockPet } from '@/core/api/mock.hooks';
 
 export function PetDetailPage() {
   const { id } = useParams<{ id: string }>();
   const { navigateTo } = useNavigationSync();
-  const { data: pet, isLoading, error } = usePet(id!);
+  const { data: pet, isLoading, error } = useMockPet(id || '');
 
   if (isLoading) {
     return (
