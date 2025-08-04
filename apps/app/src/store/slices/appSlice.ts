@@ -11,10 +11,10 @@ interface AppState {
   theme: 'light' | 'dark';
   locale: string;
   sidebarOpen: boolean;
-  notifications: Notification[];
+  notifications: AppNotification[];
 }
 
-interface Notification {
+interface AppNotification {
   id: string;
   type: 'info' | 'success' | 'warning' | 'error';
   title: string;
@@ -92,8 +92,8 @@ export const appSlice = createSlice({
     },
 
     // Notifications
-    addNotification: (state, action: PayloadAction<Omit<Notification, 'id' | 'timestamp'>>) => {
-      const notification: Notification = {
+    addNotification: (state, action: PayloadAction<Omit<AppNotification, 'id' | 'timestamp'>>) => {
+      const notification: AppNotification = {
         ...action.payload,
         id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
         timestamp: Date.now(),

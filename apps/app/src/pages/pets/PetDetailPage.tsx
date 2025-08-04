@@ -1,5 +1,6 @@
 import React from 'react';
 import { useParams } from 'react-router-dom';
+import { ArrowLeft, Edit, Trash2, Image } from 'lucide-react';
 import { Button } from '@ui/components/button';
 import { Card } from '@ui/components/card';
 import { Badge } from '@ui/components/badge';
@@ -49,9 +50,7 @@ export function PetDetailPage() {
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
           <Button variant="ghost" onClick={() => navigateTo('/pets')}>
-            <svg className="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-            </svg>
+            <ArrowLeft className="mr-2 h-4 w-4" />
             Back
           </Button>
           <div>
@@ -61,15 +60,11 @@ export function PetDetailPage() {
         </div>
         <div className="flex space-x-2">
           <Button variant="outline" onClick={() => navigateTo(`/pets/${pet.id}/edit`)}>
-            <svg className="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-            </svg>
+            <Edit className="mr-2 h-4 w-4" />
             Edit
           </Button>
           <Button variant="destructive">
-            <svg className="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-            </svg>
+            <Trash2 className="mr-2 h-4 w-4" />
             Delete
           </Button>
         </div>
@@ -86,9 +81,7 @@ export function PetDetailPage() {
                   <img src={pet.photoUrl} alt={pet.name} className="object-cover" />
                 ) : (
                   <div className="flex items-center justify-center bg-gray-200 text-gray-600">
-                    <svg className="h-16 w-16" fill="currentColor" viewBox="0 0 20 20">
-                      <path d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" />
-                    </svg>
+                    <Image className="h-16 w-16" />
                   </div>
                 )}
               </Avatar>

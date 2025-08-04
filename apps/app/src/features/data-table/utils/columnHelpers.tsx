@@ -4,6 +4,7 @@ import { Checkbox } from '@ui/components/checkbox';
 import { Avatar } from '@ui/components/avatar';
 import { DataTableColumnHeader } from '../components/DataTableColumnHeader';
 import { formatDate, formatDateTime } from '@/shared/utils';
+import { Image } from 'lucide-react';
 
 // Selection column helper
 export function createSelectionColumn<TData>(): ColumnDef<TData> {
@@ -46,9 +47,7 @@ export function createAvatarColumn<TData>(
             <img src={imageUrl} alt={name} />
           ) : (
             <div className="flex items-center justify-center bg-muted">
-              <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" />
-              </svg>
+              <Image className="h-4 w-4" />
             </div>
           )}
         </Avatar>

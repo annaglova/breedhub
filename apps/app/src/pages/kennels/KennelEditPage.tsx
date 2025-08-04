@@ -1,5 +1,6 @@
 import React from 'react';
 import { useParams } from 'react-router-dom';
+import { ArrowLeft } from 'lucide-react';
 import { Button } from '@ui/components/button';
 import { Card } from '@ui/components/card';
 import { useNavigationSync } from '@/shared/hooks';
@@ -13,9 +14,7 @@ export function KennelEditPage() {
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
           <Button variant="ghost" onClick={() => navigateTo(`/kennels/${id}`)}>
-            <svg className="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-            </svg>
+            <ArrowLeft className="mr-2 h-4 w-4" />
             Back
           </Button>
           <div>

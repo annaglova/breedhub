@@ -21,6 +21,7 @@
     "@reduxjs/toolkit": "^2.8.2",
     "@supabase/supabase-js": "^2.50.2",
     "@tanstack/react-query": "^5.81.5",
+    "@tanstack/react-table": "^8.21.3",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
     "dexie": "^4.0.11",

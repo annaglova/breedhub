@@ -1,7 +1,7 @@
 import { useDispatch, useSelector, TypedUseSelectorHook } from 'react-redux';
 import type { RootState, AppDispatch } from './store';
 import { useCallback } from 'react';
-import { appActions } from './slices/appSlice';
+import { toggleSidebar, setSidebarOpen, setLoading } from './slices/appSlice';
 
 export const useAppDispatch = () => useDispatch<AppDispatch>();
 export const useAppSelector: TypedUseSelectorHook<RootState> = useSelector;
@@ -11,22 +11,22 @@ export const useApp = () => {
   const dispatch = useAppDispatch();
   const appState = useAppSelector((state) => state.app);
   
-  const toggleSidebar = useCallback(() => {
-    dispatch(appActions.toggleSidebar());
+  const toggleSidebarAction = useCallback(() => {
+    dispatch(toggleSidebar());
   }, [dispatch]);
   
-  const setSidebarOpen = useCallback((open: boolean) => {
-    dispatch(appActions.setSidebarOpen(open));
+  const setSidebarOpenAction = useCallback((open: boolean) => {
+    dispatch(setSidebarOpen(open));
   }, [dispatch]);
   
-  const setLoading = useCallback((loading: boolean) => {
-    dispatch(appActions.setLoading(loading));
+  const setLoadingAction = useCallback((loading: boolean) => {
+    dispatch(setLoading(loading));
   }, [dispatch]);
   
   return {
     ...appState,
-    toggleSidebar,
-    setSidebarOpen,
-    setLoading,
+    toggleSidebar: toggleSidebarAction,
+    setSidebarOpen: setSidebarOpenAction,
+    setLoading: setLoadingAction,
   };
 };

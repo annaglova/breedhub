@@ -3,9 +3,11 @@ import { type ColumnDef } from '@tanstack/react-table';
 import { Badge } from '@ui/components/badge';
 import { Avatar } from '@ui/components/avatar';
 import { Button } from '@ui/components/button';
+import { Plus } from 'lucide-react';
 import { 
   DataTable, 
   DataTableRowActions, 
+  DataTableColumnHeader,
   commonRowActions, 
   type RowAction,
   createAvatarColumn,
@@ -151,9 +153,7 @@ export function PetDataTable({
 
   const toolbarActions = (
     <Button size="sm">
-      <svg className="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-      </svg>
+      <Plus className="mr-2 h-4 w-4" />
       Add Pet
     </Button>
   );
@@ -168,9 +168,7 @@ export function PetDataTable({
       emptyStateDescription="Start by adding your first pet to the system."
       emptyStateAction={
         <Button>
-          <svg className="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-          </svg>
+          <Plus className="mr-2 h-4 w-4" />
           Add First Pet
         </Button>
       }

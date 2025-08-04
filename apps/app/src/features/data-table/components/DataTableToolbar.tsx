@@ -1,5 +1,6 @@
 import React from 'react';
 import { type Table } from '@tanstack/react-table';
+import { Search, X, RotateCcw, Columns, SlidersHorizontal } from 'lucide-react';
 import { Button } from '@ui/components/button';
 import { Input } from '@ui/components/input';
 import { Badge } from '@ui/components/badge';
@@ -56,11 +57,7 @@ export function DataTableToolbar<TData>({
           value={globalFilter}
           onChange={(e) => setGlobalFilter(e.target.value)}
           className="h-8 w-[150px] lg:w-[250px]"
-          startIcon={
-            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-          }
+          startIcon={<Search className="h-4 w-4" />}
         />
 
         {/* Active filters */}
@@ -75,9 +72,7 @@ export function DataTableToolbar<TData>({
               className="h-8 px-2 lg:px-3"
             >
               Reset
-              <svg className="ml-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
+              <X className="ml-2 h-4 w-4" />
             </Button>
           </div>
         )}
@@ -111,9 +106,7 @@ export function DataTableToolbar<TData>({
           onClick={resetAll}
           className="h-8 px-2 lg:px-3"
         >
-          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-          </svg>
+          <RotateCcw className="h-4 w-4" />
           <span className="sr-only lg:not-sr-only lg:ml-2">Reset all</span>
         </Button>
       </div>
@@ -141,9 +134,7 @@ function ColumnVisibilityToggle<TData>({
     <Dialog>
       <DialogTrigger asChild>
         <Button variant="outline" size="sm" className="h-8 px-2 lg:px-3">
-          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-          </svg>
+          <Columns className="h-4 w-4" />
           <span className="sr-only lg:not-sr-only lg:ml-2">Columns</span>
         </Button>
       </DialogTrigger>
@@ -246,9 +237,7 @@ export function DataTableAdvancedFilter<TData>({
     <Dialog>
       <DialogTrigger asChild>
         <Button variant="outline" size="sm" className="h-8 border-dashed">
-          <svg className="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4" />
-          </svg>
+          <SlidersHorizontal className="mr-2 h-4 w-4" />
           {title}
           {selectedValues.size > 0 && (
             <Badge variant="secondary" className="ml-1 h-4 px-1">

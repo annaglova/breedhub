@@ -1,5 +1,6 @@
 import React from 'react';
 import { type Table } from '@tanstack/react-table';
+import { ChevronsLeft, ChevronLeft, ChevronRight, ChevronsRight } from 'lucide-react';
 import { Button } from '@ui/components/button';
 import {
   Select,
@@ -97,19 +98,7 @@ export function DataTablePagination<TData>({
             disabled={!canPreviousPage}
           >
             <span className="sr-only">Go to first page</span>
-            <svg
-              className="h-4 w-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M11 19l-7-7 7-7m8 14l-7-7 7-7"
-              />
-            </svg>
+            <ChevronsLeft className="h-4 w-4" />
           </Button>
 
           {/* Previous page */}
@@ -120,19 +109,7 @@ export function DataTablePagination<TData>({
             disabled={!canPreviousPage}
           >
             <span className="sr-only">Go to previous page</span>
-            <svg
-              className="h-4 w-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M15 19l-7-7 7-7"
-              />
-            </svg>
+            <ChevronLeft className="h-4 w-4" />
           </Button>
 
           {/* Next page */}
@@ -143,19 +120,7 @@ export function DataTablePagination<TData>({
             disabled={!canNextPage}
           >
             <span className="sr-only">Go to next page</span>
-            <svg
-              className="h-4 w-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M9 5l7 7-7 7"
-              />
-            </svg>
+            <ChevronRight className="h-4 w-4" />
           </Button>
 
           {/* Last page */}
@@ -166,19 +131,7 @@ export function DataTablePagination<TData>({
             disabled={!canNextPage}
           >
             <span className="sr-only">Go to last page</span>
-            <svg
-              className="h-4 w-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M13 5l7 7-7 7M5 5l7 7-7 7"
-              />
-            </svg>
+            <ChevronsRight className="h-4 w-4" />
           </Button>
         </div>
       </div>
