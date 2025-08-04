@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { X } from 'lucide-react';
 
 export function MobileStickyButton() {
   const [isVisible, setIsVisible] = useState(false);
@@ -38,9 +39,7 @@ export function MobileStickyButton() {
         className="absolute top-2 right-2 p-2 text-gray-400 hover:text-gray-600"
         aria-label="Close"
       >
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-        </svg>
+        <X className="w-5 h-5" />
       </button>
     </div>
   );

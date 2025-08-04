@@ -1,5 +1,6 @@
 import { cn } from "@/utils";
 import LogoText from "@shared/icons/logo/logo-text.svg?react";
+import { Smartphone, CreditCard, FileText, Menu, X } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { LoadingButton } from "@/components/LoadingButton";
@@ -23,48 +24,11 @@ const MenuItem: React.FC<MenuItemProps & { isScrolled?: boolean }> = ({
   const getIcon = () => {
     switch (to) {
       case "/product":
-        return (
-          <svg
-            className="w-5 h-5 opacity-90"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            viewBox="0 0 24 24"
-          >
-            <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
-            <line x1="12" y1="18" x2="12.01" y2="18"></line>
-          </svg>
-        );
+        return <Smartphone className="w-5 h-5 opacity-90" />;
       case "/pricing":
-        return (
-          <svg
-            className="w-5 h-5 opacity-90"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            viewBox="0 0 24 24"
-          >
-            <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"></path>
-            <path d="M3 5v14a2 2 0 0 0 2 2h16v-5"></path>
-            <path d="M18 12a2 2 0 0 0 0 4h4v-4Z"></path>
-          </svg>
-        );
+        return <CreditCard className="w-5 h-5 opacity-90" />;
       case "/about":
-        return (
-          <svg
-            className="w-5 h-5 opacity-90"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            viewBox="0 0 24 24"
-          >
-            <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"></path>
-            <path d="M14 2v4a2 2 0 0 0 2 2h4"></path>
-            <path d="M10 9H8"></path>
-            <path d="M16 13H8"></path>
-            <path d="M16 17H8"></path>
-          </svg>
-        );
+        return <FileText className="w-5 h-5 opacity-90" />;
       default:
         return null;
     }
@@ -271,19 +235,7 @@ export default function LandingMenu({ className }: LandingMenuProps) {
               className="p-3 min-w-[44px] min-h-[44px] text-gray-700 hover:text-primary-600 transition-colors"
               aria-label="Toggle menu"
             >
-              <svg
-                className="h-6 w-6"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M4 6h16M4 12h16M4 18h16"
-                />
-              </svg>
+              <Menu className="h-6 w-6" />
             </button>
           </div>
         </div>
@@ -334,19 +286,7 @@ export default function LandingMenu({ className }: LandingMenuProps) {
               className="p-3 min-w-[44px] min-h-[44px] text-gray-500 hover:text-gray-700 transition-colors rounded-md hover:bg-gray-200"
               aria-label="Close menu"
             >
-              <svg
-                className="h-5 w-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              </svg>
+              <X className="h-5 w-5" />
             </button>
           </div>
 

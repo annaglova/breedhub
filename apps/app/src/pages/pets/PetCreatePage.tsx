@@ -2,6 +2,7 @@ import React from 'react';
 import { Button } from '@ui/components/button';
 import { Card } from '@ui/components/card';
 import { useNavigationSync } from '@/shared/hooks';
+import { ArrowLeft } from 'lucide-react';
 
 export function PetCreatePage() {
   const { navigateTo } = useNavigationSync();
@@ -11,9 +12,7 @@ export function PetCreatePage() {
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
           <Button variant="ghost" onClick={() => navigateTo('/pets')}>
-            <svg className="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-            </svg>
+            <ArrowLeft className="mr-2 h-4 w-4" />
             Back
           </Button>
           <div>

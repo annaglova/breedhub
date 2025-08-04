@@ -1,5 +1,6 @@
 import React from 'react';
 import { type Column } from '@tanstack/react-table';
+import { ArrowDown, ArrowUp, ArrowUpDown } from 'lucide-react';
 import { Button } from '@ui/components/button';
 import { cn } from '@/shared/utils';
 
@@ -34,50 +35,11 @@ export function DataTableColumnHeader<TData, TValue>({
       >
         <span>{title}</span>
         {sorted === "desc" ? (
-          <svg
-            className="ml-2 h-4 w-4"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-            aria-hidden="true"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M19 14l-7 7m0 0l-7-7m7 7V3"
-            />
-          </svg>
+          <ArrowDown className="ml-2 h-4 w-4" aria-hidden="true" />
         ) : sorted === "asc" ? (
-          <svg
-            className="ml-2 h-4 w-4"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-            aria-hidden="true"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M5 10l7-7m0 0l7 7m-7-7v18"
-            />
-          </svg>
+          <ArrowUp className="ml-2 h-4 w-4" aria-hidden="true" />
         ) : (
-          <svg
-            className="ml-2 h-4 w-4 opacity-50"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-            aria-hidden="true"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"
-            />
-          </svg>
+          <ArrowUpDown className="ml-2 h-4 w-4 opacity-50" aria-hidden="true" />
         )}
       </Button>
     </div>
