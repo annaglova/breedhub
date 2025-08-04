@@ -108,6 +108,25 @@ export function AppRouter() {
           } />
         </Route>
 
+        {/* Public pages with AppLayout */}
+        <Route path="/" element={<AppLayout />}>
+          {/* Public entity pages */}
+          <Route path="breeds">
+            <Route index element={<BreedsListPage />} />
+            <Route path=":id" element={<BreedDetailPage />} />
+          </Route>
+
+          <Route path="pets">
+            <Route index element={<PetsListPage />} />
+            <Route path=":id" element={<PetDetailPage />} />
+          </Route>
+
+          <Route path="kennels">
+            <Route index element={<KennelsListPage />} />
+            <Route path=":id" element={<KennelDetailPage />} />
+          </Route>
+        </Route>
+
         {/* Protected routes */}
         <Route path="/" element={
           <ProtectedRoute>
@@ -118,36 +137,24 @@ export function AppRouter() {
           <Route index element={<Navigate to="/dashboard" replace />} />
           <Route path="dashboard" element={<DashboardPage />} />
 
-          {/* Pets */}
-          <Route path="pets">
-            <Route index element={<PetsListPage />} />
-            <Route path="new" element={<PetCreatePage />} />
-            <Route path=":id" element={<PetDetailPage />} />
-            <Route path=":id/edit" element={<PetEditPage />} />
-          </Route>
+          {/* Protected Pet routes */}
+          <Route path="pets/new" element={<PetCreatePage />} />
+          <Route path="pets/:id/edit" element={<PetEditPage />} />
 
-          {/* Breeds */}
-          <Route path="breeds">
-            <Route index element={<BreedsListPage />} />
-            <Route path="new" element={<BreedCreatePage />} />
-            <Route path=":id" element={<BreedDetailPage />} />
-            <Route path=":id/edit" element={<BreedEditPage />} />
-          </Route>
+          {/* Protected Breed routes */}
+          <Route path="breeds/new" element={<BreedCreatePage />} />
+          <Route path="breeds/:id/edit" element={<BreedEditPage />} />
 
-          {/* Litters */}
+          {/* Protected Kennel routes */}
+          <Route path="kennels/new" element={<KennelCreatePage />} />
+          <Route path="kennels/:id/edit" element={<KennelEditPage />} />
+
+          {/* Litters - all protected */}
           <Route path="litters">
             <Route index element={<LittersListPage />} />
             <Route path="new" element={<LitterCreatePage />} />
             <Route path=":id" element={<LitterDetailPage />} />
             <Route path=":id/edit" element={<LitterEditPage />} />
-          </Route>
-
-          {/* Kennels */}
-          <Route path="kennels">
-            <Route index element={<KennelsListPage />} />
-            <Route path="new" element={<KennelCreatePage />} />
-            <Route path=":id" element={<KennelDetailPage />} />
-            <Route path=":id/edit" element={<KennelEditPage />} />
           </Route>
 
           {/* Contacts */}

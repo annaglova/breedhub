@@ -15,8 +15,8 @@ export const apiConfig = {
   
   // Supabase конфігурація
   supabase: {
-    url: process.env.VITE_SUPABASE_URL || '',
-    anonKey: process.env.VITE_SUPABASE_ANON_KEY || '',
+    url: import.meta.env.VITE_SUPABASE_URL || '',
+    anonKey: import.meta.env.VITE_SUPABASE_ANON_KEY || '',
   }
 };
 

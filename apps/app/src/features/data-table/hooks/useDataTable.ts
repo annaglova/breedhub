@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import {
   useReactTable,
   getCoreRowModel,
@@ -215,7 +215,7 @@ export function useDataTable<TData>({
   }, []);
 
   // Effect to call onSelectionChange when selection changes
-  React.useEffect(() => {
+  useEffect(() => {
     if (onSelectionChange) {
       onSelectionChange(selectedRows);
     }

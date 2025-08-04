@@ -3,7 +3,7 @@ import { Plus, Download, Filter, Home, Award, Globe, Star } from 'lucide-react';
 import { Button } from '@ui/components/button';
 import { Card } from '@ui/components/card';
 import { useNavigationSync } from '@/shared/hooks';
-import { KennelDataTable } from '@/features/data-table/examples/KennelDataTable';
+// Removed KennelDataTable - will be replaced with card-based layout
 import { useMockKennels } from '@/core/api/mock.hooks';
 import { type Kennel } from '@/domain/entities/kennel';
 
@@ -105,15 +105,11 @@ export function KennelsListPage() {
         </Card>
       </div>
 
-      {/* Data Table */}
+      {/* Kennel Cards - TODO: Create card-based layout */}
       <Card className="p-6">
-        <KennelDataTable
-          kennels={kennels}
-          isLoading={isLoading}
-          onEditKennel={handleEditKennel}
-          onDeleteKennel={handleDeleteKennel}
-          onViewKennel={handleViewKennel}
-        />
+        <div className="text-center py-12">
+          <p className="text-muted-foreground">Kennel cards will be implemented here</p>
+        </div>
       </Card>
     </div>
   );

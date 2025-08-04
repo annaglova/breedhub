@@ -2,7 +2,7 @@ import React from 'react';
 import { Button } from '@ui/components/button';
 import { Card } from '@ui/components/card';
 import { useNavigationSync } from '@/shared/hooks';
-import { PetDataTable } from '@/features/data-table/examples/PetDataTable';
+// Removed PetDataTable - will be replaced with card-based layout
 import { useMockPets } from '@/core/api/mock.hooks';
 import { type Pet } from '@/domain/entities/pet';
 import { Download, Filter, Plus, Heart, CheckCircle, Users, ClipboardList } from 'lucide-react';
@@ -106,15 +106,11 @@ export function PetsListPage() {
         </Card>
       </div>
 
-      {/* Data Table */}
+      {/* Pet Cards - TODO: Create card-based layout */}
       <Card className="p-6">
-        <PetDataTable
-          pets={pets}
-          isLoading={isLoading}
-          onEditPet={handleEditPet}
-          onDeletePet={handleDeletePet}
-          onViewPet={handleViewPet}
-        />
+        <div className="text-center py-12">
+          <p className="text-muted-foreground">Pet cards will be implemented here</p>
+        </div>
       </Card>
     </div>
   );
