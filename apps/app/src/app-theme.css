@@ -1,0 +1,56 @@
+/* App.css - Custom styles for the app */
+
+/* Card styles from Angular project */
+.card-surface {
+  @apply bg-white;
+}
+
+.fake-card {
+  @apply bg-white rounded-lg shadow-sm m-4 md:m-6;
+}
+
+.bg-card-ground {
+  @apply bg-gray-100;
+}
+
+.bg-footer-ground {
+  @apply bg-gray-800;
+}
+
+.border-surface-border {
+  @apply border-gray-200;
+}
+
+/* Custom button sizes */
+.bp-small-button {
+  @apply h-10 w-10;
+}
+
+/* Drawer animations */
+.mat-drawer-backdrop {
+  @apply fixed inset-0 bg-black/40 z-30;
+}
+
+@media (min-width: 960px) {
+  .mat-drawer-backdrop {
+    @apply rounded-xl;
+  }
+}
+
+/* Size utilities */
+.size-full {
+  @apply w-full h-full;
+}
+
+/* Drawer margins for xl and 2xl screens */
+@media (min-width: 1280px) {
+  .xl\:mr-165 {
+    margin-right: 40rem;
+  }
+}
+
+@media (min-width: 1536px) {
+  .xxl\:mr-185 {
+    margin-right: 45rem;
+  }
+}

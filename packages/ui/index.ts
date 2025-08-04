@@ -14,6 +14,8 @@ export * from "./components/badge";
 export * from "./components/table";
 export * from "./components/avatar";
 export * from "./components/progress";
+export * from "./components/dropdown-menu";
+export * from "./components/radio-group";
 
 // Date & Time Components
 export * from "./components/calendar";
