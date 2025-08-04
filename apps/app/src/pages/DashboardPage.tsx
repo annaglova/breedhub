@@ -1,73 +1,89 @@
 import React from 'react';
-import { Heart, Users, Calendar, Building, Plus, FileDown, User } from 'lucide-react';
+import { Heart, Users, Calendar, Building, Plus, FileDown, User, Dog, Cat, Award, TrendingUp } from 'lucide-react';
 import { Card } from '@ui/components/card';
 import { Button } from '@ui/components/button';
 import { Badge } from '@ui/components/badge';
-import { Avatar } from '@ui/components/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@ui/components/avatar';
 import { Progress } from '@ui/components/progress';
 import { useNavigationSync } from '@/shared/hooks';
+import { 
+  useMockPets, 
+  useMockBreeds, 
+  useMockKennels, 
+  useMockLitters, 
+  useMockEvents,
+  useMockContacts 
+} from '@/core/api/mock.hooks';
+import { mockDashboardStats } from '@/mocks';
 
 export function DashboardPage() {
   const { navigateTo } = useNavigationSync();
+  
+  // Fetch mock data
+  const { data: petsData } = useMockPets();
+  const { data: breedsData } = useMockBreeds();
+  const { data: kennelsData } = useMockKennels();
+  const { data: littersData } = useMockLitters();
+  const { data: eventsData } = useMockEvents();
+  const { data: contactsData } = useMockContacts();
+  
+  const pets = petsData?.data || [];
+  const breeds = breedsData?.data || [];
+  const kennels = kennelsData?.data || [];
+  const litters = littersData?.data || [];
+  const events = eventsData?.data || [];
+  const contacts = contactsData?.data || [];
 
-  // Mock data for demonstration
+  // Calculate real statistics
+  const activePets = pets.filter(p => p.status === 'active').length;
+  const activeLitters = litters.filter(l => l.status === 'active').length;
+  const upcomingEvents = events.filter(e => new Date(e.start_date) > new Date()).length;
+  const verifiedKennels = kennels.filter(k => k.is_verified).length;
+
   const stats = [
     {
       title: 'Total Pets',
-      value: '156',
-      change: '+12',
+      value: pets.length.toString(),
+      change: '+2',
       changeType: 'increase' as const,
       icon: <Heart className="h-8 w-8 text-blue-600" />,
+      subtitle: `${activePets} active`,
     },
     {
       title: 'Active Litters',
-      value: '23',
-      change: '+3',
+      value: activeLitters.toString(),
+      change: '+1',
       changeType: 'increase' as const,
       icon: <Users className="h-8 w-8 text-green-600" />,
+      subtitle: `${litters.length} total`,
     },
     {
       title: 'Upcoming Events',
-      value: '8',
+      value: upcomingEvents.toString(),
       change: '+2',
       changeType: 'increase' as const,
       icon: <Calendar className="h-8 w-8 text-purple-600" />,
+      subtitle: `${events.length} total`,
     },
     {
       title: 'Total Kennels',
-      value: '12',
+      value: kennels.length.toString(),
       change: '+1',
       changeType: 'increase' as const,
       icon: <Building className="h-8 w-8 text-orange-600" />,
+      subtitle: `${verifiedKennels} verified`,
     },
   ];
 
-  const recentActivities = [
-    {
-      id: '1',
-      type: 'new_pet',
-      title: 'New pet added',
-      description: 'Luna - Golden Retriever',
-      time: '2 hours ago',
-      user: 'John Doe',
-    },
-    {
-      id: '2',
-      type: 'litter_update',
-      title: 'Litter updated',
-      description: 'Bella x Max litter - 6 puppies born',
-      time: '5 hours ago',
-      user: 'Jane Smith',
-    },
-    {
-      id: '3',
-      type: 'event_reminder',
-      title: 'Event reminder',
-      description: 'Dog show tomorrow at 9:00 AM',
-      time: '1 day ago',
-      user: 'System',
-    },
-  ];
+  // Use real recent activities from mock data
+  const recentActivities = mockDashboardStats.recentActivity.map((activity, index) => ({
+    id: index.toString(),
+    type: activity.type,
+    title: activity.type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
+    description: activity.message,
+    time: new Date(activity.date).toLocaleDateString(),
+    user: 'System',
+  }));
 
   const quickActions = [
     {
@@ -124,6 +140,9 @@ export function DashboardPage() {
               <div>
                 <p className="text-sm font-medium text-gray-600">{stat.title}</p>
                 <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
+                {stat.subtitle && (
+                  <p className="text-sm text-gray-500">{stat.subtitle}</p>
+                )}
                 <div className="flex items-center mt-1">
                   <Badge variant={stat.changeType === 'increase' ? 'default' : 'destructive'} className="text-xs">
                     {stat.change}
@@ -192,57 +211,57 @@ export function DashboardPage() {
       {/* Breeding Progress */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card className="p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Breeding Program Progress</h3>
-          <div className="space-y-4">
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-gray-700">Health Testing</span>
-                <span className="text-sm text-gray-600">85%</span>
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Popular Breeds</h3>
+          <div className="space-y-3">
+            {mockDashboardStats.popularBreeds.slice(0, 5).map((breed, index) => (
+              <div key={index} className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="flex-shrink-0 w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center">
+                    <span className="text-sm font-medium text-gray-600">{index + 1}</span>
+                  </div>
+                  <span className="text-sm font-medium text-gray-900">{breed.breed}</span>
+                </div>
+                <Badge variant="secondary">{breed.count.toLocaleString()}</Badge>
               </div>
-              <Progress value={85} className="h-2" />
-            </div>
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-gray-700">Pedigree Completion</span>
-                <span className="text-sm text-gray-600">92%</span>
-              </div>
-              <Progress value={92} className="h-2" />
-            </div>
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-gray-700">Registration Status</span>
-                <span className="text-sm text-gray-600">78%</span>
-              </div>
-              <Progress value={78} className="h-2" />
-            </div>
+            ))}
           </div>
+          <Button 
+            variant="outline" 
+            className="w-full mt-4"
+            onClick={() => navigateTo('/breeds')}
+          >
+            View All Breeds
+          </Button>
         </Card>
 
         <Card className="p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Upcoming Tasks</h3>
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Top Rated Kennels</h3>
           <div className="space-y-3">
-            <div className="flex items-center justify-between p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-              <div>
-                <p className="text-sm font-medium text-gray-900">Health check for Luna</p>
-                <p className="text-xs text-gray-600">Due in 3 days</p>
+            {mockDashboardStats.topRatedKennels.map((kennel, index) => (
+              <div key={index} className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 transition-colors">
+                <div className="flex items-center gap-3">
+                  <div className="flex-shrink-0">
+                    <Award className={`h-5 w-5 ${index === 0 ? 'text-yellow-500' : index === 1 ? 'text-gray-400' : index === 2 ? 'text-orange-600' : 'text-gray-600'}`} />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">{kennel.name}</p>
+                    <p className="text-xs text-gray-600">Verified Kennel</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Star className="h-4 w-4 text-yellow-500" />
+                  <span className="text-sm font-semibold">{kennel.rating}%</span>
+                </div>
               </div>
-              <Badge variant="outline">Pending</Badge>
-            </div>
-            <div className="flex items-center justify-between p-3 bg-blue-50 border border-blue-200 rounded-lg">
-              <div>
-                <p className="text-sm font-medium text-gray-900">Vaccination reminder</p>
-                <p className="text-xs text-gray-600">Due in 1 week</p>
-              </div>
-              <Badge variant="outline">Scheduled</Badge>
-            </div>
-            <div className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg">
-              <div>
-                <p className="text-sm font-medium text-gray-900">Update breeding records</p>
-                <p className="text-xs text-gray-600">Overdue by 2 days</p>
-              </div>
-              <Badge variant="destructive">Overdue</Badge>
-            </div>
+            ))}
           </div>
+          <Button 
+            variant="outline" 
+            className="w-full mt-4"
+            onClick={() => navigateTo('/kennels')}
+          >
+            View All Kennels
+          </Button>
         </Card>
       </div>
     </div>

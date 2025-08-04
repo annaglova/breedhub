@@ -3,13 +3,14 @@ import { Button } from '@ui/components/button';
 import { Card } from '@ui/components/card';
 import { useNavigationSync } from '@/shared/hooks';
 import { PetDataTable } from '@/features/data-table/examples/PetDataTable';
-import { usePets } from '@/core/api';
+import { useMockPets } from '@/core/api/mock.hooks';
 import { type Pet } from '@/domain/entities/pet';
 import { Download, Filter, Plus, Heart, CheckCircle, Users, ClipboardList } from 'lucide-react';
 
 export function PetsListPage() {
   const { navigateTo } = useNavigationSync();
-  const { data: pets = [], isLoading, error } = usePets();
+  const { data, isLoading, error } = useMockPets();
+  const pets = data?.data || [];
 
   const handleEditPet = (pet: Pet) => {
     navigateTo(`/pets/${pet.id}/edit`);
