@@ -127,8 +127,8 @@ export function Sidebar({
       )}
 
       {/* Navigation menu */}
-      <nav className="flex-1 p-4 border">
-        <h2 className="text-primary font-bold text-lg mb-4">SPACES</h2>
+      <nav className="flex-1 p-4 border ">
+        <h2 className="text-primary font-bold text-lg mb-6 mt-6">SPACES</h2>
         <ul className="space-y-1">
           {visibleMenuItems.map((item) => {
             const Icon = item.icon;
