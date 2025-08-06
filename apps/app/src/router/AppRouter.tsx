@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AppLayout } from '@/layouts/AppLayout';
 import { BreedsPage } from '@/pages/breeds';
+import { TestLoadingPage } from '@/pages/TestLoadingPage';
 
 // Temporary placeholder component
 function PlaceholderPage({ title }: { title: string }) {
@@ -26,6 +27,7 @@ export function AppRouter() {
           <Route path="contacts" element={<PlaceholderPage title="Contacts" />} />
           <Route path="market" element={<PlaceholderPage title="Market" />} />
           <Route path="menu" element={<PlaceholderPage title="Menu" />} />
+          <Route path="test-loading" element={<TestLoadingPage />} />
         </Route>
       </Routes>
     </BrowserRouter>

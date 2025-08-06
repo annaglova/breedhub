@@ -3,6 +3,7 @@ import { Outlet } from 'react-router-dom';
 import { Header } from '@/components/layout/Header';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { Footer } from '@/components/layout/Footer';
+import { LoadingBar } from '@/components/layout/LoadingBar';
 import { cn } from '@ui/lib/utils';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 
@@ -49,6 +50,8 @@ export function AppLayout() {
 
   return (
     <div className="layout-container bg-gray-100 flex flex-col">
+      <LoadingBar />
+      
       {/* Header */}
       <div ref={topBarRef}>
         <Header onMenuClick={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)} />
