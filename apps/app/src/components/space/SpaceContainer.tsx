@@ -25,6 +25,9 @@ interface SpaceContainerProps {
   total: number;
   filters?: React.ReactNode;
   children?: React.ReactNode;
+  onSearch?: (query: string) => void;
+  onViewModeChange?: (mode: string) => void;
+  currentView?: string;
 }
 
 export function SpaceContainer({
