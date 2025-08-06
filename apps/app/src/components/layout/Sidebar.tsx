@@ -26,8 +26,21 @@ export function Sidebar({
 }: SidebarProps) {
   const location = useLocation();
 
+  // Determine active section based on current path
+  const getActiveSection = () => {
+    if (location.pathname.startsWith("/marketplace")) {
+      return "marketplace";
+    } else if (location.pathname.startsWith("/mating")) {
+      return "mating";
+    }
+    return "home";
+  };
+
+  const activeSection = getActiveSection();
+
   // Menu items based on active section
   const menuItems = [
+    // Home section items
     {
       id: "breeds",
       icon: Dog,
@@ -70,10 +83,24 @@ export function Sidebar({
       path: "/events",
       section: "home",
     },
+    // Marketplace section items
+    {
+      id: "marketplace-pets",
+      icon: Cat,
+      label: "Pets",
+      path: "/marketplace/pets",
+      section: "marketplace",
+    },
+    // Test mating section items
+    {
+      id: "mating-pets",
+      icon: Cat,
+      label: "Pets",
+      path: "/mating/pets",
+      section: "mating",
+    },
   ];
 
-  // TODO: Filter menu items based on active section (home/market/menu)
-  const activeSection = "home"; // for now
   const visibleMenuItems = menuItems.filter(
     (item) => item.section === activeSection
   );
@@ -82,8 +109,8 @@ export function Sidebar({
     <aside className={cn("h-full flex flex-col", className)}>
       {/* Logo and close button */}
       {!asMenu && (
-        <div className="flex items-center justify-between px-4 sm:px-6 lg:px-8 py-4">
-          <Link to="/" className="flex items-center relative z-10 p-2 -m-2">
+        <div className="flex items-center justify-between h-16 px-4 sm:px-6 lg:px-8 border border-red-500">
+          <Link to="/" className="flex items-center relative z-10">
             <img src="/logo-text.svg" alt="BreedHub" className="h-10 w-auto" />
           </Link>
           {onClose && (

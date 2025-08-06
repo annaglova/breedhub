@@ -22,11 +22,23 @@ export function AppRouter() {
           <Route index element={<Navigate to="/breeds" replace />} />
           <Route path="breeds/*" element={<BreedsPage />} />
           <Route path="pets" element={<PlaceholderPage title="Pets" />} />
+          <Route path="litters" element={<PlaceholderPage title="Litters" />} />
           <Route path="kennels" element={<PlaceholderPage title="Kennels" />} />
           <Route path="events" element={<PlaceholderPage title="Events" />} />
           <Route path="contacts" element={<PlaceholderPage title="Contacts" />} />
-          <Route path="market" element={<PlaceholderPage title="Market" />} />
-          <Route path="menu" element={<PlaceholderPage title="Menu" />} />
+          
+          {/* Marketplace routes */}
+          <Route path="marketplace">
+            <Route index element={<Navigate to="/marketplace/pets" replace />} />
+            <Route path="pets" element={<PlaceholderPage title="Marketplace - Pets" />} />
+          </Route>
+          
+          {/* Test mating routes */}
+          <Route path="mating">
+            <Route index element={<Navigate to="/mating/pets" replace />} />
+            <Route path="pets" element={<PlaceholderPage title="Test Mating - Pets" />} />
+          </Route>
+          
           <Route path="test-loading" element={<TestLoadingPage />} />
         </Route>
       </Routes>

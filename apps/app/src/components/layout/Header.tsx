@@ -1,21 +1,20 @@
-import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { Home, ShoppingBag, Heart, Moon, Sun, Menu, User } from 'lucide-react';
-import { Button } from '@ui/components/button';
+import { useTheme } from "@/hooks/useTheme";
+import { Button } from "@ui/components/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@ui/components/dropdown-menu';
+} from "@ui/components/dropdown-menu";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from '@ui/components/tooltip';
-import { cn } from '@ui/lib/utils';
-import { useTheme } from '@/hooks/useTheme';
+} from "@ui/components/tooltip";
+import { cn } from "@ui/lib/utils";
+import { Heart, Home, Menu, Moon, ShoppingBag, Sun, User } from "lucide-react";
+import { Link, useLocation } from "react-router-dom";
 
 interface HeaderProps {
   onMenuClick?: () => void;
@@ -28,18 +27,25 @@ export function Header({ onMenuClick, isHome = false }: HeaderProps) {
   const { theme, toggleTheme } = useTheme();
 
   const navItems = [
-    { id: 'home', icon: Home, label: 'Home', path: '/' },
-    { id: 'marketplace', icon: ShoppingBag, label: 'Marketplace', path: '/marketplace' },
-    { id: 'mating', icon: Heart, label: 'Test mating', path: '/mating' },
+    { id: "home", icon: Home, label: "Home", path: "/" },
+    {
+      id: "marketplace",
+      icon: ShoppingBag,
+      label: "Marketplace",
+      path: "/marketplace",
+    },
+    { id: "mating", icon: Heart, label: "Test mating", path: "/mating" },
   ];
 
   return (
     <TooltipProvider>
-      <header className={cn(
-        "layout-topbar w-full flex items-center justify-between",
-        "md:pt-2 lg:pb-2",
-        "3xl:justify-center"
-      )}>
+      <header
+        className={cn(
+          "w-full flex items-center justify-between",
+
+          "3xl:justify-center"
+        )}
+      >
         <div className="flex items-center justify-between w-full h-16 px-4 md:px-6">
           {/* Mobile menu button */}
           <Tooltip>
@@ -47,7 +53,7 @@ export function Header({ onMenuClick, isHome = false }: HeaderProps) {
               <Button
                 variant="ghost"
                 size="icon"
-                className="topbar-menubutton md:hidden ml-3"
+                className="topbar-menubutton lg:hidden ml-3 "
                 onClick={onMenuClick}
                 aria-label="Menu"
               >
@@ -65,9 +71,11 @@ export function Header({ onMenuClick, isHome = false }: HeaderProps) {
               <div className="flex items-center">
                 {navItems.map((item) => {
                   const Icon = item.icon;
-                  const isActive = location.pathname === item.path || 
-                                 (item.path === '/' && location.pathname.startsWith('/breeds'));
-                  
+                  const isActive =
+                    location.pathname === item.path ||
+                    (item.path === "/" &&
+                      location.pathname.startsWith("/breeds"));
+
                   return (
                     <Tooltip key={item.id}>
                       <TooltipTrigger asChild>
@@ -79,11 +87,13 @@ export function Header({ onMenuClick, isHome = false }: HeaderProps) {
                             "py-3 transition-colors"
                           )}
                         >
-                          <Icon 
+                          <Icon
                             className={cn(
                               "h-5 w-5",
-                              isActive ? "text-sub-header-active" : "text-sub-header-color"
-                            )} 
+                              isActive
+                                ? "text-sub-header-active"
+                                : "text-sub-header-color"
+                            )}
                           />
                         </Link>
                       </TooltipTrigger>
@@ -98,10 +108,12 @@ export function Header({ onMenuClick, isHome = false }: HeaderProps) {
           )}
 
           {/* Right side menu */}
-          <div className={cn(
-            "flex items-center gap-3 mr-3 md:mr-0",
-            "3xl:absolute 3xl:right-[2.15rem]"
-          )}>
+          <div
+            className={cn(
+              "flex items-center gap-3 mr-3 md:mr-0",
+              "3xl:absolute 3xl:right-[2.15rem]"
+            )}
+          >
             {/* Dark mode toggle */}
             <Button
               variant="default"
@@ -109,16 +121,20 @@ export function Header({ onMenuClick, isHome = false }: HeaderProps) {
               onClick={toggleTheme}
               className="bg-primary"
             >
-              {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+              {theme === "dark" ? (
+                <Sun className="h-4 w-4" />
+              ) : (
+                <Moon className="h-4 w-4" />
+              )}
               <span className="ml-2">Dark</span>
             </Button>
 
             {/* User menu */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
+                <Button
+                  variant="ghost"
+                  size="icon"
                   className="h-10 w-10 rounded-full border overflow-hidden p-0"
                   aria-label="Profile"
                 >
@@ -128,12 +144,8 @@ export function Header({ onMenuClick, isHome = false }: HeaderProps) {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuItem>
-                  Sign In
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  Register
-                </DropdownMenuItem>
+                <DropdownMenuItem>Sign In</DropdownMenuItem>
+                <DropdownMenuItem>Register</DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
