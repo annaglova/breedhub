@@ -74,7 +74,7 @@ export function AppLayout() {
             <Sidebar
               isCollapsed={false}
               onClose={() => setIsMobileSidebarOpen(false)}
-              className="lg:hidden fixed left-0 top-0 h-full w-64 z-50"
+              className="lg:hidden fixed left-0 top-0 h-full w-64 bg-white shadow-xl z-50 mobile-sidebar-enter"
             />
           </>
         )}

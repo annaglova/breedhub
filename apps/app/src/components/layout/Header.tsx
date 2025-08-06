@@ -1,12 +1,6 @@
 import { useTheme } from "@/hooks/useTheme";
 import { Button } from "@ui/components/button";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@ui/components/dropdown-menu";
-import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
@@ -15,6 +9,8 @@ import {
 import { cn } from "@ui/lib/utils";
 import { Heart, Home, Menu, Moon, ShoppingBag, Sun, User } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
+import { UserDrawer } from "./UserDrawer";
+import { useState } from "react";
 
 interface HeaderProps {
   onMenuClick?: () => void;
@@ -25,6 +21,7 @@ interface HeaderProps {
 export function Header({ onMenuClick, isHome = false }: HeaderProps) {
   const location = useLocation();
   const { theme, toggleTheme } = useTheme();
+  const [isUserDrawerOpen, setIsUserDrawerOpen] = useState(false);
 
   const navItems = [
     { id: "home", icon: Home, label: "Home", path: "/" },
@@ -130,27 +127,25 @@ export function Header({ onMenuClick, isHome = false }: HeaderProps) {
             </Button>
 
             {/* User menu */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-10 w-10 rounded-full border overflow-hidden p-0"
-                  aria-label="Profile"
-                >
-                  <div className="h-full w-full bg-gray-200 flex items-center justify-center">
-                    <User className="h-5 w-5 text-gray-600" />
-                  </div>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuItem>Sign In</DropdownMenuItem>
-                <DropdownMenuItem>Register</DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-10 w-10 rounded-full border overflow-hidden p-0"
+              aria-label="Profile"
+              onClick={() => setIsUserDrawerOpen(true)}
+            >
+              <div className="h-full w-full bg-gray-200 flex items-center justify-center">
+                <User className="h-5 w-5 text-gray-600" />
+              </div>
+            </Button>
           </div>
         </div>
       </header>
+      
+      <UserDrawer 
+        isOpen={isUserDrawerOpen} 
+        onClose={() => setIsUserDrawerOpen(false)} 
+      />
     </TooltipProvider>
   );
 }
