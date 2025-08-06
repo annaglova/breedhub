@@ -1,14 +1,14 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Outlet, useNavigate, useLocation } from 'react-router-dom';
-import { Search, Plus } from 'lucide-react';
-import { Input } from '@ui/components/input';
-import { Button } from '@ui/components/button';
-import { cn } from '@ui/lib/utils';
-import { ViewChanger } from './ViewChanger';
-import { SpaceScroller } from './SpaceScroller';
-import { EntitiesCounter } from './EntitiesCounter';
-import { SpaceFilters } from './SpaceFilters';
-import { useMediaQuery } from '@/hooks/useMediaQuery';
+import { useMediaQuery } from "@/hooks/useMediaQuery";
+import { Button } from "@ui/components/button";
+import { Input } from "@ui/components/input";
+import { cn } from "@ui/lib/utils";
+import { Plus, Search } from "lucide-react";
+import React, { useEffect, useRef, useState } from "react";
+import { Outlet, useLocation, useNavigate } from "react-router-dom";
+import { EntitiesCounter } from "./EntitiesCounter";
+import { SpaceFilters } from "./SpaceFilters";
+import { SpaceScroller } from "./SpaceScroller";
+import { ViewChanger } from "./ViewChanger";
 
 interface SpaceConfig {
   title: string;
@@ -33,32 +33,32 @@ export function SpaceContainer({
   isLoading,
   total,
   filters,
-  children
+  children,
 }: SpaceContainerProps) {
   const navigate = useNavigate();
   const location = useLocation();
   const [headerHeight, setHeaderHeight] = useState(0);
-  const [searchValue, setSearchValue] = useState('');
+  const [searchValue, setSearchValue] = useState("");
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const headerRef = useRef<HTMLDivElement>(null);
-  
+
   // Media queries matching Angular breakpoints
-  const isMoreThanMD = useMediaQuery('(min-width: 768px)');
-  const isMoreThanXL = useMediaQuery('(min-width: 1280px)');
+  const isMoreThanMD = useMediaQuery("(min-width: 768px)");
+  const isMoreThanXL = useMediaQuery("(min-width: 1280px)");
   const needCardClass = isMoreThanMD;
 
   // Check if drawer should be open based on route
   useEffect(() => {
-    const pathSegments = location.pathname.split('/');
+    const pathSegments = location.pathname.split("/");
     // If we have an ID in the path, drawer should be open
-    setIsDrawerOpen(pathSegments.length > 2 && pathSegments[2] !== 'new');
+    setIsDrawerOpen(pathSegments.length > 2 && pathSegments[2] !== "new");
   }, [location.pathname]);
 
   // Measure header height
   useEffect(() => {
     if (headerRef.current) {
       const observer = new ResizeObserver((entries) => {
-        for (let entry of entries) {
+        for (const entry of entries) {
           setHeaderHeight(entry.contentRect.height);
         }
       });
@@ -74,31 +74,31 @@ export function SpaceContainer({
   const handleBackdropClick = () => {
     setIsDrawerOpen(false);
     // Navigate back to list
-    const pathSegments = location.pathname.split('/');
+    const pathSegments = location.pathname.split("/");
     navigate(`/${pathSegments[1]}`);
   };
 
-  const drawerMode = isMoreThanXL ? 'side' : 'over';
+  const drawerMode = isMoreThanXL ? "side" : "over";
   const scrollHeight = `calc(100vh - ${headerHeight}px - 3px)`;
 
   return (
-    <div className="relative h-full p-4 md:p-6 overflow-hidden">
+    <div className="relative h-full overflow-hidden">
       {/* Main Content */}
-      <div className={cn(
-        "flex flex-col cursor-default h-full overflow-hidden",
-        needCardClass ? "fake-card" : "card-surface",
-        isDrawerOpen && "xl:mr-[40rem] 2xl:mr-[45rem]"
-      )}>
+      <div
+        className={cn(
+          "flex flex-col cursor-default h-full overflow-hidden",
+          needCardClass ? "fake-card" : "card-surface",
+          isDrawerOpen && "xl:mr-[40rem] 2xl:mr-[45rem]"
+        )}
+      >
         {/* Header */}
-        <div 
+        <div
           ref={headerRef}
           className="z-20 flex flex-col justify-between border-b border-surface-border p-4 sm:p-7"
         >
           <div className="w-full">
             <div className="flex w-full justify-between">
-              <span className="text-4xl font-extrabold">
-                {config.title}
-              </span>
+              <span className="text-4xl font-extrabold">{config.title}</span>
               <ViewChanger views={config.views} />
             </div>
             <EntitiesCounter
@@ -144,9 +144,7 @@ export function SpaceContainer({
 
         {/* Content Scroller */}
         <div className="relative flex-1 overflow-hidden">
-          <SpaceScroller scrollHeight={scrollHeight}>
-            {children}
-          </SpaceScroller>
+          <SpaceScroller scrollHeight={scrollHeight}>{children}</SpaceScroller>
           <div className="sm:h-6 bg-card-ground w-full absolute bottom-0" />
         </div>
       </div>
@@ -155,20 +153,22 @@ export function SpaceContainer({
       {isDrawerOpen && (
         <>
           {/* Backdrop */}
-          <div 
+          <div
             className={cn(
               "fixed inset-0 bg-black/40 z-30",
               isMoreThanXL && "rounded-xl"
             )}
             onClick={handleBackdropClick}
           />
-          
+
           {/* Drawer content */}
-          <div className={cn(
-            "fixed right-0 top-0 h-full bg-white z-40",
-            "w-full md:w-[40rem] 2xl:w-[45rem]",
-            "shadow-2xl"
-          )}>
+          <div
+            className={cn(
+              "fixed right-0 top-0 h-full bg-white z-40",
+              "w-full md:w-[40rem] 2xl:w-[45rem]",
+              "shadow-2xl"
+            )}
+          >
             <Outlet />
           </div>
         </>

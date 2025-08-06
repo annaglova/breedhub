@@ -2,44 +2,52 @@
 
 /* Card styles from Angular project */
 .card-surface {
-  @apply bg-white;
+  background: rgb(var(--card-ground));
+  border: 1px solid rgb(var(--surface-border));
 }
 
 .fake-card {
-  @apply bg-white rounded-lg shadow-sm m-4 md:m-6;
+  background: rgb(var(--card-ground));
+  border: 1px solid rgb(var(--surface-border));
+  border-radius: 12px;
 }
 
 .bg-card-ground {
-  @apply bg-gray-100;
+  background: rgb(var(--card-ground));
 }
 
 .bg-footer-ground {
-  @apply bg-gray-800;
+  background: rgb(var(--footer-ground));
 }
 
 .border-surface-border {
-  @apply border-gray-200;
+  border-color: rgb(var(--surface-border));
 }
 
 /* Custom button sizes */
 .bp-small-button {
-  @apply h-10 w-10;
+  height: 2.5rem;
+  width: 2.5rem;
 }
 
 /* Drawer animations */
 .mat-drawer-backdrop {
-  @apply fixed inset-0 bg-black/40 z-30;
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.4);
+  z-index: 30;
 }
 
 @media (min-width: 960px) {
   .mat-drawer-backdrop {
-    @apply rounded-xl;
+    border-radius: 0.75rem;
   }
 }
 
 /* Size utilities */
 .size-full {
-  @apply w-full h-full;
+  width: 100%;
+  height: 100%;
 }
 
 /* Drawer margins for xl and 2xl screens */
