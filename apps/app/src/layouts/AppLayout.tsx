@@ -102,7 +102,7 @@ export function AppLayout() {
                 {/* Main content */}
                 <main
                   className="flex-1 overflow-hidden"
-                  style={{ height: `${mainHeight}px` }}
+                  style={{ height: `${mainHeight - 20}px` }}
                 >
                   <Outlet />
                 </main>
