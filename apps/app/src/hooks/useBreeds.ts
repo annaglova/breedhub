@@ -9,12 +9,19 @@ export function useBreeds(params: {
 } = {}) {
   return useQuery({
     queryKey: ['breeds', params],
+    // Keep previous data while fetching new
+    keepPreviousData: true,
     queryFn: async () => {
       // Use mock data for now since API is not working
-      await new Promise(resolve => setTimeout(resolve, 500)); // Simulate network delay
+      await new Promise(resolve => setTimeout(resolve, 100)); // Small delay to prevent UI flashing
+      
+      // Handle pagination
+      const from = params?.from || 0;
+      const rows = params?.rows || 50;
+      const to = from + rows;
       
       // Transform mock data to API format
-      const transformedBreeds = mockBreeds.slice(0, params?.rows || 60).map(breed => ({
+      const transformedBreeds = mockBreeds.slice(from, to).map(breed => ({
         Id: breed.id,
         Name: breed.name,
         PetProfileCount: breed.pet_profile_count,

@@ -59,7 +59,7 @@ export function AppLayout() {
           isCollapsed={!isSidebarOpen}
           className={cn(
             "h-full z-20",
-            "hidden lg:block 3xl:hidden border border-blue-500",
+            "hidden lg:block 3xl:hidden",
             isSidebarOpen ? "w-64" : "w-16"
           )}
         />
@@ -82,14 +82,14 @@ export function AppLayout() {
         {/* Content wrapper */}
         <div className="flex-1 flex flex-col">
           {/* Header */}
-          <div ref={topBarRef} className="border border-red-500">
+          <div ref={topBarRef}>
             <Header
               onMenuClick={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
             />
           </div>
 
           {/* Content area */}
-          <div className="flex flex-1 overflow-hidden border border-green-500">
+          <div className="flex flex-1 overflow-hidden pr-5">
             {isReady && (
               <div className="flex-1 3xl:flex 3xl:justify-center">
                 {/* Left menu column - only on xxxl */}
