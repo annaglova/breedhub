@@ -5,7 +5,62 @@
 import { Breed, BreedWithRelations } from '@/domain/entities/breed';
 import { mockBreedCategories } from './lookups.mock';
 
-export const mockBreeds: Breed[] = [
+// Helper to generate many breeds for testing
+function generateMockBreeds(count: number): Breed[] {
+  const baseBreeds = [
+    'Labrador Retriever', 'German Shepherd', 'Golden Retriever', 'French Bulldog',
+    'Bulldog', 'Poodle', 'Beagle', 'Rottweiler', 'Yorkshire Terrier', 'Dachshund',
+    'Siberian Husky', 'Great Dane', 'Pug', 'Boston Terrier', 'Shih Tzu',
+    'Pomeranian', 'Havanese', 'Cavalier King Charles Spaniel', 'Shetland Sheepdog',
+    'Australian Shepherd', 'Pembroke Welsh Corgi', 'Maltese', 'Cocker Spaniel',
+    'Chihuahua', 'Border Collie', 'Boxer', 'Basset Hound', 'Vizsla', 'Mastiff'
+  ];
+  
+  const breeds: Breed[] = [];
+  
+  for (let i = 0; i < count; i++) {
+    const baseName = baseBreeds[i % baseBreeds.length];
+    const variant = Math.floor(i / baseBreeds.length);
+    const name = variant > 0 ? `${baseName} (Variant ${variant + 1})` : baseName;
+    
+    breeds.push({
+      id: `breed-${i + 1}`,
+      name: name,
+      authentic_name: name,
+      admin_name: name,
+      pet_type_id: i % 3 === 0 ? 'cat' : 'dog',
+      category_id: String((i % 7) + 1),
+      language_id: '1',
+      differ_by_coat_color: Math.random() > 0.5,
+      differ_by_coat_type: Math.random() > 0.5,
+      differ_by_size: Math.random() > 0.7,
+      differ_by_body_feature: Math.random() > 0.8,
+      has_related_breed: Math.random() > 0.6,
+      pet_profile_count: Math.floor(Math.random() * 3000),
+      kennel_count: Math.floor(Math.random() * 200),
+      patron_count: Math.floor(Math.random() * 1000),
+      achievement_progress: Math.floor(Math.random() * 100),
+      rating: Math.floor(Math.random() * 40) + 60,
+      payment_rating: Math.floor(Math.random() * 30) + 70,
+      avatar_url: `https://images.unsplash.com/photo-${1500000000000 + i}?w=400`,
+      url: name.toLowerCase().replace(/\s+/g, '-'),
+      created_on: new Date(2020, 0, 1),
+      modified_on: new Date(),
+      has_notes: Math.random() > 0.7,
+      top_patrons: Math.random() > 0.5 ? [
+        { name: `Patron ${i}-1`, contributions: Math.floor(Math.random() * 50) },
+        { name: `Patron ${i}-2`, contributions: Math.floor(Math.random() * 30) },
+      ] : undefined,
+    });
+  }
+  
+  return breeds;
+}
+
+export const mockBreeds: Breed[] = generateMockBreeds(150); // Generate 150 breeds for testing
+
+// Keep original first breed for reference
+export const mockBreedsOriginal: Breed[] = [
   // Dogs
   {
     id: 'breed-1',

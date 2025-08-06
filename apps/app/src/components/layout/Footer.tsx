@@ -1,5 +1,4 @@
-import React from 'react';
-import { cn } from '@ui/lib/utils';
+import { cn } from "@ui/lib/utils";
 
 interface FooterProps {
   className?: string;
@@ -7,9 +6,11 @@ interface FooterProps {
 
 export function Footer({ className }: FooterProps) {
   const currentYear = new Date().getFullYear();
-  
+
   return (
-    <footer className={cn("px-8 py-2 text-white z-10 cursor-default", className)}>
+    <footer
+      className={cn("px-8 py-2 text-white z-10 cursor-default", className)}
+    >
       Breedhub © {currentYear}
     </footer>
   );

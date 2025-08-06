@@ -109,7 +109,7 @@ export function Sidebar({
     <aside className={cn("h-full flex flex-col", className)}>
       {/* Logo and close button */}
       {!asMenu && (
-        <div className="flex items-center justify-between h-16 px-4 sm:px-6 lg:px-8 border border-red-500">
+        <div className="flex items-center justify-between h-16 px-4 sm:px-6 lg:px-8">
           <Link to="/" className="flex items-center relative z-10">
             <img src="/logo-text.svg" alt="BreedHub" className="h-10 w-auto" />
           </Link>
@@ -127,7 +127,7 @@ export function Sidebar({
       )}
 
       {/* Navigation menu */}
-      <nav className="flex-1 p-4 border ">
+      <nav className="flex-1 p-4">
         <h2 className="text-primary font-bold text-lg mb-6 mt-6">SPACES</h2>
         <ul className="space-y-1">
           {visibleMenuItems.map((item) => {
