@@ -1,9 +1,9 @@
+import { LoadingButton } from "@/components/LoadingButton";
 import { cn } from "@/utils";
 import LogoText from "@shared/icons/logo/logo-text.svg?react";
-import { Smartphone, CreditCard, FileText, Menu, X } from "lucide-react";
+import { CreditCard, FileText, Menu, Smartphone, X } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { LoadingButton } from "@/components/LoadingButton";
 
 interface MenuItemProps {
   to: string;
@@ -98,7 +98,7 @@ export default function LandingMenu({ className }: LandingMenuProps) {
     const handleScroll = () => {
       const scrollY = window.scrollY;
       setIsScrolled(scrollY > 10);
-      
+
       // Calculate opacity based on scroll position (0-100px range)
       const opacity = Math.min(scrollY / 100, 0.65);
       setScrollOpacity(opacity);
@@ -141,8 +141,12 @@ export default function LandingMenu({ className }: LandingMenuProps) {
         )}
         style={{
           backgroundColor: `rgba(255, 255, 255, ${scrollOpacity})`,
-          backdropFilter: scrollOpacity > 0 ? `blur(${scrollOpacity * 12}px)` : "none",
-          boxShadow: scrollOpacity > 0 ? `0 4px 6px -1px rgba(0, 0, 0, ${scrollOpacity * 0.15})` : "none",
+          backdropFilter:
+            scrollOpacity > 0 ? `blur(${scrollOpacity * 12}px)` : "none",
+          boxShadow:
+            scrollOpacity > 0
+              ? `0 4px 6px -1px rgba(0, 0, 0, ${scrollOpacity * 0.15})`
+              : "none",
         }}
       >
         <div className="flex items-center justify-between px-4 sm:px-6 lg:px-8 py-4">

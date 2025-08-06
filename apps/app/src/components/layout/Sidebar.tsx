@@ -1,8 +1,15 @@
-import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { X, Dog, Cat, Users, Calendar, MessageSquare, Baby } from 'lucide-react';
-import { Button } from '@ui/components/button';
-import { cn } from '@ui/lib/utils';
+import { Button } from "@ui/components/button";
+import { cn } from "@ui/lib/utils";
+import {
+  Baby,
+  Calendar,
+  Cat,
+  Dog,
+  MessageSquare,
+  Users,
+  X,
+} from "lucide-react";
+import { Link, useLocation } from "react-router-dom";
 
 interface SidebarProps {
   isCollapsed?: boolean;
@@ -11,70 +18,73 @@ interface SidebarProps {
   asMenu?: boolean;
 }
 
-export function Sidebar({ isCollapsed = false, onClose, className, asMenu = false }: SidebarProps) {
+export function Sidebar({
+  isCollapsed = false,
+  onClose,
+  className,
+  asMenu = false,
+}: SidebarProps) {
   const location = useLocation();
 
   // Menu items based on active section
   const menuItems = [
-    { 
-      id: 'breeds', 
-      icon: Dog, 
-      label: 'Breeds', 
-      path: '/breeds',
-      section: 'home'
+    {
+      id: "breeds",
+      icon: Dog,
+      label: "Breeds",
+      path: "/breeds",
+      section: "home",
     },
-    { 
-      id: 'pets', 
-      icon: Cat, 
-      label: 'Pets', 
-      path: '/pets',
-      section: 'home'
+    {
+      id: "pets",
+      icon: Cat,
+      label: "Pets",
+      path: "/pets",
+      section: "home",
     },
-    { 
-      id: 'litters', 
-      icon: Baby, 
-      label: 'Litters', 
-      path: '/litters',
-      section: 'home'
+    {
+      id: "litters",
+      icon: Baby,
+      label: "Litters",
+      path: "/litters",
+      section: "home",
     },
-    { 
-      id: 'kennels', 
-      icon: Users, 
-      label: 'Kennels', 
-      path: '/kennels',
-      section: 'home'
+    {
+      id: "kennels",
+      icon: Users,
+      label: "Kennels",
+      path: "/kennels",
+      section: "home",
     },
-    { 
-      id: 'contacts', 
-      icon: MessageSquare, 
-      label: 'Contacts', 
-      path: '/contacts',
-      section: 'home'
+    {
+      id: "contacts",
+      icon: MessageSquare,
+      label: "Contacts",
+      path: "/contacts",
+      section: "home",
     },
-    { 
-      id: 'events', 
-      icon: Calendar, 
-      label: 'Events', 
-      path: '/events',
-      section: 'home'
+    {
+      id: "events",
+      icon: Calendar,
+      label: "Events",
+      path: "/events",
+      section: "home",
     },
   ];
 
   // TODO: Filter menu items based on active section (home/market/menu)
-  const activeSection = 'home'; // for now
-  const visibleMenuItems = menuItems.filter(item => item.section === activeSection);
+  const activeSection = "home"; // for now
+  const visibleMenuItems = menuItems.filter(
+    (item) => item.section === activeSection
+  );
 
   return (
     <aside className={cn("h-full flex flex-col", className)}>
       {/* Logo and close button */}
       {!asMenu && (
-        <div className="h-16 flex items-center justify-between px-4">
-          <Link to="/" className="flex items-center">
-            <img 
-              src="/logo.svg" 
-              alt="BreedHub" 
-              className="h-8"
-            />
+        <div className="flex items-center justify-between px-4 sm:px-6 lg:px-8 py-4">
+          <Link to="/" className="flex items-center relative z-10 p-2 -m-2">
+            <img src="/logo-text.svg" alt="BreedHub" className="h-10 w-auto" />
           </Link>
           {onClose && (
             <Button
@@ -90,8 +100,8 @@ export function Sidebar({ isCollapsed = false, onClose, className, asMenu = fals
       )}
 
       {/* Navigation menu */}
-      <nav className="flex-1 p-4">
-        <h2 className="text-primary font-bold text-sm mb-4">SPACES</h2>
+      <nav className="flex-1 p-4 border">
+        <h2 className="text-primary font-bold text-lg mb-4">SPACES</h2>
         <ul className="space-y-1">
           {visibleMenuItems.map((item) => {
             const Icon = item.icon;
