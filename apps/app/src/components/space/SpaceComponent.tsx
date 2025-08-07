@@ -71,6 +71,15 @@ export function SpaceComponent<T extends { Id: string }>({
       if (page === 0) {
         setAllEntities(data.entities);
         setIsInitialLoad(false);
+        
+        // Auto-select first entity for xxl+ screens on initial load
+        if (isMoreThan2XL && data.entities.length > 0 && !selectedEntityId) {
+          const pathSegments = location.pathname.split("/");
+          const hasEntityId = pathSegments.length > 2 && pathSegments[2] !== "new";
+          if (!hasEntityId) {
+            navigate(`${data.entities[0].Id}#overview`);
+          }
+        }
       } else {
         setAllEntities((prev) => [...prev, ...data.entities]);
       }
@@ -78,12 +87,18 @@ export function SpaceComponent<T extends { Id: string }>({
         setTotalCount(data.total);
       }
     }
-  }, [data, page, isLoading]);
+  }, [data, page, isLoading, isMoreThan2XL, selectedEntityId, navigate, location.pathname]);
 
   // Check if drawer should be open based on route
   useEffect(() => {
     const pathSegments = location.pathname.split("/");
-    setIsDrawerOpen(pathSegments.length > 2 && pathSegments[2] !== "new");
+    const hasEntityId = pathSegments.length > 2 && pathSegments[2] !== "new";
+    setIsDrawerOpen(hasEntityId);
+    
+    // Update selected entity ID from URL
+    if (hasEntityId) {
+      setSelectedEntityId(pathSegments[2]);
+    }
   }, [location.pathname]);
 
   // Measure header height
@@ -125,8 +140,8 @@ export function SpaceComponent<T extends { Id: string }>({
   // Drawer mode depends on screen size (using custom breakpoints)
   const getDrawerMode = () => {
     if (isMoreThan2XL) return "side-transparent"; // 2xl+ (1536px+) - transparent background, gap between cards
-    if (isMoreThanMD) return "side";              // md (960px+) - side drawer with backdrop
-    return "over";                                 // < md (less than 960px) - fullscreen overlay
+    if (isMoreThanMD) return "side";              // md (768px+) - side drawer with backdrop
+    return "over";                                 // < md (less than 768px) - fullscreen overlay
   };
   const drawerMode = getDrawerMode();
   const scrollHeight = `calc(100vh - ${headerHeight}px - 3px)`;
@@ -184,6 +199,7 @@ export function SpaceComponent<T extends { Id: string }>({
         className={cn(
           "relative flex flex-col cursor-default h-full overflow-hidden",
           needCardClass ? "fake-card" : "card-surface",
+          "transition-all duration-300 ease-out",
           // Only shrink the list for side-transparent mode (xxl+)
           isDrawerOpen && drawerMode === "side-transparent" && "mr-[46.25rem]" // 45rem + 1.25rem gap
         )}
@@ -260,61 +276,73 @@ export function SpaceComponent<T extends { Id: string }>({
         </div>
         
         {/* Backdrop inside main content for side mode */}
-        {isDrawerOpen && drawerMode === "side" && (
-          <div
-            className={cn(
-              "absolute inset-0 z-30 bg-black/40",
-              needCardClass && "rounded-xl"
-            )}
-            onClick={handleBackdropClick}
-          />
-        )}
+        <div
+          className={cn(
+            "absolute inset-0 z-30",
+            needCardClass && "rounded-xl",
+            "transition-opacity duration-300",
+            drawerMode === "side" && isDrawerOpen ? "bg-black/40 opacity-100" : "opacity-0 pointer-events-none"
+          )}
+          onClick={handleBackdropClick}
+        />
         
         {/* Drawer inside main content for side mode */}
-        {isDrawerOpen && drawerMode === "side" && (
-          <div
-            className={cn(
-              "absolute top-0 right-0 h-full bg-white shadow-xl z-40 overflow-hidden",
-              "w-[40rem]",
-              needCardClass && "rounded-l-xl"
-            )}
-          >
+        <div
+          className={cn(
+            "absolute top-0 right-0 h-full bg-white shadow-xl z-40 overflow-hidden",
+            "w-[40rem]",
+            // Only add rounded corners on lg+ screens
+            isMoreThanLG && needCardClass && "rounded-l-xl",
+            "transform transition-transform duration-300 ease-out",
+            drawerMode === "side" && isDrawerOpen ? "translate-x-0" : "translate-x-full"
+          )}
+        >
+          {drawerMode === "side" && isDrawerOpen && (
             <div className="h-full overflow-auto">
               <Outlet />
             </div>
-          </div>
-        )}
+          )}
+        </div>
         
         {/* Fullscreen overlay for small screens - inside main content */}
-        {isDrawerOpen && drawerMode === "over" && (
-          <>
-            <div
-              className="absolute inset-0 z-30 bg-black/50"
-              onClick={handleBackdropClick}
-            />
-            <div className="absolute inset-0 z-40 bg-white overflow-hidden">
-              <div className="h-full overflow-auto">
-                <Outlet />
-              </div>
-            </div>
-          </>
-        )}
-      </div>
-
-      {/* Drawer for side-transparent mode (outside main content) */}
-      {isDrawerOpen && drawerMode === "side-transparent" && (
         <div
           className={cn(
-            "absolute top-0 right-0 h-full z-40 overflow-hidden",
-            "w-[45rem]",
-            needCardClass ? "fake-card" : "card-surface"
+            "absolute inset-0 z-30 transition-opacity duration-300",
+            drawerMode === "over" && isDrawerOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+          )}
+        >
+          <div
+            className="absolute inset-0 bg-black/50"
+            onClick={handleBackdropClick}
+          />
+        </div>
+        <div
+          className={cn(
+            "absolute inset-0 z-40 bg-white overflow-hidden",
+            "transform transition-transform duration-300 ease-out",
+            drawerMode === "over" && isDrawerOpen ? "translate-x-0" : "translate-x-full"
           )}
         >
           <div className="h-full overflow-auto">
             <Outlet />
           </div>
         </div>
-      )}
+      </div>
+
+      {/* Drawer for side-transparent mode (outside main content) */}
+      <div
+        className={cn(
+          "absolute top-0 right-0 h-full z-40 overflow-hidden",
+          "w-[45rem]",
+          needCardClass ? "fake-card" : "card-surface",
+          "transform transition-all duration-300 ease-out",
+          drawerMode === "side-transparent" && isDrawerOpen ? "translate-x-0 opacity-100" : "translate-x-full opacity-0 pointer-events-none"
+        )}
+      >
+          <div className="h-full overflow-auto">
+            <Outlet />
+          </div>
+        </div>
     </div>
   );
 }

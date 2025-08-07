@@ -8,9 +8,9 @@ import {
 } from "@ui/components/tooltip";
 import { cn } from "@ui/lib/utils";
 import { Heart, Home, Menu, Moon, ShoppingBag, Sun, User } from "lucide-react";
+import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { UserDrawer } from "./UserDrawer";
-import { useState } from "react";
 
 interface HeaderProps {
   onMenuClick?: () => void;
@@ -141,10 +141,10 @@ export function Header({ onMenuClick, isHome = false }: HeaderProps) {
           </div>
         </div>
       </header>
-      
-      <UserDrawer 
-        isOpen={isUserDrawerOpen} 
-        onClose={() => setIsUserDrawerOpen(false)} 
+
+      <UserDrawer
+        isOpen={isUserDrawerOpen}
+        onClose={() => setIsUserDrawerOpen(false)}
       />
     </TooltipProvider>
   );

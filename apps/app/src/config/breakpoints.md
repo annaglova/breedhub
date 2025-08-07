@@ -4,12 +4,12 @@
 We've implemented custom breakpoints from the Angular project to maintain consistency with the existing design system.
 
 ## Breakpoint Values
-- **sm**: 600px (was 640px in default Tailwind)
-- **md**: 960px (was 768px in default Tailwind)  
-- **lg**: 1280px (same as default Tailwind)
-- **xl**: 1440px (was 1280px in default Tailwind)
-- **xxl**: 1536px (same as default Tailwind)
-- **xxxl**: 1920px (was 3xl in default Tailwind)
+- **sm**: 640px (native Tailwind)
+- **md**: 768px (native Tailwind)  
+- **lg**: 1280px (custom from Angular, native is 1024px)
+- **xl**: 1440px (custom from Angular, native is 1280px)
+- **xxl**: 1536px (custom from Angular, same as native)
+- **xxxl**: 1920px (custom from Angular, native doesn't have this)
 
 ## Key Changes
 
@@ -33,8 +33,8 @@ We've implemented custom breakpoints from the Angular project to maintain consis
 - Drawer margins apply at correct screen sizes
 
 ## Drawer Behavior
-- **Mobile to xl (< 1440px)**: Fullscreen overlay
-- **xl (1440px+)**: Side drawer with backdrop, 40rem width
+- **Mobile to md (< 768px)**: Fullscreen overlay
+- **md (768px+)**: Side drawer with backdrop, 40rem width
 - **xxl (1536px+)**: Transparent background, 45rem width + 1.25rem gap
 
 ## Migration Notes

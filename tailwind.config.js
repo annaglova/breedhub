@@ -198,8 +198,8 @@ export default {
         "10xl": "8rem",
       },
       screens: {
-        sm: "600px",     // Custom from Angular project (native Tailwind: 640px)
-        md: "960px",     // Custom from Angular project (native Tailwind: 768px)
+        sm: "640px",     // Native Tailwind
+        md: "768px",     // Native Tailwind
         lg: "1280px",    // Custom from Angular project (native Tailwind: 1024px)
         xl: "1440px",    // Custom from Angular project (native Tailwind: 1280px)
         xxl: "1536px",   // Custom from Angular project (native Tailwind: 1536px - same)
