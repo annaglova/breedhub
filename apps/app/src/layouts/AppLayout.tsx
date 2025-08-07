@@ -68,13 +68,13 @@ export function AppLayout() {
         {isMobileSidebarOpen && (
           <>
             <div
-              className="lg:hidden fixed inset-0 bg-black/50 z-40"
+              className="lg:hidden fixed inset-0 bg-black/50 z-50"
               onClick={() => setIsMobileSidebarOpen(false)}
             />
             <Sidebar
               isCollapsed={false}
               onClose={() => setIsMobileSidebarOpen(false)}
-              className="lg:hidden fixed left-0 top-0 h-full w-64 bg-white shadow-xl z-50 mobile-sidebar-enter"
+              className="lg:hidden fixed left-0 top-0 h-full w-64 bg-white shadow-xl z-[60] mobile-sidebar-enter"
             />
           </>
         )}
@@ -89,7 +89,7 @@ export function AppLayout() {
           </div>
 
           {/* Content area */}
-          <div className="flex flex-1 overflow-hidden pr-5">
+          <div className="flex flex-1 overflow-hidden lg:pr-5">
             {isReady && (
               <div className="flex-1 3xl:flex 3xl:justify-center">
                 {/* Left menu column - only on xxxl */}
