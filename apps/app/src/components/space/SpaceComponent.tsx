@@ -93,7 +93,8 @@ export function SpaceComponent<T extends { Id: string }>({
 
   const handleEntityClick = useCallback((entity: T) => {
     setSelectedEntityId(entity.Id);
-    navigate(`${entity.Id}`);
+    // Always navigate to overview tab by default when opening drawer
+    navigate(`${entity.Id}#overview`);
   }, [navigate]);
 
   const handleLoadMore = useCallback(() => {
@@ -106,8 +107,8 @@ export function SpaceComponent<T extends { Id: string }>({
 
   const handleBackdropClick = () => {
     setIsDrawerOpen(false);
-    const pathSegments = location.pathname.split("/");
-    navigate(`/${pathSegments[1]}`);
+    // Navigate back to breeds list without specific breed
+    navigate('/breeds');
   };
 
   const drawerMode = isMoreThanXL ? "side" : "over";
