@@ -1,51 +1,75 @@
 import React from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Button } from '@ui/components/button';
-import { List, Grid3x3, Table, Map } from 'lucide-react';
-import { cn } from '@ui/lib/utils';
+import { ButtonGroup, ButtonGroupItem } from '@ui/components/button-group';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@ui/components/tooltip';
+import { List, Grid3x3, Table, Map, Share2 } from 'lucide-react';
+import { ViewMode } from '@/core/space/types';
 
-const viewIcons = {
-  list: List,
-  grid: Grid3x3,
-  table: Table,
-  map: Map,
-};
-
-interface ViewChangerProps {
-  views?: string[];
+interface ViewConfig {
+  id: ViewMode;
+  icon: React.ComponentType<{ className?: string }>;
+  tooltip: string;
 }
 
-export function ViewChanger({ views = ['list'] }: ViewChangerProps) {
-  const [searchParams, setSearchParams] = useSearchParams();
-  const currentView = searchParams.get('view') || views[0];
+const viewConfigs: ViewConfig[] = [
+  { id: 'list', icon: List, tooltip: 'List view' },
+  { id: 'grid', icon: Grid3x3, tooltip: 'Grid view' },
+  { id: 'table', icon: Table, tooltip: 'Table view' },
+  { id: 'map', icon: Map, tooltip: 'Map view' },
+  { id: 'graph', icon: Share2, tooltip: 'Graph view' },
+];
 
-  const handleViewChange = (view: string) => {
+interface ViewChangerProps {
+  views?: ViewMode[];
+  onViewChange?: (view: ViewMode) => void;
+}
+
+export function ViewChanger({ views = ['list'], onViewChange }: ViewChangerProps) {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const currentView = searchParams.get('view') as ViewMode || views[0];
+
+  const handleViewChange = (view: ViewMode) => {
     setSearchParams(prev => {
       const newParams = new URLSearchParams(prev);
       newParams.set('view', view);
       return newParams;
     });
+    onViewChange?.(view);
   };
 
   if (views.length <= 1) return null;
 
+  const availableViews = viewConfigs.filter(config => views.includes(config.id));
+
   return (
-    <div className="flex items-center gap-1 p-1 bg-muted rounded-lg">
-      {views.map(view => {
-        const Icon = viewIcons[view as keyof typeof viewIcons] || List;
-        return (
-          <Button
-            key={view}
-            variant={currentView === view ? 'default' : 'ghost'}
-            size="sm"
-            onClick={() => handleViewChange(view)}
-            className="gap-2"
-          >
-            <Icon className="h-4 w-4" />
-            <span className="hidden sm:inline capitalize">{view}</span>
-          </Button>
-        );
-      })}
-    </div>
+    <TooltipProvider>
+      <ButtonGroup>
+        {availableViews.map((view, index) => {
+          const Icon = view.icon;
+          const isFirst = index === 0;
+          const isLast = index === availableViews.length - 1;
+          const isActive = currentView === view.id;
+
+          return (
+            <Tooltip key={view.id}>
+              <TooltipTrigger asChild>
+                <ButtonGroupItem
+                  isFirst={isFirst}
+                  isLast={isLast}
+                  isActive={isActive}
+                  onClick={() => handleViewChange(view.id)}
+                  className="size-[2.6rem] p-0"
+                >
+                  <Icon className="h-4 w-4" />
+                </ButtonGroupItem>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">
+                <p>{view.tooltip}</p>
+              </TooltipContent>
+            </Tooltip>
+          );
+        })}
+      </ButtonGroup>
+    </TooltipProvider>
   );
 }

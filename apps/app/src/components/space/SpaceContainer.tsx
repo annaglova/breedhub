@@ -9,6 +9,7 @@ import { EntitiesCounter } from "./EntitiesCounter";
 import { SpaceFilters } from "./SpaceFilters";
 import { SpaceScroller } from "./SpaceScroller";
 import { ViewChanger } from "./ViewChanger";
+import { ViewMode } from "@/core/space/types";
 
 interface SpaceConfig {
   title: string;
@@ -102,7 +103,7 @@ export function SpaceContainer({
           <div className="w-full">
             <div className="flex w-full justify-between">
               <span className="text-4xl font-extrabold">{config.title}</span>
-              <ViewChanger views={config.views} />
+              <ViewChanger views={config.views as ViewMode[]} />
             </div>
             <EntitiesCounter
               entitiesCount={entitiesCount}

@@ -1,9 +1,7 @@
-import React, { useRef, useCallback, useMemo, useEffect } from 'react';
+import React, { useRef, useCallback, useMemo, useEffect, useState, Suspense } from 'react';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { SpaceConfig, ViewMode } from '@/core/space/types';
 import { cn } from '@ui/lib/utils';
-// Direct import for now to avoid lazy loading issues
-import { BreedListCard } from '@/components/breed/BreedListCard';
 
 interface VirtualSpaceViewProps<T> {
   config: SpaceConfig<T>;
@@ -33,8 +31,18 @@ export function VirtualSpaceView<T extends { Id: string }>({
     return <div className="p-4">View mode "{viewMode}" not configured</div>;
   }
 
-  // For now, use direct import
-  const CardComponent = BreedListCard as any;
+  // Dynamically load component based on view mode
+  const [CardComponent, setCardComponent] = useState<React.ComponentType<any> | null>(null);
+  
+  useEffect(() => {
+    viewConfig.component().then(module => {
+      setCardComponent(() => module.default);
+    });
+  }, [viewConfig]);
+  
+  if (!CardComponent) {
+    return <div className="p-4 text-gray-500">Loading view...</div>;
+  }
   
   // Get item height based on view mode
   const itemHeight = viewConfig.itemHeight || 68;

@@ -5,7 +5,7 @@
 
 import { ComponentType } from 'react';
 
-export type ViewMode = 'list' | 'grid' | 'table' | 'map';
+export type ViewMode = 'list' | 'grid' | 'table' | 'map' | 'graph';
 
 export interface ViewConfig {
   id: ViewMode;

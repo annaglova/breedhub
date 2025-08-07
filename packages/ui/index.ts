@@ -1,5 +1,6 @@
 // Form & Input Components
 export * from "./components/button";
+export * from "./components/button-group";
 export * from "./components/input";
 export * from "./components/textarea";
 export * from "./components/label";

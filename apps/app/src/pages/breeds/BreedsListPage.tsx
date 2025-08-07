@@ -1,5 +1,5 @@
-import React, { useState, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useCallback, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { SpaceContainer } from '@/components/space/SpaceContainer';
 import { VirtualSpaceView } from '@/components/space/VirtualSpaceView';
 import { useBreeds } from '@/hooks/useBreeds';
@@ -17,7 +17,8 @@ export function BreedsListPage() {
   });
   const navigate = useNavigate();
   const [selectedBreedId, setSelectedBreedId] = useState<string | null>(null);
-  const [viewMode, setViewMode] = useState(breedSpaceConfig.viewConfig[0].id);
+  const [searchParams] = useSearchParams();
+  const viewMode = searchParams.get('view') || breedSpaceConfig.viewConfig[0].id;
 
   // Accumulate breeds as we load more
   React.useEffect(() => {
