@@ -253,6 +253,141 @@ alias: {
 - **Benefits замість social proof** - список переваг продукту
 - **CTA тексти** - орієнтовані на дію ("Start for Free", "Choose Your Breed")
 
+## 🏛️ Space Architecture (Архітектура просторів)
+
+### Контекст та референс
+- **Angular проект**: `/Users/annaglova/projects/org` - оригінальна реалізація з NgRx Signal Store
+- **React адаптація**: спрощена версія для роботи з потужним бекендом
+
+### Концепція Space
+Space - це універсальний компонент для роботи з колекціями сутностей (breeds, kennels, pets, contacts). Кожен space підтримує:
+- Різні режими відображення (list, grid, table, map)
+- Віртуальний скрол з lazy loading
+- Фільтрацію та пошук
+- Сортування
+- Деталі в drawer/sidebar
+
+### Основні компоненти
+
+#### SpaceComponent (`/apps/app/src/components/space/SpaceComponent.tsx`)
+Універсальний компонент для всіх spaces. Аналог Angular SpaceComponent.
+```typescript
+interface SpaceComponentProps<T> {
+  config: SpaceConfig<T>;           // Конфігурація space
+  useEntitiesHook: (params) => {}; // Hook для завантаження даних
+  filters?: React.ReactNode;        // Додаткові фільтри
+}
+```
+
+#### SpaceConfig (`/apps/app/src/core/space/types.ts`)
+```typescript
+interface SpaceConfig<T> {
+  id: string;                    // Унікальний ID space
+  url: string;                   // URL сегмент
+  entitySchemaName: string;      // Назва сутності
+  viewConfig: ViewConfig[];      // Конфігурації view modes
+  entitiesColumns: string[];     // Колонки для API
+  naming: SpaceNaming;           // Назви для UI
+  filterConfig: FilterConfig[];  // Доступні фільтри
+  canAdd?: boolean;              // Чи можна додавати
+  defaultSort?: SortConfig;      // Сортування за замовчуванням
+}
+```
+
+#### VirtualSpaceView (`/apps/app/src/components/space/VirtualSpaceView.tsx`)
+Віртуальний скрол з підтримкою різних view modes. Використовує @tanstack/react-virtual.
+
+### Приклад використання
+
+#### 1. Створення конфігурації (`/apps/app/src/config/spaces/breed-space.config.ts`)
+```typescript
+export const breedSpaceConfig: SpaceConfig<Breed> = createSpaceConfig({
+  id: 'Breed',
+  url: 'breeds',
+  viewConfig: [
+    {
+      ...DEFAULT_LIST_VIEW,
+      component: () => import('@/components/breed/BreedListCard')
+    },
+    {
+      ...DEFAULT_GRID_VIEW,
+      component: () => import('@/components/breed/BreedGridCard')
+    }
+  ],
+  // ...
+});
+```
+
+#### 2. Створення сторінки (`/apps/app/src/pages/breeds/BreedSpacePage.tsx`)
+```typescript
+export function BreedSpacePage() {
+  return (
+    <SpaceComponent 
+      config={breedSpaceConfig} 
+      useEntitiesHook={useBreeds}
+    />
+  );
+}
+```
+
+### State Management (Поточний стан)
+
+#### Zustand Stores
+- `createSpaceStore.ts` - фабрика для створення space stores
+- `breedSpaceStore.ts` - конкретний store для breeds
+- `SpaceContext.tsx` - React Context для передачі store
+
+**⚠️ ВАЖЛИВО**: Ця частина буде спрощена після готовності бекенду. Планується:
+- Видалити Zustand stores
+- Покладатися на React Query для server state
+- Використовувати URL params для UI state
+- Всю логіку фільтрації/сортування перенести на бекенд
+
+### View Modes
+
+#### List View
+- Компонент: `BreedListCard` (68px висота)
+- Стратегія: sidebar для деталей
+- Оптимізований для швидкого перегляду
+
+#### Grid View  
+- Компонент: `BreedGridCard` (280px висота)
+- Стратегія: публічна сторінка для деталей
+- Карткове відображення з превью
+
+#### Table View (планується)
+- Табличне відображення
+- Inline редагування
+
+#### Map View (планується)
+- Географічне відображення
+- Для kennels/contacts
+
+### Компоненти для швидкого доступу
+
+- **ViewChanger** (`/apps/app/src/components/space/ViewChanger.tsx`) - перемикач view modes
+- **EntitiesCounter** (`/apps/app/src/components/space/EntitiesCounter.tsx`) - лічильник сутностей
+- **SpaceFilters** (`/apps/app/src/components/space/SpaceFilters.tsx`) - контейнер для фільтрів
+- **SpaceScroller** (`/apps/app/src/components/space/SpaceScroller.tsx`) - скрол контейнер
+
+### Додавання нового Space
+
+1. Створити конфігурацію в `/config/spaces/[entity]-space.config.ts`
+2. Створити компоненти карток для view modes
+3. Створити hook для завантаження даних
+4. Створити просту сторінку з SpaceComponent
+
+### Поточні реалізовані Spaces
+- **Breeds** - повністю реалізований з list/grid views
+- **Kennels** - створена конфігурація (приклад)
+
+### TODO та плани
+- [ ] Спростити архітектуру після готовності бекенду
+- [ ] Додати table view
+- [ ] Реалізувати фільтрацію через URL params
+- [ ] Додати інші spaces (pets, contacts, litters)
+- [ ] Покращити мобільну версію
+
 ## 🚧 План розробки App модуля
 
 ### Поточний стан
@@ -361,4 +496,5 @@ interface MockKennel {
 - **2024-01-31** - Початкова версія документу. Описано базову структуру, компоненти форм, принципи стилізації та валідації.
 - **2025-08-03** - Додано UX/UI Guidelines: доступність, loading states, mobile-first, контраст кольорів. Описано реалізовані покращення Week 1.
 - **2025-08-04** - Додано детальний план розробки App модуля з 6 фазами. Описано структуру публічних сторінок та mock даних.
+- **2025-08-07** - Додано розділ Space Architecture. Описано адаптацію Angular архітектури для React, основні компоненти, state management та плани спрощення.
 \ No newline at end of file
