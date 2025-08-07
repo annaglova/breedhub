@@ -38,6 +38,7 @@
   z-index: 30;
 }
 
+/* Using custom breakpoint from Angular project */
 @media (min-width: 960px) {
   .mat-drawer-backdrop {
     border-radius: 0.75rem;
@@ -50,8 +51,8 @@
   height: 100%;
 }
 
-/* Drawer margins for xl and 2xl screens */
-@media (min-width: 1280px) {
+/* Drawer margins using custom breakpoints from Angular project */
+@media (min-width: 1440px) {
   .xl\:mr-165 {
     margin-right: 40rem;
   }

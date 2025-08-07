@@ -198,12 +198,12 @@ export default {
         "10xl": "8rem",
       },
       screens: {
-        sm: "640px",
-        md: "768px",
-        lg: "1024px",
-        xl: "1280px",
-        xxl: "1536px",
-        "3xl": "1920px",
+        sm: "600px",     // Custom from Angular project (native Tailwind: 640px)
+        md: "960px",     // Custom from Angular project (native Tailwind: 768px)
+        lg: "1280px",    // Custom from Angular project (native Tailwind: 1024px)
+        xl: "1440px",    // Custom from Angular project (native Tailwind: 1280px)
+        xxl: "1536px",   // Custom from Angular project (native Tailwind: 1536px - same)
+        xxxl: "1920px",  // Custom from Angular project (native Tailwind: doesn't exist, 2xl is 1536px)
       },
       opacity: {
         12: "0.12",
