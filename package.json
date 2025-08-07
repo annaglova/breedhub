@@ -36,7 +36,8 @@
     "react-redux": "^9.2.0",
     "react-router-dom": "^7.6.2",
     "tailwind-merge": "^3.3.1",
-    "zod": "^3.25.67"
+    "zod": "^3.25.67",
+    "zustand": "^5.0.7"
   },
   "devDependencies": {
     "@eslint/js": "^9.25.0",

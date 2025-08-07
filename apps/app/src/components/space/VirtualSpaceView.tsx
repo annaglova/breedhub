@@ -1,7 +1,10 @@
-import React, { useRef, useCallback, useMemo, useEffect, useState, Suspense } from 'react';
+import React, { useRef, useCallback, useMemo, useEffect, useState } from 'react';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { SpaceConfig, ViewMode } from '@/core/space/types';
 import { cn } from '@ui/lib/utils';
+// Import components directly to avoid dynamic loading issues
+import { BreedListCard } from '@/components/breed/BreedListCard';
+import { BreedGridCard } from '@/components/breed/BreedGridCard';
 
 interface VirtualSpaceViewProps<T> {
   config: SpaceConfig<T>;
@@ -13,6 +16,13 @@ interface VirtualSpaceViewProps<T> {
   hasMore?: boolean;
   isLoadingMore?: boolean;
 }
+
+// Map of components for each view mode
+const componentMap = {
+  list: BreedListCard,
+  grid: BreedGridCard,
+  // Add more mappings as needed
+} as const;
 
 export function VirtualSpaceView<T extends { Id: string }>({ 
   config, 
@@ -31,18 +41,8 @@ export function VirtualSpaceView<T extends { Id: string }>({
     return <div className="p-4">View mode "{viewMode}" not configured</div>;
   }
 
-  // Dynamically load component based on view mode
-  const [CardComponent, setCardComponent] = useState<React.ComponentType<any> | null>(null);
-  
-  useEffect(() => {
-    viewConfig.component().then(module => {
-      setCardComponent(() => module.default);
-    });
-  }, [viewConfig]);
-  
-  if (!CardComponent) {
-    return <div className="p-4 text-gray-500">Loading view...</div>;
-  }
+  // Get component based on view mode
+  const CardComponent = componentMap[viewMode as keyof typeof componentMap] || componentMap.list;
   
   // Get item height based on view mode
   const itemHeight = viewConfig.itemHeight || 68;
