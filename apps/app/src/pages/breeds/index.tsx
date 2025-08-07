@@ -1,9 +1,9 @@
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
-import { BreedsListPage } from './BreedsListPage';
+import { BreedSpacePage } from './BreedSpacePage';
 
-function BreedsList() {
-  return <BreedsListPage />;
+function BreedsSpace() {
+  return <BreedSpacePage />;
 }
 
 function BreedDetail() {
@@ -18,7 +18,7 @@ function BreedDetail() {
 export function BreedsPage() {
   return (
     <Routes>
-      <Route index element={<BreedsList />} />
+      <Route index element={<BreedsSpace />} />
       <Route path=":id" element={<BreedDetail />} />
       <Route path="new" element={<div>New Breed Form</div>} />
     </Routes>
