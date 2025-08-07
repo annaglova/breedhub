@@ -1,18 +1,15 @@
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { BreedSpacePage } from './BreedSpacePage';
-import { BreedDetailPage } from './BreedDetailPage';
-
-function BreedsSpace() {
-  return <BreedSpacePage />;
-}
+import { BreedDrawerView } from '@/components/breed/BreedDrawerView';
 
 export function BreedsPage() {
   return (
     <Routes>
-      <Route index element={<BreedsSpace />} />
-      <Route path=":id" element={<BreedDetailPage />} />
-      <Route path="new" element={<div>New Breed Form</div>} />
+      <Route path="/" element={<BreedSpacePage />}>
+        <Route path=":id" element={<BreedDrawerView />} />
+        <Route path="new" element={<div>New Breed Form</div>} />
+      </Route>
     </Routes>
   );
 }

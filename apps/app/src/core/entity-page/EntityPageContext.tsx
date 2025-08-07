@@ -11,7 +11,9 @@ export function EntityPageProvider<T extends { Id: string }>({
   children: React.ReactNode;
   config: EntityPageConfig<T>;
 }) {
-  const { id } = useParams<{ id: string }>();
+  // Support both :id and :breedId params
+  const params = useParams<{ id?: string; breedId?: string }>();
+  const id = params.id || params.breedId;
   const navigate = useNavigate();
   const location = useLocation();
   const [entity, setEntity] = useState<T | null>(null);

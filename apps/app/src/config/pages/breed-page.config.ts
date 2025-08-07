@@ -1,5 +1,5 @@
 import { EntityPageConfig } from '@/core/entity-page/types';
-import { Breed } from '@/services/api';
+import { Breed } from '@/domain/entities/breed';
 import { 
   Trophy, 
   Heart, 
@@ -22,26 +22,20 @@ import { BreedDescriptionComponent } from '@/components/breed/page/BreedDescript
 import { BreedGalleryComponent } from '@/components/breed/page/BreedGalleryComponent';
 import { BreedPatronsComponent } from '@/components/breed/page/BreedPatronsComponent';
 
+import { mockBreeds } from '@/mocks/breeds.mock';
+
 // Mock data loader (will be replaced with real API)
 async function loadBreed(id: string): Promise<Breed> {
   // Simulate API delay
-  await new Promise(resolve => setTimeout(resolve, 500));
+  await new Promise(resolve => setTimeout(resolve, 300));
   
-  return {
-    Id: id,
-    Name: 'Maine Coon',
-    Description: 'The Maine Coon is a large domesticated cat breed. It is one of the oldest natural breeds in North America.',
-    Origin: 'United States',
-    Size: 'Large',
-    CoatLength: 'Long',
-    LifeSpan: '12-15 years',
-    Weight: '4-8 kg',
-    Temperament: ['Gentle', 'Intelligent', 'Playful'],
-    Colors: ['All colors and patterns'],
-    PetProfileCount: 156,
-    KennelCount: 23,
-    Images: ['/mock/maine-coon-1.jpg', '/mock/maine-coon-2.jpg']
-  } as Breed;
+  // Find breed by ID in mock data
+  const breed = mockBreeds.find(b => b.id === id);
+  if (!breed) {
+    throw new Error(`Breed with ID ${id} not found`);
+  }
+  
+  return breed;
 }
 
 export const breedPageConfig: EntityPageConfig<Breed> = {
@@ -50,12 +44,20 @@ export const breedPageConfig: EntityPageConfig<Breed> = {
   achievementsComponent: BreedAchievementsComponent,
   tabs: [
     {
-      id: 'top-pets',
-      label: 'Top Pets',
+      id: 'overview',
+      label: 'Overview',
+      icon: FileText,
+      component: BreedDescriptionComponent,
+      fragment: 'overview',
+      order: 1
+    },
+    {
+      id: 'pets',
+      label: 'Pets',
       icon: Dog,
       component: BreedTopPetsComponent,
       fragment: 'pets',
-      order: 1
+      order: 2
     },
     {
       id: 'kennels',
@@ -63,15 +65,15 @@ export const breedPageConfig: EntityPageConfig<Breed> = {
       icon: Building,
       component: BreedKennelsComponent,
       fragment: 'kennels',
-      order: 2
+      order: 3
     },
     {
-      id: 'statistics',
+      id: 'stats',
       label: 'Statistics',
       icon: BarChart3,
       component: BreedStatisticsComponent,
       fragment: 'stats',
-      order: 3
+      order: 4
     },
     {
       id: 'history',
@@ -79,14 +81,6 @@ export const breedPageConfig: EntityPageConfig<Breed> = {
       icon: History,
       component: BreedHistoryComponent,
       fragment: 'history',
-      order: 4
-    },
-    {
-      id: 'description',
-      label: 'Description',
-      icon: FileText,
-      component: BreedDescriptionComponent,
-      fragment: 'description',
       order: 5
     },
     {
@@ -107,6 +101,6 @@ export const breedPageConfig: EntityPageConfig<Breed> = {
     }
   ],
   loadEntity: loadBreed,
-  getTitle: (breed) => breed.Name,
-  getDescription: (breed) => breed.Description
+  getTitle: (breed) => breed.name,
+  getDescription: (breed) => breed.authentic_name || breed.name
 };

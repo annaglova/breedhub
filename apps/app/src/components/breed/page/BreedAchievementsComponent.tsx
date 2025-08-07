@@ -1,5 +1,5 @@
 import React from 'react';
-import { Breed } from '@/services/api';
+import { Breed } from '@/domain/entities/breed';
 import { Trophy, Medal, Award, Star } from 'lucide-react';
 
 interface BreedAchievementsComponentProps {

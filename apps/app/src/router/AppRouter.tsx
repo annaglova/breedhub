@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AppLayout } from '@/layouts/AppLayout';
 import { BreedsPage } from '@/pages/breeds';
+import { BreedDetailPage } from '@/pages/breeds/BreedDetailPage';
 
 // Temporary placeholder component
 function PlaceholderPage({ title }: { title: string }) {
@@ -37,6 +38,9 @@ export function AppRouter() {
             <Route index element={<Navigate to="/mating/pets" replace />} />
             <Route path="pets" element={<PlaceholderPage title="Test Mating - Pets" />} />
           </Route>
+          
+          {/* Direct breed pages - using IDs for now */}
+          <Route path=":breedId" element={<BreedDetailPage />} />
         </Route>
       </Routes>
     </BrowserRouter>
