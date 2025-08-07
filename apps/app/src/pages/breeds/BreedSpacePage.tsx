@@ -1,11 +1,11 @@
 import React from 'react';
-import { SpacePage } from '@/components/space/SpacePage';
+import { SpaceComponent } from '@/components/space/SpaceComponent';
 import { useBreeds } from '@/hooks/useBreeds';
 import { breedSpaceConfig } from '@/config/spaces/breed-space.config';
 
 export function BreedSpacePage() {
   return (
-    <SpacePage 
+    <SpaceComponent 
       config={breedSpaceConfig} 
       useEntitiesHook={useBreeds}
     />
