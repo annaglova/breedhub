@@ -1,3 +1,4 @@
+import { mediaQueries } from "@/config/breakpoints";
 import { SpaceConfig, ViewMode } from "@/core/space/types";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { Button } from "@ui/components/button";
@@ -15,7 +16,6 @@ import { EntitiesCounter } from "./EntitiesCounter";
 import { SpaceFilters } from "./SpaceFilters";
 import { ViewChanger } from "./ViewChanger";
 import { VirtualSpaceView } from "./VirtualSpaceView";
-import { mediaQueries } from "@/config/breakpoints";
 
 interface SpaceComponentProps<T> {
   config: SpaceConfig<T>;
@@ -58,12 +58,12 @@ export function SpaceComponent<T extends { Id: string }>({
   const headerRef = useRef<HTMLDivElement>(null);
 
   // Responsive - using custom breakpoints from Angular project
-  const isMoreThanSM = useMediaQuery(mediaQueries.sm);  // 600px
-  const isMoreThanMD = useMediaQuery(mediaQueries.md);  // 960px
-  const isMoreThanLG = useMediaQuery(mediaQueries.lg);  // 1280px
-  const isMoreThanXL = useMediaQuery(mediaQueries.xl);  // 1440px
+  const isMoreThanSM = useMediaQuery(mediaQueries.sm); // 600px
+  const isMoreThanMD = useMediaQuery(mediaQueries.md); // 960px
+  const isMoreThanLG = useMediaQuery(mediaQueries.lg); // 1280px
+  const isMoreThanXL = useMediaQuery(mediaQueries.xl); // 1440px
   const isMoreThan2XL = useMediaQuery(mediaQueries.xxl); // 1536px
-  const needCardClass = isMoreThanMD;
+  const needCardClass = isMoreThanLG;
 
   // Accumulate entities as we load more
   useEffect(() => {
@@ -71,11 +71,12 @@ export function SpaceComponent<T extends { Id: string }>({
       if (page === 0) {
         setAllEntities(data.entities);
         setIsInitialLoad(false);
-        
+
         // Auto-select first entity for xxl+ screens on initial load
         if (isMoreThan2XL && data.entities.length > 0 && !selectedEntityId) {
           const pathSegments = location.pathname.split("/");
-          const hasEntityId = pathSegments.length > 2 && pathSegments[2] !== "new";
+          const hasEntityId =
+            pathSegments.length > 2 && pathSegments[2] !== "new";
           if (!hasEntityId) {
             navigate(`${data.entities[0].Id}#overview`);
           }
@@ -87,14 +88,22 @@ export function SpaceComponent<T extends { Id: string }>({
         setTotalCount(data.total);
       }
     }
-  }, [data, page, isLoading, isMoreThan2XL, selectedEntityId, navigate, location.pathname]);
+  }, [
+    data,
+    page,
+    isLoading,
+    isMoreThan2XL,
+    selectedEntityId,
+    navigate,
+    location.pathname,
+  ]);
 
   // Check if drawer should be open based on route
   useEffect(() => {
     const pathSegments = location.pathname.split("/");
     const hasEntityId = pathSegments.length > 2 && pathSegments[2] !== "new";
     setIsDrawerOpen(hasEntityId);
-    
+
     // Update selected entity ID from URL
     if (hasEntityId) {
       setSelectedEntityId(pathSegments[2]);
@@ -140,8 +149,8 @@ export function SpaceComponent<T extends { Id: string }>({
   // Drawer mode depends on screen size (using custom breakpoints)
   const getDrawerMode = () => {
     if (isMoreThan2XL) return "side-transparent"; // 2xl+ (1536px+) - transparent background, gap between cards
-    if (isMoreThanMD) return "side";              // md (768px+) - side drawer with backdrop
-    return "over";                                 // < md (less than 768px) - fullscreen overlay
+    if (isMoreThanMD) return "side"; // md (768px+) - side drawer with backdrop
+    return "over"; // < md (less than 768px) - fullscreen overlay
   };
   const drawerMode = getDrawerMode();
   const scrollHeight = `calc(100vh - ${headerHeight}px - 3px)`;
@@ -274,27 +283,31 @@ export function SpaceComponent<T extends { Id: string }>({
           {/* Bottom spacer like in Angular */}
           <div className="sm:h-6 bg-card-ground w-full absolute bottom-0" />
         </div>
-        
+
         {/* Backdrop inside main content for side mode */}
         <div
           className={cn(
             "absolute inset-0 z-30",
-            needCardClass && "rounded-xl",
+            isMoreThanLG && "rounded-xl",
             "transition-opacity duration-300",
-            drawerMode === "side" && isDrawerOpen ? "bg-black/40 opacity-100" : "opacity-0 pointer-events-none"
+            drawerMode === "side" && isDrawerOpen
+              ? "bg-black/40 opacity-100"
+              : "opacity-0 pointer-events-none"
           )}
           onClick={handleBackdropClick}
         />
-        
+
         {/* Drawer inside main content for side mode */}
         <div
           className={cn(
             "absolute top-0 right-0 h-full bg-white shadow-xl z-40 overflow-hidden",
             "w-[40rem]",
-            // Only add rounded corners on lg+ screens
-            isMoreThanLG && needCardClass && "rounded-l-xl",
+            // Add rounded corners for drawer: always on sm+, but only when overlaying the list
+            isMoreThanSM && "rounded-l-xl",
             "transform transition-transform duration-300 ease-out",
-            drawerMode === "side" && isDrawerOpen ? "translate-x-0" : "translate-x-full"
+            drawerMode === "side" && isDrawerOpen
+              ? "translate-x-0"
+              : "translate-x-full"
           )}
         >
           {drawerMode === "side" && isDrawerOpen && (
@@ -303,12 +316,14 @@ export function SpaceComponent<T extends { Id: string }>({
             </div>
           )}
         </div>
-        
+
         {/* Fullscreen overlay for small screens - inside main content */}
         <div
           className={cn(
             "absolute inset-0 z-30 transition-opacity duration-300",
-            drawerMode === "over" && isDrawerOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+            drawerMode === "over" && isDrawerOpen
+              ? "opacity-100"
+              : "opacity-0 pointer-events-none"
           )}
         >
           <div
@@ -320,7 +335,9 @@ export function SpaceComponent<T extends { Id: string }>({
           className={cn(
             "absolute inset-0 z-40 bg-white overflow-hidden",
             "transform transition-transform duration-300 ease-out",
-            drawerMode === "over" && isDrawerOpen ? "translate-x-0" : "translate-x-full"
+            drawerMode === "over" && isDrawerOpen
+              ? "translate-x-0"
+              : "translate-x-full"
           )}
         >
           <div className="h-full overflow-auto">
@@ -336,13 +353,15 @@ export function SpaceComponent<T extends { Id: string }>({
           "w-[45rem]",
           needCardClass ? "fake-card" : "card-surface",
           "transform transition-all duration-300 ease-out",
-          drawerMode === "side-transparent" && isDrawerOpen ? "translate-x-0 opacity-100" : "translate-x-full opacity-0 pointer-events-none"
+          drawerMode === "side-transparent" && isDrawerOpen
+            ? "translate-x-0 opacity-100"
+            : "translate-x-full opacity-0 pointer-events-none"
         )}
       >
-          <div className="h-full overflow-auto">
-            <Outlet />
-          </div>
+        <div className="h-full overflow-auto">
+          <Outlet />
         </div>
+      </div>
     </div>
   );
 }

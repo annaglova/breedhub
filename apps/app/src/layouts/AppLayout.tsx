@@ -17,8 +17,9 @@ export function AppLayout() {
   const topBarRef = useRef<HTMLDivElement>(null);
   const footerRef = useRef<HTMLDivElement>(null);
 
-  // xxxl breakpoint - 1920px
-  const isXXXL = useMediaQuery("(min-width: 1920px)");
+  // Custom breakpoints
+  const isXXXL = useMediaQuery("(min-width: 1920px)"); // xxxl
+  const isLG = useMediaQuery("(min-width: 1280px)");   // lg
 
   // Measure heights
   useEffect(() => {
@@ -102,7 +103,7 @@ export function AppLayout() {
                 {/* Main content */}
                 <main
                   className="flex-1 overflow-hidden"
-                  style={{ height: `${mainHeight - 20}px` }}
+                  style={{ height: `${mainHeight - (isLG ? 20 : 0)}px` }}
                 >
                   <Outlet />
                 </main>
