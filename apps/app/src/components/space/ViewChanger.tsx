@@ -2,8 +2,9 @@ import React from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { ButtonGroup, ButtonGroupItem } from '@ui/components/button-group';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@ui/components/tooltip';
-import { List, Grid3x3, Table, Map, Share2 } from 'lucide-react';
+import { List, Grid2x2, Table, Map, Share2 } from 'lucide-react';
 import { ViewMode } from '@/core/space/types';
+import { cn } from '@ui/lib/utils';
 
 interface ViewConfig {
   id: ViewMode;
@@ -13,7 +14,7 @@ interface ViewConfig {
 
 const viewConfigs: ViewConfig[] = [
   { id: 'list', icon: List, tooltip: 'List view' },
-  { id: 'grid', icon: Grid3x3, tooltip: 'Grid view' },
+  { id: 'grid', icon: Grid2x2, tooltip: 'Grid view' },
   { id: 'table', icon: Table, tooltip: 'Table view' },
   { id: 'map', icon: Map, tooltip: 'Map view' },
   { id: 'graph', icon: Share2, tooltip: 'Graph view' },
@@ -58,7 +59,12 @@ export function ViewChanger({ views = ['list'], onViewChange }: ViewChangerProps
                   isLast={isLast}
                   isActive={isActive}
                   onClick={() => handleViewChange(view.id)}
-                  className="size-[2.6rem] p-0"
+                  className={cn(
+                    "size-[2.6rem] p-0 border-slate-600 transition-all",
+                    isActive
+                      ? "bg-slate-600 hover:bg-slate-500 text-white z-10"
+                      : "bg-white hover:bg-slate-100 text-slate-600 hover:text-slate-600"
+                  )}
                 >
                   <Icon className="h-4 w-4" />
                 </ButtonGroupItem>
