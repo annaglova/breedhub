@@ -24,6 +24,11 @@ export interface CrmResponse<T = any> {
   };
 }
 
+export interface Patron {
+  name: string;
+  contributions?: number;
+}
+
 export interface Breed {
   Id: string;
   Name: string;
@@ -32,7 +37,7 @@ export interface Breed {
   PatronCount: number;
   AchievementProgress?: number;
   HasNotes?: boolean;
-  TopPatrons?: any[];
+  TopPatrons?: Patron[];
   Avatar?: string;
   Description?: string;
 }
