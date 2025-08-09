@@ -1,7 +1,7 @@
+import { BreedProgressLight } from "@/components/shared/BreedProgressLight";
 import { EntityListCardWrapper } from "@/components/shared/EntityListCardWrapper";
 import { NoteFlag } from "@/components/shared/NoteFlag";
 import { TopPatrons } from "@/components/shared/TopPatrons";
-import { BreedProgressLight } from "@/components/shared/BreedProgressLight";
 import { SpaceListCardProps } from "@/core/space/types";
 import { Breed } from "@/services/api";
 
@@ -18,9 +18,9 @@ export function BreedListCard({
     <EntityListCardWrapper
       selected={selected}
       onClick={onClick}
-      className="h-[68px]"
+      className="h-[68px] relative"
     >
-      <div className="flex items-center">
+      <div className="flex items-center w-full">
         {/* Avatar */}
         <div
           className={`size-10 rounded-full border border-surface-border flex-shrink-0 relative outline outline-2 outline-offset-1 ${
@@ -60,32 +60,31 @@ export function BreedListCard({
             <NoteFlag isVisible={breed.HasNotes} />
           </div>
 
-          <div className="flex items-center text-sm text-gray-600 gap-2">
-            <span>Pet profiles - {breed.PetProfileCount || 0}</span>
-            <span className="text-gray-400">•</span>
-            <span className="hidden sm:inline">
-              Kennels - {breed.KennelCount || 0}
-            </span>
-            <span className="text-gray-400 hidden sm:inline">•</span>
-            <span>Patrons - {breed.PatronCount || 0}</span>
+          <div className="flex items-center text-sm text-gray-600">
+            <div className="flex items-center gap-2">
+              <span>Pet profiles - {breed.PetProfileCount || 0}</span>
+              <span className="text-gray-400">•</span>
+              <span className="hidden sm:inline">
+                Kennels - {breed.KennelCount || 0}
+              </span>
+              <span className="text-gray-400 hidden sm:inline">•</span>
+              <span>Patrons - {breed.PatronCount || 0}</span>
+            </div>
 
             {/* Progress indicator */}
-            <BreedProgressLight 
-              breed={breed} 
-              className="ml-2 flex-shrink-0"
-            />
+            <BreedProgressLight breed={breed} className="ml-auto" />
           </div>
         </div>
-
-        {/* Top Patrons */}
-        {breed.TopPatrons && breed.TopPatrons.length > 0 && (
-          <TopPatrons 
-            patrons={breed.TopPatrons} 
-            maxDisplay={3}
-            className="ml-4"
-          />
-        )}
       </div>
+
+      {/* Top Patrons - absolute positioned */}
+      {breed.TopPatrons && breed.TopPatrons.length > 0 && (
+        <TopPatrons
+          patrons={breed.TopPatrons}
+          maxDisplay={3}
+          className="absolute top-3 right-6"
+        />
+      )}
     </EntityListCardWrapper>
   );
 }

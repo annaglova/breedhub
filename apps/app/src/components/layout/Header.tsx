@@ -88,7 +88,7 @@ export function Header({ onMenuClick, isHome = false }: HeaderProps) {
                             className={cn(
                               "h-6 w-6",
                               isActive
-                                ? "text-sub-header-active"
+                                ? "text-primary"
                                 : "text-sub-header-color"
                             )}
                           />
