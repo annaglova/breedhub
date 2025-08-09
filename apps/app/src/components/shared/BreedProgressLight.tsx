@@ -1,55 +1,37 @@
 import React from 'react';
-import { cn } from '@ui/lib/utils';
+import { Breed } from '@/services/api';
 
 interface BreedProgressLightProps {
-  progress: number;
+  breed: Breed;
   className?: string;
-  showPercentage?: boolean;
-  size?: 'sm' | 'md' | 'lg';
 }
 
 export function BreedProgressLight({ 
-  progress, 
-  className = "",
-  showPercentage = false,
-  size = 'sm'
+  breed, 
+  className = ""
 }: BreedProgressLightProps) {
-  // Визначаємо висоту та ширину базуючись на розмірі
-  const sizeClasses = {
-    sm: 'h-1 w-12',
-    md: 'h-1.5 w-16',
-    lg: 'h-2 w-20'
-  };
+  // Якщо немає прогресу, не показуємо компонент
+  if (!breed.AchievementProgress || breed.AchievementProgress <= 0) {
+    return null;
+  }
 
-  // Визначаємо колір прогресу залежно від відсотка
-  const getProgressColor = (value: number) => {
-    if (value >= 80) return 'bg-green-500';
-    if (value >= 60) return 'bg-blue-500';
-    if (value >= 40) return 'bg-yellow-500';
-    return 'bg-gray-400';
+  // Функція для пошуку останнього досягнення (аналог findElementWithMaxPosition)
+  const getLastAchievement = () => {
+    // Поки що просто повертаємо placeholder, оскільки в нашій моделі немає Achievements
+    return "Breed's support level";
   };
 
   return (
-    <div className={cn("flex items-center gap-2", className)}>
-      <div 
-        className={cn(
-          "bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden",
-          sizeClasses[size]
-        )}
-      >
-        <div
-          className={cn(
-            "h-full rounded-full transition-all duration-300",
-            getProgressColor(progress)
-          )}
-          style={{ width: `${Math.min(100, Math.max(0, progress))}%` }}
-        />
-      </div>
-      {showPercentage && (
-        <span className="text-xs text-gray-600 dark:text-gray-400 min-w-[2rem]">
-          {progress}%
-        </span>
-      )}
+    <div 
+      className={`flex h-[10px] w-24 items-center rounded-full border border-primary-600 ${className}`}
+      title={getLastAchievement()}
+    >
+      <div
+        className="bg-primary-600 mx-0.5 my-auto h-1.5 rounded-full"
+        style={{
+          width: `${breed.AchievementProgress}%`,
+        }}
+      />
     </div>
   );
 }

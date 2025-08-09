@@ -70,12 +70,10 @@ export function BreedListCard({
             <span>Patrons - {breed.PatronCount || 0}</span>
 
             {/* Progress indicator */}
-            {breed.AchievementProgress !== undefined && (
-              <BreedProgressLight 
-                progress={breed.AchievementProgress} 
-                className="ml-2 flex-shrink-0"
-              />
-            )}
+            <BreedProgressLight 
+              breed={breed} 
+              className="ml-2 flex-shrink-0"
+            />
           </div>
         </div>
 
