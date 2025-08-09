@@ -129,12 +129,12 @@ export function VirtualSpaceView<T extends { Id: string }>({
           {rowEntities.map((entity) => (
             <div
               key={entity.Id}
-              onClick={() => onEntityClick?.(entity)}
             >
               <CardComponent
                 entity={entity}
                 selected={selectedId === entity.Id}
                 index={entities.indexOf(entity)}
+                onClick={() => onEntityClick?.(entity)}
               />
             </div>
           ))}
@@ -156,12 +156,12 @@ export function VirtualSpaceView<T extends { Id: string }>({
             transform: `translateY(${virtualRow.start}px)`,
             height: `${virtualRow.size}px`,
           }}
-          onClick={() => onEntityClick?.(entity)}
         >
           <CardComponent
             entity={entity}
             selected={selectedId === entity.Id}
             index={virtualRow.index}
+            onClick={() => onEntityClick?.(entity)}
           />
         </div>
       );

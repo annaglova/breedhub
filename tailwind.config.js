@@ -115,6 +115,7 @@ export default {
         "even-card-ground": "rgb(var(--even-card-ground))",
         "sub-header-active": "rgb(var(--sub-header-active))",
         "primary-hover": "rgb(var(--primary-hover))",
+        "hover-card-ground": "rgb(var(--hover-card-ground))",
         "focus-card-ground": "rgb(var(--focus-card-ground))",
       },
       fontFamily: {

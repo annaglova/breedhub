@@ -22,19 +22,35 @@ export function BreedGridCard({ entity: breed, selected = false }: BreedGridCard
       <CardHeader className="pb-3">
         {/* Avatar and Name */}
         <div className="flex items-start gap-3">
-          {breed.Avatar ? (
-            <img
-              src={breed.Avatar}
-              alt={breed.Name}
-              className="w-16 h-16 rounded-full object-cover"
-            />
-          ) : (
-            <div className="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center">
-              <span className="text-xl font-bold text-gray-500">
-                {breed.Name.charAt(0)}
-              </span>
+          <div 
+            className={`w-16 h-16 rounded-full border border-surface-border relative outline outline-2 outline-offset-[2.5px] ${
+              breed.PatronCount > 0 
+                ? "outline-primary-300 dark:outline-primary-400" 
+                : "outline-gray-300 dark:outline-gray-400"
+            }`}
+          >
+            <div className="w-full h-full rounded-full overflow-hidden">
+              {breed.Avatar ? (
+                <img
+                  src={breed.Avatar}
+                  alt={breed.Name}
+                  className="w-full h-full object-cover"
+                  loading="lazy"
+                  onError={(e) => {
+                    e.currentTarget.style.display = 'none';
+                    e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                  }}
+                />
+              ) : null}
+              <div className={cn(
+                "w-full h-full flex items-center justify-center text-gray-600 dark:text-gray-200 text-xl font-bold uppercase",
+                "bg-gray-200 dark:bg-gray-700",
+                breed.Avatar ? "hidden" : "flex"
+              )}>
+                {breed.Name?.charAt(0)}
+              </div>
             </div>
-          )}
+          </div>
           <div className="flex-1 min-w-0">
             <h3 className="font-semibold text-lg truncate">{breed.Name}</h3>
             {breed.HasNotes && (

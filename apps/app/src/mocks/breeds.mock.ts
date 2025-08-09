@@ -42,11 +42,11 @@ function generateMockBreeds(count: number): Breed[] {
       achievement_progress: Math.floor(Math.random() * 100),
       rating: Math.floor(Math.random() * 40) + 60,
       payment_rating: Math.floor(Math.random() * 30) + 70,
-      avatar_url: `https://images.unsplash.com/photo-${1500000000000 + i}?w=400`,
+      avatar_url: `https://placedog.net/400/400?id=${i}`,
       url: name.toLowerCase().replace(/\s+/g, '-'),
       created_on: new Date(2020, 0, 1),
       modified_on: new Date(),
-      has_notes: Math.random() > 0.7,
+      has_notes: name === 'Labrador Retriever' ? true : Math.random() > 0.7,
       top_patrons: Math.random() > 0.5 ? [
         { name: `Patron ${i}-1`, contributions: Math.floor(Math.random() * 50) },
         { name: `Patron ${i}-2`, contributions: Math.floor(Math.random() * 30) },
@@ -81,7 +81,7 @@ export const mockBreedsOriginal: Breed[] = [
     achievement_progress: 85,
     rating: 92,
     payment_rating: 88,
-    avatar_url: 'https://images.unsplash.com/photo-1633722715463-d30f4f325e24?w=400',
+    avatar_url: 'https://placedog.net/400/400?id=golden-retriever',
     url: 'golden-retriever',
     created_at: '2023-01-15T10:00:00Z',
     updated_at: '2024-01-10T15:30:00Z'
@@ -105,7 +105,7 @@ export const mockBreedsOriginal: Breed[] = [
     achievement_progress: 95,
     rating: 96,
     payment_rating: 92,
-    avatar_url: 'https://images.unsplash.com/photo-1589941013453-ec89f33b5e95?w=400',
+    avatar_url: 'https://placedog.net/400/400?id=german-shepherd',
     url: 'german-shepherd',
     created_at: '2023-01-10T08:00:00Z',
     updated_at: '2024-01-12T10:20:00Z'
@@ -129,7 +129,7 @@ export const mockBreedsOriginal: Breed[] = [
     achievement_progress: 78,
     rating: 89,
     payment_rating: 94,
-    avatar_url: 'https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?w=400',
+    avatar_url: 'https://placedog.net/400/400?id=french-bulldog',
     url: 'french-bulldog',
     created_at: '2023-02-20T12:00:00Z',
     updated_at: '2024-01-08T09:15:00Z'
@@ -153,8 +153,9 @@ export const mockBreedsOriginal: Breed[] = [
     achievement_progress: 98,
     rating: 97,
     payment_rating: 91,
-    avatar_url: 'https://images.unsplash.com/photo-1608096299210-db7e38487075?w=400',
+    avatar_url: 'https://placedog.net/400/400?id=labrador',
     url: 'labrador-retriever',
+    has_notes: true,
     created_at: '2023-01-05T07:00:00Z',
     updated_at: '2024-01-14T16:45:00Z'
   },
@@ -177,7 +178,7 @@ export const mockBreedsOriginal: Breed[] = [
     achievement_progress: 72,
     rating: 84,
     payment_rating: 86,
-    avatar_url: 'https://images.unsplash.com/photo-1526440847959-4e38e7f00b04?w=400',
+    avatar_url: 'https://placedog.net/400/400?id=yorkie',
     url: 'yorkshire-terrier',
     created_at: '2023-03-10T14:00:00Z',
     updated_at: '2024-01-06T11:30:00Z'
@@ -201,7 +202,7 @@ export const mockBreedsOriginal: Breed[] = [
     achievement_progress: 81,
     rating: 88,
     payment_rating: 85,
-    avatar_url: 'https://images.unsplash.com/photo-1547407139-3c921a66005c?w=400',
+    avatar_url: 'https://placedog.net/400/400?id=husky',
     url: 'siberian-husky',
     created_at: '2023-02-01T09:00:00Z',
     updated_at: '2024-01-11T14:20:00Z'
@@ -227,7 +228,7 @@ export const mockBreedsOriginal: Breed[] = [
     achievement_progress: 76,
     rating: 91,
     payment_rating: 88,
-    avatar_url: 'https://images.unsplash.com/photo-1615789591457-74a63395c990?w=400',
+    avatar_url: 'https://api.dicebear.com/7.x/lorelei/svg?seed=maine-coon',
     url: 'maine-coon',
     created_at: '2023-01-20T11:00:00Z',
     updated_at: '2024-01-09T13:40:00Z'
@@ -251,7 +252,7 @@ export const mockBreedsOriginal: Breed[] = [
     achievement_progress: 68,
     rating: 85,
     payment_rating: 82,
-    avatar_url: 'https://images.unsplash.com/photo-1567270671170-fdc10a5bf831?w=400',
+    avatar_url: 'https://api.dicebear.com/7.x/lorelei/svg?seed=persian',
     url: 'persian',
     created_at: '2023-02-15T13:00:00Z',
     updated_at: '2024-01-07T10:25:00Z'
@@ -275,7 +276,7 @@ export const mockBreedsOriginal: Breed[] = [
     achievement_progress: 64,
     rating: 83,
     payment_rating: 79,
-    avatar_url: 'https://images.unsplash.com/photo-1600357077527-930ccbaf7773?w=400',
+    avatar_url: 'https://api.dicebear.com/7.x/lorelei/svg?seed=british-shorthair',
     url: 'british-shorthair',
     created_at: '2023-03-05T10:00:00Z',
     updated_at: '2024-01-05T15:10:00Z'
@@ -299,7 +300,7 @@ export const mockBreedsOriginal: Breed[] = [
     achievement_progress: 58,
     rating: 82,
     payment_rating: 77,
-    avatar_url: 'https://images.unsplash.com/photo-1622019273970-23c87f863979?w=400',
+    avatar_url: 'https://api.dicebear.com/7.x/lorelei/svg?seed=ragdoll',
     url: 'ragdoll',
     created_at: '2023-04-01T12:00:00Z',
     updated_at: '2024-01-04T08:30:00Z'
