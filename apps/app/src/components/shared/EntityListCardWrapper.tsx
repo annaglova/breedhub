@@ -7,31 +7,31 @@ interface EntityListCardWrapperProps {
   className?: string;
 }
 
-export function EntityListCardWrapper({ 
-  children, 
+export function EntityListCardWrapper({
+  children,
   selected = false,
   onClick,
-  className = ""
+  className = "",
 }: EntityListCardWrapperProps) {
   const [isHovered, setIsHovered] = useState(false);
-  
+
   // Визначаємо колір фону залежно від стану (як в Angular версії)
   const getBackgroundColor = () => {
     if (selected) {
-      return 'rgb(var(--focus-card-ground))';
+      return "rgb(var(--focus-card-ground))";
     }
     if (isHovered) {
-      return 'rgb(var(--hover-card-ground))';
+      return "rgb(var(--hover-card-ground))";
     }
-    return 'transparent';
+    return "transparent";
   };
-  
+
   return (
-    <div 
+    <div
       className={`relative flex items-center h-full cursor-pointer border-b border-surface-border px-4 sm:px-7 ${className}`}
-      style={{ 
+      style={{
         backgroundColor: getBackgroundColor(),
-        transition: 'background-color 150ms'
+        transition: "background-color 150ms",
       }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}

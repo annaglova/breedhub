@@ -1,5 +1,7 @@
 import { EntityListCardWrapper } from "@/components/shared/EntityListCardWrapper";
 import { NoteFlag } from "@/components/shared/NoteFlag";
+import { TopPatrons } from "@/components/shared/TopPatrons";
+import { BreedProgressLight } from "@/components/shared/BreedProgressLight";
 import { SpaceListCardProps } from "@/core/space/types";
 import { Breed } from "@/services/api";
 
@@ -69,29 +71,21 @@ export function BreedListCard({
 
             {/* Progress indicator */}
             {breed.AchievementProgress !== undefined && (
-              <div className="ml-2 flex-shrink-0">
-                <div className="w-12 h-1 bg-gray-200 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-green-500 rounded-full transition-all"
-                    style={{ width: `${breed.AchievementProgress}%` }}
-                  />
-                </div>
-              </div>
+              <BreedProgressLight 
+                progress={breed.AchievementProgress} 
+                className="ml-2 flex-shrink-0"
+              />
             )}
           </div>
         </div>
 
         {/* Top Patrons */}
         {breed.TopPatrons && breed.TopPatrons.length > 0 && (
-          <div className="flex -space-x-2 ml-4">
-            {breed.TopPatrons.slice(0, 3).map((patron, index) => (
-              <div
-                key={index}
-                className="w-6 h-6 rounded-full bg-gray-300 border-2 border-white"
-                title={patron.name}
-              />
-            ))}
-          </div>
+          <TopPatrons 
+            patrons={breed.TopPatrons} 
+            maxDisplay={3}
+            className="ml-4"
+          />
         )}
       </div>
     </EntityListCardWrapper>
