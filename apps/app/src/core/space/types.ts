@@ -69,6 +69,7 @@ export interface SpaceListCardProps<T = any> {
   entity: T;
   selected?: boolean;
   index?: number;
+  onClick?: () => void;
 }
 
 export interface SpaceDetailTab {
