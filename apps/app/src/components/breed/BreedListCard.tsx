@@ -1,4 +1,5 @@
 import { NoteFlag } from "@/components/shared/NoteFlag";
+import { EntityListCardWrapper } from "@/components/shared/EntityListCardWrapper";
 import { SpaceListCardProps } from "@/core/space/types";
 import { Breed } from "@/services/api";
 import { cn } from "@ui/lib/utils";
@@ -13,13 +14,14 @@ export function BreedListCard({
   onClick,
 }: BreedListCardProps) {
   return (
-    <div
-      className={cn(
-        "flex items-center h-[68px] px-4 hover:bg-gray-50 cursor-pointer transition-colors",
-        selected && "bg-blue-50 hover:bg-blue-100"
-      )}
-      onClick={onClick}
-    >
+    <EntityListCardWrapper>
+      <div
+        className={cn(
+          "flex items-center h-[68px] px-4 cursor-pointer",
+          selected && "bg-blue-50 hover:bg-blue-100"
+        )}
+        onClick={onClick}
+      >
       {/* Avatar */}
       <div
         className={`size-10 rounded-full border border-surface-border flex-shrink-0 relative outline outline-2 outline-offset-1 ${
@@ -95,6 +97,7 @@ export function BreedListCard({
           ))}
         </div>
       )}
-    </div>
+      </div>
+    </EntityListCardWrapper>
   );
 }
