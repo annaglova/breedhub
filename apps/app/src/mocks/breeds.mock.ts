@@ -23,6 +23,9 @@ function generateMockBreeds(count: number): Breed[] {
     const variant = Math.floor(i / baseBreeds.length);
     const name = variant > 0 ? `${baseName} (Variant ${variant + 1})` : baseName;
     
+    // Special handling for Cavalier King Charles Spaniel (Variant 3)
+    const isCavalierVariant3 = name === 'Cavalier King Charles Spaniel (Variant 3)';
+    
     breeds.push({
       id: `breed-${i + 1}`,
       name: name,
@@ -46,11 +49,17 @@ function generateMockBreeds(count: number): Breed[] {
       url: name.toLowerCase().replace(/\s+/g, '-'),
       created_on: new Date(2020, 0, 1),
       modified_on: new Date(),
-      has_notes: name === 'Labrador Retriever' ? true : Math.random() > 0.7,
-      top_patrons: Math.random() > 0.5 ? [
+      has_notes: isCavalierVariant3 ? true : (name === 'Labrador Retriever' ? true : Math.random() > 0.7),
+      top_patrons: isCavalierVariant3 ? [
+        { name: 'John Smith', contributions: 45 },
+        { name: 'Emma Johnson', contributions: 38 },
+        { name: 'Michael Brown', contributions: 32 },
+        { name: 'Sarah Davis', contributions: 28 },
+        { name: 'Robert Wilson', contributions: 25 },
+      ] : (Math.random() > 0.5 ? [
         { name: `Patron ${i}-1`, contributions: Math.floor(Math.random() * 50) },
         { name: `Patron ${i}-2`, contributions: Math.floor(Math.random() * 30) },
-      ] : undefined,
+      ] : undefined),
     });
   }
   

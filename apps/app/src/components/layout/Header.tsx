@@ -7,7 +7,7 @@ import {
   TooltipTrigger,
 } from "@ui/components/tooltip";
 import { cn } from "@ui/lib/utils";
-import { Heart, Home, Menu, Moon, ShoppingBag, Sun, User } from "lucide-react";
+import { Heart, Home, Menu, ShoppingBag, User } from "lucide-react";
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { UserDrawer } from "./UserDrawer";
@@ -112,7 +112,7 @@ export function Header({ onMenuClick, isHome = false }: HeaderProps) {
             )}
           >
             {/* Dark mode toggle */}
-            <Button
+            {/* <Button
               variant="default"
               size="sm"
               onClick={toggleTheme}
@@ -124,7 +124,7 @@ export function Header({ onMenuClick, isHome = false }: HeaderProps) {
                 <Moon className="h-4 w-4" />
               )}
               <span className="ml-2">Dark</span>
-            </Button>
+            </Button> */}
 
             {/* User menu */}
             <Button

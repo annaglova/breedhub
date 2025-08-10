@@ -56,19 +56,19 @@ export function BreedListCard({
         {/* Details */}
         <div className="ml-4 flex-1 min-w-0">
           <div className="flex items-center gap-1">
-            <span className="font-medium truncate uppercase">{breed.Name}</span>
-            <NoteFlag isVisible={breed.HasNotes} />
+            <span className="font-medium truncate uppercase max-w-[200px] min-[430px]:max-w-[220px] min-[500px]:max-w-[300px] sm:max-w-[350px] min-[640px]:max-w-none">{breed.Name}</span>
+            <NoteFlag isVisible={breed.HasNotes} className="flex-shrink-0" />
           </div>
 
           <div className="flex items-center text-sm text-gray-600">
             <div className="flex items-center gap-2">
               <span>Pet profiles - {breed.PetProfileCount || 0}</span>
-              <span className="text-gray-400">•</span>
+              <span className="text-gray-400 hidden sm:inline">•</span>
               <span className="hidden sm:inline">
                 Kennels - {breed.KennelCount || 0}
               </span>
-              <span className="text-gray-400 hidden sm:inline">•</span>
-              <span>Patrons - {breed.PatronCount || 0}</span>
+              <span className="text-gray-400 hidden min-[400px]:inline">•</span>
+              <span className="hidden min-[400px]:inline">Patrons - {breed.PatronCount || 0}</span>
             </div>
 
             {/* Progress indicator */}
@@ -77,12 +77,12 @@ export function BreedListCard({
         </div>
       </div>
 
-      {/* Top Patrons - absolute positioned */}
+      {/* Top Patrons - absolute positioned, hidden on small screens */}
       {breed.TopPatrons && breed.TopPatrons.length > 0 && (
         <TopPatrons
           patrons={breed.TopPatrons}
           maxDisplay={3}
-          className="absolute top-3 right-6"
+          className="hidden min-[400px]:flex absolute top-3 right-4 sm:right-6"
         />
       )}
     </EntityListCardWrapper>
