@@ -336,6 +336,8 @@ export const getBreedWithRelations = (breedId: string): BreedWithRelations | und
 };
 
 // Helper functions
+export const getBreeds = () => mockBreeds;
+
 export const getRandomBreed = (petType?: string) => {
   const breeds = petType 
     ? mockBreeds.filter(b => b.pet_type_id === petType)

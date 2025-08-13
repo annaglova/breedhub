@@ -618,10 +618,185 @@ useEffect(() => {
 3. **Збереження контексту** - при переході між drawer та full page зберігайте активний таб
 4. **URL як джерело істини** - стан UI визначається URL параметрами
 
+## 🏗️ Page Assembly Architecture (Архітектура збору сторінки)
+
+### Концепція та походження
+Архітектура базується на Angular проекті `/Users/annaglova/projects/org`, де використовується система **outlets** для композиції сторінок entity. Замість створення окремих компонентів для кожної сутності, використовується універсальний шаблон з динамічними компонентами.
+
+### Основні компоненти системи
+
+#### 1. PageTemplateV3 (`/components/template/PageTemplateV3.tsx`)
+Головний шаблон сторінки, який визначає структуру та розміщення outlets:
+```typescript
+<PageTemplateV3>
+  <NameContainerOutlet>      // Sticky контейнер для назви
+    <BreedNameComponent />    // Компонент назви конкретної entity
+  </NameContainerOutlet>
+  
+  <AvatarOutlet />           // Outlet для аватара
+  <PageAchievementsOutlet /> // Outlet для досягнень
+  <PageDetailsOutlet />      // Outlet для табів і контенту
+</PageTemplateV3>
+```
+
+#### 2. Outlet Components
+Контейнери для різних частин сторінки:
+- **NameContainerOutlet** - sticky контейнер для назви entity
+- **AvatarOutlet** - відображення аватара/зображення
+- **PageAchievementsOutlet** - секція досягнень
+- **PageDetailsOutlet** - таби та їх контент
+
+#### 3. Domain Components (`/domain/[entity]/`)
+Специфічні компоненти для кожної entity:
+```
+/domain/breed/
+  ├── BreedNameComponent.tsx       // Компонент назви породи
+  ├── BreedAchievementsComponent.tsx // Досягнення породи
+  └── tabs/
+      ├── BreedPatronsComponent.tsx
+      ├── BreedTopPetsComponent.tsx
+      └── BreedTopKennelsComponent.tsx
+```
+
+### Принцип збору сторінки
+
+#### 1. Routing визначає структуру
+```typescript
+<Route path=":id" element={<PageTemplateV3 />}>
+  {/* Outlets отримують компоненти через routing */}
+</Route>
+```
+
+#### 2. PageTemplateV3 визначає який компонент для якої entity
+```typescript
+function PageTemplateV3() {
+  // Визначаємо тип entity з URL або контексту
+  const entityType = getEntityType();
+  
+  // Вибираємо відповідні компоненти
+  const NameComponent = entityComponents[entityType].name;
+  const AvatarComponent = entityComponents[entityType].avatar;
+  
+  return (
+    <div>
+      <NameContainerOutlet>
+        <NameComponent />
+      </NameContainerOutlet>
+      {/* ... */}
+    </div>
+  );
+}
+```
+
+#### 3. Конфігурація для кожної entity
+```typescript
+// breed.routing.ts
+export const breedPageConfig = {
+  entityType: 'breed',
+  nameComponent: BreedNameComponent,
+  avatarComponent: BreedAvatarComponent,
+  achievementsComponent: BreedAchievementsComponent,
+  tabs: [
+    { id: 'patrons', component: BreedPatronsComponent },
+    { id: 'pets', component: BreedTopPetsComponent }
+  ]
+};
+```
+
+### Переваги архітектури
+
+1. **Універсальність** - один PageTemplateV3 для всіх entities
+2. **Модульність** - легко додавати нові entity типи
+3. **Консистентність** - однаковий layout для всіх сторінок
+4. **Гнучкість** - кожна entity має свої специфічні компоненти
+5. **Переиспользование** - outlets можуть використовуватись в різних режимах (drawer/full page)
+
+### Режими відображення
+
+#### Drawer Mode
+```typescript
+<PageTemplateV3 isDrawerMode={true}>
+  {/* Компактна версія без деяких outlets */}
+  <NameContainerOutlet />
+  <PageDetailsOutlet />
+</PageTemplateV3>
+```
+
+#### Full Page Mode
+```typescript
+<PageTemplateV3 isDrawerMode={false}>
+  {/* Повна версія з усіма outlets */}
+  <PageHeaderComponent />
+  <AvatarOutlet />
+  <NameContainerOutlet />
+  <PageAchievementsOutlet />
+  <PageDetailsOutlet />
+</PageTemplateV3>
+```
+
+### Додавання нової entity
+
+1. **Створити domain компоненти**:
+```
+/domain/pet/
+  ├── PetNameComponent.tsx
+  ├── PetAvatarComponent.tsx
+  └── tabs/
+      ├── PetHealthComponent.tsx
+      └── PetPedigreeComponent.tsx
+```
+
+2. **Створити конфігурацію**:
+```typescript
+// pet.routing.ts
+export const petPageConfig = {
+  entityType: 'pet',
+  nameComponent: PetNameComponent,
+  tabs: [...]
+};
+```
+
+3. **Зареєструвати в PageTemplateV3**:
+```typescript
+const entityConfigs = {
+  breed: breedPageConfig,
+  pet: petPageConfig,
+  // ...
+};
+```
+
+### Ключові відмінності від класичного підходу
+
+| Класичний підхід | Outlet Architecture |
+|-----------------|-------------------|
+| BreedPage, PetPage, KennelPage | PageTemplateV3 (універсальний) |
+| Дублювання layout коду | Outlets переиспользуються |
+| Важко підтримувати консистентність | Автоматична консистентність |
+| Кожна сторінка - окремий компонент | Композиція з маленьких компонентів |
+
+### Поточний стан реалізації
+
+✅ **Реалізовано**:
+- PageTemplateV3 базова версія
+- NameContainerOutlet
+- BreedNameComponent для breed entity
+- Інтеграція з SpaceComponent для drawer
+
+⏳ **В процесі**:
+- AvatarOutlet
+- PageAchievementsOutlet
+- PageDetailsOutlet з табами
+
+🔜 **Заплановано**:
+- Підтримка інших entities (pet, kennel, litter)
+- Повна інтеграція routing
+- Full page mode
+
 ## 📅 Історія змін
 - **2024-01-31** - Початкова версія документу. Описано базову структуру, компоненти форм, принципи стилізації та валідації.
 - **2025-08-03** - Додано UX/UI Guidelines: доступність, loading states, mobile-first, контраст кольорів. Описано реалізовані покращення Week 1.
 - **2025-08-04** - Додано детальний план розробки App модуля з 6 фазами. Описано структуру публічних сторінок та mock даних.
 - **2025-08-07** - Додано розділ Space Architecture. Описано адаптацію Angular архітектури для React, основні компоненти, state management та плани спрощення.
 - **2025-08-07** - Додано розділ Routing та Navigation. Описано систему роутингу, drawer behavior, responsive modes та кастомні breakpoints.
+- **2025-08-10** - Додано розділ Page Assembly Architecture. Описано принцип збору сторінок entity через outlets, як в Angular проекті.
 \ No newline at end of file
