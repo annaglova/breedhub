@@ -1,0 +1,13 @@
+{
+  "extends": "../../tsconfig.app.json",
+  "compilerOptions": {
+    "composite": true,
+    "baseUrl": "./",
+    "paths": {
+      "@/*": ["src/*"],
+      "@breedhub/signal-store": ["../../packages/signal-store/src/index.ts"]
+    }
+  },
+  "include": ["src", "../../packages/signal-store/src/**/*"],
+  "references": [{ "path": "./tsconfig.node.json" }]
+}
