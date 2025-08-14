@@ -1,0 +1,77 @@
+import { Routes, Route, Link, useLocation } from 'react-router-dom';
+import { Home, Database, Filter, GitBranch, HardDrive, Activity, Layers, Code } from 'lucide-react';
+import HomePage from './pages/HomePage';
+import EntitiesPage from './pages/EntitiesPage';
+import FilteringPage from './pages/FilteringPage';
+import HierarchyPage from './pages/HierarchyPage';
+import SyncPage from './pages/SyncPage';
+import PerformancePage from './pages/PerformancePage';
+import CompositionPage from './pages/CompositionPage';
+import ExamplesPage from './pages/ExamplesPage';
+import clsx from 'clsx';
+
+const navigation = [
+  { name: 'Home', path: '/', icon: Home },
+  { name: 'Entities', path: '/entities', icon: Database },
+  { name: 'Filtering', path: '/filtering', icon: Filter },
+  { name: 'Hierarchy', path: '/hierarchy', icon: GitBranch },
+  { name: 'Sync', path: '/sync', icon: HardDrive },
+  { name: 'Composition', path: '/composition', icon: Layers },
+  { name: 'Performance', path: '/performance', icon: Activity },
+  { name: 'Examples', path: '/examples', icon: Code },
+];
+
+function App() {
+  const location = useLocation();
+
+  return (
+    <div className="min-h-screen flex">
+      {/* Sidebar */}
+      <aside className="w-64 bg-white border-r border-gray-200">
+        <div className="p-6">
+          <h1 className="text-2xl font-bold text-primary-600">SignalStore</h1>
+          <p className="text-sm text-gray-500 mt-1">Playground</p>
+        </div>
+        
+        <nav className="px-4 pb-6">
+          {navigation.map((item) => {
+            const Icon = item.icon;
+            const isActive = location.pathname === item.path;
+            
+            return (
+              <Link
+                key={item.path}
+                to={item.path}
+                className={clsx(
+                  'flex items-center gap-3 px-3 py-2 rounded-lg mb-1 transition-colors',
+                  isActive
+                    ? 'bg-primary-50 text-primary-700'
+                    : 'text-gray-700 hover:bg-gray-100'
+                )}
+              >
+                <Icon className="w-5 h-5" />
+                <span className="font-medium">{item.name}</span>
+              </Link>
+            );
+          })}
+        </nav>
+      </aside>
+
+      {/* Main Content */}
+      <main className="flex-1 overflow-auto">
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/entities" element={<EntitiesPage />} />
+          <Route path="/filtering" element={<FilteringPage />} />
+          <Route path="/hierarchy" element={<HierarchyPage />} />
+          <Route path="/sync" element={<SyncPage />} />
+          <Route path="/composition" element={<CompositionPage />} />
+          <Route path="/performance" element={<PerformancePage />} />
+          <Route path="/examples" element={<ExamplesPage />} />
+        </Routes>
+      </main>
+    </div>
+  );
+}
+
+export default App;
