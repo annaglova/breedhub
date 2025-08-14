@@ -336,14 +336,29 @@ graph TD
 
 ## 💡 Self-Testing Checklist for AI
 
+### Development Process Checklist (TDD)
+AI MUST follow this process for EVERY feature:
+
+- [ ] **1. Write test first** - Test that will fail
+- [ ] **2. Test fails (RED)** - Verify test actually fails
+- [ ] **3. Write minimal code** - Just enough to pass
+- [ ] **4. Test passes (GREEN)** - Verify test now passes
+- [ ] **5. Refactor code** - Improve without breaking
+- [ ] **6. All tests still pass** - No regressions
+- [ ] **7. No TypeScript errors** - Run `pnpm typecheck`
+- [ ] **8. Add playground example** - Create demo in playground
+- [ ] **9. Verify in browser** - Actually open and test
+- [ ] **10. Update documentation** - Add to relevant docs
+
+### Pre-Commit Checklist
 Before saying "task complete", AI should verify:
 
-- [ ] Code builds without errors
-- [ ] TypeScript has no errors
+- [ ] Code builds without errors (`pnpm build`)
+- [ ] TypeScript has no errors (`pnpm typecheck`)
 - [ ] Tests exist for new code
-- [ ] Tests pass
-- [ ] Browser console has no errors
-- [ ] Feature works as expected
+- [ ] Tests pass (`pnpm test`)
+- [ ] Browser console has no errors (F12 → Console)
+- [ ] Feature works as expected (manual test)
 - [ ] Documentation updated
 - [ ] Examples added to playground
 - [ ] No regressions introduced
