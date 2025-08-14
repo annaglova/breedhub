@@ -3,6 +3,7 @@ import { devtools } from 'zustand/middleware';
 import { immer } from 'zustand/middleware/immer';
 import type { Entity, StoreFeature, EntityId } from './types';
 import { composeFeatures } from './core/create-store-feature';
+import './setup-immer'; // Enable MapSet plugin
 
 /**
  * Creates a React SignalStore with fractal composition
@@ -26,11 +27,12 @@ export function createSignalStore<T extends Entity, TCustomState = {}>(
           ...customState,
         };
 
-        // Create methods with bound set function
+        // Create methods with bound set function and get
         const methods = composedFeature.methods 
           ? composedFeature.methods(
               initialState,
-              (updater) => set(updater)
+              (updater) => set(updater),
+              get
             )
           : {};
 

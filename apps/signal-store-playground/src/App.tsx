@@ -1,5 +1,5 @@
 import { Routes, Route, Link, useLocation } from 'react-router-dom';
-import { Home, Database, Filter, GitBranch, HardDrive, Activity, Layers, Code, Boxes, FlaskConical } from 'lucide-react';
+import { Home, Database, Filter, GitBranch, HardDrive, Activity, Layers, Code, Boxes, FlaskConical, Zap } from 'lucide-react';
 import HomePage from './pages/HomePage';
 import EntitiesPage from './pages/EntitiesPage';
 import FilteringPage from './pages/FilteringPage';
@@ -11,11 +11,13 @@ import ExamplesPage from './pages/ExamplesPage';
 import MultiStorePage from './pages/MultiStorePage';
 import TestPage from './pages/TestPage';
 import SimpleTestPage from './pages/SimpleTestPage';
+import AdvancedTestPage from './pages/AdvancedTestPage';
 import clsx from 'clsx';
 
 const navigation = [
   { name: 'Home', path: '/', icon: Home },
   { name: 'Test', path: '/test', icon: FlaskConical },
+  { name: 'Advanced Test', path: '/advanced-test', icon: Zap },
   { name: 'MultiStore', path: '/multistore', icon: Boxes },
   { name: 'Entities', path: '/entities', icon: Database },
   { name: 'Filtering', path: '/filtering', icon: Filter },
@@ -68,6 +70,7 @@ function App() {
           <Route path="/" element={<HomePage />} />
           <Route path="/test" element={<TestPage />} />
           <Route path="/simple-test" element={<SimpleTestPage />} />
+          <Route path="/advanced-test" element={<AdvancedTestPage />} />
           <Route path="/multistore" element={<MultiStorePage />} />
           <Route path="/entities" element={<EntitiesPage />} />
           <Route path="/filtering" element={<FilteringPage />} />

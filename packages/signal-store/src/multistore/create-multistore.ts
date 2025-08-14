@@ -43,6 +43,7 @@ export interface MultiStoreMethods {
   addEntity: (entity: Partial<AnyEntity>) => void;
   updateEntity: (id: string, updates: Partial<AnyEntity>) => void;
   removeEntity: (id: string, cascade?: boolean) => void;
+  removeEntityWithChildren: (id: string) => void;
   getEntity: (id: string) => AnyEntity | undefined;
   
   // Batch operations
@@ -130,7 +131,9 @@ export function createMultiStore(name = 'multiStore') {
         
         // If entity has parent, validate parent exists and relationship is valid
         if (entity._parentId) {
-          const parent = store.computed.entities.get(entity._parentId);
+          // Get current state directly
+          const currentState = store.getState();
+          const parent = currentState.entities.get(entity._parentId);
           if (!parent) {
             throw new ValidationError(
               `Parent entity ${entity._parentId} not found`,
@@ -154,7 +157,7 @@ export function createMultiStore(name = 'multiStore') {
       
       // Override updateEntity to include validation
       updateEntity: (id: string, updates: Partial<AnyEntity>) => {
-        const existing = store.computed.entities.get(id);
+        const existing = store.entities.get(id);
         if (!existing) {
           throw new ValidationError(
             `Entity ${id} not found`,
@@ -177,7 +180,7 @@ export function createMultiStore(name = 'multiStore') {
         // Handle parent changes
         if (updates._parentId !== undefined && updates._parentId !== existing._parentId) {
           if (updates._parentId) {
-            validateParentChange(existing, updates._parentId, store.computed.entities);
+            validateParentChange(existing, updates._parentId, store.entities);
           }
           store.updateParent(id, updates._parentId);
         }
@@ -203,7 +206,8 @@ export function createMultiStore(name = 'multiStore') {
       
       // Override removeEntity to handle cascading deletes
       removeEntity: (id: string, cascade = true) => {
-        const entity = store.computed.entities.get(id);
+        const currentState = store.getState();
+        const entity = currentState.entities.get(id);
         if (!entity) return;
         
         if (cascade) {
@@ -216,6 +220,29 @@ export function createMultiStore(name = 'multiStore') {
             store.unregisterEntity(descendantId);
           });
         }
+        
+        // Remove the entity itself
+        store.removeEntity(id);
+        store.unregisterEntity(id);
+        
+        // Mark store as dirty
+        markStoreDirty();
+      },
+      
+      // Alias for removeEntity with cascade
+      removeEntityWithChildren: (id: string) => {
+        const currentState = store.getState();
+        const entity = currentState.entities.get(id);
+        if (!entity) return;
+        
+        // Get all descendants
+        const descendants = store.getDescendants(id);
+        
+        // Remove descendants first (bottom-up)
+        descendants.reverse().forEach(descendantId => {
+          store.removeEntity(descendantId);
+          store.unregisterEntity(descendantId);
+        });
         
         // Remove the entity itself
         store.removeEntity(id);
@@ -249,26 +276,31 @@ export function createMultiStore(name = 'multiStore') {
       
       // Query operations
       getEntity: (id: string) => {
-        return store.computed.entities.get(id);
+        const currentState = store.getState();
+        return currentState.entities.get(id);
       },
       
       getEntitiesByType: (type: EntityType) => {
         const ids = store.getEntitiesByType(type);
-        return ids.map(id => store.computed.entities.get(id)!).filter(Boolean);
+        const currentState = store.getState();
+        return ids.map(id => currentState.entities.get(id)!).filter(Boolean);
       },
       
       getEntitiesByParent: (parentId: string) => {
         const childIds = store.getChildren(parentId);
-        return childIds.map(id => store.computed.entities.get(id)!).filter(Boolean);
+        const currentState = store.getState();
+        return childIds.map(id => currentState.entities.get(id)!).filter(Boolean);
       },
       
       findEntities: (predicate: (entity: AnyEntity) => boolean) => {
-        return Array.from(store.computed.entities.values()).filter(predicate);
+        const currentState = store.getState();
+        return Array.from(currentState.entities.values()).filter(predicate);
       },
       
       // Hierarchy operations
       getHierarchy: (entityId: string): HierarchyNode | undefined => {
-        const entity = store.computed.entities.get(entityId);
+        const currentState = store.getState();
+        const entity = currentState.entities.get(entityId);
         if (!entity) return undefined;
         
         const children = store.getChildren(entityId);
@@ -283,7 +315,8 @@ export function createMultiStore(name = 'multiStore') {
       },
       
       moveEntity: (entityId: string, newParentId: string) => {
-        const entity = store.computed.entities.get(entityId);
+        const currentState = store.getState();
+        const entity = currentState.entities.get(entityId);
         if (!entity) {
           throw new ValidationError(
             `Entity ${entityId} not found`,
@@ -298,7 +331,8 @@ export function createMultiStore(name = 'multiStore') {
       
       // Active entity management
       setActiveEntity: (entityId: string) => {
-        const entity = store.computed.entities.get(entityId);
+        const currentState = store.getState();
+        const entity = currentState.entities.get(entityId);
         if (!entity) {
           throw new ValidationError(
             `Entity ${entityId} not found`,
@@ -313,24 +347,29 @@ export function createMultiStore(name = 'multiStore') {
       
       getActiveEntity: (type: EntityType) => {
         const activeId = store.getActive(type);
-        return activeId ? store.computed.entities.get(activeId) : undefined;
+        if (!activeId) return undefined;
+        const currentState = store.getState();
+        return currentState.entities.get(activeId);
       },
       
       // Store operations
       clearStore: () => {
-        store.setAllEntities([]);
-        // Clear relationships
-        store.computed.entities.forEach((entity) => {
+        const currentState = store.getState();
+        // Clear relationships first
+        currentState.entities.forEach((entity) => {
           store.unregisterEntity(entity.id);
         });
+        // Then clear entities
+        store.setAllEntities([]);
         markStoreDirty();
       },
       
       exportStore: () => {
+        const currentState = store.getState();
         const data = {
           version: '1.0.0',
           timestamp: new Date().toISOString(),
-          entities: Array.from(store.computed.entities.values()),
+          entities: Array.from(currentState.entities.values()),
         };
         return JSON.stringify(data, null, 2);
       },
@@ -359,9 +398,10 @@ export function createMultiStore(name = 'multiStore') {
       validateStore: (): ValidationResult => {
         const errors: ValidationError[] = [];
         const warnings: string[] = [];
+        const currentState = store.getState();
         
         // Validate each entity
-        store.computed.entities.forEach((entity) => {
+        currentState.entities.forEach((entity) => {
           try {
             validateEntity(entity);
           } catch (error) {
@@ -372,7 +412,7 @@ export function createMultiStore(name = 'multiStore') {
           
           // Check parent exists
           if (entity._parentId) {
-            const parent = store.computed.entities.get(entity._parentId);
+            const parent = currentState.entities.get(entity._parentId);
             if (!parent) {
               errors.push(
                 new ValidationError(
@@ -388,7 +428,7 @@ export function createMultiStore(name = 'multiStore') {
         
         // Check for orphaned relationships
         const registeredIds = new Set<string>();
-        store.computed.entities.forEach(entity => {
+        currentState.entities.forEach(entity => {
           registeredIds.add(entity.id);
         });
         
@@ -412,8 +452,6 @@ export function createMultiStore(name = 'multiStore') {
     // Helper to mark store as dirty (needs sync)
     const markStoreDirty = () => {
       // This would trigger sync logic
-      // For now, just log
-      console.debug('Store marked as dirty');
     };
     
     return multiStore;
