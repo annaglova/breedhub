@@ -26,6 +26,9 @@ export * from './sync/indexed-db-sync';
 // Store exports
 export * from './stores/create-app-store';
 
+// MultiStore exports - NEW UNIFIED ARCHITECTURE
+export * from './multistore';
+
 // Note: Examples are not exported from the main package
 // They are available in the examples folder for reference
 
