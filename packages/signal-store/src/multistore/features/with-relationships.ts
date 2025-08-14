@@ -105,7 +105,7 @@ export function withRelationships(): StoreFeature<RelationshipsState, Relationsh
       activeView: (state) => state.activeByType.get('view'),
     },
     
-    methods: (state, set) => ({
+    methods: (state, set, get) => ({
       // Register a new entity in the relationship maps
       registerEntity: (entity: BaseEntity) => {
         set((draft) => {
@@ -191,20 +191,23 @@ export function withRelationships(): StoreFeature<RelationshipsState, Relationsh
       
       // Get direct children of an entity
       getChildren: (parentId: string) => {
-        return Array.from(state.childrenMap.get(parentId) || []);
+        const currentState = get();
+        return Array.from(currentState.childrenMap.get(parentId) || []);
       },
       
       // Get parent of an entity
       getParent: (entityId: string) => {
-        return state.parentMap.get(entityId);
+        const currentState = get();
+        return currentState.parentMap.get(entityId);
       },
       
       // Get siblings (entities with same parent)
       getSiblings: (entityId: string) => {
-        const parentId = state.parentMap.get(entityId);
+        const currentState = get();
+        const parentId = currentState.parentMap.get(entityId);
         if (!parentId) return [];
         
-        const siblings = Array.from(state.childrenMap.get(parentId) || []);
+        const siblings = Array.from(currentState.childrenMap.get(parentId) || []);
         return siblings.filter(id => id !== entityId);
       },
       
@@ -214,7 +217,7 @@ export function withRelationships(): StoreFeature<RelationshipsState, Relationsh
         let currentId = entityId;
         
         while (true) {
-          const parentId = state.parentMap.get(currentId);
+          const parentId = get().parentMap.get(currentId);
           if (!parentId) break;
           
           ancestors.push(parentId);
@@ -243,7 +246,7 @@ export function withRelationships(): StoreFeature<RelationshipsState, Relationsh
           if (visited.has(currentId)) continue;
           visited.add(currentId);
           
-          const children = state.childrenMap.get(currentId);
+          const children = get().childrenMap.get(currentId);
           if (children) {
             const childArray = Array.from(children);
             descendants.push(...childArray);
@@ -256,7 +259,7 @@ export function withRelationships(): StoreFeature<RelationshipsState, Relationsh
       
       // Get all entities of a specific type
       getEntitiesByType: (type: EntityType) => {
-        return Array.from(state.typeMap.get(type) || []);
+        return Array.from(get().typeMap.get(type) || []);
       },
       
       // Get path from root to entity
@@ -265,7 +268,7 @@ export function withRelationships(): StoreFeature<RelationshipsState, Relationsh
         let currentId = entityId;
         
         while (true) {
-          const parentId = state.parentMap.get(currentId);
+          const parentId = get().parentMap.get(currentId);
           if (!parentId) break;
           
           path.unshift(parentId);
@@ -287,7 +290,7 @@ export function withRelationships(): StoreFeature<RelationshipsState, Relationsh
         let currentId = entityId;
         
         while (true) {
-          const parentId = state.parentMap.get(currentId);
+          const parentId = get().parentMap.get(currentId);
           if (!parentId) break;
           
           depth++;
@@ -308,7 +311,7 @@ export function withRelationships(): StoreFeature<RelationshipsState, Relationsh
         let currentId = descendantId;
         
         while (true) {
-          const parentId = state.parentMap.get(currentId);
+          const parentId = get().parentMap.get(currentId);
           if (!parentId) return false;
           if (parentId === ancestorId) return true;
           
@@ -335,7 +338,7 @@ export function withRelationships(): StoreFeature<RelationshipsState, Relationsh
       
       // Get active entity for a type
       getActive: (type: EntityType) => {
-        return state.activeByType.get(type);
+        return get().activeByType.get(type);
       },
       
       // Clear active entity for a type

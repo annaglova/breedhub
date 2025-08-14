@@ -30,7 +30,7 @@ export interface CollectionState<T extends Entity> {
 export interface StoreFeature<TState = any, TMethods = any> {
   initialState: TState;
   computed?: Record<string, (state: TState) => any>;
-  methods?: (state: TState, set: (fn: (state: TState) => TState) => void) => TMethods;
+  methods?: (state: TState, set: (fn: (state: TState) => TState) => void, get?: () => any) => TMethods;
   hooks?: {
     onInit?: () => void;
     onDestroy?: () => void;

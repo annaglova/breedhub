@@ -10,7 +10,7 @@ export function createStoreFeature<
 >(config: {
   initialState?: Partial<TState>;
   computed?: Record<string, (state: TState) => any>;
-  methods?: (state: TState, set: (fn: (state: TState) => TState) => void) => TMethods;
+  methods?: (state: TState, set: (fn: (state: TState) => TState) => void, get?: () => any) => TMethods;
   hooks?: {
     onInit?: () => void;
     onDestroy?: () => void;
@@ -57,12 +57,12 @@ export function composeFeatures<TState = any, TMethods = any>(
   });
 
   // Compose methods (chain them)
-  composedFeature.methods = (state, set) => {
+  composedFeature.methods = (state, set, get) => {
     const allMethods = {} as TMethods;
     
     features.forEach(feature => {
       if (feature.methods) {
-        const methods = feature.methods(state, set);
+        const methods = feature.methods(state, set, get);
         Object.assign(allMethods, methods as any);
       }
     });
