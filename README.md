@@ -1,6 +1,14 @@
-# React + TypeScript + Vite
+# BreedHub - React + TypeScript + Vite
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+
+## 🤖 AI Development Documentation
+
+### IMPORTANT for AI Agents
+- **[AI Development Checklist](./AI_DEVELOPMENT_CHECKLIST.md)** - ⚠️ MANDATORY checklist for EVERY feature
+- **[AI Testing Guide](./AI_TESTING_GUIDE.md)** - Comprehensive testing guide for AI-driven development
+- **[MultiStore Architecture](./packages/signal-store/MULTISTORE_ARCHITECTURE.md)** - Detailed MultiStore documentation
+- **[Integration Plan](./MULTISTORE_INTEGRATION_PLAN.md)** - Plan for integrating MultiStore into main app
 
 Currently, two official plugins are available:
 
