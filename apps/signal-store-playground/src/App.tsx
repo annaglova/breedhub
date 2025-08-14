@@ -10,6 +10,7 @@ import CompositionPage from './pages/CompositionPage';
 import ExamplesPage from './pages/ExamplesPage';
 import MultiStorePage from './pages/MultiStorePage';
 import TestPage from './pages/TestPage';
+import SimpleTestPage from './pages/SimpleTestPage';
 import clsx from 'clsx';
 
 const navigation = [
@@ -66,6 +67,7 @@ function App() {
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/test" element={<TestPage />} />
+          <Route path="/simple-test" element={<SimpleTestPage />} />
           <Route path="/multistore" element={<MultiStorePage />} />
           <Route path="/entities" element={<EntitiesPage />} />
           <Route path="/filtering" element={<FilteringPage />} />
