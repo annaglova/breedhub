@@ -15,9 +15,16 @@ export * from './core/super-store';
 export * from './features/with-entities';
 export * from './features/with-filtering';
 export * from './features/with-request-status';
+export * from './features/with-workspace';
+export * from './features/with-space';
+export * from './features/with-view';
+export * from './features/with-pagination';
 
 // Sync exports
 export * from './sync/indexed-db-sync';
+
+// Store exports
+export * from './stores/create-app-store';
 
 // Note: Examples are not exported from the main package
 // They are available in the examples folder for reference
