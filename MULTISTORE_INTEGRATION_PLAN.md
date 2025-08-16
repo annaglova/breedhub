@@ -1,11 +1,50 @@
 # MultiStore Integration Plan for BreedHub
 
+> ⚠️ **Примітка**: Цей план був розроблений для попередньої архітектури. 
+> 📌 **Актуальна архітектура**: [ARCHITECTURE.md](./docs/ARCHITECTURE.md) - Local-First PWA з CRDT та AI
+
 ## Overview
 План поетапної інтеграції MultiStore архітектури в основний додаток BreedHub.
 
+> **Оновлення**: З переходом на Local-First архітектуру, MultiStore буде адаптований для роботи з CRDT (Yjs) та IndexedDB замість прямої синхронізації з сервером.
+
+## Local-First адаптація MultiStore
+
+### Інтеграція з Yjs CRDT
+```typescript
+// LocalFirstMultiStore - адаптація для офлайн-першості
+import * as Y from 'yjs';
+import { IndexeddbPersistence } from 'y-indexeddb';
+
+export class LocalFirstMultiStore extends MultiStore {
+  private ydoc = new Y.Doc();
+  private ymap: Y.Map<AnyEntity>;
+  
+  constructor(name: string) {
+    super();
+    this.ymap = this.ydoc.getMap('entities');
+    
+    // Автоматичне збереження в IndexedDB
+    new IndexeddbPersistence(name, this.ydoc);
+    
+    // Синхронізація з MultiStore
+    this.ymap.observe(() => {
+      this.syncFromCRDT();
+    });
+  }
+  
+  // Всі операції тепер локальні та миттєві
+  addEntity(entity: AnyEntity): string {
+    const id = super.addEntity(entity);
+    this.ymap.set(id, entity); // CRDT auto-sync
+    return id;
+  }
+}
+```
+
 ## Фаза 1: Підготовка (1-2 дні)
 
-### 1.1 Динамічні схеми в БД
+### 1.1 Динамічні схеми в IndexedDB (замість БД)
 ```typescript
 // Нова структура для схем entities
 interface DynamicEntitySchema {
