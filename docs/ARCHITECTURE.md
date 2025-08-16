@@ -2,21 +2,22 @@
 
 ## Огляд
 
-BreedHub 3.0 - це Local-First PWA архітектура з AI-підтримкою через Gemma 270M, натхнена принципами Тимура Шемседінова. Всі дані та обчислення знаходяться на пристрої користувача, сервер використовується лише для синхронізації. Система використовує CRDT (Yjs) для автоматичного вирішення конфліктів, IndexedDB для локального збереження, та WebGPU для швидкої роботи AI. Архітектура забезпечує повну офлайн функціональність з фоновою синхронізацією через існуючу інфраструктуру Supabase.
+BreedHub 3.0 - це Local-First PWA архітектура з AI-підтримкою через Gemma 270M, натхнена принципами Тимура Шемседінова. Всі дані та обчислення знаходяться на пристрої користувача, сервер використовується лише для синхронізації. Система використовує **RxDB** - reactive офлайн-first базу даних з вбудованою синхронізацією з Supabase/PostgreSQL, автоматичним conflict resolution та потужним query engine. Архітектура забезпечує повну офлайн функціональність з реактивними оновленнями через RxJS та @preact/signals.
 
 ## Ключові принципи
 
 ### 1. Local-First Computing (за Шемседіновим)
-- **IndexedDB** як повноцінна локальна база даних
-- **Yjs CRDT** для автоматичного merge конфліктів
+- **RxDB + IndexedDB** як повноцінна локальна реактивна база даних
+- **Автоматичний conflict resolution** через configurable strategies
 - **Миттєва відповідь** - всі операції локальні (<1ms)
 - **Повна автономність** - працює без інтернету необмежено
 - **Eventual consistency** - синхронізація коли з'явиться зв'язок
 
-### 2. Offline-First Data Layer
-- **LocalFirstStore** - обгортка над Yjs для CRUD операцій
-- **SignalStore** інтегрований з CRDT для реактивності
-- **Sync Queue** в IndexedDB для відкладеної синхронізації
+### 2. Offline-First Data Layer з RxDB
+- **RxDB Collections** - типізовані колекції з schema validation
+- **Reactive Queries** - автоматичні оновлення UI через RxJS
+- **SignalStore** інтегрований з RxDB для реактивності
+- **Вбудована Supabase синхронізація** - автоматичний push/pull
 - **Web Workers** для фонової синхронізації без блокування UI
 
 ### 3. Event-Driven для критичних операцій
@@ -37,10 +38,10 @@ BreedHub 3.0 - це Local-First PWA архітектура з AI-підтрим�
 
 ### Frontend (Local-First PWA)
 - **Vite + React 18.3+** з TypeScript 5.0+
-- **Yjs** для CRDT та автоматичного merge конфліктів
-- **y-indexeddb** для локального збереження CRDT
-- **@preact/signals-react** для реактивного стану
-- **Dexie.js** для роботи з IndexedDB
+- **RxDB** - реактивна офлайн-first база даних
+- **RxJS** для reactive programming
+- **@preact/signals-react** для UI реактивності
+- **Dexie.js** як storage backend для RxDB
 - **@mediapipe/tasks-genai** для Gemma 270M
 - **Vite PWA Plugin** для service workers
 - **Web Workers** для фонової синхронізації
@@ -68,10 +69,11 @@ graph TB
         UI[React UI]
         SS[SignalStore]
         
-        subgraph "Local Data"
-            CRDT[Yjs CRDT]
-            IDB[(IndexedDB)]
-            QUEUE[Sync Queue]
+        subgraph "RxDB Layer"
+            RXDB[RxDB Database]
+            COLL[Collections]
+            QUERY[Query Engine]
+            IDB[(IndexedDB/Dexie)]
         end
         
         subgraph "AI Engine"
@@ -84,8 +86,8 @@ graph TB
     end
 
     subgraph "Sync Layer"
-        WS[WebSocket/SSE]
-        SYNC[Sync Engine]
+        REPL[RxDB Replication]
+        SYNC[Supabase Sync Plugin]
     end
 
     subgraph "Backend (Sync Only)"
@@ -95,19 +97,20 @@ graph TB
     end
 
     UI --> SS
-    SS --> CRDT
-    CRDT --> IDB
+    SS --> RXDB
+    RXDB --> COLL
+    COLL --> IDB
     
     UI --> GEMMA
     GEMMA --> WGPU
     
-    WW --> QUEUE
-    QUEUE --> SYNC
-    SYNC --> WS
-    WS --> SB
+    WW --> REPL
+    REPL --> SYNC
+    SYNC --> SB
     SB --> PG
     
-    SW --> QUEUE
+    SW --> RXDB
+    COLL --> QUERY
 ```
 
 ## Реальна структура проектів
@@ -177,91 +180,167 @@ breedhub-pwa/
 - Dynamic schemas в БД
 - Hierarchical configs
 
-### Фаза 2: Local-First Data Layer (Тижні 1-2)
+### Фаза 2: RxDB Data Layer (Тижні 1-2)
 
-#### LocalFirstStore з Yjs CRDT
+#### RxDB Database Setup
 ```typescript
-// src/local-first/LocalFirstStore.ts
-import * as Y from 'yjs';
-import { IndexeddbPersistence } from 'y-indexeddb';
+// src/database/index.ts
+import { createRxDatabase, RxDatabase } from 'rxdb';
+import { getRxStorageDexie } from 'rxdb/plugins/storage-dexie';
+import { RxDBDevModePlugin } from 'rxdb/plugins/dev-mode';
 import { signal } from '@preact/signals-react';
 
-export class LocalFirstStore<T> {
-  private ydoc = new Y.Doc();
-  private ymap: Y.Map<T>;
-  private items = signal<Map<string, T>>(new Map());
+// Enable dev mode for debugging
+if (import.meta.env.DEV) {
+  addRxPlugin(RxDBDevModePlugin);
+}
+
+export async function createBreedHubDB(): Promise<RxDatabase> {
+  const db = await createRxDatabase({
+    name: 'breedhub',
+    storage: getRxStorageDexie(),
+    multiInstance: true,
+    eventReduce: true,
+    cleanupPolicy: {
+      minimumDeletedTime: 1000 * 60 * 60 * 24 * 7, // 7 days
+      minimumCollectionAge: 1000 * 60 * 60 * 24,
+      runEach: 1000 * 60 * 60 * 4
+    }
+  });
+
+  // Add collections with schemas
+  await db.addCollections({
+    breeds: {
+      schema: breedSchema,
+      methods: breedMethods,
+      statics: breedStatics
+    },
+    dogs: {
+      schema: dogSchema,
+      methods: dogMethods
+    },
+    kennels: {
+      schema: kennelSchema
+    },
+    litters: {
+      schema: litterSchema
+    }
+  });
+
+  return db;
+}
+
+// Integration with SignalStore
+export class RxDBSignalStore<T> {
+  private collection: RxCollection<T>;
+  private items = signal<T[]>([]);
+  private loading = signal(false);
   
-  constructor(storeName: string) {
-    // CRDT структура
-    this.ymap = this.ydoc.getMap(storeName);
+  constructor(collection: RxCollection<T>) {
+    this.collection = collection;
     
-    // Автоматичне збереження в IndexedDB
-    new IndexeddbPersistence(storeName, this.ydoc);
-    
-    // Реактивність через signals
-    this.ymap.observe(() => {
-      const newItems = new Map<string, T>();
-      this.ymap.forEach((value, key) => {
-        newItems.set(key, value as T);
-      });
-      this.items.value = newItems;
+    // RxDB → Signals reactivity
+    this.collection.$.subscribe(docs => {
+      this.items.value = docs;
     });
   }
   
-  // CRUD операції - миттєві та офлайн
-  create(id: string, data: T) {
-    this.ymap.set(id, data); // Автоматично синхронізується
+  // Reactive queries
+  find(query: MangoQuery<T>) {
+    return this.collection.find(query).$;
   }
   
-  update(id: string, updates: Partial<T>) {
-    const current = this.ymap.get(id);
-    if (current) {
-      this.ymap.set(id, { ...current, ...updates });
+  // CRUD operations - instant and offline
+  async create(data: T) {
+    return this.collection.insert(data);
+  }
+  
+  async update(id: string, updates: Partial<T>) {
+    const doc = await this.collection.findOne(id).exec();
+    if (doc) {
+      await doc.patch(updates);
     }
   }
   
-  delete(id: string) {
-    this.ymap.delete(id);
+  async delete(id: string) {
+    const doc = await this.collection.findOne(id).exec();
+    if (doc) {
+      await doc.remove();
+    }
   }
 }
 ```
 
-#### Background Sync Worker
+#### Supabase Replication Setup
 ```typescript
-// public/workers/sync.worker.js
+// src/database/replication.ts
+import { replicateRxCollection } from 'rxdb/plugins/replication';
 import { createClient } from '@supabase/supabase-js';
 
-self.addEventListener('message', async (e) => {
-  const { type, operations } = e.data;
+const supabase = createClient(
+  'http://dev.dogarray.com:8020',
+  process.env.VITE_SUPABASE_ANON_KEY
+);
+
+export async function setupSupabaseReplication(db: RxDatabase) {
+  // Replication для кожної колекції
+  const collections = ['breeds', 'dogs', 'kennels', 'litters'];
   
-  if (type === 'SYNC_BATCH') {
-    const supabase = createClient(
-      'http://dev.dogarray.com:8020',
-      process.env.SUPABASE_ANON_KEY
-    );
+  for (const collectionName of collections) {
+    const collection = db[collectionName];
     
-    for (const op of operations) {
-      try {
-        switch (op.type) {
-          case 'CREATE':
-            await supabase.from(op.table).insert(op.data);
-            break;
-          case 'UPDATE':
-            await supabase.from(op.table).update(op.data).eq('id', op.id);
-            break;
-          case 'DELETE':
-            await supabase.from(op.table).delete().eq('id', op.id);
-            break;
-        }
-      } catch (error) {
-        // Retry later
-        self.postMessage({ type: 'SYNC_ERROR', error });
+    const replicationState = replicateRxCollection({
+      collection,
+      replicationIdentifier: `${collectionName}-supabase`,
+      
+      // Pull from Supabase
+      pull: {
+        async handler(checkpoint) {
+          const query = supabase
+            .from(collectionName)
+            .select('*')
+            .order('updated_at', { ascending: true });
+            
+          if (checkpoint) {
+            query.gt('updated_at', checkpoint.updated_at);
+          }
+          
+          const { data, error } = await query.limit(100);
+          
+          if (error) throw error;
+          
+          return {
+            documents: data || [],
+            checkpoint: data?.length ? 
+              { updated_at: data[data.length - 1].updated_at } : 
+              checkpoint
+          };
+        },
+        batchSize: 100,
+        modifier: (doc) => doc // Transform if needed
+      },
+      
+      // Push to Supabase
+      push: {
+        async handler(docs) {
+          const { error } = await supabase
+            .from(collectionName)
+            .upsert(docs);
+            
+          if (error) throw error;
+          return [];
+        },
+        batchSize: 50,
+        modifier: (doc) => doc
       }
-    }
+    });
     
-    self.postMessage({ type: 'SYNC_COMPLETE' });
+    // Error handling
+    replicationState.error$.subscribe(err => {
+      console.error(`Replication error for ${collectionName}:`, err);
+    });
   }
-});
+}
 ```
 
 ### Фаза 3: Event Sourcing (Тижні 3-4)
