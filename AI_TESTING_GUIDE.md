@@ -1,5 +1,7 @@
 # AI Testing Guide - Як навчити AI тестувати свій код
 
+> 📌 **Актуальна архітектура**: [ARCHITECTURE.md](./docs/ARCHITECTURE.md) - Local-First PWA з CRDT та AI
+
 ## 🎯 Принципи тестування для AI
 
 ### 1. **Test-First Mindset**

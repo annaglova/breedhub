@@ -1,8 +1,12 @@
 # AI Development Checklist
 
+> 📌 **Актуальна архітектура**: [ARCHITECTURE.md](./docs/ARCHITECTURE.md) - Local-First PWA з CRDT та AI
+
 ## ✅ MANDATORY Checklist for Every Feature
 
 **This checklist MUST be followed by AI for EVERY feature implementation.**
+
+> **Оновлено для Local-First**: Тести тепер включають офлайн сценарії та CRDT синхронізацію
 
 ### 📝 Step-by-Step Process
 

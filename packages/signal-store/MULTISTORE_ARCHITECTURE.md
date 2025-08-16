@@ -1,8 +1,12 @@
 # MultiStore Architecture Documentation
 
+> 📌 **Актуальна архітектура**: [ARCHITECTURE.md](../../docs/ARCHITECTURE.md) - Local-First PWA з CRDT та AI
+
 ## For AI Agents: Critical Reading
 
 **This document is designed for AI agents working on this codebase. Read this completely before making any changes to the MultiStore system.**
+
+> **Local-First адаптація**: MultiStore буде розширений з LocalFirstMultiStore класом, який інтегрує Yjs CRDT для офлайн-першої роботи.
 
 ## Table of Contents
 1. [Core Concept](#core-concept)

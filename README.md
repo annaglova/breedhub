@@ -1,6 +1,6 @@
-# 🐕 BreedHub - Breeding Management Platform
+# 🐕 BreedHub - Local-First Breeding Management Platform
 
-**Modern, AI-driven breeding management system built with React, TypeScript, and cutting-edge technologies.**
+**Local-First PWA з AI-підтримкою для управління розведенням, побудована на принципах офлайн-першості та CRDT синхронізації.**
 
 ## 📚 Table of Contents
 
@@ -33,14 +33,21 @@ pnpm dev:playground   # SignalStore playground
 ```
 breedhub/
 ├── apps/
-│   ├── app/              # Main application
+│   ├── app/              # Main application (legacy)
 │   ├── landing/          # Landing page
 │   └── signal-store-playground/  # Testing playground
-├── packages/
-│   ├── signal-store/     # State management library
-│   └── ui/              # Shared UI components
+├── packages/            # Планується для shared code
 ├── docs/                # Documentation
+│   ├── ARCHITECTURE.md  # Local-First архітектура
+│   ├── CONFIG_SETUP.md  # Налаштування конфігурацій
+│   └── ...
+├── supabase/
+│   └── migrations/      # SQL міграції
 └── public/             # Static assets
+
+Окремі репозиторії:
+├── windmill/           # Serverless функції
+└── breedhub-pwa/       # Новий Local-First PWA (планується)
 ```
 
 ## 📖 Documentation
@@ -49,9 +56,10 @@ breedhub/
 
 | Document | Description |
 |----------|-------------|
-| [PROJECT_GUIDELINES.md](./PROJECT_GUIDELINES.md) | **📋 Project architecture, conventions, and structure** |
-| [MULTISTORE_ARCHITECTURE.md](./packages/signal-store/MULTISTORE_ARCHITECTURE.md) | **🏗️ Complete MultiStore system documentation** |
-| [MULTISTORE_INTEGRATION_PLAN.md](./MULTISTORE_INTEGRATION_PLAN.md) | **📊 Plan for integrating MultiStore into main app** |
+| [ARCHITECTURE.md](./docs/ARCHITECTURE.md) | **🏗️ Local-First PWA архітектура з CRDT та AI** |
+| [PROJECT_GUIDELINES.md](./PROJECT_GUIDELINES.md) | **📋 Project conventions and structure** |
+| [MULTISTORE_INTEGRATION_PLAN.md](./MULTISTORE_INTEGRATION_PLAN.md) | **📊 MultiStore integration (legacy)** |
+| [CONFIG_SETUP.md](./docs/CONFIG_SETUP.md) | **⚙️ Windmill + Supabase configuration** |
 
 ### AI Development Guides
 
@@ -127,58 +135,44 @@ pnpm format          # Format with Prettier
 
 ## 🏗 Architecture
 
-### MultiStore Architecture
+### Local-First PWA Architecture
 
-The project uses a revolutionary **MultiStore** architecture where everything is an entity:
+BreedHub використовує **Local-First** архітектуру натхнену принципами Тимура Шемседінова:
 
 ```typescript
-// All data is entities with types
-interface Entity {
-  id: string;
-  _type: EntityType;
-  _parentId?: string;
-  _metadata: EntityMetadata;
+// Всі дані зберігаються локально з CRDT синхронізацією
+class LocalFirstStore<T> {
+  private ydoc = new Y.Doc();        // Yjs CRDT
+  private ymap: Y.Map<T>;            // CRDT map
+  private items = signal<Map>();     // Reactive signals
+  
+  // Миттєві локальні операції
+  create(id: string, data: T) {
+    this.ymap.set(id, data);  // Auto-sync via CRDT
+  }
 }
-
-// Hierarchy
-workspace
-  └── space (collection)
-        ├── view (display)
-        │     ├── filter
-        │     └── sort
-        └── data (breed, pet, kennel, contact)
 ```
 
 **Key Features:**
-- 🔄 Single unified store for all data
-- 🌳 Hierarchical parent-child relationships
-- ✅ Runtime validation
-- 📦 Export/Import capability
-- 🔍 Dynamic schemas (future)
-
-### State Management
-
-Using **SignalStore** - a fractal state management solution:
-
-```typescript
-// Feature composition
-const store = createSignalStore('myStore', [
-  withEntities(),
-  withFiltering(),
-  withRequestStatus(),
-  withIndexedDBSync()
-]);
-```
+- ⚡ Миттєва відповідь (<1ms) - всі операції локальні
+- 🔄 CRDT автоматичний merge конфліктів через Yjs
+- 📱 Повна офлайн функціональність
+- 🤖 On-device AI через Gemma 270M
+- 🌐 PWA - працює на всіх платформах
 
 ### Tech Stack
 
-- **Frontend:** React 18, TypeScript 5
-- **State:** Zustand, Immer, SignalStore
-- **Styling:** Tailwind CSS
-- **Build:** Vite, tsup
-- **Testing:** Vitest
-- **Database:** Supabase (PostgreSQL)
-- **Offline:** IndexedDB
+#### Frontend (Local-First PWA)
+- **Core:** React 18, TypeScript 5, Vite
+- **CRDT:** Yjs, y-indexeddb
+- **State:** @preact/signals-react
+- **AI:** Gemma 270M via WebGPU
+- **Offline:** IndexedDB, Service Workers
+
+#### Backend (Sync Only)
+- **Database:** Supabase (PostgreSQL) на dev.dogarray.com
+- **Functions:** Windmill (окремий проект)
+- **Sync:** WebSocket/SSE для real-time
 
 ## 🧪 Testing
 
