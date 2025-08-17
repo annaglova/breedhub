@@ -5,11 +5,16 @@ export interface Breed {
   id: string;
   name: string;
   description?: string;
-  traits: string[];
+  group?: string;
+  traits?: string[];
   origin?: string;
   size?: 'small' | 'medium' | 'large' | 'giant';
   temperament?: string[];
-  lifeSpan?: string;
+  lifeSpan?: { min: number; max: number };
+  weight?: { min: number; max: number };
+  height?: { min: number; max: number };
+  colors?: string[];
+  imageUrl?: string;
   updatedAt: string;
   createdAt: string;
   _deleted?: boolean;
@@ -30,16 +35,35 @@ export const breedSchema: RxJsonSchema<Breed> = {
       maxLength: 200
     },
     description: {
-      type: 'string'
+      type: 'string',
+      maxLength: 2000
+    },
+    group: {
+      type: 'string',
+      maxLength: 100,
+      enum: [
+        'Sporting',
+        'Hound',
+        'Working',
+        'Terrier',
+        'Toy',
+        'Non-Sporting',
+        'Herding',
+        'Miscellaneous',
+        'Foundation Stock Service'
+      ]
     },
     traits: {
       type: 'array',
       items: {
-        type: 'string'
-      }
+        type: 'string',
+        maxLength: 50
+      },
+      maxItems: 20
     },
     origin: {
-      type: 'string'
+      type: 'string',
+      maxLength: 100
     },
     size: {
       type: 'string',
@@ -48,11 +72,43 @@ export const breedSchema: RxJsonSchema<Breed> = {
     temperament: {
       type: 'array',
       items: {
-        type: 'string'
-      }
+        type: 'string',
+        maxLength: 50
+      },
+      maxItems: 10
     },
     lifeSpan: {
-      type: 'string'
+      type: 'object',
+      properties: {
+        min: { type: 'number', minimum: 1, maximum: 25 },
+        max: { type: 'number', minimum: 1, maximum: 25 }
+      }
+    },
+    weight: {
+      type: 'object',
+      properties: {
+        min: { type: 'number', minimum: 1, maximum: 200 },
+        max: { type: 'number', minimum: 1, maximum: 200 }
+      }
+    },
+    height: {
+      type: 'object',
+      properties: {
+        min: { type: 'number', minimum: 1, maximum: 50 },
+        max: { type: 'number', minimum: 1, maximum: 50 }
+      }
+    },
+    colors: {
+      type: 'array',
+      items: {
+        type: 'string',
+        maxLength: 50
+      },
+      maxItems: 20
+    },
+    imageUrl: {
+      type: 'string',
+      maxLength: 500
     },
     updatedAt: {
       type: 'string',
@@ -66,10 +122,14 @@ export const breedSchema: RxJsonSchema<Breed> = {
       type: 'boolean'
     }
   },
-  required: ['id', 'name', 'traits', 'updatedAt', 'createdAt'],
+  required: ['id', 'name', 'updatedAt', 'createdAt'],
   indexes: [
     'name',
-    'updatedAt'
+    'group',
+    'size',
+    'updatedAt',
+    ['group', 'size'],
+    ['name', 'group']
   ]
 };
 
