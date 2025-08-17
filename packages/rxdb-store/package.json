@@ -1,0 +1,25 @@
+{
+  "name": "@breedhub/rxdb-store",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "scripts": {
+    "dev": "tsc --watch",
+    "build": "tsc",
+    "test": "vitest"
+  },
+  "dependencies": {
+    "@preact/signals-react": "^3.2.1",
+    "@supabase/supabase-js": "^2.50.2",
+    "ajv": "^8.17.1",
+    "dexie": "^4.0.11",
+    "rxdb": "^16.17.2",
+    "z-schema": "^6.0.2",
+    "zod": "^3.25.67"
+  },
+  "devDependencies": {
+    "typescript": "~5.8.3",
+    "vitest": "^2.0.0"
+  }
+}
