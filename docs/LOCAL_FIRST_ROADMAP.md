@@ -206,6 +206,34 @@ describe('Phase 0: RxDB Setup', () => {
 
 ### Мета: Зробити додаток installable PWA
 
+#### 1.0 Покращення архітектури (на основі ngx-odm) (2 дні) 🆕
+```typescript
+// 1. Collection Service Pattern
+export class CollectionService<T> {
+  items = signal<T[]>([]);
+  loading = signal(false);
+  error = signal<Error | null>(null);
+  
+  async insert(docs: T[]): Promise<void>
+  async update(id: string, doc: Partial<T>): Promise<void>
+  async remove(id: string): Promise<void>
+  find(query?: MangoQuery): ReadonlySignal<T[]>
+}
+
+// 2. Lazy Collection Loading
+export class LazyCollectionLoader {
+  private loadedCollections = new Map();
+  async getCollection<T>(name: string): Promise<RxCollection<T>>
+}
+
+// 3. Configuration Manager
+export class RxDBConfig {
+  static fromJSON(config: ConfigJSON): RxDBConfig
+  static fromEnv(): RxDBConfig
+  validate(): boolean
+}
+```
+
 #### 1.1 Service Worker та Manifest (3 дні)
 ```typescript
 // vite.config.ts оновлення
@@ -271,6 +299,35 @@ describe('Phase 1: PWA Features', () => {
 ## Фаза 2: RxDB Supabase Replication (2 тижні)
 
 ### Мета: Повна офлайн функціональність з автоматичною синхронізацією
+
+#### 2.0 Архітектурні покращення з ngx-odm (2 дні) 🆕
+```typescript
+// Replication State Factory Pattern
+export interface ReplicationConfig {
+  collections: string[];
+  supabaseUrl: string;
+  supabaseKey: string;
+  batchSize?: number;
+  retryStrategy?: RetryConfig;
+}
+
+// Centralized Sync Manager
+export class SyncManager {
+  private replicators = new Map<string, SupabaseReplicator>();
+  
+  async startSync(config: ReplicationConfig) {
+    for (const collectionName of config.collections) {
+      const replicator = new SupabaseReplicator(config);
+      await replicator.setupReplication(collectionName);
+      this.replicators.set(collectionName, replicator);
+    }
+  }
+  
+  pauseAll() { /* ... */ }
+  resumeAll() { /* ... */ }
+  getStatus(): SyncStatus { /* ... */ }
+}
+```
 
 #### 2.1 RxDB Schemas Definition (2 дні)
 ```typescript
@@ -399,6 +456,45 @@ describe('Phase 2: Sync & Replication', () => {
 ## Фаза 3: UI оновлення для Local-First (2 тижні)
 
 ### Мета: Адаптувати UI для офлайн роботи
+
+#### 3.0 Advanced Features з ngx-odm (2 дні) 🆕
+```typescript
+// 1. Query Persistence Plugin (зберігати фільтри в URL)
+export class QueryPersistence {
+  saveToURL(query: MangoQuery): void {
+    const params = new URLSearchParams(window.location.search);
+    params.set('query', JSON.stringify(query));
+    window.history.replaceState({}, '', `?${params}`);
+  }
+  
+  loadFromURL(): MangoQuery | null {
+    const params = new URLSearchParams(window.location.search);
+    const queryStr = params.get('query');
+    return queryStr ? JSON.parse(queryStr) : null;
+  }
+}
+
+// 2. Batch Operations Helper
+export class BatchOperations {
+  async batchInsert<T>(collection: RxCollection<T>, docs: T[], chunkSize = 100) {
+    const chunks = chunk(docs, chunkSize);
+    for (const chunk of chunks) {
+      await collection.bulkInsert(chunk);
+      // Progress callback
+    }
+  }
+}
+
+// 3. Local Documents для user settings
+export async function saveUserSettings(settings: UserSettings) {
+  const localDoc = await db.getLocal('user-settings');
+  if (localDoc) {
+    await localDoc.update({ $set: settings });
+  } else {
+    await db.insertLocal('user-settings', settings);
+  }
+}
+```
 
 #### 3.1 Офлайн індикатори (3 дні)
 ```typescript
