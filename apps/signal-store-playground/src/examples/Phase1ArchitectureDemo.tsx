@@ -9,8 +9,7 @@ import { CollectionService } from '../../../../packages/rxdb-store/src/services/
 import { BreedService } from '../../../../packages/rxdb-store/src/services/breed.service';
 import { LazyCollectionLoader, getCollectionLoader } from '../../../../packages/rxdb-store/src/services/lazy-collection-loader';
 import { ConfigurationManager } from '../../../../packages/rxdb-store/src/services/configuration-manager';
-import { breedSchema } from '../../../../packages/rxdb-store/src/schemas/breed.schema';
-import type { Breed } from '../../../../packages/rxdb-store/src/schemas/breed.schema';
+import { breedSchema, type Breed } from '../../../../packages/rxdb-store/src/schemas/breed.schema';
 
 // Add plugins
 addRxPlugin(RxDBQueryBuilderPlugin);

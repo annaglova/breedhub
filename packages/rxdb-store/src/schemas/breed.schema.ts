@@ -40,7 +40,6 @@ export const breedSchema: RxJsonSchema<Breed> = {
     },
     group: {
       type: 'string',
-      maxLength: 100,
       enum: [
         'Sporting',
         'Hound',
