@@ -10,6 +10,9 @@ import { BreedService } from '../../../../packages/rxdb-store/src/services/breed
 import { LazyCollectionLoader, getCollectionLoader } from '../../../../packages/rxdb-store/src/services/lazy-collection-loader';
 import { ConfigurationManager } from '../../../../packages/rxdb-store/src/services/configuration-manager';
 import { breedSchema, type Breed } from '../../../../packages/rxdb-store/src/schemas/breed.schema';
+import { dogSchema, type Dog } from '../../../../packages/rxdb-store/src/schemas/dog.schema';
+import { cleanupOldDatabases, cleanAllRxDBDatabases } from '../utils/cleanup-databases';
+import { DatabaseStructure } from '../components/DatabaseStructure';
 
 // Add plugins
 addRxPlugin(RxDBQueryBuilderPlugin);
@@ -71,6 +74,11 @@ export function Phase1ArchitectureDemo() {
 
   async function initializePhase1() {
     try {
+      setStatus('Cleaning up old databases...');
+      
+      // Clean up old test databases first
+      await cleanupOldDatabases('phase1-stable');
+      
       setStatus('Setting up Configuration Manager...');
       
       // 1. Configuration Manager
@@ -79,13 +87,29 @@ export function Phase1ArchitectureDemo() {
       
       // 2. Create database with configuration
       setStatus('Creating database...');
-      const sessionId = Date.now().toString(36);
+      // Use stable name for persistent database
+      const dbName = 'phase1-stable-demo';
       const dbConfig = config.getDatabaseConfig();
       
-      const database = await createRxDatabase({
-        ...dbConfig,
-        name: `phase1-demo-${sessionId}`
-      });
+      // Check if database already exists
+      let database;
+      try {
+        database = await createRxDatabase({
+          ...dbConfig,
+          name: dbName,
+          ignoreDuplicate: true // Reuse existing database
+        });
+      } catch (error: any) {
+        // If DB exists error, try to remove and recreate
+        console.log('Database exists, removing and recreating...');
+        const { removeRxDatabase } = await import('rxdb');
+        await removeRxDatabase(dbName, getRxStorageDexie());
+        
+        database = await createRxDatabase({
+          ...dbConfig,
+          name: dbName
+        });
+      }
       setDb(database);
       
       // 3. Lazy Collection Loader
@@ -98,6 +122,13 @@ export function Phase1ArchitectureDemo() {
         name: 'breeds',
         schema: breedSchema,
         autoLoad: true // Auto-load since it's our main collection
+      });
+      
+      // Register dogs collection (lazy load)
+      collectionLoader.registerCollection({
+        name: 'dogs',
+        schema: dogSchema,
+        autoLoad: false // Will be loaded on demand
       });
       
       // Subscribe to loading states
@@ -188,17 +219,63 @@ export function Phase1ArchitectureDemo() {
     await loader.preloadForRoute(route);
   };
 
+  const handleCleanupDatabases = async () => {
+    if (confirm('This will delete ALL RxDB databases. Are you sure?')) {
+      setStatus('Cleaning all databases...');
+      const cleaned = await cleanAllRxDBDatabases();
+      setStatus(`Cleaned ${cleaned} databases. Please refresh the page.`);
+      
+      // Reset state
+      setDb(null);
+      setBreedService(null);
+      setLoader(null);
+      setBreeds([]);
+    }
+  };
+  
+  const handleCleanDogsCollection = async () => {
+    if (db && confirm('This will delete the dogs collection. Continue?')) {
+      try {
+        // Remove just the dogs collection database
+        const dogsDbName = db.name + '--0--dogs';
+        await indexedDB.deleteDatabase(dogsDbName);
+        setStatus('Dogs collection cleared. Try preloading again.');
+        
+        // Reset loader to re-register collections
+        if (loader) {
+          loader.unloadCollection('dogs');
+        }
+      } catch (error) {
+        console.error('Error cleaning dogs collection:', error);
+      }
+    }
+  };
+
   return (
     <div className="p-6 bg-white rounded-lg shadow">
       <h2 className="text-2xl font-bold mb-4">🏗️ Phase 1.0: Architecture Improvements</h2>
       
       {/* Status */}
-      <div className="mb-6 p-3 bg-gray-100 rounded">
-        <strong>Status:</strong> {status}
+      <div className="mb-6 p-3 bg-gray-100 rounded flex justify-between items-center">
+        <div>
+          <strong>Status:</strong> {status}
+        </div>
+        <button
+          onClick={handleCleanupDatabases}
+          className="px-3 py-1 bg-red-500 text-white rounded text-sm hover:bg-red-600"
+          title="Delete ALL RxDB databases"
+        >
+          🗑️ Clean All DBs
+        </button>
       </div>
       
+      {/* Database Structure Visualization */}
+      {db && (
+        <DatabaseStructure dbName={db.name} />
+      )}
+      
       {/* Configuration Manager Info */}
-      {configManager && (
+      {configManager && db && (
         <div className="mb-6 p-4 bg-blue-50 rounded">
           <h3 className="font-bold mb-2">📋 Configuration Manager</h3>
           <div className="text-sm space-y-1">
@@ -206,6 +283,14 @@ export function Phase1ArchitectureDemo() {
             <div>Debug Mode: {configManager.isDebugMode() ? 'Yes' : 'No'}</div>
             <div>Database: {configManager.getConfig().database.name}</div>
             <div>Storage: {configManager.getConfig().database.storage}</div>
+            <div className="mt-2 pt-2 border-t">
+              <strong>RxDB Info:</strong>
+              <div>Database Name: {db.name}</div>
+              <div>Collections: {Object.keys(db.collections).join(', ') || 'none'}</div>
+              <div className="text-xs text-gray-600 mt-1">
+                Note: RxDB creates separate IndexedDB for each collection for performance
+              </div>
+            </div>
           </div>
         </div>
       )}
@@ -238,6 +323,13 @@ export function Phase1ArchitectureDemo() {
               className="px-3 py-1 bg-blue-500 text-white rounded text-sm"
             >
               Preload /dogs
+            </button>
+            <button
+              onClick={handleCleanDogsCollection}
+              className="px-3 py-1 bg-orange-500 text-white rounded text-sm"
+              title="Clear dogs collection if there's an error"
+            >
+              Clear Dogs DB
             </button>
           </div>
         </div>

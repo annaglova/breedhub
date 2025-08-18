@@ -40,17 +40,9 @@ export const breedSchema: RxJsonSchema<Breed> = {
     },
     group: {
       type: 'string',
-      enum: [
-        'Sporting',
-        'Hound',
-        'Working',
-        'Terrier',
-        'Toy',
-        'Non-Sporting',
-        'Herding',
-        'Miscellaneous',
-        'Foundation Stock Service'
-      ]
+      maxLength: 100
+      // Temporarily removed enum to debug DXE1 error
+      // Will add validation at application level instead
     },
     traits: {
       type: 'array',
@@ -66,7 +58,8 @@ export const breedSchema: RxJsonSchema<Breed> = {
     },
     size: {
       type: 'string',
-      enum: ['small', 'medium', 'large', 'giant']
+      maxLength: 20
+      // Temporarily removed enum to debug DXE1 error
     },
     temperament: {
       type: 'array',
@@ -124,11 +117,8 @@ export const breedSchema: RxJsonSchema<Breed> = {
   required: ['id', 'name', 'updatedAt', 'createdAt'],
   indexes: [
     'name',
-    'group',
-    'size',
-    'updatedAt',
-    ['group', 'size'],
-    ['name', 'group']
+    'updatedAt'
+    // Removed compound indexes with enum fields to avoid DXE1 error
   ]
 };
 

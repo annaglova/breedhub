@@ -56,18 +56,17 @@ export function SimpleRxDBTest() {
         
         setStatus('Checking database...');
         
-        // Use a completely unique name each session to avoid DB9
-        const sessionId = Date.now().toString(36);
-        const uniqueName = `rxdb-demo-${sessionId}`;
+        // Use stable name for Phase 0 demo
+        const uniqueName = `phase0-stable-demo`;
         
         console.log(`Creating fresh database: ${uniqueName}`);
         
-        // Clean up old databases
+        // Clean up old test databases but keep stable ones
         if (typeof window !== 'undefined' && 'indexedDB' in window) {
           try {
             const databases = await indexedDB.databases();
             for (const db of databases) {
-              if (db.name?.startsWith('rxdb-demo-') && !db.name.includes(sessionId)) {
+              if (db.name?.startsWith('rxdb-demo-')) {
                 console.log(`🗑️ Removing old: ${db.name}`);
                 await indexedDB.deleteDatabase(db.name);
               }
@@ -81,16 +80,27 @@ export function SimpleRxDBTest() {
         
         let database;
         try {
+          // Try to reuse existing database first
           database = await createRxDatabase({
             name: uniqueName,
             storage: getRxStorageDexie(),
-            ignoreDuplicate: false, // Don't reuse
+            ignoreDuplicate: true, // Reuse if exists
             multiInstance: false,
             allowSlowCount: true
           });
         } catch (err: any) {
-          console.error('Failed to create database:', err);
-          throw err;
+          // If that fails, remove and recreate
+          console.log('Database error, removing and recreating...');
+          const { removeRxDatabase } = await import('rxdb');
+          await removeRxDatabase(uniqueName, getRxStorageDexie());
+          
+          database = await createRxDatabase({
+            name: uniqueName,
+            storage: getRxStorageDexie(),
+            ignoreDuplicate: false,
+            multiInstance: false,
+            allowSlowCount: true
+          });
         }
 
         setStatus('Adding collection...');
@@ -106,12 +116,15 @@ export function SimpleRxDBTest() {
         setDb(database);
         setStatus('✅ Database ready!');
 
-        // Add test item
-        await database.items.insert({
-          id: 'test-1',
-          name: 'Test Item',
-          createdAt: new Date().toISOString()
-        });
+        // Check if test item already exists before adding
+        const existingItem = await database.items.findOne('test-1').exec();
+        if (!existingItem) {
+          await database.items.insert({
+            id: 'test-1',
+            name: 'Test Item',
+            createdAt: new Date().toISOString()
+          });
+        }
 
         // Subscribe to changes
         const subscription = database.items.find().$.subscribe((docs: any[]) => {
