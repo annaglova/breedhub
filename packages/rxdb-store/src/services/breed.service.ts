@@ -1,27 +1,10 @@
 import { CollectionService } from './collection.service';
 import { RxCollection } from 'rxdb';
 import { computed } from '@preact/signals-react';
+import type { Breed } from '../schemas/breed.schema';
 
-/**
- * Breed entity interface matching RxDB schema
- */
-export interface Breed {
-  id: string;
-  name: string;
-  description?: string;
-  group?: string;
-  size?: 'small' | 'medium' | 'large' | 'giant';
-  traits?: string[];
-  temperament?: string[];
-  lifeSpan?: { min: number; max: number };
-  weight?: { min: number; max: number };
-  height?: { min: number; max: number };
-  colors?: string[];
-  imageUrl?: string;
-  updatedAt: string;
-  createdAt: string;
-  _deleted?: boolean;
-}
+// Re-export the Breed type from schema
+export type { Breed } from '../schemas/breed.schema';
 
 /**
  * Breed-specific collection service with domain logic

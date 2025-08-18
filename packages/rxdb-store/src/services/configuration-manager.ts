@@ -1,6 +1,5 @@
 import { RxStorage } from 'rxdb';
 import { getRxStorageDexie } from 'rxdb/plugins/storage-dexie';
-import { getRxStorageMemory } from 'rxdb/plugins/storage-memory';
 
 /**
  * Database configuration interface
@@ -284,7 +283,10 @@ export class ConfigurationManager {
     
     switch (storageType) {
       case 'memory':
-        return getRxStorageMemory();
+        // Memory storage would need to be imported from rxdb/plugins/storage-memory
+        // For now, default to Dexie
+        console.warn('Memory storage not available, falling back to Dexie');
+        return getRxStorageDexie();
       case 'dexie':
         return getRxStorageDexie();
       case 'custom':
