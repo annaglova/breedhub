@@ -1,0 +1,23 @@
+{
+  "name": "BreedHub Playground",
+  "short_name": "BreedHub",
+  "description": "Local-First PWA for Dog Breeding Management",
+  "theme_color": "#6B3AB7",
+  "background_color": "#ffffff",
+  "display": "standalone",
+  "scope": "/",
+  "start_url": "/",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

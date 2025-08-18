@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Generate PWA Icons</title>
+</head>
+<body>
+    <h1>PWA Icon Generator</h1>
+    <canvas id="canvas"></canvas>
+    <div id="links"></div>
+    
+    <script>
+        function generateIcon(size) {
+            const canvas = document.getElementById('canvas');
+            const ctx = canvas.getContext('2d');
+            
+            canvas.width = size;
+            canvas.height = size;
+            
+            // Purple gradient background
+            const gradient = ctx.createLinearGradient(0, 0, size, size);
+            gradient.addColorStop(0, '#6B3AB7');
+            gradient.addColorStop(1, '#8B5AC7');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, size, size);
+            
+            // White text
+            ctx.fillStyle = 'white';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            
+            // Adjust font size based on icon size
+            const fontSize = size * 0.35;
+            ctx.font = `bold ${fontSize}px Arial`;
+            ctx.fillText('BH', size / 2, size / 2);
+            
+            // Create download link
+            const link = document.createElement('a');
+            link.download = `pwa-${size}x${size}.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.textContent = `Download ${size}x${size}`;
+            link.style.display = 'block';
+            link.style.margin = '10px';
+            document.getElementById('links').appendChild(link);
+        }
+        
+        // Generate all required sizes
+        [64, 192, 512].forEach(size => generateIcon(size));
+        
+        // Generate maskable icon (with safe area padding)
+        function generateMaskableIcon() {
+            const size = 512;
+            const canvas = document.getElementById('canvas');
+            const ctx = canvas.getContext('2d');
+            
+            canvas.width = size;
+            canvas.height = size;
+            
+            // Purple background (full bleed)
+            ctx.fillStyle = '#6B3AB7';
+            ctx.fillRect(0, 0, size, size);
+            
+            // White circle in safe area (80% of icon)
+            const safeArea = size * 0.8;
+            const padding = (size - safeArea) / 2;
+            
+            ctx.fillStyle = '#8B5AC7';
+            ctx.beginPath();
+            ctx.arc(size / 2, size / 2, safeArea / 2, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // White text
+            ctx.fillStyle = 'white';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.font = `bold ${size * 0.28}px Arial`;
+            ctx.fillText('BH', size / 2, size / 2);
+            
+            // Create download link
+            const link = document.createElement('a');
+            link.download = 'maskable-icon-512x512.png';
+            link.href = canvas.toDataURL('image/png');
+            link.textContent = 'Download Maskable 512x512';
+            link.style.display = 'block';
+            link.style.margin = '10px';
+            document.getElementById('links').appendChild(link);
+        }
+        
+        generateMaskableIcon();
+        
+        // Apple touch icon
+        function generateAppleTouchIcon() {
+            const size = 180;
+            const canvas = document.getElementById('canvas');
+            const ctx = canvas.getContext('2d');
+            
+            canvas.width = size;
+            canvas.height = size;
+            
+            // Rounded corners background
+            const radius = size * 0.2;
+            ctx.fillStyle = '#6B3AB7';
+            ctx.beginPath();
+            ctx.moveTo(radius, 0);
+            ctx.lineTo(size - radius, 0);
+            ctx.quadraticCurveTo(size, 0, size, radius);
+            ctx.lineTo(size, size - radius);
+            ctx.quadraticCurveTo(size, size, size - radius, size);
+            ctx.lineTo(radius, size);
+            ctx.quadraticCurveTo(0, size, 0, size - radius);
+            ctx.lineTo(0, radius);
+            ctx.quadraticCurveTo(0, 0, radius, 0);
+            ctx.fill();
+            
+            // White text
+            ctx.fillStyle = 'white';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.font = `bold ${size * 0.35}px Arial`;
+            ctx.fillText('BH', size / 2, size / 2);
+            
+            // Create download link
+            const link = document.createElement('a');
+            link.download = 'apple-touch-icon.png';
+            link.href = canvas.toDataURL('image/png');
+            link.textContent = 'Download Apple Touch Icon 180x180';
+            link.style.display = 'block';
+            link.style.margin = '10px';
+            document.getElementById('links').appendChild(link);
+        }
+        
+        generateAppleTouchIcon();
+    </script>
+    
+    <p style="margin-top: 20px;">
+        Instructions:<br>
+        1. Right-click each link and save the images<br>
+        2. Place them in the /public folder<br>
+        3. The PWA will be ready for installation!
+    </p>
+</body>
+</html>
