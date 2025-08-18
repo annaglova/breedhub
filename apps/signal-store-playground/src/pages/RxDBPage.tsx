@@ -1,9 +1,35 @@
 import React, { useState } from 'react';
 import { SimpleRxDBTest } from '../examples/SimpleRxDBTest';
 import { Phase1ArchitectureDemo } from '../examples/Phase1ArchitectureDemo';
+import { cleanAllRxDBDatabases, listDatabases } from '../utils/cleanup-databases';
 
 export default function RxDBPage() {
   const [activeTab, setActiveTab] = useState<'phase0' | 'phase1'>('phase0');
+  const [dbCount, setDbCount] = useState<number>(0);
+  const [cleanupStatus, setCleanupStatus] = useState<string>('');
+  
+  React.useEffect(() => {
+    checkDatabases();
+  }, []);
+  
+  const checkDatabases = async () => {
+    const dbs = await listDatabases();
+    setDbCount(dbs.length);
+  };
+  
+  const handleCleanAllDatabases = async () => {
+    if (confirm(`This will delete ALL ${dbCount} IndexedDB databases. Are you sure?`)) {
+      setCleanupStatus('Cleaning...');
+      const cleaned = await cleanAllRxDBDatabases();
+      setCleanupStatus(`Cleaned ${cleaned} databases. Please refresh the page.`);
+      await checkDatabases();
+      
+      // Auto refresh after 2 seconds
+      setTimeout(() => {
+        window.location.reload();
+      }, 2000);
+    }
+  };
   
   return (
     <div className="p-6">
@@ -15,6 +41,26 @@ export default function RxDBPage() {
           <p className="text-lg text-gray-600">
             Test RxDB with Signals integration for Local-First architecture
           </p>
+          
+          {/* Database cleanup info */}
+          {dbCount > 2 && (
+            <div className="mt-4 p-3 bg-yellow-50 border border-yellow-300 rounded-lg flex items-center justify-between">
+              <div>
+                <span className="text-yellow-800 font-semibold">
+                  ⚠️ Found {dbCount} IndexedDB databases
+                </span>
+                {cleanupStatus && (
+                  <span className="ml-3 text-green-600">{cleanupStatus}</span>
+                )}
+              </div>
+              <button
+                onClick={handleCleanAllDatabases}
+                className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+              >
+                🗑️ Clean All Databases
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Tab Navigation */}

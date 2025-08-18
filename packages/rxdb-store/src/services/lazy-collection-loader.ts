@@ -259,7 +259,25 @@ export class LazyCollectionLoader {
     
     if (collectionsToLoad.length > 0) {
       console.log(`📦 Preloading collections for route "${route}":`, collectionsToLoad);
-      await this.loadCollections(collectionsToLoad);
+      
+      // Only load collections that are registered
+      const registeredCollections = collectionsToLoad.filter(name => 
+        this.configurations.has(name)
+      );
+      
+      if (registeredCollections.length === 0) {
+        console.warn(`No registered collections found for route "${route}"`);
+        return;
+      }
+      
+      if (registeredCollections.length < collectionsToLoad.length) {
+        const unregistered = collectionsToLoad.filter(name => 
+          !this.configurations.has(name)
+        );
+        console.warn(`Some collections are not registered: ${unregistered.join(', ')}`);
+      }
+      
+      await this.loadCollections(registeredCollections);
     }
   }
   
