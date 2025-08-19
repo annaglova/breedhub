@@ -12,11 +12,12 @@ import { addRxPlugin as addPlugin } from 'rxdb';
 
 // Schemas
 import { 
-  breedSchema, 
+  breedSchema as oldBreedSchema, 
   breedMethods, 
   breedStatics,
   type Breed 
 } from './schemas/breed.schema.js';
+import { breedSchema } from './supabase/collections-config';
 
 // Simple storage setup - disable dev mode for Phase 0
 async function setupValidatorStorage() {
@@ -31,6 +32,7 @@ addRxPlugin(RxDBCleanupPlugin);
 // Database collections type
 export interface BreedHubCollections {
   breeds: any; // Will be properly typed after createRxDatabase
+  breed: any; // New Supabase breed collection
 }
 
 export type BreedHubDatabase = RxDatabase<BreedHubCollections>;
@@ -44,6 +46,7 @@ export async function createBreedHubDB(
   
   // Return existing instance if available
   if (dbInstance) {
+    console.log('📦 Returning existing database instance');
     return dbInstance;
   }
 
@@ -58,44 +61,67 @@ export async function createBreedHubDB(
     console.log('🚀 Running in production mode without validation');
   }
 
-  const db = await createRxDatabase<BreedHubCollections>({
-    name,
-    storage,
-    multiInstance: false, // Disable multi-instance for dev mode
-    eventReduce: true,
-    ignoreDuplicate: true, // Allow duplicate database creation
-    allowSlowCount: true, // Allow slow counting operations
-    cleanupPolicy: {
-      minimumDeletedTime: 1000 * 60 * 60 * 24 * 7, // 7 days
-      minimumCollectionAge: 1000 * 60 * 60 * 24,    // 1 day
-      runEach: 1000 * 60 * 60 * 4,                  // 4 hours
-      awaitReplicationsInSync: true
-    },
-    ...options
-  });
+  try {
+    const db = await createRxDatabase<BreedHubCollections>({
+      name,
+      storage,
+      multiInstance: false, // Disable multi-instance for dev mode
+      eventReduce: true,
+      ignoreDuplicate: true, // Allow duplicate database creation
+      allowSlowCount: true, // Allow slow counting operations
+      cleanupPolicy: {
+        minimumDeletedTime: 1000 * 60 * 60 * 24 * 7, // 7 days
+        minimumCollectionAge: 1000 * 60 * 60 * 24,    // 1 day
+        runEach: 1000 * 60 * 60 * 4,                  // 4 hours
+        awaitReplicationsInSync: true
+      },
+      ...options
+    });
 
-  console.log('📚 Adding collections...');
+    console.log('📚 Adding collections...');
 
-  // Add collections with schemas
-  await db.addCollections({
-    breeds: {
-      schema: breedSchema,
-      methods: breedMethods,
-      statics: breedStatics
+    // Add collections with schemas - check if they exist first
+    const collectionsToAdd: any = {};
+    
+    if (!db.collections.breeds) {
+      collectionsToAdd.breeds = {
+        schema: oldBreedSchema,
+        methods: breedMethods,
+        statics: breedStatics
+      };
     }
-    // TODO: Add more collections (dogs, kennels, litters)
-  });
+    
+    if (!db.collections.breed) {
+      collectionsToAdd.breed = {
+        schema: breedSchema // Supabase breed schema
+      };
+    }
+    
+    if (Object.keys(collectionsToAdd).length > 0) {
+      await db.addCollections(collectionsToAdd);
+    }
 
-  console.log('✅ BreedHub database ready!');
-  
-  dbInstance = db;
-  return db;
+    console.log('✅ BreedHub database ready!');
+    
+    dbInstance = db;
+    return db;
+  } catch (error: any) {
+    // If DB already exists (error DB9), just log and throw
+    if (error.code === 'DB9' || error.message?.includes('already exists')) {
+      console.log('Database already exists error:', error.message);
+      // Don't try to recreate - this causes infinite loop!
+    }
+    
+    throw error;
+  }
 }
 
 // Utility function to get existing database instance
-export function getBreedHubDB(): BreedHubDatabase {
+export async function getBreedHubDB(): Promise<BreedHubDatabase> {
   if (!dbInstance) {
-    throw new Error('Database not initialized. Call createBreedHubDB() first.');
+    // Auto-initialize database if not exists
+    console.log('Database not initialized, creating new instance...');
+    return await createBreedHubDB();
   }
   return dbInstance;
 }

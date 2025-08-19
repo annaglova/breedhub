@@ -5,6 +5,8 @@ export default {
   content: [
     "./apps/app/src/**/*.{js,ts,jsx,tsx}",
     "./apps/landing/src/**/*.{js,ts,jsx,tsx}",
+    "./apps/signal-store-playground/src/**/*.{js,ts,jsx,tsx}",
+    "./apps/signal-store-playground/index.html",
     "./apps/shared/**/*.{js,ts,jsx,tsx}",
     "./apps/landing/index.html",
     "./apps/app/index.html",
