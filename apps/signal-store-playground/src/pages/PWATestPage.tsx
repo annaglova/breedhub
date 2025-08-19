@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { PWAInstallPrompt } from '../components/PWAInstallPrompt';
 import { PWAStatus } from '../components/PWAStatus';
+import { initializeCache, preCacheAppResources, showCacheStats } from '../services/cache-init';
 
 export default function PWATestPage() {
   const [showStatus, setShowStatus] = useState(true);
@@ -161,6 +162,16 @@ export default function PWATestPage() {
             <h2 className="text-xl font-semibold mb-4">🗄️ Cache Management</h2>
             
             <div className="space-y-3">
+              <button
+                onClick={async () => {
+                  await preCacheAppResources();
+                  alert('Resources cached! Check console for details and refresh Cache Storage in DevTools.');
+                }}
+                className="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+              >
+                📦 Initialize Cache (Fix Empty Cache)
+              </button>
+              
               <button
                 onClick={async () => {
                   if ('caches' in window) {

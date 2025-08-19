@@ -34,9 +34,20 @@ export default defineConfig({
         cleanupOutdatedCaches: true,
         clientsClaim: true,
         skipWaiting: true,
-        navigateFallback: 'offline.html',
-        navigateFallbackDenylist: [/^\/api/],
         runtimeCaching: [
+          // Navigation requests - Network First with offline fallback
+          {
+            urlPattern: ({ request }) => request.mode === 'navigate',
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'pages',
+              plugins: [{
+                handlerDidError: async () => {
+                  return await caches.match('/offline.html');
+                }
+              }]
+            }
+          },
           {
             urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
             handler: 'CacheFirst',
