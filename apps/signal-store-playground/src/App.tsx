@@ -1,5 +1,5 @@
 import { Routes, Route, Link, useLocation } from 'react-router-dom';
-import { Home, Database, Filter, GitBranch, HardDrive, Activity, Layers, Code, Boxes, FlaskConical, Zap, Disc, Smartphone, WifiOff, RefreshCw, ClipboardCheck } from 'lucide-react';
+import { Home, Database, Filter, GitBranch, HardDrive, Activity, Layers, Code, Boxes, FlaskConical, Zap, Disc, Smartphone, WifiOff, RefreshCw, ClipboardCheck, Cloud } from 'lucide-react';
 import HomePage from './pages/HomePage';
 import EntitiesPage from './pages/EntitiesPage';
 import FilteringPage from './pages/FilteringPage';
@@ -17,12 +17,20 @@ import PWATestPage from './pages/PWATestPage';
 import OfflineDataPage from './pages/OfflineDataPage';
 import BackgroundSyncTest from './pages/BackgroundSyncTest';
 import PWATestGuide from './pages/PWATestGuide';
+import SupabaseSyncTest from './pages/SupabaseSyncTest';
+import DatabaseSchemaViewer from './pages/DatabaseSchemaViewer';
+import PartitionSyncTest from './pages/PartitionSyncTest';
+import SimpleSyncTest from './pages/SimpleSyncTest';
 import { SWRegisterButton } from './components/SWRegisterButton';
 import clsx from 'clsx';
 
 const navigation = [
   { name: 'Home', path: '/', icon: Home },
   { name: 'RxDB Demo', path: '/rxdb', icon: Disc },
+  { name: 'DB Schema', path: '/db-schema', icon: Database },
+  { name: 'Simple Sync', path: '/simple-sync', icon: RefreshCw },
+  { name: 'Supabase Sync', path: '/supabase-sync', icon: Cloud },
+  { name: 'Partition Sync', path: '/partition-sync', icon: Layers },
   { name: 'PWA Test', path: '/pwa', icon: Smartphone },
   { name: 'PWA Guide', path: '/pwa-guide', icon: ClipboardCheck },
   { name: 'Offline Data', path: '/offline-data', icon: WifiOff },
@@ -83,6 +91,10 @@ function App() {
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/rxdb" element={<RxDBPage />} />
+          <Route path="/db-schema" element={<DatabaseSchemaViewer />} />
+          <Route path="/simple-sync" element={<SimpleSyncTest />} />
+          <Route path="/supabase-sync" element={<SupabaseSyncTest />} />
+          <Route path="/partition-sync" element={<PartitionSyncTest />} />
           <Route path="/pwa" element={<PWATestPage />} />
           <Route path="/pwa-guide" element={<PWATestGuide />} />
           <Route path="/offline-data" element={<OfflineDataPage />} />

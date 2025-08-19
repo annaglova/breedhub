@@ -56,12 +56,21 @@ export function SWRegisterButton() {
   };
 
   const unregisterSW = async () => {
-    if (registration) {
-      await registration.unregister();
-      setRegistration(null);
-      setSwStatus('not-registered');
-      alert('Service Worker unregistered!');
+    // Unregister all service workers
+    const registrations = await navigator.serviceWorker.getRegistrations();
+    for (const reg of registrations) {
+      await reg.unregister();
     }
+    
+    // Clear all caches
+    if ('caches' in window) {
+      const cacheNames = await caches.keys();
+      await Promise.all(cacheNames.map(name => caches.delete(name)));
+    }
+    
+    setRegistration(null);
+    setSwStatus('not-registered');
+    alert('Service Worker unregistered and caches cleared!');
   };
 
   if (swStatus === 'checking') {
