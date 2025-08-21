@@ -175,12 +175,105 @@ breedhub-pwa/
 ## Поетапне впровадження
 
 ### Фаза 1: Зберігаємо існуюче ✅
-- MultiStore/SignalStore архітектура
+- ~~MultiStore/SignalStore архітектура~~ → Мігруємо на NgRx Signal Store
 - Supabase + Windmill інтеграція  
 - Dynamic schemas в БД
 - Hierarchical configs
 
-### Фаза 2: RxDB Data Layer (Тижні 1-2)
+### Фаза 1.5: NgRx Signal Store Migration (НОВА) 🆕
+- **@ngrx/signals** замість власного SignalStore
+- **Config-driven stores** з Supabase configs
+- **withEntities, withComputed, withMethods, withHooks** patterns
+- **Dynamic store generation** на основі app_config
+
+### Фаза 2: NgRx Signal Store Architecture
+
+#### Config-Driven Store Generation
+```typescript
+// packages/signal-store/src/stores/dynamic-universal.store.ts
+import { signalStore, withState, withComputed, withMethods, withHooks } from '@ngrx/signals';
+import { withEntities } from '@ngrx/signals/entities';
+
+export const DynamicUniversalStore = await (async () => {
+  // Load configs from Supabase
+  const configs = await configLoader.loadConfigs();
+  
+  return signalStore(
+    { providedIn: 'root' },
+    
+    // Generate features for each collection dynamically
+    ...configs.flatMap(config => [
+      withEntities({
+        entity: type(config.entity_type),
+        collection: config.collection_name,
+        selectId: (e) => e.id
+      }),
+      withComputed(generateComputedFromConfig(config)),
+      withMethods(generateMethodsFromConfig(config)),
+      withHooks(generateHooksFromConfig(config))
+    ]),
+    
+    // Global state and methods
+    withState({ syncStatus: 'idle', collections: [] }),
+    withMethods((store) => ({
+      syncAll: () => syncAllCollections(store),
+      reloadConfigs: () => dynamicReload(store)
+    }))
+  );
+})();
+```
+
+#### NgRx Signal Store Features:
+
+1. **withEntities** - Entity Management
+```typescript
+withEntities<Breed>({
+  entity: type<Breed>(),
+  collection: 'breeds',
+  selectId: (breed) => breed.id
+})
+// Provides: breedsEntities, breedsEntityMap, breedsIds signals
+```
+
+2. **withComputed** - Reactive Derived State
+```typescript
+withComputed(({ breedsEntities }) => ({
+  popularBreeds: computed(() => 
+    breedsEntities().filter(b => b.popularityRank <= 10)
+  ),
+  breedsBySize: computed(() => 
+    groupBy(breedsEntities(), 'size')
+  )
+}))
+```
+
+3. **withMethods** - Business Logic
+```typescript
+withMethods((store, supabase = inject(SupabaseClient)) => ({
+  async addBreed(breed: Partial<Breed>) {
+    const { data } = await supabase.from('breeds').insert(breed);
+    patchState(store, addEntity(data));
+  },
+  searchBreeds(query: string) {
+    patchState(store, updateFilter({ search: query }));
+  }
+}))
+```
+
+4. **withHooks** - Lifecycle Management
+```typescript
+withHooks({
+  onInit(store) {
+    store.syncAll(); // Initial load
+    setupRealtimeSubscription(store); // Real-time updates
+  },
+  onDestroy() {
+    cleanupSubscriptions();
+  }
+})
+```
+
+### Фаза 3: RxDB Data Layer (Тижні 3-4)
 
 #### RxDB Database Setup
 ```typescript

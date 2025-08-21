@@ -52,21 +52,23 @@ breedhub/
 
 ## 📖 Documentation
 
+> 📚 **[Complete Documentation Index](./docs/INDEX.md)** - Повний покажчик всієї документації
+
 ### Core Documentation
 
 | Document | Description |
 |----------|-------------|
 | [ARCHITECTURE.md](./docs/ARCHITECTURE.md) | **🏗️ Local-First PWA архітектура з CRDT та AI** |
-| [PROJECT_GUIDELINES.md](./PROJECT_GUIDELINES.md) | **📋 Project conventions and structure** |
-| [MULTISTORE_INTEGRATION_PLAN.md](./MULTISTORE_INTEGRATION_PLAN.md) | **📊 MultiStore integration (legacy)** |
+| [PROJECT_GUIDELINES.md](./docs/PROJECT_GUIDELINES.md) | **📋 Project conventions and structure** |
+| [MULTISTORE_INTEGRATION_PLAN.md](./docs/MULTISTORE_INTEGRATION_PLAN.md) | **📊 MultiStore integration (legacy)** |
 | [CONFIG_SETUP.md](./docs/CONFIG_SETUP.md) | **⚙️ Windmill + Supabase configuration** |
 
 ### AI Development Guides
 
 | Document | Description |
 |----------|-------------|
-| [AI_DEVELOPMENT_CHECKLIST.md](./AI_DEVELOPMENT_CHECKLIST.md) | **✅ MANDATORY checklist for EVERY feature** |
-| [AI_TESTING_GUIDE.md](./AI_TESTING_GUIDE.md) | **🧪 Comprehensive testing guide for AI agents** |
+| [AI_DEVELOPMENT_CHECKLIST.md](./docs/AI_DEVELOPMENT_CHECKLIST.md) | **✅ MANDATORY checklist for EVERY feature** |
+| [AI_TESTING_GUIDE.md](./docs/AI_TESTING_GUIDE.md) | **🧪 Comprehensive testing guide for AI agents** |
 
 ### Package Documentation
 
@@ -212,7 +214,7 @@ pnpm dev:playground
 
 **MANDATORY Process for Every Feature:**
 
-1. 📝 Read [AI_DEVELOPMENT_CHECKLIST.md](./AI_DEVELOPMENT_CHECKLIST.md)
+1. 📝 Read [AI_DEVELOPMENT_CHECKLIST.md](./docs/AI_DEVELOPMENT_CHECKLIST.md)
 2. 🧪 Follow TDD approach (RED-GREEN-REFACTOR)
 3. ✅ Complete ALL checklist items
 4. 🎯 Test in playground before saying "done"
@@ -257,16 +259,16 @@ pnpm validate       # Full validation
 - Documentation structure
 
 ### 🚧 In Progress
-- Dynamic schemas from database
-- Migration scripts
-- IndexedDB integration
-- Main app integration
+- NgRx Signal Store migration
+- Config-driven store generation
+- Dynamic schemas from Supabase
+- RxDB + NgRx integration
 
 ### 📅 Planned
 - Authentication system
-- Real-time collaboration
-- Mobile app
-- API development
+- Real-time collaboration via CRDT
+- Mobile app (React Native)
+- Windmill serverless functions
 
 ## 🤝 Contributing
 
@@ -338,8 +340,8 @@ MIT © BreedHub Team
 - `packages/ui/` - Component library
 
 **Documentation:**
-- `PROJECT_GUIDELINES.md` - Must read for developers
-- `AI_DEVELOPMENT_CHECKLIST.md` - Must read for AI
+- `docs/PROJECT_GUIDELINES.md` - Must read for developers
+- `docs/AI_DEVELOPMENT_CHECKLIST.md` - Must read for AI
 - `MULTISTORE_ARCHITECTURE.md` - Architecture deep dive
 
 ### Common Tasks
@@ -348,7 +350,7 @@ MIT © BreedHub Team
 |------|---------|-------------|
 | Start dev | `pnpm dev` | Start main app |
 | Test stores | `pnpm dev:playground` → `/test` | Interactive testing |
-| Add feature | Follow [AI_DEVELOPMENT_CHECKLIST.md](./AI_DEVELOPMENT_CHECKLIST.md) | TDD process |
+| Add feature | Follow [AI_DEVELOPMENT_CHECKLIST.md](./docs/AI_DEVELOPMENT_CHECKLIST.md) | TDD process |
 | Debug | F12 → Console | Browser DevTools |
 | Build prod | `pnpm build` | Production build |
 

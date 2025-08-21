@@ -435,20 +435,160 @@ export const breedSchema = {
 - Real-time підписка не pushing локальні зміни - додано explicit push кнопки
 - Conflict resolution працює через LWW та field merging
 
-#### 2.5 Migration від MultiStore (2 дні) ⏳ НАСТУПНИЙ КРОК
+#### 2.5 Migration від MultiStore до NgRx Signal Store (3 тижні) ⏳ НАСТУПНИЙ КРОК
+
+##### 🎯 Нова стратегія: Config-Driven NgRx Signal Store з Supabase
+
+**Архітектура:**
+```
+Supabase Configs → ConfigLoaderService → DynamicUniversalStore → UI Components
+       ↓                    ↓                     ↓
+   app_config        IndexedDB Cache      NgRx Signal Store
+   (collections)      (offline mode)       with features
+```
+
+##### Week 1: NgRx Signal Store Setup (5 днів)
 ```typescript
-// packages/signal-store/src/migration.ts
-export async function migrateToRxDB() {
-  const oldData = multiStore.getAllEntities();
-  const db = await createBreedHubDB();
-  
-  for (const entity of oldData) {
-    await db[entity._type + 's'].insert(entity);
+// 1. Install NgRx Signals
+npm install @ngrx/signals @ngrx/signals/entities @ngrx/operators
+
+// 2. Create ConfigLoaderService
+export class ConfigLoaderService {
+  async loadConfigs(): Promise<CollectionConfig[]> {
+    const { data } = await supabase
+      .from('app_config')
+      .select('*')
+      .like('key', '%_collection_config');
+    return data;
   }
+}
+
+// 3. Setup collection config structure
+interface CollectionConfig {
+  collection_name: string;
+  entity_type: string;
+  schema: {
+    required: string[];
+    indexed: string[];
+    relations: Record<string, any>;
+  };
+  computed_fields?: ComputedFieldDef[];
+  custom_methods?: MethodDef[];
+  sync_config?: SyncConfig;
+}
+```
+
+##### Week 2: Dynamic Store Generation (5 днів)
+```typescript
+// Create DynamicUniversalStore with NgRx patterns
+export const DynamicUniversalStore = await (async () => {
+  const configs = await configLoader.loadConfigs();
   
-  // Verify migration
-  const count = await db.breeds.count().exec();
-  console.log(`Migrated ${count} breeds`);
+  return signalStore(
+    { providedIn: 'root' },
+    
+    // Generate features for each collection
+    ...configs.map(config => [
+      // NgRx withEntities for entity management
+      withEntities({
+        entity: type(config.entity_type),
+        collection: config.collection_name,
+        selectId: (e) => e.id
+      }),
+      
+      // withComputed for reactive derived state
+      withComputed(generateComputedFields(config)),
+      
+      // withMethods for CRUD + custom operations
+      withMethods(generateMethods(config)),
+      
+      // withHooks for lifecycle management
+      withHooks({
+        onInit: () => initCollection(config),
+        onDestroy: () => cleanupCollection(config)
+      })
+    ]).flat(),
+    
+    // Global features
+    withState({
+      syncStatus: 'idle',
+      collections: configs.map(c => c.collection_name)
+    }),
+    
+    // Cross-collection computed
+    withComputed((store) => ({
+      entitiesWithRelations: computed(() => 
+        resolveRelations(store, configs)
+      ),
+      globalStats: computed(() => 
+        calculateStats(store, configs)
+      )
+    })),
+    
+    // Global methods
+    withMethods((store) => ({
+      syncAll: () => syncAllCollections(store, configs),
+      reloadConfigs: () => reloadAndRegenerate()
+    }))
+  );
+})();
+```
+
+##### Week 3: Features Integration (5 днів)
+
+**Key NgRx Signal Store features to implement:**
+
+1. **withEntities** - Entity management
+   - Normalized state structure
+   - Automatic CRUD operations
+   - Entity selection and filtering
+
+2. **withComputed** - Reactive computations
+   - Derived state from configs
+   - Cross-collection relationships
+   - Aggregations and statistics
+
+3. **withMethods** - Business logic
+   - CRUD operations with Supabase
+   - Custom methods from configs
+   - Search and filtering
+
+4. **withHooks** - Lifecycle
+   - Auto-sync on init
+   - Real-time subscriptions
+   - Cleanup on destroy
+
+5. **Custom Features:**
+```typescript
+// withCollectionService - Bridge pattern з RxDB
+export function withCollectionService<T>(config: CollectionConfig) {
+  return signalStoreFeature(
+    withState({ /* collection state */ }),
+    withComputed({ /* derived state */ }),
+    withMethods({ /* CRUD + sync */ }),
+    withHooks({ /* lifecycle */ })
+  );
+}
+
+// withSupabaseSync - Real-time sync
+export function withSupabaseSync<T>(config: SyncConfig) {
+  return signalStoreFeature(
+    withMethods((store) => ({
+      syncWithSupabase: () => setupRealtimeSync(store, config)
+    })),
+    withHooks({
+      onInit: (store) => store.syncWithSupabase()
+    })
+  );
+}
+
+// withOfflineSupport - IndexedDB caching
+export function withOfflineSupport<T>() {
+  return signalStoreFeature(
+    withState({ offlineQueue: [] }),
+    withMethods({ /* offline operations */ }),
+    withHooks({ /* sync on reconnect */ })
+  );
 }
 ```
 
