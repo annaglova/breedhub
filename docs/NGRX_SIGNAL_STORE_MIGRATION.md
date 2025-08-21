@@ -1,6 +1,13 @@
-# 🚀 NgRx Signal Store Migration Plan
+# ⚠️ DEPRECATED: NgRx Signal Store Migration Plan
 
-> Комплексний план міграції з MultiStore на NgRx Signal Store з config-driven архітектурою
+> ⛔ **Цей документ застарів!** NgRx Signal Store - це Angular-only бібліотека.
+> 🔄 **Для React проекту дивіться:** [REACT_SIGNAL_STORE_MIGRATION.md](./REACT_SIGNAL_STORE_MIGRATION.md)
+
+---
+
+# Помилковий план (Angular-specific, НЕ для React!)
+
+> ~~Комплексний план міграції з MultiStore на NgRx Signal Store з config-driven архітектурою~~
 
 ## 📊 Executive Summary
 
