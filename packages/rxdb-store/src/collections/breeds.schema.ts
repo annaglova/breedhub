@@ -2,7 +2,7 @@ import { RxJsonSchema } from 'rxdb';
 import { BreedDocType } from '../types/breed.types';
 
 export const breedSchema: RxJsonSchema<BreedDocType> = {
-  version: 0,
+  version: 1,
   title: 'Breed Schema',
   description: 'Schema for dog breeds',
   primaryKey: 'id',
@@ -88,6 +88,11 @@ export const breedSchema: RxJsonSchema<BreedDocType> = {
 export const breedMigrationStrategies = {
   1: function(oldDoc: any) {
     // Migration from v0 to v1
-    return oldDoc;
+    // Ensure required fields exist
+    return {
+      ...oldDoc,
+      createdAt: oldDoc.createdAt || new Date().toISOString(),
+      updatedAt: oldDoc.updatedAt || new Date().toISOString()
+    };
   }
 };

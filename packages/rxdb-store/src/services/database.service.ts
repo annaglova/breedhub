@@ -2,7 +2,8 @@ import {
   createRxDatabase,
   RxDatabase,
   RxStorage,
-  addRxPlugin
+  addRxPlugin,
+  removeRxDatabase
 } from 'rxdb';
 import { getRxStorageDexie } from 'rxdb/plugins/storage-dexie';
 import { RxDBDevModePlugin } from 'rxdb/plugins/dev-mode';
@@ -72,24 +73,32 @@ class DatabaseService {
       storage = getRxStorageDexie();
     }
 
-    const db = await createRxDatabase<DatabaseCollections>({
-      name: 'breedhub',
-      storage,
-      multiInstance: true,
-      eventReduce: true,
-      cleanupPolicy: {
-        minimumDeletedTime: 1000 * 60 * 60 * 24 * 7, // 7 days
-        minimumCollectionAge: 1000 * 60, // 1 minute
-        runEach: 1000 * 60 * 5, // 5 minutes
-        awaitReplicationsInSync: true,
-        waitForLeadership: true
-      }
-    });
+    let db: AppDatabase;
+    
+    try {
+      db = await createRxDatabase<DatabaseCollections>({
+        name: 'breedhub',
+        storage,
+        multiInstance: true,
+        eventReduce: true,
+        cleanupPolicy: {
+          minimumDeletedTime: 1000 * 60 * 60 * 24 * 7, // 7 days
+          minimumCollectionAge: 1000 * 60, // 1 minute
+          runEach: 1000 * 60 * 5, // 5 minutes
+          awaitReplicationsInSync: true,
+          waitForLeadership: true
+        }
+      });
+    } catch (error: any) {
+      console.error('[DatabaseService] Error creating database:', error);
+      throw error;
+    }
 
     console.log('[DatabaseService] Database created, adding collections...');
 
-    // Add collections
-    await db.addCollections({
+    // Add collections with error handling
+    try {
+      await db.addCollections({
       breeds: {
         schema: breedSchema,
         migrationStrategies: breedMigrationStrategies,
@@ -130,6 +139,21 @@ class DatabaseService {
         }
       }
     });
+    } catch (error: any) {
+      if (error.code === 'DB6') {
+        console.error('[DatabaseService] Schema mismatch detected. Please clear browser data or increment schema version.');
+        console.error('Previous schema hash:', error.parameters.previousSchemaHash);
+        console.error('New schema hash:', error.parameters.schemaHash);
+        // In development, we can try to remove and recreate
+        if (process.env.NODE_ENV !== 'production') {
+          console.log('[DatabaseService] Attempting to remove and recreate database...');
+          await db.destroy();
+          // Recursively call to recreate
+          return this.createDatabase();
+        }
+      }
+      throw error;
+    }
 
     console.log('[DatabaseService] Collections added successfully');
 
@@ -147,6 +171,21 @@ class DatabaseService {
   public async clearAllData(): Promise<void> {
     const db = await this.getDatabase();
     await db.breeds.find().remove();
+  }
+
+  public async removeDatabase(): Promise<void> {
+    console.log('[DatabaseService] Removing database...');
+    
+    // Close existing connection
+    if (this.db) {
+      await this.db.destroy();
+      this.db = null;
+      this.dbPromise = null;
+    }
+    
+    // Remove the database completely
+    await removeRxDatabase('breedhub', getRxStorageDexie());
+    console.log('[DatabaseService] Database removed successfully');
   }
 }
 

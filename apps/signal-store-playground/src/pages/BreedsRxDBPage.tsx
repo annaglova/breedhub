@@ -142,6 +142,19 @@ export function BreedsRxDBPage() {
     }
   };
 
+  // Remove database completely (for schema conflicts)
+  const removeDatabase = async () => {
+    if (window.confirm('This will completely remove the database. Are you sure?')) {
+      try {
+        await databaseService.removeDatabase();
+        console.log('Database removed');
+        window.location.reload();
+      } catch (error) {
+        console.error('Failed to remove database:', error);
+      }
+    }
+  };
+
   if (!dbInitialized) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -200,6 +213,13 @@ export function BreedsRxDBPage() {
               className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
             >
               Clear All Data
+            </button>
+            <button
+              onClick={removeDatabase}
+              className="px-3 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 text-sm"
+              title="Use this if you get schema errors"
+            >
+              Reset DB
             </button>
           </div>
         </div>
