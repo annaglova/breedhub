@@ -23,11 +23,15 @@
 
 ### 📅 Planned: Phase 2.5 - Migration від MultiStore (NOT STARTED)
 
+### 📅 Planned: Phase 2.6 - React RxDB Integration 🆕
+
+### 📅 Planned: Phase 6 - Visual Config Admin 🆕
+
 ---
 
 ## 📊 Поточний стан проекту
 
-> **Статус:** Phase 2 завершено ✅, Phase 2.5 (React Signal Store + RxDB Hooks) готова до впровадження 🚀
+> **Статус:** Phase 2 завершено ✅, Config-driven architecture документована 📝, Phase 6 (Visual Config Admin) специфікована 🎨
 
 ### ✅ Що вже є:
 - **MultiStore/SignalStore** - базова архітектура state management
@@ -872,6 +876,169 @@ describe('Phase 5: Full Migration', () => {
 - Security audit
 - Production smoke tests
 **Test Report:** `/docs/migration-test-report.md`
+
+---
+
+## Фаза 6: Visual Config Admin (3 тижні) 🆕
+
+### Мета: Візуальна адмінка для управління конфігураціями
+
+#### 6.1 Database Schema Analyzer (3 дні)
+```typescript
+// Функціональність:
+- Автоматичне виявлення структури таблиць Supabase
+- Аналіз типів даних, зв'язків, constraints
+- Генерація JSON Schema з SQL структури
+- Визначення партиційованих таблиць
+- Виявлення foreign keys та references
+```
+
+**Компоненти:**
+- `SchemaInspector` - сервіс для аналізу БД
+- `TableAnalyzer` - парсинг структури таблиць
+- `RelationshipMapper` - мапінг зв'язків між таблицями
+- `SchemaConverter` - конвертація SQL → JSON Schema
+
+#### 6.2 Visual Config Builder (1 тиждень)
+```typescript
+// Drag & Drop конструктор конфігурацій:
+interface ConfigBuilderFeatures {
+  // Field Designer
+  fieldTypes: ['text', 'number', 'date', 'select', 'reference', 'array'];
+  dragDropFields: true;
+  fieldValidation: ValidationRules;
+  customProperties: true;
+  
+  // Layout Builder
+  formLayouts: ['single-column', 'two-column', 'tabs', 'wizard'];
+  gridLayouts: ['table', 'cards', 'kanban'];
+  responsivePreview: true;
+  
+  // Schema Visualization
+  schemaTree: true;
+  relationshipDiagram: true;
+  livePreview: true;
+}
+```
+
+**UI компоненти:**
+- `FieldPalette` - палітра доступних полів
+- `CanvasArea` - робоча область для конструювання
+- `PropertyPanel` - панель властивостей поля/колекції
+- `PreviewPane` - попередній перегляд UI
+- `SchemaViewer` - візуалізація результуючої схеми
+
+#### 6.3 Config Templates Library (3 дні)
+```typescript
+// Бібліотека готових шаблонів:
+interface TemplateLibrary {
+  systemTemplates: [
+    'breed-collection',
+    'pet-collection', 
+    'health-records',
+    'show-events'
+  ];
+  customTemplates: Template[];
+  importExport: true;
+  versionControl: true;
+  sharing: 'workspace' | 'global';
+}
+```
+
+**Features:**
+- Створення шаблонів з існуючих конфігурацій
+- Імпорт/експорт шаблонів
+- Версіонування змін
+- Sharing між workspaces
+
+#### 6.4 Admin App Structure (4 дні)
+```typescript
+// apps/config-admin/
+├── src/
+│   ├── features/
+│   │   ├── schema-analyzer/    # Аналіз БД
+│   │   ├── config-builder/     # Візуальний конструктор
+│   │   ├── template-library/   # Шаблони
+│   │   ├── config-manager/     # CRUD операції
+│   │   └── preview/           # Попередній перегляд
+│   ├── components/
+│   │   ├── DragDropCanvas/    # D&D область
+│   │   ├── FieldComponents/   # Компоненти полів
+│   │   ├── PropertyEditors/   # Редактори властивостей
+│   │   └── Visualizers/       # Візуалізатори
+│   └── services/
+│       ├── supabase-inspector.ts
+│       ├── schema-generator.ts
+│       ├── config-validator.ts
+│       └── template-manager.ts
+```
+
+#### 6.5 Integration & Testing (3 дні)
+- Інтеграція з існуючою app_config таблицею
+- Windmill webhooks для обробки змін
+- Real-time sync між адмінкою та додатками
+- E2E тести для критичних workflows
+
+### Deliverables Phase 6:
+- ✨ Standalone config admin app
+- 🔍 Automatic schema discovery
+- 🎨 Visual drag-and-drop builder
+- 📚 Template library system
+- 🔄 Real-time config updates
+- 📊 Schema visualization tools
+- 🧪 Complete test coverage
+
+### Tech Stack для адмінки:
+```json
+{
+  "framework": "React + TypeScript",
+  "ui": "@radix-ui + Tailwind CSS",
+  "dragDrop": "@dnd-kit/sortable",
+  "dataViz": "react-flow / reactflow",
+  "forms": "react-hook-form + zod",
+  "state": "@tanstack/react-query",
+  "icons": "lucide-react",
+  "charts": "recharts"
+}
+```
+
+### User Workflows:
+1. **Створення нової колекції:**
+   - Вибір базового шаблону або початок з нуля
+   - Drag & drop полів на canvas
+   - Налаштування властивостей полів
+   - Визначення зв'язків між колекціями
+   - Preview та збереження
+
+2. **Редагування існуючої конфігурації:**
+   - Завантаження конфігурації з БД
+   - Візуальне редагування структури
+   - Версіонування змін
+   - Deploy через Windmill
+
+3. **Імпорт з існуючої таблиці:**
+   - Вибір таблиці Supabase
+   - Автоматична генерація конфігурації
+   - Налаштування UI параметрів
+   - Збереження як шаблон
+
+### 🧪 Testing Requirements:
+```typescript
+describe('Phase 6: Config Admin', () => {
+  test('Schema analyzer correctly parses all table types');
+  test('Drag & drop builder generates valid configs');
+  test('Templates can be imported/exported');
+  test('Real-time sync works with main app');
+  test('Configs validate against JSON Schema');
+  test('UI preview matches actual rendering');
+});
+```
+
+### Інтеграція з існуючою системою:
+- Використовує `CONFIG_ARCHITECTURE.md` структуру
+- Працює з `app_config` таблицею
+- Синхронізується через Windmill (`CONFIG_SETUP.md`)
+- Генерує конфігурації для `CONFIG_DRIVEN_STORE.md`
 
 ---
 

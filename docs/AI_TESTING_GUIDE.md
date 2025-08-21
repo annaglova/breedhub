@@ -1,7 +1,7 @@
 # AI Testing Guide - Як навчити AI тестувати свій код
 
 > 📌 **Актуальна архітектура**: [ARCHITECTURE.md](./ARCHITECTURE.md) - Local-First PWA з NgRx Signal Store
-> 🔄 **Міграція в процесі**: [NGRX_SIGNAL_STORE_MIGRATION.md](./NGRX_SIGNAL_STORE_MIGRATION.md)
+> 🔄 **Міграція в процесі**: [REACT_SIGNAL_STORE_MIGRATION.md](./REACT_SIGNAL_STORE_MIGRATION.md)
 
 ## 🎯 Принципи тестування для AI
 
