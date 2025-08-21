@@ -21,6 +21,7 @@ import SupabaseSyncTest from './pages/SupabaseSyncTest';
 import DatabaseSchemaViewer from './pages/DatabaseSchemaViewer';
 import PartitionSyncTest from './pages/PartitionSyncTest';
 import SimpleSyncTest from './pages/SimpleSyncTest';
+import TwoWaySyncTest from './pages/TwoWaySyncTest';
 import { SWRegisterButton } from './components/SWRegisterButton';
 import clsx from 'clsx';
 
@@ -29,6 +30,7 @@ const navigation = [
   { name: 'RxDB Demo', path: '/rxdb', icon: Disc },
   { name: 'DB Schema', path: '/db-schema', icon: Database },
   { name: 'Simple Sync', path: '/simple-sync', icon: RefreshCw },
+  { name: 'Two-Way Sync', path: '/two-way-sync', icon: Zap },
   { name: 'Supabase Sync', path: '/supabase-sync', icon: Cloud },
   { name: 'Partition Sync', path: '/partition-sync', icon: Layers },
   { name: 'PWA Test', path: '/pwa', icon: Smartphone },
@@ -93,6 +95,7 @@ function App() {
           <Route path="/rxdb" element={<RxDBPage />} />
           <Route path="/db-schema" element={<DatabaseSchemaViewer />} />
           <Route path="/simple-sync" element={<SimpleSyncTest />} />
+          <Route path="/two-way-sync" element={<TwoWaySyncTest />} />
           <Route path="/supabase-sync" element={<SupabaseSyncTest />} />
           <Route path="/partition-sync" element={<PartitionSyncTest />} />
           <Route path="/pwa" element={<PWATestPage />} />
