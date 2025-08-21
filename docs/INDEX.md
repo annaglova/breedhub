@@ -8,7 +8,8 @@
 - **[ARCHITECTURE.md](./ARCHITECTURE.md)** - Local-First PWA архітектура з NgRx Signal Store
 - **[LOCAL_FIRST_ROADMAP.md](./LOCAL_FIRST_ROADMAP.md)** - Детальний roadmap впровадження
 - **[CLAUDE_INSTRUCTIONS.md](./CLAUDE_INSTRUCTIONS.md)** - Інструкція для AI-моделі Claude
-- **[NGRX_SIGNAL_STORE_MIGRATION.md](./NGRX_SIGNAL_STORE_MIGRATION.md)** - Міграція на NgRx Signal Store
+- **[REACT_SIGNAL_STORE_MIGRATION.md](./REACT_SIGNAL_STORE_MIGRATION.md)** - Міграція Signal Store для React
+- **[NGRX_SIGNAL_STORE_MIGRATION.md](./NGRX_SIGNAL_STORE_MIGRATION.md)** - ~~NgRx міграція~~ (DEPRECATED - Angular only!)
 
 ### Аналітичні документи
 - **[MONOREPO_ANALYSIS.md](./MONOREPO_ANALYSIS.md)** - Аналіз та стратегія monorepo
@@ -58,14 +59,14 @@
 |-----------|--------|------|
 | Архітектура | ✅ Актуально | Оновлено з NgRx Signal Store |
 | Roadmap | ✅ Актуально | Phase 2.5 в процесі |
-| Міграція | 🔄 В процесі | NgRx Signal Store migration |
+| Міграція | 📅 Планується | React Signal Store optimization |
 | Testing | ✅ Актуально | Оновлено для NgRx |
 | Config | ✅ Актуально | Supabase + Windmill |
 | Historical | 📚 Архів | Зберігається для історії |
 
 ## 🔄 Останні оновлення
 
-- **2024**: Міграція на NgRx Signal Store
+- **2024**: Оптимізація React Signal Store з @preact/signals-react
 - **2024**: Config-driven архітектура з Supabase
 - **2024**: Реорганізація документації в docs/
 - **2024**: Оновлення всіх посилань в README.md
