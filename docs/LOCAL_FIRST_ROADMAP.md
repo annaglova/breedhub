@@ -21,11 +21,13 @@
 - Phase 2.3: Test Replication ✅
 - Phase 2.4: Two-Way Sync & Conflict Resolution ✅
 
-### 🚀 Next: Phase 2.5 - Migration від MultiStore
+### 📅 Planned: Phase 2.5 - Migration від MultiStore (NOT STARTED)
 
 ---
 
 ## 📊 Поточний стан проекту
+
+> **Статус:** Phase 2 завершено, Phase 2.5 (NgRx Signal Store) очікує на реалізацію
 
 ### ✅ Що вже є:
 - **MultiStore/SignalStore** - базова архітектура state management
