@@ -27,7 +27,7 @@
 
 ## 📊 Поточний стан проекту
 
-> **Статус:** Phase 2 завершено, Phase 2.5 (NgRx Signal Store) очікує на реалізацію
+> **Статус:** Phase 2 завершено ✅, Phase 2.5 (React Signal Store + RxDB Hooks) готова до впровадження 🚀
 
 ### ✅ Що вже є:
 - **MultiStore/SignalStore** - базова архітектура state management
@@ -628,6 +628,59 @@ describe('Phase 2: Sync & Replication', () => {
 
 ---
 
+## 🆕 Фаза 2.6: React RxDB Integration (2 тижні) - НОВА ФАЗА!
+
+### Мета: Впровадити best practices з офіційних RxDB прикладів
+
+#### 2.6.1 Database Optimization (3 дні)
+**На основі офіційних прикладів:**
+- ✅ **Database Singleton Pattern** - lazy initialization (вже створено)
+- ✅ **React Hooks for RxDB** - повний набір hooks (вже створено)
+- 🔄 **Migration від Dexie** - поступова міграція існуючого коду
+- 📅 **Performance optimization** - cleanup policies, indexes
+
+#### 2.6.2 Advanced Replication (4 дні)
+**З Supabase example:**
+```typescript
+// packages/rxdb-store/src/replication/supabase-replication.ts
+- Checkpoint-based sync
+- Batch operations (50 docs pull, 10 docs push)
+- Conflict resolution strategies
+- Real-time subscriptions
+- Error recovery з retry
+```
+
+#### 2.6.3 React Components Update (4 дні)
+**Використати нові hooks:**
+```typescript
+// Замінити старі компоненти:
+// OLD: useBreeds з Dexie
+// NEW: useBreeds з RxDB hooks
+
+import { useBreeds, useBreedSearch, useBreedStats } from '@breedhub/rxdb-store/hooks';
+
+function BreedsPage() {
+  const { breeds, loading, addBreed, updateBreed } = useBreeds();
+  const { stats } = useBreedStats();
+  // Reactive UI with real-time updates
+}
+```
+
+#### 2.6.4 Testing & Documentation (3 дні)
+- Unit tests для всіх hooks
+- Integration tests з Supabase
+- Playground examples оновлення
+- Documentation update
+
+### Deliverables Phase 2.6:
+- ✅ React Hooks library для RxDB
+- ✅ Advanced replication setup
+- 🔄 Component migration guide
+- 📅 Performance benchmarks
+- 📅 Full test coverage
+
+---
+
 ## Фаза 3: UI оновлення для Local-First (2 тижні)
 
 ### Мета: Адаптувати UI для офлайн роботи
@@ -892,20 +945,17 @@ describe('Phase 5: Full Migration', () => {
 
 ## 🎯 Наступні кроки з RxDB
 
-### Негайно (цей тиждень):
-1. ✅ Створити feature branch `feature/rxdb-local-first`
-2. ✅ Встановити RxDB залежності:
-   ```bash
-   pnpm add rxdb rxdb/plugins/storage-dexie dexie
-   ```
-3. ✅ Створити RxDB database прототип
-4. ✅ Протестувати базові операції в playground
+### ✅ Вже виконано:
+1. ✅ RxDB database setup з best practices
+2. ✅ React Hooks для RxDB (useRxData, useRxCollection, useBreeds)
+3. ✅ Database Singleton Pattern з lazy initialization
+4. ✅ Приклад компонента з повним функціоналом
 
-### Наступний тиждень:
-1. ⏳ Налаштувати Supabase replication
-2. ⏳ Додати PWA manifest та service worker
-3. ⏳ Мігрувати breeds на RxDB
-4. ⏳ Створити sync status UI
+### 🚀 Готово до впровадження (цей тиждень):
+1. 🔄 Впровадити advanced Supabase replication
+2. 🔄 Мігрувати компоненти на нові hooks
+3. 🔄 Додати offline queue management
+4. 🔄 Створити sync status UI з useReplicationState()
 
 ### Через 2 тижні:
 1. ⏳ Мігрувати всі entities на RxDB
