@@ -1,6 +1,6 @@
 # AI Development Checklist
 
-> 📌 **Актуальна архітектура**: [ARCHITECTURE.md](./docs/ARCHITECTURE.md) - Local-First PWA з CRDT та AI
+> 📌 **Актуальна архітектура**: [ARCHITECTURE.md](./ARCHITECTURE.md) - Local-First PWA з CRDT та AI
 
 ## ✅ MANDATORY Checklist for Every Feature
 

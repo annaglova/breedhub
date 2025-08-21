@@ -1,6 +1,7 @@
 # AI Testing Guide - Як навчити AI тестувати свій код
 
-> 📌 **Актуальна архітектура**: [ARCHITECTURE.md](./docs/ARCHITECTURE.md) - Local-First PWA з CRDT та AI
+> 📌 **Актуальна архітектура**: [ARCHITECTURE.md](./ARCHITECTURE.md) - Local-First PWA з NgRx Signal Store
+> 🔄 **Міграція в процесі**: [NGRX_SIGNAL_STORE_MIGRATION.md](./NGRX_SIGNAL_STORE_MIGRATION.md)
 
 ## 🎯 Принципи тестування для AI
 
@@ -64,13 +65,14 @@ async function verifyChanges() {
 4. Зробити скріншот-тест
 ```
 
-### ✅ Після зміни стору:
+### ✅ Після зміни NgRx Signal Store:
 ```typescript
 // AI повинен:
 1. Оновити тести стору
-2. Перевірити реактивність
-3. Перевірити persistence
-4. Додати демо в playground
+2. Перевірити signal reactivity
+3. Перевірити RxDB persistence
+4. Протестувати withComputed та withMethods features
+5. Додати демо в playground
 ```
 
 ## 🤖 Prompt Templates для навчання AI
@@ -154,15 +156,17 @@ async function checkUIChanges() {
 }
 ```
 
-### 3. **Validation Helper**
+### 3. **NgRx Signal Store Validation Helper**
 ```typescript
-// AI повинен валідувати всі entities
-function validateAllEntities(store) {
+// AI повинен валідувати NgRx Signal Store entities
+function validateSignalStoreEntities(store) {
   const errors = [];
+  const entities = store.entities(); // Signal value
   
-  store.entities.forEach(entity => {
+  entities.forEach(entity => {
     try {
-      validateEntity(entity);
+      // Validate through RxDB schema
+      store.collection.schema.validate(entity);
     } catch (e) {
       errors.push({ entity: entity.id, error: e.message });
     }

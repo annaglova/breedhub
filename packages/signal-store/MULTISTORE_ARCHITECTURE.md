@@ -1,12 +1,60 @@
-# MultiStore Architecture Documentation
+# MultiStore Architecture Documentation (DEPRECATED)
 
-> 📌 **Актуальна архітектура**: [ARCHITECTURE.md](../../docs/ARCHITECTURE.md) - Local-First PWA з CRDT та AI
+> ⚠️ **УВАГА**: MultiStore застарілий! Мігруємо на NgRx Signal Store
+> 
+> 📌 **Нова архітектура**: [NgRx Signal Store Migration Guide](#ngrx-signal-store-migration)
+> 
+> 📌 **Актуальна архітектура**: [ARCHITECTURE.md](../../docs/ARCHITECTURE.md) - Local-First PWA з NgRx Signals
 
-## For AI Agents: Critical Reading
+## ⚠️ DEPRECATION NOTICE
 
-**This document is designed for AI agents working on this codebase. Read this completely before making any changes to the MultiStore system.**
+**MultiStore буде замінений на NgRx Signal Store з config-driven підходом.**
 
-> **Local-First адаптація**: MultiStore буде розширений з LocalFirstMultiStore класом, який інтегрує Yjs CRDT для офлайн-першої роботи.
+### Причини міграції:
+1. **NgRx Signal Store** - стандарт індустрії з кращою підтримкою
+2. **Config-driven** - динамічна генерація stores з Supabase configs
+3. **Better features** - withEntities, withComputed, withMethods, withHooks
+4. **Type safety** - краща типізація та IntelliSense
+5. **Performance** - оптимізовані signal updates
+
+## NgRx Signal Store Migration
+
+### Нова архітектура:
+```
+Supabase Configs → DynamicUniversalStore → UI Components
+       ↓                    ↓                   ↓
+   app_config         NgRx Signal Store    Reactive UI
+   (metadata)          with features       with signals
+```
+
+### Mapping MultiStore → NgRx Signal Store:
+
+| MultiStore Feature | NgRx Signal Store Equivalent |
+|-------------------|------------------------------|
+| `createMultiStore()` | `signalStore()` |
+| `withEntities()` | `@ngrx/signals/entities` withEntities |
+| `addEntity()` | `patchState(store, addEntity())` |
+| `updateEntity()` | `patchState(store, updateEntity())` |
+| `removeEntity()` | `patchState(store, removeEntity())` |
+| `getEntitiesByType()` | Dynamic computed signals |
+| `validateStore()` | Custom validators in withMethods |
+
+### Migration Example:
+```typescript
+// OLD: MultiStore
+const multiStore = createMultiStore();
+multiStore.addEntity({ _type: 'breed', name: 'Labrador' });
+
+// NEW: NgRx Signal Store
+const store = inject(DynamicUniversalStore);
+store.addBreeds({ name: 'Labrador' }); // Type-safe, auto-generated
+```
+
+---
+
+## Legacy MultiStore Documentation (for reference only)
+
+> **Local-First адаптація**: ~~MultiStore буде розширений з LocalFirstMultiStore класом~~ → Використовуємо NgRx Signal Store з withOfflineSupport feature
 
 ## Table of Contents
 1. [Core Concept](#core-concept)

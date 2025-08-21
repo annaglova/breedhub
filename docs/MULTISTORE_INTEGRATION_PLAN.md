@@ -1,7 +1,7 @@
 # MultiStore Integration Plan for BreedHub
 
 > ⚠️ **Примітка**: Цей план був розроблений для попередньої архітектури. 
-> 📌 **Актуальна архітектура**: [ARCHITECTURE.md](./docs/ARCHITECTURE.md) - Local-First PWA з CRDT та AI
+> 📌 **Актуальна архітектура**: [ARCHITECTURE.md](./ARCHITECTURE.md) - Local-First PWA з CRDT та AI
 
 ## Overview
 План поетапної інтеграції MultiStore архітектури в основний додаток BreedHub.
