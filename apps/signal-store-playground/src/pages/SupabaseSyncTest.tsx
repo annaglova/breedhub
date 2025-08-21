@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { CheckCircle, XCircle, RefreshCw, Database, Cloud, Wifi, WifiOff } from 'lucide-react';
-import { checkSupabaseConnection, supabase } from '@breedhub/rxdb-store/src/supabase/client';
-import { syncManager } from '@breedhub/rxdb-store/src/supabase/sync-manager';
-import { getBreedHubDB } from '@breedhub/rxdb-store';
+// import { checkSupabaseConnection, supabase } from '@breedhub/rxdb-store/src/supabase/client';
+// import { syncManager } from '@breedhub/rxdb-store/src/supabase/sync-manager';
+// import { getBreedHubDB } from '@breedhub/rxdb-store';
+import { databaseService } from '@breedhub/rxdb-store';
 
 export default function SupabaseSyncTest() {
   const [connectionStatus, setConnectionStatus] = useState<'checking' | 'connected' | 'error'>('checking');

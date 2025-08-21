@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Database, Server, Filter, Layers, Activity, ChevronRight, Check } from 'lucide-react';
-import { getBreedHubDB } from '@breedhub/rxdb-store';
-import { PartitionSyncManager, estimateSyncVolume, BreedSelector } from '@breedhub/rxdb-store/src/supabase/partition-sync-manager';
-import { MAIN_TABLES, PARTITION_STRATEGY } from '@breedhub/rxdb-store/src/supabase/main-tables-schema';
-import { discoverAllTables } from '@breedhub/rxdb-store/src/supabase/advanced-schema-inspector';
+// import { getBreedHubDB } from '@breedhub/rxdb-store';
+import { databaseService } from '@breedhub/rxdb-store';
+// import { PartitionSyncManager, estimateSyncVolume, BreedSelector } from '@breedhub/rxdb-store/src/supabase/partition-sync-manager';
+// import { MAIN_TABLES, PARTITION_STRATEGY } from '@breedhub/rxdb-store/src/supabase/main-tables-schema';
+// import { discoverAllTables } from '@breedhub/rxdb-store/src/supabase/advanced-schema-inspector';
 
 export default function PartitionSyncTest() {
   const [syncManager, setSyncManager] = useState<PartitionSyncManager | null>(null);
