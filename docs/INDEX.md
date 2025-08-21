@@ -7,6 +7,7 @@
 ### Основні документи
 - **[ARCHITECTURE.md](./ARCHITECTURE.md)** - Local-First PWA архітектура з NgRx Signal Store
 - **[LOCAL_FIRST_ROADMAP.md](./LOCAL_FIRST_ROADMAP.md)** - Детальний roadmap впровадження
+- **[CLAUDE_INSTRUCTIONS.md](./CLAUDE_INSTRUCTIONS.md)** - Інструкція для AI-моделі Claude
 - **[NGRX_SIGNAL_STORE_MIGRATION.md](./NGRX_SIGNAL_STORE_MIGRATION.md)** - Міграція на NgRx Signal Store
 
 ### Аналітичні документи

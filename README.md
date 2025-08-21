@@ -33,21 +33,24 @@ pnpm dev:playground   # SignalStore playground
 ```
 breedhub/
 ├── apps/
-│   ├── app/              # Main application (legacy)
-│   ├── landing/          # Landing page
-│   └── signal-store-playground/  # Testing playground
-├── packages/            # Планується для shared code
-├── docs/                # Documentation
-│   ├── ARCHITECTURE.md  # Local-First архітектура
-│   ├── CONFIG_SETUP.md  # Налаштування конфігурацій
+│   ├── app/              # Main application (legacy) ✅
+│   ├── landing/          # Landing page ✅
+│   └── signal-store-playground/  # Testing playground ✅
+├── packages/
+│   ├── signal-store/     # State management ✅
+│   ├── rxdb-store/       # RxDB integration ✅
+│   └── ui/               # Component library ✅
+├── docs/                 # Documentation ✅
+│   ├── ARCHITECTURE.md   # Local-First архітектура
+│   ├── INDEX.md          # Documentation index
 │   └── ...
 ├── supabase/
-│   └── migrations/      # SQL міграції
-└── public/             # Static assets
+│   └── migrations/       # SQL міграції ✅
+└── public/              # Static assets ✅
 
-Окремі репозиторії:
-├── windmill/           # Serverless функції
-└── breedhub-pwa/       # Новий Local-First PWA (планується)
+Зовнішні сервіси:
+├── windmill/            # Serverless функції (окремий проект) 📅
+└── dev.dogarray.com     # Supabase hosting через Coolify ✅
 ```
 
 ## 📖 Documentation
@@ -127,7 +130,8 @@ pnpm format          # Format with Prettier
 3. **Set up environment variables:**
    ```bash
    cp .env.example .env.local
-   # Edit .env.local with your values
+   # Edit .env.local with your Supabase credentials
+   # See .env.example for all available options
    ```
 
 4. **Start development:**
@@ -252,17 +256,18 @@ pnpm validate       # Full validation
 ## 🚦 Project Status
 
 ### ✅ Completed
-- MultiStore architecture
+- RxDB database setup (Phase 0)
+- PWA features: Service Worker, offline support (Phase 1)
+- Supabase two-way sync (Phase 2)
 - SignalStore implementation
-- Playground environment
-- AI testing framework
+- Playground testing environment
 - Documentation structure
 
 ### 🚧 In Progress
-- NgRx Signal Store migration
-- Config-driven store generation
-- Dynamic schemas from Supabase
-- RxDB + NgRx integration
+- Phase 2.5: NgRx Signal Store migration (not started)
+- Config-driven store generation from Supabase
+- Dynamic schemas implementation
+- Test infrastructure enhancement
 
 ### 📅 Planned
 - Authentication system
