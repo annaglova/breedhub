@@ -6,8 +6,8 @@
 import { useState, useEffect, useMemo } from 'react';
 import { RxDocument } from 'rxdb';
 import { useRxCollection, useRxData } from './useRxCollection';
-import { BreedDocType } from '../schemas/breed.schema';
-import { getDatabase } from '../database';
+import { BreedDocType } from '../types/breed.types';
+import { databaseService } from '../services/database.service';
 
 export interface UseBreedFilters {
   origin?: string;
@@ -25,7 +25,7 @@ export function useBreeds(filters?: UseBreedFilters) {
   const [db, setDb] = useState<any>(null);
   
   useEffect(() => {
-    getDatabase().then(setDb);
+    databaseService.getDatabase().then(setDb);
   }, []);
   
   // Build query from filters
@@ -137,7 +137,7 @@ export function useBreed(breedId: string) {
   const [db, setDb] = useState<any>(null);
   
   useEffect(() => {
-    getDatabase().then(setDb);
+    databaseService.getDatabase().then(setDb);
   }, []);
   
   useEffect(() => {

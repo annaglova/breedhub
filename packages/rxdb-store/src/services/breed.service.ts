@@ -1,10 +1,10 @@
 import { CollectionService } from './collection.service';
 import { RxCollection } from 'rxdb';
 import { computed } from '@preact/signals-react';
-import type { Breed } from '../schemas/breed.schema';
+import type { BreedDocType as Breed } from '../types/breed.types';
 
-// Re-export the Breed type from schema
-export type { Breed } from '../schemas/breed.schema';
+// Re-export the Breed type
+export type { BreedDocType as Breed } from '../types/breed.types';
 
 /**
  * Breed-specific collection service with domain logic

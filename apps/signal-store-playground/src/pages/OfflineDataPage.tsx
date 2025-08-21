@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { getBreedHubDB } from '@breedhub/rxdb-store';
+// import { getBreedHubDB } from '@breedhub/rxdb-store';
+import { databaseService } from '@breedhub/rxdb-store';
 
 interface CachedData {
   breeds: number;
@@ -37,7 +38,7 @@ export default function OfflineDataPage() {
 
   const loadCachedData = async () => {
     try {
-      const db = await getBreedHubDB();
+      const db = await databaseService.getDatabase();
       
       if (db?.breeds) {
         // Get counts
@@ -73,7 +74,7 @@ export default function OfflineDataPage() {
     
     try {
       // Trigger sync
-      const db = await getBreedHubDB();
+      const db = await databaseService.getDatabase();
       
       // Here we would trigger actual sync with Supabase
       // For now, just update the last sync time

@@ -11,7 +11,7 @@ import {
   RxQuery,
   MangoQuery
 } from 'rxdb';
-import { getDatabase } from '../database';
+import { databaseService } from '../services/database.service';
 
 /**
  * Generic hook for reactive RxDB queries
@@ -66,7 +66,7 @@ export function useRxDB() {
   const [error, setError] = useState<Error | null>(null);
   
   useEffect(() => {
-    getDatabase()
+    databaseService.getDatabase()
       .then(database => {
         setDb(database);
         setLoading(false);
