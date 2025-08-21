@@ -406,68 +406,23 @@ export const breedSchema = {
 - Нескінченний цикл при створенні бази - виправлено логіку обробки помилок
 - Tailwind кольори не працювали - додано playground до конфігурації
 
-#### 2.2.1 Original Supabase Replication Setup (3 дні)
-```typescript
-// packages/rxdb-store/src/replication.ts
-import { replicateRxCollection } from 'rxdb/plugins/replication';
+#### 2.4 Two-Way Sync & Conflict Resolution (3 дні) ✅ ЗАВЕРШЕНО (21.08.2024)
+**Реалізовано:**
+- ✅ **SimpleTwoWaySync class** - спрощена синхронізація з manual push/pull
+- ✅ **TwoWaySync class** - повна реалізація з real-time підпискою
+- ✅ **Manual Push/Pull operations** - ручна синхронізація даних
+- ✅ **Full Sync** - комбінована операція pull + push
+- ✅ **Auto-sync** - автоматична синхронізація з інтервалом
+- ✅ **Conflict resolution** - Last-Write-Wins стратегія
+- ✅ **Field merging** - злиття полів при конфліктах
+- ✅ **Two-Way Sync Test page** - сторінка для тестування двонаправленої синхронізації
 
-export async function setupSupabaseReplication(
-  collection: RxCollection,
-  tableName: string
-) {
-  return replicateRxCollection({
-    collection,
-    replicationIdentifier: `${tableName}-supabase`,
-    pull: {
-      async handler(checkpoint) {
-        const { data } = await supabase
-          .from(tableName)
-          .select('*')
-          .gt('updatedAt', checkpoint?.updatedAt || '1970-01-01')
-          .order('updatedAt')
-          .limit(100);
-        
-        return {
-          documents: data,
-          checkpoint: data?.length ? 
-            { updatedAt: data[data.length - 1].updatedAt } : 
-            checkpoint
-        };
-      }
-    },
-    push: {
-      async handler(docs) {
-        const { error } = await supabase
-          .from(tableName)
-          .upsert(docs);
-        return error ? [] : docs;
-      }
-    }
-  });
-}
-```
+**Проблеми та рішення:**
+- Автоматична синхронізація не працювала - створено SimpleTwoWaySync з manual операціями
+- Real-time підписка не pushing локальні зміни - додано explicit push кнопки
+- Conflict resolution працює через LWW та field merging
 
-#### 2.3 Conflict Resolution (3 дні)
-```typescript
-// packages/rxdb-store/src/conflicts.ts
-export const conflictHandler = {
-  // Last-write-wins strategy
-  onConflict(local, remote) {
-    if (local.updatedAt > remote.updatedAt) {
-      return local;
-    }
-    return remote;
-  },
-  
-  // Custom merge for specific fields
-  mergeFields: {
-    tags: (local, remote) => [...new Set([...local, ...remote])],
-    traits: (local, remote) => ({ ...remote, ...local })
-  }
-};
-```
-
-#### 2.4 Migration від MultiStore (2 дні)
+#### 2.5 Migration від MultiStore (2 дні) ⏳ НАСТУПНИЙ КРОК
 ```typescript
 // packages/signal-store/src/migration.ts
 export async function migrateToRxDB() {
