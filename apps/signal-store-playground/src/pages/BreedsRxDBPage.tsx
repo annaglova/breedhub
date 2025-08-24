@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  databaseService, 
+  databaseService,
   SupabaseReplicationService,
   BreedsList,
   BreedsListWithSignals,
@@ -16,7 +16,6 @@ const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || 'your-anon-key';
 
 export function BreedsRxDBPage() {
   const [selectedBreed, setSelectedBreed] = useState<BreedDocType | null>(null);
-  const [replicationService, setReplicationService] = useState<SupabaseReplicationService | null>(null);
   const [replicationState, setReplicationState] = useState<any>(null);
   const [dbInitialized, setDbInitialized] = useState(false);
   const [syncEnabled, setSyncEnabled] = useState(false);
@@ -32,8 +31,46 @@ export function BreedsRxDBPage() {
         const db = await databaseService.getDatabase();
         console.log('Database initialized:', db);
         setDbInitialized(true);
-      } catch (error) {
+      } catch (error: any) {
         console.error('Failed to initialize database:', error);
+        
+        // Auto-clear database on DXE1 error
+        if (error.code === 'DXE1' || error.code === 'DB6') {
+          console.log('Schema conflict detected, clearing database...');
+          try {
+            // First try using the databases() API if available
+            if (indexedDB.databases) {
+              const dbs = await indexedDB.databases();
+              for (const db of dbs) {
+                if (db.name && (db.name.includes('breedhub') || db.name.includes('rxdb'))) {
+                  await indexedDB.deleteDatabase(db.name);
+                  console.log('Deleted database:', db.name);
+                }
+              }
+            } else {
+              // Fallback: directly delete known database names
+              const dbNames = [
+                'rxdb-dexie-breedhub--0--_rxdb_internal',
+                'rxdb-dexie-breedhub--1--breeds',
+                'breedhub',
+                '_rxdb_internal'
+              ];
+              for (const dbName of dbNames) {
+                try {
+                  await indexedDB.deleteDatabase(dbName);
+                  console.log('Deleted database:', dbName);
+                } catch (e) {
+                  // Ignore if doesn't exist
+                }
+              }
+            }
+            // Reload page to start fresh
+            window.location.reload();
+          } catch (clearError) {
+            console.error('Failed to clear database:', clearError);
+            alert('Please manually clear browser data (IndexedDB) and reload the page.');
+          }
+        }
       }
     };
 
@@ -46,24 +83,23 @@ export function BreedsRxDBPage() {
 
     const setupReplication = async () => {
       try {
-        console.log('Setting up Supabase replication...');
+        console.log('[BreedsRxDBPage] Setting up Supabase replication...');
         
-        const service = new SupabaseReplicationService({
-          supabaseUrl: SUPABASE_URL,
-          supabaseKey: SUPABASE_KEY,
-          batchSize: 5,
-          pullInterval: 10000 // 10 seconds
-        });
-
-        const db = await databaseService.getDatabase();
-        const state = await service.setupBreedsReplication(db.breeds);
+        // Use the store's enableSync method instead of creating service directly
+        const state = await breedsStore.enableSync(SUPABASE_URL, SUPABASE_KEY);
         
-        setReplicationService(service);
         setReplicationState(state);
         
-        console.log('Replication setup complete');
+        console.log('[BreedsRxDBPage] Replication setup complete with auto-sync enabled.');
+        
+        // Wait a bit for sync to complete
+        setTimeout(async () => {
+          const db = await databaseService.getDatabase();
+          const count = await db.breeds.count().exec();
+          console.log('[BreedsRxDBPage] After sync delay, total breeds in RxDB:', count);
+        }, 2000);
       } catch (error) {
-        console.error('Failed to setup replication:', error);
+        console.error('[BreedsRxDBPage] Failed to setup replication:', error);
       }
     };
 
@@ -71,9 +107,8 @@ export function BreedsRxDBPage() {
 
     // Cleanup
     return () => {
-      if (replicationService) {
-        replicationService.stopAllReplications();
-      }
+      // Use store's disableSync method
+      breedsStore.disableSync();
     };
   }, [dbInitialized, syncEnabled]);
 
@@ -86,37 +121,32 @@ export function BreedsRxDBPage() {
         {
           id: `breed_${Date.now()}_1`,
           name: 'Labrador Retriever',
-          description: 'Friendly and outgoing, Labs play well with others',
-          origin: 'Canada',
-          size: 'large' as const,
-          lifespan: { min: 10, max: 12 },
-          traits: ['Friendly', 'Active', 'Outgoing'],
-          colors: ['Yellow', 'Black', 'Chocolate']
+          description: 'Friendly and outgoing, Labs play well with others'
         },
         {
           id: `breed_${Date.now()}_2`,
           name: 'German Shepherd',
-          description: 'Large, muscular dog with noble character and high intelligence',
-          origin: 'Germany',
-          size: 'large' as const,
-          lifespan: { min: 9, max: 13 },
-          traits: ['Confident', 'Courageous', 'Smart'],
-          colors: ['Black and Tan', 'Sable', 'Black']
+          description: 'Large, muscular dog with noble character and high intelligence'
         },
         {
           id: `breed_${Date.now()}_3`,
           name: 'Yorkshire Terrier',
-          description: 'Small in size but big in personality',
-          origin: 'England',
-          size: 'toy' as const,
-          lifespan: { min: 13, max: 16 },
-          traits: ['Affectionate', 'Sprightly', 'Tomboyish'],
-          colors: ['Blue and Tan', 'Black and Tan']
+          description: 'Small in size but big in personality'
+        },
+        {
+          id: `breed_${Date.now()}_4`,
+          name: 'Bulldog',
+          description: 'Calm, courageous, and friendly'
+        },
+        {
+          id: `breed_${Date.now()}_5`,
+          name: 'Poodle',
+          description: 'Intelligent and active'
         }
       ];
 
       for (const breed of testBreeds) {
-        await db.breeds.insert({
+        await db.breeds.upsert({
           ...breed,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
@@ -146,11 +176,164 @@ export function BreedsRxDBPage() {
   const removeDatabase = async () => {
     if (window.confirm('This will completely remove the database. Are you sure?')) {
       try {
+        // Try to remove via service
         await databaseService.removeDatabase();
-        console.log('Database removed');
+        
+        // Also directly clear all IndexedDB databases
+        if (indexedDB.databases) {
+          const dbs = await indexedDB.databases();
+          console.log('Found databases:', dbs);
+          
+          // Delete ALL databases to clean up
+          for (const db of dbs) {
+            try {
+              await indexedDB.deleteDatabase(db.name);
+              console.log('Deleted database:', db.name);
+            } catch (e) {
+              console.error('Failed to delete:', db.name, e);
+            }
+          }
+        } else {
+          // Fallback - try to delete all possible versions
+          console.log('Using fallback deletion method...');
+          
+          // Delete all possible version combinations
+          for (let version = 0; version <= 10; version++) {
+            const dbNames = [
+              `rxdb-dexie-breedhub--${version}--_rxdb_internal`,
+              `rxdb-dexie-breedhub--${version}--breeds`,
+              `breedhub--${version}`,
+              `_rxdb_internal--${version}`
+            ];
+            
+            for (const dbName of dbNames) {
+              try {
+                await indexedDB.deleteDatabase(dbName);
+                console.log('Deleted:', dbName);
+              } catch (e) {
+                // Ignore - database might not exist
+              }
+            }
+          }
+          
+          // Also try base names without versions
+          const baseNames = ['breedhub', '_rxdb_internal', 'rxdb-dexie-breedhub'];
+          for (const name of baseNames) {
+            try {
+              await indexedDB.deleteDatabase(name);
+              console.log('Deleted:', name);
+            } catch (e) {
+              // Ignore
+            }
+          }
+        }
+        
+        console.log('All databases removed');
+        alert('All databases have been cleared! The page will now reload.');
         window.location.reload();
       } catch (error) {
         console.error('Failed to remove database:', error);
+      }
+    }
+  };
+
+  // Diagnose empty breeds issue
+  const diagnoseEmptyBreeds = async () => {
+    try {
+      const service = new SupabaseReplicationService({
+        supabaseUrl: SUPABASE_URL,
+        supabaseKey: SUPABASE_KEY,
+        batchSize: 5,
+        pullInterval: 10000
+      });
+      
+      await service.diagnoseEmptyBreeds();
+      alert('Check console for diagnostic results');
+    } catch (error) {
+      console.error('Diagnose failed:', error);
+      alert('Diagnose failed: ' + error.message);
+    }
+  };
+
+  // Clean empty breeds from Supabase
+  const cleanEmptyBreedsFromSupabase = async () => {
+    if (window.confirm('Delete all empty breeds from Supabase?')) {
+      try {
+        const service = new SupabaseReplicationService({
+          supabaseUrl: SUPABASE_URL,
+          supabaseKey: SUPABASE_KEY,
+          batchSize: 5,
+          pullInterval: 10000
+        });
+        
+        const count = await service.deleteEmptyBreeds();
+        alert(`Deleted ${count} empty breeds from Supabase`);
+      } catch (error) {
+        console.error('Failed to delete empty breeds:', error);
+        alert('Error: ' + error.message);
+      }
+    }
+  };
+
+
+  // Clean ALL IndexedDB databases (aggressive cleanup)
+  const cleanAllIndexedDB = async () => {
+    if (window.confirm('This will delete ALL IndexedDB databases! Are you sure?')) {
+      try {
+        let deletedCount = 0;
+        
+        if (indexedDB.databases) {
+          // Modern approach - get all databases
+          const dbs = await indexedDB.databases();
+          console.log(`Found ${dbs.length} databases to delete`);
+          
+          for (const db of dbs) {
+            if (db.name) {
+              try {
+                await indexedDB.deleteDatabase(db.name);
+                console.log('Deleted:', db.name);
+                deletedCount++;
+              } catch (e) {
+                console.error('Failed to delete:', db.name, e);
+              }
+            }
+          }
+        } else {
+          // Fallback for browsers without databases() support
+          alert('Your browser does not support listing all databases. Using fallback method...');
+          
+          // Try to delete common RxDB patterns
+          const patterns = [
+            'rxdb-dexie-',
+            'breedhub',
+            '_rxdb_internal',
+            'rxdb-',
+            'dexie-'
+          ];
+          
+          for (let i = 0; i <= 100; i++) {
+            for (const pattern of patterns) {
+              const dbName = `${pattern}${i}`;
+              try {
+                const deleteReq = indexedDB.deleteDatabase(dbName);
+                await new Promise((resolve, reject) => {
+                  deleteReq.onsuccess = resolve;
+                  deleteReq.onerror = reject;
+                });
+                console.log('Deleted:', dbName);
+                deletedCount++;
+              } catch (e) {
+                // Ignore - database doesn't exist
+              }
+            }
+          }
+        }
+        
+        alert(`Deleted ${deletedCount} databases. The page will now reload.`);
+        window.location.reload();
+      } catch (error) {
+        console.error('Failed to clean IndexedDB:', error);
+        alert('Error cleaning databases: ' + error.message);
       }
     }
   };
@@ -221,6 +404,13 @@ export function BreedsRxDBPage() {
             >
               Reset DB
             </button>
+            <button
+              onClick={cleanAllIndexedDB}
+              className="px-3 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 text-sm font-bold"
+              title="Delete ALL IndexedDB databases"
+            >
+              🗑️ Clean ALL DBs
+            </button>
           </div>
         </div>
 
@@ -228,6 +418,25 @@ export function BreedsRxDBPage() {
           <p>Database: IndexedDB (via Dexie)</p>
           <p>Sync: {syncEnabled ? 'Supabase Replication' : 'Local Only'}</p>
           <p>Offline: ✅ Full offline support with automatic sync</p>
+        </div>
+        
+        {/* Supabase cleanup buttons */}
+        <div className="mt-4 p-2 bg-yellow-50 border border-yellow-200 rounded">
+          <p className="text-xs font-bold text-yellow-800 mb-2">⚠️ Supabase Cleanup (Use with caution!)</p>
+          <div className="flex gap-2">
+            <button
+              onClick={diagnoseEmptyBreeds}
+              className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 text-xs"
+            >
+              Diagnose Issue
+            </button>
+            <button
+              onClick={cleanEmptyBreedsFromSupabase}
+              className="px-3 py-1 bg-yellow-600 text-white rounded hover:bg-yellow-700 text-xs"
+            >
+              Delete Empty Breeds (Batch)
+            </button>
+          </div>
         </div>
       </div>
 

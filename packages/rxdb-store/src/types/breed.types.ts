@@ -5,15 +5,6 @@ export interface BreedDocType {
   id: string;
   name: string;
   description?: string;
-  origin?: string;
-  size?: 'toy' | 'small' | 'medium' | 'large' | 'giant';
-  lifespan?: {
-    min: number;
-    max: number;
-  };
-  traits?: string[];
-  colors?: string[];
-  image?: string;
   workspaceId?: string;
   spaceId?: string;
   createdAt: string;

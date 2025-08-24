@@ -48,14 +48,21 @@ export function useBreeds(filters?: UseBreedFilters) {
     }
     
     const sort = filters?.sortBy 
-      ? [{ [filters.sortBy]: filters.sortOrder || 'asc' }]
-      : [{ name: 'asc' }];
+      ? [{ [filters.sortBy]: filters.sortOrder || 'asc' }, { id: 'asc' }]
+      : [{ name: 'asc' }, { id: 'asc' }];
     
-    return {
+    const queryObj: any = {
       selector,
       sort,
-      limit: filters?.limit
+      skip: 0
     };
+    
+    // Only add limit if it's a valid number
+    if (typeof filters?.limit === 'number' && filters.limit > 0) {
+      queryObj.limit = filters.limit;
+    }
+    
+    return queryObj;
   }, [filters]);
   
   // Get reactive data

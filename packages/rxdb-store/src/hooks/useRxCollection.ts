@@ -34,8 +34,27 @@ export function useRxData<T>(
     setLoading(true);
     setError(null);
     
+    // Clean up query to remove undefined/null values
+    const cleanQuery: any = { ...query };
+    Object.keys(cleanQuery).forEach(key => {
+      if (cleanQuery[key] === undefined || cleanQuery[key] === null) {
+        delete cleanQuery[key];
+      }
+    });
+    
+    // Ensure required fields
+    if (!cleanQuery.selector) {
+      cleanQuery.selector = {};
+    }
+    if (!cleanQuery.sort) {
+      cleanQuery.sort = [{ id: 'asc' }];
+    }
+    if (typeof cleanQuery.skip !== 'number') {
+      cleanQuery.skip = 0;
+    }
+    
     // Create reactive query
-    const rxQuery: RxQuery<T> = collection.find(query);
+    const rxQuery: RxQuery<T> = collection.find(cleanQuery);
     
     // Subscribe to query results
     const subscription = rxQuery.$.subscribe({

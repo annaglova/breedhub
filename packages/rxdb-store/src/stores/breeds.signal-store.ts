@@ -16,6 +16,14 @@ const filterSignal = signal<MangoQuery<BreedDocType>>({});
 // Computed signals
 export const breeds = computed(() => {
   const allBreeds = Array.from(breedsSignal.value.values());
+  
+  // Sort by updatedAt descending (most recent first)
+  allBreeds.sort((a, b) => {
+    const dateA = a.updatedAt ? new Date(a.updatedAt).getTime() : 0;
+    const dateB = b.updatedAt ? new Date(b.updatedAt).getTime() : 0;
+    return dateB - dateA; // Descending order (newest first)
+  });
+  
   const filter = filterSignal.value;
   
   // Apply filter if exists
@@ -74,9 +82,15 @@ class BreedsSignalStore {
       const breedsCollection = db.breeds;
       collectionSignal.value = breedsCollection;
       
-      // Subscribe to collection changes
-      this.subscription = breedsCollection.find().$.subscribe({
+      // Subscribe to collection changes - sort by recently updated first
+      // Top 20 breeds
+      this.subscription = breedsCollection.find({
+        selector: {},
+        sort: [{ updatedAt: 'desc' }],
+        limit: 20
+      }).$.subscribe({
         next: (documents) => {
+          console.log('[BreedsStore] Received', documents.length, 'documents from RxDB');
           batch(() => {
             const newMap = new Map<string, BreedDocument>();
             documents.forEach(doc => {
@@ -106,6 +120,7 @@ class BreedsSignalStore {
   
   // Enable Supabase sync
   async enableSync(supabaseUrl: string, supabaseKey: string) {
+    console.log('[BreedsStore] Enabling sync...');
     if (!collectionSignal.value) {
       throw new Error('Collection not initialized');
     }
@@ -117,11 +132,85 @@ class BreedsSignalStore {
       pullInterval: 10000
     });
     
+    // First, manually fetch and insert data
+    console.log('[BreedsStore] Manually fetching breeds from Supabase...');
+    const breeds = await this.replicationService.fetchBreedsFromSupabase(20);
+    console.log('[BreedsStore] Fetched', breeds.length, 'breeds manually');
+    
+    if (breeds.length > 0) {
+      console.log('[BreedsStore] First fetched breed:', JSON.stringify(breeds[0], null, 2));
+      console.log('[BreedsStore] Breed names:', breeds.map(b => b.name || 'NO_NAME'));
+      
+      // Insert into RxDB
+      for (const breed of breeds) {
+        try {
+          await collectionSignal.value.upsert(breed);
+          console.log('[BreedsStore] Inserted breed:', breed.name || `NO_NAME (${breed.id})`);
+        } catch (err) {
+          console.error('[BreedsStore] Failed to insert breed:', err);
+        }
+      }
+    }
+    
+    // Now setup replication for future syncs
+    console.log('[BreedsStore] Setting up replication...');
     const state = await this.replicationService.setupBreedsReplication(
       collectionSignal.value
     );
     
     replicationStateSignal.value = state;
+    console.log('[BreedsStore] Sync enabled, replication state:', state);
+    
+    // Wait a bit for sync to actually happen
+    console.log('[BreedsStore] Waiting 2 seconds for sync to complete...');
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    
+    // Force re-query after sync setup
+    const docs = await collectionSignal.value.find({
+      selector: {},
+      sort: [{ updatedAt: 'desc' }]
+      // NO LIMIT
+    }).exec();
+    console.log('[BreedsStore] After sync, found', docs.length, 'documents in RxDB');
+    
+    // Log first few documents to see what we have
+    if (docs.length > 0) {
+      console.log('[BreedsStore] First document:', docs[0].toJSON());
+      console.log('[BreedsStore] Document IDs:', docs.slice(0, 5).map(d => d.id));
+    }
+    
+    // Force re-subscription to pick up synced data
+    if (this.subscription) {
+      console.log('[BreedsStore] Re-subscribing to collection after sync...');
+      this.subscription.unsubscribe();
+      
+      // Re-create subscription
+      this.subscription = collectionSignal.value.find({
+        selector: {},
+        sort: [{ updatedAt: 'desc' }]
+        // NO LIMIT
+      }).$.subscribe({
+        next: (documents) => {
+          console.log('[BreedsStore] Re-subscription received', documents.length, 'documents');
+          batch(() => {
+            const newMap = new Map<string, BreedDocument>();
+            documents.forEach(doc => {
+              if (!doc._deleted) {
+                newMap.set(doc.id, doc);
+              }
+            });
+            breedsSignal.value = newMap;
+            loadingSignal.value = false;
+          });
+        },
+        error: (err) => {
+          batch(() => {
+            errorSignal.value = err;
+            loadingSignal.value = false;
+          });
+        }
+      });
+    }
     
     return state;
   }
@@ -142,15 +231,9 @@ class BreedsSignalStore {
     const breed: BreedDocType = {
       id: breedData.id || `breed_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       name: breedData.name || '',
-      description: breedData.description,
-      origin: breedData.origin,
-      size: breedData.size || 'medium',
-      lifespan: breedData.lifespan,
-      traits: breedData.traits || [],
-      colors: breedData.colors || [],
-      image: breedData.image,
-      workspaceId: breedData.workspaceId,
-      spaceId: breedData.spaceId,
+      description: breedData.description || null,
+      workspaceId: breedData.workspaceId || null,
+      spaceId: breedData.spaceId || null,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
       _deleted: false

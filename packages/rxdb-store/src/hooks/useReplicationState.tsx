@@ -44,26 +44,30 @@ export function useReplicationState(
       })
     );
 
-    // Subscribe to sync events
-    subscriptions.push(
-      replicationState.send$.subscribe(() => {
-        setStatus(prev => ({
-          ...prev,
-          completedPush: prev.completedPush + 1,
-          lastSync: new Date()
-        }));
-      })
-    );
+    // Subscribe to sync events - these might not exist
+    if ((replicationState as any).send$) {
+      subscriptions.push(
+        (replicationState as any).send$.subscribe(() => {
+          setStatus(prev => ({
+            ...prev,
+            completedPush: prev.completedPush + 1,
+            lastSync: new Date()
+          }));
+        })
+      );
+    }
 
-    subscriptions.push(
-      replicationState.received$.subscribe(() => {
-        setStatus(prev => ({
-          ...prev,
-          completedPull: prev.completedPull + 1,
-          lastSync: new Date()
-        }));
-      })
-    );
+    if ((replicationState as any).received$) {
+      subscriptions.push(
+        (replicationState as any).received$.subscribe(() => {
+          setStatus(prev => ({
+            ...prev,
+            completedPull: prev.completedPull + 1,
+            lastSync: new Date()
+          }));
+        })
+      );
+    }
 
     // Clean up subscriptions
     return () => {

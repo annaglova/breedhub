@@ -33,32 +33,40 @@ export function useBreeds(options: UseBreedsOptions = {}): UseBreedsResult {
 
   // Build query from options
   const buildQuery = useCallback(() => {
-    let query = options.query || {};
+    let query: any = options.query || {};
+    
+    // Ensure selector exists and _deleted is false
+    if (!query.selector) {
+      query.selector = {};
+    }
+    query.selector._deleted = { $eq: false };
 
     // Add workspace/space filters
     if (options.workspaceId) {
-      query = { ...query, selector: { ...query.selector, workspaceId: options.workspaceId } };
+      query.selector.workspaceId = options.workspaceId;
     }
     if (options.spaceId) {
-      query = { ...query, selector: { ...query.selector, spaceId: options.spaceId } };
+      query.selector.spaceId = options.spaceId;
     }
 
-    // Add sort
+    // Add sort - always provide a sort to avoid undefined
     if (options.sort) {
       if (typeof options.sort === 'string') {
-        query = { ...query, sort: [{ [options.sort]: 'asc' }] };
+        query.sort = [{ [options.sort]: 'asc' }, { id: 'asc' }];
       } else {
-        query = { ...query, sort: [options.sort] };
+        query.sort = [options.sort, { id: 'asc' }];
       }
+    } else {
+      // Default sort
+      query.sort = [{ name: 'asc' }, { id: 'asc' }];
     }
 
-    // Add pagination
-    if (options.limit) {
-      query = { ...query, limit: options.limit };
+    // Add pagination - only add if explicitly set
+    if (typeof options.limit === 'number' && options.limit > 0) {
+      query.limit = options.limit;
     }
-    if (options.skip) {
-      query = { ...query, skip: options.skip };
-    }
+    // Always set skip to avoid undefined
+    query.skip = (typeof options.skip === 'number' && options.skip >= 0) ? options.skip : 0;
 
     return query;
   }, [options]);

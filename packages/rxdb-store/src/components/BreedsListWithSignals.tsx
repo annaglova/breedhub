@@ -35,9 +35,9 @@ export function BreedsListWithSignals({
   const [isAddingNew, setIsAddingNew] = useState(false);
   const [newBreedData, setNewBreedData] = useState<Partial<BreedDocType>>({
     name: '',
-    description: '',
-    size: 'medium'
+    description: ''
   });
+  // No pagination - just show top 20
 
   const handleAddBreed = async () => {
     try {
@@ -47,7 +47,7 @@ export function BreedsListWithSignals({
         spaceId
       });
       setIsAddingNew(false);
-      setNewBreedData({ name: '', description: '', size: 'medium' });
+      setNewBreedData({ name: '', description: '' });
     } catch (err) {
       console.error('Failed to add breed:', err);
     }
@@ -66,13 +66,6 @@ export function BreedsListWithSignals({
     }
   };
 
-  const handleSizeFilter = (size: string) => {
-    if (size === 'all') {
-      clearFilter();
-    } else {
-      setFilter({ selector: { size } });
-    }
-  };
 
   if (loading) {
     return (
@@ -139,17 +132,6 @@ export function BreedsListWithSignals({
           )}
         </div>
         
-        <select
-          onChange={(e) => handleSizeFilter(e.target.value)}
-          className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
-          <option value="all">All Sizes</option>
-          <option value="toy">Toy</option>
-          <option value="small">Small</option>
-          <option value="medium">Medium</option>
-          <option value="large">Large</option>
-          <option value="giant">Giant</option>
-        </select>
 
         <button
           onClick={() => setIsAddingNew(true)}
@@ -163,7 +145,7 @@ export function BreedsListWithSignals({
       {isAddingNew && (
         <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
           <h3 className="font-semibold mb-3">Add New Breed</h3>
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-2 gap-3">
             <input
               type="text"
               placeholder="Breed name"
@@ -178,17 +160,6 @@ export function BreedsListWithSignals({
               onChange={(e) => setNewBreedData({ ...newBreedData, description: e.target.value })}
               className="px-3 py-2 border border-gray-300 rounded-md"
             />
-            <select
-              value={newBreedData.size}
-              onChange={(e) => setNewBreedData({ ...newBreedData, size: e.target.value as any })}
-              className="px-3 py-2 border border-gray-300 rounded-md"
-            >
-              <option value="toy">Toy</option>
-              <option value="small">Small</option>
-              <option value="medium">Medium</option>
-              <option value="large">Large</option>
-              <option value="giant">Giant</option>
-            </select>
           </div>
           <div className="flex gap-2 mt-3">
             <button
@@ -207,19 +178,27 @@ export function BreedsListWithSignals({
         </div>
       )}
 
+      {/* Showing count */}
+      <div className="flex justify-between items-center mb-4">
+        <div className="text-sm text-gray-600">
+          Showing top {Math.min(20, breeds.length)} of {breeds.length} breeds
+        </div>
+      </div>
+
       {/* Breeds grid - automatically updates with signals */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {breeds.map((breed) => (
+        {breeds
+          .slice(0, 20)  // Just show top 20
+          .map((breed) => (
           <div
             key={breed.id}
             onClick={() => onBreedSelect?.(breed.toJSON())}
             className="bg-white p-4 rounded-lg shadow-md hover:shadow-lg transition-all transform hover:scale-105 cursor-pointer"
           >
-            <div className="flex justify-between items-start mb-2">
-              <h3 className="text-lg font-semibold">{breed.name}</h3>
-              <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">
-                {breed.size}
-              </span>
+            <div className="mb-2">
+              <h3 className="text-lg font-semibold">
+                {breed.name || breed.id.substring(0, 8) + '...'}
+              </h3>
             </div>
             
             {breed.description && (
@@ -228,9 +207,10 @@ export function BreedsListWithSignals({
               </p>
             )}
             
-            {breed.origin && (
-              <p className="text-xs text-gray-500">
-                Origin: {breed.origin}
+            
+            {breed.updatedAt && (
+              <p className="text-xs text-gray-400 mt-1">
+                Updated: {new Date(breed.updatedAt).toLocaleDateString('uk-UA')} {new Date(breed.updatedAt).toLocaleTimeString('uk-UA')}
               </p>
             )}
 
