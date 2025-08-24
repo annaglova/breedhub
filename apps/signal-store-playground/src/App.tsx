@@ -1,5 +1,5 @@
 import { Routes, Route, Link, useLocation } from 'react-router-dom';
-import { Home, Database, Filter, GitBranch, HardDrive, Activity, Layers, Code, Boxes, FlaskConical, Zap, Disc, Smartphone, WifiOff, RefreshCw, ClipboardCheck, Cloud, Dog } from 'lucide-react';
+import { Home, Database, Filter, GitBranch, HardDrive, Activity, Layers, Code, Boxes, FlaskConical, Zap, Disc, Smartphone, WifiOff, RefreshCw, ClipboardCheck, Cloud, Dog, BookOpen } from 'lucide-react';
 import HomePage from './pages/HomePage';
 import EntitiesPage from './pages/EntitiesPage';
 import FilteringPage from './pages/FilteringPage';
@@ -23,11 +23,13 @@ import PartitionSyncTest from './pages/PartitionSyncTest';
 import SimpleSyncTest from './pages/SimpleSyncTest';
 import TwoWaySyncTest from './pages/TwoWaySyncTest';
 import { BreedsRxDBPage } from './pages/BreedsRxDBPage';
+import { BooksRxDBPage } from './pages/BooksRxDBPage';
 import { SWRegisterButton } from './components/SWRegisterButton';
 import clsx from 'clsx';
 
 const navigation = [
   { name: 'Home', path: '/', icon: Home },
+  { name: 'Books RxDB', path: '/books-rxdb', icon: BookOpen },
   { name: 'Breeds RxDB', path: '/breeds-rxdb', icon: Dog },
   { name: 'RxDB Demo', path: '/rxdb', icon: Disc },
   { name: 'DB Schema', path: '/db-schema', icon: Database },
@@ -94,6 +96,7 @@ function App() {
       <main className="flex-1 overflow-auto">
         <Routes>
           <Route path="/" element={<HomePage />} />
+          <Route path="/books-rxdb" element={<BooksRxDBPage />} />
           <Route path="/breeds-rxdb" element={<BreedsRxDBPage />} />
           <Route path="/rxdb" element={<RxDBPage />} />
           <Route path="/db-schema" element={<DatabaseSchemaViewer />} />
