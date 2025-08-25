@@ -218,6 +218,32 @@ export const BooksRxDBPage: React.FC = () => {
               >
                 Delete Test Books from Supabase
               </button>
+              
+              {syncStatus && (
+                <button
+                  onClick={async () => {
+                    setIsLoading(true);
+                    try {
+                      console.log('[BooksRxDBPage] Forcing sync from Supabase...');
+                      const success = await booksReplicationService.forceFullSync();
+                      if (success) {
+                        showMessage('success', 'Force sync completed successfully!');
+                      } else {
+                        showMessage('error', 'Force sync failed. Check console for details.');
+                      }
+                    } catch (error) {
+                      console.error('[BooksRxDBPage] Force sync error:', error);
+                      showMessage('error', `Force sync error: ${error}`);
+                    } finally {
+                      setIsLoading(false);
+                    }
+                  }}
+                  disabled={isLoading}
+                  className="px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded disabled:opacity-50"
+                >
+                  🔄 Force Sync from Supabase
+                </button>
+              )}
             </div>
           </div>
 
