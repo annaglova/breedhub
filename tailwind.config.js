@@ -7,6 +7,8 @@ export default {
     "./apps/landing/src/**/*.{js,ts,jsx,tsx}",
     "./apps/signal-store-playground/src/**/*.{js,ts,jsx,tsx}",
     "./apps/signal-store-playground/index.html",
+    "./apps/config-admin/src/**/*.{js,ts,jsx,tsx}",
+    "./apps/config-admin/index.html",
     "./apps/shared/**/*.{js,ts,jsx,tsx}",
     "./apps/landing/index.html",
     "./apps/app/index.html",
