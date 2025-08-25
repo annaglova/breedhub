@@ -133,7 +133,7 @@ export class BooksReplicationService {
         replicationIdentifier: 'books-supabase-replication',
         deletedField: '_deleted',
         live: true,
-        retryTime: 30 * 1000, // 30 seconds between retry attempts
+        retryTime: 60 * 1000, // 60 seconds - rely on Realtime instead
         waitForLeadership: false,
         autoStart: true,
 
@@ -153,10 +153,14 @@ export class BooksReplicationService {
           serviceInstance.activeRequests++;
           
           const limit = batchSize || 50; // Reduced limit to avoid overload
-          const lastUpdatedAt = checkpointOrNull?.updatedAt || new Date(0).toISOString();
+          // Use server time minus 5 seconds to avoid missing updates due to time differences
+          const checkpointDate = checkpointOrNull?.updatedAt 
+            ? new Date(new Date(checkpointOrNull.updatedAt).getTime() - 5000).toISOString() // Subtract 5 seconds for overlap
+            : new Date(0).toISOString();
           
           console.log('[BooksReplication] Pull params:', {
-            lastUpdatedAt,
+            checkpointDate,
+            originalCheckpoint: checkpointOrNull?.updatedAt,
             limit,
             checkpointOrNull
           });
@@ -165,7 +169,7 @@ export class BooksReplicationService {
             const { data, error } = await serviceInstance.supabase
               .from('books')
               .select('*')
-              .gte('updated_at', lastUpdatedAt) // Changed to >= to include updates at exact checkpoint time
+              .gt('updated_at', checkpointDate) // Use > to avoid duplicates, with 5 second overlap
               .order('updated_at', { ascending: true })
               .limit(limit);
               
@@ -317,6 +321,24 @@ export class BooksReplicationService {
       
       // Setup real-time subscription for immediate updates
       await this.setupRealtimeSubscription();
+      
+      // DISABLED for testing pure Realtime
+      // Setup manual pull interval as backup (every 10 seconds)
+      // if (this.pullInterval) {
+      //   clearInterval(this.pullInterval);
+      // }
+      // this.pullInterval = setInterval(async () => {
+      //   if (this.replicationState && this.replicationState.isStopped() === false) {
+      //     console.log('[BooksReplication] Manual pull trigger...');
+      //     try {
+      //       await this.replicationState.reSync();
+      //     } catch (err) {
+      //       console.log('[BooksReplication] Manual pull error:', err);
+      //     }
+      //   }
+      // }, 10000); // Every 10 seconds
+      
+      console.log('[BooksReplication] ⚡ REALTIME MODE ONLY - No polling backup!');
     } catch (error) {
       console.error('[BooksReplication] Setup failed:', error);
     }
@@ -324,6 +346,13 @@ export class BooksReplicationService {
 
   private async setupRealtimeSubscription() {
     console.log('[BooksReplication] Setting up realtime subscription...');
+    
+    // Check if we already have a channel
+    if (this.realtimeChannel) {
+      console.log('[BooksReplication] Realtime channel already exists, cleaning up...');
+      await this.supabase.removeChannel(this.realtimeChannel);
+      this.realtimeChannel = null;
+    }
     
     try {
       // Subscribe to all changes on the books table
@@ -337,10 +366,11 @@ export class BooksReplicationService {
             table: 'books' 
           },
           async (payload) => {
-            console.log('[BooksReplication] Realtime change received:', {
+            console.log('[BooksReplication] 🔴 REALTIME EVENT RECEIVED:', {
               eventType: payload.eventType,
               new: payload.new,
-              old: payload.old
+              old: payload.old,
+              timestamp: new Date().toISOString()
             });
             
             const db = await getDatabase();
@@ -387,10 +417,14 @@ export class BooksReplicationService {
           }
         )
         .subscribe((status) => {
-          console.log('[BooksReplication] Realtime subscription status:', status);
+          console.log('[BooksReplication] 🟢 Realtime subscription status:', status);
           if (status === 'SUBSCRIBED') {
             this.isRealTimeEnabled = true;
-            console.log('[BooksReplication] Realtime subscription active');
+            console.log('[BooksReplication] ✅ REALTIME WEBSOCKET CONNECTED! Listening for changes...');
+          } else if (status === 'CHANNEL_ERROR') {
+            console.error('[BooksReplication] ❌ Realtime connection error!');
+          } else if (status === 'TIMED_OUT') {
+            console.error('[BooksReplication] ⏱️ Realtime connection timeout!');
           }
         });
     } catch (error) {
