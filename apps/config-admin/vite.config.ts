@@ -4,9 +4,11 @@ import path from 'path'
 
 // https://vite.dev/config/
 export default defineConfig({
+  root: __dirname,
   plugins: [react()],
   server: {
     port: 5176, // Unique port for config-admin
+    open: true,
   },
   resolve: {
     alias: {
@@ -15,6 +17,10 @@ export default defineConfig({
       '@breedhub/signal-store': path.resolve(__dirname, '../../packages/signal-store/src'),
       '@breedhub/ui': path.resolve(__dirname, '../../packages/ui/src'),
     },
+  },
+  build: {
+    outDir: '../../dist/config-admin',
+    emptyOutDir: true,
   },
   optimizeDeps: {
     include: ['react', 'react-dom'],
