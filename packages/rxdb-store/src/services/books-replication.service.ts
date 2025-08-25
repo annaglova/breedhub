@@ -133,7 +133,7 @@ export class BooksReplicationService {
         replicationIdentifier: 'books-supabase-replication',
         deletedField: '_deleted',
         live: true,
-        retryTime: 30 * 1000, // Increased to 30 seconds to reduce load
+        retryTime: 30 * 1000, // 30 seconds between retry attempts
         waitForLeadership: false,
         autoStart: true,
 
@@ -154,14 +154,26 @@ export class BooksReplicationService {
           
           const limit = batchSize || 50; // Reduced limit to avoid overload
           const lastUpdatedAt = checkpointOrNull?.updatedAt || new Date(0).toISOString();
+          
+          console.log('[BooksReplication] Pull params:', {
+            lastUpdatedAt,
+            limit,
+            checkpointOrNull
+          });
 
           try {
             const { data, error } = await serviceInstance.supabase
               .from('books')
               .select('*')
-              .gt('updated_at', lastUpdatedAt)
+              .gte('updated_at', lastUpdatedAt) // Changed to >= to include updates at exact checkpoint time
               .order('updated_at', { ascending: true })
               .limit(limit);
+              
+            console.log('[BooksReplication] Supabase response:', {
+              dataCount: data?.length || 0,
+              error,
+              data: data?.slice(0, 2) // Show first 2 for debugging
+            });
 
             if (error) {
               console.error('[BooksReplication] Pull error:', error);
@@ -302,8 +314,87 @@ export class BooksReplicationService {
       });
 
       console.log('[BooksReplication] Replication setup complete');
+      
+      // Setup real-time subscription for immediate updates
+      await this.setupRealtimeSubscription();
     } catch (error) {
       console.error('[BooksReplication] Setup failed:', error);
+    }
+  }
+
+  private async setupRealtimeSubscription() {
+    console.log('[BooksReplication] Setting up realtime subscription...');
+    
+    try {
+      // Subscribe to all changes on the books table
+      this.realtimeChannel = this.supabase
+        .channel('books-changes')
+        .on(
+          'postgres_changes',
+          { 
+            event: '*', 
+            schema: 'public', 
+            table: 'books' 
+          },
+          async (payload) => {
+            console.log('[BooksReplication] Realtime change received:', {
+              eventType: payload.eventType,
+              new: payload.new,
+              old: payload.old
+            });
+            
+            const db = await getDatabase();
+            if (!db.books) return;
+            
+            if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
+              const supabaseBook = payload.new as BookSupabase;
+              const rxdbBook = this.mapSupabaseToRxDB(supabaseBook);
+              
+              try {
+                // Check if document exists
+                const existing = await db.books.findOne(rxdbBook.id).exec();
+                
+                if (existing) {
+                  // Only update if Supabase version is newer
+                  if (new Date(rxdbBook.updatedAt) > new Date(existing.updatedAt)) {
+                    await existing.patch(rxdbBook);
+                    console.log('[BooksReplication] Realtime: Updated book', rxdbBook.id);
+                  }
+                } else {
+                  // Insert new document
+                  await db.books.insert(rxdbBook);
+                  console.log('[BooksReplication] Realtime: Inserted book', rxdbBook.id);
+                }
+              } catch (err) {
+                console.error('[BooksReplication] Realtime sync error:', err);
+              }
+            } else if (payload.eventType === 'DELETE') {
+              const bookId = (payload.old as any).id;
+              
+              try {
+                const existing = await db.books.findOne(bookId).exec();
+                if (existing) {
+                  await existing.patch({ 
+                    _deleted: true,
+                    updatedAt: new Date().toISOString()
+                  });
+                  console.log('[BooksReplication] Realtime: Marked as deleted', bookId);
+                }
+              } catch (err) {
+                console.error('[BooksReplication] Realtime delete error:', err);
+              }
+            }
+          }
+        )
+        .subscribe((status) => {
+          console.log('[BooksReplication] Realtime subscription status:', status);
+          if (status === 'SUBSCRIBED') {
+            this.isRealTimeEnabled = true;
+            console.log('[BooksReplication] Realtime subscription active');
+          }
+        });
+    } catch (error) {
+      console.error('[BooksReplication] Realtime setup failed:', error);
     }
   }
 
@@ -359,6 +450,63 @@ export class BooksReplicationService {
 
   isReplicationActive(): boolean {
     return this.replicationState !== null;
+  }
+
+  async forceFullSync() {
+    console.log('[BooksReplication] Forcing full sync from Supabase...');
+    
+    try {
+      // Get all non-deleted books from Supabase
+      const { data, error } = await this.supabase
+        .from('books')
+        .select('*')
+        .eq('deleted', false)
+        .order('updated_at', { ascending: false });
+
+      if (error) {
+        console.error('[BooksReplication] Force sync error:', error);
+        return false;
+      }
+
+      console.log('[BooksReplication] Force sync got', data?.length || 0, 'books');
+      
+      // Get database
+      const db = await getDatabase();
+      if (!db.books) {
+        console.error('[BooksReplication] Books collection not found');
+        return false;
+      }
+
+      // Update or insert each book
+      for (const supabaseBook of (data || [])) {
+        const rxdbBook = this.mapSupabaseToRxDB(supabaseBook);
+        
+        try {
+          // Try to find existing
+          const existing = await db.books.findOne(rxdbBook.id).exec();
+          
+          if (existing) {
+            // Update if Supabase version is newer
+            if (new Date(rxdbBook.updatedAt) > new Date(existing.updatedAt)) {
+              await existing.patch(rxdbBook);
+              console.log('[BooksReplication] Updated book:', rxdbBook.id);
+            }
+          } else {
+            // Insert new
+            await db.books.insert(rxdbBook);
+            console.log('[BooksReplication] Inserted book:', rxdbBook.id);
+          }
+        } catch (err) {
+          console.error('[BooksReplication] Error syncing book:', rxdbBook.id, err);
+        }
+      }
+
+      console.log('[BooksReplication] Force sync completed');
+      return true;
+    } catch (error) {
+      console.error('[BooksReplication] Force sync failed:', error);
+      return false;
+    }
   }
 
   async deleteTestBooks() {
