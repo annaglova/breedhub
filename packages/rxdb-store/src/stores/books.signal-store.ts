@@ -190,8 +190,7 @@ class BooksSignalStore {
         updatedAt: new Date().toISOString()
       });
       
-      // Force save to ensure IndexedDB is updated
-      await doc.save();
+      // patch() automatically saves to IndexedDB - no need for save()
       
       // Verify the update
       const updatedDoc = await db.books.findOne(id).exec();
