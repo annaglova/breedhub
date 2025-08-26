@@ -21,9 +21,8 @@
 - **[AI_TESTING_GUIDE.md](./AI_TESTING_GUIDE.md)** - Гайд по тестуванню для AI
 
 ### Configuration Management 🆕
-- **[CONFIG_DRIVEN_STORE.md](./CONFIG_DRIVEN_STORE.md)** - Config-driven архітектура для React/RxDB
-- **[CONFIG_ARCHITECTURE.md](./CONFIG_ARCHITECTURE.md)** - Детальна система конфігурацій
-- **[CONFIG_SETUP.md](./CONFIG_SETUP.md)** - Налаштування Windmill + Supabase
+- **[PROPERTY_BASED_CONFIG_ARCHITECTURE.md](./PROPERTY_BASED_CONFIG_ARCHITECTURE.md)** - Нова property-based архітектура конфігурацій
+- **[CONFIG_TS.md](./CONFIG_TS.md)** - Вимоги та завдання для config-admin
 
 ### Технічні керівництва
 - **[TESTING_STRATEGY.md](./TESTING_STRATEGY.md)** - Стратегія тестування
@@ -43,9 +42,17 @@
 
 Історичні та застарілі документи переміщені до папки `archive/` для збереження історії проекту:
 
+### Попередні системи конфігурації
+- **[archive/CONFIG_ARCHITECTURE.md](./archive/CONFIG_ARCHITECTURE.md)** - Попередня архітектура конфігурацій з app_config
+- **[archive/CONFIG_DRIVEN_STORE.md](./archive/CONFIG_DRIVEN_STORE.md)** - Попередній config-driven підхід
+- **[archive/CONFIG_SETUP.md](./archive/CONFIG_SETUP.md)** - Попередня інтеграція з Windmill
+
+### MultiStore та міграції
 - **[archive/NGRX_SIGNAL_STORE_MIGRATION.md](./archive/NGRX_SIGNAL_STORE_MIGRATION.md)** - NgRx міграція (DEPRECATED - Angular only!)
 - **[archive/MULTISTORE_INTEGRATION_PLAN.md](./archive/MULTISTORE_INTEGRATION_PLAN.md)** - План інтеграції MultiStore
 - **[archive/MULTISTORE_ARCHITECTURE.md](./archive/MULTISTORE_ARCHITECTURE.md)** - MultiStore архітектура
+
+### Аналізи та дослідження
 - **[archive/RXDB_VS_YJS_ANALYSIS.md](./archive/RXDB_VS_YJS_ANALYSIS.md)** - Аналіз RxDB vs Yjs
 - **[archive/NGX_ODM_ANALYSIS.md](./archive/NGX_ODM_ANALYSIS.md)** - Аналіз ngx-odm патернів
 

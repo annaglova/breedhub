@@ -1079,10 +1079,10 @@ describe('Phase 6: Config Admin', () => {
 ```
 
 ### Інтеграція з існуючою системою:
-- Використовує `CONFIG_ARCHITECTURE.md` структуру
-- Працює з `app_config` таблицею
-- Синхронізується через Windmill (`CONFIG_SETUP.md`)
-- Генерує конфігурації для `CONFIG_DRIVEN_STORE.md`
+- Використовує нову `PROPERTY_BASED_CONFIG_ARCHITECTURE.md` структуру
+- Працює з `config` та `config_type` таблицями
+- Синхронізується через Windmill з новою property-based логікою
+- Генерує RxDB схеми та UI компоненти з конфігурацій
 
 ---
 
