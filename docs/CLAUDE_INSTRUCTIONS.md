@@ -52,7 +52,24 @@ pnpm build
 ## Важливі шляхи
 - **Playground:** http://localhost:5174 - тестове середовище
 - **Landing:** http://localhost:5173 - landing page
+- **Config Admin:** http://localhost:5176 - візуальний конфігуратор схем
 - **Supabase:** http://dev.dogarray.com:8020 - база даних
+
+## Використані зовнішні сервіси та бібліотеки
+
+### JSON Hero
+- **URL:** https://jsonhero.io
+- **GitHub:** https://github.com/triggerdotdev/jsonhero-web
+- **Використання:** Інтеграція для візуалізації JSON схем в Config Admin
+- **Інтеграція:** 
+  - Вбудований iframe viewer у компоненті JsonHeroViewer
+  - Пряме відкриття в новій вкладці через Base64 encoding
+  - Доступно на всіх сторінках Config Admin (Database, Builder, Templates)
+- **Переваги:**
+  - Column view навігація (як macOS Finder)
+  - Автоматичне визначення типів (дати, URL, кольори)
+  - Fuzzy search по JSON структурі
+  - Shareable URLs для співпраці
 
 ---
 _Цей файл призначено для внутрішнього використання AI-моделі Claude при роботі з проектом BreedHub._
