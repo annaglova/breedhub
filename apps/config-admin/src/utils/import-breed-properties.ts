@@ -1,7 +1,7 @@
 import { propertyRegistryStore, type PropertyDefinition } from '@breedhub/rxdb-store';
 
 // Define breed-related properties based on existing breed entities and schemas
-const breedProperties: Omit<PropertyDefinition, 'uid' | 'created_at' | 'updated_at'>[] = [
+const breedProperties: Partial<PropertyDefinition>[] = [
   // Basic breed properties
   {
     name: 'breed_name',
