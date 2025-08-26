@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { createClient } from '@supabase/supabase-js'
-import { Database, Table, Columns, Key, Link, RefreshCw, AlertCircle } from 'lucide-react'
+import { Database, Table, Columns, Key, Link, RefreshCw, AlertCircle, ExternalLink, Download } from 'lucide-react'
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || ''
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || ''
@@ -170,6 +170,14 @@ export function DatabasePage() {
     URL.revokeObjectURL(url)
   }
 
+  const openInJsonHero = (table: TableInfo) => {
+    const config = generateRxDBConfig(table)
+    const jsonString = JSON.stringify(config, null, 2)
+    const encodedJson = btoa(unescape(encodeURIComponent(jsonString)))
+    const url = `https://jsonhero.io/new?j=${encodedJson}`
+    window.open(url, '_blank')
+  }
+
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
@@ -256,15 +264,28 @@ export function DatabasePage() {
                     <Columns className="w-5 h-5" />
                     {selectedTable} Schema
                   </h2>
-                  <button
-                    onClick={() => {
-                      const table = tables.find(t => t.table_name === selectedTable)
-                      if (table) exportTableConfig(table)
-                    }}
-                    className="px-3 py-1.5 bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-opacity text-sm"
-                  >
-                    Export RxDB Config
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => {
+                        const table = tables.find(t => t.table_name === selectedTable)
+                        if (table) openInJsonHero(table)
+                      }}
+                      className="px-3 py-1.5 border rounded-lg hover:bg-muted transition-colors text-sm flex items-center gap-1"
+                    >
+                      <ExternalLink className="w-3 h-3" />
+                      JSON Hero
+                    </button>
+                    <button
+                      onClick={() => {
+                        const table = tables.find(t => t.table_name === selectedTable)
+                        if (table) exportTableConfig(table)
+                      }}
+                      className="px-3 py-1.5 bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-opacity text-sm flex items-center gap-1"
+                    >
+                      <Download className="w-3 h-3" />
+                      Export
+                    </button>
+                  </div>
                 </div>
                 
                 <div className="border rounded-lg overflow-hidden mb-4">

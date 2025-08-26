@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { Save, Download, Upload, Plus, Trash2, Copy } from 'lucide-react'
+import { Save, Download, Upload, Plus, Trash2, Copy, ExternalLink, Eye } from 'lucide-react'
+import { JsonHeroViewer } from '../components/JsonHeroViewer'
 
 interface FieldConfig {
   name: string
@@ -41,6 +42,7 @@ export function ConfigBuilderPage() {
   })
 
   const [showJson, setShowJson] = useState(false)
+  const [showJsonHero, setShowJsonHero] = useState(false)
 
   const fieldTypes = [
     'string',
@@ -134,6 +136,14 @@ export function ConfigBuilderPage() {
     URL.revokeObjectURL(url)
   }
 
+  const openInJsonHero = () => {
+    const schema = generateRxDBSchema()
+    const jsonString = JSON.stringify(schema, null, 2)
+    const encodedJson = btoa(unescape(encodeURIComponent(jsonString)))
+    const url = `https://jsonhero.io/new?j=${encodedJson}`
+    window.open(url, '_blank')
+  }
+
   const importConfig = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (!file) return
@@ -184,6 +194,21 @@ export function ConfigBuilderPage() {
             className="px-4 py-2 border rounded-lg hover:bg-muted transition-colors"
           >
             {showJson ? 'Hide' : 'Show'} JSON
+          </button>
+          <button
+            onClick={() => setShowJsonHero(true)}
+            className="px-4 py-2 border rounded-lg hover:bg-muted transition-colors flex items-center gap-2"
+            title="View in embedded JSON Hero"
+          >
+            <Eye className="w-4 h-4" />
+            JSON Hero
+          </button>
+          <button
+            onClick={openInJsonHero}
+            className="px-4 py-2 border rounded-lg hover:bg-muted transition-colors"
+            title="Open in new tab"
+          >
+            <ExternalLink className="w-4 h-4" />
           </button>
           <label className="px-4 py-2 border rounded-lg hover:bg-muted transition-colors cursor-pointer flex items-center gap-2">
             <Upload className="w-4 h-4" />
@@ -385,6 +410,15 @@ export function ConfigBuilderPage() {
           </div>
         </div>
       </div>
+
+      {/* JSON Hero Viewer Modal */}
+      {showJsonHero && (
+        <JsonHeroViewer
+          json={generateRxDBSchema()}
+          title={`${config.name || 'Collection'} Schema`}
+          onClose={() => setShowJsonHero(false)}
+        />
+      )}
     </div>
   )
 }

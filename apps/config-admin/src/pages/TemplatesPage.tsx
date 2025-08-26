@@ -1,4 +1,4 @@
-import { Download, Copy, Eye } from 'lucide-react'
+import { Download, Copy, Eye, ExternalLink } from 'lucide-react'
 import { useState } from 'react'
 
 interface Template {
@@ -197,6 +197,13 @@ export function TemplatesPage() {
     alert('Schema copied to clipboard!')
   }
 
+  const openInJsonHero = (template: Template) => {
+    const jsonString = JSON.stringify(template.schema, null, 2)
+    const encodedJson = btoa(unescape(encodeURIComponent(jsonString)))
+    const url = `https://jsonhero.io/new?j=${encodedJson}`
+    window.open(url, '_blank')
+  }
+
   return (
     <div>
       <h1 className="text-3xl font-bold mb-6">Schema Templates</h1>
@@ -268,14 +275,23 @@ export function TemplatesPage() {
                   Preview
                 </button>
                 <button
+                  onClick={() => openInJsonHero(template)}
+                  className="p-2 border rounded-lg hover:bg-muted transition-colors"
+                  title="Open in JSON Hero"
+                >
+                  <ExternalLink className="w-4 h-4" />
+                </button>
+                <button
                   onClick={() => copyTemplate(template)}
                   className="p-2 border rounded-lg hover:bg-muted transition-colors"
+                  title="Copy to clipboard"
                 >
                   <Copy className="w-4 h-4" />
                 </button>
                 <button
                   onClick={() => downloadTemplate(template)}
                   className="p-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-opacity"
+                  title="Download JSON"
                 >
                   <Download className="w-4 h-4" />
                 </button>
