@@ -1,9 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import { Plus, Search, Filter, Edit2, Trash2, Copy, Download, Upload, RefreshCw, Wifi, WifiOff, Database } from 'lucide-react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { Plus, Search, Filter, Edit2, Trash2, Copy, Download, Upload, ChevronLeft, ChevronRight } from 'lucide-react';
 import { propertyRegistryStore, type PropertyDefinition } from '@breedhub/rxdb-store';
-import { importSystemProperties, getSystemPropertiesPreview } from '../utils/import-system-properties';
+import PropertyEditModal from '../components/PropertyEditModal';
 
 type PropertyType = PropertyDefinition['type'];
+
+const ITEMS_PER_PAGE = 20;
 
 const PropertiesPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -11,16 +13,36 @@ const PropertiesPage: React.FC = () => {
   const [filterCategory, setFilterCategory] = useState<string>('all');
   const [selectedProperty, setSelectedProperty] = useState<PropertyDefinition | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error' | 'info', text: string } | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [, forceUpdate] = useState({});
 
-  // Use signals from store
+  // Use signals from store - access .value to get current values
   const properties = propertyRegistryStore.propertiesList.value;
   const loading = propertyRegistryStore.loading.value;
   const error = propertyRegistryStore.error.value;
-  const syncEnabled = propertyRegistryStore.syncEnabled.value;
   const categories = propertyRegistryStore.categories.value;
   const totalCount = propertyRegistryStore.totalCount.value;
   const systemPropertiesCount = propertyRegistryStore.systemProperties.value.length;
+  
+  // Debug logging
+  console.log('[PropertiesPage] Store state:', {
+    properties: properties.length,
+    loading,
+    error,
+    totalCount,
+    systemPropertiesCount,
+    rawPropertiesMap: propertyRegistryStore.properties.value.size
+  });
+  
+  // Subscribe to signal changes
+  useEffect(() => {
+    const unsubscribe = propertyRegistryStore.propertiesList.subscribe(() => {
+      forceUpdate({});
+    });
+    return () => unsubscribe();
+  }, []);
 
   // Filter properties based on search and filters
   const filteredProperties = React.useMemo(() => {
@@ -47,48 +69,28 @@ const PropertiesPage: React.FC = () => {
     return filtered;
   }, [properties, searchQuery, filterType, filterCategory]);
 
+  // Pagination
+  const totalPages = Math.ceil(filteredProperties.length / ITEMS_PER_PAGE);
+  const paginatedProperties = useMemo(() => {
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    const endIndex = startIndex + ITEMS_PER_PAGE;
+    return filteredProperties.slice(startIndex, endIndex);
+  }, [filteredProperties, currentPage]);
+
+  // Reset to page 1 when filters change
   useEffect(() => {
-    // Component will auto-update when store signals change
-    console.log('[PropertiesPage] Properties updated:', properties.length);
-  }, [properties]);
+    setCurrentPage(1);
+  }, [searchQuery, filterType, filterCategory]);
 
   const showMessage = (type: 'success' | 'error' | 'info', text: string) => {
     setMessage({ type, text });
     setTimeout(() => setMessage(null), 5000);
   };
 
-  const handleToggleSync = async () => {
-    try {
-      if (syncEnabled) {
-        await propertyRegistryStore.disableSync();
-        showMessage('info', 'Supabase sync disabled');
-      } else {
-        await propertyRegistryStore.enableSync();
-        showMessage('success', 'Supabase sync enabled - properties will sync every 30 seconds');
-      }
-    } catch (error) {
-      showMessage('error', `Failed to toggle sync: ${error}`);
-    }
-  };
-
-  const handleRefresh = async () => {
-    try {
-      await propertyRegistryStore.enableSync();
-      showMessage('success', 'Properties refreshed from Supabase');
-    } catch (error) {
-      showMessage('error', `Failed to refresh: ${error}`);
-    }
-  };
-
   const handleDelete = async (property: PropertyDefinition) => {
-    if (property.is_system) {
-      showMessage('error', 'Cannot delete system properties');
-      return;
-    }
-
     if (confirm(`Are you sure you want to delete property "${property.caption}"?`)) {
       try {
-        await propertyRegistryStore.deleteProperty(property.uid);
+        await propertyRegistryStore.deleteProperty(property.id);
         showMessage('success', `Property "${property.caption}" deleted`);
       } catch (error: any) {
         showMessage('error', error.message || 'Failed to delete property');
@@ -96,24 +98,36 @@ const PropertiesPage: React.FC = () => {
     }
   };
 
-  const handleClone = async (property: PropertyDefinition) => {
-    const newName = prompt(`Enter name for cloned property:`, `${property.name}_copy`);
-    if (!newName) return;
+  const handleClone = (property: PropertyDefinition) => {
+    // Open modal with pre-filled data from the property to clone
+    // ВАЖЛИВО: видаляємо id, created_at, updated_at щоб створився новий запис
+    const { id, created_at, updated_at, ...propertyWithoutId } = property;
+    const clonedProperty = {
+      ...propertyWithoutId,
+      name: `${property.name}_copy`,
+      caption: `${property.caption} (Copy)`,
+      is_system: false
+    } as PropertyDefinition;
+    setSelectedProperty(clonedProperty);
+    setShowCreateModal(true);
+  };
 
-    try {
-      await propertyRegistryStore.createProperty({
-        ...property,
-        name: newName,
-        caption: `${property.caption} (Copy)`,
-        is_system: false,
-        uid: undefined as any,
-        created_at: undefined as any,
-        updated_at: undefined as any
-      });
-      showMessage('success', `Property cloned as "${newName}"`);
-    } catch (error: any) {
-      showMessage('error', error.message || 'Failed to clone property');
-    }
+  const handleEdit = (property: PropertyDefinition) => {
+    setSelectedProperty(property);
+    setShowEditModal(true);
+  };
+
+  const handleModalSave = () => {
+    showMessage('success', showEditModal ? 'Property updated successfully' : 'Property created successfully');
+    setShowEditModal(false);
+    setShowCreateModal(false);
+    setSelectedProperty(null);
+  };
+
+  const handleModalClose = () => {
+    setShowEditModal(false);
+    setShowCreateModal(false);
+    setSelectedProperty(null);
   };
 
   const handleExport = () => {
@@ -145,7 +159,7 @@ const PropertiesPage: React.FC = () => {
           try {
             await propertyRegistryStore.createProperty({
               ...prop,
-              uid: undefined as any,
+              id: undefined as any,
               created_at: undefined as any,
               updated_at: undefined as any,
               is_system: false
@@ -165,30 +179,6 @@ const PropertiesPage: React.FC = () => {
     reader.readAsText(file);
   };
 
-  const handleImportSystemProperties = async () => {
-    const preview = getSystemPropertiesPreview();
-    const confirmMsg = `This will import ${preview.length} system properties. Continue?`;
-    
-    if (!confirm(confirmMsg)) return;
-
-    try {
-      const result = await importSystemProperties();
-      
-      if (result.errors.length > 0) {
-        console.error('Import errors:', result.errors);
-      }
-      
-      if (result.success > 0) {
-        showMessage('success', `Successfully imported ${result.success} system properties${result.failed > 0 ? `, ${result.failed} failed` : ''}`);
-      } else if (result.failed > 0) {
-        showMessage('error', `Failed to import properties: ${result.errors[0]}`);
-      } else {
-        showMessage('info', 'All system properties already exist');
-      }
-    } catch (error: any) {
-      showMessage('error', `Import failed: ${error.message || error}`);
-    }
-  };
 
   const getComponentName = (component: number): string => {
     const componentMap: Record<number, string> = {
@@ -226,28 +216,6 @@ const PropertiesPage: React.FC = () => {
               Manage reusable property definitions for the configuration system
             </p>
           </div>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={handleToggleSync}
-              className={`px-4 py-2 rounded-lg flex items-center gap-2 ${
-                syncEnabled 
-                  ? 'bg-green-100 text-green-700 hover:bg-green-200' 
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
-              title={syncEnabled ? 'Sync is enabled' : 'Sync is disabled'}
-            >
-              {syncEnabled ? <Wifi className="w-4 h-4" /> : <WifiOff className="w-4 h-4" />}
-              {syncEnabled ? 'Sync On' : 'Sync Off'}
-            </button>
-            <button
-              onClick={handleRefresh}
-              className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 flex items-center gap-2"
-              title="Refresh from Supabase"
-            >
-              <RefreshCw className="w-4 h-4" />
-              Refresh
-            </button>
-          </div>
         </div>
       </div>
 
@@ -268,6 +236,28 @@ const PropertiesPage: React.FC = () => {
           {error}
         </div>
       )}
+
+      {/* Statistics Bar */}
+      <div className="bg-gray-50 rounded-lg p-4 mb-4">
+        <div className="flex gap-6 text-sm">
+          <div className="flex items-center gap-2">
+            <span className="text-gray-600">Total:</span>
+            <span className="font-semibold text-gray-900">{totalCount} properties</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-gray-600">Filtered:</span>
+            <span className="font-semibold text-gray-900">{filteredProperties.length} properties</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-gray-600">System:</span>
+            <span className="font-semibold text-gray-900">{systemPropertiesCount} properties</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-gray-600">Custom:</span>
+            <span className="font-semibold text-gray-900">{totalCount - systemPropertiesCount} properties</span>
+          </div>
+        </div>
+      </div>
 
       {/* Toolbar */}
       <div className="bg-white rounded-lg shadow p-4 mb-6">
@@ -317,7 +307,10 @@ const PropertiesPage: React.FC = () => {
 
           {/* Actions */}
           <button
-            onClick={() => setShowCreateModal(true)}
+            onClick={() => {
+              setSelectedProperty(null);
+              setShowCreateModal(true);
+            }}
             className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2"
           >
             <Plus className="w-4 h-4" />
@@ -342,15 +335,6 @@ const PropertiesPage: React.FC = () => {
               onChange={handleImport}
             />
           </label>
-
-          <button
-            onClick={handleImportSystemProperties}
-            className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 flex items-center gap-2"
-            title="Import system properties"
-          >
-            <Database className="w-4 h-4" />
-            Import System Properties
-          </button>
         </div>
       </div>
 
@@ -362,9 +346,9 @@ const PropertiesPage: React.FC = () => {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredProperties.map((property) => (
+          {paginatedProperties.map((property) => (
             <div
-              key={property.uid}
+              key={property.id}
               className={`bg-white rounded-lg shadow hover:shadow-lg transition-shadow p-4 ${
                 property.is_system ? 'border-l-4 border-gray-400' : ''
               }`}
@@ -418,7 +402,7 @@ const PropertiesPage: React.FC = () => {
               {/* Actions */}
               <div className="flex gap-2 mt-4 pt-3 border-t">
                 <button
-                  onClick={() => setSelectedProperty(property)}
+                  onClick={() => handleEdit(property)}
                   className="flex-1 px-3 py-1.5 text-sm bg-blue-50 text-blue-600 rounded hover:bg-blue-100"
                   title="Edit property"
                 >
@@ -431,18 +415,66 @@ const PropertiesPage: React.FC = () => {
                 >
                   <Copy className="w-4 h-4 mx-auto" />
                 </button>
-                {!property.is_system && (
-                  <button
-                    onClick={() => handleDelete(property)}
-                    className="flex-1 px-3 py-1.5 text-sm bg-red-50 text-red-600 rounded hover:bg-red-100"
-                    title="Delete property"
-                  >
-                    <Trash2 className="w-4 h-4 mx-auto" />
-                  </button>
-                )}
+                <button
+                  onClick={() => handleDelete(property)}
+                  className="flex-1 px-3 py-1.5 text-sm bg-red-50 text-red-600 rounded hover:bg-red-100"
+                  title="Delete property"
+                >
+                  <Trash2 className="w-4 h-4 mx-auto" />
+                </button>
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Pagination */}
+      {!loading && filteredProperties.length > ITEMS_PER_PAGE && (
+        <div className="flex justify-center items-center gap-2 mt-6 mb-4">
+          <button
+            onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+            disabled={currentPage === 1}
+            className="p-2 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <ChevronLeft className="w-4 h-4" />
+          </button>
+          
+          <div className="flex gap-1">
+            {Array.from({ length: Math.min(7, totalPages) }, (_, i) => {
+              let pageNumber;
+              if (totalPages <= 7) {
+                pageNumber = i + 1;
+              } else if (currentPage <= 4) {
+                pageNumber = i + 1;
+              } else if (currentPage >= totalPages - 3) {
+                pageNumber = totalPages - 6 + i;
+              } else {
+                pageNumber = currentPage - 3 + i;
+              }
+              
+              return (
+                <button
+                  key={i}
+                  onClick={() => setCurrentPage(pageNumber)}
+                  className={`px-3 py-1 rounded ${
+                    currentPage === pageNumber
+                      ? 'bg-blue-600 text-white'
+                      : 'hover:bg-gray-100'
+                  }`}
+                >
+                  {pageNumber}
+                </button>
+              );
+            })}
+          </div>
+          
+          <button
+            onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+            disabled={currentPage === totalPages}
+            className="p-2 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <ChevronRight className="w-4 h-4" />
+          </button>
         </div>
       )}
 
@@ -464,7 +496,10 @@ const PropertiesPage: React.FC = () => {
             </button>
           ) : (
             <button
-              onClick={() => setShowCreateModal(true)}
+              onClick={() => {
+                setSelectedProperty(null);
+                setShowCreateModal(true);
+              }}
               className="mt-3 text-blue-600 hover:text-blue-800"
             >
               Create your first property
@@ -473,18 +508,21 @@ const PropertiesPage: React.FC = () => {
         </div>
       )}
 
-      {/* Stats */}
-      <div className="mt-6 flex gap-4 text-sm text-gray-600">
-        <span>Total: {totalCount} properties</span>
-        <span>•</span>
-        <span>Filtered: {filteredProperties.length} properties</span>
-        <span>•</span>
-        <span>System: {systemPropertiesCount} properties</span>
-        <span>•</span>
-        <span className={syncEnabled ? 'text-green-600' : 'text-gray-400'}>
-          {syncEnabled ? '🟢 Sync Active' : '⚪ Sync Disabled'}
-        </span>
-      </div>
+      {/* Edit Modal */}
+      <PropertyEditModal
+        property={showEditModal ? selectedProperty : null}
+        isOpen={showEditModal}
+        onClose={handleModalClose}
+        onSave={handleModalSave}
+      />
+
+      {/* Create/Clone Modal */}
+      <PropertyEditModal
+        property={showCreateModal ? selectedProperty : null}
+        isOpen={showCreateModal}
+        onClose={handleModalClose}
+        onSave={handleModalSave}
+      />
     </div>
   );
 };
