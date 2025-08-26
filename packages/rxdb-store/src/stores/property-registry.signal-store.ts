@@ -9,18 +9,18 @@ export interface PropertyDefinition {
   uid: string;
   name: string;
   type: 'string' | 'number' | 'boolean' | 'date' | 'datetime' | 'json' | 'array' | 'reference';
-  data_type?: string;
+  data_type: string;  // Now required with default ''
   caption: string;
   component: number;
   config?: any;
   mixins?: string[];
   tags?: string[];
-  category?: string;
+  category: string;  // Now required with default ''
   version?: number;
   is_system?: boolean;
   created_at?: string;
   updated_at?: string;
-  created_by?: string;
+  created_by: string;  // Now required with default ''
   _deleted?: boolean | number | string;
 }
 
@@ -45,8 +45,9 @@ export const propertyRegistrySchema = {
       maxLength: 50
     },
     data_type: {
-      type: ['string', 'null'],
-      maxLength: 100
+      type: 'string',
+      maxLength: 100,
+      default: ''
     },
     caption: {
       type: 'string',
@@ -71,8 +72,9 @@ export const propertyRegistrySchema = {
       }
     },
     category: {
-      type: ['string', 'null'],
-      maxLength: 100
+      type: 'string',
+      maxLength: 100,
+      default: ''
     },
     version: {
       type: 'number'
@@ -87,7 +89,8 @@ export const propertyRegistrySchema = {
       type: 'string'
     },
     created_by: {
-      type: ['string', 'null']
+      type: 'string',
+      default: ''
     },
     _deleted: {
       type: ['boolean', 'number', 'string', 'null']
@@ -294,6 +297,9 @@ class PropertyRegistrySignalStore {
       const now = new Date().toISOString();
       
       const newProperty: PropertyDefinition = {
+        data_type: '',
+        category: '',
+        created_by: '',
         ...property,
         uid,
         created_at: now,
