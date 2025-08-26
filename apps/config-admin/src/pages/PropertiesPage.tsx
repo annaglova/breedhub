@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Search, Filter, Edit2, Trash2, Copy, Download, Upload, RefreshCw, Wifi, WifiOff, Database } from 'lucide-react';
 import { propertyRegistryStore, type PropertyDefinition } from '@breedhub/rxdb-store';
-import { importBreedProperties, getBreedPropertiesPreview } from '../utils/import-breed-properties';
+import { importSystemProperties, getSystemPropertiesPreview } from '../utils/import-system-properties';
 
 type PropertyType = PropertyDefinition['type'];
 
@@ -165,25 +165,25 @@ const PropertiesPage: React.FC = () => {
     reader.readAsText(file);
   };
 
-  const handleImportBreedProperties = async () => {
-    const preview = getBreedPropertiesPreview();
-    const confirmMsg = `This will import ${preview.length} breed-related properties. Continue?`;
+  const handleImportSystemProperties = async () => {
+    const preview = getSystemPropertiesPreview();
+    const confirmMsg = `This will import ${preview.length} system properties. Continue?`;
     
     if (!confirm(confirmMsg)) return;
 
     try {
-      const result = await importBreedProperties();
+      const result = await importSystemProperties();
       
       if (result.errors.length > 0) {
         console.error('Import errors:', result.errors);
       }
       
       if (result.success > 0) {
-        showMessage('success', `Successfully imported ${result.success} breed properties${result.failed > 0 ? `, ${result.failed} failed` : ''}`);
+        showMessage('success', `Successfully imported ${result.success} system properties${result.failed > 0 ? `, ${result.failed} failed` : ''}`);
       } else if (result.failed > 0) {
         showMessage('error', `Failed to import properties: ${result.errors[0]}`);
       } else {
-        showMessage('info', 'All breed properties already exist');
+        showMessage('info', 'All system properties already exist');
       }
     } catch (error: any) {
       showMessage('error', `Import failed: ${error.message || error}`);
@@ -344,12 +344,12 @@ const PropertiesPage: React.FC = () => {
           </label>
 
           <button
-            onClick={handleImportBreedProperties}
+            onClick={handleImportSystemProperties}
             className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 flex items-center gap-2"
-            title="Import predefined breed properties"
+            title="Import system properties"
           >
             <Database className="w-4 h-4" />
-            Import Breed Properties
+            Import System Properties
           </button>
         </div>
       </div>
