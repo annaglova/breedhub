@@ -17,6 +17,8 @@ import { breedSchema, breedMigrationStrategies } from '../collections/breeds.sch
 import { BreedCollectionTyped } from '../types/breed.types';
 import { booksSchema } from '../collections/books.schema';
 import { BookCollection } from '../types/book.types';
+import { propertyRegistrySchema } from '../collections/property-registry.schema';
+import { PropertyCollection } from '../types/property-registry.types';
 
 // Add plugins
 if (process.env.NODE_ENV !== 'production') {
@@ -31,6 +33,7 @@ addRxPlugin(RxDBCleanupPlugin);
 export type DatabaseCollections = {
   breeds: BreedCollectionTyped;
   books: BookCollection;
+  property_registry: PropertyCollection;
 };
 
 export type AppDatabase = RxDatabase<DatabaseCollections>;
@@ -53,7 +56,11 @@ class DatabaseService {
   public async getDatabase(): Promise<AppDatabase> {
     if (this.db) {
       console.log('[DatabaseService] Returning cached database');
-      console.log('[DatabaseService] Cached DB collections:', Object.keys(this.db).filter(k => !k.startsWith('_')));
+      console.log('[DatabaseService] All DB keys:', Object.keys(this.db));
+      console.log('[DatabaseService] DB collections object:', this.db.collections);
+      console.log('[DatabaseService] Has breeds?:', !!this.db.breeds);
+      console.log('[DatabaseService] Has books?:', !!this.db.books);
+      console.log('[DatabaseService] Has property_registry?:', !!this.db.property_registry);
       return this.db;
     }
 
@@ -198,6 +205,9 @@ class DatabaseService {
             }).exec();
           }
         }
+      },
+      property_registry: {
+        schema: propertyRegistrySchema
       }
     };
     

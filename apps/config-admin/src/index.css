@@ -41,12 +41,10 @@
   }
 }
 
-* {
-  @apply border-border;
-}
+/* Removed problematic border-border class */
 
 body {
-  @apply bg-background text-foreground;
+  @apply bg-white text-gray-900;
   margin: 0;
   min-width: 320px;
   min-height: 100vh;

@@ -2,103 +2,11 @@ import { signal, computed, batch } from '@preact/signals-react';
 import { getDatabase } from '../services/database.service';
 import { createClient } from '@supabase/supabase-js';
 import { Subscription } from 'rxjs';
-import type { RxDatabase, RxCollection, RxDocument } from 'rxdb';
+import type { RxCollection } from 'rxdb';
+import { PropertyDefinition, PropertyDocument } from '../types/property-registry.types';
 
-// Property types
-export interface PropertyDefinition {
-  uid: string;
-  name: string;
-  type: 'string' | 'number' | 'boolean' | 'date' | 'datetime' | 'json' | 'array' | 'reference';
-  data_type: string;  // Now required with default ''
-  caption: string;
-  component: number;
-  config?: any;
-  mixins?: string[];
-  tags?: string[];
-  category: string;  // Now required with default ''
-  version?: number;
-  is_system?: boolean;
-  created_at?: string;
-  updated_at?: string;
-  created_by: string;  // Now required with default ''
-  _deleted?: boolean | number | string;
-}
-
-export type PropertyDocument = RxDocument<PropertyDefinition>;
-
-// RxDB Schema
-export const propertyRegistrySchema = {
-  version: 0,
-  primaryKey: 'uid',
-  type: 'object',
-  properties: {
-    uid: {
-      type: 'string',
-      maxLength: 100
-    },
-    name: {
-      type: 'string',
-      maxLength: 255
-    },
-    type: {
-      type: 'string',
-      maxLength: 50
-    },
-    data_type: {
-      type: 'string',
-      maxLength: 100,
-      default: ''
-    },
-    caption: {
-      type: 'string',
-      maxLength: 255
-    },
-    component: {
-      type: 'number'
-    },
-    config: {
-      type: 'object'
-    },
-    mixins: {
-      type: 'array',
-      items: {
-        type: 'string'
-      }
-    },
-    tags: {
-      type: 'array',
-      items: {
-        type: 'string'
-      }
-    },
-    category: {
-      type: 'string',
-      maxLength: 100,
-      default: ''
-    },
-    version: {
-      type: 'number'
-    },
-    is_system: {
-      type: 'boolean'
-    },
-    created_at: {
-      type: 'string'
-    },
-    updated_at: {
-      type: 'string'
-    },
-    created_by: {
-      type: 'string',
-      default: ''
-    },
-    _deleted: {
-      type: ['boolean', 'number', 'string', 'null']
-    }
-  },
-  required: ['uid', 'name', 'type', 'caption', 'component'],
-  indexes: ['name', 'type', 'category', 'created_at', 'updated_at']
-};
+// Re-export types for backward compatibility
+export type { PropertyDefinition, PropertyDocument } from '../types/property-registry.types';
 
 class PropertyRegistrySignalStore {
   private static instance: PropertyRegistrySignalStore;
@@ -113,13 +21,7 @@ class PropertyRegistrySignalStore {
   propertiesList = computed(() => {
     const propsMap = this.properties.value;
     return Array.from(propsMap.values())
-      .filter(prop => {
-        const isDeleted = prop._deleted === true || 
-                         prop._deleted === 1 || 
-                         prop._deleted === "1" || 
-                         prop._deleted === "true";
-        return !isDeleted;
-      })
+      .filter(prop => !prop._deleted)
       .sort((a, b) => (a.name || '').localeCompare(b.name || ''));
   });
   
@@ -145,7 +47,8 @@ class PropertyRegistrySignalStore {
   
   private dbSubscription: Subscription | null = null;
   private supabase: any = null;
-  private replicationState: any = null;
+  private realtimeChannel: any = null;
+  private isRealTimeEnabled = false;
   
   private constructor() {
     console.log('[PropertyRegistryStore] Initializing...');
@@ -173,50 +76,75 @@ class PropertyRegistrySignalStore {
   }
   
   private async initializeStore() {
+    console.log('[PropertyRegistryStore] Initializing store...');
+    console.log('[PropertyRegistryStore] Supabase URL:', import.meta.env.VITE_SUPABASE_URL);
+    console.log('[PropertyRegistryStore] Has Supabase client:', !!this.supabase);
+    
     try {
-      console.log('[PropertyRegistryStore] Getting database...');
+      this.loading.value = true;
       const db = await getDatabase();
+      console.log('[PropertyRegistryStore] Got database:', !!db);
+      console.log('[PropertyRegistryStore] Database collections:', db.collections);
+      console.log('[PropertyRegistryStore] Has property_registry?:', !!db.collections?.property_registry);
+      console.log('[PropertyRegistryStore] Direct access property_registry?:', !!db.property_registry);
       
-      // Add collection if it doesn't exist
-      if (!db.collections.property_registry) {
-        console.log('[PropertyRegistryStore] Creating property_registry collection...');
-        await db.addCollections({
-          property_registry: {
-            schema: propertyRegistrySchema
-          }
-        });
+      // Try both ways to access collection
+      const collection = db.property_registry || db.collections?.property_registry;
+      
+      if (!collection) {
+        console.error('[PropertyRegistryStore] property_registry collection not found in database');
+        console.error('[PropertyRegistryStore] Available collections:', Object.keys(db.collections || {}));
+        this.error.value = 'Property registry collection not initialized';
+        return;
       }
       
-      const collection = db.collections.property_registry as RxCollection<PropertyDefinition>;
-      console.log('[PropertyRegistryStore] Collection ready, subscribing to changes...');
+      // Load initial data
+      console.log('[PropertyRegistryStore] Loading initial data from RxDB...');
+      const allProperties = await collection.find().exec();
+      console.log('[PropertyRegistryStore] Found properties in RxDB:', allProperties.length);
+      const propsMap = new Map<string, PropertyDefinition>();
       
-      // Subscribe to collection changes
-      this.dbSubscription = collection.find().$.subscribe({
-        next: (docs: PropertyDocument[]) => {
-          console.log(`[PropertyRegistryStore] Collection updated with ${docs.length} properties`);
-          batch(() => {
-            const newMap = new Map<string, PropertyDefinition>();
-            docs.forEach(doc => {
-              newMap.set(doc.uid, doc.toJSON() as PropertyDefinition);
-            });
-            this.properties.value = newMap;
-            this.error.value = null;
-          });
-        },
-        error: (err) => {
-          console.error('[PropertyRegistryStore] Collection subscription error:', err);
-          this.error.value = err.message;
-        }
+      allProperties.forEach((doc: PropertyDocument) => {
+        const propData = doc.toJSON() as PropertyDefinition;
+        console.log('[PropertyRegistryStore] Adding property to map:', propData.id, propData.name);
+        propsMap.set(doc.id, propData);
       });
       
-      // Start sync if Supabase is available
+      this.properties.value = propsMap;
+      console.log('[PropertyRegistryStore] Loaded initial properties:', propsMap.size);
+      console.log('[PropertyRegistryStore] Properties list length:', this.propertiesList.value.length);
+      
+      // Subscribe to ALL collection changes with find().$ instead of just .$
+      // This ensures we get bulk changes too
+      this.dbSubscription = collection.find().$.subscribe((docs: PropertyDocument[]) => {
+        console.log('[PropertyRegistryStore] Collection changed, documents:', docs.length);
+        
+        const newProps = new Map<string, PropertyDefinition>();
+        docs.forEach((doc: PropertyDocument) => {
+          if (!doc._deleted) {
+            newProps.set(doc.id, doc.toJSON() as PropertyDefinition);
+          }
+        });
+        
+        this.properties.value = newProps;
+        console.log('[PropertyRegistryStore] Updated properties map:', newProps.size);
+      });
+      
+      // Automatically enable sync if Supabase is configured
       if (this.supabase) {
-        await this.enableSync();
+        try {
+          await this.enableSync();
+          // Setup real-time subscription for immediate updates
+          await this.setupRealtimeSubscription();
+        } catch (syncError) {
+          console.error('[PropertyRegistryStore] Failed to enable sync:', syncError);
+          // Don't fail initialization if sync fails - we can work offline
+        }
       }
       
     } catch (error) {
-      console.error('[PropertyRegistryStore] Failed to initialize:', error);
-      this.error.value = `Failed to initialize store: ${error}`;
+      console.error('[PropertyRegistryStore] Initialization error:', error);
+      this.error.value = error instanceof Error ? error.message : 'Failed to initialize store';
     } finally {
       this.loading.value = false;
     }
@@ -227,50 +155,62 @@ class PropertyRegistrySignalStore {
       throw new Error('Supabase client not initialized');
     }
     
-    if (this.replicationState) {
-      console.log('[PropertyRegistryStore] Sync already enabled');
-      return;
-    }
-    
     try {
       console.log('[PropertyRegistryStore] Enabling Supabase sync...');
       const db = await getDatabase();
       const collection = db.collections.property_registry as RxCollection<PropertyDefinition>;
       
-      // Simple pull from Supabase
-      const pullProperties = async () => {
-        const { data, error } = await this.supabase
-          .from('property_registry')
-          .select('*')
-          .order('name');
-        
-        if (error) {
-          console.error('[PropertyRegistryStore] Failed to pull from Supabase:', error);
-          throw error;
-        }
-        
-        if (data && data.length > 0) {
-          console.log(`[PropertyRegistryStore] Pulled ${data.length} properties from Supabase`);
-          
-          // Bulk upsert into RxDB
-          await collection.bulkUpsert(data);
-        }
-      };
+      // Pull from Supabase
+      const { data, error } = await this.supabase
+        .from('property_registry')
+        .select('*')
+        .order('name');
       
-      // Initial pull
-      await pullProperties();
+      if (error) {
+        console.error('[PropertyRegistryStore] Failed to pull from Supabase:', error);
+        throw error;
+      }
       
-      // Set up periodic sync (every 30 seconds)
-      setInterval(() => {
-        if (this.syncEnabled.value) {
-          pullProperties().catch(err => 
-            console.error('[PropertyRegistryStore] Periodic sync failed:', err)
-          );
-        }
-      }, 30000);
+      if (data && data.length > 0) {
+        console.log(`[PropertyRegistryStore] Pulled ${data.length} properties from Supabase`);
+        
+        // Map Supabase fields to RxDB fields - simple mapping like books
+        const mappedData = data.map((item: any) => ({
+          id: item.id,
+          name: item.name,
+          type: item.type,
+          data_type: item.data_type || '',
+          caption: item.caption,
+          component: item.component,
+          config: item.config,
+          mixins: item.mixins || [],
+          tags: item.tags || [],
+          category: item.category || '',
+          version: item.version,
+          is_system: item.is_system,
+          created_at: item.created_at,
+          updated_at: item.updated_at,
+          created_by: item.created_by || '', // Use empty string for RxDB schema compatibility
+          _deleted: item.deleted || false
+        }));
+        
+        // Bulk upsert into RxDB
+        const result = await collection.bulkUpsert(mappedData);
+        console.log('[PropertyRegistryStore] Properties synced successfully, upserted:', result.success.length);
+        
+        // Force update the signal because subscription might not trigger for bulkUpsert
+        const afterSync = await collection.find().exec();
+        const newPropsMap = new Map<string, PropertyDefinition>();
+        afterSync.forEach((doc: PropertyDocument) => {
+          if (!doc._deleted) {
+            newPropsMap.set(doc.id, doc.toJSON() as PropertyDefinition);
+          }
+        });
+        this.properties.value = newPropsMap;
+        console.log('[PropertyRegistryStore] Force updated properties signal:', newPropsMap.size);
+      }
       
       this.syncEnabled.value = true;
-      console.log('[PropertyRegistryStore] Sync enabled');
       
     } catch (error) {
       console.error('[PropertyRegistryStore] Failed to enable sync:', error);
@@ -279,119 +219,216 @@ class PropertyRegistrySignalStore {
   }
   
   async disableSync(): Promise<void> {
-    if (this.replicationState) {
-      await this.replicationState.cancel();
-      this.replicationState = null;
-      this.syncEnabled.value = false;
-      console.log('[PropertyRegistryStore] Sync disabled');
-    }
+    this.syncEnabled.value = false;
+    console.log('[PropertyRegistryStore] Sync disabled');
   }
   
-  async createProperty(property: Omit<PropertyDefinition, 'uid' | 'created_at' | 'updated_at'>): Promise<PropertyDefinition> {
-    this.loading.value = true;
+  async createProperty(property: Omit<PropertyDefinition, 'created_at' | 'updated_at'>): Promise<PropertyDefinition> {
+    console.log('[PropertyRegistryStore] Creating property:', property);
+    
     try {
-      const db = await getDatabase();
-      const collection = db.collections.property_registry as RxCollection<PropertyDefinition>;
+      this.loading.value = true;
+      this.error.value = null;
       
-      const uid = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-      const now = new Date().toISOString();
+      const db = await getDatabase();
+      // Use provided ID or generate new one
+      const id = (property as any).id || crypto.randomUUID();
       
       const newProperty: PropertyDefinition = {
-        data_type: '',
-        category: '',
-        created_by: '',
-        ...property,
-        uid,
-        created_at: now,
-        updated_at: now,
-        version: 1
+        id,
+        name: property.name,
+        type: property.type,
+        caption: property.caption,
+        component: property.component,
+        data_type: property.data_type || '',
+        category: property.category || '',
+        config: property.config || {},
+        mixins: property.mixins || [],
+        tags: property.tags || [],
+        version: property.version || 1,
+        is_system: property.is_system || false,
+        created_by: property.created_by || '',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        _deleted: false
       };
       
-      const doc = await collection.insert(newProperty);
+      // Just insert into RxDB - let realtime sync handle Supabase
+      await db.property_registry.insert(newProperty);
+      console.log('[PropertyRegistryStore] Property created successfully:', id);
       
-      // If sync is enabled, also push to Supabase
+      // Force update the signal immediately for UI reactivity
+      const newProps = new Map(this.properties.value);
+      newProps.set(id, newProperty);
+      this.properties.value = newProps;
+      console.log('[PropertyRegistryStore] Signal updated with new property');
+      
+      // If sync is enabled, push to Supabase manually for immediate sync
       if (this.syncEnabled.value && this.supabase) {
-        await this.supabase
-          .from('property_registry')
-          .insert(newProperty);
+        const { _deleted, created_by, ...supabaseData } = newProperty;
+        try {
+          const insertData: any = {
+            ...supabaseData,
+            deleted: _deleted || false
+          };
+          
+          // Only add created_by if it's a valid UUID
+          if (created_by && created_by.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
+            insertData.created_by = created_by;
+          }
+          
+          const { data, error } = await this.supabase
+            .from('property_registry')
+            .insert(insertData)
+            .select();
+            
+          if (error) {
+            console.error('[PropertyRegistryStore] Supabase insert error:', error);
+            throw error;
+          }
+          
+          console.log('[PropertyRegistryStore] Supabase insert successful:', data);
+        } catch (syncError) {
+          console.error('[PropertyRegistryStore] Supabase sync error (non-blocking):', syncError);
+          // Don't throw - let it work offline
+        }
       }
       
-      return doc.toJSON() as PropertyDefinition;
+      return newProperty;
     } catch (error) {
-      console.error('[PropertyRegistryStore] Failed to create property:', error);
-      this.error.value = `Failed to create property: ${error}`;
+      console.error('[PropertyRegistryStore] Create property error:', error);
+      this.error.value = error instanceof Error ? error.message : 'Failed to create property';
       throw error;
     } finally {
       this.loading.value = false;
     }
   }
   
-  async updateProperty(uid: string, updates: Partial<PropertyDefinition>): Promise<void> {
-    this.loading.value = true;
+  async updateProperty(id: string, updates: Partial<PropertyDefinition>): Promise<void> {
+    console.log('[PropertyRegistryStore] Updating property:', id, updates);
+    
     try {
-      const db = await getDatabase();
-      const collection = db.collections.property_registry as RxCollection<PropertyDefinition>;
+      this.loading.value = true;
+      this.error.value = null;
       
-      const doc = await collection.findOne(uid).exec();
+      const db = await getDatabase();
+      const doc = await db.property_registry.findOne(id).exec();
+      
       if (!doc) {
-        throw new Error(`Property ${uid} not found`);
+        throw new Error(`Property ${id} not found`);
       }
+      
+      console.log('[PropertyRegistryStore] Before update:', doc.toJSON());
       
       await doc.patch({
         ...updates,
-        updated_at: new Date().toISOString(),
-        version: (doc.version || 0) + 1
+        updated_at: new Date().toISOString()
       });
       
-      // If sync is enabled, also update in Supabase
+      // patch() automatically saves to IndexedDB
+      
+      // Verify the update
+      const updatedDoc = await db.property_registry.findOne(id).exec();
+      console.log('[PropertyRegistryStore] After update:', updatedDoc?.toJSON());
+      
+      // Force update the signal immediately for UI reactivity
+      if (updatedDoc) {
+        const newProps = new Map(this.properties.value);
+        newProps.set(id, updatedDoc.toJSON() as PropertyDefinition);
+        this.properties.value = newProps;
+        console.log('[PropertyRegistryStore] Signal updated with updated property');
+      }
+      
+      console.log('[PropertyRegistryStore] Property updated successfully:', id);
+      
+      // If sync is enabled, push update to Supabase for immediate sync
       if (this.syncEnabled.value && this.supabase) {
-        await this.supabase
-          .from('property_registry')
-          .update({
-            ...updates,
-            updated_at: new Date().toISOString(),
-            version: (doc.version || 0) + 1
-          })
-          .eq('uid', uid);
+        const { _deleted, created_by, ...supabaseUpdates } = updates;
+        try {
+          const supabaseData: any = {
+            ...supabaseUpdates,
+            updated_at: new Date().toISOString()
+          };
+          
+          if (_deleted !== undefined) {
+            supabaseData.deleted = _deleted;
+          }
+          if (created_by !== undefined) {
+            supabaseData.created_by = created_by || null;
+          }
+          
+          await this.supabase
+            .from('property_registry')
+            .update(supabaseData)
+            .eq('id', id);
+        } catch (syncError) {
+          console.error('[PropertyRegistryStore] Supabase sync error (non-blocking):', syncError);
+          // Don't throw - let it work offline
+        }
       }
       
     } catch (error) {
-      console.error('[PropertyRegistryStore] Failed to update property:', error);
-      this.error.value = `Failed to update property: ${error}`;
+      console.error('[PropertyRegistryStore] Update property error:', error);
+      this.error.value = error instanceof Error ? error.message : 'Failed to update property';
       throw error;
     } finally {
       this.loading.value = false;
     }
   }
   
-  async deleteProperty(uid: string): Promise<void> {
-    this.loading.value = true;
+  async deleteProperty(id: string): Promise<void> {
+    console.log('[PropertyRegistryStore] Deleting property:', id);
+    
     try {
+      this.loading.value = true;
+      this.error.value = null;
+      
       const db = await getDatabase();
-      const collection = db.collections.property_registry as RxCollection<PropertyDefinition>;
+      const doc = await db.property_registry.findOne(id).exec();
       
-      const doc = await collection.findOne(uid).exec();
       if (!doc) {
-        throw new Error(`Property ${uid} not found`);
+        throw new Error(`Property ${id} not found`);
       }
       
-      if (doc.is_system) {
-        throw new Error('Cannot delete system properties');
-      }
+      console.log('[PropertyRegistryStore] Before delete, _deleted:', doc._deleted);
       
-      await doc.remove();
+      // Soft delete
+      await doc.patch({
+        _deleted: true,
+        updated_at: new Date().toISOString()
+      });
       
-      // If sync is enabled, also delete from Supabase
+      // Verify the deletion
+      const updatedDoc = await db.property_registry.findOne(id).exec();
+      console.log('[PropertyRegistryStore] After delete, _deleted:', updatedDoc?._deleted);
+      
+      // Force remove from signal immediately for UI reactivity
+      const newProps = new Map(this.properties.value);
+      newProps.delete(id);
+      this.properties.value = newProps;
+      console.log('[PropertyRegistryStore] Signal updated - property removed');
+      
+      console.log('[PropertyRegistryStore] Property deleted successfully:', id);
+      
+      // If sync is enabled, also soft delete in Supabase for immediate sync
       if (this.syncEnabled.value && this.supabase) {
-        await this.supabase
-          .from('property_registry')
-          .delete()
-          .eq('uid', uid);
+        try {
+          await this.supabase
+            .from('property_registry')
+            .update({ 
+              deleted: true, 
+              updated_at: new Date().toISOString() 
+            })
+            .eq('id', id);
+        } catch (syncError) {
+          console.error('[PropertyRegistryStore] Supabase sync error (non-blocking):', syncError);
+          // Don't throw - let it work offline
+        }
       }
       
     } catch (error) {
-      console.error('[PropertyRegistryStore] Failed to delete property:', error);
-      this.error.value = `Failed to delete property: ${error}`;
+      console.error('[PropertyRegistryStore] Delete property error:', error);
+      this.error.value = error instanceof Error ? error.message : 'Failed to delete property';
       throw error;
     } finally {
       this.loading.value = false;
@@ -404,6 +441,7 @@ class PropertyRegistrySignalStore {
       const db = await getDatabase();
       const collection = db.collections.property_registry as RxCollection<PropertyDefinition>;
       await collection.remove();
+      this.properties.value = new Map();
       console.log('[PropertyRegistryStore] All local properties cleared');
     } catch (error) {
       console.error('[PropertyRegistryStore] Failed to clear properties:', error);
@@ -423,18 +461,130 @@ class PropertyRegistrySignalStore {
       this.dbSubscription = null;
     }
     
-    // Disable sync
-    await this.disableSync();
-    
     // Clear signals
     batch(() => {
       this.properties.value = new Map();
       this.loading.value = false;
       this.error.value = null;
+      this.syncEnabled.value = false;
     });
     
     // Reinitialize
     await this.initializeStore();
+  }
+  
+  private async setupRealtimeSubscription() {
+    console.log('[PropertyRegistryStore] Setting up realtime subscription...');
+    
+    // Check if we already have a channel
+    if (this.realtimeChannel) {
+      console.log('[PropertyRegistryStore] Realtime channel already exists, cleaning up...');
+      await this.supabase.removeChannel(this.realtimeChannel);
+      this.realtimeChannel = null;
+    }
+    
+    try {
+      // Subscribe to all changes on the property_registry table
+      this.realtimeChannel = this.supabase
+        .channel('property-registry-changes')
+        .on(
+          'postgres_changes',
+          { 
+            event: '*', 
+            schema: 'public', 
+            table: 'property_registry' 
+          },
+          async (payload: any) => {
+            console.log('[PropertyRegistryStore] 🔴 REALTIME EVENT RECEIVED:', {
+              eventType: payload.eventType,
+              new: payload.new,
+              old: payload.old,
+              timestamp: new Date().toISOString()
+            });
+            
+            const db = await getDatabase();
+            const collection = db.collections.property_registry as RxCollection<PropertyDefinition>;
+            if (!collection) return;
+            
+            if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
+              const supabaseProperty = payload.new;
+              
+              // Map Supabase fields to RxDB fields
+              const rxdbProperty: PropertyDefinition = {
+                id: supabaseProperty.id,
+                name: supabaseProperty.name,
+                type: supabaseProperty.type,
+                data_type: supabaseProperty.data_type || '',
+                caption: supabaseProperty.caption,
+                component: supabaseProperty.component,
+                config: supabaseProperty.config,
+                mixins: supabaseProperty.mixins || [],
+                tags: supabaseProperty.tags || [],
+                category: supabaseProperty.category || '',
+                version: supabaseProperty.version,
+                is_system: supabaseProperty.is_system,
+                created_at: supabaseProperty.created_at,
+                updated_at: supabaseProperty.updated_at,
+                created_by: supabaseProperty.created_by || '', // Use empty string for RxDB schema compatibility
+                _deleted: supabaseProperty.deleted || false
+              };
+              
+              try {
+                // Check if document exists
+                const existing = await collection.findOne(rxdbProperty.id).exec();
+                
+                if (existing) {
+                  // Only update if Supabase version is newer
+                  if (new Date(rxdbProperty.updated_at) > new Date(existing.updated_at)) {
+                    await existing.patch(rxdbProperty);
+                    console.log('[PropertyRegistryStore] Realtime: Updated property', rxdbProperty.id);
+                  }
+                } else {
+                  // Insert new document
+                  await collection.insert(rxdbProperty);
+                  console.log('[PropertyRegistryStore] Realtime: Inserted property', rxdbProperty.id);
+                }
+              } catch (err) {
+                console.error('[PropertyRegistryStore] Realtime sync error:', err);
+              }
+            } else if (payload.eventType === 'DELETE') {
+              const propertyId = (payload.old as any).id;
+              
+              try {
+                const existing = await collection.findOne(propertyId).exec();
+                if (existing) {
+                  await existing.patch({ 
+                    _deleted: true,
+                    updated_at: new Date().toISOString()
+                  });
+                  console.log('[PropertyRegistryStore] Realtime: Marked as deleted', propertyId);
+                }
+              } catch (err) {
+                console.error('[PropertyRegistryStore] Realtime delete error:', err);
+              }
+            }
+          }
+        )
+        .subscribe((status: string) => {
+          console.log('[PropertyRegistryStore] 🟢 Realtime subscription status:', status);
+          if (status === 'SUBSCRIBED') {
+            this.isRealTimeEnabled = true;
+            console.log('[PropertyRegistryStore] ✅ REALTIME WEBSOCKET CONNECTED! Listening for changes...');
+          } else if (status === 'CHANNEL_ERROR') {
+            console.error('[PropertyRegistryStore] ❌ Realtime connection error!');
+            this.isRealTimeEnabled = false;
+          } else if (status === 'TIMED_OUT') {
+            console.error('[PropertyRegistryStore] ⏱️ Realtime connection timeout!');
+            this.isRealTimeEnabled = false;
+          } else if (status === 'CLOSED') {
+            console.log('[PropertyRegistryStore] Realtime connection closed');
+            this.isRealTimeEnabled = false;
+          }
+        });
+    } catch (error) {
+      console.error('[PropertyRegistryStore] Realtime setup failed:', error);
+      this.isRealTimeEnabled = false;
+    }
   }
   
   cleanup() {
@@ -442,7 +592,12 @@ class PropertyRegistrySignalStore {
       this.dbSubscription.unsubscribe();
       this.dbSubscription = null;
     }
-    this.disableSync();
+    
+    if (this.realtimeChannel) {
+      this.supabase.removeChannel(this.realtimeChannel);
+      this.realtimeChannel = null;
+      this.isRealTimeEnabled = false;
+    }
   }
 }
 
