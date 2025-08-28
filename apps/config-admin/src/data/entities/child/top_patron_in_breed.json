@@ -1,0 +1,151 @@
+{
+  "id": "entity_top_patron_in_breed",
+  "type": "entity",
+  "name": "top_patron_in_breed",
+  "displayName": "Top Patron In Breed",
+  "category": "child",
+  "fields": [
+    {
+      "id": "field_breed_id",
+      "name": "breed_id",
+      "fieldType": "uuid",
+      "component": "text",
+      "required": true,
+      "isSystem": false,
+      "isPrimaryKey": true,
+      "isUnique": true,
+      "sortOrder": 10,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "displayName": "Breed Id",
+      "placeholder": "Enter breed id"
+    },
+    {
+      "id": "field_contact_id",
+      "name": "contact_id",
+      "fieldType": "uuid",
+      "component": "text",
+      "required": true,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": true,
+      "sortOrder": 20,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "displayName": "Contact Id",
+      "placeholder": "Enter contact id"
+    },
+    {
+      "id": "field_placement",
+      "name": "placement",
+      "fieldType": "number",
+      "component": "number",
+      "required": true,
+      "isSystem": false,
+      "isPrimaryKey": true,
+      "isUnique": false,
+      "sortOrder": 30,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "displayName": "Placement",
+      "placeholder": "Enter placement",
+      "validation": {
+        "precision": 32
+      }
+    },
+    {
+      "id": "field_rating",
+      "name": "rating",
+      "fieldType": "number",
+      "component": "number",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 40,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "displayName": "Rating",
+      "placeholder": "Enter rating"
+    },
+    {
+      "id": "field_period_start",
+      "name": "period_start",
+      "fieldType": "date",
+      "component": "date",
+      "required": true,
+      "isSystem": false,
+      "isPrimaryKey": true,
+      "isUnique": true,
+      "sortOrder": 50,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "displayName": "Period Start",
+      "placeholder": "Enter period start"
+    },
+    {
+      "id": "field_period_end",
+      "name": "period_end",
+      "fieldType": "date",
+      "component": "date",
+      "required": true,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 60,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "displayName": "Period End",
+      "placeholder": "Enter period end"
+    }
+  ],
+  "metadata": {
+    "tableName": "top_patron_in_breed",
+    "totalFields": 6,
+    "systemFields": 0,
+    "customFields": 6,
+    "generatedAt": "2025-08-28T11:35:17.902Z"
+  }
+}

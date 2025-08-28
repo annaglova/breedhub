@@ -1,0 +1,36 @@
+{
+  "id": "entity_favorites",
+  "type": "entity",
+  "name": "favorites",
+  "displayName": "Favorites",
+  "category": "child",
+  "fields": [
+    {
+      "id": "field_id",
+      "name": "id",
+      "fieldType": "uuid",
+      "component": "text",
+      "required": true,
+      "isSystem": true,
+      "isPrimaryKey": true,
+      "isUnique": false,
+      "sortOrder": 10,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "system"
+        ]
+      },
+      "displayName": "Id"
+    }
+  ],
+  "metadata": {
+    "tableName": "favorites",
+    "totalFields": 1,
+    "systemFields": 1,
+    "customFields": 0,
+    "generatedAt": "2025-08-28T11:34:43.594Z"
+  }
+}
