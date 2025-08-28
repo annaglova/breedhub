@@ -434,3 +434,95 @@ const MyComponent = () => {
 - **"collection not found"** - забули додати в database.service.ts
 - **"does not provide an export"** - забули додати експорт в index.ts
 - **422 status при bulkUpsert** - невірний мапінг полів або схема не відповідає даним
+- **"must NOT have more than X characters"** - збільште maxLength для текстових полів (рекомендовано 250)
+- **"must NOT have additional properties"** - не додавайте поле `deleted` в RxDB документ, використовуйте тільки `_deleted`
+- **"object does not match schema"** - перевірте що всі required поля присутні
+- **"db.destroy is not a function"** - база зламана, очистіть IndexedDB через браузер
+- **"another instance created this collection with different schema"** - схема змінилась, потрібно видалити IndexedDB
+
+## Важливі особливості RxDB схем
+
+### maxLength для текстових полів
+Всі текстові поля що використовуються в індексах МАЮТЬ мати `maxLength`. Рекомендовані значення:
+- ID та основні поля: `250` 
+- Enum поля: `50`
+- Timestamps: `250` (для підтримки різних форматів з мікросекундами)
+
+### Зарезервовані поля
+RxDB автоматично додає ці поля, НЕ додавайте їх в схему вручну:
+- `_attachments` - додається автоматично
+- `_meta` - додається автоматично
+- `_rev` - додається автоматично
+
+### Мапінг полів Supabase <-> RxDB
+| Supabase | RxDB | Примітка |
+|----------|------|----------|
+| `deleted` | `_deleted` | Soft delete поле |
+| `id` | `id` | Primary key, завжди string |
+| всі інші | без змін | |
+
+### Boolean поля в індексах
+Boolean поля що використовуються в індексах МАЮТЬ бути в `required`. Наприклад `_deleted`.
+
+### Nullable поля
+Поля з типом `['string', 'null']` НЕ можна використовувати в індексах. Або робіть поле required, або не індексуйте.
+
+## Очищення бази при помилках схеми
+
+Якщо змінили схему і отримуєте помилку "another instance created this collection with different schema":
+
+1. **Через UI браузера:**
+   - Відкрийте Developer Tools (F12)
+   - Application/Storage → IndexedDB
+   - Видаліть базу `breedhub`
+   - Перезавантажте сторінку
+
+2. **Через консоль браузера:**
+```javascript
+// Видалити всі бази
+const dbs = await indexedDB.databases();
+for (const db of dbs) {
+  indexedDB.deleteDatabase(db.name);
+}
+location.reload();
+```
+
+3. **Конкретні бази RxDB:**
+```javascript
+indexedDB.deleteDatabase('breedhub');
+indexedDB.deleteDatabase('_rxdb_internal');
+indexedDB.deleteDatabase('rxdb-dexie-breedhub');
+location.reload();
+```
+
+## Налагодження синхронізації
+
+Додайте логування в store для діагностики:
+
+```typescript
+console.log('[Store] Supabase URL:', import.meta.env.VITE_SUPABASE_URL);
+console.log('[Store] Query result:', { data, error });
+console.log('[Store] Mapped data:', mappedData);
+console.log('[Store] BulkUpsert result:', result);
+```
+
+### Перевірка даних з Supabase
+1. Чи є файл `.env` з правильними credentials
+2. Чи повертає Supabase дані (перевірте в Network tab)
+3. Чи всі required поля присутні в даних
+4. Чи правильно мапляться поля (особливо `deleted` → `_deleted`)
+
+## Чеклист для нового store
+
+- [ ] Створено типи в `types/[entity].types.ts`
+- [ ] Створено схему в `collections/[entity].schema.ts` 
+- [ ] Всі string поля в індексах мають `maxLength`
+- [ ] Boolean поля в індексах додані в `required`
+- [ ] Використовується `_deleted`, НЕ `deleted` в RxDB
+- [ ] Додано колекцію в `database.service.ts`
+- [ ] Створено signal store в `stores/[entity].signal-store.ts`
+- [ ] Правильний мапінг `deleted` <-> `_deleted`
+- [ ] Експортовано з `index.ts`
+- [ ] Немає circular dependencies
+- [ ] Store автоматично синхронізується в `initializeStore()`
+- [ ] НЕ додано кнопок для ручної синхронізації

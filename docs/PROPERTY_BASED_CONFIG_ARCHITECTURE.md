@@ -43,72 +43,64 @@ Create a universal configuration system where **property (field)** is the atomic
 
 ## 🔑 Key Components
 
-### 1. Property Definition Model
+### 1. Terminology and Structure
+
+#### Core Concepts:
+- **Field** - The configuration entity itself (e.g., `name`, `breed_standard`, `color`)
+- **Properties** - Characteristics of a field (e.g., `required`, `maxLength`, `validation`)
+- **Config** - Complete configuration object combining fields with their properties
+
+### 2. Unified Configuration Model (app_config table)
+
+All configuration types stored in a single table with JSONB for flexibility:
 
 ```typescript
-interface PropertyDefinition {
-  uid: string;
-  name: string;
-  type: PropertyType; // string, number, boolean, date, reference, json
-  dataType?: string; // SQL type: varchar, integer, jsonb
+interface AppConfig {
+  // Identifiers
+  id: string;        // Unique code (field_name, entity_Dog, mixin_sortable)
+  type: string;      // field, entity, mixin, feature, template, ui_config
   
-  // UI Configuration
-  caption: string;
-  component: ComponentType; // 0-EntitySelect, 3-DatePicker, 4-Number, 5-Checkbox, 10-TextInput
-  placeholder?: string;
-  helpText?: string;
+  // Configuration data (properties stored inside)
+  self_data: any;    // Own configuration with properties
+  override_data: any; // Local overrides of properties
+  data: any;         // Computed result after merge
   
-  // Validation
-  isRequired?: boolean;
-  validators?: Validator[];
-  minLength?: number;
-  maxLength?: number;
-  pattern?: string;
+  // Dependencies
+  deps: string[];    // Array of parent config IDs
   
-  // Relations
-  entitySchemaName?: string; // For reference fields
-  displayField?: string;
-  entitiesColumns?: string[];
-  
-  // Access Control
-  levelAccess?: number;
-  permissions?: Permission[];
-  
-  // Mixins & Features
-  mixins?: string[]; // ['sortable', 'searchable', 'encrypted']
-  features?: FeatureConfig;
+  // Metadata for UI
+  caption?: string;  // Human-readable description
+  category?: string; // Grouping category
+  tags?: string[];   // Search tags
+  version: number;   // Version number
 }
 ```
 
-### 2. Config Structure (Updated)
+### 3. Field Configuration Structure
+
+Example of field configuration stored in `self_data`:
 
 ```typescript
-interface ConfigSchema {
-  id: string;
-  type: 'SchemaName' | 'UIConfig' | 'WorkspaceSettings' | 'MenuConfig';
-  
-  // Hierarchical dependencies
-  deps: string[]; // Parent configs to inherit from
-  
-  // Property-based configuration
-  properties: {
-    [fieldName: string]: PropertyDefinition | string; // string = reference to property registry
-  };
-  
-  // Layout & UI
-  layout?: {
-    listColumns?: string[];
-    detailSections?: Section[];
-    searchFields?: string[];
-    sortFields?: string[];
-  };
-  
-  // Computed after merge
-  data?: any; // Final merged configuration
+// Example: field configuration with properties
+{
+  "fieldType": "string",      // Type of the field
+  "component": 10,             // UI component for rendering
+  "required": true,            // Property: is required
+  "maxLength": 255,            // Property: maximum length
+  "placeholder": "Enter name", // Property: placeholder text
+  "validation": {              // Property: validation rules
+    "pattern": "^[a-zA-Z]+$"
+  },
+  "permissions": {             // Property: access control
+    "read": ["*"],
+    "write": ["admin"]
+  },
+  "sortOrder": 10,            // Property: order in UI
+  "isSystem": false           // Property: system field flag
 }
 ```
 
-### 3. Mixin System
+### 4. Mixin System
 
 ```typescript
 interface PropertyMixin {
@@ -168,34 +160,55 @@ const ENCRYPTED_MIXIN = {
 
 ## 📋 Implementation Plan
 
-### Phase 1: Property Registry (3-4 days)
+### ✅ Phase 1: Property Registry (COMPLETED)
+- ✅ Created Property Registry with full CRUD operations
+- ✅ Implemented RxDB + Supabase sync
+- ✅ Built comprehensive UI for property management
+- ✅ Added UUID-based identification system
+- ✅ Enabled real-time updates and offline support
 
-#### 1.1 Create Property Registry Service
-- Centralized storage for all property definitions
-- CRUD operations for properties
-- Versioning and change history
-- Import from existing schemas (breed.json, account.json)
+### 🚀 Phase 2: Entity Registry & Auto-Discovery (NEW PLAN)
 
-#### 1.2 Migrate Existing Configs
-- Parse current configs from config table
-- Extract unique properties
-- Create Property Registry in Supabase
+#### 2.1 Create Entity Registry
+- Build registry of all entities in the system (Dog, Cat, Breed, etc.)
+- Define entity metadata (table name, display name, icon, category)
+- Track relationships between entities
+- Store entity-specific configurations
 
-#### 1.3 UI for Property Management
-- List all properties with filtering
-- Property editor with preview
-- Bulk operations (import/export)
-- Property templates library
+#### 2.2 Schema Auto-Discovery Tool
+- Analyze existing Supabase tables and RxDB schemas
+- Extract all fields with their types and constraints
+- Parse existing JSON configs (breed.json, account.json, etc.)
+- Identify patterns in field naming and types
 
-### Phase 2: Mixin System (2-3 days)
+#### 2.3 Property Categorization Engine
+- **Common Properties**: Fields that appear in multiple entities (id, name, created_at, updated_at)
+- **System Properties**: Technical fields (_deleted, _attachments, sync metadata)
+- **Entity-Specific Properties**: Unique fields per entity (breed_standard, color_genetics)
+- **Relationship Properties**: Foreign keys and references between entities
 
-#### 2.1 Create Mixin Engine
+#### 2.4 Bulk Property Import
+- Generate comprehensive JSON with all discovered properties
+- Auto-assign appropriate component types based on data types
+- Suggest mixins based on field patterns (e.g., all *_date fields get 'sortable')
+- Create property naming conventions and apply them
+- Import all properties to Property Registry in one operation
+
+#### 2.5 Property Deduplication
+- Identify duplicate properties with different names
+- Suggest standardization (e.g., created_date vs created_at)
+- Create property aliases for backward compatibility
+- Generate migration plan for property consolidation
+
+### Phase 3: Mixin System (2-3 days)
+
+#### 3.1 Create Mixin Engine
 - Registration and management of mixins
 - Composition of mixins for properties
 - Conflict resolution for multiple mixins
 - Mixin inheritance and override rules
 
-#### 2.2 Standard Mixins Library
+#### 3.2 Standard Mixins Library
 - `sortable` - adds sorting capability
 - `searchable` - adds to search fields
 - `auditable` - change tracking
@@ -206,15 +219,15 @@ const ENCRYPTED_MIXIN = {
 - `cached` - caching strategy
 - `validated` - validation rules
 
-#### 2.3 UI for Mixin Management
+#### 3.3 UI for Mixin Management
 - Visual mixin composer
 - Preview of mixin application results
 - Mixin conflict detector
 - Performance impact analyzer
 
-### Phase 3: Schema Generator (3-4 days)
+### Phase 4: Schema Generator (3-4 days)
 
-#### 3.1 RxDB Schema Generator
+#### 4.1 RxDB Schema Generator
 
 ```typescript
 class RxDBSchemaGenerator {
@@ -292,51 +305,51 @@ class RxDBSchemaGenerator {
 }
 ```
 
-#### 3.2 Supabase Migration Generator
+#### 4.2 Supabase Migration Generator
 - Generate SQL for table creation
 - Generate migrations on schema changes
 - Rollback mechanism
 - Foreign key constraints from references
 - Indexes from property mixins
 
-#### 3.3 UI Component Generator
+#### 4.3 UI Component Generator
 - Form generation from configuration
 - Table/list generation
 - Filter and sort UI generation
 - Custom component mapping
 
-### Phase 4: Config Builder UI (4-5 days)
+### Phase 5: Config Builder UI (4-5 days)
 
-#### 4.1 Visual Schema Designer
+#### 5.1 Visual Schema Designer
 - Drag-n-drop properties from registry
 - Visual relationship builder
 - Real-time preview
 - Schema validation
 - Performance analyzer
 
-#### 4.2 Workspace Configuration
+#### 5.2 Workspace Configuration
 - Field visibility settings
 - Access control configuration
 - UI customization for different roles
 - Workspace templates
 - Conditional field display rules
 
-#### 4.3 Integration with Existing System
+#### 5.3 Integration with Existing System
 - Update config-admin app
 - Integration with Windmill for merge logic
 - Real-time sync via Supabase
 - Backward compatibility layer
 
-### Phase 5: Testing & Migration (2-3 days)
+### Phase 6: Testing & Migration (2-3 days)
 
-#### 5.1 Testing
+#### 6.1 Testing
 - Unit tests for generators
 - Integration tests with RxDB
 - E2E tests for config flow
 - Performance benchmarks
 - Security audit
 
-#### 5.2 Data Migration
+#### 6.2 Data Migration
 - Convert existing configs
 - Validate generated schemas
 - Rollback plan
@@ -414,57 +427,54 @@ class ConfigMerger {
 }
 ```
 
-### Property Registry Database Schema
+### Unified Configuration Database Schema (app_config)
 
 ```sql
--- Property definitions table
-CREATE TABLE property_registry (
-  uid UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  name TEXT NOT NULL UNIQUE,
-  type TEXT NOT NULL,
-  data_type TEXT,
-  caption TEXT,
-  component INTEGER,
-  config JSONB NOT NULL, -- Full PropertyDefinition
-  mixins TEXT[],
-  tags TEXT[],
-  category TEXT,
+-- Single table for all configuration types
+CREATE TABLE public.app_config (
+  -- Identifiers
+  id TEXT PRIMARY KEY,  -- Unique code (field_name, entity_Dog, mixin_sortable)
+  type TEXT NOT NULL,   -- field, entity, mixin, feature, template, ui_config
+  
+  -- Configuration data (all field properties stored inside)
+  self_data JSONB DEFAULT '{}',      -- Own configuration with properties
+  override_data JSONB DEFAULT '{}',   -- Local property overrides
+  data JSONB DEFAULT '{}',           -- Computed result after merge
+  
+  -- Dependencies
+  deps TEXT[] DEFAULT '{}',  -- Array of parent config IDs
+  
+  -- Minimal metadata for UI
+  caption TEXT,          -- Human-readable description
+  category TEXT,         -- Grouping category
+  tags TEXT[] DEFAULT '{}', -- Search tags
+  
+  -- Versioning
   version INTEGER DEFAULT 1,
-  is_system BOOLEAN DEFAULT false,
+  
+  -- Audit
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW(),
-  created_by UUID REFERENCES auth.users(id)
-);
-
--- Property usage tracking
-CREATE TABLE property_usage (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  property_uid UUID REFERENCES property_registry(uid),
-  config_id TEXT REFERENCES config(id),
-  field_name TEXT,
-  overrides JSONB,
-  created_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- Mixin definitions
-CREATE TABLE mixin_registry (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  name TEXT NOT NULL UNIQUE,
-  description TEXT,
-  apply_function TEXT, -- JavaScript/TypeScript function as text
-  config JSONB,
-  category TEXT,
-  is_system BOOLEAN DEFAULT false,
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  updated_at TIMESTAMPTZ DEFAULT NOW()
+  created_by TEXT,
+  updated_by TEXT,
+  
+  -- Soft delete
+  deleted BOOLEAN DEFAULT false,
+  deleted_at TIMESTAMPTZ
 );
 
 -- Indexes for performance
-CREATE INDEX idx_property_registry_name ON property_registry(name);
-CREATE INDEX idx_property_registry_type ON property_registry(type);
-CREATE INDEX idx_property_registry_mixins ON property_registry USING GIN(mixins);
-CREATE INDEX idx_property_usage_property ON property_usage(property_uid);
-CREATE INDEX idx_property_usage_config ON property_usage(config_id);
+CREATE INDEX idx_app_config_type ON app_config(type);
+CREATE INDEX idx_app_config_category ON app_config(category);
+CREATE INDEX idx_app_config_tags ON app_config USING GIN(tags);
+CREATE INDEX idx_app_config_deps ON app_config USING GIN(deps);
+CREATE INDEX idx_app_config_deleted ON app_config(deleted);
+CREATE INDEX idx_app_config_version ON app_config(version);
+
+-- Unique constraint for active records
+CREATE UNIQUE INDEX idx_app_config_id_active 
+ON app_config(id) 
+WHERE deleted = false;
 ```
 
 ## 🎯 Benefits of This Approach

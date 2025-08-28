@@ -2,7 +2,7 @@ import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom'
 import { DatabasePage } from './pages/DatabasePage'
 import { ConfigBuilderPage } from './pages/ConfigBuilderPage'
 import { TemplatesPage } from './pages/TemplatesPage'
-import PropertiesPage from './pages/PropertiesPage'
+import FieldsConfigPage from './pages/FieldsConfigPage'
 import { Database, Settings, FileJson, Home, Layers } from 'lucide-react'
 
 function App() {
@@ -28,11 +28,11 @@ function App() {
                     Dashboard
                   </Link>
                   <Link 
-                    to="/properties" 
+                    to="/fields" 
                     className="flex items-center gap-2 text-sm hover:text-primary transition-colors"
                   >
                     <Layers className="w-4 h-4" />
-                    Properties
+                    Fields Config
                   </Link>
                   <Link 
                     to="/database" 
@@ -65,7 +65,7 @@ function App() {
         <main className="container mx-auto px-4 py-8">
           <Routes>
             <Route path="/" element={<DashboardPage />} />
-            <Route path="/properties" element={<PropertiesPage />} />
+            <Route path="/fields" element={<FieldsConfigPage />} />
             <Route path="/database" element={<DatabasePage />} />
             <Route path="/builder" element={<ConfigBuilderPage />} />
             <Route path="/templates" element={<TemplatesPage />} />
@@ -83,13 +83,13 @@ function DashboardPage() {
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <Link 
-          to="/properties" 
+          to="/fields" 
           className="p-6 border rounded-lg hover:shadow-lg transition-shadow"
         >
           <Layers className="w-12 h-12 mb-4 text-primary" />
-          <h2 className="text-xl font-semibold mb-2">Property Registry</h2>
+          <h2 className="text-xl font-semibold mb-2">Fields Configuration</h2>
           <p className="text-muted-foreground">
-            Manage reusable property definitions
+            Manage field definitions and their properties
           </p>
         </Link>
 

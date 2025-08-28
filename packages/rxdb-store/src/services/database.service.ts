@@ -17,8 +17,8 @@ import { breedSchema, breedMigrationStrategies } from '../collections/breeds.sch
 import { BreedCollectionTyped } from '../types/breed.types';
 import { booksSchema } from '../collections/books.schema';
 import { BookCollection } from '../types/book.types';
-import { propertyRegistrySchema } from '../collections/property-registry.schema';
-import { PropertyCollection } from '../types/property-registry.types';
+import { appConfigSchema } from '../collections/app-config.schema';
+import { AppConfigCollection } from '../stores/app-config.signal-store';
 
 // Add plugins
 if (process.env.NODE_ENV !== 'production') {
@@ -33,7 +33,7 @@ addRxPlugin(RxDBCleanupPlugin);
 export type DatabaseCollections = {
   breeds: BreedCollectionTyped;
   books: BookCollection;
-  property_registry: PropertyCollection;
+  app_config: AppConfigCollection;
 };
 
 export type AppDatabase = RxDatabase<DatabaseCollections>;
@@ -60,7 +60,7 @@ class DatabaseService {
       console.log('[DatabaseService] DB collections object:', this.db.collections);
       console.log('[DatabaseService] Has breeds?:', !!this.db.breeds);
       console.log('[DatabaseService] Has books?:', !!this.db.books);
-      console.log('[DatabaseService] Has property_registry?:', !!this.db.property_registry);
+      console.log('[DatabaseService] Has app_config?:', !!this.db.app_config);
       return this.db;
     }
 
@@ -109,7 +109,14 @@ class DatabaseService {
       // If database already exists with wrong schema, try to remove it
       if (error.code === 'DB6' || error.code === 'DXE1') {
         console.log('[DatabaseService] Attempting to remove and recreate database due to schema conflict...');
-        await removeRxDatabase('breedhub', storage);
+        try {
+          await removeRxDatabase('breedhub', storage);
+        } catch (removeError) {
+          console.error('[DatabaseService] Failed to remove database:', removeError);
+        }
+        // Clear any cached instance
+        this.db = null;
+        this.dbPromise = null;
         // Try again
         db = await createRxDatabase<DatabaseCollections>({
           name: 'breedhub',
@@ -206,8 +213,8 @@ class DatabaseService {
           }
         }
       },
-      property_registry: {
-        schema: propertyRegistrySchema
+      app_config: {
+        schema: appConfigSchema
       }
     };
     
@@ -222,8 +229,15 @@ class DatabaseService {
         // In development, we can try to remove and recreate
         if (process.env.NODE_ENV !== 'production') {
           console.log('[DatabaseService] Attempting to remove and recreate database...');
-          await db.destroy();
-          await removeRxDatabase('breedhub', storage);
+          // Don't call destroy on failed db object
+          try {
+            await removeRxDatabase('breedhub', storage);
+          } catch (removeError) {
+            console.error('[DatabaseService] Failed to remove database:', removeError);
+          }
+          // Clear instance
+          this.db = null;
+          this.dbPromise = null;
           // Recursively call to recreate
           return this.createDatabase();
         }
