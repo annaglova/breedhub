@@ -1,0 +1,401 @@
+{
+  "id": "entity_litter",
+  "type": "entity",
+  "name": "litter",
+  "displayName": "Litter",
+  "category": "main",
+  "fields": [
+    {
+      "id": "field_name",
+      "name": "name",
+      "fieldType": "string",
+      "component": "text",
+      "required": true,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 10,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "displayName": "Name",
+      "placeholder": "Enter name",
+      "maxLength": 250,
+      "validation": {
+        "maxLength": 250
+      },
+      "defaultValue": ""
+    },
+    {
+      "id": "field_notes",
+      "name": "notes",
+      "fieldType": "text",
+      "component": "textarea",
+      "required": true,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 20,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "displayName": "Notes",
+      "placeholder": "Enter notes",
+      "defaultValue": ""
+    },
+    {
+      "id": "field_father_id",
+      "name": "father_id",
+      "fieldType": "uuid",
+      "component": "text",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 30,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "displayName": "Father Id",
+      "placeholder": "Enter father id"
+    },
+    {
+      "id": "field_mother_id",
+      "name": "mother_id",
+      "fieldType": "uuid",
+      "component": "text",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 40,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "displayName": "Mother Id",
+      "placeholder": "Enter mother id"
+    },
+    {
+      "id": "field_date_of_birth",
+      "name": "date_of_birth",
+      "fieldType": "date",
+      "component": "date",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 50,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "displayName": "Date Of Birth",
+      "placeholder": "Enter date of birth"
+    },
+    {
+      "id": "field_breeder_id",
+      "name": "breeder_id",
+      "fieldType": "uuid",
+      "component": "text",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 60,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "displayName": "Breeder Id",
+      "placeholder": "Enter breeder id"
+    },
+    {
+      "id": "field_url",
+      "name": "url",
+      "fieldType": "string",
+      "component": "url",
+      "required": true,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 70,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "displayName": "Url",
+      "placeholder": "Enter url",
+      "maxLength": 250,
+      "validation": {
+        "maxLength": 250,
+        "pattern": "^https?://.+",
+        "message": "Invalid URL format"
+      },
+      "defaultValue": ""
+    },
+    {
+      "id": "field_male_amount",
+      "name": "male_amount",
+      "fieldType": "number",
+      "component": "number",
+      "required": true,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 80,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "displayName": "Male Amount",
+      "placeholder": "Enter male amount",
+      "validation": {
+        "precision": 32
+      },
+      "defaultValue": "0"
+    },
+    {
+      "id": "field_female_amount",
+      "name": "female_amount",
+      "fieldType": "number",
+      "component": "number",
+      "required": true,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 90,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "displayName": "Female Amount",
+      "placeholder": "Enter female amount",
+      "validation": {
+        "precision": 32
+      },
+      "defaultValue": "0"
+    },
+    {
+      "id": "field_is_public",
+      "name": "is_public",
+      "fieldType": "boolean",
+      "component": "checkbox",
+      "required": true,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 100,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "displayName": "Is Public",
+      "defaultValue": "false"
+    },
+    {
+      "id": "field_start_date",
+      "name": "start_date",
+      "fieldType": "date",
+      "component": "date",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 110,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "displayName": "Start Date",
+      "placeholder": "Enter start date"
+    },
+    {
+      "id": "field_end_date",
+      "name": "end_date",
+      "fieldType": "date",
+      "component": "date",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 120,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "displayName": "End Date",
+      "placeholder": "Enter end date"
+    },
+    {
+      "id": "field_id",
+      "name": "id",
+      "fieldType": "uuid",
+      "component": "text",
+      "required": true,
+      "isSystem": true,
+      "isPrimaryKey": true,
+      "isUnique": false,
+      "sortOrder": 130,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "system"
+        ]
+      },
+      "displayName": "Id"
+    },
+    {
+      "id": "field_created_at",
+      "name": "created_at",
+      "fieldType": "datetime",
+      "component": "datetime",
+      "required": false,
+      "isSystem": true,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 140,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "system"
+        ]
+      },
+      "displayName": "Created At"
+    },
+    {
+      "id": "field_created_by",
+      "name": "created_by",
+      "fieldType": "uuid",
+      "component": "text",
+      "required": false,
+      "isSystem": true,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 150,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "system"
+        ]
+      },
+      "displayName": "Created By"
+    },
+    {
+      "id": "field_updated_at",
+      "name": "updated_at",
+      "fieldType": "datetime",
+      "component": "date",
+      "required": false,
+      "isSystem": true,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 160,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "system"
+        ]
+      },
+      "displayName": "Updated At"
+    },
+    {
+      "id": "field_updated_by",
+      "name": "updated_by",
+      "fieldType": "uuid",
+      "component": "date",
+      "required": false,
+      "isSystem": true,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 170,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "system"
+        ]
+      },
+      "displayName": "Updated By"
+    }
+  ],
+  "metadata": {
+    "tableName": "litter",
+    "totalFields": 17,
+    "systemFields": 5,
+    "customFields": 12,
+    "generatedAt": "2025-08-28T11:33:35.362Z"
+  }
+}

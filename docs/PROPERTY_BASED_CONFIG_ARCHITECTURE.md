@@ -557,4 +557,167 @@ WHERE deleted = false;
 6. **Validate** - Ensure backward compatibility
 7. **Deploy** - Phased rollout with rollback capability
 
-This architecture provides a robust, scalable foundation for managing all configuration aspects of the BreedHub application through a unified property-based system.
+## 🌳 Semantic Tree Architecture (Phase 2.5)
+
+### Overview
+Build a semantic inheritance tree for field configurations, moving from specific to general with property inheritance through deps[].
+
+### Hierarchy Levels
+
+#### Level 1: Field Properties (Atomic Units)
+Most granular level - individual properties that can be applied to fields:
+```json
+{
+  "id": "field_property_readonly",
+  "type": "field_property", 
+  "self_data": {
+    "permissions": { "write": ["system"] }
+  }
+}
+
+{
+  "id": "field_property_required",
+  "type": "field_property",
+  "self_data": {
+    "required": true,
+    "validation": { "notNull": true }
+  }
+}
+
+{
+  "id": "field_property_maxlength_250",
+  "type": "field_property",
+  "self_data": {
+    "maxLength": 250,
+    "validation": { "maxLength": 250 }
+  }
+}
+```
+
+#### Level 2: Base Fields (Common Fields)
+Common fields that appear across multiple entities:
+```json
+{
+  "id": "field_id",
+  "type": "field",
+  "deps": ["field_property_readonly", "field_property_required"],
+  "self_data": {
+    "fieldType": "uuid",
+    "component": "text",
+    "isSystem": true,
+    "isPrimaryKey": true,
+    "displayName": "ID"
+  }
+}
+
+{
+  "id": "field_name", 
+  "type": "field",
+  "deps": ["field_property_required", "field_property_maxlength_250"],
+  "self_data": {
+    "fieldType": "string",
+    "component": "text",
+    "displayName": "Name",
+    "placeholder": "Enter name"
+  }
+}
+
+{
+  "id": "field_created_at",
+  "type": "field",
+  "deps": ["field_property_readonly"],
+  "self_data": {
+    "fieldType": "datetime",
+    "component": "datetime",
+    "isSystem": true,
+    "displayName": "Created At"
+  }
+}
+```
+
+#### Level 3: Entity-Specific Fields
+Fields tied to specific entities, inheriting from base fields:
+```json
+{
+  "id": "breed_field_id",
+  "type": "entity_field",
+  "deps": ["field_id"],
+  "category": "breed",
+  "caption": "Breed ID field",
+  "self_data": {} // Inherits everything from field_id
+}
+
+{
+  "id": "breed_field_name",
+  "type": "entity_field", 
+  "deps": ["field_name"],
+  "category": "breed",
+  "caption": "Breed Name field",
+  "override_data": {
+    "maxLength": 255, // Override specific property
+    "placeholder": "Enter breed name"
+  }
+}
+
+{
+  "id": "pet_field_name",
+  "type": "entity_field",
+  "deps": ["field_name"],
+  "category": "pet",
+  "caption": "Pet Name field",
+  "override_data": {
+    "maxLength": 100,
+    "placeholder": "Enter pet name"
+  }
+}
+```
+
+### Implementation Strategy
+
+1. **Field Analysis Phase**
+   - Scan all 258 generated entity JSON files
+   - Identify common fields across entities
+   - Extract shared properties and patterns
+   - Build frequency map of field usage
+
+2. **Property Extraction**
+   - Create atomic field_property records
+   - Group similar validation rules
+   - Define permission patterns
+   - Extract UI component configurations
+
+3. **Base Field Creation**
+   - Identify fields appearing in >10% of entities
+   - Create base field definitions
+   - Assign appropriate property dependencies
+   - Define default configurations
+
+4. **Entity Field Generation**
+   - For each entity, create specific field records
+   - Link to base fields via deps[]
+   - Add entity-specific overrides
+   - Maintain category for grouping
+
+5. **Deduplication Process**
+   - Detect duplicate field definitions
+   - Merge similar properties
+   - Create alias mappings
+   - Optimize inheritance tree
+
+### Benefits
+- **Reduced Redundancy**: Common fields defined once
+- **Consistent Behavior**: Shared fields behave identically
+- **Easy Updates**: Change base field affects all inheritors
+- **Clear Hierarchy**: Semantic tree shows relationships
+- **Flexible Overrides**: Entity-specific customization preserved
+
+### Example Query Flow
+When requesting `breed_field_name`:
+1. Load breed_field_name config
+2. Follow deps to field_name
+3. Follow field_name deps to properties
+4. Merge: properties → field_name → breed_field_name
+5. Apply any override_data
+6. Return final computed configuration
+
+This architecture provides a robust, scalable foundation for managing all configuration aspects of the BreedHub application through a unified property-based system with semantic inheritance.

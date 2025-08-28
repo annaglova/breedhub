@@ -1,0 +1,622 @@
+{
+  "id": "entity_pet",
+  "type": "entity",
+  "name": "pet",
+  "displayName": "Pet",
+  "category": "main",
+  "fields": [
+    {
+      "id": "field_name",
+      "name": "name",
+      "fieldType": "text",
+      "component": "textarea",
+      "required": true,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 10,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "displayName": "Name",
+      "placeholder": "Enter name",
+      "defaultValue": ""
+    },
+    {
+      "id": "field_notes",
+      "name": "notes",
+      "fieldType": "text",
+      "component": "textarea",
+      "required": true,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 20,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "displayName": "Notes",
+      "placeholder": "Enter notes",
+      "defaultValue": ""
+    },
+    {
+      "id": "field_date_of_birth",
+      "name": "date_of_birth",
+      "fieldType": "date",
+      "component": "date",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 30,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "displayName": "Date Of Birth",
+      "placeholder": "Enter date of birth"
+    },
+    {
+      "id": "field_breeder_id",
+      "name": "breeder_id",
+      "fieldType": "uuid",
+      "component": "text",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 40,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "displayName": "Breeder Id",
+      "placeholder": "Enter breeder id"
+    },
+    {
+      "id": "field_photo_id",
+      "name": "photo_id",
+      "fieldType": "uuid",
+      "component": "image",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 50,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "displayName": "Photo Id",
+      "placeholder": "Enter photo id"
+    },
+    {
+      "id": "field_date_of_death",
+      "name": "date_of_death",
+      "fieldType": "date",
+      "component": "date",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 60,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "displayName": "Date Of Death",
+      "placeholder": "Enter date of death"
+    },
+    {
+      "id": "field_call_name",
+      "name": "call_name",
+      "fieldType": "string",
+      "component": "text",
+      "required": true,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 70,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "displayName": "Call Name",
+      "placeholder": "Enter call name",
+      "maxLength": 250,
+      "validation": {
+        "maxLength": 250
+      },
+      "defaultValue": ""
+    },
+    {
+      "id": "field_titles",
+      "name": "titles",
+      "fieldType": "text",
+      "component": "textarea",
+      "required": true,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 80,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "displayName": "Titles",
+      "placeholder": "Enter titles",
+      "defaultValue": ""
+    },
+    {
+      "id": "field_inbreeding_percent",
+      "name": "inbreeding_percent",
+      "fieldType": "number",
+      "component": "number",
+      "required": true,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 90,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "displayName": "Inbreeding Percent",
+      "placeholder": "Enter inbreeding percent",
+      "defaultValue": "0"
+    },
+    {
+      "id": "field_url",
+      "name": "url",
+      "fieldType": "string",
+      "component": "url",
+      "required": true,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 100,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "displayName": "Url",
+      "placeholder": "Enter url",
+      "maxLength": 500,
+      "validation": {
+        "maxLength": 500,
+        "pattern": "^https?://.+",
+        "message": "Invalid URL format"
+      },
+      "defaultValue": ""
+    },
+    {
+      "id": "field_page_template_code",
+      "name": "page_template_code",
+      "fieldType": "string",
+      "component": "text",
+      "required": true,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 110,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "displayName": "Page Template Code",
+      "placeholder": "Enter page template code",
+      "maxLength": 250,
+      "validation": {
+        "maxLength": 250
+      },
+      "defaultValue": ""
+    },
+    {
+      "id": "field_full_breed_name",
+      "name": "full_breed_name",
+      "fieldType": "string",
+      "component": "text",
+      "required": true,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 120,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "displayName": "Full Breed Name",
+      "placeholder": "Enter full breed name",
+      "maxLength": 250,
+      "validation": {
+        "maxLength": 250
+      },
+      "defaultValue": ""
+    },
+    {
+      "id": "field_avatar_url",
+      "name": "avatar_url",
+      "fieldType": "string",
+      "component": "url",
+      "required": true,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 130,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "displayName": "Avatar Url",
+      "placeholder": "Enter avatar url",
+      "maxLength": 500,
+      "validation": {
+        "maxLength": 500,
+        "pattern": "^https?://.+",
+        "message": "Invalid URL format"
+      },
+      "defaultValue": ""
+    },
+    {
+      "id": "field_trim_titles",
+      "name": "trim_titles",
+      "fieldType": "text",
+      "component": "textarea",
+      "required": true,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 140,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "displayName": "Trim Titles",
+      "placeholder": "Enter trim titles",
+      "defaultValue": ""
+    },
+    {
+      "id": "field_calc_date_of_birth",
+      "name": "calc_date_of_birth",
+      "fieldType": "date",
+      "component": "date",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 150,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "displayName": "Calc Date Of Birth",
+      "placeholder": "Enter calc date of birth"
+    },
+    {
+      "id": "field_coi",
+      "name": "coi",
+      "fieldType": "number",
+      "component": "number",
+      "required": true,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 160,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "displayName": "Coi",
+      "placeholder": "Enter coi",
+      "defaultValue": "0"
+    },
+    {
+      "id": "field_rating_placement_in_breed",
+      "name": "rating_placement_in_breed",
+      "fieldType": "number",
+      "component": "number",
+      "required": true,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 170,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "displayName": "Rating Placement In Breed",
+      "placeholder": "Enter rating placement in breed",
+      "validation": {
+        "precision": 32
+      },
+      "defaultValue": "0"
+    },
+    {
+      "id": "field_is_public",
+      "name": "is_public",
+      "fieldType": "boolean",
+      "component": "checkbox",
+      "required": true,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 180,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "displayName": "Is Public",
+      "defaultValue": "false"
+    },
+    {
+      "id": "field_weight",
+      "name": "weight",
+      "fieldType": "number",
+      "component": "number",
+      "required": true,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 190,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "displayName": "Weight",
+      "placeholder": "Enter weight",
+      "defaultValue": "0"
+    },
+    {
+      "id": "field_test_int_index",
+      "name": "test_int_index",
+      "fieldType": "number",
+      "component": "number",
+      "required": true,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 200,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "displayName": "Test Int Index",
+      "placeholder": "Enter test int index",
+      "validation": {
+        "precision": 32
+      },
+      "defaultValue": "0"
+    },
+    {
+      "id": "field_measurements",
+      "name": "measurements",
+      "fieldType": "json",
+      "component": "json",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 210,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "displayName": "Measurements",
+      "placeholder": "Enter measurements"
+    },
+    {
+      "id": "field_id",
+      "name": "id",
+      "fieldType": "uuid",
+      "component": "text",
+      "required": true,
+      "isSystem": true,
+      "isPrimaryKey": true,
+      "isUnique": false,
+      "sortOrder": 220,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "system"
+        ]
+      },
+      "displayName": "Id"
+    },
+    {
+      "id": "field_created_at",
+      "name": "created_at",
+      "fieldType": "datetime",
+      "component": "datetime",
+      "required": false,
+      "isSystem": true,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 230,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "system"
+        ]
+      },
+      "displayName": "Created At"
+    },
+    {
+      "id": "field_created_by",
+      "name": "created_by",
+      "fieldType": "uuid",
+      "component": "text",
+      "required": false,
+      "isSystem": true,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 240,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "system"
+        ]
+      },
+      "displayName": "Created By"
+    },
+    {
+      "id": "field_updated_at",
+      "name": "updated_at",
+      "fieldType": "datetime",
+      "component": "date",
+      "required": false,
+      "isSystem": true,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 250,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "system"
+        ]
+      },
+      "displayName": "Updated At"
+    },
+    {
+      "id": "field_updated_by",
+      "name": "updated_by",
+      "fieldType": "uuid",
+      "component": "date",
+      "required": false,
+      "isSystem": true,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 260,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "system"
+        ]
+      },
+      "displayName": "Updated By"
+    }
+  ],
+  "metadata": {
+    "tableName": "pet",
+    "totalFields": 26,
+    "systemFields": 5,
+    "customFields": 21,
+    "generatedAt": "2025-08-28T11:33:35.079Z"
+  }
+}

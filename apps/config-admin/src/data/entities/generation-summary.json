@@ -1,0 +1,19 @@
+{
+  "total": 261,
+  "successful": 258,
+  "failed": [
+    {
+      "table": "conf_item_address",
+      "reason": "No schema found"
+    },
+    {
+      "table": "conf_item_in_case",
+      "reason": "No schema found"
+    },
+    {
+      "table": "service_item_in_tag",
+      "reason": "No schema found"
+    }
+  ],
+  "generatedAt": "2025-08-28T11:33:30.598Z"
+}

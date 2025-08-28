@@ -1,0 +1,249 @@
+{
+  "id": "entity_service_in_service_pact",
+  "type": "entity",
+  "name": "service_in_service_pact",
+  "displayName": "Service In Service Pact",
+  "category": "child",
+  "fields": [
+    {
+      "id": "field_reaction_time_value",
+      "name": "reaction_time_value",
+      "fieldType": "number",
+      "component": "time",
+      "required": true,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 10,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "displayName": "Reaction Time Value",
+      "placeholder": "Enter reaction time value",
+      "validation": {
+        "precision": 32
+      },
+      "defaultValue": "0"
+    },
+    {
+      "id": "field_solution_time_value",
+      "name": "solution_time_value",
+      "fieldType": "number",
+      "component": "time",
+      "required": true,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 20,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "displayName": "Solution Time Value",
+      "placeholder": "Enter solution time value",
+      "validation": {
+        "precision": 32
+      },
+      "defaultValue": "0"
+    },
+    {
+      "id": "field_reaction_time",
+      "name": "reaction_time",
+      "fieldType": "string",
+      "component": "time",
+      "required": true,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 30,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "displayName": "Reaction Time",
+      "placeholder": "Enter reaction time",
+      "maxLength": 250,
+      "validation": {
+        "maxLength": 250
+      },
+      "defaultValue": ""
+    },
+    {
+      "id": "field_solution_time",
+      "name": "solution_time",
+      "fieldType": "string",
+      "component": "time",
+      "required": true,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 40,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "displayName": "Solution Time",
+      "placeholder": "Enter solution time",
+      "maxLength": 250,
+      "validation": {
+        "maxLength": 250
+      },
+      "defaultValue": ""
+    },
+    {
+      "id": "field_concat_name",
+      "name": "concat_name",
+      "fieldType": "string",
+      "component": "text",
+      "required": true,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 50,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "displayName": "Concat Name",
+      "placeholder": "Enter concat name",
+      "maxLength": 500,
+      "validation": {
+        "maxLength": 500
+      },
+      "defaultValue": ""
+    },
+    {
+      "id": "field_id",
+      "name": "id",
+      "fieldType": "uuid",
+      "component": "text",
+      "required": true,
+      "isSystem": true,
+      "isPrimaryKey": true,
+      "isUnique": false,
+      "sortOrder": 60,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "system"
+        ]
+      },
+      "displayName": "Id"
+    },
+    {
+      "id": "field_created_at",
+      "name": "created_at",
+      "fieldType": "datetime",
+      "component": "datetime",
+      "required": false,
+      "isSystem": true,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 70,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "system"
+        ]
+      },
+      "displayName": "Created At"
+    },
+    {
+      "id": "field_created_by",
+      "name": "created_by",
+      "fieldType": "uuid",
+      "component": "text",
+      "required": false,
+      "isSystem": true,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 80,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "system"
+        ]
+      },
+      "displayName": "Created By"
+    },
+    {
+      "id": "field_updated_at",
+      "name": "updated_at",
+      "fieldType": "datetime",
+      "component": "date",
+      "required": false,
+      "isSystem": true,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 90,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "system"
+        ]
+      },
+      "displayName": "Updated At"
+    },
+    {
+      "id": "field_updated_by",
+      "name": "updated_by",
+      "fieldType": "uuid",
+      "component": "date",
+      "required": false,
+      "isSystem": true,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 100,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "system"
+        ]
+      },
+      "displayName": "Updated By"
+    }
+  ],
+  "metadata": {
+    "tableName": "service_in_service_pact",
+    "totalFields": 10,
+    "systemFields": 5,
+    "customFields": 5,
+    "generatedAt": "2025-08-28T11:35:14.932Z"
+  }
+}

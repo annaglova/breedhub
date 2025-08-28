@@ -1,0 +1,62 @@
+{
+  "id": "entity_like",
+  "type": "entity",
+  "name": "like",
+  "displayName": "Like",
+  "category": "child",
+  "fields": [
+    {
+      "id": "field_like_it",
+      "name": "like_it",
+      "fieldType": "number",
+      "component": "number",
+      "required": true,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 10,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "displayName": "Like It",
+      "placeholder": "Enter like it",
+      "validation": {
+        "precision": 32
+      },
+      "defaultValue": "0"
+    },
+    {
+      "id": "field_id",
+      "name": "id",
+      "fieldType": "uuid",
+      "component": "text",
+      "required": true,
+      "isSystem": true,
+      "isPrimaryKey": true,
+      "isUnique": false,
+      "sortOrder": 20,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "system"
+        ]
+      },
+      "displayName": "Id"
+    }
+  ],
+  "metadata": {
+    "tableName": "like",
+    "totalFields": 2,
+    "systemFields": 1,
+    "customFields": 1,
+    "generatedAt": "2025-08-28T11:34:45.479Z"
+  }
+}
