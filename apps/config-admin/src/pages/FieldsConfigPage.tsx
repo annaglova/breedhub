@@ -1,145 +1,180 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Plus, Search, Filter, Edit2, Trash2, Copy, Download, Upload, ChevronLeft, ChevronRight } from 'lucide-react';
-import { propertyRegistryStore, type PropertyDefinition } from '@breedhub/rxdb-store';
-import PropertyEditModal from '../components/PropertyEditModal';
+import { Plus, Search, Filter, Edit2, Trash2, Copy, Download, Upload, ChevronLeft, ChevronRight, SortAsc } from 'lucide-react';
+import { appConfigStore, type AppConfig } from '@breedhub/rxdb-store';
+import FieldEditModal from '../components/FieldEditModal';
 
-type PropertyType = PropertyDefinition['type'];
+type FieldType = 'string' | 'number' | 'boolean' | 'date' | 'datetime' | 'json' | 'array' | 'reference';
+type SortField = 'id' | 'caption' | 'category' | 'created_at' | 'updated_at';
+type SortDirection = 'asc' | 'desc';
 
 const ITEMS_PER_PAGE = 20;
 
-const PropertiesPage: React.FC = () => {
+const FieldsConfigPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
-  const [filterType, setFilterType] = useState<PropertyType | 'all'>('all');
+  const [filterFieldType, setFilterFieldType] = useState<FieldType | 'all'>('all');
   const [filterCategory, setFilterCategory] = useState<string>('all');
-  const [selectedProperty, setSelectedProperty] = useState<PropertyDefinition | null>(null);
+  const [selectedField, setSelectedField] = useState<AppConfig | null>(null);
+  const [sortField, setSortField] = useState<SortField>('id');
+  const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error' | 'info', text: string } | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [, forceUpdate] = useState({});
 
-  // Use signals from store - access .value to get current values
-  const properties = propertyRegistryStore.propertiesList.value;
-  const loading = propertyRegistryStore.loading.value;
-  const error = propertyRegistryStore.error.value;
-  const categories = propertyRegistryStore.categories.value;
-  const totalCount = propertyRegistryStore.totalCount.value;
-  const systemPropertiesCount = propertyRegistryStore.systemProperties.value.length;
+  // Use signals from store - filter only 'field' type configs
+  const fields = appConfigStore.fields.value;
+  const loading = appConfigStore.loading.value;
+  const error = appConfigStore.error.value;
+  const categories = appConfigStore.categories.value;
   
-  // Debug logging
-  console.log('[PropertiesPage] Store state:', {
-    properties: properties.length,
-    loading,
-    error,
-    totalCount,
-    systemPropertiesCount,
-    rawPropertiesMap: propertyRegistryStore.properties.value.size
-  });
-  
+  const totalCount = fields.length;
+  const systemFieldsCount = fields.filter(f => f.self_data?.isSystem).length;
+
   // Subscribe to signal changes
   useEffect(() => {
-    const unsubscribe = propertyRegistryStore.propertiesList.subscribe(() => {
+    const unsubscribe = appConfigStore.configsList.subscribe(() => {
       forceUpdate({});
     });
     return () => unsubscribe();
   }, []);
 
-  // Filter properties based on search and filters
-  const filteredProperties = React.useMemo(() => {
-    let filtered = [...properties];
+  // Filter and sort fields based on search and filters
+  const filteredFields = useMemo(() => {
+    let filtered = [...fields];
 
     // Search filter
     if (searchQuery) {
-      filtered = filtered.filter(p => 
-        p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        p.caption.toLowerCase().includes(searchQuery.toLowerCase())
+      filtered = filtered.filter(f => 
+        f.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        f.caption?.toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
 
-    // Type filter
-    if (filterType !== 'all') {
-      filtered = filtered.filter(p => p.type === filterType);
+    // Field type filter (from self_data)
+    if (filterFieldType !== 'all') {
+      filtered = filtered.filter(f => f.self_data?.fieldType === filterFieldType);
     }
 
     // Category filter
     if (filterCategory !== 'all') {
-      filtered = filtered.filter(p => p.category === filterCategory);
+      filtered = filtered.filter(f => f.category === filterCategory);
     }
 
+    // Sorting
+    filtered.sort((a, b) => {
+      let aVal, bVal;
+      switch (sortField) {
+        case 'id':
+          aVal = a.id;
+          bVal = b.id;
+          break;
+        case 'caption':
+          aVal = a.caption || '';
+          bVal = b.caption || '';
+          break;
+        case 'category':
+          aVal = a.category || '';
+          bVal = b.category || '';
+          break;
+        case 'created_at':
+          aVal = a.created_at;
+          bVal = b.created_at;
+          break;
+        case 'updated_at':
+          aVal = a.updated_at;
+          bVal = b.updated_at;
+          break;
+        default:
+          return 0;
+      }
+      
+      const comparison = aVal < bVal ? -1 : aVal > bVal ? 1 : 0;
+      return sortDirection === 'asc' ? comparison : -comparison;
+    });
+
     return filtered;
-  }, [properties, searchQuery, filterType, filterCategory]);
+  }, [fields, searchQuery, filterFieldType, filterCategory, sortField, sortDirection]);
 
   // Pagination
-  const totalPages = Math.ceil(filteredProperties.length / ITEMS_PER_PAGE);
-  const paginatedProperties = useMemo(() => {
+  const totalPages = Math.ceil(filteredFields.length / ITEMS_PER_PAGE);
+  const paginatedFields = useMemo(() => {
     const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
     const endIndex = startIndex + ITEMS_PER_PAGE;
-    return filteredProperties.slice(startIndex, endIndex);
-  }, [filteredProperties, currentPage]);
+    return filteredFields.slice(startIndex, endIndex);
+  }, [filteredFields, currentPage]);
 
   // Reset to page 1 when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchQuery, filterType, filterCategory]);
+  }, [searchQuery, filterFieldType, filterCategory, sortField, sortDirection]);
 
   const showMessage = (type: 'success' | 'error' | 'info', text: string) => {
     setMessage({ type, text });
     setTimeout(() => setMessage(null), 5000);
   };
 
-  const handleDelete = async (property: PropertyDefinition) => {
-    if (confirm(`Are you sure you want to delete property "${property.caption}"?`)) {
+  const handleDelete = async (field: AppConfig) => {
+    if (confirm(`Are you sure you want to delete field "${field.caption || field.id}"?`)) {
       try {
-        await propertyRegistryStore.deleteProperty(property.id);
-        showMessage('success', `Property "${property.caption}" deleted`);
+        await appConfigStore.deleteConfig(field.id);
+        showMessage('success', `Field "${field.caption || field.id}" deleted`);
       } catch (error: any) {
-        showMessage('error', error.message || 'Failed to delete property');
+        showMessage('error', error.message || 'Failed to delete field');
       }
     }
   };
 
-  const handleClone = (property: PropertyDefinition) => {
-    // Open modal with pre-filled data from the property to clone
-    // ВАЖЛИВО: видаляємо id, created_at, updated_at щоб створився новий запис
-    const { id, created_at, updated_at, ...propertyWithoutId } = property;
-    const clonedProperty = {
-      ...propertyWithoutId,
-      name: `${property.name}_copy`,
-      caption: `${property.caption} (Copy)`,
-      is_system: false
-    } as PropertyDefinition;
-    setSelectedProperty(clonedProperty);
+  const handleClone = (field: AppConfig) => {
+    // Clone field with new ID
+    const clonedField: Partial<AppConfig> = {
+      ...field,
+      id: `${field.id}_copy`,
+      caption: field.caption ? `${field.caption} (Copy)` : `${field.id} (Copy)`,
+      self_data: {
+        ...field.self_data,
+        isSystem: false
+      },
+      version: 1
+    };
+    delete (clonedField as any).created_at;
+    delete (clonedField as any).updated_at;
+    delete (clonedField as any)._deleted;
+    delete (clonedField as any)._attachments;
+    delete (clonedField as any)._rev;
+    
+    setSelectedField(clonedField as AppConfig);
     setShowCreateModal(true);
   };
 
-  const handleEdit = (property: PropertyDefinition) => {
-    setSelectedProperty(property);
+  const handleEdit = (field: AppConfig) => {
+    setSelectedField(field);
     setShowEditModal(true);
   };
 
   const handleModalSave = () => {
-    showMessage('success', showEditModal ? 'Property updated successfully' : 'Property created successfully');
+    showMessage('success', showEditModal ? 'Field updated successfully' : 'Field created successfully');
     setShowEditModal(false);
     setShowCreateModal(false);
-    setSelectedProperty(null);
+    setSelectedField(null);
   };
 
   const handleModalClose = () => {
     setShowEditModal(false);
     setShowCreateModal(false);
-    setSelectedProperty(null);
+    setSelectedField(null);
   };
 
   const handleExport = () => {
-    const json = JSON.stringify(filteredProperties, null, 2);
+    const json = JSON.stringify(filteredFields, null, 2);
     const blob = new Blob([json], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'properties.json';
+    a.download = 'fields.json';
     a.click();
     URL.revokeObjectURL(url);
-    showMessage('info', `Exported ${filteredProperties.length} properties`);
+    showMessage('info', `Exported ${filteredFields.length} fields`);
   };
 
   const handleImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -150,35 +185,33 @@ const PropertiesPage: React.FC = () => {
     reader.onload = async (e) => {
       try {
         const json = e.target?.result as string;
-        const importedProps = JSON.parse(json) as PropertyDefinition[];
+        const importedFields = JSON.parse(json) as AppConfig[];
         
         let successCount = 0;
         let errorCount = 0;
         
-        for (const prop of importedProps) {
+        for (const field of importedFields) {
           try {
-            await propertyRegistryStore.createProperty({
-              ...prop,
-              id: undefined as any,
-              created_at: undefined as any,
-              updated_at: undefined as any,
-              is_system: false
-            });
+            const { created_at, updated_at, _deleted, _attachments, _rev, ...fieldData } = field;
+            await appConfigStore.createConfig({
+              ...fieldData,
+              type: 'field',
+              deleted: false
+            } as any);
             successCount++;
           } catch (error) {
             errorCount++;
-            console.error(`Failed to import property ${prop.name}:`, error);
+            console.error(`Failed to import field ${field.id}:`, error);
           }
         }
         
-        showMessage('success', `Imported ${successCount} properties${errorCount > 0 ? `, ${errorCount} failed` : ''}`);
+        showMessage('success', `Imported ${successCount} fields${errorCount > 0 ? `, ${errorCount} failed` : ''}`);
       } catch (error: any) {
-        showMessage('error', error.message || 'Failed to import properties');
+        showMessage('error', error.message || 'Failed to import fields');
       }
     };
     reader.readAsText(file);
   };
-
 
   const getComponentName = (component: number): string => {
     const componentMap: Record<number, string> = {
@@ -191,8 +224,8 @@ const PropertiesPage: React.FC = () => {
     return componentMap[component] || 'Unknown';
   };
 
-  const getTypeColor = (type: PropertyType): string => {
-    const colorMap: Record<PropertyType, string> = {
+  const getFieldTypeColor = (fieldType: string): string => {
+    const colorMap: Record<string, string> = {
       'string': 'bg-blue-100 text-blue-800',
       'number': 'bg-green-100 text-green-800',
       'boolean': 'bg-yellow-100 text-yellow-800',
@@ -202,7 +235,7 @@ const PropertiesPage: React.FC = () => {
       'array': 'bg-orange-100 text-orange-800',
       'reference': 'bg-pink-100 text-pink-800'
     };
-    return colorMap[type] || 'bg-gray-100 text-gray-800';
+    return colorMap[fieldType] || 'bg-gray-100 text-gray-800';
   };
 
   return (
@@ -211,9 +244,9 @@ const PropertiesPage: React.FC = () => {
       <div className="mb-6">
         <div className="flex justify-between items-start">
           <div>
-            <h1 className="text-3xl font-bold text-gray-800">Property Registry</h1>
+            <h1 className="text-3xl font-bold text-gray-800">Fields Configuration</h1>
             <p className="text-gray-600 mt-2">
-              Manage reusable property definitions for the configuration system
+              Manage field definitions and their properties for the configuration system
             </p>
           </div>
         </div>
@@ -242,19 +275,19 @@ const PropertiesPage: React.FC = () => {
         <div className="flex gap-6 text-sm">
           <div className="flex items-center gap-2">
             <span className="text-gray-600">Total:</span>
-            <span className="font-semibold text-gray-900">{totalCount} properties</span>
+            <span className="font-semibold text-gray-900">{totalCount} fields</span>
           </div>
           <div className="flex items-center gap-2">
             <span className="text-gray-600">Filtered:</span>
-            <span className="font-semibold text-gray-900">{filteredProperties.length} properties</span>
+            <span className="font-semibold text-gray-900">{filteredFields.length} fields</span>
           </div>
           <div className="flex items-center gap-2">
             <span className="text-gray-600">System:</span>
-            <span className="font-semibold text-gray-900">{systemPropertiesCount} properties</span>
+            <span className="font-semibold text-gray-900">{systemFieldsCount} fields</span>
           </div>
           <div className="flex items-center gap-2">
             <span className="text-gray-600">Custom:</span>
-            <span className="font-semibold text-gray-900">{totalCount - systemPropertiesCount} properties</span>
+            <span className="font-semibold text-gray-900">{totalCount - systemFieldsCount} fields</span>
           </div>
         </div>
       </div>
@@ -268,7 +301,7 @@ const PropertiesPage: React.FC = () => {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
               <input
                 type="text"
-                placeholder="Search properties..."
+                placeholder="Search fields..."
                 className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -276,13 +309,35 @@ const PropertiesPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Type Filter */}
+          {/* Sort Controls */}
+          <div className="flex gap-2">
+            <select
+              className="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+              value={sortField}
+              onChange={(e) => setSortField(e.target.value as SortField)}
+            >
+              <option value="id">Sort by ID</option>
+              <option value="caption">Sort by Caption</option>
+              <option value="category">Sort by Category</option>
+              <option value="created_at">Sort by Created</option>
+              <option value="updated_at">Sort by Updated</option>
+            </select>
+            <button
+              onClick={() => setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')}
+              className="px-3 py-2 border rounded-lg hover:bg-gray-50"
+              title={`Sort ${sortDirection === 'asc' ? 'descending' : 'ascending'}`}
+            >
+              <SortAsc className={`w-4 h-4 transition-transform ${sortDirection === 'desc' ? 'rotate-180' : ''}`} />
+            </button>
+          </div>
+
+          {/* Field Type Filter */}
           <select
             className="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-            value={filterType}
-            onChange={(e) => setFilterType(e.target.value as PropertyType | 'all')}
+            value={filterFieldType}
+            onChange={(e) => setFilterFieldType(e.target.value as FieldType | 'all')}
           >
-            <option value="all">All Types</option>
+            <option value="all">All Field Types</option>
             <option value="string">String</option>
             <option value="number">Number</option>
             <option value="boolean">Boolean</option>
@@ -308,13 +363,13 @@ const PropertiesPage: React.FC = () => {
           {/* Actions */}
           <button
             onClick={() => {
-              setSelectedProperty(null);
+              setSelectedField(null);
               setShowCreateModal(true);
             }}
             className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2"
           >
             <Plus className="w-4 h-4" />
-            New Property
+            New Field
           </button>
 
           <button
@@ -338,63 +393,73 @@ const PropertiesPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Properties Grid */}
+      {/* Fields Grid */}
       {loading ? (
         <div className="text-center py-12">
           <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
-          <p className="mt-2 text-gray-600">Loading properties...</p>
+          <p className="mt-2 text-gray-600">Loading fields...</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {paginatedProperties.map((property) => (
+          {paginatedFields.map((field) => (
             <div
-              key={property.id}
+              key={field.id}
               className={`bg-white rounded-lg shadow hover:shadow-lg transition-shadow p-4 ${
-                property.is_system ? 'border-l-4 border-gray-400' : ''
+                field.self_data?.isSystem ? 'border-l-4 border-gray-400' : ''
               }`}
             >
-              {/* Property Header */}
+              {/* Field Header */}
               <div className="flex justify-between items-start mb-3">
                 <div className="flex-1">
-                  <h3 className="font-semibold text-gray-800">{property.caption}</h3>
-                  <p className="text-sm text-gray-500 font-mono">{property.name}</p>
+                  <h3 className="font-semibold text-gray-800">{field.caption || field.id}</h3>
+                  <p className="text-sm text-gray-500 font-mono">{field.id}</p>
                 </div>
-                <span className={`px-2 py-1 text-xs rounded-full ${getTypeColor(property.type)}`}>
-                  {property.type}
-                </span>
+                {field.self_data?.fieldType && (
+                  <span className={`px-2 py-1 text-xs rounded-full ${getFieldTypeColor(field.self_data.fieldType)}`}>
+                    {field.self_data.fieldType}
+                  </span>
+                )}
               </div>
 
-              {/* Property Details */}
+              {/* Field Details */}
               <div className="space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Component:</span>
-                  <span className="font-medium">{getComponentName(property.component)}</span>
-                </div>
-
-                {property.category && (
+                {field.self_data?.component !== undefined && (
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Category:</span>
-                    <span className="font-medium">{property.category}</span>
+                    <span className="text-gray-600">Component:</span>
+                    <span className="font-medium">{getComponentName(field.self_data.component)}</span>
                   </div>
                 )}
 
-                {property.config?.isRequired && (
+                {field.category && (
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Category:</span>
+                    <span className="font-medium">{field.category}</span>
+                  </div>
+                )}
+
+                {field.self_data?.required && (
                   <div className="flex justify-between">
                     <span className="text-gray-600">Required:</span>
                     <span className="font-medium text-red-600">Yes</span>
                   </div>
                 )}
 
-                {property.mixins && property.mixins.length > 0 && (
+                {field.tags && field.tags.length > 0 && (
                   <div>
-                    <span className="text-gray-600">Mixins:</span>
+                    <span className="text-gray-600">Tags:</span>
                     <div className="flex flex-wrap gap-1 mt-1">
-                      {property.mixins.map(mixin => (
-                        <span key={mixin} className="px-2 py-0.5 bg-gray-100 text-xs rounded">
-                          {mixin}
+                      {field.tags.map(tag => (
+                        <span key={tag} className="px-2 py-0.5 bg-gray-100 text-xs rounded">
+                          {tag}
                         </span>
                       ))}
                     </div>
+                  </div>
+                )}
+
+                {field.deps && field.deps.length > 0 && (
+                  <div className="text-xs text-gray-500">
+                    Inherits from: {field.deps.join(', ')}
                   </div>
                 )}
               </div>
@@ -402,23 +467,23 @@ const PropertiesPage: React.FC = () => {
               {/* Actions */}
               <div className="flex gap-2 mt-4 pt-3 border-t">
                 <button
-                  onClick={() => handleEdit(property)}
+                  onClick={() => handleEdit(field)}
                   className="flex-1 px-3 py-1.5 text-sm bg-blue-50 text-blue-600 rounded hover:bg-blue-100"
-                  title="Edit property"
+                  title="Edit field"
                 >
                   <Edit2 className="w-4 h-4 mx-auto" />
                 </button>
                 <button
-                  onClick={() => handleClone(property)}
+                  onClick={() => handleClone(field)}
                   className="flex-1 px-3 py-1.5 text-sm bg-gray-50 text-gray-600 rounded hover:bg-gray-100"
-                  title="Clone property"
+                  title="Clone field"
                 >
                   <Copy className="w-4 h-4 mx-auto" />
                 </button>
                 <button
-                  onClick={() => handleDelete(property)}
+                  onClick={() => handleDelete(field)}
                   className="flex-1 px-3 py-1.5 text-sm bg-red-50 text-red-600 rounded hover:bg-red-100"
-                  title="Delete property"
+                  title="Delete field"
                 >
                   <Trash2 className="w-4 h-4 mx-auto" />
                 </button>
@@ -429,7 +494,7 @@ const PropertiesPage: React.FC = () => {
       )}
 
       {/* Pagination */}
-      {!loading && filteredProperties.length > ITEMS_PER_PAGE && (
+      {!loading && filteredFields.length > ITEMS_PER_PAGE && (
         <div className="flex justify-center items-center gap-2 mt-6 mb-4">
           <button
             onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
@@ -479,15 +544,15 @@ const PropertiesPage: React.FC = () => {
       )}
 
       {/* Empty State */}
-      {!loading && filteredProperties.length === 0 && (
+      {!loading && filteredFields.length === 0 && (
         <div className="text-center py-12 bg-gray-50 rounded-lg">
           <Filter className="w-12 h-12 mx-auto text-gray-400 mb-3" />
-          <p className="text-gray-600">No properties found</p>
-          {searchQuery || filterType !== 'all' || filterCategory !== 'all' ? (
+          <p className="text-gray-600">No fields found</p>
+          {searchQuery || filterFieldType !== 'all' || filterCategory !== 'all' ? (
             <button
               onClick={() => {
                 setSearchQuery('');
-                setFilterType('all');
+                setFilterFieldType('all');
                 setFilterCategory('all');
               }}
               className="mt-3 text-blue-600 hover:text-blue-800"
@@ -497,28 +562,28 @@ const PropertiesPage: React.FC = () => {
           ) : (
             <button
               onClick={() => {
-                setSelectedProperty(null);
+                setSelectedField(null);
                 setShowCreateModal(true);
               }}
               className="mt-3 text-blue-600 hover:text-blue-800"
             >
-              Create your first property
+              Create your first field
             </button>
           )}
         </div>
       )}
 
       {/* Edit Modal */}
-      <PropertyEditModal
-        property={showEditModal ? selectedProperty : null}
+      <FieldEditModal
+        field={showEditModal ? selectedField : null}
         isOpen={showEditModal}
         onClose={handleModalClose}
         onSave={handleModalSave}
       />
 
       {/* Create/Clone Modal */}
-      <PropertyEditModal
-        property={showCreateModal ? selectedProperty : null}
+      <FieldEditModal
+        field={showCreateModal ? selectedField : null}
         isOpen={showCreateModal}
         onClose={handleModalClose}
         onSave={handleModalSave}
@@ -527,4 +592,4 @@ const PropertiesPage: React.FC = () => {
   );
 };
 
-export default PropertiesPage;
+export default FieldsConfigPage;

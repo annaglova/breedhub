@@ -49,10 +49,9 @@ export { breedSchema, breedMigrationStrategies } from './collections/breeds.sche
 // Database types
 export type { DatabaseCollections, AppDatabase } from './services/database.service';
 
-// Property Registry
-export { propertyRegistryStore } from './stores/property-registry.signal-store';
-export type { PropertyDefinition, PropertyDocument } from './types/property-registry.types';
-export { propertyRegistrySchema } from './collections/property-registry.schema';
+// App Config Store
+export { appConfigStore } from './stores/app-config.signal-store';
+export type { AppConfig, AppConfigDocument, AppConfigCollection } from './stores/app-config.signal-store';
 
 // Mixin Engine
 export { mixinEngine, MixinEngineService } from './services/mixin-engine.service';
