@@ -1,0 +1,135 @@
+{
+  "summary": {
+    "totalEntities": 258,
+    "uniqueFields": 430,
+    "baseFields": 9,
+    "properties": 12,
+    "entityFieldsGenerated": 2352
+  },
+  "topFields": [
+    {
+      "name": "id",
+      "occurrences": 256,
+      "percentage": "99.2%"
+    },
+    {
+      "name": "created_at",
+      "occurrences": 254,
+      "percentage": "98.4%"
+    },
+    {
+      "name": "created_by",
+      "occurrences": 254,
+      "percentage": "98.4%"
+    },
+    {
+      "name": "updated_at",
+      "occurrences": 254,
+      "percentage": "98.4%"
+    },
+    {
+      "name": "updated_by",
+      "occurrences": 254,
+      "percentage": "98.4%"
+    },
+    {
+      "name": "name",
+      "occurrences": 163,
+      "percentage": "63.2%"
+    },
+    {
+      "name": "description",
+      "occurrences": 145,
+      "percentage": "56.2%"
+    },
+    {
+      "name": "code",
+      "occurrences": 30,
+      "percentage": "11.6%"
+    },
+    {
+      "name": "contact_id",
+      "occurrences": 26,
+      "percentage": "10.1%"
+    },
+    {
+      "name": "notes",
+      "occurrences": 22,
+      "percentage": "8.5%"
+    },
+    {
+      "name": "url",
+      "occurrences": 16,
+      "percentage": "6.2%"
+    },
+    {
+      "name": "date",
+      "occurrences": 16,
+      "percentage": "6.2%"
+    },
+    {
+      "name": "owner_id",
+      "occurrences": 15,
+      "percentage": "5.8%"
+    },
+    {
+      "name": "color",
+      "occurrences": 14,
+      "percentage": "5.4%"
+    },
+    {
+      "name": "position",
+      "occurrences": 12,
+      "percentage": "4.7%"
+    },
+    {
+      "name": "avatar_url",
+      "occurrences": 8,
+      "percentage": "3.1%"
+    },
+    {
+      "name": "start_date",
+      "occurrences": 8,
+      "percentage": "3.1%"
+    },
+    {
+      "name": "number",
+      "occurrences": 8,
+      "percentage": "3.1%"
+    },
+    {
+      "name": "amount",
+      "occurrences": 8,
+      "percentage": "3.1%"
+    },
+    {
+      "name": "measurements",
+      "occurrences": 6,
+      "percentage": "2.3%"
+    }
+  ],
+  "systemFields": [
+    "id",
+    "created_at",
+    "created_by",
+    "updated_at",
+    "updated_by"
+  ],
+  "commonFields": [
+    "name",
+    "description"
+  ],
+  "analysis": {
+    "fieldTypes": {
+      "unknown": 324,
+      "uuid": 16,
+      "string": 27,
+      "text": 8,
+      "number": 27,
+      "json": 1,
+      "datetime": 7,
+      "boolean": 13,
+      "date": 7
+    }
+  }
+}

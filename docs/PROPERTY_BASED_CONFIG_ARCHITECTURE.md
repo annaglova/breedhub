@@ -1,17 +1,40 @@
 # 🏗️ Property-Based Configuration Architecture for BreedHub
 
+## 📖 Table of Contents
+- [Overview](#overview)
+- [Core Concepts](#core-concepts)
+- [Architecture](#architecture)
+- [Implementation Status](#implementation-status)
+- [Initial Data Generation](#initial-data-generation)
+- [Data Structure](#data-structure)
+- [Technical Details](#technical-details)
+- [Benefits](#benefits)
+
 ## Overview
 
-This document outlines the architecture and implementation plan for a unified property-based configuration system that will power all aspects of the BreedHub application configuration.
+This document outlines the architecture and implementation of a unified property-based configuration system that powers all aspects of the BreedHub application configuration through semantic inheritance.
 
-## Core Concept
+## Core Concepts
 
-Create a universal configuration system where **property (field)** is the atomic unit that can be reused across different contexts:
-- Supabase table schemas
+### 🎯 Main Principle
+Create a universal configuration system based on **semantic inheritance** where configurations inherit properties through dependency chains (`deps[]`).
+
+### 🔑 Key Terms
+- **Field Property** - Atomic unit of configuration (e.g., `required: true`, `maxLength: 250`)
+- **Base Field** - Common field definition used across entities (e.g., `field_name`, `field_created_at`)
+- **Entity Field** - Entity-specific field inheriting from base fields (e.g., `breed_field_name`)
+- **deps[]** - Array defining inheritance chain
+- **self_data** - Field's own configuration data
+- **override_data** - Local overrides (used for runtime modifications)
+- **data** - Computed result after merging all dependencies
+
+### 🎨 Use Cases
+- Supabase table schemas generation
 - UI configurations (menus, workspaces, field visibility)
 - RxDB schemas for local storage
 - Form and table generation
 - Sorting, filtering, and search configurations
+- Validation rules and permissions
 
 ## 📊 Proposed Architecture
 
@@ -158,47 +181,147 @@ const ENCRYPTED_MIXIN = {
 };
 ```
 
-## 📋 Implementation Plan
+## 📋 Implementation Status
 
-### ✅ Phase 1: Property Registry (COMPLETED)
-- ✅ Created Property Registry with full CRUD operations
-- ✅ Implemented RxDB + Supabase sync
-- ✅ Built comprehensive UI for property management
-- ✅ Added UUID-based identification system
-- ✅ Enabled real-time updates and offline support
+### ✅ Phase 1: Foundation (COMPLETED)
+- ✅ Migrated from dual-table (property_registry + property_usage) to single `app_config` table
+- ✅ Implemented RxDB + Supabase sync with field mapping (deleted ↔ _deleted)
+- ✅ Built signal stores with @preact/signals-react for reactive state
+- ✅ Fixed all RxDB schema validation issues
+- ✅ Created automatic sync without manual triggers
 
-### 🚀 Phase 2: Entity Registry & Auto-Discovery (NEW PLAN)
+### ✅ Phase 2: Semantic Tree Generation (COMPLETED)
+- ✅ Generated entity configurations for all 258 Supabase tables
+- ✅ Analyzed 430 unique fields across all entities
+- ✅ Created 3-level semantic inheritance hierarchy:
+  - **12 Field Properties** (atomic units like `required`, `maxLength`)
+  - **9 Base Fields** (common fields like `name`, `created_at`)
+  - **18 Entity Fields** for breed table (test mode)
+- ✅ Implemented automatic field categorization:
+  - System fields (>80% occurrence): id, created_at, created_by, updated_at, updated_by
+  - Common fields (>40% occurrence): name, description
+  - Frequent fields (>10% occurrence): code, contact_id, notes
+- ✅ Built dependency resolution through `deps[]` arrays
+- ✅ Generated SQL inserts with proper inheritance
 
-#### 2.1 Create Entity Registry
-- Build registry of all entities in the system (Dog, Cat, Breed, etc.)
-- Define entity metadata (table name, display name, icon, category)
-- Track relationships between entities
-- Store entity-specific configurations
+## 🚀 Initial Data Generation
 
-#### 2.2 Schema Auto-Discovery Tool
-- Analyze existing Supabase tables and RxDB schemas
-- Extract all fields with their types and constraints
-- Parse existing JSON configs (breed.json, account.json, etc.)
-- Identify patterns in field naming and types
+### Overview
+The initial configuration data is generated through a multi-step process that analyzes existing database schemas and creates a semantic inheritance tree.
 
-#### 2.3 Property Categorization Engine
-- **Common Properties**: Fields that appear in multiple entities (id, name, created_at, updated_at)
-- **System Properties**: Technical fields (_deleted, _attachments, sync metadata)
-- **Entity-Specific Properties**: Unique fields per entity (breed_standard, color_genetics)
-- **Relationship Properties**: Foreign keys and references between entities
+### Generation Process
 
-#### 2.4 Bulk Property Import
-- Generate comprehensive JSON with all discovered properties
-- Auto-assign appropriate component types based on data types
-- Suggest mixins based on field patterns (e.g., all *_date fields get 'sortable')
-- Create property naming conventions and apply them
-- Import all properties to Property Registry in one operation
+#### Step 1: Entity Configuration Generation
+```bash
+node scripts/generate-entity-configs.cjs
+```
+- Connects to Supabase and reads all table schemas
+- Generates JSON configuration for each table
+- Maps PostgreSQL types to field types and UI components
+- Output: `/src/data/entities/{main,lookup,child}/*.json`
 
-#### 2.5 Property Deduplication
-- Identify duplicate properties with different names
-- Suggest standardization (e.g., created_date vs created_at)
-- Create property aliases for backward compatibility
-- Generate migration plan for property consolidation
+**Statistics:**
+- 258 total entities processed
+- 25 main resources
+- 127 lookup tables
+- 106 child resources
+
+#### Step 2: Field Analysis
+```bash
+node scripts/analyze-fields.cjs
+```
+- Loads all entity configurations
+- Analyzes field frequency and patterns
+- Identifies common properties
+- Generates semantic tree structure
+- Output: `/src/data/semantic-tree/semantic-tree.json`
+
+**Key Findings:**
+- 430 unique fields discovered
+- 5 system fields (>80% occurrence)
+- 2 common fields (>40% occurrence)
+- Explicit property inheritance (no defaults)
+
+#### Step 3: SQL Generation and Database Insert
+```bash
+node scripts/generate-sql-inserts.cjs
+```
+- Loads semantic tree
+- Computes merged data for each configuration
+- Generates SQL inserts
+- Uses upsert to update existing records
+- Output: `/src/data/semantic-tree/app-config-inserts.sql`
+
+### Data Inheritance Model
+
+#### Three-Level Hierarchy
+
+**Level 1: Field Properties (Atomic Units)**
+```json
+{
+  "id": "field_property_required",
+  "type": "field_property",
+  "self_data": {
+    "required": true,
+    "validation": { "notNull": true }
+  }
+}
+```
+
+**Level 2: Base Fields (Common Fields)**
+```json
+{
+  "id": "field_name",
+  "type": "field",
+  "deps": [
+    "field_property_required",
+    "field_property_not_system",
+    "field_property_maxlength_250"
+  ],
+  "self_data": {
+    "displayName": "Name",
+    "permissions": {
+      "read": ["*"],
+      "write": ["admin", "editor"]
+    }
+  }
+}
+```
+
+**Level 3: Entity-Specific Fields**
+```json
+{
+  "id": "breed_field_name",
+  "type": "entity_field",
+  "deps": ["field_name"],
+  "category": "breed",
+  "self_data": {
+    "fieldType": "string",
+    "component": "text",
+    "placeholder": "Enter name",
+    "maxLength": 250
+  }
+}
+```
+
+### Dependency Resolution
+
+When computing the final `data` field:
+1. Start with empty object
+2. For each dependency in `deps[]`:
+   - Recursively compute its data
+   - Merge into result
+3. Apply `self_data`
+4. Apply `override_data` (if runtime modifications needed)
+5. Result stored in `data` field
+
+### Key Design Decisions
+
+1. **Explicit Properties**: All boolean properties are explicit (e.g., both `field_property_required` and `field_property_not_required` exist)
+2. **No Defaults**: No implicit default values - everything is explicitly inherited
+3. **Empty override_data**: Initial generation has empty `override_data` - used only for runtime modifications
+4. **Full self_data**: Entity fields contain complete configuration in `self_data`, not just differences
+5. **Upsert Strategy**: Database updates use upsert with `ignoreDuplicates: false` to force updates
 
 ### Phase 3: Mixin System (2-3 days)
 
@@ -557,167 +680,58 @@ WHERE deleted = false;
 6. **Validate** - Ensure backward compatibility
 7. **Deploy** - Phased rollout with rollback capability
 
-## 🌳 Semantic Tree Architecture (Phase 2.5)
+## 🎯 Benefits
 
-### Overview
-Build a semantic inheritance tree for field configurations, moving from specific to general with property inheritance through deps[].
+1. **Unification** - Single system for all configurations
+2. **Reusability** - Properties and base fields used everywhere
+3. **Flexibility** - Easy to add new properties and fields
+4. **Type Safety** - Generate TypeScript types from configurations
+5. **Versioning** - Track configuration changes
+6. **Real-time** - Instant updates via Supabase
+7. **Offline-first** - RxDB schemas for local operation
+8. **Performance** - Optimized through proper indexing
+9. **Scalability** - Semantic inheritance scales to thousands of fields
+10. **Maintainability** - Clear separation of concerns
 
-### Hierarchy Levels
+## 🚀 Next Steps
 
-#### Level 1: Field Properties (Atomic Units)
-Most granular level - individual properties that can be applied to fields:
-```json
-{
-  "id": "field_property_readonly",
-  "type": "field_property", 
-  "self_data": {
-    "permissions": { "write": ["system"] }
-  }
-}
+1. **Complete Entity Field Generation** - Expand from breed to all 258 entities
+2. **Build UI Components** - Create dynamic forms based on configurations
+3. **Implement Runtime Overrides** - Use override_data for workspace customization
+4. **Add Validation Engine** - Process validation rules from configurations
+5. **Create Migration Tools** - Convert existing configs to new format
 
-{
-  "id": "field_property_required",
-  "type": "field_property",
-  "self_data": {
-    "required": true,
-    "validation": { "notNull": true }
-  }
-}
+## 📚 Related Documentation
 
-{
-  "id": "field_property_maxlength_250",
-  "type": "field_property",
-  "self_data": {
-    "maxLength": 250,
-    "validation": { "maxLength": 250 }
-  }
-}
+- [CONFIG_TS.md](./CONFIG_TS.md) - Original requirements and task definition
+- [RxDB Schema Documentation](https://rxdb.info/rx-schema.html)
+- [Supabase Table Management](https://supabase.com/docs/guides/database)
+
+## 🔧 Maintenance Scripts
+
+### Regenerate All Configurations
+```bash
+# Step 1: Generate entity configs from Supabase
+node scripts/generate-entity-configs.cjs
+
+# Step 2: Analyze and build semantic tree
+node scripts/analyze-fields.cjs
+
+# Step 3: Generate SQL and update database
+node scripts/generate-sql-inserts.cjs
 ```
 
-#### Level 2: Base Fields (Common Fields)
-Common fields that appear across multiple entities:
-```json
-{
-  "id": "field_id",
-  "type": "field",
-  "deps": ["field_property_readonly", "field_property_required"],
-  "self_data": {
-    "fieldType": "uuid",
-    "component": "text",
-    "isSystem": true,
-    "isPrimaryKey": true,
-    "displayName": "ID"
-  }
-}
-
-{
-  "id": "field_name", 
-  "type": "field",
-  "deps": ["field_property_required", "field_property_maxlength_250"],
-  "self_data": {
-    "fieldType": "string",
-    "component": "text",
-    "displayName": "Name",
-    "placeholder": "Enter name"
-  }
-}
-
-{
-  "id": "field_created_at",
-  "type": "field",
-  "deps": ["field_property_readonly"],
-  "self_data": {
-    "fieldType": "datetime",
-    "component": "datetime",
-    "isSystem": true,
-    "displayName": "Created At"
-  }
-}
+### Check Database State
+```bash
+node scripts/check-db.cjs
 ```
 
-#### Level 3: Entity-Specific Fields
-Fields tied to specific entities, inheriting from base fields:
-```json
-{
-  "id": "breed_field_id",
-  "type": "entity_field",
-  "deps": ["field_id"],
-  "category": "breed",
-  "caption": "Breed ID field",
-  "self_data": {} // Inherits everything from field_id
-}
-
-{
-  "id": "breed_field_name",
-  "type": "entity_field", 
-  "deps": ["field_name"],
-  "category": "breed",
-  "caption": "Breed Name field",
-  "override_data": {
-    "maxLength": 255, // Override specific property
-    "placeholder": "Enter breed name"
-  }
-}
-
-{
-  "id": "pet_field_name",
-  "type": "entity_field",
-  "deps": ["field_name"],
-  "category": "pet",
-  "caption": "Pet Name field",
-  "override_data": {
-    "maxLength": 100,
-    "placeholder": "Enter pet name"
-  }
-}
+### Clean and Rebuild
+```bash
+node scripts/clean-and-insert.cjs
 ```
 
-### Implementation Strategy
+---
 
-1. **Field Analysis Phase**
-   - Scan all 258 generated entity JSON files
-   - Identify common fields across entities
-   - Extract shared properties and patterns
-   - Build frequency map of field usage
-
-2. **Property Extraction**
-   - Create atomic field_property records
-   - Group similar validation rules
-   - Define permission patterns
-   - Extract UI component configurations
-
-3. **Base Field Creation**
-   - Identify fields appearing in >10% of entities
-   - Create base field definitions
-   - Assign appropriate property dependencies
-   - Define default configurations
-
-4. **Entity Field Generation**
-   - For each entity, create specific field records
-   - Link to base fields via deps[]
-   - Add entity-specific overrides
-   - Maintain category for grouping
-
-5. **Deduplication Process**
-   - Detect duplicate field definitions
-   - Merge similar properties
-   - Create alias mappings
-   - Optimize inheritance tree
-
-### Benefits
-- **Reduced Redundancy**: Common fields defined once
-- **Consistent Behavior**: Shared fields behave identically
-- **Easy Updates**: Change base field affects all inheritors
-- **Clear Hierarchy**: Semantic tree shows relationships
-- **Flexible Overrides**: Entity-specific customization preserved
-
-### Example Query Flow
-When requesting `breed_field_name`:
-1. Load breed_field_name config
-2. Follow deps to field_name
-3. Follow field_name deps to properties
-4. Merge: properties → field_name → breed_field_name
-5. Apply any override_data
-6. Return final computed configuration
-
-This architecture provides a robust, scalable foundation for managing all configuration aspects of the BreedHub application through a unified property-based system with semantic inheritance.
+*Last Updated: August 29, 2025*
+*Version: 2.0.0 - Semantic Inheritance Implementation*
