@@ -176,9 +176,9 @@ function generateFieldProperties(fieldMap) {
       
       // Required property
       if (config.required === true) {
-        properties.set('field_property_required', {
-          id: 'field_property_required',
-          type: 'field_property',
+        properties.set('property_required', {
+          id: 'property_required',
+          type: 'property',
           self_data: {
             required: true,
             validation: { notNull: true }
@@ -188,9 +188,9 @@ function generateFieldProperties(fieldMap) {
       
       // Not required property (explicit false)
       if (config.required === false) {
-        properties.set('field_property_not_required', {
-          id: 'field_property_not_required',
-          type: 'field_property',
+        properties.set('property_not_required', {
+          id: 'property_not_required',
+          type: 'property',
           self_data: {
             required: false
           }
@@ -199,9 +199,9 @@ function generateFieldProperties(fieldMap) {
       
       // ReadOnly property (for system fields)
       if (config.isSystem === true) {
-        properties.set('field_property_readonly', {
-          id: 'field_property_readonly',
-          type: 'field_property',
+        properties.set('property_readonly', {
+          id: 'property_readonly',
+          type: 'property',
           self_data: {
             permissions: { write: ['system'] }
           }
@@ -210,9 +210,9 @@ function generateFieldProperties(fieldMap) {
       
       // isSystem property true
       if (config.isSystem === true) {
-        properties.set('field_property_is_system', {
-          id: 'field_property_is_system',
-          type: 'field_property',
+        properties.set('property_is_system', {
+          id: 'property_is_system',
+          type: 'property',
           self_data: {
             isSystem: true
           }
@@ -221,9 +221,9 @@ function generateFieldProperties(fieldMap) {
       
       // isSystem property false (explicit)
       if (config.isSystem === false) {
-        properties.set('field_property_not_system', {
-          id: 'field_property_not_system',
-          type: 'field_property',
+        properties.set('property_not_system', {
+          id: 'property_not_system',
+          type: 'property',
           self_data: {
             isSystem: false
           }
@@ -232,11 +232,11 @@ function generateFieldProperties(fieldMap) {
       
       // MaxLength properties
       if (config.maxLength) {
-        const propId = `field_property_maxlength_${config.maxLength}`;
+        const propId = `property_maxlength_${config.maxLength}`;
         if (!properties.has(propId)) {
           properties.set(propId, {
             id: propId,
-            type: 'field_property',
+            type: 'property',
             self_data: {
               maxLength: config.maxLength,
               validation: { maxLength: config.maxLength }
@@ -247,9 +247,9 @@ function generateFieldProperties(fieldMap) {
       
       // Primary key property
       if (config.isPrimaryKey === true) {
-        properties.set('field_property_primary_key', {
-          id: 'field_property_primary_key',
-          type: 'field_property',
+        properties.set('property_primary_key', {
+          id: 'property_primary_key',
+          type: 'property',
           self_data: {
             isPrimaryKey: true,
             isUnique: true
@@ -259,9 +259,9 @@ function generateFieldProperties(fieldMap) {
       
       // Not primary key property (explicit)
       if (config.isPrimaryKey === false) {
-        properties.set('field_property_not_primary_key', {
-          id: 'field_property_not_primary_key',
-          type: 'field_property',
+        properties.set('property_not_primary_key', {
+          id: 'property_not_primary_key',
+          type: 'property',
           self_data: {
             isPrimaryKey: false
           }
@@ -270,9 +270,9 @@ function generateFieldProperties(fieldMap) {
       
       // Unique property
       if (config.isUnique === true && !config.isPrimaryKey) {
-        properties.set('field_property_unique', {
-          id: 'field_property_unique',
-          type: 'field_property',
+        properties.set('property_unique', {
+          id: 'property_unique',
+          type: 'property',
           self_data: {
             isUnique: true
           }
@@ -281,9 +281,9 @@ function generateFieldProperties(fieldMap) {
       
       // Not unique property (explicit)
       if (config.isUnique === false) {
-        properties.set('field_property_not_unique', {
-          id: 'field_property_not_unique',
-          type: 'field_property',
+        properties.set('property_not_unique', {
+          id: 'property_not_unique',
+          type: 'property',
           self_data: {
             isUnique: false
           }
@@ -339,32 +339,32 @@ function buildSemanticTree(fieldMap, fieldUsageByEntity) {
       
       // Add explicit property dependencies
       if (usage.field.required === true) {
-        entityField.deps.push('field_property_required');
+        entityField.deps.push('property_required');
       } else if (usage.field.required === false) {
-        entityField.deps.push('field_property_not_required');
+        entityField.deps.push('property_not_required');
       }
       
       if (usage.field.isSystem === true) {
-        entityField.deps.push('field_property_readonly');
-        entityField.deps.push('field_property_is_system');
+        entityField.deps.push('property_readonly');
+        entityField.deps.push('property_is_system');
       } else if (usage.field.isSystem === false) {
-        entityField.deps.push('field_property_not_system');
+        entityField.deps.push('property_not_system');
       }
       
       if (usage.field.isPrimaryKey === true) {
-        entityField.deps.push('field_property_primary_key');
+        entityField.deps.push('property_primary_key');
       } else if (usage.field.isPrimaryKey === false) {
-        entityField.deps.push('field_property_not_primary_key');
+        entityField.deps.push('property_not_primary_key');
       }
       
       if (usage.field.isUnique === true && !usage.field.isPrimaryKey) {
-        entityField.deps.push('field_property_unique');
+        entityField.deps.push('property_unique');
       } else if (usage.field.isUnique === false) {
-        entityField.deps.push('field_property_not_unique');
+        entityField.deps.push('property_not_unique');
       }
       
       if (usage.field.maxLength) {
-        entityField.deps.push(`field_property_maxlength_${usage.field.maxLength}`);
+        entityField.deps.push(`property_maxlength_${usage.field.maxLength}`);
       }
     }
     

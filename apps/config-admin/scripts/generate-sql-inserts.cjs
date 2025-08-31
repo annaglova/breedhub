@@ -162,37 +162,37 @@ function generateAllInserts(tree) {
     
     // Add explicit property dependencies based on field characteristics
     if (field.commonProps?.required === true) {
-      config.deps.push('field_property_required');
+      config.deps.push('property_required');
     } else if (field.commonProps?.required === false) {
-      config.deps.push('field_property_not_required');
+      config.deps.push('property_not_required');
     }
     
     if (field.commonProps?.isSystem === true) {
-      config.deps.push('field_property_readonly');
-      config.deps.push('field_property_is_system');
+      config.deps.push('property_readonly');
+      config.deps.push('property_is_system');
     } else if (field.commonProps?.isSystem === false) {
-      config.deps.push('field_property_not_system');
+      config.deps.push('property_not_system');
     }
     
     if (field.commonProps?.isPrimaryKey === true) {
-      config.deps.push('field_property_primary_key');
+      config.deps.push('property_primary_key');
     } else if (field.commonProps?.isPrimaryKey === false) {
-      config.deps.push('field_property_not_primary_key');
+      config.deps.push('property_not_primary_key');
     }
     
     if (field.commonProps?.isUnique === true && !field.commonProps?.isPrimaryKey) {
-      config.deps.push('field_property_unique');
+      config.deps.push('property_unique');
     } else if (field.commonProps?.isUnique === false) {
-      config.deps.push('field_property_not_unique');
+      config.deps.push('property_not_unique');
     }
     
     // Handle maxLength variations
     if (field.commonProps?.maxLengthVariations && field.commonProps.maxLengthVariations.length > 0) {
       // Use the most common maxLength
       const mostCommon = field.commonProps.maxLengthVariations[0];
-      config.deps.push(`field_property_maxlength_${mostCommon}`);
+      config.deps.push(`property_maxlength_${mostCommon}`);
     } else if (field.commonProps?.maxLength) {
-      config.deps.push(`field_property_maxlength_${field.commonProps.maxLength}`);
+      config.deps.push(`property_maxlength_${field.commonProps.maxLength}`);
     }
     
     configs.push(config);
@@ -267,7 +267,7 @@ async function main() {
     `-- Total records: ${inserts.length}`,
     '',
     '-- Clear existing test data (optional)',
-    "-- DELETE FROM app_config WHERE type IN ('field_property', 'field', 'entity_field');",
+    "-- DELETE FROM app_config WHERE type IN ('property', 'field', 'entity_field');",
     '',
     '-- Insert field properties, base fields, and entity fields',
     ...inserts
@@ -279,7 +279,7 @@ async function main() {
   
   // Show summary
   const summary = {
-    fieldProperties: configs.filter(c => c.type === 'field_property').length,
+    fieldProperties: configs.filter(c => c.type === 'property').length,
     baseFields: configs.filter(c => c.type === 'field').length,
     entityFields: configs.filter(c => c.type === 'entity_field').length
   };
