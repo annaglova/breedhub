@@ -2,7 +2,7 @@ import type { RxJsonSchema } from 'rxdb';
 import type { AppConfig } from '../stores/app-config.signal-store';
 
 export const appConfigSchema: RxJsonSchema<AppConfig> = {
-  version: 0,
+  version: 0, // Keep at 0 to avoid migration issues
   primaryKey: 'id',
   type: 'object',
   properties: {
@@ -12,7 +12,7 @@ export const appConfigSchema: RxJsonSchema<AppConfig> = {
     },
     type: {
       type: 'string',
-      enum: ['field', 'entity', 'mixin', 'feature', 'template', 'ui_config'],
+      enum: ['field', 'entity', 'mixin', 'feature', 'template', 'ui_config', 'property', 'field_property', 'entity_field'],
       maxLength: 50
     },
     
@@ -60,12 +60,12 @@ export const appConfigSchema: RxJsonSchema<AppConfig> = {
     
     // Audit fields
     created_at: {
-      type: 'string',
+      type: ['string', 'null'],
       format: 'date-time',
       maxLength: 250
     },
     updated_at: {
-      type: 'string',
+      type: ['string', 'null'],
       format: 'date-time',
       maxLength: 250
     },
@@ -90,12 +90,10 @@ export const appConfigSchema: RxJsonSchema<AppConfig> = {
       default: false
     }
   },
-  required: ['id', 'type', 'self_data', 'override_data', 'data', 'deps', 'version', 'created_at', 'updated_at', '_deleted'],
+  required: ['id', 'type', 'self_data', 'override_data', 'data', 'deps', 'version', '_deleted'],
   indexes: [
     'type',
     '_deleted',
-    'created_at',
-    'updated_at',
     ['type', '_deleted'] // Composite index for filtered queries
   ],
   attachments: {}

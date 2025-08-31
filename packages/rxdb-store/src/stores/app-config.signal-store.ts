@@ -6,7 +6,7 @@ import { createClient, SupabaseClient, RealtimeChannel } from '@supabase/supabas
 // AppConfig type definition
 export interface AppConfig {
   id: string;
-  type: 'field' | 'entity' | 'mixin' | 'feature' | 'template' | 'ui_config';
+  type: 'field' | 'entity' | 'mixin' | 'feature' | 'template' | 'ui_config' | 'property' | 'field_property' | 'entity_field';
   
   // Configuration data
   self_data: any;
@@ -288,25 +288,36 @@ class AppConfigStore {
         });
         
         if (result.error.length > 0) {
-          console.error('[AppConfigStore] BulkUpsert errors:', result.error);
+          console.error('[AppConfigStore] BulkUpsert errors:', result.error.length, 'documents failed');
+          
+          // Group errors by type
+          const errorGroups = new Map<string, any[]>();
+          
           result.error.forEach(err => {
-            console.error('[AppConfigStore] Error detail:', {
-              id: err.documentId,
-              error: err.status,
-              validationErrors: err.validationErrors
-            });
             if (err.validationErrors && err.validationErrors.length > 0) {
               err.validationErrors.forEach(valErr => {
-                console.error('[AppConfigStore] Validation error:', {
+                const key = `${valErr.instancePath || valErr.dataPath}_${valErr.message}`;
+                if (!errorGroups.has(key)) {
+                  errorGroups.set(key, []);
+                }
+                errorGroups.get(key)!.push({
+                  id: err.documentId,
                   field: valErr.instancePath || valErr.dataPath,
                   message: valErr.message,
-                  keyword: valErr.keyword,
-                  params: valErr.params,
-                  schemaPath: valErr.schemaPath
+                  value: err.writeRow?.document?.[valErr.instancePath?.replace('/', '') || '']
                 });
               });
             }
-            console.error('[AppConfigStore] Document that failed:', err.writeRow?.document);
+          });
+          
+          // Log grouped errors
+          errorGroups.forEach((errors, key) => {
+            console.error(`[AppConfigStore] Validation issue (${errors.length} docs):`, {
+              field: errors[0].field,
+              message: errors[0].message,
+              sampleIds: errors.slice(0, 3).map(e => e.id),
+              sampleValue: errors[0].value
+            });
           });
         }
         
@@ -478,9 +489,8 @@ class AppConfigStore {
         throw new Error(`Config ${id} not found`);
       }
       
-      // Soft delete
+      // Soft delete - only RxDB fields, not Supabase 'deleted' field
       await doc.patch({
-        deleted: true,
         _deleted: true,
         deleted_at: new Date().toISOString(),
         updated_at: new Date().toISOString()

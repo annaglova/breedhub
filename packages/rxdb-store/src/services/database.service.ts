@@ -96,6 +96,8 @@ class DatabaseService {
         storage,
         multiInstance: true,
         eventReduce: true,
+        ignoreDuplicate: true,
+        closeDuplicates: true,
         cleanupPolicy: {
           minimumDeletedTime: 1000 * 60 * 60, // 1 hour (для тестування можна менше)
           minimumCollectionAge: 1000 * 60, // 1 minute
