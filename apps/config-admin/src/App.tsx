@@ -1,6 +1,38 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
+import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom'
 import Properties from './pages/Properties'
-import { Settings } from 'lucide-react'
+import Fields from './pages/FieldsV2'
+import { Settings, Tag, Database } from 'lucide-react'
+
+function Navigation() {
+  const location = useLocation();
+  
+  return (
+    <nav className="flex gap-4">
+      <Link 
+        to="/" 
+        className={`flex items-center gap-2 px-3 py-2 rounded-md transition-colors ${
+          location.pathname === '/' 
+            ? 'bg-blue-50 text-blue-600' 
+            : 'text-gray-600 hover:bg-gray-50'
+        }`}
+      >
+        <Tag className="w-4 h-4" />
+        Properties
+      </Link>
+      <Link 
+        to="/fields" 
+        className={`flex items-center gap-2 px-3 py-2 rounded-md transition-colors ${
+          location.pathname === '/fields' 
+            ? 'bg-blue-50 text-blue-600' 
+            : 'text-gray-600 hover:bg-gray-50'
+        }`}
+      >
+        <Database className="w-4 h-4" />
+        Fields
+      </Link>
+    </nav>
+  );
+}
 
 function App() {
   return (
@@ -9,9 +41,12 @@ function App() {
         {/* Header */}
         <header className="bg-white border-b">
           <div className="container mx-auto px-6 py-4">
-            <div className="flex items-center gap-2">
-              <Settings className="w-6 h-6 text-blue-600" />
-              <h1 className="text-xl font-bold">Config Admin</h1>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Settings className="w-6 h-6 text-blue-600" />
+                <h1 className="text-xl font-bold">Config Admin</h1>
+              </div>
+              <Navigation />
             </div>
           </div>
         </header>
@@ -20,6 +55,7 @@ function App() {
         <main>
           <Routes>
             <Route path="/" element={<Properties />} />
+            <Route path="/fields" element={<Fields />} />
             <Route path="*" element={<Properties />} />
           </Routes>
         </main>

@@ -1,0 +1,46 @@
+{
+  "main": [
+    "breed", "pet", "account", "contact", "litter", "competition", 
+    "event", "project", "activity", "collection", "cover", "post",
+    "invoice", "order", "product", "service_pact", "cashflow", "quest"
+  ],
+  "child": {
+    "breed": ["breed_standard", "breed_division", "breed_forecast", "breed_synonym", "breed_in_account", "breed_in_contact", "breed_in_kennel", "related_breed"],
+    "pet": ["pet_identifier", "pet_measurement", "pet_health_exam_result", "pet_additional_info", "pet_lifecycle", "pet_pedigree_cycle", "pet_in_project", "pet_in_activity", "pet_in_tag", "pet_service", "pet_service_in_litter", "title_in_pet"],
+    "account": ["account_address", "account_billing_info", "account_communication", "account_review", "account_in_tag"],
+    "contact": ["contact_address", "contact_communication", "contact_in_breed", "contact_in_competition", "contact_in_pet", "contact_in_tag", "contact_language", "contact_synonym"],
+    "competition": ["competition_backup", "award_in_competition", "qualification_in_competition"],
+    "post": ["post_comment", "post_photo", "post_participant", "post_like", "post_in_feed", "post_feed", "post_feed_subscription"],
+    "invoice": ["invoice_product"],
+    "quest": ["quest_step", "quest_stage", "user_quest", "user_quest_step", "user_quest_stage", "quest_user_data", "quest_in_tag"],
+    "activity": ["activity_participant"],
+    "collection": ["collection_entity", "collection_in_tag"],
+    "cover": ["cover_in_account", "cover_in_contact", "cover_in_litter", "cover_in_pet"]
+  },
+  "dictionaries": [
+    "account_category", "account_industry", "account_ownership", "account_status", "account_type",
+    "activity_category", "activity_priority", "activity_result", "activity_status", "activity_type",
+    "address_type", "affix_type", "award", "body_feature", "breed_category", "breed_group", 
+    "breed_section", "breed_subsection", "breed_standard_status", "cashflow_category", 
+    "cashflow_status", "cashflow_type", "coat_color", "coat_type", "collection_type",
+    "competition_category", "competition_type", "contact_role", "contact_role_for_pet",
+    "contact_salutation_type", "contact_type", "country", "city", "region", "currency",
+    "dependency_category", "dependency_type", "entity_schema_lookup", "event_status", 
+    "event_team_roles", "event_type", "gender", "health_exam_object", "health_exam_result",
+    "invoice_payment_status", "issue_type", "letter", "license_manager_manage_type",
+    "license_manager_status", "license_manager_type", "litter_status", "location_type",
+    "measurement_type", "order_delivery_status", "order_payment_status", "order_status",
+    "page_view", "participation_status", "payment_method", "payment_type", "period",
+    "pet_additional_info_type", "pet_class", "pet_identifier_type", "pet_lifecycle_event",
+    "pet_lifecycle_event_status", "pet_pedigree_cycle_member_type", "pet_qualification",
+    "pet_service_by_options", "pet_service_feature", "pet_service_status", "pet_service_type",
+    "pet_service_type_by_entity", "pet_size", "pet_status", "pet_type", "place",
+    "post_participant_role", "post_state", "post_type", "product_category", "product_type",
+    "project_category", "project_entry_type", "project_status", "project_type",
+    "quest_cycle_type", "quest_frequency", "quest_status", "quest_step_status", "quest_type",
+    "raw_data_status", "referrer_type", "relationship", "service_category", "sex",
+    "status_of_activity", "studbook", "studbook_status", "studbook_type", "sys_language",
+    "tag_access", "tag_access_grantee", "territory", "time_unit", "time_zone", "title",
+    "unit", "unit_by_measurement_type", "verification_status", "verified_stage"
+  ]
+}
