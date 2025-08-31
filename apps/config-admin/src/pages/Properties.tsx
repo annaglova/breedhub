@@ -220,6 +220,10 @@ const Properties: React.FC = () => {
 
   // Get color based on property content
   const getPropertyColor = (property: Property) => {
+    // Special styling for system properties
+    if (property.id === 'property_is_system' || property.id === 'property_not_system') {
+      return 'border-yellow-400 bg-yellow-100';
+    }
     const data = JSON.stringify(property.self_data);
     if (data.includes('required')) return 'border-red-200 bg-red-50';
     if (data.includes('system')) return 'border-yellow-200 bg-yellow-50';
@@ -432,22 +436,28 @@ const Properties: React.FC = () => {
                 <div className="text-xs text-gray-500">
                   v{property.version || 1}
                 </div>
-                <div className="flex gap-1">
-                  <button
-                    onClick={() => startEdit(property)}
-                    className="p-1 text-blue-600 hover:bg-blue-50 rounded transition-colors"
-                    title="Edit"
-                  >
-                    <Edit2 className="w-3 h-3" />
-                  </button>
-                  <button
-                    onClick={() => deleteProperty(property.id)}
-                    className="p-1 text-red-600 hover:bg-red-50 rounded transition-colors"
-                    title="Delete"
-                  >
-                    <Trash2 className="w-3 h-3" />
-                  </button>
-                </div>
+                {(property.id === 'property_is_system' || property.id === 'property_not_system') ? (
+                  <div className="text-xs text-gray-400 italic">
+                    System property
+                  </div>
+                ) : (
+                  <div className="flex gap-1">
+                    <button
+                      onClick={() => startEdit(property)}
+                      className="p-1 text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                      title="Edit"
+                    >
+                      <Edit2 className="w-3 h-3" />
+                    </button>
+                    <button
+                      onClick={() => deleteProperty(property.id)}
+                      className="p-1 text-red-600 hover:bg-red-50 rounded transition-colors"
+                      title="Delete"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           ))

@@ -1,5 +1,6 @@
 const fs = require("fs");
 const path = require("path");
+const entityCategories = require('./entity-categories.json');
 
 // Directories to scan
 const ENTITY_DIR = path.join(__dirname, '../src/data/entities');
@@ -152,7 +153,7 @@ function generateBaseFields(fieldMap, threshold = 0.1) {
         occurrences: fieldInfo.occurrences,
         commonProps: fieldInfo.commonProps,
         isSystem: fieldInfo.commonProps?.isSystem === true,
-        category: frequency > 0.8 ? 'system' : frequency > 0.4 ? 'common' : 'frequent'
+        category: frequency > 0.8 ? 'base' : frequency > 0.4 ? 'common' : 'frequent'
       });
     }
   }
@@ -313,13 +314,38 @@ function buildSemanticTree(fieldMap, fieldUsageByEntity) {
     const baseFieldId = `field_${fieldName}`;
     const baseField = tree.baseFields.find(f => f.id === baseFieldId);
     
+    // Determine entity tags
+    const entityTags = [];
+    const entityName = usage.entity;
+    
+    // Check if it's a main entity
+    if (entityCategories.main.includes(entityName)) {
+      entityTags.push('main', entityName);
+    }
+    // Check if it's a child entity
+    else {
+      let isChild = false;
+      for (const [parent, children] of Object.entries(entityCategories.child)) {
+        if (children.includes(entityName)) {
+          entityTags.push('child', parent);
+          isChild = true;
+          break;
+        }
+      }
+      // Check if it's a dictionary
+      if (!isChild && entityCategories.dictionaries.includes(entityName)) {
+        entityTags.push('dictionary');
+      }
+    }
+    
     const entityField = {
       id: `${usage.entity}_field_${fieldName}`,
       type: 'entity_field',
       deps: [],
       category: usage.entity,
       caption: `${usage.entity} ${fieldName} field`,
-      self_data: {}
+      self_data: {},
+      tags: entityTags
     };
     
     // If there's a matching base field, inherit from it
@@ -403,7 +429,7 @@ function generateReport(analysis, tree) {
   
   // Categorize fields
   report.systemFields = tree.baseFields
-    .filter(f => f.category === 'system')
+    .filter(f => f.category === 'base')
     .map(f => f.name);
   
   report.commonFields = tree.baseFields
