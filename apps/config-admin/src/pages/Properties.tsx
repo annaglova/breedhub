@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { appConfigStore } from '@breedhub/rxdb-store';
 import { Plus, Edit2, Trash2, Save, X, Search, Code, Copy, Check, ChevronLeft, ChevronRight } from 'lucide-react';
+import { updateDependentsOnPropertyChange } from '../utils/config-merge';
 
 interface Property {
   id: string;
@@ -117,11 +118,16 @@ const Properties: React.FC = () => {
           });
         } else {
           // Just update the data
-          await appConfigStore.upsert({
+          await appConfigStore.updateConfig(editingId, {
             ...property,
             self_data: selfData,
-            data: selfData
+            data: selfData,
+            updated_at: new Date().toISOString()
           });
+          
+          // Update all dependent configs
+          const allConfigs = appConfigStore.configsList.value || [];
+          await updateDependentsOnPropertyChange(editingId, allConfigs);
         }
       }
       

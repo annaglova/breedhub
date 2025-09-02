@@ -56,6 +56,16 @@ When removing a property from a field's deps:
    - Recalculate data = merge(self_data, override_data)
 5. Cascade updates up the dependency tree
 
+#### Property Modification
+When a property's self_data is modified:
+1. Update property's data = self_data (properties don't have override_data)
+2. Find all configs with this property in deps
+3. For each dependent field:
+   - Rebuild self_data from all property dependencies
+   - Recalculate data = merge(self_data, override_data)
+4. Recursively update all configs that depend on modified fields
+5. Bulk update all affected configs in database
+
 #### Why This Approach?
 - **override_data preservation**: When property.data matches override_data, removing the property doesn't incorrectly remove override values
 - **Predictable inheritance**: self_data always reflects inherited values, override_data always takes precedence
@@ -115,6 +125,9 @@ removePropertyFromField(fieldId, propertyId)
 
 // Find all dependent configurations
 getDependentConfigs(configId, allConfigs)
+
+// Update dependents when property changes
+updateDependentsOnPropertyChange(propertyId, allConfigs)
 ```
 
 #### `/apps/config-admin/src/pages/Properties.tsx`
@@ -203,6 +216,9 @@ When recovering a session, key context includes:
 - Added edit functionality for field override_data
 - Fixed cascading updates for dependent configurations
 - Protected system properties from modification
+- Added property modification with automatic dependent updates
+- Implemented bulk updates for performance optimization
+- Fixed upsert method to use updateConfig
 - Added comprehensive documentation
 
 ---
