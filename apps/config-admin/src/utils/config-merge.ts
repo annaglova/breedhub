@@ -21,6 +21,106 @@ export function deepMerge(target: any, ...sources: any[]): any {
   return result;
 }
 
+// Update all configs that depend on a property when property changes
+export async function updateDependentsOnPropertyChange(
+  propertyId: string,
+  allConfigs: any[]
+): Promise<{ success: boolean; updatedConfigs: any[]; error?: string }> {
+  try {
+    const updates: any[] = [];
+    
+    // Find the updated property
+    const property = allConfigs.find(c => c.id === propertyId);
+    if (!property || property.type !== 'property') {
+      return { success: false, updatedConfigs: [], error: 'Property not found' };
+    }
+    
+    // Find all configs that have this property in their deps
+    const directDependents = allConfigs.filter(c => 
+      c.deps && c.deps.includes(propertyId)
+    );
+    
+    // Process each direct dependent
+    for (const dependent of directDependents) {
+      // Rebuild self_data from all dependencies
+      let newSelfData = {};
+      
+      // For fields, rebuild from all property dependencies
+      if (dependent.type === 'field' || dependent.type === 'entity_field') {
+        for (const depId of (dependent.deps || [])) {
+          const depConfig = allConfigs.find(c => c.id === depId);
+          if (depConfig && depConfig.type === 'property') {
+            newSelfData = deepMerge(newSelfData, depConfig.data || {});
+          }
+        }
+      }
+      
+      // Calculate new data
+      const updatedDependent = {
+        ...dependent,
+        self_data: newSelfData,
+        data: await computeMergedData({
+          ...dependent,
+          self_data: newSelfData,
+          override_data: dependent.override_data
+        }),
+        updated_at: new Date().toISOString()
+      };
+      
+      updates.push(updatedDependent);
+      
+      // Now find configs that depend on this updated config (recursive)
+      const secondaryDependents = getDependentConfigs(dependent.id, allConfigs);
+      
+      for (const secondary of secondaryDependents) {
+        // Rebuild their self_data from dependencies
+        let secondarySelfData = {};
+        
+        for (const depId of (secondary.deps || [])) {
+          // Use updated data if it's the dependent we just updated
+          const depConfig = depId === dependent.id 
+            ? updatedDependent 
+            : allConfigs.find(c => c.id === depId);
+            
+          if (depConfig) {
+            secondarySelfData = deepMerge(secondarySelfData, depConfig.data || {});
+          }
+        }
+        
+        const updatedSecondary = {
+          ...secondary,
+          self_data: secondarySelfData,
+          data: await computeMergedData({
+            ...secondary,
+            self_data: secondarySelfData,
+            override_data: secondary.override_data
+          }),
+          updated_at: new Date().toISOString()
+        };
+        
+        updates.push(updatedSecondary);
+      }
+    }
+    
+    // Perform bulk update
+    console.log(`Updating ${updates.length} configs after property ${propertyId} changed`);
+    
+    for (const config of updates) {
+      await appConfigStore.updateConfig(config.id, config);
+    }
+    
+    return { success: true, updatedConfigs: updates };
+    
+  } catch (error) {
+    console.error('Error updating dependents:', error);
+    return { 
+      success: false, 
+      updatedConfigs: [], 
+      error: error instanceof Error ? error.message : 'Unknown error' 
+    };
+  }
+}
+
 // Get all configs that depend on a given config ID
 export function getDependentConfigs(configId: string, allConfigs: any[]): any[] {
   const dependents: any[] = [];
