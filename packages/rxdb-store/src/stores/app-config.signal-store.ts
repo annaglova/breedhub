@@ -525,6 +525,673 @@ class AppConfigStore {
     }
   }
   
+  // ============= TEMPLATE OPERATIONS =============
+  
+  // Build tree structure from templates
+  buildTemplateTree(templates: AppConfig[]): any[] {
+    const nodeMap = new Map<string, any>();
+    const roots: any[] = [];
+    
+    // Create nodes
+    templates.forEach((template) => {
+      const node = {
+        id: template.id,
+        name: template.caption || template.id.replace('template_', '').replace(/_/g, ' '),
+        templateType: template.type,
+        children: [],
+        data: template.self_data || {},
+      };
+      nodeMap.set(template.id, node);
+      roots.push(node); // Initially all are roots
+    });
+    
+    // Build parent-child relationships from deps
+    templates.forEach((template) => {
+      const parentNode = nodeMap.get(template.id);
+      if (!parentNode) return;
+      
+      // If this template has deps, those are its children
+      if (template.deps && template.deps.length > 0) {
+        template.deps.forEach((childId) => {
+          const childNode = nodeMap.get(childId);
+          if (childNode) {
+            parentNode.children.push(childNode);
+            // Remove child from roots since it has a parent
+            const rootIndex = roots.indexOf(childNode);
+            if (rootIndex > -1) {
+              roots.splice(rootIndex, 1);
+            }
+          }
+        });
+      }
+    });
+    
+    return roots;
+  }
+  
+  // Recalculate template data based on deps hierarchy
+  recalculateTemplateData(templates: AppConfig[]): AppConfig[] {
+    const templateMap = new Map<string, AppConfig>();
+    templates.forEach((t) => templateMap.set(t.id, { ...t }));
+    
+    const processed = new Set<string>();
+    
+    const processTemplate = (template: AppConfig): any => {
+      if (processed.has(template.id)) {
+        return templateMap.get(template.id)?.data || {};
+      }
+      
+      let aggregatedData = {};
+      
+      // First, collect data from all dependencies (children)
+      if (template.deps && template.deps.length > 0) {
+        template.deps.forEach((depId) => {
+          const dep = templateMap.get(depId);
+          if (dep) {
+            const depData = processTemplate(dep);
+            aggregatedData = { ...aggregatedData, ...depData };
+          }
+        });
+      }
+      
+      // Update self_data with aggregated children data
+      const updatedSelfData = {
+        ...aggregatedData,
+        ...(template.self_data || {}),
+      };
+      
+      // Calculate final data: self_data + override_data
+      const finalData = {
+        ...updatedSelfData,
+        ...(template.override_data || {}),
+      };
+      
+      // Update the template in the map
+      const updatedTemplate = {
+        ...template,
+        self_data: updatedSelfData,
+        data: finalData,
+      };
+      templateMap.set(template.id, updatedTemplate);
+      processed.add(template.id);
+      
+      return finalData;
+    };
+    
+    // Process all templates
+    templates.forEach((t) => processTemplate(t));
+    
+    return Array.from(templateMap.values());
+  }
+  
+  async createTemplate(type: string, parentId: string | null = null): Promise<AppConfig> {
+    const timestamp = Date.now();
+    const newId = `template_${type}_${timestamp}`;
+    
+    const templateTypes: any = {
+      app: 'App',
+      workspace: 'Workspace',
+      space: 'Space',
+      view: 'View',
+      page: 'Page',
+      sort: 'Sort Config',
+      fields: 'Fields Config',
+      tabs: 'Tabs Config'
+    };
+    
+    const newTemplate = {
+      id: newId,
+      type: type as AppConfig['type'],
+      tags: ['template'],
+      self_data: {},
+      override_data: {},
+      deps: [],
+      caption: `New ${templateTypes[type] || type}`,
+      version: 1
+    };
+    
+    // Create the template
+    const created = await this.createConfig(newTemplate);
+    
+    // If there's a parent, update parent's deps
+    if (parentId) {
+      const parent = this.configs.value.get(parentId);
+      if (parent) {
+        const updatedDeps = [...(parent.deps || []), newId];
+        await this.updateConfig(parentId, { deps: updatedDeps });
+      }
+    }
+    
+    return created;
+  }
+  
+  async deleteTemplateWithChildren(templateId: string): Promise<void> {
+    // Use base deleteWithDependencies with deleteChildren option
+    const result = await this.deleteWithDependencies(templateId, { deleteChildren: true });
+    if (!result.success) {
+      throw new Error(result.error || 'Failed to delete template');
+    }
+  }
+  
+  async cloneTemplate(templateId: string): Promise<AppConfig> {
+    const template = this.configs.value.get(templateId);
+    if (!template) throw new Error(`Template ${templateId} not found`);
+    
+    const timestamp = Date.now();
+    const newId = `${template.id}_copy_${timestamp}`;
+    
+    return await this.createConfig({
+      ...template,
+      id: newId,
+      caption: `${template.caption || template.id} (copy)`,
+      deps: [], // Clone without children
+      _deleted: false,
+      _rev: undefined
+    });
+  }
+  
+  async updateTemplate(templateId: string, updates: {
+    caption?: string;
+    version?: number;
+    override_data?: any;
+  }): Promise<void> {
+    const template = this.configs.value.get(templateId);
+    if (!template) throw new Error(`Template ${templateId} not found`);
+    
+    // Update the template
+    await this.updateConfig(templateId, updates);
+    
+    // Cascade update to all parents
+    await this.cascadeUpdate(templateId);
+  }
+  
+  // ============= PROPERTY OPERATIONS =============
+  
+  async createProperty(id: string, data: any): Promise<{ success: boolean; error?: string }> {
+    try {
+      // Validate property ID
+      if (!id.startsWith('property_')) {
+        return { success: false, error: 'Property ID must start with "property_"' };
+      }
+      
+      // Check if already exists
+      if (this.configs.value.has(id)) {
+        return { success: false, error: 'Property with this ID already exists' };
+      }
+      
+      await this.createConfig({
+        id,
+        type: 'property',
+        self_data: data,
+        override_data: {},
+        deps: [],
+        tags: ['property'],
+        version: 1
+      });
+      
+      return { success: true };
+    } catch (error) {
+      return { 
+        success: false, 
+        error: error instanceof Error ? error.message : 'Failed to create property' 
+      };
+    }
+  }
+  
+  async updateProperty(id: string, data: any): Promise<{ success: boolean; error?: string }> {
+    try {
+      const property = this.configs.value.get(id);
+      if (!property || property.type !== 'property') {
+        return { success: false, error: 'Property not found' };
+      }
+      
+      await this.updateConfig(id, { self_data: data });
+      
+      // Cascade update all configs that depend on this property
+      await this.cascadeUpdate(id);
+      
+      return { success: true };
+    } catch (error) {
+      return { 
+        success: false, 
+        error: error instanceof Error ? error.message : 'Failed to update property' 
+      };
+    }
+  }
+  
+  async deleteProperty(id: string): Promise<{ success: boolean; error?: string }> {
+    // Use base deleteWithDependencies method
+    return this.deleteWithDependencies(id);
+  }
+  
+  async updatePropertyWithIdChange(
+    oldId: string, 
+    newId: string, 
+    selfData: any
+  ): Promise<{ success: boolean; error?: string }> {
+    try {
+      // Validate new ID format
+      if (!newId.startsWith('property_')) {
+        return { success: false, error: 'Property ID must start with "property_"' };
+      }
+      
+      // Get the existing property
+      const existingProperty = this.configs.value.get(oldId);
+      if (!existingProperty) {
+        return { success: false, error: 'Property not found' };
+      }
+      
+      // If ID hasn't changed, just update the data
+      if (oldId === newId) {
+        return await this.updateProperty(oldId, selfData);
+      }
+      
+      // Check if new ID already exists
+      if (this.configs.value.has(newId)) {
+        return { success: false, error: 'Property with this ID already exists' };
+      }
+      
+      // Find all configs that depend on the old property
+      const dependents = this.configsList.value.filter(c => 
+        c.deps && c.deps.includes(oldId)
+      );
+      
+      // Create new property with new ID
+      await this.createConfig({
+        id: newId,
+        type: 'property',
+        self_data: selfData,
+        override_data: existingProperty.override_data || {},
+        deps: existingProperty.deps || [],
+        tags: existingProperty.tags || [],
+        version: existingProperty.version || 1,
+        caption: existingProperty.caption || null,
+        category: existingProperty.category || null,
+        created_by: existingProperty.created_by || null,
+        updated_by: existingProperty.updated_by || null,
+        deleted_at: null,
+        _deleted: false
+      });
+      
+      // Update all dependents to use new property ID
+      for (const dependent of dependents) {
+        const updatedDeps = dependent.deps.map(d => d === oldId ? newId : d);
+        await this.updateConfig(dependent.id, { deps: updatedDeps });
+      }
+      
+      // Delete old property
+      await this.delete(oldId);
+      
+      // Cascade update all affected configs
+      await this.cascadeUpdate(newId);
+      
+      return { success: true };
+    } catch (error) {
+      return { 
+        success: false, 
+        error: error instanceof Error ? error.message : 'Failed to update property' 
+      };
+    }
+  }
+  
+  // ============= FIELD OPERATIONS =============
+  
+  async addPropertyToField(fieldId: string, propertyId: string): Promise<{ success: boolean; error?: string }> {
+    // Validate that it's a property being added
+    const property = this.configs.value.get(propertyId);
+    if (!property || property.type !== 'property') {
+      return { success: false, error: 'Property not found' };
+    }
+    
+    // Use base addDependency method
+    return this.addDependency(fieldId, propertyId);
+  }
+  
+  async removePropertyFromField(fieldId: string, propertyId: string): Promise<{ success: boolean; error?: string }> {
+    // Use base removeDependency method
+    return this.removeDependency(fieldId, propertyId);
+  }
+  
+  async updateFieldOverride(fieldId: string, overrideData: any): Promise<{ success: boolean; error?: string }> {
+    try {
+      const field = this.configs.value.get(fieldId);
+      
+      if (!field) {
+        return { success: false, error: 'Field not found' };
+      }
+      
+      await this.updateConfig(fieldId, { override_data: overrideData });
+      
+      return { success: true };
+    } catch (error) {
+      return { 
+        success: false, 
+        error: error instanceof Error ? error.message : 'Failed to update field' 
+      };
+    }
+  }
+  
+  // ============= UTILITY OPERATIONS =============
+  
+  // Get color class based on property content
+  getPropertyColor(property: AppConfig): string {
+    // Special styling for system properties
+    if (property.id === 'property_is_system' || property.id === 'property_not_system') {
+      return 'text-yellow-600';
+    }
+    const data = JSON.stringify(property.self_data);
+    if (data.includes('required')) return 'text-red-600';
+    if (data.includes('system')) return 'text-yellow-600';
+    if (data.includes('primary')) return 'text-purple-600';
+    if (data.includes('unique')) return 'text-blue-600';
+    if (data.includes('maxLength')) return 'text-green-600';
+    return 'text-gray-600';
+  }
+  
+  // Get property border color for cards
+  getPropertyBorderColor(property: AppConfig): string {
+    // Special styling for system properties
+    if (property.id === 'property_is_system' || property.id === 'property_not_system') {
+      return 'border-yellow-400 bg-yellow-100';
+    }
+    const data = JSON.stringify(property.self_data);
+    if (data.includes('required')) return 'border-red-200 bg-red-50';
+    if (data.includes('system')) return 'border-yellow-200 bg-yellow-50';
+    if (data.includes('primary')) return 'border-purple-200 bg-purple-50';
+    if (data.includes('unique')) return 'border-blue-200 bg-blue-50';
+    if (data.includes('maxLength')) return 'border-green-200 bg-green-50';
+    return 'border-gray-200 bg-gray-50';
+  }
+  
+  // Get field display name
+  getFieldDisplayName(field: AppConfig): string {
+    const id = field.id;
+    if (id.startsWith('field_')) {
+      return id.substring(6);
+    }
+    // Remove entity prefix for entity fields
+    const parts = id.split('_field_');
+    return parts.length > 1 ? parts[1] : id;
+  }
+  
+  // Build hierarchical structure for fields
+  buildFieldsStructure(fields: AppConfig[]): any {
+    const structure = {
+      base: [] as AppConfig[],
+      main: {} as Record<string, { fields: AppConfig[]; children: Record<string, AppConfig[]> }>,
+      dictionaries: {} as Record<string, AppConfig[]>,
+    };
+    
+    fields.forEach((field) => {
+      // Base fields
+      if (field.category === 'base' || field.type === 'field') {
+        structure.base.push(field);
+      }
+      // Entity fields
+      else if (field.type === 'entity_field' && field.tags) {
+        if (field.tags.includes('main')) {
+          // Main entity field
+          const entityName = field.tags.find((t) => t !== 'main') || field.category || '';
+          if (!structure.main[entityName]) {
+            structure.main[entityName] = { fields: [], children: {} };
+          }
+          structure.main[entityName].fields.push(field);
+        } else if (field.tags.includes('child')) {
+          // Child entity field
+          const parentEntity = field.tags.find((t) => t !== 'child') || '';
+          if (parentEntity) {
+            if (!structure.main[parentEntity]) {
+              structure.main[parentEntity] = { fields: [], children: {} };
+            }
+            const category = field.category || 'unknown';
+            if (!structure.main[parentEntity].children[category]) {
+              structure.main[parentEntity].children[category] = [];
+            }
+            structure.main[parentEntity].children[category].push(field);
+          }
+        } else if (field.tags.includes('dictionary')) {
+          // Dictionary field
+          const category = field.category || 'unknown';
+          if (!structure.dictionaries[category]) {
+            structure.dictionaries[category] = [];
+          }
+          structure.dictionaries[category].push(field);
+        }
+      }
+      // Fallback for fields without tags
+      else if (field.type === 'entity_field') {
+        const category = field.category || 'unknown';
+        if (!structure.dictionaries[category]) {
+          structure.dictionaries[category] = [];
+        }
+        structure.dictionaries[category].push(field);
+      }
+    });
+    
+    // Sort everything
+    structure.base.sort((a, b) => a.id.localeCompare(b.id));
+    Object.values(structure.main).forEach(entity => {
+      entity.fields.sort((a, b) => a.id.localeCompare(b.id));
+      Object.values(entity.children).forEach(childFields => {
+        childFields.sort((a, b) => a.id.localeCompare(b.id));
+      });
+    });
+    Object.values(structure.dictionaries).forEach(dictFields => {
+      dictFields.sort((a, b) => a.id.localeCompare(b.id));
+    });
+    
+    return structure;
+  }
+  
+  // ============= BASE OPERATIONS =============
+  
+  /**
+   * Recalculates self_data for a config based on its dependencies
+   */
+  private async recalculateSelfData(configId: string): Promise<any> {
+    const config = this.configs.value.get(configId);
+    if (!config) return {};
+    
+    let newSelfData = {};
+    
+    // Aggregate data from all dependencies
+    for (const depId of (config.deps || [])) {
+      const dep = this.configs.value.get(depId);
+      if (dep && dep.data) {
+        newSelfData = deepMerge(newSelfData, dep.data);
+      }
+    }
+    
+    // For configs with existing self_data, merge it on top
+    if (config.self_data) {
+      newSelfData = deepMerge(newSelfData, config.self_data);
+    }
+    
+    return newSelfData;
+  }
+  
+  /**
+   * Universal method for adding a dependency to a config
+   */
+  async addDependency(
+    configId: string, 
+    depId: string,
+    options: { skipCascade?: boolean } = {}
+  ): Promise<{ success: boolean; error?: string }> {
+    try {
+      const config = this.configs.value.get(configId);
+      const dependency = this.configs.value.get(depId);
+      
+      if (!config) {
+        return { success: false, error: 'Config not found' };
+      }
+      
+      if (!dependency) {
+        return { success: false, error: 'Dependency not found' };
+      }
+      
+      // Check if already exists
+      if (config.deps && config.deps.includes(depId)) {
+        return { success: false, error: 'Dependency already exists' };
+      }
+      
+      // Add to deps
+      const updatedDeps = [...(config.deps || []), depId];
+      
+      // Recalculate self_data based on all deps
+      let newSelfData = {};
+      for (const id of updatedDeps) {
+        const dep = this.configs.value.get(id);
+        if (dep && dep.data) {
+          newSelfData = deepMerge(newSelfData, dep.data);
+        }
+      }
+      
+      // Update config
+      await this.updateConfig(configId, { 
+        deps: updatedDeps,
+        self_data: newSelfData 
+      });
+      
+      // Cascade update to parents
+      if (!options.skipCascade) {
+        await this.cascadeUpdate(configId);
+      }
+      
+      return { success: true };
+    } catch (error) {
+      return { 
+        success: false, 
+        error: error instanceof Error ? error.message : 'Failed to add dependency' 
+      };
+    }
+  }
+  
+  /**
+   * Universal method for removing a dependency from a config
+   */
+  async removeDependency(
+    configId: string, 
+    depId: string,
+    options: { skipCascade?: boolean } = {}
+  ): Promise<{ success: boolean; error?: string }> {
+    try {
+      const config = this.configs.value.get(configId);
+      
+      if (!config) {
+        return { success: false, error: 'Config not found' };
+      }
+      
+      if (!config.deps || !config.deps.includes(depId)) {
+        return { success: false, error: 'Dependency not found' };
+      }
+      
+      // Remove from deps
+      const updatedDeps = config.deps.filter(d => d !== depId);
+      
+      // Recalculate self_data without this dependency
+      let newSelfData = {};
+      for (const id of updatedDeps) {
+        const dep = this.configs.value.get(id);
+        if (dep && dep.data) {
+          newSelfData = deepMerge(newSelfData, dep.data);
+        }
+      }
+      
+      // Update config
+      await this.updateConfig(configId, { 
+        deps: updatedDeps,
+        self_data: newSelfData 
+      });
+      
+      // Cascade update to parents
+      if (!options.skipCascade) {
+        await this.cascadeUpdate(configId);
+      }
+      
+      return { success: true };
+    } catch (error) {
+      return { 
+        success: false, 
+        error: error instanceof Error ? error.message : 'Failed to remove dependency' 
+      };
+    }
+  }
+  
+  /**
+   * Cascade update to all parents (configs that depend on this one)
+   */
+  async cascadeUpdate(configId: string): Promise<void> {
+    const allConfigs = this.configsList.value || [];
+    const processedIds = new Set<string>();
+    
+    const updateParents = async (id: string) => {
+      if (processedIds.has(id)) return;
+      processedIds.add(id);
+      
+      // Find all configs that have this config in their deps (parents)
+      const parents = allConfigs.filter(c => c.deps && c.deps.includes(id));
+      
+      for (const parent of parents) {
+        // Recalculate parent's self_data
+        const newSelfData = await this.recalculateSelfData(parent.id);
+        await this.updateConfig(parent.id, { self_data: newSelfData });
+        
+        // Recursively update parent's parents
+        await updateParents(parent.id);
+      }
+    };
+    
+    await updateParents(configId);
+  }
+  
+  /**
+   * Universal delete with dependencies handling
+   */
+  async deleteWithDependencies(
+    configId: string,
+    options: { deleteChildren?: boolean } = {}
+  ): Promise<{ success: boolean; error?: string }> {
+    try {
+      const config = this.configs.value.get(configId);
+      if (!config) {
+        return { success: false, error: 'Config not found' };
+      }
+      
+      // If deleteChildren is true and config has deps (children), delete them first
+      if (options.deleteChildren && config.deps && config.deps.length > 0) {
+        for (const childId of config.deps) {
+          await this.deleteWithDependencies(childId, { deleteChildren: true });
+        }
+      }
+      
+      // Remove this config from all parents' deps
+      const allConfigs = this.configsList.value || [];
+      const parents = allConfigs.filter(c => c.deps && c.deps.includes(configId));
+      
+      for (const parent of parents) {
+        await this.removeDependency(parent.id, configId, { skipCascade: true });
+      }
+      
+      // Delete the config
+      await this.deleteConfig(configId);
+      
+      // Cascade update all affected parents
+      for (const parent of parents) {
+        await this.cascadeUpdate(parent.id);
+      }
+      
+      return { success: true };
+    } catch (error) {
+      return { 
+        success: false, 
+        error: error instanceof Error ? error.message : 'Failed to delete config' 
+      };
+    }
+  }
+  
+  // ============= HELPER OPERATIONS =============
+  
   private async setupRealtimeSubscription() {
     console.log('[AppConfigStore] Setting up realtime subscription...');
     

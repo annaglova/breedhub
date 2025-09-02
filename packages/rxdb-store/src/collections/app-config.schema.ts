@@ -12,7 +12,7 @@ export const appConfigSchema: RxJsonSchema<AppConfig> = {
     },
     type: {
       type: 'string',
-      enum: ['field', 'entity', 'mixin', 'feature', 'template', 'ui_config', 'property', 'field_property', 'entity_field'],
+      enum: ['field', 'entity', 'mixin', 'feature', 'template', 'ui_config', 'property', 'field_property', 'entity_field', 'app', 'workspace', 'space', 'view', 'page', 'sort', 'fields', 'tabs'],
       maxLength: 50
     },
     
