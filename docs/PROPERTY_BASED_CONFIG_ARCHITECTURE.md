@@ -1,5 +1,20 @@
 # Property-Based Configuration Architecture
 
+## Core Principles
+
+### Business Logic in Stores, Not Components
+**IMPORTANT**: All business logic and functionality must be implemented in stores, not in React components. Components should only handle presentation and user interaction, delegating all business operations to the store layer.
+
+- ✅ **Store responsibilities**: Data manipulation, calculations, API calls, state management, business rules
+- ✅ **Component responsibilities**: UI rendering, event handling, calling store methods
+- ❌ **Never in components**: Direct data transformations, business rules, complex logic
+
+This separation ensures:
+- Testability: Business logic can be tested independently
+- Reusability: Logic can be shared across components
+- Maintainability: Clear separation of concerns
+- Performance: Stores can optimize operations
+
 ## Overview
 The BreedHub configuration system uses a hierarchical, property-based architecture that enables semantic inheritance and configuration composition through a dependency system.
 

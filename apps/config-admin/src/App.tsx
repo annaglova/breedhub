@@ -1,7 +1,8 @@
 import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom'
 import Properties from './pages/Properties'
 import Fields from './pages/FieldsV2'
-import { Settings, Tag, Database } from 'lucide-react'
+import Templates from './pages/Templates'
+import { Settings, Tag, Database, FileText } from 'lucide-react'
 
 function Navigation() {
   const location = useLocation();
@@ -30,6 +31,17 @@ function Navigation() {
         <Database className="w-4 h-4" />
         Fields
       </Link>
+      <Link 
+        to="/templates" 
+        className={`flex items-center gap-2 px-3 py-2 rounded-md transition-colors ${
+          location.pathname === '/templates' 
+            ? 'bg-blue-50 text-blue-600' 
+            : 'text-gray-600 hover:bg-gray-50'
+        }`}
+      >
+        <FileText className="w-4 h-4" />
+        Templates
+      </Link>
     </nav>
   );
 }
@@ -37,7 +49,7 @@ function Navigation() {
 function App() {
   return (
     <Router>
-      <div className="min-h-screen bg-gray-50">
+      <div className="h-screen bg-gray-50 overflow-hidden flex flex-col">
         {/* Header */}
         <header className="bg-white border-b">
           <div className="container mx-auto px-6 py-4">
@@ -52,10 +64,11 @@ function App() {
         </header>
 
         {/* Main Content */}
-        <main>
+        <main className="flex-1 overflow-hidden">
           <Routes>
             <Route path="/" element={<Properties />} />
             <Route path="/fields" element={<Fields />} />
+            <Route path="/templates" element={<Templates />} />
             <Route path="*" element={<Properties />} />
           </Routes>
         </main>
