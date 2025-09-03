@@ -236,6 +236,26 @@ When recovering a session, key context includes:
 - Fixed upsert method to use updateConfig
 - Added comprehensive documentation
 
+## Recent Updates (September 3, 2025)
+- **UI Standardization**: Unified spacing and heights across all admin pages (40px for all section headers)
+- **Template Cloning**: Fixed hierarchy preservation - clones now maintain same level as original template
+- **Modal Forms**: Replaced inline property creation with universal ConfigEditModal for consistency
+- **Store Methods Enhanced**:
+  - `cloneTemplate()` now maintains parent-child relationships
+  - `updatePropertyWithIdChange()` allows property ID modification
+  - `addDependencyWithUI()`/`removeDependencyWithUI()` for UI-oriented operations
+- **Visual Improvements**:
+  - Consistent 8px vertical spacing between all list items
+  - Centered chevron icons in full container height
+  - Flexible field heights with action buttons at name level
+  - Standardized gray backgrounds for all section headers
+
+### Template Hierarchy Management
+Templates use the `deps` array to maintain parent-child relationships:
+- Parent templates list child template IDs in their `deps` array
+- When cloning, the system finds the parent and adds the clone to its `deps`
+- This ensures clones appear at the same hierarchical level as originals
+
 ---
-*Last Updated: August 31, 2025*
-*Version: 3.0.0 - Admin Interface Implementation*
+*Last Updated: September 3, 2025*
+*Version: 3.1.0 - UI Standardization and Template Hierarchy*
