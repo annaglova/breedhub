@@ -233,9 +233,12 @@ export default function Templates() {
     const availableChildTypes = getAvailableChildTypes(node.templateType);
 
     return (
-      <div key={node.id} style={{ marginLeft: `${level * 24}px`, marginBottom: level === 0 ? "8px" : "0px" }}>
+      <div
+        key={node.id}
+        style={{ marginLeft: `${level * 24}px`, marginBottom: "8px" }}
+      >
         <div
-          className={`flex items-center justify-between p-2 rounded-md ${
+          className={`flex items-center justify-between h-10 p-2 rounded-md ${
             selectedNode === node.id
               ? "bg-blue-50 border-l-4 border-l-blue-500"
               : "bg-gray-50 hover:bg-gray-100"
@@ -400,11 +403,9 @@ export default function Templates() {
                 (() => {
                   const filteredData = filterNodes(treeData);
                   return filteredData.length > 0 ? (
-                    <div>
-                      {filteredData.map((node) => renderNode(node))}
-                    </div>
+                    <div>{filteredData.map((node) => renderNode(node))}</div>
                   ) : (
-                    <div className="text-center text-gray-500 py-8">
+                    <div className="text-center text-gray-500 py-8 border border-red-500">
                       No templates found matching "{searchQuery}"
                     </div>
                   );

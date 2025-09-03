@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import WorkspaceHeader from "../components/WorkspaceHeader";
+import ConfigEditModal from "../components/ConfigEditModal";
 
 interface Property {
   id: string;
@@ -39,9 +40,9 @@ const Properties: React.FC = () => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingNewId, setEditingNewId] = useState<string>("");
   const [editingData, setEditingData] = useState<string>("");
+  const [editingCaption, setEditingCaption] = useState<string>("");
+  const [editingVersion, setEditingVersion] = useState<number>(1);
   const [isCreating, setIsCreating] = useState(false);
-  const [newPropertyId, setNewPropertyId] = useState("");
-  const [newPropertyData, setNewPropertyData] = useState("{}");
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
@@ -86,6 +87,17 @@ const Properties: React.FC = () => {
     setEditingId(property.id);
     setEditingNewId(property.id);
     setEditingData(JSON.stringify(property.self_data || {}, null, 2));
+    setEditingCaption(property.caption || "");
+    setEditingVersion(property.version || 1);
+  };
+
+  // Start creating new property
+  const startCreate = () => {
+    setIsCreating(true);
+    setEditingNewId("property_");
+    setEditingData("{}");
+    setEditingCaption("");
+    setEditingVersion(1);
   };
 
   // Save edited property
@@ -137,46 +149,57 @@ const Properties: React.FC = () => {
     }
   };
 
-  // Create new property
-  const createProperty = async () => {
-    if (!newPropertyId) {
-      alert("Property ID is required");
-      return;
-    }
-
-    try {
-      const selfData = JSON.parse(newPropertyData);
-
-      const result = await appConfigStore.createProperty(
-        newPropertyId,
-        selfData
-      );
-
-      if (!result.success) {
-        alert(result.error || "Failed to create property");
+  // Create or save property
+  const saveProperty = async () => {
+    if (isCreating) {
+      // Creating new property
+      if (!editingNewId || !editingNewId.startsWith("property_")) {
+        alert("Property ID must start with 'property_'");
         return;
       }
 
-      setIsCreating(false);
-      setNewPropertyId("");
-      setNewPropertyData("{}");
-      // Reset to first page to see the new property
-      setCurrentPage(1);
-    } catch (error: any) {
-      console.error("Error creating property:", error);
-      if (error instanceof SyntaxError) {
-        alert(`Invalid JSON format: ${error.message}`);
-      } else {
-        alert(`Error creating property: ${error.message || error}`);
+      try {
+        const selfData = JSON.parse(editingData);
+
+        const result = await appConfigStore.createProperty(
+          editingNewId,
+          selfData
+        );
+
+        if (!result.success) {
+          alert(result.error || "Failed to create property");
+          return;
+        }
+
+        setIsCreating(false);
+        setEditingNewId("");
+        setEditingData("");
+        setEditingCaption("");
+        setEditingVersion(1);
+        // Reset to first page to see the new property
+        setCurrentPage(1);
+      } catch (error: any) {
+        console.error("Error creating property:", error);
+        if (error instanceof SyntaxError) {
+          alert(`Invalid JSON format: ${error.message}`);
+        } else {
+          alert(`Error creating property: ${error.message || error}`);
+        }
       }
+    } else {
+      // Editing existing property
+      saveEdit();
     }
   };
 
-  // Cancel creating
-  const cancelCreate = () => {
+  // Cancel editing or creating
+  const cancelEditOrCreate = () => {
+    setEditingId(null);
+    setEditingNewId("");
+    setEditingData("");
+    setEditingCaption("");
+    setEditingVersion(1);
     setIsCreating(false);
-    setNewPropertyId("");
-    setNewPropertyData("{}");
   };
 
   // Copy property ID
@@ -213,68 +236,12 @@ const Properties: React.FC = () => {
             searchPlaceholder="Search properties..."
             searchValue={searchQuery}
             onSearchChange={setSearchQuery}
-            showAddButton={!isCreating}
+            showAddButton={true}
             addButtonText="Add Property"
-            onAddClick={() => setIsCreating(true)}
+            onAddClick={startCreate}
           />
 
           <div className="flex-1 overflow-y-auto">
-            {/* Create New Property Form */}
-            {isCreating && (
-              <div className="bg-white rounded-lg shadow-sm border p-6 mb-6">
-                <h2 className="text-xl font-semibold mb-4">
-                  Create New Property
-                </h2>
-
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-1">
-                      Property ID
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="e.g., property_required_email"
-                      value={newPropertyId}
-                      onChange={(e) => setNewPropertyId(e.target.value)}
-                      className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                    <p className="text-xs text-gray-500 mt-1">
-                      Must start with "property_"
-                    </p>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium mb-1">
-                      Self Data (JSON)
-                    </label>
-                    <textarea
-                      value={newPropertyData}
-                      onChange={(e) => setNewPropertyData(e.target.value)}
-                      rows={6}
-                      className="w-full px-3 py-2 border rounded-md font-mono text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      placeholder='{"required": true, "validation": {"notNull": true}}'
-                    />
-                  </div>
-
-                  <div className="flex gap-2">
-                    <button
-                      onClick={createProperty}
-                      className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors flex items-center gap-2"
-                    >
-                      <Save className="w-4 h-4" />
-                      Create
-                    </button>
-                    <button
-                      onClick={cancelCreate}
-                      className="px-4 py-2 border rounded-md hover:bg-gray-50 transition-colors"
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
-
             {/* Properties Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               {paginatedProperties.length === 0 &&
@@ -508,6 +475,25 @@ const Properties: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Edit/Create Modal */}
+      <ConfigEditModal
+        isOpen={!!editingId || isCreating}
+        onClose={cancelEditOrCreate}
+        onSave={saveProperty}
+        title={isCreating ? "Create Property" : "Edit Property"}
+        configId={editingNewId}
+        caption={editingCaption}
+        version={editingVersion}
+        overrideData={editingData} // For properties, this actually contains self_data
+        onCaptionChange={setEditingCaption}
+        onVersionChange={setEditingVersion}
+        onOverrideDataChange={setEditingData}
+        onConfigIdChange={setEditingNewId}
+        allowEditId={true}
+        dataFieldLabel="Self Data (JSON)"
+        dataFieldPlaceholder='{"required": true, "validation": {"notNull": true}}'
+      />
     </div>
   );
 };

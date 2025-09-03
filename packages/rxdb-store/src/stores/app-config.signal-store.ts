@@ -680,7 +680,8 @@ class AppConfigStore {
     const timestamp = Date.now();
     const newId = `${template.id}_copy_${timestamp}`;
     
-    return await this.createConfig({
+    // Create the clone without children initially
+    const clonedTemplate = await this.createConfig({
       ...template,
       id: newId,
       caption: `${template.caption || template.id} (copy)`,
@@ -688,6 +689,21 @@ class AppConfigStore {
       _deleted: false,
       _rev: undefined
     });
+    
+    // Find parent template (template that has the original templateId in its deps)
+    const allConfigs = Array.from(this.configs.value.values());
+    const parent = allConfigs.find(config => 
+      config.tags?.includes('template') && 
+      config.deps?.includes(templateId)
+    );
+    
+    // If parent exists, add the cloned template to parent's deps
+    if (parent) {
+      const updatedDeps = [...(parent.deps || []), newId];
+      await this.updateConfig(parent.id, { deps: updatedDeps });
+    }
+    
+    return clonedTemplate;
   }
   
   async updateTemplate(templateId: string, updates: {
@@ -868,6 +884,49 @@ class AppConfigStore {
         success: false, 
         error: error instanceof Error ? error.message : 'Failed to update field' 
       };
+    }
+  }
+  
+  // UI-oriented dependency management with user confirmation
+  async addDependencyWithUI(fieldId: string, propertyId: string): Promise<void> {
+    try {
+      const result = await this.addPropertyToField(fieldId, propertyId);
+      
+      if (!result.success) {
+        if (result.error === "Dependency already exists") {
+          console.log("Dependency already exists");
+        } else {
+          alert(result.error || "Failed to add dependency");
+        }
+        return;
+      }
+      
+      console.log(`Successfully added ${propertyId} to ${fieldId}`);
+    } catch (error) {
+      console.error("Error adding dependency:", error);
+      alert("Failed to add dependency");
+    }
+  }
+  
+  async removeDependencyWithUI(fieldId: string, depToRemove: string): Promise<void> {
+    if (!confirm(
+      `Remove dependency "${depToRemove.replace("property_", "")}" from field "${fieldId}"?`
+    )) {
+      return;
+    }
+    
+    try {
+      const result = await this.removePropertyFromField(fieldId, depToRemove);
+      
+      if (!result.success) {
+        alert(result.error || "Failed to remove dependency");
+        return;
+      }
+      
+      console.log(`Successfully removed ${depToRemove} from ${fieldId}`);
+    } catch (error) {
+      console.error("Error removing dependency:", error);
+      alert("Failed to remove dependency");
     }
   }
   

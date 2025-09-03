@@ -164,59 +164,13 @@ const FieldsV2: React.FC = () => {
     setExpandedSections(newExpanded);
   };
 
-  // Add dependency to field
+  // Use store methods for dependency management
   const addDependency = async (fieldId: string, propertyId: string) => {
-    try {
-      const result = await appConfigStore.addPropertyToField(
-        fieldId,
-        propertyId
-      );
-
-      if (!result.success) {
-        if (result.error === "Dependency already exists") {
-          console.log("Dependency already exists");
-        } else {
-          alert(result.error || "Failed to add dependency");
-        }
-        return;
-      }
-
-      console.log(`Successfully added ${propertyId} to ${fieldId}`);
-    } catch (error) {
-      console.error("Error adding dependency:", error);
-      alert("Failed to add dependency");
-    }
+    await appConfigStore.addDependencyWithUI(fieldId, propertyId);
   };
 
-  // Remove dependency from field
   const removeDependency = async (fieldId: string, depToRemove: string) => {
-    if (
-      !confirm(
-        `Remove dependency "${depToRemove.replace(
-          "property_",
-          ""
-        )}" from field "${fieldId}"?`
-      )
-    ) {
-      return;
-    }
-
-    try {
-      const result = await appConfigStore.removePropertyFromField(
-        fieldId,
-        depToRemove
-      );
-
-      if (!result.success) {
-        alert(result.error || "Failed to remove dependency");
-        return;
-      }
-
-      console.log(`Successfully removed ${depToRemove} from ${fieldId}`);
-    } catch (error) {
-      console.error("Error removing dependency:", error);
-      alert("Failed to remove dependency");
-    }
+    await appConfigStore.removeDependencyWithUI(fieldId, depToRemove);
   };
 
   // Start editing field
@@ -284,7 +238,7 @@ const FieldsV2: React.FC = () => {
     return (
       <div
         key={field.id}
-        className={`relative px-4 py-2 rounded-md transition-all ${
+        className={`relative px-4 py-2 rounded-md transition-all min-h-[2.5rem] ${
           dragOverField === field.id
             ? "bg-blue-50 border-l-4 border-l-blue-400"
             : highlightClass + " hover:bg-gray-100"
@@ -307,11 +261,41 @@ const FieldsV2: React.FC = () => {
       >
         <div className="flex items-start justify-between">
           <div className="flex-1">
-            <div className="font-mono text-sm text-gray-700">
-              {appConfigStore.getFieldDisplayName(field)}
+            <div className="flex items-center justify-between">
+              <div className="font-mono text-sm text-gray-700">
+                {appConfigStore.getFieldDisplayName(field)}
+              </div>
+              {/* Action buttons */}
+              <div className="flex gap-1 ml-2">
+                <button
+                  onClick={() => setViewingField(field.id)}
+                  className="p-1 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded transition-colors"
+                  title="View field"
+                >
+                  <Eye className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => startEditField(field)}
+                  className="p-1 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                  title="Edit field"
+                >
+                  <Edit className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() =>
+                    setShowPropertyDropdown(
+                      showPropertyDropdown === field.id ? null : field.id
+                    )
+                  }
+                  className="p-1 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                  title="Add property"
+                >
+                  <Plus className="w-4 h-4" />
+                </button>
+              </div>
             </div>
             {field.deps && field.deps.length > 0 && (
-              <div className="flex flex-wrap gap-1">
+              <div className="flex flex-wrap gap-1 mt-1">
                 {field.deps.map((dep) => {
                   const depName = dep.replace("property_", "");
                   let badgeColor = "bg-gray-100 text-gray-600";
@@ -356,35 +340,6 @@ const FieldsV2: React.FC = () => {
               </div>
             )}
           </div>
-        </div>
-
-        {/* Edit and Add buttons */}
-        <div className="absolute bottom-0 right-0 flex gap-1">
-          <button
-            onClick={() => setViewingField(field.id)}
-            className="p-1 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded transition-colors"
-            title="View field"
-          >
-            <Eye className="w-4 h-4" />
-          </button>
-          <button
-            onClick={() => startEditField(field)}
-            className="p-1 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
-            title="Edit field"
-          >
-            <Edit className="w-4 h-4" />
-          </button>
-          <button
-            onClick={() =>
-              setShowPropertyDropdown(
-                showPropertyDropdown === field.id ? null : field.id
-              )
-            }
-            className="p-1 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
-            title="Add property"
-          >
-            <Plus className="w-4 h-4" />
-          </button>
         </div>
 
         {/* Property dropdown */}
@@ -502,22 +457,25 @@ const FieldsV2: React.FC = () => {
               <div className="mb-2">
                 <div
                   onClick={() => toggleSection("base")}
-                  className="flex items-center gap-2 p-2 rounded-md bg-gray-50 hover:bg-gray-100 cursor-pointer"
+                  className="flex items-center justify-between h-10 p-2 rounded-md bg-gray-50 hover:bg-gray-100 cursor-pointer"
                 >
-                  {expandedSections.has("base") ? (
-                    <ChevronDown className="w-4 h-4" />
-                  ) : (
-                    <ChevronRight className="w-4 h-4" />
-                  )}
-                  <Layers className="w-4 h-4 text-blue-600" />
-                  <span className="font-mono text-sm">Base Fields</span>
-                  <span className="text-xs text-gray-500">
-                    ({structure.base.length})
-                  </span>
+                  <div className="flex items-center h-full gap-2">
+                    {expandedSections.has("base") ? (
+                      <ChevronDown className="w-5 h-5 flex-shrink-0" />
+                    ) : (
+                      <ChevronRight className="w-5 h-5 flex-shrink-0" />
+                    )}
+                    <Layers className="w-5 h-5 text-blue-600" />
+                    <span className="font-mono text-sm">Base Fields</span>
+                    <span className="text-xs text-gray-500">
+                      ({structure.base.length})
+                    </span>
+                  </div>
+                  <div></div>
                 </div>
 
                 {expandedSections.has("base") && (
-                  <div style={{ marginLeft: "24px" }}>
+                  <div style={{ marginLeft: "24px" }} className="mt-2">
                     {structure.base.map((field) => (
                       <div key={field.id} className="mb-2">
                         {renderFieldItem(field)}
@@ -532,76 +490,88 @@ const FieldsV2: React.FC = () => {
                 <div className="mb-2">
                   <div
                     onClick={() => toggleSection("main-entities")}
-                    className="flex items-center gap-2 p-2 rounded-md bg-gray-50 hover:bg-gray-100 cursor-pointer"
+                    className="flex items-center justify-between h-10 p-2 rounded-md bg-gray-50 hover:bg-gray-100 cursor-pointer"
                   >
-                    {expandedSections.has("main-entities") ? (
-                      <ChevronDown className="w-4 h-4" />
-                    ) : (
-                      <ChevronRight className="w-4 h-4" />
-                    )}
-                    <Package className="w-4 h-4 text-green-600" />
-                    <span className="font-mono text-sm">Main Entities</span>
-                    <span className="text-xs text-gray-500">
-                      ({Object.keys(structure.main).length})
-                    </span>
+                    <div className="flex items-center h-full gap-2">
+                      {expandedSections.has("main-entities") ? (
+                        <ChevronDown className="w-5 h-5 flex-shrink-0" />
+                      ) : (
+                        <ChevronRight className="w-5 h-5 flex-shrink-0" />
+                      )}
+                      <Package className="w-5 h-5 text-green-600" />
+                      <span className="font-mono text-sm">Main Entities</span>
+                      <span className="text-xs text-gray-500">
+                        ({Object.keys(structure.main).length})
+                      </span>
+                    </div>
+                    <div></div>
                   </div>
 
                   {expandedSections.has("main-entities") &&
                     Object.entries(structure.main).map(
-                      ([entityName, entityData]) => (
-                        <div key={entityName} className="ml-4 mb-2">
+                      ([entityName, entityData], index) => (
+                        <div
+                          key={entityName}
+                          className={`ml-4 mb-2 ${index === 0 ? "mt-2" : ""}`}
+                        >
                           {/* Entity Group (capitalized) */}
-                          <button
+                          <div
                             onClick={() => toggleSection(`group-${entityName}`)}
-                            className="w-full flex items-center gap-2 p-2 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors"
+                            className="flex items-center justify-between h-10 p-2 rounded-md bg-gray-50 hover:bg-gray-100 cursor-pointer"
                           >
-                            {expandedSections.has(`group-${entityName}`) ? (
-                              <ChevronDown className="w-4 h-4 text-gray-600" />
-                            ) : (
-                              <ChevronRight className="w-4 h-4 text-gray-600" />
-                            )}
-                            <span className="font-semibold text-sm text-gray-800">
-                              {entityName.charAt(0).toUpperCase() +
-                                entityName.slice(1)}{" "}
-                              Section
-                            </span>
-                            <span className="text-xs text-gray-500">
-                              ({1 + Object.keys(entityData.children).length}{" "}
-                              tables)
-                            </span>
-                          </button>
+                            <div className="flex items-center h-full gap-2">
+                              {expandedSections.has(`group-${entityName}`) ? (
+                                <ChevronDown className="w-5 h-5 flex-shrink-0" />
+                              ) : (
+                                <ChevronRight className="w-5 h-5 flex-shrink-0" />
+                              )}
+                              <span className="font-mono text-sm">
+                                {entityName.charAt(0).toUpperCase() +
+                                  entityName.slice(1)}{" "}
+                                Section
+                              </span>
+                              <span className="text-xs text-gray-500">
+                                ({1 + Object.keys(entityData.children).length}{" "}
+                                tables)
+                              </span>
+                            </div>
+                            <div></div>
+                          </div>
 
                           {expandedSections.has(`group-${entityName}`) && (
-                            <div className="ml-6">
+                            <div className="ml-6 mt-2">
                               {/* Main entity table */}
-                              <div>
-                                <button
+                              <div className="mb-2">
+                                <div
                                   onClick={() =>
                                     toggleSection(`main-${entityName}`)
                                   }
-                                  className="w-full flex items-center gap-2 p-2 hover:bg-gray-50 rounded-lg transition-colors"
+                                  className="flex items-center justify-between h-10 p-2 rounded-md bg-gray-50 hover:bg-gray-100 cursor-pointer"
                                 >
-                                  {expandedSections.has(
-                                    `main-${entityName}`
-                                  ) ? (
-                                    <ChevronDown className="w-3 h-3 text-gray-500" />
-                                  ) : (
-                                    <ChevronRight className="w-3 h-3 text-gray-500" />
-                                  )}
-                                  <span className="text-sm font-medium">
-                                    {entityName}
-                                  </span>
-                                  <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded">
-                                    main
-                                  </span>
-                                  <span className="text-xs text-gray-500">
-                                    ({entityData.fields.length} fields)
-                                  </span>
-                                </button>
+                                  <div className="flex items-center h-full gap-2">
+                                    {expandedSections.has(
+                                      `main-${entityName}`
+                                    ) ? (
+                                      <ChevronDown className="w-5 h-5 flex-shrink-0" />
+                                    ) : (
+                                      <ChevronRight className="w-5 h-5 flex-shrink-0" />
+                                    )}
+                                    <span className="font-mono text-sm">
+                                      {entityName}
+                                    </span>
+                                    <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded">
+                                      main
+                                    </span>
+                                    <span className="text-xs text-gray-500">
+                                      ({entityData.fields.length} fields)
+                                    </span>
+                                  </div>
+                                  <div></div>
+                                </div>
 
                                 {expandedSections.has(`main-${entityName}`) &&
                                   entityData.fields.length > 0 && (
-                                    <div className="ml-4 bg-white rounded-lg p-2 space-y-1">
+                                    <div className="ml-4 bg-white rounded-lg p-2 space-y-2">
                                       {entityData.fields.map((field) =>
                                         renderFieldItem(field)
                                       )}
@@ -609,51 +579,60 @@ const FieldsV2: React.FC = () => {
                                   )}
 
                                 {/* Child entity tables */}
-                                {Object.entries(entityData.children).length > 0 && (
+                                {Object.entries(entityData.children).length >
+                                  0 && (
                                   <div className="mt-2">
                                     {Object.entries(entityData.children).map(
                                       ([childName, childFields]) => (
                                         <div key={childName} className="mb-2">
-                                    <div
-                                      onClick={() =>
-                                        toggleSection(`child-${childName}`)
-                                      }
-                                      className="flex items-center gap-2 p-2 rounded-md hover:bg-gray-50 cursor-pointer"
-                                    >
-                                      {expandedSections.has(
-                                        `child-${childName}`
-                                      ) ? (
-                                        <ChevronDown className="w-4 h-4" />
-                                      ) : (
-                                        <ChevronRight className="w-4 h-4" />
-                                      )}
-                                      <span className="font-mono text-sm">
-                                        {childName}
-                                      </span>
-                                      <div className="flex gap-1">
-                                        <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">
-                                          child
-                                        </span>
-                                        <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded">
-                                          {entityName}
-                                        </span>
-                                      </div>
-                                      <span className="text-xs text-gray-500">
-                                        ({childFields.length} fields)
-                                      </span>
-                                    </div>
-
-                                    {expandedSections.has(
-                                      `child-${childName}`
-                                    ) && (
-                                      <div style={{ marginLeft: "24px" }}>
-                                        {childFields.map((field) => (
-                                          <div key={field.id} className="mb-2">
-                                            {renderFieldItem(field)}
+                                          <div
+                                            onClick={() =>
+                                              toggleSection(
+                                                `child-${childName}`
+                                              )
+                                            }
+                                            className="flex items-center justify-between h-10 p-2 rounded-md bg-gray-50 hover:bg-gray-100 cursor-pointer"
+                                          >
+                                            <div className="flex items-center h-full gap-2">
+                                              {expandedSections.has(
+                                                `child-${childName}`
+                                              ) ? (
+                                                <ChevronDown className="w-5 h-5 flex-shrink-0" />
+                                              ) : (
+                                                <ChevronRight className="w-5 h-5 flex-shrink-0" />
+                                              )}
+                                              <span className="font-mono text-sm">
+                                                {childName}
+                                              </span>
+                                              <div className="flex gap-1">
+                                                <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">
+                                                  child
+                                                </span>
+                                                <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded">
+                                                  {entityName}
+                                                </span>
+                                              </div>
+                                              <span className="text-xs text-gray-500">
+                                                ({childFields.length} fields)
+                                              </span>
+                                            </div>
+                                            <div></div>
                                           </div>
-                                        ))}
-                                      </div>
-                                    )}
+
+                                          {expandedSections.has(
+                                            `child-${childName}`
+                                          ) && (
+                                            <div style={{ marginLeft: "24px" }}>
+                                              {childFields.map((field) => (
+                                                <div
+                                                  key={field.id}
+                                                  className="mb-2"
+                                                >
+                                                  {renderFieldItem(field)}
+                                                </div>
+                                              ))}
+                                            </div>
+                                          )}
                                         </div>
                                       )
                                     )}
@@ -673,43 +652,52 @@ const FieldsV2: React.FC = () => {
                 <div className="mb-2">
                   <div
                     onClick={() => toggleSection("dictionaries")}
-                    className="flex items-center gap-2 p-2 rounded-md bg-gray-50 hover:bg-gray-100 cursor-pointer"
+                    className="flex items-center justify-between h-10 p-2 rounded-md bg-gray-50 hover:bg-gray-100 cursor-pointer"
                   >
-                    {expandedSections.has("dictionaries") ? (
-                      <ChevronDown className="w-4 h-4" />
-                    ) : (
-                      <ChevronRight className="w-4 h-4" />
-                    )}
-                    <Book className="w-4 h-4 text-orange-600" />
-                    <span className="font-mono text-sm">Dictionaries</span>
-                    <span className="text-xs text-gray-500">
-                      ({Object.keys(structure.dictionaries).length})
-                    </span>
+                    <div className="flex items-center h-full gap-2">
+                      {expandedSections.has("dictionaries") ? (
+                        <ChevronDown className="w-5 h-5 flex-shrink-0" />
+                      ) : (
+                        <ChevronRight className="w-5 h-5 flex-shrink-0" />
+                      )}
+                      <Book className="w-5 h-5 text-orange-600" />
+                      <span className="font-mono text-sm">Dictionaries</span>
+                      <span className="text-xs text-gray-500">
+                        ({Object.keys(structure.dictionaries).length})
+                      </span>
+                    </div>
+                    <div></div>
                   </div>
 
                   {expandedSections.has("dictionaries") && (
                     <div style={{ marginLeft: "24px" }}>
                       {Object.entries(structure.dictionaries).map(
-                        ([dictName, dictFields]) => (
-                          <div key={dictName} className="mb-2">
+                        ([dictName, dictFields], index) => (
+                          <div
+                            key={dictName}
+                            className={`mb-2 ${index === 0 ? "mt-2" : ""}`}
+                          >
                             <div
                               onClick={() => toggleSection(`dict-${dictName}`)}
-                              className="flex items-center gap-2 p-2 rounded-md hover:bg-gray-50 cursor-pointer"
+                              className="flex items-center justify-between h-10 p-2 rounded-md bg-gray-50 hover:bg-gray-100 cursor-pointer"
                             >
-                              {expandedSections.has(`dict-${dictName}`) ? (
-                                <ChevronDown className="w-4 h-4" />
-                              ) : (
-                                <ChevronRight className="w-4 h-4" />
-                              )}
-                              <span className="font-mono text-sm">
-                                {dictName}
-                              </span>
-                              <span className="text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded">
-                                dict
-                              </span>
-                              <span className="text-xs text-gray-500">
-                                ({dictFields.length})
-                              </span>
+                              <div className="flex items-center h-full gap-2">
+                                {expandedSections.has(`dict-${dictName}`) ? (
+                                  <ChevronDown className="w-5 h-5 flex-shrink-0" />
+                                ) : (
+                                  <ChevronRight className="w-5 h-5 flex-shrink-0" />
+                                )}
+                                <span className="font-mono text-sm">
+                                  {dictName}
+                                </span>
+                                <span className="text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded">
+                                  dict
+                                </span>
+                                <span className="text-xs text-gray-500">
+                                  ({dictFields.length})
+                                </span>
+                              </div>
+                              <div></div>
                             </div>
 
                             {expandedSections.has(`dict-${dictName}`) && (
@@ -756,7 +744,7 @@ const FieldsV2: React.FC = () => {
                   No properties found
                 </div>
               ) : (
-                <div className="space-y-2">
+                <div className="space-y-2 ">
                   {properties
                     .filter(
                       (p) =>
@@ -783,7 +771,7 @@ const FieldsV2: React.FC = () => {
                           setDragOverField(null);
                         }}
                       >
-                        <div className="flex items-start gap-2">
+                        <div className="flex items-center justify-center gap-2">
                           <GripVertical className="w-4 h-4 text-gray-400 mt-0.5 flex-shrink-0" />
                           <div className="flex-1">
                             <div
