@@ -256,6 +256,32 @@ Templates use the `deps` array to maintain parent-child relationships:
 - When cloning, the system finds the parent and adds the clone to its `deps`
 - This ensures clones appear at the same hierarchical level as originals
 
+## Recent Updates (September 4, 2025)
+
+### Hierarchical Configuration Architecture
+Implemented new architecture for high-level structures:
+
+1. **Dynamic self_data Formation**:
+   - All configs start with empty self_data
+   - Parent's self_data builds from children in deps
+   - Properties merge directly to root (except in field collections)
+   - Each child type has specific container in parent
+
+2. **Structured Containers**:
+   - Objects for most containers (quick access by ID)
+   - Arrays for sort_fields and filter_fields (order matters)
+   - Properties go to root level of any non-field container
+
+3. **Cascading Updates**:
+   - Child changes propagate up the tree
+   - Only modified child updates in parent
+   - Complete consistency maintained throughout hierarchy
+
+4. **override_data Priority**:
+   - Most customization via override_data
+   - Properties provide base behavior
+   - override_data always takes precedence
+
 ---
-*Last Updated: September 3, 2025*
-*Version: 3.1.0 - UI Standardization and Template Hierarchy*
+*Last Updated: September 4, 2025*
+*Version: 4.0.0 - Hierarchical Configuration Architecture*
