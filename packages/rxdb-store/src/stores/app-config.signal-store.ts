@@ -59,6 +59,44 @@ function deepMerge(target: any, source: any): any {
   return result;
 }
 
+// Hierarchical structure mappings
+const childContainerMapping: Record<string, Record<string, string | null>> = {
+  'app': {
+    'workspace': 'workspaces',
+    'property': null  // goes to root
+  },
+  'workspace': {
+    'space': 'spaces',
+    'property': null
+  },
+  'space': {
+    'view': 'views',
+    'page': 'pages',
+    'property': null
+  },
+  'view': {
+    'fields': 'fields',
+    'sort_fields': 'sort_fields',
+    'filter_fields': 'filter_fields',
+    'property': null
+  },
+  'page': {
+    'tab': 'tabs',
+    'fields': 'fields',
+    'property': null
+  },
+  'tab': {
+    'fields': 'fields',
+    'property': null
+  }
+};
+
+// Types that cannot have properties
+const noPropertyTypes = ['fields', 'sort_fields', 'filter_fields'];
+
+// High-level structure types
+const highLevelTypes = ['app', 'workspace', 'space', 'view', 'page', 'tab'];
+
 class AppConfigStore {
   // Signals for reactive state
   configs = signal<Map<string, AppConfig>>(new Map());
@@ -634,16 +672,18 @@ class AppConfigStore {
       space: 'Space',
       view: 'View',
       page: 'Page',
+      tab: 'Tab',
       sort: 'Sort Config',
       fields: 'Fields Config',
-      tabs: 'Tabs Config'
+      sort_fields: 'Sort Fields',
+      filter_fields: 'Filter Fields'
     };
     
     const newTemplate = {
       id: newId,
       type: type as AppConfig['type'],
       tags: ['template'],
-      self_data: {},
+      self_data: {},  // Always start with empty self_data
       override_data: {},
       deps: [],
       caption: `New ${templateTypes[type] || type}`,
@@ -653,12 +693,23 @@ class AppConfigStore {
     // Create the template
     const created = await this.createConfig(newTemplate);
     
-    // If there's a parent, update parent's deps
+    // If there's a parent, add to parent's deps and update parent's self_data
     if (parentId) {
       const parent = this.configs.value.get(parentId);
       if (parent) {
+        // Check if this child type is allowed for parent
+        const allowedChildren = childContainerMapping[parent.type];
+        if (!allowedChildren || !(type in allowedChildren)) {
+          console.error(`[createTemplate] ${type} cannot be child of ${parent.type}`);
+          // Still add to deps but warn
+        }
+        
+        // Add to parent's deps
         const updatedDeps = [...(parent.deps || []), newId];
         await this.updateConfig(parentId, { deps: updatedDeps });
+        
+        // Update parent's self_data to include this child
+        await this.updateParentSelfData(parentId, newId);
       }
     }
     
@@ -666,7 +717,16 @@ class AppConfigStore {
   }
   
   async deleteTemplateWithChildren(templateId: string): Promise<void> {
-    // Use base deleteWithDependencies with deleteChildren option
+    // First find parent and remove from its self_data
+    const parents = Array.from(this.configs.value.values()).filter(
+      config => config.deps?.includes(templateId)
+    );
+    
+    for (const parent of parents) {
+      await this.removeChildFromParent(parent.id, templateId);
+    }
+    
+    // Then delete the template and its children
     const result = await this.deleteWithDependencies(templateId, { deleteChildren: true });
     if (!result.success) {
       throw new Error(result.error || 'Failed to delete template');
@@ -710,15 +770,23 @@ class AppConfigStore {
     caption?: string;
     version?: number;
     override_data?: any;
+    self_data?: any;
   }): Promise<void> {
     const template = this.configs.value.get(templateId);
     if (!template) throw new Error(`Template ${templateId} not found`);
     
+    console.log('[updateTemplate] Updating:', templateId, 'with:', updates);
+    
     // Update the template
     await this.updateConfig(templateId, updates);
     
-    // Cascade update to all parents
-    await this.cascadeUpdate(templateId);
+    // If this is a high-level structure, cascade updates up the tree
+    if (highLevelTypes.includes(template.type) || template.type === 'property') {
+      await this.cascadeUpdateUp(templateId);
+    } else {
+      // For other types, use old cascade logic
+      await this.cascadeUpdate(templateId);
+    }
   }
   
   // ============= PROPERTY OPERATIONS =============
@@ -1295,6 +1363,184 @@ class AppConfigStore {
     } catch (error) {
       console.error('[AppConfigStore] Failed to setup realtime:', error);
     }
+  }
+  
+  // ============= HIERARCHICAL STRUCTURE METHODS =============
+  
+  /**
+   * Update parent's self_data when a child is added or modified
+   */
+  async updateParentSelfData(parentId: string, childId: string): Promise<void> {
+    const parent = this.configs.value.get(parentId);
+    const child = this.configs.value.get(childId);
+    
+    if (!parent || !child) {
+      console.error('[updateParentSelfData] Parent or child not found');
+      return;
+    }
+    
+    console.log('[updateParentSelfData] Updating parent:', parentId, 'with child:', childId, 'type:', child.type);
+    
+    let newSelfData = { ...parent.self_data };
+    
+    // If child is a property, merge to root
+    if (child.type === 'property') {
+      // Properties merge their data (self_data + override_data) to parent's root
+      const childData = {
+        ...child.self_data,
+        ...child.override_data
+      };
+      Object.assign(newSelfData, childData);
+      console.log('[updateParentSelfData] Merged property to root:', childData);
+    } else {
+      // Find the container for this child type
+      const containerKey = childContainerMapping[parent.type]?.[child.type];
+      
+      if (containerKey) {
+        // Determine if container should be array or object
+        const isArrayContainer = containerKey === 'sort_fields' || containerKey === 'filter_fields';
+        
+        if (isArrayContainer) {
+          // Initialize array if needed
+          if (!Array.isArray(newSelfData[containerKey])) {
+            newSelfData[containerKey] = [];
+          }
+          
+          // Find or add child in array
+          const childData = {
+            ...child.self_data,
+            ...child.override_data,
+            id: childId  // Include ID for reference
+          };
+          
+          const existingIndex = newSelfData[containerKey].findIndex(
+            (item: any) => item.id === childId
+          );
+          
+          if (existingIndex >= 0) {
+            newSelfData[containerKey][existingIndex] = childData;
+          } else {
+            newSelfData[containerKey].push(childData);
+          }
+          console.log('[updateParentSelfData] Updated array container:', containerKey, childData);
+        } else {
+          // Initialize object if needed
+          if (!newSelfData[containerKey]) {
+            newSelfData[containerKey] = {};
+          }
+          
+          // Add or update child in object
+          newSelfData[containerKey][childId] = {
+            ...child.self_data,
+            ...child.override_data
+          };
+          console.log('[updateParentSelfData] Updated object container:', containerKey, childId);
+        }
+      } else {
+        console.warn('[updateParentSelfData] No container mapping for', child.type, 'in', parent.type);
+      }
+    }
+    
+    // Update parent config
+    await this.updateConfig(parentId, { self_data: newSelfData });
+    
+    // Cascade update up the tree
+    await this.cascadeUpdateUp(parentId);
+  }
+  
+  /**
+   * Rebuild parent's self_data from all its deps
+   */
+  async rebuildParentSelfData(parentId: string): Promise<void> {
+    const parent = this.configs.value.get(parentId);
+    if (!parent) return;
+    
+    console.log('[rebuildParentSelfData] Rebuilding for:', parentId);
+    
+    let newSelfData: any = {};
+    
+    // Process each child in deps
+    for (const childId of parent.deps || []) {
+      const child = this.configs.value.get(childId);
+      if (!child) continue;
+      
+      // If child is a property, merge to root
+      if (child.type === 'property') {
+        const childData = {
+          ...child.self_data,
+          ...child.override_data
+        };
+        Object.assign(newSelfData, childData);
+      } else {
+        // Find container for this child type
+        const containerKey = childContainerMapping[parent.type]?.[child.type];
+        
+        if (containerKey) {
+          const isArrayContainer = containerKey === 'sort_fields' || containerKey === 'filter_fields';
+          
+          if (isArrayContainer) {
+            if (!Array.isArray(newSelfData[containerKey])) {
+              newSelfData[containerKey] = [];
+            }
+            newSelfData[containerKey].push({
+              ...child.self_data,
+              ...child.override_data,
+              id: childId
+            });
+          } else {
+            if (!newSelfData[containerKey]) {
+              newSelfData[containerKey] = {};
+            }
+            newSelfData[containerKey][childId] = {
+              ...child.self_data,
+              ...child.override_data
+            };
+          }
+        }
+      }
+    }
+    
+    // Update parent with rebuilt self_data
+    await this.updateConfig(parentId, { self_data: newSelfData });
+  }
+  
+  /**
+   * Cascade updates up the hierarchy tree
+   */
+  async cascadeUpdateUp(configId: string): Promise<void> {
+    console.log('[cascadeUpdateUp] Starting cascade for:', configId);
+    
+    // Find all parents (configs that have this config in their deps)
+    const parents = Array.from(this.configs.value.values()).filter(
+      config => config.deps?.includes(configId)
+    );
+    
+    for (const parent of parents) {
+      console.log('[cascadeUpdateUp] Updating parent:', parent.id);
+      await this.updateParentSelfData(parent.id, configId);
+    }
+  }
+  
+  /**
+   * Remove child from parent's self_data
+   */
+  async removeChildFromParent(parentId: string, childId: string): Promise<void> {
+    const parent = this.configs.value.get(parentId);
+    const child = this.configs.value.get(childId);
+    
+    if (!parent) return;
+    
+    console.log('[removeChildFromParent] Removing:', childId, 'from:', parentId);
+    
+    // Remove from deps
+    const newDeps = (parent.deps || []).filter(d => d !== childId);
+    
+    // Rebuild self_data without this child
+    await this.updateConfig(parentId, { deps: newDeps });
+    await this.rebuildParentSelfData(parentId);
+    
+    // Cascade up
+    await this.cascadeUpdateUp(parentId);
   }
   
   async resetStore(): Promise<void> {
