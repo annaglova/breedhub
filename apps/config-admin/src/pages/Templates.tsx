@@ -105,18 +105,25 @@ export default function Templates() {
 
   // Add new template
   const addTemplate = async (type: string, parentId: string | null) => {
-    await appConfigStore.createTemplate(type, parentId);
+    try {
+      console.log('[Templates] Creating template:', type, 'parent:', parentId);
+      await appConfigStore.createTemplate(type, parentId);
+      console.log('[Templates] Template created successfully');
 
-    // Expand parent node to show the new child
-    if (parentId) {
-      const newExpanded = new Set(expandedNodes);
-      newExpanded.add(parentId);
-      setExpandedNodes(newExpanded);
+      // Expand parent node to show the new child
+      if (parentId) {
+        const newExpanded = new Set(expandedNodes);
+        newExpanded.add(parentId);
+        setExpandedNodes(newExpanded);
+      }
+
+      setShowAddModal(false);
+      setAddType("");
+      setAddParentId(null);
+    } catch (error) {
+      console.error('[Templates] Error creating template:', error);
+      alert(`Failed to create template: ${error.message || error}`);
     }
-
-    setShowAddModal(false);
-    setAddType("");
-    setAddParentId(null);
   };
 
   // Delete template using store method
