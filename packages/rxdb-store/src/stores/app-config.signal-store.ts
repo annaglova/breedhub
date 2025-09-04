@@ -191,8 +191,6 @@ class AppConfigStore {
       
       // Subscribe to collection changes
       this.dbSubscription = collection.find().$.subscribe((docs: AppConfigDocument[]) => {
-        console.log('[AppConfigStore] Collection changed, documents:', docs.length);
-        
         const newConfigs = new Map<string, AppConfig>();
         docs.forEach((doc: AppConfigDocument) => {
           if (!doc._deleted) {
@@ -225,26 +223,40 @@ class AppConfigStore {
   
   // Compute merged data from deps + self_data + override_data
   private computeMergedData(config: AppConfig): any {
+    
     let merged = {};
     
-    // 1. Merge data from dependencies
-    if (config.deps && config.deps.length > 0) {
-      for (const depId of config.deps) {
-        const parent = this.configs.value.get(depId);
-        if (parent && parent.data) {
-          merged = deepMerge(merged, parent.data);
+    // For high-level hierarchical structures, DON'T merge deps data
+    // Their self_data already contains the proper nested structure
+    if (highLevelTypes.includes(config.type)) {
+      // For high-level types, just merge self_data + override_data
+      if (config.self_data) {
+        merged = deepMerge(merged, config.self_data);
+      }
+      if (config.override_data) {
+        merged = deepMerge(merged, config.override_data);
+      }
+    } else {
+      // For other types (fields, properties), use old logic
+      // 1. Merge data from dependencies
+      if (config.deps && config.deps.length > 0) {
+        for (const depId of config.deps) {
+          const parent = this.configs.value.get(depId);
+          if (parent && parent.data) {
+            merged = deepMerge(merged, parent.data);
+          }
         }
       }
-    }
-    
-    // 2. Apply self_data
-    if (config.self_data) {
-      merged = deepMerge(merged, config.self_data);
-    }
-    
-    // 3. Apply override_data
-    if (config.override_data) {
-      merged = deepMerge(merged, config.override_data);
+      
+      // 2. Apply self_data
+      if (config.self_data) {
+        merged = deepMerge(merged, config.self_data);
+      }
+      
+      // 3. Apply override_data
+      if (config.override_data) {
+        merged = deepMerge(merged, config.override_data);
+      }
     }
     
     return merged;
@@ -469,6 +481,13 @@ class AppConfigStore {
       if (updates.deps || updates.self_data || updates.override_data) {
         const configData = { ...doc.toJSON(), ...updatedData } as AppConfig;
         updatedData.data = this.computeMergedData(configData);
+        
+        // Debug: log what we're about to patch
+        if (configData.type === 'app') {
+          console.log('[updateConfig] About to patch app with:');
+          console.log('  self_data:', JSON.stringify(updatedData.self_data, null, 2));
+          console.log('  computed data:', JSON.stringify(updatedData.data, null, 2));
+        }
       }
       
       await doc.patch(updatedData);
@@ -478,12 +497,23 @@ class AppConfigStore {
       if (updatedDoc) {
         const newConfigs = new Map(this.configs.value);
         const configData = { ...updatedDoc.toJSON() } as AppConfig;
+        
+        // Debug: log what we got from RxDB after update
+        if (configData.type === 'app') {
+          console.log('[updateConfig] After patch, app from RxDB:');
+          console.log('  self_data:', JSON.stringify(configData.self_data, null, 2));
+          console.log('  data from DB:', JSON.stringify(configData.data, null, 2));
+        }
+        
         configData.data = this.computeMergedData(configData);
         newConfigs.set(id, configData);
         this.configs.value = newConfigs;
         
-        // Update dependents
-        this.updateDependents(id);
+        // Update dependents only for non-hierarchical types
+        // Hierarchical types use cascadeUpdateUp instead
+        if (!highLevelTypes.includes(configData.type)) {
+          this.updateDependents(id);
+        }
       }
       
       // Sync to Supabase if enabled
@@ -609,57 +639,17 @@ class AppConfigStore {
   
   // Recalculate template data based on deps hierarchy
   recalculateTemplateData(templates: AppConfig[]): AppConfig[] {
-    const templateMap = new Map<string, AppConfig>();
-    templates.forEach((t) => templateMap.set(t.id, { ...t }));
-    
-    const processed = new Set<string>();
-    
-    const processTemplate = (template: AppConfig): any => {
-      if (processed.has(template.id)) {
-        return templateMap.get(template.id)?.data || {};
-      }
-      
-      let aggregatedData = {};
-      
-      // First, collect data from all dependencies (children)
-      if (template.deps && template.deps.length > 0) {
-        template.deps.forEach((depId) => {
-          const dep = templateMap.get(depId);
-          if (dep) {
-            const depData = processTemplate(dep);
-            aggregatedData = { ...aggregatedData, ...depData };
-          }
-        });
-      }
-      
-      // Update self_data with aggregated children data
-      const updatedSelfData = {
-        ...aggregatedData,
+    // For high-level structures, the self_data is already correctly maintained
+    // through rebuildParentSelfData and cascading updates.
+    // We should NOT recalculate self_data here as it would corrupt the hierarchical structure.
+    // Just ensure that data = self_data + override_data
+    return templates.map(template => ({
+      ...template,
+      data: {
         ...(template.self_data || {}),
-      };
-      
-      // Calculate final data: self_data + override_data
-      const finalData = {
-        ...updatedSelfData,
-        ...(template.override_data || {}),
-      };
-      
-      // Update the template in the map
-      const updatedTemplate = {
-        ...template,
-        self_data: updatedSelfData,
-        data: finalData,
-      };
-      templateMap.set(template.id, updatedTemplate);
-      processed.add(template.id);
-      
-      return finalData;
-    };
-    
-    // Process all templates
-    templates.forEach((t) => processTemplate(t));
-    
-    return Array.from(templateMap.values());
+        ...(template.override_data || {})
+      }
+    }));
   }
   
   async createTemplate(type: string, parentId: string | null = null): Promise<AppConfig> {
@@ -710,6 +700,9 @@ class AppConfigStore {
         
         // Rebuild parent's self_data from all deps (not just update with one child)
         await this.rebuildParentSelfData(parentId);
+        
+        // Then cascade update further up the tree
+        await this.cascadeUpdateUp(parentId);
       }
     }
     
@@ -1429,11 +1422,13 @@ class AppConfigStore {
             newSelfData[containerKey] = {};
           }
           
-          // Add or update child in object
-          newSelfData[containerKey][childId] = {
-            ...child.self_data,
-            ...child.override_data
-          };
+          // For hierarchical structures, include the full child data with its nested structure
+          // This ensures proper nesting (e.g., workspace contains its spaces)
+          const childData = child.self_data && Object.keys(child.self_data).length > 0 
+            ? child.self_data 
+            : { ...child.override_data };
+          
+          newSelfData[containerKey][childId] = childData;
           console.log('[updateParentSelfData] Updated object container:', containerKey, childId);
         }
       } else {
@@ -1455,14 +1450,21 @@ class AppConfigStore {
     const parent = this.configs.value.get(parentId);
     if (!parent) return;
     
-    console.log('[rebuildParentSelfData] Rebuilding for:', parentId);
     
     let newSelfData: any = {};
     
-    // Process each child in deps
+    // Process ONLY DIRECT children in deps (not descendants)
     for (const childId of parent.deps || []) {
       const child = this.configs.value.get(childId);
       if (!child) continue;
+      
+      
+      // Check if this child type can be a direct child of parent
+      const allowedChildren = childContainerMapping[parent.type];
+      if (!allowedChildren) {
+        console.warn('[rebuildParentSelfData] Parent type', parent.type, 'has no allowed children');
+        continue;
+      }
       
       // If child is a property, merge to root
       if (child.type === 'property') {
@@ -1471,10 +1473,11 @@ class AppConfigStore {
           ...child.override_data
         };
         Object.assign(newSelfData, childData);
-      } else {
-        // Find container for this child type
-        const containerKey = childContainerMapping[parent.type]?.[child.type];
-        
+        console.log('[rebuildParentSelfData] Merged property to root');
+      } else if (child.type in allowedChildren) {
+        // Only process if this child type is allowed for this parent
+        const containerKey = allowedChildren[child.type];
+          
         if (containerKey) {
           const isArrayContainer = containerKey === 'sort_fields' || containerKey === 'filter_fields';
           
@@ -1491,16 +1494,31 @@ class AppConfigStore {
             if (!newSelfData[containerKey]) {
               newSelfData[containerKey] = {};
             }
-            newSelfData[containerKey][childId] = {
-              ...child.self_data,
-              ...child.override_data
-            };
+            
+            // For hierarchical types, include their complete structure
+            // This includes their own children (e.g., workspace includes its spaces)
+            let childData: any = {};
+            
+            // Start with child's self_data (which includes its nested children)
+            if (child.self_data && Object.keys(child.self_data).length > 0) {
+              childData = { ...child.self_data };
+            }
+            
+            // Apply override_data on top (at root level of child)
+            if (child.override_data && Object.keys(child.override_data).length > 0) {
+              Object.assign(childData, child.override_data);
+            }
+            
+            newSelfData[containerKey][childId] = childData;
           }
         }
+      } else {
+        console.warn('[rebuildParentSelfData] Child type', child.type, 'is not allowed for parent type', parent.type);
       }
     }
     
-    // Update parent with rebuilt self_data
+    
+    // Update parent with completely new self_data (replacing old one)
     await this.updateConfig(parentId, { self_data: newSelfData });
   }
   
@@ -1508,16 +1526,16 @@ class AppConfigStore {
    * Cascade updates up the hierarchy tree
    */
   async cascadeUpdateUp(configId: string): Promise<void> {
-    console.log('[cascadeUpdateUp] Starting cascade for:', configId);
-    
-    // Find all parents (configs that have this config in their deps)
+    // Find DIRECT parents only (configs that have this config in their deps)
     const parents = Array.from(this.configs.value.values()).filter(
       config => config.deps?.includes(configId)
     );
     
     for (const parent of parents) {
-      console.log('[cascadeUpdateUp] Updating parent:', parent.id);
-      await this.updateParentSelfData(parent.id, configId);
+      // Rebuild parent's self_data from all its deps
+      await this.rebuildParentSelfData(parent.id);
+      // Then cascade further up
+      await this.cascadeUpdateUp(parent.id);
     }
   }
   

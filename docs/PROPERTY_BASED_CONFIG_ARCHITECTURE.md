@@ -282,6 +282,18 @@ Implemented new architecture for high-level structures:
    - Properties provide base behavior
    - override_data always takes precedence
 
+### Critical Fix: Template Data Display
+**Issue**: Templates displayed incorrectly in UI despite correct data in RxDB
+**Root Cause**: The `recalculateTemplateData` method was using old merge logic that corrupted hierarchical structures
+**Solution**: Modified `recalculateTemplateData` to preserve the correct self_data from RxDB and only recalculate the final `data` field
+
+**Important**: For high-level structures (app, workspace, space, view, page), the self_data is maintained through:
+- `rebuildParentSelfData` - rebuilds parent's self_data from all children
+- `updateParentSelfData` - updates parent when a single child changes
+- `cascadeUpdateUp` - propagates changes up the dependency tree
+
+The `recalculateTemplateData` method must NOT modify self_data for these structures as it's already correct in the database.
+
 ---
 *Last Updated: September 4, 2025*
-*Version: 4.0.0 - Hierarchical Configuration Architecture*
+*Version: 4.0.1 - Fixed Template Display Issue*
