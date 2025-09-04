@@ -708,8 +708,8 @@ class AppConfigStore {
         const updatedDeps = [...(parent.deps || []), newId];
         await this.updateConfig(parentId, { deps: updatedDeps });
         
-        // Update parent's self_data to include this child
-        await this.updateParentSelfData(parentId, newId);
+        // Rebuild parent's self_data from all deps (not just update with one child)
+        await this.rebuildParentSelfData(parentId);
       }
     }
     
