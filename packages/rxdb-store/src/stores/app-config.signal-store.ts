@@ -76,8 +76,8 @@ const childContainerMapping: Record<string, Record<string, string | null>> = {
   },
   'view': {
     'fields': 'fields',
-    'sort_fields': 'sort_fields',
-    'filter_fields': 'filter_fields',
+    'sort': 'sort_fields',
+    'filter': 'filter_fields',
     'property': null
   },
   'page': {
@@ -782,6 +782,177 @@ class AppConfigStore {
     }
   }
   
+  // Create working config from template (recursive)
+  async createConfigFromTemplate(templateId: string, parentId: string | null = null): Promise<AppConfig> {
+    const template = this.configs.value.get(templateId);
+    if (!template) {
+      throw new Error(`Template ${templateId} not found`);
+    }
+
+    // Generate unique ID for working config
+    const timestamp = Date.now();
+    const configId = template.id.replace('template_', 'config_').replace(/_\d+$/, `_${timestamp}`);
+    
+    // First, create the main config (initially with empty deps)
+    const newConfig: Omit<AppConfig, 'created_at' | 'updated_at' | 'data'> = {
+      id: configId,
+      type: template.type,
+      self_data: {}, // Start with empty self_data, will be rebuilt from children
+      override_data: { ...template.override_data },
+      deps: [], // Will be filled with child config IDs
+      tags: [], // No template tag for working config
+      caption: template.caption,
+      version: template.version || 1,
+      _deleted: false
+    };
+
+    const created = await this.createConfig(newConfig);
+
+    // Recursively create child configs from template children
+    if (template.deps && template.deps.length > 0) {
+      const childConfigIds: string[] = [];
+      
+      for (const childTemplateId of template.deps) {
+        // Check if this is actually a template child (not a property or field)
+        const childTemplate = this.configs.value.get(childTemplateId);
+        
+        // For templates, deps contain child template IDs directly
+        // We should check if the child is also a high-level type, not just if it has template tag
+        if (childTemplate && (childTemplate.tags?.includes('template') || this.isHighLevelType(childTemplate.type))) {
+          // Recursively create config from child template
+          const childConfig = await this.createConfigFromTemplate(childTemplateId, configId);
+          childConfigIds.push(childConfig.id);
+        }
+      }
+      
+      // Update the created config's deps with the new child config IDs
+      if (childConfigIds.length > 0) {
+        await this.updateConfig(configId, { deps: childConfigIds });
+        
+        // Rebuild self_data from children for high-level structures
+        if (this.isHighLevelType(created.type)) {
+          await this.rebuildParentSelfData(configId);
+        }
+      }
+    }
+
+    // If has parent, update parent's deps to include this config
+    if (parentId) {
+      const parent = this.configs.value.get(parentId);
+      if (parent) {
+        const updatedDeps = [...(parent.deps || []), configId];
+        await this.updateConfig(parentId, { deps: updatedDeps });
+        
+        // For high-level structures, rebuild parent self_data and cascade up
+        if (this.isHighLevelType(parent.type)) {
+          await this.rebuildParentSelfData(parentId);
+          await this.cascadeUpdateUp(parentId);
+        }
+      }
+    }
+
+    return created;
+  }
+
+  // Create working config (without template)
+  async createWorkingConfig(type: string, parentId: string | null = null): Promise<AppConfig> {
+    const timestamp = Date.now();
+    const configId = `config_${type}_${timestamp}`;
+    
+    const newConfig: Omit<AppConfig, 'created_at' | 'updated_at' | 'data'> = {
+      id: configId,
+      type,
+      self_data: {}, // Empty self_data, just like templates
+      override_data: {},
+      deps: [],
+      tags: [],
+      caption: `${type.charAt(0).toUpperCase() + type.slice(1)} ${timestamp}`,
+      version: 1,
+      _deleted: false
+    };
+
+    const created = await this.createConfig(newConfig);
+
+    // If has parent, add this config to parent's deps and rebuild parent's self_data
+    if (parentId) {
+      const parent = this.configs.value.get(parentId);
+      if (parent) {
+        const updatedDeps = [...(parent.deps || []), configId];
+        await this.updateConfig(parentId, { deps: updatedDeps });
+        
+        // For high-level structures, rebuild parent self_data and cascade up
+        if (this.isHighLevelType(parent.type)) {
+          // Rebuild parent's self_data from all deps
+          await this.rebuildParentSelfData(parentId);
+          
+          // Then cascade update further up the tree
+          await this.cascadeUpdateUp(parentId);
+        }
+      }
+    }
+
+    return created;
+  }
+
+  // Get initial self_data structure for a type
+  private getInitialSelfDataForType(type: string): any {
+    const structures: Record<string, any> = {
+      app: { workspaces: {} },
+      workspace: { spaces: {} },
+      space: { views: {}, pages: {} },
+      view: { fields: {}, sort_fields: [], filter_fields: [] },
+      page: { fields: {}, tabs: {} },
+      tabs: { fields: {} },
+      sort: {},
+      filter: {},
+      fields: {}
+    };
+    
+    return structures[type] || {};
+  }
+
+  // Check if type is a high-level structure type
+  isHighLevelType(type: string): boolean {
+    return ['app', 'workspace', 'space', 'view', 'page', 'tabs', 'sort', 'filter', 'fields'].includes(type);
+  }
+
+  // Delete config with its children and update parents
+  async deleteConfigWithChildren(configId: string): Promise<void> {
+    // First find parent and remove from its self_data
+    const parents = Array.from(this.configs.value.values()).filter(
+      config => config.deps?.includes(configId)
+    );
+    
+    for (const parent of parents) {
+      await this.removeChildFromParent(parent.id, configId);
+    }
+    
+    // Then delete the config and its children
+    const result = await this.deleteWithDependencies(configId, { deleteChildren: true });
+    if (!result.success) {
+      throw new Error(result.error || 'Failed to delete config');
+    }
+  }
+
+  // Update config and cascade changes up the tree
+  async updateConfigAndCascade(configId: string, updates: {
+    caption?: string;
+    version?: number;
+    override_data?: any;
+    self_data?: any;
+  }): Promise<void> {
+    const config = this.configs.value.get(configId);
+    if (!config) throw new Error(`Config ${configId} not found`);
+    
+    // Update the config
+    await this.updateConfig(configId, updates);
+    
+    // If this is a high-level structure, cascade updates up the tree
+    if (this.isHighLevelType(config.type)) {
+      await this.cascadeUpdateUp(configId);
+    }
+  }
+
   // ============= PROPERTY OPERATIONS =============
   
   async createProperty(id: string, data: any): Promise<{ success: boolean; error?: string }> {

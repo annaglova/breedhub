@@ -6,14 +6,10 @@ import {
   Database,
   Edit,
   Eye,
-  File,
-  Grid,
   GripVertical,
   Layers,
-  List,
   Package,
   Plus,
-  Settings,
   Tag,
   Trash,
   X,
@@ -22,56 +18,13 @@ import React, { useEffect, useState } from "react";
 import ConfigEditModal from "../components/ConfigEditModal";
 import ConfigViewModal from "../components/ConfigViewModal";
 import WorkspaceHeader from "../components/WorkspaceHeader";
+import type { BaseConfig, TreeNode } from "../types/config-types";
+import { configTypes, getAvailableChildTypes } from "../types/config-types";
 
-interface Field {
-  id: string;
-  type: string;
-  self_data: any;
-  override_data?: any;
-  data: any;
-  deps: string[];
-  caption?: string;
-  category?: string;
-  tags?: string[];
-  version?: number;
-  _deleted?: boolean;
-}
-
-interface Property {
-  id: string;
-  type: string;
-  self_data: any;
-  data: any;
-  deps: string[];
-  caption?: string;
-  category?: string;
-  tags?: string[];
-  version?: number;
-  _deleted?: boolean;
-}
-
-interface WorkingConfig {
-  id: string;
-  type: string;
-  self_data: any;
-  override_data?: any;
-  data: any;
-  deps: string[];
-  caption?: string;
-  category?: string;
-  tags?: string[];
-  version?: number;
-  _deleted?: boolean;
-}
-
-interface TreeNode {
-  id: string;
-  name: string;
-  configType: string;
-  children: TreeNode[];
-  data: any;
-  deps?: string[];
-}
+// Type aliases for clarity
+type Field = BaseConfig;
+type Property = BaseConfig;
+type WorkingConfig = BaseConfig;
 
 interface GroupedFields {
   [key: string]: Field[];
@@ -101,6 +54,13 @@ const AppConfig: React.FC = () => {
   const [configSearchQuery, setConfigSearchQuery] = useState("");
   const [showTemplateSelect, setShowTemplateSelect] = useState(false);
   const [createParentId, setCreateParentId] = useState<string | null>(null);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [addParentId, setAddParentId] = useState<string | null>(null);
+  const [viewingConfig, setViewingConfig] = useState<string | null>(null);
+  const [editingConfig, setEditingConfig] = useState<string | null>(null);
+  const [editingConfigData, setEditingConfigData] = useState<string>("");
+  const [editingConfigCaption, setEditingConfigCaption] = useState<string>("");
+  const [editingConfigVersion, setEditingConfigVersion] = useState<number>(1);
 
   // Fields and properties state
   const [fields, setFields] = useState<Field[]>([]);
@@ -131,17 +91,17 @@ const AppConfig: React.FC = () => {
   const [editingVersion, setEditingVersion] = useState<number>(1);
   const [viewingField, setViewingField] = useState<string | null>(null);
 
-  // Config type icons
-  const configTypes = {
-    app: { name: "App", icon: Package, color: "text-purple-600" },
-    workspace: { name: "Workspace", icon: Layers, color: "text-blue-600" },
-    space: { name: "Space", icon: Grid, color: "text-green-600" },
-    view: { name: "View", icon: Grid, color: "text-yellow-600" },
-    page: { name: "Page", icon: File, color: "text-orange-600" },
-    sort: { name: "Sort Config", icon: Settings, color: "text-gray-600" },
-    fields: { name: "Fields Config", icon: List, color: "text-indigo-600" },
-    tabs: { name: "Tabs Config", icon: Layers, color: "text-pink-600" },
-  };
+  // Handle escape key to deselect
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setSelectedConfig(null);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
   // Build tree structure from configs
   const buildConfigTree = (configs: WorkingConfig[]): TreeNode[] => {
@@ -288,10 +248,55 @@ const AppConfig: React.FC = () => {
     setExpandedNodes(newExpanded);
   };
 
-  // Delete config
+  // Delete config using unified store method
   const deleteConfig = async (configId: string) => {
-    if (confirm(`Delete config "${configId}"?`)) {
-      await appConfigStore.deleteConfig(configId);
+    const config = workingConfigs.find((c) => c.id === configId);
+    const hasChildren = config?.deps && config.deps.length > 0;
+
+    // Confirm deletion with warning about children
+    const confirmMessage = hasChildren
+      ? `Delete config "${configId}" and all its child configs?`
+      : `Delete config "${configId}"?`;
+
+    if (!confirm(confirmMessage)) return;
+
+    try {
+      await appConfigStore.deleteConfigWithChildren(configId);
+    } catch (error) {
+      alert(`Failed to delete config: ${error}`);
+    }
+  };
+
+  // Start editing config
+  const startEditConfig = (configId: string) => {
+    const config = workingConfigs.find((c) => c.id === configId);
+    if (!config) return;
+
+    setEditingConfig(configId);
+    setEditingConfigData(JSON.stringify(config.override_data || {}, null, 2));
+    setEditingConfigCaption(config.caption || "");
+    setEditingConfigVersion(config.version || 1);
+  };
+
+  // Save config edit using unified store method
+  const saveConfigEdit = async () => {
+    if (!editingConfig) return;
+
+    try {
+      const overrideData = JSON.parse(editingConfigData || "{}");
+
+      await appConfigStore.updateConfigAndCascade(editingConfig, {
+        caption: editingConfigCaption,
+        version: editingConfigVersion,
+        override_data: overrideData,
+      });
+
+      setEditingConfig(null);
+      setEditingConfigData("");
+      setEditingConfigCaption("");
+      setEditingConfigVersion(1);
+    } catch (error) {
+      alert("Invalid JSON");
     }
   };
 
@@ -310,6 +315,24 @@ const AppConfig: React.FC = () => {
       }
     } catch (error) {
       alert(`Failed to create config from template: ${error}`);
+    }
+  };
+
+  // Create working config (without template)
+  const createWorkingConfig = async (type: string, parentId: string | null) => {
+    try {
+      await appConfigStore.createWorkingConfig(type, parentId);
+      setShowAddModal(false);
+      setAddParentId(null);
+
+      // Expand parent to show new config
+      if (parentId) {
+        const newExpanded = new Set(expandedNodes);
+        newExpanded.add(parentId);
+        setExpandedNodes(newExpanded);
+      }
+    } catch (error) {
+      alert(`Failed to create config: ${error}`);
     }
   };
 
@@ -394,217 +417,328 @@ const AppConfig: React.FC = () => {
     }
   };
 
-  // Render field item
-  const renderFieldItem = (field: Field) => {
-    // Filter by search query
-    const matchesSearch =
-      searchQuery && field.id.toLowerCase().includes(searchQuery.toLowerCase());
-    if (searchQuery && !matchesSearch) {
-      return null;
-    }
-
-    // Highlight matching fields with light blue background
-    const highlightClass = matchesSearch
-      ? "bg-blue-100 border-l-4 border-l-blue-400"
-      : "bg-gray-50";
+  // Render field item with full functionality restored
+  const renderFieldItem = (field: Field, index?: number) => {
+    // Check if field is from base entity structure (not a custom added field)
+    const isBaseField =
+      structure.base.some((f) => f.id === field.id) ||
+      Object.values(structure.main).some(
+        (entity) =>
+          entity.fields.some((f) => f.id === field.id) ||
+          Object.values(entity.children).some((child) =>
+            child.some((f) => f.id === field.id)
+          )
+      ) ||
+      Object.values(structure.dictionaries).some((dict) =>
+        dict.some((f) => f.id === field.id)
+      );
+    const hasOverride =
+      field.override_data && Object.keys(field.override_data).length > 0;
+    const hasDeps = field.deps && field.deps.length > 0;
+    const propertyDeps =
+      field.deps?.filter((d) => d.startsWith("property_")) || [];
 
     return (
       <div
         key={field.id}
-        className={`relative px-4 py-2 rounded-md transition-all min-h-[2.5rem] ${
-          dragOverField === field.id
-            ? "bg-blue-50 border-l-4 border-l-blue-400"
-            : highlightClass + " hover:bg-gray-100"
-        }`}
+        draggable="true"
+        onDragStart={(e) => {
+          console.log("Field drag start:", field.id);
+          setDraggedField(field.id);
+          e.dataTransfer.effectAllowed = "copy";
+        }}
+        onDragEnd={() => {
+          setDraggedField(null);
+          setDragOverConfig(null);
+        }}
         onDragOver={(e) => {
-          e.preventDefault();
-          setDragOverField(field.id);
-        }}
-        onDragLeave={() => {
-          setDragOverField(null);
-        }}
-        onDrop={(e) => {
-          e.preventDefault();
           if (draggedProperty) {
-            addDependency(field.id, draggedProperty);
+            e.preventDefault();
+            setDragOverField(field.id);
           }
-          setDragOverField(null);
-          setDraggedProperty(null);
         }}
+        onDragLeave={(e) => {
+          if (e.currentTarget === e.target) {
+            setDragOverField(null);
+          }
+        }}
+        onDrop={async (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          if (draggedProperty && !field.deps?.includes(draggedProperty)) {
+            await appConfigStore.addDependency(field.id, draggedProperty);
+          }
+          setDraggedProperty(null);
+          setDragOverField(null);
+        }}
+        className={`relative px-4 py-2 mb-2 bg-gray-50 rounded-md hover:bg-gray-100 transition-all min-h-[2.5rem] cursor-grab active:cursor-grabbing ${
+          draggedField === field.id ? "opacity-50" : ""
+        } ${
+          dragOverField === field.id
+            ? "bg-green-100 border-2 border-green-400 border-dashed"
+            : ""
+        }`}
+        title={`Drag "${field.id}" to add it to a config`}
       >
-        <div className="flex items-start justify-between">
-          <div className="flex-1">
-            <div className="flex items-center justify-between">
-              <div className="font-mono text-sm text-gray-700">
-                {appConfigStore.getFieldDisplayName(field)}
-              </div>
-              {/* Action buttons */}
-              <div className="flex gap-1 ml-2">
-                <button
-                  onClick={() => setViewingField(field.id)}
-                  className="p-1 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded transition-colors"
-                  title="View field"
-                >
-                  <Eye className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={() => startEditField(field)}
-                  className="p-1 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
-                  title="Edit field"
-                >
-                  <Edit className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={() =>
-                    setShowPropertyDropdown(
-                      showPropertyDropdown === field.id ? null : field.id
-                    )
-                  }
-                  className="p-1 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
-                  title="Add property"
-                >
-                  <Plus className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
-            {field.deps && field.deps.length > 0 && (
-              <div className="flex flex-wrap gap-1 mt-1">
-                {field.deps.map((dep) => {
-                  const depName = dep.replace("property_", "");
-                  let badgeColor = "bg-gray-100 text-gray-600";
-                  if (depName.includes("required"))
-                    badgeColor = "bg-red-100 text-red-700";
-                  else if (depName.includes("unique"))
-                    badgeColor = "bg-blue-100 text-blue-700";
-                  else if (depName.includes("primary"))
-                    badgeColor = "bg-purple-100 text-purple-700";
-                  else if (depName.includes("maxlength"))
-                    badgeColor = "bg-green-100 text-green-700";
-                  else if (depName.includes("system"))
-                    badgeColor = "bg-yellow-100 text-yellow-700";
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2 flex-1">
+            <GripVertical className="w-4 h-4 text-gray-400" />
+            <span className="text-sm font-mono">{field.id}</span>
+            {hasOverride && (
+              <span className="text-xs px-2 py-0.5 bg-blue-100 text-blue-700 rounded">
+                override
+              </span>
+            )}
+            {hasDeps && (
+              <span className="text-xs px-2 py-0.5 bg-green-100 text-green-700 rounded">
+                {field.deps.length} deps
+              </span>
+            )}
+          </div>
 
-                  const isSystemProperty = dep === "property_is_system";
-                  return (
-                    <span
-                      key={dep}
-                      className={`inline-flex items-center gap-1 ${
-                        isSystemProperty ? "px-2" : "pl-2 pr-1"
-                      } py-0.5 rounded-full text-xs font-medium ${badgeColor} group ${
-                        !isSystemProperty ? "hover:pr-0.5" : ""
-                      } transition-all`}
-                      title={dep}
-                    >
-                      <span>{depName}</span>
-                      {!isSystemProperty && (
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            removeDependency(field.id, dep);
-                          }}
-                          className="opacity-60 hover:opacity-100 hover:bg-white/20 rounded-full p-0.5 transition-all"
-                          title={`Remove ${depName}`}
-                        >
-                          <X className="w-3 h-3" />
-                        </button>
-                      )}
-                    </span>
+          <div className="flex items-center gap-1">
+            {/* View button */}
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setViewingField(field.id);
+              }}
+              className="p-1 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded"
+              title="View field"
+            >
+              <Eye className="w-4 h-4" />
+            </button>
+
+            {/* Edit button */}
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setEditingField(field.id);
+                setEditingOverrideData(
+                  JSON.stringify(field.override_data || {}, null, 2)
+                );
+              }}
+              className="p-1 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded"
+              title="Edit field"
+            >
+              <Edit className="w-4 h-4" />
+            </button>
+
+            {/* Add property dropdown */}
+            <div className="relative">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowPropertyDropdown(
+                    showPropertyDropdown === field.id ? null : field.id
                   );
-                })}
-              </div>
+                }}
+                className="p-1 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded"
+                title="Add property"
+              >
+                <Plus className="w-4 h-4" />
+              </button>
+
+              {showPropertyDropdown === field.id && (
+                <div className="absolute right-0 top-8 w-48 bg-white border rounded-md shadow-lg z-50 max-h-60 overflow-y-auto">
+                  <div className="p-2 border-b bg-gray-50">
+                    <span className="text-xs font-semibold text-gray-600">
+                      Add Property to Field
+                    </span>
+                  </div>
+                  {properties
+                    .filter((prop) => !prop._deleted)
+                    .map((prop) => {
+                      const propName = prop.id.replace("property_", "");
+                      const alreadyAdded = field.deps?.includes(prop.id);
+                      return (
+                        <button
+                          key={prop.id}
+                          onClick={() => {
+                            if (!alreadyAdded) {
+                              appConfigStore.addDependency(field.id, prop.id);
+                            }
+                            setShowPropertyDropdown(null);
+                          }}
+                          disabled={alreadyAdded}
+                          className={`w-full text-left px-2 py-1 text-xs rounded hover:bg-gray-50 transition-colors ${
+                            alreadyAdded
+                              ? "opacity-50 cursor-not-allowed"
+                              : "cursor-pointer"
+                          }`}
+                        >
+                          <span
+                            className={appConfigStore.getPropertyColor(prop)}
+                          >
+                            {propName}
+                          </span>
+                          {alreadyAdded && (
+                            <span className="text-gray-400 ml-1">(added)</span>
+                          )}
+                        </button>
+                      );
+                    })}
+                </div>
+              )}
+            </div>
+
+            {/* Delete button - only for non-base fields */}
+            {!isBaseField && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (confirm(`Delete field "${field.id}"?`)) {
+                    appConfigStore.deleteConfig(field.id);
+                  }
+                }}
+                className="p-1 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded"
+                title="Delete field"
+              >
+                <Trash className="w-4 h-4" />
+              </button>
+            )}
+
+            {/* Remove from config button - only when in config context */}
+            {isBaseField && selectedConfig && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  // Remove field from config deps
+                  const config = workingConfigs.find(
+                    (c) => c.id === selectedConfig
+                  );
+                  if (config) {
+                    const updatedDeps =
+                      config.deps?.filter((d) => d !== field.id) || [];
+                    appConfigStore.updateConfig(selectedConfig, {
+                      deps: updatedDeps,
+                    });
+                  }
+                }}
+                className="p-1 text-gray-400 hover:text-orange-600 hover:bg-orange-50 rounded"
+                title="Remove from config"
+              >
+                <X className="w-4 h-4" />
+              </button>
             )}
           </div>
         </div>
 
-        {/* Property dropdown */}
-        {showPropertyDropdown === field.id && (
-          <div className="absolute right-0 top-full mt-1 w-48 bg-white border rounded-lg shadow-lg z-10 max-h-60 overflow-y-auto">
-            <div className="p-2">
-              <div className="text-xs font-semibold text-gray-500 mb-2">
-                Select property to add:
-              </div>
-              {properties
-                .filter(
-                  (prop) =>
-                    prop.id !== "property_is_system" &&
-                    prop.id !== "property_not_system"
-                )
-                .map((prop) => {
-                  const propName = prop.id.replace("property_", "");
-                  const alreadyAdded = field.deps?.includes(prop.id);
-                  return (
-                    <button
-                      key={prop.id}
-                      onClick={() => {
-                        if (!alreadyAdded) {
-                          addDependency(field.id, prop.id);
-                        }
-                        setShowPropertyDropdown(null);
-                      }}
-                      disabled={alreadyAdded}
-                      className={`w-full text-left px-2 py-1 text-xs rounded hover:bg-gray-50 transition-colors ${
-                        alreadyAdded
-                          ? "opacity-50 cursor-not-allowed"
-                          : "cursor-pointer"
-                      }`}
-                    >
-                      <span className={appConfigStore.getPropertyColor(prop)}>
-                        {propName}
-                      </span>
-                      {alreadyAdded && (
-                        <span className="text-gray-400 ml-1">(added)</span>
-                      )}
-                    </button>
-                  );
-                })}
-            </div>
-          </div>
-        )}
-
-        {/* Edit modal */}
-        {editingField === field.id && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg p-4 max-w-2xl w-full max-h-[80vh] overflow-auto">
-              <h3 className="text-lg font-semibold mb-2">
-                Edit Override Data for {field.id}
-              </h3>
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Override Data (JSON)
-                </label>
-                <textarea
-                  value={editingOverrideData}
-                  onChange={(e) => setEditingOverrideData(e.target.value)}
-                  className="w-full h-64 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm"
-                  placeholder="{}"
-                />
-              </div>
-              <div className="flex justify-end gap-2">
-                <button
-                  onClick={() => {
-                    setEditingField(null);
-                    setEditingOverrideData("");
-                  }}
-                  className="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
+        {/* Property dependencies */}
+        {propertyDeps.length > 0 && (
+          <div className="mt-2 flex flex-wrap gap-1">
+            {propertyDeps.map((propId) => {
+              const prop = properties.find((p) => p.id === propId);
+              if (!prop) return null;
+              return (
+                <div
+                  key={propId}
+                  className="inline-flex items-center gap-1 px-2 py-0.5 bg-white border rounded-full"
                 >
-                  Cancel
-                </button>
-                <button
-                  onClick={saveFieldOverride}
-                  className="px-4 py-2 text-white bg-blue-600 rounded-md hover:bg-blue-700"
-                >
-                  Save
-                </button>
-              </div>
-            </div>
+                  <span
+                    className={`text-xs ${appConfigStore.getPropertyColor(
+                      prop
+                    )}`}
+                  >
+                    {propId.replace("property_", "")}
+                  </span>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      appConfigStore.removeDependency(field.id, propId);
+                    }}
+                    className="ml-1 text-gray-400 hover:text-red-600"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </div>
+              );
+            })}
           </div>
         )}
       </div>
     );
   };
 
+  // Handle drop on config node
+  const handleDropOnConfig = async (
+    e: React.DragEvent,
+    nodeId: string,
+    nodeType: string
+  ) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragOverConfig(null);
+
+    if (!draggedField && !draggedProperty) return;
+
+    // Handle property drop
+    if (draggedProperty) {
+      await appConfigStore.addDependency(nodeId, draggedProperty);
+      setDraggedProperty(null);
+      return;
+    }
+
+    // Handle field drop - only allow on leaf nodes
+    if (draggedField && !["fields", "sort", "filter"].includes(nodeType)) {
+      return;
+    }
+
+    // Get config
+    const config = workingConfigs.find((c) => c.id === nodeId);
+    if (!config) return;
+
+    // Check if field already exists in deps
+    if (config.deps?.includes(draggedField)) {
+      alert(`Field "${draggedField}" already exists in this config`);
+      return;
+    }
+
+    // Update config with new field dependency
+    const updatedDeps = [...(config.deps || []), draggedField];
+
+    // Update self_data based on config type
+    let updatedSelfData = { ...config.self_data };
+
+    if (nodeType === "fields") {
+      // For fields config, add to fields array
+      updatedSelfData.fields = [
+        ...(updatedSelfData.fields || []),
+        draggedField,
+      ];
+    } else if (nodeType === "sort") {
+      // For sort config, add to sort_fields array
+      updatedSelfData.sort_fields = [
+        ...(updatedSelfData.sort_fields || []),
+        {
+          field: draggedField,
+          direction: "asc",
+        },
+      ];
+    } else if (nodeType === "filter") {
+      // For filter config, add to filter_fields array
+      updatedSelfData.filter_fields = [
+        ...(updatedSelfData.filter_fields || []),
+        {
+          field: draggedField,
+          operator: "eq",
+          value: null,
+        },
+      ];
+    }
+
+    // Update config and cascade changes
+    await appConfigStore.updateConfigAndCascade(nodeId, {
+      deps: updatedDeps,
+      self_data: updatedSelfData,
+    });
+
+    setDraggedField(null);
+  };
+
   // Render config node
   const renderConfigNode = (node: TreeNode, level: number = 0) => {
-    const TypeInfo = configTypes[node.configType] || {
+    const TypeInfo = configTypes[node.configType || ""] || {
       icon: Package,
       color: "text-gray-600",
     };
@@ -615,34 +749,43 @@ const AppConfig: React.FC = () => {
     const propertyDeps = nodeDeps.filter((d) => d.startsWith("property_"));
     const fieldDeps = nodeDeps.filter((d) => d.includes("field"));
 
+    // Check if this node can accept field drops (only leaf configs: fields, sort, filter)
+    const canAcceptFields = ["fields", "sort", "filter"].includes(
+      node.configType || ""
+    );
+    const isDropTarget =
+      dragOverConfig === node.id &&
+      ((canAcceptFields && draggedField) || draggedProperty);
+
     return (
       <div
         key={node.id}
         style={{ marginLeft: `${level * 24}px`, marginBottom: "8px" }}
       >
         <div
-          className={`flex items-center justify-between h-10 p-2 rounded-md ${
-            selectedConfig === node.id
+          className={`flex items-center justify-between h-10 p-2 rounded-md transition-all ${
+            isDropTarget
+              ? "bg-green-100 border-2 border-green-400 border-dashed"
+              : selectedConfig === node.id
               ? "bg-blue-50 border-l-4 border-l-blue-500"
               : "bg-gray-50 hover:bg-gray-100"
-          } ${dragOverConfig === node.id ? "ring-2 ring-blue-400" : ""}`}
-          onClick={() => setSelectedConfig(node.id)}
+          }`}
+          onClick={(e) => {
+            e.stopPropagation();
+            setSelectedConfig(node.id);
+          }}
           onDragOver={(e) => {
-            e.preventDefault();
-            setDragOverConfig(node.id);
-          }}
-          onDragLeave={() => setDragOverConfig(null)}
-          onDrop={(e) => {
-            e.preventDefault();
-            if (draggedProperty) {
-              appConfigStore.addDependency(node.id, draggedProperty);
-              setDraggedProperty(null);
-            } else if (draggedField) {
-              appConfigStore.addDependency(node.id, draggedField);
-              setDraggedField(null);
+            if ((canAcceptFields && draggedField) || draggedProperty) {
+              e.preventDefault();
+              setDragOverConfig(node.id);
             }
-            setDragOverConfig(null);
           }}
+          onDragLeave={(e) => {
+            if (e.currentTarget === e.target) {
+              setDragOverConfig(null);
+            }
+          }}
+          onDrop={(e) => handleDropOnConfig(e, node.id, node.configType || "")}
         >
           <div className="flex items-center gap-2">
             {hasChildren && (
@@ -664,6 +807,11 @@ const AppConfig: React.FC = () => {
 
             <Icon className={`w-4 h-4 ${TypeInfo.color}`} />
             <span className="font-mono text-sm">{node.name}</span>
+            {canAcceptFields && draggedField && (
+              <span className="text-xs text-green-600 ml-2 animate-pulse">
+                (Drop here)
+              </span>
+            )}
 
             {propertyDeps.length > 0 && (
               <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded">
@@ -671,28 +819,123 @@ const AppConfig: React.FC = () => {
               </span>
             )}
             {fieldDeps.length > 0 && (
-              <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">
-                {fieldDeps.length}f
-              </span>
+              <div className="flex items-center gap-1">
+                <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">
+                  {fieldDeps.length}f
+                </span>
+                <div className="flex gap-0.5">
+                  {fieldDeps.slice(0, 3).map((fieldId) => (
+                    <span
+                      key={fieldId}
+                      className="text-xs bg-indigo-100 text-indigo-700 px-1.5 py-0.5 rounded flex items-center gap-1 group"
+                      title={fieldId}
+                    >
+                      <span className="max-w-[60px] truncate">
+                        {fieldId
+                          .replace(/^(entity_field_|field_)/, "")
+                          .substring(0, 8)}
+                      </span>
+                      <button
+                        onClick={async (e) => {
+                          e.stopPropagation();
+                          // Remove field dependency
+                          const config = workingConfigs.find(
+                            (c) => c.id === node.id
+                          );
+                          if (config) {
+                            const updatedDeps = config.deps.filter(
+                              (d) => d !== fieldId
+                            );
+                            let updatedSelfData = { ...config.self_data };
+
+                            // Update self_data based on config type
+                            if (node.configType === "fields") {
+                              updatedSelfData.fields = (
+                                updatedSelfData.fields || []
+                              ).filter((f: string) => f !== fieldId);
+                            } else if (node.configType === "sort") {
+                              updatedSelfData.sort_fields = (
+                                updatedSelfData.sort_fields || []
+                              ).filter((sf: any) => sf.field !== fieldId);
+                            } else if (node.configType === "filter") {
+                              updatedSelfData.filter_fields = (
+                                updatedSelfData.filter_fields || []
+                              ).filter((ff: any) => ff.field !== fieldId);
+                            }
+
+                            await appConfigStore.updateConfigAndCascade(
+                              node.id,
+                              {
+                                deps: updatedDeps,
+                                self_data: updatedSelfData,
+                              }
+                            );
+                          }
+                        }}
+                        className="opacity-0 group-hover:opacity-100 hover:text-red-600 transition-opacity"
+                        title={`Remove field ${fieldId}`}
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </span>
+                  ))}
+                  {fieldDeps.length > 3 && (
+                    <span className="text-xs text-gray-500">
+                      +{fieldDeps.length - 3}
+                    </span>
+                  )}
+                </div>
+              </div>
             )}
           </div>
 
           <div className="flex gap-1">
-            {["app", "workspace", "space", "view", "page", "tabs"].includes(
-              node.configType
-            ) && (
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setCreateParentId(node.id);
-                  setShowTemplateSelect(true);
-                }}
-                className="p-1 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded"
-                title="Add child"
-              >
-                <Plus className="w-3 h-3" />
-              </button>
+            {getAvailableChildTypes(node.configType || "").length > 0 && (
+              <>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setAddParentId(node.id);
+                    setShowAddModal(true);
+                  }}
+                  className="p-1 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded"
+                  title="Add child config"
+                >
+                  <Plus className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setCreateParentId(node.id);
+                    setShowTemplateSelect(true);
+                  }}
+                  className="p-1 text-gray-400 hover:text-purple-600 hover:bg-purple-50 rounded"
+                  title="Add from template"
+                >
+                  <Package className="w-4 h-4" />
+                </button>
+              </>
             )}
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setViewingConfig(node.id);
+              }}
+              className="p-1 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded"
+              title="View config"
+            >
+              <Eye className="w-4 h-4" />
+            </button>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                startEditConfig(node.id);
+              }}
+              className="p-1 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded"
+              title="Edit config"
+            >
+              <Edit className="w-4 h-4" />
+            </button>
             <button
               onClick={(e) => {
                 e.stopPropagation();
@@ -701,7 +944,7 @@ const AppConfig: React.FC = () => {
               className="p-1 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded"
               title="Delete"
             >
-              <Trash className="w-3 h-3" />
+              <Trash className="w-4 h-4" />
             </button>
           </div>
         </div>
@@ -737,33 +980,63 @@ const AppConfig: React.FC = () => {
   };
 
   return (
-    <div className="h-full bg-gray-50 p-4 overflow-hidden">
+    <div className="h-full bg-gray-50 p-4">
       <div className="max-w-full mx-auto h-full">
         <div className="flex gap-4 h-[calc(100vh-7rem)]">
           {/* Left Column - Working Configs - 37.5% */}
-          <div className="w-[37.5%] bg-white rounded-lg shadow-md p-6 h-full flex flex-col overflow-hidden">
+          <div className="w-[37.5%] bg-white rounded-lg shadow-md p-6 h-full flex flex-col">
             <WorkspaceHeader
               title="Working Configs"
               titleIcon={Package}
               itemCount={workingConfigs.length}
+              note={selectedConfig ? "(Press ESC to deselect)" : undefined}
               showSearch={true}
               searchPlaceholder="Search configs..."
               searchValue={configSearchQuery}
               onSearchChange={setConfigSearchQuery}
               showAddButton={true}
-              addButtonText="From Template"
+              addButtonText="Add"
               onAddClick={() => {
-                setCreateParentId(selectedConfig);
-                setShowTemplateSelect(true);
+                setAddParentId(null);
+                setShowAddModal(true);
               }}
+              extraButtons={[
+                {
+                  text: "Template",
+                  icon: Package,
+                  className: "bg-purple-600 hover:bg-purple-700",
+                  onClick: () => {
+                    setCreateParentId(null);
+                    setShowTemplateSelect(true);
+                  },
+                },
+              ]}
             />
 
-            <div className="flex-1 overflow-y-auto">
+            <div
+              className="flex-1 overflow-y-auto"
+              onClick={(e) => {
+                // Only deselect if clicking on the container itself, not on child elements
+                if (e.target === e.currentTarget) {
+                  setSelectedConfig(null);
+                }
+              }}
+              style={{ minHeight: "100%" }}
+            >
               {configTree.length > 0 ? (
                 (() => {
                   const filteredData = filterConfigNodes(configTree);
                   return filteredData.length > 0 ? (
-                    <div>
+                    <div
+                      className="pb-4"
+                      style={{ minHeight: "calc(100% - 1rem)" }}
+                      onClick={(e) => {
+                        // Check if clicked on empty space within tree container
+                        if (e.target === e.currentTarget) {
+                          setSelectedConfig(null);
+                        }
+                      }}
+                    >
                       {filteredData.map((node, index) => (
                         <div key={node.id}>{renderConfigNode(node, 0)}</div>
                       ))}
@@ -783,7 +1056,7 @@ const AppConfig: React.FC = () => {
           </div>
 
           {/* Middle Column - Fields Tree - 37.5% */}
-          <div className="w-[37.5%] bg-white rounded-lg shadow-md p-6 h-full flex flex-col overflow-hidden">
+          <div className="w-[37.5%] bg-white rounded-lg shadow-md p-6 h-full flex flex-col">
             <WorkspaceHeader
               title="Entity Fields"
               titleIcon={Database}
@@ -800,6 +1073,17 @@ const AppConfig: React.FC = () => {
               }}
               showAddButton={false}
             />
+
+            {/* Helper text for drag & drop */}
+            {draggedField && (
+              <div className="mb-2 px-3 py-2 bg-blue-50 text-blue-700 text-sm rounded-md flex items-center gap-2">
+                <GripVertical className="w-4 h-4" />
+                <span>
+                  Dragging "{draggedField}" - Drop on fields, sort, or filter
+                  configs
+                </span>
+              </div>
+            )}
 
             <div className="flex-1 overflow-y-auto">
               {/* Base Fields Section */}
@@ -824,12 +1108,11 @@ const AppConfig: React.FC = () => {
                 </div>
 
                 {expandedSections.has("base") && (
-                  <div style={{ marginLeft: "24px" }} className="mt-2">
-                    {structure.base.map((field) => (
-                      <div key={field.id} className="mb-2">
-                        {renderFieldItem(field)}
-                      </div>
-                    ))}
+                  <div
+                    style={{ marginLeft: "24px" }}
+                    className="mt-2 space-y-2"
+                  >
+                    {structure.base.map((field) => renderFieldItem(field))}
                   </div>
                 )}
               </div>
@@ -983,14 +1266,9 @@ const AppConfig: React.FC = () => {
                                               style={{ marginLeft: "24px" }}
                                               className="mt-2"
                                             >
-                                              {childFields.map((field) => (
-                                                <div
-                                                  key={field.id}
-                                                  className="mb-2"
-                                                >
-                                                  {renderFieldItem(field)}
-                                                </div>
-                                              ))}
+                                              {childFields.map((field) =>
+                                                renderFieldItem(field)
+                                              )}
                                             </div>
                                           )}
                                         </div>
@@ -1083,7 +1361,7 @@ const AppConfig: React.FC = () => {
           </div>
 
           {/* Right Column - Properties - 25% */}
-          <div className="w-[25%] bg-white rounded-lg shadow-md p-6 h-full flex flex-col overflow-hidden">
+          <div className="w-[25%] bg-white rounded-lg shadow-md p-6 h-full flex flex-col">
             <WorkspaceHeader
               title="Properties"
               titleIcon={Tag}
@@ -1187,26 +1465,6 @@ const AppConfig: React.FC = () => {
           );
         })()}
 
-      {/* Edit Field Modal */}
-      <ConfigEditModal
-        isOpen={!!editingField}
-        onClose={() => {
-          setEditingField(null);
-          setEditingOverrideData("");
-          setEditingCaption("");
-          setEditingVersion(1);
-        }}
-        onSave={saveFieldOverride}
-        title="Edit Field"
-        configId={editingField || ""}
-        caption={editingCaption}
-        version={editingVersion}
-        overrideData={editingOverrideData}
-        onCaptionChange={setEditingCaption}
-        onVersionChange={setEditingVersion}
-        onOverrideDataChange={setEditingOverrideData}
-      />
-
       {/* Template Selection Modal */}
       {showTemplateSelect && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -1267,6 +1525,142 @@ const AppConfig: React.FC = () => {
                 onClick={() => {
                   setShowTemplateSelect(false);
                   setCreateParentId(null);
+                }}
+                className="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* View Config Modal */}
+      {viewingConfig &&
+        (() => {
+          const config = workingConfigs.find((c) => c.id === viewingConfig);
+          if (!config) return null;
+
+          return (
+            <ConfigViewModal
+              isOpen={true}
+              onClose={() => setViewingConfig(null)}
+              onEdit={() => {
+                setViewingConfig(null);
+                startEditConfig(config.id);
+              }}
+              title="View Config"
+              config={config}
+            />
+          );
+        })()}
+
+      {/* Edit Config Modal */}
+      <ConfigEditModal
+        isOpen={!!editingConfig}
+        onClose={() => {
+          setEditingConfig(null);
+          setEditingConfigData("");
+          setEditingConfigCaption("");
+          setEditingConfigVersion(1);
+        }}
+        onSave={saveConfigEdit}
+        title="Edit Config"
+        configId={editingConfig || ""}
+        caption={editingConfigCaption}
+        version={editingConfigVersion}
+        overrideData={editingConfigData}
+        onCaptionChange={setEditingConfigCaption}
+        onVersionChange={setEditingConfigVersion}
+        onOverrideDataChange={setEditingConfigData}
+      />
+
+      {/* View Field Modal */}
+      {viewingField &&
+        (() => {
+          const field = fields.find((f) => f.id === viewingField);
+          if (!field) return null;
+
+          return (
+            <ConfigViewModal
+              isOpen={true}
+              onClose={() => setViewingField(null)}
+              onEdit={() => {
+                setViewingField(null);
+                setEditingField(field.id);
+                setEditingOverrideData(
+                  JSON.stringify(field.override_data || {}, null, 2)
+                );
+                setEditingCaption(field.caption || "");
+                setEditingVersion(field.version || 1);
+              }}
+              title="View Field"
+              config={field}
+            />
+          );
+        })()}
+
+      {/* Edit Field Modal */}
+      <ConfigEditModal
+        isOpen={!!editingField}
+        onClose={() => {
+          setEditingField(null);
+          setEditingOverrideData("");
+          setEditingCaption("");
+          setEditingVersion(1);
+        }}
+        onSave={saveFieldOverride}
+        title="Edit Field"
+        configId={editingField || ""}
+        caption={editingCaption}
+        version={editingVersion}
+        overrideData={editingOverrideData}
+        onCaptionChange={setEditingCaption}
+        onVersionChange={setEditingVersion}
+        onOverrideDataChange={setEditingOverrideData}
+      />
+
+      {/* Add Config Modal */}
+      {showAddModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-4 max-w-md w-full">
+            <h3 className="text-lg font-semibold mb-4">
+              {addParentId ? "Add Child Config" : "Add App Config"}
+            </h3>
+
+            <div className="space-y-2">
+              {(addParentId
+                ? getAvailableChildTypes(
+                    workingConfigs.find((c) => c.id === addParentId)?.type || ""
+                  )
+                : ["app"]
+              ).map((type) => {
+                const TypeInfo = configTypes[type] || {
+                  icon: Package,
+                  color: "text-gray-600",
+                };
+                const Icon = TypeInfo.icon;
+
+                return (
+                  <button
+                    key={type}
+                    onClick={() => createWorkingConfig(type, addParentId)}
+                    className="w-full p-3 flex items-center gap-3 border rounded-lg hover:bg-gray-50"
+                  >
+                    <Icon
+                      className={`w-5 h-5 ${TypeInfo.color || "text-gray-600"}`}
+                    />
+                    <span className="font-medium">{TypeInfo.name || type}</span>
+                  </button>
+                );
+              })}
+            </div>
+
+            <div className="mt-4 flex justify-end">
+              <button
+                onClick={() => {
+                  setShowAddModal(false);
+                  setAddParentId(null);
                 }}
                 className="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
               >

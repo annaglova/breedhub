@@ -5,41 +5,24 @@ import {
   Copy,
   Edit,
   Eye,
-  File,
   FileCode,
-  Grid,
-  Layers,
-  List,
-  Package,
   Plus,
-  Settings,
   Trash,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import ConfigEditModal from "../components/ConfigEditModal";
 import ConfigViewModal from "../components/ConfigViewModal";
 import WorkspaceHeader from "../components/WorkspaceHeader";
+import type { 
+  BaseConfig, 
+  TreeNode 
+} from "../types/config-types";
+import { 
+  configTypes, 
+  getAvailableChildTypes 
+} from "../types/config-types";
 
-interface Template {
-  id: string;
-  type: string;
-  self_data: any;
-  override_data: any;
-  data: any;
-  deps: string[];
-  tags: string[];
-  caption?: string;
-  category?: string;
-}
-
-interface TreeNode {
-  id: string;
-  name: string;
-  templateType: string;
-  children: TreeNode[];
-  data: any;
-  expanded?: boolean;
-}
+type Template = BaseConfig;
 
 export default function Templates() {
   const [templates, setTemplates] = useState<Template[]>([]);
@@ -55,18 +38,6 @@ export default function Templates() {
   const [addParentId, setAddParentId] = useState<string | null>(null);
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
   const [searchQuery, setSearchQuery] = useState<string>("");
-
-  // Template types with icons
-  const templateTypes = {
-    app: { name: "App", icon: Package, color: "text-purple-600" },
-    workspace: { name: "Workspace", icon: Layers, color: "text-blue-600" },
-    space: { name: "Space", icon: Grid, color: "text-green-600" },
-    view: { name: "View", icon: Grid, color: "text-yellow-600" },
-    page: { name: "Page", icon: File, color: "text-orange-600" },
-    sort: { name: "Sort Config", icon: Settings, color: "text-gray-600" },
-    fields: { name: "Fields Config", icon: List, color: "text-indigo-600" },
-    tabs: { name: "Tabs Config", icon: Layers, color: "text-pink-600" },
-  };
 
   // Load templates from store
   useEffect(() => {
@@ -180,24 +151,6 @@ export default function Templates() {
     await appConfigStore.cloneTemplate(nodeId);
   };
 
-  // Get available child types for a template type
-  const getAvailableChildTypes = (parentType: string): string[] => {
-    const childTypes: { [key: string]: string[] } = {
-      app: ["workspace"],
-      workspace: ["space"],
-      space: ["view", "page"],
-      view: ["sort", "fields"],
-      page: ["fields", "tabs"],
-      tabs: ["fields"],
-    };
-    return childTypes[parentType] || [];
-  };
-
-  // Get template type from template
-  const getTemplateType = (template: Template): string => {
-    // Return actual type
-    return template.type;
-  };
 
   // Filter nodes based on search query
   const filterNodes = (nodes: TreeNode[]): TreeNode[] => {
@@ -233,11 +186,11 @@ export default function Templates() {
   // Render tree node
   const renderNode = (node: TreeNode, level: number = 0) => {
     const template = templates.find((t) => t.id === node.id);
-    const TypeInfo = templateTypes[node.templateType];
-    const Icon = TypeInfo?.icon || Package;
+    const TypeInfo = configTypes[node.templateType || ''];
+    const Icon = TypeInfo?.icon || FileCode;
     const isExpanded = expandedNodes.has(node.id);
     const hasChildren = node.children.length > 0;
-    const availableChildTypes = getAvailableChildTypes(node.templateType);
+    const availableChildTypes = getAvailableChildTypes(node.templateType || '');
 
     return (
       <div
@@ -443,8 +396,8 @@ export default function Templates() {
                   )
                 : ["app"]
               ).map((type) => {
-                const TypeInfo = templateTypes[type];
-                const Icon = TypeInfo?.icon || Package;
+                const TypeInfo = configTypes[type];
+                const Icon = TypeInfo?.icon || FileCode;
 
                 return (
                   <button

@@ -2,11 +2,19 @@ import React from 'react';
 import { Search, Plus, Maximize2, Minimize2 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
+interface ExtraButton {
+  text: string;
+  icon?: LucideIcon;
+  onClick: () => void;
+  className?: string;
+}
+
 interface WorkspaceHeaderProps {
   // Title section
   title?: string;
   titleIcon?: LucideIcon;
   itemCount?: number;
+  note?: string; // Additional note text (e.g., "Press ESC to deselect")
   
   // Search section
   showSearch?: boolean;
@@ -23,6 +31,9 @@ interface WorkspaceHeaderProps {
   addButtonText?: string;
   onAddClick?: () => void;
   
+  // Extra buttons
+  extraButtons?: ExtraButton[];
+  
   // Layout
   containerPadding?: 4 | 6; // parent container padding size
 }
@@ -31,6 +42,7 @@ export default function WorkspaceHeader({
   title,
   titleIcon: TitleIcon,
   itemCount,
+  note,
   showSearch = true,
   searchPlaceholder = "Search...",
   searchValue = "",
@@ -40,6 +52,7 @@ export default function WorkspaceHeader({
   showAddButton = false,
   addButtonText = "Add",
   onAddClick,
+  extraButtons = [],
   containerPadding = 6
 }: WorkspaceHeaderProps) {
   const marginClass = containerPadding === 6 ? '-mx-6 px-6' : '-mx-4 px-4';
@@ -53,6 +66,11 @@ export default function WorkspaceHeader({
             <h2 className="text-lg font-semibold flex items-center gap-2">
               {TitleIcon && <TitleIcon className="w-5 h-5" />}
               {title}
+              {note && (
+                <span className="text-xs font-normal text-gray-500 ml-2">
+                  {note}
+                </span>
+              )}
             </h2>
           )}
           {typeof itemCount === 'number' && (
@@ -99,6 +117,23 @@ export default function WorkspaceHeader({
               {addButtonText}
             </button>
           )}
+          
+          {/* Extra buttons */}
+          {extraButtons.map((button, index) => {
+            const ButtonIcon = button.icon;
+            return (
+              <button
+                key={index}
+                onClick={button.onClick}
+                className={`px-4 py-2 text-white rounded-md transition-colors flex items-center gap-2 whitespace-nowrap text-sm ${
+                  button.className || 'bg-gray-600 hover:bg-gray-700'
+                }`}
+              >
+                {ButtonIcon && <ButtonIcon className="w-4 h-4" />}
+                {button.text}
+              </button>
+            );
+          })}
         </div>
       )}
     </div>
