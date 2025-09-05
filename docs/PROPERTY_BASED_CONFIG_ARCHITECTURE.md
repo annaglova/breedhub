@@ -247,6 +247,28 @@ When recovering a session, key context includes:
 - **Visual Improvements**:
   - Consistent 8px vertical spacing between all list items
   - Centered chevron icons in full container height
+
+## Recent Updates (September 5, 2025)
+- **Drag & Drop Implementation**:
+  - Fields can be dragged from Entity Fields registry to Config tree
+  - Properties can be dragged from Properties registry to fields (adds as dependency)
+  - Drop zones limited to leaf config nodes (fields, sort, filter)
+  - Visual feedback with green borders for valid drop targets
+  - Automatic self_data updates when fields are dropped on configs
+- **Field Management Enhanced**:
+  - Full field functionality restored (view, edit, add properties, delete)
+  - Base fields can only be removed from configs, not deleted
+  - Custom fields can be deleted entirely
+  - Property dependencies shown as pills with remove buttons
+- **UI Components Unified**:
+  - WorkspaceHeader component extended with extraButtons and note support
+  - All admin pages now use unified WorkspaceHeader component
+  - Removed custom headers in favor of standardized component
+  - ConfigEditModal and ConfigViewModal used consistently for all entities
+- **Performance Improvements**:
+  - Fixed overflow issues in Entity Fields registry
+  - Added proper scrolling containers for all registries
+  - Removed debug elements and test code
   - Flexible field heights with action buttons at name level
   - Standardized gray backgrounds for all section headers
 
