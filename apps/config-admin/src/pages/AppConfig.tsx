@@ -444,8 +444,10 @@ const AppConfig: React.FC = () => {
         draggable="true"
         onDragStart={(e) => {
           console.log("Field drag start:", field.id);
-          setDraggedField(field.id);
-          e.dataTransfer.effectAllowed = "copy";
+          e.dataTransfer.setData('text/plain', field.id);
+          e.dataTransfer.effectAllowed = 'copy';
+          // Use setTimeout to prevent drag interruption in overflow containers
+          setTimeout(() => setDraggedField(field.id), 0);
         }}
         onDragEnd={() => {
           setDraggedField(null);
@@ -1084,8 +1086,16 @@ const AppConfig: React.FC = () => {
                 </span>
               </div>
             )}
+            
 
-            <div className="flex-1 overflow-y-auto">
+            <div 
+              className="flex-1 overflow-y-auto"
+              style={{ 
+                position: 'relative',
+                transform: 'translateZ(0)', /* Force GPU acceleration */
+                willChange: 'scroll-position'
+              }}
+            >
               {/* Base Fields Section */}
               <div className="mb-2">
                 <div
