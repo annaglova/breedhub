@@ -316,6 +316,49 @@ Implemented new architecture for high-level structures:
 
 The `recalculateTemplateData` method must NOT modify self_data for these structures as it's already correct in the database.
 
+## Recent Updates (September 6, 2025)
+
+### Grouping Configurations (fields, sort, filter)
+Implemented special handling for grouping configurations that act as containers:
+
+1. **Grouping Config Types**:
+   - `fields` - Container for field configurations
+   - `sort` - Container for sort configurations  
+   - `filter` - Container for filter configurations
+   - These configs cannot have override_data (UI enforced)
+   - Act as organizational containers without business logic
+
+2. **Field Management in Configs**:
+   - Fields are displayed as child nodes under grouping configs
+   - Drag & drop fields only to grouping configs (fields, sort, filter)
+   - Field data is merged into parent's self_data.fields object
+   - Field removal only unlinks, doesn't delete the field from system
+   - Cascade deletion preserves fields (only removes links)
+
+3. **Data Computation for Grouping Configs**:
+   - Grouping configs use same logic as high-level types
+   - `data = self_data + override_data` (no deps merging)
+   - Field data from deps is processed into parent's fields container
+   - Ensures self_data and data consistency
+
+4. **UI Improvements**:
+   - Consistent indentation in hierarchy (24px for all levels)
+   - Edit buttons hidden for grouping configs
+   - Field references shown as child nodes with remove option
+   - Visual feedback for drag & drop targets
+
+5. **Singleton Pattern**:
+   - tabs → tab (singular naming)
+   - Only one instance per parent allowed
+   - Enforced via `canAddConfigType` validation
+
+### Future Enhancement: Field Override System (Planned)
+Discussed architecture for field customization at config level:
+- Override field properties without creating duplicates
+- Store overrides in parent config's self_data
+- Virtual field enhancement for different contexts
+- Maintains single source of truth for base fields
+
 ---
-*Last Updated: September 4, 2025*
-*Version: 4.0.1 - Fixed Template Display Issue*
+*Last Updated: September 6, 2025*
+*Version: 4.1.0 - Grouping Configs & Field Management*

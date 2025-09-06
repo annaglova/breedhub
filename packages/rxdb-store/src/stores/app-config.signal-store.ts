@@ -96,6 +96,7 @@ const noPropertyTypes = ['fields', 'sort_fields', 'filter_fields'];
 
 // High-level structure types
 const highLevelTypes = ['app', 'workspace', 'space', 'view', 'page', 'tab'];
+const groupingTypes = ['fields', 'sort', 'filter']; // Grouping configs that don't merge deps data
 
 class AppConfigStore {
   // Signals for reactive state
@@ -226,10 +227,10 @@ class AppConfigStore {
     
     let merged = {};
     
-    // For high-level hierarchical structures, DON'T merge deps data
+    // For high-level hierarchical structures and grouping configs, DON'T merge deps data
     // Their self_data already contains the proper nested structure
-    if (highLevelTypes.includes(config.type)) {
-      // For high-level types, just merge self_data + override_data
+    if (highLevelTypes.includes(config.type) || groupingTypes.includes(config.type)) {
+      // For high-level and grouping types, just merge self_data + override_data
       if (config.self_data) {
         merged = deepMerge(merged, config.self_data);
       }
@@ -461,6 +462,13 @@ class AppConfigStore {
   async updateConfig(id: string, updates: Partial<AppConfig>): Promise<void> {
     console.log('[AppConfigStore] Updating config:', id, updates);
     
+    // Check if this is a grouping config type
+    const existingConfig = this.configs.value.get(id);
+    if (existingConfig && this.isGroupingConfigType(existingConfig.type) && updates.override_data !== undefined) {
+      console.warn(`[AppConfigStore] Cannot set override_data for grouping config type: ${existingConfig.type}`);
+      delete updates.override_data;
+    }
+    
     try {
       this.loading.value = true;
       this.error.value = null;
@@ -509,9 +517,9 @@ class AppConfigStore {
         newConfigs.set(id, configData);
         this.configs.value = newConfigs;
         
-        // Update dependents only for non-hierarchical types
-        // Hierarchical types use cascadeUpdateUp instead
-        if (!highLevelTypes.includes(configData.type)) {
+        // Update dependents only for non-hierarchical and non-grouping types
+        // Hierarchical and grouping types use cascadeUpdateUp instead
+        if (!highLevelTypes.includes(configData.type) && !groupingTypes.includes(configData.type)) {
           this.updateDependents(id);
         }
       }
@@ -653,6 +661,11 @@ class AppConfigStore {
   }
   
   async createTemplate(type: string, parentId: string | null = null): Promise<AppConfig> {
+    // Check if this config type can be added to parent
+    if (parentId && !this.canAddConfigType(parentId, type)) {
+      throw new Error(`Cannot add ${type} template - it already exists in parent`);
+    }
+    
     const timestamp = Date.now();
     const newId = `template_${type}_${timestamp}`;
     
@@ -773,8 +786,8 @@ class AppConfigStore {
     // Update the template
     await this.updateConfig(templateId, updates);
     
-    // If this is a high-level structure, cascade updates up the tree
-    if (highLevelTypes.includes(template.type) || template.type === 'property') {
+    // If this is a high-level structure or grouping type, cascade updates up the tree
+    if (highLevelTypes.includes(template.type) || groupingTypes.includes(template.type) || template.type === 'property') {
       await this.cascadeUpdateUp(templateId);
     } else {
       // For other types, use old cascade logic
@@ -854,15 +867,95 @@ class AppConfigStore {
     return created;
   }
 
+  // Check if a config type can be added to parent (for singleton configs)
+  canAddConfigType(parentId: string, configType: string): boolean {
+    const parent = this.configs.value.get(parentId);
+    if (!parent) return false;
+    
+    // Check if this is a singleton config type (fields, sort, filter)
+    const singletonTypes = ['fields', 'sort', 'filter'];
+    if (!singletonTypes.includes(configType)) {
+      // Non-singleton types can always be added
+      return true;
+    }
+    
+    // Check if parent already has this config type in deps
+    if (parent.deps && parent.deps.length > 0) {
+      for (const depId of parent.deps) {
+        const dep = this.configs.value.get(depId);
+        if (dep && dep.type === configType) {
+          // This config type already exists
+          return false;
+        }
+      }
+    }
+    
+    return true;
+  }
+  
+  // Get already added singleton config types for a parent
+  getExistingSingletonTypes(parentId: string): string[] {
+    const parent = this.configs.value.get(parentId);
+    if (!parent || !parent.deps) return [];
+    
+    const singletonTypes = ['fields', 'sort', 'filter'];
+    const existingTypes: string[] = [];
+    
+    for (const depId of parent.deps) {
+      const dep = this.configs.value.get(depId);
+      if (dep && singletonTypes.includes(dep.type)) {
+        existingTypes.push(dep.type);
+      }
+    }
+    
+    return existingTypes;
+  }
+  
+  // Get available child types that can be added to a parent
+  getAvailableChildTypesForParent(parentId: string | null, parentType: string): string[] {
+    // Get all possible child types for this parent type
+    const allChildTypes = this.getChildTypesForParentType(parentType);
+    
+    if (!parentId) {
+      // No parent, return all possible types
+      return allChildTypes;
+    }
+    
+    // Filter out singleton types that already exist
+    return allChildTypes.filter(type => this.canAddConfigType(parentId, type));
+  }
+  
+  // Get child types for a parent type (from config mapping)
+  getChildTypesForParentType(parentType: string): string[] {
+    // Import childTypeMapping or define it here
+    const childTypeMapping: Record<string, string[]> = {
+      app: ["workspace"],
+      workspace: ["space"],
+      space: ["view", "page"],
+      view: ["fields", "sort", "filter"],
+      page: ["fields", "tab"],
+      tab: ["fields"],
+    };
+    
+    return childTypeMapping[parentType] || [];
+  }
+
   // Create working config (without template)
   async createWorkingConfig(type: string, parentId: string | null = null): Promise<AppConfig> {
+    // Check if this config type can be added to parent
+    if (parentId && !this.canAddConfigType(parentId, type)) {
+      throw new Error(`Cannot add ${type} config - it already exists in parent`);
+    }
+    
     const timestamp = Date.now();
     const configId = `config_${type}_${timestamp}`;
     
+    // For high-level types, always start with empty self_data
+    // It will be built from children automatically
     const newConfig: Omit<AppConfig, 'created_at' | 'updated_at' | 'data'> = {
       id: configId,
       type,
-      self_data: {}, // Empty self_data, just like templates
+      self_data: {}, // Always empty for high-level configs
       override_data: {},
       deps: [],
       tags: [],
@@ -894,26 +987,15 @@ class AppConfigStore {
     return created;
   }
 
-  // Get initial self_data structure for a type
-  private getInitialSelfDataForType(type: string): any {
-    const structures: Record<string, any> = {
-      app: { workspaces: {} },
-      workspace: { spaces: {} },
-      space: { views: {}, pages: {} },
-      view: { fields: {}, sort_fields: [], filter_fields: [] },
-      page: { fields: {}, tabs: {} },
-      tabs: { fields: {} },
-      sort: {},
-      filter: {},
-      fields: {}
-    };
-    
-    return structures[type] || {};
-  }
 
   // Check if type is a high-level structure type
   isHighLevelType(type: string): boolean {
-    return ['app', 'workspace', 'space', 'view', 'page', 'tabs', 'sort', 'filter', 'fields'].includes(type);
+    return ['app', 'workspace', 'space', 'view', 'page', 'tab', 'sort', 'filter', 'fields'].includes(type);
+  }
+  
+  // Check if type is a grouping config (cannot have override_data)
+  isGroupingConfigType(type: string): boolean {
+    return ['fields', 'sort', 'filter'].includes(type);
   }
 
   // Delete config with its children and update parents
@@ -1449,10 +1531,17 @@ class AppConfigStore {
         return { success: false, error: 'Config not found' };
       }
       
-      // If deleteChildren is true and config has deps (children), delete them first
+      // If deleteChildren is true and config has deps (children), process them
       if (options.deleteChildren && config.deps && config.deps.length > 0) {
         for (const childId of config.deps) {
-          await this.deleteWithDependencies(childId, { deleteChildren: true });
+          // Skip deletion for field references - only remove from deps
+          if (childId.includes('field')) {
+            // Just remove the field from deps, don't delete it
+            await this.removeDependency(config.id, childId, { skipCascade: true });
+          } else {
+            // Delete actual config children recursively
+            await this.deleteWithDependencies(childId, { deleteChildren: true });
+          }
         }
       }
       
@@ -1561,8 +1650,44 @@ class AppConfigStore {
       const containerKey = childContainerMapping[parent.type]?.[child.type];
       
       if (containerKey) {
-        // Determine if container should be array or object
-        const isArrayContainer = containerKey === 'sort_fields' || containerKey === 'filter_fields';
+        // Special handling for fields, sort, filter configs
+        if (child.type === 'fields' || child.type === 'sort' || child.type === 'filter') {
+          // These configs populate parent's containers directly without nesting
+          
+          if (child.type === 'fields') {
+            if (!newSelfData.fields) {
+              newSelfData.fields = {};
+            }
+            const { tags, type, deps, caption, version, created_at, updated_at, _deleted, _rev, ...cleanSelfData } = child.self_data || {};
+            const { tags: t2, type: ty2, deps: d2, caption: c2, version: v2, ...cleanOverrideData } = child.override_data || {};
+            Object.assign(newSelfData.fields, cleanSelfData, cleanOverrideData);
+            
+          } else if (child.type === 'sort') {
+            if (!Array.isArray(newSelfData.sort_fields)) {
+              newSelfData.sort_fields = [];
+            }
+            const { tags, type, deps, caption, version, created_at, updated_at, _deleted, _rev, ...cleanSelfData } = child.self_data || {};
+            const { tags: t2, type: ty2, deps: d2, caption: c2, version: v2, ...cleanOverrideData } = child.override_data || {};
+            const sortData = { ...cleanSelfData, ...cleanOverrideData };
+            if (sortData.sort_fields && Array.isArray(sortData.sort_fields)) {
+              newSelfData.sort_fields = [...sortData.sort_fields];
+            }
+            
+          } else if (child.type === 'filter') {
+            if (!Array.isArray(newSelfData.filter_fields)) {
+              newSelfData.filter_fields = [];
+            }
+            const { tags, type, deps, caption, version, created_at, updated_at, _deleted, _rev, ...cleanSelfData } = child.self_data || {};
+            const { tags: t2, type: ty2, deps: d2, caption: c2, version: v2, ...cleanOverrideData } = child.override_data || {};
+            const filterData = { ...cleanSelfData, ...cleanOverrideData };
+            if (filterData.filter_fields && Array.isArray(filterData.filter_fields)) {
+              newSelfData.filter_fields = [...filterData.filter_fields];
+            }
+          }
+          console.log('[updateParentSelfData] Updated', child.type, 'config in parent');
+        } else {
+          // Standard hierarchical configs
+          const isArrayContainer = containerKey === 'sort_fields' || containerKey === 'filter_fields';
         
         if (isArrayContainer) {
           // Initialize array if needed
@@ -1571,9 +1696,13 @@ class AppConfigStore {
           }
           
           // Find or add child in array
+          // Filter out system fields
+          const { tags, type, deps, caption, version, created_at, updated_at, _deleted, _rev, ...cleanSelfData } = child.self_data || {};
+          const { tags: t2, type: ty2, deps: d2, caption: c2, version: v2, ...cleanOverrideData } = child.override_data || {};
+          
           const childData = {
-            ...child.self_data,
-            ...child.override_data,
+            ...cleanSelfData,
+            ...cleanOverrideData,
             id: childId  // Include ID for reference
           };
           
@@ -1595,12 +1724,26 @@ class AppConfigStore {
           
           // For hierarchical structures, include the full child data with its nested structure
           // This ensures proper nesting (e.g., workspace contains its spaces)
-          const childData = child.self_data && Object.keys(child.self_data).length > 0 
-            ? child.self_data 
-            : { ...child.override_data };
+          // But filter out system fields
+          let childData: any = {};
+          
+          if (child.self_data) {
+            const { tags, type, deps, caption, version, created_at, updated_at, _deleted, _rev, ...cleanSelfData } = child.self_data;
+            if (Object.keys(cleanSelfData).length > 0) {
+              childData = { ...cleanSelfData };
+            }
+          }
+          
+          if (child.override_data) {
+            const { tags, type, deps, caption, version, created_at, updated_at, _deleted, _rev, ...cleanOverrideData } = child.override_data;
+            if (Object.keys(cleanOverrideData).length > 0) {
+              Object.assign(childData, cleanOverrideData);
+            }
+          }
           
           newSelfData[containerKey][childId] = childData;
           console.log('[updateParentSelfData] Updated object container:', containerKey, childId);
+        }
         }
       } else {
         console.warn('[updateParentSelfData] No container mapping for', child.type, 'in', parent.type);
@@ -1621,8 +1764,11 @@ class AppConfigStore {
     const parent = this.configs.value.get(parentId);
     if (!parent) return;
     
+    console.log('[rebuildParentSelfData] Starting for parent:', parentId, 'type:', parent.type);
     
     let newSelfData: any = {};
+    
+    // Don't initialize empty structures - they will be created when children are added
     
     // Process ONLY DIRECT children in deps (not descendants)
     for (const childId of parent.deps || []) {
@@ -1650,18 +1796,78 @@ class AppConfigStore {
         const containerKey = allowedChildren[child.type];
           
         if (containerKey) {
-          const isArrayContainer = containerKey === 'sort_fields' || containerKey === 'filter_fields';
-          
-          if (isArrayContainer) {
-            if (!Array.isArray(newSelfData[containerKey])) {
-              newSelfData[containerKey] = [];
+          // Special handling for fields, sort, filter configs - they populate parent's containers directly
+          if (child.type === 'fields' || child.type === 'sort' || child.type === 'filter') {
+            // These configs don't create nested structures, they populate parent's containers
+            
+            if (child.type === 'fields') {
+              // For fields config, merge its content directly into parent's fields container
+              if (!newSelfData.fields) {
+                newSelfData.fields = {};
+              }
+              
+              // First, process field dependencies - get actual field data
+              if (child.deps && child.deps.length > 0) {
+                for (const fieldId of child.deps) {
+                  if (fieldId.includes('field')) {
+                    const fieldConfig = this.configs.value.get(fieldId);
+                    if (fieldConfig) {
+                      // Add field data to the fields container
+                      newSelfData.fields[fieldId] = fieldConfig.data || fieldConfig.self_data || {};
+                    }
+                  }
+                }
+              }
+              
+              // Then merge any additional data from fields config itself
+              const { tags, type, deps, caption, version, created_at, updated_at, _deleted, _rev, ...cleanSelfData } = child.self_data || {};
+              const { tags: t2, type: ty2, deps: d2, caption: c2, version: v2, ...cleanOverrideData } = child.override_data || {};
+              
+              console.log('[rebuildParentSelfData] Processing fields config for parent type:', parent.type, 'with', child.deps?.length || 0, 'field deps');
+              
+              // Merge any additional fields data from self_data/override_data
+              if (cleanSelfData.fields && typeof cleanSelfData.fields === 'object') {
+                Object.assign(newSelfData.fields, cleanSelfData.fields);
+              }
+              if (cleanOverrideData.fields && typeof cleanOverrideData.fields === 'object') {
+                Object.assign(newSelfData.fields, cleanOverrideData.fields);
+              }
+              
+            } else if (child.type === 'sort') {
+              // For sort config, populate sort_fields array
+              if (!Array.isArray(newSelfData.sort_fields)) {
+                newSelfData.sort_fields = [];
+              }
+              // Add sort fields from this config
+              const { tags, type, deps, caption, version, created_at, updated_at, _deleted, _rev, ...cleanSelfData } = child.self_data || {};
+              const { tags: t2, type: ty2, deps: d2, caption: c2, version: v2, ...cleanOverrideData } = child.override_data || {};
+              
+              // Add fields from sort config (if it has any)
+              const sortData = { ...cleanSelfData, ...cleanOverrideData };
+              if (sortData.sort_fields && Array.isArray(sortData.sort_fields)) {
+                newSelfData.sort_fields.push(...sortData.sort_fields);
+              }
+              
+            } else if (child.type === 'filter') {
+              // For filter config, populate filter_fields array
+              if (!Array.isArray(newSelfData.filter_fields)) {
+                newSelfData.filter_fields = [];
+              }
+              // Add filter fields from this config
+              const { tags, type, deps, caption, version, created_at, updated_at, _deleted, _rev, ...cleanSelfData } = child.self_data || {};
+              const { tags: t2, type: ty2, deps: d2, caption: c2, version: v2, ...cleanOverrideData } = child.override_data || {};
+              
+              // Add fields from filter config (if it has any)
+              const filterData = { ...cleanSelfData, ...cleanOverrideData };
+              if (filterData.filter_fields && Array.isArray(filterData.filter_fields)) {
+                newSelfData.filter_fields.push(...filterData.filter_fields);
+              }
             }
-            newSelfData[containerKey].push({
-              ...child.self_data,
-              ...child.override_data,
-              id: childId
-            });
           } else {
+            // Standard hierarchical configs (workspace, space, view, page, tabs)
+            // Note: sort_fields and filter_fields are handled by sort/filter configs above
+            // so we don't need array container logic here
+            
             if (!newSelfData[containerKey]) {
               newSelfData[containerKey] = {};
             }
@@ -1671,15 +1877,35 @@ class AppConfigStore {
             let childData: any = {};
             
             // Start with child's self_data (which includes its nested children)
-            if (child.self_data && Object.keys(child.self_data).length > 0) {
-              childData = { ...child.self_data };
+            // But filter out system fields
+            if (child.self_data) {
+              const { tags, type, deps, caption, version, created_at, updated_at, _deleted, _rev, ...cleanSelfData } = child.self_data;
+              if (Object.keys(cleanSelfData).length > 0) {
+                childData = { ...cleanSelfData };
+              }
             }
             
             // Apply override_data on top (at root level of child)
-            if (child.override_data && Object.keys(child.override_data).length > 0) {
-              Object.assign(childData, child.override_data);
+            // Also filter out system fields from override_data
+            if (child.override_data) {
+              const { tags, type, deps, caption, version, created_at, updated_at, _deleted, _rev, ...cleanOverrideData } = child.override_data;
+              if (Object.keys(cleanOverrideData).length > 0) {
+                Object.assign(childData, cleanOverrideData);
+              }
             }
             
+            // Debug logging for fields config
+            if (child.type === 'fields' && parent.type === 'view') {
+              console.log('[DEBUG] Adding fields to view:', {
+                childId,
+                self_data: child.self_data,
+                override_data: child.override_data,
+                childData
+              });
+            }
+            
+            // Only add to container if childData has content
+            // For empty configs (like fields config), store empty object
             newSelfData[containerKey][childId] = childData;
           }
         }
@@ -1688,6 +1914,42 @@ class AppConfigStore {
       }
     }
     
+    
+    // Add empty containers for specific types only if they have corresponding children
+    if (parent.type === 'view') {
+      // Ensure view always has these containers
+      if (!('fields' in newSelfData)) newSelfData.fields = {};
+      if (!('sort_fields' in newSelfData)) newSelfData.sort_fields = [];
+      if (!('filter_fields' in newSelfData)) newSelfData.filter_fields = [];
+    } else if (parent.type === 'page') {
+      // For page, only add fields container if there are fields children
+      const hasFieldsChild = parent.deps?.some(depId => {
+        const dep = this.configs.value.get(depId);
+        return dep && dep.type === 'fields';
+      });
+      if (hasFieldsChild && !('fields' in newSelfData)) {
+        newSelfData.fields = {};
+      }
+      // Only add tabs container if there are tab children
+      const hasTabChild = parent.deps?.some(depId => {
+        const dep = this.configs.value.get(depId);
+        return dep && dep.type === 'tab';
+      });
+      if (hasTabChild && !('tabs' in newSelfData)) {
+        newSelfData.tabs = {};
+      }
+    } else if (parent.type === 'tab') {
+      // Tab should have fields container only if it has fields children
+      const hasFieldsChild = parent.deps?.some(depId => {
+        const dep = this.configs.value.get(depId);
+        return dep && dep.type === 'fields';
+      });
+      if (hasFieldsChild && !('fields' in newSelfData)) {
+        newSelfData.fields = {};
+      }
+    }
+    
+    console.log('[rebuildParentSelfData] Final newSelfData for', parent.type, ':', newSelfData);
     
     // Update parent with completely new self_data (replacing old one)
     await this.updateConfig(parentId, { self_data: newSelfData });
