@@ -447,6 +447,75 @@ const MyComponent = () => {
 4. **Автоматична синхронізація** відбувається в `initializeStore()` - не потрібні кнопки
 5. **Soft delete** - використовуйте `_deleted` поле замість фізичного видалення
 
+## Майбутнє: Universal Store Architecture
+
+### Концепція
+Замість створення окремого store для кожної сутності, ми рухаємось до єдиного універсального store, який конфігурується:
+
+```typescript
+// Замість цього:
+class BreedStore { /* специфічний код */ }
+class PetStore { /* специфічний код */ }
+
+// Будемо мати це:
+class UniversalStore {
+  constructor(config: EntityConfig) {
+    // Store адаптується під конфігурацію
+  }
+}
+
+// Використання:
+const breedStore = new UniversalStore(breedConfig);
+const petStore = new UniversalStore(petConfig);
+```
+
+### Переваги Universal Store:
+
+1. **Zero-code для нових сутностей** - тільки конфігурація
+2. **Консистентність** - всі stores працюють однаково
+3. **Легше тестування** - один store для всіх випадків
+4. **Автоматичні оптимізації** - покращення в одному місці
+5. **Type-safety** - через TypeScript generics
+
+### Конфігурація визначатиме:
+
+```typescript
+interface EntityConfig {
+  tableName: string;
+  primaryKey: string;
+  fields: FieldConfig[];
+  validations: ValidationRule[];
+  relations: RelationConfig[];
+  indexes: IndexConfig[];
+  hooks: {
+    beforeCreate?: (data: any) => any;
+    afterCreate?: (data: any) => void;
+    beforeUpdate?: (data: any) => any;
+    afterUpdate?: (data: any) => void;
+  };
+  features: {
+    softDelete: boolean;
+    versioning: boolean;
+    audit: boolean;
+    realtime: boolean;
+  };
+}
+```
+
+### Міграція на Universal Store:
+
+1. **Phase 1**: Створити UniversalStore клас
+2. **Phase 2**: Адаптувати існуючі stores
+3. **Phase 3**: Генерувати конфігурації з app_config
+4. **Phase 4**: Повністю перейти на конфігураційний підхід
+
+### Інтеграція з Property-Based Config:
+
+- Конфігурації stores будуть частиною app_config
+- Properties визначатимуть поведінку полів
+- Наслідування та override працюватимуть для stores
+- Динамічне створення stores з конфігурацій
+
 ## Перевірка роботи
 
 1. Перевірте що колекція додана в `database.service.ts`
