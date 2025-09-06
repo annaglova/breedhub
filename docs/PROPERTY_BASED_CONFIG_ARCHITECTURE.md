@@ -359,6 +359,88 @@ Discussed architecture for field customization at config level:
 - Virtual field enhancement for different contexts
 - Maintains single source of truth for base fields
 
+## Platform Vision & Architecture Philosophy
+
+### Goal: Configuration-Driven Platform
+Building a meta-framework where the entire application is driven by configurations, not code.
+
+#### Core Concepts:
+
+1. **Universal Stores**
+   - Single generic store implementation that adapts based on configuration
+   - Eliminates need for entity-specific store code
+   - Configuration defines all CRUD operations, validations, and business logic
+   - Example: `const store = new UniversalStore(entityConfig)`
+
+2. **Component Registry**
+   - Library of reusable UI components (tables, forms, filters, etc.)
+   - Components are configured, not coded
+   - Consistent behavior across entire application
+   - Dynamic rendering based on configuration
+
+3. **Configuration as Code**
+   ```javascript
+   // Instead of writing components:
+   const BreedTable = () => { /* hundreds of lines */ }
+   
+   // We configure them:
+   {
+     type: "table",
+     dataSource: "breeds",
+     fields: [...],
+     actions: [...]
+   }
+   ```
+
+4. **Dynamic UI Generation**
+   - Pages are assembled from configured components
+   - Layout and behavior defined in configuration
+   - Changes without deployment - just update config
+   - A/B testing through config variants
+
+#### Benefits:
+
+- **Rapid Development**: New features in hours, not weeks
+- **Consistency**: All components follow same patterns
+- **Customization**: Per-client configurations without code forks
+- **Maintainability**: Fix once in component, works everywhere
+- **Scalability**: Add new entities without new code
+
+#### Implementation Strategy:
+
+1. **Phase 1**: Property-based configuration system ✅
+2. **Phase 2**: Grouping configs and field management ✅
+3. **Phase 3**: Field override system (in progress)
+4. **Phase 4**: Universal store implementation
+5. **Phase 5**: Component registry development
+6. **Phase 6**: Visual configuration builder
+7. **Phase 7**: Configuration marketplace
+
+#### Performance Optimizations (Planned):
+
+- **Batch Operations**: Mass updates in single transaction
+- **Lazy Loading**: Load configurations on demand
+- **Caching Strategy**: Multi-level cache for computed data
+- **Incremental Updates**: Only recalculate affected portions
+
+#### Comparison to Existing Platforms:
+
+| Feature | BreedHub | Salesforce | Airtable | Retool |
+|---------|----------|------------|----------|--------|
+| Local-First | ✅ | ❌ | ❌ | ❌ |
+| CRDT Support | ✅ | ❌ | ❌ | ❌ |
+| Property Inheritance | ✅ | Partial | ❌ | ❌ |
+| Offline Mode | ✅ | Limited | ❌ | ❌ |
+| Domain-Specific | ✅ | Generic | Generic | Generic |
+
+#### Architecture Principles:
+
+1. **Composition over Configuration**: Build complex from simple
+2. **Single Source of Truth**: One config table rules all
+3. **Cascade by Default**: Changes propagate automatically
+4. **Override Locally**: Customize without duplication
+5. **Version Everything**: Full history of all changes
+
 ---
 *Last Updated: September 6, 2025*
-*Version: 4.1.0 - Grouping Configs & Field Management*
+*Version: 4.2.0 - Added Platform Vision & Architecture Philosophy*

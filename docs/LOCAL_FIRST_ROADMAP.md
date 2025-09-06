@@ -1,25 +1,27 @@
 # 🚀 Local-First PWA Implementation Roadmap з RxDB
 
-## 📊 СТАТУС НА 25.08.2024
+## 📊 СТАТУС НА 06.09.2025
 
 ### ✅ ЩО ЗРОБЛЕНО:
 - **Phase 0:** RxDB Setup ✅
 - **Phase 1:** PWA функціональність ✅
 - **Phase 2.1-2.4:** Базова Supabase синхронізація ✅
 - **Phase 2.5:** Повне тестування з таблицею `books` ✅
-  - Realtime WebSocket працює
-  - Офлайн сценарії протестовані
-  - Rate limiting налаштований
+- **Phase 2.6:** Property-Based Configuration System ✅
+  - Hierarchical config architecture
+  - Grouping configs (fields, sort, filter)
+  - Cascade updates and inheritance
+  - Visual Config Admin UI
 
 ### 🔄 НАСТУПНИЙ КРОК:
-- **Phase 2.6:** Visual Config Admin 🎨 (ПОТРІБНО ДЛЯ МІГРАЦІЇ!)
+- **Phase 3:** Universal Store Implementation 🎯
+- **Phase 4:** Component Registry & Dynamic UI
 
-### 📅 ЗАПЛАНОВАНО (в новому порядку):
-- **Phase 2.7:** Migration від MultiStore (після створення конфігів)
-- **Phase 2.8:** React RxDB Integration  
-- **Phase 3:** UI оновлення для Local-First
-- **Phase 4:** Gemma AI інтеграція
-- **Phase 5:** Повна міграція apps/app
+### 📅 ЗАПЛАНОВАНО (оновлена стратегія):
+- **Phase 5:** Visual Configuration Builder
+- **Phase 6:** Field Override System
+- **Phase 7:** Configuration Marketplace
+- **Phase 8:** Повна міграція apps/app
 
 ---
 
@@ -84,13 +86,48 @@
 - **Schema validation** - типізовані колекції з валідацією
 - **Production-ready** - використовується в багатьох проектах
 
-## 🎯 Стратегія впровадження
+## 🎯 Стратегія впровадження: Configuration-Driven Platform
 
-### Принципи:
-1. **Інкрементальність** - поступові зміни без ламання існуючого
-2. **Тестування** - кожен етап перевіряється в playground
-3. **Backward compatibility** - зберігаємо сумісність з існуючим кодом
-4. **User value first** - спочатку функції для користувачів
+### Нова візія:
+Переходимо від написання коду до конфігурування платформи. Замість створення окремих компонентів та сторів для кожної сутності, ми будуємо універсальну систему, що адаптується через конфігурації.
+
+### Ключові принципи:
+1. **Configuration First** - все визначається конфігурацією
+2. **Universal Components** - один компонент для всіх випадків
+3. **Zero-Code Features** - нові функції без написання коду
+4. **Inheritance & Composition** - складне з простого
+5. **Local-First by Default** - офлайн як основний режим
+
+### Архітектурні рівні:
+
+#### 1. Data Layer (RxDB + Supabase)
+- Local-first database з CRDT
+- Автоматична синхронізація
+- Conflict resolution
+
+#### 2. Configuration Layer (app_config)
+- Property-based inheritance
+- Hierarchical structures
+- Override механізм
+- Field customization
+
+#### 3. Store Layer (Universal Stores)
+- Генерація сторів з конфігурацій
+- Автоматичні CRUD операції
+- Business logic через hooks
+- Reactive state management
+
+#### 4. Component Layer (Component Registry)
+- Універсальні UI компоненти
+- Configuration-driven rendering
+- Dynamic forms and tables
+- Responsive layouts
+
+#### 5. Application Layer
+- Page composition з конфігурацій
+- Navigation generation
+- Permission management
+- Theme customization
 
 ## 📅 Фази впровадження
 
@@ -569,9 +606,42 @@ export const DynamicUniversalStore = await (async () => {
 })();
 ```
 
-##### Week 3: Features Integration (5 днів)
+##### Week 3: Universal Store Implementation (5 днів)
 
-**Key NgRx Signal Store features to implement:**
+**Перехід на configuration-driven stores:**
+
+```typescript
+// Замість спеціалізованих сторів
+class UniversalStore<T> {
+  constructor(private config: StoreConfig) {
+    this.initializeFromConfig();
+  }
+  
+  // Автоматична генерація методів
+  private generateCRUD() {
+    return this.config.operations.reduce((acc, op) => {
+      acc[op.name] = this.createOperation(op);
+      return acc;
+    }, {});
+  }
+  
+  // Hooks з конфігурації
+  private applyHooks() {
+    this.config.hooks.forEach(hook => {
+      this.on(hook.event, hook.handler);
+    });
+  }
+  
+  // Validation з properties
+  private validateWithProperties(data: T) {
+    return this.config.properties.reduce((valid, prop) => {
+      return valid && prop.validate(data);
+    }, true);
+  }
+}
+```
+
+**Key features to implement:**
 
 1. **withEntities** - Entity management
    - Normalized state structure
