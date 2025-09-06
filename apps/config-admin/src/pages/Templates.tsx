@@ -195,7 +195,7 @@ export default function Templates() {
     return (
       <div
         key={node.id}
-        style={{ marginLeft: `${level * 24}px`, marginBottom: "8px" }}
+        style={{ marginLeft: level > 0 ? "24px" : "0px", marginBottom: "8px" }}
       >
         <div
           className={`flex items-center justify-between h-10 p-2 rounded-md ${
@@ -229,7 +229,7 @@ export default function Templates() {
           </div>
 
           <div className="flex gap-1">
-            {availableChildTypes.length > 0 && (
+            {availableChildTypes.length > 0 && availableChildTypes.some(type => appConfigStore.canAddConfigType(node.id, type)) && (
               <button
                 onClick={(e) => {
                   e.stopPropagation();
@@ -252,16 +252,18 @@ export default function Templates() {
             >
               <Eye className="w-4 h-4" />
             </button>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                startEditNode(node);
-              }}
-              className="p-1 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded"
-              title="Edit config"
-            >
-              <Edit className="w-4 h-4" />
-            </button>
+            {!appConfigStore.isGroupingConfigType(node.templateType || '') && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  startEditNode(node);
+                }}
+                className="p-1 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded"
+                title="Edit config"
+              >
+                <Edit className="w-4 h-4" />
+              </button>
+            )}
             <button
               onClick={(e) => {
                 e.stopPropagation();
@@ -311,7 +313,7 @@ export default function Templates() {
     }
 
     const firstChildType = availableTypes[0];
-    const typeInfo = templateTypes[firstChildType];
+    const typeInfo = configTypes[firstChildType];
     return {
       text: `Add ${typeInfo?.name || firstChildType}`,
       parentId: selectedNode,
@@ -391,7 +393,8 @@ export default function Templates() {
 
             <div className="space-y-2">
               {(addParentId
-                ? getAvailableChildTypes(
+                ? appConfigStore.getAvailableChildTypesForParent(
+                    addParentId,
                     templates.find((t) => t.id === addParentId)?.type || ""
                   )
                 : ["app"]

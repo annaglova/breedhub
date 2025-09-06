@@ -129,15 +129,29 @@ const AppConfig: React.FC = () => {
 
       if (config.deps && config.deps.length > 0) {
         config.deps.forEach((childId) => {
-          const childNode = nodeMap.get(childId);
-          // Only add as child if it's a config node (not property or field)
-          // Check if childId is actually another config
-          const childConfig = configs.find((c) => c.id === childId);
-          if (childNode && childConfig) {
-            parentNode.children.push(childNode);
-            const rootIndex = roots.indexOf(childNode);
-            if (rootIndex > -1) {
-              roots.splice(rootIndex, 1);
+          // Check if it's a field dependency
+          if (childId.includes('field') && 
+              ['fields', 'sort', 'filter'].includes(config.type)) {
+            // Create a virtual node for the field
+            const fieldNode: TreeNode = {
+              id: childId,
+              name: childId,
+              configType: 'field_ref', // Special type for field references
+              children: [],
+              data: {},
+              deps: [],
+            };
+            parentNode.children.push(fieldNode);
+          } else {
+            // Regular config dependency
+            const childNode = nodeMap.get(childId);
+            const childConfig = configs.find((c) => c.id === childId);
+            if (childNode && childConfig) {
+              parentNode.children.push(childNode);
+              const rootIndex = roots.indexOf(childNode);
+              if (rootIndex > -1) {
+                roots.splice(rootIndex, 1);
+              }
             }
           }
         });
@@ -352,8 +366,8 @@ const AppConfig: React.FC = () => {
       workspace: ["space"],
       space: ["view", "page"],
       view: ["sort", "fields"],
-      page: ["fields", "tabs"],
-      tabs: ["fields"],
+      page: ["fields", "tab"],
+      tab: ["fields"],
     };
 
     const allowedTypes = childTypes[parentType] || [];
@@ -696,6 +710,13 @@ const AppConfig: React.FC = () => {
       return;
     }
 
+    // Get the field data
+    const field = fields.find(f => f.id === draggedField);
+    if (!field) {
+      alert(`Field "${draggedField}" not found`);
+      return;
+    }
+
     // Update config with new field dependency
     const updatedDeps = [...(config.deps || []), draggedField];
 
@@ -703,11 +724,13 @@ const AppConfig: React.FC = () => {
     let updatedSelfData = { ...config.self_data };
 
     if (nodeType === "fields") {
-      // For fields config, add to fields array
-      updatedSelfData.fields = [
-        ...(updatedSelfData.fields || []),
-        draggedField,
-      ];
+      // For fields config, merge field data into self_data.fields object
+      // Create a new fields object to avoid extensibility issues
+      const existingFields = updatedSelfData.fields || {};
+      updatedSelfData.fields = {
+        ...existingFields,
+        [draggedField]: field.data || field.self_data || {}
+      };
     } else if (nodeType === "sort") {
       // For sort config, add to sort_fields array
       updatedSelfData.sort_fields = [
@@ -740,6 +763,65 @@ const AppConfig: React.FC = () => {
 
   // Render config node
   const renderConfigNode = (node: TreeNode, level: number = 0) => {
+    // Special handling for field reference nodes
+    if (node.configType === 'field_ref') {
+      const field = fields.find(f => f.id === node.id);
+      return (
+        <div
+          key={node.id}
+          style={{ marginLeft: level > 0 ? "24px" : "0px", marginBottom: "8px" }}
+        >
+          <div className="flex items-center justify-between h-10 p-2 rounded-md bg-gray-50 hover:bg-gray-100">
+            <div className="flex items-center gap-2">
+              <div className="w-5" />
+              <Database className="w-4 h-4 text-blue-600" />
+              <span className="font-mono text-sm">{field?.caption || node.name}</span>
+              <span className="text-xs text-gray-500">({node.id})</span>
+            </div>
+            <div className="flex gap-1">
+              <button
+                onClick={async (e) => {
+                  e.stopPropagation();
+                  // Find parent config and remove field from deps
+                  const parentConfig = workingConfigs.find(c => 
+                    c.deps?.includes(node.id)
+                  );
+                  if (parentConfig) {
+                    const updatedDeps = parentConfig.deps.filter(d => d !== node.id);
+                    let updatedSelfData = { ...parentConfig.self_data };
+
+                    // Update self_data based on parent config type
+                    if (parentConfig.type === "fields") {
+                      // Remove field from fields object - create new object to avoid extensibility issues
+                      if (updatedSelfData.fields && typeof updatedSelfData.fields === 'object') {
+                        const { [node.id]: removed, ...remainingFields } = updatedSelfData.fields;
+                        updatedSelfData.fields = remainingFields;
+                      }
+                    } else if (parentConfig.type === "sort") {
+                      updatedSelfData.sort_fields = (updatedSelfData.sort_fields || [])
+                        .filter((sf: any) => sf.field !== node.id);
+                    } else if (parentConfig.type === "filter") {
+                      updatedSelfData.filter_fields = (updatedSelfData.filter_fields || [])
+                        .filter((ff: any) => ff.field !== node.id);
+                    }
+
+                    await appConfigStore.updateConfigAndCascade(parentConfig.id, {
+                      deps: updatedDeps,
+                      self_data: updatedSelfData,
+                    });
+                  }
+                }}
+                className="p-1 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded"
+                title="Remove from config"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
     const TypeInfo = configTypes[node.configType || ""] || {
       icon: Package,
       color: "text-gray-600",
@@ -749,7 +831,6 @@ const AppConfig: React.FC = () => {
     const hasChildren = node.children.length > 0;
     const nodeDeps = node.deps || [];
     const propertyDeps = nodeDeps.filter((d) => d.startsWith("property_"));
-    const fieldDeps = nodeDeps.filter((d) => d.includes("field"));
 
     // Check if this node can accept field drops (only leaf configs: fields, sort, filter)
     const canAcceptFields = ["fields", "sort", "filter"].includes(
@@ -762,7 +843,7 @@ const AppConfig: React.FC = () => {
     return (
       <div
         key={node.id}
-        style={{ marginLeft: `${level * 24}px`, marginBottom: "8px" }}
+        style={{ marginLeft: level > 0 ? "24px" : "0px", marginBottom: "8px" }}
       >
         <div
           className={`flex items-center justify-between h-10 p-2 rounded-md transition-all ${
@@ -817,82 +898,14 @@ const AppConfig: React.FC = () => {
 
             {propertyDeps.length > 0 && (
               <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded">
-                {propertyDeps.length}p
+                {propertyDeps.length} props
               </span>
-            )}
-            {fieldDeps.length > 0 && (
-              <div className="flex items-center gap-1">
-                <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">
-                  {fieldDeps.length}f
-                </span>
-                <div className="flex gap-0.5">
-                  {fieldDeps.slice(0, 3).map((fieldId) => (
-                    <span
-                      key={fieldId}
-                      className="text-xs bg-indigo-100 text-indigo-700 px-1.5 py-0.5 rounded flex items-center gap-1 group"
-                      title={fieldId}
-                    >
-                      <span className="max-w-[60px] truncate">
-                        {fieldId
-                          .replace(/^(entity_field_|field_)/, "")
-                          .substring(0, 8)}
-                      </span>
-                      <button
-                        onClick={async (e) => {
-                          e.stopPropagation();
-                          // Remove field dependency
-                          const config = workingConfigs.find(
-                            (c) => c.id === node.id
-                          );
-                          if (config) {
-                            const updatedDeps = config.deps.filter(
-                              (d) => d !== fieldId
-                            );
-                            let updatedSelfData = { ...config.self_data };
-
-                            // Update self_data based on config type
-                            if (node.configType === "fields") {
-                              updatedSelfData.fields = (
-                                updatedSelfData.fields || []
-                              ).filter((f: string) => f !== fieldId);
-                            } else if (node.configType === "sort") {
-                              updatedSelfData.sort_fields = (
-                                updatedSelfData.sort_fields || []
-                              ).filter((sf: any) => sf.field !== fieldId);
-                            } else if (node.configType === "filter") {
-                              updatedSelfData.filter_fields = (
-                                updatedSelfData.filter_fields || []
-                              ).filter((ff: any) => ff.field !== fieldId);
-                            }
-
-                            await appConfigStore.updateConfigAndCascade(
-                              node.id,
-                              {
-                                deps: updatedDeps,
-                                self_data: updatedSelfData,
-                              }
-                            );
-                          }
-                        }}
-                        className="opacity-0 group-hover:opacity-100 hover:text-red-600 transition-opacity"
-                        title={`Remove field ${fieldId}`}
-                      >
-                        <X className="w-3 h-3" />
-                      </button>
-                    </span>
-                  ))}
-                  {fieldDeps.length > 3 && (
-                    <span className="text-xs text-gray-500">
-                      +{fieldDeps.length - 3}
-                    </span>
-                  )}
-                </div>
-              </div>
             )}
           </div>
 
           <div className="flex gap-1">
-            {getAvailableChildTypes(node.configType || "").length > 0 && (
+            {getAvailableChildTypes(node.configType || "").length > 0 && 
+             getAvailableChildTypes(node.configType || "").some(type => appConfigStore.canAddConfigType(node.id, type)) && (
               <>
                 <button
                   onClick={(e) => {
@@ -928,16 +941,18 @@ const AppConfig: React.FC = () => {
             >
               <Eye className="w-4 h-4" />
             </button>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                startEditConfig(node.id);
-              }}
-              className="p-1 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded"
-              title="Edit config"
-            >
-              <Edit className="w-4 h-4" />
-            </button>
+            {!appConfigStore.isGroupingConfigType(node.configType || '') && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  startEditConfig(node.id);
+                }}
+                className="p-1 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded"
+                title="Edit config"
+              >
+                <Edit className="w-4 h-4" />
+              </button>
+            )}
             <button
               onClick={(e) => {
                 e.stopPropagation();
@@ -1640,7 +1655,8 @@ const AppConfig: React.FC = () => {
 
             <div className="space-y-2">
               {(addParentId
-                ? getAvailableChildTypes(
+                ? appConfigStore.getAvailableChildTypesForParent(
+                    addParentId,
                     workingConfigs.find((c) => c.id === addParentId)?.type || ""
                   )
                 : ["app"]

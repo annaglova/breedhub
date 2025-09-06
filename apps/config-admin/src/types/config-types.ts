@@ -43,7 +43,7 @@ export const configTypes: Record<string, ConfigTypeInfo> = {
   sort: { name: "Sort Config", icon: Settings, color: "text-gray-600" },
   filter: { name: "Filter Config", icon: Filter, color: "text-cyan-600" },
   fields: { name: "Fields Config", icon: List, color: "text-indigo-600" },
-  tabs: { name: "Tabs Config", icon: Layers, color: "text-pink-600" },
+  tab: { name: "Tab", icon: Layers, color: "text-pink-600" },
 };
 
 // Child type mappings
@@ -52,8 +52,8 @@ export const childTypeMapping: Record<string, string[]> = {
   workspace: ["space"],
   space: ["view", "page"],
   view: ["fields", "sort", "filter"],
-  page: ["fields", "tabs"],
-  tabs: ["fields"],
+  page: ["fields", "tab"],
+  tab: ["fields"],
 };
 
 // Get available child types for a parent type
