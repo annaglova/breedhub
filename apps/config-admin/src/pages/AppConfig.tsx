@@ -1095,7 +1095,7 @@ const AppConfig: React.FC = () => {
                             prop
                           )}`}
                         >
-                          {prop.caption || propId}
+                          {propId.replace("property_", "")}
                         </span>
                         <button
                           onClick={async (e) => {
