@@ -1658,9 +1658,49 @@ class AppConfigStore {
             if (!newSelfData.fields) {
               newSelfData.fields = {};
             }
-            const { tags, type, deps, caption, version, created_at, updated_at, _deleted, _rev, ...cleanSelfData } = child.self_data || {};
+            
+            // Process field dependencies with overrides
+            if (child.deps && child.deps.length > 0) {
+              for (const fieldId of child.deps) {
+                if (fieldId.includes('field')) {
+                  const fieldConfig = this.configs.value.get(fieldId);
+                  if (fieldConfig) {
+                    // Start with base field data
+                    let fieldData = fieldConfig.data || fieldConfig.self_data || {};
+                    
+                    // Apply field overrides if they exist
+                    if (child.self_data?._field_overrides?.[fieldId]) {
+                      fieldData = { ...fieldData, ...child.self_data._field_overrides[fieldId] };
+                    }
+                    
+                    // Apply extra properties if they exist
+                    if (child.self_data?._field_extra_props?.[fieldId]) {
+                      const extraProps = child.self_data._field_extra_props[fieldId];
+                      for (const propId of extraProps) {
+                        const propConfig = this.configs.value.get(propId);
+                        if (propConfig) {
+                          fieldData = { ...fieldData, ...(propConfig.data || propConfig.self_data || {}) };
+                        }
+                      }
+                    }
+                    
+                    // Update field data in the fields container
+                    newSelfData.fields[fieldId] = fieldData;
+                  }
+                }
+              }
+            }
+            
+            // Also merge any additional fields data from self_data/override_data
+            const { tags, type, deps, caption, version, created_at, updated_at, _deleted, _rev, 
+                    _field_overrides, _field_extra_props, ...cleanSelfData } = child.self_data || {};
             const { tags: t2, type: ty2, deps: d2, caption: c2, version: v2, ...cleanOverrideData } = child.override_data || {};
-            Object.assign(newSelfData.fields, cleanSelfData, cleanOverrideData);
+            if (cleanSelfData.fields && typeof cleanSelfData.fields === 'object') {
+              Object.assign(newSelfData.fields, cleanSelfData.fields);
+            }
+            if (cleanOverrideData.fields && typeof cleanOverrideData.fields === 'object') {
+              Object.assign(newSelfData.fields, cleanOverrideData.fields);
+            }
             
           } else if (child.type === 'sort') {
             if (!Array.isArray(newSelfData.sort_fields)) {
@@ -1812,8 +1852,27 @@ class AppConfigStore {
                   if (fieldId.includes('field')) {
                     const fieldConfig = this.configs.value.get(fieldId);
                     if (fieldConfig) {
-                      // Add field data to the fields container
-                      newSelfData.fields[fieldId] = fieldConfig.data || fieldConfig.self_data || {};
+                      // Start with base field data
+                      let fieldData = fieldConfig.data || fieldConfig.self_data || {};
+                      
+                      // Apply field overrides if they exist
+                      if (child.self_data?._field_overrides?.[fieldId]) {
+                        fieldData = { ...fieldData, ...child.self_data._field_overrides[fieldId] };
+                      }
+                      
+                      // Apply extra properties if they exist
+                      if (child.self_data?._field_extra_props?.[fieldId]) {
+                        const extraProps = child.self_data._field_extra_props[fieldId];
+                        for (const propId of extraProps) {
+                          const propConfig = this.configs.value.get(propId);
+                          if (propConfig) {
+                            fieldData = { ...fieldData, ...(propConfig.data || propConfig.self_data || {}) };
+                          }
+                        }
+                      }
+                      
+                      // Add processed field data to the fields container
+                      newSelfData.fields[fieldId] = fieldData;
                     }
                   }
                 }

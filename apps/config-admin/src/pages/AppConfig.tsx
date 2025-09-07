@@ -61,6 +61,14 @@ const AppConfig: React.FC = () => {
   const [editingConfigData, setEditingConfigData] = useState<string>("");
   const [editingConfigCaption, setEditingConfigCaption] = useState<string>("");
   const [editingConfigVersion, setEditingConfigVersion] = useState<number>(1);
+  
+  // Field override editor state
+  const [fieldOverrideEditor, setFieldOverrideEditor] = useState<{
+    configId: string;
+    fieldId: string;
+    overrides: any;
+    extraProps: string[];
+  } | null>(null);
 
   // Fields and properties state
   const [fields, setFields] = useState<Field[]>([]);
@@ -348,6 +356,62 @@ const AppConfig: React.FC = () => {
     } catch (error) {
       alert(`Failed to create config: ${error}`);
     }
+  };
+  
+  // Open field override editor
+  const openFieldOverrideEditor = (configId: string, fieldId: string) => {
+    const config = workingConfigs.find(c => c.id === configId);
+    if (!config) return;
+    
+    // Get existing overrides for this field
+    const fieldOverrides = config.self_data?._field_overrides?.[fieldId] || {};
+    const fieldExtraProps = config.self_data?._field_extra_props?.[fieldId] || [];
+    
+    setFieldOverrideEditor({
+      configId,
+      fieldId,
+      overrides: fieldOverrides,
+      extraProps: fieldExtraProps
+    });
+  };
+  
+  // Save field override
+  const saveFieldOverride = async () => {
+    if (!fieldOverrideEditor) return;
+    
+    const config = workingConfigs.find(c => c.id === fieldOverrideEditor.configId);
+    if (!config) return;
+    
+    let updatedSelfData = { ...config.self_data };
+    
+    // Initialize override structures if they don't exist
+    if (!updatedSelfData._field_overrides) {
+      updatedSelfData._field_overrides = {};
+    }
+    if (!updatedSelfData._field_extra_props) {
+      updatedSelfData._field_extra_props = {};
+    }
+    
+    // Update overrides for this field
+    if (Object.keys(fieldOverrideEditor.overrides).length > 0) {
+      updatedSelfData._field_overrides[fieldOverrideEditor.fieldId] = fieldOverrideEditor.overrides;
+    } else {
+      delete updatedSelfData._field_overrides[fieldOverrideEditor.fieldId];
+    }
+    
+    // Update extra props for this field
+    if (fieldOverrideEditor.extraProps.length > 0) {
+      updatedSelfData._field_extra_props[fieldOverrideEditor.fieldId] = fieldOverrideEditor.extraProps;
+    } else {
+      delete updatedSelfData._field_extra_props[fieldOverrideEditor.fieldId];
+    }
+    
+    // Update config
+    await appConfigStore.updateConfigAndCascade(fieldOverrideEditor.configId, {
+      self_data: updatedSelfData
+    });
+    
+    setFieldOverrideEditor(null);
   };
 
   // Get available templates for current level
@@ -766,6 +830,10 @@ const AppConfig: React.FC = () => {
     // Special handling for field reference nodes
     if (node.configType === 'field_ref') {
       const field = fields.find(f => f.id === node.id);
+      // Find parent config to check for overrides
+      const parentConfig = workingConfigs.find(c => c.deps?.includes(node.id));
+      const hasOverrides = parentConfig?.self_data?._field_overrides?.[node.id] || 
+                          parentConfig?.self_data?._field_extra_props?.[node.id]?.length > 0;
       return (
         <div
           key={node.id}
@@ -777,8 +845,29 @@ const AppConfig: React.FC = () => {
               <Database className="w-4 h-4 text-blue-600" />
               <span className="font-mono text-sm">{field?.caption || node.name}</span>
               <span className="text-xs text-gray-500">({node.id})</span>
+              {hasOverrides && (
+                <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded">
+                  overridden
+                </span>
+              )}
             </div>
             <div className="flex gap-1">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  // Open override editor for this field in parent context
+                  const parentConfig = workingConfigs.find(c => 
+                    c.deps?.includes(node.id)
+                  );
+                  if (parentConfig) {
+                    openFieldOverrideEditor(parentConfig.id, node.id);
+                  }
+                }}
+                className="p-1 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded"
+                title="Edit field override"
+              >
+                <Edit className="w-4 h-4" />
+              </button>
               <button
                 onClick={async (e) => {
                   e.stopPropagation();
@@ -1645,6 +1734,125 @@ const AppConfig: React.FC = () => {
         onOverrideDataChange={setEditingOverrideData}
       />
 
+      {/* Field Override Editor Modal */}
+      {fieldOverrideEditor && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-2xl w-full max-h-[80vh] flex flex-col">
+            <h3 className="text-lg font-semibold mb-4">
+              Edit Field Override: {fieldOverrideEditor.fieldId}
+            </h3>
+            
+            <div className="flex-1 overflow-y-auto space-y-4">
+              {/* Field Info */}
+              <div className="bg-gray-50 p-4 rounded">
+                <div className="text-sm font-medium text-gray-700 mb-2">Field Base Data (Read-only)</div>
+                <pre className="text-xs bg-white p-2 rounded border overflow-x-auto">
+                  {JSON.stringify(
+                    fields.find(f => f.id === fieldOverrideEditor.fieldId)?.data || {},
+                    null,
+                    2
+                  )}
+                </pre>
+              </div>
+              
+              {/* Override Editor */}
+              <div>
+                <div className="text-sm font-medium text-gray-700 mb-2">
+                  Override Properties (JSON)
+                  <span className="text-xs text-gray-500 ml-2">
+                    These values will override base field properties in this context
+                  </span>
+                </div>
+                <textarea
+                  value={JSON.stringify(fieldOverrideEditor.overrides, null, 2)}
+                  onChange={(e) => {
+                    try {
+                      const parsed = JSON.parse(e.target.value);
+                      setFieldOverrideEditor({
+                        ...fieldOverrideEditor,
+                        overrides: parsed
+                      });
+                    } catch {}
+                  }}
+                  className="w-full h-32 p-2 border rounded font-mono text-sm"
+                  placeholder='{\n  "label": "Custom Label",\n  "required": false\n}'
+                />
+              </div>
+              
+              {/* Extra Properties */}
+              <div>
+                <div className="text-sm font-medium text-gray-700 mb-2">
+                  Additional Properties
+                  <span className="text-xs text-gray-500 ml-2">
+                    Select properties to add to this field in this context
+                  </span>
+                </div>
+                <div className="max-h-40 overflow-y-auto border rounded p-2">
+                  {properties.map(prop => {
+                    const isSelected = fieldOverrideEditor.extraProps.includes(prop.id);
+                    return (
+                      <label
+                        key={prop.id}
+                        className="flex items-center p-1 hover:bg-gray-50 cursor-pointer"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          onChange={(e) => {
+                            const newProps = e.target.checked
+                              ? [...fieldOverrideEditor.extraProps, prop.id]
+                              : fieldOverrideEditor.extraProps.filter(p => p !== prop.id);
+                            setFieldOverrideEditor({
+                              ...fieldOverrideEditor,
+                              extraProps: newProps
+                            });
+                          }}
+                          className="mr-2"
+                        />
+                        <span className="text-sm font-mono">
+                          {prop.id.replace('property_', '')}
+                        </span>
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
+              
+              {/* Preview */}
+              <div className="bg-blue-50 p-4 rounded">
+                <div className="text-sm font-medium text-blue-700 mb-2">Computed Result Preview</div>
+                <pre className="text-xs bg-white p-2 rounded border overflow-x-auto">
+                  {JSON.stringify(
+                    {
+                      ...fields.find(f => f.id === fieldOverrideEditor.fieldId)?.data || {},
+                      ...fieldOverrideEditor.overrides,
+                      // TODO: Add extra props data
+                    },
+                    null,
+                    2
+                  )}
+                </pre>
+              </div>
+            </div>
+            
+            <div className="mt-4 flex justify-end gap-2">
+              <button
+                onClick={() => setFieldOverrideEditor(null)}
+                className="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={saveFieldOverride}
+                className="px-4 py-2 text-white bg-blue-600 rounded-md hover:bg-blue-700"
+              >
+                Save Override
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      
       {/* Add Config Modal */}
       {showAddModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
