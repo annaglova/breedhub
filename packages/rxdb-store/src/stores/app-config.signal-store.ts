@@ -659,6 +659,32 @@ class AppConfigStore {
     }));
   }
   
+  /**
+   * Get available templates for a given parent type
+   */
+  getAvailableTemplatesForParent(parentType: string | null): AppConfig[] {
+    const allConfigs = this.configsList.value || [];
+    const templates = allConfigs.filter(
+      (c) => c.tags?.includes("template") && !c._deleted
+    );
+
+    if (!parentType) {
+      return templates.filter((t) => t.type === "app");
+    }
+
+    const childTypes: { [key: string]: string[] } = {
+      app: ["workspace"],
+      workspace: ["space"],
+      space: ["view", "page"],
+      view: ["sort", "fields", "filter"],
+      page: ["fields", "tab"],
+      tab: ["fields"],
+    };
+
+    const allowedTypes = childTypes[parentType] || [];
+    return templates.filter((t) => allowedTypes.includes(t.type));
+  }
+
   async createTemplate(type: string, parentId: string | null = null): Promise<AppConfig> {
     // Check if this config type can be added to parent
     if (parentId && !this.canAddConfigType(parentId, type)) {

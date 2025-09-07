@@ -278,23 +278,16 @@ const AppConfig: React.FC = () => {
     setExpandedNodes(newExpanded);
   };
 
-  // Delete config using unified store method
+  // Delete config using store method directly
   const deleteConfig = async (configId: string) => {
     const config = workingConfigs.find((c) => c.id === configId);
     const hasChildren = config?.deps && config.deps.length > 0;
-
-    // Confirm deletion with warning about children
     const confirmMessage = hasChildren
       ? `Delete config "${configId}" and all its child configs?`
       : `Delete config "${configId}"?`;
-
+    
     if (!confirm(confirmMessage)) return;
-
-    try {
-      await appConfigStore.deleteConfigWithChildren(configId);
-    } catch (error) {
-      alert(`Failed to delete config: ${error}`);
-    }
+    await appConfigStore.deleteConfigWithChildren(configId);
   };
 
   // Start editing config
@@ -308,20 +301,16 @@ const AppConfig: React.FC = () => {
     setEditingConfigVersion(config.version || 1);
   };
 
-  // Save config edit using unified store method
+  // Save config edit
   const saveConfigEdit = async () => {
     if (!editingConfig) return;
-
     try {
       const overrideData = JSON.parse(editingConfigData || "{}");
-
-      // Use unified update method that properly handles cascade
       await appConfigStore.updateTemplate(editingConfig, {
         caption: editingConfigCaption,
         version: editingConfigVersion,
         override_data: overrideData,
       });
-
       setEditingConfig(null);
       setEditingConfigData("");
       setEditingConfigCaption("");
@@ -331,39 +320,27 @@ const AppConfig: React.FC = () => {
     }
   };
 
-  // Create config from template
+  // Create config from template  
   const createFromTemplate = async (templateId: string) => {
-    try {
-      await appConfigStore.createConfigFromTemplate(templateId, createParentId);
-      setShowTemplateSelect(false);
-      setCreateParentId(null);
-
-      // Expand parent to show new config
-      if (createParentId) {
-        const newExpanded = new Set(expandedNodes);
-        newExpanded.add(createParentId);
-        setExpandedNodes(newExpanded);
-      }
-    } catch (error) {
-      alert(`Failed to create config from template: ${error}`);
+    await appConfigStore.createConfigFromTemplate(templateId, createParentId);
+    setShowTemplateSelect(false);
+    setCreateParentId(null);
+    if (createParentId) {
+      const newExpanded = new Set(expandedNodes);
+      newExpanded.add(createParentId);
+      setExpandedNodes(newExpanded);
     }
   };
 
-  // Create working config (without template)
+  // Create working config
   const createWorkingConfig = async (type: string, parentId: string | null) => {
-    try {
-      await appConfigStore.createWorkingConfig(type, parentId);
-      setShowAddModal(false);
-      setAddParentId(null);
-
-      // Expand parent to show new config
-      if (parentId) {
-        const newExpanded = new Set(expandedNodes);
-        newExpanded.add(parentId);
-        setExpandedNodes(newExpanded);
-      }
-    } catch (error) {
-      alert(`Failed to create config: ${error}`);
+    await appConfigStore.createWorkingConfig(type, parentId);
+    setShowAddModal(false);
+    setAddParentId(null);
+    if (parentId) {
+      const newExpanded = new Set(expandedNodes);
+      newExpanded.add(parentId);
+      setExpandedNodes(newExpanded);
     }
   };
   
@@ -448,35 +425,7 @@ const AppConfig: React.FC = () => {
 
   // Get available templates for current level
   const getAvailableTemplates = (parentType: string | null) => {
-    const allConfigs = appConfigStore.configsList.value || [];
-    const templates = allConfigs.filter(
-      (c) => c.tags?.includes("template") && !c._deleted
-    );
-
-    if (!parentType) {
-      return templates.filter((t) => t.type === "app");
-    }
-
-    const childTypes: { [key: string]: string[] } = {
-      app: ["workspace"],
-      workspace: ["space"],
-      space: ["view", "page"],
-      view: ["sort", "fields"],
-      page: ["fields", "tab"],
-      tab: ["fields"],
-    };
-
-    const allowedTypes = childTypes[parentType] || [];
-    return templates.filter((t) => allowedTypes.includes(t.type));
-  };
-
-  // Use store methods for dependency management
-  const addDependency = async (fieldId: string, propertyId: string) => {
-    await appConfigStore.addDependencyWithUI(fieldId, propertyId);
-  };
-
-  const removeDependency = async (fieldId: string, depToRemove: string) => {
-    await appConfigStore.removeDependencyWithUI(fieldId, depToRemove);
+    return appConfigStore.getAvailableTemplatesForParent(parentType);
   };
 
   // Start editing field
@@ -578,7 +527,7 @@ const AppConfig: React.FC = () => {
           e.preventDefault();
           e.stopPropagation();
           if (draggedProperty && !field.deps?.includes(draggedProperty)) {
-            await appConfigStore.addDependency(field.id, draggedProperty);
+            await appConfigStore.addDependencyWithUI(field.id, draggedProperty);
           }
           setDraggedProperty(null);
           setDragOverField(null);
@@ -668,7 +617,7 @@ const AppConfig: React.FC = () => {
                           key={prop.id}
                           onClick={() => {
                             if (!alreadyAdded) {
-                              appConfigStore.addDependency(field.id, prop.id);
+                              appConfigStore.addDependencyWithUI(field.id, prop.id);
                             }
                             setShowPropertyDropdown(null);
                           }}
@@ -757,7 +706,7 @@ const AppConfig: React.FC = () => {
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
-                      appConfigStore.removeDependency(field.id, propId);
+                      appConfigStore.removeDependencyWithUI(field.id, propId);
                     }}
                     className="ml-1 text-gray-400 hover:text-red-600"
                   >
@@ -793,7 +742,7 @@ const AppConfig: React.FC = () => {
         return;
       }
       // Allow properties on other configs
-      const result = await appConfigStore.addDependency(nodeId, draggedProperty);
+      const result = await appConfigStore.addDependencyWithUI(nodeId, draggedProperty);
       if (!result.success) {
         alert(result.error || 'Failed to add property');
       }
