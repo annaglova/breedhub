@@ -462,12 +462,8 @@ class AppConfigStore {
   async updateConfig(id: string, updates: Partial<AppConfig>): Promise<void> {
     console.log('[AppConfigStore] Updating config:', id, updates);
     
-    // Check if this is a grouping config type
+    // Allow override_data for all config types including grouping configs
     const existingConfig = this.configs.value.get(id);
-    if (existingConfig && this.isGroupingConfigType(existingConfig.type) && updates.override_data !== undefined) {
-      console.warn(`[AppConfigStore] Cannot set override_data for grouping config type: ${existingConfig.type}`);
-      delete updates.override_data;
-    }
     
     try {
       this.loading.value = true;
@@ -552,7 +548,8 @@ class AppConfigStore {
   }
   
   async deleteConfig(id: string): Promise<void> {
-    console.log('[AppConfigStore] Deleting config:', id);
+    const config = this.configs.value.get(id);
+    console.log(`[deleteConfig] Deleting config: ${id} (type: ${config?.type || 'unknown'})`);
     
     try {
       this.loading.value = true;
@@ -571,6 +568,8 @@ class AppConfigStore {
         deleted_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       });
+      
+      console.log(`[deleteConfig] Successfully soft-deleted: ${id}`);
       
       // Remove from signal
       const newConfigs = new Map(this.configs.value);
@@ -743,18 +742,60 @@ class AppConfigStore {
     const template = this.configs.value.get(templateId);
     if (!template) throw new Error(`Template ${templateId} not found`);
     
-    const timestamp = Date.now();
-    const newId = `${template.id}_copy_${timestamp}`;
+    // Helper function to recursively clone template and its children
+    const cloneRecursive = async (originalId: string, parentCloneId: string | null = null): Promise<AppConfig> => {
+      const original = this.configs.value.get(originalId);
+      if (!original) throw new Error(`Template ${originalId} not found`);
+      
+      const timestamp = Date.now();
+      const cloneId = parentCloneId ? 
+        `${original.id}_copy_${timestamp}` : 
+        `${original.id}_copy_${timestamp}`;
+      
+      // Create the clone without children initially
+      const cloned = await this.createConfig({
+        ...original,
+        id: cloneId,
+        caption: parentCloneId ? original.caption : `${original.caption || original.id} (copy)`,
+        deps: [], // Will be populated with cloned children
+        _deleted: false,
+        _rev: undefined
+      });
+      
+      // Clone all children recursively
+      if (original.deps && original.deps.length > 0) {
+        const clonedChildIds: string[] = [];
+        
+        for (const childId of original.deps) {
+          const child = this.configs.value.get(childId);
+          
+          // Only clone configs that are part of the template structure
+          // Skip field references as they are shared
+          if (child && child.type !== 'field') {
+            const clonedChild = await cloneRecursive(childId, cloneId);
+            clonedChildIds.push(clonedChild.id);
+          } else if (child && child.type === 'field') {
+            // Keep field references as is
+            clonedChildIds.push(childId);
+          }
+        }
+        
+        // Update clone with children
+        if (clonedChildIds.length > 0) {
+          await this.updateConfig(cloneId, { deps: clonedChildIds });
+          
+          // Rebuild self_data for high-level structures
+          if (this.isHighLevelType(cloned.type)) {
+            await this.rebuildParentSelfData(cloneId);
+          }
+        }
+      }
+      
+      return cloned;
+    };
     
-    // Create the clone without children initially
-    const clonedTemplate = await this.createConfig({
-      ...template,
-      id: newId,
-      caption: `${template.caption || template.id} (copy)`,
-      deps: [], // Clone without children
-      _deleted: false,
-      _rev: undefined
-    });
+    // Clone the template and all its children
+    const clonedTemplate = await cloneRecursive(templateId);
     
     // Find parent template (template that has the original templateId in its deps)
     const allConfigs = Array.from(this.configs.value.values());
@@ -763,36 +804,48 @@ class AppConfigStore {
       config.deps?.includes(templateId)
     );
     
-    // If parent exists, add the cloned template to parent's deps
+    // If parent exists, add the cloned template to parent's deps and rebuild
     if (parent) {
-      const updatedDeps = [...(parent.deps || []), newId];
+      const updatedDeps = [...(parent.deps || []), clonedTemplate.id];
       await this.updateConfig(parent.id, { deps: updatedDeps });
+      
+      // Rebuild parent's self_data
+      if (this.isHighLevelType(parent.type)) {
+        await this.rebuildParentSelfData(parent.id);
+        await this.cascadeUpdateUp(parent.id);
+      }
     }
     
     return clonedTemplate;
   }
   
-  async updateTemplate(templateId: string, updates: {
+  // Unified update method for both templates and configs
+  async updateConfigWithCascade(configId: string, updates: {
     caption?: string;
     version?: number;
     override_data?: any;
     self_data?: any;
   }): Promise<void> {
-    const template = this.configs.value.get(templateId);
-    if (!template) throw new Error(`Template ${templateId} not found`);
+    const config = this.configs.value.get(configId);
+    if (!config) throw new Error(`Config ${configId} not found`);
     
-    console.log('[updateTemplate] Updating:', templateId, 'with:', updates);
+    console.log('[updateConfigWithCascade] Updating:', configId, 'with:', updates);
     
-    // Update the template
-    await this.updateConfig(templateId, updates);
+    // Update the config
+    await this.updateConfig(configId, updates);
     
     // If this is a high-level structure or grouping type, cascade updates up the tree
-    if (highLevelTypes.includes(template.type) || groupingTypes.includes(template.type) || template.type === 'property') {
-      await this.cascadeUpdateUp(templateId);
+    if (highLevelTypes.includes(config.type) || groupingTypes.includes(config.type) || config.type === 'property') {
+      await this.cascadeUpdateUp(configId);
     } else {
       // For other types, use old cascade logic
-      await this.cascadeUpdate(templateId);
+      await this.cascadeUpdate(configId);
     }
+  }
+
+  // Alias for backward compatibility
+  async updateTemplate(templateId: string, updates: any): Promise<void> {
+    return this.updateConfigWithCascade(templateId, updates);
   }
   
   // Create working config from template (recursive)
@@ -1016,23 +1069,9 @@ class AppConfigStore {
     }
   }
 
-  // Update config and cascade changes up the tree
-  async updateConfigAndCascade(configId: string, updates: {
-    caption?: string;
-    version?: number;
-    override_data?: any;
-    self_data?: any;
-  }): Promise<void> {
-    const config = this.configs.value.get(configId);
-    if (!config) throw new Error(`Config ${configId} not found`);
-    
-    // Update the config
-    await this.updateConfig(configId, updates);
-    
-    // If this is a high-level structure, cascade updates up the tree
-    if (this.isHighLevelType(config.type)) {
-      await this.cascadeUpdateUp(configId);
-    }
+  // Alias for backward compatibility with old name
+  async updateConfigAndCascade(configId: string, updates: any): Promise<void> {
+    return this.updateConfigWithCascade(configId, updates);
   }
 
   // ============= PROPERTY OPERATIONS =============
@@ -1506,6 +1545,12 @@ class AppConfigStore {
       const parents = allConfigs.filter(c => c.deps && c.deps.includes(id));
       
       for (const parent of parents) {
+        // Don't recalculate self_data for fields - they manage their own data
+        if (parent.type === 'field' || parent.type === 'entity_field') {
+          console.log(`[cascadeUpdate] Skipping field self_data recalculation for: ${parent.id}`);
+          continue;
+        }
+        
         // Recalculate parent's self_data
         const newSelfData = await this.recalculateSelfData(parent.id);
         await this.updateConfig(parent.id, { self_data: newSelfData });
@@ -1531,15 +1576,30 @@ class AppConfigStore {
         return { success: false, error: 'Config not found' };
       }
       
+      console.log(`[deleteWithDependencies] Starting deletion for: ${configId} (type: ${config.type})`);
+      console.log(`[deleteWithDependencies] Config has deps:`, config.deps);
+      
       // If deleteChildren is true and config has deps (children), process them
       if (options.deleteChildren && config.deps && config.deps.length > 0) {
         for (const childId of config.deps) {
-          // Skip deletion for field references - only remove from deps
-          if (childId.includes('field')) {
-            // Just remove the field from deps, don't delete it
-            await this.removeDependency(config.id, childId, { skipCascade: true });
+          // Get the child config to check its type
+          const childConfig = this.configs.value.get(childId);
+          
+          if (!childConfig) {
+            // If it's not a config, it might be a field reference
+            console.log(`[deleteWithDependencies] Child not found in configs: ${childId}, skipping`);
+            continue;
+          }
+          
+          // Skip deletion only for actual field configs (type: 'field' or 'entity_field')
+          // But delete grouping configs (type: 'fields', 'sort', 'filter') and all other configs
+          if (childConfig.type === 'field' || childConfig.type === 'entity_field') {
+            // Fields are shared resources, don't delete them
+            // They will be automatically removed from deps when the parent is deleted
+            console.log(`[deleteWithDependencies] Skipping field deletion: ${childId} (type: ${childConfig.type})`);
           } else {
-            // Delete actual config children recursively
+            // Delete all other config types recursively (including grouping configs)
+            console.log(`[deleteWithDependencies] Deleting child config: ${childId} (type: ${childConfig.type})`);
             await this.deleteWithDependencies(childId, { deleteChildren: true });
           }
         }
@@ -1556,9 +1616,12 @@ class AppConfigStore {
       // Delete the config
       await this.deleteConfig(configId);
       
-      // Cascade update all affected parents
+      // Cascade update all affected parents (but not fields)
       for (const parent of parents) {
-        await this.cascadeUpdate(parent.id);
+        // Don't cascade update fields - they are independent entities
+        if (parent.type !== 'field' && parent.type !== 'entity_field') {
+          await this.cascadeUpdate(parent.id);
+        }
       }
       
       return { success: true };
@@ -1878,18 +1941,15 @@ class AppConfigStore {
                 }
               }
               
-              // Then merge any additional data from fields config itself
-              const { tags, type, deps, caption, version, created_at, updated_at, _deleted, _rev, ...cleanSelfData } = child.self_data || {};
-              const { tags: t2, type: ty2, deps: d2, caption: c2, version: v2, ...cleanOverrideData } = child.override_data || {};
+              // Use child.data which is the merged self_data + override_data
+              const childData = child.data || { ...child.self_data, ...child.override_data };
+              const { tags, type, deps, caption, version, created_at, updated_at, _deleted, _rev, ...cleanData } = childData;
               
               console.log('[rebuildParentSelfData] Processing fields config for parent type:', parent.type, 'with', child.deps?.length || 0, 'field deps');
               
-              // Merge any additional fields data from self_data/override_data
-              if (cleanSelfData.fields && typeof cleanSelfData.fields === 'object') {
-                Object.assign(newSelfData.fields, cleanSelfData.fields);
-              }
-              if (cleanOverrideData.fields && typeof cleanOverrideData.fields === 'object') {
-                Object.assign(newSelfData.fields, cleanOverrideData.fields);
+              // Merge any additional fields data from the merged data
+              if (cleanData.fields && typeof cleanData.fields === 'object') {
+                Object.assign(newSelfData.fields, cleanData.fields);
               }
               
             } else if (child.type === 'sort') {
@@ -1897,14 +1957,13 @@ class AppConfigStore {
               if (!Array.isArray(newSelfData.sort_fields)) {
                 newSelfData.sort_fields = [];
               }
-              // Add sort fields from this config
-              const { tags, type, deps, caption, version, created_at, updated_at, _deleted, _rev, ...cleanSelfData } = child.self_data || {};
-              const { tags: t2, type: ty2, deps: d2, caption: c2, version: v2, ...cleanOverrideData } = child.override_data || {};
+              // Use child.data which is the merged self_data + override_data
+              const sortData = child.data || { ...child.self_data, ...child.override_data };
+              const { tags, type, deps, caption, version, created_at, updated_at, _deleted, _rev, ...cleanSortData } = sortData;
               
               // Add fields from sort config (if it has any)
-              const sortData = { ...cleanSelfData, ...cleanOverrideData };
-              if (sortData.sort_fields && Array.isArray(sortData.sort_fields)) {
-                newSelfData.sort_fields.push(...sortData.sort_fields);
+              if (cleanSortData.sort_fields && Array.isArray(cleanSortData.sort_fields)) {
+                newSelfData.sort_fields.push(...cleanSortData.sort_fields);
               }
               
             } else if (child.type === 'filter') {
@@ -1912,14 +1971,13 @@ class AppConfigStore {
               if (!Array.isArray(newSelfData.filter_fields)) {
                 newSelfData.filter_fields = [];
               }
-              // Add filter fields from this config
-              const { tags, type, deps, caption, version, created_at, updated_at, _deleted, _rev, ...cleanSelfData } = child.self_data || {};
-              const { tags: t2, type: ty2, deps: d2, caption: c2, version: v2, ...cleanOverrideData } = child.override_data || {};
+              // Use child.data which is the merged self_data + override_data
+              const filterData = child.data || { ...child.self_data, ...child.override_data };
+              const { tags, type, deps, caption, version, created_at, updated_at, _deleted, _rev, ...cleanFilterData } = filterData;
               
               // Add fields from filter config (if it has any)
-              const filterData = { ...cleanSelfData, ...cleanOverrideData };
-              if (filterData.filter_fields && Array.isArray(filterData.filter_fields)) {
-                newSelfData.filter_fields.push(...filterData.filter_fields);
+              if (cleanFilterData.filter_fields && Array.isArray(cleanFilterData.filter_fields)) {
+                newSelfData.filter_fields.push(...cleanFilterData.filter_fields);
               }
             }
           } else {

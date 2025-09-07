@@ -64,10 +64,9 @@ const AppConfig: React.FC = () => {
   
   // Field override editor state
   const [fieldOverrideEditor, setFieldOverrideEditor] = useState<{
-    configId: string;
+    parentConfigId: string;
     fieldId: string;
-    overrides: any;
-    extraProps: string[];
+    fieldOverrideData: string;
   } | null>(null);
 
   // Fields and properties state
@@ -114,9 +113,9 @@ const AppConfig: React.FC = () => {
   // Build tree structure from configs
   const buildConfigTree = (configs: WorkingConfig[]): TreeNode[] => {
     const nodeMap = new Map<string, TreeNode>();
-    const roots: TreeNode[] = [];
+    const childIds = new Set<string>();
 
-    // Create nodes
+    // First pass: Create all nodes
     configs.forEach((config) => {
       const node: TreeNode = {
         id: config.id,
@@ -127,10 +126,9 @@ const AppConfig: React.FC = () => {
         deps: config.deps,
       };
       nodeMap.set(config.id, node);
-      roots.push(node);
     });
 
-    // Build parent-child relationships from deps
+    // Second pass: Build parent-child relationships and track children
     configs.forEach((config) => {
       const parentNode = nodeMap.get(config.id);
       if (!parentNode) return;
@@ -156,13 +154,22 @@ const AppConfig: React.FC = () => {
             const childConfig = configs.find((c) => c.id === childId);
             if (childNode && childConfig) {
               parentNode.children.push(childNode);
-              const rootIndex = roots.indexOf(childNode);
-              if (rootIndex > -1) {
-                roots.splice(rootIndex, 1);
-              }
+              // Track this as a child so we don't include it in roots
+              childIds.add(childId);
             }
           }
         });
+      }
+    });
+
+    // Third pass: Collect only root nodes (configs that are not children of any other config)
+    const roots: TreeNode[] = [];
+    configs.forEach((config) => {
+      if (!childIds.has(config.id)) {
+        const node = nodeMap.get(config.id);
+        if (node) {
+          roots.push(node);
+        }
       }
     });
 
@@ -307,7 +314,8 @@ const AppConfig: React.FC = () => {
     try {
       const overrideData = JSON.parse(editingConfigData || "{}");
 
-      await appConfigStore.updateConfigAndCascade(editingConfig, {
+      // Use unified update method that properly handles cascade
+      await appConfigStore.updateTemplate(editingConfig, {
         caption: editingConfigCaption,
         version: editingConfigVersion,
         override_data: overrideData,
@@ -359,60 +367,83 @@ const AppConfig: React.FC = () => {
   };
   
   // Open field override editor
-  const openFieldOverrideEditor = (configId: string, fieldId: string) => {
-    const config = workingConfigs.find(c => c.id === configId);
-    if (!config) return;
+  const openFieldOverrideEditor = (parentConfigId: string, fieldId: string) => {
+    const parentConfig = workingConfigs.find(c => c.id === parentConfigId);
     
-    // Get existing overrides for this field
-    const fieldOverrides = config.self_data?._field_overrides?.[fieldId] || {};
-    const fieldExtraProps = config.self_data?._field_extra_props?.[fieldId] || [];
+    console.log('Opening field override editor:', {
+      parentConfigId,
+      fieldId,
+      parentConfig: parentConfig ? {
+        id: parentConfig.id,
+        type: parentConfig.type,
+        override_data: parentConfig.override_data,
+        deps: parentConfig.deps
+      } : null,
+      isGroupingType: parentConfig ? appConfigStore.isGroupingConfigType(parentConfig.type) : false
+    });
+    
+    if (!parentConfig || !appConfigStore.isGroupingConfigType(parentConfig.type)) {
+      console.error('Invalid parent config or not a grouping type');
+      return;
+    }
+    
+    // Get existing override for this field from parent's override_data
+    const existingOverride = parentConfig.override_data?.fields?.[fieldId] || {};
     
     setFieldOverrideEditor({
-      configId,
+      parentConfigId,
       fieldId,
-      overrides: fieldOverrides,
-      extraProps: fieldExtraProps
+      fieldOverrideData: JSON.stringify(existingOverride, null, 2)
     });
   };
-  
+
   // Save field override
   const saveFieldOverride = async () => {
     if (!fieldOverrideEditor) return;
-    
-    const config = workingConfigs.find(c => c.id === fieldOverrideEditor.configId);
-    if (!config) return;
-    
-    let updatedSelfData = { ...config.self_data };
-    
-    // Initialize override structures if they don't exist
-    if (!updatedSelfData._field_overrides) {
-      updatedSelfData._field_overrides = {};
+
+    try {
+      const fieldOverride = JSON.parse(fieldOverrideEditor.fieldOverrideData || "{}");
+      const parentConfig = workingConfigs.find(c => c.id === fieldOverrideEditor.parentConfigId);
+      
+      if (!parentConfig) {
+        alert("Parent config not found");
+        return;
+      }
+
+      // Get current override_data or initialize - create a deep copy to avoid extensibility issues
+      let currentOverrideData = JSON.parse(JSON.stringify(parentConfig.override_data || {}));
+      
+      // Initialize fields object if needed
+      if (!currentOverrideData.fields) {
+        currentOverrideData.fields = {};
+      }
+
+      // Update or remove field override
+      if (Object.keys(fieldOverride).length > 0) {
+        currentOverrideData.fields[fieldOverrideEditor.fieldId] = fieldOverride;
+      } else {
+        delete currentOverrideData.fields[fieldOverrideEditor.fieldId];
+      }
+
+      console.log('Saving field override:', {
+        parentConfigId: fieldOverrideEditor.parentConfigId,
+        fieldId: fieldOverrideEditor.fieldId,
+        fieldOverride,
+        currentOverrideData
+      });
+
+      // Update parent config's override_data
+      await appConfigStore.updateTemplate(fieldOverrideEditor.parentConfigId, {
+        override_data: currentOverrideData
+      });
+
+      setFieldOverrideEditor(null);
+    } catch (error) {
+      console.error("Error saving field override:", error);
+      alert(error instanceof Error ? error.message : "Failed to save field override");
     }
-    if (!updatedSelfData._field_extra_props) {
-      updatedSelfData._field_extra_props = {};
-    }
-    
-    // Update overrides for this field
-    if (Object.keys(fieldOverrideEditor.overrides).length > 0) {
-      updatedSelfData._field_overrides[fieldOverrideEditor.fieldId] = fieldOverrideEditor.overrides;
-    } else {
-      delete updatedSelfData._field_overrides[fieldOverrideEditor.fieldId];
-    }
-    
-    // Update extra props for this field
-    if (fieldOverrideEditor.extraProps.length > 0) {
-      updatedSelfData._field_extra_props[fieldOverrideEditor.fieldId] = fieldOverrideEditor.extraProps;
-    } else {
-      delete updatedSelfData._field_extra_props[fieldOverrideEditor.fieldId];
-    }
-    
-    // Update config
-    await appConfigStore.updateConfigAndCascade(fieldOverrideEditor.configId, {
-      self_data: updatedSelfData
-    });
-    
-    setFieldOverrideEditor(null);
   };
+  
 
   // Get available templates for current level
   const getAvailableTemplates = (parentType: string | null) => {
@@ -456,7 +487,7 @@ const AppConfig: React.FC = () => {
   };
 
   // Save field override_data
-  const saveFieldOverride = async () => {
+  const saveFieldOverrideData = async () => {
     if (!editingField) return;
 
     try {
@@ -832,8 +863,6 @@ const AppConfig: React.FC = () => {
       const field = fields.find(f => f.id === node.id);
       // Find parent config to check for overrides
       const parentConfig = workingConfigs.find(c => c.deps?.includes(node.id));
-      const hasOverrides = parentConfig?.self_data?._field_overrides?.[node.id] || 
-                          parentConfig?.self_data?._field_extra_props?.[node.id]?.length > 0;
       return (
         <div
           key={node.id}
@@ -845,22 +874,40 @@ const AppConfig: React.FC = () => {
               <Database className="w-4 h-4 text-blue-600" />
               <span className="font-mono text-sm">{field?.caption || node.name}</span>
               <span className="text-xs text-gray-500">({node.id})</span>
-              {hasOverrides && (
-                <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded">
-                  overridden
-                </span>
-              )}
             </div>
             <div className="flex gap-1">
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  // Open override editor for this field in parent context
-                  const parentConfig = workingConfigs.find(c => 
-                    c.deps?.includes(node.id)
+                  // View field data
+                  setViewingField(node.id);
+                }}
+                className="p-1 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded"
+                title="View field"
+              >
+                <Eye className="w-4 h-4" />
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  // Edit field override in parent context
+                  // Field is inside a grouping config (fields, sort, filter)
+                  // Need to find the grouping config that contains this field
+                  const groupingConfig = workingConfigs.find(c => 
+                    appConfigStore.isGroupingConfigType(c.type) && c.deps?.includes(node.id)
                   );
-                  if (parentConfig) {
-                    openFieldOverrideEditor(parentConfig.id, node.id);
+                  
+                  console.log('Looking for parent grouping config:', {
+                    fieldId: node.id,
+                    foundConfig: groupingConfig?.id,
+                    type: groupingConfig?.type
+                  });
+                  
+                  if (groupingConfig) {
+                    // Open field override editor for this field in grouping config's context
+                    openFieldOverrideEditor(groupingConfig.id, node.id);
+                  } else {
+                    alert('Parent grouping config not found');
                   }
                 }}
                 className="p-1 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded"
@@ -877,27 +924,35 @@ const AppConfig: React.FC = () => {
                   );
                   if (parentConfig) {
                     const updatedDeps = parentConfig.deps.filter(d => d !== node.id);
-                    let updatedSelfData = { ...parentConfig.self_data };
-
-                    // Update self_data based on parent config type
-                    if (parentConfig.type === "fields") {
-                      // Remove field from fields object - create new object to avoid extensibility issues
-                      if (updatedSelfData.fields && typeof updatedSelfData.fields === 'object') {
-                        const { [node.id]: removed, ...remainingFields } = updatedSelfData.fields;
-                        updatedSelfData.fields = remainingFields;
+                    
+                    // Also clean up override_data if it exists for this field
+                    let updatedOverrideData = parentConfig.override_data ? 
+                      JSON.parse(JSON.stringify(parentConfig.override_data)) : {};
+                    
+                    // Use the actual field ID
+                    const fieldId = node.id;
+                    
+                    // Remove field override if it exists
+                    if (updatedOverrideData.fields && updatedOverrideData.fields[fieldId]) {
+                      delete updatedOverrideData.fields[fieldId];
+                      
+                      // If fields object is now empty, remove it
+                      if (Object.keys(updatedOverrideData.fields).length === 0) {
+                        delete updatedOverrideData.fields;
                       }
-                    } else if (parentConfig.type === "sort") {
-                      updatedSelfData.sort_fields = (updatedSelfData.sort_fields || [])
-                        .filter((sf: any) => sf.field !== node.id);
-                    } else if (parentConfig.type === "filter") {
-                      updatedSelfData.filter_fields = (updatedSelfData.filter_fields || [])
-                        .filter((ff: any) => ff.field !== node.id);
                     }
-
-                    await appConfigStore.updateConfigAndCascade(parentConfig.id, {
+                    
+                    // Update deps and override_data
+                    await appConfigStore.updateConfig(parentConfig.id, {
                       deps: updatedDeps,
-                      self_data: updatedSelfData,
+                      override_data: Object.keys(updatedOverrideData).length > 0 ? updatedOverrideData : {}
                     });
+                    
+                    // Then rebuild parent's self_data from remaining deps
+                    await appConfigStore.rebuildParentSelfData(parentConfig.id);
+                    
+                    // Finally cascade updates up the tree
+                    await appConfigStore.cascadeUpdateUp(parentConfig.id);
                   }
                 }}
                 className="p-1 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded"
@@ -1659,10 +1714,15 @@ const AppConfig: React.FC = () => {
             <ConfigViewModal
               isOpen={true}
               onClose={() => setViewingConfig(null)}
-              onEdit={() => {
-                setViewingConfig(null);
-                startEditConfig(config.id);
-              }}
+              onEdit={
+                // Don't show edit button for grouping configs
+                appConfigStore.isGroupingConfigType(config.type)
+                  ? undefined
+                  : () => {
+                      setViewingConfig(null);
+                      startEditConfig(config.id);
+                    }
+              }
               title="View Config"
               config={config}
             />
@@ -1723,7 +1783,7 @@ const AppConfig: React.FC = () => {
           setEditingCaption("");
           setEditingVersion(1);
         }}
-        onSave={saveFieldOverride}
+        onSave={saveFieldOverrideData}
         title="Edit Field"
         configId={editingField || ""}
         caption={editingCaption}
@@ -1734,125 +1794,6 @@ const AppConfig: React.FC = () => {
         onOverrideDataChange={setEditingOverrideData}
       />
 
-      {/* Field Override Editor Modal */}
-      {fieldOverrideEditor && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-2xl w-full max-h-[80vh] flex flex-col">
-            <h3 className="text-lg font-semibold mb-4">
-              Edit Field Override: {fieldOverrideEditor.fieldId}
-            </h3>
-            
-            <div className="flex-1 overflow-y-auto space-y-4">
-              {/* Field Info */}
-              <div className="bg-gray-50 p-4 rounded">
-                <div className="text-sm font-medium text-gray-700 mb-2">Field Base Data (Read-only)</div>
-                <pre className="text-xs bg-white p-2 rounded border overflow-x-auto">
-                  {JSON.stringify(
-                    fields.find(f => f.id === fieldOverrideEditor.fieldId)?.data || {},
-                    null,
-                    2
-                  )}
-                </pre>
-              </div>
-              
-              {/* Override Editor */}
-              <div>
-                <div className="text-sm font-medium text-gray-700 mb-2">
-                  Override Properties (JSON)
-                  <span className="text-xs text-gray-500 ml-2">
-                    These values will override base field properties in this context
-                  </span>
-                </div>
-                <textarea
-                  value={JSON.stringify(fieldOverrideEditor.overrides, null, 2)}
-                  onChange={(e) => {
-                    try {
-                      const parsed = JSON.parse(e.target.value);
-                      setFieldOverrideEditor({
-                        ...fieldOverrideEditor,
-                        overrides: parsed
-                      });
-                    } catch {}
-                  }}
-                  className="w-full h-32 p-2 border rounded font-mono text-sm"
-                  placeholder='{\n  "label": "Custom Label",\n  "required": false\n}'
-                />
-              </div>
-              
-              {/* Extra Properties */}
-              <div>
-                <div className="text-sm font-medium text-gray-700 mb-2">
-                  Additional Properties
-                  <span className="text-xs text-gray-500 ml-2">
-                    Select properties to add to this field in this context
-                  </span>
-                </div>
-                <div className="max-h-40 overflow-y-auto border rounded p-2">
-                  {properties.map(prop => {
-                    const isSelected = fieldOverrideEditor.extraProps.includes(prop.id);
-                    return (
-                      <label
-                        key={prop.id}
-                        className="flex items-center p-1 hover:bg-gray-50 cursor-pointer"
-                      >
-                        <input
-                          type="checkbox"
-                          checked={isSelected}
-                          onChange={(e) => {
-                            const newProps = e.target.checked
-                              ? [...fieldOverrideEditor.extraProps, prop.id]
-                              : fieldOverrideEditor.extraProps.filter(p => p !== prop.id);
-                            setFieldOverrideEditor({
-                              ...fieldOverrideEditor,
-                              extraProps: newProps
-                            });
-                          }}
-                          className="mr-2"
-                        />
-                        <span className="text-sm font-mono">
-                          {prop.id.replace('property_', '')}
-                        </span>
-                      </label>
-                    );
-                  })}
-                </div>
-              </div>
-              
-              {/* Preview */}
-              <div className="bg-blue-50 p-4 rounded">
-                <div className="text-sm font-medium text-blue-700 mb-2">Computed Result Preview</div>
-                <pre className="text-xs bg-white p-2 rounded border overflow-x-auto">
-                  {JSON.stringify(
-                    {
-                      ...fields.find(f => f.id === fieldOverrideEditor.fieldId)?.data || {},
-                      ...fieldOverrideEditor.overrides,
-                      // TODO: Add extra props data
-                    },
-                    null,
-                    2
-                  )}
-                </pre>
-              </div>
-            </div>
-            
-            <div className="mt-4 flex justify-end gap-2">
-              <button
-                onClick={() => setFieldOverrideEditor(null)}
-                className="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={saveFieldOverride}
-                className="px-4 py-2 text-white bg-blue-600 rounded-md hover:bg-blue-700"
-              >
-                Save Override
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-      
       {/* Add Config Modal */}
       {showAddModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -1899,6 +1840,76 @@ const AppConfig: React.FC = () => {
                 className="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
               >
                 Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Field Override Editor Modal */}
+      {fieldOverrideEditor && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-2xl w-full max-h-[80vh] flex flex-col">
+            <h3 className="text-lg font-semibold mb-4">
+              Edit Field Override: {fieldOverrideEditor.fieldId}
+            </h3>
+            
+            <div className="flex-1 overflow-y-auto space-y-4">
+              {/* Field Info */}
+              <div>
+                <div className="text-sm font-medium text-gray-700 mb-2">
+                  Current Field Data (computed from base + parent overrides)
+                </div>
+                <textarea
+                  value={JSON.stringify(
+                    (() => {
+                      const field = fields.find(f => f.id === fieldOverrideEditor.fieldId);
+                      const parentConfig = workingConfigs.find(c => c.id === fieldOverrideEditor.parentConfigId);
+                      // Show the computed field data including any parent overrides
+                      return parentConfig?.data?.fields?.[fieldOverrideEditor.fieldId] || field?.data || {};
+                    })(),
+                    null,
+                    2
+                  )}
+                  readOnly
+                  className="w-full h-48 p-2 border rounded font-mono text-sm bg-gray-50"
+                />
+              </div>
+              
+              {/* Override Editor */}
+              <div>
+                <div className="text-sm font-medium text-gray-700 mb-2">
+                  Field Override Properties
+                  <span className="text-xs text-gray-500 ml-2">
+                    (These values will override the field properties in this context)
+                  </span>
+                </div>
+                <textarea
+                  value={fieldOverrideEditor.fieldOverrideData}
+                  onChange={(e) => {
+                    setFieldOverrideEditor({
+                      ...fieldOverrideEditor,
+                      fieldOverrideData: e.target.value
+                    });
+                  }}
+                  className="w-full h-48 p-2 border rounded font-mono text-sm"
+                  placeholder='{\n  "label": "Custom Label",\n  "required": false,\n  "icon": "custom-icon"\n}'
+                />
+              </div>
+            </div>
+            
+            <div className="mt-4 flex justify-end gap-2">
+              <button
+                onClick={() => setFieldOverrideEditor(null)}
+                className="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={saveFieldOverride}
+                className="px-4 py-2 text-white bg-blue-600 rounded-md hover:bg-blue-700"
+              >
+                Save Override
               </button>
             </div>
           </div>

@@ -466,16 +466,21 @@ export default function Templates() {
             <ConfigViewModal
               isOpen={true}
               onClose={() => setViewingNode(null)}
-              onEdit={() => {
-                setViewingNode(null);
-                startEditNode({
-                  id: viewingNode,
-                  name: template.caption || viewingNode,
-                  templateType: template.type,
-                  children: [],
-                  data: template.self_data,
-                });
-              }}
+              onEdit={
+                // Don't show edit button for grouping configs
+                appConfigStore.isGroupingConfigType(template.type)
+                  ? undefined
+                  : () => {
+                      setViewingNode(null);
+                      startEditNode({
+                        id: viewingNode,
+                        name: template.caption || viewingNode,
+                        templateType: template.type,
+                        children: [],
+                        data: template.self_data,
+                      });
+                    }
+              }
               title="View Template"
               config={template}
             />
