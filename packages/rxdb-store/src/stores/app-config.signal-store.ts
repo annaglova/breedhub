@@ -1449,6 +1449,41 @@ class AppConfigStore {
   }
   
   /**
+   * Get opposite property ID if exists
+   */
+  getOppositeProperty(propertyId: string): string | null {
+    // Define opposite property mappings
+    const opposites: Record<string, string> = {
+      'property_unique': 'property_not_unique',
+      'property_not_unique': 'property_unique',
+      'property_required': 'property_not_required',
+      'property_not_required': 'property_required',
+      'property_nullable': 'property_not_nullable',
+      'property_not_nullable': 'property_nullable',
+      'property_readonly': 'property_not_readonly',
+      'property_not_readonly': 'property_readonly',
+      'property_indexed': 'property_not_indexed',
+      'property_not_indexed': 'property_indexed',
+      'property_primary': 'property_not_primary',
+      'property_not_primary': 'property_primary',
+      'property_searchable': 'property_not_searchable',
+      'property_not_searchable': 'property_searchable',
+      'property_sortable': 'property_not_sortable',
+      'property_not_sortable': 'property_sortable',
+      'property_filterable': 'property_not_filterable',
+      'property_not_filterable': 'property_filterable',
+      'property_hidden': 'property_not_hidden',
+      'property_not_hidden': 'property_hidden',
+      'property_editable': 'property_not_editable',
+      'property_not_editable': 'property_editable',
+      'property_visible': 'property_not_visible',
+      'property_not_visible': 'property_visible'
+    };
+    
+    return opposites[propertyId] || null;
+  }
+
+  /**
    * Universal method for adding a dependency to a config
    */
   async addDependency(
@@ -1473,8 +1508,20 @@ class AppConfigStore {
         return { success: false, error: 'Dependency already exists' };
       }
       
+      // Check for opposite properties and auto-remove if exists
+      let currentDeps = [...(config.deps || [])];
+      
+      if (dependency.type === 'property') {
+        const oppositeId = this.getOppositeProperty(depId);
+        if (oppositeId && currentDeps.includes(oppositeId)) {
+          console.log(`[addDependency] Auto-removing opposite property: ${oppositeId}`);
+          // Remove the opposite property
+          currentDeps = currentDeps.filter(d => d !== oppositeId);
+        }
+      }
+      
       // Add to deps
-      const updatedDeps = [...(config.deps || []), depId];
+      const updatedDeps = [...currentDeps, depId];
       
       // Recalculate self_data based on all deps
       let newSelfData = {};
