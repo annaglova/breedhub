@@ -57,8 +57,8 @@ async function main() {
     
     console.log('\nInserting test data (properties + base fields + breed fields)...\n');
     
-    // Run insert script with auto-yes
-    require('child_process').execSync('echo "y" | node scripts/generate-sql-inserts.cjs', {
+    // Run insert script with breed-only flag and auto-yes
+    require('child_process').execSync('echo "y" | node scripts/generate-sql-inserts.cjs --breed-only', {
       stdio: 'inherit',
       cwd: path.resolve(__dirname, '..')
     });
