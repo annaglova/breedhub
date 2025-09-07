@@ -97,6 +97,7 @@ const AppConfig: React.FC = () => {
   const [editingCaption, setEditingCaption] = useState<string>("");
   const [editingVersion, setEditingVersion] = useState<number>(1);
   const [viewingField, setViewingField] = useState<string | null>(null);
+  const [viewingProperty, setViewingProperty] = useState<string | null>(null);
 
   // Handle escape key to deselect
   useEffect(() => {
@@ -785,7 +786,17 @@ const AppConfig: React.FC = () => {
 
     // Handle property drop
     if (draggedProperty) {
-      await appConfigStore.addDependency(nodeId, draggedProperty);
+      // Don't allow properties on grouping configs
+      if (["fields", "sort", "filter"].includes(nodeType)) {
+        alert("Properties cannot be added to grouping configs");
+        setDraggedProperty(null);
+        return;
+      }
+      // Allow properties on other configs
+      const result = await appConfigStore.addDependency(nodeId, draggedProperty);
+      if (!result.success) {
+        alert(result.error || 'Failed to add property');
+      }
       setDraggedProperty(null);
       return;
     }
@@ -990,7 +1001,7 @@ const AppConfig: React.FC = () => {
         style={{ marginLeft: level > 0 ? "24px" : "0px", marginBottom: "8px" }}
       >
         <div
-          className={`flex items-center justify-between h-10 p-2 rounded-md transition-all ${
+          className={`rounded-md transition-all ${
             isDropTarget
               ? "bg-green-100 border-2 border-green-400 border-dashed"
               : selectedConfig === node.id
@@ -1002,7 +1013,13 @@ const AppConfig: React.FC = () => {
             setSelectedConfig(node.id);
           }}
           onDragOver={(e) => {
-            if ((canAcceptFields && draggedField) || draggedProperty) {
+            // Allow fields on grouping configs
+            if (canAcceptFields && draggedField) {
+              e.preventDefault();
+              setDragOverConfig(node.id);
+            }
+            // Allow properties on non-grouping configs only
+            else if (draggedProperty && !["fields", "sort", "filter"].includes(node.configType || "")) {
               e.preventDefault();
               setDragOverConfig(node.id);
             }
@@ -1014,99 +1031,148 @@ const AppConfig: React.FC = () => {
           }}
           onDrop={(e) => handleDropOnConfig(e, node.id, node.configType || "")}
         >
-          <div className="flex items-center gap-2">
-            {hasChildren && (
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  toggleNodeExpand(node.id);
-                }}
-                className="p-0.5 hover:bg-gray-200 rounded"
-              >
-                {isExpanded ? (
-                  <ChevronDown className="w-4 h-4" />
-                ) : (
-                  <ChevronRight className="w-4 h-4" />
+          <div className="flex flex-col">
+            <div className="flex items-center justify-between min-h-[2.5rem] p-2">
+              <div className="flex items-center gap-2">
+                {hasChildren && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleNodeExpand(node.id);
+                    }}
+                    className="p-0.5 hover:bg-gray-200 rounded"
+                  >
+                    {isExpanded ? (
+                      <ChevronDown className="w-4 h-4" />
+                    ) : (
+                      <ChevronRight className="w-4 h-4" />
+                    )}
+                  </button>
                 )}
-              </button>
-            )}
-            {!hasChildren && <div className="w-5" />}
+                {!hasChildren && <div className="w-5" />}
 
-            <Icon className={`w-4 h-4 ${TypeInfo.color}`} />
-            <span className="font-mono text-sm">{node.name}</span>
-            {canAcceptFields && draggedField && (
-              <span className="text-xs text-green-600 ml-2 animate-pulse">
-                (Drop here)
-              </span>
-            )}
+                <Icon className={`w-4 h-4 ${TypeInfo.color}`} />
+                <span className="font-mono text-sm">{node.name}</span>
+                {canAcceptFields && draggedField && (
+                  <span className="text-xs text-green-600 ml-2 animate-pulse">
+                    (Drop here)
+                  </span>
+                )}
 
+                {propertyDeps.length > 0 && (
+                  <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded">
+                    {propertyDeps.length} props
+                  </span>
+                )}
+              </div>
+
+              <div className="flex gap-1">
+                {getAvailableChildTypes(node.configType || "").length > 0 && 
+                 getAvailableChildTypes(node.configType || "").some(type => appConfigStore.canAddConfigType(node.id, type)) && (
+                  <>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setAddParentId(node.id);
+                        setShowAddModal(true);
+                      }}
+                      className="p-1 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded"
+                      title="Add child config"
+                    >
+                      <Plus className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setCreateParentId(node.id);
+                        setShowTemplateSelect(true);
+                      }}
+                      className="p-1 text-gray-400 hover:text-purple-600 hover:bg-purple-50 rounded"
+                      title="Add from template"
+                    >
+                      <Package className="w-4 h-4" />
+                    </button>
+                  </>
+                )}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setViewingConfig(node.id);
+                  }}
+                  className="p-1 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded"
+                  title="View config"
+                >
+                  <Eye className="w-4 h-4" />
+                </button>
+                {!appConfigStore.isGroupingConfigType(node.configType || '') && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      startEditConfig(node.id);
+                    }}
+                    className="p-1 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded"
+                    title="Edit config"
+                  >
+                    <Edit className="w-4 h-4" />
+                  </button>
+                )}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    deleteConfig(node.id);
+                  }}
+                  className="p-1 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded"
+                  title="Delete"
+                >
+                  <Trash className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+
+            {/* Show properties as badges inside the config container */}
             {propertyDeps.length > 0 && (
-              <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded">
-                {propertyDeps.length} props
-              </span>
+              <div className="px-2 pb-2">
+                <div className="flex flex-wrap gap-1">
+                  {propertyDeps.map((propId) => {
+                    const prop = properties.find((p) => p.id === propId);
+                    if (!prop) return null;
+                    return (
+                      <div
+                        key={propId}
+                        className="inline-flex items-center gap-1 px-2 py-0.5 bg-white border rounded-full"
+                      >
+                        <span
+                          className={`text-xs ${appConfigStore.getPropertyColor(
+                            prop
+                          )}`}
+                        >
+                          {prop.caption || propId}
+                        </span>
+                        <button
+                          onClick={async (e) => {
+                            e.stopPropagation();
+                            if (confirm(`Remove property "${prop.caption || propId}" from this config?`)) {
+                              // Remove property from config deps
+                              const updatedDeps = (node.deps || []).filter(d => d !== propId);
+                              await appConfigStore.updateConfig(node.id, { deps: updatedDeps });
+                              
+                              // Rebuild and cascade if needed
+                              if (appConfigStore.isHighLevelType(node.configType || '')) {
+                                await appConfigStore.rebuildParentSelfData(node.id);
+                                await appConfigStore.cascadeUpdateUp(node.id);
+                              }
+                            }
+                          }}
+                          className="ml-1 text-gray-400 hover:text-red-600"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
             )}
-          </div>
-
-          <div className="flex gap-1">
-            {getAvailableChildTypes(node.configType || "").length > 0 && 
-             getAvailableChildTypes(node.configType || "").some(type => appConfigStore.canAddConfigType(node.id, type)) && (
-              <>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setAddParentId(node.id);
-                    setShowAddModal(true);
-                  }}
-                  className="p-1 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded"
-                  title="Add child config"
-                >
-                  <Plus className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setCreateParentId(node.id);
-                    setShowTemplateSelect(true);
-                  }}
-                  className="p-1 text-gray-400 hover:text-purple-600 hover:bg-purple-50 rounded"
-                  title="Add from template"
-                >
-                  <Package className="w-4 h-4" />
-                </button>
-              </>
-            )}
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                setViewingConfig(node.id);
-              }}
-              className="p-1 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded"
-              title="View config"
-            >
-              <Eye className="w-4 h-4" />
-            </button>
-            {!appConfigStore.isGroupingConfigType(node.configType || '') && (
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  startEditConfig(node.id);
-                }}
-                className="p-1 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded"
-                title="Edit config"
-              >
-                <Edit className="w-4 h-4" />
-              </button>
-            )}
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                deleteConfig(node.id);
-              }}
-              className="p-1 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded"
-              title="Delete"
-            >
-              <Trash className="w-4 h-4" />
-            </button>
           </div>
         </div>
 
@@ -1915,6 +1981,22 @@ const AppConfig: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* View Property Modal */}
+      {viewingProperty &&
+        (() => {
+          const property = properties.find((p) => p.id === viewingProperty);
+          if (!property) return null;
+
+          return (
+            <ConfigViewModal
+              isOpen={true}
+              onClose={() => setViewingProperty(null)}
+              title="View Property"
+              config={property}
+            />
+          );
+        })()}
     </div>
   );
 };

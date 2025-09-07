@@ -1545,9 +1545,12 @@ class AppConfigStore {
       const parents = allConfigs.filter(c => c.deps && c.deps.includes(id));
       
       for (const parent of parents) {
-        // Don't recalculate self_data for fields - they manage their own data
-        if (parent.type === 'field' || parent.type === 'entity_field') {
-          console.log(`[cascadeUpdate] Skipping field self_data recalculation for: ${parent.id}`);
+        // Don't recalculate self_data for fields and properties - they manage their own data
+        if (parent.type === 'field' || 
+            parent.type === 'entity_field' || 
+            parent.type === 'property' ||
+            parent.type === 'field_property') {
+          console.log(`[cascadeUpdate] Skipping self_data recalculation for shared resource: ${parent.id} (type: ${parent.type})`);
           continue;
         }
         
@@ -1591,12 +1594,15 @@ class AppConfigStore {
             continue;
           }
           
-          // Skip deletion only for actual field configs (type: 'field' or 'entity_field')
+          // Skip deletion for shared resources: fields and properties
           // But delete grouping configs (type: 'fields', 'sort', 'filter') and all other configs
-          if (childConfig.type === 'field' || childConfig.type === 'entity_field') {
-            // Fields are shared resources, don't delete them
+          if (childConfig.type === 'field' || 
+              childConfig.type === 'entity_field' || 
+              childConfig.type === 'property' ||
+              childConfig.type === 'field_property') {
+            // Fields and properties are shared resources, don't delete them
             // They will be automatically removed from deps when the parent is deleted
-            console.log(`[deleteWithDependencies] Skipping field deletion: ${childId} (type: ${childConfig.type})`);
+            console.log(`[deleteWithDependencies] Skipping shared resource deletion: ${childId} (type: ${childConfig.type})`);
           } else {
             // Delete all other config types recursively (including grouping configs)
             console.log(`[deleteWithDependencies] Deleting child config: ${childId} (type: ${childConfig.type})`);
@@ -1616,10 +1622,13 @@ class AppConfigStore {
       // Delete the config
       await this.deleteConfig(configId);
       
-      // Cascade update all affected parents (but not fields)
+      // Cascade update all affected parents (but not fields or properties)
       for (const parent of parents) {
-        // Don't cascade update fields - they are independent entities
-        if (parent.type !== 'field' && parent.type !== 'entity_field') {
+        // Don't cascade update fields and properties - they are independent entities
+        if (parent.type !== 'field' && 
+            parent.type !== 'entity_field' && 
+            parent.type !== 'property' &&
+            parent.type !== 'field_property') {
           await this.cascadeUpdate(parent.id);
         }
       }
@@ -1871,7 +1880,7 @@ class AppConfigStore {
     
     let newSelfData: any = {};
     
-    // Don't initialize empty structures - they will be created when children are added
+    // Don't initialize empty structures - they will be created only when children of that type are added
     
     // Process ONLY DIRECT children in deps (not descendants)
     for (const childId of parent.deps || []) {
@@ -1904,10 +1913,8 @@ class AppConfigStore {
             // These configs don't create nested structures, they populate parent's containers
             
             if (child.type === 'fields') {
-              // For fields config, merge its content directly into parent's fields container
-              if (!newSelfData.fields) {
-                newSelfData.fields = {};
-              }
+              // For fields config, only create fields container if it has content
+              const fieldsContent: any = {};
               
               // First, process field dependencies - get actual field data
               if (child.deps && child.deps.length > 0) {
@@ -1935,7 +1942,7 @@ class AppConfigStore {
                       }
                       
                       // Add processed field data to the fields container
-                      newSelfData.fields[fieldId] = fieldData;
+                      fieldsContent[fieldId] = fieldData;
                     }
                   }
                 }
@@ -1949,34 +1956,42 @@ class AppConfigStore {
               
               // Merge any additional fields data from the merged data
               if (cleanData.fields && typeof cleanData.fields === 'object') {
-                Object.assign(newSelfData.fields, cleanData.fields);
+                Object.assign(fieldsContent, cleanData.fields);
+              }
+              
+              // Only add fields container if it has actual field content
+              if (Object.keys(fieldsContent).length > 0) {
+                if (!newSelfData.fields) {
+                  newSelfData.fields = {};
+                }
+                Object.assign(newSelfData.fields, fieldsContent);
               }
               
             } else if (child.type === 'sort') {
-              // For sort config, populate sort_fields array
-              if (!Array.isArray(newSelfData.sort_fields)) {
-                newSelfData.sort_fields = [];
-              }
+              // For sort config, only create sort_fields if it has content
               // Use child.data which is the merged self_data + override_data
               const sortData = child.data || { ...child.self_data, ...child.override_data };
               const { tags, type, deps, caption, version, created_at, updated_at, _deleted, _rev, ...cleanSortData } = sortData;
               
-              // Add fields from sort config (if it has any)
-              if (cleanSortData.sort_fields && Array.isArray(cleanSortData.sort_fields)) {
+              // Only add sort_fields if sort config has content
+              if (cleanSortData.sort_fields && Array.isArray(cleanSortData.sort_fields) && cleanSortData.sort_fields.length > 0) {
+                if (!Array.isArray(newSelfData.sort_fields)) {
+                  newSelfData.sort_fields = [];
+                }
                 newSelfData.sort_fields.push(...cleanSortData.sort_fields);
               }
               
             } else if (child.type === 'filter') {
-              // For filter config, populate filter_fields array
-              if (!Array.isArray(newSelfData.filter_fields)) {
-                newSelfData.filter_fields = [];
-              }
+              // For filter config, only create filter_fields if it has content
               // Use child.data which is the merged self_data + override_data
               const filterData = child.data || { ...child.self_data, ...child.override_data };
               const { tags, type, deps, caption, version, created_at, updated_at, _deleted, _rev, ...cleanFilterData } = filterData;
               
-              // Add fields from filter config (if it has any)
-              if (cleanFilterData.filter_fields && Array.isArray(cleanFilterData.filter_fields)) {
+              // Only add filter_fields if filter config has content
+              if (cleanFilterData.filter_fields && Array.isArray(cleanFilterData.filter_fields) && cleanFilterData.filter_fields.length > 0) {
+                if (!Array.isArray(newSelfData.filter_fields)) {
+                  newSelfData.filter_fields = [];
+                }
                 newSelfData.filter_fields.push(...cleanFilterData.filter_fields);
               }
             }
@@ -2034,10 +2049,30 @@ class AppConfigStore {
     
     // Add empty containers for specific types only if they have corresponding children
     if (parent.type === 'view') {
-      // Ensure view always has these containers
-      if (!('fields' in newSelfData)) newSelfData.fields = {};
-      if (!('sort_fields' in newSelfData)) newSelfData.sort_fields = [];
-      if (!('filter_fields' in newSelfData)) newSelfData.filter_fields = [];
+      // Only add containers if there are children of that type
+      const hasFieldsChild = parent.deps?.some(depId => {
+        const dep = this.configs.value.get(depId);
+        return dep && dep.type === 'fields';
+      });
+      if (hasFieldsChild && !('fields' in newSelfData)) {
+        newSelfData.fields = {};
+      }
+      
+      const hasSortChild = parent.deps?.some(depId => {
+        const dep = this.configs.value.get(depId);
+        return dep && dep.type === 'sort';
+      });
+      if (hasSortChild && !('sort_fields' in newSelfData)) {
+        newSelfData.sort_fields = [];
+      }
+      
+      const hasFilterChild = parent.deps?.some(depId => {
+        const dep = this.configs.value.get(depId);
+        return dep && dep.type === 'filter';
+      });
+      if (hasFilterChild && !('filter_fields' in newSelfData)) {
+        newSelfData.filter_fields = [];
+      }
     } else if (parent.type === 'page') {
       // For page, only add fields container if there are fields children
       const hasFieldsChild = parent.deps?.some(depId => {
