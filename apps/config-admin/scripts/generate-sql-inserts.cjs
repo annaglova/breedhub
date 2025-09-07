@@ -14,6 +14,9 @@ if (!supabaseUrl || !supabaseKey) {
 
 const supabase = createClient(supabaseUrl, supabaseKey);
 
+// Check for breed-only flag
+const isBreedOnly = process.argv.includes('--breed-only');
+
 // Load semantic tree
 const SEMANTIC_TREE_PATH = path.join(__dirname, '../src/data/semantic-tree/semantic-tree.json');
 const OUTPUT_PATH = path.join(__dirname, '../src/data/semantic-tree/app-config-inserts.sql');
@@ -198,10 +201,18 @@ function generateAllInserts(tree) {
     configs.push(config);
   }
   
-  // 3. Entity Fields (Level 3) - All entities
-  console.log(`  Processing ${tree.entityFields.length} entity fields (all entities)...`);
-  for (const entityField of tree.entityFields) {
-    configs.push(entityField);
+  // 3. Entity Fields (Level 3) - All entities or breed-only
+  if (isBreedOnly) {
+    const breedFields = tree.entityFields.filter(field => field.id.startsWith('breed_field_'));
+    console.log(`  Processing ${breedFields.length} breed entity fields only...`);
+    for (const entityField of breedFields) {
+      configs.push(entityField);
+    }
+  } else {
+    console.log(`  Processing ${tree.entityFields.length} entity fields (all entities)...`);
+    for (const entityField of tree.entityFields) {
+      configs.push(entityField);
+    }
   }
   
   // Generate SQL for each config
@@ -280,14 +291,18 @@ async function main() {
   // Show summary
   const summary = {
     fieldProperties: configs.filter(c => c.type === 'property').length,
-    baseFields: configs.filter(c => c.type === 'field').length,
-    entityFields: configs.filter(c => c.type === 'entity_field').length
+    baseFields: configs.filter(c => c.type === 'field' && c.category === 'base').length,
+    entityFields: configs.filter(c => c.type === 'field' && (!c.category || c.category !== 'base')).length
   };
   
   console.log('\n=== Summary ===');
   console.log(`Field Properties: ${summary.fieldProperties}`);
   console.log(`Base Fields: ${summary.baseFields}`);
-  console.log(`Entity Fields: ${summary.entityFields}`);
+  if (isBreedOnly) {
+    console.log(`Breed Entity Fields: ${summary.entityFields}`);
+  } else {
+    console.log(`Entity Fields: ${summary.entityFields}`);
+  }
   console.log(`Total: ${configs.length}`);
   
   // Ask user if they want to insert to Supabase
