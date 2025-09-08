@@ -26,10 +26,7 @@
       },
       "displayName": "Name",
       "placeholder": "Enter name",
-      "maxLength": 250,
-      "validation": {
-        "maxLength": 250
-      },
+      "validation": {},
       "defaultValue": ""
     },
     {
@@ -53,14 +50,15 @@
       },
       "displayName": "Notes",
       "placeholder": "Enter notes",
+      "validation": {},
       "defaultValue": ""
     },
     {
-      "id": "field_launch_number",
-      "name": "launch_number",
-      "fieldType": "number",
-      "component": "number",
-      "required": true,
+      "id": "field_conf_item_id",
+      "name": "conf_item_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -74,16 +72,17 @@
           "editor"
         ]
       },
-      "displayName": "Launch Number",
-      "placeholder": "Enter launch number",
-      "validation": {
-        "precision": 32
-      },
-      "defaultValue": "0"
+      "isForeignKey": true,
+      "referencedTable": "conf_item",
+      "referencedFieldID": "id",
+      "displayName": "Conf Item",
+      "placeholder": "Enter conf item",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
-      "id": "field_duration",
-      "name": "duration",
+      "id": "field_launch_number",
+      "name": "launch_number",
       "fieldType": "number",
       "component": "number",
       "required": true,
@@ -100,19 +99,17 @@
           "editor"
         ]
       },
-      "displayName": "Duration",
-      "placeholder": "Enter duration",
-      "validation": {
-        "precision": 32
-      },
+      "displayName": "Launch Number",
+      "placeholder": "Enter launch number",
+      "validation": {},
       "defaultValue": "0"
     },
     {
-      "id": "field_start_date",
-      "name": "start_date",
-      "fieldType": "datetime",
-      "component": "date",
-      "required": false,
+      "id": "field_duration",
+      "name": "duration",
+      "fieldType": "number",
+      "component": "number",
+      "required": true,
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -126,12 +123,14 @@
           "editor"
         ]
       },
-      "displayName": "Start Date",
-      "placeholder": "Enter start date"
+      "displayName": "Duration",
+      "placeholder": "Enter duration",
+      "validation": {},
+      "defaultValue": "0"
     },
     {
-      "id": "field_due_date",
-      "name": "due_date",
+      "id": "field_start_date",
+      "name": "start_date",
       "fieldType": "datetime",
       "component": "date",
       "required": false,
@@ -148,15 +147,16 @@
           "editor"
         ]
       },
-      "displayName": "Due Date",
-      "placeholder": "Enter due date"
+      "displayName": "Start Date",
+      "placeholder": "Enter start date",
+      "validation": {}
     },
     {
-      "id": "field_changed_record_count",
-      "name": "changed_record_count",
-      "fieldType": "number",
-      "component": "number",
-      "required": true,
+      "id": "field_due_date",
+      "name": "due_date",
+      "fieldType": "datetime",
+      "component": "date",
+      "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -170,19 +170,16 @@
           "editor"
         ]
       },
-      "displayName": "Changed Record Count",
-      "placeholder": "Enter changed record count",
-      "validation": {
-        "precision": 32
-      },
-      "defaultValue": "0"
+      "displayName": "Due Date",
+      "placeholder": "Enter due date",
+      "validation": {}
     },
     {
-      "id": "field_update_date",
-      "name": "update_date",
-      "fieldType": "datetime",
-      "component": "date",
-      "required": false,
+      "id": "field_changed_record_count",
+      "name": "changed_record_count",
+      "fieldType": "number",
+      "component": "number",
+      "required": true,
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -196,15 +193,17 @@
           "editor"
         ]
       },
-      "displayName": "Update Date",
-      "placeholder": "Enter update date"
+      "displayName": "Changed Record Count",
+      "placeholder": "Enter changed record count",
+      "validation": {},
+      "defaultValue": "0"
     },
     {
-      "id": "field_reanimate",
-      "name": "reanimate",
-      "fieldType": "boolean",
-      "component": "checkbox",
-      "required": true,
+      "id": "field_update_date",
+      "name": "update_date",
+      "fieldType": "datetime",
+      "component": "date",
+      "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -218,14 +217,15 @@
           "editor"
         ]
       },
-      "displayName": "Reanimate",
-      "defaultValue": "false"
+      "displayName": "Update Date",
+      "placeholder": "Enter update date",
+      "validation": {}
     },
     {
-      "id": "field_parameters_value",
-      "name": "parameters_value",
-      "fieldType": "text",
-      "component": "textarea",
+      "id": "field_reanimate",
+      "name": "reanimate",
+      "fieldType": "boolean",
+      "component": "checkbox",
       "required": true,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -240,8 +240,32 @@
           "editor"
         ]
       },
+      "displayName": "Reanimate",
+      "validation": {},
+      "defaultValue": "false"
+    },
+    {
+      "id": "field_parameters_value",
+      "name": "parameters_value",
+      "fieldType": "text",
+      "component": "textarea",
+      "required": true,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 110,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
       "displayName": "Parameters Value",
       "placeholder": "Enter parameters value",
+      "validation": {},
       "defaultValue": ""
     },
     {
@@ -250,26 +274,6 @@
       "fieldType": "uuid",
       "component": "text",
       "required": true,
-      "isSystem": true,
-      "isPrimaryKey": true,
-      "isUnique": false,
-      "sortOrder": 110,
-      "permissions": {
-        "read": [
-          "*"
-        ],
-        "write": [
-          "system"
-        ]
-      },
-      "displayName": "Id"
-    },
-    {
-      "id": "field_created_at",
-      "name": "created_at",
-      "fieldType": "datetime",
-      "component": "datetime",
-      "required": false,
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -282,13 +286,14 @@
           "system"
         ]
       },
-      "displayName": "Created At"
+      "displayName": "Id",
+      "validation": {}
     },
     {
-      "id": "field_created_by",
-      "name": "created_by",
-      "fieldType": "uuid",
-      "component": "text",
+      "id": "field_created_at",
+      "name": "created_at",
+      "fieldType": "datetime",
+      "component": "datetime",
       "required": false,
       "isSystem": true,
       "isPrimaryKey": false,
@@ -302,13 +307,14 @@
           "system"
         ]
       },
-      "displayName": "Created By"
+      "displayName": "Created At",
+      "validation": {}
     },
     {
-      "id": "field_updated_at",
-      "name": "updated_at",
-      "fieldType": "datetime",
-      "component": "date",
+      "id": "field_created_by",
+      "name": "created_by",
+      "fieldType": "uuid",
+      "component": "text",
       "required": false,
       "isSystem": true,
       "isPrimaryKey": false,
@@ -322,12 +328,13 @@
           "system"
         ]
       },
-      "displayName": "Updated At"
+      "displayName": "Created By",
+      "validation": {}
     },
     {
-      "id": "field_updated_by",
-      "name": "updated_by",
-      "fieldType": "uuid",
+      "id": "field_updated_at",
+      "name": "updated_at",
+      "fieldType": "datetime",
       "component": "date",
       "required": false,
       "isSystem": true,
@@ -342,14 +349,36 @@
           "system"
         ]
       },
-      "displayName": "Updated By"
+      "displayName": "Updated At",
+      "validation": {}
+    },
+    {
+      "id": "field_updated_by",
+      "name": "updated_by",
+      "fieldType": "uuid",
+      "component": "date",
+      "required": false,
+      "isSystem": true,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 160,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "system"
+        ]
+      },
+      "displayName": "Updated By",
+      "validation": {}
     }
   ],
   "metadata": {
     "tableName": "conf_item_process_launch",
-    "totalFields": 15,
+    "totalFields": 16,
     "systemFields": 5,
-    "customFields": 10,
-    "generatedAt": "2025-09-07T17:58:45.273Z"
+    "customFields": 11,
+    "generatedAt": "2025-09-08T11:20:40.690Z"
   }
 }

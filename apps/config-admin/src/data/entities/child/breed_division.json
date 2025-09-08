@@ -26,10 +26,7 @@
       },
       "displayName": "Name",
       "placeholder": "Enter name",
-      "maxLength": 250,
-      "validation": {
-        "maxLength": 250
-      },
+      "validation": {},
       "defaultValue": ""
     },
     {
@@ -53,10 +50,7 @@
       },
       "displayName": "Description",
       "placeholder": "Enter description",
-      "maxLength": 250,
-      "validation": {
-        "maxLength": 250
-      },
+      "validation": {},
       "defaultValue": ""
     },
     {
@@ -79,14 +73,15 @@
         ]
       },
       "displayName": "Division By Color",
+      "validation": {},
       "defaultValue": "false"
     },
     {
-      "id": "field_is_main",
-      "name": "is_main",
-      "fieldType": "boolean",
-      "component": "checkbox",
-      "required": true,
+      "id": "field_breed_id",
+      "name": "breed_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -100,12 +95,17 @@
           "editor"
         ]
       },
-      "displayName": "Is Main",
-      "defaultValue": "false"
+      "isForeignKey": true,
+      "referencedTable": "breed",
+      "referencedFieldID": "id",
+      "displayName": "Breed",
+      "placeholder": "Enter breed",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
-      "id": "field_division_by_body_feature",
-      "name": "division_by_body_feature",
+      "id": "field_is_main",
+      "name": "is_main",
       "fieldType": "boolean",
       "component": "checkbox",
       "required": true,
@@ -122,12 +122,13 @@
           "editor"
         ]
       },
-      "displayName": "Division By Body Feature",
+      "displayName": "Is Main",
+      "validation": {},
       "defaultValue": "false"
     },
     {
-      "id": "field_division_by_size",
-      "name": "division_by_size",
+      "id": "field_division_by_body_feature",
+      "name": "division_by_body_feature",
       "fieldType": "boolean",
       "component": "checkbox",
       "required": true,
@@ -144,12 +145,13 @@
           "editor"
         ]
       },
-      "displayName": "Division By Size",
+      "displayName": "Division By Body Feature",
+      "validation": {},
       "defaultValue": "false"
     },
     {
-      "id": "field_division_by_coat_type",
-      "name": "division_by_coat_type",
+      "id": "field_division_by_size",
+      "name": "division_by_size",
       "fieldType": "boolean",
       "component": "checkbox",
       "required": true,
@@ -166,17 +168,18 @@
           "editor"
         ]
       },
-      "displayName": "Division By Coat Type",
+      "displayName": "Division By Size",
+      "validation": {},
       "defaultValue": "false"
     },
     {
-      "id": "field_id",
-      "name": "id",
-      "fieldType": "uuid",
-      "component": "text",
+      "id": "field_division_by_coat_type",
+      "name": "division_by_coat_type",
+      "fieldType": "boolean",
+      "component": "checkbox",
       "required": true,
-      "isSystem": true,
-      "isPrimaryKey": true,
+      "isSystem": false,
+      "isPrimaryKey": false,
       "isUnique": false,
       "sortOrder": 80,
       "permissions": {
@@ -184,18 +187,21 @@
           "*"
         ],
         "write": [
-          "system"
+          "admin",
+          "editor"
         ]
       },
-      "displayName": "Id"
+      "displayName": "Division By Coat Type",
+      "validation": {},
+      "defaultValue": "false"
     },
     {
-      "id": "field_created_at",
-      "name": "created_at",
-      "fieldType": "datetime",
-      "component": "datetime",
+      "id": "field_breed_standard_id",
+      "name": "breed_standard_id",
+      "fieldType": "uuid",
+      "component": "select",
       "required": false,
-      "isSystem": true,
+      "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
       "sortOrder": 90,
@@ -204,17 +210,24 @@
           "*"
         ],
         "write": [
-          "system"
+          "admin",
+          "editor"
         ]
       },
-      "displayName": "Created At"
+      "isForeignKey": true,
+      "referencedTable": "breed_standard",
+      "referencedFieldID": "id",
+      "displayName": "Breed Standard",
+      "placeholder": "Enter breed standard",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
-      "id": "field_created_by",
-      "name": "created_by",
+      "id": "field_id",
+      "name": "id",
       "fieldType": "uuid",
       "component": "text",
-      "required": false,
+      "required": true,
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -227,13 +240,14 @@
           "system"
         ]
       },
-      "displayName": "Created By"
+      "displayName": "Id",
+      "validation": {}
     },
     {
-      "id": "field_updated_at",
-      "name": "updated_at",
+      "id": "field_created_at",
+      "name": "created_at",
       "fieldType": "datetime",
-      "component": "date",
+      "component": "datetime",
       "required": false,
       "isSystem": true,
       "isPrimaryKey": false,
@@ -247,13 +261,14 @@
           "system"
         ]
       },
-      "displayName": "Updated At"
+      "displayName": "Created At",
+      "validation": {}
     },
     {
-      "id": "field_updated_by",
-      "name": "updated_by",
+      "id": "field_created_by",
+      "name": "created_by",
       "fieldType": "uuid",
-      "component": "date",
+      "component": "text",
       "required": false,
       "isSystem": true,
       "isPrimaryKey": false,
@@ -267,14 +282,57 @@
           "system"
         ]
       },
-      "displayName": "Updated By"
+      "displayName": "Created By",
+      "validation": {}
+    },
+    {
+      "id": "field_updated_at",
+      "name": "updated_at",
+      "fieldType": "datetime",
+      "component": "date",
+      "required": false,
+      "isSystem": true,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 130,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "system"
+        ]
+      },
+      "displayName": "Updated At",
+      "validation": {}
+    },
+    {
+      "id": "field_updated_by",
+      "name": "updated_by",
+      "fieldType": "uuid",
+      "component": "date",
+      "required": false,
+      "isSystem": true,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 140,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "system"
+        ]
+      },
+      "displayName": "Updated By",
+      "validation": {}
     }
   ],
   "metadata": {
     "tableName": "breed_division",
-    "totalFields": 12,
+    "totalFields": 14,
     "systemFields": 5,
-    "customFields": 7,
-    "generatedAt": "2025-09-07T17:58:41.796Z"
+    "customFields": 9,
+    "generatedAt": "2025-09-08T11:20:36.471Z"
   }
 }

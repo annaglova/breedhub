@@ -26,10 +26,7 @@
       },
       "displayName": "Name",
       "placeholder": "Enter name",
-      "maxLength": 250,
-      "validation": {
-        "maxLength": 250
-      },
+      "validation": {},
       "defaultValue": ""
     },
     {
@@ -53,18 +50,15 @@
       },
       "displayName": "Code",
       "placeholder": "Enter code",
-      "maxLength": 50,
-      "validation": {
-        "maxLength": 50
-      },
+      "validation": {},
       "defaultValue": ""
     },
     {
-      "id": "field_price",
-      "name": "price",
-      "fieldType": "number",
-      "component": "number",
-      "required": true,
+      "id": "field_unit_id",
+      "name": "unit_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -78,16 +72,20 @@
           "editor"
         ]
       },
-      "displayName": "Price",
-      "placeholder": "Enter price",
-      "defaultValue": "0"
+      "isForeignKey": true,
+      "referencedTable": "unit",
+      "referencedFieldID": "id",
+      "displayName": "Unit",
+      "placeholder": "Enter unit",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
-      "id": "field_url",
-      "name": "url",
-      "fieldType": "string",
-      "component": "url",
-      "required": true,
+      "id": "field_currency_id",
+      "name": "currency_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -101,21 +99,19 @@
           "editor"
         ]
       },
-      "displayName": "Url",
-      "placeholder": "Enter url",
-      "maxLength": 250,
-      "validation": {
-        "maxLength": 250,
-        "pattern": "^https?://.+",
-        "message": "Invalid URL format"
-      },
-      "defaultValue": ""
+      "isForeignKey": true,
+      "referencedTable": "currency",
+      "referencedFieldID": "id",
+      "displayName": "Currency",
+      "placeholder": "Enter currency",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
-      "id": "field_active",
-      "name": "active",
-      "fieldType": "boolean",
-      "component": "checkbox",
+      "id": "field_price",
+      "name": "price",
+      "fieldType": "number",
+      "component": "number",
       "required": true,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -130,15 +126,17 @@
           "editor"
         ]
       },
-      "displayName": "Active",
-      "defaultValue": "false"
+      "displayName": "Price",
+      "placeholder": "Enter price",
+      "validation": {},
+      "defaultValue": "0"
     },
     {
-      "id": "field_owner_id",
-      "name": "owner_id",
-      "fieldType": "uuid",
-      "component": "text",
-      "required": false,
+      "id": "field_url",
+      "name": "url",
+      "fieldType": "string",
+      "component": "url",
+      "required": true,
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -152,15 +150,20 @@
           "editor"
         ]
       },
-      "displayName": "Owner Id",
-      "placeholder": "Enter owner id"
+      "displayName": "Url",
+      "placeholder": "Enter url",
+      "validation": {
+        "pattern": "^https?://.+",
+        "message": "Invalid URL format"
+      },
+      "defaultValue": ""
     },
     {
-      "id": "field_description",
-      "name": "description",
-      "fieldType": "text",
-      "component": "textarea",
-      "required": true,
+      "id": "field_type_id",
+      "name": "type_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -174,15 +177,19 @@
           "editor"
         ]
       },
-      "displayName": "Description",
-      "placeholder": "Enter description",
-      "defaultValue": ""
+      "isForeignKey": true,
+      "referencedTable": "product_type",
+      "referencedFieldID": "id",
+      "displayName": "Type",
+      "placeholder": "Enter type",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
-      "id": "field_notes",
-      "name": "notes",
-      "fieldType": "text",
-      "component": "textarea",
+      "id": "field_active",
+      "name": "active",
+      "fieldType": "boolean",
+      "component": "checkbox",
       "required": true,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -197,16 +204,16 @@
           "editor"
         ]
       },
-      "displayName": "Notes",
-      "placeholder": "Enter notes",
-      "defaultValue": ""
+      "displayName": "Active",
+      "validation": {},
+      "defaultValue": "false"
     },
     {
-      "id": "field_is_archive",
-      "name": "is_archive",
-      "fieldType": "boolean",
-      "component": "checkbox",
-      "required": true,
+      "id": "field_owner_id",
+      "name": "owner_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -220,13 +227,18 @@
           "editor"
         ]
       },
-      "displayName": "Is Archive",
-      "defaultValue": "false"
+      "isForeignKey": true,
+      "referencedTable": "owner",
+      "referencedFieldID": "id",
+      "displayName": "Owner",
+      "placeholder": "Enter owner",
+      "validation": {},
+      "referencedFieldName": "id"
     },
     {
-      "id": "field_short_description",
-      "name": "short_description",
-      "fieldType": "string",
+      "id": "field_description",
+      "name": "description",
+      "fieldType": "text",
       "component": "textarea",
       "required": true,
       "isSystem": false,
@@ -242,20 +254,17 @@
           "editor"
         ]
       },
-      "displayName": "Short Description",
-      "placeholder": "Enter short description",
-      "maxLength": 250,
-      "validation": {
-        "maxLength": 250
-      },
+      "displayName": "Description",
+      "placeholder": "Enter description",
+      "validation": {},
       "defaultValue": ""
     },
     {
-      "id": "field_benefits",
-      "name": "benefits",
-      "fieldType": "text",
-      "component": "textarea",
-      "required": true,
+      "id": "field_product_source_id",
+      "name": "product_source_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -269,13 +278,17 @@
           "editor"
         ]
       },
-      "displayName": "Benefits",
-      "placeholder": "Enter benefits",
-      "defaultValue": ""
+      "isForeignKey": true,
+      "referencedTable": "product_source",
+      "referencedFieldID": "id",
+      "displayName": "Product Source",
+      "placeholder": "Enter product source",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
-      "id": "field_general_conditions",
-      "name": "general_conditions",
+      "id": "field_notes",
+      "name": "notes",
       "fieldType": "text",
       "component": "textarea",
       "required": true,
@@ -292,15 +305,16 @@
           "editor"
         ]
       },
-      "displayName": "General Conditions",
-      "placeholder": "Enter general conditions",
+      "displayName": "Notes",
+      "placeholder": "Enter notes",
+      "validation": {},
       "defaultValue": ""
     },
     {
-      "id": "field_stripe_product_id",
-      "name": "stripe_product_id",
-      "fieldType": "string",
-      "component": "text",
+      "id": "field_is_archive",
+      "name": "is_archive",
+      "fieldType": "boolean",
+      "component": "checkbox",
       "required": true,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -315,13 +329,190 @@
           "editor"
         ]
       },
-      "displayName": "Stripe Product Id",
-      "placeholder": "Enter stripe product id",
-      "maxLength": 50,
-      "validation": {
-        "maxLength": 50
+      "displayName": "Is Archive",
+      "validation": {},
+      "defaultValue": "false"
+    },
+    {
+      "id": "field_category_id",
+      "name": "category_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 140,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
       },
+      "isForeignKey": true,
+      "referencedTable": "product_category",
+      "referencedFieldID": "id",
+      "displayName": "Category",
+      "placeholder": "Enter category",
+      "validation": {},
+      "referencedFieldName": "name"
+    },
+    {
+      "id": "field_short_description",
+      "name": "short_description",
+      "fieldType": "string",
+      "component": "textarea",
+      "required": true,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 150,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "displayName": "Short Description",
+      "placeholder": "Enter short description",
+      "validation": {},
       "defaultValue": ""
+    },
+    {
+      "id": "field_pet_id",
+      "name": "pet_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 160,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "isForeignKey": true,
+      "referencedTable": "pet_manchester_terrier_toy",
+      "referencedFieldID": "id",
+      "displayName": "Pet",
+      "placeholder": "Enter pet",
+      "validation": {},
+      "referencedFieldName": "name"
+    },
+    {
+      "id": "field_benefits",
+      "name": "benefits",
+      "fieldType": "text",
+      "component": "textarea",
+      "required": true,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 170,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "displayName": "Benefits",
+      "placeholder": "Enter benefits",
+      "validation": {},
+      "defaultValue": ""
+    },
+    {
+      "id": "field_general_conditions",
+      "name": "general_conditions",
+      "fieldType": "text",
+      "component": "textarea",
+      "required": true,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 180,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "displayName": "General Conditions",
+      "placeholder": "Enter general conditions",
+      "validation": {},
+      "defaultValue": ""
+    },
+    {
+      "id": "field_stripe_product_id",
+      "name": "stripe_product_id",
+      "fieldType": "string",
+      "component": "select",
+      "required": true,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 190,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "isForeignKey": true,
+      "referencedTable": "stripe_product",
+      "referencedFieldID": "id",
+      "displayName": "Stripe Product",
+      "placeholder": "Enter stripe product",
+      "validation": {},
+      "defaultValue": "",
+      "referencedFieldName": "id"
+    },
+    {
+      "id": "field_pet_breed_id",
+      "name": "pet_breed_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 200,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "isForeignKey": true,
+      "referencedTable": "pet_manchester_terrier_toy",
+      "referencedFieldID": "id",
+      "displayName": "Pet Breed",
+      "placeholder": "Enter pet breed",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
       "id": "field_id",
@@ -330,9 +521,9 @@
       "component": "text",
       "required": true,
       "isSystem": true,
-      "isPrimaryKey": true,
+      "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 140,
+      "sortOrder": 210,
       "permissions": {
         "read": [
           "*"
@@ -341,7 +532,8 @@
           "system"
         ]
       },
-      "displayName": "Id"
+      "displayName": "Id",
+      "validation": {}
     },
     {
       "id": "field_created_at",
@@ -352,7 +544,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 150,
+      "sortOrder": 220,
       "permissions": {
         "read": [
           "*"
@@ -361,7 +553,8 @@
           "system"
         ]
       },
-      "displayName": "Created At"
+      "displayName": "Created At",
+      "validation": {}
     },
     {
       "id": "field_created_by",
@@ -372,7 +565,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 160,
+      "sortOrder": 230,
       "permissions": {
         "read": [
           "*"
@@ -381,7 +574,8 @@
           "system"
         ]
       },
-      "displayName": "Created By"
+      "displayName": "Created By",
+      "validation": {}
     },
     {
       "id": "field_updated_at",
@@ -392,7 +586,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 170,
+      "sortOrder": 240,
       "permissions": {
         "read": [
           "*"
@@ -401,7 +595,8 @@
           "system"
         ]
       },
-      "displayName": "Updated At"
+      "displayName": "Updated At",
+      "validation": {}
     },
     {
       "id": "field_updated_by",
@@ -412,7 +607,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 180,
+      "sortOrder": 250,
       "permissions": {
         "read": [
           "*"
@@ -421,14 +616,15 @@
           "system"
         ]
       },
-      "displayName": "Updated By"
+      "displayName": "Updated By",
+      "validation": {}
     }
   ],
   "metadata": {
     "tableName": "product",
-    "totalFields": 18,
+    "totalFields": 25,
     "systemFields": 5,
-    "customFields": 13,
-    "generatedAt": "2025-09-07T18:14:28.249Z"
+    "customFields": 20,
+    "generatedAt": "2025-09-08T11:19:42.354Z"
   }
 }

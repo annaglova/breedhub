@@ -9,7 +9,7 @@
       "id": "field_post_id",
       "name": "post_id",
       "fieldType": "uuid",
-      "component": "text",
+      "component": "select",
       "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -24,14 +24,19 @@
           "editor"
         ]
       },
-      "displayName": "Post Id",
-      "placeholder": "Enter post id"
+      "isForeignKey": true,
+      "referencedTable": "post",
+      "referencedFieldID": "id",
+      "displayName": "Post",
+      "placeholder": "Enter post",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
-      "id": "field_record_id",
-      "name": "record_id",
+      "id": "field_role_id",
+      "name": "role_id",
       "fieldType": "uuid",
-      "component": "text",
+      "component": "select",
       "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -46,15 +51,20 @@
           "editor"
         ]
       },
-      "displayName": "Record Id",
-      "placeholder": "Enter record id"
+      "isForeignKey": true,
+      "referencedTable": "post_participant_role",
+      "referencedFieldID": "id",
+      "displayName": "Role",
+      "placeholder": "Enter role",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
-      "id": "field_entity_name",
-      "name": "entity_name",
-      "fieldType": "string",
-      "component": "text",
-      "required": true,
+      "id": "field_record_id",
+      "name": "record_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -68,19 +78,19 @@
           "editor"
         ]
       },
-      "displayName": "Entity Name",
-      "placeholder": "Enter entity name",
-      "maxLength": 50,
-      "validation": {
-        "maxLength": 50
-      },
-      "defaultValue": ""
+      "isForeignKey": true,
+      "referencedTable": "record",
+      "referencedFieldID": "id",
+      "displayName": "Record",
+      "placeholder": "Enter record",
+      "validation": {},
+      "referencedFieldName": "id"
     },
     {
-      "id": "field_hide_time_line",
-      "name": "hide_time_line",
-      "fieldType": "boolean",
-      "component": "checkbox",
+      "id": "field_entity_name",
+      "name": "entity_name",
+      "fieldType": "string",
+      "component": "text",
       "required": true,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -95,14 +105,16 @@
           "editor"
         ]
       },
-      "displayName": "Hide Time Line",
-      "defaultValue": "false"
+      "displayName": "Entity Name",
+      "placeholder": "Enter entity name",
+      "validation": {},
+      "defaultValue": ""
     },
     {
-      "id": "field_record_url",
-      "name": "record_url",
-      "fieldType": "string",
-      "component": "url",
+      "id": "field_hide_time_line",
+      "name": "hide_time_line",
+      "fieldType": "boolean",
+      "component": "checkbox",
       "required": true,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -117,21 +129,15 @@
           "editor"
         ]
       },
-      "displayName": "Record Url",
-      "placeholder": "Enter record url",
-      "maxLength": 500,
-      "validation": {
-        "maxLength": 500,
-        "pattern": "^https?://.+",
-        "message": "Invalid URL format"
-      },
-      "defaultValue": ""
+      "displayName": "Hide Time Line",
+      "validation": {},
+      "defaultValue": "false"
     },
     {
-      "id": "field_record_name",
-      "name": "record_name",
+      "id": "field_record_url",
+      "name": "record_url",
       "fieldType": "string",
-      "component": "text",
+      "component": "url",
       "required": true,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -146,12 +152,36 @@
           "editor"
         ]
       },
+      "displayName": "Record Url",
+      "placeholder": "Enter record url",
+      "validation": {
+        "pattern": "^https?://.+",
+        "message": "Invalid URL format"
+      },
+      "defaultValue": ""
+    },
+    {
+      "id": "field_record_name",
+      "name": "record_name",
+      "fieldType": "string",
+      "component": "text",
+      "required": true,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 70,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
       "displayName": "Record Name",
       "placeholder": "Enter record name",
-      "maxLength": 500,
-      "validation": {
-        "maxLength": 500
-      },
+      "validation": {},
       "defaultValue": ""
     },
     {
@@ -160,26 +190,6 @@
       "fieldType": "uuid",
       "component": "text",
       "required": true,
-      "isSystem": true,
-      "isPrimaryKey": true,
-      "isUnique": false,
-      "sortOrder": 70,
-      "permissions": {
-        "read": [
-          "*"
-        ],
-        "write": [
-          "system"
-        ]
-      },
-      "displayName": "Id"
-    },
-    {
-      "id": "field_created_at",
-      "name": "created_at",
-      "fieldType": "datetime",
-      "component": "datetime",
-      "required": false,
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -192,13 +202,14 @@
           "system"
         ]
       },
-      "displayName": "Created At"
+      "displayName": "Id",
+      "validation": {}
     },
     {
-      "id": "field_created_by",
-      "name": "created_by",
-      "fieldType": "uuid",
-      "component": "text",
+      "id": "field_created_at",
+      "name": "created_at",
+      "fieldType": "datetime",
+      "component": "datetime",
       "required": false,
       "isSystem": true,
       "isPrimaryKey": false,
@@ -212,13 +223,14 @@
           "system"
         ]
       },
-      "displayName": "Created By"
+      "displayName": "Created At",
+      "validation": {}
     },
     {
-      "id": "field_updated_at",
-      "name": "updated_at",
-      "fieldType": "datetime",
-      "component": "date",
+      "id": "field_created_by",
+      "name": "created_by",
+      "fieldType": "uuid",
+      "component": "text",
       "required": false,
       "isSystem": true,
       "isPrimaryKey": false,
@@ -232,12 +244,13 @@
           "system"
         ]
       },
-      "displayName": "Updated At"
+      "displayName": "Created By",
+      "validation": {}
     },
     {
-      "id": "field_updated_by",
-      "name": "updated_by",
-      "fieldType": "uuid",
+      "id": "field_updated_at",
+      "name": "updated_at",
+      "fieldType": "datetime",
       "component": "date",
       "required": false,
       "isSystem": true,
@@ -252,14 +265,36 @@
           "system"
         ]
       },
-      "displayName": "Updated By"
+      "displayName": "Updated At",
+      "validation": {}
+    },
+    {
+      "id": "field_updated_by",
+      "name": "updated_by",
+      "fieldType": "uuid",
+      "component": "date",
+      "required": false,
+      "isSystem": true,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 120,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "system"
+        ]
+      },
+      "displayName": "Updated By",
+      "validation": {}
     }
   ],
   "metadata": {
     "tableName": "post_participant",
-    "totalFields": 11,
+    "totalFields": 12,
     "systemFields": 5,
-    "customFields": 6,
-    "generatedAt": "2025-09-07T17:59:14.294Z"
+    "customFields": 7,
+    "generatedAt": "2025-09-08T11:21:02.652Z"
   }
 }

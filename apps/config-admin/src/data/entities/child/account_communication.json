@@ -26,18 +26,15 @@
       },
       "displayName": "Number",
       "placeholder": "Enter number",
-      "maxLength": 500,
-      "validation": {
-        "maxLength": 500
-      },
+      "validation": {},
       "defaultValue": ""
     },
     {
-      "id": "field_position",
-      "name": "position",
-      "fieldType": "number",
-      "component": "number",
-      "required": true,
+      "id": "field_account_id",
+      "name": "account_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -51,18 +48,19 @@
           "editor"
         ]
       },
-      "displayName": "Position",
-      "placeholder": "Enter position",
-      "validation": {
-        "precision": 32
-      },
-      "defaultValue": "0"
+      "isForeignKey": true,
+      "referencedTable": "account",
+      "referencedFieldID": "id",
+      "displayName": "Account",
+      "placeholder": "Enter account",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
-      "id": "field_social_media_id",
-      "name": "social_media_id",
-      "fieldType": "string",
-      "component": "text",
+      "id": "field_position",
+      "name": "position",
+      "fieldType": "number",
+      "component": "number",
       "required": true,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -77,19 +75,16 @@
           "editor"
         ]
       },
-      "displayName": "Social Media Id",
-      "placeholder": "Enter social media id",
-      "maxLength": 500,
-      "validation": {
-        "maxLength": 500
-      },
-      "defaultValue": ""
+      "displayName": "Position",
+      "placeholder": "Enter position",
+      "validation": {},
+      "defaultValue": "0"
     },
     {
-      "id": "field_search_number",
-      "name": "search_number",
+      "id": "field_social_media_id",
+      "name": "social_media_id",
       "fieldType": "string",
-      "component": "text",
+      "component": "select",
       "required": true,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -104,19 +99,20 @@
           "editor"
         ]
       },
-      "displayName": "Search Number",
-      "placeholder": "Enter search number",
-      "maxLength": 500,
-      "validation": {
-        "maxLength": 500
-      },
-      "defaultValue": ""
+      "isForeignKey": true,
+      "referencedTable": "social_media",
+      "referencedFieldID": "id",
+      "displayName": "Social Media",
+      "placeholder": "Enter social media",
+      "validation": {},
+      "defaultValue": "",
+      "referencedFieldName": "id"
     },
     {
-      "id": "field_primary",
-      "name": "primary",
-      "fieldType": "boolean",
-      "component": "checkbox",
+      "id": "field_search_number",
+      "name": "search_number",
+      "fieldType": "string",
+      "component": "text",
       "required": true,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -131,12 +127,14 @@
           "editor"
         ]
       },
-      "displayName": "Primary",
-      "defaultValue": "false"
+      "displayName": "Search Number",
+      "placeholder": "Enter search number",
+      "validation": {},
+      "defaultValue": ""
     },
     {
-      "id": "field_exists",
-      "name": "exists",
+      "id": "field_primary",
+      "name": "primary",
       "fieldType": "boolean",
       "component": "checkbox",
       "required": true,
@@ -153,12 +151,13 @@
           "editor"
         ]
       },
-      "displayName": "Exists",
+      "displayName": "Primary",
+      "validation": {},
       "defaultValue": "false"
     },
     {
-      "id": "field_non_actual",
-      "name": "non_actual",
+      "id": "field_exists",
+      "name": "exists",
       "fieldType": "boolean",
       "component": "checkbox",
       "required": true,
@@ -175,15 +174,16 @@
           "editor"
         ]
       },
-      "displayName": "Non Actual",
+      "displayName": "Exists",
+      "validation": {},
       "defaultValue": "false"
     },
     {
-      "id": "field_date_set_non_actual",
-      "name": "date_set_non_actual",
-      "fieldType": "date",
-      "component": "date",
-      "required": false,
+      "id": "field_non_actual",
+      "name": "non_actual",
+      "fieldType": "boolean",
+      "component": "checkbox",
+      "required": true,
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -197,17 +197,18 @@
           "editor"
         ]
       },
-      "displayName": "Date Set Non Actual",
-      "placeholder": "Enter date set non actual"
+      "displayName": "Non Actual",
+      "validation": {},
+      "defaultValue": "false"
     },
     {
-      "id": "field_id",
-      "name": "id",
-      "fieldType": "uuid",
-      "component": "text",
-      "required": true,
-      "isSystem": true,
-      "isPrimaryKey": true,
+      "id": "field_date_set_non_actual",
+      "name": "date_set_non_actual",
+      "fieldType": "date",
+      "component": "date",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
       "isUnique": false,
       "sortOrder": 90,
       "permissions": {
@@ -215,17 +216,20 @@
           "*"
         ],
         "write": [
-          "system"
+          "admin",
+          "editor"
         ]
       },
-      "displayName": "Id"
+      "displayName": "Date Set Non Actual",
+      "placeholder": "Enter date set non actual",
+      "validation": {}
     },
     {
-      "id": "field_created_at",
-      "name": "created_at",
-      "fieldType": "datetime",
-      "component": "datetime",
-      "required": false,
+      "id": "field_id",
+      "name": "id",
+      "fieldType": "uuid",
+      "component": "text",
+      "required": true,
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -238,13 +242,14 @@
           "system"
         ]
       },
-      "displayName": "Created At"
+      "displayName": "Id",
+      "validation": {}
     },
     {
-      "id": "field_created_by",
-      "name": "created_by",
-      "fieldType": "uuid",
-      "component": "text",
+      "id": "field_created_at",
+      "name": "created_at",
+      "fieldType": "datetime",
+      "component": "datetime",
       "required": false,
       "isSystem": true,
       "isPrimaryKey": false,
@@ -258,13 +263,14 @@
           "system"
         ]
       },
-      "displayName": "Created By"
+      "displayName": "Created At",
+      "validation": {}
     },
     {
-      "id": "field_updated_at",
-      "name": "updated_at",
-      "fieldType": "datetime",
-      "component": "date",
+      "id": "field_created_by",
+      "name": "created_by",
+      "fieldType": "uuid",
+      "component": "text",
       "required": false,
       "isSystem": true,
       "isPrimaryKey": false,
@@ -278,12 +284,13 @@
           "system"
         ]
       },
-      "displayName": "Updated At"
+      "displayName": "Created By",
+      "validation": {}
     },
     {
-      "id": "field_updated_by",
-      "name": "updated_by",
-      "fieldType": "uuid",
+      "id": "field_updated_at",
+      "name": "updated_at",
+      "fieldType": "datetime",
       "component": "date",
       "required": false,
       "isSystem": true,
@@ -298,14 +305,36 @@
           "system"
         ]
       },
-      "displayName": "Updated By"
+      "displayName": "Updated At",
+      "validation": {}
+    },
+    {
+      "id": "field_updated_by",
+      "name": "updated_by",
+      "fieldType": "uuid",
+      "component": "date",
+      "required": false,
+      "isSystem": true,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 140,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "system"
+        ]
+      },
+      "displayName": "Updated By",
+      "validation": {}
     }
   ],
   "metadata": {
     "tableName": "account_communication",
-    "totalFields": 13,
+    "totalFields": 14,
     "systemFields": 5,
-    "customFields": 8,
-    "generatedAt": "2025-09-07T18:15:04.814Z"
+    "customFields": 9,
+    "generatedAt": "2025-09-08T11:20:33.488Z"
   }
 }

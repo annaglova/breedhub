@@ -1,10 +1,10 @@
 {
   "summary": {
     "totalEntities": 258,
-    "uniqueFields": 430,
-    "baseFields": 9,
-    "properties": 12,
-    "entityFieldsGenerated": 2352
+    "uniqueFields": 562,
+    "baseFields": 10,
+    "properties": 7,
+    "entityFieldsGenerated": 2851
   },
   "topFields": [
     {
@@ -43,19 +43,59 @@
       "percentage": "56.2%"
     },
     {
+      "name": "contact_id",
+      "occurrences": 37,
+      "percentage": "14.3%"
+    },
+    {
+      "name": "breed_id",
+      "occurrences": 35,
+      "percentage": "13.6%"
+    },
+    {
       "name": "code",
       "occurrences": 30,
       "percentage": "11.6%"
     },
     {
-      "name": "contact_id",
-      "occurrences": 26,
-      "percentage": "10.1%"
+      "name": "pet_id",
+      "occurrences": 24,
+      "percentage": "9.3%"
+    },
+    {
+      "name": "account_id",
+      "occurrences": 23,
+      "percentage": "8.9%"
     },
     {
       "name": "notes",
       "occurrences": 22,
       "percentage": "8.5%"
+    },
+    {
+      "name": "pet_breed_id",
+      "occurrences": 20,
+      "percentage": "7.8%"
+    },
+    {
+      "name": "pet_type_id",
+      "occurrences": 20,
+      "percentage": "7.8%"
+    },
+    {
+      "name": "type_id",
+      "occurrences": 17,
+      "percentage": "6.6%"
+    },
+    {
+      "name": "owner_id",
+      "occurrences": 16,
+      "percentage": "6.2%"
+    },
+    {
+      "name": "status_id",
+      "occurrences": 16,
+      "percentage": "6.2%"
     },
     {
       "name": "url",
@@ -66,46 +106,6 @@
       "name": "date",
       "occurrences": 16,
       "percentage": "6.2%"
-    },
-    {
-      "name": "owner_id",
-      "occurrences": 15,
-      "percentage": "5.8%"
-    },
-    {
-      "name": "color",
-      "occurrences": 14,
-      "percentage": "5.4%"
-    },
-    {
-      "name": "position",
-      "occurrences": 12,
-      "percentage": "4.7%"
-    },
-    {
-      "name": "avatar_url",
-      "occurrences": 8,
-      "percentage": "3.1%"
-    },
-    {
-      "name": "start_date",
-      "occurrences": 8,
-      "percentage": "3.1%"
-    },
-    {
-      "name": "number",
-      "occurrences": 8,
-      "percentage": "3.1%"
-    },
-    {
-      "name": "amount",
-      "occurrences": 8,
-      "percentage": "3.1%"
-    },
-    {
-      "name": "measurements",
-      "occurrences": 6,
-      "percentage": "2.3%"
     }
   ],
   "systemFields": [
@@ -121,8 +121,8 @@
   ],
   "analysis": {
     "fieldTypes": {
-      "unknown": 324,
-      "uuid": 16,
+      "unknown": 381,
+      "uuid": 91,
       "string": 27,
       "text": 8,
       "number": 27,

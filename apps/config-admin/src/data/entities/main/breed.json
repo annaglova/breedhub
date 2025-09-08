@@ -26,18 +26,15 @@
       },
       "displayName": "Name",
       "placeholder": "Enter name",
-      "maxLength": 250,
-      "validation": {
-        "maxLength": 250
-      },
+      "validation": {},
       "defaultValue": ""
     },
     {
-      "id": "field_differ_by_coat_color",
-      "name": "differ_by_coat_color",
-      "fieldType": "boolean",
-      "component": "checkbox",
-      "required": true,
+      "id": "field_pet_type_id",
+      "name": "pet_type_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -51,12 +48,17 @@
           "editor"
         ]
       },
-      "displayName": "Differ By Coat Color",
-      "defaultValue": "false"
+      "isForeignKey": true,
+      "referencedTable": "pet_type",
+      "referencedFieldID": "id",
+      "displayName": "Pet Type",
+      "placeholder": "Enter pet type",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
-      "id": "field_differ_by_coat_type",
-      "name": "differ_by_coat_type",
+      "id": "field_differ_by_coat_color",
+      "name": "differ_by_coat_color",
       "fieldType": "boolean",
       "component": "checkbox",
       "required": true,
@@ -73,12 +75,13 @@
           "editor"
         ]
       },
-      "displayName": "Differ By Coat Type",
+      "displayName": "Differ By Coat Color",
+      "validation": {},
       "defaultValue": "false"
     },
     {
-      "id": "field_differ_by_size",
-      "name": "differ_by_size",
+      "id": "field_differ_by_coat_type",
+      "name": "differ_by_coat_type",
       "fieldType": "boolean",
       "component": "checkbox",
       "required": true,
@@ -95,14 +98,15 @@
           "editor"
         ]
       },
-      "displayName": "Differ By Size",
+      "displayName": "Differ By Coat Type",
+      "validation": {},
       "defaultValue": "false"
     },
     {
-      "id": "field_authentic_name",
-      "name": "authentic_name",
-      "fieldType": "string",
-      "component": "text",
+      "id": "field_differ_by_size",
+      "name": "differ_by_size",
+      "fieldType": "boolean",
+      "component": "checkbox",
       "required": true,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -117,20 +121,16 @@
           "editor"
         ]
       },
-      "displayName": "Authentic Name",
-      "placeholder": "Enter authentic name",
-      "maxLength": 250,
-      "validation": {
-        "maxLength": 250
-      },
-      "defaultValue": ""
+      "displayName": "Differ By Size",
+      "validation": {},
+      "defaultValue": "false"
     },
     {
-      "id": "field_differ_by_body_feature",
-      "name": "differ_by_body_feature",
-      "fieldType": "boolean",
-      "component": "checkbox",
-      "required": true,
+      "id": "field_language_id",
+      "name": "language_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -144,14 +144,19 @@
           "editor"
         ]
       },
-      "displayName": "Differ By Body Feature",
-      "defaultValue": "false"
+      "isForeignKey": true,
+      "referencedTable": "sys_language",
+      "referencedFieldID": "id",
+      "displayName": "Language",
+      "placeholder": "Enter language",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
-      "id": "field_has_related_breed",
-      "name": "has_related_breed",
-      "fieldType": "boolean",
-      "component": "checkbox",
+      "id": "field_authentic_name",
+      "name": "authentic_name",
+      "fieldType": "string",
+      "component": "text",
       "required": true,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -166,14 +171,16 @@
           "editor"
         ]
       },
-      "displayName": "Has Related Breed",
-      "defaultValue": "false"
+      "displayName": "Authentic Name",
+      "placeholder": "Enter authentic name",
+      "validation": {},
+      "defaultValue": ""
     },
     {
-      "id": "field_admin_name",
-      "name": "admin_name",
-      "fieldType": "string",
-      "component": "text",
+      "id": "field_differ_by_body_feature",
+      "name": "differ_by_body_feature",
+      "fieldType": "boolean",
+      "component": "checkbox",
       "required": true,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -188,20 +195,16 @@
           "editor"
         ]
       },
-      "displayName": "Admin Name",
-      "placeholder": "Enter admin name",
-      "maxLength": 250,
-      "validation": {
-        "maxLength": 250
-      },
-      "defaultValue": ""
+      "displayName": "Differ By Body Feature",
+      "validation": {},
+      "defaultValue": "false"
     },
     {
-      "id": "field_url",
-      "name": "url",
-      "fieldType": "string",
-      "component": "url",
-      "required": true,
+      "id": "field_category_id",
+      "name": "category_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -215,21 +218,19 @@
           "editor"
         ]
       },
-      "displayName": "Url",
-      "placeholder": "Enter url",
-      "maxLength": 500,
-      "validation": {
-        "maxLength": 500,
-        "pattern": "^https?://.+",
-        "message": "Invalid URL format"
-      },
-      "defaultValue": ""
+      "isForeignKey": true,
+      "referencedTable": "breed_category",
+      "referencedFieldID": "id",
+      "displayName": "Category",
+      "placeholder": "Enter category",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
-      "id": "field_avatar_url",
-      "name": "avatar_url",
-      "fieldType": "string",
-      "component": "url",
+      "id": "field_has_related_breed",
+      "name": "has_related_breed",
+      "fieldType": "boolean",
+      "component": "checkbox",
       "required": true,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -244,22 +245,16 @@
           "editor"
         ]
       },
-      "displayName": "Avatar Url",
-      "placeholder": "Enter avatar url",
-      "maxLength": 500,
-      "validation": {
-        "maxLength": 500,
-        "pattern": "^https?://.+",
-        "message": "Invalid URL format"
-      },
-      "defaultValue": ""
+      "displayName": "Has Related Breed",
+      "validation": {},
+      "defaultValue": "false"
     },
     {
-      "id": "field_measurements",
-      "name": "measurements",
-      "fieldType": "json",
-      "component": "json",
-      "required": false,
+      "id": "field_admin_name",
+      "name": "admin_name",
+      "fieldType": "string",
+      "component": "text",
+      "required": true,
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -273,15 +268,17 @@
           "editor"
         ]
       },
-      "displayName": "Measurements",
-      "placeholder": "Enter measurements"
+      "displayName": "Admin Name",
+      "placeholder": "Enter admin name",
+      "validation": {},
+      "defaultValue": ""
     },
     {
-      "id": "field_description",
-      "name": "description",
-      "fieldType": "text",
-      "component": "textarea",
-      "required": false,
+      "id": "field_url",
+      "name": "url",
+      "fieldType": "string",
+      "component": "url",
+      "required": true,
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -295,8 +292,167 @@
           "editor"
         ]
       },
+      "displayName": "Url",
+      "placeholder": "Enter url",
+      "validation": {
+        "pattern": "^https?://.+",
+        "message": "Invalid URL format"
+      },
+      "defaultValue": ""
+    },
+    {
+      "id": "field_account_id",
+      "name": "account_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 130,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "isForeignKey": true,
+      "referencedTable": "account",
+      "referencedFieldID": "id",
+      "displayName": "Account",
+      "placeholder": "Enter account",
+      "validation": {},
+      "referencedFieldName": "name"
+    },
+    {
+      "id": "field_avatar_url",
+      "name": "avatar_url",
+      "fieldType": "string",
+      "component": "url",
+      "required": true,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 140,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "displayName": "Avatar Url",
+      "placeholder": "Enter avatar url",
+      "validation": {
+        "pattern": "^https?://.+",
+        "message": "Invalid URL format"
+      },
+      "defaultValue": ""
+    },
+    {
+      "id": "field_cover_id",
+      "name": "cover_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 150,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "isForeignKey": true,
+      "referencedTable": "cover",
+      "referencedFieldID": "id",
+      "displayName": "Cover",
+      "placeholder": "Enter cover",
+      "validation": {},
+      "referencedFieldName": "name"
+    },
+    {
+      "id": "field_public_data_id",
+      "name": "public_data_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 160,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "isForeignKey": true,
+      "referencedTable": "public_data",
+      "referencedFieldID": "id",
+      "displayName": "Public Data",
+      "placeholder": "Enter public data",
+      "validation": {},
+      "referencedFieldName": "name"
+    },
+    {
+      "id": "field_measurements",
+      "name": "measurements",
+      "fieldType": "json",
+      "component": "json",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 170,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "displayName": "Measurements",
+      "placeholder": "Enter measurements",
+      "validation": {}
+    },
+    {
+      "id": "field_description",
+      "name": "description",
+      "fieldType": "text",
+      "component": "textarea",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 180,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
       "displayName": "Description",
       "placeholder": "Enter description",
+      "validation": {},
       "defaultValue": ""
     },
     {
@@ -306,9 +462,9 @@
       "component": "text",
       "required": true,
       "isSystem": true,
-      "isPrimaryKey": true,
+      "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 130,
+      "sortOrder": 190,
       "permissions": {
         "read": [
           "*"
@@ -317,7 +473,8 @@
           "system"
         ]
       },
-      "displayName": "Id"
+      "displayName": "Id",
+      "validation": {}
     },
     {
       "id": "field_created_at",
@@ -328,7 +485,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 140,
+      "sortOrder": 200,
       "permissions": {
         "read": [
           "*"
@@ -337,7 +494,8 @@
           "system"
         ]
       },
-      "displayName": "Created At"
+      "displayName": "Created At",
+      "validation": {}
     },
     {
       "id": "field_created_by",
@@ -348,7 +506,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 150,
+      "sortOrder": 210,
       "permissions": {
         "read": [
           "*"
@@ -357,7 +515,8 @@
           "system"
         ]
       },
-      "displayName": "Created By"
+      "displayName": "Created By",
+      "validation": {}
     },
     {
       "id": "field_updated_at",
@@ -368,7 +527,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 160,
+      "sortOrder": 220,
       "permissions": {
         "read": [
           "*"
@@ -377,7 +536,8 @@
           "system"
         ]
       },
-      "displayName": "Updated At"
+      "displayName": "Updated At",
+      "validation": {}
     },
     {
       "id": "field_updated_by",
@@ -388,7 +548,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 170,
+      "sortOrder": 230,
       "permissions": {
         "read": [
           "*"
@@ -397,7 +557,8 @@
           "system"
         ]
       },
-      "displayName": "Updated By"
+      "displayName": "Updated By",
+      "validation": {}
     },
     {
       "id": "field_deleted",
@@ -408,7 +569,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 180,
+      "sortOrder": 240,
       "permissions": {
         "read": [
           "*"
@@ -417,14 +578,15 @@
           "system"
         ]
       },
-      "displayName": "Deleted"
+      "displayName": "Deleted",
+      "validation": {}
     }
   ],
   "metadata": {
     "tableName": "breed",
-    "totalFields": 18,
+    "totalFields": 24,
     "systemFields": 6,
-    "customFields": 12,
-    "generatedAt": "2025-09-07T18:14:14.047Z"
+    "customFields": 18,
+    "generatedAt": "2025-09-08T11:19:16.809Z"
   }
 }

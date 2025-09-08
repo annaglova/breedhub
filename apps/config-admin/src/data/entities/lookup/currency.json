@@ -26,10 +26,7 @@
       },
       "displayName": "Name",
       "placeholder": "Enter name",
-      "maxLength": 250,
-      "validation": {
-        "maxLength": 250
-      },
+      "validation": {},
       "defaultValue": ""
     },
     {
@@ -53,10 +50,7 @@
       },
       "displayName": "Description",
       "placeholder": "Enter description",
-      "maxLength": 250,
-      "validation": {
-        "maxLength": 250
-      },
+      "validation": {},
       "defaultValue": ""
     },
     {
@@ -80,10 +74,7 @@
       },
       "displayName": "Code",
       "placeholder": "Enter code",
-      "maxLength": 50,
-      "validation": {
-        "maxLength": 50
-      },
+      "validation": {},
       "defaultValue": ""
     },
     {
@@ -107,10 +98,7 @@
       },
       "displayName": "Short Name",
       "placeholder": "Enter short name",
-      "maxLength": 50,
-      "validation": {
-        "maxLength": 50
-      },
+      "validation": {},
       "defaultValue": ""
     },
     {
@@ -134,10 +122,7 @@
       },
       "displayName": "Symbol",
       "placeholder": "Enter symbol",
-      "maxLength": 50,
-      "validation": {
-        "maxLength": 50
-      },
+      "validation": {},
       "defaultValue": ""
     },
     {
@@ -161,9 +146,7 @@
       },
       "displayName": "Recalc Direction",
       "placeholder": "Enter recalc direction",
-      "validation": {
-        "precision": 32
-      },
+      "validation": {},
       "defaultValue": "0"
     },
     {
@@ -187,9 +170,7 @@
       },
       "displayName": "Division",
       "placeholder": "Enter division",
-      "validation": {
-        "precision": 32
-      },
+      "validation": {},
       "defaultValue": "0"
     },
     {
@@ -213,9 +194,7 @@
       },
       "displayName": "Currecy Symbol Position",
       "placeholder": "Enter currecy symbol position",
-      "validation": {
-        "precision": 32
-      },
+      "validation": {},
       "defaultValue": "0"
     },
     {
@@ -239,6 +218,7 @@
       },
       "displayName": "Rate",
       "placeholder": "Enter rate",
+      "validation": {},
       "defaultValue": "0"
     },
     {
@@ -248,7 +228,7 @@
       "component": "text",
       "required": true,
       "isSystem": true,
-      "isPrimaryKey": true,
+      "isPrimaryKey": false,
       "isUnique": false,
       "sortOrder": 100,
       "permissions": {
@@ -259,7 +239,8 @@
           "system"
         ]
       },
-      "displayName": "Id"
+      "displayName": "Id",
+      "validation": {}
     },
     {
       "id": "field_created_at",
@@ -279,7 +260,8 @@
           "system"
         ]
       },
-      "displayName": "Created At"
+      "displayName": "Created At",
+      "validation": {}
     },
     {
       "id": "field_created_by",
@@ -299,7 +281,8 @@
           "system"
         ]
       },
-      "displayName": "Created By"
+      "displayName": "Created By",
+      "validation": {}
     },
     {
       "id": "field_updated_at",
@@ -319,7 +302,8 @@
           "system"
         ]
       },
-      "displayName": "Updated At"
+      "displayName": "Updated At",
+      "validation": {}
     },
     {
       "id": "field_updated_by",
@@ -339,7 +323,8 @@
           "system"
         ]
       },
-      "displayName": "Updated By"
+      "displayName": "Updated By",
+      "validation": {}
     }
   ],
   "metadata": {
@@ -347,6 +332,6 @@
     "totalFields": 14,
     "systemFields": 5,
     "customFields": 9,
-    "generatedAt": "2025-09-07T18:14:44.567Z"
+    "generatedAt": "2025-09-08T11:20:08.605Z"
   }
 }

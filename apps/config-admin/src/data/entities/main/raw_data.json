@@ -26,10 +26,7 @@
       },
       "displayName": "Name",
       "placeholder": "Enter name",
-      "maxLength": 250,
-      "validation": {
-        "maxLength": 250
-      },
+      "validation": {},
       "defaultValue": ""
     },
     {
@@ -53,6 +50,7 @@
       },
       "displayName": "Notes",
       "placeholder": "Enter notes",
+      "validation": {},
       "defaultValue": ""
     },
     {
@@ -76,14 +74,15 @@
       },
       "displayName": "Json",
       "placeholder": "Enter json",
+      "validation": {},
       "defaultValue": ""
     },
     {
-      "id": "field_log",
-      "name": "log",
-      "fieldType": "text",
-      "component": "textarea",
-      "required": true,
+      "id": "field_status_id",
+      "name": "status_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -97,15 +96,19 @@
           "editor"
         ]
       },
-      "displayName": "Log",
-      "placeholder": "Enter log",
-      "defaultValue": ""
+      "isForeignKey": true,
+      "referencedTable": "raw_data_status",
+      "referencedFieldID": "id",
+      "displayName": "Status",
+      "placeholder": "Enter status",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
-      "id": "field_redirect_url",
-      "name": "redirect_url",
-      "fieldType": "string",
-      "component": "url",
+      "id": "field_log",
+      "name": "log",
+      "fieldType": "text",
+      "component": "textarea",
       "required": true,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -120,21 +123,16 @@
           "editor"
         ]
       },
-      "displayName": "Redirect Url",
-      "placeholder": "Enter redirect url",
-      "maxLength": 250,
-      "validation": {
-        "maxLength": 250,
-        "pattern": "^https?://.+",
-        "message": "Invalid URL format"
-      },
+      "displayName": "Log",
+      "placeholder": "Enter log",
+      "validation": {},
       "defaultValue": ""
     },
     {
-      "id": "field_record_id",
-      "name": "record_id",
+      "id": "field_conf_item_id",
+      "name": "conf_item_id",
       "fieldType": "uuid",
-      "component": "text",
+      "component": "select",
       "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -149,14 +147,19 @@
           "editor"
         ]
       },
-      "displayName": "Record Id",
-      "placeholder": "Enter record id"
+      "isForeignKey": true,
+      "referencedTable": "conf_item",
+      "referencedFieldID": "id",
+      "displayName": "Conf Item",
+      "placeholder": "Enter conf item",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
-      "id": "field_entity_name",
-      "name": "entity_name",
+      "id": "field_redirect_url",
+      "name": "redirect_url",
       "fieldType": "string",
-      "component": "text",
+      "component": "url",
       "required": true,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -171,20 +174,20 @@
           "editor"
         ]
       },
-      "displayName": "Entity Name",
-      "placeholder": "Enter entity name",
-      "maxLength": 50,
+      "displayName": "Redirect Url",
+      "placeholder": "Enter redirect url",
       "validation": {
-        "maxLength": 50
+        "pattern": "^https?://.+",
+        "message": "Invalid URL format"
       },
       "defaultValue": ""
     },
     {
-      "id": "field_model",
-      "name": "model",
-      "fieldType": "string",
-      "component": "text",
-      "required": true,
+      "id": "field_record_id",
+      "name": "record_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -198,17 +201,17 @@
           "editor"
         ]
       },
-      "displayName": "Model",
-      "placeholder": "Enter model",
-      "maxLength": 50,
-      "validation": {
-        "maxLength": 50
-      },
-      "defaultValue": ""
+      "isForeignKey": true,
+      "referencedTable": "record",
+      "referencedFieldID": "id",
+      "displayName": "Record",
+      "placeholder": "Enter record",
+      "validation": {},
+      "referencedFieldName": "id"
     },
     {
-      "id": "field_hash_md5",
-      "name": "hash_md5",
+      "id": "field_entity_name",
+      "name": "entity_name",
       "fieldType": "string",
       "component": "text",
       "required": true,
@@ -225,20 +228,17 @@
           "editor"
         ]
       },
-      "displayName": "Hash Md5",
-      "placeholder": "Enter hash md5",
-      "maxLength": 50,
-      "validation": {
-        "maxLength": 50
-      },
+      "displayName": "Entity Name",
+      "placeholder": "Enter entity name",
+      "validation": {},
       "defaultValue": ""
     },
     {
-      "id": "field_contact_id",
-      "name": "contact_id",
-      "fieldType": "uuid",
+      "id": "field_model",
+      "name": "model",
+      "fieldType": "string",
       "component": "text",
-      "required": false,
+      "required": true,
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -252,15 +252,17 @@
           "editor"
         ]
       },
-      "displayName": "Contact Id",
-      "placeholder": "Enter contact id"
+      "displayName": "Model",
+      "placeholder": "Enter model",
+      "validation": {},
+      "defaultValue": ""
     },
     {
-      "id": "field_account_id",
-      "name": "account_id",
-      "fieldType": "uuid",
+      "id": "field_hash_md5",
+      "name": "hash_md5",
+      "fieldType": "string",
       "component": "text",
-      "required": false,
+      "required": true,
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -274,14 +276,16 @@
           "editor"
         ]
       },
-      "displayName": "Account Id",
-      "placeholder": "Enter account id"
+      "displayName": "Hash Md5",
+      "placeholder": "Enter hash md5",
+      "validation": {},
+      "defaultValue": ""
     },
     {
-      "id": "field_pet_id",
-      "name": "pet_id",
+      "id": "field_contact_id",
+      "name": "contact_id",
       "fieldType": "uuid",
-      "component": "text",
+      "component": "select",
       "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -296,8 +300,148 @@
           "editor"
         ]
       },
-      "displayName": "Pet Id",
-      "placeholder": "Enter pet id"
+      "isForeignKey": true,
+      "referencedTable": "contact",
+      "referencedFieldID": "id",
+      "displayName": "Contact",
+      "placeholder": "Enter contact",
+      "validation": {},
+      "referencedFieldName": "name"
+    },
+    {
+      "id": "field_account_id",
+      "name": "account_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 130,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "isForeignKey": true,
+      "referencedTable": "account",
+      "referencedFieldID": "id",
+      "displayName": "Account",
+      "placeholder": "Enter account",
+      "validation": {},
+      "referencedFieldName": "name"
+    },
+    {
+      "id": "field_breed_id",
+      "name": "breed_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 140,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "isForeignKey": true,
+      "referencedTable": "breed",
+      "referencedFieldID": "id",
+      "displayName": "Breed",
+      "placeholder": "Enter breed",
+      "validation": {},
+      "referencedFieldName": "name"
+    },
+    {
+      "id": "field_event_id",
+      "name": "event_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 150,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "isForeignKey": true,
+      "referencedTable": "event",
+      "referencedFieldID": "id",
+      "displayName": "Event",
+      "placeholder": "Enter event",
+      "validation": {},
+      "referencedFieldName": "name"
+    },
+    {
+      "id": "field_project_id",
+      "name": "project_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 160,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "isForeignKey": true,
+      "referencedTable": "project",
+      "referencedFieldID": "id",
+      "displayName": "Project",
+      "placeholder": "Enter project",
+      "validation": {},
+      "referencedFieldName": "name"
+    },
+    {
+      "id": "field_pet_id",
+      "name": "pet_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 170,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "isForeignKey": true,
+      "referencedTable": "pet",
+      "referencedFieldID": "id",
+      "displayName": "Pet",
+      "placeholder": "Enter pet",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
       "id": "field_id",
@@ -306,9 +450,9 @@
       "component": "text",
       "required": true,
       "isSystem": true,
-      "isPrimaryKey": true,
+      "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 130,
+      "sortOrder": 180,
       "permissions": {
         "read": [
           "*"
@@ -317,7 +461,8 @@
           "system"
         ]
       },
-      "displayName": "Id"
+      "displayName": "Id",
+      "validation": {}
     },
     {
       "id": "field_created_at",
@@ -328,7 +473,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 140,
+      "sortOrder": 190,
       "permissions": {
         "read": [
           "*"
@@ -337,7 +482,8 @@
           "system"
         ]
       },
-      "displayName": "Created At"
+      "displayName": "Created At",
+      "validation": {}
     },
     {
       "id": "field_created_by",
@@ -348,7 +494,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 150,
+      "sortOrder": 200,
       "permissions": {
         "read": [
           "*"
@@ -357,7 +503,8 @@
           "system"
         ]
       },
-      "displayName": "Created By"
+      "displayName": "Created By",
+      "validation": {}
     },
     {
       "id": "field_updated_at",
@@ -368,7 +515,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 160,
+      "sortOrder": 210,
       "permissions": {
         "read": [
           "*"
@@ -377,7 +524,8 @@
           "system"
         ]
       },
-      "displayName": "Updated At"
+      "displayName": "Updated At",
+      "validation": {}
     },
     {
       "id": "field_updated_by",
@@ -388,7 +536,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 170,
+      "sortOrder": 220,
       "permissions": {
         "read": [
           "*"
@@ -397,14 +545,15 @@
           "system"
         ]
       },
-      "displayName": "Updated By"
+      "displayName": "Updated By",
+      "validation": {}
     }
   ],
   "metadata": {
     "tableName": "raw_data",
-    "totalFields": 17,
+    "totalFields": 22,
     "systemFields": 5,
-    "customFields": 12,
-    "generatedAt": "2025-09-07T18:14:24.865Z"
+    "customFields": 17,
+    "generatedAt": "2025-09-08T11:19:39.796Z"
   }
 }

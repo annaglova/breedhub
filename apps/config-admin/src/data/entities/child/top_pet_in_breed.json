@@ -9,11 +9,11 @@
       "id": "field_breed_id",
       "name": "breed_id",
       "fieldType": "uuid",
-      "component": "text",
+      "component": "select",
       "required": true,
       "isSystem": false,
-      "isPrimaryKey": true,
-      "isUnique": true,
+      "isPrimaryKey": false,
+      "isUnique": false,
       "sortOrder": 10,
       "permissions": {
         "read": [
@@ -24,18 +24,23 @@
           "editor"
         ]
       },
-      "displayName": "Breed Id",
-      "placeholder": "Enter breed id"
+      "isForeignKey": true,
+      "referencedTable": "breed",
+      "referencedFieldID": "id",
+      "displayName": "Breed",
+      "placeholder": "Enter breed",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
       "id": "field_pet_id",
       "name": "pet_id",
       "fieldType": "uuid",
-      "component": "text",
+      "component": "select",
       "required": true,
       "isSystem": false,
       "isPrimaryKey": false,
-      "isUnique": true,
+      "isUnique": false,
       "sortOrder": 20,
       "permissions": {
         "read": [
@@ -46,8 +51,13 @@
           "editor"
         ]
       },
-      "displayName": "Pet Id",
-      "placeholder": "Enter pet id"
+      "isForeignKey": true,
+      "referencedTable": "pet",
+      "referencedFieldID": "id",
+      "displayName": "Pet",
+      "placeholder": "Enter pet",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
       "id": "field_placement",
@@ -56,7 +66,7 @@
       "component": "number",
       "required": true,
       "isSystem": false,
-      "isPrimaryKey": true,
+      "isPrimaryKey": false,
       "isUnique": false,
       "sortOrder": 30,
       "permissions": {
@@ -70,9 +80,7 @@
       },
       "displayName": "Placement",
       "placeholder": "Enter placement",
-      "validation": {
-        "precision": 32
-      }
+      "validation": {}
     },
     {
       "id": "field_period_start",
@@ -81,8 +89,8 @@
       "component": "date",
       "required": true,
       "isSystem": false,
-      "isPrimaryKey": true,
-      "isUnique": true,
+      "isPrimaryKey": false,
+      "isUnique": false,
       "sortOrder": 40,
       "permissions": {
         "read": [
@@ -94,7 +102,8 @@
         ]
       },
       "displayName": "Period Start",
-      "placeholder": "Enter period start"
+      "placeholder": "Enter period start",
+      "validation": {}
     },
     {
       "id": "field_period_end",
@@ -116,7 +125,8 @@
         ]
       },
       "displayName": "Period End",
-      "placeholder": "Enter period end"
+      "placeholder": "Enter period end",
+      "validation": {}
     },
     {
       "id": "field_rating",
@@ -138,7 +148,8 @@
         ]
       },
       "displayName": "Rating",
-      "placeholder": "Enter rating"
+      "placeholder": "Enter rating",
+      "validation": {}
     }
   ],
   "metadata": {
@@ -146,6 +157,6 @@
     "totalFields": 6,
     "systemFields": 0,
     "customFields": 6,
-    "generatedAt": "2025-09-07T17:59:23.583Z"
+    "generatedAt": "2025-09-08T11:21:13.217Z"
   }
 }

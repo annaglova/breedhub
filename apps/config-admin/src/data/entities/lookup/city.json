@@ -26,10 +26,7 @@
       },
       "displayName": "Name",
       "placeholder": "Enter name",
-      "maxLength": 250,
-      "validation": {
-        "maxLength": 250
-      },
+      "validation": {},
       "defaultValue": ""
     },
     {
@@ -53,18 +50,15 @@
       },
       "displayName": "Description",
       "placeholder": "Enter description",
-      "maxLength": 250,
-      "validation": {
-        "maxLength": 250
-      },
+      "validation": {},
       "defaultValue": ""
     },
     {
-      "id": "field_alternate_names",
-      "name": "alternate_names",
-      "fieldType": "text",
-      "component": "textarea",
-      "required": true,
+      "id": "field_country_id",
+      "name": "country_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -78,16 +72,20 @@
           "editor"
         ]
       },
-      "displayName": "Alternate Names",
-      "placeholder": "Enter alternate names",
-      "defaultValue": ""
+      "isForeignKey": true,
+      "referencedTable": "country",
+      "referencedFieldID": "id",
+      "displayName": "Country",
+      "placeholder": "Enter country",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
-      "id": "field_geo_names_id",
-      "name": "geo_names_id",
-      "fieldType": "string",
-      "component": "text",
-      "required": true,
+      "id": "field_region_id",
+      "name": "region_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -101,20 +99,20 @@
           "editor"
         ]
       },
-      "displayName": "Geo Names Id",
-      "placeholder": "Enter geo names id",
-      "maxLength": 50,
-      "validation": {
-        "maxLength": 50
-      },
-      "defaultValue": ""
+      "isForeignKey": true,
+      "referencedTable": "region",
+      "referencedFieldID": "id",
+      "displayName": "Region",
+      "placeholder": "Enter region",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
-      "id": "field_dem",
-      "name": "dem",
-      "fieldType": "number",
-      "component": "number",
-      "required": true,
+      "id": "field_time_zone_id",
+      "name": "time_zone_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -128,19 +126,20 @@
           "editor"
         ]
       },
-      "displayName": "Dem",
-      "placeholder": "Enter dem",
-      "validation": {
-        "precision": 32
-      },
-      "defaultValue": "0"
+      "isForeignKey": true,
+      "referencedTable": "time_zone",
+      "referencedFieldID": "id",
+      "displayName": "Time Zone",
+      "placeholder": "Enter time zone",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
-      "id": "field_latitude",
-      "name": "latitude",
-      "fieldType": "number",
-      "component": "number",
-      "required": true,
+      "id": "field_geo_names_time_zone_id",
+      "name": "geo_names_time_zone_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -154,15 +153,19 @@
           "editor"
         ]
       },
-      "displayName": "Latitude",
-      "placeholder": "Enter latitude",
-      "defaultValue": "0"
+      "isForeignKey": true,
+      "referencedTable": "geo_names_time_zone",
+      "referencedFieldID": "id",
+      "displayName": "Geo Names Time Zone",
+      "placeholder": "Enter geo names time zone",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
-      "id": "field_longitude",
-      "name": "longitude",
-      "fieldType": "number",
-      "component": "number",
+      "id": "field_alternate_names",
+      "name": "alternate_names",
+      "fieldType": "text",
+      "component": "textarea",
       "required": true,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -177,15 +180,16 @@
           "editor"
         ]
       },
-      "displayName": "Longitude",
-      "placeholder": "Enter longitude",
-      "defaultValue": "0"
+      "displayName": "Alternate Names",
+      "placeholder": "Enter alternate names",
+      "validation": {},
+      "defaultValue": ""
     },
     {
-      "id": "field_population",
-      "name": "population",
-      "fieldType": "number",
-      "component": "number",
+      "id": "field_geo_names_id",
+      "name": "geo_names_id",
+      "fieldType": "string",
+      "component": "select",
       "required": true,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -200,21 +204,23 @@
           "editor"
         ]
       },
-      "displayName": "Population",
-      "placeholder": "Enter population",
-      "validation": {
-        "precision": 32
-      },
-      "defaultValue": "0"
+      "isForeignKey": true,
+      "referencedTable": "geo_names",
+      "referencedFieldID": "id",
+      "displayName": "Geo Names",
+      "placeholder": "Enter geo names",
+      "validation": {},
+      "defaultValue": "",
+      "referencedFieldName": "id"
     },
     {
-      "id": "field_id",
-      "name": "id",
-      "fieldType": "uuid",
-      "component": "text",
+      "id": "field_dem",
+      "name": "dem",
+      "fieldType": "number",
+      "component": "number",
       "required": true,
-      "isSystem": true,
-      "isPrimaryKey": true,
+      "isSystem": false,
+      "isPrimaryKey": false,
       "isUnique": false,
       "sortOrder": 90,
       "permissions": {
@@ -222,18 +228,22 @@
           "*"
         ],
         "write": [
-          "system"
+          "admin",
+          "editor"
         ]
       },
-      "displayName": "Id"
+      "displayName": "Dem",
+      "placeholder": "Enter dem",
+      "validation": {},
+      "defaultValue": "0"
     },
     {
-      "id": "field_created_at",
-      "name": "created_at",
-      "fieldType": "datetime",
-      "component": "datetime",
-      "required": false,
-      "isSystem": true,
+      "id": "field_latitude",
+      "name": "latitude",
+      "fieldType": "number",
+      "component": "number",
+      "required": true,
+      "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
       "sortOrder": 100,
@@ -242,18 +252,22 @@
           "*"
         ],
         "write": [
-          "system"
+          "admin",
+          "editor"
         ]
       },
-      "displayName": "Created At"
+      "displayName": "Latitude",
+      "placeholder": "Enter latitude",
+      "validation": {},
+      "defaultValue": "0"
     },
     {
-      "id": "field_created_by",
-      "name": "created_by",
-      "fieldType": "uuid",
-      "component": "text",
-      "required": false,
-      "isSystem": true,
+      "id": "field_longitude",
+      "name": "longitude",
+      "fieldType": "number",
+      "component": "number",
+      "required": true,
+      "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
       "sortOrder": 110,
@@ -262,18 +276,22 @@
           "*"
         ],
         "write": [
-          "system"
+          "admin",
+          "editor"
         ]
       },
-      "displayName": "Created By"
+      "displayName": "Longitude",
+      "placeholder": "Enter longitude",
+      "validation": {},
+      "defaultValue": "0"
     },
     {
-      "id": "field_updated_at",
-      "name": "updated_at",
-      "fieldType": "datetime",
-      "component": "date",
-      "required": false,
-      "isSystem": true,
+      "id": "field_population",
+      "name": "population",
+      "fieldType": "number",
+      "component": "number",
+      "required": true,
+      "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
       "sortOrder": 120,
@@ -282,17 +300,21 @@
           "*"
         ],
         "write": [
-          "system"
+          "admin",
+          "editor"
         ]
       },
-      "displayName": "Updated At"
+      "displayName": "Population",
+      "placeholder": "Enter population",
+      "validation": {},
+      "defaultValue": "0"
     },
     {
-      "id": "field_updated_by",
-      "name": "updated_by",
+      "id": "field_id",
+      "name": "id",
       "fieldType": "uuid",
-      "component": "date",
-      "required": false,
+      "component": "text",
+      "required": true,
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -305,14 +327,99 @@
           "system"
         ]
       },
-      "displayName": "Updated By"
+      "displayName": "Id",
+      "validation": {}
+    },
+    {
+      "id": "field_created_at",
+      "name": "created_at",
+      "fieldType": "datetime",
+      "component": "datetime",
+      "required": false,
+      "isSystem": true,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 140,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "system"
+        ]
+      },
+      "displayName": "Created At",
+      "validation": {}
+    },
+    {
+      "id": "field_created_by",
+      "name": "created_by",
+      "fieldType": "uuid",
+      "component": "text",
+      "required": false,
+      "isSystem": true,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 150,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "system"
+        ]
+      },
+      "displayName": "Created By",
+      "validation": {}
+    },
+    {
+      "id": "field_updated_at",
+      "name": "updated_at",
+      "fieldType": "datetime",
+      "component": "date",
+      "required": false,
+      "isSystem": true,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 160,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "system"
+        ]
+      },
+      "displayName": "Updated At",
+      "validation": {}
+    },
+    {
+      "id": "field_updated_by",
+      "name": "updated_by",
+      "fieldType": "uuid",
+      "component": "date",
+      "required": false,
+      "isSystem": true,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 170,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "system"
+        ]
+      },
+      "displayName": "Updated By",
+      "validation": {}
     }
   ],
   "metadata": {
     "tableName": "city",
-    "totalFields": 13,
+    "totalFields": 17,
     "systemFields": 5,
-    "customFields": 8,
-    "generatedAt": "2025-09-07T18:14:40.227Z"
+    "customFields": 12,
+    "generatedAt": "2025-09-08T11:20:03.891Z"
   }
 }

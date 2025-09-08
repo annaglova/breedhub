@@ -6,11 +6,11 @@
   "category": "main",
   "fields": [
     {
-      "id": "field_number",
-      "name": "number",
-      "fieldType": "string",
-      "component": "text",
-      "required": true,
+      "id": "field_project_id",
+      "name": "project_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -24,17 +24,17 @@
           "editor"
         ]
       },
-      "displayName": "Number",
-      "placeholder": "Enter number",
-      "maxLength": 50,
-      "validation": {
-        "maxLength": 50
-      },
-      "defaultValue": ""
+      "isForeignKey": true,
+      "referencedTable": "project",
+      "referencedFieldID": "id",
+      "displayName": "Project",
+      "placeholder": "Enter project",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
-      "id": "field_details",
-      "name": "details",
+      "id": "field_number",
+      "name": "number",
       "fieldType": "string",
       "component": "text",
       "required": true,
@@ -51,19 +51,16 @@
           "editor"
         ]
       },
-      "displayName": "Details",
-      "placeholder": "Enter details",
-      "maxLength": 250,
-      "validation": {
-        "maxLength": 250
-      },
+      "displayName": "Number",
+      "placeholder": "Enter number",
+      "validation": {},
       "defaultValue": ""
     },
     {
-      "id": "field_date",
-      "name": "date",
-      "fieldType": "date",
-      "component": "date",
+      "id": "field_type_id",
+      "name": "type_id",
+      "fieldType": "uuid",
+      "component": "select",
       "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -78,15 +75,19 @@
           "editor"
         ]
       },
-      "displayName": "Date",
-      "placeholder": "Enter date",
-      "defaultValue": "(timezone(utc"
+      "isForeignKey": true,
+      "referencedTable": "cashflow_type",
+      "referencedFieldID": "id",
+      "displayName": "Type",
+      "placeholder": "Enter type",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
-      "id": "field_currency_rate",
-      "name": "currency_rate",
-      "fieldType": "number",
-      "component": "number",
+      "id": "field_details",
+      "name": "details",
+      "fieldType": "string",
+      "component": "text",
       "required": true,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -101,16 +102,17 @@
           "editor"
         ]
       },
-      "displayName": "Currency Rate",
-      "placeholder": "Enter currency rate",
-      "defaultValue": "0"
+      "displayName": "Details",
+      "placeholder": "Enter details",
+      "validation": {},
+      "defaultValue": ""
     },
     {
-      "id": "field_amount",
-      "name": "amount",
-      "fieldType": "number",
-      "component": "number",
-      "required": true,
+      "id": "field_category_id",
+      "name": "category_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -124,16 +126,20 @@
           "editor"
         ]
       },
-      "displayName": "Amount",
-      "placeholder": "Enter amount",
-      "defaultValue": "0"
+      "isForeignKey": true,
+      "referencedTable": "cashflow_category",
+      "referencedFieldID": "id",
+      "displayName": "Category",
+      "placeholder": "Enter category",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
-      "id": "field_primary_amount",
-      "name": "primary_amount",
-      "fieldType": "number",
-      "component": "number",
-      "required": true,
+      "id": "field_status_id",
+      "name": "status_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -147,16 +153,20 @@
           "editor"
         ]
       },
-      "displayName": "Primary Amount",
-      "placeholder": "Enter primary amount",
-      "defaultValue": "0"
+      "isForeignKey": true,
+      "referencedTable": "cashflow_status",
+      "referencedFieldID": "id",
+      "displayName": "Status",
+      "placeholder": "Enter status",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
-      "id": "field_notes",
-      "name": "notes",
-      "fieldType": "text",
-      "component": "textarea",
-      "required": true,
+      "id": "field_date",
+      "name": "date",
+      "fieldType": "date",
+      "component": "date",
+      "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -170,9 +180,241 @@
           "editor"
         ]
       },
+      "displayName": "Date",
+      "placeholder": "Enter date",
+      "validation": {},
+      "defaultValue": "(timezone(utc"
+    },
+    {
+      "id": "field_currency_id",
+      "name": "currency_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 80,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "isForeignKey": true,
+      "referencedTable": "currency",
+      "referencedFieldID": "id",
+      "displayName": "Currency",
+      "placeholder": "Enter currency",
+      "validation": {},
+      "referencedFieldName": "name"
+    },
+    {
+      "id": "field_currency_rate",
+      "name": "currency_rate",
+      "fieldType": "number",
+      "component": "number",
+      "required": true,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 90,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "displayName": "Currency Rate",
+      "placeholder": "Enter currency rate",
+      "validation": {},
+      "defaultValue": "0"
+    },
+    {
+      "id": "field_amount",
+      "name": "amount",
+      "fieldType": "number",
+      "component": "number",
+      "required": true,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 100,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "displayName": "Amount",
+      "placeholder": "Enter amount",
+      "validation": {},
+      "defaultValue": "0"
+    },
+    {
+      "id": "field_primary_amount",
+      "name": "primary_amount",
+      "fieldType": "number",
+      "component": "number",
+      "required": true,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 110,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "displayName": "Primary Amount",
+      "placeholder": "Enter primary amount",
+      "validation": {},
+      "defaultValue": "0"
+    },
+    {
+      "id": "field_notes",
+      "name": "notes",
+      "fieldType": "text",
+      "component": "textarea",
+      "required": true,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 120,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
       "displayName": "Notes",
       "placeholder": "Enter notes",
+      "validation": {},
       "defaultValue": ""
+    },
+    {
+      "id": "field_invoice_id",
+      "name": "invoice_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 130,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "isForeignKey": true,
+      "referencedTable": "invoice",
+      "referencedFieldID": "id",
+      "displayName": "Invoice",
+      "placeholder": "Enter invoice",
+      "validation": {},
+      "referencedFieldName": "number"
+    },
+    {
+      "id": "field_conf_item_id",
+      "name": "conf_item_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 140,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "isForeignKey": true,
+      "referencedTable": "conf_item",
+      "referencedFieldID": "id",
+      "displayName": "Conf Item",
+      "placeholder": "Enter conf item",
+      "validation": {},
+      "referencedFieldName": "name"
+    },
+    {
+      "id": "field_income_fin_account_id",
+      "name": "income_fin_account_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 150,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "isForeignKey": true,
+      "referencedTable": "fin_account",
+      "referencedFieldID": "id",
+      "displayName": "Income Fin Account",
+      "placeholder": "Enter income fin account",
+      "validation": {},
+      "referencedFieldName": "id"
+    },
+    {
+      "id": "field_outcome_fin_account_id",
+      "name": "outcome_fin_account_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 160,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "isForeignKey": true,
+      "referencedTable": "fin_account",
+      "referencedFieldID": "id",
+      "displayName": "Outcome Fin Account",
+      "placeholder": "Enter outcome fin account",
+      "validation": {},
+      "referencedFieldName": "id"
     },
     {
       "id": "field_id",
@@ -181,9 +423,9 @@
       "component": "text",
       "required": true,
       "isSystem": true,
-      "isPrimaryKey": true,
+      "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 80,
+      "sortOrder": 170,
       "permissions": {
         "read": [
           "*"
@@ -192,7 +434,8 @@
           "system"
         ]
       },
-      "displayName": "Id"
+      "displayName": "Id",
+      "validation": {}
     },
     {
       "id": "field_created_at",
@@ -203,7 +446,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 90,
+      "sortOrder": 180,
       "permissions": {
         "read": [
           "*"
@@ -212,7 +455,8 @@
           "system"
         ]
       },
-      "displayName": "Created At"
+      "displayName": "Created At",
+      "validation": {}
     },
     {
       "id": "field_created_by",
@@ -223,7 +467,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 100,
+      "sortOrder": 190,
       "permissions": {
         "read": [
           "*"
@@ -232,7 +476,8 @@
           "system"
         ]
       },
-      "displayName": "Created By"
+      "displayName": "Created By",
+      "validation": {}
     },
     {
       "id": "field_updated_at",
@@ -243,7 +488,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 110,
+      "sortOrder": 200,
       "permissions": {
         "read": [
           "*"
@@ -252,7 +497,8 @@
           "system"
         ]
       },
-      "displayName": "Updated At"
+      "displayName": "Updated At",
+      "validation": {}
     },
     {
       "id": "field_updated_by",
@@ -263,7 +509,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 120,
+      "sortOrder": 210,
       "permissions": {
         "read": [
           "*"
@@ -272,14 +518,15 @@
           "system"
         ]
       },
-      "displayName": "Updated By"
+      "displayName": "Updated By",
+      "validation": {}
     }
   ],
   "metadata": {
     "tableName": "cashflow",
-    "totalFields": 12,
+    "totalFields": 21,
     "systemFields": 5,
-    "customFields": 7,
-    "generatedAt": "2025-09-07T18:14:29.129Z"
+    "customFields": 16,
+    "generatedAt": "2025-09-08T11:19:45.980Z"
   }
 }

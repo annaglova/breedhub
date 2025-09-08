@@ -6,11 +6,11 @@
   "category": "lookup",
   "fields": [
     {
-      "id": "field_code",
-      "name": "code",
-      "fieldType": "string",
-      "component": "text",
-      "required": true,
+      "id": "field_subsection_id",
+      "name": "subsection_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -24,19 +24,19 @@
           "editor"
         ]
       },
-      "displayName": "Code",
-      "placeholder": "Enter code",
-      "maxLength": 50,
-      "validation": {
-        "maxLength": 50
-      },
-      "defaultValue": ""
+      "isForeignKey": true,
+      "referencedTable": "breed_subsection",
+      "referencedFieldID": "id",
+      "displayName": "Subsection",
+      "placeholder": "Enter subsection",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
-      "id": "field_effective",
-      "name": "effective",
-      "fieldType": "date",
-      "component": "date",
+      "id": "field_section_id",
+      "name": "section_id",
+      "fieldType": "uuid",
+      "component": "select",
       "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -51,14 +51,19 @@
           "editor"
         ]
       },
-      "displayName": "Effective",
-      "placeholder": "Enter effective"
+      "isForeignKey": true,
+      "referencedTable": "breed_section",
+      "referencedFieldID": "id",
+      "displayName": "Section",
+      "placeholder": "Enter section",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
-      "id": "field_approved",
-      "name": "approved",
-      "fieldType": "date",
-      "component": "date",
+      "id": "field_group_id",
+      "name": "group_id",
+      "fieldType": "uuid",
+      "component": "select",
       "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -73,14 +78,19 @@
           "editor"
         ]
       },
-      "displayName": "Approved",
-      "placeholder": "Enter approved"
+      "isForeignKey": true,
+      "referencedTable": "breed_group",
+      "referencedFieldID": "id",
+      "displayName": "Group",
+      "placeholder": "Enter group",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
-      "id": "field_link",
-      "name": "link",
+      "id": "field_code",
+      "name": "code",
       "fieldType": "string",
-      "component": "url",
+      "component": "text",
       "required": true,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -95,11 +105,133 @@
           "editor"
         ]
       },
+      "displayName": "Code",
+      "placeholder": "Enter code",
+      "validation": {},
+      "defaultValue": ""
+    },
+    {
+      "id": "field_provider_id",
+      "name": "provider_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 50,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "isForeignKey": true,
+      "referencedTable": "account",
+      "referencedFieldID": "id",
+      "displayName": "Provider",
+      "placeholder": "Enter provider",
+      "validation": {},
+      "referencedFieldName": "name"
+    },
+    {
+      "id": "field_breed_id",
+      "name": "breed_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 60,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "isForeignKey": true,
+      "referencedTable": "breed",
+      "referencedFieldID": "id",
+      "displayName": "Breed",
+      "placeholder": "Enter breed",
+      "validation": {},
+      "referencedFieldName": "name"
+    },
+    {
+      "id": "field_effective",
+      "name": "effective",
+      "fieldType": "date",
+      "component": "date",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 70,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "displayName": "Effective",
+      "placeholder": "Enter effective",
+      "validation": {}
+    },
+    {
+      "id": "field_approved",
+      "name": "approved",
+      "fieldType": "date",
+      "component": "date",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 80,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "displayName": "Approved",
+      "placeholder": "Enter approved",
+      "validation": {}
+    },
+    {
+      "id": "field_link",
+      "name": "link",
+      "fieldType": "string",
+      "component": "url",
+      "required": true,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 90,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
       "displayName": "Link",
       "placeholder": "Enter link",
-      "maxLength": 250,
       "validation": {
-        "maxLength": 250,
         "pattern": "^https?://.+",
         "message": "Invalid URL format"
       },
@@ -114,7 +246,7 @@
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 50,
+      "sortOrder": 100,
       "permissions": {
         "read": [
           "*"
@@ -125,7 +257,35 @@
         ]
       },
       "displayName": "Working Trial",
+      "validation": {},
       "defaultValue": "false"
+    },
+    {
+      "id": "field_status_id",
+      "name": "status_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 110,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "isForeignKey": true,
+      "referencedTable": "breed_standard_status",
+      "referencedFieldID": "id",
+      "displayName": "Status",
+      "placeholder": "Enter status",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
       "id": "field_has_variable_divisions",
@@ -136,7 +296,7 @@
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 60,
+      "sortOrder": 120,
       "permissions": {
         "read": [
           "*"
@@ -147,6 +307,7 @@
         ]
       },
       "displayName": "Has Variable Divisions",
+      "validation": {},
       "defaultValue": "false"
     },
     {
@@ -158,7 +319,7 @@
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 70,
+      "sortOrder": 130,
       "permissions": {
         "read": [
           "*"
@@ -170,10 +331,7 @@
       },
       "displayName": "Name",
       "placeholder": "Enter name",
-      "maxLength": 250,
-      "validation": {
-        "maxLength": 250
-      },
+      "validation": {},
       "defaultValue": ""
     },
     {
@@ -183,9 +341,9 @@
       "component": "text",
       "required": true,
       "isSystem": true,
-      "isPrimaryKey": true,
+      "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 80,
+      "sortOrder": 140,
       "permissions": {
         "read": [
           "*"
@@ -194,7 +352,8 @@
           "system"
         ]
       },
-      "displayName": "Id"
+      "displayName": "Id",
+      "validation": {}
     },
     {
       "id": "field_created_at",
@@ -205,7 +364,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 90,
+      "sortOrder": 150,
       "permissions": {
         "read": [
           "*"
@@ -214,7 +373,8 @@
           "system"
         ]
       },
-      "displayName": "Created At"
+      "displayName": "Created At",
+      "validation": {}
     },
     {
       "id": "field_created_by",
@@ -225,7 +385,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 100,
+      "sortOrder": 160,
       "permissions": {
         "read": [
           "*"
@@ -234,7 +394,8 @@
           "system"
         ]
       },
-      "displayName": "Created By"
+      "displayName": "Created By",
+      "validation": {}
     },
     {
       "id": "field_updated_at",
@@ -245,7 +406,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 110,
+      "sortOrder": 170,
       "permissions": {
         "read": [
           "*"
@@ -254,7 +415,8 @@
           "system"
         ]
       },
-      "displayName": "Updated At"
+      "displayName": "Updated At",
+      "validation": {}
     },
     {
       "id": "field_updated_by",
@@ -265,7 +427,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 120,
+      "sortOrder": 180,
       "permissions": {
         "read": [
           "*"
@@ -274,14 +436,15 @@
           "system"
         ]
       },
-      "displayName": "Updated By"
+      "displayName": "Updated By",
+      "validation": {}
     }
   ],
   "metadata": {
     "tableName": "breed_standard",
-    "totalFields": 12,
+    "totalFields": 18,
     "systemFields": 5,
-    "customFields": 7,
-    "generatedAt": "2025-09-07T18:14:38.564Z"
+    "customFields": 13,
+    "generatedAt": "2025-09-08T11:20:01.657Z"
   }
 }

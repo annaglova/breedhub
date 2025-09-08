@@ -6,13 +6,13 @@
   "category": "child",
   "fields": [
     {
-      "id": "field_id",
-      "name": "id",
+      "id": "field_post_id",
+      "name": "post_id",
       "fieldType": "uuid",
-      "component": "text",
-      "required": true,
-      "isSystem": true,
-      "isPrimaryKey": true,
+      "component": "select",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
       "isUnique": false,
       "sortOrder": 10,
       "permissions": {
@@ -20,18 +20,25 @@
           "*"
         ],
         "write": [
-          "system"
+          "admin",
+          "editor"
         ]
       },
-      "displayName": "Id"
+      "isForeignKey": true,
+      "referencedTable": "post",
+      "referencedFieldID": "id",
+      "displayName": "Post",
+      "placeholder": "Enter post",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
-      "id": "field_created_at",
-      "name": "created_at",
-      "fieldType": "datetime",
-      "component": "datetime",
+      "id": "field_contact_id",
+      "name": "contact_id",
+      "fieldType": "uuid",
+      "component": "select",
       "required": false,
-      "isSystem": true,
+      "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
       "sortOrder": 20,
@@ -40,17 +47,24 @@
           "*"
         ],
         "write": [
-          "system"
+          "admin",
+          "editor"
         ]
       },
-      "displayName": "Created At"
+      "isForeignKey": true,
+      "referencedTable": "contact",
+      "referencedFieldID": "id",
+      "displayName": "Contact",
+      "placeholder": "Enter contact",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
-      "id": "field_created_by",
-      "name": "created_by",
+      "id": "field_id",
+      "name": "id",
       "fieldType": "uuid",
       "component": "text",
-      "required": false,
+      "required": true,
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -63,13 +77,14 @@
           "system"
         ]
       },
-      "displayName": "Created By"
+      "displayName": "Id",
+      "validation": {}
     },
     {
-      "id": "field_updated_at",
-      "name": "updated_at",
+      "id": "field_created_at",
+      "name": "created_at",
       "fieldType": "datetime",
-      "component": "date",
+      "component": "datetime",
       "required": false,
       "isSystem": true,
       "isPrimaryKey": false,
@@ -83,13 +98,14 @@
           "system"
         ]
       },
-      "displayName": "Updated At"
+      "displayName": "Created At",
+      "validation": {}
     },
     {
-      "id": "field_updated_by",
-      "name": "updated_by",
+      "id": "field_created_by",
+      "name": "created_by",
       "fieldType": "uuid",
-      "component": "date",
+      "component": "text",
       "required": false,
       "isSystem": true,
       "isPrimaryKey": false,
@@ -103,14 +119,57 @@
           "system"
         ]
       },
-      "displayName": "Updated By"
+      "displayName": "Created By",
+      "validation": {}
+    },
+    {
+      "id": "field_updated_at",
+      "name": "updated_at",
+      "fieldType": "datetime",
+      "component": "date",
+      "required": false,
+      "isSystem": true,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 60,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "system"
+        ]
+      },
+      "displayName": "Updated At",
+      "validation": {}
+    },
+    {
+      "id": "field_updated_by",
+      "name": "updated_by",
+      "fieldType": "uuid",
+      "component": "date",
+      "required": false,
+      "isSystem": true,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 70,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "system"
+        ]
+      },
+      "displayName": "Updated By",
+      "validation": {}
     }
   ],
   "metadata": {
     "tableName": "post_like",
-    "totalFields": 5,
+    "totalFields": 7,
     "systemFields": 5,
-    "customFields": 0,
-    "generatedAt": "2025-09-07T17:59:14.065Z"
+    "customFields": 2,
+    "generatedAt": "2025-09-08T11:21:02.147Z"
   }
 }

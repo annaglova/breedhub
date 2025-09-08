@@ -6,11 +6,11 @@
   "category": "lookup",
   "fields": [
     {
-      "id": "field_can_tag",
-      "name": "can_tag",
-      "fieldType": "boolean",
-      "component": "checkbox",
-      "required": true,
+      "id": "field_tag_access_id",
+      "name": "tag_access_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -24,12 +24,17 @@
           "editor"
         ]
       },
-      "displayName": "Can Tag",
-      "defaultValue": "false"
+      "isForeignKey": true,
+      "referencedTable": "tag_access",
+      "referencedFieldID": "id",
+      "displayName": "Tag Access",
+      "placeholder": "Enter tag access",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
-      "id": "field_can_create",
-      "name": "can_create",
+      "id": "field_can_tag",
+      "name": "can_tag",
       "fieldType": "boolean",
       "component": "checkbox",
       "required": true,
@@ -46,12 +51,13 @@
           "editor"
         ]
       },
-      "displayName": "Can Create",
+      "displayName": "Can Tag",
+      "validation": {},
       "defaultValue": "false"
     },
     {
-      "id": "field_can_delete",
-      "name": "can_delete",
+      "id": "field_can_create",
+      "name": "can_create",
       "fieldType": "boolean",
       "component": "checkbox",
       "required": true,
@@ -68,12 +74,13 @@
           "editor"
         ]
       },
-      "displayName": "Can Delete",
+      "displayName": "Can Create",
+      "validation": {},
       "defaultValue": "false"
     },
     {
-      "id": "field_can_edit",
-      "name": "can_edit",
+      "id": "field_can_delete",
+      "name": "can_delete",
       "fieldType": "boolean",
       "component": "checkbox",
       "required": true,
@@ -90,12 +97,13 @@
           "editor"
         ]
       },
-      "displayName": "Can Edit",
+      "displayName": "Can Delete",
+      "validation": {},
       "defaultValue": "false"
     },
     {
-      "id": "field_can_read",
-      "name": "can_read",
+      "id": "field_can_edit",
+      "name": "can_edit",
       "fieldType": "boolean",
       "component": "checkbox",
       "required": true,
@@ -112,7 +120,31 @@
           "editor"
         ]
       },
+      "displayName": "Can Edit",
+      "validation": {},
+      "defaultValue": "false"
+    },
+    {
+      "id": "field_can_read",
+      "name": "can_read",
+      "fieldType": "boolean",
+      "component": "checkbox",
+      "required": true,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 60,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
       "displayName": "Can Read",
+      "validation": {},
       "defaultValue": "false"
     },
     {
@@ -121,26 +153,6 @@
       "fieldType": "uuid",
       "component": "text",
       "required": true,
-      "isSystem": true,
-      "isPrimaryKey": true,
-      "isUnique": false,
-      "sortOrder": 60,
-      "permissions": {
-        "read": [
-          "*"
-        ],
-        "write": [
-          "system"
-        ]
-      },
-      "displayName": "Id"
-    },
-    {
-      "id": "field_created_at",
-      "name": "created_at",
-      "fieldType": "datetime",
-      "component": "datetime",
-      "required": false,
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -153,13 +165,14 @@
           "system"
         ]
       },
-      "displayName": "Created At"
+      "displayName": "Id",
+      "validation": {}
     },
     {
-      "id": "field_created_by",
-      "name": "created_by",
-      "fieldType": "uuid",
-      "component": "text",
+      "id": "field_created_at",
+      "name": "created_at",
+      "fieldType": "datetime",
+      "component": "datetime",
       "required": false,
       "isSystem": true,
       "isPrimaryKey": false,
@@ -173,13 +186,14 @@
           "system"
         ]
       },
-      "displayName": "Created By"
+      "displayName": "Created At",
+      "validation": {}
     },
     {
-      "id": "field_updated_at",
-      "name": "updated_at",
-      "fieldType": "datetime",
-      "component": "date",
+      "id": "field_created_by",
+      "name": "created_by",
+      "fieldType": "uuid",
+      "component": "text",
       "required": false,
       "isSystem": true,
       "isPrimaryKey": false,
@@ -193,12 +207,13 @@
           "system"
         ]
       },
-      "displayName": "Updated At"
+      "displayName": "Created By",
+      "validation": {}
     },
     {
-      "id": "field_updated_by",
-      "name": "updated_by",
-      "fieldType": "uuid",
+      "id": "field_updated_at",
+      "name": "updated_at",
+      "fieldType": "datetime",
       "component": "date",
       "required": false,
       "isSystem": true,
@@ -213,14 +228,36 @@
           "system"
         ]
       },
-      "displayName": "Updated By"
+      "displayName": "Updated At",
+      "validation": {}
+    },
+    {
+      "id": "field_updated_by",
+      "name": "updated_by",
+      "fieldType": "uuid",
+      "component": "date",
+      "required": false,
+      "isSystem": true,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 110,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "system"
+        ]
+      },
+      "displayName": "Updated By",
+      "validation": {}
     }
   ],
   "metadata": {
     "tableName": "tag_access_grantee",
-    "totalFields": 10,
+    "totalFields": 11,
     "systemFields": 5,
-    "customFields": 5,
-    "generatedAt": "2025-09-07T18:15:01.639Z"
+    "customFields": 6,
+    "generatedAt": "2025-09-08T11:20:29.897Z"
   }
 }

@@ -6,11 +6,11 @@
   "category": "child",
   "fields": [
     {
-      "id": "field_data",
-      "name": "data",
-      "fieldType": "text",
-      "component": "textarea",
-      "required": true,
+      "id": "field_quest_status_id",
+      "name": "quest_status_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -24,15 +24,19 @@
           "editor"
         ]
       },
-      "displayName": "Data",
-      "placeholder": "Enter data",
-      "defaultValue": ""
+      "isForeignKey": true,
+      "referencedTable": "quest_status",
+      "referencedFieldID": "id",
+      "displayName": "Quest Status",
+      "placeholder": "Enter quest status",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
-      "id": "field_due_date",
-      "name": "due_date",
-      "fieldType": "datetime",
-      "component": "date",
+      "id": "field_current_stage_id",
+      "name": "current_stage_id",
+      "fieldType": "uuid",
+      "component": "select",
       "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -47,17 +51,22 @@
           "editor"
         ]
       },
-      "displayName": "Due Date",
-      "placeholder": "Enter due date"
+      "isForeignKey": true,
+      "referencedTable": "quest_stage",
+      "referencedFieldID": "id",
+      "displayName": "Current Stage",
+      "placeholder": "Enter current stage",
+      "validation": {},
+      "referencedFieldName": "title"
     },
     {
-      "id": "field_id",
-      "name": "id",
+      "id": "field_contact_id",
+      "name": "contact_id",
       "fieldType": "uuid",
-      "component": "text",
-      "required": true,
-      "isSystem": true,
-      "isPrimaryKey": true,
+      "component": "select",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
       "isUnique": false,
       "sortOrder": 30,
       "permissions": {
@@ -65,18 +74,25 @@
           "*"
         ],
         "write": [
-          "system"
+          "admin",
+          "editor"
         ]
       },
-      "displayName": "Id"
+      "isForeignKey": true,
+      "referencedTable": "contact",
+      "referencedFieldID": "id",
+      "displayName": "Contact",
+      "placeholder": "Enter contact",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
-      "id": "field_created_at",
-      "name": "created_at",
-      "fieldType": "datetime",
-      "component": "datetime",
-      "required": false,
-      "isSystem": true,
+      "id": "field_data",
+      "name": "data",
+      "fieldType": "text",
+      "component": "textarea",
+      "required": true,
+      "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
       "sortOrder": 40,
@@ -85,18 +101,22 @@
           "*"
         ],
         "write": [
-          "system"
+          "admin",
+          "editor"
         ]
       },
-      "displayName": "Created At"
+      "displayName": "Data",
+      "placeholder": "Enter data",
+      "validation": {},
+      "defaultValue": ""
     },
     {
-      "id": "field_created_by",
-      "name": "created_by",
+      "id": "field_conf_item_id",
+      "name": "conf_item_id",
       "fieldType": "uuid",
-      "component": "text",
+      "component": "select",
       "required": false,
-      "isSystem": true,
+      "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
       "sortOrder": 50,
@@ -105,18 +125,25 @@
           "*"
         ],
         "write": [
-          "system"
+          "admin",
+          "editor"
         ]
       },
-      "displayName": "Created By"
+      "isForeignKey": true,
+      "referencedTable": "conf_item",
+      "referencedFieldID": "id",
+      "displayName": "Conf Item",
+      "placeholder": "Enter conf item",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
-      "id": "field_updated_at",
-      "name": "updated_at",
+      "id": "field_due_date",
+      "name": "due_date",
       "fieldType": "datetime",
       "component": "date",
       "required": false,
-      "isSystem": true,
+      "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
       "sortOrder": 60,
@@ -125,17 +152,20 @@
           "*"
         ],
         "write": [
-          "system"
+          "admin",
+          "editor"
         ]
       },
-      "displayName": "Updated At"
+      "displayName": "Due Date",
+      "placeholder": "Enter due date",
+      "validation": {}
     },
     {
-      "id": "field_updated_by",
-      "name": "updated_by",
+      "id": "field_id",
+      "name": "id",
       "fieldType": "uuid",
-      "component": "date",
-      "required": false,
+      "component": "text",
+      "required": true,
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -148,14 +178,99 @@
           "system"
         ]
       },
-      "displayName": "Updated By"
+      "displayName": "Id",
+      "validation": {}
+    },
+    {
+      "id": "field_created_at",
+      "name": "created_at",
+      "fieldType": "datetime",
+      "component": "datetime",
+      "required": false,
+      "isSystem": true,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 80,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "system"
+        ]
+      },
+      "displayName": "Created At",
+      "validation": {}
+    },
+    {
+      "id": "field_created_by",
+      "name": "created_by",
+      "fieldType": "uuid",
+      "component": "text",
+      "required": false,
+      "isSystem": true,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 90,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "system"
+        ]
+      },
+      "displayName": "Created By",
+      "validation": {}
+    },
+    {
+      "id": "field_updated_at",
+      "name": "updated_at",
+      "fieldType": "datetime",
+      "component": "date",
+      "required": false,
+      "isSystem": true,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 100,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "system"
+        ]
+      },
+      "displayName": "Updated At",
+      "validation": {}
+    },
+    {
+      "id": "field_updated_by",
+      "name": "updated_by",
+      "fieldType": "uuid",
+      "component": "date",
+      "required": false,
+      "isSystem": true,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 110,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "system"
+        ]
+      },
+      "displayName": "Updated By",
+      "validation": {}
     }
   ],
   "metadata": {
     "tableName": "quest_user_data",
-    "totalFields": 7,
+    "totalFields": 11,
     "systemFields": 5,
-    "customFields": 2,
-    "generatedAt": "2025-09-07T17:59:18.873Z"
+    "customFields": 6,
+    "generatedAt": "2025-09-08T11:21:08.487Z"
   }
 }

@@ -26,17 +26,14 @@
       },
       "displayName": "Number",
       "placeholder": "Enter number",
-      "maxLength": 500,
-      "validation": {
-        "maxLength": 500
-      },
+      "validation": {},
       "defaultValue": ""
     },
     {
       "id": "field_contact_id",
       "name": "contact_id",
       "fieldType": "uuid",
-      "component": "text",
+      "component": "select",
       "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -51,8 +48,13 @@
           "editor"
         ]
       },
-      "displayName": "Contact Id",
-      "placeholder": "Enter contact id"
+      "isForeignKey": true,
+      "referencedTable": "contact",
+      "referencedFieldID": "id",
+      "displayName": "Contact",
+      "placeholder": "Enter contact",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
       "id": "field_position",
@@ -75,16 +77,14 @@
       },
       "displayName": "Position",
       "placeholder": "Enter position",
-      "validation": {
-        "precision": 32
-      },
+      "validation": {},
       "defaultValue": "0"
     },
     {
       "id": "field_social_media_id",
       "name": "social_media_id",
       "fieldType": "string",
-      "component": "text",
+      "component": "select",
       "required": true,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -99,13 +99,14 @@
           "editor"
         ]
       },
-      "displayName": "Social Media Id",
-      "placeholder": "Enter social media id",
-      "maxLength": 250,
-      "validation": {
-        "maxLength": 250
-      },
-      "defaultValue": ""
+      "isForeignKey": true,
+      "referencedTable": "social_media",
+      "referencedFieldID": "id",
+      "displayName": "Social Media",
+      "placeholder": "Enter social media",
+      "validation": {},
+      "defaultValue": "",
+      "referencedFieldName": "id"
     },
     {
       "id": "field_search_number",
@@ -128,10 +129,7 @@
       },
       "displayName": "Search Number",
       "placeholder": "Enter search number",
-      "maxLength": 500,
-      "validation": {
-        "maxLength": 500
-      },
+      "validation": {},
       "defaultValue": ""
     },
     {
@@ -154,6 +152,7 @@
         ]
       },
       "displayName": "Is Created By Synchronization",
+      "validation": {},
       "defaultValue": "false"
     },
     {
@@ -177,10 +176,7 @@
       },
       "displayName": "External Communication Type",
       "placeholder": "Enter external communication type",
-      "maxLength": 500,
-      "validation": {
-        "maxLength": 500
-      },
+      "validation": {},
       "defaultValue": ""
     },
     {
@@ -203,6 +199,7 @@
         ]
       },
       "displayName": "Non Actual",
+      "validation": {},
       "defaultValue": "false"
     },
     {
@@ -225,7 +222,8 @@
         ]
       },
       "displayName": "Date Set Non Actual",
-      "placeholder": "Enter date set non actual"
+      "placeholder": "Enter date set non actual",
+      "validation": {}
     },
     {
       "id": "field_primary",
@@ -247,6 +245,7 @@
         ]
       },
       "displayName": "Primary",
+      "validation": {},
       "defaultValue": "false"
     },
     {
@@ -256,7 +255,7 @@
       "component": "text",
       "required": true,
       "isSystem": true,
-      "isPrimaryKey": true,
+      "isPrimaryKey": false,
       "isUnique": false,
       "sortOrder": 110,
       "permissions": {
@@ -267,7 +266,8 @@
           "system"
         ]
       },
-      "displayName": "Id"
+      "displayName": "Id",
+      "validation": {}
     },
     {
       "id": "field_created_at",
@@ -287,7 +287,8 @@
           "system"
         ]
       },
-      "displayName": "Created At"
+      "displayName": "Created At",
+      "validation": {}
     },
     {
       "id": "field_created_by",
@@ -307,7 +308,8 @@
           "system"
         ]
       },
-      "displayName": "Created By"
+      "displayName": "Created By",
+      "validation": {}
     },
     {
       "id": "field_updated_at",
@@ -327,7 +329,8 @@
           "system"
         ]
       },
-      "displayName": "Updated At"
+      "displayName": "Updated At",
+      "validation": {}
     },
     {
       "id": "field_updated_by",
@@ -347,7 +350,8 @@
           "system"
         ]
       },
-      "displayName": "Updated By"
+      "displayName": "Updated By",
+      "validation": {}
     }
   ],
   "metadata": {
@@ -355,6 +359,6 @@
     "totalFields": 15,
     "systemFields": 5,
     "customFields": 10,
-    "generatedAt": "2025-09-07T17:58:46.004Z"
+    "generatedAt": "2025-09-08T11:20:41.796Z"
   }
 }

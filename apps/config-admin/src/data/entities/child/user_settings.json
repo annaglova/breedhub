@@ -9,7 +9,7 @@
       "id": "field_contact_id",
       "name": "contact_id",
       "fieldType": "uuid",
-      "component": "text",
+      "component": "select",
       "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -24,15 +24,20 @@
           "editor"
         ]
       },
-      "displayName": "Contact Id",
-      "placeholder": "Enter contact id"
+      "isForeignKey": true,
+      "referencedTable": "contact",
+      "referencedFieldID": "id",
+      "displayName": "Contact",
+      "placeholder": "Enter contact",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
-      "id": "field_anonymous_gift_sender",
-      "name": "anonymous_gift_sender",
-      "fieldType": "boolean",
-      "component": "checkbox",
-      "required": true,
+      "id": "field_breed_id",
+      "name": "breed_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -46,15 +51,20 @@
           "editor"
         ]
       },
-      "displayName": "Anonymous Gift Sender",
-      "defaultValue": "false"
+      "isForeignKey": true,
+      "referencedTable": "breed",
+      "referencedFieldID": "id",
+      "displayName": "Breed",
+      "placeholder": "Enter breed",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
-      "id": "field_welcome_stage_complete",
-      "name": "welcome_stage_complete",
-      "fieldType": "boolean",
-      "component": "checkbox",
-      "required": true,
+      "id": "field_page_view_id",
+      "name": "page_view_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -68,17 +78,22 @@
           "editor"
         ]
       },
-      "displayName": "Welcome Stage Complete",
-      "defaultValue": "false"
+      "isForeignKey": true,
+      "referencedTable": "page_view",
+      "referencedFieldID": "id",
+      "displayName": "Page View",
+      "placeholder": "Enter page view",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
-      "id": "field_id",
-      "name": "id",
+      "id": "field_size_unit_id",
+      "name": "size_unit_id",
       "fieldType": "uuid",
-      "component": "text",
-      "required": true,
-      "isSystem": true,
-      "isPrimaryKey": true,
+      "component": "select",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
       "isUnique": false,
       "sortOrder": 40,
       "permissions": {
@@ -86,18 +101,25 @@
           "*"
         ],
         "write": [
-          "system"
+          "admin",
+          "editor"
         ]
       },
-      "displayName": "Id"
+      "isForeignKey": true,
+      "referencedTable": "unit",
+      "referencedFieldID": "id",
+      "displayName": "Size Unit",
+      "placeholder": "Enter size unit",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
-      "id": "field_created_at",
-      "name": "created_at",
-      "fieldType": "datetime",
-      "component": "datetime",
+      "id": "field_weight_unit_id",
+      "name": "weight_unit_id",
+      "fieldType": "uuid",
+      "component": "select",
       "required": false,
-      "isSystem": true,
+      "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
       "sortOrder": 50,
@@ -106,18 +128,25 @@
           "*"
         ],
         "write": [
-          "system"
+          "admin",
+          "editor"
         ]
       },
-      "displayName": "Created At"
+      "isForeignKey": true,
+      "referencedTable": "unit",
+      "referencedFieldID": "id",
+      "displayName": "Weight Unit",
+      "placeholder": "Enter weight unit",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
-      "id": "field_created_by",
-      "name": "created_by",
-      "fieldType": "uuid",
-      "component": "text",
-      "required": false,
-      "isSystem": true,
+      "id": "field_anonymous_gift_sender",
+      "name": "anonymous_gift_sender",
+      "fieldType": "boolean",
+      "component": "checkbox",
+      "required": true,
+      "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
       "sortOrder": 60,
@@ -126,18 +155,21 @@
           "*"
         ],
         "write": [
-          "system"
+          "admin",
+          "editor"
         ]
       },
-      "displayName": "Created By"
+      "displayName": "Anonymous Gift Sender",
+      "validation": {},
+      "defaultValue": "false"
     },
     {
-      "id": "field_updated_at",
-      "name": "updated_at",
-      "fieldType": "datetime",
-      "component": "date",
-      "required": false,
-      "isSystem": true,
+      "id": "field_welcome_stage_complete",
+      "name": "welcome_stage_complete",
+      "fieldType": "boolean",
+      "component": "checkbox",
+      "required": true,
+      "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
       "sortOrder": 70,
@@ -146,17 +178,20 @@
           "*"
         ],
         "write": [
-          "system"
+          "admin",
+          "editor"
         ]
       },
-      "displayName": "Updated At"
+      "displayName": "Welcome Stage Complete",
+      "validation": {},
+      "defaultValue": "false"
     },
     {
-      "id": "field_updated_by",
-      "name": "updated_by",
+      "id": "field_id",
+      "name": "id",
       "fieldType": "uuid",
-      "component": "date",
-      "required": false,
+      "component": "text",
+      "required": true,
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -169,14 +204,99 @@
           "system"
         ]
       },
-      "displayName": "Updated By"
+      "displayName": "Id",
+      "validation": {}
+    },
+    {
+      "id": "field_created_at",
+      "name": "created_at",
+      "fieldType": "datetime",
+      "component": "datetime",
+      "required": false,
+      "isSystem": true,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 90,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "system"
+        ]
+      },
+      "displayName": "Created At",
+      "validation": {}
+    },
+    {
+      "id": "field_created_by",
+      "name": "created_by",
+      "fieldType": "uuid",
+      "component": "text",
+      "required": false,
+      "isSystem": true,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 100,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "system"
+        ]
+      },
+      "displayName": "Created By",
+      "validation": {}
+    },
+    {
+      "id": "field_updated_at",
+      "name": "updated_at",
+      "fieldType": "datetime",
+      "component": "date",
+      "required": false,
+      "isSystem": true,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 110,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "system"
+        ]
+      },
+      "displayName": "Updated At",
+      "validation": {}
+    },
+    {
+      "id": "field_updated_by",
+      "name": "updated_by",
+      "fieldType": "uuid",
+      "component": "date",
+      "required": false,
+      "isSystem": true,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 120,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "system"
+        ]
+      },
+      "displayName": "Updated By",
+      "validation": {}
     }
   ],
   "metadata": {
     "tableName": "user_settings",
-    "totalFields": 8,
+    "totalFields": 12,
     "systemFields": 5,
-    "customFields": 3,
-    "generatedAt": "2025-09-07T17:59:24.359Z"
+    "customFields": 7,
+    "generatedAt": "2025-09-08T11:21:14.363Z"
   }
 }

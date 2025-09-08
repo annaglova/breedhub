@@ -26,10 +26,7 @@
       },
       "displayName": "Name",
       "placeholder": "Enter name",
-      "maxLength": 250,
-      "validation": {
-        "maxLength": 250
-      },
+      "validation": {},
       "defaultValue": ""
     },
     {
@@ -53,10 +50,7 @@
       },
       "displayName": "Description",
       "placeholder": "Enter description",
-      "maxLength": 250,
-      "validation": {
-        "maxLength": 250
-      },
+      "validation": {},
       "defaultValue": ""
     },
     {
@@ -79,7 +73,8 @@
         ]
       },
       "displayName": "Image",
-      "placeholder": "Enter image"
+      "placeholder": "Enter image",
+      "validation": {}
     },
     {
       "id": "field_billing_info",
@@ -102,14 +97,15 @@
       },
       "displayName": "Billing Info",
       "placeholder": "Enter billing info",
+      "validation": {},
       "defaultValue": ""
     },
     {
-      "id": "field_code",
-      "name": "code",
-      "fieldType": "string",
-      "component": "text",
-      "required": true,
+      "id": "field_time_zone_id",
+      "name": "time_zone_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -123,19 +119,19 @@
           "editor"
         ]
       },
-      "displayName": "Code",
-      "placeholder": "Enter code",
-      "maxLength": 50,
-      "validation": {
-        "maxLength": 50
-      },
-      "defaultValue": ""
+      "isForeignKey": true,
+      "referencedTable": "time_zone",
+      "referencedFieldID": "id",
+      "displayName": "Time Zone",
+      "placeholder": "Enter time zone",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
-      "id": "field_alternate_names",
-      "name": "alternate_names",
-      "fieldType": "text",
-      "component": "textarea",
+      "id": "field_code",
+      "name": "code",
+      "fieldType": "string",
+      "component": "text",
       "required": true,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -150,15 +146,16 @@
           "editor"
         ]
       },
-      "displayName": "Alternate Names",
-      "placeholder": "Enter alternate names",
+      "displayName": "Code",
+      "placeholder": "Enter code",
+      "validation": {},
       "defaultValue": ""
     },
     {
-      "id": "field_geo_names_country_code",
-      "name": "geo_names_country_code",
-      "fieldType": "string",
-      "component": "text",
+      "id": "field_alternate_names",
+      "name": "alternate_names",
+      "fieldType": "text",
+      "component": "textarea",
       "required": true,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -173,20 +170,17 @@
           "editor"
         ]
       },
-      "displayName": "Geo Names Country Code",
-      "placeholder": "Enter geo names country code",
-      "maxLength": 50,
-      "validation": {
-        "maxLength": 50
-      },
+      "displayName": "Alternate Names",
+      "placeholder": "Enter alternate names",
+      "validation": {},
       "defaultValue": ""
     },
     {
-      "id": "field_geo_names_id",
-      "name": "geo_names_id",
-      "fieldType": "string",
-      "component": "text",
-      "required": true,
+      "id": "field_geo_names_time_zone_id",
+      "name": "geo_names_time_zone_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -200,19 +194,19 @@
           "editor"
         ]
       },
-      "displayName": "Geo Names Id",
-      "placeholder": "Enter geo names id",
-      "maxLength": 50,
-      "validation": {
-        "maxLength": 50
-      },
-      "defaultValue": ""
+      "isForeignKey": true,
+      "referencedTable": "geo_names_time_zone",
+      "referencedFieldID": "id",
+      "displayName": "Geo Names Time Zone",
+      "placeholder": "Enter geo names time zone",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
-      "id": "field_dem",
-      "name": "dem",
-      "fieldType": "number",
-      "component": "number",
+      "id": "field_geo_names_country_code",
+      "name": "geo_names_country_code",
+      "fieldType": "string",
+      "component": "text",
       "required": true,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -227,18 +221,16 @@
           "editor"
         ]
       },
-      "displayName": "Dem",
-      "placeholder": "Enter dem",
-      "validation": {
-        "precision": 32
-      },
-      "defaultValue": "0"
+      "displayName": "Geo Names Country Code",
+      "placeholder": "Enter geo names country code",
+      "validation": {},
+      "defaultValue": ""
     },
     {
-      "id": "field_latitude",
-      "name": "latitude",
-      "fieldType": "number",
-      "component": "number",
+      "id": "field_geo_names_id",
+      "name": "geo_names_id",
+      "fieldType": "string",
+      "component": "select",
       "required": true,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -253,13 +245,18 @@
           "editor"
         ]
       },
-      "displayName": "Latitude",
-      "placeholder": "Enter latitude",
-      "defaultValue": "0"
+      "isForeignKey": true,
+      "referencedTable": "geo_names",
+      "referencedFieldID": "id",
+      "displayName": "Geo Names",
+      "placeholder": "Enter geo names",
+      "validation": {},
+      "defaultValue": "",
+      "referencedFieldName": "id"
     },
     {
-      "id": "field_longitude",
-      "name": "longitude",
+      "id": "field_dem",
+      "name": "dem",
       "fieldType": "number",
       "component": "number",
       "required": true,
@@ -276,15 +273,16 @@
           "editor"
         ]
       },
-      "displayName": "Longitude",
-      "placeholder": "Enter longitude",
+      "displayName": "Dem",
+      "placeholder": "Enter dem",
+      "validation": {},
       "defaultValue": "0"
     },
     {
-      "id": "field_alpha2_code",
-      "name": "alpha2_code",
-      "fieldType": "string",
-      "component": "text",
+      "id": "field_latitude",
+      "name": "latitude",
+      "fieldType": "number",
+      "component": "number",
       "required": true,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -299,19 +297,16 @@
           "editor"
         ]
       },
-      "displayName": "Alpha2 Code",
-      "placeholder": "Enter alpha2 code",
-      "maxLength": 50,
-      "validation": {
-        "maxLength": 50
-      },
-      "defaultValue": ""
+      "displayName": "Latitude",
+      "placeholder": "Enter latitude",
+      "validation": {},
+      "defaultValue": "0"
     },
     {
-      "id": "field_url",
-      "name": "url",
-      "fieldType": "string",
-      "component": "url",
+      "id": "field_longitude",
+      "name": "longitude",
+      "fieldType": "number",
+      "component": "number",
       "required": true,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -326,11 +321,84 @@
           "editor"
         ]
       },
+      "displayName": "Longitude",
+      "placeholder": "Enter longitude",
+      "validation": {},
+      "defaultValue": "0"
+    },
+    {
+      "id": "field_alpha2_code",
+      "name": "alpha2_code",
+      "fieldType": "string",
+      "component": "text",
+      "required": true,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 140,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "displayName": "Alpha2 Code",
+      "placeholder": "Enter alpha2 code",
+      "validation": {},
+      "defaultValue": ""
+    },
+    {
+      "id": "field_public_data_id",
+      "name": "public_data_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 150,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "isForeignKey": true,
+      "referencedTable": "public_data",
+      "referencedFieldID": "id",
+      "displayName": "Public Data",
+      "placeholder": "Enter public data",
+      "validation": {},
+      "referencedFieldName": "name"
+    },
+    {
+      "id": "field_url",
+      "name": "url",
+      "fieldType": "string",
+      "component": "url",
+      "required": true,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 160,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
       "displayName": "Url",
       "placeholder": "Enter url",
-      "maxLength": 500,
       "validation": {
-        "maxLength": 500,
         "pattern": "^https?://.+",
         "message": "Invalid URL format"
       },
@@ -343,66 +411,6 @@
       "component": "text",
       "required": true,
       "isSystem": true,
-      "isPrimaryKey": true,
-      "isUnique": false,
-      "sortOrder": 140,
-      "permissions": {
-        "read": [
-          "*"
-        ],
-        "write": [
-          "system"
-        ]
-      },
-      "displayName": "Id"
-    },
-    {
-      "id": "field_created_at",
-      "name": "created_at",
-      "fieldType": "datetime",
-      "component": "datetime",
-      "required": false,
-      "isSystem": true,
-      "isPrimaryKey": false,
-      "isUnique": false,
-      "sortOrder": 150,
-      "permissions": {
-        "read": [
-          "*"
-        ],
-        "write": [
-          "system"
-        ]
-      },
-      "displayName": "Created At"
-    },
-    {
-      "id": "field_created_by",
-      "name": "created_by",
-      "fieldType": "uuid",
-      "component": "text",
-      "required": false,
-      "isSystem": true,
-      "isPrimaryKey": false,
-      "isUnique": false,
-      "sortOrder": 160,
-      "permissions": {
-        "read": [
-          "*"
-        ],
-        "write": [
-          "system"
-        ]
-      },
-      "displayName": "Created By"
-    },
-    {
-      "id": "field_updated_at",
-      "name": "updated_at",
-      "fieldType": "datetime",
-      "component": "date",
-      "required": false,
-      "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
       "sortOrder": 170,
@@ -414,13 +422,14 @@
           "system"
         ]
       },
-      "displayName": "Updated At"
+      "displayName": "Id",
+      "validation": {}
     },
     {
-      "id": "field_updated_by",
-      "name": "updated_by",
-      "fieldType": "uuid",
-      "component": "date",
+      "id": "field_created_at",
+      "name": "created_at",
+      "fieldType": "datetime",
+      "component": "datetime",
       "required": false,
       "isSystem": true,
       "isPrimaryKey": false,
@@ -434,14 +443,78 @@
           "system"
         ]
       },
-      "displayName": "Updated By"
+      "displayName": "Created At",
+      "validation": {}
+    },
+    {
+      "id": "field_created_by",
+      "name": "created_by",
+      "fieldType": "uuid",
+      "component": "text",
+      "required": false,
+      "isSystem": true,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 190,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "system"
+        ]
+      },
+      "displayName": "Created By",
+      "validation": {}
+    },
+    {
+      "id": "field_updated_at",
+      "name": "updated_at",
+      "fieldType": "datetime",
+      "component": "date",
+      "required": false,
+      "isSystem": true,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 200,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "system"
+        ]
+      },
+      "displayName": "Updated At",
+      "validation": {}
+    },
+    {
+      "id": "field_updated_by",
+      "name": "updated_by",
+      "fieldType": "uuid",
+      "component": "date",
+      "required": false,
+      "isSystem": true,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 210,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "system"
+        ]
+      },
+      "displayName": "Updated By",
+      "validation": {}
     }
   ],
   "metadata": {
     "tableName": "country",
-    "totalFields": 18,
+    "totalFields": 21,
     "systemFields": 5,
-    "customFields": 13,
-    "generatedAt": "2025-09-07T18:14:44.013Z"
+    "customFields": 16,
+    "generatedAt": "2025-09-08T11:20:08.025Z"
   }
 }

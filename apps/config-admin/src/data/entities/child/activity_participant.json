@@ -6,10 +6,10 @@
   "category": "child",
   "fields": [
     {
-      "id": "field_participant_id",
-      "name": "participant_id",
+      "id": "field_activity_id",
+      "name": "activity_id",
       "fieldType": "uuid",
-      "component": "text",
+      "component": "select",
       "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -24,15 +24,20 @@
           "editor"
         ]
       },
-      "displayName": "Participant Id",
-      "placeholder": "Enter participant id"
+      "isForeignKey": true,
+      "referencedTable": "activity",
+      "referencedFieldID": "id",
+      "displayName": "Activity",
+      "placeholder": "Enter activity",
+      "validation": {},
+      "referencedFieldName": "title"
     },
     {
-      "id": "field_description",
-      "name": "description",
-      "fieldType": "string",
-      "component": "textarea",
-      "required": true,
+      "id": "field_participant_id",
+      "name": "participant_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -46,19 +51,19 @@
           "editor"
         ]
       },
-      "displayName": "Description",
-      "placeholder": "Enter description",
-      "maxLength": 500,
-      "validation": {
-        "maxLength": 500
-      },
-      "defaultValue": ""
+      "isForeignKey": true,
+      "referencedTable": "participant",
+      "referencedFieldID": "id",
+      "displayName": "Participant",
+      "placeholder": "Enter participant",
+      "validation": {},
+      "referencedFieldName": "id"
     },
     {
-      "id": "field_read_mark",
-      "name": "read_mark",
-      "fieldType": "boolean",
-      "component": "checkbox",
+      "id": "field_description",
+      "name": "description",
+      "fieldType": "string",
+      "component": "textarea",
       "required": true,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -73,12 +78,14 @@
           "editor"
         ]
       },
-      "displayName": "Read Mark",
-      "defaultValue": "false"
+      "displayName": "Description",
+      "placeholder": "Enter description",
+      "validation": {},
+      "defaultValue": ""
     },
     {
-      "id": "field_invite_participant",
-      "name": "invite_participant",
+      "id": "field_read_mark",
+      "name": "read_mark",
       "fieldType": "boolean",
       "component": "checkbox",
       "required": true,
@@ -95,7 +102,31 @@
           "editor"
         ]
       },
+      "displayName": "Read Mark",
+      "validation": {},
+      "defaultValue": "false"
+    },
+    {
+      "id": "field_invite_participant",
+      "name": "invite_participant",
+      "fieldType": "boolean",
+      "component": "checkbox",
+      "required": true,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 50,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
       "displayName": "Invite Participant",
+      "validation": {},
       "defaultValue": "false"
     },
     {
@@ -104,26 +135,6 @@
       "fieldType": "uuid",
       "component": "text",
       "required": true,
-      "isSystem": true,
-      "isPrimaryKey": true,
-      "isUnique": false,
-      "sortOrder": 50,
-      "permissions": {
-        "read": [
-          "*"
-        ],
-        "write": [
-          "system"
-        ]
-      },
-      "displayName": "Id"
-    },
-    {
-      "id": "field_created_at",
-      "name": "created_at",
-      "fieldType": "datetime",
-      "component": "datetime",
-      "required": false,
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -136,13 +147,14 @@
           "system"
         ]
       },
-      "displayName": "Created At"
+      "displayName": "Id",
+      "validation": {}
     },
     {
-      "id": "field_created_by",
-      "name": "created_by",
-      "fieldType": "uuid",
-      "component": "text",
+      "id": "field_created_at",
+      "name": "created_at",
+      "fieldType": "datetime",
+      "component": "datetime",
       "required": false,
       "isSystem": true,
       "isPrimaryKey": false,
@@ -156,13 +168,14 @@
           "system"
         ]
       },
-      "displayName": "Created By"
+      "displayName": "Created At",
+      "validation": {}
     },
     {
-      "id": "field_updated_at",
-      "name": "updated_at",
-      "fieldType": "datetime",
-      "component": "date",
+      "id": "field_created_by",
+      "name": "created_by",
+      "fieldType": "uuid",
+      "component": "text",
       "required": false,
       "isSystem": true,
       "isPrimaryKey": false,
@@ -176,12 +189,13 @@
           "system"
         ]
       },
-      "displayName": "Updated At"
+      "displayName": "Created By",
+      "validation": {}
     },
     {
-      "id": "field_updated_by",
-      "name": "updated_by",
-      "fieldType": "uuid",
+      "id": "field_updated_at",
+      "name": "updated_at",
+      "fieldType": "datetime",
       "component": "date",
       "required": false,
       "isSystem": true,
@@ -196,14 +210,36 @@
           "system"
         ]
       },
-      "displayName": "Updated By"
+      "displayName": "Updated At",
+      "validation": {}
+    },
+    {
+      "id": "field_updated_by",
+      "name": "updated_by",
+      "fieldType": "uuid",
+      "component": "date",
+      "required": false,
+      "isSystem": true,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 100,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "system"
+        ]
+      },
+      "displayName": "Updated By",
+      "validation": {}
     }
   ],
   "metadata": {
     "tableName": "activity_participant",
-    "totalFields": 9,
+    "totalFields": 10,
     "systemFields": 5,
-    "customFields": 4,
-    "generatedAt": "2025-09-07T17:58:41.091Z"
+    "customFields": 5,
+    "generatedAt": "2025-09-08T11:20:35.402Z"
   }
 }
