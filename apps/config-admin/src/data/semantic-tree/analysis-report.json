@@ -2,8 +2,8 @@
   "summary": {
     "totalEntities": 258,
     "uniqueFields": 562,
-    "baseFields": 10,
-    "properties": 7,
+    "baseFields": 32,
+    "properties": 11,
     "entityFieldsGenerated": 2851
   },
   "topFields": [

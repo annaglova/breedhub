@@ -32,10 +32,30 @@
       }
     },
     {
+      "id": "property_maxlength_255",
+      "type": "property",
+      "self_data": {
+        "maxLength": 255,
+        "validation": {
+          "maxLength": 255
+        }
+      }
+    },
+    {
       "id": "property_not_required",
       "type": "property",
       "self_data": {
         "required": false
+      }
+    },
+    {
+      "id": "property_maxlength_500",
+      "type": "property",
+      "self_data": {
+        "maxLength": 500,
+        "validation": {
+          "maxLength": 500
+        }
       }
     },
     {
@@ -55,6 +75,21 @@
       "self_data": {
         "isSystem": true
       }
+    },
+    {
+      "id": "property_primary_key",
+      "type": "property",
+      "self_data": {
+        "isPrimaryKey": true,
+        "isUnique": true
+      }
+    },
+    {
+      "id": "property_unique",
+      "type": "property",
+      "self_data": {
+        "isUnique": true
+      }
     }
   ],
   "baseFields": [
@@ -69,8 +104,6 @@
         "component": "text",
         "required": true,
         "isSystem": true,
-        "isPrimaryKey": false,
-        "isUnique": false,
         "displayName": "Id",
         "permissions": {
           "read": [
@@ -137,7 +170,12 @@
         "validation": {}
       },
       "isSystem": true,
-      "category": "base"
+      "category": "base",
+      "parentField": "field_contact_id",
+      "metadata": {
+        "inheritsFrom": "contact_id",
+        "referencedTable": "contact"
+      }
     },
     {
       "id": "field_updated_at",
@@ -191,7 +229,12 @@
         "validation": {}
       },
       "isSystem": true,
-      "category": "base"
+      "category": "base",
+      "parentField": "field_contact_id",
+      "metadata": {
+        "inheritsFrom": "contact_id",
+        "referencedTable": "contact"
+      }
     },
     {
       "id": "field_name",
@@ -214,7 +257,10 @@
             "editor"
           ]
         },
-        "validation": {}
+        "validation": {},
+        "maxLengthVariations": [
+          255
+        ]
       },
       "isSystem": false,
       "category": "common"
@@ -267,10 +313,17 @@
             "editor"
           ]
         },
-        "validation": {}
+        "validation": {},
+        "isForeignKey": true,
+        "referencedTable": "contact",
+        "referencedFieldID": "id",
+        "referencedFieldName": "name"
       },
       "isSystem": false,
-      "category": "frequent"
+      "category": "frequent",
+      "metadata": {
+        "isParentField": true
+      }
     },
     {
       "id": "field_breed_id",
@@ -294,7 +347,11 @@
             "editor"
           ]
         },
-        "validation": {}
+        "validation": {},
+        "isForeignKey": true,
+        "referencedTable": "breed",
+        "referencedFieldID": "id",
+        "referencedFieldName": "name"
       },
       "isSystem": false,
       "category": "frequent"
@@ -311,6 +368,661 @@
         "isPrimaryKey": false,
         "isUnique": false,
         "displayName": "Code",
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "admin",
+            "editor"
+          ]
+        },
+        "validation": {}
+      },
+      "isSystem": false,
+      "category": "frequent"
+    },
+    {
+      "id": "field_pet_id",
+      "type": "field",
+      "name": "pet_id",
+      "frequency": 0.09302325581395349,
+      "occurrences": 24,
+      "commonProps": {
+        "fieldType": "uuid",
+        "component": "select",
+        "isSystem": false,
+        "isPrimaryKey": false,
+        "isUnique": false,
+        "displayName": "Pet",
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "admin",
+            "editor"
+          ]
+        },
+        "validation": {}
+      },
+      "isSystem": false,
+      "category": "frequent"
+    },
+    {
+      "id": "field_account_id",
+      "type": "field",
+      "name": "account_id",
+      "frequency": 0.08914728682170543,
+      "occurrences": 23,
+      "commonProps": {
+        "fieldType": "uuid",
+        "component": "select",
+        "required": false,
+        "isSystem": false,
+        "isPrimaryKey": false,
+        "isUnique": false,
+        "displayName": "Account",
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "admin",
+            "editor"
+          ]
+        },
+        "validation": {},
+        "isForeignKey": true,
+        "referencedTable": "account",
+        "referencedFieldID": "id",
+        "referencedFieldName": "name"
+      },
+      "isSystem": false,
+      "category": "frequent"
+    },
+    {
+      "id": "field_notes",
+      "type": "field",
+      "name": "notes",
+      "frequency": 0.08527131782945736,
+      "occurrences": 22,
+      "commonProps": {
+        "fieldType": "text",
+        "component": "textarea",
+        "required": true,
+        "isSystem": false,
+        "isPrimaryKey": false,
+        "isUnique": false,
+        "displayName": "Notes",
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "admin",
+            "editor"
+          ]
+        },
+        "validation": {}
+      },
+      "isSystem": false,
+      "category": "frequent"
+    },
+    {
+      "id": "field_pet_type_id",
+      "type": "field",
+      "name": "pet_type_id",
+      "frequency": 0.07751937984496124,
+      "occurrences": 20,
+      "commonProps": {
+        "fieldType": "uuid",
+        "component": "select",
+        "required": false,
+        "isSystem": false,
+        "isPrimaryKey": false,
+        "isUnique": false,
+        "displayName": "Pet Type",
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "admin",
+            "editor"
+          ]
+        },
+        "validation": {},
+        "isForeignKey": true,
+        "referencedTable": "pet_type",
+        "referencedFieldID": "id",
+        "referencedFieldName": "name"
+      },
+      "isSystem": false,
+      "category": "frequent"
+    },
+    {
+      "id": "field_type_id",
+      "type": "field",
+      "name": "type_id",
+      "frequency": 0.06589147286821706,
+      "occurrences": 17,
+      "commonProps": {
+        "fieldType": "uuid",
+        "component": "select",
+        "required": false,
+        "isSystem": false,
+        "isPrimaryKey": false,
+        "isUnique": false,
+        "displayName": "Type",
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "admin",
+            "editor"
+          ]
+        },
+        "validation": {}
+      },
+      "isSystem": false,
+      "category": "frequent"
+    },
+    {
+      "id": "field_owner_id",
+      "type": "field",
+      "name": "owner_id",
+      "frequency": 0.06201550387596899,
+      "occurrences": 16,
+      "commonProps": {
+        "fieldType": "uuid",
+        "component": "select",
+        "required": false,
+        "isSystem": false,
+        "isPrimaryKey": false,
+        "isUnique": false,
+        "displayName": "Owner",
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "admin",
+            "editor"
+          ]
+        },
+        "validation": {}
+      },
+      "isSystem": false,
+      "category": "frequent",
+      "parentField": "field_contact_id",
+      "metadata": {
+        "inheritsFrom": "contact_id",
+        "referencedTable": "contact"
+      }
+    },
+    {
+      "id": "field_status_id",
+      "type": "field",
+      "name": "status_id",
+      "frequency": 0.06201550387596899,
+      "occurrences": 16,
+      "commonProps": {
+        "fieldType": "uuid",
+        "component": "select",
+        "required": false,
+        "isSystem": false,
+        "isPrimaryKey": false,
+        "isUnique": false,
+        "displayName": "Status",
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "admin",
+            "editor"
+          ]
+        },
+        "validation": {}
+      },
+      "isSystem": false,
+      "category": "frequent"
+    },
+    {
+      "id": "field_url",
+      "type": "field",
+      "name": "url",
+      "frequency": 0.06201550387596899,
+      "occurrences": 16,
+      "commonProps": {
+        "fieldType": "string",
+        "component": "url",
+        "required": true,
+        "isSystem": false,
+        "isPrimaryKey": false,
+        "isUnique": false,
+        "displayName": "Url",
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "admin",
+            "editor"
+          ]
+        },
+        "validation": {
+          "pattern": "^https?://.+",
+          "message": "Invalid URL format"
+        },
+        "maxLengthVariations": [
+          500
+        ]
+      },
+      "isSystem": false,
+      "category": "frequent"
+    },
+    {
+      "id": "field_date",
+      "type": "field",
+      "name": "date",
+      "frequency": 0.06201550387596899,
+      "occurrences": 16,
+      "commonProps": {
+        "component": "date",
+        "required": false,
+        "isSystem": false,
+        "isPrimaryKey": false,
+        "isUnique": false,
+        "displayName": "Date",
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "admin",
+            "editor"
+          ]
+        },
+        "validation": {}
+      },
+      "isSystem": false,
+      "category": "frequent"
+    },
+    {
+      "id": "field_cover_id",
+      "type": "field",
+      "name": "cover_id",
+      "frequency": 0.05813953488372093,
+      "occurrences": 15,
+      "commonProps": {
+        "fieldType": "uuid",
+        "component": "select",
+        "required": false,
+        "isSystem": false,
+        "isPrimaryKey": false,
+        "isUnique": false,
+        "displayName": "Cover",
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "admin",
+            "editor"
+          ]
+        },
+        "validation": {},
+        "isForeignKey": true,
+        "referencedTable": "cover",
+        "referencedFieldID": "id",
+        "referencedFieldName": "name"
+      },
+      "isSystem": false,
+      "category": "frequent"
+    },
+    {
+      "id": "field_color",
+      "type": "field",
+      "name": "color",
+      "frequency": 0.05426356589147287,
+      "occurrences": 14,
+      "commonProps": {
+        "component": "color",
+        "isSystem": false,
+        "isPrimaryKey": false,
+        "isUnique": false,
+        "displayName": "Color",
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "admin",
+            "editor"
+          ]
+        },
+        "validation": {}
+      },
+      "isSystem": false,
+      "category": "frequent"
+    },
+    {
+      "id": "field_country_id",
+      "type": "field",
+      "name": "country_id",
+      "frequency": 0.046511627906976744,
+      "occurrences": 12,
+      "commonProps": {
+        "fieldType": "uuid",
+        "component": "select",
+        "required": false,
+        "isSystem": false,
+        "isPrimaryKey": false,
+        "isUnique": false,
+        "displayName": "Country",
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "admin",
+            "editor"
+          ]
+        },
+        "validation": {},
+        "isForeignKey": true,
+        "referencedTable": "country",
+        "referencedFieldID": "id",
+        "referencedFieldName": "name"
+      },
+      "isSystem": false,
+      "category": "frequent"
+    },
+    {
+      "id": "field_conf_item_id",
+      "type": "field",
+      "name": "conf_item_id",
+      "frequency": 0.046511627906976744,
+      "occurrences": 12,
+      "commonProps": {
+        "fieldType": "uuid",
+        "component": "select",
+        "required": false,
+        "isSystem": false,
+        "isPrimaryKey": false,
+        "isUnique": false,
+        "displayName": "Conf Item",
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "admin",
+            "editor"
+          ]
+        },
+        "validation": {},
+        "isForeignKey": true,
+        "referencedTable": "conf_item",
+        "referencedFieldID": "id",
+        "referencedFieldName": "name"
+      },
+      "isSystem": false,
+      "category": "frequent"
+    },
+    {
+      "id": "field_provider_id",
+      "type": "field",
+      "name": "provider_id",
+      "frequency": 0.046511627906976744,
+      "occurrences": 12,
+      "commonProps": {
+        "fieldType": "uuid",
+        "component": "select",
+        "required": false,
+        "isSystem": false,
+        "isPrimaryKey": false,
+        "isUnique": false,
+        "displayName": "Provider",
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "admin",
+            "editor"
+          ]
+        },
+        "validation": {},
+        "isForeignKey": true,
+        "referencedTable": "account",
+        "referencedFieldID": "id",
+        "referencedFieldName": "name"
+      },
+      "isSystem": false,
+      "category": "frequent"
+    },
+    {
+      "id": "field_position",
+      "type": "field",
+      "name": "position",
+      "frequency": 0.046511627906976744,
+      "occurrences": 12,
+      "commonProps": {
+        "fieldType": "number",
+        "component": "number",
+        "required": true,
+        "isSystem": false,
+        "isPrimaryKey": false,
+        "isUnique": false,
+        "displayName": "Position",
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "admin",
+            "editor"
+          ]
+        },
+        "validation": {}
+      },
+      "isSystem": false,
+      "category": "frequent"
+    },
+    {
+      "id": "field_category_id",
+      "type": "field",
+      "name": "category_id",
+      "frequency": 0.03488372093023256,
+      "occurrences": 9,
+      "commonProps": {
+        "fieldType": "uuid",
+        "component": "select",
+        "required": false,
+        "isSystem": false,
+        "isPrimaryKey": false,
+        "isUnique": false,
+        "displayName": "Category",
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "admin",
+            "editor"
+          ]
+        },
+        "validation": {}
+      },
+      "isSystem": false,
+      "category": "frequent"
+    },
+    {
+      "id": "field_currency_id",
+      "type": "field",
+      "name": "currency_id",
+      "frequency": 0.03488372093023256,
+      "occurrences": 9,
+      "commonProps": {
+        "fieldType": "uuid",
+        "component": "select",
+        "required": false,
+        "isSystem": false,
+        "isPrimaryKey": false,
+        "isUnique": false,
+        "displayName": "Currency",
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "admin",
+            "editor"
+          ]
+        },
+        "validation": {},
+        "isForeignKey": true,
+        "referencedTable": "currency",
+        "referencedFieldID": "id",
+        "referencedFieldName": "name"
+      },
+      "isSystem": false,
+      "category": "frequent"
+    },
+    {
+      "id": "field_avatar_url",
+      "type": "field",
+      "name": "avatar_url",
+      "frequency": 0.031007751937984496,
+      "occurrences": 8,
+      "commonProps": {
+        "fieldType": "string",
+        "component": "url",
+        "required": true,
+        "isSystem": false,
+        "isPrimaryKey": false,
+        "isUnique": false,
+        "displayName": "Avatar Url",
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "admin",
+            "editor"
+          ]
+        },
+        "validation": {
+          "pattern": "^https?://.+",
+          "message": "Invalid URL format"
+        }
+      },
+      "isSystem": false,
+      "category": "frequent"
+    },
+    {
+      "id": "field_start_date",
+      "type": "field",
+      "name": "start_date",
+      "frequency": 0.031007751937984496,
+      "occurrences": 8,
+      "commonProps": {
+        "component": "date",
+        "required": false,
+        "isSystem": false,
+        "isPrimaryKey": false,
+        "isUnique": false,
+        "displayName": "Start Date",
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "admin",
+            "editor"
+          ]
+        },
+        "validation": {}
+      },
+      "isSystem": false,
+      "category": "frequent"
+    },
+    {
+      "id": "field_event_id",
+      "type": "field",
+      "name": "event_id",
+      "frequency": 0.031007751937984496,
+      "occurrences": 8,
+      "commonProps": {
+        "fieldType": "uuid",
+        "component": "select",
+        "required": false,
+        "isSystem": false,
+        "isPrimaryKey": false,
+        "isUnique": false,
+        "displayName": "Event",
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "admin",
+            "editor"
+          ]
+        },
+        "validation": {},
+        "isForeignKey": true,
+        "referencedTable": "event",
+        "referencedFieldID": "id",
+        "referencedFieldName": "name"
+      },
+      "isSystem": false,
+      "category": "frequent"
+    },
+    {
+      "id": "field_number",
+      "type": "field",
+      "name": "number",
+      "frequency": 0.031007751937984496,
+      "occurrences": 8,
+      "commonProps": {
+        "required": true,
+        "isSystem": false,
+        "isPrimaryKey": false,
+        "isUnique": false,
+        "displayName": "Number",
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "admin",
+            "editor"
+          ]
+        },
+        "validation": {}
+      },
+      "isSystem": false,
+      "category": "frequent"
+    },
+    {
+      "id": "field_amount",
+      "type": "field",
+      "name": "amount",
+      "frequency": 0.031007751937984496,
+      "occurrences": 8,
+      "commonProps": {
+        "fieldType": "number",
+        "component": "number",
+        "required": true,
+        "isSystem": false,
+        "isPrimaryKey": false,
+        "isUnique": false,
+        "displayName": "Amount",
         "permissions": {
           "read": [
             "*"
@@ -401,10 +1113,7 @@
       "id": "account_field_owner_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_owner_id"
       ],
       "category": "account",
       "caption": "account owner_id field",
@@ -426,12 +1135,12 @@
           ]
         },
         "isForeignKey": true,
-        "referencedTable": "owner",
+        "referencedTable": "contact",
         "referencedFieldID": "id",
         "displayName": "Owner",
         "placeholder": "Enter owner",
         "validation": {},
-        "referencedFieldName": "id"
+        "referencedFieldName": "name"
       },
       "tags": [
         "main",
@@ -508,12 +1217,12 @@
           ]
         },
         "isForeignKey": true,
-        "referencedTable": "primary_contact",
+        "referencedTable": "contact",
         "referencedFieldID": "id",
         "displayName": "Primary Contact",
         "placeholder": "Enter primary contact",
         "validation": {},
-        "referencedFieldName": "id"
+        "referencedFieldName": "name"
       },
       "tags": [
         "main",
@@ -641,10 +1350,7 @@
       "id": "account_field_type_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_type_id"
       ],
       "category": "account",
       "caption": "account type_id field",
@@ -1033,10 +1739,7 @@
       "id": "account_field_country_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_country_id"
       ],
       "category": "account",
       "caption": "account country_id field",
@@ -1115,10 +1818,7 @@
       "id": "account_field_notes",
       "type": "entity_field",
       "deps": [
-        "property_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_notes"
       ],
       "category": "account",
       "caption": "account notes field",
@@ -1418,10 +2118,7 @@
       "id": "account_field_status_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_status_id"
       ],
       "category": "account",
       "caption": "account status_id field",
@@ -1579,10 +2276,7 @@
       "id": "account_field_url",
       "type": "entity_field",
       "deps": [
-        "property_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_url"
       ],
       "category": "account",
       "caption": "account url field",
@@ -1744,10 +2438,7 @@
       "id": "account_field_avatar_url",
       "type": "entity_field",
       "deps": [
-        "property_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_avatar_url"
       ],
       "category": "account",
       "caption": "account avatar_url field",
@@ -2011,10 +2702,7 @@
       "id": "account_field_cover_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_cover_id"
       ],
       "category": "account",
       "caption": "account cover_id field",
@@ -2098,8 +2786,8 @@
         "component": "text",
         "required": true,
         "isSystem": true,
-        "isPrimaryKey": false,
-        "isUnique": false,
+        "isPrimaryKey": true,
+        "isUnique": true,
         "sortOrder": 460,
         "permissions": {
           "read": [
@@ -2287,10 +2975,7 @@
       "id": "activity_field_start_date",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_start_date"
       ],
       "category": "activity",
       "caption": "activity start_date field",
@@ -2519,10 +3204,7 @@
       "id": "activity_field_owner_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_owner_id"
       ],
       "category": "activity",
       "caption": "activity owner_id field",
@@ -2544,12 +3226,12 @@
           ]
         },
         "isForeignKey": true,
-        "referencedTable": "owner",
+        "referencedTable": "contact",
         "referencedFieldID": "id",
         "displayName": "Owner",
         "placeholder": "Enter owner",
         "validation": {},
-        "referencedFieldName": "id"
+        "referencedFieldName": "name"
       },
       "tags": [
         "main",
@@ -2634,10 +3316,7 @@
       "id": "activity_field_type_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_type_id"
       ],
       "category": "activity",
       "caption": "activity type_id field",
@@ -2753,10 +3432,7 @@
       "id": "activity_field_status_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_status_id"
       ],
       "category": "activity",
       "caption": "activity status_id field",
@@ -2914,10 +3590,7 @@
       "id": "activity_field_account_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_account_id"
       ],
       "category": "activity",
       "caption": "activity account_id field",
@@ -3183,10 +3856,7 @@
       "id": "activity_field_notes",
       "type": "entity_field",
       "deps": [
-        "property_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_notes"
       ],
       "category": "activity",
       "caption": "activity notes field",
@@ -3221,10 +3891,7 @@
       "id": "activity_field_color",
       "type": "entity_field",
       "deps": [
-        "property_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_color"
       ],
       "category": "activity",
       "caption": "activity color field",
@@ -4107,10 +4774,7 @@
       "id": "activity_field_conf_item_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_conf_item_id"
       ],
       "category": "activity",
       "caption": "activity conf_item_id field",
@@ -4189,10 +4853,7 @@
       "id": "activity_field_event_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_event_id"
       ],
       "category": "activity",
       "caption": "activity event_id field",
@@ -4432,10 +5093,7 @@
       "id": "activity_field_pet_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_pet_id"
       ],
       "category": "activity",
       "caption": "activity pet_id field",
@@ -4802,8 +5460,8 @@
         "component": "text",
         "required": true,
         "isSystem": true,
-        "isPrimaryKey": false,
-        "isUnique": false,
+        "isPrimaryKey": true,
+        "isUnique": true,
         "sortOrder": 660,
         "permissions": {
           "read": [
@@ -4974,6 +5632,7 @@
             "editor"
           ]
         },
+        "maxLength": 255,
         "displayName": "Name",
         "placeholder": "Enter name",
         "validation": {},
@@ -4988,10 +5647,7 @@
       "id": "breed_field_pet_type_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_pet_type_id"
       ],
       "category": "breed",
       "caption": "breed pet_type_id field",
@@ -5256,10 +5912,7 @@
       "id": "breed_field_category_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_category_id"
       ],
       "category": "breed",
       "caption": "breed category_id field",
@@ -5372,10 +6025,7 @@
       "id": "breed_field_url",
       "type": "entity_field",
       "deps": [
-        "property_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_url"
       ],
       "category": "breed",
       "caption": "breed url field",
@@ -5396,6 +6046,7 @@
             "editor"
           ]
         },
+        "maxLength": 500,
         "displayName": "Url",
         "placeholder": "Enter url",
         "validation": {
@@ -5413,10 +6064,7 @@
       "id": "breed_field_account_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_account_id"
       ],
       "category": "breed",
       "caption": "breed account_id field",
@@ -5454,10 +6102,7 @@
       "id": "breed_field_avatar_url",
       "type": "entity_field",
       "deps": [
-        "property_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_avatar_url"
       ],
       "category": "breed",
       "caption": "breed avatar_url field",
@@ -5495,10 +6140,7 @@
       "id": "breed_field_cover_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_cover_id"
       ],
       "category": "breed",
       "caption": "breed cover_id field",
@@ -5658,8 +6300,8 @@
         "component": "text",
         "required": true,
         "isSystem": true,
-        "isPrimaryKey": false,
-        "isUnique": false,
+        "isPrimaryKey": true,
+        "isUnique": true,
         "sortOrder": 190,
         "permissions": {
           "read": [
@@ -5886,10 +6528,7 @@
       "id": "cashflow_field_number",
       "type": "entity_field",
       "deps": [
-        "property_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_number"
       ],
       "category": "cashflow",
       "caption": "cashflow number field",
@@ -5924,10 +6563,7 @@
       "id": "cashflow_field_type_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_type_id"
       ],
       "category": "cashflow",
       "caption": "cashflow type_id field",
@@ -6003,10 +6639,7 @@
       "id": "cashflow_field_category_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_category_id"
       ],
       "category": "cashflow",
       "caption": "cashflow category_id field",
@@ -6044,10 +6677,7 @@
       "id": "cashflow_field_status_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_status_id"
       ],
       "category": "cashflow",
       "caption": "cashflow status_id field",
@@ -6085,10 +6715,7 @@
       "id": "cashflow_field_date",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_date"
       ],
       "category": "cashflow",
       "caption": "cashflow date field",
@@ -6123,10 +6750,7 @@
       "id": "cashflow_field_currency_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_currency_id"
       ],
       "category": "cashflow",
       "caption": "cashflow currency_id field",
@@ -6202,10 +6826,7 @@
       "id": "cashflow_field_amount",
       "type": "entity_field",
       "deps": [
-        "property_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_amount"
       ],
       "category": "cashflow",
       "caption": "cashflow amount field",
@@ -6278,10 +6899,7 @@
       "id": "cashflow_field_notes",
       "type": "entity_field",
       "deps": [
-        "property_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_notes"
       ],
       "category": "cashflow",
       "caption": "cashflow notes field",
@@ -6357,10 +6975,7 @@
       "id": "cashflow_field_conf_item_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_conf_item_id"
       ],
       "category": "cashflow",
       "caption": "cashflow conf_item_id field",
@@ -6489,8 +7104,8 @@
         "component": "text",
         "required": true,
         "isSystem": true,
-        "isPrimaryKey": false,
-        "isUnique": false,
+        "isPrimaryKey": true,
+        "isUnique": true,
         "sortOrder": 170,
         "permissions": {
           "read": [
@@ -6752,10 +7367,7 @@
       "id": "collection_field_type_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_type_id"
       ],
       "category": "collection",
       "caption": "collection type_id field",
@@ -6793,10 +7405,7 @@
       "id": "collection_field_avatar_url",
       "type": "entity_field",
       "deps": [
-        "property_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_avatar_url"
       ],
       "category": "collection",
       "caption": "collection avatar_url field",
@@ -6834,10 +7443,7 @@
       "id": "collection_field_url",
       "type": "entity_field",
       "deps": [
-        "property_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_url"
       ],
       "category": "collection",
       "caption": "collection url field",
@@ -6910,10 +7516,7 @@
       "id": "collection_field_notes",
       "type": "entity_field",
       "deps": [
-        "property_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_notes"
       ],
       "category": "collection",
       "caption": "collection notes field",
@@ -6985,10 +7588,7 @@
       "id": "collection_field_cover_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_cover_id"
       ],
       "category": "collection",
       "caption": "collection cover_id field",
@@ -7026,10 +7626,7 @@
       "id": "collection_field_owner_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_owner_id"
       ],
       "category": "collection",
       "caption": "collection owner_id field",
@@ -7051,12 +7648,12 @@
           ]
         },
         "isForeignKey": true,
-        "referencedTable": "owner",
+        "referencedTable": "contact",
         "referencedFieldID": "id",
         "displayName": "Owner",
         "placeholder": "Enter owner",
         "validation": {},
-        "referencedFieldName": "id"
+        "referencedFieldName": "name"
       },
       "tags": [
         "main",
@@ -7076,8 +7673,8 @@
         "component": "text",
         "required": true,
         "isSystem": true,
-        "isPrimaryKey": false,
-        "isUnique": false,
+        "isPrimaryKey": true,
+        "isUnique": true,
         "sortOrder": 120,
         "permissions": {
           "read": [
@@ -7262,10 +7859,7 @@
       "id": "competition_field_notes",
       "type": "entity_field",
       "deps": [
-        "property_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_notes"
       ],
       "category": "competition",
       "caption": "competition notes field",
@@ -7300,10 +7894,7 @@
       "id": "competition_field_provider_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_provider_id"
       ],
       "category": "competition",
       "caption": "competition provider_id field",
@@ -7382,10 +7973,7 @@
       "id": "competition_field_type_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_type_id"
       ],
       "category": "competition",
       "caption": "competition type_id field",
@@ -7575,10 +8163,7 @@
       "id": "competition_field_pet_type_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_pet_type_id"
       ],
       "category": "competition",
       "caption": "competition pet_type_id field",
@@ -7654,10 +8239,7 @@
       "id": "competition_field_category_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_category_id"
       ],
       "category": "competition",
       "caption": "competition category_id field",
@@ -7742,8 +8324,8 @@
         "component": "text",
         "required": true,
         "isSystem": true,
-        "isPrimaryKey": false,
-        "isUnique": false,
+        "isPrimaryKey": true,
+        "isUnique": true,
         "sortOrder": 140,
         "permissions": {
           "read": [
@@ -7925,10 +8507,7 @@
       "id": "conf_item_field_type_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_type_id"
       ],
       "category": "conf_item",
       "caption": "conf_item type_id field",
@@ -8033,10 +8612,7 @@
       "id": "conf_item_field_status_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_status_id"
       ],
       "category": "conf_item",
       "caption": "conf_item status_id field",
@@ -8173,10 +8749,7 @@
       "id": "conf_item_field_owner_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_owner_id"
       ],
       "category": "conf_item",
       "caption": "conf_item owner_id field",
@@ -8198,12 +8771,12 @@
           ]
         },
         "isForeignKey": true,
-        "referencedTable": "owner",
+        "referencedTable": "contact",
         "referencedFieldID": "id",
         "displayName": "Owner",
         "placeholder": "Enter owner",
         "validation": {},
-        "referencedFieldName": "id"
+        "referencedFieldName": "name"
       },
       "tags": []
     },
@@ -8249,10 +8822,7 @@
       "id": "conf_item_field_category_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_category_id"
       ],
       "category": "conf_item",
       "caption": "conf_item category_id field",
@@ -8287,10 +8857,7 @@
       "id": "conf_item_field_notes",
       "type": "entity_field",
       "deps": [
-        "property_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_notes"
       ],
       "category": "conf_item",
       "caption": "conf_item notes field",
@@ -8322,10 +8889,7 @@
       "id": "conf_item_field_country_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_country_id"
       ],
       "category": "conf_item",
       "caption": "conf_item country_id field",
@@ -8360,10 +8924,7 @@
       "id": "conf_item_field_provider_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_provider_id"
       ],
       "category": "conf_item",
       "caption": "conf_item provider_id field",
@@ -8755,10 +9316,7 @@
       "id": "conf_item_field_url",
       "type": "entity_field",
       "deps": [
-        "property_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_url"
       ],
       "category": "conf_item",
       "caption": "conf_item url field",
@@ -8910,8 +9468,8 @@
         "component": "text",
         "required": true,
         "isSystem": true,
-        "isPrimaryKey": false,
-        "isUnique": false,
+        "isPrimaryKey": true,
+        "isUnique": true,
         "sortOrder": 290,
         "permissions": {
           "read": [
@@ -9116,10 +9674,7 @@
       "id": "contact_field_account_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_account_id"
       ],
       "category": "contact",
       "caption": "contact account_id field",
@@ -9277,10 +9832,7 @@
       "id": "contact_field_type_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_type_id"
       ],
       "category": "contact",
       "caption": "contact type_id field",
@@ -9747,10 +10299,7 @@
       "id": "contact_field_country_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_country_id"
       ],
       "category": "contact",
       "caption": "contact country_id field",
@@ -9976,10 +10525,7 @@
       "id": "contact_field_notes",
       "type": "entity_field",
       "deps": [
-        "property_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_notes"
       ],
       "category": "contact",
       "caption": "contact notes field",
@@ -10919,10 +11465,7 @@
       "id": "contact_field_url",
       "type": "entity_field",
       "deps": [
-        "property_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_url"
       ],
       "category": "contact",
       "caption": "contact url field",
@@ -11042,10 +11585,7 @@
       "id": "contact_field_avatar_url",
       "type": "entity_field",
       "deps": [
-        "property_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_avatar_url"
       ],
       "category": "contact",
       "caption": "contact avatar_url field",
@@ -11124,10 +11664,7 @@
       "id": "contact_field_cover_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_cover_id"
       ],
       "category": "contact",
       "caption": "contact cover_id field",
@@ -11211,8 +11748,8 @@
         "component": "text",
         "required": true,
         "isSystem": true,
-        "isPrimaryKey": false,
-        "isUnique": false,
+        "isPrimaryKey": true,
+        "isUnique": true,
         "sortOrder": 560,
         "permissions": {
           "read": [
@@ -11397,10 +11934,7 @@
       "id": "cover_field_notes",
       "type": "entity_field",
       "deps": [
-        "property_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_notes"
       ],
       "category": "cover",
       "caption": "cover notes field",
@@ -11476,10 +12010,7 @@
       "id": "cover_field_avatar_url",
       "type": "entity_field",
       "deps": [
-        "property_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_avatar_url"
       ],
       "category": "cover",
       "caption": "cover avatar_url field",
@@ -11517,10 +12048,7 @@
       "id": "cover_field_type_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_type_id"
       ],
       "category": "cover",
       "caption": "cover type_id field",
@@ -11558,10 +12086,7 @@
       "id": "cover_field_owner_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_owner_id"
       ],
       "category": "cover",
       "caption": "cover owner_id field",
@@ -11583,12 +12108,12 @@
           ]
         },
         "isForeignKey": true,
-        "referencedTable": "owner",
+        "referencedTable": "contact",
         "referencedFieldID": "id",
         "displayName": "Owner",
         "placeholder": "Enter owner",
         "validation": {},
-        "referencedFieldName": "id"
+        "referencedFieldName": "name"
       },
       "tags": [
         "main",
@@ -11599,10 +12124,7 @@
       "id": "cover_field_url",
       "type": "entity_field",
       "deps": [
-        "property_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_url"
       ],
       "category": "cover",
       "caption": "cover url field",
@@ -11724,8 +12246,8 @@
         "component": "text",
         "required": true,
         "isSystem": true,
-        "isPrimaryKey": false,
-        "isUnique": false,
+        "isPrimaryKey": true,
+        "isUnique": true,
         "sortOrder": 100,
         "permissions": {
           "read": [
@@ -11910,10 +12432,7 @@
       "id": "event_field_type_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_type_id"
       ],
       "category": "event",
       "caption": "event type_id field",
@@ -11951,10 +12470,7 @@
       "id": "event_field_owner_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_owner_id"
       ],
       "category": "event",
       "caption": "event owner_id field",
@@ -11976,12 +12492,12 @@
           ]
         },
         "isForeignKey": true,
-        "referencedTable": "owner",
+        "referencedTable": "contact",
         "referencedFieldID": "id",
         "displayName": "Owner",
         "placeholder": "Enter owner",
         "validation": {},
-        "referencedFieldName": "id"
+        "referencedFieldName": "name"
       },
       "tags": [
         "main",
@@ -11992,10 +12508,7 @@
       "id": "event_field_status_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_status_id"
       ],
       "category": "event",
       "caption": "event status_id field",
@@ -12033,10 +12546,7 @@
       "id": "event_field_start_date",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_start_date"
       ],
       "category": "event",
       "caption": "event start_date field",
@@ -12417,10 +12927,7 @@
       "id": "event_field_notes",
       "type": "entity_field",
       "deps": [
-        "property_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_notes"
       ],
       "category": "event",
       "caption": "event notes field",
@@ -12691,10 +13198,7 @@
       "id": "event_field_country_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_country_id"
       ],
       "category": "event",
       "caption": "event country_id field",
@@ -12732,10 +13236,7 @@
       "id": "event_field_account_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_account_id"
       ],
       "category": "event",
       "caption": "event account_id field",
@@ -12773,10 +13274,7 @@
       "id": "event_field_url",
       "type": "entity_field",
       "deps": [
-        "property_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_url"
       ],
       "category": "event",
       "caption": "event url field",
@@ -12814,10 +13312,7 @@
       "id": "event_field_pet_type_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_pet_type_id"
       ],
       "category": "event",
       "caption": "event pet_type_id field",
@@ -12855,10 +13350,7 @@
       "id": "event_field_cover_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_cover_id"
       ],
       "category": "event",
       "caption": "event cover_id field",
@@ -12905,8 +13397,8 @@
         "component": "text",
         "required": true,
         "isSystem": true,
-        "isPrimaryKey": false,
-        "isUnique": false,
+        "isPrimaryKey": true,
+        "isUnique": true,
         "sortOrder": 270,
         "permissions": {
           "read": [
@@ -13056,10 +13548,7 @@
       "id": "invoice_field_number",
       "type": "entity_field",
       "deps": [
-        "property_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_number"
       ],
       "category": "invoice",
       "caption": "invoice number field",
@@ -13094,10 +13583,7 @@
       "id": "invoice_field_start_date",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_start_date"
       ],
       "category": "invoice",
       "caption": "invoice start_date field",
@@ -13249,10 +13735,7 @@
       "id": "invoice_field_owner_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_owner_id"
       ],
       "category": "invoice",
       "caption": "invoice owner_id field",
@@ -13274,12 +13757,12 @@
           ]
         },
         "isForeignKey": true,
-        "referencedTable": "owner",
+        "referencedTable": "contact",
         "referencedFieldID": "id",
         "displayName": "Owner",
         "placeholder": "Enter owner",
         "validation": {},
-        "referencedFieldName": "id"
+        "referencedFieldName": "name"
       },
       "tags": [
         "main",
@@ -13446,10 +13929,7 @@
       "id": "invoice_field_currency_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_currency_id"
       ],
       "category": "invoice",
       "caption": "invoice currency_id field",
@@ -13525,10 +14005,7 @@
       "id": "invoice_field_amount",
       "type": "entity_field",
       "deps": [
-        "property_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_amount"
       ],
       "category": "invoice",
       "caption": "invoice amount field",
@@ -13638,10 +14115,7 @@
       "id": "invoice_field_notes",
       "type": "entity_field",
       "deps": [
-        "property_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_notes"
       ],
       "category": "invoice",
       "caption": "invoice notes field",
@@ -13676,10 +14150,7 @@
       "id": "invoice_field_account_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_account_id"
       ],
       "category": "invoice",
       "caption": "invoice account_id field",
@@ -14114,8 +14585,8 @@
         "component": "text",
         "required": true,
         "isSystem": true,
-        "isPrimaryKey": false,
-        "isUnique": false,
+        "isPrimaryKey": true,
+        "isUnique": true,
         "sortOrder": 280,
         "permissions": {
           "read": [
@@ -14300,10 +14771,7 @@
       "id": "litter_field_notes",
       "type": "entity_field",
       "deps": [
-        "property_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_notes"
       ],
       "category": "litter",
       "caption": "litter notes field",
@@ -14420,10 +14888,7 @@
       "id": "litter_field_pet_type_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_pet_type_id"
       ],
       "category": "litter",
       "caption": "litter pet_type_id field",
@@ -14539,10 +15004,7 @@
       "id": "litter_field_status_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_status_id"
       ],
       "category": "litter",
       "caption": "litter status_id field",
@@ -14646,12 +15108,12 @@
           ]
         },
         "isForeignKey": true,
-        "referencedTable": "breeder",
+        "referencedTable": "contact",
         "referencedFieldID": "id",
         "displayName": "Breeder",
         "placeholder": "Enter breeder",
         "validation": {},
-        "referencedFieldName": "id"
+        "referencedFieldName": "name"
       },
       "tags": [
         "main",
@@ -14662,10 +15124,7 @@
       "id": "litter_field_url",
       "type": "entity_field",
       "deps": [
-        "property_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_url"
       ],
       "category": "litter",
       "caption": "litter url field",
@@ -14857,10 +15316,7 @@
       "id": "litter_field_cover_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_cover_id"
       ],
       "category": "litter",
       "caption": "litter cover_id field",
@@ -14898,10 +15354,7 @@
       "id": "litter_field_start_date",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_start_date"
       ],
       "category": "litter",
       "caption": "litter start_date field",
@@ -14981,8 +15434,8 @@
         "component": "text",
         "required": true,
         "isSystem": true,
-        "isPrimaryKey": false,
-        "isUnique": false,
+        "isPrimaryKey": true,
+        "isUnique": true,
         "sortOrder": 190,
         "permissions": {
           "read": [
@@ -15164,10 +15617,7 @@
       "id": "note_field_notes",
       "type": "entity_field",
       "deps": [
-        "property_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_notes"
       ],
       "category": "note",
       "caption": "note notes field",
@@ -15199,10 +15649,7 @@
       "id": "note_field_pet_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_pet_id"
       ],
       "category": "note",
       "caption": "note pet_id field",
@@ -15275,10 +15722,7 @@
       "id": "note_field_event_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_event_id"
       ],
       "category": "note",
       "caption": "note event_id field",
@@ -15348,10 +15792,7 @@
       "id": "note_field_account_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_account_id"
       ],
       "category": "note",
       "caption": "note account_id field",
@@ -15421,10 +15862,7 @@
       "id": "note_field_owner_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_owner_id"
       ],
       "category": "note",
       "caption": "note owner_id field",
@@ -15446,12 +15884,12 @@
           ]
         },
         "isForeignKey": true,
-        "referencedTable": "owner",
+        "referencedTable": "contact",
         "referencedFieldID": "id",
         "displayName": "Owner",
         "placeholder": "Enter owner",
         "validation": {},
-        "referencedFieldName": "id"
+        "referencedFieldName": "name"
       },
       "tags": []
     },
@@ -15459,10 +15897,7 @@
       "id": "note_field_cover_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_cover_id"
       ],
       "category": "note",
       "caption": "note cover_id field",
@@ -15658,8 +16093,8 @@
         "component": "text",
         "required": true,
         "isSystem": true,
-        "isPrimaryKey": false,
-        "isUnique": false,
+        "isPrimaryKey": true,
+        "isUnique": true,
         "sortOrder": 150,
         "permissions": {
           "read": [
@@ -15794,10 +16229,7 @@
       "id": "order_field_number",
       "type": "entity_field",
       "deps": [
-        "property_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_number"
       ],
       "category": "order",
       "caption": "order number field",
@@ -15832,10 +16264,7 @@
       "id": "order_field_account_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_account_id"
       ],
       "category": "order",
       "caption": "order account_id field",
@@ -15873,10 +16302,7 @@
       "id": "order_field_date",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_date"
       ],
       "category": "order",
       "caption": "order date field",
@@ -15911,10 +16337,7 @@
       "id": "order_field_owner_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_owner_id"
       ],
       "category": "order",
       "caption": "order owner_id field",
@@ -15936,12 +16359,12 @@
           ]
         },
         "isForeignKey": true,
-        "referencedTable": "owner",
+        "referencedTable": "contact",
         "referencedFieldID": "id",
         "displayName": "Owner",
         "placeholder": "Enter owner",
         "validation": {},
-        "referencedFieldName": "id"
+        "referencedFieldName": "name"
       },
       "tags": [
         "main",
@@ -15952,10 +16375,7 @@
       "id": "order_field_status_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_status_id"
       ],
       "category": "order",
       "caption": "order status_id field",
@@ -16187,10 +16607,7 @@
       "id": "order_field_currency_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_currency_id"
       ],
       "category": "order",
       "caption": "order currency_id field",
@@ -16266,10 +16683,7 @@
       "id": "order_field_amount",
       "type": "entity_field",
       "deps": [
-        "property_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_amount"
       ],
       "category": "order",
       "caption": "order amount field",
@@ -16418,10 +16832,7 @@
       "id": "order_field_notes",
       "type": "entity_field",
       "deps": [
-        "property_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_notes"
       ],
       "category": "order",
       "caption": "order notes field",
@@ -16733,8 +17144,8 @@
         "component": "text",
         "required": true,
         "isSystem": true,
-        "isPrimaryKey": false,
-        "isUnique": false,
+        "isPrimaryKey": true,
+        "isUnique": true,
         "sortOrder": 250,
         "permissions": {
           "read": [
@@ -16919,10 +17330,7 @@
       "id": "pet_field_notes",
       "type": "entity_field",
       "deps": [
-        "property_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_notes"
       ],
       "category": "pet",
       "caption": "pet notes field",
@@ -16994,10 +17402,7 @@
       "id": "pet_field_owner_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_owner_id"
       ],
       "category": "pet",
       "caption": "pet owner_id field",
@@ -17076,10 +17481,7 @@
       "id": "pet_field_pet_type_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_pet_type_id"
       ],
       "category": "pet",
       "caption": "pet pet_type_id field",
@@ -17303,12 +17705,12 @@
           ]
         },
         "isForeignKey": true,
-        "referencedTable": "breeder",
+        "referencedTable": "contact",
         "referencedFieldID": "id",
         "displayName": "Breeder",
         "placeholder": "Enter breeder",
         "validation": {},
-        "referencedFieldName": "id"
+        "referencedFieldName": "name"
       },
       "tags": [
         "main",
@@ -17798,10 +18200,7 @@
       "id": "pet_field_url",
       "type": "entity_field",
       "deps": [
-        "property_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_url"
       ],
       "category": "pet",
       "caption": "pet url field",
@@ -17997,10 +18396,7 @@
       "id": "pet_field_avatar_url",
       "type": "entity_field",
       "deps": [
-        "property_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_avatar_url"
       ],
       "category": "pet",
       "caption": "pet avatar_url field",
@@ -18349,10 +18745,7 @@
       "id": "pet_field_cover_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_cover_id"
       ],
       "category": "pet",
       "caption": "pet cover_id field",
@@ -18635,8 +19028,8 @@
         "component": "text",
         "required": true,
         "isSystem": true,
-        "isPrimaryKey": false,
-        "isUnique": false,
+        "isPrimaryKey": true,
+        "isUnique": true,
         "sortOrder": 450,
         "permissions": {
           "read": [
@@ -18824,10 +19217,7 @@
       "id": "post_field_type_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_type_id"
       ],
       "category": "post",
       "caption": "post type_id field",
@@ -18944,10 +19334,7 @@
       "id": "post_field_url",
       "type": "entity_field",
       "deps": [
-        "property_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_url"
       ],
       "category": "post",
       "caption": "post url field",
@@ -19139,10 +19526,7 @@
       "id": "post_field_date",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_date"
       ],
       "category": "post",
       "caption": "post date field",
@@ -19177,10 +19561,7 @@
       "id": "post_field_event_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_event_id"
       ],
       "category": "post",
       "caption": "post event_id field",
@@ -19370,10 +19751,7 @@
       "id": "post_field_cover_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_cover_id"
       ],
       "category": "post",
       "caption": "post cover_id field",
@@ -19420,8 +19798,8 @@
         "component": "text",
         "required": true,
         "isSystem": true,
-        "isPrimaryKey": false,
-        "isUnique": false,
+        "isPrimaryKey": true,
+        "isUnique": true,
         "sortOrder": 170,
         "permissions": {
           "read": [
@@ -19606,10 +19984,7 @@
       "id": "post_feed_field_pet_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_pet_id"
       ],
       "category": "post_feed",
       "caption": "post_feed pet_id field",
@@ -19647,10 +20022,7 @@
       "id": "post_feed_field_account_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_account_id"
       ],
       "category": "post_feed",
       "caption": "post_feed account_id field",
@@ -19817,8 +20189,8 @@
         "component": "text",
         "required": true,
         "isSystem": true,
-        "isPrimaryKey": false,
-        "isUnique": false,
+        "isPrimaryKey": true,
+        "isUnique": true,
         "sortOrder": 70,
         "permissions": {
           "read": [
@@ -20079,10 +20451,7 @@
       "id": "product_field_currency_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_currency_id"
       ],
       "category": "product",
       "caption": "product currency_id field",
@@ -20158,10 +20527,7 @@
       "id": "product_field_url",
       "type": "entity_field",
       "deps": [
-        "property_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_url"
       ],
       "category": "product",
       "caption": "product url field",
@@ -20199,10 +20565,7 @@
       "id": "product_field_type_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_type_id"
       ],
       "category": "product",
       "caption": "product type_id field",
@@ -20277,10 +20640,7 @@
       "id": "product_field_owner_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_owner_id"
       ],
       "category": "product",
       "caption": "product owner_id field",
@@ -20302,12 +20662,12 @@
           ]
         },
         "isForeignKey": true,
-        "referencedTable": "owner",
+        "referencedTable": "contact",
         "referencedFieldID": "id",
         "displayName": "Owner",
         "placeholder": "Enter owner",
         "validation": {},
-        "referencedFieldName": "id"
+        "referencedFieldName": "name"
       },
       "tags": [
         "main",
@@ -20394,10 +20754,7 @@
       "id": "product_field_notes",
       "type": "entity_field",
       "deps": [
-        "property_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_notes"
       ],
       "category": "product",
       "caption": "product notes field",
@@ -20469,10 +20826,7 @@
       "id": "product_field_category_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_category_id"
       ],
       "category": "product",
       "caption": "product category_id field",
@@ -20548,10 +20902,7 @@
       "id": "product_field_pet_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_pet_id"
       ],
       "category": "product",
       "caption": "product pet_id field",
@@ -20757,8 +21108,8 @@
         "component": "text",
         "required": true,
         "isSystem": true,
-        "isPrimaryKey": false,
-        "isUnique": false,
+        "isPrimaryKey": true,
+        "isUnique": true,
         "sortOrder": 210,
         "permissions": {
           "read": [
@@ -20908,10 +21259,7 @@
       "id": "project_field_notes",
       "type": "entity_field",
       "deps": [
-        "property_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_notes"
       ],
       "category": "project",
       "caption": "project notes field",
@@ -20981,10 +21329,7 @@
       "id": "project_field_account_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_account_id"
       ],
       "category": "project",
       "caption": "project account_id field",
@@ -21101,10 +21446,7 @@
       "id": "project_field_type_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_type_id"
       ],
       "category": "project",
       "caption": "project type_id field",
@@ -21142,10 +21484,7 @@
       "id": "project_field_owner_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_owner_id"
       ],
       "category": "project",
       "caption": "project owner_id field",
@@ -21167,12 +21506,12 @@
           ]
         },
         "isForeignKey": true,
-        "referencedTable": "owner",
+        "referencedTable": "contact",
         "referencedFieldID": "id",
         "displayName": "Owner",
         "placeholder": "Enter owner",
         "validation": {},
-        "referencedFieldName": "id"
+        "referencedFieldName": "name"
       },
       "tags": [
         "main",
@@ -21183,10 +21522,7 @@
       "id": "project_field_status_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_status_id"
       ],
       "category": "project",
       "caption": "project status_id field",
@@ -21224,10 +21560,7 @@
       "id": "project_field_start_date",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_start_date"
       ],
       "category": "project",
       "caption": "project start_date field",
@@ -22367,10 +22700,7 @@
       "id": "project_field_position",
       "type": "entity_field",
       "deps": [
-        "property_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_position"
       ],
       "category": "project",
       "caption": "project position field",
@@ -22405,10 +22735,7 @@
       "id": "project_field_event_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_event_id"
       ],
       "category": "project",
       "caption": "project event_id field",
@@ -22446,10 +22773,7 @@
       "id": "project_field_category_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_category_id"
       ],
       "category": "project",
       "caption": "project category_id field",
@@ -22525,10 +22849,7 @@
       "id": "project_field_url",
       "type": "entity_field",
       "deps": [
-        "property_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_url"
       ],
       "category": "project",
       "caption": "project url field",
@@ -22566,10 +22887,7 @@
       "id": "project_field_pet_type_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_pet_type_id"
       ],
       "category": "project",
       "caption": "project pet_type_id field",
@@ -22607,10 +22925,7 @@
       "id": "project_field_cover_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_cover_id"
       ],
       "category": "project",
       "caption": "project cover_id field",
@@ -22657,8 +22972,8 @@
         "component": "text",
         "required": true,
         "isSystem": true,
-        "isPrimaryKey": false,
-        "isUnique": false,
+        "isPrimaryKey": true,
+        "isUnique": true,
         "sortOrder": 460,
         "permissions": {
           "read": [
@@ -22875,10 +23190,7 @@
       "id": "public_data_field_account_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_account_id"
       ],
       "category": "public_data",
       "caption": "public_data account_id field",
@@ -22948,10 +23260,7 @@
       "id": "public_data_field_pet_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_pet_id"
       ],
       "category": "public_data",
       "caption": "public_data pet_id field",
@@ -23021,10 +23330,7 @@
       "id": "public_data_field_event_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_event_id"
       ],
       "category": "public_data",
       "caption": "public_data event_id field",
@@ -23277,10 +23583,7 @@
       "id": "public_data_field_pet_type_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_pet_type_id"
       ],
       "category": "public_data",
       "caption": "public_data pet_type_id field",
@@ -23315,10 +23618,7 @@
       "id": "public_data_field_country_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_country_id"
       ],
       "category": "public_data",
       "caption": "public_data country_id field",
@@ -23472,8 +23772,8 @@
         "component": "text",
         "required": true,
         "isSystem": true,
-        "isPrimaryKey": false,
-        "isUnique": false,
+        "isPrimaryKey": true,
+        "isUnique": true,
         "sortOrder": 190,
         "permissions": {
           "read": [
@@ -23643,10 +23943,7 @@
       "id": "quest_field_url",
       "type": "entity_field",
       "deps": [
-        "property_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_url"
       ],
       "category": "quest",
       "caption": "quest url field",
@@ -23684,10 +23981,7 @@
       "id": "quest_field_type_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_type_id"
       ],
       "category": "quest",
       "caption": "quest type_id field",
@@ -23998,8 +24292,8 @@
         "component": "text",
         "required": true,
         "isSystem": true,
-        "isPrimaryKey": false,
-        "isUnique": false,
+        "isPrimaryKey": true,
+        "isUnique": true,
         "sortOrder": 110,
         "permissions": {
           "read": [
@@ -24181,10 +24475,7 @@
       "id": "raw_data_field_notes",
       "type": "entity_field",
       "deps": [
-        "property_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_notes"
       ],
       "category": "raw_data",
       "caption": "raw_data notes field",
@@ -24251,10 +24542,7 @@
       "id": "raw_data_field_status_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_status_id"
       ],
       "category": "raw_data",
       "caption": "raw_data status_id field",
@@ -24324,10 +24612,7 @@
       "id": "raw_data_field_conf_item_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_conf_item_id"
       ],
       "category": "raw_data",
       "caption": "raw_data conf_item_id field",
@@ -24578,10 +24863,7 @@
       "id": "raw_data_field_account_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_account_id"
       ],
       "category": "raw_data",
       "caption": "raw_data account_id field",
@@ -24651,10 +24933,7 @@
       "id": "raw_data_field_event_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_event_id"
       ],
       "category": "raw_data",
       "caption": "raw_data event_id field",
@@ -24727,10 +25006,7 @@
       "id": "raw_data_field_pet_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_pet_id"
       ],
       "category": "raw_data",
       "caption": "raw_data pet_id field",
@@ -24774,8 +25050,8 @@
         "component": "text",
         "required": true,
         "isSystem": true,
-        "isPrimaryKey": false,
-        "isUnique": false,
+        "isPrimaryKey": true,
+        "isUnique": true,
         "sortOrder": 180,
         "permissions": {
           "read": [
@@ -25088,10 +25364,7 @@
       "id": "service_item_field_notes",
       "type": "entity_field",
       "deps": [
-        "property_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_notes"
       ],
       "category": "service_item",
       "caption": "service_item notes field",
@@ -25193,10 +25466,7 @@
       "id": "service_item_field_owner_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_owner_id"
       ],
       "category": "service_item",
       "caption": "service_item owner_id field",
@@ -25218,12 +25488,12 @@
           ]
         },
         "isForeignKey": true,
-        "referencedTable": "owner",
+        "referencedTable": "contact",
         "referencedFieldID": "id",
         "displayName": "Owner",
         "placeholder": "Enter owner",
         "validation": {},
-        "referencedFieldName": "id"
+        "referencedFieldName": "name"
       },
       "tags": []
     },
@@ -25269,10 +25539,7 @@
       "id": "service_item_field_category_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_category_id"
       ],
       "category": "service_item",
       "caption": "service_item category_id field",
@@ -25307,10 +25574,7 @@
       "id": "service_item_field_provider_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_provider_id"
       ],
       "category": "service_item",
       "caption": "service_item provider_id field",
@@ -25412,10 +25676,7 @@
       "id": "service_item_field_color",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_color"
       ],
       "category": "service_item",
       "caption": "service_item color field",
@@ -25446,10 +25707,7 @@
       "id": "service_item_field_status_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_status_id"
       ],
       "category": "service_item",
       "caption": "service_item status_id field",
@@ -25493,8 +25751,8 @@
         "component": "text",
         "required": true,
         "isSystem": true,
-        "isPrimaryKey": false,
-        "isUnique": false,
+        "isPrimaryKey": true,
+        "isUnique": true,
         "sortOrder": 170,
         "permissions": {
           "read": [
@@ -25664,10 +25922,7 @@
       "id": "service_pact_field_status_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_status_id"
       ],
       "category": "service_pact",
       "caption": "service_pact status_id field",
@@ -25705,10 +25960,7 @@
       "id": "service_pact_field_start_date",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_start_date"
       ],
       "category": "service_pact",
       "caption": "service_pact start_date field",
@@ -25780,10 +26032,7 @@
       "id": "service_pact_field_owner_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_owner_id"
       ],
       "category": "service_pact",
       "caption": "service_pact owner_id field",
@@ -25805,12 +26054,12 @@
           ]
         },
         "isForeignKey": true,
-        "referencedTable": "owner",
+        "referencedTable": "contact",
         "referencedFieldID": "id",
         "displayName": "Owner",
         "placeholder": "Enter owner",
         "validation": {},
-        "referencedFieldName": "id"
+        "referencedFieldName": "name"
       },
       "tags": [
         "main",
@@ -25821,10 +26070,7 @@
       "id": "service_pact_field_number",
       "type": "entity_field",
       "deps": [
-        "property_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_number"
       ],
       "category": "service_pact",
       "caption": "service_pact number field",
@@ -25941,10 +26187,7 @@
       "id": "service_pact_field_notes",
       "type": "entity_field",
       "deps": [
-        "property_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_notes"
       ],
       "category": "service_pact",
       "caption": "service_pact notes field",
@@ -26020,10 +26263,7 @@
       "id": "service_pact_field_provider_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_provider_id"
       ],
       "category": "service_pact",
       "caption": "service_pact provider_id field",
@@ -26111,8 +26351,8 @@
         "component": "text",
         "required": true,
         "isSystem": true,
-        "isPrimaryKey": false,
-        "isUnique": false,
+        "isPrimaryKey": true,
+        "isUnique": true,
         "sortOrder": 130,
         "permissions": {
           "read": [
@@ -26566,8 +26806,8 @@
         "component": "text",
         "required": true,
         "isSystem": true,
-        "isPrimaryKey": false,
-        "isUnique": false,
+        "isPrimaryKey": true,
+        "isUnique": true,
         "sortOrder": 90,
         "permissions": {
           "read": [
@@ -26785,10 +27025,7 @@
       "id": "account_category_field_color",
       "type": "entity_field",
       "deps": [
-        "property_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_color"
       ],
       "category": "account_category",
       "caption": "account_category color field",
@@ -26831,8 +27068,8 @@
         "component": "text",
         "required": true,
         "isSystem": true,
-        "isPrimaryKey": false,
-        "isUnique": false,
+        "isPrimaryKey": true,
+        "isUnique": true,
         "sortOrder": 40,
         "permissions": {
           "read": [
@@ -27045,10 +27282,7 @@
       "id": "account_industry_field_pet_type_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_pet_type_id"
       ],
       "category": "account_industry",
       "caption": "account_industry pet_type_id field",
@@ -27094,8 +27328,8 @@
         "component": "text",
         "required": true,
         "isSystem": true,
-        "isPrimaryKey": false,
-        "isUnique": false,
+        "isPrimaryKey": true,
+        "isUnique": true,
         "sortOrder": 40,
         "permissions": {
           "read": [
@@ -27308,10 +27542,7 @@
       "id": "account_ownership_field_country_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_country_id"
       ],
       "category": "account_ownership",
       "caption": "account_ownership country_id field",
@@ -27357,8 +27588,8 @@
         "component": "text",
         "required": true,
         "isSystem": true,
-        "isPrimaryKey": false,
-        "isUnique": false,
+        "isPrimaryKey": true,
+        "isUnique": true,
         "sortOrder": 40,
         "permissions": {
           "read": [
@@ -27580,8 +27811,8 @@
         "component": "text",
         "required": true,
         "isSystem": true,
-        "isPrimaryKey": false,
-        "isUnique": false,
+        "isPrimaryKey": true,
+        "isUnique": true,
         "sortOrder": 30,
         "permissions": {
           "read": [
@@ -27758,10 +27989,7 @@
       "id": "account_tag_field_color",
       "type": "entity_field",
       "deps": [
-        "property_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_color"
       ],
       "category": "account_tag",
       "caption": "account_tag color field",
@@ -27802,8 +28030,8 @@
         "component": "text",
         "required": true,
         "isSystem": true,
-        "isPrimaryKey": false,
-        "isUnique": false,
+        "isPrimaryKey": true,
+        "isUnique": true,
         "sortOrder": 30,
         "permissions": {
           "read": [
@@ -28080,10 +28308,7 @@
       "id": "account_type_field_color",
       "type": "entity_field",
       "deps": [
-        "property_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_color"
       ],
       "category": "account_type",
       "caption": "account_type color field",
@@ -28126,8 +28351,8 @@
         "component": "text",
         "required": true,
         "isSystem": true,
-        "isPrimaryKey": false,
-        "isUnique": false,
+        "isPrimaryKey": true,
+        "isUnique": true,
         "sortOrder": 60,
         "permissions": {
           "read": [
@@ -28336,10 +28561,7 @@
       "id": "achievement_field_category_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_category_id"
       ],
       "category": "achievement",
       "caption": "achievement category_id field",
@@ -28409,10 +28631,7 @@
       "id": "achievement_field_position",
       "type": "entity_field",
       "deps": [
-        "property_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_position"
       ],
       "category": "achievement",
       "caption": "achievement position field",
@@ -28453,8 +28672,8 @@
         "component": "text",
         "required": true,
         "isSystem": true,
-        "isPrimaryKey": false,
-        "isUnique": false,
+        "isPrimaryKey": true,
+        "isUnique": true,
         "sortOrder": 60,
         "permissions": {
           "read": [
@@ -28662,8 +28881,8 @@
         "component": "text",
         "required": true,
         "isSystem": true,
-        "isPrimaryKey": false,
-        "isUnique": false,
+        "isPrimaryKey": true,
+        "isUnique": true,
         "sortOrder": 30,
         "permissions": {
           "read": [
@@ -28915,8 +29134,8 @@
         "component": "text",
         "required": true,
         "isSystem": true,
-        "isPrimaryKey": false,
-        "isUnique": false,
+        "isPrimaryKey": true,
+        "isUnique": true,
         "sortOrder": 40,
         "permissions": {
           "read": [
@@ -29174,8 +29393,8 @@
         "component": "text",
         "required": true,
         "isSystem": true,
-        "isPrimaryKey": false,
-        "isUnique": false,
+        "isPrimaryKey": true,
+        "isUnique": true,
         "sortOrder": 40,
         "permissions": {
           "read": [
@@ -29433,8 +29652,8 @@
         "component": "text",
         "required": true,
         "isSystem": true,
-        "isPrimaryKey": false,
-        "isUnique": false,
+        "isPrimaryKey": true,
+        "isUnique": true,
         "sortOrder": 40,
         "permissions": {
           "read": [
@@ -29717,10 +29936,7 @@
       "id": "activity_status_field_color",
       "type": "entity_field",
       "deps": [
-        "property_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_color"
       ],
       "category": "activity_status",
       "caption": "activity_status color field",
@@ -29763,8 +29979,8 @@
         "component": "text",
         "required": true,
         "isSystem": true,
-        "isPrimaryKey": false,
-        "isUnique": false,
+        "isPrimaryKey": true,
+        "isUnique": true,
         "sortOrder": 60,
         "permissions": {
           "read": [
@@ -30056,8 +30272,8 @@
         "component": "text",
         "required": true,
         "isSystem": true,
-        "isPrimaryKey": false,
-        "isUnique": false,
+        "isPrimaryKey": true,
+        "isUnique": true,
         "sortOrder": 50,
         "permissions": {
           "read": [
@@ -30342,10 +30558,7 @@
       "id": "address_type_field_color",
       "type": "entity_field",
       "deps": [
-        "property_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_color"
       ],
       "category": "address_type",
       "caption": "address_type color field",
@@ -30388,8 +30601,8 @@
         "component": "text",
         "required": true,
         "isSystem": true,
-        "isPrimaryKey": false,
-        "isUnique": false,
+        "isPrimaryKey": true,
+        "isUnique": true,
         "sortOrder": 60,
         "permissions": {
           "read": [
@@ -30611,8 +30824,8 @@
         "component": "text",
         "required": true,
         "isSystem": true,
-        "isPrimaryKey": false,
-        "isUnique": false,
+        "isPrimaryKey": true,
+        "isUnique": true,
         "sortOrder": 30,
         "permissions": {
           "read": [
@@ -30825,10 +31038,7 @@
       "id": "award_field_pet_type_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_pet_type_id"
       ],
       "category": "award",
       "caption": "award pet_type_id field",
@@ -30865,10 +31075,7 @@
       "id": "award_field_provider_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_provider_id"
       ],
       "category": "award",
       "caption": "award provider_id field",
@@ -30914,8 +31121,8 @@
         "component": "text",
         "required": true,
         "isSystem": true,
-        "isPrimaryKey": false,
-        "isUnique": false,
+        "isPrimaryKey": true,
+        "isUnique": true,
         "sortOrder": 50,
         "permissions": {
           "read": [
@@ -31151,8 +31358,8 @@
         "component": "text",
         "required": true,
         "isSystem": true,
-        "isPrimaryKey": false,
-        "isUnique": false,
+        "isPrimaryKey": true,
+        "isUnique": true,
         "sortOrder": 30,
         "permissions": {
           "read": [
@@ -31379,8 +31586,8 @@
         "component": "text",
         "required": true,
         "isSystem": true,
-        "isPrimaryKey": false,
-        "isUnique": false,
+        "isPrimaryKey": true,
+        "isUnique": true,
         "sortOrder": 30,
         "permissions": {
           "read": [
@@ -31602,8 +31809,8 @@
         "component": "text",
         "required": true,
         "isSystem": true,
-        "isPrimaryKey": false,
-        "isUnique": false,
+        "isPrimaryKey": true,
+        "isUnique": true,
         "sortOrder": 30,
         "permissions": {
           "read": [
@@ -31850,10 +32057,7 @@
       "id": "breed_group_field_provider_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_provider_id"
       ],
       "category": "breed_group",
       "caption": "breed_group provider_id field",
@@ -31899,8 +32103,8 @@
         "component": "text",
         "required": true,
         "isSystem": true,
-        "isPrimaryKey": false,
-        "isUnique": false,
+        "isPrimaryKey": true,
+        "isUnique": true,
         "sortOrder": 50,
         "permissions": {
           "read": [
@@ -32196,8 +32400,8 @@
         "component": "text",
         "required": true,
         "isSystem": true,
-        "isPrimaryKey": false,
-        "isUnique": false,
+        "isPrimaryKey": true,
+        "isUnique": true,
         "sortOrder": 50,
         "permissions": {
           "read": [
@@ -32500,10 +32704,7 @@
       "id": "breed_standard_field_provider_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_provider_id"
       ],
       "category": "breed_standard",
       "caption": "breed_standard provider_id field",
@@ -32731,10 +32932,7 @@
       "id": "breed_standard_field_status_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_status_id"
       ],
       "category": "breed_standard",
       "caption": "breed_standard status_id field",
@@ -32853,8 +33051,8 @@
         "component": "text",
         "required": true,
         "isSystem": true,
-        "isPrimaryKey": false,
-        "isUnique": false,
+        "isPrimaryKey": true,
+        "isUnique": true,
         "sortOrder": 140,
         "permissions": {
           "read": [
@@ -33072,10 +33270,7 @@
       "id": "breed_standard_status_field_provider_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_provider_id"
       ],
       "category": "breed_standard_status",
       "caption": "breed_standard_status provider_id field",
@@ -33121,8 +33316,8 @@
         "component": "text",
         "required": true,
         "isSystem": true,
-        "isPrimaryKey": false,
-        "isUnique": false,
+        "isPrimaryKey": true,
+        "isUnique": true,
         "sortOrder": 40,
         "permissions": {
           "read": [
@@ -33458,8 +33653,8 @@
         "component": "text",
         "required": true,
         "isSystem": true,
-        "isPrimaryKey": false,
-        "isUnique": false,
+        "isPrimaryKey": true,
+        "isUnique": true,
         "sortOrder": 60,
         "permissions": {
           "read": [
@@ -33856,8 +34051,8 @@
         "component": "text",
         "required": true,
         "isSystem": true,
-        "isPrimaryKey": false,
-        "isUnique": false,
+        "isPrimaryKey": true,
+        "isUnique": true,
         "sortOrder": 80,
         "permissions": {
           "read": [
@@ -34109,8 +34304,8 @@
         "component": "text",
         "required": true,
         "isSystem": true,
-        "isPrimaryKey": false,
-        "isUnique": false,
+        "isPrimaryKey": true,
+        "isUnique": true,
         "sortOrder": 40,
         "permissions": {
           "read": [
@@ -34332,8 +34527,8 @@
         "component": "text",
         "required": true,
         "isSystem": true,
-        "isPrimaryKey": false,
-        "isUnique": false,
+        "isPrimaryKey": true,
+        "isUnique": true,
         "sortOrder": 30,
         "permissions": {
           "read": [
@@ -34555,8 +34750,8 @@
         "component": "text",
         "required": true,
         "isSystem": true,
-        "isPrimaryKey": false,
-        "isUnique": false,
+        "isPrimaryKey": true,
+        "isUnique": true,
         "sortOrder": 30,
         "permissions": {
           "read": [
@@ -34769,10 +34964,7 @@
       "id": "city_field_country_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_country_id"
       ],
       "category": "city",
       "caption": "city country_id field",
@@ -35164,8 +35356,8 @@
         "component": "text",
         "required": true,
         "isSystem": true,
-        "isPrimaryKey": false,
-        "isUnique": false,
+        "isPrimaryKey": true,
+        "isUnique": true,
         "sortOrder": 130,
         "permissions": {
           "read": [
@@ -35378,10 +35570,7 @@
       "id": "coat_color_field_pet_type_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_pet_type_id"
       ],
       "category": "coat_color",
       "caption": "coat_color pet_type_id field",
@@ -35427,8 +35616,8 @@
         "component": "text",
         "required": true,
         "isSystem": true,
-        "isPrimaryKey": false,
-        "isUnique": false,
+        "isPrimaryKey": true,
+        "isUnique": true,
         "sortOrder": 40,
         "permissions": {
           "read": [
@@ -35641,10 +35830,7 @@
       "id": "coat_type_field_pet_type_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_pet_type_id"
       ],
       "category": "coat_type",
       "caption": "coat_type pet_type_id field",
@@ -35690,8 +35876,8 @@
         "component": "text",
         "required": true,
         "isSystem": true,
-        "isPrimaryKey": false,
-        "isUnique": false,
+        "isPrimaryKey": true,
+        "isUnique": true,
         "sortOrder": 40,
         "permissions": {
           "read": [
@@ -35913,8 +36099,8 @@
         "component": "text",
         "required": true,
         "isSystem": true,
-        "isPrimaryKey": false,
-        "isUnique": false,
+        "isPrimaryKey": true,
+        "isUnique": true,
         "sortOrder": 30,
         "permissions": {
           "read": [
@@ -36240,10 +36426,7 @@
       "id": "competition_backup_field_pet_type_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_pet_type_id"
       ],
       "category": "competition_backup",
       "caption": "competition_backup pet_type_id field",
@@ -36281,10 +36464,7 @@
       "id": "competition_backup_field_provider_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_provider_id"
       ],
       "category": "competition_backup",
       "caption": "competition_backup provider_id field",
@@ -36322,10 +36502,7 @@
       "id": "competition_backup_field_type_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_type_id"
       ],
       "category": "competition_backup",
       "caption": "competition_backup type_id field",
@@ -36372,8 +36549,8 @@
         "component": "text",
         "required": true,
         "isSystem": true,
-        "isPrimaryKey": false,
-        "isUnique": false,
+        "isPrimaryKey": true,
+        "isUnique": true,
         "sortOrder": 90,
         "permissions": {
           "read": [
@@ -36600,8 +36777,8 @@
         "component": "text",
         "required": true,
         "isSystem": true,
-        "isPrimaryKey": false,
-        "isUnique": false,
+        "isPrimaryKey": true,
+        "isUnique": true,
         "sortOrder": 30,
         "permissions": {
           "read": [
@@ -36823,8 +37000,8 @@
         "component": "text",
         "required": true,
         "isSystem": true,
-        "isPrimaryKey": false,
-        "isUnique": false,
+        "isPrimaryKey": true,
+        "isUnique": true,
         "sortOrder": 30,
         "permissions": {
           "read": [
@@ -37042,8 +37219,8 @@
         "component": "text",
         "required": true,
         "isSystem": true,
-        "isPrimaryKey": false,
-        "isUnique": false,
+        "isPrimaryKey": true,
+        "isUnique": true,
         "sortOrder": 30,
         "permissions": {
           "read": [
@@ -37251,8 +37428,8 @@
         "component": "text",
         "required": true,
         "isSystem": true,
-        "isPrimaryKey": false,
-        "isUnique": false,
+        "isPrimaryKey": true,
+        "isUnique": true,
         "sortOrder": 30,
         "permissions": {
           "read": [
@@ -37528,8 +37705,8 @@
         "component": "text",
         "required": true,
         "isSystem": true,
-        "isPrimaryKey": false,
-        "isUnique": false,
+        "isPrimaryKey": true,
+        "isUnique": true,
         "sortOrder": 50,
         "permissions": {
           "read": [
@@ -37775,8 +37952,8 @@
         "component": "text",
         "required": true,
         "isSystem": true,
-        "isPrimaryKey": false,
-        "isUnique": false,
+        "isPrimaryKey": true,
+        "isUnique": true,
         "sortOrder": 40,
         "permissions": {
           "read": [
@@ -37984,8 +38161,8 @@
         "component": "text",
         "required": true,
         "isSystem": true,
-        "isPrimaryKey": false,
-        "isUnique": false,
+        "isPrimaryKey": true,
+        "isUnique": true,
         "sortOrder": 30,
         "permissions": {
           "read": [
@@ -38197,8 +38374,8 @@
         "component": "text",
         "required": true,
         "isSystem": true,
-        "isPrimaryKey": false,
-        "isUnique": false,
+        "isPrimaryKey": true,
+        "isUnique": true,
         "sortOrder": 30,
         "permissions": {
           "read": [
@@ -38420,8 +38597,8 @@
         "component": "text",
         "required": true,
         "isSystem": true,
-        "isPrimaryKey": false,
-        "isUnique": false,
+        "isPrimaryKey": true,
+        "isUnique": true,
         "sortOrder": 30,
         "permissions": {
           "read": [
@@ -38643,8 +38820,8 @@
         "component": "text",
         "required": true,
         "isSystem": true,
-        "isPrimaryKey": false,
-        "isUnique": false,
+        "isPrimaryKey": true,
+        "isUnique": true,
         "sortOrder": 30,
         "permissions": {
           "read": [
@@ -38821,10 +38998,7 @@
       "id": "contact_tag_field_color",
       "type": "entity_field",
       "deps": [
-        "property_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_color"
       ],
       "category": "contact_tag",
       "caption": "contact_tag color field",
@@ -38865,8 +39039,8 @@
         "component": "text",
         "required": true,
         "isSystem": true,
-        "isPrimaryKey": false,
-        "isUnique": false,
+        "isPrimaryKey": true,
+        "isUnique": true,
         "sortOrder": 30,
         "permissions": {
           "read": [
@@ -39069,10 +39243,7 @@
       "id": "contact_type_field_color",
       "type": "entity_field",
       "deps": [
-        "property_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_color"
       ],
       "category": "contact_type",
       "caption": "contact_type color field",
@@ -39115,8 +39286,8 @@
         "component": "text",
         "required": true,
         "isSystem": true,
-        "isPrimaryKey": false,
-        "isUnique": false,
+        "isPrimaryKey": true,
+        "isUnique": true,
         "sortOrder": 40,
         "permissions": {
           "read": [
@@ -39819,10 +39990,7 @@
       "id": "country_field_url",
       "type": "entity_field",
       "deps": [
-        "property_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_url"
       ],
       "category": "country",
       "caption": "country url field",
@@ -39868,8 +40036,8 @@
         "component": "text",
         "required": true,
         "isSystem": true,
-        "isPrimaryKey": false,
-        "isUnique": false,
+        "isPrimaryKey": true,
+        "isUnique": true,
         "sortOrder": 170,
         "permissions": {
           "read": [
@@ -40156,8 +40324,8 @@
         "component": "text",
         "required": true,
         "isSystem": true,
-        "isPrimaryKey": false,
-        "isUnique": false,
+        "isPrimaryKey": true,
+        "isUnique": true,
         "sortOrder": 50,
         "permissions": {
           "read": [
@@ -40625,8 +40793,8 @@
         "component": "text",
         "required": true,
         "isSystem": true,
-        "isPrimaryKey": false,
-        "isUnique": false,
+        "isPrimaryKey": true,
+        "isUnique": true,
         "sortOrder": 100,
         "permissions": {
           "read": [
@@ -40848,8 +41016,8 @@
         "component": "text",
         "required": true,
         "isSystem": true,
-        "isPrimaryKey": false,
-        "isUnique": false,
+        "isPrimaryKey": true,
+        "isUnique": true,
         "sortOrder": 30,
         "permissions": {
           "read": [
@@ -41256,8 +41424,8 @@
         "component": "text",
         "required": true,
         "isSystem": true,
-        "isPrimaryKey": false,
-        "isUnique": false,
+        "isPrimaryKey": true,
+        "isUnique": true,
         "sortOrder": 80,
         "permissions": {
           "read": [
@@ -41552,8 +41720,8 @@
         "component": "text",
         "required": true,
         "isSystem": true,
-        "isPrimaryKey": false,
-        "isUnique": false,
+        "isPrimaryKey": true,
+        "isUnique": true,
         "sortOrder": 50,
         "permissions": {
           "read": [
@@ -41766,10 +41934,7 @@
       "id": "event_status_field_color",
       "type": "entity_field",
       "deps": [
-        "property_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_color"
       ],
       "category": "event_status",
       "caption": "event_status color field",
@@ -41812,8 +41977,8 @@
         "component": "text",
         "required": true,
         "isSystem": true,
-        "isPrimaryKey": false,
-        "isUnique": false,
+        "isPrimaryKey": true,
+        "isUnique": true,
         "sortOrder": 40,
         "permissions": {
           "read": [
@@ -42035,8 +42200,8 @@
         "component": "text",
         "required": true,
         "isSystem": true,
-        "isPrimaryKey": false,
-        "isUnique": false,
+        "isPrimaryKey": true,
+        "isUnique": true,
         "sortOrder": 30,
         "permissions": {
           "read": [
@@ -42258,8 +42423,8 @@
         "component": "text",
         "required": true,
         "isSystem": true,
-        "isPrimaryKey": false,
-        "isUnique": false,
+        "isPrimaryKey": true,
+        "isUnique": true,
         "sortOrder": 30,
         "permissions": {
           "read": [
@@ -42481,8 +42646,8 @@
         "component": "text",
         "required": true,
         "isSystem": true,
-        "isPrimaryKey": false,
-        "isUnique": false,
+        "isPrimaryKey": true,
+        "isUnique": true,
         "sortOrder": 30,
         "permissions": {
           "read": [
@@ -42770,8 +42935,8 @@
         "component": "text",
         "required": true,
         "isSystem": true,
-        "isPrimaryKey": false,
-        "isUnique": false,
+        "isPrimaryKey": true,
+        "isUnique": true,
         "sortOrder": 50,
         "permissions": {
           "read": [
@@ -43017,8 +43182,8 @@
         "component": "text",
         "required": true,
         "isSystem": true,
-        "isPrimaryKey": false,
-        "isUnique": false,
+        "isPrimaryKey": true,
+        "isUnique": true,
         "sortOrder": 40,
         "permissions": {
           "read": [
@@ -43280,8 +43445,8 @@
         "component": "text",
         "required": true,
         "isSystem": true,
-        "isPrimaryKey": false,
-        "isUnique": false,
+        "isPrimaryKey": true,
+        "isUnique": true,
         "sortOrder": 40,
         "permissions": {
           "read": [
@@ -43530,10 +43695,7 @@
       "id": "invoice_payment_status_field_color",
       "type": "entity_field",
       "deps": [
-        "property_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_color"
       ],
       "category": "invoice_payment_status",
       "caption": "invoice_payment_status color field",
@@ -43576,8 +43738,8 @@
         "component": "text",
         "required": true,
         "isSystem": true,
-        "isPrimaryKey": false,
-        "isUnique": false,
+        "isPrimaryKey": true,
+        "isUnique": true,
         "sortOrder": 50,
         "permissions": {
           "read": [
@@ -43799,8 +43961,8 @@
         "component": "text",
         "required": true,
         "isSystem": true,
-        "isPrimaryKey": false,
-        "isUnique": false,
+        "isPrimaryKey": true,
+        "isUnique": true,
         "sortOrder": 30,
         "permissions": {
           "read": [
@@ -44022,8 +44184,8 @@
         "component": "text",
         "required": true,
         "isSystem": true,
-        "isPrimaryKey": false,
-        "isUnique": false,
+        "isPrimaryKey": true,
+        "isUnique": true,
         "sortOrder": 30,
         "permissions": {
           "read": [
@@ -44245,8 +44407,8 @@
         "component": "text",
         "required": true,
         "isSystem": true,
-        "isPrimaryKey": false,
-        "isUnique": false,
+        "isPrimaryKey": true,
+        "isUnique": true,
         "sortOrder": 30,
         "permissions": {
           "read": [
@@ -44468,8 +44630,8 @@
         "component": "text",
         "required": true,
         "isSystem": true,
-        "isPrimaryKey": false,
-        "isUnique": false,
+        "isPrimaryKey": true,
+        "isUnique": true,
         "sortOrder": 30,
         "permissions": {
           "read": [
@@ -44728,8 +44890,8 @@
         "component": "text",
         "required": true,
         "isSystem": true,
-        "isPrimaryKey": false,
-        "isUnique": false,
+        "isPrimaryKey": true,
+        "isUnique": true,
         "sortOrder": 40,
         "permissions": {
           "read": [
@@ -44991,8 +45153,8 @@
         "component": "text",
         "required": true,
         "isSystem": true,
-        "isPrimaryKey": false,
-        "isUnique": false,
+        "isPrimaryKey": true,
+        "isUnique": true,
         "sortOrder": 40,
         "permissions": {
           "read": [
@@ -45214,8 +45376,8 @@
         "component": "text",
         "required": true,
         "isSystem": true,
-        "isPrimaryKey": false,
-        "isUnique": false,
+        "isPrimaryKey": true,
+        "isUnique": true,
         "sortOrder": 30,
         "permissions": {
           "read": [
@@ -45428,10 +45590,7 @@
       "id": "order_delivery_status_field_position",
       "type": "entity_field",
       "deps": [
-        "property_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_position"
       ],
       "category": "order_delivery_status",
       "caption": "order_delivery_status position field",
@@ -45474,8 +45633,8 @@
         "component": "text",
         "required": true,
         "isSystem": true,
-        "isPrimaryKey": false,
-        "isUnique": false,
+        "isPrimaryKey": true,
+        "isUnique": true,
         "sortOrder": 40,
         "permissions": {
           "read": [
@@ -45688,10 +45847,7 @@
       "id": "order_payment_status_field_position",
       "type": "entity_field",
       "deps": [
-        "property_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_position"
       ],
       "category": "order_payment_status",
       "caption": "order_payment_status position field",
@@ -45734,8 +45890,8 @@
         "component": "text",
         "required": true,
         "isSystem": true,
-        "isPrimaryKey": false,
-        "isUnique": false,
+        "isPrimaryKey": true,
+        "isUnique": true,
         "sortOrder": 40,
         "permissions": {
           "read": [
@@ -45948,10 +46104,7 @@
       "id": "order_status_field_position",
       "type": "entity_field",
       "deps": [
-        "property_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_position"
       ],
       "category": "order_status",
       "caption": "order_status position field",
@@ -46030,8 +46183,8 @@
         "component": "text",
         "required": true,
         "isSystem": true,
-        "isPrimaryKey": false,
-        "isUnique": false,
+        "isPrimaryKey": true,
+        "isUnique": true,
         "sortOrder": 50,
         "permissions": {
           "read": [
@@ -46253,8 +46406,8 @@
         "component": "text",
         "required": true,
         "isSystem": true,
-        "isPrimaryKey": false,
-        "isUnique": false,
+        "isPrimaryKey": true,
+        "isUnique": true,
         "sortOrder": 30,
         "permissions": {
           "read": [
@@ -46476,8 +46629,8 @@
         "component": "text",
         "required": true,
         "isSystem": true,
-        "isPrimaryKey": false,
-        "isUnique": false,
+        "isPrimaryKey": true,
+        "isUnique": true,
         "sortOrder": 30,
         "permissions": {
           "read": [
@@ -46699,8 +46852,8 @@
         "component": "text",
         "required": true,
         "isSystem": true,
-        "isPrimaryKey": false,
-        "isUnique": false,
+        "isPrimaryKey": true,
+        "isUnique": true,
         "sortOrder": 30,
         "permissions": {
           "read": [
@@ -46922,8 +47075,8 @@
         "component": "text",
         "required": true,
         "isSystem": true,
-        "isPrimaryKey": false,
-        "isUnique": false,
+        "isPrimaryKey": true,
+        "isUnique": true,
         "sortOrder": 30,
         "permissions": {
           "read": [
@@ -47136,10 +47289,7 @@
       "id": "period_field_start_date",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_start_date"
       ],
       "category": "period",
       "caption": "period start_date field",
@@ -47337,8 +47487,8 @@
         "component": "text",
         "required": true,
         "isSystem": true,
-        "isPrimaryKey": false,
-        "isUnique": false,
+        "isPrimaryKey": true,
+        "isUnique": true,
         "sortOrder": 80,
         "permissions": {
           "read": [
@@ -47560,8 +47710,8 @@
         "component": "text",
         "required": true,
         "isSystem": true,
-        "isPrimaryKey": false,
-        "isUnique": false,
+        "isPrimaryKey": true,
+        "isUnique": true,
         "sortOrder": 30,
         "permissions": {
           "read": [
@@ -47882,10 +48032,7 @@
       "id": "pet_class_field_pet_type_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_pet_type_id"
       ],
       "category": "pet_class",
       "caption": "pet_class pet_type_id field",
@@ -47922,10 +48069,7 @@
       "id": "pet_class_field_provider_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_provider_id"
       ],
       "category": "pet_class",
       "caption": "pet_class provider_id field",
@@ -47971,8 +48115,8 @@
         "component": "text",
         "required": true,
         "isSystem": true,
-        "isPrimaryKey": false,
-        "isUnique": false,
+        "isPrimaryKey": true,
+        "isUnique": true,
         "sortOrder": 80,
         "permissions": {
           "read": [
@@ -48230,8 +48374,8 @@
         "component": "text",
         "required": true,
         "isSystem": true,
-        "isPrimaryKey": false,
-        "isUnique": false,
+        "isPrimaryKey": true,
+        "isUnique": true,
         "sortOrder": 40,
         "permissions": {
           "read": [
@@ -48453,8 +48597,8 @@
         "component": "text",
         "required": true,
         "isSystem": true,
-        "isPrimaryKey": false,
-        "isUnique": false,
+        "isPrimaryKey": true,
+        "isUnique": true,
         "sortOrder": 30,
         "permissions": {
           "read": [
@@ -48676,8 +48820,8 @@
         "component": "text",
         "required": true,
         "isSystem": true,
-        "isPrimaryKey": false,
-        "isUnique": false,
+        "isPrimaryKey": true,
+        "isUnique": true,
         "sortOrder": 30,
         "permissions": {
           "read": [
@@ -48899,8 +49043,8 @@
         "component": "text",
         "required": true,
         "isSystem": true,
-        "isPrimaryKey": false,
-        "isUnique": false,
+        "isPrimaryKey": true,
+        "isUnique": true,
         "sortOrder": 30,
         "permissions": {
           "read": [
@@ -49113,10 +49257,7 @@
       "id": "pet_qualification_field_pet_type_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_pet_type_id"
       ],
       "category": "pet_qualification",
       "caption": "pet_qualification pet_type_id field",
@@ -49187,10 +49328,7 @@
       "id": "pet_qualification_field_provider_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_provider_id"
       ],
       "category": "pet_qualification",
       "caption": "pet_qualification provider_id field",
@@ -49236,8 +49374,8 @@
         "component": "text",
         "required": true,
         "isSystem": true,
-        "isPrimaryKey": false,
-        "isUnique": false,
+        "isPrimaryKey": true,
+        "isUnique": true,
         "sortOrder": 60,
         "permissions": {
           "read": [
@@ -49450,10 +49588,7 @@
       "id": "pet_service_by_options_field_status_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_status_id"
       ],
       "category": "pet_service_by_options",
       "caption": "pet_service_by_options status_id field",
@@ -49579,8 +49714,8 @@
         "component": "text",
         "required": true,
         "isSystem": true,
-        "isPrimaryKey": false,
-        "isUnique": false,
+        "isPrimaryKey": true,
+        "isUnique": true,
         "sortOrder": 60,
         "permissions": {
           "read": [
@@ -49802,8 +49937,8 @@
         "component": "text",
         "required": true,
         "isSystem": true,
-        "isPrimaryKey": false,
-        "isUnique": false,
+        "isPrimaryKey": true,
+        "isUnique": true,
         "sortOrder": 30,
         "permissions": {
           "read": [
@@ -50025,8 +50160,8 @@
         "component": "text",
         "required": true,
         "isSystem": true,
-        "isPrimaryKey": false,
-        "isUnique": false,
+        "isPrimaryKey": true,
+        "isUnique": true,
         "sortOrder": 30,
         "permissions": {
           "read": [
@@ -50248,8 +50383,8 @@
         "component": "text",
         "required": true,
         "isSystem": true,
-        "isPrimaryKey": false,
-        "isUnique": false,
+        "isPrimaryKey": true,
+        "isUnique": true,
         "sortOrder": 30,
         "permissions": {
           "read": [
@@ -50552,8 +50687,8 @@
         "component": "text",
         "required": true,
         "isSystem": true,
-        "isPrimaryKey": false,
-        "isUnique": false,
+        "isPrimaryKey": true,
+        "isUnique": true,
         "sortOrder": 50,
         "permissions": {
           "read": [
@@ -50766,10 +50901,7 @@
       "id": "pet_size_field_pet_type_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_pet_type_id"
       ],
       "category": "pet_size",
       "caption": "pet_size pet_type_id field",
@@ -51063,10 +51195,7 @@
       "id": "pet_status_field_pet_type_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_pet_type_id"
       ],
       "category": "pet_status",
       "caption": "pet_status pet_type_id field",
@@ -51290,10 +51419,7 @@
       "id": "pet_tag_field_color",
       "type": "entity_field",
       "deps": [
-        "property_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_color"
       ],
       "category": "pet_tag",
       "caption": "pet_tag color field",
@@ -51538,10 +51664,7 @@
       "id": "pet_type_field_url",
       "type": "entity_field",
       "deps": [
-        "property_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_url"
       ],
       "category": "pet_type",
       "caption": "pet_type url field",
@@ -51578,10 +51701,7 @@
       "id": "pet_type_field_avatar_url",
       "type": "entity_field",
       "deps": [
-        "property_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_avatar_url"
       ],
       "category": "pet_type",
       "caption": "pet_type avatar_url field",
@@ -52846,10 +52966,7 @@
       "id": "product_category_field_color",
       "type": "entity_field",
       "deps": [
-        "property_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_color"
       ],
       "category": "product_category",
       "caption": "product_category color field",
@@ -53142,10 +53259,7 @@
       "id": "product_type_field_category_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_category_id"
       ],
       "category": "product_type",
       "caption": "product_type category_id field",
@@ -56396,10 +56510,7 @@
       "id": "region_field_country_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_country_id"
       ],
       "category": "region",
       "caption": "region country_id field",
@@ -57669,10 +57780,7 @@
       "id": "service_pact_status_field_color",
       "type": "entity_field",
       "deps": [
-        "property_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_color"
       ],
       "category": "service_pact_status",
       "caption": "service_pact_status color field",
@@ -57917,10 +58025,7 @@
       "id": "sex_field_pet_type_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_pet_type_id"
       ],
       "category": "sex",
       "caption": "sex pet_type_id field",
@@ -58473,10 +58578,7 @@
       "id": "studbook_field_account_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_account_id"
       ],
       "category": "studbook",
       "caption": "studbook account_id field",
@@ -58513,10 +58615,7 @@
       "id": "studbook_field_status_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_status_id"
       ],
       "category": "studbook",
       "caption": "studbook status_id field",
@@ -58553,10 +58652,7 @@
       "id": "studbook_field_type_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_type_id"
       ],
       "category": "studbook",
       "caption": "studbook type_id field",
@@ -60785,10 +60881,7 @@
       "id": "title_field_pet_type_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_pet_type_id"
       ],
       "category": "title",
       "caption": "title pet_type_id field",
@@ -60825,10 +60918,7 @@
       "id": "title_field_provider_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_provider_id"
       ],
       "category": "title",
       "caption": "title provider_id field",
@@ -62180,10 +62270,7 @@
       "id": "account_address_field_country_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_country_id"
       ],
       "category": "account_address",
       "caption": "account_address country_id field",
@@ -62416,10 +62503,7 @@
       "id": "account_address_field_account_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_account_id"
       ],
       "category": "account_address",
       "caption": "account_address account_id field",
@@ -62801,10 +62885,7 @@
       "id": "account_billing_info_field_account_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_account_id"
       ],
       "category": "account_billing_info",
       "caption": "account_billing_info account_id field",
@@ -62842,10 +62923,7 @@
       "id": "account_billing_info_field_country_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_country_id"
       ],
       "category": "account_billing_info",
       "caption": "account_billing_info country_id field",
@@ -63201,10 +63279,7 @@
       "id": "account_communication_field_number",
       "type": "entity_field",
       "deps": [
-        "property_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_number"
       ],
       "category": "account_communication",
       "caption": "account_communication number field",
@@ -63239,10 +63314,7 @@
       "id": "account_communication_field_account_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_account_id"
       ],
       "category": "account_communication",
       "caption": "account_communication account_id field",
@@ -63280,10 +63352,7 @@
       "id": "account_communication_field_position",
       "type": "entity_field",
       "deps": [
-        "property_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_position"
       ],
       "category": "account_communication",
       "caption": "account_communication position field",
@@ -64100,10 +64169,7 @@
       "id": "account_review_field_account_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_account_id"
       ],
       "category": "account_review",
       "caption": "account_review account_id field",
@@ -64412,10 +64478,7 @@
       "id": "achievement_in_breed_field_date",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_date"
       ],
       "category": "achievement_in_breed",
       "caption": "achievement_in_breed date field",
@@ -64665,10 +64728,7 @@
       "id": "achievement_in_contact_field_date",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_date"
       ],
       "category": "achievement_in_contact",
       "caption": "achievement_in_contact date field",
@@ -66204,10 +66264,7 @@
       "id": "breed_forecast_field_amount",
       "type": "entity_field",
       "deps": [
-        "property_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_amount"
       ],
       "category": "breed_forecast",
       "caption": "breed_forecast amount field",
@@ -66280,10 +66337,7 @@
       "id": "breed_forecast_field_currency_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_currency_id"
       ],
       "category": "breed_forecast",
       "caption": "breed_forecast currency_id field",
@@ -66636,10 +66690,7 @@
       "id": "breed_in_account_field_account_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_account_id"
       ],
       "category": "breed_in_account",
       "caption": "breed_in_account account_id field",
@@ -67152,10 +67203,7 @@
       "id": "breed_in_kennel_field_account_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_account_id"
       ],
       "category": "breed_in_kennel",
       "caption": "breed_in_kennel account_id field",
@@ -68774,10 +68822,7 @@
       "id": "collection_entity_field_account_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_account_id"
       ],
       "category": "collection_entity",
       "caption": "collection_entity account_id field",
@@ -68815,10 +68860,7 @@
       "id": "collection_entity_field_event_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_event_id"
       ],
       "category": "collection_entity",
       "caption": "collection_entity event_id field",
@@ -68856,10 +68898,7 @@
       "id": "collection_entity_field_pet_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_pet_id"
       ],
       "category": "collection_entity",
       "caption": "collection_entity pet_id field",
@@ -70058,10 +70097,7 @@
       "id": "conf_item_measurement_field_conf_item_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_conf_item_id"
       ],
       "category": "conf_item_measurement",
       "caption": "conf_item_measurement conf_item_id field",
@@ -70096,10 +70132,7 @@
       "id": "conf_item_measurement_field_account_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_account_id"
       ],
       "category": "conf_item_measurement",
       "caption": "conf_item_measurement account_id field",
@@ -70169,10 +70202,7 @@
       "id": "conf_item_measurement_field_pet_type_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_pet_type_id"
       ],
       "category": "conf_item_measurement",
       "caption": "conf_item_measurement pet_type_id field",
@@ -70384,10 +70414,7 @@
       "id": "conf_item_process_launch_field_notes",
       "type": "entity_field",
       "deps": [
-        "property_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_notes"
       ],
       "category": "conf_item_process_launch",
       "caption": "conf_item_process_launch notes field",
@@ -70419,10 +70446,7 @@
       "id": "conf_item_process_launch_field_conf_item_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_conf_item_id"
       ],
       "category": "conf_item_process_launch",
       "caption": "conf_item_process_launch conf_item_id field",
@@ -70527,10 +70551,7 @@
       "id": "conf_item_process_launch_field_start_date",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_start_date"
       ],
       "category": "conf_item_process_launch",
       "caption": "conf_item_process_launch start_date field",
@@ -71216,10 +71237,7 @@
       "id": "contact_address_field_country_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_country_id"
       ],
       "category": "contact_address",
       "caption": "contact_address country_id field",
@@ -71688,10 +71706,7 @@
       "id": "contact_communication_field_number",
       "type": "entity_field",
       "deps": [
-        "property_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_number"
       ],
       "category": "contact_communication",
       "caption": "contact_communication number field",
@@ -71764,10 +71779,7 @@
       "id": "contact_communication_field_position",
       "type": "entity_field",
       "deps": [
-        "property_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_position"
       ],
       "category": "contact_communication",
       "caption": "contact_communication position field",
@@ -72972,10 +72984,7 @@
       "id": "contact_in_pet_field_pet_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_pet_id"
       ],
       "category": "contact_in_pet",
       "caption": "contact_in_pet pet_id field",
@@ -73961,10 +73970,7 @@
       "id": "cover_in_account_field_account_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_account_id"
       ],
       "category": "cover_in_account",
       "caption": "cover_in_account account_id field",
@@ -74002,10 +74008,7 @@
       "id": "cover_in_account_field_cover_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_cover_id"
       ],
       "category": "cover_in_account",
       "caption": "cover_in_account cover_id field",
@@ -74278,10 +74281,7 @@
       "id": "cover_in_contact_field_cover_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_cover_id"
       ],
       "category": "cover_in_contact",
       "caption": "cover_in_contact cover_id field",
@@ -74557,10 +74557,7 @@
       "id": "cover_in_litter_field_cover_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_cover_id"
       ],
       "category": "cover_in_litter",
       "caption": "cover_in_litter cover_id field",
@@ -74795,10 +74792,7 @@
       "id": "cover_in_pet_field_pet_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_pet_id"
       ],
       "category": "cover_in_pet",
       "caption": "cover_in_pet pet_id field",
@@ -74836,10 +74830,7 @@
       "id": "cover_in_pet_field_cover_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_cover_id"
       ],
       "category": "cover_in_pet",
       "caption": "cover_in_pet cover_id field",
@@ -75638,10 +75629,7 @@
       "id": "dna_marker_in_pet_field_pet_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_pet_id"
       ],
       "category": "dna_marker_in_pet",
       "caption": "dna_marker_in_pet pet_id field",
@@ -76217,10 +76205,7 @@
       "id": "fin_account_field_amount",
       "type": "entity_field",
       "deps": [
-        "property_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_amount"
       ],
       "category": "fin_account",
       "caption": "fin_account amount field",
@@ -76252,10 +76237,7 @@
       "id": "fin_account_field_currency_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_currency_id"
       ],
       "category": "fin_account",
       "caption": "fin_account currency_id field",
@@ -76290,10 +76272,7 @@
       "id": "fin_account_field_account_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_account_id"
       ],
       "category": "fin_account",
       "caption": "fin_account account_id field",
@@ -76363,10 +76342,7 @@
       "id": "fin_account_field_date",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_date"
       ],
       "category": "fin_account",
       "caption": "fin_account date field",
@@ -76795,10 +76771,7 @@
       "id": "invoice_product_field_notes",
       "type": "entity_field",
       "deps": [
-        "property_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_notes"
       ],
       "category": "invoice_product",
       "caption": "invoice_product notes field",
@@ -77142,10 +77115,7 @@
       "id": "invoice_product_field_amount",
       "type": "entity_field",
       "deps": [
-        "property_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_amount"
       ],
       "category": "invoice_product",
       "caption": "invoice_product amount field",
@@ -78051,10 +78021,7 @@
       "id": "license_manager_field_status_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_status_id"
       ],
       "category": "license_manager",
       "caption": "license_manager status_id field",
@@ -78157,10 +78124,7 @@
       "id": "license_manager_field_owner_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_owner_id"
       ],
       "category": "license_manager",
       "caption": "license_manager owner_id field",
@@ -78233,10 +78197,7 @@
       "id": "license_manager_field_type_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_type_id"
       ],
       "category": "license_manager",
       "caption": "license_manager type_id field",
@@ -78591,10 +78552,7 @@
       "id": "location_in_event_field_event_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_event_id"
       ],
       "category": "location_in_event",
       "caption": "location_in_event event_id field",
@@ -79024,10 +78982,7 @@
       "id": "note_test_record_field_pet_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_pet_id"
       ],
       "category": "note_test_record",
       "caption": "note_test_record pet_id field",
@@ -79356,10 +79311,7 @@
       "id": "parsing_business_process_in_conf_item_field_conf_item_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_conf_item_id"
       ],
       "category": "parsing_business_process_in_conf_item",
       "caption": "parsing_business_process_in_conf_item conf_item_id field",
@@ -79608,10 +79560,7 @@
       "id": "payment_in_breed_field_amount",
       "type": "entity_field",
       "deps": [
-        "property_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_amount"
       ],
       "category": "payment_in_breed",
       "caption": "payment_in_breed amount field",
@@ -79751,10 +79700,7 @@
       "id": "payment_in_breed_field_date",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_date"
       ],
       "category": "payment_in_breed",
       "caption": "payment_in_breed date field",
@@ -79968,10 +79914,7 @@
       "id": "pet_additional_info_field_pet_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_pet_id"
       ],
       "category": "pet_additional_info",
       "caption": "pet_additional_info pet_id field",
@@ -80009,10 +79952,7 @@
       "id": "pet_additional_info_field_type_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_type_id"
       ],
       "category": "pet_additional_info",
       "caption": "pet_additional_info type_id field",
@@ -80286,10 +80226,7 @@
       "id": "pet_health_exam_result_field_pet_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_pet_id"
       ],
       "category": "pet_health_exam_result",
       "caption": "pet_health_exam_result pet_id field",
@@ -80409,10 +80346,7 @@
       "id": "pet_health_exam_result_field_date",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_date"
       ],
       "category": "pet_health_exam_result",
       "caption": "pet_health_exam_result date field",
@@ -80726,10 +80660,7 @@
       "id": "pet_identifier_field_pet_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_pet_id"
       ],
       "category": "pet_identifier",
       "caption": "pet_identifier pet_id field",
@@ -80767,10 +80698,7 @@
       "id": "pet_identifier_field_date",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_date"
       ],
       "category": "pet_identifier",
       "caption": "pet_identifier date field",
@@ -80845,10 +80773,7 @@
       "id": "pet_identifier_field_number",
       "type": "entity_field",
       "deps": [
-        "property_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_number"
       ],
       "category": "pet_identifier",
       "caption": "pet_identifier number field",
@@ -81278,10 +81203,7 @@
       "id": "pet_in_activity_field_pet_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_pet_id"
       ],
       "category": "pet_in_activity",
       "caption": "pet_in_activity pet_id field",
@@ -81602,10 +81524,7 @@
       "id": "pet_in_project_field_pet_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_pet_id"
       ],
       "category": "pet_in_project",
       "caption": "pet_in_project pet_id field",
@@ -81643,10 +81562,7 @@
       "id": "pet_in_project_field_number",
       "type": "entity_field",
       "deps": [
-        "property_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_number"
       ],
       "category": "pet_in_project",
       "caption": "pet_in_project number field",
@@ -82000,10 +81916,7 @@
       "id": "pet_in_project_field_date",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_date"
       ],
       "category": "pet_in_project",
       "caption": "pet_in_project date field",
@@ -82591,10 +82504,7 @@
       "id": "pet_lifecycle_field_date",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_date"
       ],
       "category": "pet_lifecycle",
       "caption": "pet_lifecycle date field",
@@ -82669,10 +82579,7 @@
       "id": "pet_lifecycle_field_pet_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_pet_id"
       ],
       "category": "pet_lifecycle",
       "caption": "pet_lifecycle pet_id field",
@@ -82710,10 +82617,7 @@
       "id": "pet_lifecycle_field_status_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_status_id"
       ],
       "category": "pet_lifecycle",
       "caption": "pet_lifecycle status_id field",
@@ -83028,10 +82932,7 @@
       "id": "pet_measurement_field_date",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_date"
       ],
       "category": "pet_measurement",
       "caption": "pet_measurement date field",
@@ -83066,10 +82967,7 @@
       "id": "pet_measurement_field_pet_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_pet_id"
       ],
       "category": "pet_measurement",
       "caption": "pet_measurement pet_id field",
@@ -83459,10 +83357,7 @@
       "id": "pet_old_field_notes",
       "type": "entity_field",
       "deps": [
-        "property_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_notes"
       ],
       "category": "pet_old",
       "caption": "pet_old notes field",
@@ -83528,10 +83423,7 @@
       "id": "pet_old_field_owner_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_owner_id"
       ],
       "category": "pet_old",
       "caption": "pet_old owner_id field",
@@ -83604,10 +83496,7 @@
       "id": "pet_old_field_pet_type_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_pet_type_id"
       ],
       "category": "pet_old",
       "caption": "pet_old pet_type_id field",
@@ -84272,10 +84161,7 @@
       "id": "pet_old_field_url",
       "type": "entity_field",
       "deps": [
-        "property_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_url"
       ],
       "category": "pet_old",
       "caption": "pet_old url field",
@@ -84456,10 +84342,7 @@
       "id": "pet_old_field_avatar_url",
       "type": "entity_field",
       "deps": [
-        "property_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_avatar_url"
       ],
       "category": "pet_old",
       "caption": "pet_old avatar_url field",
@@ -84886,10 +84769,7 @@
       "id": "pet_old_field_cover_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_cover_id"
       ],
       "category": "pet_old",
       "caption": "pet_old cover_id field",
@@ -85253,10 +85133,7 @@
       "id": "pet_pedigree_cycle_field_position",
       "type": "entity_field",
       "deps": [
-        "property_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_position"
       ],
       "category": "pet_pedigree_cycle",
       "caption": "pet_pedigree_cycle position field",
@@ -85291,10 +85168,7 @@
       "id": "pet_pedigree_cycle_field_pet_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_pet_id"
       ],
       "category": "pet_pedigree_cycle",
       "caption": "pet_pedigree_cycle pet_id field",
@@ -85738,10 +85612,7 @@
       "id": "pet_service_field_pet_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_pet_id"
       ],
       "category": "pet_service",
       "caption": "pet_service pet_id field",
@@ -85779,10 +85650,7 @@
       "id": "pet_service_field_currency_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_currency_id"
       ],
       "category": "pet_service",
       "caption": "pet_service currency_id field",
@@ -85899,10 +85767,7 @@
       "id": "pet_service_field_date",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_date"
       ],
       "category": "pet_service",
       "caption": "pet_service date field",
@@ -86170,10 +86035,7 @@
       "id": "pet_service_feature_in_pet_field_pet_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_pet_id"
       ],
       "category": "pet_service_feature_in_pet",
       "caption": "pet_service_feature_in_pet pet_id field",
@@ -86467,10 +86329,7 @@
       "id": "pet_service_in_account_field_account_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_account_id"
       ],
       "category": "pet_service_in_account",
       "caption": "pet_service_in_account account_id field",
@@ -86760,10 +86619,7 @@
       "id": "pet_service_in_litter_field_date",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_date"
       ],
       "category": "pet_service_in_litter",
       "caption": "pet_service_in_litter date field",
@@ -86797,10 +86653,7 @@
       "id": "pet_service_in_litter_field_currency_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_currency_id"
       ],
       "category": "pet_service_in_litter",
       "caption": "pet_service_in_litter currency_id field",
@@ -87750,10 +87603,7 @@
       "id": "post_comment_field_date",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_date"
       ],
       "category": "post_comment",
       "caption": "post_comment date field",
@@ -89142,10 +88992,7 @@
       "id": "post_photo_field_position",
       "type": "entity_field",
       "deps": [
-        "property_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_position"
       ],
       "category": "post_photo",
       "caption": "post_photo position field",
@@ -89492,10 +89339,7 @@
       "id": "process_parameter_in_conf_item_field_conf_item_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_conf_item_id"
       ],
       "category": "process_parameter_in_conf_item",
       "caption": "process_parameter_in_conf_item conf_item_id field",
@@ -89779,10 +89623,7 @@
       "id": "process_selector_in_conf_item_field_conf_item_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_conf_item_id"
       ],
       "category": "process_selector_in_conf_item",
       "caption": "process_selector_in_conf_item conf_item_id field",
@@ -90029,10 +89870,7 @@
       "id": "producer_card_field_pet_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_pet_id"
       ],
       "category": "producer_card",
       "caption": "producer_card pet_id field",
@@ -90427,10 +90265,7 @@
       "id": "product_price_field_currency_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_currency_id"
       ],
       "category": "product_price",
       "caption": "product_price currency_id field",
@@ -91934,10 +91769,7 @@
       "id": "quest_stage_field_conf_item_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_conf_item_id"
       ],
       "category": "quest_stage",
       "caption": "quest_stage conf_item_id field",
@@ -92509,10 +92341,7 @@
       "id": "quest_step_field_position",
       "type": "entity_field",
       "deps": [
-        "property_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_position"
       ],
       "category": "quest_step",
       "caption": "quest_step position field",
@@ -92903,10 +92732,7 @@
       "id": "quest_user_data_field_conf_item_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_conf_item_id"
       ],
       "category": "quest_user_data",
       "caption": "quest_user_data conf_item_id field",
@@ -93176,10 +93002,7 @@
       "id": "raw_data_session_cookies_field_conf_item_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_conf_item_id"
       ],
       "category": "raw_data_session_cookies",
       "caption": "raw_data_session_cookies conf_item_id field",
@@ -94566,10 +94389,7 @@
       "id": "service_in_conf_item_field_conf_item_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_conf_item_id"
       ],
       "category": "service_in_conf_item",
       "caption": "service_in_conf_item conf_item_id field",
@@ -95883,10 +95703,7 @@
       "id": "time_unit_field_position",
       "type": "entity_field",
       "deps": [
-        "property_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_position"
       ],
       "category": "time_unit",
       "caption": "time_unit position field",
@@ -96150,10 +95967,7 @@
       "id": "title_in_pet_field_pet_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_pet_id"
       ],
       "category": "title_in_pet",
       "caption": "title_in_pet pet_id field",
@@ -96228,10 +96042,7 @@
       "id": "title_in_pet_field_date",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_date"
       ],
       "category": "title_in_pet",
       "caption": "title_in_pet date field",
@@ -96265,10 +96076,7 @@
       "id": "title_in_pet_field_country_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_country_id"
       ],
       "category": "title_in_pet",
       "caption": "title_in_pet country_id field",
@@ -96341,10 +96149,7 @@
       "id": "title_in_pet_field_amount",
       "type": "entity_field",
       "deps": [
-        "property_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_amount"
       ],
       "category": "title_in_pet",
       "caption": "title_in_pet amount field",
@@ -96859,10 +96664,7 @@
       "id": "top_pet_in_breed_field_pet_id",
       "type": "entity_field",
       "deps": [
-        "property_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_pet_id"
       ],
       "category": "top_pet_in_breed",
       "caption": "top_pet_in_breed pet_id field",
@@ -97762,10 +97564,7 @@
       "id": "user_quest_step_field_position",
       "type": "entity_field",
       "deps": [
-        "property_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_position"
       ],
       "category": "user_quest_step",
       "caption": "user_quest_step position field",

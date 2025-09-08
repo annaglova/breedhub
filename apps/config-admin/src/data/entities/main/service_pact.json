@@ -123,12 +123,12 @@
         ]
       },
       "isForeignKey": true,
-      "referencedTable": "owner",
+      "referencedTable": "contact",
       "referencedFieldID": "id",
       "displayName": "Owner",
       "placeholder": "Enter owner",
       "validation": {},
-      "referencedFieldName": "id"
+      "referencedFieldName": "name"
     },
     {
       "id": "field_number",
@@ -320,8 +320,8 @@
       "component": "text",
       "required": true,
       "isSystem": true,
-      "isPrimaryKey": false,
-      "isUnique": false,
+      "isPrimaryKey": true,
+      "isUnique": true,
       "sortOrder": 130,
       "permissions": {
         "read": [
@@ -424,6 +424,6 @@
     "totalFields": 17,
     "systemFields": 5,
     "customFields": 12,
-    "generatedAt": "2025-09-08T11:19:47.243Z"
+    "generatedAt": "2025-09-08T14:53:20.181Z"
   }
 }

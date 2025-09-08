@@ -32,8 +32,252 @@ if (!supabaseUrl || !supabaseKey) {
 
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-// Cache for table schemas to avoid multiple queries
+// Cache for table schemas and policies
 const tableSchemaCache = {};
+const tablePolicyCache = {};
+
+/**
+ * Get RLS policies for a table using existing pg_policies view
+ * @param {string} tableName 
+ * @returns {Object} Policies organized by operation
+ */
+async function getTablePolicies(tableName) {
+  // Check cache first
+  if (tablePolicyCache[tableName]) {
+    return tablePolicyCache[tableName];
+  }
+
+  try {
+    const { data, error } = await supabase.rpc("get_table_policies", {
+      tablename: tableName  // Note: parameter name is 'tablename' not 'table_name'
+    });
+
+    if (error) {
+      console.warn(`Could not fetch RLS policies for ${tableName}:`, error.message);
+      return null;
+    }
+
+    // Check if RLS is enabled
+    if (!data || !data.rls_enabled) {
+      console.log(`  RLS is not enabled for ${tableName}`);
+      return null;
+    }
+
+    // Organize policies by command from pg_policies format
+    const organizedPolicies = {
+      SELECT: [],
+      INSERT: [],
+      UPDATE: [],
+      DELETE: [],
+      ALL: []
+    };
+
+    if (data.policies && Array.isArray(data.policies)) {
+      for (const policy of data.policies) {
+        // pg_policies view provides: schemaname, tablename, policyname, permissive, roles, cmd, qual, with_check
+        const command = policy.cmd ? policy.cmd.toUpperCase() : 'ALL';
+        
+        if (organizedPolicies[command]) {
+          organizedPolicies[command].push({
+            name: policy.policyname,
+            roles: policy.roles || [],  // pg_policies provides roles as array
+            permissive: policy.permissive === 'PERMISSIVE' || policy.permissive === true,
+            qual: policy.qual,  // Using expression
+            with_check: policy.with_check  // Check expression for writes
+          });
+        } else if (command === '*') {
+          // Handle ALL command
+          organizedPolicies.ALL.push({
+            name: policy.policyname,
+            roles: policy.roles || [],
+            permissive: policy.permissive === 'PERMISSIVE' || policy.permissive === true,
+            qual: policy.qual,
+            with_check: policy.with_check
+          });
+        }
+      }
+    }
+
+    // Cache the result
+    tablePolicyCache[tableName] = organizedPolicies;
+    return organizedPolicies;
+  } catch (err) {
+    console.warn(`Error fetching policies for ${tableName}:`, err.message);
+    return null;
+  }
+}
+
+/**
+ * Extract permissions from RLS policies
+ * Maps RLS policies to simplified permission model
+ */
+function extractPermissionsFromPolicies(policies, fieldName, isSystem) {
+  // Default permissions if no policies exist
+  const defaultPermissions = {
+    read: ["*"],
+    write: isSystem ? ["system"] : ["admin", "editor"]
+  };
+
+  if (!policies) {
+    return defaultPermissions;
+  }
+
+  const permissions = {
+    read: [],
+    write: []
+  };
+
+  // Analyze SELECT policies for read permissions
+  const selectPolicies = [...(policies.SELECT || []), ...(policies.ALL || [])];
+  if (selectPolicies.length === 0) {
+    permissions.read = ["*"]; // No policies = public read
+  } else {
+    // Extract roles and conditions from policies
+    for (const policy of selectPolicies) {
+      // Check for public access patterns
+      if (policy.qual === 'true' || !policy.qual) {
+        permissions.read.push("*");
+        break;
+      }
+      
+      // Check for authenticated user patterns
+      if (policy.qual && policy.qual.includes('auth.uid()')) {
+        if (policy.qual.includes('IS NOT NULL')) {
+          permissions.read.push("authenticated");
+        } else if (policy.qual.includes('=')) {
+          permissions.read.push("owner");
+        }
+      }
+
+      // Check for role-based patterns
+      if (policy.qual && policy.qual.includes('auth.jwt()')) {
+        // Extract role checks from policy
+        const roleMatch = policy.qual.match(/role['"]\s*=\s*['"](\w+)['"]/);
+        if (roleMatch) {
+          permissions.read.push(roleMatch[1]);
+        }
+      }
+
+      // Add specific roles if defined
+      if (policy.roles && policy.roles.length > 0) {
+        permissions.read.push(...policy.roles);
+      }
+    }
+  }
+
+  // Analyze INSERT/UPDATE/DELETE policies for write permissions
+  const writePolicies = [
+    ...(policies.INSERT || []),
+    ...(policies.UPDATE || []),
+    ...(policies.DELETE || []),
+    ...(policies.ALL || [])
+  ];
+
+  if (writePolicies.length === 0) {
+    // No write policies = restricted to admin/editor (or system for system fields)
+    permissions.write = isSystem ? ["system"] : ["admin", "editor"];
+  } else {
+    const writeRoles = new Set();
+    
+    for (const policy of writePolicies) {
+      // System fields should always be system-only
+      if (isSystem) {
+        writeRoles.add("system");
+        continue;
+      }
+
+      // Check for authenticated user patterns
+      if (policy.qual && policy.qual.includes('auth.uid()')) {
+        if (policy.qual.includes('IS NOT NULL')) {
+          writeRoles.add("authenticated");
+        } else if (policy.qual.includes('=')) {
+          writeRoles.add("owner");
+        }
+      }
+
+      // Check for role-based patterns
+      if (policy.qual && policy.qual.includes('auth.jwt()')) {
+        const roleMatch = policy.qual.match(/role['"]\s*=\s*['"](\w+)['"]/);
+        if (roleMatch) {
+          writeRoles.add(roleMatch[1]);
+        }
+      }
+
+      // Check for admin patterns
+      if (policy.qual && (
+        policy.qual.includes("'admin'") || 
+        policy.qual.includes('"admin"') ||
+        policy.qual.includes("'editor'") ||
+        policy.qual.includes('"editor"')
+      )) {
+        writeRoles.add("admin");
+        writeRoles.add("editor");
+      }
+
+      // Add specific roles if defined
+      if (policy.roles && policy.roles.length > 0) {
+        policy.roles.forEach(role => writeRoles.add(role));
+      }
+    }
+
+    permissions.write = Array.from(writeRoles);
+    
+    // Fallback to default if no write permissions detected
+    if (permissions.write.length === 0) {
+      permissions.write = isSystem ? ["system"] : ["admin", "editor"];
+    }
+  }
+
+  // Remove duplicates and sort
+  permissions.read = [...new Set(permissions.read)].sort();
+  permissions.write = [...new Set(permissions.write)].sort();
+
+  return permissions;
+}
+
+/**
+ * Check if column-level permissions exist
+ * Some tables might have column-specific RLS
+ */
+function checkColumnLevelPermissions(policies, columnName) {
+  // Look for column mentions in policy expressions
+  const columnPermissions = {
+    hasSpecificPolicy: false,
+    read: null,
+    write: null
+  };
+
+  if (!policies) return columnPermissions;
+
+  // Check all policy expressions for this column
+  const allPolicies = [
+    ...(policies.SELECT || []),
+    ...(policies.INSERT || []),
+    ...(policies.UPDATE || []),
+    ...(policies.DELETE || []),
+    ...(policies.ALL || [])
+  ];
+
+  for (const policy of allPolicies) {
+    if (policy.qual && policy.qual.includes(columnName)) {
+      columnPermissions.hasSpecificPolicy = true;
+      
+      // Try to extract specific conditions for this column
+      // This is a simplified check - real implementation might need more sophisticated parsing
+      if (policy.command === 'SELECT' && policy.qual.includes(`${columnName} IS NOT NULL`)) {
+        columnPermissions.read = ["authenticated"];
+      }
+      
+      if ((policy.command === 'UPDATE' || policy.command === 'INSERT') && 
+          policy.with_check && policy.with_check.includes(columnName)) {
+        // Column is mentioned in write check
+        columnPermissions.write = ["admin", "editor"];
+      }
+    }
+  }
+
+  return columnPermissions;
+}
 
 // Map Postgres types to field types
 function mapPostgresType(pgType) {
@@ -60,9 +304,8 @@ function mapPostgresType(pgType) {
   return typeMap[pgType] || 'string';
 }
 
-// Detect display column for a table (name, title, label, code, etc.)
+// Detect display column for a table
 function detectDisplayColumn(columns) {
-  // Priority order for display columns
   const displayColumnPriority = [
     'name',
     'title',
@@ -77,14 +320,12 @@ function detectDisplayColumn(columns) {
   
   const columnNames = columns.map(c => c.column_name);
   
-  // Find first matching display column
   for (const displayCol of displayColumnPriority) {
     if (columnNames.includes(displayCol)) {
       return displayCol;
     }
   }
   
-  // If no standard display column found, use first non-system string column
   const nonSystemColumns = columns.filter(c => 
     !SYSTEM_FIELDS.includes(c.column_name) &&
     !c.column_name.endsWith('_id') &&
@@ -95,18 +336,15 @@ function detectDisplayColumn(columns) {
     return nonSystemColumns[0].column_name;
   }
   
-  // Fallback to id if nothing else found
   return 'id';
 }
 
 // Map field type to UI component
 function getUIComponent(fieldType, fieldName, isForeignKey = false) {
-  // Foreign keys should use select/lookup component
   if (isForeignKey || fieldName.endsWith('_id')) {
-    return 'select';  // or 'lookup' for advanced selection
+    return 'select';
   }
   
-  // By type first (more specific)
   const componentMap = {
     'uuid': 'text',
     'string': 'text',
@@ -120,7 +358,6 @@ function getUIComponent(fieldType, fieldName, isForeignKey = false) {
     'array': 'tags'
   };
   
-  // Special cases by name (only for non-boolean fields)
   if (fieldType !== 'boolean') {
     if (fieldName.includes('email')) return 'email';
     if (fieldName.includes('phone')) return 'phone';
@@ -136,16 +373,14 @@ function getUIComponent(fieldType, fieldName, isForeignKey = false) {
   return componentMap[fieldType] || 'text';
 }
 
-// Generate validation rules based on column constraints
+// Generate validation rules
 function generateValidation(col) {
   const validation = {};
   
-  // Add maxLength for string types
   if (col.character_maximum_length) {
     validation.maxLength = col.character_maximum_length;
   }
   
-  // Add numeric constraints
   if (col.numeric_precision) {
     validation.precision = col.numeric_precision;
   }
@@ -153,13 +388,11 @@ function generateValidation(col) {
     validation.scale = col.numeric_scale;
   }
   
-  // Add URL validation for URL fields
   if (col.column_name.includes('url') || col.column_name.includes('link')) {
     validation.pattern = '^https?://.+';
     validation.message = 'Invalid URL format';
   }
   
-  // Add email validation for email fields
   if (col.column_name.includes('email')) {
     validation.pattern = '^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$';
     validation.message = 'Invalid email format';
@@ -168,23 +401,27 @@ function generateValidation(col) {
   return Object.keys(validation).length > 0 ? validation : null;
 }
 
-// Generate field configuration from column info
-function generateFieldConfig(col, constraints, foreignKeys) {
+// Generate field configuration with RLS-based permissions
+async function generateFieldConfig(col, constraints, foreignKeys, tablePolicies, tableName) {
   const fieldName = col.column_name;
   const fieldType = mapPostgresType(col.data_type);
   const isSystem = SYSTEM_FIELDS.includes(fieldName);
   
-  // Find constraints for this column
   const columnConstraints = constraints.filter(c => c.column_name === fieldName);
   const isRequired = col.is_nullable === 'NO' || columnConstraints.some(c => c.constraint_type === 'NOT NULL');
-  
-  // Check actual constraints from database
   const isPrimaryKey = columnConstraints.some(c => c.constraint_type === 'PRIMARY KEY');
-  const isUnique = columnConstraints.some(c => c.constraint_type === 'UNIQUE') || isPrimaryKey;
-  const foreignKey = foreignKeys[fieldName]; // Get FK info from the map
+  const isUnique = columnConstraints.some(c => c.constraint_type === 'UNIQUE');
+  const foreignKey = foreignKeys[fieldName];
   
-  // Don't skip foreign key fields - we need them for proper configuration
-  // Foreign keys should be treated as regular fields with special component type
+  // Extract permissions from RLS policies
+  const permissions = extractPermissionsFromPolicies(tablePolicies, fieldName, isSystem);
+  
+  // Check for column-specific permissions
+  const columnPerms = checkColumnLevelPermissions(tablePolicies, fieldName);
+  if (columnPerms.hasSpecificPolicy) {
+    if (columnPerms.read) permissions.read = columnPerms.read;
+    if (columnPerms.write) permissions.write = columnPerms.write;
+  }
   
   const config = {
     id: `field_${fieldName}`,
@@ -195,54 +432,26 @@ function generateFieldConfig(col, constraints, foreignKeys) {
     isSystem: isSystem,
     isPrimaryKey: isPrimaryKey,
     isUnique: isUnique,
-    sortOrder: isSystem ? 1000 : 10, // System fields at the end
-    permissions: {
-      read: ["*"],
-      write: isSystem ? ["system"] : ["admin", "editor"]
-    }
+    sortOrder: isSystem ? 1000 : 10,
+    permissions: permissions
   };
   
-  // Add maxLength for string/text fields if database provides it
-  if ((fieldType === 'string' || fieldType === 'text') && col.character_maximum_length) {
-    config.maxLength = col.character_maximum_length;
-  }
-  
-  // Add foreign key information if exists
+  // Add foreign key information
   if (foreignKey) {
     config.isForeignKey = true;
     config.referencedTable = foreignKey.ref_table;
     config.referencedFieldID = foreignKey.ref_column || 'id';
-    
-    // We'll detect the display column later when we have all table schemas
-    // For now, mark it for post-processing
     config.needsDisplayColumn = true;
   }
   
-  // If no FK from RPC but field ends with _id, still treat it as potential FK
+  // Handle _id fields without explicit FK
   if (!foreignKey && fieldName.endsWith('_id') && fieldName !== 'id') {
-    // Still mark as FK for UI purposes
     config.isForeignKey = true;
     
-    // Derive table name from field name
-    let referencedTable = fieldName.slice(0, -3); // remove '_id'
-    
-    // Special cases for table name mapping
+    let referencedTable = fieldName.slice(0, -3);
     const tableNameMap = {
       'language': 'sys_language',
-      'category': 'breed_category',
-      // Fields that reference contact table
-      'owner': 'contact',
-      'breeder': 'contact',
-      'handler': 'contact',
-      'trainer': 'contact',
-      'judge': 'contact',
-      'created_by': 'contact',
-      'updated_by': 'contact',
-      'deleted_by': 'contact',
-      'verified_by': 'contact',
-      'approved_by': 'contact',
-      'rejected_by': 'contact',
-      'primary_contact': 'contact'
+      'category': 'breed_category'
     };
     
     if (tableNameMap[referencedTable]) {
@@ -255,10 +464,9 @@ function generateFieldConfig(col, constraints, foreignKeys) {
   }
   
   // Add display name
-  // For foreign keys, remove '_id' suffix from display name
   if ((foreignKey || fieldName.endsWith('_id')) && fieldName !== 'id') {
     config.displayName = fieldName
-      .replace(/_id$/, '') // remove _id suffix
+      .replace(/_id$/, '')
       .split('_')
       .map(word => word.charAt(0).toUpperCase() + word.slice(1))
       .join(' ');
@@ -274,43 +482,48 @@ function generateFieldConfig(col, constraints, foreignKeys) {
     config.placeholder = `Enter ${config.displayName.toLowerCase()}`;
   }
   
-  // Add maxLength for string/text fields if database provides it
-  if ((fieldType === 'string' || fieldType === 'text') && col.character_maximum_length) {
+  // Add maxLength for string fields
+  if (fieldType === 'string' && col.character_maximum_length) {
     config.maxLength = col.character_maximum_length;
   }
   
-  // Add validation if needed
+  // Add validation
   const validation = generateValidation(col);
   if (validation) {
     config.validation = validation;
   }
   
-  // Add default value if exists
+  // Add default value
   if (col.column_default !== null && !isSystem) {
     let defaultValue = col.column_default;
-    // Clean up Postgres default syntax
     if (defaultValue.includes('::')) {
       defaultValue = defaultValue.split('::')[0].replace(/'/g, '');
     }
     config.defaultValue = defaultValue;
   }
   
+  // Add RLS policy info for debugging
+  if (tablePolicies && process.env.DEBUG_RLS === 'true') {
+    config._rlsPolicies = {
+      table: tableName,
+      hasTablePolicies: Object.values(tablePolicies).some(p => p.length > 0),
+      columnSpecific: columnPerms.hasSpecificPolicy
+    };
+  }
+  
   return config;
 }
 
-// Get table columns and constraints
+// Get table schema
 async function getTableSchema(tableName) {
-  // Try to get columns using RPC function first
   let columns = null;
   let columnsError = null;
   
-  // Try get_table_columns RPC first
   const { data: rpcColumns, error: rpcError } = await supabase.rpc("get_table_columns", {
     tablename: tableName
   });
   
   if (rpcError || !rpcColumns) {
-    // Fallback to direct SQL
     const { data: sqlColumns, error: sqlError } = await supabase.rpc("execute_sql_select", {
       sql: `
         SELECT 
@@ -338,12 +551,10 @@ async function getTableSchema(tableName) {
     return null;
   }
   
-  // Get foreign keys using RPC
   const { data: foreignKeys, error: fkError } = await supabase.rpc("get_foreign_keys_from", {
     table_name: tableName
   });
   
-  // Create FK map: column_name -> { ref_table, ref_column }
   const fkMap = {};
   if (Array.isArray(foreignKeys) && !fkError) {
     for (const fk of foreignKeys) {
@@ -354,7 +565,6 @@ async function getTableSchema(tableName) {
     }
   }
   
-  // Get other constraints (PRIMARY KEY, UNIQUE, etc)
   const { data: constraints, error: constraintsError } = await supabase.rpc("execute_sql_select", {
     sql: `
       SELECT 
@@ -382,7 +592,7 @@ async function getTableSchema(tableName) {
   };
 }
 
-// Generate entity configuration
+// Generate entity configuration with RLS support
 async function generateEntityConfig(tableName, category) {
   console.log(`Generating config for ${tableName}...`);
   
@@ -392,19 +602,30 @@ async function generateEntityConfig(tableName, category) {
     return null;
   }
   
+  // Get RLS policies for this table
+  const tablePolicies = await getTablePolicies(tableName);
+  if (tablePolicies && Object.values(tablePolicies).some(p => p.length > 0)) {
+    console.log(`  Found RLS policies for ${tableName}`);
+  }
+  
   const fields = [];
   
   for (const col of schema.columns) {
-    const fieldConfig = generateFieldConfig(col, schema.constraints, schema.foreignKeys || {});
+    const fieldConfig = await generateFieldConfig(
+      col, 
+      schema.constraints, 
+      schema.foreignKeys || {},
+      tablePolicies,
+      tableName
+    );
     if (fieldConfig) {
       fields.push(fieldConfig);
     }
   }
   
-  // Post-process FK fields to add display columns
+  // Post-process FK fields
   for (const field of fields) {
     if (field.needsDisplayColumn && field.referencedTable) {
-      // Get schema for referenced table
       let referencedSchema;
       if (tableSchemaCache[field.referencedTable]) {
         referencedSchema = tableSchemaCache[field.referencedTable];
@@ -419,16 +640,14 @@ async function generateEntityConfig(tableName, category) {
         const displayColumn = detectDisplayColumn(referencedSchema.columns);
         field.referencedFieldName = displayColumn;
       } else {
-        // Default to 'name' if we can't detect
         field.referencedFieldName = 'name';
       }
       
-      // Clean up temporary flag
       delete field.needsDisplayColumn;
     }
   }
   
-  // Sort fields: non-system first, then system
+  // Sort fields
   fields.sort((a, b) => {
     if (a.isSystem !== b.isSystem) {
       return a.isSystem ? 1 : -1;
@@ -456,6 +675,7 @@ async function generateEntityConfig(tableName, category) {
       totalFields: fields.length,
       systemFields: fields.filter(f => f.isSystem).length,
       customFields: fields.filter(f => !f.isSystem).length,
+      hasRlsPolicies: !!tablePolicies && Object.values(tablePolicies).some(p => p.length > 0),
       generatedAt: new Date().toISOString()
     }
   };
@@ -463,11 +683,10 @@ async function generateEntityConfig(tableName, category) {
   return entityConfig;
 }
 
-// Generate all entity configurations
+// Generate all configs
 async function generateAllConfigs() {
   const outputDir = path.join(__dirname, '../src/data/entities');
   
-  // Create directories
   ['main', 'lookup', 'child'].forEach(category => {
     const dir = path.join(outputDir, category);
     if (!fs.existsSync(dir)) {
@@ -478,51 +697,53 @@ async function generateAllConfigs() {
   const summary = {
     total: 0,
     successful: 0,
+    withRlsPolicies: 0,
     failed: [],
     generatedAt: new Date().toISOString()
   };
   
-  // Process each category
-  {
-    const categories = [
-      { name: 'main', resources: MAIN_RESOURCES },
-      { name: 'lookup', resources: LOOKUP_RESOURCES },
-      { name: 'child', resources: CHILD_RESOURCES }
-    ];
+  const categories = [
+    { name: 'main', resources: MAIN_RESOURCES },
+    { name: 'lookup', resources: LOOKUP_RESOURCES },
+    { name: 'child', resources: CHILD_RESOURCES }
+  ];
+  
+  for (const category of categories) {
+    console.log(`\n=== Processing ${category.name.toUpperCase()} resources ===\n`);
     
-    for (const category of categories) {
-      console.log(`\n=== Processing ${category.name.toUpperCase()} resources ===\n`);
+    for (const tableName of category.resources) {
+      summary.total++;
       
-      for (const tableName of category.resources) {
-        summary.total++;
+      try {
+        const config = await generateEntityConfig(tableName, category.name);
         
-        try {
-          const config = await generateEntityConfig(tableName, category.name);
+        if (config) {
+          const outputPath = path.join(outputDir, category.name, `${tableName}.json`);
+          fs.writeFileSync(outputPath, JSON.stringify(config, null, 2));
+          console.log(`✅ Generated: ${outputPath}`);
+          summary.successful++;
           
-          if (config) {
-            const outputPath = path.join(outputDir, category.name, `${tableName}.json`);
-            fs.writeFileSync(outputPath, JSON.stringify(config, null, 2));
-            console.log(`✅ Generated: ${outputPath}`);
-            summary.successful++;
-          } else {
-            console.log(`⚠️ Skipped: ${tableName} (no schema)`);
-            summary.failed.push({ table: tableName, reason: 'No schema found' });
+          if (config.metadata.hasRlsPolicies) {
+            summary.withRlsPolicies++;
           }
-        } catch (error) {
-          console.error(`❌ Failed: ${tableName}`, error.message);
-          summary.failed.push({ table: tableName, reason: error.message });
+        } else {
+          console.log(`⚠️ Skipped: ${tableName} (no schema)`);
+          summary.failed.push({ table: tableName, reason: 'No schema found' });
         }
+      } catch (error) {
+        console.error(`❌ Failed: ${tableName}`, error.message);
+        summary.failed.push({ table: tableName, reason: error.message });
       }
     }
   }
   
-  // Write summary
   const summaryPath = path.join(outputDir, 'generation-summary.json');
   fs.writeFileSync(summaryPath, JSON.stringify(summary, null, 2));
   
   console.log('\n=== Generation Complete ===');
   console.log(`Total: ${summary.total}`);
   console.log(`Successful: ${summary.successful}`);
+  console.log(`With RLS Policies: ${summary.withRlsPolicies}`);
   console.log(`Failed: ${summary.failed.length}`);
   
   if (summary.failed.length > 0) {
