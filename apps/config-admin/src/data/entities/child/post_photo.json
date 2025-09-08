@@ -26,9 +26,7 @@
       },
       "displayName": "Position",
       "placeholder": "Enter position",
-      "validation": {
-        "precision": 32
-      },
+      "validation": {},
       "defaultValue": "0"
     },
     {
@@ -52,22 +50,20 @@
       },
       "displayName": "Link",
       "placeholder": "Enter link",
-      "maxLength": 500,
       "validation": {
-        "maxLength": 500,
         "pattern": "^https?://.+",
         "message": "Invalid URL format"
       },
       "defaultValue": ""
     },
     {
-      "id": "field_id",
-      "name": "id",
+      "id": "field_post_id",
+      "name": "post_id",
       "fieldType": "uuid",
-      "component": "text",
-      "required": true,
-      "isSystem": true,
-      "isPrimaryKey": true,
+      "component": "select",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
       "isUnique": false,
       "sortOrder": 30,
       "permissions": {
@@ -75,17 +71,24 @@
           "*"
         ],
         "write": [
-          "system"
+          "admin",
+          "editor"
         ]
       },
-      "displayName": "Id"
+      "isForeignKey": true,
+      "referencedTable": "post",
+      "referencedFieldID": "id",
+      "displayName": "Post",
+      "placeholder": "Enter post",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
-      "id": "field_created_at",
-      "name": "created_at",
-      "fieldType": "datetime",
-      "component": "datetime",
-      "required": false,
+      "id": "field_id",
+      "name": "id",
+      "fieldType": "uuid",
+      "component": "text",
+      "required": true,
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -98,13 +101,14 @@
           "system"
         ]
       },
-      "displayName": "Created At"
+      "displayName": "Id",
+      "validation": {}
     },
     {
-      "id": "field_created_by",
-      "name": "created_by",
-      "fieldType": "uuid",
-      "component": "text",
+      "id": "field_created_at",
+      "name": "created_at",
+      "fieldType": "datetime",
+      "component": "datetime",
       "required": false,
       "isSystem": true,
       "isPrimaryKey": false,
@@ -118,13 +122,14 @@
           "system"
         ]
       },
-      "displayName": "Created By"
+      "displayName": "Created At",
+      "validation": {}
     },
     {
-      "id": "field_updated_at",
-      "name": "updated_at",
-      "fieldType": "datetime",
-      "component": "date",
+      "id": "field_created_by",
+      "name": "created_by",
+      "fieldType": "uuid",
+      "component": "text",
       "required": false,
       "isSystem": true,
       "isPrimaryKey": false,
@@ -138,12 +143,13 @@
           "system"
         ]
       },
-      "displayName": "Updated At"
+      "displayName": "Created By",
+      "validation": {}
     },
     {
-      "id": "field_updated_by",
-      "name": "updated_by",
-      "fieldType": "uuid",
+      "id": "field_updated_at",
+      "name": "updated_at",
+      "fieldType": "datetime",
       "component": "date",
       "required": false,
       "isSystem": true,
@@ -158,14 +164,36 @@
           "system"
         ]
       },
-      "displayName": "Updated By"
+      "displayName": "Updated At",
+      "validation": {}
+    },
+    {
+      "id": "field_updated_by",
+      "name": "updated_by",
+      "fieldType": "uuid",
+      "component": "date",
+      "required": false,
+      "isSystem": true,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 80,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "system"
+        ]
+      },
+      "displayName": "Updated By",
+      "validation": {}
     }
   ],
   "metadata": {
     "tableName": "post_photo",
-    "totalFields": 7,
+    "totalFields": 8,
     "systemFields": 5,
-    "customFields": 2,
-    "generatedAt": "2025-09-07T17:59:14.536Z"
+    "customFields": 3,
+    "generatedAt": "2025-09-08T11:21:02.955Z"
   }
 }

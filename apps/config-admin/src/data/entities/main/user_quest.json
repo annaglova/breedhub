@@ -26,10 +26,7 @@
       },
       "displayName": "Name",
       "placeholder": "Enter name",
-      "maxLength": 250,
-      "validation": {
-        "maxLength": 250
-      },
+      "validation": {},
       "defaultValue": ""
     },
     {
@@ -52,13 +49,14 @@
         ]
       },
       "displayName": "Finish Date",
-      "placeholder": "Enter finish date"
+      "placeholder": "Enter finish date",
+      "validation": {}
     },
     {
       "id": "field_contact_id",
       "name": "contact_id",
       "fieldType": "uuid",
-      "component": "text",
+      "component": "select",
       "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -73,8 +71,13 @@
           "editor"
         ]
       },
-      "displayName": "Contact Id",
-      "placeholder": "Enter contact id"
+      "isForeignKey": true,
+      "referencedTable": "contact",
+      "referencedFieldID": "id",
+      "displayName": "Contact",
+      "placeholder": "Enter contact",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
       "id": "field_deadline_date",
@@ -96,7 +99,8 @@
         ]
       },
       "displayName": "Deadline Date",
-      "placeholder": "Enter deadline date"
+      "placeholder": "Enter deadline date",
+      "validation": {}
     },
     {
       "id": "field_deactivated",
@@ -118,6 +122,7 @@
         ]
       },
       "displayName": "Deactivated",
+      "validation": {},
       "defaultValue": "false"
     },
     {
@@ -141,9 +146,7 @@
       },
       "displayName": "Reward",
       "placeholder": "Enter reward",
-      "validation": {
-        "precision": 32
-      },
+      "validation": {},
       "defaultValue": "0"
     },
     {
@@ -167,10 +170,7 @@
       },
       "displayName": "Description",
       "placeholder": "Enter description",
-      "maxLength": 500,
-      "validation": {
-        "maxLength": 500
-      },
+      "validation": {},
       "defaultValue": ""
     },
     {
@@ -194,9 +194,7 @@
       },
       "displayName": "Frequency Interval",
       "placeholder": "Enter frequency interval",
-      "validation": {
-        "precision": 32
-      },
+      "validation": {},
       "defaultValue": "0"
     },
     {
@@ -206,7 +204,7 @@
       "component": "text",
       "required": true,
       "isSystem": true,
-      "isPrimaryKey": true,
+      "isPrimaryKey": false,
       "isUnique": false,
       "sortOrder": 90,
       "permissions": {
@@ -217,7 +215,8 @@
           "system"
         ]
       },
-      "displayName": "Id"
+      "displayName": "Id",
+      "validation": {}
     },
     {
       "id": "field_created_at",
@@ -237,7 +236,8 @@
           "system"
         ]
       },
-      "displayName": "Created At"
+      "displayName": "Created At",
+      "validation": {}
     },
     {
       "id": "field_created_by",
@@ -257,7 +257,8 @@
           "system"
         ]
       },
-      "displayName": "Created By"
+      "displayName": "Created By",
+      "validation": {}
     },
     {
       "id": "field_updated_at",
@@ -277,7 +278,8 @@
           "system"
         ]
       },
-      "displayName": "Updated At"
+      "displayName": "Updated At",
+      "validation": {}
     },
     {
       "id": "field_updated_by",
@@ -297,7 +299,8 @@
           "system"
         ]
       },
-      "displayName": "Updated By"
+      "displayName": "Updated By",
+      "validation": {}
     }
   ],
   "metadata": {
@@ -305,6 +308,6 @@
     "totalFields": 13,
     "systemFields": 5,
     "customFields": 8,
-    "generatedAt": "2025-09-07T18:14:32.386Z"
+    "generatedAt": "2025-09-08T11:19:52.886Z"
   }
 }

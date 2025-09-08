@@ -6,13 +6,13 @@
   "category": "child",
   "fields": [
     {
-      "id": "field_id",
-      "name": "id",
+      "id": "field_coat_type_id",
+      "name": "coat_type_id",
       "fieldType": "uuid",
-      "component": "text",
-      "required": true,
-      "isSystem": true,
-      "isPrimaryKey": true,
+      "component": "select",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
       "isUnique": false,
       "sortOrder": 10,
       "permissions": {
@@ -20,18 +20,25 @@
           "*"
         ],
         "write": [
-          "system"
+          "admin",
+          "editor"
         ]
       },
-      "displayName": "Id"
+      "isForeignKey": true,
+      "referencedTable": "coat_type",
+      "referencedFieldID": "id",
+      "displayName": "Coat Type",
+      "placeholder": "Enter coat type",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
-      "id": "field_created_at",
-      "name": "created_at",
-      "fieldType": "datetime",
-      "component": "datetime",
+      "id": "field_breed_division_id",
+      "name": "breed_division_id",
+      "fieldType": "uuid",
+      "component": "select",
       "required": false,
-      "isSystem": true,
+      "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
       "sortOrder": 20,
@@ -40,18 +47,25 @@
           "*"
         ],
         "write": [
-          "system"
+          "admin",
+          "editor"
         ]
       },
-      "displayName": "Created At"
+      "isForeignKey": true,
+      "referencedTable": "breed_division",
+      "referencedFieldID": "id",
+      "displayName": "Breed Division",
+      "placeholder": "Enter breed division",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
-      "id": "field_created_by",
-      "name": "created_by",
+      "id": "field_breed_id",
+      "name": "breed_id",
       "fieldType": "uuid",
-      "component": "text",
+      "component": "select",
       "required": false,
-      "isSystem": true,
+      "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
       "sortOrder": 30,
@@ -60,17 +74,24 @@
           "*"
         ],
         "write": [
-          "system"
+          "admin",
+          "editor"
         ]
       },
-      "displayName": "Created By"
+      "isForeignKey": true,
+      "referencedTable": "breed",
+      "referencedFieldID": "id",
+      "displayName": "Breed",
+      "placeholder": "Enter breed",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
-      "id": "field_updated_at",
-      "name": "updated_at",
-      "fieldType": "datetime",
-      "component": "date",
-      "required": false,
+      "id": "field_id",
+      "name": "id",
+      "fieldType": "uuid",
+      "component": "text",
+      "required": true,
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -83,13 +104,14 @@
           "system"
         ]
       },
-      "displayName": "Updated At"
+      "displayName": "Id",
+      "validation": {}
     },
     {
-      "id": "field_updated_by",
-      "name": "updated_by",
-      "fieldType": "uuid",
-      "component": "date",
+      "id": "field_created_at",
+      "name": "created_at",
+      "fieldType": "datetime",
+      "component": "datetime",
       "required": false,
       "isSystem": true,
       "isPrimaryKey": false,
@@ -103,14 +125,78 @@
           "system"
         ]
       },
-      "displayName": "Updated By"
+      "displayName": "Created At",
+      "validation": {}
+    },
+    {
+      "id": "field_created_by",
+      "name": "created_by",
+      "fieldType": "uuid",
+      "component": "text",
+      "required": false,
+      "isSystem": true,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 60,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "system"
+        ]
+      },
+      "displayName": "Created By",
+      "validation": {}
+    },
+    {
+      "id": "field_updated_at",
+      "name": "updated_at",
+      "fieldType": "datetime",
+      "component": "date",
+      "required": false,
+      "isSystem": true,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 70,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "system"
+        ]
+      },
+      "displayName": "Updated At",
+      "validation": {}
+    },
+    {
+      "id": "field_updated_by",
+      "name": "updated_by",
+      "fieldType": "uuid",
+      "component": "date",
+      "required": false,
+      "isSystem": true,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 80,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "system"
+        ]
+      },
+      "displayName": "Updated By",
+      "validation": {}
     }
   ],
   "metadata": {
     "tableName": "coat_type_in_breed_division",
-    "totalFields": 5,
+    "totalFields": 8,
     "systemFields": 5,
-    "customFields": 0,
-    "generatedAt": "2025-09-07T17:58:43.468Z"
+    "customFields": 3,
+    "generatedAt": "2025-09-08T11:20:38.294Z"
   }
 }

@@ -26,17 +26,14 @@
       },
       "displayName": "Entity Name",
       "placeholder": "Enter entity name",
-      "maxLength": 50,
-      "validation": {
-        "maxLength": 50
-      },
+      "validation": {},
       "defaultValue": ""
     },
     {
       "id": "field_record_id",
       "name": "record_id",
       "fieldType": "uuid",
-      "component": "text",
+      "component": "select",
       "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -51,14 +48,19 @@
           "editor"
         ]
       },
-      "displayName": "Record Id",
-      "placeholder": "Enter record id"
+      "isForeignKey": true,
+      "referencedTable": "record",
+      "referencedFieldID": "id",
+      "displayName": "Record",
+      "placeholder": "Enter record",
+      "validation": {},
+      "referencedFieldName": "id"
     },
     {
       "id": "field_buckup_rawdata_id",
       "name": "buckup_rawdata_id",
       "fieldType": "uuid",
-      "component": "text",
+      "component": "select",
       "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -73,14 +75,19 @@
           "editor"
         ]
       },
-      "displayName": "Buckup Rawdata Id",
-      "placeholder": "Enter buckup rawdata id"
+      "isForeignKey": true,
+      "referencedTable": "buckup_rawdata",
+      "referencedFieldID": "id",
+      "displayName": "Buckup Rawdata",
+      "placeholder": "Enter buckup rawdata",
+      "validation": {},
+      "referencedFieldName": "id"
     },
     {
       "id": "field_raw_data_id",
       "name": "raw_data_id",
       "fieldType": "uuid",
-      "component": "text",
+      "component": "select",
       "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -95,8 +102,13 @@
           "editor"
         ]
       },
-      "displayName": "Raw Data Id",
-      "placeholder": "Enter raw data id"
+      "isForeignKey": true,
+      "referencedTable": "raw_data",
+      "referencedFieldID": "id",
+      "displayName": "Raw Data",
+      "placeholder": "Enter raw data",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
       "id": "field_id",
@@ -105,7 +117,7 @@
       "component": "text",
       "required": true,
       "isSystem": true,
-      "isPrimaryKey": true,
+      "isPrimaryKey": false,
       "isUnique": false,
       "sortOrder": 50,
       "permissions": {
@@ -116,7 +128,8 @@
           "system"
         ]
       },
-      "displayName": "Id"
+      "displayName": "Id",
+      "validation": {}
     },
     {
       "id": "field_created_at",
@@ -136,7 +149,8 @@
           "system"
         ]
       },
-      "displayName": "Created At"
+      "displayName": "Created At",
+      "validation": {}
     },
     {
       "id": "field_created_by",
@@ -156,7 +170,8 @@
           "system"
         ]
       },
-      "displayName": "Created By"
+      "displayName": "Created By",
+      "validation": {}
     },
     {
       "id": "field_updated_at",
@@ -176,7 +191,8 @@
           "system"
         ]
       },
-      "displayName": "Updated At"
+      "displayName": "Updated At",
+      "validation": {}
     },
     {
       "id": "field_updated_by",
@@ -196,7 +212,8 @@
           "system"
         ]
       },
-      "displayName": "Updated By"
+      "displayName": "Updated By",
+      "validation": {}
     }
   ],
   "metadata": {
@@ -204,6 +221,6 @@
     "totalFields": 9,
     "systemFields": 5,
     "customFields": 4,
-    "generatedAt": "2025-09-07T17:58:52.220Z"
+    "generatedAt": "2025-09-08T11:20:46.949Z"
   }
 }

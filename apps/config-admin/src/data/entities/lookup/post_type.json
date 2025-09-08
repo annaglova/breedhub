@@ -26,10 +26,7 @@
       },
       "displayName": "Name",
       "placeholder": "Enter name",
-      "maxLength": 250,
-      "validation": {
-        "maxLength": 250
-      },
+      "validation": {},
       "defaultValue": ""
     },
     {
@@ -53,10 +50,7 @@
       },
       "displayName": "Description",
       "placeholder": "Enter description",
-      "maxLength": 250,
-      "validation": {
-        "maxLength": 250
-      },
+      "validation": {},
       "defaultValue": ""
     },
     {
@@ -80,6 +74,7 @@
       },
       "displayName": "Template Text",
       "placeholder": "Enter template text",
+      "validation": {},
       "defaultValue": ""
     },
     {
@@ -89,7 +84,7 @@
       "component": "text",
       "required": true,
       "isSystem": true,
-      "isPrimaryKey": true,
+      "isPrimaryKey": false,
       "isUnique": false,
       "sortOrder": 40,
       "permissions": {
@@ -100,7 +95,8 @@
           "system"
         ]
       },
-      "displayName": "Id"
+      "displayName": "Id",
+      "validation": {}
     },
     {
       "id": "field_created_at",
@@ -120,7 +116,8 @@
           "system"
         ]
       },
-      "displayName": "Created At"
+      "displayName": "Created At",
+      "validation": {}
     },
     {
       "id": "field_created_by",
@@ -140,7 +137,8 @@
           "system"
         ]
       },
-      "displayName": "Created By"
+      "displayName": "Created By",
+      "validation": {}
     },
     {
       "id": "field_updated_at",
@@ -160,7 +158,8 @@
           "system"
         ]
       },
-      "displayName": "Updated At"
+      "displayName": "Updated At",
+      "validation": {}
     },
     {
       "id": "field_updated_by",
@@ -180,7 +179,8 @@
           "system"
         ]
       },
-      "displayName": "Updated By"
+      "displayName": "Updated By",
+      "validation": {}
     }
   ],
   "metadata": {
@@ -188,6 +188,6 @@
     "totalFields": 8,
     "systemFields": 5,
     "customFields": 3,
-    "generatedAt": "2025-09-07T18:14:55.162Z"
+    "generatedAt": "2025-09-08T11:20:21.377Z"
   }
 }

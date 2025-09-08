@@ -26,14 +26,15 @@
       },
       "displayName": "Cookies",
       "placeholder": "Enter cookies",
+      "validation": {},
       "defaultValue": ""
     },
     {
-      "id": "field_headers",
-      "name": "headers",
-      "fieldType": "text",
-      "component": "textarea",
-      "required": true,
+      "id": "field_conf_item_id",
+      "name": "conf_item_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -47,15 +48,19 @@
           "editor"
         ]
       },
-      "displayName": "Headers",
-      "placeholder": "Enter headers",
-      "defaultValue": ""
+      "isForeignKey": true,
+      "referencedTable": "conf_item",
+      "referencedFieldID": "id",
+      "displayName": "Conf Item",
+      "placeholder": "Enter conf item",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
-      "id": "field_domen",
-      "name": "domen",
-      "fieldType": "string",
-      "component": "text",
+      "id": "field_headers",
+      "name": "headers",
+      "fieldType": "text",
+      "component": "textarea",
       "required": true,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -70,12 +75,33 @@
           "editor"
         ]
       },
+      "displayName": "Headers",
+      "placeholder": "Enter headers",
+      "validation": {},
+      "defaultValue": ""
+    },
+    {
+      "id": "field_domen",
+      "name": "domen",
+      "fieldType": "string",
+      "component": "text",
+      "required": true,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 40,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
       "displayName": "Domen",
       "placeholder": "Enter domen",
-      "maxLength": 500,
-      "validation": {
-        "maxLength": 500
-      },
+      "validation": {},
       "defaultValue": ""
     },
     {
@@ -84,26 +110,6 @@
       "fieldType": "uuid",
       "component": "text",
       "required": true,
-      "isSystem": true,
-      "isPrimaryKey": true,
-      "isUnique": false,
-      "sortOrder": 40,
-      "permissions": {
-        "read": [
-          "*"
-        ],
-        "write": [
-          "system"
-        ]
-      },
-      "displayName": "Id"
-    },
-    {
-      "id": "field_created_at",
-      "name": "created_at",
-      "fieldType": "datetime",
-      "component": "datetime",
-      "required": false,
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -116,13 +122,14 @@
           "system"
         ]
       },
-      "displayName": "Created At"
+      "displayName": "Id",
+      "validation": {}
     },
     {
-      "id": "field_created_by",
-      "name": "created_by",
-      "fieldType": "uuid",
-      "component": "text",
+      "id": "field_created_at",
+      "name": "created_at",
+      "fieldType": "datetime",
+      "component": "datetime",
       "required": false,
       "isSystem": true,
       "isPrimaryKey": false,
@@ -136,13 +143,14 @@
           "system"
         ]
       },
-      "displayName": "Created By"
+      "displayName": "Created At",
+      "validation": {}
     },
     {
-      "id": "field_updated_at",
-      "name": "updated_at",
-      "fieldType": "datetime",
-      "component": "date",
+      "id": "field_created_by",
+      "name": "created_by",
+      "fieldType": "uuid",
+      "component": "text",
       "required": false,
       "isSystem": true,
       "isPrimaryKey": false,
@@ -156,12 +164,13 @@
           "system"
         ]
       },
-      "displayName": "Updated At"
+      "displayName": "Created By",
+      "validation": {}
     },
     {
-      "id": "field_updated_by",
-      "name": "updated_by",
-      "fieldType": "uuid",
+      "id": "field_updated_at",
+      "name": "updated_at",
+      "fieldType": "datetime",
       "component": "date",
       "required": false,
       "isSystem": true,
@@ -176,14 +185,36 @@
           "system"
         ]
       },
-      "displayName": "Updated By"
+      "displayName": "Updated At",
+      "validation": {}
+    },
+    {
+      "id": "field_updated_by",
+      "name": "updated_by",
+      "fieldType": "uuid",
+      "component": "date",
+      "required": false,
+      "isSystem": true,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 90,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "system"
+        ]
+      },
+      "displayName": "Updated By",
+      "validation": {}
     }
   ],
   "metadata": {
     "tableName": "raw_data_session_cookies",
-    "totalFields": 8,
+    "totalFields": 9,
     "systemFields": 5,
-    "customFields": 3,
-    "generatedAt": "2025-09-07T17:59:19.102Z"
+    "customFields": 4,
+    "generatedAt": "2025-09-08T11:21:08.757Z"
   }
 }

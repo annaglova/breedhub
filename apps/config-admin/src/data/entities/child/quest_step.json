@@ -26,18 +26,15 @@
       },
       "displayName": "Name",
       "placeholder": "Enter name",
-      "maxLength": 250,
-      "validation": {
-        "maxLength": 250
-      },
+      "validation": {},
       "defaultValue": ""
     },
     {
-      "id": "field_description",
-      "name": "description",
-      "fieldType": "text",
-      "component": "textarea",
-      "required": true,
+      "id": "field_quest_id",
+      "name": "quest_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -51,15 +48,19 @@
           "editor"
         ]
       },
-      "displayName": "Description",
-      "placeholder": "Enter description",
-      "defaultValue": ""
+      "isForeignKey": true,
+      "referencedTable": "quest",
+      "referencedFieldID": "id",
+      "displayName": "Quest",
+      "placeholder": "Enter quest",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
-      "id": "field_intitial_provider_code",
-      "name": "intitial_provider_code",
-      "fieldType": "string",
-      "component": "text",
+      "id": "field_description",
+      "name": "description",
+      "fieldType": "text",
+      "component": "textarea",
       "required": true,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -74,17 +75,14 @@
           "editor"
         ]
       },
-      "displayName": "Intitial Provider Code",
-      "placeholder": "Enter intitial provider code",
-      "maxLength": 250,
-      "validation": {
-        "maxLength": 250
-      },
+      "displayName": "Description",
+      "placeholder": "Enter description",
+      "validation": {},
       "defaultValue": ""
     },
     {
-      "id": "field_provider_code",
-      "name": "provider_code",
+      "id": "field_intitial_provider_code",
+      "name": "intitial_provider_code",
       "fieldType": "string",
       "component": "text",
       "required": true,
@@ -101,19 +99,16 @@
           "editor"
         ]
       },
-      "displayName": "Provider Code",
-      "placeholder": "Enter provider code",
-      "maxLength": 250,
-      "validation": {
-        "maxLength": 250
-      },
+      "displayName": "Intitial Provider Code",
+      "placeholder": "Enter intitial provider code",
+      "validation": {},
       "defaultValue": ""
     },
     {
-      "id": "field_position",
-      "name": "position",
-      "fieldType": "number",
-      "component": "number",
+      "id": "field_provider_code",
+      "name": "provider_code",
+      "fieldType": "string",
+      "component": "text",
       "required": true,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -128,18 +123,16 @@
           "editor"
         ]
       },
-      "displayName": "Position",
-      "placeholder": "Enter position",
-      "validation": {
-        "precision": 32
-      },
-      "defaultValue": "0"
+      "displayName": "Provider Code",
+      "placeholder": "Enter provider code",
+      "validation": {},
+      "defaultValue": ""
     },
     {
-      "id": "field_dependencies",
-      "name": "dependencies",
-      "fieldType": "string",
-      "component": "text",
+      "id": "field_position",
+      "name": "position",
+      "fieldType": "number",
+      "component": "number",
       "required": true,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -154,12 +147,33 @@
           "editor"
         ]
       },
+      "displayName": "Position",
+      "placeholder": "Enter position",
+      "validation": {},
+      "defaultValue": "0"
+    },
+    {
+      "id": "field_dependencies",
+      "name": "dependencies",
+      "fieldType": "string",
+      "component": "text",
+      "required": true,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 70,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
       "displayName": "Dependencies",
       "placeholder": "Enter dependencies",
-      "maxLength": 500,
-      "validation": {
-        "maxLength": 500
-      },
+      "validation": {},
       "defaultValue": ""
     },
     {
@@ -168,26 +182,6 @@
       "fieldType": "uuid",
       "component": "text",
       "required": true,
-      "isSystem": true,
-      "isPrimaryKey": true,
-      "isUnique": false,
-      "sortOrder": 70,
-      "permissions": {
-        "read": [
-          "*"
-        ],
-        "write": [
-          "system"
-        ]
-      },
-      "displayName": "Id"
-    },
-    {
-      "id": "field_created_at",
-      "name": "created_at",
-      "fieldType": "datetime",
-      "component": "datetime",
-      "required": false,
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -200,13 +194,14 @@
           "system"
         ]
       },
-      "displayName": "Created At"
+      "displayName": "Id",
+      "validation": {}
     },
     {
-      "id": "field_created_by",
-      "name": "created_by",
-      "fieldType": "uuid",
-      "component": "text",
+      "id": "field_created_at",
+      "name": "created_at",
+      "fieldType": "datetime",
+      "component": "datetime",
       "required": false,
       "isSystem": true,
       "isPrimaryKey": false,
@@ -220,13 +215,14 @@
           "system"
         ]
       },
-      "displayName": "Created By"
+      "displayName": "Created At",
+      "validation": {}
     },
     {
-      "id": "field_updated_at",
-      "name": "updated_at",
-      "fieldType": "datetime",
-      "component": "date",
+      "id": "field_created_by",
+      "name": "created_by",
+      "fieldType": "uuid",
+      "component": "text",
       "required": false,
       "isSystem": true,
       "isPrimaryKey": false,
@@ -240,12 +236,13 @@
           "system"
         ]
       },
-      "displayName": "Updated At"
+      "displayName": "Created By",
+      "validation": {}
     },
     {
-      "id": "field_updated_by",
-      "name": "updated_by",
-      "fieldType": "uuid",
+      "id": "field_updated_at",
+      "name": "updated_at",
+      "fieldType": "datetime",
       "component": "date",
       "required": false,
       "isSystem": true,
@@ -260,14 +257,36 @@
           "system"
         ]
       },
-      "displayName": "Updated By"
+      "displayName": "Updated At",
+      "validation": {}
+    },
+    {
+      "id": "field_updated_by",
+      "name": "updated_by",
+      "fieldType": "uuid",
+      "component": "date",
+      "required": false,
+      "isSystem": true,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 120,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "system"
+        ]
+      },
+      "displayName": "Updated By",
+      "validation": {}
     }
   ],
   "metadata": {
     "tableName": "quest_step",
-    "totalFields": 11,
+    "totalFields": 12,
     "systemFields": 5,
-    "customFields": 6,
-    "generatedAt": "2025-09-07T17:59:18.642Z"
+    "customFields": 7,
+    "generatedAt": "2025-09-08T11:21:07.698Z"
   }
 }

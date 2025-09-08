@@ -6,11 +6,11 @@
   "category": "child",
   "fields": [
     {
-      "id": "field_reaction_time_value",
-      "name": "reaction_time_value",
-      "fieldType": "number",
-      "component": "time",
-      "required": true,
+      "id": "field_service_item_id",
+      "name": "service_item_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -24,19 +24,20 @@
           "editor"
         ]
       },
-      "displayName": "Reaction Time Value",
-      "placeholder": "Enter reaction time value",
-      "validation": {
-        "precision": 32
-      },
-      "defaultValue": "0"
+      "isForeignKey": true,
+      "referencedTable": "service_item",
+      "referencedFieldID": "id",
+      "displayName": "Service Item",
+      "placeholder": "Enter service item",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
-      "id": "field_solution_time_value",
-      "name": "solution_time_value",
-      "fieldType": "number",
-      "component": "time",
-      "required": true,
+      "id": "field_service_pact_id",
+      "name": "service_pact_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -50,17 +51,18 @@
           "editor"
         ]
       },
-      "displayName": "Solution Time Value",
-      "placeholder": "Enter solution time value",
-      "validation": {
-        "precision": 32
-      },
-      "defaultValue": "0"
+      "isForeignKey": true,
+      "referencedTable": "service_pact",
+      "referencedFieldID": "id",
+      "displayName": "Service Pact",
+      "placeholder": "Enter service pact",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
-      "id": "field_reaction_time",
-      "name": "reaction_time",
-      "fieldType": "string",
+      "id": "field_reaction_time_value",
+      "name": "reaction_time_value",
+      "fieldType": "number",
       "component": "time",
       "required": true,
       "isSystem": false,
@@ -76,20 +78,17 @@
           "editor"
         ]
       },
-      "displayName": "Reaction Time",
-      "placeholder": "Enter reaction time",
-      "maxLength": 250,
-      "validation": {
-        "maxLength": 250
-      },
-      "defaultValue": ""
+      "displayName": "Reaction Time Value",
+      "placeholder": "Enter reaction time value",
+      "validation": {},
+      "defaultValue": "0"
     },
     {
-      "id": "field_solution_time",
-      "name": "solution_time",
-      "fieldType": "string",
-      "component": "time",
-      "required": true,
+      "id": "field_reaction_time_unit_id",
+      "name": "reaction_time_unit_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -103,19 +102,19 @@
           "editor"
         ]
       },
-      "displayName": "Solution Time",
-      "placeholder": "Enter solution time",
-      "maxLength": 250,
-      "validation": {
-        "maxLength": 250
-      },
-      "defaultValue": ""
+      "isForeignKey": true,
+      "referencedTable": "time_unit",
+      "referencedFieldID": "id",
+      "displayName": "Reaction Time Unit",
+      "placeholder": "Enter reaction time unit",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
-      "id": "field_concat_name",
-      "name": "concat_name",
-      "fieldType": "string",
-      "component": "text",
+      "id": "field_solution_time_value",
+      "name": "solution_time_value",
+      "fieldType": "number",
+      "component": "time",
       "required": true,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -130,12 +129,135 @@
           "editor"
         ]
       },
+      "displayName": "Solution Time Value",
+      "placeholder": "Enter solution time value",
+      "validation": {},
+      "defaultValue": "0"
+    },
+    {
+      "id": "field_solution_time_unit_id",
+      "name": "solution_time_unit_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 60,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "isForeignKey": true,
+      "referencedTable": "time_unit",
+      "referencedFieldID": "id",
+      "displayName": "Solution Time Unit",
+      "placeholder": "Enter solution time unit",
+      "validation": {},
+      "referencedFieldName": "name"
+    },
+    {
+      "id": "field_calendar_id",
+      "name": "calendar_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 70,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "isForeignKey": true,
+      "referencedTable": "calendar",
+      "referencedFieldID": "id",
+      "displayName": "Calendar",
+      "placeholder": "Enter calendar",
+      "validation": {},
+      "referencedFieldName": "name"
+    },
+    {
+      "id": "field_reaction_time",
+      "name": "reaction_time",
+      "fieldType": "string",
+      "component": "time",
+      "required": true,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 80,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "displayName": "Reaction Time",
+      "placeholder": "Enter reaction time",
+      "validation": {},
+      "defaultValue": ""
+    },
+    {
+      "id": "field_solution_time",
+      "name": "solution_time",
+      "fieldType": "string",
+      "component": "time",
+      "required": true,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 90,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "displayName": "Solution Time",
+      "placeholder": "Enter solution time",
+      "validation": {},
+      "defaultValue": ""
+    },
+    {
+      "id": "field_concat_name",
+      "name": "concat_name",
+      "fieldType": "string",
+      "component": "text",
+      "required": true,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 100,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
       "displayName": "Concat Name",
       "placeholder": "Enter concat name",
-      "maxLength": 500,
-      "validation": {
-        "maxLength": 500
-      },
+      "validation": {},
       "defaultValue": ""
     },
     {
@@ -145,9 +267,9 @@
       "component": "text",
       "required": true,
       "isSystem": true,
-      "isPrimaryKey": true,
+      "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 60,
+      "sortOrder": 110,
       "permissions": {
         "read": [
           "*"
@@ -156,7 +278,8 @@
           "system"
         ]
       },
-      "displayName": "Id"
+      "displayName": "Id",
+      "validation": {}
     },
     {
       "id": "field_created_at",
@@ -167,7 +290,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 70,
+      "sortOrder": 120,
       "permissions": {
         "read": [
           "*"
@@ -176,7 +299,8 @@
           "system"
         ]
       },
-      "displayName": "Created At"
+      "displayName": "Created At",
+      "validation": {}
     },
     {
       "id": "field_created_by",
@@ -187,7 +311,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 80,
+      "sortOrder": 130,
       "permissions": {
         "read": [
           "*"
@@ -196,7 +320,8 @@
           "system"
         ]
       },
-      "displayName": "Created By"
+      "displayName": "Created By",
+      "validation": {}
     },
     {
       "id": "field_updated_at",
@@ -207,7 +332,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 90,
+      "sortOrder": 140,
       "permissions": {
         "read": [
           "*"
@@ -216,7 +341,8 @@
           "system"
         ]
       },
-      "displayName": "Updated At"
+      "displayName": "Updated At",
+      "validation": {}
     },
     {
       "id": "field_updated_by",
@@ -227,7 +353,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 100,
+      "sortOrder": 150,
       "permissions": {
         "read": [
           "*"
@@ -236,14 +362,15 @@
           "system"
         ]
       },
-      "displayName": "Updated By"
+      "displayName": "Updated By",
+      "validation": {}
     }
   ],
   "metadata": {
     "tableName": "service_in_service_pact",
-    "totalFields": 10,
+    "totalFields": 15,
     "systemFields": 5,
-    "customFields": 5,
-    "generatedAt": "2025-09-07T17:59:20.534Z"
+    "customFields": 10,
+    "generatedAt": "2025-09-08T11:21:11.170Z"
   }
 }

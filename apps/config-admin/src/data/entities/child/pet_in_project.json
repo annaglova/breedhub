@@ -6,11 +6,11 @@
   "category": "child",
   "fields": [
     {
-      "id": "field_number",
-      "name": "number",
-      "fieldType": "number",
-      "component": "number",
-      "required": true,
+      "id": "field_project_id",
+      "name": "project_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -24,16 +24,20 @@
           "editor"
         ]
       },
-      "displayName": "Number",
-      "placeholder": "Enter number",
-      "defaultValue": "0"
+      "isForeignKey": true,
+      "referencedTable": "project",
+      "referencedFieldID": "id",
+      "displayName": "Project",
+      "placeholder": "Enter project",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
-      "id": "field_web_link",
-      "name": "web_link",
-      "fieldType": "string",
-      "component": "url",
-      "required": true,
+      "id": "field_pet_id",
+      "name": "pet_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -47,21 +51,19 @@
           "editor"
         ]
       },
-      "displayName": "Web Link",
-      "placeholder": "Enter web link",
-      "maxLength": 250,
-      "validation": {
-        "maxLength": 250,
-        "pattern": "^https?://.+",
-        "message": "Invalid URL format"
-      },
-      "defaultValue": ""
+      "isForeignKey": true,
+      "referencedTable": "pet_manchester_terrier_toy",
+      "referencedFieldID": "id",
+      "displayName": "Pet",
+      "placeholder": "Enter pet",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
-      "id": "field_result",
-      "name": "result",
-      "fieldType": "string",
-      "component": "text",
+      "id": "field_number",
+      "name": "number",
+      "fieldType": "number",
+      "component": "number",
       "required": true,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -76,20 +78,17 @@
           "editor"
         ]
       },
-      "displayName": "Result",
-      "placeholder": "Enter result",
-      "maxLength": 250,
-      "validation": {
-        "maxLength": 250
-      },
-      "defaultValue": ""
+      "displayName": "Number",
+      "placeholder": "Enter number",
+      "validation": {},
+      "defaultValue": "0"
     },
     {
-      "id": "field_code",
-      "name": "code",
-      "fieldType": "string",
-      "component": "text",
-      "required": true,
+      "id": "field_class_id",
+      "name": "class_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -103,20 +102,20 @@
           "editor"
         ]
       },
-      "displayName": "Code",
-      "placeholder": "Enter code",
-      "maxLength": 50,
-      "validation": {
-        "maxLength": 50
-      },
-      "defaultValue": ""
+      "isForeignKey": true,
+      "referencedTable": "pet_class",
+      "referencedFieldID": "id",
+      "displayName": "Class",
+      "placeholder": "Enter class",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
-      "id": "field_judge_id",
-      "name": "judge_id",
-      "fieldType": "uuid",
-      "component": "text",
-      "required": false,
+      "id": "field_web_link",
+      "name": "web_link",
+      "fieldType": "string",
+      "component": "url",
+      "required": true,
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -130,15 +129,20 @@
           "editor"
         ]
       },
-      "displayName": "Judge Id",
-      "placeholder": "Enter judge id"
+      "displayName": "Web Link",
+      "placeholder": "Enter web link",
+      "validation": {
+        "pattern": "^https?://.+",
+        "message": "Invalid URL format"
+      },
+      "defaultValue": ""
     },
     {
-      "id": "field_date",
-      "name": "date",
-      "fieldType": "date",
-      "component": "date",
-      "required": false,
+      "id": "field_result",
+      "name": "result",
+      "fieldType": "string",
+      "component": "text",
+      "required": true,
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -152,12 +156,14 @@
           "editor"
         ]
       },
-      "displayName": "Date",
-      "placeholder": "Enter date"
+      "displayName": "Result",
+      "placeholder": "Enter result",
+      "validation": {},
+      "defaultValue": ""
     },
     {
-      "id": "field_temp_project_name",
-      "name": "temp_project_name",
+      "id": "field_code",
+      "name": "code",
       "fieldType": "string",
       "component": "text",
       "required": true,
@@ -174,13 +180,192 @@
           "editor"
         ]
       },
+      "displayName": "Code",
+      "placeholder": "Enter code",
+      "validation": {},
+      "defaultValue": ""
+    },
+    {
+      "id": "field_handler_id",
+      "name": "handler_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 80,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "isForeignKey": true,
+      "referencedTable": "contact",
+      "referencedFieldID": "id",
+      "displayName": "Handler",
+      "placeholder": "Enter handler",
+      "validation": {},
+      "referencedFieldName": "name"
+    },
+    {
+      "id": "field_judge_id",
+      "name": "judge_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 90,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "isForeignKey": true,
+      "referencedTable": "judge",
+      "referencedFieldID": "id",
+      "displayName": "Judge",
+      "placeholder": "Enter judge",
+      "validation": {},
+      "referencedFieldName": "id"
+    },
+    {
+      "id": "field_place_id",
+      "name": "place_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 100,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "isForeignKey": true,
+      "referencedTable": "place",
+      "referencedFieldID": "id",
+      "displayName": "Place",
+      "placeholder": "Enter place",
+      "validation": {},
+      "referencedFieldName": "name"
+    },
+    {
+      "id": "field_qualification_id",
+      "name": "qualification_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 110,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "isForeignKey": true,
+      "referencedTable": "pet_qualification",
+      "referencedFieldID": "id",
+      "displayName": "Qualification",
+      "placeholder": "Enter qualification",
+      "validation": {},
+      "referencedFieldName": "name"
+    },
+    {
+      "id": "field_date",
+      "name": "date",
+      "fieldType": "date",
+      "component": "date",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 120,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "displayName": "Date",
+      "placeholder": "Enter date",
+      "validation": {}
+    },
+    {
+      "id": "field_temp_project_name",
+      "name": "temp_project_name",
+      "fieldType": "string",
+      "component": "text",
+      "required": true,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 130,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
       "displayName": "Temp Project Name",
       "placeholder": "Enter temp project name",
-      "maxLength": 500,
-      "validation": {
-        "maxLength": 500
-      },
+      "validation": {},
       "defaultValue": ""
+    },
+    {
+      "id": "field_pet_breed_id",
+      "name": "pet_breed_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 140,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "isForeignKey": true,
+      "referencedTable": "pet_manchester_terrier_toy",
+      "referencedFieldID": "id",
+      "displayName": "Pet Breed",
+      "placeholder": "Enter pet breed",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
       "id": "field_id",
@@ -189,9 +374,9 @@
       "component": "text",
       "required": true,
       "isSystem": true,
-      "isPrimaryKey": true,
+      "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 80,
+      "sortOrder": 150,
       "permissions": {
         "read": [
           "*"
@@ -200,7 +385,8 @@
           "system"
         ]
       },
-      "displayName": "Id"
+      "displayName": "Id",
+      "validation": {}
     },
     {
       "id": "field_created_at",
@@ -211,7 +397,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 90,
+      "sortOrder": 160,
       "permissions": {
         "read": [
           "*"
@@ -220,7 +406,8 @@
           "system"
         ]
       },
-      "displayName": "Created At"
+      "displayName": "Created At",
+      "validation": {}
     },
     {
       "id": "field_created_by",
@@ -231,7 +418,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 100,
+      "sortOrder": 170,
       "permissions": {
         "read": [
           "*"
@@ -240,7 +427,8 @@
           "system"
         ]
       },
-      "displayName": "Created By"
+      "displayName": "Created By",
+      "validation": {}
     },
     {
       "id": "field_updated_at",
@@ -251,7 +439,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 110,
+      "sortOrder": 180,
       "permissions": {
         "read": [
           "*"
@@ -260,7 +448,8 @@
           "system"
         ]
       },
-      "displayName": "Updated At"
+      "displayName": "Updated At",
+      "validation": {}
     },
     {
       "id": "field_updated_by",
@@ -271,7 +460,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 120,
+      "sortOrder": 190,
       "permissions": {
         "read": [
           "*"
@@ -280,14 +469,15 @@
           "system"
         ]
       },
-      "displayName": "Updated By"
+      "displayName": "Updated By",
+      "validation": {}
     }
   ],
   "metadata": {
     "tableName": "pet_in_project",
-    "totalFields": 12,
+    "totalFields": 19,
     "systemFields": 5,
-    "customFields": 7,
-    "generatedAt": "2025-09-07T17:59:03.241Z"
+    "customFields": 14,
+    "generatedAt": "2025-09-08T11:20:55.021Z"
   }
 }

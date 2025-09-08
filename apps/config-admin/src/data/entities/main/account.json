@@ -26,10 +26,7 @@
       },
       "displayName": "Name",
       "placeholder": "Enter name",
-      "maxLength": 250,
-      "validation": {
-        "maxLength": 250
-      },
+      "validation": {},
       "defaultValue": ""
     },
     {
@@ -53,17 +50,14 @@
       },
       "displayName": "Description",
       "placeholder": "Enter description",
-      "maxLength": 250,
-      "validation": {
-        "maxLength": 250
-      },
+      "validation": {},
       "defaultValue": ""
     },
     {
       "id": "field_owner_id",
       "name": "owner_id",
       "fieldType": "uuid",
-      "component": "text",
+      "component": "select",
       "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -78,14 +72,19 @@
           "editor"
         ]
       },
-      "displayName": "Owner Id",
-      "placeholder": "Enter owner id"
+      "isForeignKey": true,
+      "referencedTable": "owner",
+      "referencedFieldID": "id",
+      "displayName": "Owner",
+      "placeholder": "Enter owner",
+      "validation": {},
+      "referencedFieldName": "id"
     },
     {
-      "id": "field_primary_contact_id",
-      "name": "primary_contact_id",
+      "id": "field_ownership_id",
+      "name": "ownership_id",
       "fieldType": "uuid",
-      "component": "text",
+      "component": "select",
       "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -100,15 +99,20 @@
           "editor"
         ]
       },
-      "displayName": "Primary Contact Id",
-      "placeholder": "Enter primary contact id"
+      "isForeignKey": true,
+      "referencedTable": "account_ownership",
+      "referencedFieldID": "id",
+      "displayName": "Ownership",
+      "placeholder": "Enter ownership",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
-      "id": "field_code",
-      "name": "code",
-      "fieldType": "string",
-      "component": "text",
-      "required": true,
+      "id": "field_primary_contact_id",
+      "name": "primary_contact_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -122,20 +126,20 @@
           "editor"
         ]
       },
-      "displayName": "Code",
-      "placeholder": "Enter code",
-      "maxLength": 250,
-      "validation": {
-        "maxLength": 250
-      },
-      "defaultValue": ""
+      "isForeignKey": true,
+      "referencedTable": "primary_contact",
+      "referencedFieldID": "id",
+      "displayName": "Primary Contact",
+      "placeholder": "Enter primary contact",
+      "validation": {},
+      "referencedFieldName": "id"
     },
     {
-      "id": "field_phone",
-      "name": "phone",
-      "fieldType": "string",
-      "component": "phone",
-      "required": true,
+      "id": "field_parent_id",
+      "name": "parent_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -149,22 +153,20 @@
           "editor"
         ]
       },
-      "displayName": "Phone",
-      "placeholder": "Enter phone",
-      "maxLength": 250,
-      "validation": {
-        "maxLength": 250,
-        "pattern": "^[+]?[0-9]{1,4}?[-. ]?[(]?[0-9]{1,3}?[)]?[-. ]?[0-9]{1,4}[-. ]?[0-9]{1,4}$",
-        "message": "Invalid phone format"
-      },
-      "defaultValue": ""
+      "isForeignKey": true,
+      "referencedTable": "account",
+      "referencedFieldID": "id",
+      "displayName": "Parent",
+      "placeholder": "Enter parent",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
-      "id": "field_additional_phone",
-      "name": "additional_phone",
-      "fieldType": "string",
-      "component": "phone",
-      "required": true,
+      "id": "field_industry_id",
+      "name": "industry_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -178,19 +180,17 @@
           "editor"
         ]
       },
-      "displayName": "Additional Phone",
-      "placeholder": "Enter additional phone",
-      "maxLength": 250,
-      "validation": {
-        "maxLength": 250,
-        "pattern": "^[+]?[0-9]{1,4}?[-. ]?[(]?[0-9]{1,3}?[)]?[-. ]?[0-9]{1,4}[-. ]?[0-9]{1,4}$",
-        "message": "Invalid phone format"
-      },
-      "defaultValue": ""
+      "isForeignKey": true,
+      "referencedTable": "account_industry",
+      "referencedFieldID": "id",
+      "displayName": "Industry",
+      "placeholder": "Enter industry",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
-      "id": "field_fax",
-      "name": "fax",
+      "id": "field_code",
+      "name": "code",
       "fieldType": "string",
       "component": "text",
       "required": true,
@@ -207,20 +207,17 @@
           "editor"
         ]
       },
-      "displayName": "Fax",
-      "placeholder": "Enter fax",
-      "maxLength": 250,
-      "validation": {
-        "maxLength": 250
-      },
+      "displayName": "Code",
+      "placeholder": "Enter code",
+      "validation": {},
       "defaultValue": ""
     },
     {
-      "id": "field_web",
-      "name": "web",
-      "fieldType": "string",
-      "component": "text",
-      "required": true,
+      "id": "field_type_id",
+      "name": "type_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -234,19 +231,19 @@
           "editor"
         ]
       },
-      "displayName": "Web",
-      "placeholder": "Enter web",
-      "maxLength": 250,
-      "validation": {
-        "maxLength": 250
-      },
-      "defaultValue": ""
+      "isForeignKey": true,
+      "referencedTable": "account_type",
+      "referencedFieldID": "id",
+      "displayName": "Type",
+      "placeholder": "Enter type",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
-      "id": "field_address",
-      "name": "address",
-      "fieldType": "text",
-      "component": "textarea",
+      "id": "field_phone",
+      "name": "phone",
+      "fieldType": "string",
+      "component": "phone",
       "required": true,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -261,15 +258,16 @@
           "editor"
         ]
       },
-      "displayName": "Address",
-      "placeholder": "Enter address",
+      "displayName": "Phone",
+      "placeholder": "Enter phone",
+      "validation": {},
       "defaultValue": ""
     },
     {
-      "id": "field_zip",
-      "name": "zip",
+      "id": "field_additional_phone",
+      "name": "additional_phone",
       "fieldType": "string",
-      "component": "text",
+      "component": "phone",
       "required": true,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -284,19 +282,16 @@
           "editor"
         ]
       },
-      "displayName": "Zip",
-      "placeholder": "Enter zip",
-      "maxLength": 50,
-      "validation": {
-        "maxLength": 50
-      },
+      "displayName": "Additional Phone",
+      "placeholder": "Enter additional phone",
+      "validation": {},
       "defaultValue": ""
     },
     {
-      "id": "field_notes",
-      "name": "notes",
-      "fieldType": "text",
-      "component": "textarea",
+      "id": "field_fax",
+      "name": "fax",
+      "fieldType": "string",
+      "component": "text",
       "required": true,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -311,16 +306,17 @@
           "editor"
         ]
       },
-      "displayName": "Notes",
-      "placeholder": "Enter notes",
+      "displayName": "Fax",
+      "placeholder": "Enter fax",
+      "validation": {},
       "defaultValue": ""
     },
     {
-      "id": "field_logo",
-      "name": "logo",
+      "id": "field_web",
+      "name": "web",
       "fieldType": "string",
       "component": "text",
-      "required": false,
+      "required": true,
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -334,15 +330,17 @@
           "editor"
         ]
       },
-      "displayName": "Logo",
-      "placeholder": "Enter logo"
+      "displayName": "Web",
+      "placeholder": "Enter web",
+      "validation": {},
+      "defaultValue": ""
     },
     {
-      "id": "field_alternative_name",
-      "name": "alternative_name",
-      "fieldType": "string",
-      "component": "text",
-      "required": true,
+      "id": "field_address_type_id",
+      "name": "address_type_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -356,19 +354,19 @@
           "editor"
         ]
       },
-      "displayName": "Alternative Name",
-      "placeholder": "Enter alternative name",
-      "maxLength": 250,
-      "validation": {
-        "maxLength": 250
-      },
-      "defaultValue": ""
+      "isForeignKey": true,
+      "referencedTable": "address_type",
+      "referencedFieldID": "id",
+      "displayName": "Address Type",
+      "placeholder": "Enter address type",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
-      "id": "field_gpsn",
-      "name": "gpsn",
-      "fieldType": "string",
-      "component": "text",
+      "id": "field_address",
+      "name": "address",
+      "fieldType": "text",
+      "component": "textarea",
       "required": true,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -383,20 +381,17 @@
           "editor"
         ]
       },
-      "displayName": "Gpsn",
-      "placeholder": "Enter gpsn",
-      "maxLength": 50,
-      "validation": {
-        "maxLength": 50
-      },
+      "displayName": "Address",
+      "placeholder": "Enter address",
+      "validation": {},
       "defaultValue": ""
     },
     {
-      "id": "field_gpse",
-      "name": "gpse",
-      "fieldType": "string",
-      "component": "text",
-      "required": true,
+      "id": "field_city_id",
+      "name": "city_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -410,20 +405,20 @@
           "editor"
         ]
       },
-      "displayName": "Gpse",
-      "placeholder": "Enter gpse",
-      "maxLength": 50,
-      "validation": {
-        "maxLength": 50
-      },
-      "defaultValue": ""
+      "isForeignKey": true,
+      "referencedTable": "city",
+      "referencedFieldID": "id",
+      "displayName": "City",
+      "placeholder": "Enter city",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
-      "id": "field_completeness",
-      "name": "completeness",
-      "fieldType": "number",
-      "component": "number",
-      "required": true,
+      "id": "field_region_id",
+      "name": "region_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -437,16 +432,17 @@
           "editor"
         ]
       },
-      "displayName": "Completeness",
-      "placeholder": "Enter completeness",
-      "validation": {
-        "precision": 32
-      },
-      "defaultValue": "0"
+      "isForeignKey": true,
+      "referencedTable": "region",
+      "referencedFieldID": "id",
+      "displayName": "Region",
+      "placeholder": "Enter region",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
-      "id": "field_aum",
-      "name": "aum",
+      "id": "field_zip",
+      "name": "zip",
       "fieldType": "string",
       "component": "text",
       "required": true,
@@ -463,20 +459,17 @@
           "editor"
         ]
       },
-      "displayName": "Aum",
-      "placeholder": "Enter aum",
-      "maxLength": 250,
-      "validation": {
-        "maxLength": 250
-      },
+      "displayName": "Zip",
+      "placeholder": "Enter zip",
+      "validation": {},
       "defaultValue": ""
     },
     {
-      "id": "field_trim_code",
-      "name": "trim_code",
-      "fieldType": "string",
-      "component": "text",
-      "required": true,
+      "id": "field_country_id",
+      "name": "country_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -490,20 +483,20 @@
           "editor"
         ]
       },
-      "displayName": "Trim Code",
-      "placeholder": "Enter trim code",
-      "maxLength": 250,
-      "validation": {
-        "maxLength": 250
-      },
-      "defaultValue": ""
+      "isForeignKey": true,
+      "referencedTable": "country",
+      "referencedFieldID": "id",
+      "displayName": "Country",
+      "placeholder": "Enter country",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
-      "id": "field_about_us",
-      "name": "about_us",
-      "fieldType": "text",
-      "component": "textarea",
-      "required": true,
+      "id": "field_account_category_id",
+      "name": "account_category_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -517,15 +510,19 @@
           "editor"
         ]
       },
-      "displayName": "About Us",
-      "placeholder": "Enter about us",
-      "defaultValue": ""
+      "isForeignKey": true,
+      "referencedTable": "account_category",
+      "referencedFieldID": "id",
+      "displayName": "Account Category",
+      "placeholder": "Enter account category",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
-      "id": "field_url",
-      "name": "url",
-      "fieldType": "string",
-      "component": "url",
+      "id": "field_notes",
+      "name": "notes",
+      "fieldType": "text",
+      "component": "textarea",
       "required": true,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -540,22 +537,17 @@
           "editor"
         ]
       },
-      "displayName": "Url",
-      "placeholder": "Enter url",
-      "maxLength": 250,
-      "validation": {
-        "maxLength": 250,
-        "pattern": "^https?://.+",
-        "message": "Invalid URL format"
-      },
+      "displayName": "Notes",
+      "placeholder": "Enter notes",
+      "validation": {},
       "defaultValue": ""
     },
     {
-      "id": "field_duplicate_group_id",
-      "name": "duplicate_group_id",
+      "id": "field_logo",
+      "name": "logo",
       "fieldType": "string",
       "component": "text",
-      "required": true,
+      "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -569,20 +561,16 @@
           "editor"
         ]
       },
-      "displayName": "Duplicate Group Id",
-      "placeholder": "Enter duplicate group id",
-      "maxLength": 50,
-      "validation": {
-        "maxLength": 50
-      },
-      "defaultValue": ""
+      "displayName": "Logo",
+      "placeholder": "Enter logo",
+      "validation": {}
     },
     {
-      "id": "field_duplicate_id",
-      "name": "duplicate_id",
-      "fieldType": "uuid",
+      "id": "field_alternative_name",
+      "name": "alternative_name",
+      "fieldType": "string",
       "component": "text",
-      "required": false,
+      "required": true,
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -596,14 +584,16 @@
           "editor"
         ]
       },
-      "displayName": "Duplicate Id",
-      "placeholder": "Enter duplicate id"
+      "displayName": "Alternative Name",
+      "placeholder": "Enter alternative name",
+      "validation": {},
+      "defaultValue": ""
     },
     {
-      "id": "field_avatar_url",
-      "name": "avatar_url",
+      "id": "field_gpsn",
+      "name": "gpsn",
       "fieldType": "string",
-      "component": "url",
+      "component": "text",
       "required": true,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -618,21 +608,16 @@
           "editor"
         ]
       },
-      "displayName": "Avatar Url",
-      "placeholder": "Enter avatar url",
-      "maxLength": 500,
-      "validation": {
-        "maxLength": 500,
-        "pattern": "^https?://.+",
-        "message": "Invalid URL format"
-      },
+      "displayName": "Gpsn",
+      "placeholder": "Enter gpsn",
+      "validation": {},
       "defaultValue": ""
     },
     {
-      "id": "field_has_kennel_name",
-      "name": "has_kennel_name",
-      "fieldType": "boolean",
-      "component": "checkbox",
+      "id": "field_gpse",
+      "name": "gpse",
+      "fieldType": "string",
+      "component": "text",
       "required": true,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -647,15 +632,17 @@
           "editor"
         ]
       },
-      "displayName": "Has Kennel Name",
-      "defaultValue": "false"
+      "displayName": "Gpse",
+      "placeholder": "Enter gpse",
+      "validation": {},
+      "defaultValue": ""
     },
     {
-      "id": "field_since",
-      "name": "since",
-      "fieldType": "date",
-      "component": "date",
-      "required": false,
+      "id": "field_completeness",
+      "name": "completeness",
+      "fieldType": "number",
+      "component": "number",
+      "required": true,
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -669,14 +656,16 @@
           "editor"
         ]
       },
-      "displayName": "Since",
-      "placeholder": "Enter since"
+      "displayName": "Completeness",
+      "placeholder": "Enter completeness",
+      "validation": {},
+      "defaultValue": "0"
     },
     {
-      "id": "field_verfied",
-      "name": "verfied",
-      "fieldType": "boolean",
-      "component": "checkbox",
+      "id": "field_aum",
+      "name": "aum",
+      "fieldType": "string",
+      "component": "text",
       "required": true,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -691,14 +680,16 @@
           "editor"
         ]
       },
-      "displayName": "Verfied",
-      "defaultValue": "false"
+      "displayName": "Aum",
+      "placeholder": "Enter aum",
+      "validation": {},
+      "defaultValue": ""
     },
     {
-      "id": "field_verified",
-      "name": "verified",
-      "fieldType": "boolean",
-      "component": "checkbox",
+      "id": "field_trim_code",
+      "name": "trim_code",
+      "fieldType": "string",
+      "component": "text",
       "required": true,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -713,14 +704,16 @@
           "editor"
         ]
       },
-      "displayName": "Verified",
-      "defaultValue": "false"
+      "displayName": "Trim Code",
+      "placeholder": "Enter trim code",
+      "validation": {},
+      "defaultValue": ""
     },
     {
-      "id": "field_company_foundation_date",
-      "name": "company_foundation_date",
-      "fieldType": "date",
-      "component": "date",
+      "id": "field_status_id",
+      "name": "status_id",
+      "fieldType": "uuid",
+      "component": "select",
       "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -735,14 +728,19 @@
           "editor"
         ]
       },
-      "displayName": "Company Foundation Date",
-      "placeholder": "Enter company foundation date"
+      "isForeignKey": true,
+      "referencedTable": "account_status",
+      "referencedFieldID": "id",
+      "displayName": "Status",
+      "placeholder": "Enter status",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
-      "id": "field_measurements",
-      "name": "measurements",
-      "fieldType": "json",
-      "component": "json",
+      "id": "field_affix_type_id",
+      "name": "affix_type_id",
+      "fieldType": "uuid",
+      "component": "select",
       "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -757,8 +755,392 @@
           "editor"
         ]
       },
+      "isForeignKey": true,
+      "referencedTable": "affix_type",
+      "referencedFieldID": "id",
+      "displayName": "Affix Type",
+      "placeholder": "Enter affix type",
+      "validation": {},
+      "referencedFieldName": "name"
+    },
+    {
+      "id": "field_federation_id",
+      "name": "federation_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 310,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "isForeignKey": true,
+      "referencedTable": "account",
+      "referencedFieldID": "id",
+      "displayName": "Federation",
+      "placeholder": "Enter federation",
+      "validation": {},
+      "referencedFieldName": "name"
+    },
+    {
+      "id": "field_about_us",
+      "name": "about_us",
+      "fieldType": "text",
+      "component": "textarea",
+      "required": true,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 320,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "displayName": "About Us",
+      "placeholder": "Enter about us",
+      "validation": {},
+      "defaultValue": ""
+    },
+    {
+      "id": "field_url",
+      "name": "url",
+      "fieldType": "string",
+      "component": "url",
+      "required": true,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 330,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "displayName": "Url",
+      "placeholder": "Enter url",
+      "validation": {
+        "pattern": "^https?://.+",
+        "message": "Invalid URL format"
+      },
+      "defaultValue": ""
+    },
+    {
+      "id": "field_duplicate_group_id",
+      "name": "duplicate_group_id",
+      "fieldType": "string",
+      "component": "select",
+      "required": true,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 340,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "isForeignKey": true,
+      "referencedTable": "duplicate_group",
+      "referencedFieldID": "id",
+      "displayName": "Duplicate Group",
+      "placeholder": "Enter duplicate group",
+      "validation": {},
+      "defaultValue": "",
+      "referencedFieldName": "id"
+    },
+    {
+      "id": "field_verified_stage_id",
+      "name": "verified_stage_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 350,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "isForeignKey": true,
+      "referencedTable": "verified_stage",
+      "referencedFieldID": "id",
+      "displayName": "Verified Stage",
+      "placeholder": "Enter verified stage",
+      "validation": {},
+      "referencedFieldName": "name"
+    },
+    {
+      "id": "field_duplicate_id",
+      "name": "duplicate_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 360,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "isForeignKey": true,
+      "referencedTable": "duplicate",
+      "referencedFieldID": "id",
+      "displayName": "Duplicate",
+      "placeholder": "Enter duplicate",
+      "validation": {},
+      "referencedFieldName": "id"
+    },
+    {
+      "id": "field_avatar_url",
+      "name": "avatar_url",
+      "fieldType": "string",
+      "component": "url",
+      "required": true,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 370,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "displayName": "Avatar Url",
+      "placeholder": "Enter avatar url",
+      "validation": {
+        "pattern": "^https?://.+",
+        "message": "Invalid URL format"
+      },
+      "defaultValue": ""
+    },
+    {
+      "id": "field_has_kennel_name",
+      "name": "has_kennel_name",
+      "fieldType": "boolean",
+      "component": "checkbox",
+      "required": true,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 380,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "displayName": "Has Kennel Name",
+      "validation": {},
+      "defaultValue": "false"
+    },
+    {
+      "id": "field_since",
+      "name": "since",
+      "fieldType": "date",
+      "component": "date",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 390,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "displayName": "Since",
+      "placeholder": "Enter since",
+      "validation": {}
+    },
+    {
+      "id": "field_verfied",
+      "name": "verfied",
+      "fieldType": "boolean",
+      "component": "checkbox",
+      "required": true,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 400,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "displayName": "Verfied",
+      "validation": {},
+      "defaultValue": "false"
+    },
+    {
+      "id": "field_verified",
+      "name": "verified",
+      "fieldType": "boolean",
+      "component": "checkbox",
+      "required": true,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 410,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "displayName": "Verified",
+      "validation": {},
+      "defaultValue": "false"
+    },
+    {
+      "id": "field_verification_status_id",
+      "name": "verification_status_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 420,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "isForeignKey": true,
+      "referencedTable": "verification_status",
+      "referencedFieldID": "id",
+      "displayName": "Verification Status",
+      "placeholder": "Enter verification status",
+      "validation": {},
+      "referencedFieldName": "name"
+    },
+    {
+      "id": "field_company_foundation_date",
+      "name": "company_foundation_date",
+      "fieldType": "date",
+      "component": "date",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 430,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "displayName": "Company Foundation Date",
+      "placeholder": "Enter company foundation date",
+      "validation": {}
+    },
+    {
+      "id": "field_cover_id",
+      "name": "cover_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 440,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "isForeignKey": true,
+      "referencedTable": "cover",
+      "referencedFieldID": "id",
+      "displayName": "Cover",
+      "placeholder": "Enter cover",
+      "validation": {},
+      "referencedFieldName": "name"
+    },
+    {
+      "id": "field_measurements",
+      "name": "measurements",
+      "fieldType": "json",
+      "component": "json",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 450,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
       "displayName": "Measurements",
-      "placeholder": "Enter measurements"
+      "placeholder": "Enter measurements",
+      "validation": {}
     },
     {
       "id": "field_id",
@@ -767,9 +1149,9 @@
       "component": "text",
       "required": true,
       "isSystem": true,
-      "isPrimaryKey": true,
+      "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 310,
+      "sortOrder": 460,
       "permissions": {
         "read": [
           "*"
@@ -778,7 +1160,8 @@
           "system"
         ]
       },
-      "displayName": "Id"
+      "displayName": "Id",
+      "validation": {}
     },
     {
       "id": "field_created_at",
@@ -789,7 +1172,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 320,
+      "sortOrder": 470,
       "permissions": {
         "read": [
           "*"
@@ -798,7 +1181,8 @@
           "system"
         ]
       },
-      "displayName": "Created At"
+      "displayName": "Created At",
+      "validation": {}
     },
     {
       "id": "field_created_by",
@@ -809,7 +1193,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 330,
+      "sortOrder": 480,
       "permissions": {
         "read": [
           "*"
@@ -818,7 +1202,8 @@
           "system"
         ]
       },
-      "displayName": "Created By"
+      "displayName": "Created By",
+      "validation": {}
     },
     {
       "id": "field_updated_at",
@@ -829,7 +1214,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 340,
+      "sortOrder": 490,
       "permissions": {
         "read": [
           "*"
@@ -838,7 +1223,8 @@
           "system"
         ]
       },
-      "displayName": "Updated At"
+      "displayName": "Updated At",
+      "validation": {}
     },
     {
       "id": "field_updated_by",
@@ -849,7 +1235,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 350,
+      "sortOrder": 500,
       "permissions": {
         "read": [
           "*"
@@ -858,14 +1244,15 @@
           "system"
         ]
       },
-      "displayName": "Updated By"
+      "displayName": "Updated By",
+      "validation": {}
     }
   ],
   "metadata": {
     "tableName": "account",
-    "totalFields": 35,
+    "totalFields": 50,
     "systemFields": 5,
-    "customFields": 30,
-    "generatedAt": "2025-09-07T18:14:18.968Z"
+    "customFields": 45,
+    "generatedAt": "2025-09-08T11:19:28.015Z"
   }
 }

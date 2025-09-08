@@ -26,6 +26,7 @@
       },
       "displayName": "Name",
       "placeholder": "Enter name",
+      "validation": {},
       "defaultValue": ""
     },
     {
@@ -49,6 +50,7 @@
       },
       "displayName": "Notes",
       "placeholder": "Enter notes",
+      "validation": {},
       "defaultValue": ""
     },
     {
@@ -71,13 +73,14 @@
         ]
       },
       "displayName": "Date Of Birth",
-      "placeholder": "Enter date of birth"
+      "placeholder": "Enter date of birth",
+      "validation": {}
     },
     {
       "id": "field_owner_id",
       "name": "owner_id",
       "fieldType": "uuid",
-      "component": "text",
+      "component": "select",
       "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -92,14 +95,19 @@
           "editor"
         ]
       },
-      "displayName": "Owner Id",
-      "placeholder": "Enter owner id"
+      "isForeignKey": true,
+      "referencedTable": "owner",
+      "referencedFieldID": "id",
+      "displayName": "Owner",
+      "placeholder": "Enter owner",
+      "validation": {},
+      "referencedFieldName": "id"
     },
     {
       "id": "field_kennel_id",
       "name": "kennel_id",
       "fieldType": "uuid",
-      "component": "text",
+      "component": "select",
       "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -114,14 +122,19 @@
           "editor"
         ]
       },
-      "displayName": "Kennel Id",
-      "placeholder": "Enter kennel id"
+      "isForeignKey": true,
+      "referencedTable": "kennel",
+      "referencedFieldID": "id",
+      "displayName": "Kennel",
+      "placeholder": "Enter kennel",
+      "validation": {},
+      "referencedFieldName": "id"
     },
     {
       "id": "field_pet_type_id",
       "name": "pet_type_id",
       "fieldType": "uuid",
-      "component": "text",
+      "component": "select",
       "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -136,14 +149,19 @@
           "editor"
         ]
       },
-      "displayName": "Pet Type Id",
-      "placeholder": "Enter pet type id"
+      "isForeignKey": true,
+      "referencedTable": "pet_type",
+      "referencedFieldID": "id",
+      "displayName": "Pet Type",
+      "placeholder": "Enter pet type",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
       "id": "field_sex_id",
       "name": "sex_id",
       "fieldType": "uuid",
-      "component": "text",
+      "component": "select",
       "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -158,14 +176,19 @@
           "editor"
         ]
       },
-      "displayName": "Sex Id",
-      "placeholder": "Enter sex id"
+      "isForeignKey": true,
+      "referencedTable": "sex",
+      "referencedFieldID": "id",
+      "displayName": "Sex",
+      "placeholder": "Enter sex",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
       "id": "field_father_id",
       "name": "father_id",
       "fieldType": "uuid",
-      "component": "text",
+      "component": "select",
       "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -180,14 +203,19 @@
           "editor"
         ]
       },
-      "displayName": "Father Id",
-      "placeholder": "Enter father id"
+      "isForeignKey": true,
+      "referencedTable": "father",
+      "referencedFieldID": "id",
+      "displayName": "Father",
+      "placeholder": "Enter father",
+      "validation": {},
+      "referencedFieldName": "id"
     },
     {
       "id": "field_mother_id",
       "name": "mother_id",
       "fieldType": "uuid",
-      "component": "text",
+      "component": "select",
       "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -202,14 +230,19 @@
           "editor"
         ]
       },
-      "displayName": "Mother Id",
-      "placeholder": "Enter mother id"
+      "isForeignKey": true,
+      "referencedTable": "mother",
+      "referencedFieldID": "id",
+      "displayName": "Mother",
+      "placeholder": "Enter mother",
+      "validation": {},
+      "referencedFieldName": "id"
     },
     {
       "id": "field_breed_id",
       "name": "breed_id",
       "fieldType": "uuid",
-      "component": "text",
+      "component": "select",
       "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -224,14 +257,19 @@
           "editor"
         ]
       },
-      "displayName": "Breed Id",
-      "placeholder": "Enter breed id"
+      "isForeignKey": true,
+      "referencedTable": "breed",
+      "referencedFieldID": "id",
+      "displayName": "Breed",
+      "placeholder": "Enter breed",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
       "id": "field_breeder_id",
       "name": "breeder_id",
       "fieldType": "uuid",
-      "component": "text",
+      "component": "select",
       "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -246,14 +284,19 @@
           "editor"
         ]
       },
-      "displayName": "Breeder Id",
-      "placeholder": "Enter breeder id"
+      "isForeignKey": true,
+      "referencedTable": "breeder",
+      "referencedFieldID": "id",
+      "displayName": "Breeder",
+      "placeholder": "Enter breeder",
+      "validation": {},
+      "referencedFieldName": "id"
     },
     {
       "id": "field_photo_id",
       "name": "photo_id",
       "fieldType": "uuid",
-      "component": "image",
+      "component": "select",
       "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -268,8 +311,13 @@
           "editor"
         ]
       },
-      "displayName": "Photo Id",
-      "placeholder": "Enter photo id"
+      "isForeignKey": true,
+      "referencedTable": "photo",
+      "referencedFieldID": "id",
+      "displayName": "Photo",
+      "placeholder": "Enter photo",
+      "validation": {},
+      "referencedFieldName": "id"
     },
     {
       "id": "field_date_of_death",
@@ -291,13 +339,14 @@
         ]
       },
       "displayName": "Date Of Death",
-      "placeholder": "Enter date of death"
+      "placeholder": "Enter date of death",
+      "validation": {}
     },
     {
       "id": "field_pet_status_id",
       "name": "pet_status_id",
       "fieldType": "uuid",
-      "component": "text",
+      "component": "select",
       "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -312,14 +361,19 @@
           "editor"
         ]
       },
-      "displayName": "Pet Status Id",
-      "placeholder": "Enter pet status id"
+      "isForeignKey": true,
+      "referencedTable": "pet_status",
+      "referencedFieldID": "id",
+      "displayName": "Pet Status",
+      "placeholder": "Enter pet status",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
       "id": "field_coat_type_id",
       "name": "coat_type_id",
       "fieldType": "uuid",
-      "component": "text",
+      "component": "select",
       "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -334,14 +388,19 @@
           "editor"
         ]
       },
-      "displayName": "Coat Type Id",
-      "placeholder": "Enter coat type id"
+      "isForeignKey": true,
+      "referencedTable": "coat_type",
+      "referencedFieldID": "id",
+      "displayName": "Coat Type",
+      "placeholder": "Enter coat type",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
       "id": "field_coat_color_id",
       "name": "coat_color_id",
       "fieldType": "uuid",
-      "component": "color",
+      "component": "select",
       "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -356,14 +415,19 @@
           "editor"
         ]
       },
-      "displayName": "Coat Color Id",
-      "placeholder": "Enter coat color id"
+      "isForeignKey": true,
+      "referencedTable": "coat_color",
+      "referencedFieldID": "id",
+      "displayName": "Coat Color",
+      "placeholder": "Enter coat color",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
       "id": "field_size_id",
       "name": "size_id",
       "fieldType": "uuid",
-      "component": "text",
+      "component": "select",
       "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -378,14 +442,19 @@
           "editor"
         ]
       },
-      "displayName": "Size Id",
-      "placeholder": "Enter size id"
+      "isForeignKey": true,
+      "referencedTable": "size",
+      "referencedFieldID": "id",
+      "displayName": "Size",
+      "placeholder": "Enter size",
+      "validation": {},
+      "referencedFieldName": "id"
     },
     {
       "id": "field_body_feature_id",
       "name": "body_feature_id",
       "fieldType": "uuid",
-      "component": "text",
+      "component": "select",
       "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -400,14 +469,19 @@
           "editor"
         ]
       },
-      "displayName": "Body Feature Id",
-      "placeholder": "Enter body feature id"
+      "isForeignKey": true,
+      "referencedTable": "body_feature",
+      "referencedFieldID": "id",
+      "displayName": "Body Feature",
+      "placeholder": "Enter body feature",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
       "id": "field_litter_id",
       "name": "litter_id",
       "fieldType": "uuid",
-      "component": "text",
+      "component": "select",
       "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -422,8 +496,13 @@
           "editor"
         ]
       },
-      "displayName": "Litter Id",
-      "placeholder": "Enter litter id"
+      "isForeignKey": true,
+      "referencedTable": "litter",
+      "referencedFieldID": "id",
+      "displayName": "Litter",
+      "placeholder": "Enter litter",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
       "id": "field_call_name",
@@ -446,17 +525,14 @@
       },
       "displayName": "Call Name",
       "placeholder": "Enter call name",
-      "maxLength": 250,
-      "validation": {
-        "maxLength": 250
-      },
+      "validation": {},
       "defaultValue": ""
     },
     {
       "id": "field_country_of_birth_id",
       "name": "country_of_birth_id",
       "fieldType": "uuid",
-      "component": "text",
+      "component": "select",
       "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -471,8 +547,13 @@
           "editor"
         ]
       },
-      "displayName": "Country Of Birth Id",
-      "placeholder": "Enter country of birth id"
+      "isForeignKey": true,
+      "referencedTable": "country_of_birth",
+      "referencedFieldID": "id",
+      "displayName": "Country Of Birth",
+      "placeholder": "Enter country of birth",
+      "validation": {},
+      "referencedFieldName": "id"
     },
     {
       "id": "field_titles",
@@ -495,6 +576,7 @@
       },
       "displayName": "Titles",
       "placeholder": "Enter titles",
+      "validation": {},
       "defaultValue": ""
     },
     {
@@ -518,6 +600,7 @@
       },
       "displayName": "Inbreeding Percent",
       "placeholder": "Enter inbreeding percent",
+      "validation": {},
       "defaultValue": "0"
     },
     {
@@ -541,9 +624,7 @@
       },
       "displayName": "Url",
       "placeholder": "Enter url",
-      "maxLength": 500,
       "validation": {
-        "maxLength": 500,
         "pattern": "^https?://.+",
         "message": "Invalid URL format"
       },
@@ -570,17 +651,14 @@
       },
       "displayName": "Page Template Code",
       "placeholder": "Enter page template code",
-      "maxLength": 250,
-      "validation": {
-        "maxLength": 250
-      },
+      "validation": {},
       "defaultValue": ""
     },
     {
       "id": "field_verified_stage_id",
       "name": "verified_stage_id",
       "fieldType": "uuid",
-      "component": "text",
+      "component": "select",
       "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -595,14 +673,19 @@
           "editor"
         ]
       },
-      "displayName": "Verified Stage Id",
-      "placeholder": "Enter verified stage id"
+      "isForeignKey": true,
+      "referencedTable": "verified_stage",
+      "referencedFieldID": "id",
+      "displayName": "Verified Stage",
+      "placeholder": "Enter verified stage",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
       "id": "field_owner_kennel_id",
       "name": "owner_kennel_id",
       "fieldType": "uuid",
-      "component": "text",
+      "component": "select",
       "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -617,8 +700,13 @@
           "editor"
         ]
       },
-      "displayName": "Owner Kennel Id",
-      "placeholder": "Enter owner kennel id"
+      "isForeignKey": true,
+      "referencedTable": "owner_kennel",
+      "referencedFieldID": "id",
+      "displayName": "Owner Kennel",
+      "placeholder": "Enter owner kennel",
+      "validation": {},
+      "referencedFieldName": "id"
     },
     {
       "id": "field_full_breed_name",
@@ -641,10 +729,7 @@
       },
       "displayName": "Full Breed Name",
       "placeholder": "Enter full breed name",
-      "maxLength": 250,
-      "validation": {
-        "maxLength": 250
-      },
+      "validation": {},
       "defaultValue": ""
     },
     {
@@ -668,9 +753,7 @@
       },
       "displayName": "Avatar Url",
       "placeholder": "Enter avatar url",
-      "maxLength": 500,
       "validation": {
-        "maxLength": 500,
         "pattern": "^https?://.+",
         "message": "Invalid URL format"
       },
@@ -697,13 +780,14 @@
       },
       "displayName": "Rating",
       "placeholder": "Enter rating",
+      "validation": {},
       "defaultValue": "0"
     },
     {
       "id": "field_breed_division_id",
       "name": "breed_division_id",
       "fieldType": "uuid",
-      "component": "text",
+      "component": "select",
       "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -718,8 +802,13 @@
           "editor"
         ]
       },
-      "displayName": "Breed Division Id",
-      "placeholder": "Enter breed division id"
+      "isForeignKey": true,
+      "referencedTable": "breed_division",
+      "referencedFieldID": "id",
+      "displayName": "Breed Division",
+      "placeholder": "Enter breed division",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
       "id": "field_trim_titles",
@@ -742,13 +831,14 @@
       },
       "displayName": "Trim Titles",
       "placeholder": "Enter trim titles",
+      "validation": {},
       "defaultValue": ""
     },
     {
       "id": "field_country_of_stay_id",
       "name": "country_of_stay_id",
       "fieldType": "uuid",
-      "component": "text",
+      "component": "select",
       "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -763,8 +853,13 @@
           "editor"
         ]
       },
-      "displayName": "Country Of Stay Id",
-      "placeholder": "Enter country of stay id"
+      "isForeignKey": true,
+      "referencedTable": "country_of_stay",
+      "referencedFieldID": "id",
+      "displayName": "Country Of Stay",
+      "placeholder": "Enter country of stay",
+      "validation": {},
+      "referencedFieldName": "id"
     },
     {
       "id": "field_child_rating",
@@ -787,6 +882,7 @@
       },
       "displayName": "Child Rating",
       "placeholder": "Enter child rating",
+      "validation": {},
       "defaultValue": "0"
     },
     {
@@ -810,6 +906,7 @@
       },
       "displayName": "Self Rating",
       "placeholder": "Enter self rating",
+      "validation": {},
       "defaultValue": "0"
     },
     {
@@ -832,7 +929,8 @@
         ]
       },
       "displayName": "Calc Date Of Birth",
-      "placeholder": "Enter calc date of birth"
+      "placeholder": "Enter calc date of birth",
+      "validation": {}
     },
     {
       "id": "field_coi",
@@ -855,13 +953,14 @@
       },
       "displayName": "Coi",
       "placeholder": "Enter coi",
+      "validation": {},
       "defaultValue": "0"
     },
     {
       "id": "field_verification_status_id",
       "name": "verification_status_id",
       "fieldType": "uuid",
-      "component": "text",
+      "component": "select",
       "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -876,8 +975,13 @@
           "editor"
         ]
       },
-      "displayName": "Verification Status Id",
-      "placeholder": "Enter verification status id"
+      "isForeignKey": true,
+      "referencedTable": "verification_status",
+      "referencedFieldID": "id",
+      "displayName": "Verification Status",
+      "placeholder": "Enter verification status",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
       "id": "field_rating_placement_in_breed",
@@ -900,9 +1004,7 @@
       },
       "displayName": "Rating Placement In Breed",
       "placeholder": "Enter rating placement in breed",
-      "validation": {
-        "precision": 32
-      },
+      "validation": {},
       "defaultValue": "0"
     },
     {
@@ -925,13 +1027,14 @@
         ]
       },
       "displayName": "Is Public",
+      "validation": {},
       "defaultValue": "false"
     },
     {
       "id": "field_cover_id",
       "name": "cover_id",
       "fieldType": "uuid",
-      "component": "text",
+      "component": "select",
       "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -946,14 +1049,19 @@
           "editor"
         ]
       },
-      "displayName": "Cover Id",
-      "placeholder": "Enter cover id"
+      "isForeignKey": true,
+      "referencedTable": "cover",
+      "referencedFieldID": "id",
+      "displayName": "Cover",
+      "placeholder": "Enter cover",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
       "id": "field_public_data_id",
       "name": "public_data_id",
       "fieldType": "uuid",
-      "component": "text",
+      "component": "select",
       "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -968,8 +1076,13 @@
           "editor"
         ]
       },
-      "displayName": "Public Data Id",
-      "placeholder": "Enter public data id"
+      "isForeignKey": true,
+      "referencedTable": "public_data",
+      "referencedFieldID": "id",
+      "displayName": "Public Data",
+      "placeholder": "Enter public data",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
       "id": "field_weight",
@@ -992,6 +1105,7 @@
       },
       "displayName": "Weight",
       "placeholder": "Enter weight",
+      "validation": {},
       "defaultValue": "0"
     },
     {
@@ -1015,16 +1129,14 @@
       },
       "displayName": "Test Int Index",
       "placeholder": "Enter test int index",
-      "validation": {
-        "precision": 32
-      },
+      "validation": {},
       "defaultValue": "0"
     },
     {
       "id": "field_mother_breed_id",
       "name": "mother_breed_id",
       "fieldType": "uuid",
-      "component": "text",
+      "component": "select",
       "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -1039,14 +1151,19 @@
           "editor"
         ]
       },
-      "displayName": "Mother Breed Id",
-      "placeholder": "Enter mother breed id"
+      "isForeignKey": true,
+      "referencedTable": "mother_breed",
+      "referencedFieldID": "id",
+      "displayName": "Mother Breed",
+      "placeholder": "Enter mother breed",
+      "validation": {},
+      "referencedFieldName": "id"
     },
     {
       "id": "field_father_breed_id",
       "name": "father_breed_id",
       "fieldType": "uuid",
-      "component": "text",
+      "component": "select",
       "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -1061,8 +1178,13 @@
           "editor"
         ]
       },
-      "displayName": "Father Breed Id",
-      "placeholder": "Enter father breed id"
+      "isForeignKey": true,
+      "referencedTable": "father_breed",
+      "referencedFieldID": "id",
+      "displayName": "Father Breed",
+      "placeholder": "Enter father breed",
+      "validation": {},
+      "referencedFieldName": "id"
     },
     {
       "id": "field_id",
@@ -1071,7 +1193,7 @@
       "component": "text",
       "required": true,
       "isSystem": true,
-      "isPrimaryKey": true,
+      "isPrimaryKey": false,
       "isUnique": false,
       "sortOrder": 470,
       "permissions": {
@@ -1082,7 +1204,8 @@
           "system"
         ]
       },
-      "displayName": "Id"
+      "displayName": "Id",
+      "validation": {}
     },
     {
       "id": "field_created_at",
@@ -1102,7 +1225,8 @@
           "system"
         ]
       },
-      "displayName": "Created At"
+      "displayName": "Created At",
+      "validation": {}
     },
     {
       "id": "field_created_by",
@@ -1122,7 +1246,8 @@
           "system"
         ]
       },
-      "displayName": "Created By"
+      "displayName": "Created By",
+      "validation": {}
     },
     {
       "id": "field_updated_at",
@@ -1142,7 +1267,8 @@
           "system"
         ]
       },
-      "displayName": "Updated At"
+      "displayName": "Updated At",
+      "validation": {}
     },
     {
       "id": "field_updated_by",
@@ -1162,7 +1288,8 @@
           "system"
         ]
       },
-      "displayName": "Updated By"
+      "displayName": "Updated By",
+      "validation": {}
     }
   ],
   "metadata": {
@@ -1170,6 +1297,6 @@
     "totalFields": 51,
     "systemFields": 5,
     "customFields": 46,
-    "generatedAt": "2025-09-07T17:59:07.098Z"
+    "generatedAt": "2025-09-08T11:20:57.616Z"
   }
 }

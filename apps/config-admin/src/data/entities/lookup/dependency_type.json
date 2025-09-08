@@ -26,10 +26,7 @@
       },
       "displayName": "Name",
       "placeholder": "Enter name",
-      "maxLength": 250,
-      "validation": {
-        "maxLength": 250
-      },
+      "validation": {},
       "defaultValue": ""
     },
     {
@@ -53,10 +50,7 @@
       },
       "displayName": "Description",
       "placeholder": "Enter description",
-      "maxLength": 250,
-      "validation": {
-        "maxLength": 250
-      },
+      "validation": {},
       "defaultValue": ""
     },
     {
@@ -79,6 +73,7 @@
         ]
       },
       "displayName": "For Service Service",
+      "validation": {},
       "defaultValue": "false"
     },
     {
@@ -101,6 +96,7 @@
         ]
       },
       "displayName": "For Conf Item Conf Item",
+      "validation": {},
       "defaultValue": "false"
     },
     {
@@ -123,6 +119,7 @@
         ]
       },
       "displayName": "For Service Conf Item",
+      "validation": {},
       "defaultValue": "false"
     },
     {
@@ -146,20 +143,17 @@
       },
       "displayName": "Reverse Type Name",
       "placeholder": "Enter reverse type name",
-      "maxLength": 250,
-      "validation": {
-        "maxLength": 250
-      },
+      "validation": {},
       "defaultValue": ""
     },
     {
-      "id": "field_id",
-      "name": "id",
+      "id": "field_dependency_category_id",
+      "name": "dependency_category_id",
       "fieldType": "uuid",
-      "component": "text",
-      "required": true,
-      "isSystem": true,
-      "isPrimaryKey": true,
+      "component": "select",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
       "isUnique": false,
       "sortOrder": 70,
       "permissions": {
@@ -167,17 +161,24 @@
           "*"
         ],
         "write": [
-          "system"
+          "admin",
+          "editor"
         ]
       },
-      "displayName": "Id"
+      "isForeignKey": true,
+      "referencedTable": "dependency_category",
+      "referencedFieldID": "id",
+      "displayName": "Dependency Category",
+      "placeholder": "Enter dependency category",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
-      "id": "field_created_at",
-      "name": "created_at",
-      "fieldType": "datetime",
-      "component": "datetime",
-      "required": false,
+      "id": "field_id",
+      "name": "id",
+      "fieldType": "uuid",
+      "component": "text",
+      "required": true,
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -190,13 +191,14 @@
           "system"
         ]
       },
-      "displayName": "Created At"
+      "displayName": "Id",
+      "validation": {}
     },
     {
-      "id": "field_created_by",
-      "name": "created_by",
-      "fieldType": "uuid",
-      "component": "text",
+      "id": "field_created_at",
+      "name": "created_at",
+      "fieldType": "datetime",
+      "component": "datetime",
       "required": false,
       "isSystem": true,
       "isPrimaryKey": false,
@@ -210,13 +212,14 @@
           "system"
         ]
       },
-      "displayName": "Created By"
+      "displayName": "Created At",
+      "validation": {}
     },
     {
-      "id": "field_updated_at",
-      "name": "updated_at",
-      "fieldType": "datetime",
-      "component": "date",
+      "id": "field_created_by",
+      "name": "created_by",
+      "fieldType": "uuid",
+      "component": "text",
       "required": false,
       "isSystem": true,
       "isPrimaryKey": false,
@@ -230,12 +233,13 @@
           "system"
         ]
       },
-      "displayName": "Updated At"
+      "displayName": "Created By",
+      "validation": {}
     },
     {
-      "id": "field_updated_by",
-      "name": "updated_by",
-      "fieldType": "uuid",
+      "id": "field_updated_at",
+      "name": "updated_at",
+      "fieldType": "datetime",
       "component": "date",
       "required": false,
       "isSystem": true,
@@ -250,14 +254,36 @@
           "system"
         ]
       },
-      "displayName": "Updated By"
+      "displayName": "Updated At",
+      "validation": {}
+    },
+    {
+      "id": "field_updated_by",
+      "name": "updated_by",
+      "fieldType": "uuid",
+      "component": "date",
+      "required": false,
+      "isSystem": true,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 120,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "system"
+        ]
+      },
+      "displayName": "Updated By",
+      "validation": {}
     }
   ],
   "metadata": {
     "tableName": "dependency_type",
-    "totalFields": 11,
+    "totalFields": 12,
     "systemFields": 5,
-    "customFields": 6,
-    "generatedAt": "2025-09-07T18:14:45.148Z"
+    "customFields": 7,
+    "generatedAt": "2025-09-08T11:20:09.427Z"
   }
 }

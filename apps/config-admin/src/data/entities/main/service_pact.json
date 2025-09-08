@@ -26,17 +26,14 @@
       },
       "displayName": "Name",
       "placeholder": "Enter name",
-      "maxLength": 250,
-      "validation": {
-        "maxLength": 250
-      },
+      "validation": {},
       "defaultValue": ""
     },
     {
-      "id": "field_start_date",
-      "name": "start_date",
-      "fieldType": "date",
-      "component": "date",
+      "id": "field_status_id",
+      "name": "status_id",
+      "fieldType": "uuid",
+      "component": "select",
       "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -51,13 +48,17 @@
           "editor"
         ]
       },
-      "displayName": "Start Date",
-      "placeholder": "Enter start date",
-      "defaultValue": "(timezone(utc"
+      "isForeignKey": true,
+      "referencedTable": "service_pact_status",
+      "referencedFieldID": "id",
+      "displayName": "Status",
+      "placeholder": "Enter status",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
-      "id": "field_end_date",
-      "name": "end_date",
+      "id": "field_start_date",
+      "name": "start_date",
       "fieldType": "date",
       "component": "date",
       "required": false,
@@ -74,14 +75,16 @@
           "editor"
         ]
       },
-      "displayName": "End Date",
-      "placeholder": "Enter end date"
+      "displayName": "Start Date",
+      "placeholder": "Enter start date",
+      "validation": {},
+      "defaultValue": "(timezone(utc"
     },
     {
-      "id": "field_owner_id",
-      "name": "owner_id",
-      "fieldType": "uuid",
-      "component": "text",
+      "id": "field_end_date",
+      "name": "end_date",
+      "fieldType": "date",
+      "component": "date",
       "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -96,15 +99,16 @@
           "editor"
         ]
       },
-      "displayName": "Owner Id",
-      "placeholder": "Enter owner id"
+      "displayName": "End Date",
+      "placeholder": "Enter end date",
+      "validation": {}
     },
     {
-      "id": "field_number",
-      "name": "number",
-      "fieldType": "string",
-      "component": "text",
-      "required": true,
+      "id": "field_owner_id",
+      "name": "owner_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -118,19 +122,19 @@
           "editor"
         ]
       },
-      "displayName": "Number",
-      "placeholder": "Enter number",
-      "maxLength": 50,
-      "validation": {
-        "maxLength": 50
-      },
-      "defaultValue": ""
+      "isForeignKey": true,
+      "referencedTable": "owner",
+      "referencedFieldID": "id",
+      "displayName": "Owner",
+      "placeholder": "Enter owner",
+      "validation": {},
+      "referencedFieldName": "id"
     },
     {
-      "id": "field_notes",
-      "name": "notes",
-      "fieldType": "text",
-      "component": "textarea",
+      "id": "field_number",
+      "name": "number",
+      "fieldType": "string",
+      "component": "text",
       "required": true,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -145,9 +149,169 @@
           "editor"
         ]
       },
+      "displayName": "Number",
+      "placeholder": "Enter number",
+      "validation": {},
+      "defaultValue": ""
+    },
+    {
+      "id": "field_service_provider_id",
+      "name": "service_provider_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 70,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "isForeignKey": true,
+      "referencedTable": "account",
+      "referencedFieldID": "id",
+      "displayName": "Service Provider",
+      "placeholder": "Enter service provider",
+      "validation": {},
+      "referencedFieldName": "name"
+    },
+    {
+      "id": "field_service_provider_contact_id",
+      "name": "service_provider_contact_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 80,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "isForeignKey": true,
+      "referencedTable": "contact",
+      "referencedFieldID": "id",
+      "displayName": "Service Provider Contact",
+      "placeholder": "Enter service provider contact",
+      "validation": {},
+      "referencedFieldName": "name"
+    },
+    {
+      "id": "field_notes",
+      "name": "notes",
+      "fieldType": "text",
+      "component": "textarea",
+      "required": true,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 90,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
       "displayName": "Notes",
       "placeholder": "Enter notes",
+      "validation": {},
       "defaultValue": ""
+    },
+    {
+      "id": "field_calendar_id",
+      "name": "calendar_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 100,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "isForeignKey": true,
+      "referencedTable": "calendar",
+      "referencedFieldID": "id",
+      "displayName": "Calendar",
+      "placeholder": "Enter calendar",
+      "validation": {},
+      "referencedFieldName": "name"
+    },
+    {
+      "id": "field_provider_id",
+      "name": "provider_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 110,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "isForeignKey": true,
+      "referencedTable": "account",
+      "referencedFieldID": "id",
+      "displayName": "Provider",
+      "placeholder": "Enter provider",
+      "validation": {},
+      "referencedFieldName": "name"
+    },
+    {
+      "id": "field_product_id",
+      "name": "product_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 120,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "isForeignKey": true,
+      "referencedTable": "product",
+      "referencedFieldID": "id",
+      "displayName": "Product",
+      "placeholder": "Enter product",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
       "id": "field_id",
@@ -156,9 +320,9 @@
       "component": "text",
       "required": true,
       "isSystem": true,
-      "isPrimaryKey": true,
+      "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 70,
+      "sortOrder": 130,
       "permissions": {
         "read": [
           "*"
@@ -167,7 +331,8 @@
           "system"
         ]
       },
-      "displayName": "Id"
+      "displayName": "Id",
+      "validation": {}
     },
     {
       "id": "field_created_at",
@@ -178,7 +343,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 80,
+      "sortOrder": 140,
       "permissions": {
         "read": [
           "*"
@@ -187,7 +352,8 @@
           "system"
         ]
       },
-      "displayName": "Created At"
+      "displayName": "Created At",
+      "validation": {}
     },
     {
       "id": "field_created_by",
@@ -198,7 +364,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 90,
+      "sortOrder": 150,
       "permissions": {
         "read": [
           "*"
@@ -207,7 +373,8 @@
           "system"
         ]
       },
-      "displayName": "Created By"
+      "displayName": "Created By",
+      "validation": {}
     },
     {
       "id": "field_updated_at",
@@ -218,7 +385,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 100,
+      "sortOrder": 160,
       "permissions": {
         "read": [
           "*"
@@ -227,7 +394,8 @@
           "system"
         ]
       },
-      "displayName": "Updated At"
+      "displayName": "Updated At",
+      "validation": {}
     },
     {
       "id": "field_updated_by",
@@ -238,7 +406,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 110,
+      "sortOrder": 170,
       "permissions": {
         "read": [
           "*"
@@ -247,14 +415,15 @@
           "system"
         ]
       },
-      "displayName": "Updated By"
+      "displayName": "Updated By",
+      "validation": {}
     }
   ],
   "metadata": {
     "tableName": "service_pact",
-    "totalFields": 11,
+    "totalFields": 17,
     "systemFields": 5,
-    "customFields": 6,
-    "generatedAt": "2025-09-07T18:14:29.378Z"
+    "customFields": 12,
+    "generatedAt": "2025-09-08T11:19:47.243Z"
   }
 }

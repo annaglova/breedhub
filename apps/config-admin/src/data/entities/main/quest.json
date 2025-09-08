@@ -26,10 +26,7 @@
       },
       "displayName": "Name",
       "placeholder": "Enter name",
-      "maxLength": 250,
-      "validation": {
-        "maxLength": 250
-      },
+      "validation": {},
       "defaultValue": ""
     },
     {
@@ -53,20 +50,18 @@
       },
       "displayName": "Url",
       "placeholder": "Enter url",
-      "maxLength": 250,
       "validation": {
-        "maxLength": 250,
         "pattern": "^https?://.+",
         "message": "Invalid URL format"
       },
       "defaultValue": ""
     },
     {
-      "id": "field_reward",
-      "name": "reward",
-      "fieldType": "number",
-      "component": "number",
-      "required": true,
+      "id": "field_type_id",
+      "name": "type_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -80,16 +75,17 @@
           "editor"
         ]
       },
-      "displayName": "Reward",
-      "placeholder": "Enter reward",
-      "validation": {
-        "precision": 32
-      },
-      "defaultValue": "0"
+      "isForeignKey": true,
+      "referencedTable": "quest_type",
+      "referencedFieldID": "id",
+      "displayName": "Type",
+      "placeholder": "Enter type",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
-      "id": "field_frequency_interval",
-      "name": "frequency_interval",
+      "id": "field_reward",
+      "name": "reward",
       "fieldType": "number",
       "component": "number",
       "required": true,
@@ -106,18 +102,16 @@
           "editor"
         ]
       },
-      "displayName": "Frequency Interval",
-      "placeholder": "Enter frequency interval",
-      "validation": {
-        "precision": 32
-      },
+      "displayName": "Reward",
+      "placeholder": "Enter reward",
+      "validation": {},
       "defaultValue": "0"
     },
     {
-      "id": "field_deactivated",
-      "name": "deactivated",
-      "fieldType": "boolean",
-      "component": "checkbox",
+      "id": "field_frequency_interval",
+      "name": "frequency_interval",
+      "fieldType": "number",
+      "component": "number",
       "required": true,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -132,15 +126,17 @@
           "editor"
         ]
       },
-      "displayName": "Deactivated",
-      "defaultValue": "false"
+      "displayName": "Frequency Interval",
+      "placeholder": "Enter frequency interval",
+      "validation": {},
+      "defaultValue": "0"
     },
     {
-      "id": "field_description",
-      "name": "description",
-      "fieldType": "string",
-      "component": "textarea",
-      "required": true,
+      "id": "field_frequency_id",
+      "name": "frequency_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -154,19 +150,19 @@
           "editor"
         ]
       },
-      "displayName": "Description",
-      "placeholder": "Enter description",
-      "maxLength": 500,
-      "validation": {
-        "maxLength": 500
-      },
-      "defaultValue": ""
+      "isForeignKey": true,
+      "referencedTable": "quest_frequency",
+      "referencedFieldID": "id",
+      "displayName": "Frequency",
+      "placeholder": "Enter frequency",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
-      "id": "field_total_steps",
-      "name": "total_steps",
-      "fieldType": "number",
-      "component": "number",
+      "id": "field_deactivated",
+      "name": "deactivated",
+      "fieldType": "boolean",
+      "component": "checkbox",
       "required": true,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -181,19 +177,16 @@
           "editor"
         ]
       },
-      "displayName": "Total Steps",
-      "placeholder": "Enter total steps",
-      "validation": {
-        "precision": 32
-      },
-      "defaultValue": "0"
+      "displayName": "Deactivated",
+      "validation": {},
+      "defaultValue": "false"
     },
     {
-      "id": "field_deadline_date",
-      "name": "deadline_date",
-      "fieldType": "datetime",
-      "component": "date",
-      "required": false,
+      "id": "field_description",
+      "name": "description",
+      "fieldType": "string",
+      "component": "textarea",
+      "required": true,
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -207,17 +200,19 @@
           "editor"
         ]
       },
-      "displayName": "Deadline Date",
-      "placeholder": "Enter deadline date"
+      "displayName": "Description",
+      "placeholder": "Enter description",
+      "validation": {},
+      "defaultValue": ""
     },
     {
-      "id": "field_id",
-      "name": "id",
-      "fieldType": "uuid",
-      "component": "text",
+      "id": "field_total_steps",
+      "name": "total_steps",
+      "fieldType": "number",
+      "component": "number",
       "required": true,
-      "isSystem": true,
-      "isPrimaryKey": true,
+      "isSystem": false,
+      "isPrimaryKey": false,
       "isUnique": false,
       "sortOrder": 90,
       "permissions": {
@@ -225,18 +220,22 @@
           "*"
         ],
         "write": [
-          "system"
+          "admin",
+          "editor"
         ]
       },
-      "displayName": "Id"
+      "displayName": "Total Steps",
+      "placeholder": "Enter total steps",
+      "validation": {},
+      "defaultValue": "0"
     },
     {
-      "id": "field_created_at",
-      "name": "created_at",
+      "id": "field_deadline_date",
+      "name": "deadline_date",
       "fieldType": "datetime",
-      "component": "datetime",
+      "component": "date",
       "required": false,
-      "isSystem": true,
+      "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
       "sortOrder": 100,
@@ -245,17 +244,20 @@
           "*"
         ],
         "write": [
-          "system"
+          "admin",
+          "editor"
         ]
       },
-      "displayName": "Created At"
+      "displayName": "Deadline Date",
+      "placeholder": "Enter deadline date",
+      "validation": {}
     },
     {
-      "id": "field_created_by",
-      "name": "created_by",
+      "id": "field_id",
+      "name": "id",
       "fieldType": "uuid",
       "component": "text",
-      "required": false,
+      "required": true,
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -268,13 +270,14 @@
           "system"
         ]
       },
-      "displayName": "Created By"
+      "displayName": "Id",
+      "validation": {}
     },
     {
-      "id": "field_updated_at",
-      "name": "updated_at",
+      "id": "field_created_at",
+      "name": "created_at",
       "fieldType": "datetime",
-      "component": "date",
+      "component": "datetime",
       "required": false,
       "isSystem": true,
       "isPrimaryKey": false,
@@ -288,13 +291,14 @@
           "system"
         ]
       },
-      "displayName": "Updated At"
+      "displayName": "Created At",
+      "validation": {}
     },
     {
-      "id": "field_updated_by",
-      "name": "updated_by",
+      "id": "field_created_by",
+      "name": "created_by",
       "fieldType": "uuid",
-      "component": "date",
+      "component": "text",
       "required": false,
       "isSystem": true,
       "isPrimaryKey": false,
@@ -308,14 +312,57 @@
           "system"
         ]
       },
-      "displayName": "Updated By"
+      "displayName": "Created By",
+      "validation": {}
+    },
+    {
+      "id": "field_updated_at",
+      "name": "updated_at",
+      "fieldType": "datetime",
+      "component": "date",
+      "required": false,
+      "isSystem": true,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 140,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "system"
+        ]
+      },
+      "displayName": "Updated At",
+      "validation": {}
+    },
+    {
+      "id": "field_updated_by",
+      "name": "updated_by",
+      "fieldType": "uuid",
+      "component": "date",
+      "required": false,
+      "isSystem": true,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 150,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "system"
+        ]
+      },
+      "displayName": "Updated By",
+      "validation": {}
     }
   ],
   "metadata": {
     "tableName": "quest",
-    "totalFields": 13,
+    "totalFields": 15,
     "systemFields": 5,
-    "customFields": 8,
-    "generatedAt": "2025-09-07T18:14:32.128Z"
+    "customFields": 10,
+    "generatedAt": "2025-09-08T11:19:52.597Z"
   }
 }

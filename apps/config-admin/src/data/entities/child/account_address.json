@@ -6,11 +6,11 @@
   "category": "child",
   "fields": [
     {
-      "id": "field_address",
-      "name": "address",
-      "fieldType": "text",
-      "component": "textarea",
-      "required": true,
+      "id": "field_address_type_id",
+      "name": "address_type_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -24,16 +24,20 @@
           "editor"
         ]
       },
-      "displayName": "Address",
-      "placeholder": "Enter address",
-      "defaultValue": ""
+      "isForeignKey": true,
+      "referencedTable": "address_type",
+      "referencedFieldID": "id",
+      "displayName": "Address Type",
+      "placeholder": "Enter address type",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
-      "id": "field_zip",
-      "name": "zip",
-      "fieldType": "string",
-      "component": "text",
-      "required": true,
+      "id": "field_country_id",
+      "name": "country_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -47,20 +51,20 @@
           "editor"
         ]
       },
-      "displayName": "Zip",
-      "placeholder": "Enter zip",
-      "maxLength": 50,
-      "validation": {
-        "maxLength": 50
-      },
-      "defaultValue": ""
+      "isForeignKey": true,
+      "referencedTable": "country",
+      "referencedFieldID": "id",
+      "displayName": "Country",
+      "placeholder": "Enter country",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
-      "id": "field_primary",
-      "name": "primary",
-      "fieldType": "boolean",
-      "component": "checkbox",
-      "required": true,
+      "id": "field_region_id",
+      "name": "region_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -74,15 +78,20 @@
           "editor"
         ]
       },
-      "displayName": "Primary",
-      "defaultValue": "false"
+      "isForeignKey": true,
+      "referencedTable": "region",
+      "referencedFieldID": "id",
+      "displayName": "Region",
+      "placeholder": "Enter region",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
-      "id": "field_gpsn",
-      "name": "gpsn",
-      "fieldType": "string",
-      "component": "text",
-      "required": true,
+      "id": "field_city_id",
+      "name": "city_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -96,19 +105,19 @@
           "editor"
         ]
       },
-      "displayName": "Gpsn",
-      "placeholder": "Enter gpsn",
-      "maxLength": 50,
-      "validation": {
-        "maxLength": 50
-      },
-      "defaultValue": ""
+      "isForeignKey": true,
+      "referencedTable": "city",
+      "referencedFieldID": "id",
+      "displayName": "City",
+      "placeholder": "Enter city",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
-      "id": "field_gpse",
-      "name": "gpse",
-      "fieldType": "string",
-      "component": "text",
+      "id": "field_address",
+      "name": "address",
+      "fieldType": "text",
+      "component": "textarea",
       "required": true,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -123,19 +132,16 @@
           "editor"
         ]
       },
-      "displayName": "Gpse",
-      "placeholder": "Enter gpse",
-      "maxLength": 50,
-      "validation": {
-        "maxLength": 50
-      },
+      "displayName": "Address",
+      "placeholder": "Enter address",
+      "validation": {},
       "defaultValue": ""
     },
     {
-      "id": "field_full_address",
-      "name": "full_address",
-      "fieldType": "text",
-      "component": "textarea",
+      "id": "field_zip",
+      "name": "zip",
+      "fieldType": "string",
+      "component": "text",
       "required": true,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -150,8 +156,131 @@
           "editor"
         ]
       },
+      "displayName": "Zip",
+      "placeholder": "Enter zip",
+      "validation": {},
+      "defaultValue": ""
+    },
+    {
+      "id": "field_primary",
+      "name": "primary",
+      "fieldType": "boolean",
+      "component": "checkbox",
+      "required": true,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 70,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "displayName": "Primary",
+      "validation": {},
+      "defaultValue": "false"
+    },
+    {
+      "id": "field_account_id",
+      "name": "account_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 80,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "isForeignKey": true,
+      "referencedTable": "account",
+      "referencedFieldID": "id",
+      "displayName": "Account",
+      "placeholder": "Enter account",
+      "validation": {},
+      "referencedFieldName": "name"
+    },
+    {
+      "id": "field_gpsn",
+      "name": "gpsn",
+      "fieldType": "string",
+      "component": "text",
+      "required": true,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 90,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "displayName": "Gpsn",
+      "placeholder": "Enter gpsn",
+      "validation": {},
+      "defaultValue": ""
+    },
+    {
+      "id": "field_gpse",
+      "name": "gpse",
+      "fieldType": "string",
+      "component": "text",
+      "required": true,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 100,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "displayName": "Gpse",
+      "placeholder": "Enter gpse",
+      "validation": {},
+      "defaultValue": ""
+    },
+    {
+      "id": "field_full_address",
+      "name": "full_address",
+      "fieldType": "text",
+      "component": "textarea",
+      "required": true,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 110,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
       "displayName": "Full Address",
       "placeholder": "Enter full address",
+      "validation": {},
       "defaultValue": ""
     },
     {
@@ -161,9 +290,9 @@
       "component": "text",
       "required": true,
       "isSystem": true,
-      "isPrimaryKey": true,
+      "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 70,
+      "sortOrder": 120,
       "permissions": {
         "read": [
           "*"
@@ -172,7 +301,8 @@
           "system"
         ]
       },
-      "displayName": "Id"
+      "displayName": "Id",
+      "validation": {}
     },
     {
       "id": "field_created_at",
@@ -183,7 +313,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 80,
+      "sortOrder": 130,
       "permissions": {
         "read": [
           "*"
@@ -192,7 +322,8 @@
           "system"
         ]
       },
-      "displayName": "Created At"
+      "displayName": "Created At",
+      "validation": {}
     },
     {
       "id": "field_created_by",
@@ -203,7 +334,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 90,
+      "sortOrder": 140,
       "permissions": {
         "read": [
           "*"
@@ -212,7 +343,8 @@
           "system"
         ]
       },
-      "displayName": "Created By"
+      "displayName": "Created By",
+      "validation": {}
     },
     {
       "id": "field_updated_at",
@@ -223,7 +355,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 100,
+      "sortOrder": 150,
       "permissions": {
         "read": [
           "*"
@@ -232,7 +364,8 @@
           "system"
         ]
       },
-      "displayName": "Updated At"
+      "displayName": "Updated At",
+      "validation": {}
     },
     {
       "id": "field_updated_by",
@@ -243,7 +376,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 110,
+      "sortOrder": 160,
       "permissions": {
         "read": [
           "*"
@@ -252,14 +385,15 @@
           "system"
         ]
       },
-      "displayName": "Updated By"
+      "displayName": "Updated By",
+      "validation": {}
     }
   ],
   "metadata": {
     "tableName": "account_address",
-    "totalFields": 11,
+    "totalFields": 16,
     "systemFields": 5,
-    "customFields": 6,
-    "generatedAt": "2025-09-07T18:15:04.180Z"
+    "customFields": 11,
+    "generatedAt": "2025-09-08T11:20:32.859Z"
   }
 }

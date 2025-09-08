@@ -26,10 +26,7 @@
       },
       "displayName": "Name",
       "placeholder": "Enter name",
-      "maxLength": 250,
-      "validation": {
-        "maxLength": 250
-      },
+      "validation": {},
       "defaultValue": ""
     },
     {
@@ -53,10 +50,7 @@
       },
       "displayName": "Description",
       "placeholder": "Enter description",
-      "maxLength": 250,
-      "validation": {
-        "maxLength": 250
-      },
+      "validation": {},
       "defaultValue": ""
     },
     {
@@ -79,7 +73,8 @@
         ]
       },
       "displayName": "Start Date",
-      "placeholder": "Enter start date"
+      "placeholder": "Enter start date",
+      "validation": {}
     },
     {
       "id": "field_due_date",
@@ -101,16 +96,17 @@
         ]
       },
       "displayName": "Due Date",
-      "placeholder": "Enter due date"
+      "placeholder": "Enter due date",
+      "validation": {}
     },
     {
-      "id": "field_id",
-      "name": "id",
+      "id": "field_year_id",
+      "name": "year_id",
       "fieldType": "uuid",
-      "component": "text",
-      "required": true,
-      "isSystem": true,
-      "isPrimaryKey": true,
+      "component": "select",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
       "isUnique": false,
       "sortOrder": 50,
       "permissions": {
@@ -118,18 +114,25 @@
           "*"
         ],
         "write": [
-          "system"
+          "admin",
+          "editor"
         ]
       },
-      "displayName": "Id"
+      "isForeignKey": true,
+      "referencedTable": "period",
+      "referencedFieldID": "id",
+      "displayName": "Year",
+      "placeholder": "Enter year",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
-      "id": "field_created_at",
-      "name": "created_at",
-      "fieldType": "datetime",
-      "component": "datetime",
+      "id": "field_quarter_id",
+      "name": "quarter_id",
+      "fieldType": "uuid",
+      "component": "select",
       "required": false,
-      "isSystem": true,
+      "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
       "sortOrder": 60,
@@ -138,18 +141,25 @@
           "*"
         ],
         "write": [
-          "system"
+          "admin",
+          "editor"
         ]
       },
-      "displayName": "Created At"
+      "isForeignKey": true,
+      "referencedTable": "period",
+      "referencedFieldID": "id",
+      "displayName": "Quarter",
+      "placeholder": "Enter quarter",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
-      "id": "field_created_by",
-      "name": "created_by",
+      "id": "field_parent_id",
+      "name": "parent_id",
       "fieldType": "uuid",
-      "component": "text",
+      "component": "select",
       "required": false,
-      "isSystem": true,
+      "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
       "sortOrder": 70,
@@ -158,17 +168,24 @@
           "*"
         ],
         "write": [
-          "system"
+          "admin",
+          "editor"
         ]
       },
-      "displayName": "Created By"
+      "isForeignKey": true,
+      "referencedTable": "period",
+      "referencedFieldID": "id",
+      "displayName": "Parent",
+      "placeholder": "Enter parent",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
-      "id": "field_updated_at",
-      "name": "updated_at",
-      "fieldType": "datetime",
-      "component": "date",
-      "required": false,
+      "id": "field_id",
+      "name": "id",
+      "fieldType": "uuid",
+      "component": "text",
+      "required": true,
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -181,13 +198,14 @@
           "system"
         ]
       },
-      "displayName": "Updated At"
+      "displayName": "Id",
+      "validation": {}
     },
     {
-      "id": "field_updated_by",
-      "name": "updated_by",
-      "fieldType": "uuid",
-      "component": "date",
+      "id": "field_created_at",
+      "name": "created_at",
+      "fieldType": "datetime",
+      "component": "datetime",
       "required": false,
       "isSystem": true,
       "isPrimaryKey": false,
@@ -201,14 +219,78 @@
           "system"
         ]
       },
-      "displayName": "Updated By"
+      "displayName": "Created At",
+      "validation": {}
+    },
+    {
+      "id": "field_created_by",
+      "name": "created_by",
+      "fieldType": "uuid",
+      "component": "text",
+      "required": false,
+      "isSystem": true,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 100,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "system"
+        ]
+      },
+      "displayName": "Created By",
+      "validation": {}
+    },
+    {
+      "id": "field_updated_at",
+      "name": "updated_at",
+      "fieldType": "datetime",
+      "component": "date",
+      "required": false,
+      "isSystem": true,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 110,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "system"
+        ]
+      },
+      "displayName": "Updated At",
+      "validation": {}
+    },
+    {
+      "id": "field_updated_by",
+      "name": "updated_by",
+      "fieldType": "uuid",
+      "component": "date",
+      "required": false,
+      "isSystem": true,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 120,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "system"
+        ]
+      },
+      "displayName": "Updated By",
+      "validation": {}
     }
   ],
   "metadata": {
     "tableName": "period",
-    "totalFields": 9,
+    "totalFields": 12,
     "systemFields": 5,
-    "customFields": 4,
-    "generatedAt": "2025-09-07T18:14:50.328Z"
+    "customFields": 7,
+    "generatedAt": "2025-09-08T11:20:15.624Z"
   }
 }

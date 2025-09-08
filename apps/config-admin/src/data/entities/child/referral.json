@@ -26,17 +26,14 @@
       },
       "displayName": "Code",
       "placeholder": "Enter code",
-      "maxLength": 250,
-      "validation": {
-        "maxLength": 250
-      },
+      "validation": {},
       "defaultValue": ""
     },
     {
       "id": "field_contact_id",
       "name": "contact_id",
       "fieldType": "uuid",
-      "component": "text",
+      "component": "select",
       "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -51,8 +48,13 @@
           "editor"
         ]
       },
-      "displayName": "Contact Id",
-      "placeholder": "Enter contact id"
+      "isForeignKey": true,
+      "referencedTable": "contact",
+      "referencedFieldID": "id",
+      "displayName": "Contact",
+      "placeholder": "Enter contact",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
       "id": "field_id",
@@ -61,7 +63,7 @@
       "component": "text",
       "required": true,
       "isSystem": true,
-      "isPrimaryKey": true,
+      "isPrimaryKey": false,
       "isUnique": false,
       "sortOrder": 30,
       "permissions": {
@@ -72,7 +74,8 @@
           "system"
         ]
       },
-      "displayName": "Id"
+      "displayName": "Id",
+      "validation": {}
     },
     {
       "id": "field_created_at",
@@ -92,7 +95,8 @@
           "system"
         ]
       },
-      "displayName": "Created At"
+      "displayName": "Created At",
+      "validation": {}
     },
     {
       "id": "field_created_by",
@@ -112,7 +116,8 @@
           "system"
         ]
       },
-      "displayName": "Created By"
+      "displayName": "Created By",
+      "validation": {}
     },
     {
       "id": "field_updated_at",
@@ -132,7 +137,8 @@
           "system"
         ]
       },
-      "displayName": "Updated At"
+      "displayName": "Updated At",
+      "validation": {}
     },
     {
       "id": "field_updated_by",
@@ -152,7 +158,8 @@
           "system"
         ]
       },
-      "displayName": "Updated By"
+      "displayName": "Updated By",
+      "validation": {}
     }
   ],
   "metadata": {
@@ -160,6 +167,6 @@
     "totalFields": 7,
     "systemFields": 5,
     "customFields": 2,
-    "generatedAt": "2025-09-07T17:59:19.343Z"
+    "generatedAt": "2025-09-08T11:21:09.017Z"
   }
 }

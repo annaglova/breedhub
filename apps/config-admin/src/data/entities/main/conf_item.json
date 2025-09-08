@@ -26,18 +26,15 @@
       },
       "displayName": "Name",
       "placeholder": "Enter name",
-      "maxLength": 250,
-      "validation": {
-        "maxLength": 250
-      },
+      "validation": {},
       "defaultValue": ""
     },
     {
-      "id": "field_serial_number",
-      "name": "serial_number",
-      "fieldType": "string",
-      "component": "text",
-      "required": true,
+      "id": "field_type_id",
+      "name": "type_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -51,17 +48,17 @@
           "editor"
         ]
       },
-      "displayName": "Serial Number",
-      "placeholder": "Enter serial number",
-      "maxLength": 250,
-      "validation": {
-        "maxLength": 250
-      },
-      "defaultValue": ""
+      "isForeignKey": true,
+      "referencedTable": "config_item_type",
+      "referencedFieldID": "id",
+      "displayName": "Type",
+      "placeholder": "Enter type",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
-      "id": "field_icon",
-      "name": "icon",
+      "id": "field_serial_number",
+      "name": "serial_number",
       "fieldType": "string",
       "component": "text",
       "required": true,
@@ -78,20 +75,17 @@
           "editor"
         ]
       },
-      "displayName": "Icon",
-      "placeholder": "Enter icon",
-      "maxLength": 250,
-      "validation": {
-        "maxLength": 250
-      },
+      "displayName": "Serial Number",
+      "placeholder": "Enter serial number",
+      "validation": {},
       "defaultValue": ""
     },
     {
-      "id": "field_purchase_date",
-      "name": "purchase_date",
-      "fieldType": "date",
-      "component": "date",
-      "required": false,
+      "id": "field_icon",
+      "name": "icon",
+      "fieldType": "string",
+      "component": "text",
+      "required": true,
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -105,14 +99,16 @@
           "editor"
         ]
       },
-      "displayName": "Purchase Date",
-      "placeholder": "Enter purchase date"
+      "displayName": "Icon",
+      "placeholder": "Enter icon",
+      "validation": {},
+      "defaultValue": ""
     },
     {
-      "id": "field_cancel_date",
-      "name": "cancel_date",
-      "fieldType": "date",
-      "component": "date",
+      "id": "field_status_id",
+      "name": "status_id",
+      "fieldType": "uuid",
+      "component": "select",
       "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -127,12 +123,17 @@
           "editor"
         ]
       },
-      "displayName": "Cancel Date",
-      "placeholder": "Enter cancel date"
+      "isForeignKey": true,
+      "referencedTable": "config_item_status",
+      "referencedFieldID": "id",
+      "displayName": "Status",
+      "placeholder": "Enter status",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
-      "id": "field_warranty_until",
-      "name": "warranty_until",
+      "id": "field_purchase_date",
+      "name": "purchase_date",
       "fieldType": "date",
       "component": "date",
       "required": false,
@@ -149,14 +150,15 @@
           "editor"
         ]
       },
-      "displayName": "Warranty Until",
-      "placeholder": "Enter warranty until"
+      "displayName": "Purchase Date",
+      "placeholder": "Enter purchase date",
+      "validation": {}
     },
     {
-      "id": "field_owner_id",
-      "name": "owner_id",
-      "fieldType": "uuid",
-      "component": "text",
+      "id": "field_cancel_date",
+      "name": "cancel_date",
+      "fieldType": "date",
+      "component": "date",
       "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -171,15 +173,16 @@
           "editor"
         ]
       },
-      "displayName": "Owner Id",
-      "placeholder": "Enter owner id"
+      "displayName": "Cancel Date",
+      "placeholder": "Enter cancel date",
+      "validation": {}
     },
     {
-      "id": "field_notes",
-      "name": "notes",
-      "fieldType": "text",
-      "component": "textarea",
-      "required": true,
+      "id": "field_warranty_until",
+      "name": "warranty_until",
+      "fieldType": "date",
+      "component": "date",
+      "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -193,15 +196,15 @@
           "editor"
         ]
       },
-      "displayName": "Notes",
-      "placeholder": "Enter notes",
-      "defaultValue": ""
+      "displayName": "Warranty Until",
+      "placeholder": "Enter warranty until",
+      "validation": {}
     },
     {
-      "id": "field_business_process_id",
-      "name": "business_process_id",
+      "id": "field_owner_id",
+      "name": "owner_id",
       "fieldType": "uuid",
-      "component": "text",
+      "component": "select",
       "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -216,15 +219,20 @@
           "editor"
         ]
       },
-      "displayName": "Business Process Id",
-      "placeholder": "Enter business process id"
+      "isForeignKey": true,
+      "referencedTable": "owner",
+      "referencedFieldID": "id",
+      "displayName": "Owner",
+      "placeholder": "Enter owner",
+      "validation": {},
+      "referencedFieldName": "id"
     },
     {
-      "id": "field_priority",
-      "name": "priority",
-      "fieldType": "number",
-      "component": "number",
-      "required": true,
+      "id": "field_parent_conf_item_id",
+      "name": "parent_conf_item_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -238,18 +246,19 @@
           "editor"
         ]
       },
-      "displayName": "Priority",
-      "placeholder": "Enter priority",
-      "validation": {
-        "precision": 32
-      },
-      "defaultValue": "0"
+      "isForeignKey": true,
+      "referencedTable": "conf_item",
+      "referencedFieldID": "id",
+      "displayName": "Parent Conf Item",
+      "placeholder": "Enter parent conf item",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
-      "id": "field_conf_item_image",
-      "name": "conf_item_image",
-      "fieldType": "string",
-      "component": "image",
+      "id": "field_category_id",
+      "name": "category_id",
+      "fieldType": "uuid",
+      "component": "select",
       "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -264,13 +273,18 @@
           "editor"
         ]
       },
-      "displayName": "Conf Item Image",
-      "placeholder": "Enter conf item image"
+      "isForeignKey": true,
+      "referencedTable": "config_item_category",
+      "referencedFieldID": "id",
+      "displayName": "Category",
+      "placeholder": "Enter category",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
-      "id": "field_description",
-      "name": "description",
-      "fieldType": "string",
+      "id": "field_notes",
+      "name": "notes",
+      "fieldType": "text",
       "component": "textarea",
       "required": true,
       "isSystem": false,
@@ -286,20 +300,17 @@
           "editor"
         ]
       },
-      "displayName": "Description",
-      "placeholder": "Enter description",
-      "maxLength": 500,
-      "validation": {
-        "maxLength": 500
-      },
+      "displayName": "Notes",
+      "placeholder": "Enter notes",
+      "validation": {},
       "defaultValue": ""
     },
     {
-      "id": "field_need_parse",
-      "name": "need_parse",
-      "fieldType": "boolean",
-      "component": "checkbox",
-      "required": true,
+      "id": "field_country_id",
+      "name": "country_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -313,15 +324,20 @@
           "editor"
         ]
       },
-      "displayName": "Need Parse",
-      "defaultValue": "false"
+      "isForeignKey": true,
+      "referencedTable": "country",
+      "referencedFieldID": "id",
+      "displayName": "Country",
+      "placeholder": "Enter country",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
-      "id": "field_prime_entity_name",
-      "name": "prime_entity_name",
-      "fieldType": "string",
-      "component": "text",
-      "required": true,
+      "id": "field_provider_id",
+      "name": "provider_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -335,20 +351,20 @@
           "editor"
         ]
       },
-      "displayName": "Prime Entity Name",
-      "placeholder": "Enter prime entity name",
-      "maxLength": 250,
-      "validation": {
-        "maxLength": 250
-      },
-      "defaultValue": ""
+      "isForeignKey": true,
+      "referencedTable": "account",
+      "referencedFieldID": "id",
+      "displayName": "Provider",
+      "placeholder": "Enter provider",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
-      "id": "field_quest_reward",
-      "name": "quest_reward",
-      "fieldType": "number",
-      "component": "number",
-      "required": true,
+      "id": "field_business_process_id",
+      "name": "business_process_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -362,18 +378,19 @@
           "editor"
         ]
       },
-      "displayName": "Quest Reward",
-      "placeholder": "Enter quest reward",
-      "validation": {
-        "precision": 32
-      },
-      "defaultValue": "0"
+      "isForeignKey": true,
+      "referencedTable": "business_process",
+      "referencedFieldID": "id",
+      "displayName": "Business Process",
+      "placeholder": "Enter business process",
+      "validation": {},
+      "referencedFieldName": "id"
     },
     {
-      "id": "field_url",
-      "name": "url",
-      "fieldType": "string",
-      "component": "url",
+      "id": "field_priority",
+      "name": "priority",
+      "fieldType": "number",
+      "component": "number",
       "required": true,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -388,22 +405,17 @@
           "editor"
         ]
       },
-      "displayName": "Url",
-      "placeholder": "Enter url",
-      "maxLength": 250,
-      "validation": {
-        "maxLength": 250,
-        "pattern": "^https?://.+",
-        "message": "Invalid URL format"
-      },
-      "defaultValue": ""
+      "displayName": "Priority",
+      "placeholder": "Enter priority",
+      "validation": {},
+      "defaultValue": "0"
     },
     {
-      "id": "field_page_model",
-      "name": "page_model",
+      "id": "field_conf_item_image",
+      "name": "conf_item_image",
       "fieldType": "string",
-      "component": "text",
-      "required": true,
+      "component": "image",
+      "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -417,19 +429,15 @@
           "editor"
         ]
       },
-      "displayName": "Page Model",
-      "placeholder": "Enter page model",
-      "maxLength": 50,
-      "validation": {
-        "maxLength": 50
-      },
-      "defaultValue": ""
+      "displayName": "Conf Item Image",
+      "placeholder": "Enter conf item image",
+      "validation": {}
     },
     {
-      "id": "field_quest_cycle_interval",
-      "name": "quest_cycle_interval",
-      "fieldType": "number",
-      "component": "number",
+      "id": "field_description",
+      "name": "description",
+      "fieldType": "string",
+      "component": "textarea",
       "required": true,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -444,18 +452,16 @@
           "editor"
         ]
       },
-      "displayName": "Quest Cycle Interval",
-      "placeholder": "Enter quest cycle interval",
-      "validation": {
-        "precision": 32
-      },
-      "defaultValue": "0"
+      "displayName": "Description",
+      "placeholder": "Enter description",
+      "validation": {},
+      "defaultValue": ""
     },
     {
-      "id": "field_quest_type_id",
-      "name": "quest_type_id",
+      "id": "field_parsing_status_id",
+      "name": "parsing_status_id",
       "fieldType": "uuid",
-      "component": "text",
+      "component": "select",
       "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -470,8 +476,240 @@
           "editor"
         ]
       },
-      "displayName": "Quest Type Id",
-      "placeholder": "Enter quest type id"
+      "isForeignKey": true,
+      "referencedTable": "conf_item_parsing_status",
+      "referencedFieldID": "id",
+      "displayName": "Parsing Status",
+      "placeholder": "Enter parsing status",
+      "validation": {},
+      "referencedFieldName": "name"
+    },
+    {
+      "id": "field_need_parse",
+      "name": "need_parse",
+      "fieldType": "boolean",
+      "component": "checkbox",
+      "required": true,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 200,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "displayName": "Need Parse",
+      "validation": {},
+      "defaultValue": "false"
+    },
+    {
+      "id": "field_confidence_level_id",
+      "name": "confidence_level_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 210,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "isForeignKey": true,
+      "referencedTable": "data_confidence_level",
+      "referencedFieldID": "id",
+      "displayName": "Confidence Level",
+      "placeholder": "Enter confidence level",
+      "validation": {},
+      "referencedFieldName": "name"
+    },
+    {
+      "id": "field_data_quality_level_id",
+      "name": "data_quality_level_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 220,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "isForeignKey": true,
+      "referencedTable": "data_quality_level",
+      "referencedFieldID": "id",
+      "displayName": "Data Quality Level",
+      "placeholder": "Enter data quality level",
+      "validation": {},
+      "referencedFieldName": "name"
+    },
+    {
+      "id": "field_prime_entity_name",
+      "name": "prime_entity_name",
+      "fieldType": "string",
+      "component": "text",
+      "required": true,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 230,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "displayName": "Prime Entity Name",
+      "placeholder": "Enter prime entity name",
+      "validation": {},
+      "defaultValue": ""
+    },
+    {
+      "id": "field_quest_reward",
+      "name": "quest_reward",
+      "fieldType": "number",
+      "component": "number",
+      "required": true,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 240,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "displayName": "Quest Reward",
+      "placeholder": "Enter quest reward",
+      "validation": {},
+      "defaultValue": "0"
+    },
+    {
+      "id": "field_url",
+      "name": "url",
+      "fieldType": "string",
+      "component": "url",
+      "required": true,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 250,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "displayName": "Url",
+      "placeholder": "Enter url",
+      "validation": {
+        "pattern": "^https?://.+",
+        "message": "Invalid URL format"
+      },
+      "defaultValue": ""
+    },
+    {
+      "id": "field_page_model",
+      "name": "page_model",
+      "fieldType": "string",
+      "component": "text",
+      "required": true,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 260,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "displayName": "Page Model",
+      "placeholder": "Enter page model",
+      "validation": {},
+      "defaultValue": ""
+    },
+    {
+      "id": "field_quest_cycle_interval",
+      "name": "quest_cycle_interval",
+      "fieldType": "number",
+      "component": "number",
+      "required": true,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 270,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "displayName": "Quest Cycle Interval",
+      "placeholder": "Enter quest cycle interval",
+      "validation": {},
+      "defaultValue": "0"
+    },
+    {
+      "id": "field_quest_type_id",
+      "name": "quest_type_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 280,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "isForeignKey": true,
+      "referencedTable": "quest_type",
+      "referencedFieldID": "id",
+      "displayName": "Quest Type",
+      "placeholder": "Enter quest type",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
       "id": "field_id",
@@ -480,9 +718,9 @@
       "component": "text",
       "required": true,
       "isSystem": true,
-      "isPrimaryKey": true,
+      "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 200,
+      "sortOrder": 290,
       "permissions": {
         "read": [
           "*"
@@ -491,7 +729,8 @@
           "system"
         ]
       },
-      "displayName": "Id"
+      "displayName": "Id",
+      "validation": {}
     },
     {
       "id": "field_created_at",
@@ -502,7 +741,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 210,
+      "sortOrder": 300,
       "permissions": {
         "read": [
           "*"
@@ -511,7 +750,8 @@
           "system"
         ]
       },
-      "displayName": "Created At"
+      "displayName": "Created At",
+      "validation": {}
     },
     {
       "id": "field_created_by",
@@ -522,7 +762,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 220,
+      "sortOrder": 310,
       "permissions": {
         "read": [
           "*"
@@ -531,7 +771,8 @@
           "system"
         ]
       },
-      "displayName": "Created By"
+      "displayName": "Created By",
+      "validation": {}
     },
     {
       "id": "field_updated_at",
@@ -542,7 +783,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 230,
+      "sortOrder": 320,
       "permissions": {
         "read": [
           "*"
@@ -551,7 +792,8 @@
           "system"
         ]
       },
-      "displayName": "Updated At"
+      "displayName": "Updated At",
+      "validation": {}
     },
     {
       "id": "field_updated_by",
@@ -562,7 +804,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 240,
+      "sortOrder": 330,
       "permissions": {
         "read": [
           "*"
@@ -571,14 +813,15 @@
           "system"
         ]
       },
-      "displayName": "Updated By"
+      "displayName": "Updated By",
+      "validation": {}
     }
   ],
   "metadata": {
     "tableName": "conf_item",
-    "totalFields": 24,
+    "totalFields": 33,
     "systemFields": 5,
-    "customFields": 19,
-    "generatedAt": "2025-09-07T18:14:29.925Z"
+    "customFields": 28,
+    "generatedAt": "2025-09-08T11:19:50.546Z"
   }
 }

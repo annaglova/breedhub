@@ -26,10 +26,7 @@
       },
       "displayName": "Name",
       "placeholder": "Enter name",
-      "maxLength": 250,
-      "validation": {
-        "maxLength": 250
-      },
+      "validation": {},
       "defaultValue": ""
     },
     {
@@ -53,14 +50,15 @@
       },
       "displayName": "Notes",
       "placeholder": "Enter notes",
+      "validation": {},
       "defaultValue": ""
     },
     {
-      "id": "field_exists_qualification",
-      "name": "exists_qualification",
-      "fieldType": "boolean",
-      "component": "checkbox",
-      "required": true,
+      "id": "field_provider_id",
+      "name": "provider_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -74,15 +72,20 @@
           "editor"
         ]
       },
-      "displayName": "Exists Qualification",
-      "defaultValue": "false"
+      "isForeignKey": true,
+      "referencedTable": "account",
+      "referencedFieldID": "id",
+      "displayName": "Provider",
+      "placeholder": "Enter provider",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
-      "id": "field_exists_place",
-      "name": "exists_place",
-      "fieldType": "boolean",
-      "component": "checkbox",
-      "required": true,
+      "id": "field_parent_id",
+      "name": "parent_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -96,15 +99,20 @@
           "editor"
         ]
       },
-      "displayName": "Exists Place",
-      "defaultValue": "false"
+      "isForeignKey": true,
+      "referencedTable": "competition",
+      "referencedFieldID": "id",
+      "displayName": "Parent",
+      "placeholder": "Enter parent",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
-      "id": "field_exists_award",
-      "name": "exists_award",
-      "fieldType": "boolean",
-      "component": "checkbox",
-      "required": true,
+      "id": "field_type_id",
+      "name": "type_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -118,15 +126,20 @@
           "editor"
         ]
       },
-      "displayName": "Exists Award",
-      "defaultValue": "false"
+      "isForeignKey": true,
+      "referencedTable": "competition_type",
+      "referencedFieldID": "id",
+      "displayName": "Type",
+      "placeholder": "Enter type",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
-      "id": "field_order",
-      "name": "order",
-      "fieldType": "number",
-      "component": "number",
-      "required": true,
+      "id": "field_template_id",
+      "name": "template_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -140,12 +153,187 @@
           "editor"
         ]
       },
+      "isForeignKey": true,
+      "referencedTable": "competition",
+      "referencedFieldID": "id",
+      "displayName": "Template",
+      "placeholder": "Enter template",
+      "validation": {},
+      "referencedFieldName": "name"
+    },
+    {
+      "id": "field_exists_qualification",
+      "name": "exists_qualification",
+      "fieldType": "boolean",
+      "component": "checkbox",
+      "required": true,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 70,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "displayName": "Exists Qualification",
+      "validation": {},
+      "defaultValue": "false"
+    },
+    {
+      "id": "field_exists_place",
+      "name": "exists_place",
+      "fieldType": "boolean",
+      "component": "checkbox",
+      "required": true,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 80,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "displayName": "Exists Place",
+      "validation": {},
+      "defaultValue": "false"
+    },
+    {
+      "id": "field_exists_award",
+      "name": "exists_award",
+      "fieldType": "boolean",
+      "component": "checkbox",
+      "required": true,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 90,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "displayName": "Exists Award",
+      "validation": {},
+      "defaultValue": "false"
+    },
+    {
+      "id": "field_pet_type_id",
+      "name": "pet_type_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 100,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "isForeignKey": true,
+      "referencedTable": "pet_type",
+      "referencedFieldID": "id",
+      "displayName": "Pet Type",
+      "placeholder": "Enter pet type",
+      "validation": {},
+      "referencedFieldName": "name"
+    },
+    {
+      "id": "field_order",
+      "name": "order",
+      "fieldType": "number",
+      "component": "number",
+      "required": true,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 110,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
       "displayName": "Order",
       "placeholder": "Enter order",
-      "validation": {
-        "precision": 32
-      },
+      "validation": {},
       "defaultValue": "0"
+    },
+    {
+      "id": "field_category_id",
+      "name": "category_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 120,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "isForeignKey": true,
+      "referencedTable": "competition_category",
+      "referencedFieldID": "id",
+      "displayName": "Category",
+      "placeholder": "Enter category",
+      "validation": {},
+      "referencedFieldName": "name"
+    },
+    {
+      "id": "field_breed_id",
+      "name": "breed_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 130,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "isForeignKey": true,
+      "referencedTable": "breed",
+      "referencedFieldID": "id",
+      "displayName": "Breed",
+      "placeholder": "Enter breed",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
       "id": "field_id",
@@ -154,9 +342,9 @@
       "component": "text",
       "required": true,
       "isSystem": true,
-      "isPrimaryKey": true,
+      "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 70,
+      "sortOrder": 140,
       "permissions": {
         "read": [
           "*"
@@ -165,7 +353,8 @@
           "system"
         ]
       },
-      "displayName": "Id"
+      "displayName": "Id",
+      "validation": {}
     },
     {
       "id": "field_created_at",
@@ -176,7 +365,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 80,
+      "sortOrder": 150,
       "permissions": {
         "read": [
           "*"
@@ -185,7 +374,8 @@
           "system"
         ]
       },
-      "displayName": "Created At"
+      "displayName": "Created At",
+      "validation": {}
     },
     {
       "id": "field_created_by",
@@ -196,7 +386,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 90,
+      "sortOrder": 160,
       "permissions": {
         "read": [
           "*"
@@ -205,7 +395,8 @@
           "system"
         ]
       },
-      "displayName": "Created By"
+      "displayName": "Created By",
+      "validation": {}
     },
     {
       "id": "field_updated_at",
@@ -216,7 +407,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 100,
+      "sortOrder": 170,
       "permissions": {
         "read": [
           "*"
@@ -225,7 +416,8 @@
           "system"
         ]
       },
-      "displayName": "Updated At"
+      "displayName": "Updated At",
+      "validation": {}
     },
     {
       "id": "field_updated_by",
@@ -236,7 +428,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 110,
+      "sortOrder": 180,
       "permissions": {
         "read": [
           "*"
@@ -245,14 +437,15 @@
           "system"
         ]
       },
-      "displayName": "Updated By"
+      "displayName": "Updated By",
+      "validation": {}
     }
   ],
   "metadata": {
     "tableName": "competition",
-    "totalFields": 11,
+    "totalFields": 18,
     "systemFields": 5,
-    "customFields": 6,
-    "generatedAt": "2025-09-07T18:14:21.936Z"
+    "customFields": 13,
+    "generatedAt": "2025-09-08T11:19:32.858Z"
   }
 }

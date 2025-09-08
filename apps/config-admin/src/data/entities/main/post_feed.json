@@ -26,11 +26,143 @@
       },
       "displayName": "Name",
       "placeholder": "Enter name",
-      "maxLength": 250,
-      "validation": {
-        "maxLength": 250
-      },
+      "validation": {},
       "defaultValue": ""
+    },
+    {
+      "id": "field_pet_id",
+      "name": "pet_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 20,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "isForeignKey": true,
+      "referencedTable": "pet_manchester_terrier_toy",
+      "referencedFieldID": "id",
+      "displayName": "Pet",
+      "placeholder": "Enter pet",
+      "validation": {},
+      "referencedFieldName": "name"
+    },
+    {
+      "id": "field_account_id",
+      "name": "account_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 30,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "isForeignKey": true,
+      "referencedTable": "account",
+      "referencedFieldID": "id",
+      "displayName": "Account",
+      "placeholder": "Enter account",
+      "validation": {},
+      "referencedFieldName": "name"
+    },
+    {
+      "id": "field_contact_id",
+      "name": "contact_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 40,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "isForeignKey": true,
+      "referencedTable": "contact",
+      "referencedFieldID": "id",
+      "displayName": "Contact",
+      "placeholder": "Enter contact",
+      "validation": {},
+      "referencedFieldName": "name"
+    },
+    {
+      "id": "field_litter_id",
+      "name": "litter_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 50,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "isForeignKey": true,
+      "referencedTable": "litter",
+      "referencedFieldID": "id",
+      "displayName": "Litter",
+      "placeholder": "Enter litter",
+      "validation": {},
+      "referencedFieldName": "name"
+    },
+    {
+      "id": "field_pet_breed_id",
+      "name": "pet_breed_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 60,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "isForeignKey": true,
+      "referencedTable": "pet_manchester_terrier_toy",
+      "referencedFieldID": "id",
+      "displayName": "Pet Breed",
+      "placeholder": "Enter pet breed",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
       "id": "field_id",
@@ -39,9 +171,9 @@
       "component": "text",
       "required": true,
       "isSystem": true,
-      "isPrimaryKey": true,
+      "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 20,
+      "sortOrder": 70,
       "permissions": {
         "read": [
           "*"
@@ -50,7 +182,8 @@
           "system"
         ]
       },
-      "displayName": "Id"
+      "displayName": "Id",
+      "validation": {}
     },
     {
       "id": "field_created_at",
@@ -61,7 +194,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 30,
+      "sortOrder": 80,
       "permissions": {
         "read": [
           "*"
@@ -70,7 +203,8 @@
           "system"
         ]
       },
-      "displayName": "Created At"
+      "displayName": "Created At",
+      "validation": {}
     },
     {
       "id": "field_created_by",
@@ -81,7 +215,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 40,
+      "sortOrder": 90,
       "permissions": {
         "read": [
           "*"
@@ -90,7 +224,8 @@
           "system"
         ]
       },
-      "displayName": "Created By"
+      "displayName": "Created By",
+      "validation": {}
     },
     {
       "id": "field_updated_at",
@@ -101,7 +236,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 50,
+      "sortOrder": 100,
       "permissions": {
         "read": [
           "*"
@@ -110,7 +245,8 @@
           "system"
         ]
       },
-      "displayName": "Updated At"
+      "displayName": "Updated At",
+      "validation": {}
     },
     {
       "id": "field_updated_by",
@@ -121,7 +257,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 60,
+      "sortOrder": 110,
       "permissions": {
         "read": [
           "*"
@@ -130,14 +266,15 @@
           "system"
         ]
       },
-      "displayName": "Updated By"
+      "displayName": "Updated By",
+      "validation": {}
     }
   ],
   "metadata": {
     "tableName": "post_feed",
-    "totalFields": 6,
+    "totalFields": 11,
     "systemFields": 5,
-    "customFields": 1,
-    "generatedAt": "2025-09-07T18:14:31.838Z"
+    "customFields": 6,
+    "generatedAt": "2025-09-08T11:19:52.075Z"
   }
 }

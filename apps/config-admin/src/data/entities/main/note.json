@@ -26,6 +26,7 @@
       },
       "displayName": "Name",
       "placeholder": "Enter name",
+      "validation": {},
       "defaultValue": ""
     },
     {
@@ -49,13 +50,14 @@
       },
       "displayName": "Notes",
       "placeholder": "Enter notes",
+      "validation": {},
       "defaultValue": ""
     },
     {
-      "id": "field_contact_id",
-      "name": "contact_id",
+      "id": "field_pet_id",
+      "name": "pet_id",
       "fieldType": "uuid",
-      "component": "text",
+      "component": "select",
       "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -70,14 +72,19 @@
           "editor"
         ]
       },
-      "displayName": "Contact Id",
-      "placeholder": "Enter contact id"
+      "isForeignKey": true,
+      "referencedTable": "pet_manchester_terrier_toy",
+      "referencedFieldID": "id",
+      "displayName": "Pet",
+      "placeholder": "Enter pet",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
-      "id": "field_owner_id",
-      "name": "owner_id",
+      "id": "field_project_id",
+      "name": "project_id",
       "fieldType": "uuid",
-      "component": "text",
+      "component": "select",
       "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -92,14 +99,19 @@
           "editor"
         ]
       },
-      "displayName": "Owner Id",
-      "placeholder": "Enter owner id"
+      "isForeignKey": true,
+      "referencedTable": "project",
+      "referencedFieldID": "id",
+      "displayName": "Project",
+      "placeholder": "Enter project",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
-      "id": "field_record_id",
-      "name": "record_id",
+      "id": "field_event_id",
+      "name": "event_id",
       "fieldType": "uuid",
-      "component": "text",
+      "component": "select",
       "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -114,8 +126,256 @@
           "editor"
         ]
       },
-      "displayName": "Record Id",
-      "placeholder": "Enter record id"
+      "isForeignKey": true,
+      "referencedTable": "event",
+      "referencedFieldID": "id",
+      "displayName": "Event",
+      "placeholder": "Enter event",
+      "validation": {},
+      "referencedFieldName": "name"
+    },
+    {
+      "id": "field_contact_id",
+      "name": "contact_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 60,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "isForeignKey": true,
+      "referencedTable": "contact",
+      "referencedFieldID": "id",
+      "displayName": "Contact",
+      "placeholder": "Enter contact",
+      "validation": {},
+      "referencedFieldName": "name"
+    },
+    {
+      "id": "field_account_id",
+      "name": "account_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 70,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "isForeignKey": true,
+      "referencedTable": "account",
+      "referencedFieldID": "id",
+      "displayName": "Account",
+      "placeholder": "Enter account",
+      "validation": {},
+      "referencedFieldName": "name"
+    },
+    {
+      "id": "field_breed_id",
+      "name": "breed_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 80,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "isForeignKey": true,
+      "referencedTable": "breed",
+      "referencedFieldID": "id",
+      "displayName": "Breed",
+      "placeholder": "Enter breed",
+      "validation": {},
+      "referencedFieldName": "name"
+    },
+    {
+      "id": "field_owner_id",
+      "name": "owner_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 90,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "isForeignKey": true,
+      "referencedTable": "owner",
+      "referencedFieldID": "id",
+      "displayName": "Owner",
+      "placeholder": "Enter owner",
+      "validation": {},
+      "referencedFieldName": "id"
+    },
+    {
+      "id": "field_cover_id",
+      "name": "cover_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 100,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "isForeignKey": true,
+      "referencedTable": "cover",
+      "referencedFieldID": "id",
+      "displayName": "Cover",
+      "placeholder": "Enter cover",
+      "validation": {},
+      "referencedFieldName": "name"
+    },
+    {
+      "id": "field_record_id",
+      "name": "record_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 110,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "isForeignKey": true,
+      "referencedTable": "record",
+      "referencedFieldID": "id",
+      "displayName": "Record",
+      "placeholder": "Enter record",
+      "validation": {},
+      "referencedFieldName": "id"
+    },
+    {
+      "id": "field_entity_schema_id",
+      "name": "entity_schema_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 120,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "isForeignKey": true,
+      "referencedTable": "entity_schema_lookup",
+      "referencedFieldID": "id",
+      "displayName": "Entity Schema",
+      "placeholder": "Enter entity schema",
+      "validation": {},
+      "referencedFieldName": "name"
+    },
+    {
+      "id": "field_litter_id",
+      "name": "litter_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 130,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "isForeignKey": true,
+      "referencedTable": "litter",
+      "referencedFieldID": "id",
+      "displayName": "Litter",
+      "placeholder": "Enter litter",
+      "validation": {},
+      "referencedFieldName": "name"
+    },
+    {
+      "id": "field_pet_breed_id",
+      "name": "pet_breed_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 140,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "isForeignKey": true,
+      "referencedTable": "pet_manchester_terrier_toy",
+      "referencedFieldID": "id",
+      "displayName": "Pet Breed",
+      "placeholder": "Enter pet breed",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
       "id": "field_id",
@@ -124,9 +384,9 @@
       "component": "text",
       "required": true,
       "isSystem": true,
-      "isPrimaryKey": true,
+      "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 60,
+      "sortOrder": 150,
       "permissions": {
         "read": [
           "*"
@@ -135,7 +395,8 @@
           "system"
         ]
       },
-      "displayName": "Id"
+      "displayName": "Id",
+      "validation": {}
     },
     {
       "id": "field_created_at",
@@ -146,7 +407,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 70,
+      "sortOrder": 160,
       "permissions": {
         "read": [
           "*"
@@ -155,7 +416,8 @@
           "system"
         ]
       },
-      "displayName": "Created At"
+      "displayName": "Created At",
+      "validation": {}
     },
     {
       "id": "field_created_by",
@@ -166,7 +428,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 80,
+      "sortOrder": 170,
       "permissions": {
         "read": [
           "*"
@@ -175,7 +437,8 @@
           "system"
         ]
       },
-      "displayName": "Created By"
+      "displayName": "Created By",
+      "validation": {}
     },
     {
       "id": "field_updated_at",
@@ -186,7 +449,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 90,
+      "sortOrder": 180,
       "permissions": {
         "read": [
           "*"
@@ -195,7 +458,8 @@
           "system"
         ]
       },
-      "displayName": "Updated At"
+      "displayName": "Updated At",
+      "validation": {}
     },
     {
       "id": "field_updated_by",
@@ -206,7 +470,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 100,
+      "sortOrder": 190,
       "permissions": {
         "read": [
           "*"
@@ -215,14 +479,15 @@
           "system"
         ]
       },
-      "displayName": "Updated By"
+      "displayName": "Updated By",
+      "validation": {}
     }
   ],
   "metadata": {
     "tableName": "note",
-    "totalFields": 10,
+    "totalFields": 19,
     "systemFields": 5,
-    "customFields": 5,
-    "generatedAt": "2025-09-07T18:14:20.967Z"
+    "customFields": 14,
+    "generatedAt": "2025-09-08T11:19:29.997Z"
   }
 }

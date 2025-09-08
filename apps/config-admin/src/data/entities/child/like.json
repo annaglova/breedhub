@@ -6,11 +6,11 @@
   "category": "child",
   "fields": [
     {
-      "id": "field_like_it",
-      "name": "like_it",
-      "fieldType": "number",
-      "component": "number",
-      "required": true,
+      "id": "field_contact_id",
+      "name": "contact_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -24,11 +24,36 @@
           "editor"
         ]
       },
+      "isForeignKey": true,
+      "referencedTable": "contact",
+      "referencedFieldID": "id",
+      "displayName": "Contact",
+      "placeholder": "Enter contact",
+      "validation": {},
+      "referencedFieldName": "name"
+    },
+    {
+      "id": "field_like_it",
+      "name": "like_it",
+      "fieldType": "number",
+      "component": "number",
+      "required": true,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 20,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
       "displayName": "Like It",
       "placeholder": "Enter like it",
-      "validation": {
-        "precision": 32
-      },
+      "validation": {},
       "defaultValue": "0"
     },
     {
@@ -38,9 +63,9 @@
       "component": "text",
       "required": true,
       "isSystem": true,
-      "isPrimaryKey": true,
+      "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 20,
+      "sortOrder": 30,
       "permissions": {
         "read": [
           "*"
@@ -49,14 +74,15 @@
           "system"
         ]
       },
-      "displayName": "Id"
+      "displayName": "Id",
+      "validation": {}
     }
   ],
   "metadata": {
     "tableName": "like",
-    "totalFields": 2,
+    "totalFields": 3,
     "systemFields": 1,
-    "customFields": 1,
-    "generatedAt": "2025-09-07T17:58:53.929Z"
+    "customFields": 2,
+    "generatedAt": "2025-09-08T11:20:49.614Z"
   }
 }

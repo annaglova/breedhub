@@ -6,15 +6,42 @@
   "category": "child",
   "fields": [
     {
+      "id": "field_contact_id",
+      "name": "contact_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 10,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "isForeignKey": true,
+      "referencedTable": "contact",
+      "referencedFieldID": "id",
+      "displayName": "Contact",
+      "placeholder": "Enter contact",
+      "validation": {},
+      "referencedFieldName": "name"
+    },
+    {
       "id": "field_id",
       "name": "id",
       "fieldType": "uuid",
       "component": "text",
       "required": true,
       "isSystem": true,
-      "isPrimaryKey": true,
+      "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 10,
+      "sortOrder": 20,
       "permissions": {
         "read": [
           "*"
@@ -23,14 +50,15 @@
           "system"
         ]
       },
-      "displayName": "Id"
+      "displayName": "Id",
+      "validation": {}
     }
   ],
   "metadata": {
     "tableName": "favorites",
-    "totalFields": 1,
+    "totalFields": 2,
     "systemFields": 1,
-    "customFields": 0,
-    "generatedAt": "2025-09-07T17:58:52.443Z"
+    "customFields": 1,
+    "generatedAt": "2025-09-08T11:20:47.213Z"
   }
 }

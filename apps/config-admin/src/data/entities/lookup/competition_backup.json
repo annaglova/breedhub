@@ -26,10 +26,7 @@
       },
       "displayName": "Name",
       "placeholder": "Enter name",
-      "maxLength": 250,
-      "validation": {
-        "maxLength": 250
-      },
+      "validation": {},
       "defaultValue": ""
     },
     {
@@ -53,10 +50,7 @@
       },
       "displayName": "Description",
       "placeholder": "Enter description",
-      "maxLength": 250,
-      "validation": {
-        "maxLength": 250
-      },
+      "validation": {},
       "defaultValue": ""
     },
     {
@@ -79,6 +73,7 @@
         ]
       },
       "displayName": "Exists Award",
+      "validation": {},
       "defaultValue": "false"
     },
     {
@@ -101,6 +96,7 @@
         ]
       },
       "displayName": "Exists Place",
+      "validation": {},
       "defaultValue": "false"
     },
     {
@@ -123,16 +119,17 @@
         ]
       },
       "displayName": "Exists Qualification",
+      "validation": {},
       "defaultValue": "false"
     },
     {
-      "id": "field_id",
-      "name": "id",
+      "id": "field_pet_type_id",
+      "name": "pet_type_id",
       "fieldType": "uuid",
-      "component": "text",
-      "required": true,
-      "isSystem": true,
-      "isPrimaryKey": true,
+      "component": "select",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
       "isUnique": false,
       "sortOrder": 60,
       "permissions": {
@@ -140,18 +137,25 @@
           "*"
         ],
         "write": [
-          "system"
+          "admin",
+          "editor"
         ]
       },
-      "displayName": "Id"
+      "isForeignKey": true,
+      "referencedTable": "pet_type",
+      "referencedFieldID": "id",
+      "displayName": "Pet Type",
+      "placeholder": "Enter pet type",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
-      "id": "field_created_at",
-      "name": "created_at",
-      "fieldType": "datetime",
-      "component": "datetime",
+      "id": "field_provider_id",
+      "name": "provider_id",
+      "fieldType": "uuid",
+      "component": "select",
       "required": false,
-      "isSystem": true,
+      "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
       "sortOrder": 70,
@@ -160,18 +164,25 @@
           "*"
         ],
         "write": [
-          "system"
+          "admin",
+          "editor"
         ]
       },
-      "displayName": "Created At"
+      "isForeignKey": true,
+      "referencedTable": "account",
+      "referencedFieldID": "id",
+      "displayName": "Provider",
+      "placeholder": "Enter provider",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
-      "id": "field_created_by",
-      "name": "created_by",
+      "id": "field_type_id",
+      "name": "type_id",
       "fieldType": "uuid",
-      "component": "text",
+      "component": "select",
       "required": false,
-      "isSystem": true,
+      "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
       "sortOrder": 80,
@@ -180,17 +191,24 @@
           "*"
         ],
         "write": [
-          "system"
+          "admin",
+          "editor"
         ]
       },
-      "displayName": "Created By"
+      "isForeignKey": true,
+      "referencedTable": "competition_type",
+      "referencedFieldID": "id",
+      "displayName": "Type",
+      "placeholder": "Enter type",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
-      "id": "field_updated_at",
-      "name": "updated_at",
-      "fieldType": "datetime",
-      "component": "date",
-      "required": false,
+      "id": "field_id",
+      "name": "id",
+      "fieldType": "uuid",
+      "component": "text",
+      "required": true,
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -203,13 +221,14 @@
           "system"
         ]
       },
-      "displayName": "Updated At"
+      "displayName": "Id",
+      "validation": {}
     },
     {
-      "id": "field_updated_by",
-      "name": "updated_by",
-      "fieldType": "uuid",
-      "component": "date",
+      "id": "field_created_at",
+      "name": "created_at",
+      "fieldType": "datetime",
+      "component": "datetime",
       "required": false,
       "isSystem": true,
       "isPrimaryKey": false,
@@ -223,14 +242,78 @@
           "system"
         ]
       },
-      "displayName": "Updated By"
+      "displayName": "Created At",
+      "validation": {}
+    },
+    {
+      "id": "field_created_by",
+      "name": "created_by",
+      "fieldType": "uuid",
+      "component": "text",
+      "required": false,
+      "isSystem": true,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 110,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "system"
+        ]
+      },
+      "displayName": "Created By",
+      "validation": {}
+    },
+    {
+      "id": "field_updated_at",
+      "name": "updated_at",
+      "fieldType": "datetime",
+      "component": "date",
+      "required": false,
+      "isSystem": true,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 120,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "system"
+        ]
+      },
+      "displayName": "Updated At",
+      "validation": {}
+    },
+    {
+      "id": "field_updated_by",
+      "name": "updated_by",
+      "fieldType": "uuid",
+      "component": "date",
+      "required": false,
+      "isSystem": true,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 130,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "system"
+        ]
+      },
+      "displayName": "Updated By",
+      "validation": {}
     }
   ],
   "metadata": {
     "tableName": "competition_backup",
-    "totalFields": 10,
+    "totalFields": 13,
     "systemFields": 5,
-    "customFields": 5,
-    "generatedAt": "2025-09-07T18:14:40.982Z"
+    "customFields": 8,
+    "generatedAt": "2025-09-08T11:20:04.696Z"
   }
 }

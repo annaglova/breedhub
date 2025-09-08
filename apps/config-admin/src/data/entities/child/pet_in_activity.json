@@ -6,15 +6,177 @@
   "category": "child",
   "fields": [
     {
+      "id": "field_award_id",
+      "name": "award_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 10,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "isForeignKey": true,
+      "referencedTable": "award",
+      "referencedFieldID": "id",
+      "displayName": "Award",
+      "placeholder": "Enter award",
+      "validation": {},
+      "referencedFieldName": "name"
+    },
+    {
+      "id": "field_place_id",
+      "name": "place_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 20,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "isForeignKey": true,
+      "referencedTable": "place",
+      "referencedFieldID": "id",
+      "displayName": "Place",
+      "placeholder": "Enter place",
+      "validation": {},
+      "referencedFieldName": "name"
+    },
+    {
+      "id": "field_qualification_id",
+      "name": "qualification_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 30,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "isForeignKey": true,
+      "referencedTable": "pet_qualification",
+      "referencedFieldID": "id",
+      "displayName": "Qualification",
+      "placeholder": "Enter qualification",
+      "validation": {},
+      "referencedFieldName": "name"
+    },
+    {
+      "id": "field_pet_id",
+      "name": "pet_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 40,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "isForeignKey": true,
+      "referencedTable": "pet_manchester_terrier_toy",
+      "referencedFieldID": "id",
+      "displayName": "Pet",
+      "placeholder": "Enter pet",
+      "validation": {},
+      "referencedFieldName": "name"
+    },
+    {
+      "id": "field_activity_id",
+      "name": "activity_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 50,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "isForeignKey": true,
+      "referencedTable": "activity",
+      "referencedFieldID": "id",
+      "displayName": "Activity",
+      "placeholder": "Enter activity",
+      "validation": {},
+      "referencedFieldName": "title"
+    },
+    {
+      "id": "field_pet_breed_id",
+      "name": "pet_breed_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 60,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "isForeignKey": true,
+      "referencedTable": "pet_manchester_terrier_toy",
+      "referencedFieldID": "id",
+      "displayName": "Pet Breed",
+      "placeholder": "Enter pet breed",
+      "validation": {},
+      "referencedFieldName": "name"
+    },
+    {
       "id": "field_id",
       "name": "id",
       "fieldType": "uuid",
       "component": "text",
       "required": true,
       "isSystem": true,
-      "isPrimaryKey": true,
+      "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 10,
+      "sortOrder": 70,
       "permissions": {
         "read": [
           "*"
@@ -23,7 +185,8 @@
           "system"
         ]
       },
-      "displayName": "Id"
+      "displayName": "Id",
+      "validation": {}
     },
     {
       "id": "field_created_at",
@@ -34,7 +197,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 20,
+      "sortOrder": 80,
       "permissions": {
         "read": [
           "*"
@@ -43,7 +206,8 @@
           "system"
         ]
       },
-      "displayName": "Created At"
+      "displayName": "Created At",
+      "validation": {}
     },
     {
       "id": "field_created_by",
@@ -54,7 +218,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 30,
+      "sortOrder": 90,
       "permissions": {
         "read": [
           "*"
@@ -63,7 +227,8 @@
           "system"
         ]
       },
-      "displayName": "Created By"
+      "displayName": "Created By",
+      "validation": {}
     },
     {
       "id": "field_updated_at",
@@ -74,7 +239,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 40,
+      "sortOrder": 100,
       "permissions": {
         "read": [
           "*"
@@ -83,7 +248,8 @@
           "system"
         ]
       },
-      "displayName": "Updated At"
+      "displayName": "Updated At",
+      "validation": {}
     },
     {
       "id": "field_updated_by",
@@ -94,7 +260,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 50,
+      "sortOrder": 110,
       "permissions": {
         "read": [
           "*"
@@ -103,14 +269,15 @@
           "system"
         ]
       },
-      "displayName": "Updated By"
+      "displayName": "Updated By",
+      "validation": {}
     }
   ],
   "metadata": {
     "tableName": "pet_in_activity",
-    "totalFields": 5,
+    "totalFields": 11,
     "systemFields": 5,
-    "customFields": 0,
-    "generatedAt": "2025-09-07T17:59:01.621Z"
+    "customFields": 6,
+    "generatedAt": "2025-09-08T11:20:54.329Z"
   }
 }

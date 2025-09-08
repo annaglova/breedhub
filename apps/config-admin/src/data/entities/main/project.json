@@ -26,6 +26,7 @@
       },
       "displayName": "Notes",
       "placeholder": "Enter notes",
+      "validation": {},
       "defaultValue": ""
     },
     {
@@ -49,17 +50,14 @@
       },
       "displayName": "Name",
       "placeholder": "Enter name",
-      "maxLength": 250,
-      "validation": {
-        "maxLength": 250
-      },
+      "validation": {},
       "defaultValue": ""
     },
     {
-      "id": "field_owner_id",
-      "name": "owner_id",
+      "id": "field_account_id",
+      "name": "account_id",
       "fieldType": "uuid",
-      "component": "text",
+      "component": "select",
       "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -74,14 +72,19 @@
           "editor"
         ]
       },
-      "displayName": "Owner Id",
-      "placeholder": "Enter owner id"
+      "isForeignKey": true,
+      "referencedTable": "account",
+      "referencedFieldID": "id",
+      "displayName": "Account",
+      "placeholder": "Enter account",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
-      "id": "field_start_date",
-      "name": "start_date",
-      "fieldType": "date",
-      "component": "date",
+      "id": "field_contact_id",
+      "name": "contact_id",
+      "fieldType": "uuid",
+      "component": "select",
       "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -96,15 +99,19 @@
           "editor"
         ]
       },
-      "displayName": "Start Date",
-      "placeholder": "Enter start date",
-      "defaultValue": "(timezone(utc"
+      "isForeignKey": true,
+      "referencedTable": "contact",
+      "referencedFieldID": "id",
+      "displayName": "Contact",
+      "placeholder": "Enter contact",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
-      "id": "field_end_date",
-      "name": "end_date",
-      "fieldType": "date",
-      "component": "date",
+      "id": "field_project_entry_type_id",
+      "name": "project_entry_type_id",
+      "fieldType": "uuid",
+      "component": "select",
       "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -119,15 +126,20 @@
           "editor"
         ]
       },
-      "displayName": "End Date",
-      "placeholder": "Enter end date"
+      "isForeignKey": true,
+      "referencedTable": "project_entry_type",
+      "referencedFieldID": "id",
+      "displayName": "Project Entry Type",
+      "placeholder": "Enter project entry type",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
-      "id": "field_duration",
-      "name": "duration",
-      "fieldType": "number",
-      "component": "number",
-      "required": true,
+      "id": "field_type_id",
+      "name": "type_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -141,18 +153,19 @@
           "editor"
         ]
       },
-      "displayName": "Duration",
-      "placeholder": "Enter duration",
-      "validation": {
-        "precision": 32
-      },
-      "defaultValue": "0"
+      "isForeignKey": true,
+      "referencedTable": "project_type",
+      "referencedFieldID": "id",
+      "displayName": "Type",
+      "placeholder": "Enter type",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
-      "id": "field_deadline",
-      "name": "deadline",
-      "fieldType": "date",
-      "component": "date",
+      "id": "field_owner_id",
+      "name": "owner_id",
+      "fieldType": "uuid",
+      "component": "select",
       "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -167,15 +180,20 @@
           "editor"
         ]
       },
-      "displayName": "Deadline",
-      "placeholder": "Enter deadline"
+      "isForeignKey": true,
+      "referencedTable": "owner",
+      "referencedFieldID": "id",
+      "displayName": "Owner",
+      "placeholder": "Enter owner",
+      "validation": {},
+      "referencedFieldName": "id"
     },
     {
-      "id": "field_actual_completion",
-      "name": "actual_completion",
-      "fieldType": "number",
-      "component": "number",
-      "required": true,
+      "id": "field_status_id",
+      "name": "status_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -189,16 +207,20 @@
           "editor"
         ]
       },
-      "displayName": "Actual Completion",
-      "placeholder": "Enter actual completion",
-      "defaultValue": "0"
+      "isForeignKey": true,
+      "referencedTable": "project_status",
+      "referencedFieldID": "id",
+      "displayName": "Status",
+      "placeholder": "Enter status",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
-      "id": "field_is_auto_calc_completion",
-      "name": "is_auto_calc_completion",
-      "fieldType": "boolean",
-      "component": "checkbox",
-      "required": true,
+      "id": "field_start_date",
+      "name": "start_date",
+      "fieldType": "date",
+      "component": "date",
+      "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -212,15 +234,17 @@
           "editor"
         ]
       },
-      "displayName": "Is Auto Calc Completion",
-      "defaultValue": "false"
+      "displayName": "Start Date",
+      "placeholder": "Enter start date",
+      "validation": {},
+      "defaultValue": "(timezone(utc"
     },
     {
-      "id": "field_plan_income",
-      "name": "plan_income",
-      "fieldType": "number",
-      "component": "number",
-      "required": true,
+      "id": "field_end_date",
+      "name": "end_date",
+      "fieldType": "date",
+      "component": "date",
+      "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -234,13 +258,13 @@
           "editor"
         ]
       },
-      "displayName": "Plan Income",
-      "placeholder": "Enter plan income",
-      "defaultValue": "0"
+      "displayName": "End Date",
+      "placeholder": "Enter end date",
+      "validation": {}
     },
     {
-      "id": "field_fact_income",
-      "name": "fact_income",
+      "id": "field_duration",
+      "name": "duration",
       "fieldType": "number",
       "component": "number",
       "required": true,
@@ -257,16 +281,17 @@
           "editor"
         ]
       },
-      "displayName": "Fact Income",
-      "placeholder": "Enter fact income",
+      "displayName": "Duration",
+      "placeholder": "Enter duration",
+      "validation": {},
       "defaultValue": "0"
     },
     {
-      "id": "field_income_dev",
-      "name": "income_dev",
-      "fieldType": "number",
-      "component": "number",
-      "required": true,
+      "id": "field_deadline",
+      "name": "deadline",
+      "fieldType": "date",
+      "component": "date",
+      "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -280,16 +305,16 @@
           "editor"
         ]
       },
-      "displayName": "Income Dev",
-      "placeholder": "Enter income dev",
-      "defaultValue": "0"
+      "displayName": "Deadline",
+      "placeholder": "Enter deadline",
+      "validation": {}
     },
     {
-      "id": "field_income_dev_perc",
-      "name": "income_dev_perc",
-      "fieldType": "number",
-      "component": "number",
-      "required": true,
+      "id": "field_supplier_id",
+      "name": "supplier_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -303,16 +328,20 @@
           "editor"
         ]
       },
-      "displayName": "Income Dev Perc",
-      "placeholder": "Enter income dev perc",
-      "defaultValue": "0"
+      "isForeignKey": true,
+      "referencedTable": "account",
+      "referencedFieldID": "id",
+      "displayName": "Supplier",
+      "placeholder": "Enter supplier",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
-      "id": "field_plan_external_cost",
-      "name": "plan_external_cost",
-      "fieldType": "number",
-      "component": "number",
-      "required": true,
+      "id": "field_parent_project_id",
+      "name": "parent_project_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -326,13 +355,17 @@
           "editor"
         ]
       },
-      "displayName": "Plan External Cost",
-      "placeholder": "Enter plan external cost",
-      "defaultValue": "0"
+      "isForeignKey": true,
+      "referencedTable": "project",
+      "referencedFieldID": "id",
+      "displayName": "Parent Project",
+      "placeholder": "Enter parent project",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
-      "id": "field_fact_external_cost",
-      "name": "fact_external_cost",
+      "id": "field_actual_completion",
+      "name": "actual_completion",
       "fieldType": "number",
       "component": "number",
       "required": true,
@@ -349,15 +382,16 @@
           "editor"
         ]
       },
-      "displayName": "Fact External Cost",
-      "placeholder": "Enter fact external cost",
+      "displayName": "Actual Completion",
+      "placeholder": "Enter actual completion",
+      "validation": {},
       "defaultValue": "0"
     },
     {
-      "id": "field_external_cost_dev",
-      "name": "external_cost_dev",
-      "fieldType": "number",
-      "component": "number",
+      "id": "field_is_auto_calc_completion",
+      "name": "is_auto_calc_completion",
+      "fieldType": "boolean",
+      "component": "checkbox",
       "required": true,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -372,13 +406,13 @@
           "editor"
         ]
       },
-      "displayName": "External Cost Dev",
-      "placeholder": "Enter external cost dev",
-      "defaultValue": "0"
+      "displayName": "Is Auto Calc Completion",
+      "validation": {},
+      "defaultValue": "false"
     },
     {
-      "id": "field_plan_external_dev_perc",
-      "name": "plan_external_dev_perc",
+      "id": "field_plan_income",
+      "name": "plan_income",
       "fieldType": "number",
       "component": "number",
       "required": true,
@@ -395,13 +429,14 @@
           "editor"
         ]
       },
-      "displayName": "Plan External Dev Perc",
-      "placeholder": "Enter plan external dev perc",
+      "displayName": "Plan Income",
+      "placeholder": "Enter plan income",
+      "validation": {},
       "defaultValue": "0"
     },
     {
-      "id": "field_plan_expense",
-      "name": "plan_expense",
+      "id": "field_fact_income",
+      "name": "fact_income",
       "fieldType": "number",
       "component": "number",
       "required": true,
@@ -418,13 +453,14 @@
           "editor"
         ]
       },
-      "displayName": "Plan Expense",
-      "placeholder": "Enter plan expense",
+      "displayName": "Fact Income",
+      "placeholder": "Enter fact income",
+      "validation": {},
       "defaultValue": "0"
     },
     {
-      "id": "field_fact_expense",
-      "name": "fact_expense",
+      "id": "field_income_dev",
+      "name": "income_dev",
       "fieldType": "number",
       "component": "number",
       "required": true,
@@ -441,13 +477,14 @@
           "editor"
         ]
       },
-      "displayName": "Fact Expense",
-      "placeholder": "Enter fact expense",
+      "displayName": "Income Dev",
+      "placeholder": "Enter income dev",
+      "validation": {},
       "defaultValue": "0"
     },
     {
-      "id": "field_expense_dev",
-      "name": "expense_dev",
+      "id": "field_income_dev_perc",
+      "name": "income_dev_perc",
       "fieldType": "number",
       "component": "number",
       "required": true,
@@ -464,13 +501,14 @@
           "editor"
         ]
       },
-      "displayName": "Expense Dev",
-      "placeholder": "Enter expense dev",
+      "displayName": "Income Dev Perc",
+      "placeholder": "Enter income dev perc",
+      "validation": {},
       "defaultValue": "0"
     },
     {
-      "id": "field_expense_dev_perc",
-      "name": "expense_dev_perc",
+      "id": "field_plan_external_cost",
+      "name": "plan_external_cost",
       "fieldType": "number",
       "component": "number",
       "required": true,
@@ -487,13 +525,14 @@
           "editor"
         ]
       },
-      "displayName": "Expense Dev Perc",
-      "placeholder": "Enter expense dev perc",
+      "displayName": "Plan External Cost",
+      "placeholder": "Enter plan external cost",
+      "validation": {},
       "defaultValue": "0"
     },
     {
-      "id": "field_plan_internal_cost",
-      "name": "plan_internal_cost",
+      "id": "field_fact_external_cost",
+      "name": "fact_external_cost",
       "fieldType": "number",
       "component": "number",
       "required": true,
@@ -510,13 +549,14 @@
           "editor"
         ]
       },
-      "displayName": "Plan Internal Cost",
-      "placeholder": "Enter plan internal cost",
+      "displayName": "Fact External Cost",
+      "placeholder": "Enter fact external cost",
+      "validation": {},
       "defaultValue": "0"
     },
     {
-      "id": "field_fact_internal_cost",
-      "name": "fact_internal_cost",
+      "id": "field_external_cost_dev",
+      "name": "external_cost_dev",
       "fieldType": "number",
       "component": "number",
       "required": true,
@@ -533,13 +573,14 @@
           "editor"
         ]
       },
-      "displayName": "Fact Internal Cost",
-      "placeholder": "Enter fact internal cost",
+      "displayName": "External Cost Dev",
+      "placeholder": "Enter external cost dev",
+      "validation": {},
       "defaultValue": "0"
     },
     {
-      "id": "field_internal_cost_dev",
-      "name": "internal_cost_dev",
+      "id": "field_plan_external_dev_perc",
+      "name": "plan_external_dev_perc",
       "fieldType": "number",
       "component": "number",
       "required": true,
@@ -556,13 +597,14 @@
           "editor"
         ]
       },
-      "displayName": "Internal Cost Dev",
-      "placeholder": "Enter internal cost dev",
+      "displayName": "Plan External Dev Perc",
+      "placeholder": "Enter plan external dev perc",
+      "validation": {},
       "defaultValue": "0"
     },
     {
-      "id": "field_plan_internal_dev_perc",
-      "name": "plan_internal_dev_perc",
+      "id": "field_plan_expense",
+      "name": "plan_expense",
       "fieldType": "number",
       "component": "number",
       "required": true,
@@ -579,13 +621,14 @@
           "editor"
         ]
       },
-      "displayName": "Plan Internal Dev Perc",
-      "placeholder": "Enter plan internal dev perc",
+      "displayName": "Plan Expense",
+      "placeholder": "Enter plan expense",
+      "validation": {},
       "defaultValue": "0"
     },
     {
-      "id": "field_plan_margin",
-      "name": "plan_margin",
+      "id": "field_fact_expense",
+      "name": "fact_expense",
       "fieldType": "number",
       "component": "number",
       "required": true,
@@ -602,13 +645,14 @@
           "editor"
         ]
       },
-      "displayName": "Plan Margin",
-      "placeholder": "Enter plan margin",
+      "displayName": "Fact Expense",
+      "placeholder": "Enter fact expense",
+      "validation": {},
       "defaultValue": "0"
     },
     {
-      "id": "field_plan_margin_perc",
-      "name": "plan_margin_perc",
+      "id": "field_expense_dev",
+      "name": "expense_dev",
       "fieldType": "number",
       "component": "number",
       "required": true,
@@ -625,13 +669,14 @@
           "editor"
         ]
       },
-      "displayName": "Plan Margin Perc",
-      "placeholder": "Enter plan margin perc",
+      "displayName": "Expense Dev",
+      "placeholder": "Enter expense dev",
+      "validation": {},
       "defaultValue": "0"
     },
     {
-      "id": "field_fact_margin",
-      "name": "fact_margin",
+      "id": "field_expense_dev_perc",
+      "name": "expense_dev_perc",
       "fieldType": "number",
       "component": "number",
       "required": true,
@@ -648,13 +693,14 @@
           "editor"
         ]
       },
-      "displayName": "Fact Margin",
-      "placeholder": "Enter fact margin",
+      "displayName": "Expense Dev Perc",
+      "placeholder": "Enter expense dev perc",
+      "validation": {},
       "defaultValue": "0"
     },
     {
-      "id": "field_fact_margin_perc",
-      "name": "fact_margin_perc",
+      "id": "field_plan_internal_cost",
+      "name": "plan_internal_cost",
       "fieldType": "number",
       "component": "number",
       "required": true,
@@ -671,13 +717,14 @@
           "editor"
         ]
       },
-      "displayName": "Fact Margin Perc",
-      "placeholder": "Enter fact margin perc",
+      "displayName": "Plan Internal Cost",
+      "placeholder": "Enter plan internal cost",
+      "validation": {},
       "defaultValue": "0"
     },
     {
-      "id": "field_margin_dev",
-      "name": "margin_dev",
+      "id": "field_fact_internal_cost",
+      "name": "fact_internal_cost",
       "fieldType": "number",
       "component": "number",
       "required": true,
@@ -694,13 +741,14 @@
           "editor"
         ]
       },
-      "displayName": "Margin Dev",
-      "placeholder": "Enter margin dev",
+      "displayName": "Fact Internal Cost",
+      "placeholder": "Enter fact internal cost",
+      "validation": {},
       "defaultValue": "0"
     },
     {
-      "id": "field_margin_dev_perc",
-      "name": "margin_dev_perc",
+      "id": "field_internal_cost_dev",
+      "name": "internal_cost_dev",
       "fieldType": "number",
       "component": "number",
       "required": true,
@@ -717,13 +765,14 @@
           "editor"
         ]
       },
-      "displayName": "Margin Dev Perc",
-      "placeholder": "Enter margin dev perc",
+      "displayName": "Internal Cost Dev",
+      "placeholder": "Enter internal cost dev",
+      "validation": {},
       "defaultValue": "0"
     },
     {
-      "id": "field_position",
-      "name": "position",
+      "id": "field_plan_internal_dev_perc",
+      "name": "plan_internal_dev_perc",
       "fieldType": "number",
       "component": "number",
       "required": true,
@@ -740,18 +789,16 @@
           "editor"
         ]
       },
-      "displayName": "Position",
-      "placeholder": "Enter position",
-      "validation": {
-        "precision": 32
-      },
+      "displayName": "Plan Internal Dev Perc",
+      "placeholder": "Enter plan internal dev perc",
+      "validation": {},
       "defaultValue": "0"
     },
     {
-      "id": "field_url",
-      "name": "url",
-      "fieldType": "string",
-      "component": "url",
+      "id": "field_plan_margin",
+      "name": "plan_margin",
+      "fieldType": "number",
+      "component": "number",
       "required": true,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -766,15 +813,316 @@
           "editor"
         ]
       },
+      "displayName": "Plan Margin",
+      "placeholder": "Enter plan margin",
+      "validation": {},
+      "defaultValue": "0"
+    },
+    {
+      "id": "field_plan_margin_perc",
+      "name": "plan_margin_perc",
+      "fieldType": "number",
+      "component": "number",
+      "required": true,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 340,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "displayName": "Plan Margin Perc",
+      "placeholder": "Enter plan margin perc",
+      "validation": {},
+      "defaultValue": "0"
+    },
+    {
+      "id": "field_fact_margin",
+      "name": "fact_margin",
+      "fieldType": "number",
+      "component": "number",
+      "required": true,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 350,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "displayName": "Fact Margin",
+      "placeholder": "Enter fact margin",
+      "validation": {},
+      "defaultValue": "0"
+    },
+    {
+      "id": "field_fact_margin_perc",
+      "name": "fact_margin_perc",
+      "fieldType": "number",
+      "component": "number",
+      "required": true,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 360,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "displayName": "Fact Margin Perc",
+      "placeholder": "Enter fact margin perc",
+      "validation": {},
+      "defaultValue": "0"
+    },
+    {
+      "id": "field_margin_dev",
+      "name": "margin_dev",
+      "fieldType": "number",
+      "component": "number",
+      "required": true,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 370,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "displayName": "Margin Dev",
+      "placeholder": "Enter margin dev",
+      "validation": {},
+      "defaultValue": "0"
+    },
+    {
+      "id": "field_margin_dev_perc",
+      "name": "margin_dev_perc",
+      "fieldType": "number",
+      "component": "number",
+      "required": true,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 380,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "displayName": "Margin Dev Perc",
+      "placeholder": "Enter margin dev perc",
+      "validation": {},
+      "defaultValue": "0"
+    },
+    {
+      "id": "field_position",
+      "name": "position",
+      "fieldType": "number",
+      "component": "number",
+      "required": true,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 390,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "displayName": "Position",
+      "placeholder": "Enter position",
+      "validation": {},
+      "defaultValue": "0"
+    },
+    {
+      "id": "field_event_id",
+      "name": "event_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 400,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "isForeignKey": true,
+      "referencedTable": "event",
+      "referencedFieldID": "id",
+      "displayName": "Event",
+      "placeholder": "Enter event",
+      "validation": {},
+      "referencedFieldName": "name"
+    },
+    {
+      "id": "field_category_id",
+      "name": "category_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 410,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "isForeignKey": true,
+      "referencedTable": "project_category",
+      "referencedFieldID": "id",
+      "displayName": "Category",
+      "placeholder": "Enter category",
+      "validation": {},
+      "referencedFieldName": "name"
+    },
+    {
+      "id": "field_breed_id",
+      "name": "breed_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 420,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "isForeignKey": true,
+      "referencedTable": "breed",
+      "referencedFieldID": "id",
+      "displayName": "Breed",
+      "placeholder": "Enter breed",
+      "validation": {},
+      "referencedFieldName": "name"
+    },
+    {
+      "id": "field_url",
+      "name": "url",
+      "fieldType": "string",
+      "component": "url",
+      "required": true,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 430,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
       "displayName": "Url",
       "placeholder": "Enter url",
-      "maxLength": 250,
       "validation": {
-        "maxLength": 250,
         "pattern": "^https?://.+",
         "message": "Invalid URL format"
       },
       "defaultValue": ""
+    },
+    {
+      "id": "field_pet_type_id",
+      "name": "pet_type_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 440,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "isForeignKey": true,
+      "referencedTable": "pet_type",
+      "referencedFieldID": "id",
+      "displayName": "Pet Type",
+      "placeholder": "Enter pet type",
+      "validation": {},
+      "referencedFieldName": "name"
+    },
+    {
+      "id": "field_cover_id",
+      "name": "cover_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 450,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "isForeignKey": true,
+      "referencedTable": "cover",
+      "referencedFieldID": "id",
+      "displayName": "Cover",
+      "placeholder": "Enter cover",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
       "id": "field_id",
@@ -783,9 +1131,9 @@
       "component": "text",
       "required": true,
       "isSystem": true,
-      "isPrimaryKey": true,
+      "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 340,
+      "sortOrder": 460,
       "permissions": {
         "read": [
           "*"
@@ -794,7 +1142,8 @@
           "system"
         ]
       },
-      "displayName": "Id"
+      "displayName": "Id",
+      "validation": {}
     },
     {
       "id": "field_created_at",
@@ -805,7 +1154,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 350,
+      "sortOrder": 470,
       "permissions": {
         "read": [
           "*"
@@ -814,7 +1163,8 @@
           "system"
         ]
       },
-      "displayName": "Created At"
+      "displayName": "Created At",
+      "validation": {}
     },
     {
       "id": "field_created_by",
@@ -825,7 +1175,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 360,
+      "sortOrder": 480,
       "permissions": {
         "read": [
           "*"
@@ -834,7 +1184,8 @@
           "system"
         ]
       },
-      "displayName": "Created By"
+      "displayName": "Created By",
+      "validation": {}
     },
     {
       "id": "field_updated_at",
@@ -845,7 +1196,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 370,
+      "sortOrder": 490,
       "permissions": {
         "read": [
           "*"
@@ -854,7 +1205,8 @@
           "system"
         ]
       },
-      "displayName": "Updated At"
+      "displayName": "Updated At",
+      "validation": {}
     },
     {
       "id": "field_updated_by",
@@ -865,7 +1217,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 380,
+      "sortOrder": 500,
       "permissions": {
         "read": [
           "*"
@@ -874,14 +1226,15 @@
           "system"
         ]
       },
-      "displayName": "Updated By"
+      "displayName": "Updated By",
+      "validation": {}
     }
   ],
   "metadata": {
     "tableName": "project",
-    "totalFields": 38,
+    "totalFields": 50,
     "systemFields": 5,
-    "customFields": 33,
-    "generatedAt": "2025-09-07T18:14:22.347Z"
+    "customFields": 45,
+    "generatedAt": "2025-09-08T11:19:34.315Z"
   }
 }

@@ -6,11 +6,11 @@
   "category": "child",
   "fields": [
     {
-      "id": "field_price",
-      "name": "price",
-      "fieldType": "number",
-      "component": "number",
-      "required": true,
+      "id": "field_service_type_id",
+      "name": "service_type_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -24,15 +24,19 @@
           "editor"
         ]
       },
-      "displayName": "Price",
-      "placeholder": "Enter price",
-      "defaultValue": "0"
+      "isForeignKey": true,
+      "referencedTable": "pet_service_type",
+      "referencedFieldID": "id",
+      "displayName": "Service Type",
+      "placeholder": "Enter service type",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
-      "id": "field_date",
-      "name": "date",
-      "fieldType": "date",
-      "component": "date",
+      "id": "field_pet_id",
+      "name": "pet_id",
+      "fieldType": "uuid",
+      "component": "select",
       "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -47,9 +51,142 @@
           "editor"
         ]
       },
+      "isForeignKey": true,
+      "referencedTable": "pet_manchester_terrier_toy",
+      "referencedFieldID": "id",
+      "displayName": "Pet",
+      "placeholder": "Enter pet",
+      "validation": {},
+      "referencedFieldName": "name"
+    },
+    {
+      "id": "field_currency_id",
+      "name": "currency_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 30,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "isForeignKey": true,
+      "referencedTable": "currency",
+      "referencedFieldID": "id",
+      "displayName": "Currency",
+      "placeholder": "Enter currency",
+      "validation": {},
+      "referencedFieldName": "name"
+    },
+    {
+      "id": "field_price",
+      "name": "price",
+      "fieldType": "number",
+      "component": "number",
+      "required": true,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 40,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "displayName": "Price",
+      "placeholder": "Enter price",
+      "validation": {},
+      "defaultValue": "0"
+    },
+    {
+      "id": "field_pet_service_status_id",
+      "name": "pet_service_status_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 50,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "isForeignKey": true,
+      "referencedTable": "pet_service_status",
+      "referencedFieldID": "id",
+      "displayName": "Pet Service Status",
+      "placeholder": "Enter pet service status",
+      "validation": {},
+      "referencedFieldName": "name"
+    },
+    {
+      "id": "field_date",
+      "name": "date",
+      "fieldType": "date",
+      "component": "date",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 60,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
       "displayName": "Date",
       "placeholder": "Enter date",
+      "validation": {},
       "defaultValue": "(timezone(utc"
+    },
+    {
+      "id": "field_pet_breed_id",
+      "name": "pet_breed_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 70,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "isForeignKey": true,
+      "referencedTable": "pet_manchester_terrier_toy",
+      "referencedFieldID": "id",
+      "displayName": "Pet Breed",
+      "placeholder": "Enter pet breed",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
       "id": "field_id",
@@ -58,9 +195,9 @@
       "component": "text",
       "required": true,
       "isSystem": true,
-      "isPrimaryKey": true,
+      "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 30,
+      "sortOrder": 80,
       "permissions": {
         "read": [
           "*"
@@ -69,7 +206,8 @@
           "system"
         ]
       },
-      "displayName": "Id"
+      "displayName": "Id",
+      "validation": {}
     },
     {
       "id": "field_created_at",
@@ -80,7 +218,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 40,
+      "sortOrder": 90,
       "permissions": {
         "read": [
           "*"
@@ -89,7 +227,8 @@
           "system"
         ]
       },
-      "displayName": "Created At"
+      "displayName": "Created At",
+      "validation": {}
     },
     {
       "id": "field_created_by",
@@ -100,7 +239,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 50,
+      "sortOrder": 100,
       "permissions": {
         "read": [
           "*"
@@ -109,7 +248,8 @@
           "system"
         ]
       },
-      "displayName": "Created By"
+      "displayName": "Created By",
+      "validation": {}
     },
     {
       "id": "field_updated_at",
@@ -120,7 +260,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 60,
+      "sortOrder": 110,
       "permissions": {
         "read": [
           "*"
@@ -129,7 +269,8 @@
           "system"
         ]
       },
-      "displayName": "Updated At"
+      "displayName": "Updated At",
+      "validation": {}
     },
     {
       "id": "field_updated_by",
@@ -140,7 +281,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 70,
+      "sortOrder": 120,
       "permissions": {
         "read": [
           "*"
@@ -149,14 +290,15 @@
           "system"
         ]
       },
-      "displayName": "Updated By"
+      "displayName": "Updated By",
+      "validation": {}
     }
   ],
   "metadata": {
     "tableName": "pet_service",
-    "totalFields": 7,
+    "totalFields": 12,
     "systemFields": 5,
-    "customFields": 2,
-    "generatedAt": "2025-09-07T17:59:10.383Z"
+    "customFields": 7,
+    "generatedAt": "2025-09-08T11:20:59.145Z"
   }
 }

@@ -25,6 +25,7 @@
         ]
       },
       "displayName": "Private",
+      "validation": {},
       "defaultValue": "false"
     },
     {
@@ -48,10 +49,7 @@
       },
       "displayName": "Entity Name",
       "placeholder": "Enter entity name",
-      "maxLength": 50,
-      "validation": {
-        "maxLength": 50
-      },
+      "validation": {},
       "defaultValue": ""
     },
     {
@@ -74,14 +72,15 @@
         ]
       },
       "displayName": "Auto",
+      "validation": {},
       "defaultValue": "false"
     },
     {
-      "id": "field_avatar_url",
-      "name": "avatar_url",
-      "fieldType": "string",
-      "component": "url",
-      "required": true,
+      "id": "field_type_id",
+      "name": "type_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -95,19 +94,17 @@
           "editor"
         ]
       },
-      "displayName": "Avatar Url",
-      "placeholder": "Enter avatar url",
-      "maxLength": 500,
-      "validation": {
-        "maxLength": 500,
-        "pattern": "^https?://.+",
-        "message": "Invalid URL format"
-      },
-      "defaultValue": ""
+      "isForeignKey": true,
+      "referencedTable": "collection_type",
+      "referencedFieldID": "id",
+      "displayName": "Type",
+      "placeholder": "Enter type",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
-      "id": "field_url",
-      "name": "url",
+      "id": "field_avatar_url",
+      "name": "avatar_url",
       "fieldType": "string",
       "component": "url",
       "required": true,
@@ -124,21 +121,19 @@
           "editor"
         ]
       },
-      "displayName": "Url",
-      "placeholder": "Enter url",
-      "maxLength": 500,
+      "displayName": "Avatar Url",
+      "placeholder": "Enter avatar url",
       "validation": {
-        "maxLength": 500,
         "pattern": "^https?://.+",
         "message": "Invalid URL format"
       },
       "defaultValue": ""
     },
     {
-      "id": "field_name",
-      "name": "name",
+      "id": "field_url",
+      "name": "url",
       "fieldType": "string",
-      "component": "text",
+      "component": "url",
       "required": true,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -153,19 +148,19 @@
           "editor"
         ]
       },
-      "displayName": "Name",
-      "placeholder": "Enter name",
-      "maxLength": 250,
+      "displayName": "Url",
+      "placeholder": "Enter url",
       "validation": {
-        "maxLength": 250
+        "pattern": "^https?://.+",
+        "message": "Invalid URL format"
       },
       "defaultValue": ""
     },
     {
-      "id": "field_notes",
-      "name": "notes",
-      "fieldType": "text",
-      "component": "textarea",
+      "id": "field_name",
+      "name": "name",
+      "fieldType": "string",
+      "component": "text",
       "required": true,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -180,16 +175,17 @@
           "editor"
         ]
       },
-      "displayName": "Notes",
-      "placeholder": "Enter notes",
+      "displayName": "Name",
+      "placeholder": "Enter name",
+      "validation": {},
       "defaultValue": ""
     },
     {
-      "id": "field_update_date",
-      "name": "update_date",
-      "fieldType": "datetime",
-      "component": "date",
-      "required": false,
+      "id": "field_notes",
+      "name": "notes",
+      "fieldType": "text",
+      "component": "textarea",
+      "required": true,
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -203,14 +199,16 @@
           "editor"
         ]
       },
-      "displayName": "Update Date",
-      "placeholder": "Enter update date"
+      "displayName": "Notes",
+      "placeholder": "Enter notes",
+      "validation": {},
+      "defaultValue": ""
     },
     {
-      "id": "field_owner_id",
-      "name": "owner_id",
-      "fieldType": "uuid",
-      "component": "text",
+      "id": "field_update_date",
+      "name": "update_date",
+      "fieldType": "datetime",
+      "component": "date",
       "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -225,17 +223,18 @@
           "editor"
         ]
       },
-      "displayName": "Owner Id",
-      "placeholder": "Enter owner id"
+      "displayName": "Update Date",
+      "placeholder": "Enter update date",
+      "validation": {}
     },
     {
-      "id": "field_id",
-      "name": "id",
+      "id": "field_cover_id",
+      "name": "cover_id",
       "fieldType": "uuid",
-      "component": "text",
-      "required": true,
-      "isSystem": true,
-      "isPrimaryKey": true,
+      "component": "select",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
       "isUnique": false,
       "sortOrder": 100,
       "permissions": {
@@ -243,18 +242,25 @@
           "*"
         ],
         "write": [
-          "system"
+          "admin",
+          "editor"
         ]
       },
-      "displayName": "Id"
+      "isForeignKey": true,
+      "referencedTable": "cover",
+      "referencedFieldID": "id",
+      "displayName": "Cover",
+      "placeholder": "Enter cover",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
-      "id": "field_created_at",
-      "name": "created_at",
-      "fieldType": "datetime",
-      "component": "datetime",
+      "id": "field_owner_id",
+      "name": "owner_id",
+      "fieldType": "uuid",
+      "component": "select",
       "required": false,
-      "isSystem": true,
+      "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
       "sortOrder": 110,
@@ -263,17 +269,24 @@
           "*"
         ],
         "write": [
-          "system"
+          "admin",
+          "editor"
         ]
       },
-      "displayName": "Created At"
+      "isForeignKey": true,
+      "referencedTable": "owner",
+      "referencedFieldID": "id",
+      "displayName": "Owner",
+      "placeholder": "Enter owner",
+      "validation": {},
+      "referencedFieldName": "id"
     },
     {
-      "id": "field_created_by",
-      "name": "created_by",
+      "id": "field_id",
+      "name": "id",
       "fieldType": "uuid",
       "component": "text",
-      "required": false,
+      "required": true,
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -286,13 +299,14 @@
           "system"
         ]
       },
-      "displayName": "Created By"
+      "displayName": "Id",
+      "validation": {}
     },
     {
-      "id": "field_updated_at",
-      "name": "updated_at",
+      "id": "field_created_at",
+      "name": "created_at",
       "fieldType": "datetime",
-      "component": "date",
+      "component": "datetime",
       "required": false,
       "isSystem": true,
       "isPrimaryKey": false,
@@ -306,13 +320,14 @@
           "system"
         ]
       },
-      "displayName": "Updated At"
+      "displayName": "Created At",
+      "validation": {}
     },
     {
-      "id": "field_updated_by",
-      "name": "updated_by",
+      "id": "field_created_by",
+      "name": "created_by",
       "fieldType": "uuid",
-      "component": "date",
+      "component": "text",
       "required": false,
       "isSystem": true,
       "isPrimaryKey": false,
@@ -326,14 +341,57 @@
           "system"
         ]
       },
-      "displayName": "Updated By"
+      "displayName": "Created By",
+      "validation": {}
+    },
+    {
+      "id": "field_updated_at",
+      "name": "updated_at",
+      "fieldType": "datetime",
+      "component": "date",
+      "required": false,
+      "isSystem": true,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 150,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "system"
+        ]
+      },
+      "displayName": "Updated At",
+      "validation": {}
+    },
+    {
+      "id": "field_updated_by",
+      "name": "updated_by",
+      "fieldType": "uuid",
+      "component": "date",
+      "required": false,
+      "isSystem": true,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 160,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "system"
+        ]
+      },
+      "displayName": "Updated By",
+      "validation": {}
     }
   ],
   "metadata": {
     "tableName": "collection",
-    "totalFields": 14,
+    "totalFields": 16,
     "systemFields": 5,
-    "customFields": 9,
-    "generatedAt": "2025-09-07T18:14:21.252Z"
+    "customFields": 11,
+    "generatedAt": "2025-09-08T11:19:30.570Z"
   }
 }

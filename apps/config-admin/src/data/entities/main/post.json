@@ -26,14 +26,15 @@
       },
       "displayName": "Publication Date",
       "placeholder": "Enter publication date",
+      "validation": {},
       "defaultValue": "timezone(utc"
     },
     {
-      "id": "field_text",
-      "name": "text",
-      "fieldType": "text",
-      "component": "textarea",
-      "required": true,
+      "id": "field_type_id",
+      "name": "type_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -47,16 +48,20 @@
           "editor"
         ]
       },
-      "displayName": "Text",
-      "placeholder": "Enter text",
-      "defaultValue": ""
+      "isForeignKey": true,
+      "referencedTable": "post_type",
+      "referencedFieldID": "id",
+      "displayName": "Type",
+      "placeholder": "Enter type",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
-      "id": "field_url",
-      "name": "url",
-      "fieldType": "string",
-      "component": "url",
-      "required": true,
+      "id": "field_state_id",
+      "name": "state_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -70,21 +75,19 @@
           "editor"
         ]
       },
-      "displayName": "Url",
-      "placeholder": "Enter url",
-      "maxLength": 250,
-      "validation": {
-        "maxLength": 250,
-        "pattern": "^https?://.+",
-        "message": "Invalid URL format"
-      },
-      "defaultValue": ""
+      "isForeignKey": true,
+      "referencedTable": "post_state",
+      "referencedFieldID": "id",
+      "displayName": "State",
+      "placeholder": "Enter state",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
-      "id": "field_is_moment",
-      "name": "is_moment",
-      "fieldType": "boolean",
-      "component": "checkbox",
+      "id": "field_text",
+      "name": "text",
+      "fieldType": "text",
+      "component": "textarea",
       "required": true,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -99,15 +102,17 @@
           "editor"
         ]
       },
-      "displayName": "Is Moment",
-      "defaultValue": "false"
+      "displayName": "Text",
+      "placeholder": "Enter text",
+      "validation": {},
+      "defaultValue": ""
     },
     {
-      "id": "field_author_id",
-      "name": "author_id",
-      "fieldType": "uuid",
-      "component": "text",
-      "required": false,
+      "id": "field_url",
+      "name": "url",
+      "fieldType": "string",
+      "component": "url",
+      "required": true,
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -121,15 +126,20 @@
           "editor"
         ]
       },
-      "displayName": "Author Id",
-      "placeholder": "Enter author id"
+      "displayName": "Url",
+      "placeholder": "Enter url",
+      "validation": {
+        "pattern": "^https?://.+",
+        "message": "Invalid URL format"
+      },
+      "defaultValue": ""
     },
     {
-      "id": "field_name",
-      "name": "name",
-      "fieldType": "string",
-      "component": "text",
-      "required": true,
+      "id": "field_master_post_id",
+      "name": "master_post_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -143,20 +153,20 @@
           "editor"
         ]
       },
-      "displayName": "Name",
-      "placeholder": "Enter name",
-      "maxLength": 250,
-      "validation": {
-        "maxLength": 250
-      },
-      "defaultValue": ""
+      "isForeignKey": true,
+      "referencedTable": "post",
+      "referencedFieldID": "id",
+      "displayName": "Master Post",
+      "placeholder": "Enter master post",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
-      "id": "field_date",
-      "name": "date",
-      "fieldType": "date",
-      "component": "date",
-      "required": false,
+      "id": "field_is_moment",
+      "name": "is_moment",
+      "fieldType": "boolean",
+      "component": "checkbox",
+      "required": true,
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -170,16 +180,16 @@
           "editor"
         ]
       },
-      "displayName": "Date",
-      "placeholder": "Enter date",
-      "defaultValue": "timezone(utc"
+      "displayName": "Is Moment",
+      "validation": {},
+      "defaultValue": "false"
     },
     {
-      "id": "field_latitude",
-      "name": "latitude",
-      "fieldType": "number",
-      "component": "number",
-      "required": true,
+      "id": "field_author_id",
+      "name": "author_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -193,15 +203,19 @@
           "editor"
         ]
       },
-      "displayName": "Latitude",
-      "placeholder": "Enter latitude",
-      "defaultValue": "0"
+      "isForeignKey": true,
+      "referencedTable": "author",
+      "referencedFieldID": "id",
+      "displayName": "Author",
+      "placeholder": "Enter author",
+      "validation": {},
+      "referencedFieldName": "id"
     },
     {
-      "id": "field_longitude",
-      "name": "longitude",
-      "fieldType": "number",
-      "component": "number",
+      "id": "field_name",
+      "name": "name",
+      "fieldType": "string",
+      "component": "text",
       "required": true,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -216,16 +230,17 @@
           "editor"
         ]
       },
-      "displayName": "Longitude",
-      "placeholder": "Enter longitude",
-      "defaultValue": "0"
+      "displayName": "Name",
+      "placeholder": "Enter name",
+      "validation": {},
+      "defaultValue": ""
     },
     {
-      "id": "field_photos",
-      "name": "photos",
-      "fieldType": "text",
-      "component": "image",
-      "required": true,
+      "id": "field_date",
+      "name": "date",
+      "fieldType": "date",
+      "component": "date",
+      "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -239,16 +254,17 @@
           "editor"
         ]
       },
-      "displayName": "Photos",
-      "placeholder": "Enter photos",
-      "defaultValue": ""
+      "displayName": "Date",
+      "placeholder": "Enter date",
+      "validation": {},
+      "defaultValue": "timezone(utc"
     },
     {
-      "id": "field_participants",
-      "name": "participants",
-      "fieldType": "text",
-      "component": "textarea",
-      "required": true,
+      "id": "field_event_id",
+      "name": "event_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -262,9 +278,136 @@
           "editor"
         ]
       },
+      "isForeignKey": true,
+      "referencedTable": "event",
+      "referencedFieldID": "id",
+      "displayName": "Event",
+      "placeholder": "Enter event",
+      "validation": {},
+      "referencedFieldName": "name"
+    },
+    {
+      "id": "field_latitude",
+      "name": "latitude",
+      "fieldType": "number",
+      "component": "number",
+      "required": true,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 120,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "displayName": "Latitude",
+      "placeholder": "Enter latitude",
+      "validation": {},
+      "defaultValue": "0"
+    },
+    {
+      "id": "field_longitude",
+      "name": "longitude",
+      "fieldType": "number",
+      "component": "number",
+      "required": true,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 130,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "displayName": "Longitude",
+      "placeholder": "Enter longitude",
+      "validation": {},
+      "defaultValue": "0"
+    },
+    {
+      "id": "field_photos",
+      "name": "photos",
+      "fieldType": "text",
+      "component": "image",
+      "required": true,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 140,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "displayName": "Photos",
+      "placeholder": "Enter photos",
+      "validation": {},
+      "defaultValue": ""
+    },
+    {
+      "id": "field_participants",
+      "name": "participants",
+      "fieldType": "text",
+      "component": "textarea",
+      "required": true,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 150,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
       "displayName": "Participants",
       "placeholder": "Enter participants",
+      "validation": {},
       "defaultValue": ""
+    },
+    {
+      "id": "field_cover_id",
+      "name": "cover_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 160,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "isForeignKey": true,
+      "referencedTable": "cover",
+      "referencedFieldID": "id",
+      "displayName": "Cover",
+      "placeholder": "Enter cover",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
       "id": "field_id",
@@ -273,9 +416,9 @@
       "component": "text",
       "required": true,
       "isSystem": true,
-      "isPrimaryKey": true,
+      "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 120,
+      "sortOrder": 170,
       "permissions": {
         "read": [
           "*"
@@ -284,7 +427,8 @@
           "system"
         ]
       },
-      "displayName": "Id"
+      "displayName": "Id",
+      "validation": {}
     },
     {
       "id": "field_created_at",
@@ -295,7 +439,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 130,
+      "sortOrder": 180,
       "permissions": {
         "read": [
           "*"
@@ -304,7 +448,8 @@
           "system"
         ]
       },
-      "displayName": "Created At"
+      "displayName": "Created At",
+      "validation": {}
     },
     {
       "id": "field_created_by",
@@ -315,7 +460,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 140,
+      "sortOrder": 190,
       "permissions": {
         "read": [
           "*"
@@ -324,7 +469,8 @@
           "system"
         ]
       },
-      "displayName": "Created By"
+      "displayName": "Created By",
+      "validation": {}
     },
     {
       "id": "field_updated_at",
@@ -335,7 +481,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 150,
+      "sortOrder": 200,
       "permissions": {
         "read": [
           "*"
@@ -344,7 +490,8 @@
           "system"
         ]
       },
-      "displayName": "Updated At"
+      "displayName": "Updated At",
+      "validation": {}
     },
     {
       "id": "field_updated_by",
@@ -355,7 +502,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 160,
+      "sortOrder": 210,
       "permissions": {
         "read": [
           "*"
@@ -364,14 +511,15 @@
           "system"
         ]
       },
-      "displayName": "Updated By"
+      "displayName": "Updated By",
+      "validation": {}
     }
   ],
   "metadata": {
     "tableName": "post",
-    "totalFields": 16,
+    "totalFields": 21,
     "systemFields": 5,
-    "customFields": 11,
-    "generatedAt": "2025-09-07T18:14:30.176Z"
+    "customFields": 16,
+    "generatedAt": "2025-09-08T11:19:51.694Z"
   }
 }

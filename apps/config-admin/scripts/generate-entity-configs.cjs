@@ -8,7 +8,7 @@ const SYSTEM_FIELDS = [
   "id",
   "created_at",
   "created_by",
-  "updated_at",
+  "updated_at", 
   "updated_by",
   "deleted",
   "deleted_at",
@@ -31,6 +31,9 @@ if (!supabaseUrl || !supabaseKey) {
 }
 
 const supabase = createClient(supabaseUrl, supabaseKey);
+
+// Cache for table schemas to avoid multiple queries
+const tableSchemaCache = {};
 
 // Map Postgres types to field types
 function mapPostgresType(pgType) {
@@ -57,8 +60,52 @@ function mapPostgresType(pgType) {
   return typeMap[pgType] || 'string';
 }
 
+// Detect display column for a table (name, title, label, code, etc.)
+function detectDisplayColumn(columns) {
+  // Priority order for display columns
+  const displayColumnPriority = [
+    'name',
+    'title',
+    'label',
+    'display_name',
+    'full_name',
+    'code',
+    'description',
+    'value',
+    'text'
+  ];
+  
+  const columnNames = columns.map(c => c.column_name);
+  
+  // Find first matching display column
+  for (const displayCol of displayColumnPriority) {
+    if (columnNames.includes(displayCol)) {
+      return displayCol;
+    }
+  }
+  
+  // If no standard display column found, use first non-system string column
+  const nonSystemColumns = columns.filter(c => 
+    !SYSTEM_FIELDS.includes(c.column_name) &&
+    !c.column_name.endsWith('_id') &&
+    (c.data_type === 'character varying' || c.data_type === 'text')
+  );
+  
+  if (nonSystemColumns.length > 0) {
+    return nonSystemColumns[0].column_name;
+  }
+  
+  // Fallback to id if nothing else found
+  return 'id';
+}
+
 // Map field type to UI component
-function getUIComponent(fieldType, fieldName) {
+function getUIComponent(fieldType, fieldName, isForeignKey = false) {
+  // Foreign keys should use select/lookup component
+  if (isForeignKey || fieldName.endsWith('_id')) {
+    return 'select';  // or 'lookup' for advanced selection
+  }
+  
   // By type first (more specific)
   const componentMap = {
     'uuid': 'text',
@@ -93,39 +140,36 @@ function getUIComponent(fieldType, fieldName) {
 function generateValidation(col) {
   const validation = {};
   
+  // Add maxLength for string types
   if (col.character_maximum_length) {
     validation.maxLength = col.character_maximum_length;
   }
   
+  // Add numeric constraints
   if (col.numeric_precision) {
     validation.precision = col.numeric_precision;
   }
-  
-  if (col.numeric_scale) {
+  if (col.numeric_scale !== null) {
     validation.scale = col.numeric_scale;
   }
   
-  // Add patterns for common fields
-  if (col.column_name.includes('email')) {
-    validation.pattern = '^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$';
-    validation.message = 'Invalid email format';
-  }
-  
-  if (col.column_name.includes('phone')) {
-    validation.pattern = '^[+]?[0-9]{1,4}?[-. ]?[(]?[0-9]{1,3}?[)]?[-. ]?[0-9]{1,4}[-. ]?[0-9]{1,4}$';
-    validation.message = 'Invalid phone format';
-  }
-  
+  // Add URL validation for URL fields
   if (col.column_name.includes('url') || col.column_name.includes('link')) {
     validation.pattern = '^https?://.+';
     validation.message = 'Invalid URL format';
   }
   
-  return Object.keys(validation).length > 0 ? validation : undefined;
+  // Add email validation for email fields
+  if (col.column_name.includes('email')) {
+    validation.pattern = '^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$';
+    validation.message = 'Invalid email format';
+  }
+  
+  return Object.keys(validation).length > 0 ? validation : null;
 }
 
-// Generate field configuration
-function generateFieldConfig(col, constraints = []) {
+// Generate field configuration from column info
+function generateFieldConfig(col, constraints, foreignKeys) {
   const fieldName = col.column_name;
   const fieldType = mapPostgresType(col.data_type);
   const isSystem = SYSTEM_FIELDS.includes(fieldName);
@@ -135,18 +179,16 @@ function generateFieldConfig(col, constraints = []) {
   const isRequired = col.is_nullable === 'NO' || columnConstraints.some(c => c.constraint_type === 'NOT NULL');
   const isPrimaryKey = columnConstraints.some(c => c.constraint_type === 'PRIMARY KEY');
   const isUnique = columnConstraints.some(c => c.constraint_type === 'UNIQUE');
-  const foreignKey = columnConstraints.find(c => c.constraint_type === 'FOREIGN KEY');
+  const foreignKey = foreignKeys[fieldName]; // Get FK info from the map
   
-  // Skip foreign key fields - we don't include relationships
-  if (foreignKey) {
-    return null;
-  }
+  // Don't skip foreign key fields - we need them for proper configuration
+  // Foreign keys should be treated as regular fields with special component type
   
   const config = {
     id: `field_${fieldName}`,
     name: fieldName,
     fieldType: fieldType,
-    component: getUIComponent(fieldType, fieldName),
+    component: getUIComponent(fieldType, fieldName, !!foreignKey),
     required: isRequired,
     isSystem: isSystem,
     isPrimaryKey: isPrimaryKey,
@@ -158,11 +200,54 @@ function generateFieldConfig(col, constraints = []) {
     }
   };
   
+  // Add foreign key information if exists
+  if (foreignKey) {
+    config.isForeignKey = true;
+    config.referencedTable = foreignKey.ref_table;
+    config.referencedFieldID = foreignKey.ref_column || 'id';
+    
+    // We'll detect the display column later when we have all table schemas
+    // For now, mark it for post-processing
+    config.needsDisplayColumn = true;
+  }
+  
+  // If no FK from RPC but field ends with _id, still treat it as potential FK
+  if (!foreignKey && fieldName.endsWith('_id') && fieldName !== 'id') {
+    // Still mark as FK for UI purposes
+    config.isForeignKey = true;
+    
+    // Derive table name from field name
+    let referencedTable = fieldName.slice(0, -3); // remove '_id'
+    
+    // Special cases for table name mapping
+    const tableNameMap = {
+      'language': 'sys_language',
+      'category': 'breed_category'
+    };
+    
+    if (tableNameMap[referencedTable]) {
+      referencedTable = tableNameMap[referencedTable];
+    }
+    
+    config.referencedTable = referencedTable;
+    config.referencedFieldID = 'id';
+    config.needsDisplayColumn = true;
+  }
+  
   // Add display name
-  config.displayName = fieldName
-    .split('_')
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ');
+  // For foreign keys, remove '_id' suffix from display name
+  if ((foreignKey || fieldName.endsWith('_id')) && fieldName !== 'id') {
+    config.displayName = fieldName
+      .replace(/_id$/, '') // remove _id suffix
+      .split('_')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+  } else {
+    config.displayName = fieldName
+      .split('_')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+  }
   
   // Add placeholder
   if (!isSystem && config.component !== 'checkbox') {
@@ -195,47 +280,74 @@ function generateFieldConfig(col, constraints = []) {
 
 // Get table columns and constraints
 async function getTableSchema(tableName) {
-  // Get columns
-  const { data: columns, error: columnsError } = await supabase.rpc("execute_sql_select", {
-    sql: `
-      SELECT 
-        column_name,
-        data_type,
-        is_nullable,
-        column_default,
-        character_maximum_length,
-        numeric_precision,
-        numeric_scale
-      FROM information_schema.columns
-      WHERE table_schema = 'public' 
-        AND table_name = '${tableName}'
-      ORDER BY ordinal_position
-    `
+  // Try to get columns using RPC function first
+  let columns = null;
+  let columnsError = null;
+  
+  // Try get_table_columns RPC first
+  const { data: rpcColumns, error: rpcError } = await supabase.rpc("get_table_columns", {
+    tablename: tableName
   });
+  
+  if (rpcError || !rpcColumns) {
+    // Fallback to direct SQL
+    const { data: sqlColumns, error: sqlError } = await supabase.rpc("execute_sql_select", {
+      sql: `
+        SELECT 
+          column_name,
+          data_type,
+          is_nullable,
+          column_default,
+          character_maximum_length,
+          numeric_precision,
+          numeric_scale
+        FROM information_schema.columns
+        WHERE table_schema = 'public' 
+          AND table_name = '${tableName}'
+        ORDER BY ordinal_position
+      `
+    });
+    columns = sqlColumns;
+    columnsError = sqlError;
+  } else {
+    columns = rpcColumns;
+  }
   
   if (columnsError) {
     console.error(`Error fetching columns for ${tableName}:`, columnsError);
     return null;
   }
   
-  // Get constraints
+  // Get foreign keys using RPC
+  const { data: foreignKeys, error: fkError } = await supabase.rpc("get_foreign_keys_from", {
+    table_name: tableName
+  });
+  
+  // Create FK map: column_name -> { ref_table, ref_column }
+  const fkMap = {};
+  if (Array.isArray(foreignKeys) && !fkError) {
+    for (const fk of foreignKeys) {
+      fkMap[fk.column_name] = {
+        ref_table: fk.ref_table,
+        ref_column: fk.ref_column || 'id'
+      };
+    }
+  }
+  
+  // Get other constraints (PRIMARY KEY, UNIQUE, etc)
   const { data: constraints, error: constraintsError } = await supabase.rpc("execute_sql_select", {
     sql: `
       SELECT 
         tc.constraint_name,
         tc.constraint_type,
-        kcu.column_name,
-        ccu.table_name AS foreign_table,
-        ccu.column_name AS foreign_column
+        kcu.column_name
       FROM information_schema.table_constraints tc
       LEFT JOIN information_schema.key_column_usage kcu
         ON tc.constraint_name = kcu.constraint_name
         AND tc.table_schema = kcu.table_schema
-      LEFT JOIN information_schema.constraint_column_usage ccu
-        ON ccu.constraint_name = tc.constraint_name
-        AND ccu.table_schema = tc.table_schema
       WHERE tc.table_schema = 'public' 
         AND tc.table_name = '${tableName}'
+        AND tc.constraint_type IN ('PRIMARY KEY', 'UNIQUE', 'NOT NULL', 'CHECK')
     `
   });
   
@@ -244,8 +356,9 @@ async function getTableSchema(tableName) {
   }
   
   return {
-    columns: columns?.map(row => row.result) || [],
-    constraints: constraints?.map(row => row.result) || []
+    columns: columns || [],
+    constraints: constraints || [],
+    foreignKeys: fkMap
   };
 }
 
@@ -262,9 +375,36 @@ async function generateEntityConfig(tableName, category) {
   const fields = [];
   
   for (const col of schema.columns) {
-    const fieldConfig = generateFieldConfig(col, schema.constraints);
-    if (fieldConfig) { // Skip foreign key fields
+    const fieldConfig = generateFieldConfig(col, schema.constraints, schema.foreignKeys || {});
+    if (fieldConfig) {
       fields.push(fieldConfig);
+    }
+  }
+  
+  // Post-process FK fields to add display columns
+  for (const field of fields) {
+    if (field.needsDisplayColumn && field.referencedTable) {
+      // Get schema for referenced table
+      let referencedSchema;
+      if (tableSchemaCache[field.referencedTable]) {
+        referencedSchema = tableSchemaCache[field.referencedTable];
+      } else {
+        referencedSchema = await getTableSchema(field.referencedTable);
+        if (referencedSchema) {
+          tableSchemaCache[field.referencedTable] = referencedSchema;
+        }
+      }
+      
+      if (referencedSchema && referencedSchema.columns) {
+        const displayColumn = detectDisplayColumn(referencedSchema.columns);
+        field.referencedFieldName = displayColumn;
+      } else {
+        // Default to 'name' if we can't detect
+        field.referencedFieldName = 'name';
+      }
+      
+      // Clean up temporary flag
+      delete field.needsDisplayColumn;
     }
   }
   
@@ -303,23 +443,17 @@ async function generateEntityConfig(tableName, category) {
   return entityConfig;
 }
 
-// Main function
+// Generate all entity configurations
 async function generateAllConfigs() {
-  console.log('Starting entity config generation...\n');
-  
   const outputDir = path.join(__dirname, '../src/data/entities');
   
-  // Create output directories
-  const dirs = ['main', 'lookup', 'child'];
-  for (const dir of dirs) {
-    const dirPath = path.join(outputDir, dir);
-    if (!fs.existsSync(dirPath)) {
-      fs.mkdirSync(dirPath, { recursive: true });
+  // Create directories
+  ['main', 'lookup', 'child'].forEach(category => {
+    const dir = path.join(outputDir, category);
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
     }
-  }
-  
-  // TEST MODE - Only process 'breed' table
-  const TEST_MODE = false;
+  });
   
   const summary = {
     total: 0,
@@ -328,31 +462,8 @@ async function generateAllConfigs() {
     generatedAt: new Date().toISOString()
   };
   
-  if (TEST_MODE) {
-    console.log('=== TEST MODE: Processing only "breed" table ===\n');
-    
-    const tableName = 'breed';
-    const category = 'main';
-    summary.total = 1;
-    
-    try {
-      const config = await generateEntityConfig(tableName, category);
-      
-      if (config) {
-        const outputPath = path.join(outputDir, category, `${tableName}.json`);
-        fs.writeFileSync(outputPath, JSON.stringify(config, null, 2));
-        console.log(`✅ Generated: ${outputPath}`);
-        summary.successful++;
-      } else {
-        console.log(`⚠️ Skipped: ${tableName} (no schema)`);
-        summary.failed.push({ table: tableName, reason: 'No schema found' });
-      }
-    } catch (error) {
-      console.error(`❌ Failed: ${tableName}`, error.message);
-      summary.failed.push({ table: tableName, reason: error.message });
-    }
-  } else {
-    // Process each category
+  // Process each category
+  {
     const categories = [
       { name: 'main', resources: MAIN_RESOURCES },
       { name: 'lookup', resources: LOOKUP_RESOURCES },

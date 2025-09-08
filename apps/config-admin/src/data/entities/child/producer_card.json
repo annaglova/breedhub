@@ -26,17 +26,14 @@
       },
       "displayName": "Name",
       "placeholder": "Enter name",
-      "maxLength": 250,
-      "validation": {
-        "maxLength": 250
-      },
+      "validation": {},
       "defaultValue": ""
     },
     {
-      "id": "field_datet",
-      "name": "datet",
-      "fieldType": "date",
-      "component": "date",
+      "id": "field_pet_id",
+      "name": "pet_id",
+      "fieldType": "uuid",
+      "component": "select",
       "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -51,15 +48,20 @@
           "editor"
         ]
       },
-      "displayName": "Datet",
-      "placeholder": "Enter datet"
+      "isForeignKey": true,
+      "referencedTable": "pet_manchester_terrier_toy",
+      "referencedFieldID": "id",
+      "displayName": "Pet",
+      "placeholder": "Enter pet",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
-      "id": "field_day",
-      "name": "day",
-      "fieldType": "number",
-      "component": "number",
-      "required": true,
+      "id": "field_pet_lifecycle_event_id",
+      "name": "pet_lifecycle_event_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -73,19 +75,20 @@
           "editor"
         ]
       },
-      "displayName": "Day",
-      "placeholder": "Enter day",
-      "validation": {
-        "precision": 32
-      },
-      "defaultValue": "0"
+      "isForeignKey": true,
+      "referencedTable": "pet_lifecycle_event",
+      "referencedFieldID": "id",
+      "displayName": "Pet Lifecycle Event",
+      "placeholder": "Enter pet lifecycle event",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
-      "id": "field_description",
-      "name": "description",
-      "fieldType": "string",
-      "component": "textarea",
-      "required": true,
+      "id": "field_datet",
+      "name": "datet",
+      "fieldType": "date",
+      "component": "date",
+      "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -99,22 +102,18 @@
           "editor"
         ]
       },
-      "displayName": "Description",
-      "placeholder": "Enter description",
-      "maxLength": 500,
-      "validation": {
-        "maxLength": 500
-      },
-      "defaultValue": ""
+      "displayName": "Datet",
+      "placeholder": "Enter datet",
+      "validation": {}
     },
     {
-      "id": "field_id",
-      "name": "id",
-      "fieldType": "uuid",
-      "component": "text",
+      "id": "field_day",
+      "name": "day",
+      "fieldType": "number",
+      "component": "number",
       "required": true,
-      "isSystem": true,
-      "isPrimaryKey": true,
+      "isSystem": false,
+      "isPrimaryKey": false,
       "isUnique": false,
       "sortOrder": 50,
       "permissions": {
@@ -122,18 +121,22 @@
           "*"
         ],
         "write": [
-          "system"
+          "admin",
+          "editor"
         ]
       },
-      "displayName": "Id"
+      "displayName": "Day",
+      "placeholder": "Enter day",
+      "validation": {},
+      "defaultValue": "0"
     },
     {
-      "id": "field_created_at",
-      "name": "created_at",
-      "fieldType": "datetime",
-      "component": "datetime",
-      "required": false,
-      "isSystem": true,
+      "id": "field_description",
+      "name": "description",
+      "fieldType": "string",
+      "component": "textarea",
+      "required": true,
+      "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
       "sortOrder": 60,
@@ -142,18 +145,22 @@
           "*"
         ],
         "write": [
-          "system"
+          "admin",
+          "editor"
         ]
       },
-      "displayName": "Created At"
+      "displayName": "Description",
+      "placeholder": "Enter description",
+      "validation": {},
+      "defaultValue": ""
     },
     {
-      "id": "field_created_by",
-      "name": "created_by",
+      "id": "field_pet_breed_id",
+      "name": "pet_breed_id",
       "fieldType": "uuid",
-      "component": "text",
+      "component": "select",
       "required": false,
-      "isSystem": true,
+      "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
       "sortOrder": 70,
@@ -162,17 +169,24 @@
           "*"
         ],
         "write": [
-          "system"
+          "admin",
+          "editor"
         ]
       },
-      "displayName": "Created By"
+      "isForeignKey": true,
+      "referencedTable": "pet_manchester_terrier_toy",
+      "referencedFieldID": "id",
+      "displayName": "Pet Breed",
+      "placeholder": "Enter pet breed",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
-      "id": "field_updated_at",
-      "name": "updated_at",
-      "fieldType": "datetime",
-      "component": "date",
-      "required": false,
+      "id": "field_id",
+      "name": "id",
+      "fieldType": "uuid",
+      "component": "text",
+      "required": true,
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -185,13 +199,14 @@
           "system"
         ]
       },
-      "displayName": "Updated At"
+      "displayName": "Id",
+      "validation": {}
     },
     {
-      "id": "field_updated_by",
-      "name": "updated_by",
-      "fieldType": "uuid",
-      "component": "date",
+      "id": "field_created_at",
+      "name": "created_at",
+      "fieldType": "datetime",
+      "component": "datetime",
       "required": false,
       "isSystem": true,
       "isPrimaryKey": false,
@@ -205,14 +220,78 @@
           "system"
         ]
       },
-      "displayName": "Updated By"
+      "displayName": "Created At",
+      "validation": {}
+    },
+    {
+      "id": "field_created_by",
+      "name": "created_by",
+      "fieldType": "uuid",
+      "component": "text",
+      "required": false,
+      "isSystem": true,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 100,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "system"
+        ]
+      },
+      "displayName": "Created By",
+      "validation": {}
+    },
+    {
+      "id": "field_updated_at",
+      "name": "updated_at",
+      "fieldType": "datetime",
+      "component": "date",
+      "required": false,
+      "isSystem": true,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 110,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "system"
+        ]
+      },
+      "displayName": "Updated At",
+      "validation": {}
+    },
+    {
+      "id": "field_updated_by",
+      "name": "updated_by",
+      "fieldType": "uuid",
+      "component": "date",
+      "required": false,
+      "isSystem": true,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 120,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "system"
+        ]
+      },
+      "displayName": "Updated By",
+      "validation": {}
     }
   ],
   "metadata": {
     "tableName": "producer_card",
-    "totalFields": 9,
+    "totalFields": 12,
     "systemFields": 5,
-    "customFields": 4,
-    "generatedAt": "2025-09-07T17:59:16.685Z"
+    "customFields": 7,
+    "generatedAt": "2025-09-08T11:21:04.598Z"
   }
 }

@@ -6,11 +6,11 @@
   "category": "child",
   "fields": [
     {
-      "id": "field_address",
-      "name": "address",
-      "fieldType": "text",
-      "component": "textarea",
-      "required": true,
+      "id": "field_address_type_id",
+      "name": "address_type_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -24,16 +24,20 @@
           "editor"
         ]
       },
-      "displayName": "Address",
-      "placeholder": "Enter address",
-      "defaultValue": ""
+      "isForeignKey": true,
+      "referencedTable": "address_type",
+      "referencedFieldID": "id",
+      "displayName": "Address Type",
+      "placeholder": "Enter address type",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
-      "id": "field_zip",
-      "name": "zip",
-      "fieldType": "string",
-      "component": "text",
-      "required": true,
+      "id": "field_country_id",
+      "name": "country_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -47,20 +51,20 @@
           "editor"
         ]
       },
-      "displayName": "Zip",
-      "placeholder": "Enter zip",
-      "maxLength": 50,
-      "validation": {
-        "maxLength": 50
-      },
-      "defaultValue": ""
+      "isForeignKey": true,
+      "referencedTable": "country",
+      "referencedFieldID": "id",
+      "displayName": "Country",
+      "placeholder": "Enter country",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
-      "id": "field_primary",
-      "name": "primary",
-      "fieldType": "boolean",
-      "component": "checkbox",
-      "required": true,
+      "id": "field_region_id",
+      "name": "region_id",
+      "fieldType": "uuid",
+      "component": "select",
+      "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -74,14 +78,19 @@
           "editor"
         ]
       },
-      "displayName": "Primary",
-      "defaultValue": "false"
+      "isForeignKey": true,
+      "referencedTable": "region",
+      "referencedFieldID": "id",
+      "displayName": "Region",
+      "placeholder": "Enter region",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
-      "id": "field_contact_id",
-      "name": "contact_id",
+      "id": "field_city_id",
+      "name": "city_id",
       "fieldType": "uuid",
-      "component": "text",
+      "component": "select",
       "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -96,12 +105,17 @@
           "editor"
         ]
       },
-      "displayName": "Contact Id",
-      "placeholder": "Enter contact id"
+      "isForeignKey": true,
+      "referencedTable": "city",
+      "referencedFieldID": "id",
+      "displayName": "City",
+      "placeholder": "Enter city",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
-      "id": "field_full_address",
-      "name": "full_address",
+      "id": "field_address",
+      "name": "address",
       "fieldType": "text",
       "component": "textarea",
       "required": true,
@@ -118,18 +132,19 @@
           "editor"
         ]
       },
-      "displayName": "Full Address",
-      "placeholder": "Enter full address",
+      "displayName": "Address",
+      "placeholder": "Enter address",
+      "validation": {},
       "defaultValue": ""
     },
     {
-      "id": "field_id",
-      "name": "id",
-      "fieldType": "uuid",
+      "id": "field_zip",
+      "name": "zip",
+      "fieldType": "string",
       "component": "text",
       "required": true,
-      "isSystem": true,
-      "isPrimaryKey": true,
+      "isSystem": false,
+      "isPrimaryKey": false,
       "isUnique": false,
       "sortOrder": 60,
       "permissions": {
@@ -137,18 +152,22 @@
           "*"
         ],
         "write": [
-          "system"
+          "admin",
+          "editor"
         ]
       },
-      "displayName": "Id"
+      "displayName": "Zip",
+      "placeholder": "Enter zip",
+      "validation": {},
+      "defaultValue": ""
     },
     {
-      "id": "field_created_at",
-      "name": "created_at",
-      "fieldType": "datetime",
-      "component": "datetime",
-      "required": false,
-      "isSystem": true,
+      "id": "field_primary",
+      "name": "primary",
+      "fieldType": "boolean",
+      "component": "checkbox",
+      "required": true,
+      "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
       "sortOrder": 70,
@@ -157,18 +176,21 @@
           "*"
         ],
         "write": [
-          "system"
+          "admin",
+          "editor"
         ]
       },
-      "displayName": "Created At"
+      "displayName": "Primary",
+      "validation": {},
+      "defaultValue": "false"
     },
     {
-      "id": "field_created_by",
-      "name": "created_by",
+      "id": "field_contact_id",
+      "name": "contact_id",
       "fieldType": "uuid",
-      "component": "text",
+      "component": "select",
       "required": false,
-      "isSystem": true,
+      "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
       "sortOrder": 80,
@@ -177,18 +199,25 @@
           "*"
         ],
         "write": [
-          "system"
+          "admin",
+          "editor"
         ]
       },
-      "displayName": "Created By"
+      "isForeignKey": true,
+      "referencedTable": "contact",
+      "referencedFieldID": "id",
+      "displayName": "Contact",
+      "placeholder": "Enter contact",
+      "validation": {},
+      "referencedFieldName": "name"
     },
     {
-      "id": "field_updated_at",
-      "name": "updated_at",
-      "fieldType": "datetime",
-      "component": "date",
-      "required": false,
-      "isSystem": true,
+      "id": "field_full_address",
+      "name": "full_address",
+      "fieldType": "text",
+      "component": "textarea",
+      "required": true,
+      "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
       "sortOrder": 90,
@@ -197,17 +226,21 @@
           "*"
         ],
         "write": [
-          "system"
+          "admin",
+          "editor"
         ]
       },
-      "displayName": "Updated At"
+      "displayName": "Full Address",
+      "placeholder": "Enter full address",
+      "validation": {},
+      "defaultValue": ""
     },
     {
-      "id": "field_updated_by",
-      "name": "updated_by",
+      "id": "field_id",
+      "name": "id",
       "fieldType": "uuid",
-      "component": "date",
-      "required": false,
+      "component": "text",
+      "required": true,
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -220,14 +253,99 @@
           "system"
         ]
       },
-      "displayName": "Updated By"
+      "displayName": "Id",
+      "validation": {}
+    },
+    {
+      "id": "field_created_at",
+      "name": "created_at",
+      "fieldType": "datetime",
+      "component": "datetime",
+      "required": false,
+      "isSystem": true,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 110,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "system"
+        ]
+      },
+      "displayName": "Created At",
+      "validation": {}
+    },
+    {
+      "id": "field_created_by",
+      "name": "created_by",
+      "fieldType": "uuid",
+      "component": "text",
+      "required": false,
+      "isSystem": true,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 120,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "system"
+        ]
+      },
+      "displayName": "Created By",
+      "validation": {}
+    },
+    {
+      "id": "field_updated_at",
+      "name": "updated_at",
+      "fieldType": "datetime",
+      "component": "date",
+      "required": false,
+      "isSystem": true,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 130,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "system"
+        ]
+      },
+      "displayName": "Updated At",
+      "validation": {}
+    },
+    {
+      "id": "field_updated_by",
+      "name": "updated_by",
+      "fieldType": "uuid",
+      "component": "date",
+      "required": false,
+      "isSystem": true,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 140,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "system"
+        ]
+      },
+      "displayName": "Updated By",
+      "validation": {}
     }
   ],
   "metadata": {
     "tableName": "contact_address",
-    "totalFields": 10,
+    "totalFields": 14,
     "systemFields": 5,
-    "customFields": 5,
-    "generatedAt": "2025-09-07T17:58:45.754Z"
+    "customFields": 9,
+    "generatedAt": "2025-09-08T11:20:41.507Z"
   }
 }
