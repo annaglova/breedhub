@@ -219,6 +219,7 @@
               "editor"
             ]
           },
+          "maxLength": 255,
           "displayName": "Name",
           "placeholder": "Enter name",
           "validation": {},
@@ -4749,7 +4750,10 @@
           "editor"
         ]
       },
-      "validation": {}
+      "validation": {},
+      "maxLengthVariations": [
+        255
+      ]
     }
   },
   {
@@ -9029,12 +9033,12 @@
             ]
           },
           "isForeignKey": true,
-          "referencedTable": "owner",
+          "referencedTable": "contact",
           "referencedFieldID": "id",
           "displayName": "Owner",
           "placeholder": "Enter owner",
           "validation": {},
-          "referencedFieldName": "id"
+          "referencedFieldName": "name"
         }
       },
       {
@@ -9060,12 +9064,12 @@
             ]
           },
           "isForeignKey": true,
-          "referencedTable": "owner",
+          "referencedTable": "contact",
           "referencedFieldID": "id",
           "displayName": "Owner",
           "placeholder": "Enter owner",
           "validation": {},
-          "referencedFieldName": "id"
+          "referencedFieldName": "name"
         }
       },
       {
@@ -9091,12 +9095,12 @@
             ]
           },
           "isForeignKey": true,
-          "referencedTable": "owner",
+          "referencedTable": "contact",
           "referencedFieldID": "id",
           "displayName": "Owner",
           "placeholder": "Enter owner",
           "validation": {},
-          "referencedFieldName": "id"
+          "referencedFieldName": "name"
         }
       },
       {
@@ -9122,12 +9126,12 @@
             ]
           },
           "isForeignKey": true,
-          "referencedTable": "owner",
+          "referencedTable": "contact",
           "referencedFieldID": "id",
           "displayName": "Owner",
           "placeholder": "Enter owner",
           "validation": {},
-          "referencedFieldName": "id"
+          "referencedFieldName": "name"
         }
       },
       {
@@ -9153,12 +9157,12 @@
             ]
           },
           "isForeignKey": true,
-          "referencedTable": "owner",
+          "referencedTable": "contact",
           "referencedFieldID": "id",
           "displayName": "Owner",
           "placeholder": "Enter owner",
           "validation": {},
-          "referencedFieldName": "id"
+          "referencedFieldName": "name"
         }
       },
       {
@@ -9184,12 +9188,12 @@
             ]
           },
           "isForeignKey": true,
-          "referencedTable": "owner",
+          "referencedTable": "contact",
           "referencedFieldID": "id",
           "displayName": "Owner",
           "placeholder": "Enter owner",
           "validation": {},
-          "referencedFieldName": "id"
+          "referencedFieldName": "name"
         }
       },
       {
@@ -9215,12 +9219,12 @@
             ]
           },
           "isForeignKey": true,
-          "referencedTable": "owner",
+          "referencedTable": "contact",
           "referencedFieldID": "id",
           "displayName": "Owner",
           "placeholder": "Enter owner",
           "validation": {},
-          "referencedFieldName": "id"
+          "referencedFieldName": "name"
         }
       },
       {
@@ -9246,12 +9250,12 @@
             ]
           },
           "isForeignKey": true,
-          "referencedTable": "owner",
+          "referencedTable": "contact",
           "referencedFieldID": "id",
           "displayName": "Owner",
           "placeholder": "Enter owner",
           "validation": {},
-          "referencedFieldName": "id"
+          "referencedFieldName": "name"
         }
       },
       {
@@ -9277,12 +9281,12 @@
             ]
           },
           "isForeignKey": true,
-          "referencedTable": "owner",
+          "referencedTable": "contact",
           "referencedFieldID": "id",
           "displayName": "Owner",
           "placeholder": "Enter owner",
           "validation": {},
-          "referencedFieldName": "id"
+          "referencedFieldName": "name"
         }
       },
       {
@@ -9339,12 +9343,12 @@
             ]
           },
           "isForeignKey": true,
-          "referencedTable": "owner",
+          "referencedTable": "contact",
           "referencedFieldID": "id",
           "displayName": "Owner",
           "placeholder": "Enter owner",
           "validation": {},
-          "referencedFieldName": "id"
+          "referencedFieldName": "name"
         }
       },
       {
@@ -9370,12 +9374,12 @@
             ]
           },
           "isForeignKey": true,
-          "referencedTable": "owner",
+          "referencedTable": "contact",
           "referencedFieldID": "id",
           "displayName": "Owner",
           "placeholder": "Enter owner",
           "validation": {},
-          "referencedFieldName": "id"
+          "referencedFieldName": "name"
         }
       },
       {
@@ -9401,12 +9405,12 @@
             ]
           },
           "isForeignKey": true,
-          "referencedTable": "owner",
+          "referencedTable": "contact",
           "referencedFieldID": "id",
           "displayName": "Owner",
           "placeholder": "Enter owner",
           "validation": {},
-          "referencedFieldName": "id"
+          "referencedFieldName": "name"
         }
       },
       {
@@ -9432,12 +9436,12 @@
             ]
           },
           "isForeignKey": true,
-          "referencedTable": "owner",
+          "referencedTable": "contact",
           "referencedFieldID": "id",
           "displayName": "Owner",
           "placeholder": "Enter owner",
           "validation": {},
-          "referencedFieldName": "id"
+          "referencedFieldName": "name"
         }
       },
       {
@@ -9596,12 +9600,12 @@
             ]
           },
           "isForeignKey": true,
-          "referencedTable": "primary_contact",
+          "referencedTable": "contact",
           "referencedFieldID": "id",
           "displayName": "Primary Contact",
           "placeholder": "Enter primary contact",
           "validation": {},
-          "referencedFieldName": "id"
+          "referencedFieldName": "name"
         }
       }
     ],
@@ -12814,7 +12818,11 @@
           "editor"
         ]
       },
-      "validation": {}
+      "validation": {},
+      "isForeignKey": true,
+      "referencedTable": "country",
+      "referencedFieldID": "id",
+      "referencedFieldName": "name"
     }
   },
   {
@@ -14735,6 +14743,7 @@
               "editor"
             ]
           },
+          "maxLength": 500,
           "displayName": "Url",
           "placeholder": "Enter url",
           "validation": {
@@ -15199,7 +15208,10 @@
       "validation": {
         "pattern": "^https?://.+",
         "message": "Invalid URL format"
-      }
+      },
+      "maxLengthVariations": [
+        500
+      ]
     }
   },
   {
@@ -16682,7 +16694,11 @@
           "editor"
         ]
       },
-      "validation": {}
+      "validation": {},
+      "isForeignKey": true,
+      "referencedTable": "cover",
+      "referencedFieldID": "id",
+      "referencedFieldName": "name"
     }
   },
   {
@@ -17154,8 +17170,8 @@
           "component": "text",
           "required": true,
           "isSystem": true,
-          "isPrimaryKey": false,
-          "isUnique": false,
+          "isPrimaryKey": true,
+          "isUnique": true,
           "sortOrder": 460,
           "permissions": {
             "read": [
@@ -17179,8 +17195,8 @@
           "component": "text",
           "required": true,
           "isSystem": true,
-          "isPrimaryKey": false,
-          "isUnique": false,
+          "isPrimaryKey": true,
+          "isUnique": true,
           "sortOrder": 660,
           "permissions": {
             "read": [
@@ -17204,8 +17220,8 @@
           "component": "text",
           "required": true,
           "isSystem": true,
-          "isPrimaryKey": false,
-          "isUnique": false,
+          "isPrimaryKey": true,
+          "isUnique": true,
           "sortOrder": 190,
           "permissions": {
             "read": [
@@ -17229,8 +17245,8 @@
           "component": "text",
           "required": true,
           "isSystem": true,
-          "isPrimaryKey": false,
-          "isUnique": false,
+          "isPrimaryKey": true,
+          "isUnique": true,
           "sortOrder": 170,
           "permissions": {
             "read": [
@@ -17254,8 +17270,8 @@
           "component": "text",
           "required": true,
           "isSystem": true,
-          "isPrimaryKey": false,
-          "isUnique": false,
+          "isPrimaryKey": true,
+          "isUnique": true,
           "sortOrder": 120,
           "permissions": {
             "read": [
@@ -17279,8 +17295,8 @@
           "component": "text",
           "required": true,
           "isSystem": true,
-          "isPrimaryKey": false,
-          "isUnique": false,
+          "isPrimaryKey": true,
+          "isUnique": true,
           "sortOrder": 140,
           "permissions": {
             "read": [
@@ -17304,8 +17320,8 @@
           "component": "text",
           "required": true,
           "isSystem": true,
-          "isPrimaryKey": false,
-          "isUnique": false,
+          "isPrimaryKey": true,
+          "isUnique": true,
           "sortOrder": 290,
           "permissions": {
             "read": [
@@ -17329,8 +17345,8 @@
           "component": "text",
           "required": true,
           "isSystem": true,
-          "isPrimaryKey": false,
-          "isUnique": false,
+          "isPrimaryKey": true,
+          "isUnique": true,
           "sortOrder": 560,
           "permissions": {
             "read": [
@@ -17354,8 +17370,8 @@
           "component": "text",
           "required": true,
           "isSystem": true,
-          "isPrimaryKey": false,
-          "isUnique": false,
+          "isPrimaryKey": true,
+          "isUnique": true,
           "sortOrder": 100,
           "permissions": {
             "read": [
@@ -17379,8 +17395,8 @@
           "component": "text",
           "required": true,
           "isSystem": true,
-          "isPrimaryKey": false,
-          "isUnique": false,
+          "isPrimaryKey": true,
+          "isUnique": true,
           "sortOrder": 270,
           "permissions": {
             "read": [
@@ -17404,8 +17420,8 @@
           "component": "text",
           "required": true,
           "isSystem": true,
-          "isPrimaryKey": false,
-          "isUnique": false,
+          "isPrimaryKey": true,
+          "isUnique": true,
           "sortOrder": 280,
           "permissions": {
             "read": [
@@ -17429,8 +17445,8 @@
           "component": "text",
           "required": true,
           "isSystem": true,
-          "isPrimaryKey": false,
-          "isUnique": false,
+          "isPrimaryKey": true,
+          "isUnique": true,
           "sortOrder": 190,
           "permissions": {
             "read": [
@@ -17454,8 +17470,8 @@
           "component": "text",
           "required": true,
           "isSystem": true,
-          "isPrimaryKey": false,
-          "isUnique": false,
+          "isPrimaryKey": true,
+          "isUnique": true,
           "sortOrder": 150,
           "permissions": {
             "read": [
@@ -17479,8 +17495,8 @@
           "component": "text",
           "required": true,
           "isSystem": true,
-          "isPrimaryKey": false,
-          "isUnique": false,
+          "isPrimaryKey": true,
+          "isUnique": true,
           "sortOrder": 250,
           "permissions": {
             "read": [
@@ -17504,8 +17520,8 @@
           "component": "text",
           "required": true,
           "isSystem": true,
-          "isPrimaryKey": false,
-          "isUnique": false,
+          "isPrimaryKey": true,
+          "isUnique": true,
           "sortOrder": 450,
           "permissions": {
             "read": [
@@ -17529,8 +17545,8 @@
           "component": "text",
           "required": true,
           "isSystem": true,
-          "isPrimaryKey": false,
-          "isUnique": false,
+          "isPrimaryKey": true,
+          "isUnique": true,
           "sortOrder": 170,
           "permissions": {
             "read": [
@@ -17554,8 +17570,8 @@
           "component": "text",
           "required": true,
           "isSystem": true,
-          "isPrimaryKey": false,
-          "isUnique": false,
+          "isPrimaryKey": true,
+          "isUnique": true,
           "sortOrder": 70,
           "permissions": {
             "read": [
@@ -17579,8 +17595,8 @@
           "component": "text",
           "required": true,
           "isSystem": true,
-          "isPrimaryKey": false,
-          "isUnique": false,
+          "isPrimaryKey": true,
+          "isUnique": true,
           "sortOrder": 210,
           "permissions": {
             "read": [
@@ -17604,8 +17620,8 @@
           "component": "text",
           "required": true,
           "isSystem": true,
-          "isPrimaryKey": false,
-          "isUnique": false,
+          "isPrimaryKey": true,
+          "isUnique": true,
           "sortOrder": 460,
           "permissions": {
             "read": [
@@ -17629,8 +17645,8 @@
           "component": "text",
           "required": true,
           "isSystem": true,
-          "isPrimaryKey": false,
-          "isUnique": false,
+          "isPrimaryKey": true,
+          "isUnique": true,
           "sortOrder": 190,
           "permissions": {
             "read": [
@@ -17654,8 +17670,8 @@
           "component": "text",
           "required": true,
           "isSystem": true,
-          "isPrimaryKey": false,
-          "isUnique": false,
+          "isPrimaryKey": true,
+          "isUnique": true,
           "sortOrder": 110,
           "permissions": {
             "read": [
@@ -17679,8 +17695,8 @@
           "component": "text",
           "required": true,
           "isSystem": true,
-          "isPrimaryKey": false,
-          "isUnique": false,
+          "isPrimaryKey": true,
+          "isUnique": true,
           "sortOrder": 180,
           "permissions": {
             "read": [
@@ -17704,8 +17720,8 @@
           "component": "text",
           "required": true,
           "isSystem": true,
-          "isPrimaryKey": false,
-          "isUnique": false,
+          "isPrimaryKey": true,
+          "isUnique": true,
           "sortOrder": 170,
           "permissions": {
             "read": [
@@ -17729,8 +17745,8 @@
           "component": "text",
           "required": true,
           "isSystem": true,
-          "isPrimaryKey": false,
-          "isUnique": false,
+          "isPrimaryKey": true,
+          "isUnique": true,
           "sortOrder": 130,
           "permissions": {
             "read": [
@@ -17754,8 +17770,8 @@
           "component": "text",
           "required": true,
           "isSystem": true,
-          "isPrimaryKey": false,
-          "isUnique": false,
+          "isPrimaryKey": true,
+          "isUnique": true,
           "sortOrder": 90,
           "permissions": {
             "read": [
@@ -17779,8 +17795,8 @@
           "component": "text",
           "required": true,
           "isSystem": true,
-          "isPrimaryKey": false,
-          "isUnique": false,
+          "isPrimaryKey": true,
+          "isUnique": true,
           "sortOrder": 40,
           "permissions": {
             "read": [
@@ -17804,8 +17820,8 @@
           "component": "text",
           "required": true,
           "isSystem": true,
-          "isPrimaryKey": false,
-          "isUnique": false,
+          "isPrimaryKey": true,
+          "isUnique": true,
           "sortOrder": 40,
           "permissions": {
             "read": [
@@ -17829,8 +17845,8 @@
           "component": "text",
           "required": true,
           "isSystem": true,
-          "isPrimaryKey": false,
-          "isUnique": false,
+          "isPrimaryKey": true,
+          "isUnique": true,
           "sortOrder": 40,
           "permissions": {
             "read": [
@@ -17854,8 +17870,8 @@
           "component": "text",
           "required": true,
           "isSystem": true,
-          "isPrimaryKey": false,
-          "isUnique": false,
+          "isPrimaryKey": true,
+          "isUnique": true,
           "sortOrder": 30,
           "permissions": {
             "read": [
@@ -17879,8 +17895,8 @@
           "component": "text",
           "required": true,
           "isSystem": true,
-          "isPrimaryKey": false,
-          "isUnique": false,
+          "isPrimaryKey": true,
+          "isUnique": true,
           "sortOrder": 30,
           "permissions": {
             "read": [
@@ -17904,8 +17920,8 @@
           "component": "text",
           "required": true,
           "isSystem": true,
-          "isPrimaryKey": false,
-          "isUnique": false,
+          "isPrimaryKey": true,
+          "isUnique": true,
           "sortOrder": 60,
           "permissions": {
             "read": [
@@ -17929,8 +17945,8 @@
           "component": "text",
           "required": true,
           "isSystem": true,
-          "isPrimaryKey": false,
-          "isUnique": false,
+          "isPrimaryKey": true,
+          "isUnique": true,
           "sortOrder": 60,
           "permissions": {
             "read": [
@@ -17954,8 +17970,8 @@
           "component": "text",
           "required": true,
           "isSystem": true,
-          "isPrimaryKey": false,
-          "isUnique": false,
+          "isPrimaryKey": true,
+          "isUnique": true,
           "sortOrder": 30,
           "permissions": {
             "read": [
@@ -17979,8 +17995,8 @@
           "component": "text",
           "required": true,
           "isSystem": true,
-          "isPrimaryKey": false,
-          "isUnique": false,
+          "isPrimaryKey": true,
+          "isUnique": true,
           "sortOrder": 40,
           "permissions": {
             "read": [
@@ -18004,8 +18020,8 @@
           "component": "text",
           "required": true,
           "isSystem": true,
-          "isPrimaryKey": false,
-          "isUnique": false,
+          "isPrimaryKey": true,
+          "isUnique": true,
           "sortOrder": 40,
           "permissions": {
             "read": [
@@ -18029,8 +18045,8 @@
           "component": "text",
           "required": true,
           "isSystem": true,
-          "isPrimaryKey": false,
-          "isUnique": false,
+          "isPrimaryKey": true,
+          "isUnique": true,
           "sortOrder": 40,
           "permissions": {
             "read": [
@@ -18054,8 +18070,8 @@
           "component": "text",
           "required": true,
           "isSystem": true,
-          "isPrimaryKey": false,
-          "isUnique": false,
+          "isPrimaryKey": true,
+          "isUnique": true,
           "sortOrder": 60,
           "permissions": {
             "read": [
@@ -18079,8 +18095,8 @@
           "component": "text",
           "required": true,
           "isSystem": true,
-          "isPrimaryKey": false,
-          "isUnique": false,
+          "isPrimaryKey": true,
+          "isUnique": true,
           "sortOrder": 50,
           "permissions": {
             "read": [
@@ -18104,8 +18120,8 @@
           "component": "text",
           "required": true,
           "isSystem": true,
-          "isPrimaryKey": false,
-          "isUnique": false,
+          "isPrimaryKey": true,
+          "isUnique": true,
           "sortOrder": 60,
           "permissions": {
             "read": [
@@ -18129,8 +18145,8 @@
           "component": "text",
           "required": true,
           "isSystem": true,
-          "isPrimaryKey": false,
-          "isUnique": false,
+          "isPrimaryKey": true,
+          "isUnique": true,
           "sortOrder": 30,
           "permissions": {
             "read": [
@@ -18154,8 +18170,8 @@
           "component": "text",
           "required": true,
           "isSystem": true,
-          "isPrimaryKey": false,
-          "isUnique": false,
+          "isPrimaryKey": true,
+          "isUnique": true,
           "sortOrder": 50,
           "permissions": {
             "read": [
@@ -18179,8 +18195,8 @@
           "component": "text",
           "required": true,
           "isSystem": true,
-          "isPrimaryKey": false,
-          "isUnique": false,
+          "isPrimaryKey": true,
+          "isUnique": true,
           "sortOrder": 30,
           "permissions": {
             "read": [
@@ -18204,8 +18220,8 @@
           "component": "text",
           "required": true,
           "isSystem": true,
-          "isPrimaryKey": false,
-          "isUnique": false,
+          "isPrimaryKey": true,
+          "isUnique": true,
           "sortOrder": 30,
           "permissions": {
             "read": [
@@ -18229,8 +18245,8 @@
           "component": "text",
           "required": true,
           "isSystem": true,
-          "isPrimaryKey": false,
-          "isUnique": false,
+          "isPrimaryKey": true,
+          "isUnique": true,
           "sortOrder": 30,
           "permissions": {
             "read": [
@@ -18254,8 +18270,8 @@
           "component": "text",
           "required": true,
           "isSystem": true,
-          "isPrimaryKey": false,
-          "isUnique": false,
+          "isPrimaryKey": true,
+          "isUnique": true,
           "sortOrder": 50,
           "permissions": {
             "read": [
@@ -18279,8 +18295,8 @@
           "component": "text",
           "required": true,
           "isSystem": true,
-          "isPrimaryKey": false,
-          "isUnique": false,
+          "isPrimaryKey": true,
+          "isUnique": true,
           "sortOrder": 50,
           "permissions": {
             "read": [
@@ -18304,8 +18320,8 @@
           "component": "text",
           "required": true,
           "isSystem": true,
-          "isPrimaryKey": false,
-          "isUnique": false,
+          "isPrimaryKey": true,
+          "isUnique": true,
           "sortOrder": 140,
           "permissions": {
             "read": [
@@ -18329,8 +18345,8 @@
           "component": "text",
           "required": true,
           "isSystem": true,
-          "isPrimaryKey": false,
-          "isUnique": false,
+          "isPrimaryKey": true,
+          "isUnique": true,
           "sortOrder": 40,
           "permissions": {
             "read": [
@@ -18354,8 +18370,8 @@
           "component": "text",
           "required": true,
           "isSystem": true,
-          "isPrimaryKey": false,
-          "isUnique": false,
+          "isPrimaryKey": true,
+          "isUnique": true,
           "sortOrder": 60,
           "permissions": {
             "read": [
@@ -18379,8 +18395,8 @@
           "component": "text",
           "required": true,
           "isSystem": true,
-          "isPrimaryKey": false,
-          "isUnique": false,
+          "isPrimaryKey": true,
+          "isUnique": true,
           "sortOrder": 80,
           "permissions": {
             "read": [
@@ -18404,8 +18420,8 @@
           "component": "text",
           "required": true,
           "isSystem": true,
-          "isPrimaryKey": false,
-          "isUnique": false,
+          "isPrimaryKey": true,
+          "isUnique": true,
           "sortOrder": 40,
           "permissions": {
             "read": [
@@ -18429,8 +18445,8 @@
           "component": "text",
           "required": true,
           "isSystem": true,
-          "isPrimaryKey": false,
-          "isUnique": false,
+          "isPrimaryKey": true,
+          "isUnique": true,
           "sortOrder": 30,
           "permissions": {
             "read": [
@@ -18454,8 +18470,8 @@
           "component": "text",
           "required": true,
           "isSystem": true,
-          "isPrimaryKey": false,
-          "isUnique": false,
+          "isPrimaryKey": true,
+          "isUnique": true,
           "sortOrder": 30,
           "permissions": {
             "read": [
@@ -18479,8 +18495,8 @@
           "component": "text",
           "required": true,
           "isSystem": true,
-          "isPrimaryKey": false,
-          "isUnique": false,
+          "isPrimaryKey": true,
+          "isUnique": true,
           "sortOrder": 130,
           "permissions": {
             "read": [
@@ -18504,8 +18520,8 @@
           "component": "text",
           "required": true,
           "isSystem": true,
-          "isPrimaryKey": false,
-          "isUnique": false,
+          "isPrimaryKey": true,
+          "isUnique": true,
           "sortOrder": 40,
           "permissions": {
             "read": [
@@ -18529,8 +18545,8 @@
           "component": "text",
           "required": true,
           "isSystem": true,
-          "isPrimaryKey": false,
-          "isUnique": false,
+          "isPrimaryKey": true,
+          "isUnique": true,
           "sortOrder": 40,
           "permissions": {
             "read": [
@@ -18554,8 +18570,8 @@
           "component": "text",
           "required": true,
           "isSystem": true,
-          "isPrimaryKey": false,
-          "isUnique": false,
+          "isPrimaryKey": true,
+          "isUnique": true,
           "sortOrder": 30,
           "permissions": {
             "read": [
@@ -18579,8 +18595,8 @@
           "component": "text",
           "required": true,
           "isSystem": true,
-          "isPrimaryKey": false,
-          "isUnique": false,
+          "isPrimaryKey": true,
+          "isUnique": true,
           "sortOrder": 90,
           "permissions": {
             "read": [
@@ -18604,8 +18620,8 @@
           "component": "text",
           "required": true,
           "isSystem": true,
-          "isPrimaryKey": false,
-          "isUnique": false,
+          "isPrimaryKey": true,
+          "isUnique": true,
           "sortOrder": 30,
           "permissions": {
             "read": [
@@ -18629,8 +18645,8 @@
           "component": "text",
           "required": true,
           "isSystem": true,
-          "isPrimaryKey": false,
-          "isUnique": false,
+          "isPrimaryKey": true,
+          "isUnique": true,
           "sortOrder": 30,
           "permissions": {
             "read": [
@@ -18654,8 +18670,8 @@
           "component": "text",
           "required": true,
           "isSystem": true,
-          "isPrimaryKey": false,
-          "isUnique": false,
+          "isPrimaryKey": true,
+          "isUnique": true,
           "sortOrder": 30,
           "permissions": {
             "read": [
@@ -18679,8 +18695,8 @@
           "component": "text",
           "required": true,
           "isSystem": true,
-          "isPrimaryKey": false,
-          "isUnique": false,
+          "isPrimaryKey": true,
+          "isUnique": true,
           "sortOrder": 30,
           "permissions": {
             "read": [
@@ -18704,8 +18720,8 @@
           "component": "text",
           "required": true,
           "isSystem": true,
-          "isPrimaryKey": false,
-          "isUnique": false,
+          "isPrimaryKey": true,
+          "isUnique": true,
           "sortOrder": 50,
           "permissions": {
             "read": [
@@ -18729,8 +18745,8 @@
           "component": "text",
           "required": true,
           "isSystem": true,
-          "isPrimaryKey": false,
-          "isUnique": false,
+          "isPrimaryKey": true,
+          "isUnique": true,
           "sortOrder": 40,
           "permissions": {
             "read": [
@@ -18754,8 +18770,8 @@
           "component": "text",
           "required": true,
           "isSystem": true,
-          "isPrimaryKey": false,
-          "isUnique": false,
+          "isPrimaryKey": true,
+          "isUnique": true,
           "sortOrder": 30,
           "permissions": {
             "read": [
@@ -18779,8 +18795,8 @@
           "component": "text",
           "required": true,
           "isSystem": true,
-          "isPrimaryKey": false,
-          "isUnique": false,
+          "isPrimaryKey": true,
+          "isUnique": true,
           "sortOrder": 30,
           "permissions": {
             "read": [
@@ -18804,8 +18820,8 @@
           "component": "text",
           "required": true,
           "isSystem": true,
-          "isPrimaryKey": false,
-          "isUnique": false,
+          "isPrimaryKey": true,
+          "isUnique": true,
           "sortOrder": 30,
           "permissions": {
             "read": [
@@ -18829,8 +18845,8 @@
           "component": "text",
           "required": true,
           "isSystem": true,
-          "isPrimaryKey": false,
-          "isUnique": false,
+          "isPrimaryKey": true,
+          "isUnique": true,
           "sortOrder": 30,
           "permissions": {
             "read": [
@@ -18854,8 +18870,8 @@
           "component": "text",
           "required": true,
           "isSystem": true,
-          "isPrimaryKey": false,
-          "isUnique": false,
+          "isPrimaryKey": true,
+          "isUnique": true,
           "sortOrder": 30,
           "permissions": {
             "read": [
@@ -18879,8 +18895,8 @@
           "component": "text",
           "required": true,
           "isSystem": true,
-          "isPrimaryKey": false,
-          "isUnique": false,
+          "isPrimaryKey": true,
+          "isUnique": true,
           "sortOrder": 40,
           "permissions": {
             "read": [
@@ -18904,8 +18920,8 @@
           "component": "text",
           "required": true,
           "isSystem": true,
-          "isPrimaryKey": false,
-          "isUnique": false,
+          "isPrimaryKey": true,
+          "isUnique": true,
           "sortOrder": 170,
           "permissions": {
             "read": [
@@ -18929,8 +18945,8 @@
           "component": "text",
           "required": true,
           "isSystem": true,
-          "isPrimaryKey": false,
-          "isUnique": false,
+          "isPrimaryKey": true,
+          "isUnique": true,
           "sortOrder": 50,
           "permissions": {
             "read": [
@@ -18954,8 +18970,8 @@
           "component": "text",
           "required": true,
           "isSystem": true,
-          "isPrimaryKey": false,
-          "isUnique": false,
+          "isPrimaryKey": true,
+          "isUnique": true,
           "sortOrder": 100,
           "permissions": {
             "read": [
@@ -18979,8 +18995,8 @@
           "component": "text",
           "required": true,
           "isSystem": true,
-          "isPrimaryKey": false,
-          "isUnique": false,
+          "isPrimaryKey": true,
+          "isUnique": true,
           "sortOrder": 30,
           "permissions": {
             "read": [
@@ -19004,8 +19020,8 @@
           "component": "text",
           "required": true,
           "isSystem": true,
-          "isPrimaryKey": false,
-          "isUnique": false,
+          "isPrimaryKey": true,
+          "isUnique": true,
           "sortOrder": 80,
           "permissions": {
             "read": [
@@ -19029,8 +19045,8 @@
           "component": "text",
           "required": true,
           "isSystem": true,
-          "isPrimaryKey": false,
-          "isUnique": false,
+          "isPrimaryKey": true,
+          "isUnique": true,
           "sortOrder": 50,
           "permissions": {
             "read": [
@@ -19054,8 +19070,8 @@
           "component": "text",
           "required": true,
           "isSystem": true,
-          "isPrimaryKey": false,
-          "isUnique": false,
+          "isPrimaryKey": true,
+          "isUnique": true,
           "sortOrder": 40,
           "permissions": {
             "read": [
@@ -19079,8 +19095,8 @@
           "component": "text",
           "required": true,
           "isSystem": true,
-          "isPrimaryKey": false,
-          "isUnique": false,
+          "isPrimaryKey": true,
+          "isUnique": true,
           "sortOrder": 30,
           "permissions": {
             "read": [
@@ -19104,8 +19120,8 @@
           "component": "text",
           "required": true,
           "isSystem": true,
-          "isPrimaryKey": false,
-          "isUnique": false,
+          "isPrimaryKey": true,
+          "isUnique": true,
           "sortOrder": 30,
           "permissions": {
             "read": [
@@ -19129,8 +19145,8 @@
           "component": "text",
           "required": true,
           "isSystem": true,
-          "isPrimaryKey": false,
-          "isUnique": false,
+          "isPrimaryKey": true,
+          "isUnique": true,
           "sortOrder": 30,
           "permissions": {
             "read": [
@@ -19154,8 +19170,8 @@
           "component": "text",
           "required": true,
           "isSystem": true,
-          "isPrimaryKey": false,
-          "isUnique": false,
+          "isPrimaryKey": true,
+          "isUnique": true,
           "sortOrder": 50,
           "permissions": {
             "read": [
@@ -19179,8 +19195,8 @@
           "component": "text",
           "required": true,
           "isSystem": true,
-          "isPrimaryKey": false,
-          "isUnique": false,
+          "isPrimaryKey": true,
+          "isUnique": true,
           "sortOrder": 40,
           "permissions": {
             "read": [
@@ -19204,8 +19220,8 @@
           "component": "text",
           "required": true,
           "isSystem": true,
-          "isPrimaryKey": false,
-          "isUnique": false,
+          "isPrimaryKey": true,
+          "isUnique": true,
           "sortOrder": 40,
           "permissions": {
             "read": [
@@ -19229,8 +19245,8 @@
           "component": "text",
           "required": true,
           "isSystem": true,
-          "isPrimaryKey": false,
-          "isUnique": false,
+          "isPrimaryKey": true,
+          "isUnique": true,
           "sortOrder": 50,
           "permissions": {
             "read": [
@@ -19254,8 +19270,8 @@
           "component": "text",
           "required": true,
           "isSystem": true,
-          "isPrimaryKey": false,
-          "isUnique": false,
+          "isPrimaryKey": true,
+          "isUnique": true,
           "sortOrder": 30,
           "permissions": {
             "read": [
@@ -19279,8 +19295,8 @@
           "component": "text",
           "required": true,
           "isSystem": true,
-          "isPrimaryKey": false,
-          "isUnique": false,
+          "isPrimaryKey": true,
+          "isUnique": true,
           "sortOrder": 30,
           "permissions": {
             "read": [
@@ -19304,8 +19320,8 @@
           "component": "text",
           "required": true,
           "isSystem": true,
-          "isPrimaryKey": false,
-          "isUnique": false,
+          "isPrimaryKey": true,
+          "isUnique": true,
           "sortOrder": 30,
           "permissions": {
             "read": [
@@ -19329,8 +19345,8 @@
           "component": "text",
           "required": true,
           "isSystem": true,
-          "isPrimaryKey": false,
-          "isUnique": false,
+          "isPrimaryKey": true,
+          "isUnique": true,
           "sortOrder": 30,
           "permissions": {
             "read": [
@@ -19354,8 +19370,8 @@
           "component": "text",
           "required": true,
           "isSystem": true,
-          "isPrimaryKey": false,
-          "isUnique": false,
+          "isPrimaryKey": true,
+          "isUnique": true,
           "sortOrder": 40,
           "permissions": {
             "read": [
@@ -19379,8 +19395,8 @@
           "component": "text",
           "required": true,
           "isSystem": true,
-          "isPrimaryKey": false,
-          "isUnique": false,
+          "isPrimaryKey": true,
+          "isUnique": true,
           "sortOrder": 40,
           "permissions": {
             "read": [
@@ -19404,8 +19420,8 @@
           "component": "text",
           "required": true,
           "isSystem": true,
-          "isPrimaryKey": false,
-          "isUnique": false,
+          "isPrimaryKey": true,
+          "isUnique": true,
           "sortOrder": 30,
           "permissions": {
             "read": [
@@ -19429,8 +19445,8 @@
           "component": "text",
           "required": true,
           "isSystem": true,
-          "isPrimaryKey": false,
-          "isUnique": false,
+          "isPrimaryKey": true,
+          "isUnique": true,
           "sortOrder": 40,
           "permissions": {
             "read": [
@@ -19454,8 +19470,8 @@
           "component": "text",
           "required": true,
           "isSystem": true,
-          "isPrimaryKey": false,
-          "isUnique": false,
+          "isPrimaryKey": true,
+          "isUnique": true,
           "sortOrder": 40,
           "permissions": {
             "read": [
@@ -19479,8 +19495,8 @@
           "component": "text",
           "required": true,
           "isSystem": true,
-          "isPrimaryKey": false,
-          "isUnique": false,
+          "isPrimaryKey": true,
+          "isUnique": true,
           "sortOrder": 50,
           "permissions": {
             "read": [
@@ -19504,8 +19520,8 @@
           "component": "text",
           "required": true,
           "isSystem": true,
-          "isPrimaryKey": false,
-          "isUnique": false,
+          "isPrimaryKey": true,
+          "isUnique": true,
           "sortOrder": 30,
           "permissions": {
             "read": [
@@ -19529,8 +19545,8 @@
           "component": "text",
           "required": true,
           "isSystem": true,
-          "isPrimaryKey": false,
-          "isUnique": false,
+          "isPrimaryKey": true,
+          "isUnique": true,
           "sortOrder": 30,
           "permissions": {
             "read": [
@@ -19554,8 +19570,8 @@
           "component": "text",
           "required": true,
           "isSystem": true,
-          "isPrimaryKey": false,
-          "isUnique": false,
+          "isPrimaryKey": true,
+          "isUnique": true,
           "sortOrder": 30,
           "permissions": {
             "read": [
@@ -19579,8 +19595,8 @@
           "component": "text",
           "required": true,
           "isSystem": true,
-          "isPrimaryKey": false,
-          "isUnique": false,
+          "isPrimaryKey": true,
+          "isUnique": true,
           "sortOrder": 30,
           "permissions": {
             "read": [
@@ -19604,8 +19620,8 @@
           "component": "text",
           "required": true,
           "isSystem": true,
-          "isPrimaryKey": false,
-          "isUnique": false,
+          "isPrimaryKey": true,
+          "isUnique": true,
           "sortOrder": 80,
           "permissions": {
             "read": [
@@ -19629,8 +19645,8 @@
           "component": "text",
           "required": true,
           "isSystem": true,
-          "isPrimaryKey": false,
-          "isUnique": false,
+          "isPrimaryKey": true,
+          "isUnique": true,
           "sortOrder": 30,
           "permissions": {
             "read": [
@@ -19654,8 +19670,8 @@
           "component": "text",
           "required": true,
           "isSystem": true,
-          "isPrimaryKey": false,
-          "isUnique": false,
+          "isPrimaryKey": true,
+          "isUnique": true,
           "sortOrder": 80,
           "permissions": {
             "read": [
@@ -19679,8 +19695,8 @@
           "component": "text",
           "required": true,
           "isSystem": true,
-          "isPrimaryKey": false,
-          "isUnique": false,
+          "isPrimaryKey": true,
+          "isUnique": true,
           "sortOrder": 40,
           "permissions": {
             "read": [
@@ -19704,8 +19720,8 @@
           "component": "text",
           "required": true,
           "isSystem": true,
-          "isPrimaryKey": false,
-          "isUnique": false,
+          "isPrimaryKey": true,
+          "isUnique": true,
           "sortOrder": 30,
           "permissions": {
             "read": [
@@ -19729,8 +19745,8 @@
           "component": "text",
           "required": true,
           "isSystem": true,
-          "isPrimaryKey": false,
-          "isUnique": false,
+          "isPrimaryKey": true,
+          "isUnique": true,
           "sortOrder": 30,
           "permissions": {
             "read": [
@@ -19754,8 +19770,8 @@
           "component": "text",
           "required": true,
           "isSystem": true,
-          "isPrimaryKey": false,
-          "isUnique": false,
+          "isPrimaryKey": true,
+          "isUnique": true,
           "sortOrder": 30,
           "permissions": {
             "read": [
@@ -19779,8 +19795,8 @@
           "component": "text",
           "required": true,
           "isSystem": true,
-          "isPrimaryKey": false,
-          "isUnique": false,
+          "isPrimaryKey": true,
+          "isUnique": true,
           "sortOrder": 60,
           "permissions": {
             "read": [
@@ -19804,8 +19820,8 @@
           "component": "text",
           "required": true,
           "isSystem": true,
-          "isPrimaryKey": false,
-          "isUnique": false,
+          "isPrimaryKey": true,
+          "isUnique": true,
           "sortOrder": 60,
           "permissions": {
             "read": [
@@ -19829,8 +19845,8 @@
           "component": "text",
           "required": true,
           "isSystem": true,
-          "isPrimaryKey": false,
-          "isUnique": false,
+          "isPrimaryKey": true,
+          "isUnique": true,
           "sortOrder": 30,
           "permissions": {
             "read": [
@@ -19854,8 +19870,8 @@
           "component": "text",
           "required": true,
           "isSystem": true,
-          "isPrimaryKey": false,
-          "isUnique": false,
+          "isPrimaryKey": true,
+          "isUnique": true,
           "sortOrder": 30,
           "permissions": {
             "read": [
@@ -19879,8 +19895,8 @@
           "component": "text",
           "required": true,
           "isSystem": true,
-          "isPrimaryKey": false,
-          "isUnique": false,
+          "isPrimaryKey": true,
+          "isUnique": true,
           "sortOrder": 30,
           "permissions": {
             "read": [
@@ -19904,8 +19920,8 @@
           "component": "text",
           "required": true,
           "isSystem": true,
-          "isPrimaryKey": false,
-          "isUnique": false,
+          "isPrimaryKey": true,
+          "isUnique": true,
           "sortOrder": 50,
           "permissions": {
             "read": [
@@ -23550,8 +23566,6 @@
       "component": "text",
       "required": true,
       "isSystem": true,
-      "isPrimaryKey": false,
-      "isUnique": false,
       "displayName": "Id",
       "permissions": {
         "read": [
@@ -52142,7 +52156,11 @@
           "editor"
         ]
       },
-      "validation": {}
+      "validation": {},
+      "isForeignKey": true,
+      "referencedTable": "account",
+      "referencedFieldID": "id",
+      "referencedFieldName": "name"
     }
   },
   {
@@ -53353,7 +53371,11 @@
           "editor"
         ]
       },
-      "validation": {}
+      "validation": {},
+      "isForeignKey": true,
+      "referencedTable": "contact",
+      "referencedFieldID": "id",
+      "referencedFieldName": "name"
     }
   },
   {
@@ -55311,7 +55333,11 @@
           "editor"
         ]
       },
-      "validation": {}
+      "validation": {},
+      "isForeignKey": true,
+      "referencedTable": "conf_item",
+      "referencedFieldID": "id",
+      "referencedFieldName": "name"
     }
   },
   {
@@ -55783,7 +55809,11 @@
           "editor"
         ]
       },
-      "validation": {}
+      "validation": {},
+      "isForeignKey": true,
+      "referencedTable": "event",
+      "referencedFieldID": "id",
+      "referencedFieldName": "name"
     }
   },
   {
@@ -59073,7 +59103,11 @@
           "editor"
         ]
       },
-      "validation": {}
+      "validation": {},
+      "isForeignKey": true,
+      "referencedTable": "pet_type",
+      "referencedFieldID": "id",
+      "referencedFieldName": "name"
     }
   },
   {
@@ -61132,7 +61166,11 @@
           "editor"
         ]
       },
-      "validation": {}
+      "validation": {},
+      "isForeignKey": true,
+      "referencedTable": "currency",
+      "referencedFieldID": "id",
+      "referencedFieldName": "name"
     }
   },
   {
@@ -62538,7 +62576,11 @@
           "editor"
         ]
       },
-      "validation": {}
+      "validation": {},
+      "isForeignKey": true,
+      "referencedTable": "account",
+      "referencedFieldID": "id",
+      "referencedFieldName": "name"
     }
   },
   {
@@ -64179,7 +64221,11 @@
           "editor"
         ]
       },
-      "validation": {}
+      "validation": {},
+      "isForeignKey": true,
+      "referencedTable": "breed",
+      "referencedFieldID": "id",
+      "referencedFieldName": "name"
     }
   },
   {
@@ -68364,12 +68410,12 @@
             ]
           },
           "isForeignKey": true,
-          "referencedTable": "breeder",
+          "referencedTable": "contact",
           "referencedFieldID": "id",
           "displayName": "Breeder",
           "placeholder": "Enter breeder",
           "validation": {},
-          "referencedFieldName": "id"
+          "referencedFieldName": "name"
         }
       },
       {
@@ -68395,12 +68441,12 @@
             ]
           },
           "isForeignKey": true,
-          "referencedTable": "breeder",
+          "referencedTable": "contact",
           "referencedFieldID": "id",
           "displayName": "Breeder",
           "placeholder": "Enter breeder",
           "validation": {},
-          "referencedFieldName": "id"
+          "referencedFieldName": "name"
         }
       },
       {

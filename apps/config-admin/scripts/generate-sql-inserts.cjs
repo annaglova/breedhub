@@ -68,8 +68,25 @@ function computeMergedData(configId, allConfigs, visited = new Set()) {
   return mergedData;
 }
 
+// Get property data based on property ID
+function getPropertyData(propertyId) {
+  const propertyDataMap = {
+    'property_required': { required: true, validation: { notNull: true } },
+    'property_not_required': { required: false },
+    'property_is_system': { isSystem: true },
+    'property_not_system': { isSystem: false },
+    'property_primary_key': { isPrimaryKey: true },
+    'property_not_primary_key': { isPrimaryKey: false },
+    'property_unique': { isUnique: true },
+    'property_not_unique': { isUnique: false },
+    'property_readonly': { permissions: { write: ['system'] } }
+  };
+  
+  return propertyDataMap[propertyId] || {};
+}
+
 // Generate SQL insert statement
-function generateInsert(config, allConfigs) {
+function generateInsert(config) {
   const fields = [
     'id',
     'type',
@@ -84,20 +101,17 @@ function generateInsert(config, allConfigs) {
     'deleted'
   ];
   
-  // Compute the merged data field
-  const computedData = computeMergedData(config.id, allConfigs);
-  
   const values = {
     id: config.id,
     type: config.type,
     self_data: config.self_data || {},
-    override_data: {}, // Always empty for initial generation
-    data: computedData, // Computed from deps + self_data
-    deps: config.deps || [],
+    override_data: config.override_data || {},
+    data: config.data || config.self_data || {}, // Already computed in main loop
+    deps: config.deps || [], // Always array, never null (RxDB requirement)
     caption: config.caption || null,
     category: config.category || null,
-    tags: config.tags || [],
-    version: 1,
+    tags: config.tags || [], // Always array, never null (RxDB requirement)
+    version: config.version || 1,
     deleted: false
   };
   
@@ -105,11 +119,11 @@ function generateInsert(config, allConfigs) {
   const valueList = fields.map(f => {
     const value = values[f];
     if (f === 'deps' || f === 'tags') {
-      // Array fields
+      // deps and tags are always arrays (never null for RxDB compatibility)
       if (Array.isArray(value) && value.length > 0) {
         return `ARRAY[${value.map(v => escapeSql(v)).join(', ')}]::text[]`;
       } else {
-        return "'{}'::text[]";
+        return "'{}'::text[]"; // Empty array, not NULL
       }
     } else if (f === 'self_data' || f === 'override_data' || f === 'data') {
       // JSONB fields
@@ -124,6 +138,28 @@ function generateInsert(config, allConfigs) {
   return `INSERT INTO app_config (${fieldList}) VALUES (${valueList}) ON CONFLICT (id) WHERE deleted = false DO NOTHING;`;
 }
 
+// Build self_data by merging all dependencies' data
+function buildSelfData(deps, ownData, allConfigs) {
+  let mergedData = {};
+  
+  // First merge all dependencies' data
+  for (const depId of deps) {
+    const depConfig = allConfigs.find(c => c.id === depId);
+    if (depConfig && depConfig.data) {
+      mergedData = { ...mergedData, ...depConfig.data };
+    } else if (depId.startsWith('property_')) {
+      // For property dependencies that don't have configs yet
+      const propertyData = getPropertyData(depId);
+      mergedData = { ...mergedData, ...propertyData };
+    }
+  }
+  
+  // Then apply own data (overrides)
+  mergedData = { ...mergedData, ...ownData };
+  
+  return mergedData;
+}
+
 // Generate all SQL inserts
 function generateAllInserts(tree) {
   const inserts = [];
@@ -131,63 +167,125 @@ function generateAllInserts(tree) {
   
   console.log('Generating SQL inserts...');
   
-  // 1. Field Properties (Level 1)
+  // 1. Field Properties (Level 1) - no dependencies
   console.log(`  Processing ${tree.properties.length} field properties...`);
   for (const prop of tree.properties) {
-    configs.push(prop);
+    // Properties have no dependencies, self_data is their own data
+    const config = {
+      ...prop,
+      self_data: prop.self_data || {},
+      data: prop.self_data || {}, // data = self_data for properties (no deps)
+      deps: [], // Empty array for properties (RxDB requires array, not null)
+      override_data: {},
+      tags: [], // Empty array for properties (RxDB requires array, not null)
+      caption: null,
+      category: null
+    };
+    configs.push(config);
   }
   
   // 2. Base Fields (Level 2)
   console.log(`  Processing ${tree.baseFields.length} base fields...`);
+  
   for (const field of tree.baseFields) {
     const config = {
       id: field.id,
       type: 'field',
       deps: [],
       self_data: {},
+      override_data: {},
       caption: `Base field: ${field.name}`,
       category: field.category,
       tags: [`frequency:${Math.round(field.frequency * 100)}%`]
     };
     
-    // Extract only non-property data for self_data
-    const propsToKeep = ['fieldType', 'component', 'displayName', 'placeholder'];
-    for (const prop of propsToKeep) {
-      if (field.commonProps && field.commonProps[prop] !== undefined) {
-        config.self_data[prop] = field.commonProps[prop];
+    // Build dependencies list
+    if (field.parentField) {
+      config.deps.push(field.parentField);
+      config.tags.push(`inherits_from:${field.parentField}`);
+    }
+    
+    // For child fields, only add properties that differ from parent
+    const isChildField = !!field.parentField;
+    
+    if (isChildField) {
+      // Only add properties that override parent
+      if (field.commonProps?.required !== undefined) {
+        config.deps.push(field.commonProps.required ? 'property_required' : 'property_not_required');
+      }
+      if (field.commonProps?.isSystem === true) {
+        // Child fields that are system (like created_by, updated_by)
+        config.deps.push('property_readonly');
+        config.deps.push('property_is_system');
+      }
+    } else {
+      // For parent/standalone fields, add all property dependencies
+      if (field.commonProps?.required === true) {
+        config.deps.push('property_required');
+      } else if (field.commonProps?.required === false) {
+        config.deps.push('property_not_required');
+      }
+      
+      if (field.commonProps?.isSystem === true) {
+        config.deps.push('property_readonly');
+        config.deps.push('property_is_system');
+      } else if (field.commonProps?.isSystem === false) {
+        config.deps.push('property_not_system');
+      }
+      
+      if (field.commonProps?.isPrimaryKey === true) {
+        config.deps.push('property_primary_key');
+      } else if (field.commonProps?.isPrimaryKey === false) {
+        config.deps.push('property_not_primary_key');
+      }
+      
+      if (field.commonProps?.isUnique === true && !field.commonProps?.isPrimaryKey) {
+        config.deps.push('property_unique');
+      } else if (field.commonProps?.isUnique === false) {
+        config.deps.push('property_not_unique');
       }
     }
     
-    // Add permissions to self_data if not system field
-    if (field.commonProps?.permissions && !field.commonProps?.isSystem) {
-      config.self_data.permissions = field.commonProps.permissions;
+    // Add metadata tags
+    if (field.metadata?.isParentField) {
+      config.tags.push('parent_field');
+    }
+    if (field.metadata?.inheritsFrom) {
+      config.tags.push(`child_of:${field.metadata.inheritsFrom}`);
+    }
+    if (field.metadata?.referencedTable) {
+      config.tags.push(`ref_table:${field.metadata.referencedTable}`);
     }
     
-    // Add explicit property dependencies based on field characteristics
-    if (field.commonProps?.required === true) {
-      config.deps.push('property_required');
-    } else if (field.commonProps?.required === false) {
-      config.deps.push('property_not_required');
+    // Extract own data for this field
+    const ownData = {};
+    if (field.commonProps) {
+      // For child fields, include overrides but also inherit parent's commonProps
+      if (field.parentField) {
+        // For child fields, start with all commonProps (they need full data)
+        Object.assign(ownData, field.commonProps);
+        delete ownData.icon;
+        delete ownData.fkTarget;
+        
+        // Ensure FK metadata is included
+        if (field.metadata?.referencedTable || field.commonProps.referencedTable) {
+          ownData.referencedTable = field.metadata?.referencedTable || field.commonProps.referencedTable;
+          ownData.referencedFieldID = field.commonProps.referencedFieldID || 'id';
+          ownData.referencedFieldName = field.commonProps.referencedFieldName || 'name';
+        }
+      } else {
+        // For parent/standalone fields, include all commonProps except icon and fkTarget
+        Object.assign(ownData, field.commonProps);
+        delete ownData.icon;
+        delete ownData.fkTarget;
+      }
     }
     
-    if (field.commonProps?.isSystem === true) {
-      config.deps.push('property_readonly');
-      config.deps.push('property_is_system');
-    } else if (field.commonProps?.isSystem === false) {
-      config.deps.push('property_not_system');
-    }
+    // Build self_data using unified approach
+    config.self_data = buildSelfData(config.deps, ownData, configs);
     
-    if (field.commonProps?.isPrimaryKey === true) {
-      config.deps.push('property_primary_key');
-    } else if (field.commonProps?.isPrimaryKey === false) {
-      config.deps.push('property_not_primary_key');
-    }
-    
-    if (field.commonProps?.isUnique === true && !field.commonProps?.isPrimaryKey) {
-      config.deps.push('property_unique');
-    } else if (field.commonProps?.isUnique === false) {
-      config.deps.push('property_not_unique');
-    }
+    // Calculate data = self_data + override_data (override_data is empty for now)
+    config.data = { ...config.self_data, ...config.override_data };
     
     // Handle maxLength variations
     if (field.commonProps?.maxLengthVariations && field.commonProps.maxLengthVariations.length > 0) {
@@ -202,22 +300,31 @@ function generateAllInserts(tree) {
   }
   
   // 3. Entity Fields (Level 3) - All entities or breed-only
-  if (isBreedOnly) {
-    const breedFields = tree.entityFields.filter(field => field.id.startsWith('breed_field_'));
-    console.log(`  Processing ${breedFields.length} breed entity fields only...`);
-    for (const entityField of breedFields) {
-      configs.push(entityField);
-    }
-  } else {
-    console.log(`  Processing ${tree.entityFields.length} entity fields (all entities)...`);
-    for (const entityField of tree.entityFields) {
-      configs.push(entityField);
-    }
+  const entityFieldsToProcess = isBreedOnly 
+    ? tree.entityFields.filter(field => field.id.startsWith('breed_field_'))
+    : tree.entityFields;
+    
+  console.log(`  Processing ${entityFieldsToProcess.length} entity fields...`);
+  
+  for (const entityField of entityFieldsToProcess) {
+    // Entity fields already have deps, but need self_data computed
+    const config = {
+      ...entityField,
+      override_data: entityField.override_data || {}
+    };
+    
+    // Build self_data from dependencies
+    config.self_data = buildSelfData(config.deps || [], entityField.self_data || {}, configs);
+    
+    // Calculate data = self_data + override_data
+    config.data = { ...config.self_data, ...config.override_data };
+    
+    configs.push(config);
   }
   
   // Generate SQL for each config
   for (const config of configs) {
-    inserts.push(generateInsert(config, configs));
+    inserts.push(generateInsert(config));
   }
   
   return { inserts, configs };

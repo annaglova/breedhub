@@ -136,27 +136,16 @@ function extractCommonProperties(variations) {
 }
 
 // Generate base field definitions
-function generateBaseFields(fieldMap, threshold = 0.03) { // Lowered to 3% (~8+ occurrences) to capture more common fields
+function generateBaseFields(fieldMap, threshold = 0.1) {
   const baseFields = [];
   const totalEntities = 258; // We know we have 258 entities
-  
-  // Fields that should be excluded from base fields even if they meet the threshold
-  // These are too specific to certain entity types
-  const excludedFields = [
-    'pet_breed_id',     // Too specific - references breed table, shouldn't be in base
-  ];
   
   for (const [fieldKey, fieldInfo] of fieldMap) {
     const frequency = fieldInfo.occurrences / totalEntities;
     
-    // Skip excluded fields
-    if (excludedFields.includes(fieldKey)) {
-      continue;
-    }
-    
     // Include fields that appear in more than threshold of entities
     if (frequency >= threshold) {
-      const baseField = {
+      baseFields.push({
         id: `field_${fieldKey}`,
         type: 'field',
         name: fieldKey,
@@ -165,60 +154,12 @@ function generateBaseFields(fieldMap, threshold = 0.03) { // Lowered to 3% (~8+ 
         commonProps: fieldInfo.commonProps,
         isSystem: fieldInfo.commonProps?.isSystem === true,
         category: frequency > 0.8 ? 'base' : frequency > 0.4 ? 'common' : 'frequent'
-      };
-      
-      // Add FK metadata if this is a foreign key field
-      if (fieldKey.endsWith('_id') && fieldKey !== 'id') {
-        // Check if all variations have the same referenced table
-        const referencedTables = new Set();
-        fieldInfo.variations.forEach(v => {
-          if (v.config.referencedTable) {
-            referencedTables.add(v.config.referencedTable);
-          }
-        });
-        
-        if (referencedTables.size === 1) {
-          // All variations reference the same table
-          const referencedTable = Array.from(referencedTables)[0];
-          baseField.commonProps = baseField.commonProps || {};
-          baseField.commonProps.isForeignKey = true;
-          baseField.commonProps.referencedTable = referencedTable;
-          baseField.commonProps.referencedFieldID = 'id';
-          baseField.commonProps.referencedFieldName = 'name';
-        }
-      }
-      
-      baseFields.push(baseField);
+      });
     }
   }
   
   // Sort by frequency
   baseFields.sort((a, b) => b.frequency - a.frequency);
-  
-  // Add parent-child relationships for FK fields
-  // Fields that reference contact table should inherit from contact_id
-  const contactChildFields = ['owner_id', 'created_by', 'updated_by', 'breeder_id', 'handler_id', 'primary_contact_id'];
-  
-  baseFields.forEach(field => {
-    // Check if this is a child field that should inherit from contact_id
-    if (contactChildFields.includes(field.name)) {
-      // Check if contact_id exists in base fields
-      const contactField = baseFields.find(f => f.name === 'contact_id');
-      if (contactField) {
-        // Mark this as inheriting from contact_id
-        field.parentField = 'field_contact_id';
-        field.metadata = field.metadata || {};
-        field.metadata.inheritsFrom = 'contact_id';
-        field.metadata.referencedTable = 'contact'; // They all reference contact table
-      }
-    }
-    
-    // Mark contact_id as parent field if it exists
-    if (field.name === 'contact_id') {
-      field.metadata = field.metadata || {};
-      field.metadata.isParentField = true;
-    }
-  });
   
   return baseFields;
 }
@@ -328,9 +269,8 @@ function generateFieldProperties(fieldMap) {
         });
       }
       
-      // Unique property (include even if currently all unique fields are also primary keys)
-      // This property is needed for future fields that might be unique but not primary key
-      if (config.isUnique === true) {
+      // Unique property
+      if (config.isUnique === true && !config.isPrimaryKey) {
         properties.set('property_unique', {
           id: 'property_unique',
           type: 'property',
