@@ -195,9 +195,50 @@ function generateBaseFields(fieldMap, threshold = 0.03) { // Lowered to 3% (~8+ 
   // Sort by frequency
   baseFields.sort((a, b) => b.frequency - a.frequency);
   
+  // Manually add breeder_id as base field if not already included
+  // It's important enough to be a base field even with lower frequency
+  if (!baseFields.find(f => f.name === 'breeder_id')) {
+    // Get breeder_id info from fieldMap
+    const breederFieldInfo = fieldMap.get('breeder_id');
+    if (breederFieldInfo) {
+      baseFields.push({
+        id: 'field_breeder_id',
+        type: 'field',
+        name: 'breeder_id',
+        frequency: breederFieldInfo.occurrences / totalEntities,
+        occurrences: breederFieldInfo.occurrences,
+        commonProps: breederFieldInfo.commonProps,
+        isSystem: false,
+        category: 'common' // Mark as common since it's manually added
+      });
+    }
+  }
+  
+  // Manually add kennel_id as base field if not already included
+  // It's important enough to be a base field even with lower frequency
+  if (!baseFields.find(f => f.name === 'kennel_id')) {
+    // Get kennel_id info from fieldMap
+    const kennelFieldInfo = fieldMap.get('kennel_id');
+    if (kennelFieldInfo) {
+      baseFields.push({
+        id: 'field_kennel_id',
+        type: 'field',
+        name: 'kennel_id',
+        frequency: kennelFieldInfo.occurrences / totalEntities,
+        occurrences: kennelFieldInfo.occurrences,
+        commonProps: kennelFieldInfo.commonProps,
+        isSystem: false,
+        category: 'common' // Mark as common since it's manually added
+      });
+    }
+  }
+  
   // Add parent-child relationships for FK fields
   // Fields that reference contact table should inherit from contact_id
   const contactChildFields = ['owner_id', 'created_by', 'updated_by', 'breeder_id', 'handler_id', 'primary_contact_id'];
+  
+  // Fields that reference account table should inherit from account_id
+  const accountChildFields = ['provider_id', 'kennel_id'];
   
   baseFields.forEach(field => {
     // Check if this is a child field that should inherit from contact_id
@@ -213,8 +254,27 @@ function generateBaseFields(fieldMap, threshold = 0.03) { // Lowered to 3% (~8+ 
       }
     }
     
+    // Check if this is a child field that should inherit from account_id
+    if (accountChildFields.includes(field.name)) {
+      // Check if account_id exists in base fields
+      const accountField = baseFields.find(f => f.name === 'account_id');
+      if (accountField) {
+        // Mark this as inheriting from account_id
+        field.parentField = 'field_account_id';
+        field.metadata = field.metadata || {};
+        field.metadata.inheritsFrom = 'account_id';
+        field.metadata.referencedTable = 'account'; // They all reference account table
+      }
+    }
+    
     // Mark contact_id as parent field if it exists
     if (field.name === 'contact_id') {
+      field.metadata = field.metadata || {};
+      field.metadata.isParentField = true;
+    }
+    
+    // Mark account_id as parent field if it exists
+    if (field.name === 'account_id') {
       field.metadata = field.metadata || {};
       field.metadata.isParentField = true;
     }

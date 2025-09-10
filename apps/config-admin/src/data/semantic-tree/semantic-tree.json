@@ -439,7 +439,10 @@
         "referencedFieldName": "name"
       },
       "isSystem": false,
-      "category": "frequent"
+      "category": "frequent",
+      "metadata": {
+        "isParentField": true
+      }
     },
     {
       "id": "field_notes",
@@ -803,7 +806,12 @@
         "referencedFieldName": "name"
       },
       "isSystem": false,
-      "category": "frequent"
+      "category": "frequent",
+      "parentField": "field_account_id",
+      "metadata": {
+        "inheritsFrom": "account_id",
+        "referencedTable": "account"
+      }
     },
     {
       "id": "field_position",
@@ -1036,6 +1044,72 @@
       },
       "isSystem": false,
       "category": "frequent"
+    },
+    {
+      "id": "field_breeder_id",
+      "type": "field",
+      "name": "breeder_id",
+      "frequency": 0.011627906976744186,
+      "occurrences": 3,
+      "commonProps": {
+        "fieldType": "uuid",
+        "component": "select",
+        "required": false,
+        "isSystem": false,
+        "isPrimaryKey": false,
+        "isUnique": false,
+        "displayName": "Breeder",
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "admin",
+            "editor"
+          ]
+        },
+        "validation": {}
+      },
+      "isSystem": false,
+      "category": "common",
+      "parentField": "field_contact_id",
+      "metadata": {
+        "inheritsFrom": "contact_id",
+        "referencedTable": "contact"
+      }
+    },
+    {
+      "id": "field_kennel_id",
+      "type": "field",
+      "name": "kennel_id",
+      "frequency": 0.011627906976744186,
+      "occurrences": 3,
+      "commonProps": {
+        "fieldType": "uuid",
+        "component": "select",
+        "required": false,
+        "isSystem": false,
+        "isPrimaryKey": false,
+        "isUnique": false,
+        "displayName": "Kennel",
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "admin",
+            "editor"
+          ]
+        },
+        "validation": {}
+      },
+      "isSystem": false,
+      "category": "common",
+      "parentField": "field_account_id",
+      "metadata": {
+        "inheritsFrom": "account_id",
+        "referencedTable": "account"
+      }
     }
   ],
   "entityFields": [
@@ -15042,10 +15116,7 @@
       "id": "litter_field_kennel_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_kennel_id"
       ],
       "category": "litter",
       "caption": "litter kennel_id field",
@@ -15083,10 +15154,7 @@
       "id": "litter_field_breeder_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_breeder_id"
       ],
       "category": "litter",
       "caption": "litter breeder_id field",
@@ -17440,10 +17508,7 @@
       "id": "pet_field_kennel_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_kennel_id"
       ],
       "category": "pet",
       "caption": "pet kennel_id field",
@@ -17680,10 +17745,7 @@
       "id": "pet_field_breeder_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_breeder_id"
       ],
       "category": "pet",
       "caption": "pet breeder_id field",
@@ -83458,10 +83520,7 @@
       "id": "pet_old_field_kennel_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_kennel_id"
       ],
       "category": "pet_old",
       "caption": "pet_old kennel_id field",
@@ -83680,10 +83739,7 @@
       "id": "pet_old_field_breeder_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_breeder_id"
       ],
       "category": "pet_old",
       "caption": "pet_old breeder_id field",

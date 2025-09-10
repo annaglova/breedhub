@@ -2,7 +2,7 @@
   "summary": {
     "totalEntities": 258,
     "uniqueFields": 562,
-    "baseFields": 32,
+    "baseFields": 34,
     "properties": 11,
     "entityFieldsGenerated": 2851
   },
@@ -117,7 +117,9 @@
   ],
   "commonFields": [
     "name",
-    "description"
+    "description",
+    "breeder_id",
+    "kennel_id"
   ],
   "analysis": {
     "fieldTypes": {
