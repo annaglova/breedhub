@@ -65,6 +65,11 @@ function computeMergedData(configId, allConfigs, visited = new Set()) {
     mergedData = { ...mergedData, ...config.self_data };
   }
   
+  // Finally apply override_data (highest priority)
+  if (config.override_data) {
+    mergedData = { ...mergedData, ...config.override_data };
+  }
+  
   return mergedData;
 }
 
@@ -337,11 +342,40 @@ async function batchInsertToSupabase(configs, batchSize = 50) {
   let inserted = 0;
   let errors = 0;
   
-  // Compute data field for all configs
-  const configsWithData = configs.map(config => ({
-    ...config,
-    data: computeMergedData(config.id, configs)
-  }));
+  // First, fetch all existing records to preserve override_data
+  console.log('Fetching existing records to preserve override_data...');
+  const { data: existingRecords, error: fetchError } = await supabase
+    .from('app_config')
+    .select('id, override_data');
+  
+  if (fetchError) {
+    console.error('Error fetching existing records:', fetchError);
+  }
+  
+  // Create a map of existing override_data by id
+  const existingOverrides = new Map();
+  if (existingRecords) {
+    existingRecords.forEach(record => {
+      if (record.override_data && Object.keys(record.override_data).length > 0) {
+        existingOverrides.set(record.id, record.override_data);
+      }
+    });
+    console.log(`Found ${existingOverrides.size} records with existing override_data`);
+  }
+  
+  // Compute data field for all configs, preserving existing override_data
+  const configsWithData = configs.map(config => {
+    // Preserve existing override_data if it exists
+    const existingOverride = existingOverrides.get(config.id);
+    if (existingOverride) {
+      config.override_data = existingOverride;
+    }
+    
+    return {
+      ...config,
+      data: computeMergedData(config.id, configs)
+    };
+  });
   
   for (let i = 0; i < configsWithData.length; i += batchSize) {
     const batch = configsWithData.slice(i, i + batchSize);
