@@ -500,8 +500,12 @@ const AppConfig: React.FC = () => {
     return (
       <div
         key={field.id}
-        draggable="true"
+        draggable={!isBaseField}
         onDragStart={(e) => {
+          if (isBaseField) {
+            e.preventDefault();
+            return;
+          }
           console.log("Field drag start:", field.id);
           e.dataTransfer.setData('text/plain', field.id);
           e.dataTransfer.effectAllowed = 'copy';
@@ -509,8 +513,10 @@ const AppConfig: React.FC = () => {
           setTimeout(() => setDraggedField(field.id), 0);
         }}
         onDragEnd={() => {
-          setDraggedField(null);
-          setDragOverConfig(null);
+          if (!isBaseField) {
+            setDraggedField(null);
+            setDragOverConfig(null);
+          }
         }}
         onDragOver={(e) => {
           if (draggedProperty) {
@@ -532,18 +538,22 @@ const AppConfig: React.FC = () => {
           setDraggedProperty(null);
           setDragOverField(null);
         }}
-        className={`relative px-4 py-2 mb-2 bg-gray-50 rounded-md hover:bg-gray-100 transition-all min-h-[2.5rem] cursor-grab active:cursor-grabbing ${
+        className={`relative px-4 py-2 mb-2 rounded-md transition-all min-h-[2.5rem] ${
+          isBaseField 
+            ? "bg-gray-100 hover:bg-gray-100 cursor-default" 
+            : "bg-gray-50 hover:bg-gray-100 cursor-grab active:cursor-grabbing"
+        } ${
           draggedField === field.id ? "opacity-50" : ""
         } ${
           dragOverField === field.id
             ? "bg-green-100 border-2 border-green-400 border-dashed"
             : ""
         }`}
-        title={`Drag "${field.id}" to add it to a config`}
+        title={isBaseField ? `"${field.id}" is a base field and cannot be dragged` : `Drag "${field.id}" to add it to a config`}
       >
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 flex-1">
-            <GripVertical className="w-4 h-4 text-gray-400" />
+            <GripVertical className={`w-4 h-4 ${isBaseField ? 'text-gray-300 cursor-not-allowed' : 'text-gray-400 cursor-move'}`} />
             <span className="text-sm font-mono">{field.id}</span>
             {hasOverride && (
               <span className="text-xs px-2 py-0.5 bg-blue-100 text-blue-700 rounded">
