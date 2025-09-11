@@ -1317,7 +1317,7 @@ class AppConfigStore {
     if (property.id === 'property_is_system' || property.id === 'property_not_system') {
       return 'text-yellow-600';
     }
-    const data = JSON.stringify(property.self_data);
+    const data = JSON.stringify(property.data || {});
     if (data.includes('required')) return 'text-red-600';
     if (data.includes('system')) return 'text-yellow-600';
     if (data.includes('primary')) return 'text-purple-600';
@@ -1332,7 +1332,7 @@ class AppConfigStore {
     if (property.id === 'property_is_system' || property.id === 'property_not_system') {
       return 'border-yellow-400 bg-yellow-100';
     }
-    const data = JSON.stringify(property.self_data);
+    const data = JSON.stringify(property.data || {});
     if (data.includes('required')) return 'border-red-200 bg-red-50';
     if (data.includes('system')) return 'border-yellow-200 bg-yellow-50';
     if (data.includes('primary')) return 'border-purple-200 bg-purple-50';
