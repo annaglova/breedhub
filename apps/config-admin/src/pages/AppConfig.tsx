@@ -1053,18 +1053,16 @@ const AppConfig: React.FC = () => {
                 >
                   <Eye className="w-4 h-4" />
                 </button>
-                {!appConfigStore.isGroupingConfigType(node.configType || '') && (
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      startEditConfig(node.id);
-                    }}
-                    className="p-1 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded"
-                    title="Edit config"
-                  >
-                    <Edit className="w-4 h-4" />
-                  </button>
-                )}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    startEditConfig(node.id);
+                  }}
+                  className="p-1 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded"
+                  title="Edit config"
+                >
+                  <Edit className="w-4 h-4" />
+                </button>
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
@@ -1729,15 +1727,10 @@ const AppConfig: React.FC = () => {
             <ConfigViewModal
               isOpen={true}
               onClose={() => setViewingConfig(null)}
-              onEdit={
-                // Don't show edit button for grouping configs
-                appConfigStore.isGroupingConfigType(config.type)
-                  ? undefined
-                  : () => {
-                      setViewingConfig(null);
-                      startEditConfig(config.id);
-                    }
-              }
+              onEdit={() => {
+                setViewingConfig(null);
+                startEditConfig(config.id);
+              }}
               title="View Config"
               config={config}
             />
@@ -1745,24 +1738,32 @@ const AppConfig: React.FC = () => {
         })()}
 
       {/* Edit Config Modal */}
-      <ConfigEditModal
-        isOpen={!!editingConfig}
-        onClose={() => {
-          setEditingConfig(null);
-          setEditingConfigData("");
-          setEditingConfigCaption("");
-          setEditingConfigVersion(1);
-        }}
-        onSave={saveConfigEdit}
-        title="Edit Config"
-        configId={editingConfig || ""}
-        caption={editingConfigCaption}
-        version={editingConfigVersion}
-        overrideData={editingConfigData}
-        onCaptionChange={setEditingConfigCaption}
-        onVersionChange={setEditingConfigVersion}
-        onOverrideDataChange={setEditingConfigData}
-      />
+      {editingConfig && (() => {
+        const config = workingConfigs.find((c) => c.id === editingConfig);
+        const isGroupingType = config ? appConfigStore.isGroupingConfigType(config.type) : false;
+        
+        return (
+          <ConfigEditModal
+            isOpen={true}
+            onClose={() => {
+              setEditingConfig(null);
+              setEditingConfigData("");
+              setEditingConfigCaption("");
+              setEditingConfigVersion(1);
+            }}
+            onSave={saveConfigEdit}
+            title="Edit Config"
+            configId={editingConfig}
+            caption={editingConfigCaption}
+            hideOverrideData={isGroupingType}
+            version={editingConfigVersion}
+            overrideData={editingConfigData}
+            onCaptionChange={setEditingConfigCaption}
+            onVersionChange={setEditingConfigVersion}
+            onOverrideDataChange={setEditingConfigData}
+          />
+        );
+      })()}
 
       {/* View Field Modal */}
       {viewingField &&
