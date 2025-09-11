@@ -72,7 +72,7 @@ const Properties: React.FC = () => {
       const filtered = properties.filter(
         (p) =>
           p.id.toLowerCase().includes(query) ||
-          JSON.stringify(p.self_data).toLowerCase().includes(query)
+          JSON.stringify(p.override_data || p.self_data || {}).toLowerCase().includes(query)
       );
       setFilteredProperties(filtered);
       // Reset to first page only when search changes
@@ -86,7 +86,8 @@ const Properties: React.FC = () => {
   const startEdit = (property: Property) => {
     setEditingId(property.id);
     setEditingNewId(property.id);
-    setEditingData(JSON.stringify(property.self_data || {}, null, 2));
+    // Properties now use override_data instead of self_data
+    setEditingData(JSON.stringify(property.override_data || property.self_data || {}, null, 2));
     setEditingCaption(property.caption || "");
     setEditingVersion(property.version || 1);
   };
@@ -330,11 +331,11 @@ const Properties: React.FC = () => {
                         <div>
                           {expandedId === property.id ? (
                             <pre className="text-xs font-mono bg-gray-50 p-2 rounded overflow-x-auto max-h-40">
-                              {JSON.stringify(property.self_data, null, 2)}
+                              {JSON.stringify(property.override_data || property.self_data || {}, null, 2)}
                             </pre>
                           ) : (
                             <div className="space-y-1">
-                              {Object.entries(property.self_data || {})
+                              {Object.entries(property.override_data || property.self_data || {})
                                 .slice(0, 3)
                                 .map(([key, value]) => (
                                   <div key={key} className="text-xs">
@@ -348,10 +349,10 @@ const Properties: React.FC = () => {
                                     </span>
                                   </div>
                                 ))}
-                              {Object.keys(property.self_data || {}).length >
+                              {Object.keys(property.override_data || property.self_data || {}).length >
                                 3 && (
                                 <div className="text-xs text-gray-400">
-                                  +{Object.keys(property.self_data).length - 3}{" "}
+                                  +{Object.keys(property.override_data || property.self_data || {}).length - 3}{" "}
                                   more...
                                 </div>
                               )}

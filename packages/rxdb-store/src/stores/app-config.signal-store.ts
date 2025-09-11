@@ -1117,8 +1117,8 @@ class AppConfigStore {
       await this.createConfig({
         id,
         type: 'property',
-        self_data: data,
-        override_data: {},
+        self_data: {},  // Properties have no dependencies
+        override_data: data,  // Property data goes to override_data
         deps: [],
         tags: ['property'],
         version: 1
@@ -1140,7 +1140,7 @@ class AppConfigStore {
         return { success: false, error: 'Property not found' };
       }
       
-      await this.updateConfig(id, { self_data: data });
+      await this.updateConfig(id, { override_data: data });
       
       // Cascade update all configs that depend on this property
       await this.cascadeUpdate(id);
@@ -1195,8 +1195,8 @@ class AppConfigStore {
       await this.createConfig({
         id: newId,
         type: 'property',
-        self_data: selfData,
-        override_data: existingProperty.override_data || {},
+        self_data: {},  // Properties have no dependencies
+        override_data: selfData,  // Property data goes to override_data
         deps: existingProperty.deps || [],
         tags: existingProperty.tags || [],
         version: existingProperty.version || 1,

@@ -337,17 +337,19 @@ async function cascadeUpdate(changedIds, options = {}) {
 /**
  * Update specific property and cascade changes
  */
-async function updatePropertyAndCascade(propertyId, newSelfData, options = {}) {
+async function updatePropertyAndCascade(propertyId, newOverrideData, options = {}) {
   console.log(`\n=== Updating Property: ${propertyId} ===`);
   
-  // For properties, data = self_data (they don't have override_data)
-  const computedData = newSelfData;
+  // For properties: self_data = {} (no dependencies), override_data = property data, data = override_data
+  const selfData = {}; // Properties have no dependencies
+  const computedData = newOverrideData; // data = self_data + override_data = {} + override_data
   
   // Update the property itself
   const { error: updateError } = await supabase
     .from('app_config')
     .update({
-      self_data: newSelfData,
+      self_data: selfData,
+      override_data: newOverrideData,
       data: computedData, // Computed, not directly set
       updated_at: new Date().toISOString()
     })
@@ -397,14 +399,14 @@ Examples:
     switch (command) {
       case 'update': {
         if (args.length < 3) {
-          console.error('Usage: update <property-id> <self-data-json>');
+          console.error('Usage: update <property-id> <override-data-json>');
           process.exit(1);
         }
         
         const propertyId = args[1];
-        const selfData = JSON.parse(args[2]);
+        const overrideData = JSON.parse(args[2]);
         
-        const result = await updatePropertyAndCascade(propertyId, selfData, { dryRun, verbose });
+        const result = await updatePropertyAndCascade(propertyId, overrideData, { dryRun, verbose });
         console.log('\nResult:', result);
         break;
       }
