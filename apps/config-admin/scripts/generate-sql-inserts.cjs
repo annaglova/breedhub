@@ -287,10 +287,21 @@ function generateAllInserts(tree) {
       }
     }
     
-    // Build self_data using unified approach
-    config.self_data = buildSelfData(config.deps, ownData, configs);
+    // NEW APPROACH: Split data properly
+    // self_data = only data from dependencies (properties)
+    config.self_data = buildSelfData(config.deps, {}, configs); // Only deps data
     
-    // Calculate data = self_data + override_data (override_data is empty for now)
+    // override_data = field's own data MINUS what's already in self_data
+    // This avoids duplication between self_data and override_data
+    config.override_data = {};
+    for (const [key, value] of Object.entries(ownData)) {
+      // Only add to override_data if it's different from self_data
+      if (JSON.stringify(config.self_data[key]) !== JSON.stringify(value)) {
+        config.override_data[key] = value;
+      }
+    }
+    
+    // Calculate data = self_data + override_data
     config.data = { ...config.self_data, ...config.override_data };
     
     // Handle maxLength variations
@@ -315,12 +326,49 @@ function generateAllInserts(tree) {
   for (const entityField of entityFieldsToProcess) {
     // Entity fields already have deps, but need self_data computed
     const config = {
-      ...entityField,
-      override_data: entityField.override_data || {}
+      ...entityField
     };
     
-    // Build self_data from dependencies
-    config.self_data = buildSelfData(config.deps || [], entityField.self_data || {}, configs);
+    // ПРАВИЛЬНИЙ ПІДХІД:
+    // 1. self_data = дані успадковані від залежностей
+    // Збираємо ВСІ дані з deps (включаючи їх self_data + override_data)
+    let inheritedData = {};
+    for (const depId of (config.deps || [])) {
+      const depConfig = configs.find(c => c.id === depId);
+      if (depConfig) {
+        // Беремо повні дані залежності (self_data + override_data)
+        const depFullData = { 
+          ...depConfig.self_data, 
+          ...depConfig.override_data 
+        };
+        inheritedData = { ...inheritedData, ...depFullData };
+        
+        // Debug for specific problematic field
+        if (config.id === 'breed_field_avatar_url') {
+          console.log(`    - From ${depId}:`);
+          console.log(`      self_data: ${Object.keys(depConfig.self_data || {}).length} keys`);
+          console.log(`      override_data: ${Object.keys(depConfig.override_data || {}).length} keys`);
+          console.log(`      combined: ${Object.keys(depFullData).length} keys`);
+        }
+      } else if (depId.startsWith('property_')) {
+        // For property dependencies
+        const propertyData = getPropertyData(depId);
+        inheritedData = { ...inheritedData, ...propertyData };
+      }
+    }
+    config.self_data = inheritedData;
+    
+    // 2. Повні дані поля (з semantic tree, неправильна назва self_data там)
+    const completeFieldData = entityField.self_data || {};
+    
+    // 3. override_data = повні дані МІНУС успадковані дані
+    config.override_data = {};
+    for (const [key, value] of Object.entries(completeFieldData)) {
+      // Додаємо в override тільки те, що відрізняється від успадкованого
+      if (JSON.stringify(inheritedData[key]) !== JSON.stringify(value)) {
+        config.override_data[key] = value;
+      }
+    }
     
     // Calculate data = self_data + override_data
     config.data = { ...config.self_data, ...config.override_data };
@@ -362,15 +410,19 @@ function hasRecordChanged(existing, generated, debug = false) {
   const existingSelfDataNorm = JSON.stringify(normalizeJSON(existing.self_data));
   const generatedSelfDataNorm = JSON.stringify(normalizeJSON(generated.self_data));
   
+  const existingOverrideDataNorm = JSON.stringify(normalizeJSON(existing.override_data));
+  const generatedOverrideDataNorm = JSON.stringify(normalizeJSON(generated.override_data));
+  
   const existingTagsNorm = JSON.stringify(normalizeJSON(existing.tags));
   const generatedTagsNorm = JSON.stringify(normalizeJSON(generated.tags));
   
   const dataChanged = existingDataNorm !== generatedDataNorm;
   const depsChanged = existingDepsNorm !== generatedDepsNorm;
   const selfDataChanged = existingSelfDataNorm !== generatedSelfDataNorm;
+  const overrideDataChanged = existingOverrideDataNorm !== generatedOverrideDataNorm;
   const tagsChanged = existingTagsNorm !== generatedTagsNorm;
   
-  if (debug && (dataChanged || depsChanged || selfDataChanged || tagsChanged)) {
+  if (debug && (dataChanged || depsChanged || selfDataChanged || overrideDataChanged || tagsChanged)) {
     console.log(`\nDEBUG: Changes detected for ${generated.id}:`);
     if (dataChanged) {
       console.log('  - data field changed');
@@ -383,10 +435,15 @@ function hasRecordChanged(existing, generated, debug = false) {
       console.log('    existing:', existingSelfDataNorm.substring(0, 100));
       console.log('    generated:', generatedSelfDataNorm.substring(0, 100));
     }
+    if (overrideDataChanged) {
+      console.log('  - override_data changed');
+      console.log('    existing:', existingOverrideDataNorm.substring(0, 100));
+      console.log('    generated:', generatedOverrideDataNorm.substring(0, 100));
+    }
     if (tagsChanged) console.log('  - tags changed');
   }
   
-  return dataChanged || depsChanged || selfDataChanged || tagsChanged;
+  return dataChanged || depsChanged || selfDataChanged || overrideDataChanged || tagsChanged;
 }
 
 // Batch insert directly to Supabase with change detection
@@ -426,10 +483,8 @@ async function batchInsertToSupabase(configs, batchSize = 50) {
   const configsWithData = configs.map(config => {
     const existing = existingMap.get(config.id);
     
-    // Preserve existing override_data if it exists
-    if (existing && existing.override_data && Object.keys(existing.override_data).length > 0) {
-      config.override_data = existing.override_data;
-    }
+    // NO LONGER PRESERVING override_data - we now generate it correctly
+    // based on the difference between complete field data and inherited data
     
     // Preserve custom dependencies (Phase 3)
     if (existing && existing.deps && config.deps) {
@@ -510,12 +565,13 @@ async function batchInsertToSupabase(configs, batchSize = 50) {
   unchanged = unchangedRecords.length;
   
   // Cascade updates if any records were changed
-  if (changedRecords.length > 0) {
+  // TEMPORARILY DISABLED - we're regenerating all fields with correct structure
+  if (false && changedRecords.length > 0) {
     console.log('\n🔄 Running cascading updates for changed properties...');
     
-    // Extract IDs of changed properties and base fields
+    // Extract IDs of changed properties and base fields ONLY (not entity_field!)
     const changedPropertyIds = changedRecords
-      .filter(r => r.type === 'property' || r.type === 'field')
+      .filter(r => r.type === 'property' || (r.type === 'field' && !r.id.includes('_field_')))
       .map(r => r.id);
     
     if (changedPropertyIds.length > 0) {
