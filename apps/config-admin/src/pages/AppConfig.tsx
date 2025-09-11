@@ -642,21 +642,6 @@ const AppConfig: React.FC = () => {
               )}
             </div>
 
-            {/* Delete button - only for non-base fields */}
-            {!isBaseField && (
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  if (confirm(`Delete field "${field.id}"?`)) {
-                    appConfigStore.deleteConfig(field.id);
-                  }
-                }}
-                className="p-1 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded"
-                title="Delete field"
-              >
-                <Trash className="w-4 h-4" />
-              </button>
-            )}
 
             {/* Remove from config button - only when in config context */}
             {isBaseField && selectedConfig && (
