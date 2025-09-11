@@ -3,6 +3,7 @@ import Properties from './pages/Properties'
 import Templates from './pages/Templates'
 import AppConfig from './pages/AppConfig'
 import { Settings, Tag, Database, FileText, Package } from 'lucide-react'
+import { RegenerateButton } from './components/RegenerateButton'
 
 function Navigation() {
   const location = useLocation();
@@ -54,9 +55,12 @@ function App() {
         <header className="bg-white border-b">
           <div className="container mx-auto px-6 py-4">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Settings className="w-6 h-6 text-blue-600" />
-                <h1 className="text-xl font-bold">Config Admin</h1>
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2">
+                  <Settings className="w-6 h-6 text-blue-600" />
+                  <h1 className="text-xl font-bold">Config Admin</h1>
+                </div>
+                <RegenerateButton />
               </div>
               <Navigation />
             </div>
