@@ -478,19 +478,8 @@ const AppConfig: React.FC = () => {
 
   // Render field item with full functionality restored
   const renderFieldItem = (field: Field, index?: number) => {
-    // Check if field is from base entity structure (not a custom added field)
-    const isBaseField =
-      structure.base.some((f) => f.id === field.id) ||
-      Object.values(structure.main).some(
-        (entity) =>
-          entity.fields.some((f) => f.id === field.id) ||
-          Object.values(entity.children).some((child) =>
-            child.some((f) => f.id === field.id)
-          )
-      ) ||
-      Object.values(structure.dictionaries).some((dict) =>
-        dict.some((f) => f.id === field.id)
-      );
+    // Check if field is a base field (type: 'field' and category: 'base')
+    const isBaseField = field.type === 'field' && field.category === 'base';
     const hasOverride =
       field.override_data && Object.keys(field.override_data).length > 0;
     const hasDeps = field.deps && field.deps.length > 0;
