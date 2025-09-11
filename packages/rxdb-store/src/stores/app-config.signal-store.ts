@@ -1618,14 +1618,14 @@ class AppConfigStore {
       const parents = allConfigs.filter(c => c.deps && c.deps.includes(id));
       
       for (const parent of parents) {
-        // Don't recalculate self_data for fields and properties - they manage their own data
-        if (parent.type === 'field' || 
-            parent.type === 'entity_field' || 
-            parent.type === 'property' ||
-            parent.type === 'field_property') {
-          console.log(`[cascadeUpdate] Skipping self_data recalculation for shared resource: ${parent.id} (type: ${parent.type})`);
+        // Don't recalculate self_data only for properties - they manage their own data
+        // BUT fields (field & entity_field) SHOULD be updated when their property deps change
+        if (parent.type === 'property' || parent.type === 'field_property') {
+          console.log(`[cascadeUpdate] Skipping self_data recalculation for property: ${parent.id} (type: ${parent.type})`);
           continue;
         }
+        
+        console.log(`[cascadeUpdate] Recalculating self_data for: ${parent.id} (type: ${parent.type})`);
         
         // Recalculate parent's self_data
         const newSelfData = await this.recalculateSelfData(parent.id);
