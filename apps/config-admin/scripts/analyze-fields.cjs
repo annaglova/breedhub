@@ -468,8 +468,91 @@ function buildSemanticTree(fieldMap, fieldUsageByEntity) {
       tags: entityTags
     };
     
-    // If there's a matching base field, inherit from it
-    if (baseField) {
+    // Special handling for fields that should inherit from other base fields
+    let parentFieldId = null;
+    
+    // Check if this is a breed-related field that should inherit from field_breed_id
+    if ((fieldName === 'father_breed_id' || fieldName === 'mother_breed_id') && 
+        (usage.entity === 'pet' || usage.entity === 'pet_old')) {
+      parentFieldId = 'field_breed_id';
+      const parentField = tree.baseFields.find(f => f.id === parentFieldId);
+      if (parentField) {
+        entityField.deps.push(parentFieldId);
+        entityField.tags.push(`child_of:breed_id`);
+        
+        // Copy data from the entity's field config
+        entityField.self_data = { ...usage.field };
+        delete entityField.self_data.id;
+        delete entityField.self_data.name;
+        
+        // Ensure it references breed table
+        entityField.self_data.referencedTable = 'breed';
+        entityField.self_data.referencedFieldID = 'id';
+        entityField.self_data.referencedFieldName = 'name';
+      }
+    }
+    // Check if this is a pet-related field that should inherit from field_pet_id
+    else if ((fieldName === 'father_id' || fieldName === 'mother_id') && 
+             (usage.entity === 'pet' || usage.entity === 'pet_old' || usage.entity === 'litter')) {
+      parentFieldId = 'field_pet_id';
+      const parentField = tree.baseFields.find(f => f.id === parentFieldId);
+      if (parentField) {
+        entityField.deps.push(parentFieldId);
+        entityField.tags.push(`child_of:pet_id`);
+        
+        // Copy data from the entity's field config
+        entityField.self_data = { ...usage.field };
+        delete entityField.self_data.id;
+        delete entityField.self_data.name;
+        
+        // Ensure it references pet table
+        entityField.self_data.referencedTable = 'pet';
+        entityField.self_data.referencedFieldID = 'id';
+        entityField.self_data.referencedFieldName = 'name';
+      }
+    }
+    // Check if this is owner_kennel_id field that should inherit from field_kennel_id
+    else if (fieldName === 'owner_kennel_id' && 
+             (usage.entity === 'pet' || usage.entity === 'pet_old')) {
+      parentFieldId = 'field_kennel_id';
+      const parentField = tree.baseFields.find(f => f.id === parentFieldId);
+      if (parentField) {
+        entityField.deps.push(parentFieldId);
+        entityField.tags.push(`child_of:kennel_id`);
+        
+        // Copy data from the entity's field config
+        entityField.self_data = { ...usage.field };
+        delete entityField.self_data.id;
+        delete entityField.self_data.name;
+        
+        // Ensure it references account table (kennel is an account)
+        entityField.self_data.referencedTable = 'account';
+        entityField.self_data.referencedFieldID = 'id';
+        entityField.self_data.referencedFieldName = 'name';
+      }
+    }
+    // Check if this is a country field that should inherit from field_country_id
+    else if ((fieldName === 'country_of_birth_id' || fieldName === 'country_of_stay_id') && 
+             (usage.entity === 'pet' || usage.entity === 'pet_old')) {
+      parentFieldId = 'field_country_id';
+      const parentField = tree.baseFields.find(f => f.id === parentFieldId);
+      if (parentField) {
+        entityField.deps.push(parentFieldId);
+        entityField.tags.push(`child_of:country_id`);
+        
+        // Copy data from the entity's field config
+        entityField.self_data = { ...usage.field };
+        delete entityField.self_data.id;
+        delete entityField.self_data.name;
+        
+        // Ensure it references country table
+        entityField.self_data.referencedTable = 'country';
+        entityField.self_data.referencedFieldID = 'id';
+        entityField.self_data.referencedFieldName = 'name';
+      }
+    }
+    // Regular base field inheritance
+    else if (baseField) {
       entityField.deps.push(baseFieldId);
       
       // Copy ALL data from the entity's field config to self_data

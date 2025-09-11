@@ -441,6 +441,84 @@ Building a meta-framework where the entire application is driven by configuratio
 4. **Override Locally**: Customize without duplication
 5. **Version Everything**: Full history of all changes
 
+## Recent Updates (September 11, 2025)
+
+### Enhanced Field Inheritance System
+
+Implemented comprehensive field inheritance mechanism for semantic relationships:
+
+#### 1. **Base Field Identification**:
+- Automatic detection of common fields (>3% occurrence threshold)
+- Manual addition of critical fields (breeder_id, kennel_id)
+- Exclusion of overly specific fields (pet_breed_id)
+
+#### 2. **Parent-Child Field Relationships**:
+
+**Contact-based inheritance** (`field_contact_id` → children):
+- `owner_id`, `created_by`, `updated_by` - system tracking fields
+- `breeder_id`, `handler_id`, `primary_contact_id` - role-specific fields
+- All reference the `contact` table with consistent FK metadata
+
+**Account-based inheritance** (`field_account_id` → children):
+- `provider_id` - service provider reference
+- `kennel_id` - kennel account reference
+- All reference the `account` table
+
+**Entity-specific inheritance patterns**:
+- `pet_field_father_breed_id`, `pet_field_mother_breed_id` → `field_breed_id`
+- `pet_field_father_id`, `pet_field_mother_id` → `field_pet_id`
+- `litter_field_father_id`, `litter_field_mother_id` → `field_pet_id`
+- `pet_field_owner_kennel_id` → `field_kennel_id`
+- `pet_field_country_of_birth_id`, `pet_field_country_of_stay_id` → `field_country_id`
+
+#### 3. **Override Data Preservation**:
+- `generate-sql-inserts.cjs` now fetches existing records before insertion
+- Preserves user's manual override_data during regeneration
+- Merge hierarchy: dependencies → self_data → override_data (highest priority)
+- Enables safe regeneration without losing customizations
+
+#### 4. **UI Integration**:
+- Added "Regenerate Configs" button in Config Admin header
+- Button shows manual execution instructions (Vite limitation)
+- Preserves all override_data during regeneration
+- Future integration options: Windmill, Express backend, Supabase Edge Functions
+
+#### 5. **Semantic Tree Generation**:
+The `analyze-fields.cjs` script now:
+- Identifies field inheritance patterns automatically
+- Generates proper parent-child relationships in semantic tree
+- Tags child fields with `child_of:{parent}` for traceability
+- Ensures correct table references for all FK fields
+
+### Script Enhancements
+
+#### `analyze-fields.cjs`:
+- Added special handling for manually included base fields
+- Implements inheritance logic for specific field patterns
+- Generates comprehensive semantic tree with relationships
+- Produces detailed analysis reports
+
+#### `generate-sql-inserts.cjs`:
+- Fetches and preserves existing override_data
+- Implements proper merge cascade
+- Supports batch operations with override preservation
+- Provides feedback on preserved customizations
+
+### Benefits of Enhanced System:
+1. **Semantic Clarity**: Clear parent-child relationships between fields
+2. **Consistency**: Same fields behave identically across entities
+3. **Maintainability**: Change parent field, all children inherit
+4. **Flexibility**: Override at any level without breaking inheritance
+5. **Safety**: Regenerate base configs without losing customizations
+
+### Implementation Notes for Session Recovery:
+- Field inheritance is defined in `analyze-fields.cjs` lines 471-553
+- Override preservation in `generate-sql-inserts.cjs` lines 340-373
+- UI button in `src/components/RegenerateButton.tsx`
+- Base fields threshold: 3% occurrence (~8+ entities)
+- Manual base fields: breeder_id, kennel_id
+- Excluded fields: pet_breed_id
+
 ---
-*Last Updated: September 6, 2025*
-*Version: 4.2.0 - Added Platform Vision & Architecture Philosophy*
+*Last Updated: September 11, 2025*
+*Version: 5.0.0 - Enhanced Field Inheritance System with Override Preservation*

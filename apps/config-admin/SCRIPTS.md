@@ -56,10 +56,23 @@ DEBUG_RLS=true node scripts/generate-entity-configs-with-rls.cjs
 
 **Features**:
 - Identifies common fields across entities
-- Generates base fields (>80% occurrence)
+- Generates base fields (>3% occurrence threshold, ~8+ occurrences)
 - Creates field properties for inheritance
 - Builds semantic relationships
 - Produces detailed analysis reports
+- **Special field inheritance handling**:
+  - `breeder_id` - manually added as base field, inherits from `contact_id`
+  - `kennel_id` - manually added as base field, inherits from `account_id`
+  - Fields inheriting from `contact_id`: `owner_id`, `created_by`, `updated_by`, `breeder_id`, `handler_id`, `primary_contact_id`
+  - Fields inheriting from `account_id`: `provider_id`, `kennel_id`
+  - Special entity-level inheritance:
+    - `pet_field_father_breed_id`, `pet_field_mother_breed_id` → inherit from `field_breed_id`
+    - `pet_field_father_id`, `pet_field_mother_id`, `litter_field_father_id`, `litter_field_mother_id` → inherit from `field_pet_id`
+    - `pet_field_owner_kennel_id` → inherits from `field_kennel_id`
+    - `pet_field_country_of_birth_id`, `pet_field_country_of_stay_id` → inherit from `field_country_id`
+
+**Excluded Fields**:
+- `pet_breed_id` - too specific to be a base field
 
 **Usage**:
 ```bash
@@ -68,7 +81,7 @@ node scripts/analyze-fields.cjs
 
 **Output**:
 - `src/data/semantic-tree/field-analysis.json` - Raw field data
-- `src/data/semantic-tree/semantic-tree.json` - Hierarchical structure
+- `src/data/semantic-tree/semantic-tree.json` - Hierarchical structure with inheritance
 - `src/data/semantic-tree/analysis-report.json` - Statistics and patterns
 
 ---
@@ -81,6 +94,10 @@ node scripts/analyze-fields.cjs
 - Generates base field configurations
 - Produces entity-specific field overrides
 - Supports selective generation with flags
+- **PRESERVES existing override_data** when regenerating (since commit a7f6c64)
+  - Fetches existing records before insertion
+  - Maintains user's manual customizations
+  - Merges configurations: dependencies → self_data → override_data (highest priority)
 
 **Usage**:
 ```bash
@@ -97,6 +114,7 @@ echo "y" | node scripts/generate-sql-inserts.cjs
 **Output**: 
 - `src/data/semantic-tree/app-config-inserts.sql`
 - Direct insertion to Supabase when confirmed
+- Preserves existing override_data during upsert
 
 ---
 
@@ -168,9 +186,27 @@ Contains categorized lists of database tables:
 
 ---
 
+## UI Integration
+
+### Regeneration Button
+The Config Admin interface includes a "Regenerate Configs" button in the header that:
+- Located next to "Config Admin" title
+- Shows instructions for manual script execution
+- Preserves override_data during regeneration
+- Reloads the page after completion
+
+**Component**: `src/components/RegenerateButton.tsx`
+
+**Note**: Currently requires manual script execution as Vite cannot directly run Node.js scripts. Consider integrating with:
+- Windmill for automated execution
+- Express backend server
+- Supabase Edge Functions
+
+---
+
 ## Typical Workflows
 
-### Full Regeneration
+### Full Regeneration (Preserves Overrides)
 ```bash
 # 1. Generate entity configs from database
 node scripts/generate-entity-configs.cjs
@@ -178,7 +214,7 @@ node scripts/generate-entity-configs.cjs
 # 2. Analyze fields for patterns
 node scripts/analyze-fields.cjs
 
-# 3. Generate and insert to database
+# 3. Generate and insert to database (preserves override_data)
 node scripts/generate-sql-inserts.cjs
 ```
 
@@ -272,4 +308,4 @@ scripts/
 
 ---
 
-*Last updated: 2025-09-08*
+*Last updated: 2025-09-11*

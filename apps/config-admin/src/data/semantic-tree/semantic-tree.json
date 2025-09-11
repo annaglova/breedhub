@@ -14880,10 +14880,7 @@
       "id": "litter_field_father_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_pet_id"
       ],
       "category": "litter",
       "caption": "litter father_id field",
@@ -14905,26 +14902,24 @@
           ]
         },
         "isForeignKey": true,
-        "referencedTable": "father",
+        "referencedTable": "pet",
         "referencedFieldID": "id",
         "displayName": "Father",
         "placeholder": "Enter father",
         "validation": {},
-        "referencedFieldName": "id"
+        "referencedFieldName": "name"
       },
       "tags": [
         "main",
-        "litter"
+        "litter",
+        "child_of:pet_id"
       ]
     },
     {
       "id": "litter_field_mother_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_pet_id"
       ],
       "category": "litter",
       "caption": "litter mother_id field",
@@ -14946,16 +14941,17 @@
           ]
         },
         "isForeignKey": true,
-        "referencedTable": "mother",
+        "referencedTable": "pet",
         "referencedFieldID": "id",
         "displayName": "Mother",
         "placeholder": "Enter mother",
         "validation": {},
-        "referencedFieldName": "id"
+        "referencedFieldName": "name"
       },
       "tags": [
         "main",
-        "litter"
+        "litter",
+        "child_of:pet_id"
       ]
     },
     {
@@ -17625,10 +17621,7 @@
       "id": "pet_field_father_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_pet_id"
       ],
       "category": "pet",
       "caption": "pet father_id field",
@@ -17659,17 +17652,15 @@
       },
       "tags": [
         "main",
-        "pet"
+        "pet",
+        "child_of:pet_id"
       ]
     },
     {
       "id": "pet_field_mother_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_pet_id"
       ],
       "category": "pet",
       "caption": "pet mother_id field",
@@ -17691,7 +17682,7 @@
           ]
         },
         "isForeignKey": true,
-        "referencedTable": "pet_manchester_terrier_toy",
+        "referencedTable": "pet",
         "referencedFieldID": "id",
         "displayName": "Mother",
         "placeholder": "Enter mother",
@@ -17700,7 +17691,8 @@
       },
       "tags": [
         "main",
-        "pet"
+        "pet",
+        "child_of:pet_id"
       ]
     },
     {
@@ -18145,10 +18137,7 @@
       "id": "pet_field_country_of_birth_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_country_id"
       ],
       "category": "pet",
       "caption": "pet country_of_birth_id field",
@@ -18179,7 +18168,8 @@
       },
       "tags": [
         "main",
-        "pet"
+        "pet",
+        "child_of:country_id"
       ]
     },
     {
@@ -18379,10 +18369,7 @@
       "id": "pet_field_owner_kennel_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_kennel_id"
       ],
       "category": "pet",
       "caption": "pet owner_kennel_id field",
@@ -18413,7 +18400,8 @@
       },
       "tags": [
         "main",
-        "pet"
+        "pet",
+        "child_of:kennel_id"
       ]
     },
     {
@@ -18575,10 +18563,7 @@
       "id": "pet_field_country_of_stay_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_country_id"
       ],
       "category": "pet",
       "caption": "pet country_of_stay_id field",
@@ -18609,7 +18594,8 @@
       },
       "tags": [
         "main",
-        "pet"
+        "pet",
+        "child_of:country_id"
       ]
     },
     {
@@ -18962,10 +18948,7 @@
       "id": "pet_field_mother_breed_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_breed_id"
       ],
       "category": "pet",
       "caption": "pet mother_breed_id field",
@@ -18987,7 +18970,7 @@
           ]
         },
         "isForeignKey": true,
-        "referencedTable": "pet_manchester_terrier_toy",
+        "referencedTable": "breed",
         "referencedFieldID": "id",
         "displayName": "Mother Breed",
         "placeholder": "Enter mother breed",
@@ -18996,17 +18979,15 @@
       },
       "tags": [
         "main",
-        "pet"
+        "pet",
+        "child_of:breed_id"
       ]
     },
     {
       "id": "pet_field_father_breed_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_breed_id"
       ],
       "category": "pet",
       "caption": "pet father_breed_id field",
@@ -19028,7 +19009,7 @@
           ]
         },
         "isForeignKey": true,
-        "referencedTable": "pet",
+        "referencedTable": "breed",
         "referencedFieldID": "id",
         "displayName": "Father Breed",
         "placeholder": "Enter father breed",
@@ -19037,7 +19018,8 @@
       },
       "tags": [
         "main",
-        "pet"
+        "pet",
+        "child_of:breed_id"
       ]
     },
     {
@@ -83628,10 +83610,7 @@
       "id": "pet_old_field_father_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_pet_id"
       ],
       "category": "pet_old",
       "caption": "pet_old father_id field",
@@ -83653,23 +83632,22 @@
           ]
         },
         "isForeignKey": true,
-        "referencedTable": "father",
+        "referencedTable": "pet",
         "referencedFieldID": "id",
         "displayName": "Father",
         "placeholder": "Enter father",
         "validation": {},
-        "referencedFieldName": "id"
+        "referencedFieldName": "name"
       },
-      "tags": []
+      "tags": [
+        "child_of:pet_id"
+      ]
     },
     {
       "id": "pet_old_field_mother_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_pet_id"
       ],
       "category": "pet_old",
       "caption": "pet_old mother_id field",
@@ -83691,14 +83669,16 @@
           ]
         },
         "isForeignKey": true,
-        "referencedTable": "mother",
+        "referencedTable": "pet",
         "referencedFieldID": "id",
         "displayName": "Mother",
         "placeholder": "Enter mother",
         "validation": {},
-        "referencedFieldName": "id"
+        "referencedFieldName": "name"
       },
-      "tags": []
+      "tags": [
+        "child_of:pet_id"
+      ]
     },
     {
       "id": "pet_old_field_breed_id",
@@ -84109,10 +84089,7 @@
       "id": "pet_old_field_country_of_birth_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_country_id"
       ],
       "category": "pet_old",
       "caption": "pet_old country_of_birth_id field",
@@ -84134,14 +84111,16 @@
           ]
         },
         "isForeignKey": true,
-        "referencedTable": "country_of_birth",
+        "referencedTable": "country",
         "referencedFieldID": "id",
         "displayName": "Country Of Birth",
         "placeholder": "Enter country of birth",
         "validation": {},
-        "referencedFieldName": "id"
+        "referencedFieldName": "name"
       },
-      "tags": []
+      "tags": [
+        "child_of:country_id"
+      ]
     },
     {
       "id": "pet_old_field_titles",
@@ -84325,10 +84304,7 @@
       "id": "pet_old_field_owner_kennel_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_kennel_id"
       ],
       "category": "pet_old",
       "caption": "pet_old owner_kennel_id field",
@@ -84350,14 +84326,16 @@
           ]
         },
         "isForeignKey": true,
-        "referencedTable": "owner_kennel",
+        "referencedTable": "account",
         "referencedFieldID": "id",
         "displayName": "Owner Kennel",
         "placeholder": "Enter owner kennel",
         "validation": {},
-        "referencedFieldName": "id"
+        "referencedFieldName": "name"
       },
-      "tags": []
+      "tags": [
+        "child_of:kennel_id"
+      ]
     },
     {
       "id": "pet_old_field_full_breed_name",
@@ -84541,10 +84519,7 @@
       "id": "pet_old_field_country_of_stay_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_country_id"
       ],
       "category": "pet_old",
       "caption": "pet_old country_of_stay_id field",
@@ -84566,14 +84541,16 @@
           ]
         },
         "isForeignKey": true,
-        "referencedTable": "country_of_stay",
+        "referencedTable": "country",
         "referencedFieldID": "id",
         "displayName": "Country Of Stay",
         "placeholder": "Enter country of stay",
         "validation": {},
-        "referencedFieldName": "id"
+        "referencedFieldName": "name"
       },
-      "tags": []
+      "tags": [
+        "child_of:country_id"
+      ]
     },
     {
       "id": "pet_old_field_child_rating",
@@ -84968,10 +84945,7 @@
       "id": "pet_old_field_mother_breed_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_breed_id"
       ],
       "category": "pet_old",
       "caption": "pet_old mother_breed_id field",
@@ -84993,23 +84967,22 @@
           ]
         },
         "isForeignKey": true,
-        "referencedTable": "mother_breed",
+        "referencedTable": "breed",
         "referencedFieldID": "id",
         "displayName": "Mother Breed",
         "placeholder": "Enter mother breed",
         "validation": {},
-        "referencedFieldName": "id"
+        "referencedFieldName": "name"
       },
-      "tags": []
+      "tags": [
+        "child_of:breed_id"
+      ]
     },
     {
       "id": "pet_old_field_father_breed_id",
       "type": "entity_field",
       "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
+        "field_breed_id"
       ],
       "category": "pet_old",
       "caption": "pet_old father_breed_id field",
@@ -85031,14 +85004,16 @@
           ]
         },
         "isForeignKey": true,
-        "referencedTable": "father_breed",
+        "referencedTable": "breed",
         "referencedFieldID": "id",
         "displayName": "Father Breed",
         "placeholder": "Enter father breed",
         "validation": {},
-        "referencedFieldName": "id"
+        "referencedFieldName": "name"
       },
-      "tags": []
+      "tags": [
+        "child_of:breed_id"
+      ]
     },
     {
       "id": "pet_old_field_id",
