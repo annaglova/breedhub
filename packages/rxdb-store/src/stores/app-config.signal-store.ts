@@ -1361,8 +1361,8 @@ class AppConfigStore {
     };
     
     fields.forEach((field) => {
-      // Base fields - only fields with category 'base'
-      if (field.type === 'field' && field.category === 'base') {
+      // Base fields - all fields with type 'field' (includes base, common, frequent)
+      if (field.type === 'field') {
         structure.base.push(field);
       }
       // Entity fields
@@ -1395,14 +1395,6 @@ class AppConfigStore {
           }
           structure.dictionaries[category].push(field);
         }
-      }
-      // Non-base fields with type 'field' (common, frequent, etc.)
-      else if (field.type === 'field' && field.category !== 'base') {
-        const category = field.category || 'common';
-        if (!structure.dictionaries[category]) {
-          structure.dictionaries[category] = [];
-        }
-        structure.dictionaries[category].push(field);
       }
       // Fallback for entity fields without tags
       else if (field.type === 'entity_field') {
