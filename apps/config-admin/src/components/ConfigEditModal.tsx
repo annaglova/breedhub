@@ -16,6 +16,7 @@ interface ConfigEditModalProps {
   allowEditId?: boolean;
   dataFieldLabel?: string; // Label for data field (default: "Override Data")
   dataFieldPlaceholder?: string; // Placeholder for data field
+  hideOverrideData?: boolean; // Hide override data field for grouping configs
 }
 
 export default function ConfigEditModal({
@@ -33,7 +34,8 @@ export default function ConfigEditModal({
   onConfigIdChange,
   allowEditId = false,
   dataFieldLabel = "Override Data (JSON)",
-  dataFieldPlaceholder = "{}"
+  dataFieldPlaceholder = "{}",
+  hideOverrideData = false
 }: ConfigEditModalProps) {
   if (!isOpen) return null;
 
@@ -91,18 +93,30 @@ export default function ConfigEditModal({
             </div>
           </div>
 
-          {/* Data Field (Override Data or Self Data) */}
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              {dataFieldLabel}
-            </label>
-            <textarea
-              value={overrideData}
-              onChange={(e) => onOverrideDataChange(e.target.value)}
-              className="w-full h-64 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm"
-              placeholder={dataFieldPlaceholder}
-            />
-          </div>
+          {/* Data Field (Override Data or Self Data) - Hidden for grouping configs */}
+          {!hideOverrideData && (
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                {dataFieldLabel}
+              </label>
+              <textarea
+                value={overrideData}
+                onChange={(e) => onOverrideDataChange(e.target.value)}
+                className="w-full h-64 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm"
+                placeholder={dataFieldPlaceholder}
+              />
+            </div>
+          )}
+          
+          {/* Note for grouping configs */}
+          {hideOverrideData && (
+            <div className="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-md">
+              <p className="text-sm text-yellow-800">
+                <strong>Note:</strong> Grouping configs (fields, sort, filter) cannot have override data. 
+                Only Caption and Version can be edited.
+              </p>
+            </div>
+          )}
         </div>
 
         {/* Fixed Footer */}

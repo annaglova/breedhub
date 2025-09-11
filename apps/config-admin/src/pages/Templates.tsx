@@ -252,18 +252,16 @@ export default function Templates() {
             >
               <Eye className="w-4 h-4" />
             </button>
-            {!appConfigStore.isGroupingConfigType(node.templateType || '') && (
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  startEditNode(node);
-                }}
-                className="p-1 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded"
-                title="Edit config"
-              >
-                <Edit className="w-4 h-4" />
-              </button>
-            )}
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                startEditNode(node);
+              }}
+              className="p-1 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded"
+              title="Edit config"
+            >
+              <Edit className="w-4 h-4" />
+            </button>
             <button
               onClick={(e) => {
                 e.stopPropagation();
@@ -437,24 +435,32 @@ export default function Templates() {
       )}
 
       {/* Edit Modal */}
-      <ConfigEditModal
-        isOpen={!!editingNode}
-        onClose={() => {
-          setEditingNode(null);
-          setEditingData("");
-          setEditingCaption("");
-          setEditingVersion(1);
-        }}
-        onSave={saveNodeEdit}
-        title="Edit Template"
-        configId={editingNode || ""}
-        caption={editingCaption}
-        version={editingVersion}
-        overrideData={editingData}
-        onCaptionChange={setEditingCaption}
-        onVersionChange={setEditingVersion}
-        onOverrideDataChange={setEditingData}
-      />
+      {editingNode && (() => {
+        const template = templates.find((t) => t.id === editingNode);
+        const isGroupingType = template ? appConfigStore.isGroupingConfigType(template.type) : false;
+        
+        return (
+          <ConfigEditModal
+            isOpen={true}
+            onClose={() => {
+              setEditingNode(null);
+              setEditingData("");
+              setEditingCaption("");
+              setEditingVersion(1);
+            }}
+            onSave={saveNodeEdit}
+            title="Edit Template"
+            configId={editingNode}
+            caption={editingCaption}
+            version={editingVersion}
+            overrideData={editingData}
+            onCaptionChange={setEditingCaption}
+            onVersionChange={setEditingVersion}
+            onOverrideDataChange={setEditingData}
+            hideOverrideData={isGroupingType}
+          />
+        );
+      })()}
 
       {/* View Modal */}
       {viewingNode &&
@@ -466,21 +472,16 @@ export default function Templates() {
             <ConfigViewModal
               isOpen={true}
               onClose={() => setViewingNode(null)}
-              onEdit={
-                // Don't show edit button for grouping configs
-                appConfigStore.isGroupingConfigType(template.type)
-                  ? undefined
-                  : () => {
-                      setViewingNode(null);
-                      startEditNode({
-                        id: viewingNode,
-                        name: template.caption || viewingNode,
-                        templateType: template.type,
-                        children: [],
-                        data: template.self_data,
-                      });
-                    }
-              }
+              onEdit={() => {
+                setViewingNode(null);
+                startEditNode({
+                  id: viewingNode,
+                  name: template.caption || viewingNode,
+                  templateType: template.type,
+                  children: [],
+                  data: template.self_data,
+                });
+              }}
               title="View Template"
               config={template}
             />
