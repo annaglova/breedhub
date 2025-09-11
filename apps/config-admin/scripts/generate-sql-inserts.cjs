@@ -2,6 +2,7 @@ const fs = require("fs");
 const path = require("path");
 require("dotenv").config({ path: path.resolve(__dirname, '../.env') });
 const { createClient } = require("@supabase/supabase-js");
+const { buildDependencyGraph, findAffectedRecords, topologicalSort, cascadeUpdate } = require("./cascading-updates.cjs");
 
 // Supabase client
 const supabaseUrl = process.env.VITE_SUPABASE_URL;
@@ -495,6 +496,41 @@ async function batchInsertToSupabase(configs, batchSize = 50) {
   }
   
   unchanged = unchangedRecords.length;
+  
+  // Cascade updates if any records were changed
+  if (changedRecords.length > 0) {
+    console.log('\n🔄 Running cascading updates for changed properties...');
+    
+    // Extract IDs of changed properties and base fields
+    const changedPropertyIds = changedRecords
+      .filter(r => r.type === 'property' || r.type === 'field')
+      .map(r => r.id);
+    
+    if (changedPropertyIds.length > 0) {
+      console.log(`  Found ${changedPropertyIds.length} changed properties/fields to cascade`);
+      
+      try {
+        // Run cascading updates
+        const cascadeResult = await cascadeUpdate(changedPropertyIds, { 
+          verbose: false,
+          dryRun: false 
+        });
+        
+        if (cascadeResult.success) {
+          console.log(`  ✅ Cascaded updates to ${cascadeResult.affected} affected configs`);
+          console.log(`  ✅ Updated ${cascadeResult.updated} records`);
+          
+          // TODO: Trigger hierarchical update (fields → page → space → workspace → app)
+          console.log('\n📊 Note: Hierarchical update (fields→page→space→workspace→app) will be implemented in Phase 4');
+          console.log('   Currently, use the app UI to trigger store updates for full hierarchy refresh');
+        } else {
+          console.warn('  ⚠️ Cascade update failed:', cascadeResult.error);
+        }
+      } catch (error) {
+        console.error('  ❌ Error during cascade update:', error.message);
+      }
+    }
+  }
   
   return { inserted, updated, unchanged, errors };
 }
