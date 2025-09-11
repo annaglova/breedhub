@@ -335,50 +335,138 @@ function generateAllInserts(tree) {
   return { inserts, configs };
 }
 
-// Batch insert directly to Supabase
+// Helper function to normalize JSON for comparison (handles key order differences)
+function normalizeJSON(obj) {
+  if (obj === null || obj === undefined) return {};
+  if (typeof obj !== 'object') return obj;
+  if (Array.isArray(obj)) return obj.map(normalizeJSON).sort((a, b) => JSON.stringify(a).localeCompare(JSON.stringify(b)));
+  
+  // Sort object keys and recursively normalize values
+  const sorted = {};
+  Object.keys(obj).sort().forEach(key => {
+    sorted[key] = normalizeJSON(obj[key]);
+  });
+  return sorted;
+}
+
+// Helper function to detect if a record has changed
+function hasRecordChanged(existing, generated, debug = false) {
+  // Normalize and compare data fields
+  const existingDataNorm = JSON.stringify(normalizeJSON(existing.data));
+  const generatedDataNorm = JSON.stringify(normalizeJSON(generated.data));
+  
+  const existingDepsNorm = JSON.stringify(normalizeJSON(existing.deps));
+  const generatedDepsNorm = JSON.stringify(normalizeJSON(generated.deps));
+  
+  const existingSelfDataNorm = JSON.stringify(normalizeJSON(existing.self_data));
+  const generatedSelfDataNorm = JSON.stringify(normalizeJSON(generated.self_data));
+  
+  const existingTagsNorm = JSON.stringify(normalizeJSON(existing.tags));
+  const generatedTagsNorm = JSON.stringify(normalizeJSON(generated.tags));
+  
+  const dataChanged = existingDataNorm !== generatedDataNorm;
+  const depsChanged = existingDepsNorm !== generatedDepsNorm;
+  const selfDataChanged = existingSelfDataNorm !== generatedSelfDataNorm;
+  const tagsChanged = existingTagsNorm !== generatedTagsNorm;
+  
+  if (debug && (dataChanged || depsChanged || selfDataChanged || tagsChanged)) {
+    console.log(`\nDEBUG: Changes detected for ${generated.id}:`);
+    if (dataChanged) {
+      console.log('  - data field changed');
+      console.log('    existing:', existingDataNorm.substring(0, 100));
+      console.log('    generated:', generatedDataNorm.substring(0, 100));
+    }
+    if (depsChanged) console.log('  - deps changed');
+    if (selfDataChanged) {
+      console.log('  - self_data changed');
+      console.log('    existing:', existingSelfDataNorm.substring(0, 100));
+      console.log('    generated:', generatedSelfDataNorm.substring(0, 100));
+    }
+    if (tagsChanged) console.log('  - tags changed');
+  }
+  
+  return dataChanged || depsChanged || selfDataChanged || tagsChanged;
+}
+
+// Batch insert directly to Supabase with change detection
 async function batchInsertToSupabase(configs, batchSize = 50) {
-  console.log(`\nInserting ${configs.length} records to Supabase...`);
+  console.log(`\nProcessing ${configs.length} configuration records...`);
   
   let inserted = 0;
+  let updated = 0;
+  let unchanged = 0;
   let errors = 0;
   
-  // First, fetch all existing records to preserve override_data
-  console.log('Fetching existing records to preserve override_data...');
+  // First, fetch all existing records to preserve override_data and detect changes
+  console.log('Fetching existing records for comparison and override preservation...');
   const { data: existingRecords, error: fetchError } = await supabase
     .from('app_config')
-    .select('id, override_data');
+    .select('id, self_data, override_data, data, deps, tags, category, caption');
   
   if (fetchError) {
     console.error('Error fetching existing records:', fetchError);
   }
   
-  // Create a map of existing override_data by id
-  const existingOverrides = new Map();
+  // Create a map of existing records by id
+  const existingMap = new Map();
   if (existingRecords) {
     existingRecords.forEach(record => {
-      if (record.override_data && Object.keys(record.override_data).length > 0) {
-        existingOverrides.set(record.id, record.override_data);
-      }
+      existingMap.set(record.id, record);
     });
-    console.log(`Found ${existingOverrides.size} records with existing override_data`);
+    console.log(`Found ${existingMap.size} existing records in database`);
   }
   
-  // Compute data field for all configs, preserving existing override_data
+  // Separate records into new, changed, and unchanged
+  const newRecords = [];
+  const changedRecords = [];
+  const unchangedRecords = [];
+  
+  // Process each config
   const configsWithData = configs.map(config => {
+    const existing = existingMap.get(config.id);
+    
     // Preserve existing override_data if it exists
-    const existingOverride = existingOverrides.get(config.id);
-    if (existingOverride) {
-      config.override_data = existingOverride;
+    if (existing && existing.override_data && Object.keys(existing.override_data).length > 0) {
+      config.override_data = existing.override_data;
     }
     
-    return {
+    // Compute the final data field
+    const processedConfig = {
       ...config,
       data: computeMergedData(config.id, configs)
     };
+    
+    // Categorize the record
+    if (!existing) {
+      newRecords.push(processedConfig);
+    } else if (hasRecordChanged(existing, processedConfig, changedRecords.length < 3)) {
+      changedRecords.push(processedConfig);
+    } else {
+      unchangedRecords.push(processedConfig);
+    }
+    
+    return processedConfig;
   });
   
-  for (let i = 0; i < configsWithData.length; i += batchSize) {
-    const batch = configsWithData.slice(i, i + batchSize);
+  // Report detection results
+  console.log('\n📊 Change Detection Results:');
+  console.log(`  🆕 New records: ${newRecords.length}`);
+  console.log(`  🔄 Changed records: ${changedRecords.length}`);
+  console.log(`  ✅ Unchanged records: ${unchangedRecords.length}`);
+  
+  // Only process new and changed records
+  const recordsToUpsert = [...newRecords, ...changedRecords];
+  
+  if (recordsToUpsert.length === 0) {
+    console.log('\n✨ No changes detected! Database is already up to date.');
+    return { inserted: 0, updated: 0, unchanged: unchangedRecords.length, errors: 0 };
+  }
+  
+  console.log(`\n📝 Upserting ${recordsToUpsert.length} records (${newRecords.length} new, ${changedRecords.length} modified)...`);
+  
+  // Batch upsert only changed records
+  for (let i = 0; i < recordsToUpsert.length; i += batchSize) {
+    const batch = recordsToUpsert.slice(i, i + batchSize);
     
     try {
       const { data, error } = await supabase
@@ -392,8 +480,13 @@ async function batchInsertToSupabase(configs, batchSize = 50) {
         console.error(`Batch ${Math.floor(i/batchSize) + 1} error:`, error);
         errors += batch.length;
       } else {
-        inserted += batch.length;
-        console.log(`  Batch ${Math.floor(i/batchSize) + 1}: Inserted ${batch.length} records`);
+        // Count new vs updated based on what was in the batch
+        const batchNewCount = batch.filter(r => newRecords.some(n => n.id === r.id)).length;
+        const batchUpdateCount = batch.length - batchNewCount;
+        
+        inserted += batchNewCount;
+        updated += batchUpdateCount;
+        console.log(`  Batch ${Math.floor(i/batchSize) + 1}: Processed ${batch.length} records (${batchNewCount} new, ${batchUpdateCount} updated)`);
       }
     } catch (err) {
       console.error(`Batch ${Math.floor(i/batchSize) + 1} exception:`, err);
@@ -401,7 +494,9 @@ async function batchInsertToSupabase(configs, batchSize = 50) {
     }
   }
   
-  return { inserted, errors };
+  unchanged = unchangedRecords.length;
+  
+  return { inserted, updated, unchanged, errors };
 }
 
 // Main execution
@@ -459,9 +554,20 @@ async function main() {
   rl.question('Your choice: ', async (answer) => {
     if (answer.toLowerCase() === 'y') {
       const result = await batchInsertToSupabase(configs);
-      console.log('\n=== Insert Complete ===');
-      console.log(`Successfully inserted: ${result.inserted}`);
-      console.log(`Errors: ${result.errors}`);
+      console.log('\n=== Database Operation Complete ===');
+      console.log(`🆕 New records inserted: ${result.inserted}`);
+      console.log(`🔄 Existing records updated: ${result.updated}`);
+      console.log(`✅ Unchanged records skipped: ${result.unchanged}`);
+      console.log(`❌ Errors: ${result.errors}`);
+      
+      // Calculate performance improvement
+      const totalProcessed = result.inserted + result.updated;
+      const totalRecords = configs.length;
+      const percentSkipped = ((result.unchanged / totalRecords) * 100).toFixed(1);
+      
+      if (result.unchanged > 0) {
+        console.log(`\n🚀 Performance: Skipped ${percentSkipped}% of records (${result.unchanged}/${totalRecords}) due to no changes`);
+      }
     } else {
       console.log('Skipping database insert.');
       console.log(`You can manually run the SQL file: ${OUTPUT_PATH}`);
