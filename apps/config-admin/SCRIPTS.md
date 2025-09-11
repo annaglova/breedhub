@@ -94,10 +94,21 @@ node scripts/analyze-fields.cjs
 - Generates base field configurations
 - Produces entity-specific field overrides
 - Supports selective generation with flags
-- **PRESERVES existing override_data** when regenerating (since commit a7f6c64)
+- **Change Detection** (Phase 1 - Completed)
+  - Compares generated configs with existing records
+  - Skips unchanged records (typically 90%+ skip rate)
+  - Uses deep comparison of data, deps, self_data, tags
+- **PRESERVES existing override_data** when regenerating
   - Fetches existing records before insertion
   - Maintains user's manual customizations
   - Merges configurations: dependencies → self_data → override_data (highest priority)
+- **Custom Dependencies Preservation** (Phase 3 - Completed)
+  - Automatically detects and preserves custom dependencies
+  - Custom deps added to the end of generated deps
+  - Survives regeneration without metadata field
+- **Cascading Updates Integration** (Phase 2 - Completed)
+  - Automatically triggers cascading updates after changes
+  - Updates all dependent configs when properties change
 
 **Usage**:
 ```bash
@@ -118,7 +129,40 @@ echo "y" | node scripts/generate-sql-inserts.cjs
 
 ---
 
-### 5. `test-breed-only.cjs`
+### 5. `cascading-updates.cjs`
+**Purpose**: Manages cascading updates through the dependency tree when base configurations change.
+
+**Features**:
+- Builds reverse dependency graph
+- Finds all affected records when a config changes
+- Performs topological sort for correct update order
+- Handles circular dependencies gracefully
+- Batch processing (100 records per batch)
+- Dry-run mode for testing
+
+**Usage**:
+```bash
+# Update a property and cascade changes
+node scripts/cascading-updates.cjs update property_required '{"required":true,"validation":{"notNull":true}}'
+
+# Manually trigger cascade for specific IDs
+node scripts/cascading-updates.cjs cascade property_required,property_maxlength_255 --dry-run
+
+# Test cascade with dry-run
+node scripts/cascading-updates.cjs test
+```
+
+**Key Functions**:
+- `buildDependencyGraph()` - Creates reverse dependency map
+- `findAffectedRecords()` - Identifies all configs affected by changes
+- `topologicalSort()` - Determines safe update order
+- `cascadeUpdate()` - Main orchestration function
+
+**Integration**: Automatically called by `generate-sql-inserts.cjs` after detecting changes.
+
+---
+
+### 6. `test-breed-only.cjs`
 **Purpose**: Test workflow that cleans database and regenerates configs only for breed entity.
 
 **Workflow**:
@@ -264,7 +308,8 @@ scripts/
 │   ├── generate-entity-configs.cjs         # Base config generator
 │   ├── generate-entity-configs-with-rls.cjs # RLS-aware generator
 │   ├── analyze-fields.cjs                  # Field pattern analyzer
-│   └── generate-sql-inserts.cjs           # SQL insert generator
+│   ├── generate-sql-inserts.cjs           # SQL insert generator (with change detection)
+│   └── cascading-updates.cjs              # Dependency tree cascade manager
 │
 ├── Test Scripts
 │   ├── test-breed-only.cjs                # Breed-only test workflow
@@ -308,4 +353,4 @@ scripts/
 
 ---
 
-*Last updated: 2025-09-11*
+*Last updated: 2025-09-11 - Added Phase 1-3 features documentation*

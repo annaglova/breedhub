@@ -431,6 +431,18 @@ async function batchInsertToSupabase(configs, batchSize = 50) {
       config.override_data = existing.override_data;
     }
     
+    // Preserve custom dependencies (Phase 3)
+    if (existing && existing.deps && config.deps) {
+      // Find custom deps that are not in the generated deps
+      const customDeps = existing.deps.filter(dep => !config.deps.includes(dep));
+      
+      if (customDeps.length > 0) {
+        console.log(`  Preserving custom deps for ${config.id}: ${customDeps.join(', ')}`);
+        // Add custom deps to the end to preserve priority order
+        config.deps = [...config.deps, ...customDeps];
+      }
+    }
+    
     // Compute the final data field
     const processedConfig = {
       ...config,
