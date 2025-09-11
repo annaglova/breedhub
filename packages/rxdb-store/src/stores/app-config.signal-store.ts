@@ -1440,10 +1440,8 @@ class AppConfigStore {
       }
     }
     
-    // For configs with existing self_data, merge it on top
-    if (config.self_data) {
-      newSelfData = deepMerge(newSelfData, config.self_data);
-    }
+    // DO NOT preserve existing self_data - it should be fully recalculated from deps
+    // This was causing stale data to persist when properties were updated
     
     return newSelfData;
   }
@@ -1621,11 +1619,8 @@ class AppConfigStore {
         // Don't recalculate self_data only for properties - they don't have dependencies
         // BUT fields (field & entity_field) MUST be updated when their property deps change
         if (parent.type === 'property') {
-          console.log(`[cascadeUpdate] Skipping self_data recalculation for property: ${parent.id} (type: ${parent.type})`);
-          continue;
+            continue;
         }
-        
-        console.log(`[cascadeUpdate] Recalculating self_data for: ${parent.id} (type: ${parent.type})`);
         
         // Recalculate parent's self_data
         const newSelfData = await this.recalculateSelfData(parent.id);
