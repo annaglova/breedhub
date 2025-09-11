@@ -920,6 +920,119 @@ class ConfigRegenerator {
 }
 ```
 
+## Recent Updates (September 11, 2025 - Part 2)
+
+### Critical Fix: self_data and override_data Separation
+
+Fixed a systematic issue where the configuration generation was incorrectly handling the separation between inherited data and unique field properties.
+
+#### The Problem:
+1. **override_data preservation** was causing data corruption
+   - System was preserving existing override_data during regeneration
+   - This prevented correct override_data calculation
+   - Led to fields having wrong data in override_data (e.g., Avatar URL data in account_id field)
+
+2. **Cascading updates** were overwriting correct data
+   - Cascade updates were recalculating self_data for entity_fields
+   - If parent fields weren't fully formed, self_data became empty
+   - This happened because cascade ran before all dependencies were ready
+
+#### The Solution:
+1. **Removed override_data preservation** (line ~478 in generate-sql-inserts.cjs)
+   ```javascript
+   // OLD: Preserved existing override_data (WRONG!)
+   if (existing && existing.override_data && Object.keys(existing.override_data).length > 0) {
+     config.override_data = existing.override_data;
+   }
+   
+   // NEW: Generate override_data correctly every time
+   // override_data = complete field data MINUS inherited data
+   ```
+
+2. **Proper data split implementation**:
+   - For base fields: self_data = deps data only, override_data = unique properties
+   - For entity fields: self_data = inherited from all deps, override_data = unique properties
+   - Rule: override_data = complete field data MINUS self_data
+
+3. **Temporarily disabled cascading** during bulk regeneration
+   - Prevents self_data corruption during mass updates
+   - All fields are regenerated with correct structure anyway
+   - Can be re-enabled for targeted updates
+
+#### Results:
+- ✅ All 2896 configurations now have correct data structure
+- ✅ self_data contains only inherited data from dependencies
+- ✅ override_data contains only unique field properties
+- ✅ No data duplication between self_data and override_data
+- ✅ Fields like `breed_field_account_id` now correctly inherit from base fields
+
+#### Example of Correct Structure:
+```javascript
+// breed_field_account_id after fix:
+{
+  deps: ["field_account_id", "property_test"],
+  self_data: {
+    // All inherited from field_account_id + property_test
+    isSystem: false,
+    required: false,
+    component: "select",
+    fieldType: "uuid",
+    // ... other inherited properties
+    icon: "test122" // from property_test
+  },
+  override_data: {
+    // Only unique properties for this specific field
+    sortOrder: 130,
+    placeholder: "Enter account"
+  }
+}
+```
+
+#### Important Notes for Future Development:
+- Never preserve override_data during regeneration - always recalculate
+- Ensure proper order of processing: Properties → Base Fields → Entity Fields
+- Be cautious with cascading updates - they can corrupt data if run at wrong time
+- The generation logic in generate-sql-inserts.cjs is now correct - don't revert these changes
+
+### 5.8 Properties Data Structure Refactoring
+
+#### Context
+Properties were initially storing their data in `self_data`, which was inconsistent with the unified architecture where all configuration types should follow the same pattern.
+
+#### Changes Implemented
+
+1. **Properties now use override_data**:
+   - `self_data` = {} (properties have no dependencies)
+   - `override_data` = property configuration data
+   - `data` = self_data + override_data = {} + override_data
+
+2. **UI Updates**:
+   - All UI components now display `data` field (the computed result)
+   - Edit operations modify `override_data` 
+   - Property editor label changed from "Self Data (JSON)" to "Override Data (JSON)"
+
+3. **Display Rules**:
+   - **For viewing/display**: Always use `data` field (the final computed value)
+   - **For editing**: Modify `override_data` field (unique configuration)
+   - **Internal only**: `self_data` stores inherited data from dependencies
+
+4. **Color Coding Fixed**:
+   - `getPropertyColor()` and `getPropertyBorderColor()` methods now use `data` field
+   - Restored proper color highlighting in the registry:
+     - Red: required fields
+     - Yellow: system fields
+     - Purple: primary key fields
+     - Blue: unique fields
+     - Green: fields with maxLength
+     - Gray: other fields
+
+#### Technical Details
+- Updated `generate-sql-inserts.cjs` to generate properties with override_data
+- Modified `cascading-updates.cjs` updatePropertyAndCascade function
+- Updated `app-config.signal-store.ts` property methods
+- Fixed all UI components to display `data` instead of `self_data`
+- Successfully migrated all 11 existing properties in the database
+
 ---
 *Last Updated: September 11, 2025*
-*Version: 5.6.0 - Completed Phase 3: Custom Dependencies Preservation*
+*Version: 5.8.0 - Unified properties to use override_data and fixed UI display to use data field*

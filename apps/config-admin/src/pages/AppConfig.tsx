@@ -783,7 +783,7 @@ const AppConfig: React.FC = () => {
       const existingFields = updatedSelfData.fields || {};
       updatedSelfData.fields = {
         ...existingFields,
-        [draggedField]: field.data || field.self_data || {}
+        [draggedField]: field.data || {}
       };
     } else if (nodeType === "sort") {
       // For sort config, add to sort_fields array
@@ -1574,7 +1574,7 @@ const AppConfig: React.FC = () => {
                         p.id
                           .toLowerCase()
                           .includes(propertySearchQuery.toLowerCase()) ||
-                        JSON.stringify(p.self_data)
+                        JSON.stringify(p.data || {})
                           .toLowerCase()
                           .includes(propertySearchQuery.toLowerCase())
                     )
@@ -1604,7 +1604,7 @@ const AppConfig: React.FC = () => {
                               {property.id.replace("property_", "")}
                             </div>
                             <div className="text-xs text-gray-500 mt-1">
-                              {Object.entries(property.self_data || {})
+                              {Object.entries(property.data || {})
                                 .slice(0, 2)
                                 .map(([key, value]) => (
                                   <span key={key} className="inline-block mr-3">
