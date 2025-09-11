@@ -478,8 +478,8 @@ const AppConfig: React.FC = () => {
 
   // Render field item with full functionality restored
   const renderFieldItem = (field: Field, index?: number) => {
-    // Check if field is a base field (type: 'field' and category: 'base')
-    const isBaseField = field.type === 'field' && field.category === 'base';
+    // Check if field is a base field (all fields with type: 'field')
+    const isBaseField = field.type === 'field';
     const hasOverride =
       field.override_data && Object.keys(field.override_data).length > 0;
     const hasDeps = field.deps && field.deps.length > 0;
@@ -538,7 +538,7 @@ const AppConfig: React.FC = () => {
             ? "bg-green-100 border-2 border-green-400 border-dashed"
             : ""
         }`}
-        title={isBaseField ? `"${field.id}" is a base field and cannot be dragged` : `Drag "${field.id}" to add it to a config`}
+        title={isBaseField ? `"${field.id}" is a shared field and cannot be dragged` : `Drag "${field.id}" to add it to a config`}
       >
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 flex-1">
