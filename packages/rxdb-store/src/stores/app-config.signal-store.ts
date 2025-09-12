@@ -1257,6 +1257,11 @@ class AppConfigStore {
       
       await this.updateConfig(fieldId, { override_data: overrideData });
       
+      // Trigger cascade update to propagate changes up the tree
+      // This ensures that when field override_data changes, 
+      // all parent configs (fields, page, space, workspace, app) are updated
+      await this.cascadeUpdate(fieldId);
+      
       return { success: true };
     } catch (error) {
       return { 
@@ -1622,12 +1627,20 @@ class AppConfigStore {
             continue;
         }
         
-        // Recalculate parent's self_data
-        const newSelfData = await this.recalculateSelfData(parent.id);
-        await this.updateConfig(parent.id, { self_data: newSelfData });
-        
-        // Recursively update parent's parents
-        await updateParents(parent.id);
+        // Check if parent is a high-level type that needs special handling
+        if (this.isHighLevelType(parent.type)) {
+          // High-level types (fields, page, space, etc) need rebuildParentSelfData
+          // to maintain their hierarchical structure
+          await this.rebuildParentSelfData(parent.id);
+          // Use cascadeUpdateUp for hierarchical propagation
+          await this.cascadeUpdateUp(parent.id);
+        } else {
+          // Regular configs (individual fields) use simple recalculation
+          const newSelfData = await this.recalculateSelfData(parent.id);
+          await this.updateConfig(parent.id, { self_data: newSelfData });
+          // Recursively update parent's parents
+          await updateParents(parent.id);
+        }
       }
     };
     
