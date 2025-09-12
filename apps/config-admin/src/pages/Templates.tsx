@@ -62,6 +62,18 @@ export default function Templates() {
     const unsubscribe = appConfigStore.configs.subscribe(loadTemplates);
     return () => unsubscribe();
   }, []);
+  
+  // Auto-expand all nodes when searching
+  useEffect(() => {
+    if (searchQuery) {
+      // When searching, expand all nodes to show all matches
+      const allNodeIds = appConfigStore.getAllNodeIds(treeData);
+      setExpandedNodes(new Set(allNodeIds));
+    } else {
+      // When not searching, keep previous expansion state
+      // Or you can collapse all: setExpandedNodes(new Set());
+    }
+  }, [searchQuery, treeData]);
 
   // Toggle node expansion
   const toggleExpand = (nodeId: string) => {
@@ -152,26 +164,6 @@ export default function Templates() {
   };
 
 
-  // Filter nodes based on search query
-  const filterNodes = (nodes: TreeNode[]): TreeNode[] => {
-    if (!searchQuery) return nodes;
-
-    return nodes.reduce<TreeNode[]>((acc, node) => {
-      const matchesSearch =
-        node.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        node.id.toLowerCase().includes(searchQuery.toLowerCase());
-      const filteredChildren = filterNodes(node.children);
-
-      if (matchesSearch || filteredChildren.length > 0) {
-        acc.push({
-          ...node,
-          children: filteredChildren,
-        });
-      }
-
-      return acc;
-    }, []);
-  };
 
   // Get field display name (reuse from Fields page pattern)
   const getFieldDisplayName = (field: { id: string; caption?: string }) => {
@@ -332,6 +324,16 @@ export default function Templates() {
             searchPlaceholder="Search templates..."
             searchValue={searchQuery}
             onSearchChange={setSearchQuery}
+            showTreeControls={true}
+            onCollapseAll={() => {
+              // Collapse all nodes
+              setExpandedNodes(new Set());
+            }}
+            onExpandAll={() => {
+              // Expand all nodes
+              const allNodeIds = appConfigStore.getAllNodeIds(treeData);
+              setExpandedNodes(new Set(allNodeIds));
+            }}
             showAddButton={true}
             addButtonText={addButtonContext.text}
             onAddClick={() => {
@@ -361,7 +363,7 @@ export default function Templates() {
             >
               {treeData.length > 0 ? (
                 (() => {
-                  const filteredData = filterNodes(treeData);
+                  const filteredData = appConfigStore.filterConfigTree(treeData, searchQuery);
                   return filteredData.length > 0 ? (
                     <div>{filteredData.map((node) => renderNode(node))}</div>
                   ) : (
