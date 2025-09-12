@@ -51,11 +51,15 @@ const Properties: React.FC = () => {
   // Load properties from store
   useEffect(() => {
     const loadProperties = () => {
+      const props = appConfigStore.getProperties();
+      // Include is_system property in this view
       const allConfigs = appConfigStore.configsList.value || [];
-      const props = allConfigs.filter(
-        (c) => c.type === "property" && !c._deleted
-      );
-      setProperties(props);
+      const systemProp = allConfigs.find(c => c.id === "property_is_system" && !c._deleted);
+      if (systemProp) {
+        setProperties([...props, systemProp]);
+      } else {
+        setProperties(props);
+      }
     };
 
     loadProperties();
@@ -67,18 +71,11 @@ const Properties: React.FC = () => {
 
   // Filter properties based on search
   useEffect(() => {
+    const filtered = appConfigStore.filterConfigItems(properties, searchQuery);
+    setFilteredProperties(filtered);
+    // Reset to first page only when search changes
     if (searchQuery) {
-      const query = searchQuery.toLowerCase();
-      const filtered = properties.filter(
-        (p) =>
-          p.id.toLowerCase().includes(query) ||
-          JSON.stringify(p.data || {}).toLowerCase().includes(query)
-      );
-      setFilteredProperties(filtered);
-      // Reset to first page only when search changes
       setCurrentPage(1);
-    } else {
-      setFilteredProperties(properties);
     }
   }, [searchQuery, properties]);
 

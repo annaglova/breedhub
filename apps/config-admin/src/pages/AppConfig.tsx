@@ -77,6 +77,11 @@ const AppConfig: React.FC = () => {
     main: {},
     dictionaries: {},
   });
+  const [filteredStructure, setFilteredStructure] = useState<HierarchicalStructure>({
+    base: [],
+    main: {},
+    dictionaries: {},
+  });
   const [expandedSections, setExpandedSections] = useState<Set<string>>(
     new Set(["main-entities"])
   );
@@ -112,102 +117,24 @@ const AppConfig: React.FC = () => {
   }, []);
 
   // Build tree structure from configs
-  const buildConfigTree = (configs: WorkingConfig[]): TreeNode[] => {
-    const nodeMap = new Map<string, TreeNode>();
-    const childIds = new Set<string>();
-
-    // First pass: Create all nodes
-    configs.forEach((config) => {
-      const node: TreeNode = {
-        id: config.id,
-        name: config.caption || config.id,
-        configType: config.type,
-        children: [],
-        data: config.data || {},
-        deps: config.deps,
-      };
-      nodeMap.set(config.id, node);
-    });
-
-    // Second pass: Build parent-child relationships and track children
-    configs.forEach((config) => {
-      const parentNode = nodeMap.get(config.id);
-      if (!parentNode) return;
-
-      if (config.deps && config.deps.length > 0) {
-        config.deps.forEach((childId) => {
-          // Check if it's a field dependency
-          if (childId.includes('field') && 
-              ['fields', 'sort', 'filter'].includes(config.type)) {
-            // Create a virtual node for the field
-            const fieldNode: TreeNode = {
-              id: childId,
-              name: childId,
-              configType: 'field_ref', // Special type for field references
-              children: [],
-              data: {},
-              deps: [],
-            };
-            parentNode.children.push(fieldNode);
-          } else {
-            // Regular config dependency
-            const childNode = nodeMap.get(childId);
-            const childConfig = configs.find((c) => c.id === childId);
-            if (childNode && childConfig) {
-              parentNode.children.push(childNode);
-              // Track this as a child so we don't include it in roots
-              childIds.add(childId);
-            }
-          }
-        });
-      }
-    });
-
-    // Third pass: Collect only root nodes (configs that are not children of any other config)
-    const roots: TreeNode[] = [];
-    configs.forEach((config) => {
-      if (!childIds.has(config.id)) {
-        const node = nodeMap.get(config.id);
-        if (node) {
-          roots.push(node);
-        }
-      }
-    });
-
-    return roots;
-  };
 
   // Load data from store
   useEffect(() => {
     const loadData = () => {
-      const allConfigs = appConfigStore.configsList.value || [];
-
-      // Get working configs (not templates)
-      const working = allConfigs.filter(
-        (c) =>
-          !c.tags?.includes("template") &&
-          c.type !== "field" &&
-          c.type !== "entity_field" &&
-          c.type !== "property" &&
-          !c._deleted
-      );
+      // Get working configs using store method
+      const working = appConfigStore.getWorkingConfigs();
       setWorkingConfigs(working);
 
-      // Build tree for working configs
-      const tree = buildConfigTree(working);
+      // Build tree for working configs using store method
+      const tree = appConfigStore.buildConfigTree(working);
       setConfigTree(tree);
 
-      // Get fields
-      const fieldConfigs = allConfigs.filter(
-        (c) => (c.type === "field" || c.type === "entity_field") && !c._deleted
-      );
+      // Get fields using store method
+      const fieldConfigs = appConfigStore.getFields();
       setFields(fieldConfigs);
 
-      // Get properties (exclude is_system from right panel)
-      const propertyConfigs = allConfigs.filter(
-        (c) =>
-          c.type === "property" && !c._deleted && c.id !== "property_is_system"
-      );
+      // Get properties using store method
+      const propertyConfigs = appConfigStore.getProperties();
       setProperties(propertyConfigs);
     };
 
@@ -217,6 +144,19 @@ const AppConfig: React.FC = () => {
     const interval = setInterval(loadData, 1000);
     return () => clearInterval(interval);
   }, []);
+  
+  // Auto-expand all nodes when searching Working Configs
+  useEffect(() => {
+    if (configSearchQuery) {
+      // When searching, expand all nodes to show all matches
+      const allNodeIds = appConfigStore.getAllNodeIds(configTree);
+      setExpandedNodes(new Set(allNodeIds));
+    } else {
+      // When not searching, collapse all (or keep previous state)
+      // You can choose to keep previous state or collapse all
+      // setExpandedNodes(new Set()); // Collapse all
+    }
+  }, [configSearchQuery, configTree]);
 
   // Auto-expand sections when searching
   useEffect(() => {
@@ -227,13 +167,13 @@ const AppConfig: React.FC = () => {
       allSections.add("main-entities");
       allSections.add("dictionaries");
 
-      // Add all entity groups and their main sections
-      Object.keys(structure.main).forEach((entity) => {
+      // Add all entity groups and their main sections (use filtered structure)
+      Object.keys(filteredStructure.main).forEach((entity) => {
         allSections.add(`group-${entity}`);
         allSections.add(`main-${entity}`); // Expand the main entity itself
 
         // Also expand child entities if they exist
-        const entityData = structure.main[entity];
+        const entityData = filteredStructure.main[entity];
         if (entityData?.children) {
           Object.keys(entityData.children).forEach((child) => {
             allSections.add(`child-${child}`);
@@ -242,19 +182,22 @@ const AppConfig: React.FC = () => {
       });
 
       // Add all dictionary groups
-      Object.keys(structure.dictionaries).forEach((dict) => {
+      Object.keys(filteredStructure.dictionaries).forEach((dict) => {
         allSections.add(`dict-${dict}`);
       });
 
       setExpandedSections(allSections);
     }
-  }, [searchQuery, structure]);
+  }, [searchQuery, filteredStructure]);
 
   // Build hierarchical structure
   useEffect(() => {
     const newStructure = appConfigStore.buildFieldsStructure(fields);
     setStructure(newStructure);
-  }, [fields]);
+    // Apply filter if search query exists
+    const filtered = appConfigStore.filterFieldsStructure(newStructure, searchQuery);
+    setFilteredStructure(filtered);
+  }, [fields, searchQuery]);
 
   // Toggle section expansion
   const toggleSection = (sectionId: string) => {
@@ -425,7 +368,7 @@ const AppConfig: React.FC = () => {
 
   // Get available templates for current level
   const getAvailableTemplates = (parentType: string | null) => {
-    return appConfigStore.getAvailableTemplatesForParent(parentType);
+    return appConfigStore.getAvailableTemplates(parentType);
   };
 
   // Start editing field
@@ -1117,25 +1060,6 @@ const AppConfig: React.FC = () => {
   };
 
   // Filter config nodes based on search
-  const filterConfigNodes = (nodes: TreeNode[]): TreeNode[] => {
-    if (!configSearchQuery) return nodes;
-
-    return nodes.reduce<TreeNode[]>((acc, node) => {
-      const matchesSearch =
-        node.name.toLowerCase().includes(configSearchQuery.toLowerCase()) ||
-        node.id.toLowerCase().includes(configSearchQuery.toLowerCase());
-      const filteredChildren = filterConfigNodes(node.children);
-
-      if (matchesSearch || filteredChildren.length > 0) {
-        acc.push({
-          ...node,
-          children: filteredChildren,
-        });
-      }
-
-      return acc;
-    }, []);
-  };
 
   return (
     <div className="h-full bg-gray-50 p-4">
@@ -1152,6 +1076,16 @@ const AppConfig: React.FC = () => {
               searchPlaceholder="Search configs..."
               searchValue={configSearchQuery}
               onSearchChange={setConfigSearchQuery}
+              showTreeControls={true}
+              onCollapseAll={() => {
+                // Collapse all nodes
+                setExpandedNodes(new Set());
+              }}
+              onExpandAll={() => {
+                // Expand all nodes
+                const allNodeIds = appConfigStore.getAllNodeIds(configTree);
+                setExpandedNodes(new Set(allNodeIds));
+              }}
               showAddButton={true}
               addButtonText="Add"
               onAddClick={() => {
@@ -1183,7 +1117,7 @@ const AppConfig: React.FC = () => {
             >
               {configTree.length > 0 ? (
                 (() => {
-                  const filteredData = filterConfigNodes(configTree);
+                  const filteredData = appConfigStore.filterConfigTree(configTree, configSearchQuery);
                   return filteredData.length > 0 ? (
                     <div
                       className="pb-4"
@@ -1229,6 +1163,33 @@ const AppConfig: React.FC = () => {
                 setExpandedSections(new Set());
                 setIsTreeExpanded(false);
               }}
+              onExpandAll={() => {
+                // Expand all sections
+                const allSections = new Set<string>();
+                allSections.add("base");
+                allSections.add("main-entities");
+                allSections.add("dictionaries");
+                
+                // Add all entity groups
+                Object.keys(filteredStructure.main).forEach((entity) => {
+                  allSections.add(`group-${entity}`);
+                  allSections.add(`main-${entity}`);
+                  const entityData = filteredStructure.main[entity];
+                  if (entityData?.children) {
+                    Object.keys(entityData.children).forEach((child) => {
+                      allSections.add(`child-${child}`);
+                    });
+                  }
+                });
+                
+                // Add all dictionary groups
+                Object.keys(filteredStructure.dictionaries).forEach((dict) => {
+                  allSections.add(`dict-${dict}`);
+                });
+                
+                setExpandedSections(allSections);
+                setIsTreeExpanded(true);
+              }}
               showAddButton={false}
             />
 
@@ -1267,7 +1228,7 @@ const AppConfig: React.FC = () => {
                     <Layers className="w-5 h-5 text-blue-600" />
                     <span className="font-mono text-sm">Base Fields</span>
                     <span className="text-xs text-gray-500">
-                      ({structure.base.length})
+                      ({filteredStructure.base.length})
                     </span>
                   </div>
                   <div></div>
@@ -1278,13 +1239,13 @@ const AppConfig: React.FC = () => {
                     style={{ marginLeft: "24px" }}
                     className="mt-2 space-y-2"
                   >
-                    {structure.base.map((field) => renderFieldItem(field))}
+                    {filteredStructure.base.map((field) => renderFieldItem(field))}
                   </div>
                 )}
               </div>
 
               {/* Main Entities Section */}
-              {Object.keys(structure.main).length > 0 && (
+              {Object.keys(filteredStructure.main).length > 0 && (
                 <div className="mb-2">
                   <div
                     onClick={() => toggleSection("main-entities")}
@@ -1299,14 +1260,14 @@ const AppConfig: React.FC = () => {
                       <Package className="w-5 h-5 text-green-600" />
                       <span className="font-mono text-sm">Main Entities</span>
                       <span className="text-xs text-gray-500">
-                        ({Object.keys(structure.main).length})
+                        ({Object.keys(filteredStructure.main).length})
                       </span>
                     </div>
                     <div></div>
                   </div>
 
                   {expandedSections.has("main-entities") &&
-                    Object.entries(structure.main).map(
+                    Object.entries(filteredStructure.main).map(
                       ([entityName, entityData], index) => (
                         <div
                           key={entityName}
@@ -1452,7 +1413,7 @@ const AppConfig: React.FC = () => {
               )}
 
               {/* Dictionaries Section */}
-              {Object.keys(structure.dictionaries).length > 0 && (
+              {Object.keys(filteredStructure.dictionaries).length > 0 && (
                 <div className="mb-2">
                   <div
                     onClick={() => toggleSection("dictionaries")}
@@ -1467,7 +1428,7 @@ const AppConfig: React.FC = () => {
                       <Book className="w-5 h-5 text-orange-600" />
                       <span className="font-mono text-sm">Dictionaries</span>
                       <span className="text-xs text-gray-500">
-                        ({Object.keys(structure.dictionaries).length})
+                        ({Object.keys(filteredStructure.dictionaries).length})
                       </span>
                     </div>
                     <div></div>
@@ -1475,7 +1436,7 @@ const AppConfig: React.FC = () => {
 
                   {expandedSections.has("dictionaries") && (
                     <div style={{ marginLeft: "24px" }}>
-                      {Object.entries(structure.dictionaries).map(
+                      {Object.entries(filteredStructure.dictionaries).map(
                         ([dictName, dictFields], dictIndex) => (
                           <div
                             key={dictName}
@@ -1552,17 +1513,8 @@ const AppConfig: React.FC = () => {
                 </div>
               ) : (
                 <div className="space-y-2 ">
-                  {properties
-                    .filter(
-                      (p) =>
-                        !propertySearchQuery ||
-                        p.id
-                          .toLowerCase()
-                          .includes(propertySearchQuery.toLowerCase()) ||
-                        JSON.stringify(p.data || {})
-                          .toLowerCase()
-                          .includes(propertySearchQuery.toLowerCase())
-                    )
+                  {appConfigStore
+                    .filterConfigItems(properties, propertySearchQuery)
                     .map((property) => (
                       <div
                         key={property.id}

@@ -2,6 +2,17 @@ import { signal, computed, batch, Signal } from '@preact/signals-react';
 import type { RxDatabase, RxCollection, RxDocument } from 'rxdb';
 import { getDatabase } from '../services/database.service';
 import { createClient, SupabaseClient, RealtimeChannel } from '@supabase/supabase-js';
+import { getAvailableChildTypes } from '../../../../apps/config-admin/src/types/config-types';
+
+// Tree node interface for config tree
+export interface TreeNode {
+  id: string;
+  name: string;
+  configType: string;
+  children: TreeNode[];
+  data: any;
+  deps?: string[];
+}
 
 // AppConfig type definition
 export interface AppConfig {
@@ -1424,6 +1435,231 @@ class AppConfigStore {
     });
     
     return structure;
+  }
+  
+  // Build tree structure for working configs
+  buildConfigTree(configs: AppConfig[]): TreeNode[] {
+    const nodeMap = new Map<string, TreeNode>();
+    const childIds = new Set<string>();
+
+    // First pass: Create all nodes
+    configs.forEach((config) => {
+      const node: TreeNode = {
+        id: config.id,
+        name: config.caption || config.id,
+        configType: config.type,
+        children: [],
+        data: config.data || {},
+        deps: config.deps,
+      };
+      nodeMap.set(config.id, node);
+    });
+
+    // Second pass: Build parent-child relationships and track children
+    configs.forEach((config) => {
+      const parentNode = nodeMap.get(config.id);
+      if (!parentNode) return;
+
+      if (config.deps && config.deps.length > 0) {
+        config.deps.forEach((childId) => {
+          // Check if it's a field dependency
+          if (childId.includes('field') && 
+              ['fields', 'sort', 'filter'].includes(config.type)) {
+            // Create a virtual node for the field
+            const fieldNode: TreeNode = {
+              id: childId,
+              name: childId,
+              configType: 'field_ref', // Special type for field references
+              children: [],
+              data: {},
+              deps: [],
+            };
+            parentNode.children.push(fieldNode);
+          } else {
+            // Regular config dependency
+            const childNode = nodeMap.get(childId);
+            const childConfig = configs.find((c) => c.id === childId);
+            if (childNode && childConfig) {
+              parentNode.children.push(childNode);
+              // Track this as a child so we don't include it in roots
+              childIds.add(childId);
+            }
+          }
+        });
+      }
+    });
+
+    // Third pass: Collect only root nodes (configs that are not children of any other config)
+    const roots: TreeNode[] = [];
+    configs.forEach((config) => {
+      if (!childIds.has(config.id)) {
+        const node = nodeMap.get(config.id);
+        if (node) {
+          roots.push(node);
+        }
+      }
+    });
+
+    return roots;
+  }
+  
+  // Filter configs for display
+  getWorkingConfigs(): AppConfig[] {
+    const allConfigs = this.configsList.value || [];
+    return allConfigs.filter(
+      (c) =>
+        !c.tags?.includes("template") &&
+        c.type !== "field" &&
+        c.type !== "entity_field" &&
+        c.type !== "property" &&
+        !c._deleted
+    );
+  }
+  
+  // Get fields for display (excluding deleted)
+  getFields(): AppConfig[] {
+    const allConfigs = this.configsList.value || [];
+    return allConfigs.filter(
+      (c) => (c.type === "field" || c.type === "entity_field") && !c._deleted
+    );
+  }
+  
+  // Get properties for display (excluding system properties)
+  getProperties(): AppConfig[] {
+    const allConfigs = this.configsList.value || [];
+    return allConfigs.filter(
+      (c) =>
+        c.type === "property" && !c._deleted && c.id !== "property_is_system"
+    );
+  }
+  
+  // Get available templates for a parent type
+  getAvailableTemplates(parentType: string | null): AppConfig[] {
+    const allConfigs = this.configsList.value || [];
+    return allConfigs.filter(
+      (config) =>
+        config.tags?.includes("template") &&
+        !config._deleted &&
+        (parentType === null || this.canAddChildType(parentType, config.type))
+    );
+  }
+  
+  // Check if a child type can be added to a parent type
+  canAddChildType(parentType: string, childType: string): boolean {
+    const availableTypes = getAvailableChildTypes(parentType);
+    return availableTypes.includes(childType);
+  }
+  
+  // ============= FILTERING METHODS =============
+  
+  // Universal filter for any config items
+  filterConfigItems<T extends { id: string; caption?: string; data?: any }>(
+    items: T[],
+    searchQuery: string
+  ): T[] {
+    if (!searchQuery) return items;
+    
+    const query = searchQuery.toLowerCase();
+    return items.filter((item) => {
+      // Search in ID
+      if (item.id.toLowerCase().includes(query)) return true;
+      
+      // Search in caption
+      if (item.caption && item.caption.toLowerCase().includes(query)) return true;
+      
+      // Search in data (JSON)
+      if (item.data) {
+        const dataStr = JSON.stringify(item.data).toLowerCase();
+        if (dataStr.includes(query)) return true;
+      }
+      
+      return false;
+    });
+  }
+  
+  // Filter config tree nodes recursively
+  filterConfigTree(nodes: TreeNode[], searchQuery: string): TreeNode[] {
+    if (!searchQuery) return nodes;
+    
+    const query = searchQuery.toLowerCase();
+    
+    return nodes.reduce<TreeNode[]>((acc, node) => {
+      const matchesSearch =
+        node.name.toLowerCase().includes(query) ||
+        node.id.toLowerCase().includes(query);
+      
+      const filteredChildren = this.filterConfigTree(node.children, searchQuery);
+      
+      if (matchesSearch || filteredChildren.length > 0) {
+        acc.push({
+          ...node,
+          children: filteredChildren,
+        });
+      }
+      
+      return acc;
+    }, []);
+  }
+  
+  // Get all node IDs from tree recursively (for auto-expand)
+  getAllNodeIds(nodes: TreeNode[]): string[] {
+    const ids: string[] = [];
+    
+    const collectIds = (nodeList: TreeNode[]) => {
+      for (const node of nodeList) {
+        ids.push(node.id);
+        if (node.children && node.children.length > 0) {
+          collectIds(node.children);
+        }
+      }
+    };
+    
+    collectIds(nodes);
+    return ids;
+  }
+  
+  // Filter fields structure with search
+  filterFieldsStructure(
+    structure: any,
+    searchQuery: string
+  ): any {
+    if (!searchQuery) return structure;
+    
+    const filtered = {
+      base: this.filterConfigItems(structure.base, searchQuery),
+      main: {} as Record<string, { fields: AppConfig[]; children: Record<string, AppConfig[]> }>,
+      dictionaries: {} as Record<string, AppConfig[]>,
+    };
+    
+    // Filter main entities
+    Object.entries(structure.main).forEach(([entityName, entityData]: [string, any]) => {
+      const filteredFields = this.filterConfigItems(entityData.fields, searchQuery);
+      const filteredChildren: Record<string, AppConfig[]> = {};
+      
+      Object.entries(entityData.children).forEach(([childName, childFields]: [string, any]) => {
+        const filteredChildFields = this.filterConfigItems(childFields, searchQuery);
+        if (filteredChildFields.length > 0) {
+          filteredChildren[childName] = filteredChildFields;
+        }
+      });
+      
+      if (filteredFields.length > 0 || Object.keys(filteredChildren).length > 0) {
+        filtered.main[entityName] = {
+          fields: filteredFields,
+          children: filteredChildren,
+        };
+      }
+    });
+    
+    // Filter dictionaries
+    Object.entries(structure.dictionaries).forEach(([dictName, dictFields]: [string, any]) => {
+      const filteredDictFields = this.filterConfigItems(dictFields, searchQuery);
+      if (filteredDictFields.length > 0) {
+        filtered.dictionaries[dictName] = filteredDictFields;
+      }
+    });
+    
+    return filtered;
   }
   
   // ============= BASE OPERATIONS =============

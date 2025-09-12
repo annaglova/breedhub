@@ -25,6 +25,7 @@ interface WorkspaceHeaderProps {
   // Tree controls
   showTreeControls?: boolean;
   onCollapseAll?: () => void;
+  onExpandAll?: () => void;
   
   // Add button section
   showAddButton?: boolean;
@@ -49,6 +50,7 @@ export default function WorkspaceHeader({
   onSearchChange,
   showTreeControls = false,
   onCollapseAll,
+  onExpandAll,
   showAddButton = false,
   addButtonText = "Add",
   onAddClick,
@@ -97,15 +99,28 @@ export default function WorkspaceHeader({
             </div>
           )}
           
-          {/* Tree control */}
-          {showTreeControls && onCollapseAll && (
-            <button
-              onClick={onCollapseAll}
-              className="px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-              title="Collapse all"
-            >
-              <Minimize2 className="w-4 h-4" />
-            </button>
+          {/* Tree controls */}
+          {showTreeControls && (
+            <>
+              {onExpandAll && (
+                <button
+                  onClick={onExpandAll}
+                  className="px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                  title="Expand all"
+                >
+                  <Maximize2 className="w-4 h-4" />
+                </button>
+              )}
+              {onCollapseAll && (
+                <button
+                  onClick={onCollapseAll}
+                  className="px-3 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors"
+                  title="Collapse all"
+                >
+                  <Minimize2 className="w-4 h-4" />
+                </button>
+              )}
+            </>
           )}
           
           {showAddButton && onAddClick && (
