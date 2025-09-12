@@ -166,8 +166,28 @@ function buildSelfData(deps, ownData, allConfigs) {
   return mergedData;
 }
 
+// Load existing configurations from database
+async function loadExistingConfigs() {
+  try {
+    const { data, error } = await supabase
+      .from('app_config')
+      .select('id, override_data')
+      .in('type', ['property', 'field', 'entity_field']);
+    
+    if (error) {
+      console.warn('Warning: Could not load existing configs:', error.message);
+      return [];
+    }
+    
+    return data || [];
+  } catch (error) {
+    console.warn('Warning: Could not load existing configs:', error.message);
+    return [];
+  }
+}
+
 // Generate all SQL inserts
-function generateAllInserts(tree) {
+function generateAllInserts(tree, existingConfigs = []) {
   const inserts = [];
   const configs = [];
   
@@ -295,14 +315,35 @@ function generateAllInserts(tree) {
     config.self_data = buildSelfData(config.deps, {}, configs); // Only deps data
     
     // override_data = field's own data MINUS what's already in self_data
-    // This avoids duplication between self_data and override_data
-    config.override_data = {};
+    // ПЛЮС збереження кастомних властивостей
+    
+    // Завантажуємо існуючий override_data з БД (якщо є)
+    const existingConfig = existingConfigs.find(c => c.id === config.id);
+    const existingOverride = existingConfig?.override_data || {};
+    
+    // Визначаємо базові властивості (ті що генеруються)
+    const generatedOverride = {};
     for (const [key, value] of Object.entries(ownData)) {
       // Only add to override_data if it's different from self_data
       if (JSON.stringify(config.self_data[key]) !== JSON.stringify(value)) {
-        config.override_data[key] = value;
+        generatedOverride[key] = value;
       }
     }
+    
+    // Знаходимо кастомні властивості (ті що є в існуючому, але не в згенерованому)
+    const customProperties = {};
+    for (const [key, value] of Object.entries(existingOverride)) {
+      if (!(key in generatedOverride) && !(key in config.self_data)) {
+        // Це кастомна властивість, яку додав користувач
+        customProperties[key] = value;
+      }
+    }
+    
+    // Об'єднуємо згенеровані та кастомні властивості
+    config.override_data = {
+      ...generatedOverride,
+      ...customProperties  // Кастомні властивості перезаписують згенеровані якщо є конфлікт
+    };
     
     // Calculate data = self_data + override_data
     config.data = { ...config.self_data, ...config.override_data };
@@ -365,13 +406,35 @@ function generateAllInserts(tree) {
     const completeFieldData = entityField.self_data || {};
     
     // 3. override_data = повні дані МІНУС успадковані дані
-    config.override_data = {};
+    // ПЛЮС збереження кастомних властивостей
+    
+    // Спочатку завантажуємо існуючий override_data з БД (якщо є)
+    const existingConfig = existingConfigs.find(c => c.id === config.id);
+    const existingOverride = existingConfig?.override_data || {};
+    
+    // Визначаємо базові властивості (ті що генеруються)
+    const generatedOverride = {};
     for (const [key, value] of Object.entries(completeFieldData)) {
       // Додаємо в override тільки те, що відрізняється від успадкованого
       if (JSON.stringify(inheritedData[key]) !== JSON.stringify(value)) {
-        config.override_data[key] = value;
+        generatedOverride[key] = value;
       }
     }
+    
+    // Знаходимо кастомні властивості (ті що є в існуючому, але не в згенерованому)
+    const customProperties = {};
+    for (const [key, value] of Object.entries(existingOverride)) {
+      if (!(key in generatedOverride) && !(key in inheritedData)) {
+        // Це кастомна властивість, яку додав користувач
+        customProperties[key] = value;
+      }
+    }
+    
+    // Об'єднуємо згенеровані та кастомні властивості
+    config.override_data = {
+      ...generatedOverride,
+      ...customProperties  // Кастомні властивості перезаписують згенеровані якщо є конфлікт
+    };
     
     // Calculate data = self_data + override_data
     config.data = { ...config.self_data, ...config.override_data };
@@ -611,8 +674,12 @@ async function main() {
   console.log('Loading semantic tree...');
   const tree = loadSemanticTree();
   
+  console.log('\nLoading existing configurations from database...');
+  const existingConfigs = await loadExistingConfigs();
+  console.log(`  Loaded ${existingConfigs.length} existing configs`);
+  
   console.log('\nGenerating SQL inserts...');
-  const { inserts, configs } = generateAllInserts(tree);
+  const { inserts, configs } = generateAllInserts(tree, existingConfigs);
   
   // Save SQL file
   const sqlContent = [
