@@ -1036,3 +1036,82 @@ Properties were initially storing their data in `self_data`, which was inconsist
 ---
 *Last Updated: September 11, 2025*
 *Version: 5.8.0 - Unified properties to use override_data and fixed UI display to use data field*
+
+## Recent Updates (September 12, 2025)
+
+### Smart Merge Implementation for Custom Property Preservation
+
+#### Problem
+When regenerating configurations from semantic tree, custom properties added by users in `override_data` were being lost. This prevented users from safely adding UI-specific customizations (icons, components, tooltips) without fear of losing them during regeneration.
+
+#### Solution: Smart Merge Pattern
+
+Implemented intelligent merging that preserves custom properties during configuration regeneration:
+
+1. **Load existing configurations** from database before generation
+2. **Identify custom properties**: Properties that exist in current `override_data` but are not generated from schema
+3. **Merge strategies**:
+   - Generated properties from semantic tree (base configuration)
+   - Custom user properties (preserved from existing data)
+   - Custom properties override generated ones if there's a conflict
+
+#### Implementation Details
+
+```javascript
+// Smart Merge Logic in generate-sql-inserts.cjs
+const existingConfig = existingConfigs.find(c => c.id === config.id);
+const existingOverride = existingConfig?.override_data || {};
+
+// Determine base properties (generated)
+const generatedOverride = {};
+for (const [key, value] of Object.entries(completeFieldData)) {
+  if (JSON.stringify(inheritedData[key]) !== JSON.stringify(value)) {
+    generatedOverride[key] = value;
+  }
+}
+
+// Find custom properties (exist in DB but not generated)
+const customProperties = {};
+for (const [key, value] of Object.entries(existingOverride)) {
+  if (!(key in generatedOverride) && !(key in inheritedData)) {
+    // This is a custom property added by user
+    customProperties[key] = value;
+  }
+}
+
+// Merge generated and custom properties
+config.override_data = {
+  ...generatedOverride,
+  ...customProperties  // Custom properties override generated if conflict
+};
+```
+
+#### Testing
+
+Created comprehensive test scripts:
+- `test-custom-preservation.cjs`: Tests preservation of custom UI properties
+- `test-breed-account-field.cjs`: Tests specific field preservation during schema changes
+
+**Test Results**:
+- ✅ Custom properties preserved when no schema changes
+- ✅ Custom properties preserved when schema changes occur
+- ✅ Schema updates applied while keeping custom properties
+- ✅ Custom properties remain only in `override_data` (not in `self_data`)
+
+#### Benefits
+
+1. **Safe customization**: Users can add custom UI properties without fear
+2. **Schema evolution**: Base configurations can be updated without losing customizations
+3. **Separation of concerns**: Generated vs custom properties clearly separated
+4. **Backward compatibility**: Existing custom properties automatically preserved
+
+#### Use Cases
+
+Users can now safely add:
+- Custom icons for UI display
+- Custom component specifications
+- Tooltips and help text
+- Display formatting options
+- Any UI-specific metadata
+
+All these customizations will survive configuration regeneration from the semantic tree.
