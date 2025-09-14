@@ -174,7 +174,7 @@ async function loadExistingConfigs() {
   try {
     const { data, error } = await supabase
       .from('app_config')
-      .select('id, override_data')
+      .select('id, override_data, data, deps')
       .in('type', ['property', 'field', 'entity_field']);
     
     if (error) {
@@ -376,11 +376,28 @@ function generateAllInserts(tree, existingConfigs = []) {
       ...entityField
     };
     
+    // Merge existing custom deps with semantic tree deps
+    const existingFieldConfig = existingConfigs.find(c => c.id === config.id);
+    if (existingFieldConfig && existingFieldConfig.deps) {
+      // Get custom deps (ones not in semantic tree)
+      const semanticDeps = new Set(config.deps || []);
+      const existingDeps = existingFieldConfig.deps || [];
+      const customDeps = existingDeps.filter(dep => !semanticDeps.has(dep));
+      
+      // Merge semantic tree deps with custom deps
+      if (customDeps.length > 0) {
+        config.deps = [...(config.deps || []), ...customDeps];
+        console.log(`    Merging custom deps for ${config.id}: ${customDeps.join(', ')}`);
+      }
+    }
+    
+    
     // ПРАВИЛЬНИЙ ПІДХІД:
     // 1. self_data = дані успадковані від залежностей
     // Збираємо ВСІ дані з deps (включаючи їх self_data + override_data)
     let inheritedData = {};
     for (const depId of (config.deps || [])) {
+      // Спочатку шукаємо в новозгенерованих configs
       const depConfig = configs.find(c => c.id === depId);
       if (depConfig) {
         // Беремо повні дані залежності (self_data + override_data)
@@ -397,10 +414,18 @@ function generateAllInserts(tree, existingConfigs = []) {
           console.log(`      override_data: ${Object.keys(depConfig.override_data || {}).length} keys`);
           console.log(`      combined: ${Object.keys(depFullData).length} keys`);
         }
-      } else if (depId.startsWith('property_')) {
-        // For property dependencies
-        const propertyData = getPropertyData(depId);
-        inheritedData = { ...inheritedData, ...propertyData };
+      } else {
+        // Якщо не знайшли в configs, шукаємо в існуючих (для кастомних property)
+        const existingDep = existingConfigs.find(c => c.id === depId);
+        if (existingDep) {
+          // Беремо data з існуючого конфігу (це self_data + override_data)
+          inheritedData = { ...inheritedData, ...(existingDep.data || {}) };
+          
+        } else if (depId.startsWith('property_')) {
+          // Fallback for built-in properties
+          const propertyData = getPropertyData(depId);
+          inheritedData = { ...inheritedData, ...propertyData };
+        }
       }
     }
     config.self_data = inheritedData;
@@ -441,6 +466,7 @@ function generateAllInserts(tree, existingConfigs = []) {
     
     // Calculate data = self_data + override_data
     config.data = { ...config.self_data, ...config.override_data };
+    
     
     configs.push(config);
   }
