@@ -15,13 +15,14 @@ if (!supabaseUrl || !supabaseKey) {
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 async function cleanupAllData() {
-  console.log('Cleaning up ALL data from app_config...');
+  console.log('⚠️  WARNING: Cleaning up TEST data from app_config...');
+  console.log('   Preserving: app, workspace, space, page, view, sort, template configs');
   
-  // Delete ALL records from app_config
+  // Delete ONLY generated test data, preserve app structure
   const { data, error } = await supabase
     .from('app_config')
     .delete()
-    .neq('id', ''); // Delete all records (neq with empty string matches all)
+    .in('type', ['property', 'field', 'entity_field']); // Only delete test data types
   
   if (error) {
     console.error('Error deleting all data:', error);

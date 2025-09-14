@@ -2,7 +2,10 @@ const fs = require("fs");
 const path = require("path");
 require("dotenv").config({ path: path.resolve(__dirname, '../.env') });
 const { createClient } = require("@supabase/supabase-js");
-const { buildDependencyGraph, findAffectedRecords, topologicalSort, cascadeUpdate } = require("./cascading-updates.cjs");
+// Use optimized v2 cascade with BatchProcessor
+const { cascadeUpdate } = require("./cascading-updates-v2.cjs");
+const { rebuildAfterChanges } = require('./rebuild-hierarchy.cjs');
+const BatchProcessor = require("./batch-processor.cjs");
 
 // Supabase client
 const supabaseUrl = process.env.VITE_SUPABASE_URL;
@@ -630,40 +633,60 @@ async function batchInsertToSupabase(configs, batchSize = 50) {
   
   unchanged = unchangedRecords.length;
   
-  // Cascade updates if any records were changed
-  // TEMPORARILY DISABLED - we're regenerating all fields with correct structure
-  if (false && changedRecords.length > 0) {
-    console.log('\n🔄 Running cascading updates for changed properties...');
+  // Cascade updates if any records were changed using optimized BatchProcessor
+  if (changedRecords.length > 0) {
+    // IMPORTANT: Include ALL generated configs in cascade, not just changed ones
+    // This ensures fields propagate their updates even if they themselves didn't change
+    const allGeneratedIds = [...changedRecords, ...unchangedRecords].map(r => r.id);
     
-    // Extract IDs of changed properties and base fields ONLY (not entity_field!)
-    const changedPropertyIds = changedRecords
-      .filter(r => r.type === 'property' || (r.type === 'field' && !r.id.includes('_field_')))
-      .map(r => r.id);
-    
-    if (changedPropertyIds.length > 0) {
-      console.log(`  Found ${changedPropertyIds.length} changed properties/fields to cascade`);
+    console.log('\n🔄 Running optimized cascade updates for all generated configs...');
+    console.log(`  Processing cascade from ${allGeneratedIds.length} configs (${changedRecords.length} changed, ${unchangedRecords.length} unchanged)`);
       
       try {
-        // Run cascading updates
-        const cascadeResult = await cascadeUpdate(changedPropertyIds, { 
+        // Run optimized cascading updates with BatchProcessor
+        const cascadeResult = await cascadeUpdate(allGeneratedIds, { 
           verbose: false,
-          dryRun: false 
+          dryRun: false,
+          batchSize: 500,
+          includeHierarchical: true // Enable hierarchical update for full cascade
         });
         
         if (cascadeResult.success) {
-          console.log(`  ✅ Cascaded updates to ${cascadeResult.affected} affected configs`);
-          console.log(`  ✅ Updated ${cascadeResult.updated} records`);
+          console.log(`  ✅ Cascade complete:`);
+          console.log(`     - Affected: ${cascadeResult.affected} configs`);
+          console.log(`     - Updated: ${cascadeResult.updated} configs`);
+          console.log(`     - Unchanged: ${cascadeResult.unchanged || 0} configs (skipped)`);
+          if (cascadeResult.duration) {
+            console.log(`     - Duration: ${cascadeResult.duration.toFixed(2)}s`);
+            console.log(`     - Rate: ${(cascadeResult.updated / cascadeResult.duration).toFixed(0)} records/sec`);
+          }
           
-          // TODO: Trigger hierarchical update (fields → page → space → workspace → app)
-          console.log('\n📊 Note: Hierarchical update (fields→page→space→workspace→app) will be implemented in Phase 4');
-          console.log('   Currently, use the app UI to trigger store updates for full hierarchy refresh');
+          // Trigger hierarchical update for changed fields
+          console.log('\n🏗️ Rebuilding hierarchy for changed fields...');
+          
+          // Get only entity_field type configs that were changed
+          const changedFieldIds = changedRecords
+            .filter(r => r.type === 'entity_field' || r.type === 'field')
+            .map(r => r.id);
+          
+          if (changedFieldIds.length > 0) {
+            console.log(`   Rebuilding hierarchy for ${changedFieldIds.length} changed fields`);
+            const rebuildResult = await rebuildAfterChanges(changedFieldIds, { verbose: false });
+            
+            if (rebuildResult.success) {
+              console.log(`   ✅ Hierarchy rebuilt: ${rebuildResult.rebuilt || 0} configs updated`);
+            } else {
+              console.log(`   ⚠️ Hierarchy rebuild had issues: ${rebuildResult.error}`);
+            }
+          } else {
+            console.log('   No field changes, hierarchy rebuild not needed');
+          }
         } else {
           console.warn('  ⚠️ Cascade update failed:', cascadeResult.error);
         }
       } catch (error) {
         console.error('  ❌ Error during cascade update:', error.message);
       }
-    }
   }
   
   return { inserted, updated, unchanged, errors };
