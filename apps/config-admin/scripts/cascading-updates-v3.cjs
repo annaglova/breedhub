@@ -121,11 +121,7 @@ function findAffectedWithOrder(changedIds, graph, allConfigs) {
  */
 function recalculateConfig(config, allConfigs, updatedConfigs) {
   try {
-    // SKIP hierarchical configs - they should only be updated by rebuild-hierarchy
-    const hierarchicalTypes = ['page', 'space', 'workspace', 'app'];
-    if (hierarchicalTypes.includes(config.type)) {
-      return null; // Don't update hierarchical configs in cascade
-    }
+    // Handle different config types appropriately
     
     // Build new self_data from dependencies
     let newSelfData = {};
@@ -135,11 +131,18 @@ function recalculateConfig(config, allConfigs, updatedConfigs) {
       // For fields configs, build the fields structure from deps
       if (config.deps && Array.isArray(config.deps)) {
         for (const depId of config.deps) {
-          // Each dep is a field that should be added to the fields structure
-          newSelfData[depId] = {
-            id: depId,
-            isActive: true
-          };
+          // Get the field config and use its data
+          const fieldConfig = updatedConfigs.get(depId) || allConfigs.find(c => c.id === depId);
+          if (fieldConfig && fieldConfig.data) {
+            // Use the field's full data, same as rebuild-hierarchy does
+            newSelfData[depId] = fieldConfig.data;
+          } else {
+            // Fallback to simple structure if field not found
+            newSelfData[depId] = {
+              id: depId,
+              isActive: true
+            };
+          }
         }
       }
     } else {
@@ -289,6 +292,7 @@ async function cascadeUpdate(changedIds, options = {}) {
     if (recordsToUpdate.length > 0) {
       const processor = new BatchProcessor(supabase, { batchSize, verbose });
       const result = await processor.processRecords(recordsToUpdate, 'Cascade update v3');
+      
       
       return {
         success: result.success,
