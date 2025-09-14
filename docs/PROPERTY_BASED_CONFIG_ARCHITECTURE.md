@@ -168,6 +168,43 @@ Protected properties that cannot be edited or deleted:
 - Signal stores (`@preact/signals-react`) for reactive state
 - Field mapping: Supabase `deleted` ↔ RxDB `_deleted`
 
+### Cascade Updates System (v3)
+
+#### Overview
+The cascade system ensures configuration changes propagate through the dependency tree while maintaining data integrity and hierarchical structure.
+
+#### Key Components
+
+1. **Cascading Updates v3** (`/scripts/cascading-updates-v3.cjs`)
+   - Handles dependency-based updates for properties and fields
+   - Skips hierarchical configs (page, space, workspace, app) to prevent data pollution
+   - Uses dependency depth calculation for proper update order
+   - Ensures parents wait for ALL children before updating
+
+2. **Hierarchy Rebuild** (`/scripts/rebuild-hierarchy.cjs`)
+   - Rebuilds nested structures for hierarchical configs
+   - Runs AFTER cascade to incorporate all changes
+   - Maintains proper structure: app → workspace → space → page/view → fields
+   - Handles empty configs correctly (shows `{}` not missing)
+
+3. **Batch Processor** (`/scripts/batch-processor.cjs`)
+   - Intelligent batching with deduplication
+   - Performance: ~900+ records/sec
+   - Configurable batch sizes and delays
+   - Progress tracking and error handling
+
+#### Update Flow
+1. Field/property changes trigger cascade v3
+2. Cascade updates non-hierarchical configs only
+3. Full hierarchy rebuild runs after cascade
+4. All changes propagate in single generation run
+
+#### Smart Merge System
+- Preserves custom UI properties during regeneration
+- Custom properties in override_data are retained
+- Only updates properties that exist in semantic tree
+- Prevents loss of user customizations
+
 ### Key Files
 
 #### `/apps/config-admin/src/utils/config-merge.ts`

@@ -2,8 +2,8 @@ const fs = require("fs");
 const path = require("path");
 require("dotenv").config({ path: path.resolve(__dirname, '../.env') });
 const { createClient } = require("@supabase/supabase-js");
-// Use optimized v2 cascade with BatchProcessor
-const { cascadeUpdate } = require("./cascading-updates-v2.cjs");
+// Use v3 cascade with proper parent-child waiting
+const { cascadeUpdate } = require("./cascading-updates-v3.cjs");
 const { rebuildAfterChanges } = require('./rebuild-hierarchy.cjs');
 const BatchProcessor = require("./batch-processor.cjs");
 
@@ -661,25 +661,32 @@ async function batchInsertToSupabase(configs, batchSize = 50) {
             console.log(`     - Rate: ${(cascadeResult.updated / cascadeResult.duration).toFixed(0)} records/sec`);
           }
           
-          // Trigger hierarchical update for changed fields
-          console.log('\n🏗️ Rebuilding hierarchy for changed fields...');
+          // Trigger hierarchical update for changed fields AND their affected configs
+          console.log('\n🏗️ Rebuilding hierarchy for cascaded changes...');
           
-          // Get only entity_field type configs that were changed
-          const changedFieldIds = changedRecords
+          // Get all configs that need hierarchy rebuild after cascade
+          // This includes the originally changed fields AND any fields configs updated by cascade
+          const configsToRebuild = new Set();
+          
+          // Add originally changed fields
+          changedRecords
             .filter(r => r.type === 'entity_field' || r.type === 'field')
-            .map(r => r.id);
+            .forEach(r => configsToRebuild.add(r.id));
           
-          if (changedFieldIds.length > 0) {
-            console.log(`   Rebuilding hierarchy for ${changedFieldIds.length} changed fields`);
-            const rebuildResult = await rebuildAfterChanges(changedFieldIds, { verbose: false });
+          // Add ALL fields configs that might have been updated by cascade
+          // This ensures page/space/workspace/app get rebuilt with fresh data
+          if (configsToRebuild.size > 0 || cascadeResult.updated > 0) {
+            console.log(`   Rebuilding full hierarchy after cascade updates`);
+            const { rebuildFullHierarchy } = require('./rebuild-hierarchy.cjs');
+            const rebuildResult = await rebuildFullHierarchy({ verbose: false });
             
             if (rebuildResult.success) {
-              console.log(`   ✅ Hierarchy rebuilt: ${rebuildResult.rebuilt || 0} configs updated`);
+              console.log(`   ✅ Full hierarchy rebuilt successfully`);
             } else {
               console.log(`   ⚠️ Hierarchy rebuild had issues: ${rebuildResult.error}`);
             }
           } else {
-            console.log('   No field changes, hierarchy rebuild not needed');
+            console.log('   No changes detected, hierarchy rebuild not needed');
           }
         } else {
           console.warn('  ⚠️ Cascade update failed:', cascadeResult.error);
