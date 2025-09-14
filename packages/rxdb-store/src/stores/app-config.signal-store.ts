@@ -2193,6 +2193,12 @@ class AppConfigStore {
     const parent = this.configs.value.get(parentId);
     if (!parent) return;
     
+    // Skip rebuilding fields configs - they should only be updated by rebuild-hierarchy
+    if (parent.type === 'fields') {
+      console.log('[rebuildParentSelfData] Skipping fields config:', parentId);
+      return;
+    }
+    
     console.log('[rebuildParentSelfData] Starting for parent:', parentId, 'type:', parent.type);
     
     let newSelfData: any = {};
@@ -2276,8 +2282,9 @@ class AppConfigStore {
                 Object.assign(fieldsContent, cleanData.fields);
               }
               
-              // Only add fields container if it has actual field content
-              if (Object.keys(fieldsContent).length > 0) {
+              // Always add fields container if we have field dependencies
+              // This ensures config_fields are preserved even when fields config has no additional data
+              if (Object.keys(fieldsContent).length > 0 || (child.deps && child.deps.length > 0)) {
                 if (!newSelfData.fields) {
                   newSelfData.fields = {};
                 }
