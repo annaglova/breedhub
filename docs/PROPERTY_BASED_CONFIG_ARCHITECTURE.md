@@ -1245,3 +1245,48 @@ Comprehensive testing with test markers confirmed:
 - ✅ Cascade updates propagate correctly
 - ✅ Hierarchy rebuilds maintain structure
 - ✅ Empty configs handled properly (shown as `{}` not missing)
+
+### UI Cascade Fix for Fields Configs
+
+#### Problem
+UI cascade was corrupting fields configs when properties changed, causing config_fields to become empty.
+
+#### Root Cause
+Fields configs were not properly defined as parent configs in the system, causing incorrect self_data rebuilding.
+
+#### Solution (September 14, 2025)
+
+1. **Added fields type to childContainerMapping**:
+   ```javascript
+   'fields': {
+     'field': null,  // fields directly contain field configs
+     'entity_field': null,  // and entity_field configs
+     'property': null
+   }
+   ```
+
+2. **Implemented special handling for fields configs as parents**:
+   ```javascript
+   // Special handling when parent is a fields config
+   if (parent.type === 'fields') {
+     // Fields configs store their field children directly
+     for (const childId of parent.deps || []) {
+       const child = this.configs.value.get(childId);
+       if (child.type === 'field' || child.type === 'entity_field') {
+         newSelfData[childId] = child.data || { ...child.self_data, ...child.override_data };
+       }
+     }
+     await this.updateConfig(parentId, { self_data: newSelfData });
+     return;
+   }
+   ```
+
+3. **Fixed fields container preservation**:
+   - Ensured fields container is always added when field dependencies exist
+   - Prevents loss of field data when fields config has no additional properties
+
+#### Results
+- ✅ UI cascade now works correctly for property changes
+- ✅ Fields configs maintain their structure when children update
+- ✅ Changes propagate properly: field → fields → view → space → workspace → app
+- ✅ config_fields no longer become empty after property updates
