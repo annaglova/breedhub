@@ -122,7 +122,7 @@ function findAffectedWithOrder(changedIds, graph, allConfigs) {
 function recalculateConfig(config, allConfigs, updatedConfigs) {
   try {
     // SKIP hierarchical configs - they should only be updated by rebuild-hierarchy
-    const hierarchicalTypes = ['fields', 'page', 'space', 'workspace', 'app'];
+    const hierarchicalTypes = ['page', 'space', 'workspace', 'app'];
     if (hierarchicalTypes.includes(config.type)) {
       return null; // Don't update hierarchical configs in cascade
     }
@@ -130,12 +130,27 @@ function recalculateConfig(config, allConfigs, updatedConfigs) {
     // Build new self_data from dependencies
     let newSelfData = {};
     
-    if (config.deps && Array.isArray(config.deps)) {
-      for (const depId of config.deps) {
-        // Use updated version if available, otherwise use existing
-        const depConfig = updatedConfigs.get(depId) || allConfigs.find(c => c.id === depId);
-        if (depConfig && depConfig.data) {
-          newSelfData = { ...newSelfData, ...depConfig.data };
+    // Special handling for fields configs
+    if (config.type === 'fields') {
+      // For fields configs, build the fields structure from deps
+      if (config.deps && Array.isArray(config.deps)) {
+        for (const depId of config.deps) {
+          // Each dep is a field that should be added to the fields structure
+          newSelfData[depId] = {
+            id: depId,
+            isActive: true
+          };
+        }
+      }
+    } else {
+      // Regular configs - merge data from dependencies
+      if (config.deps && Array.isArray(config.deps)) {
+        for (const depId of config.deps) {
+          // Use updated version if available, otherwise use existing
+          const depConfig = updatedConfigs.get(depId) || allConfigs.find(c => c.id === depId);
+          if (depConfig && depConfig.data) {
+            newSelfData = { ...newSelfData, ...depConfig.data };
+          }
         }
       }
     }
@@ -274,11 +289,6 @@ async function cascadeUpdate(changedIds, options = {}) {
     if (recordsToUpdate.length > 0) {
       const processor = new BatchProcessor(supabase, { batchSize, verbose });
       const result = await processor.processRecords(recordsToUpdate, 'Cascade update v3');
-      
-      // After cascade, always rebuild hierarchy to fix any UI-caused issues
-      console.log('\n🏗️ Rebuilding hierarchy to ensure consistency...');
-      const { rebuildFullHierarchy } = require('./rebuild-hierarchy.cjs');
-      await rebuildFullHierarchy({ verbose: false });
       
       return {
         success: result.success,
