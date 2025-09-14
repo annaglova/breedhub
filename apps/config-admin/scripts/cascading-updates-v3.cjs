@@ -275,6 +275,11 @@ async function cascadeUpdate(changedIds, options = {}) {
       const processor = new BatchProcessor(supabase, { batchSize, verbose });
       const result = await processor.processRecords(recordsToUpdate, 'Cascade update v3');
       
+      // After cascade, always rebuild hierarchy to fix any UI-caused issues
+      console.log('\n🏗️ Rebuilding hierarchy to ensure consistency...');
+      const { rebuildFullHierarchy } = require('./rebuild-hierarchy.cjs');
+      await rebuildFullHierarchy({ verbose: false });
+      
       return {
         success: result.success,
         affected: affected.size,
