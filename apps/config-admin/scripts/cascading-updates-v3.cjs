@@ -122,7 +122,7 @@ function findAffectedWithOrder(changedIds, graph, allConfigs) {
 function recalculateConfig(config, allConfigs, updatedConfigs) {
   try {
     // SKIP hierarchical configs - they should only be updated by rebuild-hierarchy
-    const hierarchicalTypes = ['page', 'space', 'workspace', 'app'];
+    const hierarchicalTypes = ['fields', 'page', 'space', 'workspace', 'app'];
     if (hierarchicalTypes.includes(config.type)) {
       return null; // Don't update hierarchical configs in cascade
     }
