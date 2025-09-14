@@ -91,6 +91,11 @@ const childContainerMapping: Record<string, Record<string, string | null>> = {
     'filter': 'filter_fields',
     'property': null
   },
+  'fields': {
+    'field': null,  // fields directly contain field configs
+    'entity_field': null,  // and entity_field configs
+    'property': null
+  },
   'page': {
     'tab': 'tabs',
     'fields': 'fields',
@@ -2193,17 +2198,36 @@ class AppConfigStore {
     const parent = this.configs.value.get(parentId);
     if (!parent) return;
     
-    // Skip rebuilding fields configs - they should only be updated by rebuild-hierarchy
-    if (parent.type === 'fields') {
-      console.log('[rebuildParentSelfData] Skipping fields config:', parentId);
-      return;
-    }
-    
     console.log('[rebuildParentSelfData] Starting for parent:', parentId, 'type:', parent.type);
     
     let newSelfData: any = {};
     
     // Don't initialize empty structures - they will be created only when children of that type are added
+    
+    // Special handling when parent is a fields config
+    if (parent.type === 'fields') {
+      // Fields configs store their field children directly
+      for (const childId of parent.deps || []) {
+        const child = this.configs.value.get(childId);
+        if (!child) continue;
+        
+        if (child.type === 'field' || child.type === 'entity_field') {
+          // Use the field's complete data
+          newSelfData[childId] = child.data || { ...child.self_data, ...child.override_data };
+        } else if (child.type === 'property') {
+          // Properties merge to root
+          const childData = {
+            ...child.self_data,
+            ...child.override_data
+          };
+          Object.assign(newSelfData, childData);
+        }
+      }
+      
+      // Update the fields config with new self_data
+      await this.updateConfig(parentId, { self_data: newSelfData });
+      return;
+    }
     
     // Process ONLY DIRECT children in deps (not descendants)
     for (const childId of parent.deps || []) {
