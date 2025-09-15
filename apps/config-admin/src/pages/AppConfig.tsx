@@ -702,43 +702,46 @@ const AppConfig: React.FC = () => {
     // Update config with new field dependency
     const updatedDeps = [...(config.deps || []), draggedField];
 
-    // Update self_data based on config type
-    let updatedSelfData = { ...config.self_data };
-
-    if (nodeType === "fields") {
-      // For fields config, merge field data into self_data.fields object
-      // Create a new fields object to avoid extensibility issues
-      const existingFields = updatedSelfData.fields || {};
-      updatedSelfData.fields = {
-        ...existingFields,
-        [draggedField]: field.data || {}
-      };
-    } else if (nodeType === "sort") {
-      // For sort config, add to sort_fields array
-      updatedSelfData.sort_fields = [
-        ...(updatedSelfData.sort_fields || []),
-        {
-          field: draggedField,
+    // Prepare updates based on config type
+    let updates: any = { deps: updatedDeps };
+    
+    if (nodeType === "sort") {
+      // For sort config, add order and direction to override_data as object
+      const existingOverride = config.override_data || {};
+      // Calculate order based on existing fields
+      const existingFieldsCount = Object.keys(existingOverride).length;
+      updates.override_data = {
+        ...existingOverride,
+        [draggedField]: {
+          order: existingFieldsCount + 1,
           direction: "asc",
         },
-      ];
+      };
     } else if (nodeType === "filter") {
-      // For filter config, add to filter_fields array
-      updatedSelfData.filter_fields = [
-        ...(updatedSelfData.filter_fields || []),
-        {
-          field: draggedField,
+      // For filter config, add order, operator and value to override_data as object
+      const existingOverride = config.override_data || {};
+      // Calculate order based on existing fields
+      const existingFieldsCount = Object.keys(existingOverride).length;
+      updates.override_data = {
+        ...existingOverride,
+        [draggedField]: {
+          order: existingFieldsCount + 1,
           operator: "eq",
           value: null,
         },
-      ];
+      };
     }
-
-    // Update config and cascade changes
-    await appConfigStore.updateConfigAndCascade(nodeId, {
-      deps: updatedDeps,
-      self_data: updatedSelfData,
-    });
+    
+    // Update config - for fields/sort/filter, self_data will be rebuilt automatically
+    await appConfigStore.updateConfig(nodeId, updates);
+    
+    // Rebuild parent's self_data for grouping configs
+    if (nodeType === "fields" || nodeType === "sort" || nodeType === "filter") {
+      await appConfigStore.rebuildParentSelfData(nodeId);
+    }
+    
+    // Cascade changes up the tree
+    await appConfigStore.cascadeUpdateUp(nodeId);
 
     setDraggedField(null);
   };
