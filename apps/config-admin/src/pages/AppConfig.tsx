@@ -310,7 +310,10 @@ const AppConfig: React.FC = () => {
     }
     
     // Get existing override for this field from parent's override_data
-    const existingOverride = parentConfig.override_data?.fields?.[fieldId] || {};
+    // For fields config, overrides are stored directly; for others, under fields key
+    const existingOverride = parentConfig.type === 'fields' 
+      ? parentConfig.override_data?.[fieldId] || {}
+      : parentConfig.override_data?.fields?.[fieldId] || {};
     
     setFieldOverrideEditor({
       parentConfigId,
@@ -335,16 +338,25 @@ const AppConfig: React.FC = () => {
       // Get current override_data or initialize - create a deep copy to avoid extensibility issues
       let currentOverrideData = JSON.parse(JSON.stringify(parentConfig.override_data || {}));
       
-      // Initialize fields object if needed
-      if (!currentOverrideData.fields) {
-        currentOverrideData.fields = {};
-      }
-
-      // Update or remove field override
-      if (Object.keys(fieldOverride).length > 0) {
-        currentOverrideData.fields[fieldOverrideEditor.fieldId] = fieldOverride;
+      // For fields config, store overrides directly; for others, under fields key
+      if (parentConfig.type === 'fields') {
+        // Fields config stores overrides directly by field ID
+        if (Object.keys(fieldOverride).length > 0) {
+          currentOverrideData[fieldOverrideEditor.fieldId] = fieldOverride;
+        } else {
+          delete currentOverrideData[fieldOverrideEditor.fieldId];
+        }
       } else {
-        delete currentOverrideData.fields[fieldOverrideEditor.fieldId];
+        // Other configs store overrides under fields key
+        if (!currentOverrideData.fields) {
+          currentOverrideData.fields = {};
+        }
+        
+        if (Object.keys(fieldOverride).length > 0) {
+          currentOverrideData.fields[fieldOverrideEditor.fieldId] = fieldOverride;
+        } else {
+          delete currentOverrideData.fields[fieldOverrideEditor.fieldId];
+        }
       }
 
       console.log('Saving field override:', {

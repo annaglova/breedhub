@@ -2288,59 +2288,23 @@ class AppConfigStore {
             // These configs don't create nested structures, they populate parent's containers
             
             if (child.type === 'fields') {
-              // For fields config, only create fields container if it has content
-              const fieldsContent: any = {};
-              
-              // First, process field dependencies - get actual field data
-              if (child.deps && child.deps.length > 0) {
-                for (const fieldId of child.deps) {
-                  if (fieldId.includes('field')) {
-                    const fieldConfig = this.configs.value.get(fieldId);
-                    if (fieldConfig) {
-                      // Start with base field data
-                      let fieldData = fieldConfig.data || fieldConfig.self_data || {};
-                      
-                      // Apply field overrides if they exist
-                      if (child.self_data?._field_overrides?.[fieldId]) {
-                        fieldData = { ...fieldData, ...child.self_data._field_overrides[fieldId] };
-                      }
-                      
-                      // Apply extra properties if they exist
-                      if (child.self_data?._field_extra_props?.[fieldId]) {
-                        const extraProps = child.self_data._field_extra_props[fieldId];
-                        for (const propId of extraProps) {
-                          const propConfig = this.configs.value.get(propId);
-                          if (propConfig) {
-                            fieldData = { ...fieldData, ...(propConfig.data || propConfig.self_data || {}) };
-                          }
-                        }
-                      }
-                      
-                      // Add processed field data to the fields container
-                      fieldsContent[fieldId] = fieldData;
-                    }
-                  }
-                }
-              }
-              
+              // Fields config passes its complete data to parent's fields container
               // Use child.data which is the merged self_data + override_data
               const childData = child.data || { ...child.self_data, ...child.override_data };
-              const { tags, type, deps, caption, version, created_at, updated_at, _deleted, _rev, ...cleanData } = childData;
               
-              console.log('[rebuildParentSelfData] Processing fields config for parent type:', parent.type, 'with', child.deps?.length || 0, 'field deps');
+              console.log('[rebuildParentSelfData] Processing fields config for parent type:', parent.type);
               
-              // Merge any additional fields data from the merged data
-              if (cleanData.fields && typeof cleanData.fields === 'object') {
-                Object.assign(fieldsContent, cleanData.fields);
-              }
-              
-              // Always add fields container if we have field dependencies
-              // This ensures config_fields are preserved even when fields config has no additional data
-              if (Object.keys(fieldsContent).length > 0 || (child.deps && child.deps.length > 0)) {
+              // Pass the fields config's data to parent
+              if (childData && Object.keys(childData).length > 0) {
                 if (!newSelfData.fields) {
                   newSelfData.fields = {};
                 }
-                Object.assign(newSelfData.fields, fieldsContent);
+                Object.assign(newSelfData.fields, childData);
+              } else {
+                // Even if empty, create the container
+                if (!newSelfData.fields) {
+                  newSelfData.fields = {};
+                }
               }
               
             } else if (child.type === 'sort') {
