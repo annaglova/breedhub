@@ -148,13 +148,73 @@ function recalculateConfig(config, allConfigs, updatedConfigs) {
         }
       }
     } else {
-      // Regular configs - merge data from dependencies
+      // Regular configs - check if dependencies include grouping configs
       if (config.deps && Array.isArray(config.deps)) {
+        // First, categorize dependencies by type
+        const depsByType = {
+          fields: [],
+          sort: [],
+          filter: [],
+          other: []
+        };
+        
         for (const depId of config.deps) {
-          // Use updated version if available, otherwise use existing
           const depConfig = updatedConfigs.get(depId) || allConfigs.find(c => c.id === depId);
-          if (depConfig && depConfig.data) {
-            newSelfData = { ...newSelfData, ...depConfig.data };
+          if (depConfig) {
+            if (depConfig.type === 'fields') {
+              depsByType.fields.push(depConfig);
+            } else if (depConfig.type === 'sort') {
+              depsByType.sort.push(depConfig);
+            } else if (depConfig.type === 'filter') {
+              depsByType.filter.push(depConfig);
+            } else {
+              depsByType.other.push(depConfig);
+            }
+          }
+        }
+        
+        // Build structured data for grouping configs - ALWAYS USE DATA
+        // Only create sections if we have configs of that type
+        if (depsByType.fields.length > 0) {
+          const fieldsData = {};
+          for (const fieldConfig of depsByType.fields) {
+            if (fieldConfig.data) {
+              Object.assign(fieldsData, fieldConfig.data);
+            }
+          }
+          if (Object.keys(fieldsData).length > 0) {
+            newSelfData.fields = fieldsData;
+          }
+        }
+        
+        if (depsByType.sort.length > 0) {
+          const sortData = {};
+          for (const sortConfig of depsByType.sort) {
+            if (sortConfig.data) {
+              Object.assign(sortData, sortConfig.data);
+            }
+          }
+          if (Object.keys(sortData).length > 0) {
+            newSelfData.sort_fields = sortData;
+          }
+        }
+        
+        if (depsByType.filter.length > 0) {
+          const filterData = {};
+          for (const filterConfig of depsByType.filter) {
+            if (filterConfig.data) {
+              Object.assign(filterData, filterConfig.data);
+            }
+          }
+          if (Object.keys(filterData).length > 0) {
+            newSelfData.filter_fields = filterData;
+          }
+        }
+        
+        // Merge other non-grouping configs normally
+        for (const otherConfig of depsByType.other) {
+          if (otherConfig.data) {
+            newSelfData = { ...newSelfData, ...otherConfig.data };
           }
         }
       }
