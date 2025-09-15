@@ -310,10 +310,8 @@ const AppConfig: React.FC = () => {
     }
     
     // Get existing override for this field from parent's override_data
-    // For fields config, overrides are stored directly; for others, under fields key
-    const existingOverride = parentConfig.type === 'fields' 
-      ? parentConfig.override_data?.[fieldId] || {}
-      : parentConfig.override_data?.fields?.[fieldId] || {};
+    // For all grouping configs (fields, sort, filter), overrides are stored directly under field ID
+    const existingOverride = parentConfig.override_data?.[fieldId] || {};
     
     setFieldOverrideEditor({
       parentConfigId,
@@ -770,13 +768,13 @@ const AppConfig: React.FC = () => {
     setDraggedField(null);
   };
 
-  // Render config node
-  const renderConfigNode = (node: TreeNode, level: number = 0) => {
+  // Render config node - parentId parameter tracks the immediate parent config
+  const renderConfigNode = (node: TreeNode, level: number = 0, parentId: string | null = null) => {
     // Special handling for field reference nodes
     if (node.configType === 'field_ref') {
       const field = fields.find(f => f.id === node.id);
-      // Find parent config to check for overrides
-      const parentConfig = workingConfigs.find(c => c.deps?.includes(node.id));
+      // Use the passed parentId to find the specific parent config
+      const parentConfig = parentId ? workingConfigs.find(c => c.id === parentId) : null;
       return (
         <div
           key={node.id}
@@ -804,22 +802,10 @@ const AppConfig: React.FC = () => {
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  // Edit field override in parent context
-                  // Field is inside a grouping config (fields, sort, filter)
-                  // Need to find the grouping config that contains this field
-                  const groupingConfig = workingConfigs.find(c => 
-                    appConfigStore.isGroupingConfigType(c.type) && c.deps?.includes(node.id)
-                  );
-                  
-                  console.log('Looking for parent grouping config:', {
-                    fieldId: node.id,
-                    foundConfig: groupingConfig?.id,
-                    type: groupingConfig?.type
-                  });
-                  
-                  if (groupingConfig) {
-                    // Open field override editor for this field in grouping config's context
-                    openFieldOverrideEditor(groupingConfig.id, node.id);
+                  // Edit field override in parent context - use the specific parent from tree context
+                  if (parentConfig && appConfigStore.isGroupingConfigType(parentConfig.type)) {
+                    // Open field override editor for this field in THIS specific grouping config's context
+                    openFieldOverrideEditor(parentConfig.id, node.id);
                   } else {
                     alert('Parent grouping config not found');
                   }
@@ -832,10 +818,7 @@ const AppConfig: React.FC = () => {
               <button
                 onClick={async (e) => {
                   e.stopPropagation();
-                  // Find parent config and remove field from deps
-                  const parentConfig = workingConfigs.find(c => 
-                    c.deps?.includes(node.id)
-                  );
+                  // Use the specific parent config passed from tree context
                   if (parentConfig) {
                     const updatedDeps = parentConfig.deps.filter(d => d !== node.id);
                     
@@ -1079,7 +1062,7 @@ const AppConfig: React.FC = () => {
 
         {isExpanded && hasChildren && (
           <div className="mt-2">
-            {node.children.map((child) => renderConfigNode(child, level + 1))}
+            {node.children.map((child) => renderConfigNode(child, level + 1, node.id))}
           </div>
         )}
       </div>
@@ -1157,7 +1140,7 @@ const AppConfig: React.FC = () => {
                       }}
                     >
                       {filteredData.map((node, index) => (
-                        <div key={node.id}>{renderConfigNode(node, 0)}</div>
+                        <div key={node.id}>{renderConfigNode(node, 0, null)}</div>
                       ))}
                     </div>
                   ) : (
