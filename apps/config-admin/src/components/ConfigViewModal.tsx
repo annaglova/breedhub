@@ -13,7 +13,9 @@ interface ConfigViewModalProps {
     self_data?: any;
     override_data?: any;
     data?: any;
+    type?: string;
   };
+  hideIntermediateData?: boolean; // Hide Self Data and Override Data for cleaner view
 }
 
 export default function ConfigViewModal({
@@ -21,7 +23,8 @@ export default function ConfigViewModal({
   onClose,
   onEdit,
   title,
-  config
+  config,
+  hideIntermediateData = false
 }: ConfigViewModalProps) {
   if (!isOpen || !config) return null;
 
@@ -71,25 +74,29 @@ export default function ConfigViewModal({
             </div>
           </div>
 
-          {/* Self Data */}
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Self Data
-            </label>
-            <div className="px-3 py-2 border rounded-md bg-gray-50 font-mono text-sm max-h-40 overflow-y-auto">
-              <pre>{JSON.stringify(config.self_data || {}, null, 2)}</pre>
+          {/* Self Data - hidden when viewing field results in configs */}
+          {!hideIntermediateData && (
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Self Data
+              </label>
+              <div className="px-3 py-2 border rounded-md bg-gray-50 font-mono text-sm max-h-40 overflow-y-auto">
+                <pre>{JSON.stringify(config.self_data || {}, null, 2)}</pre>
+              </div>
             </div>
-          </div>
+          )}
 
-          {/* Override Data */}
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Override Data
-            </label>
-            <div className="px-3 py-2 border rounded-md bg-gray-50 font-mono text-sm max-h-40 overflow-y-auto">
-              <pre>{JSON.stringify(config.override_data || {}, null, 2)}</pre>
+          {/* Override Data - hidden when viewing field results in configs */}
+          {!hideIntermediateData && (
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Override Data
+              </label>
+              <div className="px-3 py-2 border rounded-md bg-gray-50 font-mono text-sm max-h-40 overflow-y-auto">
+                <pre>{JSON.stringify(config.override_data || {}, null, 2)}</pre>
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Data (computed) */}
           <div className="mb-4">
