@@ -173,48 +173,60 @@ function recalculateConfig(config, allConfigs, updatedConfigs) {
           }
         }
         
-        // Build structured data for grouping configs - ALWAYS USE DATA
-        // Only create sections if we have configs of that type
-        if (depsByType.fields.length > 0) {
-          const fieldsData = {};
-          for (const fieldConfig of depsByType.fields) {
-            if (fieldConfig.data) {
-              Object.assign(fieldsData, fieldConfig.data);
+        // Check if we have any grouping configs (fields, sort, filter)
+        const hasGroupingConfigs = depsByType.fields.length > 0 || depsByType.sort.length > 0 || depsByType.filter.length > 0;
+        
+        if (hasGroupingConfigs) {
+          // Build structured data for grouping configs - ALWAYS USE DATA
+          // Only create sections if we have configs of that type
+          if (depsByType.fields.length > 0) {
+            const fieldsData = {};
+            for (const fieldConfig of depsByType.fields) {
+              if (fieldConfig.data) {
+                Object.assign(fieldsData, fieldConfig.data);
+              }
+            }
+            if (Object.keys(fieldsData).length > 0) {
+              newSelfData.fields = fieldsData;
             }
           }
-          if (Object.keys(fieldsData).length > 0) {
-            newSelfData.fields = fieldsData;
-          }
-        }
-        
-        if (depsByType.sort.length > 0) {
-          const sortData = {};
-          for (const sortConfig of depsByType.sort) {
-            if (sortConfig.data) {
-              Object.assign(sortData, sortConfig.data);
+          
+          if (depsByType.sort.length > 0) {
+            const sortData = {};
+            for (const sortConfig of depsByType.sort) {
+              if (sortConfig.data) {
+                Object.assign(sortData, sortConfig.data);
+              }
+            }
+            if (Object.keys(sortData).length > 0) {
+              newSelfData.sort_fields = sortData;
             }
           }
-          if (Object.keys(sortData).length > 0) {
-            newSelfData.sort_fields = sortData;
-          }
-        }
-        
-        if (depsByType.filter.length > 0) {
-          const filterData = {};
-          for (const filterConfig of depsByType.filter) {
-            if (filterConfig.data) {
-              Object.assign(filterData, filterConfig.data);
+          
+          if (depsByType.filter.length > 0) {
+            const filterData = {};
+            for (const filterConfig of depsByType.filter) {
+              if (filterConfig.data) {
+                Object.assign(filterData, filterConfig.data);
+              }
+            }
+            if (Object.keys(filterData).length > 0) {
+              newSelfData.filter_fields = filterData;
             }
           }
-          if (Object.keys(filterData).length > 0) {
-            newSelfData.filter_fields = filterData;
+          
+          // Merge other non-grouping configs normally
+          for (const otherConfig of depsByType.other) {
+            if (otherConfig.data) {
+              newSelfData = { ...newSelfData, ...otherConfig.data };
+            }
           }
-        }
-        
-        // Merge other non-grouping configs normally
-        for (const otherConfig of depsByType.other) {
-          if (otherConfig.data) {
-            newSelfData = { ...newSelfData, ...otherConfig.data };
+        } else {
+          // No grouping configs - merge all normally  
+          for (const otherConfig of depsByType.other) {
+            if (otherConfig.data) {
+              newSelfData = { ...newSelfData, ...otherConfig.data };
+            }
           }
         }
       }
@@ -335,6 +347,9 @@ async function cascadeUpdate(changedIds, options = {}) {
       if (updated) {
         recordsToUpdate.push(updated);
         updatedConfigs.set(configId, updated);
+      } else {
+        // Even if no changes, add to updatedConfigs so dependencies know it's been processed
+        updatedConfigs.set(configId, config);
       }
     }
     
