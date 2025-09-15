@@ -1290,3 +1290,82 @@ Fields configs were not properly defined as parent configs in the system, causin
 - ✅ Fields configs maintain their structure when children update
 - ✅ Changes propagate properly: field → fields → view → space → workspace → app
 - ✅ config_fields no longer become empty after property updates
+
+## Recent Updates (September 15, 2025)
+
+### Unified Grouping Configs Data Structure
+
+#### Problem
+Sort and filter configs were using arrays while fields configs used objects, creating inconsistency in data handling.
+
+#### Solution: Object-based Structure for All Grouping Configs
+
+Implemented unified object structure for all grouping configs (fields, sort, filter):
+
+1. **Changed data structure from arrays to objects**:
+   - Before: `sort_fields: []`, `filter_fields: []`
+   - After: `sort_fields: {}`, `filter_fields: {}`
+   - Consistent with `fields: {}`
+
+2. **Override data structure for grouping configs**:
+   - **fields config**: `override_data[fieldId] = { ...overrides }`
+   - **sort config**: `override_data[fieldId] = { order: 1, direction: "asc" }`
+   - **filter config**: `override_data[fieldId] = { operator: "=", value: "..." }`
+   - **Other configs**: `override_data.fields[fieldId] = { ...overrides }`
+
+3. **Data propagation fixes**:
+   - Grouping configs now pass their complete `data` (self_data + override_data) to parent
+   - Previously incorrectly passed only self_data
+   - Ensures parent configs receive properly merged field data
+
+4. **Field removal cleanup**:
+   - When removing field from grouping config, also cleans its override_data
+   - `rebuildParentSelfData` automatically removes orphaned override_data entries
+   - Prevents stale override data from persisting
+
+5. **View improvements**:
+   - ConfigViewModal now supports `hideIntermediateData` option
+   - When viewing fields in configs, shows only final `data` (computed result)
+   - Hides confusing Self Data and Override Data for cleaner view
+   - Separate states for viewing fields in registry vs in configs
+
+#### Technical Implementation
+
+```javascript
+// Unified handling for all grouping configs
+if (parent.type === 'fields' || parent.type === 'sort' || parent.type === 'filter') {
+  // All store fields as objects with field ID as key
+  for (const childId of parent.deps || []) {
+    if (child.type === 'field' || child.type === 'entity_field') {
+      newSelfData[childId] = child.data;
+    }
+  }
+  
+  // Clean orphaned override_data entries
+  for (const fieldId in parent.override_data) {
+    if (!parent.deps?.includes(fieldId)) {
+      delete cleanedOverrideData[fieldId];
+    }
+  }
+}
+
+// Parent receives data from grouping configs
+if (child.type === 'fields') {
+  const childData = child.data; // Not self_data!
+  newSelfData.fields = childData;
+} else if (child.type === 'sort') {
+  const childData = child.data;
+  newSelfData.sort_fields = childData;
+} else if (child.type === 'filter') {
+  const childData = child.data;
+  newSelfData.filter_fields = childData;
+}
+```
+
+#### Results
+- ✅ All grouping configs use consistent object structure
+- ✅ Sort/filter configs work exactly like fields configs
+- ✅ Override data properly structured based on parent type
+- ✅ Field removal cleans both deps and override_data
+- ✅ Parent configs receive correct aggregated data
+- ✅ Clean field view in config context (no intermediate data)
