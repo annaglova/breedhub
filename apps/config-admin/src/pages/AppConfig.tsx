@@ -598,9 +598,20 @@ const AppConfig: React.FC = () => {
                   if (config) {
                     const updatedDeps =
                       config.deps?.filter((d) => d !== field.id) || [];
-                    appConfigStore.updateConfig(selectedConfig, {
-                      deps: updatedDeps,
-                    });
+                    
+                    // For grouping configs, also clean override_data for this field
+                    let updates: any = { deps: updatedDeps };
+                    
+                    if ((config.type === 'fields' || config.type === 'sort' || config.type === 'filter')) {
+                      // Always update override_data, even if field is not there (to ensure cleanup)
+                      const cleanedOverrideData = { ...(config.override_data || {}) };
+                      if (cleanedOverrideData[field.id]) {
+                        delete cleanedOverrideData[field.id];
+                      }
+                      updates.override_data = cleanedOverrideData;
+                    }
+                    
+                    appConfigStore.updateConfigWithCascade(selectedConfig, updates);
                   }
                 }}
                 className="p-1 text-gray-400 hover:text-orange-600 hover:bg-orange-50 rounded"

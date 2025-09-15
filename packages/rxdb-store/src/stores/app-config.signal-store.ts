@@ -2236,8 +2236,24 @@ class AppConfigStore {
         }
       }
       
-      // Update the config with new self_data
-      await this.updateConfig(parentId, { self_data: newSelfData });
+      // Clean up override_data - remove entries for fields that are no longer in deps
+      let cleanedOverrideData = parent.override_data ? { ...parent.override_data } : {};
+      let overrideChanged = false;
+      
+      for (const fieldId in cleanedOverrideData) {
+        if (!parent.deps?.includes(fieldId)) {
+          delete cleanedOverrideData[fieldId];
+          overrideChanged = true;
+        }
+      }
+      
+      // Update the config with new self_data and cleaned override_data if needed
+      const updates: any = { self_data: newSelfData };
+      if (overrideChanged) {
+        updates.override_data = cleanedOverrideData;
+      }
+      
+      await this.updateConfig(parentId, updates);
       return;
     }
     
