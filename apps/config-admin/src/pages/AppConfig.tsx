@@ -781,13 +781,13 @@ const AppConfig: React.FC = () => {
           style={{ marginLeft: level > 0 ? "24px" : "0px", marginBottom: "8px" }}
         >
           <div className="flex items-center justify-between h-10 p-2 rounded-md bg-gray-50 hover:bg-gray-100">
-            <div className="flex items-center gap-2">
-              <div className="w-5" />
-              <Database className="w-4 h-4 text-blue-600" />
-              <span className="font-mono text-sm">{field?.caption || node.name}</span>
-              <span className="text-xs text-gray-500">({node.id})</span>
+            <div className="flex items-center gap-2 min-w-0 flex-1">
+              <div className="w-5 flex-shrink-0" />
+              <Database className="w-4 h-4 text-blue-600 flex-shrink-0" />
+              <span className="font-mono text-sm truncate">{field?.caption || node.name}</span>
+              <span className="text-xs text-gray-500 truncate">({node.id})</span>
             </div>
-            <div className="flex gap-1">
+            <div className="flex gap-1 flex-shrink-0">
               <button
                 onClick={(e) => {
                   e.stopPropagation();
@@ -1072,7 +1072,7 @@ const AppConfig: React.FC = () => {
   // Filter config nodes based on search
 
   return (
-    <div className="h-full bg-gray-50 p-4">
+    <div className="h-full bg-gray-50 p-4 overflow-hidden">
       <div className="max-w-full mx-auto h-full">
         <div className="flex gap-4 h-[calc(100vh-7rem)]">
           {/* Left Column - Working Configs - 37.5% */}
@@ -1123,7 +1123,6 @@ const AppConfig: React.FC = () => {
                   setSelectedConfig(null);
                 }
               }}
-              style={{ minHeight: "100%" }}
             >
               {configTree.length > 0 ? (
                 (() => {
@@ -1131,7 +1130,6 @@ const AppConfig: React.FC = () => {
                   return filteredData.length > 0 ? (
                     <div
                       className="pb-4"
-                      style={{ minHeight: "calc(100% - 1rem)" }}
                       onClick={(e) => {
                         // Check if clicked on empty space within tree container
                         if (e.target === e.currentTarget) {
