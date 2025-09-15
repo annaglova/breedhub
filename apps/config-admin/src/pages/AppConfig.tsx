@@ -102,6 +102,7 @@ const AppConfig: React.FC = () => {
   const [editingCaption, setEditingCaption] = useState<string>("");
   const [editingVersion, setEditingVersion] = useState<number>(1);
   const [viewingField, setViewingField] = useState<string | null>(null);
+  const [viewingFieldInConfig, setViewingFieldInConfig] = useState<string | null>(null);
   const [viewingProperty, setViewingProperty] = useState<string | null>(null);
 
   // Handle escape key to deselect
@@ -780,8 +781,8 @@ const AppConfig: React.FC = () => {
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  // View field data
-                  setViewingField(node.id);
+                  // View field data in config
+                  setViewingFieldInConfig(node.id);
                 }}
                 className="p-1 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded"
                 title="View field"
@@ -1715,18 +1716,18 @@ const AppConfig: React.FC = () => {
         );
       })()}
 
-      {/* View Field Modal */}
-      {viewingField &&
+      {/* View Field in Config Modal */}
+      {viewingFieldInConfig &&
         (() => {
-          const field = fields.find((f) => f.id === viewingField);
+          const field = fields.find((f) => f.id === viewingFieldInConfig);
           if (!field) return null;
 
           return (
             <ConfigViewModal
               isOpen={true}
-              onClose={() => setViewingField(null)}
+              onClose={() => setViewingFieldInConfig(null)}
               onEdit={() => {
-                setViewingField(null);
+                setViewingFieldInConfig(null);
                 setEditingField(field.id);
                 setEditingOverrideData(
                   JSON.stringify(field.override_data || {}, null, 2)
@@ -1734,8 +1735,9 @@ const AppConfig: React.FC = () => {
                 setEditingCaption(field.caption || "");
                 setEditingVersion(field.version || 1);
               }}
-              title="View Field"
+              title="View Field in Config"
               config={field}
+              hideIntermediateData={true}
             />
           );
         })()}
