@@ -96,12 +96,12 @@
         ]
       },
       "isForeignKey": true,
-      "referencedTable": "owner",
+      "referencedTable": "contact",
       "referencedFieldID": "id",
       "displayName": "Owner",
       "placeholder": "Enter owner",
       "validation": {},
-      "referencedFieldName": "id"
+      "referencedFieldName": "name"
     },
     {
       "id": "field_kennel_id",
@@ -285,12 +285,12 @@
         ]
       },
       "isForeignKey": true,
-      "referencedTable": "breeder",
+      "referencedTable": "contact",
       "referencedFieldID": "id",
       "displayName": "Breeder",
       "placeholder": "Enter breeder",
       "validation": {},
-      "referencedFieldName": "id"
+      "referencedFieldName": "name"
     },
     {
       "id": "field_photo_id",
@@ -1297,6 +1297,6 @@
     "totalFields": 51,
     "systemFields": 5,
     "customFields": 46,
-    "generatedAt": "2025-09-08T11:20:57.616Z"
+    "generatedAt": "2025-09-15T14:15:04.075Z"
   }
 }

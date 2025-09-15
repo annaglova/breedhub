@@ -11,7 +11,7 @@ import {
   Trash2,
 } from "lucide-react";
 import React, { useEffect, useState } from "react";
-import WorkspaceHeader from "../components/WorkspaceHeader";
+import RegistryLayout from "../components/RegistryLayout";
 import ConfigEditModal from "../components/ConfigEditModal";
 
 interface Property {
@@ -224,22 +224,19 @@ const Properties: React.FC = () => {
   };
 
   return (
-    <div className="h-full bg-gray-50 p-4 overflow-hidden">
-      <div className="max-w-7xl mx-auto h-full">
-        <div className="bg-white rounded-lg shadow-md p-6 h-[calc(100vh-7rem)] flex flex-col">
-          <WorkspaceHeader
-            title="Properties"
-            titleIcon={Tag}
-            itemCount={properties.length}
-            searchPlaceholder="Search properties..."
-            searchValue={searchQuery}
-            onSearchChange={setSearchQuery}
-            showAddButton={true}
-            addButtonText="Add Property"
-            onAddClick={startCreate}
-          />
-
-          <div className="flex-1 overflow-y-auto">
+    <RegistryLayout
+      headerProps={{
+        title: "Properties",
+        titleIcon: Tag,
+        itemCount: properties.length,
+        searchPlaceholder: "Search properties...",
+        searchValue: searchQuery,
+        onSearchChange: setSearchQuery,
+        showAddButton: true,
+        addButtonText: "Add Property",
+        onAddClick: startCreate
+      }}
+    >
             {/* Properties Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               {paginatedProperties.length === 0 &&
@@ -470,9 +467,6 @@ const Properties: React.FC = () => {
               {filteredProperties.length} properties
               {searchQuery && ` (filtered from ${properties.length} total)`}
             </div>
-          </div>
-        </div>
-      </div>
 
       {/* Edit/Create Modal */}
       <ConfigEditModal
@@ -492,7 +486,7 @@ const Properties: React.FC = () => {
         dataFieldLabel="Override Data (JSON)"
         dataFieldPlaceholder='{"required": true, "validation": {"notNull": true}}'
       />
-    </div>
+    </RegistryLayout>
   );
 };
 

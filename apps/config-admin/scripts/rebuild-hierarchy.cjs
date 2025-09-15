@@ -73,6 +73,112 @@ async function rebuildFieldsConfig(fieldsConfigId) {
 }
 
 /**
+ * Rebuild a sort config from individual field configs
+ */
+async function rebuildSortConfig(sortConfigId) {
+  try {
+    // Get the sort config
+    const { data: sortConfig, error: fetchError } = await supabase
+      .from('app_config')
+      .select('*')
+      .eq('id', sortConfigId)
+      .single();
+    
+    if (fetchError || !sortConfig) return false;
+    
+    // Get all fields that this config depends on
+    const fieldIds = sortConfig.deps || [];
+    if (fieldIds.length === 0) return false;
+    
+    // Fetch all dependent fields
+    const { data: fields, error: fieldsError } = await supabase
+      .from('app_config')
+      .select('id, data')
+      .in('id', fieldIds);
+    
+    if (fieldsError) return false;
+    
+    // Build nested structure - same as fields config
+    const sortStructure = {};
+    for (const field of fields) {
+      sortStructure[field.id] = field.data || {};
+    }
+    
+    // Update self_data with nested structure
+    const newSelfData = sortStructure;
+    const newData = { ...newSelfData, ...(sortConfig.override_data || {}) };
+    
+    // Update the sort config
+    const { error: updateError } = await supabase
+      .from('app_config')
+      .update({
+        self_data: newSelfData,
+        data: newData,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', sortConfigId);
+    
+    return !updateError;
+  } catch (error) {
+    console.error(`Error rebuilding sort config ${sortConfigId}:`, error);
+    return false;
+  }
+}
+
+/**
+ * Rebuild a filter config from individual field configs
+ */
+async function rebuildFilterConfig(filterConfigId) {
+  try {
+    // Get the filter config
+    const { data: filterConfig, error: fetchError } = await supabase
+      .from('app_config')
+      .select('*')
+      .eq('id', filterConfigId)
+      .single();
+    
+    if (fetchError || !filterConfig) return false;
+    
+    // Get all fields that this config depends on
+    const fieldIds = filterConfig.deps || [];
+    if (fieldIds.length === 0) return false;
+    
+    // Fetch all dependent fields
+    const { data: fields, error: fieldsError } = await supabase
+      .from('app_config')
+      .select('id, data')
+      .in('id', fieldIds);
+    
+    if (fieldsError) return false;
+    
+    // Build nested structure - same as fields config
+    const filterStructure = {};
+    for (const field of fields) {
+      filterStructure[field.id] = field.data || {};
+    }
+    
+    // Update self_data with nested structure
+    const newSelfData = filterStructure;
+    const newData = { ...newSelfData, ...(filterConfig.override_data || {}) };
+    
+    // Update the filter config
+    const { error: updateError } = await supabase
+      .from('app_config')
+      .update({
+        self_data: newSelfData,
+        data: newData,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', filterConfigId);
+    
+    return !updateError;
+  } catch (error) {
+    console.error(`Error rebuilding filter config ${filterConfigId}:`, error);
+    return false;
+  }
+}
+
+/**
  * Rebuild a page config from its fields config
  */
 async function rebuildPageConfig(pageId) {
@@ -358,7 +464,7 @@ async function rebuildFullHierarchy(options = {}) {
     const { data: configs, error } = await supabase
       .from('app_config')
       .select('id, type')
-      .in('type', ['fields', 'page', 'space', 'workspace', 'app'])
+      .in('type', ['fields', 'sort', 'filter', 'page', 'space', 'workspace', 'app'])
       .order('type');
     
     if (error) throw error;
@@ -370,10 +476,12 @@ async function rebuildFullHierarchy(options = {}) {
       grouped[config.type].push(config.id);
     }
     
-    // Rebuild in order: fields → page → space → workspace → app
-    const order = ['fields', 'page', 'space', 'workspace', 'app'];
+    // Rebuild in order: fields/sort/filter → page → space → workspace → app
+    const order = ['fields', 'sort', 'filter', 'page', 'space', 'workspace', 'app'];
     const rebuildFunctions = {
       'fields': rebuildFieldsConfig,
+      'sort': rebuildSortConfig,
+      'filter': rebuildFilterConfig,
       'page': rebuildPageConfig,
       'space': rebuildSpaceConfig,
       'workspace': rebuildWorkspaceConfig,
@@ -436,7 +544,7 @@ async function rebuildAfterChanges(changedConfigIds, options = {}) {
       
       if (!error && dependents) {
         for (const dep of dependents) {
-          if (['fields', 'page', 'space', 'workspace', 'app'].includes(dep.type)) {
+          if (['fields', 'sort', 'filter', 'page', 'space', 'workspace', 'app'].includes(dep.type)) {
             toRebuild.add(JSON.stringify({ id: dep.id, type: dep.type }));
           }
         }
@@ -445,7 +553,7 @@ async function rebuildAfterChanges(changedConfigIds, options = {}) {
     
     // Convert back to objects and sort by hierarchy level
     const configs = Array.from(toRebuild).map(str => JSON.parse(str));
-    const typeOrder = { 'fields': 1, 'page': 2, 'space': 3, 'workspace': 4, 'app': 5 };
+    const typeOrder = { 'fields': 1, 'sort': 1, 'filter': 1, 'page': 2, 'space': 3, 'workspace': 4, 'app': 5 };
     configs.sort((a, b) => typeOrder[a.type] - typeOrder[b.type]);
     
     console.log(`\nFound ${configs.length} configs to rebuild`);
@@ -453,6 +561,8 @@ async function rebuildAfterChanges(changedConfigIds, options = {}) {
     // Rebuild each config
     const rebuildFunctions = {
       'fields': rebuildFieldsConfig,
+      'sort': rebuildSortConfig,
+      'filter': rebuildFilterConfig,
       'page': rebuildPageConfig,
       'space': rebuildSpaceConfig,
       'workspace': rebuildWorkspaceConfig,
@@ -511,6 +621,8 @@ async function main() {
 // Export for use in other scripts
 module.exports = {
   rebuildFieldsConfig,
+  rebuildSortConfig,
+  rebuildFilterConfig,
   rebuildPageConfig,
   rebuildSpaceConfig,
   rebuildWorkspaceConfig,

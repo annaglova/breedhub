@@ -176,12 +176,12 @@
         ]
       },
       "isForeignKey": true,
-      "referencedTable": "owner",
+      "referencedTable": "contact",
       "referencedFieldID": "id",
       "displayName": "Owner",
       "placeholder": "Enter owner",
       "validation": {},
-      "referencedFieldName": "id"
+      "referencedFieldName": "name"
     },
     {
       "id": "field_invoice_id",
@@ -375,6 +375,6 @@
     "totalFields": 15,
     "systemFields": 5,
     "customFields": 10,
-    "generatedAt": "2025-09-08T11:20:49.350Z"
+    "generatedAt": "2025-09-15T14:14:54.214Z"
   }
 }

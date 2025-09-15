@@ -24,7 +24,6 @@
           "editor"
         ]
       },
-      "maxLength": 255,
       "displayName": "Name",
       "placeholder": "Enter name",
       "validation": {},
@@ -293,7 +292,6 @@
           "editor"
         ]
       },
-      "maxLength": 500,
       "displayName": "Url",
       "placeholder": "Enter url",
       "validation": {
@@ -464,8 +462,8 @@
       "component": "text",
       "required": true,
       "isSystem": true,
-      "isPrimaryKey": true,
-      "isUnique": true,
+      "isPrimaryKey": false,
+      "isUnique": false,
       "sortOrder": 190,
       "permissions": {
         "read": [
@@ -589,6 +587,6 @@
     "totalFields": 24,
     "systemFields": 6,
     "customFields": 18,
-    "generatedAt": "2025-09-08T14:58:01.763Z"
+    "generatedAt": "2025-09-15T14:13:08.269Z"
   }
 }
