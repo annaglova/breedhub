@@ -60,8 +60,8 @@
       "component": "text",
       "required": true,
       "isSystem": true,
-      "isPrimaryKey": true,
-      "isUnique": true,
+      "isPrimaryKey": false,
+      "isUnique": false,
       "sortOrder": 30,
       "permissions": {
         "read": [
@@ -164,6 +164,6 @@
     "totalFields": 7,
     "systemFields": 5,
     "customFields": 2,
-    "generatedAt": "2025-09-08T14:53:43.691Z"
+    "generatedAt": "2025-09-15T14:14:11.372Z"
   }
 }

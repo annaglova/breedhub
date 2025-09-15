@@ -1,5 +1,6 @@
 import React from 'react';
-import WorkspaceHeader, { WorkspaceHeaderProps } from './WorkspaceHeader';
+import WorkspaceHeader from './WorkspaceHeader';
+import type { WorkspaceHeaderProps } from './WorkspaceHeader';
 
 interface RegistryLayoutProps {
   children: React.ReactNode;

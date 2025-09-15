@@ -126,15 +126,17 @@ function recalculateConfig(config, allConfigs, updatedConfigs) {
     // Build new self_data from dependencies
     let newSelfData = {};
     
-    // Special handling for fields configs
-    if (config.type === 'fields') {
-      // For fields configs, build the fields structure from deps
+    // Special handling for grouping configs (fields, sort, filter)
+    const groupingConfigTypes = ['fields', 'sort', 'filter'];
+    
+    if (groupingConfigTypes.includes(config.type)) {
+      // For grouping configs, build structure as object with field IDs as keys
       if (config.deps && Array.isArray(config.deps)) {
         for (const depId of config.deps) {
           // Get the field config and use its data
           const fieldConfig = updatedConfigs.get(depId) || allConfigs.find(c => c.id === depId);
           if (fieldConfig && fieldConfig.data) {
-            // Use the field's full data, same as rebuild-hierarchy does
+            // Use the field's full data, grouped by field ID
             newSelfData[depId] = fieldConfig.data;
           } else {
             // Fallback to simple structure if field not found

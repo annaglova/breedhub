@@ -232,12 +232,12 @@
         ]
       },
       "isForeignKey": true,
-      "referencedTable": "judge",
+      "referencedTable": "contact",
       "referencedFieldID": "id",
       "displayName": "Judge",
       "placeholder": "Enter judge",
       "validation": {},
-      "referencedFieldName": "id"
+      "referencedFieldName": "name"
     },
     {
       "id": "field_place_id",
@@ -478,6 +478,6 @@
     "totalFields": 19,
     "systemFields": 5,
     "customFields": 14,
-    "generatedAt": "2025-09-08T11:20:55.021Z"
+    "generatedAt": "2025-09-15T14:15:00.923Z"
   }
 }

@@ -9,7 +9,7 @@ interface ExtraButton {
   className?: string;
 }
 
-interface WorkspaceHeaderProps {
+export interface WorkspaceHeaderProps {
   // Title section
   title?: string;
   titleIcon?: LucideIcon;

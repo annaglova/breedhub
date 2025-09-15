@@ -12,7 +12,7 @@ import {
 import { useEffect, useState } from "react";
 import ConfigEditModal from "../components/ConfigEditModal";
 import ConfigViewModal from "../components/ConfigViewModal";
-import WorkspaceHeader from "../components/WorkspaceHeader";
+import RegistryLayout from "../components/RegistryLayout";
 import type { 
   BaseConfig, 
   TreeNode 
@@ -313,37 +313,34 @@ export default function Templates() {
   const addButtonContext = getAddButtonContext();
 
   return (
-    <div className="h-full bg-gray-50 p-4 overflow-hidden">
-      <div className="max-w-7xl mx-auto h-full">
-        <div className="bg-white rounded-lg shadow-md p-6 h-[calc(100vh-7rem)] flex flex-col">
-          <WorkspaceHeader
-            title="Templates"
-            titleIcon={FileCode}
-            itemCount={templates.length}
-            showSearch={true}
-            searchPlaceholder="Search templates..."
-            searchValue={searchQuery}
-            onSearchChange={setSearchQuery}
-            showTreeControls={true}
-            onCollapseAll={() => {
-              // Collapse all nodes
-              setExpandedNodes(new Set());
-            }}
-            onExpandAll={() => {
-              // Expand all nodes
-              const allNodeIds = appConfigStore.getAllNodeIds(treeData);
-              setExpandedNodes(new Set(allNodeIds));
-            }}
-            showAddButton={true}
-            addButtonText={addButtonContext.text}
-            onAddClick={() => {
-              setAddParentId(addButtonContext.parentId);
-              setShowAddModal(true);
-            }}
-          />
-
-          <div
-            className="flex-1 overflow-y-auto"
+    <RegistryLayout
+      headerProps={{
+        title: "Templates",
+        titleIcon: FileCode,
+        itemCount: templates.length,
+        showSearch: true,
+        searchPlaceholder: "Search templates...",
+        searchValue: searchQuery,
+        onSearchChange: setSearchQuery,
+        showTreeControls: true,
+        onCollapseAll: () => {
+          // Collapse all nodes
+          setExpandedNodes(new Set());
+        },
+        onExpandAll: () => {
+          // Expand all nodes
+          const allNodeIds = appConfigStore.getAllNodeIds(treeData);
+          setExpandedNodes(new Set(allNodeIds));
+        },
+        showAddButton: true,
+        addButtonText: addButtonContext.text,
+        onAddClick: () => {
+          setAddParentId(addButtonContext.parentId);
+          setShowAddModal(true);
+        }
+      }}
+    >
+      <div
             onClick={(e) => {
               // Only deselect if clicking on the container itself, not on child elements
               if (e.target === e.currentTarget) {
@@ -380,8 +377,6 @@ export default function Templates() {
               )}
             </div>
           </div>
-        </div>
-      </div>
 
       {/* Add Modal */}
       {showAddModal && (
@@ -489,6 +484,6 @@ export default function Templates() {
             />
           );
         })()}
-    </div>
+    </RegistryLayout>
   );
 }
