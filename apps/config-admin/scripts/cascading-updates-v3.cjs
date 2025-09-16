@@ -135,6 +135,7 @@ function recalculateConfig(config, allConfigs, updatedConfigs) {
         for (const depId of config.deps) {
           // Get the field config and use its data
           const fieldConfig = updatedConfigs.get(depId) || allConfigs.find(c => c.id === depId);
+          
           if (fieldConfig && fieldConfig.data) {
             // Use the field's full data, grouped by field ID
             newSelfData[depId] = fieldConfig.data;
@@ -233,7 +234,24 @@ function recalculateConfig(config, allConfigs, updatedConfigs) {
     }
     
     // Calculate new data
-    const newData = { ...newSelfData, ...(config.override_data || {}) };
+    // For grouping configs, we need to deep merge override_data
+    let newData;
+    if (groupingConfigTypes.includes(config.type) && config.override_data) {
+      // Deep merge for grouping configs
+      newData = { ...newSelfData };
+      for (const [key, value] of Object.entries(config.override_data)) {
+        if (typeof value === 'object' && value !== null && !Array.isArray(value) && newSelfData[key]) {
+          // Deep merge objects
+          newData[key] = { ...newSelfData[key], ...value };
+        } else {
+          // Direct assignment for non-objects
+          newData[key] = value;
+        }
+      }
+    } else {
+      // Regular shallow merge for other configs
+      newData = { ...newSelfData, ...(config.override_data || {}) };
+    }
     
     // Deep comparison for changes
     const selfDataChanged = JSON.stringify(config.self_data) !== JSON.stringify(newSelfData);
