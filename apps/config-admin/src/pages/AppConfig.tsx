@@ -292,18 +292,6 @@ const AppConfig: React.FC = () => {
   const openFieldOverrideEditor = (parentConfigId: string, fieldId: string) => {
     const parentConfig = workingConfigs.find(c => c.id === parentConfigId);
     
-    console.log('Opening field override editor:', {
-      parentConfigId,
-      fieldId,
-      parentConfig: parentConfig ? {
-        id: parentConfig.id,
-        type: parentConfig.type,
-        override_data: parentConfig.override_data,
-        deps: parentConfig.deps
-      } : null,
-      isGroupingType: parentConfig ? appConfigStore.isGroupingConfigType(parentConfig.type) : false
-    });
-    
     if (!parentConfig || !appConfigStore.isGroupingConfigType(parentConfig.type)) {
       console.error('Invalid parent config or not a grouping type');
       return;
