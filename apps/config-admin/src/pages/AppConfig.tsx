@@ -1096,7 +1096,7 @@ const AppConfig: React.FC = () => {
                   icon: Package,
                   className: "bg-purple-600 hover:bg-purple-700",
                   onClick: () => {
-                    setCreateParentId(null);
+                    setCreateParentId(selectedConfig);
                     setShowTemplateSelect(true);
                   },
                 },
@@ -1592,9 +1592,14 @@ const AppConfig: React.FC = () => {
                 const parentConfig = createParentId
                   ? workingConfigs.find((c) => c.id === createParentId)
                   : null;
-                const templates = getAvailableTemplates(
-                  parentConfig?.type || null
-                );
+                // For root level (no parent), filter to only app templates
+                const parentType = createParentId === null ? null : (parentConfig?.type || null);
+                const allTemplates = getAvailableTemplates(parentType);
+                
+                // Filter to only app templates when at root level
+                const templates = createParentId === null 
+                  ? allTemplates.filter(t => t.type === 'app')
+                  : allTemplates;
 
                 if (templates.length === 0) {
                   return (
