@@ -61,10 +61,15 @@ Do you want to continue?`;
               <p className="text-sm text-gray-600 mb-3">
                 Run these commands in your terminal from the project root:
               </p>
-              <code className="block bg-gray-900 text-green-400 p-3 rounded text-sm">
+              <code className="block bg-gray-900 text-green-400 p-3 rounded text-sm overflow-x-auto">
                 <span className="text-gray-400"># From apps/config-admin directory:</span><br/>
-                node scripts/analyze-fields.cjs<br/>
-                node scripts/generate-sql-inserts.cjs
+                <span className="text-gray-400"># 1. Generate semantic tree:</span><br/>
+                node scripts/analyze-fields.cjs<br/><br/>
+                <span className="text-gray-400"># 2. Generate SQL and run cascade:</span><br/>
+                node scripts/generate-sql-inserts.cjs<br/>
+                <span className="text-gray-400"># Answer 'y' when prompted to insert to database</span><br/><br/>
+                <span className="text-gray-400"># 3. (Optional) Rebuild full hierarchy:</span><br/>
+                node scripts/rebuild-hierarchy.cjs full
               </code>
             </div>
 
