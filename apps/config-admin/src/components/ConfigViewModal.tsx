@@ -1,5 +1,6 @@
-import { Check, Copy } from "lucide-react";
+import { Check, Copy, Code, FolderTree } from "lucide-react";
 import { useState } from "react";
+import JsonTreeView from "./JsonTreeView";
 
 interface ConfigViewModalProps {
   isOpen: boolean;
@@ -31,6 +32,7 @@ export default function ConfigViewModal({
     "data"
   );
   const [copiedTab, setCopiedTab] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<"tree" | "raw">("tree");
 
   if (!isOpen || !config) return null;
 
@@ -170,9 +172,35 @@ export default function ConfigViewModal({
               {activeTab === "self" && (
                 <div className="h-full flex flex-col">
                   <div className="mb-1 flex items-center justify-between ">
-                    <h4 className="text-sm font-medium text-gray-700">
-                      Self Data
-                    </h4>
+                    <div className="flex items-center gap-2">
+                      <h4 className="text-sm font-medium text-gray-700">
+                        Self Data
+                      </h4>
+                      <div className="flex bg-gray-100 rounded border">
+                        <button
+                          onClick={() => setViewMode("tree")}
+                          className={`px-2 py-1 text-xs rounded-l transition-colors border-r ${
+                            viewMode === "tree" 
+                              ? "bg-white text-blue-600" 
+                              : "text-gray-600 hover:text-gray-900"
+                          }`}
+                          title="Tree view"
+                        >
+                          <FolderTree className="w-3 h-3" />
+                        </button>
+                        <button
+                          onClick={() => setViewMode("raw")}
+                          className={`px-2 py-1 text-xs rounded-r transition-colors ${
+                            viewMode === "raw" 
+                              ? "bg-white text-blue-600" 
+                              : "text-gray-600 hover:text-gray-900"
+                          }`}
+                          title="Raw JSON"
+                        >
+                          <Code className="w-3 h-3" />
+                        </button>
+                      </div>
+                    </div>
                     <button
                       onClick={() => handleCopy(config.self_data, "self")}
                       className="p-1 text-gray-500 hover:text-gray-700 transition-colors"
@@ -186,20 +214,50 @@ export default function ConfigViewModal({
                     </button>
                   </div>
                   <div className="flex-1 min-h-0 border rounded-lg bg-gray-50 overflow-hidden">
-                    <div className="h-full p-4 overflow-auto">
-                      <pre className="font-mono text-sm">
-                        {JSON.stringify(config.self_data || {}, null, 2)}
-                      </pre>
-                    </div>
+                    {viewMode === "tree" ? (
+                      <JsonTreeView data={config.self_data || {}} />
+                    ) : (
+                      <div className="h-full p-4 overflow-auto">
+                        <pre className="font-mono text-sm">
+                          {JSON.stringify(config.self_data || {}, null, 2)}
+                        </pre>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
               {activeTab === "override" && (
                 <div className="h-full flex flex-col">
                   <div className="mb-1 flex items-center justify-between">
-                    <h4 className="text-sm font-medium text-gray-700">
-                      Override Data
-                    </h4>
+                    <div className="flex items-center gap-2">
+                      <h4 className="text-sm font-medium text-gray-700">
+                        Override Data
+                      </h4>
+                      <div className="flex bg-gray-100 rounded border">
+                        <button
+                          onClick={() => setViewMode("tree")}
+                          className={`px-2 py-1 text-xs rounded-l transition-colors border-r ${
+                            viewMode === "tree" 
+                              ? "bg-white text-blue-600" 
+                              : "text-gray-600 hover:text-gray-900"
+                          }`}
+                          title="Tree view"
+                        >
+                          <FolderTree className="w-3 h-3" />
+                        </button>
+                        <button
+                          onClick={() => setViewMode("raw")}
+                          className={`px-2 py-1 text-xs rounded-r transition-colors ${
+                            viewMode === "raw" 
+                              ? "bg-white text-blue-600" 
+                              : "text-gray-600 hover:text-gray-900"
+                          }`}
+                          title="Raw JSON"
+                        >
+                          <Code className="w-3 h-3" />
+                        </button>
+                      </div>
+                    </div>
                     <button
                       onClick={() =>
                         handleCopy(config.override_data, "override")
@@ -215,20 +273,50 @@ export default function ConfigViewModal({
                     </button>
                   </div>
                   <div className="flex-1 min-h-0 border rounded-lg bg-gray-50 overflow-hidden">
-                    <div className="h-full p-4 overflow-auto">
-                      <pre className="font-mono text-sm">
-                        {JSON.stringify(config.override_data || {}, null, 2)}
-                      </pre>
-                    </div>
+                    {viewMode === "tree" ? (
+                      <JsonTreeView data={config.override_data || {}} />
+                    ) : (
+                      <div className="h-full p-4 overflow-auto">
+                        <pre className="font-mono text-sm">
+                          {JSON.stringify(config.override_data || {}, null, 2)}
+                        </pre>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
               {activeTab === "data" && (
                 <div className="h-full flex flex-col">
                   <div className="mb-1 flex items-center justify-between">
-                    <h4 className="text-sm font-medium text-gray-700">
-                      Data (Computed)
-                    </h4>
+                    <div className="flex items-center gap-2">
+                      <h4 className="text-sm font-medium text-gray-700">
+                        Data (Computed)
+                      </h4>
+                      <div className="flex bg-gray-100 rounded border">
+                        <button
+                          onClick={() => setViewMode("tree")}
+                          className={`px-2 py-1 text-xs rounded-l transition-colors border-r ${
+                            viewMode === "tree" 
+                              ? "bg-white text-blue-600" 
+                              : "text-gray-600 hover:text-gray-900"
+                          }`}
+                          title="Tree view"
+                        >
+                          <FolderTree className="w-3 h-3" />
+                        </button>
+                        <button
+                          onClick={() => setViewMode("raw")}
+                          className={`px-2 py-1 text-xs rounded-r transition-colors ${
+                            viewMode === "raw" 
+                              ? "bg-white text-blue-600" 
+                              : "text-gray-600 hover:text-gray-900"
+                          }`}
+                          title="Raw JSON"
+                        >
+                          <Code className="w-3 h-3" />
+                        </button>
+                      </div>
+                    </div>
                     <button
                       onClick={() => handleCopy(config.data, "data")}
                       className="p-1 text-gray-500 hover:text-gray-700 transition-colors"
@@ -242,11 +330,15 @@ export default function ConfigViewModal({
                     </button>
                   </div>
                   <div className="flex-1 min-h-0 border rounded-lg bg-gray-50 overflow-hidden">
-                    <div className="h-full p-4 overflow-auto">
-                      <pre className="font-mono text-sm">
-                        {JSON.stringify(config.data || {}, null, 2)}
-                      </pre>
-                    </div>
+                    {viewMode === "tree" ? (
+                      <JsonTreeView data={config.data || {}} />
+                    ) : (
+                      <div className="h-full p-4 overflow-auto">
+                        <pre className="font-mono text-sm">
+                          {JSON.stringify(config.data || {}, null, 2)}
+                        </pre>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
@@ -257,9 +349,35 @@ export default function ConfigViewModal({
           <div className="flex-1 overflow-hidden p-6 flex flex-col min-h-0">
             <div className="flex flex-col h-full">
               <div className="mb-2 flex items-center justify-between flex-shrink-0">
-                <h4 className="text-sm font-medium text-gray-700">
-                  Data (Computed)
-                </h4>
+                <div className="flex items-center gap-2">
+                  <h4 className="text-sm font-medium text-gray-700">
+                    Data (Computed)
+                  </h4>
+                  <div className="flex bg-gray-100 rounded">
+                    <button
+                      onClick={() => setViewMode("tree")}
+                      className={`px-2 py-1 text-xs rounded transition-colors ${
+                        viewMode === "tree" 
+                          ? "bg-white text-blue-600 shadow-sm" 
+                          : "text-gray-600 hover:text-gray-900"
+                      }`}
+                      title="Tree view"
+                    >
+                      <FolderTree className="w-3 h-3" />
+                    </button>
+                    <button
+                      onClick={() => setViewMode("raw")}
+                      className={`px-2 py-1 text-xs rounded transition-colors ${
+                        viewMode === "raw" 
+                          ? "bg-white text-blue-600 shadow-sm" 
+                          : "text-gray-600 hover:text-gray-900"
+                      }`}
+                      title="Raw JSON"
+                    >
+                      <Code className="w-3 h-3" />
+                    </button>
+                  </div>
+                </div>
                 <button
                   onClick={() => handleCopy(config.data, "data-only")}
                   className="p-1 text-gray-500 hover:text-gray-700 transition-colors"
@@ -272,8 +390,16 @@ export default function ConfigViewModal({
                   )}
                 </button>
               </div>
-              <div className="flex-1 border rounded-lg bg-gray-50 p-4 font-mono text-sm overflow-auto min-h-0">
-                <pre>{JSON.stringify(config.data || {}, null, 2)}</pre>
+              <div className="flex-1 border rounded-lg bg-gray-50 overflow-hidden min-h-0">
+                {viewMode === "tree" ? (
+                  <JsonTreeView data={config.data || {}} />
+                ) : (
+                  <div className="h-full p-4 overflow-auto">
+                    <pre className="font-mono text-sm">
+                      {JSON.stringify(config.data || {}, null, 2)}
+                    </pre>
+                  </div>
+                )}
               </div>
             </div>
           </div>
