@@ -32,7 +32,7 @@ export default function ConfigViewModal({
     "data"
   );
   const [copiedTab, setCopiedTab] = useState<string | null>(null);
-  const [viewMode, setViewMode] = useState<"tree" | "raw">("tree");
+  const [viewMode, setViewMode] = useState<"tree" | "raw">("raw");
 
   if (!isOpen || !config) return null;
 
@@ -178,19 +178,8 @@ export default function ConfigViewModal({
                       </h4>
                       <div className="flex bg-gray-100 rounded border">
                         <button
-                          onClick={() => setViewMode("tree")}
-                          className={`px-2 py-1 text-xs rounded-l transition-colors border-r ${
-                            viewMode === "tree" 
-                              ? "bg-white text-blue-600" 
-                              : "text-gray-600 hover:text-gray-900"
-                          }`}
-                          title="Tree view"
-                        >
-                          <FolderTree className="w-3 h-3" />
-                        </button>
-                        <button
                           onClick={() => setViewMode("raw")}
-                          className={`px-2 py-1 text-xs rounded-r transition-colors ${
+                          className={`px-2 py-1 text-xs rounded-l transition-colors border-r ${
                             viewMode === "raw" 
                               ? "bg-white text-blue-600" 
                               : "text-gray-600 hover:text-gray-900"
@@ -198,6 +187,17 @@ export default function ConfigViewModal({
                           title="Raw JSON"
                         >
                           <Code className="w-3 h-3" />
+                        </button>
+                        <button
+                          onClick={() => setViewMode("tree")}
+                          className={`px-2 py-1 text-xs rounded-r transition-colors ${
+                            viewMode === "tree" 
+                              ? "bg-white text-blue-600" 
+                              : "text-gray-600 hover:text-gray-900"
+                          }`}
+                          title="Tree view"
+                        >
+                          <FolderTree className="w-3 h-3" />
                         </button>
                       </div>
                     </div>
@@ -235,19 +235,8 @@ export default function ConfigViewModal({
                       </h4>
                       <div className="flex bg-gray-100 rounded border">
                         <button
-                          onClick={() => setViewMode("tree")}
-                          className={`px-2 py-1 text-xs rounded-l transition-colors border-r ${
-                            viewMode === "tree" 
-                              ? "bg-white text-blue-600" 
-                              : "text-gray-600 hover:text-gray-900"
-                          }`}
-                          title="Tree view"
-                        >
-                          <FolderTree className="w-3 h-3" />
-                        </button>
-                        <button
                           onClick={() => setViewMode("raw")}
-                          className={`px-2 py-1 text-xs rounded-r transition-colors ${
+                          className={`px-2 py-1 text-xs rounded-l transition-colors border-r ${
                             viewMode === "raw" 
                               ? "bg-white text-blue-600" 
                               : "text-gray-600 hover:text-gray-900"
@@ -255,6 +244,17 @@ export default function ConfigViewModal({
                           title="Raw JSON"
                         >
                           <Code className="w-3 h-3" />
+                        </button>
+                        <button
+                          onClick={() => setViewMode("tree")}
+                          className={`px-2 py-1 text-xs rounded-r transition-colors ${
+                            viewMode === "tree" 
+                              ? "bg-white text-blue-600" 
+                              : "text-gray-600 hover:text-gray-900"
+                          }`}
+                          title="Tree view"
+                        >
+                          <FolderTree className="w-3 h-3" />
                         </button>
                       </div>
                     </div>
@@ -294,19 +294,8 @@ export default function ConfigViewModal({
                       </h4>
                       <div className="flex bg-gray-100 rounded border">
                         <button
-                          onClick={() => setViewMode("tree")}
-                          className={`px-2 py-1 text-xs rounded-l transition-colors border-r ${
-                            viewMode === "tree" 
-                              ? "bg-white text-blue-600" 
-                              : "text-gray-600 hover:text-gray-900"
-                          }`}
-                          title="Tree view"
-                        >
-                          <FolderTree className="w-3 h-3" />
-                        </button>
-                        <button
                           onClick={() => setViewMode("raw")}
-                          className={`px-2 py-1 text-xs rounded-r transition-colors ${
+                          className={`px-2 py-1 text-xs rounded-l transition-colors border-r ${
                             viewMode === "raw" 
                               ? "bg-white text-blue-600" 
                               : "text-gray-600 hover:text-gray-900"
@@ -314,6 +303,17 @@ export default function ConfigViewModal({
                           title="Raw JSON"
                         >
                           <Code className="w-3 h-3" />
+                        </button>
+                        <button
+                          onClick={() => setViewMode("tree")}
+                          className={`px-2 py-1 text-xs rounded-r transition-colors ${
+                            viewMode === "tree" 
+                              ? "bg-white text-blue-600" 
+                              : "text-gray-600 hover:text-gray-900"
+                          }`}
+                          title="Tree view"
+                        >
+                          <FolderTree className="w-3 h-3" />
                         </button>
                       </div>
                     </div>

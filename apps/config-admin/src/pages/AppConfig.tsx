@@ -716,15 +716,22 @@ const AppConfig: React.FC = () => {
     let updates: any = { deps: updatedDeps };
     
     if (nodeType === "sort") {
-      // For sort config, add order and direction to override_data as object
+      // For sort config, add sortOrder array to existing field data in override_data
       const existingOverride = config.override_data || {};
-      // Calculate order based on existing fields
-      const existingFieldsCount = Object.keys(existingOverride).length;
+      const existingFieldData = existingOverride[draggedField] || {};
+      
       updates.override_data = {
         ...existingOverride,
         [draggedField]: {
-          order: existingFieldsCount + 1,
-          direction: "asc",
+          ...existingFieldData,  // Keep all existing field properties
+          sortOrder: [
+            { 
+              order: 1, 
+              direction: "asc", 
+              icon: "arrow-up", 
+              label: "A-Z" 
+            }
+          ]
         },
       };
     } else if (nodeType === "filter") {
