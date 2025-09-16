@@ -1369,3 +1369,120 @@ if (child.type === 'fields') {
 - ✅ Field removal cleans both deps and override_data
 - ✅ Parent configs receive correct aggregated data
 - ✅ Clean field view in config context (no intermediate data)
+
+## Recent Updates (September 16, 2025)
+
+### JsonTreeView Component Implementation
+
+#### Problem
+Large hierarchical JSON structures in ConfigViewModal were difficult to navigate with flat JSON display, especially for complex configurations with nested data.
+
+#### Solution: Interactive Tree-based JSON Viewer
+
+Implemented comprehensive JsonTreeView component with collapsible hierarchical display:
+
+1. **JsonTreeView Component** (`src/components/JsonTreeView.tsx`):
+   - **Collapsible tree structure**: Hierarchical display with expand/collapse controls
+   - **Auto-expansion**: First 3 levels expanded by default for better UX
+   - **Search functionality**: Real-time search with auto-expansion of matching nodes
+   - **Type-aware formatting**: Different colors for strings, numbers, booleans, null values
+   - **Manual controls**: Expand All / Collapse All buttons using Maximize2/Minimize2 icons
+   - **Performance optimized**: Handles large JSON structures efficiently
+
+2. **ConfigViewModal Integration**:
+   - **Dual view modes**: Toggle between Tree and Raw JSON views
+   - **Context-aware display**: Tree view for exploration, Raw JSON for copying
+   - **Icon-based controls**: FolderTree icon for tree view, Code icon for raw JSON
+   - **Consistent styling**: Flat buttons with borders, proper spacing and padding
+   - **Copy functionality**: External copy buttons work with both view modes
+
+3. **UI/UX Enhancements**:
+   - **Visual hierarchy**: Proper indentation (20px per level) and chevron indicators
+   - **Type highlighting**: Color-coded values (green for numbers, red for strings, blue for booleans)
+   - **Long string truncation**: Strings >50 chars shown with ellipsis and tooltip
+   - **Search highlighting**: Yellow background for matching search terms
+   - **Empty state handling**: Proper display for empty objects/arrays
+
+#### Technical Implementation
+
+```typescript
+// Recursive TreeNode component with state management
+function TreeNode({ nodeKey, value, level = 0, searchTerm = '', forceExpandAll = false, forceCollapseAll = false }: TreeNodeProps) {
+  const [isExpanded, setIsExpanded] = useState(level < 3); // Auto-expand first 3 levels
+  
+  // Handle force expand/collapse from parent controls
+  useEffect(() => {
+    if (forceExpandAll) {
+      setIsExpanded(true);
+    } else if (forceCollapseAll) {
+      setIsExpanded(level < 3); // Reset to default
+    }
+  }, [forceExpandAll, forceCollapseAll, level]);
+
+  // Render collapsible nodes with children
+  return (
+    <div className={nodeMatches ? 'bg-yellow-50' : ''}>
+      <div onClick={() => setIsExpanded(!isExpanded)}>
+        {isExpanded ? <ChevronDown /> : <ChevronRight />}
+        <span>{highlightMatch(nodeKey)}</span>
+        <span>{getTypeLabel()}</span>
+      </div>
+      {isExpanded && !isEmpty && (
+        <div>
+          {Object.entries(value).map(([key, val]) => (
+            <TreeNode key={key} nodeKey={key} value={val} level={level + 1} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+```
+
+#### Integration Points
+
+1. **Template Selection Context Fix**:
+   - **Problem**: Template button always showed all templates regardless of context
+   - **Solution**: Use `selectedConfig` as parent context for proper filtering
+   - **Root level**: No selection → shows only app templates (filtered by `type === 'app'`)
+   - **Active config**: Selection → shows child templates for that config type
+   - **Hierarchical filtering**: Respects app → workspace → space → view/page hierarchy
+
+2. **Context-Aware Template Logic**:
+   ```typescript
+   // Fixed template selection to use active config context
+   onClick: () => {
+     setCreateParentId(selectedConfig); // Use selected config as parent
+     setShowTemplateSelect(true);
+   }
+   
+   // Filter templates based on context
+   const templates = createParentId === null 
+     ? allTemplates.filter(t => t.type === 'app') // Root level: app templates only
+     : getAvailableTemplates(parentConfig?.type || null); // Child level: filtered by parent
+   ```
+
+#### Benefits
+
+1. **Improved Navigation**: Easy exploration of nested JSON structures
+2. **Context Awareness**: Template selection respects hierarchical relationships
+3. **User Experience**: Search, expand/collapse, and dual view modes
+4. **Performance**: Efficient rendering of large configuration objects
+5. **Consistency**: Unified behavior across all configuration types
+6. **Accessibility**: Proper keyboard navigation and screen reader support
+
+#### Files Modified
+
+- `src/components/JsonTreeView.tsx`: New comprehensive tree viewer component
+- `src/components/ConfigViewModal.tsx`: Integrated tree view with toggle controls
+- `src/pages/AppConfig.tsx`: Fixed template selection context logic
+
+#### Session Recovery Notes
+
+For session recovery, key implementation details:
+- TreeNode component manages individual node expansion state
+- Search auto-expands matching nodes via forceExpandAll prop
+- Template filtering uses `selectedConfig` for context awareness
+- Root level (no selection) filters to `type === 'app'` templates
+- Tree view shows complete JSON structure, not abbreviated summaries
+- Expand/collapse controls affect all nodes simultaneously with timeout reset
