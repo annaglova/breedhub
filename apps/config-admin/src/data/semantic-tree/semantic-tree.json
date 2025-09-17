@@ -7,7 +7,13 @@
       "tags": [
         "field"
       ],
-      "self_data": {
+      "override_data": {
+        "required": true,
+        "validation": {
+          "notNull": true
+        }
+      },
+      "data": {
         "required": true,
         "validation": {
           "notNull": true
@@ -21,7 +27,10 @@
       "tags": [
         "field"
       ],
-      "self_data": {
+      "override_data": {
+        "isSystem": false
+      },
+      "data": {
         "isSystem": false
       }
     },
@@ -33,7 +42,13 @@
         "field",
         "string"
       ],
-      "self_data": {
+      "override_data": {
+        "maxLength": 250,
+        "validation": {
+          "maxLength": 250
+        }
+      },
+      "data": {
         "maxLength": 250,
         "validation": {
           "maxLength": 250
@@ -47,7 +62,10 @@
       "tags": [
         "field"
       ],
-      "self_data": {
+      "override_data": {
+        "isPrimaryKey": false
+      },
+      "data": {
         "isPrimaryKey": false
       }
     },
@@ -58,7 +76,10 @@
       "tags": [
         "field"
       ],
-      "self_data": {
+      "override_data": {
+        "isUnique": false
+      },
+      "data": {
         "isUnique": false
       }
     },
@@ -70,7 +91,13 @@
         "field",
         "string"
       ],
-      "self_data": {
+      "override_data": {
+        "maxLength": 50,
+        "validation": {
+          "maxLength": 50
+        }
+      },
+      "data": {
         "maxLength": 50,
         "validation": {
           "maxLength": 50
@@ -84,7 +111,10 @@
       "tags": [
         "field"
       ],
-      "self_data": {
+      "override_data": {
+        "required": false
+      },
+      "data": {
         "required": false
       }
     },
@@ -96,7 +126,13 @@
         "field",
         "string"
       ],
-      "self_data": {
+      "override_data": {
+        "maxLength": 500,
+        "validation": {
+          "maxLength": 500
+        }
+      },
+      "data": {
         "maxLength": 500,
         "validation": {
           "maxLength": 500
@@ -110,7 +146,14 @@
       "tags": [
         "field"
       ],
-      "self_data": {
+      "override_data": {
+        "permissions": {
+          "write": [
+            "system"
+          ]
+        }
+      },
+      "data": {
         "permissions": {
           "write": [
             "system"
@@ -125,7 +168,10 @@
       "tags": [
         "field"
       ],
-      "self_data": {
+      "override_data": {
+        "isSystem": true
+      },
+      "data": {
         "isSystem": true
       }
     },
@@ -136,7 +182,11 @@
       "tags": [
         "field"
       ],
-      "self_data": {
+      "override_data": {
+        "isPrimaryKey": true,
+        "isUnique": true
+      },
+      "data": {
         "isPrimaryKey": true,
         "isUnique": true
       }
@@ -148,7 +198,10 @@
       "tags": [
         "field"
       ],
-      "self_data": {
+      "override_data": {
+        "isUnique": true
+      },
+      "data": {
         "isUnique": true
       }
     }

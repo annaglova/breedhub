@@ -577,6 +577,12 @@ class AppConfigStore {
     const config = this.configs.value.get(id);
     console.log(`[deleteConfig] Deleting config: ${id} (type: ${config?.type || 'unknown'})`);
     
+    // Protect system properties from deletion
+    if (config?.type === 'property' && config?.category === 'system') {
+      console.warn(`[deleteConfig] Cannot delete system property: ${id}`);
+      throw new Error(`System property "${id}" cannot be deleted`);
+    }
+    
     try {
       this.loading.value = true;
       this.error.value = null;
@@ -1146,6 +1152,7 @@ class AppConfigStore {
         self_data: {},  // Properties have no dependencies
         override_data: data,  // Property data goes to override_data
         deps: [],
+        category: 'custom',  // Default category for new properties
         tags: ['property'],
         version: 1
       });
@@ -1183,6 +1190,106 @@ class AppConfigStore {
   async deleteProperty(id: string): Promise<{ success: boolean; error?: string }> {
     // Use base deleteWithDependencies method
     return this.deleteWithDependencies(id);
+  }
+
+  // New method to create property with tags
+  async createPropertyWithTags(
+    id: string, 
+    data: any,
+    tags: string[]
+  ): Promise<{ success: boolean; error?: string }> {
+    try {
+      // Validate property ID
+      if (!id.startsWith('property_')) {
+        return { success: false, error: 'Property ID must start with "property_"' };
+      }
+      
+      // Check if already exists
+      if (this.configs.value.has(id)) {
+        return { success: false, error: 'Property with this ID already exists' };
+      }
+      
+      await this.createConfig({
+        id,
+        type: 'property',
+        self_data: {},  // Properties have no dependencies
+        override_data: data,  // Property data goes to override_data
+        deps: [],
+        category: 'custom',  // Default category for new properties
+        tags: tags && tags.length > 0 ? tags : ['property'],
+        version: 1
+      });
+      
+      return { success: true };
+    } catch (error: any) {
+      console.error('[createPropertyWithTags] Error:', error);
+      return { success: false, error: error.message || 'Failed to create property' };
+    }
+  }
+
+  // New method to update property with ID change and tags
+  async updatePropertyWithIdChangeAndTags(
+    oldId: string, 
+    newId: string, 
+    selfData: any,
+    tags: string[]
+  ): Promise<{ success: boolean; error?: string }> {
+    try {
+      // Validate new ID format
+      if (!newId.startsWith('property_')) {
+        return { success: false, error: 'Property ID must start with "property_"' };
+      }
+      
+      // Get the existing property
+      const existingProperty = this.configs.value.get(oldId);
+      if (!existingProperty) {
+        return { success: false, error: 'Property not found' };
+      }
+      
+      // If ID hasn't changed, just update the data and tags
+      if (oldId === newId) {
+        const updates: Partial<AppConfig> = {
+          override_data: selfData,
+          data: selfData,
+          tags: tags && tags.length > 0 ? tags : existingProperty.tags
+        };
+        return await this.updateConfigWithCascade(oldId, updates);
+      }
+      
+      // Check if new ID already exists
+      if (this.configs.value.has(newId)) {
+        return { success: false, error: 'Property with this ID already exists' };
+      }
+      
+      // Find all configs that depend on the old property
+      const dependents = this.configsList.value.filter(c => 
+        c.deps && c.deps.includes(oldId)
+      );
+      
+      // Create the new property with updated data and tags
+      await this.createConfig({
+        ...existingProperty,
+        id: newId,
+        override_data: selfData,
+        data: selfData,
+        tags: tags && tags.length > 0 ? tags : existingProperty.tags,
+        version: (existingProperty.version || 0) + 1
+      });
+      
+      // Update all dependent configs
+      for (const dependent of dependents) {
+        const newDeps = dependent.deps!.map(dep => dep === oldId ? newId : dep);
+        await this.updateConfigWithCascade(dependent.id, { deps: newDeps });
+      }
+      
+      // Delete the old property
+      await this.deleteConfig(oldId);
+      
+      return { success: true };
+    } catch (error: any) {
+      console.error('[updatePropertyWithIdChangeAndTags] Error:', error);
+      return { success: false, error: error.message || 'Failed to update property' };
+    }
   }
   
   async updatePropertyWithIdChange(

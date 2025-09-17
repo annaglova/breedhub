@@ -199,15 +199,13 @@ function generateAllInserts(tree, existingConfigs = []) {
   // 1. Field Properties (Level 1) - no dependencies
   console.log(`  Processing ${tree.properties.length} field properties...`);
   for (const prop of tree.properties) {
-    // UNIFIED LOGIC: Properties store their data in override_data, not self_data
-    // This follows the same pattern as all other config types
-    const propertyData = prop.self_data || {}; // This is the actual property data from semantic tree
-    
+    // Properties from semantic tree already have correct structure
+    // Just ensure all required fields are present
     const config = {
       ...prop,
       self_data: {}, // Properties have no dependencies, so self_data is empty
-      override_data: propertyData, // All property data goes to override_data
-      data: propertyData, // data = self_data + override_data = {} + propertyData
+      override_data: prop.override_data || prop.data || {}, // Use existing override_data
+      data: prop.data || prop.override_data || {}, // Use existing data
       deps: [], // Empty array for properties (RxDB requires array, not null)
       tags: prop.tags || [], // Keep tags from semantic tree
       caption: prop.caption || null,

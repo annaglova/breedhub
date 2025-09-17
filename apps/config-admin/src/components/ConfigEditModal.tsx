@@ -17,6 +17,9 @@ interface ConfigEditModalProps {
   dataFieldLabel?: string; // Label for data field (default: "Override Data")
   dataFieldPlaceholder?: string; // Placeholder for data field
   hideOverrideData?: boolean; // Hide override data field for grouping configs
+  showTags?: boolean; // Show tags field for properties
+  tags?: string; // Tags as comma-separated string
+  onTagsChange?: (value: string) => void;
 }
 
 export default function ConfigEditModal({
@@ -35,7 +38,10 @@ export default function ConfigEditModal({
   allowEditId = false,
   dataFieldLabel = "Override Data (JSON)",
   dataFieldPlaceholder = "{}",
-  hideOverrideData = false
+  hideOverrideData = false,
+  showTags = false,
+  tags = "",
+  onTagsChange
 }: ConfigEditModalProps) {
   if (!isOpen) return null;
 
@@ -92,6 +98,25 @@ export default function ConfigEditModal({
               />
             </div>
           </div>
+
+          {/* Tags field for properties */}
+          {showTags && (
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Tags
+                <span className="text-xs text-gray-500 ml-2">
+                  (comma-separated, e.g., field, string)
+                </span>
+              </label>
+              <input
+                type="text"
+                value={tags}
+                onChange={(e) => onTagsChange?.(e.target.value)}
+                className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="field, string"
+              />
+            </div>
+          )}
 
           {/* Data Field (Override Data or Self Data) - Hidden for grouping configs */}
           {!hideOverrideData && (

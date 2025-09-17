@@ -1533,29 +1533,36 @@ const AppConfig: React.FC = () => {
                           setDragOverField(null);
                         }}
                       >
-                        <div className="flex items-center justify-center gap-2">
-                          <GripVertical className="w-4 h-4 text-gray-400 mt-0.5 flex-shrink-0" />
-                          <div className="flex-1">
-                            <div
-                              className={`font-mono text-sm ${appConfigStore.getPropertyColor(
-                                property
-                              )}`}
-                            >
-                              {property.id.replace("property_", "")}
-                            </div>
-                            <div className="text-xs text-gray-500 mt-1">
-                              {Object.entries(property.data || {})
-                                .slice(0, 2)
-                                .map(([key, value]) => (
-                                  <span key={key} className="inline-block mr-3">
-                                    {key}:{" "}
-                                    {typeof value === "object"
-                                      ? JSON.stringify(value)
-                                      : String(value)}
-                                  </span>
-                                ))}
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="flex items-center gap-2 flex-1">
+                            <GripVertical className="w-4 h-4 text-gray-400 mt-0.5 flex-shrink-0" />
+                            <div className="flex-1">
+                              <div
+                                className={`font-mono text-sm ${appConfigStore.getPropertyColor(
+                                  property
+                                )}`}
+                              >
+                                {property.id.replace("property_", "")}
+                              </div>
+                              <div className="text-xs text-gray-500 mt-1">
+                                {Object.entries(property.data || {})
+                                  .slice(0, 2)
+                                  .map(([key, value]) => (
+                                    <span key={key} className="inline-block mr-3">
+                                      {key}:{" "}
+                                      {typeof value === "object"
+                                        ? JSON.stringify(value)
+                                        : String(value)}
+                                    </span>
+                                  ))}
+                              </div>
                             </div>
                           </div>
+                          {property.category === 'system' && (
+                            <span className="px-1 py-0.5 text-xs bg-blue-100 text-blue-600 rounded font-medium flex-shrink-0">
+                              system
+                            </span>
+                          )}
                         </div>
                       </div>
                     ))}
