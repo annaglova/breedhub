@@ -24,9 +24,12 @@
           "editor"
         ]
       },
+      "maxLength": 250,
       "displayName": "Name",
       "placeholder": "Enter name",
-      "validation": {},
+      "validation": {
+        "maxLength": 250
+      },
       "defaultValue": ""
     },
     {
@@ -53,7 +56,6 @@
       "referencedFieldID": "id",
       "displayName": "Pet Type",
       "placeholder": "Enter pet type",
-      "validation": {},
       "referencedFieldName": "name"
     },
     {
@@ -76,7 +78,6 @@
         ]
       },
       "displayName": "Differ By Coat Color",
-      "validation": {},
       "defaultValue": "false"
     },
     {
@@ -99,7 +100,6 @@
         ]
       },
       "displayName": "Differ By Coat Type",
-      "validation": {},
       "defaultValue": "false"
     },
     {
@@ -122,7 +122,6 @@
         ]
       },
       "displayName": "Differ By Size",
-      "validation": {},
       "defaultValue": "false"
     },
     {
@@ -149,7 +148,6 @@
       "referencedFieldID": "id",
       "displayName": "Language",
       "placeholder": "Enter language",
-      "validation": {},
       "referencedFieldName": "name"
     },
     {
@@ -171,9 +169,12 @@
           "editor"
         ]
       },
+      "maxLength": 250,
       "displayName": "Authentic Name",
       "placeholder": "Enter authentic name",
-      "validation": {},
+      "validation": {
+        "maxLength": 250
+      },
       "defaultValue": ""
     },
     {
@@ -196,7 +197,6 @@
         ]
       },
       "displayName": "Differ By Body Feature",
-      "validation": {},
       "defaultValue": "false"
     },
     {
@@ -223,7 +223,6 @@
       "referencedFieldID": "id",
       "displayName": "Category",
       "placeholder": "Enter category",
-      "validation": {},
       "referencedFieldName": "name"
     },
     {
@@ -246,7 +245,6 @@
         ]
       },
       "displayName": "Has Related Breed",
-      "validation": {},
       "defaultValue": "false"
     },
     {
@@ -268,9 +266,12 @@
           "editor"
         ]
       },
+      "maxLength": 250,
       "displayName": "Admin Name",
       "placeholder": "Enter admin name",
-      "validation": {},
+      "validation": {
+        "maxLength": 250
+      },
       "defaultValue": ""
     },
     {
@@ -292,9 +293,11 @@
           "editor"
         ]
       },
+      "maxLength": 500,
       "displayName": "Url",
       "placeholder": "Enter url",
       "validation": {
+        "maxLength": 500,
         "pattern": "^https?://.+",
         "message": "Invalid URL format"
       },
@@ -324,7 +327,6 @@
       "referencedFieldID": "id",
       "displayName": "Account",
       "placeholder": "Enter account",
-      "validation": {},
       "referencedFieldName": "name"
     },
     {
@@ -346,9 +348,11 @@
           "editor"
         ]
       },
+      "maxLength": 500,
       "displayName": "Avatar Url",
       "placeholder": "Enter avatar url",
       "validation": {
+        "maxLength": 500,
         "pattern": "^https?://.+",
         "message": "Invalid URL format"
       },
@@ -378,7 +382,6 @@
       "referencedFieldID": "id",
       "displayName": "Cover",
       "placeholder": "Enter cover",
-      "validation": {},
       "referencedFieldName": "name"
     },
     {
@@ -405,7 +408,6 @@
       "referencedFieldID": "id",
       "displayName": "Public Data",
       "placeholder": "Enter public data",
-      "validation": {},
       "referencedFieldName": "name"
     },
     {
@@ -428,8 +430,7 @@
         ]
       },
       "displayName": "Measurements",
-      "placeholder": "Enter measurements",
-      "validation": {}
+      "placeholder": "Enter measurements"
     },
     {
       "id": "field_description",
@@ -452,7 +453,6 @@
       },
       "displayName": "Description",
       "placeholder": "Enter description",
-      "validation": {},
       "defaultValue": ""
     },
     {
@@ -462,8 +462,8 @@
       "component": "text",
       "required": true,
       "isSystem": true,
-      "isPrimaryKey": false,
-      "isUnique": false,
+      "isPrimaryKey": true,
+      "isUnique": true,
       "sortOrder": 190,
       "permissions": {
         "read": [
@@ -473,8 +473,7 @@
           "system"
         ]
       },
-      "displayName": "Id",
-      "validation": {}
+      "displayName": "Id"
     },
     {
       "id": "field_created_at",
@@ -494,8 +493,7 @@
           "system"
         ]
       },
-      "displayName": "Created At",
-      "validation": {}
+      "displayName": "Created At"
     },
     {
       "id": "field_created_by",
@@ -515,8 +513,7 @@
           "system"
         ]
       },
-      "displayName": "Created By",
-      "validation": {}
+      "displayName": "Created By"
     },
     {
       "id": "field_updated_at",
@@ -536,8 +533,7 @@
           "system"
         ]
       },
-      "displayName": "Updated At",
-      "validation": {}
+      "displayName": "Updated At"
     },
     {
       "id": "field_updated_by",
@@ -557,8 +553,7 @@
           "system"
         ]
       },
-      "displayName": "Updated By",
-      "validation": {}
+      "displayName": "Updated By"
     },
     {
       "id": "field_deleted",
@@ -578,8 +573,7 @@
           "system"
         ]
       },
-      "displayName": "Deleted",
-      "validation": {}
+      "displayName": "Deleted"
     }
   ],
   "metadata": {
@@ -587,6 +581,6 @@
     "totalFields": 24,
     "systemFields": 6,
     "customFields": 18,
-    "generatedAt": "2025-09-15T14:13:08.269Z"
+    "generatedAt": "2025-09-17T11:54:54.018Z"
   }
 }

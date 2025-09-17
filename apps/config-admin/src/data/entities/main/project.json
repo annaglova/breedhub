@@ -26,7 +26,6 @@
       },
       "displayName": "Notes",
       "placeholder": "Enter notes",
-      "validation": {},
       "defaultValue": ""
     },
     {
@@ -48,9 +47,12 @@
           "editor"
         ]
       },
+      "maxLength": 250,
       "displayName": "Name",
       "placeholder": "Enter name",
-      "validation": {},
+      "validation": {
+        "maxLength": 250
+      },
       "defaultValue": ""
     },
     {
@@ -77,7 +79,6 @@
       "referencedFieldID": "id",
       "displayName": "Account",
       "placeholder": "Enter account",
-      "validation": {},
       "referencedFieldName": "name"
     },
     {
@@ -104,7 +105,6 @@
       "referencedFieldID": "id",
       "displayName": "Contact",
       "placeholder": "Enter contact",
-      "validation": {},
       "referencedFieldName": "name"
     },
     {
@@ -131,7 +131,6 @@
       "referencedFieldID": "id",
       "displayName": "Project Entry Type",
       "placeholder": "Enter project entry type",
-      "validation": {},
       "referencedFieldName": "name"
     },
     {
@@ -158,7 +157,6 @@
       "referencedFieldID": "id",
       "displayName": "Type",
       "placeholder": "Enter type",
-      "validation": {},
       "referencedFieldName": "name"
     },
     {
@@ -185,7 +183,6 @@
       "referencedFieldID": "id",
       "displayName": "Owner",
       "placeholder": "Enter owner",
-      "validation": {},
       "referencedFieldName": "name"
     },
     {
@@ -212,7 +209,6 @@
       "referencedFieldID": "id",
       "displayName": "Status",
       "placeholder": "Enter status",
-      "validation": {},
       "referencedFieldName": "name"
     },
     {
@@ -236,7 +232,6 @@
       },
       "displayName": "Start Date",
       "placeholder": "Enter start date",
-      "validation": {},
       "defaultValue": "(timezone(utc"
     },
     {
@@ -259,8 +254,7 @@
         ]
       },
       "displayName": "End Date",
-      "placeholder": "Enter end date",
-      "validation": {}
+      "placeholder": "Enter end date"
     },
     {
       "id": "field_duration",
@@ -283,7 +277,10 @@
       },
       "displayName": "Duration",
       "placeholder": "Enter duration",
-      "validation": {},
+      "validation": {
+        "precision": 32,
+        "scale": 0
+      },
       "defaultValue": "0"
     },
     {
@@ -306,8 +303,7 @@
         ]
       },
       "displayName": "Deadline",
-      "placeholder": "Enter deadline",
-      "validation": {}
+      "placeholder": "Enter deadline"
     },
     {
       "id": "field_supplier_id",
@@ -333,7 +329,6 @@
       "referencedFieldID": "id",
       "displayName": "Supplier",
       "placeholder": "Enter supplier",
-      "validation": {},
       "referencedFieldName": "name"
     },
     {
@@ -360,7 +355,6 @@
       "referencedFieldID": "id",
       "displayName": "Parent Project",
       "placeholder": "Enter parent project",
-      "validation": {},
       "referencedFieldName": "name"
     },
     {
@@ -384,7 +378,6 @@
       },
       "displayName": "Actual Completion",
       "placeholder": "Enter actual completion",
-      "validation": {},
       "defaultValue": "0"
     },
     {
@@ -407,7 +400,6 @@
         ]
       },
       "displayName": "Is Auto Calc Completion",
-      "validation": {},
       "defaultValue": "false"
     },
     {
@@ -431,7 +423,6 @@
       },
       "displayName": "Plan Income",
       "placeholder": "Enter plan income",
-      "validation": {},
       "defaultValue": "0"
     },
     {
@@ -455,7 +446,6 @@
       },
       "displayName": "Fact Income",
       "placeholder": "Enter fact income",
-      "validation": {},
       "defaultValue": "0"
     },
     {
@@ -479,7 +469,6 @@
       },
       "displayName": "Income Dev",
       "placeholder": "Enter income dev",
-      "validation": {},
       "defaultValue": "0"
     },
     {
@@ -503,7 +492,6 @@
       },
       "displayName": "Income Dev Perc",
       "placeholder": "Enter income dev perc",
-      "validation": {},
       "defaultValue": "0"
     },
     {
@@ -527,7 +515,6 @@
       },
       "displayName": "Plan External Cost",
       "placeholder": "Enter plan external cost",
-      "validation": {},
       "defaultValue": "0"
     },
     {
@@ -551,7 +538,6 @@
       },
       "displayName": "Fact External Cost",
       "placeholder": "Enter fact external cost",
-      "validation": {},
       "defaultValue": "0"
     },
     {
@@ -575,7 +561,6 @@
       },
       "displayName": "External Cost Dev",
       "placeholder": "Enter external cost dev",
-      "validation": {},
       "defaultValue": "0"
     },
     {
@@ -599,7 +584,6 @@
       },
       "displayName": "Plan External Dev Perc",
       "placeholder": "Enter plan external dev perc",
-      "validation": {},
       "defaultValue": "0"
     },
     {
@@ -623,7 +607,6 @@
       },
       "displayName": "Plan Expense",
       "placeholder": "Enter plan expense",
-      "validation": {},
       "defaultValue": "0"
     },
     {
@@ -647,7 +630,6 @@
       },
       "displayName": "Fact Expense",
       "placeholder": "Enter fact expense",
-      "validation": {},
       "defaultValue": "0"
     },
     {
@@ -671,7 +653,6 @@
       },
       "displayName": "Expense Dev",
       "placeholder": "Enter expense dev",
-      "validation": {},
       "defaultValue": "0"
     },
     {
@@ -695,7 +676,6 @@
       },
       "displayName": "Expense Dev Perc",
       "placeholder": "Enter expense dev perc",
-      "validation": {},
       "defaultValue": "0"
     },
     {
@@ -719,7 +699,6 @@
       },
       "displayName": "Plan Internal Cost",
       "placeholder": "Enter plan internal cost",
-      "validation": {},
       "defaultValue": "0"
     },
     {
@@ -743,7 +722,6 @@
       },
       "displayName": "Fact Internal Cost",
       "placeholder": "Enter fact internal cost",
-      "validation": {},
       "defaultValue": "0"
     },
     {
@@ -767,7 +745,6 @@
       },
       "displayName": "Internal Cost Dev",
       "placeholder": "Enter internal cost dev",
-      "validation": {},
       "defaultValue": "0"
     },
     {
@@ -791,7 +768,6 @@
       },
       "displayName": "Plan Internal Dev Perc",
       "placeholder": "Enter plan internal dev perc",
-      "validation": {},
       "defaultValue": "0"
     },
     {
@@ -815,7 +791,6 @@
       },
       "displayName": "Plan Margin",
       "placeholder": "Enter plan margin",
-      "validation": {},
       "defaultValue": "0"
     },
     {
@@ -839,7 +814,6 @@
       },
       "displayName": "Plan Margin Perc",
       "placeholder": "Enter plan margin perc",
-      "validation": {},
       "defaultValue": "0"
     },
     {
@@ -863,7 +837,6 @@
       },
       "displayName": "Fact Margin",
       "placeholder": "Enter fact margin",
-      "validation": {},
       "defaultValue": "0"
     },
     {
@@ -887,7 +860,6 @@
       },
       "displayName": "Fact Margin Perc",
       "placeholder": "Enter fact margin perc",
-      "validation": {},
       "defaultValue": "0"
     },
     {
@@ -911,7 +883,6 @@
       },
       "displayName": "Margin Dev",
       "placeholder": "Enter margin dev",
-      "validation": {},
       "defaultValue": "0"
     },
     {
@@ -935,7 +906,6 @@
       },
       "displayName": "Margin Dev Perc",
       "placeholder": "Enter margin dev perc",
-      "validation": {},
       "defaultValue": "0"
     },
     {
@@ -959,7 +929,10 @@
       },
       "displayName": "Position",
       "placeholder": "Enter position",
-      "validation": {},
+      "validation": {
+        "precision": 32,
+        "scale": 0
+      },
       "defaultValue": "0"
     },
     {
@@ -986,7 +959,6 @@
       "referencedFieldID": "id",
       "displayName": "Event",
       "placeholder": "Enter event",
-      "validation": {},
       "referencedFieldName": "name"
     },
     {
@@ -1013,7 +985,6 @@
       "referencedFieldID": "id",
       "displayName": "Category",
       "placeholder": "Enter category",
-      "validation": {},
       "referencedFieldName": "name"
     },
     {
@@ -1040,7 +1011,6 @@
       "referencedFieldID": "id",
       "displayName": "Breed",
       "placeholder": "Enter breed",
-      "validation": {},
       "referencedFieldName": "name"
     },
     {
@@ -1062,9 +1032,11 @@
           "editor"
         ]
       },
+      "maxLength": 250,
       "displayName": "Url",
       "placeholder": "Enter url",
       "validation": {
+        "maxLength": 250,
         "pattern": "^https?://.+",
         "message": "Invalid URL format"
       },
@@ -1094,7 +1066,6 @@
       "referencedFieldID": "id",
       "displayName": "Pet Type",
       "placeholder": "Enter pet type",
-      "validation": {},
       "referencedFieldName": "name"
     },
     {
@@ -1121,7 +1092,6 @@
       "referencedFieldID": "id",
       "displayName": "Cover",
       "placeholder": "Enter cover",
-      "validation": {},
       "referencedFieldName": "name"
     },
     {
@@ -1131,8 +1101,8 @@
       "component": "text",
       "required": true,
       "isSystem": true,
-      "isPrimaryKey": false,
-      "isUnique": false,
+      "isPrimaryKey": true,
+      "isUnique": true,
       "sortOrder": 460,
       "permissions": {
         "read": [
@@ -1142,8 +1112,7 @@
           "system"
         ]
       },
-      "displayName": "Id",
-      "validation": {}
+      "displayName": "Id"
     },
     {
       "id": "field_created_at",
@@ -1163,8 +1132,7 @@
           "system"
         ]
       },
-      "displayName": "Created At",
-      "validation": {}
+      "displayName": "Created At"
     },
     {
       "id": "field_created_by",
@@ -1184,8 +1152,7 @@
           "system"
         ]
       },
-      "displayName": "Created By",
-      "validation": {}
+      "displayName": "Created By"
     },
     {
       "id": "field_updated_at",
@@ -1205,8 +1172,7 @@
           "system"
         ]
       },
-      "displayName": "Updated At",
-      "validation": {}
+      "displayName": "Updated At"
     },
     {
       "id": "field_updated_by",
@@ -1226,8 +1192,7 @@
           "system"
         ]
       },
-      "displayName": "Updated By",
-      "validation": {}
+      "displayName": "Updated By"
     }
   ],
   "metadata": {
@@ -1235,6 +1200,6 @@
     "totalFields": 50,
     "systemFields": 5,
     "customFields": 45,
-    "generatedAt": "2025-09-15T14:13:27.736Z"
+    "generatedAt": "2025-09-17T11:55:14.308Z"
   }
 }

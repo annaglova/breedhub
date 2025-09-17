@@ -300,38 +300,27 @@ function generateFieldConfig(col, constraints, foreignKeys) {
 
 // Get table columns and constraints
 async function getTableSchema(tableName) {
-  // Try to get columns using RPC function first
-  let columns = null;
-  let columnsError = null;
-  
-  // Try get_table_columns RPC first
-  const { data: rpcColumns, error: rpcError } = await supabase.rpc("get_table_columns", {
-    tablename: tableName
+  // Always use execute_sql_select to get ALL column information including character_maximum_length
+  const { data: sqlColumnsResult, error: sqlError } = await supabase.rpc("execute_sql_select", {
+    sql: `
+      SELECT 
+        column_name,
+        data_type,
+        is_nullable,
+        column_default,
+        character_maximum_length,
+        numeric_precision,
+        numeric_scale
+      FROM information_schema.columns
+      WHERE table_schema = 'public' 
+        AND table_name = '${tableName}'
+      ORDER BY ordinal_position
+    `
   });
   
-  if (rpcError || !rpcColumns) {
-    // Fallback to direct SQL
-    const { data: sqlColumns, error: sqlError } = await supabase.rpc("execute_sql_select", {
-      sql: `
-        SELECT 
-          column_name,
-          data_type,
-          is_nullable,
-          column_default,
-          character_maximum_length,
-          numeric_precision,
-          numeric_scale
-        FROM information_schema.columns
-        WHERE table_schema = 'public' 
-          AND table_name = '${tableName}'
-        ORDER BY ordinal_position
-      `
-    });
-    columns = sqlColumns;
-    columnsError = sqlError;
-  } else {
-    columns = rpcColumns;
-  }
+  // Extract the actual data from the result format
+  const columns = sqlColumnsResult?.map(row => row.result) || [];
+  const columnsError = sqlError;
   
   if (columnsError) {
     console.error(`Error fetching columns for ${tableName}:`, columnsError);
@@ -355,7 +344,7 @@ async function getTableSchema(tableName) {
   }
   
   // Get other constraints (PRIMARY KEY, UNIQUE, etc)
-  const { data: constraints, error: constraintsError } = await supabase.rpc("execute_sql_select", {
+  const { data: constraintsResult, error: constraintsError } = await supabase.rpc("execute_sql_select", {
     sql: `
       SELECT 
         tc.constraint_name,
@@ -370,6 +359,9 @@ async function getTableSchema(tableName) {
         AND tc.constraint_type IN ('PRIMARY KEY', 'UNIQUE', 'NOT NULL', 'CHECK')
     `
   });
+  
+  // Extract the actual data from the result format
+  const constraints = constraintsResult?.map(row => row.result) || [];
   
   if (constraintsError) {
     console.error(`Error fetching constraints for ${tableName}:`, constraintsError);

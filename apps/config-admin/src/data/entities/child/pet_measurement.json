@@ -26,7 +26,6 @@
       },
       "displayName": "Value",
       "placeholder": "Enter value",
-      "validation": {},
       "defaultValue": "0"
     },
     {
@@ -50,7 +49,10 @@
       },
       "displayName": "Day",
       "placeholder": "Enter day",
-      "validation": {},
+      "validation": {
+        "precision": 32,
+        "scale": 0
+      },
       "defaultValue": "0"
     },
     {
@@ -74,7 +76,6 @@
       },
       "displayName": "Date",
       "placeholder": "Enter date",
-      "validation": {},
       "defaultValue": "timezone(utc"
     },
     {
@@ -101,7 +102,6 @@
       "referencedFieldID": "id",
       "displayName": "Pet",
       "placeholder": "Enter pet",
-      "validation": {},
       "referencedFieldName": "name"
     },
     {
@@ -128,7 +128,6 @@
       "referencedFieldID": "id",
       "displayName": "Measurement Type",
       "placeholder": "Enter measurement type",
-      "validation": {},
       "referencedFieldName": "name"
     },
     {
@@ -155,7 +154,6 @@
       "referencedFieldID": "id",
       "displayName": "Unit",
       "placeholder": "Enter unit",
-      "validation": {},
       "referencedFieldName": "name"
     },
     {
@@ -178,7 +176,6 @@
         ]
       },
       "displayName": "Active Synchronization",
-      "validation": {},
       "defaultValue": "false"
     },
     {
@@ -205,7 +202,6 @@
       "referencedFieldID": "id",
       "displayName": "Pet Breed",
       "placeholder": "Enter pet breed",
-      "validation": {},
       "referencedFieldName": "name"
     },
     {
@@ -215,8 +211,8 @@
       "component": "text",
       "required": true,
       "isSystem": true,
-      "isPrimaryKey": false,
-      "isUnique": false,
+      "isPrimaryKey": true,
+      "isUnique": true,
       "sortOrder": 90,
       "permissions": {
         "read": [
@@ -226,8 +222,7 @@
           "system"
         ]
       },
-      "displayName": "Id",
-      "validation": {}
+      "displayName": "Id"
     },
     {
       "id": "field_created_at",
@@ -247,8 +242,7 @@
           "system"
         ]
       },
-      "displayName": "Created At",
-      "validation": {}
+      "displayName": "Created At"
     },
     {
       "id": "field_created_by",
@@ -268,8 +262,7 @@
           "system"
         ]
       },
-      "displayName": "Created By",
-      "validation": {}
+      "displayName": "Created By"
     },
     {
       "id": "field_updated_at",
@@ -289,8 +282,7 @@
           "system"
         ]
       },
-      "displayName": "Updated At",
-      "validation": {}
+      "displayName": "Updated At"
     },
     {
       "id": "field_updated_by",
@@ -310,8 +302,7 @@
           "system"
         ]
       },
-      "displayName": "Updated By",
-      "validation": {}
+      "displayName": "Updated By"
     }
   ],
   "metadata": {
@@ -319,6 +310,6 @@
     "totalFields": 13,
     "systemFields": 5,
     "customFields": 8,
-    "generatedAt": "2025-09-15T14:15:03.022Z"
+    "generatedAt": "2025-09-17T11:56:49.173Z"
   }
 }

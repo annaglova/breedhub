@@ -29,7 +29,6 @@
       "referencedFieldID": "id",
       "displayName": "Service Item",
       "placeholder": "Enter service item",
-      "validation": {},
       "referencedFieldName": "name"
     },
     {
@@ -56,7 +55,6 @@
       "referencedFieldID": "id",
       "displayName": "Service Pact",
       "placeholder": "Enter service pact",
-      "validation": {},
       "referencedFieldName": "name"
     },
     {
@@ -80,7 +78,10 @@
       },
       "displayName": "Reaction Time Value",
       "placeholder": "Enter reaction time value",
-      "validation": {},
+      "validation": {
+        "precision": 32,
+        "scale": 0
+      },
       "defaultValue": "0"
     },
     {
@@ -107,7 +108,6 @@
       "referencedFieldID": "id",
       "displayName": "Reaction Time Unit",
       "placeholder": "Enter reaction time unit",
-      "validation": {},
       "referencedFieldName": "name"
     },
     {
@@ -131,7 +131,10 @@
       },
       "displayName": "Solution Time Value",
       "placeholder": "Enter solution time value",
-      "validation": {},
+      "validation": {
+        "precision": 32,
+        "scale": 0
+      },
       "defaultValue": "0"
     },
     {
@@ -158,7 +161,6 @@
       "referencedFieldID": "id",
       "displayName": "Solution Time Unit",
       "placeholder": "Enter solution time unit",
-      "validation": {},
       "referencedFieldName": "name"
     },
     {
@@ -185,7 +187,6 @@
       "referencedFieldID": "id",
       "displayName": "Calendar",
       "placeholder": "Enter calendar",
-      "validation": {},
       "referencedFieldName": "name"
     },
     {
@@ -207,9 +208,12 @@
           "editor"
         ]
       },
+      "maxLength": 250,
       "displayName": "Reaction Time",
       "placeholder": "Enter reaction time",
-      "validation": {},
+      "validation": {
+        "maxLength": 250
+      },
       "defaultValue": ""
     },
     {
@@ -231,9 +235,12 @@
           "editor"
         ]
       },
+      "maxLength": 250,
       "displayName": "Solution Time",
       "placeholder": "Enter solution time",
-      "validation": {},
+      "validation": {
+        "maxLength": 250
+      },
       "defaultValue": ""
     },
     {
@@ -255,9 +262,12 @@
           "editor"
         ]
       },
+      "maxLength": 500,
       "displayName": "Concat Name",
       "placeholder": "Enter concat name",
-      "validation": {},
+      "validation": {
+        "maxLength": 500
+      },
       "defaultValue": ""
     },
     {
@@ -267,8 +277,8 @@
       "component": "text",
       "required": true,
       "isSystem": true,
-      "isPrimaryKey": false,
-      "isUnique": false,
+      "isPrimaryKey": true,
+      "isUnique": true,
       "sortOrder": 110,
       "permissions": {
         "read": [
@@ -278,8 +288,7 @@
           "system"
         ]
       },
-      "displayName": "Id",
-      "validation": {}
+      "displayName": "Id"
     },
     {
       "id": "field_created_at",
@@ -299,8 +308,7 @@
           "system"
         ]
       },
-      "displayName": "Created At",
-      "validation": {}
+      "displayName": "Created At"
     },
     {
       "id": "field_created_by",
@@ -320,8 +328,7 @@
           "system"
         ]
       },
-      "displayName": "Created By",
-      "validation": {}
+      "displayName": "Created By"
     },
     {
       "id": "field_updated_at",
@@ -341,8 +348,7 @@
           "system"
         ]
       },
-      "displayName": "Updated At",
-      "validation": {}
+      "displayName": "Updated At"
     },
     {
       "id": "field_updated_by",
@@ -362,8 +368,7 @@
           "system"
         ]
       },
-      "displayName": "Updated By",
-      "validation": {}
+      "displayName": "Updated By"
     }
   ],
   "metadata": {
@@ -371,6 +376,6 @@
     "totalFields": 15,
     "systemFields": 5,
     "customFields": 10,
-    "generatedAt": "2025-09-08T11:21:11.170Z"
+    "generatedAt": "2025-09-17T11:57:04.517Z"
   }
 }

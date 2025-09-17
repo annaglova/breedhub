@@ -209,9 +209,9 @@ function generateAllInserts(tree, existingConfigs = []) {
       override_data: propertyData, // All property data goes to override_data
       data: propertyData, // data = self_data + override_data = {} + propertyData
       deps: [], // Empty array for properties (RxDB requires array, not null)
-      tags: [], // Empty array for properties (RxDB requires array, not null)
-      caption: null,
-      category: null
+      tags: prop.tags || [], // Keep tags from semantic tree
+      caption: prop.caption || null,
+      category: prop.category || null // Keep category from semantic tree
     };
     configs.push(config);
   }

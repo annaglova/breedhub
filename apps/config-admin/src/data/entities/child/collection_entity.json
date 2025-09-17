@@ -29,7 +29,6 @@
       "referencedFieldID": "id",
       "displayName": "Record",
       "placeholder": "Enter record",
-      "validation": {},
       "referencedFieldName": "id"
     },
     {
@@ -56,7 +55,6 @@
       "referencedFieldID": "id",
       "displayName": "Collection",
       "placeholder": "Enter collection",
-      "validation": {},
       "referencedFieldName": "name"
     },
     {
@@ -83,7 +81,6 @@
       "referencedFieldID": "id",
       "displayName": "Contact",
       "placeholder": "Enter contact",
-      "validation": {},
       "referencedFieldName": "name"
     },
     {
@@ -110,7 +107,6 @@
       "referencedFieldID": "id",
       "displayName": "Account",
       "placeholder": "Enter account",
-      "validation": {},
       "referencedFieldName": "name"
     },
     {
@@ -137,7 +133,6 @@
       "referencedFieldID": "id",
       "displayName": "Event",
       "placeholder": "Enter event",
-      "validation": {},
       "referencedFieldName": "name"
     },
     {
@@ -164,7 +159,6 @@
       "referencedFieldID": "id",
       "displayName": "Pet",
       "placeholder": "Enter pet",
-      "validation": {},
       "referencedFieldName": "name"
     },
     {
@@ -191,7 +185,6 @@
       "referencedFieldID": "id",
       "displayName": "Pet Breed",
       "placeholder": "Enter pet breed",
-      "validation": {},
       "referencedFieldName": "id"
     },
     {
@@ -201,8 +194,8 @@
       "component": "text",
       "required": true,
       "isSystem": true,
-      "isPrimaryKey": false,
-      "isUnique": false,
+      "isPrimaryKey": true,
+      "isUnique": true,
       "sortOrder": 80,
       "permissions": {
         "read": [
@@ -212,8 +205,7 @@
           "system"
         ]
       },
-      "displayName": "Id",
-      "validation": {}
+      "displayName": "Id"
     },
     {
       "id": "field_created_at",
@@ -233,8 +225,7 @@
           "system"
         ]
       },
-      "displayName": "Created At",
-      "validation": {}
+      "displayName": "Created At"
     },
     {
       "id": "field_created_by",
@@ -254,8 +245,7 @@
           "system"
         ]
       },
-      "displayName": "Created By",
-      "validation": {}
+      "displayName": "Created By"
     },
     {
       "id": "field_updated_at",
@@ -275,8 +265,7 @@
           "system"
         ]
       },
-      "displayName": "Updated At",
-      "validation": {}
+      "displayName": "Updated At"
     },
     {
       "id": "field_updated_by",
@@ -296,8 +285,7 @@
           "system"
         ]
       },
-      "displayName": "Updated By",
-      "validation": {}
+      "displayName": "Updated By"
     }
   ],
   "metadata": {
@@ -305,6 +293,6 @@
     "totalFields": 12,
     "systemFields": 5,
     "customFields": 7,
-    "generatedAt": "2025-09-15T14:14:41.972Z"
+    "generatedAt": "2025-09-17T11:56:28.250Z"
   }
 }

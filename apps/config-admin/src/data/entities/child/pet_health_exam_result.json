@@ -29,7 +29,6 @@
       "referencedFieldID": "id",
       "displayName": "Pet",
       "placeholder": "Enter pet",
-      "validation": {},
       "referencedFieldName": "name"
     },
     {
@@ -56,7 +55,6 @@
       "referencedFieldID": "id",
       "displayName": "Health Exam Object",
       "placeholder": "Enter health exam object",
-      "validation": {},
       "referencedFieldName": "name"
     },
     {
@@ -83,7 +81,6 @@
       "referencedFieldID": "id",
       "displayName": "Health Exam Result",
       "placeholder": "Enter health exam result",
-      "validation": {},
       "referencedFieldName": "name"
     },
     {
@@ -106,8 +103,7 @@
         ]
       },
       "displayName": "Date",
-      "placeholder": "Enter date",
-      "validation": {}
+      "placeholder": "Enter date"
     },
     {
       "id": "field_pet_breed_id",
@@ -133,7 +129,6 @@
       "referencedFieldID": "id",
       "displayName": "Pet Breed",
       "placeholder": "Enter pet breed",
-      "validation": {},
       "referencedFieldName": "name"
     },
     {
@@ -143,8 +138,8 @@
       "component": "text",
       "required": true,
       "isSystem": true,
-      "isPrimaryKey": false,
-      "isUnique": false,
+      "isPrimaryKey": true,
+      "isUnique": true,
       "sortOrder": 60,
       "permissions": {
         "read": [
@@ -154,8 +149,7 @@
           "system"
         ]
       },
-      "displayName": "Id",
-      "validation": {}
+      "displayName": "Id"
     },
     {
       "id": "field_created_at",
@@ -175,8 +169,7 @@
           "system"
         ]
       },
-      "displayName": "Created At",
-      "validation": {}
+      "displayName": "Created At"
     },
     {
       "id": "field_created_by",
@@ -196,8 +189,7 @@
           "system"
         ]
       },
-      "displayName": "Created By",
-      "validation": {}
+      "displayName": "Created By"
     },
     {
       "id": "field_updated_at",
@@ -217,8 +209,7 @@
           "system"
         ]
       },
-      "displayName": "Updated At",
-      "validation": {}
+      "displayName": "Updated At"
     },
     {
       "id": "field_updated_by",
@@ -238,8 +229,7 @@
           "system"
         ]
       },
-      "displayName": "Updated By",
-      "validation": {}
+      "displayName": "Updated By"
     }
   ],
   "metadata": {
@@ -247,6 +237,6 @@
     "totalFields": 10,
     "systemFields": 5,
     "customFields": 5,
-    "generatedAt": "2025-09-15T14:14:58.429Z"
+    "generatedAt": "2025-09-17T11:56:44.586Z"
   }
 }

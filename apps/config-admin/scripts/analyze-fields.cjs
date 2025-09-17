@@ -299,6 +299,8 @@ function generateFieldProperties(fieldMap) {
         properties.set('property_required', {
           id: 'property_required',
           type: 'property',
+          category: 'system',
+          tags: ['field'],
           self_data: {
             required: true,
             validation: { notNull: true }
@@ -311,6 +313,8 @@ function generateFieldProperties(fieldMap) {
         properties.set('property_not_required', {
           id: 'property_not_required',
           type: 'property',
+          category: 'system',
+          tags: ['field'],
           self_data: {
             required: false
           }
@@ -322,6 +326,8 @@ function generateFieldProperties(fieldMap) {
         properties.set('property_readonly', {
           id: 'property_readonly',
           type: 'property',
+          category: 'system',
+          tags: ['field'],
           self_data: {
             permissions: { write: ['system'] }
           }
@@ -333,6 +339,8 @@ function generateFieldProperties(fieldMap) {
         properties.set('property_is_system', {
           id: 'property_is_system',
           type: 'property',
+          category: 'system',
+          tags: ['field'],
           self_data: {
             isSystem: true
           }
@@ -344,6 +352,8 @@ function generateFieldProperties(fieldMap) {
         properties.set('property_not_system', {
           id: 'property_not_system',
           type: 'property',
+          category: 'system',
+          tags: ['field'],
           self_data: {
             isSystem: false
           }
@@ -357,6 +367,8 @@ function generateFieldProperties(fieldMap) {
           properties.set(propId, {
             id: propId,
             type: 'property',
+            category: 'system',
+            tags: ['field', 'string'],
             self_data: {
               maxLength: config.maxLength,
               validation: { maxLength: config.maxLength }
@@ -370,6 +382,8 @@ function generateFieldProperties(fieldMap) {
         properties.set('property_primary_key', {
           id: 'property_primary_key',
           type: 'property',
+          category: 'system',
+          tags: ['field'],
           self_data: {
             isPrimaryKey: true,
             isUnique: true
@@ -382,6 +396,8 @@ function generateFieldProperties(fieldMap) {
         properties.set('property_not_primary_key', {
           id: 'property_not_primary_key',
           type: 'property',
+          category: 'system',
+          tags: ['field'],
           self_data: {
             isPrimaryKey: false
           }
@@ -394,6 +410,8 @@ function generateFieldProperties(fieldMap) {
         properties.set('property_unique', {
           id: 'property_unique',
           type: 'property',
+          category: 'system',
+          tags: ['field'],
           self_data: {
             isUnique: true
           }
@@ -405,6 +423,8 @@ function generateFieldProperties(fieldMap) {
         properties.set('property_not_unique', {
           id: 'property_not_unique',
           type: 'property',
+          category: 'system',
+          tags: ['field'],
           self_data: {
             isUnique: false
           }

@@ -24,9 +24,12 @@
           "editor"
         ]
       },
+      "maxLength": 500,
       "displayName": "Value",
       "placeholder": "Enter value",
-      "validation": {},
+      "validation": {
+        "maxLength": 500
+      },
       "defaultValue": ""
     },
     {
@@ -53,7 +56,6 @@
       "referencedFieldID": "id",
       "displayName": "Pet Identifier Type",
       "placeholder": "Enter pet identifier type",
-      "validation": {},
       "referencedFieldName": "name"
     },
     {
@@ -80,7 +82,6 @@
       "referencedFieldID": "id",
       "displayName": "Pet",
       "placeholder": "Enter pet",
-      "validation": {},
       "referencedFieldName": "name"
     },
     {
@@ -103,8 +104,7 @@
         ]
       },
       "displayName": "Date",
-      "placeholder": "Enter date",
-      "validation": {}
+      "placeholder": "Enter date"
     },
     {
       "id": "field_studbook_id",
@@ -130,7 +130,6 @@
       "referencedFieldID": "id",
       "displayName": "Studbook",
       "placeholder": "Enter studbook",
-      "validation": {},
       "referencedFieldName": "name"
     },
     {
@@ -152,9 +151,12 @@
           "editor"
         ]
       },
+      "maxLength": 50,
       "displayName": "Number",
       "placeholder": "Enter number",
-      "validation": {},
+      "validation": {
+        "maxLength": 50
+      },
       "defaultValue": ""
     },
     {
@@ -177,7 +179,6 @@
         ]
       },
       "displayName": "Is Processed",
-      "validation": {},
       "defaultValue": "false"
     },
     {
@@ -199,9 +200,12 @@
           "editor"
         ]
       },
+      "maxLength": 500,
       "displayName": "Trim Value",
       "placeholder": "Enter trim value",
-      "validation": {},
+      "validation": {
+        "maxLength": 500
+      },
       "defaultValue": ""
     },
     {
@@ -224,7 +228,6 @@
         ]
       },
       "displayName": "Is Public",
-      "validation": {},
       "defaultValue": "false"
     },
     {
@@ -234,8 +237,8 @@
       "component": "text",
       "required": true,
       "isSystem": true,
-      "isPrimaryKey": false,
-      "isUnique": false,
+      "isPrimaryKey": true,
+      "isUnique": true,
       "sortOrder": 100,
       "permissions": {
         "read": [
@@ -245,8 +248,7 @@
           "system"
         ]
       },
-      "displayName": "Id",
-      "validation": {}
+      "displayName": "Id"
     },
     {
       "id": "field_created_at",
@@ -266,8 +268,7 @@
           "system"
         ]
       },
-      "displayName": "Created At",
-      "validation": {}
+      "displayName": "Created At"
     },
     {
       "id": "field_created_by",
@@ -287,8 +288,7 @@
           "system"
         ]
       },
-      "displayName": "Created By",
-      "validation": {}
+      "displayName": "Created By"
     },
     {
       "id": "field_updated_at",
@@ -308,8 +308,7 @@
           "system"
         ]
       },
-      "displayName": "Updated At",
-      "validation": {}
+      "displayName": "Updated At"
     },
     {
       "id": "field_updated_by",
@@ -329,8 +328,7 @@
           "system"
         ]
       },
-      "displayName": "Updated By",
-      "validation": {}
+      "displayName": "Updated By"
     }
   ],
   "metadata": {
@@ -338,6 +336,6 @@
     "totalFields": 14,
     "systemFields": 5,
     "customFields": 9,
-    "generatedAt": "2025-09-15T14:14:59.372Z"
+    "generatedAt": "2025-09-17T11:56:45.488Z"
   }
 }

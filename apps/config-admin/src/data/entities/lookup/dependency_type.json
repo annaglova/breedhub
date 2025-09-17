@@ -24,9 +24,12 @@
           "editor"
         ]
       },
+      "maxLength": 250,
       "displayName": "Name",
       "placeholder": "Enter name",
-      "validation": {},
+      "validation": {
+        "maxLength": 250
+      },
       "defaultValue": ""
     },
     {
@@ -48,9 +51,12 @@
           "editor"
         ]
       },
+      "maxLength": 250,
       "displayName": "Description",
       "placeholder": "Enter description",
-      "validation": {},
+      "validation": {
+        "maxLength": 250
+      },
       "defaultValue": ""
     },
     {
@@ -73,7 +79,6 @@
         ]
       },
       "displayName": "For Service Service",
-      "validation": {},
       "defaultValue": "false"
     },
     {
@@ -96,7 +101,6 @@
         ]
       },
       "displayName": "For Conf Item Conf Item",
-      "validation": {},
       "defaultValue": "false"
     },
     {
@@ -119,7 +123,6 @@
         ]
       },
       "displayName": "For Service Conf Item",
-      "validation": {},
       "defaultValue": "false"
     },
     {
@@ -141,9 +144,12 @@
           "editor"
         ]
       },
+      "maxLength": 250,
       "displayName": "Reverse Type Name",
       "placeholder": "Enter reverse type name",
-      "validation": {},
+      "validation": {
+        "maxLength": 250
+      },
       "defaultValue": ""
     },
     {
@@ -170,7 +176,6 @@
       "referencedFieldID": "id",
       "displayName": "Dependency Category",
       "placeholder": "Enter dependency category",
-      "validation": {},
       "referencedFieldName": "name"
     },
     {
@@ -180,8 +185,8 @@
       "component": "text",
       "required": true,
       "isSystem": true,
-      "isPrimaryKey": false,
-      "isUnique": false,
+      "isPrimaryKey": true,
+      "isUnique": true,
       "sortOrder": 80,
       "permissions": {
         "read": [
@@ -191,8 +196,7 @@
           "system"
         ]
       },
-      "displayName": "Id",
-      "validation": {}
+      "displayName": "Id"
     },
     {
       "id": "field_created_at",
@@ -212,8 +216,7 @@
           "system"
         ]
       },
-      "displayName": "Created At",
-      "validation": {}
+      "displayName": "Created At"
     },
     {
       "id": "field_created_by",
@@ -233,8 +236,7 @@
           "system"
         ]
       },
-      "displayName": "Created By",
-      "validation": {}
+      "displayName": "Created By"
     },
     {
       "id": "field_updated_at",
@@ -254,8 +256,7 @@
           "system"
         ]
       },
-      "displayName": "Updated At",
-      "validation": {}
+      "displayName": "Updated At"
     },
     {
       "id": "field_updated_by",
@@ -275,8 +276,7 @@
           "system"
         ]
       },
-      "displayName": "Updated By",
-      "validation": {}
+      "displayName": "Updated By"
     }
   ],
   "metadata": {
@@ -284,6 +284,6 @@
     "totalFields": 12,
     "systemFields": 5,
     "customFields": 7,
-    "generatedAt": "2025-09-15T14:14:07.945Z"
+    "generatedAt": "2025-09-17T11:55:54.444Z"
   }
 }

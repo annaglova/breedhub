@@ -29,7 +29,6 @@
       "referencedFieldID": "id",
       "displayName": "Contact",
       "placeholder": "Enter contact",
-      "validation": {},
       "referencedFieldName": "name"
     },
     {
@@ -56,7 +55,6 @@
       "referencedFieldID": "id",
       "displayName": "Breed",
       "placeholder": "Enter breed",
-      "validation": {},
       "referencedFieldName": "name"
     },
     {
@@ -83,7 +81,6 @@
       "referencedFieldID": "id",
       "displayName": "Page View",
       "placeholder": "Enter page view",
-      "validation": {},
       "referencedFieldName": "name"
     },
     {
@@ -110,7 +107,6 @@
       "referencedFieldID": "id",
       "displayName": "Size Unit",
       "placeholder": "Enter size unit",
-      "validation": {},
       "referencedFieldName": "name"
     },
     {
@@ -137,7 +133,6 @@
       "referencedFieldID": "id",
       "displayName": "Weight Unit",
       "placeholder": "Enter weight unit",
-      "validation": {},
       "referencedFieldName": "name"
     },
     {
@@ -160,7 +155,6 @@
         ]
       },
       "displayName": "Anonymous Gift Sender",
-      "validation": {},
       "defaultValue": "false"
     },
     {
@@ -183,7 +177,6 @@
         ]
       },
       "displayName": "Welcome Stage Complete",
-      "validation": {},
       "defaultValue": "false"
     },
     {
@@ -193,8 +186,8 @@
       "component": "text",
       "required": true,
       "isSystem": true,
-      "isPrimaryKey": false,
-      "isUnique": false,
+      "isPrimaryKey": true,
+      "isUnique": true,
       "sortOrder": 80,
       "permissions": {
         "read": [
@@ -204,8 +197,7 @@
           "system"
         ]
       },
-      "displayName": "Id",
-      "validation": {}
+      "displayName": "Id"
     },
     {
       "id": "field_created_at",
@@ -225,8 +217,7 @@
           "system"
         ]
       },
-      "displayName": "Created At",
-      "validation": {}
+      "displayName": "Created At"
     },
     {
       "id": "field_created_by",
@@ -246,8 +237,7 @@
           "system"
         ]
       },
-      "displayName": "Created By",
-      "validation": {}
+      "displayName": "Created By"
     },
     {
       "id": "field_updated_at",
@@ -267,8 +257,7 @@
           "system"
         ]
       },
-      "displayName": "Updated At",
-      "validation": {}
+      "displayName": "Updated At"
     },
     {
       "id": "field_updated_by",
@@ -288,8 +277,7 @@
           "system"
         ]
       },
-      "displayName": "Updated By",
-      "validation": {}
+      "displayName": "Updated By"
     }
   ],
   "metadata": {
@@ -297,6 +285,6 @@
     "totalFields": 12,
     "systemFields": 5,
     "customFields": 7,
-    "generatedAt": "2025-09-08T11:21:14.363Z"
+    "generatedAt": "2025-09-17T11:57:08.188Z"
   }
 }
