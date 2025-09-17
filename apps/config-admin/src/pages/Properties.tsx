@@ -42,6 +42,7 @@ const Properties: React.FC = () => {
   const [editingData, setEditingData] = useState<string>("");
   const [editingCaption, setEditingCaption] = useState<string>("");
   const [editingVersion, setEditingVersion] = useState<number>(1);
+  const [editingTags, setEditingTags] = useState<string>("");
   const [isCreating, setIsCreating] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -87,6 +88,7 @@ const Properties: React.FC = () => {
     setEditingData(JSON.stringify(property.data || {}, null, 2));
     setEditingCaption(property.caption || "");
     setEditingVersion(property.version || 1);
+    setEditingTags(property.tags?.join(", ") || "");
   };
 
   // Start creating new property
@@ -96,6 +98,7 @@ const Properties: React.FC = () => {
     setEditingData("{}");
     setEditingCaption("");
     setEditingVersion(1);
+    setEditingTags("");
   };
 
   // Save edited property
@@ -104,11 +107,13 @@ const Properties: React.FC = () => {
 
     try {
       const selfData = JSON.parse(editingData);
+      const tagsArray = editingTags ? editingTags.split(',').map(tag => tag.trim()).filter(Boolean) : [];
 
-      const result = await appConfigStore.updatePropertyWithIdChange(
+      const result = await appConfigStore.updatePropertyWithIdChangeAndTags(
         editingId,
         editingNewId,
-        selfData
+        selfData,
+        tagsArray
       );
 
       if (!result.success) {
@@ -119,6 +124,7 @@ const Properties: React.FC = () => {
       setEditingId(null);
       setEditingNewId("");
       setEditingData("");
+      setEditingTags("");
       // Don't reset page when saving edits
     } catch (error: any) {
       console.error("Error saving property:", error);
@@ -158,10 +164,12 @@ const Properties: React.FC = () => {
 
       try {
         const selfData = JSON.parse(editingData);
+        const tagsArray = editingTags ? editingTags.split(',').map(tag => tag.trim()).filter(Boolean) : [];
 
-        const result = await appConfigStore.createProperty(
+        const result = await appConfigStore.createPropertyWithTags(
           editingNewId,
-          selfData
+          selfData,
+          tagsArray
         );
 
         if (!result.success) {
@@ -174,6 +182,7 @@ const Properties: React.FC = () => {
         setEditingData("");
         setEditingCaption("");
         setEditingVersion(1);
+        setEditingTags("");
         // Reset to first page to see the new property
         setCurrentPage(1);
       } catch (error: any) {
@@ -197,6 +206,7 @@ const Properties: React.FC = () => {
     setEditingData("");
     setEditingCaption("");
     setEditingVersion(1);
+    setEditingTags("");
     setIsCreating(false);
   };
 
@@ -256,12 +266,19 @@ const Properties: React.FC = () => {
                     <div className="p-4 border-b bg-white rounded-t-lg">
                       <div className="flex items-start justify-between">
                         <div className="flex-1 min-w-0">
-                          <h3
-                            className="font-medium text-sm truncate"
-                            title={property.id}
-                          >
-                            {property.id.replace("property_", "")}
-                          </h3>
+                          <div className="flex items-center gap-2">
+                            <h3
+                              className="font-medium text-sm truncate"
+                              title={property.id}
+                            >
+                              {property.id.replace("property_", "")}
+                            </h3>
+                            {property.category === 'system' && (
+                              <span className="px-1.5 py-0.5 text-xs bg-blue-100 text-blue-700 rounded-md font-medium">
+                                System
+                              </span>
+                            )}
+                          </div>
                           <p className="text-xs text-gray-500 mt-1">
                             Type: {property.type}
                           </p>
@@ -361,10 +378,9 @@ const Properties: React.FC = () => {
                       <div className="text-xs text-gray-500">
                         v{property.version || 1}
                       </div>
-                      {property.id === "property_is_system" ||
-                      property.id === "property_not_system" ? (
+                      {property.category === 'system' ? (
                         <div className="text-xs text-gray-400 italic">
-                          System property
+                          Cannot delete system property
                         </div>
                       ) : (
                         <div className="flex gap-1">
@@ -485,6 +501,9 @@ const Properties: React.FC = () => {
         allowEditId={true}
         dataFieldLabel="Override Data (JSON)"
         dataFieldPlaceholder='{"required": true, "validation": {"notNull": true}}'
+        showTags={true}
+        tags={editingTags}
+        onTagsChange={setEditingTags}
       />
     </RegistryLayout>
   );

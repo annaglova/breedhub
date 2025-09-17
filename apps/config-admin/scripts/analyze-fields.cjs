@@ -296,67 +296,69 @@ function generateFieldProperties(fieldMap) {
       
       // Required property
       if (config.required === true) {
+        const overrideData = {
+          required: true,
+          validation: { notNull: true }
+        };
         properties.set('property_required', {
           id: 'property_required',
           type: 'property',
           category: 'system',
           tags: ['field'],
-          self_data: {
-            required: true,
-            validation: { notNull: true }
-          }
+          override_data: overrideData,
+          data: overrideData // data = override_data for properties (no self_data)
         });
       }
       
       // Not required property (explicit false)
       if (config.required === false) {
+        const overrideData = { required: false };
         properties.set('property_not_required', {
           id: 'property_not_required',
           type: 'property',
           category: 'system',
           tags: ['field'],
-          self_data: {
-            required: false
-          }
+          override_data: overrideData,
+          data: overrideData
         });
       }
       
       // ReadOnly property (for system fields)
       if (config.isSystem === true) {
+        const overrideData = { permissions: { write: ['system'] } };
         properties.set('property_readonly', {
           id: 'property_readonly',
           type: 'property',
           category: 'system',
           tags: ['field'],
-          self_data: {
-            permissions: { write: ['system'] }
-          }
+          override_data: overrideData,
+          data: overrideData
         });
       }
       
       // isSystem property true
       if (config.isSystem === true) {
+        const overrideData = { isSystem: true };
         properties.set('property_is_system', {
           id: 'property_is_system',
           type: 'property',
           category: 'system',
           tags: ['field'],
-          self_data: {
-            isSystem: true
-          }
+          override_data: overrideData,
+          data: overrideData
         });
       }
       
       // isSystem property false (explicit)
       if (config.isSystem === false) {
+        const overrideData = { isSystem: false };
         properties.set('property_not_system', {
           id: 'property_not_system',
           type: 'property',
           category: 'system',
           tags: ['field'],
-          self_data: {
-            isSystem: false
-          }
+          override_data: overrideData,
+          data: overrideData
         });
       }
       
@@ -364,70 +366,74 @@ function generateFieldProperties(fieldMap) {
       if (config.maxLength) {
         const propId = `property_maxlength_${config.maxLength}`;
         if (!properties.has(propId)) {
+          const overrideData = {
+            maxLength: config.maxLength,
+            validation: { maxLength: config.maxLength }
+          };
           properties.set(propId, {
             id: propId,
             type: 'property',
             category: 'system',
             tags: ['field', 'string'],
-            self_data: {
-              maxLength: config.maxLength,
-              validation: { maxLength: config.maxLength }
-            }
+            override_data: overrideData,
+            data: overrideData
           });
         }
       }
       
       // Primary key property
       if (config.isPrimaryKey === true) {
+        const overrideData = {
+          isPrimaryKey: true,
+          isUnique: true
+        };
         properties.set('property_primary_key', {
           id: 'property_primary_key',
           type: 'property',
           category: 'system',
           tags: ['field'],
-          self_data: {
-            isPrimaryKey: true,
-            isUnique: true
-          }
+          override_data: overrideData,
+          data: overrideData
         });
       }
       
       // Not primary key property (explicit)
       if (config.isPrimaryKey === false) {
+        const overrideData = { isPrimaryKey: false };
         properties.set('property_not_primary_key', {
           id: 'property_not_primary_key',
           type: 'property',
           category: 'system',
           tags: ['field'],
-          self_data: {
-            isPrimaryKey: false
-          }
+          override_data: overrideData,
+          data: overrideData
         });
       }
       
       // Unique property (include even if currently all unique fields are also primary keys)
       // This property is needed for future fields that might be unique but not primary key
       if (config.isUnique === true) {
+        const overrideData = { isUnique: true };
         properties.set('property_unique', {
           id: 'property_unique',
           type: 'property',
           category: 'system',
           tags: ['field'],
-          self_data: {
-            isUnique: true
-          }
+          override_data: overrideData,
+          data: overrideData
         });
       }
       
       // Not unique property (explicit)
       if (config.isUnique === false) {
+        const overrideData = { isUnique: false };
         properties.set('property_not_unique', {
           id: 'property_not_unique',
           type: 'property',
           category: 'system',
           tags: ['field'],
-          self_data: {
-            isUnique: false
-          }
+          override_data: overrideData,
+          data: overrideData
         });
       }
     }
