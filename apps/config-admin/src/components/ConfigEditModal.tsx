@@ -17,6 +17,7 @@ interface ConfigEditModalProps {
   dataFieldLabel?: string; // Label for data field (default: "Override Data")
   dataFieldPlaceholder?: string; // Placeholder for data field
   hideOverrideData?: boolean; // Hide override data field for grouping configs
+  hideCaption?: boolean; // Hide caption field (e.g., for properties)
   showTags?: boolean; // Show tags field for properties
   tags?: string; // Tags as comma-separated string
   onTagsChange?: (value: string) => void;
@@ -39,6 +40,7 @@ export default function ConfigEditModal({
   dataFieldLabel = "Override Data (JSON)",
   dataFieldPlaceholder = "{}",
   hideOverrideData = false,
+  hideCaption = false,
   showTags = false,
   tags = "",
   onTagsChange
@@ -71,19 +73,58 @@ export default function ConfigEditModal({
             </div>
           )}
 
-          {/* Caption and Version */}
+          {/* Tags/Caption and Version */}
           <div className="grid grid-cols-2 gap-4 mb-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Caption
-              </label>
-              <input
-                type="text"
-                value={caption}
-                onChange={(e) => onCaptionChange(e.target.value)}
-                className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Caption"
-              />
+              {showTags && !hideCaption ? (
+                /* Tags field for properties - takes priority over caption */
+                <>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Tags
+                    <span className="text-xs text-gray-500 ml-2">
+                      (comma-separated, e.g., field, string)
+                    </span>
+                  </label>
+                  <input
+                    type="text"
+                    value={tags}
+                    onChange={(e) => onTagsChange?.(e.target.value)}
+                    className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="field, string"
+                  />
+                </>
+              ) : !hideCaption ? (
+                /* Caption field for non-property configs */
+                <>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Caption
+                  </label>
+                  <input
+                    type="text"
+                    value={caption}
+                    onChange={(e) => onCaptionChange(e.target.value)}
+                    className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="Caption"
+                  />
+                </>
+              ) : showTags ? (
+                /* Only tags for properties when caption is hidden */
+                <>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Tags
+                    <span className="text-xs text-gray-500 ml-2">
+                      (comma-separated, e.g., field, string)
+                    </span>
+                  </label>
+                  <input
+                    type="text"
+                    value={tags}
+                    onChange={(e) => onTagsChange?.(e.target.value)}
+                    className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="field, string"
+                  />
+                </>
+              ) : null}
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -98,25 +139,6 @@ export default function ConfigEditModal({
               />
             </div>
           </div>
-
-          {/* Tags field for properties */}
-          {showTags && (
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Tags
-                <span className="text-xs text-gray-500 ml-2">
-                  (comma-separated, e.g., field, string)
-                </span>
-              </label>
-              <input
-                type="text"
-                value={tags}
-                onChange={(e) => onTagsChange?.(e.target.value)}
-                className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="field, string"
-              />
-            </div>
-          )}
 
           {/* Data Field (Override Data or Self Data) - Hidden for grouping configs */}
           {!hideOverrideData && (

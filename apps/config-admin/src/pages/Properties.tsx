@@ -13,6 +13,7 @@ import {
 import React, { useEffect, useState } from "react";
 import RegistryLayout from "../components/RegistryLayout";
 import ConfigEditModal from "../components/ConfigEditModal";
+import { configTypes } from "../types/config-types";
 
 interface Property {
   id: string;
@@ -37,6 +38,7 @@ const Properties: React.FC = () => {
   const [properties, setProperties] = useState<Property[]>([]);
   const [filteredProperties, setFilteredProperties] = useState<Property[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedType, setSelectedType] = useState<string>("all");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingNewId, setEditingNewId] = useState<string>("");
   const [editingData, setEditingData] = useState<string>("");
@@ -70,15 +72,23 @@ const Properties: React.FC = () => {
     return () => clearInterval(interval);
   }, []);
 
-  // Filter properties based on search
+  // Filter properties based on search and type
   useEffect(() => {
-    const filtered = appConfigStore.filterConfigItems(properties, searchQuery);
+    let filtered = appConfigStore.filterConfigItems(properties, searchQuery);
+    
+    // Filter by type if selected
+    if (selectedType !== "all") {
+      filtered = filtered.filter(prop => 
+        prop.tags?.includes(selectedType)
+      );
+    }
+    
     setFilteredProperties(filtered);
-    // Reset to first page only when search changes
-    if (searchQuery) {
+    // Reset to first page when filters change
+    if (searchQuery || selectedType !== "all") {
       setCurrentPage(1);
     }
-  }, [searchQuery, properties]);
+  }, [searchQuery, selectedType, properties]);
 
   // Start editing a property
   const startEdit = (property: Property) => {
@@ -88,7 +98,7 @@ const Properties: React.FC = () => {
     setEditingData(JSON.stringify(property.data || {}, null, 2));
     setEditingCaption(property.caption || "");
     setEditingVersion(property.version || 1);
-    setEditingTags(property.tags?.join(", ") || "");
+    setEditingTags(Array.isArray(property.tags) ? property.tags.join(", ") : "");
   };
 
   // Start creating new property
@@ -107,7 +117,7 @@ const Properties: React.FC = () => {
 
     try {
       const selfData = JSON.parse(editingData);
-      const tagsArray = editingTags ? editingTags.split(',').map(tag => tag.trim()).filter(Boolean) : [];
+      const tagsArray = editingTags.trim() ? editingTags.split(',').map(tag => tag.trim()).filter(Boolean) : [];
 
       const result = await appConfigStore.updatePropertyWithIdChangeAndTags(
         editingId,
@@ -164,7 +174,7 @@ const Properties: React.FC = () => {
 
       try {
         const selfData = JSON.parse(editingData);
-        const tagsArray = editingTags ? editingTags.split(',').map(tag => tag.trim()).filter(Boolean) : [];
+        const tagsArray = editingTags.trim() ? editingTags.split(',').map(tag => tag.trim()).filter(Boolean) : [];
 
         const result = await appConfigStore.createPropertyWithTags(
           editingNewId,
@@ -247,6 +257,33 @@ const Properties: React.FC = () => {
         onAddClick: startCreate
       }}
     >
+            {/* Type Filter */}
+            <div className="mb-4 flex items-center gap-4">
+              <label className="text-sm font-medium text-gray-700">Filter by Type:</label>
+              <select
+                value={selectedType}
+                onChange={(e) => setSelectedType(e.target.value)}
+                className="px-3 py-1.5 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="all">All Properties</option>
+                <option value="field">Field Properties</option>
+                <option value="entity_field">Entity Field Properties</option>
+                {Object.entries(configTypes).map(([key, info]) => (
+                  <option key={key} value={key}>
+                    {info.name}
+                  </option>
+                ))}
+              </select>
+              {selectedType !== "all" && (
+                <button
+                  onClick={() => setSelectedType("all")}
+                  className="text-sm text-blue-600 hover:text-blue-800 underline"
+                >
+                  Clear filter
+                </button>
+              )}
+            </div>
+
             {/* Properties Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               {paginatedProperties.length === 0 &&
@@ -282,6 +319,18 @@ const Properties: React.FC = () => {
                           <p className="text-xs text-gray-500 mt-1">
                             Type: {property.type}
                           </p>
+                          {property.tags && property.tags.length > 0 && (
+                            <div className="flex flex-wrap gap-1 mt-1">
+                              {property.tags.map((tag) => (
+                                <span
+                                  key={tag}
+                                  className="px-1.5 py-0.5 text-xs bg-gray-100 text-gray-600 rounded"
+                                >
+                                  {tag}
+                                </span>
+                              ))}
+                            </div>
+                          )}
                         </div>
                         <div className="flex gap-1 ml-2">
                           <button
@@ -501,6 +550,7 @@ const Properties: React.FC = () => {
         allowEditId={true}
         dataFieldLabel="Override Data (JSON)"
         dataFieldPlaceholder='{"required": true, "validation": {"notNull": true}}'
+        hideCaption={true} // Hide caption for properties
         showTags={true}
         tags={editingTags}
         onTagsChange={setEditingTags}
