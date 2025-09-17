@@ -1209,6 +1209,9 @@ class AppConfigStore {
         return { success: false, error: 'Property with this ID already exists' };
       }
       
+      // Ensure tags is always an array
+      const tagsArray = Array.isArray(tags) ? tags : [];
+      
       await this.createConfig({
         id,
         type: 'property',
@@ -1216,7 +1219,7 @@ class AppConfigStore {
         override_data: data,  // Property data goes to override_data
         deps: [],
         category: 'custom',  // Default category for new properties
-        tags: tags && tags.length > 0 ? tags : ['property'],
+        tags: tagsArray.length > 0 ? tagsArray : ['property'],
         version: 1
       });
       
@@ -1248,12 +1251,17 @@ class AppConfigStore {
       
       // If ID hasn't changed, just update the data and tags
       if (oldId === newId) {
+        // Ensure tags is always an array
+        const tagsArray = Array.isArray(tags) ? tags : [];
+        const existingTags = Array.isArray(existingProperty.tags) ? existingProperty.tags : [];
+        
         const updates: Partial<AppConfig> = {
           override_data: selfData,
           data: selfData,
-          tags: tags && tags.length > 0 ? tags : existingProperty.tags
+          tags: tagsArray.length > 0 ? tagsArray : existingTags
         };
-        return await this.updateConfigWithCascade(oldId, updates);
+        await this.updateConfigWithCascade(oldId, updates);
+        return { success: true };
       }
       
       // Check if new ID already exists
