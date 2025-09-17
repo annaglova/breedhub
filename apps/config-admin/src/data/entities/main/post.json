@@ -26,7 +26,6 @@
       },
       "displayName": "Publication Date",
       "placeholder": "Enter publication date",
-      "validation": {},
       "defaultValue": "timezone(utc"
     },
     {
@@ -53,7 +52,6 @@
       "referencedFieldID": "id",
       "displayName": "Type",
       "placeholder": "Enter type",
-      "validation": {},
       "referencedFieldName": "name"
     },
     {
@@ -80,7 +78,6 @@
       "referencedFieldID": "id",
       "displayName": "State",
       "placeholder": "Enter state",
-      "validation": {},
       "referencedFieldName": "name"
     },
     {
@@ -104,7 +101,6 @@
       },
       "displayName": "Text",
       "placeholder": "Enter text",
-      "validation": {},
       "defaultValue": ""
     },
     {
@@ -126,9 +122,11 @@
           "editor"
         ]
       },
+      "maxLength": 250,
       "displayName": "Url",
       "placeholder": "Enter url",
       "validation": {
+        "maxLength": 250,
         "pattern": "^https?://.+",
         "message": "Invalid URL format"
       },
@@ -158,7 +156,6 @@
       "referencedFieldID": "id",
       "displayName": "Master Post",
       "placeholder": "Enter master post",
-      "validation": {},
       "referencedFieldName": "name"
     },
     {
@@ -181,7 +178,6 @@
         ]
       },
       "displayName": "Is Moment",
-      "validation": {},
       "defaultValue": "false"
     },
     {
@@ -208,7 +204,6 @@
       "referencedFieldID": "id",
       "displayName": "Author",
       "placeholder": "Enter author",
-      "validation": {},
       "referencedFieldName": "id"
     },
     {
@@ -230,9 +225,12 @@
           "editor"
         ]
       },
+      "maxLength": 250,
       "displayName": "Name",
       "placeholder": "Enter name",
-      "validation": {},
+      "validation": {
+        "maxLength": 250
+      },
       "defaultValue": ""
     },
     {
@@ -256,7 +254,6 @@
       },
       "displayName": "Date",
       "placeholder": "Enter date",
-      "validation": {},
       "defaultValue": "timezone(utc"
     },
     {
@@ -283,7 +280,6 @@
       "referencedFieldID": "id",
       "displayName": "Event",
       "placeholder": "Enter event",
-      "validation": {},
       "referencedFieldName": "name"
     },
     {
@@ -307,7 +303,6 @@
       },
       "displayName": "Latitude",
       "placeholder": "Enter latitude",
-      "validation": {},
       "defaultValue": "0"
     },
     {
@@ -331,7 +326,6 @@
       },
       "displayName": "Longitude",
       "placeholder": "Enter longitude",
-      "validation": {},
       "defaultValue": "0"
     },
     {
@@ -355,7 +349,6 @@
       },
       "displayName": "Photos",
       "placeholder": "Enter photos",
-      "validation": {},
       "defaultValue": ""
     },
     {
@@ -379,7 +372,6 @@
       },
       "displayName": "Participants",
       "placeholder": "Enter participants",
-      "validation": {},
       "defaultValue": ""
     },
     {
@@ -406,7 +398,6 @@
       "referencedFieldID": "id",
       "displayName": "Cover",
       "placeholder": "Enter cover",
-      "validation": {},
       "referencedFieldName": "name"
     },
     {
@@ -416,8 +407,8 @@
       "component": "text",
       "required": true,
       "isSystem": true,
-      "isPrimaryKey": false,
-      "isUnique": false,
+      "isPrimaryKey": true,
+      "isUnique": true,
       "sortOrder": 170,
       "permissions": {
         "read": [
@@ -427,8 +418,7 @@
           "system"
         ]
       },
-      "displayName": "Id",
-      "validation": {}
+      "displayName": "Id"
     },
     {
       "id": "field_created_at",
@@ -448,8 +438,7 @@
           "system"
         ]
       },
-      "displayName": "Created At",
-      "validation": {}
+      "displayName": "Created At"
     },
     {
       "id": "field_created_by",
@@ -469,8 +458,7 @@
           "system"
         ]
       },
-      "displayName": "Created By",
-      "validation": {}
+      "displayName": "Created By"
     },
     {
       "id": "field_updated_at",
@@ -490,8 +478,7 @@
           "system"
         ]
       },
-      "displayName": "Updated At",
-      "validation": {}
+      "displayName": "Updated At"
     },
     {
       "id": "field_updated_by",
@@ -511,8 +498,7 @@
           "system"
         ]
       },
-      "displayName": "Updated By",
-      "validation": {}
+      "displayName": "Updated By"
     }
   ],
   "metadata": {
@@ -520,6 +506,6 @@
     "totalFields": 21,
     "systemFields": 5,
     "customFields": 16,
-    "generatedAt": "2025-09-15T14:13:47.735Z"
+    "generatedAt": "2025-09-17T11:55:34.339Z"
   }
 }

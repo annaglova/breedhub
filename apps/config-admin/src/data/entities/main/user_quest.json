@@ -24,9 +24,12 @@
           "editor"
         ]
       },
+      "maxLength": 250,
       "displayName": "Name",
       "placeholder": "Enter name",
-      "validation": {},
+      "validation": {
+        "maxLength": 250
+      },
       "defaultValue": ""
     },
     {
@@ -49,8 +52,7 @@
         ]
       },
       "displayName": "Finish Date",
-      "placeholder": "Enter finish date",
-      "validation": {}
+      "placeholder": "Enter finish date"
     },
     {
       "id": "field_contact_id",
@@ -76,7 +78,6 @@
       "referencedFieldID": "id",
       "displayName": "Contact",
       "placeholder": "Enter contact",
-      "validation": {},
       "referencedFieldName": "name"
     },
     {
@@ -99,8 +100,7 @@
         ]
       },
       "displayName": "Deadline Date",
-      "placeholder": "Enter deadline date",
-      "validation": {}
+      "placeholder": "Enter deadline date"
     },
     {
       "id": "field_deactivated",
@@ -122,7 +122,6 @@
         ]
       },
       "displayName": "Deactivated",
-      "validation": {},
       "defaultValue": "false"
     },
     {
@@ -146,7 +145,10 @@
       },
       "displayName": "Reward",
       "placeholder": "Enter reward",
-      "validation": {},
+      "validation": {
+        "precision": 32,
+        "scale": 0
+      },
       "defaultValue": "0"
     },
     {
@@ -168,9 +170,12 @@
           "editor"
         ]
       },
+      "maxLength": 500,
       "displayName": "Description",
       "placeholder": "Enter description",
-      "validation": {},
+      "validation": {
+        "maxLength": 500
+      },
       "defaultValue": ""
     },
     {
@@ -194,7 +199,10 @@
       },
       "displayName": "Frequency Interval",
       "placeholder": "Enter frequency interval",
-      "validation": {},
+      "validation": {
+        "precision": 32,
+        "scale": 0
+      },
       "defaultValue": "0"
     },
     {
@@ -204,8 +212,8 @@
       "component": "text",
       "required": true,
       "isSystem": true,
-      "isPrimaryKey": false,
-      "isUnique": false,
+      "isPrimaryKey": true,
+      "isUnique": true,
       "sortOrder": 90,
       "permissions": {
         "read": [
@@ -215,8 +223,7 @@
           "system"
         ]
       },
-      "displayName": "Id",
-      "validation": {}
+      "displayName": "Id"
     },
     {
       "id": "field_created_at",
@@ -236,8 +243,7 @@
           "system"
         ]
       },
-      "displayName": "Created At",
-      "validation": {}
+      "displayName": "Created At"
     },
     {
       "id": "field_created_by",
@@ -257,8 +263,7 @@
           "system"
         ]
       },
-      "displayName": "Created By",
-      "validation": {}
+      "displayName": "Created By"
     },
     {
       "id": "field_updated_at",
@@ -278,8 +283,7 @@
           "system"
         ]
       },
-      "displayName": "Updated At",
-      "validation": {}
+      "displayName": "Updated At"
     },
     {
       "id": "field_updated_by",
@@ -299,8 +303,7 @@
           "system"
         ]
       },
-      "displayName": "Updated By",
-      "validation": {}
+      "displayName": "Updated By"
     }
   ],
   "metadata": {
@@ -308,6 +311,6 @@
     "totalFields": 13,
     "systemFields": 5,
     "customFields": 8,
-    "generatedAt": "2025-09-15T14:13:49.158Z"
+    "generatedAt": "2025-09-17T11:55:35.805Z"
   }
 }

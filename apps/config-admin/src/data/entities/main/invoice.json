@@ -24,9 +24,12 @@
           "editor"
         ]
       },
+      "maxLength": 250,
       "displayName": "Number",
       "placeholder": "Enter number",
-      "validation": {},
+      "validation": {
+        "maxLength": 250
+      },
       "defaultValue": ""
     },
     {
@@ -50,7 +53,6 @@
       },
       "displayName": "Start Date",
       "placeholder": "Enter start date",
-      "validation": {},
       "defaultValue": "(timezone(utc"
     },
     {
@@ -74,7 +76,6 @@
       },
       "displayName": "Primary Amount",
       "placeholder": "Enter primary amount",
-      "validation": {},
       "defaultValue": "0"
     },
     {
@@ -98,7 +99,6 @@
       },
       "displayName": "Primary Payment Amount",
       "placeholder": "Enter primary payment amount",
-      "validation": {},
       "defaultValue": "0"
     },
     {
@@ -125,7 +125,6 @@
       "referencedFieldID": "id",
       "displayName": "Payment Status",
       "placeholder": "Enter payment status",
-      "validation": {},
       "referencedFieldName": "name"
     },
     {
@@ -152,7 +151,6 @@
       "referencedFieldID": "id",
       "displayName": "Owner",
       "placeholder": "Enter owner",
-      "validation": {},
       "referencedFieldName": "name"
     },
     {
@@ -179,7 +177,6 @@
       "referencedFieldID": "id",
       "displayName": "Supplier Billing Info",
       "placeholder": "Enter supplier billing info",
-      "validation": {},
       "referencedFieldName": "name"
     },
     {
@@ -202,7 +199,6 @@
         ]
       },
       "displayName": "Remind To Owner",
-      "validation": {},
       "defaultValue": "false"
     },
     {
@@ -225,8 +221,7 @@
         ]
       },
       "displayName": "Remind To Owner Date",
-      "placeholder": "Enter remind to owner date",
-      "validation": {}
+      "placeholder": "Enter remind to owner date"
     },
     {
       "id": "field_customer_billing_info_id",
@@ -252,7 +247,6 @@
       "referencedFieldID": "id",
       "displayName": "Customer Billing Info",
       "placeholder": "Enter customer billing info",
-      "validation": {},
       "referencedFieldName": "name"
     },
     {
@@ -279,7 +273,6 @@
       "referencedFieldID": "id",
       "displayName": "Currency",
       "placeholder": "Enter currency",
-      "validation": {},
       "referencedFieldName": "name"
     },
     {
@@ -303,7 +296,6 @@
       },
       "displayName": "Currency Rate",
       "placeholder": "Enter currency rate",
-      "validation": {},
       "defaultValue": "0"
     },
     {
@@ -327,7 +319,6 @@
       },
       "displayName": "Amount",
       "placeholder": "Enter amount",
-      "validation": {},
       "defaultValue": "0"
     },
     {
@@ -350,8 +341,7 @@
         ]
       },
       "displayName": "Due Date",
-      "placeholder": "Enter due date",
-      "validation": {}
+      "placeholder": "Enter due date"
     },
     {
       "id": "field_payment_amount",
@@ -374,7 +364,6 @@
       },
       "displayName": "Payment Amount",
       "placeholder": "Enter payment amount",
-      "validation": {},
       "defaultValue": "0"
     },
     {
@@ -398,7 +387,6 @@
       },
       "displayName": "Notes",
       "placeholder": "Enter notes",
-      "validation": {},
       "defaultValue": ""
     },
     {
@@ -425,7 +413,6 @@
       "referencedFieldID": "id",
       "displayName": "Account",
       "placeholder": "Enter account",
-      "validation": {},
       "referencedFieldName": "name"
     },
     {
@@ -452,7 +439,6 @@
       "referencedFieldID": "id",
       "displayName": "Contact",
       "placeholder": "Enter contact",
-      "validation": {},
       "referencedFieldName": "name"
     },
     {
@@ -479,7 +465,6 @@
       "referencedFieldID": "id",
       "displayName": "Supplier",
       "placeholder": "Enter supplier",
-      "validation": {},
       "referencedFieldName": "name"
     },
     {
@@ -506,7 +491,6 @@
       "referencedFieldID": "id",
       "displayName": "Project",
       "placeholder": "Enter project",
-      "validation": {},
       "referencedFieldName": "name"
     },
     {
@@ -533,7 +517,6 @@
       "referencedFieldID": "id",
       "displayName": "Order",
       "placeholder": "Enter order",
-      "validation": {},
       "referencedFieldName": "number"
     },
     {
@@ -557,7 +540,6 @@
       },
       "displayName": "Amount Without Tax",
       "placeholder": "Enter amount without tax",
-      "validation": {},
       "defaultValue": "0"
     },
     {
@@ -581,7 +563,6 @@
       },
       "displayName": "Primary Amount Without Tax",
       "placeholder": "Enter primary amount without tax",
-      "validation": {},
       "defaultValue": "0"
     },
     {
@@ -605,7 +586,6 @@
       },
       "displayName": "Payment Amount Without Tax",
       "placeholder": "Enter payment amount without tax",
-      "validation": {},
       "defaultValue": "0"
     },
     {
@@ -629,7 +609,6 @@
       },
       "displayName": "Primary Payment Amount Without Tax",
       "placeholder": "Enter primary payment amount without tax",
-      "validation": {},
       "defaultValue": "0"
     },
     {
@@ -656,7 +635,6 @@
       "referencedFieldID": "id",
       "displayName": "Breed",
       "placeholder": "Enter breed",
-      "validation": {},
       "referencedFieldName": "name"
     },
     {
@@ -679,7 +657,6 @@
         ]
       },
       "displayName": "Created From Order",
-      "validation": {},
       "defaultValue": "false"
     },
     {
@@ -689,8 +666,8 @@
       "component": "text",
       "required": true,
       "isSystem": true,
-      "isPrimaryKey": false,
-      "isUnique": false,
+      "isPrimaryKey": true,
+      "isUnique": true,
       "sortOrder": 280,
       "permissions": {
         "read": [
@@ -700,8 +677,7 @@
           "system"
         ]
       },
-      "displayName": "Id",
-      "validation": {}
+      "displayName": "Id"
     },
     {
       "id": "field_created_at",
@@ -721,8 +697,7 @@
           "system"
         ]
       },
-      "displayName": "Created At",
-      "validation": {}
+      "displayName": "Created At"
     },
     {
       "id": "field_created_by",
@@ -742,8 +717,7 @@
           "system"
         ]
       },
-      "displayName": "Created By",
-      "validation": {}
+      "displayName": "Created By"
     },
     {
       "id": "field_updated_at",
@@ -763,8 +737,7 @@
           "system"
         ]
       },
-      "displayName": "Updated At",
-      "validation": {}
+      "displayName": "Updated At"
     },
     {
       "id": "field_updated_by",
@@ -784,8 +757,7 @@
           "system"
         ]
       },
-      "displayName": "Updated By",
-      "validation": {}
+      "displayName": "Updated By"
     }
   ],
   "metadata": {
@@ -793,6 +765,6 @@
     "totalFields": 32,
     "systemFields": 5,
     "customFields": 27,
-    "generatedAt": "2025-09-15T14:13:39.672Z"
+    "generatedAt": "2025-09-17T11:55:26.431Z"
   }
 }

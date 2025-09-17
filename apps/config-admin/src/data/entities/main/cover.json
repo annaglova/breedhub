@@ -24,9 +24,12 @@
           "editor"
         ]
       },
+      "maxLength": 250,
       "displayName": "Name",
       "placeholder": "Enter name",
-      "validation": {},
+      "validation": {
+        "maxLength": 250
+      },
       "defaultValue": ""
     },
     {
@@ -50,7 +53,6 @@
       },
       "displayName": "Notes",
       "placeholder": "Enter notes",
-      "validation": {},
       "defaultValue": ""
     },
     {
@@ -72,9 +74,11 @@
           "editor"
         ]
       },
+      "maxLength": 500,
       "displayName": "Redirect Url",
       "placeholder": "Enter redirect url",
       "validation": {
+        "maxLength": 500,
         "pattern": "^https?://.+",
         "message": "Invalid URL format"
       },
@@ -99,9 +103,11 @@
           "editor"
         ]
       },
+      "maxLength": 500,
       "displayName": "Avatar Url",
       "placeholder": "Enter avatar url",
       "validation": {
+        "maxLength": 500,
         "pattern": "^https?://.+",
         "message": "Invalid URL format"
       },
@@ -131,7 +137,6 @@
       "referencedFieldID": "id",
       "displayName": "Type",
       "placeholder": "Enter type",
-      "validation": {},
       "referencedFieldName": "name"
     },
     {
@@ -158,7 +163,6 @@
       "referencedFieldID": "id",
       "displayName": "Owner",
       "placeholder": "Enter owner",
-      "validation": {},
       "referencedFieldName": "name"
     },
     {
@@ -180,9 +184,11 @@
           "editor"
         ]
       },
+      "maxLength": 500,
       "displayName": "Url",
       "placeholder": "Enter url",
       "validation": {
+        "maxLength": 500,
         "pattern": "^https?://.+",
         "message": "Invalid URL format"
       },
@@ -212,7 +218,6 @@
       "referencedFieldID": "id",
       "displayName": "Breed",
       "placeholder": "Enter breed",
-      "validation": {},
       "referencedFieldName": "name"
     },
     {
@@ -235,7 +240,6 @@
         ]
       },
       "displayName": "Is Default",
-      "validation": {},
       "defaultValue": "false"
     },
     {
@@ -245,8 +249,8 @@
       "component": "text",
       "required": true,
       "isSystem": true,
-      "isPrimaryKey": false,
-      "isUnique": false,
+      "isPrimaryKey": true,
+      "isUnique": true,
       "sortOrder": 100,
       "permissions": {
         "read": [
@@ -256,8 +260,7 @@
           "system"
         ]
       },
-      "displayName": "Id",
-      "validation": {}
+      "displayName": "Id"
     },
     {
       "id": "field_created_at",
@@ -277,8 +280,7 @@
           "system"
         ]
       },
-      "displayName": "Created At",
-      "validation": {}
+      "displayName": "Created At"
     },
     {
       "id": "field_created_by",
@@ -298,8 +300,7 @@
           "system"
         ]
       },
-      "displayName": "Created By",
-      "validation": {}
+      "displayName": "Created By"
     },
     {
       "id": "field_updated_at",
@@ -319,8 +320,7 @@
           "system"
         ]
       },
-      "displayName": "Updated At",
-      "validation": {}
+      "displayName": "Updated At"
     },
     {
       "id": "field_updated_by",
@@ -340,8 +340,7 @@
           "system"
         ]
       },
-      "displayName": "Updated By",
-      "validation": {}
+      "displayName": "Updated By"
     }
   ],
   "metadata": {
@@ -349,6 +348,6 @@
     "totalFields": 14,
     "systemFields": 5,
     "customFields": 9,
-    "generatedAt": "2025-09-15T14:13:21.272Z"
+    "generatedAt": "2025-09-17T11:55:07.645Z"
   }
 }

@@ -24,9 +24,12 @@
           "editor"
         ]
       },
+      "maxLength": 250,
       "displayName": "Name",
       "placeholder": "Enter name",
-      "validation": {},
+      "validation": {
+        "maxLength": 250
+      },
       "defaultValue": ""
     },
     {
@@ -53,7 +56,6 @@
       "referencedFieldID": "id",
       "displayName": "Type",
       "placeholder": "Enter type",
-      "validation": {},
       "referencedFieldName": "name"
     },
     {
@@ -80,7 +82,6 @@
       "referencedFieldID": "id",
       "displayName": "Owner",
       "placeholder": "Enter owner",
-      "validation": {},
       "referencedFieldName": "name"
     },
     {
@@ -107,7 +108,6 @@
       "referencedFieldID": "id",
       "displayName": "Status",
       "placeholder": "Enter status",
-      "validation": {},
       "referencedFieldName": "name"
     },
     {
@@ -130,8 +130,7 @@
         ]
       },
       "displayName": "Start Date",
-      "placeholder": "Enter start date",
-      "validation": {}
+      "placeholder": "Enter start date"
     },
     {
       "id": "field_end_date",
@@ -153,8 +152,7 @@
         ]
       },
       "displayName": "End Date",
-      "placeholder": "Enter end date",
-      "validation": {}
+      "placeholder": "Enter end date"
     },
     {
       "id": "field_goal",
@@ -175,9 +173,12 @@
           "editor"
         ]
       },
+      "maxLength": 250,
       "displayName": "Goal",
       "placeholder": "Enter goal",
-      "validation": {},
+      "validation": {
+        "maxLength": 250
+      },
       "defaultValue": ""
     },
     {
@@ -204,7 +205,6 @@
       "referencedFieldID": "id",
       "displayName": "Territory",
       "placeholder": "Enter territory",
-      "validation": {},
       "referencedFieldName": "name"
     },
     {
@@ -231,7 +231,6 @@
       "referencedFieldID": "id",
       "displayName": "Industry",
       "placeholder": "Enter industry",
-      "validation": {},
       "referencedFieldName": "name"
     },
     {
@@ -253,9 +252,12 @@
           "editor"
         ]
       },
+      "maxLength": 250,
       "displayName": "Actual Response",
       "placeholder": "Enter actual response",
-      "validation": {},
+      "validation": {
+        "maxLength": 250
+      },
       "defaultValue": ""
     },
     {
@@ -279,7 +281,6 @@
       },
       "displayName": "Primary Budgeted Cost",
       "placeholder": "Enter primary budgeted cost",
-      "validation": {},
       "defaultValue": "0"
     },
     {
@@ -303,7 +304,6 @@
       },
       "displayName": "Primary Expected Revenue",
       "placeholder": "Enter primary expected revenue",
-      "validation": {},
       "defaultValue": "0"
     },
     {
@@ -327,7 +327,6 @@
       },
       "displayName": "Primary Actual Cost",
       "placeholder": "Enter primary actual cost",
-      "validation": {},
       "defaultValue": "0"
     },
     {
@@ -351,7 +350,6 @@
       },
       "displayName": "Primary Actual Revenue",
       "placeholder": "Enter primary actual revenue",
-      "validation": {},
       "defaultValue": "0"
     },
     {
@@ -375,7 +373,6 @@
       },
       "displayName": "Notes",
       "placeholder": "Enter notes",
-      "validation": {},
       "defaultValue": ""
     },
     {
@@ -398,8 +395,7 @@
         ]
       },
       "displayName": "Last Actualize Date",
-      "placeholder": "Enter last actualize date",
-      "validation": {}
+      "placeholder": "Enter last actualize date"
     },
     {
       "id": "field_recipient_count",
@@ -422,7 +418,10 @@
       },
       "displayName": "Recipient Count",
       "placeholder": "Enter recipient count",
-      "validation": {},
+      "validation": {
+        "precision": 32,
+        "scale": 0
+      },
       "defaultValue": "0"
     },
     {
@@ -449,7 +448,6 @@
       "referencedFieldID": "id",
       "displayName": "Organizer",
       "placeholder": "Enter organizer",
-      "validation": {},
       "referencedFieldName": "name"
     },
     {
@@ -471,9 +469,12 @@
           "editor"
         ]
       },
+      "maxLength": 250,
       "displayName": "Address",
       "placeholder": "Enter address",
-      "validation": {},
+      "validation": {
+        "maxLength": 250
+      },
       "defaultValue": ""
     },
     {
@@ -500,7 +501,6 @@
       "referencedFieldID": "id",
       "displayName": "City",
       "placeholder": "Enter city",
-      "validation": {},
       "referencedFieldName": "name"
     },
     {
@@ -527,7 +527,6 @@
       "referencedFieldID": "id",
       "displayName": "Region",
       "placeholder": "Enter region",
-      "validation": {},
       "referencedFieldName": "name"
     },
     {
@@ -554,7 +553,6 @@
       "referencedFieldID": "id",
       "displayName": "Country",
       "placeholder": "Enter country",
-      "validation": {},
       "referencedFieldName": "name"
     },
     {
@@ -581,7 +579,6 @@
       "referencedFieldID": "id",
       "displayName": "Account",
       "placeholder": "Enter account",
-      "validation": {},
       "referencedFieldName": "name"
     },
     {
@@ -603,9 +600,11 @@
           "editor"
         ]
       },
+      "maxLength": 250,
       "displayName": "Url",
       "placeholder": "Enter url",
       "validation": {
+        "maxLength": 250,
         "pattern": "^https?://.+",
         "message": "Invalid URL format"
       },
@@ -635,7 +634,6 @@
       "referencedFieldID": "id",
       "displayName": "Pet Type",
       "placeholder": "Enter pet type",
-      "validation": {},
       "referencedFieldName": "name"
     },
     {
@@ -662,7 +660,6 @@
       "referencedFieldID": "id",
       "displayName": "Cover",
       "placeholder": "Enter cover",
-      "validation": {},
       "referencedFieldName": "name"
     },
     {
@@ -672,8 +669,8 @@
       "component": "text",
       "required": true,
       "isSystem": true,
-      "isPrimaryKey": false,
-      "isUnique": false,
+      "isPrimaryKey": true,
+      "isUnique": true,
       "sortOrder": 270,
       "permissions": {
         "read": [
@@ -683,8 +680,7 @@
           "system"
         ]
       },
-      "displayName": "Id",
-      "validation": {}
+      "displayName": "Id"
     },
     {
       "id": "field_created_at",
@@ -704,8 +700,7 @@
           "system"
         ]
       },
-      "displayName": "Created At",
-      "validation": {}
+      "displayName": "Created At"
     },
     {
       "id": "field_created_by",
@@ -725,8 +720,7 @@
           "system"
         ]
       },
-      "displayName": "Created By",
-      "validation": {}
+      "displayName": "Created By"
     },
     {
       "id": "field_updated_at",
@@ -746,8 +740,7 @@
           "system"
         ]
       },
-      "displayName": "Updated At",
-      "validation": {}
+      "displayName": "Updated At"
     },
     {
       "id": "field_updated_by",
@@ -767,8 +760,7 @@
           "system"
         ]
       },
-      "displayName": "Updated By",
-      "validation": {}
+      "displayName": "Updated By"
     }
   ],
   "metadata": {
@@ -776,6 +768,6 @@
     "totalFields": 31,
     "systemFields": 5,
     "customFields": 26,
-    "generatedAt": "2025-09-15T14:13:24.817Z"
+    "generatedAt": "2025-09-17T11:55:11.145Z"
   }
 }

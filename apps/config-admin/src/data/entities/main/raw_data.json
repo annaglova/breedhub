@@ -24,9 +24,12 @@
           "editor"
         ]
       },
+      "maxLength": 250,
       "displayName": "Name",
       "placeholder": "Enter name",
-      "validation": {},
+      "validation": {
+        "maxLength": 250
+      },
       "defaultValue": ""
     },
     {
@@ -50,7 +53,6 @@
       },
       "displayName": "Notes",
       "placeholder": "Enter notes",
-      "validation": {},
       "defaultValue": ""
     },
     {
@@ -74,7 +76,6 @@
       },
       "displayName": "Json",
       "placeholder": "Enter json",
-      "validation": {},
       "defaultValue": ""
     },
     {
@@ -101,7 +102,6 @@
       "referencedFieldID": "id",
       "displayName": "Status",
       "placeholder": "Enter status",
-      "validation": {},
       "referencedFieldName": "name"
     },
     {
@@ -125,7 +125,6 @@
       },
       "displayName": "Log",
       "placeholder": "Enter log",
-      "validation": {},
       "defaultValue": ""
     },
     {
@@ -152,7 +151,6 @@
       "referencedFieldID": "id",
       "displayName": "Conf Item",
       "placeholder": "Enter conf item",
-      "validation": {},
       "referencedFieldName": "name"
     },
     {
@@ -174,9 +172,11 @@
           "editor"
         ]
       },
+      "maxLength": 250,
       "displayName": "Redirect Url",
       "placeholder": "Enter redirect url",
       "validation": {
+        "maxLength": 250,
         "pattern": "^https?://.+",
         "message": "Invalid URL format"
       },
@@ -206,7 +206,6 @@
       "referencedFieldID": "id",
       "displayName": "Record",
       "placeholder": "Enter record",
-      "validation": {},
       "referencedFieldName": "id"
     },
     {
@@ -228,9 +227,12 @@
           "editor"
         ]
       },
+      "maxLength": 50,
       "displayName": "Entity Name",
       "placeholder": "Enter entity name",
-      "validation": {},
+      "validation": {
+        "maxLength": 50
+      },
       "defaultValue": ""
     },
     {
@@ -252,9 +254,12 @@
           "editor"
         ]
       },
+      "maxLength": 50,
       "displayName": "Model",
       "placeholder": "Enter model",
-      "validation": {},
+      "validation": {
+        "maxLength": 50
+      },
       "defaultValue": ""
     },
     {
@@ -276,9 +281,12 @@
           "editor"
         ]
       },
+      "maxLength": 50,
       "displayName": "Hash Md5",
       "placeholder": "Enter hash md5",
-      "validation": {},
+      "validation": {
+        "maxLength": 50
+      },
       "defaultValue": ""
     },
     {
@@ -305,7 +313,6 @@
       "referencedFieldID": "id",
       "displayName": "Contact",
       "placeholder": "Enter contact",
-      "validation": {},
       "referencedFieldName": "name"
     },
     {
@@ -332,7 +339,6 @@
       "referencedFieldID": "id",
       "displayName": "Account",
       "placeholder": "Enter account",
-      "validation": {},
       "referencedFieldName": "name"
     },
     {
@@ -359,7 +365,6 @@
       "referencedFieldID": "id",
       "displayName": "Breed",
       "placeholder": "Enter breed",
-      "validation": {},
       "referencedFieldName": "name"
     },
     {
@@ -386,7 +391,6 @@
       "referencedFieldID": "id",
       "displayName": "Event",
       "placeholder": "Enter event",
-      "validation": {},
       "referencedFieldName": "name"
     },
     {
@@ -413,7 +417,6 @@
       "referencedFieldID": "id",
       "displayName": "Project",
       "placeholder": "Enter project",
-      "validation": {},
       "referencedFieldName": "name"
     },
     {
@@ -440,7 +443,6 @@
       "referencedFieldID": "id",
       "displayName": "Pet",
       "placeholder": "Enter pet",
-      "validation": {},
       "referencedFieldName": "name"
     },
     {
@@ -450,8 +452,8 @@
       "component": "text",
       "required": true,
       "isSystem": true,
-      "isPrimaryKey": false,
-      "isUnique": false,
+      "isPrimaryKey": true,
+      "isUnique": true,
       "sortOrder": 180,
       "permissions": {
         "read": [
@@ -461,8 +463,7 @@
           "system"
         ]
       },
-      "displayName": "Id",
-      "validation": {}
+      "displayName": "Id"
     },
     {
       "id": "field_created_at",
@@ -482,8 +483,7 @@
           "system"
         ]
       },
-      "displayName": "Created At",
-      "validation": {}
+      "displayName": "Created At"
     },
     {
       "id": "field_created_by",
@@ -503,8 +503,7 @@
           "system"
         ]
       },
-      "displayName": "Created By",
-      "validation": {}
+      "displayName": "Created By"
     },
     {
       "id": "field_updated_at",
@@ -524,8 +523,7 @@
           "system"
         ]
       },
-      "displayName": "Updated At",
-      "validation": {}
+      "displayName": "Updated At"
     },
     {
       "id": "field_updated_by",
@@ -545,8 +543,7 @@
           "system"
         ]
       },
-      "displayName": "Updated By",
-      "validation": {}
+      "displayName": "Updated By"
     }
   ],
   "metadata": {
@@ -554,6 +551,6 @@
     "totalFields": 22,
     "systemFields": 5,
     "customFields": 17,
-    "generatedAt": "2025-09-15T14:13:33.983Z"
+    "generatedAt": "2025-09-17T11:55:20.743Z"
   }
 }

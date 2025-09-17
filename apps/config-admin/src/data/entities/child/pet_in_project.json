@@ -29,7 +29,6 @@
       "referencedFieldID": "id",
       "displayName": "Project",
       "placeholder": "Enter project",
-      "validation": {},
       "referencedFieldName": "name"
     },
     {
@@ -56,7 +55,6 @@
       "referencedFieldID": "id",
       "displayName": "Pet",
       "placeholder": "Enter pet",
-      "validation": {},
       "referencedFieldName": "name"
     },
     {
@@ -80,7 +78,6 @@
       },
       "displayName": "Number",
       "placeholder": "Enter number",
-      "validation": {},
       "defaultValue": "0"
     },
     {
@@ -107,7 +104,6 @@
       "referencedFieldID": "id",
       "displayName": "Class",
       "placeholder": "Enter class",
-      "validation": {},
       "referencedFieldName": "name"
     },
     {
@@ -129,9 +125,11 @@
           "editor"
         ]
       },
+      "maxLength": 250,
       "displayName": "Web Link",
       "placeholder": "Enter web link",
       "validation": {
+        "maxLength": 250,
         "pattern": "^https?://.+",
         "message": "Invalid URL format"
       },
@@ -156,9 +154,12 @@
           "editor"
         ]
       },
+      "maxLength": 250,
       "displayName": "Result",
       "placeholder": "Enter result",
-      "validation": {},
+      "validation": {
+        "maxLength": 250
+      },
       "defaultValue": ""
     },
     {
@@ -180,9 +181,12 @@
           "editor"
         ]
       },
+      "maxLength": 50,
       "displayName": "Code",
       "placeholder": "Enter code",
-      "validation": {},
+      "validation": {
+        "maxLength": 50
+      },
       "defaultValue": ""
     },
     {
@@ -209,7 +213,6 @@
       "referencedFieldID": "id",
       "displayName": "Handler",
       "placeholder": "Enter handler",
-      "validation": {},
       "referencedFieldName": "name"
     },
     {
@@ -236,7 +239,6 @@
       "referencedFieldID": "id",
       "displayName": "Judge",
       "placeholder": "Enter judge",
-      "validation": {},
       "referencedFieldName": "name"
     },
     {
@@ -263,7 +265,6 @@
       "referencedFieldID": "id",
       "displayName": "Place",
       "placeholder": "Enter place",
-      "validation": {},
       "referencedFieldName": "name"
     },
     {
@@ -290,7 +291,6 @@
       "referencedFieldID": "id",
       "displayName": "Qualification",
       "placeholder": "Enter qualification",
-      "validation": {},
       "referencedFieldName": "name"
     },
     {
@@ -313,8 +313,7 @@
         ]
       },
       "displayName": "Date",
-      "placeholder": "Enter date",
-      "validation": {}
+      "placeholder": "Enter date"
     },
     {
       "id": "field_temp_project_name",
@@ -335,9 +334,12 @@
           "editor"
         ]
       },
+      "maxLength": 500,
       "displayName": "Temp Project Name",
       "placeholder": "Enter temp project name",
-      "validation": {},
+      "validation": {
+        "maxLength": 500
+      },
       "defaultValue": ""
     },
     {
@@ -364,7 +366,6 @@
       "referencedFieldID": "id",
       "displayName": "Pet Breed",
       "placeholder": "Enter pet breed",
-      "validation": {},
       "referencedFieldName": "name"
     },
     {
@@ -374,8 +375,8 @@
       "component": "text",
       "required": true,
       "isSystem": true,
-      "isPrimaryKey": false,
-      "isUnique": false,
+      "isPrimaryKey": true,
+      "isUnique": true,
       "sortOrder": 150,
       "permissions": {
         "read": [
@@ -385,8 +386,7 @@
           "system"
         ]
       },
-      "displayName": "Id",
-      "validation": {}
+      "displayName": "Id"
     },
     {
       "id": "field_created_at",
@@ -406,8 +406,7 @@
           "system"
         ]
       },
-      "displayName": "Created At",
-      "validation": {}
+      "displayName": "Created At"
     },
     {
       "id": "field_created_by",
@@ -427,8 +426,7 @@
           "system"
         ]
       },
-      "displayName": "Created By",
-      "validation": {}
+      "displayName": "Created By"
     },
     {
       "id": "field_updated_at",
@@ -448,8 +446,7 @@
           "system"
         ]
       },
-      "displayName": "Updated At",
-      "validation": {}
+      "displayName": "Updated At"
     },
     {
       "id": "field_updated_by",
@@ -469,8 +466,7 @@
           "system"
         ]
       },
-      "displayName": "Updated By",
-      "validation": {}
+      "displayName": "Updated By"
     }
   ],
   "metadata": {
@@ -478,6 +474,6 @@
     "totalFields": 19,
     "systemFields": 5,
     "customFields": 14,
-    "generatedAt": "2025-09-15T14:15:00.923Z"
+    "generatedAt": "2025-09-17T11:56:46.999Z"
   }
 }

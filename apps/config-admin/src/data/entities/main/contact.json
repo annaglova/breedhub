@@ -24,9 +24,12 @@
           "editor"
         ]
       },
+      "maxLength": 250,
       "displayName": "Name",
       "placeholder": "Enter name",
-      "validation": {},
+      "validation": {
+        "maxLength": 250
+      },
       "defaultValue": ""
     },
     {
@@ -48,9 +51,12 @@
           "editor"
         ]
       },
+      "maxLength": 250,
       "displayName": "Description",
       "placeholder": "Enter description",
-      "validation": {},
+      "validation": {
+        "maxLength": 250
+      },
       "defaultValue": ""
     },
     {
@@ -77,7 +83,6 @@
       "referencedFieldID": "id",
       "displayName": "Account",
       "placeholder": "Enter account",
-      "validation": {},
       "referencedFieldName": "name"
     },
     {
@@ -99,9 +104,12 @@
           "editor"
         ]
       },
+      "maxLength": 250,
       "displayName": "Dear",
       "placeholder": "Enter dear",
-      "validation": {},
+      "validation": {
+        "maxLength": 250
+      },
       "defaultValue": ""
     },
     {
@@ -128,7 +136,6 @@
       "referencedFieldID": "id",
       "displayName": "Salutation Type",
       "placeholder": "Enter salutation type",
-      "validation": {},
       "referencedFieldName": "name"
     },
     {
@@ -155,7 +162,6 @@
       "referencedFieldID": "id",
       "displayName": "Gender",
       "placeholder": "Enter gender",
-      "validation": {},
       "referencedFieldName": "name"
     },
     {
@@ -182,7 +188,6 @@
       "referencedFieldID": "id",
       "displayName": "Type",
       "placeholder": "Enter type",
-      "validation": {},
       "referencedFieldName": "name"
     },
     {
@@ -205,8 +210,7 @@
         ]
       },
       "displayName": "Birth Date",
-      "placeholder": "Enter birth date",
-      "validation": {}
+      "placeholder": "Enter birth date"
     },
     {
       "id": "field_phone",
@@ -227,9 +231,12 @@
           "editor"
         ]
       },
+      "maxLength": 250,
       "displayName": "Phone",
       "placeholder": "Enter phone",
-      "validation": {},
+      "validation": {
+        "maxLength": 250
+      },
       "defaultValue": ""
     },
     {
@@ -251,9 +258,12 @@
           "editor"
         ]
       },
+      "maxLength": 250,
       "displayName": "Mobile Phone",
       "placeholder": "Enter mobile phone",
-      "validation": {},
+      "validation": {
+        "maxLength": 250
+      },
       "defaultValue": ""
     },
     {
@@ -275,9 +285,12 @@
           "editor"
         ]
       },
+      "maxLength": 250,
       "displayName": "Home Phone",
       "placeholder": "Enter home phone",
-      "validation": {},
+      "validation": {
+        "maxLength": 250
+      },
       "defaultValue": ""
     },
     {
@@ -299,9 +312,12 @@
           "editor"
         ]
       },
+      "maxLength": 250,
       "displayName": "Skype",
       "placeholder": "Enter skype",
-      "validation": {},
+      "validation": {
+        "maxLength": 250
+      },
       "defaultValue": ""
     },
     {
@@ -323,9 +339,11 @@
           "editor"
         ]
       },
+      "maxLength": 250,
       "displayName": "Email",
       "placeholder": "Enter email",
       "validation": {
+        "maxLength": 250,
         "pattern": "^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$",
         "message": "Invalid email format"
       },
@@ -355,7 +373,6 @@
       "referencedFieldID": "id",
       "displayName": "Address Type",
       "placeholder": "Enter address type",
-      "validation": {},
       "referencedFieldName": "name"
     },
     {
@@ -379,7 +396,6 @@
       },
       "displayName": "Address",
       "placeholder": "Enter address",
-      "validation": {},
       "defaultValue": ""
     },
     {
@@ -406,7 +422,6 @@
       "referencedFieldID": "id",
       "displayName": "City",
       "placeholder": "Enter city",
-      "validation": {},
       "referencedFieldName": "name"
     },
     {
@@ -433,7 +448,6 @@
       "referencedFieldID": "id",
       "displayName": "Region",
       "placeholder": "Enter region",
-      "validation": {},
       "referencedFieldName": "name"
     },
     {
@@ -455,9 +469,12 @@
           "editor"
         ]
       },
+      "maxLength": 50,
       "displayName": "Zip",
       "placeholder": "Enter zip",
-      "validation": {},
+      "validation": {
+        "maxLength": 50
+      },
       "defaultValue": ""
     },
     {
@@ -484,7 +501,6 @@
       "referencedFieldID": "id",
       "displayName": "Country",
       "placeholder": "Enter country",
-      "validation": {},
       "referencedFieldName": "name"
     },
     {
@@ -533,7 +549,6 @@
         ]
       },
       "displayName": "Do Not Use Call",
-      "validation": {},
       "defaultValue": "false"
     },
     {
@@ -556,7 +571,6 @@
         ]
       },
       "displayName": "Do Not Use Fax",
-      "validation": {},
       "defaultValue": "false"
     },
     {
@@ -579,7 +593,6 @@
         ]
       },
       "displayName": "Do Not Use Sms",
-      "validation": {},
       "defaultValue": "false"
     },
     {
@@ -602,7 +615,6 @@
         ]
       },
       "displayName": "Do Not Use Mail",
-      "validation": {},
       "defaultValue": "false"
     },
     {
@@ -626,7 +638,6 @@
       },
       "displayName": "Notes",
       "placeholder": "Enter notes",
-      "validation": {},
       "defaultValue": ""
     },
     {
@@ -648,9 +659,12 @@
           "editor"
         ]
       },
+      "maxLength": 250,
       "displayName": "Facebook",
       "placeholder": "Enter facebook",
-      "validation": {},
+      "validation": {
+        "maxLength": 250
+      },
       "defaultValue": ""
     },
     {
@@ -672,9 +686,11 @@
           "editor"
         ]
       },
+      "maxLength": 250,
       "displayName": "Linked In",
       "placeholder": "Enter linked in",
       "validation": {
+        "maxLength": 250,
         "pattern": "^https?://.+",
         "message": "Invalid URL format"
       },
@@ -699,9 +715,12 @@
           "editor"
         ]
       },
+      "maxLength": 250,
       "displayName": "Twitter",
       "placeholder": "Enter twitter",
-      "validation": {},
+      "validation": {
+        "maxLength": 250
+      },
       "defaultValue": ""
     },
     {
@@ -723,12 +742,15 @@
           "editor"
         ]
       },
+      "maxLength": 250,
       "isForeignKey": true,
       "referencedTable": "facebook",
       "referencedFieldID": "id",
       "displayName": "Facebook",
       "placeholder": "Enter facebook",
-      "validation": {},
+      "validation": {
+        "maxLength": 250
+      },
       "defaultValue": "",
       "referencedFieldName": "id"
     },
@@ -751,12 +773,14 @@
           "editor"
         ]
       },
+      "maxLength": 250,
       "isForeignKey": true,
       "referencedTable": "linked_in",
       "referencedFieldID": "id",
       "displayName": "Linked In",
       "placeholder": "Enter linked in",
       "validation": {
+        "maxLength": 250,
         "pattern": "^https?://.+",
         "message": "Invalid URL format"
       },
@@ -782,12 +806,15 @@
           "editor"
         ]
       },
+      "maxLength": 250,
       "isForeignKey": true,
       "referencedTable": "twitter",
       "referencedFieldID": "id",
       "displayName": "Twitter",
       "placeholder": "Enter twitter",
-      "validation": {},
+      "validation": {
+        "maxLength": 250
+      },
       "defaultValue": "",
       "referencedFieldName": "id"
     },
@@ -811,8 +838,7 @@
         ]
       },
       "displayName": "Contact Photo",
-      "placeholder": "Enter contact photo",
-      "validation": {}
+      "placeholder": "Enter contact photo"
     },
     {
       "id": "field_gpsn",
@@ -833,9 +859,12 @@
           "editor"
         ]
       },
+      "maxLength": 50,
       "displayName": "Gpsn",
       "placeholder": "Enter gpsn",
-      "validation": {},
+      "validation": {
+        "maxLength": 50
+      },
       "defaultValue": ""
     },
     {
@@ -857,9 +886,12 @@
           "editor"
         ]
       },
+      "maxLength": 50,
       "displayName": "Gpse",
       "placeholder": "Enter gpse",
-      "validation": {},
+      "validation": {
+        "maxLength": 50
+      },
       "defaultValue": ""
     },
     {
@@ -881,9 +913,12 @@
           "editor"
         ]
       },
+      "maxLength": 250,
       "displayName": "Surname",
       "placeholder": "Enter surname",
-      "validation": {},
+      "validation": {
+        "maxLength": 250
+      },
       "defaultValue": ""
     },
     {
@@ -905,9 +940,12 @@
           "editor"
         ]
       },
+      "maxLength": 250,
       "displayName": "Given Name",
       "placeholder": "Enter given name",
-      "validation": {},
+      "validation": {
+        "maxLength": 250
+      },
       "defaultValue": ""
     },
     {
@@ -929,9 +967,12 @@
           "editor"
         ]
       },
+      "maxLength": 250,
       "displayName": "Middle Name",
       "placeholder": "Enter middle name",
-      "validation": {},
+      "validation": {
+        "maxLength": 250
+      },
       "defaultValue": ""
     },
     {
@@ -954,7 +995,6 @@
         ]
       },
       "displayName": "Confirmed",
-      "validation": {},
       "defaultValue": "false"
     },
     {
@@ -981,7 +1021,6 @@
       "referencedFieldID": "id",
       "displayName": "Language",
       "placeholder": "Enter language",
-      "validation": {},
       "referencedFieldName": "name"
     },
     {
@@ -1005,7 +1044,10 @@
       },
       "displayName": "Completeness",
       "placeholder": "Enter completeness",
-      "validation": {},
+      "validation": {
+        "precision": 32,
+        "scale": 0
+      },
       "defaultValue": "0"
     },
     {
@@ -1058,7 +1100,10 @@
       "referencedFieldID": "id",
       "displayName": "R",
       "placeholder": "Enter r",
-      "validation": {},
+      "validation": {
+        "precision": 32,
+        "scale": 0
+      },
       "referencedFieldName": "id"
     },
     {
@@ -1082,7 +1127,10 @@
       },
       "displayName": "Age",
       "placeholder": "Enter age",
-      "validation": {},
+      "validation": {
+        "precision": 32,
+        "scale": 0
+      },
       "defaultValue": "0"
     },
     {
@@ -1105,7 +1153,6 @@
         ]
       },
       "displayName": "Ti Is Invoice By Sms",
-      "validation": {},
       "defaultValue": "false"
     },
     {
@@ -1155,7 +1202,6 @@
       },
       "displayName": "Alternate Names",
       "placeholder": "Enter alternate names",
-      "validation": {},
       "defaultValue": ""
     },
     {
@@ -1177,12 +1223,15 @@
           "editor"
         ]
       },
+      "maxLength": 50,
       "isForeignKey": true,
       "referencedTable": "duplicate_group",
       "referencedFieldID": "id",
       "displayName": "Duplicate Group",
       "placeholder": "Enter duplicate group",
-      "validation": {},
+      "validation": {
+        "maxLength": 50
+      },
       "defaultValue": "",
       "referencedFieldName": "id"
     },
@@ -1231,9 +1280,11 @@
           "editor"
         ]
       },
+      "maxLength": 250,
       "displayName": "Url",
       "placeholder": "Enter url",
       "validation": {
+        "maxLength": 250,
         "pattern": "^https?://.+",
         "message": "Invalid URL format"
       },
@@ -1263,7 +1314,6 @@
       "referencedFieldID": "id",
       "displayName": "Verified Stage",
       "placeholder": "Enter verified stage",
-      "validation": {},
       "referencedFieldName": "name"
     },
     {
@@ -1290,7 +1340,6 @@
       "referencedFieldID": "id",
       "displayName": "Duplicate",
       "placeholder": "Enter duplicate",
-      "validation": {},
       "referencedFieldName": "id"
     },
     {
@@ -1312,9 +1361,11 @@
           "editor"
         ]
       },
+      "maxLength": 500,
       "displayName": "Avatar Url",
       "placeholder": "Enter avatar url",
       "validation": {
+        "maxLength": 500,
         "pattern": "^https?://.+",
         "message": "Invalid URL format"
       },
@@ -1344,7 +1395,6 @@
       "referencedFieldID": "id",
       "displayName": "Verification Status",
       "placeholder": "Enter verification status",
-      "validation": {},
       "referencedFieldName": "name"
     },
     {
@@ -1371,7 +1421,6 @@
       "referencedFieldID": "id",
       "displayName": "Cover",
       "placeholder": "Enter cover",
-      "validation": {},
       "referencedFieldName": "name"
     },
     {
@@ -1394,8 +1443,7 @@
         ]
       },
       "displayName": "Measurements",
-      "placeholder": "Enter measurements",
-      "validation": {}
+      "placeholder": "Enter measurements"
     },
     {
       "id": "field_id",
@@ -1404,8 +1452,8 @@
       "component": "text",
       "required": true,
       "isSystem": true,
-      "isPrimaryKey": false,
-      "isUnique": false,
+      "isPrimaryKey": true,
+      "isUnique": true,
       "sortOrder": 560,
       "permissions": {
         "read": [
@@ -1415,8 +1463,7 @@
           "system"
         ]
       },
-      "displayName": "Id",
-      "validation": {}
+      "displayName": "Id"
     },
     {
       "id": "field_created_at",
@@ -1436,8 +1483,7 @@
           "system"
         ]
       },
-      "displayName": "Created At",
-      "validation": {}
+      "displayName": "Created At"
     },
     {
       "id": "field_created_by",
@@ -1457,8 +1503,7 @@
           "system"
         ]
       },
-      "displayName": "Created By",
-      "validation": {}
+      "displayName": "Created By"
     },
     {
       "id": "field_updated_at",
@@ -1478,8 +1523,7 @@
           "system"
         ]
       },
-      "displayName": "Updated At",
-      "validation": {}
+      "displayName": "Updated At"
     },
     {
       "id": "field_updated_by",
@@ -1499,8 +1543,7 @@
           "system"
         ]
       },
-      "displayName": "Updated By",
-      "validation": {}
+      "displayName": "Updated By"
     }
   ],
   "metadata": {
@@ -1508,6 +1551,6 @@
     "totalFields": 60,
     "systemFields": 5,
     "customFields": 55,
-    "generatedAt": "2025-09-15T14:13:18.417Z"
+    "generatedAt": "2025-09-17T11:55:04.847Z"
   }
 }

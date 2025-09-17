@@ -24,9 +24,12 @@
           "editor"
         ]
       },
+      "maxLength": 250,
       "displayName": "Name",
       "placeholder": "Enter name",
-      "validation": {},
+      "validation": {
+        "maxLength": 250
+      },
       "defaultValue": ""
     },
     {
@@ -48,9 +51,12 @@
           "editor"
         ]
       },
+      "maxLength": 250,
       "displayName": "Description",
       "placeholder": "Enter description",
-      "validation": {},
+      "validation": {
+        "maxLength": 250
+      },
       "defaultValue": ""
     },
     {
@@ -73,8 +79,7 @@
         ]
       },
       "displayName": "Start Date",
-      "placeholder": "Enter start date",
-      "validation": {}
+      "placeholder": "Enter start date"
     },
     {
       "id": "field_due_date",
@@ -96,8 +101,7 @@
         ]
       },
       "displayName": "Due Date",
-      "placeholder": "Enter due date",
-      "validation": {}
+      "placeholder": "Enter due date"
     },
     {
       "id": "field_year_id",
@@ -123,7 +127,6 @@
       "referencedFieldID": "id",
       "displayName": "Year",
       "placeholder": "Enter year",
-      "validation": {},
       "referencedFieldName": "name"
     },
     {
@@ -150,7 +153,6 @@
       "referencedFieldID": "id",
       "displayName": "Quarter",
       "placeholder": "Enter quarter",
-      "validation": {},
       "referencedFieldName": "name"
     },
     {
@@ -177,7 +179,6 @@
       "referencedFieldID": "id",
       "displayName": "Parent",
       "placeholder": "Enter parent",
-      "validation": {},
       "referencedFieldName": "name"
     },
     {
@@ -187,8 +188,8 @@
       "component": "text",
       "required": true,
       "isSystem": true,
-      "isPrimaryKey": false,
-      "isUnique": false,
+      "isPrimaryKey": true,
+      "isUnique": true,
       "sortOrder": 80,
       "permissions": {
         "read": [
@@ -198,8 +199,7 @@
           "system"
         ]
       },
-      "displayName": "Id",
-      "validation": {}
+      "displayName": "Id"
     },
     {
       "id": "field_created_at",
@@ -219,8 +219,7 @@
           "system"
         ]
       },
-      "displayName": "Created At",
-      "validation": {}
+      "displayName": "Created At"
     },
     {
       "id": "field_created_by",
@@ -240,8 +239,7 @@
           "system"
         ]
       },
-      "displayName": "Created By",
-      "validation": {}
+      "displayName": "Created By"
     },
     {
       "id": "field_updated_at",
@@ -261,8 +259,7 @@
           "system"
         ]
       },
-      "displayName": "Updated At",
-      "validation": {}
+      "displayName": "Updated At"
     },
     {
       "id": "field_updated_by",
@@ -282,8 +279,7 @@
           "system"
         ]
       },
-      "displayName": "Updated By",
-      "validation": {}
+      "displayName": "Updated By"
     }
   ],
   "metadata": {
@@ -291,6 +287,6 @@
     "totalFields": 12,
     "systemFields": 5,
     "customFields": 7,
-    "generatedAt": "2025-09-15T14:14:15.093Z"
+    "generatedAt": "2025-09-17T11:56:01.514Z"
   }
 }

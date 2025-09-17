@@ -26,7 +26,10 @@
       },
       "displayName": "Day",
       "placeholder": "Enter day",
-      "validation": {},
+      "validation": {
+        "precision": 32,
+        "scale": 0
+      },
       "defaultValue": "0"
     },
     {
@@ -50,7 +53,6 @@
       },
       "displayName": "Description",
       "placeholder": "Enter description",
-      "validation": {},
       "defaultValue": ""
     },
     {
@@ -73,8 +75,7 @@
         ]
       },
       "displayName": "Date",
-      "placeholder": "Enter date",
-      "validation": {}
+      "placeholder": "Enter date"
     },
     {
       "id": "field_pet_lifecycle_event_id",
@@ -100,7 +101,6 @@
       "referencedFieldID": "id",
       "displayName": "Pet Lifecycle Event",
       "placeholder": "Enter pet lifecycle event",
-      "validation": {},
       "referencedFieldName": "name"
     },
     {
@@ -127,7 +127,6 @@
       "referencedFieldID": "id",
       "displayName": "Pet",
       "placeholder": "Enter pet",
-      "validation": {},
       "referencedFieldName": "name"
     },
     {
@@ -154,7 +153,6 @@
       "referencedFieldID": "id",
       "displayName": "Status",
       "placeholder": "Enter status",
-      "validation": {},
       "referencedFieldName": "name"
     },
     {
@@ -181,7 +179,6 @@
       "referencedFieldID": "id",
       "displayName": "Pet Breed",
       "placeholder": "Enter pet breed",
-      "validation": {},
       "referencedFieldName": "name"
     },
     {
@@ -191,8 +188,8 @@
       "component": "text",
       "required": true,
       "isSystem": true,
-      "isPrimaryKey": false,
-      "isUnique": false,
+      "isPrimaryKey": true,
+      "isUnique": true,
       "sortOrder": 80,
       "permissions": {
         "read": [
@@ -202,8 +199,7 @@
           "system"
         ]
       },
-      "displayName": "Id",
-      "validation": {}
+      "displayName": "Id"
     },
     {
       "id": "field_created_at",
@@ -223,8 +219,7 @@
           "system"
         ]
       },
-      "displayName": "Created At",
-      "validation": {}
+      "displayName": "Created At"
     },
     {
       "id": "field_created_by",
@@ -244,8 +239,7 @@
           "system"
         ]
       },
-      "displayName": "Created By",
-      "validation": {}
+      "displayName": "Created By"
     },
     {
       "id": "field_updated_at",
@@ -265,8 +259,7 @@
           "system"
         ]
       },
-      "displayName": "Updated At",
-      "validation": {}
+      "displayName": "Updated At"
     },
     {
       "id": "field_updated_by",
@@ -286,8 +279,7 @@
           "system"
         ]
       },
-      "displayName": "Updated By",
-      "validation": {}
+      "displayName": "Updated By"
     }
   ],
   "metadata": {
@@ -295,6 +287,6 @@
     "totalFields": 12,
     "systemFields": 5,
     "customFields": 7,
-    "generatedAt": "2025-09-15T14:15:02.540Z"
+    "generatedAt": "2025-09-17T11:56:48.695Z"
   }
 }

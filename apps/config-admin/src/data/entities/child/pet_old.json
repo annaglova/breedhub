@@ -26,7 +26,6 @@
       },
       "displayName": "Name",
       "placeholder": "Enter name",
-      "validation": {},
       "defaultValue": ""
     },
     {
@@ -50,7 +49,6 @@
       },
       "displayName": "Notes",
       "placeholder": "Enter notes",
-      "validation": {},
       "defaultValue": ""
     },
     {
@@ -73,8 +71,7 @@
         ]
       },
       "displayName": "Date Of Birth",
-      "placeholder": "Enter date of birth",
-      "validation": {}
+      "placeholder": "Enter date of birth"
     },
     {
       "id": "field_owner_id",
@@ -100,7 +97,6 @@
       "referencedFieldID": "id",
       "displayName": "Owner",
       "placeholder": "Enter owner",
-      "validation": {},
       "referencedFieldName": "name"
     },
     {
@@ -127,7 +123,6 @@
       "referencedFieldID": "id",
       "displayName": "Kennel",
       "placeholder": "Enter kennel",
-      "validation": {},
       "referencedFieldName": "id"
     },
     {
@@ -154,7 +149,6 @@
       "referencedFieldID": "id",
       "displayName": "Pet Type",
       "placeholder": "Enter pet type",
-      "validation": {},
       "referencedFieldName": "name"
     },
     {
@@ -181,7 +175,6 @@
       "referencedFieldID": "id",
       "displayName": "Sex",
       "placeholder": "Enter sex",
-      "validation": {},
       "referencedFieldName": "name"
     },
     {
@@ -208,7 +201,6 @@
       "referencedFieldID": "id",
       "displayName": "Father",
       "placeholder": "Enter father",
-      "validation": {},
       "referencedFieldName": "id"
     },
     {
@@ -235,7 +227,6 @@
       "referencedFieldID": "id",
       "displayName": "Mother",
       "placeholder": "Enter mother",
-      "validation": {},
       "referencedFieldName": "id"
     },
     {
@@ -262,7 +253,6 @@
       "referencedFieldID": "id",
       "displayName": "Breed",
       "placeholder": "Enter breed",
-      "validation": {},
       "referencedFieldName": "name"
     },
     {
@@ -289,7 +279,6 @@
       "referencedFieldID": "id",
       "displayName": "Breeder",
       "placeholder": "Enter breeder",
-      "validation": {},
       "referencedFieldName": "name"
     },
     {
@@ -316,7 +305,6 @@
       "referencedFieldID": "id",
       "displayName": "Photo",
       "placeholder": "Enter photo",
-      "validation": {},
       "referencedFieldName": "id"
     },
     {
@@ -339,8 +327,7 @@
         ]
       },
       "displayName": "Date Of Death",
-      "placeholder": "Enter date of death",
-      "validation": {}
+      "placeholder": "Enter date of death"
     },
     {
       "id": "field_pet_status_id",
@@ -366,7 +353,6 @@
       "referencedFieldID": "id",
       "displayName": "Pet Status",
       "placeholder": "Enter pet status",
-      "validation": {},
       "referencedFieldName": "name"
     },
     {
@@ -393,7 +379,6 @@
       "referencedFieldID": "id",
       "displayName": "Coat Type",
       "placeholder": "Enter coat type",
-      "validation": {},
       "referencedFieldName": "name"
     },
     {
@@ -420,7 +405,6 @@
       "referencedFieldID": "id",
       "displayName": "Coat Color",
       "placeholder": "Enter coat color",
-      "validation": {},
       "referencedFieldName": "name"
     },
     {
@@ -447,7 +431,6 @@
       "referencedFieldID": "id",
       "displayName": "Size",
       "placeholder": "Enter size",
-      "validation": {},
       "referencedFieldName": "id"
     },
     {
@@ -474,7 +457,6 @@
       "referencedFieldID": "id",
       "displayName": "Body Feature",
       "placeholder": "Enter body feature",
-      "validation": {},
       "referencedFieldName": "name"
     },
     {
@@ -501,7 +483,6 @@
       "referencedFieldID": "id",
       "displayName": "Litter",
       "placeholder": "Enter litter",
-      "validation": {},
       "referencedFieldName": "name"
     },
     {
@@ -523,9 +504,12 @@
           "editor"
         ]
       },
+      "maxLength": 250,
       "displayName": "Call Name",
       "placeholder": "Enter call name",
-      "validation": {},
+      "validation": {
+        "maxLength": 250
+      },
       "defaultValue": ""
     },
     {
@@ -552,7 +536,6 @@
       "referencedFieldID": "id",
       "displayName": "Country Of Birth",
       "placeholder": "Enter country of birth",
-      "validation": {},
       "referencedFieldName": "id"
     },
     {
@@ -576,7 +559,6 @@
       },
       "displayName": "Titles",
       "placeholder": "Enter titles",
-      "validation": {},
       "defaultValue": ""
     },
     {
@@ -600,7 +582,6 @@
       },
       "displayName": "Inbreeding Percent",
       "placeholder": "Enter inbreeding percent",
-      "validation": {},
       "defaultValue": "0"
     },
     {
@@ -622,9 +603,11 @@
           "editor"
         ]
       },
+      "maxLength": 500,
       "displayName": "Url",
       "placeholder": "Enter url",
       "validation": {
+        "maxLength": 500,
         "pattern": "^https?://.+",
         "message": "Invalid URL format"
       },
@@ -649,9 +632,12 @@
           "editor"
         ]
       },
+      "maxLength": 250,
       "displayName": "Page Template Code",
       "placeholder": "Enter page template code",
-      "validation": {},
+      "validation": {
+        "maxLength": 250
+      },
       "defaultValue": ""
     },
     {
@@ -678,7 +664,6 @@
       "referencedFieldID": "id",
       "displayName": "Verified Stage",
       "placeholder": "Enter verified stage",
-      "validation": {},
       "referencedFieldName": "name"
     },
     {
@@ -705,7 +690,6 @@
       "referencedFieldID": "id",
       "displayName": "Owner Kennel",
       "placeholder": "Enter owner kennel",
-      "validation": {},
       "referencedFieldName": "id"
     },
     {
@@ -727,9 +711,12 @@
           "editor"
         ]
       },
+      "maxLength": 250,
       "displayName": "Full Breed Name",
       "placeholder": "Enter full breed name",
-      "validation": {},
+      "validation": {
+        "maxLength": 250
+      },
       "defaultValue": ""
     },
     {
@@ -751,9 +738,11 @@
           "editor"
         ]
       },
+      "maxLength": 500,
       "displayName": "Avatar Url",
       "placeholder": "Enter avatar url",
       "validation": {
+        "maxLength": 500,
         "pattern": "^https?://.+",
         "message": "Invalid URL format"
       },
@@ -780,7 +769,6 @@
       },
       "displayName": "Rating",
       "placeholder": "Enter rating",
-      "validation": {},
       "defaultValue": "0"
     },
     {
@@ -807,7 +795,6 @@
       "referencedFieldID": "id",
       "displayName": "Breed Division",
       "placeholder": "Enter breed division",
-      "validation": {},
       "referencedFieldName": "name"
     },
     {
@@ -831,7 +818,6 @@
       },
       "displayName": "Trim Titles",
       "placeholder": "Enter trim titles",
-      "validation": {},
       "defaultValue": ""
     },
     {
@@ -858,7 +844,6 @@
       "referencedFieldID": "id",
       "displayName": "Country Of Stay",
       "placeholder": "Enter country of stay",
-      "validation": {},
       "referencedFieldName": "id"
     },
     {
@@ -882,7 +867,6 @@
       },
       "displayName": "Child Rating",
       "placeholder": "Enter child rating",
-      "validation": {},
       "defaultValue": "0"
     },
     {
@@ -906,7 +890,6 @@
       },
       "displayName": "Self Rating",
       "placeholder": "Enter self rating",
-      "validation": {},
       "defaultValue": "0"
     },
     {
@@ -929,8 +912,7 @@
         ]
       },
       "displayName": "Calc Date Of Birth",
-      "placeholder": "Enter calc date of birth",
-      "validation": {}
+      "placeholder": "Enter calc date of birth"
     },
     {
       "id": "field_coi",
@@ -953,7 +935,6 @@
       },
       "displayName": "Coi",
       "placeholder": "Enter coi",
-      "validation": {},
       "defaultValue": "0"
     },
     {
@@ -980,7 +961,6 @@
       "referencedFieldID": "id",
       "displayName": "Verification Status",
       "placeholder": "Enter verification status",
-      "validation": {},
       "referencedFieldName": "name"
     },
     {
@@ -1004,7 +984,10 @@
       },
       "displayName": "Rating Placement In Breed",
       "placeholder": "Enter rating placement in breed",
-      "validation": {},
+      "validation": {
+        "precision": 32,
+        "scale": 0
+      },
       "defaultValue": "0"
     },
     {
@@ -1027,7 +1010,6 @@
         ]
       },
       "displayName": "Is Public",
-      "validation": {},
       "defaultValue": "false"
     },
     {
@@ -1054,7 +1036,6 @@
       "referencedFieldID": "id",
       "displayName": "Cover",
       "placeholder": "Enter cover",
-      "validation": {},
       "referencedFieldName": "name"
     },
     {
@@ -1081,7 +1062,6 @@
       "referencedFieldID": "id",
       "displayName": "Public Data",
       "placeholder": "Enter public data",
-      "validation": {},
       "referencedFieldName": "name"
     },
     {
@@ -1105,7 +1085,6 @@
       },
       "displayName": "Weight",
       "placeholder": "Enter weight",
-      "validation": {},
       "defaultValue": "0"
     },
     {
@@ -1129,7 +1108,10 @@
       },
       "displayName": "Test Int Index",
       "placeholder": "Enter test int index",
-      "validation": {},
+      "validation": {
+        "precision": 32,
+        "scale": 0
+      },
       "defaultValue": "0"
     },
     {
@@ -1156,7 +1138,6 @@
       "referencedFieldID": "id",
       "displayName": "Mother Breed",
       "placeholder": "Enter mother breed",
-      "validation": {},
       "referencedFieldName": "id"
     },
     {
@@ -1183,7 +1164,6 @@
       "referencedFieldID": "id",
       "displayName": "Father Breed",
       "placeholder": "Enter father breed",
-      "validation": {},
       "referencedFieldName": "id"
     },
     {
@@ -1193,8 +1173,8 @@
       "component": "text",
       "required": true,
       "isSystem": true,
-      "isPrimaryKey": false,
-      "isUnique": false,
+      "isPrimaryKey": true,
+      "isUnique": true,
       "sortOrder": 470,
       "permissions": {
         "read": [
@@ -1204,8 +1184,7 @@
           "system"
         ]
       },
-      "displayName": "Id",
-      "validation": {}
+      "displayName": "Id"
     },
     {
       "id": "field_created_at",
@@ -1225,8 +1204,7 @@
           "system"
         ]
       },
-      "displayName": "Created At",
-      "validation": {}
+      "displayName": "Created At"
     },
     {
       "id": "field_created_by",
@@ -1246,8 +1224,7 @@
           "system"
         ]
       },
-      "displayName": "Created By",
-      "validation": {}
+      "displayName": "Created By"
     },
     {
       "id": "field_updated_at",
@@ -1267,8 +1244,7 @@
           "system"
         ]
       },
-      "displayName": "Updated At",
-      "validation": {}
+      "displayName": "Updated At"
     },
     {
       "id": "field_updated_by",
@@ -1288,8 +1264,7 @@
           "system"
         ]
       },
-      "displayName": "Updated By",
-      "validation": {}
+      "displayName": "Updated By"
     }
   ],
   "metadata": {
@@ -1297,6 +1272,6 @@
     "totalFields": 51,
     "systemFields": 5,
     "customFields": 46,
-    "generatedAt": "2025-09-15T14:15:04.075Z"
+    "generatedAt": "2025-09-17T11:56:50.235Z"
   }
 }

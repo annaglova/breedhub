@@ -24,9 +24,12 @@
           "editor"
         ]
       },
+      "maxLength": 250,
       "displayName": "Name",
       "placeholder": "Enter name",
-      "validation": {},
+      "validation": {
+        "maxLength": 250
+      },
       "defaultValue": ""
     },
     {
@@ -48,9 +51,11 @@
           "editor"
         ]
       },
+      "maxLength": 250,
       "displayName": "Url",
       "placeholder": "Enter url",
       "validation": {
+        "maxLength": 250,
         "pattern": "^https?://.+",
         "message": "Invalid URL format"
       },
@@ -80,7 +85,6 @@
       "referencedFieldID": "id",
       "displayName": "Type",
       "placeholder": "Enter type",
-      "validation": {},
       "referencedFieldName": "name"
     },
     {
@@ -104,7 +108,10 @@
       },
       "displayName": "Reward",
       "placeholder": "Enter reward",
-      "validation": {},
+      "validation": {
+        "precision": 32,
+        "scale": 0
+      },
       "defaultValue": "0"
     },
     {
@@ -128,7 +135,10 @@
       },
       "displayName": "Frequency Interval",
       "placeholder": "Enter frequency interval",
-      "validation": {},
+      "validation": {
+        "precision": 32,
+        "scale": 0
+      },
       "defaultValue": "0"
     },
     {
@@ -155,7 +165,6 @@
       "referencedFieldID": "id",
       "displayName": "Frequency",
       "placeholder": "Enter frequency",
-      "validation": {},
       "referencedFieldName": "name"
     },
     {
@@ -178,7 +187,6 @@
         ]
       },
       "displayName": "Deactivated",
-      "validation": {},
       "defaultValue": "false"
     },
     {
@@ -200,9 +208,12 @@
           "editor"
         ]
       },
+      "maxLength": 500,
       "displayName": "Description",
       "placeholder": "Enter description",
-      "validation": {},
+      "validation": {
+        "maxLength": 500
+      },
       "defaultValue": ""
     },
     {
@@ -226,7 +237,10 @@
       },
       "displayName": "Total Steps",
       "placeholder": "Enter total steps",
-      "validation": {},
+      "validation": {
+        "precision": 32,
+        "scale": 0
+      },
       "defaultValue": "0"
     },
     {
@@ -249,8 +263,7 @@
         ]
       },
       "displayName": "Deadline Date",
-      "placeholder": "Enter deadline date",
-      "validation": {}
+      "placeholder": "Enter deadline date"
     },
     {
       "id": "field_id",
@@ -259,8 +272,8 @@
       "component": "text",
       "required": true,
       "isSystem": true,
-      "isPrimaryKey": false,
-      "isUnique": false,
+      "isPrimaryKey": true,
+      "isUnique": true,
       "sortOrder": 110,
       "permissions": {
         "read": [
@@ -270,8 +283,7 @@
           "system"
         ]
       },
-      "displayName": "Id",
-      "validation": {}
+      "displayName": "Id"
     },
     {
       "id": "field_created_at",
@@ -291,8 +303,7 @@
           "system"
         ]
       },
-      "displayName": "Created At",
-      "validation": {}
+      "displayName": "Created At"
     },
     {
       "id": "field_created_by",
@@ -312,8 +323,7 @@
           "system"
         ]
       },
-      "displayName": "Created By",
-      "validation": {}
+      "displayName": "Created By"
     },
     {
       "id": "field_updated_at",
@@ -333,8 +343,7 @@
           "system"
         ]
       },
-      "displayName": "Updated At",
-      "validation": {}
+      "displayName": "Updated At"
     },
     {
       "id": "field_updated_by",
@@ -354,8 +363,7 @@
           "system"
         ]
       },
-      "displayName": "Updated By",
-      "validation": {}
+      "displayName": "Updated By"
     }
   ],
   "metadata": {
@@ -363,6 +371,6 @@
     "totalFields": 15,
     "systemFields": 5,
     "customFields": 10,
-    "generatedAt": "2025-09-15T14:13:48.837Z"
+    "generatedAt": "2025-09-17T11:55:35.483Z"
   }
 }

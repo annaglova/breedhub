@@ -29,7 +29,6 @@
       "referencedFieldID": "id",
       "displayName": "Contact",
       "placeholder": "Enter contact",
-      "validation": {},
       "referencedFieldName": "name"
     },
     {
@@ -39,8 +38,8 @@
       "component": "text",
       "required": true,
       "isSystem": true,
-      "isPrimaryKey": false,
-      "isUnique": false,
+      "isPrimaryKey": true,
+      "isUnique": true,
       "sortOrder": 20,
       "permissions": {
         "read": [
@@ -50,8 +49,7 @@
           "system"
         ]
       },
-      "displayName": "Id",
-      "validation": {}
+      "displayName": "Id"
     }
   ],
   "metadata": {
@@ -59,6 +57,6 @@
     "totalFields": 2,
     "systemFields": 1,
     "customFields": 1,
-    "generatedAt": "2025-09-15T14:14:51.752Z"
+    "generatedAt": "2025-09-17T11:56:37.799Z"
   }
 }
