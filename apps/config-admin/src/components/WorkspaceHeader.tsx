@@ -43,6 +43,13 @@ export interface WorkspaceHeaderProps {
   // Extra buttons
   extraButtons?: ExtraButton[];
   
+  // Custom checkbox (for special filters)
+  showCheckbox?: boolean;
+  checkboxIcon?: LucideIcon;
+  checkboxChecked?: boolean;
+  onCheckboxChange?: (checked: boolean) => void;
+  checkboxTooltip?: string;
+  
   // Layout
   containerPadding?: 4 | 6; // parent container padding size
 }
@@ -69,6 +76,11 @@ export default function WorkspaceHeader({
   addButtonText = "Add",
   onAddClick,
   extraButtons = [],
+  showCheckbox = false,
+  checkboxIcon: CheckboxIcon,
+  checkboxChecked = false,
+  onCheckboxChange,
+  checkboxTooltip,
   containerPadding = 6
 }: WorkspaceHeaderProps) {
   const marginClass = containerPadding === 6 ? '-mx-6 px-6' : '-mx-4 px-4';
@@ -133,6 +145,22 @@ export default function WorkspaceHeader({
                 ))}
               </select>
             </div>
+          )}
+          
+          {/* Custom checkbox for special filters */}
+          {showCheckbox && CheckboxIcon && (
+            <label 
+              className="flex items-center gap-2 cursor-pointer" 
+              title={checkboxTooltip}
+            >
+              <CheckboxIcon className="w-4 h-4 text-blue-600" />
+              <input
+                type="checkbox"
+                checked={checkboxChecked}
+                onChange={(e) => onCheckboxChange?.(e.target.checked)}
+                className="rounded border-gray-300"
+              />
+            </label>
           )}
           
           {/* Tree controls */}
