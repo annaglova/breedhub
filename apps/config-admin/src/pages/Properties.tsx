@@ -6,6 +6,7 @@ import {
   Code,
   Copy,
   Edit2,
+  Eye,
   Save,
   Tag,
   Trash2,
@@ -14,6 +15,7 @@ import React, { useEffect, useState } from "react";
 import RegistryLayout from "../components/RegistryLayout";
 import PropertyCategoryIcon from "../components/PropertyCategoryIcon";
 import ConfigEditModal from "../components/ConfigEditModal";
+import ConfigViewModal from "../components/ConfigViewModal";
 import { configTypes } from "../types/config-types";
 
 interface Property {
@@ -50,6 +52,7 @@ const Properties: React.FC = () => {
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [viewModalConfig, setViewModalConfig] = useState<Property | null>(null);
   const itemsPerPage = 12;
 
   // Load properties from store
@@ -228,6 +231,38 @@ const Properties: React.FC = () => {
     setTimeout(() => setCopiedId(null), 2000);
   };
 
+  // Copy property (duplicate with _copy suffix)
+  const copyProperty = async (property: Property) => {
+    const baseName = property.id.replace('property_', '');
+    let newId = `property_${baseName}_copy`;
+    let counter = 1;
+    
+    // Check if _copy already exists, add counter if needed
+    while (properties.find(p => p.id === newId)) {
+      newId = `property_${baseName}_copy${counter}`;
+      counter++;
+    }
+    
+    // Start creating mode with copied data
+    setIsCreating(true);
+    setEditingId(null);
+    setEditingNewId(newId);
+    setEditingData(JSON.stringify(property.data || {}, null, 2));
+    setEditingCaption(property.caption ? `${property.caption} (Copy)` : '');
+    setEditingVersion(1);
+    setEditingTags(property.tags?.join(', ') || '');
+  };
+
+  // Open view modal
+  const openViewModal = (property: Property) => {
+    setViewModalConfig(property);
+  };
+
+  // Close view modal
+  const closeViewModal = () => {
+    setViewModalConfig(null);
+  };
+
   // Toggle expanded view
   const toggleExpanded = (id: string) => {
     setExpandedId(expandedId === id ? null : id);
@@ -275,7 +310,7 @@ const Properties: React.FC = () => {
       }}
     >
             {/* Properties Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 auto-rows-fr">
               {paginatedProperties.length === 0 &&
               filteredProperties.length === 0 ? (
                 <div className="col-span-full bg-white rounded-lg shadow-sm border p-8 text-center text-gray-500">
@@ -285,32 +320,32 @@ const Properties: React.FC = () => {
                 paginatedProperties.map((property) => (
                   <div
                     key={property.id}
-                    className={`bg-white rounded-lg shadow-sm border-2 transition-all hover:shadow-md ${appConfigStore.getPropertyBorderColor(
+                    className={`bg-white rounded-lg shadow-sm border-2 transition-all hover:shadow-md flex flex-col h-full ${appConfigStore.getPropertyBorderColor(
                       property
                     )}`}
                   >
                     {/* Card Header */}
-                    <div className="p-4 border-b bg-white rounded-t-lg">
+                    <div className="px-4 py-2 border-b bg-white rounded-t-lg">
                       <div className="flex items-start justify-between">
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2">
                             <h3
-                              className="font-medium text-sm truncate"
+                              className="font-medium text-base truncate"
                               title={property.id}
                             >
                               {property.id.replace("property_", "")}
                             </h3>
                             <PropertyCategoryIcon category={property.category} />
                           </div>
-                          <p className="text-xs text-gray-500 mt-1">
+                          <p className="text-sm text-gray-500 mt-1">
                             Type: {property.type}
                           </p>
                           {property.tags && property.tags.length > 0 && (
-                            <div className="flex flex-wrap gap-1 mt-1">
+                            <div className="flex flex-wrap gap-1 mt-2">
                               {property.tags.map((tag) => (
                                 <span
                                   key={tag}
-                                  className="px-1.5 py-0.5 text-xs bg-gray-100 text-gray-600 rounded"
+                                  className="px-2 py-0.5 text-sm bg-gray-100 text-gray-600 rounded"
                                 >
                                   {tag}
                                 </span>
@@ -320,29 +355,25 @@ const Properties: React.FC = () => {
                         </div>
                         <div className="flex gap-1 ml-2">
                           <button
-                            onClick={() => copyToClipboard(property.id)}
-                            className="p-1 text-gray-500 hover:text-blue-600 transition-colors"
-                            title="Copy ID"
+                            onClick={() => copyProperty(property)}
+                            className="p-1.5 text-gray-500 hover:text-blue-600 transition-colors"
+                            title="Copy property"
                           >
-                            {copiedId === property.id ? (
-                              <Check className="w-3 h-3 text-green-600" />
-                            ) : (
-                              <Copy className="w-3 h-3" />
-                            )}
+                            <Copy className="w-4 h-4" />
                           </button>
                           <button
-                            onClick={() => toggleExpanded(property.id)}
-                            className="p-1 text-gray-500 hover:text-blue-600 transition-colors"
-                            title="Toggle view"
+                            onClick={() => openViewModal(property)}
+                            className="p-1.5 text-gray-500 hover:text-blue-600 transition-colors"
+                            title="View details"
                           >
-                            <Code className="w-3 h-3" />
+                            <Eye className="w-4 h-4" />
                           </button>
                         </div>
                       </div>
                     </div>
 
                     {/* Card Body */}
-                    <div className="p-4">
+                    <div className="px-4 py-3 flex-1">
                       {editingId === property.id ? (
                         <div className="space-y-2">
                           <input
@@ -380,11 +411,11 @@ const Properties: React.FC = () => {
                               {JSON.stringify(property.data || {}, null, 2)}
                             </pre>
                           ) : (
-                            <div className="space-y-1">
+                            <div className="space-y-1.5">
                               {Object.entries(property.data || {})
                                 .slice(0, 3)
                                 .map(([key, value]) => (
-                                  <div key={key} className="text-xs">
+                                  <div key={key} className="text-sm">
                                     <span className="font-medium text-gray-600">
                                       {key}:
                                     </span>{" "}
@@ -397,7 +428,7 @@ const Properties: React.FC = () => {
                                 ))}
                               {Object.keys(property.data || {}).length >
                                 3 && (
-                                <div className="text-xs text-gray-400">
+                                <div className="text-sm text-gray-400">
                                   +{Object.keys(property.data || {}).length - 3}{" "}
                                   more...
                                 </div>
@@ -409,8 +440,8 @@ const Properties: React.FC = () => {
                     </div>
 
                     {/* Card Footer */}
-                    <div className="px-4 py-2 border-t bg-white rounded-b-lg flex justify-between">
-                      <div className="text-xs text-gray-500">
+                    <div className="px-4 py-2 border-t bg-white rounded-b-lg flex justify-between items-center mt-auto">
+                      <div className="text-sm text-gray-500">
                         v{property.version || 1}
                       </div>
                       {property.category === 'system' ? (
@@ -418,20 +449,20 @@ const Properties: React.FC = () => {
                           Cannot delete system property
                         </div>
                       ) : (
-                        <div className="flex gap-1">
+                        <div className="flex gap-1.5">
                           <button
                             onClick={() => startEdit(property)}
-                            className="p-1 text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                            className="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors"
                             title="Edit"
                           >
-                            <Edit2 className="w-3 h-3" />
+                            <Edit2 className="w-4 h-4" />
                           </button>
                           <button
                             onClick={() => deleteProperty(property.id)}
-                            className="p-1 text-red-600 hover:bg-red-50 rounded transition-colors"
+                            className="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors"
                             title="Delete"
                           >
-                            <Trash2 className="w-3 h-3" />
+                            <Trash2 className="w-4 h-4" />
                           </button>
                         </div>
                       )}
@@ -541,6 +572,23 @@ const Properties: React.FC = () => {
         tags={editingTags}
         onTagsChange={setEditingTags}
       />
+
+      {/* View Modal */}
+      {viewModalConfig && (
+        <ConfigViewModal
+          isOpen={!!viewModalConfig}
+          onClose={closeViewModal}
+          onEdit={() => {
+            closeViewModal();
+            if (viewModalConfig) {
+              startEdit(viewModalConfig);
+            }
+          }}
+          title="Property"
+          config={viewModalConfig}
+          hideIntermediateData={true}  // Hide Self Data and Override Data for properties
+        />
+      )}
     </RegistryLayout>
   );
 };
