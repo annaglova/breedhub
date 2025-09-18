@@ -248,7 +248,6 @@ const Properties: React.FC = () => {
   const filterOptions = [
     { value: "all", label: "All Properties" },
     { value: "field", label: "Field Properties" },
-    { value: "entity_field", label: "Entity Field Properties" },
     ...Object.entries(configTypes).map(([key, info]) => ({
       value: key,
       label: info.name

@@ -211,6 +211,33 @@ const AppConfig: React.FC = () => {
     setFilteredStructure(filtered);
   }, [fields, searchQuery]);
 
+  // Check if property can be applied to a specific config type
+  const canApplyPropertyToType = (propertyId: string, targetType: string): boolean => {
+    const property = properties.find(p => p.id === propertyId);
+    if (!property?.tags || property.tags.length === 0) {
+      return true; // No tags means it can be applied anywhere
+    }
+    
+    // Support both formats: "field" and "applicable_to:field"
+    let allowedTypes = [];
+    
+    // Check for new format tags (applicable_to:)
+    const applicableTags = property.tags.filter(t => t.startsWith('applicable_to:'));
+    if (applicableTags.length > 0) {
+      allowedTypes = applicableTags.map(t => t.replace('applicable_to:', ''));
+    } else {
+      // Use old format tags directly (field, app, etc.)
+      allowedTypes = property.tags.filter(t => !t.includes(':'));
+    }
+    
+    // If no allowed types found, allow everywhere
+    if (allowedTypes.length === 0) {
+      return true;
+    }
+    
+    return allowedTypes.includes(targetType);
+  };
+
   // Toggle section expansion
   const toggleSection = (sectionId: string) => {
     const newExpanded = new Set(expandedSections);
@@ -462,8 +489,12 @@ const AppConfig: React.FC = () => {
         }}
         onDragOver={(e) => {
           if (draggedProperty) {
-            e.preventDefault();
-            setDragOverField(field.id);
+            // Check if property can be applied to fields based on tags
+            if (canApplyPropertyToType(draggedProperty, 'field') || 
+                canApplyPropertyToType(draggedProperty, 'entity_field')) {
+              e.preventDefault();
+              setDragOverField(field.id);
+            }
           }
         }}
         onDragLeave={(e) => {
@@ -475,6 +506,18 @@ const AppConfig: React.FC = () => {
           e.preventDefault();
           e.stopPropagation();
           if (draggedProperty && !field.deps?.includes(draggedProperty)) {
+            // Check if property can be applied to fields based on tags
+            if (!canApplyPropertyToType(draggedProperty, 'field') && 
+                !canApplyPropertyToType(draggedProperty, 'entity_field')) {
+              const property = properties.find(p => p.id === draggedProperty);
+              const tags = property?.tags || [];
+              const allowedTypes = tags.filter(t => !t.includes(':'));
+              alert(`Property "${draggedProperty.replace('property_', '')}" cannot be applied to fields. It can only be applied to: ${allowedTypes.join(', ')}`);
+              setDraggedProperty(null);
+              setDragOverField(null);
+              return;
+            }
+            
             await appConfigStore.addDependencyWithUI(field.id, draggedProperty);
           }
           setDraggedProperty(null);
@@ -689,11 +732,19 @@ const AppConfig: React.FC = () => {
         setDraggedProperty(null);
         return;
       }
-      // Allow properties on other configs
-      const result = await appConfigStore.addDependencyWithUI(nodeId, draggedProperty);
-      if (!result.success) {
-        alert(result.error || 'Failed to add property');
+      
+      // Check if property can be applied based on tags
+      if (!canApplyPropertyToType(draggedProperty, nodeType)) {
+        const property = properties.find(p => p.id === draggedProperty);
+        const tags = property?.tags || [];
+        const allowedTypes = tags.filter(t => !t.includes(':'));
+        alert(`Property "${draggedProperty.replace('property_', '')}" can only be applied to: ${allowedTypes.join(', ')}`);
+        setDraggedProperty(null);
+        return;
       }
+      
+      // Allow properties on other configs
+      await appConfigStore.addDependencyWithUI(nodeId, draggedProperty);
       setDraggedProperty(null);
       return;
     }
@@ -912,8 +963,11 @@ const AppConfig: React.FC = () => {
             }
             // Allow properties on non-grouping configs only
             else if (draggedProperty && !["fields", "sort", "filter"].includes(node.configType || "")) {
-              e.preventDefault();
-              setDragOverConfig(node.id);
+              // Check if property can be applied based on tags
+              if (canApplyPropertyToType(draggedProperty, node.configType || "")) {
+                e.preventDefault();
+                setDragOverConfig(node.id);
+              }
             }
           }}
           onDragLeave={(e) => {
@@ -1516,7 +1570,6 @@ const AppConfig: React.FC = () => {
               filterOptions={[
                 { value: "all", label: "All Properties" },
                 { value: "field", label: "Field Properties" },
-                { value: "entity_field", label: "Entity Field Properties" },
                 ...Object.entries(configTypes).map(([key, info]) => ({
                   value: key,
                   label: info.name
