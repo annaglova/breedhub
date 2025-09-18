@@ -22,6 +22,14 @@ export interface WorkspaceHeaderProps {
   searchValue?: string;
   onSearchChange?: (value: string) => void;
   
+  // Filter section
+  showFilter?: boolean;
+  filterLabel?: string;
+  filterValue?: string;
+  onFilterChange?: (value: string) => void;
+  filterOptions?: Array<{ value: string; label: string }>;
+  filterFullWidth?: boolean; // Control filter width
+  
   // Tree controls
   showTreeControls?: boolean;
   onCollapseAll?: () => void;
@@ -48,6 +56,12 @@ export default function WorkspaceHeader({
   searchPlaceholder = "Search...",
   searchValue = "",
   onSearchChange,
+  showFilter = false,
+  filterLabel = "Filter:",
+  filterValue = "",
+  onFilterChange,
+  filterOptions = [],
+  filterFullWidth = false,
   showTreeControls = false,
   onCollapseAll,
   onExpandAll,
@@ -84,7 +98,7 @@ export default function WorkspaceHeader({
       )}
       
       {/* Search and controls row */}
-      {(showSearch || showAddButton || showTreeControls) && (
+      {(showSearch || showFilter || showAddButton || showTreeControls) && (
         <div className="flex items-center gap-2">
           {showSearch && (
             <div className="relative flex-1">
@@ -96,6 +110,28 @@ export default function WorkspaceHeader({
                 onChange={(e) => onSearchChange?.(e.target.value)}
                 className="w-full pl-10 pr-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
+            </div>
+          )}
+          
+          {/* Filter dropdown */}
+          {showFilter && (
+            <div className={`flex items-center gap-2 ${filterFullWidth ? 'flex-1' : ''}`}>
+              {filterLabel && (
+                <label className="text-sm font-medium text-gray-700 whitespace-nowrap">
+                  {filterLabel}
+                </label>
+              )}
+              <select
+                value={filterValue}
+                onChange={(e) => onFilterChange?.(e.target.value)}
+                className={`${filterFullWidth ? 'w-full' : 'min-w-[200px]'} px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500`}
+              >
+                {filterOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
             </div>
           )}
           
