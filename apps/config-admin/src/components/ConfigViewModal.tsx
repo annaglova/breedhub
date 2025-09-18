@@ -16,6 +16,7 @@ interface ConfigViewModalProps {
     override_data?: any;
     data?: any;
     type?: string;
+    tags?: string[];
   };
   hideIntermediateData?: boolean; // Hide Self Data and Override Data for cleaner view
 }
@@ -69,11 +70,30 @@ export default function ConfigViewModal({
           <div className="grid grid-cols-3 gap-4">
             <div>
               <label className="block text-xs font-medium text-gray-500 mb-1">
-                Caption
+                {config.type === 'property' ? 'Tags' : 'Caption'}
               </label>
-              <div className="text-sm text-gray-900">
-                {config.caption || (
-                  <span className="text-gray-400 italic">No caption</span>
+              <div className="text-sm">
+                {config.type === 'property' ? (
+                  config.tags && config.tags.length > 0 ? (
+                    <div className="flex flex-wrap gap-1">
+                      {config.tags.map((tag) => (
+                        <span
+                          key={tag}
+                          className="px-2 py-0.5 text-xs bg-blue-100 text-blue-700 rounded"
+                        >
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  ) : (
+                    <span className="text-gray-400 italic">No tags</span>
+                  )
+                ) : (
+                  <div className="text-gray-900">
+                    {config.caption || (
+                      <span className="text-gray-400 italic">No caption</span>
+                    )}
+                  </div>
                 )}
               </div>
             </div>
@@ -83,24 +103,26 @@ export default function ConfigViewModal({
               </label>
               <div className="text-sm text-gray-900">{config.version || 1}</div>
             </div>
-            <div>
-              <label className="block text-xs font-medium text-gray-500 mb-1">
-                Dependencies
-              </label>
-              <div className="text-sm">
-                {config.deps && config.deps.length > 0 ? (
-                  <span className="text-blue-600 font-medium">
-                    {config.deps.length} deps
-                  </span>
-                ) : (
-                  <span className="text-gray-400">No dependencies</span>
-                )}
+            {config.type !== 'property' && (
+              <div>
+                <label className="block text-xs font-medium text-gray-500 mb-1">
+                  Dependencies
+                </label>
+                <div className="text-sm">
+                  {config.deps && config.deps.length > 0 ? (
+                    <span className="text-blue-600 font-medium">
+                      {config.deps.length} deps
+                    </span>
+                  ) : (
+                    <span className="text-gray-400">No dependencies</span>
+                  )}
+                </div>
               </div>
-            </div>
+            )}
           </div>
 
-          {/* Show dependencies if any */}
-          {config.deps && config.deps.length > 0 && (
+          {/* Show dependencies if any (not for properties) */}
+          {config.type !== 'property' && config.deps && config.deps.length > 0 && (
             <div className="mt-3 pt-3 border-t border-gray-200">
               <div className="flex gap-1 overflow-x-auto pb-1">
                 {config.deps.map((dep, index) => (
