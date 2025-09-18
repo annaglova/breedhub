@@ -1219,7 +1219,7 @@ class AppConfigStore {
         override_data: data,  // Property data goes to override_data
         deps: [],
         category: 'custom',  // Default category for new properties
-        tags: tagsArray.length > 0 ? tagsArray : ['property'],
+        tags: tagsArray,  // Allow empty tags array - means property can be applied anywhere
         version: 1
       });
       
@@ -1258,7 +1258,7 @@ class AppConfigStore {
         const updates: Partial<AppConfig> = {
           override_data: selfData,
           data: selfData,
-          tags: tagsArray.length > 0 ? tagsArray : existingTags
+          tags: tagsArray  // Allow empty tags array - user explicitly wants to clear tags
         };
         await this.updateConfigWithCascade(oldId, updates);
         return { success: true };
@@ -1280,7 +1280,7 @@ class AppConfigStore {
         id: newId,
         override_data: selfData,
         data: selfData,
-        tags: tags && tags.length > 0 ? tags : existingProperty.tags,
+        tags: tags,  // Use the new tags array as provided (can be empty)
         version: (existingProperty.version || 0) + 1
       });
       
