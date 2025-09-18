@@ -10,6 +10,7 @@ import {
   Layers,
   Package,
   Plus,
+  Settings,
   Tag,
   Trash,
   X,
@@ -91,6 +92,7 @@ const AppConfig: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [propertySearchQuery, setPropertySearchQuery] = useState("");
   const [propertyFilterType, setPropertyFilterType] = useState<string>("all");
+  const [showSystemProperties, setShowSystemProperties] = useState(false);
   const [draggedProperty, setDraggedProperty] = useState<string | null>(null);
   const [draggedField, setDraggedField] = useState<string | null>(null);
   const [draggedConfig, setDraggedConfig] = useState<string | null>(null);
@@ -138,7 +140,14 @@ const AppConfig: React.FC = () => {
 
       // Get properties using store method
       const propertyConfigs = appConfigStore.getProperties();
-      setProperties(propertyConfigs);
+      // Include is_system property in this view (same as Properties page)
+      const allConfigs = appConfigStore.configsList.value || [];
+      const systemProp = allConfigs.find(c => c.id === "property_is_system" && !c._deleted);
+      if (systemProp) {
+        setProperties([...propertyConfigs, systemProp]);
+      } else {
+        setProperties(propertyConfigs);
+      }
     };
 
     loadData();
@@ -1514,6 +1523,11 @@ const AppConfig: React.FC = () => {
                 }))
               ]}
               showAddButton={false}
+              showCheckbox={true}
+              checkboxIcon={Settings}
+              checkboxChecked={showSystemProperties}
+              onCheckboxChange={setShowSystemProperties}
+              checkboxTooltip="Show/hide system properties"
             />
 
             {draggedProperty && (
@@ -1530,10 +1544,17 @@ const AppConfig: React.FC = () => {
               ) : (
                 <div className="space-y-2 ">
                   {properties
-                    .filter(property => 
-                      propertyFilterType === "all" || 
-                      property.tags?.includes(propertyFilterType)
-                    )
+                    .filter(property => {
+                      // Filter by type
+                      const matchesType = propertyFilterType === "all" || 
+                        property.tags?.includes(propertyFilterType);
+                      
+                      // Filter by system/custom
+                      const matchesSystemFilter = showSystemProperties || 
+                        property.category !== 'system';
+                      
+                      return matchesType && matchesSystemFilter;
+                    })
                     .map((property) => (
                       <div
                         key={property.id}
