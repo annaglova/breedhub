@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import RegistryLayout from "../components/RegistryLayout";
+import PropertyCategoryIcon from "../components/PropertyCategoryIcon";
 import ConfigEditModal from "../components/ConfigEditModal";
 import { configTypes } from "../types/config-types";
 
@@ -300,11 +301,7 @@ const Properties: React.FC = () => {
                             >
                               {property.id.replace("property_", "")}
                             </h3>
-                            {property.category === 'system' && (
-                              <span className="px-1.5 py-0.5 text-xs bg-blue-100 text-blue-700 rounded-md font-medium">
-                                System
-                              </span>
-                            )}
+                            <PropertyCategoryIcon category={property.category} />
                           </div>
                           <p className="text-xs text-gray-500 mt-1">
                             Type: {property.type}
