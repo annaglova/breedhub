@@ -23,9 +23,9 @@ Implementation plan for categorizing properties (system/custom), filtering by co
 
 ## Implementation Plan
 
-### Phase 1: Property Generation Updates (Day 1)
+### Phase 1: Property Generation Updates (Day 1) ✅ **COMPLETED**
 
-#### 1.1 Update generate-sql-inserts.cjs
+#### 1.1 Update generate-sql-inserts.cjs ✅ **DONE**
 ```javascript
 // Add category and tags to generated properties
 const propertyRecord = {
@@ -58,9 +58,9 @@ tags: [
 ]
 ```
 
-### Phase 2: UI Category Display (Day 2)
+### Phase 2: UI Category Display (Day 2) ✅ **COMPLETED**
 
-#### 2.1 Visual Distinction in Property Lists
+#### 2.1 Visual Distinction in Property Lists ✅ **DONE**
 ```typescript
 // PropertyItem component with category styling
 const PropertyItem = ({ property }) => (
@@ -89,7 +89,7 @@ const PropertyItem = ({ property }) => (
 );
 ```
 
-#### 2.2 Property Registry with Filtering
+#### 2.2 Property Registry with Filtering ✅ **DONE**
 ```typescript
 // Enhanced Properties panel
 const PropertiesPanel = () => {
@@ -156,9 +156,9 @@ const PropertiesPanel = () => {
 };
 ```
 
-### Phase 3: Property Creation/Editing (Day 3)
+### Phase 3: Property Creation/Editing (Day 3) ✅ **COMPLETED**
 
-#### 3.1 Enhanced Property Editor
+#### 3.1 Enhanced Property Editor ✅ **DONE**
 ```typescript
 // PropertyEditor with category and tags
 const PropertyEditor = ({ property, onSave, onCancel }) => {
@@ -221,9 +221,9 @@ const PropertyEditor = ({ property, onSave, onCancel }) => {
 };
 ```
 
-### Phase 4: System Property Protection (Day 4)
+### Phase 4: System Property Protection (Day 4) ✅ **COMPLETED**
 
-#### 4.1 Delete Protection
+#### 4.1 Delete Protection ✅ **DONE**
 ```typescript
 // Prevent deletion of system properties
 const handleDeleteProperty = (propertyId: string) => {
@@ -240,7 +240,7 @@ const handleDeleteProperty = (propertyId: string) => {
 };
 ```
 
-#### 4.2 Edit Restrictions
+#### 4.2 Edit Restrictions ✅ **DONE**
 ```typescript
 // Limit what can be edited for system properties
 const getEditableFields = (property) => {
@@ -251,9 +251,9 @@ const getEditableFields = (property) => {
 };
 ```
 
-### Phase 5: Drag&Drop Validation (Day 5)
+### Phase 5: Drag&Drop Validation (Day 5) ❌ **TODO**
 
-#### 5.1 Property Application Validation
+#### 5.1 Property Application Validation ❌ **NOT IMPLEMENTED YET**
 ```typescript
 // Validate property can be applied to config type
 const canApplyProperty = (property: Property, targetConfig: Config): boolean => {
@@ -366,20 +366,54 @@ interface Property {
 
 ## Success Criteria
 
-- ✅ System properties have category='system' and appropriate tags
-- ✅ Custom properties created with category='custom'
-- ✅ System properties cannot be deleted
-- ✅ Property filtering by config type works
-- ✅ Visual distinction between property types
-- ✅ Drag&drop validation prevents invalid assignments
-- ✅ Search and filtering work smoothly
-- ✅ All existing functionality preserved
+- ✅ **COMPLETED** - System properties have category='system' and appropriate tags
+- ✅ **COMPLETED** - Custom properties created with category='custom'
+- ✅ **COMPLETED** - System properties cannot be deleted
+- ✅ **COMPLETED** - Property filtering by config type works
+- ✅ **COMPLETED** - Visual distinction between property types
+- ❌ **TODO** - Drag&drop validation prevents invalid assignments
+- ✅ **COMPLETED** - Search and filtering work smoothly
+- ✅ **COMPLETED** - All existing functionality preserved
+
+## What's Still TODO
+
+### 🔥 **Priority 1: Critical Missing Features**
+
+1. **Drag&Drop Validation** ❌ **NOT IMPLEMENTED**
+   - Implement `canApplyProperty()` function in AppConfig store
+   - Add validation to drag&drop handlers
+   - Show visual feedback when property can't be applied to config
+   - Prevent invalid property assignments
+
+### 🟡 **Priority 2: Nice-to-Have Improvements**
+
+2. **Enhanced Visual Feedback**
+   - Improve property tag styling with colors for different config types
+   - Add tooltips explaining what each tag means
+   - Better visual hierarchy in property cards
+
+3. **Property Usage Analytics**
+   - Show where each property is currently used
+   - Display usage count in property cards
+   - Add "unused properties" filter
+
+### 📝 **Priority 3: Documentation & Testing**
+
+4. **Missing Tests**
+   - Unit tests for property filtering logic
+   - Integration tests for drag&drop validation
+   - E2E tests for complete property workflow
+
+5. **Documentation Updates**
+   - Update user documentation with new filtering features
+   - Document property tagging system for developers
+   - Create migration guide for existing properties
 
 ## Testing Plan
 
-1. **Property Generation**: Verify all generated properties have correct categories/tags
-2. **UI Filtering**: Test filtering by field/filter/sort types
-3. **Protection**: Confirm system properties cannot be deleted
-4. **Validation**: Test drag&drop prevents invalid property assignments
-5. **Custom Properties**: Create/edit/delete custom properties
-6. **Performance**: Ensure filtering doesn't impact performance with many properties
+1. ✅ **Property Generation**: Verify all generated properties have correct categories/tags - **DONE**
+2. ✅ **UI Filtering**: Test filtering by field/filter/sort types - **DONE**
+3. ✅ **Protection**: Confirm system properties cannot be deleted - **DONE**
+4. ❌ **Validation**: Test drag&drop prevents invalid property assignments - **TODO**
+5. ✅ **Custom Properties**: Create/edit/delete custom properties - **DONE**
+6. ✅ **Performance**: Ensure filtering doesn't impact performance with many properties - **DONE**
