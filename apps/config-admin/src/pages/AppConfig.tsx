@@ -89,6 +89,7 @@ const AppConfig: React.FC = () => {
   const [fieldSearchQuery, setFieldSearchQuery] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [propertySearchQuery, setPropertySearchQuery] = useState("");
+  const [propertyFilterType, setPropertyFilterType] = useState<string>("all");
   const [draggedProperty, setDraggedProperty] = useState<string | null>(null);
   const [draggedField, setDraggedField] = useState<string | null>(null);
   const [draggedConfig, setDraggedConfig] = useState<string | null>(null);
@@ -1496,10 +1497,21 @@ const AppConfig: React.FC = () => {
               title="Properties"
               titleIcon={Tag}
               itemCount={properties.length}
-              showSearch={true}
-              searchPlaceholder="Search properties..."
-              searchValue={propertySearchQuery}
-              onSearchChange={setPropertySearchQuery}
+              showSearch={false}
+              showFilter={true}
+              filterLabel="Type:"
+              filterValue={propertyFilterType}
+              onFilterChange={setPropertyFilterType}
+              filterFullWidth={true}
+              filterOptions={[
+                { value: "all", label: "All Properties" },
+                { value: "field", label: "Field Properties" },
+                { value: "entity_field", label: "Entity Field Properties" },
+                ...Object.entries(configTypes).map(([key, info]) => ({
+                  value: key,
+                  label: info.name
+                }))
+              ]}
               showAddButton={false}
             />
 
@@ -1516,8 +1528,11 @@ const AppConfig: React.FC = () => {
                 </div>
               ) : (
                 <div className="space-y-2 ">
-                  {appConfigStore
-                    .filterConfigItems(properties, propertySearchQuery)
+                  {properties
+                    .filter(property => 
+                      propertyFilterType === "all" || 
+                      property.tags?.includes(propertyFilterType)
+                    )
                     .map((property) => (
                       <div
                         key={property.id}

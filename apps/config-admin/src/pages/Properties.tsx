@@ -243,6 +243,17 @@ const Properties: React.FC = () => {
     setCurrentPage(Math.max(1, Math.min(page, totalPages)));
   };
 
+  // Prepare filter options
+  const filterOptions = [
+    { value: "all", label: "All Properties" },
+    { value: "field", label: "Field Properties" },
+    { value: "entity_field", label: "Entity Field Properties" },
+    ...Object.entries(configTypes).map(([key, info]) => ({
+      value: key,
+      label: info.name
+    }))
+  ];
+
   return (
     <RegistryLayout
       headerProps={{
@@ -252,38 +263,17 @@ const Properties: React.FC = () => {
         searchPlaceholder: "Search properties...",
         searchValue: searchQuery,
         onSearchChange: setSearchQuery,
+        showFilter: true,
+        filterLabel: "Type:",
+        filterValue: selectedType,
+        onFilterChange: setSelectedType,
+        filterOptions: filterOptions,
+        filterFullWidth: false,
         showAddButton: true,
         addButtonText: "Add Property",
         onAddClick: startCreate
       }}
     >
-            {/* Type Filter */}
-            <div className="mb-4 flex items-center gap-4">
-              <label className="text-sm font-medium text-gray-700">Filter by Type:</label>
-              <select
-                value={selectedType}
-                onChange={(e) => setSelectedType(e.target.value)}
-                className="px-3 py-1.5 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="all">All Properties</option>
-                <option value="field">Field Properties</option>
-                <option value="entity_field">Entity Field Properties</option>
-                {Object.entries(configTypes).map(([key, info]) => (
-                  <option key={key} value={key}>
-                    {info.name}
-                  </option>
-                ))}
-              </select>
-              {selectedType !== "all" && (
-                <button
-                  onClick={() => setSelectedType("all")}
-                  className="text-sm text-blue-600 hover:text-blue-800 underline"
-                >
-                  Clear filter
-                </button>
-              )}
-            </div>
-
             {/* Properties Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               {paginatedProperties.length === 0 &&
