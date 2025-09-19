@@ -23,11 +23,6 @@ export function useAppWorkspaces() {
       setError(value);
     });
 
-    // Initialize if not already initialized
-    if (!appStore.appConfig.value && !loading) {
-      appStore.initialize();
-    }
-
     // Cleanup
     return () => {
       unsubscribeWorkspaces();
@@ -59,4 +54,52 @@ export function useCurrentWorkspace(pathname: string) {
   });
 
   return currentWorkspace;
+}
+
+/**
+ * React hook to use a dynamic entity store
+ */
+export function useEntityStore<T extends { id: string }>(entityName: string) {
+  const [store, setStore] = useState<{
+    items: T[];
+    loading: boolean;
+    error: string | null;
+  }>({ items: [], loading: true, error: null });
+
+  useEffect(() => {
+    // Initialize the entity store
+    appStore.initializeEntityStore<T>(entityName).then(entityStoreSignal => {
+      if (entityStoreSignal) {
+        // Subscribe to store changes
+        const unsubscribe = entityStoreSignal.subscribe(value => {
+          setStore({
+            items: Array.from(value.items.values()).filter((item: any) => !item._deleted),
+            loading: value.loading,
+            error: value.error
+          });
+        });
+
+        return () => unsubscribe();
+      }
+    });
+  }, [entityName]);
+
+  const create = async (data: Partial<T>) => {
+    return appStore.createEntity<T>(entityName, data);
+  };
+
+  const update = async (id: string, updates: Partial<T>) => {
+    return appStore.updateEntity<T>(entityName, id, updates);
+  };
+
+  const remove = async (id: string) => {
+    return appStore.deleteEntity(entityName, id);
+  };
+
+  return {
+    ...store,
+    create,
+    update,
+    remove
+  };
 }
