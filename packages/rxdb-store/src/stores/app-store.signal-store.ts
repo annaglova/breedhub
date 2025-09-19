@@ -55,6 +55,7 @@ class AppStore {
   
   // Computed values
   workspaces = computed(() => {
+    // Return empty array if config not loaded yet
     if (!this.appConfig.value?.data?.workspaces) return [];
     
     // Convert workspaces object to array
@@ -62,6 +63,11 @@ class AppStore {
       ...workspace,
       configKey: key
     }));
+  });
+  
+  // Computed to check if data is really loaded
+  isDataLoaded = computed(() => {
+    return !this.loading.value && this.appConfig.value !== null;
   });
   
   private dbSubscription: Subscription | null = null;

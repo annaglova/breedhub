@@ -8,6 +8,7 @@ export function useAppWorkspaces() {
   const [workspaces, setWorkspaces] = useState(appStore.workspaces.value);
   const [loading, setLoading] = useState(appStore.loading.value);
   const [error, setError] = useState(appStore.error.value);
+  const [isDataLoaded, setIsDataLoaded] = useState(appStore.isDataLoaded.value);
 
   useEffect(() => {
     // Subscribe to changes
@@ -23,11 +24,16 @@ export function useAppWorkspaces() {
       setError(value);
     });
 
+    const unsubscribeDataLoaded = appStore.isDataLoaded.subscribe(value => {
+      setIsDataLoaded(value);
+    });
+
     // Cleanup
     return () => {
       unsubscribeWorkspaces();
       unsubscribeLoading();
       unsubscribeError();
+      unsubscribeDataLoaded();
     };
   }, []);
 
@@ -35,6 +41,7 @@ export function useAppWorkspaces() {
     workspaces,
     loading,
     error,
+    isDataLoaded,
     reload: appStore.reloadConfig
   };
 }

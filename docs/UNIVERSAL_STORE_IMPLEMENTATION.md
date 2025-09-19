@@ -7,6 +7,36 @@
 ✅ **React Hooks** - useEntityStore hook for easy React integration  
 ⏳ **Next** - Dynamic RxDB schema generation from configuration
 
+## Important: Configuration Loading Strategy
+
+### Development Mode (Current)
+- **Loading**: Configuration loaded from RxDB on every app start
+- **Updates**: Real-time updates from config changes via RxDB sync
+- **Trade-off**: Minor UI flashing during initial load (workspaces appear after ~100ms)
+- **Benefit**: Instant configuration updates for rapid development
+
+### Production Mode (Future)
+- **Loading**: Configuration loaded once during build/deploy
+- **Storage**: Static configuration or cached in localStorage/sessionStorage
+- **Updates**: Require rebuild/redeploy or cache invalidation
+- **Benefit**: Zero UI flashing, instant rendering like static components
+- **Implementation Options**:
+  - Build-time injection into bundle
+  - Server-side rendering with initial state
+  - LocalStorage cache with versioning
+  - Service Worker cache strategy
+
+### Why This Approach?
+During development, we prioritize **rapid iteration** over perfect UX:
+- Config changes reflect immediately
+- No rebuild needed for testing
+- Easy debugging of configuration issues
+
+In production, we prioritize **user experience**:
+- Instant UI rendering
+- No loading states for core navigation
+- Predictable, stable interface
+
 ## Overview
 This document outlines the implementation plan for the Universal Store - a configuration-driven store architecture that eliminates the need for writing separate stores for each entity. Instead, stores are dynamically generated from app_config configurations.
 
