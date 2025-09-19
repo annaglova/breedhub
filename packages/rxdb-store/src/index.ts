@@ -53,5 +53,8 @@ export type { DatabaseCollections, AppDatabase } from './services/database.servi
 export { appConfigStore } from './stores/app-config.signal-store';
 export type { AppConfig, AppConfigDocument, AppConfigCollection } from './stores/app-config.signal-store';
 
+// App Store
+export { appStore } from './stores/app-store.signal-store';
+
 // Mixin Engine
 export { mixinEngine, MixinEngineService } from './services/mixin-engine.service';
