@@ -8,7 +8,7 @@ import {
   TooltipTrigger,
 } from "@ui/components/tooltip";
 import { cn } from "@ui/lib/utils";
-import { Menu, User } from "lucide-react";
+import { Menu, User, Home, ShoppingBag, Heart, Settings, Search } from "lucide-react";
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { UserDrawer } from "./UserDrawer";
@@ -25,10 +25,21 @@ export function Header({ onMenuClick, isHome = false }: HeaderProps) {
   const [isUserDrawerOpen, setIsUserDrawerOpen] = useState(false);
   const { workspaces, loading, error } = useAppWorkspaces();
 
-  // Map workspaces to navigation items
+  // Icon mapping
+  const iconMap: Record<string, any> = {
+    'Home': Home,
+    'ShoppingBag': ShoppingBag,
+    'Heart': Heart,
+    'User': User,
+    'Settings': Settings,
+    'Search': Search,
+    'Menu': Menu
+  };
+
+  // Map workspaces to navigation items with icon components
   const navItems = workspaces.map(workspace => ({
     id: workspace.id,
-    icon: workspace.iconComponent,
+    icon: iconMap[workspace.icon] || Home, // Default to Home if not found
     label: workspace.label,
     path: workspace.path
   }));
