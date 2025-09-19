@@ -23,7 +23,10 @@ export function Header({ onMenuClick, isHome = false }: HeaderProps) {
   const location = useLocation();
   const { theme, toggleTheme } = useTheme();
   const [isUserDrawerOpen, setIsUserDrawerOpen] = useState(false);
-  const { workspaces, loading, error } = useAppWorkspaces();
+  
+  // TODO: In production, workspaces should be loaded statically to prevent flashing
+  // See docs/UNIVERSAL_STORE_IMPLEMENTATION.md for details
+  const { workspaces, loading, error, isDataLoaded } = useAppWorkspaces();
 
   // Icon mapping
   const iconMap: Record<string, any> = {
@@ -75,19 +78,12 @@ export function Header({ onMenuClick, isHome = false }: HeaderProps) {
           {/* Navigation tabs - only show if not home */}
           {!isHome && (
             <nav className="flex-1 flex justify-center">
-              <div className="flex items-center">
-                {loading ? (
-                  // Show skeleton while loading
-                  <div className="flex items-center gap-8">
-                    <div className="w-6 h-6 bg-gray-200 rounded animate-pulse" />
-                    <div className="w-6 h-6 bg-gray-200 rounded animate-pulse" />
-                    <div className="w-6 h-6 bg-gray-200 rounded animate-pulse" />
-                  </div>
-                ) : error ? (
+              <div className="flex items-center min-h-[1.5rem]">
+                {error ? (
                   // Show error state
                   <div className="text-red-500 text-sm">Failed to load workspaces</div>
                 ) : (
-                  // Show workspaces
+                  // Always show workspaces (either default or from DB)
                   navItems.map((item) => {
                     const Icon = item.icon;
                     const isActive =
