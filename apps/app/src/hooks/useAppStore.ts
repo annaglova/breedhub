@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { appStore } from 'rxdb-store';
+import { appStore } from '@breedhub/rxdb-store';
 
 /**
  * React hook to use app store workspaces

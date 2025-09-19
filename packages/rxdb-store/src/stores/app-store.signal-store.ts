@@ -1,6 +1,5 @@
-import { signal, computed } from '@preact/signals-core';
+import { signal, computed } from '@preact/signals-react';
 import { appConfigStore } from './app-config.signal-store';
-import * as Icons from 'lucide-react';
 
 // App config ID we're working with
 const APP_CONFIG_ID = 'config_app_1757849573544';
@@ -31,31 +30,12 @@ const error = signal<Error | null>(null);
 const workspaces = computed(() => {
   if (!appConfig.value?.data?.workspaces) return [];
   
-  // Convert workspaces object to array and map icon names to components
+  // Convert workspaces object to array
   return Object.entries(appConfig.value.data.workspaces).map(([key, workspace]) => ({
     ...workspace,
-    configKey: key,
-    // Map icon string to actual icon component from lucide-react
-    iconComponent: getIconComponent(workspace.icon)
+    configKey: key
   }));
 });
-
-// Helper to get icon component from string name
-function getIconComponent(iconName: string): any {
-  // Map icon names to actual components
-  const iconMap: Record<string, any> = {
-    'Home': Icons.Home,
-    'ShoppingBag': Icons.ShoppingBag,
-    'Heart': Icons.Heart,
-    'User': Icons.User,
-    'Settings': Icons.Settings,
-    'Search': Icons.Search,
-    'Menu': Icons.Menu,
-    // Add more icons as needed
-  };
-  
-  return iconMap[iconName] || Icons.Home; // Default to Home if not found
-}
 
 // Initialize store
 async function initialize() {
