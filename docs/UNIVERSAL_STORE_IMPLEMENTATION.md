@@ -1,5 +1,12 @@
 # Universal Store Implementation Plan
 
+## Current Status (Updated: January 2025)
+✅ **Phase 3 Started** - App-store created with RxDB initialization  
+✅ **Dynamic Entity Support** - App-store can now manage multiple entity collections  
+✅ **CRUD Operations** - Generic CRUD methods for all entity types  
+✅ **React Hooks** - useEntityStore hook for easy React integration  
+⏳ **Next** - Dynamic RxDB schema generation from configuration
+
 ## Overview
 This document outlines the implementation plan for the Universal Store - a configuration-driven store architecture that eliminates the need for writing separate stores for each entity. Instead, stores are dynamically generated from app_config configurations.
 
@@ -26,16 +33,84 @@ const petStore = new UniversalStore(petConfig);
 const contactStore = new UniversalStore(contactConfig);
 ```
 
+## Current Implementation
+
+### App Store with Dynamic Entity Support
+The app-store now serves as the foundation for the Universal Store pattern:
+
+```typescript
+// packages/rxdb-store/src/stores/app-store.signal-store.ts
+class AppStore {
+  // Core configuration management
+  appConfig = signal<AppConfig | null>(null);
+  workspaces = computed(() => /* extract workspaces from config */);
+  
+  // Dynamic entity stores
+  private entityStores = new Map<string, signal<EntityStore<any>>>();
+  private entitySubscriptions = new Map<string, Subscription>();
+  
+  // Initialize entity store on demand
+  async initializeEntityStore<T>(entityName: string) {
+    // Check existing RxDB collections (breeds, books, etc.)
+    const collection = db[entityName];
+    
+    if (collection) {
+      // Use existing collection
+      // Subscribe to changes
+      // Provide reactive store
+    } else {
+      // TODO: Create collection dynamically from config
+    }
+  }
+  
+  // Generic CRUD operations
+  async createEntity<T>(entityName: string, data: Partial<T>): Promise<T>;
+  async updateEntity<T>(entityName: string, id: string, updates: Partial<T>): Promise<void>;
+  async deleteEntity(entityName: string, id: string): Promise<void>;
+}
+```
+
+### React Hook for Dynamic Entities
+```typescript
+// apps/app/src/hooks/useAppStore.ts
+export function useEntityStore<T extends { id: string }>(entityName: string) {
+  const [store, setStore] = useState({ items: [], loading: true, error: null });
+  
+  useEffect(() => {
+    appStore.initializeEntityStore<T>(entityName).then(entityStoreSignal => {
+      // Subscribe to changes
+      const unsubscribe = entityStoreSignal.subscribe(value => {
+        setStore({
+          items: Array.from(value.items.values()),
+          loading: value.loading,
+          error: value.error
+        });
+      });
+    });
+  }, [entityName]);
+  
+  return {
+    ...store,
+    create: (data) => appStore.createEntity(entityName, data),
+    update: (id, updates) => appStore.updateEntity(entityName, id, updates),
+    remove: (id) => appStore.deleteEntity(entityName, id)
+  };
+}
+
+// Usage in components
+const { items, loading, create, update, remove } = useEntityStore<Pet>('pets');
+```
+
 ## Architecture
 
-### 1. Configuration Structure
+### 1. Configuration Structure  
 Configurations from app_config will define everything:
 
 ```typescript
 interface EntityConfig {
   // Basic Information
   id: string;
-  collection: string;        // Supabase table name
+  collection: string;        // RxDB collection & Supabase table name
   primaryKey: string;        // Usually 'id'
   
   // Fields Configuration
