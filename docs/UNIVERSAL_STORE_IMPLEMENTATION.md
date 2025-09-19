@@ -131,6 +131,92 @@ export function useEntityStore<T extends { id: string }>(entityName: string) {
 const { items, loading, create, update, remove } = useEntityStore<Pet>('pets');
 ```
 
+## Architecture Decision: AppStore + SpaceStore Pattern
+
+### Store Architecture (Decided: January 2025)
+
+We will use a **two-tier store architecture** instead of a single monolithic store:
+
+#### 1. AppStore (Singleton)
+- **Purpose**: Global configuration and SpaceStore management
+- **Responsibilities**:
+  - Load and manage app configuration from RxDB
+  - Create and manage SpaceStore instances
+  - Handle workspace navigation
+  - Global settings and user preferences
+
+#### 2. SpaceStore (Per Entity)
+- **Purpose**: Manage individual entity collections
+- **Responsibilities**:
+  - Entity data (items)
+  - Loading/error states
+  - Pagination state and logic
+  - Filtering configuration
+  - Sorting configuration
+  - CRUD operations
+  - Computed values (filtered/sorted/paginated data)
+
+#### Example Structure:
+```typescript
+// AppStore manages configuration and creates SpaceStores
+class AppStore {
+  private spaceStores = new Map<string, SpaceStore>();
+  
+  getSpaceStore(entityName: string): SpaceStore {
+    if (!this.spaceStores.has(entityName)) {
+      const config = this.loadEntityConfig(entityName);
+      this.spaceStores.set(entityName, new SpaceStore(config));
+    }
+    return this.spaceStores.get(entityName);
+  }
+}
+
+// SpaceStore manages specific entity
+class SpaceStore<T> {
+  // Core state
+  items = signal<Map<string, T>>(new Map());
+  loading = signal<boolean>(false);
+  error = signal<string | null>(null);
+  
+  // Pagination
+  currentPage = signal<number>(1);
+  pageSize = signal<number>(20);
+  totalCount = signal<number>(0);
+  
+  // Filtering & Sorting
+  filters = signal<FilterConfig>({});
+  sortBy = signal<SortConfig>({});
+  
+  // Computed values
+  filteredItems = computed(() => /* apply filters */);
+  sortedItems = computed(() => /* apply sorting */);
+  paginatedItems = computed(() => /* apply pagination */);
+  
+  // CRUD operations
+  async loadItems() { /* ... */ }
+  async create(item: T) { /* ... */ }
+  async update(id: string, updates: Partial<T>) { /* ... */ }
+  async delete(id: string) { /* ... */ }
+}
+```
+
+#### Why This Architecture?
+
+**Benefits**:
+- **Separation of Concerns**: Each store has clear responsibilities
+- **Scalability**: Easy to add new entities without affecting others
+- **Performance**: Load only needed SpaceStores (lazy loading)
+- **Testability**: Each SpaceStore can be tested independently
+- **Maintainability**: Smaller, focused stores are easier to understand
+- **Proven Pattern**: Successfully used in previous Angular project
+
+**Trade-offs**:
+- Slightly more initial setup code
+- Need coordination mechanism between stores
+- More files to manage
+
+This approach aligns with our Universal Store vision while maintaining clean architecture boundaries.
+
 ## Architecture
 
 ### 1. Configuration Structure  
