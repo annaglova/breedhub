@@ -74,6 +74,7 @@ function deepMerge(target: any, source: any): any {
 const childContainerMapping: Record<string, Record<string, string | null>> = {
   'app': {
     'workspace': 'workspaces',
+    'user_config': 'user_config',
     'property': null  // goes to root
   },
   'workspace': {
@@ -113,6 +114,21 @@ const childContainerMapping: Record<string, Record<string, string | null>> = {
   },
   'tab': {
     'fields': 'fields',
+    'property': null
+  },
+  'user_config': {
+    'user_menu_config': 'menus',
+    'property': null
+  },
+  'user_menu_config': {
+    'user_menu_section': 'sections',
+    'property': null
+  },
+  'user_menu_section': {
+    'user_menu_item': 'items',
+    'property': null
+  },
+  'user_menu_item': {
     'property': null
   }
 };
@@ -736,7 +752,11 @@ class AppConfigStore {
       sort: 'Sort Config',
       fields: 'Fields Config',
       sort_fields: 'Sort Fields',
-      filter_fields: 'Filter Fields'
+      filter_fields: 'Filter Fields',
+      user_config: 'User Config',
+      user_menu_config: 'User Menu Config',
+      user_menu_section: 'User Menu Section',
+      user_menu_item: 'User Menu Item'
     };
     
     const newTemplate = {
@@ -1040,12 +1060,16 @@ class AppConfigStore {
   getChildTypesForParentType(parentType: string): string[] {
     // Import childTypeMapping or define it here
     const childTypeMapping: Record<string, string[]> = {
-      app: ["workspace"],
+      app: ["workspace", "user_config"],
       workspace: ["space"],
       space: ["view", "page"],
       view: ["fields", "sort", "filter"],
       page: ["fields", "tab"],
       tab: ["fields"],
+      user_config: ["user_menu_config"],
+      user_menu_config: ["user_menu_section"],
+      user_menu_section: ["user_menu_item"],
+      user_menu_item: [],
     };
     
     return childTypeMapping[parentType] || [];

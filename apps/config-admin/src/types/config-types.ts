@@ -1,4 +1,4 @@
-import { Package, Layers, Grid, File, Settings, List, Filter } from 'lucide-react';
+import { Package, Layers, Grid, File, Settings, List, Filter, User, Menu, FolderOpen, FileText } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
 // Common interfaces
@@ -44,16 +44,24 @@ export const configTypes: Record<string, ConfigTypeInfo> = {
   filter: { name: "Filter Config", icon: Filter, color: "text-cyan-600" },
   fields: { name: "Fields Config", icon: List, color: "text-indigo-600" },
   tab: { name: "Tab", icon: Layers, color: "text-pink-600" },
+  user_config: { name: "User Config", icon: User, color: "text-rose-600" },
+  user_menu_config: { name: "User Menu Config", icon: Menu, color: "text-amber-600" },
+  user_menu_section: { name: "User Menu Section", icon: FolderOpen, color: "text-teal-600" },
+  user_menu_item: { name: "User Menu Item", icon: FileText, color: "text-slate-600" },
 };
 
 // Child type mappings
 export const childTypeMapping: Record<string, string[]> = {
-  app: ["workspace"],
+  app: ["workspace", "user_config"],
   workspace: ["space"],
   space: ["view", "page"],
   view: ["fields", "sort", "filter"],
   page: ["fields", "tab"],
   tab: ["fields"],
+  user_config: ["user_menu_config"],
+  user_menu_config: ["user_menu_section"],
+  user_menu_section: ["user_menu_item"],
+  user_menu_item: [], // Final node - no children
 };
 
 // Get available child types for a parent type
