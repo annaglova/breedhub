@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { appStore } from '@breedhub/rxdb-store';
 
 /**
@@ -61,6 +62,31 @@ export function useCurrentWorkspace(pathname: string) {
   });
 
   return currentWorkspace;
+}
+
+/**
+ * Get spaces for the current workspace
+ */
+export function useWorkspaceSpaces(workspacePath?: string) {
+  const { workspaces } = useAppWorkspaces();
+  const location = useLocation();
+  
+  // Determine which workspace we're in
+  const path = workspacePath || location.pathname;
+  const workspace = workspaces.find(w => {
+    if (path === w.path) return true;
+    if (path.startsWith(w.path) && w.path !== '/') return true;
+    if (w.path === '/' && !workspaces.some(ws => ws.path !== '/' && path.startsWith(ws.path))) return true;
+    return false;
+  });
+
+  // Get spaces from workspace config
+  const spaces = workspace?.spaces || [];
+  
+  return {
+    workspace,
+    spaces: Array.isArray(spaces) ? spaces : Object.values(spaces)
+  };
 }
 
 /**

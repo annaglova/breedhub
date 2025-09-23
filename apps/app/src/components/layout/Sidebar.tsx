@@ -8,8 +8,17 @@ import {
   MessageSquare,
   Users,
   X,
+  Home,
+  ShoppingBag,
+  Heart,
+  Package,
+  FileText,
+  Settings,
+  HelpCircle,
+  FolderOpen,
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
+import { useWorkspaceSpaces } from "@/hooks/useAppStore";
 
 interface SidebarProps {
   isCollapsed?: boolean;
@@ -25,85 +34,42 @@ export function Sidebar({
   asMenu = false,
 }: SidebarProps) {
   const location = useLocation();
+  const { workspace, spaces } = useWorkspaceSpaces();
 
-  // Determine active section based on current path
-  const getActiveSection = () => {
-    if (location.pathname.startsWith("/marketplace")) {
-      return "marketplace";
-    } else if (location.pathname.startsWith("/mating")) {
-      return "mating";
-    }
-    return "home";
+  // Icon mapping for spaces
+  const iconMap: Record<string, any> = {
+    'Dog': Dog,
+    'Cat': Cat,
+    'Baby': Baby,
+    'Users': Users,
+    'MessageSquare': MessageSquare,
+    'Calendar': Calendar,
+    'Home': Home,
+    'ShoppingBag': ShoppingBag,
+    'Heart': Heart,
+    'Package': Package,
+    'FileText': FileText,
+    'Settings': Settings,
+    'HelpCircle': HelpCircle,
+    'FolderOpen': FolderOpen,
+    // Add default fallback
+    'default': FolderOpen
   };
 
-  const activeSection = getActiveSection();
+  // Convert spaces to menu items format
+  const menuItems = spaces.map((space: any) => {
+    // Determine the full path based on workspace
+    const basePath = workspace?.path === '/' ? '' : workspace?.path || '';
+    const spacePath = space.path?.startsWith('/') ? space.path : `/${space.path || space.id}`;
+    const fullPath = `${basePath}${spacePath}`;
 
-  // Menu items based on active section
-  const menuItems = [
-    // Home section items
-    {
-      id: "breeds",
-      icon: Dog,
-      label: "Breeds",
-      path: "/breeds",
-      section: "home",
-    },
-    {
-      id: "pets",
-      icon: Cat,
-      label: "Pets",
-      path: "/pets",
-      section: "home",
-    },
-    {
-      id: "litters",
-      icon: Baby,
-      label: "Litters",
-      path: "/litters",
-      section: "home",
-    },
-    {
-      id: "kennels",
-      icon: Users,
-      label: "Kennels",
-      path: "/kennels",
-      section: "home",
-    },
-    {
-      id: "contacts",
-      icon: MessageSquare,
-      label: "Contacts",
-      path: "/contacts",
-      section: "home",
-    },
-    {
-      id: "events",
-      icon: Calendar,
-      label: "Events",
-      path: "/events",
-      section: "home",
-    },
-    // Marketplace section items
-    {
-      id: "marketplace-pets",
-      icon: Cat,
-      label: "Pets",
-      path: "/marketplace/pets",
-      section: "marketplace",
-    },
-    // Test mating section items
-    {
-      id: "mating-pets",
-      icon: Cat,
-      label: "Pets",
-      path: "/mating/pets",
-      section: "mating",
-    },
-  ];
-
-  const visibleMenuItems = menuItems.filter(
-    (item) => item.section === activeSection
-  );
+    return {
+      id: space.id,
+      icon: iconMap[space.icon] || iconMap['default'],
+      label: space.label || space.id,
+      path: fullPath
+    };
+  });
 
   return (
     <aside className={cn("h-full flex flex-col", className)}>
@@ -130,7 +96,7 @@ export function Sidebar({
       <nav className="flex-1 p-4">
         <h2 className="text-primary font-bold text-lg mb-6 mt-6">SPACES</h2>
         <ul className="space-y-1">
-          {visibleMenuItems.map((item) => {
+          {menuItems.map((item) => {
             const Icon = item.icon;
             const isActive = location.pathname.startsWith(item.path);
 
