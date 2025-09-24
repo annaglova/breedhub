@@ -137,7 +137,7 @@ const childContainerMapping: Record<string, Record<string, string | null>> = {
 const noPropertyTypes = ['fields', 'sort_fields', 'filter_fields'];
 
 // High-level structure types
-const highLevelTypes = ['app', 'workspace', 'space', 'view', 'page', 'tab'];
+const highLevelTypes = ['app', 'workspace', 'space', 'view', 'page', 'tab', 'user_config', 'user_menu_config', 'user_menu_section', 'user_menu_item'];
 const groupingTypes = ['fields', 'sort', 'filter']; // Grouping configs that don't merge deps data
 
 class AppConfigStore {
@@ -527,6 +527,14 @@ class AppConfigStore {
       if (updates.deps || updates.self_data || updates.override_data) {
         const configData = { ...doc.toJSON(), ...updatedData } as AppConfig;
         updatedData.data = this.computeMergedData(configData);
+        
+        // Debug logging for user_config
+        if (configData.type === 'user_config') {
+          console.log('[updateConfig] Computing data for user_config:');
+          console.log('  self_data:', JSON.stringify(configData.self_data, null, 2));
+          console.log('  override_data:', JSON.stringify(configData.override_data, null, 2));
+          console.log('  computed data:', JSON.stringify(updatedData.data, null, 2));
+        }
         
         // Debug: log what we're about to patch
         if (configData.type === 'app') {
@@ -2347,6 +2355,9 @@ class AppConfigStore {
     if (!parent) return;
     
     console.log('[rebuildParentSelfData] Starting for parent:', parentId, 'type:', parent.type);
+    console.log('[rebuildParentSelfData] Parent deps:', parent.deps);
+    console.log('[rebuildParentSelfData] Parent current self_data:', JSON.stringify(parent.self_data, null, 2));
+    console.log('[rebuildParentSelfData] Parent override_data:', JSON.stringify(parent.override_data, null, 2));
     
     let newSelfData: any = {};
     
