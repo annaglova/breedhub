@@ -1125,7 +1125,8 @@ class AppConfigStore {
 
   // Check if type is a high-level structure type
   isHighLevelType(type: string): boolean {
-    return ['app', 'workspace', 'space', 'view', 'page', 'tab', 'sort', 'filter', 'fields'].includes(type);
+    return ['app', 'workspace', 'space', 'view', 'page', 'tab', 'sort', 'filter', 'fields', 
+            'user_config', 'user_menu_config', 'user_menu_section', 'user_menu_item'].includes(type);
   }
   
   // Check if type is a grouping config (cannot have override_data)
