@@ -6,12 +6,13 @@ import { addRxPlugin } from 'rxdb';
 
 // Import our new Phase 1.0 services
 import { CollectionService } from '../../../../packages/rxdb-store/src/services/collection.service';
-import { BreedService } from '../../../../packages/rxdb-store/src/services/breed.service';
+// Breed service removed - using universal entity services
 // import { LazyCollectionLoader, getCollectionLoader } from '../../../../packages/rxdb-store/src/services/lazy-collection-loader';
 import { ConfigurationManager } from '../../../../packages/rxdb-store/src/services/configuration-manager';
 // import { breedSchema, type Breed } from '../../../../packages/rxdb-store/src/schemas/breed.schema';
 // import { dogSchema, type Dog } from '../../../../packages/rxdb-store/src/schemas/dog.schema';
-import type { BreedDocType as Breed } from '../../../../packages/rxdb-store/src/types/breed.types';
+// Using universal entity types
+type Breed = { id: string; name: string; description?: string; group?: string; size?: string; traits?: string[]; origin?: string; lifespan?: any };
 type Dog = any;
 import { cleanupOldDatabases, cleanAllRxDBDatabases } from '../utils/cleanup-databases';
 import { DatabaseStructure } from '../components/DatabaseStructure';
