@@ -2,6 +2,7 @@ import { signal, computed } from '@preact/signals-react';
 import { getDatabase } from '../services/database.service';
 import { Subscription } from 'rxjs';
 import { RxCollection, RxDocument } from 'rxdb';
+import { EntityStore } from './base/entity-store';
 
 // App config ID we're working with
 const APP_CONFIG_ID = 'config_app_1757849573544';
@@ -32,14 +33,6 @@ interface EntityData {
   [key: string]: any;
 }
 
-// Entity store interface
-interface EntityStore<T extends EntityData> {
-  items: Map<string, T>;
-  loading: boolean;
-  error: string | null;
-  collection?: RxCollection<T>;
-}
-
 class AppStore {
   private static instance: AppStore;
   
@@ -49,8 +42,8 @@ class AppStore {
   error = signal<Error | null>(null);
   initialized = signal<boolean>(false);
   
-  // Dynamic entity stores
-  private entityStores = new Map<string, signal<EntityStore<any>>>();
+  // Dynamic entity stores - each entity type gets its own EntityStore instance
+  private entityStores = new Map<string, EntityStore<any>>();
   private entitySubscriptions = new Map<string, Subscription>();
   
   // Computed values
@@ -156,8 +149,8 @@ class AppStore {
   }
   
   // Dynamic entity store methods
-  getEntityStore<T extends EntityData>(entityName: string): signal<EntityStore<T>> | undefined {
-    return this.entityStores.get(entityName) as signal<EntityStore<T>> | undefined;
+  getEntityStore<T extends EntityData>(entityName: string): EntityStore<T> | undefined {
+    return this.entityStores.get(entityName) as EntityStore<T> | undefined;
   }
   
   async loadEntityConfig(entityName: string) {
@@ -198,12 +191,9 @@ class AppStore {
       return this.entityStores.get(entityName);
     }
     
-    // Create new entity store signal
-    const entityStore = signal<EntityStore<T>>({
-      items: new Map(),
-      loading: true,
-      error: null
-    });
+    // Create new entity store instance
+    const entityStore = new EntityStore<T>();
+    entityStore.setLoading(true);
     
     this.entityStores.set(entityName, entityStore);
     
@@ -218,48 +208,34 @@ class AppStore {
         
         // Load initial data
         const allDocs = await collection.find().exec();
-        const itemsMap = new Map<string, T>();
+        const entities: T[] = allDocs.map((doc: RxDocument<T>) => doc.toJSON() as T);
         
-        allDocs.forEach((doc: RxDocument<T>) => {
-          itemsMap.set(doc.id, doc.toJSON() as T);
-        });
+        // Update store using Entity Store methods
+        entityStore.setAll(entities);
+        entityStore.setLoading(false);
         
-        // Update store
-        entityStore.value = {
-          items: itemsMap,
-          loading: false,
-          error: null,
-          collection
-        };
+        // Store collection reference separately if needed
+        (entityStore as any).collection = collection;
         
         // Subscribe to changes
         const subscription = collection.$.subscribe((changeEvent: any) => {
           console.log(`[AppStore] ${entityName} change event:`, changeEvent.operation);
           
-          if (changeEvent.operation === 'INSERT' || changeEvent.operation === 'UPDATE') {
-            const newItems = new Map(entityStore.value.items);
+          if (changeEvent.operation === 'INSERT') {
             const data = changeEvent.documentData;
-            
             if (data && data.id) {
-              newItems.set(data.id, data);
+              entityStore.addOne(data);
             }
-            
-            entityStore.value = {
-              ...entityStore.value,
-              items: newItems
-            };
+          } else if (changeEvent.operation === 'UPDATE') {
+            const data = changeEvent.documentData;
+            if (data && data.id) {
+              entityStore.upsertOne(data);
+            }
           } else if (changeEvent.operation === 'DELETE') {
-            const newItems = new Map(entityStore.value.items);
             const deleteId = changeEvent.documentId || changeEvent.documentData?.id;
-            
             if (deleteId) {
-              newItems.delete(deleteId);
+              entityStore.removeOne(deleteId);
             }
-            
-            entityStore.value = {
-              ...entityStore.value,
-              items: newItems
-            };
           }
         });
         
@@ -267,19 +243,13 @@ class AppStore {
       } else {
         console.log(`[AppStore] Collection ${entityName} not found, will be created dynamically in future`);
         // TODO: Create dynamic collection from config
-        entityStore.value = {
-          items: new Map(),
-          loading: false,
-          error: `Collection ${entityName} not yet implemented`
-        };
+        entityStore.setLoading(false);
+        entityStore.setError(`Collection ${entityName} not yet implemented`);
       }
     } catch (err) {
       console.error(`[AppStore] Failed to initialize entity store ${entityName}:`, err);
-      entityStore.value = {
-        items: new Map(),
-        loading: false,
-        error: err instanceof Error ? err.message : 'Failed to initialize entity store'
-      };
+      entityStore.setLoading(false);
+      entityStore.setError(err instanceof Error ? err.message : 'Failed to initialize entity store');
     }
     
     return entityStore;
@@ -287,8 +257,8 @@ class AppStore {
   
   // CRUD operations for dynamic entities
   async createEntity<T extends EntityData>(entityName: string, data: Partial<T>): Promise<T | null> {
-    const entityStore = this.entityStores.get(entityName);
-    if (!entityStore?.value.collection) {
+    const entityStore = this.entityStores.get(entityName) as any;
+    if (!entityStore?.collection) {
       console.error(`[AppStore] Collection ${entityName} not available`);
       return null;
     }
@@ -303,7 +273,8 @@ class AppStore {
         _deleted: false
       } as T;
       
-      await entityStore.value.collection.insert(newEntity);
+      await entityStore.collection.insert(newEntity);
+      entityStore.addOne(newEntity);
       console.log(`[AppStore] Created ${entityName}:`, id);
       return newEntity;
     } catch (error) {
@@ -313,23 +284,25 @@ class AppStore {
   }
   
   async updateEntity<T extends EntityData>(entityName: string, id: string, updates: Partial<T>): Promise<void> {
-    const entityStore = this.entityStores.get(entityName);
-    if (!entityStore?.value.collection) {
+    const entityStore = this.entityStores.get(entityName) as any;
+    if (!entityStore?.collection) {
       console.error(`[AppStore] Collection ${entityName} not available`);
       return;
     }
     
     try {
-      const doc = await entityStore.value.collection.findOne(id).exec();
+      const doc = await entityStore.collection.findOne(id).exec();
       if (!doc) {
         throw new Error(`${entityName} ${id} not found`);
       }
       
-      await doc.patch({
+      const patchData = {
         ...updates,
         updatedAt: new Date().toISOString()
-      });
+      };
+      await doc.patch(patchData);
       
+      entityStore.updateOne(id, patchData);
       console.log(`[AppStore] Updated ${entityName}:`, id);
     } catch (error) {
       console.error(`[AppStore] Failed to update ${entityName}:`, error);
@@ -338,14 +311,14 @@ class AppStore {
   }
   
   async deleteEntity(entityName: string, id: string): Promise<void> {
-    const entityStore = this.entityStores.get(entityName);
-    if (!entityStore?.value.collection) {
+    const entityStore = this.entityStores.get(entityName) as any;
+    if (!entityStore?.collection) {
       console.error(`[AppStore] Collection ${entityName} not available`);
       return;
     }
     
     try {
-      const doc = await entityStore.value.collection.findOne(id).exec();
+      const doc = await entityStore.collection.findOne(id).exec();
       if (!doc) {
         throw new Error(`${entityName} ${id} not found`);
       }
@@ -356,6 +329,7 @@ class AppStore {
         updatedAt: new Date().toISOString()
       });
       
+      entityStore.removeOne(id);
       console.log(`[AppStore] Deleted ${entityName}:`, id);
     } catch (error) {
       console.error(`[AppStore] Failed to delete ${entityName}:`, error);
