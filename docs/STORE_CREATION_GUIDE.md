@@ -1,5 +1,13 @@
 # Покрокова інструкція створення нового Store в BreedHub
 
+## 🆕 ОНОВЛЕНО: Entity Store Pattern
+
+Тепер ми використовуємо **два підходи** для stores:
+1. **Entity Store Pattern** - для всіх нових бізнес-сутностей (РЕКОМЕНДОВАНО)
+2. **Legacy підхід** - для складних конфігурацій (залишаємо як є)
+
+Дивіться [STORE_ARCHITECTURE.md](./STORE_ARCHITECTURE.md) для детальної інформації про вибір підходу.
+
 ## КРИТИЧНО ВАЖЛИВИЙ ПРИНЦИП
 
 ### Функціонал пишемо на сторах, а НЕ на компонентах!
@@ -31,7 +39,116 @@
 - Таблиця вже створена в Supabase
 - Всі таблиці мають стандартну структуру з полем `id` (не `uid`!)
 
-## Крок 1: Створити типи для нової сутності
+## 🎯 Метод 1: Entity Store Pattern (РЕКОМЕНДОВАНО)
+
+### Коли використовувати
+- Для всіх нових бізнес-сутностей (тварини, користувачі, повідомлення, клуби, події)
+- Коли потрібні стандартні CRUD операції
+- Для простих списків з фільтрацією та сортуванням
+
+### Крок 1: Створити базовий EntityStore (якщо ще не існує)
+
+**Файл:** `packages/rxdb-store/src/stores/base/entity-store.ts`
+
+```typescript
+import { signal, computed } from '@preact/signals-react';
+
+export class EntityStore<T extends { id: string }> {
+  protected ids = signal<string[]>([]);
+  protected entities = signal<Map<string, T>>(new Map());
+  
+  // Computed як в NgRx withEntities
+  entityMap = computed(() => this.entities.value);
+  entityList = computed(() => 
+    this.ids.value.map(id => this.entities.value.get(id)!).filter(Boolean)
+  );
+  total = computed(() => this.ids.value.length);
+  
+  // Entity methods
+  setAll(entities: T[]) { /* ... */ }
+  addOne(entity: T) { /* ... */ }
+  updateOne(id: string, changes: Partial<T>) { /* ... */ }
+  removeOne(id: string) { /* ... */ }
+  // ... інші методи
+}
+```
+
+### Крок 2: Створити специфічний Entity Store
+
+**Файл:** `packages/rxdb-store/src/stores/[entity-name].store.ts`
+
+```typescript
+import { computed } from '@preact/signals-react';
+import { EntityStore } from './base/entity-store';
+import { getDatabase } from '../services/database.service';
+import type { EntityDefinition } from '../types/[entity-name].types';
+
+class EntityStoreImpl extends EntityStore<EntityDefinition> {
+  private static instance: EntityStoreImpl;
+  
+  static getInstance() {
+    if (!this.instance) {
+      this.instance = new EntityStoreImpl();
+      this.instance.initialize();
+    }
+    return this.instance;
+  }
+  
+  // Специфічні computed
+  activeEntities = computed(() => 
+    this.entityList.value.filter(e => !e._deleted)
+  );
+  
+  // RxDB інтеграція
+  async initialize() {
+    const db = await getDatabase();
+    const collection = db.collections.entities;
+    
+    // Завантаження даних
+    const docs = await collection.find().exec();
+    this.setAll(docs.map(d => d.toJSON()));
+    
+    // Підписка на зміни
+    collection.$.subscribe(changeEvent => {
+      // Оновлення store при змінах
+    });
+  }
+  
+  // CRUD з RxDB
+  async create(data: Omit<EntityDefinition, 'id'>) {
+    const db = await getDatabase();
+    const newEntity = {
+      ...data,
+      id: crypto.randomUUID(),
+      created_at: new Date().toISOString()
+    };
+    
+    await db.collections.entities.insert(newEntity);
+    this.addOne(newEntity as EntityDefinition);
+    return newEntity;
+  }
+  
+  async update(id: string, changes: Partial<EntityDefinition>) {
+    const db = await getDatabase();
+    const doc = await db.collections.entities.findOne(id).exec();
+    if (doc) {
+      await doc.patch(changes);
+      this.updateOne(id, changes);
+    }
+  }
+}
+
+export const entityStore = EntityStoreImpl.getInstance();
+```
+
+## 🔧 Метод 2: Legacy підхід (для складних випадків)
+
+### Коли використовувати
+- Для конфігурацій UI
+- Коли є складні ієрархічні залежності
+- Для систем з каскадними оновленнями
+
+### Крок 1: Створити типи для нової сутності
 
 **Файл:** `packages/rxdb-store/src/types/[entity-name].types.ts`
 
@@ -53,7 +170,7 @@ export type EntityDocument = RxDocument<EntityDefinition>;
 export type EntityCollection = RxCollection<EntityDefinition>;
 ```
 
-## Крок 2: Створити RxDB схему
+### Крок 2: Створити RxDB схему
 
 **Файл:** `packages/rxdb-store/src/collections/[entity-name].schema.ts`
 
@@ -88,7 +205,7 @@ export const entitySchema: RxJsonSchema<EntityDefinition> = {
 };
 ```
 
-## Крок 3: Додати колекцію до Database Service
+### Крок 3: Додати колекцію до Database Service
 
 **Файл:** `packages/rxdb-store/src/services/database.service.ts`
 
@@ -114,7 +231,7 @@ const collectionsToAdd = {
 };
 ```
 
-## Крок 4: Створити Signal Store (копіюємо з books)
+### Крок 4: Створити Signal Store (Legacy підхід)
 
 **Файл:** `packages/rxdb-store/src/stores/[entity-name].signal-store.ts`
 
@@ -389,7 +506,7 @@ class EntitySignalStore {
 export const entityStore = EntitySignalStore.getInstance();
 ```
 
-## Крок 5: Експортувати з index.ts
+### Крок 5: Експортувати з index.ts
 
 **Файл:** `packages/rxdb-store/src/index.ts`
 
@@ -400,7 +517,37 @@ export type { EntityDefinition, EntityDocument } from './types/[entity-name].typ
 export { entitySchema } from './collections/[entity-name].schema';
 ```
 
-## Крок 6: Використання в компонентах
+## Використання в компонентах
+
+### Entity Store Pattern
+
+```typescript
+import { entityStore } from '@breedhub/rxdb-store';
+
+const MyComponent = () => {
+  const entities = entityStore.entityList.value;
+  const total = entityStore.total.value;
+  
+  const handleCreate = async (data) => {
+    await entityStore.create(data);
+  };
+  
+  const handleUpdate = (id, changes) => {
+    entityStore.updateOne(id, changes);
+  };
+  
+  return (
+    <div>
+      <h2>Total: {total}</h2>
+      {entities.map(entity => (
+        <EntityCard key={entity.id} entity={entity} />
+      ))}
+    </div>
+  );
+};
+```
+
+### Legacy підхід
 
 ```typescript
 import { entityStore, type EntityDefinition } from '@breedhub/rxdb-store';
@@ -447,7 +594,32 @@ const MyComponent = () => {
 4. **Автоматична синхронізація** відбувається в `initializeStore()` - не потрібні кнопки
 5. **Soft delete** - використовуйте `_deleted` поле замість фізичного видалення
 
-## Майбутнє: Universal Store Architecture
+## 🚀 Стратегія розвитку Store Architecture
+
+### Поточний стан
+1. **Configuration Store** - залишається для UI конфігурацій (НЕ чіпаємо)
+2. **Entity Store Pattern** - для всіх нових бізнес-сутностей (АКТИВНО використовуємо)
+3. **Legacy stores** - поступова міграція на Entity Store Pattern де можливо
+
+### План розвитку
+
+#### Phase 1 (CURRENT) - Entity Store для нових сутностей
+- ✅ Створено базовий EntityStore клас
+- ✅ Документовано підхід
+- 🔄 Використовуємо для всіх нових features
+
+#### Phase 2 - Оптимізація Entity Store
+- Додати підтримку pagination
+- Додати підтримку virtual scrolling
+- Додати caching strategies
+- Додати optimistic updates
+
+#### Phase 3 - Selective Migration
+- Ідентифікувати прості legacy stores
+- Мігрувати на Entity Store Pattern
+- Configuration Store залишити як є
+
+## Майбутнє: Universal Store Architecture (довгострокова перспектива)
 
 ### Концепція
 Замість створення окремого store для кожної сутності, ми рухаємось до єдиного універсального store, який конфігурується:
@@ -610,6 +782,18 @@ console.log('[Store] BulkUpsert result:', result);
 
 ## Чеклист для нового store
 
+### Entity Store Pattern (РЕКОМЕНДОВАНО)
+- [ ] Визначено що це бізнес-сутність (не конфігурація)
+- [ ] Створено або перевірено існування `base/entity-store.ts`
+- [ ] Створено типи в `types/[entity].types.ts`
+- [ ] Створено схему в `collections/[entity].schema.ts`
+- [ ] Створено Entity Store в `stores/[entity].store.ts` що extends EntityStore
+- [ ] Додано специфічні computed values
+- [ ] Реалізовано CRUD методи з RxDB
+- [ ] Додано колекцію в `database.service.ts`
+- [ ] Експортовано з `index.ts`
+
+### Legacy підхід (для складних випадків)
 - [ ] Створено типи в `types/[entity].types.ts`
 - [ ] Створено схему в `collections/[entity].schema.ts` 
 - [ ] Всі string поля в індексах мають `maxLength`
@@ -622,3 +806,8 @@ console.log('[Store] BulkUpsert result:', result);
 - [ ] Немає circular dependencies
 - [ ] Store автоматично синхронізується в `initializeStore()`
 - [ ] НЕ додано кнопок для ручної синхронізації
+
+## 🔗 Пов'язана документація
+
+- [STORE_ARCHITECTURE.md](./STORE_ARCHITECTURE.md) - Детальна архітектура Store Pattern
+- [PRODUCT_STRATEGY.md](./PRODUCT_STRATEGY.md) - Стратегія розвитку продукту

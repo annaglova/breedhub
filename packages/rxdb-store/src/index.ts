@@ -1,3 +1,7 @@
+// Base Store Classes
+export { EntityStore } from './stores/base';
+export type { EntityStoreInstance } from './stores/base';
+
 // Services
 export { databaseService } from './services/database.service';
 export { SupabaseReplicationService } from './services/supabase-replication.service';
@@ -13,25 +17,9 @@ export {
   useOfflineQueue
 } from './hooks/useRxCollection';
 
-// Signal Hooks
-export { useBreedsSignals, useBreedByIdSignal, useBreedsBySizeSignal } from './hooks/useBreedsSignals';
-
 // Components
 export { BreedsList } from './components/BreedsList';
 export { BreedDetail } from './components/BreedDetail';
-export { BreedsListWithSignals } from './components/BreedsListWithSignals';
-
-// Signal Store
-export { 
-  breedsStore,
-  breeds,
-  breedsBySize,
-  breedsCount,
-  loading,
-  error,
-  collection,
-  replicationState
-} from './stores/breeds.signal-store';
 
 // Types
 export type {
@@ -55,6 +43,9 @@ export type { AppConfig, AppConfigDocument, AppConfigCollection } from './stores
 
 // App Store
 export { appStore } from './stores/app-store.signal-store';
+
+// Space Store - Universal dynamic store for all business entities
+export { spaceStore } from './stores/space-store.signal-store';
 
 // Mixin Engine
 export { mixinEngine, MixinEngineService } from './services/mixin-engine.service';
