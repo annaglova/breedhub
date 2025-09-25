@@ -4,10 +4,8 @@ export type { EntityStoreInstance } from './stores/base';
 
 // Services
 export { databaseService } from './services/database.service';
-export { SupabaseReplicationService } from './services/supabase-replication.service';
 
 // Hooks
-export { useBreeds } from './hooks/useBreeds';
 export { useReplicationState, SyncStatusIndicator } from './hooks/useReplicationState';
 export { 
   useRxData, 
@@ -16,23 +14,6 @@ export {
   useRxCollection,
   useOfflineQueue
 } from './hooks/useRxCollection';
-
-// Components
-export { BreedsList } from './components/BreedsList';
-export { BreedDetail } from './components/BreedDetail';
-
-// Types
-export type {
-  BreedDocType,
-  BreedDocument,
-  BreedCollection,
-  BreedDocMethods,
-  BreedCollectionMethods,
-  BreedCollectionTyped
-} from './types/breed.types';
-
-// Schemas
-export { breedSchema, breedMigrationStrategies } from './collections/breeds.schema';
 
 // Database types
 export type { DatabaseCollections, AppDatabase } from './services/database.service';

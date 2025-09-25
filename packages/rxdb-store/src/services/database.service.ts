@@ -13,8 +13,6 @@ import { RxDBUpdatePlugin } from 'rxdb/plugins/update';
 import { RxDBCleanupPlugin } from 'rxdb/plugins/cleanup';
 import { wrappedValidateAjvStorage } from 'rxdb/plugins/validate-ajv';
 
-import { breedSchema, breedMigrationStrategies } from '../collections/breeds.schema';
-import { BreedCollectionTyped } from '../types/breed.types';
 import { booksSchema } from '../collections/books.schema';
 import { BookCollection } from '../types/book.types';
 import { appConfigSchema } from '../collections/app-config.schema';
@@ -31,7 +29,6 @@ addRxPlugin(RxDBCleanupPlugin);
 
 // Database type
 export type DatabaseCollections = {
-  breeds: BreedCollectionTyped;
   books: BookCollection;
   app_config: AppConfigCollection;
 };
@@ -143,45 +140,6 @@ class DatabaseService {
     // Add collections with error handling
     try {
       const collectionsToAdd = {
-      breeds: {
-        schema: breedSchema,
-        migrationStrategies: breedMigrationStrategies,
-        methods: {
-          // Document methods
-          getFullName(this: any) {
-            return this.name;
-          },
-          getAgeRange(this: any) {
-            if (!this.lifespan) return 'Unknown';
-            return `${this.lifespan.min}-${this.lifespan.max} years`;
-          },
-          isActive(this: any) {
-            return !this._deleted;
-          }
-        },
-        statics: {
-          // Collection methods
-          async findBySize(this: any, size: string) {
-            return this.find({
-              selector: { size }
-            }).exec();
-          },
-          async findByWorkspace(this: any, workspaceId: string) {
-            return this.find({
-              selector: { workspaceId }
-            }).exec();
-          },
-          async searchByName(this: any, query: string) {
-            return this.find({
-              selector: {
-                name: {
-                  $regex: new RegExp(query, 'i')
-                }
-              }
-            }).exec();
-          }
-        }
-      },
       books: {
         schema: booksSchema,
         methods: {
