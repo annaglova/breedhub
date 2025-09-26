@@ -423,6 +423,12 @@ class SpaceStore {
       let schemaType = 'string';
       switch (fieldConfig.fieldType) {
         case 'uuid':
+          schemaType = 'string';
+          // UUID fields always need maxLength
+          if (!fieldConfig.maxLength) {
+            fieldConfig.maxLength = 36; // Standard UUID length
+          }
+          break;
         case 'string':
         case 'text':
           schemaType = 'string';
@@ -458,10 +464,13 @@ class SpaceStore {
       }
     });
     
-    // Add system fields if not already present
+    // Ensure id field has proper configuration (UUID)
     if (!properties.id) {
-      properties.id = { type: 'string', maxLength: 100 };
+      properties.id = { type: 'string', maxLength: 36 }; // Standard UUID length
       required.push('id');
+    } else if (!properties.id.maxLength && properties.id.type === 'string') {
+      // Add maxLength if missing for existing id field
+      properties.id.maxLength = 36; // Standard UUID length
     }
     if (!properties.created_at) {
       properties.created_at = { type: 'string' };

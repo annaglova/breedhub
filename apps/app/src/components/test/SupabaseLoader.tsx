@@ -7,7 +7,7 @@ export const SupabaseLoader: React.FC = () => {
   const [connectionStatus, setConnectionStatus] = useState<'unknown' | 'connected' | 'error'>('unknown');
   const [loadedEntities, setLoadedEntities] = useState<Map<string, boolean>>(new Map());
   const [progress, setProgress] = useState<{ entity: string; loaded: number; total: number } | null>(null);
-  const [selectedEntity, setSelectedEntity] = useState<string>('breeds');
+  const [selectedEntity, setSelectedEntity] = useState<string>('breed');
   const [entityData, setEntityData] = useState<any[]>([]);
 
   // Check Supabase connection
@@ -133,15 +133,7 @@ export const SupabaseLoader: React.FC = () => {
             onChange={(e) => setSelectedEntity(e.target.value)}
             className="px-3 py-2 border rounded"
           >
-            <option value="breeds">Breeds</option>
-            <option value="dogs">Dogs</option>
-            <option value="persons">Persons</option>
-            <option value="kennels">Kennels</option>
-            <option value="litters">Litters</option>
-            <option value="pets">Pets</option>
-            <option value="health_tests">Health Tests</option>
-            <option value="service_item">Service Items</option>
-            <option value="conf_item">Config Items</option>
+            <option value="breed">Breed</option>
           </select>
           
           <button
@@ -229,32 +221,23 @@ export const SupabaseLoader: React.FC = () => {
       {entityData.length > 0 && (
         <div className="p-4 bg-white rounded-lg shadow">
           <h3 className="text-lg font-semibold mb-3">
-            {selectedEntity} Data (First 10 records)
+            {selectedEntity} Data ({entityData.length} records)
           </h3>
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  {Object.keys(entityData[0] || {}).slice(0, 5).map(key => (
-                    <th
-                      key={key}
-                      className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                    >
-                      {key}
-                    </th>
-                  ))}
+                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Name
+                  </th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {entityData.slice(0, 10).map((item, idx) => (
                   <tr key={idx}>
-                    {Object.keys(item).slice(0, 5).map(key => (
-                      <td key={key} className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">
-                        {typeof item[key] === 'object' ? 
-                          JSON.stringify(item[key]).slice(0, 50) : 
-                          String(item[key]).slice(0, 50)}
-                      </td>
-                    ))}
+                    <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">
+                      {item.name || 'No name'}
+                    </td>
                   </tr>
                 ))}
               </tbody>
