@@ -823,24 +823,26 @@ class SpaceStore {
   }
 
   /**
-   * Load breed-specific data from Supabase
+   * Load data with specific filters from Supabase
+   * This is a generic method for loading filtered data for any entity type
    */
-  async loadBreedData(
-    breedIds: string[],
+  async loadFilteredData(
+    entityType: string,
+    filters: Record<string, any>,
     options?: LoaderOptions,
     syncOptions?: SyncOptions
-  ): Promise<Map<string, boolean>> {
+  ): Promise<boolean> {
     if (!this.supabaseLoader) {
       console.error('[SpaceStore] Supabase loader not initialized');
-      return new Map();
+      return false;
     }
 
     try {
       this.isSyncing.value = true;
       
-      const results = await this.supabaseLoader.loadBreedSpecificData(
-        breedIds,
-        options,
+      const success = await this.supabaseLoader.loadAndSyncEntity(
+        entityType,
+        { ...options, filters },
         {
           ...syncOptions,
           onProgress: (progress) => {
@@ -849,11 +851,11 @@ class SpaceStore {
         }
       );
 
-      console.log(`[SpaceStore] Loaded data for ${breedIds.length} breeds from Supabase`);
-      return results;
+      console.log(`[SpaceStore] Loaded filtered ${entityType} data from Supabase`);
+      return success;
     } catch (error) {
-      console.error(`[SpaceStore] Failed to load breed data from Supabase:`, error);
-      return new Map();
+      console.error(`[SpaceStore] Failed to load filtered data from Supabase:`, error);
+      return false;
     } finally {
       this.isSyncing.value = false;
       this.syncProgress.value = null;
