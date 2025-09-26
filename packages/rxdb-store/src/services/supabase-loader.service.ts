@@ -98,8 +98,8 @@ export class SupabaseLoaderService {
       // Get or create entity store in SpaceStore
       const entityStore = await this.spaceStore.getEntityStore(entityType);
 
-      // Clear existing data (optional - could merge instead)
-      await entityStore.clear();
+      // Clear existing data using setAll
+      await entityStore.setAll([]);
 
       // Add data to RxDB in batches
       const batchSize = syncOptions.batchSize || 100;
@@ -108,10 +108,8 @@ export class SupabaseLoaderService {
       for (let i = 0; i < data.length; i += batchSize) {
         const batch = data.slice(i, i + batchSize);
         
-        // Add each item to the store
-        for (const item of batch) {
-          await entityStore.addEntity(item);
-        }
+        // Add batch to the store
+        entityStore.addMany(batch);
 
         loaded += batch.length;
 
