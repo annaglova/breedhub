@@ -1,5 +1,10 @@
 # Config Admin Scripts
 
+## 📁 Structure
+- **Main scripts** - Core generation and processing scripts
+- **test/** - Testing and validation scripts
+- **entity-categories.json** - Entity categorization data
+
 ## Core Generation Scripts
 
 ### `analyze-fields.cjs`
@@ -36,17 +41,16 @@ Main script for generating SQL inserts for app_config table.
 - Custom property merging (generated + user customizations)
 - Batch processing for large-scale updates
 
-### `cascading-updates.cjs` & `cascading-updates-v2.cjs`
-Utility modules for handling cascade updates in configuration hierarchy.
-- **v1**: Basic dependency graph and topological sorting
-- **v2**: Enhanced with BatchProcessor integration, 4x performance improvement
+### `cascading-updates.cjs`
+Utility module for handling cascade updates in configuration hierarchy (v3 - latest).
+- Enhanced with BatchProcessor integration, 4x performance improvement
 - Builds dependency graphs and reverse dependency maps
 - Performs topological sorting for correct update order
 - Handles cascade updates when properties/fields change
 - Automatic change detection before updates
-- Performance: 917 records/sec (v2) vs 200 records/sec (v1)
+- Performance: 917 records/sec
 
-**Usage:** `node cascading-updates-v2.cjs <command> [options]`
+**Usage:** `node cascading-updates.cjs <command> [options]`
 
 **Commands:**
 - `update-property <propertyId>`: Update specific property and cascade
@@ -63,7 +67,7 @@ High-performance batch processing utility for database operations.
 - Performance metrics tracking
 - Error handling and recovery
 
-**Usage:** Used internally by cascading-updates-v2.cjs
+**Usage:** Used internally by cascading-updates.cjs
 
 **Features:**
 - Deduplication by record ID
@@ -95,53 +99,102 @@ Generates entity configurations from resourcesList.json.
 
 **Usage:** `node generate-entity-configs.cjs`
 
+### `analyze-app-config.cjs`
+Analyzes current app configuration structure.
+- Examines configuration hierarchy
+- Validates dependencies
+- Reports configuration health
+
+**Usage:** `node analyze-app-config.cjs`
+
+### `cleanup-test-data.cjs`
+Cleans up test data from the database.
+- Removes test configurations
+- Useful after testing scripts
+
+**Usage:** `node cleanup-test-data.cjs`
+
 ## Testing & Validation Scripts
 
-### `check-cascade.cjs`
+**Location:** All test scripts are organized in the `test/` directory for better organization.
+
+### `test/check-cascade.cjs`
 Tests cascade update functionality between properties and fields.
 - Verifies that property changes propagate to dependent fields
 
-**Usage:** `node check-cascade.cjs`
+**Usage:** `node test/check-cascade.cjs`
 
-### `check-field.cjs`
+### `test/check-field.cjs`
 Checks specific field configuration and its dependencies.
 - Verifies field data integrity
 - Tests property inheritance
 
-**Usage:** `node check-field.cjs`
+**Usage:** `node test/check-field.cjs`
 
-### `check-properties.cjs`
+### `test/check-properties.cjs`
 Validates property configurations in the database.
 - Checks for missing or invalid properties
 - Verifies property relationships
 
-**Usage:** `node check-properties.cjs`
+**Usage:** `node test/check-properties.cjs`
 
-### `check-db.cjs`
+### `test/check-db.cjs`
 General database connectivity and schema check.
 
-**Usage:** `node check-db.cjs`
+**Usage:** `node test/check-db.cjs`
 
-### `check-rxdb-sync.cjs`
+### `test/check-rxdb-sync.cjs`
 Tests RxDB synchronization with Supabase.
 - Verifies replication setup
 - Tests sync functionality
 
-**Usage:** `node check-rxdb-sync.cjs`
+**Usage:** `node test/check-rxdb-sync.cjs`
+
+### `test/check-property.cjs`
+Checks specific property configuration and relationships.
+- Validates property data
+- Tests field inheritance
+
+**Usage:** `node test/check-property.cjs <propertyId>`
+
+### `test/check-schema-property.cjs`
+Validates schema property configurations.
+- Checks schema consistency
+- Validates property types
+
+**Usage:** `node test/check-schema-property.cjs`
 
 ## Test Scripts
 
-### `test-breed-only.cjs`
+### `test/test-breed-only.cjs`
 Tests breed-only mode for field generation.
 
-### `test-constraints.cjs`
+**Usage:** `node test/test-breed-only.cjs`
+
+### `test/test-breed-account-field.cjs`
+Tests breed account field configuration.
+
+**Usage:** `node test/test-breed-account-field.cjs`
+
+### `test/test-custom-preservation.cjs`
+Tests preservation of custom user properties during regeneration.
+
+**Usage:** `node test/test-custom-preservation.cjs`
+
+### `test/test-constraints.cjs`
 Tests database constraints and validation rules.
 
-### `test-rls-permissions.cjs`
+**Usage:** `node test/test-constraints.cjs`
+
+### `test/test-rls-permissions.cjs`
 Tests Row Level Security permissions.
 
-### `test-rxdb-validation.cjs`
+**Usage:** `node test/test-rls-permissions.cjs`
+
+### `test/test-rxdb-validation.cjs`
 Tests RxDB schema validation.
+
+**Usage:** `node test/test-rxdb-validation.cjs`
 
 ## Utility Scripts
 
@@ -162,7 +215,14 @@ Mapping of entities to their categories (main, lookup, child).
 1. **Analyze Fields:** Run `analyze-fields.cjs` to generate semantic tree
 2. **Generate SQL:** Run `generate-sql-inserts.cjs` to create SQL inserts
 3. **Apply to Database:** Execute generated SQL in Supabase
-4. **Test:** Use check-*.cjs scripts to verify
+4. **Test:** Use scripts in `test/` directory to verify
+
+## Recent Changes (2024-09-26)
+
+- ✅ Organized test scripts into `test/` directory
+- ✅ Removed old versions of cascading-updates (v1, v2)
+- ✅ Renamed cascading-updates-v3.cjs to cascading-updates.cjs
+- ✅ Better separation between production and test scripts
 
 ## Environment Variables
 
