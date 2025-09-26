@@ -347,6 +347,118 @@ packages/rxdb-store/src/
   - Рішення буде прийнято пізніше
   - Поки що відкладаємо
 
+## 📚 Аналіз старого Angular проекту з withEntities
+
+### Патерни NgRx Signal Store
+
+Старий Angular проект використовував NgRx Signal Store з кількома ключовими патернами:
+
+#### 1. withEntities Feature
+- Забезпечує нормалізоване зберігання сутностей (масив ids + Map entities)
+- Використовується як база для всіх колекцій сутностей
+- Конфігурується з типом сутності, назвою колекції та функцією selectId
+
+#### 2. withCollectionMethods Feature
+```typescript
+// Обгортає NgRx entity методи
+export function withCollectionMethods<Entity, Collection>(config) {
+  return signalStoreFeature(
+    withMethods((store) => ({
+      addEntities(entities: Entity[]) {
+        patchState(store, addEntities(entities, config));
+      },
+      setAllEntities(entities: Entity[]) {
+        patchState(store, setAllEntities(entities, config));
+      },
+      updateEntity(id: EntityId, changes: Partial<Entity>) {
+        patchState(store, updateEntity({ id, changes }, config));
+      },
+      removeEntity(id: EntityId) {
+        patchState(store, removeEntity(id, config));
+      }
+    }))
+  );
+}
+```
+
+#### 3. withFilledNamedCollection - Композиція
+```typescript
+function withFilledNamedCollection<Entity, Collection>(config) {
+  return signalStoreFeature(
+    withEntities<Entity>(config),           // Базове сховище
+    withCollectionMethods(config),          // CRUD методи
+    withHooks((store) => ({                 // Ініціалізація даних
+      onInit() {
+        if (config.data) {
+          store.setAllEntities(config.data);
+        }
+      }
+    })),
+    withSelectedId(config),                 // Вибрана сутність
+    withSelectedEntityWithFirstDefault(config) // Дефолтний вибір
+  );
+}
+```
+
+#### 4. Dynamic Store Factory Pattern
+```typescript
+// Створення динамічного store на основі конфігурації
+const spaceStoreFactory = (config: SpaceConfig) => {
+  const EntityListStore = signalStore(
+    { protectedState: false },
+    withFilteredByFilterStore({config}),
+    withLogger(`[SpaceStore]`)
+  );
+  return new EntityListStore();
+};
+
+export type EntityListStore = ReturnType<typeof spaceStoreFactory>;
+```
+
+#### 5. Configuration через Dependency Injection
+```typescript
+// Stores отримують конфігурацію через DI
+const superFactory = (config: StoreConfig, parent: EntityListStore | null) => {
+  if (parent) {
+    // Дочірній store з батьківським контекстом
+    return spaceStoreFactory(config);
+  }
+  // Кореневий store
+  return spaceStoreFactory(config);
+};
+```
+
+### Ключові відмінності від нашої React реалізації
+
+| Angular NgRx | Наш React/Preact Signals |
+|-------------|-------------------------|
+| Dependency Injection | Hooks і контекст |
+| Багато маленьких stores | ОДИН універсальний SpaceStore |
+| signalStoreFeature композиція | Class inheritance |
+| Providers для конфігурації | Props і контекст |
+
+### Патерни для застосування
+
+1. **✅ Normalized Storage** - Вже реалізовано в EntityStore
+2. **✅ Method Consistency** - Методи відповідають NgRx патернам
+3. **✅ Configuration-Driven** - SpaceStore працює з повним app config
+4. **🔄 Dynamic Collections** - Потрібно додати для RxDB
+5. **🔄 Lifecycle Hooks** - Можна додати хуки для завантаження даних
+
+### Важливі висновки
+
+1. **Композиція vs Наслідування**
+   - Angular використовує композицію features
+   - Ми використовуємо class inheritance, що простіше для React
+
+2. **Один Store vs Багато**
+   - Angular мав окремі stores для кожної сутності
+   - Наш підхід з ОДНИМ SpaceStore більш ефективний
+
+3. **Конфігурація**
+   - Обидва підходи configuration-driven
+   - Наш підхід з повним app config більш централізований
+
 ## 🔗 Зв'язані документи
 
 - [STORE_ARCHITECTURE.md](./STORE_ARCHITECTURE.md) - Загальна архітектура stores
