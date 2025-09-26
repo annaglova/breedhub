@@ -15,6 +15,9 @@ export class EntityStore<T extends { id: string }> {
   loading = signal<boolean>(false);
   error = signal<string | null>(null);
   
+  // Selection state
+  protected selectedId = signal<string | null>(null);
+  
   // Computed values for easy access
   /**
    * Get all entities as a Map
@@ -40,12 +43,25 @@ export class EntityStore<T extends { id: string }> {
    */
   isEmpty: ReadonlySignal<boolean> = computed(() => this.ids.value.length === 0);
   
+  /**
+   * Get currently selected entity
+   */
+  selectedEntity: ReadonlySignal<T | null> = computed(() => {
+    const id = this.selectedId.value;
+    return id ? this.entities.value.get(id) || null : null;
+  });
+  
+  /**
+   * Check if any entity is selected
+   */
+  hasSelection: ReadonlySignal<boolean> = computed(() => this.selectedId.value !== null);
+  
   // Entity Management Methods (withEntities pattern)
   
   /**
    * Replace all entities with new ones
    */
-  setAll(entities: T[]): void {
+  setAll(entities: T[], autoSelectFirst = false): void {
     batch(() => {
       const newEntities = new Map<string, T>();
       const newIds: string[] = [];
@@ -59,6 +75,15 @@ export class EntityStore<T extends { id: string }> {
       
       this.entities.value = newEntities;
       this.ids.value = newIds;
+      
+      // Auto-select first entity if requested and no current selection
+      if (autoSelectFirst && newIds.length > 0 && !this.selectedId.value) {
+        this.selectedId.value = newIds[0];
+      }
+      // Clear selection if selected entity was removed
+      else if (this.selectedId.value && !newEntities.has(this.selectedId.value)) {
+        this.selectedId.value = null;
+      }
     });
   }
   
@@ -201,6 +226,11 @@ export class EntityStore<T extends { id: string }> {
       
       this.entities.value = newEntities;
       this.ids.value = this.ids.value.filter(existingId => existingId !== id);
+      
+      // Clear selection if the removed entity was selected
+      if (this.selectedId.value === id) {
+        this.selectedId.value = null;
+      }
     });
   }
   
@@ -216,6 +246,11 @@ export class EntityStore<T extends { id: string }> {
       
       this.entities.value = newEntities;
       this.ids.value = this.ids.value.filter(id => !ids.includes(id));
+      
+      // Clear selection if the selected entity was removed
+      if (this.selectedId.value && ids.includes(this.selectedId.value)) {
+        this.selectedId.value = null;
+      }
     });
   }
   
@@ -226,6 +261,7 @@ export class EntityStore<T extends { id: string }> {
     batch(() => {
       this.entities.value = new Map();
       this.ids.value = [];
+      this.selectedId.value = null;
     });
   }
   
@@ -292,7 +328,58 @@ export class EntityStore<T extends { id: string }> {
       this.removeAll();
       this.loading.value = false;
       this.error.value = null;
+      this.selectedId.value = null;
     });
+  }
+  
+  // Selection methods
+  
+  /**
+   * Select an entity by ID
+   */
+  selectEntity(id: string | null): void {
+    if (id === null) {
+      this.selectedId.value = null;
+      return;
+    }
+    
+    if (this.entities.value.has(id)) {
+      this.selectedId.value = id;
+    }
+  }
+  
+  /**
+   * Select the first entity in the list
+   */
+  selectFirst(): void {
+    const firstId = this.ids.value[0];
+    if (firstId) {
+      this.selectedId.value = firstId;
+    }
+  }
+  
+  /**
+   * Select the last entity in the list
+   */
+  selectLast(): void {
+    const lastId = this.ids.value[this.ids.value.length - 1];
+    if (lastId) {
+      this.selectedId.value = lastId;
+    }
+  }
+  
+  /**
+   * Clear selection
+   */
+  clearSelection(): void {
+    this.selectedId.value = null;
+  }
+  
+  /**
+   * Get the currently selected entity ID
+   */
+  getSelectedId(): string | null {
+    return this.selectedId.value;
   }
 }
 

@@ -347,12 +347,12 @@ class SpaceStore {
     }
     
     if (collection) {
-      // Load initial data
+      // LIFECYCLE HOOK: onInit - Load initial data
       const allDocs = await collection.find().exec();
       const entities: T[] = allDocs.map((doc: RxDocument<T>) => doc.toJSON() as T);
       
-      // Update store
-      entityStore.setAll(entities);
+      // Update store with autoSelectFirst enabled
+      entityStore.setAll(entities, true); // Auto-select first entity
       entityStore.setLoading(false);
       
       // Store collection reference
@@ -646,16 +646,69 @@ class SpaceStore {
   }
   
   /**
+   * Initialize entity with lifecycle hooks
+   * Similar to Angular's withHooks onInit
+   */
+  async initializeEntity(entityType: string): Promise<void> {
+    const entityStore = await this.getEntityStore(entityType);
+    
+    if (!entityStore) {
+      throw new Error(`Failed to initialize entity: ${entityType}`);
+    }
+    
+    console.log(`[SpaceStore] Entity ${entityType} initialized with ${entityStore.total.value} items`);
+    
+    // Auto-select first if not already selected
+    if (!entityStore.hasSelection.value && !entityStore.isEmpty.value) {
+      entityStore.selectFirst();
+      console.log(`[SpaceStore] Auto-selected first ${entityType}`);
+    }
+  }
+  
+  /**
+   * Cleanup entity with lifecycle hooks
+   * Similar to Angular's withHooks onDestroy
+   */
+  cleanupEntity(entityType: string): void {
+    console.log(`[SpaceStore] Cleaning up entity ${entityType}`);
+    
+    // Clean up subscription
+    const subscription = this.entitySubscriptions.get(entityType);
+    if (subscription) {
+      subscription.unsubscribe();
+      this.entitySubscriptions.delete(entityType);
+    }
+    
+    // Clear store data
+    const entityStore = this.entityStores.get(entityType);
+    if (entityStore) {
+      entityStore.reset();
+      this.entityStores.delete(entityType);
+    }
+    
+    console.log(`[SpaceStore] Entity ${entityType} cleaned up`);
+  }
+  
+  /**
    * Dispose of all resources
+   * LIFECYCLE: Global cleanup
    */
   dispose() {
-    // Clean up all entity subscriptions
-    this.entitySubscriptions.forEach(sub => sub.unsubscribe());
-    this.entitySubscriptions.clear();
+    console.log('[SpaceStore] Disposing all resources...');
     
-    // Clear stores
-    this.entityStores.clear();
-    this.entityConfigs.clear();
+    // Clean up all entities
+    this.availableEntityTypes.value.forEach(entityType => {
+      this.cleanupEntity(entityType);
+    });
+    
+    // Clear configurations
+    this.spaceConfigs.clear();
+    
+    // Reset state
+    this.initialized.value = false;
+    this.availableEntityTypes.value = [];
+    
+    console.log('[SpaceStore] Disposed');
   }
 }
 
