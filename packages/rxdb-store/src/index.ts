@@ -30,3 +30,6 @@ export { spaceStore } from './stores/space-store.signal-store';
 
 // Mixin Engine
 export { mixinEngine, MixinEngineService } from './services/mixin-engine.service';
+
+// Supabase utilities
+export { supabase, checkSupabaseConnection } from './supabase/client';
