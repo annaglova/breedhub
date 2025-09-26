@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AppLayout } from '@/layouts/AppLayout';
 import { BreedsPage } from '@/pages/breeds';
 import { BreedDetailPage } from '@/pages/breeds/BreedDetailPage';
+import { SupabaseLoader } from '@/components/test/SupabaseLoader';
 
 // Temporary placeholder component
 function PlaceholderPage({ title }: { title: string }) {
@@ -37,6 +38,11 @@ export function AppRouter() {
           <Route path="mating">
             <Route index element={<Navigate to="/mating/pets" replace />} />
             <Route path="pets" element={<PlaceholderPage title="Test Mating - Pets" />} />
+          </Route>
+          
+          {/* Test routes */}
+          <Route path="test">
+            <Route path="supabase" element={<SupabaseLoader />} />
           </Route>
           
           {/* Direct breed pages - using IDs for now */}
