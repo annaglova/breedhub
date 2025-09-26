@@ -269,34 +269,6 @@ export class SupabaseLoaderService {
     this.subscriptions.clear();
   }
 
-  /**
-   * Load data for specific breeds (for partitioned tables)
-   */
-  async loadBreedSpecificData(
-    breedIds: string[],
-    options: LoaderOptions = {},
-    syncOptions: SyncOptions = {}
-  ): Promise<Map<string, boolean>> {
-    const results = new Map<string, boolean>();
-
-    // Tables that are partitioned by breed_id
-    const partitionedTables = ['pets', 'pet_photos', 'pet_documents'];
-
-    for (const table of partitionedTables) {
-      const tableOptions = {
-        ...options,
-        filters: {
-          ...options.filters,
-          breed_id: breedIds.length === 1 ? breedIds[0] : breedIds
-        }
-      };
-
-      const success = await this.loadAndSyncEntity(table, tableOptions, syncOptions);
-      results.set(table, success);
-    }
-
-    return results;
-  }
 
   /**
    * Get count of records in Supabase
