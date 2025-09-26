@@ -1,10 +1,6 @@
 import { useState } from 'react';
 import { RefreshCw, Loader2 } from 'lucide-react';
-import { createClient } from '@supabase/supabase-js';
-
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseKey = import.meta.env.VITE_SUPABASE_SERVICE_KEY || import.meta.env.VITE_SUPABASE_ANON_KEY;
-const supabase = createClient(supabaseUrl, supabaseKey);
+import { supabase } from '@breedhub/rxdb-store';
 
 export function RegenerateButton() {
   const [isLoading, setIsLoading] = useState(false);
