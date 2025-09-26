@@ -1,9 +1,15 @@
-const fs = require("fs");
-const path = require("path");
-require("dotenv").config({ path: path.resolve(__dirname, '../.env') });
-const { createClient } = require("@supabase/supabase-js");
+/**
+ * Cascading Updates v3 - Fixed parent update logic
+ * 
+ * Critical fix: Parents only update after ALL their children are updated
+ * This ensures complete data propagation in hierarchical structures
+ */
 
-// Supabase client
+const { createClient } = require('@supabase/supabase-js');
+const path = require('path');
+require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
+const BatchProcessor = require('./batch-processor.cjs');
+
 const supabaseUrl = process.env.VITE_SUPABASE_URL;
 const supabaseKey = process.env.VITE_SUPABASE_SERVICE_KEY;
 
@@ -15,444 +21,433 @@ if (!supabaseUrl || !supabaseKey) {
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 /**
- * Build reverse dependency graph
- * Returns Map where key is config ID and value is array of dependent config IDs
+ * Build complete dependency graph
  */
-function buildDependencyGraph(records) {
-  const dependents = new Map(); // id -> [dependent record ids]
+function buildFullDependencyGraph(allConfigs) {
+  const childToParents = new Map(); // child -> [parents]
+  const parentToChildren = new Map(); // parent -> [children]
   
-  for (const record of records) {
-    if (record.deps && Array.isArray(record.deps)) {
-      for (const dep of record.deps) {
-        if (!dependents.has(dep)) {
-          dependents.set(dep, []);
-        }
-        dependents.get(dep).push(record.id);
+  for (const config of allConfigs) {
+    if (!parentToChildren.has(config.id)) {
+      parentToChildren.set(config.id, []);
+    }
+    
+    for (const dep of config.deps || []) {
+      // Record parent -> child relationship
+      if (!parentToChildren.has(config.id)) {
+        parentToChildren.set(config.id, []);
       }
+      parentToChildren.get(config.id).push(dep);
+      
+      // Record child -> parent relationship
+      if (!childToParents.has(dep)) {
+        childToParents.set(dep, []);
+      }
+      childToParents.get(dep).push(config.id);
     }
   }
   
-  return dependents;
+  return { childToParents, parentToChildren };
 }
 
 /**
- * Find all records affected by changes to specified config IDs
- * Returns Set of all affected record IDs (including initial ones)
+ * Find all affected records WITH proper ordering
  */
-function findAffectedRecords(changedIds, graph) {
+function findAffectedWithOrder(changedIds, graph, allConfigs) {
+  const { childToParents } = graph;
   const affected = new Set(changedIds);
   const queue = [...changedIds];
-  
-  while (queue.length > 0) {
-    const current = queue.shift();
-    const dependents = graph.get(current) || [];
-    
-    for (const dependent of dependents) {
-      if (!affected.has(dependent)) {
-        affected.add(dependent);
-        queue.push(dependent);
-      }
-    }
-  }
-  
-  return affected;
-}
-
-/**
- * Perform topological sort on affected records to determine update order
- * Ensures dependencies are updated before their dependents
- */
-function topologicalSort(recordIds, allRecords) {
-  const recordMap = new Map();
-  for (const record of allRecords) {
-    recordMap.set(record.id, record);
-  }
-  
-  // Build adjacency list for affected records only
-  const adjacency = new Map();
-  const inDegree = new Map();
-  
-  for (const id of recordIds) {
-    adjacency.set(id, []);
-    inDegree.set(id, 0);
-  }
-  
-  // Calculate in-degrees
-  for (const id of recordIds) {
-    const record = recordMap.get(id);
-    if (record && record.deps) {
-      for (const dep of record.deps) {
-        if (recordIds.has(dep)) {
-          adjacency.get(dep).push(id);
-          inDegree.set(id, inDegree.get(id) + 1);
-        }
-      }
-    }
-  }
-  
-  // Find nodes with no dependencies
-  const queue = [];
-  for (const [id, degree] of inDegree) {
-    if (degree === 0) {
-      queue.push(id);
-    }
-  }
-  
-  const sorted = [];
-  while (queue.length > 0) {
-    const current = queue.shift();
-    sorted.push(current);
-    
-    // Reduce in-degree of dependents
-    const dependents = adjacency.get(current) || [];
-    for (const dependent of dependents) {
-      const newDegree = inDegree.get(dependent) - 1;
-      inDegree.set(dependent, newDegree);
-      if (newDegree === 0) {
-        queue.push(dependent);
-      }
-    }
-  }
-  
-  // Check for cycles
-  if (sorted.length !== recordIds.size) {
-    console.warn('Warning: Circular dependency detected. Some records may not be updated correctly.');
-    // Add remaining records to ensure all are processed
-    for (const id of recordIds) {
-      if (!sorted.includes(id)) {
-        sorted.push(id);
-      }
-    }
-  }
-  
-  return sorted;
-}
-
-/**
- * Deep merge objects (right overwrites left)
- */
-function deepMerge(target, source) {
-  if (!source) return target;
-  if (!target) return source;
-  
-  const result = { ...target };
-  
-  for (const key in source) {
-    if (source.hasOwnProperty(key)) {
-      if (typeof source[key] === 'object' && source[key] !== null && !Array.isArray(source[key])) {
-        result[key] = deepMerge(target[key], source[key]);
-      } else {
-        result[key] = source[key];
-      }
-    }
-  }
-  
-  return result;
-}
-
-/**
- * Recalculate data for a single record based on its dependencies
- */
-function recalculateRecord(record, allRecords) {
-  const recordMap = new Map();
-  for (const r of allRecords) {
-    recordMap.set(r.id, r);
-  }
-  
-  let newSelfData = record.self_data || {};
-  let shouldUpdateSelfData = false;
-  
-  // Rebuild self_data from dependencies
-  // self_data = merge of all deps' data fields
-  if (record.deps && Array.isArray(record.deps) && record.deps.length > 0) {
-    shouldUpdateSelfData = true;
-    newSelfData = {};
-    
-    // Merge all dependency DATA (not self_data!) into our self_data
-    for (const depId of record.deps) {
-      const depRecord = recordMap.get(depId);
-      if (depRecord && depRecord.data) {
-        // self_data = merge of deps' DATA
-        newSelfData = deepMerge(newSelfData, depRecord.data);
-      }
-    }
-    
-    // Preserve field-specific data that's not from dependencies
-    // (like displayName, permissions that are unique to this field)
-    const originalSelfData = record.self_data || {};
-    for (const key in originalSelfData) {
-      // If this key doesn't come from deps, keep it
-      if (!(key in newSelfData)) {
-        newSelfData[key] = originalSelfData[key];
-      }
-    }
-  }
-  
-  // Calculate final data = self_data + override_data
-  const selfDataToUse = shouldUpdateSelfData ? newSelfData : (record.self_data || {});
-  let computedData = { ...selfDataToUse };
-  
-  // Apply override_data on top (highest priority)
-  if (record.override_data) {
-    computedData = deepMerge(computedData, record.override_data);
-  }
-  
-  const result = {
-    ...record,
-    data: computedData
-  };
-  
-  // Include updated self_data if it was rebuilt
-  if (shouldUpdateSelfData) {
-    result.self_data = newSelfData;
-  }
-  
-  return result;
-}
-
-/**
- * Main cascading update function
- * Updates all affected records when base configs change
- */
-async function cascadeUpdate(changedIds, options = {}) {
-  const { dryRun = false, verbose = false } = options;
-  
-  console.log('\n=== Starting Cascading Update ===');
-  console.log(`Changed IDs: ${changedIds.join(', ')}`);
-  
-  // Fetch all records from database
-  const { data: allRecords, error } = await supabase
-    .from('app_config')
-    .select('*')
-    .order('created_at', { ascending: true });
-  
-  if (error) {
-    console.error('Error fetching records:', error);
-    return { success: false, error };
-  }
-  
-  console.log(`Total records in database: ${allRecords.length}`);
-  
-  // Build dependency graph
-  const graph = buildDependencyGraph(allRecords);
+  const visited = new Set();
   
   // Find all affected records
-  const affected = findAffectedRecords(changedIds, graph);
-  console.log(`Affected records: ${affected.size}`);
-  
-  if (verbose) {
-    console.log('Affected IDs:', Array.from(affected).join(', '));
-  }
-  
-  // Sort affected records in update order
-  const updateOrder = topologicalSort(affected, allRecords);
-  console.log(`Update order determined for ${updateOrder.length} records`);
-  
-  // Recalculate data for affected records
-  const updates = [];
-  const recordMap = new Map();
-  for (const record of allRecords) {
-    recordMap.set(record.id, record);
-  }
-  
-  for (const id of updateOrder) {
-    const record = recordMap.get(id);
-    if (record) {
-      const updated = recalculateRecord(record, allRecords);
-      
-      // Check if data or self_data changed
-      const dataChanged = JSON.stringify(record.data) !== JSON.stringify(updated.data);
-      const selfDataChanged = JSON.stringify(record.self_data) !== JSON.stringify(updated.self_data);
-      
-      if (dataChanged || selfDataChanged) {
-        const updateRecord = {
-          id: updated.id,
-          type: updated.type, // Preserve type field
-          data: updated.data,
-          updated_at: new Date().toISOString()
-        };
-        
-        // Include self_data if it changed
-        if (selfDataChanged) {
-          updateRecord.self_data = updated.self_data;
-        }
-        
-        updates.push(updateRecord);
-        
-        // Update in our local map for subsequent calculations
-        recordMap.set(id, updated);
-        
-        if (verbose) {
-          console.log(`Updated: ${id}`);
-        }
+  while (queue.length > 0) {
+    const current = queue.shift();
+    if (visited.has(current)) continue;
+    visited.add(current);
+    
+    const parents = childToParents.get(current) || [];
+    for (const parent of parents) {
+      affected.add(parent);
+      if (!visited.has(parent)) {
+        queue.push(parent);
       }
     }
   }
   
-  console.log(`\nRecords requiring update: ${updates.length}`);
+  // Create update order using dependency levels
+  const levels = new Map();
+  const configMap = new Map(allConfigs.map(c => [c.id, c]));
   
-  if (dryRun) {
-    console.log('\n=== DRY RUN - No changes made ===');
-    return {
-      success: true,
-      affected: affected.size,
-      updated: updates.length,
-      dryRun: true
-    };
-  }
-  
-  // Batch update in database
-  if (updates.length > 0) {
-    const batchSize = 100;
-    let successCount = 0;
+  // Calculate dependency depth for each config
+  function getDepth(configId, visiting = new Set()) {
+    if (levels.has(configId)) return levels.get(configId);
+    if (visiting.has(configId)) return 0; // Circular dependency
     
-    for (let i = 0; i < updates.length; i += batchSize) {
-      const batch = updates.slice(i, i + batchSize);
-      
-      const { error: updateError } = await supabase
-        .from('app_config')
-        .upsert(batch, { onConflict: 'id' });
-      
-      if (updateError) {
-        console.error(`Error updating batch ${i / batchSize + 1}:`, updateError);
-      } else {
-        successCount += batch.length;
-        console.log(`Updated batch ${i / batchSize + 1} (${batch.length} records)`);
+    visiting.add(configId);
+    const config = configMap.get(configId);
+    if (!config || !config.deps || config.deps.length === 0) {
+      levels.set(configId, 0);
+      return 0;
+    }
+    
+    let maxDepth = 0;
+    for (const dep of config.deps) {
+      if (affected.has(dep)) {
+        maxDepth = Math.max(maxDepth, getDepth(dep, visiting) + 1);
       }
     }
     
-    console.log(`\n✅ Successfully updated ${successCount} records`);
-  } else {
-    console.log('\n✅ No updates needed - all records already up to date');
+    levels.set(configId, maxDepth);
+    return maxDepth;
   }
   
-  return {
-    success: true,
-    affected: affected.size,
-    updated: updates.length,
-    dryRun: false
-  };
+  // Calculate depths for all affected
+  for (const id of affected) {
+    getDepth(id);
+  }
+  
+  // Sort by depth (lower depth = update first)
+  const ordered = Array.from(affected).sort((a, b) => {
+    const depthA = levels.get(a) || 0;
+    const depthB = levels.get(b) || 0;
+    return depthA - depthB;
+  });
+  
+  return { affected, ordered };
 }
 
 /**
- * Update specific property and cascade changes
+ * Recalculate config with ALL dependencies updated
  */
-async function updatePropertyAndCascade(propertyId, newOverrideData, options = {}) {
-  console.log(`\n=== Updating Property: ${propertyId} ===`);
-  
-  // For properties: self_data = {} (no dependencies), override_data = property data, data = override_data
-  const selfData = {}; // Properties have no dependencies
-  const computedData = newOverrideData; // data = self_data + override_data = {} + override_data
-  
-  // Update the property itself
-  const { error: updateError } = await supabase
-    .from('app_config')
-    .update({
-      self_data: selfData,
-      override_data: newOverrideData,
-      data: computedData, // Computed, not directly set
-      updated_at: new Date().toISOString()
-    })
-    .eq('id', propertyId);
-  
-  if (updateError) {
-    console.error('Error updating property:', updateError);
-    return { success: false, error: updateError };
+function recalculateConfig(config, allConfigs, updatedConfigs) {
+  try {
+    // Handle different config types appropriately
+    
+    // Build new self_data from dependencies
+    let newSelfData = {};
+    
+    // Special handling for grouping configs (fields, sort, filter)
+    const groupingConfigTypes = ['fields', 'sort', 'filter'];
+    
+    if (groupingConfigTypes.includes(config.type)) {
+      // For grouping configs, build structure as object with field IDs as keys
+      if (config.deps && Array.isArray(config.deps)) {
+        for (const depId of config.deps) {
+          // Get the field config and use its data
+          const fieldConfig = updatedConfigs.get(depId) || allConfigs.find(c => c.id === depId);
+          
+          if (fieldConfig && fieldConfig.data) {
+            // Use the field's full data, grouped by field ID
+            newSelfData[depId] = fieldConfig.data;
+          } else {
+            // Fallback to simple structure if field not found
+            newSelfData[depId] = {
+              id: depId,
+              isActive: true
+            };
+          }
+        }
+      }
+    } else {
+      // Regular configs - check if dependencies include grouping configs
+      if (config.deps && Array.isArray(config.deps)) {
+        // First, categorize dependencies by type
+        const depsByType = {
+          fields: [],
+          sort: [],
+          filter: [],
+          other: []
+        };
+        
+        for (const depId of config.deps) {
+          const depConfig = updatedConfigs.get(depId) || allConfigs.find(c => c.id === depId);
+          if (depConfig) {
+            if (depConfig.type === 'fields') {
+              depsByType.fields.push(depConfig);
+            } else if (depConfig.type === 'sort') {
+              depsByType.sort.push(depConfig);
+            } else if (depConfig.type === 'filter') {
+              depsByType.filter.push(depConfig);
+            } else {
+              depsByType.other.push(depConfig);
+            }
+          }
+        }
+        
+        // Check if we have any grouping configs (fields, sort, filter)
+        const hasGroupingConfigs = depsByType.fields.length > 0 || depsByType.sort.length > 0 || depsByType.filter.length > 0;
+        
+        if (hasGroupingConfigs) {
+          // Build structured data for grouping configs - ALWAYS USE DATA
+          // Only create sections if we have configs of that type
+          if (depsByType.fields.length > 0) {
+            const fieldsData = {};
+            for (const fieldConfig of depsByType.fields) {
+              if (fieldConfig.data) {
+                Object.assign(fieldsData, fieldConfig.data);
+              }
+            }
+            if (Object.keys(fieldsData).length > 0) {
+              newSelfData.fields = fieldsData;
+            }
+          }
+          
+          if (depsByType.sort.length > 0) {
+            const sortData = {};
+            for (const sortConfig of depsByType.sort) {
+              if (sortConfig.data) {
+                Object.assign(sortData, sortConfig.data);
+              }
+            }
+            if (Object.keys(sortData).length > 0) {
+              newSelfData.sort_fields = sortData;
+            }
+          }
+          
+          if (depsByType.filter.length > 0) {
+            const filterData = {};
+            for (const filterConfig of depsByType.filter) {
+              if (filterConfig.data) {
+                Object.assign(filterData, filterConfig.data);
+              }
+            }
+            if (Object.keys(filterData).length > 0) {
+              newSelfData.filter_fields = filterData;
+            }
+          }
+          
+          // Merge other non-grouping configs normally
+          for (const otherConfig of depsByType.other) {
+            if (otherConfig.data) {
+              newSelfData = { ...newSelfData, ...otherConfig.data };
+            }
+          }
+        } else {
+          // No grouping configs - merge all normally  
+          for (const otherConfig of depsByType.other) {
+            if (otherConfig.data) {
+              newSelfData = { ...newSelfData, ...otherConfig.data };
+            }
+          }
+        }
+      }
+    }
+    
+    // Calculate new data
+    // For grouping configs, we need to deep merge override_data
+    let newData;
+    if (groupingConfigTypes.includes(config.type) && config.override_data) {
+      // Deep merge for grouping configs
+      newData = { ...newSelfData };
+      for (const [key, value] of Object.entries(config.override_data)) {
+        if (typeof value === 'object' && value !== null && !Array.isArray(value) && newSelfData[key]) {
+          // Deep merge objects
+          newData[key] = { ...newSelfData[key], ...value };
+        } else {
+          // Direct assignment for non-objects
+          newData[key] = value;
+        }
+      }
+    } else {
+      // Regular shallow merge for other configs
+      newData = { ...newSelfData, ...(config.override_data || {}) };
+    }
+    
+    // Deep comparison for changes
+    const selfDataChanged = JSON.stringify(config.self_data) !== JSON.stringify(newSelfData);
+    const dataChanged = JSON.stringify(config.data) !== JSON.stringify(newData);
+    
+    if (selfDataChanged || dataChanged) {
+      return {
+        ...config,
+        self_data: newSelfData,
+        data: newData,
+        updated_at: new Date().toISOString()
+      };
+    }
+    
+    return null; // No changes
+    
+  } catch (error) {
+    console.error(`Error recalculating config ${config.id}:`, error);
+    return null;
   }
-  
-  console.log('Property updated successfully');
-  
-  // Cascade the update
-  return await cascadeUpdate([propertyId], options);
 }
 
-// CLI interface
-async function main() {
-  const args = process.argv.slice(2);
+/**
+ * Main cascade update function with proper parent waiting
+ */
+async function cascadeUpdate(changedIds, options = {}) {
+  const {
+    verbose = false,
+    dryRun = false,
+    batchSize = 500
+  } = options;
   
-  if (args.length === 0) {
-    console.log(`
-Usage: node cascading-updates.cjs <command> [options]
-
-Commands:
-  update <property-id> <self-data-json>  Update a property and cascade changes
-  cascade <id1,id2,...>                  Manually trigger cascade for specific IDs
-  test                                    Run a test cascade with dry-run
-
-Options:
-  --dry-run    Show what would be updated without making changes
-  --verbose    Show detailed output
-
-Examples:
-  node cascading-updates.cjs update property_required '{"required":true,"validation":{"notNull":true}}'
-  node cascading-updates.cjs cascade property_required,property_is_system --dry-run
-  node cascading-updates.cjs test
-    `);
-    process.exit(0);
-  }
-  
-  const command = args[0];
-  const dryRun = args.includes('--dry-run');
-  const verbose = args.includes('--verbose');
+  console.log('\n' + '='.repeat(60));
+  console.log('🔄 CASCADING UPDATES v3 - Parent-aware');
+  console.log('='.repeat(60));
   
   try {
-    switch (command) {
-      case 'update': {
-        if (args.length < 3) {
-          console.error('Usage: update <property-id> <override-data-json>');
-          process.exit(1);
-        }
-        
-        const propertyId = args[1];
-        const overrideData = JSON.parse(args[2]);
-        
-        const result = await updatePropertyAndCascade(propertyId, overrideData, { dryRun, verbose });
-        console.log('\nResult:', result);
-        break;
+    // Step 1: Fetch all configs
+    console.log('\n📥 Loading all configurations...');
+    const { data: allConfigs, error } = await supabase
+      .from('app_config')
+      .select('*')
+      .order('id');
+    
+    if (error) throw error;
+    console.log(`  ✓ Loaded ${allConfigs.length} configurations`);
+    
+    // Step 2: Build complete dependency graph
+    console.log('\n🔗 Building dependency graph...');
+    const graph = buildFullDependencyGraph(allConfigs);
+    console.log(`  ✓ Mapped ${graph.childToParents.size} dependency relationships`);
+    
+    // Step 3: Find affected records with proper order
+    console.log('\n🎯 Finding affected records with dependency order...');
+    const { affected, ordered } = findAffectedWithOrder(changedIds, graph, allConfigs);
+    console.log(`  ✓ Found ${affected.size} affected records`);
+    console.log(`  ✓ Ordered by dependency depth`);
+    
+    // Show update order if verbose
+    if (verbose) {
+      console.log('\n📊 Update Order:');
+      ordered.slice(0, 20).forEach(id => {
+        const config = allConfigs.find(c => c.id === id);
+        console.log(`  ${id} (${config?.type || 'unknown'})`);
+      });
+      if (ordered.length > 20) {
+        console.log(`  ... and ${ordered.length - 20} more`);
       }
-      
-      case 'cascade': {
-        if (args.length < 2) {
-          console.error('Usage: cascade <id1,id2,...>');
-          process.exit(1);
-        }
-        
-        const ids = args[1].split(',').map(id => id.trim());
-        const result = await cascadeUpdate(ids, { dryRun, verbose });
-        console.log('\nResult:', result);
-        break;
-      }
-      
-      case 'test': {
-        console.log('Running test cascade with property_required...');
-        const result = await cascadeUpdate(['property_required'], { dryRun: true, verbose: true });
-        console.log('\nTest Result:', result);
-        break;
-      }
-      
-      default:
-        console.error(`Unknown command: ${command}`);
-        process.exit(1);
     }
+    
+    // Step 4: Process updates in order
+    console.log('\n🔧 Processing updates in dependency order...');
+    const updatedConfigs = new Map();
+    const recordsToUpdate = [];
+    
+    for (const configId of ordered) {
+      // Skip the originally changed records (they're already updated)
+      if (changedIds.includes(configId)) {
+        // Add them to updatedConfigs map for dependency resolution
+        const config = allConfigs.find(c => c.id === configId);
+        if (config) {
+          updatedConfigs.set(configId, config);
+        }
+        continue;
+      }
+      
+      const config = allConfigs.find(c => c.id === configId);
+      if (!config) continue;
+      
+      // Check if all dependencies are ready
+      let allDepsReady = true;
+      if (config.deps) {
+        for (const depId of config.deps) {
+          if (affected.has(depId) && !updatedConfigs.has(depId) && !changedIds.includes(depId)) {
+            allDepsReady = false;
+            if (verbose) {
+              console.log(`  ⏳ Skipping ${configId} - waiting for ${depId}`);
+            }
+            break;
+          }
+        }
+      }
+      
+      if (!allDepsReady) {
+        console.log(`  ⚠️ WARNING: ${configId} has unready dependencies`);
+        continue;
+      }
+      
+      // Recalculate with updated dependencies
+      const updated = recalculateConfig(config, allConfigs, updatedConfigs);
+      if (updated) {
+        recordsToUpdate.push(updated);
+        updatedConfigs.set(configId, updated);
+      } else {
+        // Even if no changes, add to updatedConfigs so dependencies know it's been processed
+        updatedConfigs.set(configId, config);
+      }
+    }
+    
+    console.log(`  ✓ ${recordsToUpdate.length} configs need updating`);
+    
+    // Step 5: Dry run or execute
+    if (dryRun) {
+      console.log('\n🔍 DRY RUN - No changes will be made');
+      return { 
+        success: true, 
+        dryRun: true, 
+        affected: recordsToUpdate.length
+      };
+    }
+    
+    // Step 6: Execute batch update
+    if (recordsToUpdate.length > 0) {
+      const processor = new BatchProcessor(supabase, { batchSize, verbose });
+      const result = await processor.processRecords(recordsToUpdate, 'Cascade update v3');
+      
+      
+      return {
+        success: result.success,
+        affected: affected.size,
+        updated: result.metrics.processedRecords,
+        duration: (result.metrics.endTime - result.metrics.startTime) / 1000,
+        metrics: result.metrics
+      };
+    } else {
+      console.log('\n✨ No updates needed');
+      return { 
+        success: true, 
+        affected: 0, 
+        updated: 0
+      };
+    }
+    
   } catch (error) {
-    console.error('Error:', error);
-    process.exit(1);
+    console.error('\n❌ Cascade update failed:', error.message);
+    return { 
+      success: false, 
+      error: error.message 
+    };
   }
+}
+
+/**
+ * CLI interface
+ */
+async function main() {
+  const [,, command, ...args] = process.argv;
   
-  process.exit(0);
+  switch (command) {
+    case 'test':
+      console.log('🧪 Testing cascade update v3...');
+      await cascadeUpdate(['breed_field_account_id'], { verbose: true, dryRun: true });
+      break;
+      
+    case 'update':
+      if (args.length === 0) {
+        console.log('Usage: node cascading-updates-v3.cjs update <configId1> [configId2] ...');
+        break;
+      }
+      await cascadeUpdate(args, { verbose: true });
+      break;
+      
+    default:
+      console.log('Cascading Updates v3 - Parent-aware cascade');
+      console.log('\nUsage:');
+      console.log('  node cascading-updates-v3.cjs test              - Test with breed_field_account_id');
+      console.log('  node cascading-updates-v3.cjs update <ids...>   - Update specific configs');
+  }
 }
 
 // Export for use in other scripts
 module.exports = {
-  buildDependencyGraph,
-  findAffectedRecords,
-  topologicalSort,
-  recalculateRecord,
-  cascadeUpdate,
-  updatePropertyAndCascade
+  cascadeUpdate
 };
 
-// Run if called directly
+// Run CLI if called directly
 if (require.main === module) {
-  main();
+  main().catch(console.error).finally(() => process.exit(0));
 }
