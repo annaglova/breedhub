@@ -20,9 +20,9 @@ const PET_TYPE_FILTER = {
 };
 
 export const breedSpaceConfig: SpaceConfig<Breed> = createSpaceConfig({
-  id: 'Breed',
+  id: 'breed',
   url: 'breeds',
-  entitySchemaName: 'Breed',
+  entitySchemaName: 'breed',
   
   viewConfig: [
     {

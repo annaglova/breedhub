@@ -6,34 +6,49 @@ import { queryClient } from '@/core/queryClient';
 import { AuthProvider } from '@/core/auth';
 import { AppRouter } from '@/router/AppRouter';
 import { useLoadingBar } from '@/hooks/useLoadingBar';
-import { spaceStore, appConfigStore } from '@breedhub/rxdb-store';
+import { spaceStore, appStore } from '@breedhub/rxdb-store';
 import "./app-theme.css";
 
 function AppContent() {
   // Initialize loading bar interceptors
   useLoadingBar();
   
-  // Initialize SpaceStore when appConfig is ready
+  // Initialize AppStore on mount
   useEffect(() => {
-    console.log('[App] useEffect for SpaceStore initialization');
+    const initAppStore = async () => {
+      if (!appStore.initialized.value) {
+        console.log('[App] Initializing AppStore at', new Date().toISOString());
+        await appStore.initialize();
+        console.log('[App] AppStore initialized at', new Date().toISOString());
+      }
+    };
+    initAppStore();
+  }, []);
+  
+  // Initialize SpaceStore when appStore is ready
+  useEffect(() => {
+    console.log('[App] useEffect for SpaceStore initialization at', new Date().toISOString());
     
     const initSpaceStore = async () => {
+      const startTime = performance.now();
       console.log('[App] Checking conditions:', {
-        appConfigInitialized: appConfigStore.initialized.value,
-        spaceStoreInitialized: spaceStore.initialized.value
+        appStoreInitialized: appStore.initialized.value,
+        spaceStoreInitialized: spaceStore.initialized.value,
+        time: new Date().toISOString()
       });
       
-      // Wait for appConfigStore to be ready
-      if (appConfigStore.initialized.value && !spaceStore.initialized.value) {
-        console.log('[App] Calling spaceStore.initialize()');
+      // Wait for appStore to be ready
+      if (appStore.initialized.value && !spaceStore.initialized.value) {
+        console.log('[App] Calling spaceStore.initialize() at', new Date().toISOString());
         await spaceStore.initialize();
-        console.log('[App] spaceStore.initialize() completed');
+        console.log('[App] spaceStore.initialize() completed in', performance.now() - startTime, 'ms at', new Date().toISOString());
       }
     };
     
-    // Subscribe to appConfigStore initialization changes
-    const unsubscribe = appConfigStore.initialized.subscribe(() => {
-      if (appConfigStore.initialized.value && !spaceStore.initialized.value) {
+    // Subscribe to appStore initialization changes
+    const unsubscribe = appStore.initialized.subscribe((value) => {
+      console.log('[App] appStore.initialized changed to:', value, 'at', new Date().toISOString());
+      if (value && !spaceStore.initialized.value) {
         initSpaceStore();
       }
     });

@@ -1,11 +1,19 @@
 import { mediaQueries } from "@/config/breakpoints";
 import { SpaceConfig, ViewMode } from "@/core/space/types";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
+import { spaceStore } from "@breedhub/rxdb-store";
+import { useSignals } from "@preact/signals-react/runtime";
 import { Button } from "@ui/components/button";
 import { Input } from "@ui/components/input";
 import { cn } from "@ui/lib/utils";
 import { Plus, Search } from "lucide-react";
-import React, { useCallback, useEffect, useRef, useState, useMemo } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import {
   Outlet,
   useLocation,
@@ -16,8 +24,6 @@ import { EntitiesCounter } from "./EntitiesCounter";
 import { SpaceFilters } from "./SpaceFilters";
 import { ViewChanger } from "./ViewChanger";
 import { VirtualSpaceView } from "./VirtualSpaceView";
-import { spaceStore } from "@breedhub/rxdb-store";
-import { useSignals } from "@preact/signals-react/runtime";
 
 interface SpaceComponentProps<T> {
   config: SpaceConfig<T>;
@@ -36,53 +42,30 @@ export function SpaceComponent<T extends { Id: string }>({
   filters,
 }: SpaceComponentProps<T>) {
   useSignals();
-  
+
   // Data loading state
   const [page, setPage] = useState(0);
   const [allEntities, setAllEntities] = useState<T[]>([]);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [totalCount, setTotalCount] = useState(0);
   const [searchValue, setSearchValue] = useState("");
-  
-  // Get dynamic config from spaceStore
-  const dynamicConfig = useMemo(() => {
-    const entityType = config.entitySchemaName;
-    
-    try {
-      // Check if spaceStore is initialized
-      if (!spaceStore.initialized.value) {
-        console.log('[SpaceComponent] SpaceStore not initialized, using fallback config');
-        return {
-          title: config.naming.title,
-          canAdd: config.canAdd,
-          canEdit: config.canEdit,
-          canDelete: config.canDelete
-        };
-      }
-      
-      const spaceConfig = spaceStore.getSpaceConfig(entityType);
-      console.log('[SpaceComponent] Got space config:', spaceConfig);
-      console.log('[SpaceComponent] Entity type:', entityType);
-      
-      // Use values from spaceStore if available, otherwise fallback to config
-      const result = {
-        title: spaceConfig?.title || config.naming.title,
-        canAdd: spaceConfig?.canAdd !== undefined ? spaceConfig.canAdd : config.canAdd,
-        canEdit: spaceConfig?.canEdit !== undefined ? spaceConfig.canEdit : config.canEdit,
-        canDelete: spaceConfig?.canDelete !== undefined ? spaceConfig.canDelete : config.canDelete
-      };
-      console.log('[SpaceComponent] Dynamic config result:', result);
-      return result;
-    } catch (error) {
-      // Fallback to config if spaceStore is not ready
-      return {
-        title: config.naming.title,
-        canAdd: config.canAdd,
-        canEdit: config.canEdit,
-        canDelete: config.canDelete
-      };
-    }
-  }, [config.entitySchemaName, config.naming.title, config.canAdd, config.canEdit, config.canDelete]);
+
+  // Get reactive config signal from spaceStore
+  const configSignal = useMemo(
+    () => spaceStore.getSpaceConfigSignal(config.entitySchemaName),
+    [config.entitySchemaName]
+  );
+
+  // Use the reactive config value
+  const dynamicConfig = configSignal.value;
+
+  // Fallback to static config if store not ready
+  const finalConfig = dynamicConfig || {
+    title: config.naming.title,
+    canAdd: config.canAdd,
+    canEdit: config.canEdit,
+    canDelete: config.canDelete,
+  };
 
   const { data, isLoading, error, isFetching } = useEntitiesHook({
     rows: 50,
@@ -199,7 +182,6 @@ export function SpaceComponent<T extends { Id: string }>({
   const drawerMode = getDrawerMode();
   const scrollHeight = `calc(100vh - ${headerHeight}px - 3px)`;
 
-
   if (error) {
     return (
       <div className="p-8 text-center">
@@ -227,7 +209,7 @@ export function SpaceComponent<T extends { Id: string }>({
             <div className="w-full">
               <div className="flex w-full justify-between">
                 <span className="text-4xl font-extrabold">
-                  {dynamicConfig.title}
+                  {finalConfig.title}
                 </span>
                 <ViewChanger
                   views={config.viewConfig.map((v) => v.id) as ViewMode[]}
@@ -266,7 +248,7 @@ export function SpaceComponent<T extends { Id: string }>({
           <div className="w-full">
             <div className="flex w-full justify-between">
               <span className="text-4xl font-extrabold">
-                {dynamicConfig.title}
+                {finalConfig.title}
               </span>
               <ViewChanger
                 views={config.viewConfig.map((v) => v.id) as ViewMode[]}
@@ -293,19 +275,20 @@ export function SpaceComponent<T extends { Id: string }>({
               />
             </div>
 
-            
             {/* Add button */}
-            {dynamicConfig.canAdd && (
+            {finalConfig.canAdd && (
               <Button
                 onClick={handleCreateNew}
                 className={cn(
-                  "rounded-full font-bold bp-small-button",
-                  !needCardClass && "size-[2.6rem]"
+                  "rounded-full font-bold flex-shrink-0",
+                  needCardClass
+                    ? "h-10 px-4"
+                    : "!w-[2.6rem] !h-[2.6rem] flex items-center justify-center"
                 )}
                 title="Add new record"
               >
-                <Plus className="h-4 w-4" />
-                {needCardClass && <span className="ml-2">Add</span>}
+                <Plus className="h-5 w-5 flex-shrink-0" />
+                {needCardClass && <span className="text-base font-semibold">Add</span>}
               </Button>
             )}
           </div>
