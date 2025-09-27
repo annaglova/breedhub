@@ -259,7 +259,6 @@ class SpaceStore {
       });
     }
     
-    console.log(`[SpaceStore] Collected ${uniqueFields.size} unique fields for space using soft recursive search`);
     return uniqueFields;
   }
   
@@ -289,10 +288,6 @@ class SpaceStore {
    * Parse space configurations from app config hierarchy
    */
   private parseSpaceConfigurations(appConfig: any) {
-    console.log('[SpaceStore] parseSpaceConfigurations called with appConfig:', !!appConfig);
-    console.log('[SpaceStore] appConfig.data:', !!appConfig?.data);
-    console.log('[SpaceStore] appConfig.data.workspaces:', !!appConfig?.data?.workspaces);
-    
     if (!appConfig?.data?.workspaces) {
       console.warn('[SpaceStore] No workspaces found in app config');
       return;
@@ -310,15 +305,7 @@ class SpaceStore {
           if (space.entitySchemaName) {
             // Collect all unique fields from all levels
             const uniqueFields = this.collectUniqueFields(space, appConfig);
-            
-            console.log(`[SpaceStore] Raw space data for ${space.entitySchemaName}:`, {
-              canAdd: space.canAdd,
-              canEdit: space.canEdit,
-              canDelete: space.canDelete,
-              hasCanAdd: 'canAdd' in space,
-              typeOfCanAdd: typeof space.canAdd
-            });
-            
+
             const spaceConfig: SpaceConfig = {
               id: space.id || spaceKey,
               icon: space.icon,
@@ -337,14 +324,6 @@ class SpaceStore {
             
             this.spaceConfigs.set(space.entitySchemaName, spaceConfig);
             entityTypes.push(space.entitySchemaName);
-            
-            console.log(`[SpaceStore] Found entity '${space.entitySchemaName}' in space '${spaceKey}'`);
-            console.log(`[SpaceStore] Space config for ${space.entitySchemaName}:`, {
-              canAdd: spaceConfig.canAdd,
-              canEdit: spaceConfig.canEdit,
-              canDelete: spaceConfig.canDelete,
-              title: spaceConfig.label
-            });
           }
         });
       }

@@ -244,7 +244,7 @@ async function rebuildPageConfig(pageId) {
 }
 
 /**
- * Rebuild a space config from its pages
+ * Rebuild a space config from its pages, views and properties
  */
 async function rebuildSpaceConfig(spaceId) {
   try {
@@ -254,53 +254,62 @@ async function rebuildSpaceConfig(spaceId) {
       .select('*')
       .eq('id', spaceId)
       .single();
-    
+
     if (fetchError || !spaceConfig) return false;
-    
-    // Space depends on pages and views - get them from space's deps
+
+    // Space depends on pages, views and properties - get them from space's deps
     const dependentIds = spaceConfig.deps || [];
-    
-    // Get all pages and views that this space depends on
+
+    // Get all dependents (pages, views, properties, etc.) that this space depends on
     const { data: dependents, error: depsError } = await supabase
       .from('app_config')
       .select('id, type, data')
       .in('id', dependentIds);
-    
+
     if (depsError) return false;
-    
+
     const pages = dependents?.filter(d => d.type === 'page') || [];
     const views = dependents?.filter(d => d.type === 'view') || [];
-    
-    // Build space structure - ONLY pages and views, no other fields
+    const properties = dependents?.filter(d => d.type === 'property') || [];
+
+    // Build space structure - include pages, views, and properties
     const spaceStructure = {};
-    
+
     // Add ALL pages - even empty ones should be included as {}
     if (pages && pages.length > 0) {
       const pagesData = {};
       for (const page of pages) {
         // Always include page in structure
         // If it has data, use it; otherwise use empty object
-        pagesData[page.id] = (page.data && Object.keys(page.data).length > 0) 
-          ? page.data 
+        pagesData[page.id] = (page.data && Object.keys(page.data).length > 0)
+          ? page.data
           : {};
       }
       if (Object.keys(pagesData).length > 0) {
         spaceStructure.pages = pagesData;
       }
     }
-    
+
     // Add ALL views - even empty ones should be included as {}
     if (views && views.length > 0) {
       const viewsData = {};
       for (const view of views) {
         // Always include view in structure
         // If it has data, use it; otherwise use empty object
-        viewsData[view.id] = (view.data && Object.keys(view.data).length > 0) 
-          ? view.data 
+        viewsData[view.id] = (view.data && Object.keys(view.data).length > 0)
+          ? view.data
           : {};
       }
       if (Object.keys(viewsData).length > 0) {
         spaceStructure.views = viewsData;
+      }
+    }
+
+    // Add properties directly to space structure (not nested under a 'properties' key)
+    for (const property of properties) {
+      if (property.data && Object.keys(property.data).length > 0) {
+        // Properties go directly on the space structure
+        Object.assign(spaceStructure, property.data);
       }
     }
     
