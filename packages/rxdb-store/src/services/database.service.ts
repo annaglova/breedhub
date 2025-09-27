@@ -68,7 +68,7 @@ class DatabaseService {
 
     console.log('[DatabaseService] Awaiting database promise');
     this.db = await this.dbPromise;
-    console.log('[DatabaseService] Database ready with collections:', Object.keys(this.db).filter(k => !k.startsWith('_')));
+    console.log('[DatabaseService] Database ready with collections:', Object.keys(this.db.collections));
     return this.db;
   }
 
@@ -181,7 +181,7 @@ class DatabaseService {
       console.log('[DatabaseService] Adding collections:', Object.keys(collectionsToAdd));
       const result = await db.addCollections(collectionsToAdd);
       console.log('[DatabaseService] Collections added result:', Object.keys(result));
-      console.log('[DatabaseService] Database now has collections:', Object.keys(db).filter(k => !k.startsWith('_')));
+      console.log('[DatabaseService] Database now has collections:', Object.keys(db.collections));
     } catch (error: any) {
       if (error.code === 'DB6' || error.code === 'DXE1') {
         console.error('[DatabaseService] Schema conflict detected:', error.code);
@@ -220,8 +220,14 @@ class DatabaseService {
 
   public async clearAllData(): Promise<void> {
     const db = await this.getDatabase();
-    await db.breeds.find().remove();
-    await db.books.find().remove();
+    // Clear books collection if it exists
+    if (db.books) {
+      await db.books.find().remove();
+    }
+    // Clear app_config collection if it exists
+    if (db.app_config) {
+      await db.app_config.find().remove();
+    }
   }
 
   public async removeDatabase(): Promise<void> {

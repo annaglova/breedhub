@@ -146,6 +146,7 @@ class AppConfigStore {
   loading = signal<boolean>(false);
   error = signal<string | null>(null);
   syncEnabled = signal<boolean>(false);
+  initialized = signal<boolean>(false);
   
   // Computed values
   configsList = computed(() => Array.from(this.configs.value.values()));
@@ -255,6 +256,11 @@ class AppConfigStore {
           console.error('[AppConfigStore] Failed to enable sync:', syncError);
         }
       }
+      
+      
+      // Mark as initialized
+      this.initialized.value = true;
+      console.log('[AppConfigStore] Store initialized with', this.configs.value.size, 'configs');
       
     } catch (error) {
       console.error('[AppConfigStore] Initialization error:', error);

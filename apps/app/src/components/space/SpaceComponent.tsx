@@ -44,25 +44,45 @@ export function SpaceComponent<T extends { Id: string }>({
   const [totalCount, setTotalCount] = useState(0);
   const [searchValue, setSearchValue] = useState("");
   
-  // Get dynamic title from spaceStore
-  const spaceTitle = useMemo(() => {
+  // Get dynamic config from spaceStore
+  const dynamicConfig = useMemo(() => {
     const entityType = config.entitySchemaName;
     
     try {
       // Check if spaceStore is initialized
-      if (!spaceStore.initialized) {
-        return config.naming.title;
+      if (!spaceStore.initialized.value) {
+        console.log('[SpaceComponent] SpaceStore not initialized, using fallback config');
+        return {
+          title: config.naming.title,
+          canAdd: config.canAdd,
+          canEdit: config.canEdit,
+          canDelete: config.canDelete
+        };
       }
       
       const spaceConfig = spaceStore.getSpaceConfig(entityType);
+      console.log('[SpaceComponent] Got space config:', spaceConfig);
+      console.log('[SpaceComponent] Entity type:', entityType);
       
-      // Use title from spaceStore if available, otherwise fallback to config
-      return spaceConfig?.title || config.naming.title;
+      // Use values from spaceStore if available, otherwise fallback to config
+      const result = {
+        title: spaceConfig?.title || config.naming.title,
+        canAdd: spaceConfig?.canAdd !== undefined ? spaceConfig.canAdd : config.canAdd,
+        canEdit: spaceConfig?.canEdit !== undefined ? spaceConfig.canEdit : config.canEdit,
+        canDelete: spaceConfig?.canDelete !== undefined ? spaceConfig.canDelete : config.canDelete
+      };
+      console.log('[SpaceComponent] Dynamic config result:', result);
+      return result;
     } catch (error) {
       // Fallback to config if spaceStore is not ready
-      return config.naming.title;
+      return {
+        title: config.naming.title,
+        canAdd: config.canAdd,
+        canEdit: config.canEdit,
+        canDelete: config.canDelete
+      };
     }
-  }, [config.entitySchemaName, config.naming.title]);
+  }, [config.entitySchemaName, config.naming.title, config.canAdd, config.canEdit, config.canDelete]);
 
   const { data, isLoading, error, isFetching } = useEntitiesHook({
     rows: 50,
@@ -207,7 +227,7 @@ export function SpaceComponent<T extends { Id: string }>({
             <div className="w-full">
               <div className="flex w-full justify-between">
                 <span className="text-4xl font-extrabold">
-                  {spaceTitle}
+                  {dynamicConfig.title}
                 </span>
                 <ViewChanger
                   views={config.viewConfig.map((v) => v.id) as ViewMode[]}
@@ -246,7 +266,7 @@ export function SpaceComponent<T extends { Id: string }>({
           <div className="w-full">
             <div className="flex w-full justify-between">
               <span className="text-4xl font-extrabold">
-                {spaceTitle}
+                {dynamicConfig.title}
               </span>
               <ViewChanger
                 views={config.viewConfig.map((v) => v.id) as ViewMode[]}
@@ -273,8 +293,9 @@ export function SpaceComponent<T extends { Id: string }>({
               />
             </div>
 
+            
             {/* Add button */}
-            {config.canAdd && (
+            {dynamicConfig.canAdd && (
               <Button
                 onClick={handleCreateNew}
                 className={cn(
