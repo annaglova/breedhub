@@ -363,6 +363,7 @@ class SpaceStore {
     canEdit?: boolean;
     canDelete?: boolean;
     entitySchemaName?: string;
+    viewTypes?: string[];
   } | null {
     // Try exact match first
     let spaceConfig = this.spaceConfigs.get(entityType);
@@ -392,13 +393,28 @@ class SpaceStore {
       rawConfig: spaceConfig
     });
     
-    // Return the configuration with title and permissions
+    // Extract viewTypes from views property
+    const viewTypes = new Set<string>();
+    if (spaceConfig.views) {
+      // Parse all view children and collect unique viewType values
+      Object.values(spaceConfig.views).forEach((view: any) => {
+        if (view && view.viewType) {
+          viewTypes.add(view.viewType);
+        }
+      });
+    }
+    
+    const viewTypesArray = Array.from(viewTypes);
+    console.log(`[SpaceStore] Extracted viewTypes for ${entityType}:`, viewTypesArray);
+    
+    // Return the configuration with title, permissions, and viewTypes
     return {
       title: spaceConfig.label || spaceConfig.entitySchemaName || entityType,
       entitySchemaName: spaceConfig.entitySchemaName,
       canAdd: spaceConfig.canAdd,
       canEdit: spaceConfig.canEdit, 
       canDelete: spaceConfig.canDelete,
+      viewTypes: viewTypesArray.length > 0 ? viewTypesArray : undefined
     };
   }
   
