@@ -88,7 +88,7 @@ class SpaceStore {
   hasError = computed(() => this.error.value !== null);
   
   private constructor() {
-    this.initialize();
+    // Initialization happens externally when AppStore is ready
   }
   
   static getInstance(): SpaceStore {
@@ -97,6 +97,7 @@ class SpaceStore {
     }
     return SpaceStore.instance;
   }
+  
   
   async initialize() {
     if (this.initialized.value) {
@@ -124,6 +125,14 @@ class SpaceStore {
       // Parse space configurations
       this.parseSpaceConfigurations(appConfig);
       
+      // Get database instance from AppStore
+      this.db = await getDatabase();
+      
+      // Create collections for all found entity types
+      for (const entityType of this.availableEntityTypes.value) {
+        await this.ensureCollection(entityType);
+      }
+      
       // Initialize Supabase loader
       this.supabaseLoader = new SupabaseLoaderService(this);
       
@@ -132,6 +141,7 @@ class SpaceStore {
       
       this.initialized.value = true;
       console.log('[SpaceStore] Initialized with entity types:', this.availableEntityTypes.value);
+      console.log('[SpaceStore] Collections created:', this.db ? Object.keys(this.db.collections) : 'No DB');
       
     } catch (err) {
       console.error('[SpaceStore] Failed to initialize:', err);
@@ -289,6 +299,35 @@ class SpaceStore {
   }
   
   /**
+   * Get space configuration for an entity type
+   * Returns title, permissions, and other UI config
+   */
+  getSpaceConfig(entityType: string): {
+    title: string;
+    canAdd?: boolean;
+    canEdit?: boolean;
+    canDelete?: boolean;
+    entitySchemaName?: string;
+  } | null {
+    // Get the space config from our parsed configurations
+    const spaceConfig = this.spaceConfigs.get(entityType);
+    
+    if (!spaceConfig) {
+      console.warn(`[SpaceStore] No space config found for entity: ${entityType}`);
+      return null;
+    }
+    
+    // Return the configuration with title and permissions
+    return {
+      title: spaceConfig.entitySchemaName || entityType,
+      entitySchemaName: spaceConfig.entitySchemaName,
+      canAdd: spaceConfig.canAdd,
+      canEdit: spaceConfig.canEdit, 
+      canDelete: spaceConfig.canDelete,
+    };
+  }
+  
+  /**
    * Get or create an entity store for the given entity type
    */
   async getEntityStore<T extends BusinessEntity>(entityType: string): Promise<EntityStore<T> | null> {
@@ -326,35 +365,62 @@ class SpaceStore {
   }
   
   /**
+   * Ensure collection exists for entity type
+   */
+  async ensureCollection(entityType: string): Promise<void> {
+    if (!this.db) {
+      throw new Error('Database not initialized');
+    }
+    
+    // Check if collection already exists
+    if (this.db.collections[entityType]) {
+      console.log(`[SpaceStore] Collection ${entityType} already exists`);
+      return;
+    }
+    
+    // Generate schema from config
+    const schema = await this.generateSchemaForEntity(entityType);
+    
+    if (!schema) {
+      console.warn(`[SpaceStore] Could not generate schema for ${entityType}`);
+      return;
+    }
+    
+    // Create collection
+    try {
+      await this.db.addCollections({
+        [entityType]: {
+          schema: schema,
+          migrationStrategies: {}
+        }
+      });
+      console.log(`[SpaceStore] Created collection ${entityType}`);
+    } catch (error) {
+      console.error(`[SpaceStore] Failed to create collection ${entityType}:`, error);
+      throw error;
+    }
+  }
+  
+  /**
    * Initialize RxDB collection for entity type
    */
   private async initializeEntityCollection<T extends BusinessEntity>(
     entityType: string, 
     entityStore: EntityStore<T>
   ) {
-    const db = await getDatabase();
+    if (!this.db) {
+      throw new Error('Database not initialized');
+    }
     
     // Check if collection already exists
-    let collection = (db as any)[entityType] as RxCollection<T> | undefined;
+    let collection = this.db.collections[entityType] as RxCollection<T> | undefined;
     
     if (!collection) {
-      // Create dynamic collection from config
-      console.log(`[SpaceStore] Creating dynamic collection for ${entityType}`);
-      
-      const schema = await this.generateSchemaForEntity(entityType);
-      
-      if (schema) {
-        // Create collection dynamically
-        const collections = await db.addCollections({
-          [entityType]: {
-            schema: schema,
-            migrationStrategies: {}
-          }
-        });
-        
-        collection = collections[entityType];
-        console.log(`[SpaceStore] Created collection ${entityType}`);
-      }
+      // Collection should have been created during initialization
+      console.warn(`[SpaceStore] Collection ${entityType} was not created during initialization`);
+      // Try to create it now
+      await this.ensureCollection(entityType);
+      collection = this.db.collections[entityType] as RxCollection<T> | undefined;
     }
     
     if (collection) {

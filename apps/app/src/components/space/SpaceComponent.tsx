@@ -5,7 +5,7 @@ import { Button } from "@ui/components/button";
 import { Input } from "@ui/components/input";
 import { cn } from "@ui/lib/utils";
 import { Plus, Search } from "lucide-react";
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState, useMemo } from "react";
 import {
   Outlet,
   useLocation,
@@ -16,6 +16,8 @@ import { EntitiesCounter } from "./EntitiesCounter";
 import { SpaceFilters } from "./SpaceFilters";
 import { ViewChanger } from "./ViewChanger";
 import { VirtualSpaceView } from "./VirtualSpaceView";
+import { spaceStore } from "@breedhub/rxdb-store";
+import { useSignals } from "@preact/signals-react/runtime";
 
 interface SpaceComponentProps<T> {
   config: SpaceConfig<T>;
@@ -33,12 +35,34 @@ export function SpaceComponent<T extends { Id: string }>({
   useEntitiesHook,
   filters,
 }: SpaceComponentProps<T>) {
+  useSignals();
+  
   // Data loading state
   const [page, setPage] = useState(0);
   const [allEntities, setAllEntities] = useState<T[]>([]);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [totalCount, setTotalCount] = useState(0);
   const [searchValue, setSearchValue] = useState("");
+  
+  // Get dynamic title from spaceStore
+  const spaceTitle = useMemo(() => {
+    const entityType = config.entitySchemaName;
+    
+    try {
+      // Check if spaceStore is initialized
+      if (!spaceStore.initialized) {
+        return config.naming.title;
+      }
+      
+      const spaceConfig = spaceStore.getSpaceConfig(entityType);
+      
+      // Use title from spaceStore if available, otherwise fallback to config
+      return spaceConfig?.title || config.naming.title;
+    } catch (error) {
+      // Fallback to config if spaceStore is not ready
+      return config.naming.title;
+    }
+  }, [config.entitySchemaName, config.naming.title]);
 
   const { data, isLoading, error, isFetching } = useEntitiesHook({
     rows: 50,
@@ -155,6 +179,7 @@ export function SpaceComponent<T extends { Id: string }>({
   const drawerMode = getDrawerMode();
   const scrollHeight = `calc(100vh - ${headerHeight}px - 3px)`;
 
+
   if (error) {
     return (
       <div className="p-8 text-center">
@@ -182,7 +207,7 @@ export function SpaceComponent<T extends { Id: string }>({
             <div className="w-full">
               <div className="flex w-full justify-between">
                 <span className="text-4xl font-extrabold">
-                  {config.naming.title}
+                  {spaceTitle}
                 </span>
                 <ViewChanger
                   views={config.viewConfig.map((v) => v.id) as ViewMode[]}
@@ -221,7 +246,7 @@ export function SpaceComponent<T extends { Id: string }>({
           <div className="w-full">
             <div className="flex w-full justify-between">
               <span className="text-4xl font-extrabold">
-                {config.naming.title}
+                {spaceTitle}
               </span>
               <ViewChanger
                 views={config.viewConfig.map((v) => v.id) as ViewMode[]}
