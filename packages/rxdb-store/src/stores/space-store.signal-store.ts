@@ -67,6 +67,7 @@ class SpaceStore {
   loading = signal<boolean>(false);
   error = signal<Error | null>(null);
   initialized = signal<boolean>(false);
+  configReady = signal<boolean>(false); // Config is ready for UI even before collections are created
   
   // Reference to AppStore
   private appStore = appStore;
@@ -106,7 +107,8 @@ class SpaceStore {
   
   
   async initialize() {
-    console.log('[SpaceStore] Initialize called, current state:', {
+    const startTime = performance.now();
+    console.log('[SpaceStore] Initialize called at', new Date().toISOString(), {
       initialized: this.initialized.value,
       loading: this.loading.value
     });
@@ -124,7 +126,10 @@ class SpaceStore {
       
       // Wait for AppStore to initialize
       if (!this.appStore.initialized.value) {
+        const appStoreStart = performance.now();
+        console.log('[SpaceStore] Waiting for AppStore.initialize()...');
         await this.appStore.initialize();
+        console.log('[SpaceStore] AppStore.initialize() took', performance.now() - appStoreStart, 'ms');
       }
       
       // Get app config from AppStore
@@ -142,6 +147,10 @@ class SpaceStore {
       console.log('[SpaceStore] Parsing space configurations...');
       this.parseSpaceConfigurations(appConfig);
       console.log('[SpaceStore] Available entity types after parsing:', this.availableEntityTypes.value);
+      
+      // Config is ready for UI - signal this immediately
+      this.configReady.value = true;
+      console.log('[SpaceStore] ✅ CONFIG READY for UI at', new Date().toISOString());
       
       // Get database instance from AppStore
       console.log('[SpaceStore] Getting database instance...');
@@ -163,6 +172,8 @@ class SpaceStore {
       // TODO: Add subscription to appConfig changes
       
       this.initialized.value = true;
+      const totalTime = performance.now() - startTime;
+      console.log(`[SpaceStore] ✅ INITIALIZED IN ${totalTime.toFixed(0)}ms`);
       console.log('[SpaceStore] Initialized with entity types:', this.availableEntityTypes.value);
       console.log('[SpaceStore] Collections in database:', this.db ? Object.keys(this.db.collections) : 'No DB');
       
@@ -300,6 +311,14 @@ class SpaceStore {
             // Collect all unique fields from all levels
             const uniqueFields = this.collectUniqueFields(space, appConfig);
             
+            console.log(`[SpaceStore] Raw space data for ${space.entitySchemaName}:`, {
+              canAdd: space.canAdd,
+              canEdit: space.canEdit,
+              canDelete: space.canDelete,
+              hasCanAdd: 'canAdd' in space,
+              typeOfCanAdd: typeof space.canAdd
+            });
+            
             const spaceConfig: SpaceConfig = {
               id: space.id || spaceKey,
               icon: space.icon,
@@ -345,13 +364,33 @@ class SpaceStore {
     canDelete?: boolean;
     entitySchemaName?: string;
   } | null {
-    // Get the space config from our parsed configurations
-    const spaceConfig = this.spaceConfigs.get(entityType);
+    // Try exact match first
+    let spaceConfig = this.spaceConfigs.get(entityType);
+    
+    // If not found, try case-insensitive match
+    if (!spaceConfig) {
+      const lowerEntityType = entityType.toLowerCase();
+      for (const [key, config] of this.spaceConfigs.entries()) {
+        if (key.toLowerCase() === lowerEntityType) {
+          spaceConfig = config;
+          console.log(`[SpaceStore] Found config with case-insensitive match: ${key} for requested ${entityType}`);
+          break;
+        }
+      }
+    }
     
     if (!spaceConfig) {
       console.warn(`[SpaceStore] No space config found for entity: ${entityType}`);
       return null;
     }
+    
+    console.log(`[SpaceStore] getSpaceConfig for ${entityType}:`, {
+      label: spaceConfig.label,
+      canAdd: spaceConfig.canAdd,
+      canEdit: spaceConfig.canEdit,
+      canDelete: spaceConfig.canDelete,
+      rawConfig: spaceConfig
+    });
     
     // Return the configuration with title and permissions
     return {
@@ -684,6 +723,22 @@ class SpaceStore {
     }
   }
   
+  /**
+   * Get reactive space config as computed signal
+   * Returns a computed signal that updates when config changes
+   */
+  getSpaceConfigSignal(entityType: string) {
+    return computed(() => {
+      // Return null if not ready
+      if (!this.configReady.value) {
+        return null;
+      }
+      
+      // Get the space config
+      return this.getSpaceConfig(entityType);
+    });
+  }
+
   /**
    * Delete an entity (soft delete)
    */
