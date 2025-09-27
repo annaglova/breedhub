@@ -27,6 +27,9 @@ interface SpaceConfig {
   rows?: number;
   pages?: Record<string, any>;
   views?: Record<string, any>;
+  canAdd?: boolean;
+  canEdit?: boolean;
+  canDelete?: boolean;
 }
 
 interface FieldConfig {
@@ -68,6 +71,9 @@ class SpaceStore {
   // Reference to AppStore
   private appStore = appStore;
   
+  // Database reference
+  private db: any = null;
+  
   // Dynamic entity stores - one EntityStore per entity type
   private entityStores = new Map<string, EntityStore<BusinessEntity>>();
   private entitySubscriptions = new Map<string, Subscription>();
@@ -100,11 +106,17 @@ class SpaceStore {
   
   
   async initialize() {
+    console.log('[SpaceStore] Initialize called, current state:', {
+      initialized: this.initialized.value,
+      loading: this.loading.value
+    });
+    
     if (this.initialized.value) {
+      console.log('[SpaceStore] Already initialized, skipping');
       return;
     }
     
-    console.log('[SpaceStore] Initializing...');
+    console.log('[SpaceStore] Starting initialization...');
     
     try {
       this.loading.value = true;
@@ -122,16 +134,27 @@ class SpaceStore {
         throw new Error('App config not available');
       }
       
+      console.log('[SpaceStore] Got appConfig:', appConfig);
+      console.log('[SpaceStore] appConfig.data:', appConfig.data);
+      console.log('[SpaceStore] appConfig.data.workspaces:', appConfig.data?.workspaces);
+      
       // Parse space configurations
+      console.log('[SpaceStore] Parsing space configurations...');
       this.parseSpaceConfigurations(appConfig);
+      console.log('[SpaceStore] Available entity types after parsing:', this.availableEntityTypes.value);
       
       // Get database instance from AppStore
+      console.log('[SpaceStore] Getting database instance...');
       this.db = await getDatabase();
+      console.log('[SpaceStore] Database obtained:', !!this.db);
       
       // Create collections for all found entity types
+      console.log('[SpaceStore] Creating collections for entity types:', this.availableEntityTypes.value);
       for (const entityType of this.availableEntityTypes.value) {
+        console.log(`[SpaceStore] Creating collection for: ${entityType}`);
         await this.ensureCollection(entityType);
       }
+      console.log('[SpaceStore] All collections created');
       
       // Initialize Supabase loader
       this.supabaseLoader = new SupabaseLoaderService(this);
@@ -141,7 +164,7 @@ class SpaceStore {
       
       this.initialized.value = true;
       console.log('[SpaceStore] Initialized with entity types:', this.availableEntityTypes.value);
-      console.log('[SpaceStore] Collections created:', this.db ? Object.keys(this.db.collections) : 'No DB');
+      console.log('[SpaceStore] Collections in database:', this.db ? Object.keys(this.db.collections) : 'No DB');
       
     } catch (err) {
       console.error('[SpaceStore] Failed to initialize:', err);
@@ -255,6 +278,10 @@ class SpaceStore {
    * Parse space configurations from app config hierarchy
    */
   private parseSpaceConfigurations(appConfig: any) {
+    console.log('[SpaceStore] parseSpaceConfigurations called with appConfig:', !!appConfig);
+    console.log('[SpaceStore] appConfig.data:', !!appConfig?.data);
+    console.log('[SpaceStore] appConfig.data.workspaces:', !!appConfig?.data?.workspaces);
+    
     if (!appConfig?.data?.workspaces) {
       console.warn('[SpaceStore] No workspaces found in app config');
       return;
@@ -283,13 +310,22 @@ class SpaceStore {
               sort_fields: space.sort_fields,
               rows: space.rows,
               pages: space.pages,
-              views: space.views
+              views: space.views,
+              canAdd: space.canAdd,
+              canEdit: space.canEdit,
+              canDelete: space.canDelete
             };
             
             this.spaceConfigs.set(space.entitySchemaName, spaceConfig);
             entityTypes.push(space.entitySchemaName);
             
             console.log(`[SpaceStore] Found entity '${space.entitySchemaName}' in space '${spaceKey}'`);
+            console.log(`[SpaceStore] Space config for ${space.entitySchemaName}:`, {
+              canAdd: spaceConfig.canAdd,
+              canEdit: spaceConfig.canEdit,
+              canDelete: spaceConfig.canDelete,
+              title: spaceConfig.label
+            });
           }
         });
       }
@@ -319,7 +355,7 @@ class SpaceStore {
     
     // Return the configuration with title and permissions
     return {
-      title: spaceConfig.entitySchemaName || entityType,
+      title: spaceConfig.label || spaceConfig.entitySchemaName || entityType,
       entitySchemaName: spaceConfig.entitySchemaName,
       canAdd: spaceConfig.canAdd,
       canEdit: spaceConfig.canEdit, 

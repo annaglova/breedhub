@@ -15,16 +15,25 @@ function AppContent() {
   
   // Initialize SpaceStore when appConfig is ready
   useEffect(() => {
+    console.log('[App] useEffect for SpaceStore initialization');
+    
     const initSpaceStore = async () => {
+      console.log('[App] Checking conditions:', {
+        appConfigInitialized: appConfigStore.initialized.value,
+        spaceStoreInitialized: spaceStore.initialized.value
+      });
+      
       // Wait for appConfigStore to be ready
-      if (appConfigStore.configsList.value.length > 0) {
+      if (appConfigStore.initialized.value && !spaceStore.initialized.value) {
+        console.log('[App] Calling spaceStore.initialize()');
         await spaceStore.initialize();
+        console.log('[App] spaceStore.initialize() completed');
       }
     };
     
-    // Subscribe to appConfigStore changes
-    const unsubscribe = appConfigStore.configsList.subscribe(() => {
-      if (appConfigStore.configsList.value.length > 0) {
+    // Subscribe to appConfigStore initialization changes
+    const unsubscribe = appConfigStore.initialized.subscribe(() => {
+      if (appConfigStore.initialized.value && !spaceStore.initialized.value) {
         initSpaceStore();
       }
     });
