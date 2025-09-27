@@ -47,7 +47,7 @@ export function AppLayout() {
   }, []);
 
   const mainHeight = screenHeight - topBarHeight - footerHeight;
-  const isReady = screenHeight >= 0 && topBarHeight >= 0 && footerHeight >= 0;
+  const isReady = true; // Always render, don't wait for measurements
 
   return (
     <div className="layout-container bg-gray-100 flex flex-col">
