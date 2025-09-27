@@ -5,6 +5,12 @@ import { spaceStore } from "@breedhub/rxdb-store";
 import { useSignals } from "@preact/signals-react/runtime";
 import { Button } from "@ui/components/button";
 import { Input } from "@ui/components/input";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@ui/components/tooltip";
 import { cn } from "@ui/lib/utils";
 import { Plus, Search } from "lucide-react";
 import React, {
@@ -65,6 +71,7 @@ export function SpaceComponent<T extends { Id: string }>({
     canAdd: config.canAdd,
     canEdit: config.canEdit,
     canDelete: config.canDelete,
+    viewTypes: undefined,
   };
 
   const { data, isLoading, error, isFetching } = useEntitiesHook({
@@ -212,7 +219,7 @@ export function SpaceComponent<T extends { Id: string }>({
                   {finalConfig.title}
                 </span>
                 <ViewChanger
-                  views={config.viewConfig.map((v) => v.id) as ViewMode[]}
+                  views={finalConfig.viewTypes || config.viewConfig.map((v) => v.id) as ViewMode[]}
                 />
               </div>
               <EntitiesCounter entitiesCount={0} isLoading={true} total={0} />
@@ -229,7 +236,8 @@ export function SpaceComponent<T extends { Id: string }>({
   }
 
   return (
-    <div className="relative h-full overflow-hidden">
+    <TooltipProvider>
+      <div className="relative h-full overflow-hidden">
       {/* Main Content */}
       <div
         className={cn(
@@ -251,7 +259,7 @@ export function SpaceComponent<T extends { Id: string }>({
                 {finalConfig.title}
               </span>
               <ViewChanger
-                views={config.viewConfig.map((v) => v.id) as ViewMode[]}
+                views={finalConfig.viewTypes || config.viewConfig.map((v) => v.id) as ViewMode[]}
               />
             </div>
             <EntitiesCounter
@@ -277,19 +285,25 @@ export function SpaceComponent<T extends { Id: string }>({
 
             {/* Add button */}
             {finalConfig.canAdd && (
-              <Button
-                onClick={handleCreateNew}
-                className={cn(
-                  "rounded-full font-bold flex-shrink-0",
-                  needCardClass
-                    ? "h-10 px-4"
-                    : "!w-[2.6rem] !h-[2.6rem] flex items-center justify-center"
-                )}
-                title="Add new record"
-              >
-                <Plus className="h-5 w-5 flex-shrink-0" />
-                {needCardClass && <span className="text-base font-semibold">Add</span>}
-              </Button>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    onClick={handleCreateNew}
+                    className={cn(
+                      "rounded-full font-bold flex-shrink-0",
+                      needCardClass
+                        ? "h-10 px-4"
+                        : "!w-[2.6rem] !h-[2.6rem] flex items-center justify-center"
+                    )}
+                  >
+                    <Plus className="h-5 w-5 flex-shrink-0" />
+                    {needCardClass && <span className="text-base font-semibold">Add</span>}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom">
+                  <p>Add new record</p>
+                </TooltipContent>
+              </Tooltip>
             )}
           </div>
 
@@ -392,5 +406,6 @@ export function SpaceComponent<T extends { Id: string }>({
         </div>
       </div>
     </div>
+    </TooltipProvider>
   );
 }

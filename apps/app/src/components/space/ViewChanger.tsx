@@ -2,34 +2,36 @@ import React from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { ButtonGroup, ButtonGroupItem } from '@ui/components/button-group';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@ui/components/tooltip';
-import { List, Grid2x2, Table, Map, Share2 } from 'lucide-react';
+import { List, Grid2x2, Table, Map, Share2, Columns, FileText } from 'lucide-react';
 import { ViewMode } from '@/core/space/types';
 import { cn } from '@ui/lib/utils';
 
 interface ViewConfig {
-  id: ViewMode;
+  id: ViewMode | string;
   icon: React.ComponentType<{ className?: string }>;
   tooltip: string;
 }
 
 const viewConfigs: ViewConfig[] = [
   { id: 'list', icon: List, tooltip: 'List view' },
+  { id: 'rows', icon: List, tooltip: 'List view' },  // 'rows' maps to List icon
   { id: 'grid', icon: Grid2x2, tooltip: 'Grid view' },
   { id: 'table', icon: Table, tooltip: 'Table view' },
+  { id: 'tabs', icon: Columns, tooltip: 'Tabs view' },  // 'tabs' maps to Columns icon
   { id: 'map', icon: Map, tooltip: 'Map view' },
   { id: 'graph', icon: Share2, tooltip: 'Graph view' },
 ];
 
 interface ViewChangerProps {
-  views?: ViewMode[];
-  onViewChange?: (view: ViewMode) => void;
+  views?: (ViewMode | string)[];
+  onViewChange?: (view: ViewMode | string) => void;
 }
 
 export function ViewChanger({ views = ['list'], onViewChange }: ViewChangerProps) {
   const [searchParams, setSearchParams] = useSearchParams();
   const currentView = searchParams.get('view') as ViewMode || views[0];
 
-  const handleViewChange = (view: ViewMode) => {
+  const handleViewChange = (view: ViewMode | string) => {
     setSearchParams(prev => {
       const newParams = new URLSearchParams(prev);
       newParams.set('view', view);
