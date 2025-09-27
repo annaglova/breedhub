@@ -55,10 +55,11 @@ Do you want to continue?`;
             
             <div className="bg-gray-50 rounded-md p-4 mb-4">
               <p className="text-sm text-gray-600 mb-3">
-                Run these commands in your terminal from the project root:
+                Run these commands in your terminal:
               </p>
               <code className="block bg-gray-900 text-green-400 p-3 rounded text-sm overflow-x-auto">
-                <span className="text-gray-400"># From apps/config-admin directory:</span><br/>
+                <span className="text-gray-400"># Navigate to config-admin directory:</span><br/>
+                cd apps/config-admin<br/><br/>
                 <span className="text-gray-400"># 1. Generate semantic tree:</span><br/>
                 node scripts/analyze-fields.cjs<br/><br/>
                 <span className="text-gray-400"># 2. Generate SQL and run cascade:</span><br/>

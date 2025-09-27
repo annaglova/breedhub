@@ -1,5 +1,5 @@
 const path = require("path");
-require("dotenv").config({ path: path.resolve(__dirname, '../.env') });
+require("dotenv").config({ path: path.resolve(__dirname, '../../.env') });
 const { createClient } = require("@supabase/supabase-js");
 
 const supabaseUrl = process.env.VITE_SUPABASE_URL;
@@ -38,18 +38,21 @@ async function checkDatabase() {
   
   console.log(`\nTotal records: ${types.length}`);
   
-  // Check a sample record
+  // Check a specific record if provided as argument
+  const configId = process.argv[2] || 'breed_field_description';
   const { data: sample } = await supabase
     .from('app_config')
-    .select('id, type, self_data, override_data, data')
-    .eq('id', 'breed_field_description')
+    .select('id, type, self_data, override_data, data, deps')
+    .eq('id', configId)
     .single();
   
   if (sample) {
-    console.log('\nSample record (breed_field_description):');
-    console.log('  override_data:', JSON.stringify(sample.override_data));
-    console.log('  self_data has data:', !!sample.self_data && Object.keys(sample.self_data).length > 0);
-    console.log('  data has data:', !!sample.data && Object.keys(sample.data).length > 0);
+    console.log(`\nRecord (${configId}):`);
+    console.log('  type:', sample.type);
+    console.log('  deps:', sample.deps);
+    console.log('  override_data:', JSON.stringify(sample.override_data, null, 2));
+    console.log('  self_data:', JSON.stringify(sample.self_data, null, 2));
+    console.log('  data:', JSON.stringify(sample.data, null, 2));
   }
 }
 
