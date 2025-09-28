@@ -74,9 +74,17 @@ export function SpaceComponent<T extends { Id: string }>({
     viewTypes: undefined,
   };
 
+  // Get rows count for current view
+  const rowsPerPage = useMemo(() => {
+    const viewMode = searchParams.get("view") || config.viewConfig[0].id;
+    const rows = spaceStore.getRowsForView(config.entitySchemaName, viewMode);
+    console.log(`[SpaceComponent] View: ${viewMode}, Rows: ${rows}`);
+    return rows;
+  }, [searchParams, config.entitySchemaName, config.viewConfig]);
+
   const { data, isLoading, error, isFetching } = useEntitiesHook({
-    rows: 50,
-    from: page * 50,
+    rows: rowsPerPage,
+    from: page * rowsPerPage,
   });
 
   // Navigation and routing
@@ -98,6 +106,12 @@ export function SpaceComponent<T extends { Id: string }>({
   const isMoreThanXL = useMediaQuery(mediaQueries.xl); // 1440px
   const isMoreThan2XL = useMediaQuery(mediaQueries.xxl); // 1536px
   const needCardClass = isMoreThanLG;
+
+  // Reset page when view changes
+  useEffect(() => {
+    setPage(0);
+    setAllEntities([]);
+  }, [viewMode]);
 
   // Accumulate entities as we load more
   useEffect(() => {

@@ -398,6 +398,63 @@ class SpaceStore {
   }
   
   /**
+   * Get active view configuration for a space
+   */
+  getActiveViewConfig(entitySchemaName: string, viewType: string): any | null {
+    const spaceConfig = this.spaceConfigs.get(entitySchemaName);
+    if (!spaceConfig?.views) return null;
+
+    // Find view config by viewType
+    for (const [viewId, viewConfig] of Object.entries(spaceConfig.views)) {
+      if (viewConfig && typeof viewConfig === 'object' && 'viewType' in viewConfig) {
+        if ((viewConfig as any).viewType === viewType) {
+          return {
+            id: viewId,
+            ...viewConfig
+          };
+        }
+      }
+    }
+
+    return null;
+  }
+
+  /**
+   * Get rows count for specific view type
+   */
+  getRowsForView(entitySchemaName: string, viewType: string): number {
+    const viewConfig = this.getActiveViewConfig(entitySchemaName, viewType);
+    const rows = viewConfig?.rows || 50; // Default to 50 if not specified
+    console.log(`[SpaceStore] getRowsForView: entity=${entitySchemaName}, viewType=${viewType}, config=`, viewConfig, `rows=${rows}`);
+    return rows;
+  }
+
+  /**
+   * Get reactive signal for active view config
+   */
+  getActiveViewSignal(entitySchemaName: string, viewType: string): Signal<any> {
+    // Create computed signal that updates when space config changes
+    return computed(() => {
+      const spaceConfig = this.spaceConfigs.get(entitySchemaName);
+      if (!spaceConfig?.views) return null;
+
+      // Find view config by viewType
+      for (const [viewId, viewConfig] of Object.entries(spaceConfig.views)) {
+        if (viewConfig && typeof viewConfig === 'object' && 'viewType' in viewConfig) {
+          if ((viewConfig as any).viewType === viewType) {
+            return {
+              id: viewId,
+              ...viewConfig
+            };
+          }
+        }
+      }
+
+      return null;
+    });
+  }
+
+  /**
    * Get or create an entity store for the given entity type
    */
   async getEntityStore<T extends BusinessEntity>(entityType: string): Promise<EntityStore<T> | null> {
