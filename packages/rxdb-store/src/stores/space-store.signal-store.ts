@@ -398,63 +398,6 @@ class SpaceStore {
   }
   
   /**
-   * Get active view configuration for a space
-   */
-  getActiveViewConfig(entitySchemaName: string, viewType: string): any | null {
-    const spaceConfig = this.spaceConfigs.get(entitySchemaName);
-    if (!spaceConfig?.views) return null;
-
-    // Find view config by viewType
-    for (const [viewId, viewConfig] of Object.entries(spaceConfig.views)) {
-      if (viewConfig && typeof viewConfig === 'object' && 'viewType' in viewConfig) {
-        if ((viewConfig as any).viewType === viewType) {
-          return {
-            id: viewId,
-            ...viewConfig
-          };
-        }
-      }
-    }
-
-    return null;
-  }
-
-  /**
-   * Get rows count for specific view type
-   */
-  getRowsForView(entitySchemaName: string, viewType: string): number {
-    const viewConfig = this.getActiveViewConfig(entitySchemaName, viewType);
-    const rows = viewConfig?.rows || 50; // Default to 50 if not specified
-    console.log(`[SpaceStore] getRowsForView: entity=${entitySchemaName}, viewType=${viewType}, config=`, viewConfig, `rows=${rows}`);
-    return rows;
-  }
-
-  /**
-   * Get reactive signal for active view config
-   */
-  getActiveViewSignal(entitySchemaName: string, viewType: string): Signal<any> {
-    // Create computed signal that updates when space config changes
-    return computed(() => {
-      const spaceConfig = this.spaceConfigs.get(entitySchemaName);
-      if (!spaceConfig?.views) return null;
-
-      // Find view config by viewType
-      for (const [viewId, viewConfig] of Object.entries(spaceConfig.views)) {
-        if (viewConfig && typeof viewConfig === 'object' && 'viewType' in viewConfig) {
-          if ((viewConfig as any).viewType === viewType) {
-            return {
-              id: viewId,
-              ...viewConfig
-            };
-          }
-        }
-      }
-
-      return null;
-    });
-  }
-
-  /**
    * Get or create an entity store for the given entity type
    */
   async getEntityStore<T extends BusinessEntity>(entityType: string): Promise<EntityStore<T> | null> {
@@ -529,19 +472,69 @@ class SpaceStore {
   }
   
   /**
+   * Load initial data from Supabase for entity type
+   */
+  private async loadInitialData(entityType: string, limit = 100): Promise<void> {
+    try {
+      console.log(`[SpaceStore] Loading initial data for ${entityType} from Supabase...`);
+
+      // Import Supabase client
+      const { createClient } = await import('@supabase/supabase-js');
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+      if (!supabaseUrl || !supabaseKey) {
+        console.warn('[SpaceStore] Supabase credentials not configured');
+        return;
+      }
+
+      const supabase = createClient(supabaseUrl, supabaseKey);
+
+      // Load data from Supabase
+      const { data, error } = await supabase
+        .from(entityType)
+        .select('*')
+        .limit(limit)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error(`[SpaceStore] Error loading data from Supabase for ${entityType}:`, error);
+        return;
+      }
+
+      if (data && data.length > 0) {
+        console.log(`[SpaceStore] Loaded ${data.length} ${entityType} records from Supabase`);
+
+        // Insert into RxDB collection
+        const collection = this.db.collections[entityType];
+        if (collection) {
+          // Use bulkUpsert to avoid conflicts with existing data
+          await collection.bulkUpsert(data);
+          console.log(`[SpaceStore] Inserted ${data.length} ${entityType} records into RxDB`);
+        }
+      } else {
+        console.log(`[SpaceStore] No ${entityType} records found in Supabase`);
+      }
+
+    } catch (error) {
+      console.error(`[SpaceStore] Failed to load initial data for ${entityType}:`, error);
+    }
+  }
+
+  /**
    * Initialize RxDB collection for entity type
    */
   private async initializeEntityCollection<T extends BusinessEntity>(
-    entityType: string, 
+    entityType: string,
     entityStore: EntityStore<T>
   ) {
     if (!this.db) {
       throw new Error('Database not initialized');
     }
-    
+
     // Check if collection already exists
     let collection = this.db.collections[entityType] as RxCollection<T> | undefined;
-    
+
     if (!collection) {
       // Collection should have been created during initialization
       console.warn(`[SpaceStore] Collection ${entityType} was not created during initialization`);
@@ -549,12 +542,18 @@ class SpaceStore {
       await this.ensureCollection(entityType);
       collection = this.db.collections[entityType] as RxCollection<T> | undefined;
     }
-    
+
     if (collection) {
-      // LIFECYCLE HOOK: onInit - Load initial data
+      // First, load data from Supabase if collection is empty
+      const count = await collection.count().exec();
+      if (count === 0) {
+        await this.loadInitialData(entityType);
+      }
+
+      // LIFECYCLE HOOK: onInit - Load data from RxDB
       const allDocs = await collection.find().exec();
       const entities: T[] = allDocs.map((doc: RxDocument<T>) => doc.toJSON() as T);
-      
+
       // Update store with autoSelectFirst enabled
       entityStore.setAll(entities, true); // Auto-select first entity
       entityStore.setLoading(false);
