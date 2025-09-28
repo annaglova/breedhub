@@ -148,7 +148,7 @@ export class EntityReplicationService {
         replicationIdentifier: `${entityType}-supabase-replication`,
         deletedField: '_deleted',
         live: true,
-        retryTime: options.pullInterval || 60 * 1000, // Default 60 seconds
+        retryTime: options.pullInterval || 5 * 1000, // Faster retry for development - 5 seconds
         waitForLeadership: false,
         autoStart: true,
 
@@ -171,8 +171,15 @@ export class EntityReplicationService {
             // Use larger limit for initial load (when no checkpoint)
             const isInitialLoad = !checkpointOrNull?.updated_at;
             const limit = isInitialLoad
-              ? 500  // Large batch for initial load
+              ? 1000  // Large batch for initial load to get all breeds
               : (batchSize || options.batchSize || 50);  // Normal batch for incremental updates
+
+            console.log(`[EntityReplication-${entityType}] Pull handler:`, {
+              isInitialLoad,
+              limit,
+              checkpoint: checkpointOrNull,
+              batchSize
+            });
 
             const checkpointDate = checkpointOrNull?.updated_at
               ? new Date(new Date(checkpointOrNull.updated_at).getTime() - 5000).toISOString()
@@ -202,6 +209,7 @@ export class EntityReplicationService {
                 this.mapSupabaseToRxDB(entityType, doc, schema)
               );
 
+              const hasMore = documents.length === limit;
               const newCheckpoint = documents.length > 0
                 ? {
                     updated_at: documents[documents.length - 1].updated_at,
@@ -211,6 +219,7 @@ export class EntityReplicationService {
 
               console.log(`[EntityReplication-${entityType}] Pull completed`, {
                 documentsCount: documents.length,
+                hasMore,
                 newCheckpoint
               });
 
