@@ -1,215 +1,252 @@
-# Dynamic View Rows Implementation
+# Dynamic View Rows Implementation & Data Sync Strategy
 
-## Огляд проблеми
+## ПОТОЧНИЙ СТАН ПРОЕКТУ
 
-У проекті BreedHub виникла необхідність динамічного завантаження різної кількості записів (rows) в залежності від обраного типу відображення (view). Кожен view має свою оптимальну кількість записів для завантаження.
+### ✅ Що вже зроблено
 
-## Вирішені попередні проблеми
+#### 1. Динамічна генерація схем RxDB
+- **Реалізовано**: Повністю динамічна генерація схем з конфігурації
+- **Файл**: `/packages/rxdb-store/src/stores/space-store.signal-store.ts`
+- **Функція**: `generateSchemaForEntity()` - lines 549-680
+- Схема генерується з:
+  - `fields` - основні поля сутності
+  - `sort_fields` - поля для сортування
+  - `filter_fields` - поля для фільтрації
 
-### 1. Динамічна конфігурація UI компонентів
-- **Проблема**: ViewChanger показував 2 кнопки (list і grid) замість однієї (list) відповідно до конфігурації в БД
-- **Рішення**:
-  - Виправлено `rebuild-hierarchy.cjs` для включення properties в space self_data
-  - Виправлено `rebuildParentSelfData` в ConfigStore для правильної обробки properties типу 'property'
+#### 2. Універсальний лоадер даних
+- **Реалізовано**: Універсальний метод `loadEntityData(entityType, limit)`
+- **Файл**: `/packages/rxdb-store/src/stores/space-store.signal-store.ts`
+- **Функція**: `loadEntityData()` - lines 1084-1180
+- Динамічний мапінг полів на основі схеми колекції
+- Автоматичне перетворення `deleted` → `_deleted`
 
-### 2. Структура конфігурації
-- **Проблема**: Невірна структура конфігів - views не були на правильному рівні ієрархії
-- **Рішення**: Регенерація конфігів з правильною структурою через скрипти
+#### 3. Виправлення UI конфігурацій
+- ViewChanger правильно читає конфігурацію з БД
+- SpaceComponent коректно відображає UI елементи
+- Reactive signals для динамічних конфігурацій
 
-## ПОЕТАПНА РЕАЛІЗАЦІЯ
+### ⚠️ Де залишився хардкод
 
-### Фаза 0: Базове завантаження даних з Supabase (ПЕРШОЧЕРГОВО!)
+1. **Виклик loadEntityData при ініціалізації**
+   - Файл: `/packages/rxdb-store/src/stores/space-store.signal-store.ts`
+   - Рядок: 183 - `this.loadEntityData('breed')`
+   - Тимчасово завантажує тільки breed
 
-**Проблема**: RxDB колекція створюється, але дані з Supabase не завантажуються.
+2. **Кількість rows в SpaceComponent**
+   - Файл: `/apps/app/src/components/space/SpaceComponent.tsx`
+   - Рядки: 78-79 - `rows: 50` захардкоджено
 
-#### Крок 1: Реалізація простого завантаження всіх записів
+3. **Mock дані в useBreeds**
+   - Файл: `/apps/app/src/hooks/useBreeds.ts`
+   - Використовує mock дані замість RxDB
 
-**Файли для зміни:**
-- `/packages/rxdb-store/src/stores/space-store.signal-store.ts`
+## ДЕТАЛЬНИЙ ПЛАН РОЗВИТКУ
 
-**Що робити:**
-1. При створенні EntityStore одразу завантажити дані з Supabase
-2. Використати патерн з books-replication.service.ts як приклад
-3. Створити метод `loadInitialData(entityType)` в SpaceStore
+### ФАЗА 1: ПОКРАЩЕНИЙ ЛОАДІНГ З РЕПЛІКАЦІЄЮ (ПРІОРИТЕТ 1)
 
+#### Завдання 1.1: Базова двостороння синхронізація
+**Мета**: Реалізувати надійну синхронізацію з обробкою конфліктів
+
+**Файли для створення/зміни:**
 ```typescript
-async loadInitialData(entityType: string, limit = 100) {
-  const supabase = getSupabaseClient();
-  const { data, error } = await supabase
-    .from(entityType)
-    .select('*')
-    .limit(limit);
+// /packages/rxdb-store/src/services/entity-replication.service.ts
+export class EntityReplicationService {
+  private replicationStates: Map<string, RxReplicationState> = new Map();
 
-  if (data) {
-    // Записати в RxDB колекцію
-    await this.db[entityType].bulkInsert(data);
+  async setupReplication(entityType: string, options: ReplicationOptions) {
+    // 1. Push handler - відправка змін в Supabase
+    const pushHandler = async (changeEvent) => {
+      const { newDocument, assumedMasterState } = changeEvent;
+      // Відправити зміни в Supabase
+      // Обробити конфлікти версій
+    };
+
+    // 2. Pull handler - отримання змін з Supabase
+    const pullHandler = async (lastCheckpoint) => {
+      // Отримати зміни з Supabase з останньої синхронізації
+      // Використати updated_at для checkpoint
+    };
+
+    // 3. Конфлікт резолюція
+    const conflictHandler = async (conflict) => {
+      // Стратегія: last-write-wins або custom merge
+      // Базуватись на updated_at або версії
+    };
   }
 }
 ```
 
-#### Крок 2: Підключення до useBreeds hook
+**Кроки реалізації:**
+1. Створити EntityReplicationService на основі books-replication.service
+2. Додати обробку конфліктів (last-write-wins за updated_at)
+3. Реалізувати checkpoint механізм для інкрементального завантаження
+4. Додати retry логіку для network failures
+5. Інтегрувати з SpaceStore
 
-**Що змінити:**
-- Замість mock даних використовувати RxDB колекцію
-- Підписатися на зміни через RxDB $.subscribe()
-
-### Фаза 1: Lazy Loading з пагінацією
-
-**Після того як базове завантаження працює!**
-
-#### Крок 1: Реалізація пагінації в SpaceStore
+#### Завдання 1.2: Realtime підписки
+**Мета**: Отримувати оновлення в реальному часі
 
 ```typescript
-async loadPage(entityType: string, page: number, rowsPerPage: number) {
-  const from = page * rowsPerPage;
-  const to = from + rowsPerPage - 1;
-
-  const { data, error } = await supabase
-    .from(entityType)
-    .select('*', { count: 'exact' })
-    .range(from, to);
-
-  return { data, total: count };
+// Використати Supabase Realtime
+async setupRealtimeSync(entityType: string) {
+  const channel = supabase
+    .channel(`${entityType}_changes`)
+    .on('postgres_changes',
+      { event: '*', schema: 'public', table: entityType },
+      (payload) => this.handleRealtimeChange(payload)
+    )
+    .subscribe();
 }
 ```
 
-#### Крок 2: Інтеграція з VirtualSpaceView
+#### Завдання 1.3: Оптимістичні оновлення
+**Мета**: Миттєва реакція UI без очікування серверу
 
-- Використати існуючий infinite scroll
-- При досягненні кінця списку завантажувати наступну сторінку
-
-### Фаза 2: Dynamic Rows (ТІЛЬКИ ПІСЛЯ ФАЗИ 0 і 1!)
-
-## Поточна задача: Dynamic Rows Loading
-
-### Вхідні дані
-
-1. **View конфігурації** мають параметр `rows`:
-   ```json
-   {
-     "rows": 60,
-     "viewType": "list"
-   }
-   ```
-
-2. **SpaceComponent** наразі використовує захардкоджене значення:
-   ```typescript
-   const { data, isLoading, error, isFetching } = useEntitiesHook({
-     rows: 50,  // <-- захардкоджено
-     from: page * 50,
-   });
-   ```
-
-3. **Архітектура**:
-   - SpaceStore керує конфігураціями space
-   - ViewChanger перемикає між типами view
-   - VirtualSpaceView відмальовує дані з віртуалізацією
-
-### План реалізації
-
-#### Фаза 1: SpaceStore - розширення функціоналу
-
-**Нові методи:**
 ```typescript
-// Отримати конфіг активного view
-getActiveViewConfig(entitySchemaName: string, viewType: string): ViewConfig | null
-
-// Отримати кількість rows для view
-getRowsForView(entitySchemaName: string, viewType: string): number
-
-// Signal для активного view конфігу
-getActiveViewSignal(entitySchemaName: string, viewType: string): Signal<ViewConfig>
+// При локальній зміні:
+1. Одразу оновити RxDB (оптимістично)
+2. Відправити на сервер в фоні
+3. При помилці - відкатити зміни
+4. При конфлікті - вирішити через conflictHandler
 ```
 
-**Структура ViewConfig:**
+### ФАЗА 2: ДИНАМІЧНЕ ЗАВАНТАЖЕННЯ ЧЕРЕЗ КОНФІГ (ПРІОРИТЕТ 2)
+
+#### Завдання 2.1: Читання rows з view конфігурації
+**Файл**: `/packages/rxdb-store/src/stores/space-store.signal-store.ts`
+
 ```typescript
-interface ViewConfig {
-  id: string;
-  viewType: string;
-  rows: number;
-  itemHeight?: number;
-  columns?: number; // для grid view
+// Додати методи:
+getViewConfig(entityType: string, viewType: string): ViewConfig | null {
+  const spaceConfig = this.spaceConfigs.get(entityType);
+  return spaceConfig?.views?.[viewType];
+}
+
+getRowsForView(entityType: string, viewType: string): number {
+  const viewConfig = this.getViewConfig(entityType, viewType);
+  return viewConfig?.rows || 50; // default fallback
 }
 ```
 
-#### Фаза 2: SpaceComponent - динамічне завантаження
+#### Завдання 2.2: Інтеграція з SpaceComponent
+**Файл**: `/apps/app/src/components/space/SpaceComponent.tsx`
 
-**Зміни:**
-1. Отримувати `rows` з активного view конфігу
-2. При зміні view через `ViewChanger`:
-   - Скидати `page` на 0
-   - Перезавантажувати дані з новим `rows`
-3. Оновити `useEntitiesHook` виклик:
-   ```typescript
-   const activeViewConfig = spaceStore.getActiveViewConfig(
-     config.entitySchemaName,
-     viewMode
-   );
-   const rowsPerPage = activeViewConfig?.rows || 50; // fallback
+```typescript
+// Замінити хардкод:
+const viewMode = searchParams.get("view") || config.viewConfig[0].id;
+const rowsPerPage = spaceStore.getRowsForView(
+  config.entitySchemaName,
+  viewMode
+);
 
-   const { data, isLoading, error, isFetching } = useEntitiesHook({
-     rows: rowsPerPage,
-     from: page * rowsPerPage,
-   });
-   ```
+const { data } = useEntitiesHook({
+  rows: rowsPerPage, // динамічно з конфігу
+  from: page * rowsPerPage,
+});
+```
 
-#### Фаза 3: RxDB інтеграція
+#### Завдання 2.3: Пагінація з різними rows
+- Скидати page при зміні view
+- Перераховувати offset при новому rows значенні
+- Оптимізувати кешування для різних views
 
-**Завдання:**
-- Перевірити підтримку динамічної зміни `limit` в RxDB queries
-- Реалізувати новий query при зміні view (якщо потрібно)
-- Забезпечити правильне кешування для різних views
+### ФАЗА 3: UI ІНТЕГРАЦІЯ З RXDB (ПРІОРИТЕТ 3)
 
-#### Фаза 4: VirtualSpaceView оптимізація
+#### Завдання 3.1: Заміна mock даних на RxDB
+**Файл**: `/apps/app/src/hooks/useBreeds.ts`
 
-**Покращення:**
-- Динамічні `itemHeight` для різних views
-- Різні `overscan` значення для кожного типу view
-- Розширення `componentMap` для нових типів view (table, map, graph)
+```typescript
+export function useBreeds(params: { rows?: number; from?: number }) {
+  const [data, setData] = useState([]);
+  const [total, setTotal] = useState(0);
 
-#### Фаза 5: Тестування
+  useEffect(() => {
+    // Підписатися на RxDB колекцію
+    const sub = spaceStore.db?.breed
+      ?.find()
+      .skip(params.from || 0)
+      .limit(params.rows || 50)
+      .$.subscribe(docs => {
+        setData(docs.map(d => d.toJSON()));
+      });
 
-**Сценарії:**
-1. Перемикання між views з різними `rows` значеннями
-2. Pagination/infinite scroll для кожного view
-3. Збереження scroll позиції при поверненні до view
-4. Коректна робота з пустими даними
-5. Performance при великих обсягах даних
+    // Отримати total count
+    spaceStore.db?.breed?.count().exec()
+      .then(count => setTotal(count));
 
-### Технічні деталі
+    return () => sub?.unsubscribe();
+  }, [params.from, params.rows]);
 
-#### SpaceStore зміни
-- Файл: `/packages/rxdb-store/src/stores/space-store.signal-store.ts`
-- Додати методи для роботи з view конфігами
-- Створити reactive signals для активних views
+  return { data: { entities: data, total }, isLoading: false };
+}
+```
 
-#### SpaceComponent зміни
-- Файл: `/apps/app/src/components/space/SpaceComponent.tsx`
-- Інтегрувати динамічні rows
-- Додати effect для реагування на зміну view
+#### Завдання 3.2: Reactive оновлення через Signals
+- Використати Preact Signals для реактивності
+- Автоматичне оновлення UI при змінах в RxDB
+- Оптимізація ререндерів
 
-#### Hook зміни
-- Перевірити чи `useEntitiesHook` підтримує динамічну зміну параметрів
-- Можливо потрібно буде оновити hook для правильного re-fetch
+#### Завдання 3.3: VirtualSpaceView оптимізація
+- Динамічні itemHeight для різних views
+- Адаптивний overscan
+- Збереження scroll позиції
 
-### Очікуваний результат
+## ПРІОРИТЕТНІСТЬ ЗАДАЧ
 
-1. При перемиканні на "list" view - завантажується 60 записів
-2. При перемиканні на "grid" view - може завантажуватись інша кількість
-3. Pagination працює коректно для кожного view
-4. Performance оптимальна для кожного типу відображення
+### Критичні (блокують продакшн):
+1. **EntityReplicationService** - без цього немає синхронізації
+2. **Conflict resolution** - критично для multi-user
+3. **Заміна mock на RxDB** - реальні дані
 
-### Потенційні проблеми
+### Важливі (покращують UX):
+1. **Динамічні rows** - оптимізація performance
+2. **Realtime sync** - миттєві оновлення
+3. **Optimistic updates** - швидкий відгук
 
-1. **Кешування**: RxDB може кешувати результати, треба правильно інвалідувати
-2. **Performance**: Великі значення rows можуть сповільнити initial load
-3. **Memory**: Треба стежити за memory usage при великих rows
-4. **UX**: При перемиканні views може бути помітна затримка
+### Бажані (nice to have):
+1. **Offline mode** - робота без інтернету
+2. **Sync status UI** - індикатор синхронізації
+3. **Conflict UI** - ручне вирішення конфліктів
 
-### Метрики успіху
+## ТЕХНІЧНА АРХІТЕКТУРА
 
-- [ ] Views завантажують правильну кількість записів з конфігу
-- [ ] Перемикання між views працює плавно
-- [ ] Pagination адаптується до rows кожного view
-- [ ] Performance залишається оптимальною
-- [ ] Немає memory leaks при частому перемиканні views
+```
+┌─────────────────┐
+│   Supabase DB   │
+└────────┬────────┘
+         │ Realtime + REST
+┌────────▼────────┐
+│ Replication Svc │ ← Conflict Resolution
+└────────┬────────┘
+         │
+┌────────▼────────┐
+│   RxDB Store    │ ← Local IndexedDB
+└────────┬────────┘
+         │ Reactive Signals
+┌────────▼────────┐
+│  UI Components  │
+└─────────────────┘
+```
+
+## МЕТРИКИ УСПІХУ
+
+- [ ] Дані синхронізуються між клієнтами < 1 сек
+- [ ] Конфлікти вирішуються автоматично в 95% випадків
+- [ ] UI оновлюється миттєво при локальних змінах
+- [ ] Працює offline з подальшою синхронізацією
+- [ ] Views завантажують правильну кількість rows
+- [ ] Performance: Initial load < 500ms
+- [ ] Memory: < 100MB для 10k записів
+
+## НАСТУПНІ КРОКИ
+
+1. **Зараз**: Почати з EntityReplicationService (ФАЗА 1.1)
+2. **Цей тиждень**: Базова синхронізація + conflict resolution
+3. **Наступний тиждень**: Динамічні rows + UI інтеграція
+
+## ПОСИЛАННЯ НА КОД
+
+- SpaceStore: `/packages/rxdb-store/src/stores/space-store.signal-store.ts`
+- SpaceComponent: `/apps/app/src/components/space/SpaceComponent.tsx`
+- Books Replication (приклад): `/packages/rxdb-store/src/services/books-replication.service.ts`
+- UseBreeds Hook: `/apps/app/src/hooks/useBreeds.ts`
