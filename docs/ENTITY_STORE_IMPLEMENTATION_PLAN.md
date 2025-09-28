@@ -13,6 +13,45 @@
 - [ ] Оновлення app-store.signal-store.ts на Entity Store pattern
 - [ ] Створення space.store.ts
 
+## 📝 Архітектурне рішення для реплікації
+
+### Розподіл відповідальностей:
+
+```typescript
+// EntityStore залишається чистим
+class EntityStore<T> {
+  // Тільки state management
+  // Ніяких залежностей від RxDB/Supabase
+  // Pure reactive state with signals
+}
+
+// SpaceStore керує реплікацією
+class SpaceStore {
+  private entityStores: Map<string, EntityStore>
+  private replicationStates: Map<string, boolean>
+
+  async setupEntityReplication(entityType: string) {
+    // 1. Створює EntityStore якщо немає
+    // 2. Створює RxDB collection
+    // 3. Налаштовує реплікацію через EntityReplicationService
+    // 4. Підписує EntityStore на зміни з RxDB
+  }
+}
+```
+
+### 🔄 Потік даних:
+
+```
+Supabase ←→ EntityReplicationService ←→ RxDB ←→ SpaceStore → EntityStore → UI
+```
+
+**Переваги цього підходу:**
+- EntityStore залишається простим і тестованим
+- SpaceStore керує всією інфраструктурою
+- Легко додавати нові entity types
+- Можна вимкнути реплікацію для певних entities
+- Чітке розділення concerns
+
 ## 🎯 ОНОВЛЕНИЙ план впровадження (з реальним контекстом)
 
 ### Phase 0: Використати існуючу інфраструктуру
