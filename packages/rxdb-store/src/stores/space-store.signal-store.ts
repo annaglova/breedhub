@@ -4,7 +4,6 @@ import { Subscription } from 'rxjs';
 import { RxCollection, RxDocument, RxJsonSchema } from 'rxdb';
 import { EntityStore } from './base/entity-store';
 import { appStore } from './app-store.signal-store';
-import { SupabaseLoaderService, LoaderOptions, SyncOptions } from '../services/supabase-loader.service';
 import { entityReplicationService } from '../services/entity-replication.service';
 
 // Universal entity interface for all business entities
@@ -81,9 +80,6 @@ class SpaceStore {
   private entityStores = new Map<string, EntityStore<BusinessEntity>>();
   private entitySubscriptions = new Map<string, Subscription>();
   private spaceConfigs = new Map<string, SpaceConfig>();
-  
-  // Supabase loader service
-  private supabaseLoader: SupabaseLoaderService | null = null;
   
   // Track which entity types are available
   availableEntityTypes = signal<string[]>([]);
@@ -166,9 +162,6 @@ class SpaceStore {
         await this.ensureCollection(entityType);
       }
       console.log('[SpaceStore] All collections created');
-      
-      // Initialize Supabase loader
-      this.supabaseLoader = new SupabaseLoaderService(this);
       
       // Subscribe to app config changes
       // TODO: Add subscription to appConfig changes
@@ -1124,7 +1117,7 @@ class SpaceStore {
       entityType,
       {
         batchSize: 100,  // Increased for initial load
-        pullInterval: 30000, // 30 seconds for more responsive sync
+        pullInterval: 5000, // 5 seconds for faster sync during development
         enableRealtime: true,
         conflictHandler: 'last-write-wins'
       }
@@ -1133,10 +1126,6 @@ class SpaceStore {
     if (success) {
       console.log(`[SpaceStore] ✅ Replication active for ${entityType}`);
       console.log(`[SpaceStore] Data will be loaded through replication pull handler`);
-
-      // Note: No need for loadEntityData or forceFullSync
-      // The replication pull handler will automatically fetch all data
-      // on first run (checkpoint will be null)
     } else {
       console.error(`[SpaceStore] ❌ Failed to setup replication for ${entityType}`);
     }
@@ -1144,112 +1133,6 @@ class SpaceStore {
     return success;
   }
 
-  /**
-   * @deprecated Use setupEntityReplication instead for automatic sync
-   * This method is kept for manual/one-time data loads only
-   */
-  // UNIVERSAL METHOD FOR LOADING ENTITY DATA (LEGACY - use replication instead)
-  async loadEntityData(entityType: string, limit: number = 500) {
-    console.log(`[SpaceStore] Starting ${entityType} data load (LEGACY METHOD)...`);
-
-    try {
-      const { supabase } = await import('../supabase/client');
-
-      // Load data from Supabase
-      const { data, error } = await supabase
-        .from(entityType)
-        .select('*')
-        .limit(limit);
-
-      if (error) {
-        console.error(`[SpaceStore] Supabase error for ${entityType}:`, error);
-        return;
-      }
-
-      if (!data || data.length === 0) {
-        console.log(`[SpaceStore] No ${entityType} data found in Supabase`);
-        return;
-      }
-
-      console.log(`[SpaceStore] Fetched from Supabase: ${data.length} ${entityType} records`);
-
-      // Get collection
-      const collection = this.db?.[entityType];
-      if (!collection) {
-        console.error(`[SpaceStore] No ${entityType} collection found`);
-        return;
-      }
-
-      // Get schema from collection to know which fields to include
-      const schema = collection.schema.jsonSchema;
-      const schemaProperties = schema.properties || {};
-
-      console.log(`[SpaceStore] Schema properties for ${entityType}:`, Object.keys(schemaProperties));
-
-      // Map data dynamically based on schema
-      const mappedData = data.map(item => {
-        const mapped: any = {};
-
-        // Only include fields that exist in the schema
-        for (const fieldName in schemaProperties) {
-          if (fieldName === '_deleted') {
-            // Special handling for _deleted field (maps from 'deleted' in Supabase)
-            mapped._deleted = item.deleted || false;
-          } else if (item.hasOwnProperty(fieldName)) {
-            // Copy field if it exists in the source data
-            mapped[fieldName] = item[fieldName];
-          } else if (fieldName === 'created_at' || fieldName === 'updated_at') {
-            // Add timestamp defaults if missing
-            mapped[fieldName] = item[fieldName] || new Date().toISOString();
-          } else if (schemaProperties[fieldName].type === 'object') {
-            // Initialize empty objects for object fields
-            mapped[fieldName] = item[fieldName] || {};
-          } else if (schemaProperties[fieldName].type === 'boolean') {
-            // Initialize booleans with false
-            mapped[fieldName] = false;
-          } else if (schemaProperties[fieldName].type === 'string') {
-            // Don't add string fields if not present (unless required)
-            if (schema.required?.includes(fieldName)) {
-              mapped[fieldName] = '';
-            }
-          }
-        }
-
-        // Ensure required fields exist
-        if (!mapped.id) {
-          console.warn(`[SpaceStore] Missing id for ${entityType} record, skipping`);
-          return null;
-        }
-
-        return mapped;
-      }).filter(item => item !== null); // Remove any null entries
-
-      // Bulk upsert into RxDB
-      console.log(`[SpaceStore] Attempting to bulkUpsert: ${mappedData.length} ${entityType} records`);
-      const result = await collection.bulkUpsert(mappedData);
-
-      console.log(`[SpaceStore] BulkUpsert result for ${entityType}:`, {
-        success: result.success.length,
-        errors: result.error.length
-      });
-
-      if (result.error.length > 0) {
-        console.error(`[SpaceStore] BulkUpsert errors for ${entityType}:`, result.error);
-      }
-
-      // Update entity store
-      const entityStore = this.entityStores.get(entityType);
-      if (entityStore) {
-        const allDocs = await collection.find().exec();
-        const entities = allDocs.map((doc: any) => doc.toJSON());
-        entityStore.setAll(entities, true);
-        console.log(`[SpaceStore] Updated entity store with ${entities.length} ${entityType} records`);
-      }
-
-    } catch (error) {
-      console.error(`[SpaceStore] Failed to load ${entityType} data:`, error);
-    }
-  }
 
   dispose() {
     console.log('[SpaceStore] Disposing all resources...');
