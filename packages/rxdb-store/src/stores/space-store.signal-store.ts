@@ -176,6 +176,11 @@ class SpaceStore {
       console.log(`[SpaceStore] ✅ INITIALIZED IN ${totalTime.toFixed(0)}ms`);
       console.log('[SpaceStore] Initialized with entity types:', this.availableEntityTypes.value);
       console.log('[SpaceStore] Collections in database:', this.db ? Object.keys(this.db.collections) : 'No DB');
+
+      // TEMPORARY: Load breed data
+      setTimeout(() => {
+        this.loadBreedData();
+      }, 1000);
       
     } catch (err) {
       console.error('[SpaceStore] Failed to initialize:', err);
@@ -471,55 +476,6 @@ class SpaceStore {
     }
   }
   
-  /**
-   * Load initial data from Supabase for entity type
-   */
-  private async loadInitialData(entityType: string, limit = 100): Promise<void> {
-    try {
-      console.log(`[SpaceStore] Loading initial data for ${entityType} from Supabase...`);
-
-      // Import Supabase client
-      const { createClient } = await import('@supabase/supabase-js');
-      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-      const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-      if (!supabaseUrl || !supabaseKey) {
-        console.warn('[SpaceStore] Supabase credentials not configured');
-        return;
-      }
-
-      const supabase = createClient(supabaseUrl, supabaseKey);
-
-      // Load data from Supabase
-      const { data, error } = await supabase
-        .from(entityType)
-        .select('*')
-        .limit(limit)
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        console.error(`[SpaceStore] Error loading data from Supabase for ${entityType}:`, error);
-        return;
-      }
-
-      if (data && data.length > 0) {
-        console.log(`[SpaceStore] Loaded ${data.length} ${entityType} records from Supabase`);
-
-        // Insert into RxDB collection
-        const collection = this.db.collections[entityType];
-        if (collection) {
-          // Use bulkUpsert to avoid conflicts with existing data
-          await collection.bulkUpsert(data);
-          console.log(`[SpaceStore] Inserted ${data.length} ${entityType} records into RxDB`);
-        }
-      } else {
-        console.log(`[SpaceStore] No ${entityType} records found in Supabase`);
-      }
-
-    } catch (error) {
-      console.error(`[SpaceStore] Failed to load initial data for ${entityType}:`, error);
-    }
-  }
 
   /**
    * Initialize RxDB collection for entity type
@@ -544,12 +500,6 @@ class SpaceStore {
     }
 
     if (collection) {
-      // First, load data from Supabase if collection is empty
-      const count = await collection.count().exec();
-      if (count === 0) {
-        await this.loadInitialData(entityType);
-      }
-
       // LIFECYCLE HOOK: onInit - Load data from RxDB
       const allDocs = await collection.find().exec();
       const entities: T[] = allDocs.map((doc: RxDocument<T>) => doc.toJSON() as T);
@@ -595,13 +545,33 @@ class SpaceStore {
    * Generate RxDB schema from space configuration
    */
   private async generateSchemaForEntity(entityType: string): Promise<RxJsonSchema<BusinessEntity> | null> {
+    // TEMPORARY HARDCODE FOR BREED - matching existing schema
+    if (entityType === 'breed') {
+      const schema: RxJsonSchema<BusinessEntity> = {
+        version: 0,
+        primaryKey: 'id',
+        type: 'object',
+        properties: {
+          id: { type: 'string', maxLength: 36 },
+          name: { type: 'string', maxLength: 250 },
+          created_at: { type: 'string' },
+          updated_at: { type: 'string' },
+          measurements: { type: 'object' },
+          _deleted: { type: 'boolean' }
+        },
+        required: ['id', 'name']
+      };
+      console.log('[SpaceStore] Using HARDCODED schema for breed (matching existing)');
+      return schema;
+    }
+
     const spaceConfig = this.spaceConfigs.get(entityType);
-    
+
     if (!spaceConfig || !spaceConfig.fields) {
       console.error(`[SpaceStore] No space configuration or fields found for ${entityType}`);
       return null;
     }
-    
+
     // Build schema properties from unique collected fields
     const properties: any = {};
     const required: string[] = [];
@@ -1110,6 +1080,75 @@ class SpaceStore {
    * Dispose of all resources
    * LIFECYCLE: Global cleanup
    */
+  // TEMPORARY METHOD FOR LOADING BREED DATA
+  async loadBreedData() {
+    console.log('[SpaceStore] Starting breed data load...');
+
+    try {
+      const { supabase } = await import('../supabase/client');
+
+      // Load data from Supabase
+      const { data, error } = await supabase
+        .from('breed')
+        .select('*')
+        .limit(500);
+
+      if (error) {
+        console.error('[SpaceStore] Supabase error:', error);
+        return;
+      }
+
+      if (!data || data.length === 0) {
+        console.log('[SpaceStore] No breed data found in Supabase');
+        return;
+      }
+
+      console.log('[SpaceStore] Fetched from Supabase:', data.length, 'breed records');
+
+      // Get collection
+      const collection = this.db?.breed;
+      if (!collection) {
+        console.error('[SpaceStore] No breed collection found');
+        return;
+      }
+
+      // Map data (deleted -> _deleted) and ensure required fields
+      const mappedData = data.map(item => ({
+        id: item.id,
+        name: item.name || 'Unknown', // name is required
+        created_at: item.created_at || new Date().toISOString(),
+        updated_at: item.updated_at || new Date().toISOString(),
+        measurements: item.measurements || {},
+        _deleted: item.deleted || false
+      }));
+
+      // Bulk upsert into RxDB
+      console.log('[SpaceStore] Attempting to bulkUpsert:', mappedData.length, 'records');
+      const result = await collection.bulkUpsert(mappedData);
+
+      console.log('[SpaceStore] BulkUpsert result:', {
+        success: result.success.length,
+        errors: result.error.length
+      });
+
+      if (result.error.length > 0) {
+        console.error('[SpaceStore] BulkUpsert errors:', result.error);
+      }
+
+      // Update entity store
+      const entityStore = this.entityStores.get('breed');
+      if (entityStore) {
+        const allDocs = await collection.find().exec();
+        const entities = allDocs.map((doc: any) => doc.toJSON());
+        entityStore.setAll(entities, true);
+        console.log('[SpaceStore] Updated entity store with', entities.length, 'breeds');
+      }
+
+    } catch (error) {
+      console.error('[SpaceStore] Failed to load breed data:', error);
+    }
+  }
+
   dispose() {
     console.log('[SpaceStore] Disposing all resources...');
     

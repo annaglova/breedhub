@@ -107,7 +107,7 @@ export class SupabaseLoaderService {
 
       for (let i = 0; i < data.length; i += batchSize) {
         const batch = data.slice(i, i + batchSize);
-        
+
         // Add batch to the store
         entityStore.addMany(batch);
 
