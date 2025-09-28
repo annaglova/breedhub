@@ -16,6 +16,70 @@
 - **Проблема**: Невірна структура конфігів - views не були на правильному рівні ієрархії
 - **Рішення**: Регенерація конфігів з правильною структурою через скрипти
 
+## ПОЕТАПНА РЕАЛІЗАЦІЯ
+
+### Фаза 0: Базове завантаження даних з Supabase (ПЕРШОЧЕРГОВО!)
+
+**Проблема**: RxDB колекція створюється, але дані з Supabase не завантажуються.
+
+#### Крок 1: Реалізація простого завантаження всіх записів
+
+**Файли для зміни:**
+- `/packages/rxdb-store/src/stores/space-store.signal-store.ts`
+
+**Що робити:**
+1. При створенні EntityStore одразу завантажити дані з Supabase
+2. Використати патерн з books-replication.service.ts як приклад
+3. Створити метод `loadInitialData(entityType)` в SpaceStore
+
+```typescript
+async loadInitialData(entityType: string, limit = 100) {
+  const supabase = getSupabaseClient();
+  const { data, error } = await supabase
+    .from(entityType)
+    .select('*')
+    .limit(limit);
+
+  if (data) {
+    // Записати в RxDB колекцію
+    await this.db[entityType].bulkInsert(data);
+  }
+}
+```
+
+#### Крок 2: Підключення до useBreeds hook
+
+**Що змінити:**
+- Замість mock даних використовувати RxDB колекцію
+- Підписатися на зміни через RxDB $.subscribe()
+
+### Фаза 1: Lazy Loading з пагінацією
+
+**Після того як базове завантаження працює!**
+
+#### Крок 1: Реалізація пагінації в SpaceStore
+
+```typescript
+async loadPage(entityType: string, page: number, rowsPerPage: number) {
+  const from = page * rowsPerPage;
+  const to = from + rowsPerPage - 1;
+
+  const { data, error } = await supabase
+    .from(entityType)
+    .select('*', { count: 'exact' })
+    .range(from, to);
+
+  return { data, total: count };
+}
+```
+
+#### Крок 2: Інтеграція з VirtualSpaceView
+
+- Використати існуючий infinite scroll
+- При досягненні кінця списку завантажувати наступну сторінку
+
+### Фаза 2: Dynamic Rows (ТІЛЬКИ ПІСЛЯ ФАЗИ 0 і 1!)
+
 ## Поточна задача: Dynamic Rows Loading
 
 ### Вхідні дані
