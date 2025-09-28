@@ -2434,9 +2434,8 @@ class AppConfigStore {
           ...child.override_data
         };
         Object.assign(newSelfData, childData);
-        console.log('[rebuildParentSelfData] Merged property to root');
-      } else if (child.type in allowedChildren) {
-        // Only process if this child type is allowed for this parent
+      } else if (child.type in allowedChildren && child.type !== 'property') {
+        // Only process if this child type is allowed for this parent (skip property as it's already handled)
         const containerKey = allowedChildren[child.type];
           
         if (containerKey) {
