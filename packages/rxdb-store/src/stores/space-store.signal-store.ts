@@ -24,6 +24,7 @@ interface SpaceConfig {
   entitySchemaName?: string;
   fields?: Record<string, FieldConfig>;
   sort_fields?: Record<string, any>;
+  filter_fields?: Record<string, any>;
   rows?: number;
   pages?: Record<string, any>;
   views?: Record<string, any>;
@@ -319,6 +320,7 @@ class SpaceStore {
               entitySchemaName: space.entitySchemaName,
               fields: Object.fromEntries(uniqueFields),
               sort_fields: space.sort_fields,
+              filter_fields: space.filter_fields,
               rows: space.rows,
               pages: space.pages,
               views: space.views,
@@ -545,51 +547,38 @@ class SpaceStore {
    * Generate RxDB schema from space configuration
    */
   private async generateSchemaForEntity(entityType: string): Promise<RxJsonSchema<BusinessEntity> | null> {
-    // TEMPORARY HARDCODE FOR BREED - matching existing schema
-    if (entityType === 'breed') {
-      const schema: RxJsonSchema<BusinessEntity> = {
-        version: 0,
-        primaryKey: 'id',
-        type: 'object',
-        properties: {
-          id: { type: 'string', maxLength: 36 },
-          name: { type: 'string', maxLength: 250 },
-          created_at: { type: 'string' },
-          updated_at: { type: 'string' },
-          measurements: { type: 'object' },
-          _deleted: { type: 'boolean' }
-        },
-        required: ['id', 'name']
-      };
-      console.log('[SpaceStore] Using HARDCODED schema for breed (matching existing)');
-      return schema;
-    }
-
     const spaceConfig = this.spaceConfigs.get(entityType);
 
-    if (!spaceConfig || !spaceConfig.fields) {
-      console.error(`[SpaceStore] No space configuration or fields found for ${entityType}`);
+    if (!spaceConfig) {
+      console.error(`[SpaceStore] No space configuration found for ${entityType}`);
       return null;
     }
 
-    // Build schema properties from unique collected fields
+    // Debug logging
+    console.log(`[SpaceStore] Generating schema for ${entityType}:`);
+    console.log('  - Fields:', Object.keys(spaceConfig.fields || {}));
+    console.log('  - Sort fields:', Object.keys(spaceConfig.sort_fields || {}));
+    console.log('  - Filter fields:', Object.keys(spaceConfig.filter_fields || {}));
+
+    // Build schema properties from all field sources
     const properties: any = {};
     const required: string[] = [];
-    
-    // Process collected unique fields
-    Object.entries(spaceConfig.fields).forEach(([fieldKey, fieldConfig]: [string, FieldConfig]) => {
+
+    // Helper function to process field and add to schema
+    const addFieldToSchema = (fieldKey: string, fieldConfig: any) => {
       // Extract field name (remove prefix like 'breed_field_')
       const fieldName = fieldKey.replace(new RegExp(`^${entityType}_field_`), '');
-      
+
+      // Skip if already processed
+      if (properties[fieldName]) return;
+
       // Map fieldType to RxDB schema type
       let schemaType = 'string';
-      switch (fieldConfig.fieldType) {
+      const fieldType = fieldConfig?.fieldType || fieldConfig?.type || 'string';
+
+      switch (fieldType) {
         case 'uuid':
           schemaType = 'string';
-          // UUID fields always need maxLength
-          if (!fieldConfig.maxLength) {
-            fieldConfig.maxLength = 36; // Standard UUID length
-          }
           break;
         case 'string':
         case 'text':
@@ -610,21 +599,47 @@ class SpaceStore {
           schemaType = 'array';
           break;
       }
-      
+
       properties[fieldName] = {
         type: schemaType
       };
-      
-      // Add maxLength if specified
-      if (fieldConfig.maxLength && schemaType === 'string') {
-        properties[fieldName].maxLength = fieldConfig.maxLength;
+
+      // Add maxLength if specified (for strings)
+      if (schemaType === 'string') {
+        const maxLength = fieldConfig?.maxLength;
+        if (maxLength) {
+          properties[fieldName].maxLength = maxLength;
+        } else if (fieldType === 'uuid') {
+          properties[fieldName].maxLength = 36; // Standard UUID length
+        }
       }
-      
+
       // Mark as required if needed
-      if (fieldConfig.required || fieldConfig.isPrimaryKey) {
+      if (fieldConfig?.required || fieldConfig?.isPrimaryKey) {
         required.push(fieldName);
       }
-    });
+    };
+
+    // 1. Process main fields
+    if (spaceConfig.fields) {
+      Object.entries(spaceConfig.fields).forEach(([fieldKey, fieldConfig]) => {
+        addFieldToSchema(fieldKey, fieldConfig);
+      });
+    }
+
+    // 2. Process sort_fields (ensure they're in schema for sorting)
+    if (spaceConfig.sort_fields) {
+      Object.entries(spaceConfig.sort_fields).forEach(([fieldKey, fieldConfig]) => {
+        addFieldToSchema(fieldKey, fieldConfig);
+      });
+    }
+
+    // 3. Process filter_fields (ensure they're in schema for filtering)
+    if (spaceConfig.filter_fields) {
+      Object.entries(spaceConfig.filter_fields).forEach(([fieldKey, fieldConfig]) => {
+        addFieldToSchema(fieldKey, fieldConfig);
+      });
+    }
     
     // Ensure id field has proper configuration (UUID)
     if (!properties.id) {
