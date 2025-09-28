@@ -1118,13 +1118,13 @@ class SpaceStore {
 
     console.log(`[SpaceStore] Setting up replication for ${entityType}...`);
 
-    // Setup replication with default options
+    // Setup replication - it will handle all data loading
     const success = await entityReplicationService.setupReplication(
       this.db,
       entityType,
       {
-        batchSize: 50,
-        pullInterval: 60000, // 60 seconds
+        batchSize: 100,  // Increased for initial load
+        pullInterval: 30000, // 30 seconds for more responsive sync
         enableRealtime: true,
         conflictHandler: 'last-write-wins'
       }
@@ -1132,12 +1132,11 @@ class SpaceStore {
 
     if (success) {
       console.log(`[SpaceStore] ✅ Replication active for ${entityType}`);
+      console.log(`[SpaceStore] Data will be loaded through replication pull handler`);
 
-      // Initial data load
-      await this.loadEntityData(entityType, 500);
-
-      // Force a full sync to ensure we have latest data
-      await entityReplicationService.forceFullSync(this.db, entityType);
+      // Note: No need for loadEntityData or forceFullSync
+      // The replication pull handler will automatically fetch all data
+      // on first run (checkpoint will be null)
     } else {
       console.error(`[SpaceStore] ❌ Failed to setup replication for ${entityType}`);
     }
@@ -1145,9 +1144,13 @@ class SpaceStore {
     return success;
   }
 
-  // UNIVERSAL METHOD FOR LOADING ENTITY DATA
+  /**
+   * @deprecated Use setupEntityReplication instead for automatic sync
+   * This method is kept for manual/one-time data loads only
+   */
+  // UNIVERSAL METHOD FOR LOADING ENTITY DATA (LEGACY - use replication instead)
   async loadEntityData(entityType: string, limit: number = 500) {
-    console.log(`[SpaceStore] Starting ${entityType} data load...`);
+    console.log(`[SpaceStore] Starting ${entityType} data load (LEGACY METHOD)...`);
 
     try {
       const { supabase } = await import('../supabase/client');
