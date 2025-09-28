@@ -168,10 +168,19 @@ export class EntityReplicationService {
 
             this.activeRequests.set(entityType, activeReqs + 1);
 
-            const limit = batchSize || options.batchSize || 50;
+            // Use larger limit for initial load (when no checkpoint)
+            const isInitialLoad = !checkpointOrNull?.updated_at;
+            const limit = isInitialLoad
+              ? 500  // Large batch for initial load
+              : (batchSize || options.batchSize || 50);  // Normal batch for incremental updates
+
             const checkpointDate = checkpointOrNull?.updated_at
               ? new Date(new Date(checkpointOrNull.updated_at).getTime() - 5000).toISOString()
               : new Date(0).toISOString();
+
+            if (isInitialLoad) {
+              console.log(`[EntityReplication-${entityType}] Initial load - fetching up to ${limit} records`);
+            }
 
             try {
               const { data, error } = await this.supabase
