@@ -5,6 +5,7 @@ import { RxCollection, RxDocument, RxJsonSchema } from 'rxdb';
 import { EntityStore } from './base/entity-store';
 import { appStore } from './app-store.signal-store';
 import { SupabaseLoaderService, LoaderOptions, SyncOptions } from '../services/supabase-loader.service';
+import { entityReplicationService } from '../services/entity-replication.service';
 
 // Universal entity interface for all business entities
 interface BusinessEntity {
@@ -178,9 +179,9 @@ class SpaceStore {
       console.log('[SpaceStore] Initialized with entity types:', this.availableEntityTypes.value);
       console.log('[SpaceStore] Collections in database:', this.db ? Object.keys(this.db.collections) : 'No DB');
 
-      // TEMPORARY: Load breed data
-      setTimeout(() => {
-        this.loadEntityData('breed');
+      // Setup replication for breed entity
+      setTimeout(async () => {
+        await this.setupEntityReplication('breed');
       }, 1000);
       
     } catch (err) {
@@ -1095,6 +1096,55 @@ class SpaceStore {
    * Dispose of all resources
    * LIFECYCLE: Global cleanup
    */
+  /**
+   * Setup bidirectional replication for an entity
+   * Uses EntityReplicationService for sync with Supabase
+   */
+  async setupEntityReplication(entityType: string): Promise<boolean> {
+    if (!this.db) {
+      console.error('[SpaceStore] Database not initialized');
+      return false;
+    }
+
+    // Ensure collection exists
+    await this.ensureCollection(entityType);
+
+    // Check if collection was created
+    const collection = this.db.collections[entityType];
+    if (!collection) {
+      console.error(`[SpaceStore] Failed to create collection for ${entityType}`);
+      return false;
+    }
+
+    console.log(`[SpaceStore] Setting up replication for ${entityType}...`);
+
+    // Setup replication with default options
+    const success = await entityReplicationService.setupReplication(
+      this.db,
+      entityType,
+      {
+        batchSize: 50,
+        pullInterval: 60000, // 60 seconds
+        enableRealtime: true,
+        conflictHandler: 'last-write-wins'
+      }
+    );
+
+    if (success) {
+      console.log(`[SpaceStore] ✅ Replication active for ${entityType}`);
+
+      // Initial data load
+      await this.loadEntityData(entityType, 500);
+
+      // Force a full sync to ensure we have latest data
+      await entityReplicationService.forceFullSync(this.db, entityType);
+    } else {
+      console.error(`[SpaceStore] ❌ Failed to setup replication for ${entityType}`);
+    }
+
+    return success;
+  }
+
   // UNIVERSAL METHOD FOR LOADING ENTITY DATA
   async loadEntityData(entityType: string, limit: number = 500) {
     console.log(`[SpaceStore] Starting ${entityType} data load...`);
