@@ -288,6 +288,25 @@ Supabase Configs → ConfigLoaderService → DynamicUniversalStore → UI Compon
 
 ### Goal: Create configuration-driven stores
 
+### 🧹 Phase 3.0: Redux Cleanup (2-3 days)
+**Goal:** Remove Redux/RTK Query in favor of Preact Signals
+
+#### Tasks:
+- [ ] Audit all Redux usage in the codebase
+- [ ] Remove Redux dependencies from package.json
+- [ ] Remove /store folder with Redux code
+- [ ] Replace `useQuery` hooks with direct SpaceStore subscriptions
+- [ ] Replace React Query with RxDB subscriptions
+- [ ] Update components to use Preact Signals
+- [ ] Remove Redux DevTools integration
+- [ ] Clean up unused Redux-related imports
+
+#### Migration Strategy:
+1. Identify all components using Redux/RTK Query
+2. Create Signals-based replacements
+3. Test each migration
+4. Remove Redux code after successful migration
+
 ### Planned Implementation:
 
 #### Week 1: Store Generation from Configs
