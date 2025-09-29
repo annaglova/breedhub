@@ -344,6 +344,11 @@ class SpaceStore {
     canDelete?: boolean;
     entitySchemaName?: string;
     viewTypes?: string[];
+    viewConfigs?: Array<{
+      viewType: string;
+      icon?: string;
+      tooltip?: string;
+    }>;
   } | null {
     // Try exact match first
     let spaceConfig = this.spaceConfigs.get(entityType);
@@ -373,28 +378,37 @@ class SpaceStore {
       rawConfig: spaceConfig
     });
     
-    // Extract viewTypes from views property
-    const viewTypes = new Set<string>();
+    // Extract views with full configuration (viewType, icon, tooltip)
+    const viewConfigs: Array<{
+      viewType: string;
+      icon?: string;
+      tooltip?: string;
+    }> = [];
+
     if (spaceConfig.views) {
-      // Parse all view children and collect unique viewType values
+      // Parse all view children and collect view configurations
       Object.values(spaceConfig.views).forEach((view: any) => {
         if (view && view.viewType) {
-          viewTypes.add(view.viewType);
+          viewConfigs.push({
+            viewType: view.viewType,
+            icon: view.icon,
+            tooltip: view.tooltip
+          });
         }
       });
     }
-    
-    const viewTypesArray = Array.from(viewTypes);
-    console.log(`[SpaceStore] Extracted viewTypes for ${entityType}:`, viewTypesArray);
-    
-    // Return the configuration with title, permissions, and viewTypes
+
+    console.log(`[SpaceStore] Extracted view configs for ${entityType}:`, viewConfigs);
+
+    // Return the configuration with title, permissions, and full view configs
     return {
       title: spaceConfig.label || spaceConfig.entitySchemaName || entityType,
       entitySchemaName: spaceConfig.entitySchemaName,
       canAdd: spaceConfig.canAdd,
-      canEdit: spaceConfig.canEdit, 
+      canEdit: spaceConfig.canEdit,
       canDelete: spaceConfig.canDelete,
-      viewTypes: viewTypesArray.length > 0 ? viewTypesArray : undefined
+      viewTypes: viewConfigs.length > 0 ? viewConfigs.map(v => v.viewType) : undefined,
+      viewConfigs: viewConfigs.length > 0 ? viewConfigs : undefined
     };
   }
   

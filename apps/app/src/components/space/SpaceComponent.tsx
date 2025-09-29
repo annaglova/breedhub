@@ -1,5 +1,5 @@
 import { mediaQueries } from "@/config/breakpoints";
-import { SpaceConfig, ViewMode } from "@/core/space/types";
+import { SpaceConfig } from "@/core/space/types";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { spaceStore } from "@breedhub/rxdb-store";
 import { useSignals } from "@preact/signals-react/runtime";
@@ -72,6 +72,7 @@ export function SpaceComponent<T extends { Id: string }>({
     canEdit: config.canEdit,
     canDelete: config.canDelete,
     viewTypes: undefined,
+    viewConfigs: undefined,
   };
 
   const { data, isLoading, error, isFetching } = useEntitiesHook({
@@ -220,7 +221,12 @@ export function SpaceComponent<T extends { Id: string }>({
                   {finalConfig.title}
                 </span>
                 <ViewChanger
-                  views={finalConfig.viewTypes || config.viewConfig.map((v) => v.id) as ViewMode[]}
+                  views={finalConfig.viewTypes || config.viewConfig.map((v) => v.id)}
+                  viewConfigs={finalConfig.viewConfigs?.map(v => ({
+                    id: v.viewType,
+                    icon: v.icon,
+                    tooltip: v.tooltip
+                  }))}
                 />
               </div>
               <EntitiesCounter entitiesCount={0} isLoading={true} total={0} />
@@ -260,7 +266,12 @@ export function SpaceComponent<T extends { Id: string }>({
                 {finalConfig.title}
               </span>
               <ViewChanger
-                views={finalConfig.viewTypes || config.viewConfig.map((v) => v.id) as ViewMode[]}
+                views={finalConfig.viewTypes || config.viewConfig.map((v) => v.id)}
+                viewConfigs={finalConfig.viewConfigs?.map(v => ({
+                  id: v.viewType,
+                  icon: v.icon,
+                  tooltip: v.tooltip
+                }))}
               />
             </div>
             <EntitiesCounter
@@ -315,9 +326,14 @@ export function SpaceComponent<T extends { Id: string }>({
         {/* Content Scroller */}
         <div className="relative flex-1 overflow-hidden">
           <SpaceView
-            config={config}
+            viewConfig={{
+              viewType: viewMode,
+              component: viewMode === 'grid' ? 'BreedGridCard' : 'BreedListCard',
+              itemHeight: config.viewConfig.find(v => v.id === viewMode)?.itemHeight || (viewMode === 'grid' ? 280 : 68),
+              dividers: viewMode === 'list' || viewMode === 'rows',
+              overscan: 3
+            }}
             entities={allEntities}
-            viewMode={viewMode}
             selectedId={selectedEntityId}
             onEntityClick={handleEntityClick}
             onLoadMore={handleLoadMore}

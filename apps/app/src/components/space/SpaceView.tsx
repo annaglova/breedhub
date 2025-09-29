@@ -1,15 +1,27 @@
-import React, { useRef, useCallback, useMemo, useEffect, useState } from 'react';
+import React, { useRef, useCallback, useEffect } from 'react';
 import { useVirtualizer } from '@tanstack/react-virtual';
-import { SpaceConfig, ViewMode } from '@/core/space/types';
 import { cn } from '@ui/lib/utils';
-// Import components directly to avoid dynamic loading issues
-import { BreedListCard } from '@/components/breed/BreedListCard';
-import { BreedGridCard } from '@/components/breed/BreedGridCard';
+import { getComponent, FallbackComponent } from './componentRegistry';
+
+// View configuration interface that matches our config structure
+interface ViewConfig {
+  viewType: string;
+  component: string;
+  itemHeight: number;
+  dividers: boolean;
+  overscan: number;
+  columns?: number | {
+    default: number;
+    sm?: number;
+    md?: number;
+    lg?: number;
+    xl?: number;
+  };
+}
 
 interface SpaceViewProps<T> {
-  config: SpaceConfig<T>;
+  viewConfig: ViewConfig;
   entities: T[];
-  viewMode: ViewMode;
   selectedId?: string;
   onEntityClick?: (entity: T) => void;
   onLoadMore?: () => void;
@@ -17,17 +29,51 @@ interface SpaceViewProps<T> {
   isLoadingMore?: boolean;
 }
 
-// Map of components for each view mode
-const componentMap = {
-  list: BreedListCard,
-  grid: BreedGridCard,
-  // Add more mappings as needed
-} as const;
+// Helper to determine if view should render as grid
+function isGridLayout(viewType: string): boolean {
+  // Grid-like layouts need special handling
+  const gridTypes = ['grid', 'cards', 'tiles', 'masonry'];
+  return gridTypes.includes(viewType.toLowerCase());
+}
 
-export function SpaceView<T extends { Id: string }>({ 
-  config, 
-  entities, 
-  viewMode,
+// Helper to get columns count
+function getColumnsCount(viewConfig: ViewConfig): number {
+  // Single column layouts
+  if (!isGridLayout(viewConfig.viewType)) {
+    return 1;
+  }
+
+  // Grid layouts with columns config
+  if (viewConfig.columns) {
+    if (typeof viewConfig.columns === 'number') {
+      return viewConfig.columns;
+    }
+    // TODO: In production, this should check actual screen size
+    // For now, use default or fallback to 3
+    return viewConfig.columns.default || 3;
+  }
+
+  // Default for grid without columns config
+  return 3;
+}
+
+// Get CSS classes for different view types
+function getViewClasses(viewType: string, dividers: boolean) {
+  const isGrid = isGridLayout(viewType);
+
+  return {
+    container: cn(
+      "virtual-space-view h-full overflow-auto",
+      dividers && !isGrid && "divide-y divide-gray-200"
+    ),
+    gridRow: isGrid ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 px-4" : "",
+    listItem: !isGrid ? "" : ""
+  };
+}
+
+export function SpaceView<T extends { Id: string }>({
+  viewConfig,
+  entities,
   selectedId,
   onEntityClick,
   onLoadMore,
@@ -35,39 +81,35 @@ export function SpaceView<T extends { Id: string }>({
   isLoadingMore = false
 }: SpaceViewProps<T>) {
   const parentRef = useRef<HTMLDivElement>(null);
-  const viewConfig = config.viewConfig.find(v => v.id === viewMode);
-  
-  if (!viewConfig) {
-    return <div className="p-4">View mode "{viewMode}" not configured</div>;
-  }
 
-  // Get component based on view mode
-  const CardComponent = componentMap[viewMode as keyof typeof componentMap] || componentMap.list;
-  
-  // Get item height based on view mode
-  const itemHeight = viewConfig.itemHeight || 68;
-  const isGridView = viewMode === 'grid';
-  const columns = isGridView ? (viewConfig.columns || 3) : 1;
-  
-  // Calculate rows for grid view
-  const rows = isGridView 
+  // Get the component dynamically from registry
+  const CardComponent = getComponent(viewConfig.component) || FallbackComponent;
+
+  // Calculate layout parameters
+  const isGrid = isGridLayout(viewConfig.viewType);
+  const columns = getColumnsCount(viewConfig);
+  const classes = getViewClasses(viewConfig.viewType, viewConfig.dividers);
+
+  // Calculate rows for virtualization
+  const totalRows = isGrid
     ? Math.ceil(entities.length / columns)
     : entities.length;
 
+  // Initialize virtualizer with config values
   const virtualizer = useVirtualizer({
-    count: hasMore ? rows + 1 : rows, // Add one for loading indicator
+    count: hasMore ? totalRows + 1 : totalRows, // Add one for loading indicator
     getScrollElement: () => parentRef.current,
-    estimateSize: () => itemHeight,
-    overscan: 3, // Render 3 items outside of view for smoother scrolling
+    estimateSize: () => viewConfig.itemHeight,
+    overscan: viewConfig.overscan,
   });
 
-  // Handle scroll events
+  // Handle infinite scroll
   const handleScroll = useCallback(() => {
     if (!parentRef.current || isLoadingMore || !hasMore) return;
-    
+
     const scrollElement = parentRef.current;
     const scrollBottom = scrollElement.scrollHeight - scrollElement.scrollTop - scrollElement.clientHeight;
-    
+
     // Trigger when we're within 100px of the bottom
     if (scrollBottom < 100 && onLoadMore) {
       onLoadMore();
@@ -82,12 +124,11 @@ export function SpaceView<T extends { Id: string }>({
     return () => scrollElement.removeEventListener('scroll', handleScroll);
   }, [handleScroll]);
 
-  // Get virtual items
-  const items = virtualizer.getVirtualItems();
+  // Render a single virtual item
+  const renderVirtualItem = useCallback((virtualRow: any) => {
+    // Check if this is the loading row
+    const isLoadingRow = hasMore && virtualRow.index >= totalRows;
 
-  const renderItem = useCallback((virtualRow: any) => {
-    const isLoadingRow = hasMore && virtualRow.index >= entities.length;
-    
     if (isLoadingRow) {
       return (
         <div
@@ -107,11 +148,14 @@ export function SpaceView<T extends { Id: string }>({
       );
     }
 
-    if (isGridView) {
-      // Render a row of grid items
+    // Render based on layout type
+    if (isGrid) {
+      // Grid layout - render multiple items per row
       const startIdx = virtualRow.index * columns;
       const endIdx = Math.min(startIdx + columns, entities.length);
       const rowEntities = entities.slice(startIdx, endIdx);
+
+      if (rowEntities.length === 0) return null;
 
       return (
         <div
@@ -124,12 +168,10 @@ export function SpaceView<T extends { Id: string }>({
             transform: `translateY(${virtualRow.start}px)`,
             height: `${virtualRow.size}px`,
           }}
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 px-4"
+          className={classes.gridRow}
         >
           {rowEntities.map((entity) => (
-            <div
-              key={entity.Id}
-            >
+            <div key={entity.Id}>
               <CardComponent
                 entity={entity}
                 selected={selectedId === entity.Id}
@@ -141,7 +183,7 @@ export function SpaceView<T extends { Id: string }>({
         </div>
       );
     } else {
-      // List view - render single item
+      // List layout - render single item per row
       const entity = entities[virtualRow.index];
       if (!entity) return null;
 
@@ -156,6 +198,7 @@ export function SpaceView<T extends { Id: string }>({
             transform: `translateY(${virtualRow.start}px)`,
             height: `${virtualRow.size}px`,
           }}
+          className={classes.listItem}
         >
           <CardComponent
             entity={entity}
@@ -166,15 +209,22 @@ export function SpaceView<T extends { Id: string }>({
         </div>
       );
     }
-  }, [entities, columns, isGridView, selectedId, onEntityClick, CardComponent, hasMore, rows]);
+  }, [
+    entities,
+    columns,
+    isGrid,
+    selectedId,
+    onEntityClick,
+    CardComponent,
+    hasMore,
+    totalRows,
+    classes
+  ]);
 
   return (
-    <div 
+    <div
       ref={parentRef}
-      className={cn(
-        "virtual-space-view h-full overflow-auto",
-        viewMode === 'list' && "divide-y divide-gray-200"
-      )}
+      className={classes.container}
     >
       <div
         style={{
@@ -183,7 +233,7 @@ export function SpaceView<T extends { Id: string }>({
           position: 'relative',
         }}
       >
-        {virtualizer.getVirtualItems().map(renderItem)}
+        {virtualizer.getVirtualItems().map(renderVirtualItem)}
       </div>
     </div>
   );
