@@ -29,7 +29,7 @@ import {
 import { EntitiesCounter } from "./EntitiesCounter";
 import { SpaceFilters } from "./SpaceFilters";
 import { ViewChanger } from "./ViewChanger";
-import { VirtualSpaceView } from "./VirtualSpaceView";
+import { SpaceView } from "./SpaceView";
 
 interface SpaceComponentProps<T> {
   config: SpaceConfig<T>;
@@ -314,7 +314,7 @@ export function SpaceComponent<T extends { Id: string }>({
 
         {/* Content Scroller */}
         <div className="relative flex-1 overflow-hidden">
-          <VirtualSpaceView
+          <SpaceView
             config={config}
             entities={allEntities}
             viewMode={viewMode}
