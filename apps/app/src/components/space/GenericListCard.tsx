@@ -1,12 +1,18 @@
 import React from 'react';
-import { SpaceListCardProps } from '@/core/space/types';
 import { cn } from '@ui/lib/utils';
 
-export function GenericListCard<T extends { id?: string; name?: string }>({ 
-  entity, 
-  selected, 
-  onClick 
-}: SpaceListCardProps<T>) {
+interface GenericListCardProps<T = any> {
+  entity: T;
+  selected?: boolean;
+  index?: number;
+  onClick?: () => void;
+}
+
+export function GenericListCard<T extends { Id?: string; id?: string; Name?: string; name?: string }>({
+  entity,
+  selected,
+  onClick
+}: GenericListCardProps<T>) {
   return (
     <div
       className={cn(
@@ -16,10 +22,10 @@ export function GenericListCard<T extends { id?: string; name?: string }>({
       onClick={onClick}
     >
       <div className="font-medium">
-        {entity.name || entity.id || 'Unnamed'}
+        {entity.Name || entity.name || entity.Id || entity.id || 'Unnamed'}
       </div>
       <div className="text-sm text-gray-500 mt-1">
-        ID: {entity.id || 'N/A'}
+        ID: {entity.Id || entity.id || 'N/A'}
       </div>
     </div>
   );

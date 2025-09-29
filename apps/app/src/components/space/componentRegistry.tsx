@@ -25,10 +25,15 @@ export function clearRegistry() {
   componentRegistry.clear();
 }
 
-// Default fallback component
-export const FallbackComponent: React.FC<any> = ({ entity }) => (
+// Default fallback component - will be replaced after registration
+export let FallbackComponent: React.ComponentType<any> = ({ entity }) => (
   <div className="p-4 border rounded">
     <p className="text-gray-500">Component not found</p>
     <pre className="text-xs mt-2">{JSON.stringify(entity, null, 2)}</pre>
   </div>
 );
+
+// Set a better fallback component if available
+export function setFallbackComponent(component: React.ComponentType<any>) {
+  FallbackComponent = component;
+}
