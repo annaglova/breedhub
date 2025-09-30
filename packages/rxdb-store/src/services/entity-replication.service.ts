@@ -81,11 +81,12 @@ export class EntityReplicationService {
     mapped.created_at = mapped.created_at || supabaseDoc.created_at;
     mapped.updated_at = mapped.updated_at || supabaseDoc.updated_at;
 
-    console.log(`[EntityReplication-${entityType}] Mapped from Supabase:`, {
-      id: mapped.id,
-      deleted_supabase: supabaseDoc.deleted,
-      deleted_rxdb: mapped._deleted
-    });
+    // Commented out for less noise - uncomment for debugging
+    // console.log(`[EntityReplication-${entityType}] Mapped from Supabase:`, {
+    //   id: mapped.id,
+    //   deleted_supabase: supabaseDoc.deleted,
+    //   deleted_rxdb: mapped._deleted
+    // });
 
     return mapped;
   }
@@ -159,6 +160,22 @@ export class EntityReplicationService {
               batchSize
             });
 
+            // Skip if we recently pulled and got no data
+            if (checkpointOrNull?.lastPullAt && checkpointOrNull?.pulled) {
+              const lastPull = new Date(checkpointOrNull.lastPullAt).getTime();
+              const now = new Date().getTime();
+              const timeSinceLastPull = now - lastPull;
+
+              // If less than 5 seconds since last pull and we already pulled data, skip
+              if (timeSinceLastPull < 5000) {
+                console.log(`[EntityReplication-${entityType}] Skipping pull - too soon since last pull`);
+                return {
+                  documents: [],
+                  checkpoint: checkpointOrNull
+                };
+              }
+            }
+
             // Rate limiting
             const activeReqs = this.activeRequests.get(entityType) || 0;
             if (activeReqs >= this.maxConcurrentRequests) {
@@ -169,7 +186,7 @@ export class EntityReplicationService {
             this.activeRequests.set(entityType, activeReqs + 1);
 
             // Use larger limit for initial load (when no checkpoint)
-            const isInitialLoad = !checkpointOrNull?.updated_at;
+            const isInitialLoad = !checkpointOrNull || !checkpointOrNull?.updated_at;
             const limit = isInitialLoad
               ? 1000  // Large batch for initial load to get all breeds
               : (batchSize || options.batchSize || 50);  // Normal batch for incremental updates
@@ -213,9 +230,12 @@ export class EntityReplicationService {
               const newCheckpoint = documents.length > 0
                 ? {
                     updated_at: documents[documents.length - 1].updated_at,
-                    pulled: true
+                    pulled: true,
+                    lastPullAt: new Date().toISOString()
                   }
-                : { ...checkpointOrNull, pulled: true };
+                : checkpointOrNull
+                  ? { ...checkpointOrNull, pulled: true, lastPullAt: new Date().toISOString() }
+                  : { pulled: true, lastPullAt: new Date().toISOString() };
 
               console.log(`[EntityReplication-${entityType}] Pull completed`, {
                 documentsCount: documents.length,

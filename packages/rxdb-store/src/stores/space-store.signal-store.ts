@@ -162,10 +162,10 @@ class SpaceStore {
         await this.ensureCollection(entityType);
       }
       console.log('[SpaceStore] All collections created');
-      
+
       // Subscribe to app config changes
       // TODO: Add subscription to appConfig changes
-      
+
       this.initialized.value = true;
       const totalTime = performance.now() - startTime;
       console.log(`[SpaceStore] ✅ INITIALIZED IN ${totalTime.toFixed(0)}ms`);
@@ -419,6 +419,10 @@ class SpaceStore {
     // Check if store already exists
     if (this.entityStores.has(entityType)) {
       console.log(`[SpaceStore] Returning existing store for ${entityType}`);
+
+      // Also ensure collection still exists (in case it was deleted)
+      await this.ensureCollection(entityType);
+
       return this.entityStores.get(entityType) as EntityStore<T>;
     }
     
@@ -456,11 +460,19 @@ class SpaceStore {
     if (!this.db) {
       throw new Error('Database not initialized');
     }
-    
-    // Check if collection already exists
-    if (this.db.collections[entityType]) {
-      console.log(`[SpaceStore] Collection ${entityType} already exists`);
-      return;
+
+    // Check if collection already exists and is valid
+    const existingCollection = this.db.collections[entityType];
+    if (existingCollection && existingCollection.name === entityType) {
+      // Verify collection is actually working
+      try {
+        await existingCollection.count().exec();
+        console.log(`[SpaceStore] Collection ${entityType} already exists and is valid`);
+        return;
+      } catch (err) {
+        console.warn(`[SpaceStore] Collection ${entityType} exists but is broken, will recreate`);
+        // Collection is broken, continue to recreate it
+      }
     }
     
     // Generate schema from config
@@ -498,15 +510,14 @@ class SpaceStore {
       throw new Error('Database not initialized');
     }
 
-    // Check if collection already exists
+    // Always ensure collection exists (handles deleted/broken collections)
+    await this.ensureCollection(entityType);
+
+    // Get collection
     let collection = this.db.collections[entityType] as RxCollection<T> | undefined;
 
     if (!collection) {
-      // Collection should have been created during initialization
-      console.warn(`[SpaceStore] Collection ${entityType} was not created during initialization`);
-      // Try to create it now
-      await this.ensureCollection(entityType);
-      collection = this.db.collections[entityType] as RxCollection<T> | undefined;
+      console.error(`[SpaceStore] Failed to get/create collection ${entityType}`);
     }
 
     if (collection) {
@@ -521,10 +532,17 @@ class SpaceStore {
       // Store collection reference
       (entityStore as any).collection = collection;
       
+      // Unsubscribe previous subscription if exists
+      const existingSubscription = this.entitySubscriptions.get(entityType);
+      if (existingSubscription) {
+        existingSubscription.unsubscribe();
+      }
+
       // Subscribe to changes
       const subscription = collection.$.subscribe((changeEvent: any) => {
-        console.log(`[SpaceStore] ${entityType} change event:`, changeEvent.operation);
-        
+        // Commented out for less noise
+        // console.log(`[SpaceStore] ${entityType} change event:`, changeEvent.operation);
+
         if (changeEvent.operation === 'INSERT') {
           const data = changeEvent.documentData;
           if (data && data.id) {
@@ -542,7 +560,7 @@ class SpaceStore {
           }
         }
       });
-      
+
       this.entitySubscriptions.set(entityType, subscription);
       
     } else {

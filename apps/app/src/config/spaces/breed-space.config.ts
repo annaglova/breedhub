@@ -1,9 +1,8 @@
-import { 
-  createSpaceConfig, 
+import {
+  createSpaceConfig,
   DEFAULT_LIST_VIEW,
-  DEFAULT_GRID_VIEW, 
   FIELD_NAMES_SPACE_MINIMUM,
-  NAME_FILTER 
+  NAME_FILTER
 } from '@/core/space/config';
 import { SpaceConfig } from '@/core/space/types';
 import { Breed } from '@/services/api';
@@ -28,10 +27,6 @@ export const breedSpaceConfig: SpaceConfig<Breed> = createSpaceConfig({
     {
       ...DEFAULT_LIST_VIEW,
       component: () => import('@/components/breed/BreedListCard').then(m => ({ default: m.BreedListCard })),
-    },
-    {
-      ...DEFAULT_GRID_VIEW,
-      component: () => import('@/components/breed/BreedGridCard').then(m => ({ default: m.BreedGridCard })),
     },
   ],
   
