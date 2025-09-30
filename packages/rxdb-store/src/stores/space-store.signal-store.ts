@@ -421,15 +421,19 @@ class SpaceStore {
    * @returns Number of rows configured for this view, or default 50
    */
   getViewRows(entityType: string, viewType: string): number {
+    console.log(`[SpaceStore.getViewRows] Called with entityType="${entityType}", viewType="${viewType}"`);
+
     // Try exact match first
     let spaceConfig = this.spaceConfigs.get(entityType);
 
     // If not found, try case-insensitive match
     if (!spaceConfig) {
       const lowerEntityType = entityType.toLowerCase();
+      console.log(`[SpaceStore.getViewRows] Exact match not found, trying case-insensitive...`);
       for (const [key, config] of this.spaceConfigs.entries()) {
         if (key.toLowerCase() === lowerEntityType) {
           spaceConfig = config;
+          console.log(`[SpaceStore.getViewRows] Found case-insensitive match: "${key}"`);
           break;
         }
       }
@@ -440,13 +444,18 @@ class SpaceStore {
       return 50;
     }
 
-    // Try to find view config by full key: view_breeds_list
-    const viewKey = `view_${entityType}_${viewType}`;
-    const viewConfig = spaceConfig.views?.[viewKey];
+    console.log(`[SpaceStore.getViewRows] Space config found, views:`, spaceConfig.views ? Object.keys(spaceConfig.views) : 'none');
 
-    if (viewConfig?.rows) {
-      console.log(`[SpaceStore] Rows for ${entityType}/${viewType}: ${viewConfig.rows} (from view config)`);
-      return viewConfig.rows;
+    // Try to find view config by viewType inside views object
+    // views structure: { "config_view_123": { viewType: "list", rows: 60, ... }, ... }
+    if (spaceConfig.views) {
+      for (const [viewKey, viewConfig] of Object.entries(spaceConfig.views)) {
+        console.log(`[SpaceStore.getViewRows] Checking view ${viewKey}: viewType="${viewConfig.viewType}", rows=${viewConfig.rows}`);
+        if (viewConfig.viewType === viewType && viewConfig.rows) {
+          console.log(`[SpaceStore] ✅ Rows for ${entityType}/${viewType}: ${viewConfig.rows} (from view config ${viewKey})`);
+          return viewConfig.rows;
+        }
+      }
     }
 
     // Fallback to space level rows
