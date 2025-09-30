@@ -515,6 +515,24 @@ class SpaceStore {
   }
 
   /**
+   * Load more entities for pagination (manual pull)
+   * @param entityType - тип сутності
+   * @returns Promise<number> - кількість нових записів
+   */
+  async loadMore(entityType: string): Promise<number> {
+    console.log(`[SpaceStore] Loading more data for ${entityType}...`);
+
+    // Get rows from view config
+    const rows = this.getDefaultRows(entityType);
+
+    // Trigger manual pull
+    const count = await entityReplicationService.manualPull(entityType, rows);
+
+    console.log(`[SpaceStore] Loaded ${count} more records for ${entityType}`);
+    return count;
+  }
+
+  /**
    * Get or create an entity store for the given entity type
    */
   async getEntityStore<T extends BusinessEntity>(entityType: string): Promise<EntityStore<T> | null> {
@@ -528,9 +546,21 @@ class SpaceStore {
       return this.entityStores.get(entityType) as EntityStore<T>;
     }
     
-    // Check if we have config for this entity
-    if (!this.spaceConfigs.has(entityType)) {
+    // Check if we have config for this entity (case-insensitive)
+    let hasConfig = this.spaceConfigs.has(entityType);
+    if (!hasConfig) {
+      const lowerEntityType = entityType.toLowerCase();
+      for (const key of this.spaceConfigs.keys()) {
+        if (key.toLowerCase() === lowerEntityType) {
+          hasConfig = true;
+          break;
+        }
+      }
+    }
+
+    if (!hasConfig) {
       console.error(`[SpaceStore] No space config found for entity type: ${entityType}`);
+      console.error(`[SpaceStore] Available configs:`, Array.from(this.spaceConfigs.keys()));
       return null;
     }
     

@@ -81,36 +81,36 @@ class AppStore {
     if (this.initialized.value) {
       return;
     }
-    
+
     console.log('[AppStore] Initializing...');
-    
+
     try {
       this.loading.value = true;
       this.error.value = null;
-      
+
       // Get RxDB database
       const db = await getDatabase();
-      
+
       if (!db.app_config) {
         console.error('[AppStore] app_config collection not found');
         this.error.value = new Error('app_config collection not initialized');
         return;
       }
-      
+
       // Load app config
       const appConfigDoc = await db.app_config
         .findOne()
         .where('id')
         .eq(APP_CONFIG_ID)
         .exec();
-      
+
       if (appConfigDoc) {
         this.appConfig.value = appConfigDoc.toJSON() as AppConfig;
         console.log('[AppStore] Loaded app config:', APP_CONFIG_ID);
       } else {
         console.warn('[AppStore] App config not found:', APP_CONFIG_ID);
       }
-      
+
       // Subscribe to changes
       this.dbSubscription = db.app_config
         .findOne()
@@ -123,9 +123,9 @@ class AppStore {
             console.log('[AppStore] App config updated');
           }
         });
-      
+
       this.initialized.value = true;
-      
+
     } catch (err) {
       console.error('[AppStore] Failed to initialize:', err);
       this.error.value = err as Error;
