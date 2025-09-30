@@ -227,6 +227,25 @@ export class EntityStore<T extends { id: string }> {
   }
 
   /**
+   * Initialize totalFromServer from localStorage cache (synchronous)
+   * Called immediately on EntityStore creation for instant UI feedback
+   */
+  initTotalFromCache(entityType: string): void {
+    try {
+      const cached = localStorage.getItem(`totalCount_${entityType}`);
+      if (cached) {
+        const count = parseInt(cached, 10);
+        if (!isNaN(count) && count > 0) {
+          this.totalFromServer.value = count;
+          console.log(`[EntityStore-${entityType}] ⚡ Instant totalFromServer from cache: ${count}`);
+        }
+      }
+    } catch (e) {
+      console.warn(`[EntityStore-${entityType}] Failed to read cache:`, e);
+    }
+  }
+
+  /**
    * Remove a single entity
    */
   removeOne(id: string): void {

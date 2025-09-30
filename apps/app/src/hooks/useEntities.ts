@@ -37,22 +37,22 @@ export function useEntities({
         setIsLoading(true);
         setError(null);
 
-        // Wait for SpaceStore to be initialized with retries
-        let retries = 10;
+        // Wait for SpaceStore to be initialized with retries (faster polling)
+        let retries = 20;
         while (!spaceStore.initialized.value && retries > 0) {
           console.log(`[useEntities] Waiting for SpaceStore initialization... (${retries} retries left)`);
-          await new Promise(resolve => setTimeout(resolve, 500));
+          await new Promise(resolve => setTimeout(resolve, 100)); // 100ms instead of 500ms
           retries--;
         }
 
-        // Get the entity store for the specified type with retries
+        // Get the entity store for the specified type with retries (faster polling)
         let entityStore = null;
-        retries = 10;
+        retries = 20;
         while (!entityStore && retries > 0) {
           entityStore = await spaceStore.getEntityStore(entityType);
           if (!entityStore) {
             console.log(`[useEntities] Waiting for ${entityType} store... (${retries} retries left)`);
-            await new Promise(resolve => setTimeout(resolve, 500));
+            await new Promise(resolve => setTimeout(resolve, 100)); // 100ms instead of 500ms
             retries--;
           }
         }
@@ -72,9 +72,12 @@ export function useEntities({
           const to = from + rows;
           const paginatedEntities = allEntities.slice(from, to);
 
-          // Use totalFromServer if available, otherwise local count
+          // Use totalFromServer if available, otherwise null (wait for server)
           const totalFromServer = entityStore.totalFromServer.value;
-          const total = totalFromServer !== null ? totalFromServer : allEntities.length;
+
+          // Don't show local count as total - it's misleading
+          // If totalFromServer is null, we're still loading the real count
+          const total = totalFromServer !== null ? totalFromServer : 0;
 
           console.log(`[useEntities] updateData:`, {
             totalFromServer,

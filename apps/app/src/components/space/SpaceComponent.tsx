@@ -85,11 +85,11 @@ export function SpaceComponent<T extends { Id: string }>({
   // Get rows from view config (динамічно!)
   // Wait for config to be parsed (not DB collections - those come later)
   const rowsPerPage = useMemo(() => {
+    // Don't return default 50 until config is ready - this prevents flashing "50" on load
     if (!spaceStore.configReady.value) {
-      console.log(`[SpaceComponent] Config not ready yet, using default 50`);
-      return 50;
+      console.log(`[SpaceComponent] Config not ready yet, returning 60 as initial value`);
+      return 60; // Use 60 as default for breed/list instead of 50
     }
-
     const rows = spaceStore.getViewRows(config.entitySchemaName, viewMode);
     console.log(`[SpaceComponent] Using ${rows} rows for ${viewMode} view`);
     return rows;
@@ -250,7 +250,9 @@ export function SpaceComponent<T extends { Id: string }>({
                   }))}
                 />
               </div>
-              <EntitiesCounter entitiesCount={0} isLoading={true} total={0} />
+              {spaceStore.configReady.value && (
+                <EntitiesCounter entitiesCount={0} isLoading={true} total={0} rowsPerPage={rowsPerPage} />
+              )}
             </div>
           </div>
           <div className="flex-1 flex items-center justify-center">

@@ -536,6 +536,20 @@ class SpaceStore {
    * Get or create an entity store for the given entity type
    */
   async getEntityStore<T extends BusinessEntity>(entityType: string): Promise<EntityStore<T> | null> {
+    // Wait for config to be ready first (fast polling for instant response)
+    if (!this.configReady.value) {
+      console.log(`[SpaceStore] Waiting for config to be ready before creating ${entityType} store...`);
+      let retries = 50;
+      while (!this.configReady.value && retries > 0) {
+        await new Promise(resolve => setTimeout(resolve, 50)); // 50ms polling
+        retries--;
+      }
+      if (!this.configReady.value) {
+        console.error(`[SpaceStore] Config not ready after waiting for ${entityType}`);
+        return null;
+      }
+    }
+
     // Check if store already exists
     if (this.entityStores.has(entityType)) {
       console.log(`[SpaceStore] Returning existing store for ${entityType}`);
@@ -545,7 +559,7 @@ class SpaceStore {
 
       return this.entityStores.get(entityType) as EntityStore<T>;
     }
-    
+
     // Check if we have config for this entity (case-insensitive)
     let hasConfig = this.spaceConfigs.has(entityType);
     if (!hasConfig) {
@@ -566,19 +580,29 @@ class SpaceStore {
     
     // Create new entity store
     console.log(`[SpaceStore] Creating new store for ${entityType}`);
-    
+
     try {
       const entityStore = new EntityStore<T>();
       entityStore.setLoading(true);
-      
+
+      // ⚡ INSTANT: Load totalFromServer from localStorage cache synchronously
+      // This happens BEFORE any async operations (config wait, collection creation, replication)
+      entityStore.initTotalFromCache(entityType);
+
       // Store it
       this.entityStores.set(entityType, entityStore as EntityStore<BusinessEntity>);
-      
+
+      // Subscribe to totalCount updates from replication
+      entityReplicationService.onTotalCountUpdate(entityType, (newTotal) => {
+        console.log(`[SpaceStore] 🔔 Received totalCount update: ${newTotal} for ${entityType}`);
+        entityStore.setTotalFromServer(newTotal);
+      });
+
       // Initialize with RxDB collection
       await this.initializeEntityCollection(entityType, entityStore);
-      
+
       return entityStore;
-      
+
     } catch (err) {
       console.error(`[SpaceStore] Failed to create entity store for ${entityType}:`, err);
       return null;
@@ -1294,26 +1318,7 @@ class SpaceStore {
     if (success) {
       console.log(`[SpaceStore] ✅ Replication active for ${entityType}`);
       console.log(`[SpaceStore] Data will be loaded through replication pull handler`);
-
-      // Set totalFromServer immediately (from cache if available)
-      const totalCount = entityReplicationService.getTotalCount(entityType);
-      console.log(`[SpaceStore] getTotalCount returned:`, totalCount);
-
-      const entityStore = this.entityStores.get(entityType);
-      if (totalCount > 0 && entityStore) {
-        entityStore.setTotalFromServer(totalCount);
-        console.log(`[SpaceStore] 📊 Set totalFromServer=${totalCount} for ${entityType} (instant from cache)`);
-      } else {
-        console.log(`[SpaceStore] ⏳ totalCount is 0, will update when pull completes`);
-      }
-
-      // Subscribe to totalCount updates from replication
-      entityReplicationService.onTotalCountUpdate(entityType, (newTotal) => {
-        console.log(`[SpaceStore] 🔔 Received totalCount update: ${newTotal} for ${entityType}`);
-        if (entityStore) {
-          entityStore.setTotalFromServer(newTotal);
-        }
-      });
+      // Note: totalFromServer setup moved to getEntityStore() for instant cache access
     } else {
       console.error(`[SpaceStore] ❌ Failed to setup replication for ${entityType}`);
     }
