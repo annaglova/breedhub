@@ -2,18 +2,54 @@ import { BreedProgressLight } from "@/components/shared/BreedProgressLight";
 import { EntityListCardWrapper } from "@/components/shared/EntityListCardWrapper";
 import { NoteFlag } from "@/components/shared/NoteFlag";
 import { TopPatrons } from "@/components/shared/TopPatrons";
-import { SpaceListCardProps } from "@/core/space/types";
-import { Breed } from "@/services/api";
 
-interface BreedListCardProps extends SpaceListCardProps<Breed> {
-  entity: Breed;
+// Interface for real data from RxDB
+interface BreedEntity {
+  id?: string;
+  Id?: string;
+  name?: string;
+  Name?: string;
+  measurements?: {
+    rating?: number;
+    kennel_count?: number;
+    patron_count?: number;
+    pet_profile_count?: number;
+    achievement_progress?: number;
+    total_payment_rating?: number;
+  };
+  avatar_url?: string;
+  Avatar?: string;
+  [key: string]: any;
+}
+
+interface BreedListCardProps {
+  entity: BreedEntity;
+  selected?: boolean;
+  onClick?: () => void;
 }
 
 export function BreedListCard({
-  entity: breed,
+  entity,
   selected = false,
   onClick,
 }: BreedListCardProps) {
+  // Extract data from the entity with fallbacks
+  const breed = {
+    Id: entity.Id || entity.id,
+    Name: entity.Name || entity.name || 'Unknown',
+    Avatar: entity.Avatar || entity.avatar_url,
+    PetProfileCount: entity.measurements?.pet_profile_count || 0,
+    KennelCount: entity.measurements?.kennel_count || 0,
+    PatronCount: entity.measurements?.patron_count || 0,
+    AchievementProgress: entity.measurements?.achievement_progress || 0,
+    // Hardcoded values for components we're keeping visual
+    HasNotes: Math.random() > 0.7, // Random for visual testing
+    TopPatrons: entity.measurements?.patron_count > 0 ? [
+      { id: '1', name: 'Top Patron 1', avatar: null },
+      { id: '2', name: 'Top Patron 2', avatar: null },
+      { id: '3', name: 'Top Patron 3', avatar: null },
+    ].slice(0, Math.min(3, Math.floor(Math.random() * 4))) : []
+  };
   return (
     <EntityListCardWrapper
       selected={selected}
@@ -71,13 +107,13 @@ export function BreedListCard({
               <span className="hidden min-[400px]:inline">Patrons - {breed.PatronCount || 0}</span>
             </div>
 
-            {/* Progress indicator */}
+            {/* Progress indicator - hardcoded for now */}
             <BreedProgressLight breed={breed} className="ml-auto" />
           </div>
         </div>
       </div>
 
-      {/* Top Patrons - absolute positioned, hidden on small screens */}
+      {/* Top Patrons - hardcoded for visual, hidden on small screens */}
       {breed.TopPatrons && breed.TopPatrons.length > 0 && (
         <TopPatrons
           patrons={breed.TopPatrons}

@@ -52,12 +52,7 @@ class DatabaseService {
 
   public async getDatabase(): Promise<AppDatabase> {
     if (this.db) {
-      console.log('[DatabaseService] Returning cached database');
-      console.log('[DatabaseService] All DB keys:', Object.keys(this.db));
-      console.log('[DatabaseService] DB collections object:', this.db.collections);
-      console.log('[DatabaseService] Has breeds?:', !!this.db.breeds);
-      console.log('[DatabaseService] Has books?:', !!this.db.books);
-      console.log('[DatabaseService] Has app_config?:', !!this.db.app_config);
+      // console.log('[DatabaseService] Returning cached database');
       return this.db;
     }
 

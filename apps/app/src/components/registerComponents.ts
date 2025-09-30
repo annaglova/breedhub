@@ -2,7 +2,6 @@ import { registerComponent, setFallbackComponent } from './space/componentRegist
 
 // Import all card components
 import { BreedListCard } from './breed/BreedListCard';
-import { BreedGridCard } from './breed/BreedGridCard';
 import { GenericListCard } from './space/GenericListCard';
 
 // Register all components that can be used in views
@@ -17,7 +16,6 @@ export function registerAllComponents() {
 
   // Breed components
   registerComponent('BreedListCard', BreedListCard);
-  registerComponent('BreedGridCard', BreedGridCard);
 
   // Future components can be added here
   // registerComponent('AnimalListCard', AnimalListCard);

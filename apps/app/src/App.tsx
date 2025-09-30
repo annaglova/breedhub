@@ -27,21 +27,28 @@ function AppContent() {
   
   // Initialize SpaceStore when appStore is ready
   useEffect(() => {
+    console.log('[App] ============== APP INITIALIZATION START ==============');
     console.log('[App] useEffect for SpaceStore initialization at', new Date().toISOString());
-    
+
     const initSpaceStore = async () => {
       const startTime = performance.now();
-      console.log('[App] Checking conditions:', {
+      console.log('[App] InitSpaceStore called, checking conditions:', {
         appStoreInitialized: appStore.initialized.value,
         spaceStoreInitialized: spaceStore.initialized.value,
         time: new Date().toISOString()
       });
-      
+
       // Wait for appStore to be ready
       if (appStore.initialized.value && !spaceStore.initialized.value) {
-        console.log('[App] Calling spaceStore.initialize() at', new Date().toISOString());
+        console.log('[App] CONDITIONS MET! Calling spaceStore.initialize() at', new Date().toISOString());
         await spaceStore.initialize();
         console.log('[App] spaceStore.initialize() completed in', performance.now() - startTime, 'ms at', new Date().toISOString());
+      } else {
+        console.log('[App] CONDITIONS NOT MET:', {
+          appStoreInitialized: appStore.initialized.value,
+          spaceStoreInitialized: spaceStore.initialized.value,
+          reason: !appStore.initialized.value ? 'AppStore not initialized' : 'SpaceStore already initialized'
+        });
       }
     };
     
