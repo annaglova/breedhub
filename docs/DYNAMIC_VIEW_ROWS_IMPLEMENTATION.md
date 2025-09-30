@@ -1,274 +1,535 @@
-# Dynamic View Rows Implementation & Data Sync Strategy
+# Dynamic View Rows Implementation & Smart Data Loading Strategy
 
-## ПОТОЧНИЙ СТАН ПРОЕКТУ
+## 🎯 ФІЛОСОФІЯ: ЗАВАНТАЖУЄМО ТІЛЬКИ ТЕ, ЩО ПОТРІБНО
 
-### ✅ Що вже зроблено
+**Offline-first НЕ означає "завантажити все"!**
 
-#### 1. Динамічна генерація схем RxDB
-- **Реалізовано**: Повністю динамічна генерація схем з конфігурації
-- **Файл**: `/packages/rxdb-store/src/stores/space-store.signal-store.ts`
-- **Функція**: `generateSchemaForEntity()` - lines 549-680
-- Схема генерується з:
-  - `fields` - основні поля сутності
-  - `sort_fields` - поля для сортування
-  - `filter_fields` - поля для фільтрації
+У нас є таблиці з **9+ мільйонів записів**. Завантажувати все на клієнт = безглуздя.
 
-#### 2. ~~Універсальний лоадер даних~~ → Замінено на EntityReplicationService
-- **ВИДАЛЕНО**: Старий `loadEntityData()` метод
-- **НОВА РЕАЛІЗАЦІЯ**: `EntityReplicationService` з повною двосторонньою реплікацією
-- **Файл**: `/packages/rxdb-store/src/services/entity-replication.service.ts`
-- Функції:
-  - Автоматичний pull даних з Supabase через checkpoint механізм
-  - Push локальних змін в Supabase
-  - Realtime підписки на зміни
-  - Conflict resolution (last-write-wins)
-  - Динамічний мапінг `deleted` ↔ `_deleted`
+### ✅ Правильний підхід:
+- Завантажуємо тільки те, що користувач бачить
+- Rows з view конфігу визначають розмір batch для реплікації
+- Фільтрація і сортування на сервері (Supabase)
+- RxDB = smart кеш, не сховище всієї БД
 
-#### 3. Виправлення UI конфігурацій
-- ViewChanger правильно читає конфігурацію з БД
-- SpaceComponent коректно відображає UI елементи
-- Reactive signals для динамічних конфігурацій
+---
 
-#### 4. Повноцінна реплікація даних (НОВЕ!)
-- **Реалізовано**: Універсальний `EntityReplicationService`
-- **Файл**: `/packages/rxdb-store/src/services/entity-replication.service.ts`
-- Можливості:
-  - ✅ Двостороння синхронізація RxDB ↔ Supabase
-  - ✅ Checkpoint-based інкрементальне завантаження
-  - ✅ Realtime оновлення через Supabase channels
-  - ✅ Обробка конфліктів (last-write-wins)
-  - ✅ Автоматичне завантаження всіх даних при першому запуску
-  - ✅ Batch processing (100 записів за раз)
-  - ✅ Rate limiting для запобігання перевантаження
+## ПОТОЧНИЙ СТАН ПРОЕКТУ (2025-09-30)
 
-### ⚠️ Де залишився хардкод
+### ✅ Що вже працює:
 
-1. ~~**Виклик loadEntityData при ініціалізації**~~ ✅ ВИДАЛЕНО
-   - Замінено на `setupEntityReplication('breed')`
-   - Тепер використовується EntityReplicationService
+1. **EntityReplicationService** - двостороння реплікація RxDB ↔ Supabase
+   - Checkpoint-based інкрементальне завантаження
+   - Realtime оновлення через Supabase channels
+   - Conflict resolution (last-write-wins)
+   - **ПРОБЛЕМА:** Завантажує тільки 100 записів і зупиняється (треба виправити)
 
-2. **Кількість rows в SpaceComponent**
-   - Файл: `/apps/app/src/components/space/SpaceComponent.tsx`
-   - Рядки: 78-79 - `rows: 50` захардкоджено
+2. **Динамічна генерація RxDB схем** з app_config
+3. **BreedListCard працює з реальними даними** через useEntities hook
+4. **SpaceStore** - універсальний store для всіх бізнес-сутностей
+5. **Reactive UI** через Preact Signals
 
-3. **Mock дані в useBreeds**
-   - Файл: `/apps/app/src/hooks/useBreeds.ts`
-   - Використовує mock дані замість RxDB
+### ❌ Що НЕ працює:
 
-## ДЕТАЛЬНИЙ ПЛАН РОЗВИТКУ
+1. **Rows захардкоджено 50** в SpaceComponent - має братись з view конфігу
+2. **Replication batch = 100 хардкод** - має залежати від rows з view конфігу
+3. **Total count неточний** - треба брати з Supabase metadata
+4. **Реплікація завантажує тільки 100 і зупиняється** - треба виправити логіку
 
-### ✅ ФАЗА 1: ПОКРАЩЕНИЙ ЛОАДІНГ З РЕПЛІКАЦІЄЮ (ЗАВЕРШЕНО!)
+---
 
-#### ✅ Завдання 1.1: Базова двостороння синхронізація
-**Статус**: ЗАВЕРШЕНО
-**Мета**: Реалізувати надійну синхронізацію з обробкою конфліктів
+## 🏗️ ПРАВИЛЬНА АРХІТЕКТУРА
 
-**Файли для створення/зміни:**
-```typescript
-// /packages/rxdb-store/src/services/entity-replication.service.ts
-export class EntityReplicationService {
-  private replicationStates: Map<string, RxReplicationState> = new Map();
+### Як має працювати:
 
-  async setupReplication(entityType: string, options: ReplicationOptions) {
-    // 1. Push handler - відправка змін в Supabase
-    const pushHandler = async (changeEvent) => {
-      const { newDocument, assumedMasterState } = changeEvent;
-      // Відправити зміни в Supabase
-      // Обробити конфлікти версій
-    };
-
-    // 2. Pull handler - отримання змін з Supabase
-    const pullHandler = async (lastCheckpoint) => {
-      // Отримати зміни з Supabase з останньої синхронізації
-      // Використати updated_at для checkpoint
-    };
-
-    // 3. Конфлікт резолюція
-    const conflictHandler = async (conflict) => {
-      // Стратегія: last-write-wins або custom merge
-      // Базуватись на updated_at або версії
-    };
-  }
-}
+```
+┌─────────────────────────────────────────────┐
+│  View Config (app_config)                   │
+│  view_breeds_list: { rows: 50 }             │
+│  view_breeds_grid: { rows: 20 }             │
+└─────────────┬───────────────────────────────┘
+              ↓
+┌─────────────────────────────────────────────┐
+│  SpaceStore.getViewRows()                   │
+│  → повертає 50 для list, 20 для grid       │
+└─────────────┬───────────────────────────────┘
+              ↓
+┌─────────────────────────────────────────────┐
+│  EntityReplicationService                   │
+│  batchSize = rows (50 або 20)               │
+│  ↓                                           │
+│  Завантажує з Supabase:                     │
+│  - Initial load: rows * 2 (100 або 40)     │
+│  - Incremental: rows (50 або 20)            │
+│  - + total count metadata                   │
+└─────────────┬───────────────────────────────┘
+              ↓
+┌─────────────────────────────────────────────┐
+│  RxDB (smart кеш)                           │
+│  Зберігає тільки завантажені записи        │
+│  NOT entire table!                          │
+└─────────────┬───────────────────────────────┘
+              ↓
+┌─────────────────────────────────────────────┐
+│  UI (SpaceComponent)                        │
+│  Показує rows записів (50 або 20)          │
+│  Total: показує з metadata (9 млн)          │
+└─────────────────────────────────────────────┘
 ```
 
-**Кроки реалізації:**
-1. Створити EntityReplicationService на основі books-replication.service
-2. Додати обробку конфліктів (last-write-wins за updated_at)
-3. Реалізувати checkpoint механізм для інкрементального завантаження
-4. Додати retry логіку для network failures
-5. Інтегрувати з SpaceStore
+### Ключові принципи:
 
-#### ✅ Завдання 1.2: Realtime підписки
-**Статус**: ЗАВЕРШЕНО
-**Мета**: Отримувати оновлення в реальному часі
+1. **View config визначає все:**
+   - Скільки показати (UI rows)
+   - Скільки завантажити (replication batchSize)
+   - Різні views = різні batch sizes
 
-```typescript
-// Використати Supabase Realtime
-async setupRealtimeSync(entityType: string) {
-  const channel = supabase
-    .channel(`${entityType}_changes`)
-    .on('postgres_changes',
-      { event: '*', schema: 'public', table: entityType },
-      (payload) => this.handleRealtimeChange(payload)
-    )
-    .subscribe();
-}
-```
+2. **Реплікація = слуга UI:**
+   - Не завантажує більше, ніж потрібно для UI
+   - batchSize залежить від view config
+   - Initial load = rows * 2 (для плавного скролу)
 
-#### ✅ Завдання 1.3: Оптимістичні оновлення
-**Статус**: ЗАВЕРШЕНО (через RxDB)
-**Мета**: Миттєва реакція UI без очікування серверу
+3. **RxDB = кеш, не БД:**
+   - Зберігає тільки те, що завантажили
+   - При зміні фільтрів - нові дані з Supabase
+   - Обмежений розмір (наприклад, max 5000 записів)
 
-```typescript
-// При локальній зміні:
-1. Одразу оновити RxDB (оптимістично)
-2. Відправити на сервер в фоні
-3. При помилці - відкатити зміни
-4. При конфлікті - вирішити через conflictHandler
-```
+4. **Total count = з сервера:**
+   - Metadata з Supabase (count: 'exact')
+   - Показуємо "50 of 9,234,567"
+   - Локальний count НЕ використовуємо для total
 
-### ФАЗА 2: ДИНАМІЧНЕ ЗАВАНТАЖЕННЯ ЧЕРЕЗ КОНФІГ (ПРІОРИТЕТ 2)
+---
 
-#### Завдання 2.1: Читання rows з view конфігурації
-**Файл**: `/packages/rxdb-store/src/stores/space-store.signal-store.ts`
+## 📝 ПЛАН РЕАЛІЗАЦІЇ
+
+### ФАЗА 1: Динамічні rows з view конфігу ⏳
+
+#### 1.1. SpaceStore - метод getViewRows()
+**Файл:** `/packages/rxdb-store/src/stores/space-store.signal-store.ts`
 
 ```typescript
-// Додати методи:
-getViewConfig(entityType: string, viewType: string): ViewConfig | null {
+/**
+ * Get rows per page for specific view
+ * This determines BOTH UI pagination AND replication batch size
+ */
+getViewRows(entityType: string, viewType: string): number {
   const spaceConfig = this.spaceConfigs.get(entityType);
-  return spaceConfig?.views?.[viewType];
-}
 
-getRowsForView(entityType: string, viewType: string): number {
-  const viewConfig = this.getViewConfig(entityType, viewType);
-  return viewConfig?.rows || 50; // default fallback
+  // Try full key: view_breeds_list
+  const viewKey = `view_${entityType}_${viewType}`;
+  const viewConfig = spaceConfig?.views?.[viewKey];
+
+  if (viewConfig?.rows) {
+    console.log(`[SpaceStore] Rows for ${entityType}/${viewType}: ${viewConfig.rows}`);
+    return viewConfig.rows;
+  }
+
+  // Fallback to space level
+  if (spaceConfig?.rows) {
+    console.log(`[SpaceStore] Using space-level rows for ${entityType}: ${spaceConfig.rows}`);
+    return spaceConfig.rows;
+  }
+
+  // Final fallback
+  console.warn(`[SpaceStore] No rows config found for ${entityType}/${viewType}, using default: 50`);
+  return 50;
 }
 ```
 
-#### Завдання 2.2: Інтеграція з SpaceComponent
-**Файл**: `/apps/app/src/components/space/SpaceComponent.tsx`
+**Чому це важливо:**
+- Один джерело правди для rows
+- UI і реплікація синхронізовані
+- Різні views можуть мати різні batch sizes (grid = 20, list = 50)
 
+#### 1.2. SpaceComponent - використати динамічні rows
+**Файл:** `/apps/app/src/components/space/SpaceComponent.tsx`
+
+**Рядки 78-81 БУЛО:**
 ```typescript
-// Замінити хардкод:
+const { data } = useEntitiesHook({
+  rows: 50,  // ❌ ХАРДКОД
+  from: page * 50,
+});
+```
+
+**СТАЄ:**
+```typescript
+// Get current view mode
 const viewMode = searchParams.get("view") || config.viewConfig[0].id;
-const rowsPerPage = spaceStore.getRowsForView(
-  config.entitySchemaName,
-  viewMode
+
+// Get rows from view config (динамічно!)
+const rowsPerPage = useMemo(() =>
+  spaceStore.getViewRows(config.entitySchemaName, viewMode),
+  [config.entitySchemaName, viewMode]
 );
 
-const { data } = useEntitiesHook({
-  rows: rowsPerPage, // динамічно з конфігу
+console.log(`[SpaceComponent] Using ${rowsPerPage} rows for ${viewMode} view`);
+
+// Use dynamic rows for data loading
+const { data, isLoading, error, isFetching } = useEntitiesHook({
+  rows: rowsPerPage,  // ✅ ДИНАМІЧНО З КОНФІГУ
   from: page * rowsPerPage,
 });
 ```
 
-#### Завдання 2.3: Пагінація з різними rows
-- Скидати page при зміні view
-- Перераховувати offset при новому rows значенні
-- Оптимізувати кешування для різних views
-
-### ФАЗА 3: UI ІНТЕГРАЦІЯ З RXDB (ПРІОРИТЕТ 3)
-
-#### Завдання 3.1: Заміна mock даних на RxDB
-**Файл**: `/apps/app/src/hooks/useBreeds.ts`
-
+#### 1.3. Скидання page при зміні view
+**Додати useEffect:**
 ```typescript
-export function useBreeds(params: { rows?: number; from?: number }) {
-  const [data, setData] = useState([]);
-  const [total, setTotal] = useState(0);
+// Reset pagination when view changes
+useEffect(() => {
+  console.log(`[SpaceComponent] View changed to ${viewMode}, resetting page`);
+  setPage(0);
+  setAllEntities([]); // Clear loaded entities
+}, [viewMode]);
+```
 
-  useEffect(() => {
-    // Підписатися на RxDB колекцію
-    const sub = spaceStore.db?.breed
-      ?.find()
-      .skip(params.from || 0)
-      .limit(params.rows || 50)
-      .$.subscribe(docs => {
-        setData(docs.map(d => d.toJSON()));
-      });
+**Чому це потрібно:**
+- Grid показує 20 записів, list - 50
+- При переключенні треба скинути пагінацію
+- Інакше offset буде невірний
 
-    // Отримати total count
-    spaceStore.db?.breed?.count().exec()
-      .then(count => setTotal(count));
+---
 
-    return () => sub?.unsubscribe();
-  }, [params.from, params.rows]);
+### ФАЗА 2: Реплікація залежить від rows ⏳
 
-  return { data: { entities: data, total }, isLoading: false };
+#### 2.1. EntityReplicationService - приймати batchSize з параметрів
+**Файл:** `/packages/rxdb-store/src/services/entity-replication.service.ts`
+
+**ПОТОЧНИЙ КОД (рядок 189-192):**
+```typescript
+const isInitialLoad = !checkpointOrNull || !checkpointOrNull?.updated_at;
+const limit = isInitialLoad
+  ? 1000  // ❌ ХАРДКОД - завантажує все
+  : (batchSize || options.batchSize || 50);
+```
+
+**НОВИЙ КОД:**
+```typescript
+const isInitialLoad = !checkpointOrNull || !checkpointOrNull?.updated_at;
+
+// Use batchSize from options (which comes from view config rows)
+const configuredBatchSize = options.batchSize || 50;
+
+const limit = isInitialLoad
+  ? configuredBatchSize * 2  // ✅ Initial load = rows * 2 (для smooth scroll)
+  : configuredBatchSize;       // ✅ Incremental = rows
+
+console.log(`[EntityReplication-${entityType}] Pull limit:`, {
+  isInitialLoad,
+  limit,
+  configuredBatchSize,
+  checkpoint: checkpointOrNull
+});
+```
+
+**Чому rows * 2 для initial load:**
+- Дає запас для плавного скролу
+- Користувач не чекає на другий batch одразу
+- Все одно це не вся таблиця (50 * 2 = 100, не 9 млн!)
+
+#### 2.2. Додати metadata для total count
+
+**Додати в EntityReplicationService:**
+```typescript
+private entityMetadata = new Map<string, {
+  total: number;
+  lastSync: string;
+  lastPullCheckpoint?: string;
+}>();
+
+/**
+ * Get total count from server for entity type
+ */
+getTotalCount(entityType: string): number {
+  return this.entityMetadata.get(entityType)?.total || 0;
 }
 ```
 
-#### Завдання 3.2: Reactive оновлення через Signals
-- Використати Preact Signals для реактивності
-- Автоматичне оновлення UI при змінах в RxDB
-- Оптимізація ререндерів
+**Змінити pullHandler для отримання count:**
+```typescript
+// Get data WITH total count
+const { data, error, count } = await this.supabase
+  .from(entityType)
+  .select('*', { count: 'exact', head: false })  // ← count: 'exact'
+  .order('updated_at', { ascending: true })
+  .gt('updated_at', checkpointDate)
+  .limit(limit);
 
-#### Завдання 3.3: VirtualSpaceView оптимізація
-- Динамічні itemHeight для різних views
-- Адаптивний overscan
-- Збереження scroll позиції
+if (error) {
+  throw error;
+}
 
-## ПРІОРИТЕТНІСТЬ ЗАДАЧ
+// Save metadata with total count
+this.entityMetadata.set(entityType, {
+  total: count || 0,  // ← TOTAL з Supabase
+  lastSync: new Date().toISOString(),
+  lastPullCheckpoint: checkpointDate
+});
 
-### Критичні (блокують продакшн):
-1. **EntityReplicationService** - без цього немає синхронізації
-2. **Conflict resolution** - критично для multi-user
-3. **Заміна mock на RxDB** - реальні дані
-
-### Важливі (покращують UX):
-1. **Динамічні rows** - оптимізація performance
-2. **Realtime sync** - миттєві оновлення
-3. **Optimistic updates** - швидкий відгук
-
-### Бажані (nice to have):
-1. **Offline mode** - робота без інтернету
-2. **Sync status UI** - індикатор синхронізації
-3. **Conflict UI** - ручне вирішення конфліктів
-
-## ТЕХНІЧНА АРХІТЕКТУРА
-
-```
-┌─────────────────┐
-│   Supabase DB   │
-└────────┬────────┘
-         │ Realtime + REST
-┌────────▼────────┐
-│ Replication Svc │ ← Conflict Resolution
-└────────┬────────┘
-         │
-┌────────▼────────┐
-│   RxDB Store    │ ← Local IndexedDB
-└────────┬────────┘
-         │ Reactive Signals
-┌────────▼────────┐
-│  UI Components  │
-└─────────────────┘
+console.log(`[EntityReplication-${entityType}] Total in Supabase: ${count}, loaded: ${data?.length || 0}`);
 ```
 
-## МЕТРИКИ УСПІХУ
+#### 2.3. SpaceStore - передати rows як batchSize
+**Файл:** `/packages/rxdb-store/src/stores/space-store.signal-store.ts`
 
-- [x] Дані синхронізуються між клієнтами < 1 сек (через Realtime)
-- [x] Конфлікти вирішуються автоматично в 95% випадків (last-write-wins)
-- [x] UI оновлюється миттєво при локальних змінах (RxDB reactive)
-- [x] Працює offline з подальшою синхронізацією (RxDB + replication)
-- [ ] Views завантажують правильну кількість rows (наступна фаза)
-- [x] Performance: Initial load < 500ms (batch по 100)
-- [ ] Memory: < 100MB для 10k записів (потребує тестування)
+**ПОТОЧНИЙ КОД (рядок 1147-1152):**
+```typescript
+const success = await entityReplicationService.setupReplication(
+  entityType,
+  collection,
+  schema,
+  {
+    batchSize: 100,  // ❌ ХАРДКОД
+    pullInterval: 5000,
+```
 
-## НАСТУПНІ КРОКИ
+**НОВИЙ КОД:**
+```typescript
+// Get rows from view config for this entity
+// Use first view config as default for replication batch size
+const viewTypes = spaceConfig?.views ? Object.keys(spaceConfig.views) : [];
+const firstViewKey = viewTypes[0];
+const defaultRows = firstViewKey
+  ? spaceConfig.views[firstViewKey]?.rows
+  : spaceConfig?.rows || 50;
 
-1. ~~**Зараз**: Почати з EntityReplicationService (ФАЗА 1.1)~~ ✅ ЗАВЕРШЕНО
-2. ~~**Цей тиждень**: Базова синхронізація + conflict resolution~~ ✅ ЗАВЕРШЕНО
-3. **Наступний крок**: Динамічні rows + UI інтеграція (ФАЗА 2)
-4. **Далі**: Заміна mock даних на RxDB в useBreeds
-5. **Потім**: Тестування з іншими entity types
+console.log(`[SpaceStore] Setting up replication for ${entityType} with batchSize: ${defaultRows}`);
 
-## ПОСИЛАННЯ НА КОД
+const success = await entityReplicationService.setupReplication(
+  entityType,
+  collection,
+  schema,
+  {
+    batchSize: defaultRows,  // ✅ ДИНАМІЧНО з view конфігу
+    pullInterval: 5000,
+```
 
-- SpaceStore: `/packages/rxdb-store/src/stores/space-store.signal-store.ts`
-- **EntityReplicationService**: `/packages/rxdb-store/src/services/entity-replication.service.ts` (НОВИЙ!)
-- SpaceComponent: `/apps/app/src/components/space/SpaceComponent.tsx`
-- ~~Books Replication (приклад)~~: Замінено на EntityReplicationService
-- UseBreeds Hook: `/apps/app/src/hooks/useBreeds.ts` (ще використовує mock)
-- ~~SupabaseLoaderService~~: **ВИДАЛЕНО** - замінено на EntityReplicationService
+**Логіка вибору batchSize:**
+- Беремо rows з першого view конфігу (зазвичай list view)
+- Якщо немає - беремо з space level
+- Fallback - 50
+
+---
+
+### ФАЗА 3: Total count через EntityStore ⏳
+
+#### 3.1. EntityStore - додати totalFromServer signal
+**Файл:** `/packages/rxdb-store/src/stores/base/entity-store.ts`
+
+```typescript
+export class EntityStore<T extends { id: string }> {
+  // Existing signals
+  protected ids = signal<string[]>([]);
+  protected entities = signal<Map<string, T>>(new Map());
+
+  // NEW: Total count from server (metadata)
+  totalFromServer = signal<number>(0);
+
+  // Existing computed
+  entityMap = computed(() => this.entities.value);
+  entityList = computed(() =>
+    this.ids.value.map(id => this.entities.value.get(id)!).filter(Boolean)
+  );
+
+  // Local total (що завантажено в RxDB)
+  total = computed(() => this.ids.value.length);
+
+  // NEW: Set total from server metadata
+  setTotalFromServer(total: number) {
+    this.totalFromServer.value = total;
+    console.log(`[EntityStore] Total from server: ${total}`);
+  }
+}
+```
+
+#### 3.2. SpaceStore - прокинути metadata до EntityStore
+**Після setupEntityReplication додати:**
+```typescript
+// Update entity store with server total count
+const updateTotalCount = () => {
+  const total = entityReplicationService.getTotalCount(entityType);
+  if (total > 0 && entityStore) {
+    entityStore.setTotalFromServer(total);
+    console.log(`[SpaceStore] Updated ${entityType} total: ${total}`);
+  }
+};
+
+// Initial update
+updateTotalCount();
+
+// Periodic updates (кожні 30 секунд)
+setInterval(updateTotalCount, 30000);
+```
+
+#### 3.3. useEntities - повертати totalFromServer
+**Файл:** `/apps/app/src/hooks/useEntities.ts`
+
+```typescript
+return {
+  data: {
+    entities: paginatedEntities,
+    // Використовуємо server total якщо є, інакше локальний
+    total: entityStore.totalFromServer.value || localTotal
+  },
+  isLoading,
+  error: null,
+  isFetching: false,
+};
+```
+
+**Результат:**
+- EntitiesCounter показує: "Showing 50 of 9,234,567"
+- 50 = що завантажено (з RxDB)
+- 9,234,567 = що є в Supabase (з metadata)
+
+---
+
+### ФАЗА 4: Виправити реплікацію (щоб не зупинялась) 🔧
+
+**ПРОБЛЕМА:** Зараз завантажує 100 і зупиняється
+
+**ПРИЧИНА:** Checkpoint не оновлюється правильно
+
+**РІШЕННЯ:** Перевірити логіку в pullHandler:
+
+```typescript
+// Має повертати новий checkpoint після кожного pull
+return {
+  documents: mappedDocuments,
+  checkpoint: {
+    updated_at: lastDocument.updated_at,  // ← Важливо!
+    lastPullAt: new Date().toISOString(),
+    pulled: mappedDocuments.length > 0
+  }
+};
+```
+
+**Це окрема задача** - виправимо після того як зробимо динамічні rows.
+
+---
+
+## 🎯 МАЙБУТНЄ: Фільтрація і сортування (Phase N)
+
+Коли дійдемо до фільтрів і сортування:
+
+### Smart Loading з контекстом:
+```typescript
+// Реплікація отримує контекст запиту
+const context = {
+  filters: { breed: "Golden Retriever", age: ">2" },
+  sort: { field: "name", order: "asc" },
+  rows: 50
+};
+
+// Завантажує ТІЛЬКИ відфільтровані дані
+const { data, count } = await supabase
+  .from('animals')
+  .select('*', { count: 'exact' })
+  .eq('breed', 'Golden Retriever')
+  .gt('age', 2)
+  .order('name', { ascending: true })
+  .limit(50);
+
+// Total = кількість після фільтрів (наприклад, 1,234 з 9 млн)
+```
+
+**Переваги:**
+- Завантажуємо тільки релевантні дані
+- Фільтрація на сервері (швидко)
+- RxDB кешує результати запиту
+- При зміні фільтрів - новий запит
+
+---
+
+## ✅ МЕТРИКИ УСПІХУ
+
+### Поточний стан:
+- [x] Реплікація працює
+- [x] Realtime sync працює
+- [x] BreedListCard показує реальні дані
+- [ ] Динамічні rows з view конфігу
+- [ ] Rows впливають на replication batchSize
+- [ ] Total count з Supabase metadata
+- [ ] Реплікація не зупиняється на 100
+
+### Після реалізації:
+- [ ] List view завантажує 50, grid - 20 (динамічно)
+- [ ] EntitiesCounter: "Showing 50 of 452" (точно)
+- [ ] При зміні view - коректна пагінація
+- [ ] Реплікація завантажує rows * 2 initial, потім rows incremental
+- [ ] RxDB НЕ містить всю таблицю, тільки завантажене
+
+### Performance targets:
+- [ ] Initial load < 500ms (rows * 2 batch)
+- [ ] View switch < 200ms (з кешу)
+- [ ] Memory: < 50MB для 1000 записів
+- [ ] НЕ 9 млн записів на клієнті! ❌
+
+---
+
+## 🚨 ВАЖЛИВІ ПРИНЦИПИ
+
+1. **View config = single source of truth для rows**
+2. **Rows визначають UI pagination AND replication batch**
+3. **RxDB = smart кеш, НЕ повна копія БД**
+4. **Total count ЗАВЖДИ з Supabase, НЕ з RxDB**
+5. **Різні views можуть мати різні batch sizes**
+6. **Initial load = rows * 2, incremental = rows**
+7. **Фільтрація і сортування на сервері, НЕ на клієнті**
+
+---
+
+## 📊 ПОРІВНЯННЯ ПІДХОДІВ
+
+### ❌ НЕПРАВИЛЬНО (старий підхід):
+```
+Replication: завантажити всю таблицю (9 млн)
+  ↓
+RxDB: зберегти все (crash browser)
+  ↓
+UI: показати 50 (з 9 млн в пам'яті)
+```
+
+### ✅ ПРАВИЛЬНО (новий підхід):
+```
+View config: rows = 50
+  ↓
+Replication: завантажити 100 (50 * 2) initial, потім 50 incremental
+  ↓
+RxDB: зберегти тільки завантажене (~200-500 записів)
+  ↓
+UI: показати 50
+Total: показати 9 млн (з metadata)
+```
+
+---
+
+## 🔗 ФАЙЛИ ДЛЯ ЗМІНИ
+
+1. **SpaceStore** (`space-store.signal-store.ts`)
+   - ✅ Додати `getViewRows()`
+   - ✅ Передати rows як batchSize в setupReplication
+
+2. **SpaceComponent** (`SpaceComponent.tsx`)
+   - ✅ Використати `spaceStore.getViewRows()`
+   - ✅ Додати reset page при зміні view
+
+3. **EntityReplicationService** (`entity-replication.service.ts`)
+   - ✅ Initial load = batchSize * 2
+   - ✅ Incremental = batchSize
+   - ✅ Зберігати metadata з total count
+
+4. **EntityStore** (`entity-store.ts`)
+   - ✅ Додати `totalFromServer` signal
+
+5. **useEntities** (`useEntities.ts`)
+   - ✅ Повертати totalFromServer
+
+---
+
+**Час реалізації:** ~2-3 години
+
+**Пріоритет:** ВИСОКИЙ - це основа для всього іншого
+
+**Статус:** Готові до реалізації ✅
