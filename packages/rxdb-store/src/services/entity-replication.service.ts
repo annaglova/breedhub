@@ -27,6 +27,7 @@ export class EntityReplicationService {
   private activeRequests: Map<string, number> = new Map();
   private maxConcurrentRequests = 3;
   private entityMetadata: Map<string, { total: number; lastSync: string }> = new Map();
+  private totalCountCallbacks: Map<string, Array<(total: number) => void>> = new Map();
 
   constructor() {
     const supabaseUrl = (import.meta as any).env?.VITE_SUPABASE_URL || process.env.VITE_SUPABASE_URL;
@@ -162,7 +163,12 @@ export class EntityReplicationService {
             });
 
             // Skip if we recently pulled and got no data (ВАЖЛИВА ЛОГІКА!)
-            if (checkpointOrNull?.lastPullAt && checkpointOrNull?.pulled) {
+            // BUT: завжди дозволяємо перший pull для завантаження totalCount
+            const hasMetadata = this.entityMetadata.has(entityType);
+
+            if (!hasMetadata) {
+              console.log(`[EntityReplication-${entityType}] First pull after page load - need to fetch totalCount`);
+            } else if (checkpointOrNull?.lastPullAt && checkpointOrNull?.pulled) {
               const lastPull = new Date(checkpointOrNull.lastPullAt).getTime();
               const now = new Date().getTime();
               const timeSinceLastPull = now - lastPull;
@@ -241,13 +247,26 @@ export class EntityReplicationService {
                 if (!countError && count !== null) {
                   totalCount = count;
 
-                  // Save metadata
+                  // Save metadata in memory
                   this.entityMetadata.set(entityType, {
                     total: count,
                     lastSync: new Date().toISOString()
                   });
 
-                  console.log(`[EntityReplication-${entityType}] ✅ Total count from server: ${totalCount}, saved to metadata`);
+                  // Cache in localStorage for instant access on next load
+                  try {
+                    localStorage.setItem(`totalCount_${entityType}`, count.toString());
+                    console.log(`[EntityReplication-${entityType}] ✅ Total count from server: ${totalCount}, saved to metadata & localStorage`);
+                  } catch (e) {
+                    console.warn(`[EntityReplication-${entityType}] Failed to cache totalCount in localStorage:`, e);
+                  }
+
+                  // Notify subscribers
+                  const callbacks = this.totalCountCallbacks.get(entityType);
+                  if (callbacks) {
+                    console.log(`[EntityReplication-${entityType}] Notifying ${callbacks.length} subscribers about totalCount`);
+                    callbacks.forEach(cb => cb(count));
+                  }
                 } else {
                   console.error(`[EntityReplication-${entityType}] ❌ Failed to fetch total count:`, countError);
                 }
@@ -578,12 +597,55 @@ export class EntityReplicationService {
   }
 
   /**
+   * Subscribe to totalCount updates
+   * @param entityType - тип сутності
+   * @param callback - функція яка викликається при оновленні
+   * @returns unsubscribe функція
+   */
+  onTotalCountUpdate(entityType: string, callback: (total: number) => void): () => void {
+    if (!this.totalCountCallbacks.has(entityType)) {
+      this.totalCountCallbacks.set(entityType, []);
+    }
+    this.totalCountCallbacks.get(entityType)!.push(callback);
+
+    // Return unsubscribe function
+    return () => {
+      const callbacks = this.totalCountCallbacks.get(entityType);
+      if (callbacks) {
+        const index = callbacks.indexOf(callback);
+        if (index > -1) {
+          callbacks.splice(index, 1);
+        }
+      }
+    };
+  }
+
+  /**
    * Get total count from server metadata
+   * Reads from memory first, then localStorage cache, then returns 0
    * @param entityType - тип сутності
    * @returns total count або 0 якщо немає
    */
   getTotalCount(entityType: string): number {
-    return this.entityMetadata.get(entityType)?.total || 0;
+    // Try memory first
+    const memoryTotal = this.entityMetadata.get(entityType)?.total;
+    if (memoryTotal) {
+      return memoryTotal;
+    }
+
+    // Try localStorage cache
+    try {
+      const cached = localStorage.getItem(`totalCount_${entityType}`);
+      if (cached) {
+        const count = parseInt(cached, 10);
+        console.log(`[EntityReplication-${entityType}] 📦 Using cached totalCount from localStorage: ${count}`);
+        return count;
+      }
+    } catch (e) {
+      console.warn(`[EntityReplication-${entityType}] Failed to read totalCount from localStorage:`, e);
+    }
+
+    return 0;
   }
 
   /**

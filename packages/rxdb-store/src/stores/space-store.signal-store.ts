@@ -1295,17 +1295,25 @@ class SpaceStore {
       console.log(`[SpaceStore] ✅ Replication active for ${entityType}`);
       console.log(`[SpaceStore] Data will be loaded through replication pull handler`);
 
-      // Update totalFromServer after initial pull completes
-      setTimeout(() => {
-        const totalCount = entityReplicationService.getTotalCount(entityType);
-        if (totalCount > 0) {
-          const entityStore = this.entityStores.get(entityType);
-          if (entityStore) {
-            entityStore.setTotalFromServer(totalCount);
-            console.log(`[SpaceStore] 📊 Set totalFromServer=${totalCount} for ${entityType}`);
-          }
+      // Set totalFromServer immediately (from cache if available)
+      const totalCount = entityReplicationService.getTotalCount(entityType);
+      console.log(`[SpaceStore] getTotalCount returned:`, totalCount);
+
+      const entityStore = this.entityStores.get(entityType);
+      if (totalCount > 0 && entityStore) {
+        entityStore.setTotalFromServer(totalCount);
+        console.log(`[SpaceStore] 📊 Set totalFromServer=${totalCount} for ${entityType} (instant from cache)`);
+      } else {
+        console.log(`[SpaceStore] ⏳ totalCount is 0, will update when pull completes`);
+      }
+
+      // Subscribe to totalCount updates from replication
+      entityReplicationService.onTotalCountUpdate(entityType, (newTotal) => {
+        console.log(`[SpaceStore] 🔔 Received totalCount update: ${newTotal} for ${entityType}`);
+        if (entityStore) {
+          entityStore.setTotalFromServer(newTotal);
         }
-      }, 2000); // Wait for initial pull to complete
+      });
     } else {
       console.error(`[SpaceStore] ❌ Failed to setup replication for ${entityType}`);
     }

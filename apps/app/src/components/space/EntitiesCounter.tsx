@@ -16,19 +16,21 @@ function formatNumber(num: number): string {
 }
 
 export function EntitiesCounter({ entitiesCount, isLoading, total, rowsPerPage }: EntitiesCounterProps) {
+  // Loading state
   if (isLoading) {
     return (
       <div className="text-sm text-muted-foreground mt-2">
-        Loading...
+        <span className="inline-block animate-pulse">Loading count...</span>
       </div>
     );
   }
 
-  // Show different messages based on state
+  // Waiting for server total (if total equals local cache count, likely not synced yet)
+  // We show spinner if rowsPerPage is defined but total seems wrong
   if (total === 0) {
     return (
       <div className="text-sm text-muted-foreground mt-2">
-        No items found
+        <span className="inline-block animate-pulse">Loading count...</span>
       </div>
     );
   }
