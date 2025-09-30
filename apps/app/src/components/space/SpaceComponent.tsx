@@ -75,17 +75,24 @@ export function SpaceComponent<T extends { Id: string }>({
     viewConfigs: undefined,
   };
 
-  const { data, isLoading, error, isFetching } = useEntitiesHook({
-    rows: 50,
-    from: page * 50,
-  });
-
   // Navigation and routing
   const navigate = useNavigate();
   const location = useLocation();
   const [selectedEntityId, setSelectedEntityId] = useState<string | null>(null);
   const [searchParams] = useSearchParams();
   const viewMode = searchParams.get("view") || config.viewConfig[0].id;
+
+  // Get rows from view config (динамічно!)
+  const rowsPerPage = useMemo(() => {
+    const rows = spaceStore.getViewRows(config.entitySchemaName, viewMode);
+    console.log(`[SpaceComponent] Using ${rows} rows for ${viewMode} view`);
+    return rows;
+  }, [config.entitySchemaName, viewMode]);
+
+  const { data, isLoading, error, isFetching} = useEntitiesHook({
+    rows: rowsPerPage,  // ✅ ДИНАМІЧНО З КОНФІГУ
+    from: page * rowsPerPage,
+  });
 
   // UI state
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -158,6 +165,13 @@ export function SpaceComponent<T extends { Id: string }>({
       return () => observer.disconnect();
     }
   }, []);
+
+  // Reset pagination when view changes
+  useEffect(() => {
+    console.log(`[SpaceComponent] View changed to ${viewMode}, resetting page and entities`);
+    setPage(0);
+    setAllEntities([]); // Clear loaded entities
+  }, [viewMode]);
 
   const handleEntityClick = useCallback(
     (entity: T) => {

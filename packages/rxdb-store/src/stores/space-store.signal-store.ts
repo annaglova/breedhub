@@ -352,7 +352,7 @@ class SpaceStore {
   } | null {
     // Try exact match first
     let spaceConfig = this.spaceConfigs.get(entityType);
-    
+
     // If not found, try case-insensitive match
     if (!spaceConfig) {
       const lowerEntityType = entityType.toLowerCase();
@@ -364,12 +364,12 @@ class SpaceStore {
         }
       }
     }
-    
+
     if (!spaceConfig) {
       console.warn(`[SpaceStore] No space config found for entity: ${entityType}`);
       return null;
     }
-    
+
     console.log(`[SpaceStore] getSpaceConfig for ${entityType}:`, {
       label: spaceConfig.label,
       canAdd: spaceConfig.canAdd,
@@ -377,7 +377,7 @@ class SpaceStore {
       canDelete: spaceConfig.canDelete,
       rawConfig: spaceConfig
     });
-    
+
     // Extract views with full configuration (viewType, icon, tooltip)
     const viewConfigs: Array<{
       viewType: string;
@@ -411,7 +411,55 @@ class SpaceStore {
       viewConfigs: viewConfigs.length > 0 ? viewConfigs : undefined
     };
   }
-  
+
+  /**
+   * Get rows per page for specific view
+   * This determines BOTH UI pagination AND replication batch size
+   *
+   * @param entityType - Entity type (e.g., 'breed', 'animal')
+   * @param viewType - View type (e.g., 'list', 'grid')
+   * @returns Number of rows configured for this view, or default 50
+   */
+  getViewRows(entityType: string, viewType: string): number {
+    // Try exact match first
+    let spaceConfig = this.spaceConfigs.get(entityType);
+
+    // If not found, try case-insensitive match
+    if (!spaceConfig) {
+      const lowerEntityType = entityType.toLowerCase();
+      for (const [key, config] of this.spaceConfigs.entries()) {
+        if (key.toLowerCase() === lowerEntityType) {
+          spaceConfig = config;
+          break;
+        }
+      }
+    }
+
+    if (!spaceConfig) {
+      console.warn(`[SpaceStore] No space config found for ${entityType}, using default rows: 50`);
+      return 50;
+    }
+
+    // Try to find view config by full key: view_breeds_list
+    const viewKey = `view_${entityType}_${viewType}`;
+    const viewConfig = spaceConfig.views?.[viewKey];
+
+    if (viewConfig?.rows) {
+      console.log(`[SpaceStore] Rows for ${entityType}/${viewType}: ${viewConfig.rows} (from view config)`);
+      return viewConfig.rows;
+    }
+
+    // Fallback to space level rows
+    if (spaceConfig.rows) {
+      console.log(`[SpaceStore] Rows for ${entityType}/${viewType}: ${spaceConfig.rows} (from space config)`);
+      return spaceConfig.rows;
+    }
+
+    // Final fallback
+    console.warn(`[SpaceStore] No rows config found for ${entityType}/${viewType}, using default: 50`);
+    return 50;
+  }
+
   /**
    * Get or create an entity store for the given entity type
    */
