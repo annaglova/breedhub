@@ -130,27 +130,178 @@
 
 ## 📝 ПЛАН РЕАЛІЗАЦІЇ (4 ФАЗИ)
 
-### ФАЗА 1: Динамічні rows з view конфігу ⏳
+### ФАЗА 1: Динамічні rows з view конфігу ✅ ЗАВЕРШЕНО
 **Файли:** SpaceStore, SpaceComponent
 
-1. **SpaceStore.getViewRows()** - читає rows з view config
-2. **SpaceComponent** - використовує getViewRows() замість хардкоду 50
-3. **Reset page при зміні view** - щоб pagination працювала коректно
+1. ✅ **SpaceStore.getViewRows()** - читає rows з view config
+2. ✅ **SpaceComponent** - використовує getViewRows() замість хардкоду 50
+3. ✅ **Reset page при зміні view** - щоб pagination працювала коректно
 
-**Результат:** UI показує правильну кількість записів для кожного view
+**Результат:** UI показує правильну кількість записів для кожного view (60 для breed/list)
 
 ---
 
-### ФАЗА 2: Реплікація залежить від rows ⏳
-**Файли:** EntityReplicationService, SpaceStore
+### ФАЗА 2: Manual Pagination - On-Demand Data Loading ⏳ В ПРОЦЕСІ
+**Файли:** EntityReplicationService, SpaceStore, useEntities
 
-1. **EntityReplicationService** - initial load = batchSize * 2, incremental = batchSize
-2. **Metadata для total count** - зберігаємо count з Supabase
-3. **SpaceStore** - передає rows як batchSize в setupReplication
+**ПРОБЛЕМА:** Зараз реплікація працює в continuous mode (`live: true`) і автоматично завантажує всю таблицю batch за batch-ем. Для таблиць з 9+ млн записів це неприйнятно.
 
-**Результат:** Реплікація завантажує тільки потрібну кількість:
-- List view (rows=50): завантажує 100 initial, потім 50
-- Grid view (rows=20): завантажує 40 initial, потім 20
+**РІШЕННЯ:** Manual pagination з on-demand loading
+
+#### 2.1. Вимкнути Continuous Replication
+**Файл:** `entity-replication.service.ts:151`
+
+```typescript
+// БУЛО:
+live: true,          // ❌ Continuous pull - тягне все підряд
+autoStart: true,     // ❌ Стартує одразу
+retryTime: 5000,     // ❌ Повторює кожні 5 сек
+
+// СТАНЕ:
+live: false,         // ✅ Manual control - тільки коли запитуємо
+autoStart: false,    // ✅ Стартуємо вручну
+retryTime: 0,        // ✅ Не повторюємо автоматично
+```
+
+**Чому:** Реплікація не має автоматично завантажувати всі дані. Тільки на explicit запит UI.
+
+---
+
+#### 2.2. Додати Manual Pull Method
+**Файл:** `entity-replication.service.ts` (новий метод)
+
+```typescript
+/**
+ * Manual pull - завантажує наступний batch даних
+ * @param entityType - тип сутності
+ * @param limit - скільки записів завантажити (з view config rows)
+ * @returns кількість завантажених записів
+ */
+async manualPull(entityType: string, limit?: number): Promise<number> {
+  const replicationState = this.replicationStates.get(entityType);
+
+  if (!replicationState) {
+    console.error(`[EntityReplication] No replication for ${entityType}`);
+    return 0;
+  }
+
+  console.log(`[EntityReplication-${entityType}] Manual pull requested, limit: ${limit}`);
+
+  // Trigger pull manually
+  await replicationState.reSync();
+
+  // Wait for pull to complete and return count
+  return new Promise((resolve) => {
+    const sub = replicationState.received$.subscribe((received) => {
+      console.log(`[EntityReplication-${entityType}] Manual pull received: ${received.documents.length}`);
+      resolve(received.documents.length);
+      sub.unsubscribe();
+    });
+  });
+}
+```
+
+**Чому:** UI контролює коли завантажувати дані. Scroll вниз → викликаємо manualPull().
+
+---
+
+#### 2.3. Initial Load тільки rows * 2
+**Файл:** `entity-replication.service.ts:193-195`
+
+```typescript
+// БУЛО: Initial load, потім continuous pull
+const isInitialLoad = !checkpointOrNull || !checkpointOrNull?.updated_at;
+const effectiveBatchSize = options.batchSize || 50;
+const limit = isInitialLoad ? effectiveBatchSize * 2 : effectiveBatchSize;
+
+// СТАНЕ: Тільки initial load, далі manual
+const effectiveBatchSize = options.batchSize || 50;
+const limit = effectiveBatchSize * 2; // Завжди rows * 2
+
+// Manual pull буде use checkpoint для наступних порцій
+```
+
+**Результат:**
+- Automatic: тільки initial load (60 * 2 = 120 записів)
+- Manual: `loadMore()` завантажує ще 60 при scroll
+
+---
+
+#### 2.4. SpaceStore.loadMore() method
+**Файл:** `space-store.signal-store.ts` (новий метод)
+
+```typescript
+/**
+ * Load more entities for pagination
+ * @param entityType - тип сутності
+ * @returns Promise<number> - кількість нових записів
+ */
+async loadMore(entityType: string): Promise<number> {
+  console.log(`[SpaceStore] Loading more data for ${entityType}...`);
+
+  // Get rows from view config
+  const rows = this.getDefaultRows(entityType);
+
+  // Trigger manual pull
+  const count = await entityReplicationService.manualPull(entityType, rows);
+
+  console.log(`[SpaceStore] Loaded ${count} more records for ${entityType}`);
+  return count;
+}
+```
+
+**Використання в UI:**
+```typescript
+// SpaceComponent.tsx
+const handleLoadMore = async () => {
+  setIsLoadingMore(true);
+  const count = await spaceStore.loadMore(config.entitySchemaName);
+  setIsLoadingMore(false);
+};
+
+// Trigger on scroll
+useEffect(() => {
+  if (shouldLoadMore) {
+    handleLoadMore();
+  }
+}, [shouldLoadMore]);
+```
+
+---
+
+#### 2.5. Metadata для Total Count
+**Файл:** `entity-replication.service.ts:255`
+
+```typescript
+// В pullHandler після Supabase запиту:
+const { data, error, count } = await this.supabase
+  .from(entityType)
+  .select('*', { count: 'exact', head: false })  // ← count: 'exact'
+  .order('updated_at', { ascending: true })
+  .gt('updated_at', checkpointDate)
+  .limit(limit);
+
+// Зберігаємо metadata
+if (count !== null) {
+  this.entityMetadata.set(entityType, {
+    total: count,
+    lastSync: new Date().toISOString()
+  });
+
+  console.log(`[EntityReplication-${entityType}] Total in Supabase: ${count}`);
+}
+```
+
+**Чому:** Total count потрібен для UI ("Showing 60 of 9,234,567")
+
+---
+
+**Результат Фази 2:**
+- ✅ Initial load тільки 120 записів (rows * 2)
+- ✅ Далі тільки manual pull на запит UI
+- ✅ Scroll вниз → loadMore() → ще 60 записів
+- ✅ Немає автоматичного завантаження всієї таблиці
+- ✅ RxDB кеш ~200-500 записів max
 
 ---
 
@@ -161,18 +312,21 @@
 2. **SpaceStore** - оновлює totalFromServer з EntityReplicationService
 3. **useEntities** - повертає totalFromServer замість локального
 
-**Результат:** EntitiesCounter показує: "Showing 50 of 9,234,567"
+**Результат:** EntitiesCounter показує: "Showing 60 of 9,234,567"
 
 ---
 
-### ФАЗА 4: Виправити реплікацію (щоб не зупинялась) 🔧
+### ФАЗА 4: Realtime Updates Only 🔧
 **Файл:** EntityReplicationService
 
-**ПРОБЛЕМА:** Завантажує 100 і зупиняється
-**ПРИЧИНА:** Checkpoint не оновлюється правильно
-**РІШЕННЯ:** Перевірити логіку повернення checkpoint в pullHandler
+**МЕТА:** Realtime subscription тільки для UPDATE/DELETE існуючих записів, НЕ для INSERT нових
 
-**Це окрема задача** - зробимо після Фази 1-3
+**ЗМІНИ:**
+- Realtime channel слухає тільки UPDATE та DELETE
+- INSERT ігноруємо (нові дані завантажуються через manual pull)
+- Видалені записи (_deleted: true) видаляємо з RxDB
+
+**Чому:** Нові записи з'являються тільки коли користувач скролить і викликає loadMore()
 
 ---
 
@@ -266,10 +420,11 @@ npm install
 
 ## 🐛 ВІДОМІ ПРОБЛЕМИ
 
-1. **Rows = 50 хардкод** → Виправляємо в Фазі 1
-2. **batchSize = 100 хардкод** → Виправляємо в Фазі 2
-3. **Total count неточний** → Виправляємо в Фазі 3
-4. **Реплікація зупиняється на 100** → Виправимо в Фазі 4
+1. ~~**Rows = 50 хардкод**~~ → ✅ Виправлено в Фазі 1
+2. ~~**batchSize = 100 хардкод**~~ → ✅ Виправлено в Фазі 2.1
+3. **Continuous pull завантажує всю таблицю** → 🔧 Виправляємо в Фазі 2 (В ПРОЦЕСІ)
+4. **Total count неточний** → Виправляємо в Фазі 3
+5. **Realtime subscription для INSERT** → Виправимо в Фазі 4
 
 ---
 
