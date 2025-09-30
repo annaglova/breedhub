@@ -41,8 +41,8 @@ export function BreedListCard({
     PetProfileCount: entity.measurements?.pet_profile_count || 0,
     KennelCount: entity.measurements?.kennel_count || 0,
     PatronCount: entity.measurements?.patron_count || 0,
-    AchievementProgress: entity.measurements?.achievement_progress || 0,
     // Hardcoded values for components we're keeping visual
+    AchievementProgress: Math.floor(Math.random() * 80) + 20, // Random 20-100% for visual testing
     HasNotes: Math.random() > 0.7, // Random for visual testing
     TopPatrons: entity.measurements?.patron_count > 0 ? [
       { id: '1', name: 'Top Patron 1', avatar: null },
