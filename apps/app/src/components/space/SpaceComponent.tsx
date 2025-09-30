@@ -83,11 +83,17 @@ export function SpaceComponent<T extends { Id: string }>({
   const viewMode = searchParams.get("view") || config.viewConfig[0].id;
 
   // Get rows from view config (динамічно!)
+  // Wait for config to be parsed (not DB collections - those come later)
   const rowsPerPage = useMemo(() => {
+    if (!spaceStore.configReady.value) {
+      console.log(`[SpaceComponent] Config not ready yet, using default 50`);
+      return 50;
+    }
+
     const rows = spaceStore.getViewRows(config.entitySchemaName, viewMode);
     console.log(`[SpaceComponent] Using ${rows} rows for ${viewMode} view`);
     return rows;
-  }, [config.entitySchemaName, viewMode]);
+  }, [config.entitySchemaName, viewMode, spaceStore.configReady.value]);
 
   const { data, isLoading, error, isFetching} = useEntitiesHook({
     rows: rowsPerPage,  // ✅ ДИНАМІЧНО З КОНФІГУ
@@ -292,6 +298,7 @@ export function SpaceComponent<T extends { Id: string }>({
               entitiesCount={allEntities.length}
               isLoading={false}
               total={totalCount}
+              rowsPerPage={rowsPerPage}
             />
           </div>
 
