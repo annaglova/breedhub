@@ -26,6 +26,7 @@ export class EntityReplicationService {
   private supabase: SupabaseClient;
   private activeRequests: Map<string, number> = new Map();
   private maxConcurrentRequests = 3;
+  private entityMetadata: Map<string, { total: number; lastSync: string }> = new Map();
 
   constructor() {
     const supabaseUrl = (import.meta as any).env?.VITE_SUPABASE_URL || process.env.VITE_SUPABASE_URL;
@@ -148,10 +149,10 @@ export class EntityReplicationService {
         collection,
         replicationIdentifier: `${entityType}-supabase-replication`,
         deletedField: '_deleted',
-        live: true,
-        retryTime: options.pullInterval || 5 * 1000, // Faster retry for development - 5 seconds
+        live: false,  // ✅ Manual control - не continuous pull
+        retryTime: 0,  // ✅ Не повторюємо автоматично
         waitForLeadership: false,
-        autoStart: true,
+        autoStart: true,  // Initial load стартує, далі manual
 
         pull: {
           handler: async (checkpointOrNull, batchSize) => {
@@ -159,22 +160,6 @@ export class EntityReplicationService {
               checkpoint: checkpointOrNull,
               batchSize
             });
-
-            // Skip if we recently pulled and got no data
-            if (checkpointOrNull?.lastPullAt && checkpointOrNull?.pulled) {
-              const lastPull = new Date(checkpointOrNull.lastPullAt).getTime();
-              const now = new Date().getTime();
-              const timeSinceLastPull = now - lastPull;
-
-              // If less than 5 seconds since last pull and we already pulled data, skip
-              if (timeSinceLastPull < 5000) {
-                console.log(`[EntityReplication-${entityType}] Skipping pull - too soon since last pull`);
-                return {
-                  documents: [],
-                  checkpoint: checkpointOrNull
-                };
-              }
-            }
 
             // Rate limiting
             const activeReqs = this.activeRequests.get(entityType) || 0;
@@ -185,14 +170,12 @@ export class EntityReplicationService {
 
             this.activeRequests.set(entityType, activeReqs + 1);
 
-            // Dynamic batch sizing based on view config rows
-            // Initial load = batchSize * 2 (для smooth scroll на початку)
-            // Incremental = batchSize (з view config)
+            // Fixed batch size: rows * 2 для initial load
+            // Live: false означає що це завжди буде initial/manual load
+            const effectiveBatchSize = options.batchSize || 50; // з view config rows
+            const limit = effectiveBatchSize * 2;  // Завжди rows * 2
+
             const isInitialLoad = !checkpointOrNull || !checkpointOrNull?.updated_at;
-            const effectiveBatchSize = options.batchSize || 50; // fallback якщо не передано
-            const limit = isInitialLoad
-              ? effectiveBatchSize * 2  // Initial: завантажуємо вдвічі більше
-              : effectiveBatchSize;      // Incremental: по batchSize
 
             console.log(`[EntityReplication-${entityType}] Pull handler:`, {
               isInitialLoad,
@@ -237,7 +220,14 @@ export class EntityReplicationService {
 
                 if (!countError && count !== null) {
                   totalCount = count;
-                  console.log(`[EntityReplication-${entityType}] Total count from server: ${totalCount}`);
+
+                  // Save metadata
+                  this.entityMetadata.set(entityType, {
+                    total: count,
+                    lastSync: new Date().toISOString()
+                  });
+
+                  console.log(`[EntityReplication-${entityType}] Total count from server: ${totalCount}, saved to metadata`);
                 }
               }
 
@@ -559,6 +549,55 @@ export class EntityReplicationService {
    */
   getReplicationState(entityType: string): RxReplicationState<any, any> | undefined {
     return this.replicationStates.get(entityType);
+  }
+
+  /**
+   * Get total count from server metadata
+   * @param entityType - тип сутності
+   * @returns total count або 0 якщо немає
+   */
+  getTotalCount(entityType: string): number {
+    return this.entityMetadata.get(entityType)?.total || 0;
+  }
+
+  /**
+   * Manual pull - завантажує наступний batch даних
+   * @param entityType - тип сутності
+   * @param limit - скільки записів завантажити (з view config rows)
+   * @returns кількість завантажених записів
+   */
+  async manualPull(entityType: string, limit?: number): Promise<number> {
+    const replicationState = this.replicationStates.get(entityType);
+
+    if (!replicationState) {
+      console.error(`[EntityReplication] No replication for ${entityType}`);
+      return 0;
+    }
+
+    console.log(`[EntityReplication-${entityType}] Manual pull requested, limit: ${limit || 'default'}`);
+
+    try {
+      // Trigger pull manually
+      await replicationState.reSync();
+
+      // Wait for pull to complete and return count
+      return new Promise((resolve) => {
+        const timeout = setTimeout(() => {
+          console.warn(`[EntityReplication-${entityType}] Manual pull timeout`);
+          resolve(0);
+        }, 10000); // 10 second timeout
+
+        const sub = replicationState.received$.subscribe((received) => {
+          clearTimeout(timeout);
+          console.log(`[EntityReplication-${entityType}] Manual pull received: ${received.documents.length} documents`);
+          resolve(received.documents.length);
+          sub.unsubscribe();
+        });
+      });
+    } catch (error) {
+      console.error(`[EntityReplication-${entityType}] Manual pull error:`, error);
+      return 0;
+    }
   }
 }
 
