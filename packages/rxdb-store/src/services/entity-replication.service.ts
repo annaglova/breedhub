@@ -185,15 +185,20 @@ export class EntityReplicationService {
 
             this.activeRequests.set(entityType, activeReqs + 1);
 
-            // Use larger limit for initial load (when no checkpoint)
+            // Dynamic batch sizing based on view config rows
+            // Initial load = batchSize * 2 (для smooth scroll на початку)
+            // Incremental = batchSize (з view config)
             const isInitialLoad = !checkpointOrNull || !checkpointOrNull?.updated_at;
+            const effectiveBatchSize = options.batchSize || 50; // fallback якщо не передано
             const limit = isInitialLoad
-              ? 1000  // Large batch for initial load to get all breeds
-              : (batchSize || options.batchSize || 50);  // Normal batch for incremental updates
+              ? effectiveBatchSize * 2  // Initial: завантажуємо вдвічі більше
+              : effectiveBatchSize;      // Incremental: по batchSize
 
             console.log(`[EntityReplication-${entityType}] Pull handler:`, {
               isInitialLoad,
               limit,
+              effectiveBatchSize,
+              'options.batchSize': options.batchSize,
               checkpoint: checkpointOrNull,
               batchSize
             });
@@ -207,6 +212,7 @@ export class EntityReplicationService {
             }
 
             try {
+              // Fetch data
               const { data, error } = await this.supabase
                 .from(entityType)
                 .select('*')
@@ -222,6 +228,19 @@ export class EntityReplicationService {
                 };
               }
 
+              // Get total count on initial load (для Phase 3)
+              let totalCount: number | undefined;
+              if (isInitialLoad) {
+                const { count, error: countError } = await this.supabase
+                  .from(entityType)
+                  .select('*', { count: 'exact', head: true });
+
+                if (!countError && count !== null) {
+                  totalCount = count;
+                  console.log(`[EntityReplication-${entityType}] Total count from server: ${totalCount}`);
+                }
+              }
+
               const documents = (data || []).map(doc =>
                 this.mapSupabaseToRxDB(entityType, doc, schema)
               );
@@ -231,7 +250,8 @@ export class EntityReplicationService {
                 ? {
                     updated_at: documents[documents.length - 1].updated_at,
                     pulled: true,
-                    lastPullAt: new Date().toISOString()
+                    lastPullAt: new Date().toISOString(),
+                    totalCount  // Include total count in checkpoint
                   }
                 : checkpointOrNull
                   ? { ...checkpointOrNull, pulled: true, lastPullAt: new Date().toISOString() }
@@ -240,6 +260,7 @@ export class EntityReplicationService {
               console.log(`[EntityReplication-${entityType}] Pull completed`, {
                 documentsCount: documents.length,
                 hasMore,
+                totalCount,
                 newCheckpoint
               });
 

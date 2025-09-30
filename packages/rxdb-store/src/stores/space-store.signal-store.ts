@@ -413,6 +413,51 @@ class SpaceStore {
   }
 
   /**
+   * Get default rows for entity (used for replication batch size)
+   * Takes the first view's rows or falls back to space-level rows
+   *
+   * @param entityType - Entity type (e.g., 'breed', 'animal')
+   * @returns Number of rows, or default 50
+   */
+  getDefaultViewRows(entityType: string): number {
+    let spaceConfig = this.spaceConfigs.get(entityType);
+
+    if (!spaceConfig) {
+      const lowerEntityType = entityType.toLowerCase();
+      for (const [key, config] of this.spaceConfigs.entries()) {
+        if (key.toLowerCase() === lowerEntityType) {
+          spaceConfig = config;
+          break;
+        }
+      }
+    }
+
+    if (!spaceConfig) {
+      console.warn(`[SpaceStore] No space config found for ${entityType}, using default rows: 50`);
+      return 50;
+    }
+
+    // Get rows from first view (most common case)
+    if (spaceConfig.views) {
+      for (const [viewKey, viewConfig] of Object.entries(spaceConfig.views)) {
+        if (viewConfig.rows) {
+          console.log(`[SpaceStore] Default rows for ${entityType}: ${viewConfig.rows} (from first view ${viewKey})`);
+          return viewConfig.rows;
+        }
+      }
+    }
+
+    // Fallback to space level rows
+    if (spaceConfig.rows) {
+      console.log(`[SpaceStore] Default rows for ${entityType}: ${spaceConfig.rows} (from space config)`);
+      return spaceConfig.rows;
+    }
+
+    console.warn(`[SpaceStore] No rows config found for ${entityType}, using default: 50`);
+    return 50;
+  }
+
+  /**
    * Get rows per page for specific view
    * This determines BOTH UI pagination AND replication batch size
    *
@@ -1200,12 +1245,16 @@ class SpaceStore {
 
     console.log(`[SpaceStore] Setting up replication for ${entityType}...`);
 
+    // Get batchSize from view config
+    const batchSize = this.getDefaultViewRows(entityType);
+    console.log(`[SpaceStore] Using batchSize ${batchSize} for ${entityType} replication`);
+
     // Setup replication - it will handle all data loading
     const success = await entityReplicationService.setupReplication(
       this.db,
       entityType,
       {
-        batchSize: 100,  // Increased for initial load
+        batchSize,  // ✅ Dynamic from view config!
         pullInterval: 5000, // 5 seconds for faster sync during development
         enableRealtime: true,
         conflictHandler: 'last-write-wins'
