@@ -76,6 +76,12 @@ export function useEntities({
           const totalFromServer = entityStore.totalFromServer.value;
           const total = totalFromServer !== null ? totalFromServer : allEntities.length;
 
+          console.log(`[useEntities] updateData:`, {
+            totalFromServer,
+            localCount: allEntities.length,
+            finalTotal: total
+          });
+
           setData({
             entities: paginatedEntities,
             total
@@ -87,11 +93,22 @@ export function useEntities({
         updateData();
 
         // Subscribe to future changes
-        unsubscribe = entityStore.entityList.subscribe(() => {
+        const unsubscribeList = entityStore.entityList.subscribe(() => {
           // Commented out for less noise
           // console.log(`[useEntities] Entity list updated for ${entityType}`);
           updateData();
         });
+
+        // Subscribe to totalFromServer changes
+        const unsubscribeTotal = entityStore.totalFromServer.subscribe((total) => {
+          console.log(`[useEntities] totalFromServer changed to:`, total);
+          updateData();
+        });
+
+        unsubscribe = () => {
+          unsubscribeList();
+          unsubscribeTotal();
+        };
 
       } catch (err) {
         console.error(`[useEntities] Error loading ${entityType}:`, err);

@@ -134,6 +134,7 @@ export function SpaceComponent<T extends { Id: string }>({
         setAllEntities((prev) => [...prev, ...data.entities]);
       }
       if (data.total) {
+        console.log(`[SpaceComponent] Setting totalCount:`, data.total);
         setTotalCount(data.total);
       }
     }
