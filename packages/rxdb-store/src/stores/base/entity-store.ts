@@ -14,7 +14,10 @@ export class EntityStore<T extends { id: string }> {
   // Loading and error states
   loading = signal<boolean>(false);
   error = signal<string | null>(null);
-  
+
+  // Server metadata
+  totalFromServer = signal<number | null>(null); // Total count from Supabase
+
   // Selection state
   protected selectedId = signal<string | null>(null);
   
@@ -216,6 +219,13 @@ export class EntityStore<T extends { id: string }> {
     });
   }
   
+  /**
+   * Set total count from server (from replication metadata)
+   */
+  setTotalFromServer(total: number): void {
+    this.totalFromServer.value = total;
+  }
+
   /**
    * Remove a single entity
    */
