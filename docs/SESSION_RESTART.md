@@ -22,24 +22,26 @@
 
 **Offline-first НЕ означає "завантажити все"!**
 
-### Останні завершені задачі (2025-09-29):
-- ✅ Реалізована повноцінна двостороння реплікація даних (EntityReplicationService)
-- ✅ Видалено deprecated SupabaseLoaderService
-- ✅ Налаштована realtime синхронізація з Supabase
-- ✅ Перейменовано VirtualSpaceView → SpaceView
-- ✅ **Заміна mock даних на RxDB** - BreedListCard тепер працює з реальними даними
-- ✅ **Створено useEntities hook** - універсальний hook для роботи з RxDB
-- ✅ **Видалено CollectionMonitor** - прибрано автоматичне відновлення колекцій (просто reload)
-- ✅ **Хардкоджені візуальні елементи** - NoteFlag, TopPatrons, BreedProgressLight
+### Останні завершені задачі (2025-09-30):
+- ✅ **ФАЗА 1 ЗАВЕРШЕНО** - Динамічні rows з view конфігу (60 для breed/list)
+- ✅ **ФАЗА 2 МАЙЖЕ ЗАВЕРШЕНО** - Manual Pagination (залишився тільки scroll handler)
+  - ✅ Throttling зупиняє continuous replication
+  - ✅ Initial load тільки 120 записів (rows * 2)
+  - ✅ Manual pull метод (`manualPull()`, `loadMore()`)
+  - ⏳ Scroll handler в UI - НАСТУПНА ЗАДАЧА
+- ✅ **ФАЗА 3 ЗАВЕРШЕНО** - Total count через EntityStore з localStorage кешем
+  - ✅ Instant UI feedback: "60 of 452" (50-200ms з кешу)
+  - ✅ EntityStore.initTotalFromCache() синхронне завантаження
+- ✅ Оптимізовані polling intervals (500ms→100ms, 100ms→50ms)
+- ✅ Прибрано блимання fallback значення "50"
 
 ### Поточний контекст:
-- Працює реплікація для entity type "breed"
-- **ПРОБЛЕМА:** Завантажує тільки 100 записів і зупиняється (виправимо в Фазі 4)
-- **ПРОБЛЕМА:** batchSize = 100 хардкод (має залежати від rows з view конфігу)
-- BreedListCard використовує реальні дані з RxDB через useEntities hook
-- EntitiesCounter показує `allEntities.length` та `totalCount`, але:
-  - `rows` захардкоджено 50 (має братись з view конфігу)
-  - `totalCount` неточний (треба з Supabase metadata)
+- ✅ Працює реплікація для entity type "breed"
+- ✅ Завантажує 120 записів initial load (60 * 2), потім зупиняється через throttling
+- ✅ batchSize = 60 з view конфігу (динамічно)
+- ✅ BreedListCard використовує реальні дані з RxDB через useEntities hook
+- ✅ EntitiesCounter показує "60 of 452" миттєво з localStorage кешу
+- ⏳ **НАСТУПНА ЗАДАЧА:** Додати scroll handler для `loadMore()` в SpaceComponent
 
 ---
 
@@ -148,27 +150,39 @@
 
 **РІШЕННЯ:** Manual pagination з on-demand loading
 
-#### 2.1. Вимкнути Continuous Replication
-**Файл:** `entity-replication.service.ts:151`
+#### 2.1. Вимкнути Continuous Replication ✅ ЗАВЕРШЕНО
+**Файл:** `entity-replication.service.ts:151-177`
+
+**РЕАЛІЗОВАНО ЧЕРЕЗ THROTTLING (альтернативний підхід):**
 
 ```typescript
-// БУЛО:
-live: true,          // ❌ Continuous pull - тягне все підряд
-autoStart: true,     // ❌ Стартує одразу
-retryTime: 5000,     // ❌ Повторює кожні 5 сек
+// Залишили:
+live: true,          // ✅ Потрібно для throttling логіки
+autoStart: true,     // ✅ Стартує initial load
+retryTime: 5000,     // ✅ Для throttling check
 
-// СТАНЕ:
-live: false,         // ✅ Manual control - тільки коли запитуємо
-autoStart: false,    // ✅ Стартуємо вручну
-retryTime: 0,        // ✅ Не повторюємо автоматично
+// Але додали throttling:
+if (checkpointOrNull?.lastPullAt && checkpointOrNull?.pulled) {
+  const timeSinceLastPull = now - lastPull;
+  if (timeSinceLastPull < 5000) {
+    console.log(`Skipping pull - too soon since last pull`);
+    return { documents: [], checkpoint: checkpointOrNull };
+  }
+}
 ```
 
-**Чому:** Реплікація не має автоматично завантажувати всі дані. Тільки на explicit запит UI.
+**Результат:**
+- ✅ Initial load: 120 записів (60 × 2)
+- ✅ Throttling зупиняє автоматичні pulls після initial load
+- ✅ Manual pull доступний через `manualPull()`
+- ✅ НЕ завантажує всю таблицю!
+
+**Чому не `live: false`:** Спроба встановити `live: false` спричинила infinite loops. Throttling виявився надійнішим рішенням.
 
 ---
 
-#### 2.2. Додати Manual Pull Method
-**Файл:** `entity-replication.service.ts` (новий метод)
+#### 2.2. Додати Manual Pull Method ✅ ЗАВЕРШЕНО
+**Файл:** `entity-replication.service.ts:657-690`
 
 ```typescript
 /**
@@ -201,41 +215,31 @@ async manualPull(entityType: string, limit?: number): Promise<number> {
 }
 ```
 
-**Чому:** UI контролює коли завантажувати дані. Scroll вниз → викликаємо manualPull().
+**Результат:** ✅ UI контролює коли завантажувати дані. Scroll вниз → викликаємо manualPull().
 
 ---
 
-#### 2.3. Initial Load тільки rows * 2
-**Файл:** `entity-replication.service.ts:193-195`
+#### 2.3. Initial Load тільки rows * 2 ✅ ЗАВЕРШЕНО
+**Файл:** `entity-replication.service.ts:197-198`
 
 ```typescript
-// БУЛО: Initial load, потім continuous pull
-const isInitialLoad = !checkpointOrNull || !checkpointOrNull?.updated_at;
-const effectiveBatchSize = options.batchSize || 50;
-const limit = isInitialLoad ? effectiveBatchSize * 2 : effectiveBatchSize;
-
-// СТАНЕ: Тільки initial load, далі manual
-const effectiveBatchSize = options.batchSize || 50;
-const limit = effectiveBatchSize * 2; // Завжди rows * 2
-
-// Manual pull буде use checkpoint для наступних порцій
+// РЕАЛІЗОВАНО:
+const effectiveBatchSize = options.batchSize || 50;  // З view config rows
+const limit = effectiveBatchSize * 2;  // Завжди rows * 2 для initial load
 ```
 
 **Результат:**
-- Automatic: тільки initial load (60 * 2 = 120 записів)
-- Manual: `loadMore()` завантажує ще 60 при scroll
+- ✅ Automatic: тільки initial load (60 * 2 = 120 записів)
+- ✅ Throttling зупиняє подальші automatic pulls
+- ✅ Manual: `loadMore()` завантажує ще 60 при scroll (треба підключити до UI)
 
 ---
 
-#### 2.4. SpaceStore.loadMore() method
-**Файл:** `space-store.signal-store.ts` (новий метод)
+#### 2.4. SpaceStore.loadMore() method ⏳ В ПРОЦЕСІ
+**Файл:** `space-store.signal-store.ts:522-533`
 
+**Метод створено:** ✅
 ```typescript
-/**
- * Load more entities for pagination
- * @param entityType - тип сутності
- * @returns Promise<number> - кількість нових записів
- */
 async loadMore(entityType: string): Promise<number> {
   console.log(`[SpaceStore] Loading more data for ${entityType}...`);
 
@@ -250,69 +254,88 @@ async loadMore(entityType: string): Promise<number> {
 }
 ```
 
-**Використання в UI:**
+**UI Integration:** ❌ ТРЕБА ЗРОБИТИ
 ```typescript
-// SpaceComponent.tsx
+// SpaceComponent.tsx - ТРЕБА ДОДАТИ
 const handleLoadMore = async () => {
   setIsLoadingMore(true);
   const count = await spaceStore.loadMore(config.entitySchemaName);
   setIsLoadingMore(false);
 };
 
-// Trigger on scroll
-useEffect(() => {
-  if (shouldLoadMore) {
+// Trigger on scroll - ТРЕБА ДОДАТИ
+const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+  const target = e.currentTarget;
+  const scrollBottom = target.scrollHeight - target.scrollTop - target.clientHeight;
+
+  if (scrollBottom < 100 && !isLoadingMore && allEntities.length < totalCount) {
     handleLoadMore();
   }
-}, [shouldLoadMore]);
+};
 ```
 
 ---
 
-#### 2.5. Metadata для Total Count
-**Файл:** `entity-replication.service.ts:255`
+#### 2.5. Metadata для Total Count ✅ ЗАВЕРШЕНО
+**Файл:** `entity-replication.service.ts:243-262`
 
 ```typescript
-// В pullHandler після Supabase запиту:
-const { data, error, count } = await this.supabase
+// РЕАЛІЗОВАНО: В pullHandler після Supabase запиту
+const { count, error: countError } = await this.supabase
   .from(entityType)
-  .select('*', { count: 'exact', head: false })  // ← count: 'exact'
-  .order('updated_at', { ascending: true })
-  .gt('updated_at', checkpointDate)
-  .limit(limit);
+  .select('*', { count: 'exact', head: true });  // ← count: 'exact'
 
-// Зберігаємо metadata
-if (count !== null) {
+if (!countError && count !== null) {
+  totalCount = count;
+
+  // Save metadata in memory
   this.entityMetadata.set(entityType, {
     total: count,
     lastSync: new Date().toISOString()
   });
 
-  console.log(`[EntityReplication-${entityType}] Total in Supabase: ${count}`);
+  // ✅ Cache in localStorage for instant access on next load
+  localStorage.setItem(`totalCount_${entityType}`, count.toString());
+
+  // ✅ Notify subscribers (EntityStore.setTotalFromServer)
+  const callbacks = this.totalCountCallbacks.get(entityType);
+  if (callbacks) {
+    callbacks.forEach(cb => cb(count));
+  }
 }
 ```
 
-**Чому:** Total count потрібен для UI ("Showing 60 of 9,234,567")
+**Додатково реалізовано (коміт 30c9423):**
+- ✅ `EntityStore.initTotalFromCache()` - синхронне читання з localStorage при створенні
+- ✅ Instant UI feedback: "60 of 452" показується миттєво (50-200ms) з кешу
+- ✅ Без кешу: "60 of ..." → "60 of 452" через ~500ms
+
+**Результат:** ✅ Total count миттєво доступний в UI ("Showing 60 of 452")
 
 ---
 
 **Результат Фази 2:**
 - ✅ Initial load тільки 120 записів (rows * 2)
-- ✅ Далі тільки manual pull на запит UI
-- ✅ Scroll вниз → loadMore() → ще 60 записів
+- ✅ Throttling зупиняє автоматичні pulls після initial load
+- ✅ Manual pull метод створено (`manualPull()`, `loadMore()`)
+- ⏳ Scroll handler в UI - ТРЕБА ДОДАТИ (2.4)
 - ✅ Немає автоматичного завантаження всієї таблиці
 - ✅ RxDB кеш ~200-500 записів max
+- ✅ Total count миттєво з localStorage кешу
 
 ---
 
-### ФАЗА 3: Total count через EntityStore ⏳
+### ФАЗА 3: Total count через EntityStore ✅ ЗАВЕРШЕНО
 **Файли:** EntityStore, SpaceStore, useEntities
 
-1. **EntityStore.totalFromServer** signal - зберігає total з metadata
-2. **SpaceStore** - оновлює totalFromServer з EntityReplicationService
-3. **useEntities** - повертає totalFromServer замість локального
+1. ✅ **EntityStore.totalFromServer** signal - зберігає total з metadata (лінія 19)
+2. ✅ **EntityStore.initTotalFromCache()** - синхронне завантаження з localStorage (лінія 233-246)
+3. ✅ **SpaceStore** - викликає initTotalFromCache() при створенні EntityStore (лінія 590)
+4. ✅ **SpaceStore** - підписується на totalCount оновлення (лінія 596-599)
+5. ✅ **useEntities** - підписаний на totalFromServer.subscribe() (лінія 106-109)
+6. ✅ **useEntities** - повертає totalFromServer замість локального count (лінія 80)
 
-**Результат:** EntitiesCounter показує: "Showing 60 of 9,234,567"
+**Результат:** ✅ EntitiesCounter показує миттєво: "Showing 60 of 452" (з localStorage кешу)
 
 ---
 
