@@ -72,9 +72,13 @@ export function useEntities({
           const to = from + rows;
           const paginatedEntities = allEntities.slice(from, to);
 
+          // Use totalFromServer if available, otherwise local count
+          const totalFromServer = entityStore.totalFromServer.value;
+          const total = totalFromServer !== null ? totalFromServer : allEntities.length;
+
           setData({
             entities: paginatedEntities,
-            total: allEntities.length
+            total
           });
           setIsLoading(false);
         };

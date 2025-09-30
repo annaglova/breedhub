@@ -1294,6 +1294,18 @@ class SpaceStore {
     if (success) {
       console.log(`[SpaceStore] ✅ Replication active for ${entityType}`);
       console.log(`[SpaceStore] Data will be loaded through replication pull handler`);
+
+      // Update totalFromServer after initial pull completes
+      setTimeout(() => {
+        const totalCount = entityReplicationService.getTotalCount(entityType);
+        if (totalCount > 0) {
+          const entityStore = this.entityStores.get(entityType);
+          if (entityStore) {
+            entityStore.setTotalFromServer(totalCount);
+            console.log(`[SpaceStore] 📊 Set totalFromServer=${totalCount} for ${entityType}`);
+          }
+        }
+      }, 2000); // Wait for initial pull to complete
     } else {
       console.error(`[SpaceStore] ❌ Failed to setup replication for ${entityType}`);
     }
