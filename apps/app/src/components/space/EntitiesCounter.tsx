@@ -16,21 +16,14 @@ function formatNumber(num: number): string {
 }
 
 export function EntitiesCounter({ entitiesCount, isLoading, total, rowsPerPage }: EntitiesCounterProps) {
-  // Loading state
-  if (isLoading) {
-    return (
-      <div className="text-sm text-muted-foreground mt-2">
-        <span className="inline-block animate-pulse">Loading count...</span>
-      </div>
-    );
-  }
+  // Always use rowsPerPage (from config) as visible count - it's available immediately
+  const visibleCount = rowsPerPage ?? 0;
 
-  // Waiting for server total (if total equals local cache count, likely not synced yet)
-  // We show spinner if rowsPerPage is defined but total seems wrong
+  // Waiting for totalFromServer (show spinner only on number)
   if (total === 0) {
     return (
       <div className="text-sm text-muted-foreground mt-2">
-        <span className="inline-block animate-pulse">Loading count...</span>
+        Showing {formatNumber(visibleCount)} of <span className="inline-block animate-pulse">...</span>
       </div>
     );
   }
@@ -44,12 +37,7 @@ export function EntitiesCounter({ entitiesCount, isLoading, total, rowsPerPage }
     );
   }
 
-  // Default: showing X of Y
-  // X = rows from view config (what SpaceStore tells us to show)
-  // Y = total from server (will be implemented in Phase 3)
-  // If rowsPerPage not provided, something is wrong - show 0
-  const visibleCount = rowsPerPage ?? 0;
-
+  // Default: showing X of Y (with real server total)
   return (
     <div className="text-sm text-muted-foreground mt-2">
       Showing {formatNumber(visibleCount)} of {formatNumber(total)} items
