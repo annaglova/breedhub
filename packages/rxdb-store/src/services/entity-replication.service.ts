@@ -149,10 +149,10 @@ export class EntityReplicationService {
         collection,
         replicationIdentifier: `${entityType}-supabase-replication`,
         deletedField: '_deleted',
-        live: false,  // ✅ Manual control - не continuous pull
-        retryTime: 0,  // ✅ Не повторюємо автоматично
+        live: true,  // Потрібно для throttling логіки
+        retryTime: options.pullInterval || 5 * 1000, // 5 секунд між спробами
         waitForLeadership: false,
-        autoStart: true,  // Initial load стартує, далі manual
+        autoStart: true,
 
         pull: {
           handler: async (checkpointOrNull, batchSize) => {
@@ -160,6 +160,22 @@ export class EntityReplicationService {
               checkpoint: checkpointOrNull,
               batchSize
             });
+
+            // Skip if we recently pulled and got no data (ВАЖЛИВА ЛОГІКА!)
+            if (checkpointOrNull?.lastPullAt && checkpointOrNull?.pulled) {
+              const lastPull = new Date(checkpointOrNull.lastPullAt).getTime();
+              const now = new Date().getTime();
+              const timeSinceLastPull = now - lastPull;
+
+              // If less than 5 seconds since last pull and we already pulled data, skip
+              if (timeSinceLastPull < 5000) {
+                console.log(`[EntityReplication-${entityType}] Skipping pull - too soon since last pull`);
+                return {
+                  documents: [],
+                  checkpoint: checkpointOrNull
+                };
+              }
+            }
 
             // Rate limiting
             const activeReqs = this.activeRequests.get(entityType) || 0;
@@ -211,9 +227,13 @@ export class EntityReplicationService {
                 };
               }
 
-              // Get total count on initial load (для Phase 3)
+              // Get total count (завжди при першому pull або якщо немає в metadata)
               let totalCount: number | undefined;
-              if (isInitialLoad) {
+              const hasMetadata = this.entityMetadata.has(entityType);
+              console.log(`[EntityReplication-${entityType}] Metadata check: hasMetadata=${hasMetadata}`);
+
+              if (!hasMetadata) {
+                console.log(`[EntityReplication-${entityType}] 🔍 Fetching total count from Supabase...`);
                 const { count, error: countError } = await this.supabase
                   .from(entityType)
                   .select('*', { count: 'exact', head: true });
@@ -227,8 +247,14 @@ export class EntityReplicationService {
                     lastSync: new Date().toISOString()
                   });
 
-                  console.log(`[EntityReplication-${entityType}] Total count from server: ${totalCount}, saved to metadata`);
+                  console.log(`[EntityReplication-${entityType}] ✅ Total count from server: ${totalCount}, saved to metadata`);
+                } else {
+                  console.error(`[EntityReplication-${entityType}] ❌ Failed to fetch total count:`, countError);
                 }
+              } else {
+                // Use cached total
+                totalCount = this.entityMetadata.get(entityType)?.total;
+                console.log(`[EntityReplication-${entityType}] 📦 Using cached total count: ${totalCount}`);
               }
 
               const documents = (data || []).map(doc =>
