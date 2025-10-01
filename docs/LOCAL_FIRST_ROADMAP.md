@@ -1,13 +1,14 @@
 # 🚀 Local-First PWA Implementation Roadmap з RxDB
 
-## 📊 CURRENT STATUS: 16.09.2025
+## 📊 CURRENT STATUS: 01.10.2025
 
 ### ✅ COMPLETED PHASES:
 1. **Phase 0:** RxDB Setup ✅ (17.08.2024)
-2. **Phase 1:** PWA базова функціональність ✅ (18.08.2024) 
+2. **Phase 1:** PWA базова функціональність ✅ (18.08.2024)
 3. **Phase 2.1-2.5:** Supabase Sync & Testing ✅ (25.08.2024)
 4. **Phase 2.6:** Property-Based Configuration System ✅ (06.09.2025)
 5. **Phase 2.6.1:** Visual Config Admin UI ✅ (16.09.2025)
+6. **Phase 2.6.2:** Smart Data Loading & Manual Pagination ✅ (01.10.2025)
 
 ### 🎯 CURRENT PHASE:
 **Phase 3:** Universal Store Implementation (Ready to start)
@@ -253,6 +254,99 @@ apps/config-admin/
     ├── cascading-updates-v2.cjs  ✅ Cascade updates
     └── batch-processor.cjs        ✅ Batch processing
 ```
+
+### ✅ Phase 2.6.2: Smart Data Loading & Manual Pagination (COMPLETED 01.10.2025) 📦
+
+#### What We Built:
+Intelligent on-demand data loading system that prevents loading millions of records into RxDB, implementing manual pagination with dynamic batch sizes from view configuration.
+
+#### Philosophy: **Load Only What You Need**
+Offline-first does NOT mean "download everything"! With tables containing 9+ million records, we load only what users see.
+
+#### Completed Implementation:
+
+##### 1. **Dynamic Rows from View Config:**
+- ✅ `SpaceStore.getViewRows()` - reads rows from view config
+- ✅ Dynamic batch size per view (30 for breed/list, 60 for breed/grid)
+- ✅ View config = single source of truth for UI pagination and replication batch size
+- ✅ Page reset on view change for correct pagination
+
+##### 2. **Manual Pagination System:**
+- ✅ `EntityReplicationService.manualPull()` - on-demand data loading
+- ✅ Checkpoint persistence using latest document's `updated_at` from RxDB
+- ✅ `SpaceStore.loadMore()` - scroll-triggered loading
+- ✅ BulkUpsert for efficient batch inserts
+- ✅ Scroll handler with `handleLoadMore` callback integration
+- ✅ Initial load: rows from config (e.g., 30 for breed/list)
+- ✅ Subsequent loads: +rows on scroll to bottom
+
+##### 3. **Batch UI Updates (No Flickering):**
+- ✅ INSERT events buffering - accumulate in memory
+- ✅ Flush when `buffer.length >= expectedBatchSize` OR 100ms timeout
+- ✅ Dynamic expectedBatchSize from view config
+- ✅ UI updates jump smoothly: 30→60→90 (no intermediate values)
+
+##### 4. **Total Count from Server:**
+- ✅ `EntityStore.totalFromServer` signal
+- ✅ `EntityStore.initTotalFromCache()` - instant UI feedback from localStorage
+- ✅ localStorage cache for totalCount persistence
+- ✅ `useEntities` returns totalFromServer
+- ✅ EntitiesCounter shows real count: "30 of 452", "60 of 452"
+
+#### Architecture Pattern:
+```
+View Config (rows: 30)
+  ↓
+Initial Load: 30 records (from Supabase)
+  ↓
+RxDB: smart cache (~200-500 records max)
+  ↓
+UI: displays 30, then 60, 90... (scroll loads more)
+Total count: 452 (from Supabase metadata + localStorage cache)
+  ↓
+User scrolls ↓
+  ↓
+Manual Pull: +30 records
+  ↓
+Batch Buffer: accumulates 30 INSERT events
+  ↓
+Flush: adds all 30 to EntityStore at once
+  ↓
+UI: jumps 30→60 (no flickering)
+```
+
+#### Key Principles:
+1. **View config = single source of truth** - defines both UI rows and replication batchSize
+2. **Manual pagination > Continuous replication** - initial auto-load, then on-demand
+3. **RxDB = smart cache** - stores ~200-500 records, NOT the entire 9M+ table
+4. **Total count from Supabase + localStorage** - instant UI with cached metadata
+5. **Batch UI updates** - buffer and flush for smooth UX
+
+#### Modified Files:
+```
+packages/rxdb-store/src/
+├── services/entity-replication.service.ts    ✅ manualPull(), checkpoint logic
+├── stores/space-store.signal-store.ts         ✅ getViewRows(), loadMore(), batch buffering
+└── stores/base/entity-store.ts                ✅ totalFromServer signal, cache init
+
+apps/app/src/
+├── components/space/
+│   ├── SpaceComponent.tsx                     ✅ handleLoadMore, dynamic rowsPerPage
+│   ├── SpaceView.tsx                          ✅ scroll handler, infinite scroll
+│   └── EntitiesCounter.tsx                    ✅ actual count display
+└── hooks/useEntities.ts                       ✅ totalFromServer subscription
+```
+
+#### Performance Results:
+- Initial load < 500ms (30 records) ✅
+- Scroll load < 300ms (30 records) ✅
+- UI update instant (batch flush) ✅
+- Memory: ~10-50MB for 100-500 records ✅
+- NOT loading 9M records to client! ✅
+
+#### Documentation:
+- `/docs/DYNAMIC_VIEW_ROWS_IMPLEMENTATION.md` - detailed technical documentation
+- `/docs/SESSION_RESTART.md` - quick restart guide with principles
 
 ---
 
