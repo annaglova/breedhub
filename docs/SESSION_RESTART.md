@@ -22,26 +22,30 @@
 
 **Offline-first НЕ означає "завантажити все"!**
 
-### Останні завершені задачі (2025-09-30):
-- ✅ **ФАЗА 1 ЗАВЕРШЕНО** - Динамічні rows з view конфігу (60 для breed/list)
-- ✅ **ФАЗА 2 МАЙЖЕ ЗАВЕРШЕНО** - Manual Pagination (залишився тільки scroll handler)
-  - ✅ Throttling зупиняє continuous replication
-  - ✅ Initial load тільки 120 записів (rows * 2)
+### Останні завершені задачі (2025-10-01):
+- ✅ **ФАЗА 1 ЗАВЕРШЕНО** - Динамічні rows з view конфігу (30 для breed/list)
+- ✅ **ФАЗА 2 ЗАВЕРШЕНО** - Manual Pagination з on-demand loading
+  - ✅ Checkpoint persistence across page reloads (localStorage)
+  - ✅ BulkUpsert для batch inserts (замість циклу individual upserts)
+  - ✅ Batch buffering INSERT events (30→60 без проміжних значень)
+  - ✅ Initial load тільки 30 записів (rows з конфігу)
   - ✅ Manual pull метод (`manualPull()`, `loadMore()`)
-  - ⏳ Scroll handler в UI - НАСТУПНА ЗАДАЧА
+  - ✅ Scroll handler в UI з handleLoadMore
+  - ✅ Dynamic batch size з view config rows
 - ✅ **ФАЗА 3 ЗАВЕРШЕНО** - Total count через EntityStore з localStorage кешем
-  - ✅ Instant UI feedback: "60 of 452" (50-200ms з кешу)
+  - ✅ Instant UI feedback: "30 of 452" (50-200ms з кешу)
   - ✅ EntityStore.initTotalFromCache() синхронне завантаження
+  - ✅ EntitiesCounter показує реальну кількість завантажених (30, 60, 90...)
 - ✅ Оптимізовані polling intervals (500ms→100ms, 100ms→50ms)
-- ✅ Прибрано блимання fallback значення "50"
+- ✅ Прибрано блимання fallback значень
 
 ### Поточний контекст:
 - ✅ Працює реплікація для entity type "breed"
-- ✅ Завантажує 120 записів initial load (60 * 2), потім зупиняється через throttling
-- ✅ batchSize = 60 з view конфігу (динамічно)
+- ✅ Завантажує 30 записів initial load (rows з конфігу), потім manual на scroll
+- ✅ batchSize = 30 з view конфігу (динамічно)
 - ✅ BreedListCard використовує реальні дані з RxDB через useEntities hook
-- ✅ EntitiesCounter показує "60 of 452" миттєво з localStorage кешу
-- ⏳ **НАСТУПНА ЗАДАЧА:** Додати scroll handler для `loadMore()` в SpaceComponent
+- ✅ EntitiesCounter показує "30 of 452" миттєво, потім "60 of 452", "90 of 452"...
+- ✅ **ВСІЄ ФАЗИ 1-3 ЗАВЕРШЕНО!** Проект готовий для production use з великими таблицями
 
 ---
 
@@ -143,12 +147,12 @@
 
 ---
 
-### ФАЗА 2: Manual Pagination - On-Demand Data Loading ⏳ В ПРОЦЕСІ
-**Файли:** EntityReplicationService, SpaceStore, useEntities
+### ФАЗА 2: Manual Pagination - On-Demand Data Loading ✅ ЗАВЕРШЕНО
+**Файли:** EntityReplicationService, SpaceStore, SpaceComponent, useEntities
 
 **ПРОБЛЕМА:** Зараз реплікація працює в continuous mode (`live: true`) і автоматично завантажує всю таблицю batch за batch-ем. Для таблиць з 9+ млн записів це неприйнятно.
 
-**РІШЕННЯ:** Manual pagination з on-demand loading
+**РІШЕННЯ:** Manual pagination з on-demand loading + checkpoint persistence + batch UI updates
 
 #### 2.1. Вимкнути Continuous Replication ✅ ЗАВЕРШЕНО
 **Файл:** `entity-replication.service.ts:151-177`
@@ -235,44 +239,49 @@ const limit = effectiveBatchSize * 2;  // Завжди rows * 2 для initial l
 
 ---
 
-#### 2.4. SpaceStore.loadMore() method ⏳ В ПРОЦЕСІ
-**Файл:** `space-store.signal-store.ts:522-533`
+#### 2.4. SpaceStore.loadMore() + UI Integration ✅ ЗАВЕРШЕНО
+**Файли:** `space-store.signal-store.ts`, `SpaceComponent.tsx`, `SpaceView.tsx`
 
-**Метод створено:** ✅
+**SpaceStore.loadMore() метод:** ✅
 ```typescript
-async loadMore(entityType: string): Promise<number> {
-  console.log(`[SpaceStore] Loading more data for ${entityType}...`);
-
-  // Get rows from view config
-  const rows = this.getDefaultRows(entityType);
-
-  // Trigger manual pull
+async loadMore(entityType: string, viewType: string): Promise<number> {
+  const rows = this.getViewRows(entityType, viewType);
   const count = await entityReplicationService.manualPull(entityType, rows);
-
-  console.log(`[SpaceStore] Loaded ${count} more records for ${entityType}`);
   return count;
 }
 ```
 
-**UI Integration:** ❌ ТРЕБА ЗРОБИТИ
+**SpaceComponent handleLoadMore:** ✅
 ```typescript
-// SpaceComponent.tsx - ТРЕБА ДОДАТИ
-const handleLoadMore = async () => {
-  setIsLoadingMore(true);
-  const count = await spaceStore.loadMore(config.entitySchemaName);
-  setIsLoadingMore(false);
-};
+const handleLoadMore = useCallback(async () => {
+  if (isLoadingMoreRef.current) return;
+  isLoadingMoreRef.current = true;
 
-// Trigger on scroll - ТРЕБА ДОДАТИ
-const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
-  const target = e.currentTarget;
-  const scrollBottom = target.scrollHeight - target.scrollTop - target.clientHeight;
-
-  if (scrollBottom < 100 && !isLoadingMore && allEntities.length < totalCount) {
-    handleLoadMore();
+  try {
+    await spaceStore.loadMore(config.entitySchemaName, viewMode);
+  } catch (error) {
+    console.error('[SpaceComponent] Error loading more:', error);
+  } finally {
+    isLoadingMoreRef.current = false;
   }
-};
+}, [config.entitySchemaName, viewMode]);
 ```
+
+**SpaceView scroll handler:** ✅
+```typescript
+const handleScroll = useCallback(() => {
+  if (!parentRef.current || isLoadingMore || !hasMore || !onLoadMore) return;
+
+  const scrollElement = parentRef.current;
+  const scrollBottom = scrollElement.scrollHeight - scrollElement.scrollTop - scrollElement.clientHeight;
+
+  if (scrollBottom < 100) {
+    onLoadMore(); // Calls handleLoadMore from SpaceComponent
+  }
+}, [hasMore, isLoadingMore, onLoadMore]);
+```
+
+**Результат:** ✅ Scroll до кінця → автоматично завантажує наступні 30 записів
 
 ---
 
@@ -315,13 +324,22 @@ if (!countError && count !== null) {
 ---
 
 **Результат Фази 2:**
-- ✅ Initial load тільки 120 записів (rows * 2)
-- ✅ Throttling зупиняє автоматичні pulls після initial load
-- ✅ Manual pull метод створено (`manualPull()`, `loadMore()`)
-- ⏳ Scroll handler в UI - ТРЕБА ДОДАТИ (2.4)
+- ✅ Initial load тільки 30 записів (rows з конфігу, без множення)
+- ✅ Checkpoint persistence в localStorage для продовження після reload
+- ✅ BulkUpsert замість циклу individual upserts
+- ✅ Batch buffering INSERT events - стрибки 30→60→90 без проміжних
+- ✅ Manual pull метод (`manualPull()`, `loadMore()`)
+- ✅ Scroll handler в UI з handleLoadMore
+- ✅ Dynamic batch size з view config rows
 - ✅ Немає автоматичного завантаження всієї таблиці
-- ✅ RxDB кеш ~200-500 записів max
+- ✅ RxDB кеш ~200-500 записів max (залежить від scroll)
 - ✅ Total count миттєво з localStorage кешу
+
+**Нові покращення (2025-10-01):**
+- ✅ Checkpoint queries RxDB для latest document (не outdated localStorage)
+- ✅ Flush batch коли досягнуто expectedBatchSize OR через 100ms timeout
+- ✅ expectedBatchSize читається з spaceConfig динамічно
+- ✅ EntitiesCounter показує реальну кількість з RxDB (не rowsPerPage)
 
 ---
 
@@ -445,9 +463,11 @@ npm install
 
 1. ~~**Rows = 50 хардкод**~~ → ✅ Виправлено в Фазі 1
 2. ~~**batchSize = 100 хардкод**~~ → ✅ Виправлено в Фазі 2.1
-3. **Continuous pull завантажує всю таблицю** → 🔧 Виправляємо в Фазі 2 (В ПРОЦЕСІ)
-4. **Total count неточний** → Виправляємо в Фазі 3
-5. **Realtime subscription для INSERT** → Виправимо в Фазі 4
+3. ~~**Continuous pull завантажує всю таблицю**~~ → ✅ Виправлено в Фазі 2 (manual pagination)
+4. ~~**Total count неточний**~~ → ✅ Виправлено в Фазі 3 (localStorage cache)
+5. ~~**UI flickering при batch insert**~~ → ✅ Виправлено batch buffering (2025-10-01)
+6. ~~**Checkpoint не зберігався після reload**~~ → ✅ Виправлено localStorage persistence (2025-10-01)
+7. **Realtime subscription для INSERT** → TODO Фаза 4 (низький пріоритет)
 
 ---
 
