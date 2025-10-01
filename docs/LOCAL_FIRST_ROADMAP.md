@@ -8,10 +8,10 @@
 3. **Phase 2.1-2.5:** Supabase Sync & Testing ✅ (25.08.2024)
 4. **Phase 2.6:** Property-Based Configuration System ✅ (06.09.2025)
 5. **Phase 2.6.1:** Visual Config Admin UI ✅ (16.09.2025)
-6. **Phase 2.6.2:** Smart Data Loading & Manual Pagination ✅ (01.10.2025)
+6. **Phase 3.1:** Smart Data Loading & Manual Pagination ✅ (01.10.2025)
 
 ### 🎯 CURRENT PHASE:
-**Phase 3:** Universal Store Implementation (Ready to start)
+**Phase 3:** Universal Store Implementation (In Progress - 3.1 completed)
 
 ### 📅 UPCOMING PHASES:
 - **Phase 4:** Component Registry & Dynamic UI
@@ -255,10 +255,65 @@ apps/config-admin/
     └── batch-processor.cjs        ✅ Batch processing
 ```
 
-### ✅ Phase 2.6.2: Smart Data Loading & Manual Pagination (COMPLETED 01.10.2025) 📦
+---
+
+# 🔄 PHASES IN PROGRESS
+
+### 📅 Phase 2.7: Migration від MultiStore до NgRx Signal Store (POSTPONED)
+
+**Reason:** Потребує завершені конфігурації з Phase 2.6
+
+**Planned Architecture:**
+```
+Supabase Configs → ConfigLoaderService → DynamicUniversalStore → UI Components
+       ↓                    ↓                     ↓
+   app_config        IndexedDB Cache      NgRx Signal Store
+   (collections)      (offline mode)       with features
+```
+
+### 📅 Phase 2.8: React RxDB Integration (POSTPONED)
+
+**Goal:** Implement best practices from official RxDB examples
+
+**Planned Features:**
+- Database Singleton Pattern
+- React Hooks for RxDB
+- Advanced Replication with Supabase
+- Performance optimization
+
+---
+
+# 📅 UPCOMING PHASES
+
+## Phase 3: Universal Store Implementation (2 weeks) 🎯 NEXT
+
+### Goal: Create configuration-driven stores
+
+### 🧹 Phase 3.0: Redux Cleanup (2-3 days)
+**Goal:** Remove Redux/RTK Query in favor of Preact Signals
+
+#### Tasks:
+- [ ] Audit all Redux usage in the codebase
+- [ ] Remove Redux dependencies from package.json
+- [ ] Remove /store folder with Redux code
+- [ ] Replace `useQuery` hooks with direct SpaceStore subscriptions
+- [ ] Replace React Query with RxDB subscriptions
+- [ ] Update components to use Preact Signals
+- [ ] Remove Redux DevTools integration
+- [ ] Clean up unused Redux-related imports
+
+#### Migration Strategy:
+1. Identify all components using Redux/RTK Query
+2. Create Signals-based replacements
+3. Test each migration
+4. Remove Redux code after successful migration
+
+---
+
+### ✅ Phase 3.1: Smart Data Loading & Manual Pagination (COMPLETED 01.10.2025) 📦
 
 #### What We Built:
-Intelligent on-demand data loading system that prevents loading millions of records into RxDB, implementing manual pagination with dynamic batch sizes from view configuration.
+Intelligent on-demand data loading system for SpaceStore that prevents loading millions of records into RxDB, implementing manual pagination with dynamic batch sizes from view configuration.
 
 #### Philosophy: **Load Only What You Need**
 Offline-first does NOT mean "download everything"! With tables containing 9+ million records, we load only what users see.
@@ -349,57 +404,6 @@ apps/app/src/
 - `/docs/SESSION_RESTART.md` - quick restart guide with principles
 
 ---
-
-# 🔄 PHASES IN PROGRESS
-
-### 📅 Phase 2.7: Migration від MultiStore до NgRx Signal Store (POSTPONED)
-
-**Reason:** Потребує завершені конфігурації з Phase 2.6
-
-**Planned Architecture:**
-```
-Supabase Configs → ConfigLoaderService → DynamicUniversalStore → UI Components
-       ↓                    ↓                     ↓
-   app_config        IndexedDB Cache      NgRx Signal Store
-   (collections)      (offline mode)       with features
-```
-
-### 📅 Phase 2.8: React RxDB Integration (POSTPONED)
-
-**Goal:** Implement best practices from official RxDB examples
-
-**Planned Features:**
-- Database Singleton Pattern
-- React Hooks for RxDB
-- Advanced Replication with Supabase
-- Performance optimization
-
----
-
-# 📅 UPCOMING PHASES
-
-## Phase 3: Universal Store Implementation (2 weeks) 🎯 NEXT
-
-### Goal: Create configuration-driven stores
-
-### 🧹 Phase 3.0: Redux Cleanup (2-3 days)
-**Goal:** Remove Redux/RTK Query in favor of Preact Signals
-
-#### Tasks:
-- [ ] Audit all Redux usage in the codebase
-- [ ] Remove Redux dependencies from package.json
-- [ ] Remove /store folder with Redux code
-- [ ] Replace `useQuery` hooks with direct SpaceStore subscriptions
-- [ ] Replace React Query with RxDB subscriptions
-- [ ] Update components to use Preact Signals
-- [ ] Remove Redux DevTools integration
-- [ ] Clean up unused Redux-related imports
-
-#### Migration Strategy:
-1. Identify all components using Redux/RTK Query
-2. Create Signals-based replacements
-3. Test each migration
-4. Remove Redux code after successful migration
 
 ### Planned Implementation:
 
