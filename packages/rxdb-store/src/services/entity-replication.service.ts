@@ -26,7 +26,7 @@ export class EntityReplicationService {
   private supabase: SupabaseClient;
   private activeRequests: Map<string, number> = new Map();
   private maxConcurrentRequests = 3;
-  private entityMetadata: Map<string, { total: number; lastSync: string }> = new Map();
+  private entityMetadata: Map<string, { total: number; lastSync: string; lastCheckpoint?: any }> = new Map();
   private totalCountCallbacks: Map<string, Array<(total: number) => void>> = new Map();
 
   constructor() {
@@ -157,25 +157,17 @@ export class EntityReplicationService {
 
         pull: {
           handler: async (checkpointOrNull, batchSize) => {
-            console.log(`[EntityReplication-${entityType}] Pull handler called`, {
-              checkpoint: checkpointOrNull,
-              batchSize
-            });
-
             // Skip if we recently pulled and got no data (ВАЖЛИВА ЛОГІКА!)
             // BUT: завжди дозволяємо перший pull для завантаження totalCount
             const hasMetadata = this.entityMetadata.has(entityType);
 
-            if (!hasMetadata) {
-              console.log(`[EntityReplication-${entityType}] First pull after page load - need to fetch totalCount`);
-            } else if (checkpointOrNull?.lastPullAt && checkpointOrNull?.pulled) {
+            if (checkpointOrNull?.lastPullAt && checkpointOrNull?.pulled) {
               const lastPull = new Date(checkpointOrNull.lastPullAt).getTime();
               const now = new Date().getTime();
               const timeSinceLastPull = now - lastPull;
 
               // If less than 5 seconds since last pull and we already pulled data, skip
               if (timeSinceLastPull < 5000) {
-                console.log(`[EntityReplication-${entityType}] Skipping pull - too soon since last pull`);
                 return {
                   documents: [],
                   checkpoint: checkpointOrNull
@@ -186,35 +178,24 @@ export class EntityReplicationService {
             // Rate limiting
             const activeReqs = this.activeRequests.get(entityType) || 0;
             if (activeReqs >= this.maxConcurrentRequests) {
-              console.log(`[EntityReplication-${entityType}] Too many active requests, waiting...`);
               await new Promise(resolve => setTimeout(resolve, 1000));
             }
 
             this.activeRequests.set(entityType, activeReqs + 1);
 
-            // Fixed batch size: rows * 2 для initial load
-            // Live: false означає що це завжди буде initial/manual load
-            const effectiveBatchSize = options.batchSize || 50; // з view config rows
-            const limit = effectiveBatchSize * 2;  // Завжди rows * 2
+            // Batch size logic:
+            // Always use rows from config (no multiplication)
+            const effectiveBatchSize = options.batchSize || 50; // from view config rows
 
-            const isInitialLoad = !checkpointOrNull || !checkpointOrNull?.updated_at;
+            // Check if this is truly initial load (no metadata = first time loading)
+            const isInitialLoad = !hasMetadata;
 
-            console.log(`[EntityReplication-${entityType}] Pull handler:`, {
-              isInitialLoad,
-              limit,
-              effectiveBatchSize,
-              'options.batchSize': options.batchSize,
-              checkpoint: checkpointOrNull,
-              batchSize
-            });
+            const limit = effectiveBatchSize;  // Always use config value as-is
 
+            // Subtract 5sec to catch late updates
             const checkpointDate = checkpointOrNull?.updated_at
               ? new Date(new Date(checkpointOrNull.updated_at).getTime() - 5000).toISOString()
               : new Date(0).toISOString();
-
-            if (isInitialLoad) {
-              console.log(`[EntityReplication-${entityType}] Initial load - fetching up to ${limit} records`);
-            }
 
             try {
               // Fetch data
@@ -236,10 +217,8 @@ export class EntityReplicationService {
               // Get total count (завжди при першому pull або якщо немає в metadata)
               let totalCount: number | undefined;
               const hasMetadata = this.entityMetadata.has(entityType);
-              console.log(`[EntityReplication-${entityType}] Metadata check: hasMetadata=${hasMetadata}`);
 
               if (!hasMetadata) {
-                console.log(`[EntityReplication-${entityType}] 🔍 Fetching total count from Supabase...`);
                 const { count, error: countError } = await this.supabase
                   .from(entityType)
                   .select('*', { count: 'exact', head: true });
@@ -247,16 +226,31 @@ export class EntityReplicationService {
                 if (!countError && count !== null) {
                   totalCount = count;
 
-                  // Save metadata in memory
+                  // Save metadata in memory (preserve existing lastCheckpoint if any)
+                  const existingMetadata = this.entityMetadata.get(entityType);
+
+                  // Try to load checkpoint from localStorage if not in memory
+                  let checkpointToPreserve = existingMetadata?.lastCheckpoint;
+                  if (!checkpointToPreserve) {
+                    try {
+                      const cached = localStorage.getItem(`checkpoint_${entityType}`);
+                      if (cached) {
+                        checkpointToPreserve = JSON.parse(cached);
+                      }
+                    } catch (e) {
+                      console.warn(`[EntityReplication-${entityType}] Failed to restore checkpoint:`, e);
+                    }
+                  }
+
                   this.entityMetadata.set(entityType, {
                     total: count,
-                    lastSync: new Date().toISOString()
+                    lastSync: new Date().toISOString(),
+                    ...(checkpointToPreserve ? { lastCheckpoint: checkpointToPreserve } : {})
                   });
 
                   // Cache in localStorage for instant access on next load
                   try {
                     localStorage.setItem(`totalCount_${entityType}`, count.toString());
-                    console.log(`[EntityReplication-${entityType}] ✅ Total count from server: ${totalCount}, saved to metadata & localStorage`);
                   } catch (e) {
                     console.warn(`[EntityReplication-${entityType}] Failed to cache totalCount in localStorage:`, e);
                   }
@@ -264,7 +258,6 @@ export class EntityReplicationService {
                   // Notify subscribers
                   const callbacks = this.totalCountCallbacks.get(entityType);
                   if (callbacks) {
-                    console.log(`[EntityReplication-${entityType}] Notifying ${callbacks.length} subscribers about totalCount`);
                     callbacks.forEach(cb => cb(count));
                   }
                 } else {
@@ -273,14 +266,15 @@ export class EntityReplicationService {
               } else {
                 // Use cached total
                 totalCount = this.entityMetadata.get(entityType)?.total;
-                console.log(`[EntityReplication-${entityType}] 📦 Using cached total count: ${totalCount}`);
               }
 
               const documents = (data || []).map(doc =>
                 this.mapSupabaseToRxDB(entityType, doc, schema)
               );
 
+              // Check if we got full batch (meaning there might be more)
               const hasMore = documents.length === limit;
+
               const newCheckpoint = documents.length > 0
                 ? {
                     updated_at: documents[documents.length - 1].updated_at,
@@ -291,13 +285,6 @@ export class EntityReplicationService {
                 : checkpointOrNull
                   ? { ...checkpointOrNull, pulled: true, lastPullAt: new Date().toISOString() }
                   : { pulled: true, lastPullAt: new Date().toISOString() };
-
-              console.log(`[EntityReplication-${entityType}] Pull completed`, {
-                documentsCount: documents.length,
-                hasMore,
-                totalCount,
-                newCheckpoint
-              });
 
               return {
                 documents,
@@ -320,10 +307,6 @@ export class EntityReplicationService {
 
         push: {
           handler: async (rows) => {
-            console.log(`[EntityReplication-${entityType}] Push handler called`, {
-              rowsCount: rows.length
-            });
-
             const conflicts: any[] = [];
 
             for (const row of rows) {
@@ -662,26 +645,86 @@ export class EntityReplicationService {
       return 0;
     }
 
-    console.log(`[EntityReplication-${entityType}] Manual pull requested, limit: ${limit || 'default'}`);
-
     try {
-      // Trigger pull manually
-      await replicationState.reSync();
+      // Get collection and checkpoint
+      const collection = replicationState.collection;
+      const schema = collection.schema.jsonSchema;
 
-      // Wait for pull to complete and return count
-      return new Promise((resolve) => {
-        const timeout = setTimeout(() => {
-          console.warn(`[EntityReplication-${entityType}] Manual pull timeout`);
-          resolve(0);
-        }, 10000); // 10 second timeout
+      // Get current checkpoint by finding the latest document in RxDB
+      // This ensures we always continue from where RxDB actually is
+      const latestDoc = await collection.findOne({
+        sort: [{ updated_at: 'desc' }]
+      }).exec();
 
-        const sub = replicationState.received$.subscribe((received) => {
-          clearTimeout(timeout);
-          console.log(`[EntityReplication-${entityType}] Manual pull received: ${received.documents.length} documents`);
-          resolve(received.documents.length);
-          sub.unsubscribe();
-        });
-      });
+      let checkpoint = null;
+      if (latestDoc) {
+        checkpoint = {
+          updated_at: latestDoc.updated_at,
+          pulled: true,
+          lastPullAt: new Date().toISOString()
+        };
+      }
+
+      // Calculate checkpoint date (exact, no -5sec for manual)
+      const checkpointDate = checkpoint?.updated_at
+        ? checkpoint.updated_at
+        : new Date(0).toISOString();
+
+      // Direct fetch from Supabase
+      const { data, error } = await this.supabase
+        .from(entityType)
+        .select('*')
+        .gt('updated_at', checkpointDate)
+        .order('updated_at', { ascending: true })
+        .limit(limit || 30);
+
+      if (error) {
+        console.error(`[EntityReplication-${entityType}] Manual pull error:`, error);
+        return 0;
+      }
+
+      if (!data || data.length === 0) {
+        return 0;
+      }
+
+      // Map Supabase documents to RxDB format
+      const documents = data.map(doc => this.mapSupabaseToRxDB(entityType, doc, schema));
+
+      // Use bulkUpsert for batch insert to avoid multiple UI updates
+      try {
+        await collection.bulkUpsert(documents);
+      } catch (e) {
+        console.error(`[EntityReplication-${entityType}] Bulk upsert failed:`, e);
+        return 0;
+      }
+
+      const inserted = documents.length;
+
+      // Update checkpoint in metadata
+      const newCheckpoint = {
+        updated_at: documents[documents.length - 1].updated_at,
+        pulled: true,
+        lastPullAt: new Date().toISOString()
+      };
+
+      const currentMetadata = this.entityMetadata.get(entityType) || {
+        total: 0,
+        lastSync: new Date().toISOString()
+      };
+      const updatedMetadata = {
+        ...currentMetadata,
+        lastCheckpoint: newCheckpoint
+      };
+      this.entityMetadata.set(entityType, updatedMetadata);
+
+      // Also save to localStorage for persistence
+      try {
+        localStorage.setItem(`checkpoint_${entityType}`, JSON.stringify(newCheckpoint));
+      } catch (e) {
+        console.warn(`[EntityReplication-${entityType}] Failed to save checkpoint to localStorage:`, e);
+      }
+
+      return inserted;
     } catch (error) {
       console.error(`[EntityReplication-${entityType}] Manual pull error:`, error);
       return 0;

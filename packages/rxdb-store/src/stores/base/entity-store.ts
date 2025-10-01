@@ -65,17 +65,19 @@ export class EntityStore<T extends { id: string }> {
    * Replace all entities with new ones
    */
   setAll(entities: T[], autoSelectFirst = false): void {
+    console.log(`[EntityStore] setAll called with ${entities.length} entities`);
+
     batch(() => {
       const newEntities = new Map<string, T>();
       const newIds: string[] = [];
-      
+
       entities.forEach(entity => {
         if (entity && entity.id) {
           newEntities.set(entity.id, entity);
           newIds.push(entity.id);
         }
       });
-      
+
       this.entities.value = newEntities;
       this.ids.value = newIds;
       
@@ -107,13 +109,18 @@ export class EntityStore<T extends { id: string }> {
    */
   addOne(entity: T): void {
     if (!entity || !entity.id) return;
-    
+
+    const alreadyExists = this.ids.value.includes(entity.id);
+    if (alreadyExists) {
+      return;
+    }
+
     batch(() => {
       const newEntities = new Map(this.entities.value);
       newEntities.set(entity.id, entity);
-      
+
       this.entities.value = newEntities;
-      
+
       if (!this.ids.value.includes(entity.id)) {
         this.ids.value = [...this.ids.value, entity.id];
       }
