@@ -40,8 +40,7 @@ export function useEntities({
         // Wait for SpaceStore to be initialized with retries (faster polling)
         let retries = 20;
         while (!spaceStore.initialized.value && retries > 0) {
-          console.log(`[useEntities] Waiting for SpaceStore initialization... (${retries} retries left)`);
-          await new Promise(resolve => setTimeout(resolve, 100)); // 100ms instead of 500ms
+          await new Promise(resolve => setTimeout(resolve, 100));
           retries--;
         }
 
@@ -51,8 +50,7 @@ export function useEntities({
         while (!entityStore && retries > 0) {
           entityStore = await spaceStore.getEntityStore(entityType);
           if (!entityStore) {
-            console.log(`[useEntities] Waiting for ${entityType} store... (${retries} retries left)`);
-            await new Promise(resolve => setTimeout(resolve, 100)); // 100ms instead of 500ms
+            await new Promise(resolve => setTimeout(resolve, 100));
             retries--;
           }
         }
@@ -62,51 +60,53 @@ export function useEntities({
           throw new Error(`Entity store for ${entityType} not available`);
         }
 
-        console.log(`[useEntities] Got entity store for ${entityType}, items:`, entityStore.total.value);
-
-        // Subscribe to changes in the entity store
+        // Subscribe to changes in the entity store using signal subscriptions
+        // Preact signals automatically trigger React re-renders when .value changes
         const updateData = () => {
           if (!isMounted) return;
 
+          // Read signal values - this creates a subscription in React
           const allEntities = entityStore.entityList.value;
-          const to = from + rows;
-          const paginatedEntities = allEntities.slice(from, to);
-
-          // Use totalFromServer if available, otherwise null (wait for server)
           const totalFromServer = entityStore.totalFromServer.value;
 
           // Don't show local count as total - it's misleading
           // If totalFromServer is null, we're still loading the real count
           const total = totalFromServer !== null ? totalFromServer : 0;
 
-          console.log(`[useEntities] updateData:`, {
-            totalFromServer,
-            localCount: allEntities.length,
-            finalTotal: total
-          });
-
           setData({
-            entities: paginatedEntities,
+            entities: [...allEntities], // Create new array to trigger React update
             total
           });
           setIsLoading(false);
         };
 
+        // Manual subscriptions to force React state updates
+        const unsubscribeList = entityStore.entityList.subscribe((newList) => {
+          if (!isMounted) return;
+
+          const totalFromServer = entityStore.totalFromServer.value;
+          const total = totalFromServer !== null ? totalFromServer : 0;
+
+          setData({
+            entities: [...newList], // Create new array reference
+            total
+          });
+        });
+
+        const unsubscribeTotal = entityStore.totalFromServer.subscribe((total) => {
+          if (!isMounted) return;
+
+          const allEntities = entityStore.entityList.value;
+          const finalTotal = total !== null ? total : 0;
+
+          setData({
+            entities: [...allEntities],
+            total: finalTotal
+          });
+        });
+
         // Initial load
         updateData();
-
-        // Subscribe to future changes
-        const unsubscribeList = entityStore.entityList.subscribe(() => {
-          // Commented out for less noise
-          // console.log(`[useEntities] Entity list updated for ${entityType}`);
-          updateData();
-        });
-
-        // Subscribe to totalFromServer changes
-        const unsubscribeTotal = entityStore.totalFromServer.subscribe((total) => {
-          console.log(`[useEntities] totalFromServer changed to:`, total);
-          updateData();
-        });
 
         unsubscribe = () => {
           unsubscribeList();
@@ -130,7 +130,7 @@ export function useEntities({
         unsubscribe();
       }
     };
-  }, [entityType, from, rows]);
+  }, [entityType]); // Removed from/rows - they're not used anymore
 
   return {
     data,

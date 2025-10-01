@@ -4,7 +4,6 @@ interface EntitiesCounterProps {
   entitiesCount: number;
   isLoading: boolean;
   total: number;
-  rowsPerPage?: number; // NEW: how many rows are displayed per page
 }
 
 /**
@@ -15,15 +14,12 @@ function formatNumber(num: number): string {
   return num.toLocaleString('en-US');
 }
 
-export function EntitiesCounter({ entitiesCount, isLoading, total, rowsPerPage }: EntitiesCounterProps) {
-  // Always use rowsPerPage (from config) as visible count - it's available immediately
-  const visibleCount = rowsPerPage ?? 0;
-
+export function EntitiesCounter({ entitiesCount, isLoading, total }: EntitiesCounterProps) {
   // Waiting for totalFromServer (show spinner only on number)
   if (total === 0) {
     return (
       <div className="text-sm text-muted-foreground mt-2">
-        Showing {formatNumber(visibleCount)} of <span className="inline-block animate-pulse">...</span>
+        Showing {formatNumber(entitiesCount)} of <span className="inline-block animate-pulse">...</span>
       </div>
     );
   }
@@ -40,7 +36,7 @@ export function EntitiesCounter({ entitiesCount, isLoading, total, rowsPerPage }
   // Default: showing X of Y (with real server total)
   return (
     <div className="text-sm text-muted-foreground mt-2">
-      Showing {formatNumber(visibleCount)} of {formatNumber(total)} items
+      Showing {formatNumber(entitiesCount)} of {formatNumber(total)} items
     </div>
   );
 }

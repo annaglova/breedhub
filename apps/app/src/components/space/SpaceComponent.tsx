@@ -50,8 +50,6 @@ export function SpaceComponent<T extends { Id: string }>({
   useSignals();
 
   // Data loading state
-  const [page, setPage] = useState(0);
-  const [allEntities, setAllEntities] = useState<T[]>([]);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [totalCount, setTotalCount] = useState(0);
   const [searchValue, setSearchValue] = useState("");
@@ -87,17 +85,17 @@ export function SpaceComponent<T extends { Id: string }>({
   const rowsPerPage = useMemo(() => {
     // Don't return default 50 until config is ready - this prevents flashing "50" on load
     if (!spaceStore.configReady.value) {
-      console.log(`[SpaceComponent] Config not ready yet, returning 60 as initial value`);
       return 60; // Use 60 as default for breed/list instead of 50
     }
     const rows = spaceStore.getViewRows(config.entitySchemaName, viewMode);
-    console.log(`[SpaceComponent] Using ${rows} rows for ${viewMode} view`);
     return rows;
   }, [config.entitySchemaName, viewMode, spaceStore.configReady.value]);
 
+  // useEntities now returns ALL entities from RxDB (no pagination)
+  // Manual pull handles loading more data into RxDB
   const { data, isLoading, error, isFetching} = useEntitiesHook({
-    rows: rowsPerPage,  // ✅ ДИНАМІЧНО З КОНФІГУ
-    from: page * rowsPerPage,
+    rows: rowsPerPage,  // Not used for pagination anymore, kept for compatibility
+    from: 0,  // Always from 0, we get all entities
   });
 
   // UI state
@@ -114,33 +112,30 @@ export function SpaceComponent<T extends { Id: string }>({
   const needCardClass = isMoreThanLG;
 
 
-  // Accumulate entities as we load more
+  // Get all entities directly from data (no accumulation needed)
+  const allEntities = data?.entities || [];
+
+  // Update total count and handle initial load
   useEffect(() => {
     if (data?.entities && !isLoading) {
-      if (page === 0) {
-        setAllEntities(data.entities);
-        setIsInitialLoad(false);
+      setIsInitialLoad(false);
 
-        // Auto-select first entity for xxl+ screens on initial load
-        if (isMoreThan2XL && data.entities.length > 0 && !selectedEntityId) {
-          const pathSegments = location.pathname.split("/");
-          const hasEntityId =
-            pathSegments.length > 2 && pathSegments[2] !== "new";
-          if (!hasEntityId) {
-            navigate(`${data.entities[0].Id}#overview`);
-          }
+      // Auto-select first entity for xxl+ screens on initial load
+      if (isMoreThan2XL && data.entities.length > 0 && !selectedEntityId) {
+        const pathSegments = location.pathname.split("/");
+        const hasEntityId =
+          pathSegments.length > 2 && pathSegments[2] !== "new";
+        if (!hasEntityId) {
+          navigate(`${data.entities[0].Id}#overview`);
         }
-      } else {
-        setAllEntities((prev) => [...prev, ...data.entities]);
       }
+
       if (data.total) {
-        console.log(`[SpaceComponent] Setting totalCount:`, data.total);
         setTotalCount(data.total);
       }
     }
   }, [
     data,
-    page,
     isLoading,
     isMoreThan2XL,
     selectedEntityId,
@@ -173,12 +168,8 @@ export function SpaceComponent<T extends { Id: string }>({
     }
   }, []);
 
-  // Reset pagination when view changes
-  useEffect(() => {
-    console.log(`[SpaceComponent] View changed to ${viewMode}, resetting page and entities`);
-    setPage(0);
-    setAllEntities([]); // Clear loaded entities
-  }, [viewMode]);
+  // View change is handled by RxDB replication automatically
+  // No need to reset state here
 
   const handleEntityClick = useCallback(
     (entity: T) => {
@@ -189,9 +180,27 @@ export function SpaceComponent<T extends { Id: string }>({
     [navigate]
   );
 
-  const handleLoadMore = useCallback(() => {
-    setPage((prev) => prev + 1);
-  }, []);
+  // Track if loadMore is currently running
+  const isLoadingMoreRef = useRef(false);
+
+  const handleLoadMore = useCallback(async () => {
+    // Prevent multiple simultaneous calls
+    if (isLoadingMoreRef.current) {
+      return;
+    }
+
+    isLoadingMoreRef.current = true;
+
+    // Trigger manual pull to load more data into RxDB
+    // EntityStore will automatically update via subscription
+    try {
+      await spaceStore.loadMore(config.entitySchemaName, viewMode);
+    } catch (error) {
+      console.error('[SpaceComponent] Error loading more:', error);
+    } finally {
+      isLoadingMoreRef.current = false;
+    }
+  }, [config.entitySchemaName, viewMode]);
 
   const handleCreateNew = () => {
     navigate(`${location.pathname}/new`);
@@ -251,7 +260,7 @@ export function SpaceComponent<T extends { Id: string }>({
                 />
               </div>
               {spaceStore.configReady.value && (
-                <EntitiesCounter entitiesCount={0} isLoading={true} total={0} rowsPerPage={rowsPerPage} />
+                <EntitiesCounter entitiesCount={0} isLoading={true} total={0} />
               )}
             </div>
           </div>
@@ -297,12 +306,13 @@ export function SpaceComponent<T extends { Id: string }>({
                 }))}
               />
             </div>
-            <EntitiesCounter
-              entitiesCount={allEntities.length}
-              isLoading={false}
-              total={totalCount}
-              rowsPerPage={rowsPerPage}
-            />
+            {spaceStore.configReady.value && (
+              <EntitiesCounter
+                entitiesCount={allEntities.length}
+                isLoading={false}
+                total={totalCount}
+              />
+            )}
           </div>
 
           {/* Main actions */}

@@ -105,13 +105,15 @@ export function SpaceView<T extends { Id: string }>({
 
   // Handle infinite scroll
   const handleScroll = useCallback(() => {
-    if (!parentRef.current || isLoadingMore || !hasMore) return;
+    if (!parentRef.current || isLoadingMore || !hasMore || !onLoadMore) {
+      return;
+    }
 
     const scrollElement = parentRef.current;
     const scrollBottom = scrollElement.scrollHeight - scrollElement.scrollTop - scrollElement.clientHeight;
 
     // Trigger when we're within 100px of the bottom
-    if (scrollBottom < 100 && onLoadMore) {
+    if (scrollBottom < 100) {
       onLoadMore();
     }
   }, [hasMore, isLoadingMore, onLoadMore]);

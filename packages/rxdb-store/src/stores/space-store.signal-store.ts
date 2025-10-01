@@ -466,19 +466,15 @@ class SpaceStore {
    * @returns Number of rows configured for this view, or default 50
    */
   getViewRows(entityType: string, viewType: string): number {
-    console.log(`[SpaceStore.getViewRows] Called with entityType="${entityType}", viewType="${viewType}"`);
-
     // Try exact match first
     let spaceConfig = this.spaceConfigs.get(entityType);
 
     // If not found, try case-insensitive match
     if (!spaceConfig) {
       const lowerEntityType = entityType.toLowerCase();
-      console.log(`[SpaceStore.getViewRows] Exact match not found, trying case-insensitive...`);
       for (const [key, config] of this.spaceConfigs.entries()) {
         if (key.toLowerCase() === lowerEntityType) {
           spaceConfig = config;
-          console.log(`[SpaceStore.getViewRows] Found case-insensitive match: "${key}"`);
           break;
         }
       }
@@ -489,15 +485,11 @@ class SpaceStore {
       return 50;
     }
 
-    console.log(`[SpaceStore.getViewRows] Space config found, views:`, spaceConfig.views ? Object.keys(spaceConfig.views) : 'none');
-
     // Try to find view config by viewType inside views object
     // views structure: { "config_view_123": { viewType: "list", rows: 60, ... }, ... }
     if (spaceConfig.views) {
       for (const [viewKey, viewConfig] of Object.entries(spaceConfig.views)) {
-        console.log(`[SpaceStore.getViewRows] Checking view ${viewKey}: viewType="${viewConfig.viewType}", rows=${viewConfig.rows}`);
         if (viewConfig.viewType === viewType && viewConfig.rows) {
-          console.log(`[SpaceStore] ✅ Rows for ${entityType}/${viewType}: ${viewConfig.rows} (from view config ${viewKey})`);
           return viewConfig.rows;
         }
       }
@@ -505,7 +497,6 @@ class SpaceStore {
 
     // Fallback to space level rows
     if (spaceConfig.rows) {
-      console.log(`[SpaceStore] Rows for ${entityType}/${viewType}: ${spaceConfig.rows} (from space config)`);
       return spaceConfig.rows;
     }
 
@@ -517,18 +508,16 @@ class SpaceStore {
   /**
    * Load more entities for pagination (manual pull)
    * @param entityType - тип сутності
+   * @param viewType - тип view (list, grid, etc.)
    * @returns Promise<number> - кількість нових записів
    */
-  async loadMore(entityType: string): Promise<number> {
-    console.log(`[SpaceStore] Loading more data for ${entityType}...`);
-
+  async loadMore(entityType: string, viewType: string): Promise<number> {
     // Get rows from view config
-    const rows = this.getDefaultRows(entityType);
+    const rows = this.getViewRows(entityType, viewType);
 
     // Trigger manual pull
     const count = await entityReplicationService.manualPull(entityType, rows);
 
-    console.log(`[SpaceStore] Loaded ${count} more records for ${entityType}`);
     return count;
   }
 
@@ -681,6 +670,8 @@ class SpaceStore {
       const allDocs = await collection.find().exec();
       const entities: T[] = allDocs.map((doc: RxDocument<T>) => doc.toJSON() as T);
 
+      console.log(`[SpaceStore] 📊 Loaded ${entities.length} entities from RxDB collection ${entityType}`);
+
       // Update store with autoSelectFirst enabled
       entityStore.setAll(entities, true); // Auto-select first entity
       entityStore.setLoading(false);
@@ -694,15 +685,55 @@ class SpaceStore {
         existingSubscription.unsubscribe();
       }
 
+      // Get expected batch size from space config once (not on every INSERT)
+      const spaceConfig = this.spaceConfigs.get(entityType);
+      let expectedBatchSize = 50; // RxDB default
+
+      // Try to find rows from any view config
+      if (spaceConfig?.views) {
+        for (const viewConfig of Object.values(spaceConfig.views)) {
+          if (viewConfig.rows) {
+            expectedBatchSize = viewConfig.rows;
+            break;
+          }
+        }
+      } else if (spaceConfig?.rows) {
+        expectedBatchSize = spaceConfig.rows;
+      }
+
+      // Batch buffer for INSERT operations to avoid UI flickering
+      let insertBuffer: any[] = [];
+      let insertTimeout: any = null;
+
+      const flushInserts = () => {
+        if (insertBuffer.length > 0) {
+          entityStore.addMany(insertBuffer);
+          insertBuffer = [];
+        }
+        if (insertTimeout) {
+          clearTimeout(insertTimeout);
+          insertTimeout = null;
+        }
+      };
+
       // Subscribe to changes
       const subscription = collection.$.subscribe((changeEvent: any) => {
-        // Commented out for less noise
-        // console.log(`[SpaceStore] ${entityType} change event:`, changeEvent.operation);
-
         if (changeEvent.operation === 'INSERT') {
           const data = changeEvent.documentData;
           if (data && data.id) {
-            entityStore.addOne(data);
+            // Batch INSERT operations
+            insertBuffer.push(data);
+
+            // Flush immediately if we reached the expected batch size
+            if (insertBuffer.length >= expectedBatchSize) {
+              flushInserts();
+            } else {
+              // Otherwise, set/reset timeout as fallback (100ms)
+              if (insertTimeout) {
+                clearTimeout(insertTimeout);
+              }
+              insertTimeout = setTimeout(flushInserts, 100);
+            }
           }
         } else if (changeEvent.operation === 'UPDATE') {
           const data = changeEvent.documentData;
