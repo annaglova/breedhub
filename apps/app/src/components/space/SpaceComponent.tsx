@@ -13,13 +13,7 @@ import {
 } from "@ui/components/tooltip";
 import { cn } from "@ui/lib/utils";
 import { Plus, Search } from "lucide-react";
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Outlet,
   useLocation,
@@ -27,9 +21,9 @@ import {
   useSearchParams,
 } from "react-router-dom";
 import { EntitiesCounter } from "./EntitiesCounter";
-import { SpaceFilters } from "./SpaceFilters";
-import { ViewChanger } from "./ViewChanger";
+import { FiltersSection } from "./filters";
 import { SpaceView } from "./SpaceView";
+import { ViewChanger } from "./ViewChanger";
 
 interface SpaceComponentProps<T> {
   config: SpaceConfig<T>;
@@ -39,13 +33,11 @@ interface SpaceComponentProps<T> {
     error: Error | null;
     isFetching: boolean;
   };
-  filters?: React.ReactNode;
 }
 
 export function SpaceComponent<T extends { Id: string }>({
   config,
   useEntitiesHook,
-  filters,
 }: SpaceComponentProps<T>) {
   useSignals();
 
@@ -93,9 +85,9 @@ export function SpaceComponent<T extends { Id: string }>({
 
   // useEntities now returns ALL entities from RxDB (no pagination)
   // Manual pull handles loading more data into RxDB
-  const { data, isLoading, error, isFetching} = useEntitiesHook({
-    rows: rowsPerPage,  // Not used for pagination anymore, kept for compatibility
-    from: 0,  // Always from 0, we get all entities
+  const { data, isLoading, error, isFetching } = useEntitiesHook({
+    rows: rowsPerPage, // Not used for pagination anymore, kept for compatibility
+    from: 0, // Always from 0, we get all entities
   });
 
   // UI state
@@ -110,7 +102,6 @@ export function SpaceComponent<T extends { Id: string }>({
   const isMoreThanXL = useMediaQuery(mediaQueries.xl); // 1440px
   const isMoreThan2XL = useMediaQuery(mediaQueries.xxl); // 1536px
   const needCardClass = isMoreThanLG;
-
 
   // Get all entities directly from data (no accumulation needed)
   const allEntities = data?.entities || [];
@@ -196,7 +187,7 @@ export function SpaceComponent<T extends { Id: string }>({
     try {
       await spaceStore.loadMore(config.entitySchemaName, viewMode);
     } catch (error) {
-      console.error('[SpaceComponent] Error loading more:', error);
+      console.error("[SpaceComponent] Error loading more:", error);
     } finally {
       isLoadingMoreRef.current = false;
     }
@@ -251,11 +242,13 @@ export function SpaceComponent<T extends { Id: string }>({
                   {finalConfig.title}
                 </span>
                 <ViewChanger
-                  views={finalConfig.viewTypes || config.viewConfig.map((v) => v.id)}
-                  viewConfigs={finalConfig.viewConfigs?.map(v => ({
+                  views={
+                    finalConfig.viewTypes || config.viewConfig.map((v) => v.id)
+                  }
+                  viewConfigs={finalConfig.viewConfigs?.map((v) => ({
                     id: v.viewType,
                     icon: v.icon,
-                    tooltip: v.tooltip
+                    tooltip: v.tooltip,
                   }))}
                 />
               </div>
@@ -283,163 +276,188 @@ export function SpaceComponent<T extends { Id: string }>({
   return (
     <TooltipProvider>
       <div className="relative h-full overflow-hidden">
-      {/* Main Content */}
-      <div
-        className={cn(
-          "relative flex flex-col cursor-default h-full overflow-hidden",
-          needCardClass ? "fake-card" : "card-surface",
-          "transition-all duration-300 ease-out",
-          // Only shrink the list for side-transparent mode (xxl+)
-          isDrawerOpen && drawerMode === "side-transparent" && "mr-[46.25rem]" // 45rem + 1.25rem gap
-        )}
-      >
-        {/* Header */}
+        {/* Main Content */}
         <div
-          ref={headerRef}
-          className="z-20 flex flex-col justify-between border-b border-surface-border p-4 sm:p-7"
+          className={cn(
+            "relative flex flex-col cursor-default h-full overflow-hidden",
+            needCardClass ? "fake-card" : "card-surface",
+            "transition-all duration-300 ease-out",
+            // Only shrink the list for side-transparent mode (xxl+)
+            isDrawerOpen && drawerMode === "side-transparent" && "mr-[46.25rem]" // 45rem + 1.25rem gap
+          )}
         >
-          <div className="w-full">
-            <div className="flex w-full justify-between">
-              <span className="text-4xl font-extrabold">
-                {finalConfig.title}
-              </span>
-              <ViewChanger
-                views={finalConfig.viewTypes || config.viewConfig.map((v) => v.id)}
-                viewConfigs={finalConfig.viewConfigs?.map(v => ({
-                  id: v.viewType,
-                  icon: v.icon,
-                  tooltip: v.tooltip
-                }))}
-              />
-            </div>
-            {spaceStore.configReady.value && (
-              <EntitiesCounter
-                entitiesCount={allEntities.length}
-                isLoading={false}
-                total={totalCount}
-                entityType={config.entitySchemaName}
-                initialCount={rowsPerPage}
-              />
-            )}
-          </div>
-
-          {/* Main actions */}
-          <div className="mt-4 flex items-center space-x-3">
-            {/* Search */}
-            <div className="relative w-full">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                type="text"
-                value={searchValue}
-                onChange={(e) => setSearchValue(e.target.value)}
-                placeholder={config.naming.searchPlaceholder}
-                className="pl-10 rounded-full w-full cursor-auto"
-              />
+          {/* Header */}
+          <div
+            ref={headerRef}
+            className="z-20 flex flex-col justify-between border-b border-surface-border p-4 sm:p-7"
+          >
+            <div className="w-full">
+              <div className="flex w-full justify-between">
+                <span className="text-4xl font-extrabold">
+                  {finalConfig.title}
+                </span>
+                <ViewChanger
+                  views={
+                    finalConfig.viewTypes || config.viewConfig.map((v) => v.id)
+                  }
+                  viewConfigs={finalConfig.viewConfigs?.map((v) => ({
+                    id: v.viewType,
+                    icon: v.icon,
+                    tooltip: v.tooltip,
+                  }))}
+                />
+              </div>
+              {spaceStore.configReady.value && (
+                <EntitiesCounter
+                  entitiesCount={allEntities.length}
+                  isLoading={false}
+                  total={totalCount}
+                  entityType={config.entitySchemaName}
+                  initialCount={rowsPerPage}
+                />
+              )}
             </div>
 
-            {/* Add button */}
-            {finalConfig.canAdd && (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    onClick={handleCreateNew}
-                    className={cn(
-                      "rounded-full font-bold flex-shrink-0",
-                      needCardClass
-                        ? "h-10 px-4"
-                        : "!w-[2.6rem] !h-[2.6rem] flex items-center justify-center"
-                    )}
-                  >
-                    <Plus className="h-5 w-5 flex-shrink-0" />
-                    {needCardClass && <span className="text-base font-semibold">Add</span>}
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent side="bottom">
-                  <p>Add new record</p>
-                </TooltipContent>
-              </Tooltip>
-            )}
+            {/* Main actions */}
+            <div className="mt-4 flex items-center space-x-3">
+              {/* Search */}
+              <div className="relative w-full">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  type="text"
+                  value={searchValue}
+                  onChange={(e) => setSearchValue(e.target.value)}
+                  placeholder={config.naming.searchPlaceholder}
+                  className="pl-10 rounded-full w-full cursor-auto"
+                />
+              </div>
+
+              {/* Add button */}
+              {finalConfig.canAdd && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      onClick={handleCreateNew}
+                      className={cn(
+                        "rounded-full font-bold flex-shrink-0",
+                        needCardClass
+                          ? "h-10 px-4"
+                          : "!w-[2.6rem] !h-[2.6rem] flex items-center justify-center"
+                      )}
+                    >
+                      <Plus className="h-5 w-5 flex-shrink-0" />
+                      {needCardClass && (
+                        <span className="text-base font-semibold">Add</span>
+                      )}
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom">
+                    <p>Add new record</p>
+                  </TooltipContent>
+                </Tooltip>
+              )}
+            </div>
+
+            {/* Filters */}
+            <FiltersSection className="mt-4" />
           </div>
 
-          {/* Filters */}
-          {filters && <SpaceFilters>{filters}</SpaceFilters>}
-        </div>
+          {/* Content Scroller */}
+          <div className="relative flex-1 overflow-hidden">
+            <SpaceView
+              viewConfig={{
+                viewType: viewMode,
+                component:
+                  viewMode === "grid" ? "BreedGridCard" : "BreedListCard",
+                itemHeight:
+                  config.viewConfig.find((v) => v.id === viewMode)
+                    ?.itemHeight || (viewMode === "grid" ? 280 : 68),
+                dividers: viewMode === "list" || viewMode === "rows",
+                overscan: 3,
+              }}
+              entities={allEntities}
+              selectedId={selectedEntityId}
+              onEntityClick={handleEntityClick}
+              onLoadMore={handleLoadMore}
+              hasMore={allEntities.length < totalCount}
+              isLoadingMore={isFetching}
+            />
+            {/* Bottom spacer like in Angular */}
+            <div className="sm:h-6 bg-card-ground w-full absolute bottom-0" />
+          </div>
 
-        {/* Content Scroller */}
-        <div className="relative flex-1 overflow-hidden">
-          <SpaceView
-            viewConfig={{
-              viewType: viewMode,
-              component: viewMode === 'grid' ? 'BreedGridCard' : 'BreedListCard',
-              itemHeight: config.viewConfig.find(v => v.id === viewMode)?.itemHeight || (viewMode === 'grid' ? 280 : 68),
-              dividers: viewMode === 'list' || viewMode === 'rows',
-              overscan: 3
-            }}
-            entities={allEntities}
-            selectedId={selectedEntityId}
-            onEntityClick={handleEntityClick}
-            onLoadMore={handleLoadMore}
-            hasMore={allEntities.length < totalCount}
-            isLoadingMore={isFetching}
+          {/* Backdrop inside main content for side mode */}
+          <div
+            className={cn(
+              "absolute inset-0 z-30",
+              isMoreThanLG && "rounded-xl",
+              "transition-opacity duration-300",
+              drawerMode === "side" && isDrawerOpen
+                ? "bg-black/40 opacity-100"
+                : "opacity-0 pointer-events-none"
+            )}
+            onClick={handleBackdropClick}
           />
-          {/* Bottom spacer like in Angular */}
-          <div className="sm:h-6 bg-card-ground w-full absolute bottom-0" />
-        </div>
 
-        {/* Backdrop inside main content for side mode */}
-        <div
-          className={cn(
-            "absolute inset-0 z-30",
-            isMoreThanLG && "rounded-xl",
-            "transition-opacity duration-300",
-            drawerMode === "side" && isDrawerOpen
-              ? "bg-black/40 opacity-100"
-              : "opacity-0 pointer-events-none"
-          )}
-          onClick={handleBackdropClick}
-        />
+          {/* Drawer inside main content for side mode */}
+          <div
+            className={cn(
+              "absolute top-0 right-0 h-full bg-white shadow-xl z-40 overflow-hidden",
+              "w-[40rem]",
+              // Add rounded corners for drawer: always on sm+, but only when overlaying the list
+              isMoreThanSM && "rounded-l-xl",
+              "transform transition-transform duration-300 ease-out",
+              drawerMode === "side" && isDrawerOpen
+                ? "translate-x-0"
+                : "translate-x-full"
+            )}
+          >
+            {drawerMode === "side" && isDrawerOpen && (
+              <div className="h-full overflow-auto">
+                <Outlet />
+              </div>
+            )}
+          </div>
 
-        {/* Drawer inside main content for side mode */}
-        <div
-          className={cn(
-            "absolute top-0 right-0 h-full bg-white shadow-xl z-40 overflow-hidden",
-            "w-[40rem]",
-            // Add rounded corners for drawer: always on sm+, but only when overlaying the list
-            isMoreThanSM && "rounded-l-xl",
-            "transform transition-transform duration-300 ease-out",
-            drawerMode === "side" && isDrawerOpen
-              ? "translate-x-0"
-              : "translate-x-full"
-          )}
-        >
-          {drawerMode === "side" && isDrawerOpen && (
+          {/* Fullscreen overlay for small screens - inside main content */}
+          <div
+            className={cn(
+              "absolute inset-0 z-30 transition-opacity duration-300",
+              drawerMode === "over" && isDrawerOpen
+                ? "opacity-100"
+                : "opacity-0 pointer-events-none"
+            )}
+          >
+            <div
+              className="absolute inset-0 bg-black/50"
+              onClick={handleBackdropClick}
+            />
+          </div>
+          <div
+            className={cn(
+              "absolute inset-0 z-40 bg-white overflow-hidden",
+              "transform transition-transform duration-300 ease-out",
+              drawerMode === "over" && isDrawerOpen
+                ? "translate-x-0"
+                : "translate-x-full"
+            )}
+          >
             <div className="h-full overflow-auto">
               <Outlet />
             </div>
-          )}
+          </div>
         </div>
 
-        {/* Fullscreen overlay for small screens - inside main content */}
+        {/* Drawer for side-transparent mode (outside main content) */}
         <div
           className={cn(
-            "absolute inset-0 z-30 transition-opacity duration-300",
-            drawerMode === "over" && isDrawerOpen
-              ? "opacity-100"
-              : "opacity-0 pointer-events-none"
-          )}
-        >
-          <div
-            className="absolute inset-0 bg-black/50"
-            onClick={handleBackdropClick}
-          />
-        </div>
-        <div
-          className={cn(
-            "absolute inset-0 z-40 bg-white overflow-hidden",
-            "transform transition-transform duration-300 ease-out",
-            drawerMode === "over" && isDrawerOpen
-              ? "translate-x-0"
-              : "translate-x-full"
+            "absolute top-0 right-0 h-full z-40 overflow-hidden",
+            "w-[45rem]",
+            needCardClass ? "fake-card" : "card-surface",
+            "transform transition-all duration-300 ease-out",
+            drawerMode === "side-transparent" && isDrawerOpen
+              ? "translate-x-0 opacity-100"
+              : "translate-x-full opacity-0 pointer-events-none"
           )}
         >
           <div className="h-full overflow-auto">
@@ -447,24 +465,6 @@ export function SpaceComponent<T extends { Id: string }>({
           </div>
         </div>
       </div>
-
-      {/* Drawer for side-transparent mode (outside main content) */}
-      <div
-        className={cn(
-          "absolute top-0 right-0 h-full z-40 overflow-hidden",
-          "w-[45rem]",
-          needCardClass ? "fake-card" : "card-surface",
-          "transform transition-all duration-300 ease-out",
-          drawerMode === "side-transparent" && isDrawerOpen
-            ? "translate-x-0 opacity-100"
-            : "translate-x-full opacity-0 pointer-events-none"
-        )}
-      >
-        <div className="h-full overflow-auto">
-          <Outlet />
-        </div>
-      </div>
-    </div>
     </TooltipProvider>
   );
 }

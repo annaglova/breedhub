@@ -25,9 +25,8 @@
 }
 
 /* Custom button sizes */
-.bp-small-button {
-  height: 2.5rem;
-  width: 2.5rem;
+.small-button {
+  height: 2.5rem !important;
 }
 
 /* Drawer animations */
