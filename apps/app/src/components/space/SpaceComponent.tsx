@@ -260,7 +260,13 @@ export function SpaceComponent<T extends { Id: string }>({
                 />
               </div>
               {spaceStore.configReady.value && (
-                <EntitiesCounter entitiesCount={0} isLoading={true} total={0} />
+                <EntitiesCounter
+                  entitiesCount={0}
+                  isLoading={true}
+                  total={0}
+                  entityType={config.entitySchemaName}
+                  initialCount={rowsPerPage}
+                />
               )}
             </div>
           </div>
@@ -311,6 +317,8 @@ export function SpaceComponent<T extends { Id: string }>({
                 entitiesCount={allEntities.length}
                 isLoading={false}
                 total={totalCount}
+                entityType={config.entitySchemaName}
+                initialCount={rowsPerPage}
               />
             )}
           </div>
