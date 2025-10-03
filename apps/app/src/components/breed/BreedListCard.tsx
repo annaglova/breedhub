@@ -36,7 +36,7 @@ export function BreedListCard({
   // Extract data from the entity with fallbacks
   const breed = {
     Id: entity.Id || entity.id,
-    Name: entity.Name || entity.name || 'Unknown',
+    Name: entity.Name || entity.name || "Unknown",
     Avatar: entity.Avatar || entity.avatar_url,
     PetProfileCount: entity.measurements?.pet_profile_count || 0,
     KennelCount: entity.measurements?.kennel_count || 0,
@@ -44,11 +44,14 @@ export function BreedListCard({
     // Hardcoded values for components we're keeping visual
     AchievementProgress: Math.floor(Math.random() * 80) + 20, // Random 20-100% for visual testing
     HasNotes: Math.random() > 0.7, // Random for visual testing
-    TopPatrons: entity.measurements?.patron_count > 0 ? [
-      { id: '1', name: 'Top Patron 1', avatar: null },
-      { id: '2', name: 'Top Patron 2', avatar: null },
-      { id: '3', name: 'Top Patron 3', avatar: null },
-    ].slice(0, Math.min(3, Math.floor(Math.random() * 4))) : []
+    TopPatrons:
+      entity.measurements?.patron_count > 0
+        ? [
+            { id: "1", name: "Top Patron 1", avatar: null },
+            { id: "2", name: "Top Patron 2", avatar: null },
+            { id: "3", name: "Top Patron 3", avatar: null },
+          ].slice(0, Math.min(3, Math.floor(Math.random() * 4)))
+        : [],
   };
   return (
     <EntityListCardWrapper
@@ -59,7 +62,7 @@ export function BreedListCard({
       <div className="flex items-center w-full">
         {/* Avatar */}
         <div
-          className={`size-10 rounded-full border border-surface-border flex-shrink-0 relative outline outline-2 outline-offset-1 ${
+          className={`size-10 rounded-full border border-surface-border flex-shrink-0 relative outline outline-2 outline-offset-2 ${
             breed.PatronCount > 0
               ? "outline-primary-300 dark:outline-primary-400"
               : "outline-gray-300 dark:outline-gray-400"
@@ -92,7 +95,9 @@ export function BreedListCard({
         {/* Details */}
         <div className="ml-4 flex-1 min-w-0">
           <div className="flex items-center gap-1">
-            <span className="font-medium truncate uppercase max-w-[200px] min-[430px]:max-w-[220px] min-[500px]:max-w-[300px] sm:max-w-[350px] min-[640px]:max-w-none">{breed.Name}</span>
+            <span className="font-medium truncate uppercase max-w-[200px] min-[430px]:max-w-[220px] min-[500px]:max-w-[300px] sm:max-w-[350px] min-[640px]:max-w-none">
+              {breed.Name}
+            </span>
             <NoteFlag isVisible={breed.HasNotes} className="flex-shrink-0" />
           </div>
 
@@ -104,7 +109,9 @@ export function BreedListCard({
                 Kennels - {breed.KennelCount || 0}
               </span>
               <span className="text-gray-400 hidden min-[400px]:inline">•</span>
-              <span className="hidden min-[400px]:inline">Patrons - {breed.PatronCount || 0}</span>
+              <span className="hidden min-[400px]:inline">
+                Patrons - {breed.PatronCount || 0}
+              </span>
             </div>
 
             {/* Progress indicator - hardcoded for now */}
