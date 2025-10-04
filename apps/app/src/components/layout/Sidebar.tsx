@@ -1,22 +1,6 @@
 import { Button } from "@ui/components/button";
-import { cn } from "@ui/lib/utils";
-import {
-  Baby,
-  Calendar,
-  Cat,
-  Dog,
-  MessageSquare,
-  Users,
-  X,
-  Home,
-  ShoppingBag,
-  Heart,
-  Package,
-  FileText,
-  Settings,
-  HelpCircle,
-  FolderOpen,
-} from "lucide-react";
+import { cn, getIconComponent } from "@ui/lib/utils";
+import { X } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { useWorkspaceSpaces } from "@/hooks/useAppStore";
 
@@ -36,26 +20,6 @@ export function Sidebar({
   const location = useLocation();
   const { workspace, spaces } = useWorkspaceSpaces();
 
-  // Icon mapping for spaces
-  const iconMap: Record<string, any> = {
-    'Dog': Dog,
-    'Cat': Cat,
-    'Baby': Baby,
-    'Users': Users,
-    'MessageSquare': MessageSquare,
-    'Calendar': Calendar,
-    'Home': Home,
-    'ShoppingBag': ShoppingBag,
-    'Heart': Heart,
-    'Package': Package,
-    'FileText': FileText,
-    'Settings': Settings,
-    'HelpCircle': HelpCircle,
-    'FolderOpen': FolderOpen,
-    // Add default fallback
-    'default': FolderOpen
-  };
-
   // Convert spaces to menu items format
   const menuItems = spaces.map((space: any) => {
     // Determine the full path based on workspace
@@ -65,7 +29,7 @@ export function Sidebar({
 
     return {
       id: space.id,
-      icon: iconMap[space.icon] || iconMap['default'],
+      icon: getIconComponent(space.icon),
       label: space.label || space.id,
       path: fullPath
     };

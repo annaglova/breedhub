@@ -2,8 +2,7 @@ import React from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { ButtonGroup, ButtonGroupItem } from '@ui/components/button-group';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@ui/components/tooltip';
-import * as Icons from 'lucide-react';
-import { cn } from '@ui/lib/utils';
+import { cn, getIconComponent } from '@ui/lib/utils';
 
 interface ViewChangerProps {
   views?: string[];
@@ -13,23 +12,6 @@ interface ViewChangerProps {
     tooltip?: string;
   }>;
   onViewChange?: (view: string) => void;
-}
-
-// Helper function to get icon component by name
-function getIconComponent(iconName?: string): React.ComponentType<{ className?: string }> {
-  if (!iconName) return Icons.List; // Default fallback
-
-  // Convert icon name to PascalCase if needed (e.g., "grid-2x2" -> "Grid2x2")
-  const pascalCase = iconName
-    .split(/[-_]/)
-    .map(part => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
-    .join('');
-
-  // Try to get icon from lucide-react
-  const IconComponent = (Icons as any)[pascalCase];
-
-  // Return found icon or default
-  return IconComponent || Icons.List;
 }
 
 export function ViewChanger({

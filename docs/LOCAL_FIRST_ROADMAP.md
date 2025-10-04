@@ -787,6 +787,7 @@ pnpm dev:playground
 2. **Improve JsonTreeView** - Add more features like edit-in-place (2 days)
 3. **Add validation UI** - Visual validation rules builder (3 days)
 4. **Export/Import configs** - Backup and share configurations (2 days)
+5. **Refactor icon helper to other apps** - Migrate config-admin and landing apps to use centralized `getIconComponent` from UI package (2-3 hours)
 
 ## After Phase 3:
 1. **Universal search** - Search across all entities (3 days)
