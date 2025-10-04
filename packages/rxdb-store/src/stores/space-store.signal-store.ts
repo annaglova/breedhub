@@ -140,10 +140,13 @@ class SpaceStore {
       console.log('[SpaceStore] Got appConfig:', appConfig);
       console.log('[SpaceStore] appConfig.data:', appConfig.data);
       console.log('[SpaceStore] appConfig.data.workspaces:', appConfig.data?.workspaces);
-      
+
+      // Extract merged data from appConfig (in production this will be the whole config)
+      const mergedConfig = appConfig.data || appConfig;
+
       // Parse space configurations
       console.log('[SpaceStore] Parsing space configurations...');
-      this.parseSpaceConfigurations(appConfig);
+      this.parseSpaceConfigurations(mergedConfig);
       console.log('[SpaceStore] Available entity types after parsing:', this.availableEntityTypes.value);
       
       // Config is ready for UI - signal this immediately
@@ -286,18 +289,20 @@ class SpaceStore {
   
   /**
    * Parse space configurations from app config hierarchy
+   * NOTE: appConfig is already the merged data (appConfig.data from DB)
+   * In production it will be static pre-generated config from localStorage
    */
   private parseSpaceConfigurations(appConfig: any) {
-    if (!appConfig?.data?.workspaces) {
+    if (!appConfig?.workspaces) {
       console.warn('[SpaceStore] No workspaces found in app config');
       return;
     }
-    
+
     const entityTypes: string[] = [];
     this.spaceConfigs.clear();
-    
+
     // Iterate through workspaces
-    Object.entries(appConfig.data.workspaces).forEach(([workspaceKey, workspace]: [string, any]) => {
+    Object.entries(appConfig.workspaces).forEach(([workspaceKey, workspace]: [string, any]) => {
       if (workspace.spaces) {
         // Iterate through spaces in workspace
         Object.entries(workspace.spaces).forEach(([spaceKey, space]: [string, any]) => {
