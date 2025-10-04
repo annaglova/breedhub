@@ -52,6 +52,7 @@ export function SortSelector({
       <DropdownMenuContent align="start">
         {options.map((option) => {
           const OptionIcon = getIconComponent(option.icon);
+          const isSelected = selected?.id === option.id;
           return (
             <DropdownMenuItem
               key={option.id}
@@ -59,6 +60,7 @@ export function SortSelector({
                 onSelect?.(option);
                 setIsOpen(false);
               }}
+              className={isSelected ? "selected-menu-item" : ""}
             >
               {option.icon && <OptionIcon />}
               {option.name}
