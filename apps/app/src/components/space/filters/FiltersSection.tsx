@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Chip } from '@ui/components/chip';
 import { SortFilterSelector, SortOption } from './SortFilterSelector';
 import { cn } from '@ui/lib/utils';
@@ -30,13 +30,20 @@ export function FiltersSection({
   onSortChange,
   className
 }: FiltersSectionProps) {
+  const [selectedSort, setSelectedSort] = useState<SortOption | undefined>(defaultSortOption);
+
+  const handleSortChange = (option: SortOption) => {
+    setSelectedSort(option);
+    onSortChange?.(option);
+  };
+
   return (
     <div className={cn("flex flex-wrap items-center gap-2", className)}>
       <SortFilterSelector
         className="mr-3"
         sortOptions={sortOptions}
-        selectedSort={defaultSortOption}
-        onSortChange={onSortChange}
+        selectedSort={selectedSort}
+        onSortChange={handleSortChange}
       />
 
       {filters.map((filter) => (
