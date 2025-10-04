@@ -1,15 +1,15 @@
-import React, { useState } from 'react';
-import { Button } from '@ui/components/button';
-import { Filter } from 'lucide-react';
-import { SortSelector, SortOption } from './SortSelector';
-import { FiltersDialog } from './FiltersDialog';
-import { cn } from '@ui/lib/utils';
+import { Button } from "@ui/components/button";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from '@ui/components/tooltip';
+} from "@ui/components/tooltip";
+import { cn } from "@ui/lib/utils";
+import { Filter } from "lucide-react";
+import { useState } from "react";
+import { FiltersDialog } from "./FiltersDialog";
+import { SortOption, SortSelector } from "./SortSelector";
 
 // Re-export SortOption for convenience
 export type { SortOption };
@@ -47,8 +47,7 @@ export function SortFilterSelector({
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
-              size="icon"
-              className="small-button rounded-r-full bg-primary-50 hover:bg-primary-100/60 dark:bg-primary-300 dark:hover:bg-primary-200 text-primary dark:text-zinc-900 px-6 text-base"
+              className="small-button rounded-r-full bg-primary-50 hover:bg-primary-100/60 dark:bg-primary-300 dark:hover:bg-primary-200 text-primary dark:text-zinc-900 text-base"
               onClick={handleFiltersClick}
               aria-label="Filters"
             >

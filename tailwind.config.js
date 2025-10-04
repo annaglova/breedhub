@@ -4,14 +4,12 @@ import { fontFamily as _fontFamily } from "tailwindcss/defaultTheme";
 export default {
   content: [
     "./apps/app/src/**/*.{js,ts,jsx,tsx}",
+    "./apps/app/index.html",
     "./apps/landing/src/**/*.{js,ts,jsx,tsx}",
-    "./apps/signal-store-playground/src/**/*.{js,ts,jsx,tsx}",
-    "./apps/signal-store-playground/index.html",
+    "./apps/landing/index.html",
     "./apps/config-admin/src/**/*.{js,ts,jsx,tsx}",
     "./apps/config-admin/index.html",
     "./apps/shared/**/*.{js,ts,jsx,tsx}",
-    "./apps/landing/index.html",
-    "./apps/app/index.html",
     "./packages/ui/**/*.{js,ts,jsx,tsx}",
   ],
   darkMode: "class",
