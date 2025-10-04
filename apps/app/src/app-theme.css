@@ -106,12 +106,17 @@
 }
 
 /* Dropdown menu item hover/focus state */
-[role="menuitem"]:hover,
-[role="menuitem"]:focus,
-[role="menuitem"][data-highlighted],
-[data-radix-collection-item]:hover,
-[data-radix-collection-item]:focus,
-[data-radix-collection-item][data-highlighted] {
+[role="menuitem"]:hover:not(.selected-menu-item),
+[role="menuitem"]:focus:not(.selected-menu-item),
+[role="menuitem"][data-highlighted]:not(.selected-menu-item),
+[data-radix-collection-item]:hover:not(.selected-menu-item),
+[data-radix-collection-item]:focus:not(.selected-menu-item),
+[data-radix-collection-item][data-highlighted]:not(.selected-menu-item) {
   background-color: rgb(var(--hover-card-ground)) !important;
   color: inherit !important;
+}
+
+/* Dropdown menu selected item */
+.selected-menu-item {
+  background-color: rgb(var(--focus-card-ground)) !important;
 }
