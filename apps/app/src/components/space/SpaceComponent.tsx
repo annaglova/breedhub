@@ -83,6 +83,19 @@ export function SpaceComponent<T extends { Id: string }>({
     return rows;
   }, [config.entitySchemaName, viewMode, spaceStore.configReady.value]);
 
+  // Get sort options from view config
+  const sortOptions = useMemo(() => {
+    if (!spaceStore.configReady.value) {
+      return [];
+    }
+    return spaceStore.getSortOptions(config.entitySchemaName, viewMode);
+  }, [config.entitySchemaName, viewMode, spaceStore.configReady.value]);
+
+  // Find default sort option
+  const defaultSortOption = useMemo(() => {
+    return sortOptions.find(option => option.isDefault) || sortOptions[0];
+  }, [sortOptions]);
+
   // useEntities now returns ALL entities from RxDB (no pagination)
   // Manual pull handles loading more data into RxDB
   const { data, isLoading, error, isFetching } = useEntitiesHook({
@@ -359,7 +372,11 @@ export function SpaceComponent<T extends { Id: string }>({
             </div>
 
             {/* Filters */}
-            <FiltersSection className="mt-4" />
+            <FiltersSection
+              className="mt-4"
+              sortOptions={sortOptions}
+              defaultSortOption={defaultSortOption}
+            />
           </div>
 
           {/* Content Scroller */}

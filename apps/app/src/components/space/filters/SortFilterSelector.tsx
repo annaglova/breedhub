@@ -11,6 +11,9 @@ import {
   TooltipTrigger,
 } from '@ui/components/tooltip';
 
+// Re-export SortOption for convenience
+export type { SortOption };
+
 interface SortFilterSelectorProps {
   className?: string;
   sortOptions?: SortOption[];
