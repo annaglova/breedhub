@@ -21,6 +21,8 @@
     --sub-header-color: 71 85 105; /* slate 600 */
     --sub-header-active: 103 58 183; /* purple 500 */
     --pet-template: 226 232 240; /* slate 200 */
+    --icon-color: 148 163 184; /* slate 400 */
+    --active-icon-color: 148 163 184; /* slate 400 */
     /* Primary color*/
     --primary: 103 58 183; /* purple500 */
     --primary-hover: 94 53 177; /* purple 600 */

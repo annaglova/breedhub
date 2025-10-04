@@ -47,7 +47,7 @@ export function SortFilterSelector({
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
-              className="small-button rounded-r-full bg-primary-50 hover:bg-primary-100/60 dark:bg-primary-300 dark:hover:bg-primary-200 text-primary dark:text-zinc-900 text-base"
+              className="small-button rounded-r-full bg-primary-50 hover:bg-primary-100/60 dark:bg-primary-300 dark:hover:bg-primary-200 text-primary dark:text-zinc-900 text-base focus-visible:ring-0 focus-visible:ring-offset-0"
               onClick={handleFiltersClick}
               aria-label="Filters"
             >
