@@ -362,9 +362,12 @@ const AppConfig: React.FC = () => {
       // Get current override_data or initialize - create a deep copy to avoid extensibility issues
       let currentOverrideData = JSON.parse(JSON.stringify(parentConfig.override_data || {}));
       
-      // For fields config, store overrides directly; for others, under fields key
-      if (parentConfig.type === 'fields') {
-        // Fields config stores overrides directly by field ID
+      // For grouping configs (fields, sort, filter), store overrides directly by field ID
+      // For other configs, store overrides under fields key
+      const isGroupingConfig = ['fields', 'sort', 'filter'].includes(parentConfig.type);
+
+      if (isGroupingConfig) {
+        // Grouping configs store overrides directly by field ID
         if (Object.keys(fieldOverride).length > 0) {
           currentOverrideData[fieldOverrideEditor.fieldId] = fieldOverride;
         } else {
@@ -375,7 +378,7 @@ const AppConfig: React.FC = () => {
         if (!currentOverrideData.fields) {
           currentOverrideData.fields = {};
         }
-        
+
         if (Object.keys(fieldOverride).length > 0) {
           currentOverrideData.fields[fieldOverrideEditor.fieldId] = fieldOverride;
         } else {
