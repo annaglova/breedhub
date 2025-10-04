@@ -198,19 +198,19 @@ class SpaceStore {
    */
   private collectUniqueFields(space: any, appConfig: any): Map<string, FieldConfig> {
     const uniqueFields = new Map<string, FieldConfig>();
-    
-    // Helper function to process fields taking only self_data
+
+    // Helper function to process fields - in static config fields are already merged data
     const processFields = (fields: any) => {
       if (!fields) return;
-      
+
       Object.entries(fields).forEach(([fieldKey, fieldValue]: [string, any]) => {
         // Skip if already processed
         if (uniqueFields.has(fieldKey)) return;
 
-        // Take only self_data as the source of truth (as user requested)
-        const fieldData = fieldValue.self_data || fieldValue;
-        
-        // These are the true field definitions from database
+        // In static config, fieldValue is already merged data
+        const fieldData = fieldValue;
+
+        // Collect only schema-critical parameters for RxDB
         const fieldConfig: FieldConfig = {
           fieldType: fieldData.fieldType || 'string',
           displayName: fieldData.displayName || fieldKey,
@@ -224,22 +224,32 @@ class SpaceStore {
           defaultValue: fieldData.defaultValue,
           component: fieldData.component
         };
-        
+
         uniqueFields.set(fieldKey, fieldConfig);
       });
     };
-    
-    // Soft recursive search for any 'fields' property in the JSON tree
+
+    // Soft recursive search for 'fields', 'sort_fields', and 'filter_fields' properties
     const recursiveFieldSearch = (obj: any, visited: Set<any> = new Set()) => {
       // Avoid circular references
       if (!obj || typeof obj !== 'object' || visited.has(obj)) return;
       visited.add(obj);
-      
+
       // Process fields if found at this level
       if (obj.fields && typeof obj.fields === 'object') {
         processFields(obj.fields);
       }
-      
+
+      // Process sort_fields if found at this level
+      if (obj.sort_fields && typeof obj.sort_fields === 'object') {
+        processFields(obj.sort_fields);
+      }
+
+      // Process filter_fields if found at this level
+      if (obj.filter_fields && typeof obj.filter_fields === 'object') {
+        processFields(obj.filter_fields);
+      }
+
       // Recursively search all properties
       Object.values(obj).forEach((value: any) => {
         if (value && typeof value === 'object') {
@@ -247,44 +257,11 @@ class SpaceStore {
         }
       });
     };
-    
+
     // Start recursive search from space root
     recursiveFieldSearch(space);
-    
-    // Also process deps if present (load field configs from deps array)
-    if (space.deps && Array.isArray(space.deps)) {
-      // Find the configs for deps in appConfig
-      space.deps.forEach((depId: string) => {
-        const depConfig = this.findConfigById(depId, appConfig);
-        if (depConfig) {
-          recursiveFieldSearch(depConfig);
-        }
-      });
-    }
-    
+
     return uniqueFields;
-  }
-  
-  /**
-   * Helper to find a config by ID in the full app config
-   */
-  private findConfigById(id: string, appConfig: any): any {
-    // Recursive search for config by id
-    const search = (obj: any): any => {
-      if (!obj || typeof obj !== 'object') return null;
-      
-      if (obj.id === id) return obj;
-      
-      // Search in all properties
-      for (const value of Object.values(obj)) {
-        const result = search(value);
-        if (result) return result;
-      }
-      
-      return null;
-    };
-    
-    return search(appConfig);
   }
   
   /**
