@@ -6,6 +6,11 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@ui/components/dropdown-menu';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@ui/components/tooltip';
 import { ChevronDown } from 'lucide-react';
 
 export interface SortOption {
@@ -29,15 +34,21 @@ export function SortSelector({
 
   return (
     <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
-      <DropdownMenuTrigger asChild>
-        <Button
-          variant="outline"
-          className="small-button rounded-l-full border-r-0 hover:bg-surface-100 dark:hover:bg-surface-800"
-        >
-          {selected?.icon && <span className={`mr-2 ${selected.icon}`} />}
-          {selected?.name || 'Select a column'}
-        </Button>
-      </DropdownMenuTrigger>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <DropdownMenuTrigger asChild>
+            <Button
+              className="small-button rounded-l-full bg-primary-50 hover:bg-primary-100/60 dark:bg-primary-300 dark:hover:bg-primary-200 text-primary dark:text-zinc-900 px-6 text-base"
+            >
+              {selected?.icon && <span className={`mr-2 ${selected.icon}`} />}
+              {selected?.name || 'Select a column'}
+            </Button>
+          </DropdownMenuTrigger>
+        </TooltipTrigger>
+        <TooltipContent side="bottom">
+          <p>Change sort order</p>
+        </TooltipContent>
+      </Tooltip>
       <DropdownMenuContent align="start">
         {options.map((option) => (
           <DropdownMenuItem

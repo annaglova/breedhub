@@ -4,6 +4,12 @@ import { Filter } from 'lucide-react';
 import { SortSelector, SortOption } from './SortSelector';
 import { FiltersDialog } from './FiltersDialog';
 import { cn } from '@ui/lib/utils';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@ui/components/tooltip';
 
 interface SortFilterSelectorProps {
   className?: string;
@@ -28,28 +34,34 @@ export function SortFilterSelector({
   };
 
   return (
-    <>
+    <TooltipProvider>
       <div className={cn("inline-flex", className)}>
         <SortSelector
           options={sortOptions}
           selected={selectedSort}
           onSelect={onSortChange}
         />
-        <Button
-          variant="outline"
-          size="icon"
-          className="small-button rounded-r-full border-l-0"
-          onClick={handleFiltersClick}
-          aria-label="Filters"
-        >
-          <Filter className="h-4 w-4" />
-        </Button>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              size="icon"
+              className="small-button rounded-r-full bg-primary-50 hover:bg-primary-100/60 dark:bg-primary-300 dark:hover:bg-primary-200 text-primary dark:text-zinc-900 px-6 text-base"
+              onClick={handleFiltersClick}
+              aria-label="Filters"
+            >
+              <Filter className="h-4 w-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="bottom">
+            <p>Set filters</p>
+          </TooltipContent>
+        </Tooltip>
       </div>
 
       <FiltersDialog
         open={isFiltersDialogOpen}
         onOpenChange={setIsFiltersDialogOpen}
       />
-    </>
+    </TooltipProvider>
   );
 }
