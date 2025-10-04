@@ -203,7 +203,7 @@ class SpaceStore {
       Object.entries(fields).forEach(([fieldKey, fieldValue]: [string, any]) => {
         // Skip if already processed
         if (uniqueFields.has(fieldKey)) return;
-        
+
         // Take only self_data as the source of truth (as user requested)
         const fieldData = fieldValue.self_data || fieldValue;
         
@@ -503,6 +503,122 @@ class SpaceStore {
     // Final fallback
     console.warn(`[SpaceStore] No rows config found for ${entityType}/${viewType}, using default: 50`);
     return 50;
+  }
+
+  /**
+   * Get sort options from view config's sort_fields
+   * Parses sort configuration and returns flattened list of sort options
+   *
+   * @param entityType - Entity type (e.g., 'breed', 'animal')
+   * @param viewType - View type (e.g., 'list', 'grid')
+   * @returns Array of sort options with id, name, icon, direction, parameter
+   */
+  getSortOptions(entityType: string, viewType: string): Array<{
+    id: string;
+    name: string;
+    icon?: string;
+    direction?: string;
+    parameter?: string;
+    isDefault?: boolean;
+  }> {
+    // Try exact match first
+    let spaceConfig = this.spaceConfigs.get(entityType);
+
+    // If not found, try case-insensitive match
+    if (!spaceConfig) {
+      const lowerEntityType = entityType.toLowerCase();
+      for (const [key, config] of this.spaceConfigs.entries()) {
+        if (key.toLowerCase() === lowerEntityType) {
+          spaceConfig = config;
+          break;
+        }
+      }
+    }
+
+    if (!spaceConfig) {
+      console.warn(`[SpaceStore] No space config found for ${entityType}`);
+      return [];
+    }
+
+    // Try to find view config by viewType inside views object
+    if (!spaceConfig.views) {
+      console.warn(`[SpaceStore] No views config found for ${entityType}`);
+      return [];
+    }
+
+    let viewConfig: any = null;
+    for (const [viewKey, config] of Object.entries(spaceConfig.views)) {
+      if ((config as any).viewType === viewType) {
+        viewConfig = config;
+        break;
+      }
+    }
+
+    // Read from viewConfig.data.sort_fields (merged data)
+    const sortFields = viewConfig.data?.sort_fields || viewConfig.sort_fields;
+
+    if (!sortFields) {
+      console.warn(`[SpaceStore] No sort_fields found for ${entityType}/${viewType}`);
+      return [];
+    }
+
+    const sortOptions: Array<{
+      id: string;
+      name: string;
+      icon?: string;
+      direction?: string;
+      parameter?: string;
+      isDefault?: boolean;
+      fieldOrder?: number;
+      optionOrder?: number;
+    }> = [];
+
+    // Debug log
+    console.log('[SpaceStore] Parsing sort_fields:', sortFields);
+    console.log('[SpaceStore] viewConfig:', viewConfig);
+
+    for (const [fieldId, fieldConfig] of Object.entries(sortFields)) {
+      const field = fieldConfig as any;
+      const fieldOrder = field.order || 0;
+
+      console.log(`[SpaceStore] Processing field ${fieldId}:`, field);
+
+      if (field.sortOrder && Array.isArray(field.sortOrder)) {
+        // Each sortOrder item is a separate sort option
+        field.sortOrder.forEach((sortOption: any) => {
+          const optionId = sortOption.parametr
+            ? `${fieldId}_${sortOption.parametr}_${sortOption.direction}`
+            : `${fieldId}_${sortOption.direction}`;
+
+          const option = {
+            id: optionId,
+            name: sortOption.label || field.displayName || fieldId,
+            icon: sortOption.icon,
+            direction: sortOption.direction,
+            parameter: sortOption.parametr, // For JSON fields
+            isDefault: sortOption.isDefault === 'true' || sortOption.isDefault === true,
+            fieldOrder,
+            optionOrder: sortOption.order || 0
+          };
+
+          console.log('[SpaceStore] Adding sort option:', option);
+          sortOptions.push(option);
+        });
+      }
+    }
+
+    console.log('[SpaceStore] Total sort options:', sortOptions.length);
+
+    // Sort by field order, then by option order within each field
+    sortOptions.sort((a, b) => {
+      if (a.fieldOrder !== b.fieldOrder) {
+        return (a.fieldOrder || 0) - (b.fieldOrder || 0);
+      }
+      return (a.optionOrder || 0) - (b.optionOrder || 0);
+    });
+
+    // Remove temporary ordering fields
+    return sortOptions.map(({ fieldOrder, optionOrder, ...rest }) => rest);
   }
 
   /**
