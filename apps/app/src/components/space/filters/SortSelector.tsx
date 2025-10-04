@@ -1,17 +1,17 @@
-import React, { useState } from 'react';
-import { Button } from '@ui/components/button';
+import { Button } from "@ui/components/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@ui/components/dropdown-menu';
+} from "@ui/components/dropdown-menu";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from '@ui/components/tooltip';
-import { getIconComponent } from '@ui/lib/utils';
+} from "@ui/components/tooltip";
+import { getIconComponent } from "@ui/lib/utils";
+import { useState } from "react";
 
 export interface SortOption {
   id: string;
@@ -39,11 +39,9 @@ export function SortSelector({
       <Tooltip>
         <TooltipTrigger asChild>
           <DropdownMenuTrigger asChild>
-            <Button
-              className="small-button rounded-l-full bg-primary-50 hover:bg-primary-100/60 dark:bg-primary-300 dark:hover:bg-primary-200 text-primary dark:text-zinc-900 px-6 text-base"
-            >
+            <Button className="small-button rounded-l-full bg-primary-50 hover:bg-primary-100/60 dark:bg-primary-300 dark:hover:bg-primary-200 text-primary dark:text-zinc-900 text-base">
               {selected?.icon && <SelectedIcon className="mr-2 h-4 w-4" />}
-              {selected?.name || 'Select a column'}
+              {selected?.name || "Select a column"}
             </Button>
           </DropdownMenuTrigger>
         </TooltipTrigger>
