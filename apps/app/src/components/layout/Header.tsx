@@ -7,8 +7,8 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@ui/components/tooltip";
-import { cn } from "@ui/lib/utils";
-import { Menu, User, Home, ShoppingBag, Heart, Settings, Search } from "lucide-react";
+import { cn, getIconComponent } from "@ui/lib/utils";
+import { Menu, User } from "lucide-react";
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { UserDrawer } from "./UserDrawer";
@@ -23,26 +23,15 @@ export function Header({ onMenuClick, isHome = false }: HeaderProps) {
   const location = useLocation();
   const { theme, toggleTheme } = useTheme();
   const [isUserDrawerOpen, setIsUserDrawerOpen] = useState(false);
-  
+
   // TODO: In production, workspaces should be loaded statically to prevent flashing
   // See docs/UNIVERSAL_STORE_IMPLEMENTATION.md for details
   const { workspaces, loading, error, isDataLoaded } = useAppWorkspaces();
 
-  // Icon mapping
-  const iconMap: Record<string, any> = {
-    'Home': Home,
-    'ShoppingBag': ShoppingBag,
-    'Heart': Heart,
-    'User': User,
-    'Settings': Settings,
-    'Search': Search,
-    'Menu': Menu
-  };
-
   // Map workspaces to navigation items with icon components
   const navItems = workspaces.map(workspace => ({
     id: workspace.id,
-    icon: iconMap[workspace.icon] || Home, // Default to Home if not found
+    icon: getIconComponent(workspace.icon),
     label: workspace.label,
     path: workspace.path
   }));

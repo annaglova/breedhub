@@ -11,7 +11,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@ui/components/tooltip';
-import { ChevronDown } from 'lucide-react';
+import { getIconComponent } from '@ui/lib/utils';
 
 export interface SortOption {
   id: string;
@@ -32,6 +32,8 @@ export function SortSelector({
 }: SortSelectorProps) {
   const [isOpen, setIsOpen] = useState(false);
 
+  const SelectedIcon = getIconComponent(selected?.icon);
+
   return (
     <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
       <Tooltip>
@@ -40,7 +42,7 @@ export function SortSelector({
             <Button
               className="small-button rounded-l-full bg-primary-50 hover:bg-primary-100/60 dark:bg-primary-300 dark:hover:bg-primary-200 text-primary dark:text-zinc-900 px-6 text-base"
             >
-              {selected?.icon && <span className={`mr-2 ${selected.icon}`} />}
+              {selected?.icon && <SelectedIcon className="mr-2 h-4 w-4" />}
               {selected?.name || 'Select a column'}
             </Button>
           </DropdownMenuTrigger>
@@ -50,18 +52,21 @@ export function SortSelector({
         </TooltipContent>
       </Tooltip>
       <DropdownMenuContent align="start">
-        {options.map((option) => (
-          <DropdownMenuItem
-            key={option.id}
-            onClick={() => {
-              onSelect?.(option);
-              setIsOpen(false);
-            }}
-          >
-            {option.icon && <span className={`mr-2 ${option.icon}`} />}
-            {option.name}
-          </DropdownMenuItem>
-        ))}
+        {options.map((option) => {
+          const OptionIcon = getIconComponent(option.icon);
+          return (
+            <DropdownMenuItem
+              key={option.id}
+              onClick={() => {
+                onSelect?.(option);
+                setIsOpen(false);
+              }}
+            >
+              {option.icon && <OptionIcon className="mr-2 h-4 w-4" />}
+              {option.name}
+            </DropdownMenuItem>
+          );
+        })}
       </DropdownMenuContent>
     </DropdownMenu>
   );
