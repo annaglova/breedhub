@@ -100,13 +100,36 @@ function detectDisplayColumn(columns) {
 }
 
 // Map field type to UI component
-function getUIComponent(fieldType, fieldName, isForeignKey = false) {
-  // Foreign keys should use select/lookup component
+function getUIComponent(fieldType, fieldName, isForeignKey = false, referencedTable = null) {
+  // Foreign keys - визначаємо компонент на основі категорії таблиці
   if (isForeignKey || fieldName.endsWith('_id')) {
-    return 'select';  // or 'lookup' for advanced selection
+    if (referencedTable) {
+      // Завантажуємо категорії
+      const entityCategories = require('./entity-categories.json');
+
+      // Main entities → lookup (складний пошук з autocomplete)
+      if (entityCategories.main.includes(referencedTable)) {
+        return 'lookup';
+      }
+
+      // Dictionaries → dropdown (простий select)
+      if (entityCategories.dictionaries.includes(referencedTable)) {
+        return 'dropdown';
+      }
+
+      // Child entities → dropdown
+      for (const children of Object.values(entityCategories.child)) {
+        if (children.includes(referencedTable)) {
+          return 'dropdown';
+        }
+      }
+    }
+
+    // Fallback для FK без referencedTable
+    return 'dropdown';
   }
-  
-  // By type first (more specific)
+
+  // Оновлений component map (підганяємо під реальні UI компоненти)
   const componentMap = {
     'uuid': 'text',
     'string': 'text',
@@ -116,23 +139,19 @@ function getUIComponent(fieldType, fieldName, isForeignKey = false) {
     'datetime': 'datetime',
     'date': 'date',
     'time': 'time',
-    'json': 'json',
-    'array': 'tags'
+    'json': 'textarea', // JSON можна показувати як textarea
+    'array': 'text' // Масиви як текст
   };
-  
-  // Special cases by name (only for non-boolean fields)
+
+  // Special cases by name (оновлені під реальні компоненти)
   if (fieldType !== 'boolean') {
     if (fieldName.includes('email')) return 'email';
-    if (fieldName.includes('phone')) return 'phone';
-    if (fieldName.includes('url') || fieldName.includes('link')) return 'url';
     if (fieldName.includes('password')) return 'password';
+    if (fieldName.includes('url') || fieldName.includes('link')) return 'text'; // URL як text input
     if (fieldName.includes('description') || fieldName.includes('note')) return 'textarea';
-    if (fieldName.includes('color') && !fieldName.includes('_by_')) return 'color';
-    if (fieldName.includes('date')) return 'date';
-    if (fieldName.includes('time')) return 'time';
-    if (fieldName.includes('image') || fieldName.includes('photo')) return 'image';
+    if (fieldName.includes('image') || fieldName.includes('photo')) return 'file';
   }
-  
+
   return componentMap[fieldType] || 'text';
 }
 
@@ -173,59 +192,27 @@ function generateFieldConfig(col, constraints, foreignKeys) {
   const fieldName = col.column_name;
   const fieldType = mapPostgresType(col.data_type);
   const isSystem = SYSTEM_FIELDS.includes(fieldName);
-  
+
   // Find constraints for this column
   const columnConstraints = constraints.filter(c => c.column_name === fieldName);
   const isRequired = col.is_nullable === 'NO' || columnConstraints.some(c => c.constraint_type === 'NOT NULL');
-  
+
   // Check actual constraints from database
   const isPrimaryKey = columnConstraints.some(c => c.constraint_type === 'PRIMARY KEY');
   const isUnique = columnConstraints.some(c => c.constraint_type === 'UNIQUE') || isPrimaryKey;
   const foreignKey = foreignKeys[fieldName]; // Get FK info from the map
-  
+
   // Don't skip foreign key fields - we need them for proper configuration
   // Foreign keys should be treated as regular fields with special component type
-  
-  const config = {
-    id: `field_${fieldName}`,
-    name: fieldName,
-    fieldType: fieldType,
-    component: getUIComponent(fieldType, fieldName, !!foreignKey),
-    required: isRequired,
-    isSystem: isSystem,
-    isPrimaryKey: isPrimaryKey,
-    isUnique: isUnique,
-    sortOrder: isSystem ? 1000 : 10, // System fields at the end
-    permissions: {
-      read: ["*"],
-      write: isSystem ? ["system"] : ["admin", "editor"]
-    }
-  };
-  
-  // Add maxLength for string/text fields if database provides it
-  if ((fieldType === 'string' || fieldType === 'text') && col.character_maximum_length) {
-    config.maxLength = col.character_maximum_length;
-  }
-  
-  // Add foreign key information if exists
+
+  // ВАЖЛИВО: Спочатку визначаємо referencedTable для правильного component
+  let referencedTable = null;
   if (foreignKey) {
-    config.isForeignKey = true;
-    config.referencedTable = foreignKey.ref_table;
-    config.referencedFieldID = foreignKey.ref_column || 'id';
-    
-    // We'll detect the display column later when we have all table schemas
-    // For now, mark it for post-processing
-    config.needsDisplayColumn = true;
-  }
-  
-  // If no FK from RPC but field ends with _id, still treat it as potential FK
-  if (!foreignKey && fieldName.endsWith('_id') && fieldName !== 'id') {
-    // Still mark as FK for UI purposes
-    config.isForeignKey = true;
-    
+    referencedTable = foreignKey.ref_table;
+  } else if (fieldName.endsWith('_id') && fieldName !== 'id') {
     // Derive table name from field name
-    let referencedTable = fieldName.slice(0, -3); // remove '_id'
-    
+    referencedTable = fieldName.slice(0, -3); // remove '_id'
+
     // Special cases for table name mapping
     const tableNameMap = {
       'language': 'sys_language',
@@ -244,13 +231,41 @@ function generateFieldConfig(col, constraints, foreignKeys) {
       'rejected_by': 'contact',
       'primary_contact': 'contact'
     };
-    
+
     if (tableNameMap[referencedTable]) {
       referencedTable = tableNameMap[referencedTable];
     }
-    
+  }
+
+  const config = {
+    id: `field_${fieldName}`,
+    name: fieldName,
+    fieldType: fieldType,
+    component: getUIComponent(fieldType, fieldName, !!foreignKey || fieldName.endsWith('_id'), referencedTable),
+    required: isRequired,
+    isSystem: isSystem,
+    isPrimaryKey: isPrimaryKey,
+    isUnique: isUnique,
+    sortOrder: isSystem ? 1000 : 10, // System fields at the end
+    permissions: {
+      read: ["*"],
+      write: isSystem ? ["system"] : ["admin", "editor"]
+    }
+  };
+  
+  // Add maxLength for string/text fields if database provides it
+  if ((fieldType === 'string' || fieldType === 'text') && col.character_maximum_length) {
+    config.maxLength = col.character_maximum_length;
+  }
+  
+  // Add foreign key information if exists (використовуємо вже визначену referencedTable)
+  if (foreignKey || (fieldName.endsWith('_id') && fieldName !== 'id')) {
+    config.isForeignKey = true;
     config.referencedTable = referencedTable;
-    config.referencedFieldID = 'id';
+    config.referencedFieldID = foreignKey?.ref_column || 'id';
+
+    // We'll detect the display column later when we have all table schemas
+    // For now, mark it for post-processing
     config.needsDisplayColumn = true;
   }
   

@@ -9,7 +9,7 @@
       "id": "field_business_process_id",
       "name": "business_process_id",
       "fieldType": "uuid",
-      "component": "select",
+      "component": "dropdown",
       "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -35,7 +35,7 @@
       "id": "field_conf_item_id",
       "name": "conf_item_id",
       "fieldType": "uuid",
-      "component": "select",
+      "component": "dropdown",
       "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -61,7 +61,7 @@
       "id": "field_quest_id",
       "name": "quest_id",
       "fieldType": "uuid",
-      "component": "select",
+      "component": "lookup",
       "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -251,7 +251,7 @@
       "id": "field_updated_at",
       "name": "updated_at",
       "fieldType": "datetime",
-      "component": "date",
+      "component": "datetime",
       "required": false,
       "isSystem": true,
       "isPrimaryKey": false,
@@ -271,7 +271,7 @@
       "id": "field_updated_by",
       "name": "updated_by",
       "fieldType": "uuid",
-      "component": "date",
+      "component": "text",
       "required": false,
       "isSystem": true,
       "isPrimaryKey": false,
@@ -293,6 +293,6 @@
     "totalFields": 12,
     "systemFields": 5,
     "customFields": 7,
-    "generatedAt": "2025-09-17T11:57:00.209Z"
+    "generatedAt": "2025-10-05T12:11:02.552Z"
   }
 }

@@ -63,7 +63,7 @@
       "id": "field_color",
       "name": "color",
       "fieldType": "string",
-      "component": "color",
+      "component": "text",
       "required": true,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -150,7 +150,7 @@
       "id": "field_updated_at",
       "name": "updated_at",
       "fieldType": "datetime",
-      "component": "date",
+      "component": "datetime",
       "required": false,
       "isSystem": true,
       "isPrimaryKey": false,
@@ -170,7 +170,7 @@
       "id": "field_updated_by",
       "name": "updated_by",
       "fieldType": "uuid",
-      "component": "date",
+      "component": "text",
       "required": false,
       "isSystem": true,
       "isPrimaryKey": false,
@@ -192,6 +192,6 @@
     "totalFields": 8,
     "systemFields": 5,
     "customFields": 3,
-    "generatedAt": "2025-09-17T11:56:08.335Z"
+    "generatedAt": "2025-10-05T12:10:32.745Z"
   }
 }

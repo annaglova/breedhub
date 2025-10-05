@@ -63,7 +63,7 @@
       "id": "field_account_id",
       "name": "account_id",
       "fieldType": "uuid",
-      "component": "select",
+      "component": "lookup",
       "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -89,7 +89,7 @@
       "id": "field_status_id",
       "name": "status_id",
       "fieldType": "uuid",
-      "component": "select",
+      "component": "dropdown",
       "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -115,7 +115,7 @@
       "id": "field_type_id",
       "name": "type_id",
       "fieldType": "uuid",
-      "component": "select",
+      "component": "dropdown",
       "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -228,7 +228,7 @@
       "id": "field_updated_at",
       "name": "updated_at",
       "fieldType": "datetime",
-      "component": "date",
+      "component": "datetime",
       "required": false,
       "isSystem": true,
       "isPrimaryKey": false,
@@ -248,7 +248,7 @@
       "id": "field_updated_by",
       "name": "updated_by",
       "fieldType": "uuid",
-      "component": "date",
+      "component": "text",
       "required": false,
       "isSystem": true,
       "isPrimaryKey": false,
@@ -270,6 +270,6 @@
     "totalFields": 11,
     "systemFields": 5,
     "customFields": 6,
-    "generatedAt": "2025-09-17T11:56:15.915Z"
+    "generatedAt": "2025-10-05T12:10:37.337Z"
   }
 }

@@ -308,7 +308,7 @@
       "id": "field_updated_at",
       "name": "updated_at",
       "fieldType": "datetime",
-      "component": "date",
+      "component": "datetime",
       "required": false,
       "isSystem": true,
       "isPrimaryKey": false,
@@ -328,7 +328,7 @@
       "id": "field_updated_by",
       "name": "updated_by",
       "fieldType": "uuid",
-      "component": "date",
+      "component": "text",
       "required": false,
       "isSystem": true,
       "isPrimaryKey": false,
@@ -350,6 +350,6 @@
     "totalFields": 14,
     "systemFields": 5,
     "customFields": 9,
-    "generatedAt": "2025-09-17T11:55:53.514Z"
+    "generatedAt": "2025-10-05T12:10:23.757Z"
   }
 }
