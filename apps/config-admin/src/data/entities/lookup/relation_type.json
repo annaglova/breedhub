@@ -9,7 +9,7 @@
       "id": "field_name",
       "name": "name",
       "fieldType": "string",
-      "component": "text",
+      "component": "TextInput",
       "required": true,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -36,7 +36,7 @@
       "id": "field_description",
       "name": "description",
       "fieldType": "string",
-      "component": "textarea",
+      "component": "TextareaInput",
       "required": true,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -63,7 +63,7 @@
       "id": "field_for_contact_contact",
       "name": "for_contact_contact",
       "fieldType": "boolean",
-      "component": "checkbox",
+      "component": "CheckboxInput",
       "required": true,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -79,13 +79,14 @@
         ]
       },
       "displayName": "For Contact Contact",
+      "placeholder": "Enter for contact contact",
       "defaultValue": "false"
     },
     {
       "id": "field_for_account_contact",
       "name": "for_account_contact",
       "fieldType": "boolean",
-      "component": "checkbox",
+      "component": "CheckboxInput",
       "required": true,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -101,13 +102,14 @@
         ]
       },
       "displayName": "For Account Contact",
+      "placeholder": "Enter for account contact",
       "defaultValue": "false"
     },
     {
       "id": "field_for_contact_account",
       "name": "for_contact_account",
       "fieldType": "boolean",
-      "component": "checkbox",
+      "component": "CheckboxInput",
       "required": true,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -123,13 +125,14 @@
         ]
       },
       "displayName": "For Contact Account",
+      "placeholder": "Enter for contact account",
       "defaultValue": "false"
     },
     {
       "id": "field_for_account_account",
       "name": "for_account_account",
       "fieldType": "boolean",
-      "component": "checkbox",
+      "component": "CheckboxInput",
       "required": true,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -145,13 +148,14 @@
         ]
       },
       "displayName": "For Account Account",
+      "placeholder": "Enter for account account",
       "defaultValue": "false"
     },
     {
       "id": "field_reverse_relation_type_id",
       "name": "reverse_relation_type_id",
       "fieldType": "uuid",
-      "component": "dropdown",
+      "component": "DropdownInput",
       "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -177,7 +181,7 @@
       "id": "field_include_into_container",
       "name": "include_into_container",
       "fieldType": "boolean",
-      "component": "checkbox",
+      "component": "CheckboxInput",
       "required": true,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -193,13 +197,14 @@
         ]
       },
       "displayName": "Include Into Container",
+      "placeholder": "Enter include into container",
       "defaultValue": "false"
     },
     {
       "id": "field_id",
       "name": "id",
       "fieldType": "uuid",
-      "component": "text",
+      "component": "TextInput",
       "required": true,
       "isSystem": true,
       "isPrimaryKey": true,
@@ -219,7 +224,7 @@
       "id": "field_created_at",
       "name": "created_at",
       "fieldType": "datetime",
-      "component": "datetime",
+      "component": "DateInput",
       "required": false,
       "isSystem": true,
       "isPrimaryKey": false,
@@ -239,7 +244,7 @@
       "id": "field_created_by",
       "name": "created_by",
       "fieldType": "uuid",
-      "component": "text",
+      "component": "TextInput",
       "required": false,
       "isSystem": true,
       "isPrimaryKey": false,
@@ -259,7 +264,7 @@
       "id": "field_updated_at",
       "name": "updated_at",
       "fieldType": "datetime",
-      "component": "datetime",
+      "component": "DateInput",
       "required": false,
       "isSystem": true,
       "isPrimaryKey": false,
@@ -279,7 +284,7 @@
       "id": "field_updated_by",
       "name": "updated_by",
       "fieldType": "uuid",
-      "component": "text",
+      "component": "TextInput",
       "required": false,
       "isSystem": true,
       "isPrimaryKey": false,
@@ -301,6 +306,6 @@
     "totalFields": 13,
     "systemFields": 5,
     "customFields": 8,
-    "generatedAt": "2025-10-05T12:10:35.991Z"
+    "generatedAt": "2025-10-05T16:19:47.981Z"
   }
 }

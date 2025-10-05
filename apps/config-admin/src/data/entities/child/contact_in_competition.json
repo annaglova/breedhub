@@ -9,7 +9,7 @@
       "id": "field_contact_id",
       "name": "contact_id",
       "fieldType": "uuid",
-      "component": "lookup",
+      "component": "LookupInput",
       "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -35,7 +35,7 @@
       "id": "field_international_judgment",
       "name": "international_judgment",
       "fieldType": "boolean",
-      "component": "checkbox",
+      "component": "CheckboxInput",
       "required": true,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -51,13 +51,14 @@
         ]
       },
       "displayName": "International Judgment",
+      "placeholder": "Enter international judgment",
       "defaultValue": "false"
     },
     {
       "id": "field_national_judgment",
       "name": "national_judgment",
       "fieldType": "boolean",
-      "component": "checkbox",
+      "component": "CheckboxInput",
       "required": true,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -73,13 +74,14 @@
         ]
       },
       "displayName": "National Judgment",
+      "placeholder": "Enter national judgment",
       "defaultValue": "false"
     },
     {
       "id": "field_competition_id",
       "name": "competition_id",
       "fieldType": "uuid",
-      "component": "lookup",
+      "component": "LookupInput",
       "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -105,7 +107,7 @@
       "id": "field_id",
       "name": "id",
       "fieldType": "uuid",
-      "component": "text",
+      "component": "TextInput",
       "required": true,
       "isSystem": true,
       "isPrimaryKey": true,
@@ -125,7 +127,7 @@
       "id": "field_created_at",
       "name": "created_at",
       "fieldType": "datetime",
-      "component": "datetime",
+      "component": "DateInput",
       "required": false,
       "isSystem": true,
       "isPrimaryKey": false,
@@ -145,7 +147,7 @@
       "id": "field_created_by",
       "name": "created_by",
       "fieldType": "uuid",
-      "component": "text",
+      "component": "TextInput",
       "required": false,
       "isSystem": true,
       "isPrimaryKey": false,
@@ -165,7 +167,7 @@
       "id": "field_updated_at",
       "name": "updated_at",
       "fieldType": "datetime",
-      "component": "datetime",
+      "component": "DateInput",
       "required": false,
       "isSystem": true,
       "isPrimaryKey": false,
@@ -185,7 +187,7 @@
       "id": "field_updated_by",
       "name": "updated_by",
       "fieldType": "uuid",
-      "component": "text",
+      "component": "TextInput",
       "required": false,
       "isSystem": true,
       "isPrimaryKey": false,
@@ -207,6 +209,6 @@
     "totalFields": 9,
     "systemFields": 5,
     "customFields": 4,
-    "generatedAt": "2025-10-05T12:10:47.189Z"
+    "generatedAt": "2025-10-05T16:19:59.290Z"
   }
 }

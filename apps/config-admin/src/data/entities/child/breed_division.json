@@ -9,7 +9,7 @@
       "id": "field_name",
       "name": "name",
       "fieldType": "string",
-      "component": "text",
+      "component": "TextInput",
       "required": true,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -36,7 +36,7 @@
       "id": "field_description",
       "name": "description",
       "fieldType": "string",
-      "component": "textarea",
+      "component": "TextareaInput",
       "required": true,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -63,7 +63,7 @@
       "id": "field_division_by_color",
       "name": "division_by_color",
       "fieldType": "boolean",
-      "component": "checkbox",
+      "component": "CheckboxInput",
       "required": true,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -79,13 +79,14 @@
         ]
       },
       "displayName": "Division By Color",
+      "placeholder": "Enter division by color",
       "defaultValue": "false"
     },
     {
       "id": "field_breed_id",
       "name": "breed_id",
       "fieldType": "uuid",
-      "component": "lookup",
+      "component": "LookupInput",
       "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -111,7 +112,7 @@
       "id": "field_is_main",
       "name": "is_main",
       "fieldType": "boolean",
-      "component": "checkbox",
+      "component": "CheckboxInput",
       "required": true,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -127,13 +128,14 @@
         ]
       },
       "displayName": "Is Main",
+      "placeholder": "Enter is main",
       "defaultValue": "false"
     },
     {
       "id": "field_division_by_body_feature",
       "name": "division_by_body_feature",
       "fieldType": "boolean",
-      "component": "checkbox",
+      "component": "CheckboxInput",
       "required": true,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -149,13 +151,14 @@
         ]
       },
       "displayName": "Division By Body Feature",
+      "placeholder": "Enter division by body feature",
       "defaultValue": "false"
     },
     {
       "id": "field_division_by_size",
       "name": "division_by_size",
       "fieldType": "boolean",
-      "component": "checkbox",
+      "component": "CheckboxInput",
       "required": true,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -171,13 +174,14 @@
         ]
       },
       "displayName": "Division By Size",
+      "placeholder": "Enter division by size",
       "defaultValue": "false"
     },
     {
       "id": "field_division_by_coat_type",
       "name": "division_by_coat_type",
       "fieldType": "boolean",
-      "component": "checkbox",
+      "component": "CheckboxInput",
       "required": true,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -193,13 +197,14 @@
         ]
       },
       "displayName": "Division By Coat Type",
+      "placeholder": "Enter division by coat type",
       "defaultValue": "false"
     },
     {
       "id": "field_breed_standard_id",
       "name": "breed_standard_id",
       "fieldType": "uuid",
-      "component": "dropdown",
+      "component": "DropdownInput",
       "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -225,7 +230,7 @@
       "id": "field_id",
       "name": "id",
       "fieldType": "uuid",
-      "component": "text",
+      "component": "TextInput",
       "required": true,
       "isSystem": true,
       "isPrimaryKey": true,
@@ -245,7 +250,7 @@
       "id": "field_created_at",
       "name": "created_at",
       "fieldType": "datetime",
-      "component": "datetime",
+      "component": "DateInput",
       "required": false,
       "isSystem": true,
       "isPrimaryKey": false,
@@ -265,7 +270,7 @@
       "id": "field_created_by",
       "name": "created_by",
       "fieldType": "uuid",
-      "component": "text",
+      "component": "TextInput",
       "required": false,
       "isSystem": true,
       "isPrimaryKey": false,
@@ -285,7 +290,7 @@
       "id": "field_updated_at",
       "name": "updated_at",
       "fieldType": "datetime",
-      "component": "datetime",
+      "component": "DateInput",
       "required": false,
       "isSystem": true,
       "isPrimaryKey": false,
@@ -305,7 +310,7 @@
       "id": "field_updated_by",
       "name": "updated_by",
       "fieldType": "uuid",
-      "component": "text",
+      "component": "TextInput",
       "required": false,
       "isSystem": true,
       "isPrimaryKey": false,
@@ -327,6 +332,6 @@
     "totalFields": 14,
     "systemFields": 5,
     "customFields": 9,
-    "generatedAt": "2025-10-05T12:10:43.045Z"
+    "generatedAt": "2025-10-05T16:19:55.146Z"
   }
 }

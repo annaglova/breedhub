@@ -107,52 +107,52 @@ function getUIComponent(fieldType, fieldName, isForeignKey = false, referencedTa
       // Завантажуємо категорії
       const entityCategories = require('./entity-categories.json');
 
-      // Main entities → lookup (складний пошук з autocomplete)
+      // Main entities → LookupInput (складний пошук з autocomplete)
       if (entityCategories.main.includes(referencedTable)) {
-        return 'lookup';
+        return 'LookupInput';
       }
 
-      // Dictionaries → dropdown (простий select)
+      // Dictionaries → DropdownInput (простий select)
       if (entityCategories.dictionaries.includes(referencedTable)) {
-        return 'dropdown';
+        return 'DropdownInput';
       }
 
-      // Child entities → dropdown
+      // Child entities → DropdownInput
       for (const children of Object.values(entityCategories.child)) {
         if (children.includes(referencedTable)) {
-          return 'dropdown';
+          return 'DropdownInput';
         }
       }
     }
 
     // Fallback для FK без referencedTable
-    return 'dropdown';
+    return 'DropdownInput';
   }
 
-  // Оновлений component map (підганяємо під реальні UI компоненти)
+  // ✅ ОНОВЛЕНИЙ component map - назви компонентів замість типів
   const componentMap = {
-    'uuid': 'text',
-    'string': 'text',
-    'text': 'textarea',
-    'number': 'number',
-    'boolean': 'checkbox',
-    'datetime': 'datetime',
-    'date': 'date',
-    'time': 'time',
-    'json': 'textarea', // JSON можна показувати як textarea
-    'array': 'text' // Масиви як текст
+    'uuid': 'TextInput',
+    'string': 'TextInput',
+    'text': 'TextareaInput',
+    'number': 'NumberInput',
+    'boolean': 'CheckboxInput',
+    'datetime': 'DateInput',
+    'date': 'DateInput',
+    'time': 'TimeInput',
+    'json': 'TextareaInput',
+    'array': 'TextInput'
   };
 
-  // Special cases by name (оновлені під реальні компоненти)
+  // ✅ Special cases by name - назви компонентів
   if (fieldType !== 'boolean') {
-    if (fieldName.includes('email')) return 'email';
-    if (fieldName.includes('password')) return 'password';
-    if (fieldName.includes('url') || fieldName.includes('link')) return 'text'; // URL як text input
-    if (fieldName.includes('description') || fieldName.includes('note')) return 'textarea';
-    if (fieldName.includes('image') || fieldName.includes('photo')) return 'file';
+    if (fieldName.includes('email')) return 'EmailInput';
+    if (fieldName.includes('password')) return 'PasswordInput';
+    if (fieldName.includes('url') || fieldName.includes('link')) return 'TextInput';
+    if (fieldName.includes('description') || fieldName.includes('note')) return 'TextareaInput';
+    if (fieldName.includes('image') || fieldName.includes('photo')) return 'FileInput';
   }
 
-  return componentMap[fieldType] || 'text';
+  return componentMap[fieldType] || 'TextInput';
 }
 
 // Generate validation rules based on column constraints

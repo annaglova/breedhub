@@ -9,7 +9,7 @@
       "id": "field_entity_name",
       "name": "entity_name",
       "fieldType": "string",
-      "component": "text",
+      "component": "TextInput",
       "required": true,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -36,7 +36,7 @@
       "id": "field_pet_service_type_id",
       "name": "pet_service_type_id",
       "fieldType": "uuid",
-      "component": "dropdown",
+      "component": "DropdownInput",
       "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -62,7 +62,7 @@
       "id": "field_transfer_to_litter",
       "name": "transfer_to_litter",
       "fieldType": "boolean",
-      "component": "checkbox",
+      "component": "CheckboxInput",
       "required": true,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -78,13 +78,14 @@
         ]
       },
       "displayName": "Transfer To Litter",
+      "placeholder": "Enter transfer to litter",
       "defaultValue": "false"
     },
     {
       "id": "field_transfer_to_account",
       "name": "transfer_to_account",
       "fieldType": "boolean",
-      "component": "checkbox",
+      "component": "CheckboxInput",
       "required": true,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -100,13 +101,14 @@
         ]
       },
       "displayName": "Transfer To Account",
+      "placeholder": "Enter transfer to account",
       "defaultValue": "false"
     },
     {
       "id": "field_id",
       "name": "id",
       "fieldType": "uuid",
-      "component": "text",
+      "component": "TextInput",
       "required": true,
       "isSystem": true,
       "isPrimaryKey": true,
@@ -126,7 +128,7 @@
       "id": "field_created_at",
       "name": "created_at",
       "fieldType": "datetime",
-      "component": "datetime",
+      "component": "DateInput",
       "required": false,
       "isSystem": true,
       "isPrimaryKey": false,
@@ -146,7 +148,7 @@
       "id": "field_created_by",
       "name": "created_by",
       "fieldType": "uuid",
-      "component": "text",
+      "component": "TextInput",
       "required": false,
       "isSystem": true,
       "isPrimaryKey": false,
@@ -166,7 +168,7 @@
       "id": "field_updated_at",
       "name": "updated_at",
       "fieldType": "datetime",
-      "component": "datetime",
+      "component": "DateInput",
       "required": false,
       "isSystem": true,
       "isPrimaryKey": false,
@@ -186,7 +188,7 @@
       "id": "field_updated_by",
       "name": "updated_by",
       "fieldType": "uuid",
-      "component": "text",
+      "component": "TextInput",
       "required": false,
       "isSystem": true,
       "isPrimaryKey": false,
@@ -208,6 +210,6 @@
     "totalFields": 9,
     "systemFields": 5,
     "customFields": 4,
-    "generatedAt": "2025-10-05T12:10:31.055Z"
+    "generatedAt": "2025-10-05T16:19:43.001Z"
   }
 }
