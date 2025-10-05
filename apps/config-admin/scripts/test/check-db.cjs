@@ -39,7 +39,7 @@ async function checkDatabase() {
   console.log(`\nTotal records: ${types.length}`);
   
   // Check a specific record if provided as argument
-  const configId = process.argv[2] || 'breed_field_description';
+  const configId = process.argv[2] || 'config_view_1757849574399';
   const { data: sample } = await supabase
     .from('app_config')
     .select('id, type, self_data, override_data, data, deps')
