@@ -9,7 +9,7 @@
       "id": "field_contact_id",
       "name": "contact_id",
       "fieldType": "uuid",
-      "component": "lookup",
+      "component": "LookupInput",
       "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -35,7 +35,7 @@
       "id": "field_like_it",
       "name": "like_it",
       "fieldType": "number",
-      "component": "number",
+      "component": "NumberInput",
       "required": true,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -62,7 +62,7 @@
       "id": "field_id",
       "name": "id",
       "fieldType": "uuid",
-      "component": "text",
+      "component": "TextInput",
       "required": true,
       "isSystem": true,
       "isPrimaryKey": true,
@@ -84,6 +84,6 @@
     "totalFields": 3,
     "systemFields": 1,
     "customFields": 2,
-    "generatedAt": "2025-10-05T12:10:51.954Z"
+    "generatedAt": "2025-10-05T16:20:04.054Z"
   }
 }

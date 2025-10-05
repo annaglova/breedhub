@@ -9,7 +9,7 @@
       "id": "field_tag_access_id",
       "name": "tag_access_id",
       "fieldType": "uuid",
-      "component": "dropdown",
+      "component": "DropdownInput",
       "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -35,7 +35,7 @@
       "id": "field_can_tag",
       "name": "can_tag",
       "fieldType": "boolean",
-      "component": "checkbox",
+      "component": "CheckboxInput",
       "required": true,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -51,13 +51,14 @@
         ]
       },
       "displayName": "Can Tag",
+      "placeholder": "Enter can tag",
       "defaultValue": "false"
     },
     {
       "id": "field_can_create",
       "name": "can_create",
       "fieldType": "boolean",
-      "component": "checkbox",
+      "component": "CheckboxInput",
       "required": true,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -73,13 +74,14 @@
         ]
       },
       "displayName": "Can Create",
+      "placeholder": "Enter can create",
       "defaultValue": "false"
     },
     {
       "id": "field_can_delete",
       "name": "can_delete",
       "fieldType": "boolean",
-      "component": "checkbox",
+      "component": "CheckboxInput",
       "required": true,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -95,13 +97,14 @@
         ]
       },
       "displayName": "Can Delete",
+      "placeholder": "Enter can delete",
       "defaultValue": "false"
     },
     {
       "id": "field_can_edit",
       "name": "can_edit",
       "fieldType": "boolean",
-      "component": "checkbox",
+      "component": "CheckboxInput",
       "required": true,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -117,13 +120,14 @@
         ]
       },
       "displayName": "Can Edit",
+      "placeholder": "Enter can edit",
       "defaultValue": "false"
     },
     {
       "id": "field_can_read",
       "name": "can_read",
       "fieldType": "boolean",
-      "component": "checkbox",
+      "component": "CheckboxInput",
       "required": true,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -139,13 +143,14 @@
         ]
       },
       "displayName": "Can Read",
+      "placeholder": "Enter can read",
       "defaultValue": "false"
     },
     {
       "id": "field_id",
       "name": "id",
       "fieldType": "uuid",
-      "component": "text",
+      "component": "TextInput",
       "required": true,
       "isSystem": true,
       "isPrimaryKey": true,
@@ -165,7 +170,7 @@
       "id": "field_created_at",
       "name": "created_at",
       "fieldType": "datetime",
-      "component": "datetime",
+      "component": "DateInput",
       "required": false,
       "isSystem": true,
       "isPrimaryKey": false,
@@ -185,7 +190,7 @@
       "id": "field_created_by",
       "name": "created_by",
       "fieldType": "uuid",
-      "component": "text",
+      "component": "TextInput",
       "required": false,
       "isSystem": true,
       "isPrimaryKey": false,
@@ -205,7 +210,7 @@
       "id": "field_updated_at",
       "name": "updated_at",
       "fieldType": "datetime",
-      "component": "datetime",
+      "component": "DateInput",
       "required": false,
       "isSystem": true,
       "isPrimaryKey": false,
@@ -225,7 +230,7 @@
       "id": "field_updated_by",
       "name": "updated_by",
       "fieldType": "uuid",
-      "component": "text",
+      "component": "TextInput",
       "required": false,
       "isSystem": true,
       "isPrimaryKey": false,
@@ -247,6 +252,6 @@
     "totalFields": 11,
     "systemFields": 5,
     "customFields": 6,
-    "generatedAt": "2025-10-05T12:10:38.473Z"
+    "generatedAt": "2025-10-05T16:19:50.561Z"
   }
 }
