@@ -91,6 +91,14 @@ export function SpaceComponent<T extends { Id: string }>({
     return spaceStore.getSortOptions(config.entitySchemaName, viewMode);
   }, [config.entitySchemaName, viewMode, spaceStore.configReady.value]);
 
+  // Get filter fields from view config
+  const filterFields = useMemo(() => {
+    if (!spaceStore.configReady.value) {
+      return [];
+    }
+    return spaceStore.getFilterFields(config.entitySchemaName, viewMode);
+  }, [config.entitySchemaName, viewMode, spaceStore.configReady.value]);
+
   // Find default sort option
   const defaultSortOption = useMemo(() => {
     return sortOptions.find(option => option.isDefault) || sortOptions[0];
@@ -376,6 +384,7 @@ export function SpaceComponent<T extends { Id: string }>({
               className="mt-4"
               sortOptions={sortOptions}
               defaultSortOption={defaultSortOption}
+              filterFields={filterFields}
             />
           </div>
 

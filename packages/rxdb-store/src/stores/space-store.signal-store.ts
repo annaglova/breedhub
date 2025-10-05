@@ -603,6 +603,101 @@ class SpaceStore {
     return sortOptions.map(({ fieldOrder, optionOrder, ...rest }) => rest);
   }
 
+  getFilterFields(entityType: string, viewType: string): Array<{
+    id: string;
+    displayName: string;
+    component: string;
+    placeholder?: string;
+    fieldType: string;
+    required?: boolean;
+    operator?: string;
+    value?: any;
+    validation?: any;
+    order: number;
+  }> {
+    // Try exact match first
+    let spaceConfig = this.spaceConfigs.get(entityType);
+
+    // If not found, try case-insensitive match
+    if (!spaceConfig) {
+      const lowerEntityType = entityType.toLowerCase();
+      for (const [key, config] of this.spaceConfigs.entries()) {
+        if (key.toLowerCase() === lowerEntityType) {
+          spaceConfig = config;
+          break;
+        }
+      }
+    }
+
+    if (!spaceConfig) {
+      console.warn(`[SpaceStore] No space config found for ${entityType}`);
+      return [];
+    }
+
+    // Try to find view config by viewType inside views object
+    if (!spaceConfig.views) {
+      console.warn(`[SpaceStore] No views config found for ${entityType}`);
+      return [];
+    }
+
+    let viewConfig: any = null;
+    for (const [viewKey, config] of Object.entries(spaceConfig.views)) {
+      if ((config as any).viewType === viewType) {
+        viewConfig = config;
+        break;
+      }
+    }
+
+    if (!viewConfig) {
+      console.warn(`[SpaceStore] No view config found for ${entityType}/${viewType}`);
+      return [];
+    }
+
+    // Read from viewConfig.data.filter_fields (merged data)
+    const filterFields = viewConfig.data?.filter_fields || viewConfig.filter_fields;
+
+    if (!filterFields) {
+      console.warn(`[SpaceStore] No filter_fields found for ${entityType}/${viewType}`);
+      return [];
+    }
+
+    const filterOptions: Array<{
+      id: string;
+      displayName: string;
+      component: string;
+      placeholder?: string;
+      fieldType: string;
+      required?: boolean;
+      operator?: string;
+      value?: any;
+      validation?: any;
+      order: number;
+    }> = [];
+
+    // Parse filter fields
+    for (const [fieldId, fieldConfig] of Object.entries(filterFields)) {
+      const field = fieldConfig as any;
+
+      filterOptions.push({
+        id: fieldId,
+        displayName: field.displayName || fieldId,
+        component: field.component || 'TextInput',
+        placeholder: field.placeholder,
+        fieldType: field.fieldType || 'string',
+        required: field.required,
+        operator: field.operator,
+        value: field.value,
+        validation: field.validation,
+        order: field.order || 0
+      });
+    }
+
+    // Sort by order
+    filterOptions.sort((a, b) => a.order - b.order);
+
+    return filterOptions;
+  }
+
   /**
    * Load more entities for pagination (manual pull)
    * @param entityType - тип сутності
