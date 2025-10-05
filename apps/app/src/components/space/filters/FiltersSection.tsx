@@ -9,12 +9,26 @@ export interface FilterField {
   isRequired?: boolean;
 }
 
+export interface FilterFieldConfig {
+  id: string;
+  displayName: string;
+  component: string;
+  placeholder?: string;
+  fieldType: string;
+  required?: boolean;
+  operator?: string;
+  value?: any;
+  validation?: any;
+  order: number;
+}
+
 interface FiltersSectionProps {
   filters?: FilterField[];
   onFilterRemove?: (filter: FilterField) => void;
   sortOptions?: SortOption[];
   defaultSortOption?: SortOption;
   onSortChange?: (option: SortOption) => void;
+  filterFields?: FilterFieldConfig[];
   className?: string;
 }
 
@@ -28,6 +42,7 @@ export function FiltersSection({
   sortOptions,
   defaultSortOption,
   onSortChange,
+  filterFields,
   className
 }: FiltersSectionProps) {
   const [selectedSort, setSelectedSort] = useState<SortOption | undefined>(defaultSortOption);
@@ -44,6 +59,7 @@ export function FiltersSection({
         sortOptions={sortOptions}
         selectedSort={selectedSort}
         onSortChange={handleSortChange}
+        filterFields={filterFields}
       />
 
       {filters.map((filter) => (

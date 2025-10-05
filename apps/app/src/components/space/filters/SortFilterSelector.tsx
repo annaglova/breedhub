@@ -8,7 +8,7 @@ import {
 import { cn } from "@ui/lib/utils";
 import { Filter } from "lucide-react";
 import { useState } from "react";
-import { FiltersDialog } from "./FiltersDialog";
+import { FiltersDialog, FilterFieldConfig } from "./FiltersDialog";
 import { SortOption, SortSelector } from "./SortSelector";
 
 // Re-export SortOption for convenience
@@ -20,6 +20,7 @@ interface SortFilterSelectorProps {
   selectedSort?: SortOption;
   onSortChange?: (option: SortOption) => void;
   onFiltersOpen?: () => void;
+  filterFields?: FilterFieldConfig[];
 }
 
 export function SortFilterSelector({
@@ -28,6 +29,7 @@ export function SortFilterSelector({
   selectedSort,
   onSortChange,
   onFiltersOpen,
+  filterFields,
 }: SortFilterSelectorProps) {
   const [isFiltersDialogOpen, setIsFiltersDialogOpen] = useState(false);
 
@@ -63,6 +65,7 @@ export function SortFilterSelector({
       <FiltersDialog
         open={isFiltersDialogOpen}
         onOpenChange={setIsFiltersDialogOpen}
+        filterFields={filterFields}
       />
     </TooltipProvider>
   );
