@@ -9,7 +9,7 @@
       "id": "field_breed_id",
       "name": "breed_id",
       "fieldType": "uuid",
-      "component": "select",
+      "component": "lookup",
       "required": true,
       "isSystem": false,
       "isPrimaryKey": true,
@@ -35,7 +35,7 @@
       "id": "field_pet_id",
       "name": "pet_id",
       "fieldType": "uuid",
-      "component": "select",
+      "component": "lookup",
       "required": true,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -155,6 +155,6 @@
     "totalFields": 6,
     "systemFields": 0,
     "customFields": 6,
-    "generatedAt": "2025-09-17T11:57:06.954Z"
+    "generatedAt": "2025-10-05T12:11:06.574Z"
   }
 }

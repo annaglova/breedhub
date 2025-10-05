@@ -9,7 +9,7 @@
       "id": "field_breed_id",
       "name": "breed_id",
       "fieldType": "uuid",
-      "component": "select",
+      "component": "lookup",
       "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -35,7 +35,7 @@
       "id": "field_health_exam_object_id",
       "name": "health_exam_object_id",
       "fieldType": "uuid",
-      "component": "select",
+      "component": "dropdown",
       "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -121,7 +121,7 @@
       "id": "field_updated_at",
       "name": "updated_at",
       "fieldType": "datetime",
-      "component": "date",
+      "component": "datetime",
       "required": false,
       "isSystem": true,
       "isPrimaryKey": false,
@@ -141,7 +141,7 @@
       "id": "field_updated_by",
       "name": "updated_by",
       "fieldType": "uuid",
-      "component": "date",
+      "component": "text",
       "required": false,
       "isSystem": true,
       "isPrimaryKey": false,
@@ -163,6 +163,6 @@
     "totalFields": 7,
     "systemFields": 5,
     "customFields": 2,
-    "generatedAt": "2025-09-17T11:56:38.422Z"
+    "generatedAt": "2025-10-05T12:10:50.615Z"
   }
 }

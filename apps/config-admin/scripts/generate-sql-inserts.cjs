@@ -2,8 +2,8 @@ const fs = require("fs");
 const path = require("path");
 require("dotenv").config({ path: path.resolve(__dirname, '../.env') });
 const { createClient } = require("@supabase/supabase-js");
-// Use v3 cascade with proper parent-child waiting
-const { cascadeUpdate } = require("./cascading-updates-v3.cjs");
+// Use cascade with proper parent-child waiting
+const { cascadeUpdate } = require("./cascading-updates.cjs");
 const { rebuildAfterChanges } = require('./rebuild-hierarchy.cjs');
 const BatchProcessor = require("./batch-processor.cjs");
 

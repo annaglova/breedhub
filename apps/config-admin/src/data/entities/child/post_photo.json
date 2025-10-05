@@ -36,7 +36,7 @@
       "id": "field_link",
       "name": "link",
       "fieldType": "string",
-      "component": "url",
+      "component": "text",
       "required": true,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -65,7 +65,7 @@
       "id": "field_post_id",
       "name": "post_id",
       "fieldType": "uuid",
-      "component": "select",
+      "component": "lookup",
       "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -151,7 +151,7 @@
       "id": "field_updated_at",
       "name": "updated_at",
       "fieldType": "datetime",
-      "component": "date",
+      "component": "datetime",
       "required": false,
       "isSystem": true,
       "isPrimaryKey": false,
@@ -171,7 +171,7 @@
       "id": "field_updated_by",
       "name": "updated_by",
       "fieldType": "uuid",
-      "component": "date",
+      "component": "text",
       "required": false,
       "isSystem": true,
       "isPrimaryKey": false,
@@ -193,6 +193,6 @@
     "totalFields": 8,
     "systemFields": 5,
     "customFields": 3,
-    "generatedAt": "2025-09-17T11:56:56.693Z"
+    "generatedAt": "2025-10-05T12:11:00.438Z"
   }
 }

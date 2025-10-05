@@ -63,7 +63,7 @@
       "id": "field_pet_type_id",
       "name": "pet_type_id",
       "fieldType": "uuid",
-      "component": "select",
+      "component": "dropdown",
       "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -89,7 +89,7 @@
       "id": "field_provider_id",
       "name": "provider_id",
       "fieldType": "uuid",
-      "component": "select",
+      "component": "lookup",
       "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -175,7 +175,7 @@
       "id": "field_updated_at",
       "name": "updated_at",
       "fieldType": "datetime",
-      "component": "date",
+      "component": "datetime",
       "required": false,
       "isSystem": true,
       "isPrimaryKey": false,
@@ -195,7 +195,7 @@
       "id": "field_updated_by",
       "name": "updated_by",
       "fieldType": "uuid",
-      "component": "date",
+      "component": "text",
       "required": false,
       "isSystem": true,
       "isPrimaryKey": false,
@@ -217,6 +217,6 @@
     "totalFields": 9,
     "systemFields": 5,
     "customFields": 4,
-    "generatedAt": "2025-09-17T11:55:41.011Z"
+    "generatedAt": "2025-10-05T12:10:16.180Z"
   }
 }

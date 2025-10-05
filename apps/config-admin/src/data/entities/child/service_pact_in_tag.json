@@ -9,7 +9,7 @@
       "id": "field_entity_id",
       "name": "entity_id",
       "fieldType": "uuid",
-      "component": "select",
+      "component": "lookup",
       "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -95,7 +95,7 @@
       "id": "field_updated_at",
       "name": "updated_at",
       "fieldType": "datetime",
-      "component": "date",
+      "component": "datetime",
       "required": false,
       "isSystem": true,
       "isPrimaryKey": false,
@@ -115,7 +115,7 @@
       "id": "field_updated_by",
       "name": "updated_by",
       "fieldType": "uuid",
-      "component": "date",
+      "component": "text",
       "required": false,
       "isSystem": true,
       "isPrimaryKey": false,
@@ -137,6 +137,6 @@
     "totalFields": 6,
     "systemFields": 5,
     "customFields": 1,
-    "generatedAt": "2025-09-17T11:57:04.905Z"
+    "generatedAt": "2025-10-05T12:11:05.369Z"
   }
 }

@@ -9,7 +9,7 @@
       "id": "field_litter_id",
       "name": "litter_id",
       "fieldType": "uuid",
-      "component": "select",
+      "component": "lookup",
       "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -35,7 +35,7 @@
       "id": "field_cover_id",
       "name": "cover_id",
       "fieldType": "uuid",
-      "component": "select",
+      "component": "lookup",
       "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -61,7 +61,7 @@
       "id": "field_setup_date",
       "name": "setup_date",
       "fieldType": "datetime",
-      "component": "date",
+      "component": "datetime",
       "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -143,7 +143,7 @@
       "id": "field_updated_at",
       "name": "updated_at",
       "fieldType": "datetime",
-      "component": "date",
+      "component": "datetime",
       "required": false,
       "isSystem": true,
       "isPrimaryKey": false,
@@ -163,7 +163,7 @@
       "id": "field_updated_by",
       "name": "updated_by",
       "fieldType": "uuid",
-      "component": "date",
+      "component": "text",
       "required": false,
       "isSystem": true,
       "isPrimaryKey": false,
@@ -185,6 +185,6 @@
     "totalFields": 8,
     "systemFields": 5,
     "customFields": 3,
-    "generatedAt": "2025-09-17T11:56:35.157Z"
+    "generatedAt": "2025-10-05T12:10:48.866Z"
   }
 }
