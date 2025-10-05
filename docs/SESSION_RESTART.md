@@ -1,10 +1,10 @@
 # 🔄 SESSION RESTART - BREEDHUB PROJECT
 
-## 📅 Останнє оновлення: 2025-10-01
+## 📅 Останнє оновлення: 2025-10-05
 
 ## 🎯 ПОТОЧНИЙ СТАН
 
-**Статус:** Manual Pagination з Dynamic Rows - ЗАВЕРШЕНО ✅
+**Статус:** Dynamic Filters UI - В РОБОТІ 🚧
 
 **Що працює:**
 - Dynamic rows з view config (30 для breed/list, 60 для breed/grid, etc.)
@@ -12,8 +12,157 @@
 - Checkpoint persistence - продовження після reload
 - Batch UI updates - стрибки 30→60→90 без flickering
 - Instant totalCount - миттєве відображення з localStorage cache
+- Dynamic sorting - SortSelector з конфігу ✅
+
+**Поточна задача:** Динамічні фільтри в FiltersDialog
 
 **Поточна гілка:** `debug/ui-cascade-issue`
+
+---
+
+## 🎨 ПЛАН: Dynamic Filters Implementation
+
+### Мета
+Реалізувати динамічний рендеринг фільтрів в FiltersDialog на основі `filter_fields` з view конфігу.
+
+### Структура filter_fields (з конфігу)
+```json
+{
+  "filter_fields": {
+    "breed_field_name": {
+      "order": 1,
+      "component": "TextInput",  // ⚠️ Явна назва компоненту (НЕ "text")
+      "displayName": "Name",
+      "placeholder": "Enter name",
+      "fieldType": "string",
+      "required": true,
+      "operator": "eq",
+      "value": null,
+      "validation": { "maxLength": 250 }
+    }
+  }
+}
+```
+
+### Етапи реалізації
+
+#### 1. ✅ Аналіз поточного стану
+- [x] Вивчено структуру `filter_fields` в конфігу
+- [x] Перевірено наявні UI компоненти в `/packages/ui/components/form-inputs/`
+- [x] Проаналізовано як працює `getSortOptions()` в SpaceStore
+
+#### 2. 🚧 SpaceStore: метод getFilterFields()
+**Файл:** `packages/rxdb-store/src/stores/space-store.signal-store.ts`
+
+Додати метод аналогічно до `getSortOptions()`:
+```typescript
+getFilterFields(entityType: string, viewType: string): Array<{
+  id: string;
+  displayName: string;
+  component: string;  // "TextInput", "DropdownInput", etc.
+  placeholder?: string;
+  fieldType: string;
+  required?: boolean;
+  operator?: string;
+  value?: any;
+  validation?: any;
+  order: number;
+}> {
+  // 1. Знайти viewConfig по viewType
+  // 2. Читати з viewConfig.data?.filter_fields || viewConfig.filter_fields
+  // 3. Парсити поля, сортувати по order
+  // 4. Повернути масив
+}
+```
+
+**Важливо:**
+- Читаємо з `viewConfig.data?.filter_fields || viewConfig.filter_fields`
+- НЕ кидаємо запит до БД - тільки статика з appStore
+- Сортуємо по `field.order`
+
+#### 3. 🚧 FiltersDialog: динамічний рендеринг
+**Файл:** `apps/app/src/components/space/filters/FiltersDialog.tsx`
+
+**Props:**
+```typescript
+interface FiltersDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  filterFields?: FilterFieldConfig[];  // З getFilterFields()
+  onApply?: (values: Record<string, any>) => void;
+}
+```
+
+**Рендеринг:**
+```tsx
+import { TextInput, DropdownInput, TextareaInput } from '@ui/components/form-inputs';
+
+const componentMap = {
+  TextInput,
+  DropdownInput,
+  TextareaInput,
+  DateInput,
+  NumberInput,
+  CheckboxInput,
+  // ... інші
+};
+
+{filterFields?.map((field) => {
+  const Component = componentMap[field.component];
+  if (!Component) return null;
+
+  return (
+    <div key={field.id} className="mt-5 space-y-2">
+      <Component
+        label={field.displayName}
+        placeholder={field.placeholder}
+        required={field.required}
+        // ... інші props
+      />
+    </div>
+  );
+})}
+```
+
+**Layout:**
+- 2 колонки: `grid gap-3 sm:grid-cols-2`
+- Сортування по `field.order`
+
+#### 4. 🚧 Інтеграція з SpaceComponent
+**Файли:**
+- `apps/app/src/components/space/filters/SortFilterSelector.tsx`
+- `apps/app/src/components/space/filters/FiltersSection.tsx`
+
+**Ланцюжок передачі:**
+```
+SpaceComponent
+  → FiltersSection (витягує filterFields через spaceStore.getFilterFields())
+    → SortFilterSelector
+      → FiltersDialog (отримує filterFields як prop)
+```
+
+#### 5. 🚧 Тестування
+- [ ] Перевірити відображення 1 поля
+- [ ] Перевірити відображення декількох полів у 2 колонки
+- [ ] Перевірити сортування по `order`
+- [ ] Перевірити різні типи компонентів (text, dropdown, date)
+
+### Важливі нотатки
+
+**Конфіг:**
+- `component` в БД = точна назва компоненту (`TextInput`, НЕ `text`)
+- Немає магічного мапінгу
+- Всі компоненти з `/packages/ui/components/form-inputs/`
+
+**SpaceStore:**
+- НЕ запити до БД в runtime
+- Тільки статичний конфіг з appStore
+- Аналогічно до `getSortOptions()`
+
+**UI:**
+- 2 колонки автоматично через `sm:grid-cols-2`
+- Label = `displayName` з конфігу
+- Placeholder = `placeholder` з конфігу
 
 ---
 
