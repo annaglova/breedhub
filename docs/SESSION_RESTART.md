@@ -1,10 +1,10 @@
 # 🔄 SESSION RESTART - BREEDHUB PROJECT
 
-## 📅 Останнє оновлення: 2025-10-05
+## 📅 Останнє оновлення: 2025-10-06
 
 ## 🎯 ПОТОЧНИЙ СТАН
 
-**Статус:** Dynamic Filters UI - В РОБОТІ 🚧
+**Статус:** Ready for Development ✅
 
 **Що працює:**
 - Dynamic rows з view config (30 для breed/list, 60 для breed/grid, etc.)
@@ -13,156 +13,11 @@
 - Batch UI updates - стрибки 30→60→90 без flickering
 - Instant totalCount - миттєве відображення з localStorage cache
 - Dynamic sorting - SortSelector з конфігу ✅
+- Dynamic filters - FiltersDialog з динамічним рендерингом ✅
+- Sort/Filter configs на space рівні (не view) ✅
+- mainFilterField handling - виключення з filter modal ✅
 
-**Поточна задача:** Динамічні фільтри в FiltersDialog
-
-**Поточна гілка:** `debug/ui-cascade-issue`
-
----
-
-## 🎨 ПЛАН: Dynamic Filters Implementation
-
-### Мета
-Реалізувати динамічний рендеринг фільтрів в FiltersDialog на основі `filter_fields` з view конфігу.
-
-### Структура filter_fields (з конфігу)
-```json
-{
-  "filter_fields": {
-    "breed_field_name": {
-      "order": 1,
-      "component": "TextInput",  // ⚠️ Явна назва компоненту (НЕ "text")
-      "displayName": "Name",
-      "placeholder": "Enter name",
-      "fieldType": "string",
-      "required": true,
-      "operator": "eq",
-      "value": null,
-      "validation": { "maxLength": 250 }
-    }
-  }
-}
-```
-
-### Етапи реалізації
-
-#### 1. ✅ Аналіз поточного стану
-- [x] Вивчено структуру `filter_fields` в конфігу
-- [x] Перевірено наявні UI компоненти в `/packages/ui/components/form-inputs/`
-- [x] Проаналізовано як працює `getSortOptions()` в SpaceStore
-
-#### 2. 🚧 SpaceStore: метод getFilterFields()
-**Файл:** `packages/rxdb-store/src/stores/space-store.signal-store.ts`
-
-Додати метод аналогічно до `getSortOptions()`:
-```typescript
-getFilterFields(entityType: string, viewType: string): Array<{
-  id: string;
-  displayName: string;
-  component: string;  // "TextInput", "DropdownInput", etc.
-  placeholder?: string;
-  fieldType: string;
-  required?: boolean;
-  operator?: string;
-  value?: any;
-  validation?: any;
-  order: number;
-}> {
-  // 1. Знайти viewConfig по viewType
-  // 2. Читати з viewConfig.data?.filter_fields || viewConfig.filter_fields
-  // 3. Парсити поля, сортувати по order
-  // 4. Повернути масив
-}
-```
-
-**Важливо:**
-- Читаємо з `viewConfig.data?.filter_fields || viewConfig.filter_fields`
-- НЕ кидаємо запит до БД - тільки статика з appStore
-- Сортуємо по `field.order`
-
-#### 3. 🚧 FiltersDialog: динамічний рендеринг
-**Файл:** `apps/app/src/components/space/filters/FiltersDialog.tsx`
-
-**Props:**
-```typescript
-interface FiltersDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  filterFields?: FilterFieldConfig[];  // З getFilterFields()
-  onApply?: (values: Record<string, any>) => void;
-}
-```
-
-**Рендеринг:**
-```tsx
-import { TextInput, DropdownInput, TextareaInput } from '@ui/components/form-inputs';
-
-const componentMap = {
-  TextInput,
-  DropdownInput,
-  TextareaInput,
-  DateInput,
-  NumberInput,
-  CheckboxInput,
-  // ... інші
-};
-
-{filterFields?.map((field) => {
-  const Component = componentMap[field.component];
-  if (!Component) return null;
-
-  return (
-    <div key={field.id} className="mt-5 space-y-2">
-      <Component
-        label={field.displayName}
-        placeholder={field.placeholder}
-        required={field.required}
-        // ... інші props
-      />
-    </div>
-  );
-})}
-```
-
-**Layout:**
-- 2 колонки: `grid gap-3 sm:grid-cols-2`
-- Сортування по `field.order`
-
-#### 4. 🚧 Інтеграція з SpaceComponent
-**Файли:**
-- `apps/app/src/components/space/filters/SortFilterSelector.tsx`
-- `apps/app/src/components/space/filters/FiltersSection.tsx`
-
-**Ланцюжок передачі:**
-```
-SpaceComponent
-  → FiltersSection (витягує filterFields через spaceStore.getFilterFields())
-    → SortFilterSelector
-      → FiltersDialog (отримує filterFields як prop)
-```
-
-#### 5. 🚧 Тестування
-- [ ] Перевірити відображення 1 поля
-- [ ] Перевірити відображення декількох полів у 2 колонки
-- [ ] Перевірити сортування по `order`
-- [ ] Перевірити різні типи компонентів (text, dropdown, date)
-
-### Важливі нотатки
-
-**Конфіг:**
-- `component` в БД = точна назва компоненту (`TextInput`, НЕ `text`)
-- Немає магічного мапінгу
-- Всі компоненти з `/packages/ui/components/form-inputs/`
-
-**SpaceStore:**
-- НЕ запити до БД в runtime
-- Тільки статичний конфіг з appStore
-- Аналогічно до `getSortOptions()`
-
-**UI:**
-- 2 колонки автоматично через `sm:grid-cols-2`
-- Label = `displayName` з конфігу
-- Placeholder = `placeholder` з конфігу
+**Поточна гілка:** `main`
 
 ---
 
@@ -207,6 +62,29 @@ Total count: 452 (з Supabase metadata)
    - Flush коли досягнуто `expectedBatchSize` (30)
    - UI оновлюється одним батчем: 30→60→90
 
+### Configuration Hierarchy
+
+```
+app_config
+  └── workspaces (container)
+      └── workspace
+          └── spaces (container)
+              └── space
+                  ├── sort_fields (container) ← Sort configs at space level
+                  ├── filter_fields (container) ← Filter configs at space level
+                  ├── views (container)
+                  │   └── view
+                  │       └── fields (container) ← Display fields only
+                  └── pages (container)
+                      └── page
+                          └── fields (container)
+```
+
+**Key principle:** Sort/filter configs live at space level, not view level
+- Eliminates duplication across views (list, grid, tab)
+- Enables URL query params to persist across view changes
+- Logically correct: entity-level filters vs display-level views
+
 ---
 
 ## 📂 ОСНОВНІ ФАЙЛИ
@@ -215,18 +93,38 @@ Total count: 452 (з Supabase metadata)
 ```
 packages/rxdb-store/src/
 ├── services/entity-replication.service.ts  # Manual pull, checkpoint logic
-├── stores/space-store.signal-store.ts      # getViewRows(), loadMore(), batch buffering
+├── stores/space-store.signal-store.ts      # getViewRows(), loadMore(), getSortOptions(), getFilterFields()
+├── stores/app-config.signal-store.ts       # childContainerMapping, config hierarchy
 └── stores/base/entity-store.ts             # EntityStore з totalFromServer signal
 ```
 
 ### UI Components
 ```
 apps/app/src/
-├── components/space/
-│   ├── SpaceComponent.tsx     # handleLoadMore, scroll integration
-│   ├── SpaceView.tsx          # Scroll handler, infinite scroll
-│   └── EntitiesCounter.tsx    # "Showing X of Y"
-└── hooks/useEntities.ts       # Subscriptions на RxDB changes
+├── components/
+│   ├── space/
+│   │   ├── SpaceComponent.tsx              # handleLoadMore, scroll integration
+│   │   ├── SpaceView.tsx                   # Scroll handler, infinite scroll
+│   │   ├── EntitiesCounter.tsx             # "Showing X of Y"
+│   │   └── filters/
+│   │       ├── FiltersDialog.tsx           # Dynamic filter rendering
+│   │       ├── SortFilterSelector.tsx      # Sort + Filter button
+│   │       ├── SortSelector.tsx            # Dynamic sort dropdown
+│   │       └── FiltersSection.tsx          # Container for sort/filter
+│   └── layout/
+│       ├── Header.tsx                      # Top navigation
+│       ├── Sidebar.tsx                     # Left navigation (spaces)
+│       └── UserDrawer.tsx                  # Right drawer menu
+└── hooks/useEntities.ts                    # Subscriptions на RxDB changes
+```
+
+### Config Scripts
+```
+apps/config-admin/scripts/
+├── generate-entity-configs.cjs             # Generate entity JSON from DB schema
+├── generate-sql-inserts.cjs                # Generate SQL from entity JSON files
+├── rebuild-hierarchy.cjs                   # Rebuild nested config structures
+└── update-db-from-json.cjs                 # Apply all updates sequentially
 ```
 
 ---
@@ -235,13 +133,18 @@ apps/app/src/
 
 ```bash
 # Запустити dev server
-npm run dev
+cd /Users/annaglova/projects/breedhub
+pnpm dev:app
 
 # Перевірити конфіги в БД
 node apps/config-admin/scripts/test/check-db.cjs
 
 # DevTools: Application → IndexedDB → rxdb-dexie-breed → rxdocuments
 # Refresh database view щоб побачити актуальні дані!
+
+# Очистити IndexedDB при schema changes:
+# Console: indexedDB.deleteDatabase('rxdb-dexie-breedhub')
+# Потім: F5
 ```
 
 ---
@@ -249,13 +152,18 @@ node apps/config-admin/scripts/test/check-db.cjs
 ## 📚 ДЕТАЛЬНА ДОКУМЕНТАЦІЯ
 
 ### Реалізація
-- `/docs/DYNAMIC_VIEW_ROWS_IMPLEMENTATION.md` - Повний план і статус реалізації
+- `/docs/DYNAMIC_VIEW_ROWS_IMPLEMENTATION.md` - Dynamic rows implementation
 - `/docs/LOCAL_FIRST_ROADMAP.md` - Загальний roadmap проекту
+- `/docs/UNIVERSAL_STORE_IMPLEMENTATION.md` - Universal store architecture
 
 ### Архітектура
 - `/docs/PROPERTY_BASED_CONFIG_ARCHITECTURE.md` - Конфігураційна система
 - `/docs/SPACE_STORE_ARCHITECTURE.md` - SpaceStore архітектура
 - `/docs/RXDB_INTEGRATION.md` - Інтеграція з RxDB
+
+### Config Admin
+- `/apps/config-admin/docs/SCRIPTS.md` - Config generation scripts
+- `/apps/config-admin/docs/WORKFLOW.md` - Development workflow
 
 ---
 
@@ -286,6 +194,88 @@ node apps/config-admin/scripts/test/check-db.cjs
    - Flush по досягненню batch size
    - Без flickering в UI
 
+6. **Sort/Filter at space level, not view level**
+   - Space = entity workspace (breeds, animals, etc.)
+   - View = display mode (list, grid, tab)
+   - Filters/sort apply to entity, not display
+
+---
+
+## 🎨 DYNAMIC FILTERS & SORTING
+
+### Sort Options
+**Config location:** `space.sort_fields`
+
+```json
+{
+  "sort_fields": {
+    "sort_name_asc": {
+      "order": 1,
+      "label": "Name A-Z",
+      "field": "name",
+      "direction": "asc"
+    }
+  }
+}
+```
+
+**Usage:**
+```typescript
+// SpaceStore method
+const sortOptions = spaceStore.getSortOptions(entityType, viewType);
+
+// Returns:
+[
+  { id: 'sort_name_asc', label: 'Name A-Z', field: 'name', direction: 'asc' }
+]
+```
+
+### Filter Fields
+**Config location:** `space.filter_fields`
+
+```json
+{
+  "filter_fields": {
+    "breed_field_name": {
+      "order": 1,
+      "component": "TextInput",
+      "displayName": "Name",
+      "placeholder": "Enter name",
+      "fieldType": "string",
+      "operator": "contains",
+      "mainFilterField": false
+    }
+  }
+}
+```
+
+**Usage:**
+```typescript
+// SpaceStore methods
+const filterFields = spaceStore.getFilterFields(entityType, viewType);
+const mainFilter = spaceStore.getMainFilterField(entityType);
+
+// filterFields excludes mainFilterField (used for search bar)
+// mainFilter returns the field with mainFilterField: true
+```
+
+**Dynamic rendering:**
+```tsx
+import { TextInput, DropdownInput, DateInput } from '@ui/components/form-inputs';
+
+const componentMap = {
+  TextInput, DropdownInput, DateInput,
+  TextareaInput, NumberInput, CheckboxInput,
+  TimeInput, LookupInput, EmailInput,
+  PasswordInput, FileInput, RadioInput, SwitchInput
+};
+
+{filterFields.map((field) => {
+  const Component = componentMap[field.component];
+  return <Component key={field.id} label={field.displayName} {...props} />;
+})}
+```
+
 ---
 
 ## 💡 ВАЖЛИВІ НОТАТКИ
@@ -295,6 +285,9 @@ node apps/config-admin/scripts/test/check-db.cjs
 - BulkUpsert швидше за individual upserts
 - Batch buffer запобігає UI flickering при масових вставках
 - TotalCount з localStorage = instant UI feedback (50-200ms)
+- Sort/Filter configs на space рівні, НЕ на view рівні
+- mainFilterField виключається з filter modal (використовується для search bar)
+- Component names в конфігу = точні назви компонентів (TextInput, НЕ "text")
 
 ---
 
@@ -312,6 +305,16 @@ node apps/config-admin/scripts/test/check-db.cjs
 **Проблема:** Дублікати після reload
 - Checkpoint queries RxDB для latest document
 - Перевірити localStorage: `checkpoint_breed`
+
+**Проблема:** RxDB schema hash mismatch
+- Console: `indexedDB.deleteDatabase('rxdb-dexie-breedhub')`
+- Refresh page (F5)
+- Це нормально після зміни schema/config structure
+
+**Проблема:** 4th menu item в header (user_config)
+- Перевірити rebuild-hierarchy.cjs
+- user_config має бути окремо від workspaces container
+- Перезапустити rebuild-hierarchy script
 
 ---
 
