@@ -271,8 +271,10 @@ async function rebuildSpaceConfig(spaceId) {
     const pages = dependents?.filter(d => d.type === 'page') || [];
     const views = dependents?.filter(d => d.type === 'view') || [];
     const properties = dependents?.filter(d => d.type === 'property') || [];
+    const sorts = dependents?.filter(d => d.type === 'sort') || [];
+    const filters = dependents?.filter(d => d.type === 'filter') || [];
 
-    // Build space structure - include pages, views, and properties
+    // Build space structure - include pages, views, properties, sorts, and filters
     const spaceStructure = {};
 
     // Add ALL pages - even empty ones should be included as {}
@@ -312,7 +314,33 @@ async function rebuildSpaceConfig(spaceId) {
         Object.assign(spaceStructure, property.data);
       }
     }
-    
+
+    // Add sort configs
+    if (sorts && sorts.length > 0) {
+      const sortsData = {};
+      for (const sort of sorts) {
+        sortsData[sort.id] = (sort.data && Object.keys(sort.data).length > 0)
+          ? sort.data
+          : {};
+      }
+      if (Object.keys(sortsData).length > 0) {
+        spaceStructure.sort = sortsData;
+      }
+    }
+
+    // Add filter configs
+    if (filters && filters.length > 0) {
+      const filtersData = {};
+      for (const filter of filters) {
+        filtersData[filter.id] = (filter.data && Object.keys(filter.data).length > 0)
+          ? filter.data
+          : {};
+      }
+      if (Object.keys(filtersData).length > 0) {
+        spaceStructure.filters = filtersData;
+      }
+    }
+
     const newSelfData = spaceStructure;
     const newData = { ...newSelfData, ...(spaceConfig.override_data || {}) };
     
