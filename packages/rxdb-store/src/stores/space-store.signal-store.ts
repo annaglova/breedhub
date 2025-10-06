@@ -599,9 +599,11 @@ class SpaceStore {
    * Get filter fields from space config's filter_fields
    * Filter fields are defined at space level and shared across all views
    *
+   * Note: Fields with mainFilterField=true are excluded (they're for search bar, not modal)
+   *
    * @param entityType - Entity type (e.g., 'breed', 'animal')
    * @param viewType - Deprecated parameter, kept for backward compatibility
-   * @returns Array of filter field configurations
+   * @returns Array of filter field configurations (excluding main filter field)
    */
   getFilterFields(entityType: string, viewType?: string): Array<{
     id: string;
@@ -655,9 +657,14 @@ class SpaceStore {
       order: number;
     }> = [];
 
-    // Parse filter fields
+    // Parse filter fields (exclude mainFilterField - it's for search bar, not modal)
     for (const [fieldId, fieldConfig] of Object.entries(filterFields)) {
       const field = fieldConfig as any;
+
+      // Skip main filter field - it's used for primary search, not in filter dialog
+      if (field.mainFilterField === true) {
+        continue;
+      }
 
       filterOptions.push({
         id: fieldId,
@@ -677,6 +684,57 @@ class SpaceStore {
     filterOptions.sort((a, b) => a.order - b.order);
 
     return filterOptions;
+  }
+
+  /**
+   * Get main filter field for primary search (search bar)
+   * This field is excluded from filter dialog modal
+   *
+   * @param entityType - Entity type (e.g., 'breed', 'animal')
+   * @returns Main filter field configuration or null if not found
+   */
+  getMainFilterField(entityType: string): {
+    id: string;
+    displayName: string;
+    component: string;
+    placeholder?: string;
+    fieldType: string;
+    operator?: string;
+  } | null {
+    // Try exact match first
+    let spaceConfig = this.spaceConfigs.get(entityType);
+
+    // If not found, try case-insensitive match
+    if (!spaceConfig) {
+      const lowerEntityType = entityType.toLowerCase();
+      for (const [key, config] of this.spaceConfigs.entries()) {
+        if (key.toLowerCase() === lowerEntityType) {
+          spaceConfig = config;
+          break;
+        }
+      }
+    }
+
+    if (!spaceConfig?.filter_fields) {
+      return null;
+    }
+
+    // Find field with mainFilterField: true
+    for (const [fieldId, fieldConfig] of Object.entries(spaceConfig.filter_fields)) {
+      const field = fieldConfig as any;
+      if (field.mainFilterField === true) {
+        return {
+          id: fieldId,
+          displayName: field.displayName || fieldId,
+          component: field.component || 'TextInput',
+          placeholder: field.placeholder,
+          fieldType: field.fieldType || 'string',
+          operator: field.operator || 'contains'
+        };
+      }
+    }
+
+    return null;
   }
 
   /**
