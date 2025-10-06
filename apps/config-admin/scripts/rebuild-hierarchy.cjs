@@ -315,29 +315,27 @@ async function rebuildSpaceConfig(spaceId) {
       }
     }
 
-    // Add sort configs
+    // Add sort configs - merge all sort config data into sort_fields
     if (sorts && sorts.length > 0) {
-      const sortsData = {};
+      spaceStructure.sort_fields = {};
       for (const sort of sorts) {
-        sortsData[sort.id] = (sort.data && Object.keys(sort.data).length > 0)
-          ? sort.data
-          : {};
-      }
-      if (Object.keys(sortsData).length > 0) {
-        spaceStructure.sort = sortsData;
+        // Sort config's data already has fields as objects with field IDs as keys
+        // Just merge it into sort_fields container
+        if (sort.data && Object.keys(sort.data).length > 0) {
+          Object.assign(spaceStructure.sort_fields, sort.data);
+        }
       }
     }
 
-    // Add filter configs
+    // Add filter configs - merge all filter config data into filter_fields
     if (filters && filters.length > 0) {
-      const filtersData = {};
+      spaceStructure.filter_fields = {};
       for (const filter of filters) {
-        filtersData[filter.id] = (filter.data && Object.keys(filter.data).length > 0)
-          ? filter.data
-          : {};
-      }
-      if (Object.keys(filtersData).length > 0) {
-        spaceStructure.filters = filtersData;
+        // Filter config's data already has fields as objects with field IDs as keys
+        // Just merge it into filter_fields container
+        if (filter.data && Object.keys(filter.data).length > 0) {
+          Object.assign(spaceStructure.filter_fields, filter.data);
+        }
       }
     }
 
