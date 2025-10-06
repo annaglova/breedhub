@@ -256,6 +256,7 @@
       "isForeignKey": true,
       "referencedTable": "cover",
       "referencedFieldID": "id",
+      "dataSource": "collection",
       "displayName": "Cover",
       "placeholder": "Enter cover",
       "referencedFieldName": "name"
@@ -282,6 +283,7 @@
       "isForeignKey": true,
       "referencedTable": "contact",
       "referencedFieldID": "id",
+      "dataSource": "collection",
       "displayName": "Owner",
       "placeholder": "Enter owner",
       "referencedFieldName": "name"
@@ -392,6 +394,6 @@
     "totalFields": 16,
     "systemFields": 5,
     "customFields": 11,
-    "generatedAt": "2025-10-05T16:19:10.284Z"
+    "generatedAt": "2025-10-06T11:25:22.287Z"
   }
 }

@@ -95,6 +95,7 @@
       "isForeignKey": true,
       "referencedTable": "contact",
       "referencedFieldID": "id",
+      "dataSource": "collection",
       "displayName": "Owner",
       "placeholder": "Enter owner",
       "referencedFieldName": "name"
@@ -251,6 +252,7 @@
       "isForeignKey": true,
       "referencedTable": "breed",
       "referencedFieldID": "id",
+      "dataSource": "collection",
       "displayName": "Breed",
       "placeholder": "Enter breed",
       "referencedFieldName": "name"
@@ -277,6 +279,7 @@
       "isForeignKey": true,
       "referencedTable": "contact",
       "referencedFieldID": "id",
+      "dataSource": "collection",
       "displayName": "Breeder",
       "placeholder": "Enter breeder",
       "referencedFieldName": "name"
@@ -481,6 +484,7 @@
       "isForeignKey": true,
       "referencedTable": "litter",
       "referencedFieldID": "id",
+      "dataSource": "collection",
       "displayName": "Litter",
       "placeholder": "Enter litter",
       "referencedFieldName": "name"
@@ -1035,6 +1039,7 @@
       "isForeignKey": true,
       "referencedTable": "cover",
       "referencedFieldID": "id",
+      "dataSource": "collection",
       "displayName": "Cover",
       "placeholder": "Enter cover",
       "referencedFieldName": "name"
@@ -1273,6 +1278,6 @@
     "totalFields": 51,
     "systemFields": 5,
     "customFields": 46,
-    "generatedAt": "2025-10-05T16:20:09.123Z"
+    "generatedAt": "2025-10-06T11:26:20.843Z"
   }
 }

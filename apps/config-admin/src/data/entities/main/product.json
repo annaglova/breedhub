@@ -234,6 +234,7 @@
       "isForeignKey": true,
       "referencedTable": "contact",
       "referencedFieldID": "id",
+      "dataSource": "collection",
       "displayName": "Owner",
       "placeholder": "Enter owner",
       "referencedFieldName": "name"
@@ -621,6 +622,6 @@
     "totalFields": 25,
     "systemFields": 5,
     "customFields": 20,
-    "generatedAt": "2025-10-05T16:19:17.867Z"
+    "generatedAt": "2025-10-06T11:25:30.255Z"
   }
 }

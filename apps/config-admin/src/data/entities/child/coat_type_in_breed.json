@@ -27,6 +27,7 @@
       "isForeignKey": true,
       "referencedTable": "breed",
       "referencedFieldID": "id",
+      "dataSource": "collection",
       "displayName": "Breed",
       "placeholder": "Enter breed",
       "referencedFieldName": "name"
@@ -163,6 +164,6 @@
     "totalFields": 7,
     "systemFields": 5,
     "customFields": 2,
-    "generatedAt": "2025-10-05T16:19:52.279Z"
+    "generatedAt": "2025-10-06T11:26:04.446Z"
   }
 }

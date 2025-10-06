@@ -53,6 +53,7 @@
       "isForeignKey": true,
       "referencedTable": "event",
       "referencedFieldID": "id",
+      "dataSource": "collection",
       "displayName": "Event",
       "placeholder": "Enter event",
       "referencedFieldName": "name"
@@ -190,6 +191,6 @@
     "totalFields": 8,
     "systemFields": 5,
     "customFields": 3,
-    "generatedAt": "2025-10-05T16:20:04.424Z"
+    "generatedAt": "2025-10-06T11:26:16.280Z"
   }
 }

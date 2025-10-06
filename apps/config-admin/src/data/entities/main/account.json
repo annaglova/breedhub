@@ -81,6 +81,7 @@
       "isForeignKey": true,
       "referencedTable": "contact",
       "referencedFieldID": "id",
+      "dataSource": "collection",
       "displayName": "Owner",
       "placeholder": "Enter owner",
       "referencedFieldName": "name"
@@ -133,6 +134,7 @@
       "isForeignKey": true,
       "referencedTable": "contact",
       "referencedFieldID": "id",
+      "dataSource": "collection",
       "displayName": "Primary Contact",
       "placeholder": "Enter primary contact",
       "referencedFieldName": "name"
@@ -159,6 +161,7 @@
       "isForeignKey": true,
       "referencedTable": "account",
       "referencedFieldID": "id",
+      "dataSource": "collection",
       "displayName": "Parent",
       "placeholder": "Enter parent",
       "referencedFieldName": "name"
@@ -811,6 +814,7 @@
       "isForeignKey": true,
       "referencedTable": "account",
       "referencedFieldID": "id",
+      "dataSource": "collection",
       "displayName": "Federation",
       "placeholder": "Enter federation",
       "referencedFieldName": "name"
@@ -1140,6 +1144,7 @@
       "isForeignKey": true,
       "referencedTable": "cover",
       "referencedFieldID": "id",
+      "dataSource": "collection",
       "displayName": "Cover",
       "placeholder": "Enter cover",
       "referencedFieldName": "name"
@@ -1272,6 +1277,6 @@
     "totalFields": 50,
     "systemFields": 5,
     "customFields": 45,
-    "generatedAt": "2025-10-05T16:19:08.500Z"
+    "generatedAt": "2025-10-06T11:25:20.580Z"
   }
 }

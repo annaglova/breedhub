@@ -81,6 +81,7 @@
       "isForeignKey": true,
       "referencedTable": "account",
       "referencedFieldID": "id",
+      "dataSource": "collection",
       "displayName": "Account",
       "placeholder": "Enter account",
       "referencedFieldName": "name"
@@ -270,6 +271,6 @@
     "totalFields": 11,
     "systemFields": 5,
     "customFields": 6,
-    "generatedAt": "2025-10-05T16:19:49.361Z"
+    "generatedAt": "2025-10-06T11:26:01.663Z"
   }
 }

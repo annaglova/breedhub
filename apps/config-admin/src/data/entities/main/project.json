@@ -77,6 +77,7 @@
       "isForeignKey": true,
       "referencedTable": "account",
       "referencedFieldID": "id",
+      "dataSource": "collection",
       "displayName": "Account",
       "placeholder": "Enter account",
       "referencedFieldName": "name"
@@ -103,6 +104,7 @@
       "isForeignKey": true,
       "referencedTable": "contact",
       "referencedFieldID": "id",
+      "dataSource": "collection",
       "displayName": "Contact",
       "placeholder": "Enter contact",
       "referencedFieldName": "name"
@@ -181,6 +183,7 @@
       "isForeignKey": true,
       "referencedTable": "contact",
       "referencedFieldID": "id",
+      "dataSource": "collection",
       "displayName": "Owner",
       "placeholder": "Enter owner",
       "referencedFieldName": "name"
@@ -327,6 +330,7 @@
       "isForeignKey": true,
       "referencedTable": "account",
       "referencedFieldID": "id",
+      "dataSource": "collection",
       "displayName": "Supplier",
       "placeholder": "Enter supplier",
       "referencedFieldName": "name"
@@ -353,6 +357,7 @@
       "isForeignKey": true,
       "referencedTable": "project",
       "referencedFieldID": "id",
+      "dataSource": "collection",
       "displayName": "Parent Project",
       "placeholder": "Enter parent project",
       "referencedFieldName": "name"
@@ -958,6 +963,7 @@
       "isForeignKey": true,
       "referencedTable": "event",
       "referencedFieldID": "id",
+      "dataSource": "collection",
       "displayName": "Event",
       "placeholder": "Enter event",
       "referencedFieldName": "name"
@@ -1010,6 +1016,7 @@
       "isForeignKey": true,
       "referencedTable": "breed",
       "referencedFieldID": "id",
+      "dataSource": "collection",
       "displayName": "Breed",
       "placeholder": "Enter breed",
       "referencedFieldName": "name"
@@ -1091,6 +1098,7 @@
       "isForeignKey": true,
       "referencedTable": "cover",
       "referencedFieldID": "id",
+      "dataSource": "collection",
       "displayName": "Cover",
       "placeholder": "Enter cover",
       "referencedFieldName": "name"
@@ -1201,6 +1209,6 @@
     "totalFields": 50,
     "systemFields": 5,
     "customFields": 45,
-    "generatedAt": "2025-10-05T16:19:12.787Z"
+    "generatedAt": "2025-10-06T11:25:25.006Z"
   }
 }

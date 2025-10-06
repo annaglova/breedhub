@@ -185,6 +185,12 @@ function generateBaseFields(fieldMap, threshold = 0.03) { // Lowered to 3% (~8+ 
           baseField.commonProps.referencedTable = referencedTable;
           baseField.commonProps.referencedFieldID = 'id';
           baseField.commonProps.referencedFieldName = 'name';
+
+          // Add dataSource for main entities
+          if (entityCategories.main.includes(referencedTable)) {
+            baseField.commonProps.dataSource = 'collection';
+          }
+          // For dictionaries - don't add dataSource (default behavior)
         }
       }
       

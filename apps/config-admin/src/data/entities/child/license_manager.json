@@ -54,6 +54,7 @@
       "isForeignKey": true,
       "referencedTable": "contact",
       "referencedFieldID": "id",
+      "dataSource": "collection",
       "displayName": "Contact",
       "placeholder": "Enter contact",
       "referencedFieldName": "name"
@@ -80,6 +81,7 @@
       "isForeignKey": true,
       "referencedTable": "product",
       "referencedFieldID": "id",
+      "dataSource": "collection",
       "displayName": "Product",
       "placeholder": "Enter product",
       "referencedFieldName": "name"
@@ -176,6 +178,7 @@
       "isForeignKey": true,
       "referencedTable": "contact",
       "referencedFieldID": "id",
+      "dataSource": "collection",
       "displayName": "Owner",
       "placeholder": "Enter owner",
       "referencedFieldName": "name"
@@ -202,6 +205,7 @@
       "isForeignKey": true,
       "referencedTable": "invoice",
       "referencedFieldID": "id",
+      "dataSource": "collection",
       "displayName": "Invoice",
       "placeholder": "Enter invoice",
       "referencedFieldName": "number"
@@ -364,6 +368,6 @@
     "totalFields": 15,
     "systemFields": 5,
     "customFields": 10,
-    "generatedAt": "2025-10-05T16:20:03.874Z"
+    "generatedAt": "2025-10-06T11:26:15.745Z"
   }
 }

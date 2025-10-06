@@ -77,6 +77,7 @@
       "isForeignKey": true,
       "referencedTable": "account",
       "referencedFieldID": "id",
+      "dataSource": "collection",
       "displayName": "Provider",
       "placeholder": "Enter provider",
       "referencedFieldName": "name"
@@ -103,6 +104,7 @@
       "isForeignKey": true,
       "referencedTable": "competition",
       "referencedFieldID": "id",
+      "dataSource": "collection",
       "displayName": "Parent",
       "placeholder": "Enter parent",
       "referencedFieldName": "name"
@@ -155,6 +157,7 @@
       "isForeignKey": true,
       "referencedTable": "competition",
       "referencedFieldID": "id",
+      "dataSource": "collection",
       "displayName": "Template",
       "placeholder": "Enter template",
       "referencedFieldName": "name"
@@ -329,6 +332,7 @@
       "isForeignKey": true,
       "referencedTable": "breed",
       "referencedFieldID": "id",
+      "dataSource": "collection",
       "displayName": "Breed",
       "placeholder": "Enter breed",
       "referencedFieldName": "name"
@@ -439,6 +443,6 @@
     "totalFields": 18,
     "systemFields": 5,
     "customFields": 13,
-    "generatedAt": "2025-10-05T16:19:11.790Z"
+    "generatedAt": "2025-10-06T11:25:23.836Z"
   }
 }

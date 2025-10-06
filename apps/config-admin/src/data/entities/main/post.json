@@ -154,6 +154,7 @@
       "isForeignKey": true,
       "referencedTable": "post",
       "referencedFieldID": "id",
+      "dataSource": "collection",
       "displayName": "Master Post",
       "placeholder": "Enter master post",
       "referencedFieldName": "name"
@@ -279,6 +280,7 @@
       "isForeignKey": true,
       "referencedTable": "event",
       "referencedFieldID": "id",
+      "dataSource": "collection",
       "displayName": "Event",
       "placeholder": "Enter event",
       "referencedFieldName": "name"
@@ -397,6 +399,7 @@
       "isForeignKey": true,
       "referencedTable": "cover",
       "referencedFieldID": "id",
+      "dataSource": "collection",
       "displayName": "Cover",
       "placeholder": "Enter cover",
       "referencedFieldName": "name"
@@ -507,6 +510,6 @@
     "totalFields": 21,
     "systemFields": 5,
     "customFields": 16,
-    "generatedAt": "2025-10-05T16:19:24.049Z"
+    "generatedAt": "2025-10-06T11:25:36.605Z"
   }
 }
