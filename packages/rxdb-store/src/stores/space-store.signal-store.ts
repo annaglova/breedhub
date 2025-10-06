@@ -488,14 +488,14 @@ class SpaceStore {
   }
 
   /**
-   * Get sort options from view config's sort_fields
-   * Parses sort configuration and returns flattened list of sort options
+   * Get sort options from space config's sort_fields
+   * Sort options are defined at space level and shared across all views
    *
    * @param entityType - Entity type (e.g., 'breed', 'animal')
-   * @param viewType - View type (e.g., 'list', 'grid')
+   * @param viewType - Deprecated parameter, kept for backward compatibility
    * @returns Array of sort options with id, name, icon, direction, parameter
    */
-  getSortOptions(entityType: string, viewType: string): Array<{
+  getSortOptions(entityType: string, viewType?: string): Array<{
     id: string;
     name: string;
     icon?: string;
@@ -522,25 +522,11 @@ class SpaceStore {
       return [];
     }
 
-    // Try to find view config by viewType inside views object
-    if (!spaceConfig.views) {
-      console.warn(`[SpaceStore] No views config found for ${entityType}`);
-      return [];
-    }
-
-    let viewConfig: any = null;
-    for (const [viewKey, config] of Object.entries(spaceConfig.views)) {
-      if ((config as any).viewType === viewType) {
-        viewConfig = config;
-        break;
-      }
-    }
-
-    // Read from viewConfig.data.sort_fields (merged data)
-    const sortFields = viewConfig.data?.sort_fields || viewConfig.sort_fields;
+    // Read sort_fields directly from space config (not from view)
+    const sortFields = spaceConfig.sort_fields;
 
     if (!sortFields) {
-      console.warn(`[SpaceStore] No sort_fields found for ${entityType}/${viewType}`);
+      console.warn(`[SpaceStore] No sort_fields found for ${entityType}`);
       return [];
     }
 
@@ -603,7 +589,15 @@ class SpaceStore {
     return sortOptions.map(({ fieldOrder, optionOrder, ...rest }) => rest);
   }
 
-  getFilterFields(entityType: string, viewType: string): Array<{
+  /**
+   * Get filter fields from space config's filter_fields
+   * Filter fields are defined at space level and shared across all views
+   *
+   * @param entityType - Entity type (e.g., 'breed', 'animal')
+   * @param viewType - Deprecated parameter, kept for backward compatibility
+   * @returns Array of filter field configurations
+   */
+  getFilterFields(entityType: string, viewType?: string): Array<{
     id: string;
     displayName: string;
     component: string;
@@ -634,30 +628,11 @@ class SpaceStore {
       return [];
     }
 
-    // Try to find view config by viewType inside views object
-    if (!spaceConfig.views) {
-      console.warn(`[SpaceStore] No views config found for ${entityType}`);
-      return [];
-    }
-
-    let viewConfig: any = null;
-    for (const [viewKey, config] of Object.entries(spaceConfig.views)) {
-      if ((config as any).viewType === viewType) {
-        viewConfig = config;
-        break;
-      }
-    }
-
-    if (!viewConfig) {
-      console.warn(`[SpaceStore] No view config found for ${entityType}/${viewType}`);
-      return [];
-    }
-
-    // Read from viewConfig.data.filter_fields (merged data)
-    const filterFields = viewConfig.data?.filter_fields || viewConfig.filter_fields;
+    // Read filter_fields directly from space config (not from view)
+    const filterFields = spaceConfig.filter_fields;
 
     if (!filterFields) {
-      console.warn(`[SpaceStore] No filter_fields found for ${entityType}/${viewType}`);
+      console.warn(`[SpaceStore] No filter_fields found for ${entityType}`);
       return [];
     }
 
