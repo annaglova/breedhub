@@ -77,6 +77,7 @@
       "isForeignKey": true,
       "referencedTable": "product",
       "referencedFieldID": "id",
+      "dataSource": "collection",
       "displayName": "Product",
       "placeholder": "Enter product",
       "referencedFieldName": "name"
@@ -477,6 +478,7 @@
       "isForeignKey": true,
       "referencedTable": "invoice",
       "referencedFieldID": "id",
+      "dataSource": "collection",
       "displayName": "Invoice",
       "placeholder": "Enter invoice",
       "referencedFieldName": "number"
@@ -610,6 +612,6 @@
     "totalFields": 26,
     "systemFields": 5,
     "customFields": 21,
-    "generatedAt": "2025-10-05T16:20:02.930Z"
+    "generatedAt": "2025-10-06T11:26:14.834Z"
   }
 }

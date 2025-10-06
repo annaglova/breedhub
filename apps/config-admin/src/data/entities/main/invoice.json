@@ -149,6 +149,7 @@
       "isForeignKey": true,
       "referencedTable": "contact",
       "referencedFieldID": "id",
+      "dataSource": "collection",
       "displayName": "Owner",
       "placeholder": "Enter owner",
       "referencedFieldName": "name"
@@ -412,6 +413,7 @@
       "isForeignKey": true,
       "referencedTable": "account",
       "referencedFieldID": "id",
+      "dataSource": "collection",
       "displayName": "Account",
       "placeholder": "Enter account",
       "referencedFieldName": "name"
@@ -438,6 +440,7 @@
       "isForeignKey": true,
       "referencedTable": "contact",
       "referencedFieldID": "id",
+      "dataSource": "collection",
       "displayName": "Contact",
       "placeholder": "Enter contact",
       "referencedFieldName": "name"
@@ -464,6 +467,7 @@
       "isForeignKey": true,
       "referencedTable": "account",
       "referencedFieldID": "id",
+      "dataSource": "collection",
       "displayName": "Supplier",
       "placeholder": "Enter supplier",
       "referencedFieldName": "name"
@@ -490,6 +494,7 @@
       "isForeignKey": true,
       "referencedTable": "project",
       "referencedFieldID": "id",
+      "dataSource": "collection",
       "displayName": "Project",
       "placeholder": "Enter project",
       "referencedFieldName": "name"
@@ -516,6 +521,7 @@
       "isForeignKey": true,
       "referencedTable": "order",
       "referencedFieldID": "id",
+      "dataSource": "collection",
       "displayName": "Order",
       "placeholder": "Enter order",
       "referencedFieldName": "number"
@@ -634,6 +640,7 @@
       "isForeignKey": true,
       "referencedTable": "breed",
       "referencedFieldID": "id",
+      "dataSource": "collection",
       "displayName": "Breed",
       "placeholder": "Enter breed",
       "referencedFieldName": "name"
@@ -767,6 +774,6 @@
     "totalFields": 32,
     "systemFields": 5,
     "customFields": 27,
-    "generatedAt": "2025-10-05T16:19:19.399Z"
+    "generatedAt": "2025-10-06T11:25:31.835Z"
   }
 }

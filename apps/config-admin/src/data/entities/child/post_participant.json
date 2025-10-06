@@ -27,6 +27,7 @@
       "isForeignKey": true,
       "referencedTable": "post",
       "referencedFieldID": "id",
+      "dataSource": "collection",
       "displayName": "Post",
       "placeholder": "Enter post",
       "referencedFieldName": "name"
@@ -295,6 +296,6 @@
     "totalFields": 12,
     "systemFields": 5,
     "customFields": 7,
-    "generatedAt": "2025-10-05T16:20:12.442Z"
+    "generatedAt": "2025-10-06T11:26:24.117Z"
   }
 }

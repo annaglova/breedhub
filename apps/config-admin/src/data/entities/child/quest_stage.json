@@ -79,6 +79,7 @@
       "isForeignKey": true,
       "referencedTable": "quest",
       "referencedFieldID": "id",
+      "dataSource": "collection",
       "displayName": "Quest",
       "placeholder": "Enter quest",
       "referencedFieldName": "name"
@@ -293,6 +294,6 @@
     "totalFields": 12,
     "systemFields": 5,
     "customFields": 7,
-    "generatedAt": "2025-10-05T16:20:14.730Z"
+    "generatedAt": "2025-10-06T11:26:26.418Z"
   }
 }

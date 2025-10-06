@@ -27,6 +27,7 @@
       "isForeignKey": true,
       "referencedTable": "product",
       "referencedFieldID": "id",
+      "dataSource": "collection",
       "displayName": "Product",
       "placeholder": "Enter product",
       "referencedFieldName": "name"
@@ -186,6 +187,6 @@
     "totalFields": 8,
     "systemFields": 5,
     "customFields": 3,
-    "generatedAt": "2025-10-05T16:20:13.409Z"
+    "generatedAt": "2025-10-06T11:26:25.088Z"
   }
 }

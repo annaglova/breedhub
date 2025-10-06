@@ -264,6 +264,13 @@ function generateFieldConfig(col, constraints, foreignKeys) {
     config.referencedTable = referencedTable;
     config.referencedFieldID = foreignKey?.ref_column || 'id';
 
+    // Add dataSource for main entities
+    const entityCategories = require('./entity-categories.json');
+    if (referencedTable && entityCategories.main.includes(referencedTable)) {
+      config.dataSource = 'collection';
+    }
+    // For dictionaries - don't add dataSource (default behavior)
+
     // We'll detect the display column later when we have all table schemas
     // For now, mark it for post-processing
     config.needsDisplayColumn = true;

@@ -81,6 +81,7 @@
       "isForeignKey": true,
       "referencedTable": "account",
       "referencedFieldID": "id",
+      "dataSource": "collection",
       "displayName": "Account",
       "placeholder": "Enter account",
       "referencedFieldName": "name"
@@ -1429,6 +1430,7 @@
       "isForeignKey": true,
       "referencedTable": "cover",
       "referencedFieldID": "id",
+      "dataSource": "collection",
       "displayName": "Cover",
       "placeholder": "Enter cover",
       "referencedFieldName": "name"
@@ -1561,6 +1563,6 @@
     "totalFields": 60,
     "systemFields": 5,
     "customFields": 55,
-    "generatedAt": "2025-10-05T16:19:07.084Z"
+    "generatedAt": "2025-10-06T11:25:19.042Z"
   }
 }

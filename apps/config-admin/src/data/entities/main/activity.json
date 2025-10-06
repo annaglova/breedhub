@@ -197,6 +197,7 @@
       "isForeignKey": true,
       "referencedTable": "contact",
       "referencedFieldID": "id",
+      "dataSource": "collection",
       "displayName": "Owner",
       "placeholder": "Enter owner",
       "referencedFieldName": "name"
@@ -444,6 +445,7 @@
       "isForeignKey": true,
       "referencedTable": "account",
       "referencedFieldID": "id",
+      "dataSource": "collection",
       "displayName": "Account",
       "placeholder": "Enter account",
       "referencedFieldName": "name"
@@ -470,6 +472,7 @@
       "isForeignKey": true,
       "referencedTable": "contact",
       "referencedFieldID": "id",
+      "dataSource": "collection",
       "displayName": "Contact",
       "placeholder": "Enter contact",
       "referencedFieldName": "name"
@@ -944,6 +947,7 @@
       "isForeignKey": true,
       "referencedTable": "activity",
       "referencedFieldID": "id",
+      "dataSource": "collection",
       "displayName": "Activity Connection",
       "placeholder": "Enter activity connection",
       "referencedFieldName": "title"
@@ -1250,6 +1254,7 @@
       "isForeignKey": true,
       "referencedTable": "invoice",
       "referencedFieldID": "id",
+      "dataSource": "collection",
       "displayName": "Invoice",
       "placeholder": "Enter invoice",
       "referencedFieldName": "number"
@@ -1276,6 +1281,7 @@
       "isForeignKey": true,
       "referencedTable": "event",
       "referencedFieldID": "id",
+      "dataSource": "collection",
       "displayName": "Event",
       "placeholder": "Enter event",
       "referencedFieldName": "name"
@@ -1328,6 +1334,7 @@
       "isForeignKey": true,
       "referencedTable": "order",
       "referencedFieldID": "id",
+      "dataSource": "collection",
       "displayName": "Order",
       "placeholder": "Enter order",
       "referencedFieldName": "number"
@@ -1354,6 +1361,7 @@
       "isForeignKey": true,
       "referencedTable": "project",
       "referencedFieldID": "id",
+      "dataSource": "collection",
       "displayName": "Project",
       "placeholder": "Enter project",
       "referencedFieldName": "name"
@@ -1403,6 +1411,7 @@
       "isForeignKey": true,
       "referencedTable": "litter",
       "referencedFieldID": "id",
+      "dataSource": "collection",
       "displayName": "Litter",
       "placeholder": "Enter litter",
       "referencedFieldName": "name"
@@ -1552,6 +1561,7 @@
       "isForeignKey": true,
       "referencedTable": "competition",
       "referencedFieldID": "id",
+      "dataSource": "collection",
       "displayName": "Competition",
       "placeholder": "Enter competition",
       "referencedFieldName": "name"
@@ -1740,6 +1750,6 @@
     "totalFields": 70,
     "systemFields": 5,
     "customFields": 65,
-    "generatedAt": "2025-10-05T16:19:15.844Z"
+    "generatedAt": "2025-10-06T11:25:28.185Z"
   }
 }

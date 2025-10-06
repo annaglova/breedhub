@@ -27,6 +27,7 @@
       "isForeignKey": true,
       "referencedTable": "contact",
       "referencedFieldID": "id",
+      "dataSource": "collection",
       "displayName": "Contact",
       "placeholder": "Enter contact",
       "referencedFieldName": "name"
@@ -164,6 +165,6 @@
     "totalFields": 7,
     "systemFields": 5,
     "customFields": 2,
-    "generatedAt": "2025-10-05T16:19:47.161Z"
+    "generatedAt": "2025-10-06T11:25:59.563Z"
   }
 }

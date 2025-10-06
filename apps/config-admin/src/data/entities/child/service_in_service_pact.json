@@ -53,6 +53,7 @@
       "isForeignKey": true,
       "referencedTable": "service_pact",
       "referencedFieldID": "id",
+      "dataSource": "collection",
       "displayName": "Service Pact",
       "placeholder": "Enter service pact",
       "referencedFieldName": "name"
@@ -376,6 +377,6 @@
     "totalFields": 15,
     "systemFields": 5,
     "customFields": 10,
-    "generatedAt": "2025-10-05T16:20:17.375Z"
+    "generatedAt": "2025-10-06T11:26:29.086Z"
   }
 }

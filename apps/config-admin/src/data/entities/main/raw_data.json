@@ -311,6 +311,7 @@
       "isForeignKey": true,
       "referencedTable": "contact",
       "referencedFieldID": "id",
+      "dataSource": "collection",
       "displayName": "Contact",
       "placeholder": "Enter contact",
       "referencedFieldName": "name"
@@ -337,6 +338,7 @@
       "isForeignKey": true,
       "referencedTable": "account",
       "referencedFieldID": "id",
+      "dataSource": "collection",
       "displayName": "Account",
       "placeholder": "Enter account",
       "referencedFieldName": "name"
@@ -363,6 +365,7 @@
       "isForeignKey": true,
       "referencedTable": "breed",
       "referencedFieldID": "id",
+      "dataSource": "collection",
       "displayName": "Breed",
       "placeholder": "Enter breed",
       "referencedFieldName": "name"
@@ -389,6 +392,7 @@
       "isForeignKey": true,
       "referencedTable": "event",
       "referencedFieldID": "id",
+      "dataSource": "collection",
       "displayName": "Event",
       "placeholder": "Enter event",
       "referencedFieldName": "name"
@@ -415,6 +419,7 @@
       "isForeignKey": true,
       "referencedTable": "project",
       "referencedFieldID": "id",
+      "dataSource": "collection",
       "displayName": "Project",
       "placeholder": "Enter project",
       "referencedFieldName": "name"
@@ -441,6 +446,7 @@
       "isForeignKey": true,
       "referencedTable": "pet",
       "referencedFieldID": "id",
+      "dataSource": "collection",
       "displayName": "Pet",
       "placeholder": "Enter pet",
       "referencedFieldName": "name"
@@ -551,6 +557,6 @@
     "totalFields": 22,
     "systemFields": 5,
     "customFields": 17,
-    "generatedAt": "2025-10-05T16:19:16.233Z"
+    "generatedAt": "2025-10-06T11:25:28.578Z"
   }
 }

@@ -27,6 +27,7 @@
       "isForeignKey": true,
       "referencedTable": "project",
       "referencedFieldID": "id",
+      "dataSource": "collection",
       "displayName": "Project",
       "placeholder": "Enter project",
       "referencedFieldName": "name"
@@ -326,6 +327,7 @@
       "isForeignKey": true,
       "referencedTable": "invoice",
       "referencedFieldID": "id",
+      "dataSource": "collection",
       "displayName": "Invoice",
       "placeholder": "Enter invoice",
       "referencedFieldName": "number"
@@ -514,6 +516,6 @@
     "totalFields": 21,
     "systemFields": 5,
     "customFields": 16,
-    "generatedAt": "2025-10-05T16:19:20.308Z"
+    "generatedAt": "2025-10-06T11:25:32.784Z"
   }
 }

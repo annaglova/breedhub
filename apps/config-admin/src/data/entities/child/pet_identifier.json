@@ -80,6 +80,7 @@
       "isForeignKey": true,
       "referencedTable": "pet",
       "referencedFieldID": "id",
+      "dataSource": "collection",
       "displayName": "Pet",
       "placeholder": "Enter pet",
       "referencedFieldName": "name"
@@ -338,6 +339,6 @@
     "totalFields": 14,
     "systemFields": 5,
     "customFields": 9,
-    "generatedAt": "2025-10-05T16:20:06.798Z"
+    "generatedAt": "2025-10-06T11:26:18.561Z"
   }
 }
