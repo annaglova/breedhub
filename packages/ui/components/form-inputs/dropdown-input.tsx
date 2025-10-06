@@ -16,7 +16,7 @@ interface DropdownInputProps extends Omit<React.InputHTMLAttributes<HTMLInputEle
   helperText?: string;
   required?: boolean;
   placeholder?: string;
-  options: DropdownOption[];
+  options?: DropdownOption[];
   value?: string;
   onValueChange?: (value: string) => void;
   disabled?: boolean;
@@ -25,13 +25,13 @@ interface DropdownInputProps extends Omit<React.InputHTMLAttributes<HTMLInputEle
 }
 
 export const DropdownInput = forwardRef<HTMLInputElement, DropdownInputProps>(
-  ({ 
-    label, 
+  ({
+    label,
     error,
-    helperText, 
-    required, 
+    helperText,
+    required,
     placeholder = "Select an option",
-    options,
+    options = [],
     value,
     onValueChange,
     disabled,
@@ -44,7 +44,7 @@ export const DropdownInput = forwardRef<HTMLInputElement, DropdownInputProps>(
     const inputRef = useRef<HTMLInputElement>(null);
 
     // Find selected option
-    const selectedOption = options.find(opt => opt.value === value);
+    const selectedOption = options?.find(opt => opt.value === value);
 
     // Handle clicks outside
     useEffect(() => {
@@ -103,7 +103,7 @@ export const DropdownInput = forwardRef<HTMLInputElement, DropdownInputProps>(
 
         {isOpen && (
           <div className="absolute z-50 mt-1 w-full bg-white border border-gray-200 rounded-md shadow-lg max-h-[40vh] overflow-auto">
-            {options.length === 0 ? (
+            {!options || options.length === 0 ? (
               <div className="px-3 py-2 text-gray-500 text-center">
                 No options available
               </div>

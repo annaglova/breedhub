@@ -45,6 +45,7 @@ export interface FilterFieldConfig {
   value?: any;
   validation?: any;
   order: number;
+  options?: Array<{ value: string; label: string; disabled?: boolean }>;
 }
 
 interface FiltersDialogProps {
@@ -121,6 +122,7 @@ export function FiltersDialog({
                       placeholder={field.placeholder}
                       required={field.required}
                       id={field.id}
+                      options={field.options || []}
                     />
                   </div>
                 );
