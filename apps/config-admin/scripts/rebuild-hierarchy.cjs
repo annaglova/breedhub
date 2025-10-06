@@ -397,7 +397,7 @@ async function rebuildWorkspaceConfig(workspaceId) {
 }
 
 /**
- * Rebuild app config from its workspaces
+ * Rebuild app config from its workspaces and user_config
  */
 async function rebuildAppConfig(appId) {
   try {
@@ -407,41 +407,53 @@ async function rebuildAppConfig(appId) {
       .select('*')
       .eq('id', appId)
       .single();
-    
+
     if (fetchError || !appConfig) return false;
-    
-    // App depends on workspaces - get them from app's deps
-    const workspaceIds = appConfig.deps || [];
-    
-    // Get all workspaces that this app depends on
-    const { data: workspaces, error: workspacesError } = await supabase
+
+    // App depends on workspaces and user_config - get them from app's deps
+    const allDeps = appConfig.deps || [];
+
+    // Get all children with their types
+    const { data: allChildren, error: childrenError } = await supabase
       .from('app_config')
-      .select('id, data')
-      .in('id', workspaceIds);
-    
-    if (workspacesError) return false;
-    
+      .select('id, type, data')
+      .in('id', allDeps);
+
+    if (childrenError) return false;
+
     // Build app structure
     const appStructure = {};
-    
-    // Add ALL workspaces - even empty ones should be included as {}
+
+    // Separate by type
+    const workspaces = allChildren.filter(c => c.type === 'workspace');
+    const userConfigs = allChildren.filter(c => c.type === 'user_config');
+
+    // Add workspaces to 'workspaces' container
     if (workspaces && workspaces.length > 0) {
       const workspacesData = {};
       for (const workspace of workspaces) {
         // Always include workspace in structure
         // If it has data, use it; otherwise use empty object
-        workspacesData[workspace.id] = (workspace.data && Object.keys(workspace.data).length > 0) 
-          ? workspace.data 
+        workspacesData[workspace.id] = (workspace.data && Object.keys(workspace.data).length > 0)
+          ? workspace.data
           : {};
       }
       if (Object.keys(workspacesData).length > 0) {
         appStructure.workspaces = workspacesData;
       }
     }
-    
+
+    // Add user_config directly to root (not in a container)
+    // Each user_config is added with its id as key
+    for (const userConfig of userConfigs) {
+      appStructure[userConfig.id] = (userConfig.data && Object.keys(userConfig.data).length > 0)
+        ? userConfig.data
+        : {};
+    }
+
     const newSelfData = appStructure;
     const newData = { ...newSelfData, ...(appConfig.override_data || {}) };
-    
+
     // Update the app
     const { error: updateError } = await supabase
       .from('app_config')
@@ -451,7 +463,7 @@ async function rebuildAppConfig(appId) {
         updated_at: new Date().toISOString()
       })
       .eq('id', appId);
-    
+
     return !updateError;
   } catch (error) {
     console.error(`Error rebuilding app ${appId}:`, error);
