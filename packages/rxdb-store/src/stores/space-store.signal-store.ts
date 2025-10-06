@@ -190,8 +190,14 @@ class SpaceStore {
   
   /**
    * Collect all unique fields from all levels of space config
-   * Fields can be in: space.fields, pages, views, tabs
+   *
+   * Fields can be found in:
+   * - space.sort_fields (space level - shared across all views)
+   * - space.filter_fields (space level - shared across all views)
+   * - space.fields, pages.fields, views.fields, tabs.fields
+   *
    * According to config-types.ts:
+   * - space can have sort_fields, filter_fields
    * - view can have fields
    * - page can have fields and tabs
    * - tab can have fields
@@ -229,7 +235,8 @@ class SpaceStore {
       });
     };
 
-    // Soft recursive search for 'fields', 'sort_fields', and 'filter_fields' properties
+    // Recursive search for 'fields', 'sort_fields', and 'filter_fields' properties
+    // sort_fields and filter_fields are now at space level (not view level)
     const recursiveFieldSearch = (obj: any, visited: Set<any> = new Set()) => {
       // Avoid circular references
       if (!obj || typeof obj !== 'object' || visited.has(obj)) return;
