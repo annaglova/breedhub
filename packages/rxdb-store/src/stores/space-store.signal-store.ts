@@ -549,8 +549,7 @@ class SpaceStore {
     }> = [];
 
     // Debug log
-    console.log('[SpaceStore] Parsing sort_fields:', sortFields);
-    console.log('[SpaceStore] viewConfig:', viewConfig);
+    console.log('[SpaceStore] Parsing sort_fields from space config:', sortFields);
 
     for (const [fieldId, fieldConfig] of Object.entries(sortFields)) {
       const field = fieldConfig as any;
