@@ -46,8 +46,9 @@ Each field with foreign key has **optional** `dataSource` property:
 | dataSource | Behavior | Use Case | Example Tables |
 |------------|----------|----------|----------------|
 | `"collection"` | Use existing RxDB collection | Main entities | breed, pet, account, contact |
-| `"dictionary"` or **not specified** | Use DictionaryStore (cache) | Standard dictionaries | pet_type, country, currency |
-| `"server-search"` | Server-side search, no cache | Large dictionaries (10000+ records) | city, region, geo_names |
+| **not specified** | Use DictionaryStore (cache) | Dictionaries | pet_type, country, currency |
+
+**Note:** `"server-search"` support will be added later when implementing edit forms.
 
 ### 1.3 Component Behavior
 
@@ -56,7 +57,9 @@ Each field with foreign key has **optional** `dataSource` property:
 | **DropdownInput** | `"dictionary"` | Small dictionaries (< 1000 records) |
 | **LookupInput** | `"collection"` | Main entities with search |
 
-**Rule:** If `dataSource` is not specified → use `"dictionary"` (DictionaryStore).
+**Rule:**
+- If `dataSource: "collection"` → use existing RxDB collection (for main entities only)
+- If `dataSource` is **not specified** → use DictionaryStore (default for all dictionaries)
 
 ---
 
@@ -517,7 +520,7 @@ import { useEffect, useState } from 'react';
 
 interface LookupInputProps {
   referencedTable: string;
-  dataSource?: 'collection' | 'dictionary' | 'server-search';
+  dataSource?: 'collection'; // Only 'collection' for now
   value?: string;
   onValueChange?: (value: string) => void;
   // ... other props
@@ -526,7 +529,7 @@ interface LookupInputProps {
 export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
   ({
     referencedTable,
-    dataSource = 'collection', // Default for LookupInput
+    dataSource, // If specified → use collection, otherwise → use DictionaryStore
     value,
     onValueChange,
     ...props
@@ -541,53 +544,36 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
       try {
         let records = [];
 
-        // Strategy based on dataSource
-        switch (dataSource) {
-          case 'collection': {
-            // Use existing RxDB collection (breed, pet, account, etc.)
-            const db = await getDatabase();
-            const collection = db[referencedTable];
+        if (dataSource === 'collection') {
+          // Use existing RxDB collection (breed, pet, account, etc.)
+          const db = await getDatabase();
+          const collection = db[referencedTable];
 
-            if (!collection) {
-              throw new Error(`Collection ${referencedTable} not found`);
-            }
-
-            // Query collection with search
-            const docs = await collection
-              .find({
-                selector: query ? {
-                  name: { $regex: new RegExp(query, 'i') }
-                } : {}
-              })
-              .limit(30)
-              .exec();
-
-            records = docs.map(doc => ({
-              id: doc.id,
-              name: doc.name
-            }));
-            break;
+          if (!collection) {
+            throw new Error(`Collection ${referencedTable} not found`);
           }
 
-          case 'dictionary': {
-            // Use DictionaryStore cache
-            const result = await dictionaryStore.getDictionary(referencedTable, {
-              search: query,
-              limit: 30
-            });
-            records = result.records;
-            break;
-          }
+          // Query collection with search
+          const docs = await collection
+            .find({
+              selector: query ? {
+                name: { $regex: new RegExp(query, 'i') }
+              } : {}
+            })
+            .limit(30)
+            .exec();
 
-          case 'server-search': {
-            // Server-side search for large dictionaries
-            const response = await fetch(
-              `/api/dictionaries/${referencedTable}/search?q=${query}&limit=30`
-            );
-            const data = await response.json();
-            records = data.records;
-            break;
-          }
+          records = docs.map(doc => ({
+            id: doc.id,
+            name: doc.name
+          }));
+        } else {
+          // Default: Use DictionaryStore cache
+          const result = await dictionaryStore.getDictionary(referencedTable, {
+            search: query,
+            limit: 30
+          });
+          records = result.records;
         }
 
         // Transform to options
@@ -757,21 +743,18 @@ Response:
 
 ### Phase 2: Integration (Week 2)
 - [ ] Integrate DictionaryStore with AppStore initialization
-- [ ] Implement Tier 1 preloading
 - [ ] Update DropdownInput to use DictionaryStore
 - [ ] Test with pet_type, country, currency
 
 ### Phase 3: Optimization (Week 3)
-- [ ] Implement Tier 2 background loading
-- [ ] Implement Tier 3 lazy loading
 - [ ] Add scroll pagination
 - [ ] Implement search functionality
+- [ ] Implement TTL cleanup
 
 ### Phase 4: Finalization (Week 4)
-- [ ] Handle 63 unknown tables
-- [ ] Implement TTL cleanup
 - [ ] Performance testing
 - [ ] Documentation
+- [ ] Server-search support (for edit forms, later)
 
 ---
 
@@ -864,16 +847,7 @@ UI is ready immediately.
    }
    ```
 
-4. **Optional: Large dictionaries** can use `dataSource: "server-search"`:
-   ```json
-   {
-     "name": "city_id",
-     "component": "LookupInput",
-     "isForeignKey": true,
-     "referencedTable": "city",
-     "dataSource": "server-search"  // Large dictionary, server-side only
-   }
-   ```
+**Note:** Support for large dictionaries with `dataSource: "server-search"` will be added later during edit forms implementation.
 
 ### 9.2 Automatic `dataSource` Generation
 
@@ -968,6 +942,8 @@ pnpm build  # Rebuild merged config
 
 4. ✅ **20-30 records per page** with scroll pagination
 
-5. ✅ **No preloading, no tiers, no complexity**
+5. ✅ **No preloading, no complexity** - load only when user needs it
+
+6. ⏳ **Server-search for large dictionaries** - deferred until edit forms implementation
 
 **The strategy is config-driven and interaction-driven.**
