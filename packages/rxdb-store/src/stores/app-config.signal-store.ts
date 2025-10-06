@@ -84,12 +84,12 @@ const childContainerMapping: Record<string, Record<string, string | null>> = {
   'space': {
     'view': 'views',
     'page': 'pages',
+    'sort': 'sort_fields',
+    'filter': 'filter_fields',
     'property': null
   },
   'view': {
     'fields': 'fields',
-    'sort': 'sort_fields',
-    'filter': 'filter_fields',
     'property': null
   },
   'fields': {
@@ -737,8 +737,8 @@ class AppConfigStore {
     const childTypes: { [key: string]: string[] } = {
       app: ["workspace"],
       workspace: ["space"],
-      space: ["view", "page"],
-      view: ["sort", "fields", "filter"],
+      space: ["view", "page", "sort", "filter"],
+      view: ["fields"],
       page: ["fields", "tab"],
       tab: ["fields"],
     };
@@ -1076,8 +1076,8 @@ class AppConfigStore {
     const childTypeMapping: Record<string, string[]> = {
       app: ["workspace", "user_config"],
       workspace: ["space"],
-      space: ["view", "page"],
-      view: ["fields", "sort", "filter"],
+      space: ["view", "page", "sort", "filter"],
+      view: ["fields"],
       page: ["fields", "tab"],
       tab: ["fields"],
       user_config: ["user_menu_config"],
@@ -1085,7 +1085,7 @@ class AppConfigStore {
       user_menu_section: ["user_menu_item"],
       user_menu_item: [],
     };
-    
+
     return childTypeMapping[parentType] || [];
   }
 
