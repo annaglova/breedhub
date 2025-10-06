@@ -2,13 +2,11 @@
   /* App-specific theme variables that override base theme */
 
   :root {
-    /* Light theme (default) */
+    /* Light theme (default) - App-specific overrides */
     --surface-ground: 255 255 255; /* white */
     --hover-surface-ground: 249 250 251; /* gray 50 */
     --card-ground: 255, 255, 255; /* white */
     --even-card-ground: 249 250 251; /* gray 50 */
-    --hover-card-ground: 241 245 249; /* slate 100 */
-    --focus-card-ground: 237 231 246; /* primary 50 */
     --footer-ground: 249, 250, 251; /* gray 50 */
     --header-ground: 255 255 255; /* white */
     --hover-header-ground: 243 244 246; /* gray 100 */
