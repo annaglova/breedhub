@@ -1,6 +1,30 @@
 /**
+ * Deep merge two objects - merges nested objects instead of replacing them
+ */
+function deepMerge(target, source) {
+  const result = { ...target };
+
+  for (const key in source) {
+    if (source[key] && typeof source[key] === 'object' && !Array.isArray(source[key])) {
+      // If both target and source have this key as objects, merge them recursively
+      if (target[key] && typeof target[key] === 'object' && !Array.isArray(target[key])) {
+        result[key] = deepMerge(target[key], source[key]);
+      } else {
+        // Otherwise, use source value
+        result[key] = source[key];
+      }
+    } else {
+      // For non-objects or arrays, use source value
+      result[key] = source[key];
+    }
+  }
+
+  return result;
+}
+
+/**
  * BatchProcessor - Intelligent batching for large-scale config updates
- * 
+ *
  * Features:
  * - Deduplication of updates
  * - Configurable batch sizes
@@ -242,18 +266,18 @@ class BatchProcessor {
     try {
       // Build self_data from dependencies
       let newSelfData = {};
-      
+
       if (config.deps && Array.isArray(config.deps)) {
         for (const depId of config.deps) {
           const depConfig = allConfigs.find(c => c.id === depId);
           if (depConfig && depConfig.data) {
-            newSelfData = { ...newSelfData, ...depConfig.data };
+            newSelfData = deepMerge(newSelfData, depConfig.data);
           }
         }
       }
-      
-      // Calculate new data
-      const newData = { ...newSelfData, ...(config.override_data || {}) };
+
+      // Calculate new data - use deep merge to preserve nested properties
+      const newData = deepMerge(newSelfData, config.override_data || {});
       
       // Check if anything changed
       const selfDataChanged = JSON.stringify(config.self_data) !== JSON.stringify(newSelfData);
