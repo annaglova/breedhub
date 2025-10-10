@@ -20,6 +20,30 @@ if (!supabaseUrl || !supabaseKey) {
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 /**
+ * Deep merge two objects - merges nested objects instead of replacing them
+ */
+function deepMerge(target, source) {
+  const result = { ...target };
+
+  for (const key in source) {
+    if (source[key] && typeof source[key] === 'object' && !Array.isArray(source[key])) {
+      // If both target and source have this key as objects, merge them recursively
+      if (target[key] && typeof target[key] === 'object' && !Array.isArray(target[key])) {
+        result[key] = deepMerge(target[key], source[key]);
+      } else {
+        // Otherwise, use source value
+        result[key] = source[key];
+      }
+    } else {
+      // For non-objects or arrays, use source value
+      result[key] = source[key];
+    }
+  }
+
+  return result;
+}
+
+/**
  * Rebuild a fields config from individual field configs
  */
 async function rebuildFieldsConfig(fieldsConfigId) {
@@ -53,7 +77,8 @@ async function rebuildFieldsConfig(fieldsConfigId) {
     
     // Update self_data with nested structure
     const newSelfData = fieldsStructure;
-    const newData = { ...newSelfData, ...(fieldsConfig.override_data || {}) };
+    // Use deep merge to preserve nested properties
+    const newData = deepMerge(newSelfData, fieldsConfig.override_data || {});
     
     // Update the fields config
     const { error: updateError } = await supabase
@@ -103,10 +128,29 @@ async function rebuildSortConfig(sortConfigId) {
     for (const field of fields) {
       sortStructure[field.id] = field.data || {};
     }
-    
+
+    // DEBUG: Log what we're building
+    if (sortConfigId === 'config_sort_1759737147242') {
+      console.log(`[DEBUG] rebuildSortConfig ${sortConfigId}:`);
+      console.log(`  sortStructure keys:`, Object.keys(sortStructure));
+      if (sortStructure.breed_field_measurements) {
+        console.log(`  breed_field_measurements.fieldType:`, sortStructure.breed_field_measurements.fieldType || 'MISSING');
+      }
+      console.log(`  override_data keys:`, Object.keys(sortConfig.override_data || {}));
+    }
+
     // Update self_data with nested structure
     const newSelfData = sortStructure;
-    const newData = { ...newSelfData, ...(sortConfig.override_data || {}) };
+    // Use deep merge to preserve nested properties like fieldType
+    const newData = deepMerge(newSelfData, sortConfig.override_data || {});
+
+    // DEBUG: Log final data
+    if (sortConfigId === 'config_sort_1759737147242') {
+      console.log(`  newData keys:`, Object.keys(newData));
+      if (newData.breed_field_measurements) {
+        console.log(`  FINAL breed_field_measurements.fieldType:`, newData.breed_field_measurements.fieldType || 'MISSING');
+      }
+    }
     
     // Update the sort config
     const { error: updateError } = await supabase
@@ -159,7 +203,8 @@ async function rebuildFilterConfig(filterConfigId) {
     
     // Update self_data with nested structure
     const newSelfData = filterStructure;
-    const newData = { ...newSelfData, ...(filterConfig.override_data || {}) };
+    // Use deep merge to preserve nested properties like fieldType
+    const newData = deepMerge(newSelfData, filterConfig.override_data || {});
     
     // Update the filter config
     const { error: updateError } = await supabase
@@ -224,8 +269,9 @@ async function rebuildPageConfig(pageId) {
     }
     
     const newSelfData = pageStructure;
-    const newData = { ...newSelfData, ...(pageConfig.override_data || {}) };
-    
+    // Use deep merge to preserve nested properties
+    const newData = deepMerge(newSelfData, pageConfig.override_data || {});
+
     // Update the page
     const { error: updateError } = await supabase
       .from('app_config')
@@ -260,19 +306,53 @@ async function rebuildSpaceConfig(spaceId) {
     // Space depends on pages, views and properties - get them from space's deps
     const dependentIds = spaceConfig.deps || [];
 
-    // Get all dependents (pages, views, properties, etc.) that this space depends on
-    const { data: dependents, error: depsError } = await supabase
+    // IMPORTANT: Query each type separately to ensure we get LATEST data
+    // This fixes issues with Supabase replication lag for sort/filter configs
+    const pages = [];
+    const views = [];
+    const properties = [];
+    const sorts = [];
+    const filters = [];
+
+    // Query pages
+    const { data: pagesData } = await supabase
       .from('app_config')
-      .select('id, type, data')
-      .in('id', dependentIds);
+      .select('id, data')
+      .in('id', dependentIds)
+      .eq('type', 'page');
+    if (pagesData) pages.push(...pagesData.map(d => ({ ...d, type: 'page' })));
 
-    if (depsError) return false;
+    // Query views
+    const { data: viewsData } = await supabase
+      .from('app_config')
+      .select('id, data')
+      .in('id', dependentIds)
+      .eq('type', 'view');
+    if (viewsData) views.push(...viewsData.map(d => ({ ...d, type: 'view' })));
 
-    const pages = dependents?.filter(d => d.type === 'page') || [];
-    const views = dependents?.filter(d => d.type === 'view') || [];
-    const properties = dependents?.filter(d => d.type === 'property') || [];
-    const sorts = dependents?.filter(d => d.type === 'sort') || [];
-    const filters = dependents?.filter(d => d.type === 'filter') || [];
+    // Query properties
+    const { data: propertiesData } = await supabase
+      .from('app_config')
+      .select('id, data')
+      .in('id', dependentIds)
+      .eq('type', 'property');
+    if (propertiesData) properties.push(...propertiesData.map(d => ({ ...d, type: 'property' })));
+
+    // Query sorts - separate query ensures fresh data
+    const { data: sortsData } = await supabase
+      .from('app_config')
+      .select('id, data')
+      .in('id', dependentIds)
+      .eq('type', 'sort');
+    if (sortsData) sorts.push(...sortsData.map(d => ({ ...d, type: 'sort' })));
+
+    // Query filters - separate query ensures fresh data
+    const { data: filtersData } = await supabase
+      .from('app_config')
+      .select('id, data')
+      .in('id', dependentIds)
+      .eq('type', 'filter');
+    if (filtersData) filters.push(...filtersData.map(d => ({ ...d, type: 'filter' })));
 
     // Build space structure - include pages, views, properties, sorts, and filters
     const spaceStructure = {};
@@ -317,8 +397,18 @@ async function rebuildSpaceConfig(spaceId) {
 
     // Add sort configs - merge all sort config data into sort_fields
     if (sorts && sorts.length > 0) {
+      console.log(`[DEBUG] Processing sorts for space: ${spaceId}`);
+      console.log(`[DEBUG] Found ${sorts.length} sort configs:`, sorts.map(s => s.id));
+
       spaceStructure.sort_fields = {};
       for (const sort of sorts) {
+        // DEBUG: Log what we're getting from DB
+        console.log(`[DEBUG]   Sort config ${sort.id}:`);
+        console.log(`[DEBUG]     Keys in data: ${Object.keys(sort.data || {}).join(', ')}`);
+        if (sort.data && sort.data.breed_field_measurements) {
+          console.log(`[DEBUG]     breed_field_measurements has fieldType: ${sort.data.breed_field_measurements.fieldType || 'MISSING'}`);
+        }
+
         // Sort config's data already has fields as objects with field IDs as keys
         // Just merge it into sort_fields container
         if (sort.data && Object.keys(sort.data).length > 0) {
@@ -340,8 +430,9 @@ async function rebuildSpaceConfig(spaceId) {
     }
 
     const newSelfData = spaceStructure;
-    const newData = { ...newSelfData, ...(spaceConfig.override_data || {}) };
-    
+    // Use deep merge to preserve nested properties
+    const newData = deepMerge(newSelfData, spaceConfig.override_data || {});
+
     // Update the space
     const { error: updateError } = await supabase
       .from('app_config')
@@ -403,8 +494,9 @@ async function rebuildWorkspaceConfig(workspaceId) {
     }
     
     const newSelfData = workspaceStructure;
-    const newData = { ...newSelfData, ...(workspaceConfig.override_data || {}) };
-    
+    // Use deep merge to preserve nested properties
+    const newData = deepMerge(newSelfData, workspaceConfig.override_data || {});
+
     // Update the workspace
     const { error: updateError } = await supabase
       .from('app_config')
@@ -478,7 +570,8 @@ async function rebuildAppConfig(appId) {
     }
 
     const newSelfData = appStructure;
-    const newData = { ...newSelfData, ...(appConfig.override_data || {}) };
+    // Use deep merge to preserve nested properties
+    const newData = deepMerge(newSelfData, appConfig.override_data || {});
 
     // Update the app
     const { error: updateError } = await supabase
@@ -523,8 +616,12 @@ async function rebuildFullHierarchy(options = {}) {
       grouped[config.type].push(config.id);
     }
     
-    // Rebuild in order: fields/sort/filter → page → space → workspace → app
-    const order = ['fields', 'sort', 'filter', 'page', 'space', 'workspace', 'app'];
+    // Rebuild in TWO PASSES to ensure leaf configs are fully saved before parents read them
+    // Pass 1: Leaf configs (fields/sort/filter) - these don't depend on other configs
+    // Pass 2: Parent configs (page/space/workspace/app) - these depend on leaf configs
+
+    const pass1 = ['fields', 'sort', 'filter'];
+    const pass2 = ['page', 'space', 'workspace', 'app'];
     const rebuildFunctions = {
       'fields': rebuildFieldsConfig,
       'sort': rebuildSortConfig,
@@ -534,13 +631,15 @@ async function rebuildFullHierarchy(options = {}) {
       'workspace': rebuildWorkspaceConfig,
       'app': rebuildAppConfig
     };
-    
-    for (const type of order) {
+
+    // PASS 1: Rebuild leaf configs
+    console.log('\n🔄 PASS 1: Rebuilding leaf configs (fields/sort/filter)...');
+    for (const type of pass1) {
       const ids = grouped[type] || [];
       if (ids.length === 0) continue;
-      
+
       console.log(`\n📦 Rebuilding ${ids.length} ${type} configs...`);
-      
+
       let success = 0;
       for (const id of ids) {
         const rebuildFn = rebuildFunctions[type];
@@ -554,7 +653,48 @@ async function rebuildFullHierarchy(options = {}) {
           }
         }
       }
-      
+
+      console.log(`  ✅ Rebuilt ${success}/${ids.length} ${type} configs`);
+    }
+
+    // Wait for DB to flush changes (helps with Supabase replication lag)
+    console.log('\n⏳ Waiting for database flush (3 seconds)...');
+    await new Promise(resolve => setTimeout(resolve, 3000));
+
+    // DEBUG: Verify sort config data BEFORE Pass 2
+    console.log('\n[DEBUG] Verifying sort config data before Pass 2...');
+    const { data: sortVerify } = await supabase
+      .from('app_config')
+      .select('id, data')
+      .eq('id', 'config_sort_1759737147242')
+      .single();
+    if (sortVerify?.data?.breed_field_measurements) {
+      console.log('[DEBUG] config_sort_1759737147242.breed_field_measurements.fieldType:',
+                  sortVerify.data.breed_field_measurements.fieldType || 'MISSING');
+    }
+
+    // PASS 2: Rebuild parent configs
+    console.log('\n🔄 PASS 2: Rebuilding parent configs (page/space/workspace/app)...');
+    for (const type of pass2) {
+      const ids = grouped[type] || [];
+      if (ids.length === 0) continue;
+
+      console.log(`\n📦 Rebuilding ${ids.length} ${type} configs...`);
+
+      let success = 0;
+      for (const id of ids) {
+        const rebuildFn = rebuildFunctions[type];
+        if (rebuildFn) {
+          const result = await rebuildFn(id);
+          if (result) {
+            success++;
+            if (verbose) console.log(`  ✓ ${id}`);
+          } else {
+            if (verbose) console.log(`  ✗ ${id}`);
+          }
+        }
+      }
+
       console.log(`  ✅ Rebuilt ${success}/${ids.length} ${type} configs`);
     }
     
