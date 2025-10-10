@@ -17,8 +17,6 @@ import { booksSchema } from '../collections/books.schema';
 import { BookCollection } from '../types/book.types';
 import { appConfigSchema } from '../collections/app-config.schema';
 import { AppConfigCollection } from '../stores/app-config.signal-store';
-import { dictionariesSchema } from '../collections/dictionaries.schema';
-import type { DictionaryCollection } from '../stores/dictionary-store.signal-store';
 
 // Add plugins
 if (process.env.NODE_ENV !== 'production') {
@@ -33,7 +31,6 @@ addRxPlugin(RxDBCleanupPlugin);
 export type DatabaseCollections = {
   books: BookCollection;
   app_config: AppConfigCollection;
-  dictionaries: DictionaryCollection;
 };
 
 export type AppDatabase = RxDatabase<DatabaseCollections>;

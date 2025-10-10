@@ -29,11 +29,6 @@ export { appStore } from './stores/app-store.signal-store';
 // Space Store - Universal dynamic store for all business entities
 export { spaceStore } from './stores/space-store.signal-store';
 
-// Dictionary Store - Universal cache for dictionary tables
-export { dictionaryStore } from './stores/dictionary-store.signal-store';
-export type { DictionaryCollection } from './stores/dictionary-store.signal-store';
-export type { DictionaryDocument } from './collections/dictionaries.schema';
-
 // Mixin Engine
 export { mixinEngine, MixinEngineService } from './services/mixin-engine.service';
 
