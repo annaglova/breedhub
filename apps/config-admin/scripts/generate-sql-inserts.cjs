@@ -18,6 +18,30 @@ if (!supabaseUrl || !supabaseKey) {
 
 const supabase = createClient(supabaseUrl, supabaseKey);
 
+/**
+ * Deep merge two objects - merges nested objects instead of replacing them
+ */
+function deepMerge(target, source) {
+  const result = { ...target };
+
+  for (const key in source) {
+    if (source[key] && typeof source[key] === 'object' && !Array.isArray(source[key])) {
+      // If both target and source have this key as objects, merge them recursively
+      if (target[key] && typeof target[key] === 'object' && !Array.isArray(target[key])) {
+        result[key] = deepMerge(target[key], source[key]);
+      } else {
+        // Otherwise, use source value
+        result[key] = source[key];
+      }
+    } else {
+      // For non-objects or arrays, use source value
+      result[key] = source[key];
+    }
+  }
+
+  return result;
+}
+
 // Check for breed-only flag
 const isBreedOnly = process.argv.includes('--breed-only');
 
@@ -55,23 +79,23 @@ function computeMergedData(configId, allConfigs, visited = new Set()) {
   }
   
   let mergedData = {};
-  
+
   // First, merge all dependencies
   if (config.deps && config.deps.length > 0) {
     for (const depId of config.deps) {
       const depData = computeMergedData(depId, allConfigs, visited);
-      mergedData = { ...mergedData, ...depData };
+      mergedData = deepMerge(mergedData, depData);
     }
   }
-  
+
   // Then apply self_data
   if (config.self_data) {
-    mergedData = { ...mergedData, ...config.self_data };
+    mergedData = deepMerge(mergedData, config.self_data);
   }
-  
+
   // Finally apply override_data (highest priority)
   if (config.override_data) {
-    mergedData = { ...mergedData, ...config.override_data };
+    mergedData = deepMerge(mergedData, config.override_data);
   }
   
   return mergedData;
@@ -150,22 +174,22 @@ function generateInsert(config) {
 // Build self_data by merging all dependencies' data
 function buildSelfData(deps, ownData, allConfigs) {
   let mergedData = {};
-  
+
   // First merge all dependencies' data
   for (const depId of deps) {
     const depConfig = allConfigs.find(c => c.id === depId);
     if (depConfig && depConfig.data) {
-      mergedData = { ...mergedData, ...depConfig.data };
+      mergedData = deepMerge(mergedData, depConfig.data);
     } else if (depId.startsWith('property_')) {
       // For property dependencies that don't have configs yet
       const propertyData = getPropertyData(depId);
-      mergedData = { ...mergedData, ...propertyData };
+      mergedData = deepMerge(mergedData, propertyData);
     }
   }
-  
+
   // Then apply own data (overrides)
-  mergedData = { ...mergedData, ...ownData };
-  
+  mergedData = deepMerge(mergedData, ownData);
+
   return mergedData;
 }
 
@@ -398,13 +422,13 @@ function generateAllInserts(tree, existingConfigs = []) {
       // Спочатку шукаємо в новозгенерованих configs
       const depConfig = configs.find(c => c.id === depId);
       if (depConfig) {
-        // Беремо повні дані залежності (self_data + override_data)
-        const depFullData = { 
-          ...depConfig.self_data, 
-          ...depConfig.override_data 
-        };
-        inheritedData = { ...inheritedData, ...depFullData };
-        
+        // Беремо повні дані залежності (self_data + override_data) з deep merge
+        const depFullData = deepMerge(
+          depConfig.self_data || {},
+          depConfig.override_data || {}
+        );
+        inheritedData = deepMerge(inheritedData, depFullData);
+
         // Debug for specific problematic field
         if (config.id === 'breed_field_avatar_url') {
           console.log(`    - From ${depId}:`);
@@ -417,12 +441,12 @@ function generateAllInserts(tree, existingConfigs = []) {
         const existingDep = existingConfigs.find(c => c.id === depId);
         if (existingDep) {
           // Беремо data з існуючого конфігу (це self_data + override_data)
-          inheritedData = { ...inheritedData, ...(existingDep.data || {}) };
-          
+          inheritedData = deepMerge(inheritedData, existingDep.data || {});
+
         } else if (depId.startsWith('property_')) {
           // Fallback for built-in properties
           const propertyData = getPropertyData(depId);
-          inheritedData = { ...inheritedData, ...propertyData };
+          inheritedData = deepMerge(inheritedData, propertyData);
         }
       }
     }
