@@ -71,6 +71,12 @@ Each field with foreign key has **optional** `dataSource` property:
 
 **Collection Name:** `dictionaries`
 
+**Field Flexibility:**
+- 99% tables use `id` + `name` fields
+- Config specifies `referencedFieldID` and `referencedFieldName` for exceptions
+- Examples: `country.code`, `breed.admin_name`, `currency.symbol`
+- DictionaryStore normalizes any structure → universal schema
+
 ```typescript
 const dictionarySchema: RxJsonSchema<DictionaryDocument> = {
   version: 0,
@@ -128,32 +134,51 @@ const dictionarySchema: RxJsonSchema<DictionaryDocument> = {
 **Example Documents:**
 
 ```typescript
-// pet_type record
+// Standard: id + name (99% cases)
 {
   composite_id: "pet_type::uuid-123",
   table_name: "pet_type",
-  id: "uuid-123",              // referencedFieldID: "id"
-  name: "Dog",                 // referencedFieldName: "name"
+  id: "uuid-123",              // From table.id
+  name: "Dog",                 // From table.name
   _cached_at: 1696598400000
 }
 
-// country record
+// Exception: code + name
 {
-  composite_id: "country::uuid-456",
+  composite_id: "country::UA",
   table_name: "country",
-  id: "uuid-456",              // referencedFieldID: "id"
-  name: "Ukraine",             // referencedFieldName: "name"
+  id: "UA",                    // From table.code (not id!)
+  name: "Ukraine",             // From table.name
   _cached_at: 1696598400000
 }
 
-// sys_language record
+// Exception: id + admin_name
 {
-  composite_id: "sys_language::uuid-789",
-  table_name: "sys_language",
-  id: "uuid-789",              // referencedFieldID: "id"
-  name: "English",             // referencedFieldName: "name"
+  composite_id: "breed::uuid-789",
+  table_name: "breed",
+  id: "uuid-789",              // From table.id
+  name: "Golden Retriever",    // From table.admin_name (not name!)
   _cached_at: 1696598400000
 }
+
+// Note: All normalized to same schema structure!
+// Different source fields → same target fields (id, name)
+```
+
+**How Config Drives Field Mapping:**
+
+```json
+// Config tells us which fields to read:
+{
+  "name": "country_id",
+  "referencedTable": "country",
+  "referencedFieldID": "code",        // ← Read this field as ID
+  "referencedFieldName": "name"       // ← Read this field as display name
+}
+
+// DictionaryStore reads: SELECT code, name FROM country
+// Then normalizes: { id: record.code, name: record.name }
+// Universal schema works for any table structure!
 ```
 
 ### 2.2 Child Tables Collections
@@ -293,11 +318,15 @@ class DictionaryStore {
    * Load dictionary data from server and cache in RxDB
    *
    * @param tableName - Dictionary table name (e.g., 'pet_type')
+   * @param idField - ID field name from config (default: 'id')
+   * @param nameField - Display field name from config (default: 'name')
    * @param limit - Number of records to load (default: 100)
    * @param offset - Offset for pagination (default: 0)
    */
   async loadDictionary(
     tableName: string,
+    idField: string = 'id',
+    nameField: string = 'name',
     limit: number = 100,
     offset: number = 0
   ): Promise<DictionaryDocument[]> {
@@ -307,25 +336,24 @@ class DictionaryStore {
     this.loadingTables.value = new Set(currentLoading);
 
     try {
-      // Fetch from API
-      const response = await fetch(
-        `/api/dictionaries/${tableName}?limit=${limit}&offset=${offset}`
-      );
+      // Fetch from Supabase using dynamic field names
+      const { data, error } = await this.supabase
+        .from(tableName)
+        .select(`${idField}, ${nameField}`)
+        .order(nameField, { ascending: true })
+        .range(offset, offset + limit - 1);
 
-      if (!response.ok) {
-        throw new Error(`Failed to load ${tableName}: ${response.statusText}`);
+      if (error) {
+        throw new Error(`Failed to load ${tableName}: ${error.message}`);
       }
 
-      const data = await response.json();
-      const records: any[] = data.records || [];
-
       // Transform and insert into RxDB
-      // Only take fields specified in config: referencedFieldID and referencedFieldName
-      const documents: DictionaryDocument[] = records.map(record => ({
-        composite_id: `${tableName}::${record.id}`,
+      // Normalize any structure into universal schema
+      const documents: DictionaryDocument[] = (data || []).map(record => ({
+        composite_id: `${tableName}::${record[idField]}`,
         table_name: tableName,
-        id: record.id,              // referencedFieldID (from config)
-        name: record.name,          // referencedFieldName (from config)
+        id: record[idField],        // Can be: id, code, uuid, etc.
+        name: record[nameField],    // Can be: name, title, label, symbol, etc.
         _cached_at: Date.now()
       }));
 
@@ -356,11 +384,13 @@ class DictionaryStore {
    * Get dictionary records for dropdown/lookup
    *
    * @param tableName - Dictionary table name
-   * @param options - Query options (search, limit, offset)
+   * @param options - Query options
    */
   async getDictionary(
     tableName: string,
     options: {
+      idField?: string;    // From config.referencedFieldID (default: 'id')
+      nameField?: string;  // From config.referencedFieldName (default: 'name')
       search?: string;
       limit?: number;
       offset?: number;
@@ -370,7 +400,13 @@ class DictionaryStore {
       throw new Error('[DictionaryStore] Not initialized');
     }
 
-    const { search, limit = 30, offset = 0 } = options;
+    const {
+      idField = 'id',      // Default to 'id' (99% cases)
+      nameField = 'name',  // Default to 'name' (99% cases)
+      search,
+      limit = 30,
+      offset = 0
+    } = options;
 
     // Check if we have any cached records for this table
     const cachedCount = await this.dictionariesCollection
@@ -384,7 +420,7 @@ class DictionaryStore {
 
     // If no cache or expired, load from server
     if (cachedCount === 0) {
-      await this.loadDictionary(tableName, limit, offset);
+      await this.loadDictionary(tableName, idField, nameField, limit, offset);
     }
 
     // Build query
@@ -483,16 +519,18 @@ export const DropdownInput = forwardRef<HTMLInputElement, DropdownInputProps>(
       setLoading(true);
 
       try {
-        // Always use DictionaryStore for DropdownInput
+        // Pass field names from config (with defaults)
         const { records } = await dictionaryStore.getDictionary(referencedTable, {
+          idField: referencedFieldID || 'id',      // From config
+          nameField: referencedFieldName || 'name', // From config
           limit: 30,
           offset: 0
         });
 
         // Transform to dropdown options
         const opts = records.map(record => ({
-          value: record.id,
-          label: record.name
+          value: record.id,    // Normalized in DictionaryStore
+          label: record.name   // Normalized in DictionaryStore
         }));
 
         setDynamicOptions(opts);
