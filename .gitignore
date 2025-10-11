@@ -30,5 +30,6 @@ dev-dist
 node_modules
 dist
 .env*
+!.env.example
 
 query-services.js
