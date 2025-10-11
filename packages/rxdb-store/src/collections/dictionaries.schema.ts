@@ -71,7 +71,10 @@ export const dictionariesSchema: RxJsonSchema<DictionaryDocument> = {
 
     // 5. Cache timestamp for TTL
     cachedAt: {
-      type: 'number'
+      type: 'number',
+      multipleOf: 1,        // Required for indexed number fields in RxDB
+      minimum: 0,
+      maximum: 9999999999999 // Max timestamp (year ~2286)
     }
   },
   required: ['composite_id', 'table_name', 'id', 'name', 'cachedAt'],

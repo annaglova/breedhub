@@ -112,15 +112,18 @@ const dictionarySchema: RxJsonSchema<DictionaryDocument> = {
     },
 
     // Cache metadata
-    _cached_at: {
-      type: 'number' // Unix timestamp
+    cachedAt: {
+      type: 'number',        // Unix timestamp
+      multipleOf: 1,         // Required for indexed number fields
+      minimum: 0,
+      maximum: 9999999999999 // Max timestamp (year ~2286)
     }
   },
-  required: ['composite_id', 'table_name', 'id', 'name'],
+  required: ['composite_id', 'table_name', 'id', 'name', 'cachedAt'],
   indexes: [
-    'table_name', // Query all records from one table
-    ['table_name', 'name'], // Search by name within table
-    '_cached_at' // TTL cleanup
+    'table_name',            // Query all records from one table
+    ['table_name', 'name'],  // Search by name within table
+    'cachedAt'               // TTL cleanup
   ]
 };
 ```
@@ -140,7 +143,7 @@ const dictionarySchema: RxJsonSchema<DictionaryDocument> = {
   table_name: "pet_type",
   id: "uuid-123",              // From table.id
   name: "Dog",                 // From table.name
-  _cached_at: 1696598400000
+  cachedAt: 1696598400000
 }
 
 // Exception: code + name
@@ -149,7 +152,7 @@ const dictionarySchema: RxJsonSchema<DictionaryDocument> = {
   table_name: "country",
   id: "UA",                    // From table.code (not id!)
   name: "Ukraine",             // From table.name
-  _cached_at: 1696598400000
+  cachedAt: 1696598400000
 }
 
 // Exception: id + admin_name
@@ -158,7 +161,7 @@ const dictionarySchema: RxJsonSchema<DictionaryDocument> = {
   table_name: "breed",
   id: "uuid-789",              // From table.id
   name: "Golden Retriever",    // From table.admin_name (not name!)
-  _cached_at: 1696598400000
+  cachedAt: 1696598400000
 }
 
 // Note: All normalized to same schema structure!
@@ -206,7 +209,7 @@ These are loaded when their parent entity is loaded (e.g., load `breed_division`
 │     const cached = await db.dictionaries                │
 │       .find({ selector: {                               │
 │         table_name: 'body_feature',                     │
-│         _cached_at: { $gt: Date.now() - TTL }          │
+│         cachedAt: { $gt: Date.now() - TTL }          │
 │       }})                                               │
 └─────────────────────────────────────────────────────────┘
                     ▼
@@ -249,7 +252,7 @@ interface DictionaryDocument {
   table_name: string;    // e.g., "pet_type"
   id: string;            // from referencedFieldID (typically "id")
   name: string;          // from referencedFieldName (typically "name")
-  _cached_at: number;    // Unix timestamp for TTL
+  cachedAt: number;      // Unix timestamp for TTL
 }
 
 class DictionaryStore {
@@ -354,7 +357,7 @@ class DictionaryStore {
         table_name: tableName,
         id: record[idField],        // Can be: id, code, uuid, etc.
         name: record[nameField],    // Can be: name, title, label, symbol, etc.
-        _cached_at: Date.now()
+        cachedAt: Date.now()
       }));
 
       // Bulk insert (RxDB handles conflicts)
@@ -413,7 +416,7 @@ class DictionaryStore {
       .count({
         selector: {
           table_name: tableName,
-          _cached_at: { $gt: Date.now() - this.TTL } // Not expired
+          cachedAt: { $gt: Date.now() - this.TTL } // Not expired
         }
       })
       .exec();
@@ -464,7 +467,7 @@ class DictionaryStore {
     const expiredDocs = await this.dictionariesCollection
       .find({
         selector: {
-          _cached_at: {
+          cachedAt: {
             $lt: Date.now() - this.TTL // Older than 24 hours
           }
         }
@@ -771,27 +774,56 @@ Response:
 
 ---
 
-## 7. Implementation Phases
+## 7. Implementation Status & Phases
 
-### Phase 1: Foundation (Week 1)
+### ✅ Completed
+- **Universal dictionaries schema** - Created with composite keys, RxDB validation fixed
+- **DictionaryStore implementation** - All core methods implemented (initialize, loadDictionary, getDictionary, cleanupExpired)
+- **Deep merge fix** - Fixed config hierarchy rebuild to properly merge nested objects
+- **Window exposure for debugging** - Added dictionaryStore, appStore, spaceStore to window in DEV mode
+- **RxDB schema validation** - Fixed all validation errors (field naming, multipleOf, min/max constraints)
+
+### ⏳ Needs Testing
+- **DictionaryStore initialization** - Verified: collection creates successfully, no errors
+- **Dictionary loading** - Not yet tested with actual data (loadDictionary method)
+- **DropdownInput integration** - Component code needs DictionaryStore integration
+- **LookupInput integration** - Component needs dataSource logic implementation
+- **Search functionality** - getDictionary search parameter not tested
+- **TTL cleanup** - Cleanup method implemented but not tested in production
+- **Scroll pagination** - Not yet implemented in components
+
+### ❌ Pending
+- **API endpoints** - Currently using Supabase client directly (no separate API needed)
+- **Config dataSource field** - Need to add `dataSource: "collection"` for main entities
+- **Component integration** - DropdownInput and LookupInput need full integration
+- **Performance testing** - Load times, cache hit rates, memory usage
+- **Server-search support** - Deferred to edit forms implementation
+
+### Implementation Phases
+
+#### Phase 1: Foundation ✅ COMPLETED
 - [x] Analyze referenced tables
-- [ ] Create universal dictionaries schema
-- [ ] Implement DictionaryStore
-- [ ] Create API endpoints
+- [x] Create universal dictionaries schema
+- [x] Implement DictionaryStore
+- [x] Fix RxDB validation errors
+- [x] Integrate with AppStore initialization
 
-### Phase 2: Integration (Week 2)
-- [ ] Integrate DictionaryStore with AppStore initialization
+#### Phase 2: Integration ⏳ IN PROGRESS
+- [x] DictionaryStore initialization verified
 - [ ] Update DropdownInput to use DictionaryStore
-- [ ] Test with pet_type, country, currency
+- [ ] Update LookupInput with dataSource logic
+- [ ] Test dictionary loading with real data (pet_type, country, currency)
 
-### Phase 3: Optimization (Week 3)
-- [ ] Add scroll pagination
-- [ ] Implement search functionality
-- [ ] Implement TTL cleanup
+#### Phase 3: Optimization ❌ PENDING
+- [ ] Add scroll pagination to components
+- [ ] Test search functionality
+- [ ] Verify TTL cleanup in production
+- [ ] Performance testing and optimization
 
-### Phase 4: Finalization (Week 4)
-- [ ] Performance testing
-- [ ] Documentation
+#### Phase 4: Finalization ❌ PENDING
+- [ ] Config updates with dataSource field
+- [ ] Full integration testing
+- [ ] Performance benchmarks
 - [ ] Server-search support (for edit forms, later)
 
 ---
@@ -806,7 +838,7 @@ Response:
 Universal Dictionaries Collection:
   - 99 dictionary tables
   - ~2000 total records (avg 20 per table)
-  - ~150 bytes per record (only 5 fields: composite_id, table_name, id, name, _cached_at)
+  - ~150 bytes per record (only 5 fields: composite_id, table_name, id, name, cachedAt)
   - Total: ~300 KB ✅
 
 Child Tables (8 collections):
