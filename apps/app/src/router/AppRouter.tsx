@@ -4,6 +4,7 @@ import { AppLayout } from '@/layouts/AppLayout';
 import { BreedsPage } from '@/pages/breeds';
 import { BreedDetailPage } from '@/pages/breeds/BreedDetailPage';
 import { SupabaseLoader } from '@/components/test/SupabaseLoader';
+import { TestDictionaryPage } from '@/pages/TestDictionaryPage';
 
 // Temporary placeholder component
 function PlaceholderPage({ title }: { title: string }) {
@@ -43,6 +44,7 @@ export function AppRouter() {
           {/* Test routes */}
           <Route path="test">
             <Route path="supabase" element={<SupabaseLoader />} />
+            <Route path="dictionary" element={<TestDictionaryPage />} />
           </Route>
           
           {/* Direct breed pages - using IDs for now */}
