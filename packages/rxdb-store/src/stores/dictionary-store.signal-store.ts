@@ -1,8 +1,8 @@
 import { signal } from '@preact/signals-react';
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import type { RxCollection, RxDatabase } from 'rxdb';
 import { getDatabase } from '../services/database.service';
 import { dictionariesSchema, type DictionaryDocument } from '../collections/dictionaries.schema';
+import { supabase } from '../supabase/client';
 
 // Collection type
 export type DictionaryCollection = RxCollection<DictionaryDocument>;
@@ -41,25 +41,12 @@ class DictionaryStore {
   private db: RxDatabase | null = null;
   private collection: DictionaryCollection | null = null;
 
-  // Supabase client
-  private supabase: SupabaseClient;
-
   // Cache metadata
   private readonly TTL = 14 * 24 * 60 * 60 * 1000; // 14 days
 
   private constructor() {
-    // Initialize Supabase client
-    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-    const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-    console.log('[DictionaryStore] Supabase URL:', supabaseUrl ? 'Found' : 'Missing');
-    console.log('[DictionaryStore] Supabase Key:', supabaseKey ? 'Found' : 'Missing');
-
-    if (!supabaseUrl || !supabaseKey) {
-      throw new Error('Supabase credentials not found in environment');
-    }
-
-    this.supabase = createClient(supabaseUrl, supabaseKey);
+    // Using centralized Supabase client from supabase/client.ts
+    console.log('[DictionaryStore] Using centralized Supabase client');
   }
 
   static getInstance(): DictionaryStore {
@@ -160,7 +147,7 @@ class DictionaryStore {
       console.log(`[DictionaryStore] Loading ${tableName} (${idField}, ${nameField})...`);
 
       // Fetch from Supabase using dynamic field names
-      const { data, error } = await this.supabase
+      const { data, error } = await supabase
         .from(tableName)
         .select(`${idField}, ${nameField}`)
         .order(nameField, { ascending: true })
