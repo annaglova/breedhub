@@ -176,7 +176,7 @@ class DictionaryStore {
         table_name: tableName,
         id: String(record[idField]),        // Normalize to string
         name: String(record[nameField]),    // Normalize to string
-        _cached_at: Date.now()
+        cachedAt: Date.now()
       }));
 
       // Bulk insert (RxDB handles conflicts automatically)
@@ -232,7 +232,7 @@ class DictionaryStore {
       .count({
         selector: {
           table_name: tableName,
-          _cached_at: { $gt: Date.now() - this.TTL } // Not expired
+          cachedAt: { $gt: Date.now() - this.TTL } // Not expired
         }
       })
       .exec();
@@ -286,7 +286,7 @@ class DictionaryStore {
       const expiredDocs = await this.collection
         .find({
           selector: {
-            _cached_at: {
+            cachedAt: {
               $lt: expiryTime
             }
           }

@@ -15,7 +15,7 @@ export interface DictionaryDocument {
   name: string;          // Display name from source table
 
   // Cache metadata
-  _cached_at: number;    // Unix timestamp for TTL cleanup
+  cachedAt: number;      // Unix timestamp for TTL cleanup
 }
 
 /**
@@ -70,17 +70,17 @@ export const dictionariesSchema: RxJsonSchema<DictionaryDocument> = {
     },
 
     // 5. Cache timestamp for TTL
-    _cached_at: {
+    cachedAt: {
       type: 'number'
     }
   },
-  required: ['composite_id', 'table_name', 'id', 'name', '_cached_at'],
+  required: ['composite_id', 'table_name', 'id', 'name', 'cachedAt'],
 
   // Indexes for fast queries
   indexes: [
     'table_name',              // Find all records from specific table
     ['table_name', 'name'],    // Search by name within table
-    '_cached_at'               // TTL cleanup queries
+    'cachedAt'                 // TTL cleanup queries
   ],
   attachments: {}
 };
