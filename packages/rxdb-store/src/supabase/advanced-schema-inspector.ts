@@ -65,9 +65,13 @@ export async function getAllTablesSQL() {
  */
 export async function introspectSupabaseAPI() {
   try {
-    const baseUrl = import.meta.env.VITE_SUPABASE_URL || 'http://dev.dogarray.com:8020';
+    const baseUrl = import.meta.env.VITE_SUPABASE_URL;
     const apiKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-    
+
+    if (!baseUrl || !apiKey) {
+      throw new Error('Missing Supabase environment variables. Please set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY');
+    }
+
     // Get OpenAPI spec from Supabase
     const response = await fetch(`${baseUrl}/rest/v1/`, {
       headers: {
