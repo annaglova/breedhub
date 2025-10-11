@@ -3,7 +3,7 @@ import axios from 'axios';
 // API configuration
 // In development, we use proxy to avoid CORS issues
 const isDevelopment = import.meta.env.DEV;
-const API_URL = isDevelopment ? '/api' : 'https://dev.dogarray.com';
+const API_URL = isDevelopment ? '/api' : (import.meta.env.VITE_CREATIO_BASE_URL || 'https://dev.dogarray.com');
 
 export const API_ENDPOINTS = {
   collection: `${API_URL}/0/BreedprideAdminApi/collection/`,

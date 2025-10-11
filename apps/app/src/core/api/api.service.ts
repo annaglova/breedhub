@@ -4,13 +4,15 @@ import { supabase } from '../supabase';
  * Environment конфігурація для API
  * Адаптовано з Angular версії
  */
+const creatioBaseUrl = import.meta.env.VITE_CREATIO_BASE_URL || 'https://dev.dogarray.com';
+
 export const apiConfig = {
   // Creatio API URLs (якщо потрібно зберегти інтеграцію)
   creatio: {
-    baseUrl: 'https://dev.dogarray.com/0/ServiceModel/BreedprideAdminApi/',
-    publicUrl: 'https://dev.dogarray.com/0/ServiceModel/BreedpridePublicApi/',
-    metaUrl: 'https://dev.dogarray.com/0/BreedprideMetaApi/public/',
-    searchUrl: 'https://dev.dogarray.com/0/BreedprideSearchApi/search',
+    baseUrl: `${creatioBaseUrl}/0/ServiceModel/BreedprideAdminApi/`,
+    publicUrl: `${creatioBaseUrl}/0/ServiceModel/BreedpridePublicApi/`,
+    metaUrl: `${creatioBaseUrl}/0/BreedprideMetaApi/public/`,
+    searchUrl: `${creatioBaseUrl}/0/BreedprideSearchApi/search`,
   },
   
   // Supabase конфігурація

@@ -5,7 +5,7 @@ import svgr from "vite-plugin-svgr";
 
 export default defineConfig({
   root: __dirname,
-  envDir: '../../', // Read .env from monorepo root
+  envDir: path.resolve(__dirname, '../../'), // Read .env from monorepo root
   plugins: [react(), svgr()],
   resolve: {
     alias: {

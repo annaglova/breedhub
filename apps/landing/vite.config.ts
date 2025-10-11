@@ -5,13 +5,14 @@ import svgr from "vite-plugin-svgr";
 
 export default defineConfig({
   root: __dirname,
-  envDir: '../../', // Read .env from monorepo root
+  envDir: path.resolve(__dirname, '../../'), // Read .env from monorepo root
   plugins: [react(), svgr()],
   resolve: {
     alias: {
       "@ui": path.resolve(__dirname, "../../packages/ui"),
       "@ui/components": path.resolve(__dirname, "../../packages/ui/components"),
       "@shared": path.resolve(__dirname, "../../apps/shared"),
+      "@breedhub/rxdb-store": path.resolve(__dirname, "../../packages/rxdb-store/src"),
       "@": path.resolve(__dirname, "src"),
     },
   },

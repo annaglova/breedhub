@@ -30,11 +30,11 @@ export class EntityReplicationService {
   private totalCountCallbacks: Map<string, Array<(total: number) => void>> = new Map();
 
   constructor() {
-    const supabaseUrl = (import.meta as any).env?.VITE_SUPABASE_URL || process.env.VITE_SUPABASE_URL;
-    const supabaseKey = (import.meta as any).env?.VITE_SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY;
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+    const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
     if (!supabaseUrl || !supabaseKey) {
-      throw new Error('Supabase URL and key must be provided in environment variables');
+      throw new Error('Missing Supabase environment variables. Please set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in .env file');
     }
 
     this.supabase = createClient(supabaseUrl, supabaseKey, {

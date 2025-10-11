@@ -1,7 +1,8 @@
 import { signal, computed, batch, Signal } from '@preact/signals-react';
 import type { RxDatabase, RxCollection, RxDocument } from 'rxdb';
 import { getDatabase } from '../services/database.service';
-import { createClient, SupabaseClient, RealtimeChannel } from '@supabase/supabase-js';
+import { supabase } from '../supabase/client';
+import type { RealtimeChannel } from '@supabase/supabase-js';
 import { getAvailableChildTypes } from '../../../../apps/config-admin/src/types/config-types';
 
 // Tree node interface for config tree
@@ -176,25 +177,12 @@ class AppConfigStore {
   });
   
   private dbSubscription: any = null;
-  private supabase: SupabaseClient;
   private realtimeChannel: RealtimeChannel | null = null;
-  
+
   constructor() {
-    // Initialize Supabase client
-    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-    const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-    
-    console.log('[AppConfigStore] Constructor called');
-    console.log('[AppConfigStore] Supabase URL:', supabaseUrl ? 'Found' : 'Missing');
-    console.log('[AppConfigStore] Supabase Key:', supabaseKey ? 'Found' : 'Missing');
-    
-    if (!supabaseUrl || !supabaseKey) {
-      console.warn('[AppConfigStore] Supabase credentials not found');
-    } else {
-      this.supabase = createClient(supabaseUrl, supabaseKey);
-      console.log('[AppConfigStore] Supabase client created');
-    }
-    
+    // Using centralized Supabase client from supabase/client.ts
+    console.log('[AppConfigStore] Constructor called - using centralized Supabase client');
+
     // Auto-initialize
     this.initializeStore();
   }
@@ -248,7 +236,7 @@ class AppConfigStore {
       });
       
       // Enable Supabase sync if available
-      if (this.supabase) {
+      if (supabase) {
         try {
           await this.enableSync();
           await this.setupRealtimeSubscription();
@@ -325,7 +313,7 @@ class AppConfigStore {
   }
   
   async enableSync(): Promise<void> {
-    if (!this.supabase) {
+    if (!supabase) {
       console.error('[AppConfigStore] Supabase client not initialized');
       throw new Error('Supabase client not initialized');
     }
@@ -334,7 +322,7 @@ class AppConfigStore {
     console.log('[AppConfigStore] Supabase URL:', import.meta.env.VITE_SUPABASE_URL);
     
     try {
-      const { data, error } = await this.supabase
+      const { data, error } = await supabase
         .from('app_config')
         .select('*')
         .or('deleted.eq.false,deleted.is.null');
@@ -473,7 +461,7 @@ class AppConfigStore {
       this.configs.value = newConfigs;
       
       // Sync to Supabase if enabled
-      if (this.syncEnabled.value && this.supabase) {
+      if (this.syncEnabled.value && supabase) {
         // Map _deleted to deleted for Supabase
         const { _deleted, _rev, ...rest } = newConfig;
         const supabaseData = {
@@ -481,7 +469,7 @@ class AppConfigStore {
           deleted: _deleted || false
         };
         try {
-          const { error } = await this.supabase
+          const { error } = await supabase
             .from('app_config')
             .insert(supabaseData);
           
@@ -577,7 +565,7 @@ class AppConfigStore {
       }
       
       // Sync to Supabase if enabled
-      if (this.syncEnabled.value && this.supabase) {
+      if (this.syncEnabled.value && supabase) {
         // Map _deleted to deleted for Supabase
         const { _deleted, _rev, ...rest } = updatedData;
         const supabaseUpdates = {
@@ -585,7 +573,7 @@ class AppConfigStore {
           deleted: _deleted || false
         };
         try {
-          await this.supabase
+          await supabase
             .from('app_config')
             .update(supabaseUpdates)
             .eq('id', id);
@@ -639,9 +627,9 @@ class AppConfigStore {
       this.configs.value = newConfigs;
       
       // Sync to Supabase if enabled
-      if (this.syncEnabled.value && this.supabase) {
+      if (this.syncEnabled.value && supabase) {
         try {
-          await this.supabase
+          await supabase
             .from('app_config')
             .update({ 
               deleted: true, 
@@ -2134,12 +2122,12 @@ class AppConfigStore {
     console.log('[AppConfigStore] Setting up realtime subscription...');
     
     if (this.realtimeChannel) {
-      await this.supabase.removeChannel(this.realtimeChannel);
+      await supabase.removeChannel(this.realtimeChannel);
       this.realtimeChannel = null;
     }
     
     try {
-      this.realtimeChannel = this.supabase
+      this.realtimeChannel = supabase
         .channel('app-config-changes')
         .on(
           'postgres_changes',
@@ -2642,7 +2630,7 @@ class AppConfigStore {
     }
     
     if (this.realtimeChannel) {
-      await this.supabase.removeChannel(this.realtimeChannel);
+      await supabase.removeChannel(this.realtimeChannel);
       this.realtimeChannel = null;
     }
     

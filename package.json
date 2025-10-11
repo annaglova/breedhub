@@ -7,7 +7,6 @@
     "dev": "vite",
     "dev:app": "vite --config apps/app/vite.config.ts",
     "dev:landing": "vite --config apps/landing/vite.config.ts",
-    "dev:playground": "vite --config apps/signal-store-playground/vite.config.ts",
     "dev:config": "vite --config apps/config-admin/vite.config.ts",
     "build": "tsc -b && vite build",
     "lint": "eslint .",

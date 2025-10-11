@@ -5,6 +5,7 @@ import path from 'path'
 // https://vite.dev/config/
 export default defineConfig({
   root: __dirname,
+  envDir: path.resolve(__dirname, '../../'), // Read .env from monorepo root
   plugins: [react()],
   server: {
     port: 5176, // Unique port for config-admin
