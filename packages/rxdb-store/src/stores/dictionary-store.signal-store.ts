@@ -228,16 +228,17 @@ class DictionaryStore {
     } = options;
 
     // Check if we have any cached records for this table
+    // Use simple count with single field to match index
     const cachedCount = await this.collection
       .count({
         selector: {
-          table_name: tableName,
-          cachedAt: { $gt: Date.now() - this.TTL } // Not expired
+          table_name: tableName
         }
       })
       .exec();
 
-    // If no cache or expired, load from server
+    // If no cache, load from server
+    // TTL cleanup is handled separately in cleanupExpired()
     if (cachedCount === 0) {
       await this.loadDictionary(tableName, idField, nameField, limit, offset);
     }
