@@ -58,6 +58,7 @@ const testFormSchema = z.object({
     .refine((val) => parseFloat(val) >= 5, "Number must be at least 5")
     .refine((val) => parseFloat(val) <= 10, "Number must be at most 10"),
   country: requiredString("Country"),
+  pet_type: optionalString,
   breed: requiredString("Breed"),
   date: z.date().nullable().optional(),
   description: optionalString,
@@ -89,6 +90,7 @@ export default function TestInputsPage() {
       password: "",
       number: "5",
       country: "",
+      pet_type: "",
       breed: "",
       date: null,
       description: "",
@@ -172,7 +174,7 @@ export default function TestInputsPage() {
 
             {/* Dropdown Input */}
             <div>
-              <h3 className="text-lg font-semibold mb-2">Dropdown Input</h3>
+              <h3 className="text-lg font-semibold mb-2">Dropdown Input (static options)</h3>
               <DropdownInput
                 label="Country"
                 placeholder="Select your country"
@@ -182,6 +184,20 @@ export default function TestInputsPage() {
                 error={errors.country?.message}
                 touched={touchedFields.country}
                 required
+              />
+            </div>
+
+            {/* Dropdown Input with Dictionary */}
+            <div>
+              <h3 className="text-lg font-semibold mb-2">Dropdown Input (DictionaryStore)</h3>
+              <DropdownInput
+                label="Pet Type"
+                placeholder="Select pet type"
+                referencedTable="pet_type"
+                referencedFieldID="id"
+                referencedFieldName="name"
+                value={watch("pet_type")}
+                onValueChange={(value) => setValue("pet_type", value)}
               />
             </div>
 

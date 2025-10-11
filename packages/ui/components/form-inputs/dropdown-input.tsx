@@ -3,6 +3,7 @@ import { Input } from "../input";
 import { FormField } from "../form-field";
 import { cn } from "@ui/lib/utils";
 import { ChevronDown, Check } from "lucide-react";
+import { dictionaryStore } from "@breedhub/rxdb-store";
 
 interface DropdownOption {
   value: string;
@@ -22,6 +23,10 @@ interface DropdownInputProps extends Omit<React.InputHTMLAttributes<HTMLInputEle
   disabled?: boolean;
   className?: string;
   fieldClassName?: string;
+  // Dictionary loading props
+  referencedTable?: string;
+  referencedFieldID?: string;
+  referencedFieldName?: string;
 }
 
 export const DropdownInput = forwardRef<HTMLInputElement, DropdownInputProps>(
@@ -37,14 +42,56 @@ export const DropdownInput = forwardRef<HTMLInputElement, DropdownInputProps>(
     disabled,
     className,
     fieldClassName,
+    referencedTable,
+    referencedFieldID = 'id',
+    referencedFieldName = 'name',
     ...props
   }, ref) => {
     const [isOpen, setIsOpen] = useState(false);
+    const [loading, setLoading] = useState(false);
+    const [dynamicOptions, setDynamicOptions] = useState<DropdownOption[]>(options);
     const dropdownRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
 
+    // Use dynamic options if referencedTable is provided, otherwise use static options
+    const activeOptions = referencedTable ? dynamicOptions : options;
+
     // Find selected option
-    const selectedOption = options?.find(opt => opt.value === value);
+    const selectedOption = activeOptions?.find(opt => opt.value === value);
+
+    // Load dictionary data when dropdown opens
+    useEffect(() => {
+      if (isOpen && referencedTable && dynamicOptions.length === 0) {
+        loadDictionaryOptions();
+      }
+    }, [isOpen, referencedTable]);
+
+    const loadDictionaryOptions = async () => {
+      if (!referencedTable) return;
+
+      setLoading(true);
+
+      try {
+        const { records } = await dictionaryStore.getDictionary(referencedTable, {
+          idField: referencedFieldID,
+          nameField: referencedFieldName,
+          limit: 30,
+          offset: 0
+        });
+
+        // Transform to dropdown options
+        const opts: DropdownOption[] = records.map(record => ({
+          value: record.id,
+          label: record.name
+        }));
+
+        setDynamicOptions(opts);
+      } catch (error) {
+        console.error(`Failed to load dictionary ${referencedTable}:`, error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
     // Handle clicks outside
     useEffect(() => {
@@ -103,12 +150,16 @@ export const DropdownInput = forwardRef<HTMLInputElement, DropdownInputProps>(
 
         {isOpen && (
           <div className="absolute z-50 mt-1 w-full bg-white border border-gray-200 rounded-md shadow-lg max-h-[40vh] overflow-auto">
-            {!options || options.length === 0 ? (
+            {loading ? (
+              <div className="px-3 py-2 text-gray-500 text-center">
+                Loading...
+              </div>
+            ) : !activeOptions || activeOptions.length === 0 ? (
               <div className="px-3 py-2 text-gray-500 text-center">
                 No options available
               </div>
             ) : (
-              options.map((option) => (
+              activeOptions.map((option) => (
                 <div
                   key={option.value}
                   onClick={() => handleSelect(option)}
