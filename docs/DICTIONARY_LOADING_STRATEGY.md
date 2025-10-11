@@ -782,11 +782,12 @@ Response:
 - **Deep merge fix** - Fixed config hierarchy rebuild to properly merge nested objects
 - **Window exposure for debugging** - Added dictionaryStore, appStore, spaceStore to window in DEV mode
 - **RxDB schema validation** - Fixed all validation errors (field naming, multipleOf, min/max constraints)
+- **DictionaryStore initialization** - Verified: collection creates successfully, no errors
+- **DropdownInput integration** - Added referencedTable/referencedFieldID/referencedFieldName props, loads from DictionaryStore
+- **FiltersDialog integration** - Connected FilterFieldConfig to DropdownInput with state management
+- **Dictionary loading tested** - Successfully tested with pet_type in breeds filter modal
 
 ### ⏳ Needs Testing
-- **DictionaryStore initialization** - Verified: collection creates successfully, no errors
-- **Dictionary loading** - Not yet tested with actual data (loadDictionary method)
-- **DropdownInput integration** - Component code needs DictionaryStore integration
 - **LookupInput integration** - Component needs dataSource logic implementation
 - **Search functionality** - getDictionary search parameter not tested
 - **TTL cleanup** - Cleanup method implemented but not tested in production
@@ -808,11 +809,12 @@ Response:
 - [x] Fix RxDB validation errors
 - [x] Integrate with AppStore initialization
 
-#### Phase 2: Integration ⏳ IN PROGRESS
+#### Phase 2: Integration ✅ MOSTLY COMPLETED
 - [x] DictionaryStore initialization verified
-- [ ] Update DropdownInput to use DictionaryStore
-- [ ] Update LookupInput with dataSource logic
-- [ ] Test dictionary loading with real data (pet_type, country, currency)
+- [x] Update DropdownInput to use DictionaryStore
+- [x] Connect DropdownInput to FiltersDialog with state management
+- [x] Test dictionary loading with real data (pet_type in breeds filter) ✨
+- [ ] Update LookupInput with dataSource logic (next step)
 
 #### Phase 3: Optimization ❌ PENDING
 - [ ] Add scroll pagination to components

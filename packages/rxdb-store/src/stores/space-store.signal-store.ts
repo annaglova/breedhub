@@ -616,6 +616,9 @@ class SpaceStore {
     value?: any;
     validation?: any;
     order: number;
+    referencedTable?: string;
+    referencedFieldID?: string;
+    referencedFieldName?: string;
   }> {
     // Try exact match first
     let spaceConfig = this.spaceConfigs.get(entityType);
@@ -655,6 +658,9 @@ class SpaceStore {
       value?: any;
       validation?: any;
       order: number;
+      referencedTable?: string;
+      referencedFieldID?: string;
+      referencedFieldName?: string;
     }> = [];
 
     // Parse filter fields (exclude mainFilterField - it's for search bar, not modal)
@@ -676,7 +682,10 @@ class SpaceStore {
         operator: field.operator,
         value: field.value,
         validation: field.validation,
-        order: field.order || 0
+        order: field.order || 0,
+        referencedTable: field.referencedTable,
+        referencedFieldID: field.referencedFieldID,
+        referencedFieldName: field.referencedFieldName
       });
     }
 

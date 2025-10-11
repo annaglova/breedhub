@@ -46,6 +46,10 @@ export interface FilterFieldConfig {
   validation?: any;
   order: number;
   options?: Array<{ value: string; label: string; disabled?: boolean }>;
+  // Dictionary loading props
+  referencedTable?: string;
+  referencedFieldID?: string;
+  referencedFieldName?: string;
 }
 
 interface FiltersDialogProps {
@@ -84,16 +88,34 @@ export function FiltersDialog({
   onApply,
   onCancel,
 }: FiltersDialogProps) {
+  // State for filter values
+  const [filterValues, setFilterValues] = React.useState<Record<string, any>>({});
+
+  // Reset filter values when dialog closes
+  React.useEffect(() => {
+    if (!open) {
+      setFilterValues({});
+    }
+  }, [open]);
+
   const handleApply = (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: collect form values and call onApply
-    onApply?.({});
+    // Pass filter values to parent
+    onApply?.(filterValues);
     onOpenChange(false);
   };
 
   const handleCancel = () => {
     onCancel?.();
     onOpenChange(false);
+  };
+
+  const handleValueChange = (fieldId: string, value: any) => {
+    console.log('[FiltersDialog] Value changed:', fieldId, '=', value);
+    setFilterValues(prev => ({
+      ...prev,
+      [fieldId]: value
+    }));
   };
 
   return (
@@ -123,6 +145,11 @@ export function FiltersDialog({
                       required={field.required}
                       id={field.id}
                       options={field.options || []}
+                      referencedTable={field.referencedTable}
+                      referencedFieldID={field.referencedFieldID}
+                      referencedFieldName={field.referencedFieldName}
+                      value={filterValues[field.id] || ''}
+                      onValueChange={(value: any) => handleValueChange(field.id, value)}
                     />
                   </div>
                 );

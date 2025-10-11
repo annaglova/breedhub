@@ -20,6 +20,9 @@ export interface FilterFieldConfig {
   value?: any;
   validation?: any;
   order: number;
+  referencedTable?: string;
+  referencedFieldID?: string;
+  referencedFieldName?: string;
 }
 
 interface FiltersSectionProps {
