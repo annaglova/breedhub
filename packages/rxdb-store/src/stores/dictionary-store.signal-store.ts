@@ -200,6 +200,7 @@ class DictionaryStore {
       search?: string;
       limit?: number;
       offset?: number;
+      skipCache?: boolean; // Don't cache search results (for temporary searches)
     } = {}
   ): Promise<{ records: DictionaryDocument[]; total: number; hasMore: boolean }> {
     if (!this.collection) {
@@ -211,7 +212,8 @@ class DictionaryStore {
       nameField = 'name',  // Default to 'name' (99% cases)
       search,
       limit = 30,
-      offset = 0
+      offset = 0,
+      skipCache = false
     } = options;
 
     // Check if we have any cached records for this table
@@ -249,24 +251,24 @@ class DictionaryStore {
 
     console.log(`[DictionaryStore] Local ${search ? 'search' : 'cache'} results: ${localCount}`);
 
-    // For search queries: if we don't have enough local results, load from server
-    if (search && localCount < offset + limit) {
-      console.log(`[DictionaryStore] Not enough local search results (${localCount}), loading from server...`);
+    // For search queries: load from server
+    if (search) {
+      console.log(`[DictionaryStore] Loading search results from server (offset=${offset}, limit=${limit}, skipCache=${skipCache})...`);
 
       try {
-        // Load more records with search filter from server (30 at a time)
+        // Load search results from server using the offset parameter
         const { data, error } = await supabase
           .from(tableName)
           .select(`${idField}, ${nameField}`)
           .ilike(nameField, `%${search}%`)
           .order(nameField, { ascending: true })
-          .range(localCount, localCount + 29); // Load 30 more records at once
+          .range(offset, offset + limit - 1);
 
         if (error) {
           throw new Error(`Search load failed: ${error.message}`);
         }
 
-        // Transform and save to cache
+        // Transform to documents
         const documents: DictionaryDocument[] = (data || []).map(record => ({
           composite_id: `${tableName}::${record[idField]}`,
           table_name: tableName,
@@ -275,9 +277,25 @@ class DictionaryStore {
           cachedAt: Date.now()
         }));
 
+        // Get server total for hasMore
+        let serverTotal = 0;
+        try {
+          const { count, error: countError } = await supabase
+            .from(tableName)
+            .select('*', { count: 'exact', head: true })
+            .ilike(nameField, `%${search}%`);
+
+          if (!countError && count !== null) {
+            serverTotal = count;
+          }
+        } catch (error) {
+          console.warn(`[DictionaryStore] Failed to get search count:`, error);
+        }
+
+        // Cache the results
         if (documents.length > 0) {
-          await this.collection.bulkInsert(documents);
-          console.log(`[DictionaryStore] Cached ${documents.length} search results`);
+          const result = await this.collection.bulkInsert(documents);
+          console.log(`[DictionaryStore] Cached ${documents.length} search results, inserted: ${result.success.length}, errors: ${result.error.length}`);
         }
 
         // Re-query from cache after loading
