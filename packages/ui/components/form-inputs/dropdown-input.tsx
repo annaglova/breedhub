@@ -87,7 +87,12 @@ export const DropdownInput = forwardRef<HTMLInputElement, DropdownInputProps>(
         console.log('[DropdownInput] Loaded options:', opts.length, 'hasMore:', more);
 
         if (append) {
-          setDynamicOptions(prev => [...prev, ...opts]);
+          // Filter out duplicates when appending
+          setDynamicOptions(prev => {
+            const existingIds = new Set(prev.map(o => o.value));
+            const newOptions = opts.filter(o => !existingIds.has(o.value));
+            return [...prev, ...newOptions];
+          });
           setOffset(currentOffset + 30);
         } else {
           setDynamicOptions(opts);

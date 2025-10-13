@@ -224,35 +224,94 @@ class DictionaryStore {
       })
       .exec();
 
-    console.log(`[DictionaryStore] getDictionary ${tableName}: cachedCount=${cachedCount}, offset=${offset}, limit=${limit}`);
+    console.log(`[DictionaryStore] getDictionary ${tableName}: cachedCount=${cachedCount}, offset=${offset}, limit=${limit}, search=${search || 'none'}`);
 
-    // Load from server only if we don't have enough cached data for the requested range
-    // Load only what's needed (like SpaceView approach)
-    const targetCacheSize = offset + limit;
+    // Build query from cache
+    const selector: any = {
+      table_name: tableName
+    };
 
-    if (cachedCount < targetCacheSize) {
+    // Add search filter if provided
+    if (search) {
+      // Escape special regex characters for safety
+      const escapedSearch = search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      selector.name = {
+        $regex: escapedSearch,
+        $options: 'i'
+      };
+    }
+
+    let query = this.collection.find({ selector });
+
+    // Get local search results
+    const localResults = await query.exec();
+    const localCount = localResults.length;
+
+    console.log(`[DictionaryStore] Local ${search ? 'search' : 'cache'} results: ${localCount}`);
+
+    // For search queries: if we don't have enough local results, load from server
+    if (search && localCount < offset + limit) {
+      console.log(`[DictionaryStore] Not enough local search results (${localCount}), loading from server...`);
+
+      try {
+        // Load more records with search filter from server (30 at a time)
+        const { data, error } = await supabase
+          .from(tableName)
+          .select(`${idField}, ${nameField}`)
+          .ilike(nameField, `%${search}%`)
+          .order(nameField, { ascending: true })
+          .range(localCount, localCount + 29); // Load 30 more records at once
+
+        if (error) {
+          throw new Error(`Search load failed: ${error.message}`);
+        }
+
+        // Transform and save to cache
+        const documents: DictionaryDocument[] = (data || []).map(record => ({
+          composite_id: `${tableName}::${record[idField]}`,
+          table_name: tableName,
+          id: String(record[idField]),
+          name: String(record[nameField]),
+          cachedAt: Date.now()
+        }));
+
+        if (documents.length > 0) {
+          await this.collection.bulkInsert(documents);
+          console.log(`[DictionaryStore] Cached ${documents.length} search results`);
+        }
+
+        // Re-query from cache after loading
+        const escapedSearchRequery = search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        query = this.collection.find({
+          selector: {
+            table_name: tableName,
+            name: {
+              $regex: escapedSearchRequery,
+              $options: 'i'
+            }
+          }
+        });
+      } catch (error) {
+        console.error(`[DictionaryStore] Failed to load search results:`, error);
+      }
+    }
+
+    // For non-search queries: load if we don't have enough cached data
+    if (!search && cachedCount < offset + limit) {
+      const targetCacheSize = offset + limit;
       const recordsToFetch = targetCacheSize - cachedCount;
 
       console.log(`[DictionaryStore] Need to load more: cachedCount=${cachedCount}, need=${targetCacheSize}, fetching=${recordsToFetch} starting from offset=${cachedCount}`);
 
       await this.loadDictionary(tableName, idField, nameField, recordsToFetch, cachedCount);
+
+      // Re-query from cache after loading
+      query = this.collection.find({
+        selector: {
+          table_name: tableName
+        }
+      });
     }
-
-    // Build query
-    let query = this.collection.find({
-      selector: {
-        table_name: tableName
-      }
-    });
-
-    // Add search filter
-    if (search) {
-      query = query.where('name').regex(new RegExp(search, 'i'));
-    }
-
-    // Get local count for the query (with search filter if applied)
-    const totalDocs = await query.exec();
-    const localTotal = totalDocs.length;
 
     // Apply pagination
     const records = await query
@@ -261,30 +320,34 @@ class DictionaryStore {
       .exec();
 
     // Get server total count to determine hasMore accurately
-    let serverTotal = localTotal;
+    let serverTotal = 0;
     try {
-      // Count total records on server (without search filter for simplicity)
-      const { count, error } = await supabase
+      // For search queries, count with filter; for regular queries, count all
+      let countQuery = supabase
         .from(tableName)
         .select('*', { count: 'exact', head: true });
 
+      if (search) {
+        countQuery = countQuery.ilike(nameField, `%${search}%`);
+      }
+
+      const { count, error } = await countQuery;
+
       if (!error && count !== null) {
         serverTotal = count;
-        console.log(`[DictionaryStore] Server total for ${tableName}: ${serverTotal}`);
+        console.log(`[DictionaryStore] Server total for ${tableName}${search ? ` (search: "${search}")` : ''}: ${serverTotal}`);
       }
     } catch (error) {
-      console.warn(`[DictionaryStore] Failed to get server count for ${tableName}, using local:`, error);
+      console.warn(`[DictionaryStore] Failed to get server count for ${tableName}:`, error);
     }
 
-    // For search queries, use local total; for regular pagination, use server total
-    const total = search ? localTotal : serverTotal;
-    const hasMore = offset + limit < total;
+    const hasMore = offset + limit < serverTotal;
 
-    console.log(`[DictionaryStore] Returning ${records.length} records, hasMore=${hasMore} (offset=${offset}, limit=${limit}, total=${total})`);
+    console.log(`[DictionaryStore] Returning ${records.length} records, hasMore=${hasMore} (offset=${offset}, limit=${limit}, total=${serverTotal})`);
 
     return {
       records: records.map(doc => doc.toJSON()),
-      total,
+      total: serverTotal,
       hasMore
     };
   }

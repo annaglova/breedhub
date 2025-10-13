@@ -59,6 +59,8 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
     const dropdownRef = useRef<HTMLDivElement>(null);
     const dropdownListRef = useRef<HTMLDivElement>(null);
     const searchTimeoutRef = useRef<NodeJS.Timeout>();
+    const prevSearchQueryRef = useRef<string>('');
+    const offsetRef = useRef<number>(0); // Keep offset in sync with state for immediate access
 
     const loading = externalLoading || internalLoading;
 
@@ -68,7 +70,9 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
       setInternalLoading(true);
 
       try {
-        const currentOffset = append ? offset : 0;
+        // Read current offset from ref for immediate access
+        const currentOffset = append ? offsetRef.current : 0;
+
         console.log('[LookupInput] Loading dictionary:', referencedTable, 'search:', query, 'offset:', currentOffset);
 
         const { records, hasMore: more } = await dictionaryStore.getDictionary(referencedTable, {
@@ -87,11 +91,19 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
         console.log('[LookupInput] Loaded options:', opts.length, 'hasMore:', more);
 
         if (append) {
-          setDynamicOptions(prev => [...prev, ...opts]);
-          setOffset(currentOffset + 30);
+          // Filter out duplicates when appending
+          setDynamicOptions(prev => {
+            const existingIds = new Set(prev.map(o => o.value));
+            const newOptions = opts.filter(o => !existingIds.has(o.value));
+            return [...prev, ...newOptions];
+          });
+          const newOffset = currentOffset + 30;
+          setOffset(newOffset);
+          offsetRef.current = newOffset;
         } else {
           setDynamicOptions(opts);
           setOffset(30);
+          offsetRef.current = 30;
         }
 
         setHasMore(more);
@@ -100,7 +112,7 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
       } finally {
         setInternalLoading(false);
       }
-    }, [referencedTable, referencedFieldID, referencedFieldName, offset]);
+    }, [referencedTable, referencedFieldID, referencedFieldName]);
 
     // Load dictionary data on focus/search
     useEffect(() => {
@@ -113,14 +125,32 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
     useEffect(() => {
       if (!referencedTable) return;
 
+      // Clear previous timeout
       if (searchTimeoutRef.current) {
         clearTimeout(searchTimeoutRef.current);
       }
 
-      if (searchQuery) {
-        searchTimeoutRef.current = setTimeout(() => {
-          loadDictionaryOptions(searchQuery);
-        }, 300);
+      const prevQuery = prevSearchQueryRef.current;
+      prevSearchQueryRef.current = searchQuery;
+
+      // Only reset and reload when search query actually changes
+      if (searchQuery !== prevQuery) {
+        if (searchQuery) {
+          // Search query entered - reset and load with search
+          setDynamicOptions([]);
+          setOffset(0);
+          offsetRef.current = 0; // Keep ref in sync
+
+          searchTimeoutRef.current = setTimeout(() => {
+            loadDictionaryOptions(searchQuery, false);
+          }, 300);
+        } else if (prevQuery) {
+          // Search cleared - reload initial data
+          setDynamicOptions([]);
+          setOffset(0);
+          offsetRef.current = 0; // Keep ref in sync
+          loadDictionaryOptions('', false);
+        }
       }
 
       return () => {
@@ -204,7 +234,7 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
 
       // Load more when scrolled to bottom (with 50px threshold)
       if (scrollBottom < 50) {
-        console.log('[LookupInput] Scroll to bottom, loading more...');
+        console.log('[LookupInput] Scroll to bottom, loading more...', 'searchQuery:', searchQuery);
         loadDictionaryOptions(searchQuery, true);
       }
     }, [referencedTable, hasMore, loading, searchQuery, loadDictionaryOptions]);

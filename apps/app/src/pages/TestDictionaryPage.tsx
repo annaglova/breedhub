@@ -3,9 +3,8 @@ import { DropdownInput, LookupInput } from "@ui/components/form-inputs";
 
 export function TestDictionaryPage() {
   const [petType, setPetType] = useState<string>("");
-  const [country, setCountry] = useState<string>("");
-  const [currency, setCurrency] = useState<string>("");
   const [coatColor, setCoatColor] = useState<string>("");
+  const [countryOfBirth, setCountryOfBirth] = useState<string>("");
 
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4">
@@ -32,7 +31,7 @@ export function TestDictionaryPage() {
 
           {/* Pet Type Dropdown */}
           <div>
-            <h3 className="text-lg font-medium mb-2">Pet Type</h3>
+            <h3 className="text-lg font-medium mb-2">Pet Type (DropdownInput)</h3>
             <DropdownInput
               label="Pet Type"
               placeholder="Select pet type"
@@ -49,42 +48,26 @@ export function TestDictionaryPage() {
             )}
           </div>
 
-          {/* Country Dropdown */}
+          {/* Country of Birth Dropdown */}
           <div>
-            <h3 className="text-lg font-medium mb-2">Country</h3>
+            <h3 className="text-lg font-medium mb-2">Country of Birth (DropdownInput)</h3>
             <DropdownInput
-              label="Country"
-              placeholder="Select country"
+              label="Country Of Birth"
+              placeholder="Enter country of birth"
               referencedTable="country"
-              referencedFieldID="code"
+              referencedFieldID="id"
               referencedFieldName="name"
-              value={country}
-              onValueChange={setCountry}
+              value={countryOfBirth}
+              onValueChange={setCountryOfBirth}
             />
-            {country && (
+            {countryOfBirth && (
               <p className="mt-2 text-sm text-gray-600">
-                Selected: {country}
+                Selected: {countryOfBirth}
               </p>
             )}
-          </div>
-
-          {/* Currency Dropdown */}
-          <div>
-            <h3 className="text-lg font-medium mb-2">Currency</h3>
-            <DropdownInput
-              label="Currency"
-              placeholder="Select currency"
-              referencedTable="currency"
-              referencedFieldID="code"
-              referencedFieldName="name"
-              value={currency}
-              onValueChange={setCurrency}
-            />
-            {currency && (
-              <p className="mt-2 text-sm text-gray-600">
-                Selected: {currency}
-              </p>
-            )}
+            <p className="mt-2 text-xs text-gray-500">
+              💡 Scroll down in the dropdown to load more countries
+            </p>
           </div>
 
           {/* Divider */}
@@ -110,7 +93,7 @@ export function TestDictionaryPage() {
               </p>
             )}
             <p className="mt-2 text-xs text-gray-500">
-              💡 Focus on input and type to search. Search is debounced (300ms)
+              💡 Focus + type to search. Debounced (300ms). Scroll for more results.
             </p>
           </div>
 
