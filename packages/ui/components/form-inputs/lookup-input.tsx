@@ -3,6 +3,7 @@ import { Input } from "../input";
 import { FormField } from "../form-field";
 import { cn } from "@ui/lib/utils";
 import { Search, X, Loader2 } from "lucide-react";
+import { dictionaryStore } from "@breedhub/rxdb-store";
 
 interface LookupOption {
   value: string;
@@ -15,40 +16,114 @@ interface LookupInputProps extends Omit<React.InputHTMLAttributes<HTMLInputEleme
   error?: string;
   helperText?: string;
   required?: boolean;
-  options: LookupOption[];
+  options?: LookupOption[]; // Now optional - can be loaded from dictionary
   value?: string;
   onValueChange?: (value: string) => void;
   onSearch?: (query: string) => void;
   loading?: boolean;
   fieldClassName?: string;
+  // Dictionary loading props
+  referencedTable?: string;
+  referencedFieldID?: string;
+  referencedFieldName?: string;
+  dataSource?: 'collection' | 'dictionary'; // Default: dictionary
 }
 
 export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
-  ({ 
-    label, 
+  ({
+    label,
     error,
-    helperText, 
-    required, 
-    options,
+    helperText,
+    required,
+    options = [],
     value,
     onValueChange,
     onSearch,
-    loading,
+    loading: externalLoading,
     className,
     fieldClassName,
     placeholder = "Search...",
-    ...props 
+    referencedTable,
+    referencedFieldID = 'id',
+    referencedFieldName = 'name',
+    dataSource = 'dictionary', // Default to dictionary
+    ...props
   }, ref) => {
     const [isOpen, setIsOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
     const [highlightedIndex, setHighlightedIndex] = useState(0);
+    const [dynamicOptions, setDynamicOptions] = useState<LookupOption[]>(options);
+    const [internalLoading, setInternalLoading] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
+    const searchTimeoutRef = useRef<NodeJS.Timeout>();
+
+    const loading = externalLoading || internalLoading;
+
+    // Load dictionary data on focus/search
+    useEffect(() => {
+      if (isOpen && referencedTable && dynamicOptions.length === 0) {
+        loadDictionaryOptions();
+      }
+    }, [isOpen, referencedTable]);
+
+    // Debounced search
+    useEffect(() => {
+      if (!referencedTable) return;
+
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+
+      if (searchQuery) {
+        searchTimeoutRef.current = setTimeout(() => {
+          loadDictionaryOptions(searchQuery);
+        }, 300);
+      }
+
+      return () => {
+        if (searchTimeoutRef.current) {
+          clearTimeout(searchTimeoutRef.current);
+        }
+      };
+    }, [searchQuery, referencedTable]);
+
+    const loadDictionaryOptions = async (query: string = '') => {
+      if (!referencedTable) return;
+
+      setInternalLoading(true);
+
+      try {
+        console.log('[LookupInput] Loading dictionary:', referencedTable, 'search:', query);
+
+        const { records } = await dictionaryStore.getDictionary(referencedTable, {
+          idField: referencedFieldID,
+          nameField: referencedFieldName,
+          search: query,
+          limit: 30
+        });
+
+        const opts: LookupOption[] = records.map(record => ({
+          value: record.id,
+          label: record.name
+        }));
+
+        console.log('[LookupInput] Loaded options:', opts.length);
+        setDynamicOptions(opts);
+      } catch (error) {
+        console.error(`[LookupInput] Failed to load dictionary ${referencedTable}:`, error);
+      } finally {
+        setInternalLoading(false);
+      }
+    };
+
+    // Use dynamic options if available, otherwise static options
+    const currentOptions = referencedTable ? dynamicOptions : options;
 
     // Find selected option
-    const selectedOption = options.find(opt => opt.value === value);
+    const selectedOption = currentOptions.find(opt => opt.value === value);
 
-    // Filter options based on search
-    const filteredOptions = options.filter(option => 
+    // Filter options based on search (only if not using server-side search)
+    const filteredOptions = referencedTable ? currentOptions : currentOptions.filter(option =>
       option.label.toLowerCase().includes(searchQuery.toLowerCase()) ||
       option.value.toLowerCase().includes(searchQuery.toLowerCase()) ||
       (option.description && option.description.toLowerCase().includes(searchQuery.toLowerCase()))

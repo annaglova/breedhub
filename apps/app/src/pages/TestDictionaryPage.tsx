@@ -1,10 +1,11 @@
 import React, { useState } from "react";
-import { DropdownInput } from "@ui/components/form-inputs";
+import { DropdownInput, LookupInput } from "@ui/components/form-inputs";
 
 export function TestDictionaryPage() {
   const [petType, setPetType] = useState<string>("");
   const [country, setCountry] = useState<string>("");
   const [currency, setCurrency] = useState<string>("");
+  const [coatColor, setCoatColor] = useState<string>("");
 
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4">
@@ -15,10 +16,18 @@ export function TestDictionaryPage() {
 
         <div className="bg-white rounded-lg shadow-md p-8 space-y-6">
           <div>
-            <h2 className="text-xl font-semibold mb-4">Test Dropdowns with DictionaryStore</h2>
+            <h2 className="text-xl font-semibold mb-4">Test Dictionary Components</h2>
             <p className="text-gray-600 mb-6">
               Open browser console to see dictionary loading logs
             </p>
+            <div className="grid grid-cols-2 gap-4 mb-6 text-sm">
+              <div className="p-3 bg-blue-50 rounded">
+                <strong>DropdownInput:</strong> Select to open, loads all records
+              </div>
+              <div className="p-3 bg-green-50 rounded">
+                <strong>LookupInput:</strong> Focus + search, debounced (300ms)
+              </div>
+            </div>
           </div>
 
           {/* Pet Type Dropdown */}
@@ -76,6 +85,33 @@ export function TestDictionaryPage() {
                 Selected: {currency}
               </p>
             )}
+          </div>
+
+          {/* Divider */}
+          <div className="border-t pt-6">
+            <h2 className="text-xl font-semibold mb-4">LookupInput Test</h2>
+          </div>
+
+          {/* Coat Color Lookup */}
+          <div>
+            <h3 className="text-lg font-medium mb-2">Coat Color (Lookup with Search)</h3>
+            <LookupInput
+              label="Coat Color"
+              placeholder="Type to search coat colors..."
+              referencedTable="coat_color"
+              referencedFieldID="id"
+              referencedFieldName="name"
+              value={coatColor}
+              onValueChange={setCoatColor}
+            />
+            {coatColor && (
+              <p className="mt-2 text-sm text-gray-600">
+                Selected: {coatColor}
+              </p>
+            )}
+            <p className="mt-2 text-xs text-gray-500">
+              💡 Focus on input and type to search. Search is debounced (300ms)
+            </p>
           </div>
 
           {/* Debug Info */}
