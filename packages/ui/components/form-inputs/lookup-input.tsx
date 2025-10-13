@@ -1,4 +1,4 @@
-import React, { forwardRef, useState, useRef, useEffect } from "react";
+import React, { forwardRef, useState, useRef, useEffect, useCallback } from "react";
 import { Input } from "../input";
 import { FormField } from "../form-field";
 import { cn } from "@ui/lib/utils";
@@ -54,17 +54,60 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
     const [highlightedIndex, setHighlightedIndex] = useState(0);
     const [dynamicOptions, setDynamicOptions] = useState<LookupOption[]>(options);
     const [internalLoading, setInternalLoading] = useState(false);
+    const [offset, setOffset] = useState(0);
+    const [hasMore, setHasMore] = useState(true);
     const dropdownRef = useRef<HTMLDivElement>(null);
+    const dropdownListRef = useRef<HTMLDivElement>(null);
     const searchTimeoutRef = useRef<NodeJS.Timeout>();
 
     const loading = externalLoading || internalLoading;
+
+    const loadDictionaryOptions = useCallback(async (query: string = '', append: boolean = false) => {
+      if (!referencedTable) return;
+
+      setInternalLoading(true);
+
+      try {
+        const currentOffset = append ? offset : 0;
+        console.log('[LookupInput] Loading dictionary:', referencedTable, 'search:', query, 'offset:', currentOffset);
+
+        const { records, hasMore: more } = await dictionaryStore.getDictionary(referencedTable, {
+          idField: referencedFieldID,
+          nameField: referencedFieldName,
+          search: query,
+          limit: 30,
+          offset: currentOffset
+        });
+
+        const opts: LookupOption[] = records.map(record => ({
+          value: record.id,
+          label: record.name
+        }));
+
+        console.log('[LookupInput] Loaded options:', opts.length, 'hasMore:', more);
+
+        if (append) {
+          setDynamicOptions(prev => [...prev, ...opts]);
+          setOffset(currentOffset + 30);
+        } else {
+          setDynamicOptions(opts);
+          setOffset(30);
+        }
+
+        setHasMore(more);
+      } catch (error) {
+        console.error(`[LookupInput] Failed to load dictionary ${referencedTable}:`, error);
+      } finally {
+        setInternalLoading(false);
+      }
+    }, [referencedTable, referencedFieldID, referencedFieldName, offset]);
 
     // Load dictionary data on focus/search
     useEffect(() => {
       if (isOpen && referencedTable && dynamicOptions.length === 0) {
         loadDictionaryOptions();
       }
-    }, [isOpen, referencedTable]);
+    }, [isOpen, referencedTable, dynamicOptions.length, loadDictionaryOptions]);
 
     // Debounced search
     useEffect(() => {
@@ -85,36 +128,7 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
           clearTimeout(searchTimeoutRef.current);
         }
       };
-    }, [searchQuery, referencedTable]);
-
-    const loadDictionaryOptions = async (query: string = '') => {
-      if (!referencedTable) return;
-
-      setInternalLoading(true);
-
-      try {
-        console.log('[LookupInput] Loading dictionary:', referencedTable, 'search:', query);
-
-        const { records } = await dictionaryStore.getDictionary(referencedTable, {
-          idField: referencedFieldID,
-          nameField: referencedFieldName,
-          search: query,
-          limit: 30
-        });
-
-        const opts: LookupOption[] = records.map(record => ({
-          value: record.id,
-          label: record.name
-        }));
-
-        console.log('[LookupInput] Loaded options:', opts.length);
-        setDynamicOptions(opts);
-      } catch (error) {
-        console.error(`[LookupInput] Failed to load dictionary ${referencedTable}:`, error);
-      } finally {
-        setInternalLoading(false);
-      }
-    };
+    }, [searchQuery, referencedTable, loadDictionaryOptions]);
 
     // Use dynamic options if available, otherwise static options
     const currentOptions = referencedTable ? dynamicOptions : options;
@@ -161,7 +175,7 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
       switch (e.key) {
         case "ArrowDown":
           e.preventDefault();
-          setHighlightedIndex(prev => 
+          setHighlightedIndex(prev =>
             prev < filteredOptions.length - 1 ? prev + 1 : prev
           );
           break;
@@ -180,6 +194,29 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
           break;
       }
     };
+
+    const handleScroll = useCallback(() => {
+      if (!dropdownListRef.current) return;
+      if (!referencedTable || !hasMore || loading) return;
+
+      const scrollElement = dropdownListRef.current;
+      const scrollBottom = scrollElement.scrollHeight - scrollElement.scrollTop - scrollElement.clientHeight;
+
+      // Load more when scrolled to bottom (with 50px threshold)
+      if (scrollBottom < 50) {
+        console.log('[LookupInput] Scroll to bottom, loading more...');
+        loadDictionaryOptions(searchQuery, true);
+      }
+    }, [referencedTable, hasMore, loading, searchQuery, loadDictionaryOptions]);
+
+    // Set up scroll listener
+    useEffect(() => {
+      const scrollElement = dropdownListRef.current;
+      if (!scrollElement || !isOpen) return;
+
+      scrollElement.addEventListener('scroll', handleScroll);
+      return () => scrollElement.removeEventListener('scroll', handleScroll);
+    }, [handleScroll, isOpen]);
 
     const inputElement = (
       <div className="relative" ref={dropdownRef}>
@@ -218,7 +255,10 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
         </div>
 
         {isOpen && filteredOptions.length > 0 && (
-          <div className="absolute z-50 mt-1 w-full bg-white border border-gray-200 rounded-md shadow-lg max-h-[40vh] overflow-auto">
+          <div
+            ref={dropdownListRef}
+            className="absolute z-50 mt-1 w-full bg-white border border-gray-200 rounded-md shadow-lg max-h-[40vh] overflow-auto"
+          >
             {filteredOptions.map((option, index) => (
               <div
                 key={option.value}
@@ -236,6 +276,17 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
                 )}
               </div>
             ))}
+            {loading && (
+              <div className="px-3 py-2 text-center text-sm text-gray-500">
+                <Loader2 className="h-4 w-4 animate-spin inline-block mr-2" />
+                Loading more...
+              </div>
+            )}
+            {!hasMore && filteredOptions.length > 0 && (
+              <div className="px-3 py-2 text-center text-sm text-gray-400">
+                No more results
+              </div>
+            )}
           </div>
         )}
 

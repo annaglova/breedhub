@@ -1,4 +1,4 @@
-import React, { forwardRef, useState, useRef, useEffect } from "react";
+import React, { forwardRef, useState, useRef, useEffect, useCallback } from "react";
 import { Input } from "../input";
 import { FormField } from "../form-field";
 import { cn } from "@ui/lib/utils";
@@ -50,7 +50,10 @@ export const DropdownInput = forwardRef<HTMLInputElement, DropdownInputProps>(
     const [isOpen, setIsOpen] = useState(false);
     const [loading, setLoading] = useState(false);
     const [dynamicOptions, setDynamicOptions] = useState<DropdownOption[]>(options);
+    const [offset, setOffset] = useState(0);
+    const [hasMore, setHasMore] = useState(true);
     const dropdownRef = useRef<HTMLDivElement>(null);
+    const dropdownListRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
 
     // Use dynamic options if referencedTable is provided, otherwise use static options
@@ -59,24 +62,20 @@ export const DropdownInput = forwardRef<HTMLInputElement, DropdownInputProps>(
     // Find selected option
     const selectedOption = activeOptions?.find(opt => opt.value === value);
 
-    // Load dictionary data when dropdown opens
-    useEffect(() => {
-      if (isOpen && referencedTable && dynamicOptions.length === 0) {
-        loadDictionaryOptions();
-      }
-    }, [isOpen, referencedTable]);
-
-    const loadDictionaryOptions = async () => {
+    const loadDictionaryOptions = useCallback(async (append: boolean = false) => {
       if (!referencedTable) return;
 
       setLoading(true);
 
       try {
-        const { records } = await dictionaryStore.getDictionary(referencedTable, {
+        const currentOffset = append ? offset : 0;
+        console.log('[DropdownInput] Loading dictionary:', referencedTable, 'offset:', currentOffset);
+
+        const { records, hasMore: more } = await dictionaryStore.getDictionary(referencedTable, {
           idField: referencedFieldID,
           nameField: referencedFieldName,
           limit: 30,
-          offset: 0
+          offset: currentOffset
         });
 
         // Transform to dropdown options
@@ -85,13 +84,30 @@ export const DropdownInput = forwardRef<HTMLInputElement, DropdownInputProps>(
           label: record.name
         }));
 
-        setDynamicOptions(opts);
+        console.log('[DropdownInput] Loaded options:', opts.length, 'hasMore:', more);
+
+        if (append) {
+          setDynamicOptions(prev => [...prev, ...opts]);
+          setOffset(currentOffset + 30);
+        } else {
+          setDynamicOptions(opts);
+          setOffset(30);
+        }
+
+        setHasMore(more);
       } catch (error) {
         console.error(`Failed to load dictionary ${referencedTable}:`, error);
       } finally {
         setLoading(false);
       }
-    };
+    }, [referencedTable, referencedFieldID, referencedFieldName, offset]);
+
+    // Load dictionary data when dropdown opens
+    useEffect(() => {
+      if (isOpen && referencedTable && dynamicOptions.length === 0) {
+        loadDictionaryOptions();
+      }
+    }, [isOpen, referencedTable, dynamicOptions.length, loadDictionaryOptions]);
 
     // Handle clicks outside
     useEffect(() => {
@@ -117,6 +133,51 @@ export const DropdownInput = forwardRef<HTMLInputElement, DropdownInputProps>(
         setIsOpen(false);
       }
     };
+
+    const handleScroll = useCallback(() => {
+      if (!dropdownListRef.current) {
+        console.log('[DropdownInput] handleScroll: no ref');
+        return;
+      }
+
+      const scrollElement = dropdownListRef.current;
+      const scrollBottom = scrollElement.scrollHeight - scrollElement.scrollTop - scrollElement.clientHeight;
+
+      console.log('[DropdownInput] Scroll event:', {
+        scrollBottom,
+        hasMore,
+        loading,
+        offset,
+        referencedTable
+      });
+
+      if (!referencedTable || !hasMore || loading) {
+        console.log('[DropdownInput] Scroll blocked:', { referencedTable, hasMore, loading });
+        return;
+      }
+
+      // Load more when scrolled to bottom (with 50px threshold)
+      if (scrollBottom < 50) {
+        console.log('[DropdownInput] Scroll to bottom, loading more... offset:', offset);
+        loadDictionaryOptions(true);
+      }
+    }, [referencedTable, hasMore, loading, offset, loadDictionaryOptions]);
+
+    // Set up scroll listener
+    useEffect(() => {
+      const scrollElement = dropdownListRef.current;
+      if (!scrollElement || !isOpen) {
+        console.log('[DropdownInput] Scroll listener setup skipped:', { hasElement: !!scrollElement, isOpen });
+        return;
+      }
+
+      console.log('[DropdownInput] Setting up scroll listener');
+      scrollElement.addEventListener('scroll', handleScroll);
+      return () => {
+        console.log('[DropdownInput] Removing scroll listener');
+        scrollElement.removeEventListener('scroll', handleScroll);
+      };
+    }, [handleScroll, isOpen]);
 
     const selectElement = (
       <div className="relative" ref={dropdownRef}>
@@ -149,8 +210,11 @@ export const DropdownInput = forwardRef<HTMLInputElement, DropdownInputProps>(
         </div>
 
         {isOpen && (
-          <div className="absolute z-50 mt-1 w-full bg-white border border-gray-200 rounded-md shadow-lg max-h-[40vh] overflow-auto">
-            {loading ? (
+          <div
+            ref={dropdownListRef}
+            className="absolute z-50 mt-1 w-full bg-white border border-gray-200 rounded-md shadow-lg max-h-[40vh] overflow-auto"
+          >
+            {loading && dynamicOptions.length === 0 ? (
               <div className="px-3 py-2 text-gray-500 text-center">
                 Loading...
               </div>
@@ -159,26 +223,39 @@ export const DropdownInput = forwardRef<HTMLInputElement, DropdownInputProps>(
                 No options available
               </div>
             ) : (
-              activeOptions.map((option) => (
-                <div
-                  key={option.value}
-                  onClick={() => handleSelect(option)}
-                  className={cn(
-                    "px-3 py-2 text-base cursor-pointer transition-colors flex items-center justify-between",
-                    "hover:bg-gray-100",
-                    option.disabled && "opacity-50 cursor-not-allowed",
-                    option.value === value && "bg-primary-50 text-primary-700"
-                  )}
-                  role="option"
-                  aria-selected={option.value === value}
-                  aria-disabled={option.disabled}
-                >
-                  <span className="!text-[16px]">{option.label}</span>
-                  {option.value === value && (
-                    <Check className="h-4 w-4 text-primary-600" />
-                  )}
-                </div>
-              ))
+              <>
+                {activeOptions.map((option) => (
+                  <div
+                    key={option.value}
+                    onClick={() => handleSelect(option)}
+                    className={cn(
+                      "px-3 py-2 text-base cursor-pointer transition-colors flex items-center justify-between",
+                      "hover:bg-gray-100",
+                      option.disabled && "opacity-50 cursor-not-allowed",
+                      option.value === value && "bg-primary-50 text-primary-700"
+                    )}
+                    role="option"
+                    aria-selected={option.value === value}
+                    aria-disabled={option.disabled}
+                  >
+                    <span className="!text-[16px]">{option.label}</span>
+                    {option.value === value && (
+                      <Check className="h-4 w-4 text-primary-600" />
+                    )}
+                  </div>
+                ))}
+                {loading && (
+                  <div className="px-3 py-2 text-center text-sm text-gray-500">
+                    <span className="inline-block animate-spin mr-2">⏳</span>
+                    Loading more...
+                  </div>
+                )}
+                {!hasMore && activeOptions.length > 0 && (
+                  <div className="px-3 py-2 text-center text-sm text-gray-400">
+                    No more results
+                  </div>
+                )}
+              </>
             )}
           </div>
         )}

@@ -224,10 +224,18 @@ class DictionaryStore {
       })
       .exec();
 
-    // If no cache, load from server
-    // TTL cleanup is handled separately in cleanupExpired()
-    if (cachedCount === 0) {
-      await this.loadDictionary(tableName, idField, nameField, limit, offset);
+    console.log(`[DictionaryStore] getDictionary ${tableName}: cachedCount=${cachedCount}, offset=${offset}, limit=${limit}`);
+
+    // Load from server only if we don't have enough cached data for the requested range
+    // Load only what's needed (like SpaceView approach)
+    const targetCacheSize = offset + limit;
+
+    if (cachedCount < targetCacheSize) {
+      const recordsToFetch = targetCacheSize - cachedCount;
+
+      console.log(`[DictionaryStore] Need to load more: cachedCount=${cachedCount}, need=${targetCacheSize}, fetching=${recordsToFetch} starting from offset=${cachedCount}`);
+
+      await this.loadDictionary(tableName, idField, nameField, recordsToFetch, cachedCount);
     }
 
     // Build query
@@ -242,9 +250,9 @@ class DictionaryStore {
       query = query.where('name').regex(new RegExp(search, 'i'));
     }
 
-    // Get total count
+    // Get local count for the query (with search filter if applied)
     const totalDocs = await query.exec();
-    const total = totalDocs.length;
+    const localTotal = totalDocs.length;
 
     // Apply pagination
     const records = await query
@@ -252,7 +260,27 @@ class DictionaryStore {
       .limit(limit)
       .exec();
 
+    // Get server total count to determine hasMore accurately
+    let serverTotal = localTotal;
+    try {
+      // Count total records on server (without search filter for simplicity)
+      const { count, error } = await supabase
+        .from(tableName)
+        .select('*', { count: 'exact', head: true });
+
+      if (!error && count !== null) {
+        serverTotal = count;
+        console.log(`[DictionaryStore] Server total for ${tableName}: ${serverTotal}`);
+      }
+    } catch (error) {
+      console.warn(`[DictionaryStore] Failed to get server count for ${tableName}, using local:`, error);
+    }
+
+    // For search queries, use local total; for regular pagination, use server total
+    const total = search ? localTotal : serverTotal;
     const hasMore = offset + limit < total;
+
+    console.log(`[DictionaryStore] Returning ${records.length} records, hasMore=${hasMore} (offset=${offset}, limit=${limit}, total=${total})`);
 
     return {
       records: records.map(doc => doc.toJSON()),
