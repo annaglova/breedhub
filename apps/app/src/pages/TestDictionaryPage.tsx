@@ -4,7 +4,7 @@ import { DropdownInput, LookupInput } from "@ui/components/form-inputs";
 export function TestDictionaryPage() {
   const [petType, setPetType] = useState<string>("");
   const [coatColor, setCoatColor] = useState<string>("");
-  const [countryOfBirth, setCountryOfBirth] = useState<string>("");
+  const [breed, setBreed] = useState<string>("");
 
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4">
@@ -19,12 +19,15 @@ export function TestDictionaryPage() {
             <p className="text-gray-600 mb-6">
               Open browser console to see dictionary loading logs
             </p>
-            <div className="grid grid-cols-2 gap-4 mb-6 text-sm">
+            <div className="grid grid-cols-3 gap-4 mb-6 text-sm">
               <div className="p-3 bg-blue-50 rounded">
-                <strong>DropdownInput:</strong> Select to open, loads all records
+                <strong>DropdownInput:</strong> Always uses DictionaryStore cache
               </div>
               <div className="p-3 bg-green-50 rounded">
-                <strong>LookupInput:</strong> Focus + search, debounced (300ms)
+                <strong>LookupInput (Dictionary):</strong> Uses DictionaryStore + search
+              </div>
+              <div className="p-3 bg-purple-50 rounded">
+                <strong>LookupInput (Collection):</strong> Uses existing RxDB collection
               </div>
             </div>
           </div>
@@ -48,28 +51,6 @@ export function TestDictionaryPage() {
             )}
           </div>
 
-          {/* Country of Birth Dropdown */}
-          <div>
-            <h3 className="text-lg font-medium mb-2">Country of Birth (DropdownInput)</h3>
-            <DropdownInput
-              label="Country Of Birth"
-              placeholder="Enter country of birth"
-              referencedTable="country"
-              referencedFieldID="id"
-              referencedFieldName="name"
-              value={countryOfBirth}
-              onValueChange={setCountryOfBirth}
-            />
-            {countryOfBirth && (
-              <p className="mt-2 text-sm text-gray-600">
-                Selected: {countryOfBirth}
-              </p>
-            )}
-            <p className="mt-2 text-xs text-gray-500">
-              💡 Scroll down in the dropdown to load more countries
-            </p>
-          </div>
-
           {/* Divider */}
           <div className="border-t pt-6">
             <h2 className="text-xl font-semibold mb-4">LookupInput Test</h2>
@@ -77,7 +58,7 @@ export function TestDictionaryPage() {
 
           {/* Coat Color Lookup */}
           <div>
-            <h3 className="text-lg font-medium mb-2">Coat Color (Lookup with Search)</h3>
+            <h3 className="text-lg font-medium mb-2">Coat Color (Lookup with Search - Dictionary Mode)</h3>
             <LookupInput
               label="Coat Color"
               placeholder="Type to search coat colors..."
@@ -94,6 +75,35 @@ export function TestDictionaryPage() {
             )}
             <p className="mt-2 text-xs text-gray-500">
               💡 Focus + type to search. Debounced (300ms). Scroll for more results.
+            </p>
+            <p className="mt-2 text-xs text-blue-600 font-medium">
+              Mode: Dictionary (uses DictionaryStore cache)
+            </p>
+          </div>
+
+          {/* Breed Lookup with Collection Mode */}
+          <div>
+            <h3 className="text-lg font-medium mb-2">Breed (Lookup - Collection Mode)</h3>
+            <LookupInput
+              label="Breed"
+              placeholder="Type to search breeds..."
+              referencedTable="breed"
+              referencedFieldID="id"
+              referencedFieldName="name"
+              dataSource="collection"
+              value={breed}
+              onValueChange={setBreed}
+            />
+            {breed && (
+              <p className="mt-2 text-sm text-gray-600">
+                Selected: {breed}
+              </p>
+            )}
+            <p className="mt-2 text-xs text-gray-500">
+              💡 Focus + type to search. Uses existing RxDB collection instead of DictionaryStore.
+            </p>
+            <p className="mt-2 text-xs text-green-600 font-medium">
+              Mode: Collection (uses existing breed RxDB collection)
             </p>
           </div>
 

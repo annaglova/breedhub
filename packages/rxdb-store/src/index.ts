@@ -3,7 +3,7 @@ export { EntityStore } from './stores/base';
 export type { EntityStoreInstance } from './stores/base';
 
 // Services
-export { databaseService } from './services/database.service';
+export { databaseService, getDatabase } from './services/database.service';
 export { entityReplicationService, EntityReplicationService } from './services/entity-replication.service';
 
 // Hooks

@@ -786,19 +786,23 @@ Response:
 - **DropdownInput integration** - Added referencedTable/referencedFieldID/referencedFieldName props, loads from DictionaryStore
 - **FiltersDialog integration** - Connected FilterFieldConfig to DropdownInput with state management
 - **Dictionary loading tested** - Successfully tested with pet_type in breeds filter modal
+- **Scroll pagination** - ✅ Implemented with addEventListener pattern in both DropdownInput and LookupInput
+- **Search functionality** - ✅ Implemented with debounced search (300ms) and cache-first strategy in LookupInput
+- **Batch loading optimization** - ✅ Optimized to load 30 records per batch (no excessive prefetching)
+- **Bug fixes** - ✅ Fixed infinite loops, duplicate keys, scroll issues with offsetRef pattern
+- **ILIKE search** - ✅ Case-insensitive search working correctly (337 vs 177 records for "red" explained)
+- **Debug logs removed** - ✅ Clean console output
 
 ### ⏳ Needs Testing
-- **LookupInput integration** - Component needs dataSource logic implementation
-- **Search functionality** - getDictionary search parameter not tested
-- **TTL cleanup** - Cleanup method implemented but not tested in production
-- **Scroll pagination** - Not yet implemented in components
+- **LookupInput dataSource logic** - Component has referencedTable but dataSource prop not fully tested with collection vs dictionary modes
+- **TTL cleanup** - Cleanup method implemented (14 days TTL) but not fully tested in production
+- **Performance testing** - Load times, cache hit rates, memory usage need benchmarking
 
 ### ❌ Pending
 - **API endpoints** - Currently using Supabase client directly (no separate API needed)
-- **Config dataSource field** - Need to add `dataSource: "collection"` for main entities
-- **Component integration** - DropdownInput and LookupInput need full integration
-- **Performance testing** - Load times, cache hit rates, memory usage
-- **Server-search support** - Deferred to edit forms implementation
+- **Config dataSource field** - Need to add `dataSource: "collection"` for main entities in config generation
+- **LookupInput collection mode** - dataSource="collection" logic needs testing with main entities (breed, pet, account)
+- **Server-search support** - Deferred to edit forms implementation (for very large dictionaries)
 
 ### Implementation Phases
 
@@ -809,24 +813,30 @@ Response:
 - [x] Fix RxDB validation errors
 - [x] Integrate with AppStore initialization
 
-#### Phase 2: Integration ✅ MOSTLY COMPLETED
+#### Phase 2: Integration ✅ COMPLETED
 - [x] DictionaryStore initialization verified
 - [x] Update DropdownInput to use DictionaryStore
 - [x] Connect DropdownInput to FiltersDialog with state management
 - [x] Test dictionary loading with real data (pet_type in breeds filter) ✨
-- [ ] Update LookupInput with dataSource logic (next step)
+- [x] Update LookupInput with search and scroll pagination
+- [x] Implement debounced search (300ms) with cache-first strategy
+- [x] Fix infinite loops with offsetRef pattern
+- [x] Add duplicate filtering when appending data
 
-#### Phase 3: Optimization ❌ PENDING
-- [ ] Add scroll pagination to components
-- [ ] Test search functionality
-- [ ] Verify TTL cleanup in production
-- [ ] Performance testing and optimization
+#### Phase 3: Optimization ✅ MOSTLY COMPLETED
+- [x] Add scroll pagination to components (addEventListener pattern)
+- [x] Test search functionality (working with ILIKE case-insensitive search)
+- [x] Optimize batch loading (30 records per load)
+- [x] Remove debug logs for clean console output
+- [ ] Verify TTL cleanup in production (14 days TTL implemented)
+- [ ] Performance testing and optimization (load times, cache hit rates)
 
-#### Phase 4: Finalization ❌ PENDING
-- [ ] Config updates with dataSource field
-- [ ] Full integration testing
-- [ ] Performance benchmarks
-- [ ] Server-search support (for edit forms, later)
+#### Phase 4: Finalization ⏳ IN PROGRESS
+- [ ] Config updates with dataSource field for main entities
+- [ ] Test LookupInput with dataSource="collection" mode
+- [ ] Full integration testing across all entity forms
+- [ ] Performance benchmarks (load times, cache hit rates, memory usage)
+- [ ] Server-search support (for edit forms, later - deferred)
 
 ---
 

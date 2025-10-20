@@ -318,415 +318,147 @@ const componentMap = {
 
 ---
 
-## 📋 НАСТУПНА ЗАДАЧА: Dictionary Loading Strategy
+## 📋 ПОТОЧНІ ЗАДАЧІ
 
-**Статус:** Ready to Start
+### ✅ **Завершено: Dictionary Loading Strategy**
+
+**Статус:** Completed ✅
 **Документація:** `/docs/DICTIONARY_LOADING_STRATEGY.md`
-**Оцінка часу:** 3-4 дні роботи
+
+**Що зроблено:**
+- ✅ DictionaryStore з universal RxDB collection
+- ✅ DropdownInput інтеграція з scroll pagination
+- ✅ LookupInput з двома режимами (dictionary / collection)
+- ✅ Search з debounce (300ms) і cache-first стратегія
+- ✅ Scroll pagination (30 записів за раз)
+- ✅ TTL cleanup (14 днів)
+- ✅ Batch loading optimization
+- ✅ ILIKE case-insensitive search
+
+**Що залишилось:**
+- ⏳ Performance benchmarks
+- ⏳ Config updates з dataSource field для main entities
+- ⏳ LookupInput collection mode повне тестування
+
+---
+
+### 🚀 **Поточна задача: SpaceStore Filtering & Search**
+
+**Статус:** In Progress 🔄
+**Документація:** `/docs/FILTERING_IMPLEMENTATION_PLAN.md`
+**Пріоритет:** HIGH
 
 ### 🎯 Мета
 
-Реалізувати систему кешування довідників (dictionaries) для DropdownInput та LookupInput компонентів:
-- **Dictionaries** (120+ таблиць) → ONE universal RxDB collection
-- **Main entities** (breed, pet, account) → Existing collections
-- **On-demand loading** - завантажуємо тільки при відкритті dropdown
-- **TTL cleanup** - автоматичне видалення старих записів
+Реалізувати універсальну систему фільтрації і пошуку для SpaceStore, яка буде використовуватися:
+1. **SpaceView** - пошук та фільтри для списків entities (breeds, pets, accounts)
+2. **LookupInput (collection mode)** - пошук по main entities з підгрузкою
 
 ### 🏗️ Архітектура
 
 ```
-Config (dataSource field)
+URL Query Params (Single Source of Truth)
   ↓
-Component opens (DropdownInput/LookupInput)
+SpaceStore.applyFilters(entityType, filters, options)
   ↓
-Check dataSource:
-  - "collection" → Use existing RxDB collection (breed, pet, etc.)
-  - not specified → Use DictionaryStore (pet_type, country, etc.)
-  ↓
-DictionaryStore:
-  1. Check RxDB cache
-  2. If not found → fetch from Supabase
-  3. Save to RxDB with composite key (table_name::id)
-  4. Return to UI
+├─ Try RxDB Local Search First
+│  └─ Build RxDB query with filters (AND logic)
+│
+├─ If not enough results
+│  └─ Fetch from Supabase with filters
+│     └─ Cache in RxDB
+│
+└─ Return { records, total, hasMore }
+
+Used by:
+- SearchBar → updates URL param 'Name' (debounced 500ms)
+- FiltersDialog → updates multiple URL params (on Apply)
+- LookupInput → calls applyFilters() for collection mode
 ```
 
-### 📐 Детальний План Імплементації
+### 📐 План імплементації
 
-#### **День 1: Foundation (3-4 год)**
+#### **Phase 1: SpaceStore.applyFilters() Core (Priority 1)**
 
-**1.1 Створити Schema (30 хв)**
-```bash
-File: packages/rxdb-store/src/collections/dictionaries.schema.ts
-```
-
-**Schema structure:**
+**Що треба зробити:**
 ```typescript
-{
-  primaryKey: {
-    key: 'composite_id',
-    fields: ['table_name', 'id'],
-    separator: '::'
-  },
-  properties: {
-    composite_id: string,  // "pet_type::uuid-123"
-    table_name: string,     // "pet_type"
-    id: string,             // "uuid-123"
-    name: string,           // "Dog"
-    _cached_at: number      // 1696598400000
-  },
-  indexes: ['table_name', ['table_name', 'name'], '_cached_at']
+// Add to SpaceStore
+async applyFilters(
+  entityType: string,
+  filters: Record<string, any>,  // { name: 'golden', pet_type_id: 'uuid' }
+  options?: {
+    limit?: number;
+    offset?: number;
+    fieldConfigs?: Record<string, FilterFieldConfig>;
+  }
+): Promise<{ records: any[]; total: number; hasMore: boolean }>
+```
+
+**Ключові особливості:**
+1. **Operator detection** - автоматично визначається по field type:
+   - `string` → ILIKE (search)
+   - `uuid` → eq (exact match)
+   - `number` → eq/gt/lt
+   - `date` → gte/lte
+
+2. **AND logic** - всі фільтри комбінуються через AND
+
+3. **RxDB → Supabase strategy**:
+   - Спочатку шукаємо локально в RxDB
+   - Якщо мало результатів → підгружаємо з Supabase
+   - Кешуємо результати
+
+4. **Використовується в:**
+   - SpaceView (search + filters)
+   - LookupInput (collection mode search)
+
+#### **Phase 2: SearchBar Component (Priority 2)**
+
+**Що треба зробити:**
+- Компонент SearchBar з debounce (500ms)
+- Оновлює URL query param `Name`
+- SpaceView підписується на URL зміни
+- Викликає `spaceStore.applyFilters({ name: searchValue })`
+
+#### **Phase 3: FiltersDialog + URL params (Priority 3)**
+
+**Що треба зробити:**
+- FiltersDialog з multiple filters
+- Apply button → оновлює всі URL params одночасно
+- Cancel → скидає форму до URL state
+- URL = Single Source of Truth
+
+#### **Phase 4: LookupInput Integration (Priority 4)**
+
+**Що треба зробити:**
+```typescript
+// LookupInput викликає SpaceStore.applyFilters()
+if (dataSource === 'collection') {
+  const { records, hasMore } = await spaceStore.applyFilters(
+    referencedTable,
+    { [referencedFieldName]: searchQuery },
+    { limit: 30, offset: currentOffset }
+  );
 }
 ```
-
-**1.2 Створити DictionaryStore Skeleton (1 год)**
-```bash
-File: packages/rxdb-store/src/stores/dictionary-store.signal-store.ts
-```
-
-**Methods:**
-- `initialize()` - Створити колекцію dictionaries якщо не існує
-- `loadDictionary(tableName, limit, offset)` - Fetch + RxDB bulkInsert
-- `getDictionary(tableName, options)` - Read from RxDB cache
-- `cleanupExpired()` - Видалити записи старші за TTL
-
-**1.3 Інтегрувати з AppStore (30 хв)**
-```typescript
-// app-store.signal-store.ts
-async initialize() {
-  // ... existing code ...
-
-  this.initialized.value = true;
-
-  // Initialize DictionaryStore асинхронно (без await!)
-  this.initializeDictionaryStore();
-}
-
-private async initializeDictionaryStore() {
-  try {
-    await dictionaryStore.initialize();
-    console.log('[AppStore] DictionaryStore ready');
-  } catch (error) {
-    console.error('[AppStore] DictionaryStore init failed:', error);
-  }
-}
-```
-
-**1.4 Експорт (15 хв)**
-```typescript
-// packages/rxdb-store/src/index.ts
-export { dictionaryStore } from './stores/dictionary-store.signal-store';
-```
-
-**1.5 Базове Тестування (1 год)**
-- Перевірити що AppStore не падає
-- Перевірити що колекція створюється
-- Console logs для debugging
-
----
-
-#### **День 2: Backend + Loading (4-5 год)**
-
-**2.1 Supabase Client Integration (1 год)**
-```typescript
-// В DictionaryStore додати Supabase client (як в app-config.signal-store)
-private supabase: SupabaseClient;
-
-constructor() {
-  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-  const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-  this.supabase = createClient(supabaseUrl, supabaseKey);
-}
-```
-
-**2.2 Implement loadDictionary() (2 год)**
-```typescript
-async loadDictionary(tableName: string, limit = 100, offset = 0) {
-  // 1. Fetch з Supabase
-  const { data, error } = await this.supabase
-    .from(tableName)
-    .select('id, name')
-    .order('name', { ascending: true })
-    .range(offset, offset + limit - 1);
-
-  // 2. Transform для RxDB
-  const documents = data.map(record => ({
-    composite_id: `${tableName}::${record.id}`,
-    table_name: tableName,
-    id: record.id,
-    name: record.name,
-    _cached_at: Date.now()
-  }));
-
-  // 3. BulkInsert в RxDB
-  await this.collection.bulkInsert(documents);
-
-  return documents;
-}
-```
-
-**2.3 Implement getDictionary() (1 год)**
-```typescript
-async getDictionary(tableName: string, options: {
-  search?: string;
-  limit?: number;
-  offset?: number;
-}) {
-  // 1. Check cache
-  const cachedCount = await this.collection
-    .count({ selector: {
-      table_name: tableName,
-      _cached_at: { $gt: Date.now() - TTL }
-    }})
-    .exec();
-
-  // 2. If no cache → load
-  if (cachedCount === 0) {
-    await this.loadDictionary(tableName, options.limit, options.offset);
-  }
-
-  // 3. Query з RxDB
-  let query = this.collection.find({
-    selector: { table_name: tableName }
-  });
-
-  if (options.search) {
-    query = query.where('name').regex(new RegExp(options.search, 'i'));
-  }
-
-  const records = await query
-    .skip(options.offset || 0)
-    .limit(options.limit || 30)
-    .exec();
-
-  return records.map(doc => doc.toJSON());
-}
-```
-
-**2.4 Тестування (1 год)**
-- Відкрити console
-- Викликати `dictionaryStore.getDictionary('pet_type')`
-- Перевірити IndexedDB → dictionaries collection
-- Перевірити що дані завантажилися
-
----
-
-#### **День 3: Components Integration (3-4 год)**
-
-**3.1 Оновити DropdownInput (1.5 год)**
-```typescript
-// packages/ui/components/form-inputs/dropdown-input.tsx
-
-const [dynamicOptions, setDynamicOptions] = useState(options || []);
-const [loading, setLoading] = useState(false);
-const [isOpen, setIsOpen] = useState(false);
-
-useEffect(() => {
-  if (isOpen && referencedTable && dynamicOptions.length === 0) {
-    loadDictionaryOptions();
-  }
-}, [isOpen, referencedTable]);
-
-const loadDictionaryOptions = async () => {
-  if (!referencedTable) return;
-
-  setLoading(true);
-  try {
-    const { records } = await dictionaryStore.getDictionary(referencedTable, {
-      limit: 30,
-      offset: 0
-    });
-
-    const opts = records.map(r => ({
-      value: r.id,
-      label: r.name
-    }));
-
-    setDynamicOptions(opts);
-  } catch (error) {
-    console.error(`Failed to load ${referencedTable}:`, error);
-  } finally {
-    setLoading(false);
-  }
-};
-```
-
-**3.2 Оновити LookupInput (1.5 год)**
-```typescript
-// packages/ui/components/form-inputs/lookup-input.tsx
-
-const loadOptions = async (query: string = '') => {
-  setLoading(true);
-
-  try {
-    let records = [];
-
-    if (dataSource === 'collection') {
-      // Use existing RxDB collection
-      const db = await getDatabase();
-      const collection = db[referencedTable];
-
-      const docs = await collection
-        .find({
-          selector: query ? {
-            name: { $regex: new RegExp(query, 'i') }
-          } : {}
-        })
-        .limit(30)
-        .exec();
-
-      records = docs.map(doc => ({
-        id: doc.id,
-        name: doc.name
-      }));
-    } else {
-      // Default: Use DictionaryStore
-      const result = await dictionaryStore.getDictionary(referencedTable, {
-        search: query,
-        limit: 30
-      });
-      records = result.records;
-    }
-
-    setOptions(records.map(r => ({
-      value: r.id,
-      label: r.name
-    })));
-  } finally {
-    setLoading(false);
-  }
-};
-
-// Debounce search
-useEffect(() => {
-  const timer = setTimeout(() => {
-    loadOptions(searchQuery);
-  }, 300);
-
-  return () => clearTimeout(timer);
-}, [searchQuery]);
-```
-
-**3.3 Тестування в UI (1 год)**
-- Відкрити breed form
-- Протестувати DropdownInput з pet_type (dictionary)
-- Протестувати LookupInput з account (collection)
-- Перевірити loading states
-- Перевірити що дані кешуються
-
----
-
-#### **День 4: Polish + TTL (2-3 год)**
-
-**4.1 Implement TTL Cleanup (1 год)**
-```typescript
-async cleanupExpired() {
-  if (!this.collection) return;
-
-  const TTL = 14 * 24 * 60 * 60 * 1000; // 14 днів
-  const expiryTime = Date.now() - TTL;
-
-  const expiredDocs = await this.collection
-    .find({
-      selector: {
-        _cached_at: { $lt: expiryTime }
-      }
-    })
-    .exec();
-
-  if (expiredDocs.length > 0) {
-    console.log(`[DictionaryStore] Cleaning ${expiredDocs.length} expired records`);
-
-    for (const doc of expiredDocs) {
-      await doc.remove(); // Soft delete → RxDB cleanup видалить
-    }
-  }
-}
-
-// Викликати при initialize() і кожні 24 години
-async initialize() {
-  // ... existing code ...
-
-  // Run cleanup
-  await this.cleanupExpired();
-
-  // Schedule periodic cleanup (every 24 hours)
-  setInterval(() => {
-    this.cleanupExpired();
-  }, 24 * 60 * 60 * 1000);
-}
-```
-
-**4.2 Error Handling (1 год)**
-- Network errors
-- Supabase errors
-- RxDB errors
-- Loading states
-- Empty states
-
-**4.3 Scroll Pagination (Опціонально, 1 год)**
-```typescript
-// In DropdownInput
-const [hasMore, setHasMore] = useState(true);
-const [offset, setOffset] = useState(0);
-
-const handleScroll = async (e: React.UIEvent<HTMLDivElement>) => {
-  const target = e.currentTarget;
-  const scrollBottom = target.scrollHeight - target.scrollTop - target.clientHeight;
-
-  if (scrollBottom < 50 && hasMore && !loading) {
-    await loadMoreOptions();
-  }
-};
-
-const loadMoreOptions = async () => {
-  const newOffset = offset + 30;
-  const result = await dictionaryStore.getDictionary(referencedTable, {
-    limit: 30,
-    offset: newOffset
-  });
-
-  setDynamicOptions(prev => [...prev, ...result.records]);
-  setOffset(newOffset);
-  setHasMore(result.hasMore);
-};
-```
-
----
-
-### 📝 Відкриті Рішення
-
-Перед стартом вирішити:
-
-1. **TTL Period:**
-   - Dictionaries: 14 днів ✅
-   - Main entities: 30 днів (опціонально, пізніше)
-
-2. **Data Source:**
-   - Використовуємо Supabase client напряму (як в app-config)
-   - Без окремого API endpoint для старту
-   - Edge Function можна додати пізніше для оптимізації
-
-3. **Cleanup Strategy:**
-   - Тільки для dictionaries зараз
-   - Main entities - окрема задача пізніше
-
-### 🎯 Definition of Done
-
-- [ ] DictionaryStore створює колекцію dictionaries
-- [ ] getDictionary() завантажує з Supabase і кешує в RxDB
-- [ ] DropdownInput завантажує опції з DictionaryStore
-- [ ] LookupInput перемикається між collection/dictionary по dataSource
-- [ ] TTL cleanup видаляє записи старші за 14 днів
-- [ ] Тестовано з pet_type, country, currency (dictionaries)
-- [ ] Тестовано з account, breed, contact (main entities)
-- [ ] Loading states в UI
-- [ ] Error handling
 
 ### 📚 Документація
 
-- Детальна стратегія: `/docs/DICTIONARY_LOADING_STRATEGY.md`
-- Entity configs з dataSource: `/apps/config-admin/src/data/entities/**/*.json`
+**Основні документи:**
+- `/docs/FILTERING_IMPLEMENTATION_PLAN.md` - Детальний план фільтрації
+- `/docs/DICTIONARY_LOADING_STRATEGY.md` - Dictionary loading (completed)
+
+**Пов'язані теми:**
+- URL Query Params як Single Source of Truth
+- AND-only filter logic
+- RxDB-first, Supabase-second strategy
+- Scroll pagination
+- Debounced search
 
 ---
 
-**READY FOR DEVELOPMENT! 🚀**
+**READY TO START! 🚀**
+
+Почати з Phase 1: SpaceStore.applyFilters() core implementation
+
+---

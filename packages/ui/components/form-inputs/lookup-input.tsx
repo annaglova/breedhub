@@ -3,7 +3,7 @@ import { Input } from "../input";
 import { FormField } from "../form-field";
 import { cn } from "@ui/lib/utils";
 import { Search, X, Loader2 } from "lucide-react";
-import { dictionaryStore } from "@breedhub/rxdb-store";
+import { dictionaryStore, getDatabase } from "@breedhub/rxdb-store";
 
 interface LookupOption {
   value: string;
@@ -73,22 +73,71 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
         // Read current offset from ref for immediate access
         const currentOffset = append ? offsetRef.current : 0;
 
-        console.log('[LookupInput] Loading dictionary:', referencedTable, 'search:', query, 'offset:', currentOffset);
+        let opts: LookupOption[] = [];
+        let more = false;
 
-        const { records, hasMore: more } = await dictionaryStore.getDictionary(referencedTable, {
-          idField: referencedFieldID,
-          nameField: referencedFieldName,
-          search: query,
-          limit: 30,
-          offset: currentOffset
-        });
+        if (dataSource === 'collection') {
+          // Mode: Use existing RxDB collection (breed, pet, account, etc.)
+          console.log('[LookupInput] Loading from collection:', referencedTable, 'search:', query, 'offset:', currentOffset);
 
-        const opts: LookupOption[] = records.map(record => ({
-          value: record.id,
-          label: record.name
-        }));
+          const db = await getDatabase();
 
-        console.log('[LookupInput] Loaded options:', opts.length, 'hasMore:', more);
+          // Access collection dynamically
+          const collection = (db as any)[referencedTable];
+
+          if (!collection) {
+            throw new Error(`Collection ${referencedTable} not found. Available collections: ${Object.keys((db as any).collections || {}).join(', ')}`);
+          }
+
+          // Build selector with search filter
+          const selector: any = query ? {
+            [referencedFieldName]: {
+              $regex: query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'),
+              $options: 'i'
+            }
+          } : {};
+
+          // Query collection
+          const docs = await collection
+            .find({ selector })
+            .skip(currentOffset)
+            .limit(30)
+            .exec();
+
+          // Get total count for hasMore
+          const totalDocs = await collection
+            .find({ selector })
+            .exec();
+
+          opts = docs.map((doc: any) => ({
+            value: String(doc[referencedFieldID]),
+            label: String(doc[referencedFieldName])
+          }));
+
+          more = currentOffset + 30 < totalDocs.length;
+
+          console.log('[LookupInput] Loaded from collection:', opts.length, 'hasMore:', more);
+        } else {
+          // Mode: Use DictionaryStore cache (default for dictionaries)
+          console.log('[LookupInput] Loading from dictionary:', referencedTable, 'search:', query, 'offset:', currentOffset);
+
+          const { records, hasMore: dictHasMore } = await dictionaryStore.getDictionary(referencedTable, {
+            idField: referencedFieldID,
+            nameField: referencedFieldName,
+            search: query,
+            limit: 30,
+            offset: currentOffset
+          });
+
+          opts = records.map(record => ({
+            value: record.id,
+            label: record.name
+          }));
+
+          more = dictHasMore;
+
+          console.log('[LookupInput] Loaded from dictionary:', opts.length, 'hasMore:', more);
+        }
 
         if (append) {
           // Filter out duplicates when appending
@@ -108,11 +157,11 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
 
         setHasMore(more);
       } catch (error) {
-        console.error(`[LookupInput] Failed to load dictionary ${referencedTable}:`, error);
+        console.error(`[LookupInput] Failed to load ${dataSource === 'collection' ? 'collection' : 'dictionary'} ${referencedTable}:`, error);
       } finally {
         setInternalLoading(false);
       }
-    }, [referencedTable, referencedFieldID, referencedFieldName]);
+    }, [referencedTable, referencedFieldID, referencedFieldName, dataSource]);
 
     // Load dictionary data on focus/search
     useEffect(() => {
