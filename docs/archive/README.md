@@ -1,47 +1,37 @@
-# 📚 Archive - Історичні документи
+# 📦 Archived Documentation
 
-> Ця папка містить застарілі та історичні документи проекту BreedHub
+This directory contains documentation for approaches that were explored but superseded by better solutions.
 
-## Призначення
+## Archived Documents
 
-Документи в цій папці зберігаються для:
-- 📖 Історичного контексту
-- 🔍 Розуміння еволюції архітектури
-- 📝 Аудиту рішень проекту
-- 🎓 Навчальних цілей
+### OFFSET_BASED_PAGINATION.md
+**Date:** 2025-10-06
+**Reason:** Offset pagination doesn't work with partial RxDB cache
+**Problem:** `skip(30)` in RxDB ≠ `range(30, 59)` in Supabase → missing records
+**Superseded by:** ID-First Pagination
 
-## ⚠️ Важливо
+### KEYSET_PAGINATION.md
+**Date:** 2025-10-21
+**Reason:** Cursor pagination also doesn't work with partial cache
+**Problem:** `WHERE name > 'X'` with partial cache → still missing records
+**Superseded by:** ID-First Pagination
 
-**Ці документи НЕ відображають поточну архітектуру проекту!**
+## Current Approach
 
-Для актуальної документації дивіться:
-- [INDEX.md](../INDEX.md) - Покажчик всієї документації
-- [ARCHITECTURE.md](../ARCHITECTURE.md) - Поточна архітектура
-- [LOCAL_FIRST_ROADMAP.md](../LOCAL_FIRST_ROADMAP.md) - Актуальний roadmap
+**ID-First Pagination** (2025-10-21)
+- Fetch IDs first (lightweight)
+- Check RxDB cache by IDs
+- Fetch only missing records
+- 70% traffic reduction
+- Works with ANY ORDER BY
+- Works with partial cache ✅
 
-## 📁 Вміст архіву
-
-### Міграційні документи (deprecated)
-- **NGRX_SIGNAL_STORE_MIGRATION.md** - NgRx міграція (Angular-only, не підходить для React)
-- **MULTISTORE_INTEGRATION_PLAN.md** - План інтеграції MultiStore (замінено на config-driven)
-- **MULTISTORE_ARCHITECTURE.md** - Стара архітектура MultiStore
-
-### Аналітичні документи (historical)
-- **RXDB_VS_YJS_ANALYSIS.md** - Порівняння RxDB vs Yjs (вибрано RxDB)
-- **NGX_ODM_ANALYSIS.md** - Аналіз ngx-odm патернів (концепції впроваджені)
-
-## 📅 Хронологія архівації
-
-- **2024-12**: Переміщено застарілі документи в архів для покращення читабельності
-- Документи залишені для історичного контексту та розуміння прийнятих рішень
-
-## 💡 Навіщо зберігати?
-
-1. **Уникнення повторення помилок** - розуміння, чому певні підходи не спрацювали
-2. **Контекст рішень** - чому обрали поточну архітектуру
-3. **Еволюція проекту** - як розвивалась архітектура
-4. **Документація процесу** - для майбутніх розробників
+**Documentation:** `/docs/ID_FIRST_PAGINATION.md`
 
 ---
 
-*Для роботи з проектом використовуйте актуальну документацію з основної папки `/docs`*
+**Why keep archives?**
+- Historical context
+- Learning from past approaches
+- Reference for similar problems
+- Document evolution of solution

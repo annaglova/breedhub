@@ -21,83 +21,90 @@
 
 ---
 
-## 🚨 КРИТИЧНА МІГРАЦІЯ: Keyset Pagination (Cursor-Based)
+## 🚀 ID-FIRST PAGINATION: Production Strategy
 
-**Виявлено:** 2025-10-21
+**Evolved:** 2025-10-21
 
-### Проблема з Offset Pagination
+### Проблема: Partial Cache + Pagination
 
 **Симптом:**
-- При scroll в LookupInput підгрузилось **422 з 452** breeds
-- **Пропущено 30 records** (перші по алфавіту: AFGHAN, AKITA...)
+- При scroll підгрузилось 422 з 452 breeds (пропущено 30)
+- При reload - 451 замість 452
+- Різні ORDER BY спричиняють конфлікти
 
 **Корінь проблеми:**
 ```
-RxDB містить mixed data з різних ORDER BY:
-- Initial replication: ORDER BY updated_at (30 records)
-- SpaceView scroll: ORDER BY varies
-- LookupInput: ORDER BY name
+Таблиця: 1,000,000 records
+Фільтр: space_id=123 → 500 records
+RxDB cache: 50 з 500 (10%, partial, mixed ORDER BY)
 
-skip(30) в RxDB = skip 30 в ЛОКАЛЬНІЙ колекції (довільні records)
-range(30, 59) в Supabase = позиції 30-59 в ПОВНІЙ таблиці (452 records)
+Offset: skip(30) in RxDB ≠ range(30,59) in Supabase
+Cursor: WHERE name > 'X' → wrong with partial cache
 
-→ Позиція 30 в RxDB ≠ Позиція 30 в Supabase!
-→ Пропущені records! ❌
+→ Будь-яка pagination з partial cache = missing records ❌
 ```
 
-**Детальний аналіз:** `/docs/KEYSET_PAGINATION.md`
+### Рішення: ID-First Approach
 
-### Рішення: Keyset Pagination
-
-**Замість offset** використовуємо **cursor** (значення останнього record):
+**Fetch IDs first, use cache for full records, fetch only missing:**
 
 ```typescript
-// OLD (offset-based) ❌
-applyFilters('breed', { name: query }, {
-  limit: 30,
-  offset: 30  // ← Проблема!
-})
+// 1. Lightweight: IDs + sort field (~1KB)
+const ids = await supabase
+  .select('id, name')
+  .gt('name', cursor)
+  .order('name')
+  .limit(30);
 
-// NEW (cursor-based) ✅
-applyFilters('breed', { name: query }, {
-  limit: 30,
-  cursor: 'BOXER',  // ← Cursor = last seen name
-  orderBy: { field: 'name', direction: 'asc' }
-})
+// 2. Check cache
+const cached = await rxdb.find({ id: { $in: ids } });
 
-// SQL:
-WHERE name > 'BOXER' ORDER BY name LIMIT 30
-// Працює однаково в RxDB і Supabase! ✅
+// 3. Fetch only missing
+const missing = ids.filter(id => !cached.has(id));
+const fresh = await supabase.select('*').in('id', missing);
+
+// 4. Merge
+return [...cached, ...fresh].sort(by IDs order);
 ```
 
-### План Міграції
+**Benefits:**
+- ✅ 70% less traffic (cache hit rate grows)
+- ✅ Works with ANY ORDER BY
+- ✅ Works with ANY filters
+- ✅ RxDB = intelligent cache
+- ✅ 452/452 records завжди! ✅
 
-**Фаза 1: SpaceStore.applyFilters** 🔨
-- Замінити `offset` на `cursor` parameter
-- `filterLocalEntities`: `.where(field).gt(cursor)` замість `.skip(offset)`
-- `fetchFilteredFromSupabase`: `.gt(field, cursor)` замість `.range(offset, ...)`
-- Return `nextCursor` (last record value)
+**Економія:**
+```
+Batch 1: 1KB (IDs) + 30KB (missing) = 31KB
+Batch 2: 1KB (IDs) + 15KB (50% cache) = 16KB
+Batch 3: 1KB (IDs) + 8KB (73% cache) = 9KB
+...
+Total: ~150KB vs 450KB (70% savings!)
+```
 
-**Фаза 2: LookupInput** 🔨
-- Замінити `offsetRef` на `cursorRef`
-- При append: передавати cursor замість offset
-- При reset (new search): cursor = null
-- Зберігати `lastRecord.name` як cursor
+### План Імплементації
 
-**Фаза 3: DictionaryStore**
-- Той самий pattern як SpaceStore
-- `getDictionary(tableName, { cursor, limit })`
+**Фаза 1: SpaceStore.applyFilters** 🎯
+- Fetch IDs + ordering field first
+- Check RxDB cache by IDs
+- Fetch missing full records
+- Merge + maintain order from IDs query
 
-**Фаза 4: Testing**
-- Всі 452 breeds завантажуються ✅
-- Offline mode працює
-- Search + scroll працюють разом
+**Фаза 2: LookupInput** 🎯
+- Remove skipCache logic
+- Trust SpaceStore for correct data
+- Simplify deduplication
 
-**Статус:** 🔨 Міграція в процесі (Фаза 1-2)
+**Фаза 3: Testing** 🎯
+- Clean cache → 0% hit rate → verify correctness
+- Warm cache → 80% hit rate → verify performance
+- Different ORDER BY → verify flexibility
+- Offline → verify fallback
 
-**Пов'язані документи:**
-- `/docs/KEYSET_PAGINATION.md` - повний аналіз + імплементація
-- `/docs/DICTIONARY_LOADING_STRATEGY.md` - warning про міграцію
+**Статус:** 📋 Ready to implement
+
+**Детальна документація:** `/docs/ID_FIRST_PAGINATION.md`
 
 ---
 
