@@ -1,6 +1,7 @@
 # Dictionary Loading Strategy
 
 **Generated:** 2025-10-06
+**Updated:** 2025-10-21
 
 ## Executive Summary
 
@@ -13,9 +14,65 @@
 **Storage:**
 - **Dictionaries** → ONE universal RxDB collection with composite keys (`table_name::id`)
 - **Child tables** → Separate RxDB collections (varied schemas, loaded with parent)
-- **Main entities** → Already have collections, use server-side search (LookupInput)
+- **Main entities** → Entity-specific collections (breed, animal, account), use SpaceStore.applyFilters()
 
 **Key Principle:** Don't overthink it. Let the UI drive what gets cached.
+
+---
+
+## 🔄 UPDATE (2025-10-21): Main Entities Pattern
+
+**Main entities (collection mode) тепер використовують той самий offset-based scroll pattern як dictionaries!**
+
+### Unified Approach
+
+**Dictionaries (DictionaryStore):**
+```typescript
+getDictionary(tableName, { search, limit, offset })
+  → Check RxDB cache
+  → Fetch from Supabase with .range(offset, offset + limit - 1)
+  → Cache results
+  → Return { records, total, hasMore }
+```
+
+**Main Entities (SpaceStore.applyFilters):**
+```typescript
+applyFilters(entityType, filters, { limit, offset })
+  → Check RxDB cache (filtered)
+  → Fetch from Supabase with .range(offset, offset + limit - 1)
+  → Cache results ✅
+  → Return { records, total, hasMore }
+```
+
+### Why Caching is Critical for Main Entities
+
+**Problem:** Тисячі records (breed: 450+, animal: тисячі+)
+
+**Solution:** Cache filtered results
+- Сталі фільтри - користувач шукає "golden" знову і знову
+- Обмежений вибір - юзер цікавиться 10-20 породами, не всіма
+- Офлайн-first - закешовані результати працюють без мережі
+- **Постійно кидати запити в БД - НІ!** ❌
+
+### LookupInput Modes
+
+**Dictionary mode (default):**
+```typescript
+<LookupInput
+  referencedTable="pet_type"
+  // Використовує DictionaryStore
+/>
+```
+
+**Collection mode (main entities):**
+```typescript
+<LookupInput
+  dataSource="collection"
+  referencedTable="breed"
+  // Використовує SpaceStore.applyFilters()
+  // Той самий offset-based scroll pattern! ✅
+/>
+```
 
 ---
 

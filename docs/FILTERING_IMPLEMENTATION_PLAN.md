@@ -1,6 +1,192 @@
 # 🔍 Filtering Implementation Plan
 
-## 📅 Дата: 2025-10-06
+## 📅 Дата створення: 2025-10-06
+## 🔄 Останнє оновлення: 2025-10-21
+
+---
+
+## 🎯 ПОТОЧНИЙ СТАТУС
+
+**Фаза:** Implementation - Scroll Pagination 🔨
+**Прогрес:** Core filtering працює, додаємо offset-based scroll
+
+### ✅ Що працює:
+- `applyFilters()` - universal method для LookupInput + SpaceView
+- RxDB local filtering з regex (FIXED)
+- Supabase remote fetch з filters
+- Field config resolution з prefix lookup (FIXED)
+- Operator auto-detection (string → ilike, uuid → eq)
+- Caching filtered results в RxDB
+
+### 🔨 В процесі:
+- **Scroll pagination** - offset-based як DictionaryStore
+- **hasMore detection** - server count для accurate pagination
+- **Config operator fix** - видалити "eq" для name field
+
+### 📋 Наступні кроки:
+1. Додати `skip(offset)` в filterLocalEntities
+2. Додати `.range(offset, offset + limit - 1)` в fetchFilteredFromSupabase
+3. Додати `getFilteredCount()` для hasMore
+4. Тестувати scroll в LookupInput (collection mode)
+5. Інтегрувати з SpaceView фільтрами
+
+---
+
+## 🏗️ ОНОВЛЕНА АРХІТЕКТУРА (2025-10-21)
+
+### Ключові принципи
+
+**1. Кешування - обов'язкове (як DictionaryStore)**
+```
+Filtered results → ЗАВЖДИ cache в RxDB → Offline-first
+```
+
+**Чому:**
+- Тисячі records (breed: 450+, animal: тисячі+)
+- Сталі фільтри - користувач шукає "golden" знову і знову
+- Обмежений вибір - юзер цікавиться 10-20 породами, не всіма
+- **Постійно кидати запити в БД - НІ!** ❌
+
+**2. Offset-based scroll (як DictionaryStore)**
+```
+Initial: offset=0
+Scroll: offset=30, 60, 90...
+hasMore: offset + limit < serverTotal
+```
+
+**3. Універсальний механізм для ВСІХ випадків:**
+
+**LookupInput (collection mode):**
+```typescript
+// Search з offset
+applyFilters(breed, {name: 'golden'}, {limit: 30, offset: 0})
+  → cache в RxDB
+  → scroll: offset += 30
+```
+
+**SpaceView БЕЗ фільтрів:**
+```typescript
+// Той самий offset-based механізм!
+applyFilters(breed, {}, {limit: 30, offset: 0})
+  → cache в RxDB
+  → scroll: offset += 30
+```
+
+**SpaceView З фільтрами:**
+```typescript
+// Той самий offset-based механізм!
+applyFilters(breed, {name: 'golden'}, {offset: 30})
+  → cache в RxDB
+  → filter change → offset resets to 0 ✅
+```
+
+### ❌ Чому НЕ replication для UI scroll?
+
+**Replication НЕ сумісна з фільтрами:**
+```typescript
+// Checkpoint corruption при зміні фільтрів
+Initial: {name: 'golden'}, checkpoint = 2025-01-01
+Change filter: {name: 'lab'}
+Pull: .gt('updated_at', '2025-01-01').ilike('name', '%lab%')
+Result: ПРОПУСТИТЬ всі Labs створені до 2025-01-01! ❌
+```
+
+**Replication залишається для:**
+- ✅ Background sync (не UI scroll)
+- ✅ Real-time updates (websockets)
+- ✅ Offline sync (майбутнє)
+
+**Детальніше:** `/docs/OFFSET_BASED_PAGINATION.md` 📖
+
+---
+
+## 📐 applyFilters() - Detailed Logic
+
+### Signature
+```typescript
+async applyFilters(
+  entityType: string,
+  filters: Record<string, any>,  // { name: 'golden', pet_type_id: 'uuid' }
+  options?: {
+    limit?: number;   // default: 30
+    offset?: number;  // default: 0
+    fieldConfigs?: Record<string, FilterFieldConfig>;
+  }
+): Promise<{
+  records: any[];
+  total: number;
+  hasMore: boolean
+}>
+```
+
+### Flow
+```typescript
+1. Parse options (limit, offset, fieldConfigs)
+   ↓
+2. Try RxDB local cache FIRST
+   - filterLocalEntities(entityType, filters, limit, offset)
+   - Uses skip(offset).limit(limit)
+   ↓
+3. Check if need remote fetch
+   - localResults.length < limit → not enough in cache
+   - offset > 0 → scroll pagination
+   ↓
+4. Fetch from Supabase (if needed)
+   - fetchFilteredFromSupabase(entityType, filters, limit, offset)
+   - Uses .range(offset, offset + limit - 1)
+   - CACHE results → collection.bulkUpsert(data)
+   ↓
+5. Get server total count
+   - getFilteredCount(entityType, filters)
+   - Supabase count query з filters
+   ↓
+6. Calculate hasMore
+   - hasMore = offset + limit < serverTotal
+   ↓
+7. Return { records, total, hasMore }
+```
+
+### Operator Detection (Auto-smart)
+```typescript
+detectOperator(fieldType: string, configOperator?: string): string {
+  // Use config if set
+  if (configOperator) return configOperator;
+
+  // Auto-detect by type
+  switch (fieldType) {
+    case 'string': return 'ilike';  // Case-insensitive search
+    case 'uuid': return 'eq';       // Exact match
+    case 'number': return 'eq';
+    case 'date': return 'gte';
+    default: return 'eq';
+  }
+}
+```
+
+### RxDB Query Building
+```typescript
+// ilike → regex
+const regex = new RegExp(escapedValue, 'i');
+query.where(fieldName).regex(regex);
+
+// eq
+query.where(fieldName).eq(value);
+
+// Pagination
+query.skip(offset).limit(limit);
+```
+
+### Supabase Query Building
+```typescript
+// ilike
+query.ilike(fieldName, `%${value}%`);
+
+// eq
+query.eq(fieldName, value);
+
+// Pagination
+query.range(offset, offset + limit - 1);
+```
 
 ---
 

@@ -1,4 +1,25 @@
-# Dynamic View Rows Implementation & Smart Data Loading Strategy
+# ⚠️ АРХІВНИЙ ДОКУМЕНТ - ЗАСТАРІЛИЙ ДЛЯ UI SCROLL
+
+**Дата архівації:** 2025-10-21
+
+**Статус:** Checkpoint-based replication підхід застарів для **UI scroll pagination**
+
+**Чому застарів:**
+- ❌ Replication НЕ сумісна з фільтрами (checkpoint corruption)
+- ❌ Gaps в даних при зміні фільтрів
+- ❌ Складна логіка для простого use case
+
+**Де залишається актуальним:**
+- ✅ Background sync (оновлення в фоні)
+- ✅ Real-time updates (websockets)
+- ✅ Offline sync (майбутнє)
+- ✅ Концептуальні принципи (кешування, batch updates)
+
+**Новий підхід:** Offset-based pagination (дивись `/docs/OFFSET_BASED_PAGINATION.md`)
+
+---
+
+# Dynamic View Rows Implementation & Smart Data Loading Strategy (ARCHIVED)
 
 ## 🎯 ФІЛОСОФІЯ: ЗАВАНТАЖУЄМО ТІЛЬКИ ТЕ, ЩО ПОТРІБНО
 

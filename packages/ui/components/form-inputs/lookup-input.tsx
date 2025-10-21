@@ -3,7 +3,7 @@ import { Input } from "../input";
 import { FormField } from "../form-field";
 import { cn } from "@ui/lib/utils";
 import { Search, X, Loader2 } from "lucide-react";
-import { dictionaryStore, getDatabase } from "@breedhub/rxdb-store";
+import { dictionaryStore, spaceStore } from "@breedhub/rxdb-store";
 
 interface LookupOption {
   value: string;
@@ -77,46 +77,33 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
         let more = false;
 
         if (dataSource === 'collection') {
-          // Mode: Use existing RxDB collection (breed, pet, account, etc.)
-          console.log('[LookupInput] Loading from collection:', referencedTable, 'search:', query, 'offset:', currentOffset);
+          // Mode: Use SpaceStore.applyFilters() for main entities
+          console.log('[LookupInput] Loading from collection via SpaceStore:', referencedTable, 'search:', query, 'offset:', currentOffset);
 
-          const db = await getDatabase();
-
-          // Access collection dynamically
-          const collection = (db as any)[referencedTable];
-
-          if (!collection) {
-            throw new Error(`Collection ${referencedTable} not found. Available collections: ${Object.keys((db as any).collections || {}).join(', ')}`);
+          // Build filters object for applyFilters
+          const filters: Record<string, any> = {};
+          if (query) {
+            filters[referencedFieldName] = query;
           }
 
-          // Build selector with search filter
-          const selector: any = query ? {
-            [referencedFieldName]: {
-              $regex: query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'),
-              $options: 'i'
+          // Call universal filtering method
+          const result = await spaceStore.applyFilters(
+            referencedTable,
+            filters,
+            {
+              limit: 30,
+              offset: currentOffset
             }
-          } : {};
+          );
 
-          // Query collection
-          const docs = await collection
-            .find({ selector })
-            .skip(currentOffset)
-            .limit(30)
-            .exec();
-
-          // Get total count for hasMore
-          const totalDocs = await collection
-            .find({ selector })
-            .exec();
-
-          opts = docs.map((doc: any) => ({
-            value: String(doc[referencedFieldID]),
-            label: String(doc[referencedFieldName])
+          opts = result.records.map((record: any) => ({
+            value: String(record[referencedFieldID]),
+            label: String(record[referencedFieldName])
           }));
 
-          more = currentOffset + 30 < totalDocs.length;
+          more = result.hasMore;
 
-          console.log('[LookupInput] Loaded from collection:', opts.length, 'hasMore:', more);
+          console.log('[LookupInput] Loaded from SpaceStore:', opts.length, 'hasMore:', more);
         } else {
           // Mode: Use DictionaryStore cache (default for dictionaries)
           console.log('[LookupInput] Loading from dictionary:', referencedTable, 'search:', query, 'offset:', currentOffset);

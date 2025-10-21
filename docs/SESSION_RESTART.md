@@ -152,18 +152,22 @@ node apps/config-admin/scripts/test/check-db.cjs
 ## 📚 ДЕТАЛЬНА ДОКУМЕНТАЦІЯ
 
 ### Реалізація
-- `/docs/DYNAMIC_VIEW_ROWS_IMPLEMENTATION.md` - Dynamic rows implementation
+- `/docs/OFFSET_BASED_PAGINATION.md` - 🔥 **Offset-based scroll для UI (ACTIVE)**
+- `/docs/FILTERING_IMPLEMENTATION_PLAN.md` - Filtering & search implementation
+- `/docs/DICTIONARY_LOADING_STRATEGY.md` - Dictionary loading strategy
 - `/docs/LOCAL_FIRST_ROADMAP.md` - Загальний roadmap проекту
 - `/docs/UNIVERSAL_STORE_IMPLEMENTATION.md` - Universal store architecture
 
 ### Архітектура
 - `/docs/PROPERTY_BASED_CONFIG_ARCHITECTURE.md` - Конфігураційна система
 - `/docs/SPACE_STORE_ARCHITECTURE.md` - SpaceStore архітектура
-- `/docs/RXDB_INTEGRATION.md` - Інтеграція з RxDB
 
 ### Config Admin
 - `/apps/config-admin/docs/SCRIPTS.md` - Config generation scripts
 - `/apps/config-admin/docs/WORKFLOW.md` - Development workflow
+
+### Архів
+- `/docs/archive/DYNAMIC_VIEW_ROWS_IMPLEMENTATION.md` - ⚠️ Checkpoint-based replication (ARCHIVED)
 
 ---
 
@@ -457,8 +461,410 @@ if (dataSource === 'collection') {
 
 ---
 
-**READY TO START! 🚀**
+### ✅ Виправлені Issues (2025-10-21)
 
-Почати з Phase 1: SpaceStore.applyFilters() core implementation
+#### **Issue 1: Regex синтаксис для RxDB** - FIXED ✅
+
+**Проблема:** RxDB не підтримує inline flags `(?i)` для regex.
+
+**Рішення:**
+```typescript
+// Було:
+const regexPattern = `(?i)${escapedValue}`;
+return query.where(fieldName).regex(regexPattern); // ❌ Error
+
+// Стало:
+const regex = new RegExp(escapedValue, 'i');
+return query.where(fieldName).regex(regex); // ✅ Works
+```
+
+**Статус:** Виправлено в `applyRxDBFilter()` (space-store.signal-store.ts:1850)
+
+---
+
+#### **Issue 2: Field config resolution** - FIXED ✅
+
+**Проблема:** Field config не знаходився бо ключі з prefix (`breed_field_name`), а filters без (`name`).
+
+**Рішення:**
+```typescript
+// Спробувати обидва варіанти
+let fieldConfig = fieldConfigs[fieldKey];
+if (!fieldConfig) {
+  const prefixedKey = `${entityType}_field_${fieldKey}`;
+  fieldConfig = fieldConfigs[prefixedKey];
+}
+```
+
+**Статус:** Виправлено в `filterLocalEntities()` (space-store.signal-store.ts:1673-1684)
+
+---
+
+### ⚠️ Known Issues
+
+#### **Issue 1: Config operator замість auto-detect**
+
+**Проблема:** У config `breed_field_name` стоїть `operator: "eq"` замість `"ilike"`.
+
+**Лог:**
+```
+🎯 Using explicit operator from config: eq  ← ❌ WRONG для string search!
+🔍 Applying filter: operator: 'eq', value: 'ch'
+📦 Local query returned 0 results  ← нічого не знайшов (exact match)
+```
+
+**Рішення:**
+1. Видалити `operator: "eq"` з config для name field
+2. Дозволити auto-detect: `string` → `ilike`
+3. Або змінити на `operator: "ilike"`
+
+**Статус:** Треба виправити в DB config
+
+---
+
+#### **Issue 2: Scroll pagination для LookupInput (collection mode)**
+
+**Проблема:** Scroll не підгружає дані - завжди перші 30 records.
+
+**Причина:**
+```typescript
+// applyFilters не використовує offset для Supabase fetch
+if (localResults.length < limit && !offset) { // ← !offset блокує scroll!
+  fetchFromSupabase();
+}
+```
+
+**План виправлення:** Реалізувати offset-based scroll як в DictionaryStore (дивись нижче).
+
+---
+
+### 🚀 Поточна задача: Scroll Pagination для Collection Mode
+
+**Статус:** Ready to Implement 🔨
+**Пріоритет:** HIGH
+**Документація:** `/docs/OFFSET_BASED_PAGINATION.md` 📖
+
+---
+
+## 🎯 ФІНАЛЬНЕ РІШЕННЯ: Offset-based для ВСІХ випадків scroll
+
+### ❌ Чому НЕ replication для UI scroll?
+
+**Проблема:** Checkpoint-based replication НЕ сумісна з фільтрами!
+
+```typescript
+// Checkpoint corruption example:
+Initial: фільтр "golden", checkpoint = null
+Pull 1: знайшов "Golden Retriever" (updated_at: 2025-01-01)
+Checkpoint = 2025-01-01
+
+User змінює фільтр на "lab"
+Pull 2: .gt('updated_at', '2025-01-01').ilike('name', '%lab%')
+Result: ПРОПУСТИТЬ всі Labradors створені ДО 2025-01-01! ❌
+```
+
+**Висновки:**
+- ❌ Replication створює gaps при зміні фільтрів
+- ❌ Checkpoint = "останній FILTERED запис", а не загальний
+- ❌ Складна логіка для простого use case
+
+### ✅ Рішення: Offset-based для UI scroll
+
+**Переваги:**
+- ✅ Універсальний - працює з/без фільтрів
+- ✅ Простий - просто offset++
+- ✅ Надійний - no checkpoint corruption
+- ✅ Передбачуваний - no gaps
+
+### 🔄 Де залишається replication?
+
+**Replication використовується для:**
+- ✅ Background sync (оновлення в фоні)
+- ✅ Real-time updates (websockets)
+- ✅ Offline sync (майбутнє)
+
+**НЕ використовується для:**
+- ❌ UI scroll pagination
+- ❌ Search results loading
+- ❌ Filtered data loading
+
+---
+
+## 🎯 Архітектура Offset-Based Scroll
+
+### Принципи
+
+**1. Кешування - обов'язкове!**
+- Filtered results → cache в RxDB
+- Офлайн-first робота
+- TTL cleanup (майбутнє) - видалення застарілих
+
+**2. Offset-based pagination**
+- LookupInput scroll → applyFilters з offset
+- SpaceView scroll БЕЗ фільтрів → loadMore (replication)
+- SpaceView scroll З фільтрами → applyFilters з offset
+
+**3. Чому кешування критично:**
+- Тисячі records (breed: 450+, animal: тисячі)
+- Сталі фільтри - користувач шукає "golden" знову і знову
+- Обмежений вибір - юзер цікавиться 10-20 породами, не всіма
+- **Постійно кидати запити в БД - НІ!** ❌
+
+---
+
+### Оновлена логіка applyFilters()
+
+```typescript
+async applyFilters(
+  entityType: string,
+  filters: Record<string, any>,
+  options?: { limit?: number; offset?: number }
+): Promise<{ records: any[]; total: number; hasMore: boolean }> {
+
+  const limit = options?.limit || 30;
+  const offset = options?.offset || 0;
+
+  // 1. Try RxDB cache first (з offset!)
+  const localResults = await this.filterLocalEntities(
+    entityType,
+    filters,
+    limit,
+    offset  // ← використати skip(offset)
+  );
+
+  // 2. If not enough OR scroll pagination → fetch from Supabase
+  const needsRemoteFetch =
+    localResults.length < limit ||  // Not enough in cache
+    offset > 0;                     // Scroll pagination
+
+  if (needsRemoteFetch) {
+    const remoteResults = await this.fetchFilteredFromSupabase(
+      entityType,
+      filters,
+      limit,
+      offset  // ← використати .range(offset, offset + limit - 1)
+    );
+
+    // 3. ✅ CACHE results в RxDB (як DictionaryStore!)
+    await collection.bulkUpsert(remoteResults);
+  }
+
+  // 4. Get server total for hasMore
+  const serverTotal = await this.getFilteredCount(entityType, filters);
+  const hasMore = offset + limit < serverTotal;
+
+  return {
+    records: combined & deduplicated,
+    total: serverTotal,
+    hasMore
+  };
+}
+```
+
+---
+
+### Що треба додати/виправити
+
+**1. filterLocalEntities - додати skip()**
+```typescript
+query = query
+  .skip(offset)   // ← ДОДАТИ
+  .limit(limit);
+```
+
+**2. fetchFilteredFromSupabase - додати .range()**
+```typescript
+// Було:
+query = query.limit(limit);
+
+// Треба (як DictionaryStore):
+query = query.range(offset, offset + limit - 1);
+```
+
+**3. getFilteredCount - для hasMore**
+```typescript
+private async getFilteredCount(
+  entityType: string,
+  filters: Record<string, any>
+): Promise<number> {
+  const { count } = await supabase
+    .from(entityType)
+    .select('*', { count: 'exact', head: true })
+    // apply filters з operator detection
+
+  return count || 0;
+}
+```
+
+---
+
+### Use Cases
+
+**LookupInput (collection mode) - search:**
+```
+User types "golden"
+  ↓
+applyFilters(breed, {name: 'golden'}, {limit: 30, offset: 0})
+  ↓
+Check RxDB cache → 5 results
+  ↓
+Fetch from Supabase .range(0, 29) → 30 results
+  ↓
+Cache в RxDB ✅
+  ↓
+Return { records: 30, hasMore: true }
+  ↓
+User scrolls
+  ↓
+applyFilters(breed, {name: 'golden'}, {offset: 30})
+  ↓
+Fetch .range(30, 59) → cache → return
+```
+
+**SpaceView scroll БЕЗ фільтрів:**
+```
+User відкриває /breeds/list
+  ↓
+Initial: applyFilters(breed, {}, {offset: 0})
+  ↓
+Scroll: applyFilters(breed, {}, {offset: 30, 60, 90...})
+  ↓
+Cache + offset-based pagination ✅
+```
+
+**SpaceView scroll З фільтрами:**
+```
+User на /breeds/list?Name=golden
+  ↓
+Initial: applyFilters(breed, {name: 'golden'}, {offset: 0})
+  ↓
+Scroll: applyFilters(breed, {name: 'golden'}, {offset: 30})
+  ↓
+User змінює фільтр → offset resets to 0 ✅
+```
+
+---
+
+**READY TO IMPLEMENT! 🚀**
+
+---
+
+## 🔨 ПЛАН ІМПЛЕМЕНТАЦІЇ (Incremental Approach)
+
+### **КРОК 1: Minimal Viable Fix** ⏱️ 5 хвилин
+**Мета:** Зробити scroll робочим ЗАРАЗ
+
+**Файл:** `/packages/rxdb-store/src/stores/space-store.signal-store.ts`
+
+**Зміни:**
+
+**1. filterLocalEntities - додати skip (line ~1704)**
+```typescript
+const docs = await query
+  .skip(offset)   // ← ADD THIS
+  .limit(limit)
+  .exec();
+```
+
+**2. fetchFilteredFromSupabase - замінити limit на range (line ~1771)**
+```typescript
+// Було:
+query = query.limit(limit);
+
+// Стало:
+const { data, error } = await query
+  .range(offset, offset + limit - 1);  // ← CHANGE THIS
+```
+
+**3. applyFilters - змінити умову (line ~1599)**
+```typescript
+// Було:
+if (localResults.length < limit && !offset) {
+
+// Стало:
+const needsRemoteFetch =
+  localResults.length < limit ||
+  offset > 0;
+
+if (needsRemoteFetch) {
+```
+
+**Результат:** ✅ Scroll працює! Можна тестувати в LookupInput.
+
+---
+
+### **КРОК 2: Proper hasMore Detection** ⏱️ 10 хвилин
+**Мета:** Додати getFilteredCount для точного hasMore
+
+**Що додаємо:**
+
+**4. Новий метод getFilteredCount**
+```typescript
+private async getFilteredCount(
+  entityType: string,
+  filters: Record<string, any>
+): Promise<number> {
+  const { supabase } = await import('../supabase/client');
+  let query = supabase
+    .from(entityType)
+    .select('*', { count: 'exact', head: true });
+
+  // Apply filters (same logic as fetchFilteredFromSupabase)
+  for (const [fieldKey, value] of Object.entries(filters)) {
+    if (!value) continue;
+    const fieldConfig = this.getFieldConfig(entityType, fieldKey);
+    const operator = this.detectOperator(fieldConfig.fieldType, fieldConfig.operator);
+    query = this.applySupabaseFilter(query, fieldKey, operator, value);
+  }
+
+  const { count } = await query;
+  return count || 0;
+}
+```
+
+**5. Використати в applyFilters**
+```typescript
+// Get server total for accurate hasMore
+const serverTotal = await this.getFilteredCount(entityType, filters);
+const hasMore = offset + limit < serverTotal;
+
+return {
+  records: allResults.slice(0, limit),
+  total: serverTotal,
+  hasMore
+};
+```
+
+**Результат:** ✅ hasMore працює правильно, scroll зупиняється.
+
+---
+
+### **КРОК 3: Integration & Testing** ⏱️ Тестування
+**Мета:** Переконатися що все працює
+
+**Що тестуємо:**
+
+**Test 1: LookupInput scroll (collection mode)**
+- [ ] Відкрити `/test/dictionary`
+- [ ] Ввести "ch" в Breed lookup
+- [ ] Scroll до кінця списку
+- [ ] Перевірити що підгружає +30 records
+- [ ] Перевірити hasMore
+
+**Test 2: SpaceView scroll (без фільтрів)**
+- [ ] Відкрити `/breeds/list`
+- [ ] Scroll до кінця
+- [ ] Перевірити підгрузку
+
+**Test 3: Config operator (опціонально)**
+- [ ] Якщо треба - виправити operator в config
+- [ ] Видалити "eq" для name field
+- [ ] Дозволити auto-detect → "ilike"
+
+**Результат:** ✅ Все працює, scroll підгружає дані!
+
+---
+
+**ПОТОЧНИЙ КРОК:** КРОК 1 - Minimal Viable Fix 🔨
 
 ---

@@ -1546,6 +1546,382 @@ class SpaceStore {
   }
 
   /**
+   * Apply filters to entity data
+   * Universal filtering method used by both SpaceView and LookupInput
+   *
+   * @param entityType - Entity type (e.g., 'breed', 'pet', 'account')
+   * @param filters - Filter values as key-value pairs (e.g., { name: 'golden', pet_type_id: 'uuid' })
+   * @param options - Optional configuration (limit, offset, fieldConfigs)
+   * @returns Promise with { records, total, hasMore }
+   *
+   * Strategy:
+   * 1. Try RxDB local search first (fast)
+   * 2. If not enough results, fetch from Supabase (with filters)
+   * 3. Cache results in RxDB
+   * 4. Return standardized format
+   */
+  async applyFilters(
+    entityType: string,
+    filters: Record<string, any>,
+    options?: {
+      limit?: number;
+      offset?: number;
+      fieldConfigs?: Record<string, any>;
+    }
+  ): Promise<{ records: any[]; total: number; hasMore: boolean }> {
+    const limit = options?.limit || 30;
+    const offset = options?.offset || 0;
+
+    console.log('[SpaceStore] applyFilters:', {
+      entityType,
+      filters,
+      limit,
+      offset
+    });
+
+    // Get field configs for operator detection
+    const spaceConfig = this.spaceConfigs.get(entityType);
+    const fieldConfigs = options?.fieldConfigs || spaceConfig?.filter_fields || {};
+
+    try {
+      // 1. Try RxDB local search first
+      const localResults = await this.filterLocalEntities(
+        entityType,
+        filters,
+        fieldConfigs,
+        limit,
+        offset
+      );
+
+      console.log('[SpaceStore] Local results:', localResults.length);
+
+      // 2. If not enough results, fetch from Supabase
+      if (localResults.length < limit && !offset) {
+        console.log('[SpaceStore] Fetching from Supabase with filters...');
+        const remoteResults = await this.fetchFilteredFromSupabase(
+          entityType,
+          filters,
+          fieldConfigs,
+          limit
+        );
+
+        console.log('[SpaceStore] Remote results:', remoteResults.length);
+
+        // Return combined results (local + remote, deduplicated)
+        const allResults = this.deduplicateResults([...localResults, ...remoteResults]);
+        return {
+          records: allResults.slice(0, limit),
+          total: allResults.length,
+          hasMore: allResults.length >= limit
+        };
+      }
+
+      // Return local results
+      return {
+        records: localResults,
+        total: localResults.length,
+        hasMore: false // We don't know total from local query
+      };
+
+    } catch (error) {
+      console.error('[SpaceStore] applyFilters error:', error);
+      return {
+        records: [],
+        total: 0,
+        hasMore: false
+      };
+    }
+  }
+
+  /**
+   * Filter entities locally in RxDB
+   * Builds RxDB query with AND logic for all filters
+   */
+  private async filterLocalEntities(
+    entityType: string,
+    filters: Record<string, any>,
+    fieldConfigs: Record<string, any>,
+    limit: number,
+    offset: number
+  ): Promise<any[]> {
+    if (!this.db) {
+      return [];
+    }
+
+    const collection = this.db.collections[entityType];
+    if (!collection) {
+      console.warn(`[SpaceStore] Collection ${entityType} not found for local filtering`);
+      return [];
+    }
+
+    try {
+      // Build RxDB query with filters (AND logic)
+      let query = collection.find();
+
+      // Apply each filter
+      for (const [fieldKey, value] of Object.entries(filters)) {
+        if (value === undefined || value === null || value === '') {
+          continue; // Skip empty filters
+        }
+
+        const fieldConfig = fieldConfigs[fieldKey] || {};
+        const fieldType = fieldConfig.fieldType || 'string';
+        const operator = this.detectOperator(fieldType, fieldConfig.operator);
+
+        // Extract actual field name (remove prefix like 'breed_field_')
+        const fieldName = fieldKey.replace(new RegExp(`^${entityType}_field_`), '');
+
+        console.log('[SpaceStore] Applying filter:', {
+          fieldKey,
+          fieldName,
+          fieldType,
+          operator,
+          value
+        });
+
+        // Apply filter based on operator
+        query = this.applyRxDBFilter(query, fieldName, operator, value);
+      }
+
+      // Apply pagination
+      if (offset > 0) {
+        query = query.skip(offset);
+      }
+      if (limit > 0) {
+        query = query.limit(limit);
+      }
+
+      const docs = await query.exec();
+      return docs.map((doc: any) => doc.toJSON());
+
+    } catch (error) {
+      console.error('[SpaceStore] Local filtering error:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Fetch filtered results from Supabase
+   * Builds Supabase query with filters and caches results in RxDB
+   */
+  private async fetchFilteredFromSupabase(
+    entityType: string,
+    filters: Record<string, any>,
+    fieldConfigs: Record<string, any>,
+    limit: number
+  ): Promise<any[]> {
+    if (!this.db) {
+      return [];
+    }
+
+    const collection = this.db.collections[entityType];
+    if (!collection) {
+      console.warn(`[SpaceStore] Collection ${entityType} not found for Supabase fetch`);
+      return [];
+    }
+
+    try {
+      // Import supabase client
+      const { supabase } = await import('../supabase/client');
+
+      // Build Supabase query
+      let query = supabase.from(entityType).select('*');
+
+      // Apply filters (AND logic)
+      for (const [fieldKey, value] of Object.entries(filters)) {
+        if (value === undefined || value === null || value === '') {
+          continue; // Skip empty filters
+        }
+
+        const fieldConfig = fieldConfigs[fieldKey] || {};
+        const fieldType = fieldConfig.fieldType || 'string';
+        const operator = this.detectOperator(fieldType, fieldConfig.operator);
+
+        // Extract actual field name
+        const fieldName = fieldKey.replace(new RegExp(`^${entityType}_field_`), '');
+
+        console.log('[SpaceStore] Applying Supabase filter:', {
+          fieldKey,
+          fieldName,
+          fieldType,
+          operator,
+          value
+        });
+
+        // Apply filter based on operator
+        query = this.applySupabaseFilter(query, fieldName, operator, value);
+      }
+
+      // Apply limit
+      query = query.limit(limit);
+
+      // Execute query
+      const { data, error } = await query;
+
+      if (error) {
+        console.error('[SpaceStore] Supabase query error:', error);
+        return [];
+      }
+
+      if (!data || data.length === 0) {
+        return [];
+      }
+
+      // Cache results in RxDB (bulk upsert for performance)
+      try {
+        await collection.bulkUpsert(data);
+        console.log(`[SpaceStore] Cached ${data.length} filtered results in RxDB`);
+      } catch (upsertError) {
+        console.warn('[SpaceStore] Failed to cache results in RxDB:', upsertError);
+        // Continue even if caching fails
+      }
+
+      return data;
+
+    } catch (error) {
+      console.error('[SpaceStore] Supabase filtering error:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Detect operator based on field type
+   * Automatic operator selection for smart filtering
+   */
+  private detectOperator(fieldType: string, configOperator?: string): string {
+    // Use config operator if explicitly set
+    if (configOperator) {
+      return configOperator;
+    }
+
+    // Auto-detect by field type
+    switch (fieldType) {
+      case 'string':
+      case 'text':
+        return 'ilike'; // Case-insensitive search
+
+      case 'uuid':
+        return 'eq'; // Exact match
+
+      case 'number':
+      case 'integer':
+        return 'eq'; // Exact match (can be 'gt', 'lt' if needed)
+
+      case 'boolean':
+        return 'eq';
+
+      case 'date':
+      case 'timestamp':
+        return 'gte'; // Greater than or equal (can be 'lte' for range end)
+
+      default:
+        return 'eq'; // Default to exact match
+    }
+  }
+
+  /**
+   * Apply filter to RxDB query
+   * Translates operator to RxDB syntax
+   */
+  private applyRxDBFilter(query: any, fieldName: string, operator: string, value: any): any {
+    switch (operator) {
+      case 'ilike':
+      case 'contains':
+        // Case-insensitive regex search
+        const escapedValue = String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        return query.where(fieldName).regex(new RegExp(escapedValue, 'i'));
+
+      case 'eq':
+        return query.where(fieldName).eq(value);
+
+      case 'ne':
+        return query.where(fieldName).ne(value);
+
+      case 'gt':
+        return query.where(fieldName).gt(value);
+
+      case 'gte':
+        return query.where(fieldName).gte(value);
+
+      case 'lt':
+        return query.where(fieldName).lt(value);
+
+      case 'lte':
+        return query.where(fieldName).lte(value);
+
+      case 'in':
+        // Value should be array
+        const arrayValue = Array.isArray(value) ? value : [value];
+        return query.where(fieldName).in(arrayValue);
+
+      default:
+        console.warn(`[SpaceStore] Unknown RxDB operator: ${operator}`);
+        return query;
+    }
+  }
+
+  /**
+   * Apply filter to Supabase query
+   * Translates operator to Supabase syntax
+   */
+  private applySupabaseFilter(query: any, fieldName: string, operator: string, value: any): any {
+    switch (operator) {
+      case 'ilike':
+        // Case-insensitive LIKE with wildcards
+        return query.ilike(fieldName, `%${value}%`);
+
+      case 'contains':
+        // Case-sensitive LIKE
+        return query.like(fieldName, `%${value}%`);
+
+      case 'eq':
+        return query.eq(fieldName, value);
+
+      case 'ne':
+        return query.neq(fieldName, value);
+
+      case 'gt':
+        return query.gt(fieldName, value);
+
+      case 'gte':
+        return query.gte(fieldName, value);
+
+      case 'lt':
+        return query.lt(fieldName, value);
+
+      case 'lte':
+        return query.lte(fieldName, value);
+
+      case 'in':
+        // Value should be array
+        const arrayValue = Array.isArray(value) ? value : [value];
+        return query.in(fieldName, arrayValue);
+
+      default:
+        console.warn(`[SpaceStore] Unknown Supabase operator: ${operator}`);
+        return query;
+    }
+  }
+
+  /**
+   * Deduplicate results by ID
+   * Removes duplicate records from combined local + remote results
+   */
+  private deduplicateResults(results: any[]): any[] {
+    const seen = new Set<string>();
+    const deduplicated: any[] = [];
+
+    for (const record of results) {
+      if (record.id && !seen.has(record.id)) {
+        seen.add(record.id);
+        deduplicated.push(record);
+      }
+    }
+
+    return deduplicated;
+  }
+
+  /**
    * Dispose of all resources
    * LIFECYCLE: Global cleanup
    */

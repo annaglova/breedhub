@@ -1,10 +1,34 @@
 import React, { useState } from "react";
 import { DropdownInput, LookupInput } from "@ui/components/form-inputs";
+import { spaceStore } from "@breedhub/rxdb-store";
 
 export function TestDictionaryPage() {
   const [petType, setPetType] = useState<string>("");
   const [coatColor, setCoatColor] = useState<string>("");
   const [breed, setBreed] = useState<string>("");
+  const [filterResults, setFilterResults] = useState<any[]>([]);
+  const [filterLoading, setFilterLoading] = useState(false);
+
+  // Test applyFilters
+  const testApplyFilters = async () => {
+    setFilterLoading(true);
+    try {
+      console.log('[TestPage] Testing spaceStore.applyFilters() with search "golden"');
+
+      const result = await spaceStore.applyFilters(
+        'breed',
+        { name: 'golden' },  // Search for breeds with "golden" in name
+        { limit: 30 }
+      );
+
+      console.log('[TestPage] Filter results:', result);
+      setFilterResults(result.records);
+    } catch (error) {
+      console.error('[TestPage] Filter test error:', error);
+    } finally {
+      setFilterLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4">
@@ -120,6 +144,36 @@ export function TestDictionaryPage() {
             <p className="text-xs text-gray-600 mt-2">
               Also available in console: window.dictionaryStore
             </p>
+          </div>
+
+          {/* SpaceStore.applyFilters() Test */}
+          <div className="mt-8 p-4 bg-purple-50 rounded border-2 border-purple-200">
+            <h3 className="text-lg font-semibold mb-3">SpaceStore.applyFilters() Test</h3>
+            <p className="text-sm text-gray-700 mb-4">
+              Test the new universal filtering method. Searches for breeds with "golden" in name.
+            </p>
+            <button
+              onClick={testApplyFilters}
+              disabled={filterLoading}
+              className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 disabled:bg-gray-400"
+            >
+              {filterLoading ? 'Searching...' : 'Test Filter: name="golden"'}
+            </button>
+
+            {filterResults.length > 0 && (
+              <div className="mt-4 p-3 bg-white rounded">
+                <p className="text-sm font-medium mb-2">
+                  Found {filterResults.length} results:
+                </p>
+                <ul className="text-xs text-gray-600 list-disc list-inside max-h-40 overflow-y-auto">
+                  {filterResults.map((record, i) => (
+                    <li key={record.id || i}>
+                      {record.name || record.id}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
         </div>
       </div>
