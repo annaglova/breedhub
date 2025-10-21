@@ -20,6 +20,26 @@
 
 ---
 
+## ⚠️ CRITICAL UPDATE (2025-10-21): Migration to Keyset Pagination
+
+**Problem Discovered:** Offset-based pagination НЕ працює коректно з offline-first architecture!
+
+**Symptom:**
+- При scroll підгружається 422 з 452 records (пропущено 30)
+- RxDB містить mixed data з різних ORDER BY (replication, SpaceView, LookupInput)
+- `skip(30)` в RxDB ≠ `range(30, 59)` в Supabase
+
+**Solution:** Migrate to **Keyset Pagination** (cursor-based)
+
+**📖 Детальний аналіз і план міграції:** `/docs/KEYSET_PAGINATION.md`
+
+**Impact:**
+- ✅ DictionaryStore - треба мігрувати на cursor
+- ✅ SpaceStore.applyFilters - треба мігрувати на cursor
+- ✅ LookupInput - треба використовувати cursor state
+
+---
+
 ## 🔄 UPDATE (2025-10-21): Main Entities Pattern
 
 **Main entities (collection mode) тепер використовують той самий offset-based scroll pattern як dictionaries!**
