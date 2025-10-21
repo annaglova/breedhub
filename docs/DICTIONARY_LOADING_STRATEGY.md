@@ -30,19 +30,27 @@
 ```typescript
 getDictionary(tableName, { search, limit, offset })
   → Check RxDB cache
-  → Fetch from Supabase with .range(offset, offset + limit - 1)
+  → Fetch from Supabase with .order(name, asc) + .range(offset, offset + limit - 1)
   → Cache results
   → Return { records, total, hasMore }
 ```
 
+**✅ STATUS:** ORDER BY name ASC вже реалізовано в DictionaryStore (line 409)
+
 **Main Entities (SpaceStore.applyFilters):**
 ```typescript
-applyFilters(entityType, filters, { limit, offset })
-  → Check RxDB cache (filtered)
-  → Fetch from Supabase with .range(offset, offset + limit - 1)
+applyFilters(entityType, filters, {
+  limit,
+  offset,
+  orderBy: { field: 'name', direction: 'asc' }  // A-Z як dictionaries
+})
+  → Check RxDB cache (filtered + sorted)
+  → Fetch from Supabase with .order(name, asc) + .range(offset, offset + limit - 1)
   → Cache results ✅
   → Return { records, total, hasMore }
 ```
+
+**⚠️ CRITICAL:** ORDER BY має бути **однаковий** в RxDB і Supabase!
 
 ### Why Caching is Critical for Main Entities
 

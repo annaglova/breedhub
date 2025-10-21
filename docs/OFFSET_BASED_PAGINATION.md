@@ -108,6 +108,10 @@ async applyFilters(
   options?: {
     limit?: number;    // default: 30
     offset?: number;   // default: 0
+    orderBy?: {        // КРИТИЧНО: має бути однаковий в RxDB і Supabase!
+      field: string;       // 'name', 'created_at', etc
+      direction: 'asc' | 'desc';
+    };
     fieldConfigs?: Record<string, FilterFieldConfig>;
   }
 ): Promise<{
@@ -117,21 +121,29 @@ async applyFilters(
 }>
 ```
 
+**Default orderBy:**
+- LookupInput: `{ field: 'name', direction: 'asc' }` - завжди алфавіт A-Z
+- SpaceView: з query params (`?sort=name&dir=asc`)
+- ⚠️ Якщо ORDER BY різний в RxDB і Supabase → дублікати при scroll!
+
 ### Flow
 
 ```
-1. Parse options (limit=30, offset=0)
+1. Parse options (limit=30, offset=0, orderBy)
+   - orderBy default: { field: 'name', direction: 'asc' }
    ↓
 2. Try RxDB local cache FIRST
-   - filterLocalEntities(entityType, filters, limit, offset)
-   - Uses .skip(offset).limit(limit)
+   - filterLocalEntities(entityType, filters, limit, offset, orderBy)
+   - Uses .sort(orderBy.field).skip(offset).limit(limit)
+   - ORDER BY має збігатися з Supabase!
    ↓
 3. Check if need remote fetch
    - localResults.length < limit → not enough
    - offset > 0 → scroll pagination
    ↓
 4. Fetch from Supabase (if needed)
-   - fetchFilteredFromSupabase(entityType, filters, limit, offset)
+   - fetchFilteredFromSupabase(entityType, filters, limit, offset, orderBy)
+   - Uses .order(orderBy.field, { ascending: ... })
    - Uses .range(offset, offset + limit - 1)
    - CACHE results → collection.bulkUpsert(data)
    ↓

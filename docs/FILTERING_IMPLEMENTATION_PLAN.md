@@ -98,6 +98,43 @@ Result: ПРОПУСТИТЬ всі Labs створені до 2025-01-01! ❌
 
 **Детальніше:** `/docs/OFFSET_BASED_PAGINATION.md` 📖
 
+**4. ORDER BY - різний для різних use cases:**
+
+**❌ ПРОБЛЕМА:** Зараз хардкод `ORDER BY updated_at` - НЕ працює для пошуку!
+
+**✅ ПРАВИЛЬНО:**
+
+**LookupInput (пошук/вибір):**
+```typescript
+// ЗАВЖДИ алфавітний порядок!
+applyFilters(breed, {name: 'golden'}, {
+  orderBy: { field: 'name', direction: 'asc' }  // A-Z
+})
+```
+
+**SpaceView (таблиця):**
+```typescript
+// ORDER BY з query params (динамічне сортування з UI)
+const sortField = searchParams.get('sort') || 'name';
+const sortDir = searchParams.get('dir') || 'asc';
+
+applyFilters(breed, filters, {
+  orderBy: { field: sortField, direction: sortDir }
+})
+```
+
+**Dictionaries (DictionaryStore):**
+```typescript
+// ЗАВЖДИ алфавітний порядок (як LookupInput)
+ORDER BY name ASC
+```
+
+**Чому це важливо:**
+- 🔤 Користувач очікує A-Z при пошуку/виборі
+- 📊 SpaceView потребує гнучкого сортування (колонки)
+- ⚠️ Без ORDER BY - результати непередбачувані (random з БД)
+- ⚠️ Різний ORDER BY в RxDB і Supabase = дублікати при scroll!
+
 ---
 
 ## 📐 applyFilters() - Detailed Logic
@@ -110,6 +147,10 @@ async applyFilters(
   options?: {
     limit?: number;   // default: 30
     offset?: number;  // default: 0
+    orderBy?: {       // CRITICAL: різний для різних use cases!
+      field: string;      // 'name', 'created_at', etc
+      direction: 'asc' | 'desc';
+    };
     fieldConfigs?: Record<string, FilterFieldConfig>;
   }
 ): Promise<{
@@ -119,20 +160,28 @@ async applyFilters(
 }>
 ```
 
+**Default orderBy:**
+- LookupInput: `{ field: 'name', direction: 'asc' }` (завжди A-Z)
+- SpaceView: з query params або `{ field: 'name', direction: 'asc' }` fallback
+- Має бути **однаковий** в RxDB і Supabase queries!
+
 ### Flow
 ```typescript
-1. Parse options (limit, offset, fieldConfigs)
+1. Parse options (limit, offset, orderBy, fieldConfigs)
+   - orderBy default: { field: 'name', direction: 'asc' }
    ↓
 2. Try RxDB local cache FIRST
-   - filterLocalEntities(entityType, filters, limit, offset)
-   - Uses skip(offset).limit(limit)
+   - filterLocalEntities(entityType, filters, limit, offset, orderBy)
+   - Uses .sort(orderBy.field).skip(offset).limit(limit)
+   - ORDER BY має збігатися з Supabase!
    ↓
 3. Check if need remote fetch
    - localResults.length < limit → not enough in cache
    - offset > 0 → scroll pagination
    ↓
 4. Fetch from Supabase (if needed)
-   - fetchFilteredFromSupabase(entityType, filters, limit, offset)
+   - fetchFilteredFromSupabase(entityType, filters, limit, offset, orderBy)
+   - Uses .order(orderBy.field, { ascending: orderBy.direction === 'asc' })
    - Uses .range(offset, offset + limit - 1)
    - CACHE results → collection.bulkUpsert(data)
    ↓

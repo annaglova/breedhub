@@ -21,6 +21,73 @@
 
 ---
 
+## 🚨 КРИТИЧНА ЗАДАЧА: ORDER BY Parameter
+
+**Виявлено:** 2025-10-21
+
+**Проблема:**
+- Зараз `applyFilters()` має хардкод `ORDER BY updated_at`
+- Для LookupInput потрібно **завжди** `ORDER BY name ASC` (A-Z)
+- Для SpaceView потрібно ORDER BY з **query params** (динамічне сортування)
+- Різний ORDER BY в RxDB і Supabase = дублікати при scroll! ⚠️
+
+**Рішення:**
+
+1. **Додати orderBy parameter в applyFilters():**
+```typescript
+applyFilters(entityType, filters, {
+  limit,
+  offset,
+  orderBy: { field: 'name', direction: 'asc' }  // NEW!
+})
+```
+
+2. **LookupInput завжди передає name:**
+```typescript
+const { records } = await spaceStore.applyFilters(
+  referencedTable,
+  { name: searchQuery },
+  {
+    limit: 30,
+    offset,
+    orderBy: { field: 'name', direction: 'asc' }  // A-Z завжди!
+  }
+);
+```
+
+3. **SpaceView отримує з query params:**
+```typescript
+const sortField = searchParams.get('sort') || 'name';
+const sortDir = searchParams.get('dir') || 'asc';
+
+const { records } = await spaceStore.applyFilters(
+  entityType,
+  filters,
+  {
+    limit: 30,
+    offset,
+    orderBy: { field: sortField, direction: sortDir }
+  }
+);
+```
+
+4. **Однаковий ORDER BY в RxDB і Supabase:**
+```typescript
+// filterLocalEntities
+query = query.sort(orderBy.field);  // RxDB
+
+// fetchFilteredFromSupabase
+query = query.order(orderBy.field, { ascending: orderBy.direction === 'asc' });  // Supabase
+```
+
+**Статус:** 🔨 В процесі реалізації
+
+**Пов'язані документи:**
+- `/docs/FILTERING_IMPLEMENTATION_PLAN.md` - оновлено з orderBy signature
+- `/docs/DICTIONARY_LOADING_STRATEGY.md` - підтверджено ORDER BY name в DictionaryStore
+
+---
+
 ## 🏗️ АРХІТЕКТУРА: Принцип роботи
 
 ### 🔥 Ключова ідея
