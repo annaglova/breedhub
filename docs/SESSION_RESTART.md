@@ -21,70 +21,83 @@
 
 ---
 
-## 🚨 КРИТИЧНА ЗАДАЧА: ORDER BY Parameter
+## 🚨 КРИТИЧНА МІГРАЦІЯ: Keyset Pagination (Cursor-Based)
 
 **Виявлено:** 2025-10-21
 
-**Проблема:**
-- Зараз `applyFilters()` має хардкод `ORDER BY updated_at`
-- Для LookupInput потрібно **завжди** `ORDER BY name ASC` (A-Z)
-- Для SpaceView потрібно ORDER BY з **query params** (динамічне сортування)
-- Різний ORDER BY в RxDB і Supabase = дублікати при scroll! ⚠️
+### Проблема з Offset Pagination
 
-**Рішення:**
+**Симптом:**
+- При scroll в LookupInput підгрузилось **422 з 452** breeds
+- **Пропущено 30 records** (перші по алфавіту: AFGHAN, AKITA...)
 
-1. **Додати orderBy parameter в applyFilters():**
+**Корінь проблеми:**
+```
+RxDB містить mixed data з різних ORDER BY:
+- Initial replication: ORDER BY updated_at (30 records)
+- SpaceView scroll: ORDER BY varies
+- LookupInput: ORDER BY name
+
+skip(30) в RxDB = skip 30 в ЛОКАЛЬНІЙ колекції (довільні records)
+range(30, 59) в Supabase = позиції 30-59 в ПОВНІЙ таблиці (452 records)
+
+→ Позиція 30 в RxDB ≠ Позиція 30 в Supabase!
+→ Пропущені records! ❌
+```
+
+**Детальний аналіз:** `/docs/KEYSET_PAGINATION.md`
+
+### Рішення: Keyset Pagination
+
+**Замість offset** використовуємо **cursor** (значення останнього record):
+
 ```typescript
-applyFilters(entityType, filters, {
-  limit,
-  offset,
-  orderBy: { field: 'name', direction: 'asc' }  // NEW!
+// OLD (offset-based) ❌
+applyFilters('breed', { name: query }, {
+  limit: 30,
+  offset: 30  // ← Проблема!
 })
+
+// NEW (cursor-based) ✅
+applyFilters('breed', { name: query }, {
+  limit: 30,
+  cursor: 'BOXER',  // ← Cursor = last seen name
+  orderBy: { field: 'name', direction: 'asc' }
+})
+
+// SQL:
+WHERE name > 'BOXER' ORDER BY name LIMIT 30
+// Працює однаково в RxDB і Supabase! ✅
 ```
 
-2. **LookupInput завжди передає name:**
-```typescript
-const { records } = await spaceStore.applyFilters(
-  referencedTable,
-  { name: searchQuery },
-  {
-    limit: 30,
-    offset,
-    orderBy: { field: 'name', direction: 'asc' }  // A-Z завжди!
-  }
-);
-```
+### План Міграції
 
-3. **SpaceView отримує з query params:**
-```typescript
-const sortField = searchParams.get('sort') || 'name';
-const sortDir = searchParams.get('dir') || 'asc';
+**Фаза 1: SpaceStore.applyFilters** 🔨
+- Замінити `offset` на `cursor` parameter
+- `filterLocalEntities`: `.where(field).gt(cursor)` замість `.skip(offset)`
+- `fetchFilteredFromSupabase`: `.gt(field, cursor)` замість `.range(offset, ...)`
+- Return `nextCursor` (last record value)
 
-const { records } = await spaceStore.applyFilters(
-  entityType,
-  filters,
-  {
-    limit: 30,
-    offset,
-    orderBy: { field: sortField, direction: sortDir }
-  }
-);
-```
+**Фаза 2: LookupInput** 🔨
+- Замінити `offsetRef` на `cursorRef`
+- При append: передавати cursor замість offset
+- При reset (new search): cursor = null
+- Зберігати `lastRecord.name` як cursor
 
-4. **Однаковий ORDER BY в RxDB і Supabase:**
-```typescript
-// filterLocalEntities
-query = query.sort(orderBy.field);  // RxDB
+**Фаза 3: DictionaryStore**
+- Той самий pattern як SpaceStore
+- `getDictionary(tableName, { cursor, limit })`
 
-// fetchFilteredFromSupabase
-query = query.order(orderBy.field, { ascending: orderBy.direction === 'asc' });  // Supabase
-```
+**Фаза 4: Testing**
+- Всі 452 breeds завантажуються ✅
+- Offline mode працює
+- Search + scroll працюють разом
 
-**Статус:** 🔨 В процесі реалізації
+**Статус:** 🔨 Міграція в процесі (Фаза 1-2)
 
 **Пов'язані документи:**
-- `/docs/FILTERING_IMPLEMENTATION_PLAN.md` - оновлено з orderBy signature
-- `/docs/DICTIONARY_LOADING_STRATEGY.md` - підтверджено ORDER BY name в DictionaryStore
+- `/docs/KEYSET_PAGINATION.md` - повний аналіз + імплементація
+- `/docs/DICTIONARY_LOADING_STRATEGY.md` - warning про міграцію
 
 ---
 
