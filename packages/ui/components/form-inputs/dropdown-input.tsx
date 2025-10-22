@@ -2,7 +2,7 @@ import React, { forwardRef, useState, useRef, useEffect, useCallback } from "rea
 import { Input } from "../input";
 import { FormField } from "../form-field";
 import { cn } from "@ui/lib/utils";
-import { ChevronDown, Check } from "lucide-react";
+import { ChevronDown, Check, X } from "lucide-react";
 import { dictionaryStore } from "@breedhub/rxdb-store";
 
 interface DropdownOption {
@@ -50,7 +50,7 @@ export const DropdownInput = forwardRef<HTMLInputElement, DropdownInputProps>(
     const [isOpen, setIsOpen] = useState(false);
     const [loading, setLoading] = useState(false);
     const [dynamicOptions, setDynamicOptions] = useState<DropdownOption[]>(options);
-    const [offset, setOffset] = useState(0);
+    const [cursor, setCursor] = useState<string | null>(null);  // ✅ Cursor instead of offset
     const [hasMore, setHasMore] = useState(true);
     const dropdownRef = useRef<HTMLDivElement>(null);
     const dropdownListRef = useRef<HTMLDivElement>(null);
@@ -68,14 +68,14 @@ export const DropdownInput = forwardRef<HTMLInputElement, DropdownInputProps>(
       setLoading(true);
 
       try {
-        const currentOffset = append ? offset : 0;
-        console.log('[DropdownInput] Loading dictionary:', referencedTable, 'offset:', currentOffset);
+        const currentCursor = append ? cursor : null;  // ✅ Use cursor
+        console.log('[DropdownInput] Loading dictionary (ID-First):', referencedTable, 'cursor:', currentCursor);
 
-        const { records, hasMore: more } = await dictionaryStore.getDictionary(referencedTable, {
+        const { records, hasMore: more, nextCursor } = await dictionaryStore.getDictionary(referencedTable, {
           idField: referencedFieldID,
           nameField: referencedFieldName,
           limit: 30,
-          offset: currentOffset
+          cursor: currentCursor  // ✅ Pass cursor instead of offset
         });
 
         // Transform to dropdown options
@@ -84,28 +84,23 @@ export const DropdownInput = forwardRef<HTMLInputElement, DropdownInputProps>(
           label: record.name
         }));
 
-        console.log('[DropdownInput] Loaded options:', opts.length, 'hasMore:', more);
+        console.log('[DropdownInput] Loaded options:', opts.length, 'hasMore:', more, 'nextCursor:', nextCursor);
 
         if (append) {
-          // Filter out duplicates when appending
-          setDynamicOptions(prev => {
-            const existingIds = new Set(prev.map(o => o.value));
-            const newOptions = opts.filter(o => !existingIds.has(o.value));
-            return [...prev, ...newOptions];
-          });
-          setOffset(currentOffset + 30);
+          // ✅ ID-First guarantees no duplicates - just append
+          setDynamicOptions(prev => [...prev, ...opts]);
         } else {
           setDynamicOptions(opts);
-          setOffset(30);
         }
 
+        setCursor(nextCursor);  // ✅ Save nextCursor for next scroll
         setHasMore(more);
       } catch (error) {
         console.error(`Failed to load dictionary ${referencedTable}:`, error);
       } finally {
         setLoading(false);
       }
-    }, [referencedTable, referencedFieldID, referencedFieldName, offset]);
+    }, [referencedTable, referencedFieldID, referencedFieldName, cursor]);
 
     // Load dictionary data when dropdown opens
     useEffect(() => {
@@ -139,6 +134,11 @@ export const DropdownInput = forwardRef<HTMLInputElement, DropdownInputProps>(
       }
     };
 
+    const handleClear = (e: React.MouseEvent) => {
+      e.stopPropagation();
+      onValueChange?.('');
+    };
+
     const handleScroll = useCallback(() => {
       if (!dropdownListRef.current) {
         console.log('[DropdownInput] handleScroll: no ref');
@@ -152,7 +152,7 @@ export const DropdownInput = forwardRef<HTMLInputElement, DropdownInputProps>(
         scrollBottom,
         hasMore,
         loading,
-        offset,
+        cursor,
         referencedTable
       });
 
@@ -163,10 +163,10 @@ export const DropdownInput = forwardRef<HTMLInputElement, DropdownInputProps>(
 
       // Load more when scrolled to bottom (with 50px threshold)
       if (scrollBottom < 50) {
-        console.log('[DropdownInput] Scroll to bottom, loading more... offset:', offset);
+        console.log('[DropdownInput] Scroll to bottom, loading more... cursor:', cursor);
         loadDictionaryOptions(true);
       }
-    }, [referencedTable, hasMore, loading, offset, loadDictionaryOptions]);
+    }, [referencedTable, hasMore, loading, cursor, loadDictionaryOptions]);
 
     // Set up scroll listener
     useEffect(() => {
@@ -206,11 +206,21 @@ export const DropdownInput = forwardRef<HTMLInputElement, DropdownInputProps>(
             aria-haspopup="listbox"
             {...props}
           />
-          <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-gray-400">
-            <ChevronDown className={cn(
-              "h-4 w-4 transition-transform",
-              isOpen && "rotate-180"
-            )} />
+          <div className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400">
+            {value ? (
+              <button
+                type="button"
+                onClick={handleClear}
+                className="hover:text-gray-600 pointer-events-auto"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            ) : (
+              <ChevronDown className={cn(
+                "h-4 w-4 transition-transform pointer-events-none",
+                isOpen && "rotate-180"
+              )} />
+            )}
           </div>
         </div>
 

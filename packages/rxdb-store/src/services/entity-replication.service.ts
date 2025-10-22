@@ -69,7 +69,15 @@ export class EntityReplicationService {
       }
     } else {
       // Fallback: copy all fields, handling special cases
+      // ⚠️ CRITICAL: Exclude RxDB service fields (_meta, _attachments, _rev)
+      const serviceFields = ['_meta', '_attachments', '_rev'];
+
       for (const key in supabaseDoc) {
+        // Skip RxDB service fields
+        if (serviceFields.includes(key)) {
+          continue;
+        }
+
         if (key === 'deleted') {
           mapped._deleted = Boolean(supabaseDoc.deleted);
         } else {
@@ -82,6 +90,11 @@ export class EntityReplicationService {
     mapped.id = mapped.id || supabaseDoc.id;
     mapped.created_at = mapped.created_at || supabaseDoc.created_at;
     mapped.updated_at = mapped.updated_at || supabaseDoc.updated_at;
+
+    // ✅ IMPORTANT: Remove service fields that might have been copied
+    delete mapped._meta;
+    delete mapped._attachments;
+    delete mapped._rev;
 
     // Commented out for less noise - uncomment for debugging
     // console.log(`[EntityReplication-${entityType}] Mapped from Supabase:`, {

@@ -121,6 +121,11 @@ class DictionaryStore {
   /**
    * 🆔 ID-FIRST: Fetch IDs + name field from Supabase (lightweight query)
    * Phase 1 of ID-First pagination
+   *
+   * 🔍 HYBRID SEARCH: For search queries, returns results in priority order:
+   * 1. Starts with search term (e.g., "Black", "Black and Tan")
+   * 2. Contains search term (e.g., "Sable and Black")
+   * Both sorted A-Z within their groups
    */
   private async fetchDictionaryIDsFromSupabase(
     tableName: string,
@@ -134,11 +139,68 @@ class DictionaryStore {
   ): Promise<Array<{ id: string; name: string }>> {
     const { search, limit, cursor } = options;
 
+    // 🎯 HYBRID SEARCH: If search provided, fetch starts_with + contains separately
+    if (search && !cursor) {
+      console.log('[DictionaryStore] 🔍 Hybrid search mode:', search);
+
+      // Phase 1: Starts with (high priority)
+      const startsWithQuery = supabase
+        .from(tableName)
+        .select(`${idField}, ${nameField}`)
+        .ilike(nameField, `${search}%`)  // ✅ Starts with
+        .order(nameField, { ascending: true })
+        .limit(Math.ceil(limit * 0.7));  // 70% for starts_with
+
+      const { data: startsWithData, error: startsWithError } = await startsWithQuery;
+
+      if (startsWithError) {
+        throw new Error(`Hybrid search (starts_with) failed: ${startsWithError.message}`);
+      }
+
+      const startsWithResults = (startsWithData || []).map(record => ({
+        id: String(record[idField]),
+        name: String(record[nameField])
+      }));
+
+      console.log(`[DictionaryStore] ✅ Starts with: ${startsWithResults.length} results`);
+
+      // Phase 2: Contains (lower priority) - only if we have room
+      const remainingLimit = limit - startsWithResults.length;
+      if (remainingLimit > 0) {
+        const containsQuery = supabase
+          .from(tableName)
+          .select(`${idField}, ${nameField}`)
+          .ilike(nameField, `%${search}%`)  // ✅ Contains
+          .not(nameField, 'ilike', `${search}%`)  // ❌ Exclude starts_with (already fetched)
+          .order(nameField, { ascending: true })
+          .limit(remainingLimit);
+
+        const { data: containsData, error: containsError } = await containsQuery;
+
+        if (containsError) {
+          console.warn('[DictionaryStore] Contains search failed:', containsError);
+        } else {
+          const containsResults = (containsData || []).map(record => ({
+            id: String(record[idField]),
+            name: String(record[nameField])
+          }));
+
+          console.log(`[DictionaryStore] ✅ Contains: ${containsResults.length} results`);
+
+          // Merge: starts_with first, then contains
+          return [...startsWithResults, ...containsResults];
+        }
+      }
+
+      return startsWithResults;
+    }
+
+    // 📄 REGULAR QUERY: No search or cursor pagination
     let query = supabase
       .from(tableName)
       .select(`${idField}, ${nameField}`);
 
-    // Apply search filter if provided
+    // Apply search filter (contains) if provided with cursor
     if (search) {
       query = query.ilike(nameField, `%${search}%`);
     }

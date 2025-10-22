@@ -50,7 +50,9 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
     ...props
   }, ref) => {
     const [isOpen, setIsOpen] = useState(false);
-    const [searchQuery, setSearchQuery] = useState("");
+    const [inputValue, setInputValue] = useState(""); // ✅ Internal input state (what user types)
+    const [searchQuery, setSearchQuery] = useState(""); // ✅ Debounced search query (sent to server)
+    const [isEditing, setIsEditing] = useState(false); // ✅ Track if user is typing
     const [highlightedIndex, setHighlightedIndex] = useState(0);
     const [dynamicOptions, setDynamicOptions] = useState<LookupOption[]>(options);
     const [internalLoading, setInternalLoading] = useState(false);
@@ -63,6 +65,23 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
     const isLoadingRef = useRef(false); // 🔒 Prevent race conditions
 
     const loading = externalLoading || internalLoading;
+
+    // Use dynamic options if available, otherwise static options
+    const currentOptions = referencedTable ? dynamicOptions : options;
+
+    // ✅ Deduplicate options (handles race conditions between scroll/replication)
+    const deduplicatedOptions = React.useMemo(() => {
+      const seen = new Map<string, LookupOption>();
+      currentOptions.forEach(opt => {
+        if (!seen.has(opt.value)) {
+          seen.set(opt.value, opt);
+        }
+      });
+      return Array.from(seen.values());
+    }, [currentOptions]);
+
+    // Find selected option
+    const selectedOption = deduplicatedOptions.find(opt => opt.value === value);
 
     const loadDictionaryOptions = useCallback(async (query: string = '', append: boolean = false) => {
       if (!referencedTable) return;
@@ -157,6 +176,15 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
       }
     }, [referencedTable, referencedFieldID, referencedFieldName, dataSource]);
 
+    // ✅ Sync inputValue with selectedOption when value changes externally
+    useEffect(() => {
+      if (!isEditing && selectedOption) {
+        setInputValue(selectedOption.label);
+      } else if (!value) {
+        setInputValue('');
+      }
+    }, [value, selectedOption, isEditing]);
+
     // Load dictionary data on focus/search
     useEffect(() => {
       if (isOpen && referencedTable && dynamicOptions.length === 0) {
@@ -164,9 +192,9 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
       }
     }, [isOpen, referencedTable, dynamicOptions.length, loadDictionaryOptions]);
 
-    // Debounced search
+    // ✅ Debounced search - trigger on inputValue change ONLY when editing
     useEffect(() => {
-      if (!referencedTable) return;
+      if (!referencedTable || !isEditing) return;
 
       // Clear previous timeout
       if (searchTimeoutRef.current) {
@@ -174,24 +202,20 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
       }
 
       const prevQuery = prevSearchQueryRef.current;
-      prevSearchQueryRef.current = searchQuery;
+      const currentQuery = inputValue.trim();
 
       // Only reset and reload when search query actually changes
-      if (searchQuery !== prevQuery) {
-        if (searchQuery) {
-          // Search query entered - reset and load with search
-          setDynamicOptions([]);
-          cursorRef.current = null; // ✅ Reset cursor
+      if (currentQuery !== prevQuery) {
+        prevSearchQueryRef.current = currentQuery;
 
-          searchTimeoutRef.current = setTimeout(() => {
-            loadDictionaryOptions(searchQuery, false);
-          }, 300);
-        } else if (prevQuery) {
-          // Search cleared - reload initial data
+        // Debounce: wait 500ms after user stops typing
+        searchTimeoutRef.current = setTimeout(() => {
+          console.log('[LookupInput] 🔍 Debounced search triggered:', currentQuery);
+          setSearchQuery(currentQuery);
           setDynamicOptions([]);
           cursorRef.current = null; // ✅ Reset cursor
-          loadDictionaryOptions('', false);
-        }
+          loadDictionaryOptions(currentQuery, false);
+        }, 500); // ✅ 500ms debounce
       }
 
       return () => {
@@ -199,30 +223,13 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
           clearTimeout(searchTimeoutRef.current);
         }
       };
-    }, [searchQuery, referencedTable, loadDictionaryOptions]);
-
-    // Use dynamic options if available, otherwise static options
-    const currentOptions = referencedTable ? dynamicOptions : options;
-
-    // ✅ Deduplicate options (handles race conditions between scroll/replication)
-    const deduplicatedOptions = React.useMemo(() => {
-      const seen = new Map<string, LookupOption>();
-      currentOptions.forEach(opt => {
-        if (!seen.has(opt.value)) {
-          seen.set(opt.value, opt);
-        }
-      });
-      return Array.from(seen.values());
-    }, [currentOptions]);
-
-    // Find selected option
-    const selectedOption = deduplicatedOptions.find(opt => opt.value === value);
+    }, [inputValue, isEditing, referencedTable, loadDictionaryOptions]);
 
     // Filter options based on search (only if not using server-side search)
     const filteredOptions = referencedTable ? deduplicatedOptions : deduplicatedOptions.filter(option =>
-      option.label.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      option.value.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (option.description && option.description.toLowerCase().includes(searchQuery.toLowerCase()))
+      option.label.toLowerCase().includes(inputValue.toLowerCase()) ||
+      option.value.toLowerCase().includes(inputValue.toLowerCase()) ||
+      (option.description && option.description.toLowerCase().includes(inputValue.toLowerCase()))
     );
 
     // Handle clicks outside
@@ -230,16 +237,22 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
       const handleClickOutside = (e: MouseEvent) => {
         if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
           setIsOpen(false);
+          // ✅ Exit editing mode and restore selected value
+          if (value && selectedOption) {
+            setInputValue(selectedOption.label);
+            setIsEditing(false);
+          }
         }
       };
 
       document.addEventListener("mousedown", handleClickOutside);
       return () => document.removeEventListener("mousedown", handleClickOutside);
-    }, []);
+    }, [value, selectedOption]);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       const query = e.target.value;
-      setSearchQuery(query);
+      setInputValue(query); // ✅ Update input value immediately (no flicker)
+      setIsEditing(true); // ✅ Mark as editing
       setIsOpen(true);
       setHighlightedIndex(0);
       onSearch?.(query);
@@ -247,8 +260,37 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
 
     const handleSelect = (option: LookupOption) => {
       onValueChange?.(option.value);
-      setSearchQuery(option.label);
+      setInputValue(option.label); // ✅ Set selected label
+      setIsEditing(false); // ✅ Stop editing mode
       setIsOpen(false);
+    };
+
+    const handleClear = (e: React.MouseEvent) => {
+      e.stopPropagation();
+      onValueChange?.('');
+      setInputValue(''); // ✅ Clear input
+      setIsEditing(false); // ✅ Not editing after clear
+      // ❌ Don't open dropdown - user can click to open if needed
+    };
+
+    const handleFocus = () => {
+      setIsOpen(true);
+      if (!isEditing && value) {
+        // ✅ On focus with selected value - clear input for typing
+        setInputValue('');
+        setIsEditing(true);
+      }
+    };
+
+    const handleBlur = () => {
+      // ✅ Delay to allow handleSelect to execute first (when clicking option)
+      setTimeout(() => {
+        // On blur - restore selected option label if input is empty but has value
+        if (!inputValue && value && selectedOption) {
+          setInputValue(selectedOption.label);
+          setIsEditing(false);
+        }
+      }, 200);
     };
 
     const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -287,7 +329,7 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
       // Load more when scrolled to bottom (with 50px threshold)
       if (scrollBottom < 50) {
         console.log('[LookupInput] Scroll to bottom, loading more...', 'searchQuery:', searchQuery);
-        loadDictionaryOptions(searchQuery, true);
+        loadDictionaryOptions(searchQuery, true); // ✅ Use debounced searchQuery
       }
     }, [referencedTable, hasMore, loading, searchQuery, loadDictionaryOptions]);
 
@@ -309,9 +351,10 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
           <Input
             ref={ref}
             type="text"
-            value={searchQuery || selectedOption?.label || ""}
+            value={isEditing ? inputValue : (selectedOption?.label || "")}
             onChange={handleInputChange}
-            onFocus={() => setIsOpen(true)}
+            onFocus={handleFocus}
+            onBlur={handleBlur}
             onKeyDown={handleKeyDown}
             placeholder={placeholder}
             className={cn(
@@ -325,10 +368,10 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
               <Loader2 className="h-4 w-4 animate-spin text-gray-400" />
             </div>
           )}
-          {!loading && isOpen && (
+          {!loading && value && (
             <button
               type="button"
-              onClick={() => setIsOpen(false)}
+              onClick={handleClear}
               className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
             >
               <X className="h-4 w-4" />
