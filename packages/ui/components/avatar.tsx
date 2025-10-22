@@ -178,11 +178,77 @@ const AvatarGroup = React.forwardRef<HTMLDivElement, AvatarGroupProps>(
 );
 AvatarGroup.displayName = "AvatarGroup";
 
-export { 
-  Avatar, 
-  AvatarImage, 
-  AvatarFallback, 
+// Avatar with online/offline status indicator
+interface AvatarWithStatusProps extends AvatarWithFallbackProps {
+  isOnline?: boolean;
+  showStatus?: boolean;
+  statusPosition?: 'top-right' | 'bottom-right' | 'top-left' | 'bottom-left';
+}
+
+const statusPositionClasses = {
+  'top-right': 'top-0 right-0',
+  'bottom-right': 'bottom-0 right-0',
+  'top-left': 'top-0 left-0',
+  'bottom-left': 'bottom-0 left-0',
+};
+
+const AvatarWithStatus = React.forwardRef<
+  React.ElementRef<typeof AvatarPrimitive.Root>,
+  AvatarWithStatusProps
+>(({
+  src,
+  name,
+  alt,
+  size = 'default',
+  isOnline = true,
+  showStatus = true,
+  statusPosition = 'top-right',
+  className,
+  ...props
+}, ref) => {
+  // Status indicator size based on avatar size
+  const statusSizeClasses = {
+    xs: 'h-2 w-2',
+    sm: 'h-2.5 w-2.5',
+    default: 'h-3 w-3',
+    lg: 'h-3.5 w-3.5',
+    xl: 'h-4 w-4',
+    '2xl': 'h-5 w-5',
+    '3xl': 'h-6 w-6',
+  };
+
+  return (
+    <div className="relative inline-block">
+      <Avatar ref={ref} size={size} className={className} {...props}>
+        {src && <AvatarImage src={src} alt={alt || name || "Avatar"} />}
+        <AvatarFallback size={size} className="bg-gray-200 text-gray-600">
+          {name ? getInitials(name) : (
+            <User className="h-1/2 w-1/2" />
+          )}
+        </AvatarFallback>
+      </Avatar>
+      {showStatus && (
+        <span
+          className={cn(
+            "absolute rounded-full border-2 border-gray-100",
+            statusSizeClasses[size || 'default'],
+            statusPositionClasses[statusPosition],
+            isOnline ? "bg-green-500" : "bg-gray-400"
+          )}
+          aria-label={isOnline ? "Online" : "Offline"}
+        />
+      )}
+    </div>
+  );
+});
+AvatarWithStatus.displayName = "AvatarWithStatus";
+
+export {
+  Avatar,
+  AvatarImage,
+  AvatarFallback,
   AvatarWithFallback,
+  AvatarWithStatus,
   AvatarGroup,
   avatarVariants,
   getInitials,

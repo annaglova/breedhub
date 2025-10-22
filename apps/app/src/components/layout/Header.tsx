@@ -1,6 +1,8 @@
 import { useTheme } from "@/hooks/useTheme";
 import { useAppWorkspaces } from "@/hooks/useAppStore";
+import { useOnlineStatus } from "@/hooks/useOnlineStatus";
 import { Button } from "@ui/components/button";
+import { AvatarWithStatus } from "@ui/components/avatar";
 import {
   Tooltip,
   TooltipContent,
@@ -8,7 +10,7 @@ import {
   TooltipTrigger,
 } from "@ui/components/tooltip";
 import { cn, getIconComponent } from "@ui/lib/utils";
-import { Menu, User } from "lucide-react";
+import { Menu } from "lucide-react";
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { UserDrawer } from "./UserDrawer";
@@ -23,6 +25,7 @@ export function Header({ onMenuClick, isHome = false }: HeaderProps) {
   const location = useLocation();
   const { theme, toggleTheme } = useTheme();
   const [isUserDrawerOpen, setIsUserDrawerOpen] = useState(false);
+  const isOnline = useOnlineStatus();
 
   // TODO: In production, workspaces should be loaded statically to prevent flashing
   // See docs/UNIVERSAL_STORE_IMPLEMENTATION.md for details
@@ -134,18 +137,20 @@ export function Header({ onMenuClick, isHome = false }: HeaderProps) {
               <span className="ml-2">Dark</span>
             </Button> */}
 
-            {/* User menu */}
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-10 w-10 rounded-full border overflow-hidden p-0"
+            {/* User menu with online/offline status */}
+            <button
+              className="focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded-full"
               aria-label="Profile"
               onClick={() => setIsUserDrawerOpen(true)}
             >
-              <div className="h-full w-full bg-gray-200 flex items-center justify-center">
-                <User className="h-5 w-5 text-gray-600" />
-              </div>
-            </Button>
+              <AvatarWithStatus
+                size="default"
+                isOnline={isOnline}
+                showStatus={true}
+                statusPosition="top-right"
+                className="border"
+              />
+            </button>
           </div>
         </div>
       </header>
