@@ -1565,18 +1565,24 @@ class SpaceStore {
     filters: Record<string, any>,
     options?: {
       limit?: number;
-      offset?: number;
+      cursor?: string | null;  // ✅ Cursor for IDs query (keyset pagination)
+      orderBy?: {
+        field: string;
+        direction: 'asc' | 'desc';
+      };
       fieldConfigs?: Record<string, any>;
     }
-  ): Promise<{ records: any[]; total: number; hasMore: boolean }> {
+  ): Promise<{ records: any[]; total: number; hasMore: boolean; nextCursor: string | null }> {
     const limit = options?.limit || 30;
-    const offset = options?.offset || 0;
+    const cursor = options?.cursor ?? null;
+    const orderBy = options?.orderBy || { field: 'name', direction: 'asc' as const };
 
-    console.log('[SpaceStore] applyFilters:', {
+    console.log('[SpaceStore] applyFilters (ID-First):', {
       entityType,
       filters,
       limit,
-      offset
+      cursor,
+      orderBy
     });
 
     // Get field configs for operator detection
@@ -1584,52 +1590,184 @@ class SpaceStore {
     const fieldConfigs = options?.fieldConfigs || spaceConfig?.filter_fields || {};
 
     try {
-      // 1. Try RxDB local search first
-      const localResults = await this.filterLocalEntities(
+      // 🆔 PHASE 1: Fetch IDs + ordering field from Supabase (lightweight ~1KB for 30 records)
+      console.log('[SpaceStore] 🆔 Phase 1: Fetching IDs from Supabase...');
+
+      const idsData = await this.fetchIDsFromSupabase(
         entityType,
         filters,
         fieldConfigs,
         limit,
-        offset
+        cursor,
+        orderBy
       );
 
-      console.log('[SpaceStore] Local results:', localResults.length);
-
-      // 2. If not enough results, fetch from Supabase
-      if (localResults.length < limit && !offset) {
-        console.log('[SpaceStore] Fetching from Supabase with filters...');
-        const remoteResults = await this.fetchFilteredFromSupabase(
-          entityType,
-          filters,
-          fieldConfigs,
-          limit
-        );
-
-        console.log('[SpaceStore] Remote results:', remoteResults.length);
-
-        // Return combined results (local + remote, deduplicated)
-        const allResults = this.deduplicateResults([...localResults, ...remoteResults]);
+      if (!idsData || idsData.length === 0) {
+        console.log('[SpaceStore] ⚠️ No IDs returned from Supabase');
         return {
-          records: allResults.slice(0, limit),
-          total: allResults.length,
-          hasMore: allResults.length >= limit
+          records: [],
+          total: 0,
+          hasMore: false,
+          nextCursor: null
         };
       }
 
-      // Return local results
+      console.log(`[SpaceStore] ✅ Got ${idsData.length} IDs from Supabase`);
+
+      // Extract IDs and calculate nextCursor
+      const ids = idsData.map(d => d.id);
+      const nextCursor = idsData[idsData.length - 1]?.[orderBy.field] ?? null;
+
+      // 💾 PHASE 2: Check RxDB cache for these IDs
+      console.log('[SpaceStore] 💾 Phase 2: Checking RxDB cache...');
+
+      if (!this.db) {
+        console.warn('[SpaceStore] Database not initialized');
+        return {
+          records: [],
+          total: 0,
+          hasMore: false,
+          nextCursor: null
+        };
+      }
+
+      const collection = this.db.collections[entityType];
+      if (!collection) {
+        console.warn(`[SpaceStore] Collection ${entityType} not found`);
+        return {
+          records: [],
+          total: 0,
+          hasMore: false,
+          nextCursor: null
+        };
+      }
+
+      const cached = await collection.find({
+        selector: { id: { $in: ids } }
+      }).exec();
+
+      const cachedMap = new Map(cached.map(d => [d.id, d.toJSON()]));
+      console.log(`[SpaceStore] 📦 Found ${cachedMap.size}/${ids.length} in cache (${Math.round(cachedMap.size / ids.length * 100)}% hit rate)`);
+
+      // 🌐 PHASE 3: Fetch missing full records from Supabase
+      const missingIds = ids.filter(id => !cachedMap.has(id));
+
+      let freshRecords = [];
+      if (missingIds.length > 0) {
+        console.log(`[SpaceStore] 🌐 Phase 3: Fetching ${missingIds.length} missing full records...`);
+
+        freshRecords = await this.fetchRecordsByIDs(
+          entityType,
+          missingIds
+        );
+
+        console.log(`[SpaceStore] ✅ Fetched ${freshRecords.length} fresh records`);
+
+        // Cache fresh records in RxDB
+        if (freshRecords.length > 0) {
+          const mapped = freshRecords.map(r => this.mapToRxDBFormat(r, entityType));
+          await collection.bulkUpsert(mapped);
+          console.log(`[SpaceStore] 💾 Cached ${mapped.length} fresh records in RxDB`);
+        }
+      } else {
+        console.log('[SpaceStore] ✨ All records in cache! (100% hit rate)');
+      }
+
+      // 🔀 PHASE 4: Merge cached + fresh, maintain order from IDs query
+      const recordsMap = new Map([
+        ...cachedMap,
+        ...freshRecords.map(r => [r.id, r])
+      ]);
+
+      // CRITICAL: Maintain exact order from IDs query!
+      const orderedRecords = ids
+        .map(id => recordsMap.get(id))
+        .filter(Boolean);
+
+      console.log(`[SpaceStore] ✅ Returning ${orderedRecords.length} records (hasMore: ${idsData.length >= limit})`);
+
       return {
-        records: localResults,
-        total: localResults.length,
-        hasMore: false // We don't know total from local query
+        records: orderedRecords,
+        total: orderedRecords.length,
+        hasMore: idsData.length >= limit,
+        nextCursor
       };
 
     } catch (error) {
-      console.error('[SpaceStore] applyFilters error:', error);
-      return {
-        records: [],
-        total: 0,
-        hasMore: false
-      };
+      // 📴 OFFLINE FALLBACK: Use RxDB cache with proper filtering
+      console.warn('[SpaceStore] ⚠️ Network error, using offline fallback (RxDB only)');
+      console.error('[SpaceStore] Error details:', error);
+
+      try {
+        if (!this.db) {
+          throw new Error('Database not initialized');
+        }
+
+        const collection = this.db.collections[entityType];
+        if (!collection) {
+          throw new Error(`Collection ${entityType} not found`);
+        }
+
+        // ✅ Use proper filterLocalEntities() for offline mode
+        console.log('[SpaceStore] 🔍 Filtering locally in RxDB with same logic as online...');
+
+        const localResults = await this.filterLocalEntities(
+          entityType,
+          filters,
+          fieldConfigs,
+          limit,
+          cursor,
+          orderBy
+        );
+
+        // Get total count from RxDB (with same filters, no limit)
+        let totalQuery = collection.find();
+        totalQuery = totalQuery.where('_deleted').eq(false);
+
+        // Apply same filters for count
+        for (const [fieldKey, value] of Object.entries(filters)) {
+          if (value === undefined || value === null || value === '') continue;
+
+          let fieldConfig = fieldConfigs[fieldKey];
+          if (!fieldConfig) {
+            const prefixedKey = `${entityType}_field_${fieldKey}`;
+            fieldConfig = fieldConfigs[prefixedKey];
+          }
+
+          const finalFieldConfig = fieldConfig || {};
+          const fieldType = finalFieldConfig.fieldType || 'string';
+          const operator = this.detectOperator(fieldType, finalFieldConfig.operator);
+
+          totalQuery = this.applyRxDBFilter(totalQuery, fieldKey, operator, value);
+        }
+
+        const totalCount = await totalQuery.count().exec();
+
+        // Calculate hasMore based on cursor
+        const hasMore = localResults.length >= limit;
+        const nextCursor = localResults.length > 0
+          ? localResults[localResults.length - 1]?.[orderBy.field] ?? null
+          : null;
+
+        console.log(`[SpaceStore] 📴 Offline mode: returning ${localResults.length}/${totalCount} records (hasMore: ${hasMore})`);
+
+        return {
+          records: localResults,
+          total: totalCount,
+          hasMore,
+          nextCursor,
+          offline: true  // ✅ Flag for UI to show "You're offline" message
+        } as any;
+      } catch (offlineError) {
+        console.error('[SpaceStore] Offline fallback also failed:', offlineError);
+        return {
+          records: [],
+          total: 0,
+          hasMore: false,
+          nextCursor: null,
+          offline: true
+        } as any;
+      }
     }
   }
 
@@ -1642,7 +1780,8 @@ class SpaceStore {
     filters: Record<string, any>,
     fieldConfigs: Record<string, any>,
     limit: number,
-    offset: number
+    cursor: string | null,
+    orderBy: { field: string; direction: 'asc' | 'desc' }
   ): Promise<any[]> {
     if (!this.db) {
       return [];
@@ -1655,8 +1794,15 @@ class SpaceStore {
     }
 
     try {
+      // First check: how many docs in collection?
+      const totalDocs = await collection.count().exec();
+      console.log(`[SpaceStore] 📊 Collection ${entityType} has ${totalDocs} docs in RxDB`);
+
       // Build RxDB query with filters (AND logic)
       let query = collection.find();
+
+      // CRITICAL: Filter out deleted records (must match Supabase filter)
+      query = query.where('_deleted').eq(false);
 
       // Apply each filter
       for (const [fieldKey, value] of Object.entries(filters)) {
@@ -1664,51 +1810,245 @@ class SpaceStore {
           continue; // Skip empty filters
         }
 
-        const fieldConfig = fieldConfigs[fieldKey] || {};
-        const fieldType = fieldConfig.fieldType || 'string';
-        const operator = this.detectOperator(fieldType, fieldConfig.operator);
+        // Try to find field config (with and without prefix)
+        let fieldConfig = fieldConfigs[fieldKey];
+        if (!fieldConfig) {
+          const prefixedKey = `${entityType}_field_${fieldKey}`;
+          fieldConfig = fieldConfigs[prefixedKey];
+          console.log('[SpaceStore] 🔑 Field config lookup:', {
+            fieldKey,
+            hasDirectMatch: !!fieldConfigs[fieldKey],
+            prefixedKey,
+            hasPrefixMatch: !!fieldConfigs[prefixedKey],
+            availableKeys: Object.keys(fieldConfigs).slice(0, 5) // Show first 5 keys
+          });
+        }
 
-        // Extract actual field name (remove prefix like 'breed_field_')
-        const fieldName = fieldKey.replace(new RegExp(`^${entityType}_field_`), '');
+        const finalFieldConfig = fieldConfig || {};
+        const fieldType = finalFieldConfig.fieldType || 'string';
+        const operator = this.detectOperator(fieldType, finalFieldConfig.operator);
 
-        console.log('[SpaceStore] Applying filter:', {
+        // Field name is already correct (without prefix)
+        const fieldName = fieldKey;
+
+        console.log('[SpaceStore] 🔍 Applying filter:', {
           fieldKey,
           fieldName,
           fieldType,
           operator,
-          value
+          value,
+          hasFieldConfig: !!fieldConfig
         });
 
         // Apply filter based on operator
         query = this.applyRxDBFilter(query, fieldName, operator, value);
       }
 
-      // Apply pagination
-      if (offset > 0) {
-        query = query.skip(offset);
+      // ✅ KEYSET PAGINATION: Apply cursor (WHERE field > cursor)
+      if (cursor !== null) {
+        if (orderBy.direction === 'asc') {
+          query = query.where(orderBy.field).gt(cursor);
+        } else {
+          query = query.where(orderBy.field).lt(cursor);
+        }
+        console.log(`[SpaceStore] 🔑 Applied cursor: ${orderBy.field} ${orderBy.direction === 'asc' ? '>' : '<'} '${cursor}'`);
       }
+
+      // Apply order for consistent pagination (must match Supabase order!)
+      if (orderBy.direction === 'desc') {
+        query = query.sort(`-${orderBy.field}`); // RxDB uses '-' prefix for descending
+      } else {
+        query = query.sort(orderBy.field);
+      }
+
+      // Apply limit (NO skip!)
       if (limit > 0) {
         query = query.limit(limit);
       }
 
       const docs = await query.exec();
+      console.log(`[SpaceStore] 📦 Local query returned ${docs.length} results`);
+
+      // Log first result for debugging
+      if (docs.length > 0) {
+        console.log('[SpaceStore] 👁️ First result:', docs[0].toJSON());
+      }
+
       return docs.map((doc: any) => doc.toJSON());
 
     } catch (error) {
-      console.error('[SpaceStore] Local filtering error:', error);
+      console.error('[SpaceStore] ❌ Local filtering error:', error);
       return [];
     }
   }
 
   /**
+   * 🆔 ID-First Phase 1: Fetch IDs + ordering field from Supabase
+   * Lightweight query (~1KB for 30 records instead of ~30KB)
+   */
+  private async fetchIDsFromSupabase(
+    entityType: string,
+    filters: Record<string, any>,
+    fieldConfigs: Record<string, any>,
+    limit: number,
+    cursor: string | null,
+    orderBy: { field: string; direction: 'asc' | 'desc' }
+  ): Promise<Array<{ id: string; [key: string]: any }>> {
+    const { supabase } = await import('../supabase/client');
+
+    console.log(`[SpaceStore] 🆔 Fetching IDs for ${entityType}...`);
+
+    // Build lightweight query: only ID + ordering field
+    let query = supabase
+      .from(entityType)
+      .select(`id, ${orderBy.field}`);
+
+    // Filter out deleted records
+    query = query.or('deleted.is.null,deleted.eq.false');
+
+    // Apply filters (AND logic)
+    for (const [fieldKey, value] of Object.entries(filters)) {
+      if (value === undefined || value === null || value === '') {
+        continue;
+      }
+
+      const fieldConfig = fieldConfigs[fieldKey] || {};
+      const fieldType = fieldConfig.fieldType || 'string';
+      const operator = this.detectOperator(fieldType, fieldConfig.operator);
+
+      // Extract actual field name
+      const fieldName = fieldKey.replace(new RegExp(`^${entityType}_field_`), '');
+
+      // Apply filter based on operator
+      query = this.applySupabaseFilter(query, fieldName, operator, value);
+    }
+
+    // Apply cursor (keyset pagination)
+    if (cursor !== null) {
+      if (orderBy.direction === 'asc') {
+        query = query.gt(orderBy.field, cursor);
+      } else {
+        query = query.lt(orderBy.field, cursor);
+      }
+      console.log(`[SpaceStore] 🔑 Cursor: ${orderBy.field} ${orderBy.direction === 'asc' ? '>' : '<'} '${cursor}'`);
+    }
+
+    // Apply order and limit
+    query = query
+      .order(orderBy.field, { ascending: orderBy.direction === 'asc' })
+      .limit(limit);
+
+    const { data, error } = await query;
+
+    if (error) {
+      console.error('[SpaceStore] ❌ IDs query error:', error);
+      throw error;
+    }
+
+    console.log(`[SpaceStore] ✅ Fetched ${data?.length || 0} IDs (~${Math.round((data?.length || 0) * 0.1)}KB)`);
+
+    return data || [];
+  }
+
+  /**
+   * 🌐 ID-First Phase 3: Fetch full records by IDs
+   * Only fetches missing records that aren't in RxDB cache
+   */
+  private async fetchRecordsByIDs(
+    entityType: string,
+    ids: string[]
+  ): Promise<any[]> {
+    if (ids.length === 0) {
+      return [];
+    }
+
+    const { supabase } = await import('../supabase/client');
+
+    console.log(`[SpaceStore] 🌐 Fetching ${ids.length} full records by IDs...`);
+
+    const { data, error } = await supabase
+      .from(entityType)
+      .select('*')
+      .in('id', ids);
+
+    if (error) {
+      console.error('[SpaceStore] ❌ Records fetch error:', error);
+      throw error;
+    }
+
+    console.log(`[SpaceStore] ✅ Fetched ${data?.length || 0} full records (~${Math.round((data?.length || 0) * 1)}KB)`);
+
+    return data || [];
+  }
+
+  /**
+   * Map Supabase record to RxDB format
+   * Extracted from fetchFilteredFromSupabase for reusability
+   */
+  private mapToRxDBFormat(supabaseDoc: any, entityType: string): any {
+    const collection = this.db?.collections[entityType];
+    if (!collection) {
+      console.warn(`[SpaceStore] Collection ${entityType} not found for mapping`);
+      return supabaseDoc;
+    }
+
+    const schema = collection.schema.jsonSchema;
+    const mapped: any = {};
+
+    // If we have schema, use it to map fields
+    if (schema?.properties) {
+      for (const fieldName in schema.properties) {
+        if (fieldName === '_deleted') {
+          // Special handling for deleted field
+          mapped._deleted = Boolean(supabaseDoc.deleted);
+        } else if (supabaseDoc.hasOwnProperty(fieldName)) {
+          mapped[fieldName] = supabaseDoc[fieldName];
+        }
+      }
+    } else {
+      // Fallback: copy all fields, handling special cases
+      // ⚠️ CRITICAL: Exclude RxDB service fields (_meta, _attachments, _rev)
+      const serviceFields = ['_meta', '_attachments', '_rev'];
+
+      for (const key in supabaseDoc) {
+        // Skip RxDB service fields
+        if (serviceFields.includes(key)) {
+          continue;
+        }
+
+        if (key === 'deleted') {
+          mapped._deleted = Boolean(supabaseDoc.deleted);
+        } else {
+          mapped[key] = supabaseDoc[key];
+        }
+      }
+    }
+
+    // Ensure required fields
+    mapped.id = mapped.id || supabaseDoc.id;
+    mapped.created_at = mapped.created_at || supabaseDoc.created_at;
+    mapped.updated_at = mapped.updated_at || supabaseDoc.updated_at;
+
+    // ✅ IMPORTANT: Remove service fields that might have been copied
+    delete mapped._meta;
+    delete mapped._attachments;
+    delete mapped._rev;
+
+    return mapped;
+  }
+
+  /**
    * Fetch filtered results from Supabase
    * Builds Supabase query with filters and caches results in RxDB
+   * Supports keyset-based pagination for scroll (cursor)
    */
   private async fetchFilteredFromSupabase(
     entityType: string,
     filters: Record<string, any>,
     fieldConfigs: Record<string, any>,
-    limit: number
+    limit: number,
+    cursor: string | null,
+    orderBy: { field: string; direction: 'asc' | 'desc' }
   ): Promise<any[]> {
     if (!this.db) {
       return [];
@@ -1721,11 +2061,19 @@ class SpaceStore {
     }
 
     try {
+      console.log(`[SpaceStore] 🚀 fetchFilteredFromSupabase START for ${entityType}`);
+
       // Import supabase client
       const { supabase } = await import('../supabase/client');
 
       // Build Supabase query
       let query = supabase.from(entityType).select('*');
+
+      // CRITICAL: Filter out deleted records for UI pagination
+      // (deleted records should not count towards offset/total)
+      query = query.or('deleted.is.null,deleted.eq.false');
+
+      console.log(`[SpaceStore] 🔨 Building Supabase query for ${entityType}...`);
 
       // Apply filters (AND logic)
       for (const [fieldKey, value] of Object.entries(filters)) {
@@ -1752,31 +2100,124 @@ class SpaceStore {
         query = this.applySupabaseFilter(query, fieldName, operator, value);
       }
 
-      // Apply limit
+      // ✅ KEYSET PAGINATION: Apply cursor (WHERE field > cursor)
+      if (cursor !== null) {
+        if (orderBy.direction === 'asc') {
+          query = query.gt(orderBy.field, cursor);
+        } else {
+          query = query.lt(orderBy.field, cursor);
+        }
+        console.log(`[SpaceStore] 🔑 Applied cursor: ${orderBy.field} ${orderBy.direction === 'asc' ? '>' : '<'} '${cursor}'`);
+      }
+
+      // Apply order for consistent pagination (CRITICAL! Must match RxDB sort)
+      query = query.order(orderBy.field, { ascending: orderBy.direction === 'asc' });
+
+      // Apply limit (NO range!)
       query = query.limit(limit);
 
-      // Execute query
       const { data, error } = await query;
 
+      console.log(`[SpaceStore] 📡 Executed Supabase query: cursor=${cursor}, order(${orderBy.field}, ${orderBy.direction}), limit=${limit}`);
+
+      console.log(`[SpaceStore] 📬 Supabase response received:`, {
+        hasData: !!data,
+        dataLength: data?.length,
+        hasError: !!error
+      });
+
       if (error) {
-        console.error('[SpaceStore] Supabase query error:', error);
+        console.error('[SpaceStore] ❌ Supabase query error:', error);
         return [];
       }
 
       if (!data || data.length === 0) {
+        console.log('[SpaceStore] ⚠️ No data returned from Supabase');
         return [];
       }
 
+      console.log(`[SpaceStore] ✅ Got ${data.length} records from Supabase`);
+
+      // Map Supabase records to RxDB format (same logic as EntityReplicationService)
+      const schema = collection.schema.jsonSchema;
+      const mappedData = data.map(supabaseDoc => {
+        const mapped: any = {};
+
+        // If we have schema, use it to map fields
+        if (schema?.properties) {
+          for (const fieldName in schema.properties) {
+            if (fieldName === '_deleted') {
+              // Special handling for deleted field
+              mapped._deleted = Boolean(supabaseDoc.deleted);
+            } else if (supabaseDoc.hasOwnProperty(fieldName)) {
+              mapped[fieldName] = supabaseDoc[fieldName];
+            }
+          }
+        } else {
+          // Fallback: copy all fields, handling special cases
+          for (const key in supabaseDoc) {
+            if (key === 'deleted') {
+              mapped._deleted = Boolean(supabaseDoc.deleted);
+            } else {
+              mapped[key] = supabaseDoc[key];
+            }
+          }
+        }
+
+        // Ensure required fields
+        mapped.id = mapped.id || supabaseDoc.id;
+        mapped.created_at = mapped.created_at || supabaseDoc.created_at;
+        mapped.updated_at = mapped.updated_at || supabaseDoc.updated_at;
+
+        return mapped;
+      });
+
+      console.log('[SpaceStore] 🔄 Mapped to RxDB format, first record:', mappedData[0]);
+
       // Cache results in RxDB (bulk upsert for performance)
       try {
-        await collection.bulkUpsert(data);
-        console.log(`[SpaceStore] Cached ${data.length} filtered results in RxDB`);
+        console.log(`[SpaceStore] 💾 Attempting to cache ${mappedData.length} results in RxDB...`);
+        console.log('[SpaceStore] 🗂️ Collection name:', collection.name);
+
+        const beforeCount = await collection.count().exec();
+        console.log(`[SpaceStore] 📊 Collection had ${beforeCount} docs before caching`);
+
+        // Check which IDs already exist
+        const incomingIds = mappedData.map(d => d.id);
+        const existingDocs = await collection.findByIds(incomingIds).exec();
+        const existingIds = Array.from(existingDocs.keys());
+        const newIds = incomingIds.filter(id => !existingIds.includes(id));
+
+        console.log(`[SpaceStore] 🔍 ID analysis:`, {
+          incoming: incomingIds.length,
+          alreadyExist: existingIds.length,
+          willBeNew: newIds.length,
+          incomingIds: incomingIds.slice(0, 3),
+          existingIds: existingIds.slice(0, 3),
+          newIds: newIds.slice(0, 3)
+        });
+
+        const result = await collection.bulkUpsert(mappedData);
+        console.log(`[SpaceStore] 🔍 BulkUpsert result:`, {
+          success: result.success.length,
+          error: result.error.length,
+          errorDetails: result.error.map(e => ({ id: e.documentId, error: e.error }))
+        });
+
+        // Verify caching worked
+        const afterCount = await collection.count().exec();
+        console.log(`[SpaceStore] ✅ Cached successfully! Collection now has ${afterCount} docs (was ${beforeCount}, added ${afterCount - beforeCount})`);
       } catch (upsertError) {
-        console.warn('[SpaceStore] Failed to cache results in RxDB:', upsertError);
+        console.error('[SpaceStore] ❌ Failed to cache results in RxDB:', upsertError);
+        console.error('[SpaceStore] ❌ Error details:', {
+          name: (upsertError as any).name,
+          message: (upsertError as any).message,
+          stack: (upsertError as any).stack
+        });
         // Continue even if caching fails
       }
 
-      return data;
+      return mappedData;
 
     } catch (error) {
       console.error('[SpaceStore] Supabase filtering error:', error);
@@ -1791,32 +2232,47 @@ class SpaceStore {
   private detectOperator(fieldType: string, configOperator?: string): string {
     // Use config operator if explicitly set
     if (configOperator) {
+      console.log('[SpaceStore] 🎯 Using explicit operator from config:', configOperator);
       return configOperator;
     }
 
     // Auto-detect by field type
+    let operator: string;
     switch (fieldType) {
       case 'string':
       case 'text':
-        return 'ilike'; // Case-insensitive search
+        operator = 'ilike'; // Case-insensitive search
+        break;
 
       case 'uuid':
-        return 'eq'; // Exact match
+        operator = 'eq'; // Exact match
+        break;
 
       case 'number':
       case 'integer':
-        return 'eq'; // Exact match (can be 'gt', 'lt' if needed)
+        operator = 'eq'; // Exact match (can be 'gt', 'lt' if needed)
+        break;
 
       case 'boolean':
-        return 'eq';
+        operator = 'eq';
+        break;
 
       case 'date':
       case 'timestamp':
-        return 'gte'; // Greater than or equal (can be 'lte' for range end)
+        operator = 'gte'; // Greater than or equal (can be 'lte' for range end)
+        break;
 
       default:
-        return 'eq'; // Default to exact match
+        operator = 'eq'; // Default to exact match
+        break;
     }
+
+    console.log('[SpaceStore] 🎯 Auto-detected operator:', {
+      fieldType,
+      operator
+    });
+
+    return operator;
   }
 
   /**
@@ -1829,7 +2285,10 @@ class SpaceStore {
       case 'contains':
         // Case-insensitive regex search
         const escapedValue = String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-        return query.where(fieldName).regex(new RegExp(escapedValue, 'i'));
+        // Use JavaScript RegExp with 'i' flag for case-insensitive
+        const regex = new RegExp(escapedValue, 'i');
+        console.log('[SpaceStore] 🔍 RxDB regex:', regex);
+        return query.where(fieldName).regex(regex);
 
       case 'eq':
         return query.where(fieldName).eq(value);
