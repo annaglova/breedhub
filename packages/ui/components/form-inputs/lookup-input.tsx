@@ -54,31 +54,39 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
     const [highlightedIndex, setHighlightedIndex] = useState(0);
     const [dynamicOptions, setDynamicOptions] = useState<LookupOption[]>(options);
     const [internalLoading, setInternalLoading] = useState(false);
-    const [offset, setOffset] = useState(0);
     const [hasMore, setHasMore] = useState(true);
     const dropdownRef = useRef<HTMLDivElement>(null);
     const dropdownListRef = useRef<HTMLDivElement>(null);
     const searchTimeoutRef = useRef<NodeJS.Timeout>();
     const prevSearchQueryRef = useRef<string>('');
-    const offsetRef = useRef<number>(0); // Keep offset in sync with state for immediate access
+    const cursorRef = useRef<string | null>(null); // ✅ Keyset pagination: last seen value
+    const isLoadingRef = useRef(false); // 🔒 Prevent race conditions
 
     const loading = externalLoading || internalLoading;
 
     const loadDictionaryOptions = useCallback(async (query: string = '', append: boolean = false) => {
       if (!referencedTable) return;
 
+      // 🔒 CRITICAL: Prevent multiple simultaneous calls (race condition fix)
+      if (isLoadingRef.current) {
+        console.log('[LookupInput] ⚠️ Already loading, skipping duplicate call');
+        return;
+      }
+
+      isLoadingRef.current = true;
       setInternalLoading(true);
 
       try {
-        // Read current offset from ref for immediate access
-        const currentOffset = append ? offsetRef.current : 0;
+        // ✅ KEYSET PAGINATION: Use cursor instead of offset
+        const currentCursor = append ? cursorRef.current : null;
 
         let opts: LookupOption[] = [];
         let more = false;
+        let nextCursor: string | null = null;
 
         if (dataSource === 'collection') {
           // Mode: Use SpaceStore.applyFilters() for main entities
-          console.log('[LookupInput] Loading from collection via SpaceStore:', referencedTable, 'search:', query, 'offset:', currentOffset);
+          console.log('[LookupInput] Loading from collection via SpaceStore:', referencedTable, 'search:', query, 'cursor:', currentCursor);
 
           // Build filters object for applyFilters
           const filters: Record<string, any> = {};
@@ -86,13 +94,14 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
             filters[referencedFieldName] = query;
           }
 
-          // Call universal filtering method
+          // Call universal filtering method with keyset pagination
           const result = await spaceStore.applyFilters(
             referencedTable,
             filters,
             {
               limit: 30,
-              offset: currentOffset
+              cursor: currentCursor,
+              orderBy: { field: 'name', direction: 'asc' }  // Always A-Z for search/selection
             }
           );
 
@@ -102,18 +111,20 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
           }));
 
           more = result.hasMore;
+          nextCursor = result.nextCursor;
 
-          console.log('[LookupInput] Loaded from SpaceStore:', opts.length, 'hasMore:', more);
+          console.log('[LookupInput] Loaded from SpaceStore:', opts.length, 'hasMore:', more, 'nextCursor:', nextCursor);
         } else {
-          // Mode: Use DictionaryStore cache (default for dictionaries)
-          console.log('[LookupInput] Loading from dictionary:', referencedTable, 'search:', query, 'offset:', currentOffset);
+          // Mode: Use DictionaryStore with ID-First pagination ✅
+          const currentCursor = append ? cursorRef.current : null;
+          console.log('[LookupInput] Loading from dictionary (ID-First):', referencedTable, 'search:', query, 'cursor:', currentCursor);
 
-          const { records, hasMore: dictHasMore } = await dictionaryStore.getDictionary(referencedTable, {
+          const { records, hasMore: dictHasMore, nextCursor: dictNextCursor } = await dictionaryStore.getDictionary(referencedTable, {
             idField: referencedFieldID,
             nameField: referencedFieldName,
             search: query,
             limit: 30,
-            offset: currentOffset
+            cursor: currentCursor  // ✅ Use cursor instead of offset
           });
 
           opts = records.map(record => ({
@@ -122,30 +133,26 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
           }));
 
           more = dictHasMore;
+          nextCursor = dictNextCursor;  // ✅ Get nextCursor from DictionaryStore
 
-          console.log('[LookupInput] Loaded from dictionary:', opts.length, 'hasMore:', more);
+          console.log('[LookupInput] Loaded from dictionary:', opts.length, 'hasMore:', more, 'nextCursor:', nextCursor);
         }
 
         if (append) {
-          // Filter out duplicates when appending
-          setDynamicOptions(prev => {
-            const existingIds = new Set(prev.map(o => o.value));
-            const newOptions = opts.filter(o => !existingIds.has(o.value));
-            return [...prev, ...newOptions];
-          });
-          const newOffset = currentOffset + 30;
-          setOffset(newOffset);
-          offsetRef.current = newOffset;
+          // ✅ ID-First ensures no duplicates - trust the server response
+          setDynamicOptions(prev => [...prev, ...opts]);
         } else {
           setDynamicOptions(opts);
-          setOffset(30);
-          offsetRef.current = 30;
         }
+
+        // ✅ Always trust nextCursor from server (ID-First returns correct cursor)
+        cursorRef.current = nextCursor;
 
         setHasMore(more);
       } catch (error) {
         console.error(`[LookupInput] Failed to load ${dataSource === 'collection' ? 'collection' : 'dictionary'} ${referencedTable}:`, error);
       } finally {
+        isLoadingRef.current = false; // 🔒 Release lock
         setInternalLoading(false);
       }
     }, [referencedTable, referencedFieldID, referencedFieldName, dataSource]);
@@ -174,8 +181,7 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
         if (searchQuery) {
           // Search query entered - reset and load with search
           setDynamicOptions([]);
-          setOffset(0);
-          offsetRef.current = 0; // Keep ref in sync
+          cursorRef.current = null; // ✅ Reset cursor
 
           searchTimeoutRef.current = setTimeout(() => {
             loadDictionaryOptions(searchQuery, false);
@@ -183,8 +189,7 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
         } else if (prevQuery) {
           // Search cleared - reload initial data
           setDynamicOptions([]);
-          setOffset(0);
-          offsetRef.current = 0; // Keep ref in sync
+          cursorRef.current = null; // ✅ Reset cursor
           loadDictionaryOptions('', false);
         }
       }
@@ -199,11 +204,22 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
     // Use dynamic options if available, otherwise static options
     const currentOptions = referencedTable ? dynamicOptions : options;
 
+    // ✅ Deduplicate options (handles race conditions between scroll/replication)
+    const deduplicatedOptions = React.useMemo(() => {
+      const seen = new Map<string, LookupOption>();
+      currentOptions.forEach(opt => {
+        if (!seen.has(opt.value)) {
+          seen.set(opt.value, opt);
+        }
+      });
+      return Array.from(seen.values());
+    }, [currentOptions]);
+
     // Find selected option
-    const selectedOption = currentOptions.find(opt => opt.value === value);
+    const selectedOption = deduplicatedOptions.find(opt => opt.value === value);
 
     // Filter options based on search (only if not using server-side search)
-    const filteredOptions = referencedTable ? currentOptions : currentOptions.filter(option =>
+    const filteredOptions = referencedTable ? deduplicatedOptions : deduplicatedOptions.filter(option =>
       option.label.toLowerCase().includes(searchQuery.toLowerCase()) ||
       option.value.toLowerCase().includes(searchQuery.toLowerCase()) ||
       (option.description && option.description.toLowerCase().includes(searchQuery.toLowerCase()))
@@ -325,6 +341,10 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
             ref={dropdownListRef}
             className="absolute z-50 mt-1 w-full bg-white border border-gray-200 rounded-md shadow-lg max-h-[40vh] overflow-auto"
           >
+            {/* 🔍 DEBUG: Total count */}
+            <div className="px-3 py-1 text-xs text-gray-400 border-b border-gray-100 bg-gray-50 sticky top-0">
+              Showing {filteredOptions.length} breeds
+            </div>
             {filteredOptions.map((option, index) => (
               <div
                 key={option.value}
