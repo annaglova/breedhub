@@ -506,6 +506,7 @@ class SpaceStore {
     id: string;
     name: string;
     icon?: string;
+    field: string;
     direction?: string;
     parameter?: string;
     isDefault?: boolean;
@@ -541,6 +542,7 @@ class SpaceStore {
       id: string;
       name: string;
       icon?: string;
+      field: string;
       direction?: string;
       parameter?: string;
       isDefault?: boolean;
@@ -568,6 +570,7 @@ class SpaceStore {
             id: optionId,
             name: sortOption.label || field.displayName || fieldId,
             icon: sortOption.icon,
+            field: fieldId,
             direction: sortOption.direction,
             parameter: sortOption.parametr, // For JSON fields
             isDefault: sortOption.isDefault === 'true' || sortOption.isDefault === true,
@@ -1021,7 +1024,7 @@ class SpaceStore {
     // Helper function to process field and add to schema
     const addFieldToSchema = (fieldKey: string, fieldConfig: any) => {
       // Extract field name (remove prefix like 'breed_field_')
-      const fieldName = fieldKey.replace(new RegExp(`^${entityType}_field_`), '');
+      const fieldName = this.removeFieldPrefix(fieldKey, entityType);
 
       // Skip if already processed
       if (properties[fieldName]) return;
@@ -1782,8 +1785,9 @@ class SpaceStore {
 
         // Calculate hasMore based on cursor
         const hasMore = localResults.length >= limit;
+        const rxdbOrderByFieldForCursor = this.removeFieldPrefix(orderBy.field, entityType);
         const nextCursor = localResults.length > 0
-          ? localResults[localResults.length - 1]?.[orderBy.field] ?? null
+          ? localResults[localResults.length - 1]?.[rxdbOrderByFieldForCursor] ?? null
           : null;
 
         console.log(`[SpaceStore] 📴 Offline mode: returning ${localResults.length}/${totalCount} records (hasMore: ${hasMore})`);
@@ -1809,6 +1813,15 @@ class SpaceStore {
   }
 
   /**
+   * 🔧 Helper: Remove entity_field_ prefix from field name
+   * Used for converting config field names to DB field names
+   * Example: breed_field_measurements -> measurements
+   */
+  private removeFieldPrefix(fieldName: string, entityType: string): string {
+    return fieldName.replace(new RegExp(`^${entityType}_field_`), '');
+  }
+
+  /**
    * Filter entities locally in RxDB
    * Builds RxDB query with AND logic for all filters
    */
@@ -1818,7 +1831,7 @@ class SpaceStore {
     fieldConfigs: Record<string, any>,
     limit: number,
     cursor: string | null,
-    orderBy: { field: string; direction: 'asc' | 'desc' }
+    orderBy: { field: string; direction: 'asc' | 'desc'; parameter?: string }
   ): Promise<any[]> {
     if (!this.db) {
       return [];
@@ -1829,6 +1842,9 @@ class SpaceStore {
       console.warn(`[SpaceStore] Collection ${entityType} not found for local filtering`);
       return [];
     }
+
+    // Convert orderBy field name to RxDB format (remove entity_field_ prefix)
+    const rxdbOrderByField = this.removeFieldPrefix(orderBy.field, entityType);
 
     try {
       // First check: how many docs in collection?
@@ -1898,7 +1914,7 @@ class SpaceStore {
         // Execute starts_with query
         const startsWithDocs = await collection.find({
           selector: startsWithSelector,
-          sort: [{ [orderBy.field]: orderBy.direction === 'asc' ? 'asc' : 'desc' }],
+          sort: [{ [rxdbOrderByField]: orderBy.direction === 'asc' ? 'asc' : 'desc' }],
           limit: startsWithLimit
         }).exec();
         const startsWithResults = startsWithDocs.map(doc => doc.toJSON());
@@ -1949,7 +1965,7 @@ class SpaceStore {
           // Execute contains query
           const containsDocs = await collection.find({
             selector: containsSelector,
-            sort: [{ [orderBy.field]: orderBy.direction === 'asc' ? 'asc' : 'desc' }],
+            sort: [{ [rxdbOrderByField]: orderBy.direction === 'asc' ? 'asc' : 'desc' }],
             limit
           }).exec();
 
@@ -2027,17 +2043,17 @@ class SpaceStore {
         // ✅ KEYSET PAGINATION: Apply cursor to selector
         if (cursor !== null) {
           if (orderBy.direction === 'asc') {
-            selector[orderBy.field] = { $gt: cursor };
+            selector[rxdbOrderByField] = { $gt: cursor };
           } else {
-            selector[orderBy.field] = { $lt: cursor };
+            selector[rxdbOrderByField] = { $lt: cursor };
           }
-          console.log(`[SpaceStore] 🔑 Applied cursor: ${orderBy.field} ${orderBy.direction === 'asc' ? '>' : '<'} '${cursor}'`);
+          console.log(`[SpaceStore] 🔑 Applied cursor: ${rxdbOrderByField} ${orderBy.direction === 'asc' ? '>' : '<'} '${cursor}'`);
         }
 
         // Execute query with selector
         const docs = await collection.find({
           selector,
-          sort: [{ [orderBy.field]: orderBy.direction === 'asc' ? 'asc' : 'desc' }],
+          sort: [{ [rxdbOrderByField]: orderBy.direction === 'asc' ? 'asc' : 'desc' }],
           limit: limit > 0 ? limit : undefined
         }).exec();
 
@@ -2067,16 +2083,26 @@ class SpaceStore {
     fieldConfigs: Record<string, any>,
     limit: number,
     cursor: string | null,
-    orderBy: { field: string; direction: 'asc' | 'desc' }
+    orderBy: { field: string; direction: 'asc' | 'desc'; parameter?: string }
   ): Promise<Array<{ id: string; [key: string]: any }>> {
     const { supabase } = await import('../supabase/client');
 
     console.log(`[SpaceStore] 🆔 Fetching IDs for ${entityType}...`);
 
+    // Remove entity_field_ prefix for Supabase (e.g., breed_field_measurements -> measurements)
+    const supabaseField = this.removeFieldPrefix(orderBy.field, entityType);
+
+    // For JSONB fields with parameter, use field->>parameter syntax
+    const orderField = orderBy.parameter
+      ? `${supabaseField}->>${orderBy.parameter}`
+      : supabaseField;
+
+    console.log(`[SpaceStore] 🔍 Order field for Supabase: ${orderField}`);
+
     // Build lightweight query: only ID + ordering field
     let query = supabase
       .from(entityType)
-      .select(`id, ${orderBy.field}`);
+      .select(`id, ${orderField}`);
 
     // Filter out deleted records
     query = query.or('deleted.is.null,deleted.eq.false');
@@ -2092,7 +2118,7 @@ class SpaceStore {
       const operator = this.detectOperator(fieldType, fieldConfig.operator);
 
       // Extract actual field name
-      const fieldName = fieldKey.replace(new RegExp(`^${entityType}_field_`), '');
+      const fieldName = this.removeFieldPrefix(fieldKey, entityType);
 
       // Apply filter based on operator
       query = this.applySupabaseFilter(query, fieldName, operator, value);
@@ -2101,16 +2127,16 @@ class SpaceStore {
     // Apply cursor (keyset pagination)
     if (cursor !== null) {
       if (orderBy.direction === 'asc') {
-        query = query.gt(orderBy.field, cursor);
+        query = query.gt(orderField, cursor);
       } else {
-        query = query.lt(orderBy.field, cursor);
+        query = query.lt(orderField, cursor);
       }
-      console.log(`[SpaceStore] 🔑 Cursor: ${orderBy.field} ${orderBy.direction === 'asc' ? '>' : '<'} '${cursor}'`);
+      console.log(`[SpaceStore] 🔑 Cursor: ${orderField} ${orderBy.direction === 'asc' ? '>' : '<'} '${cursor}'`);
     }
 
     // Apply order and limit
     query = query
-      .order(orderBy.field, { ascending: orderBy.direction === 'asc' })
+      .order(orderField, { ascending: orderBy.direction === 'asc' })
       .limit(limit);
 
     const { data, error } = await query;
@@ -2271,7 +2297,7 @@ class SpaceStore {
         const operator = this.detectOperator(fieldType, fieldConfig.operator);
 
         // Extract actual field name
-        const fieldName = fieldKey.replace(new RegExp(`^${entityType}_field_`), '');
+        const fieldName = this.removeFieldPrefix(fieldKey, entityType);
 
         console.log('[SpaceStore] Applying Supabase filter:', {
           fieldKey,

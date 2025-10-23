@@ -69,7 +69,7 @@ export function SpaceComponent<T extends { Id: string }>({
   const navigate = useNavigate();
   const location = useLocation();
   const [selectedEntityId, setSelectedEntityId] = useState<string | null>(null);
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const viewMode = searchParams.get("view") || config.viewConfig[0].id;
 
   // Get rows from view config (динамічно!)
@@ -104,13 +104,39 @@ export function SpaceComponent<T extends { Id: string }>({
     return sortOptions.find(option => option.isDefault) || sortOptions[0];
   }, [sortOptions]);
 
+  // 🆕 Read sort params from URL or use default
+  const sortBy = searchParams.get('sortBy');
+  const sortDir = searchParams.get('sortDir');
+  const sortParam = searchParams.get('sortParam'); // For JSONB fields
+
+  const selectedSortOption = useMemo(() => {
+    // If URL params exist, find matching sort option
+    if (sortBy && sortDir) {
+      const found = sortOptions.find(
+        option => option.field === sortBy &&
+                  option.direction === sortDir &&
+                  // For simple fields: both should be null/undefined
+                  // For JSONB fields: both should match the parameter
+                  (option.parameter || null) === (sortParam || null)
+      );
+      if (found) return found;
+    }
+    // Otherwise use default
+    return defaultSortOption;
+  }, [sortBy, sortDir, sortParam, sortOptions, defaultSortOption]);
+
   // 🆕 Memoize orderBy to prevent infinite loop (new object on each render)
   const orderBy = useMemo(() => {
-    return defaultSortOption?.field ? {
-      field: defaultSortOption.field,
-      direction: defaultSortOption.direction
-    } : { field: 'name', direction: 'asc' }; // Fallback to name if no sort config
-  }, [defaultSortOption]);
+    if (!selectedSortOption?.field) {
+      return { field: 'name', direction: 'asc' as const }; // Fallback to name if no sort config
+    }
+
+    return {
+      field: selectedSortOption.field,
+      direction: selectedSortOption.direction as 'asc' | 'desc',
+      ...(selectedSortOption.parameter && { parameter: selectedSortOption.parameter })
+    };
+  }, [selectedSortOption]);
 
   // 🆕 ID-First: useEntities with orderBy enables ID-First pagination
   const { data, isLoading, error, isFetching, hasMore, isLoadingMore, loadMore } = useEntitiesHook({
@@ -206,6 +232,22 @@ export function SpaceComponent<T extends { Id: string }>({
       await loadMore();
     }
   }, [loadMore]);
+
+  // 🆕 Handle sort change - update URL params
+  const handleSortChange = useCallback((option: any) => {
+    const newParams = new URLSearchParams(searchParams);
+    newParams.set('sortBy', option.field);
+    newParams.set('sortDir', option.direction);
+
+    // For JSONB fields, add parameter (e.g., measurements->achievement_progress)
+    if (option.parameter) {
+      newParams.set('sortParam', option.parameter);
+    } else {
+      newParams.delete('sortParam'); // Remove if no parameter
+    }
+
+    setSearchParams(newParams);
+  }, [searchParams, setSearchParams]);
 
   const handleCreateNew = () => {
     navigate(`${location.pathname}/new`);
@@ -376,7 +418,8 @@ export function SpaceComponent<T extends { Id: string }>({
             <FiltersSection
               className="mt-4"
               sortOptions={sortOptions}
-              defaultSortOption={defaultSortOption}
+              defaultSortOption={selectedSortOption}
+              onSortChange={handleSortChange}
               filterFields={filterFields}
             />
           </div>

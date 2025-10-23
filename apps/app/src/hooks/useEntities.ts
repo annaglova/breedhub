@@ -10,6 +10,7 @@ interface UseEntitiesParams {
   orderBy?: {
     field: string;
     direction: 'asc' | 'desc';
+    parameter?: string; // For JSONB fields (e.g., measurements->achievement_progress)
   };
 }
 

@@ -11,6 +11,7 @@ export function useBreeds(params: {
   orderBy?: {
     field: string;
     direction: 'asc' | 'desc';
+    parameter?: string; // For JSONB fields
   };
 } = {}) {
   return useEntities({
