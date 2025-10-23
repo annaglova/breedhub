@@ -4,37 +4,40 @@
 
 ## 🎯 ПОТОЧНИЙ СТАН
 
-**Статус:** ID-First Complete, PWA Phase 1 Complete ✅
+**Статус:** ID-First Ready, Migration to SpaceView Needed ⚠️
 
 **Що працює (Backend):**
-- ✅ **SpaceStore.applyFilters()** - ID-First implementation complete
-- ✅ **DictionaryStore.getDictionary()** - ID-First + Hybrid Search complete (2025-10-22)
+- ✅ **SpaceStore.applyFilters()** - ID-First implementation complete (готово, НЕ використовується ❌)
+- ✅ **DictionaryStore.getDictionary()** - ID-First + Hybrid Search + Offline (2025-10-23)
 - ✅ **Service fields bug fixed** - mapToRxDBFormat excludes _meta, _attachments, _rev
 - ✅ **Race condition fixed** - isLoadingRef prevents duplicate scroll requests
-- ✅ **Replication enabled** - works seamlessly with ID-First
 - ✅ **LookupInput (collection mode)** - використовує ID-First через applyFilters()
 - ✅ **LookupInput (dictionary mode)** - використовує ID-First через DictionaryStore
+- ✅ **Offline support** - DictionaryStore + SpaceStore офлайн fallback з гібридним пошуком
 - ✅ Testing: 452/452 breeds loaded, 70% traffic reduction confirmed
 
 **Що працює (UI):**
 - ✅ Dynamic rows з view config (30 для breed/list, 60 для breed/grid, etc.)
-- ✅ Manual pagination - scroll підгружає дані on-demand (через replication, НЕ ID-First)
+- ⚠️ **Manual pagination** - scroll через spaceStore.loadMore() (manual replication, **НЕ працює з фільтрами**)
 - ✅ Checkpoint persistence - продовження після reload
 - ✅ Batch UI updates - стрибки 30→60→90 без flickering
 - ✅ Instant totalCount - миттєве відображення з localStorage cache
-- ✅ Dynamic sorting - SortSelector з конфігу
-- ✅ Dynamic filters - FiltersDialog з динамічним рендерингом (UI only, not functional)
+- ✅ Dynamic sorting - SortSelector з конфігу (рендер є, функціонал нема)
+- ✅ Dynamic filters - FiltersDialog з динамічним рендерингом (**UI only, Apply не працює**)
 - ✅ Sort/Filter configs на space рівні (не view)
 - ✅ mainFilterField handling - виключення з filter modal
-- ✅ **DropdownInput** - cursor pagination + X button для очищення (2025-10-22)
-- ✅ **LookupInput** - debounce 500ms + X button + без миготіння (2025-10-22)
+- ✅ **DropdownInput** - cursor pagination + X button + offline (2025-10-23)
+- ✅ **LookupInput** - debounce 500ms + X button + offline (2025-10-23)
 - ✅ **Online/Offline indicator** - на аватарці користувача (2025-10-22)
-- ✅ **PWA Phase 1** - базова офлайн підтримка (2025-10-23)
+- ✅ **PWA Phase 1** - базова офлайн підтримка + WebSocket spam fix (2025-10-23)
 
-**Що НЕ працює (Integration Gap):**
-- ❌ **SpaceView filtering** - SearchBar + FiltersDialog не підключені до applyFilters()
-- ❌ **URL query params** - не використовуються для фільтрації
-- ⚠️ **Офлайн режим для контролів** - НЕ ТЕСТУВАЛИ (DictionaryStore, DropdownInput, LookupInput)
+**🚨 КРИТИЧНА ПРОБЛЕМА - Дві паралельні системи:**
+- ❌ **SpaceView** використовує Manual Replication (loadMore) - **НЕ працює з фільтрами**
+- ✅ **applyFilters()** готовий з ID-First - **НЕ використовується в SpaceView**
+- ❌ **SearchBar** рендериться, але **не підключений** до фільтрації
+- ❌ **FiltersDialog Apply** рендериться, але **callback нікуди**
+- ❌ **URL query params** НЕ використовуються для фільтрації
+- ❌ **useEntities** читає entityStore.entityList (з manual replication)
 
 **Поточна гілка:** `main`
 
@@ -679,182 +682,194 @@ if (!fieldConfig) {
 
 ## 📋 АКТУАЛЬНІ ЗАДАЧІ
 
-### 🎯 **ПРІОРИТЕТ 1: Міграція DictionaryStore на ID-First**
+### 🚨 **КРИТИЧНИЙ ПРІОРИТЕТ: Міграція SpaceView на ID-First**
 
 **Статус:** 🔴 Not Started
-**Документація:** `/docs/DICTIONARY_LOADING_STRATEGY.md`
-**Файл:** `/packages/rxdb-store/src/stores/dictionary-store.ts`
+**Проблема:** SpaceView використовує manual replication через loadMore(), який НЕ працює з фільтрами
 
-**Проблема:**
-DictionaryStore використовує старий offset-based підхід, НЕ ID-First:
-```typescript
-// Current (offset-based):
-const { data } = await supabase
-  .from(tableName)
-  .select('*')
-  .range(offset, offset + limit - 1); // ❌ Old approach
-```
+### 🎯 **ПРІОРИТЕТ 1: Міграція DictionaryStore на ID-First**
 
-**Рішення:**
-Перенести на ID-First як в SpaceStore:
-```typescript
-// New (ID-First):
-// 1. Fetch IDs
-const idsData = await supabase.select('id, name').range(offset, offset + limit - 1);
-// 2. Check cache
-const cached = await rxdb.find({ id: { $in: ids } });
-// 3. Fetch missing
-const missing = ids.filter(id => !cached.has(id));
-const fresh = await supabase.select('*').in('id', missing);
-```
-
-**Переваги:**
-- ✅ 70% traffic reduction для dictionaries
-- ✅ Cache reuse між різними відкриттями lookup
-- ✅ Консистентний підхід (SpaceStore + DictionaryStore)
-
-**Tasks:**
-- [ ] Додати метод `fetchDictionaryIDsFromSupabase()`
-- [ ] Додати метод `fetchDictionaryRecordsByIDs()`
-- [ ] Оновити `getDictionary()` на ID-First
-- [ ] Тестування: перевірити що всі 452 breeds завантажуються
-- [ ] Тестування: перевірити traffic reduction
+**Статус:** ✅ Complete (2025-10-23)
+**Результат:**
+- ✅ ID-First з cursor pagination
+- ✅ Hybrid search (70% starts_with + 30% contains)
+- ✅ Offline fallback з RxDB cache
+- ✅ 70% traffic reduction
+- ✅ Tested: 452/452 breeds loaded
 
 ---
 
-### 🎯 **ПРІОРИТЕТ 2: Підключити фільтрацію до SpaceView**
+### 🎯 **ПРІОРИТЕТ 2: Міграція SpaceView scroll на ID-First**
 
 **Статус:** 🔴 Not Started
-**Файли:**
-- `/apps/app/src/components/space/SpaceComponent.tsx`
-- `/apps/app/src/components/space/filters/SearchBar.tsx` (створити)
-- `/apps/app/src/components/space/filters/FiltersDialog.tsx`
+**Проблема:** SpaceView використовує `spaceStore.loadMore()` (manual replication) → НЕ працює з фільтрами
+
+**Поточний flow (ЗАСТАРІЛИЙ ❌):**
+```
+SpaceComponent → useEntities → entityStore.entityList ← manual replication
+     ↓
+SpaceView.handleLoadMore → spaceStore.loadMore() → manualPull()
+```
+
+**Новий flow (ID-FIRST ✅):**
+```
+SpaceComponent → URL params → filters state
+     ↓
+useEntities → spaceStore.applyFilters(filters, cursor) ← ID-First
+     ↓
+SpaceView.handleLoadMore → load next page з cursor
+```
+
+**Файли для зміни:**
+- `/apps/app/src/hooks/useEntities.ts` - перейти на applyFilters()
+- `/apps/app/src/components/space/SpaceComponent.tsx` - додати filters state з URL
+- `/apps/app/src/components/space/SpaceView.tsx` - cursor pagination
+
+**Tasks:**
+- [ ] Створити новий useEntitiesFiltered hook або оновити існуючий
+- [ ] Додати cursor state management
+- [ ] Підключити handleLoadMore до applyFilters() з cursor
+- [ ] Видалити залежність від entityStore.entityList
+- [ ] Тестування: scroll без фільтрів
+- [ ] Тестування: scroll з фільтрами
+
+---
+
+### 🎯 **ПРІОРИТЕТ 3: Підключити SearchBar + FiltersDialog + URL params**
+
+**Статус:** 🔴 Not Started
+**Залежить від:** ПРІОРИТЕТ 2 (SpaceView міграція)
 
 **Проблема:**
-- SearchBar є в UI, але не викликає фільтрацію
-- FiltersDialog рендерить форму, але Apply не працює
-- URL query params не використовуються
+- SearchBar рендериться, але `searchValue` не передається нікуди
+- FiltersDialog має `onApply` callback, але він не підключений
+- URL params не використовуються
 
 **Рішення:**
 
-**Крок 1: SearchBar integration**
-```typescript
-// SearchBar.tsx
-const handleSearch = debounce((value: string) => {
-  // Update URL param
-  searchParams.set('Name', value);
-  setSearchParams(searchParams);
-
-  // Trigger filtering через SpaceStore
-  spaceStore.applyFilters(entityType, { name: value });
-}, 500);
-```
-
-**Крок 2: FiltersDialog integration**
-```typescript
-// FiltersDialog.tsx
-const handleApply = () => {
-  // Update ALL URL params
-  Object.entries(filters).forEach(([key, value]) => {
-    searchParams.set(key, value);
-  });
-  setSearchParams(searchParams);
-
-  // Trigger filtering
-  spaceStore.applyFilters(entityType, filters);
-};
-```
-
-**Крок 3: URL as Single Source of Truth**
+**Крок 1: URL as Single Source of Truth**
 ```typescript
 // SpaceComponent.tsx
+const [searchParams, setSearchParams] = useSearchParams();
+
+// Read filters from URL on mount/change
 useEffect(() => {
-  const filters = Object.fromEntries(searchParams);
-  if (Object.keys(filters).length > 0) {
-    spaceStore.applyFilters(entityType, filters);
-  }
+  const urlFilters = Object.fromEntries(searchParams);
+  setFiltersState(urlFilters);
 }, [searchParams]);
 ```
 
-**Tasks:**
-- [ ] Створити SearchBar компонент з debounce
-- [ ] Підключити FiltersDialog.handleApply() → applyFilters()
-- [ ] Додати URL params synchronization
-- [ ] Тестування: пошук по name
-- [ ] Тестування: фільтри + пошук разом
-- [ ] Тестування: reload сторінки зберігає фільтри
-
----
-
-### 🎯 **ПРІОРИТЕТ 3: Оновити useEntities hook**
-
-**Статус:** 🔴 Not Started
-**Файл:** `/apps/app/src/hooks/useEntities.ts`
-
-**Проблема:**
-useEntities використовує entityStore.entityList (manual replication), НЕ applyFilters()
-
-**Рішення:**
-Додати підтримку filters parameter:
+**Крок 2: SearchBar integration**
 ```typescript
-export function useEntities({
-  entityType,
-  filters = {}  // ← NEW
-}: UseEntitiesParams) {
+// SpaceComponent.tsx (рядок 347-354)
+const handleSearchChange = useDebounce((value: string) => {
+  const newParams = new URLSearchParams(searchParams);
+  if (value) {
+    newParams.set('name', value);
+  } else {
+    newParams.delete('name');
+  }
+  setSearchParams(newParams);
+}, 500);
+```
 
-  useEffect(() => {
-    if (Object.keys(filters).length > 0) {
-      // Use applyFilters for filtered data
-      const result = await spaceStore.applyFilters(entityType, filters);
-      setData({ entities: result.records, total: result.total });
+**Крок 3: FiltersDialog integration**
+```typescript
+// SpaceComponent.tsx
+const handleFiltersApply = (filterValues: Record<string, any>) => {
+  const newParams = new URLSearchParams(searchParams);
+
+  // Add all filter values to URL
+  Object.entries(filterValues).forEach(([key, value]) => {
+    if (value) {
+      newParams.set(key, value);
     } else {
-      // Use entityList for unfiltered (manual replication)
-      const allEntities = entityStore.entityList.value;
-      setData({ entities: allEntities, total: totalFromServer });
+      newParams.delete(key);
     }
-  }, [filters]);
-}
+  });
+
+  setSearchParams(newParams);
+};
+
+// Pass to FiltersDialog
+<FiltersDialog
+  onApply={handleFiltersApply}
+  ...
+/>
 ```
 
 **Tasks:**
-- [ ] Додати filters parameter
-- [ ] Додати conditional logic (filtered vs unfiltered)
-- [ ] Тестування з фільтрами
-- [ ] Тестування без фільтрів (backward compatibility)
+- [ ] Додати URL params читання в SpaceComponent
+- [ ] Підключити SearchBar onChange → URL params
+- [ ] Підключити FiltersDialog onApply → URL params
+- [ ] Додати debounce для search (500ms)
+- [ ] Тестування: search оновлює URL
+- [ ] Тестування: filters оновлюють URL
+- [ ] Тестування: reload зберігає фільтри з URL
 
 ---
 
-### 🎯 **ПРІОРИТЕТ 4: Документація**
+### ⚙️ **ЩО ЗАЛИШИТИ З РЕПЛІКАЦІЇ**
 
-**Статус:** 🟡 Partial
-**Файли:**
-- `/docs/ID_FIRST_PAGINATION.md` - ✅ Complete
-- `/docs/FILTERING_IMPLEMENTATION_PLAN.md` - 🟡 Needs update
-- `/docs/DICTIONARY_LOADING_STRATEGY.md` - ❌ Needs update for ID-First
+**Статус:** 🟡 Requires Analysis
+
+**Проблема:** Зараз manual replication (loadMore) використовується для scroll, але це конфліктує з ID-First
+
+**Реплікація КОРИСНА для:**
+- ✅ **Background sync** - завантажує дані коли app idle (warm cache)
+- ✅ **Initial seed** - перші 30-60 records при відкритті space (instant UI)
+- ✅ **Real-time updates** - subscribe на Supabase realtime (якщо потрібно)
+- ✅ **Offline persistence** - накопичує records в RxDB для offline режиму
+
+**Реплікація НЕ КОРИСНА для:**
+- ❌ **Scroll pagination** - loadMore() не працює з фільтрами (замінити на ID-First)
+- ❌ **Filtered data** - replication завантажує ВСЕ, не відфільтроване (замінити на ID-First)
+- ❌ **Dynamic sorting** - replication має fixed ORDER BY (замінити на ID-First)
+
+**Рекомендація:**
+```typescript
+// ✅ ЗАЛИШИТИ: Background sync для warm cache
+setInterval(async () => {
+  if (isIdle && isOnline) {
+    await spaceStore.backgroundSync(entityType); // завантажує chunks для cache
+  }
+}, 60000); // кожну хвилину
+
+// ❌ ПРИБРАТИ: loadMore() для scroll
+// handleLoadMore → spaceStore.loadMore() ← DELETE
+
+// ✅ ЗАМІНИТИ: ID-First для scroll
+handleLoadMore → applyFilters(filters, nextCursor)
+```
 
 **Tasks:**
-- [ ] Оновити DICTIONARY_LOADING_STRATEGY.md для ID-First
-- [ ] Додати приклади інтеграції SearchBar + FiltersDialog
-- [ ] Оновити архітектурні діаграми
+- [ ] Проаналізувати EntityReplicationService - що залишити
+- [ ] Розділити background sync vs pagination
+- [ ] Видалити loadMore() з SpaceComponent
+- [ ] Додати backgroundSync() для warm cache (опціонально)
 
 ---
 
 ## 🎯 NEXT STEPS (in order)
 
-1. **Migrate DictionaryStore to ID-First** (ПРІОРИТЕТ 1)
-   - Найбільший impact: ~20 dictionaries з тисячами records
-   - Користувачі часто відкривають lookups → 70% savings реалізуються одразу
+**🚨 КРИТИЧНО:**
+1. **Migrate SpaceView to ID-First** (ПРІОРИТЕТ 2)
+   - Розблокує фільтрацію + сортування в SpaceView
+   - Зараз спейс НЕ працює з фільтрами
+   - Estimated: 4-6 годин
 
-2. **Connect SearchBar + FiltersDialog** (ПРІОРИТЕТ 2)
-   - Розблокує фільтрацію в SpaceView
-   - Критично для user experience
+2. **Connect SearchBar + FiltersDialog + URL** (ПРІОРИТЕТ 3)
+   - Підключити UI до applyFilters()
+   - URL params for shareable links
+   - Estimated: 2-3 години
 
-3. **Update useEntities hook** (ПРІОРИТЕТ 3)
-   - Дозволить SpaceView використовувати filtered data
-   - Backward compatible з існуючим кодом
+3. **Cleanup Replication** (ЩО ЗАЛИШИТИ З РЕПЛІКАЦІЇ)
+   - Видалити loadMore() з scroll flow
+   - Додати backgroundSync (опціонально)
+   - Estimated: 1-2 години
 
-4. **Documentation** (ПРІОРИТЕТ 4)
-   - Постійний процес
-   - Оновлювати паралельно з implementation
+**ОПЦІОНАЛЬНО:**
+4. **PWA Phase 2** - Deeper offline support, custom offline page
+5. **Testing & Optimization** - Performance metrics, cache hit rates
 
 ---
