@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { spaceStore } from '@breedhub/rxdb-store';
 import { useSignals } from '@preact/signals-react/runtime';
 
@@ -6,18 +6,28 @@ interface UseEntitiesParams {
   entityType: string;
   rows?: number;
   from?: number;
-  filters?: any;
+  filters?: Record<string, any>;
+  orderBy?: {
+    field: string;
+    direction: 'asc' | 'desc';
+  };
 }
 
 /**
  * Universal hook for fetching entities from RxDB through SpaceStore
+ *
+ * Two modes:
+ * 1. With filters/orderBy → Uses ID-First pagination via applyFilters()
+ * 2. Without filters → Uses manual replication via entityStore.entityList
+ *
  * Works with any entity type dynamically
  */
 export function useEntities({
   entityType,
   rows = 50,
   from = 0,
-  filters
+  filters,
+  orderBy
 }: UseEntitiesParams) {
   useSignals();
 
@@ -26,9 +36,131 @@ export function useEntities({
     total: 0
   });
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
+  // ID-First pagination state
+  const [cursor, setCursor] = useState<string | null>(null);
+  const [hasMore, setHasMore] = useState(true);
+  const isLoadingRef = useRef(false);
+
+  // Determine mode based on filters/orderBy
+  const useIDFirst = filters || orderBy;
+
+  // ID-First mode: loadMore with cursor pagination
+  const loadMore = useCallback(async () => {
+    if (!useIDFirst || isLoadingRef.current || !hasMore) {
+      console.log('[useEntities] loadMore blocked:', { useIDFirst, isLoading: isLoadingRef.current, hasMore });
+      return;
+    }
+
+    isLoadingRef.current = true;
+    setIsLoadingMore(true);
+
+    try {
+      console.log('[useEntities] loadMore with cursor:', cursor);
+
+      const result = await spaceStore.applyFilters(
+        entityType,
+        filters || {},
+        {
+          limit: rows,
+          cursor,
+          orderBy: orderBy || { field: 'name', direction: 'asc' }
+        }
+      );
+
+      console.log('[useEntities] loadMore result:', {
+        recordsCount: result.records.length,
+        hasMore: result.hasMore,
+        nextCursor: result.nextCursor
+      });
+
+      // Append new records to existing
+      setData(prev => ({
+        entities: [...prev.entities, ...result.records],
+        total: prev.total + result.records.length
+      }));
+
+      setCursor(result.nextCursor);
+      setHasMore(result.hasMore);
+
+    } catch (err) {
+      console.error('[useEntities] loadMore error:', err);
+      setError(err as Error);
+    } finally {
+      isLoadingRef.current = false;
+      setIsLoadingMore(false);
+    }
+  }, [entityType, filters, orderBy, rows, cursor, hasMore, useIDFirst]);
+
+  // ID-First mode: Initial load effect
   useEffect(() => {
+    if (!useIDFirst) return;
+
+    let isMounted = true;
+
+    const loadInitial = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+        setCursor(null);
+        setHasMore(true);
+
+        console.log('[useEntities] Initial ID-First load:', {
+          entityType,
+          filters,
+          orderBy,
+          rows
+        });
+
+        const result = await spaceStore.applyFilters(
+          entityType,
+          filters || {},
+          {
+            limit: rows,
+            cursor: null,
+            orderBy: orderBy || { field: 'name', direction: 'asc' }
+          }
+        );
+
+        if (!isMounted) return;
+
+        console.log('[useEntities] Initial load result:', {
+          recordsCount: result.records.length,
+          hasMore: result.hasMore,
+          nextCursor: result.nextCursor
+        });
+
+        setData({
+          entities: result.records,
+          total: result.records.length
+        });
+
+        setCursor(result.nextCursor);
+        setHasMore(result.hasMore);
+        setIsLoading(false);
+
+      } catch (err) {
+        console.error(`[useEntities] Error loading ${entityType}:`, err);
+        if (isMounted) {
+          setError(err as Error);
+          setIsLoading(false);
+        }
+      }
+    };
+
+    loadInitial();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [entityType, filters, orderBy, rows, useIDFirst]);
+
+  // Manual replication mode: Subscribe to entityList (backward compatibility)
+  useEffect(() => {
+    if (useIDFirst) return; // Skip if using ID-First
+
     let isMounted = true;
     let unsubscribe: (() => void) | null = null;
 
@@ -130,17 +262,22 @@ export function useEntities({
         unsubscribe();
       }
     };
-  }, [entityType]); // Removed from/rows - they're not used anymore
+  }, [entityType, useIDFirst]);
 
   return {
     data,
     isLoading,
+    isLoadingMore, // NEW: для індикатора scroll loading
     isFetching: isLoading, // For compatibility with existing code
     error,
+    hasMore, // NEW: чи є ще дані для loadMore
+    loadMore, // NEW: функція для scroll pagination
     refetch: () => {
       // For compatibility with existing code
       setIsLoading(true);
       setError(null);
+      setCursor(null);
+      setHasMore(true);
     }
   };
 }

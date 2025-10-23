@@ -104,11 +104,14 @@ export function SpaceComponent<T extends { Id: string }>({
     return sortOptions.find(option => option.isDefault) || sortOptions[0];
   }, [sortOptions]);
 
-  // useEntities now returns ALL entities from RxDB (no pagination)
-  // Manual pull handles loading more data into RxDB
-  const { data, isLoading, error, isFetching } = useEntitiesHook({
-    rows: rowsPerPage, // Not used for pagination anymore, kept for compatibility
-    from: 0, // Always from 0, we get all entities
+  // 🆕 ID-First: useEntities with orderBy enables ID-First pagination
+  const { data, isLoading, error, isFetching, hasMore, isLoadingMore, loadMore } = useEntitiesHook({
+    rows: rowsPerPage,
+    from: 0,
+    orderBy: defaultSortOption ? {
+      field: defaultSortOption.field,
+      direction: defaultSortOption.direction
+    } : undefined
   });
 
   // UI state
@@ -192,27 +195,12 @@ export function SpaceComponent<T extends { Id: string }>({
     [navigate]
   );
 
-  // Track if loadMore is currently running
-  const isLoadingMoreRef = useRef(false);
-
+  // 🆕 ID-First: Use loadMore from hook (with cursor pagination)
   const handleLoadMore = useCallback(async () => {
-    // Prevent multiple simultaneous calls
-    if (isLoadingMoreRef.current) {
-      return;
+    if (loadMore) {
+      await loadMore();
     }
-
-    isLoadingMoreRef.current = true;
-
-    // Trigger manual pull to load more data into RxDB
-    // EntityStore will automatically update via subscription
-    try {
-      await spaceStore.loadMore(config.entitySchemaName, viewMode);
-    } catch (error) {
-      console.error("[SpaceComponent] Error loading more:", error);
-    } finally {
-      isLoadingMoreRef.current = false;
-    }
-  }, [config.entitySchemaName, viewMode]);
+  }, [loadMore]);
 
   const handleCreateNew = () => {
     navigate(`${location.pathname}/new`);
@@ -405,8 +393,8 @@ export function SpaceComponent<T extends { Id: string }>({
               selectedId={selectedEntityId}
               onEntityClick={handleEntityClick}
               onLoadMore={handleLoadMore}
-              hasMore={allEntities.length < totalCount}
-              isLoadingMore={isFetching}
+              hasMore={hasMore}
+              isLoadingMore={isLoadingMore}
             />
             {/* Bottom spacer like in Angular */}
             <div className="sm:h-6 bg-card-ground w-full absolute bottom-0" />
