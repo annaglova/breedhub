@@ -404,15 +404,65 @@ class DictionaryStore {
       };
 
     } catch (error) {
-      console.error(`[DictionaryStore] ❌ Failed to get dictionary ${tableName}:`, error);
+      // Check if this is a network error (offline mode)
+      const isNetworkError = error instanceof TypeError && error.message.includes('fetch');
 
-      // Return empty result on error
-      return {
-        records: [],
-        total: 0,
-        hasMore: false,
-        nextCursor: null
-      };
+      if (isNetworkError) {
+        console.warn(`[DictionaryStore] ⚠️ Network unavailable for ${tableName}, using offline mode`);
+      } else {
+        console.error(`[DictionaryStore] ❌ Failed to get dictionary ${tableName}:`, error);
+      }
+
+      // 🔌 OFFLINE FALLBACK: Work with RxDB cache only
+      console.log('[DictionaryStore] 🔌 OFFLINE MODE: Falling back to RxDB cache...');
+
+      try {
+        // Build RxDB query selector
+        const selector: any = { table_name: tableName };
+
+        // Apply search filter locally if provided
+        if (search) {
+          selector.$or = [
+            { name: { $regex: new RegExp(`^${search}`, 'i') } }, // starts with
+            { name: { $regex: new RegExp(search, 'i') } }  // contains
+          ];
+        }
+
+        // Apply cursor pagination
+        if (cursor) {
+          selector.name = { $gt: cursor };
+        }
+
+        // Query RxDB cache
+        const cached = await this.collection.find({
+          selector,
+          sort: [{ name: 'asc' }],
+          limit
+        }).exec();
+
+        const records = cached.map(doc => doc.toJSON());
+        const nextCursor = records.length > 0 ? records[records.length - 1].name : null;
+        const hasMore = records.length >= limit;
+
+        console.log(`[DictionaryStore] 📦 OFFLINE: Returned ${records.length} records from cache (hasMore: ${hasMore})`);
+
+        return {
+          records,
+          total: records.length, // Can't get accurate total in offline mode
+          hasMore,
+          nextCursor
+        };
+      } catch (cacheError) {
+        console.error('[DictionaryStore] ❌ OFFLINE: Cache query failed:', cacheError);
+
+        // Final fallback: empty result
+        return {
+          records: [],
+          total: 0,
+          hasMore: false,
+          nextCursor: null
+        };
+      }
     }
   }
 
