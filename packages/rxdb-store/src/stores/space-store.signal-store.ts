@@ -1694,9 +1694,19 @@ class SpaceStore {
       };
 
     } catch (error) {
+      // Check if this is a network error (offline mode)
+      const errorMessage = ((error as any)?.message || '').toLowerCase();
+      const isNetworkError = errorMessage.includes('fetch') ||
+                            errorMessage.includes('network') ||
+                            errorMessage.includes('disconnected');
+
       // 📴 OFFLINE FALLBACK: Use RxDB cache with proper filtering
-      console.warn('[SpaceStore] ⚠️ Network error, using offline fallback (RxDB only)');
-      console.error('[SpaceStore] Error details:', error);
+      if (isNetworkError) {
+        console.warn('[SpaceStore] ⚠️ Network unavailable, using offline fallback (RxDB only)');
+      } else {
+        console.warn('[SpaceStore] ⚠️ Error, using offline fallback (RxDB only)');
+        console.error('[SpaceStore] Error details:', error);
+      }
 
       try {
         if (!this.db) {
@@ -1721,8 +1731,8 @@ class SpaceStore {
         );
 
         // Get total count from RxDB (with same filters, no limit)
-        let totalQuery = collection.find();
-        totalQuery = totalQuery.where('_deleted').eq(false);
+        // Build selector for count query
+        const countSelector: any = { _deleted: false };
 
         // Apply same filters for count
         for (const [fieldKey, value] of Object.entries(filters)) {
@@ -1736,12 +1746,39 @@ class SpaceStore {
 
           const finalFieldConfig = fieldConfig || {};
           const fieldType = finalFieldConfig.fieldType || 'string';
-          const operator = this.detectOperator(fieldType, finalFieldConfig.operator);
 
-          totalQuery = this.applyRxDBFilter(totalQuery, fieldKey, operator, value);
+          // For string/text fields in search, always use 'ilike' (ignore 'eq' from config)
+          let configOperator = finalFieldConfig.operator;
+          if ((fieldType === 'string' || fieldType === 'text') && configOperator === 'eq') {
+            configOperator = undefined; // Let detectOperator use default 'ilike' for string
+          }
+
+          const operator = this.detectOperator(fieldType, configOperator);
+
+          // Add to selector
+          if (operator === 'ilike' || operator === 'contains') {
+            // Escape regex special characters and use string pattern
+            const escapedValue = String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            countSelector[fieldKey] = { $regex: escapedValue, $options: 'i' };
+          } else if (operator === 'eq') {
+            countSelector[fieldKey] = value;
+          } else if (operator === 'gt') {
+            countSelector[fieldKey] = { $gt: value };
+          } else if (operator === 'gte') {
+            countSelector[fieldKey] = { $gte: value };
+          } else if (operator === 'lt') {
+            countSelector[fieldKey] = { $lt: value };
+          } else if (operator === 'lte') {
+            countSelector[fieldKey] = { $lte: value };
+          }
         }
 
-        const totalCount = await totalQuery.count().exec();
+        // Get total count by fetching all matching records (without limit)
+        // Note: We use find() instead of count() to avoid "slow count" errors when selector doesn't match index
+        const allMatchingDocs = await collection.find({
+          selector: countSelector
+        }).exec();
+        const totalCount = allMatchingDocs.length;
 
         // Calculate hasMore based on cursor
         const hasMore = localResults.length >= limit;
@@ -1798,83 +1835,221 @@ class SpaceStore {
       const totalDocs = await collection.count().exec();
       console.log(`[SpaceStore] 📊 Collection ${entityType} has ${totalDocs} docs in RxDB`);
 
-      // Build RxDB query with filters (AND logic)
-      let query = collection.find();
+      // 🎯 HYBRID SEARCH: Detect if we have a string/text filter for hybrid search
+      const stringFilters = Object.entries(filters).filter(([fieldKey, value]) => {
+        if (value === undefined || value === null || value === '') return false;
 
-      // CRITICAL: Filter out deleted records (must match Supabase filter)
-      query = query.where('_deleted').eq(false);
-
-      // Apply each filter
-      for (const [fieldKey, value] of Object.entries(filters)) {
-        if (value === undefined || value === null || value === '') {
-          continue; // Skip empty filters
-        }
-
-        // Try to find field config (with and without prefix)
         let fieldConfig = fieldConfigs[fieldKey];
         if (!fieldConfig) {
           const prefixedKey = `${entityType}_field_${fieldKey}`;
           fieldConfig = fieldConfigs[prefixedKey];
-          console.log('[SpaceStore] 🔑 Field config lookup:', {
-            fieldKey,
-            hasDirectMatch: !!fieldConfigs[fieldKey],
-            prefixedKey,
-            hasPrefixMatch: !!fieldConfigs[prefixedKey],
-            availableKeys: Object.keys(fieldConfigs).slice(0, 5) // Show first 5 keys
-          });
         }
 
-        const finalFieldConfig = fieldConfig || {};
-        const fieldType = finalFieldConfig.fieldType || 'string';
-        const operator = this.detectOperator(fieldType, finalFieldConfig.operator);
+        const fieldType = fieldConfig?.fieldType || 'string';
+        return fieldType === 'string' || fieldType === 'text';
+      });
 
-        // Field name is already correct (without prefix)
-        const fieldName = fieldKey;
+      // Use hybrid search if: (1) has string filter, (2) no cursor (first page)
+      const useHybridSearch = stringFilters.length > 0 && cursor === null;
 
-        console.log('[SpaceStore] 🔍 Applying filter:', {
-          fieldKey,
-          fieldName,
-          fieldType,
-          operator,
-          value,
-          hasFieldConfig: !!fieldConfig
-        });
+      if (useHybridSearch) {
+        console.log('[SpaceStore] 🔍 HYBRID SEARCH mode (starts_with 70% + contains 30%)');
 
-        // Apply filter based on operator
-        query = this.applyRxDBFilter(query, fieldName, operator, value);
-      }
+        // Phase 1: Starts with (high priority, 70% of limit)
+        const startsWithLimit = Math.ceil(limit * 0.7);
 
-      // ✅ KEYSET PAGINATION: Apply cursor (WHERE field > cursor)
-      if (cursor !== null) {
-        if (orderBy.direction === 'asc') {
-          query = query.where(orderBy.field).gt(cursor);
-        } else {
-          query = query.where(orderBy.field).lt(cursor);
+        // Build selector for starts_with
+        const startsWithSelector: any = { _deleted: false };
+
+        // Apply string filters as starts_with (using $regex string pattern)
+        for (const [fieldKey, value] of stringFilters) {
+          const escapedValue = String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+          startsWithSelector[fieldKey] = { $regex: `^${escapedValue}`, $options: 'i' };
         }
-        console.log(`[SpaceStore] 🔑 Applied cursor: ${orderBy.field} ${orderBy.direction === 'asc' ? '>' : '<'} '${cursor}'`);
-      }
 
-      // Apply order for consistent pagination (must match Supabase order!)
-      if (orderBy.direction === 'desc') {
-        query = query.sort(`-${orderBy.field}`); // RxDB uses '-' prefix for descending
+        // Apply non-string filters to selector
+        for (const [fieldKey, value] of Object.entries(filters)) {
+          if (stringFilters.some(([k]) => k === fieldKey)) continue; // Skip string filters
+          if (value === undefined || value === null || value === '') continue;
+
+          let fieldConfig = fieldConfigs[fieldKey];
+          if (!fieldConfig) {
+            const prefixedKey = `${entityType}_field_${fieldKey}`;
+            fieldConfig = fieldConfigs[prefixedKey];
+          }
+
+          const fieldType = fieldConfig?.fieldType || 'string';
+          const operator = this.detectOperator(fieldType, fieldConfig?.operator);
+
+          // Add to selector based on operator
+          if (operator === 'eq') {
+            startsWithSelector[fieldKey] = value;
+          } else if (operator === 'gt') {
+            startsWithSelector[fieldKey] = { $gt: value };
+          } else if (operator === 'gte') {
+            startsWithSelector[fieldKey] = { $gte: value };
+          } else if (operator === 'lt') {
+            startsWithSelector[fieldKey] = { $lt: value };
+          } else if (operator === 'lte') {
+            startsWithSelector[fieldKey] = { $lte: value };
+          }
+        }
+
+        // Execute starts_with query
+        const startsWithDocs = await collection.find({
+          selector: startsWithSelector,
+          sort: [{ [orderBy.field]: orderBy.direction === 'asc' ? 'asc' : 'desc' }],
+          limit: startsWithLimit
+        }).exec();
+        const startsWithResults = startsWithDocs.map(doc => doc.toJSON());
+        console.log(`[SpaceStore] ✅ Got ${startsWithResults.length} starts_with results`);
+
+        // Phase 2: Contains (lower priority, 30% of limit)
+        const remainingLimit = limit - startsWithResults.length;
+        let allResults = startsWithResults;
+
+        if (remainingLimit > 0) {
+          // Build selector for contains
+          const containsSelector: any = { _deleted: false };
+
+          // Apply string filters as contains (using $regex string pattern)
+          for (const [fieldKey, value] of stringFilters) {
+            const escapedValue = String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            containsSelector[fieldKey] = { $regex: escapedValue, $options: 'i' };
+          }
+
+          // Apply non-string filters to selector
+          for (const [fieldKey, value] of Object.entries(filters)) {
+            if (stringFilters.some(([k]) => k === fieldKey)) continue;
+            if (value === undefined || value === null || value === '') continue;
+
+            let fieldConfig = fieldConfigs[fieldKey];
+            if (!fieldConfig) {
+              const prefixedKey = `${entityType}_field_${fieldKey}`;
+              fieldConfig = fieldConfigs[prefixedKey];
+            }
+
+            const fieldType = fieldConfig?.fieldType || 'string';
+            const operator = this.detectOperator(fieldType, fieldConfig?.operator);
+
+            // Add to selector based on operator
+            if (operator === 'eq') {
+              containsSelector[fieldKey] = value;
+            } else if (operator === 'gt') {
+              containsSelector[fieldKey] = { $gt: value };
+            } else if (operator === 'gte') {
+              containsSelector[fieldKey] = { $gte: value };
+            } else if (operator === 'lt') {
+              containsSelector[fieldKey] = { $lt: value };
+            } else if (operator === 'lte') {
+              containsSelector[fieldKey] = { $lte: value };
+            }
+          }
+
+          // Execute contains query
+          const containsDocs = await collection.find({
+            selector: containsSelector,
+            sort: [{ [orderBy.field]: orderBy.direction === 'asc' ? 'asc' : 'desc' }],
+            limit
+          }).exec();
+
+          // Filter out records that start with search (already in startsWithResults)
+          const startsWithIds = new Set(startsWithResults.map(r => r.id));
+          const containsResults = containsDocs
+            .map(doc => doc.toJSON())
+            .filter(record => !startsWithIds.has(record.id))
+            .slice(0, remainingLimit);
+
+          console.log(`[SpaceStore] ✅ Got ${containsResults.length} contains results (after filtering)`);
+
+          allResults = [...startsWithResults, ...containsResults];
+        }
+
+        console.log(`[SpaceStore] 📦 Hybrid search returned ${allResults.length} total results`);
+        return allResults;
+
       } else {
-        query = query.sort(orderBy.field);
+        // Regular search (no hybrid) - use selector approach
+        console.log('[SpaceStore] 🔍 Regular search mode (cursor or no string filters)');
+
+        // Build selector
+        const selector: any = { _deleted: false };
+
+        // Apply each filter to selector
+        for (const [fieldKey, value] of Object.entries(filters)) {
+          if (value === undefined || value === null || value === '') {
+            continue; // Skip empty filters
+          }
+
+          // Try to find field config (with and without prefix)
+          let fieldConfig = fieldConfigs[fieldKey];
+          if (!fieldConfig) {
+            const prefixedKey = `${entityType}_field_${fieldKey}`;
+            fieldConfig = fieldConfigs[prefixedKey];
+          }
+
+          const finalFieldConfig = fieldConfig || {};
+          const fieldType = finalFieldConfig.fieldType || 'string';
+
+          // For string/text fields in search, always use 'ilike' (ignore 'eq' from config)
+          let configOperator = finalFieldConfig.operator;
+          if ((fieldType === 'string' || fieldType === 'text') && configOperator === 'eq') {
+            configOperator = undefined; // Let detectOperator use default 'ilike' for string
+          }
+
+          const operator = this.detectOperator(fieldType, configOperator);
+
+          console.log('[SpaceStore] 🔍 Applying filter:', {
+            fieldKey,
+            fieldType,
+            operator,
+            value,
+            hasFieldConfig: !!fieldConfig
+          });
+
+          // Add to selector based on operator
+          if (operator === 'ilike' || operator === 'contains') {
+            const escapedValue = String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            selector[fieldKey] = { $regex: escapedValue, $options: 'i' };
+          } else if (operator === 'eq') {
+            selector[fieldKey] = value;
+          } else if (operator === 'gt') {
+            selector[fieldKey] = { $gt: value };
+          } else if (operator === 'gte') {
+            selector[fieldKey] = { $gte: value };
+          } else if (operator === 'lt') {
+            selector[fieldKey] = { $lt: value };
+          } else if (operator === 'lte') {
+            selector[fieldKey] = { $lte: value };
+          }
+        }
+
+        // ✅ KEYSET PAGINATION: Apply cursor to selector
+        if (cursor !== null) {
+          if (orderBy.direction === 'asc') {
+            selector[orderBy.field] = { $gt: cursor };
+          } else {
+            selector[orderBy.field] = { $lt: cursor };
+          }
+          console.log(`[SpaceStore] 🔑 Applied cursor: ${orderBy.field} ${orderBy.direction === 'asc' ? '>' : '<'} '${cursor}'`);
+        }
+
+        // Execute query with selector
+        const docs = await collection.find({
+          selector,
+          sort: [{ [orderBy.field]: orderBy.direction === 'asc' ? 'asc' : 'desc' }],
+          limit: limit > 0 ? limit : undefined
+        }).exec();
+
+        console.log(`[SpaceStore] 📦 Local query returned ${docs.length} results`);
+
+        // Log first result for debugging
+        if (docs.length > 0) {
+          console.log('[SpaceStore] 👁️ First result:', docs[0].toJSON());
+        }
+
+        return docs.map((doc: any) => doc.toJSON());
       }
-
-      // Apply limit (NO skip!)
-      if (limit > 0) {
-        query = query.limit(limit);
-      }
-
-      const docs = await query.exec();
-      console.log(`[SpaceStore] 📦 Local query returned ${docs.length} results`);
-
-      // Log first result for debugging
-      if (docs.length > 0) {
-        console.log('[SpaceStore] 👁️ First result:', docs[0].toJSON());
-      }
-
-      return docs.map((doc: any) => doc.toJSON());
 
     } catch (error) {
       console.error('[SpaceStore] ❌ Local filtering error:', error);
@@ -1941,7 +2116,17 @@ class SpaceStore {
     const { data, error } = await query;
 
     if (error) {
-      console.error('[SpaceStore] ❌ IDs query error:', error);
+      // Check if this is a network error (offline mode)
+      const errorMessage = error.message?.toLowerCase() || '';
+      const isNetworkError = errorMessage.includes('fetch') ||
+                            errorMessage.includes('network') ||
+                            errorMessage.includes('disconnected');
+
+      if (isNetworkError) {
+        console.warn('[SpaceStore] ⚠️ Network unavailable for IDs query, will use offline mode');
+      } else {
+        console.error('[SpaceStore] ❌ IDs query error:', error);
+      }
       throw error;
     }
 
@@ -2284,11 +2469,12 @@ class SpaceStore {
       case 'ilike':
       case 'contains':
         // Case-insensitive regex search
+        // Note: RxDB requires string patterns, not RegExp objects
         const escapedValue = String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-        // Use JavaScript RegExp with 'i' flag for case-insensitive
-        const regex = new RegExp(escapedValue, 'i');
-        console.log('[SpaceStore] 🔍 RxDB regex:', regex);
-        return query.where(fieldName).regex(regex);
+        console.log('[SpaceStore] 🔍 RxDB regex pattern:', escapedValue);
+
+        // Use $regex selector syntax (string pattern with $options)
+        return query.where(fieldName).regex(escapedValue);  // Pass string, not RegExp
 
       case 'eq':
         return query.where(fieldName).eq(value);
