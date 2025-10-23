@@ -94,11 +94,12 @@ export function useEntities({
     }
   }, [entityType, filters, orderBy, rows, cursor, hasMore, useIDFirst]);
 
-  // ID-First mode: Initial load effect
+  // ID-First mode: Initial load effect + subscribe to totalFromServer
   useEffect(() => {
     if (!useIDFirst) return;
 
     let isMounted = true;
+    let unsubscribeTotal: (() => void) | null = null;
 
     const loadInitial = async () => {
       try {
@@ -113,6 +114,21 @@ export function useEntities({
           orderBy,
           rows
         });
+
+        // Get entityStore to subscribe to totalFromServer (with retries)
+        let entityStore = null;
+        let retries = 20;
+        while (!entityStore && retries > 0) {
+          entityStore = await spaceStore.getEntityStore(entityType);
+          if (!entityStore) {
+            await new Promise(resolve => setTimeout(resolve, 100));
+            retries--;
+          }
+        }
+
+        if (!entityStore) {
+          console.warn(`[useEntities] EntityStore for ${entityType} not available after retries`);
+        }
 
         const result = await spaceStore.applyFilters(
           entityType,
@@ -132,10 +148,40 @@ export function useEntities({
           nextCursor: result.nextCursor
         });
 
-        setData({
-          entities: result.records,
-          total: result.records.length
-        });
+        // Subscribe to totalFromServer to get real count from manual replication
+        if (entityStore) {
+          const totalFromServer = entityStore.totalFromServer.value;
+          const realTotal = totalFromServer !== null ? totalFromServer : result.records.length;
+
+          console.log('[useEntities] Setting initial data:', {
+            recordsCount: result.records.length,
+            totalFromServer,
+            realTotal
+          });
+
+          setData({
+            entities: result.records,
+            total: realTotal  // Use real count from server, not just loaded records
+          });
+
+          // Subscribe to future updates
+          unsubscribeTotal = entityStore.totalFromServer.subscribe((total) => {
+            if (!isMounted) return;
+            const finalTotal = total !== null ? total : result.records.length;
+            console.log('[useEntities] totalFromServer updated:', { total, finalTotal });
+            setData(prev => ({
+              ...prev,
+              total: finalTotal
+            }));
+          });
+        } else {
+          // Fallback if entityStore not available
+          console.log('[useEntities] No entityStore, using fallback');
+          setData({
+            entities: result.records,
+            total: result.records.length
+          });
+        }
 
         setCursor(result.nextCursor);
         setHasMore(result.hasMore);
@@ -154,6 +200,9 @@ export function useEntities({
 
     return () => {
       isMounted = false;
+      if (unsubscribeTotal) {
+        unsubscribeTotal();
+      }
     };
   }, [entityType, filters, orderBy, rows, useIDFirst]);
 

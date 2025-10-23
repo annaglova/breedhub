@@ -2,18 +2,23 @@ import { useEntities } from './useEntities';
 
 /**
  * Hook for fetching breeds from RxDB
- * Now uses the universal useEntities hook
+ * Now uses the universal useEntities hook with ID-First support
  */
 export function useBreeds(params: {
   rows?: number;
   from?: number;
   filters?: any;
+  orderBy?: {
+    field: string;
+    direction: 'asc' | 'desc';
+  };
 } = {}) {
   return useEntities({
     entityType: 'breed',
     rows: params.rows || 50,
     from: params.from || 0,
-    filters: params.filters
+    filters: params.filters,
+    orderBy: params.orderBy
   });
 }
 

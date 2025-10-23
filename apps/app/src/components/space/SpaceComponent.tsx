@@ -104,14 +104,19 @@ export function SpaceComponent<T extends { Id: string }>({
     return sortOptions.find(option => option.isDefault) || sortOptions[0];
   }, [sortOptions]);
 
+  // 🆕 Memoize orderBy to prevent infinite loop (new object on each render)
+  const orderBy = useMemo(() => {
+    return defaultSortOption?.field ? {
+      field: defaultSortOption.field,
+      direction: defaultSortOption.direction
+    } : { field: 'name', direction: 'asc' }; // Fallback to name if no sort config
+  }, [defaultSortOption]);
+
   // 🆕 ID-First: useEntities with orderBy enables ID-First pagination
   const { data, isLoading, error, isFetching, hasMore, isLoadingMore, loadMore } = useEntitiesHook({
     rows: rowsPerPage,
     from: 0,
-    orderBy: defaultSortOption ? {
-      field: defaultSortOption.field,
-      direction: defaultSortOption.direction
-    } : undefined
+    orderBy
   });
 
   // UI state
