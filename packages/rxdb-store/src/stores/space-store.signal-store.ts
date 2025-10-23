@@ -562,9 +562,12 @@ class SpaceStore {
       if (field.sortOrder && Array.isArray(field.sortOrder)) {
         // Each sortOrder item is a separate sort option
         field.sortOrder.forEach((sortOption: any) => {
-          const optionId = sortOption.parametr
-            ? `${fieldId}_${sortOption.parametr}_${sortOption.direction}`
-            : `${fieldId}_${sortOption.direction}`;
+          // Use slug from config if available, otherwise generate ID
+          const optionId = sortOption.slug || (
+            sortOption.parametr
+              ? `${fieldId}_${sortOption.parametr}_${sortOption.direction}`
+              : `${fieldId}_${sortOption.direction}`
+          );
 
           const option = {
             id: optionId,

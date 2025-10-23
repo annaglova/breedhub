@@ -104,26 +104,33 @@ export function SpaceComponent<T extends { Id: string }>({
     return sortOptions.find(option => option.isDefault) || sortOptions[0];
   }, [sortOptions]);
 
-  // 🆕 Read sort params from URL or use default
-  const sortBy = searchParams.get('sortBy');
-  const sortDir = searchParams.get('sortDir');
-  const sortParam = searchParams.get('sortParam'); // For JSONB fields
+  // 🆕 Read sort ID from URL or use default
+  const sortId = searchParams.get('sort');
 
   const selectedSortOption = useMemo(() => {
-    // If URL params exist, find matching sort option
-    if (sortBy && sortDir) {
-      const found = sortOptions.find(
-        option => option.field === sortBy &&
-                  option.direction === sortDir &&
-                  // For simple fields: both should be null/undefined
-                  // For JSONB fields: both should match the parameter
-                  (option.parameter || null) === (sortParam || null)
-      );
+    // If URL param exists, find matching sort option by ID
+    if (sortId) {
+      const found = sortOptions.find(option => option.id === sortId);
       if (found) return found;
     }
     // Otherwise use default
     return defaultSortOption;
-  }, [sortBy, sortDir, sortParam, sortOptions, defaultSortOption]);
+  }, [sortId, sortOptions, defaultSortOption]);
+
+  // 🧹 Cleanup legacy URL params on mount
+  useEffect(() => {
+    const hasLegacyParams = searchParams.has('sortBy') ||
+                           searchParams.has('sortDir') ||
+                           searchParams.has('sortParam');
+
+    if (hasLegacyParams) {
+      const newParams = new URLSearchParams(searchParams);
+      newParams.delete('sortBy');
+      newParams.delete('sortDir');
+      newParams.delete('sortParam');
+      setSearchParams(newParams, { replace: true }); // replace to not add history entry
+    }
+  }, [searchParams, setSearchParams]);
 
   // 🆕 Memoize orderBy to prevent infinite loop (new object on each render)
   const orderBy = useMemo(() => {
@@ -233,18 +240,17 @@ export function SpaceComponent<T extends { Id: string }>({
     }
   }, [loadMore]);
 
-  // 🆕 Handle sort change - update URL params
+  // 🆕 Handle sort change - update URL with sort ID
   const handleSortChange = useCallback((option: any) => {
     const newParams = new URLSearchParams(searchParams);
-    newParams.set('sortBy', option.field);
-    newParams.set('sortDir', option.direction);
 
-    // For JSONB fields, add parameter (e.g., measurements->achievement_progress)
-    if (option.parameter) {
-      newParams.set('sortParam', option.parameter);
-    } else {
-      newParams.delete('sortParam'); // Remove if no parameter
-    }
+    // Remove old sort params (cleanup legacy format)
+    newParams.delete('sortBy');
+    newParams.delete('sortDir');
+    newParams.delete('sortParam');
+
+    // Set new slug-based sort
+    newParams.set('sort', option.id);
 
     setSearchParams(newParams);
   }, [searchParams, setSearchParams]);
