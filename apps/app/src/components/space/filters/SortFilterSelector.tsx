@@ -20,7 +20,9 @@ interface SortFilterSelectorProps {
   selectedSort?: SortOption;
   onSortChange?: (option: SortOption) => void;
   onFiltersOpen?: () => void;
+  onFiltersApply?: (values: Record<string, any>) => void;
   filterFields?: FilterFieldConfig[];
+  currentFilterValues?: Record<string, any>;
 }
 
 export function SortFilterSelector({
@@ -29,7 +31,9 @@ export function SortFilterSelector({
   selectedSort,
   onSortChange,
   onFiltersOpen,
+  onFiltersApply,
   filterFields,
+  currentFilterValues,
 }: SortFilterSelectorProps) {
   const [isFiltersDialogOpen, setIsFiltersDialogOpen] = useState(false);
 
@@ -66,6 +70,8 @@ export function SortFilterSelector({
         open={isFiltersDialogOpen}
         onOpenChange={setIsFiltersDialogOpen}
         filterFields={filterFields}
+        onApply={onFiltersApply}
+        initialValues={currentFilterValues}
       />
     </TooltipProvider>
   );

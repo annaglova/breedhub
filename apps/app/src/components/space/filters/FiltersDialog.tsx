@@ -42,6 +42,7 @@ export interface FilterFieldConfig {
   fieldType: string;
   required?: boolean;
   operator?: string;
+  slug?: string; // Short URL slug for filter (e.g., "type" instead of "breed_field_pet_type_id")
   value?: any;
   validation?: any;
   order: number;
@@ -60,6 +61,7 @@ interface FiltersDialogProps {
   mainFilter?: FilterConfig;
   onApply?: (values: Record<string, any>) => void;
   onCancel?: () => void;
+  initialValues?: Record<string, any>;
 }
 
 // Component mapping для динамічного рендерингу
@@ -87,16 +89,17 @@ export function FiltersDialog({
   mainFilter,
   onApply,
   onCancel,
+  initialValues = {},
 }: FiltersDialogProps) {
-  // State for filter values
-  const [filterValues, setFilterValues] = React.useState<Record<string, any>>({});
+  // State for filter values - initialize with initialValues
+  const [filterValues, setFilterValues] = React.useState<Record<string, any>>(initialValues);
 
-  // Reset filter values when dialog closes
+  // Update filter values when initialValues change (URL changed)
   React.useEffect(() => {
-    if (!open) {
-      setFilterValues({});
+    if (open) {
+      setFilterValues(initialValues);
     }
-  }, [open]);
+  }, [open, initialValues]);
 
   const handleApply = (e: React.FormEvent) => {
     e.preventDefault();

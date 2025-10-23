@@ -69,7 +69,7 @@ class SpaceStore {
   error = signal<Error | null>(null);
   initialized = signal<boolean>(false);
   configReady = signal<boolean>(false); // Config is ready for UI even before collections are created
-  
+
   // Reference to AppStore
   private appStore = appStore;
   
@@ -106,65 +106,44 @@ class SpaceStore {
   
   async initialize() {
     const startTime = performance.now();
-    console.log('[SpaceStore] Initialize called at', new Date().toISOString(), {
-      initialized: this.initialized.value,
-      loading: this.loading.value
-    });
-    
+
     if (this.initialized.value) {
-      console.log('[SpaceStore] Already initialized, skipping');
       return;
     }
-    
-    console.log('[SpaceStore] Starting initialization...');
-    
+
     try {
       this.loading.value = true;
       this.error.value = null;
-      
+
       // Wait for AppStore to initialize
       if (!this.appStore.initialized.value) {
-        const appStoreStart = performance.now();
-        console.log('[SpaceStore] Waiting for AppStore.initialize()...');
         await this.appStore.initialize();
-        console.log('[SpaceStore] AppStore.initialize() took', performance.now() - appStoreStart, 'ms');
       }
-      
+
       // Get app config from AppStore
       const appConfig = this.appStore.appConfig.value;
-      
+
       if (!appConfig) {
         throw new Error('App config not available');
       }
-      
-      console.log('[SpaceStore] Got appConfig:', appConfig);
-      console.log('[SpaceStore] appConfig.data:', appConfig.data);
-      console.log('[SpaceStore] appConfig.data.workspaces:', appConfig.data?.workspaces);
 
       // Extract merged data from appConfig (in production this will be the whole config)
       const mergedConfig = appConfig.data || appConfig;
 
       // Parse space configurations
-      console.log('[SpaceStore] Parsing space configurations...');
       this.parseSpaceConfigurations(mergedConfig);
-      console.log('[SpaceStore] Available entity types after parsing:', this.availableEntityTypes.value);
-      
+
       // Config is ready for UI - signal this immediately
       this.configReady.value = true;
-      console.log('[SpaceStore] ✅ CONFIG READY for UI at', new Date().toISOString());
-      
+      console.log('[SpaceStore] ✅ CONFIG READY at', new Date().toISOString());
+
       // Get database instance from AppStore
-      console.log('[SpaceStore] Getting database instance...');
       this.db = await getDatabase();
-      console.log('[SpaceStore] Database obtained:', !!this.db);
-      
+
       // Create collections for all found entity types
-      console.log('[SpaceStore] Creating collections for entity types:', this.availableEntityTypes.value);
       for (const entityType of this.availableEntityTypes.value) {
-        console.log(`[SpaceStore] Creating collection for: ${entityType}`);
         await this.ensureCollection(entityType);
       }
-      console.log('[SpaceStore] All collections created');
 
       // Subscribe to app config changes
       // TODO: Add subscription to appConfig changes
@@ -172,14 +151,12 @@ class SpaceStore {
       this.initialized.value = true;
       const totalTime = performance.now() - startTime;
       console.log(`[SpaceStore] ✅ INITIALIZED IN ${totalTime.toFixed(0)}ms`);
-      console.log('[SpaceStore] Initialized with entity types:', this.availableEntityTypes.value);
-      console.log('[SpaceStore] Collections in database:', this.db ? Object.keys(this.db.collections) : 'No DB');
 
       // Setup replication for breed entity
       setTimeout(async () => {
         await this.setupEntityReplication('breed');
       }, 1000);
-      
+
     } catch (err) {
       console.error('[SpaceStore] Failed to initialize:', err);
       this.error.value = err as Error;
@@ -550,14 +527,9 @@ class SpaceStore {
       optionOrder?: number;
     }> = [];
 
-    // Debug log
-    console.log('[SpaceStore] Parsing sort_fields from space config:', sortFields);
-
     for (const [fieldId, fieldConfig] of Object.entries(sortFields)) {
       const field = fieldConfig as any;
       const fieldOrder = field.order || 0;
-
-      console.log(`[SpaceStore] Processing field ${fieldId}:`, field);
 
       if (field.sortOrder && Array.isArray(field.sortOrder)) {
         // Each sortOrder item is a separate sort option
@@ -581,13 +553,10 @@ class SpaceStore {
             optionOrder: sortOption.order || 0
           };
 
-          console.log('[SpaceStore] Adding sort option:', option);
           sortOptions.push(option);
         });
       }
     }
-
-    console.log('[SpaceStore] Total sort options:', sortOptions.length);
 
     // Sort by field order, then by option order within each field
     sortOptions.sort((a, b) => {
@@ -619,6 +588,7 @@ class SpaceStore {
     fieldType: string;
     required?: boolean;
     operator?: string;
+    slug?: string;
     value?: any;
     validation?: any;
     order: number;
@@ -661,6 +631,7 @@ class SpaceStore {
       fieldType: string;
       required?: boolean;
       operator?: string;
+      slug?: string;
       value?: any;
       validation?: any;
       order: number;
@@ -686,6 +657,7 @@ class SpaceStore {
         fieldType: field.fieldType || 'string',
         required: field.required,
         operator: field.operator,
+        slug: field.slug,
         value: field.value,
         validation: field.validation,
         order: field.order || 0,
@@ -774,7 +746,6 @@ class SpaceStore {
   async getEntityStore<T extends BusinessEntity>(entityType: string): Promise<EntityStore<T> | null> {
     // Wait for config to be ready first (fast polling for instant response)
     if (!this.configReady.value) {
-      console.log(`[SpaceStore] Waiting for config to be ready before creating ${entityType} store...`);
       let retries = 50;
       while (!this.configReady.value && retries > 0) {
         await new Promise(resolve => setTimeout(resolve, 50)); // 50ms polling
@@ -788,8 +759,6 @@ class SpaceStore {
 
     // Check if store already exists
     if (this.entityStores.has(entityType)) {
-      console.log(`[SpaceStore] Returning existing store for ${entityType}`);
-
       // Also ensure collection still exists (in case it was deleted)
       await this.ensureCollection(entityType);
 
@@ -813,9 +782,6 @@ class SpaceStore {
       console.error(`[SpaceStore] Available configs:`, Array.from(this.spaceConfigs.keys()));
       return null;
     }
-    
-    // Create new entity store
-    console.log(`[SpaceStore] Creating new store for ${entityType}`);
 
     try {
       const entityStore = new EntityStore<T>();
@@ -830,7 +796,6 @@ class SpaceStore {
 
       // Subscribe to totalCount updates from replication
       entityReplicationService.onTotalCountUpdate(entityType, (newTotal) => {
-        console.log(`[SpaceStore] 🔔 Received totalCount update: ${newTotal} for ${entityType}`);
         entityStore.setTotalFromServer(newTotal);
       });
 
@@ -2116,7 +2081,8 @@ class SpaceStore {
         continue;
       }
 
-      const fieldConfig = fieldConfigs[fieldKey] || {};
+      // Try both with and without entity prefix (fieldKey might be pet_type_id or breed_field_pet_type_id)
+      const fieldConfig = fieldConfigs[fieldKey] || fieldConfigs[`${entityType}_field_${fieldKey}`] || {};
       const fieldType = fieldConfig.fieldType || 'string';
       const operator = this.detectOperator(fieldType, fieldConfig.operator);
 
@@ -2295,7 +2261,8 @@ class SpaceStore {
           continue; // Skip empty filters
         }
 
-        const fieldConfig = fieldConfigs[fieldKey] || {};
+        // Try both with and without entity prefix (fieldKey might be pet_type_id or breed_field_pet_type_id)
+        const fieldConfig = fieldConfigs[fieldKey] || fieldConfigs[`${entityType}_field_${fieldKey}`] || {};
         const fieldType = fieldConfig.fieldType || 'string';
         const operator = this.detectOperator(fieldType, fieldConfig.operator);
 

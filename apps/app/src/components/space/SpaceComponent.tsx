@@ -73,9 +73,7 @@ export function SpaceComponent<T extends { Id: string }>({
   const viewMode = searchParams.get("view") || config.viewConfig[0].id;
 
   // Get rows from view config (динамічно!)
-  // Wait for config to be parsed (not DB collections - those come later)
   const rowsPerPage = useMemo(() => {
-    // Don't return default 50 until config is ready - this prevents flashing "50" on load
     if (!spaceStore.configReady.value) {
       return 60; // Use 60 as default for breed/list instead of 50
     }
@@ -157,10 +155,41 @@ export function SpaceComponent<T extends { Id: string }>({
     };
   }, [selectedSortOption]);
 
-  // 🆕 ID-First: useEntities with orderBy enables ID-First pagination
+  // 🆕 Build filters object from URL params (excluding system params)
+  // Supports both slug (type) and field ID (breed_field_pet_type_id)
+  const filters = useMemo(() => {
+    const filterObj: Record<string, any> = {};
+    const reservedParams = ['sort', 'view', 'sortBy', 'sortDir', 'sortParam'];
+
+    searchParams.forEach((value, key) => {
+      if (!reservedParams.includes(key) && value) {
+        // Try to find field by slug first, then by field ID
+        let fieldConfig = filterFields.find(f => f.slug === key);
+        if (!fieldConfig) {
+          fieldConfig = filterFields.find(f => f.id === key);
+        }
+
+        if (fieldConfig) {
+          // Remove entity_field_ prefix (e.g., breed_field_pet_type_id -> pet_type_id)
+          const fieldKey = fieldConfig.id.replace(new RegExp(`^${config.entitySchemaName}_field_`), '');
+          filterObj[fieldKey] = value;
+        } else {
+          // Fallback: remove prefix directly from key
+          const fieldKey = key.replace(new RegExp(`^${config.entitySchemaName}_field_`), '');
+          filterObj[fieldKey] = value;
+        }
+      }
+    });
+
+    // Return undefined if no filters (важливо для useEntities!)
+    return Object.keys(filterObj).length > 0 ? filterObj : undefined;
+  }, [searchParams, config.entitySchemaName, filterFields]);
+
+  // 🆕 ID-First: useEntities with orderBy + filters enables ID-First pagination
   const { data, isLoading, error, isFetching, hasMore, isLoadingMore, loadMore } = useEntitiesHook({
     rows: rowsPerPage,
     from: 0,
+    filters,
     orderBy
   });
 
@@ -266,6 +295,84 @@ export function SpaceComponent<T extends { Id: string }>({
 
     setSearchParams(newParams);
   }, [searchParams, setSearchParams]);
+
+  // 🆕 Handle filters apply - update URL with filter params (using slugs)
+  const handleFiltersApply = useCallback((filterValues: Record<string, any>) => {
+    const newParams = new URLSearchParams(searchParams);
+
+    // Add all filter values to URL (use slug if available, otherwise field ID)
+    Object.entries(filterValues).forEach(([fieldId, value]) => {
+      if (value !== undefined && value !== null && value !== '') {
+        // Find field config to get slug
+        const fieldConfig = filterFields.find(f => f.id === fieldId);
+        const urlKey = fieldConfig?.slug || fieldId; // Use slug if available
+        newParams.set(urlKey, String(value));
+      } else {
+        // When clearing, need to remove both slug and field ID
+        const fieldConfig = filterFields.find(f => f.id === fieldId);
+        if (fieldConfig?.slug) {
+          newParams.delete(fieldConfig.slug);
+        }
+        newParams.delete(fieldId);
+      }
+    });
+
+    setSearchParams(newParams);
+  }, [searchParams, setSearchParams, filterFields]);
+
+  // 🆕 Handle filter remove - remove specific filter from URL
+  const handleFilterRemove = useCallback((filter: { id: string }) => {
+    const newParams = new URLSearchParams(searchParams);
+    newParams.delete(filter.id);
+    setSearchParams(newParams);
+  }, [searchParams, setSearchParams]);
+
+  // 🆕 Read active filters from URL (excluding 'sort' and 'view')
+  const activeFilters = useMemo(() => {
+    const filters: Array<{ id: string; label: string; isRequired: boolean }> = [];
+    const reservedParams = ['sort', 'view', 'sortBy', 'sortDir', 'sortParam']; // Exclude system params
+
+    searchParams.forEach((value, key) => {
+      if (!reservedParams.includes(key) && value) {
+        // Find field config by slug or field ID
+        let fieldConfig = filterFields.find(f => f.slug === key);
+        if (!fieldConfig) {
+          fieldConfig = filterFields.find(f => f.id === key);
+        }
+
+        filters.push({
+          id: key, // Use URL key (slug or field ID) for removal
+          label: fieldConfig ? `${fieldConfig.displayName}: ${value}` : `${key}: ${value}`,
+          isRequired: false
+        });
+      }
+    });
+
+    return filters;
+  }, [searchParams, filterFields]);
+
+  // 🆕 Get current filter values for initializing FiltersDialog form
+  const currentFilterValues = useMemo(() => {
+    const values: Record<string, any> = {};
+    const reservedParams = ['sort', 'view', 'sortBy', 'sortDir', 'sortParam'];
+
+    searchParams.forEach((value, key) => {
+      if (!reservedParams.includes(key) && value) {
+        // Find field config by slug or field ID
+        let fieldConfig = filterFields.find(f => f.slug === key);
+        if (!fieldConfig) {
+          fieldConfig = filterFields.find(f => f.id === key);
+        }
+
+        // Map URL key (slug or field ID) to field ID for form initialization
+        if (fieldConfig) {
+          values[fieldConfig.id] = value;
+        }
+      }
+    });
+
+    return values;
+  }, [searchParams, filterFields]);
 
   const handleCreateNew = () => {
     navigate(`${location.pathname}/new`);
@@ -439,6 +546,10 @@ export function SpaceComponent<T extends { Id: string }>({
               defaultSortOption={selectedSortOption}
               onSortChange={handleSortChange}
               filterFields={filterFields}
+              filters={activeFilters}
+              onFilterRemove={handleFilterRemove}
+              onFiltersApply={handleFiltersApply}
+              currentFilterValues={currentFilterValues}
             />
           </div>
 

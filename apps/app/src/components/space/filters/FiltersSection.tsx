@@ -17,6 +17,7 @@ export interface FilterFieldConfig {
   fieldType: string;
   required?: boolean;
   operator?: string;
+  slug?: string; // Short URL slug for filter (e.g., "type" instead of "breed_field_pet_type_id")
   value?: any;
   validation?: any;
   order: number;
@@ -28,10 +29,12 @@ export interface FilterFieldConfig {
 interface FiltersSectionProps {
   filters?: FilterField[];
   onFilterRemove?: (filter: FilterField) => void;
+  onFiltersApply?: (values: Record<string, any>) => void;
   sortOptions?: SortOption[];
   defaultSortOption?: SortOption;
   onSortChange?: (option: SortOption) => void;
   filterFields?: FilterFieldConfig[];
+  currentFilterValues?: Record<string, any>;
   className?: string;
 }
 
@@ -42,10 +45,12 @@ interface FiltersSectionProps {
 export function FiltersSection({
   filters = [],
   onFilterRemove,
+  onFiltersApply,
   sortOptions,
   defaultSortOption,
   onSortChange,
   filterFields,
+  currentFilterValues,
   className
 }: FiltersSectionProps) {
   const [selectedSort, setSelectedSort] = useState<SortOption | undefined>(defaultSortOption);
@@ -62,7 +67,9 @@ export function FiltersSection({
         sortOptions={sortOptions}
         selectedSort={selectedSort}
         onSortChange={handleSortChange}
+        onFiltersApply={onFiltersApply}
         filterFields={filterFields}
+        currentFilterValues={currentFilterValues}
       />
 
       {filters.map((filter) => (
