@@ -132,6 +132,18 @@ export function SpaceComponent<T extends { Id: string }>({
     }
   }, [searchParams, setSearchParams]);
 
+  // 🎯 Set default sort in URL if no sort param exists
+  useEffect(() => {
+    const hasSortParam = searchParams.has('sort');
+
+    // If no sort param and we have a default sort option, add it to URL
+    if (!hasSortParam && defaultSortOption?.id) {
+      const newParams = new URLSearchParams(searchParams);
+      newParams.set('sort', defaultSortOption.id);
+      setSearchParams(newParams, { replace: true }); // replace to not add history entry
+    }
+  }, [searchParams, setSearchParams, defaultSortOption]);
+
   // 🆕 Memoize orderBy to prevent infinite loop (new object on each render)
   const orderBy = useMemo(() => {
     if (!selectedSortOption?.field) {

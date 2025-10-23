@@ -22,7 +22,11 @@
 - ✅ Checkpoint persistence - продовження після reload
 - ✅ Batch UI updates - стрибки 30→60→90 без flickering
 - ✅ Instant totalCount - миттєве відображення з localStorage cache
-- ✅ Dynamic sorting - SortSelector з конфігу (рендер є, функціонал нема)
+- ✅ **Dynamic sorting** - SortSelector + URL params + config slugs (**WORKS! 2025-10-23**)
+  - ✅ Config-based slugs (name-a, support, rating)
+  - ✅ URL persistence (?sort=name-a)
+  - ✅ JSONB field support (measurements->achievement_progress)
+  - ⚠️ **Offline NOT tested**
 - ✅ Dynamic filters - FiltersDialog з динамічним рендерингом (**UI only, Apply не працює**)
 - ✅ Sort/Filter configs на space рівні (не view)
 - ✅ mainFilterField handling - виключення з filter modal
@@ -444,6 +448,74 @@ const componentMap = {
 ---
 
 ## 📋 ЗАВЕРШЕНІ ЗАДАЧІ
+
+### ✅ **URL Params Sorting with Config-Based Slugs** - COMPLETED 2025-10-23
+
+**Статус:** ✅ Production Ready, Offline NOT Tested ⚠️
+**Документація:** Clean URL params with config-driven slugs
+
+**Що зроблено:**
+
+**1. Config-Based Slugs:**
+- ✅ Added `slug` field to sortOrder config
+- ✅ Short, readable slugs (name-a, name-d, support, rating)
+- ✅ Fallback to auto-generated IDs if slug not provided
+- ✅ Example config:
+  ```json
+  {
+    "sortOrder": [
+      { "slug": "name-a", "direction": "asc", "label": "Name A-Z" },
+      { "slug": "support", "parametr": "achievement_progress", ... }
+    ]
+  }
+  ```
+
+**2. URL Params Implementation:**
+- ✅ Single parameter: `?sort=slug` instead of 3 parameters
+- ✅ Before: `?sortBy=breed_field_measurements&sortDir=asc&sortParam=rating`
+- ✅ After: `?sort=rating`
+- ✅ 75% reduction in URL length
+- ✅ Auto-cleanup of legacy URL params (sortBy, sortDir, sortParam)
+- ✅ Default sort automatically added to URL on mount
+
+**3. JSONB Field Support:**
+- ✅ Sorting by nested JSON fields (measurements->achievement_progress)
+- ✅ Supabase syntax: `field->>parameter`
+- ✅ URL preserves parameter through slug
+- ✅ Universal `removeFieldPrefix()` helper eliminates code duplication
+
+**4. SpaceComponent Integration:**
+- ✅ Read `?sort=` param from URL
+- ✅ Match to sortOption by ID (slug or auto-generated)
+- ✅ Update URL on sort change
+- ✅ Persist sort selection across page reloads
+- ✅ Auto-apply default sort if no URL param
+
+**Results:**
+- ✅ Clean, shareable URLs: `/breeds?sort=name-a`
+- ✅ Config-driven slugs for full control
+- ✅ JSONB sorting works perfectly
+- ✅ Simple fields (name) work perfectly
+- ✅ Default sort applied automatically
+- ✅ 75% shorter URLs compared to previous approach
+
+**Files Modified:**
+- `/apps/app/src/components/space/SpaceComponent.tsx` - URL params handling
+- `/packages/rxdb-store/src/stores/space-store.signal-store.ts` - slug support
+- `/apps/app/src/hooks/useBreeds.ts` - parameter interface
+- `/apps/app/src/hooks/useEntities.ts` - parameter interface
+
+**⚠️ IMPORTANT: Offline Mode NOT Tested**
+- Online sorting fully tested and working
+- Offline fallback exists in code but NOT tested
+- Need to test offline scenario before claiming full production readiness
+
+**Next Steps:**
+- 🔴 Test offline sorting behavior
+- 🔴 Implement URL params for filters (similar slug approach)
+- 🔴 Implement URL params for search
+
+---
 
 ### ✅ **PWA Phase 1 - Offline Support** - COMPLETED 2025-10-23
 
