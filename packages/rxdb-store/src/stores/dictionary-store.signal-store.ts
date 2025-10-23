@@ -405,7 +405,10 @@ class DictionaryStore {
 
     } catch (error) {
       // Check if this is a network error (offline mode)
-      const isNetworkError = error instanceof TypeError && error.message.includes('fetch');
+      const errorMessage = error instanceof Error ? error.message.toLowerCase() : '';
+      const isNetworkError = errorMessage.includes('fetch') ||
+                            errorMessage.includes('network') ||
+                            errorMessage.includes('disconnected');
 
       if (isNetworkError) {
         console.warn(`[DictionaryStore] ⚠️ Network unavailable for ${tableName}, using offline mode`);
@@ -417,30 +420,80 @@ class DictionaryStore {
       console.log('[DictionaryStore] 🔌 OFFLINE MODE: Falling back to RxDB cache...');
 
       try {
-        // Build RxDB query selector
-        const selector: any = { table_name: tableName };
+        let records: DictionaryDocument[] = [];
 
-        // Apply search filter locally if provided
-        if (search) {
-          selector.$or = [
-            { name: { $regex: new RegExp(`^${search}`, 'i') } }, // starts with
-            { name: { $regex: new RegExp(search, 'i') } }  // contains
-          ];
+        // 🎯 HYBRID SEARCH: If search provided, fetch starts_with + contains separately
+        if (search && !cursor) {
+          console.log('[DictionaryStore] 🔍 OFFLINE: Hybrid search mode:', search);
+
+          // Escape regex special characters
+          const escapedSearch = search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+          // Phase 1: Starts with (high priority, 70% of limit)
+          const startsWithLimit = Math.ceil(limit * 0.7);
+          const startsWithSelector = {
+            table_name: tableName,
+            name: { $regex: `^${escapedSearch}`, $options: 'i' }
+          };
+
+          const startsWithDocs = await this.collection.find({
+            selector: startsWithSelector,
+            sort: [{ name: 'asc' }],
+            limit: startsWithLimit
+          }).exec();
+
+          const startsWithResults = startsWithDocs.map(doc => doc.toJSON());
+          console.log(`[DictionaryStore] ✅ OFFLINE: Got ${startsWithResults.length} starts_with results`);
+
+          // Phase 2: Contains (lower priority, 30% of limit)
+          const remainingLimit = limit - startsWithResults.length;
+          if (remainingLimit > 0) {
+            // Get all contains results (we'll filter out starts_with manually)
+            const containsSelector = {
+              table_name: tableName,
+              name: {
+                $regex: escapedSearch,
+                $options: 'i'
+              }
+            };
+
+            // Fetch more than needed to account for filtering
+            const containsDocs = await this.collection.find({
+              selector: containsSelector,
+              sort: [{ name: 'asc' }],
+              limit: limit // Get more to filter
+            }).exec();
+
+            // Filter out records that start with search (already in startsWithResults)
+            const startsWithIds = new Set(startsWithResults.map(r => r.id));
+            const containsResults = containsDocs
+              .map(doc => doc.toJSON())
+              .filter(record => !startsWithIds.has(record.id))
+              .slice(0, remainingLimit); // Take only what we need
+
+            console.log(`[DictionaryStore] ✅ OFFLINE: Got ${containsResults.length} contains results (after filtering)`);
+
+            records = [...startsWithResults, ...containsResults];
+          } else {
+            records = startsWithResults;
+          }
+        } else {
+          // Regular query (no search or with cursor)
+          const selector: any = { table_name: tableName };
+
+          if (cursor) {
+            selector.name = { $gt: cursor };
+          }
+
+          const cached = await this.collection.find({
+            selector,
+            sort: [{ name: 'asc' }],
+            limit
+          }).exec();
+
+          records = cached.map(doc => doc.toJSON());
         }
 
-        // Apply cursor pagination
-        if (cursor) {
-          selector.name = { $gt: cursor };
-        }
-
-        // Query RxDB cache
-        const cached = await this.collection.find({
-          selector,
-          sort: [{ name: 'asc' }],
-          limit
-        }).exec();
-
-        const records = cached.map(doc => doc.toJSON());
         const nextCursor = records.length > 0 ? records[records.length - 1].name : null;
         const hasMore = records.length >= limit;
 

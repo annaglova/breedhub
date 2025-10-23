@@ -22,7 +22,9 @@ export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
   realtime: {
     params: {
       eventsPerSecond: 10
-    }
+    },
+    // Suppress WebSocket error logs in console (offline mode)
+    log_level: 'info' // Only log info and above, not errors
   }
 });
 

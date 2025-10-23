@@ -87,8 +87,12 @@ export const DropdownInput = forwardRef<HTMLInputElement, DropdownInputProps>(
         console.log('[DropdownInput] Loaded options:', opts.length, 'hasMore:', more, 'nextCursor:', nextCursor);
 
         if (append) {
-          // ✅ ID-First guarantees no duplicates - just append
-          setDynamicOptions(prev => [...prev, ...opts]);
+          // Deduplicate by value (ID) to prevent React key warnings
+          setDynamicOptions(prev => {
+            const existingIds = new Set(prev.map(opt => opt.value));
+            const newOpts = opts.filter(opt => !existingIds.has(opt.value));
+            return [...prev, ...newOpts];
+          });
         } else {
           setDynamicOptions(opts);
         }
