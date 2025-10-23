@@ -2,11 +2,84 @@ import react from "@vitejs/plugin-react";
 import * as path from "path";
 import { defineConfig } from "vite";
 import svgr from "vite-plugin-svgr";
+import { VitePWA } from 'vite-plugin-pwa';
 
 export default defineConfig({
   root: __dirname,
   envDir: path.resolve(__dirname, '../../'), // Read .env from monorepo root
-  plugins: [react(), svgr()],
+  plugins: [
+    react(),
+    svgr(),
+    VitePWA({
+      registerType: 'autoUpdate',
+      includeAssets: ['favicon.svg', 'logo.svg'],
+      manifest: {
+        name: 'BreedHub',
+        short_name: 'BreedHub',
+        description: 'Управління породами тварин',
+        theme_color: '#9333EA',
+        background_color: '#ffffff',
+        display: 'standalone',
+        scope: '/',
+        start_url: '/',
+        icons: [
+          {
+            src: '/icons/icon-192x192.png',
+            sizes: '192x192',
+            type: 'image/png',
+            purpose: 'any maskable'
+          },
+          {
+            src: '/icons/icon-512x512.png',
+            sizes: '512x512',
+            type: 'image/png',
+            purpose: 'any maskable'
+          }
+        ]
+      },
+      workbox: {
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2}'],
+        runtimeCaching: [
+          {
+            urlPattern: /^https:\/\/dev\.dogarray\.com\/.*/i,
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'api-cache',
+              expiration: {
+                maxEntries: 100,
+                maxAgeSeconds: 60 * 60 * 24 // 24 hours
+              },
+              cacheableResponse: {
+                statuses: [0, 200]
+              },
+              networkTimeoutSeconds: 10
+            }
+          },
+          {
+            urlPattern: /^https:\/\/.*\.supabase\.co\/.*/i,
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'supabase-cache',
+              expiration: {
+                maxEntries: 100,
+                maxAgeSeconds: 60 * 60 * 24
+              },
+              cacheableResponse: {
+                statuses: [0, 200]
+              },
+              networkTimeoutSeconds: 10
+            }
+          }
+        ],
+        navigateFallback: '/index.html',
+        navigateFallbackDenylist: [/^\/api/, /^\/auth/]
+      },
+      devOptions: {
+        enabled: true,
+        type: 'module'
+      }
+    })
+  ],
   resolve: {
     alias: {
       "@ui": path.resolve(__dirname, "../../packages/ui"),
