@@ -116,9 +116,21 @@ export function useEntities({
           rows
         });
 
+        // Wait for SpaceStore to be fully initialized
+        let retries = 20;
+        while (!spaceStore.initialized.value && retries > 0) {
+          await new Promise(resolve => setTimeout(resolve, 100));
+          retries--;
+        }
+
+        if (!spaceStore.initialized.value) {
+          console.error('[useEntities] SpaceStore not initialized after retries');
+          throw new Error('SpaceStore not initialized');
+        }
+
         // Get entityStore to subscribe to totalFromServer (with retries)
         let entityStore = null;
-        let retries = 20;
+        retries = 20;
         while (!entityStore && retries > 0) {
           entityStore = await spaceStore.getEntityStore(entityType);
           if (!entityStore) {
