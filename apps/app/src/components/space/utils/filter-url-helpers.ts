@@ -20,22 +20,35 @@ export function normalizeForUrl(text: string, maxLength = 50): string {
 }
 
 /**
- * Determine correct collection name (dictionary vs regular)
+ * Determine correct collection name and query approach
+ * - If dataSource="collection" → use separate collection (e.g., breed)
+ * - Otherwise → use dictionaries collection with table_name filter
  */
-function getCollectionName(
-  referencedTable: string,
+function getCollectionInfo(
+  fieldConfig: FilterFieldConfig | undefined,
   rxdb: RxDatabase
-): { collectionName: string; isDictionary: boolean } | null {
-  const dictionaryName = `${referencedTable}_dictionary`;
-
-  // Check dictionary first
-  if (rxdb.collections[dictionaryName]) {
-    return { collectionName: dictionaryName, isDictionary: true };
+): { collectionName: string; isDictionary: boolean; tableName?: string } | null {
+  if (!fieldConfig?.referencedTable) {
+    return null;
   }
 
-  // Check regular collection
-  if (rxdb.collections[referencedTable]) {
-    return { collectionName: referencedTable, isDictionary: false };
+  const dataSource = (fieldConfig as any).dataSource;
+
+  // Check if this is a regular collection (not dictionary)
+  if (dataSource === 'collection' && rxdb.collections[fieldConfig.referencedTable]) {
+    return {
+      collectionName: fieldConfig.referencedTable,
+      isDictionary: false
+    };
+  }
+
+  // Otherwise, it's a dictionary - use dictionaries collection
+  if (rxdb.collections['dictionaries']) {
+    return {
+      collectionName: 'dictionaries',
+      isDictionary: true,
+      tableName: fieldConfig.referencedTable
+    };
   }
 
   // Not found
@@ -60,7 +73,7 @@ export async function getLabelForValue(
 
   // Dynamic lookup (RxDB) - dictionaries or regular collections
   if (fieldConfig.referencedTable && fieldConfig.referencedFieldID && fieldConfig.referencedFieldName) {
-    const collectionInfo = getCollectionName(fieldConfig.referencedTable, rxdb);
+    const collectionInfo = getCollectionInfo(fieldConfig, rxdb);
 
     if (!collectionInfo) {
       console.warn(`[getLabelForValue] Collection not found: ${fieldConfig.referencedTable}`);
@@ -69,13 +82,26 @@ export async function getLabelForValue(
 
     try {
       const collection = rxdb.collections[collectionInfo.collectionName];
-      const doc = await collection.findOne({
-        selector: { [fieldConfig.referencedFieldID]: value }
-      }).exec();
+
+      let doc;
+      if (collectionInfo.isDictionary && collectionInfo.tableName) {
+        // Query dictionaries collection with table_name filter
+        doc = await collection.findOne({
+          selector: {
+            table_name: collectionInfo.tableName,
+            [fieldConfig.referencedFieldID]: value
+          }
+        }).exec();
+      } else {
+        // Query regular collection
+        doc = await collection.findOne({
+          selector: { [fieldConfig.referencedFieldID]: value }
+        }).exec();
+      }
 
       if (doc) {
         const label = doc[fieldConfig.referencedFieldName];
-        console.log('[getLabelForValue]', value, '→', label);
+        console.log('[getLabelForValue]', value, '→', label, `(from ${collectionInfo.isDictionary ? 'dictionary' : 'collection'})`);
         return label || value;
       }
     } catch (err) {
@@ -104,7 +130,7 @@ export async function getValueForLabel(
 
   // Dynamic lookup (RxDB) - dictionaries or regular collections
   if (fieldConfig.referencedTable && fieldConfig.referencedFieldName) {
-    const collectionInfo = getCollectionName(fieldConfig.referencedTable, rxdb);
+    const collectionInfo = getCollectionInfo(fieldConfig, rxdb);
 
     if (!collectionInfo) {
       console.warn(`[getValueForLabel] Collection not found: ${fieldConfig.referencedTable}`);
@@ -114,15 +140,27 @@ export async function getValueForLabel(
     try {
       const collection = rxdb.collections[collectionInfo.collectionName];
 
-      // Get all documents and find by normalized label
-      const docs = await collection.find().exec();
+      let docs;
+      if (collectionInfo.isDictionary && collectionInfo.tableName) {
+        // Query dictionaries collection with table_name filter
+        docs = await collection.find({
+          selector: {
+            table_name: collectionInfo.tableName
+          }
+        }).exec();
+      } else {
+        // Query regular collection - get all docs
+        docs = await collection.find().exec();
+      }
+
+      // Find by normalized label match
       const match = docs.find(doc =>
         normalizeForUrl(doc[fieldConfig.referencedFieldName]) === normalizedSearchLabel
       );
 
       if (match) {
         const matchId = match[fieldConfig.referencedFieldID];
-        console.log('[getValueForLabel]', label, '→', matchId);
+        console.log('[getValueForLabel]', label, '→', matchId, `(from ${collectionInfo.isDictionary ? 'dictionary' : 'collection'})`);
         return matchId;
       }
     } catch (err) {

@@ -172,6 +172,8 @@ export function SpaceComponent<T extends { Id: string }>({
         return;
       }
 
+      console.log('[SpaceComponent] Building filters from URL params:', Array.from(searchParams.entries()));
+
       const filterObj: Record<string, any> = {};
       const reservedParams = ['sort', 'view', 'sortBy', 'sortDir', 'sortParam'];
 
@@ -184,11 +186,15 @@ export function SpaceComponent<T extends { Id: string }>({
           if (!reservedParams.includes(urlKey) && urlValue) {
             promises.push(
               (async () => {
+                console.log('[SpaceComponent] Processing URL param:', urlKey, '=', urlValue);
+
                 // Try to find field by slug first (e.g., "type"), then by field ID
                 let fieldConfig = filterFields.find(f => f.slug === urlKey);
                 if (!fieldConfig) {
                   fieldConfig = filterFields.find(f => f.id === urlKey);
                 }
+
+                console.log('[SpaceComponent] Field config found:', fieldConfig?.id, fieldConfig);
 
                 if (fieldConfig) {
                   // Try to convert label → ID (e.g., "dogs" → uuid)
@@ -197,14 +203,14 @@ export function SpaceComponent<T extends { Id: string }>({
                   if (valueId) {
                     // Found ID by label - use it
                     filterObj[fieldConfig.id] = valueId;
-                    console.log('[SpaceComponent] Filter:', urlKey, '→', fieldConfig.id, '=', valueId, `(from label: ${urlValue})`);
+                    console.log('[SpaceComponent] ✅ Filter:', urlKey, '→', fieldConfig.id, '=', valueId, `(from label: ${urlValue})`);
                   } else {
                     // Couldn't find by label - maybe it's already an ID, use as-is
                     filterObj[fieldConfig.id] = urlValue;
-                    console.log('[SpaceComponent] Filter:', urlKey, '→', fieldConfig.id, '=', urlValue, '(fallback)');
+                    console.log('[SpaceComponent] ⚠️ Filter (fallback):', urlKey, '→', fieldConfig.id, '=', urlValue);
                   }
                 } else {
-                  console.warn('[SpaceComponent] Unknown filter param:', urlKey, '- skipping');
+                  console.warn('[SpaceComponent] ❌ Unknown filter param:', urlKey, '- skipping');
                 }
               })()
             );
@@ -212,7 +218,11 @@ export function SpaceComponent<T extends { Id: string }>({
         });
 
         await Promise.all(promises);
-        setFilters(Object.keys(filterObj).length > 0 ? filterObj : undefined);
+
+        console.log('[SpaceComponent] Final filterObj:', filterObj);
+        const finalFilters = Object.keys(filterObj).length > 0 ? filterObj : undefined;
+        console.log('[SpaceComponent] Setting filters:', finalFilters);
+        setFilters(finalFilters);
       } catch (error) {
         console.error('[SpaceComponent] Error building filters:', error);
         setFilters(undefined);
