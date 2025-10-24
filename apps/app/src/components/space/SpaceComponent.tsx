@@ -1,7 +1,7 @@
 import { mediaQueries } from "@/config/breakpoints";
 import { SpaceConfig } from "@/core/space/types";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
-import { spaceStore } from "@breedhub/rxdb-store";
+import { spaceStore, getDatabase } from "@breedhub/rxdb-store";
 import { useSignals } from "@preact/signals-react/runtime";
 import { Button } from "@ui/components/button";
 import { Input } from "@ui/components/input";
@@ -24,6 +24,7 @@ import { EntitiesCounter } from "./EntitiesCounter";
 import { FiltersSection } from "./filters";
 import { SpaceView } from "./SpaceView";
 import { ViewChanger } from "./ViewChanger";
+import { getLabelForValue, normalizeForUrl, getValueForLabel } from "./utils/filter-url-helpers";
 
 interface SpaceComponentProps<T> {
   config: SpaceConfig<T>;
@@ -157,38 +158,68 @@ export function SpaceComponent<T extends { Id: string }>({
 
   // 🆕 Build filters object from URL params (excluding system params)
   // Slug (type) in URL → normalized field name (pet_type_id) for queries
+  // Label (dogs) in URL → ID (uuid) for queries
   // Same pattern as orderBy: slug for URL, normalized field name for queries
-  const filters = useMemo(() => {
-    // If filterFields not loaded yet, don't build filters (wait for config to load)
-    // This prevents using URL slugs directly before field configs are available
-    if (filterFields.length === 0) {
-      console.log('[SpaceComponent] filterFields not loaded yet, skipping filter build');
-      return undefined;
-    }
+  const [filters, setFilters] = useState<Record<string, any> | undefined>(undefined);
 
-    const filterObj: Record<string, any> = {};
-    const reservedParams = ['sort', 'view', 'sortBy', 'sortDir', 'sortParam'];
-
-    searchParams.forEach((value, key) => {
-      if (!reservedParams.includes(key) && value) {
-        // Try to find field by slug first (e.g., "type"), then by field ID
-        let fieldConfig = filterFields.find(f => f.slug === key);
-        if (!fieldConfig) {
-          fieldConfig = filterFields.find(f => f.id === key);
-        }
-
-        if (fieldConfig) {
-          // Use normalized field ID (pet_type_id) for query, just like orderBy.field
-          filterObj[fieldConfig.id] = value;
-          console.log('[SpaceComponent] Filter:', key, '→', fieldConfig.id, '=', value);
-        } else {
-          console.warn('[SpaceComponent] Unknown filter param:', key, '- skipping');
-        }
+  useEffect(() => {
+    const buildFilters = async () => {
+      // If filterFields not loaded yet, don't build filters (wait for config to load)
+      // This prevents using URL slugs directly before field configs are available
+      if (filterFields.length === 0) {
+        console.log('[SpaceComponent] filterFields not loaded yet, skipping filter build');
+        setFilters(undefined);
+        return;
       }
-    });
 
-    // Return undefined if no filters (важливо для useEntities!)
-    return Object.keys(filterObj).length > 0 ? filterObj : undefined;
+      const filterObj: Record<string, any> = {};
+      const reservedParams = ['sort', 'view', 'sortBy', 'sortDir', 'sortParam'];
+
+      try {
+        const rxdb = await getDatabase();
+
+        // Process all URL params
+        const promises: Promise<void>[] = [];
+        searchParams.forEach((urlValue, urlKey) => {
+          if (!reservedParams.includes(urlKey) && urlValue) {
+            promises.push(
+              (async () => {
+                // Try to find field by slug first (e.g., "type"), then by field ID
+                let fieldConfig = filterFields.find(f => f.slug === urlKey);
+                if (!fieldConfig) {
+                  fieldConfig = filterFields.find(f => f.id === urlKey);
+                }
+
+                if (fieldConfig) {
+                  // Try to convert label → ID (e.g., "dogs" → uuid)
+                  const valueId = await getValueForLabel(fieldConfig, urlValue, rxdb);
+
+                  if (valueId) {
+                    // Found ID by label - use it
+                    filterObj[fieldConfig.id] = valueId;
+                    console.log('[SpaceComponent] Filter:', urlKey, '→', fieldConfig.id, '=', valueId, `(from label: ${urlValue})`);
+                  } else {
+                    // Couldn't find by label - maybe it's already an ID, use as-is
+                    filterObj[fieldConfig.id] = urlValue;
+                    console.log('[SpaceComponent] Filter:', urlKey, '→', fieldConfig.id, '=', urlValue, '(fallback)');
+                  }
+                } else {
+                  console.warn('[SpaceComponent] Unknown filter param:', urlKey, '- skipping');
+                }
+              })()
+            );
+          }
+        });
+
+        await Promise.all(promises);
+        setFilters(Object.keys(filterObj).length > 0 ? filterObj : undefined);
+      } catch (error) {
+        console.error('[SpaceComponent] Error building filters:', error);
+        setFilters(undefined);
+      }
+    };
+
+    buildFilters();
   }, [searchParams, filterFields]);
 
   // 🆕 ID-First: useEntities with orderBy + filters enables ID-First pagination
@@ -303,27 +334,49 @@ export function SpaceComponent<T extends { Id: string }>({
   }, [searchParams, setSearchParams]);
 
   // 🆕 Handle filters apply - update URL with filter params (using slugs)
-  const handleFiltersApply = useCallback((filterValues: Record<string, any>) => {
+  // Convert ID values to readable labels for URL
+  const handleFiltersApply = useCallback(async (filterValues: Record<string, any>) => {
     const newParams = new URLSearchParams(searchParams);
 
-    // Add all filter values to URL (use slug if available, otherwise field ID)
-    Object.entries(filterValues).forEach(([fieldId, value]) => {
-      if (value !== undefined && value !== null && value !== '') {
-        // Find field config to get slug
-        const fieldConfig = filterFields.find(f => f.id === fieldId);
-        const urlKey = fieldConfig?.slug || fieldId; // Use slug if available
-        newParams.set(urlKey, String(value));
-      } else {
-        // When clearing, need to remove both slug and field ID
-        const fieldConfig = filterFields.find(f => f.id === fieldId);
-        if (fieldConfig?.slug) {
-          newParams.delete(fieldConfig.slug);
-        }
-        newParams.delete(fieldId);
-      }
-    });
+    try {
+      const rxdb = await getDatabase();
 
-    setSearchParams(newParams);
+      // Process all filter values (convert ID → label for URL)
+      for (const [fieldId, value] of Object.entries(filterValues)) {
+        if (value !== undefined && value !== null && value !== '') {
+          // Find field config to get slug
+          const fieldConfig = filterFields.find(f => f.id === fieldId);
+          const urlKey = fieldConfig?.slug || fieldId; // Use slug if available
+
+          // Get readable label for value (ID → label)
+          const label = await getLabelForValue(fieldConfig, value, rxdb);
+          const normalizedLabel = normalizeForUrl(label);
+
+          console.log('[handleFiltersApply]', fieldId, ':', value, '→', normalizedLabel);
+          newParams.set(urlKey, normalizedLabel);
+        } else {
+          // When clearing, need to remove both slug and field ID
+          const fieldConfig = filterFields.find(f => f.id === fieldId);
+          if (fieldConfig?.slug) {
+            newParams.delete(fieldConfig.slug);
+          }
+          newParams.delete(fieldId);
+        }
+      }
+
+      setSearchParams(newParams);
+    } catch (error) {
+      console.error('[handleFiltersApply] Error converting IDs to labels:', error);
+      // Fallback: use original values if conversion fails
+      Object.entries(filterValues).forEach(([fieldId, value]) => {
+        if (value !== undefined && value !== null && value !== '') {
+          const fieldConfig = filterFields.find(f => f.id === fieldId);
+          const urlKey = fieldConfig?.slug || fieldId;
+          newParams.set(urlKey, String(value));
+        }
+      });
+      setSearchParams(newParams);
+    }
   }, [searchParams, setSearchParams, filterFields]);
 
   // 🆕 Handle filter remove - remove specific filter from URL
