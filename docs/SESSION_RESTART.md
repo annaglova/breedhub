@@ -18,7 +18,7 @@
 
 **Що працює (UI):**
 - ✅ Dynamic rows з view config (30 для breed/list, 60 для breed/grid, etc.)
-- ⚠️ **Manual pagination** - scroll через spaceStore.loadMore() (manual replication, **НЕ працює з фільтрами**)
+- ✅ **ID-First pagination** - scroll через applyFilters() з cursor (**WORKS WITH FILTERS! 2025-10-24**)
 - ✅ Checkpoint persistence - продовження після reload
 - ✅ Batch UI updates - стрибки 30→60→90 без flickering
 - ✅ Instant totalCount - миттєве відображення з localStorage cache
@@ -27,7 +27,12 @@
   - ✅ URL persistence (?sort=name-a)
   - ✅ JSONB field support (measurements->achievement_progress)
   - ⚠️ **Offline NOT tested**
-- ✅ Dynamic filters - FiltersDialog з динамічним рендерингом (**UI only, Apply не працює**)
+- ✅ **Dynamic filters** - FiltersDialog + URL params + slug support (**WORKS! 2025-10-24**)
+  - ✅ Config-based slugs for filters (type for pet_type_id)
+  - ✅ URL persistence (?type=uuid)
+  - ✅ Apply button works with applyFilters()
+  - ✅ Page reload preserves filters from URL
+  - ✅ Field normalization (breed_field_pet_type_id → pet_type_id)
 - ✅ Sort/Filter configs на space рівні (не view)
 - ✅ mainFilterField handling - виключення з filter modal
 - ✅ **DropdownInput** - cursor pagination + X button + offline (2025-10-23)
@@ -35,13 +40,15 @@
 - ✅ **Online/Offline indicator** - на аватарці користувача (2025-10-22)
 - ✅ **PWA Phase 1** - базова офлайн підтримка + WebSocket spam fix (2025-10-23)
 
-**🚨 КРИТИЧНА ПРОБЛЕМА - Дві паралельні системи:**
-- ❌ **SpaceView** використовує Manual Replication (loadMore) - **НЕ працює з фільтрами**
-- ✅ **applyFilters()** готовий з ID-First - **НЕ використовується в SpaceView**
-- ❌ **SearchBar** рендериться, але **не підключений** до фільтрації
-- ❌ **FiltersDialog Apply** рендериться, але **callback нікуди**
-- ❌ **URL query params** НЕ використовуються для фільтрації
-- ❌ **useEntities** читає entityStore.entityList (з manual replication)
+**🎉 КРИТИЧНА ПРОБЛЕМА ВИРІШЕНА (2025-10-24):**
+- ✅ **SpaceView** мігровано на ID-First через useEntities + applyFilters()
+- ✅ **applyFilters()** використовується для всіх запитів (з фільтрами і без)
+- ⚠️ **SearchBar** рендериться, але **не підключений** до фільтрації (TODO)
+- ✅ **FiltersDialog Apply** працює, оновлює URL params
+- ✅ **URL query params** використовуються для фільтрації з slug підтримкою
+- ✅ **useEntities** використовує applyFilters() з ID-First pagination
+- ✅ **Field normalization** - всі поля нормалізовані при парсингу конфігу
+- ✅ **Race condition fixed** - чекаємо ініціалізації DB перед фільтрацією
 
 **Поточна гілка:** `main`
 
