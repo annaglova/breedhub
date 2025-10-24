@@ -159,6 +159,13 @@ export function SpaceComponent<T extends { Id: string }>({
   // Slug (type) in URL → normalized field name (pet_type_id) for queries
   // Same pattern as orderBy: slug for URL, normalized field name for queries
   const filters = useMemo(() => {
+    // If filterFields not loaded yet, don't build filters (wait for config to load)
+    // This prevents using URL slugs directly before field configs are available
+    if (filterFields.length === 0) {
+      console.log('[SpaceComponent] filterFields not loaded yet, skipping filter build');
+      return undefined;
+    }
+
     const filterObj: Record<string, any> = {};
     const reservedParams = ['sort', 'view', 'sortBy', 'sortDir', 'sortParam'];
 
@@ -173,17 +180,16 @@ export function SpaceComponent<T extends { Id: string }>({
         if (fieldConfig) {
           // Use normalized field ID (pet_type_id) for query, just like orderBy.field
           filterObj[fieldConfig.id] = value;
+          console.log('[SpaceComponent] Filter:', key, '→', fieldConfig.id, '=', value);
         } else {
-          // Fallback: assume key is already normalized or remove prefix
-          const fieldKey = key.replace(new RegExp(`^${config.entitySchemaName}_field_`), '');
-          filterObj[fieldKey] = value;
+          console.warn('[SpaceComponent] Unknown filter param:', key, '- skipping');
         }
       }
     });
 
     // Return undefined if no filters (важливо для useEntities!)
     return Object.keys(filterObj).length > 0 ? filterObj : undefined;
-  }, [searchParams, config.entitySchemaName, filterFields]);
+  }, [searchParams, filterFields]);
 
   // 🆕 ID-First: useEntities with orderBy + filters enables ID-First pagination
   const { data, isLoading, error, isFetching, hasMore, isLoadingMore, loadMore } = useEntitiesHook({
