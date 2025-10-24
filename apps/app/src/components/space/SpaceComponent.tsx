@@ -156,25 +156,25 @@ export function SpaceComponent<T extends { Id: string }>({
   }, [selectedSortOption]);
 
   // 🆕 Build filters object from URL params (excluding system params)
-  // Supports both slug (type) and field ID (breed_field_pet_type_id)
+  // Slug (type) in URL → normalized field name (pet_type_id) for queries
+  // Same pattern as orderBy: slug for URL, normalized field name for queries
   const filters = useMemo(() => {
     const filterObj: Record<string, any> = {};
     const reservedParams = ['sort', 'view', 'sortBy', 'sortDir', 'sortParam'];
 
     searchParams.forEach((value, key) => {
       if (!reservedParams.includes(key) && value) {
-        // Try to find field by slug first, then by field ID
+        // Try to find field by slug first (e.g., "type"), then by field ID
         let fieldConfig = filterFields.find(f => f.slug === key);
         if (!fieldConfig) {
           fieldConfig = filterFields.find(f => f.id === key);
         }
 
         if (fieldConfig) {
-          // Remove entity_field_ prefix (e.g., breed_field_pet_type_id -> pet_type_id)
-          const fieldKey = fieldConfig.id.replace(new RegExp(`^${config.entitySchemaName}_field_`), '');
-          filterObj[fieldKey] = value;
+          // Use normalized field ID (pet_type_id) for query, just like orderBy.field
+          filterObj[fieldConfig.id] = value;
         } else {
-          // Fallback: remove prefix directly from key
+          // Fallback: assume key is already normalized or remove prefix
           const fieldKey = key.replace(new RegExp(`^${config.entitySchemaName}_field_`), '');
           filterObj[fieldKey] = value;
         }

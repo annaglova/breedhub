@@ -179,7 +179,7 @@ class SpaceStore {
    * - page can have fields and tabs
    * - tab can have fields
    */
-  private collectUniqueFields(space: any, appConfig: any): Map<string, FieldConfig> {
+  private collectUniqueFields(space: any, appConfig: any, entitySchemaName: string): Map<string, FieldConfig> {
     const uniqueFields = new Map<string, FieldConfig>();
 
     // Helper function to process fields - in static config fields are already merged data
@@ -187,8 +187,11 @@ class SpaceStore {
       if (!fields) return;
 
       Object.entries(fields).forEach(([fieldKey, fieldValue]: [string, any]) => {
+        // Normalize field name: remove entity prefix (breed_field_pet_type_id -> pet_type_id)
+        const normalizedFieldName = this.removeFieldPrefix(fieldKey, entitySchemaName);
+
         // Skip if already processed
-        if (uniqueFields.has(fieldKey)) return;
+        if (uniqueFields.has(normalizedFieldName)) return;
 
         // In static config, fieldValue is already merged data
         const fieldData = fieldValue;
@@ -205,10 +208,11 @@ class SpaceStore {
           validation: fieldData.validation,
           permissions: fieldData.permissions,
           defaultValue: fieldData.defaultValue,
-          component: fieldData.component
+          component: fieldData.component,
+          originalConfigKey: fieldKey // Keep original for debugging
         };
 
-        uniqueFields.set(fieldKey, fieldConfig);
+        uniqueFields.set(normalizedFieldName, fieldConfig);
       });
     };
 
@@ -269,8 +273,27 @@ class SpaceStore {
         Object.entries(workspace.spaces).forEach(([spaceKey, space]: [string, any]) => {
           // Check for entitySchemaName
           if (space.entitySchemaName) {
-            // Collect all unique fields from all levels
-            const uniqueFields = this.collectUniqueFields(space, appConfig);
+            // Collect all unique fields from all levels (with normalized names)
+            const uniqueFields = this.collectUniqueFields(space, appConfig, space.entitySchemaName);
+
+            // Normalize keys in sort_fields and filter_fields too
+            const normalizedSortFields = space.sort_fields
+              ? Object.fromEntries(
+                  Object.entries(space.sort_fields).map(([key, value]) => [
+                    this.removeFieldPrefix(key, space.entitySchemaName),
+                    value
+                  ])
+                )
+              : undefined;
+
+            const normalizedFilterFields = space.filter_fields
+              ? Object.fromEntries(
+                  Object.entries(space.filter_fields).map(([key, value]) => [
+                    this.removeFieldPrefix(key, space.entitySchemaName),
+                    value
+                  ])
+                )
+              : undefined;
 
             const spaceConfig: SpaceConfig = {
               id: space.id || spaceKey,
@@ -279,8 +302,8 @@ class SpaceStore {
               label: space.label,
               entitySchemaName: space.entitySchemaName,
               fields: Object.fromEntries(uniqueFields),
-              sort_fields: space.sort_fields,
-              filter_fields: space.filter_fields,
+              sort_fields: normalizedSortFields,
+              filter_fields: normalizedFilterFields,
               rows: space.rows,
               pages: space.pages,
               views: space.views,
@@ -991,11 +1014,9 @@ class SpaceStore {
 
     // Helper function to process field and add to schema
     const addFieldToSchema = (fieldKey: string, fieldConfig: any) => {
-      // Extract field name (remove prefix like 'breed_field_')
-      const fieldName = this.removeFieldPrefix(fieldKey, entityType);
-
+      // fieldKey is already normalized (pet_type_id, not breed_field_pet_type_id)
       // Skip if already processed
-      if (properties[fieldName]) return;
+      if (properties[fieldKey]) return;
 
       // Map fieldType to RxDB schema type
       let schemaType = 'string';
@@ -1025,7 +1046,7 @@ class SpaceStore {
           break;
       }
 
-      properties[fieldName] = {
+      properties[fieldKey] = {
         type: schemaType
       };
 
@@ -1033,15 +1054,15 @@ class SpaceStore {
       if (schemaType === 'string') {
         const maxLength = fieldConfig?.maxLength;
         if (maxLength) {
-          properties[fieldName].maxLength = maxLength;
+          properties[fieldKey].maxLength = maxLength;
         } else if (fieldType === 'uuid') {
-          properties[fieldName].maxLength = 36; // Standard UUID length
+          properties[fieldKey].maxLength = 36; // Standard UUID length
         }
       }
 
       // Mark as required if needed
       if (fieldConfig?.required || fieldConfig?.isPrimaryKey) {
-        required.push(fieldName);
+        required.push(fieldKey);
       }
     };
 
@@ -1753,9 +1774,9 @@ class SpaceStore {
 
         // Calculate hasMore based on cursor
         const hasMore = localResults.length >= limit;
-        const rxdbOrderByFieldForCursor = this.removeFieldPrefix(orderBy.field, entityType);
+        // orderBy.field is already normalized (e.g., pet_type_id)
         const nextCursor = localResults.length > 0
-          ? localResults[localResults.length - 1]?.[rxdbOrderByFieldForCursor] ?? null
+          ? localResults[localResults.length - 1]?.[orderBy.field] ?? null
           : null;
 
         console.log(`[SpaceStore] 📴 Offline mode: returning ${localResults.length}/${totalCount} records (hasMore: ${hasMore})`);
@@ -1811,9 +1832,7 @@ class SpaceStore {
       return [];
     }
 
-    // Convert orderBy field name to RxDB format (remove entity_field_ prefix)
-    const rxdbOrderByField = this.removeFieldPrefix(orderBy.field, entityType);
-
+    // orderBy.field is already normalized (e.g., pet_type_id)
     try {
       // First check: how many docs in collection?
       const totalDocs = await collection.count().exec();
@@ -1882,7 +1901,7 @@ class SpaceStore {
         // Execute starts_with query
         const startsWithDocs = await collection.find({
           selector: startsWithSelector,
-          sort: [{ [rxdbOrderByField]: orderBy.direction === 'asc' ? 'asc' : 'desc' }],
+          sort: [{ [orderBy.field]: orderBy.direction === 'asc' ? 'asc' : 'desc' }],
           limit: startsWithLimit
         }).exec();
         const startsWithResults = startsWithDocs.map(doc => doc.toJSON());
@@ -1933,7 +1952,7 @@ class SpaceStore {
           // Execute contains query
           const containsDocs = await collection.find({
             selector: containsSelector,
-            sort: [{ [rxdbOrderByField]: orderBy.direction === 'asc' ? 'asc' : 'desc' }],
+            sort: [{ [orderBy.field]: orderBy.direction === 'asc' ? 'asc' : 'desc' }],
             limit
           }).exec();
 
@@ -2011,17 +2030,17 @@ class SpaceStore {
         // ✅ KEYSET PAGINATION: Apply cursor to selector
         if (cursor !== null) {
           if (orderBy.direction === 'asc') {
-            selector[rxdbOrderByField] = { $gt: cursor };
+            selector[orderBy.field] = { $gt: cursor };
           } else {
-            selector[rxdbOrderByField] = { $lt: cursor };
+            selector[orderBy.field] = { $lt: cursor };
           }
-          console.log(`[SpaceStore] 🔑 Applied cursor: ${rxdbOrderByField} ${orderBy.direction === 'asc' ? '>' : '<'} '${cursor}'`);
+          console.log(`[SpaceStore] 🔑 Applied cursor: ${orderBy.field} ${orderBy.direction === 'asc' ? '>' : '<'} '${cursor}'`);
         }
 
         // Execute query with selector
         const docs = await collection.find({
           selector,
-          sort: [{ [rxdbOrderByField]: orderBy.direction === 'asc' ? 'asc' : 'desc' }],
+          sort: [{ [orderBy.field]: orderBy.direction === 'asc' ? 'asc' : 'desc' }],
           limit: limit > 0 ? limit : undefined
         }).exec();
 
@@ -2057,13 +2076,11 @@ class SpaceStore {
 
     console.log(`[SpaceStore] 🆔 Fetching IDs for ${entityType}...`);
 
-    // Remove entity_field_ prefix for Supabase (e.g., breed_field_measurements -> measurements)
-    const supabaseField = this.removeFieldPrefix(orderBy.field, entityType);
-
+    // orderBy.field is already normalized (e.g., pet_type_id, measurements)
     // For JSONB fields with parameter, use field->>parameter syntax
     const orderField = orderBy.parameter
-      ? `${supabaseField}->>${orderBy.parameter}`
-      : supabaseField;
+      ? `${orderBy.field}->>${orderBy.parameter}`
+      : orderBy.field;
 
     console.log(`[SpaceStore] 🔍 Order field for Supabase: ${orderField}`);
 
@@ -2081,16 +2098,14 @@ class SpaceStore {
         continue;
       }
 
-      // Try both with and without entity prefix (fieldKey might be pet_type_id or breed_field_pet_type_id)
-      const fieldConfig = fieldConfigs[fieldKey] || fieldConfigs[`${entityType}_field_${fieldKey}`] || {};
+      // fieldKey is already normalized (pet_type_id), so direct lookup works
+      const fieldConfig = fieldConfigs[fieldKey] || {};
       const fieldType = fieldConfig.fieldType || 'string';
       const operator = this.detectOperator(fieldType, fieldConfig.operator);
 
-      // Extract actual field name
-      const fieldName = this.removeFieldPrefix(fieldKey, entityType);
-
+      // fieldKey is already the DB field name (normalized)
       // Apply filter based on operator
-      query = this.applySupabaseFilter(query, fieldName, operator, value);
+      query = this.applySupabaseFilter(query, fieldKey, operator, value);
     }
 
     // Apply cursor (keyset pagination)
@@ -2261,24 +2276,21 @@ class SpaceStore {
           continue; // Skip empty filters
         }
 
-        // Try both with and without entity prefix (fieldKey might be pet_type_id or breed_field_pet_type_id)
-        const fieldConfig = fieldConfigs[fieldKey] || fieldConfigs[`${entityType}_field_${fieldKey}`] || {};
+        // fieldKey is already normalized (pet_type_id), so direct lookup works
+        const fieldConfig = fieldConfigs[fieldKey] || {};
         const fieldType = fieldConfig.fieldType || 'string';
         const operator = this.detectOperator(fieldType, fieldConfig.operator);
 
-        // Extract actual field name
-        const fieldName = this.removeFieldPrefix(fieldKey, entityType);
-
         console.log('[SpaceStore] Applying Supabase filter:', {
           fieldKey,
-          fieldName,
           fieldType,
           operator,
           value
         });
 
+        // fieldKey is already the DB field name (normalized)
         // Apply filter based on operator
-        query = this.applySupabaseFilter(query, fieldName, operator, value);
+        query = this.applySupabaseFilter(query, fieldKey, operator, value);
       }
 
       // ✅ KEYSET PAGINATION: Apply cursor (WHERE field > cursor)
