@@ -710,6 +710,7 @@ class SpaceStore {
     placeholder?: string;
     fieldType: string;
     operator?: string;
+    slug?: string;
   } | null {
     // Try exact match first
     let spaceConfig = this.spaceConfigs.get(entityType);
@@ -739,7 +740,8 @@ class SpaceStore {
           component: field.component || 'TextInput',
           placeholder: field.placeholder,
           fieldType: field.fieldType || 'string',
-          operator: field.operator || 'contains'
+          operator: field.operator, // Use operator from config
+          slug: field.slug
         };
       }
     }
@@ -2239,6 +2241,11 @@ class SpaceStore {
   /**
    * 🆔 ID-First Phase 1: Fetch IDs + ordering field from Supabase
    * Lightweight query (~1KB for 30 records instead of ~30KB)
+   *
+   * 🔍 HYBRID SEARCH: For search queries with 'contains' operator, returns results in priority order:
+   * 1. Starts with search term (70% of limit)
+   * 2. Contains search term (30% of limit)
+   * Both sorted by orderBy field
    */
   private async fetchIDsFromSupabase(
     entityType: string,
@@ -2260,7 +2267,104 @@ class SpaceStore {
 
     console.log(`[SpaceStore] 🔍 Order field for Supabase: ${orderField}`);
 
-    // Build lightweight query: only ID + ordering field
+    // 🎯 HYBRID SEARCH: Detect string filters with 'contains' operator
+    const searchFilters = Object.entries(filters).filter(([fieldKey, value]) => {
+      if (value === undefined || value === null || value === '') return false;
+
+      const fieldConfig = fieldConfigs[fieldKey] || {};
+      const fieldType = fieldConfig.fieldType || 'string';
+      const operator = this.detectOperator(fieldType, fieldConfig.operator);
+
+      return (fieldType === 'string' || fieldType === 'text') && operator === 'contains';
+    });
+
+    // Use hybrid search if: (1) has search filter, (2) no cursor (first page)
+    const useHybridSearch = searchFilters.length > 0 && cursor === null;
+
+    if (useHybridSearch) {
+      console.log('[SpaceStore] 🔍 HYBRID SEARCH mode (starts_with 70% + contains 30%)');
+
+      // Separate search filters from other filters
+      const searchField = searchFilters[0][0];
+      const searchValue = searchFilters[0][1];
+      const otherFilters = Object.fromEntries(
+        Object.entries(filters).filter(([key]) => key !== searchField)
+      );
+
+      // Phase 1: Starts with (high priority, 70% of limit)
+      const startsWithLimit = Math.ceil(limit * 0.7);
+      let startsWithQuery = supabase
+        .from(entityType)
+        .select(`id, ${orderField}`)
+        .or('deleted.is.null,deleted.eq.false')
+        .ilike(searchField, `${searchValue}%`); // Starts with
+
+      // Apply other filters
+      for (const [fieldKey, value] of Object.entries(otherFilters)) {
+        if (value === undefined || value === null || value === '') continue;
+        const fieldConfig = fieldConfigs[fieldKey] || {};
+        const fieldType = fieldConfig.fieldType || 'string';
+        const operator = this.detectOperator(fieldType, fieldConfig.operator);
+        startsWithQuery = this.applySupabaseFilter(startsWithQuery, fieldKey, operator, value);
+      }
+
+      startsWithQuery = startsWithQuery
+        .order(orderField, { ascending: orderBy.direction === 'asc' })
+        .limit(startsWithLimit);
+
+      const { data: startsWithData, error: startsWithError } = await startsWithQuery;
+
+      if (startsWithError) {
+        console.error('[SpaceStore] ❌ Hybrid search (starts_with) failed:', startsWithError);
+        throw startsWithError;
+      }
+
+      const startsWithResults = startsWithData || [];
+      console.log(`[SpaceStore] ✅ Starts with: ${startsWithResults.length} results`);
+
+      // Phase 2: Contains (lower priority) - only if we have room
+      const remainingLimit = limit - startsWithResults.length;
+      if (remainingLimit > 0) {
+        let containsQuery = supabase
+          .from(entityType)
+          .select(`id, ${orderField}`)
+          .or('deleted.is.null,deleted.eq.false')
+          .ilike(searchField, `%${searchValue}%`)  // Contains
+          .not(searchField, 'ilike', `${searchValue}%`); // Exclude starts_with
+
+        // Apply other filters
+        for (const [fieldKey, value] of Object.entries(otherFilters)) {
+          if (value === undefined || value === null || value === '') continue;
+          const fieldConfig = fieldConfigs[fieldKey] || {};
+          const fieldType = fieldConfig.fieldType || 'string';
+          const operator = this.detectOperator(fieldType, fieldConfig.operator);
+          containsQuery = this.applySupabaseFilter(containsQuery, fieldKey, operator, value);
+        }
+
+        containsQuery = containsQuery
+          .order(orderField, { ascending: orderBy.direction === 'asc' })
+          .limit(remainingLimit);
+
+        const { data: containsData, error: containsError } = await containsQuery;
+
+        if (containsError) {
+          console.warn('[SpaceStore] Contains search failed:', containsError);
+        } else {
+          const containsResults = containsData || [];
+          console.log(`[SpaceStore] ✅ Contains: ${containsResults.length} results`);
+
+          // Merge: starts_with first, then contains
+          const mergedResults = [...startsWithResults, ...containsResults];
+          console.log(`[SpaceStore] ✅ Fetched ${mergedResults.length} IDs (~${Math.round(mergedResults.length * 0.1)}KB) via HYBRID SEARCH`);
+          return mergedResults;
+        }
+      }
+
+      console.log(`[SpaceStore] ✅ Fetched ${startsWithResults.length} IDs (~${Math.round(startsWithResults.length * 0.1)}KB) via HYBRID SEARCH`);
+      return startsWithResults;
+    }
+
+    // 📄 REGULAR QUERY: No search or cursor pagination
     let query = supabase
       .from(entityType)
       .select(`id, ${orderField}`);
@@ -2714,8 +2818,8 @@ class SpaceStore {
         return query.ilike(fieldName, `%${value}%`);
 
       case 'contains':
-        // Case-sensitive LIKE
-        return query.like(fieldName, `%${value}%`);
+        // Case-INsensitive LIKE for search (same as hybrid search in RxDB)
+        return query.ilike(fieldName, `%${value}%`);
 
       case 'eq':
         return query.eq(fieldName, value);

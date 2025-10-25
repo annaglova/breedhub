@@ -53,6 +53,7 @@ export interface FilterFieldConfig {
   validation?: any;
   order: number;
   options?: Array<{ value: string; label: string; disabled?: boolean }>;
+  mainFilterField?: boolean; // If true, this field is used for main search, not shown in filter dialog
   // Dictionary loading props
   referencedTable?: string;
   referencedFieldID?: string;

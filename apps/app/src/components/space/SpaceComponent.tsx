@@ -50,6 +50,7 @@ export function SpaceComponent<T extends { Id: string }>({
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [totalCount, setTotalCount] = useState(0);
   const [searchValue, setSearchValue] = useState("");
+  const [debouncedSearchValue, setDebouncedSearchValue] = useState("");
 
   // Get reactive config signal from spaceStore
   const configSignal = useMemo(
@@ -94,13 +95,92 @@ export function SpaceComponent<T extends { Id: string }>({
     return spaceStore.getSortOptions(config.entitySchemaName, viewMode);
   }, [config.entitySchemaName, viewMode, spaceStore.configReady.value]);
 
-  // Get filter fields from view config
+  // Get filter fields from view config (already excludes mainFilterField)
   const filterFields = useMemo(() => {
     if (!spaceStore.configReady.value) {
       return [];
     }
     return spaceStore.getFilterFields(config.entitySchemaName, viewMode);
   }, [config.entitySchemaName, viewMode, spaceStore.configReady.value]);
+
+  // Get the main filter field for search (from SpaceStore)
+  const mainFilterField = useMemo(() => {
+    if (!spaceStore.configReady.value) {
+      return null;
+    }
+
+    return spaceStore.getMainFilterField(config.entitySchemaName);
+  }, [config.entitySchemaName, spaceStore.configReady.value]);
+
+  // Generate URL-friendly slug from field ID
+  // If slug exists in config - use it, otherwise extract from field ID
+  const getFieldSlug = (field: { id: string; slug?: string }): string => {
+    if (field.slug) {
+      return field.slug;
+    }
+
+    // Extract field name from ID: "breed_field_name" → "name"
+    const parts = field.id.split('_field_');
+    return parts.length > 1 ? parts[1] : field.id;
+  };
+
+  // Read search value from URL on initial mount only
+  const isInitialMount = useRef(true);
+  useEffect(() => {
+    if (!mainFilterField || !isInitialMount.current) return;
+
+    // Use slug to read from URL
+    const slug = getFieldSlug(mainFilterField);
+    const urlValue = searchParams.get(slug);
+
+    if (urlValue) {
+      setSearchValue(urlValue);
+      setDebouncedSearchValue(urlValue);
+    }
+
+    isInitialMount.current = false;
+  }, [mainFilterField, searchParams]);
+
+  // Debounce search value (faster on delete, slower on typing)
+  useEffect(() => {
+    // Check if user is deleting (length decreased)
+    const isDeleting = searchValue.length < debouncedSearchValue.length;
+    // Shorter delay for deleting (500ms), longer for typing (700ms)
+    const delay = isDeleting ? 500 : 700;
+
+    const timer = setTimeout(() => {
+      // Only search if 2+ characters or empty (for clearing)
+      if (searchValue.length === 0 || searchValue.length >= 2) {
+        setDebouncedSearchValue(searchValue);
+      }
+    }, delay);
+
+    return () => clearTimeout(timer);
+  }, [searchValue, debouncedSearchValue.length]);
+
+  // Update URL when debounced search value changes
+  useEffect(() => {
+    if (!mainFilterField) {
+      return;
+    }
+
+    // Use slug for URL (e.g., "name" instead of "breed_field_name")
+    const slug = getFieldSlug(mainFilterField);
+    const currentValue = searchParams.get(slug);
+    const newValue = debouncedSearchValue.trim() || null;
+
+    if (currentValue !== newValue) {
+      const newParams = new URLSearchParams(searchParams);
+
+      if (debouncedSearchValue.trim()) {
+        newParams.set(slug, debouncedSearchValue.trim());
+      } else {
+        newParams.delete(slug);
+      }
+
+      setSearchParams(newParams, { replace: true });
+    }
+  }, [debouncedSearchValue, mainFilterField, searchParams, setSearchParams]);
 
   // Find default sort option
   const defaultSortOption = useMemo(() => {
@@ -217,24 +297,23 @@ export function SpaceComponent<T extends { Id: string }>({
           if (!reservedParams.includes(urlKey) && urlValue) {
             promises.push(
               (async () => {
-                console.log(
-                  "[SpaceComponent] Processing URL param:",
-                  urlKey,
-                  "=",
-                  urlValue
-                );
-
                 // Try to find field by slug first (e.g., "type"), then by field ID
                 let fieldConfig = filterFields.find((f) => f.slug === urlKey);
                 if (!fieldConfig) {
                   fieldConfig = filterFields.find((f) => f.id === urlKey);
                 }
 
-                console.log(
-                  "[SpaceComponent] Field config found:",
-                  fieldConfig?.id,
-                  fieldConfig
-                );
+                // If not found in filterFields, check if it's the mainFilterField
+                if (!fieldConfig && mainFilterField) {
+                  const mainFieldSlug = getFieldSlug(mainFilterField);
+                  if (mainFieldSlug === urlKey) {
+                    // Add mainFilterField to filters (for search)
+                    // Hybrid search will be automatically triggered by space-store
+                    console.log('[SpaceComponent] 🔍 Adding search filter:', mainFilterField.id, '=', urlValue);
+                    filterObj[mainFilterField.id] = urlValue;
+                    return;
+                  }
+                }
 
                 if (fieldConfig) {
                   // Try to convert label → ID (e.g., "dogs" → uuid)
@@ -247,33 +326,10 @@ export function SpaceComponent<T extends { Id: string }>({
                   if (valueId) {
                     // Found ID by label - use it
                     filterObj[fieldConfig.id] = valueId;
-                    console.log(
-                      "[SpaceComponent] ✅ Filter:",
-                      urlKey,
-                      "→",
-                      fieldConfig.id,
-                      "=",
-                      valueId,
-                      `(from label: ${urlValue})`
-                    );
                   } else {
                     // Couldn't find by label - maybe it's already an ID, use as-is
                     filterObj[fieldConfig.id] = urlValue;
-                    console.log(
-                      "[SpaceComponent] ⚠️ Filter (fallback):",
-                      urlKey,
-                      "→",
-                      fieldConfig.id,
-                      "=",
-                      urlValue
-                    );
                   }
-                } else {
-                  console.warn(
-                    "[SpaceComponent] ❌ Unknown filter param:",
-                    urlKey,
-                    "- skipping"
-                  );
                 }
               })()
             );
@@ -282,10 +338,8 @@ export function SpaceComponent<T extends { Id: string }>({
 
         await Promise.all(promises);
 
-        console.log("[SpaceComponent] Final filterObj:", filterObj);
         const finalFilters =
           Object.keys(filterObj).length > 0 ? filterObj : undefined;
-        console.log("[SpaceComponent] Setting filters:", finalFilters);
         setFilters(finalFilters);
       } catch (error) {
         console.error("[SpaceComponent] Error building filters:", error);
@@ -294,7 +348,7 @@ export function SpaceComponent<T extends { Id: string }>({
     };
 
     buildFilters();
-  }, [searchParams, filterFields]);
+  }, [searchParams, filterFields, mainFilterField]);
 
   // 🆕 ID-First: useEntities with orderBy + filters enables ID-First pagination
   const {
@@ -524,6 +578,14 @@ export function SpaceComponent<T extends { Id: string }>({
 
       for (const [key, urlValue] of searchParams.entries()) {
         if (!reservedParams.includes(key) && urlValue) {
+          // Skip mainFilterField - it's used for search, not displayed as filter chip
+          if (mainFilterField) {
+            const mainFieldSlug = getFieldSlug(mainFilterField);
+            if (mainFieldSlug === key) {
+              continue;
+            }
+          }
+
           // Find field config by slug or field ID
           let fieldConfig = filterFields.find((f) => f.slug === key);
           if (!fieldConfig) {
@@ -562,7 +624,7 @@ export function SpaceComponent<T extends { Id: string }>({
     } else {
       setActiveFilters([]);
     }
-  }, [searchParams, filterFields]);
+  }, [searchParams, filterFields, mainFilterField]);
 
   // 🆕 Get current filter values for initializing FiltersDialog form
   // Need to convert label → ID (same as filters logic)
@@ -596,6 +658,14 @@ export function SpaceComponent<T extends { Id: string }>({
           if (!reservedParams.includes(urlKey) && urlValue) {
             promises.push(
               (async () => {
+                // Skip mainFilterField - it's used for search, not in FiltersDialog
+                if (mainFilterField) {
+                  const mainFieldSlug = getFieldSlug(mainFilterField);
+                  if (mainFieldSlug === urlKey) {
+                    return;
+                  }
+                }
+
                 // Find field config by slug or field ID
                 let fieldConfig = filterFields.find((f) => f.slug === urlKey);
                 if (!fieldConfig) {
@@ -613,22 +683,9 @@ export function SpaceComponent<T extends { Id: string }>({
                   if (valueId) {
                     // Found ID by label - use it for form
                     values[fieldConfig.id] = valueId;
-                    console.log(
-                      "[currentFilterValues] Converted:",
-                      urlKey,
-                      urlValue,
-                      "→",
-                      valueId
-                    );
                   } else {
                     // Couldn't find by label - maybe it's already an ID, use as-is
                     values[fieldConfig.id] = urlValue;
-                    console.log(
-                      "[currentFilterValues] Using as-is:",
-                      urlKey,
-                      "→",
-                      urlValue
-                    );
                   }
                 }
               })()
@@ -638,7 +695,6 @@ export function SpaceComponent<T extends { Id: string }>({
 
         await Promise.all(promises);
         setCurrentFilterValues(values);
-        console.log("[currentFilterValues] Final values for form:", values);
       } catch (error) {
         console.error(
           "[currentFilterValues] Error building form values:",
@@ -649,7 +705,7 @@ export function SpaceComponent<T extends { Id: string }>({
     };
 
     buildFormValues();
-  }, [searchParams, filterFields]);
+  }, [searchParams, filterFields, mainFilterField]);
 
   const handleCreateNew = () => {
     navigate(`${location.pathname}/new`);
