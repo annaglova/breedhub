@@ -180,6 +180,19 @@ export function SpaceComponent<T extends { Id: string }>({
       try {
         const rxdb = await getDatabase();
 
+        // Wait for dictionaries collection to be ready
+        // This is critical for label → ID conversion to work
+        let retries = 20;
+        while (!rxdb.collections['dictionaries'] && retries > 0) {
+          console.log('[SpaceComponent] Waiting for dictionaries collection...');
+          await new Promise(resolve => setTimeout(resolve, 100));
+          retries--;
+        }
+
+        if (!rxdb.collections['dictionaries']) {
+          console.warn('[SpaceComponent] Dictionaries collection not ready after retries, filters may not work correctly');
+        }
+
         // Process all URL params
         const promises: Promise<void>[] = [];
         searchParams.forEach((urlValue, urlKey) => {
