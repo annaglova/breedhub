@@ -434,26 +434,70 @@ export function SpaceComponent<T extends { Id: string }>({
   }, [searchParams, filterFields]);
 
   // 🆕 Get current filter values for initializing FiltersDialog form
-  const currentFilterValues = useMemo(() => {
-    const values: Record<string, any> = {};
-    const reservedParams = ['sort', 'view', 'sortBy', 'sortDir', 'sortParam'];
+  // Need to convert label → ID (same as filters logic)
+  const [currentFilterValues, setCurrentFilterValues] = useState<Record<string, any>>({});
 
-    searchParams.forEach((value, key) => {
-      if (!reservedParams.includes(key) && value) {
-        // Find field config by slug or field ID
-        let fieldConfig = filterFields.find(f => f.slug === key);
-        if (!fieldConfig) {
-          fieldConfig = filterFields.find(f => f.id === key);
-        }
-
-        // Map URL key (slug or field ID) to field ID for form initialization
-        if (fieldConfig) {
-          values[fieldConfig.id] = value;
-        }
+  useEffect(() => {
+    const buildFormValues = async () => {
+      if (filterFields.length === 0) {
+        setCurrentFilterValues({});
+        return;
       }
-    });
 
-    return values;
+      const values: Record<string, any> = {};
+      const reservedParams = ['sort', 'view', 'sortBy', 'sortDir', 'sortParam'];
+
+      try {
+        const rxdb = await getDatabase();
+
+        // Wait for dictionaries collection (same as filters logic)
+        let retries = 20;
+        while (!rxdb.collections['dictionaries'] && retries > 0) {
+          await new Promise(resolve => setTimeout(resolve, 100));
+          retries--;
+        }
+
+        // Process all URL params and convert label → ID
+        const promises: Promise<void>[] = [];
+        searchParams.forEach((urlValue, urlKey) => {
+          if (!reservedParams.includes(urlKey) && urlValue) {
+            promises.push(
+              (async () => {
+                // Find field config by slug or field ID
+                let fieldConfig = filterFields.find(f => f.slug === urlKey);
+                if (!fieldConfig) {
+                  fieldConfig = filterFields.find(f => f.id === urlKey);
+                }
+
+                if (fieldConfig) {
+                  // Try to convert label → ID (e.g., "cat" → uuid)
+                  const valueId = await getValueForLabel(fieldConfig, urlValue, rxdb);
+
+                  if (valueId) {
+                    // Found ID by label - use it for form
+                    values[fieldConfig.id] = valueId;
+                    console.log('[currentFilterValues] Converted:', urlKey, urlValue, '→', valueId);
+                  } else {
+                    // Couldn't find by label - maybe it's already an ID, use as-is
+                    values[fieldConfig.id] = urlValue;
+                    console.log('[currentFilterValues] Using as-is:', urlKey, '→', urlValue);
+                  }
+                }
+              })()
+            );
+          }
+        });
+
+        await Promise.all(promises);
+        setCurrentFilterValues(values);
+        console.log('[currentFilterValues] Final values for form:', values);
+      } catch (error) {
+        console.error('[currentFilterValues] Error building form values:', error);
+        setCurrentFilterValues({});
+      }
+    };
+
+    buildFormValues();
   }, [searchParams, filterFields]);
 
   const handleCreateNew = () => {
