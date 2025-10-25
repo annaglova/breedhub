@@ -1,35 +1,41 @@
-import React from 'react';
+import { Button } from "@ui/components/button";
 import {
   Dialog,
   DialogContent,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
-} from '@ui/components/dialog';
-import { Button } from '@ui/components/button';
-import { Label } from '@ui/components/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@ui/components/select';
+} from "@ui/components/dialog";
 import {
-  TextInput,
-  TextareaInput,
-  NumberInput,
   CheckboxInput,
   DateInput,
-  TimeInput,
   DropdownInput,
-  LookupInput,
   EmailInput,
-  PasswordInput,
   FileInput,
+  LookupInput,
+  NumberInput,
+  PasswordInput,
   RadioInput,
   SwitchInput,
-} from '@ui/components/form-inputs';
+  TextInput,
+  TextareaInput,
+  TimeInput,
+} from "@ui/components/form-inputs";
+import { Label } from "@ui/components/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@ui/components/select";
+import React from "react";
 
 export interface FilterConfig {
   id: string;
   label: string;
   placeholder?: string;
-  type: 'select' | 'text' | 'date' | 'dateRange' | 'autocomplete';
+  type: "select" | "text" | "date" | "dateRange" | "autocomplete";
   options?: { value: string; label: string }[];
   component?: React.ReactNode;
 }
@@ -91,8 +97,23 @@ export function FiltersDialog({
   onCancel,
   initialValues = {},
 }: FiltersDialogProps) {
+  // Helper to convert "Pet Type" → "Pet type" (sentence case)
+  const toSentenceCase = (text: string): string => {
+    const words = text.split(" ");
+    if (words.length === 0) return text;
+
+    // First word keeps first letter uppercase, rest lowercase
+    const firstWord =
+      words[0].charAt(0).toUpperCase() + words[0].slice(1).toLowerCase();
+    // Other words all lowercase
+    const otherWords = words.slice(1).map((w) => w.toLowerCase());
+
+    return [firstWord, ...otherWords].join(" ");
+  };
+
   // State for filter values - initialize with initialValues
-  const [filterValues, setFilterValues] = React.useState<Record<string, any>>(initialValues);
+  const [filterValues, setFilterValues] =
+    React.useState<Record<string, any>>(initialValues);
 
   // Update filter values when initialValues change (URL changed)
   React.useEffect(() => {
@@ -114,10 +135,10 @@ export function FiltersDialog({
   };
 
   const handleValueChange = (fieldId: string, value: any) => {
-    console.log('[FiltersDialog] Value changed:', fieldId, '=', value);
-    setFilterValues(prev => ({
+    console.log("[FiltersDialog] Value changed:", fieldId, "=", value);
+    setFilterValues((prev) => ({
       ...prev,
-      [fieldId]: value
+      [fieldId]: value,
     }));
   };
 
@@ -129,21 +150,23 @@ export function FiltersDialog({
         </DialogHeader>
 
         <form onSubmit={handleApply}>
-          <div className="my-2 flex flex-col justify-center rounded-lg bg-modal-card-ground p-5">
+          <div className="mt-2 flex flex-col rounded-lg bg-modal-card-ground px-6 py-4">
             <div className="grid gap-3 sm:grid-cols-2">
               {/* Dynamic Filter Fields from config */}
               {filterFields.map((field) => {
                 const Component = componentMap[field.component];
 
                 if (!Component) {
-                  console.warn(`[FiltersDialog] Unknown component: ${field.component}`);
+                  console.warn(
+                    `[FiltersDialog] Unknown component: ${field.component}`
+                  );
                   return null;
                 }
 
                 return (
-                  <div key={field.id} className="mt-5 space-y-2">
+                  <div key={field.id} className="space-y-2">
                     <Component
-                      label={field.displayName}
+                      label={toSentenceCase(field.displayName)}
                       placeholder={field.placeholder}
                       required={field.required}
                       id={field.id}
@@ -151,8 +174,10 @@ export function FiltersDialog({
                       referencedTable={field.referencedTable}
                       referencedFieldID={field.referencedFieldID}
                       referencedFieldName={field.referencedFieldName}
-                      value={filterValues[field.id] || ''}
-                      onValueChange={(value: any) => handleValueChange(field.id, value)}
+                      value={filterValues[field.id] || ""}
+                      onValueChange={(value: any) =>
+                        handleValueChange(field.id, value)
+                      }
                     />
                   </div>
                 );
@@ -163,7 +188,7 @@ export function FiltersDialog({
                 <>
                   {/* Main Filter */}
                   {mainFilter && !mainFilter.component && (
-                    <div className="mt-5 space-y-2">
+                    <div className="space-y-2">
                       <Label htmlFor={mainFilter.id}>
                         {mainFilter.placeholder || mainFilter.label}
                       </Label>
@@ -184,11 +209,11 @@ export function FiltersDialog({
 
                   {/* Other Filters */}
                   {filters.map((filter) => (
-                    <div key={filter.id} className="mt-5 space-y-2">
+                    <div key={filter.id} className="space-y-2">
                       {filter.component ? (
                         // Custom component for complex filters
                         filter.component
-                      ) : filter.type === 'select' ? (
+                      ) : filter.type === "select" ? (
                         <>
                           <Label htmlFor={filter.id}>
                             {filter.placeholder || filter.label}
@@ -199,7 +224,10 @@ export function FiltersDialog({
                             </SelectTrigger>
                             <SelectContent>
                               {filter.options?.map((option) => (
-                                <SelectItem key={option.value} value={option.value}>
+                                <SelectItem
+                                  key={option.value}
+                                  value={option.value}
+                                >
                                   {option.label}
                                 </SelectItem>
                               ))}
@@ -222,22 +250,22 @@ export function FiltersDialog({
             </div>
           </div>
 
-          <DialogFooter className="mt-10 grid grid-cols-2 gap-3">
+          <div className="mt-8 grid grid-cols-2 gap-3">
             <Button
               type="button"
               variant="secondary"
               onClick={handleCancel}
-              className="bg-secondary-100 hover:bg-secondary-200 focus:bg-secondary-300 dark:text-zinc-900 dark:bg-surface-400 dark:hover:bg-surface-300"
+              className="small-button bg-secondary-100 hover:bg-secondary-200 focus:bg-secondary-300 text-slate-800 dark:text-zinc-900 dark:bg-surface-400 dark:hover:bg-surface-300"
             >
               Cancel
             </Button>
             <Button
               type="submit"
-              className="bg-primary-50 dark:text-zinc-900 dark:bg-primary-300 hover:bg-primary-100 focus:bg-primary-200 dark:hover:bg-primary-300 dark:focus:bg-primary-200"
+              className="small-button bg-primary-50 dark:bg-primary-300 hover:bg-primary-100 focus:bg-primary-200 dark:hover:bg-primary-300 dark:focus:bg-primary-200 text-primary dark:text-zinc-900"
             >
               Apply filters
             </Button>
-          </DialogFooter>
+          </div>
         </form>
       </DialogContent>
     </Dialog>

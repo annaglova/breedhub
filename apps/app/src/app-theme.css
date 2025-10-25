@@ -26,7 +26,9 @@
 
 /* Custom button sizes */
 .small-button {
-  height: 2.5rem !important;
+  height: 2.6rem !important;
+  font-size: 0.875rem !important; /* text-base */
+  font-weight: 600 !important; /* font-semibold */
 }
 
 .small-button,
@@ -45,6 +47,33 @@
 .small-button *:hover,
 .small-button *:focus,
 .small-button *:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* Icon button variant - for circular icon-only buttons */
+.small-button-icon {
+  width: 2.6rem !important;
+  height: 2.6rem !important;
+  padding: 0 !important;
+}
+
+.small-button-icon,
+.small-button-icon:hover,
+.small-button-icon:focus,
+.small-button-icon:focus-visible,
+.small-button-icon:active,
+.small-button-icon[data-state="open"],
+.small-button-icon[data-state="closed"] {
+  outline: none !important;
+  box-shadow: none !important;
+  border-color: transparent !important;
+}
+
+.small-button-icon *,
+.small-button-icon *:hover,
+.small-button-icon *:focus,
+.small-button-icon *:focus-visible {
   outline: none !important;
   box-shadow: none !important;
 }
