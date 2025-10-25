@@ -113,6 +113,15 @@ export const DropdownInput = forwardRef<HTMLInputElement, DropdownInputProps>(
       }
     }, [isOpen, referencedTable, dynamicOptions.length, loadDictionaryOptions]);
 
+    // Pre-load dictionary options if we have a value but no options yet
+    // This ensures selected values are displayed correctly in forms
+    useEffect(() => {
+      if (value && referencedTable && dynamicOptions.length === 0 && !loading && !isOpen) {
+        console.log('[DropdownInput] Pre-loading options because value exists:', value);
+        loadDictionaryOptions();
+      }
+    }, [value, referencedTable, dynamicOptions.length, loading, isOpen, loadDictionaryOptions]);
+
     // Handle clicks outside
     useEffect(() => {
       const handleClickOutside = (e: MouseEvent) => {
