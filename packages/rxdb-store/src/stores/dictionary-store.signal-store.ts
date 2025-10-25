@@ -297,6 +297,12 @@ class DictionaryStore {
       nameField
     });
 
+    // 📴 PREVENTIVE OFFLINE CHECK: Skip Supabase if browser is offline
+    if (!navigator.onLine) {
+      console.warn(`[DictionaryStore] 📴 Browser is offline, using RxDB directly for ${tableName}`);
+      return this.getDictionaryOffline(tableName, { search, limit, cursor, nameField });
+    }
+
     try {
       // 🆔 PHASE 1: Fetch IDs + name field from Supabase (lightweight ~1KB for 30 records)
       console.log('[DictionaryStore] 🆔 Phase 1: Fetching IDs from Supabase...');
@@ -406,9 +412,23 @@ class DictionaryStore {
     } catch (error) {
       // Check if this is a network error (offline mode)
       const errorMessage = error instanceof Error ? error.message.toLowerCase() : '';
+      const errorName = (error as any)?.name?.toLowerCase() || '';
+      const errorCode = (error as any)?.code?.toLowerCase() || '';
+      const errorString = String(error).toLowerCase();
+
       const isNetworkError = errorMessage.includes('fetch') ||
                             errorMessage.includes('network') ||
-                            errorMessage.includes('disconnected');
+                            errorMessage.includes('disconnected') ||
+                            errorMessage.includes('failed to fetch') ||
+                            errorName.includes('network') ||
+                            errorName.includes('fetch') ||
+                            errorName.includes('disconnected') ||
+                            errorCode.includes('network') ||
+                            errorCode.includes('disconnected') ||
+                            errorCode.includes('err_internet_disconnected') ||
+                            errorString.includes('err_internet_disconnected') ||
+                            (error instanceof TypeError && errorMessage.includes('fetch')) ||
+                            !navigator.onLine;
 
       if (isNetworkError) {
         console.warn(`[DictionaryStore] ⚠️ Network unavailable for ${tableName}, using offline mode`);
@@ -417,105 +437,121 @@ class DictionaryStore {
       }
 
       // 🔌 OFFLINE FALLBACK: Work with RxDB cache only
-      console.log('[DictionaryStore] 🔌 OFFLINE MODE: Falling back to RxDB cache...');
+      return this.getDictionaryOffline(tableName, { search, limit, cursor, nameField });
+    }
+  }
 
-      try {
-        let records: DictionaryDocument[] = [];
+  /**
+   * Get dictionary in offline mode (RxDB only)
+   */
+  private async getDictionaryOffline(
+    tableName: string,
+    options: { search?: string; limit: number; cursor: string | null; nameField: string }
+  ): Promise<{ records: DictionaryDocument[]; total: number; hasMore: boolean; nextCursor: string | null }> {
+    const { search, limit, cursor, nameField } = options;
 
-        // 🎯 HYBRID SEARCH: If search provided, fetch starts_with + contains separately
-        if (search && !cursor) {
-          console.log('[DictionaryStore] 🔍 OFFLINE: Hybrid search mode:', search);
+    console.log('[DictionaryStore] 🔌 OFFLINE MODE: Falling back to RxDB cache...');
 
-          // Escape regex special characters
-          const escapedSearch = search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    if (!this.collection) {
+      return {
+        records: [],
+        total: 0,
+        hasMore: false,
+        nextCursor: null
+      };
+    }
 
-          // Phase 1: Starts with (high priority, 70% of limit)
-          const startsWithLimit = Math.ceil(limit * 0.7);
-          const startsWithSelector = {
+    try {
+      let records: DictionaryDocument[] = [];
+
+      // 🎯 HYBRID SEARCH: If search provided, fetch starts_with + contains separately
+      if (search && !cursor) {
+        console.log('[DictionaryStore] 🔍 OFFLINE: Hybrid search mode:', search);
+
+        // Escape regex special characters
+        const escapedSearch = search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+        // Phase 1: Starts with (high priority, 70% of limit)
+        const startsWithLimit = Math.ceil(limit * 0.7);
+        const startsWithSelector = {
+          table_name: tableName,
+          [nameField]: { $regex: `^${escapedSearch}`, $options: 'i' }
+        };
+
+        const startsWithDocs = await this.collection.find({
+          selector: startsWithSelector,
+          sort: [{ [nameField]: 'asc' }],
+          limit: startsWithLimit
+        }).exec();
+
+        const startsWithResults = startsWithDocs.map(doc => doc.toJSON());
+        console.log(`[DictionaryStore] ✅ OFFLINE: Got ${startsWithResults.length} starts_with results`);
+
+        // Phase 2: Contains (lower priority, 30% of limit)
+        const remainingLimit = limit - startsWithResults.length;
+        if (remainingLimit > 0) {
+          const containsSelector = {
             table_name: tableName,
-            name: { $regex: `^${escapedSearch}`, $options: 'i' }
+            [nameField]: { $regex: escapedSearch, $options: 'i' }
           };
 
-          const startsWithDocs = await this.collection.find({
-            selector: startsWithSelector,
-            sort: [{ name: 'asc' }],
-            limit: startsWithLimit
-          }).exec();
-
-          const startsWithResults = startsWithDocs.map(doc => doc.toJSON());
-          console.log(`[DictionaryStore] ✅ OFFLINE: Got ${startsWithResults.length} starts_with results`);
-
-          // Phase 2: Contains (lower priority, 30% of limit)
-          const remainingLimit = limit - startsWithResults.length;
-          if (remainingLimit > 0) {
-            // Get all contains results (we'll filter out starts_with manually)
-            const containsSelector = {
-              table_name: tableName,
-              name: {
-                $regex: escapedSearch,
-                $options: 'i'
-              }
-            };
-
-            // Fetch more than needed to account for filtering
-            const containsDocs = await this.collection.find({
-              selector: containsSelector,
-              sort: [{ name: 'asc' }],
-              limit: limit // Get more to filter
-            }).exec();
-
-            // Filter out records that start with search (already in startsWithResults)
-            const startsWithIds = new Set(startsWithResults.map(r => r.id));
-            const containsResults = containsDocs
-              .map(doc => doc.toJSON())
-              .filter(record => !startsWithIds.has(record.id))
-              .slice(0, remainingLimit); // Take only what we need
-
-            console.log(`[DictionaryStore] ✅ OFFLINE: Got ${containsResults.length} contains results (after filtering)`);
-
-            records = [...startsWithResults, ...containsResults];
-          } else {
-            records = startsWithResults;
-          }
-        } else {
-          // Regular query (no search or with cursor)
-          const selector: any = { table_name: tableName };
-
-          if (cursor) {
-            selector.name = { $gt: cursor };
-          }
-
-          const cached = await this.collection.find({
-            selector,
-            sort: [{ name: 'asc' }],
+          const containsDocs = await this.collection.find({
+            selector: containsSelector,
+            sort: [{ [nameField]: 'asc' }],
             limit
           }).exec();
 
-          records = cached.map(doc => doc.toJSON());
+          // Filter out records that start with search (already in startsWithResults)
+          const startsWithIds = new Set(startsWithResults.map(r => r.id));
+          const containsResults = containsDocs
+            .map(doc => doc.toJSON())
+            .filter(record => !startsWithIds.has(record.id))
+            .slice(0, remainingLimit);
+
+          console.log(`[DictionaryStore] ✅ OFFLINE: Got ${containsResults.length} contains results (after filtering)`);
+
+          records = [...startsWithResults, ...containsResults];
+        } else {
+          records = startsWithResults;
+        }
+      } else {
+        // Regular query (no search or with cursor)
+        const selector: any = { table_name: tableName };
+
+        if (cursor) {
+          selector[nameField] = { $gt: cursor };
         }
 
-        const nextCursor = records.length > 0 ? records[records.length - 1].name : null;
-        const hasMore = records.length >= limit;
+        const cached = await this.collection.find({
+          selector,
+          sort: [{ [nameField]: 'asc' }],
+          limit
+        }).exec();
 
-        console.log(`[DictionaryStore] 📦 OFFLINE: Returned ${records.length} records from cache (hasMore: ${hasMore})`);
-
-        return {
-          records,
-          total: records.length, // Can't get accurate total in offline mode
-          hasMore,
-          nextCursor
-        };
-      } catch (cacheError) {
-        console.error('[DictionaryStore] ❌ OFFLINE: Cache query failed:', cacheError);
-
-        // Final fallback: empty result
-        return {
-          records: [],
-          total: 0,
-          hasMore: false,
-          nextCursor: null
-        };
+        records = cached.map(doc => doc.toJSON());
       }
+
+      const nextCursor = records.length > 0 ? records[records.length - 1][nameField] : null;
+      const hasMore = records.length >= limit;
+
+      console.log(`[DictionaryStore] 📦 OFFLINE: Returned ${records.length} records from cache (hasMore: ${hasMore})`);
+
+      return {
+        records,
+        total: records.length, // Can't get accurate total in offline mode
+        hasMore,
+        nextCursor
+      };
+    } catch (cacheError) {
+      console.error('[DictionaryStore] ❌ OFFLINE: Cache query failed:', cacheError);
+
+      // Final fallback: empty result
+      return {
+        records: [],
+        total: 0,
+        hasMore: false,
+        nextCursor: null
+      };
     }
   }
 

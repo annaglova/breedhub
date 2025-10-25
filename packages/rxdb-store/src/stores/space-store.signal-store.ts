@@ -1581,6 +1581,82 @@ class SpaceStore {
     const spaceConfig = this.spaceConfigs.get(entityType);
     const fieldConfigs = options?.fieldConfigs || spaceConfig?.filter_fields || {};
 
+    // 📴 PREVENTIVE OFFLINE CHECK: Skip Supabase if browser is offline
+    if (!navigator.onLine) {
+      console.warn('[SpaceStore] 📴 Browser is offline, using RxDB directly (no network attempt)');
+
+      try {
+        const localResults = await this.filterLocalEntities(
+          entityType,
+          filters,
+          fieldConfigs,
+          limit,
+          cursor,
+          orderBy
+        );
+
+        // Get total count
+        if (!this.db) {
+          throw new Error('Database not initialized');
+        }
+
+        const collection = this.db.collections[entityType];
+        if (!collection) {
+          throw new Error(`Collection ${entityType} not found`);
+        }
+
+        const countSelector: any = { _deleted: false };
+        // Apply same filters for count (simplified version)
+        for (const [fieldKey, value] of Object.entries(filters)) {
+          if (value !== undefined && value !== null && value !== '') {
+            let fieldConfig = fieldConfigs[fieldKey];
+            if (!fieldConfig) {
+              const prefixedKey = `${entityType}_field_${fieldKey}`;
+              fieldConfig = fieldConfigs[prefixedKey];
+            }
+            const fieldType = fieldConfig?.fieldType || 'string';
+            const operator = this.detectOperator(fieldType, fieldConfig?.operator);
+
+            if (operator === 'ilike' || operator === 'contains') {
+              const escapedValue = String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+              countSelector[fieldKey] = { $regex: escapedValue, $options: 'i' };
+            } else if (operator === 'eq') {
+              countSelector[fieldKey] = value;
+            }
+          }
+        }
+
+        const allMatchingDocs = await collection.find({ selector: countSelector }).exec();
+        const totalCount = allMatchingDocs.length;
+
+        const hasMore = localResults.length >= limit;
+        const nextCursor = localResults.length > 0
+          ? (orderBy.parameter
+              ? localResults[localResults.length - 1]?.[orderBy.field]?.[orderBy.parameter]
+              : localResults[localResults.length - 1]?.[orderBy.field]) ?? null
+          : null;
+
+        console.log(`[SpaceStore] 📴 Offline mode (preventive): returning ${localResults.length}/${totalCount} records (hasMore: ${hasMore})`);
+
+        return {
+          records: localResults,
+          total: totalCount,
+          hasMore,
+          nextCursor,
+          offline: true
+        } as any;
+      } catch (error) {
+        console.error('[SpaceStore] Offline mode failed:', error);
+        return {
+          records: [],
+          total: 0,
+          hasMore: false,
+          nextCursor: null,
+          offline: true
+        } as any;
+      }
+    }
+
     try {
       // 🆔 PHASE 1: Fetch IDs + ordering field from Supabase (lightweight ~1KB for 30 records)
       console.log('[SpaceStore] 🆔 Phase 1: Fetching IDs from Supabase...');
@@ -1608,7 +1684,11 @@ class SpaceStore {
 
       // Extract IDs and calculate nextCursor
       const ids = idsData.map(d => d.id);
-      const nextCursor = idsData[idsData.length - 1]?.[orderBy.field] ?? null;
+      // For JSONB fields, Supabase returns value under "field->>parameter" key
+      const orderFieldKey = orderBy.parameter
+        ? `${orderBy.field}->>${orderBy.parameter}`
+        : orderBy.field;
+      const nextCursor = idsData[idsData.length - 1]?.[orderFieldKey] ?? null;
 
       // 💾 PHASE 2: Check RxDB cache for these IDs
       console.log('[SpaceStore] 💾 Phase 2: Checking RxDB cache...');
@@ -1688,9 +1768,23 @@ class SpaceStore {
     } catch (error) {
       // Check if this is a network error (offline mode)
       const errorMessage = ((error as any)?.message || '').toLowerCase();
+      const errorName = ((error as any)?.name || '').toLowerCase();
+      const errorCode = ((error as any)?.code || '').toLowerCase();
+      const errorString = String(error).toLowerCase();
+
       const isNetworkError = errorMessage.includes('fetch') ||
                             errorMessage.includes('network') ||
-                            errorMessage.includes('disconnected');
+                            errorMessage.includes('disconnected') ||
+                            errorMessage.includes('failed to fetch') ||
+                            errorName.includes('network') ||
+                            errorName.includes('fetch') ||
+                            errorName.includes('disconnected') ||
+                            errorCode.includes('network') ||
+                            errorCode.includes('disconnected') ||
+                            errorCode.includes('err_internet_disconnected') ||
+                            errorString.includes('err_internet_disconnected') ||
+                            (error instanceof TypeError && errorMessage.includes('fetch')) ||
+                            !navigator.onLine; // Fallback: check browser online status
 
       // 📴 OFFLINE FALLBACK: Use RxDB cache with proper filtering
       if (isNetworkError) {
@@ -1774,9 +1868,11 @@ class SpaceStore {
 
         // Calculate hasMore based on cursor
         const hasMore = localResults.length >= limit;
-        // orderBy.field is already normalized (e.g., pet_type_id)
+        // For JSONB fields, extract nested value for cursor
         const nextCursor = localResults.length > 0
-          ? localResults[localResults.length - 1]?.[orderBy.field] ?? null
+          ? (orderBy.parameter
+              ? localResults[localResults.length - 1]?.[orderBy.field]?.[orderBy.parameter]
+              : localResults[localResults.length - 1]?.[orderBy.field]) ?? null
           : null;
 
         console.log(`[SpaceStore] 📴 Offline mode: returning ${localResults.length}/${totalCount} records (hasMore: ${hasMore})`);
@@ -1831,6 +1927,34 @@ class SpaceStore {
       console.warn(`[SpaceStore] Collection ${entityType} not found for local filtering`);
       return [];
     }
+
+    // Helper function for JSONB-aware sorting in JavaScript
+    const sortResults = (results: any[]): any[] => {
+      return results.sort((a, b) => {
+        let aVal, bVal;
+
+        if (orderBy.parameter) {
+          // JSONB field - extract nested value (e.g., measurements->achievement_progress)
+          aVal = a[orderBy.field]?.[orderBy.parameter];
+          bVal = b[orderBy.field]?.[orderBy.parameter];
+        } else {
+          // Regular field
+          aVal = a[orderBy.field];
+          bVal = b[orderBy.field];
+        }
+
+        // Handle null/undefined (push to end)
+        if (aVal === null || aVal === undefined) return 1;
+        if (bVal === null || bVal === undefined) return -1;
+
+        // Compare values
+        if (orderBy.direction === 'asc') {
+          return aVal < bVal ? -1 : aVal > bVal ? 1 : 0;
+        } else {
+          return aVal > bVal ? -1 : aVal < bVal ? 1 : 0;
+        }
+      });
+    };
 
     // orderBy.field is already normalized (e.g., pet_type_id)
     try {
@@ -1899,12 +2023,22 @@ class SpaceStore {
         }
 
         // Execute starts_with query
-        const startsWithDocs = await collection.find({
-          selector: startsWithSelector,
-          sort: [{ [orderBy.field]: orderBy.direction === 'asc' ? 'asc' : 'desc' }],
-          limit: startsWithLimit
-        }).exec();
-        const startsWithResults = startsWithDocs.map(doc => doc.toJSON());
+        // For JSONB fields, don't use RxDB sort (not supported), sort in JS instead
+        const queryOptions: any = { selector: startsWithSelector };
+        if (!orderBy.parameter) {
+          // Only use RxDB sort for regular fields
+          queryOptions.sort = [{ [orderBy.field]: orderBy.direction === 'asc' ? 'asc' : 'desc' }];
+        }
+
+        const startsWithDocs = await collection.find(queryOptions).exec();
+        let startsWithResults = startsWithDocs.map(doc => doc.toJSON());
+
+        // Sort in JavaScript (handles both regular and JSONB fields)
+        startsWithResults = sortResults(startsWithResults);
+
+        // Apply limit after sorting
+        startsWithResults = startsWithResults.slice(0, startsWithLimit);
+
         console.log(`[SpaceStore] ✅ Got ${startsWithResults.length} starts_with results`);
 
         // Phase 2: Contains (lower priority, 30% of limit)
@@ -1950,18 +2084,26 @@ class SpaceStore {
           }
 
           // Execute contains query
-          const containsDocs = await collection.find({
-            selector: containsSelector,
-            sort: [{ [orderBy.field]: orderBy.direction === 'asc' ? 'asc' : 'desc' }],
-            limit
-          }).exec();
+          // For JSONB fields, don't use RxDB sort (not supported), sort in JS instead
+          const containsQueryOptions: any = { selector: containsSelector };
+          if (!orderBy.parameter) {
+            // Only use RxDB sort for regular fields
+            containsQueryOptions.sort = [{ [orderBy.field]: orderBy.direction === 'asc' ? 'asc' : 'desc' }];
+          }
+
+          const containsDocs = await collection.find(containsQueryOptions).exec();
 
           // Filter out records that start with search (already in startsWithResults)
           const startsWithIds = new Set(startsWithResults.map(r => r.id));
-          const containsResults = containsDocs
+          let containsResults = containsDocs
             .map(doc => doc.toJSON())
-            .filter(record => !startsWithIds.has(record.id))
-            .slice(0, remainingLimit);
+            .filter(record => !startsWithIds.has(record.id));
+
+          // Sort in JavaScript (handles both regular and JSONB fields)
+          containsResults = sortResults(containsResults);
+
+          // Apply limit after sorting
+          containsResults = containsResults.slice(0, remainingLimit);
 
           console.log(`[SpaceStore] ✅ Got ${containsResults.length} contains results (after filtering)`);
 
@@ -2028,30 +2170,64 @@ class SpaceStore {
         }
 
         // ✅ KEYSET PAGINATION: Apply cursor to selector
-        if (cursor !== null) {
+        // Note: For JSONB fields, we can't use RxDB selector, will filter in JS after query
+        if (cursor !== null && !orderBy.parameter) {
+          // Only apply cursor in selector for regular fields
           if (orderBy.direction === 'asc') {
             selector[orderBy.field] = { $gt: cursor };
           } else {
             selector[orderBy.field] = { $lt: cursor };
           }
           console.log(`[SpaceStore] 🔑 Applied cursor: ${orderBy.field} ${orderBy.direction === 'asc' ? '>' : '<'} '${cursor}'`);
+        } else if (cursor !== null && orderBy.parameter) {
+          console.log(`[SpaceStore] 🔑 JSONB cursor (will filter in JS): ${orderBy.field}.${orderBy.parameter} ${orderBy.direction === 'asc' ? '>' : '<'} '${cursor}'`);
         }
 
         // Execute query with selector
-        const docs = await collection.find({
-          selector,
-          sort: [{ [orderBy.field]: orderBy.direction === 'asc' ? 'asc' : 'desc' }],
-          limit: limit > 0 ? limit : undefined
-        }).exec();
-
-        console.log(`[SpaceStore] 📦 Local query returned ${docs.length} results`);
-
-        // Log first result for debugging
-        if (docs.length > 0) {
-          console.log('[SpaceStore] 👁️ First result:', docs[0].toJSON());
+        // For JSONB fields, don't use RxDB sort (not supported), sort in JS instead
+        const regularQueryOptions: any = { selector };
+        if (!orderBy.parameter) {
+          // Only use RxDB sort for regular fields
+          regularQueryOptions.sort = [{ [orderBy.field]: orderBy.direction === 'asc' ? 'asc' : 'desc' }];
+        }
+        // Don't apply limit in RxDB query if we have JSONB sorting (need to sort all, then limit)
+        if (!orderBy.parameter && limit > 0) {
+          regularQueryOptions.limit = limit;
         }
 
-        return docs.map((doc: any) => doc.toJSON());
+        const docs = await collection.find(regularQueryOptions).exec();
+        let results = docs.map((doc: any) => doc.toJSON());
+
+        // For JSONB fields with cursor, filter in JavaScript (RxDB can't filter by nested fields)
+        if (cursor !== null && orderBy.parameter) {
+          results = results.filter((record: any) => {
+            const value = record[orderBy.field]?.[orderBy.parameter];
+            if (orderBy.direction === 'asc') {
+              return value > cursor;
+            } else {
+              return value < cursor;
+            }
+          });
+          console.log(`[SpaceStore] 🔍 Filtered ${results.length} results after JSONB cursor`);
+        }
+
+        // Sort in JavaScript (handles both regular and JSONB fields)
+        if (orderBy.parameter) {
+          results = sortResults(results);
+          // Apply limit after sorting for JSONB fields
+          if (limit > 0) {
+            results = results.slice(0, limit);
+          }
+        }
+
+        console.log(`[SpaceStore] 📦 Local query returned ${results.length} results`);
+
+        // Log first result for debugging
+        if (results.length > 0) {
+          console.log('[SpaceStore] 👁️ First result:', results[0]);
+        }
+
+        return results;
       }
 
     } catch (error) {
@@ -2128,9 +2304,23 @@ class SpaceStore {
     if (error) {
       // Check if this is a network error (offline mode)
       const errorMessage = error.message?.toLowerCase() || '';
+      const errorName = (error as any)?.name?.toLowerCase() || '';
+      const errorCode = (error as any)?.code?.toLowerCase() || '';
+      const errorString = String(error).toLowerCase();
+
       const isNetworkError = errorMessage.includes('fetch') ||
                             errorMessage.includes('network') ||
-                            errorMessage.includes('disconnected');
+                            errorMessage.includes('disconnected') ||
+                            errorMessage.includes('failed to fetch') ||
+                            errorName.includes('network') ||
+                            errorName.includes('fetch') ||
+                            errorName.includes('disconnected') ||
+                            errorCode.includes('network') ||
+                            errorCode.includes('disconnected') ||
+                            errorCode.includes('err_internet_disconnected') ||
+                            errorString.includes('err_internet_disconnected') ||
+                            (error instanceof TypeError && errorMessage.includes('fetch')) ||
+                            !navigator.onLine; // Fallback: check browser online status
 
       if (isNetworkError) {
         console.warn('[SpaceStore] ⚠️ Network unavailable for IDs query, will use offline mode');
