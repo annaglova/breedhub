@@ -399,6 +399,41 @@ export function SpaceComponent<T extends { Id: string }>({
 
       if (data.total) {
         setTotalCount(data.total);
+
+        // Save totalCount to localStorage ONLY if:
+        // 1. No filters are active (real total, not filtered)
+        // 2. New total is GREATER than cached (avoid storing partial data)
+        const reservedParams = ["sort", "view", "sortBy", "sortDir", "sortParam"];
+        const hasFilters = Array.from(searchParams.keys()).some(
+          key => !reservedParams.includes(key)
+        );
+
+        if (!hasFilters) {
+          try {
+            const cached = localStorage.getItem(`totalCount_${config.entitySchemaName}`);
+            const cachedTotal = cached ? parseInt(cached, 10) : 0;
+
+            // Only save if total is GREATER than loaded entities count
+            // (this means there's more data, so total is the real total, not partial)
+            const isRealTotal = data.total > data.entities.length;
+
+            // Save if:
+            // 1. isRealTotal = true (guarantees it's the real total)
+            // 2. AND (no cache exists OR new total is greater)
+            const shouldSave = isRealTotal && (cachedTotal === 0 || data.total > cachedTotal);
+
+            if (shouldSave) {
+              localStorage.setItem(`totalCount_${config.entitySchemaName}`, data.total.toString());
+              console.log(`[SpaceComponent] Cached totalCount (no filters): ${data.total} (was: ${cachedTotal})`);
+            } else {
+              console.log(`[SpaceComponent] NOT caching totalCount: isRealTotal=${isRealTotal}, total=${data.total}, cached=${cachedTotal}, entities=${data.entities.length}`);
+            }
+          } catch (e) {
+            console.warn('Failed to cache totalCount:', e);
+          }
+        } else {
+          console.log(`[SpaceComponent] NOT caching totalCount (filters active): ${data.total}`);
+        }
       }
     }
   }, [
@@ -408,6 +443,8 @@ export function SpaceComponent<T extends { Id: string }>({
     selectedEntityId,
     navigate,
     location.pathname,
+    searchParams,
+    config.entitySchemaName,
   ]);
 
   // Check if drawer should be open based on route
@@ -769,7 +806,6 @@ export function SpaceComponent<T extends { Id: string }>({
               {spaceStore.configReady.value && (
                 <EntitiesCounter
                   entitiesCount={0}
-                  isLoading={true}
                   total={0}
                   entityType={config.entitySchemaName}
                   initialCount={rowsPerPage}
@@ -824,7 +860,6 @@ export function SpaceComponent<T extends { Id: string }>({
               {spaceStore.configReady.value && (
                 <EntitiesCounter
                   entitiesCount={allEntities.length}
-                  isLoading={false}
                   total={totalCount}
                   entityType={config.entitySchemaName}
                   initialCount={rowsPerPage}

@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 
 interface EntitiesCounterProps {
   entitiesCount: number;
-  isLoading: boolean;
   total: number;
   entityType?: string;
   initialCount?: number;
@@ -18,15 +17,14 @@ function formatNumber(num: number): string {
 
 export function EntitiesCounter({
   entitiesCount,
-  isLoading,
   total,
   entityType = 'entity',
   initialCount = 0
 }: EntitiesCounterProps) {
-  // Get cached count from localStorage on mount
-  const getCachedCount = () => {
+  // Read cached total from localStorage (read-only, never writes)
+  const getCachedTotal = () => {
     try {
-      const cached = localStorage.getItem(`entitiesCount_${entityType}`);
+      const cached = localStorage.getItem(`totalCount_${entityType}`);
       if (cached) {
         const count = parseInt(cached, 10);
         if (!isNaN(count) && count > 0) {
@@ -34,49 +32,44 @@ export function EntitiesCounter({
         }
       }
     } catch (e) {
-      console.warn('Failed to load entitiesCount from cache:', e);
+      console.warn('Failed to load totalCount from cache:', e);
     }
-    // If no cache, use initialCount from config
-    return initialCount;
+    return 0;
   };
 
-  const [displayCount, setDisplayCount] = useState(getCachedCount);
+  const cachedTotal = getCachedTotal();
 
-  useEffect(() => {
-    // Update displayCount when entitiesCount changes and is > 0
-    if (entitiesCount > 0) {
-      setDisplayCount(entitiesCount);
-      // Cache to localStorage
-      try {
-        localStorage.setItem(`entitiesCount_${entityType}`, entitiesCount.toString());
-      } catch (e) {
-        console.warn('Failed to cache entitiesCount:', e);
-      }
-    }
-  }, [entitiesCount, entityType]);
+  // Determine what total to show:
+  // 1. If we have cache → use cache (static, never changes)
+  // 2. If no cache → use total from server ONLY if it's > entitiesCount (real total, not partial)
+  const isRealTotal = total > entitiesCount;
+  const displayTotal = cachedTotal > 0 ? cachedTotal : (isRealTotal ? total : 0);
 
-  // Waiting for totalFromServer (show spinner only on number)
-  if (total === 0) {
+  // Use initialCount as fallback for entitiesCount when it's 0
+  const displayEntitiesCount = entitiesCount > 0 ? entitiesCount : initialCount;
+
+  // Waiting for total (no cache, no server total yet)
+  if (displayTotal === 0) {
     return (
       <div className="text-sm text-muted-foreground mt-2">
-        Showing {formatNumber(displayCount)} of <span className="inline-block animate-pulse">...</span>
+        Showing {formatNumber(displayEntitiesCount)} of <span className="inline-block animate-pulse">...</span>
       </div>
     );
   }
 
   // If we have all items loaded
-  if (displayCount === total) {
+  if (entitiesCount > 0 && entitiesCount >= displayTotal) {
     return (
       <div className="text-sm text-muted-foreground mt-2">
-        Showing all {formatNumber(total)} items
+        Showing all {formatNumber(displayTotal)} items
       </div>
     );
   }
 
-  // Default: showing X of Y (with real server total)
+  // Default: show current count vs total
   return (
     <div className="text-sm text-muted-foreground mt-2">
-      Showing {formatNumber(displayCount)} of {formatNumber(total)} items
+      Showing {formatNumber(displayEntitiesCount)} of {formatNumber(displayTotal)} items
     </div>
   );
 }
