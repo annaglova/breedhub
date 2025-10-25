@@ -124,8 +124,18 @@ export function FiltersDialog({
 
   const handleApply = (e: React.FormEvent) => {
     e.preventDefault();
-    // Pass filter values to parent
-    onApply?.(filterValues);
+
+    // Check if there are any changes compared to initial values
+    const hasChanges = JSON.stringify(filterValues) !== JSON.stringify(initialValues);
+
+    if (hasChanges) {
+      console.log('[FiltersDialog] Filters changed, applying:', filterValues);
+      // Only call onApply if there are actual changes
+      onApply?.(filterValues);
+    } else {
+      console.log('[FiltersDialog] No changes detected, skipping apply');
+    }
+
     onOpenChange(false);
   };
 
