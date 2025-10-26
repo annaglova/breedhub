@@ -71,7 +71,7 @@ function getViewClasses(viewType: string, dividers: boolean) {
   };
 }
 
-export function SpaceView<T extends { Id: string }>({
+export function SpaceView<T extends { id: string }>({
   viewConfig,
   entities,
   selectedId,
@@ -173,10 +173,10 @@ export function SpaceView<T extends { Id: string }>({
           className={classes.gridRow}
         >
           {rowEntities.map((entity) => (
-            <div key={entity.Id}>
+            <div key={entity.id}>
               <CardComponent
                 entity={entity}
-                selected={selectedId === entity.Id}
+                selected={selectedId === entity.id}
                 index={entities.indexOf(entity)}
                 onClick={() => onEntityClick?.(entity)}
               />
@@ -204,7 +204,7 @@ export function SpaceView<T extends { Id: string }>({
         >
           <CardComponent
             entity={entity}
-            selected={selectedId === entity.Id}
+            selected={selectedId === entity.id}
             index={virtualRow.index}
             onClick={() => onEntityClick?.(entity)}
           />

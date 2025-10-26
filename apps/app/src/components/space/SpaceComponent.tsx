@@ -40,7 +40,7 @@ interface SpaceComponentProps<T> {
   };
 }
 
-export function SpaceComponent<T extends { Id: string }>({
+export function SpaceComponent<T extends { id: string }>({
   config,
   useEntitiesHook,
 }: SpaceComponentProps<T>) {
@@ -454,23 +454,49 @@ export function SpaceComponent<T extends { Id: string }>({
   // Sync EntityStore selection with URL (bidirectional)
   useEffect(() => {
     const pathSegments = location.pathname.split("/");
-    const hasEntityId = pathSegments.length > 2 && pathSegments[2] !== "new";
-    setIsDrawerOpen(hasEntityId);
+    const hasEntitySegment = pathSegments.length > 2 && pathSegments[2] !== "new";
+    setIsDrawerOpen(hasEntitySegment);
 
     // Sync URL → EntityStore (URL is source of truth on route change)
-    if (hasEntityId) {
-      const urlEntityId = pathSegments[2];
-      const currentSelectedId = spaceStore.getSelectedId(config.entitySchemaName);
+    if (hasEntitySegment) {
+      const urlSegment = pathSegments[2];
 
-      // Only update if different to avoid infinite loops
-      if (currentSelectedId !== urlEntityId) {
-        spaceStore.selectEntity(config.entitySchemaName, urlEntityId);
+      // Check if it's a UUID (contains hyphens and is 36 chars) or a friendly slug
+      const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(urlSegment);
+
+      let entityId: string | undefined;
+
+      if (isUUID) {
+        // Direct UUID - use as is
+        entityId = urlSegment;
+        console.log('[SpaceComponent] URL segment is UUID:', entityId);
+      } else {
+        // Friendly slug - find entity by normalized name
+        console.log('[SpaceComponent] URL segment is slug:', urlSegment);
+        const matchingEntity = allEntities.find(entity =>
+          normalizeForUrl(entity.name) === urlSegment
+        );
+
+        if (matchingEntity) {
+          entityId = matchingEntity.id;
+          console.log('[SpaceComponent] Found entity by slug:', matchingEntity.name, '→', entityId);
+        } else {
+          console.warn('[SpaceComponent] No entity found for slug:', urlSegment);
+        }
+      }
+
+      // Update selection if we found an ID and it's different
+      if (entityId) {
+        const currentSelectedId = spaceStore.getSelectedId(config.entitySchemaName);
+        if (currentSelectedId !== entityId) {
+          spaceStore.selectEntity(config.entitySchemaName, entityId);
+        }
       }
     } else {
       // Clear selection if no entity in URL
       spaceStore.clearSelection(config.entitySchemaName);
     }
-  }, [location.pathname, config.entitySchemaName]);
+  }, [location.pathname, config.entitySchemaName, allEntities]);
 
   // Measure header height
   useEffect(() => {
@@ -490,10 +516,21 @@ export function SpaceComponent<T extends { Id: string }>({
 
   const handleEntityClick = useCallback(
     (entity: T) => {
+      console.log('[SpaceComponent] handleEntityClick called:', {
+        entity,
+        entityId: entity.id,
+        entityName: entity.name,
+        entityType: config.entitySchemaName
+      });
+
       // Update selection in EntityStore
-      spaceStore.selectEntity(config.entitySchemaName, entity.Id);
-      // Always navigate to overview tab by default when opening drawer
-      navigate(`${entity.Id}#overview`);
+      spaceStore.selectEntity(config.entitySchemaName, entity.id);
+      console.log('[SpaceComponent] EntityStore.selectEntity called with:', entity.id);
+
+      // Navigate using friendly slug instead of UUID
+      const slug = normalizeForUrl(entity.name || entity.id);
+      navigate(`${slug}#overview`);
+      console.log('[SpaceComponent] navigate called to:', `${slug}#overview`);
     },
     [navigate, config.entitySchemaName]
   );

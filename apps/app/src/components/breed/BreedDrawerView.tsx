@@ -4,7 +4,8 @@ import { X, Expand, MapPin, Calendar, Dog, Building, Heart, Trophy, BarChart3, H
 import { Button } from '@ui/components/button';
 import { Badge } from '@ui/components/badge';
 import { Breed } from '@/domain/entities/breed';
-import { mockBreeds } from '@/mocks/breeds.mock';
+import { spaceStore } from '@breedhub/rxdb-store';
+import { useSignals } from '@preact/signals-react/runtime';
 import { cn } from '@ui/lib/utils';
 
 interface TabConfig {
@@ -24,12 +25,24 @@ const tabs: TabConfig[] = [
 ];
 
 export function BreedDrawerView() {
+  useSignals();
+
   const { id } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
-  const [breed, setBreed] = useState<Breed | null>(null);
   const [activeTab, setActiveTab] = useState('overview');
-  
+
+  // Get breed from EntityStore (reactive!)
+  const breedSignal = spaceStore.getSelectedEntity('breed');
+  const breed = breedSignal.value;
+
+  console.log('[BreedDrawerView] Render:', {
+    breed,
+    breedId: breed?.id,
+    breedName: breed?.name,
+    urlId: id
+  });
+
   // Get active tab from URL hash or set default
   useEffect(() => {
     const hash = location.hash.slice(1);
@@ -41,15 +54,6 @@ export function BreedDrawerView() {
       navigate('#overview', { replace: true });
     }
   }, [location.hash, navigate]);
-  
-  // Load breed data
-  useEffect(() => {
-    if (id) {
-      // In real app, this would be an API call
-      const foundBreed = mockBreeds.find(b => b.id === id);
-      setBreed(foundBreed || null);
-    }
-  }, [id]);
 
   if (!breed) {
     return (
@@ -80,7 +84,9 @@ export function BreedDrawerView() {
       {/* Header */}
       <div className="sticky top-0 z-10 bg-white border-b px-6 py-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-xl font-semibold text-gray-900">Breed Details</h2>
+          <h2 className="text-xl font-semibold text-gray-900">
+            {breed?.name || 'Breed Details'}
+          </h2>
           <div className="flex items-center gap-2">
             <Button
               variant="ghost"
@@ -143,8 +149,12 @@ export function BreedDrawerView() {
             <div className="p-6 space-y-6">
           {/* Title and origin */}
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">{breed.name}</h1>
-            <p className="text-gray-600 mt-1">{breed.authentic_name}</p>
+            <h1 className="text-2xl font-bold text-gray-900">
+              {breed.name || 'Unknown Breed'}
+            </h1>
+            <p className="text-gray-600 mt-1">
+              {breed.authentic_name || breed.admin_name || ''}
+            </p>
           </div>
 
           {/* Quick stats */}
