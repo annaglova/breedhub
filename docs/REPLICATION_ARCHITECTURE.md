@@ -1,12 +1,12 @@
 # 🔄 Replication Architecture
 
-## 📅 Останнє оновлення: 2025-10-25
+## 📅 Останнє оновлення: 2025-10-26
 
 ---
 
 ## 🎯 ПОТОЧНИЙ СТАН
 
-**Статус:** Partially Active (Background + Manual) ⚙️
+**Статус:** Needs Refactoring (Realtime Problem + No Staleness Check) ⚠️
 
 ### ✅ Що працює:
 
@@ -45,6 +45,32 @@
 - **Background Sync API** - немає PWA background sync
 - **Service Worker Sync** - немає синхронізації через SW
 - **Intelligent Scheduling** - немає пріоритизації entity types
+- **Staleness Check** - ID-First не перевіряє updated_at (може повертати застарілі дані)
+
+### 🚨 КРИТИЧНА ПРОБЛЕМА: Realtime для великих таблиць
+
+**Проблема:**
+- Realtime підписка на **ВСЮ** таблицю (напр., `animal` з 500,000 records)
+- Користувач кешує тільки **30 своїх** тварин (space_id = user_123)
+- WebSocket шле **ВСІ** events (CREATE/UPDATE/DELETE для всіх користувачів)
+- **95%+ waste** - непотрібні events для чужих даних
+
+**Impact:**
+- ❌ Battery drain (постійне WebSocket з'єднання)
+- ❌ Bandwidth waste (~5MB/день непотрібних events)
+- ❌ Processing overhead (фільтрація непотрібних events)
+- ❌ Складність debugging (spam в консолі)
+
+**Example:**
+```
+animal table: 500,000 records
+User cache: 30 records (0.006%)
+
+WebSocket events per day:
+- Total events: ~10,000
+- Relevant events: ~10 (0.1%) ✅
+- Wasted events: ~9,990 (99.9%) ❌
+```
 
 ---
 
@@ -457,28 +483,104 @@ realtime: {
 
 ## 💡 ЩО МОЖНА ПОКРАЩИТИ
 
-### 🔴 ПРІОРИТЕТ 1: Disable Auto-Replication
+### 🔴 ПРІОРИТЕТ 1: Polling Worker + Staleness Check
 
-**Проблема:** Auto-replication конфліктує з ID-First pagination.
+**Проблема:**
+1. Realtime waste для великих таблиць (95%+ непотрібних events)
+2. ID-First не перевіряє staleness (може повертати застарілі дані з кешу)
 
-**Рішення:**
+**Рішення: Polling Worker + Enhanced ID-First**
+
+#### Polling Worker Strategy
+
+**Concept:**
+- При відкритті page → запустити worker
+- Worker перевіряє `last_modified` на сервері кожні 30-60 сек
+- Якщо дата відрізняється → trigger ID-First refresh
+- Простіше за Realtime, менше battery drain
+
 ```typescript
-await replicationService.setupReplication(db, 'breed', {
-  batchSize: 30,
-  pullInterval: 5000,
-  enableRealtime: true,  // ✅ Keep realtime
-  autoStart: false,      // ❌ Disable auto pull
-  live: false            // ❌ Disable continuous replication
-});
+// polling-worker.ts
+export class PollingWorker {
+  async startForPage(entityType: string, spaceStore: any) {
+    // 1. Check server last_modified
+    const serverLastModified = await this.getServerLastModified(entityType);
+    const localLastModified = this.getLocalLastModified(entityType);
+
+    // 2. If different → refresh
+    if (serverLastModified > localLastModified) {
+      console.log(`[Worker] ${entityType} has changes, refreshing...`);
+      await spaceStore.applyFilters(entityType, {}, { limit: 30 });
+      this.saveLocalLastModified(entityType, serverLastModified);
+    }
+  }
+
+  private async getServerLastModified(entityType: string): Promise<string> {
+    // Lightweight HEAD query
+    const { data } = await supabase
+      .from(entityType)
+      .select('updated_at')
+      .order('updated_at', { ascending: false })
+      .limit(1);
+
+    return data?.[0]?.updated_at || new Date(0).toISOString();
+  }
+}
+```
+
+#### Enhanced ID-First: Staleness Check
+
+**Concept:**
+- Fetch `id + updated_at` замість `id + name`
+- Partition: missing / stale / fresh
+- Re-fetch тільки missing + stale
+
+```typescript
+// 1. Fetch IDs + updated_at (~1.3KB for 30 records, was 1KB)
+const idsData = await supabase
+  .select('id, updated_at')  // +8 bytes per record
+  .limit(30);
+
+// 2. Partition by freshness
+for (const { id, updated_at } of idsData) {
+  const cached = await rxdb.findOne(id);
+
+  if (!cached) {
+    missing.push(id);  // Немає в кеші
+  } else if (cached.updated_at !== updated_at) {
+    stale.push(id);  // Є, але застарів
+  } else {
+    fresh.push(id);  // Є і свіжий ✅
+  }
+}
+
+// 3. Fetch missing + stale (one request)
+const toFetch = [...missing, ...stale];
+const freshRecords = await supabase.select('*').in('id', toFetch);
+
+// 4. BulkUpsert (updates stale + inserts missing)
+await rxdb.bulkUpsert(freshRecords);
+```
+
+**Overhead Analysis:**
+```
+30 records:
+- IDs only: ~1KB
+- IDs + updated_at: ~1.3KB (+300 bytes)
+
+Overhead: 0.3KB = NEGLIGIBLE! ✅
+
+Benefits: ЗАВЖДИ свіжі дані!
 ```
 
 **Переваги:**
-- ✅ Один шлях даних (ID-First через SpaceStore)
-- ✅ Передбачувана поведінка
-- ✅ Менше запитів до Supabase
-- ✅ Realtime залишається для live updates
+- ✅ Завжди актуальні дані (staleness check)
+- ✅ Мінімальний overhead (+300 bytes)
+- ✅ Polling замість Realtime (менше battery drain)
+- ✅ Контрольована частота (30-60 сек, не постійно)
+- ✅ Працює офлайн → онлайн seamlessly
 
-**Estimated:** 1-2 години
+**Estimated:** 1-1.5 години
 
 ---
 
@@ -630,43 +732,106 @@ for (const entity of highPriority) {
 
 ---
 
-## 🎯 ПОТОЧНА СТРАТЕГІЯ
+## 🎯 РЕКОМЕНДОВАНА СТРАТЕГІЯ
 
-**Рекомендація:** Вимкнути auto-replication, залишити тільки Realtime + ID-First.
+**Рекомендація:** Polling Worker + Enhanced ID-First (з staleness check)
 
 ### Чому?
 
-1. **ID-First вже працює ідеально**
-   - 452/452 records loaded
-   - 70% traffic savings
-   - Works з filters, sorting, search
+1. **Realtime waste для великих таблиць**
+   - 95%+ непотрібних events (animal table з 500,000 records)
+   - Battery drain
+   - Bandwidth waste (~5MB/день)
 
-2. **Auto-replication конфліктує**
-   - Дублює запити
-   - Непередбачувані UI updates
-   - Складність debugging
+2. **Staleness problem в ID-First**
+   - Поточний ID-First повертає cached дані без перевірки
+   - Користувач може бачити застарілі дані
+   - Потрібен staleness check
 
-3. **Realtime достатньо для live updates**
-   - Instant sync при змінах
-   - Працює з ID-First cache
-   - Немає конфліктів
+3. **Polling Worker простіший і ефективніший**
+   - Контрольована частота (30-60 сек)
+   - Тільки ~60KB/година (checks)
+   - 97% bandwidth savings vs Realtime
+   - Менше battery drain
 
-### Proposed Setup:
+### Proposed Architecture:
+
+```
+Page Open
+  ↓
+Polling Worker (check server last_modified)
+  ↓
+If changed → trigger refresh
+  ↓
+Enhanced ID-First (id + updated_at)
+  ↓
+Partition: missing / stale / fresh
+  ↓
+Fetch: missing + stale (smart!)
+  ↓
+BulkUpsert to RxDB
+  ↓
+UI shows fresh data
+  ↓
+Worker sleeps 30-60 sec, repeat
+```
+
+### Implementation:
 
 ```typescript
-// Setup replication WITHOUT auto-pull
-await replicationService.setupReplication(db, 'breed', {
-  batchSize: 30,
-  enableRealtime: true,   // ✅ Keep WebSocket
-  autoStart: false,       // ❌ Disable auto pull
-  live: false             // ❌ Disable continuous sync
+// 1. Enhanced ID-First with staleness check
+const idsData = await supabase
+  .select('id, updated_at')  // +300 bytes overhead
+  .limit(30);
+
+// 2. Partition by freshness
+const { missing, stale, fresh } = await partitionByFreshness(idsData);
+
+// 3. Fetch missing + stale
+if (missing.length + stale.length > 0) {
+  const freshRecords = await supabase
+    .select('*')
+    .in('id', [...missing, ...stale]);
+
+  await rxdb.bulkUpsert(freshRecords);
+}
+
+// 4. Merge and return (includes just-updated stale records)
+return mergeAndSort(cached, fresh, idsData);
+```
+
+```typescript
+// 5. Polling Worker при page mount
+useEffect(() => {
+  pollingWorker.startForPage(entityType, spaceStore, 30000); // 30 sec
+
+  return () => {
+    pollingWorker.stopPolling(entityType);
+  };
+}, [entityType]);
+```
+
+### Realtime Strategy:
+
+**Dictionaries (small tables):** ✅ Keep Realtime
+- `breed` (452 records)
+- `pet_type` (10-20 records)
+- Мало даних, рідко змінюються
+
+**User Data (large tables):** ❌ Disable Realtime, use Polling
+- `animal` (500,000+ records)
+- `photo` (millions)
+- Велико даних, 95%+ waste events
+
+```typescript
+// Config-based Realtime control
+const REALTIME_WHITELIST = ['breed', 'pet_type', 'color'];
+
+await replicationService.setupReplication(db, entityType, {
+  enableRealtime: REALTIME_WHITELIST.includes(entityType),
+  autoStart: false,  // Use ID-First instead
+  live: false
 });
-
-// SpaceStore uses ID-First for pagination
-await spaceStore.applyFilters('breed', filters, { limit: 30, cursor });
-
-// Realtime updates cache automatically
-// No conflicts, clean separation of concerns
 ```
 
 ---

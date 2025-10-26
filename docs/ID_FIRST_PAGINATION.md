@@ -1,35 +1,45 @@
 # ID-First Pagination для Offline-First Applications
 
 **Created:** 2025-10-21
-**Status:** 🎯 Production Strategy
+**Updated:** 2025-10-26
+**Status:** 🎯 Production Strategy (Enhanced with Staleness Check)
 
 ---
 
 ## 🎯 Executive Summary
 
-**ID-First = Fetch only IDs, use RxDB cache for full records, fetch missing**
+**Enhanced ID-First = Fetch IDs + updated_at, partition by freshness, fetch missing + stale**
 
 ```typescript
-// 1. Lightweight query - IDs only (~1KB for 30 records)
-const ids = await supabase.select('id, name').order(name).gt(name, cursor).limit(30);
+// 1. Lightweight query - IDs + updated_at (~1.3KB for 30 records)
+const idsData = await supabase
+  .select('id, updated_at')  // Staleness check!
+  .order(name)
+  .gt(name, cursor)
+  .limit(30);
 
-// 2. Check RxDB cache
-const cached = await rxdb.find({ id: { $in: ids } });
+// 2. Partition by freshness
+const { missing, stale, fresh } = await partitionByFreshness(idsData);
 
-// 3. Fetch only missing (~5-15KB instead of 30KB)
-const missing = ids.filter(id => !cached.has(id));
-const fresh = await supabase.select('*').in('id', missing);
+// 3. Fetch missing + stale (~5-15KB instead of 30KB)
+const toFetch = [...missing, ...stale];
+const freshRecords = await supabase.select('*').in('id', toFetch);
 
-// 4. Merge + return
-return [...cached, ...fresh].sort(by IDs order);
+// 4. BulkUpsert (updates stale + inserts missing)
+await rxdb.bulkUpsert(freshRecords);
+
+// 5. Merge + return (sorted by IDs order)
+return mergeAndSort(cached, fresh, idsData);
 ```
 
 **Benefits:**
 - ✅ 70% less traffic (cache hit rate increases with scroll)
+- ✅ **Always fresh data** (staleness check via updated_at)
 - ✅ Works with any ORDER BY
 - ✅ Works with any filters
 - ✅ RxDB as intelligent cache (not full replica)
 - ✅ Offline fallback built-in
+- ✅ Minimal overhead (+300 bytes for staleness check)
 
 ---
 
@@ -67,65 +77,105 @@ Next: WHERE name > 'P' LIMIT 30
 
 **Root Cause:** Partial cache + ANY pagination = chaos
 
+### Staleness Problem (NEW!)
+
+**Problem:** Basic ID-First може повертати застарілі дані з кешу.
+
+```
+Scenario:
+1. User A завантажив breed "Labrador" в 10:00
+2. Admin оновив "Labrador" в 10:05
+3. User A скролить в 10:10
+   - ID-First знаходить "Labrador" в кеші
+   - Повертає старі дані ❌
+   - User A не бачить оновлення!
+```
+
+**Root Cause:** Немає перевірки `updated_at` при знаходженні в кеші.
+
 ---
 
-## ✅ ID-First Solution
+## ✅ Enhanced ID-First Solution (with Staleness Check)
 
 ### How It Works
 
-**Phase 1: IDs + Sort Field (Lightweight)**
+**Phase 1: IDs + updated_at (Lightweight + Staleness Check)**
 ```typescript
-// Only 2 fields = ~1KB for 30 records
+// Only 2 fields = ~1.3KB for 30 records (+300 bytes for staleness)
 const { data: idsData } = await supabase
   .from('breed')
-  .select('id, name')  // Minimal payload
+  .select('id, updated_at')  // Minimal payload + staleness check
   .eq('space_id', spaceId)
-  .gt('name', cursor)  // Cursor for IDs query
+  .gt('name', cursor)  // Cursor for IDs query (sort field)
   .order('name', { ascending: true })
   .limit(30);
 ```
 
-**Phase 2: Check Cache**
+**Phase 2: Partition by Freshness (NEW!)**
 ```typescript
-const ids = idsData.map(d => d.id);
-const cached = await rxdb.find({
-  selector: { id: { $in: ids } }
-}).exec();
+const missing: string[] = [];
+const stale: string[] = [];
+const fresh: any[] = [];
 
-const cachedMap = new Map(cached.map(d => [d.id, d.toJSON()]));
+for (const { id, updated_at } of idsData) {
+  const cached = await rxdb.findOne(id).exec();
+
+  if (!cached) {
+    missing.push(id);  // Немає в кеші → fetch
+  } else if (cached.updated_at !== updated_at) {
+    stale.push(id);  // Є в кеші, але застарів → re-fetch
+  } else {
+    fresh.push(cached.toJSON());  // Є і свіжий → use cache ✅
+  }
+}
+
+console.log('[ID-First] Partition:', {
+  total: idsData.length,
+  missing: missing.length,
+  stale: stale.length,
+  fresh: fresh.length
+});
 ```
 
-**Phase 3: Fetch Missing**
+**Phase 3: Fetch Missing + Stale (Smart!)**
 ```typescript
-const missingIds = ids.filter(id => !cachedMap.has(id));
+const toFetch = [...missing, ...stale];
 
-let fresh = [];
-if (missingIds.length > 0) {
+let freshRecords = [];
+if (toFetch.length > 0) {
+  console.log(`[ID-First] Fetching ${toFetch.length}/${idsData.length} records (missing + stale)`);
+
   const { data } = await supabase
     .from('breed')
-    .select('*')  // Full records only for missing
-    .in('id', missingIds);
+    .select('*')  // Full records для missing + stale
+    .in('id', toFetch);
 
-  fresh = data;
-  await rxdb.bulkUpsert(fresh); // Cache for future
+  freshRecords = data || [];
+
+  // BulkUpsert (inserts missing + updates stale)
+  await rxdb.bulkUpsert(freshRecords.map(mapToRxDBFormat));
+} else {
+  console.log(`[ID-First] All ${idsData.length} records fresh in cache!`);
 }
 ```
 
 **Phase 4: Merge & Maintain Order**
 ```typescript
+// Merge: fresh from cache + freshly fetched (missing + stale updates)
 const recordsMap = new Map([
-  ...cachedMap,
-  ...fresh.map(r => [r.id, r])
+  ...fresh.map(r => [r.id, r]),  // Fresh from cache
+  ...freshRecords.map(r => [r.id, r])  // Just fetched (missing + stale)
 ]);
 
 // CRITICAL: Maintain order from IDs query!
+const ids = idsData.map(d => d.id);
 const orderedRecords = ids
   .map(id => recordsMap.get(id))
   .filter(Boolean);
 
 return {
   records: orderedRecords,
-  nextCursor: idsData[idsData.length - 1]?.name,
+  nextCursor: idsData[idsData.length - 1]?.updated_at,  // Use sort field for cursor
   hasMore: idsData.length >= limit
 };
 ```
@@ -146,19 +196,35 @@ Batch 15: 30 full records = 30 KB
 Total: 450 KB
 ```
 
-**ID-First (with progressive caching):**
+**ID-First (no staleness check):**
 ```
 Batch 1:  30 IDs (1KB) + 30 missing (30KB) = 31 KB
 Batch 2:  30 IDs (1KB) + 15 missing (15KB) = 16 KB  (50% cached!)
 Batch 3:  30 IDs (1KB) + 8 missing (8KB)   = 9 KB   (73% cached!)
-Batch 5:  30 IDs (1KB) + 3 missing (3KB)   = 4 KB   (90% cached!)
 ...
 Batch 15: 30 IDs (1KB) + 1 missing (1KB)   = 2 KB   (97% cached!)
 ────────────────────────────────
 Total: ~150 KB (70% savings!) ✅
+
+⚠️ Problem: May return stale data from cache!
 ```
 
-**Key Insight:** Cache hit rate increases with each scroll!
+**Enhanced ID-First (with staleness check):**
+```
+Batch 1:  30 IDs+updated_at (1.3KB) + 30 missing (30KB) = 31.3 KB
+Batch 2:  30 IDs+updated_at (1.3KB) + 15 missing + 3 stale (18KB) = 19.3 KB
+Batch 3:  30 IDs+updated_at (1.3KB) + 8 missing + 2 stale (10KB) = 11.3 KB
+...
+Batch 15: 30 IDs+updated_at (1.3KB) + 1 missing + 0 stale (1KB) = 2.3 KB
+────────────────────────────────
+Total: ~165 KB (+10% vs basic ID-First, but FRESH DATA!) ✅
+
+✅ Benefit: Always fresh data!
+✅ Overhead: +300 bytes per batch (negligible)
+✅ Re-fetches only stale records (smart!)
+```
+
+**Key Insight:** +10% traffic for guaranteed fresh data is worth it!
 
 ---
 
