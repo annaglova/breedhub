@@ -74,9 +74,12 @@ export function SpaceComponent<T extends { Id: string }>({
   // Navigation and routing
   const navigate = useNavigate();
   const location = useLocation();
-  const [selectedEntityId, setSelectedEntityId] = useState<string | null>(null);
   const [searchParams, setSearchParams] = useSearchParams();
   const viewMode = searchParams.get("view") || config.viewConfig[0].id;
+
+  // Get selected entity ID from EntityStore as reactive signal
+  // Using .value makes the component re-render when selection changes
+  const selectedEntityId = spaceStore.getSelectedIdSignal(config.entitySchemaName).value;
 
   // Get rows from view config (динамічно!)
   const rowsPerPage = useMemo(() => {
@@ -448,16 +451,26 @@ export function SpaceComponent<T extends { Id: string }>({
   ]);
 
   // Check if drawer should be open based on route
+  // Sync EntityStore selection with URL (bidirectional)
   useEffect(() => {
     const pathSegments = location.pathname.split("/");
     const hasEntityId = pathSegments.length > 2 && pathSegments[2] !== "new";
     setIsDrawerOpen(hasEntityId);
 
-    // Update selected entity ID from URL
+    // Sync URL → EntityStore (URL is source of truth on route change)
     if (hasEntityId) {
-      setSelectedEntityId(pathSegments[2]);
+      const urlEntityId = pathSegments[2];
+      const currentSelectedId = spaceStore.getSelectedId(config.entitySchemaName);
+
+      // Only update if different to avoid infinite loops
+      if (currentSelectedId !== urlEntityId) {
+        spaceStore.selectEntity(config.entitySchemaName, urlEntityId);
+      }
+    } else {
+      // Clear selection if no entity in URL
+      spaceStore.clearSelection(config.entitySchemaName);
     }
-  }, [location.pathname]);
+  }, [location.pathname, config.entitySchemaName]);
 
   // Measure header height
   useEffect(() => {
@@ -477,11 +490,12 @@ export function SpaceComponent<T extends { Id: string }>({
 
   const handleEntityClick = useCallback(
     (entity: T) => {
-      setSelectedEntityId(entity.Id);
+      // Update selection in EntityStore
+      spaceStore.selectEntity(config.entitySchemaName, entity.Id);
       // Always navigate to overview tab by default when opening drawer
       navigate(`${entity.Id}#overview`);
     },
-    [navigate]
+    [navigate, config.entitySchemaName]
   );
 
   // 🆕 ID-First: Use loadMore from hook (with cursor pagination)

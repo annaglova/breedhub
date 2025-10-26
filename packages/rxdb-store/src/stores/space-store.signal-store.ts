@@ -2925,27 +2925,94 @@ class SpaceStore {
   }
 
 
+  /**
+   * Entity Selection Methods
+   * Proxy calls to the underlying EntityStore for the given entity type
+   */
+
+  /**
+   * Get the selected entity ID for a given entity type (static value)
+   */
+  getSelectedId(entityType: string): string | null {
+    const entityStore = this.entityStores.get(entityType.toLowerCase());
+    if (!entityStore) {
+      console.warn(`[SpaceStore] No entity store found for ${entityType}`);
+      return null;
+    }
+    return entityStore.getSelectedId();
+  }
+
+  /**
+   * Get the selected entity ID as a reactive signal for a given entity type
+   * Use this in React components for automatic re-renders on selection changes
+   */
+  getSelectedIdSignal(entityType: string): ReadonlySignal<string | null> {
+    const entityStore = this.entityStores.get(entityType.toLowerCase());
+    if (!entityStore) {
+      console.warn(`[SpaceStore] No entity store found for ${entityType}`);
+      return computed(() => null);
+    }
+    // Return a computed signal that tracks the selectedId
+    return computed(() => entityStore.selectedId.value);
+  }
+
+  /**
+   * Select an entity by ID for a given entity type
+   */
+  selectEntity(entityType: string, id: string | null): void {
+    const entityStore = this.entityStores.get(entityType.toLowerCase());
+    if (!entityStore) {
+      console.warn(`[SpaceStore] No entity store found for ${entityType}`);
+      return;
+    }
+    entityStore.selectEntity(id);
+  }
+
+  /**
+   * Clear selection for a given entity type
+   */
+  clearSelection(entityType: string): void {
+    const entityStore = this.entityStores.get(entityType.toLowerCase());
+    if (!entityStore) {
+      console.warn(`[SpaceStore] No entity store found for ${entityType}`);
+      return;
+    }
+    entityStore.clearSelection();
+  }
+
+  /**
+   * Get the selected entity signal for reactive updates
+   */
+  getSelectedEntity(entityType: string) {
+    const entityStore = this.entityStores.get(entityType.toLowerCase());
+    if (!entityStore) {
+      console.warn(`[SpaceStore] No entity store found for ${entityType}`);
+      return computed(() => null);
+    }
+    return entityStore.selectedEntity;
+  }
+
   dispose() {
     console.log('[SpaceStore] Disposing all resources...');
-    
+
     // Stop all realtime syncs
     if (this.supabaseLoader) {
       this.supabaseLoader.stopAllRealtimeSync();
     }
-    
+
     // Clean up all entities
     this.availableEntityTypes.value.forEach(entityType => {
       this.cleanupEntity(entityType);
     });
-    
+
     // Clear configurations
     this.spaceConfigs.clear();
-    
+
     // Reset state
     this.initialized.value = false;
     this.availableEntityTypes.value = [];
     this.supabaseLoader = null;
-    
+
     console.log('[SpaceStore] Disposed');
   }
 }
