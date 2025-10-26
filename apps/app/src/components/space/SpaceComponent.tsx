@@ -394,11 +394,12 @@ export function SpaceComponent<T extends { id: string }>({
           pathSegments.length > 2 && pathSegments[2] !== "new";
         if (!hasEntityId) {
           const slug = normalizeForUrl(data.entities[0].name || data.entities[0].id);
-          navigate(`${slug}#overview`);
+          // Preserve query params (sort, filters, etc.) when auto-selecting
+          navigate(`${slug}${location.search}#overview`);
         }
       }
     }
-  }, [data, isLoading, isMoreThan2XL, selectedEntityId, navigate, location.pathname]);
+  }, [data, isLoading, isMoreThan2XL, selectedEntityId, navigate, location.pathname, location.search]);
 
   // Cache totalCount to localStorage (separate from auto-select)
   useEffect(() => {
@@ -511,23 +512,14 @@ export function SpaceComponent<T extends { id: string }>({
 
   const handleEntityClick = useCallback(
     (entity: T) => {
-      console.log('[SpaceComponent] handleEntityClick called:', {
-        entity,
-        entityId: entity.id,
-        entityName: entity.name,
-        entityType: config.entitySchemaName
-      });
-
       // Update selection in EntityStore
       spaceStore.selectEntity(config.entitySchemaName, entity.id);
-      console.log('[SpaceComponent] EntityStore.selectEntity called with:', entity.id);
 
-      // Navigate using friendly slug instead of UUID
+      // Navigate using friendly slug, preserving current query params (sort, filters, etc.)
       const slug = normalizeForUrl(entity.name || entity.id);
-      navigate(`${slug}#overview`);
-      console.log('[SpaceComponent] navigate called to:', `${slug}#overview`);
+      navigate(`${slug}${location.search}#overview`);
     },
-    [navigate, config.entitySchemaName]
+    [navigate, config.entitySchemaName, location.search]
   );
 
   // 🆕 ID-First: Use loadMore from hook (with cursor pagination)

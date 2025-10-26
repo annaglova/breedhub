@@ -69,9 +69,9 @@ export function BreedDrawerView() {
 
   const handleExpand = () => {
     // Navigate to full page with breed ID (not friendly URL for now)
-    // Keep the current tab when expanding
+    // Keep the current tab when expanding, and preserve query params (sort, filters, etc.)
     const hash = activeTab ? `#${activeTab}` : '';
-    navigate(`/${breed.id}${hash}`);
+    navigate(`/${breed.id}${location.search}${hash}`);
   };
 
   const handleTabChange = (tabId: string) => {
