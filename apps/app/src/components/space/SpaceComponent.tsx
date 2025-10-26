@@ -385,27 +385,31 @@ export function SpaceComponent<T extends { id: string }>({
   // Get all entities directly from data (no accumulation needed)
   const allEntities = data?.entities || [];
 
-  // Update total count and handle initial load
+  // Auto-select first entity for xxl+ screens on initial load
   useEffect(() => {
-    if (data?.entities && !isLoading) {
-      setIsInitialLoad(false);
-
-      // Auto-select first entity for xxl+ screens on initial load
-      if (isMoreThan2XL && data.entities.length > 0 && !selectedEntityId) {
+    if (data?.entities && !isLoading && isMoreThan2XL) {
+      if (data.entities.length > 0 && !selectedEntityId) {
         const pathSegments = location.pathname.split("/");
         const hasEntityId =
           pathSegments.length > 2 && pathSegments[2] !== "new";
         if (!hasEntityId) {
-          navigate(`${data.entities[0].Id}#overview`);
+          const slug = normalizeForUrl(data.entities[0].name || data.entities[0].id);
+          navigate(`${slug}#overview`);
         }
       }
+    }
+  }, [data, isLoading, isMoreThan2XL, selectedEntityId, navigate, location.pathname]);
+
+  // Cache totalCount to localStorage (separate from auto-select)
+  useEffect(() => {
+    if (data?.entities && !isLoading) {
+      setIsInitialLoad(false);
 
       if (data.total) {
         setTotalCount(data.total);
 
-        // Save totalCount to localStorage ONLY if:
-        // 1. No filters are active (real total, not filtered)
-        // 2. New total is GREATER than cached (avoid storing partial data)
+        // Save totalCount to localStorage ONLY on FIRST load (not during pagination)
+        // This prevents the count from growing during infinite scroll
         const reservedParams = ["sort", "view", "sortBy", "sortDir", "sortParam"];
         const hasFilters = Array.from(searchParams.keys()).some(
           key => !reservedParams.includes(key)
@@ -416,38 +420,29 @@ export function SpaceComponent<T extends { id: string }>({
             const cached = localStorage.getItem(`totalCount_${config.entitySchemaName}`);
             const cachedTotal = cached ? parseInt(cached, 10) : 0;
 
-            // Only save if total is GREATER than loaded entities count
-            // (this means there's more data, so total is the real total, not partial)
+            // Only save on FIRST load when:
+            // 1. No cache exists (cachedTotal === 0)
+            // 2. Total is valid and REAL (greater than current loaded entities)
+            // Don't save if total === entitiesCount (means server hasn't sent real total yet)
             const isRealTotal = data.total > data.entities.length;
-
-            // Save if:
-            // 1. isRealTotal = true (guarantees it's the real total)
-            // 2. AND (no cache exists OR new total is greater)
-            const shouldSave = isRealTotal && (cachedTotal === 0 || data.total > cachedTotal);
+            const isFirstLoad = cachedTotal === 0;
+            const shouldSave = isFirstLoad && isRealTotal;
 
             if (shouldSave) {
               localStorage.setItem(`totalCount_${config.entitySchemaName}`, data.total.toString());
-              console.log(`[SpaceComponent] Cached totalCount (no filters): ${data.total} (was: ${cachedTotal})`);
-            } else {
-              console.log(`[SpaceComponent] NOT caching totalCount: isRealTotal=${isRealTotal}, total=${data.total}, cached=${cachedTotal}, entities=${data.entities.length}`);
             }
           } catch (e) {
             console.warn('Failed to cache totalCount:', e);
           }
-        } else {
-          console.log(`[SpaceComponent] NOT caching totalCount (filters active): ${data.total}`);
         }
       }
     }
   }, [
     data,
     isLoading,
-    isMoreThan2XL,
-    selectedEntityId,
-    navigate,
-    location.pathname,
     searchParams,
     config.entitySchemaName,
+    isInitialLoad
   ]);
 
   // Check if drawer should be open based on route

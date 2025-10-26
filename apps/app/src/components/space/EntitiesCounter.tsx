@@ -58,7 +58,9 @@ export function EntitiesCounter({
   }
 
   // If we have all items loaded
-  if (entitiesCount > 0 && entitiesCount >= displayTotal) {
+  // BUT: Don't show "all" if total === entitiesCount (likely means server hasn't sent real total yet)
+  const isConfirmedTotal = total > entitiesCount || cachedTotal > 0;
+  if (entitiesCount > 0 && entitiesCount >= displayTotal && isConfirmedTotal) {
     return (
       <div className="text-sm text-muted-foreground mt-2">
         Showing all {formatNumber(displayTotal)} items
