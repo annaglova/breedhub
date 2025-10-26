@@ -337,6 +337,7 @@ class SpaceStore {
       viewType: string;
       icon?: string;
       tooltip?: string;
+      component?: string;
     }>;
   } | null {
     // Try exact match first
@@ -367,11 +368,12 @@ class SpaceStore {
       rawConfig: spaceConfig
     });
 
-    // Extract views with full configuration (viewType, icon, tooltip)
+    // Extract views with full configuration (viewType, icon, tooltip, component)
     const viewConfigs: Array<{
       viewType: string;
       icon?: string;
       tooltip?: string;
+      component?: string;
     }> = [];
 
     if (spaceConfig.views) {
@@ -381,7 +383,8 @@ class SpaceStore {
           viewConfigs.push({
             viewType: view.viewType,
             icon: view.icon,
-            tooltip: view.tooltip
+            tooltip: view.tooltip,
+            component: view.component
           });
         }
       });

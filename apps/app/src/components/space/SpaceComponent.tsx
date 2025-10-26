@@ -927,7 +927,8 @@ export function SpaceComponent<T extends { Id: string }>({
               viewConfig={{
                 viewType: viewMode,
                 component:
-                  viewMode === "grid" ? "BreedGridCard" : "BreedListCard",
+                  finalConfig.viewConfigs?.find(v => v.viewType === viewMode)?.component ||
+                  "GenericListCard",
                 itemHeight:
                   config.viewConfig.find((v) => v.id === viewMode)
                     ?.itemHeight || (viewMode === "grid" ? 280 : 68),

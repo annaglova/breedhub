@@ -1,826 +1,375 @@
-# 🎯 Selected Entity Pattern
+# 🎯 Selected Entity Pattern - Implementation Plan
 
 ## 📅 Створено: 2025-10-26
+## 📅 Оновлено: 2025-10-26 (Revised after UI analysis)
 
 ---
 
-## 🎯 ЩО ЦЕ
+## 🔍 CURRENT STATE ANALYSIS
 
-**Selected Entity Pattern** - паттерн для роботи з активною/вибраною сутністю в UI.
+### ✅ ЩО ВЖЕ ПРАЦЮЄ
 
-**Принцип:** UI завжди має активну сутність (selected entity), яка використовується для:
-- Деталей сутності (detail view)
-- Редагування (edit form)
-- Контекстних дій (delete, duplicate, etc.)
-- Навігації (next/prev)
-
-**Джерело:** Angular NgRx pattern `withSelectedId` + `withSelectedEntityWithFirstDefault`
-
----
-
-## ✅ ЩО ВЖЕ Є В ENTITYSTORE
-
-EntityStore **вже має повну імплементацію** selected entity pattern!
-
-### Signals і Computed:
-
+**1. EntityStore - Повна реалізація selection logic** ✅
 ```typescript
 class EntityStore<T extends { id: string }> {
-  // Selection state (protected)
   protected selectedId = signal<string | null>(null);
 
-  // Computed values (public readonly)
   selectedEntity: ReadonlySignal<T | null> = computed(() => {
     const id = this.selectedId.value;
     return id ? this.entities.value.get(id) || null : null;
   });
 
-  hasSelection: ReadonlySignal<boolean> = computed(() =>
-    this.selectedId.value !== null
+  // Methods: selectEntity(), selectFirst(), selectLast(), clearSelection()
+}
+```
+**Файл:** `/packages/rxdb-store/src/stores/base/entity-store.ts` (lines 372-419)
+
+**2. SpaceComponent - URL-based selection** ✅
+```typescript
+// State
+const [selectedEntityId, setSelectedEntityId] = useState<string | null>(null);
+
+// Reads from URL (lines 450-460)
+useEffect(() => {
+  const pathSegments = location.pathname.split("/");
+  const hasEntityId = pathSegments.length > 2 && pathSegments[2] !== "new";
+  setIsDrawerOpen(hasEntityId);
+
+  if (hasEntityId) {
+    setSelectedEntityId(pathSegments[2]);  // ✅ Syncs with URL!
+  }
+}, [location.pathname]);
+
+// Click handler (lines 478-485)
+const handleEntityClick = useCallback((entity: T) => {
+  setSelectedEntityId(entity.Id);
+  navigate(`${entity.Id}#overview`);  // ✅ Updates URL + opens drawer!
+}, [navigate]);
+```
+**Файл:** `/apps/app/src/components/space/SpaceComponent.tsx`
+
+**3. SpaceView - Passes selection state to cards** ✅
+```typescript
+<CardComponent
+  entity={entity}
+  selected={selectedId === entity.Id}  // ✅ Correctly identifies selected
+  onClick={() => onEntityClick?.(entity)}  // ✅ Triggers selection
+/>
+```
+**Файл:** `/apps/app/src/components/space/SpaceView.tsx`
+
+**4. Drawer - Opens on navigation** ✅
+- Three modes: `over` (mobile), `side` (tablet), `side-transparent` (desktop 2xl+)
+- Auto-opens when entity URL is detected
+- Uses `<Outlet />` for detail pages
+
+**5. BreedListCard - Proper highlighting pattern** ✅
+```typescript
+export function BreedListCard({ entity, selected, onClick }) {
+  return (
+    <EntityListCardWrapper selected={selected} onClick={onClick}>
+      {/* Card content */}
+    </EntityListCardWrapper>
+  );
+}
+```
+**Файл:** `/apps/app/src/components/breed/BreedListCard.tsx`
+
+**6. EntityListCardWrapper - Proper CSS variables** ✅
+```typescript
+const getBackgroundColor = () => {
+  if (selected) return "rgb(var(--focus-card-ground))";  // Subtle highlight
+  if (isHovered) return "rgb(var(--hover-card-ground))";
+  return "transparent";
+};
+```
+**Файл:** `/apps/app/src/components/shared/EntityListCardWrapper.tsx`
+
+---
+
+### ❌ ЩО НЕ ПРАЦЮЄ
+
+**Problem:** GenericListCard uses wrong highlighting
+```typescript
+// ❌ WRONG: Entire background turns blue
+<div
+  className={cn(
+    "p-4 border-b hover:bg-gray-50 cursor-pointer transition-colors",
+    selected && "bg-blue-50 border-blue-300"  // ❌ TOO MUCH!
+  )}
+  onClick={onClick}
+>
+```
+**Файл:** `/apps/app/src/components/space/GenericListCard.tsx`
+
+**Result:**
+- Entire row background becomes blue (user's screenshot confirms)
+- Doesn't match BreedListCard pattern
+- Не використовує CSS variables з дизайн-системи
+
+---
+
+## 🎯 REVISED IMPLEMENTATION PLAN
+
+### Phase 1: Fix GenericListCard Highlighting (15 min) 🔴 PRIORITY
+
+**Goal:** Use EntityListCardWrapper pattern instead of crude bg-blue-50
+
+**Before:**
+```typescript
+export function GenericListCard({ entity, selected, onClick }) {
+  return (
+    <div className={cn("...", selected && "bg-blue-50 border-blue-300")}>
+      {/* content */}
+    </div>
   );
 }
 ```
 
-### Selection Methods:
-
+**After:**
 ```typescript
-// Select entity by ID
-selectEntity(id: string | null): void
-
-// Select first entity
-selectFirst(): void
-
-// Select last entity
-selectLast(): void
-
-// Clear selection
-clearSelection(): void
-
-// Get selected ID
-getSelectedId(): string | null
-```
-
-### Auto-Select Support:
-
-```typescript
-// setAll з auto-select first
-setAll(entities: T[], autoSelectFirst = false): void
-
-// Якщо autoSelectFirst = true:
-//   - При завантаженні даних автоматично вибирається перша сутність
-//   - Тільки якщо немає поточного selection
-```
-
-### Smart Selection Cleanup:
-
-```typescript
-// При видаленні сутності:
-removeOne(id: string): void {
-  // ...
-  // Автоматично очищає selection якщо видалена сутність була selected
-  if (this.selectedId.value === id) {
-    this.selectedId.value = null;
-  }
-}
-
-// При setAll():
-setAll(entities: T[]): void {
-  // ...
-  // Очищає selection якщо selected entity відсутня в новому списку
-  if (this.selectedId.value && !newEntities.has(this.selectedId.value)) {
-    this.selectedId.value = null;
-  }
+export function GenericListCard({ entity, selected, onClick }) {
+  return (
+    <EntityListCardWrapper
+      selected={selected}
+      onClick={onClick}
+      className="h-[68px]"  // Match BreedListCard height
+    >
+      {/* content (no wrapper div needed) */}
+    </EntityListCardWrapper>
+  );
 }
 ```
 
----
+**Files to modify:**
+- `/apps/app/src/components/space/GenericListCard.tsx`
 
-## ❌ ЩО НЕ ВИКОРИСТОВУЄТЬСЯ (ЗАРАЗ)
-
-### EntityStore має все, але UI не використовує:
-
-```typescript
-// ❌ Ніде не викликається
-store.selectEntity(id);
-store.selectFirst();
-
-// ❌ Ніде не читається
-const selected = store.selectedEntity.value;
-const hasSelection = store.hasSelection.value;
-```
-
-### URL Params для Selection:
-
-```typescript
-// ❌ Немає синхронізації з URL
-// URL: /breeds?id=breed-123  (selected breed)
-// URL: /animals?id=animal-456  (selected animal)
-```
-
-### UI Components:
-
-```typescript
-// ❌ Немає компонентів для:
-// - Detail view (показати деталі selected entity)
-// - Edit form (редагувати selected entity)
-// - Navigation (prev/next buttons)
-```
+**Result:**
+- ✅ Proper subtle highlighting (--focus-card-ground)
+- ✅ Consistent with BreedListCard
+- ✅ Hover state handled automatically
 
 ---
 
-## 🎨 USE CASES
+### Phase 2: Connect SpaceStore Selection (30 min) 🟡 ENHANCEMENT
 
-### 1. Master-Detail Pattern
+**Goal:** Use EntityStore.selectedId instead of local state
 
-**Scenario:** Список breeds (master) + деталі breed (detail)
+**Current:** SpaceComponent має власний `selectedEntityId` state
+**Better:** Використати `spaceStore.selectEntity()` methods
 
-```
-┌─────────────────────────────────────────────────────────┐
-│ Breeds List                                             │
-│ ┌──────────────────┐                                    │
-│ │ Labrador        │ ← Selected (highlighted)            │
-│ └──────────────────┘                                    │
-│ ┌──────────────────┐                                    │
-│ │ German Shepherd  │                                    │
-│ └──────────────────┘                                    │
-│ ┌──────────────────┐                                    │
-│ │ Golden Retriever │                                    │
-│ └──────────────────┘                                    │
-└─────────────────────────────────────────────────────────┘
-
-┌─────────────────────────────────────────────────────────┐
-│ Breed Details                                           │
-│                                                         │
-│ Name: Labrador                                          │
-│ Type: Dog                                               │
-│ Size: Large                                             │
-│                                                         │
-│ [Edit] [Delete] [Duplicate]                             │
-└─────────────────────────────────────────────────────────┘
-```
-
-### 2. Modal Edit Form
-
-**Scenario:** Click на breed → відкривається modal з формою редагування
-
+**Changes in SpaceComponent:**
 ```typescript
-// User clicks breed card
-<BreedCard onClick={() => {
-  store.selectEntity(breed.id);
-  openEditModal();
-}} />
+// BEFORE
+const [selectedEntityId, setSelectedEntityId] = useState<string | null>(null);
 
-// Modal shows selected breed
-<EditBreedModal
-  breed={store.selectedEntity.value}
-  onSave={handleSave}
-/>
+// AFTER
+const selectedId = spaceStore.getSelectedId(config.entitySchemaName);
+
+// Update selection method
+const handleEntityClick = useCallback((entity: T) => {
+  spaceStore.selectEntity(config.entitySchemaName, entity.Id);
+  navigate(`${entity.Id}#overview`);
+}, [navigate, config.entitySchemaName]);
 ```
 
-### 3. Keyboard Navigation
+**Benefits:**
+- ✅ Centralized state (спільний з іншими компонентами)
+- ✅ Could use in other contexts (e.g., keyboard shortcuts)
+- ✅ Could add selectNext()/selectPrev() for arrow keys
 
-**Scenario:** Arrow keys для навігації між entities
+**Files to modify:**
+- `/apps/app/src/components/space/SpaceComponent.tsx`
+- `/packages/rxdb-store/src/stores/space-store.signal-store.ts` (if needed)
 
+---
+
+### Phase 3: Auto-Select First Entity (15 min) 🟢 NICE-TO-HAVE
+
+**Goal:** Auto-select first entity on 2xl+ screens (already partially implemented!)
+
+**Current state (lines 391-398 in SpaceComponent):**
+```typescript
+// ✅ Already implemented!
+if (isMoreThan2XL && data.entities.length > 0 && !selectedEntityId) {
+  const pathSegments = location.pathname.split("/");
+  const hasEntityId = pathSegments.length > 2 && pathSegments[2] !== "new";
+  if (!hasEntityId) {
+    navigate(`${data.entities[0].Id}#overview`);
+  }
+}
+```
+
+**What's missing:** Nothing! This already works! 🎉
+
+---
+
+### Phase 4: Keyboard Navigation (1-2 hours) 🟢 FUTURE
+
+**Goal:** Arrow keys to navigate between entities
+
+**Implementation:**
 ```typescript
 useEffect(() => {
   const handleKeyDown = (e: KeyboardEvent) => {
     if (e.key === 'ArrowDown') {
-      selectNext();
-    } else if (e.key === 'ArrowUp') {
-      selectPrev();
+      // Select next entity
+      const currentIndex = entities.findIndex(e => e.Id === selectedId);
+      if (currentIndex < entities.length - 1) {
+        const nextEntity = entities[currentIndex + 1];
+        navigate(`${nextEntity.Id}#overview`);
+      }
+    }
+    if (e.key === 'ArrowUp') {
+      // Select previous entity
+      const currentIndex = entities.findIndex(e => e.Id === selectedId);
+      if (currentIndex > 0) {
+        const prevEntity = entities[currentIndex - 1];
+        navigate(`${prevEntity.Id}#overview`);
+      }
     }
   };
 
   window.addEventListener('keydown', handleKeyDown);
   return () => window.removeEventListener('keydown', handleKeyDown);
-}, []);
+}, [selectedId, entities, navigate]);
 ```
 
-### 4. Context Actions
-
-**Scenario:** Дії з selected entity (delete, duplicate, share)
-
-```typescript
-// Action buttons disabled якщо немає selection
-<Button
-  disabled={!store.hasSelection.value}
-  onClick={() => deleteEntity(store.selectedEntity.value?.id)}
->
-  Delete
-</Button>
-
-<Button
-  disabled={!store.hasSelection.value}
-  onClick={() => duplicateEntity(store.selectedEntity.value)}
->
-  Duplicate
-</Button>
-```
-
-### 5. Auto-Select First (Empty State Prevention)
-
-**Scenario:** При завантаженні списку автоматично вибирається перша сутність
-
-```typescript
-// Load breeds and auto-select first
-const breeds = await loadBreeds();
-store.setAll(breeds, true);  // autoSelectFirst = true
-
-// UI instantly shows details of first breed
-// User doesn't see empty detail panel
-```
+**Status:** Not implemented, можна додати пізніше
 
 ---
 
-## 🚀 PLAN ІМПЛЕМЕНТАЦІЇ
+## 📋 STEP-BY-STEP IMPLEMENTATION
 
-### Phase 1: URL Sync (Foundation) 🔴
+### ✅ Already Working (No action needed)
+- [x] EntityStore selection logic
+- [x] URL-based selectedId management
+- [x] Drawer opening on entity click
+- [x] Auto-select first on 2xl+ screens
+- [x] BreedListCard proper highlighting
 
-**Goal:** Синхронізувати selectedId з URL params
+### 🔴 Phase 1: Fix GenericListCard (15 min) - DO NOW
+1. Open `/apps/app/src/components/space/GenericListCard.tsx`
+2. Import `EntityListCardWrapper`
+3. Replace root `<div>` with `<EntityListCardWrapper>`
+4. Remove `bg-blue-50 border-blue-300` classes
+5. Test in browser - highlighting should be subtle
 
-**Implementation:**
+### 🟡 Phase 2: Connect SpaceStore (30 min) - OPTIONAL
+1. Add `getSelectedId()` method to SpaceStore if missing
+2. Replace local state in SpaceComponent
+3. Update `handleEntityClick` to use `spaceStore.selectEntity()`
+4. Test selection persistence
 
-```typescript
-// SpaceComponent.tsx
-export function SpaceComponent({ config }: SpaceComponentProps) {
-  const [searchParams, setSearchParams] = useSearchParams();
-  const store = spaceStore.getEntityStore(config.entitySchemaName);
+### 🟢 Phase 3: Auto-select (SKIP - Already done!)
+- Nothing to do, already implemented in SpaceComponent lines 391-398
 
-  // Sync URL → Store (on mount & URL change)
-  useEffect(() => {
-    const selectedId = searchParams.get('id');
-
-    if (selectedId) {
-      // URL has id → select in store
-      store.selectEntity(selectedId);
-    } else {
-      // No URL id → clear selection
-      store.clearSelection();
-    }
-  }, [searchParams, store]);
-
-  // Sync Store → URL (on selection change)
-  useEffect(() => {
-    const selectedId = store.getSelectedId();
-
-    if (selectedId) {
-      // Entity selected → update URL
-      setSearchParams(prev => {
-        prev.set('id', selectedId);
-        return prev;
-      });
-    } else {
-      // No selection → remove id from URL
-      setSearchParams(prev => {
-        prev.delete('id');
-        return prev;
-      });
-    }
-  }, [store.selectedEntity.value, setSearchParams]);
-
-  return (
-    <div>
-      <EntitiesList />
-      <EntityDetail />
-    </div>
-  );
-}
-```
-
-**Benefits:**
-- ✅ Deep linking (share URL з selected entity)
-- ✅ Browser back/forward navigation
-- ✅ Reload preserves selection
-
-**Estimated:** 1-2 години
+### 🟢 Phase 4: Keyboard Nav (FUTURE)
+- Add when user requests it
+- Estimated 1-2 hours
 
 ---
 
-### Phase 2: UI Components (Visual Feedback) 🟡
+## 🎨 CSS VARIABLES REFERENCE
 
-**Goal:** Візуальна індикація selected entity
+Theme provides proper selection colors:
 
-**Implementation:**
-
-```typescript
-// EntitiesList.tsx
-export function EntitiesList() {
-  const entities = useSignal(store.entityList);
-  const selectedId = useSignal(store.getSelectedId);
-
-  return (
-    <div className="space-y-2">
-      {entities.value.map(entity => (
-        <EntityCard
-          key={entity.id}
-          entity={entity}
-          isSelected={entity.id === selectedId.value}
-          onClick={() => store.selectEntity(entity.id)}
-        />
-      ))}
-    </div>
-  );
-}
-
-// EntityCard.tsx
-export function EntityCard({ entity, isSelected, onClick }: Props) {
-  return (
-    <div
-      className={cn(
-        'p-4 rounded-lg cursor-pointer transition-colors',
-        isSelected
-          ? 'bg-primary-50 border-2 border-primary'
-          : 'bg-surface-100 hover:bg-surface-200'
-      )}
-      onClick={onClick}
-    >
-      <h3>{entity.name}</h3>
-    </div>
-  );
-}
-```
-
-**Benefits:**
-- ✅ Видно яка сутність вибрана
-- ✅ Клік вибирає сутність
-- ✅ Visual feedback
-
-**Estimated:** 2-3 години
-
----
-
-### Phase 3: Detail View (Master-Detail) 🟡
-
-**Goal:** Окрема панель для деталей selected entity
-
-**Implementation:**
-
-```typescript
-// EntityDetail.tsx
-export function EntityDetail() {
-  const selected = useSignal(store.selectedEntity);
-  const hasSelection = useSignal(store.hasSelection);
-
-  if (!hasSelection.value || !selected.value) {
-    return (
-      <div className="p-8 text-center text-muted-foreground">
-        Select an item to view details
-      </div>
-    );
-  }
-
-  return (
-    <div className="p-6 space-y-4">
-      <h2 className="text-2xl font-bold">{selected.value.name}</h2>
-
-      <div className="space-y-2">
-        <DetailField label="Type" value={selected.value.type} />
-        <DetailField label="Created" value={selected.value.created_at} />
-        {/* ... more fields */}
-      </div>
-
-      <div className="flex gap-2">
-        <Button onClick={handleEdit}>Edit</Button>
-        <Button variant="destructive" onClick={handleDelete}>Delete</Button>
-        <Button variant="outline" onClick={handleDuplicate}>Duplicate</Button>
-      </div>
-    </div>
-  );
-}
-```
-
-**Layout:**
-```typescript
-// SpaceComponent.tsx
-<div className="grid grid-cols-[350px_1fr] gap-4">
-  {/* Master */}
-  <div className="border-r">
-    <EntitiesList />
-  </div>
-
-  {/* Detail */}
-  <div>
-    <EntityDetail />
-  </div>
-</div>
-```
-
-**Benefits:**
-- ✅ Master-Detail pattern
-- ✅ Context actions (edit/delete/duplicate)
-- ✅ Empty state handling
-
-**Estimated:** 3-4 години
-
----
-
-### Phase 4: Keyboard Navigation (UX Polish) 🟢
-
-**Goal:** Arrow keys для навігації
-
-**Implementation:**
-
-```typescript
-// useKeyboardNavigation.ts
-export function useKeyboardNavigation(store: EntityStore<any>) {
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      // Ignore if user typing in input
-      if (e.target instanceof HTMLInputElement) return;
-
-      const currentId = store.getSelectedId();
-      const ids = store.ids.value;
-
-      if (e.key === 'ArrowDown' || e.key === 'j') {
-        e.preventDefault();
-        selectNext(currentId, ids, store);
-      } else if (e.key === 'ArrowUp' || e.key === 'k') {
-        e.preventDefault();
-        selectPrev(currentId, ids, store);
-      } else if (e.key === 'Home') {
-        e.preventDefault();
-        store.selectFirst();
-      } else if (e.key === 'End') {
-        e.preventDefault();
-        store.selectLast();
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [store]);
-}
-
-function selectNext(currentId: string | null, ids: string[], store: EntityStore<any>) {
-  if (!currentId) {
-    store.selectFirst();
-    return;
-  }
-
-  const currentIndex = ids.indexOf(currentId);
-  if (currentIndex < ids.length - 1) {
-    store.selectEntity(ids[currentIndex + 1]);
-  }
-}
-
-function selectPrev(currentId: string | null, ids: string[], store: EntityStore<any>) {
-  if (!currentId) {
-    store.selectLast();
-    return;
-  }
-
-  const currentIndex = ids.indexOf(currentId);
-  if (currentIndex > 0) {
-    store.selectEntity(ids[currentIndex - 1]);
-  }
-}
+```css
+/* From theme files */
+--focus-card-ground: /* Subtle background for selected items */
+--hover-card-ground: /* Subtle background for hovered items */
 ```
 
 **Usage:**
 ```typescript
-// SpaceComponent.tsx
-export function SpaceComponent({ config }: Props) {
-  const store = spaceStore.getEntityStore(config.entitySchemaName);
-
-  // Enable keyboard navigation
-  useKeyboardNavigation(store);
-
-  return (/* ... */);
-}
-```
-
-**Benefits:**
-- ✅ Швидка навігація без миші
-- ✅ Power user feature
-- ✅ Vim-style shortcuts (j/k)
-
-**Estimated:** 2-3 години
-
----
-
-### Phase 5: Auto-Select First (Empty State Fix) 🟢
-
-**Goal:** Автоматично вибирати першу сутність при завантаженні
-
-**Implementation:**
-
-```typescript
-// SpaceComponent.tsx
-useEffect(() => {
-  const loadData = async () => {
-    const data = await spaceStore.applyFilters(entityType, filters, options);
-
-    // Auto-select first if:
-    // 1. Data loaded successfully
-    // 2. Has entities
-    // 3. No current selection
-    // 4. No URL param 'id'
-    const shouldAutoSelect =
-      data.records.length > 0 &&
-      !store.getSelectedId() &&
-      !searchParams.get('id');
-
-    if (shouldAutoSelect) {
-      store.selectFirst();
-    }
-  };
-
-  loadData();
-}, [entityType, filters]);
-```
-
-**Benefits:**
-- ✅ Не показує пусту detail панель
-- ✅ Instant detail view
-- ✅ Краща UX
-
-**Estimated:** 1 година
-
----
-
-## 📊 PRIORITY ROADMAP
-
-### Рекомендований порядок:
-
-1. **Phase 1: URL Sync** (1-2h) 🔴
-   - Foundation для всього іншого
-   - Deep linking
-   - Reload persistence
-
-2. **Phase 2: UI Components** (2-3h) 🟡
-   - Візуальна індикація
-   - Click handlers
-   - Basic interaction
-
-3. **Phase 3: Detail View** (3-4h) 🟡
-   - Master-Detail layout
-   - Context actions
-   - Empty state
-
-4. **Phase 5: Auto-Select** (1h) 🟢
-   - Empty state fix
-   - Better UX
-
-5. **Phase 4: Keyboard Nav** (2-3h) 🟢
-   - Power user feature
-   - Nice to have
-
-**Total Estimated:** 9-13 годин
-
----
-
-## 💡 ВАЖЛИВІ ПРИНЦИПИ
-
-### 1. Single Source of Truth: URL
-
-```
-URL (?id=breed-123)
-  ↕ (sync)
-EntityStore.selectedId
-  ↕ (reactive)
-UI (highlighted card)
-```
-
-**Чому URL?**
-- ✅ Deep linking (share selected entity)
-- ✅ Browser back/forward
-- ✅ Reload preserves state
-
-### 2. EntityStore Already Ready
-
-**Не треба змінювати EntityStore!** Все вже є:
-- ✅ selectedId signal
-- ✅ selectedEntity computed
-- ✅ Selection methods
-- ✅ Auto-cleanup on delete
-
-**Треба тільки використати в UI**
-
-### 3. Auto-Select Defensive
-
-```typescript
-// Не auto-select якщо:
-if (searchParams.get('id')) {
-  // URL має конкретний id → не перезаписувати
-  return;
-}
-
-// Auto-select тільки якщо немає URL params
-if (!store.getSelectedId()) {
-  store.selectFirst();
-}
-```
-
-### 4. Clean Selection on Unmount
-
-```typescript
-useEffect(() => {
-  return () => {
-    // Optional: clear selection при unmount
-    // (залежить від UX рішення)
-    store.clearSelection();
-  };
-}, []);
+style={{
+  backgroundColor: selected
+    ? "rgb(var(--focus-card-ground))"
+    : "transparent"
+}}
 ```
 
 ---
 
-## 🎯 ПРИКЛАДИ КОДУ
+## 📊 COMPARISON: Before vs After
 
-### Example 1: Simple List with Selection
-
+### BEFORE (Current GenericListCard)
 ```typescript
-export function BreedsList() {
-  const store = spaceStore.getEntityStore('breed');
-  const breeds = useSignal(store.entityList);
-  const selectedId = useSignal(store.getSelectedId);
-
-  return (
-    <div className="space-y-2">
-      {breeds.value.map(breed => (
-        <div
-          key={breed.id}
-          className={cn(
-            'p-4 rounded cursor-pointer',
-            breed.id === selectedId.value
-              ? 'bg-primary-50 border-primary'
-              : 'bg-surface-100'
-          )}
-          onClick={() => store.selectEntity(breed.id)}
-        >
-          {breed.name}
-        </div>
-      ))}
-    </div>
-  );
-}
+// ❌ Entire background blue
+<div className={cn(
+  "p-4 border-b hover:bg-gray-50",
+  selected && "bg-blue-50 border-blue-300"
+)}>
 ```
+**Result:** Heavy blue background (user's screenshot shows this)
 
-### Example 2: Detail Panel with Actions
-
+### AFTER (Using EntityListCardWrapper)
 ```typescript
-export function BreedDetail() {
-  const store = spaceStore.getEntityStore('breed');
-  const selected = useSignal(store.selectedEntity);
-
-  if (!selected.value) {
-    return <EmptyState message="Select a breed to view details" />;
-  }
-
-  const handleDelete = async () => {
-    if (confirm('Delete this breed?')) {
-      await deleteBreed(selected.value.id);
-      store.removeOne(selected.value.id);
-      // Auto-clears selection if deleted entity was selected
-    }
-  };
-
-  return (
-    <div className="p-6">
-      <h2>{selected.value.name}</h2>
-      <p>{selected.value.description}</p>
-
-      <div className="flex gap-2 mt-4">
-        <Button onClick={() => openEditModal(selected.value)}>
-          Edit
-        </Button>
-        <Button variant="destructive" onClick={handleDelete}>
-          Delete
-        </Button>
-      </div>
-    </div>
-  );
-}
+// ✅ Subtle highlight using design system
+<EntityListCardWrapper selected={selected} onClick={onClick}>
 ```
-
-### Example 3: URL Sync
-
-```typescript
-export function SpaceComponent({ config }: Props) {
-  const [searchParams, setSearchParams] = useSearchParams();
-  const store = spaceStore.getEntityStore(config.entitySchemaName);
-
-  // URL → Store
-  useEffect(() => {
-    const id = searchParams.get('id');
-    if (id && store.hasEntity(id)) {
-      store.selectEntity(id);
-    }
-  }, [searchParams]);
-
-  // Store → URL
-  useEffect(() => {
-    const id = store.getSelectedId();
-
-    if (id) {
-      setSearchParams(prev => {
-        prev.set('id', id);
-        return prev;
-      }, { replace: true });  // replace to avoid history spam
-    }
-  }, [store.selectedEntity.value]);
-
-  return (/* ... */);
-}
-```
+**Result:** Subtle background change using --focus-card-ground
 
 ---
 
-## 📚 RELATED DOCS
+## 🚀 SUMMARY FOR USER
 
-- `/docs/ANGULAR_PATTERNS_TO_ADOPT.md` - Джерело pattern
-- `/packages/rxdb-store/src/stores/base/entity-store.ts` - EntityStore implementation
-- `/docs/SESSION_RESTART.md` - Current project status
+### ЩО ПОТРІБНО ЗРОБИТИ
+
+**Phase 1: Fix GenericListCard (15 хвилин) - ЗАРАЗ**
+- Замінити `<div>` на `<EntityListCardWrapper>`
+- Видалити `bg-blue-50 border-blue-300`
+- Результат: правильна підкраска як у BreedListCard
+
+**Phase 2: Connect SpaceStore (30 хвилин) - ОПЦІОНАЛЬНО**
+- Використати `spaceStore.selectedId` замість локального state
+- Результат: централізований state, можливість додати keyboard navigation
+
+**Phase 3: Auto-select - ВЖЕ ПРАЦЮЄ!**
+- Нічого робити не потрібно ✅
+
+**Phase 4: Keyboard Navigation - МАЙБУТНЄ**
+- Arrow keys для навігації
+- Додамо коли буде потрібно
 
 ---
 
 ## ✅ SUCCESS CRITERIA
 
-**Before (no selection):**
-- ❌ Клік на entity нічого не робить
-- ❌ Немає візуальної індикації активної entity
-- ❌ Немає detail view
-- ❌ Context actions (edit/delete) працюють з хардкод ID
+**Before:**
+- ❌ Entire row background blue when selected
+- ❌ Inconsistent with BreedListCard pattern
+- ❌ No design system colors
 
-**After (with selection):**
-- ✅ Клік на entity → вибирається (highlight)
-- ✅ URL синхронізується (?id=breed-123)
-- ✅ Detail panel показує деталі selected entity
-- ✅ Context actions працюють з selected entity
-- ✅ Keyboard navigation (arrows)
-- ✅ Auto-select first при завантаженні
-- ✅ Deep linking works (share URL)
-- ✅ Browser back/forward navigation
+**After Phase 1:**
+- ✅ Subtle highlighting using --focus-card-ground
+- ✅ Consistent with BreedListCard
+- ✅ Hover state included
+- ✅ Drawer opens on click (already works!)
 
-**Status:** ⚙️ EntityStore ready, UI integration needed
+**After Phase 2 (optional):**
+- ✅ Centralized selection state
+- ✅ Could add keyboard shortcuts
 
 ---
 
-## 🎨 UI/UX CONSIDERATIONS
+## 📚 RELATED FILES
 
-### Layout Options:
+### Core Implementation
+- `/packages/rxdb-store/src/stores/base/entity-store.ts` - EntityStore selection logic
+- `/packages/rxdb-store/src/stores/space-store.signal-store.ts` - SpaceStore
 
-**Option 1: Side-by-Side (Desktop)**
-```
-┌──────────────┬─────────────────────┐
-│ List (350px) │ Detail (flex-1)     │
-│              │                     │
-│ [Entity 1] ← │ Name: Entity 1      │
-│ [Entity 2]   │ Type: ...           │
-│ [Entity 3]   │                     │
-│              │ [Edit] [Delete]     │
-└──────────────┴─────────────────────┘
-```
+### UI Components
+- `/apps/app/src/components/space/SpaceComponent.tsx` - Selection state + URL sync
+- `/apps/app/src/components/space/SpaceView.tsx` - Passes selected prop
+- `/apps/app/src/components/space/GenericListCard.tsx` - ❌ NEEDS FIX
+- `/apps/app/src/components/breed/BreedListCard.tsx` - ✅ CORRECT PATTERN
+- `/apps/app/src/components/shared/EntityListCardWrapper.tsx` - ✅ PROPER HIGHLIGHTING
 
-**Option 2: Modal (Mobile-Friendly)**
-```
-┌─────────────────────────┐
-│ List                    │
-│                         │
-│ [Entity 1] ←            │
-│ [Entity 2]              │
-│ [Entity 3]              │
-│                         │
-└─────────────────────────┘
-
-Click → Opens modal:
-
-┌─────────────────────────┐
-│ × Entity 1              │
-│                         │
-│ Name: Entity 1          │
-│ Type: ...               │
-│                         │
-│ [Edit] [Delete]         │
-└─────────────────────────┘
-```
-
-**Option 3: Drawer (Slide-in)**
-```
-┌─────────────────────────────────────┐
-│ List                    │ Drawer    │
-│                         │           │
-│ [Entity 1] ←            │ Entity 1  │
-│ [Entity 2]              │           │
-│ [Entity 3]              │ Name: ... │
-│                         │           │
-│                         │ [Edit]    │
-└─────────────────────────┴───────────┘
-```
-
-**Рекомендація:** Почати з Option 1 (Side-by-Side), додати Option 2 (Modal) для mobile.
+### Theme
+- `/apps/app/src/app-theme.css` - CSS variables definition
+- `/apps/shared/theme/tailwind.base.css` - Base theme
 
 ---
 
-## 🚀 NEXT STEPS
-
-1. **Review & Approve** - обговорити план з командою
-2. **Phase 1: URL Sync** - імплементувати базову синхронізацію
-3. **Phase 2: UI Components** - додати візуальну індикацію
-4. **Phase 3: Detail View** - master-detail layout
-5. **Testing** - перевірити на різних entities
-6. **Documentation** - update docs після імплементації
-
-**Ready to start?** EntityStore вже готовий, треба тільки підключити UI! 🎉
-
----
+**Status:** Ready for Phase 1 implementation (15 min fix) 🚀

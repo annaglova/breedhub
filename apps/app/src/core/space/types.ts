@@ -13,7 +13,7 @@ export interface ViewConfig {
   icon: string;
   itemHeight?: number;
   columns?: number; // for grid
-  component: () => Promise<{ default: ComponentType<any> }>;
+  component?: string | (() => Promise<{ default: ComponentType<any> }>);
 }
 
 export interface FilterConfig {
