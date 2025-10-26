@@ -314,22 +314,7 @@ return [...startsWithResults, ...containsResults];
 
 ## 📋 ЩО НЕ ЗРОБИЛИ (TODO)
 
-### 🔴 ПРІОРИТЕТ 1: Offline Testing
-
-**Статус:** 🔴 Not Tested
-
-**Що треба протестувати:**
-- [ ] Offline sorting (працює в коді, але не протестовано)
-- [ ] Offline filtering (fallback на RxDB)
-- [ ] Offline search (hybrid search в RxDB)
-- [ ] Offline scroll pagination
-- [ ] Background sync behavior
-
-**Estimated:** 2-3 години тестування
-
----
-
-### 🟡 ПРІОРИТЕТ 2: PWA Phase 2
+### 🟡 ПРІОРИТЕТ 1: PWA Phase 2
 
 **Статус:** 🟡 Optional (Phase 1 Complete)
 
@@ -343,7 +328,7 @@ return [...startsWithResults, ...containsResults];
 
 ---
 
-### 🟡 ПРІОРИТЕТ 3: Performance Optimization
+### 🟡 ПРІОРИТЕТ 2: Performance Optimization
 
 **Статус:** 🟡 Optional
 
@@ -357,7 +342,7 @@ return [...startsWithResults, ...containsResults];
 
 ---
 
-### 🟢 ПРІОРИТЕТ 4: Edge Cases
+### 🟢 ПРІОРИТЕТ 3: Edge Cases
 
 **Статус:** 🟢 Low Priority
 
@@ -376,13 +361,11 @@ return [...startsWithResults, ...containsResults];
 ## 🎯 NEXT STEPS
 
 **Рекомендовано:**
-1. **Offline Testing** - протестувати всі features офлайн (2-3 години)
-2. **PWA Phase 2** - custom offline page, покращити UX (4-6 годин)
-3. **Performance Metrics** - tracking для оптимізації (2-3 години)
+1. **PWA Phase 2** - custom offline page, покращити UX (4-6 годин)
+2. **Performance Metrics** - tracking для оптимізації (2-3 години)
 
 **Опціонально:**
-4. **Edge Cases** - складні фільтри, додаються по потребі
-5. **Documentation** - update docs після testing
+3. **Edge Cases** - складні фільтри, додаються по потребі
 
 ---
 
