@@ -45,329 +45,336 @@
 
 ---
 
-## 🗄️ ЧАСТИНА 1: RxDB Storage Strategies для Child Tables
+## 🗄️ ЧАСТИНА 1: RxDB Storage Strategy для Child Tables
 
 ### Context & Requirements
 
 **Дані:**
-- Main entity: `breed` (452 records)
-- Child tables: `breed_division`, `breed_in_kennel`, `breed_synonym`, etc. (8 tables)
-- Child records: 10-1000 per table per entity
-- Total: ~40,000-400,000 child records across all breeds
+- Main entities: ~10-15 (breed, pet, kennel, contact, litter, account, competition, event, product, tag)
+- Child tables per entity: ~8-12 на середньому
+- Child records: 10-1000 per table per entity instance
+- Total child records across app: ~40,000-400,000
 
 **Use Cases:**
-1. Load limited preview (10 records) для public page
-2. Load full list з pagination для fullscreen mode
+1. Load limited preview (recordsLimit: 5-100) для public page tabs
+2. Load full list з pagination для tab fullscreen mode
 3. Filter/search в fullscreen mode
 4. Offline support
 
 ---
 
-### ✅ ВАРІАНТ A: Окремі RxDB Collections per Child Table
+### ⚠️ Критична Проблема: IndexedDB ObjectStore Limits
 
-#### Структура:
-```typescript
-// RxDB Collections
-db.breed                    // Main entity
-db.breed_division           // Child table 1
-db.breed_in_kennel          // Child table 2
-db.breed_synonym            // Child table 3
-db.pet                      // Main entity
-db.pet_award                // Child table
-db.pet_competition_result   // Child table
+**Browser Limits:**
+- **Chrome:** ~100 ObjectStores per database
+- **Firefox:** ~100 ObjectStores
+- **Safari:** ~50-80 ObjectStores
+
+**Наша ситуація:**
+```
+Main entities:    10-15 collections
+Child tables:     120+ child entity types
+                  ─────────────────────
+Total if 1:1:     130-150 ObjectStores ❌ BROWSER CRASH!
 ```
 
-#### Schema Generation:
-```typescript
-class ChildTableManager {
-  // Динамічна генерація schema з entity JSON
-  generateSchema(entityConfig: EntityConfig): RxJsonSchema {
-    return {
-      version: 0,
-      primaryKey: 'id',
-      type: 'object',
-      properties: {
-        id: { type: 'string', maxLength: 36 },
-        [parentIdField]: { type: 'string', maxLength: 36 }, // breed_id, pet_id, etc.
-        ...this.generateFieldsFromConfig(entityConfig.fields)
-      },
-      required: ['id', parentIdField],
-      indexes: [parentIdField, 'updated_at'] // Для фільтрації по parent
-    };
-  }
-}
-```
-
-#### Завантаження:
-```typescript
-// Через існуючий SpaceStore.applyFilters
-const divisions = await spaceStore.applyFilters('breed_division', {
-  breed_id: currentBreedId
-}, {
-  limit: 10,
-  orderBy: { field: 'name', direction: 'asc' }
-});
-```
-
-#### ✅ Плюси:
-1. **Чіткий namespace** - `breed_division` vs `pet_award` легко відрізнити
-2. **Швидкі queries** - індекс по `parent_id` дає O(log n) lookup
-3. **Використовуємо існуючий SpaceStore** - не треба нової логіки
-4. **Природна структура** - відповідає БД схемі
-5. **Lazy loading** - завантажуємо тільки потрібні child tables
-6. **ID-First pagination працює** - можна використати існуючу логіку
-7. **Clear memory management** - можна видаляти непотрібні child collections
-
-#### ❌ Мінуси:
-1. **Багато collections** - 20 main × 8 children = 160 collections
-2. **IndexedDB limits** - кожна collection = окрема ObjectStore (ліміт браузера ~50-100)
-3. **Memory overhead** - кожна collection має свій RxDB metadata
-4. **Складність ініціалізації** - треба створювати collections динамічно
-
-#### 💡 Оптимізація:
-```typescript
-// Створюємо collections on-demand
-class DynamicCollectionManager {
-  private loadedCollections = new Set<string>();
-
-  async ensureCollection(tableName: string): Promise<RxCollection> {
-    if (this.loadedCollections.has(tableName)) {
-      return this.db[tableName];
-    }
-
-    // Динамічно створюємо collection
-    const schema = this.generateSchema(tableName);
-    await this.db.addCollections({ [tableName]: { schema } });
-    this.loadedCollections.add(tableName);
-
-    return this.db[tableName];
-  }
-}
-```
+**Висновок:** Не можна створювати окрему RxDB collection для кожної child table!
 
 ---
 
-### ✅ ВАРІАНТ B: Композитна Collection з Composite Key
+### 🔍 Аналіз Варіантів Storage Strategy
 
-#### Структура:
+#### ❌ ВАРІАНТ A (ВІДХИЛЕНО): Окрема Collection per Child Table
+
+**Структура:**
 ```typescript
-// Одна collection для ВСІХ child tables
-db.child_extensions
+db.breed                    // Main
+db.breed_division           // Child 1
+db.breed_in_kennel          // Child 2
+db.breed_synonym            // Child 3
+... × 120 child tables
+db.pet                      // Main
+db.pet_award                // Child
+... × 120 child tables
+```
+
+**Плюси:**
+- ✅ Повна type safety
+- ✅ Native RxDB indexes на всіх полях
+- ✅ SpaceStore вже підтримує
+- ✅ ID-First pagination працює
+
+**Мінуси (критичні):**
+- ❌ **120+ ObjectStores** → Browser crash
+- ❌ Неможливо створити всі collections одразу
+- ❌ Lazy loading не вирішує - досягнемо ліміту після кількох навігацій
+- ❌ Memory overhead - кожна collection має metadata
+
+**Вердикт:** ❌ Не підходить через IndexedDB limits
+
+---
+
+#### ❌ ВАРІАНТ B (ВІДХИЛЕНО): One Global Collection для ВСЬОГО
+
+**Структура:**
+```typescript
+db.child_tables  // Одна collection для ВСІХ child records
 
 // Records:
 {
-  composite_id: 'breed_division::division_123',
-  table_name: 'breed_division',
-  parent_type: 'breed',
-  parent_id: 'breed_456',
   id: 'division_123',
-  data: { /* actual record data */ },
-  updated_at: '...'
+  _table_type: 'breed_division',
+  _parent_id: 'breed_456',
+  data: { name: 'Long Hair', ... } // JSON blob
 }
 ```
 
-#### Schema:
+**Плюси:**
+- ✅ Тільки 1 ObjectStore - no limits
+- ✅ Проста структура
+
+**Мінуси (критичні):**
+- ❌ **Flexible schema** - `data` field = any JSON
+- ❌ Немає type safety - TypeScript не допомагає
+- ❌ Не можна індексувати nested fields: `data.name`, `data.created_at`
+- ❌ Sorting/filtering тільки in-memory (повільно)
+- ❌ Суміш breed_division + pet_award + kennel_address в одній collection (логічно неправильно)
+- ❌ Query завжди з двома умовами: `WHERE _table_type='X' AND _parent_id='Y'`
+- ❌ ID-First pagination не працює
+
+**Критичний приклад:**
 ```typescript
-const childExtensionsSchema: RxJsonSchema = {
+// ❌ НЕ працює - nested fields не індексуються:
+db.child_tables.find({ 'data.name': { $regex: 'Long' } })
+
+// ✅ Треба робити in-memory:
+const all = await db.child_tables.find({ _table_type: 'breed_division' }).exec();
+const filtered = all.filter(d => d.data.name.includes('Long')); // ПОВІЛЬНО!
+```
+
+**Вердикт:** ❌ Не підходить - втрата performance і type safety
+
+---
+
+### ✅ ВАРІАНТ C (ОБРАНО): Per-Entity Child Collections з Proper Schema
+
+**Структура:**
+```typescript
+// Групуємо child tables по parent entity
+db.breed                    // Main entity
+db.breed_children           // ВСІ child tables для breed з proper fields!
+
+db.pet                      // Main entity
+db.pet_children             // ВСІ child tables для pet з proper fields!
+
+db.kennel                   // Main entity
+db.kennel_children          // ВСІ child tables для kennel з proper fields!
+```
+
+**Schema (ключове покращення - NOT flexible!):**
+```typescript
+const breedChildrenSchema: RxJsonSchema = {
   version: 0,
-  primaryKey: {
-    key: 'composite_id',
-    fields: ['table_name', 'id'],
-    separator: '::'
-  },
+  primaryKey: 'id',
   type: 'object',
   properties: {
-    composite_id: { type: 'string', maxLength: 100 },
-    table_name: { type: 'string', maxLength: 50 },
-    parent_type: { type: 'string', maxLength: 50 },
-    parent_id: { type: 'string', maxLength: 36 },
+    // Meta fields
     id: { type: 'string', maxLength: 36 },
-    data: { type: 'object' }, // Flexible JSON
-    updated_at: { type: 'string' }
+    _table_type: { type: 'string', maxLength: 50 },  // 'breed_division', 'breed_in_kennel'
+    _parent_id: { type: 'string', maxLength: 36 },    // breed_id
+
+    // ✅ ACTUAL FIELDS (not JSON blob!) - union of all child table fields
+    name: { type: 'string', maxLength: 250 },
+    description: { type: 'string', maxLength: 1000 },
+    breed_id: { type: 'string', maxLength: 36 },
+    breed_standard_id: { type: 'string', maxLength: 36 },
+    division_by_color: { type: 'boolean' },
+    division_by_size: { type: 'boolean' },
+    is_main: { type: 'boolean' },
+    // ... всі поля з breed_division, breed_in_kennel, breed_synonym
+
+    // System fields
+    created_at: { type: 'string' },
+    updated_at: { type: 'string' },
+    _deleted: { type: 'boolean' }
   },
-  required: ['composite_id', 'table_name', 'parent_id', 'id', 'data'],
+  required: ['id', '_table_type', '_parent_id'],
   indexes: [
-    'table_name',
-    ['parent_type', 'parent_id'], // Composite index
-    ['table_name', 'parent_id'],  // Filter by table + parent
+    '_table_type',
+    '_parent_id',
+    ['_table_type', '_parent_id'],  // Compound index - критично!
+    'name',                         // ✅ Можна індексувати!
+    'created_at',
     'updated_at'
   ]
 };
 ```
 
-#### Завантаження:
+**Query Examples:**
 ```typescript
-const divisions = await db.child_extensions
+// Get all divisions for breed
+const divisions = await db.breed_children
   .find({
     selector: {
-      table_name: 'breed_division',
-      parent_id: currentBreedId
+      _table_type: 'breed_division',
+      _parent_id: breedId
     }
   })
-  .limit(10)
+  .sort('name')  // ✅ Native RxDB sort - ШВИДКО!
+  .limit(20)
   .exec();
 
-// Extract data
-const records = divisions.map(doc => ({
-  id: doc.id,
-  ...doc.data
-}));
+// Search by name - ✅ працює index!
+const searched = await db.breed_children
+  .find({
+    selector: {
+      _table_type: 'breed_division',
+      name: { $regex: '.*Long.*' }  // ✅ Index на name!
+    }
+  })
+  .exec();
+
+// ID-First pagination - ✅ працює!
+const nextPage = await db.breed_children
+  .find({
+    selector: {
+      _table_type: 'breed_division',
+      _parent_id: breedId,
+      id: { $gt: lastId }
+    }
+  })
+  .limit(20)
+  .exec();
 ```
 
-#### ✅ Плюси:
-1. **Єдина collection** - не треба створювати 160 collections
-2. **Схожість на DictionaryStore** - вже працює для dictionaries
-3. **Простіше управління** - одна точка входу
-4. **Немає IndexedDB limits** - одна ObjectStore
-5. **Uniform API** - одна логіка для всіх child tables
+**Плюси:**
+- ✅ **20-30 ObjectStores** - в межах browser limits!
+- ✅ **Type safety** - всі поля явно в schema
+- ✅ **Native RxDB indexes** - швидкі queries
+- ✅ **Sorting/filtering** - native, не in-memory
+- ✅ **ID-First pagination** - працює
+- ✅ **Logical grouping** - breed children окремо від pet children
+- ✅ **Memory management** - закрив breed page → cleanup breed_children
+- ✅ **Query performance** - тільки 1 умова `_parent_id` (не 2 як в Variant B)
+- ✅ **SpaceStore reuse** - можна використати існуючу логіку
 
-#### ❌ Мінуси:
-1. **Flexible schema проблема** - `data` field = any JSON
-   - Немає type safety
-   - Важко валідувати
-   - Складно індексувати поля всередині `data`
-2. **Погана performance** - не можна створити index на `data.name`
-3. **Великий JSON blob** - весь record в одному полі
-4. **ID-First pagination НЕ працює** - структура інша
-5. **Суміш різних типів** - breed_division + pet_award в одній collection
-6. **Складніше query** - завжди треба фільтрувати по `table_name`
+**Мінуси (some є):**
+- ⚠️ Union schema - містить поля з різних child tables
+- ⚠️ Деякі поля будуть null для певних `_table_type`
+- ⚠️ Schema generation складніший - треба об'єднати всі child entity configs
 
-#### ⚠️ Критичні проблеми:
-```typescript
-// ❌ НЕ можна зробити:
-db.child_extensions.find({ 'data.name': 'Long Hair' }) // Index не працює на nested fields
-
-// ❌ НЕ можна сортувати:
-.sort('data.created_at') // RxDB не підтримує sort по nested fields
-
-// ✅ Треба робити:
-const all = await db.child_extensions.find({ table_name: 'breed_division' }).exec();
-const sorted = all.sort((a, b) => a.data.name.localeCompare(b.data.name)); // In-memory sort
+**Підрахунок ObjectStores:**
+```
+Main entities:       10-15 collections
+Child collections:   10-15 collections (по одній на entity)
+Dictionaries:        1 collection
+App config:          1 collection
+Books (demo):        1 collection
+                     ──────────────
+Total:              ~25-35 ObjectStores ✅ Влізає!
 ```
 
 ---
 
-### ✅ ВАРІАНТ C: Parent-Specific Collections (Hybrid)
+## 📊 Порівняльна Таблиця
 
-#### Структура:
-```typescript
-// Групуємо child tables по parent entity
-db.breed_extensions         // Всі child tables для breed
-db.pet_extensions           // Всі child tables для pet
-db.kennel_extensions        // Всі child tables для kennel
-```
-
-#### Schema:
-```typescript
-{
-  composite_id: 'breed_456::breed_division::division_123',
-  parent_id: 'breed_456',
-  child_table: 'breed_division',
-  child_id: 'division_123',
-  data: { /* normalized fields, not blob */ },
-  updated_at: '...'
-}
-```
-
-#### ✅ Плюси:
-1. **Баланс** - не 160 collections, а ~20
-2. **Logical grouping** - всі breed extensions разом
-3. **Кращі queries** - фільтр тільки по `parent_id`
-
-#### ❌ Мінуси:
-1. **Все ще flexible schema** - той самий `data` blob
-2. **Погана type safety**
-3. **Не вирішує проблеми Варіанту B**
-
----
-
-## 📊 Порівняльна таблиця Storage Strategies
-
-| Критерій | Варіант A (Окремі) | Варіант B (Композитна) | Варіант C (Hybrid) |
-|----------|-------------------|------------------------|-------------------|
-| **Collections count** | 160 | 1 | 20 |
-| **Type Safety** | ✅ Повна | ❌ Немає | ❌ Немає |
-| **Query Performance** | ✅ Відмінна | ⚠️ Середня | ⚠️ Середня |
-| **Indexing** | ✅ Всі поля | ❌ Тільки root | ❌ Тільки root |
-| **ID-First Pagination** | ✅ Працює | ❌ Не працює | ❌ Не працює |
-| **Memory Efficiency** | ⚠️ Overhead per collection | ✅ Компактна | ✅ Компактна |
-| **IndexedDB Limits** | ❌ Може досягти | ✅ Безпечно | ✅ Безпечно |
+| Критерій | Variant A (120 cols) | Variant B (1 global) | ✅ Variant C (per-entity) |
+|----------|---------------------|----------------------|--------------------------|
+| **ObjectStores** | 130-150 ❌ | 12-16 ✅ | 25-35 ✅ |
+| **Browser Limits** | ❌ Crash | ✅ OK | ✅ OK |
+| **Type Safety** | ✅ Повна | ❌ Немає | ✅ Є (union types) |
+| **Native Indexing** | ✅ Всі поля | ❌ Root only | ✅ Всі поля |
+| **Query Performance** | ✅ Відмінна | ❌ Погана | ✅ Відмінна |
+| **ID-First Pagination** | ✅ Працює | ❌ Не працює | ✅ Працює |
+| **Sorting/Filtering** | ✅ Native | ❌ In-memory | ✅ Native |
+| **Memory Management** | ⚠️ Складно | ✅ Просто | ✅ Просто |
 | **Code Complexity** | ⚠️ Середня | ✅ Проста | ⚠️ Середня |
-| **Existing Code Reuse** | ✅ SpaceStore | ❌ Нова логіка | ❌ Нова логіка |
-| **Offline Support** | ✅ Повна | ✅ Повна | ✅ Повна |
-| **Schema Validation** | ✅ RxDB schema | ❌ Manual | ❌ Manual |
-| **Sorting/Filtering** | ✅ Native RxDB | ❌ In-memory | ❌ In-memory |
+| **SpaceStore Reuse** | ✅ Так | ❌ Ні | ✅ Так |
+| **Logical Grouping** | ⚠️ Fragmented | ❌ All mixed | ✅ Per entity |
 
 ---
 
-## 🎯 РЕКОМЕНДАЦІЯ: Варіант A (Окремі Collections)
+## 🎯 ОСТАТОЧНА РЕКОМЕНДАЦІЯ: Variant C (Per-Entity Child Collections)
 
-### Чому Варіант A?
+### Чому саме цей варіант?
 
-1. **Type Safety критична** для великого проекту
-   - 160 collections звучить багато, але це нормально для enterprise apps
-   - Кожна таблиця має свою схему - це ДОБРЕ
+1. **Вирішує IndexedDB Limits** ✅
+   - 25-35 ObjectStores - це нормально для PWA
+   - Browser не крешнеться
+   - Є запас на додаткові features
 
-2. **Існуюча архітектура підтримує**
-   - SpaceStore вже працює універсально
-   - ID-First pagination вже реалізований
-   - Filtering/sorting вже працює
+2. **Зберігає Type Safety** ✅
+   - Schema validation працює
+   - TypeScript intellisense працює (з union types)
+   - Немає "magic strings" в `data` blob
 
-3. **Performance**
-   - Native RxDB indexes на всіх полях
-   - O(log n) queries замість O(n) in-memory filtering
+3. **Performance як у Variant A** ✅
+   - Native RxDB indexes
+   - O(log n) queries
+   - Sorting/filtering без in-memory обробки
 
-4. **Масштабованість**
-   - Lazy loading collections on-demand
-   - Можна видаляти непотрібні collections
+4. **Logical Architecture** ✅
+   - breed_children окремо від pet_children
+   - Cleanup простий - видалив одну collection
+   - Memory management - unload breed_children коли user покинув breed page
 
-### Вирішення проблеми IndexedDB Limits:
+5. **Можливість використати SpaceStore** ✅
+   - Та сама логіка що для main entities
+   - ID-First pagination працює
+   - Filtering API той самий
+
+### Schema Generation Strategy:
 
 ```typescript
-// Strategy: Lazy Creation + Smart Cleanup
-class ChildTableManager {
-  private activeCollections = new Map<string, {
-    collection: RxCollection,
-    lastAccessed: number,
-    recordCount: number
-  }>();
+class ChildCollectionSchemaGenerator {
+  // Generate union schema для всіх child tables entity
+  generateSchema(entityType: string): RxJsonSchema {
+    // 1. Load all child entity configs from JSON
+    const childConfigs = this.loadChildEntityConfigs(entityType);
+    // breed → [breed_division.json, breed_in_kennel.json, ...]
 
-  private readonly MAX_ACTIVE_COLLECTIONS = 50; // Safe limit
+    // 2. Collect unique fields from all configs
+    const allFields = new Map<string, FieldConfig>();
+    childConfigs.forEach(config => {
+      config.fields.forEach(field => {
+        if (!allFields.has(field.name)) {
+          allFields.set(field.name, field);
+        }
+      });
+    });
 
-  async getCollection(tableName: string): Promise<RxCollection> {
-    // Cleanup old collections if needed
-    if (this.activeCollections.size >= this.MAX_ACTIVE_COLLECTIONS) {
-      await this.cleanupLeastUsed();
-    }
+    // 3. Generate schema properties
+    const properties = {
+      id: { type: 'string', maxLength: 36 },
+      _table_type: { type: 'string', maxLength: 50 },
+      _parent_id: { type: 'string', maxLength: 36 }
+    };
 
-    // Lazy create collection
-    if (!this.activeCollections.has(tableName)) {
-      await this.createCollection(tableName);
-    }
+    allFields.forEach((field, name) => {
+      properties[name] = this.fieldToRxDBProperty(field);
+    });
 
-    // Update access time
-    const entry = this.activeCollections.get(tableName);
-    entry.lastAccessed = Date.now();
+    // 4. Create indexes on common fields
+    const indexes = [
+      '_table_type',
+      '_parent_id',
+      ['_table_type', '_parent_id'],
+      'created_at',
+      'updated_at'
+    ];
 
-    return entry.collection;
-  }
+    // Add indexes for searchable fields (name, title, etc.)
+    if (allFields.has('name')) indexes.push('name');
+    if (allFields.has('title')) indexes.push('title');
 
-  private async cleanupLeastUsed(): Promise<void> {
-    // Sort by lastAccessed
-    const sorted = Array.from(this.activeCollections.entries())
-      .sort((a, b) => a[1].lastAccessed - b[1].lastAccessed);
-
-    // Remove 10 oldest
-    const toRemove = sorted.slice(0, 10);
-
-    for (const [name, entry] of toRemove) {
-      // Don't remove if has important data
-      if (entry.recordCount > 0) {
-        await entry.collection.cleanup(); // Clear old docs
-      }
-      await entry.collection.remove(); // Remove collection
-      this.activeCollections.delete(name);
-    }
+    return {
+      version: 0,
+      primaryKey: 'id',
+      type: 'object',
+      properties,
+      required: ['id', '_table_type', '_parent_id'],
+      indexes
+    };
   }
 }
 ```
