@@ -75,7 +75,16 @@ export function SpaceComponent<T extends { id: string }>({
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
-  const viewMode = searchParams.get("view") || config.viewConfig[0].id;
+
+  // Get default view from app_config (isDefault: true)
+  const defaultView = useMemo(() => {
+    if (!spaceStore.configReady.value) {
+      return config.viewConfig[0].id; // Fallback to static config
+    }
+    return spaceStore.getDefaultView(config.entitySchemaName);
+  }, [config.entitySchemaName, spaceStore.configReady.value]);
+
+  const viewMode = searchParams.get("view") || defaultView;
 
   // Get selected entity ID from EntityStore as reactive signal
   // Using .value makes the component re-render when selection changes
@@ -218,6 +227,18 @@ export function SpaceComponent<T extends { id: string }>({
       setSearchParams(newParams, { replace: true }); // replace to not add history entry
     }
   }, [searchParams, setSearchParams]);
+
+  // 🎯 Set default view in URL if no view param exists
+  useEffect(() => {
+    const hasViewParam = searchParams.has("view");
+
+    // If no view param and we have a default view, add it to URL
+    if (!hasViewParam && defaultView) {
+      const newParams = new URLSearchParams(searchParams);
+      newParams.set("view", defaultView);
+      setSearchParams(newParams, { replace: true }); // replace to not add history entry
+    }
+  }, [searchParams, setSearchParams, defaultView]);
 
   // 🎯 Set default sort in URL if no sort param exists
   useEffect(() => {

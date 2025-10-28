@@ -2,7 +2,7 @@ import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AppLayout } from '@/layouts/AppLayout';
 import { BreedsPage } from '@/pages/breeds';
-import { BreedDetailPage } from '@/pages/breeds/BreedDetailPage';
+// import { BreedDetailPage } from '@/pages/breeds/BreedDetailPage'; // TODO: migrate to config-driven
 import { SupabaseLoader } from '@/components/test/SupabaseLoader';
 import { TestDictionaryPage } from '@/pages/TestDictionaryPage';
 
@@ -47,8 +47,8 @@ export function AppRouter() {
             <Route path="dictionary" element={<TestDictionaryPage />} />
           </Route>
           
-          {/* Direct breed pages - using IDs for now */}
-          <Route path=":breedId" element={<BreedDetailPage />} />
+          {/* Direct breed pages - TODO: migrate to config-driven routing */}
+          {/* <Route path=":breedId" element={<BreedDetailPage />} /> */}
         </Route>
       </Routes>
     </BrowserRouter>

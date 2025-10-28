@@ -498,6 +498,58 @@ class SpaceStore {
   }
 
   /**
+   * Get default view (slug) from space config
+   * Finds the view with isDefault: true
+   *
+   * @param entityType - Entity type (e.g., 'breed', 'animal')
+   * @returns View slug (e.g., 'list') or first view's slug as fallback
+   */
+  getDefaultView(entityType: string): string {
+    // Try exact match first
+    let spaceConfig = this.spaceConfigs.get(entityType);
+
+    // If not found, try case-insensitive match
+    if (!spaceConfig) {
+      const lowerEntityType = entityType.toLowerCase();
+      for (const [key, config] of this.spaceConfigs.entries()) {
+        if (key.toLowerCase() === lowerEntityType) {
+          spaceConfig = config;
+          break;
+        }
+      }
+    }
+
+    if (!spaceConfig) {
+      console.warn(`[SpaceStore] No space config found for ${entityType}, using default view: 'list'`);
+      return 'list';
+    }
+
+    // Find view with isDefault: true
+    if (spaceConfig.views) {
+      for (const [viewKey, viewConfig] of Object.entries(spaceConfig.views)) {
+        if (viewConfig.isDefault && viewConfig.slug) {
+          return viewConfig.slug;
+        }
+      }
+
+      // Fallback: return first view's slug
+      const firstView = Object.values(spaceConfig.views)[0];
+      if (firstView?.slug) {
+        return firstView.slug;
+      }
+
+      // Fallback: return first view's viewType
+      if (firstView?.viewType) {
+        return firstView.viewType;
+      }
+    }
+
+    // Final fallback
+    console.warn(`[SpaceStore] No views config found for ${entityType}, using default: 'list'`);
+    return 'list';
+  }
+
+  /**
    * Get sort options from space config's sort_fields
    * Sort options are defined at space level and shared across all views
    *

@@ -7,18 +7,18 @@ import { spaceStore } from '@breedhub/rxdb-store';
 import { useSignals } from '@preact/signals-react/runtime';
 import { getComponent } from '@/components/space/componentRegistry';
 
-interface PageTemplateV3Props {
+interface PublicPageTemplateProps {
   className?: string;
   isDrawerMode?: boolean;
 }
 
 /**
- * PageTemplateV3 - Universal config-driven page template
+ * PublicPageTemplate - Config-driven public page template
  *
- * Based on Angular PageTemplateV3Component
- * Supports drawer and fullscreen modes with dynamic tab rendering
+ * Динамічний рендеринг public pages з tabs
+ * Supports drawer and fullscreen modes
  */
-export function PageTemplateV3({ className, isDrawerMode = false }: PageTemplateV3Props) {
+export function PublicPageTemplate({ className, isDrawerMode = false }: PublicPageTemplateProps) {
   useSignals();
 
   const { id } = useParams();
@@ -38,7 +38,7 @@ export function PageTemplateV3({ className, isDrawerMode = false }: PageTemplate
     { id: 'details', label: 'Details', component: 'DetailsTab' },
   ];
 
-  console.log('[PageTemplateV3] Render:', {
+  console.log('[PublicPageTemplate] Render:', {
     isDrawerMode,
     id,
     entity,
