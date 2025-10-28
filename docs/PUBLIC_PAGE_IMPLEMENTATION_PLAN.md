@@ -381,112 +381,420 @@ class ChildCollectionSchemaGenerator {
 
 ---
 
-## 📥 Loading Strategies для Child Tables
+## 🏪 Store Architecture для Child Tables
 
-### ВАРІАНТ 1: Extend SpaceStore (Recommended)
+### 🤔 Ключове Питання: Окремий ChildStore чи Universal SpaceStore?
 
-```typescript
-class SpaceStore {
-  // Existing method
-  async applyFilters(entityType: string, filters: Record<string, any>, options: Options) {
-    // Works for both main entities AND child tables!
-  }
+**Спочатку здавалося логічним:**
+- Child Records схожі на Dictionaries (grouping field, meta data)
+- DictionaryStore окремий → ChildStore теж окремий?
 
-  // New helper method
-  async loadChildRecords(
-    parentType: string,
-    parentId: string,
-    childTable: string,
-    options: { limit?: number, offset?: number } = {}
-  ) {
-    // Just a convenience wrapper
-    return this.applyFilters(childTable, {
-      [`${parentType}_id`]: parentId // breed_id, pet_id, etc.
-    }, {
-      limit: options.limit || 10,
-      orderBy: { field: 'created_at', direction: 'desc' }
-    });
-  }
-}
+**Але виникла проблема:**
+- SpaceStore збирає public page (main + child data)
+- SpaceStore викликає ChildStore
+- ChildStore використовує SpaceStore методи (applyFilters, pagination)
+- **= Circular Dependency!** ❌
 
-// Usage:
-const divisions = await spaceStore.loadChildRecords('breed', breedId, 'breed_division', { limit: 10 });
 ```
-
-**✅ Плюси:**
-- Переисковуємо існуючу логіку
-- ID-First pagination працює
-- Filtering/sorting працює
-- Код мінімальний
-
-**❌ Мінуси:**
-- Немає
+SpaceStore → викликає → ChildStore
+     ↑                      ↓
+     └──────── викликає ────┘
+```
 
 ---
 
-### ВАРІАНТ 2: Dedicated ChildTableStore
+### 💡 Ключове Розуміння: Child Records ≠ Dictionaries
+
+**DictionaryStore fundamentally different:**
 
 ```typescript
-class ChildTableStore {
-  async load(tableName: string, filters: Record<string, any>, options: Options) {
-    const collection = await this.ensureCollection(tableName);
+// 1. Composite Key структура
+primaryKey: {
+  key: 'composite_id',
+  fields: ['dict_id', 'dict_value_id'],
+  separator: '::'
+}
 
-    // Manual RxDB query
-    let query = collection.find({ selector: filters });
+// 2. Preload ALL lifecycle
+await dictionaryStore.preload(); // Завантажуємо ВСЕ на старті
+// Dictionaries ніколи не cleanup з memory
 
-    if (options.orderBy) {
-      query = query.sort(options.orderBy.field);
+// 3. Special lookup methods
+getDictionary('pet_type')           // Повертає весь dict
+getDictionaryValue('pet_type', 'cat') // Lookup by composite key
+```
+
+**Child Records = Regular Entities з meta fields:**
+
+```typescript
+// Main Entity
+{
+  id: 'breed_123',
+  name: 'Maine Coon',
+  avatar_url: '...'
+}
+
+// Child Entity (тільки 2 додаткові поля!)
+{
+  id: 'division_456',
+  _table_type: 'breed_division',  // ← Meta field
+  _parent_id: 'breed_123',        // ← Meta field
+  name: 'Long Hair',
+  description: '...'
+}
+```
+
+### Та Сама Логіка!
+
+| Операція | Main Entity | Child Entity |
+|----------|-------------|--------------|
+| **Query** | `find({ pet_type_id: 'cat' })` | `find({ _table_type: 'X', _parent_id: 'Y' })` |
+| **Pagination** | ID-First ✅ | ID-First ✅ |
+| **Sorting** | Native RxDB ✅ | Native RxDB ✅ |
+| **Filtering** | `applyFilters()` ✅ | `applyFilters()` ✅ |
+| **Lazy loading** | On-demand ✅ | On-demand ✅ |
+| **Cleanup** | When not needed ✅ | When not needed ✅ |
+
+**Різниця:** Тільки 2 додаткові filter поля (`_table_type`, `_parent_id`) ← це не виправдовує окремий store!
+
+---
+
+### ✅ ФІНАЛЬНЕ РІШЕННЯ: Universal SpaceStore
+
+**Концепція:** Child Collections = Regular Collections з meta fields
+
+**Store Structure:**
+```
+packages/rxdb-store/src/
+  services/
+    database.service.ts
+    child-collection-schema-generator.service.ts  // Helper для SpaceStore
+    entity-replication.service.ts
+
+  stores/
+    app-store.signal-store.ts        // App config
+    space-store.signal-store.ts      // ✅ ALL entities (main + child)
+    dictionary-store.signal-store.ts // Special case (composite key)
+
+  stores/base/
+    entity-store.ts                  // Base class
+```
+
+---
+
+### 📦 SpaceStore API (Universal для Main + Child)
+
+```typescript
+/**
+ * SpaceStore - Universal Entity Data Manager
+ * Manages both main entities AND child entities
+ */
+class SpaceStore {
+  private static instance: SpaceStore;
+  private db: any = null;
+  private entityStores = new Map<string, EntityStore>();
+  private schemaGenerator = new ChildCollectionSchemaGenerator();
+
+  // 🆕 Page data cache для reactive UI
+  private pageDataCache = new Map<string, Signal<PageData>>();
+
+  /**
+   * Universal method - працює для main + child collections
+   */
+  async applyFilters(
+    collectionName: string,  // 'breed' або 'breed_children'
+    filters: Record<string, any>,
+    options: QueryOptions
+  ) {
+    const collection = await this.getEntityStore(collectionName);
+    return collection.applyFilters(filters, options);
+  }
+
+  /**
+   * Universal collection creation - supports both types
+   */
+  async ensureCollection(collectionName: string): Promise<void> {
+    if (this.entityStores.has(collectionName)) {
+      return;
     }
 
-    return query.limit(options.limit).exec();
+    let schema;
+
+    if (collectionName.endsWith('_children')) {
+      // Child collection - generate union schema
+      const parentType = collectionName.replace('_children', '');
+      schema = await this.schemaGenerator.generateChildSchema(parentType);
+      console.log(`[SpaceStore] Generated child schema for ${parentType}`);
+    } else {
+      // Main entity - existing logic
+      const spaceConfig = this.spaceConfigs.get(collectionName);
+      schema = this.generateSchemaFromConfig(spaceConfig);
+    }
+
+    await this.createCollection(collectionName, schema);
+  }
+
+  /**
+   * Convenience wrapper для child queries
+   * Internally використовує universal applyFilters - no circular deps!
+   */
+  async queryChildRecords(
+    parentType: string,      // 'breed'
+    childTable: string,      // 'breed_division'
+    parentId: string,        // 'breed_123'
+    options?: QueryOptions
+  ): Promise<any[]> {
+    const collectionName = `${parentType}_children`;
+
+    // ✅ Використовуємо СВІЙ ЖЕ universal метод
+    return this.applyFilters(collectionName, {
+      _table_type: childTable,
+      _parent_id: parentId,
+      ...options?.filters
+    }, options);
+  }
+
+  /**
+   * Get child table types for parent entity
+   */
+  async getChildTableTypes(parentType: string): Promise<string[]> {
+    const childConfigs = await this.schemaGenerator.loadChildEntityConfigs(parentType);
+    return childConfigs.map(c => c.name);
+  }
+
+  /**
+   * Create child record
+   */
+  async createChildRecord(
+    parentType: string,
+    childTable: string,
+    parentId: string,
+    data: any
+  ): Promise<any> {
+    const collectionName = `${parentType}_children`;
+    await this.ensureCollection(collectionName);
+
+    const entityStore = this.entityStores.get(collectionName);
+    const collection = (entityStore as any).collection;
+
+    const record = {
+      id: crypto.randomUUID(),
+      _table_type: childTable,
+      _parent_id: parentId,
+      ...data,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      _deleted: false
+    };
+
+    await collection.insert(record);
+    return record;
+  }
+
+  /**
+   * Update child record
+   */
+  async updateChildRecord(
+    parentType: string,
+    childId: string,
+    updates: any
+  ): Promise<void> {
+    const collectionName = `${parentType}_children`;
+    const entityStore = this.entityStores.get(collectionName);
+    const collection = (entityStore as any).collection;
+
+    const doc = await collection.findOne(childId).exec();
+    if (!doc) {
+      throw new Error(`Child record ${childId} not found`);
+    }
+
+    await doc.patch({
+      ...updates,
+      updated_at: new Date().toISOString()
+    });
+  }
+
+  /**
+   * Delete child record (soft delete)
+   */
+  async deleteChildRecord(
+    parentType: string,
+    childId: string
+  ): Promise<void> {
+    const collectionName = `${parentType}_children`;
+    const entityStore = this.entityStores.get(collectionName);
+    const collection = (entityStore as any).collection;
+
+    const doc = await collection.findOne(childId).exec();
+    if (!doc) {
+      throw new Error(`Child record ${childId} not found`);
+    }
+
+    await doc.patch({
+      _deleted: true,
+      updated_at: new Date().toISOString()
+    });
+  }
+
+  /**
+   * 🎯 Page Data Assembly - центральний метод для UI
+   * Returns reactive signal з page data
+   */
+  getPageData(
+    entityType: string,
+    entityId: string,
+    tabId: string
+  ): Signal<PageData> {
+    const cacheKey = `${entityType}:${entityId}:${tabId}`;
+
+    // Return cached signal
+    if (this.pageDataCache.has(cacheKey)) {
+      return this.pageDataCache.get(cacheKey)!;
+    }
+
+    // Create new signal
+    const pageSignal = signal<PageData>({
+      loading: true,
+      entity: null,
+      pageConfig: null,
+      tabData: null,
+      error: null
+    });
+
+    this.pageDataCache.set(cacheKey, pageSignal);
+
+    // Load data асинхронно
+    this.loadPageDataAsync(entityType, entityId, tabId, pageSignal);
+
+    return pageSignal;
+  }
+
+  /**
+   * Internal: Load page data
+   * No circular dependencies - все в одному store!
+   */
+  private async loadPageDataAsync(
+    entityType: string,
+    entityId: string,
+    tabId: string,
+    pageSignal: Signal<PageData>
+  ) {
+    try {
+      // 1. Main entity
+      const entityResults = await this.applyFilters(
+        entityType,
+        { id: entityId },
+        { limit: 1 }
+      );
+      const entity = entityResults[0];
+
+      // 2. Page config (from AppStore)
+      const pageConfig = appStore.getPageConfig(entityType);
+      const tab = pageConfig.tabs[tabId];
+
+      // 3. Tab data
+      let tabData = null;
+
+      if (tab.childTable) {
+        // ✅ Викликає СВІЙ ЖЕ метод - no external deps!
+        tabData = await this.queryChildRecords(
+          entityType,
+          tab.childTable,
+          entityId,
+          {
+            limit: tab.recordsLimit || 20,
+            sort: tab.sort
+          }
+        );
+      } else if (tabId === 'overview') {
+        // Overview tab - main entity data
+        tabData = entity;
+      }
+
+      // Update signal
+      pageSignal.value = {
+        loading: false,
+        entity,
+        pageConfig,
+        tabData,
+        error: null
+      };
+
+    } catch (error) {
+      pageSignal.value = {
+        loading: false,
+        entity: null,
+        pageConfig: null,
+        tabData: null,
+        error: error as Error
+      };
+    }
+  }
+
+  /**
+   * Invalidate page cache when entity updated
+   */
+  invalidatePageCache(entityType: string, entityId: string) {
+    for (const [key] of this.pageDataCache) {
+      if (key.startsWith(`${entityType}:${entityId}:`)) {
+        this.pageDataCache.delete(key);
+      }
+    }
   }
 }
-```
 
-**❌ Мінуси:**
-- Дублювання логіки
-- Немає ID-First pagination
-- Немає smart caching
-- Більше коду
+export const spaceStore = SpaceStore.getInstance();
+```
 
 ---
 
-### ВАРІАНТ 3: Extension Methods on SpaceStore
+### 🔗 Component Usage
+
+**Простий reactive API:**
 
 ```typescript
-// Extend SpaceStore з child-specific методами
-class SpaceStore {
-  // Child table helpers
-  async loadAllChildTables(parentType: string, parentId: string, limit = 10) {
-    const childTables = this.getChildTables(parentType); // From config
+function UniversalPageTemplate() {
+  useSignals();
+  const { entityType, id, tabId } = useParams();
 
-    const results = await Promise.all(
-      childTables.map(table =>
-        this.loadChildRecords(parentType, parentId, table, { limit })
-      )
-    );
+  // ✅ One call - отримали reactive signal
+  const pageData = spaceStore.getPageData(entityType, id, tabId);
 
-    return Object.fromEntries(
-      childTables.map((table, i) => [table, results[i]])
-    );
-  }
+  if (pageData.value.loading) return <LoadingSpinner />;
+  if (pageData.value.error) return <ErrorMessage error={pageData.value.error} />;
 
-  private getChildTables(parentType: string): string[] {
-    // Read from entity config or entity-categories.json
-    const config = entityCategories.child[parentType];
-    return config || [];
-  }
+  return (
+    <PageLayout
+      entity={pageData.value.entity}
+      tabs={pageData.value.pageConfig.tabs}
+      activeTab={tabId}
+      tabData={pageData.value.tabData}
+    />
+  );
 }
-
-// Usage:
-const allChildren = await spaceStore.loadAllChildTables('breed', breedId, 10);
-// Returns: { breed_division: [...], breed_in_kennel: [...], ... }
 ```
 
-**✅ Плюси:**
-- Batch loading всіх child tables одразу
-- Зручний API
-- Переисковує SpaceStore
+---
+
+### 📊 Фінальна Store Architecture
+
+| Store | Responsibility | Why? |
+|-------|---------------|------|
+| **AppStore** | App config, workspaces | Config lifecycle ≠ entity lifecycle |
+| **SpaceStore** | **ALL entities** (main + child) + Page assembly | Same structure, same logic, no circular deps |
+| **DictionaryStore** | Reference data | Fundamentally different (composite key, preload all) |
+
+### Чому DictionaryStore окремо, а Child Records - ні?
+
+| Критерій | DictionaryStore | Child Records |
+|----------|----------------|---------------|
+| **Primary Key** | Composite (`dict_id::value_id`) | Regular (`id`) |
+| **Lifecycle** | Preload ALL на старті | Lazy load on-demand |
+| **Cleanup** | Never cleanup | Cleanup when not needed |
+| **Query Pattern** | Special lookup API | Standard filtering |
+| **Structure** | Fundamentally different | Same as main entities + 2 fields |
+
+**Висновок:** DictionaryStore - special case. Child Records - regular entities з meta fields → SpaceStore! ✅
 
 ---
 
