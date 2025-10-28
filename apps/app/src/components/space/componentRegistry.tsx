@@ -1,4 +1,5 @@
 import React from 'react';
+import { OverviewTab } from './tabs';
 
 // Component registry for dynamic component loading
 const componentRegistry = new Map<string, React.ComponentType<any>>();
@@ -6,6 +7,9 @@ const componentRegistry = new Map<string, React.ComponentType<any>>();
 export function registerComponent(name: string, component: React.ComponentType<any>) {
   componentRegistry.set(name, component);
 }
+
+// Register default tab components
+registerComponent('OverviewTab', OverviewTab);
 
 export function getComponent(name: string): React.ComponentType<any> | undefined {
   return componentRegistry.get(name);
