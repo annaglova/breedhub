@@ -37,9 +37,46 @@ export function PublicPageTemplate({ className, isDrawerMode = false }: PublicPa
   // TODO: Remove when real entity.Cover data is available
   const mockCover = {
     Type: {
-      Id: CoverTypeIDs.Default, // Use default cover for now
+      Id: CoverTypeIDs.BreedCoverV1,
     },
-    AvatarUrl: coverBackground, // Default cover image from Angular (imported from assets)
+    AvatarUrl: coverBackground,
+  };
+
+  const mockBreed = {
+    Id: 'mock-breed-1',
+    Name: 'German Shepherd',
+    TopPatrons: [
+      {
+        Id: '1',
+        Contact: {
+          Name: 'John Doe',
+          Url: 'john-doe',
+          AvatarUrl: 'https://i.pravatar.cc/150?img=12',
+        },
+        Place: 1,
+        Rating: 100,
+      },
+      {
+        Id: '2',
+        Contact: {
+          Name: 'Jane Smith',
+          Url: 'jane-smith',
+          AvatarUrl: 'https://i.pravatar.cc/150?img=47',
+        },
+        Place: 2,
+        Rating: 90,
+      },
+      {
+        Id: '3',
+        Contact: {
+          Name: 'Bob Johnson',
+          Url: 'bob-johnson',
+          AvatarUrl: 'https://i.pravatar.cc/150?img=33',
+        },
+        Place: 3,
+        Rating: 80,
+      },
+    ],
   };
 
   // Get cover component based on type
@@ -97,6 +134,12 @@ export function PublicPageTemplate({ className, isDrawerMode = false }: PublicPa
   // Визначаємо який name компонент використовувати (поки що тільки для breed)
   const NameComponent = BreedNameComponent;
 
+  // Check if we're on a detail tab (not overview)
+  const isDetailTab = activeTab !== 'overview';
+
+  // Determine if we need full width (for pedigree or other wide-content tabs)
+  const needsFullWidth = activeTab === 'pedigree';
+
   return (
     <div className={cn(
       "size-full flex flex-col",
@@ -105,25 +148,32 @@ export function PublicPageTemplate({ className, isDrawerMode = false }: PublicPa
     )}>
       <div className={cn(
         "flex flex-auto flex-col items-center",
-        !isDrawerMode && "px-4 pt-4 sm:px-6 sm:pt-6"
+        // Paddings: only when NOT on detail tab (regardless of drawer/fullscreen mode)
+        // In Angular: !hasActiveDetail() - no check for drawer mode
+        !isDetailTab && "px-4 pt-4 sm:px-6 sm:pt-6"
       )}>
         <div className={cn(
           "w-full",
-          !isDrawerMode && "max-w-3xl lg:max-w-4xl xxl:max-w-5xl"
+          // Max-width: standard for most content, full for pedigree
+          !needsFullWidth && "max-w-3xl lg:max-w-4xl xxl:max-w-5xl",
+          needsFullWidth && "max-w-full lg:max-w-full xxl:max-w-full"
         )}>
-          {/* Cover Section */}
-          <div className="relative flex size-full justify-center overflow-hidden rounded-lg border border-gray-200 px-6 pt-4 shadow-sm sm:pb-3 sm:pt-6 h-64 md:h-80 lg:h-96 mb-6">
-            {/* Top gradient overlay */}
-            <div className="absolute top-0 z-10 h-28 w-full bg-gradient-to-b from-[#200e4c]/40 to-transparent"></div>
+          {/* Cover Section - only show on overview tab (not on detail tabs) */}
+          {!isDetailTab && (
+            <div className="relative flex size-full justify-center overflow-hidden rounded-lg border border-gray-200 px-6 pt-4 shadow-sm sm:pb-3 sm:pt-6 h-64 md:h-80 lg:h-96 mb-6">
+              {/* Top gradient overlay */}
+              <div className="absolute top-0 z-10 h-28 w-full bg-gradient-to-b from-[#200e4c]/40 to-transparent"></div>
 
-            {/* Cover component */}
-            <div className="flex w-full max-w-3xl flex-col lg:max-w-4xl xxl:max-w-5xl">
-              <CoverComponent
-                coverImg={mockCover.AvatarUrl}
-                isFullscreen={!isDrawerMode}
-              />
+              {/* Cover component */}
+              <div className="flex w-full max-w-3xl flex-col lg:max-w-4xl xxl:max-w-5xl">
+                <CoverComponent
+                  coverImg={mockCover.AvatarUrl}
+                  isFullscreen={!isDrawerMode}
+                  breed={mockBreed}
+                />
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Name container outlet with the breed name component */}
           <NameContainerOutlet>

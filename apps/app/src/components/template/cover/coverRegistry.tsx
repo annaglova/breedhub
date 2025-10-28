@@ -1,4 +1,5 @@
 import { DefaultCover } from './DefaultCover';
+import { BreedCoverV1 } from './BreedCoverV1';
 
 /**
  * Cover Type IDs from Angular implementation
@@ -21,7 +22,7 @@ export const CoverTypeIDs = {
  */
 const coverRegistry: Record<string, React.ComponentType<any>> = {
   [CoverTypeIDs.Default]: DefaultCover,
-  // [CoverTypeIDs.BreedCoverV1]: BreedCoverV1,  // TODO: implement
+  [CoverTypeIDs.BreedCoverV1]: BreedCoverV1,
   // [CoverTypeIDs.Custom]: CustomCover,          // TODO: implement
   // Add more cover types as they are implemented
 };
