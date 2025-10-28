@@ -1,8 +1,7 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AppLayout } from '@/layouts/AppLayout';
-import { BreedsPage } from '@/pages/breeds';
-// import { BreedDetailPage } from '@/pages/breeds/BreedDetailPage'; // TODO: migrate to config-driven
+import { SpacePage } from '@/pages/SpacePage';
 import { SupabaseLoader } from '@/components/test/SupabaseLoader';
 import { TestDictionaryPage } from '@/pages/TestDictionaryPage';
 
@@ -22,7 +21,7 @@ export function AppRouter() {
       <Routes>
         <Route path="/" element={<AppLayout />}>
           <Route index element={<Navigate to="/breeds" replace />} />
-          <Route path="breeds/*" element={<BreedsPage />} />
+          <Route path="breeds/*" element={<SpacePage entityType="breed" />} />
           <Route path="pets" element={<PlaceholderPage title="Pets" />} />
           <Route path="litters" element={<PlaceholderPage title="Litters" />} />
           <Route path="kennels" element={<PlaceholderPage title="Kennels" />} />
