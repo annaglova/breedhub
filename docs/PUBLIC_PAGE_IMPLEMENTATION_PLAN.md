@@ -2012,6 +2012,7 @@ A: ✅ ТАК! Тести пишемо паралельно з розробко�
 - [SPACE_STORE_ARCHITECTURE.md](./SPACE_STORE_ARCHITECTURE.md) - Store architecture
 - [ID_FIRST_PAGINATION.md](./ID_FIRST_PAGINATION.md) - Pagination strategy
 - [DICTIONARY_LOADING_STRATEGY.md](./DICTIONARY_LOADING_STRATEGY.md) - Dictionary patterns
+- [PEDIGREE_GRAPHQL_ARCHITECTURE.md](./PEDIGREE_GRAPHQL_ARCHITECTURE.md) - Pedigree (родовід) feature with GraphQL (частина pet public page)
 
 ---
 
