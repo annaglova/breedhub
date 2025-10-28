@@ -6,6 +6,8 @@ import { BreedNameComponent } from '@/domain/breed/BreedNameComponent';
 import { spaceStore } from '@breedhub/rxdb-store';
 import { useSignals } from '@preact/signals-react/runtime';
 import { getComponent } from '@/components/space/componentRegistry';
+import { getCoverComponent, CoverTypeIDs } from './cover';
+import coverBackground from '@/assets/images/background-images/cover_background.png';
 
 interface PublicPageTemplateProps {
   className?: string;
@@ -30,6 +32,19 @@ export function PublicPageTemplate({ className, isDrawerMode = false }: PublicPa
   // For now hardcoded to breed, later will be dynamic based on entity type
   const entitySignal = spaceStore.getSelectedEntity('breed');
   const entity = entitySignal.value;
+
+  // MOCK DATA for cover testing
+  // TODO: Remove when real entity.Cover data is available
+  const mockCover = {
+    Type: {
+      Id: CoverTypeIDs.Default, // Use default cover for now
+    },
+    AvatarUrl: coverBackground, // Default cover image from Angular (imported from assets)
+  };
+
+  // Get cover component based on type
+  const coverTypeId = mockCover?.Type?.Id;
+  const CoverComponent = getCoverComponent(coverTypeId);
 
   // TODO: Get tabs from config
   // For now, hardcoded tabs
@@ -96,6 +111,20 @@ export function PublicPageTemplate({ className, isDrawerMode = false }: PublicPa
           "w-full",
           !isDrawerMode && "max-w-3xl lg:max-w-4xl xxl:max-w-5xl"
         )}>
+          {/* Cover Section */}
+          <div className="relative flex size-full justify-center overflow-hidden rounded-lg border border-gray-200 px-6 pt-4 shadow-sm sm:pb-3 sm:pt-6 h-64 md:h-80 lg:h-96 mb-6">
+            {/* Top gradient overlay */}
+            <div className="absolute top-0 z-10 h-28 w-full bg-gradient-to-b from-[#200e4c]/40 to-transparent"></div>
+
+            {/* Cover component */}
+            <div className="flex w-full max-w-3xl flex-col lg:max-w-4xl xxl:max-w-5xl">
+              <CoverComponent
+                coverImg={mockCover.AvatarUrl}
+                isFullscreen={!isDrawerMode}
+              />
+            </div>
+          </div>
+
           {/* Name container outlet with the breed name component */}
           <NameContainerOutlet>
             <NameComponent />
