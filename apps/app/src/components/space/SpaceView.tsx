@@ -226,6 +226,9 @@ export function SpaceView<T extends { id: string }>({
     <div
       ref={parentRef}
       className={classes.container}
+      style={{
+        paddingBottom: 'var(--content-padding, 1rem)' // Match header padding for consistency
+      }}
     >
       <div
         style={{

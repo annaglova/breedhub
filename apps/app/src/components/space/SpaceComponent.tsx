@@ -1003,7 +1003,10 @@ export function SpaceComponent<T extends { id: string }>({
               isLoadingMore={isLoadingMore}
             />
             {/* Bottom spacer like in Angular */}
-            <div className="sm:h-6 bg-card-ground w-full absolute bottom-0" />
+            <div
+              className="bg-card-ground w-full absolute bottom-0"
+              style={{ height: 'var(--content-padding, 1rem)' }}
+            />
           </div>
 
           {/* Backdrop inside main content for side mode */}
