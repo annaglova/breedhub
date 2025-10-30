@@ -105,35 +105,25 @@ export function SpaceView<T extends { id: string }>({
 
   // Handle infinite scroll
   const handleScroll = useCallback(() => {
-    if (!parentRef.current || isLoadingMore || !hasMore || !onLoadMore) {
-      console.log('[SpaceView] handleScroll blocked:', {
-        hasRef: !!parentRef.current,
-        isLoadingMore,
-        hasMore,
-        hasOnLoadMore: !!onLoadMore
-      });
-      return;
-    }
+    if (!parentRef.current || isLoadingMore) return;
 
     const scrollElement = parentRef.current;
     const scrollBottom = scrollElement.scrollHeight - scrollElement.scrollTop - scrollElement.clientHeight;
 
-    console.log('[SpaceView] handleScroll:', { scrollBottom });
-
     // Trigger when we're within 100px of the bottom
     if (scrollBottom < 100) {
-      console.log('[SpaceView] Triggering onLoadMore');
-      onLoadMore();
+      onLoadMore?.();
     }
-  }, [hasMore, isLoadingMore, onLoadMore]);
+  }, [isLoadingMore, onLoadMore]);
 
   useEffect(() => {
     const scrollElement = parentRef.current;
-    if (!scrollElement) return;
+    // Only subscribe to scroll events if we have more data to load
+    if (!scrollElement || !hasMore || !onLoadMore) return;
 
     scrollElement.addEventListener('scroll', handleScroll);
     return () => scrollElement.removeEventListener('scroll', handleScroll);
-  }, [handleScroll]);
+  }, [handleScroll, hasMore, onLoadMore]);
 
   // Render a single virtual item
   const renderVirtualItem = useCallback((virtualRow: any) => {
