@@ -13,8 +13,6 @@ import { RxDBUpdatePlugin } from 'rxdb/plugins/update';
 import { RxDBCleanupPlugin } from 'rxdb/plugins/cleanup';
 import { wrappedValidateAjvStorage } from 'rxdb/plugins/validate-ajv';
 
-import { booksSchema } from '../collections/books.schema';
-import { BookCollection } from '../types/book.types';
 import { appConfigSchema } from '../collections/app-config.schema';
 import { AppConfigCollection } from '../stores/app-config.signal-store';
 import { dictionariesSchema } from '../collections/dictionaries.schema';
@@ -31,7 +29,6 @@ addRxPlugin(RxDBCleanupPlugin);
 
 // Database type
 export type DatabaseCollections = {
-  books: BookCollection;
   app_config: AppConfigCollection;
   dictionaries: DictionaryCollection;
 };
@@ -138,39 +135,6 @@ class DatabaseService {
     // Add collections with error handling
     try {
       const collectionsToAdd = {
-      books: {
-        schema: booksSchema,
-        methods: {
-          // Document methods
-          isAvailable(this: any) {
-            return this.available && !this._deleted;
-          },
-          getDisplayTitle(this: any) {
-            return `${this.title} by ${this.author}`;
-          }
-        },
-        statics: {
-          // Collection methods
-          async findByAuthor(this: any, author: string) {
-            return this.find({
-              selector: { author }
-            }).exec();
-          },
-          async findByGenre(this: any, genre: string) {
-            return this.find({
-              selector: { genre }
-            }).exec();
-          },
-          async findAvailable(this: any) {
-            return this.find({
-              selector: { 
-                available: true,
-                _deleted: false
-              }
-            }).exec();
-          }
-        }
-      },
       app_config: {
         schema: appConfigSchema
       }
