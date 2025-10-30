@@ -33,7 +33,7 @@ export interface DictionaryDocument {
  * - breed.id + breed.admin_name → {id, name: admin_name}
  */
 export const dictionariesSchema: RxJsonSchema<DictionaryDocument> = {
-  version: 0,
+  version: 1,  // ⬆️ Bumped for index change (table_name,name,id)
   primaryKey: {
     // Composite key: combines table_name and id
     key: 'composite_id',
@@ -81,9 +81,9 @@ export const dictionariesSchema: RxJsonSchema<DictionaryDocument> = {
 
   // Indexes for fast queries
   indexes: [
-    'table_name',              // Find all records from specific table
-    ['table_name', 'name'],    // Search by name within table
-    'cachedAt'                 // TTL cleanup queries
+    'table_name',                   // Find all records from specific table
+    ['table_name', 'name', 'id'],   // Search + sort by name with id tie-breaker
+    'cachedAt'                      // TTL cleanup queries
   ],
   attachments: {}
 };

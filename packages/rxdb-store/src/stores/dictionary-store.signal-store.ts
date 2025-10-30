@@ -83,7 +83,12 @@ class DictionaryStore {
         // Create universal dictionaries collection
         await this.db.addCollections({
           dictionaries: {
-            schema: dictionariesSchema
+            schema: dictionariesSchema,
+            migrationStrategies: {
+              // Version 1: Added composite index [table_name, name, id] for stable sorting
+              // No data migration needed - only index change
+              1: (oldDoc: any) => oldDoc
+            }
           }
         });
 
@@ -149,6 +154,7 @@ class DictionaryStore {
         .select(`${idField}, ${nameField}`)
         .ilike(nameField, `${search}%`)  // ✅ Starts with
         .order(nameField, { ascending: true })
+        .order(idField, { ascending: true })  // ✅ Tie-breaker for stable sort
         .limit(Math.ceil(limit * 0.7));  // 70% for starts_with
 
       const { data: startsWithData, error: startsWithError } = await startsWithQuery;
@@ -173,6 +179,7 @@ class DictionaryStore {
           .ilike(nameField, `%${search}%`)  // ✅ Contains
           .not(nameField, 'ilike', `${search}%`)  // ❌ Exclude starts_with (already fetched)
           .order(nameField, { ascending: true })
+          .order(idField, { ascending: true })  // ✅ Tie-breaker for stable sort
           .limit(remainingLimit);
 
         const { data: containsData, error: containsError } = await containsQuery;
@@ -210,9 +217,10 @@ class DictionaryStore {
       query = query.gt(nameField, cursor);
     }
 
-    // ✅ Always sort A-Z by name for dictionaries
+    // ✅ Always sort A-Z by name for dictionaries, with id tie-breaker
     query = query
       .order(nameField, { ascending: true })
+      .order(idField, { ascending: true })  // ✅ Tie-breaker for stable sort
       .limit(limit);
 
     const { data, error } = await query;
@@ -480,7 +488,7 @@ class DictionaryStore {
 
         const startsWithDocs = await this.collection.find({
           selector: startsWithSelector,
-          sort: [{ [nameField]: 'asc' }],
+          sort: [{ [nameField]: 'asc' }, { id: 'asc' }],  // ✅ Tie-breaker for stable sort
           limit: startsWithLimit
         }).exec();
 
@@ -497,7 +505,7 @@ class DictionaryStore {
 
           const containsDocs = await this.collection.find({
             selector: containsSelector,
-            sort: [{ [nameField]: 'asc' }],
+            sort: [{ [nameField]: 'asc' }, { id: 'asc' }],  // ✅ Tie-breaker for stable sort
             limit
           }).exec();
 
@@ -524,7 +532,7 @@ class DictionaryStore {
 
         const cached = await this.collection.find({
           selector,
-          sort: [{ [nameField]: 'asc' }],
+          sort: [{ [nameField]: 'asc' }, { id: 'asc' }],  // ✅ Tie-breaker for stable sort
           limit
         }).exec();
 
