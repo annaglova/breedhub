@@ -51,11 +51,9 @@ interface FieldConfig {
 export interface OrderBy {
   field: string;
   direction: 'asc' | 'desc';
-  parameter?: string; // For JSONB fields (e.g., measurements->achievement_progress)
   tieBreaker?: {
     field: string;
     direction: 'asc' | 'desc';
-    parameter?: string; // For JSONB tie-breakers
   };
 }
 
@@ -1769,11 +1767,21 @@ class SpaceStore {
 
       // Extract IDs and calculate nextCursor
       const ids = idsData.map(d => d.id);
-      // For JSONB fields, Supabase returns value under "field->>parameter" key
-      const orderFieldKey = orderBy.parameter
-        ? `${orderBy.field}->>${orderBy.parameter}`
-        : orderBy.field;
-      const nextCursor = idsData[idsData.length - 1]?.[orderFieldKey] ?? null;
+
+      const lastRecord = idsData[idsData.length - 1];
+
+      // ✅ Use COMPOSITE cursor (value + id) for stable pagination with tie-breaker
+      let nextCursor: any = null;
+      if (lastRecord) {
+        const orderValue = lastRecord[orderBy.field] ?? null;
+
+        // Composite cursor: {value, id} for tie-breaker support
+        nextCursor = JSON.stringify({
+          value: orderValue,
+          id: lastRecord.id
+        });
+      }
+      console.log('[SpaceStore] nextCursor extracted:', nextCursor);
 
       // 💾 PHASE 2: Check RxDB cache for these IDs
       console.log('[SpaceStore] 💾 Phase 2: Checking RxDB cache...');
@@ -2013,20 +2021,11 @@ class SpaceStore {
       return [];
     }
 
-    // Helper function for JSONB-aware sorting in JavaScript
+    // Helper function for JavaScript sorting (for RxDB offline mode)
     const sortResults = (results: any[]): any[] => {
       return results.sort((a, b) => {
-        let aVal, bVal;
-
-        if (orderBy.parameter) {
-          // JSONB field - extract nested value (e.g., measurements->achievement_progress)
-          aVal = a[orderBy.field]?.[orderBy.parameter];
-          bVal = b[orderBy.field]?.[orderBy.parameter];
-        } else {
-          // Regular field
-          aVal = a[orderBy.field];
-          bVal = b[orderBy.field];
-        }
+        const aVal = a[orderBy.field];
+        const bVal = b[orderBy.field];
 
         // Handle null/undefined (push to end)
         if (aVal === null || aVal === undefined) return 1;
@@ -2293,16 +2292,7 @@ class SpaceStore {
               return value < cursor;
             }
           });
-          console.log(`[SpaceStore] 🔍 Filtered ${results.length} results after JSONB cursor`);
-        }
-
-        // Sort in JavaScript (handles both regular and JSONB fields)
-        if (orderBy.parameter) {
-          results = sortResults(results);
-          // Apply limit after sorting for JSONB fields
-          if (limit > 0) {
-            results = results.slice(0, limit);
-          }
+          console.log(`[SpaceStore] 🔍 Filtered ${results.length} results after cursor`);
         }
 
         console.log(`[SpaceStore] 📦 Local query returned ${results.length} results`);
@@ -2330,19 +2320,11 @@ class SpaceStore {
     orderBy: OrderBy
   ): any {
     // Primary orderBy
-    const orderField = orderBy.parameter
-      ? `${orderBy.field}->>${orderBy.parameter}`
-      : orderBy.field;
-
-    query = query.order(orderField, { ascending: orderBy.direction === 'asc' });
+    query = query.order(orderBy.field, { ascending: orderBy.direction === 'asc' });
 
     // TieBreaker orderBy (if provided)
     if (orderBy.tieBreaker) {
-      const tieBreakerField = orderBy.tieBreaker.parameter
-        ? `${orderBy.tieBreaker.field}->>${orderBy.tieBreaker.parameter}`
-        : orderBy.tieBreaker.field;
-
-      query = query.order(tieBreakerField, { ascending: orderBy.tieBreaker.direction === 'asc' });
+      query = query.order(orderBy.tieBreaker.field, { ascending: orderBy.tieBreaker.direction === 'asc' });
     }
 
     return query;
@@ -2368,14 +2350,6 @@ class SpaceStore {
     const { supabase } = await import('../supabase/client');
 
     console.log(`[SpaceStore] 🆔 Fetching IDs for ${entityType}...`);
-
-    // orderBy.field is already normalized (e.g., pet_type_id, measurements)
-    // For JSONB fields with parameter, use field->>parameter syntax
-    const orderField = orderBy.parameter
-      ? `${orderBy.field}->>${orderBy.parameter}`
-      : orderBy.field;
-
-    console.log(`[SpaceStore] 🔍 Order field for Supabase: ${orderField}`);
 
     // 🎯 HYBRID SEARCH: Detect string filters with 'contains' operator
     const searchFilters = Object.entries(filters).filter(([fieldKey, value]) => {
@@ -2405,7 +2379,7 @@ class SpaceStore {
       const startsWithLimit = Math.ceil(limit * 0.7);
       let startsWithQuery = supabase
         .from(entityType)
-        .select(`id, ${orderField}`)
+        .select(`id, ${orderBy.field}`)
         .or('deleted.is.null,deleted.eq.false')
         .ilike(searchField, `${searchValue}%`); // Starts with
 
@@ -2435,7 +2409,7 @@ class SpaceStore {
       if (remainingLimit > 0) {
         let containsQuery = supabase
           .from(entityType)
-          .select(`id, ${orderField}`)
+          .select(`id, ${orderBy.field}`)
           .or('deleted.is.null,deleted.eq.false')
           .ilike(searchField, `%${searchValue}%`)  // Contains
           .not(searchField, 'ilike', `${searchValue}%`); // Exclude starts_with
@@ -2473,7 +2447,7 @@ class SpaceStore {
     // 📄 REGULAR QUERY: No search or cursor pagination
     let query = supabase
       .from(entityType)
-      .select(`id, ${orderField}`);
+      .select(`id, ${orderBy.field}`);
 
     // Filter out deleted records
     query = query.or('deleted.is.null,deleted.eq.false');
@@ -2494,20 +2468,38 @@ class SpaceStore {
       query = this.applySupabaseFilter(query, fieldKey, operator, value);
     }
 
-    // Apply cursor (keyset pagination)
+    // Apply cursor (keyset pagination with tie-breaker)
+    let cursorData: { value: any; id: string } | null = null;
+    let data: any[] = [];
+    let error: any = null;
+
     if (cursor !== null) {
-      if (orderBy.direction === 'asc') {
-        query = query.gt(orderField, cursor);
-      } else {
-        query = query.lt(orderField, cursor);
+      // Parse composite cursor {value, id}
+      try {
+        cursorData = JSON.parse(cursor);
+      } catch (e) {
+        // Fallback for old simple cursor format
+        cursorData = { value: cursor, id: '' };
       }
-      console.log(`[SpaceStore] 🔑 Cursor: ${orderField} ${orderBy.direction === 'asc' ? '>' : '<'} '${cursor}'`);
+
+      console.log(`[SpaceStore] 🔑 Cursor parsed:`, cursorData);
+
+      // Composite cursor with tie-breaker
+      // WHERE (field > value) OR (field = value AND id > cursor_id)
+      const orCondition = orderBy.direction === 'asc'
+        ? `${orderBy.field}.gt.${cursorData.value},and(${orderBy.field}.eq.${cursorData.value},id.gt.${cursorData.id})`
+        : `${orderBy.field}.lt.${cursorData.value},and(${orderBy.field}.eq.${cursorData.value},id.gt.${cursorData.id})`;
+
+      console.log(`[SpaceStore] 🔑 Applying composite cursor filter:`, orCondition);
+      query = query.or(orCondition);
     }
 
     // Apply order and limit
     query = this.applyOrderBy(query, orderBy).limit(limit);
 
-    const { data, error } = await query;
+    const { data: queryData, error: queryError } = await query;
+    data = queryData || [];
+    error = queryError;
 
     if (error) {
       // Check if this is a network error (offline mode)

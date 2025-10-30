@@ -106,14 +106,23 @@ export function SpaceView<T extends { id: string }>({
   // Handle infinite scroll
   const handleScroll = useCallback(() => {
     if (!parentRef.current || isLoadingMore || !hasMore || !onLoadMore) {
+      console.log('[SpaceView] handleScroll blocked:', {
+        hasRef: !!parentRef.current,
+        isLoadingMore,
+        hasMore,
+        hasOnLoadMore: !!onLoadMore
+      });
       return;
     }
 
     const scrollElement = parentRef.current;
     const scrollBottom = scrollElement.scrollHeight - scrollElement.scrollTop - scrollElement.clientHeight;
 
+    console.log('[SpaceView] handleScroll:', { scrollBottom });
+
     // Trigger when we're within 100px of the bottom
     if (scrollBottom < 100) {
+      console.log('[SpaceView] Triggering onLoadMore');
       onLoadMore();
     }
   }, [hasMore, isLoadingMore, onLoadMore]);

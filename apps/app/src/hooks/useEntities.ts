@@ -77,11 +77,23 @@ export function useEntities({
         nextCursor: result.nextCursor
       });
 
-      // Append new records to existing
-      setData(prev => ({
-        entities: [...prev.entities, ...result.records],
-        total: prev.total + result.records.length
-      }));
+      // Append new records to existing (with deduplication)
+      setData(prev => {
+        const existingIds = new Set(prev.entities.map(e => e.id));
+        const newRecords = result.records.filter(r => !existingIds.has(r.id));
+
+        console.log('[useEntities] Dedupe:', {
+          existing: prev.entities.length,
+          fetched: result.records.length,
+          unique: newRecords.length,
+          duplicates: result.records.length - newRecords.length
+        });
+
+        return {
+          entities: [...prev.entities, ...newRecords],
+          total: prev.total + newRecords.length
+        };
+      });
 
       setCursor(result.nextCursor);
       setHasMore(result.hasMore);
@@ -183,6 +195,12 @@ export function useEntities({
         setCursor(result.nextCursor);
         setHasMore(result.hasMore);
         setIsLoading(false);
+
+        console.log('[useEntities] Initial load complete:', {
+          recordsCount: result.records.length,
+          hasMore: result.hasMore,
+          nextCursor: result.nextCursor
+        });
 
       } catch (err) {
         console.error(`[useEntities] Error loading ${entityType}:`, err);
