@@ -47,6 +47,18 @@ interface FieldConfig {
   component?: string;
 }
 
+// OrderBy configuration with tie-breaker support
+export interface OrderBy {
+  field: string;
+  direction: 'asc' | 'desc';
+  parameter?: string; // For JSONB fields (e.g., measurements->achievement_progress)
+  tieBreaker?: {
+    field: string;
+    direction: 'asc' | 'desc';
+    parameter?: string; // For JSONB tie-breakers
+  };
+}
+
 /**
  * SpaceStore - Universal dynamic store for ALL business entities
  * 
@@ -567,6 +579,11 @@ class SpaceStore {
     direction?: string;
     parameter?: string;
     isDefault?: boolean;
+    tieBreaker?: {
+      field: string;
+      direction: 'asc' | 'desc';
+      parameter?: string;
+    };
   }> {
     // Try exact match first
     let spaceConfig = this.spaceConfigs.get(entityType);
@@ -630,7 +647,12 @@ class SpaceStore {
             parameter: sortOption.parametr, // For JSON fields
             isDefault: sortOption.isDefault === 'true' || sortOption.isDefault === true,
             fieldOrder,
-            optionOrder: sortOption.order || 0
+            optionOrder: sortOption.order || 0,
+            tieBreaker: sortOption.tieBreaker ? {
+              field: sortOption.tieBreaker.field,
+              direction: sortOption.tieBreaker.direction,
+              parameter: sortOption.tieBreaker.parameter
+            } : undefined
           };
 
           sortOptions.push(option);
@@ -1975,7 +1997,7 @@ class SpaceStore {
     fieldConfigs: Record<string, any>,
     limit: number,
     cursor: string | null,
-    orderBy: { field: string; direction: 'asc' | 'desc'; parameter?: string }
+    orderBy: OrderBy
   ): Promise<any[]> {
     if (!this.db) {
       return [];
@@ -2296,6 +2318,33 @@ class SpaceStore {
   }
 
   /**
+   * Helper: Apply orderBy with optional tieBreaker to Supabase query
+   * Adds .order() calls for primary sort and tie-breaker sort
+   */
+  private applyOrderBy<T>(
+    query: any,
+    orderBy: OrderBy
+  ): any {
+    // Primary orderBy
+    const orderField = orderBy.parameter
+      ? `${orderBy.field}->>${orderBy.parameter}`
+      : orderBy.field;
+
+    query = query.order(orderField, { ascending: orderBy.direction === 'asc' });
+
+    // TieBreaker orderBy (if provided)
+    if (orderBy.tieBreaker) {
+      const tieBreakerField = orderBy.tieBreaker.parameter
+        ? `${orderBy.tieBreaker.field}->>${orderBy.tieBreaker.parameter}`
+        : orderBy.tieBreaker.field;
+
+      query = query.order(tieBreakerField, { ascending: orderBy.tieBreaker.direction === 'asc' });
+    }
+
+    return query;
+  }
+
+  /**
    * 🆔 ID-First Phase 1: Fetch IDs + ordering field from Supabase
    * Lightweight query (~1KB for 30 records instead of ~30KB)
    *
@@ -2310,7 +2359,7 @@ class SpaceStore {
     fieldConfigs: Record<string, any>,
     limit: number,
     cursor: string | null,
-    orderBy: { field: string; direction: 'asc' | 'desc'; parameter?: string }
+    orderBy: OrderBy
   ): Promise<Array<{ id: string; [key: string]: any }>> {
     const { supabase } = await import('../supabase/client');
 
@@ -2365,9 +2414,7 @@ class SpaceStore {
         startsWithQuery = this.applySupabaseFilter(startsWithQuery, fieldKey, operator, value);
       }
 
-      startsWithQuery = startsWithQuery
-        .order(orderField, { ascending: orderBy.direction === 'asc' })
-        .limit(startsWithLimit);
+      startsWithQuery = this.applyOrderBy(startsWithQuery, orderBy).limit(startsWithLimit);
 
       const { data: startsWithData, error: startsWithError } = await startsWithQuery;
 
@@ -2398,9 +2445,7 @@ class SpaceStore {
           containsQuery = this.applySupabaseFilter(containsQuery, fieldKey, operator, value);
         }
 
-        containsQuery = containsQuery
-          .order(orderField, { ascending: orderBy.direction === 'asc' })
-          .limit(remainingLimit);
+        containsQuery = this.applyOrderBy(containsQuery, orderBy).limit(remainingLimit);
 
         const { data: containsData, error: containsError } = await containsQuery;
 
@@ -2456,9 +2501,7 @@ class SpaceStore {
     }
 
     // Apply order and limit
-    query = query
-      .order(orderField, { ascending: orderBy.direction === 'asc' })
-      .limit(limit);
+    query = this.applyOrderBy(query, orderBy).limit(limit);
 
     const { data, error } = await query;
 
@@ -2594,7 +2637,7 @@ class SpaceStore {
     fieldConfigs: Record<string, any>,
     limit: number,
     cursor: string | null,
-    orderBy: { field: string; direction: 'asc' | 'desc' }
+    orderBy: OrderBy
   ): Promise<any[]> {
     if (!this.db) {
       return [];
@@ -2655,7 +2698,7 @@ class SpaceStore {
       }
 
       // Apply order for consistent pagination (CRITICAL! Must match RxDB sort)
-      query = query.order(orderBy.field, { ascending: orderBy.direction === 'asc' });
+      query = this.applyOrderBy(query, orderBy);
 
       // Apply limit (NO range!)
       query = query.limit(limit);
