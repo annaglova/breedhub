@@ -6,7 +6,7 @@ import { BreedNameComponent } from '@/domain/breed/BreedNameComponent';
 import { spaceStore } from '@breedhub/rxdb-store';
 import { useSignals } from '@preact/signals-react/runtime';
 import { getComponent } from '@/components/space/componentRegistry';
-import { getCoverComponent, CoverTypeIDs } from './cover';
+import { getCoverComponent, CoverTypeIDs, NavigationButtons } from './cover';
 import coverBackground from '@/assets/images/background-images/cover_background.png';
 
 interface PublicPageTemplateProps {
@@ -144,14 +144,12 @@ export function PublicPageTemplate({ className, isDrawerMode = false }: PublicPa
     <div className={cn(
       "size-full flex flex-col",
       isDrawerMode && "bg-white dark:bg-gray-900",
+      // Paddings: only when NOT on detail tab (regardless of drawer/fullscreen mode)
+      // In Angular: !hasActiveDetail() - no check for drawer mode
+      !isDetailTab && "content-padding",
       className
     )}>
-      <div className={cn(
-        "flex flex-auto flex-col items-center",
-        // Paddings: only when NOT on detail tab (regardless of drawer/fullscreen mode)
-        // In Angular: !hasActiveDetail() - no check for drawer mode
-        !isDetailTab && "px-4 pt-4 sm:px-6 sm:pt-6"
-      )}>
+      <div className="flex flex-auto flex-col items-center overflow-auto">
         <div className={cn(
           "w-full",
           // Max-width: standard for most content, full for pedigree
@@ -166,6 +164,24 @@ export function PublicPageTemplate({ className, isDrawerMode = false }: PublicPa
 
               {/* Cover component */}
               <div className="flex w-full max-w-3xl flex-col lg:max-w-4xl xxl:max-w-5xl">
+                {/* Navigation buttons - on template level, above cover content */}
+                <div className="z-20 flex w-full">
+                  {/* Expand button (fullscreen) - show IN drawer mode to allow expanding */}
+                  {isDrawerMode && (
+                    <button
+                      onClick={() => console.log('[TODO] Expand to fullscreen')}
+                      title="Expand"
+                      className="mr-auto hidden md:block"
+                    >
+                      <i className="pi pi-arrows-alt rotate-45 transform text-3xl text-white"></i>
+                    </button>
+                  )}
+
+                  {/* Back/Navigate buttons */}
+                  <NavigationButtons mode="white" className="sticky top-0 ml-auto" />
+                </div>
+
+                {/* Cover content - will have padding-top to avoid button overlap */}
                 <CoverComponent
                   coverImg={mockCover.AvatarUrl}
                   isFullscreen={!isDrawerMode}

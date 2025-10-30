@@ -844,7 +844,7 @@ export function SpaceComponent<T extends { id: string }>({
         >
           <div
             ref={headerRef}
-            className="z-20 flex flex-col justify-between border-b border-surface-border p-4 sm:p-7"
+            className="z-20 flex flex-col justify-between border-b border-surface-border content-padding"
           >
             <div className="w-full">
               <div className="flex w-full justify-between">
@@ -898,7 +898,7 @@ export function SpaceComponent<T extends { id: string }>({
           {/* Header */}
           <div
             ref={headerRef}
-            className="z-20 flex flex-col justify-between border-b border-surface-border p-4 sm:p-7"
+            className="z-20 flex flex-col justify-between border-b border-surface-border content-padding"
           >
             <div className="w-full">
               <div className="flex w-full justify-between">

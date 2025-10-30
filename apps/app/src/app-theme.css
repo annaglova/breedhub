@@ -1,5 +1,16 @@
 /* App.css - Custom styles for the app */
 
+/* Content padding - unified padding for pages and spaces */
+.content-padding {
+  padding: 1rem; /* p-4 */
+}
+
+@media (min-width: 640px) {
+  .content-padding {
+    padding: 1.5rem;
+  }
+}
+
 /* Card styles from Angular project */
 .card-surface {
   background: rgb(var(--card-ground));
