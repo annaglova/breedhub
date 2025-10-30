@@ -99,6 +99,11 @@ export function useEntities({
   useEffect(() => {
     if (!useIDFirst) return;
 
+    // ⚠️ Don't start loading until SpaceStore config is ready (to avoid multiple loads with changing params)
+    if (!spaceStore.configReady.value) {
+      return;
+    }
+
     let isMounted = true;
     let unsubscribeTotal: (() => void) | null = null;
 
@@ -108,13 +113,6 @@ export function useEntities({
         setError(null);
         setCursor(null);
         setHasMore(true);
-
-        console.log('[useEntities] Initial ID-First load:', {
-          entityType,
-          filters,
-          orderBy,
-          rows
-        });
 
         // Wait for SpaceStore to be fully initialized
         let retries = 20;
@@ -155,22 +153,10 @@ export function useEntities({
 
         if (!isMounted) return;
 
-        console.log('[useEntities] Initial load result:', {
-          recordsCount: result.records.length,
-          hasMore: result.hasMore,
-          nextCursor: result.nextCursor
-        });
-
         // Subscribe to totalFromServer to get real count from manual replication
         if (entityStore) {
           const totalFromServer = entityStore.totalFromServer.value;
           const realTotal = totalFromServer !== null ? totalFromServer : result.records.length;
-
-          console.log('[useEntities] Setting initial data:', {
-            recordsCount: result.records.length,
-            totalFromServer,
-            realTotal
-          });
 
           setData({
             entities: result.records,
@@ -181,7 +167,6 @@ export function useEntities({
           unsubscribeTotal = entityStore.totalFromServer.subscribe((total) => {
             if (!isMounted) return;
             const finalTotal = total !== null ? total : result.records.length;
-            console.log('[useEntities] totalFromServer updated:', { total, finalTotal });
             setData(prev => ({
               ...prev,
               total: finalTotal
@@ -189,7 +174,6 @@ export function useEntities({
           });
         } else {
           // Fallback if entityStore not available
-          console.log('[useEntities] No entityStore, using fallback');
           setData({
             entities: result.records,
             total: result.records.length

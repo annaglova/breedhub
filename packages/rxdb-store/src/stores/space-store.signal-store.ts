@@ -152,10 +152,12 @@ class SpaceStore {
       const totalTime = performance.now() - startTime;
       console.log(`[SpaceStore] ✅ INITIALIZED IN ${totalTime.toFixed(0)}ms`);
 
-      // Setup replication for breed entity
-      setTimeout(async () => {
-        await this.setupEntityReplication('breed');
-      }, 1000);
+      // ⚠️ DISABLED: Replication conflicts with ID-First pagination
+      // ID-First загружає дані через applyFilters з правильним orderBy
+      // Replication pull handler загружав би ІНШІ 30 записів (sorted by updated_at)
+      // setTimeout(async () => {
+      //   await this.setupEntityReplication('breed');
+      // }, 1000);
 
     } catch (err) {
       console.error('[SpaceStore] Failed to initialize:', err);

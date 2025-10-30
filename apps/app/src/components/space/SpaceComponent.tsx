@@ -93,7 +93,7 @@ export function SpaceComponent<T extends { id: string }>({
   // Get rows from view config (динамічно!)
   const rowsPerPage = useMemo(() => {
     if (!spaceStore.configReady.value) {
-      return 60; // Use 60 as default for breed/list instead of 50
+      return 30; // Simple fallback - won't cause loading because useEntities waits for configReady
     }
     const rows = spaceStore.getViewRows(config.entitySchemaName, viewMode);
     return rows;
@@ -102,7 +102,7 @@ export function SpaceComponent<T extends { id: string }>({
   // Get sort options from view config
   const sortOptions = useMemo(() => {
     if (!spaceStore.configReady.value) {
-      return [];
+      return []; // Simple fallback - won't cause loading because useEntities waits for configReady
     }
     return spaceStore.getSortOptions(config.entitySchemaName, viewMode);
   }, [config.entitySchemaName, viewMode, spaceStore.configReady.value]);
@@ -110,7 +110,7 @@ export function SpaceComponent<T extends { id: string }>({
   // Get filter fields from view config (already excludes mainFilterField)
   const filterFields = useMemo(() => {
     if (!spaceStore.configReady.value) {
-      return [];
+      return []; // Simple fallback - won't cause loading because useEntities waits for configReady
     }
     return spaceStore.getFilterFields(config.entitySchemaName, viewMode);
   }, [config.entitySchemaName, viewMode, spaceStore.configReady.value]);
@@ -118,9 +118,8 @@ export function SpaceComponent<T extends { id: string }>({
   // Get the main filter field for search (from SpaceStore)
   const mainFilterField = useMemo(() => {
     if (!spaceStore.configReady.value) {
-      return null;
+      return null; // Simple fallback - won't cause loading because useEntities waits for configReady
     }
-
     return spaceStore.getMainFilterField(config.entitySchemaName);
   }, [config.entitySchemaName, spaceStore.configReady.value]);
 
@@ -280,17 +279,9 @@ export function SpaceComponent<T extends { id: string }>({
       // If filterFields not loaded yet, don't build filters (wait for config to load)
       // This prevents using URL slugs directly before field configs are available
       if (filterFields.length === 0) {
-        console.log(
-          "[SpaceComponent] filterFields not loaded yet, skipping filter build"
-        );
         setFilters(undefined);
         return;
       }
-
-      console.log(
-        "[SpaceComponent] Building filters from URL params:",
-        Array.from(searchParams.entries())
-      );
 
       const filterObj: Record<string, any> = {};
       const reservedParams = ["sort", "view", "sortBy", "sortDir", "sortParam"];
@@ -372,7 +363,7 @@ export function SpaceComponent<T extends { id: string }>({
     };
 
     buildFilters();
-  }, [searchParams, filterFields, mainFilterField]);
+  }, [searchParams, filterFields, mainFilterField, config.entitySchemaName]);
 
   // 🆕 ID-First: useEntities with orderBy + filters enables ID-First pagination
   const {
