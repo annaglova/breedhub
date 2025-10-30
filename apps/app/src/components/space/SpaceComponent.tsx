@@ -254,7 +254,14 @@ export function SpaceComponent<T extends { id: string }>({
   // 🆕 Memoize orderBy to prevent infinite loop (new object on each render)
   const orderBy = useMemo(() => {
     if (!selectedSortOption?.field) {
-      return { field: "name", direction: "asc" as const }; // Fallback to name if no sort config
+      return {
+        field: "name",
+        direction: "asc" as const,
+        tieBreaker: {
+          field: "id",
+          direction: "asc" as const,
+        },
+      }; // Fallback to name with id tie-breaker
     }
 
     return {
@@ -262,6 +269,9 @@ export function SpaceComponent<T extends { id: string }>({
       direction: selectedSortOption.direction as "asc" | "desc",
       ...(selectedSortOption.parameter && {
         parameter: selectedSortOption.parameter,
+      }),
+      ...(selectedSortOption.tieBreaker && {
+        tieBreaker: selectedSortOption.tieBreaker,
       }),
     };
   }, [selectedSortOption]);

@@ -1639,16 +1639,20 @@ class SpaceStore {
     options?: {
       limit?: number;
       cursor?: string | null;  // ✅ Cursor for IDs query (keyset pagination)
-      orderBy?: {
-        field: string;
-        direction: 'asc' | 'desc';
-      };
+      orderBy?: OrderBy;  // ✅ Use OrderBy interface with tieBreaker support
       fieldConfigs?: Record<string, any>;
     }
   ): Promise<{ records: any[]; total: number; hasMore: boolean; nextCursor: string | null }> {
     const limit = options?.limit || 30;
     const cursor = options?.cursor ?? null;
-    const orderBy = options?.orderBy || { field: 'name', direction: 'asc' as const };
+    const orderBy: OrderBy = options?.orderBy || {
+      field: 'name',
+      direction: 'asc' as const,
+      tieBreaker: {
+        field: 'id',
+        direction: 'asc' as const
+      }
+    };
 
     console.log('[SpaceStore] applyFilters (ID-First):', {
       entityType,
