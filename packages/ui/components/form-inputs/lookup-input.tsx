@@ -120,7 +120,14 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
             {
               limit: 30,
               cursor: currentCursor,
-              orderBy: { field: 'name', direction: 'asc' }  // Always A-Z for search/selection
+              orderBy: {
+                field: 'name',
+                direction: 'asc',
+                tieBreaker: {
+                  field: 'id',
+                  direction: 'asc'
+                }
+              }  // Always A-Z with id tie-breaker for stable sort
             }
           );
 
