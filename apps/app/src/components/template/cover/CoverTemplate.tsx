@@ -2,7 +2,6 @@ import React from 'react';
 
 interface CoverTemplateProps {
   coverImg: string;
-  needGradient?: boolean;
   children?: React.ReactNode;
   className?: string;
 }
@@ -12,14 +11,13 @@ interface CoverTemplateProps {
  *
  * Provides:
  * - Background image rendering
- * - Optional gradient overlay for text readability
  * - Children content positioned on top
  *
+ * Note: Gradient overlay moved to PublicPageTemplate level
  * Used by: DefaultCover, BreedCoverV1, CustomCover, etc.
  */
 export function CoverTemplate({
   coverImg,
-  needGradient = false,
   children,
   className = ''
 }: CoverTemplateProps) {
@@ -33,11 +31,6 @@ export function CoverTemplate({
             src={coverImg}
             alt="Cover image"
           />
-
-          {/* Optional gradient overlay for better text readability */}
-          {needGradient && (
-            <div className="absolute inset-0 size-full bg-gradient-to-r from-primary-50/10 to-primary-400/85" />
-          )}
 
           {/* Cover-specific content */}
           {children}

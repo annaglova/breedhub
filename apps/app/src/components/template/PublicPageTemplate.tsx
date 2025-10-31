@@ -181,6 +181,9 @@ export function PublicPageTemplate({ className, isDrawerMode = false }: PublicPa
                   <NavigationButtons mode="white" className="sticky top-0 ml-auto" />
                 </div>
 
+                {/* Gradient overlay - positioned below buttons, above cover content */}
+                <div className="absolute inset-0 size-full bg-gradient-to-r from-primary-50/10 to-primary-400/85 z-10" />
+
                 {/* Cover content - will have padding-top to avoid button overlap */}
                 <CoverComponent
                   coverImg={mockCover.AvatarUrl}

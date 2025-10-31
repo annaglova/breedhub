@@ -20,7 +20,7 @@ export function DefaultCover({
   className = ''
 }: DefaultCoverProps) {
   return (
-    <CoverTemplate coverImg={coverImg} needGradient={true} className={className}>
+    <CoverTemplate coverImg={coverImg} className={className}>
       <div className="z-10 mt-1 mb-3 ml-auto flex size-full flex-col justify-between sm:my-2 sm:w-auto pt-10">
         {/* Patrons text */}
         <div>

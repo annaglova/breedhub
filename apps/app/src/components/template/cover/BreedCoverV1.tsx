@@ -54,7 +54,7 @@ export function BreedCoverV1({
   if (!breed) return null;
 
   return (
-    <CoverTemplate coverImg={coverImg} needGradient={true} className={`relateve ${className}`}>
+    <CoverTemplate coverImg={coverImg} className={`relateve ${className}`}>
       <div className="z-10 ml-auto flex size-full flex-col justify-between pb-3 sm:w-auto sm:pb-2 sm:pt-1 pt-10">
         {/* Patrons */}
         <div className="flex w-full justify-between sm:flex-col sm:space-y-2">
