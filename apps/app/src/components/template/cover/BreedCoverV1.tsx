@@ -1,4 +1,5 @@
 import React, { useMemo } from 'react';
+import { Heart } from 'lucide-react';
 import { CoverTemplate } from './CoverTemplate';
 import { PatronAvatar } from './PatronAvatar';
 import { Button } from 'primereact/button';
@@ -122,10 +123,10 @@ export function BreedCoverV1({
             aria-label="Become a breed patron"
             tooltip="Support your breed"
             tooltipOptions={{ position: 'bottom' }}
-            icon="pi pi-heart-fill"
             onClick={handleBecomePatron}
             type="button"
           >
+            <Heart size={16} fill="currentColor" />
             <span className="ml-2 hidden font-bold sm:block">Become a breed patron</span>
           </Button>
           {/* Mobile button */}
@@ -134,10 +135,11 @@ export function BreedCoverV1({
             aria-label="Become a breed patron"
             tooltip="Support your breed"
             tooltipOptions={{ position: 'bottom' }}
-            icon="pi pi-heart-fill"
             onClick={handleBecomePatron}
             type="button"
-          />
+          >
+            <Heart size={16} fill="currentColor" />
+          </Button>
         </div>
       </div>
     </CoverTemplate>

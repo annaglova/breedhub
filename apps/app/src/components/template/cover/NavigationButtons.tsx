@@ -1,4 +1,5 @@
 import React from 'react';
+import { ArrowLeft, ChevronDown } from 'lucide-react';
 
 interface NavigationButtonsProps {
   mode?: 'default' | 'white';
@@ -48,7 +49,7 @@ export function NavigationButtons({
         `}
         style={{ borderRadius: '2rem 0 0 2rem' }}
       >
-        <i className="pi pi-arrow-left"></i>
+        <ArrowLeft size={20} />
       </button>
 
       {/* Navigate button (history menu) */}
@@ -65,7 +66,7 @@ export function NavigationButtons({
         `}
         style={{ borderRadius: '0 2rem 2rem 0' }}
       >
-        <i className="pi pi-angle-down"></i>
+        <ChevronDown size={20} />
       </button>
     </div>
   );

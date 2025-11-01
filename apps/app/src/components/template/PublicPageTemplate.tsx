@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { cn } from '@ui/lib/utils';
+import { Expand } from 'lucide-react';
 import { NameContainerOutlet } from './NameContainerOutlet';
 import { BreedNameComponent } from '@/domain/breed/BreedNameComponent';
 import { spaceStore } from '@breedhub/rxdb-store';
@@ -173,7 +174,7 @@ export function PublicPageTemplate({ className, isDrawerMode = false }: PublicPa
                       title="Expand"
                       className="mr-auto hidden md:block"
                     >
-                      <i className="pi pi-arrows-alt rotate-45 transform text-3xl text-white"></i>
+                      <Expand size={30} className="text-white" />
                     </button>
                   )}
 
