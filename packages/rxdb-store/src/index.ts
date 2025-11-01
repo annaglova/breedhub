@@ -25,6 +25,7 @@ export type { AppConfig, AppConfigDocument, AppConfigCollection } from './stores
 
 // App Store
 export { appStore } from './stores/app-store.signal-store';
+export type { IconConfig } from './stores/app-store.signal-store';
 
 // Space Store - Universal dynamic store for all business entities
 export { spaceStore } from './stores/space-store.signal-store';

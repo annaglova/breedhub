@@ -9,9 +9,14 @@ import { dictionaryStore } from './dictionary-store.signal-store';
 const APP_CONFIG_ID = 'config_app_1757849573544';
 
 // Types
+export interface IconConfig {
+  name: string;
+  source: 'lucide' | 'custom';
+}
+
 interface Workspace {
   id: string;
-  icon: string;
+  icon: string | IconConfig; // Support both string (legacy) and object (new)
   path: string;
   label: string;
   spaces?: any;

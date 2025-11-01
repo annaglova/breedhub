@@ -9,11 +9,13 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@ui/components/tooltip";
-import { cn, getIconComponent } from "@ui/lib/utils";
+import { cn } from "@ui/lib/utils";
 import { Menu } from "lucide-react";
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { UserDrawer } from "./UserDrawer";
+import { Icon } from "@/components/shared/Icon";
+import type { IconConfig } from "@breedhub/rxdb-store";
 
 interface HeaderProps {
   onMenuClick?: () => void;
@@ -31,10 +33,19 @@ export function Header({ onMenuClick, isHome = false }: HeaderProps) {
   // See docs/UNIVERSAL_STORE_IMPLEMENTATION.md for details
   const { workspaces, loading, error, isDataLoaded } = useAppWorkspaces();
 
-  // Map workspaces to navigation items with icon components
+  // Helper to normalize icon to IconConfig format
+  const normalizeIcon = (icon: string | IconConfig): IconConfig => {
+    if (typeof icon === 'string') {
+      // Legacy string format - assume it's Lucide kebab-case
+      return { name: icon, source: 'lucide' };
+    }
+    return icon;
+  };
+
+  // Map workspaces to navigation items
   const navItems = workspaces.map(workspace => ({
     id: workspace.id,
-    icon: getIconComponent(workspace.icon),
+    icon: normalizeIcon(workspace.icon),
     label: workspace.label,
     path: workspace.path
   }));
@@ -77,7 +88,6 @@ export function Header({ onMenuClick, isHome = false }: HeaderProps) {
                 ) : (
                   // Always show workspaces (either default or from DB)
                   navItems.map((item) => {
-                    const Icon = item.icon;
                     const isActive =
                       location.pathname === item.path ||
                       (item.path === "/" &&
@@ -95,8 +105,9 @@ export function Header({ onMenuClick, isHome = false }: HeaderProps) {
                             )}
                           >
                             <Icon
+                              icon={item.icon}
+                              size={24}
                               className={cn(
-                                "h-6 w-6",
                                 isActive
                                   ? "text-primary"
                                   : "text-sub-header-color"

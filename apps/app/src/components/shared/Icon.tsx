@@ -1,14 +1,8 @@
 import React from 'react';
 import type { SVGProps } from 'react';
 import * as LucideIcons from 'lucide-react';
-import * as CustomIcons from '@breedhub/icons';
-
-export type IconSource = 'lucide' | 'custom';
-
-export interface IconConfig {
-  name: string;
-  source: IconSource;
-}
+import * as CustomIcons from '@shared/icons';
+import type { IconConfig } from '@breedhub/rxdb-store';
 
 export interface IconProps extends Omit<SVGProps<SVGSVGElement>, 'name' | 'ref'> {
   icon: IconConfig;
@@ -31,6 +25,28 @@ export interface IconProps extends Omit<SVGProps<SVGSVGElement>, 'name' | 'ref'>
 export function Icon({ icon, size = 24, className = '', ...props }: IconProps) {
   const { name, source } = icon;
 
+  // DEBUG: Log every Icon render
+  console.log(`[Icon] Rendering: source="${source}", name="${name}"`);
+
+  // Fallback SVG component
+  const FallbackIcon = () => (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="red"
+      strokeWidth={2}
+      className={className}
+      {...props}
+    >
+      <circle cx="12" cy="12" r="10" />
+      <text x="12" y="16" textAnchor="middle" fill="red" fontSize="14" fontWeight="bold">
+        ?
+      </text>
+    </svg>
+  );
+
   // Render Lucide icon
   if (source === 'lucide') {
     // Lucide uses PascalCase (e.g., "Heart", "ChevronDown")
@@ -38,11 +54,7 @@ export function Icon({ icon, size = 24, className = '', ...props }: IconProps) {
 
     if (!LucideIcon) {
       console.warn(`[Icon] Lucide icon not found: ${name}`);
-      return (
-        <span className={className} style={{ color: 'red', fontSize: size }}>
-          ?
-        </span>
-      );
+      return <FallbackIcon />;
     }
 
     return <LucideIcon size={size} className={className} {...props} />;
@@ -58,24 +70,32 @@ export function Icon({ icon, size = 24, className = '', ...props }: IconProps) {
         .join('') + 'Icon';
 
     const exportName = toExportName(name);
+    console.log(`[Icon] Looking for custom icon: ${name} → ${exportName}`);
+    console.log(`[Icon] CustomIcons type:`, typeof CustomIcons);
+    console.log(`[Icon] CustomIcons keys:`, Object.keys(CustomIcons).length, 'total');
+
     const CustomIcon = (CustomIcons as any)[exportName];
+    console.log(`[Icon] Found icon?`, !!CustomIcon);
 
     if (!CustomIcon) {
-      console.warn(`[Icon] Custom icon not found: ${name} (${exportName})`);
-      return (
-        <span className={className} style={{ color: 'red', fontSize: size }}>
-          ?
-        </span>
-      );
+      console.warn(`[Icon] Custom icon not found: ${name} (trying: ${exportName})`);
+      console.warn('[Icon] Available custom icons (first 20):', Object.keys(CustomIcons).filter(k => k.endsWith('Icon')).slice(0, 20));
+      return <FallbackIcon />;
     }
 
-    return <CustomIcon width={size} height={size} className={className} {...props} />;
+    console.log(`[Icon] Rendering custom icon: ${exportName}`);
+    // Custom SVGs use fill, so we need to set fill style explicitly
+    return (
+      <CustomIcon
+        width={size}
+        height={size}
+        className={className}
+        style={{ fill: 'currentColor' }}
+        {...props}
+      />
+    );
   }
 
   console.warn(`[Icon] Unknown icon source: ${source}`);
-  return (
-    <span className={className} style={{ color: 'red', fontSize: size }}>
-      ?
-    </span>
-  );
+  return <FallbackIcon />;
 }
