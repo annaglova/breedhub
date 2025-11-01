@@ -20,7 +20,7 @@ export function DefaultCover({
 }: DefaultCoverProps) {
   return (
     <CoverTemplate coverImg={coverImg} className={className}>
-      <div className="z-10 mt-1 mb-3 ml-auto flex size-full flex-col justify-between sm:my-2 sm:w-auto pt-10">
+      <div className="z-20 mt-1 mb-3 ml-auto flex size-full flex-col justify-between sm:my-2 sm:w-auto pt-10">
         {/* Patrons text */}
         <div>
           <div
@@ -39,7 +39,7 @@ export function DefaultCover({
         </div>
 
         {/* Call to action */}
-        <div className="flex items-end">
+        <div className="flex items-end z-40 relative">
           <Button
             variant="outline"
             className="ml-auto rounded-full h-[2.6rem] px-4 bg-white/30 border-white text-white hover:bg-white/60 hover:text-white text-base font-semibold"

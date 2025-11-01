@@ -62,7 +62,7 @@ export function BreedCoverV1({
 
   return (
     <CoverTemplate coverImg={coverImg} className={`relateve ${className}`}>
-      <div className="z-10 ml-auto flex size-full flex-col justify-between pb-3 sm:w-auto sm:pb-2 sm:pt-1 pt-10">
+      <div className="z-20 ml-auto flex size-full flex-col justify-between pb-3 sm:w-auto sm:pb-2 sm:pt-1 pt-10">
         {/* Patrons */}
         <div className="flex w-full justify-between sm:flex-col sm:space-y-2">
           <div
@@ -141,7 +141,7 @@ export function BreedCoverV1({
         </div>
 
         {/* Call to action */}
-        <div className="flex items-end">
+        <div className="flex items-end z-40 relative">
           {/* Desktop button */}
           <Tooltip>
             <TooltipTrigger asChild>

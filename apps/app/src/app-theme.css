@@ -39,6 +39,10 @@
   border-color: rgb(var(--surface-border));
 }
 
+.ring-card-ground {
+  --tw-ring-color: rgb(var(--card-ground));
+}
+
 /* Custom button sizes */
 .small-button {
   height: 2.6rem !important;

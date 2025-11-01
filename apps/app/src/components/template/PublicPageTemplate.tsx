@@ -3,6 +3,7 @@ import { useCoverDimensions } from "@/hooks/useCoverDimensions";
 import { cn } from "@ui/lib/utils";
 import { Expand } from "lucide-react";
 import { useRef } from "react";
+import { AvatarOutlet } from "./AvatarOutlet";
 import { CoverTypeIDs, getCoverComponent, NavigationButtons } from "./cover";
 
 interface PublicPageTemplateProps {
@@ -137,7 +138,7 @@ export function PublicPageTemplate({
             {/* Cover component */}
             <div className="flex w-full max-w-3xl flex-col lg:max-w-4xl xxl:max-w-5xl">
               {/* Navigation buttons - on template level, above cover content */}
-              <div className="z-20 flex w-full pb-2">
+              <div className="z-40 flex w-full pb-2">
                 {/* Expand button (fullscreen) - show IN drawer mode to allow expanding */}
                 {isDrawerMode && (
                   <button
@@ -167,6 +168,13 @@ export function PublicPageTemplate({
               />
             </div>
           </div>
+
+          {/* Avatar Section */}
+          <AvatarOutlet
+            avatarSize={176}
+            onEdit={() => console.log("[TODO] Edit avatar")}
+            onMoreOptions={() => console.log("[TODO] More options")}
+          />
         </div>
       </div>
     </div>
