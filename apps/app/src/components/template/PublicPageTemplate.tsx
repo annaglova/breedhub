@@ -1,14 +1,15 @@
-import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { cn } from '@ui/lib/utils';
-import { Expand } from 'lucide-react';
-import { NameContainerOutlet } from './NameContainerOutlet';
-import { BreedNameComponent } from '@/domain/breed/BreedNameComponent';
-import { spaceStore } from '@breedhub/rxdb-store';
-import { useSignals } from '@preact/signals-react/runtime';
-import { getComponent } from '@/components/space/componentRegistry';
-import { getCoverComponent, CoverTypeIDs, NavigationButtons } from './cover';
-import coverBackground from '@/assets/images/background-images/cover_background.png';
+import coverBackground from "@/assets/images/background-images/cover_background.png";
+import { getComponent } from "@/components/space/componentRegistry";
+import { BreedNameComponent } from "@/domain/breed/BreedNameComponent";
+import { useCoverDimensions } from "@/hooks/useCoverDimensions";
+import { spaceStore } from "@breedhub/rxdb-store";
+import { useSignals } from "@preact/signals-react/runtime";
+import { cn } from "@ui/lib/utils";
+import { Expand } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
+import { CoverTypeIDs, getCoverComponent, NavigationButtons } from "./cover";
+import { NameContainerOutlet } from "./NameContainerOutlet";
 
 interface PublicPageTemplateProps {
   className?: string;
@@ -21,17 +22,26 @@ interface PublicPageTemplateProps {
  * Динамічний рендеринг public pages з tabs
  * Supports drawer and fullscreen modes
  */
-export function PublicPageTemplate({ className, isDrawerMode = false }: PublicPageTemplateProps) {
+export function PublicPageTemplate({
+  className,
+  isDrawerMode = false,
+}: PublicPageTemplateProps) {
   useSignals();
 
   const { id } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
-  const [activeTab, setActiveTab] = useState('overview');
+  const [activeTab, setActiveTab] = useState("overview");
+
+  // Ref to content container for cover dimension calculation
+  const contentContainerRef = useRef<HTMLDivElement>(null);
+
+  // Calculate cover dimensions based on content container width
+  const coverDimensions = useCoverDimensions(contentContainerRef);
 
   // Get entity from store (reactive!)
   // For now hardcoded to breed, later will be dynamic based on entity type
-  const entitySignal = spaceStore.getSelectedEntity('breed');
+  const entitySignal = spaceStore.getSelectedEntity("breed");
   const entity = entitySignal.value;
 
   // MOCK DATA for cover testing
@@ -44,40 +54,72 @@ export function PublicPageTemplate({ className, isDrawerMode = false }: PublicPa
   };
 
   const mockBreed = {
-    Id: 'mock-breed-1',
-    Name: 'German Shepherd',
+    Id: "mock-breed-1",
+    Name: "German Shepherd",
     TopPatrons: [
       {
-        Id: '1',
+        Id: "1",
         Contact: {
-          Name: 'John Doe',
-          Url: 'john-doe',
-          AvatarUrl: 'https://i.pravatar.cc/150?img=12',
+          Name: "John Doe",
+          Url: "john-doe",
+          AvatarUrl: "https://i.pravatar.cc/150?img=12",
         },
         Place: 1,
         Rating: 100,
       },
       {
-        Id: '2',
+        Id: "2",
         Contact: {
-          Name: 'Jane Smith',
-          Url: 'jane-smith',
-          AvatarUrl: 'https://i.pravatar.cc/150?img=47',
+          Name: "Jane Smith",
+          Url: "jane-smith",
+          AvatarUrl: "https://i.pravatar.cc/150?img=47",
         },
         Place: 2,
         Rating: 90,
       },
       {
-        Id: '3',
+        Id: "3",
         Contact: {
-          Name: 'Bob Johnson',
-          Url: 'bob-johnson',
-          AvatarUrl: 'https://i.pravatar.cc/150?img=33',
+          Name: "Bob Johnson",
+          Url: "bob-johnson",
+          AvatarUrl: "https://i.pravatar.cc/150?img=33",
         },
         Place: 3,
         Rating: 80,
       },
-    ],
+    ], // Top patrons
+    // TopPatrons: [
+    //   {
+    //     Id: "1",
+    //     Contact: {
+    //       Name: "John Doe",
+    //       Url: "john-doe",
+    //       AvatarUrl: "https://i.pravatar.cc/150?img=12",
+    //     },
+    //     Place: 1,
+    //     Rating: 100,
+    //   },
+    //   {
+    //     Id: "2",
+    //     Contact: {
+    //       Name: "Jane Smith",
+    //       Url: "jane-smith",
+    //       AvatarUrl: "https://i.pravatar.cc/150?img=47",
+    //     },
+    //     Place: 2,
+    //     Rating: 90,
+    //   },
+    //   {
+    //     Id: "3",
+    //     Contact: {
+    //       Name: "Bob Johnson",
+    //       Url: "bob-johnson",
+    //       AvatarUrl: "https://i.pravatar.cc/150?img=33",
+    //     },
+    //     Place: 3,
+    //     Rating: 80,
+    //   },
+    // ],
   };
 
   // Get cover component based on type
@@ -87,26 +129,26 @@ export function PublicPageTemplate({ className, isDrawerMode = false }: PublicPa
   // TODO: Get tabs from config
   // For now, hardcoded tabs
   const tabs = [
-    { id: 'overview', label: 'Overview', component: 'OverviewTab' },
-    { id: 'details', label: 'Details', component: 'DetailsTab' },
+    { id: "overview", label: "Overview", component: "OverviewTab" },
+    { id: "details", label: "Details", component: "DetailsTab" },
   ];
 
-  console.log('[PublicPageTemplate] Render:', {
+  console.log("[PublicPageTemplate] Render:", {
     isDrawerMode,
     id,
     entity,
-    activeTab
+    activeTab,
   });
 
   // Sync activeTab with URL hash (for drawer mode)
   useEffect(() => {
     if (isDrawerMode) {
       const hash = location.hash.slice(1);
-      if (hash && tabs.some(tab => tab.id === hash)) {
+      if (hash && tabs.some((tab) => tab.id === hash)) {
         setActiveTab(hash);
       } else {
-        setActiveTab('overview');
-        navigate('#overview', { replace: true });
+        setActiveTab("overview");
+        navigate("#overview", { replace: true });
       }
     }
   }, [location.hash, isDrawerMode, navigate]);
@@ -127,7 +169,7 @@ export function PublicPageTemplate({ className, isDrawerMode = false }: PublicPa
   };
 
   // Get active tab component
-  const activeTabConfig = tabs.find(tab => tab.id === activeTab);
+  const activeTabConfig = tabs.find((tab) => tab.id === activeTab);
   const TabComponent = activeTabConfig
     ? getComponent(activeTabConfig.component)
     : null;
@@ -136,50 +178,66 @@ export function PublicPageTemplate({ className, isDrawerMode = false }: PublicPa
   const NameComponent = BreedNameComponent;
 
   // Check if we're on a detail tab (not overview)
-  const isDetailTab = activeTab !== 'overview';
+  const isDetailTab = activeTab !== "overview";
 
   // Determine if we need full width (for pedigree or other wide-content tabs)
-  const needsFullWidth = activeTab === 'pedigree';
+  const needsFullWidth = activeTab === "pedigree";
 
   return (
-    <div className={cn(
-      "size-full flex flex-col",
-      isDrawerMode && "bg-white dark:bg-gray-900",
-      // Paddings: only when NOT on detail tab (regardless of drawer/fullscreen mode)
-      // In Angular: !hasActiveDetail() - no check for drawer mode
-      !isDetailTab && "content-padding",
-      className
-    )}>
+    <div
+      className={cn(
+        "size-full flex flex-col",
+        isDrawerMode && "bg-white dark:bg-gray-900",
+        // Paddings: only when NOT on detail tab (regardless of drawer/fullscreen mode)
+        // In Angular: !hasActiveDetail() - no check for drawer mode
+        !isDetailTab && "content-padding",
+        className
+      )}
+    >
       <div className="flex flex-auto flex-col items-center overflow-auto">
-        <div className={cn(
-          "w-full",
-          // Max-width: standard for most content, full for pedigree
-          !needsFullWidth && "max-w-3xl lg:max-w-4xl xxl:max-w-5xl",
-          needsFullWidth && "max-w-full lg:max-w-full xxl:max-w-full"
-        )}>
+        <div
+          ref={contentContainerRef}
+          className={cn(
+            "w-full",
+            // Max-width: standard for most content, full for pedigree
+            !needsFullWidth && "max-w-3xl lg:max-w-4xl xxl:max-w-5xl",
+            needsFullWidth && "max-w-full lg:max-w-full xxl:max-w-full"
+          )}
+        >
           {/* Cover Section - only show on overview tab (not on detail tabs) */}
           {!isDetailTab && (
-            <div className="relative flex size-full justify-center overflow-hidden rounded-lg border border-gray-200 px-6 pt-4 shadow-sm sm:pb-3 sm:pt-6 h-64 md:h-80 lg:h-96 mb-6">
+            <div
+              className="relative flex size-full justify-center overflow-hidden rounded-lg border border-gray-200 px-6 pt-4 shadow-sm sm:pb-3 sm:pt-6 mb-6"
+              style={{
+                width: `${coverDimensions.width}px`,
+                maxWidth: `${coverDimensions.width}px`,
+                height: `${coverDimensions.height}px`,
+                maxHeight: `${coverDimensions.height}px`,
+              }}
+            >
               {/* Top gradient overlay */}
               <div className="absolute top-0 z-10 h-28 w-full bg-gradient-to-b from-[#200e4c]/40 to-transparent"></div>
 
               {/* Cover component */}
               <div className="flex w-full max-w-3xl flex-col lg:max-w-4xl xxl:max-w-5xl">
                 {/* Navigation buttons - on template level, above cover content */}
-                <div className="z-20 flex w-full">
+                <div className="z-20 flex w-full pb-2">
                   {/* Expand button (fullscreen) - show IN drawer mode to allow expanding */}
                   {isDrawerMode && (
                     <button
-                      onClick={() => console.log('[TODO] Expand to fullscreen')}
+                      onClick={() => console.log("[TODO] Expand to fullscreen")}
                       title="Expand"
                       className="mr-auto hidden md:block"
                     >
-                      <Expand size={30} className="text-white" />
+                      <Expand size={22} className="text-white" />
                     </button>
                   )}
 
                   {/* Back/Navigate buttons */}
-                  <NavigationButtons mode="white" className="sticky top-0 ml-auto" />
+                  <NavigationButtons
+                    mode="white"
+                    className="sticky top-0 ml-auto"
+                  />
                 </div>
 
                 {/* Gradient overlay - positioned below buttons, above cover content */}
@@ -225,7 +283,7 @@ export function PublicPageTemplate({ className, isDrawerMode = false }: PublicPa
             {TabComponent ? (
               <TabComponent
                 entity={entity}
-                mode={isDrawerMode ? 'drawer' : 'fullscreen'}
+                mode={isDrawerMode ? "drawer" : "fullscreen"}
                 recordsLimit={10}
               />
             ) : (
