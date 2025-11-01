@@ -849,9 +849,9 @@ export function SpaceComponent<T extends { id: string }>({
           >
             <div className="w-full">
               <div className="flex w-full justify-between">
-                <span className="text-4xl font-extrabold">
+                <h1 className="text-4xl">
                   {finalConfig.title}
-                </span>
+                </h1>
                 <ViewChanger
                   views={
                     finalConfig.viewTypes || config.viewConfig.map((v) => v.id)
@@ -903,9 +903,9 @@ export function SpaceComponent<T extends { id: string }>({
           >
             <div className="w-full">
               <div className="flex w-full justify-between">
-                <span className="text-4xl font-extrabold">
+                <h1 className="text-4xl">
                   {finalConfig.title}
-                </span>
+                </h1>
                 <ViewChanger
                   views={
                     finalConfig.viewTypes || config.viewConfig.map((v) => v.id)

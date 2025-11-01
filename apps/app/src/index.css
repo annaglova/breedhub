@@ -5,6 +5,27 @@
 @import "@shared/theme/custom-theme.css";
 @import "./tailwind.theme.css";
 
+/* Heading Typography - Using Roboto for visual hierarchy */
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Roboto', sans-serif;
+}
+
+h1 {
+  @apply font-bold;
+}
+
+h2 {
+  @apply font-semibold;
+}
+
+h3 {
+  @apply font-semibold;
+}
+
+h4 {
+  @apply font-medium;
+}
+
 /* Layout container styles */
 .layout-container {
   height: 100vh;

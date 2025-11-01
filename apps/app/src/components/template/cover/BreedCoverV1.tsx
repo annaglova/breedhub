@@ -1,8 +1,14 @@
-import React, { useMemo } from 'react';
-import { Heart } from 'lucide-react';
-import { CoverTemplate } from './CoverTemplate';
-import { PatronAvatar } from './PatronAvatar';
-import { Button } from 'primereact/button';
+import * as PatronIcons from "@shared/icons";
+import { Button } from "@ui/components/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@ui/components/tooltip";
+import { Heart } from "lucide-react";
+import { useMemo } from "react";
+import { CoverTemplate } from "./CoverTemplate";
+import { PatronAvatar } from "./PatronAvatar";
 
 interface Breed {
   Id: string;
@@ -36,12 +42,12 @@ export function BreedCoverV1({
   coverImg,
   breed,
   isFullscreen = false,
-  className = ''
+  className = "",
 }: BreedCoverV1Props) {
   // Calculate patron length (max 3 on mobile, 4 on desktop)
   const patronLength = useMemo(() => {
     if (!breed?.TopPatrons) return 0;
-    const isMobile = typeof window !== 'undefined' && window.screen.width < 600;
+    const isMobile = typeof window !== "undefined" && window.screen.width < 600;
     return isMobile
       ? Math.min(breed.TopPatrons.length, 3)
       : breed.TopPatrons.length;
@@ -49,7 +55,7 @@ export function BreedCoverV1({
 
   const handleBecomePatron = () => {
     // TODO: Navigate to become patron page
-    console.log('Become patron:', breed.Id);
+    console.log("Become patron:", breed.Id);
   };
 
   if (!breed) return null;
@@ -60,19 +66,20 @@ export function BreedCoverV1({
         {/* Patrons */}
         <div className="flex w-full justify-between sm:flex-col sm:space-y-2">
           <div
-            className={`text-md absolute top-5 sm:text-end font-semibold uppercase text-white max-w-64 text-left sm:max-w-full sm:static sm:text-xl ${
-              isFullscreen ? 'sm:mt-3' : ''
+            className={`text-md absolute top-5 sm:text-end font-medium uppercase text-white max-w-64 text-left sm:max-w-full sm:static sm:text-xl ${
+              isFullscreen ? "sm:mt-3" : ""
             }`}
+            style={{ fontFamily: 'Roboto, sans-serif' }}
           >
             {breed.Name}
-            {patronLength > 0 && ' top patrons'}
+            {patronLength > 0 && " top patrons"}
           </div>
           <div className="ml-auto mr-2 mt-2 sm:mt-0">
             {patronLength > 0 ? (
               <div
                 className="grid gap-2.5"
                 style={{
-                  gridTemplateColumns: `repeat(${patronLength}, minmax(0, 1fr))`
+                  gridTemplateColumns: `repeat(${patronLength}, minmax(0, 1fr))`,
                 }}
               >
                 {breed.TopPatrons?.slice(0, 4).map((patron, index) => (
@@ -89,20 +96,38 @@ export function BreedCoverV1({
                   {/* Question mark icon */}
                   <svg
                     className="duration-300 group-hover:scale-125"
-                    width="36"
-                    height="36"
+                    width="40"
+                    height="40"
                     viewBox="0 0 24 24"
                     fill="rgb(255,255,255)"
                   >
-                    <text x="50%" y="50%" dominantBaseline="middle" textAnchor="middle" fontSize="20" fontWeight="bold">
+                    <text
+                      x="50%"
+                      y="52%"
+                      dominantBaseline="central"
+                      textAnchor="middle"
+                      fontSize="20"
+                      fontWeight="500"
+                      fontFamily="Roboto, sans-serif"
+                    >
                       ?
                     </text>
                   </svg>
-                  <div className="bg-accent-600 absolute -right-2 top-0 rounded-full p-1">
+                  <div className="bg-accent-700 absolute -right-2 top-0 rounded-full p-1">
                     {/* Place 1 badge - small screens */}
-                    <span className="text-white text-xs font-bold sm:hidden">1</span>
+                    <PatronIcons.PatronPlacesPlace1Icon
+                      width={14}
+                      height={14}
+                      style={{ fill: "rgb(255, 255, 255)" }}
+                      className="sm:hidden"
+                    />
                     {/* Place 1 badge - large screens */}
-                    <span className="hidden text-white text-sm font-bold sm:block">1</span>
+                    <PatronIcons.PatronPlacesPlace1Icon
+                      width={18}
+                      height={18}
+                      style={{ fill: "rgb(255, 255, 255)" }}
+                      className="hidden sm:block"
+                    />
                   </div>
                 </div>
               </div>
@@ -118,28 +143,39 @@ export function BreedCoverV1({
         {/* Call to action */}
         <div className="flex items-end">
           {/* Desktop button */}
-          <Button
-            className="hidden p-button-info bp-small-button ml-auto p-button-rounded sm:flex"
-            aria-label="Become a breed patron"
-            tooltip="Support your breed"
-            tooltipOptions={{ position: 'bottom' }}
-            onClick={handleBecomePatron}
-            type="button"
-          >
-            <Heart size={16} fill="currentColor" />
-            <span className="ml-2 hidden font-bold sm:block">Become a breed patron</span>
-          </Button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="accent"
+                className="hidden ml-auto rounded-full h-[2.6rem] px-4 sm:flex"
+                aria-label="Become a breed patron"
+                onClick={handleBecomePatron}
+                type="button"
+              >
+                <Heart size={16} fill="currentColor" />
+                <span className="hidden text-base font-semibold sm:block">
+                  Become a breed patron
+                </span>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom">Support your breed</TooltipContent>
+          </Tooltip>
+
           {/* Mobile button */}
-          <Button
-            className="p-button-info bp-small-button ml-auto p-button-rounded sm:hidden"
-            aria-label="Become a breed patron"
-            tooltip="Support your breed"
-            tooltipOptions={{ position: 'bottom' }}
-            onClick={handleBecomePatron}
-            type="button"
-          >
-            <Heart size={16} fill="currentColor" />
-          </Button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="accent"
+                className="ml-auto rounded-full h-[2.6rem] w-[2.6rem] flex items-center justify-center sm:hidden"
+                aria-label="Become a breed patron"
+                onClick={handleBecomePatron}
+                type="button"
+              >
+                <Heart size={16} fill="currentColor" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom">Support your breed</TooltipContent>
+          </Tooltip>
         </div>
       </div>
     </CoverTemplate>
