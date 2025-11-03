@@ -2,8 +2,10 @@ import coverBackground from "@/assets/images/background-images/cover_background.
 import { useCoverDimensions } from "@/hooks/useCoverDimensions";
 import { cn } from "@ui/lib/utils";
 import { Expand } from "lucide-react";
-import { useRef } from "react";
+import { useRef, useState, useEffect } from "react";
 import { AvatarOutlet } from "./AvatarOutlet";
+import { BreedName } from "./BreedName";
+import { NameContainerOutlet } from "./NameContainerOutlet";
 import { CoverTypeIDs, getCoverComponent, NavigationButtons } from "./cover";
 
 interface PublicPageTemplateProps {
@@ -23,9 +25,32 @@ export function PublicPageTemplate({
 }: PublicPageTemplateProps) {
   // Ref to content container for cover dimension calculation
   const contentContainerRef = useRef<HTMLDivElement>(null);
+  const nameContainerRef = useRef<HTMLDivElement>(null);
 
   // Calculate cover dimensions based on content container width
   const coverDimensions = useCoverDimensions(contentContainerRef);
+
+  // Track if name container is stuck to top
+  const [nameOnTop, setNameOnTop] = useState(false);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        // When intersection ratio is < 1, element is stuck
+        setNameOnTop(entry.intersectionRatio < 1);
+      },
+      {
+        threshold: [1],
+        rootMargin: "-1px 0px 0px 0px",
+      }
+    );
+
+    if (nameContainerRef.current) {
+      observer.observe(nameContainerRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, []);
 
   // MOCK DATA for cover testing
   // TODO: Remove when real entity.Cover data is available
@@ -175,6 +200,20 @@ export function PublicPageTemplate({
             onEdit={() => console.log("[TODO] Edit avatar")}
             onMoreOptions={() => console.log("[TODO] More options")}
           />
+
+          {/* Name Container - Sticky */}
+          <div ref={nameContainerRef} className="sticky top-0 z-30">
+            <NameContainerOutlet
+              onTop={nameOnTop}
+              onSupport={() => console.log("[TODO] Support")}
+              onMoreOptions={() => console.log("[TODO] More options")}
+            >
+              <BreedName
+                hasNotes={true}
+                onNotesClick={() => console.log("[TODO] Show notes")}
+              />
+            </NameContainerOutlet>
+          </div>
         </div>
       </div>
     </div>

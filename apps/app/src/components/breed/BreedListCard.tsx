@@ -98,7 +98,7 @@ export function BreedListCard({
             <span className="font-medium truncate uppercase max-w-[200px] min-[430px]:max-w-[220px] min-[500px]:max-w-[300px] sm:max-w-[350px] min-[640px]:max-w-none">
               {breed.Name}
             </span>
-            <NoteFlag isVisible={breed.HasNotes} className="flex-shrink-0" />
+            <NoteFlag isVisible={breed.HasNotes} className="flex-shrink-0 self-start" />
           </div>
 
           <div className="flex items-center text-sm text-gray-600">

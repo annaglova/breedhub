@@ -34,6 +34,7 @@ export * from "./components/alert";
 
 // Utility Components
 export * from "./components/tooltip";
+export * from "./components/note-flag-button";
 
 // Hooks
 export * from "./hooks/use-toast";
