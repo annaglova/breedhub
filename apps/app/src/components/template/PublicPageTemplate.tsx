@@ -1,13 +1,15 @@
 import coverBackground from "@/assets/images/background-images/cover_background.png";
 import { useCoverDimensions } from "@/hooks/useCoverDimensions";
 import { cn } from "@ui/lib/utils";
-import { Expand } from "lucide-react";
+import { Expand, CheckCircle, Heart, Image } from "lucide-react";
 import { useRef, useState, useEffect } from "react";
 import { AvatarOutlet } from "./AvatarOutlet";
 import { BreedName } from "../breed/BreedName";
 import { BreedAchievements } from "../breed/BreedAchievements";
 import { NameContainerOutlet } from "./NameContainerOutlet";
 import { CoverTypeIDs, getCoverComponent, NavigationButtons } from "./cover";
+import { TabsContainer, Tab } from "../tabs/TabsContainer";
+import { BreedAchievementsTab } from "../breed/tabs/BreedAchievementsTab";
 
 interface PublicPageTemplateProps {
   className?: string;
@@ -147,6 +149,40 @@ export function PublicPageTemplate({
     // ],
   };
 
+  // MOCK DATA for tabs
+  const mockTabs: Tab[] = [
+    {
+      id: "achievements",
+      fragment: "achievements",
+      label: "Breed achievements",
+      icon: <CheckCircle size={20} />,
+      component: BreedAchievementsTab,
+    },
+    {
+      id: "patrons",
+      fragment: "patrons",
+      label: "Patrons",
+      icon: <Heart size={20} />,
+      component: () => (
+        <div className="mt-3 px-6">
+          <p className="text-muted-foreground">Patrons tab coming soon...</p>
+        </div>
+      ),
+    },
+    {
+      id: "moments",
+      fragment: "moments",
+      label: "Moments",
+      icon: <Image size={20} />,
+      comingSoon: true,
+      component: () => (
+        <div className="mt-3 px-6">
+          <p className="text-muted-foreground">Moments gallery coming soon...</p>
+        </div>
+      ),
+    },
+  ];
+
   // Get cover component based on type
   const coverTypeId = mockCover?.Type?.Id;
   const CoverComponent = getCoverComponent(coverTypeId);
@@ -238,6 +274,9 @@ export function PublicPageTemplate({
             majorPatron={mockAchievements.majorPatron}
             topPet={mockAchievements.topPet}
           />
+
+          {/* Tabs Section */}
+          <TabsContainer tabs={mockTabs} />
         </div>
       </div>
     </div>
