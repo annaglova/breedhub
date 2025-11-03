@@ -5,6 +5,7 @@ import { Expand } from "lucide-react";
 import { useRef, useState, useEffect } from "react";
 import { AvatarOutlet } from "./AvatarOutlet";
 import { BreedName } from "../breed/BreedName";
+import { BreedAchievements } from "../breed/BreedAchievements";
 import { NameContainerOutlet } from "./NameContainerOutlet";
 import { CoverTypeIDs, getCoverComponent, NavigationButtons } from "./cover";
 
@@ -59,6 +60,22 @@ export function PublicPageTemplate({
       Id: CoverTypeIDs.BreedCoverV1,
     },
     AvatarUrl: coverBackground,
+  };
+
+  // MOCK DATA for achievements
+  const mockAchievements = {
+    topKennel: {
+      name: "Golden Paws Kennel",
+      url: "golden-paws-kennel",
+    },
+    majorPatron: {
+      name: "Anna Maliyenko",
+      url: "anna-maliyenko",
+    },
+    topPet: {
+      name: "Max von der Stadtrand",
+      url: "max-von-der-stadtrand",
+    },
   };
 
   const mockBreed = {
@@ -214,6 +231,13 @@ export function PublicPageTemplate({
               />
             </NameContainerOutlet>
           </div>
+
+          {/* Achievements Section */}
+          <BreedAchievements
+            topKennel={mockAchievements.topKennel}
+            majorPatron={mockAchievements.majorPatron}
+            topPet={mockAchievements.topPet}
+          />
         </div>
       </div>
     </div>
