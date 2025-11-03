@@ -4,7 +4,7 @@ import { cn } from "@ui/lib/utils";
 import { Expand } from "lucide-react";
 import { useRef, useState, useEffect } from "react";
 import { AvatarOutlet } from "./AvatarOutlet";
-import { BreedName } from "./BreedName";
+import { BreedName } from "../breed/BreedName";
 import { NameContainerOutlet } from "./NameContainerOutlet";
 import { CoverTypeIDs, getCoverComponent, NavigationButtons } from "./cover";
 
