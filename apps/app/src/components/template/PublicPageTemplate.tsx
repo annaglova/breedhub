@@ -10,6 +10,8 @@ import { NameContainerOutlet } from "./NameContainerOutlet";
 import { CoverTypeIDs, getCoverComponent, NavigationButtons } from "./cover";
 import { TabsContainer, Tab } from "../tabs/TabsContainer";
 import { BreedAchievementsTab } from "../breed/tabs/BreedAchievementsTab";
+import { PageMenu } from "../tabs/PageMenu";
+import { useTabNavigation } from "@/hooks/useTabNavigation";
 
 interface PublicPageTemplateProps {
   className?: string;
@@ -187,6 +189,13 @@ export function PublicPageTemplate({
   const coverTypeId = mockCover?.Type?.Id;
   const CoverComponent = getCoverComponent(coverTypeId);
 
+  // Tab navigation hook
+  const { activeTab, handleTabChange, handleVisibilityChange } =
+    useTabNavigation({
+      tabs: mockTabs,
+      mode: "scroll",
+    });
+
   return (
     <div
       className={cn(
@@ -275,8 +284,24 @@ export function PublicPageTemplate({
             topPet={mockAchievements.topPet}
           />
 
-          {/* Tabs Section */}
-          <TabsContainer tabs={mockTabs} />
+          {/* PageMenu - Sticky horizontal tab bar */}
+          <div className="sticky top-0 z-20 -mx-6 mb-6">
+            <PageMenu
+              tabs={mockTabs}
+              activeTab={activeTab}
+              onTabChange={handleTabChange}
+              mode="scroll"
+            />
+          </div>
+
+          {/* Tabs Section - Scroll mode with all tabs rendered */}
+          <TabsContainer
+            tabs={mockTabs}
+            mode="scroll"
+            activeTab={activeTab}
+            onTabChange={handleTabChange}
+            onVisibilityChange={handleVisibilityChange}
+          />
         </div>
       </div>
     </div>
