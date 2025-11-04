@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import type { Tab } from "@/components/tabs/TabsContainer";
 
 /**
@@ -43,9 +43,14 @@ export function useTabNavigation({
     {}
   );
 
+  // Track if user manually clicked on tab (to prevent IntersectionObserver from overriding)
+  const isManualScrollRef = useRef(false);
+
   // Handle tab change
   const handleTabChange = useCallback(
     (fragment: string) => {
+      // Mark as manual scroll to prevent IntersectionObserver from overriding
+      isManualScrollRef.current = true;
       setActiveTab(fragment);
 
       if (mode === "scroll") {
@@ -53,35 +58,89 @@ export function useTabNavigation({
         const element = document.getElementById(`tab-${fragment}`);
         if (!element) return;
 
-        // Find the scrollable parent container (the one with overflow-auto)
+        // Calculate total height of sticky headers
+        // We need to account for NameContainer + PageMenu that are sticky at top
+        let stickyHeadersHeight = 0;
+
+        // Find PageMenu parent - it should have a ref and be z-30
+        const pageMenuContainer = element.closest('main')?.querySelector('.sticky.z-30.mb-6') as HTMLElement;
+
+        if (pageMenuContainer) {
+          // Get the 'top' style value which tells us where PageMenu is positioned
+          const pageMenuTop = parseInt(pageMenuContainer.style.top || '0');
+          // PageMenu top = NameContainer height, so total = NameContainer + PageMenu + margin
+          // Use getBoundingClientRect to get actual rendered height
+          const pageMenuRect = pageMenuContainer.getBoundingClientRect();
+          const styles = window.getComputedStyle(pageMenuContainer);
+          const marginBottom = parseInt(styles.marginBottom || '0');
+
+          // Find TabHeader - it's the first sticky element in the section
+          const section = element.closest('section');
+          const tabHeader = section?.querySelector('.sticky') as HTMLElement;
+          let tabHeaderHeight = 0;
+          if (tabHeader) {
+            const tabHeaderRect = tabHeader.getBoundingClientRect();
+            tabHeaderHeight = tabHeaderRect.height;
+          }
+
+          stickyHeadersHeight = pageMenuTop + pageMenuRect.height + marginBottom + tabHeaderHeight;
+        } else {
+          // Fallback: just use a reasonable default
+          stickyHeadersHeight = 250;
+        }
+
+        // Find the scrollable container (element with overflow-y-auto)
         let scrollContainer: HTMLElement | null = element.parentElement;
-        while (scrollContainer) {
-          const overflowY = window.getComputedStyle(scrollContainer).overflowY;
-          if (overflowY === "auto" || overflowY === "scroll") {
+        while (scrollContainer && scrollContainer !== document.body) {
+          const styles = window.getComputedStyle(scrollContainer);
+          if (styles.overflowY === 'auto' || styles.overflowY === 'scroll') {
             break;
           }
           scrollContainer = scrollContainer.parentElement;
         }
 
-        if (scrollContainer) {
-          // Calculate position relative to scroll container
-          const containerRect = scrollContainer.getBoundingClientRect();
+        if (!scrollContainer || scrollContainer === document.body) {
+          // Fallback to window scroll
           const elementRect = element.getBoundingClientRect();
-          const scrollTop = scrollContainer.scrollTop;
-          const targetScrollTop = scrollTop + (elementRect.top - containerRect.top);
+          const absoluteElementTop = elementRect.top + window.pageYOffset;
+          const targetScrollTop = absoluteElementTop - stickyHeadersHeight;
 
-          // Scroll within the container only
-          scrollContainer.scrollTo({
+          window.scrollTo({
             top: targetScrollTop,
             behavior: "smooth",
           });
         } else {
-          // Fallback to global scroll if no scrollable parent found
-          element.scrollIntoView({
+          // Scroll within container - pure viewport-based approach
+
+          // All measurements relative to viewport (screen top)
+          const containerRect = scrollContainer.getBoundingClientRect();
+          const elementRect = element.getBoundingClientRect();
+
+          // Where is element NOW in viewport
+          const elementTop = elementRect.top;
+
+          // Where does scroll container start in viewport
+          const containerTop = containerRect.top;
+
+          // Where we WANT element to be: under sticky headers
+          const desiredElementTop = containerTop + stickyHeadersHeight;
+
+          // How much to scroll (delta)
+          const scrollDelta = elementTop - desiredElementTop;
+
+          // Apply scroll
+          const targetScroll = scrollContainer.scrollTop + scrollDelta;
+
+          scrollContainer.scrollTo({
+            top: targetScroll,
             behavior: "smooth",
-            block: "start",
           });
         }
+
+        // Re-enable auto-update after scroll completes (smooth scroll takes ~500ms)
+        setTimeout(() => {
+          isManualScrollRef.current = false;
+        }, 1000);
 
         // TODO Phase 3: Update URL hash
         // window.history.replaceState(null, '', `#${fragment}`);
@@ -95,6 +154,11 @@ export function useTabNavigation({
     (id: string, visibility: number) => {
       setVisibilityMap((prev) => {
         const newMap = { ...prev, [id]: visibility };
+
+        // Skip auto-update if user manually scrolling
+        if (isManualScrollRef.current) {
+          return newMap;
+        }
 
         // Find most visible tab
         let maxVisibility = 0;
