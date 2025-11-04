@@ -25,8 +25,6 @@ export interface IconProps extends Omit<SVGProps<SVGSVGElement>, 'name' | 'ref'>
 export function Icon({ icon, size = 24, className = '', ...props }: IconProps) {
   const { name, source } = icon;
 
-  // DEBUG: Log every Icon render
-  console.log(`[Icon] Rendering: source="${source}", name="${name}"`);
 
   // Fallback SVG component
   const FallbackIcon = () => (
@@ -70,20 +68,12 @@ export function Icon({ icon, size = 24, className = '', ...props }: IconProps) {
         .join('') + 'Icon';
 
     const exportName = toExportName(name);
-    console.log(`[Icon] Looking for custom icon: ${name} → ${exportName}`);
-    console.log(`[Icon] CustomIcons type:`, typeof CustomIcons);
-    console.log(`[Icon] CustomIcons keys:`, Object.keys(CustomIcons).length, 'total');
-
     const CustomIcon = (CustomIcons as any)[exportName];
-    console.log(`[Icon] Found icon?`, !!CustomIcon);
 
     if (!CustomIcon) {
       console.warn(`[Icon] Custom icon not found: ${name} (trying: ${exportName})`);
-      console.warn('[Icon] Available custom icons (first 20):', Object.keys(CustomIcons).filter(k => k.endsWith('Icon')).slice(0, 20));
       return <FallbackIcon />;
     }
-
-    console.log(`[Icon] Rendering custom icon: ${exportName}`);
     // Custom SVGs use fill, so we need to set fill style explicitly
     return (
       <CustomIcon

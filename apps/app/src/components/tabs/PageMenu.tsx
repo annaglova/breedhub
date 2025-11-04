@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@ui/lib/utils";
 import type { Tab } from "./TabsContainer";
@@ -38,7 +38,15 @@ export function PageMenu({
   const [showLeftButton, setShowLeftButton] = useState(false);
   const [showRightButton, setShowRightButton] = useState(false);
   const previousActiveTabRef = useRef<string>(activeTab);
+  const scrollTimeoutRef = useRef<NodeJS.Timeout>();
   const BUTTON_OFFSET = 27;
+
+  // Memoize calculated values to prevent unnecessary re-renders
+  const fullTabsWidth = useMemo(
+    () => tabWidths.reduce((sum, width) => sum + width, 0),
+    [tabWidths]
+  );
+  const firstTabWidth = useMemo(() => tabWidths[0] || 0, [tabWidths]);
 
   // Track container width and position
   useEffect(() => {
@@ -61,17 +69,18 @@ export function PageMenu({
     return () => observer.disconnect();
   }, []);
 
-  // Track scroll position
+  // Track scroll position with throttle to prevent excessive updates
   const handleScroll = () => {
-    if (scrollContainerRef.current) {
-      setScrollLeft(scrollContainerRef.current.scrollLeft);
+    if (scrollTimeoutRef.current) {
+      clearTimeout(scrollTimeoutRef.current);
     }
-  };
 
-  // Calculate positions
-  const fullTabsWidth = tabWidths.reduce((sum, width) => sum + width, 0);
-  const firstTabWidth = tabWidths[0] || 0;
-  const lastTabWidth = tabWidths[tabWidths.length - 1] || 0;
+    scrollTimeoutRef.current = setTimeout(() => {
+      if (scrollContainerRef.current) {
+        setScrollLeft(scrollContainerRef.current.scrollLeft);
+      }
+    }, 50); // Throttle to 50ms
+  };
 
   // Update button visibility based on scroll position and tab visibility
   useEffect(() => {
@@ -90,21 +99,20 @@ export function PageMenu({
         showLeft = scrollLeft > firstTabWidth - BUTTON_OFFSET - 1;
       }
     }
-    setShowLeftButton(showLeft);
 
-    // Right button logic
+    // Right button logic - ховаємо коли кінець останнього табу видимий
     let showRight = false;
     if (fullTabsWidth > containerWidth) {
-      // При зміні activeTab (не останній таб) - показуємо кнопку одразу
-      if (currentIndex < tabs.length - 1) {
-        showRight = true;
-      } else {
-        // При ручному скролі - показуємо якщо є що скролити
-        showRight = scrollLeft + containerWidth < fullTabsWidth - BUTTON_OFFSET;
-      }
+      // Перевіряємо чи кінець останнього табу вже видимий у viewport
+      const lastTabEndVisible = scrollLeft + containerWidth >= fullTabsWidth;
+      // Показуємо кнопку тільки якщо кінець ще не видимий
+      showRight = !lastTabEndVisible;
     }
-    setShowRightButton(showRight);
-  }, [scrollLeft, containerWidth, tabWidths, fullTabsWidth, firstTabWidth, BUTTON_OFFSET, activeTab, tabs]);
+
+    // Update state only if changed (prevent loops)
+    setShowLeftButton(prev => prev !== showLeft ? showLeft : prev);
+    setShowRightButton(prev => prev !== showRight ? showRight : prev);
+  }, [scrollLeft, containerWidth, fullTabsWidth, firstTabWidth, activeTab, tabs.length, BUTTON_OFFSET]);
 
   // Auto-scroll active tab into view (ТІЛЬКИ при зміні activeTab)
   useEffect(() => {
