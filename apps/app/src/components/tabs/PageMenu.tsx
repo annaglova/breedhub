@@ -62,25 +62,18 @@ export function PageMenu({
   // Calculate total tabs width
   const totalTabsWidth = tabWidths.reduce((sum, width) => sum + width, 0);
 
-  // Update button visibility based on Angular logic
+  // Update button visibility
   useEffect(() => {
-    const BUTTON_OFFSET = 27;
+    const currentIndex = tabs.findIndex((t) => t.fragment === activeTab);
 
-    // Show left button if first tab is hidden (scrolled past it)
-    // First tab start position relative to viewport
-    const firstTabEnd = scrollLeft + (tabWidths[0] || 0);
-    const isFirstTabHidden = firstTabEnd <= BUTTON_OFFSET + 1;
-    setShowLeftButton(totalTabsWidth > containerWidth && isFirstTabHidden);
+    // Show left button if NOT on first tab
+    const canGoLeft = currentIndex > 0;
+    setShowLeftButton(canGoLeft);
 
-    // Show right button if last tab is not fully visible
-    const lastTabWidth = tabWidths[tabWidths.length - 1] || 0;
-    const contentEnd = totalTabsWidth;
-    const viewportEnd = scrollLeft + containerWidth;
-
-    // Last tab is invisible if content extends beyond viewport (accounting for button)
-    const isLastTabInvisible = contentEnd - lastTabWidth < viewportEnd - BUTTON_OFFSET;
-    setShowRightButton(totalTabsWidth > containerWidth && !isLastTabInvisible);
-  }, [scrollLeft, containerWidth, totalTabsWidth, tabWidths]);
+    // Show right button if NOT on last tab
+    const canGoRight = currentIndex < tabs.length - 1;
+    setShowRightButton(canGoRight);
+  }, [activeTab, tabs]);
 
   // Auto-scroll active tab into view
   useEffect(() => {
