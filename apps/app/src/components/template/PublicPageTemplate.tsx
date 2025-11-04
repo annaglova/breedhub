@@ -31,12 +31,20 @@ export function PublicPageTemplate({
   // Ref to content container for cover dimension calculation
   const contentContainerRef = useRef<HTMLDivElement>(null);
   const nameContainerRef = useRef<HTMLDivElement>(null);
+  const pageMenuRef = useRef<HTMLDivElement>(null);
 
   // Calculate cover dimensions based on content container width
   const coverDimensions = useCoverDimensions(contentContainerRef);
 
   // Track if name container is stuck to top
   const [nameOnTop, setNameOnTop] = useState(false);
+  const [nameBlockHeight, setNameBlockHeight] = useState(0);
+  const [pageMenuHeight, setPageMenuHeight] = useState(0);
+
+  // Constants for sticky positioning
+  const NAME_CONTAINER_TOP = 0;
+  const PAGE_MENU_TOP = nameBlockHeight > 0 ? nameBlockHeight - 1 : 0;
+  const TAB_HEADER_TOP = nameOnTop ? nameBlockHeight + pageMenuHeight : pageMenuHeight;
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -55,6 +63,36 @@ export function PublicPageTemplate({
     }
 
     return () => observer.disconnect();
+  }, []);
+
+  // Track name container height
+  useEffect(() => {
+    if (!nameContainerRef.current) return;
+
+    const resizeObserver = new ResizeObserver((entries) => {
+      const entry = entries[0];
+      if (entry) {
+        setNameBlockHeight(entry.contentRect.height);
+      }
+    });
+
+    resizeObserver.observe(nameContainerRef.current);
+    return () => resizeObserver.disconnect();
+  }, []);
+
+  // Track PageMenu height
+  useEffect(() => {
+    if (!pageMenuRef.current) return;
+
+    const resizeObserver = new ResizeObserver((entries) => {
+      const entry = entries[0];
+      if (entry) {
+        setPageMenuHeight(entry.contentRect.height);
+      }
+    });
+
+    resizeObserver.observe(pageMenuRef.current);
+    return () => resizeObserver.disconnect();
   }, []);
 
   // MOCK DATA for cover testing
@@ -395,7 +433,11 @@ export function PublicPageTemplate({
           />
 
           {/* PageMenu - Sticky horizontal tab bar */}
-          <div className="sticky top-0 z-20 mb-6">
+          <div
+            ref={pageMenuRef}
+            className="sticky z-30 mb-6"
+            style={{ top: `${PAGE_MENU_TOP}px` }}
+          >
             <PageMenu
               tabs={mockTabs}
               activeTab={activeTab}
@@ -411,6 +453,7 @@ export function PublicPageTemplate({
             activeTab={activeTab}
             onTabChange={handleTabChange}
             onVisibilityChange={handleVisibilityChange}
+            tabHeaderTop={TAB_HEADER_TOP}
           />
         </div>
       </div>

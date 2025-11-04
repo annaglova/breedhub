@@ -19,6 +19,7 @@ interface TabsContainerProps {
   activeTab?: string; // Required in tabs mode
   onTabChange?: (fragment: string) => void; // Required in tabs mode
   onVisibilityChange?: (id: string, visibility: number) => void; // Optional visibility tracking callback
+  tabHeaderTop?: number; // Top position for sticky TabHeader in scroll mode
   className?: string;
 }
 
@@ -45,6 +46,7 @@ export function TabsContainer({
   activeTab,
   onTabChange,
   onVisibilityChange,
+  tabHeaderTop = 0,
   className,
 }: TabsContainerProps) {
   // Use provided visibility handler or create internal one
@@ -68,14 +70,20 @@ export function TabsContainer({
               id={tab.fragment}
               onVisibilityChange={handleVisibilityChange}
             >
-              <TabHeader
-                label={tab.label}
-                icon={tab.icon}
-                mode="list"
-                comingSoon={tab.comingSoon}
-                fullscreenUrl={tab.fullscreenUrl}
-                isFirst={index === 0}
-              />
+              {/* Sticky TabHeader */}
+              <div
+                className="sticky z-20"
+                style={{ top: `${tabHeaderTop}px` }}
+              >
+                <TabHeader
+                  label={tab.label}
+                  icon={tab.icon}
+                  mode="list"
+                  comingSoon={tab.comingSoon}
+                  fullscreenUrl={tab.fullscreenUrl}
+                  isFirst={index === 0}
+                />
+              </div>
 
               {/* Tab Content */}
               <div className="px-0 pb-8">
