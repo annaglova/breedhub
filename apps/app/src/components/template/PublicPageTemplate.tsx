@@ -349,6 +349,44 @@ export function PublicPageTemplate({
         </div>
       ),
     },
+    {
+      id: "health",
+      fragment: "health",
+      label: "Health Info",
+      icon: <CheckCircle size={20} />,
+      component: () => (
+        <div className="mt-3 px-6 space-y-4">
+          <p className="text-lg font-semibold">Health & Genetics</p>
+          {Array.from({ length: 8 }).map((_, i) => (
+            <div key={i} className="p-4 border border-border rounded-lg">
+              <h3 className="font-semibold text-lg">Health Topic {i + 1}</h3>
+              <p className="text-sm text-muted-foreground mt-2">
+                Information about health topic {i + 1}. Important genetic and health considerations for this breed.
+              </p>
+            </div>
+          ))}
+        </div>
+      ),
+    },
+    {
+      id: "training",
+      fragment: "training",
+      label: "Training Tips",
+      icon: <Heart size={20} />,
+      component: () => (
+        <div className="mt-3 px-6 space-y-4">
+          <p className="text-lg font-semibold">Training & Behavior</p>
+          {Array.from({ length: 10 }).map((_, i) => (
+            <div key={i} className="p-4 border border-border rounded-lg">
+              <h3 className="font-semibold text-lg">Training Tip {i + 1}</h3>
+              <p className="text-sm text-muted-foreground mt-2">
+                Detailed training advice for topic {i + 1}. Best practices and behavioral insights.
+              </p>
+            </div>
+          ))}
+        </div>
+      ),
+    },
   ];
 
   // Get cover component based on type

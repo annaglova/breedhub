@@ -32,38 +32,79 @@ export function PageMenu({
 }: PageMenuProps) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [containerWidth, setContainerWidth] = useState(0);
+  const [scrollLeft, setScrollLeft] = useState(0);
+  const [startX, setStartX] = useState(0);
   const [tabWidths, setTabWidths] = useState<number[]>([]);
   const [showLeftButton, setShowLeftButton] = useState(false);
   const [showRightButton, setShowRightButton] = useState(false);
   const previousActiveTabRef = useRef<string>(activeTab);
+  const BUTTON_OFFSET = 27;
 
-  // Track container width
+  // Track container width and position
   useEffect(() => {
     if (!scrollContainerRef.current) return;
 
-    const observer = new ResizeObserver((entries) => {
-      const entry = entries[0];
-      if (entry) {
-        setContainerWidth(entry.contentRect.width);
-      }
+    const updateDimensions = () => {
+      if (!scrollContainerRef.current) return;
+      const rect = scrollContainerRef.current.getBoundingClientRect();
+      setContainerWidth(rect.width);
+      setStartX(rect.x);
+    };
+
+    const observer = new ResizeObserver(() => {
+      updateDimensions();
     });
 
     observer.observe(scrollContainerRef.current);
+    updateDimensions(); // Initial update
+
     return () => observer.disconnect();
   }, []);
 
-  // Update button visibility based on active tab
+  // Track scroll position
+  const handleScroll = () => {
+    if (scrollContainerRef.current) {
+      setScrollLeft(scrollContainerRef.current.scrollLeft);
+    }
+  };
+
+  // Calculate positions
+  const fullTabsWidth = tabWidths.reduce((sum, width) => sum + width, 0);
+  const firstTabWidth = tabWidths[0] || 0;
+  const lastTabWidth = tabWidths[tabWidths.length - 1] || 0;
+
+  // Update button visibility based on scroll position and tab visibility
   useEffect(() => {
+    if (tabWidths.length === 0) return;
+
     const currentIndex = tabs.findIndex((t) => t.fragment === activeTab);
 
-    // Show left button if NOT on first tab
-    const canGoLeft = currentIndex > 0;
-    setShowLeftButton(canGoLeft);
+    // Left button logic
+    let showLeft = false;
+    if (fullTabsWidth > containerWidth) {
+      // При зміні activeTab (не перший таб) - показуємо кнопку одразу
+      if (currentIndex > 0) {
+        showLeft = true;
+      } else {
+        // При ручному скролі - показуємо коли перший таб прихований
+        showLeft = scrollLeft > firstTabWidth - BUTTON_OFFSET - 1;
+      }
+    }
+    setShowLeftButton(showLeft);
 
-    // Show right button if NOT on last tab
-    const canGoRight = currentIndex < tabs.length - 1;
-    setShowRightButton(canGoRight);
-  }, [activeTab, tabs]);
+    // Right button logic
+    let showRight = false;
+    if (fullTabsWidth > containerWidth) {
+      // При зміні activeTab (не останній таб) - показуємо кнопку одразу
+      if (currentIndex < tabs.length - 1) {
+        showRight = true;
+      } else {
+        // При ручному скролі - показуємо якщо є що скролити
+        showRight = scrollLeft + containerWidth < fullTabsWidth - BUTTON_OFFSET;
+      }
+    }
+    setShowRightButton(showRight);
+  }, [scrollLeft, containerWidth, tabWidths, fullTabsWidth, firstTabWidth, BUTTON_OFFSET, activeTab, tabs]);
 
   // Auto-scroll active tab into view (ТІЛЬКИ при зміні activeTab)
   useEffect(() => {
@@ -92,7 +133,6 @@ export function PageMenu({
     const currentScrollLeft = scrollContainerRef.current.scrollLeft;
     const visibleStart = currentScrollLeft;
     const visibleEnd = currentScrollLeft + containerWidth;
-    const BUTTON_OFFSET = 27;
 
     // Scroll if needed
     if (activeTabEnd > visibleEnd - BUTTON_OFFSET) {
@@ -139,6 +179,7 @@ export function PageMenu({
       {/* Scrollable Tabs Container */}
       <div
         ref={scrollContainerRef}
+        onScroll={handleScroll}
         className="flex w-full overflow-x-auto bg-card-ground no-scrollbar"
         style={{
           scrollbarWidth: "none",
