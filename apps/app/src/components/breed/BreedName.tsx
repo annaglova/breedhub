@@ -26,7 +26,7 @@ export function BreedName({
   onNotesClick,
 }: BreedNameProps) {
   return (
-    <div className="pb-3 bg-card-ground cursor-default ">
+    <div className="pb-3 cursor-default">
       {/* Achievement */}
       <div className="text-md mb-3">
         <span className="uppercase">{achievement}</span>

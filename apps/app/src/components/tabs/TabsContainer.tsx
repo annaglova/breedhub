@@ -65,31 +65,29 @@ export function TabsContainer({
           const Component = tab.component;
 
           return (
-            <ScrollableTab
-              key={tab.id}
-              id={tab.fragment}
-              onVisibilityChange={handleVisibilityChange}
-            >
+            <section key={tab.id} className="relative">
               {/* Sticky TabHeader */}
-              <div
+              <TabHeader
+                label={tab.label}
+                icon={tab.icon}
+                mode="list"
+                comingSoon={tab.comingSoon}
+                fullscreenUrl={tab.fullscreenUrl}
+                isFirst={index === 0}
                 className="sticky z-20"
                 style={{ top: `${tabHeaderTop}px` }}
-              >
-                <TabHeader
-                  label={tab.label}
-                  icon={tab.icon}
-                  mode="list"
-                  comingSoon={tab.comingSoon}
-                  fullscreenUrl={tab.fullscreenUrl}
-                  isFirst={index === 0}
-                />
-              </div>
+              />
 
-              {/* Tab Content */}
-              <div className="px-0 pb-8">
-                <Component />
-              </div>
-            </ScrollableTab>
+              {/* ScrollableTab for visibility tracking */}
+              <ScrollableTab
+                id={tab.fragment}
+                onVisibilityChange={handleVisibilityChange}
+              >
+                <div className="px-0 pb-8">
+                  <Component />
+                </div>
+              </ScrollableTab>
+            </section>
           );
         })}
       </div>

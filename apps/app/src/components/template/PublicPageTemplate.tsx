@@ -43,26 +43,44 @@ export function PublicPageTemplate({
 
   // Constants for sticky positioning
   const NAME_CONTAINER_TOP = 0;
-  const PAGE_MENU_TOP = nameBlockHeight > 0 ? nameBlockHeight - 1 : 0;
+  const PAGE_MENU_TOP = nameBlockHeight > 0 ? nameBlockHeight : 0;
   const TAB_HEADER_TOP = nameOnTop ? nameBlockHeight + pageMenuHeight : pageMenuHeight;
 
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        // When intersection ratio is < 1, element is stuck
-        setNameOnTop(entry.intersectionRatio < 1);
-      },
-      {
-        threshold: [1],
-        rootMargin: "-1px 0px 0px 0px",
-      }
-    );
 
-    if (nameContainerRef.current) {
-      observer.observe(nameContainerRef.current);
+  useEffect(() => {
+    if (!nameContainerRef.current) return;
+
+    // Find the scrollable container (overflow-auto parent)
+    let scrollContainer: HTMLElement | null = nameContainerRef.current.parentElement;
+    while (scrollContainer) {
+      const overflowY = window.getComputedStyle(scrollContainer).overflowY;
+      if (overflowY === "auto" || overflowY === "scroll") {
+        break;
+      }
+      scrollContainer = scrollContainer.parentElement;
     }
 
-    return () => observer.disconnect();
+    if (!scrollContainer) return;
+
+    const checkSticky = () => {
+      if (!nameContainerRef.current) return;
+
+      const containerTop = scrollContainer!.getBoundingClientRect().top;
+      const elementTop = nameContainerRef.current.getBoundingClientRect().top;
+
+      // When element top equals container top, it's stuck
+      const isStuck = Math.abs(containerTop - elementTop) === 0;
+      setNameOnTop(isStuck);
+    };
+
+    // Check on scroll
+    scrollContainer.addEventListener('scroll', checkSticky);
+    // Check initially
+    checkSticky();
+
+    return () => {
+      scrollContainer?.removeEventListener('scroll', checkSticky);
+    };
   }, []);
 
   // Track name container height
@@ -435,7 +453,7 @@ export function PublicPageTemplate({
           {/* PageMenu - Sticky horizontal tab bar */}
           <div
             ref={pageMenuRef}
-            className="sticky z-30 mb-6"
+            className="sticky z-30 mb-6 -mt-px"
             style={{ top: `${PAGE_MENU_TOP}px` }}
           >
             <PageMenu

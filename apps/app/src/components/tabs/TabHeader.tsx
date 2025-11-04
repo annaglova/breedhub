@@ -1,5 +1,5 @@
-import { Maximize2 } from "lucide-react";
 import { cn } from "@ui/lib/utils";
+import { Maximize2 } from "lucide-react";
 
 interface TabHeaderProps {
   label: string;
@@ -9,6 +9,7 @@ interface TabHeaderProps {
   fullscreenUrl?: string;
   isFirst?: boolean;
   className?: string;
+  style?: React.CSSProperties;
 }
 
 /**
@@ -29,41 +30,43 @@ export function TabHeader({
   fullscreenUrl,
   isFirst = false,
   className,
+  style,
 }: TabHeaderProps) {
   if (mode === "list") {
     return (
-      <div
-        className={cn(
-          "mb-5 flex w-full items-center text-2xl font-semibold",
-          "text-sub-header-color bg-header-ground/75 backdrop-blur-sm",
-          "px-6 py-2",
-          isFirst ? "mt-5" : "mt-10",
-          className
-        )}
-      >
-        {/* Icon */}
-        <div className="mr-2 flex-shrink-0">{icon}</div>
+      <div className={cn(className)} style={style}>
+        <div
+          className={cn(
+            "mb-5 flex w-full items-center text-2xl font-semibold",
+            "text-sub-header-color bg-header-ground/75 backdrop-blur-sm",
+            "px-6 py-2",
+            isFirst ? "mt-5" : "mt-10"
+          )}
+        >
+          {/* Icon */}
+          <div className="mr-2 flex-shrink-0">{icon}</div>
 
-        {/* Label */}
-        <span>{label}</span>
+          {/* Label */}
+          <span>{label}</span>
 
-        {/* Coming soon label */}
-        {comingSoon && (
-          <div className="text-center text-sm font-bold uppercase text-primary ml-auto">
-            Coming soon
-          </div>
-        )}
+          {/* Coming soon label */}
+          {comingSoon && (
+            <div className="text-center text-sm font-bold uppercase text-primary ml-auto">
+              Coming soon
+            </div>
+          )}
 
-        {/* Fullscreen button */}
-        {fullscreenUrl && !comingSoon && (
-          <a
-            href={fullscreenUrl}
-            className="ml-auto hover:bg-hover-surface-header p-2 rounded transition-colors"
-            title="Full screen view"
-          >
-            <Maximize2 size={16} className="text-sub-header-color" />
-          </a>
-        )}
+          {/* Fullscreen button */}
+          {fullscreenUrl && !comingSoon && (
+            <a
+              href={fullscreenUrl}
+              className="ml-auto hover:bg-hover-surface-header p-2 rounded transition-colors"
+              title="Full screen view"
+            >
+              <Maximize2 size={16} className="text-sub-header-color" />
+            </a>
+          )}
+        </div>
       </div>
     );
   }
