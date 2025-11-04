@@ -49,9 +49,34 @@ export function useTabNavigation({
       setActiveTab(fragment);
 
       if (mode === "scroll") {
-        // Scroll to tab section
+        // Find the tab section element
         const element = document.getElementById(`tab-${fragment}`);
-        if (element) {
+        if (!element) return;
+
+        // Find the scrollable parent container (the one with overflow-auto)
+        let scrollContainer: HTMLElement | null = element.parentElement;
+        while (scrollContainer) {
+          const overflowY = window.getComputedStyle(scrollContainer).overflowY;
+          if (overflowY === "auto" || overflowY === "scroll") {
+            break;
+          }
+          scrollContainer = scrollContainer.parentElement;
+        }
+
+        if (scrollContainer) {
+          // Calculate position relative to scroll container
+          const containerRect = scrollContainer.getBoundingClientRect();
+          const elementRect = element.getBoundingClientRect();
+          const scrollTop = scrollContainer.scrollTop;
+          const targetScrollTop = scrollTop + (elementRect.top - containerRect.top);
+
+          // Scroll within the container only
+          scrollContainer.scrollTo({
+            top: targetScrollTop,
+            behavior: "smooth",
+          });
+        } else {
+          // Fallback to global scroll if no scrollable parent found
           element.scrollIntoView({
             behavior: "smooth",
             block: "start",
