@@ -32,10 +32,10 @@ export function PageMenu({
 }: PageMenuProps) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [containerWidth, setContainerWidth] = useState(0);
-  const [scrollLeft, setScrollLeft] = useState(0);
   const [tabWidths, setTabWidths] = useState<number[]>([]);
   const [showLeftButton, setShowLeftButton] = useState(false);
   const [showRightButton, setShowRightButton] = useState(false);
+  const previousActiveTabRef = useRef<string>(activeTab);
 
   // Track container width
   useEffect(() => {
@@ -52,17 +52,7 @@ export function PageMenu({
     return () => observer.disconnect();
   }, []);
 
-  // Track scroll position
-  const handleScroll = () => {
-    if (scrollContainerRef.current) {
-      setScrollLeft(scrollContainerRef.current.scrollLeft);
-    }
-  };
-
-  // Calculate total tabs width
-  const totalTabsWidth = tabWidths.reduce((sum, width) => sum + width, 0);
-
-  // Update button visibility
+  // Update button visibility based on active tab
   useEffect(() => {
     const currentIndex = tabs.findIndex((t) => t.fragment === activeTab);
 
@@ -75,12 +65,21 @@ export function PageMenu({
     setShowRightButton(canGoRight);
   }, [activeTab, tabs]);
 
-  // Auto-scroll active tab into view
+  // Auto-scroll active tab into view (ТІЛЬКИ при зміні activeTab)
   useEffect(() => {
+    // Перевіряємо чи справді змінився activeTab
+    if (previousActiveTabRef.current === activeTab) {
+      return; // activeTab не змінився, виходимо
+    }
+    previousActiveTabRef.current = activeTab;
+
     if (!scrollContainerRef.current) return;
 
     const activeIndex = tabs.findIndex((t) => t.fragment === activeTab);
     if (activeIndex === -1) return;
+
+    // Перевіряємо чи є дані про ширину табів
+    if (tabWidths.length === 0) return;
 
     // Calculate active tab position
     const activeTabStart = tabWidths
@@ -89,9 +88,10 @@ export function PageMenu({
     const activeTabWidth = tabWidths[activeIndex] || 0;
     const activeTabEnd = activeTabStart + activeTabWidth;
 
-    // Check if active tab is visible
-    const visibleStart = scrollLeft;
-    const visibleEnd = scrollLeft + containerWidth;
+    // Get current scroll position directly from ref
+    const currentScrollLeft = scrollContainerRef.current.scrollLeft;
+    const visibleStart = currentScrollLeft;
+    const visibleEnd = currentScrollLeft + containerWidth;
     const BUTTON_OFFSET = 27;
 
     // Scroll if needed
@@ -108,7 +108,7 @@ export function PageMenu({
         behavior: "smooth",
       });
     }
-  }, [activeTab, tabs, tabWidths, containerWidth, scrollLeft]);
+  }, [activeTab, tabs, tabWidths, containerWidth]); // НЕ включаємо scrollLeft!
 
   // Navigate to prev/next tab
   const navigate = (direction: -1 | 1) => {
@@ -135,29 +135,39 @@ export function PageMenu({
   };
 
   return (
-    <div className={cn("relative w-full bg-card-ground", className)}>
-      {/* Left Navigation Button */}
-      {showLeftButton && (
-        <button
-          onClick={() => navigate(-1)}
-          className="absolute left-0 top-0 z-20 h-full bg-card-ground border-r border-surface-border group transition-colors px-1"
-          aria-label="Previous tab"
-        >
-          <ChevronLeft className="text-surface-400 group-hover:text-primary transition-colors" size={20} />
-        </button>
-      )}
-
+    <div className={cn("relative w-full", className)}>
       {/* Scrollable Tabs Container */}
       <div
         ref={scrollContainerRef}
-        onScroll={handleScroll}
-        className="flex w-full overflow-x-auto no-scrollbar"
+        className="flex w-full overflow-x-auto bg-card-ground no-scrollbar"
         style={{
           scrollbarWidth: "none",
           msOverflowStyle: "none",
-          WebkitOverflowScrolling: "touch", // smooth scroll on iOS
+          WebkitOverflowScrolling: "touch",
         }}
       >
+        {/* Left Navigation Button */}
+        {showLeftButton && (
+          <button
+            onClick={() => navigate(-1)}
+            className="absolute left-0 top-0 z-20 h-full bg-card-ground border-r border-surface-border group transition-colors px-1"
+            aria-label="Previous tab"
+          >
+            <ChevronLeft className="text-surface-400 group-hover:text-primary transition-colors" size={20} />
+          </button>
+        )}
+
+        {/* Right Navigation Button */}
+        {showRightButton && (
+          <button
+            onClick={() => navigate(1)}
+            className="absolute right-0 top-0 z-20 h-full bg-card-ground border-l border-surface-border group transition-colors px-1"
+            aria-label="Next tab"
+          >
+            <ChevronRight className="text-surface-400 group-hover:text-primary transition-colors" size={20} />
+          </button>
+        )}
+
         {/* Tabs */}
         <div className="flex">
           {tabs.map((tab, index) => (
@@ -170,21 +180,10 @@ export function PageMenu({
             />
           ))}
         </div>
+
+        {/* Bottom Border Line */}
+        <div className="absolute bottom-0 w-full border-b border-surface-border" />
       </div>
-
-      {/* Right Navigation Button */}
-      {showRightButton && (
-        <button
-          onClick={() => navigate(1)}
-          className="absolute right-0 top-0 z-20 h-full bg-card-ground border-l border-surface-border group transition-colors px-1"
-          aria-label="Next tab"
-        >
-          <ChevronRight className="text-surface-400 group-hover:text-primary transition-colors" size={20} />
-        </button>
-      )}
-
-      {/* Bottom Border Line */}
-      <div className="absolute bottom-0 w-full border-b border-surface-border" />
     </div>
   );
 }
