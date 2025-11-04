@@ -82,37 +82,27 @@ export function PageMenu({
     }, 50); // Throttle to 50ms
   };
 
-  // Update button visibility based on scroll position and tab visibility
+  // Update button visibility based on scroll position (viewport-based, pure manual scroll logic)
   useEffect(() => {
     if (tabWidths.length === 0) return;
 
-    const currentIndex = tabs.findIndex((t) => t.fragment === activeTab);
-
-    // Left button logic
+    // Left button - показуємо коли перший таб вже не повністю видимий
     let showLeft = false;
     if (fullTabsWidth > containerWidth) {
-      // При зміні activeTab (не перший таб) - показуємо кнопку одразу
-      if (currentIndex > 0) {
-        showLeft = true;
-      } else {
-        // При ручному скролі - показуємо коли перший таб прихований
-        showLeft = scrollLeft > firstTabWidth - BUTTON_OFFSET - 1;
-      }
+      showLeft = scrollLeft > BUTTON_OFFSET;
     }
 
-    // Right button logic - ховаємо коли кінець останнього табу видимий
+    // Right button - ховаємо коли кінець останнього табу видимий
     let showRight = false;
     if (fullTabsWidth > containerWidth) {
-      // Перевіряємо чи кінець останнього табу вже видимий у viewport
-      const lastTabEndVisible = scrollLeft + containerWidth >= fullTabsWidth;
-      // Показуємо кнопку тільки якщо кінець ще не видимий
+      const lastTabEndVisible = scrollLeft + containerWidth >= fullTabsWidth - BUTTON_OFFSET;
       showRight = !lastTabEndVisible;
     }
 
     // Update state only if changed (prevent loops)
     setShowLeftButton(prev => prev !== showLeft ? showLeft : prev);
     setShowRightButton(prev => prev !== showRight ? showRight : prev);
-  }, [scrollLeft, containerWidth, fullTabsWidth, firstTabWidth, activeTab, tabs.length, BUTTON_OFFSET]);
+  }, [scrollLeft, containerWidth, fullTabsWidth, BUTTON_OFFSET]);
 
   // Auto-scroll active tab into view (ТІЛЬКИ при зміні activeTab)
   useEffect(() => {
