@@ -62,18 +62,25 @@ export function PageMenu({
   // Calculate total tabs width
   const totalTabsWidth = tabWidths.reduce((sum, width) => sum + width, 0);
 
-  // Update button visibility
+  // Update button visibility based on Angular logic
   useEffect(() => {
     const BUTTON_OFFSET = 27;
 
-    // Show left button if scrolled past first tab
-    setShowLeftButton(scrollLeft > BUTTON_OFFSET);
+    // Show left button if first tab is hidden (scrolled past it)
+    // First tab start position relative to viewport
+    const firstTabEnd = scrollLeft + (tabWidths[0] || 0);
+    const isFirstTabHidden = firstTabEnd <= BUTTON_OFFSET + 1;
+    setShowLeftButton(totalTabsWidth > containerWidth && isFirstTabHidden);
 
-    // Show right button if not showing all tabs
-    const hasOverflow = totalTabsWidth > containerWidth;
-    const isAtEnd = scrollLeft + containerWidth >= totalTabsWidth - BUTTON_OFFSET;
-    setShowRightButton(hasOverflow && !isAtEnd);
-  }, [scrollLeft, containerWidth, totalTabsWidth]);
+    // Show right button if last tab is not fully visible
+    const lastTabWidth = tabWidths[tabWidths.length - 1] || 0;
+    const contentEnd = totalTabsWidth;
+    const viewportEnd = scrollLeft + containerWidth;
+
+    // Last tab is invisible if content extends beyond viewport (accounting for button)
+    const isLastTabInvisible = contentEnd - lastTabWidth < viewportEnd - BUTTON_OFFSET;
+    setShowRightButton(totalTabsWidth > containerWidth && !isLastTabInvisible);
+  }, [scrollLeft, containerWidth, totalTabsWidth, tabWidths]);
 
   // Auto-scroll active tab into view
   useEffect(() => {
@@ -140,7 +147,7 @@ export function PageMenu({
       {showLeftButton && (
         <button
           onClick={() => navigate(-1)}
-          className="absolute left-0 top-0 z-20 h-full bg-card-ground border-r border-surface-border group hover:bg-hover-surface-header transition-colors"
+          className="absolute left-0 top-0 z-20 h-full bg-card-ground border-r border-surface-border group transition-colors px-1"
           aria-label="Previous tab"
         >
           <ChevronLeft className="text-surface-400 group-hover:text-primary transition-colors" size={20} />
@@ -155,10 +162,11 @@ export function PageMenu({
         style={{
           scrollbarWidth: "none",
           msOverflowStyle: "none",
+          WebkitOverflowScrolling: "touch", // smooth scroll on iOS
         }}
       >
         {/* Tabs */}
-        <div className="flex w-full">
+        <div className="flex">
           {tabs.map((tab, index) => (
             <TabButton
               key={tab.id}
@@ -175,7 +183,7 @@ export function PageMenu({
       {showRightButton && (
         <button
           onClick={() => navigate(1)}
-          className="absolute right-0 top-0 z-20 h-full bg-card-ground border-l border-surface-border group hover:bg-hover-surface-header transition-colors"
+          className="absolute right-0 top-0 z-20 h-full bg-card-ground border-l border-surface-border group transition-colors px-1"
           aria-label="Next tab"
         >
           <ChevronRight className="text-surface-400 group-hover:text-primary transition-colors" size={20} />

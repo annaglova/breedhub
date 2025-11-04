@@ -151,14 +151,27 @@ export function PublicPageTemplate({
     // ],
   };
 
-  // MOCK DATA for tabs
+  // MOCK DATA for tabs - 6 test tabs with content
   const mockTabs: Tab[] = [
     {
       id: "achievements",
       fragment: "achievements",
       label: "Breed achievements",
       icon: <CheckCircle size={20} />,
-      component: BreedAchievementsTab,
+      component: () => (
+        <div className="mt-3 px-6 space-y-4">
+          <p className="text-lg font-semibold">Achievement History</p>
+          {Array.from({ length: 8 }).map((_, i) => (
+            <div key={i} className="p-4 border border-border rounded-lg">
+              <h3 className="font-semibold text-lg">Achievement {i + 1}</h3>
+              <p className="text-primary font-bold">${(i + 1) * 1000}</p>
+              <p className="text-sm text-muted-foreground mt-2">
+                Achievement description for item {i + 1}. Lorem ipsum dolor sit amet.
+              </p>
+            </div>
+          ))}
+        </div>
+      ),
     },
     {
       id: "patrons",
@@ -166,8 +179,19 @@ export function PublicPageTemplate({
       label: "Patrons",
       icon: <Heart size={20} />,
       component: () => (
-        <div className="mt-3 px-6">
-          <p className="text-muted-foreground">Patrons tab coming soon...</p>
+        <div className="mt-3 px-6 space-y-3">
+          <p className="text-lg font-semibold">Top Patrons List</p>
+          {Array.from({ length: 15 }).map((_, i) => (
+            <div key={i} className="flex items-center gap-3 p-3 border border-border rounded-lg">
+              <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center">
+                {i + 1}
+              </div>
+              <div>
+                <p className="font-semibold">Patron Name {i + 1}</p>
+                <p className="text-sm text-muted-foreground">Rating: {100 - i * 5}</p>
+              </div>
+            </div>
+          ))}
         </div>
       ),
     },
@@ -176,10 +200,96 @@ export function PublicPageTemplate({
       fragment: "moments",
       label: "Moments",
       icon: <Image size={20} />,
-      comingSoon: true,
       component: () => (
         <div className="mt-3 px-6">
-          <p className="text-muted-foreground">Moments gallery coming soon...</p>
+          <p className="text-lg font-semibold mb-4">Photo Gallery</p>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            {Array.from({ length: 12 }).map((_, i) => (
+              <div
+                key={i}
+                className="aspect-square bg-gradient-to-br from-primary/20 to-primary/5 rounded-lg flex items-center justify-center"
+              >
+                <Image size={32} className="text-primary/40" />
+              </div>
+            ))}
+          </div>
+        </div>
+      ),
+    },
+    {
+      id: "kennels",
+      fragment: "kennels",
+      label: "Top Kennels",
+      icon: <Heart size={20} />,
+      component: () => (
+        <div className="mt-3 px-6 space-y-4">
+          <p className="text-lg font-semibold">Featured Kennels</p>
+          {Array.from({ length: 10 }).map((_, i) => (
+            <div key={i} className="p-4 border border-border rounded-lg">
+              <h3 className="font-semibold">Kennel Name {i + 1}</h3>
+              <p className="text-sm text-muted-foreground mt-1">
+                Location: City {i + 1}, Country
+              </p>
+              <p className="text-sm text-primary mt-2">
+                Established: {2000 + i} • Dogs: {(i + 1) * 10}
+              </p>
+            </div>
+          ))}
+        </div>
+      ),
+    },
+    {
+      id: "pets",
+      fragment: "pets",
+      label: "Top Pets",
+      icon: <CheckCircle size={20} />,
+      component: () => (
+        <div className="mt-3 px-6 space-y-3">
+          <p className="text-lg font-semibold">Champion Pets</p>
+          {Array.from({ length: 12 }).map((_, i) => (
+            <div key={i} className="flex items-center gap-4 p-3 border border-border rounded-lg">
+              <div className="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center">
+                🐕
+              </div>
+              <div className="flex-1">
+                <p className="font-semibold">Pet Name {i + 1}</p>
+                <p className="text-sm text-muted-foreground">
+                  Title: Champion • Age: {i + 2} years
+                </p>
+              </div>
+              <div className="text-right">
+                <p className="text-primary font-bold">#{i + 1}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      ),
+    },
+    {
+      id: "statistics",
+      fragment: "statistics",
+      label: "Statistics",
+      icon: <Image size={20} />,
+      component: () => (
+        <div className="mt-3 px-6 space-y-6">
+          <p className="text-lg font-semibold">Breed Statistics</p>
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="space-y-2">
+              <div className="flex justify-between">
+                <span className="font-medium">Metric {i + 1}</span>
+                <span className="text-primary font-bold">{(i + 1) * 123}</span>
+              </div>
+              <div className="h-3 bg-surface-100 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-primary rounded-full"
+                  style={{ width: `${(i + 1) * 15}%` }}
+                />
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Description for metric {i + 1}. Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+              </p>
+            </div>
+          ))}
         </div>
       ),
     },
@@ -285,7 +395,7 @@ export function PublicPageTemplate({
           />
 
           {/* PageMenu - Sticky horizontal tab bar */}
-          <div className="sticky top-0 z-20 -mx-6 mb-6">
+          <div className="sticky top-0 z-20 mb-6">
             <PageMenu
               tabs={mockTabs}
               activeTab={activeTab}
