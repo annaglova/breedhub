@@ -1009,77 +1009,60 @@ export function SpaceComponent<T extends { id: string }>({
             />
           </div>
 
-          {/* Backdrop inside main content for side mode */}
-          <div
-            className={cn(
-              "absolute inset-0 z-30",
-              isMoreThanLG && "rounded-xl",
-              "transition-opacity duration-300",
-              drawerMode === "side" && isDrawerOpen
-                ? "bg-black/40 opacity-100"
-                : "opacity-0 pointer-events-none"
-            )}
-            onClick={handleBackdropClick}
-          />
-
-          {/* Drawer inside main content for side mode */}
-          <div
-            className={cn(
-              "absolute top-0 right-0 h-full bg-white shadow-xl z-40",
-              "w-[40rem]",
-              // Add rounded corners for drawer: always on sm+, but only when overlaying the list
-              isMoreThanSM && "rounded-l-xl overflow-hidden",
-              "overflow-auto",
-              "transform transition-transform duration-300 ease-out",
-              drawerMode === "side" && isDrawerOpen
-                ? "translate-x-0"
-                : "translate-x-full"
-            )}
-          >
-            {drawerMode === "side" && isDrawerOpen && <Outlet />}
-          </div>
-
-          {/* Fullscreen overlay for small screens - inside main content */}
-          <div
-            className={cn(
-              "absolute inset-0 z-30 transition-opacity duration-300",
-              drawerMode === "over" && isDrawerOpen
-                ? "opacity-100"
-                : "opacity-0 pointer-events-none"
-            )}
-          >
+          {/* Backdrop for drawer (only for side/over modes inside content) */}
+          {(drawerMode === "side" || drawerMode === "over") && (
             <div
-              className="absolute inset-0 bg-black/50"
+              className={cn(
+                "absolute inset-0 z-30 transition-opacity duration-300",
+                isMoreThanLG && "rounded-xl",
+                isDrawerOpen
+                  ? "bg-black/40 opacity-100"
+                  : "opacity-0 pointer-events-none"
+              )}
               onClick={handleBackdropClick}
             />
-          </div>
-          <div
-            className={cn(
-              "absolute inset-0 z-40 bg-white overflow-auto",
-              "transform transition-transform duration-300 ease-out",
-              drawerMode === "over" && isDrawerOpen
-                ? "translate-x-0"
-                : "translate-x-full"
-            )}
-          >
-            <Outlet />
-          </div>
+          )}
+
+          {/* Drawer for side/over modes (inside main content) */}
+          {(drawerMode === "side" || drawerMode === "over") && (
+            <div
+              className={cn(
+                "absolute top-0 right-0 h-full z-40",
+                "transform transition-all duration-300 ease-out",
+                // Width based on mode
+                drawerMode === "over" && "inset-0",
+                drawerMode === "side" && "w-[40rem]",
+                // Background
+                "bg-white",
+                // Rounded corners for side mode on larger screens
+                drawerMode === "side" && isMoreThanSM && "rounded-l-xl overflow-hidden",
+                // Shadow for side mode
+                drawerMode === "side" && "shadow-xl",
+                // Show/hide animation
+                isDrawerOpen ? "translate-x-0 opacity-100" : "translate-x-full opacity-0 pointer-events-none"
+              )}
+            >
+              {isDrawerOpen && <Outlet />}
+            </div>
+          )}
         </div>
 
         {/* Drawer for side-transparent mode (outside main content) */}
-        <div
-          className={cn(
-            "absolute top-0 right-0 h-full z-40 overflow-auto",
-            "w-[45rem]",
-            needCardClass ? "fake-card" : "card-surface",
-            "transform transition-all duration-300 ease-out",
-            drawerMode === "side-transparent" && isDrawerOpen
-              ? "translate-x-0 opacity-100"
-              : "translate-x-full opacity-0 pointer-events-none"
-          )}
-        >
-          <Outlet />
-        </div>
+        {drawerMode === "side-transparent" && (
+          <div
+            className={cn(
+              "absolute top-0 right-0 h-full z-40",
+              "w-[45rem]",
+              needCardClass ? "fake-card" : "card-surface",
+              "rounded-l-xl overflow-hidden",
+              "transform transition-all duration-300 ease-out",
+              // Show/hide animation
+              isDrawerOpen ? "translate-x-0 opacity-100" : "translate-x-full opacity-0 pointer-events-none"
+            )}
+          >
+            {isDrawerOpen && <Outlet />}
+          </div>
+        )}
       </div>
     </TooltipProvider>
   );
