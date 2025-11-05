@@ -1,6 +1,5 @@
-import React from 'react';
+import React, { useMemo, lazy, Suspense } from 'react';
 import type { SVGProps } from 'react';
-import * as LucideIcons from 'lucide-react';
 import * as CustomIcons from '@shared/icons';
 import type { IconConfig } from '@breedhub/rxdb-store';
 
@@ -25,7 +24,6 @@ export interface IconProps extends Omit<SVGProps<SVGSVGElement>, 'name' | 'ref'>
 export function Icon({ icon, size = 24, className = '', ...props }: IconProps) {
   const { name, source } = icon;
 
-
   // Fallback SVG component
   const FallbackIcon = () => (
     <svg
@@ -47,15 +45,31 @@ export function Icon({ icon, size = 24, className = '', ...props }: IconProps) {
 
   // Render Lucide icon
   if (source === 'lucide') {
-    // Lucide uses PascalCase (e.g., "Heart", "ChevronDown")
-    const LucideIcon = (LucideIcons as any)[name];
+    // Dynamically import the specific icon to avoid conflicts with native DOM constructors
+    // This way we don't import all icons at once (which would include Image that conflicts with DOM)
+    const LucideIcon = useMemo(() => {
+      return lazy(() =>
+        import('lucide-react')
+          .then((mod) => {
+            const IconComponent = (mod as any)[name];
+            if (!IconComponent) {
+              console.warn(`[Icon] Lucide icon not found: ${name}`);
+              return { default: FallbackIcon };
+            }
+            return { default: IconComponent };
+          })
+          .catch((error) => {
+            console.error(`[Icon] Failed to load Lucide icon: ${name}`, error);
+            return { default: FallbackIcon };
+          })
+      );
+    }, [name]);
 
-    if (!LucideIcon) {
-      console.warn(`[Icon] Lucide icon not found: ${name}`);
-      return <FallbackIcon />;
-    }
-
-    return <LucideIcon size={size} className={className} {...props} />;
+    return (
+      <Suspense fallback={<FallbackIcon />}>
+        <LucideIcon size={size} className={className} {...props} />
+      </Suspense>
+    );
   }
 
   // Render custom icon

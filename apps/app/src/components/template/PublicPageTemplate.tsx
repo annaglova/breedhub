@@ -12,6 +12,7 @@ import { TabsContainer, Tab } from "../tabs/TabsContainer";
 import { BreedAchievementsTab } from "../breed/tabs/BreedAchievementsTab";
 import { PageMenu } from "../tabs/PageMenu";
 import { useTabNavigation } from "@/hooks/useTabNavigation";
+import { Icon } from "@/components/shared/Icon";
 
 interface PublicPageTemplateProps {
   className?: string;
@@ -265,7 +266,7 @@ export function PublicPageTemplate({
                 key={i}
                 className="aspect-square bg-gradient-to-br from-primary/20 to-primary/5 rounded-lg flex items-center justify-center"
               >
-                <Image size={32} className="text-primary/40" />
+                <Icon icon={{ name: "Image", source: "lucide" }} size={32} className="text-primary/40" />
               </div>
             ))}
           </div>

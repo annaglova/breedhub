@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useMemo } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@ui/lib/utils";
+import { Icon } from "@/components/shared/Icon";
 import type { Tab } from "./TabsContainer";
 
 interface PageMenuProps {
@@ -192,7 +192,7 @@ export function PageMenu({
             className="absolute left-0 top-0 z-20 h-full bg-card-ground border-r border-surface-border group transition-colors px-1"
             aria-label="Previous tab"
           >
-            <ChevronLeft className="text-surface-400 group-hover:text-primary transition-colors" size={20} />
+            <Icon icon={{ name: "ChevronLeft", source: "lucide" }} size={20} className="text-surface-400 group-hover:text-primary transition-colors" />
           </button>
         )}
 
@@ -203,7 +203,7 @@ export function PageMenu({
             className="absolute right-0 top-0 z-20 h-full bg-card-ground border-l border-surface-border group transition-colors px-1"
             aria-label="Next tab"
           >
-            <ChevronRight className="text-surface-400 group-hover:text-primary transition-colors" size={20} />
+            <Icon icon={{ name: "ChevronRight", source: "lucide" }} size={20} className="text-surface-400 group-hover:text-primary transition-colors" />
           </button>
         )}
 
@@ -266,7 +266,9 @@ function TabButton({ tab, isActive, onClick, onResize }: TabButtonProps) {
         )}
       >
         {/* Icon */}
-        <div className="mr-1 flex-shrink-0">{tab.icon}</div>
+        <div className="mr-1 flex-shrink-0">
+          <Icon icon={tab.icon} size={20} />
+        </div>
 
         {/* Label */}
         <span className="shrink-0 font-bold">{tab.label}</span>
