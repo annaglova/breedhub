@@ -4,8 +4,9 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@ui/components/tooltip";
-import { ChevronDown, Heart, MoreVertical } from "lucide-react";
+import { Heart, MoreVertical } from "lucide-react";
 import { ReactNode } from "react";
+import { NavigationButtons } from "./cover";
 
 interface NameContainerOutletProps {
   children?: ReactNode;
@@ -58,14 +59,11 @@ export function NameContainerOutlet({
       {/* Name content slot */}
       {children}
 
-      {/* Navigation button - top right */}
+      {/* Navigation buttons - top right (default/gray when sticky) */}
       {onTop && (
-        <button
-          className="absolute right-0 top-0"
-          onClick={() => console.log("[TODO] Navigation")}
-        >
-          <ChevronDown size={20} className="text-gray-600 dark:text-gray-400" />
-        </button>
+        <div className="absolute right-0 top-0">
+          <NavigationButtons mode="default" />
+        </div>
       )}
 
       {/* Action buttons - bottom right */}

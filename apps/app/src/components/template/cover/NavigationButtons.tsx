@@ -44,7 +44,7 @@ export function NavigationButtons({
           ${
             isWhiteMode
               ? "border-white bg-white/30 text-white hover:bg-white/60"
-              : "border-surface-600 dark:border-surface-400 text-surface-600 dark:text-surface-400 hover:bg-surface-50 hover:dark:bg-surface-700"
+              : "border-secondary dark:border-secondary-400 text-secondary dark:text-secondary-400 hover:bg-secondary/10 hover:dark:bg-secondary-700"
           }
         `}
         style={{ borderRadius: "2rem 0 0 2rem" }}
@@ -62,7 +62,7 @@ export function NavigationButtons({
           ${
             isWhiteMode
               ? "border-white bg-white/30 text-white hover:bg-white/60"
-              : "border-surface-600 dark:border-surface-400 text-surface-600 dark:text-surface-400 hover:bg-surface-50 hover:dark:bg-surface-700"
+              : "border-secondary dark:border-secondary-400 text-secondary dark:text-secondary-400 hover:bg-secondary/10 hover:dark:bg-secondary-700"
           }
         `}
         style={{ borderRadius: "0 2rem 2rem 0" }}
