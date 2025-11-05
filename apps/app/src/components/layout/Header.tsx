@@ -11,7 +11,7 @@ import {
 } from "@ui/components/tooltip";
 import { cn } from "@ui/lib/utils";
 import { Menu } from "lucide-react";
-import { useState } from "react";
+import { useState, forwardRef } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { UserDrawer } from "./UserDrawer";
 import { Icon } from "@/components/shared/Icon";
@@ -23,7 +23,8 @@ interface HeaderProps {
   isHome?: boolean;
 }
 
-export function Header({ onMenuClick, isHome = false }: HeaderProps) {
+export const Header = forwardRef<HTMLElement, HeaderProps>(
+  ({ onMenuClick, isHome = false }, ref) => {
   const location = useLocation();
   const { theme, toggleTheme } = useTheme();
   const [isUserDrawerOpen, setIsUserDrawerOpen] = useState(false);
@@ -53,6 +54,7 @@ export function Header({ onMenuClick, isHome = false }: HeaderProps) {
   return (
     <TooltipProvider>
       <header
+        ref={ref}
         className={cn(
           "w-full flex items-center justify-between",
 
@@ -172,4 +174,6 @@ export function Header({ onMenuClick, isHome = false }: HeaderProps) {
       />
     </TooltipProvider>
   );
-}
+});
+
+Header.displayName = "Header";

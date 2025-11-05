@@ -1025,21 +1025,18 @@ export function SpaceComponent<T extends { id: string }>({
           {/* Drawer inside main content for side mode */}
           <div
             className={cn(
-              "absolute top-0 right-0 h-full bg-white shadow-xl z-40 overflow-hidden",
+              "absolute top-0 right-0 h-full bg-white shadow-xl z-40",
               "w-[40rem]",
               // Add rounded corners for drawer: always on sm+, but only when overlaying the list
-              isMoreThanSM && "rounded-l-xl",
+              isMoreThanSM && "rounded-l-xl overflow-hidden",
+              "overflow-auto",
               "transform transition-transform duration-300 ease-out",
               drawerMode === "side" && isDrawerOpen
                 ? "translate-x-0"
                 : "translate-x-full"
             )}
           >
-            {drawerMode === "side" && isDrawerOpen && (
-              <div className="h-full overflow-auto">
-                <Outlet />
-              </div>
-            )}
+            {drawerMode === "side" && isDrawerOpen && <Outlet />}
           </div>
 
           {/* Fullscreen overlay for small screens - inside main content */}
@@ -1058,23 +1055,21 @@ export function SpaceComponent<T extends { id: string }>({
           </div>
           <div
             className={cn(
-              "absolute inset-0 z-40 bg-white overflow-hidden",
+              "absolute inset-0 z-40 bg-white overflow-auto",
               "transform transition-transform duration-300 ease-out",
               drawerMode === "over" && isDrawerOpen
                 ? "translate-x-0"
                 : "translate-x-full"
             )}
           >
-            <div className="h-full overflow-auto">
-              <Outlet />
-            </div>
+            <Outlet />
           </div>
         </div>
 
         {/* Drawer for side-transparent mode (outside main content) */}
         <div
           className={cn(
-            "absolute top-0 right-0 h-full z-40 overflow-hidden",
+            "absolute top-0 right-0 h-full z-40 overflow-auto",
             "w-[45rem]",
             needCardClass ? "fake-card" : "card-surface",
             "transform transition-all duration-300 ease-out",
@@ -1083,9 +1078,7 @@ export function SpaceComponent<T extends { id: string }>({
               : "translate-x-full opacity-0 pointer-events-none"
           )}
         >
-          <div className="h-full overflow-auto">
-            <Outlet />
-          </div>
+          <Outlet />
         </div>
       </div>
     </TooltipProvider>

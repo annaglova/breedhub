@@ -47,7 +47,6 @@ export function AppLayout() {
   }, []);
 
   const mainHeight = screenHeight - topBarHeight - footerHeight;
-  const isReady = true; // Always render, don't wait for measurements
 
   return (
     <div className="layout-container bg-gray-100 flex flex-col">
@@ -83,43 +82,36 @@ export function AppLayout() {
         {/* Content wrapper */}
         <div className="flex-1 flex flex-col">
           {/* Header */}
-          <div ref={topBarRef}>
-            <Header
-              onMenuClick={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
-            />
-          </div>
+          <Header
+            ref={topBarRef}
+            onMenuClick={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
+          />
 
           {/* Content area */}
-          <div className="flex flex-1 overflow-hidden lg:pr-5">
-            {isReady && (
-              <div className="flex-1 3xl:flex 3xl:justify-center">
-                {/* Left menu column - only on xxxl */}
-                {isXXXL && (
-                  <div className="hidden w-64 pr-5 3xl:block">
-                    <Sidebar isCollapsed={false} asMenu />
-                  </div>
-                )}
-
-                {/* Main content */}
-                <main
-                  className="flex-1 overflow-hidden"
-                  style={{ height: `${mainHeight - (isLG ? 20 : 0)}px` }}
-                >
-                  <Outlet />
-                </main>
-
-                {/* Right spacer column - only on xxxl */}
-                {isXXXL && <div className="hidden w-64 pl-5 3xl:block" />}
+          <div className="flex flex-1 overflow-hidden lg:pr-5 3xl:justify-center">
+            {/* Left menu column - only on xxxl */}
+            {isXXXL && (
+              <div className="hidden w-64 pr-5 3xl:block">
+                <Sidebar isCollapsed={false} asMenu />
               </div>
             )}
+
+            {/* Main content */}
+            <main
+              className="flex-1 overflow-hidden"
+              style={{ height: `${mainHeight - (isLG ? 20 : 0)}px` }}
+            >
+              <Outlet />
+            </main>
+
+            {/* Right spacer column - only on xxxl */}
+            {isXXXL && <div className="hidden w-64 pl-5 3xl:block" />}
           </div>
         </div>
       </div>
 
       {/* Footer - full width */}
-      <div ref={footerRef}>
-        <Footer className="bg-footer-ground" />
-      </div>
+      <Footer ref={footerRef} className="bg-footer-ground" />
     </div>
   );
 }

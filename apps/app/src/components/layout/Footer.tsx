@@ -1,17 +1,23 @@
 import { cn } from "@ui/lib/utils";
+import { forwardRef } from "react";
 
 interface FooterProps {
   className?: string;
 }
 
-export function Footer({ className }: FooterProps) {
-  const currentYear = new Date().getFullYear();
+export const Footer = forwardRef<HTMLElement, FooterProps>(
+  ({ className }, ref) => {
+    const currentYear = new Date().getFullYear();
 
-  return (
-    <footer
-      className={cn("px-8 py-2 text-white z-10 cursor-default", className)}
-    >
-      Breedhub © {currentYear}
-    </footer>
-  );
-}
+    return (
+      <footer
+        ref={ref}
+        className={cn("px-8 py-2 text-white z-10 cursor-default", className)}
+      >
+        Breedhub © {currentYear}
+      </footer>
+    );
+  }
+);
+
+Footer.displayName = "Footer";
