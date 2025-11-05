@@ -2,12 +2,13 @@ import { useState } from "react";
 import { cn } from "@ui/lib/utils";
 import { TabHeader } from "./TabHeader";
 import { ScrollableTab } from "./ScrollableTab";
+import type { IconConfig } from "@breedhub/rxdb-store";
 
 export interface Tab {
   id: string;
   fragment: string;
   label: string;
-  icon: React.ReactNode;
+  icon: IconConfig; // Changed from React.ReactNode to IconConfig for universal icon support
   comingSoon?: boolean;
   fullscreenUrl?: string;
   component: React.ComponentType<any>;

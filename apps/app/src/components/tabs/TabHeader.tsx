@@ -1,9 +1,10 @@
 import { cn } from "@ui/lib/utils";
-import { Maximize2 } from "lucide-react";
+import { Icon } from "@/components/shared/Icon";
+import type { IconConfig } from "@breedhub/rxdb-store";
 
 interface TabHeaderProps {
   label: string;
-  icon: React.ReactNode;
+  icon: IconConfig; // Changed from React.ReactNode to IconConfig for universal icon support
   mode?: "list" | "compact";
   comingSoon?: boolean;
   fullscreenUrl?: string;
@@ -44,7 +45,9 @@ export function TabHeader({
           )}
         >
           {/* Icon */}
-          <div className="mr-2 flex-shrink-0">{icon}</div>
+          <div className="mr-2 flex-shrink-0">
+            <Icon icon={icon} size={24} />
+          </div>
 
           {/* Label */}
           <span>{label}</span>
@@ -63,7 +66,7 @@ export function TabHeader({
               className="ml-auto hover:bg-hover-surface-header p-2 rounded transition-colors"
               title="Full screen view"
             >
-              <Maximize2 size={16} className="text-sub-header-color" />
+              <Icon icon={{ name: "Maximize2", source: "lucide" }} size={16} className="text-sub-header-color" />
             </a>
           )}
         </div>
@@ -84,7 +87,7 @@ export function TabHeader({
             className="text-secondary border border-secondary-500 flex size-9 items-center justify-center rounded-full hover:bg-secondary/10 transition-colors"
             title="Full screen view"
           >
-            <Maximize2 size={16} />
+            <Icon icon={{ name: "Maximize2", source: "lucide" }} size={16} />
           </a>
         )}
       </div>

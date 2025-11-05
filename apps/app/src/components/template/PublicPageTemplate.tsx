@@ -1,7 +1,7 @@
 import coverBackground from "@/assets/images/background-images/cover_background.png";
 import { useCoverDimensions } from "@/hooks/useCoverDimensions";
 import { cn } from "@ui/lib/utils";
-import { Expand, CheckCircle, Heart, Image } from "lucide-react";
+import { Expand } from "lucide-react";
 import { useRef, useState, useEffect } from "react";
 import { AvatarOutlet } from "./AvatarOutlet";
 import { BreedName } from "../breed/BreedName";
@@ -213,7 +213,7 @@ export function PublicPageTemplate({
       id: "achievements",
       fragment: "achievements",
       label: "Breed achievements",
-      icon: <CheckCircle size={20} />,
+      icon: { name: "CheckCircle", source: "lucide" },
       component: () => (
         <div className="mt-3 px-6 space-y-4">
           <p className="text-lg font-semibold">Achievement History</p>
@@ -233,7 +233,7 @@ export function PublicPageTemplate({
       id: "patrons",
       fragment: "patrons",
       label: "Patrons",
-      icon: <Heart size={20} />,
+      icon: { name: "Heart", source: "lucide" },
       component: () => (
         <div className="mt-3 px-6 space-y-3">
           <p className="text-lg font-semibold">Top Patrons List</p>
@@ -255,7 +255,7 @@ export function PublicPageTemplate({
       id: "moments",
       fragment: "moments",
       label: "Moments",
-      icon: <Image size={20} />,
+      icon: { name: "Image", source: "lucide" },
       component: () => (
         <div className="mt-3 px-6">
           <p className="text-lg font-semibold mb-4">Photo Gallery</p>
@@ -276,7 +276,7 @@ export function PublicPageTemplate({
       id: "kennels",
       fragment: "kennels",
       label: "Top Kennels",
-      icon: <Heart size={20} />,
+      icon: { name: "Heart", source: "lucide" },
       component: () => (
         <div className="mt-3 px-6 space-y-4">
           <p className="text-lg font-semibold">Featured Kennels</p>
@@ -298,7 +298,7 @@ export function PublicPageTemplate({
       id: "pets",
       fragment: "pets",
       label: "Top Pets",
-      icon: <CheckCircle size={20} />,
+      icon: { name: "CheckCircle", source: "lucide" },
       component: () => (
         <div className="mt-3 px-6 space-y-3">
           <p className="text-lg font-semibold">Champion Pets</p>
@@ -325,7 +325,7 @@ export function PublicPageTemplate({
       id: "statistics",
       fragment: "statistics",
       label: "Statistics",
-      icon: <Image size={20} />,
+      icon: { name: "Image", source: "lucide" },
       component: () => (
         <div className="mt-3 px-6 space-y-6">
           <p className="text-lg font-semibold">Breed Statistics</p>
@@ -353,7 +353,7 @@ export function PublicPageTemplate({
       id: "health",
       fragment: "health",
       label: "Health Info",
-      icon: <CheckCircle size={20} />,
+      icon: { name: "CheckCircle", source: "lucide" },
       component: () => (
         <div className="mt-3 px-6 space-y-4">
           <p className="text-lg font-semibold">Health & Genetics</p>
@@ -372,7 +372,7 @@ export function PublicPageTemplate({
       id: "training",
       fragment: "training",
       label: "Training Tips",
-      icon: <Heart size={20} />,
+      icon: { name: "Heart", source: "lucide" },
       component: () => (
         <div className="mt-3 px-6 space-y-4">
           <p className="text-lg font-semibold">Training & Behavior</p>
