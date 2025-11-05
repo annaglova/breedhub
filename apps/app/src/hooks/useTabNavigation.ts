@@ -24,11 +24,41 @@ interface UseTabNavigationProps {
   defaultTab?: string; // Default active tab (default: first tab)
 }
 
+interface DebugInfo {
+  timestamp: number;
+  fragment: string;
+  found: {
+    element: boolean;
+    pageMenuContainer: boolean;
+    tabHeader: boolean;
+    scrollContainer: boolean;
+  };
+  values: {
+    stickyHeadersHeight: number;
+    elementTop: number;
+    containerTop: number;
+    desiredElementTop: number;
+    scrollDelta: number;
+    targetScroll: number;
+    currentScroll: number;
+  };
+  scrollContainer?: {
+    scrollTop: number;
+    scrollHeight: number;
+    clientHeight: number;
+    overflow: string;
+    overflowY: string;
+    scrollBehavior: string;
+    scrollTopAfterScroll: number;
+  };
+}
+
 interface UseTabNavigationReturn {
   activeTab: string;
   handleTabChange: (fragment: string) => void;
   handleVisibilityChange?: (id: string, visibility: number) => void;
   visibilityMap?: Record<string, number>;
+  debugInfo?: DebugInfo | null;
 }
 
 export function useTabNavigation({
@@ -42,6 +72,7 @@ export function useTabNavigation({
   const [visibilityMap, setVisibilityMap] = useState<Record<string, number>>(
     {}
   );
+  const [debugInfo, setDebugInfo] = useState<DebugInfo | null>(null);
 
   // Track if user manually clicked on tab (to prevent IntersectionObserver from overriding)
   const isManualScrollRef = useRef(false);
@@ -58,13 +89,43 @@ export function useTabNavigation({
         const element = document.getElementById(`tab-${fragment}`);
         if (!element) return;
 
+        // Wait for element to be fully rendered and positioned
+        // Use multiple strategies to ensure timing
+        const attemptScroll = () => {
+          // Check if element has proper dimensions
+          const rect = element.getBoundingClientRect();
+          if (rect.height === 0 || rect.width === 0) {
+            // Element not fully rendered yet, try again
+            requestAnimationFrame(attemptScroll);
+            return;
+          }
+
+          // Element is ready, perform scroll
+          performScroll(element, fragment);
+        };
+
+        // Start with requestAnimationFrame chain
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            attemptScroll();
+          });
+        });
+      }
+    },
+    [mode]
+  );
+
+  // Separate function for scroll logic
+  const performScroll = (element: HTMLElement, fragment: string) => {
         // Calculate total height of sticky headers
         // We need to account for NameContainer + PageMenu that are sticky at top
         let stickyHeadersHeight = 0;
 
         // Find PageMenu parent - it should have a ref and be z-30
         const pageMenuContainer = element.closest('main')?.querySelector('.sticky.z-30.mb-6') as HTMLElement;
+        const foundPageMenu = !!pageMenuContainer;
 
+        let foundTabHeader = false;
         if (pageMenuContainer) {
           // Get the 'top' style value which tells us where PageMenu is positioned
           const pageMenuTop = parseInt(pageMenuContainer.style.top || '0');
@@ -79,6 +140,7 @@ export function useTabNavigation({
           const tabHeader = section?.querySelector('.sticky') as HTMLElement;
           let tabHeaderHeight = 0;
           if (tabHeader) {
+            foundTabHeader = true;
             const tabHeaderRect = tabHeader.getBoundingClientRect();
             tabHeaderHeight = tabHeaderRect.height;
           }
@@ -99,11 +161,34 @@ export function useTabNavigation({
           scrollContainer = scrollContainer.parentElement;
         }
 
+        const foundScrollContainer = !!(scrollContainer && scrollContainer !== document.body);
+
         if (!scrollContainer || scrollContainer === document.body) {
           // Fallback to window scroll
           const elementRect = element.getBoundingClientRect();
           const absoluteElementTop = elementRect.top + window.pageYOffset;
           const targetScrollTop = absoluteElementTop - stickyHeadersHeight;
+
+          // Debug info for window scroll
+          setDebugInfo({
+            timestamp: Date.now(),
+            fragment,
+            found: {
+              element: true,
+              pageMenuContainer: foundPageMenu,
+              tabHeader: foundTabHeader,
+              scrollContainer: false,
+            },
+            values: {
+              stickyHeadersHeight,
+              elementTop: elementRect.top,
+              containerTop: 0,
+              desiredElementTop: stickyHeadersHeight,
+              scrollDelta: absoluteElementTop - stickyHeadersHeight,
+              targetScroll: targetScrollTop,
+              currentScroll: window.pageYOffset,
+            },
+          });
 
           window.scrollTo({
             top: targetScrollTop,
@@ -131,10 +216,50 @@ export function useTabNavigation({
           // Apply scroll
           const targetScroll = scrollContainer.scrollTop + scrollDelta;
 
-          scrollContainer.scrollTo({
-            top: targetScroll,
-            behavior: "smooth",
+          // Debug info
+          setDebugInfo({
+            timestamp: Date.now(),
+            fragment,
+            found: {
+              element: true,
+              pageMenuContainer: foundPageMenu,
+              tabHeader: foundTabHeader,
+              scrollContainer: foundScrollContainer,
+            },
+            values: {
+              stickyHeadersHeight,
+              elementTop,
+              containerTop,
+              desiredElementTop,
+              scrollDelta,
+              targetScroll,
+              currentScroll: scrollContainer.scrollTop,
+            },
           });
+
+          // Capture scroll container info
+          const styles = window.getComputedStyle(scrollContainer);
+          const scrollTopBefore = scrollContainer.scrollTop;
+
+          // DON'T use scrollIntoView - it scrolls wrong container
+          // Manually scroll our specific container
+          scrollContainer.scrollTop = targetScroll;
+
+          const scrollTopAfter = scrollContainer.scrollTop;
+
+          // Update debug info with scroll container details
+          setDebugInfo(prev => ({
+            ...prev!,
+            scrollContainer: {
+              scrollTop: scrollTopBefore,
+              scrollHeight: scrollContainer.scrollHeight,
+              clientHeight: scrollContainer.clientHeight,
+              overflow: styles.overflow,
+              overflowY: styles.overflowY,
+              scrollBehavior: styles.scrollBehavior,
+              scrollTopAfterScroll: scrollTopAfter,
+            },
+          }));
         }
 
         // Re-enable auto-update after scroll completes (smooth scroll takes ~500ms)
@@ -144,10 +269,7 @@ export function useTabNavigation({
 
         // TODO Phase 3: Update URL hash
         // window.history.replaceState(null, '', `#${fragment}`);
-      }
-    },
-    [mode]
-  );
+  };
 
   // Handle visibility change (scroll mode only)
   const handleVisibilityChange = useCallback(
@@ -199,6 +321,7 @@ export function useTabNavigation({
       handleTabChange,
       handleVisibilityChange,
       visibilityMap,
+      debugInfo,
     };
   }
 
@@ -206,5 +329,6 @@ export function useTabNavigation({
   return {
     activeTab,
     handleTabChange,
+    debugInfo,
   };
 }

@@ -4,6 +4,7 @@ import { AppLayout } from '@/layouts/AppLayout';
 import { SpacePage } from '@/pages/SpacePage';
 import { SupabaseLoader } from '@/components/test/SupabaseLoader';
 import { TestDictionaryPage } from '@/pages/TestDictionaryPage';
+import { TestPage } from '@/pages/TestPage';
 
 // Temporary placeholder component
 function PlaceholderPage({ title }: { title: string }) {
@@ -44,6 +45,7 @@ export function AppRouter() {
           <Route path="test">
             <Route path="supabase" element={<SupabaseLoader />} />
             <Route path="dictionary" element={<TestDictionaryPage />} />
+            <Route path="page" element={<TestPage />} />
           </Route>
           
           {/* Direct breed pages - TODO: migrate to config-driven routing */}
