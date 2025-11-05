@@ -117,7 +117,37 @@ export function useTabNavigation({
 
   // Separate function for scroll logic
   const performScroll = (element: HTMLElement, fragment: string) => {
-        // Calculate total height of sticky headers
+        // Special case: First tab (Overview) - scroll to top (0) to show full cover
+        const isFirstTab = tabs[0]?.fragment === fragment;
+
+        if (isFirstTab) {
+          // Find the scrollable container
+          let scrollContainer: HTMLElement | null = element.parentElement;
+          while (scrollContainer && scrollContainer !== document.body) {
+            const styles = window.getComputedStyle(scrollContainer);
+            if (styles.overflowY === 'auto' || styles.overflowY === 'scroll') {
+              break;
+            }
+            scrollContainer = scrollContainer.parentElement;
+          }
+
+          if (scrollContainer && scrollContainer !== document.body) {
+            // Scroll container to top
+            scrollContainer.scrollTop = 0;
+          } else {
+            // Fallback to window scroll
+            window.scrollTo({ top: 0, behavior: "smooth" });
+          }
+
+          // Re-enable auto-update after scroll completes
+          setTimeout(() => {
+            isManualScrollRef.current = false;
+          }, 1000);
+
+          return; // Exit early for first tab
+        }
+
+        // For other tabs: Calculate total height of sticky headers
         // We need to account for NameContainer + PageMenu that are sticky at top
         let stickyHeadersHeight = 0;
 
