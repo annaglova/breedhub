@@ -1,6 +1,6 @@
 const fs = require("fs");
 const path = require("path");
-require("dotenv").config({ path: path.resolve(__dirname, '../.env') });
+require("dotenv").config({ path: path.resolve(__dirname, '../../../.env') });
 const { createClient } = require("@supabase/supabase-js");
 // Use cascade with proper parent-child waiting
 const { cascadeUpdate } = require("./cascading-updates.cjs");
