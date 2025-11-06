@@ -1,5 +1,7 @@
 import { appConfigStore } from "@breedhub/rxdb-store";
 import {
+  ArrowUp,
+  ArrowDown,
   Book,
   ChevronDown,
   ChevronRight,
@@ -1016,7 +1018,38 @@ const AppConfig: React.FC = () => {
               </div>
 
               <div className="flex gap-1">
-                {getAvailableChildTypes(node.configType || "").length > 0 && 
+                {/* Move Up/Down buttons - only show for children (when parentId exists) */}
+                {parentId && (
+                  <>
+                    <button
+                      onClick={async (e) => {
+                        e.stopPropagation();
+                        const result = await appConfigStore.reorderChild(parentId, node.id, 'up');
+                        if (!result.success && result.error) {
+                          console.log(result.error);
+                        }
+                      }}
+                      className="p-1 text-gray-400 hover:text-orange-600 hover:bg-orange-50 rounded"
+                      title="Move up"
+                    >
+                      <ArrowUp className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={async (e) => {
+                        e.stopPropagation();
+                        const result = await appConfigStore.reorderChild(parentId, node.id, 'down');
+                        if (!result.success && result.error) {
+                          console.log(result.error);
+                        }
+                      }}
+                      className="p-1 text-gray-400 hover:text-orange-600 hover:bg-orange-50 rounded"
+                      title="Move down"
+                    >
+                      <ArrowDown className="w-4 h-4" />
+                    </button>
+                  </>
+                )}
+                {getAvailableChildTypes(node.configType || "").length > 0 &&
                  getAvailableChildTypes(node.configType || "").some(type => appConfigStore.canAddConfigType(node.id, type)) && (
                   <>
                     <button

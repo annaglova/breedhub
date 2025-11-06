@@ -1954,24 +1954,24 @@ class AppConfigStore {
    * Universal method for removing a dependency from a config
    */
   async removeDependency(
-    configId: string, 
+    configId: string,
     depId: string,
     options: { skipCascade?: boolean } = {}
   ): Promise<{ success: boolean; error?: string }> {
     try {
       const config = this.configs.value.get(configId);
-      
+
       if (!config) {
         return { success: false, error: 'Config not found' };
       }
-      
+
       if (!config.deps || !config.deps.includes(depId)) {
         return { success: false, error: 'Dependency not found' };
       }
-      
+
       // Remove from deps
       const updatedDeps = config.deps.filter(d => d !== depId);
-      
+
       // Recalculate self_data without this dependency
       let newSelfData = {};
       for (const id of updatedDeps) {
@@ -1980,23 +1980,73 @@ class AppConfigStore {
           newSelfData = deepMerge(newSelfData, dep.data);
         }
       }
-      
+
       // Update config
-      await this.updateConfig(configId, { 
+      await this.updateConfig(configId, {
         deps: updatedDeps,
-        self_data: newSelfData 
+        self_data: newSelfData
       });
-      
+
       // Cascade update to parents
       if (!options.skipCascade) {
         await this.cascadeUpdate(configId);
       }
-      
+
       return { success: true };
     } catch (error) {
-      return { 
-        success: false, 
-        error: error instanceof Error ? error.message : 'Failed to remove dependency' 
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to remove dependency'
+      };
+    }
+  }
+
+  /**
+   * Reorder a child in parent's deps array
+   * @param parentId - Parent config ID
+   * @param childId - Child config ID to move
+   * @param direction - 'up' or 'down'
+   */
+  async reorderChild(
+    parentId: string,
+    childId: string,
+    direction: 'up' | 'down'
+  ): Promise<{ success: boolean; error?: string }> {
+    try {
+      const parent = this.configs.value.get(parentId);
+
+      if (!parent) {
+        return { success: false, error: 'Parent config not found' };
+      }
+
+      if (!parent.deps || !parent.deps.includes(childId)) {
+        return { success: false, error: 'Child not found in parent deps' };
+      }
+
+      const deps = [...parent.deps];
+      const currentIndex = deps.indexOf(childId);
+
+      // Check boundaries
+      if (direction === 'up' && currentIndex === 0) {
+        return { success: false, error: 'Already at the top' };
+      }
+
+      if (direction === 'down' && currentIndex === deps.length - 1) {
+        return { success: false, error: 'Already at the bottom' };
+      }
+
+      // Swap positions
+      const newIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
+      [deps[currentIndex], deps[newIndex]] = [deps[newIndex], deps[currentIndex]];
+
+      // Update parent config with new deps order
+      await this.updateConfig(parentId, { deps });
+
+      return { success: true };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to reorder child'
       };
     }
   }
