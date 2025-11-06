@@ -450,7 +450,7 @@ async function rebuildUserConfig(userConfigId) {
 }
 
 /**
- * Rebuild a page config from its fields config
+ * Rebuild a page config from its fields config and menu_config
  */
 async function rebuildPageConfig(pageId) {
   try {
@@ -460,24 +460,35 @@ async function rebuildPageConfig(pageId) {
       .select('*')
       .eq('id', pageId)
       .single();
-    
+
     if (fetchError || !pageConfig) return false;
-    
-    // Page depends on fields configs - get them from page's deps
-    const fieldConfigIds = pageConfig.deps || [];
-    
-    // Get all fields configs that this page depends on
-    const { data: fieldsConfigs, error: fieldsError } = await supabase
+
+    // Page depends on fields configs and menu_configs - get them from page's deps
+    const dependentIds = pageConfig.deps || [];
+
+    // Query each type separately to ensure fresh data
+    const fieldsConfigs = [];
+    const menuConfigs = [];
+
+    // Query fields configs
+    const { data: fieldsData } = await supabase
       .from('app_config')
       .select('id, data')
-      .in('id', fieldConfigIds)
+      .in('id', dependentIds)
       .eq('type', 'fields');
-    
-    if (fieldsError) return false;
-    
-    // Build page structure - ONLY fields from fields configs
+    if (fieldsData) fieldsConfigs.push(...fieldsData);
+
+    // Query menu configs
+    const { data: menusData } = await supabase
+      .from('app_config')
+      .select('id, data')
+      .in('id', dependentIds)
+      .eq('type', 'menu_config');
+    if (menusData) menuConfigs.push(...menusData);
+
+    // Build page structure
     const pageStructure = {};
-    
+
     // Add fields from fields configs (which already contain the actual field data)
     let hasFields = false;
     const fields = {};
@@ -488,12 +499,25 @@ async function rebuildPageConfig(pageId) {
         hasFields = true;
       }
     }
-    
+
     // Only add fields property if we have actual fields
     if (hasFields) {
       pageStructure.fields = fields;
     }
-    
+
+    // Add menu configs nested by their IDs
+    if (menuConfigs && menuConfigs.length > 0) {
+      const menusData = {};
+      for (const menuConfig of menuConfigs) {
+        menusData[menuConfig.id] = (menuConfig.data && Object.keys(menuConfig.data).length > 0)
+          ? menuConfig.data
+          : {};
+      }
+      if (Object.keys(menusData).length > 0) {
+        pageStructure.menus = menusData;
+      }
+    }
+
     const newSelfData = pageStructure;
     // Use deep merge to preserve nested properties
     const newData = deepMerge(newSelfData, pageConfig.override_data || {});
@@ -507,7 +531,7 @@ async function rebuildPageConfig(pageId) {
         updated_at: new Date().toISOString()
       })
       .eq('id', pageId);
-    
+
     return !updateError;
   } catch (error) {
     console.error(`Error rebuilding page ${pageId}:`, error);

@@ -111,6 +111,7 @@ const childContainerMapping: Record<string, Record<string, string | null>> = {
   'page': {
     'tab': 'tabs',
     'fields': 'fields',
+    'menu_config': 'menus',
     'property': null
   },
   'tab': {
@@ -1066,7 +1067,7 @@ class AppConfigStore {
       workspace: ["space"],
       space: ["view", "page", "sort", "filter"],
       view: ["fields"],
-      page: ["fields", "tab"],
+      page: ["fields", "tab", "menu_config"],
       tab: ["fields"],
       user_config: ["menu_config"],
       menu_config: ["menu_section"],

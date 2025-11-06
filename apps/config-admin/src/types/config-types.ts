@@ -56,7 +56,7 @@ export const childTypeMapping: Record<string, string[]> = {
   workspace: ["space"],
   space: ["view", "page"],
   view: ["fields", "sort", "filter"],
-  page: ["fields", "tab"],
+  page: ["fields", "tab", "menu_config"],
   tab: ["fields"],
   user_config: ["menu_config"],
   menu_config: ["menu_section"],
