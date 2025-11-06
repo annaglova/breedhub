@@ -224,6 +224,232 @@ async function rebuildFilterConfig(filterConfigId) {
 }
 
 /**
+ * Rebuild a menu_item config (leaf node in menu hierarchy)
+ */
+async function rebuildMenuItem(menuItemId) {
+  try {
+    // Menu items are leaf nodes - they have no children to rebuild from
+    // Their data comes from deps (properties) only
+    const { data: menuItem, error: fetchError } = await supabase
+      .from('app_config')
+      .select('*')
+      .eq('id', menuItemId)
+      .single();
+
+    if (fetchError || !menuItem) return false;
+
+    // Menu items don't have nested structures - just return success
+    // Their self_data and override_data are already correct
+    return true;
+  } catch (error) {
+    console.error(`Error rebuilding menu_item ${menuItemId}:`, error);
+    return false;
+  }
+}
+
+/**
+ * Rebuild a menu_section config from its menu_items
+ */
+async function rebuildMenuSection(menuSectionId) {
+  try {
+    // Get the menu_section config
+    const { data: menuSection, error: fetchError } = await supabase
+      .from('app_config')
+      .select('*')
+      .eq('id', menuSectionId)
+      .single();
+
+    if (fetchError || !menuSection) return false;
+
+    // Menu section depends on menu_items - get them from section's deps
+    const menuItemIds = menuSection.deps || [];
+
+    // Get all menu_items that this section depends on
+    const { data: menuItems, error: itemsError } = await supabase
+      .from('app_config')
+      .select('id, data')
+      .in('id', menuItemIds)
+      .eq('type', 'menu_item');
+
+    if (itemsError) return false;
+
+    // Build menu section structure - items nested by their IDs
+    const sectionStructure = {};
+
+    if (menuItems && menuItems.length > 0) {
+      const itemsData = {};
+      for (const item of menuItems) {
+        itemsData[item.id] = (item.data && Object.keys(item.data).length > 0)
+          ? item.data
+          : {};
+      }
+      if (Object.keys(itemsData).length > 0) {
+        sectionStructure.items = itemsData;
+      }
+    }
+
+    const newSelfData = sectionStructure;
+    const newData = deepMerge(newSelfData, menuSection.override_data || {});
+
+    // Update the menu_section
+    const { error: updateError } = await supabase
+      .from('app_config')
+      .update({
+        self_data: newSelfData,
+        data: newData,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', menuSectionId);
+
+    return !updateError;
+  } catch (error) {
+    console.error(`Error rebuilding menu_section ${menuSectionId}:`, error);
+    return false;
+  }
+}
+
+/**
+ * Rebuild a menu_config from its menu_sections
+ */
+async function rebuildMenuConfig(menuConfigId) {
+  try {
+    // Get the menu_config
+    const { data: menuConfig, error: fetchError } = await supabase
+      .from('app_config')
+      .select('*')
+      .eq('id', menuConfigId)
+      .single();
+
+    if (fetchError || !menuConfig) return false;
+
+    // Menu config depends on menu_sections - get them from config's deps
+    const sectionIds = menuConfig.deps || [];
+
+    // Get all menu_sections that this config depends on
+    const { data: sections, error: sectionsError } = await supabase
+      .from('app_config')
+      .select('id, data')
+      .in('id', sectionIds)
+      .eq('type', 'menu_section');
+
+    if (sectionsError) return false;
+
+    // Build menu config structure - sections nested by their IDs
+    const menuStructure = {};
+
+    if (sections && sections.length > 0) {
+      const sectionsData = {};
+      for (const section of sections) {
+        sectionsData[section.id] = (section.data && Object.keys(section.data).length > 0)
+          ? section.data
+          : {};
+      }
+      if (Object.keys(sectionsData).length > 0) {
+        menuStructure.sections = sectionsData;
+      }
+    }
+
+    const newSelfData = menuStructure;
+    const newData = deepMerge(newSelfData, menuConfig.override_data || {});
+
+    // Update the menu_config
+    const { error: updateError } = await supabase
+      .from('app_config')
+      .update({
+        self_data: newSelfData,
+        data: newData,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', menuConfigId);
+
+    return !updateError;
+  } catch (error) {
+    console.error(`Error rebuilding menu_config ${menuConfigId}:`, error);
+    return false;
+  }
+}
+
+/**
+ * Rebuild a user_config from its menu_configs and properties
+ */
+async function rebuildUserConfig(userConfigId) {
+  try {
+    // Get the user_config
+    const { data: userConfig, error: fetchError } = await supabase
+      .from('app_config')
+      .select('*')
+      .eq('id', userConfigId)
+      .single();
+
+    if (fetchError || !userConfig) return false;
+
+    // User config depends on menu_configs and properties
+    const dependentIds = userConfig.deps || [];
+
+    // Query menu_configs and properties separately
+    const menuConfigs = [];
+    const properties = [];
+
+    // Query menu_configs
+    const { data: menuConfigsData } = await supabase
+      .from('app_config')
+      .select('id, data')
+      .in('id', dependentIds)
+      .eq('type', 'menu_config');
+    if (menuConfigsData) menuConfigs.push(...menuConfigsData);
+
+    // Query properties
+    const { data: propertiesData } = await supabase
+      .from('app_config')
+      .select('id, data')
+      .in('id', dependentIds)
+      .eq('type', 'property');
+    if (propertiesData) properties.push(...propertiesData);
+
+    // Build user config structure
+    const userConfigStructure = {};
+
+    // Add menu_configs nested by their IDs
+    if (menuConfigs && menuConfigs.length > 0) {
+      const menusData = {};
+      for (const menuConfig of menuConfigs) {
+        menusData[menuConfig.id] = (menuConfig.data && Object.keys(menuConfig.data).length > 0)
+          ? menuConfig.data
+          : {};
+      }
+      if (Object.keys(menusData).length > 0) {
+        userConfigStructure.menus = menusData;
+      }
+    }
+
+    // Add properties directly to structure (not nested)
+    for (const property of properties) {
+      if (property.data && Object.keys(property.data).length > 0) {
+        Object.assign(userConfigStructure, property.data);
+      }
+    }
+
+    const newSelfData = userConfigStructure;
+    const newData = deepMerge(newSelfData, userConfig.override_data || {});
+
+    // Update the user_config
+    const { error: updateError } = await supabase
+      .from('app_config')
+      .update({
+        self_data: newSelfData,
+        data: newData,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', userConfigId);
+
+    return !updateError;
+  } catch (error) {
+    console.error(`Error rebuilding user_config ${userConfigId}:`, error);
+    return false;
+  }
+}
+
+/**
  * Rebuild a page config from its fields config
  */
 async function rebuildPageConfig(pageId) {
@@ -604,7 +830,7 @@ async function rebuildFullHierarchy(options = {}) {
     const { data: configs, error } = await supabase
       .from('app_config')
       .select('id, type')
-      .in('type', ['fields', 'sort', 'filter', 'page', 'space', 'workspace', 'app'])
+      .in('type', ['fields', 'sort', 'filter', 'page', 'space', 'workspace', 'app', 'user_config', 'menu_config', 'menu_section', 'menu_item'])
       .order('type');
     
     if (error) throw error;
@@ -617,15 +843,19 @@ async function rebuildFullHierarchy(options = {}) {
     }
     
     // Rebuild in TWO PASSES to ensure leaf configs are fully saved before parents read them
-    // Pass 1: Leaf configs (fields/sort/filter) - these don't depend on other configs
-    // Pass 2: Parent configs (page/space/workspace/app) - these depend on leaf configs
+    // Pass 1: Leaf configs (fields/sort/filter/menu_item) - these don't depend on other configs
+    // Pass 2: Parent configs (page/space/workspace/app/menu_section/menu_config/user_config) - these depend on leaf configs
 
-    const pass1 = ['fields', 'sort', 'filter'];
-    const pass2 = ['page', 'space', 'workspace', 'app'];
+    const pass1 = ['fields', 'sort', 'filter', 'menu_item'];
+    const pass2 = ['page', 'menu_section', 'menu_config', 'user_config', 'space', 'workspace', 'app'];
     const rebuildFunctions = {
       'fields': rebuildFieldsConfig,
       'sort': rebuildSortConfig,
       'filter': rebuildFilterConfig,
+      'menu_item': rebuildMenuItem,
+      'menu_section': rebuildMenuSection,
+      'menu_config': rebuildMenuConfig,
+      'user_config': rebuildUserConfig,
       'page': rebuildPageConfig,
       'space': rebuildSpaceConfig,
       'workspace': rebuildWorkspaceConfig,
@@ -633,7 +863,7 @@ async function rebuildFullHierarchy(options = {}) {
     };
 
     // PASS 1: Rebuild leaf configs
-    console.log('\n🔄 PASS 1: Rebuilding leaf configs (fields/sort/filter)...');
+    console.log('\n🔄 PASS 1: Rebuilding leaf configs (fields/sort/filter/menu_item)...');
     for (const type of pass1) {
       const ids = grouped[type] || [];
       if (ids.length === 0) continue;
@@ -674,7 +904,7 @@ async function rebuildFullHierarchy(options = {}) {
     }
 
     // PASS 2: Rebuild parent configs
-    console.log('\n🔄 PASS 2: Rebuilding parent configs (page/space/workspace/app)...');
+    console.log('\n🔄 PASS 2: Rebuilding parent configs (page/menu_section/menu_config/user_config/space/workspace/app)...');
     for (const type of pass2) {
       const ids = grouped[type] || [];
       if (ids.length === 0) continue;
@@ -731,7 +961,7 @@ async function rebuildAfterChanges(changedConfigIds, options = {}) {
       
       if (!error && dependents) {
         for (const dep of dependents) {
-          if (['fields', 'sort', 'filter', 'page', 'space', 'workspace', 'app'].includes(dep.type)) {
+          if (['fields', 'sort', 'filter', 'page', 'space', 'workspace', 'app', 'user_config', 'menu_config', 'menu_section', 'menu_item'].includes(dep.type)) {
             toRebuild.add(JSON.stringify({ id: dep.id, type: dep.type }));
           }
         }
@@ -740,7 +970,7 @@ async function rebuildAfterChanges(changedConfigIds, options = {}) {
     
     // Convert back to objects and sort by hierarchy level
     const configs = Array.from(toRebuild).map(str => JSON.parse(str));
-    const typeOrder = { 'fields': 1, 'sort': 1, 'filter': 1, 'page': 2, 'space': 3, 'workspace': 4, 'app': 5 };
+    const typeOrder = { 'fields': 1, 'sort': 1, 'filter': 1, 'menu_item': 1, 'page': 2, 'menu_section': 2, 'menu_config': 3, 'user_config': 4, 'space': 3, 'workspace': 4, 'app': 5 };
     configs.sort((a, b) => typeOrder[a.type] - typeOrder[b.type]);
     
     console.log(`\nFound ${configs.length} configs to rebuild`);
@@ -750,6 +980,10 @@ async function rebuildAfterChanges(changedConfigIds, options = {}) {
       'fields': rebuildFieldsConfig,
       'sort': rebuildSortConfig,
       'filter': rebuildFilterConfig,
+      'menu_item': rebuildMenuItem,
+      'menu_section': rebuildMenuSection,
+      'menu_config': rebuildMenuConfig,
+      'user_config': rebuildUserConfig,
       'page': rebuildPageConfig,
       'space': rebuildSpaceConfig,
       'workspace': rebuildWorkspaceConfig,
@@ -810,6 +1044,10 @@ module.exports = {
   rebuildFieldsConfig,
   rebuildSortConfig,
   rebuildFilterConfig,
+  rebuildMenuItem,
+  rebuildMenuSection,
+  rebuildMenuConfig,
+  rebuildUserConfig,
   rebuildPageConfig,
   rebuildSpaceConfig,
   rebuildWorkspaceConfig,
