@@ -45,9 +45,9 @@ export const configTypes: Record<string, ConfigTypeInfo> = {
   fields: { name: "Fields Config", icon: List, color: "text-indigo-600" },
   tab: { name: "Tab", icon: Layers, color: "text-pink-600" },
   user_config: { name: "User Config", icon: User, color: "text-rose-600" },
-  user_menu_config: { name: "User Menu Config", icon: Menu, color: "text-amber-600" },
-  user_menu_section: { name: "User Menu Section", icon: FolderOpen, color: "text-teal-600" },
-  user_menu_item: { name: "User Menu Item", icon: FileText, color: "text-slate-600" },
+  menu_config: { name: "Menu Config", icon: Menu, color: "text-amber-600" },
+  menu_section: { name: "Menu Section", icon: FolderOpen, color: "text-teal-600" },
+  menu_item: { name: "Menu Item", icon: FileText, color: "text-slate-600" },
 };
 
 // Child type mappings
@@ -58,10 +58,10 @@ export const childTypeMapping: Record<string, string[]> = {
   view: ["fields", "sort", "filter"],
   page: ["fields", "tab"],
   tab: ["fields"],
-  user_config: ["user_menu_config"],
-  user_menu_config: ["user_menu_section"],
-  user_menu_section: ["user_menu_item"],
-  user_menu_item: [], // Final node - no children
+  user_config: ["menu_config"],
+  menu_config: ["menu_section"],
+  menu_section: ["menu_item"],
+  menu_item: [], // Final node - no children
 };
 
 // Get available child types for a parent type

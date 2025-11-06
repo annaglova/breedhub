@@ -118,18 +118,18 @@ const childContainerMapping: Record<string, Record<string, string | null>> = {
     'property': null
   },
   'user_config': {
-    'user_menu_config': 'menus',
+    'menu_config': 'menus',
     'property': null
   },
-  'user_menu_config': {
-    'user_menu_section': 'sections',
+  'menu_config': {
+    'menu_section': 'sections',
     'property': null
   },
-  'user_menu_section': {
-    'user_menu_item': 'items',
+  'menu_section': {
+    'menu_item': 'items',
     'property': null
   },
-  'user_menu_item': {
+  'menu_item': {
     'property': null
   }
 };
@@ -138,7 +138,7 @@ const childContainerMapping: Record<string, Record<string, string | null>> = {
 const noPropertyTypes = ['fields', 'sort_fields', 'filter_fields'];
 
 // High-level structure types
-const highLevelTypes = ['app', 'workspace', 'space', 'view', 'page', 'tab', 'user_config', 'user_menu_config', 'user_menu_section', 'user_menu_item'];
+const highLevelTypes = ['app', 'workspace', 'space', 'view', 'page', 'tab', 'user_config', 'menu_config', 'menu_section', 'menu_item'];
 const groupingTypes = ['fields', 'sort', 'filter']; // Grouping configs that don't merge deps data
 
 class AppConfigStore {
@@ -756,9 +756,9 @@ class AppConfigStore {
       sort_fields: 'Sort Fields',
       filter_fields: 'Filter Fields',
       user_config: 'User Config',
-      user_menu_config: 'User Menu Config',
-      user_menu_section: 'User Menu Section',
-      user_menu_item: 'User Menu Item'
+      menu_config: 'Menu Config',
+      menu_section: 'Menu Section',
+      menu_item: 'Menu Item'
     };
     
     const newTemplate = {
@@ -1068,10 +1068,10 @@ class AppConfigStore {
       view: ["fields"],
       page: ["fields", "tab"],
       tab: ["fields"],
-      user_config: ["user_menu_config"],
-      user_menu_config: ["user_menu_section"],
-      user_menu_section: ["user_menu_item"],
-      user_menu_item: [],
+      user_config: ["menu_config"],
+      menu_config: ["menu_section"],
+      menu_section: ["menu_item"],
+      menu_item: [],
     };
 
     return childTypeMapping[parentType] || [];
@@ -1127,8 +1127,8 @@ class AppConfigStore {
 
   // Check if type is a high-level structure type
   isHighLevelType(type: string): boolean {
-    return ['app', 'workspace', 'space', 'view', 'page', 'tab', 'sort', 'filter', 'fields', 
-            'user_config', 'user_menu_config', 'user_menu_section', 'user_menu_item'].includes(type);
+    return ['app', 'workspace', 'space', 'view', 'page', 'tab', 'sort', 'filter', 'fields',
+            'user_config', 'menu_config', 'menu_section', 'menu_item'].includes(type);
   }
   
   // Check if type is a grouping config (cannot have override_data)
