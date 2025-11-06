@@ -124,6 +124,7 @@ const childContainerMapping: Record<string, Record<string, string | null>> = {
   },
   'menu_config': {
     'menu_section': 'sections',
+    'menu_item': 'items',
     'property': null
   },
   'menu_section': {
@@ -1070,7 +1071,7 @@ class AppConfigStore {
       page: ["fields", "tab", "menu_config"],
       tab: ["fields"],
       user_config: ["menu_config"],
-      menu_config: ["menu_section"],
+      menu_config: ["menu_section", "menu_item"],
       menu_section: ["menu_item"],
       menu_item: [],
     };

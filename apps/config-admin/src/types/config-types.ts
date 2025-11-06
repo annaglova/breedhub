@@ -59,7 +59,7 @@ export const childTypeMapping: Record<string, string[]> = {
   page: ["fields", "tab", "menu_config"],
   tab: ["fields"],
   user_config: ["menu_config"],
-  menu_config: ["menu_section"],
+  menu_config: ["menu_section", "menu_item"],
   menu_section: ["menu_item"],
   menu_item: [], // Final node - no children
 };

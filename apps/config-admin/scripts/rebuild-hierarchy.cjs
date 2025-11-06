@@ -309,7 +309,7 @@ async function rebuildMenuSection(menuSectionId) {
 }
 
 /**
- * Rebuild a menu_config from its menu_sections
+ * Rebuild a menu_config from its menu_sections and menu_items
  */
 async function rebuildMenuConfig(menuConfigId) {
   try {
@@ -322,21 +322,33 @@ async function rebuildMenuConfig(menuConfigId) {
 
     if (fetchError || !menuConfig) return false;
 
-    // Menu config depends on menu_sections - get them from config's deps
-    const sectionIds = menuConfig.deps || [];
+    // Menu config depends on menu_sections and menu_items - get them from config's deps
+    const dependentIds = menuConfig.deps || [];
 
-    // Get all menu_sections that this config depends on
-    const { data: sections, error: sectionsError } = await supabase
+    // Query each type separately
+    const sections = [];
+    const items = [];
+
+    // Query menu_sections
+    const { data: sectionsData } = await supabase
       .from('app_config')
       .select('id, data')
-      .in('id', sectionIds)
+      .in('id', dependentIds)
       .eq('type', 'menu_section');
+    if (sectionsData) sections.push(...sectionsData);
 
-    if (sectionsError) return false;
+    // Query menu_items (direct children, not in sections)
+    const { data: itemsData } = await supabase
+      .from('app_config')
+      .select('id, data')
+      .in('id', dependentIds)
+      .eq('type', 'menu_item');
+    if (itemsData) items.push(...itemsData);
 
-    // Build menu config structure - sections nested by their IDs
+    // Build menu config structure
     const menuStructure = {};
 
+    // Add sections nested by their IDs
     if (sections && sections.length > 0) {
       const sectionsData = {};
       for (const section of sections) {
@@ -346,6 +358,19 @@ async function rebuildMenuConfig(menuConfigId) {
       }
       if (Object.keys(sectionsData).length > 0) {
         menuStructure.sections = sectionsData;
+      }
+    }
+
+    // Add direct items nested by their IDs
+    if (items && items.length > 0) {
+      const itemsData = {};
+      for (const item of items) {
+        itemsData[item.id] = (item.data && Object.keys(item.data).length > 0)
+          ? item.data
+          : {};
+      }
+      if (Object.keys(itemsData).length > 0) {
+        menuStructure.items = itemsData;
       }
     }
 
