@@ -8,6 +8,7 @@ import {
   Edit2,
   Eye,
   Save,
+  Settings,
   Tag,
   Trash2,
 } from "lucide-react";
@@ -42,6 +43,7 @@ const Properties: React.FC = () => {
   const [filteredProperties, setFilteredProperties] = useState<Property[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedType, setSelectedType] = useState<string>("all");
+  const [showSystemProperties, setShowSystemProperties] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingNewId, setEditingNewId] = useState<string>("");
   const [editingData, setEditingData] = useState<string>("");
@@ -79,20 +81,25 @@ const Properties: React.FC = () => {
   // Filter properties based on search and type
   useEffect(() => {
     let filtered = appConfigStore.filterConfigItems(properties, searchQuery);
-    
+
     // Filter by type if selected
     if (selectedType !== "all") {
-      filtered = filtered.filter(prop => 
+      filtered = filtered.filter(prop =>
         prop.tags?.includes(selectedType)
       );
     }
-    
+
+    // Filter by system/custom
+    if (!showSystemProperties) {
+      filtered = filtered.filter(prop => prop.category !== 'system');
+    }
+
     setFilteredProperties(filtered);
     // Reset to first page when filters change
-    if (searchQuery || selectedType !== "all") {
+    if (searchQuery || selectedType !== "all" || showSystemProperties) {
       setCurrentPage(1);
     }
-  }, [searchQuery, selectedType, properties]);
+  }, [searchQuery, selectedType, showSystemProperties, properties]);
 
   // Start editing a property
   const startEdit = (property: Property) => {
@@ -306,7 +313,12 @@ const Properties: React.FC = () => {
         filterFullWidth: false,
         showAddButton: true,
         addButtonText: "Add Property",
-        onAddClick: startCreate
+        onAddClick: startCreate,
+        showCheckbox: true,
+        checkboxIcon: Settings,
+        checkboxChecked: showSystemProperties,
+        onCheckboxChange: setShowSystemProperties,
+        checkboxTooltip: "Show/hide system properties"
       }}
     >
             {/* Properties Grid */}
