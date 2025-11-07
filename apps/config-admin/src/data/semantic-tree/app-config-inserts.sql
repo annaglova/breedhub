@@ -1,5 +1,5 @@
 -- Semantic Tree SQL Inserts for app_config
--- Generated: 2025-11-06T10:36:46.810Z
+-- Generated: 2025-11-07T14:59:19.447Z
 -- Total records: 2897
 
 -- Clear existing test data (optional)

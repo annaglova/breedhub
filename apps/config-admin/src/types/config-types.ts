@@ -54,7 +54,7 @@ export const configTypes: Record<string, ConfigTypeInfo> = {
 export const childTypeMapping: Record<string, string[]> = {
   app: ["workspace", "user_config"],
   workspace: ["space"],
-  space: ["view", "page"],
+  space: ["view", "page", "fields"],
   view: ["fields", "sort", "filter"],
   page: ["fields", "tab", "menu_config"],
   tab: ["fields"],

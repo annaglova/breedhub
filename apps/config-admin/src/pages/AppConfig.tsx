@@ -1022,12 +1022,10 @@ const AppConfig: React.FC = () => {
                 {parentId && (
                   <>
                     <button
-                      onClick={async (e) => {
+                      onClick={(e) => {
                         e.stopPropagation();
-                        const result = await appConfigStore.reorderChild(parentId, node.id, 'up');
-                        if (!result.success && result.error) {
-                          console.log(result.error);
-                        }
+                        // TODO: Implement reorder functionality
+                        console.log('Move up:', node.id, 'in parent:', parentId);
                       }}
                       className="p-1 text-gray-400 hover:text-orange-600 hover:bg-orange-50 rounded"
                       title="Move up"
@@ -1035,12 +1033,10 @@ const AppConfig: React.FC = () => {
                       <ArrowUp className="w-4 h-4" />
                     </button>
                     <button
-                      onClick={async (e) => {
+                      onClick={(e) => {
                         e.stopPropagation();
-                        const result = await appConfigStore.reorderChild(parentId, node.id, 'down');
-                        if (!result.success && result.error) {
-                          console.log(result.error);
-                        }
+                        // TODO: Implement reorder functionality
+                        console.log('Move down:', node.id, 'in parent:', parentId);
                       }}
                       className="p-1 text-gray-400 hover:text-orange-600 hover:bg-orange-50 rounded"
                       title="Move down"

@@ -44,6 +44,21 @@ function deepMerge(target, source) {
 }
 
 /**
+ * Sort items array by the order specified in deps array
+ * Supabase .in() does NOT preserve array order, so we need to manually sort
+ */
+function sortByDepsOrder(items, depsArray) {
+  if (!items || !depsArray || items.length === 0) {
+    return items || [];
+  }
+
+  const itemsMap = new Map(items.map(item => [item.id, item]));
+  return depsArray
+    .map(depId => itemsMap.get(depId))
+    .filter(item => item !== undefined);
+}
+
+/**
  * Rebuild a fields config from individual field configs
  */
 async function rebuildFieldsConfig(fieldsConfigId) {
@@ -821,10 +836,22 @@ async function rebuildAppConfig(appId) {
     const workspaces = allChildren.filter(c => c.type === 'workspace');
     const userConfigs = allChildren.filter(c => c.type === 'user_config');
 
+    // Sort workspaces by deps order (Supabase doesn't preserve .in() order)
+    const workspaceIds = allDeps.filter(id => workspaces.some(w => w.id === id));
+    const sortedWorkspaces = sortByDepsOrder(workspaces, workspaceIds);
+
+    if (appId === 'config_app_1757849573544') {
+      console.log(`[DEBUG] App ${appId}:`);
+      console.log('  allDeps:', allDeps);
+      console.log('  workspaceIds:', workspaceIds);
+      console.log('  workspaces from DB:', workspaces.map(w => w.id));
+      console.log('  sortedWorkspaces:', sortedWorkspaces.map(w => w.id));
+    }
+
     // Add workspaces to 'workspaces' container
-    if (workspaces && workspaces.length > 0) {
+    if (sortedWorkspaces && sortedWorkspaces.length > 0) {
       const workspacesData = {};
-      for (const workspace of workspaces) {
+      for (const workspace of sortedWorkspaces) {
         // Always include workspace in structure
         // If it has data, use it; otherwise use empty object
         workspacesData[workspace.id] = (workspace.data && Object.keys(workspace.data).length > 0)
@@ -833,6 +860,10 @@ async function rebuildAppConfig(appId) {
       }
       if (Object.keys(workspacesData).length > 0) {
         appStructure.workspaces = workspacesData;
+      }
+
+      if (appId === 'config_app_1757849573544') {
+        console.log('  workspacesData keys:', Object.keys(workspacesData));
       }
     }
 
