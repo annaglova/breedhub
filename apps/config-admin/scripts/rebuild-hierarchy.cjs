@@ -59,6 +59,49 @@ function sortByDepsOrder(items, depsArray) {
 }
 
 /**
+ * Universal grouping config processor
+ * Handles fields, sort, and filter configs in a consistent way
+ *
+ * @param {string[]} dependentIds - Array of dependent config IDs
+ * @param {Object} groupingTypes - Object mapping type to container key
+ *   Example: { 'fields': 'fields', 'sort': 'sort_fields', 'filter': 'filter_fields' }
+ * @returns {Object} Object with merged grouping configs
+ */
+async function processGroupingConfigs(dependentIds, groupingTypes) {
+  if (!dependentIds || dependentIds.length === 0) {
+    return {};
+  }
+
+  const result = {};
+
+  // Process each grouping type
+  for (const [configType, containerKey] of Object.entries(groupingTypes)) {
+    const { data } = await supabase
+      .from('app_config')
+      .select('id, data')
+      .in('id', dependentIds)
+      .eq('type', configType);
+
+    if (data && data.length > 0) {
+      // Merge all configs of this type into a single container
+      const container = {};
+      for (const config of data) {
+        if (config.data && typeof config.data === 'object') {
+          Object.assign(container, config.data);
+        }
+      }
+
+      // Only add to result if we have data
+      if (Object.keys(container).length > 0) {
+        result[containerKey] = container;
+      }
+    }
+  }
+
+  return result;
+}
+
+/**
  * Rebuild a fields config from individual field configs
  */
 async function rebuildFieldsConfig(fieldsConfigId) {
@@ -506,44 +549,23 @@ async function rebuildPageConfig(pageId) {
     // Page depends on fields configs and menu_configs - get them from page's deps
     const dependentIds = pageConfig.deps || [];
 
-    // Query each type separately to ensure fresh data
-    const fieldsConfigs = [];
+    // Build page structure
+    const pageStructure = {};
+
+    // Process grouping configs (fields, sort, filter) - universal processing
+    const groupingConfigs = await processGroupingConfigs(dependentIds, {
+      'fields': 'fields'
+    });
+    Object.assign(pageStructure, groupingConfigs);
+
+    // Query menu configs separately (not a grouping config)
     const menuConfigs = [];
-
-    // Query fields configs
-    const { data: fieldsData } = await supabase
-      .from('app_config')
-      .select('id, data')
-      .in('id', dependentIds)
-      .eq('type', 'fields');
-    if (fieldsData) fieldsConfigs.push(...fieldsData);
-
-    // Query menu configs
     const { data: menusData } = await supabase
       .from('app_config')
       .select('id, data')
       .in('id', dependentIds)
       .eq('type', 'menu_config');
     if (menusData) menuConfigs.push(...menusData);
-
-    // Build page structure
-    const pageStructure = {};
-
-    // Add fields from fields configs (which already contain the actual field data)
-    let hasFields = false;
-    const fields = {};
-    for (const fieldsConfig of fieldsConfigs || []) {
-      if (fieldsConfig.data && typeof fieldsConfig.data === 'object' && Object.keys(fieldsConfig.data).length > 0) {
-        // fieldsConfig.data already contains the fields structure
-        Object.assign(fields, fieldsConfig.data);
-        hasFields = true;
-      }
-    }
-
-    // Only add fields property if we have actual fields
-    if (hasFields) {
-      pageStructure.fields = fields;
-    }
 
     // Add menu configs nested by their IDs
     if (menuConfigs && menuConfigs.length > 0) {
@@ -596,13 +618,9 @@ async function rebuildSpaceConfig(spaceId) {
     // Space depends on pages, views and properties - get them from space's deps
     const dependentIds = spaceConfig.deps || [];
 
-    // IMPORTANT: Query each type separately to ensure we get LATEST data
-    // This fixes issues with Supabase replication lag for sort/filter configs
     const pages = [];
     const views = [];
     const properties = [];
-    const sorts = [];
-    const filters = [];
 
     // Query pages
     const { data: pagesData } = await supabase
@@ -628,23 +646,7 @@ async function rebuildSpaceConfig(spaceId) {
       .eq('type', 'property');
     if (propertiesData) properties.push(...propertiesData.map(d => ({ ...d, type: 'property' })));
 
-    // Query sorts - separate query ensures fresh data
-    const { data: sortsData } = await supabase
-      .from('app_config')
-      .select('id, data')
-      .in('id', dependentIds)
-      .eq('type', 'sort');
-    if (sortsData) sorts.push(...sortsData.map(d => ({ ...d, type: 'sort' })));
-
-    // Query filters - separate query ensures fresh data
-    const { data: filtersData } = await supabase
-      .from('app_config')
-      .select('id, data')
-      .in('id', dependentIds)
-      .eq('type', 'filter');
-    if (filtersData) filters.push(...filtersData.map(d => ({ ...d, type: 'filter' })));
-
-    // Build space structure - include pages, views, properties, sorts, and filters
+    // Build space structure
     const spaceStructure = {};
 
     // Add ALL pages - even empty ones should be included as {}
@@ -685,39 +687,13 @@ async function rebuildSpaceConfig(spaceId) {
       }
     }
 
-    // Add sort configs - merge all sort config data into sort_fields
-    if (sorts && sorts.length > 0) {
-      console.log(`[DEBUG] Processing sorts for space: ${spaceId}`);
-      console.log(`[DEBUG] Found ${sorts.length} sort configs:`, sorts.map(s => s.id));
-
-      spaceStructure.sort_fields = {};
-      for (const sort of sorts) {
-        // DEBUG: Log what we're getting from DB
-        console.log(`[DEBUG]   Sort config ${sort.id}:`);
-        console.log(`[DEBUG]     Keys in data: ${Object.keys(sort.data || {}).join(', ')}`);
-        if (sort.data && sort.data.breed_field_measurements) {
-          console.log(`[DEBUG]     breed_field_measurements has fieldType: ${sort.data.breed_field_measurements.fieldType || 'MISSING'}`);
-        }
-
-        // Sort config's data already has fields as objects with field IDs as keys
-        // Just merge it into sort_fields container
-        if (sort.data && Object.keys(sort.data).length > 0) {
-          Object.assign(spaceStructure.sort_fields, sort.data);
-        }
-      }
-    }
-
-    // Add filter configs - merge all filter config data into filter_fields
-    if (filters && filters.length > 0) {
-      spaceStructure.filter_fields = {};
-      for (const filter of filters) {
-        // Filter config's data already has fields as objects with field IDs as keys
-        // Just merge it into filter_fields container
-        if (filter.data && Object.keys(filter.data).length > 0) {
-          Object.assign(spaceStructure.filter_fields, filter.data);
-        }
-      }
-    }
+    // Process grouping configs (fields, sort, filter) - universal processing
+    const groupingConfigs = await processGroupingConfigs(dependentIds, {
+      'fields': 'fields',
+      'sort': 'sort_fields',
+      'filter': 'filter_fields'
+    });
+    Object.assign(spaceStructure, groupingConfigs);
 
     const newSelfData = spaceStructure;
     // Use deep merge to preserve nested properties
