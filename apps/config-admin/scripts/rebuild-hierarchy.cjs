@@ -533,6 +533,74 @@ async function rebuildUserConfig(userConfigId) {
 }
 
 /**
+ * Rebuild a tab config from its fields, sort, filter, and view configs
+ */
+async function rebuildTabConfig(tabId) {
+  try {
+    // Get the tab config
+    const { data: tabConfig, error: fetchError } = await supabase
+      .from('app_config')
+      .select('*')
+      .eq('id', tabId)
+      .single();
+
+    if (fetchError || !tabConfig) return false;
+
+    // Tab depends on fields, sort, filter, and view configs - get them from tab's deps
+    const dependentIds = tabConfig.deps || [];
+
+    // Build tab structure
+    const tabStructure = {};
+
+    // Process grouping configs (fields, sort, filter) - universal processing
+    const groupingConfigs = await processGroupingConfigs(dependentIds, {
+      'fields': 'fields',
+      'sort': 'sort',
+      'filter': 'filter'
+    });
+    Object.assign(tabStructure, groupingConfigs);
+
+    // Query view configs separately (not a grouping config)
+    const { data: viewsData } = await supabase
+      .from('app_config')
+      .select('id, data')
+      .in('id', dependentIds)
+      .eq('type', 'view');
+
+    if (viewsData && viewsData.length > 0) {
+      const views = {};
+      for (const viewConfig of viewsData) {
+        views[viewConfig.id] = (viewConfig.data && Object.keys(viewConfig.data).length > 0)
+          ? viewConfig.data
+          : {};
+      }
+      if (Object.keys(views).length > 0) {
+        tabStructure.views = views;
+      }
+    }
+
+    const newSelfData = tabStructure;
+    // Use deep merge to preserve nested properties
+    const newData = deepMerge(newSelfData, tabConfig.override_data || {});
+
+    // Update the tab
+    const { error: updateError } = await supabase
+      .from('app_config')
+      .update({
+        self_data: newSelfData,
+        data: newData,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', tabId);
+
+    return !updateError;
+  } catch (error) {
+    console.error(`Error rebuilding tab ${tabId}:`, error);
+    return false;
+  }
+}
+
+/**
  * Rebuild a page config from its fields config and menu_config
  */
 async function rebuildPageConfig(pageId) {
@@ -919,15 +987,16 @@ async function rebuildFullHierarchy(options = {}) {
     
     // Rebuild in TWO PASSES to ensure leaf configs are fully saved before parents read them
     // Pass 1: Leaf configs (fields/sort/filter/menu_item) - these don't depend on other configs
-    // Pass 2: Parent configs (page/space/workspace/app/menu_section/menu_config/user_config) - these depend on leaf configs
+    // Pass 2: Parent configs (tab/page/space/workspace/app/menu_section/menu_config/user_config) - these depend on leaf configs
 
     const pass1 = ['fields', 'sort', 'filter', 'menu_item'];
-    const pass2 = ['page', 'menu_section', 'menu_config', 'user_config', 'space', 'workspace', 'app'];
+    const pass2 = ['tab', 'page', 'menu_section', 'menu_config', 'user_config', 'space', 'workspace', 'app'];
     const rebuildFunctions = {
       'fields': rebuildFieldsConfig,
       'sort': rebuildSortConfig,
       'filter': rebuildFilterConfig,
       'menu_item': rebuildMenuItem,
+      'tab': rebuildTabConfig,
       'menu_section': rebuildMenuSection,
       'menu_config': rebuildMenuConfig,
       'user_config': rebuildUserConfig,
@@ -979,7 +1048,7 @@ async function rebuildFullHierarchy(options = {}) {
     }
 
     // PASS 2: Rebuild parent configs
-    console.log('\n🔄 PASS 2: Rebuilding parent configs (page/menu_section/menu_config/user_config/space/workspace/app)...');
+    console.log('\n🔄 PASS 2: Rebuilding parent configs (tab/page/menu_section/menu_config/user_config/space/workspace/app)...');
     for (const type of pass2) {
       const ids = grouped[type] || [];
       if (ids.length === 0) continue;
@@ -1036,7 +1105,7 @@ async function rebuildAfterChanges(changedConfigIds, options = {}) {
       
       if (!error && dependents) {
         for (const dep of dependents) {
-          if (['fields', 'sort', 'filter', 'page', 'space', 'workspace', 'app', 'user_config', 'menu_config', 'menu_section', 'menu_item'].includes(dep.type)) {
+          if (['fields', 'sort', 'filter', 'tab', 'page', 'space', 'workspace', 'app', 'user_config', 'menu_config', 'menu_section', 'menu_item'].includes(dep.type)) {
             toRebuild.add(JSON.stringify({ id: dep.id, type: dep.type }));
           }
         }
@@ -1045,7 +1114,7 @@ async function rebuildAfterChanges(changedConfigIds, options = {}) {
     
     // Convert back to objects and sort by hierarchy level
     const configs = Array.from(toRebuild).map(str => JSON.parse(str));
-    const typeOrder = { 'fields': 1, 'sort': 1, 'filter': 1, 'menu_item': 1, 'page': 2, 'menu_section': 2, 'menu_config': 3, 'user_config': 4, 'space': 3, 'workspace': 4, 'app': 5 };
+    const typeOrder = { 'fields': 1, 'sort': 1, 'filter': 1, 'menu_item': 1, 'tab': 2, 'page': 2, 'menu_section': 2, 'menu_config': 3, 'user_config': 4, 'space': 3, 'workspace': 4, 'app': 5 };
     configs.sort((a, b) => typeOrder[a.type] - typeOrder[b.type]);
     
     console.log(`\nFound ${configs.length} configs to rebuild`);
@@ -1056,6 +1125,7 @@ async function rebuildAfterChanges(changedConfigIds, options = {}) {
       'sort': rebuildSortConfig,
       'filter': rebuildFilterConfig,
       'menu_item': rebuildMenuItem,
+      'tab': rebuildTabConfig,
       'menu_section': rebuildMenuSection,
       'menu_config': rebuildMenuConfig,
       'user_config': rebuildUserConfig,
