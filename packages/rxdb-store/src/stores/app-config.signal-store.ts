@@ -88,10 +88,12 @@ const childContainerMapping: Record<string, Record<string, string | null>> = {
     'fields': 'fields',
     'sort': 'sort_fields',
     'filter': 'filter_fields',
+    'extension': 'extensions',
     'property': null
   },
   'view': {
     'fields': 'fields',
+    'extension': 'extensions',
     'property': null
   },
   'fields': {
@@ -113,6 +115,7 @@ const childContainerMapping: Record<string, Record<string, string | null>> = {
     'tab': 'tabs',
     'fields': 'fields',
     'menu_config': 'menus',
+    'extension': 'extensions',
     'property': null
   },
   'tab': {
@@ -133,6 +136,12 @@ const childContainerMapping: Record<string, Record<string, string | null>> = {
   },
   'menu_section': {
     'menu_item': 'items',
+    'property': null
+  },
+  'extension': {
+    'fields': 'fields',
+    'sort': 'sort',
+    'filter': 'filter',
     'property': null
   },
   'menu_item': {
@@ -1115,7 +1124,7 @@ class AppConfigStore {
 
   // Check if type is a high-level structure type
   isHighLevelType(type: string): boolean {
-    return ['app', 'workspace', 'space', 'view', 'page', 'tab', 'sort', 'filter', 'fields',
+    return ['app', 'workspace', 'space', 'view', 'page', 'tab', 'sort', 'filter', 'fields', 'extension',
             'user_config', 'menu_config', 'menu_section', 'menu_item'].includes(type);
   }
   
