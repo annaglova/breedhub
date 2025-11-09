@@ -558,6 +558,25 @@ async function rebuildPageConfig(pageId) {
     });
     Object.assign(pageStructure, groupingConfigs);
 
+    // Query tab configs separately (not a grouping config)
+    const { data: tabsData } = await supabase
+      .from('app_config')
+      .select('id, data')
+      .in('id', dependentIds)
+      .eq('type', 'tab');
+
+    if (tabsData && tabsData.length > 0) {
+      const tabs = {};
+      for (const tabConfig of tabsData) {
+        tabs[tabConfig.id] = (tabConfig.data && Object.keys(tabConfig.data).length > 0)
+          ? tabConfig.data
+          : {};
+      }
+      if (Object.keys(tabs).length > 0) {
+        pageStructure.tabs = tabs;
+      }
+    }
+
     // Query menu configs separately (not a grouping config)
     const menuConfigs = [];
     const { data: menusData } = await supabase

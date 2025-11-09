@@ -279,17 +279,24 @@ const AppConfig: React.FC = () => {
     const parent = workingConfigs.find((c) => c.id === parentId);
     if (!parent || !parent.deps) return;
 
-    const currentIndex = parent.deps.indexOf(childId);
+    // Filter out properties - only work with config deps
+    const configDeps = parent.deps.filter(d => !d.startsWith('property_'));
+
+    const currentIndex = configDeps.indexOf(childId);
     if (currentIndex === -1) return;
 
-    // Check boundaries
+    // Check boundaries within config deps only
     if (direction === 'up' && currentIndex === 0) return;
-    if (direction === 'down' && currentIndex === parent.deps.length - 1) return;
+    if (direction === 'down' && currentIndex === configDeps.length - 1) return;
 
-    // Create new deps array with swapped positions
-    const newDeps = [...parent.deps];
+    // Swap positions in config deps
+    const newConfigDeps = [...configDeps];
     const newIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
-    [newDeps[currentIndex], newDeps[newIndex]] = [newDeps[newIndex], newDeps[currentIndex]];
+    [newConfigDeps[currentIndex], newConfigDeps[newIndex]] = [newConfigDeps[newIndex], newConfigDeps[currentIndex]];
+
+    // Reconstruct full deps array: properties first, then reordered configs
+    const propertyDeps = parent.deps.filter(d => d.startsWith('property_'));
+    const newDeps = [...propertyDeps, ...newConfigDeps];
 
     // Update parent config
     await appConfigStore.updateConfig(parentId, { deps: newDeps });
@@ -1048,8 +1055,8 @@ const AppConfig: React.FC = () => {
 
                 {/* Order indicator */}
                 {(() => {
-                  // Types that need order: workspace, space, view
-                  const needsOrderTypes = ['workspace', 'space', 'view'];
+                  // Types that need order: workspace, space, view, tab
+                  const needsOrderTypes = ['workspace', 'space', 'view', 'tab'];
                   const config = workingConfigs.find(c => c.id === node.id);
 
                   if (needsOrderTypes.includes(node.configType || '')) {
@@ -1087,11 +1094,13 @@ const AppConfig: React.FC = () => {
                   const parent = workingConfigs.find(c => c.id === parentId);
                   if (!parent?.deps) return null;
 
-                  const currentIndex = parent.deps.indexOf(node.id);
+                  // Filter out properties - only work with config deps for ordering
+                  const configDeps = parent.deps.filter(d => !d.startsWith('property_'));
+                  const currentIndex = configDeps.indexOf(node.id);
                   if (currentIndex === -1) return null;
 
                   const isFirst = currentIndex === 0;
-                  const isLast = currentIndex === parent.deps.length - 1;
+                  const isLast = currentIndex === configDeps.length - 1;
 
                   return (
                     <>
