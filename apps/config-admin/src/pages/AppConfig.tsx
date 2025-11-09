@@ -269,9 +269,30 @@ const AppConfig: React.FC = () => {
     const confirmMessage = hasChildren
       ? `Delete config "${configId}" and all its child configs?`
       : `Delete config "${configId}"?`;
-    
+
     if (!confirm(confirmMessage)) return;
     await appConfigStore.deleteConfigWithChildren(configId);
+  };
+
+  // Reorder child in parent's deps
+  const reorderChild = async (parentId: string, childId: string, direction: 'up' | 'down') => {
+    const parent = workingConfigs.find((c) => c.id === parentId);
+    if (!parent || !parent.deps) return;
+
+    const currentIndex = parent.deps.indexOf(childId);
+    if (currentIndex === -1) return;
+
+    // Check boundaries
+    if (direction === 'up' && currentIndex === 0) return;
+    if (direction === 'down' && currentIndex === parent.deps.length - 1) return;
+
+    // Create new deps array with swapped positions
+    const newDeps = [...parent.deps];
+    const newIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
+    [newDeps[currentIndex], newDeps[newIndex]] = [newDeps[newIndex], newDeps[currentIndex]];
+
+    // Update parent config
+    await appConfigStore.updateConfig(parentId, { deps: newDeps });
   };
 
   // Start editing config
@@ -1022,10 +1043,9 @@ const AppConfig: React.FC = () => {
                 {parentId && (
                   <>
                     <button
-                      onClick={(e) => {
+                      onClick={async (e) => {
                         e.stopPropagation();
-                        // TODO: Implement reorder functionality
-                        console.log('Move up:', node.id, 'in parent:', parentId);
+                        await reorderChild(parentId, node.id, 'up');
                       }}
                       className="p-1 text-gray-400 hover:text-orange-600 hover:bg-orange-50 rounded"
                       title="Move up"
@@ -1033,10 +1053,9 @@ const AppConfig: React.FC = () => {
                       <ArrowUp className="w-4 h-4" />
                     </button>
                     <button
-                      onClick={(e) => {
+                      onClick={async (e) => {
                         e.stopPropagation();
-                        // TODO: Implement reorder functionality
-                        console.log('Move down:', node.id, 'in parent:', parentId);
+                        await reorderChild(parentId, node.id, 'down');
                       }}
                       className="p-1 text-gray-400 hover:text-orange-600 hover:bg-orange-50 rounded"
                       title="Move down"
@@ -1154,7 +1173,18 @@ const AppConfig: React.FC = () => {
 
         {isExpanded && hasChildren && (
           <div className="mt-2">
-            {node.children.map((child) => renderConfigNode(child, level + 1, node.id))}
+            {/* Sort children by deps order */}
+            {(() => {
+              const sortedChildren = node.deps && node.deps.length > 0
+                ? node.deps
+                    .map(depId => node.children.find(child => child.id === depId))
+                    .filter((child): child is TreeNode => child !== undefined)
+                    // Add any children not in deps at the end
+                    .concat(node.children.filter(child => !node.deps?.includes(child.id)))
+                : node.children;
+
+              return sortedChildren.map((child) => renderConfigNode(child, level + 1, node.id));
+            })()}
           </div>
         )}
       </div>
