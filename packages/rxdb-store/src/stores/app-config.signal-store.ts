@@ -780,30 +780,12 @@ class AppConfigStore {
     
     // Create the template
     const created = await this.createConfig(newTemplate);
-    
-    // If there's a parent, add to parent's deps and update parent's self_data
+
+    // If there's a parent, add child to parent using universal method
     if (parentId) {
-      const parent = this.configs.value.get(parentId);
-      if (parent) {
-        // Check if this child type is allowed for parent
-        const allowedChildren = childContainerMapping[parent.type];
-        if (!allowedChildren || !(type in allowedChildren)) {
-          console.error(`[createTemplate] ${type} cannot be child of ${parent.type}`);
-          // Still add to deps but warn
-        }
-        
-        // Add to parent's deps
-        const updatedDeps = [...(parent.deps || []), newId];
-        await this.updateConfig(parentId, { deps: updatedDeps });
-        
-        // Rebuild parent's self_data from all deps (not just update with one child)
-        await this.rebuildParentSelfData(parentId);
-        
-        // Then cascade update further up the tree
-        await this.cascadeUpdateUp(parentId);
-      }
+      await this.addChildToParent(parentId, newId);
     }
-    
+
     return created;
   }
   
@@ -988,19 +970,9 @@ class AppConfigStore {
       }
     }
 
-    // If has parent, update parent's deps to include this config
+    // If has parent, add child to parent using universal method
     if (parentId) {
-      const parent = this.configs.value.get(parentId);
-      if (parent) {
-        const updatedDeps = [...(parent.deps || []), configId];
-        await this.updateConfig(parentId, { deps: updatedDeps });
-        
-        // For high-level structures, rebuild parent self_data and cascade up
-        if (this.isHighLevelType(parent.type)) {
-          await this.rebuildParentSelfData(parentId);
-          await this.cascadeUpdateUp(parentId);
-        }
-      }
+      await this.addChildToParent(parentId, configId);
     }
 
     return created;
@@ -1109,27 +1081,37 @@ class AppConfigStore {
 
     const created = await this.createConfig(newConfig);
 
-    // If has parent, add this config to parent's deps and rebuild parent's self_data
+    // If has parent, add child to parent using universal method
     if (parentId) {
-      const parent = this.configs.value.get(parentId);
-      if (parent) {
-        const updatedDeps = [...(parent.deps || []), configId];
-        await this.updateConfig(parentId, { deps: updatedDeps });
-        
-        // For high-level structures, rebuild parent self_data and cascade up
-        if (this.isHighLevelType(parent.type)) {
-          // Rebuild parent's self_data from all deps
-          await this.rebuildParentSelfData(parentId);
-          
-          // Then cascade update further up the tree
-          await this.cascadeUpdateUp(parentId);
-        }
-      }
+      await this.addChildToParent(parentId, configId);
     }
 
     return created;
   }
 
+  // Universal method to add child to parent's deps and rebuild hierarchy
+  async addChildToParent(parentId: string, childId: string): Promise<void> {
+    const parent = this.configs.value.get(parentId);
+    if (!parent) {
+      throw new Error(`Parent config ${parentId} not found`);
+    }
+
+    // Add child to parent's deps if not already present
+    const currentDeps = parent.deps || [];
+    if (!currentDeps.includes(childId)) {
+      await this.updateConfig(parentId, {
+        deps: [...currentDeps, childId]
+      });
+    }
+
+    // Rebuild parent's self_data from all deps (uses childContainerMapping)
+    if (this.isHighLevelType(parent.type)) {
+      await this.rebuildParentSelfData(parentId);
+
+      // Cascade update further up the tree
+      await this.cascadeUpdateUp(parentId);
+    }
+  }
 
   // Check if type is a high-level structure type
   isHighLevelType(type: string): boolean {
