@@ -191,75 +191,44 @@ class SpaceStore {
    * - page can have fields and tabs
    * - tab can have fields
    */
-  private collectUniqueFields(space: any, appConfig: any, entitySchemaName: string): Map<string, FieldConfig> {
+  /**
+   * Get field schema from space.fields (root level)
+   * space.fields is the single source of truth for all available fields in the space
+   */
+  private getSpaceFieldsSchema(space: any, appConfig: any, entitySchemaName: string): Map<string, FieldConfig> {
     const uniqueFields = new Map<string, FieldConfig>();
 
-    // Helper function to process fields - in static config fields are already merged data
-    const processFields = (fields: any) => {
-      if (!fields) return;
+    // Only process fields from space.fields (root level)
+    // This is the single source of truth for all fields in the space
+    if (!space.fields || typeof space.fields !== 'object') {
+      return uniqueFields;
+    }
 
-      Object.entries(fields).forEach(([fieldKey, fieldValue]: [string, any]) => {
-        // Normalize field name: remove entity prefix (breed_field_pet_type_id -> pet_type_id)
-        const normalizedFieldName = this.removeFieldPrefix(fieldKey, entitySchemaName);
+    Object.entries(space.fields).forEach(([fieldKey, fieldValue]: [string, any]) => {
+      // Normalize field name: remove entity prefix (breed_field_pet_type_id -> pet_type_id)
+      const normalizedFieldName = this.removeFieldPrefix(fieldKey, entitySchemaName);
 
-        // Skip if already processed
-        if (uniqueFields.has(normalizedFieldName)) return;
+      // In static config, fieldValue is already merged data
+      const fieldData = fieldValue;
 
-        // In static config, fieldValue is already merged data
-        const fieldData = fieldValue;
+      // Collect only schema-critical parameters for RxDB
+      const fieldConfig: FieldConfig = {
+        fieldType: fieldData.fieldType || 'string',
+        displayName: fieldData.displayName || fieldKey,
+        required: fieldData.required || false,
+        isSystem: fieldData.isSystem || false,
+        isUnique: fieldData.isUnique || false,
+        isPrimaryKey: fieldData.isPrimaryKey || false,
+        maxLength: fieldData.maxLength,
+        validation: fieldData.validation,
+        permissions: fieldData.permissions,
+        defaultValue: fieldData.defaultValue,
+        component: fieldData.component,
+        originalConfigKey: fieldKey // Keep original for debugging
+      };
 
-        // Collect only schema-critical parameters for RxDB
-        const fieldConfig: FieldConfig = {
-          fieldType: fieldData.fieldType || 'string',
-          displayName: fieldData.displayName || fieldKey,
-          required: fieldData.required || false,
-          isSystem: fieldData.isSystem || false,
-          isUnique: fieldData.isUnique || false,
-          isPrimaryKey: fieldData.isPrimaryKey || false,
-          maxLength: fieldData.maxLength,
-          validation: fieldData.validation,
-          permissions: fieldData.permissions,
-          defaultValue: fieldData.defaultValue,
-          component: fieldData.component,
-          originalConfigKey: fieldKey // Keep original for debugging
-        };
-
-        uniqueFields.set(normalizedFieldName, fieldConfig);
-      });
-    };
-
-    // Recursive search for 'fields', 'sort_fields', and 'filter_fields' properties
-    // sort_fields and filter_fields are now at space level (not view level)
-    const recursiveFieldSearch = (obj: any, visited: Set<any> = new Set()) => {
-      // Avoid circular references
-      if (!obj || typeof obj !== 'object' || visited.has(obj)) return;
-      visited.add(obj);
-
-      // Process fields if found at this level
-      if (obj.fields && typeof obj.fields === 'object') {
-        processFields(obj.fields);
-      }
-
-      // Process sort_fields if found at this level
-      if (obj.sort_fields && typeof obj.sort_fields === 'object') {
-        processFields(obj.sort_fields);
-      }
-
-      // Process filter_fields if found at this level
-      if (obj.filter_fields && typeof obj.filter_fields === 'object') {
-        processFields(obj.filter_fields);
-      }
-
-      // Recursively search all properties
-      Object.values(obj).forEach((value: any) => {
-        if (value && typeof value === 'object') {
-          recursiveFieldSearch(value, visited);
-        }
-      });
-    };
-
-    // Start recursive search from space root
-    recursiveFieldSearch(space);
+      uniqueFields.set(normalizedFieldName, fieldConfig);
+    });
 
     return uniqueFields;
   }
@@ -285,8 +254,8 @@ class SpaceStore {
         Object.entries(workspace.spaces).forEach(([spaceKey, space]: [string, any]) => {
           // Check for entitySchemaName
           if (space.entitySchemaName) {
-            // Collect all unique fields from all levels (with normalized names)
-            const uniqueFields = this.collectUniqueFields(space, appConfig, space.entitySchemaName);
+            // Get field schema from space.fields (single source of truth)
+            const uniqueFields = this.getSpaceFieldsSchema(space, appConfig, space.entitySchemaName);
 
             // Normalize keys in sort_fields and filter_fields too
             const normalizedSortFields = space.sort_fields
