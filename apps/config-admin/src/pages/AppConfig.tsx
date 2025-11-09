@@ -869,6 +869,26 @@ const AppConfig: React.FC = () => {
               <Database className="w-4 h-4 text-blue-600 flex-shrink-0" />
               <span className="font-mono text-sm truncate">{field?.caption || node.name}</span>
               <span className="text-xs text-gray-500 truncate">({node.id})</span>
+
+              {/* Order indicator for field references */}
+              {(() => {
+                if (parentConfig && ['fields', 'sort', 'filter'].includes(parentConfig.type)) {
+                  const fieldData = parentConfig.data?.[node.id];
+                  if (fieldData) {
+                    const fieldOrder = fieldData.order;
+                    return fieldOrder !== undefined ? (
+                      <span className="flex items-center justify-center w-5 h-5 rounded-full bg-slate-100 text-slate-600 text-xs flex-shrink-0">
+                        {fieldOrder}
+                      </span>
+                    ) : (
+                      <span className="flex items-center justify-center w-5 h-5 rounded-full bg-slate-100 text-slate-600 text-xs flex-shrink-0">
+                        ?
+                      </span>
+                    );
+                  }
+                }
+                return null;
+              })()}
             </div>
             <div className="flex gap-1 flex-shrink-0">
               <button
@@ -1025,6 +1045,29 @@ const AppConfig: React.FC = () => {
 
                 <Icon className={`w-4 h-4 ${TypeInfo.color}`} />
                 <span className="font-mono text-sm">{node.name}</span>
+
+                {/* Order indicator */}
+                {(() => {
+                  // Types that need order: workspace, space, view
+                  const needsOrderTypes = ['workspace', 'space', 'view'];
+                  const config = workingConfigs.find(c => c.id === node.id);
+
+                  if (needsOrderTypes.includes(node.configType || '')) {
+                    const order = config?.data?.order;
+                    return order !== undefined ? (
+                      <span className="flex items-center justify-center w-5 h-5 rounded-full bg-slate-100 text-slate-600 text-xs">
+                        {order}
+                      </span>
+                    ) : (
+                      <span className="flex items-center justify-center w-5 h-5 rounded-full bg-slate-100 text-slate-600 text-xs">
+                        ?
+                      </span>
+                    );
+                  }
+
+                  return null;
+                })()}
+
                 {canAcceptFields && draggedField && (
                   <span className="text-xs text-green-600 ml-2 animate-pulse">
                     (Drop here)
