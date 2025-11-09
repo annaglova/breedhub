@@ -1,4 +1,4 @@
-import { Package, Layers, Grid, File, Settings, List, Filter, User, Menu, FolderOpen, FileText } from 'lucide-react';
+import { Package, Layers, Grid, File, Settings, List, Filter, User, Menu, FolderOpen, FileText, Blocks } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
 // Common interfaces
@@ -44,7 +44,7 @@ export const configTypes: Record<string, ConfigTypeInfo> = {
   filter: { name: "Filter Config", icon: Filter, color: "text-cyan-600" },
   fields: { name: "Fields Config", icon: List, color: "text-indigo-600" },
   tab: { name: "Tab", icon: Layers, color: "text-pink-600" },
-  extension: { name: "Extension", icon: Settings, color: "text-emerald-600" },
+  extension: { name: "Extension", icon: Blocks, color: "text-emerald-600" },
   user_config: { name: "User Config", icon: User, color: "text-rose-600" },
   menu_config: { name: "Menu Config", icon: Menu, color: "text-amber-600" },
   menu_section: { name: "Menu Section", icon: FolderOpen, color: "text-teal-600" },
