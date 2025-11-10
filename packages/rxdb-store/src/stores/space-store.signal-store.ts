@@ -1052,9 +1052,7 @@ class SpaceStore {
 
     // Debug logging
     console.log(`[SpaceStore] Generating schema for ${entityType}:`);
-    console.log('  - Fields:', Object.keys(spaceConfig.fields || {}));
-    console.log('  - Sort fields:', Object.keys(spaceConfig.sort_fields || {}));
-    console.log('  - Filter fields:', Object.keys(spaceConfig.filter_fields || {}));
+    console.log('  - Fields (single source of truth):', Object.keys(spaceConfig.fields || {}));
 
     // Build schema properties from all field sources
     const properties: any = {};
@@ -1114,23 +1112,9 @@ class SpaceStore {
       }
     };
 
-    // 1. Process main fields
+    // Process fields from spaceConfig.fields - single source of truth for schema
     if (spaceConfig.fields) {
       Object.entries(spaceConfig.fields).forEach(([fieldKey, fieldConfig]) => {
-        addFieldToSchema(fieldKey, fieldConfig);
-      });
-    }
-
-    // 2. Process sort_fields (ensure they're in schema for sorting)
-    if (spaceConfig.sort_fields) {
-      Object.entries(spaceConfig.sort_fields).forEach(([fieldKey, fieldConfig]) => {
-        addFieldToSchema(fieldKey, fieldConfig);
-      });
-    }
-
-    // 3. Process filter_fields (ensure they're in schema for filtering)
-    if (spaceConfig.filter_fields) {
-      Object.entries(spaceConfig.filter_fields).forEach(([fieldKey, fieldConfig]) => {
         addFieldToSchema(fieldKey, fieldConfig);
       });
     }
