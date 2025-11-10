@@ -8,7 +8,7 @@ import {
 import { getRxStorageDexie } from 'rxdb/plugins/storage-dexie';
 import { RxDBDevModePlugin } from 'rxdb/plugins/dev-mode';
 import { RxDBQueryBuilderPlugin } from 'rxdb/plugins/query-builder';
-import { RxDBMigrationPlugin } from 'rxdb/plugins/migration-schema';
+import { RxDBMigrationSchemaPlugin } from 'rxdb/plugins/migration-schema';
 import { RxDBUpdatePlugin } from 'rxdb/plugins/update';
 import { RxDBCleanupPlugin } from 'rxdb/plugins/cleanup';
 import { wrappedValidateAjvStorage } from 'rxdb/plugins/validate-ajv';
@@ -23,7 +23,7 @@ if (process.env.NODE_ENV !== 'production') {
   addRxPlugin(RxDBDevModePlugin);
 }
 addRxPlugin(RxDBQueryBuilderPlugin);
-addRxPlugin(RxDBMigrationPlugin);
+addRxPlugin(RxDBMigrationSchemaPlugin);
 addRxPlugin(RxDBUpdatePlugin);
 addRxPlugin(RxDBCleanupPlugin);
 
