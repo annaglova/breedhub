@@ -1,12 +1,12 @@
 # 🔄 SESSION RESTART - BREEDHUB PROJECT
 
-## 📅 Останнє оновлення: 2025-10-28
+## 📅 Останнє оновлення: 2025-11-10
 
 ---
 
 ## 🎯 ПОТОЧНИЙ СТАН
 
-**Статус:** Public Page Implementation - Cover Components Complete ✅
+**Статус:** Extensions Architecture - Child Tables Schema Implementation 🚧
 
 ### ✅ Завершено: Cover Components (Phase 1 & 2)
 
@@ -39,12 +39,65 @@
 - ✅ Структура: `src/assets/images/background-images/`
 - ✅ cover_background.png з Angular проекту
 
-### 🚧 Наступні кроки:
+### 🚧 Поточна робота: Extensions Architecture
+
+**Мета:** Впровадити систему extensions для дочірніх таблиць (child tables)
+
+**Документація:**
+- [PUBLIC_PAGE_IMPLEMENTATION_PLAN.md](./PUBLIC_PAGE_IMPLEMENTATION_PLAN.md) - секції про Child Tables Storage (лінії 159-380, 462-747)
+- Варіант C: Per-Entity Child Collections з proper schema
+
+**Архітектура:**
+```javascript
+space: {
+  entitySchemaName: "breed",
+
+  fields: {
+    // Main entity fields (source of truth для RxDB schema)
+  },
+
+  extensions: {
+    "breed_extension_top_patrons": {
+      tableName: "breed_top_patrons",  // Окрема таблиця
+      fields: {
+        id: {...},
+        breed_id: {...},     // FK to parent
+        patron_id: {...},
+        rank: {...}
+      }
+    },
+    "breed_extension_measurements": {
+      tableName: "breed_measurements",
+      fields: {...}
+    }
+  }
+}
+```
+
+**RxDB Collections:**
+- `db.breed` - основна таблиця
+- `db.breed_children` - ВСІ дочірні таблиці для breed (union schema)
+- Meta fields: `_table_type`, `_parent_id`
+
+**Задачі:**
+- [ ] Додати логіку збору extensions в `parseSpaceConfigurations()`
+- [ ] Створити `generateChildSchemaFromExtensions()` метод
+- [ ] Розширити `ensureCollection()` для підтримки `_children` колекцій
+- [ ] Додати `queryExtensionRecords()` метод в SpaceStore
+- [ ] Тестування з реальними extensions конфігами
+
+**Принципи:**
+- Extension = завжди окрема таблиця (не JSONB поле)
+- Tab може використовувати extension через reference
+- Extensions в корені space (не в tabs)
+- Union schema - всі поля з усіх extensions в одній колекції
+
+### 🚧 Наступні кроки (Phase 3 - після Extensions):
 
 **Phase 3 - Navigation & Tab Content:**
 - [ ] Навігаційні кнопки (expand/fullscreen, prev/next)
 - [ ] Tab content components (DetailsTab, etc.)
-- [ ] Child tables інтеграція в tabs
+- [ ] Child tables інтеграція в tabs через extensions
 - [ ] Підключення реальних даних замість моків
 
 ---
