@@ -94,6 +94,7 @@ const childContainerMapping: Record<string, Record<string, string | null>> = {
   'view': {
     'fields': 'fields',
     'extension': 'extensions',
+    'block': 'blocks',
     'property': null
   },
   'fields': {
@@ -116,6 +117,14 @@ const childContainerMapping: Record<string, Record<string, string | null>> = {
     'fields': 'fields',
     'menu_config': 'menus',
     'extension': 'extensions',
+    'block': 'blocks',
+    'property': null
+  },
+  'block': {
+    'tab': 'tabs',
+    'fields': 'fields',
+    'sort': 'sort',
+    'filter': 'filter',
     'property': null
   },
   'tab': {
@@ -153,7 +162,7 @@ const childContainerMapping: Record<string, Record<string, string | null>> = {
 const noPropertyTypes = ['fields', 'sort_fields', 'filter_fields'];
 
 // High-level structure types
-const highLevelTypes = ['app', 'workspace', 'space', 'view', 'page', 'tab', 'user_config', 'menu_config', 'menu_section', 'menu_item'];
+const highLevelTypes = ['app', 'workspace', 'space', 'view', 'page', 'block', 'tab', 'user_config', 'menu_config', 'menu_section', 'menu_item'];
 const groupingTypes = ['fields', 'sort', 'filter']; // Grouping configs that don't merge deps data
 
 class AppConfigStore {
@@ -1126,7 +1135,7 @@ class AppConfigStore {
 
   // Check if type is a high-level structure type
   isHighLevelType(type: string): boolean {
-    return ['app', 'workspace', 'space', 'view', 'page', 'tab', 'sort', 'filter', 'fields', 'extension',
+    return ['app', 'workspace', 'space', 'view', 'page', 'block', 'tab', 'sort', 'filter', 'fields', 'extension',
             'user_config', 'menu_config', 'menu_section', 'menu_item'].includes(type);
   }
   
