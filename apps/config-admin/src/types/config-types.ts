@@ -1,4 +1,4 @@
-import { Package, Layers, Grid, File, Settings, List, Filter, User, Menu, FolderOpen, FileText, Blocks } from 'lucide-react';
+import { Package, Layers, Grid, File, Settings, List, Filter, User, Menu, FolderOpen, FileText, Blocks, Box } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
 // Common interfaces
@@ -40,6 +40,7 @@ export const configTypes: Record<string, ConfigTypeInfo> = {
   space: { name: "Space", icon: Grid, color: "text-green-600" },
   view: { name: "View", icon: Grid, color: "text-yellow-600" },
   page: { name: "Page", icon: File, color: "text-orange-600" },
+  block: { name: "Block", icon: Box, color: "text-violet-600" },
   sort: { name: "Sort Config", icon: Settings, color: "text-gray-600" },
   filter: { name: "Filter Config", icon: Filter, color: "text-cyan-600" },
   fields: { name: "Fields Config", icon: List, color: "text-indigo-600" },
@@ -56,8 +57,9 @@ export const childTypeMapping: Record<string, string[]> = {
   app: ["workspace", "user_config"],
   workspace: ["space"],
   space: ["view", "page", "fields", "extension"],
-  view: ["fields", "sort", "filter", "extension"],
-  page: ["fields", "tab", "menu_config", "extension"],
+  view: ["fields", "sort", "filter", "extension", "block"],
+  page: ["fields", "tab", "menu_config", "extension", "block"],
+  block: ["tab", "fields", "sort", "filter"],  // Block can contain tabs, fields, sort, filter
   tab: ["fields", "sort", "filter", "view"],
   extension: ["fields", "sort", "filter"],
   user_config: ["menu_config"],

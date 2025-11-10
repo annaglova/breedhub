@@ -144,7 +144,8 @@ const configTypeMapping = {
       'fields': 'fields'
     },
     children: {
-      'extension': 'extensions'
+      'extension': 'extensions',
+      'block': 'blocks'
     }
   },
   'tab': {
@@ -156,6 +157,17 @@ const configTypeMapping = {
     },
     children: {
       'view': 'views'
+    }
+  },
+  'block': {
+    type: 'container',
+    grouping: {
+      'fields': 'fields',
+      'sort': 'sort',
+      'filter': 'filter'
+    },
+    children: {
+      'tab': 'tabs'
     }
   },
   'extension': {
@@ -173,6 +185,7 @@ const configTypeMapping = {
     },
     children: {
       'tab': 'tabs',
+      'block': 'blocks',
       'menu_config': 'menus',
       'extension': 'extensions'
     }
@@ -400,7 +413,7 @@ async function rebuildFullHierarchy(options = {}) {
     const { data: configs, error } = await supabase
       .from('app_config')
       .select('id, type')
-      .in('type', ['fields', 'sort', 'filter', 'view', 'tab', 'page', 'space', 'workspace', 'app', 'user_config', 'menu_config', 'menu_section', 'menu_item', 'extension'])
+      .in('type', ['fields', 'sort', 'filter', 'view', 'tab', 'block', 'page', 'space', 'workspace', 'app', 'user_config', 'menu_config', 'menu_section', 'menu_item', 'extension'])
       .order('type');
 
     if (error) throw error;
@@ -414,10 +427,10 @@ async function rebuildFullHierarchy(options = {}) {
 
     // Rebuild in TWO PASSES to ensure leaf configs are fully saved before parents read them
     // Pass 1: Leaf configs (fields/sort/filter/menu_item/view/extension) - these don't depend on other configs
-    // Pass 2: Parent configs (tab/page/space/workspace/app/menu_section/menu_config/user_config) - these depend on leaf configs
+    // Pass 2: Parent configs (tab/block/page/space/workspace/app/menu_section/menu_config/user_config) - these depend on leaf configs
 
     const pass1 = ['fields', 'sort', 'filter', 'menu_item', 'view', 'extension'];
-    const pass2 = ['tab', 'page', 'menu_section', 'menu_config', 'user_config', 'space', 'workspace', 'app'];
+    const pass2 = ['tab', 'block', 'page', 'menu_section', 'menu_config', 'user_config', 'space', 'workspace', 'app'];
 
     // PASS 1: Rebuild leaf configs
     console.log('\n🔄 PASS 1: Rebuilding leaf configs (fields/sort/filter/menu_item/view/extension)...');
@@ -446,7 +459,7 @@ async function rebuildFullHierarchy(options = {}) {
     await new Promise(resolve => setTimeout(resolve, 3000));
 
     // PASS 2: Rebuild parent configs
-    console.log('\n🔄 PASS 2: Rebuilding parent configs (tab/page/menu_section/menu_config/user_config/space/workspace/app)...');
+    console.log('\n🔄 PASS 2: Rebuilding parent configs (tab/block/page/menu_section/menu_config/user_config/space/workspace/app)...');
     for (const type of pass2) {
       const ids = grouped[type] || [];
       if (ids.length === 0) continue;
@@ -500,7 +513,7 @@ async function rebuildAfterChanges(changedConfigIds, options = {}) {
 
       if (!error && dependents) {
         for (const dep of dependents) {
-          if (['fields', 'sort', 'filter', 'view', 'tab', 'page', 'space', 'workspace', 'app', 'user_config', 'menu_config', 'menu_section', 'menu_item', 'extension'].includes(dep.type)) {
+          if (['fields', 'sort', 'filter', 'view', 'tab', 'block', 'page', 'space', 'workspace', 'app', 'user_config', 'menu_config', 'menu_section', 'menu_item', 'extension'].includes(dep.type)) {
             toRebuild.add(JSON.stringify({ id: dep.id, type: dep.type }));
           }
         }
@@ -509,7 +522,7 @@ async function rebuildAfterChanges(changedConfigIds, options = {}) {
 
     // Convert back to objects and sort by hierarchy level
     const configs = Array.from(toRebuild).map(str => JSON.parse(str));
-    const typeOrder = { 'fields': 1, 'sort': 1, 'filter': 1, 'menu_item': 1, 'view': 1, 'extension': 1, 'tab': 2, 'page': 2, 'menu_section': 2, 'menu_config': 3, 'user_config': 4, 'space': 3, 'workspace': 4, 'app': 5 };
+    const typeOrder = { 'fields': 1, 'sort': 1, 'filter': 1, 'menu_item': 1, 'view': 1, 'extension': 1, 'tab': 2, 'block': 2, 'page': 2, 'menu_section': 2, 'menu_config': 3, 'user_config': 4, 'space': 3, 'workspace': 4, 'app': 5 };
     configs.sort((a, b) => typeOrder[a.type] - typeOrder[b.type]);
 
     console.log(`\nFound ${configs.length} configs to rebuild`);
