@@ -59,9 +59,9 @@ export const childTypeMapping: Record<string, string[]> = {
   space: ["view", "page", "fields", "extension"],
   view: ["fields", "sort", "filter", "extension", "block"],
   page: ["fields", "tab", "menu_config", "extension", "block"],
-  block: ["tab", "fields", "sort", "filter"],  // Block can contain tabs, fields, sort, filter
+  block: ["tab", "fields", "sort", "filter", "extension"],  // Block can contain tabs, fields, sort, filter, extensions
   tab: ["fields", "sort", "filter", "view"],
-  extension: ["fields", "sort", "filter"],
+  extension: ["fields", "sort", "filter", "view"],  // Extension can contain view
   user_config: ["menu_config"],
   menu_config: ["menu_section", "menu_item"],
   menu_section: ["menu_item"],

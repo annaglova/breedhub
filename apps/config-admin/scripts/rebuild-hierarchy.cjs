@@ -167,7 +167,8 @@ const configTypeMapping = {
       'filter': 'filter'
     },
     children: {
-      'tab': 'tabs'
+      'tab': 'tabs',
+      'extension': 'extensions'
     }
   },
   'extension': {
@@ -176,6 +177,9 @@ const configTypeMapping = {
       'fields': 'fields',
       'sort': 'sort',
       'filter': 'filter'
+    },
+    children: {
+      'view': 'views'
     }
   },
   'page': {
