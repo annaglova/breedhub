@@ -383,19 +383,18 @@ async function buildContainerStructure(config, mapping) {
     }
   }
 
-  // Process properties if defined
-  if (mapping.properties) {
-    const { data: properties } = await supabase
-      .from('app_config')
-      .select('id, data')
-      .in('id', dependentIds)
-      .eq('type', 'property');
+  // Process properties - universal processing for ALL container types
+  // Properties work for all containers (except grouping configs like fields/sort/filter)
+  const { data: properties } = await supabase
+    .from('app_config')
+    .select('id, data')
+    .in('id', dependentIds)
+    .eq('type', 'property');
 
-    if (properties) {
-      for (const property of properties) {
-        if (property.data && Object.keys(property.data).length > 0) {
-          Object.assign(structure, property.data);
-        }
+  if (properties && properties.length > 0) {
+    for (const property of properties) {
+      if (property.data && Object.keys(property.data).length > 0) {
+        Object.assign(structure, property.data);
       }
     }
   }
