@@ -20,8 +20,10 @@ export function Sidebar({
   const location = useLocation();
   const { workspace, spaces } = useWorkspaceSpaces();
 
-  // Convert spaces to menu items format
-  const menuItems = spaces.map((space: any) => {
+  // Sort spaces by order parameter, then convert to menu items format
+  const menuItems = spaces
+    .sort((a: any, b: any) => (a.order ?? 0) - (b.order ?? 0))
+    .map((space: any) => {
     // Determine the full path based on workspace
     const basePath = workspace?.path === '/' ? '' : workspace?.path || '';
     const spacePath = space.path?.startsWith('/') ? space.path : `/${space.path || space.id}`;
