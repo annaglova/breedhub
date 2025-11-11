@@ -1,4 +1,3 @@
-import coverBackground from "@/assets/images/background-images/cover_background.png";
 import { useCoverDimensions } from "@/hooks/useCoverDimensions";
 import { cn } from "@ui/lib/utils";
 import { Expand } from "lucide-react";
@@ -7,16 +6,24 @@ import { AvatarOutlet } from "./AvatarOutlet";
 import { BreedName } from "../breed/BreedName";
 import { BreedAchievements } from "../breed/BreedAchievements";
 import { NameContainerOutlet } from "./NameContainerOutlet";
-import { CoverTypeIDs, getCoverComponent, NavigationButtons } from "./cover";
+import { NavigationButtons } from "./cover";
 import { TabsContainer, Tab } from "../tabs/TabsContainer";
 import { BreedAchievementsTab } from "../breed/tabs/BreedAchievementsTab";
 import { PageMenu } from "../tabs/PageMenu";
 import { useTabNavigation } from "@/hooks/useTabNavigation";
 import { Icon } from "@/components/shared/Icon";
+import { getPageConfig } from "@/utils/getPageConfig";
+import { BlockRenderer } from "@/components/blocks/BlockRenderer";
+import type { PageType } from "@/types/page-config.types";
+import { spaceStore } from "@breedhub/rxdb-store";
+import { useSignals } from "@preact/signals-react/runtime";
 
 interface PublicPageTemplateProps {
   className?: string;
   isDrawerMode?: boolean;
+  pageType?: PageType;
+  spaceConfig?: any; // Space configuration object
+  entityType?: string; // Required to get selectedEntity from store
 }
 
 /**
@@ -28,7 +35,34 @@ interface PublicPageTemplateProps {
 export function PublicPageTemplate({
   className,
   isDrawerMode = false,
+  pageType,
+  spaceConfig: spaceConfigProp,
+  entityType,
 }: PublicPageTemplateProps) {
+  // Very first log - check if component renders at all
+  console.log('[PublicPageTemplate] COMPONENT RENDER START', { isDrawerMode, pageType, entityType });
+
+  useSignals();
+
+  // Use spaceConfig from props, or fallback to getting from store if not provided
+  const spaceConfig = spaceConfigProp;
+  const pageConfig = getPageConfig(spaceConfig, { pageType });
+
+  // Get selectedEntity from store using entityType
+  const selectedEntitySignal = entityType ? spaceStore.getSelectedEntity(entityType) : null;
+  const selectedEntity = selectedEntitySignal?.value;
+
+  // Debug logging
+  if (process.env.NODE_ENV === 'development') {
+    console.log('[PublicPageTemplate] State:', {
+      hasSpaceConfig: !!spaceConfig,
+      hasPageConfig: !!pageConfig,
+      hasSelectedEntity: !!selectedEntity,
+      pageConfig,
+      selectedEntity
+    });
+  }
+
   // Ref to content container for cover dimension calculation
   const contentContainerRef = useRef<HTMLDivElement>(null);
   const nameContainerRef = useRef<HTMLDivElement>(null);
@@ -113,15 +147,6 @@ export function PublicPageTemplate({
     resizeObserver.observe(pageMenuRef.current);
     return () => resizeObserver.disconnect();
   }, []);
-
-  // MOCK DATA for cover testing
-  // TODO: Remove when real entity.Cover data is available
-  const mockCover = {
-    Type: {
-      Id: CoverTypeIDs.BreedCoverV1,
-    },
-    AvatarUrl: coverBackground,
-  };
 
   // MOCK DATA for achievements
   const mockAchievements = {
@@ -390,10 +415,6 @@ export function PublicPageTemplate({
     },
   ];
 
-  // Get cover component based on type
-  const coverTypeId = mockCover?.Type?.Id;
-  const CoverComponent = getCoverComponent(coverTypeId);
-
   // Tab navigation hook
   const { activeTab, handleTabChange, handleVisibilityChange } =
     useTabNavigation({
@@ -414,52 +435,100 @@ export function PublicPageTemplate({
           ref={contentContainerRef}
           className="w-full max-w-3xl lg:max-w-4xl xxl:max-w-5xl"
         >
-          {/* Cover Section */}
-          <div
-            className="relative flex size-full justify-center overflow-hidden rounded-lg border border-gray-200 px-6 pt-4 shadow-sm sm:pb-3 sm:pt-6 mb-6"
-            style={{
-              width: `${coverDimensions.width}px`,
-              maxWidth: `${coverDimensions.width}px`,
-              height: `${coverDimensions.height}px`,
-              maxHeight: `${coverDimensions.height}px`,
-            }}
-          >
-            {/* Top gradient overlay */}
-            <div className="absolute top-0 z-10 h-28 w-full bg-gradient-to-b from-[#200e4c]/40 to-transparent"></div>
-
-            {/* Cover component */}
-            <div className="flex w-full max-w-3xl flex-col lg:max-w-4xl xxl:max-w-5xl">
-              {/* Navigation buttons - on template level, above cover content */}
-              <div className="z-40 flex w-full pb-2">
-                {/* Expand button (fullscreen) - show IN drawer mode to allow expanding */}
-                {isDrawerMode && (
-                  <button
-                    onClick={() => console.log("[TODO] Expand to fullscreen")}
-                    title="Expand"
-                    className="mr-auto hidden md:block"
-                  >
-                    <Expand size={22} className="text-white" />
-                  </button>
-                )}
-
-                {/* Back/Navigate buttons */}
-                <NavigationButtons
-                  mode="white"
-                  className="sticky top-0 ml-auto"
-                />
-              </div>
-
-              {/* Gradient overlay - positioned below buttons, above cover content */}
-              <div className="absolute inset-0 size-full bg-gradient-to-r from-primary-50/10 to-primary-400/85 z-10" />
-
-              {/* Cover content */}
-              <CoverComponent
-                coverImg={mockCover.AvatarUrl}
-                isFullscreen={!isDrawerMode}
-                breed={mockBreed}
-              />
+          {/* Dynamic Blocks Section */}
+          {!pageConfig && (
+            <div className="p-4 bg-red-50 border border-red-200 rounded-lg mb-6">
+              <p className="text-red-700 font-semibold">Page configuration not found</p>
+              <p className="text-red-600 text-sm mt-1">
+                {pageType ? `No page found with pageType: ${pageType}` : 'No pages configured for this space'}
+              </p>
             </div>
-          </div>
+          )}
+
+          {!selectedEntity && pageConfig && (
+            <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg mb-6">
+              <p className="text-yellow-700 font-semibold">No entity selected</p>
+              <p className="text-yellow-600 text-sm mt-1">Please select an entity to view</p>
+            </div>
+          )}
+
+          {pageConfig && selectedEntity && (() => {
+            // Sort blocks by order
+            const sortedBlocks = Object.entries(pageConfig.blocks)
+              .sort(([, a], [, b]) => (a.order || 0) - (b.order || 0));
+
+            if (process.env.NODE_ENV === 'development') {
+              console.log('[PublicPageTemplate] Rendering blocks:', {
+                pageConfig,
+                selectedEntity,
+                blocksCount: sortedBlocks.length,
+                sortedBlocks
+              });
+            }
+
+            // Render each block with its appropriate container
+            return sortedBlocks.map(([blockId, blockConfig]) => {
+              const blockComponent = blockConfig.component;
+
+              // Cover blocks need special container with dimensions
+              if (blockComponent === 'BreedCoverV1' || blockComponent.includes('Cover')) {
+                return (
+                  <div
+                    key={blockId}
+                    className="relative flex size-full justify-center overflow-hidden rounded-lg border border-gray-200 px-6 pt-4 shadow-sm sm:pb-3 sm:pt-6 mb-6"
+                    style={{
+                      width: `${coverDimensions.width}px`,
+                      maxWidth: `${coverDimensions.width}px`,
+                      height: `${coverDimensions.height}px`,
+                      maxHeight: `${coverDimensions.height}px`,
+                    }}
+                  >
+                    {/* Top gradient overlay */}
+                    <div className="absolute top-0 z-10 h-28 w-full bg-gradient-to-b from-[#200e4c]/40 to-transparent"></div>
+
+                    {/* Cover component wrapper */}
+                    <div className="flex w-full max-w-3xl flex-col lg:max-w-4xl xxl:max-w-5xl">
+                      {/* Navigation buttons */}
+                      <div className="z-40 flex w-full pb-2">
+                        {isDrawerMode && (
+                          <button
+                            onClick={() => console.log("[TODO] Expand to fullscreen")}
+                            title="Expand"
+                            className="mr-auto hidden md:block"
+                          >
+                            <Expand size={22} className="text-white" />
+                          </button>
+                        )}
+                        <NavigationButtons
+                          mode="white"
+                          className="sticky top-0 ml-auto"
+                        />
+                      </div>
+
+                      {/* Gradient overlay */}
+                      <div className="absolute inset-0 size-full bg-gradient-to-r from-primary-50/10 to-primary-400/85 z-10" />
+
+                      {/* Cover content */}
+                      <BlockRenderer
+                        blockConfig={blockConfig}
+                        entity={selectedEntity}
+                      />
+                    </div>
+                  </div>
+                );
+              }
+
+              // Default: simple wrapper
+              return (
+                <BlockRenderer
+                  key={blockId}
+                  blockConfig={blockConfig}
+                  entity={selectedEntity}
+                  className="mb-6"
+                />
+              );
+            });
+          })()}
 
           {/* Avatar Section */}
           <AvatarOutlet

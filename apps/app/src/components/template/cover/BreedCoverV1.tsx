@@ -10,6 +10,21 @@ import { useMemo } from "react";
 import { CoverTemplate } from "./CoverTemplate";
 import { PatronAvatar } from "./PatronAvatar";
 
+// Interface for entity from RxDB
+interface BreedEntity {
+  id?: string;
+  Id?: string;
+  name?: string;
+  Name?: string;
+  avatar_url?: string;
+  Avatar?: string;
+  measurements?: {
+    patron_count?: number;
+    [key: string]: any;
+  };
+  [key: string]: any;
+}
+
 interface Breed {
   Id: string;
   Name: string;
@@ -26,8 +41,8 @@ interface Breed {
 }
 
 interface BreedCoverV1Props {
-  coverImg: string;
-  breed: Breed;
+  entity: BreedEntity;
+  coverImg?: string;
   isFullscreen?: boolean;
   className?: string;
 }
@@ -35,15 +50,27 @@ interface BreedCoverV1Props {
 /**
  * BreedCoverV1 - Breed cover with top patrons
  *
- * EXACT COPY from Angular: libs/schema/ui/template/page-header/ui/breed-cover-v1.component.ts
+ * Adapted from Angular: libs/schema/ui/template/page-header/ui/breed-cover-v1.component.ts
  * Shows breed name + top 4 patrons OR "You may be the first one!" if no patrons
+ * Now works with RxDB entity data
  */
 export function BreedCoverV1({
+  entity,
   coverImg,
-  breed,
   isFullscreen = false,
   className = "",
 }: BreedCoverV1Props) {
+  // Transform entity to breed format
+  const breed: Breed = useMemo(() => ({
+    Id: entity.Id || entity.id || '',
+    Name: entity.Name || entity.name || 'Unknown',
+    TopPatrons: [], // TODO: Get from measurements or separate query
+  }), [entity]);
+
+  // Default cover image from assets
+  const actualCoverImg = coverImg || entity.avatar_url || entity.Avatar ||
+    '/src/assets/images/background-images/cover_background.png';
+
   // Calculate patron length (max 3 on mobile, 4 on desktop)
   const patronLength = useMemo(() => {
     if (!breed?.TopPatrons) return 0;
@@ -58,10 +85,10 @@ export function BreedCoverV1({
     console.log("Become patron:", breed.Id);
   };
 
-  if (!breed) return null;
+  if (!entity) return null;
 
   return (
-    <CoverTemplate coverImg={coverImg} className={`relateve ${className}`}>
+    <CoverTemplate coverImg={actualCoverImg} className={`relateve ${className}`}>
       <div className="z-20 ml-auto flex size-full flex-col justify-between pb-3 sm:w-auto sm:pb-2 sm:pt-1 pt-10">
         {/* Patrons */}
         <div className="flex w-full justify-between sm:flex-col sm:space-y-2">

@@ -320,6 +320,7 @@ class SpaceStore {
       tooltip?: string;
       component?: string;
     }>;
+    pages?: Record<string, any>;
   } | null {
     // Try exact match first
     let spaceConfig = this.spaceConfigs.get(entityType);
@@ -381,7 +382,8 @@ class SpaceStore {
       canEdit: spaceConfig.canEdit,
       canDelete: spaceConfig.canDelete,
       viewTypes: viewConfigs.length > 0 ? viewConfigs.map(v => v.viewType) : undefined,
-      viewConfigs: viewConfigs.length > 0 ? viewConfigs : undefined
+      viewConfigs: viewConfigs.length > 0 ? viewConfigs : undefined,
+      pages: spaceConfig.pages
     };
   }
 

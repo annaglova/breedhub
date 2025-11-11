@@ -3,7 +3,7 @@ import { Routes, Route } from 'react-router-dom';
 import { SpaceComponent } from '@/components/space/SpaceComponent';
 import { PublicPageTemplate } from '@/components/template/PublicPageTemplate';
 import { getEntityHook } from '@/hooks/hookRegistry';
-import { appStore } from '@breedhub/rxdb-store';
+import { appStore, spaceStore } from '@breedhub/rxdb-store';
 import { useSignals } from '@preact/signals-react/runtime';
 import { getComponent } from '@/components/space/componentRegistry';
 
@@ -82,6 +82,13 @@ export function SpacePage({ entityType }: SpacePageProps) {
   // Get component from registry
   const DetailComponent = getComponent(pageComponent) || PublicPageTemplate;
 
+  // Get dynamic spaceConfig from spaceStore
+  const spaceConfigSignal = useMemo(
+    () => spaceStore.getSpaceConfigSignal(entityType),
+    [entityType]
+  );
+  const dynamicSpaceConfig = spaceConfigSignal.value;
+
   return (
     <Routes>
       {/* List view with drawer outlet */}
@@ -97,7 +104,7 @@ export function SpacePage({ entityType }: SpacePageProps) {
         {/* Drawer route */}
         <Route
           path=":id"
-          element={<DetailComponent isDrawerMode={true} />}
+          element={<DetailComponent isDrawerMode={true} spaceConfig={dynamicSpaceConfig} entityType={entityType} />}
         />
 
         {/* New entity form */}
