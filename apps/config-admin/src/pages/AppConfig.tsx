@@ -1055,8 +1055,8 @@ const AppConfig: React.FC = () => {
 
                 {/* Order indicator */}
                 {(() => {
-                  // Types that need order: workspace, space, view, tab
-                  const needsOrderTypes = ['workspace', 'space', 'view', 'tab'];
+                  // Types that need order: workspace, space, view, tab, block
+                  const needsOrderTypes = ['workspace', 'space', 'view', 'tab', 'block'];
                   const config = workingConfigs.find(c => c.id === node.id);
 
                   if (needsOrderTypes.includes(node.configType || '')) {
@@ -1728,13 +1728,15 @@ const AppConfig: React.FC = () => {
                   {properties
                     .filter(property => {
                       // Filter by type
-                      const matchesType = propertyFilterType === "all" || 
-                        property.tags?.includes(propertyFilterType);
-                      
+                      const hasNoType = !property.tags || property.tags.length === 0;
+                      const matchesType = propertyFilterType === "all" ||
+                        property.tags?.includes(propertyFilterType) ||
+                        hasNoType; // Include universal properties (no type = applies to all)
+
                       // Filter by system/custom
-                      const matchesSystemFilter = showSystemProperties || 
+                      const matchesSystemFilter = showSystemProperties ||
                         property.category !== 'system';
-                      
+
                       return matchesType && matchesSystemFilter;
                     })
                     .map((property) => (

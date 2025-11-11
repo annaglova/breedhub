@@ -84,9 +84,10 @@ const Properties: React.FC = () => {
 
     // Filter by type if selected
     if (selectedType !== "all") {
-      filtered = filtered.filter(prop =>
-        prop.tags?.includes(selectedType)
-      );
+      filtered = filtered.filter(prop => {
+        const hasNoType = !prop.tags || prop.tags.length === 0;
+        return prop.tags?.includes(selectedType) || hasNoType; // Include universal properties (no type = applies to all)
+      });
     }
 
     // Filter by system/custom
