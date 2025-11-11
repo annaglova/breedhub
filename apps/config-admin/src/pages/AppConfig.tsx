@@ -1055,8 +1055,8 @@ const AppConfig: React.FC = () => {
 
                 {/* Order indicator */}
                 {(() => {
-                  // Types that need order: workspace, space, view, tab, block
-                  const needsOrderTypes = ['workspace', 'space', 'view', 'tab', 'block'];
+                  // Types that need order: workspace, space, view, tab, block, menu_section, menu_item
+                  const needsOrderTypes = ['workspace', 'space', 'view', 'tab', 'block', 'menu_section', 'menu_item'];
                   const config = workingConfigs.find(c => c.id === node.id);
 
                   if (needsOrderTypes.includes(node.configType || '')) {

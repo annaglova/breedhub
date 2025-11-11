@@ -43,13 +43,15 @@ export const Header = forwardRef<HTMLElement, HeaderProps>(
     return icon;
   };
 
-  // Map workspaces to navigation items
-  const navItems = workspaces.map(workspace => ({
-    id: workspace.id,
-    icon: normalizeIcon(workspace.icon),
-    label: workspace.label,
-    path: workspace.path
-  }));
+  // Sort workspaces by order parameter, then map to navigation items
+  const navItems = workspaces
+    .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+    .map(workspace => ({
+      id: workspace.id,
+      icon: normalizeIcon(workspace.icon),
+      label: workspace.label,
+      path: workspace.path
+    }));
 
   return (
     <TooltipProvider>

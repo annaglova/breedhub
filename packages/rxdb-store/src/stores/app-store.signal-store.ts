@@ -19,6 +19,7 @@ interface Workspace {
   icon: string | IconConfig; // Support both string (legacy) and object (new)
   path: string;
   label: string;
+  order?: number; // Order for display sorting
   spaces?: any;
 }
 
