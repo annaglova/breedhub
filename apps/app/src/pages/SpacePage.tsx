@@ -7,15 +7,6 @@ import { appStore, spaceStore } from '@breedhub/rxdb-store';
 import { useSignals } from '@preact/signals-react/runtime';
 import { getComponent } from '@/components/space/componentRegistry';
 
-// Import static configs as fallback
-import { breedSpaceConfig } from '@/config/spaces/breed-space.config';
-
-// Static config registry (fallback when app_config not loaded)
-const staticConfigRegistry: Record<string, any> = {
-  'breed': breedSpaceConfig,
-  // Add other static configs as needed
-};
-
 interface SpacePageProps {
   entityType: string; // 'breed', 'pet', 'kennel', etc.
 }
@@ -27,7 +18,7 @@ interface SpacePageProps {
  * - Route management (list + drawer/detail)
  * - Hook selection from hookRegistry
  * - Template selection from app_config
- * - Static config fallback
+ * - Space config from spaceStore (from app_config in DB)
  *
  * Usage in AppRouter:
  * <Route path="breeds/*" element={<SpacePage entityType="breed" />} />
@@ -51,19 +42,6 @@ export function SpacePage({ entityType }: SpacePageProps) {
     );
   }
 
-  // Get static config as fallback
-  const staticConfig = staticConfigRegistry[entityType];
-
-  if (!staticConfig) {
-    return (
-      <div className="p-8 text-center">
-        <p className="text-red-600">
-          Config not found for entity type: {entityType}
-        </p>
-      </div>
-    );
-  }
-
   // Get page config from app_config (SpaceStore reads this dynamically)
   // We just need the component name for drawer
   const pageComponent = useMemo(() => {
@@ -82,12 +60,21 @@ export function SpacePage({ entityType }: SpacePageProps) {
   // Get component from registry
   const DetailComponent = getComponent(pageComponent) || PublicPageTemplate;
 
-  // Get dynamic spaceConfig from spaceStore
+  // Get spaceConfig signal from spaceStore (from app_config in DB)
+  // Pass signal itself, not .value - let components subscribe to changes
   const spaceConfigSignal = useMemo(
     () => spaceStore.getSpaceConfigSignal(entityType),
     [entityType]
   );
-  const dynamicSpaceConfig = spaceConfigSignal.value;
+
+  // Show loading state if config not ready
+  if (!spaceConfigSignal.value) {
+    return (
+      <div className="p-8 text-center">
+        <p className="text-gray-600">Loading space configuration...</p>
+      </div>
+    );
+  }
 
   return (
     <Routes>
@@ -96,7 +83,7 @@ export function SpacePage({ entityType }: SpacePageProps) {
         path="/"
         element={
           <SpaceComponent
-            config={staticConfig}
+            configSignal={spaceConfigSignal}
             useEntitiesHook={useEntitiesHook}
           />
         }
@@ -104,7 +91,7 @@ export function SpacePage({ entityType }: SpacePageProps) {
         {/* Drawer route */}
         <Route
           path=":id"
-          element={<DetailComponent isDrawerMode={true} spaceConfig={dynamicSpaceConfig} entityType={entityType} />}
+          element={<DetailComponent isDrawerMode={true} spaceConfigSignal={spaceConfigSignal} entityType={entityType} />}
         />
 
         {/* New entity form */}

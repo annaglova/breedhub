@@ -17,12 +17,14 @@ import { BlockRenderer } from "@/components/blocks/BlockRenderer";
 import type { PageType } from "@/types/page-config.types";
 import { spaceStore } from "@breedhub/rxdb-store";
 import { useSignals } from "@preact/signals-react/runtime";
+import { Signal } from "@preact/signals-react";
+import { SpaceProvider } from "@/contexts/SpaceContext";
 
 interface PublicPageTemplateProps {
   className?: string;
   isDrawerMode?: boolean;
   pageType?: PageType;
-  spaceConfig?: any; // Space configuration object
+  spaceConfigSignal?: Signal<any>; // TODO: Define proper SpaceConfig type from DB structure
   entityType?: string; // Required to get selectedEntity from store
 }
 
@@ -36,7 +38,7 @@ export function PublicPageTemplate({
   className,
   isDrawerMode = false,
   pageType,
-  spaceConfig: spaceConfigProp,
+  spaceConfigSignal,
   entityType,
 }: PublicPageTemplateProps) {
   // Very first log - check if component renders at all
@@ -44,11 +46,12 @@ export function PublicPageTemplate({
 
   useSignals();
 
-  // Use spaceConfig from props, or fallback to getting from store if not provided
-  const spaceConfig = spaceConfigProp;
+  // Use spaceConfig from signal
+  const spaceConfig = spaceConfigSignal?.value;
   const pageConfig = getPageConfig(spaceConfig, { pageType });
 
-  // Get selectedEntity from store using entityType
+  // Get selectedEntity signal from store using entityType
+  // This is called INSIDE the component, after entity store is created
   const selectedEntitySignal = entityType ? spaceStore.getSelectedEntity(entityType) : null;
   const selectedEntity = selectedEntitySignal?.value;
 
@@ -422,14 +425,18 @@ export function PublicPageTemplate({
       mode: "scroll",
     });
 
-  return (
-    <div
-      className={cn(
-        "size-full flex flex-col content-padding",
-        isDrawerMode && "bg-white dark:bg-gray-900",
-        className
-      )}
+  return spaceConfigSignal ? (
+    <SpaceProvider
+      spaceConfigSignal={spaceConfigSignal}
+      selectedEntitySignal={selectedEntitySignal}
     >
+      <div
+        className={cn(
+          "size-full flex flex-col content-padding",
+          isDrawerMode && "bg-white dark:bg-gray-900",
+          className
+        )}
+      >
       <div className="flex flex-auto flex-col items-center overflow-auto">
         <div
           ref={contentContainerRef}
@@ -583,6 +590,14 @@ export function PublicPageTemplate({
           />
         </div>
       </div>
+    </div>
+    </SpaceProvider>
+  ) : (
+    <div className="p-8 text-center">
+      <p className="text-red-600">Space configuration signal is required</p>
+      <p className="text-sm text-gray-500 mt-2">
+        Make sure spaceConfigSignal is passed to PublicPageTemplate
+      </p>
     </div>
   );
 }

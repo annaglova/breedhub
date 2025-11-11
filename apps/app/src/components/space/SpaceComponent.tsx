@@ -3,6 +3,7 @@ import { SpaceConfig } from "@/core/space/types";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { getDatabase, spaceStore } from "@breedhub/rxdb-store";
 import { useSignals } from "@preact/signals-react/runtime";
+import { Signal } from "@preact/signals-react";
 import { Button } from "@ui/components/button";
 import { Input } from "@ui/components/input";
 import {
@@ -31,7 +32,7 @@ import {
 import { ViewChanger } from "./ViewChanger";
 
 interface SpaceComponentProps<T> {
-  config: SpaceConfig<T>;
+  configSignal: Signal<any>; // TODO: Define proper SpaceConfig type from DB structure
   useEntitiesHook: (params: { rows: number; from: number }) => {
     data: { entities: T[]; total: number } | undefined;
     isLoading: boolean;
@@ -41,7 +42,7 @@ interface SpaceComponentProps<T> {
 }
 
 export function SpaceComponent<T extends { id: string }>({
-  config,
+  configSignal,
   useEntitiesHook,
 }: SpaceComponentProps<T>) {
   useSignals();
@@ -52,24 +53,11 @@ export function SpaceComponent<T extends { id: string }>({
   const [searchValue, setSearchValue] = useState("");
   const [debouncedSearchValue, setDebouncedSearchValue] = useState("");
 
-  // Get reactive config signal from spaceStore
-  const configSignal = useMemo(
-    () => spaceStore.getSpaceConfigSignal(config.entitySchemaName),
-    [config.entitySchemaName]
-  );
+  // Use the reactive config value from signal
+  const config = configSignal.value;
 
-  // Use the reactive config value
-  const dynamicConfig = configSignal.value;
-
-  // Fallback to static config if store not ready
-  const finalConfig = dynamicConfig || {
-    title: config.naming.title,
-    canAdd: config.canAdd,
-    canEdit: config.canEdit,
-    canDelete: config.canDelete,
-    viewTypes: undefined,
-    viewConfigs: undefined,
-  };
+  // For convenience, use same variable name throughout component
+  const finalConfig = config;
 
   // Navigation and routing
   const navigate = useNavigate();
@@ -78,11 +66,11 @@ export function SpaceComponent<T extends { id: string }>({
 
   // Get default view from app_config (isDefault: true)
   const defaultView = useMemo(() => {
-    if (!spaceStore.configReady.value) {
-      return config.viewConfig[0].id; // Fallback to static config
+    if (!spaceStore.configReady.value || !config) {
+      return 'list'; // Default fallback
     }
     return spaceStore.getDefaultView(config.entitySchemaName);
-  }, [config.entitySchemaName, spaceStore.configReady.value]);
+  }, [config, config?.entitySchemaName, spaceStore.configReady.value]);
 
   const viewMode = searchParams.get("view") || defaultView;
 
@@ -827,7 +815,7 @@ export function SpaceComponent<T extends { id: string }>({
     return (
       <div className="p-8 text-center">
         <p className="text-red-600">
-          Error loading {config.naming.plural.other}. Please try again later.
+          Error loading {config?.naming?.plural?.other || config?.label || 'entities'}. Please try again later.
         </p>
       </div>
     );
@@ -854,7 +842,7 @@ export function SpaceComponent<T extends { id: string }>({
                 </h1>
                 <ViewChanger
                   views={
-                    finalConfig.viewTypes || config.viewConfig.map((v) => v.id)
+                    finalConfig.viewTypes || []
                   }
                   viewConfigs={finalConfig.viewConfigs?.map((v) => ({
                     id: v.viewType,
@@ -875,7 +863,7 @@ export function SpaceComponent<T extends { id: string }>({
           </div>
           <div className="flex-1 flex items-center justify-center">
             <div className="text-gray-500">
-              Loading {config.naming.plural.other}...
+              Loading {config?.naming?.plural?.other || config?.label || 'entities'}...
             </div>
           </div>
         </div>
@@ -908,7 +896,7 @@ export function SpaceComponent<T extends { id: string }>({
                 </h1>
                 <ViewChanger
                   views={
-                    finalConfig.viewTypes || config.viewConfig.map((v) => v.id)
+                    finalConfig.viewTypes || []
                   }
                   viewConfigs={finalConfig.viewConfigs?.map((v) => ({
                     id: v.viewType,
@@ -936,7 +924,7 @@ export function SpaceComponent<T extends { id: string }>({
                   type="text"
                   value={searchValue}
                   onChange={(e) => setSearchValue(e.target.value)}
-                  placeholder={config.naming.searchPlaceholder}
+                  placeholder={config?.naming?.searchPlaceholder || `Search ${config?.label || 'entities'}...`}
                   className="pl-10 rounded-full w-full cursor-auto"
                 />
               </div>
@@ -989,9 +977,7 @@ export function SpaceComponent<T extends { id: string }>({
                 component:
                   finalConfig.viewConfigs?.find(v => v.viewType === viewMode)?.component ||
                   "GenericListCard",
-                itemHeight:
-                  config.viewConfig.find((v) => v.id === viewMode)
-                    ?.itemHeight || (viewMode === "grid" ? 280 : 68),
+                itemHeight: viewMode === "grid" ? 280 : 68,
                 dividers: viewMode === "list" || viewMode === "rows",
                 overscan: 3,
               }}

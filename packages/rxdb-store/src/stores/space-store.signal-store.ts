@@ -307,21 +307,7 @@ class SpaceStore {
    * Get space configuration for an entity type
    * Returns title, permissions, and other UI config
    */
-  getSpaceConfig(entityType: string): {
-    title: string;
-    canAdd?: boolean;
-    canEdit?: boolean;
-    canDelete?: boolean;
-    entitySchemaName?: string;
-    viewTypes?: string[];
-    viewConfigs?: Array<{
-      viewType: string;
-      icon?: string;
-      tooltip?: string;
-      component?: string;
-    }>;
-    pages?: Record<string, any>;
-  } | null {
+  getSpaceConfig(entityType: string): any | null {
     // Try exact match first
     let spaceConfig = this.spaceConfigs.get(entityType);
 
@@ -350,7 +336,7 @@ class SpaceStore {
       rawConfig: spaceConfig
     });
 
-    // Extract views with full configuration (viewType, icon, tooltip, component)
+    // Extract views for convenience (viewTypes and viewConfigs)
     const viewConfigs: Array<{
       viewType: string;
       icon?: string;
@@ -359,7 +345,6 @@ class SpaceStore {
     }> = [];
 
     if (spaceConfig.views) {
-      // Parse all view children and collect view configurations
       Object.values(spaceConfig.views).forEach((view: any) => {
         if (view && view.viewType) {
           viewConfigs.push({
@@ -372,18 +357,13 @@ class SpaceStore {
       });
     }
 
-    console.log(`[SpaceStore] Extracted view configs for ${entityType}:`, viewConfigs);
-
-    // Return the configuration with title, permissions, and full view configs
+    // Return FULL configuration with additional parsed fields
     return {
+      ...spaceConfig,
+      // Add convenience fields
       title: spaceConfig.label || spaceConfig.entitySchemaName || entityType,
-      entitySchemaName: spaceConfig.entitySchemaName,
-      canAdd: spaceConfig.canAdd,
-      canEdit: spaceConfig.canEdit,
-      canDelete: spaceConfig.canDelete,
       viewTypes: viewConfigs.length > 0 ? viewConfigs.map(v => v.viewType) : undefined,
       viewConfigs: viewConfigs.length > 0 ? viewConfigs : undefined,
-      pages: spaceConfig.pages
     };
   }
 
