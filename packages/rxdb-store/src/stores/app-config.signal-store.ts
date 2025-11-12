@@ -163,8 +163,8 @@ const childContainerMapping: Record<string, Record<string, string | null>> = {
 // Types that cannot have properties
 const noPropertyTypes = ['fields', 'sort_fields', 'filter_fields'];
 
-// High-level structure types
-const highLevelTypes = ['app', 'workspace', 'space', 'view', 'page', 'block', 'tab', 'user_config', 'menu_config', 'menu_section', 'menu_item'];
+// High-level structure types (containers that have children)
+const highLevelTypes = ['app', 'workspace', 'space', 'view', 'page', 'block', 'tab', 'user_config', 'menu_config', 'menu_section', 'menu_item', 'extension'];
 const groupingTypes = ['fields', 'sort', 'filter']; // Grouping configs that don't merge deps data
 
 class AppConfigStore {
@@ -1137,13 +1137,13 @@ class AppConfigStore {
 
   // Check if type is a high-level structure type
   isHighLevelType(type: string): boolean {
-    return ['app', 'workspace', 'space', 'view', 'page', 'block', 'tab', 'sort', 'filter', 'fields', 'extension',
-            'user_config', 'menu_config', 'menu_section', 'menu_item'].includes(type);
+    // High-level types are structural containers (NOT including grouping configs)
+    return highLevelTypes.includes(type);
   }
   
   // Check if type is a grouping config (cannot have override_data)
   isGroupingConfigType(type: string): boolean {
-    return ['fields', 'sort', 'filter'].includes(type);
+    return groupingTypes.includes(type);
   }
 
   // Delete config with its children and update parents
@@ -1928,21 +1928,28 @@ class AppConfigStore {
       
       // Add to deps
       const updatedDeps = [...currentDeps, depId];
-      
-      // Recalculate self_data based on all deps
-      let newSelfData = {};
-      for (const id of updatedDeps) {
-        const dep = this.configs.value.get(id);
-        if (dep && dep.data) {
-          newSelfData = deepMerge(newSelfData, dep.data);
-        }
-      }
-      
-      // Update config
-      await this.updateConfig(configId, { 
-        deps: updatedDeps,
-        self_data: newSelfData 
+
+      // Update config with new deps first
+      await this.updateConfig(configId, {
+        deps: updatedDeps
       });
+
+      // Rebuild self_data properly using rebuildParentSelfData for container types
+      // This ensures proper structure (e.g., menu_section keeps its items container)
+      // Container types include: high-level types (app, workspace, space, etc.) AND grouping types (fields, sort, filter)
+      if (this.isHighLevelType(config.type) || this.isGroupingConfigType(config.type)) {
+        await this.rebuildParentSelfData(configId);
+      } else {
+        // For simple types (field, entity_field), use simple recalculation
+        let newSelfData = {};
+        for (const id of updatedDeps) {
+          const dep = this.configs.value.get(id);
+          if (dep && dep.data) {
+            newSelfData = deepMerge(newSelfData, dep.data);
+          }
+        }
+        await this.updateConfig(configId, { self_data: newSelfData });
+      }
       
       // Cascade update to parents
       if (!options.skipCascade) {
@@ -1980,20 +1987,27 @@ class AppConfigStore {
       // Remove from deps
       const updatedDeps = config.deps.filter(d => d !== depId);
 
-      // Recalculate self_data without this dependency
-      let newSelfData = {};
-      for (const id of updatedDeps) {
-        const dep = this.configs.value.get(id);
-        if (dep && dep.data) {
-          newSelfData = deepMerge(newSelfData, dep.data);
-        }
-      }
-
-      // Update config
+      // Update config with new deps first
       await this.updateConfig(configId, {
-        deps: updatedDeps,
-        self_data: newSelfData
+        deps: updatedDeps
       });
+
+      // Rebuild self_data properly using rebuildParentSelfData for container types
+      // This ensures proper structure (e.g., menu_section keeps its items container)
+      // Container types include: high-level types (app, workspace, space, etc.) AND grouping types (fields, sort, filter)
+      if (this.isHighLevelType(config.type) || this.isGroupingConfigType(config.type)) {
+        await this.rebuildParentSelfData(configId);
+      } else {
+        // For simple types (field, entity_field), use simple recalculation
+        let newSelfData = {};
+        for (const id of updatedDeps) {
+          const dep = this.configs.value.get(id);
+          if (dep && dep.data) {
+            newSelfData = deepMerge(newSelfData, dep.data);
+          }
+        }
+        await this.updateConfig(configId, { self_data: newSelfData });
+      }
 
       // Cascade update to parents
       if (!options.skipCascade) {

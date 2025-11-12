@@ -1,71 +1,18 @@
 import { Button } from "@ui/components/button";
-import { cn } from "@ui/lib/utils";
-import {
-  Baby,
-  Calendar,
-  Cat,
-  CreditCard,
-  FileText,
-  Gift,
-  Globe,
-  Home,
-  Image,
-  Layers,
-  LogOut,
-  Search,
-  Settings,
-  ShoppingBag,
-  User,
-  UserPlus,
-  Users,
-  X,
-} from "lucide-react";
+import { cn, getIconComponent } from "@ui/lib/utils";
+import { User, X } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useUserMenu } from "@/hooks/useUserMenu";
 
 interface UserDrawerProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-interface MenuItem {
-  icon?: any;
-  label: string;
-  path?: string;
-  badge?: string;
-  badgeType?: "primary" | "accent";
-  isSeparator?: boolean;
-}
-
 export function UserDrawer({ isOpen, onClose }: UserDrawerProps) {
   if (!isOpen) return null;
 
-  const menuItems: MenuItem[] = [
-    { icon: Home, label: "Welcome", path: "/welcome" },
-    {
-      icon: Globe,
-      label: "Site constructor",
-      path: "/site-constructor",
-      badge: "Prime",
-      badgeType: "accent",
-    },
-    { icon: Users, label: "My kennel", path: "/my/kennel" },
-    { icon: Cat, label: "Pets", path: "/my/pets" },
-    { icon: Baby, label: "Litters", path: "/my/litters" },
-    { icon: Calendar, label: "Calendar", path: "/my/calendar" },
-    { icon: ShoppingBag, label: "Marketplace", path: "/my/marketplace" },
-    { icon: Image, label: "Covers", path: "/my/covers" },
-    { icon: FileText, label: "Notes", path: "/my/notes" },
-    { icon: Layers, label: "Collections", path: "/my/collections" },
-    { isSeparator: true },
-    { icon: CreditCard, label: "Billing", path: "/billing" },
-    { icon: UserPlus, label: "Referral", path: "/referral" },
-    { icon: Gift, label: "Gift", path: "/gift" },
-    { isSeparator: true },
-    { icon: Settings, label: "Settings", path: "/settings" },
-    { icon: Search, label: "Lookup", path: "/lookup" },
-    { isSeparator: true },
-    { icon: LogOut, label: "Sign Out", path: "/sign-out" },
-  ];
+  const { menuItems, loading } = useUserMenu();
 
   return (
     <>
@@ -97,46 +44,50 @@ export function UserDrawer({ isOpen, onClose }: UserDrawerProps) {
 
         {/* Menu items */}
         <nav className="flex-1 p-4 overflow-y-auto">
-          <div className="space-y-1">
-            {menuItems.map((item, index) => {
-              if (item.isSeparator) {
-                return (
-                  <div
-                    key={`sep-${index}`}
-                    className="my-3 border-t border-gray-200"
-                  />
-                );
-              }
-
-              const Icon = item.icon;
-              return (
-                <Link
-                  key={item.path}
-                  to={item.path || "#"}
-                  onClick={onClose}
-                  className={cn(
-                    "flex items-center justify-between px-3 py-2 rounded-lg transition-colors",
-                    "hover:bg-gray-100"
-                  )}
-                >
-                  <div className="flex items-center gap-3">
-                    {Icon && <Icon className="h-5 w-5 text-gray-600" />}
-                    <span>{item.label}</span>
-                  </div>
-                  {item.badge && (
+          {loading ? (
+            <div className="text-center text-gray-500 py-4">Loading menu...</div>
+          ) : (
+            <div className="space-y-1">
+              {menuItems.map((item, index) => {
+                if (item.type === 'separator') {
+                  return (
                     <div
-                      className={cn(
-                        "rounded-full px-2 py-0.5 text-xs font-bold uppercase text-white",
-                        item.badgeType === "accent" ? "bg-accent" : "bg-primary"
-                      )}
-                    >
-                      {item.badge}
+                      key={`sep-${index}`}
+                      className="my-3 border-t border-gray-200"
+                    />
+                  );
+                }
+
+                const Icon = getIconComponent(item.icon);
+                return (
+                  <Link
+                    key={item.id || item.path}
+                    to={item.path || "#"}
+                    onClick={onClose}
+                    className={cn(
+                      "flex items-center justify-between px-3 py-2 rounded-lg transition-colors",
+                      "hover:bg-gray-100"
+                    )}
+                  >
+                    <div className="flex items-center gap-3">
+                      {Icon && <Icon className="h-5 w-5 text-gray-600" />}
+                      <span>{item.label}</span>
                     </div>
-                  )}
-                </Link>
-              );
-            })}
-          </div>
+                    {item.badge && (
+                      <div
+                        className={cn(
+                          "rounded-full px-2 py-0.5 text-xs font-bold uppercase text-white",
+                          (item.badgeVariant === "accent" || item.badgeType === "accent") ? "bg-accent" : "bg-primary"
+                        )}
+                      >
+                        {item.badge}
+                      </div>
+                    )}
+                  </Link>
+                );
+              })}
+            </div>
+          )}
         </nav>
 
         {/* Footer actions */}
