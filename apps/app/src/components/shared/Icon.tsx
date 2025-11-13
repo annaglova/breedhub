@@ -1,5 +1,6 @@
-import React, { useMemo, lazy, Suspense } from 'react';
+import React from 'react';
 import type { SVGProps } from 'react';
+import * as LucideIcons from 'lucide-react';
 import * as CustomIcons from '@shared/icons';
 import type { IconConfig } from '@breedhub/rxdb-store';
 
@@ -45,31 +46,15 @@ export function Icon({ icon, size = 24, className = '', ...props }: IconProps) {
 
   // Render Lucide icon
   if (source === 'lucide') {
-    // Dynamically import the specific icon to avoid conflicts with native DOM constructors
-    // This way we don't import all icons at once (which would include Image that conflicts with DOM)
-    const LucideIcon = useMemo(() => {
-      return lazy(() =>
-        import('lucide-react')
-          .then((mod) => {
-            const IconComponent = (mod as any)[name];
-            if (!IconComponent) {
-              console.warn(`[Icon] Lucide icon not found: ${name}`);
-              return { default: FallbackIcon };
-            }
-            return { default: IconComponent };
-          })
-          .catch((error) => {
-            console.error(`[Icon] Failed to load Lucide icon: ${name}`, error);
-            return { default: FallbackIcon };
-          })
-      );
-    }, [name]);
+    // Get icon component from pre-imported lucide-react
+    const LucideIcon = (LucideIcons as any)[name];
 
-    return (
-      <Suspense fallback={<FallbackIcon />}>
-        <LucideIcon size={size} className={className} {...props} />
-      </Suspense>
-    );
+    if (!LucideIcon) {
+      console.warn(`[Icon] Lucide icon not found: ${name}`);
+      return <FallbackIcon />;
+    }
+
+    return <LucideIcon size={size} className={className} {...props} />;
   }
 
   // Render custom icon
