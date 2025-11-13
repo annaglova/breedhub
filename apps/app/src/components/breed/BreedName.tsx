@@ -30,9 +30,11 @@ export function BreedName({
   // Extract data from entity if provided
   const displayName = entity?.name || breedName;
   const displayAchievement = entity?.achievement || achievement;
-  const displayPetCount = entity?.pet_profile_count ?? petProfileCount;
-  const displayKennelCount = entity?.kennel_count ?? kennelCount;
-  const displayPatronCount = entity?.patron_count ?? patronCount;
+
+  // Measurements from entity.measurements (same as BreedListCard)
+  const displayPetCount = entity?.measurements?.pet_profile_count ?? petProfileCount;
+  const displayKennelCount = entity?.measurements?.kennel_count ?? kennelCount;
+  const displayPatronCount = entity?.measurements?.patron_count ?? patronCount;
   return (
     <div className="pb-3 cursor-default">
       {/* Achievement */}
