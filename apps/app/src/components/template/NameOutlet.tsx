@@ -14,7 +14,7 @@ import {
 import { Heart, MoreVertical } from "lucide-react";
 import { Icon } from "@/components/shared/Icon";
 import { NavigationButtons } from "./cover/NavigationButtons";
-import { usePageMenu } from "@/hooks/usePageMenu";
+import { usePageMenu, usePageMenuButtons } from "@/hooks/usePageMenu";
 import { usePageActions } from "@/hooks/usePageActions";
 import type { PageConfig } from "@/types/page-config.types";
 import type { SpacePermissions } from "@/types/page-menu.types";
@@ -60,11 +60,19 @@ export function NameOutlet({
   onMoreOptions,
   children,
 }: NameOutletProps) {
-  // Get menu items for name context
+  // Get menu items for sticky context (when onTop)
   const menuItems = usePageMenu({
     pageConfig: pageConfig || null,
-    context: 'name',
+    context: 'sticky',
     spacePermissions,
+  });
+
+  // Get button items (duplicateOnDesktop) for sticky context
+  const buttonItems = usePageMenuButtons({
+    pageConfig: pageConfig || null,
+    context: 'sticky',
+    spacePermissions,
+    containerWidth: 1280, // TODO: Get real container width
   });
 
   // Action handlers
@@ -72,6 +80,9 @@ export function NameOutlet({
     // Custom handlers can be passed here
     support: onSupport,
   });
+
+  // Check if we have menu config
+  const hasMenuConfig = pageConfig?.menus && Object.keys(pageConfig.menus).length > 0;
 
   if (isLoading) {
     return (
@@ -112,6 +123,24 @@ export function NameOutlet({
       {/* Action buttons - bottom right */}
       {onTop && (
         <div className="absolute bottom-1 right-0 flex gap-1">
+          {/* Separate buttons for items with duplicateOnDesktop (e.g., Edit) */}
+          {buttonItems.map((item) => (
+            <Tooltip key={item.id}>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="outline-secondary"
+                  className="rounded-full h-[2.6rem] px-4 text-base font-semibold"
+                  onClick={() => executeAction(item.action)}
+                  type="button"
+                >
+                  <Icon icon={item.icon} size={16} />
+                  <span className="ml-2">{item.label}</span>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">{item.label}</TooltipContent>
+            </Tooltip>
+          ))}
+
           {/* Support button */}
           <Tooltip>
             <TooltipTrigger asChild>
