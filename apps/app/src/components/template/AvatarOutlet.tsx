@@ -12,7 +12,6 @@ import {
   DropdownMenuTrigger,
 } from "@ui/components/dropdown-menu";
 import { MoreVertical } from "lucide-react";
-import { BreedAvatar } from "../breed/BreedAvatar";
 import { Icon } from "@/components/shared/Icon";
 import { usePageMenu, usePageMenuButtons } from "@/hooks/usePageMenu";
 import { usePageActions } from "@/hooks/usePageActions";
@@ -23,9 +22,11 @@ import type { SpacePermissions } from "@/types/page-menu.types";
 const AVATAR_SIZE = 176;
 
 interface AvatarOutletProps {
-  entity?: any;           // Entity data for avatar rendering
-  hasAvatar?: boolean;    // Show/hide avatar
-  hasActions?: boolean;   // Show/hide action buttons
+  entity?: any;
+  component: string;
+  hasAvatar?: boolean;
+  hasActions?: boolean;
+  className?: string;
 
   // Menu configuration (from page config)
   pageConfig?: PageConfig | null;
@@ -34,26 +35,32 @@ interface AvatarOutletProps {
   // Legacy handlers (deprecated - use pageConfig.menus instead)
   onEdit?: () => void;
   onMoreOptions?: () => void;
+
+  // Component to render inside the outlet
+  children?: React.ReactNode;
 }
 
 /**
  * AvatarOutlet - Universal avatar outlet with action buttons
  *
  * Based on Angular: libs/schema/ui/template/avatar/avatar-outlet.component.ts
- * Shows entity-specific avatar with Edit and More options buttons
+ * Shows entity-specific avatar (via children) with Edit and More options buttons
  * Positioned with -mt-32 to overlap cover
  *
  * Config-driven: use hasAvatar, hasActions flags to control visibility
- * Design constants (size, spacing) are kept in code
+ * Wraps entity-specific avatar components (BreedAvatar, KennelAvatar, etc.)
  */
 export function AvatarOutlet({
   entity,
+  component,
   hasAvatar = true,
   hasActions = true,
+  className = '',
   pageConfig,
   spacePermissions = { canEdit: true, canDelete: false, canAdd: false },
   onEdit,
   onMoreOptions,
+  children,
 }: AvatarOutletProps) {
   // Get menu items for avatar context
   const menuItems = usePageMenu({
@@ -90,14 +97,11 @@ export function AvatarOutlet({
   const showMoreOptionsFallback = hasMenuConfig && menuItems.length === 0;
 
   return (
-    <div className="-mt-32 flex flex-auto items-end relative pb-3 top-0 z-30 px-6 pointer-events-none">
-      {/* Avatar - entity-specific rendering */}
+    <div className={`-mt-32 flex flex-auto items-end relative pb-3 top-0 z-30 px-6 pointer-events-none ${className}`}>
+      {/* Avatar - entity-specific component via children */}
       {hasAvatar && (
         <div className="pointer-events-auto">
-          <BreedAvatar
-            entity={entity}
-            size={AVATAR_SIZE}
-          />
+          {children}
         </div>
       )}
 

@@ -503,7 +503,10 @@ export function PublicPageTemplate({
                 return (
                   <BlockRenderer
                     key={blockId}
-                    blockConfig={blockConfig}
+                    blockConfig={{
+                      ...blockConfig,
+                      size: 176, // Avatar size constant
+                    }}
                     entity={selectedEntity}
                     pageConfig={pageConfig}
                     spacePermissions={spacePermissions}
