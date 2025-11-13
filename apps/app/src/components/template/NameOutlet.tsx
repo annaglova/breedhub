@@ -14,7 +14,7 @@ import {
 import { Heart, MoreVertical } from "lucide-react";
 import { Icon } from "@/components/shared/Icon";
 import { NavigationButtons } from "./cover/NavigationButtons";
-import { usePageMenu, usePageMenuButtons } from "@/hooks/usePageMenu";
+import { usePageMenu } from "@/hooks/usePageMenu";
 import { usePageActions } from "@/hooks/usePageActions";
 import type { PageConfig } from "@/types/page-config.types";
 import type { SpacePermissions } from "@/types/page-menu.types";
@@ -67,22 +67,19 @@ export function NameOutlet({
     spacePermissions,
   });
 
-  // Get button items (duplicateOnDesktop) for sticky context
-  const buttonItems = usePageMenuButtons({
-    pageConfig: pageConfig || null,
-    context: 'sticky',
-    spacePermissions,
-    containerWidth: 1280, // TODO: Get real container width
-  });
+  // TODO: Add button items (duplicateOnDesktop) for large screens only
+  // const buttonItems = usePageMenuButtons({
+  //   pageConfig: pageConfig || null,
+  //   context: 'sticky',
+  //   spacePermissions,
+  //   containerWidth: 1280,
+  // });
 
   // Action handlers
   const { executeAction } = usePageActions(entity, {
     // Custom handlers can be passed here
     support: onSupport,
   });
-
-  // Check if we have menu config
-  const hasMenuConfig = pageConfig?.menus && Object.keys(pageConfig.menus).length > 0;
 
   if (isLoading) {
     return (
@@ -123,7 +120,7 @@ export function NameOutlet({
       {/* Action buttons - bottom right */}
       {onTop && (
         <div className="absolute bottom-1 right-0 flex gap-1">
-          {/* Separate buttons for items with duplicateOnDesktop (e.g., Edit) */}
+          {/* TODO: Add Edit button for large screens (minWidth: 1024)
           {buttonItems.map((item) => (
             <Tooltip key={item.id}>
               <TooltipTrigger asChild>
@@ -140,6 +137,7 @@ export function NameOutlet({
               <TooltipContent side="bottom">{item.label}</TooltipContent>
             </Tooltip>
           ))}
+          */}
 
           {/* Support button */}
           <Tooltip>
