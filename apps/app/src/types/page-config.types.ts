@@ -4,6 +4,7 @@ export type PageType = 'view' | 'edit' | 'create';
 
 export interface BlockConfig {
   component: string;
+  outlet?: string;
   type?: string;
   order?: number;
   [key: string]: any;

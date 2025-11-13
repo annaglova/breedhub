@@ -1,5 +1,5 @@
 import React from 'react';
-import { getBlockComponent } from './ComponentRegistry';
+import { getBlockComponent, getOutletComponent } from './ComponentRegistry';
 import type { BlockConfig, PageConfig } from '../../types/page-config.types';
 import type { SpacePermissions } from '../../types/page-menu.types';
 
@@ -14,8 +14,12 @@ interface BlockRendererProps {
 /**
  * BlockRenderer - Universal component for rendering blocks dynamically from config
  *
- * Takes a block configuration and entity data, looks up the component in the registry,
- * and renders it with the provided props.
+ * Supports outlet + component pattern:
+ * - outlet: Universal structural wrapper (CoverOutlet, NameOutlet, etc.)
+ * - component: Entity-specific content (BreedCoverV1, BreedName, etc.)
+ *
+ * If outlet is specified, wraps component in outlet.
+ * If no outlet, renders component directly (backward compatibility).
  */
 export const BlockRenderer: React.FC<BlockRendererProps> = ({
   blockConfig,
@@ -24,10 +28,13 @@ export const BlockRenderer: React.FC<BlockRendererProps> = ({
   pageConfig,
   spacePermissions,
 }) => {
+  const { outlet, component, ...restConfig } = blockConfig;
+
   // Debug logging
   if (process.env.NODE_ENV === 'development') {
     console.log('[BlockRenderer] Rendering block:', {
-      component: blockConfig.component,
+      outlet,
+      component,
       blockConfig,
       entity,
       hasEntity: !!entity
@@ -35,12 +42,12 @@ export const BlockRenderer: React.FC<BlockRendererProps> = ({
   }
 
   // Get component from registry
-  const BlockComponent = getBlockComponent(blockConfig.component);
+  const BlockComponent = getBlockComponent(component);
 
   // Debug: Check what we got
   if (process.env.NODE_ENV === 'development') {
     console.log('[BlockRenderer] Component lookup:', {
-      componentName: blockConfig.component,
+      componentName: component,
       found: !!BlockComponent,
       componentType: typeof BlockComponent,
       BlockComponent
@@ -53,7 +60,7 @@ export const BlockRenderer: React.FC<BlockRendererProps> = ({
       return (
         <div className={`border-2 border-dashed border-red-400 bg-red-50 p-4 rounded-lg ${className || ''}`}>
           <div className="text-red-700 font-semibold">
-            Block component not found: {blockConfig.component}
+            Block component not found: {component}
           </div>
           <div className="text-red-600 text-sm mt-2">
             Make sure the component is registered in ComponentRegistry
@@ -66,19 +73,64 @@ export const BlockRenderer: React.FC<BlockRendererProps> = ({
     }
 
     // In production, fail silently or show minimal error
-    console.error(`[BlockRenderer] Component not found: ${blockConfig.component}`);
+    console.error(`[BlockRenderer] Component not found: ${component}`);
     return null;
   }
 
-  // Render the component with entity and all block config props
-  // Note: No wrapper div - parent is responsible for layout/spacing
+  // If no outlet, render component directly (backward compatibility)
+  if (!outlet) {
+    return (
+      <BlockComponent
+        entity={entity}
+        {...restConfig}
+        className={className}
+        pageConfig={pageConfig}
+        spacePermissions={spacePermissions}
+      />
+    );
+  }
+
+  // Get outlet from registry
+  const OutletComponent = getOutletComponent(outlet);
+
+  // Handle missing outlet
+  if (!OutletComponent) {
+    if (process.env.NODE_ENV === 'development') {
+      return (
+        <div className={`border-2 border-dashed border-orange-400 bg-orange-50 p-4 rounded-lg ${className || ''}`}>
+          <div className="text-orange-700 font-semibold">
+            Outlet component not found: {outlet}
+          </div>
+          <div className="text-orange-600 text-sm mt-2">
+            Make sure the outlet is registered in ComponentRegistry
+          </div>
+          <div className="text-gray-600 text-xs mt-2 font-mono">
+            Config: {JSON.stringify(blockConfig, null, 2)}
+          </div>
+        </div>
+      );
+    }
+
+    console.error(`[BlockRenderer] Outlet not found: ${outlet}`);
+    return null;
+  }
+
+  // Render outlet wrapping component
   return (
-    <BlockComponent
+    <OutletComponent
       entity={entity}
-      {...blockConfig}
+      component={component}
+      {...restConfig}
       className={className}
       pageConfig={pageConfig}
       spacePermissions={spacePermissions}
-    />
+    >
+      <BlockComponent
+        entity={entity}
+        {...restConfig}
+        pageConfig={pageConfig}
+        spacePermissions={spacePermissions}
+      />
+    </OutletComponent>
   );
 };

@@ -1,16 +1,54 @@
 import { BreedCoverV1 } from '../template/cover/BreedCoverV1';
 import { AvatarOutlet } from '../template/AvatarOutlet';
+import { CoverOutlet } from '../template/CoverOutlet';
+import { BreedAvatar } from '../breed/BreedAvatar';
 import type React from 'react';
 
 /**
- * Registry of block components that can be dynamically rendered
+ * Registry of outlet components (universal structural wrappers)
+ * Maps outlet names from config to actual React components
+ */
+const OUTLET_COMPONENTS: Record<string, React.ComponentType<any>> = {
+  'CoverOutlet': CoverOutlet,
+  'AvatarOutlet': AvatarOutlet,
+  // Add more outlets here: NameOutlet, TabsOutlet, etc.
+};
+
+/**
+ * Registry of block components (entity-specific content)
  * Maps component names from config to actual React components
  */
 const BLOCK_COMPONENTS: Record<string, React.ComponentType<any>> = {
   'BreedCoverV1': BreedCoverV1,
-  'AvatarOutlet': AvatarOutlet,
+  'BreedAvatar': BreedAvatar,
   // Add more block components here as needed
 };
+
+/**
+ * Get an outlet component by name from the registry
+ * Returns undefined if outlet not found
+ *
+ * @param name - Outlet name from config (e.g., 'CoverOutlet')
+ * @returns React component or undefined
+ */
+export function getOutletComponent(name: string): React.ComponentType<any> | undefined {
+  const component = OUTLET_COMPONENTS[name];
+
+  if (process.env.NODE_ENV === 'development') {
+    console.log('[ComponentRegistry] Outlet lookup:', {
+      requestedName: name,
+      found: !!component,
+      availableOutlets: Object.keys(OUTLET_COMPONENTS),
+      component
+    });
+  }
+
+  if (!component && process.env.NODE_ENV === 'development') {
+    console.error(`[ComponentRegistry] Unknown outlet: ${name}`);
+  }
+
+  return component;
+}
 
 /**
  * Get a block component by name from the registry
@@ -23,7 +61,7 @@ export function getBlockComponent(name: string): React.ComponentType<any> | unde
   const component = BLOCK_COMPONENTS[name];
 
   if (process.env.NODE_ENV === 'development') {
-    console.log('[ComponentRegistry] Lookup:', {
+    console.log('[ComponentRegistry] Component lookup:', {
       requestedName: name,
       found: !!component,
       availableComponents: Object.keys(BLOCK_COMPONENTS),
@@ -39,6 +77,16 @@ export function getBlockComponent(name: string): React.ComponentType<any> | unde
 }
 
 /**
+ * Check if an outlet is registered
+ *
+ * @param name - Outlet name to check
+ * @returns true if outlet exists in registry
+ */
+export function hasOutletComponent(name: string): boolean {
+  return name in OUTLET_COMPONENTS;
+}
+
+/**
  * Check if a component is registered
  *
  * @param name - Component name to check
@@ -46,6 +94,15 @@ export function getBlockComponent(name: string): React.ComponentType<any> | unde
  */
 export function hasBlockComponent(name: string): boolean {
   return name in BLOCK_COMPONENTS;
+}
+
+/**
+ * Get list of all registered outlet names
+ *
+ * @returns Array of registered outlet names
+ */
+export function getRegisteredOutlets(): string[] {
+  return Object.keys(OUTLET_COMPONENTS);
 }
 
 /**

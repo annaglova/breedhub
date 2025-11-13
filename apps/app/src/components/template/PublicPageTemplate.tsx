@@ -1,11 +1,9 @@
 import { useCoverDimensions } from "@/hooks/useCoverDimensions";
 import { cn } from "@ui/lib/utils";
-import { Expand } from "lucide-react";
 import { useRef, useState, useEffect } from "react";
 import { BreedName } from "../breed/BreedName";
 import { BreedAchievements } from "../breed/BreedAchievements";
 import { NameContainerOutlet } from "./NameContainerOutlet";
-import { NavigationButtons } from "./cover";
 import { TabsContainer, Tab } from "../tabs/TabsContainer";
 import { BreedAchievementsTab } from "../breed/tabs/BreedAchievementsTab";
 import { PageMenu } from "../tabs/PageMenu";
@@ -482,60 +480,26 @@ export function PublicPageTemplate({
 
             // Render each block with its appropriate container
             return sortedBlocks.map(([blockId, blockConfig]) => {
-              const blockComponent = blockConfig.component;
-
-              // Cover blocks need special container with dimensions
-              if (blockComponent === 'BreedCoverV1' || blockComponent.includes('Cover')) {
+              // CoverOutlet needs dimensions from parent container
+              if (blockConfig.outlet === 'CoverOutlet') {
                 return (
-                  <div
+                  <BlockRenderer
                     key={blockId}
-                    className="relative flex size-full justify-center overflow-hidden rounded-lg border border-gray-200 px-6 pt-4 shadow-sm sm:pb-3 sm:pt-6 mb-6"
-                    style={{
-                      width: `${coverDimensions.width}px`,
-                      maxWidth: `${coverDimensions.width}px`,
-                      height: `${coverDimensions.height}px`,
-                      maxHeight: `${coverDimensions.height}px`,
+                    blockConfig={{
+                      ...blockConfig,
+                      coverWidth: coverDimensions.width,
+                      coverHeight: coverDimensions.height,
+                      isDrawerMode,
                     }}
-                  >
-                    {/* Top gradient overlay */}
-                    <div className="absolute top-0 z-10 h-28 w-full bg-gradient-to-b from-[#200e4c]/40 to-transparent"></div>
-
-                    {/* Cover component wrapper */}
-                    <div className="flex w-full max-w-3xl flex-col lg:max-w-4xl xxl:max-w-5xl">
-                      {/* Navigation buttons */}
-                      <div className="z-40 flex w-full pb-2">
-                        {isDrawerMode && (
-                          <button
-                            onClick={() => console.log("[TODO] Expand to fullscreen")}
-                            title="Expand"
-                            className="mr-auto hidden md:block"
-                          >
-                            <Expand size={22} className="text-white" />
-                          </button>
-                        )}
-                        <NavigationButtons
-                          mode="white"
-                          className="sticky top-0 ml-auto"
-                        />
-                      </div>
-
-                      {/* Gradient overlay */}
-                      <div className="absolute inset-0 size-full bg-gradient-to-r from-primary-50/10 to-primary-400/85 z-10" />
-
-                      {/* Cover content */}
-                      <BlockRenderer
-                        blockConfig={blockConfig}
-                        entity={selectedEntity}
-                        pageConfig={pageConfig}
-                        spacePermissions={spacePermissions}
-                      />
-                    </div>
-                  </div>
+                    entity={selectedEntity}
+                    pageConfig={pageConfig}
+                    spacePermissions={spacePermissions}
+                  />
                 );
               }
 
-              // Avatar blocks render without wrapper (has -mt-32 inside)
-              if (blockComponent === 'AvatarOutlet') {
+              // AvatarOutlet renders without wrapper (has -mt-32 inside)
+              if (blockConfig.outlet === 'AvatarOutlet') {
                 return (
                   <BlockRenderer
                     key={blockId}
