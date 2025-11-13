@@ -7,16 +7,6 @@ export function RegenerateButton() {
   const [showInstructions, setShowInstructions] = useState(false);
 
   const handleRegenerate = async () => {
-    const confirmMessage = `This will regenerate all configurations from entity schemas.
-    
-Your override_data will be preserved!
-
-Do you want to continue?`;
-
-    if (!confirm(confirmMessage)) {
-      return;
-    }
-
     setIsLoading(true);
     setShowInstructions(true);
 
@@ -60,6 +50,9 @@ Do you want to continue?`;
               <code className="block bg-gray-900 text-green-400 p-3 rounded text-sm overflow-x-auto">
                 <span className="text-gray-400"># Navigate to config-admin directory:</span><br/>
                 cd apps/config-admin<br/><br/>
+                <span className="text-gray-400"># 0. Generate entity JSON structures from database (if DB schema changed):</span><br/>
+                node scripts/generate-entity-configs.cjs<br/>
+                <span className="text-gray-400"># This takes a while - reads all tables and generates JSON files</span><br/><br/>
                 <span className="text-gray-400"># 1. Generate semantic tree:</span><br/>
                 node scripts/analyze-fields.cjs<br/><br/>
                 <span className="text-gray-400"># 2. Generate SQL and run cascade:</span><br/>

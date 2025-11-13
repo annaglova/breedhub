@@ -1,7 +1,6 @@
 import { useCoverDimensions } from "@/hooks/useCoverDimensions";
 import { cn } from "@ui/lib/utils";
 import { useRef, useState, useEffect } from "react";
-import { BreedAchievements } from "../breed/BreedAchievements";
 import { TabsContainer, Tab } from "../tabs/TabsContainer";
 import { BreedAchievementsTab } from "../breed/tabs/BreedAchievementsTab";
 import { PageMenu } from "../tabs/PageMenu";
@@ -154,21 +153,6 @@ export function PublicPageTemplate({
     return () => resizeObserver.disconnect();
   }, []);
 
-  // MOCK DATA for achievements
-  const mockAchievements = {
-    topKennel: {
-      name: "Golden Paws Kennel",
-      url: "golden-paws-kennel",
-    },
-    majorPatron: {
-      name: "Anna Maliyenko",
-      url: "anna-maliyenko",
-    },
-    topPet: {
-      name: "Max von der Stadtrand",
-      url: "max-von-der-stadtrand",
-    },
-  };
 
   const mockBreed = {
     Id: "mock-breed-1",
@@ -542,13 +526,6 @@ export function PublicPageTemplate({
               );
             });
           })()}
-
-          {/* Achievements Section */}
-          <BreedAchievements
-            topKennel={mockAchievements.topKennel}
-            majorPatron={mockAchievements.majorPatron}
-            topPet={mockAchievements.topPet}
-          />
 
           {/* PageMenu - Sticky horizontal tab bar */}
           <div

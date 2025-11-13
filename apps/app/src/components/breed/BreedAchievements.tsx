@@ -6,6 +6,7 @@ interface Achievement {
 }
 
 interface BreedAchievementsProps {
+  entity?: any;
   topKennel?: Achievement;
   majorPatron?: Achievement;
   topPet?: Achievement;
@@ -18,36 +19,41 @@ interface BreedAchievementsProps {
  * Shows top kennel, major patron, and top pet as clickable chips
  */
 export function BreedAchievements({
+  entity,
   topKennel,
   majorPatron,
   topPet,
 }: BreedAchievementsProps) {
+  // Extract achievements from entity.achievements JSONB field
+  const displayTopKennel = entity?.achievements?.top_kennel || topKennel;
+  const displayMajorPatron = entity?.achievements?.major_patron || majorPatron;
+  const displayTopPet = entity?.achievements?.top_pet || topPet;
   return (
-    <div className="flex flex-wrap gap-2 font-medium mb-6 mt-3">
-      {topKennel && (
-        <a href={`/${topKennel.url}`} className="no-underline">
+    <div className="flex flex-wrap gap-2 font-medium mt-3">
+      {displayTopKennel && (
+        <a href={`/${displayTopKennel.url}`} className="no-underline">
           <Chip
-            label={`Top kennel - ${topKennel.name}`}
+            label={`Top kennel - ${displayTopKennel.name}`}
             variant="primary"
             className="cursor-pointer hover:opacity-90 transition-opacity"
           />
         </a>
       )}
 
-      {majorPatron && (
-        <a href={`/${majorPatron.url}`} className="no-underline">
+      {displayMajorPatron && (
+        <a href={`/${displayMajorPatron.url}`} className="no-underline">
           <Chip
-            label={`Major patron - ${majorPatron.name}`}
+            label={`Major patron - ${displayMajorPatron.name}`}
             variant="primary"
             className="cursor-pointer hover:opacity-90 transition-opacity max-w-80 sm:max-w-120"
           />
         </a>
       )}
 
-      {topPet && (
-        <a href={`/${topPet.url}`} className="no-underline">
+      {displayTopPet && (
+        <a href={`/${displayTopPet.url}`} className="no-underline">
           <Chip
-            label={`Top pet - ${topPet.name}`}
+            label={`Top pet - ${displayTopPet.name}`}
             variant="primary"
             className="cursor-pointer hover:opacity-90 transition-opacity max-w-80 sm:max-w-120"
           />

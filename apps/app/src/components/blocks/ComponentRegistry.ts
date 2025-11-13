@@ -2,8 +2,10 @@ import { BreedCoverV1 } from '../template/cover/BreedCoverV1';
 import { AvatarOutlet } from '../template/AvatarOutlet';
 import { CoverOutlet } from '../template/CoverOutlet';
 import { NameOutlet } from '../template/NameOutlet';
+import { AchievementOutlet } from '../template/AchievementOutlet';
 import { BreedAvatar } from '../breed/BreedAvatar';
 import { BreedName } from '../breed/BreedName';
+import { BreedAchievements } from '../breed/BreedAchievements';
 import type React from 'react';
 
 /**
@@ -14,6 +16,7 @@ const OUTLET_COMPONENTS: Record<string, React.ComponentType<any>> = {
   'CoverOutlet': CoverOutlet,
   'AvatarOutlet': AvatarOutlet,
   'NameOutlet': NameOutlet,
+  'AchievementOutlet': AchievementOutlet,
   // Add more outlets here: TabsOutlet, etc.
 };
 
@@ -25,6 +28,7 @@ const BLOCK_COMPONENTS: Record<string, React.ComponentType<any>> = {
   'BreedCoverV1': BreedCoverV1,
   'BreedAvatar': BreedAvatar,
   'BreedName': BreedName,
+  'BreedAchievements': BreedAchievements,
   // Add more block components here as needed
 };
 

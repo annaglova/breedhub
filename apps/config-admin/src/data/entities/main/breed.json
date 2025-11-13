@@ -463,6 +463,78 @@
       "defaultValue": ""
     },
     {
+      "id": "field_rating",
+      "name": "rating",
+      "fieldType": "number",
+      "component": "NumberInput",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 190,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "displayName": "Rating",
+      "placeholder": "Enter rating",
+      "validation": {
+        "precision": 24
+      }
+    },
+    {
+      "id": "field_support_level",
+      "name": "support_level",
+      "fieldType": "number",
+      "component": "NumberInput",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 200,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "displayName": "Support Level",
+      "placeholder": "Enter support level",
+      "validation": {
+        "precision": 24
+      }
+    },
+    {
+      "id": "field_achievements",
+      "name": "achievements",
+      "fieldType": "json",
+      "component": "TextareaInput",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 210,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "displayName": "Achievements",
+      "placeholder": "Enter achievements"
+    },
+    {
       "id": "field_id",
       "name": "id",
       "fieldType": "uuid",
@@ -471,7 +543,7 @@
       "isSystem": true,
       "isPrimaryKey": true,
       "isUnique": true,
-      "sortOrder": 190,
+      "sortOrder": 220,
       "permissions": {
         "read": [
           "*"
@@ -491,7 +563,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 200,
+      "sortOrder": 230,
       "permissions": {
         "read": [
           "*"
@@ -511,7 +583,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 210,
+      "sortOrder": 240,
       "permissions": {
         "read": [
           "*"
@@ -531,7 +603,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 220,
+      "sortOrder": 250,
       "permissions": {
         "read": [
           "*"
@@ -551,7 +623,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 230,
+      "sortOrder": 260,
       "permissions": {
         "read": [
           "*"
@@ -571,7 +643,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 240,
+      "sortOrder": 270,
       "permissions": {
         "read": [
           "*"
@@ -585,9 +657,9 @@
   ],
   "metadata": {
     "tableName": "breed",
-    "totalFields": 24,
+    "totalFields": 27,
     "systemFields": 6,
-    "customFields": 18,
-    "generatedAt": "2025-10-06T11:25:13.265Z"
+    "customFields": 21,
+    "generatedAt": "2025-11-13T15:28:10.114Z"
   }
 }

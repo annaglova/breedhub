@@ -30,8 +30,8 @@ export function BreedName({
   // Extract data from entity if provided
   const displayName = entity?.name || breedName;
 
-  // Achievement from measurements (support level: "Zero support level", "Bronze Supporter", etc.)
-  const displayAchievement = entity?.measurements?.achievement || achievement;
+  // Support level from achievements (e.g., "Zero support level", "Bronze Supporter", etc.)
+  const displayAchievement = entity?.achievements?.support_level || achievement;
 
   // Measurements from entity.measurements (same as BreedListCard)
   const displayPetCount = entity?.measurements?.pet_profile_count ?? petProfileCount;
