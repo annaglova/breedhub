@@ -1,7 +1,9 @@
 import { BreedCoverV1 } from '../template/cover/BreedCoverV1';
 import { AvatarOutlet } from '../template/AvatarOutlet';
 import { CoverOutlet } from '../template/CoverOutlet';
+import { NameOutlet } from '../template/NameOutlet';
 import { BreedAvatar } from '../breed/BreedAvatar';
+import { BreedName } from '../breed/BreedName';
 import type React from 'react';
 
 /**
@@ -11,7 +13,8 @@ import type React from 'react';
 const OUTLET_COMPONENTS: Record<string, React.ComponentType<any>> = {
   'CoverOutlet': CoverOutlet,
   'AvatarOutlet': AvatarOutlet,
-  // Add more outlets here: NameOutlet, TabsOutlet, etc.
+  'NameOutlet': NameOutlet,
+  // Add more outlets here: TabsOutlet, etc.
 };
 
 /**
@@ -21,6 +24,7 @@ const OUTLET_COMPONENTS: Record<string, React.ComponentType<any>> = {
 const BLOCK_COMPONENTS: Record<string, React.ComponentType<any>> = {
   'BreedCoverV1': BreedCoverV1,
   'BreedAvatar': BreedAvatar,
+  'BreedName': BreedName,
   // Add more block components here as needed
 };
 

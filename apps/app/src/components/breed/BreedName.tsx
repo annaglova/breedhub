@@ -1,6 +1,7 @@
 import { NoteFlagButton } from "@ui/components/note-flag-button";
 
 interface BreedNameProps {
+  entity?: any;
   breedName?: string;
   achievement?: string;
   petProfileCount?: number;
@@ -17,6 +18,7 @@ interface BreedNameProps {
  * Shows achievement, breed name, and count statistics
  */
 export function BreedName({
+  entity,
   breedName = "German Shepherd",
   achievement = "Best in Show",
   petProfileCount = 1234,
@@ -25,17 +27,23 @@ export function BreedName({
   hasNotes = false,
   onNotesClick,
 }: BreedNameProps) {
+  // Extract data from entity if provided
+  const displayName = entity?.name || breedName;
+  const displayAchievement = entity?.achievement || achievement;
+  const displayPetCount = entity?.pet_profile_count ?? petProfileCount;
+  const displayKennelCount = entity?.kennel_count ?? kennelCount;
+  const displayPatronCount = entity?.patron_count ?? patronCount;
   return (
     <div className="pb-3 cursor-default">
       {/* Achievement */}
       <div className="text-md mb-3">
-        <span className="uppercase">{achievement}</span>
+        <span className="uppercase">{displayAchievement}</span>
       </div>
 
       {/* Breed name with note flag */}
       <div className="flex space-x-1.5">
         <div className="truncate py-0.5 text-3xl font-bold">
-          <a href="#">{breedName}</a>
+          <a href="#">{displayName}</a>
         </div>
         <NoteFlagButton
           hasNotes={hasNotes}
@@ -53,19 +61,19 @@ export function BreedName({
 
           {/* Pet profiles - no bullet before */}
           <div className="flex items-center">
-            <span>Pet profiles - {petProfileCount}</span>
+            <span>Pet profiles - {displayPetCount}</span>
           </div>
 
           {/* Kennels - with bullet before */}
           <div className="hidden sm:flex items-center">
             <span className="mr-2">&bull;</span>
-            <span>Kennels - {kennelCount}</span>
+            <span>Kennels - {displayKennelCount}</span>
           </div>
 
           {/* Patrons - with bullet before */}
           <div className="flex items-center">
             <span className="mr-2">&bull;</span>
-            <span>Patrons - {patronCount}</span>
+            <span>Patrons - {displayPatronCount}</span>
           </div>
         </div>
       </div>

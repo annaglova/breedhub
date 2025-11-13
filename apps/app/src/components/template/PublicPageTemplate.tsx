@@ -1,9 +1,7 @@
 import { useCoverDimensions } from "@/hooks/useCoverDimensions";
 import { cn } from "@ui/lib/utils";
 import { useRef, useState, useEffect } from "react";
-import { BreedName } from "../breed/BreedName";
 import { BreedAchievements } from "../breed/BreedAchievements";
-import { NameContainerOutlet } from "./NameContainerOutlet";
 import { TabsContainer, Tab } from "../tabs/TabsContainer";
 import { BreedAchievementsTab } from "../breed/tabs/BreedAchievementsTab";
 import { PageMenu } from "../tabs/PageMenu";
@@ -124,7 +122,7 @@ export function PublicPageTemplate({
     return () => {
       scrollContainer?.removeEventListener('scroll', checkSticky);
     };
-  }, []);
+  }, [pageConfig, selectedEntity]); // Re-run when config or entity changes
 
   // Track name container height
   useEffect(() => {
@@ -514,6 +512,23 @@ export function PublicPageTemplate({
                 );
               }
 
+              // NameOutlet needs sticky wrapper and onTop state
+              if (blockConfig.outlet === 'NameOutlet') {
+                return (
+                  <div key={blockId} ref={nameContainerRef} className="sticky top-0 z-30">
+                    <BlockRenderer
+                      blockConfig={{
+                        ...blockConfig,
+                        onTop: nameOnTop,
+                      }}
+                      entity={selectedEntity}
+                      pageConfig={pageConfig}
+                      spacePermissions={spacePermissions}
+                    />
+                  </div>
+                );
+              }
+
               // Default: simple wrapper with margin
               return (
                 <BlockRenderer
@@ -527,22 +542,6 @@ export function PublicPageTemplate({
               );
             });
           })()}
-
-          {/* Avatar Section - Now rendered from blocks config */}
-
-          {/* Name Container - Sticky */}
-          <div ref={nameContainerRef} className="sticky top-0 z-30">
-            <NameContainerOutlet
-              onTop={nameOnTop}
-              onSupport={() => console.log("[TODO] Support")}
-              onMoreOptions={() => console.log("[TODO] More options")}
-            >
-              <BreedName
-                hasNotes={true}
-                onNotesClick={() => console.log("[TODO] Show notes")}
-              />
-            </NameContainerOutlet>
-          </div>
 
           {/* Achievements Section */}
           <BreedAchievements
