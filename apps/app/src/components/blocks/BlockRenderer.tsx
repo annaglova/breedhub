@@ -1,11 +1,14 @@
 import React from 'react';
 import { getBlockComponent } from './ComponentRegistry';
-import type { BlockConfig } from '../../types/page-config.types';
+import type { BlockConfig, PageConfig } from '../../types/page-config.types';
+import type { SpacePermissions } from '../../types/page-menu.types';
 
 interface BlockRendererProps {
   blockConfig: BlockConfig;
   entity: any;
   className?: string;
+  pageConfig?: PageConfig | null;
+  spacePermissions?: SpacePermissions;
 }
 
 /**
@@ -18,6 +21,8 @@ export const BlockRenderer: React.FC<BlockRendererProps> = ({
   blockConfig,
   entity,
   className,
+  pageConfig,
+  spacePermissions,
 }) => {
   // Debug logging
   if (process.env.NODE_ENV === 'development') {
@@ -67,5 +72,13 @@ export const BlockRenderer: React.FC<BlockRendererProps> = ({
 
   // Render the component with entity and all block config props
   // Note: No wrapper div - parent is responsible for layout/spacing
-  return <BlockComponent entity={entity} {...blockConfig} className={className} />;
+  return (
+    <BlockComponent
+      entity={entity}
+      {...blockConfig}
+      className={className}
+      pageConfig={pageConfig}
+      spacePermissions={spacePermissions}
+    />
+  );
 };

@@ -2,7 +2,6 @@ import { useCoverDimensions } from "@/hooks/useCoverDimensions";
 import { cn } from "@ui/lib/utils";
 import { Expand } from "lucide-react";
 import { useRef, useState, useEffect } from "react";
-import { AvatarOutlet } from "./AvatarOutlet";
 import { BreedName } from "../breed/BreedName";
 import { BreedAchievements } from "../breed/BreedAchievements";
 import { NameContainerOutlet } from "./NameContainerOutlet";
@@ -49,6 +48,14 @@ export function PublicPageTemplate({
   // Use spaceConfig from signal
   const spaceConfig = spaceConfigSignal?.value;
   const pageConfig = getPageConfig(spaceConfig, { pageType });
+
+  // Get space permissions from config
+  // TODO: Get real permissions from space config after it's implemented
+  const spacePermissions = {
+    canEdit: true,
+    canDelete: false,
+    canAdd: false,
+  };
 
   // Get selectedEntity signal from store using entityType
   // This is called INSIDE the component, after entity store is created
@@ -519,30 +526,42 @@ export function PublicPageTemplate({
                       <BlockRenderer
                         blockConfig={blockConfig}
                         entity={selectedEntity}
+                        pageConfig={pageConfig}
+                        spacePermissions={spacePermissions}
                       />
                     </div>
                   </div>
                 );
               }
 
-              // Default: simple wrapper
+              // Avatar blocks render without wrapper (has -mt-32 inside)
+              if (blockComponent === 'AvatarOutlet') {
+                return (
+                  <BlockRenderer
+                    key={blockId}
+                    blockConfig={blockConfig}
+                    entity={selectedEntity}
+                    pageConfig={pageConfig}
+                    spacePermissions={spacePermissions}
+                  />
+                );
+              }
+
+              // Default: simple wrapper with margin
               return (
                 <BlockRenderer
                   key={blockId}
                   blockConfig={blockConfig}
                   entity={selectedEntity}
                   className="mb-6"
+                  pageConfig={pageConfig}
+                  spacePermissions={spacePermissions}
                 />
               );
             });
           })()}
 
-          {/* Avatar Section */}
-          <AvatarOutlet
-            avatarSize={176}
-            onEdit={() => console.log("[TODO] Edit avatar")}
-            onMoreOptions={() => console.log("[TODO] More options")}
-          />
+          {/* Avatar Section - Now rendered from blocks config */}
 
           {/* Name Container - Sticky */}
           <div ref={nameContainerRef} className="sticky top-0 z-30">

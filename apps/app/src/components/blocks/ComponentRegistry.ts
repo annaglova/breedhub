@@ -1,4 +1,5 @@
 import { BreedCoverV1 } from '../template/cover/BreedCoverV1';
+import { AvatarOutlet } from '../template/AvatarOutlet';
 import type React from 'react';
 
 /**
@@ -7,6 +8,7 @@ import type React from 'react';
  */
 const BLOCK_COMPONENTS: Record<string, React.ComponentType<any>> = {
   'BreedCoverV1': BreedCoverV1,
+  'AvatarOutlet': AvatarOutlet,
   // Add more block components here as needed
 };
 
