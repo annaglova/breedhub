@@ -1,6 +1,34 @@
 const fs = require("fs");
 const path = require("path");
-const entityCategories = require('./entity-categories.json');
+const resources = require('../src/data/resourcesList.json');
+
+// Build child hierarchy from flat CHILD_RESOURCES array
+function buildChildHierarchy(childResources, mainResources) {
+  const hierarchy = {};
+
+  for (const resource of childResources) {
+    // Find parent by prefix (e.g., breed_division → breed)
+    for (const mainEntity of mainResources) {
+      if (resource.startsWith(mainEntity + '_')) {
+        if (!hierarchy[mainEntity]) hierarchy[mainEntity] = [];
+        hierarchy[mainEntity].push(resource);
+        break;
+      }
+    }
+
+    // Some child resources don't follow naming convention (e.g., litter, relationship)
+    // These are handled by entity-specific logic elsewhere
+  }
+
+  return hierarchy;
+}
+
+// Convert resourcesList.json structure to entityCategories format
+const entityCategories = {
+  main: resources.MAIN_RESOURCES || [],
+  child: buildChildHierarchy(resources.CHILD_RESOURCES || [], resources.MAIN_RESOURCES || []),
+  dictionaries: resources.LOOKUP_RESOURCES || []
+};
 
 // Directories to scan
 const ENTITY_DIR = path.join(__dirname, '../src/data/entities');

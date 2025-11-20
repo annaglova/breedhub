@@ -104,24 +104,19 @@ function getUIComponent(fieldType, fieldName, isForeignKey = false, referencedTa
   // Foreign keys - визначаємо компонент на основі категорії таблиці
   if (isForeignKey || fieldName.endsWith('_id')) {
     if (referencedTable) {
-      // Завантажуємо категорії
-      const entityCategories = require('./entity-categories.json');
-
       // Main entities → LookupInput (складний пошук з autocomplete)
-      if (entityCategories.main.includes(referencedTable)) {
+      if (MAIN_RESOURCES.includes(referencedTable)) {
         return 'LookupInput';
       }
 
-      // Dictionaries → DropdownInput (простий select)
-      if (entityCategories.dictionaries.includes(referencedTable)) {
+      // Dictionaries (Lookup resources) → DropdownInput (простий select)
+      if (LOOKUP_RESOURCES.includes(referencedTable)) {
         return 'DropdownInput';
       }
 
       // Child entities → DropdownInput
-      for (const children of Object.values(entityCategories.child)) {
-        if (children.includes(referencedTable)) {
-          return 'DropdownInput';
-        }
+      if (CHILD_RESOURCES.includes(referencedTable)) {
+        return 'DropdownInput';
       }
     }
 
@@ -265,11 +260,10 @@ function generateFieldConfig(col, constraints, foreignKeys) {
     config.referencedFieldID = foreignKey?.ref_column || 'id';
 
     // Add dataSource for main entities
-    const entityCategories = require('./entity-categories.json');
-    if (referencedTable && entityCategories.main.includes(referencedTable)) {
+    if (referencedTable && MAIN_RESOURCES.includes(referencedTable)) {
       config.dataSource = 'collection';
     }
-    // For dictionaries - don't add dataSource (default behavior)
+    // For dictionaries (LOOKUP_RESOURCES) - don't add dataSource (default behavior)
 
     // We'll detect the display column later when we have all table schemas
     // For now, mark it for post-processing
