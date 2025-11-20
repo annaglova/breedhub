@@ -63,7 +63,7 @@
       "id": "field_conf_item_minus_id",
       "name": "conf_item_minus_id",
       "fieldType": "uuid",
-      "component": "DropdownInput",
+      "component": "LookupInput",
       "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -81,6 +81,7 @@
       "isForeignKey": true,
       "referencedTable": "conf_item",
       "referencedFieldID": "id",
+      "dataSource": "collection",
       "displayName": "Conf Item Minus",
       "placeholder": "Enter conf item minus",
       "referencedFieldName": "name"
@@ -89,7 +90,7 @@
       "id": "field_conf_item_plus_id",
       "name": "conf_item_plus_id",
       "fieldType": "uuid",
-      "component": "DropdownInput",
+      "component": "LookupInput",
       "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -107,6 +108,7 @@
       "isForeignKey": true,
       "referencedTable": "conf_item",
       "referencedFieldID": "id",
+      "dataSource": "collection",
       "displayName": "Conf Item Plus",
       "placeholder": "Enter conf item plus",
       "referencedFieldName": "name"
@@ -217,6 +219,6 @@
     "totalFields": 9,
     "systemFields": 5,
     "customFields": 4,
-    "generatedAt": "2025-11-13T15:29:33.477Z"
+    "generatedAt": "2025-11-20T10:52:15.194Z"
   }
 }

@@ -327,7 +327,7 @@
       "id": "field_redirect_id",
       "name": "redirect_id",
       "fieldType": "uuid",
-      "component": "DropdownInput",
+      "component": "LookupInput",
       "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -345,6 +345,7 @@
       "isForeignKey": true,
       "referencedTable": "public_data",
       "referencedFieldID": "id",
+      "dataSource": "collection",
       "displayName": "Redirect",
       "placeholder": "Enter redirect",
       "referencedFieldName": "name"
@@ -582,6 +583,6 @@
     "totalFields": 23,
     "systemFields": 5,
     "customFields": 18,
-    "generatedAt": "2025-11-13T15:28:33.318Z"
+    "generatedAt": "2025-11-20T10:51:33.212Z"
   }
 }

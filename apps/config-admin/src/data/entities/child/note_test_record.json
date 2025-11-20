@@ -35,7 +35,7 @@
       "id": "field_note_id",
       "name": "note_id",
       "fieldType": "uuid",
-      "component": "DropdownInput",
+      "component": "LookupInput",
       "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -53,6 +53,7 @@
       "isForeignKey": true,
       "referencedTable": "note",
       "referencedFieldID": "id",
+      "dataSource": "collection",
       "displayName": "Note",
       "placeholder": "Enter note",
       "referencedFieldName": "name"
@@ -189,6 +190,6 @@
     "totalFields": 8,
     "systemFields": 5,
     "customFields": 3,
-    "generatedAt": "2025-11-13T15:29:44.521Z"
+    "generatedAt": "2025-11-20T10:52:23.086Z"
   }
 }

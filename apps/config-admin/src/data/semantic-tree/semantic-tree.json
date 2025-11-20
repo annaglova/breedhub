@@ -859,7 +859,7 @@
       "occurrences": 12,
       "commonProps": {
         "fieldType": "uuid",
-        "component": "DropdownInput",
+        "component": "LookupInput",
         "required": false,
         "isSystem": false,
         "isPrimaryKey": false,
@@ -877,7 +877,8 @@
         "isForeignKey": true,
         "referencedTable": "conf_item",
         "referencedFieldID": "id",
-        "referencedFieldName": "name"
+        "referencedFieldName": "name",
+        "dataSource": "collection"
       },
       "isSystem": false,
       "category": "frequent"
@@ -5021,7 +5022,7 @@
       "caption": "activity conf_item_id field",
       "self_data": {
         "fieldType": "uuid",
-        "component": "DropdownInput",
+        "component": "LookupInput",
         "required": false,
         "isSystem": false,
         "isPrimaryKey": false,
@@ -5039,6 +5040,7 @@
         "isForeignKey": true,
         "referencedTable": "conf_item",
         "referencedFieldID": "id",
+        "dataSource": "collection",
         "displayName": "Conf Item",
         "placeholder": "Enter conf item",
         "referencedFieldName": "name"
@@ -5611,7 +5613,7 @@
       "caption": "activity user_quest_id field",
       "self_data": {
         "fieldType": "uuid",
-        "component": "DropdownInput",
+        "component": "LookupInput",
         "required": false,
         "isSystem": false,
         "isPrimaryKey": false,
@@ -5629,6 +5631,7 @@
         "isForeignKey": true,
         "referencedTable": "user_quest",
         "referencedFieldID": "id",
+        "dataSource": "collection",
         "displayName": "User Quest",
         "placeholder": "Enter user quest",
         "referencedFieldName": "name"
@@ -6423,7 +6426,7 @@
       "caption": "breed public_data_id field",
       "self_data": {
         "fieldType": "uuid",
-        "component": "DropdownInput",
+        "component": "LookupInput",
         "required": false,
         "isSystem": false,
         "isPrimaryKey": false,
@@ -6441,6 +6444,7 @@
         "isForeignKey": true,
         "referencedTable": "public_data",
         "referencedFieldID": "id",
+        "dataSource": "collection",
         "displayName": "Public Data",
         "placeholder": "Enter public data",
         "referencedFieldName": "name"
@@ -6552,7 +6556,8 @@
         "placeholder": "Enter rating",
         "validation": {
           "precision": 24
-        }
+        },
+        "defaultValue": "0"
       },
       "tags": [
         "main",
@@ -6591,7 +6596,8 @@
         "placeholder": "Enter support level",
         "validation": {
           "precision": 24
-        }
+        },
+        "defaultValue": "0"
       },
       "tags": [
         "main",
@@ -7320,7 +7326,7 @@
       "caption": "cashflow conf_item_id field",
       "self_data": {
         "fieldType": "uuid",
-        "component": "DropdownInput",
+        "component": "LookupInput",
         "required": false,
         "isSystem": false,
         "isPrimaryKey": false,
@@ -7338,6 +7344,7 @@
         "isForeignKey": true,
         "referencedTable": "conf_item",
         "referencedFieldID": "id",
+        "dataSource": "collection",
         "displayName": "Conf Item",
         "placeholder": "Enter conf item",
         "referencedFieldName": "name"
@@ -8835,7 +8842,10 @@
         },
         "defaultValue": ""
       },
-      "tags": []
+      "tags": [
+        "main",
+        "conf_item"
+      ]
     },
     {
       "id": "conf_item_field_type_id",
@@ -8869,7 +8879,10 @@
         "placeholder": "Enter type",
         "referencedFieldName": "name"
       },
-      "tags": []
+      "tags": [
+        "main",
+        "conf_item"
+      ]
     },
     {
       "id": "conf_item_field_serial_number",
@@ -8908,7 +8921,10 @@
         },
         "defaultValue": ""
       },
-      "tags": []
+      "tags": [
+        "main",
+        "conf_item"
+      ]
     },
     {
       "id": "conf_item_field_icon",
@@ -8947,7 +8963,10 @@
         },
         "defaultValue": ""
       },
-      "tags": []
+      "tags": [
+        "main",
+        "conf_item"
+      ]
     },
     {
       "id": "conf_item_field_status_id",
@@ -8981,7 +9000,10 @@
         "placeholder": "Enter status",
         "referencedFieldName": "name"
       },
-      "tags": []
+      "tags": [
+        "main",
+        "conf_item"
+      ]
     },
     {
       "id": "conf_item_field_purchase_date",
@@ -9014,7 +9036,10 @@
         "displayName": "Purchase Date",
         "placeholder": "Enter purchase date"
       },
-      "tags": []
+      "tags": [
+        "main",
+        "conf_item"
+      ]
     },
     {
       "id": "conf_item_field_cancel_date",
@@ -9047,7 +9072,10 @@
         "displayName": "Cancel Date",
         "placeholder": "Enter cancel date"
       },
-      "tags": []
+      "tags": [
+        "main",
+        "conf_item"
+      ]
     },
     {
       "id": "conf_item_field_warranty_until",
@@ -9080,7 +9108,10 @@
         "displayName": "Warranty Until",
         "placeholder": "Enter warranty until"
       },
-      "tags": []
+      "tags": [
+        "main",
+        "conf_item"
+      ]
     },
     {
       "id": "conf_item_field_owner_id",
@@ -9115,7 +9146,10 @@
         "placeholder": "Enter owner",
         "referencedFieldName": "name"
       },
-      "tags": []
+      "tags": [
+        "main",
+        "conf_item"
+      ]
     },
     {
       "id": "conf_item_field_parent_conf_item_id",
@@ -9130,7 +9164,7 @@
       "caption": "conf_item parent_conf_item_id field",
       "self_data": {
         "fieldType": "uuid",
-        "component": "DropdownInput",
+        "component": "LookupInput",
         "required": false,
         "isSystem": false,
         "isPrimaryKey": false,
@@ -9148,11 +9182,15 @@
         "isForeignKey": true,
         "referencedTable": "conf_item",
         "referencedFieldID": "id",
+        "dataSource": "collection",
         "displayName": "Parent Conf Item",
         "placeholder": "Enter parent conf item",
         "referencedFieldName": "name"
       },
-      "tags": []
+      "tags": [
+        "main",
+        "conf_item"
+      ]
     },
     {
       "id": "conf_item_field_category_id",
@@ -9186,7 +9224,10 @@
         "placeholder": "Enter category",
         "referencedFieldName": "name"
       },
-      "tags": []
+      "tags": [
+        "main",
+        "conf_item"
+      ]
     },
     {
       "id": "conf_item_field_notes",
@@ -9217,7 +9258,10 @@
         "placeholder": "Enter notes",
         "defaultValue": ""
       },
-      "tags": []
+      "tags": [
+        "main",
+        "conf_item"
+      ]
     },
     {
       "id": "conf_item_field_country_id",
@@ -9251,7 +9295,10 @@
         "placeholder": "Enter country",
         "referencedFieldName": "name"
       },
-      "tags": []
+      "tags": [
+        "main",
+        "conf_item"
+      ]
     },
     {
       "id": "conf_item_field_provider_id",
@@ -9286,7 +9333,10 @@
         "placeholder": "Enter provider",
         "referencedFieldName": "name"
       },
-      "tags": []
+      "tags": [
+        "main",
+        "conf_item"
+      ]
     },
     {
       "id": "conf_item_field_business_process_id",
@@ -9323,7 +9373,10 @@
         "placeholder": "Enter business process",
         "referencedFieldName": "id"
       },
-      "tags": []
+      "tags": [
+        "main",
+        "conf_item"
+      ]
     },
     {
       "id": "conf_item_field_priority",
@@ -9361,7 +9414,10 @@
         },
         "defaultValue": "0"
       },
-      "tags": []
+      "tags": [
+        "main",
+        "conf_item"
+      ]
     },
     {
       "id": "conf_item_field_conf_item_image",
@@ -9394,7 +9450,10 @@
         "displayName": "Conf Item Image",
         "placeholder": "Enter conf item image"
       },
-      "tags": []
+      "tags": [
+        "main",
+        "conf_item"
+      ]
     },
     {
       "id": "conf_item_field_description",
@@ -9429,7 +9488,10 @@
         },
         "defaultValue": ""
       },
-      "tags": []
+      "tags": [
+        "main",
+        "conf_item"
+      ]
     },
     {
       "id": "conf_item_field_parsing_status_id",
@@ -9466,7 +9528,10 @@
         "placeholder": "Enter parsing status",
         "referencedFieldName": "name"
       },
-      "tags": []
+      "tags": [
+        "main",
+        "conf_item"
+      ]
     },
     {
       "id": "conf_item_field_need_parse",
@@ -9500,7 +9565,10 @@
         "placeholder": "Enter need parse",
         "defaultValue": "false"
       },
-      "tags": []
+      "tags": [
+        "main",
+        "conf_item"
+      ]
     },
     {
       "id": "conf_item_field_confidence_level_id",
@@ -9537,7 +9605,10 @@
         "placeholder": "Enter confidence level",
         "referencedFieldName": "name"
       },
-      "tags": []
+      "tags": [
+        "main",
+        "conf_item"
+      ]
     },
     {
       "id": "conf_item_field_data_quality_level_id",
@@ -9574,7 +9645,10 @@
         "placeholder": "Enter data quality level",
         "referencedFieldName": "name"
       },
-      "tags": []
+      "tags": [
+        "main",
+        "conf_item"
+      ]
     },
     {
       "id": "conf_item_field_prime_entity_name",
@@ -9613,7 +9687,10 @@
         },
         "defaultValue": ""
       },
-      "tags": []
+      "tags": [
+        "main",
+        "conf_item"
+      ]
     },
     {
       "id": "conf_item_field_quest_reward",
@@ -9651,7 +9728,10 @@
         },
         "defaultValue": "0"
       },
-      "tags": []
+      "tags": [
+        "main",
+        "conf_item"
+      ]
     },
     {
       "id": "conf_item_field_url",
@@ -9688,7 +9768,10 @@
         },
         "defaultValue": ""
       },
-      "tags": []
+      "tags": [
+        "main",
+        "conf_item"
+      ]
     },
     {
       "id": "conf_item_field_page_model",
@@ -9727,7 +9810,10 @@
         },
         "defaultValue": ""
       },
-      "tags": []
+      "tags": [
+        "main",
+        "conf_item"
+      ]
     },
     {
       "id": "conf_item_field_quest_cycle_interval",
@@ -9765,7 +9851,10 @@
         },
         "defaultValue": "0"
       },
-      "tags": []
+      "tags": [
+        "main",
+        "conf_item"
+      ]
     },
     {
       "id": "conf_item_field_quest_type_id",
@@ -9802,7 +9891,10 @@
         "placeholder": "Enter quest type",
         "referencedFieldName": "name"
       },
-      "tags": []
+      "tags": [
+        "main",
+        "conf_item"
+      ]
     },
     {
       "id": "conf_item_field_id",
@@ -9830,7 +9922,10 @@
         },
         "displayName": "Id"
       },
-      "tags": []
+      "tags": [
+        "main",
+        "conf_item"
+      ]
     },
     {
       "id": "conf_item_field_created_at",
@@ -9858,7 +9953,10 @@
         },
         "displayName": "Created At"
       },
-      "tags": []
+      "tags": [
+        "main",
+        "conf_item"
+      ]
     },
     {
       "id": "conf_item_field_created_by",
@@ -9886,7 +9984,10 @@
         },
         "displayName": "Created By"
       },
-      "tags": []
+      "tags": [
+        "main",
+        "conf_item"
+      ]
     },
     {
       "id": "conf_item_field_updated_at",
@@ -9914,7 +10015,10 @@
         },
         "displayName": "Updated At"
       },
-      "tags": []
+      "tags": [
+        "main",
+        "conf_item"
+      ]
     },
     {
       "id": "conf_item_field_updated_by",
@@ -9942,7 +10046,10 @@
         },
         "displayName": "Updated By"
       },
-      "tags": []
+      "tags": [
+        "main",
+        "conf_item"
+      ]
     },
     {
       "id": "contact_field_name",
@@ -15997,7 +16104,10 @@
         "placeholder": "Enter name",
         "defaultValue": ""
       },
-      "tags": []
+      "tags": [
+        "main",
+        "note"
+      ]
     },
     {
       "id": "note_field_notes",
@@ -16028,7 +16138,10 @@
         "placeholder": "Enter notes",
         "defaultValue": ""
       },
-      "tags": []
+      "tags": [
+        "main",
+        "note"
+      ]
     },
     {
       "id": "note_field_pet_id",
@@ -16062,7 +16175,10 @@
         "placeholder": "Enter pet",
         "referencedFieldName": "name"
       },
-      "tags": []
+      "tags": [
+        "main",
+        "note"
+      ]
     },
     {
       "id": "note_field_project_id",
@@ -16100,7 +16216,10 @@
         "placeholder": "Enter project",
         "referencedFieldName": "name"
       },
-      "tags": []
+      "tags": [
+        "main",
+        "note"
+      ]
     },
     {
       "id": "note_field_event_id",
@@ -16135,7 +16254,10 @@
         "placeholder": "Enter event",
         "referencedFieldName": "name"
       },
-      "tags": []
+      "tags": [
+        "main",
+        "note"
+      ]
     },
     {
       "id": "note_field_contact_id",
@@ -16170,7 +16292,10 @@
         "placeholder": "Enter contact",
         "referencedFieldName": "name"
       },
-      "tags": []
+      "tags": [
+        "main",
+        "note"
+      ]
     },
     {
       "id": "note_field_account_id",
@@ -16205,7 +16330,10 @@
         "placeholder": "Enter account",
         "referencedFieldName": "name"
       },
-      "tags": []
+      "tags": [
+        "main",
+        "note"
+      ]
     },
     {
       "id": "note_field_breed_id",
@@ -16240,7 +16368,10 @@
         "placeholder": "Enter breed",
         "referencedFieldName": "name"
       },
-      "tags": []
+      "tags": [
+        "main",
+        "note"
+      ]
     },
     {
       "id": "note_field_owner_id",
@@ -16275,7 +16406,10 @@
         "placeholder": "Enter owner",
         "referencedFieldName": "name"
       },
-      "tags": []
+      "tags": [
+        "main",
+        "note"
+      ]
     },
     {
       "id": "note_field_cover_id",
@@ -16310,7 +16444,10 @@
         "placeholder": "Enter cover",
         "referencedFieldName": "name"
       },
-      "tags": []
+      "tags": [
+        "main",
+        "note"
+      ]
     },
     {
       "id": "note_field_record_id",
@@ -16347,7 +16484,10 @@
         "placeholder": "Enter record",
         "referencedFieldName": "id"
       },
-      "tags": []
+      "tags": [
+        "main",
+        "note"
+      ]
     },
     {
       "id": "note_field_entity_schema_id",
@@ -16384,7 +16524,10 @@
         "placeholder": "Enter entity schema",
         "referencedFieldName": "name"
       },
-      "tags": []
+      "tags": [
+        "main",
+        "note"
+      ]
     },
     {
       "id": "note_field_litter_id",
@@ -16422,7 +16565,10 @@
         "placeholder": "Enter litter",
         "referencedFieldName": "name"
       },
-      "tags": []
+      "tags": [
+        "main",
+        "note"
+      ]
     },
     {
       "id": "note_field_pet_breed_id",
@@ -16459,7 +16605,10 @@
         "placeholder": "Enter pet breed",
         "referencedFieldName": "name"
       },
-      "tags": []
+      "tags": [
+        "main",
+        "note"
+      ]
     },
     {
       "id": "note_field_id",
@@ -16487,7 +16636,10 @@
         },
         "displayName": "Id"
       },
-      "tags": []
+      "tags": [
+        "main",
+        "note"
+      ]
     },
     {
       "id": "note_field_created_at",
@@ -16515,7 +16667,10 @@
         },
         "displayName": "Created At"
       },
-      "tags": []
+      "tags": [
+        "main",
+        "note"
+      ]
     },
     {
       "id": "note_field_created_by",
@@ -16543,7 +16698,10 @@
         },
         "displayName": "Created By"
       },
-      "tags": []
+      "tags": [
+        "main",
+        "note"
+      ]
     },
     {
       "id": "note_field_updated_at",
@@ -16571,7 +16729,10 @@
         },
         "displayName": "Updated At"
       },
-      "tags": []
+      "tags": [
+        "main",
+        "note"
+      ]
     },
     {
       "id": "note_field_updated_by",
@@ -16599,7 +16760,10 @@
         },
         "displayName": "Updated By"
       },
-      "tags": []
+      "tags": [
+        "main",
+        "note"
+      ]
     },
     {
       "id": "order_field_number",
@@ -19148,7 +19312,7 @@
       "caption": "pet public_data_id field",
       "self_data": {
         "fieldType": "uuid",
-        "component": "DropdownInput",
+        "component": "LookupInput",
         "required": false,
         "isSystem": false,
         "isPrimaryKey": false,
@@ -19166,6 +19330,7 @@
         "isForeignKey": true,
         "referencedTable": "public_data",
         "referencedFieldID": "id",
+        "dataSource": "collection",
         "displayName": "Public Data",
         "placeholder": "Enter public data",
         "referencedFieldName": "name"
@@ -20315,8 +20480,8 @@
         "defaultValue": ""
       },
       "tags": [
-        "child",
-        "post"
+        "main",
+        "post_feed"
       ]
     },
     {
@@ -20352,8 +20517,8 @@
         "referencedFieldName": "name"
       },
       "tags": [
-        "child",
-        "post"
+        "main",
+        "post_feed"
       ]
     },
     {
@@ -20390,8 +20555,8 @@
         "referencedFieldName": "name"
       },
       "tags": [
-        "child",
-        "post"
+        "main",
+        "post_feed"
       ]
     },
     {
@@ -20428,8 +20593,8 @@
         "referencedFieldName": "name"
       },
       "tags": [
-        "child",
-        "post"
+        "main",
+        "post_feed"
       ]
     },
     {
@@ -20469,8 +20634,8 @@
         "referencedFieldName": "name"
       },
       "tags": [
-        "child",
-        "post"
+        "main",
+        "post_feed"
       ]
     },
     {
@@ -20509,8 +20674,8 @@
         "referencedFieldName": "name"
       },
       "tags": [
-        "child",
-        "post"
+        "main",
+        "post_feed"
       ]
     },
     {
@@ -20540,8 +20705,8 @@
         "displayName": "Id"
       },
       "tags": [
-        "child",
-        "post"
+        "main",
+        "post_feed"
       ]
     },
     {
@@ -20571,8 +20736,8 @@
         "displayName": "Created At"
       },
       "tags": [
-        "child",
-        "post"
+        "main",
+        "post_feed"
       ]
     },
     {
@@ -20602,8 +20767,8 @@
         "displayName": "Created By"
       },
       "tags": [
-        "child",
-        "post"
+        "main",
+        "post_feed"
       ]
     },
     {
@@ -20633,8 +20798,8 @@
         "displayName": "Updated At"
       },
       "tags": [
-        "child",
-        "post"
+        "main",
+        "post_feed"
       ]
     },
     {
@@ -20664,8 +20829,8 @@
         "displayName": "Updated By"
       },
       "tags": [
-        "child",
-        "post"
+        "main",
+        "post_feed"
       ]
     },
     {
@@ -23457,7 +23622,10 @@
         },
         "defaultValue": ""
       },
-      "tags": []
+      "tags": [
+        "main",
+        "public_data"
+      ]
     },
     {
       "id": "public_data_field_hash_md5",
@@ -23496,7 +23664,10 @@
         },
         "defaultValue": ""
       },
-      "tags": []
+      "tags": [
+        "main",
+        "public_data"
+      ]
     },
     {
       "id": "public_data_field_account_id",
@@ -23531,7 +23702,10 @@
         "placeholder": "Enter account",
         "referencedFieldName": "name"
       },
-      "tags": []
+      "tags": [
+        "main",
+        "public_data"
+      ]
     },
     {
       "id": "public_data_field_contact_id",
@@ -23566,7 +23740,10 @@
         "placeholder": "Enter contact",
         "referencedFieldName": "name"
       },
-      "tags": []
+      "tags": [
+        "main",
+        "public_data"
+      ]
     },
     {
       "id": "public_data_field_pet_id",
@@ -23600,7 +23777,10 @@
         "placeholder": "Enter pet",
         "referencedFieldName": "name"
       },
-      "tags": []
+      "tags": [
+        "main",
+        "public_data"
+      ]
     },
     {
       "id": "public_data_field_breed_id",
@@ -23635,7 +23815,10 @@
         "placeholder": "Enter breed",
         "referencedFieldName": "name"
       },
-      "tags": []
+      "tags": [
+        "main",
+        "public_data"
+      ]
     },
     {
       "id": "public_data_field_event_id",
@@ -23670,7 +23853,10 @@
         "placeholder": "Enter event",
         "referencedFieldName": "name"
       },
-      "tags": []
+      "tags": [
+        "main",
+        "public_data"
+      ]
     },
     {
       "id": "public_data_field_project_id",
@@ -23708,7 +23894,10 @@
         "placeholder": "Enter project",
         "referencedFieldName": "name"
       },
-      "tags": []
+      "tags": [
+        "main",
+        "public_data"
+      ]
     },
     {
       "id": "public_data_field_record_id",
@@ -23745,7 +23934,10 @@
         "placeholder": "Enter record",
         "referencedFieldName": "id"
       },
-      "tags": []
+      "tags": [
+        "main",
+        "public_data"
+      ]
     },
     {
       "id": "public_data_field_model",
@@ -23784,7 +23976,10 @@
         },
         "defaultValue": ""
       },
-      "tags": []
+      "tags": [
+        "main",
+        "public_data"
+      ]
     },
     {
       "id": "public_data_field_entity_name",
@@ -23823,7 +24018,10 @@
         },
         "defaultValue": ""
       },
-      "tags": []
+      "tags": [
+        "main",
+        "public_data"
+      ]
     },
     {
       "id": "public_data_field_primary",
@@ -23857,7 +24055,10 @@
         "placeholder": "Enter primary",
         "defaultValue": "false"
       },
-      "tags": []
+      "tags": [
+        "main",
+        "public_data"
+      ]
     },
     {
       "id": "public_data_field_redirect_id",
@@ -23872,7 +24073,7 @@
       "caption": "public_data redirect_id field",
       "self_data": {
         "fieldType": "uuid",
-        "component": "DropdownInput",
+        "component": "LookupInput",
         "required": false,
         "isSystem": false,
         "isPrimaryKey": false,
@@ -23890,11 +24091,15 @@
         "isForeignKey": true,
         "referencedTable": "public_data",
         "referencedFieldID": "id",
+        "dataSource": "collection",
         "displayName": "Redirect",
         "placeholder": "Enter redirect",
         "referencedFieldName": "name"
       },
-      "tags": []
+      "tags": [
+        "main",
+        "public_data"
+      ]
     },
     {
       "id": "public_data_field_pet_type_id",
@@ -23928,7 +24133,10 @@
         "placeholder": "Enter pet type",
         "referencedFieldName": "name"
       },
-      "tags": []
+      "tags": [
+        "main",
+        "public_data"
+      ]
     },
     {
       "id": "public_data_field_country_id",
@@ -23962,7 +24170,10 @@
         "placeholder": "Enter country",
         "referencedFieldName": "name"
       },
-      "tags": []
+      "tags": [
+        "main",
+        "public_data"
+      ]
     },
     {
       "id": "public_data_field_pet_titles_id",
@@ -23999,7 +24210,10 @@
         "placeholder": "Enter pet titles",
         "referencedFieldName": "description"
       },
-      "tags": []
+      "tags": [
+        "main",
+        "public_data"
+      ]
     },
     {
       "id": "public_data_field_has_owner",
@@ -24033,7 +24247,10 @@
         "placeholder": "Enter has owner",
         "defaultValue": "false"
       },
-      "tags": []
+      "tags": [
+        "main",
+        "public_data"
+      ]
     },
     {
       "id": "public_data_field_pet_breed_id",
@@ -24070,7 +24287,10 @@
         "placeholder": "Enter pet breed",
         "referencedFieldName": "name"
       },
-      "tags": []
+      "tags": [
+        "main",
+        "public_data"
+      ]
     },
     {
       "id": "public_data_field_id",
@@ -24098,7 +24318,10 @@
         },
         "displayName": "Id"
       },
-      "tags": []
+      "tags": [
+        "main",
+        "public_data"
+      ]
     },
     {
       "id": "public_data_field_created_at",
@@ -24126,7 +24349,10 @@
         },
         "displayName": "Created At"
       },
-      "tags": []
+      "tags": [
+        "main",
+        "public_data"
+      ]
     },
     {
       "id": "public_data_field_created_by",
@@ -24154,7 +24380,10 @@
         },
         "displayName": "Created By"
       },
-      "tags": []
+      "tags": [
+        "main",
+        "public_data"
+      ]
     },
     {
       "id": "public_data_field_updated_at",
@@ -24182,7 +24411,10 @@
         },
         "displayName": "Updated At"
       },
-      "tags": []
+      "tags": [
+        "main",
+        "public_data"
+      ]
     },
     {
       "id": "public_data_field_updated_by",
@@ -24210,7 +24442,10 @@
         },
         "displayName": "Updated By"
       },
-      "tags": []
+      "tags": [
+        "main",
+        "public_data"
+      ]
     },
     {
       "id": "quest_field_name",
@@ -24789,7 +25024,10 @@
         },
         "defaultValue": ""
       },
-      "tags": []
+      "tags": [
+        "main",
+        "raw_data"
+      ]
     },
     {
       "id": "raw_data_field_notes",
@@ -24820,7 +25058,10 @@
         "placeholder": "Enter notes",
         "defaultValue": ""
       },
-      "tags": []
+      "tags": [
+        "main",
+        "raw_data"
+      ]
     },
     {
       "id": "raw_data_field_json",
@@ -24854,7 +25095,10 @@
         "placeholder": "Enter json",
         "defaultValue": ""
       },
-      "tags": []
+      "tags": [
+        "main",
+        "raw_data"
+      ]
     },
     {
       "id": "raw_data_field_status_id",
@@ -24888,7 +25132,10 @@
         "placeholder": "Enter status",
         "referencedFieldName": "name"
       },
-      "tags": []
+      "tags": [
+        "main",
+        "raw_data"
+      ]
     },
     {
       "id": "raw_data_field_log",
@@ -24922,7 +25169,10 @@
         "placeholder": "Enter log",
         "defaultValue": ""
       },
-      "tags": []
+      "tags": [
+        "main",
+        "raw_data"
+      ]
     },
     {
       "id": "raw_data_field_conf_item_id",
@@ -24934,7 +25184,7 @@
       "caption": "raw_data conf_item_id field",
       "self_data": {
         "fieldType": "uuid",
-        "component": "DropdownInput",
+        "component": "LookupInput",
         "required": false,
         "isSystem": false,
         "isPrimaryKey": false,
@@ -24952,11 +25202,15 @@
         "isForeignKey": true,
         "referencedTable": "conf_item",
         "referencedFieldID": "id",
+        "dataSource": "collection",
         "displayName": "Conf Item",
         "placeholder": "Enter conf item",
         "referencedFieldName": "name"
       },
-      "tags": []
+      "tags": [
+        "main",
+        "raw_data"
+      ]
     },
     {
       "id": "raw_data_field_redirect_url",
@@ -24997,7 +25251,10 @@
         },
         "defaultValue": ""
       },
-      "tags": []
+      "tags": [
+        "main",
+        "raw_data"
+      ]
     },
     {
       "id": "raw_data_field_record_id",
@@ -25034,7 +25291,10 @@
         "placeholder": "Enter record",
         "referencedFieldName": "id"
       },
-      "tags": []
+      "tags": [
+        "main",
+        "raw_data"
+      ]
     },
     {
       "id": "raw_data_field_entity_name",
@@ -25073,7 +25333,10 @@
         },
         "defaultValue": ""
       },
-      "tags": []
+      "tags": [
+        "main",
+        "raw_data"
+      ]
     },
     {
       "id": "raw_data_field_model",
@@ -25112,7 +25375,10 @@
         },
         "defaultValue": ""
       },
-      "tags": []
+      "tags": [
+        "main",
+        "raw_data"
+      ]
     },
     {
       "id": "raw_data_field_hash_md5",
@@ -25151,7 +25417,10 @@
         },
         "defaultValue": ""
       },
-      "tags": []
+      "tags": [
+        "main",
+        "raw_data"
+      ]
     },
     {
       "id": "raw_data_field_contact_id",
@@ -25186,7 +25455,10 @@
         "placeholder": "Enter contact",
         "referencedFieldName": "name"
       },
-      "tags": []
+      "tags": [
+        "main",
+        "raw_data"
+      ]
     },
     {
       "id": "raw_data_field_account_id",
@@ -25221,7 +25493,10 @@
         "placeholder": "Enter account",
         "referencedFieldName": "name"
       },
-      "tags": []
+      "tags": [
+        "main",
+        "raw_data"
+      ]
     },
     {
       "id": "raw_data_field_breed_id",
@@ -25256,7 +25531,10 @@
         "placeholder": "Enter breed",
         "referencedFieldName": "name"
       },
-      "tags": []
+      "tags": [
+        "main",
+        "raw_data"
+      ]
     },
     {
       "id": "raw_data_field_event_id",
@@ -25291,7 +25569,10 @@
         "placeholder": "Enter event",
         "referencedFieldName": "name"
       },
-      "tags": []
+      "tags": [
+        "main",
+        "raw_data"
+      ]
     },
     {
       "id": "raw_data_field_project_id",
@@ -25329,7 +25610,10 @@
         "placeholder": "Enter project",
         "referencedFieldName": "name"
       },
-      "tags": []
+      "tags": [
+        "main",
+        "raw_data"
+      ]
     },
     {
       "id": "raw_data_field_pet_id",
@@ -25364,7 +25648,10 @@
         "placeholder": "Enter pet",
         "referencedFieldName": "name"
       },
-      "tags": []
+      "tags": [
+        "main",
+        "raw_data"
+      ]
     },
     {
       "id": "raw_data_field_id",
@@ -25392,7 +25679,10 @@
         },
         "displayName": "Id"
       },
-      "tags": []
+      "tags": [
+        "main",
+        "raw_data"
+      ]
     },
     {
       "id": "raw_data_field_created_at",
@@ -25420,7 +25710,10 @@
         },
         "displayName": "Created At"
       },
-      "tags": []
+      "tags": [
+        "main",
+        "raw_data"
+      ]
     },
     {
       "id": "raw_data_field_created_by",
@@ -25448,7 +25741,10 @@
         },
         "displayName": "Created By"
       },
-      "tags": []
+      "tags": [
+        "main",
+        "raw_data"
+      ]
     },
     {
       "id": "raw_data_field_updated_at",
@@ -25476,7 +25772,10 @@
         },
         "displayName": "Updated At"
       },
-      "tags": []
+      "tags": [
+        "main",
+        "raw_data"
+      ]
     },
     {
       "id": "raw_data_field_updated_by",
@@ -25504,7 +25803,10 @@
         },
         "displayName": "Updated By"
       },
-      "tags": []
+      "tags": [
+        "main",
+        "raw_data"
+      ]
     },
     {
       "id": "service_item_field_name",
@@ -25539,7 +25841,10 @@
         },
         "defaultValue": ""
       },
-      "tags": []
+      "tags": [
+        "main",
+        "service_item"
+      ]
     },
     {
       "id": "service_item_field_reaction_time_value",
@@ -25577,7 +25882,10 @@
         },
         "defaultValue": "0"
       },
-      "tags": []
+      "tags": [
+        "main",
+        "service_item"
+      ]
     },
     {
       "id": "service_item_field_reaction_time_unit_id",
@@ -25614,7 +25922,10 @@
         "placeholder": "Enter reaction time unit",
         "referencedFieldName": "id"
       },
-      "tags": []
+      "tags": [
+        "main",
+        "service_item"
+      ]
     },
     {
       "id": "service_item_field_solution_time_value",
@@ -25652,7 +25963,10 @@
         },
         "defaultValue": "0"
       },
-      "tags": []
+      "tags": [
+        "main",
+        "service_item"
+      ]
     },
     {
       "id": "service_item_field_solution_time_unit_id",
@@ -25689,7 +26003,10 @@
         "placeholder": "Enter solution time unit",
         "referencedFieldName": "id"
       },
-      "tags": []
+      "tags": [
+        "main",
+        "service_item"
+      ]
     },
     {
       "id": "service_item_field_notes",
@@ -25720,7 +26037,10 @@
         "placeholder": "Enter notes",
         "defaultValue": ""
       },
-      "tags": []
+      "tags": [
+        "main",
+        "service_item"
+      ]
     },
     {
       "id": "service_item_field_reaction_time",
@@ -25759,7 +26079,10 @@
         },
         "defaultValue": ""
       },
-      "tags": []
+      "tags": [
+        "main",
+        "service_item"
+      ]
     },
     {
       "id": "service_item_field_solution_time",
@@ -25798,7 +26121,10 @@
         },
         "defaultValue": ""
       },
-      "tags": []
+      "tags": [
+        "main",
+        "service_item"
+      ]
     },
     {
       "id": "service_item_field_owner_id",
@@ -25833,7 +26159,10 @@
         "placeholder": "Enter owner",
         "referencedFieldName": "name"
       },
-      "tags": []
+      "tags": [
+        "main",
+        "service_item"
+      ]
     },
     {
       "id": "service_item_field_calendar_id",
@@ -25870,7 +26199,10 @@
         "placeholder": "Enter calendar",
         "referencedFieldName": "name"
       },
-      "tags": []
+      "tags": [
+        "main",
+        "service_item"
+      ]
     },
     {
       "id": "service_item_field_category_id",
@@ -25904,7 +26236,10 @@
         "placeholder": "Enter category",
         "referencedFieldName": "name"
       },
-      "tags": []
+      "tags": [
+        "main",
+        "service_item"
+      ]
     },
     {
       "id": "service_item_field_provider_id",
@@ -25939,7 +26274,10 @@
         "placeholder": "Enter provider",
         "referencedFieldName": "name"
       },
-      "tags": []
+      "tags": [
+        "main",
+        "service_item"
+      ]
     },
     {
       "id": "service_item_field_sort_order",
@@ -25977,7 +26315,10 @@
         },
         "defaultValue": "0"
       },
-      "tags": []
+      "tags": [
+        "main",
+        "service_item"
+      ]
     },
     {
       "id": "service_item_field_description",
@@ -26008,7 +26349,10 @@
         "placeholder": "Enter description",
         "defaultValue": ""
       },
-      "tags": []
+      "tags": [
+        "main",
+        "service_item"
+      ]
     },
     {
       "id": "service_item_field_color",
@@ -26038,7 +26382,10 @@
         "displayName": "Color",
         "placeholder": "Enter color"
       },
-      "tags": []
+      "tags": [
+        "main",
+        "service_item"
+      ]
     },
     {
       "id": "service_item_field_status_id",
@@ -26072,7 +26419,10 @@
         "placeholder": "Enter status",
         "referencedFieldName": "name"
       },
-      "tags": []
+      "tags": [
+        "main",
+        "service_item"
+      ]
     },
     {
       "id": "service_item_field_id",
@@ -26100,7 +26450,10 @@
         },
         "displayName": "Id"
       },
-      "tags": []
+      "tags": [
+        "main",
+        "service_item"
+      ]
     },
     {
       "id": "service_item_field_created_at",
@@ -26128,7 +26481,10 @@
         },
         "displayName": "Created At"
       },
-      "tags": []
+      "tags": [
+        "main",
+        "service_item"
+      ]
     },
     {
       "id": "service_item_field_created_by",
@@ -26156,7 +26512,10 @@
         },
         "displayName": "Created By"
       },
-      "tags": []
+      "tags": [
+        "main",
+        "service_item"
+      ]
     },
     {
       "id": "service_item_field_updated_at",
@@ -26184,7 +26543,10 @@
         },
         "displayName": "Updated At"
       },
-      "tags": []
+      "tags": [
+        "main",
+        "service_item"
+      ]
     },
     {
       "id": "service_item_field_updated_by",
@@ -26212,7 +26574,10 @@
         },
         "displayName": "Updated By"
       },
-      "tags": []
+      "tags": [
+        "main",
+        "service_item"
+      ]
     },
     {
       "id": "service_pact_field_name",
@@ -26859,8 +27224,8 @@
         "defaultValue": ""
       },
       "tags": [
-        "child",
-        "quest"
+        "main",
+        "user_quest"
       ]
     },
     {
@@ -26895,8 +27260,8 @@
         "placeholder": "Enter finish date"
       },
       "tags": [
-        "child",
-        "quest"
+        "main",
+        "user_quest"
       ]
     },
     {
@@ -26933,8 +27298,8 @@
         "referencedFieldName": "name"
       },
       "tags": [
-        "child",
-        "quest"
+        "main",
+        "user_quest"
       ]
     },
     {
@@ -26969,8 +27334,8 @@
         "placeholder": "Enter deadline date"
       },
       "tags": [
-        "child",
-        "quest"
+        "main",
+        "user_quest"
       ]
     },
     {
@@ -27006,8 +27371,8 @@
         "defaultValue": "false"
       },
       "tags": [
-        "child",
-        "quest"
+        "main",
+        "user_quest"
       ]
     },
     {
@@ -27047,8 +27412,8 @@
         "defaultValue": "0"
       },
       "tags": [
-        "child",
-        "quest"
+        "main",
+        "user_quest"
       ]
     },
     {
@@ -27085,8 +27450,8 @@
         "defaultValue": ""
       },
       "tags": [
-        "child",
-        "quest"
+        "main",
+        "user_quest"
       ]
     },
     {
@@ -27126,8 +27491,8 @@
         "defaultValue": "0"
       },
       "tags": [
-        "child",
-        "quest"
+        "main",
+        "user_quest"
       ]
     },
     {
@@ -27157,8 +27522,8 @@
         "displayName": "Id"
       },
       "tags": [
-        "child",
-        "quest"
+        "main",
+        "user_quest"
       ]
     },
     {
@@ -27188,8 +27553,8 @@
         "displayName": "Created At"
       },
       "tags": [
-        "child",
-        "quest"
+        "main",
+        "user_quest"
       ]
     },
     {
@@ -27219,8 +27584,8 @@
         "displayName": "Created By"
       },
       "tags": [
-        "child",
-        "quest"
+        "main",
+        "user_quest"
       ]
     },
     {
@@ -27250,8 +27615,8 @@
         "displayName": "Updated At"
       },
       "tags": [
-        "child",
-        "quest"
+        "main",
+        "user_quest"
       ]
     },
     {
@@ -27281,8 +27646,8 @@
         "displayName": "Updated By"
       },
       "tags": [
-        "child",
-        "quest"
+        "main",
+        "user_quest"
       ]
     },
     {
@@ -28323,7 +28688,9 @@
         },
         "defaultValue": ""
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "account_tag_field_color",
@@ -28358,7 +28725,9 @@
         },
         "defaultValue": ""
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "account_tag_field_id",
@@ -28386,7 +28755,9 @@
         },
         "displayName": "Id"
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "account_tag_field_created_at",
@@ -28414,7 +28785,9 @@
         },
         "displayName": "Created At"
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "account_tag_field_created_by",
@@ -28442,7 +28815,9 @@
         },
         "displayName": "Created By"
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "account_tag_field_updated_at",
@@ -28470,7 +28845,9 @@
         },
         "displayName": "Updated At"
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "account_tag_field_updated_by",
@@ -28498,7 +28875,9 @@
         },
         "displayName": "Updated By"
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "account_type_field_name",
@@ -28875,7 +29254,9 @@
         },
         "defaultValue": ""
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "achievement_field_description",
@@ -28910,7 +29291,9 @@
         },
         "defaultValue": ""
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "achievement_field_category_id",
@@ -28944,7 +29327,9 @@
         "placeholder": "Enter category",
         "referencedFieldName": "name"
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "achievement_field_int_value",
@@ -28982,7 +29367,9 @@
         },
         "defaultValue": "0"
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "achievement_field_position",
@@ -29017,7 +29404,9 @@
         },
         "defaultValue": "0"
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "achievement_field_id",
@@ -29045,7 +29434,9 @@
         },
         "displayName": "Id"
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "achievement_field_created_at",
@@ -29073,7 +29464,9 @@
         },
         "displayName": "Created At"
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "achievement_field_created_by",
@@ -29101,7 +29494,9 @@
         },
         "displayName": "Created By"
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "achievement_field_updated_at",
@@ -29129,7 +29524,9 @@
         },
         "displayName": "Updated At"
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "achievement_field_updated_by",
@@ -29157,7 +29554,9 @@
         },
         "displayName": "Updated By"
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "achievement_category_field_name",
@@ -29192,7 +29591,9 @@
         },
         "defaultValue": ""
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "achievement_category_field_description",
@@ -29227,7 +29628,9 @@
         },
         "defaultValue": ""
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "achievement_category_field_id",
@@ -29255,7 +29658,9 @@
         },
         "displayName": "Id"
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "achievement_category_field_created_at",
@@ -29283,7 +29688,9 @@
         },
         "displayName": "Created At"
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "achievement_category_field_created_by",
@@ -29311,7 +29718,9 @@
         },
         "displayName": "Created By"
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "achievement_category_field_updated_at",
@@ -29339,7 +29748,9 @@
         },
         "displayName": "Updated At"
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "achievement_category_field_updated_by",
@@ -29367,7 +29778,9 @@
         },
         "displayName": "Updated By"
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "activity_category_field_name",
@@ -31671,8 +32084,7 @@
         "referencedFieldName": "name"
       },
       "tags": [
-        "child",
-        "competition"
+        "dictionary"
       ]
     },
     {
@@ -31712,8 +32124,7 @@
         "referencedFieldName": "name"
       },
       "tags": [
-        "child",
-        "competition"
+        "dictionary"
       ]
     },
     {
@@ -31743,8 +32154,7 @@
         "displayName": "Id"
       },
       "tags": [
-        "child",
-        "competition"
+        "dictionary"
       ]
     },
     {
@@ -31774,8 +32184,7 @@
         "displayName": "Created At"
       },
       "tags": [
-        "child",
-        "competition"
+        "dictionary"
       ]
     },
     {
@@ -31805,8 +32214,7 @@
         "displayName": "Created By"
       },
       "tags": [
-        "child",
-        "competition"
+        "dictionary"
       ]
     },
     {
@@ -31836,8 +32244,7 @@
         "displayName": "Updated At"
       },
       "tags": [
-        "child",
-        "competition"
+        "dictionary"
       ]
     },
     {
@@ -31867,8 +32274,7 @@
         "displayName": "Updated By"
       },
       "tags": [
-        "child",
-        "competition"
+        "dictionary"
       ]
     },
     {
@@ -32953,8 +33359,7 @@
         "referencedFieldName": "name"
       },
       "tags": [
-        "child",
-        "breed"
+        "dictionary"
       ]
     },
     {
@@ -32993,8 +33398,7 @@
         "referencedFieldName": "name"
       },
       "tags": [
-        "child",
-        "breed"
+        "dictionary"
       ]
     },
     {
@@ -33033,8 +33437,7 @@
         "referencedFieldName": "name"
       },
       "tags": [
-        "child",
-        "breed"
+        "dictionary"
       ]
     },
     {
@@ -33071,8 +33474,7 @@
         "defaultValue": ""
       },
       "tags": [
-        "child",
-        "breed"
+        "dictionary"
       ]
     },
     {
@@ -33109,8 +33511,7 @@
         "referencedFieldName": "name"
       },
       "tags": [
-        "child",
-        "breed"
+        "dictionary"
       ]
     },
     {
@@ -33147,8 +33548,7 @@
         "referencedFieldName": "name"
       },
       "tags": [
-        "child",
-        "breed"
+        "dictionary"
       ]
     },
     {
@@ -33183,8 +33583,7 @@
         "placeholder": "Enter effective"
       },
       "tags": [
-        "child",
-        "breed"
+        "dictionary"
       ]
     },
     {
@@ -33219,8 +33618,7 @@
         "placeholder": "Enter approved"
       },
       "tags": [
-        "child",
-        "breed"
+        "dictionary"
       ]
     },
     {
@@ -33263,8 +33661,7 @@
         "defaultValue": ""
       },
       "tags": [
-        "child",
-        "breed"
+        "dictionary"
       ]
     },
     {
@@ -33300,8 +33697,7 @@
         "defaultValue": "false"
       },
       "tags": [
-        "child",
-        "breed"
+        "dictionary"
       ]
     },
     {
@@ -33337,8 +33733,7 @@
         "referencedFieldName": "name"
       },
       "tags": [
-        "child",
-        "breed"
+        "dictionary"
       ]
     },
     {
@@ -33374,8 +33769,7 @@
         "defaultValue": "false"
       },
       "tags": [
-        "child",
-        "breed"
+        "dictionary"
       ]
     },
     {
@@ -33412,8 +33806,7 @@
         "defaultValue": ""
       },
       "tags": [
-        "child",
-        "breed"
+        "dictionary"
       ]
     },
     {
@@ -33443,8 +33836,7 @@
         "displayName": "Id"
       },
       "tags": [
-        "child",
-        "breed"
+        "dictionary"
       ]
     },
     {
@@ -33474,8 +33866,7 @@
         "displayName": "Created At"
       },
       "tags": [
-        "child",
-        "breed"
+        "dictionary"
       ]
     },
     {
@@ -33505,8 +33896,7 @@
         "displayName": "Created By"
       },
       "tags": [
-        "child",
-        "breed"
+        "dictionary"
       ]
     },
     {
@@ -33536,8 +33926,7 @@
         "displayName": "Updated At"
       },
       "tags": [
-        "child",
-        "breed"
+        "dictionary"
       ]
     },
     {
@@ -33567,8 +33956,7 @@
         "displayName": "Updated By"
       },
       "tags": [
-        "child",
-        "breed"
+        "dictionary"
       ]
     },
     {
@@ -34204,7 +34592,9 @@
         },
         "defaultValue": ""
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "calendar_field_description",
@@ -34239,7 +34629,9 @@
         },
         "defaultValue": ""
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "calendar_field_parent_id",
@@ -34276,7 +34668,9 @@
         "placeholder": "Enter parent",
         "referencedFieldName": "name"
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "calendar_field_time_zone_id",
@@ -34313,7 +34707,9 @@
         "placeholder": "Enter time zone",
         "referencedFieldName": "name"
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "calendar_field_depth",
@@ -34351,7 +34747,9 @@
         },
         "defaultValue": "0"
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "calendar_field_around_clock",
@@ -34385,7 +34783,9 @@
         "placeholder": "Enter around clock",
         "defaultValue": "false"
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "calendar_field_without_day_off",
@@ -34419,7 +34819,9 @@
         "placeholder": "Enter without day off",
         "defaultValue": "false"
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "calendar_field_id",
@@ -34447,7 +34849,9 @@
         },
         "displayName": "Id"
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "calendar_field_created_at",
@@ -34475,7 +34879,9 @@
         },
         "displayName": "Created At"
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "calendar_field_created_by",
@@ -34503,7 +34909,9 @@
         },
         "displayName": "Created By"
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "calendar_field_updated_at",
@@ -34531,7 +34939,9 @@
         },
         "displayName": "Updated At"
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "calendar_field_updated_by",
@@ -34559,7 +34969,9 @@
         },
         "displayName": "Updated By"
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "cashflow_category_field_name",
@@ -36660,8 +37072,7 @@
         "defaultValue": ""
       },
       "tags": [
-        "child",
-        "competition"
+        "dictionary"
       ]
     },
     {
@@ -36698,8 +37109,7 @@
         "defaultValue": ""
       },
       "tags": [
-        "child",
-        "competition"
+        "dictionary"
       ]
     },
     {
@@ -36735,8 +37145,7 @@
         "defaultValue": "false"
       },
       "tags": [
-        "child",
-        "competition"
+        "dictionary"
       ]
     },
     {
@@ -36772,8 +37181,7 @@
         "defaultValue": "false"
       },
       "tags": [
-        "child",
-        "competition"
+        "dictionary"
       ]
     },
     {
@@ -36809,8 +37217,7 @@
         "defaultValue": "false"
       },
       "tags": [
-        "child",
-        "competition"
+        "dictionary"
       ]
     },
     {
@@ -36846,8 +37253,7 @@
         "referencedFieldName": "name"
       },
       "tags": [
-        "child",
-        "competition"
+        "dictionary"
       ]
     },
     {
@@ -36884,8 +37290,7 @@
         "referencedFieldName": "name"
       },
       "tags": [
-        "child",
-        "competition"
+        "dictionary"
       ]
     },
     {
@@ -36921,8 +37326,7 @@
         "referencedFieldName": "name"
       },
       "tags": [
-        "child",
-        "competition"
+        "dictionary"
       ]
     },
     {
@@ -36952,8 +37356,7 @@
         "displayName": "Id"
       },
       "tags": [
-        "child",
-        "competition"
+        "dictionary"
       ]
     },
     {
@@ -36983,8 +37386,7 @@
         "displayName": "Created At"
       },
       "tags": [
-        "child",
-        "competition"
+        "dictionary"
       ]
     },
     {
@@ -37014,8 +37416,7 @@
         "displayName": "Created By"
       },
       "tags": [
-        "child",
-        "competition"
+        "dictionary"
       ]
     },
     {
@@ -37045,8 +37446,7 @@
         "displayName": "Updated At"
       },
       "tags": [
-        "child",
-        "competition"
+        "dictionary"
       ]
     },
     {
@@ -37076,8 +37476,7 @@
         "displayName": "Updated By"
       },
       "tags": [
-        "child",
-        "competition"
+        "dictionary"
       ]
     },
     {
@@ -37561,7 +37960,9 @@
         },
         "defaultValue": ""
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "conf_item_parsing_status_field_description",
@@ -37596,7 +37997,9 @@
         },
         "defaultValue": ""
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "conf_item_parsing_status_field_id",
@@ -37624,7 +38027,9 @@
         },
         "displayName": "Id"
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "conf_item_parsing_status_field_created_at",
@@ -37652,7 +38057,9 @@
         },
         "displayName": "Created At"
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "conf_item_parsing_status_field_created_by",
@@ -37680,7 +38087,9 @@
         },
         "displayName": "Created By"
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "conf_item_parsing_status_field_updated_at",
@@ -37708,7 +38117,9 @@
         },
         "displayName": "Updated At"
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "conf_item_parsing_status_field_updated_by",
@@ -37736,7 +38147,9 @@
         },
         "displayName": "Updated By"
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "config_item_category_field_name",
@@ -37771,7 +38184,9 @@
         },
         "defaultValue": ""
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "config_item_category_field_description",
@@ -37806,7 +38221,9 @@
         },
         "defaultValue": ""
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "config_item_category_field_id",
@@ -37834,7 +38251,9 @@
         },
         "displayName": "Id"
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "config_item_category_field_created_at",
@@ -37862,7 +38281,9 @@
         },
         "displayName": "Created At"
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "config_item_category_field_created_by",
@@ -37890,7 +38311,9 @@
         },
         "displayName": "Created By"
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "config_item_category_field_updated_at",
@@ -37918,7 +38341,9 @@
         },
         "displayName": "Updated At"
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "config_item_category_field_updated_by",
@@ -37946,7 +38371,9 @@
         },
         "displayName": "Updated By"
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "config_item_status_field_name",
@@ -37981,7 +38408,9 @@
         },
         "defaultValue": ""
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "config_item_status_field_description",
@@ -38016,7 +38445,9 @@
         },
         "defaultValue": ""
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "config_item_status_field_is_final",
@@ -38050,7 +38481,9 @@
         "placeholder": "Enter is final",
         "defaultValue": "false"
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "config_item_status_field_active",
@@ -38084,7 +38517,9 @@
         "placeholder": "Enter active",
         "defaultValue": "false"
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "config_item_status_field_id",
@@ -38112,7 +38547,9 @@
         },
         "displayName": "Id"
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "config_item_status_field_created_at",
@@ -38140,7 +38577,9 @@
         },
         "displayName": "Created At"
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "config_item_status_field_created_by",
@@ -38168,7 +38607,9 @@
         },
         "displayName": "Created By"
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "config_item_status_field_updated_at",
@@ -38196,7 +38637,9 @@
         },
         "displayName": "Updated At"
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "config_item_status_field_updated_by",
@@ -38224,7 +38667,9 @@
         },
         "displayName": "Updated By"
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "config_item_type_field_name",
@@ -38259,7 +38704,9 @@
         },
         "defaultValue": ""
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "config_item_type_field_description",
@@ -38294,7 +38741,9 @@
         },
         "defaultValue": ""
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "config_item_type_field_conf_item_category_id",
@@ -38331,7 +38780,9 @@
         "placeholder": "Enter conf item category",
         "referencedFieldName": "name"
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "config_item_type_field_id",
@@ -38359,7 +38810,9 @@
         },
         "displayName": "Id"
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "config_item_type_field_created_at",
@@ -38387,7 +38840,9 @@
         },
         "displayName": "Created At"
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "config_item_type_field_created_by",
@@ -38415,7 +38870,9 @@
         },
         "displayName": "Created By"
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "config_item_type_field_updated_at",
@@ -38443,7 +38900,9 @@
         },
         "displayName": "Updated At"
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "config_item_type_field_updated_by",
@@ -38471,7 +38930,9 @@
         },
         "displayName": "Updated By"
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "contact_relationship_type_field_name",
@@ -38506,7 +38967,9 @@
         },
         "defaultValue": ""
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "contact_relationship_type_field_description",
@@ -38541,7 +39004,9 @@
         },
         "defaultValue": ""
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "contact_relationship_type_field_id",
@@ -38569,7 +39034,9 @@
         },
         "displayName": "Id"
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "contact_relationship_type_field_created_at",
@@ -38597,7 +39064,9 @@
         },
         "displayName": "Created At"
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "contact_relationship_type_field_created_by",
@@ -38625,7 +39094,9 @@
         },
         "displayName": "Created By"
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "contact_relationship_type_field_updated_at",
@@ -38653,7 +39124,9 @@
         },
         "displayName": "Updated At"
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "contact_relationship_type_field_updated_by",
@@ -38681,7 +39154,9 @@
         },
         "displayName": "Updated By"
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "contact_role_field_name",
@@ -39388,7 +39863,9 @@
         },
         "defaultValue": ""
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "contact_tag_field_color",
@@ -39423,7 +39900,9 @@
         },
         "defaultValue": ""
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "contact_tag_field_id",
@@ -39451,7 +39930,9 @@
         },
         "displayName": "Id"
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "contact_tag_field_created_at",
@@ -39479,7 +39960,9 @@
         },
         "displayName": "Created At"
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "contact_tag_field_created_by",
@@ -39507,7 +39990,9 @@
         },
         "displayName": "Created By"
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "contact_tag_field_updated_at",
@@ -39535,7 +40020,9 @@
         },
         "displayName": "Updated At"
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "contact_tag_field_updated_by",
@@ -39563,7 +40050,9 @@
         },
         "displayName": "Updated By"
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "contact_type_field_name",
@@ -40374,7 +40863,7 @@
       "caption": "country public_data_id field",
       "self_data": {
         "fieldType": "uuid",
-        "component": "DropdownInput",
+        "component": "LookupInput",
         "required": false,
         "isSystem": false,
         "isPrimaryKey": false,
@@ -40392,6 +40881,7 @@
         "isForeignKey": true,
         "referencedTable": "public_data",
         "referencedFieldID": "id",
+        "dataSource": "collection",
         "displayName": "Public Data",
         "placeholder": "Enter public data",
         "referencedFieldName": "name"
@@ -40622,7 +41112,9 @@
         },
         "defaultValue": ""
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "cover_type_field_description",
@@ -40657,7 +41149,9 @@
         },
         "defaultValue": ""
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "cover_type_field_priority",
@@ -40695,7 +41189,9 @@
         },
         "defaultValue": "0"
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "cover_type_field_system",
@@ -40729,7 +41225,9 @@
         "placeholder": "Enter system",
         "defaultValue": "false"
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "cover_type_field_id",
@@ -40757,7 +41255,9 @@
         },
         "displayName": "Id"
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "cover_type_field_created_at",
@@ -40785,7 +41285,9 @@
         },
         "displayName": "Created At"
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "cover_type_field_created_by",
@@ -40813,7 +41315,9 @@
         },
         "displayName": "Created By"
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "cover_type_field_updated_at",
@@ -40841,7 +41345,9 @@
         },
         "displayName": "Updated At"
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "cover_type_field_updated_by",
@@ -40869,7 +41375,9 @@
         },
         "displayName": "Updated By"
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "currency_field_name",
@@ -43273,7 +43781,9 @@
         },
         "defaultValue": ""
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "geo_names_time_zone_field_description",
@@ -43308,7 +43818,9 @@
         },
         "defaultValue": ""
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "geo_names_time_zone_field_gmt_offset",
@@ -43342,7 +43854,9 @@
         "placeholder": "Enter gmt offset",
         "defaultValue": "0"
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "geo_names_time_zone_field_country_code",
@@ -43381,7 +43895,9 @@
         },
         "defaultValue": ""
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "geo_names_time_zone_field_id",
@@ -43409,7 +43925,9 @@
         },
         "displayName": "Id"
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "geo_names_time_zone_field_created_at",
@@ -43437,7 +43955,9 @@
         },
         "displayName": "Created At"
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "geo_names_time_zone_field_created_by",
@@ -43465,7 +43985,9 @@
         },
         "displayName": "Created By"
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "geo_names_time_zone_field_updated_at",
@@ -43493,7 +44015,9 @@
         },
         "displayName": "Updated At"
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "geo_names_time_zone_field_updated_by",
@@ -43521,7 +44045,9 @@
         },
         "displayName": "Updated By"
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "health_exam_object_field_name",
@@ -51920,7 +52446,9 @@
         },
         "defaultValue": ""
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "pet_tag_field_color",
@@ -51955,7 +52483,9 @@
         },
         "defaultValue": ""
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "pet_tag_field_id",
@@ -51983,7 +52513,9 @@
         },
         "displayName": "Id"
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "pet_tag_field_created_at",
@@ -52011,7 +52543,9 @@
         },
         "displayName": "Created At"
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "pet_tag_field_created_by",
@@ -52039,7 +52573,9 @@
         },
         "displayName": "Created By"
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "pet_tag_field_updated_at",
@@ -52067,7 +52603,9 @@
         },
         "displayName": "Updated At"
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "pet_tag_field_updated_by",
@@ -52095,7 +52633,9 @@
         },
         "displayName": "Updated By"
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "pet_type_field_name",
@@ -52262,7 +52802,7 @@
       "caption": "pet_type public_data_id field",
       "self_data": {
         "fieldType": "uuid",
-        "component": "DropdownInput",
+        "component": "LookupInput",
         "required": false,
         "isSystem": false,
         "isPrimaryKey": false,
@@ -52280,6 +52820,7 @@
         "isForeignKey": true,
         "referencedTable": "public_data",
         "referencedFieldID": "id",
+        "dataSource": "collection",
         "displayName": "Public Data",
         "placeholder": "Enter public data",
         "referencedFieldName": "name"
@@ -54745,8 +55286,7 @@
         "referencedFieldName": "name"
       },
       "tags": [
-        "child",
-        "competition"
+        "dictionary"
       ]
     },
     {
@@ -54786,8 +55326,7 @@
         "referencedFieldName": "name"
       },
       "tags": [
-        "child",
-        "competition"
+        "dictionary"
       ]
     },
     {
@@ -54817,8 +55356,7 @@
         "displayName": "Id"
       },
       "tags": [
-        "child",
-        "competition"
+        "dictionary"
       ]
     },
     {
@@ -54848,8 +55386,7 @@
         "displayName": "Created At"
       },
       "tags": [
-        "child",
-        "competition"
+        "dictionary"
       ]
     },
     {
@@ -54879,8 +55416,7 @@
         "displayName": "Created By"
       },
       "tags": [
-        "child",
-        "competition"
+        "dictionary"
       ]
     },
     {
@@ -54910,8 +55446,7 @@
         "displayName": "Updated At"
       },
       "tags": [
-        "child",
-        "competition"
+        "dictionary"
       ]
     },
     {
@@ -54941,8 +55476,7 @@
         "displayName": "Updated By"
       },
       "tags": [
-        "child",
-        "competition"
+        "dictionary"
       ]
     },
     {
@@ -56062,7 +56596,9 @@
         },
         "defaultValue": ""
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "raw_data_realated_entity_field_description",
@@ -56097,7 +56633,9 @@
         },
         "defaultValue": ""
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "raw_data_realated_entity_field_priority",
@@ -56135,7 +56673,9 @@
         },
         "defaultValue": "0"
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "raw_data_realated_entity_field_id",
@@ -56163,7 +56703,9 @@
         },
         "displayName": "Id"
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "raw_data_realated_entity_field_created_at",
@@ -56191,7 +56733,9 @@
         },
         "displayName": "Created At"
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "raw_data_realated_entity_field_created_by",
@@ -56219,7 +56763,9 @@
         },
         "displayName": "Created By"
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "raw_data_realated_entity_field_updated_at",
@@ -56247,7 +56793,9 @@
         },
         "displayName": "Updated At"
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "raw_data_realated_entity_field_updated_by",
@@ -56275,7 +56823,9 @@
         },
         "displayName": "Updated By"
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "raw_data_status_field_name",
@@ -56534,7 +57084,9 @@
         "placeholder": "Enter contact",
         "referencedFieldName": "name"
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "referral_link_field_code",
@@ -56569,7 +57121,9 @@
         },
         "defaultValue": ""
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "referral_link_field_id",
@@ -56597,7 +57151,9 @@
         },
         "displayName": "Id"
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "referral_link_field_created_at",
@@ -56625,7 +57181,9 @@
         },
         "displayName": "Created At"
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "referral_link_field_created_by",
@@ -56653,7 +57211,9 @@
         },
         "displayName": "Created By"
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "referral_link_field_updated_at",
@@ -56681,7 +57241,9 @@
         },
         "displayName": "Updated At"
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "referral_link_field_updated_by",
@@ -56709,7 +57271,9 @@
         },
         "displayName": "Updated By"
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "referrer_type_field_name",
@@ -57618,7 +58182,9 @@
         },
         "defaultValue": ""
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "relation_type_field_description",
@@ -57653,7 +58219,9 @@
         },
         "defaultValue": ""
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "relation_type_field_for_contact_contact",
@@ -57687,7 +58255,9 @@
         "placeholder": "Enter for contact contact",
         "defaultValue": "false"
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "relation_type_field_for_account_contact",
@@ -57721,7 +58291,9 @@
         "placeholder": "Enter for account contact",
         "defaultValue": "false"
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "relation_type_field_for_contact_account",
@@ -57755,7 +58327,9 @@
         "placeholder": "Enter for contact account",
         "defaultValue": "false"
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "relation_type_field_for_account_account",
@@ -57789,7 +58363,9 @@
         "placeholder": "Enter for account account",
         "defaultValue": "false"
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "relation_type_field_reverse_relation_type_id",
@@ -57826,7 +58402,9 @@
         "placeholder": "Enter reverse relation type",
         "referencedFieldName": "name"
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "relation_type_field_include_into_container",
@@ -57860,7 +58438,9 @@
         "placeholder": "Enter include into container",
         "defaultValue": "false"
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "relation_type_field_id",
@@ -57888,7 +58468,9 @@
         },
         "displayName": "Id"
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "relation_type_field_created_at",
@@ -57916,7 +58498,9 @@
         },
         "displayName": "Created At"
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "relation_type_field_created_by",
@@ -57944,7 +58528,9 @@
         },
         "displayName": "Created By"
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "relation_type_field_updated_at",
@@ -57972,7 +58558,9 @@
         },
         "displayName": "Updated At"
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "relation_type_field_updated_by",
@@ -58000,7 +58588,9 @@
         },
         "displayName": "Updated By"
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "service_category_field_name",
@@ -58259,7 +58849,9 @@
         },
         "defaultValue": ""
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "service_pact_status_field_description",
@@ -58294,7 +58886,9 @@
         },
         "defaultValue": ""
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "service_pact_status_field_is_active",
@@ -58328,7 +58922,9 @@
         "placeholder": "Enter is active",
         "defaultValue": "false"
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "service_pact_status_field_color",
@@ -58363,7 +58959,9 @@
         },
         "defaultValue": ""
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "service_pact_status_field_id",
@@ -58391,7 +58989,9 @@
         },
         "displayName": "Id"
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "service_pact_status_field_created_at",
@@ -58419,7 +59019,9 @@
         },
         "displayName": "Created At"
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "service_pact_status_field_created_by",
@@ -58447,7 +59049,9 @@
         },
         "displayName": "Created By"
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "service_pact_status_field_updated_at",
@@ -58475,7 +59079,9 @@
         },
         "displayName": "Updated At"
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "service_pact_status_field_updated_by",
@@ -58503,7 +59109,9 @@
         },
         "displayName": "Updated By"
       },
-      "tags": []
+      "tags": [
+        "dictionary"
+      ]
     },
     {
       "id": "sex_field_name",
@@ -70081,7 +70689,10 @@
         },
         "defaultValue": "0"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "conf_item"
+      ]
     },
     {
       "id": "conf_item_comparison_result_field_contact_id",
@@ -70116,7 +70727,10 @@
         "placeholder": "Enter contact",
         "referencedFieldName": "name"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "conf_item"
+      ]
     },
     {
       "id": "conf_item_comparison_result_field_conf_item_minus_id",
@@ -70131,7 +70745,7 @@
       "caption": "conf_item_comparison_result conf_item_minus_id field",
       "self_data": {
         "fieldType": "uuid",
-        "component": "DropdownInput",
+        "component": "LookupInput",
         "required": false,
         "isSystem": false,
         "isPrimaryKey": false,
@@ -70149,11 +70763,15 @@
         "isForeignKey": true,
         "referencedTable": "conf_item",
         "referencedFieldID": "id",
+        "dataSource": "collection",
         "displayName": "Conf Item Minus",
         "placeholder": "Enter conf item minus",
         "referencedFieldName": "name"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "conf_item"
+      ]
     },
     {
       "id": "conf_item_comparison_result_field_conf_item_plus_id",
@@ -70168,7 +70786,7 @@
       "caption": "conf_item_comparison_result conf_item_plus_id field",
       "self_data": {
         "fieldType": "uuid",
-        "component": "DropdownInput",
+        "component": "LookupInput",
         "required": false,
         "isSystem": false,
         "isPrimaryKey": false,
@@ -70186,11 +70804,15 @@
         "isForeignKey": true,
         "referencedTable": "conf_item",
         "referencedFieldID": "id",
+        "dataSource": "collection",
         "displayName": "Conf Item Plus",
         "placeholder": "Enter conf item plus",
         "referencedFieldName": "name"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "conf_item"
+      ]
     },
     {
       "id": "conf_item_comparison_result_field_id",
@@ -70218,7 +70840,10 @@
         },
         "displayName": "Id"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "conf_item"
+      ]
     },
     {
       "id": "conf_item_comparison_result_field_created_at",
@@ -70246,7 +70871,10 @@
         },
         "displayName": "Created At"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "conf_item"
+      ]
     },
     {
       "id": "conf_item_comparison_result_field_created_by",
@@ -70274,7 +70902,10 @@
         },
         "displayName": "Created By"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "conf_item"
+      ]
     },
     {
       "id": "conf_item_comparison_result_field_updated_at",
@@ -70302,7 +70933,10 @@
         },
         "displayName": "Updated At"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "conf_item"
+      ]
     },
     {
       "id": "conf_item_comparison_result_field_updated_by",
@@ -70330,7 +70964,10 @@
         },
         "displayName": "Updated By"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "conf_item"
+      ]
     },
     {
       "id": "conf_item_in_tag_field_entity_id",
@@ -70345,7 +70982,7 @@
       "caption": "conf_item_in_tag entity_id field",
       "self_data": {
         "fieldType": "uuid",
-        "component": "DropdownInput",
+        "component": "LookupInput",
         "required": false,
         "isSystem": false,
         "isPrimaryKey": false,
@@ -70363,11 +71000,15 @@
         "isForeignKey": true,
         "referencedTable": "conf_item",
         "referencedFieldID": "id",
+        "dataSource": "collection",
         "displayName": "Entity",
         "placeholder": "Enter entity",
         "referencedFieldName": "name"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "conf_item"
+      ]
     },
     {
       "id": "conf_item_in_tag_field_id",
@@ -70395,7 +71036,10 @@
         },
         "displayName": "Id"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "conf_item"
+      ]
     },
     {
       "id": "conf_item_in_tag_field_created_at",
@@ -70423,7 +71067,10 @@
         },
         "displayName": "Created At"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "conf_item"
+      ]
     },
     {
       "id": "conf_item_in_tag_field_created_by",
@@ -70451,7 +71098,10 @@
         },
         "displayName": "Created By"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "conf_item"
+      ]
     },
     {
       "id": "conf_item_in_tag_field_updated_at",
@@ -70479,7 +71129,10 @@
         },
         "displayName": "Updated At"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "conf_item"
+      ]
     },
     {
       "id": "conf_item_in_tag_field_updated_by",
@@ -70507,7 +71160,10 @@
         },
         "displayName": "Updated By"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "conf_item"
+      ]
     },
     {
       "id": "conf_item_measurement_field_value",
@@ -70541,7 +71197,10 @@
         "placeholder": "Enter value",
         "defaultValue": "0"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "conf_item"
+      ]
     },
     {
       "id": "conf_item_measurement_field_breed_id",
@@ -70576,7 +71235,10 @@
         "placeholder": "Enter breed",
         "referencedFieldName": "name"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "conf_item"
+      ]
     },
     {
       "id": "conf_item_measurement_field_conf_item_id",
@@ -70588,7 +71250,7 @@
       "caption": "conf_item_measurement conf_item_id field",
       "self_data": {
         "fieldType": "uuid",
-        "component": "DropdownInput",
+        "component": "LookupInput",
         "required": false,
         "isSystem": false,
         "isPrimaryKey": false,
@@ -70606,11 +71268,15 @@
         "isForeignKey": true,
         "referencedTable": "conf_item",
         "referencedFieldID": "id",
+        "dataSource": "collection",
         "displayName": "Conf Item",
         "placeholder": "Enter conf item",
         "referencedFieldName": "name"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "conf_item"
+      ]
     },
     {
       "id": "conf_item_measurement_field_account_id",
@@ -70645,7 +71311,10 @@
         "placeholder": "Enter account",
         "referencedFieldName": "name"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "conf_item"
+      ]
     },
     {
       "id": "conf_item_measurement_field_contact_id",
@@ -70680,7 +71349,10 @@
         "placeholder": "Enter contact",
         "referencedFieldName": "name"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "conf_item"
+      ]
     },
     {
       "id": "conf_item_measurement_field_pet_type_id",
@@ -70714,7 +71386,10 @@
         "placeholder": "Enter pet type",
         "referencedFieldName": "name"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "conf_item"
+      ]
     },
     {
       "id": "conf_item_measurement_field_id",
@@ -70742,7 +71417,10 @@
         },
         "displayName": "Id"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "conf_item"
+      ]
     },
     {
       "id": "conf_item_measurement_field_created_at",
@@ -70770,7 +71448,10 @@
         },
         "displayName": "Created At"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "conf_item"
+      ]
     },
     {
       "id": "conf_item_measurement_field_created_by",
@@ -70798,7 +71479,10 @@
         },
         "displayName": "Created By"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "conf_item"
+      ]
     },
     {
       "id": "conf_item_measurement_field_updated_at",
@@ -70826,7 +71510,10 @@
         },
         "displayName": "Updated At"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "conf_item"
+      ]
     },
     {
       "id": "conf_item_measurement_field_updated_by",
@@ -70854,7 +71541,10 @@
         },
         "displayName": "Updated By"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "conf_item"
+      ]
     },
     {
       "id": "conf_item_process_launch_field_name",
@@ -70889,7 +71579,10 @@
         },
         "defaultValue": ""
       },
-      "tags": []
+      "tags": [
+        "child",
+        "conf_item"
+      ]
     },
     {
       "id": "conf_item_process_launch_field_notes",
@@ -70920,7 +71613,10 @@
         "placeholder": "Enter notes",
         "defaultValue": ""
       },
-      "tags": []
+      "tags": [
+        "child",
+        "conf_item"
+      ]
     },
     {
       "id": "conf_item_process_launch_field_conf_item_id",
@@ -70932,7 +71628,7 @@
       "caption": "conf_item_process_launch conf_item_id field",
       "self_data": {
         "fieldType": "uuid",
-        "component": "DropdownInput",
+        "component": "LookupInput",
         "required": false,
         "isSystem": false,
         "isPrimaryKey": false,
@@ -70950,11 +71646,15 @@
         "isForeignKey": true,
         "referencedTable": "conf_item",
         "referencedFieldID": "id",
+        "dataSource": "collection",
         "displayName": "Conf Item",
         "placeholder": "Enter conf item",
         "referencedFieldName": "name"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "conf_item"
+      ]
     },
     {
       "id": "conf_item_process_launch_field_launch_number",
@@ -70992,7 +71692,10 @@
         },
         "defaultValue": "0"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "conf_item"
+      ]
     },
     {
       "id": "conf_item_process_launch_field_duration",
@@ -71030,7 +71733,10 @@
         },
         "defaultValue": "0"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "conf_item"
+      ]
     },
     {
       "id": "conf_item_process_launch_field_start_date",
@@ -71060,7 +71766,10 @@
         "displayName": "Start Date",
         "placeholder": "Enter start date"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "conf_item"
+      ]
     },
     {
       "id": "conf_item_process_launch_field_due_date",
@@ -71093,7 +71802,10 @@
         "displayName": "Due Date",
         "placeholder": "Enter due date"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "conf_item"
+      ]
     },
     {
       "id": "conf_item_process_launch_field_changed_record_count",
@@ -71131,7 +71843,10 @@
         },
         "defaultValue": "0"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "conf_item"
+      ]
     },
     {
       "id": "conf_item_process_launch_field_update_date",
@@ -71164,7 +71879,10 @@
         "displayName": "Update Date",
         "placeholder": "Enter update date"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "conf_item"
+      ]
     },
     {
       "id": "conf_item_process_launch_field_reanimate",
@@ -71198,7 +71916,10 @@
         "placeholder": "Enter reanimate",
         "defaultValue": "false"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "conf_item"
+      ]
     },
     {
       "id": "conf_item_process_launch_field_parameters_value",
@@ -71232,7 +71953,10 @@
         "placeholder": "Enter parameters value",
         "defaultValue": ""
       },
-      "tags": []
+      "tags": [
+        "child",
+        "conf_item"
+      ]
     },
     {
       "id": "conf_item_process_launch_field_id",
@@ -71260,7 +71984,10 @@
         },
         "displayName": "Id"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "conf_item"
+      ]
     },
     {
       "id": "conf_item_process_launch_field_created_at",
@@ -71288,7 +72015,10 @@
         },
         "displayName": "Created At"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "conf_item"
+      ]
     },
     {
       "id": "conf_item_process_launch_field_created_by",
@@ -71316,7 +72046,10 @@
         },
         "displayName": "Created By"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "conf_item"
+      ]
     },
     {
       "id": "conf_item_process_launch_field_updated_at",
@@ -71344,7 +72077,10 @@
         },
         "displayName": "Updated At"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "conf_item"
+      ]
     },
     {
       "id": "conf_item_process_launch_field_updated_by",
@@ -71372,7 +72108,10 @@
         },
         "displayName": "Updated By"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "conf_item"
+      ]
     },
     {
       "id": "conf_item_relationship_field_conf_item_a_id",
@@ -71387,7 +72126,7 @@
       "caption": "conf_item_relationship conf_item_a_id field",
       "self_data": {
         "fieldType": "uuid",
-        "component": "DropdownInput",
+        "component": "LookupInput",
         "required": false,
         "isSystem": false,
         "isPrimaryKey": false,
@@ -71405,11 +72144,15 @@
         "isForeignKey": true,
         "referencedTable": "conf_item",
         "referencedFieldID": "id",
+        "dataSource": "collection",
         "displayName": "Conf Item A",
         "placeholder": "Enter conf item a",
         "referencedFieldName": "name"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "conf_item"
+      ]
     },
     {
       "id": "conf_item_relationship_field_conf_item_b_id",
@@ -71424,7 +72167,7 @@
       "caption": "conf_item_relationship conf_item_b_id field",
       "self_data": {
         "fieldType": "uuid",
-        "component": "DropdownInput",
+        "component": "LookupInput",
         "required": false,
         "isSystem": false,
         "isPrimaryKey": false,
@@ -71442,11 +72185,15 @@
         "isForeignKey": true,
         "referencedTable": "conf_item",
         "referencedFieldID": "id",
+        "dataSource": "collection",
         "displayName": "Conf Item B",
         "placeholder": "Enter conf item b",
         "referencedFieldName": "name"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "conf_item"
+      ]
     },
     {
       "id": "conf_item_relationship_field_dependency_category_id",
@@ -71483,7 +72230,10 @@
         "placeholder": "Enter dependency category",
         "referencedFieldName": "name"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "conf_item"
+      ]
     },
     {
       "id": "conf_item_relationship_field_dependency_type_id",
@@ -71520,7 +72270,10 @@
         "placeholder": "Enter dependency type",
         "referencedFieldName": "name"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "conf_item"
+      ]
     },
     {
       "id": "conf_item_relationship_field_id",
@@ -71548,7 +72301,10 @@
         },
         "displayName": "Id"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "conf_item"
+      ]
     },
     {
       "id": "conf_item_relationship_field_created_at",
@@ -71576,7 +72332,10 @@
         },
         "displayName": "Created At"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "conf_item"
+      ]
     },
     {
       "id": "conf_item_relationship_field_created_by",
@@ -71604,7 +72363,10 @@
         },
         "displayName": "Created By"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "conf_item"
+      ]
     },
     {
       "id": "conf_item_relationship_field_updated_at",
@@ -71632,7 +72394,10 @@
         },
         "displayName": "Updated At"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "conf_item"
+      ]
     },
     {
       "id": "conf_item_relationship_field_updated_by",
@@ -71660,7 +72425,10 @@
         },
         "displayName": "Updated By"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "conf_item"
+      ]
     },
     {
       "id": "contact_address_field_address_type_id",
@@ -76392,7 +77160,7 @@
       "caption": "entity_by_raw_data raw_data_id field",
       "self_data": {
         "fieldType": "uuid",
-        "component": "DropdownInput",
+        "component": "LookupInput",
         "required": false,
         "isSystem": false,
         "isPrimaryKey": false,
@@ -76410,6 +77178,7 @@
         "isForeignKey": true,
         "referencedTable": "raw_data",
         "referencedFieldID": "id",
+        "dataSource": "collection",
         "displayName": "Raw Data",
         "placeholder": "Enter raw data",
         "referencedFieldName": "name"
@@ -78111,9 +78880,7 @@
         },
         "defaultValue": ""
       },
-      "tags": [
-        "dictionary"
-      ]
+      "tags": []
     },
     {
       "id": "issue_type_field_description",
@@ -78148,9 +78915,7 @@
         },
         "defaultValue": ""
       },
-      "tags": [
-        "dictionary"
-      ]
+      "tags": []
     },
     {
       "id": "issue_type_field_id",
@@ -78178,9 +78943,7 @@
         },
         "displayName": "Id"
       },
-      "tags": [
-        "dictionary"
-      ]
+      "tags": []
     },
     {
       "id": "issue_type_field_created_at",
@@ -78208,9 +78971,7 @@
         },
         "displayName": "Created At"
       },
-      "tags": [
-        "dictionary"
-      ]
+      "tags": []
     },
     {
       "id": "issue_type_field_created_by",
@@ -78238,9 +78999,7 @@
         },
         "displayName": "Created By"
       },
-      "tags": [
-        "dictionary"
-      ]
+      "tags": []
     },
     {
       "id": "issue_type_field_updated_at",
@@ -78268,9 +79027,7 @@
         },
         "displayName": "Updated At"
       },
-      "tags": [
-        "dictionary"
-      ]
+      "tags": []
     },
     {
       "id": "issue_type_field_updated_by",
@@ -78298,9 +79055,7 @@
         },
         "displayName": "Updated By"
       },
-      "tags": [
-        "dictionary"
-      ]
+      "tags": []
     },
     {
       "id": "license_manager_field_name",
@@ -79386,7 +80141,10 @@
         "placeholder": "Enter pet",
         "referencedFieldName": "name"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "note"
+      ]
     },
     {
       "id": "note_test_record_field_note_id",
@@ -79401,7 +80159,7 @@
       "caption": "note_test_record note_id field",
       "self_data": {
         "fieldType": "uuid",
-        "component": "DropdownInput",
+        "component": "LookupInput",
         "required": false,
         "isSystem": false,
         "isPrimaryKey": false,
@@ -79419,11 +80177,15 @@
         "isForeignKey": true,
         "referencedTable": "note",
         "referencedFieldID": "id",
+        "dataSource": "collection",
         "displayName": "Note",
         "placeholder": "Enter note",
         "referencedFieldName": "name"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "note"
+      ]
     },
     {
       "id": "note_test_record_field_pet_breed_id",
@@ -79460,7 +80222,10 @@
         "placeholder": "Enter pet breed",
         "referencedFieldName": "name"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "note"
+      ]
     },
     {
       "id": "note_test_record_field_id",
@@ -79488,7 +80253,10 @@
         },
         "displayName": "Id"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "note"
+      ]
     },
     {
       "id": "note_test_record_field_created_at",
@@ -79516,7 +80284,10 @@
         },
         "displayName": "Created At"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "note"
+      ]
     },
     {
       "id": "note_test_record_field_created_by",
@@ -79544,7 +80315,10 @@
         },
         "displayName": "Created By"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "note"
+      ]
     },
     {
       "id": "note_test_record_field_updated_at",
@@ -79572,7 +80346,10 @@
         },
         "displayName": "Updated At"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "note"
+      ]
     },
     {
       "id": "note_test_record_field_updated_by",
@@ -79600,7 +80377,10 @@
         },
         "displayName": "Updated By"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "note"
+      ]
     },
     {
       "id": "parsing_business_process_in_conf_item_field_priority",
@@ -79687,7 +80467,7 @@
       "caption": "parsing_business_process_in_conf_item conf_item_id field",
       "self_data": {
         "fieldType": "uuid",
-        "component": "DropdownInput",
+        "component": "LookupInput",
         "required": false,
         "isSystem": false,
         "isPrimaryKey": false,
@@ -79705,6 +80485,7 @@
         "isForeignKey": true,
         "referencedTable": "conf_item",
         "referencedFieldID": "id",
+        "dataSource": "collection",
         "displayName": "Conf Item",
         "placeholder": "Enter conf item",
         "referencedFieldName": "name"
@@ -83667,7 +84448,10 @@
         "placeholder": "Enter name",
         "defaultValue": ""
       },
-      "tags": []
+      "tags": [
+        "child",
+        "pet"
+      ]
     },
     {
       "id": "pet_old_field_notes",
@@ -83698,7 +84482,10 @@
         "placeholder": "Enter notes",
         "defaultValue": ""
       },
-      "tags": []
+      "tags": [
+        "child",
+        "pet"
+      ]
     },
     {
       "id": "pet_old_field_date_of_birth",
@@ -83731,7 +84518,10 @@
         "displayName": "Date Of Birth",
         "placeholder": "Enter date of birth"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "pet"
+      ]
     },
     {
       "id": "pet_old_field_owner_id",
@@ -83766,7 +84556,10 @@
         "placeholder": "Enter owner",
         "referencedFieldName": "name"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "pet"
+      ]
     },
     {
       "id": "pet_old_field_kennel_id",
@@ -83800,7 +84593,10 @@
         "placeholder": "Enter kennel",
         "referencedFieldName": "id"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "pet"
+      ]
     },
     {
       "id": "pet_old_field_pet_type_id",
@@ -83834,7 +84630,10 @@
         "placeholder": "Enter pet type",
         "referencedFieldName": "name"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "pet"
+      ]
     },
     {
       "id": "pet_old_field_sex_id",
@@ -83871,7 +84670,10 @@
         "placeholder": "Enter sex",
         "referencedFieldName": "name"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "pet"
+      ]
     },
     {
       "id": "pet_old_field_father_id",
@@ -83906,6 +84708,8 @@
         "referencedFieldName": "name"
       },
       "tags": [
+        "child",
+        "pet",
         "child_of:pet_id"
       ]
     },
@@ -83942,6 +84746,8 @@
         "referencedFieldName": "name"
       },
       "tags": [
+        "child",
+        "pet",
         "child_of:pet_id"
       ]
     },
@@ -83978,7 +84784,10 @@
         "placeholder": "Enter breed",
         "referencedFieldName": "name"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "pet"
+      ]
     },
     {
       "id": "pet_old_field_breeder_id",
@@ -84013,7 +84822,10 @@
         "placeholder": "Enter breeder",
         "referencedFieldName": "name"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "pet"
+      ]
     },
     {
       "id": "pet_old_field_photo_id",
@@ -84050,7 +84862,10 @@
         "placeholder": "Enter photo",
         "referencedFieldName": "id"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "pet"
+      ]
     },
     {
       "id": "pet_old_field_date_of_death",
@@ -84083,7 +84898,10 @@
         "displayName": "Date Of Death",
         "placeholder": "Enter date of death"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "pet"
+      ]
     },
     {
       "id": "pet_old_field_pet_status_id",
@@ -84120,7 +84938,10 @@
         "placeholder": "Enter pet status",
         "referencedFieldName": "name"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "pet"
+      ]
     },
     {
       "id": "pet_old_field_coat_type_id",
@@ -84157,7 +84978,10 @@
         "placeholder": "Enter coat type",
         "referencedFieldName": "name"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "pet"
+      ]
     },
     {
       "id": "pet_old_field_coat_color_id",
@@ -84194,7 +85018,10 @@
         "placeholder": "Enter coat color",
         "referencedFieldName": "name"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "pet"
+      ]
     },
     {
       "id": "pet_old_field_size_id",
@@ -84231,7 +85058,10 @@
         "placeholder": "Enter size",
         "referencedFieldName": "id"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "pet"
+      ]
     },
     {
       "id": "pet_old_field_body_feature_id",
@@ -84268,7 +85098,10 @@
         "placeholder": "Enter body feature",
         "referencedFieldName": "name"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "pet"
+      ]
     },
     {
       "id": "pet_old_field_litter_id",
@@ -84306,7 +85139,10 @@
         "placeholder": "Enter litter",
         "referencedFieldName": "name"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "pet"
+      ]
     },
     {
       "id": "pet_old_field_call_name",
@@ -84345,7 +85181,10 @@
         },
         "defaultValue": ""
       },
-      "tags": []
+      "tags": [
+        "child",
+        "pet"
+      ]
     },
     {
       "id": "pet_old_field_country_of_birth_id",
@@ -84380,6 +85219,8 @@
         "referencedFieldName": "name"
       },
       "tags": [
+        "child",
+        "pet",
         "child_of:country_id"
       ]
     },
@@ -84415,7 +85256,10 @@
         "placeholder": "Enter titles",
         "defaultValue": ""
       },
-      "tags": []
+      "tags": [
+        "child",
+        "pet"
+      ]
     },
     {
       "id": "pet_old_field_inbreeding_percent",
@@ -84449,7 +85293,10 @@
         "placeholder": "Enter inbreeding percent",
         "defaultValue": "0"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "pet"
+      ]
     },
     {
       "id": "pet_old_field_url",
@@ -84486,7 +85333,10 @@
         },
         "defaultValue": ""
       },
-      "tags": []
+      "tags": [
+        "child",
+        "pet"
+      ]
     },
     {
       "id": "pet_old_field_page_template_code",
@@ -84525,7 +85375,10 @@
         },
         "defaultValue": ""
       },
-      "tags": []
+      "tags": [
+        "child",
+        "pet"
+      ]
     },
     {
       "id": "pet_old_field_verified_stage_id",
@@ -84562,7 +85415,10 @@
         "placeholder": "Enter verified stage",
         "referencedFieldName": "name"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "pet"
+      ]
     },
     {
       "id": "pet_old_field_owner_kennel_id",
@@ -84597,6 +85453,8 @@
         "referencedFieldName": "name"
       },
       "tags": [
+        "child",
+        "pet",
         "child_of:kennel_id"
       ]
     },
@@ -84637,7 +85495,10 @@
         },
         "defaultValue": ""
       },
-      "tags": []
+      "tags": [
+        "child",
+        "pet"
+      ]
     },
     {
       "id": "pet_old_field_avatar_url",
@@ -84674,7 +85535,10 @@
         },
         "defaultValue": ""
       },
-      "tags": []
+      "tags": [
+        "child",
+        "pet"
+      ]
     },
     {
       "id": "pet_old_field_rating",
@@ -84708,7 +85572,10 @@
         "placeholder": "Enter rating",
         "defaultValue": "0"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "pet"
+      ]
     },
     {
       "id": "pet_old_field_breed_division_id",
@@ -84745,7 +85612,10 @@
         "placeholder": "Enter breed division",
         "referencedFieldName": "name"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "pet"
+      ]
     },
     {
       "id": "pet_old_field_trim_titles",
@@ -84779,7 +85649,10 @@
         "placeholder": "Enter trim titles",
         "defaultValue": ""
       },
-      "tags": []
+      "tags": [
+        "child",
+        "pet"
+      ]
     },
     {
       "id": "pet_old_field_country_of_stay_id",
@@ -84814,6 +85687,8 @@
         "referencedFieldName": "name"
       },
       "tags": [
+        "child",
+        "pet",
         "child_of:country_id"
       ]
     },
@@ -84849,7 +85724,10 @@
         "placeholder": "Enter child rating",
         "defaultValue": "0"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "pet"
+      ]
     },
     {
       "id": "pet_old_field_self_rating",
@@ -84883,7 +85761,10 @@
         "placeholder": "Enter self rating",
         "defaultValue": "0"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "pet"
+      ]
     },
     {
       "id": "pet_old_field_calc_date_of_birth",
@@ -84916,7 +85797,10 @@
         "displayName": "Calc Date Of Birth",
         "placeholder": "Enter calc date of birth"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "pet"
+      ]
     },
     {
       "id": "pet_old_field_coi",
@@ -84950,7 +85834,10 @@
         "placeholder": "Enter coi",
         "defaultValue": "0"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "pet"
+      ]
     },
     {
       "id": "pet_old_field_verification_status_id",
@@ -84987,7 +85874,10 @@
         "placeholder": "Enter verification status",
         "referencedFieldName": "name"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "pet"
+      ]
     },
     {
       "id": "pet_old_field_rating_placement_in_breed",
@@ -85025,7 +85915,10 @@
         },
         "defaultValue": "0"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "pet"
+      ]
     },
     {
       "id": "pet_old_field_is_public",
@@ -85059,7 +85952,10 @@
         "placeholder": "Enter is public",
         "defaultValue": "false"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "pet"
+      ]
     },
     {
       "id": "pet_old_field_cover_id",
@@ -85094,7 +85990,10 @@
         "placeholder": "Enter cover",
         "referencedFieldName": "name"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "pet"
+      ]
     },
     {
       "id": "pet_old_field_public_data_id",
@@ -85109,7 +86008,7 @@
       "caption": "pet_old public_data_id field",
       "self_data": {
         "fieldType": "uuid",
-        "component": "DropdownInput",
+        "component": "LookupInput",
         "required": false,
         "isSystem": false,
         "isPrimaryKey": false,
@@ -85127,11 +86026,15 @@
         "isForeignKey": true,
         "referencedTable": "public_data",
         "referencedFieldID": "id",
+        "dataSource": "collection",
         "displayName": "Public Data",
         "placeholder": "Enter public data",
         "referencedFieldName": "name"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "pet"
+      ]
     },
     {
       "id": "pet_old_field_weight",
@@ -85165,7 +86068,10 @@
         "placeholder": "Enter weight",
         "defaultValue": "0"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "pet"
+      ]
     },
     {
       "id": "pet_old_field_test_int_index",
@@ -85203,7 +86109,10 @@
         },
         "defaultValue": "0"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "pet"
+      ]
     },
     {
       "id": "pet_old_field_mother_breed_id",
@@ -85238,6 +86147,8 @@
         "referencedFieldName": "name"
       },
       "tags": [
+        "child",
+        "pet",
         "child_of:breed_id"
       ]
     },
@@ -85274,6 +86185,8 @@
         "referencedFieldName": "name"
       },
       "tags": [
+        "child",
+        "pet",
         "child_of:breed_id"
       ]
     },
@@ -85303,7 +86216,10 @@
         },
         "displayName": "Id"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "pet"
+      ]
     },
     {
       "id": "pet_old_field_created_at",
@@ -85331,7 +86247,10 @@
         },
         "displayName": "Created At"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "pet"
+      ]
     },
     {
       "id": "pet_old_field_created_by",
@@ -85359,7 +86278,10 @@
         },
         "displayName": "Created By"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "pet"
+      ]
     },
     {
       "id": "pet_old_field_updated_at",
@@ -85387,7 +86309,10 @@
         },
         "displayName": "Updated At"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "pet"
+      ]
     },
     {
       "id": "pet_old_field_updated_by",
@@ -85415,7 +86340,10 @@
         },
         "displayName": "Updated By"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "pet"
+      ]
     },
     {
       "id": "pet_pedigree_cycle_field_position",
@@ -86300,7 +87228,10 @@
         },
         "defaultValue": ""
       },
-      "tags": []
+      "tags": [
+        "child",
+        "pet"
+      ]
     },
     {
       "id": "pet_service_feature_in_pet_field_pet_id",
@@ -86334,7 +87265,10 @@
         "placeholder": "Enter pet",
         "referencedFieldName": "name"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "pet"
+      ]
     },
     {
       "id": "pet_service_feature_in_pet_field_pet_service_feature_id",
@@ -86371,7 +87305,10 @@
         "placeholder": "Enter pet service feature",
         "referencedFieldName": "name"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "pet"
+      ]
     },
     {
       "id": "pet_service_feature_in_pet_field_pet_service_type_id",
@@ -86408,7 +87345,10 @@
         "placeholder": "Enter pet service type",
         "referencedFieldName": "name"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "pet"
+      ]
     },
     {
       "id": "pet_service_feature_in_pet_field_pet_breed_id",
@@ -86445,7 +87385,10 @@
         "placeholder": "Enter pet breed",
         "referencedFieldName": "name"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "pet"
+      ]
     },
     {
       "id": "pet_service_feature_in_pet_field_id",
@@ -86473,7 +87416,10 @@
         },
         "displayName": "Id"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "pet"
+      ]
     },
     {
       "id": "pet_service_feature_in_pet_field_created_at",
@@ -86501,7 +87447,10 @@
         },
         "displayName": "Created At"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "pet"
+      ]
     },
     {
       "id": "pet_service_feature_in_pet_field_created_by",
@@ -86529,7 +87478,10 @@
         },
         "displayName": "Created By"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "pet"
+      ]
     },
     {
       "id": "pet_service_feature_in_pet_field_updated_at",
@@ -86557,7 +87509,10 @@
         },
         "displayName": "Updated At"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "pet"
+      ]
     },
     {
       "id": "pet_service_feature_in_pet_field_updated_by",
@@ -86585,7 +87540,10 @@
         },
         "displayName": "Updated By"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "pet"
+      ]
     },
     {
       "id": "pet_service_in_account_field_account_id",
@@ -86620,7 +87578,10 @@
         "placeholder": "Enter account",
         "referencedFieldName": "name"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "pet"
+      ]
     },
     {
       "id": "pet_service_in_account_field_active",
@@ -86654,7 +87615,10 @@
         "placeholder": "Enter active",
         "defaultValue": "false"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "pet"
+      ]
     },
     {
       "id": "pet_service_in_account_field_service_type_id",
@@ -86691,7 +87655,10 @@
         "placeholder": "Enter service type",
         "referencedFieldName": "name"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "pet"
+      ]
     },
     {
       "id": "pet_service_in_account_field_pet_service_status_id",
@@ -86728,7 +87695,10 @@
         "placeholder": "Enter pet service status",
         "referencedFieldName": "name"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "pet"
+      ]
     },
     {
       "id": "pet_service_in_account_field_id",
@@ -86756,7 +87726,10 @@
         },
         "displayName": "Id"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "pet"
+      ]
     },
     {
       "id": "pet_service_in_account_field_created_at",
@@ -86784,7 +87757,10 @@
         },
         "displayName": "Created At"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "pet"
+      ]
     },
     {
       "id": "pet_service_in_account_field_created_by",
@@ -86812,7 +87788,10 @@
         },
         "displayName": "Created By"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "pet"
+      ]
     },
     {
       "id": "pet_service_in_account_field_updated_at",
@@ -86840,7 +87819,10 @@
         },
         "displayName": "Updated At"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "pet"
+      ]
     },
     {
       "id": "pet_service_in_account_field_updated_by",
@@ -86868,7 +87850,10 @@
         },
         "displayName": "Updated By"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "pet"
+      ]
     },
     {
       "id": "pet_service_in_litter_field_date",
@@ -87286,7 +88271,10 @@
         "placeholder": "Enter breed",
         "referencedFieldName": "name"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "pet"
+      ]
     },
     {
       "id": "pet_size_in_breed_field_pet_size_id",
@@ -87323,7 +88311,10 @@
         "placeholder": "Enter pet size",
         "referencedFieldName": "name"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "pet"
+      ]
     },
     {
       "id": "pet_size_in_breed_field_id",
@@ -87351,7 +88342,10 @@
         },
         "displayName": "Id"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "pet"
+      ]
     },
     {
       "id": "pet_size_in_breed_field_created_at",
@@ -87379,7 +88373,10 @@
         },
         "displayName": "Created At"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "pet"
+      ]
     },
     {
       "id": "pet_size_in_breed_field_created_by",
@@ -87407,7 +88404,10 @@
         },
         "displayName": "Created By"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "pet"
+      ]
     },
     {
       "id": "pet_size_in_breed_field_updated_at",
@@ -87435,7 +88435,10 @@
         },
         "displayName": "Updated At"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "pet"
+      ]
     },
     {
       "id": "pet_size_in_breed_field_updated_by",
@@ -87463,7 +88466,10 @@
         },
         "displayName": "Updated By"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "pet"
+      ]
     },
     {
       "id": "pet_size_in_breed_division_field_pet_size_id",
@@ -87500,7 +88506,10 @@
         "placeholder": "Enter pet size",
         "referencedFieldName": "name"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "pet"
+      ]
     },
     {
       "id": "pet_size_in_breed_division_field_breed_division_id",
@@ -87537,7 +88546,10 @@
         "placeholder": "Enter breed division",
         "referencedFieldName": "name"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "pet"
+      ]
     },
     {
       "id": "pet_size_in_breed_division_field_breed_id",
@@ -87572,7 +88584,10 @@
         "placeholder": "Enter breed",
         "referencedFieldName": "name"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "pet"
+      ]
     },
     {
       "id": "pet_size_in_breed_division_field_id",
@@ -87600,7 +88615,10 @@
         },
         "displayName": "Id"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "pet"
+      ]
     },
     {
       "id": "pet_size_in_breed_division_field_created_at",
@@ -87628,7 +88646,10 @@
         },
         "displayName": "Created At"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "pet"
+      ]
     },
     {
       "id": "pet_size_in_breed_division_field_created_by",
@@ -87656,7 +88677,10 @@
         },
         "displayName": "Created By"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "pet"
+      ]
     },
     {
       "id": "pet_size_in_breed_division_field_updated_at",
@@ -87684,7 +88708,10 @@
         },
         "displayName": "Updated At"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "pet"
+      ]
     },
     {
       "id": "pet_size_in_breed_division_field_updated_by",
@@ -87712,7 +88739,10 @@
         },
         "displayName": "Updated By"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "pet"
+      ]
     },
     {
       "id": "post_comment_field_contact_id",
@@ -88032,7 +89062,7 @@
       "caption": "post_feed_subscription feed_id field",
       "self_data": {
         "fieldType": "uuid",
-        "component": "DropdownInput",
+        "component": "LookupInput",
         "required": false,
         "isSystem": false,
         "isPrimaryKey": false,
@@ -88050,6 +89080,7 @@
         "isForeignKey": true,
         "referencedTable": "post_feed",
         "referencedFieldID": "id",
+        "dataSource": "collection",
         "displayName": "Feed",
         "placeholder": "Enter feed",
         "referencedFieldName": "name"
@@ -88265,7 +89296,7 @@
       "caption": "post_in_feed feed_id field",
       "self_data": {
         "fieldType": "uuid",
-        "component": "DropdownInput",
+        "component": "LookupInput",
         "required": false,
         "isSystem": false,
         "isPrimaryKey": false,
@@ -88283,6 +89314,7 @@
         "isForeignKey": true,
         "referencedTable": "post_feed",
         "referencedFieldID": "id",
+        "dataSource": "collection",
         "displayName": "Feed",
         "placeholder": "Enter feed",
         "referencedFieldName": "name"
@@ -89561,7 +90593,7 @@
       "caption": "process_parameter_in_conf_item conf_item_id field",
       "self_data": {
         "fieldType": "uuid",
-        "component": "DropdownInput",
+        "component": "LookupInput",
         "required": false,
         "isSystem": false,
         "isPrimaryKey": false,
@@ -89579,6 +90611,7 @@
         "isForeignKey": true,
         "referencedTable": "conf_item",
         "referencedFieldID": "id",
+        "dataSource": "collection",
         "displayName": "Conf Item",
         "placeholder": "Enter conf item",
         "referencedFieldName": "name"
@@ -89842,7 +90875,7 @@
       "caption": "process_selector_in_conf_item conf_item_id field",
       "self_data": {
         "fieldType": "uuid",
-        "component": "DropdownInput",
+        "component": "LookupInput",
         "required": false,
         "isSystem": false,
         "isPrimaryKey": false,
@@ -89860,6 +90893,7 @@
         "isForeignKey": true,
         "referencedTable": "conf_item",
         "referencedFieldID": "id",
+        "dataSource": "collection",
         "displayName": "Conf Item",
         "placeholder": "Enter conf item",
         "referencedFieldName": "name"
@@ -90470,7 +91504,10 @@
         "placeholder": "Enter product",
         "referencedFieldName": "name"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "product"
+      ]
     },
     {
       "id": "product_price_field_currency_id",
@@ -90504,7 +91541,10 @@
         "placeholder": "Enter currency",
         "referencedFieldName": "name"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "product"
+      ]
     },
     {
       "id": "product_price_field_price",
@@ -90538,7 +91578,10 @@
         "placeholder": "Enter price",
         "defaultValue": "0"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "product"
+      ]
     },
     {
       "id": "product_price_field_id",
@@ -90566,7 +91609,10 @@
         },
         "displayName": "Id"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "product"
+      ]
     },
     {
       "id": "product_price_field_created_at",
@@ -90594,7 +91640,10 @@
         },
         "displayName": "Created At"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "product"
+      ]
     },
     {
       "id": "product_price_field_created_by",
@@ -90622,7 +91671,10 @@
         },
         "displayName": "Created By"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "product"
+      ]
     },
     {
       "id": "product_price_field_updated_at",
@@ -90650,7 +91702,10 @@
         },
         "displayName": "Updated At"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "product"
+      ]
     },
     {
       "id": "product_price_field_updated_by",
@@ -90678,7 +91733,10 @@
         },
         "displayName": "Updated By"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "product"
+      ]
     },
     {
       "id": "product_source_field_name",
@@ -90713,7 +91771,10 @@
         },
         "defaultValue": ""
       },
-      "tags": []
+      "tags": [
+        "child",
+        "product"
+      ]
     },
     {
       "id": "product_source_field_description",
@@ -90748,7 +91809,10 @@
         },
         "defaultValue": ""
       },
-      "tags": []
+      "tags": [
+        "child",
+        "product"
+      ]
     },
     {
       "id": "product_source_field_image",
@@ -90781,7 +91845,10 @@
         "displayName": "Image",
         "placeholder": "Enter image"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "product"
+      ]
     },
     {
       "id": "product_source_field_id",
@@ -90809,7 +91876,10 @@
         },
         "displayName": "Id"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "product"
+      ]
     },
     {
       "id": "product_source_field_created_at",
@@ -90837,7 +91907,10 @@
         },
         "displayName": "Created At"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "product"
+      ]
     },
     {
       "id": "product_source_field_created_by",
@@ -90865,7 +91938,10 @@
         },
         "displayName": "Created By"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "product"
+      ]
     },
     {
       "id": "product_source_field_updated_at",
@@ -90893,7 +91969,10 @@
         },
         "displayName": "Updated At"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "product"
+      ]
     },
     {
       "id": "product_source_field_updated_by",
@@ -90921,7 +92000,10 @@
         },
         "displayName": "Updated By"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "product"
+      ]
     },
     {
       "id": "product_unit_field_product_id",
@@ -90959,7 +92041,10 @@
         "placeholder": "Enter product",
         "referencedFieldName": "name"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "product"
+      ]
     },
     {
       "id": "product_unit_field_unit_id",
@@ -90996,7 +92081,10 @@
         "placeholder": "Enter unit",
         "referencedFieldName": "name"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "product"
+      ]
     },
     {
       "id": "product_unit_field_is_base",
@@ -91030,7 +92118,10 @@
         "placeholder": "Enter is base",
         "defaultValue": "false"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "product"
+      ]
     },
     {
       "id": "product_unit_field_number_of_base_units",
@@ -91064,7 +92155,10 @@
         "placeholder": "Enter number of base units",
         "defaultValue": "0"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "product"
+      ]
     },
     {
       "id": "product_unit_field_id",
@@ -91092,7 +92186,10 @@
         },
         "displayName": "Id"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "product"
+      ]
     },
     {
       "id": "product_unit_field_created_at",
@@ -91120,7 +92217,10 @@
         },
         "displayName": "Created At"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "product"
+      ]
     },
     {
       "id": "product_unit_field_created_by",
@@ -91148,7 +92248,10 @@
         },
         "displayName": "Created By"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "product"
+      ]
     },
     {
       "id": "product_unit_field_updated_at",
@@ -91176,7 +92279,10 @@
         },
         "displayName": "Updated At"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "product"
+      ]
     },
     {
       "id": "product_unit_field_updated_by",
@@ -91204,7 +92310,10 @@
         },
         "displayName": "Updated By"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "product"
+      ]
     },
     {
       "id": "project_entry_type_field_name",
@@ -91240,7 +92349,8 @@
         "defaultValue": ""
       },
       "tags": [
-        "dictionary"
+        "child",
+        "project"
       ]
     },
     {
@@ -91277,7 +92387,8 @@
         "defaultValue": ""
       },
       "tags": [
-        "dictionary"
+        "child",
+        "project"
       ]
     },
     {
@@ -91314,7 +92425,8 @@
         "defaultValue": ""
       },
       "tags": [
-        "dictionary"
+        "child",
+        "project"
       ]
     },
     {
@@ -91344,7 +92456,8 @@
         "displayName": "Id"
       },
       "tags": [
-        "dictionary"
+        "child",
+        "project"
       ]
     },
     {
@@ -91374,7 +92487,8 @@
         "displayName": "Created At"
       },
       "tags": [
-        "dictionary"
+        "child",
+        "project"
       ]
     },
     {
@@ -91404,7 +92518,8 @@
         "displayName": "Created By"
       },
       "tags": [
-        "dictionary"
+        "child",
+        "project"
       ]
     },
     {
@@ -91434,7 +92549,8 @@
         "displayName": "Updated At"
       },
       "tags": [
-        "dictionary"
+        "child",
+        "project"
       ]
     },
     {
@@ -91464,7 +92580,8 @@
         "displayName": "Updated By"
       },
       "tags": [
-        "dictionary"
+        "child",
+        "project"
       ]
     },
     {
@@ -91501,7 +92618,8 @@
         "defaultValue": ""
       },
       "tags": [
-        "dictionary"
+        "child",
+        "quest"
       ]
     },
     {
@@ -91538,7 +92656,8 @@
         "defaultValue": ""
       },
       "tags": [
-        "dictionary"
+        "child",
+        "quest"
       ]
     },
     {
@@ -91575,7 +92694,8 @@
         "defaultValue": ""
       },
       "tags": [
-        "dictionary"
+        "child",
+        "quest"
       ]
     },
     {
@@ -91605,7 +92725,8 @@
         "displayName": "Id"
       },
       "tags": [
-        "dictionary"
+        "child",
+        "quest"
       ]
     },
     {
@@ -91635,7 +92756,8 @@
         "displayName": "Created At"
       },
       "tags": [
-        "dictionary"
+        "child",
+        "quest"
       ]
     },
     {
@@ -91665,7 +92787,8 @@
         "displayName": "Created By"
       },
       "tags": [
-        "dictionary"
+        "child",
+        "quest"
       ]
     },
     {
@@ -91695,7 +92818,8 @@
         "displayName": "Updated At"
       },
       "tags": [
-        "dictionary"
+        "child",
+        "quest"
       ]
     },
     {
@@ -91725,7 +92849,8 @@
         "displayName": "Updated By"
       },
       "tags": [
-        "dictionary"
+        "child",
+        "quest"
       ]
     },
     {
@@ -91974,7 +93099,7 @@
       "caption": "quest_stage conf_item_id field",
       "self_data": {
         "fieldType": "uuid",
-        "component": "DropdownInput",
+        "component": "LookupInput",
         "required": false,
         "isSystem": false,
         "isPrimaryKey": false,
@@ -91992,6 +93117,7 @@
         "isForeignKey": true,
         "referencedTable": "conf_item",
         "referencedFieldID": "id",
+        "dataSource": "collection",
         "displayName": "Conf Item",
         "placeholder": "Enter conf item",
         "referencedFieldName": "name"
@@ -92949,7 +94075,7 @@
       "caption": "quest_user_data conf_item_id field",
       "self_data": {
         "fieldType": "uuid",
-        "component": "DropdownInput",
+        "component": "LookupInput",
         "required": false,
         "isSystem": false,
         "isPrimaryKey": false,
@@ -92967,6 +94093,7 @@
         "isForeignKey": true,
         "referencedTable": "conf_item",
         "referencedFieldID": "id",
+        "dataSource": "collection",
         "displayName": "Conf Item",
         "placeholder": "Enter conf item",
         "referencedFieldName": "name"
@@ -93199,7 +94326,10 @@
         "placeholder": "Enter cookies",
         "defaultValue": ""
       },
-      "tags": []
+      "tags": [
+        "child",
+        "raw_data"
+      ]
     },
     {
       "id": "raw_data_session_cookies_field_conf_item_id",
@@ -93211,7 +94341,7 @@
       "caption": "raw_data_session_cookies conf_item_id field",
       "self_data": {
         "fieldType": "uuid",
-        "component": "DropdownInput",
+        "component": "LookupInput",
         "required": false,
         "isSystem": false,
         "isPrimaryKey": false,
@@ -93229,11 +94359,15 @@
         "isForeignKey": true,
         "referencedTable": "conf_item",
         "referencedFieldID": "id",
+        "dataSource": "collection",
         "displayName": "Conf Item",
         "placeholder": "Enter conf item",
         "referencedFieldName": "name"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "raw_data"
+      ]
     },
     {
       "id": "raw_data_session_cookies_field_headers",
@@ -93267,7 +94401,10 @@
         "placeholder": "Enter headers",
         "defaultValue": ""
       },
-      "tags": []
+      "tags": [
+        "child",
+        "raw_data"
+      ]
     },
     {
       "id": "raw_data_session_cookies_field_domen",
@@ -93306,7 +94443,10 @@
         },
         "defaultValue": ""
       },
-      "tags": []
+      "tags": [
+        "child",
+        "raw_data"
+      ]
     },
     {
       "id": "raw_data_session_cookies_field_id",
@@ -93334,7 +94474,10 @@
         },
         "displayName": "Id"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "raw_data"
+      ]
     },
     {
       "id": "raw_data_session_cookies_field_created_at",
@@ -93362,7 +94505,10 @@
         },
         "displayName": "Created At"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "raw_data"
+      ]
     },
     {
       "id": "raw_data_session_cookies_field_created_by",
@@ -93390,7 +94536,10 @@
         },
         "displayName": "Created By"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "raw_data"
+      ]
     },
     {
       "id": "raw_data_session_cookies_field_updated_at",
@@ -93418,7 +94567,10 @@
         },
         "displayName": "Updated At"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "raw_data"
+      ]
     },
     {
       "id": "raw_data_session_cookies_field_updated_by",
@@ -93446,7 +94598,10 @@
         },
         "displayName": "Updated By"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "raw_data"
+      ]
     },
     {
       "id": "referral_field_code",
@@ -93694,10 +94849,7 @@
         "placeholder": "Enter connected breed",
         "referencedFieldName": "name"
       },
-      "tags": [
-        "child",
-        "breed"
-      ]
+      "tags": []
     },
     {
       "id": "related_breed_field_breed_id",
@@ -93732,10 +94884,7 @@
         "placeholder": "Enter breed",
         "referencedFieldName": "name"
       },
-      "tags": [
-        "child",
-        "breed"
-      ]
+      "tags": []
     },
     {
       "id": "related_breed_field_id",
@@ -93763,10 +94912,7 @@
         },
         "displayName": "Id"
       },
-      "tags": [
-        "child",
-        "breed"
-      ]
+      "tags": []
     },
     {
       "id": "related_breed_field_created_at",
@@ -93794,10 +94940,7 @@
         },
         "displayName": "Created At"
       },
-      "tags": [
-        "child",
-        "breed"
-      ]
+      "tags": []
     },
     {
       "id": "related_breed_field_created_by",
@@ -93825,10 +94968,7 @@
         },
         "displayName": "Created By"
       },
-      "tags": [
-        "child",
-        "breed"
-      ]
+      "tags": []
     },
     {
       "id": "related_breed_field_updated_at",
@@ -93856,10 +94996,7 @@
         },
         "displayName": "Updated At"
       },
-      "tags": [
-        "child",
-        "breed"
-      ]
+      "tags": []
     },
     {
       "id": "related_breed_field_updated_by",
@@ -93887,10 +95024,7 @@
         },
         "displayName": "Updated By"
       },
-      "tags": [
-        "child",
-        "breed"
-      ]
+      "tags": []
     },
     {
       "id": "relationship_field_relation_type_id",
@@ -93927,9 +95061,7 @@
         "placeholder": "Enter relation type",
         "referencedFieldName": "name"
       },
-      "tags": [
-        "dictionary"
-      ]
+      "tags": []
     },
     {
       "id": "relationship_field_reverse_relation_type_id",
@@ -93966,9 +95098,7 @@
         "placeholder": "Enter reverse relation type",
         "referencedFieldName": "name"
       },
-      "tags": [
-        "dictionary"
-      ]
+      "tags": []
     },
     {
       "id": "relationship_field_active",
@@ -94002,9 +95132,7 @@
         "placeholder": "Enter active",
         "defaultValue": "false"
       },
-      "tags": [
-        "dictionary"
-      ]
+      "tags": []
     },
     {
       "id": "relationship_field_description",
@@ -94039,9 +95167,7 @@
         },
         "defaultValue": ""
       },
-      "tags": [
-        "dictionary"
-      ]
+      "tags": []
     },
     {
       "id": "relationship_field_account_a_id",
@@ -94079,9 +95205,7 @@
         "placeholder": "Enter account a",
         "referencedFieldName": "name"
       },
-      "tags": [
-        "dictionary"
-      ]
+      "tags": []
     },
     {
       "id": "relationship_field_contact_a_id",
@@ -94119,9 +95243,7 @@
         "placeholder": "Enter contact a",
         "referencedFieldName": "name"
       },
-      "tags": [
-        "dictionary"
-      ]
+      "tags": []
     },
     {
       "id": "relationship_field_account_b_id",
@@ -94159,9 +95281,7 @@
         "placeholder": "Enter account b",
         "referencedFieldName": "name"
       },
-      "tags": [
-        "dictionary"
-      ]
+      "tags": []
     },
     {
       "id": "relationship_field_contact_b_id",
@@ -94199,9 +95319,7 @@
         "placeholder": "Enter contact b",
         "referencedFieldName": "name"
       },
-      "tags": [
-        "dictionary"
-      ]
+      "tags": []
     },
     {
       "id": "relationship_field_id",
@@ -94229,9 +95347,7 @@
         },
         "displayName": "Id"
       },
-      "tags": [
-        "dictionary"
-      ]
+      "tags": []
     },
     {
       "id": "relationship_field_created_at",
@@ -94259,9 +95375,7 @@
         },
         "displayName": "Created At"
       },
-      "tags": [
-        "dictionary"
-      ]
+      "tags": []
     },
     {
       "id": "relationship_field_created_by",
@@ -94289,9 +95403,7 @@
         },
         "displayName": "Created By"
       },
-      "tags": [
-        "dictionary"
-      ]
+      "tags": []
     },
     {
       "id": "relationship_field_updated_at",
@@ -94319,9 +95431,7 @@
         },
         "displayName": "Updated At"
       },
-      "tags": [
-        "dictionary"
-      ]
+      "tags": []
     },
     {
       "id": "relationship_field_updated_by",
@@ -94349,9 +95459,7 @@
         },
         "displayName": "Updated By"
       },
-      "tags": [
-        "dictionary"
-      ]
+      "tags": []
     },
     {
       "id": "service_engineer_field_service_item_id",
@@ -94366,7 +95474,7 @@
       "caption": "service_engineer service_item_id field",
       "self_data": {
         "fieldType": "uuid",
-        "component": "DropdownInput",
+        "component": "LookupInput",
         "required": false,
         "isSystem": false,
         "isPrimaryKey": false,
@@ -94384,6 +95492,7 @@
         "isForeignKey": true,
         "referencedTable": "service_item",
         "referencedFieldID": "id",
+        "dataSource": "collection",
         "displayName": "Service Item",
         "placeholder": "Enter service item",
         "referencedFieldName": "name"
@@ -94543,7 +95652,7 @@
       "caption": "service_in_conf_item service_item_id field",
       "self_data": {
         "fieldType": "uuid",
-        "component": "DropdownInput",
+        "component": "LookupInput",
         "required": false,
         "isSystem": false,
         "isPrimaryKey": false,
@@ -94561,6 +95670,7 @@
         "isForeignKey": true,
         "referencedTable": "service_item",
         "referencedFieldID": "id",
+        "dataSource": "collection",
         "displayName": "Service Item",
         "placeholder": "Enter service item",
         "referencedFieldName": "name"
@@ -94577,7 +95687,7 @@
       "caption": "service_in_conf_item conf_item_id field",
       "self_data": {
         "fieldType": "uuid",
-        "component": "DropdownInput",
+        "component": "LookupInput",
         "required": false,
         "isSystem": false,
         "isPrimaryKey": false,
@@ -94595,6 +95705,7 @@
         "isForeignKey": true,
         "referencedTable": "conf_item",
         "referencedFieldID": "id",
+        "dataSource": "collection",
         "displayName": "Conf Item",
         "placeholder": "Enter conf item",
         "referencedFieldName": "name"
@@ -94828,7 +95939,7 @@
       "caption": "service_in_service_pact service_item_id field",
       "self_data": {
         "fieldType": "uuid",
-        "component": "DropdownInput",
+        "component": "LookupInput",
         "required": false,
         "isSystem": false,
         "isPrimaryKey": false,
@@ -94846,6 +95957,7 @@
         "isForeignKey": true,
         "referencedTable": "service_item",
         "referencedFieldID": "id",
+        "dataSource": "collection",
         "displayName": "Service Item",
         "placeholder": "Enter service item",
         "referencedFieldName": "name"
@@ -95370,7 +96482,10 @@
         "placeholder": "Enter entity",
         "referencedFieldName": "name"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "service_pact"
+      ]
     },
     {
       "id": "service_pact_in_tag_field_id",
@@ -95398,7 +96513,10 @@
         },
         "displayName": "Id"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "service_pact"
+      ]
     },
     {
       "id": "service_pact_in_tag_field_created_at",
@@ -95426,7 +96544,10 @@
         },
         "displayName": "Created At"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "service_pact"
+      ]
     },
     {
       "id": "service_pact_in_tag_field_created_by",
@@ -95454,7 +96575,10 @@
         },
         "displayName": "Created By"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "service_pact"
+      ]
     },
     {
       "id": "service_pact_in_tag_field_updated_at",
@@ -95482,7 +96606,10 @@
         },
         "displayName": "Updated At"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "service_pact"
+      ]
     },
     {
       "id": "service_pact_in_tag_field_updated_by",
@@ -95510,7 +96637,10 @@
         },
         "displayName": "Updated By"
       },
-      "tags": []
+      "tags": [
+        "child",
+        "service_pact"
+      ]
     },
     {
       "id": "service_relationship_field_service_item_a_id",
@@ -95525,7 +96655,7 @@
       "caption": "service_relationship service_item_a_id field",
       "self_data": {
         "fieldType": "uuid",
-        "component": "DropdownInput",
+        "component": "LookupInput",
         "required": false,
         "isSystem": false,
         "isPrimaryKey": false,
@@ -95543,6 +96673,7 @@
         "isForeignKey": true,
         "referencedTable": "service_item",
         "referencedFieldID": "id",
+        "dataSource": "collection",
         "displayName": "Service Item A",
         "placeholder": "Enter service item a",
         "referencedFieldName": "name"
@@ -95562,7 +96693,7 @@
       "caption": "service_relationship service_item_b_id field",
       "self_data": {
         "fieldType": "uuid",
-        "component": "DropdownInput",
+        "component": "LookupInput",
         "required": false,
         "isSystem": false,
         "isPrimaryKey": false,
@@ -95580,6 +96711,7 @@
         "isForeignKey": true,
         "referencedTable": "service_item",
         "referencedFieldID": "id",
+        "dataSource": "collection",
         "displayName": "Service Item B",
         "placeholder": "Enter service item b",
         "referencedFieldName": "name"
@@ -95833,9 +96965,7 @@
         },
         "defaultValue": ""
       },
-      "tags": [
-        "dictionary"
-      ]
+      "tags": []
     },
     {
       "id": "time_unit_field_description",
@@ -95870,9 +97000,7 @@
         },
         "defaultValue": ""
       },
-      "tags": [
-        "dictionary"
-      ]
+      "tags": []
     },
     {
       "id": "time_unit_field_position",
@@ -95907,9 +97035,7 @@
         },
         "defaultValue": "0"
       },
-      "tags": [
-        "dictionary"
-      ]
+      "tags": []
     },
     {
       "id": "time_unit_field_code",
@@ -95944,9 +97070,7 @@
         },
         "defaultValue": ""
       },
-      "tags": [
-        "dictionary"
-      ]
+      "tags": []
     },
     {
       "id": "time_unit_field_id",
@@ -95974,9 +97098,7 @@
         },
         "displayName": "Id"
       },
-      "tags": [
-        "dictionary"
-      ]
+      "tags": []
     },
     {
       "id": "time_unit_field_created_at",
@@ -96004,9 +97126,7 @@
         },
         "displayName": "Created At"
       },
-      "tags": [
-        "dictionary"
-      ]
+      "tags": []
     },
     {
       "id": "time_unit_field_created_by",
@@ -96034,9 +97154,7 @@
         },
         "displayName": "Created By"
       },
-      "tags": [
-        "dictionary"
-      ]
+      "tags": []
     },
     {
       "id": "time_unit_field_updated_at",
@@ -96064,9 +97182,7 @@
         },
         "displayName": "Updated At"
       },
-      "tags": [
-        "dictionary"
-      ]
+      "tags": []
     },
     {
       "id": "time_unit_field_updated_by",
@@ -96094,9 +97210,7 @@
         },
         "displayName": "Updated By"
       },
-      "tags": [
-        "dictionary"
-      ]
+      "tags": []
     },
     {
       "id": "title_in_pet_field_title_id",
@@ -96133,10 +97247,7 @@
         "placeholder": "Enter title",
         "referencedFieldName": "name"
       },
-      "tags": [
-        "child",
-        "pet"
-      ]
+      "tags": []
     },
     {
       "id": "title_in_pet_field_pet_id",
@@ -96170,10 +97281,7 @@
         "placeholder": "Enter pet",
         "referencedFieldName": "name"
       },
-      "tags": [
-        "child",
-        "pet"
-      ]
+      "tags": []
     },
     {
       "id": "title_in_pet_field_is_confirmed",
@@ -96207,10 +97315,7 @@
         "placeholder": "Enter is confirmed",
         "defaultValue": "false"
       },
-      "tags": [
-        "child",
-        "pet"
-      ]
+      "tags": []
     },
     {
       "id": "title_in_pet_field_date",
@@ -96240,10 +97345,7 @@
         "displayName": "Date",
         "placeholder": "Enter date"
       },
-      "tags": [
-        "child",
-        "pet"
-      ]
+      "tags": []
     },
     {
       "id": "title_in_pet_field_country_id",
@@ -96277,10 +97379,7 @@
         "placeholder": "Enter country",
         "referencedFieldName": "name"
       },
-      "tags": [
-        "child",
-        "pet"
-      ]
+      "tags": []
     },
     {
       "id": "title_in_pet_field_description",
@@ -96315,10 +97414,7 @@
         },
         "defaultValue": ""
       },
-      "tags": [
-        "child",
-        "pet"
-      ]
+      "tags": []
     },
     {
       "id": "title_in_pet_field_amount",
@@ -96353,10 +97449,7 @@
         },
         "defaultValue": "0"
       },
-      "tags": [
-        "child",
-        "pet"
-      ]
+      "tags": []
     },
     {
       "id": "title_in_pet_field_raw_title",
@@ -96395,10 +97488,7 @@
         },
         "defaultValue": ""
       },
-      "tags": [
-        "child",
-        "pet"
-      ]
+      "tags": []
     },
     {
       "id": "title_in_pet_field_pet_breed_id",
@@ -96435,10 +97525,7 @@
         "placeholder": "Enter pet breed",
         "referencedFieldName": "name"
       },
-      "tags": [
-        "child",
-        "pet"
-      ]
+      "tags": []
     },
     {
       "id": "title_in_pet_field_id",
@@ -96466,10 +97553,7 @@
         },
         "displayName": "Id"
       },
-      "tags": [
-        "child",
-        "pet"
-      ]
+      "tags": []
     },
     {
       "id": "title_in_pet_field_created_at",
@@ -96497,10 +97581,7 @@
         },
         "displayName": "Created At"
       },
-      "tags": [
-        "child",
-        "pet"
-      ]
+      "tags": []
     },
     {
       "id": "title_in_pet_field_created_by",
@@ -96528,10 +97609,7 @@
         },
         "displayName": "Created By"
       },
-      "tags": [
-        "child",
-        "pet"
-      ]
+      "tags": []
     },
     {
       "id": "title_in_pet_field_updated_at",
@@ -96559,10 +97637,7 @@
         },
         "displayName": "Updated At"
       },
-      "tags": [
-        "child",
-        "pet"
-      ]
+      "tags": []
     },
     {
       "id": "title_in_pet_field_updated_by",
@@ -96590,10 +97665,7 @@
         },
         "displayName": "Updated By"
       },
-      "tags": [
-        "child",
-        "pet"
-      ]
+      "tags": []
     },
     {
       "id": "top_patron_in_breed_field_breed_id",
@@ -97037,7 +98109,7 @@
       },
       "tags": [
         "child",
-        "quest"
+        "user_quest"
       ]
     },
     {
@@ -97074,7 +98146,7 @@
       },
       "tags": [
         "child",
-        "quest"
+        "user_quest"
       ]
     },
     {
@@ -97090,7 +98162,7 @@
       "caption": "user_quest_stage user_quest_id field",
       "self_data": {
         "fieldType": "uuid",
-        "component": "DropdownInput",
+        "component": "LookupInput",
         "required": false,
         "isSystem": false,
         "isPrimaryKey": false,
@@ -97108,13 +98180,14 @@
         "isForeignKey": true,
         "referencedTable": "user_quest",
         "referencedFieldID": "id",
+        "dataSource": "collection",
         "displayName": "User Quest",
         "placeholder": "Enter user quest",
         "referencedFieldName": "name"
       },
       "tags": [
         "child",
-        "quest"
+        "user_quest"
       ]
     },
     {
@@ -97150,7 +98223,7 @@
       },
       "tags": [
         "child",
-        "quest"
+        "user_quest"
       ]
     },
     {
@@ -97190,7 +98263,7 @@
       },
       "tags": [
         "child",
-        "quest"
+        "user_quest"
       ]
     },
     {
@@ -97231,7 +98304,7 @@
       },
       "tags": [
         "child",
-        "quest"
+        "user_quest"
       ]
     },
     {
@@ -97269,7 +98342,7 @@
       },
       "tags": [
         "child",
-        "quest"
+        "user_quest"
       ]
     },
     {
@@ -97311,7 +98384,7 @@
       },
       "tags": [
         "child",
-        "quest"
+        "user_quest"
       ]
     },
     {
@@ -97351,7 +98424,7 @@
       },
       "tags": [
         "child",
-        "quest"
+        "user_quest"
       ]
     },
     {
@@ -97389,7 +98462,7 @@
       },
       "tags": [
         "child",
-        "quest"
+        "user_quest"
       ]
     },
     {
@@ -97420,7 +98493,7 @@
       },
       "tags": [
         "child",
-        "quest"
+        "user_quest"
       ]
     },
     {
@@ -97451,7 +98524,7 @@
       },
       "tags": [
         "child",
-        "quest"
+        "user_quest"
       ]
     },
     {
@@ -97482,7 +98555,7 @@
       },
       "tags": [
         "child",
-        "quest"
+        "user_quest"
       ]
     },
     {
@@ -97513,7 +98586,7 @@
       },
       "tags": [
         "child",
-        "quest"
+        "user_quest"
       ]
     },
     {
@@ -97544,7 +98617,7 @@
       },
       "tags": [
         "child",
-        "quest"
+        "user_quest"
       ]
     },
     {
@@ -97582,7 +98655,7 @@
       },
       "tags": [
         "child",
-        "quest"
+        "user_quest"
       ]
     },
     {
@@ -97598,7 +98671,7 @@
       "caption": "user_quest_step user_quest_id field",
       "self_data": {
         "fieldType": "uuid",
-        "component": "DropdownInput",
+        "component": "LookupInput",
         "required": false,
         "isSystem": false,
         "isPrimaryKey": false,
@@ -97616,13 +98689,14 @@
         "isForeignKey": true,
         "referencedTable": "user_quest",
         "referencedFieldID": "id",
+        "dataSource": "collection",
         "displayName": "User Quest",
         "placeholder": "Enter user quest",
         "referencedFieldName": "name"
       },
       "tags": [
         "child",
-        "quest"
+        "user_quest"
       ]
     },
     {
@@ -97656,7 +98730,7 @@
       },
       "tags": [
         "child",
-        "quest"
+        "user_quest"
       ]
     },
     {
@@ -97698,7 +98772,7 @@
       },
       "tags": [
         "child",
-        "quest"
+        "user_quest"
       ]
     },
     {
@@ -97740,7 +98814,7 @@
       },
       "tags": [
         "child",
-        "quest"
+        "user_quest"
       ]
     },
     {
@@ -97778,7 +98852,7 @@
       },
       "tags": [
         "child",
-        "quest"
+        "user_quest"
       ]
     },
     {
@@ -97814,7 +98888,7 @@
       },
       "tags": [
         "child",
-        "quest"
+        "user_quest"
       ]
     },
     {
@@ -97851,7 +98925,7 @@
       },
       "tags": [
         "child",
-        "quest"
+        "user_quest"
       ]
     },
     {
@@ -97888,7 +98962,7 @@
       },
       "tags": [
         "child",
-        "quest"
+        "user_quest"
       ]
     },
     {
@@ -97930,7 +99004,7 @@
       },
       "tags": [
         "child",
-        "quest"
+        "user_quest"
       ]
     },
     {
@@ -97961,7 +99035,7 @@
       },
       "tags": [
         "child",
-        "quest"
+        "user_quest"
       ]
     },
     {
@@ -97992,7 +99066,7 @@
       },
       "tags": [
         "child",
-        "quest"
+        "user_quest"
       ]
     },
     {
@@ -98023,7 +99097,7 @@
       },
       "tags": [
         "child",
-        "quest"
+        "user_quest"
       ]
     },
     {
@@ -98054,7 +99128,7 @@
       },
       "tags": [
         "child",
-        "quest"
+        "user_quest"
       ]
     },
     {
@@ -98085,7 +99159,7 @@
       },
       "tags": [
         "child",
-        "quest"
+        "user_quest"
       ]
     },
     {

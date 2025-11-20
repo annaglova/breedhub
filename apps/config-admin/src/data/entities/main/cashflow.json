@@ -336,7 +336,7 @@
       "id": "field_conf_item_id",
       "name": "conf_item_id",
       "fieldType": "uuid",
-      "component": "DropdownInput",
+      "component": "LookupInput",
       "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -354,6 +354,7 @@
       "isForeignKey": true,
       "referencedTable": "conf_item",
       "referencedFieldID": "id",
+      "dataSource": "collection",
       "displayName": "Conf Item",
       "placeholder": "Enter conf item",
       "referencedFieldName": "name"
@@ -516,6 +517,6 @@
     "totalFields": 21,
     "systemFields": 5,
     "customFields": 16,
-    "generatedAt": "2025-11-13T15:28:38.691Z"
+    "generatedAt": "2025-11-20T10:51:37.375Z"
   }
 }

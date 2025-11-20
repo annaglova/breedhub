@@ -9,7 +9,7 @@
       "id": "field_service_item_id",
       "name": "service_item_id",
       "fieldType": "uuid",
-      "component": "DropdownInput",
+      "component": "LookupInput",
       "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -27,6 +27,7 @@
       "isForeignKey": true,
       "referencedTable": "service_item",
       "referencedFieldID": "id",
+      "dataSource": "collection",
       "displayName": "Service Item",
       "placeholder": "Enter service item",
       "referencedFieldName": "name"
@@ -137,6 +138,6 @@
     "totalFields": 6,
     "systemFields": 5,
     "customFields": 1,
-    "generatedAt": "2025-11-13T15:30:01.984Z"
+    "generatedAt": "2025-11-20T10:52:35.467Z"
   }
 }

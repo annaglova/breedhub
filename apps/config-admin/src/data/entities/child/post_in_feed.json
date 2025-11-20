@@ -9,7 +9,7 @@
       "id": "field_feed_id",
       "name": "feed_id",
       "fieldType": "uuid",
-      "component": "DropdownInput",
+      "component": "LookupInput",
       "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -27,6 +27,7 @@
       "isForeignKey": true,
       "referencedTable": "post_feed",
       "referencedFieldID": "id",
+      "dataSource": "collection",
       "displayName": "Feed",
       "placeholder": "Enter feed",
       "referencedFieldName": "name"
@@ -187,6 +188,6 @@
     "totalFields": 8,
     "systemFields": 5,
     "customFields": 3,
-    "generatedAt": "2025-11-13T15:29:54.988Z"
+    "generatedAt": "2025-11-20T10:52:30.469Z"
   }
 }

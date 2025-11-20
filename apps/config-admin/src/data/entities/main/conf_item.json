@@ -235,7 +235,7 @@
       "id": "field_parent_conf_item_id",
       "name": "parent_conf_item_id",
       "fieldType": "uuid",
-      "component": "DropdownInput",
+      "component": "LookupInput",
       "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -253,6 +253,7 @@
       "isForeignKey": true,
       "referencedTable": "conf_item",
       "referencedFieldID": "id",
+      "dataSource": "collection",
       "displayName": "Parent Conf Item",
       "placeholder": "Enter parent conf item",
       "referencedFieldName": "name"
@@ -831,6 +832,6 @@
     "totalFields": 33,
     "systemFields": 5,
     "customFields": 28,
-    "generatedAt": "2025-11-13T15:28:43.510Z"
+    "generatedAt": "2025-11-20T10:51:40.462Z"
   }
 }

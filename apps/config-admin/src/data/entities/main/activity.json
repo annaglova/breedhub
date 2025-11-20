@@ -1210,7 +1210,7 @@
       "id": "field_conf_item_id",
       "name": "conf_item_id",
       "fieldType": "uuid",
-      "component": "DropdownInput",
+      "component": "LookupInput",
       "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -1228,6 +1228,7 @@
       "isForeignKey": true,
       "referencedTable": "conf_item",
       "referencedFieldID": "id",
+      "dataSource": "collection",
       "displayName": "Conf Item",
       "placeholder": "Enter conf item",
       "referencedFieldName": "name"
@@ -1596,7 +1597,7 @@
       "id": "field_user_quest_id",
       "name": "user_quest_id",
       "fieldType": "uuid",
-      "component": "DropdownInput",
+      "component": "LookupInput",
       "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -1614,6 +1615,7 @@
       "isForeignKey": true,
       "referencedTable": "user_quest",
       "referencedFieldID": "id",
+      "dataSource": "collection",
       "displayName": "User Quest",
       "placeholder": "Enter user quest",
       "referencedFieldName": "name"
@@ -1750,6 +1752,6 @@
     "totalFields": 70,
     "systemFields": 5,
     "customFields": 65,
-    "generatedAt": "2025-11-13T15:28:32.062Z"
+    "generatedAt": "2025-11-20T10:51:32.361Z"
   }
 }

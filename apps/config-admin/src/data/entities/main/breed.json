@@ -395,7 +395,7 @@
       "id": "field_public_data_id",
       "name": "public_data_id",
       "fieldType": "uuid",
-      "component": "DropdownInput",
+      "component": "LookupInput",
       "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -413,6 +413,7 @@
       "isForeignKey": true,
       "referencedTable": "public_data",
       "referencedFieldID": "id",
+      "dataSource": "collection",
       "displayName": "Public Data",
       "placeholder": "Enter public data",
       "referencedFieldName": "name"
@@ -485,7 +486,8 @@
       "placeholder": "Enter rating",
       "validation": {
         "precision": 24
-      }
+      },
+      "defaultValue": "0"
     },
     {
       "id": "field_support_level",
@@ -510,7 +512,8 @@
       "placeholder": "Enter support level",
       "validation": {
         "precision": 24
-      }
+      },
+      "defaultValue": "0"
     },
     {
       "id": "field_achievements",
@@ -660,6 +663,6 @@
     "totalFields": 27,
     "systemFields": 6,
     "customFields": 21,
-    "generatedAt": "2025-11-13T15:28:10.114Z"
+    "generatedAt": "2025-11-20T10:51:17.371Z"
   }
 }

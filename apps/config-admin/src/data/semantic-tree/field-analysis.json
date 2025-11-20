@@ -54711,7 +54711,7 @@
           "id": "field_conf_item_id",
           "name": "conf_item_id",
           "fieldType": "uuid",
-          "component": "DropdownInput",
+          "component": "LookupInput",
           "required": false,
           "isSystem": false,
           "isPrimaryKey": false,
@@ -54729,6 +54729,7 @@
           "isForeignKey": true,
           "referencedTable": "conf_item",
           "referencedFieldID": "id",
+          "dataSource": "collection",
           "displayName": "Conf Item",
           "placeholder": "Enter conf item",
           "referencedFieldName": "name"
@@ -54741,7 +54742,7 @@
           "id": "field_conf_item_id",
           "name": "conf_item_id",
           "fieldType": "uuid",
-          "component": "DropdownInput",
+          "component": "LookupInput",
           "required": false,
           "isSystem": false,
           "isPrimaryKey": false,
@@ -54759,6 +54760,7 @@
           "isForeignKey": true,
           "referencedTable": "conf_item",
           "referencedFieldID": "id",
+          "dataSource": "collection",
           "displayName": "Conf Item",
           "placeholder": "Enter conf item",
           "referencedFieldName": "name"
@@ -54771,7 +54773,7 @@
           "id": "field_conf_item_id",
           "name": "conf_item_id",
           "fieldType": "uuid",
-          "component": "DropdownInput",
+          "component": "LookupInput",
           "required": false,
           "isSystem": false,
           "isPrimaryKey": false,
@@ -54789,6 +54791,7 @@
           "isForeignKey": true,
           "referencedTable": "conf_item",
           "referencedFieldID": "id",
+          "dataSource": "collection",
           "displayName": "Conf Item",
           "placeholder": "Enter conf item",
           "referencedFieldName": "name"
@@ -54801,7 +54804,7 @@
           "id": "field_conf_item_id",
           "name": "conf_item_id",
           "fieldType": "uuid",
-          "component": "DropdownInput",
+          "component": "LookupInput",
           "required": false,
           "isSystem": false,
           "isPrimaryKey": false,
@@ -54819,6 +54822,7 @@
           "isForeignKey": true,
           "referencedTable": "conf_item",
           "referencedFieldID": "id",
+          "dataSource": "collection",
           "displayName": "Conf Item",
           "placeholder": "Enter conf item",
           "referencedFieldName": "name"
@@ -54831,7 +54835,7 @@
           "id": "field_conf_item_id",
           "name": "conf_item_id",
           "fieldType": "uuid",
-          "component": "DropdownInput",
+          "component": "LookupInput",
           "required": false,
           "isSystem": false,
           "isPrimaryKey": false,
@@ -54849,6 +54853,7 @@
           "isForeignKey": true,
           "referencedTable": "conf_item",
           "referencedFieldID": "id",
+          "dataSource": "collection",
           "displayName": "Conf Item",
           "placeholder": "Enter conf item",
           "referencedFieldName": "name"
@@ -54861,7 +54866,7 @@
           "id": "field_conf_item_id",
           "name": "conf_item_id",
           "fieldType": "uuid",
-          "component": "DropdownInput",
+          "component": "LookupInput",
           "required": false,
           "isSystem": false,
           "isPrimaryKey": false,
@@ -54879,6 +54884,7 @@
           "isForeignKey": true,
           "referencedTable": "conf_item",
           "referencedFieldID": "id",
+          "dataSource": "collection",
           "displayName": "Conf Item",
           "placeholder": "Enter conf item",
           "referencedFieldName": "name"
@@ -54891,7 +54897,7 @@
           "id": "field_conf_item_id",
           "name": "conf_item_id",
           "fieldType": "uuid",
-          "component": "DropdownInput",
+          "component": "LookupInput",
           "required": false,
           "isSystem": false,
           "isPrimaryKey": false,
@@ -54909,6 +54915,7 @@
           "isForeignKey": true,
           "referencedTable": "conf_item",
           "referencedFieldID": "id",
+          "dataSource": "collection",
           "displayName": "Conf Item",
           "placeholder": "Enter conf item",
           "referencedFieldName": "name"
@@ -54921,7 +54928,7 @@
           "id": "field_conf_item_id",
           "name": "conf_item_id",
           "fieldType": "uuid",
-          "component": "DropdownInput",
+          "component": "LookupInput",
           "required": false,
           "isSystem": false,
           "isPrimaryKey": false,
@@ -54939,6 +54946,7 @@
           "isForeignKey": true,
           "referencedTable": "conf_item",
           "referencedFieldID": "id",
+          "dataSource": "collection",
           "displayName": "Conf Item",
           "placeholder": "Enter conf item",
           "referencedFieldName": "name"
@@ -54951,7 +54959,7 @@
           "id": "field_conf_item_id",
           "name": "conf_item_id",
           "fieldType": "uuid",
-          "component": "DropdownInput",
+          "component": "LookupInput",
           "required": false,
           "isSystem": false,
           "isPrimaryKey": false,
@@ -54969,6 +54977,7 @@
           "isForeignKey": true,
           "referencedTable": "conf_item",
           "referencedFieldID": "id",
+          "dataSource": "collection",
           "displayName": "Conf Item",
           "placeholder": "Enter conf item",
           "referencedFieldName": "name"
@@ -54981,7 +54990,7 @@
           "id": "field_conf_item_id",
           "name": "conf_item_id",
           "fieldType": "uuid",
-          "component": "DropdownInput",
+          "component": "LookupInput",
           "required": false,
           "isSystem": false,
           "isPrimaryKey": false,
@@ -54999,6 +55008,7 @@
           "isForeignKey": true,
           "referencedTable": "conf_item",
           "referencedFieldID": "id",
+          "dataSource": "collection",
           "displayName": "Conf Item",
           "placeholder": "Enter conf item",
           "referencedFieldName": "name"
@@ -55011,7 +55021,7 @@
           "id": "field_conf_item_id",
           "name": "conf_item_id",
           "fieldType": "uuid",
-          "component": "DropdownInput",
+          "component": "LookupInput",
           "required": false,
           "isSystem": false,
           "isPrimaryKey": false,
@@ -55029,6 +55039,7 @@
           "isForeignKey": true,
           "referencedTable": "conf_item",
           "referencedFieldID": "id",
+          "dataSource": "collection",
           "displayName": "Conf Item",
           "placeholder": "Enter conf item",
           "referencedFieldName": "name"
@@ -55041,7 +55052,7 @@
           "id": "field_conf_item_id",
           "name": "conf_item_id",
           "fieldType": "uuid",
-          "component": "DropdownInput",
+          "component": "LookupInput",
           "required": false,
           "isSystem": false,
           "isPrimaryKey": false,
@@ -55059,6 +55070,7 @@
           "isForeignKey": true,
           "referencedTable": "conf_item",
           "referencedFieldID": "id",
+          "dataSource": "collection",
           "displayName": "Conf Item",
           "placeholder": "Enter conf item",
           "referencedFieldName": "name"
@@ -55067,7 +55079,7 @@
     ],
     "commonProps": {
       "fieldType": "uuid",
-      "component": "DropdownInput",
+      "component": "LookupInput",
       "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -55085,7 +55097,8 @@
       "isForeignKey": true,
       "referencedTable": "conf_item",
       "referencedFieldID": "id",
-      "referencedFieldName": "name"
+      "referencedFieldName": "name",
+      "dataSource": "collection"
     }
   },
   {
@@ -57378,7 +57391,7 @@
           "id": "field_user_quest_id",
           "name": "user_quest_id",
           "fieldType": "uuid",
-          "component": "DropdownInput",
+          "component": "LookupInput",
           "required": false,
           "isSystem": false,
           "isPrimaryKey": false,
@@ -57396,6 +57409,7 @@
           "isForeignKey": true,
           "referencedTable": "user_quest",
           "referencedFieldID": "id",
+          "dataSource": "collection",
           "displayName": "User Quest",
           "placeholder": "Enter user quest",
           "referencedFieldName": "name"
@@ -57408,7 +57422,7 @@
           "id": "field_user_quest_id",
           "name": "user_quest_id",
           "fieldType": "uuid",
-          "component": "DropdownInput",
+          "component": "LookupInput",
           "required": false,
           "isSystem": false,
           "isPrimaryKey": false,
@@ -57426,6 +57440,7 @@
           "isForeignKey": true,
           "referencedTable": "user_quest",
           "referencedFieldID": "id",
+          "dataSource": "collection",
           "displayName": "User Quest",
           "placeholder": "Enter user quest",
           "referencedFieldName": "name"
@@ -57438,7 +57453,7 @@
           "id": "field_user_quest_id",
           "name": "user_quest_id",
           "fieldType": "uuid",
-          "component": "DropdownInput",
+          "component": "LookupInput",
           "required": false,
           "isSystem": false,
           "isPrimaryKey": false,
@@ -57456,6 +57471,7 @@
           "isForeignKey": true,
           "referencedTable": "user_quest",
           "referencedFieldID": "id",
+          "dataSource": "collection",
           "displayName": "User Quest",
           "placeholder": "Enter user quest",
           "referencedFieldName": "name"
@@ -57464,7 +57480,7 @@
     ],
     "commonProps": {
       "fieldType": "uuid",
-      "component": "DropdownInput",
+      "component": "LookupInput",
       "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -59529,7 +59545,7 @@
           "id": "field_public_data_id",
           "name": "public_data_id",
           "fieldType": "uuid",
-          "component": "DropdownInput",
+          "component": "LookupInput",
           "required": false,
           "isSystem": false,
           "isPrimaryKey": false,
@@ -59547,6 +59563,7 @@
           "isForeignKey": true,
           "referencedTable": "public_data",
           "referencedFieldID": "id",
+          "dataSource": "collection",
           "displayName": "Public Data",
           "placeholder": "Enter public data",
           "referencedFieldName": "name"
@@ -59559,7 +59576,7 @@
           "id": "field_public_data_id",
           "name": "public_data_id",
           "fieldType": "uuid",
-          "component": "DropdownInput",
+          "component": "LookupInput",
           "required": false,
           "isSystem": false,
           "isPrimaryKey": false,
@@ -59577,6 +59594,7 @@
           "isForeignKey": true,
           "referencedTable": "public_data",
           "referencedFieldID": "id",
+          "dataSource": "collection",
           "displayName": "Public Data",
           "placeholder": "Enter public data",
           "referencedFieldName": "name"
@@ -59589,7 +59607,7 @@
           "id": "field_public_data_id",
           "name": "public_data_id",
           "fieldType": "uuid",
-          "component": "DropdownInput",
+          "component": "LookupInput",
           "required": false,
           "isSystem": false,
           "isPrimaryKey": false,
@@ -59607,6 +59625,7 @@
           "isForeignKey": true,
           "referencedTable": "public_data",
           "referencedFieldID": "id",
+          "dataSource": "collection",
           "displayName": "Public Data",
           "placeholder": "Enter public data",
           "referencedFieldName": "name"
@@ -59619,7 +59638,7 @@
           "id": "field_public_data_id",
           "name": "public_data_id",
           "fieldType": "uuid",
-          "component": "DropdownInput",
+          "component": "LookupInput",
           "required": false,
           "isSystem": false,
           "isPrimaryKey": false,
@@ -59637,6 +59656,7 @@
           "isForeignKey": true,
           "referencedTable": "public_data",
           "referencedFieldID": "id",
+          "dataSource": "collection",
           "displayName": "Public Data",
           "placeholder": "Enter public data",
           "referencedFieldName": "name"
@@ -59649,7 +59669,7 @@
           "id": "field_public_data_id",
           "name": "public_data_id",
           "fieldType": "uuid",
-          "component": "DropdownInput",
+          "component": "LookupInput",
           "required": false,
           "isSystem": false,
           "isPrimaryKey": false,
@@ -59667,6 +59687,7 @@
           "isForeignKey": true,
           "referencedTable": "public_data",
           "referencedFieldID": "id",
+          "dataSource": "collection",
           "displayName": "Public Data",
           "placeholder": "Enter public data",
           "referencedFieldName": "name"
@@ -59675,7 +59696,7 @@
     ],
     "commonProps": {
       "fieldType": "uuid",
-      "component": "DropdownInput",
+      "component": "LookupInput",
       "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -59732,7 +59753,8 @@
           "placeholder": "Enter rating",
           "validation": {
             "precision": 24
-          }
+          },
+          "defaultValue": "0"
         }
       },
       {
@@ -59952,7 +59974,8 @@
           "placeholder": "Enter support level",
           "validation": {
             "precision": 24
-          }
+          },
+          "defaultValue": "0"
         }
       }
     ],
@@ -64409,7 +64432,7 @@
           "id": "field_parent_conf_item_id",
           "name": "parent_conf_item_id",
           "fieldType": "uuid",
-          "component": "DropdownInput",
+          "component": "LookupInput",
           "required": false,
           "isSystem": false,
           "isPrimaryKey": false,
@@ -64427,6 +64450,7 @@
           "isForeignKey": true,
           "referencedTable": "conf_item",
           "referencedFieldID": "id",
+          "dataSource": "collection",
           "displayName": "Parent Conf Item",
           "placeholder": "Enter parent conf item",
           "referencedFieldName": "name"
@@ -75210,7 +75234,7 @@
           "id": "field_redirect_id",
           "name": "redirect_id",
           "fieldType": "uuid",
-          "component": "DropdownInput",
+          "component": "LookupInput",
           "required": false,
           "isSystem": false,
           "isPrimaryKey": false,
@@ -75228,6 +75252,7 @@
           "isForeignKey": true,
           "referencedTable": "public_data",
           "referencedFieldID": "id",
+          "dataSource": "collection",
           "displayName": "Redirect",
           "placeholder": "Enter redirect",
           "referencedFieldName": "name"
@@ -82322,7 +82347,7 @@
           "id": "field_entity_id",
           "name": "entity_id",
           "fieldType": "uuid",
-          "component": "DropdownInput",
+          "component": "LookupInput",
           "required": false,
           "isSystem": false,
           "isPrimaryKey": false,
@@ -82340,6 +82365,7 @@
           "isForeignKey": true,
           "referencedTable": "conf_item",
           "referencedFieldID": "id",
+          "dataSource": "collection",
           "displayName": "Entity",
           "placeholder": "Enter entity",
           "referencedFieldName": "name"
@@ -83675,7 +83701,7 @@
           "id": "field_conf_item_minus_id",
           "name": "conf_item_minus_id",
           "fieldType": "uuid",
-          "component": "DropdownInput",
+          "component": "LookupInput",
           "required": false,
           "isSystem": false,
           "isPrimaryKey": false,
@@ -83693,6 +83719,7 @@
           "isForeignKey": true,
           "referencedTable": "conf_item",
           "referencedFieldID": "id",
+          "dataSource": "collection",
           "displayName": "Conf Item Minus",
           "placeholder": "Enter conf item minus",
           "referencedFieldName": "name"
@@ -83716,7 +83743,7 @@
           "id": "field_conf_item_plus_id",
           "name": "conf_item_plus_id",
           "fieldType": "uuid",
-          "component": "DropdownInput",
+          "component": "LookupInput",
           "required": false,
           "isSystem": false,
           "isPrimaryKey": false,
@@ -83734,6 +83761,7 @@
           "isForeignKey": true,
           "referencedTable": "conf_item",
           "referencedFieldID": "id",
+          "dataSource": "collection",
           "displayName": "Conf Item Plus",
           "placeholder": "Enter conf item plus",
           "referencedFieldName": "name"
@@ -83917,7 +83945,7 @@
           "id": "field_conf_item_a_id",
           "name": "conf_item_a_id",
           "fieldType": "uuid",
-          "component": "DropdownInput",
+          "component": "LookupInput",
           "required": false,
           "isSystem": false,
           "isPrimaryKey": false,
@@ -83935,6 +83963,7 @@
           "isForeignKey": true,
           "referencedTable": "conf_item",
           "referencedFieldID": "id",
+          "dataSource": "collection",
           "displayName": "Conf Item A",
           "placeholder": "Enter conf item a",
           "referencedFieldName": "name"
@@ -83958,7 +83987,7 @@
           "id": "field_conf_item_b_id",
           "name": "conf_item_b_id",
           "fieldType": "uuid",
-          "component": "DropdownInput",
+          "component": "LookupInput",
           "required": false,
           "isSystem": false,
           "isPrimaryKey": false,
@@ -83976,6 +84005,7 @@
           "isForeignKey": true,
           "referencedTable": "conf_item",
           "referencedFieldID": "id",
+          "dataSource": "collection",
           "displayName": "Conf Item B",
           "placeholder": "Enter conf item b",
           "referencedFieldName": "name"
@@ -84714,7 +84744,7 @@
           "id": "field_raw_data_id",
           "name": "raw_data_id",
           "fieldType": "uuid",
-          "component": "DropdownInput",
+          "component": "LookupInput",
           "required": false,
           "isSystem": false,
           "isPrimaryKey": false,
@@ -84732,6 +84762,7 @@
           "isForeignKey": true,
           "referencedTable": "raw_data",
           "referencedFieldID": "id",
+          "dataSource": "collection",
           "displayName": "Raw Data",
           "placeholder": "Enter raw data",
           "referencedFieldName": "name"
@@ -85545,7 +85576,7 @@
           "id": "field_note_id",
           "name": "note_id",
           "fieldType": "uuid",
-          "component": "DropdownInput",
+          "component": "LookupInput",
           "required": false,
           "isSystem": false,
           "isPrimaryKey": false,
@@ -85563,6 +85594,7 @@
           "isForeignKey": true,
           "referencedTable": "note",
           "referencedFieldID": "id",
+          "dataSource": "collection",
           "displayName": "Note",
           "placeholder": "Enter note",
           "referencedFieldName": "name"
@@ -87115,7 +87147,7 @@
           "id": "field_feed_id",
           "name": "feed_id",
           "fieldType": "uuid",
-          "component": "DropdownInput",
+          "component": "LookupInput",
           "required": false,
           "isSystem": false,
           "isPrimaryKey": false,
@@ -87133,6 +87165,7 @@
           "isForeignKey": true,
           "referencedTable": "post_feed",
           "referencedFieldID": "id",
+          "dataSource": "collection",
           "displayName": "Feed",
           "placeholder": "Enter feed",
           "referencedFieldName": "name"
@@ -87145,7 +87178,7 @@
           "id": "field_feed_id",
           "name": "feed_id",
           "fieldType": "uuid",
-          "component": "DropdownInput",
+          "component": "LookupInput",
           "required": false,
           "isSystem": false,
           "isPrimaryKey": false,
@@ -87163,6 +87196,7 @@
           "isForeignKey": true,
           "referencedTable": "post_feed",
           "referencedFieldID": "id",
+          "dataSource": "collection",
           "displayName": "Feed",
           "placeholder": "Enter feed",
           "referencedFieldName": "name"
@@ -87171,7 +87205,7 @@
     ],
     "commonProps": {
       "fieldType": "uuid",
-      "component": "DropdownInput",
+      "component": "LookupInput",
       "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -88643,7 +88677,7 @@
           "id": "field_service_item_id",
           "name": "service_item_id",
           "fieldType": "uuid",
-          "component": "DropdownInput",
+          "component": "LookupInput",
           "required": false,
           "isSystem": false,
           "isPrimaryKey": false,
@@ -88661,6 +88695,7 @@
           "isForeignKey": true,
           "referencedTable": "service_item",
           "referencedFieldID": "id",
+          "dataSource": "collection",
           "displayName": "Service Item",
           "placeholder": "Enter service item",
           "referencedFieldName": "name"
@@ -88673,7 +88708,7 @@
           "id": "field_service_item_id",
           "name": "service_item_id",
           "fieldType": "uuid",
-          "component": "DropdownInput",
+          "component": "LookupInput",
           "required": false,
           "isSystem": false,
           "isPrimaryKey": false,
@@ -88691,6 +88726,7 @@
           "isForeignKey": true,
           "referencedTable": "service_item",
           "referencedFieldID": "id",
+          "dataSource": "collection",
           "displayName": "Service Item",
           "placeholder": "Enter service item",
           "referencedFieldName": "name"
@@ -88703,7 +88739,7 @@
           "id": "field_service_item_id",
           "name": "service_item_id",
           "fieldType": "uuid",
-          "component": "DropdownInput",
+          "component": "LookupInput",
           "required": false,
           "isSystem": false,
           "isPrimaryKey": false,
@@ -88721,6 +88757,7 @@
           "isForeignKey": true,
           "referencedTable": "service_item",
           "referencedFieldID": "id",
+          "dataSource": "collection",
           "displayName": "Service Item",
           "placeholder": "Enter service item",
           "referencedFieldName": "name"
@@ -88729,7 +88766,7 @@
     ],
     "commonProps": {
       "fieldType": "uuid",
-      "component": "DropdownInput",
+      "component": "LookupInput",
       "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -88845,7 +88882,7 @@
           "id": "field_service_item_a_id",
           "name": "service_item_a_id",
           "fieldType": "uuid",
-          "component": "DropdownInput",
+          "component": "LookupInput",
           "required": false,
           "isSystem": false,
           "isPrimaryKey": false,
@@ -88863,6 +88900,7 @@
           "isForeignKey": true,
           "referencedTable": "service_item",
           "referencedFieldID": "id",
+          "dataSource": "collection",
           "displayName": "Service Item A",
           "placeholder": "Enter service item a",
           "referencedFieldName": "name"
@@ -88886,7 +88924,7 @@
           "id": "field_service_item_b_id",
           "name": "service_item_b_id",
           "fieldType": "uuid",
-          "component": "DropdownInput",
+          "component": "LookupInput",
           "required": false,
           "isSystem": false,
           "isPrimaryKey": false,
@@ -88904,6 +88942,7 @@
           "isForeignKey": true,
           "referencedTable": "service_item",
           "referencedFieldID": "id",
+          "dataSource": "collection",
           "displayName": "Service Item B",
           "placeholder": "Enter service item b",
           "referencedFieldName": "name"

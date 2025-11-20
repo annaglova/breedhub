@@ -55,7 +55,7 @@
       "id": "field_user_quest_id",
       "name": "user_quest_id",
       "fieldType": "uuid",
-      "component": "DropdownInput",
+      "component": "LookupInput",
       "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -73,6 +73,7 @@
       "isForeignKey": true,
       "referencedTable": "user_quest",
       "referencedFieldID": "id",
+      "dataSource": "collection",
       "displayName": "User Quest",
       "placeholder": "Enter user quest",
       "referencedFieldName": "name"
@@ -365,6 +366,6 @@
     "totalFields": 15,
     "systemFields": 5,
     "customFields": 10,
-    "generatedAt": "2025-11-13T15:30:05.472Z"
+    "generatedAt": "2025-11-20T10:52:38.166Z"
   }
 }
