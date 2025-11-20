@@ -3,36 +3,66 @@ const path = require("path");
 const resources = require('../src/data/resourcesList.json');
 
 // Build child hierarchy from flat CHILD_RESOURCES array
-function buildChildHierarchy(childResources, mainResources) {
+function buildChildHierarchy(childResources, mainResources, entitiesDir) {
   const hierarchy = {};
 
   for (const resource of childResources) {
-    // Find parent by prefix (e.g., breed_division → breed)
+    let parentFound = false;
+
+    // Method 1: Try finding parent by prefix (e.g., breed_division → breed)
     for (const mainEntity of mainResources) {
       if (resource.startsWith(mainEntity + '_')) {
         if (!hierarchy[mainEntity]) hierarchy[mainEntity] = [];
         hierarchy[mainEntity].push(resource);
+        parentFound = true;
         break;
       }
     }
 
-    // Some child resources don't follow naming convention (e.g., litter, relationship)
-    // These are handled by entity-specific logic elsewhere
+    // Method 2: If prefix doesn't work, check foreign keys in entity JSON
+    if (!parentFound) {
+      const entityPath = path.join(entitiesDir, 'child', `${resource}.json`);
+      if (fs.existsSync(entityPath)) {
+        try {
+          const entityData = JSON.parse(fs.readFileSync(entityPath, 'utf-8'));
+
+          // Look for foreign keys referencing main entities
+          for (const field of entityData.fields || []) {
+            if (field.isForeignKey && field.referencedTable) {
+              const refTable = field.referencedTable;
+              if (mainResources.includes(refTable)) {
+                if (!hierarchy[refTable]) hierarchy[refTable] = [];
+                hierarchy[refTable].push(resource);
+                parentFound = true;
+                break;
+              }
+            }
+          }
+        } catch (err) {
+          console.warn(`Warning: Could not parse ${entityPath}: ${err.message}`);
+        }
+      }
+    }
+
+    // If still no parent found, log a warning
+    if (!parentFound) {
+      console.warn(`Warning: Could not determine parent for child resource: ${resource}`);
+    }
   }
 
   return hierarchy;
 }
 
-// Convert resourcesList.json structure to entityCategories format
-const entityCategories = {
-  main: resources.MAIN_RESOURCES || [],
-  child: buildChildHierarchy(resources.CHILD_RESOURCES || [], resources.MAIN_RESOURCES || []),
-  dictionaries: resources.LOOKUP_RESOURCES || []
-};
-
 // Directories to scan
 const ENTITY_DIR = path.join(__dirname, '../src/data/entities');
 const OUTPUT_DIR = path.join(__dirname, '../src/data/semantic-tree');
+
+// Convert resourcesList.json structure to entityCategories format
+const entityCategories = {
+  main: resources.MAIN_RESOURCES || [],
+  child: buildChildHierarchy(resources.CHILD_RESOURCES || [], resources.MAIN_RESOURCES || [], ENTITY_DIR),
+  dictionaries: resources.LOOKUP_RESOURCES || []
+};
 
 // Create output directory if not exists
 if (!fs.existsSync(OUTPUT_DIR)) {
