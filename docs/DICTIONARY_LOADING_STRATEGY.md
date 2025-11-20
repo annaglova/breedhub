@@ -1119,3 +1119,526 @@ pnpm build  # Rebuild merged config
 6. ⏳ **Server-search for large dictionaries** - deferred until edit forms implementation
 
 **The strategy is config-driven and interaction-driven.**
+
+---
+
+## 12. Virtual Dictionary Loading for Public Pages
+
+**Updated:** 2025-11-20
+
+### Problem
+
+Public pages (breed, kennel, pet) відображають read-only дані з child таблиць:
+- Breed public page → achievements, coat colors, sizes
+- Компоненти не потребують повного довідника (не форми з dropdown)
+- Показуємо тільки існуючі зв'язки (3-5 achievements, не всі 50)
+
+**Завантаження повних довідників марнотратне:**
+- ❌ Achievement довідник: 50 записів, але breed використовує тільки 3
+- ❌ Coat color довідник: 500 записів, але breed використовує тільки 5
+- ❌ City довідник: 50,000 записів, показуємо тільки kennels для цього breed
+
+### Solution: Virtual Dictionary Pattern
+
+**Ключова ідея:** Завантажувати тільки записи довідника які використовуються в child таблиці для конкретного parent.
+
+```typescript
+// ❌ Старий підхід: завантажити весь довідник
+const allAchievements = await dictionaryStore.getDictionary('achievement'); // 50 записів
+
+// ✅ Новий підхід: віртуальне завантаження
+const virtualAchievements = await dictionaryStore.loadVirtualDictionary({
+  childTable: 'achievement_in_breed',
+  parentId: breedId,
+  parentField: 'breed_id',
+  foreignKey: 'achievement_id',
+  dictionary: 'achievement'
+});
+// Результат: тільки 3 записи які дійсно використовуються
+```
+
+### Benefits
+
+- ⚡ **100x швидше**: 3 записи замість 50 (для achievement)
+- 📉 **Мінімальний трафік**: ~500 bytes замість 10KB
+- 💾 **Ефективний кеш**: кешуємо тільки те що показуємо
+- 🎯 **Точні дані**: тільки існуючі зв'язки
+
+### Implementation
+
+#### 1. DictionaryStore API Extension
+
+```typescript
+// В dictionary-store.signal-store.ts
+
+/**
+ * Virtual loading: завантажити тільки записи довідника які використовуються
+ * в child таблиці для конкретного parent
+ */
+async loadVirtualDictionary(options: {
+  childTable: string;      // achievement_in_breed
+  parentId: string;        // breed UUID
+  parentField: string;     // 'breed_id'
+  foreignKey: string;      // 'achievement_id'
+  dictionary: string;      // 'achievement'
+  idField?: string;        // default: 'id'
+  nameField?: string;      // default: 'name'
+}): Promise<DictionaryDocument[]> {
+  const {
+    childTable,
+    parentId,
+    parentField,
+    foreignKey,
+    dictionary,
+    idField = 'id',
+    nameField = 'name'
+  } = options;
+
+  console.log(`[DictionaryStore] 🎯 Virtual loading ${dictionary} via ${childTable}`);
+
+  // 1. Завантажити child records для цього parent
+  const { data: childRecords, error } = await supabase
+    .from(childTable)
+    .select(foreignKey)
+    .eq(parentField, parentId);
+
+  if (error || !childRecords || childRecords.length === 0) {
+    return [];
+  }
+
+  // 2. Витягнути унікальні IDs довідника
+  const dictionaryIds = [
+    ...new Set(
+      childRecords
+        .map(r => r[foreignKey])
+        .filter(Boolean)
+    )
+  ];
+
+  console.log(`[DictionaryStore] 📊 Found ${dictionaryIds.length} unique ${dictionary} IDs`);
+
+  // 3. Використати існуючий getDictionaryByIds (з кешем)
+  return this.getDictionaryByIds(dictionary, dictionaryIds, {
+    idField,
+    nameField
+  });
+}
+
+/**
+ * Завантажити записи довідника по конкретним IDs (з кешем)
+ */
+async getDictionaryByIds(
+  tableName: string,
+  ids: string[],
+  options: { idField?: string; nameField?: string } = {}
+): Promise<DictionaryDocument[]> {
+  const { idField = 'id', nameField = 'name' } = options;
+
+  if (ids.length === 0) return [];
+
+  // 1. Перевірити кеш
+  const cached = await this.collection!.find({
+    selector: {
+      table_name: tableName,
+      id: { $in: ids }
+    }
+  }).exec();
+
+  const cachedMap = new Map(cached.map(doc => [doc.id, doc.toJSON()]));
+
+  // 2. Визначити відсутні IDs
+  const missingIds = ids.filter(id => !cachedMap.has(id));
+
+  // 3. Завантажити тільки відсутні
+  if (missingIds.length > 0) {
+    const freshRecords = await this.fetchDictionaryRecordsByIDs(
+      tableName,
+      idField,
+      nameField,
+      missingIds
+    );
+
+    // 4. Закешувати
+    if (freshRecords.length > 0) {
+      await this.collection!.bulkInsert(freshRecords);
+    }
+
+    // 5. Об'єднати
+    return [
+      ...Array.from(cachedMap.values()),
+      ...freshRecords
+    ];
+  }
+
+  return Array.from(cachedMap.values());
+}
+```
+
+#### 2. React Hook для зручності
+
+```typescript
+// hooks/useVirtualDictionary.ts
+
+interface UseVirtualDictionaryOptions {
+  childTable: string;
+  parentId: string | null;
+  parentField: string;
+  foreignKey: string;
+  dictionary: string;
+  enabled?: boolean;  // Intersection Observer control
+}
+
+export function useVirtualDictionary(options: UseVirtualDictionaryOptions) {
+  const {
+    childTable,
+    parentId,
+    parentField,
+    foreignKey,
+    dictionary,
+    enabled = true
+  } = options;
+
+  const [data, setData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
+
+  useEffect(() => {
+    if (!enabled || !parentId) return;
+
+    const loadData = async () => {
+      setLoading(true);
+      setError(null);
+
+      try {
+        const records = await dictionaryStore.loadVirtualDictionary({
+          childTable,
+          parentId,
+          parentField,
+          foreignKey,
+          dictionary
+        });
+
+        setData(records);
+      } catch (err) {
+        console.error('Virtual dictionary loading failed:', err);
+        setError(err as Error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadData();
+  }, [enabled, parentId, childTable, parentField, foreignKey, dictionary]);
+
+  return { data, loading, error };
+}
+```
+
+#### 3. Intersection Observer для Lazy Loading
+
+```typescript
+// hooks/useIntersectionObserver.ts
+
+interface UseIntersectionObserverOptions {
+  threshold?: number;
+  rootMargin?: string;
+}
+
+export function useIntersectionObserver(
+  ref: RefObject<Element>,
+  options: UseIntersectionObserverOptions = {}
+): boolean {
+  const { threshold = 0.1, rootMargin = '100px' } = options;
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    const element = ref.current;
+    if (!element) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+          observer.disconnect(); // Один раз завантажили → відключаємо
+        }
+      },
+      { threshold, rootMargin }
+    );
+
+    observer.observe(element);
+
+    return () => observer.disconnect();
+  }, [ref, threshold, rootMargin]);
+
+  return isVisible;
+}
+```
+
+### Usage Examples
+
+#### Example 1: BreedAchievements Component
+
+```typescript
+// components/breed/BreedAchievements.tsx
+
+import { useRef } from 'react';
+import { useIntersectionObserver } from '@/hooks/useIntersectionObserver';
+import { useVirtualDictionary } from '@/hooks/useVirtualDictionary';
+
+export const BreedAchievements = ({ breedId }: { breedId: string }) => {
+  const ref = useRef<HTMLDivElement>(null);
+  const isVisible = useIntersectionObserver(ref, {
+    threshold: 0.1,
+    rootMargin: '100px'  // Почати грузити за 100px до видимості
+  });
+
+  // Віртуальне завантаження тільки коли компонент видимий
+  const { data: achievements, loading } = useVirtualDictionary({
+    childTable: 'achievement_in_breed',
+    parentId: breedId,
+    parentField: 'breed_id',
+    foreignKey: 'achievement_id',
+    dictionary: 'achievement',
+    enabled: isVisible  // Грузити тільки коли видимий!
+  });
+
+  return (
+    <div ref={ref} className="breed-achievements">
+      <h3>Achievements</h3>
+
+      {loading && <Spinner />}
+
+      {achievements.map(achievement => (
+        <AchievementBadge
+          key={achievement.id}
+          name={achievement.name}
+          icon={achievement.icon}
+        />
+      ))}
+    </div>
+  );
+};
+```
+
+**Behavior:**
+1. Компонент рендериться (off-screen) → не грузимо
+2. Користувач скролить вниз → Intersection Observer спрацьовує
+3. `isVisible = true` → завантажуємо тільки 3 achievements для цього breed
+4. Кешуємо в RxDB → повторний візит миттєвий
+
+#### Example 2: BreedCoatColors Component
+
+```typescript
+// components/breed/BreedCoatColors.tsx
+
+export const BreedCoatColors = ({ breedId }: { breedId: string }) => {
+  const ref = useRef<HTMLDivElement>(null);
+  const isVisible = useIntersectionObserver(ref);
+
+  const { data: coatColors, loading } = useVirtualDictionary({
+    childTable: 'coat_color_in_breed',
+    parentId: breedId,
+    parentField: 'breed_id',
+    foreignKey: 'coat_color_id',
+    dictionary: 'coat_color',
+    enabled: isVisible
+  });
+
+  return (
+    <div ref={ref} className="breed-coat-colors">
+      <h3>Coat Colors</h3>
+
+      {loading && <Spinner />}
+
+      <div className="color-grid">
+        {coatColors.map(color => (
+          <ColorSwatch
+            key={color.id}
+            name={color.name}
+            hex={color.hex_code}
+          />
+        ))}
+      </div>
+    </div>
+  );
+};
+```
+
+**Performance:**
+- Coat color довідник: 500 записів (~50KB)
+- Breed використовує: 5 кольорів (~500 bytes)
+- **Економія: 100x менше даних!** 🚀
+
+#### Example 3: Multiple Virtual Dictionaries
+
+```typescript
+// components/breed/BreedPublicPage.tsx
+
+export const BreedPublicPage = ({ breedId }: { breedId: string }) => {
+  return (
+    <div className="breed-public-page">
+      <BreedHeader breedId={breedId} />
+
+      {/* Кожен компонент грузить свій довідник коли стає видимим */}
+      <BreedAchievements breedId={breedId} />
+      <BreedCoatColors breedId={breedId} />
+      <BreedSizes breedId={breedId} />
+      <BreedBodyFeatures breedId={breedId} />
+
+      {/* Всього завантажено: ~20-30 записів замість ~1000 */}
+    </div>
+  );
+};
+```
+
+### Performance Comparison
+
+#### Before Virtual Loading (Full Dictionaries):
+```
+Breed Public Page:
+- achievement (50 records × 200 bytes) = 10KB
+- coat_color (500 records × 150 bytes) = 75KB
+- pet_size (30 records × 100 bytes) = 3KB
+- body_feature (100 records × 150 bytes) = 15KB
+Total: ~103KB, ~680 records
+```
+
+#### After Virtual Loading:
+```
+Breed Public Page:
+- achievement (3 records × 200 bytes) = 600 bytes
+- coat_color (5 records × 150 bytes) = 750 bytes
+- pet_size (3 records × 100 bytes) = 300 bytes
+- body_feature (4 records × 150 bytes) = 600 bytes
+Total: ~2.2KB, ~15 records
+```
+
+**Result: 50x less data, 45x fewer records!** ⚡
+
+### When to Use Virtual Loading
+
+#### ✅ Use Virtual Loading:
+- Public pages (breed, kennel, pet)
+- Read-only components (badges, lists, galleries)
+- Child table data (achievements, colors, sizes)
+- Компоненти з Intersection Observer
+
+#### ❌ Don't Use Virtual Loading:
+- Edit forms з dropdown (потрібен повний список для вибору)
+- Filters (користувач має бачити всі опції)
+- Search/autocomplete (потрібні всі results)
+- Admin panels з full CRUD
+
+### Strategy by Component Type
+
+| Component Type | Strategy | Loading | Example |
+|---|---|---|---|
+| Public Page | Virtual + Lazy | Intersection Observer | BreedAchievements |
+| Edit Form | Full Dictionary | On-demand | BreedEditForm |
+| Dropdown | Full Dictionary | On-open | DropdownInput |
+| Lookup | ID-First Pagination | On-search | LookupInput |
+| Filter | Full Dictionary | On-mount | FilterPanel |
+
+### Integration with Existing Patterns
+
+Virtual Loading доповнює існуючі стратегії:
+
+1. **ID-First Pagination** (main entities)
+   - Для breed, pet, account lists
+   - Завантажує IDs → перевіряє кеш → грузить missing
+
+2. **On-Demand Loading** (dictionaries)
+   - Для dropdown controls
+   - Завантажує повний довідник коли користувач відкриває dropdown
+
+3. **Virtual Loading** (public pages) ← NEW!
+   - Для read-only components
+   - Завантажує тільки використовувані записи
+
+### Caching Strategy
+
+Virtual Loading використовує той самий universal dictionaries collection:
+
+```typescript
+{
+  composite_id: "achievement::uuid-123",
+  table_name: "achievement",
+  id: "uuid-123",
+  name: "Bronze Supporter",
+  cachedAt: 1700000000000
+}
+```
+
+**Cache Behavior:**
+1. Перший візит breed page → завантажити 3 achievements → закешувати
+2. Другий візит → RxDB cache hit (100%) → миттєво
+3. Інший breed → завантажити його achievements → закешувати
+4. Поступово кеш наповнюється найпопулярнішими записами
+5. TTL 14 днів → автоматичне очищення старих записів
+
+**Benefits:**
+- 💾 Intelligent partial cache (популярні records кешуються природньо)
+- ⚡ Progressive performance improvement (cache hit rate росте)
+- 🎯 Тільки потрібні дані (не марнуємо пам'ять на unused records)
+
+### Implementation Priority
+
+#### Phase 1: DictionaryStore API (1-2 days)
+- [ ] Add `loadVirtualDictionary()` method
+- [ ] Add `getDictionaryByIds()` method
+- [ ] Write unit tests
+- [ ] Update documentation
+
+#### Phase 2: React Hooks (1 day)
+- [ ] Create `useVirtualDictionary` hook
+- [ ] Create `useIntersectionObserver` hook
+- [ ] Add TypeScript types
+- [ ] Write usage examples
+
+#### Phase 3: Breed Public Page (2-3 days)
+- [ ] Migrate `BreedAchievements` component
+- [ ] Migrate `BreedCoatColors` component
+- [ ] Migrate `BreedSizes` component
+- [ ] Migrate `BreedBodyFeatures` component
+- [ ] Measure performance improvement
+
+#### Phase 4: Other Public Pages (1 week)
+- [ ] Kennel public page
+- [ ] Pet public page
+- [ ] Contact public page
+- [ ] Event public page
+
+### Monitoring & Metrics
+
+Track performance improvement:
+
+```typescript
+// Before
+console.time('Full Dictionary Load');
+const data = await dictionaryStore.getDictionary('coat_color'); // 500 records
+console.timeEnd('Full Dictionary Load'); // ~500ms
+
+// After
+console.time('Virtual Dictionary Load');
+const data = await dictionaryStore.loadVirtualDictionary({...}); // 5 records
+console.timeEnd('Virtual Dictionary Load'); // ~50ms
+```
+
+**Expected metrics:**
+- Load time: 10x faster (500ms → 50ms)
+- Data size: 100x smaller (75KB → 750 bytes)
+- Cache hit rate: grows from 0% to 80-90%
+- Network requests: 50% fewer (after cache warmup)
+
+### Conclusion
+
+Virtual Dictionary Loading:
+- ⚡ Миттєвий старт public pages (0 dictionaries при завантаженні)
+- 📉 Мінімальний трафік (тільки потрібні records)
+- 💾 Розумний кеш (популярні records природньо кешуються)
+- 🎯 Component-driven (кожен компонент грузить тільки своє)
+- 📱 Мобільна оптимізація (Intersection Observer)
+
+**Ключовий принцип: завантажуй тільки те що показуєш, коли показуєш.**
+
+---
