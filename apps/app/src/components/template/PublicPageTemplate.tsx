@@ -1,13 +1,9 @@
 import { useCoverDimensions } from "@/hooks/useCoverDimensions";
 import { cn } from "@ui/lib/utils";
 import { useRef, useState, useEffect } from "react";
-import { TabsContainer, Tab } from "../tabs/TabsContainer";
-import { BreedAchievementsTab } from "../breed/tabs/BreedAchievementsTab";
-import { PageMenu } from "../tabs/PageMenu";
-import { useTabNavigation } from "@/hooks/useTabNavigation";
-import { Icon } from "@/components/shared/Icon";
 import { getPageConfig } from "@/utils/getPageConfig";
 import { BlockRenderer } from "@/components/blocks/BlockRenderer";
+import { TabOutletRenderer } from "@/components/blocks/TabOutletRenderer";
 import type { PageType } from "@/types/page-config.types";
 import { spaceStore } from "@breedhub/rxdb-store";
 import { useSignals } from "@preact/signals-react/runtime";
@@ -71,7 +67,6 @@ export function PublicPageTemplate({
   // Ref to content container for cover dimension calculation
   const contentContainerRef = useRef<HTMLDivElement>(null);
   const nameContainerRef = useRef<HTMLDivElement>(null);
-  const pageMenuRef = useRef<HTMLDivElement>(null);
 
   // Calculate cover dimensions based on content container width
   const coverDimensions = useCoverDimensions(contentContainerRef);
@@ -79,12 +74,11 @@ export function PublicPageTemplate({
   // Track if name container is stuck to top
   const [nameOnTop, setNameOnTop] = useState(false);
   const [nameBlockHeight, setNameBlockHeight] = useState(0);
-  const [pageMenuHeight, setPageMenuHeight] = useState(0);
 
   // Constants for sticky positioning
-  const NAME_CONTAINER_TOP = 0;
+  // PageMenu height is calculated inside TabOutletRenderer
   const PAGE_MENU_TOP = nameBlockHeight > 0 ? nameBlockHeight : 0;
-  const TAB_HEADER_TOP = nameOnTop ? nameBlockHeight + pageMenuHeight : pageMenuHeight;
+  const TAB_HEADER_TOP = nameOnTop ? nameBlockHeight : 0;
 
 
   useEffect(() => {
@@ -138,22 +132,7 @@ export function PublicPageTemplate({
     return () => resizeObserver.disconnect();
   }, []);
 
-  // Track PageMenu height
-  useEffect(() => {
-    if (!pageMenuRef.current) return;
-
-    const resizeObserver = new ResizeObserver((entries) => {
-      const entry = entries[0];
-      if (entry) {
-        setPageMenuHeight(entry.contentRect.height);
-      }
-    });
-
-    resizeObserver.observe(pageMenuRef.current);
-    return () => resizeObserver.disconnect();
-  }, []);
-
-
+  // TODO: mockBreed can be removed when entity data is fully dynamic
   const mockBreed = {
     Id: "mock-breed-1",
     Name: "German Shepherd",
@@ -222,195 +201,6 @@ export function PublicPageTemplate({
     //   },
     // ],
   };
-
-  // MOCK DATA for tabs - 6 test tabs with content
-  const mockTabs: Tab[] = [
-    {
-      id: "achievements",
-      fragment: "achievements",
-      label: "Breed achievements",
-      icon: { name: "CheckCircle", source: "lucide" },
-      component: () => (
-        <div className="mt-3 px-6 space-y-4">
-          <p className="text-lg font-semibold">Achievement History</p>
-          {Array.from({ length: 8 }).map((_, i) => (
-            <div key={i} className="p-4 border border-border rounded-lg">
-              <h3 className="font-semibold text-lg">Achievement {i + 1}</h3>
-              <p className="text-primary font-bold">${(i + 1) * 1000}</p>
-              <p className="text-sm text-muted-foreground mt-2">
-                Achievement description for item {i + 1}. Lorem ipsum dolor sit amet.
-              </p>
-            </div>
-          ))}
-        </div>
-      ),
-    },
-    {
-      id: "patrons",
-      fragment: "patrons",
-      label: "Patrons",
-      icon: { name: "Heart", source: "lucide" },
-      component: () => (
-        <div className="mt-3 px-6 space-y-3">
-          <p className="text-lg font-semibold">Top Patrons List</p>
-          {Array.from({ length: 15 }).map((_, i) => (
-            <div key={i} className="flex items-center gap-3 p-3 border border-border rounded-lg">
-              <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center">
-                {i + 1}
-              </div>
-              <div>
-                <p className="font-semibold">Patron Name {i + 1}</p>
-                <p className="text-sm text-muted-foreground">Rating: {100 - i * 5}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      ),
-    },
-    {
-      id: "moments",
-      fragment: "moments",
-      label: "Moments",
-      icon: { name: "Image", source: "lucide" },
-      component: () => (
-        <div className="mt-3 px-6">
-          <p className="text-lg font-semibold mb-4">Photo Gallery</p>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            {Array.from({ length: 12 }).map((_, i) => (
-              <div
-                key={i}
-                className="aspect-square bg-gradient-to-br from-primary/20 to-primary/5 rounded-lg flex items-center justify-center"
-              >
-                <Icon icon={{ name: "Image", source: "lucide" }} size={32} className="text-primary/40" />
-              </div>
-            ))}
-          </div>
-        </div>
-      ),
-    },
-    {
-      id: "kennels",
-      fragment: "kennels",
-      label: "Top Kennels",
-      icon: { name: "Heart", source: "lucide" },
-      component: () => (
-        <div className="mt-3 px-6 space-y-4">
-          <p className="text-lg font-semibold">Featured Kennels</p>
-          {Array.from({ length: 10 }).map((_, i) => (
-            <div key={i} className="p-4 border border-border rounded-lg">
-              <h3 className="font-semibold">Kennel Name {i + 1}</h3>
-              <p className="text-sm text-muted-foreground mt-1">
-                Location: City {i + 1}, Country
-              </p>
-              <p className="text-sm text-primary mt-2">
-                Established: {2000 + i} • Dogs: {(i + 1) * 10}
-              </p>
-            </div>
-          ))}
-        </div>
-      ),
-    },
-    {
-      id: "pets",
-      fragment: "pets",
-      label: "Top Pets",
-      icon: { name: "CheckCircle", source: "lucide" },
-      component: () => (
-        <div className="mt-3 px-6 space-y-3">
-          <p className="text-lg font-semibold">Champion Pets</p>
-          {Array.from({ length: 12 }).map((_, i) => (
-            <div key={i} className="flex items-center gap-4 p-3 border border-border rounded-lg">
-              <div className="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center">
-                🐕
-              </div>
-              <div className="flex-1">
-                <p className="font-semibold">Pet Name {i + 1}</p>
-                <p className="text-sm text-muted-foreground">
-                  Title: Champion • Age: {i + 2} years
-                </p>
-              </div>
-              <div className="text-right">
-                <p className="text-primary font-bold">#{i + 1}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      ),
-    },
-    {
-      id: "statistics",
-      fragment: "statistics",
-      label: "Statistics",
-      icon: { name: "Image", source: "lucide" },
-      component: () => (
-        <div className="mt-3 px-6 space-y-6">
-          <p className="text-lg font-semibold">Breed Statistics</p>
-          {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="space-y-2">
-              <div className="flex justify-between">
-                <span className="font-medium">Metric {i + 1}</span>
-                <span className="text-primary font-bold">{(i + 1) * 123}</span>
-              </div>
-              <div className="h-3 bg-surface-100 rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-primary rounded-full"
-                  style={{ width: `${(i + 1) * 15}%` }}
-                />
-              </div>
-              <p className="text-sm text-muted-foreground">
-                Description for metric {i + 1}. Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-              </p>
-            </div>
-          ))}
-        </div>
-      ),
-    },
-    {
-      id: "health",
-      fragment: "health",
-      label: "Health Info",
-      icon: { name: "CheckCircle", source: "lucide" },
-      component: () => (
-        <div className="mt-3 px-6 space-y-4">
-          <p className="text-lg font-semibold">Health & Genetics</p>
-          {Array.from({ length: 8 }).map((_, i) => (
-            <div key={i} className="p-4 border border-border rounded-lg">
-              <h3 className="font-semibold text-lg">Health Topic {i + 1}</h3>
-              <p className="text-sm text-muted-foreground mt-2">
-                Information about health topic {i + 1}. Important genetic and health considerations for this breed.
-              </p>
-            </div>
-          ))}
-        </div>
-      ),
-    },
-    {
-      id: "training",
-      fragment: "training",
-      label: "Training Tips",
-      icon: { name: "Heart", source: "lucide" },
-      component: () => (
-        <div className="mt-3 px-6 space-y-4">
-          <p className="text-lg font-semibold">Training & Behavior</p>
-          {Array.from({ length: 10 }).map((_, i) => (
-            <div key={i} className="p-4 border border-border rounded-lg">
-              <h3 className="font-semibold text-lg">Training Tip {i + 1}</h3>
-              <p className="text-sm text-muted-foreground mt-2">
-                Detailed training advice for topic {i + 1}. Best practices and behavioral insights.
-              </p>
-            </div>
-          ))}
-        </div>
-      ),
-    },
-  ];
-
-  // Tab navigation hook
-  const { activeTab, handleTabChange, handleVisibilityChange } =
-    useTabNavigation({
-      tabs: mockTabs,
-      mode: "scroll",
-    });
 
   return spaceConfigSignal ? (
     <SpaceProvider
@@ -513,6 +303,24 @@ export function PublicPageTemplate({
                 );
               }
 
+              // TabOutlet - Dynamic tabs from config
+              if (blockConfig.outlet === 'TabOutlet') {
+                // blockConfig.tabs contains the tabs configuration from database
+                const tabsConfig = (blockConfig as any).tabs;
+                if (!tabsConfig) {
+                  console.warn('[TabOutlet] No tabs config found in block:', blockConfig);
+                  return null;
+                }
+                return (
+                  <TabOutletRenderer
+                    key={blockId}
+                    tabsConfig={tabsConfig}
+                    pageMenuTop={PAGE_MENU_TOP}
+                    tabHeaderTop={TAB_HEADER_TOP}
+                  />
+                );
+              }
+
               // Default: simple wrapper with margin
               return (
                 <BlockRenderer
@@ -526,30 +334,6 @@ export function PublicPageTemplate({
               );
             });
           })()}
-
-          {/* PageMenu - Sticky horizontal tab bar */}
-          <div
-            ref={pageMenuRef}
-            className="sticky z-30 mb-6 -mt-px"
-            style={{ top: `${PAGE_MENU_TOP}px` }}
-          >
-            <PageMenu
-              tabs={mockTabs}
-              activeTab={activeTab}
-              onTabChange={handleTabChange}
-              mode="scroll"
-            />
-          </div>
-
-          {/* Tabs Section - Scroll mode with all tabs rendered */}
-          <TabsContainer
-            tabs={mockTabs}
-            mode="scroll"
-            activeTab={activeTab}
-            onTabChange={handleTabChange}
-            onVisibilityChange={handleVisibilityChange}
-            tabHeaderTop={TAB_HEADER_TOP}
-          />
         </div>
       </div>
     </div>
