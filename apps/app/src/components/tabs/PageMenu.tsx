@@ -266,8 +266,8 @@ function TabButton({ tab, isActive, onClick, onResize }: TabButtonProps) {
         )}
       >
         {/* Icon */}
-        <div className="mr-1 flex-shrink-0">
-          <Icon icon={tab.icon} size={20} />
+        <div className="mr-1.5 flex-shrink-0">
+          <Icon icon={tab.icon} size={18} />
         </div>
 
         {/* Label */}

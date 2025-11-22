@@ -45,8 +45,8 @@ export function TabHeader({
           )}
         >
           {/* Icon */}
-          <div className="mr-2 flex-shrink-0">
-            <Icon icon={icon} size={24} />
+          <div className="mr-2.5 flex-shrink-0">
+            <Icon icon={icon} size={20} />
           </div>
 
           {/* Label */}
