@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect, useMemo } from "react";
+import { useRef, useState, useEffect, useMemo, useCallback } from "react";
 import { TabsContainer, Tab } from "../tabs/TabsContainer";
 import { PageMenu } from "../tabs/PageMenu";
 import { useTabNavigation } from "@/hooks/useTabNavigation";
@@ -90,9 +90,28 @@ export function TabOutletRenderer({
   onPageMenuRef,
 }: TabOutletRendererProps) {
   const pageMenuRef = useRef<HTMLDivElement>(null);
+  const [pageMenuHeight, setPageMenuHeight] = useState(0);
 
   // Convert config to tabs array
   const tabs = useMemo(() => convertTabConfigToTabs(tabsConfig), [tabsConfig]);
+
+  // Track PageMenu height for TabHeader positioning
+  useEffect(() => {
+    if (!pageMenuRef.current) return;
+
+    const resizeObserver = new ResizeObserver((entries) => {
+      const entry = entries[0];
+      if (entry) {
+        setPageMenuHeight(entry.contentRect.height);
+      }
+    });
+
+    resizeObserver.observe(pageMenuRef.current);
+    return () => resizeObserver.disconnect();
+  }, []);
+
+  // Calculate actual TabHeader top position (under PageMenu)
+  const actualTabHeaderTop = pageMenuTop + pageMenuHeight;
 
   // Get default tab from config (respects isDefault: true)
   const defaultTab = useMemo(() => getDefaultTabFragment(tabsConfig), [tabsConfig]);
@@ -154,7 +173,7 @@ export function TabOutletRenderer({
         activeTab={activeTab}
         onTabChange={handleTabChange}
         onVisibilityChange={handleVisibilityChange}
-        tabHeaderTop={tabHeaderTop}
+        tabHeaderTop={actualTabHeaderTop}
       />
     </>
   );
