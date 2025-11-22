@@ -1,7 +1,7 @@
 "use client";
 
 import { cva, type VariantProps } from "class-variance-authority";
-import { Star, Syringe, Heart, Award, Info } from "lucide-react";
+import { Award, Heart, Info, Star, Syringe } from "lucide-react";
 import * as React from "react";
 
 import { cn } from "@ui/lib/utils";
@@ -271,7 +271,10 @@ const TimelineTitle = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <h3
     ref={ref}
-    className={cn("font-semibold leading-none tracking-tight", className)}
+    className={cn(
+      "text-xl font-semibold leading-none tracking-tight",
+      className
+    )}
     {...props}
   />
 ));
@@ -281,11 +284,7 @@ const TimelineDescription = React.forwardRef<
   HTMLParagraphElement,
   React.HTMLAttributes<HTMLParagraphElement>
 >(({ className, ...props }, ref) => (
-  <p
-    ref={ref}
-    className={cn("text-sm text-muted-foreground", className)}
-    {...props}
-  />
+  <p ref={ref} className={cn("text-base", className)} {...props} />
 ));
 TimelineDescription.displayName = "TimelineDescription";
 
@@ -295,7 +294,7 @@ const TimelineTime = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <time
     ref={ref}
-    className={cn("text-xs font-medium text-muted-foreground", className)}
+    className={cn("text-base italic text-secondary-500", className)}
     {...props}
   />
 ));
