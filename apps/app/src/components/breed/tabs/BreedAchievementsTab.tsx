@@ -1,12 +1,5 @@
+import { AlternatingTimeline } from "@ui/components/timeline";
 import { Check } from "lucide-react";
-import {
-  AlternatingTimeline,
-  TimelineCard,
-  TimelineContent,
-  TimelineTitle,
-  TimelineDescription,
-  TimelineTime,
-} from "@ui/components/timeline";
 
 /**
  * Achievement data structure
@@ -26,7 +19,8 @@ const MOCK_ACHIEVEMENTS: Achievement[] = [
   {
     id: "1",
     name: "Diamond Patron",
-    description: "Elite supporter level - maximum contribution to breed development and health research",
+    description:
+      "Elite supporter level - maximum contribution to breed development and health research",
     intValue: 10000,
     date: undefined,
     active: false,
@@ -34,7 +28,8 @@ const MOCK_ACHIEVEMENTS: Achievement[] = [
   {
     id: "2",
     name: "Platinum Patron",
-    description: "Premium supporter level with exclusive access to breeding insights and health data",
+    description:
+      "Premium supporter level with exclusive access to breeding insights and health data",
     intValue: 5000,
     date: undefined,
     active: false,
@@ -42,7 +37,8 @@ const MOCK_ACHIEVEMENTS: Achievement[] = [
   {
     id: "3",
     name: "Gold Patron",
-    description: "Advanced supporter level - contributes to breed health initiatives and education",
+    description:
+      "Advanced supporter level - contributes to breed health initiatives and education",
     intValue: 2500,
     date: "2024-08-15",
     active: true,
@@ -50,7 +46,8 @@ const MOCK_ACHIEVEMENTS: Achievement[] = [
   {
     id: "4",
     name: "Silver Patron",
-    description: "Intermediate supporter level - helps maintain breed registry and standards",
+    description:
+      "Intermediate supporter level - helps maintain breed registry and standards",
     intValue: 1000,
     date: "2024-03-22",
     active: true,
@@ -58,7 +55,8 @@ const MOCK_ACHIEVEMENTS: Achievement[] = [
   {
     id: "5",
     name: "Bronze Patron",
-    description: "Entry supporter level - supports basic breed community operations",
+    description:
+      "Entry supporter level - supports basic breed community operations",
     intValue: 500,
     date: "2023-11-10",
     active: true,
@@ -119,7 +117,7 @@ export function BreedAchievementsTab() {
     icon: achievement.active ? <Check className="h-4 w-4" /> : undefined,
     variant: achievement.active ? ("success" as const) : ("inactive" as const),
     content: (
-      <div className="mt-2">
+      <div className="">
         <span className="text-xl font-bold text-primary">
           {formatCurrency(achievement.intValue)}
         </span>
