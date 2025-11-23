@@ -25,8 +25,8 @@ import type { RxJsonSchema } from 'rxdb';
 export interface BreedChildrenDocument {
   // Meta fields for table identification
   id: string;
-  _table_type: 'achievement_in_breed' | 'breed_division' | 'breed_in_kennel' | 'coat_color_in_breed' | 'coat_type_in_breed' | 'pet_size_in_breed' | 'body_feature_in_breed' | 'health_exam_object_in_breed' | 'measurement_type_in_breed' | 'payment_in_breed' | 'top_patron_in_breed' | 'top_pet_in_breed' | 'related_breed' | 'breed_synonym' | 'breed_forecast' | 'breed_in_contact' | 'breed_in_account';
-  _parent_id: string;  // breed_id reference
+  tableType: 'achievement_in_breed' | 'breed_division' | 'breed_in_kennel' | 'coat_color_in_breed' | 'coat_type_in_breed' | 'pet_size_in_breed' | 'body_feature_in_breed' | 'health_exam_object_in_breed' | 'measurement_type_in_breed' | 'payment_in_breed' | 'top_patron_in_breed' | 'top_pet_in_breed' | 'related_breed' | 'breed_synonym' | 'breed_forecast' | 'breed_in_contact' | 'breed_in_account';
+  parentId: string;  // breed_id reference
 
   // System fields (common for all tables)
   created_at?: string;
@@ -122,8 +122,8 @@ export const breedChildrenSchema: RxJsonSchema<BreedChildrenDocument> = {
       maxLength: 36
     },
 
-    // Meta fields
-    _table_type: {
+    // Meta fields (camelCase required by RxDB - no leading underscores)
+    tableType: {
       type: 'string',
       enum: [
         'achievement_in_breed',
@@ -146,7 +146,7 @@ export const breedChildrenSchema: RxJsonSchema<BreedChildrenDocument> = {
       ],
       maxLength: 50
     },
-    _parent_id: {
+    parentId: {
       type: 'string',
       maxLength: 36
     },
@@ -203,21 +203,9 @@ export const breedChildrenSchema: RxJsonSchema<BreedChildrenDocument> = {
     status: { type: 'string', maxLength: 50 },
     order: { type: 'number' }
   },
-  required: ['id', '_table_type', '_parent_id'],
+  required: ['id', 'tableType', 'parentId'],
   indexes: [
     // Composite index for querying child records by parent and table type
-    ['_parent_id', '_table_type'],
-
-    // Index for querying by table type only
-    '_table_type',
-
-    // Index for date-based queries (achievements, payments, forecasts)
-    'date',
-    'payment_date',
-    'forecast_date',
-
-    // Index for system fields
-    'created_at',
-    'updated_at'
+    ['parentId', 'tableType']
   ]
 };

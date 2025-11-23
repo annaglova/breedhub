@@ -1,5 +1,9 @@
+import { useEffect, useState, useMemo } from "react";
 import { AlternatingTimeline } from "@ui/components/timeline";
-import { Check } from "lucide-react";
+import { Check, Loader2 } from "lucide-react";
+import { useSelectedEntity } from "@/contexts/SpaceContext";
+import { useChildRecords } from "@/hooks/useChildRecords";
+import { supabase } from "@breedhub/rxdb-store";
 
 /**
  * Achievement data structure
@@ -14,62 +18,26 @@ interface Achievement {
   active: boolean; // Whether this level has been reached
 }
 
-// Mock data - will be replaced with real data from achievement_in_breed + achievement dictionary
-const MOCK_ACHIEVEMENTS: Achievement[] = [
-  {
-    id: "1",
-    name: "Diamond Patron",
-    description:
-      "Elite supporter level - maximum contribution to breed development and health research",
-    intValue: 10000,
-    date: undefined,
-    active: false,
-  },
-  {
-    id: "2",
-    name: "Platinum Patron",
-    description:
-      "Premium supporter level with exclusive access to breeding insights and health data",
-    intValue: 5000,
-    date: undefined,
-    active: false,
-  },
-  {
-    id: "3",
-    name: "Gold Patron",
-    description:
-      "Advanced supporter level - contributes to breed health initiatives and education",
-    intValue: 2500,
-    date: "2024-08-15",
-    active: true,
-  },
-  {
-    id: "4",
-    name: "Silver Patron",
-    description:
-      "Intermediate supporter level - helps maintain breed registry and standards",
-    intValue: 1000,
-    date: "2024-03-22",
-    active: true,
-  },
-  {
-    id: "5",
-    name: "Bronze Patron",
-    description:
-      "Entry supporter level - supports basic breed community operations",
-    intValue: 500,
-    date: "2023-11-10",
-    active: true,
-  },
-  {
-    id: "6",
-    name: "Breed Supporter",
-    description: "Foundation level - welcome to the breed community!",
-    intValue: 100,
-    date: "2023-06-01",
-    active: true,
-  },
-];
+/**
+ * Achievement dictionary entry from Supabase
+ */
+interface AchievementDictionary {
+  id: string;
+  name: string;
+  description: string;
+  int_value: number;
+  position: number;
+}
+
+/**
+ * Achievement in breed record from child table
+ */
+interface AchievementInBreed {
+  id: string;
+  achievement_id: string;
+  breed_id: string;
+  date: string;
+}
 
 /**
  * Format currency value
@@ -102,14 +70,119 @@ function formatDate(dateString: string): string {
  *
  * REFERENCE: /Users/annaglova/projects/org/.../breed-support-levels.component.ts
  *
- * Data flow (future):
- * 1. Load achievement_in_breed records for current breed
- * 2. Load achievement dictionary (virtual loading - only used achievements)
- * 3. Merge and display in timeline
+ * Data flow:
+ * 1. Load achievement_in_breed records for current breed (via useChildRecords)
+ * 2. Load achievement dictionary from Supabase
+ * 3. Merge and display in timeline (all levels, with achieved dates marked)
  */
 export function BreedAchievementsTab() {
-  // Convert mock achievements to timeline items format
-  const timelineItems = MOCK_ACHIEVEMENTS.map((achievement) => ({
+  const selectedEntity = useSelectedEntity();
+  const breedId = selectedEntity?.id;
+
+  // Load achievement_in_breed records for this breed
+  const {
+    data: achievementsInBreed,
+    isLoading: isLoadingChildren,
+    error: childrenError
+  } = useChildRecords<AchievementInBreed>({
+    parentId: breedId,
+    tableType: 'achievement_in_breed',
+    orderBy: 'date',
+    orderDirection: 'desc'
+  });
+
+  // Load achievement dictionary
+  const [achievementDict, setAchievementDict] = useState<AchievementDictionary[]>([]);
+  const [isLoadingDict, setIsLoadingDict] = useState(true);
+
+  useEffect(() => {
+    async function loadDictionary() {
+      try {
+        const { data, error } = await supabase
+          .from('achievement')
+          .select('id, name, description, int_value, position')
+          .order('position', { ascending: true });
+
+        if (error) {
+          console.error('[BreedAchievementsTab] Failed to load achievement dictionary:', error);
+          return;
+        }
+
+        setAchievementDict(data || []);
+      } catch (err) {
+        console.error('[BreedAchievementsTab] Error loading dictionary:', err);
+      } finally {
+        setIsLoadingDict(false);
+      }
+    }
+
+    loadDictionary();
+  }, []);
+
+  // Merge achievement dictionary with breed's achievements
+  const achievements = useMemo<Achievement[]>(() => {
+    if (!achievementDict.length) return [];
+
+    // Create a map of achieved achievements by achievement_id
+    const achievedMap = new Map<string, AchievementInBreed>();
+    achievementsInBreed.forEach(record => {
+      achievedMap.set(record.achievement_id, record);
+    });
+
+    // Map dictionary entries to Achievement format
+    return achievementDict
+      .filter(dict => dict.int_value >= 0) // Filter out special entries
+      .sort((a, b) => b.int_value - a.int_value) // Sort by value descending (highest first)
+      .map(dict => {
+        const achieved = achievedMap.get(dict.id);
+        return {
+          id: dict.id,
+          name: dict.name,
+          description: dict.description || '',
+          intValue: dict.int_value,
+          date: achieved?.date,
+          active: !!achieved
+        };
+      });
+  }, [achievementDict, achievementsInBreed]);
+
+  // Loading state
+  const isLoading = isLoadingChildren || isLoadingDict;
+
+  if (isLoading) {
+    return (
+      <div className="py-4 px-6 flex items-center justify-center min-h-[200px]">
+        <Loader2 className="h-6 w-6 animate-spin text-primary" />
+        <span className="ml-2 text-secondary">Loading achievements...</span>
+      </div>
+    );
+  }
+
+  // Error state
+  if (childrenError) {
+    return (
+      <div className="py-4 px-6">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <p className="text-red-700 font-semibold">Failed to load achievements</p>
+          <p className="text-red-600 text-sm mt-1">{childrenError.message}</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Empty state
+  if (achievements.length === 0) {
+    return (
+      <div className="py-4 px-6">
+        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 text-center">
+          <p className="text-gray-600">No achievement levels available</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Convert achievements to timeline items format
+  const timelineItems = achievements.map((achievement) => ({
     id: achievement.id,
     title: achievement.name,
     description: achievement.description,

@@ -5,6 +5,7 @@ import { RxCollection, RxDocument, RxJsonSchema } from 'rxdb';
 import { EntityStore } from './base/entity-store';
 import { appStore } from './app-store.signal-store';
 import { entityReplicationService } from '../services/entity-replication.service';
+import { breedChildrenSchema, BreedChildrenDocument } from '../collections/breed-children.schema';
 
 // Universal entity interface for all business entities
 interface BusinessEntity {
@@ -90,7 +91,10 @@ class SpaceStore {
   private entityStores = new Map<string, EntityStore<BusinessEntity>>();
   private entitySubscriptions = new Map<string, Subscription>();
   private spaceConfigs = new Map<string, SpaceConfig>();
-  
+
+  // Child collections - lazy created on-demand
+  private childCollections = new Map<string, RxCollection<any>>();
+
   // Track which entity types are available
   availableEntityTypes = signal<string[]>([]);
   
@@ -3018,6 +3022,245 @@ class SpaceStore {
       return computed(() => null);
     }
     return entityStore.selectedEntity;
+  }
+
+  // ============================================================
+  // CHILD COLLECTIONS - For child tables (achievement_in_breed, etc.)
+  // ============================================================
+
+  /**
+   * Ensure child collection exists for entity type (lazy creation)
+   *
+   * Creates collection on first access, reuses existing one for subsequent calls.
+   * Uses pre-defined schemas (breed_children, pet_children, kennel_children).
+   */
+  async ensureChildCollection(entityType: string): Promise<RxCollection<any> | null> {
+    const collectionName = `${entityType}_children`;
+
+    // Check if already created in memory
+    if (this.childCollections.has(collectionName)) {
+      return this.childCollections.get(collectionName)!;
+    }
+
+    if (!this.db) {
+      console.error('[SpaceStore] Database not initialized for child collection');
+      return null;
+    }
+
+    // Check if RxDB collection already exists
+    const existingCollection = this.db.collections[collectionName];
+    if (existingCollection) {
+      this.childCollections.set(collectionName, existingCollection);
+      return existingCollection;
+    }
+
+    // Get schema for child collection
+    const schema = this.getChildCollectionSchema(entityType);
+    if (!schema) {
+      console.error(`[SpaceStore] No schema found for child collection: ${collectionName}`);
+      return null;
+    }
+
+    try {
+      // Create collection
+      const collections = await this.db.addCollections({
+        [collectionName]: {
+          schema: schema,
+          migrationStrategies: {}
+        }
+      });
+
+      const collection = collections[collectionName];
+      this.childCollections.set(collectionName, collection);
+      return collection;
+    } catch (error) {
+      console.error(`[SpaceStore] Failed to create child collection ${collectionName}:`, error);
+      return null;
+    }
+  }
+
+  /**
+   * Get schema for child collection based on entity type
+   */
+  private getChildCollectionSchema(entityType: string): RxJsonSchema<any> | null {
+    switch (entityType.toLowerCase()) {
+      case 'breed':
+        return breedChildrenSchema;
+      // TODO: Add pet_children and kennel_children schemas when needed
+      // case 'pet':
+      //   return petChildrenSchema;
+      // case 'kennel':
+      //   return kennelChildrenSchema;
+      default:
+        console.warn(`[SpaceStore] No child schema defined for entity type: ${entityType}`);
+        return null;
+    }
+  }
+
+  /**
+   * Load child records from Supabase for a specific parent entity
+   *
+   * @param parentId - ID of the parent entity (e.g., breed ID)
+   * @param tableType - Type of child table (e.g., 'achievement_in_breed')
+   * @param options - Loading options (limit, orderBy)
+   * @returns Loaded records
+   */
+  async loadChildRecords(
+    parentId: string,
+    tableType: string,
+    options: { limit?: number; orderBy?: string; orderDirection?: 'asc' | 'desc' } = {}
+  ): Promise<any[]> {
+    if (!parentId || !tableType) {
+      console.warn('[SpaceStore] loadChildRecords: parentId and tableType are required');
+      return [];
+    }
+
+    // Determine entity type from table name (e.g., 'achievement_in_breed' -> 'breed')
+    const entityType = this.getEntityTypeFromTableType(tableType);
+    if (!entityType) {
+      console.error(`[SpaceStore] Cannot determine entity type from table: ${tableType}`);
+      return [];
+    }
+
+    // Ensure child collection exists
+    const collection = await this.ensureChildCollection(entityType);
+    if (!collection) {
+      return [];
+    }
+
+    // Check if data already exists in RxDB
+    const existingRecords = await this.getChildRecords(parentId, tableType, options);
+    if (existingRecords.length > 0) {
+      return existingRecords;
+    }
+
+    // Load from Supabase
+    try {
+      const { supabase } = await import('../supabase/client');
+      const { limit = 50, orderBy, orderDirection = 'asc' } = options;
+
+      // Determine the parent ID field name (e.g., 'breed_id' for breed children)
+      const parentIdField = `${entityType}_id`;
+
+      // Build Supabase query
+      let query = supabase
+        .from(tableType)
+        .select('*')
+        .eq(parentIdField, parentId)
+        .limit(limit);
+
+      if (orderBy) {
+        query = query.order(orderBy, { ascending: orderDirection === 'asc' });
+      }
+
+      const { data, error } = await query;
+
+      if (error) {
+        console.error(`[SpaceStore] Failed to load child records from ${tableType}:`, error);
+        return [];
+      }
+
+      if (!data || data.length === 0) {
+        return [];
+      }
+
+      // Transform and insert into RxDB
+      const transformedRecords = data.map((row: Record<string, any>) => ({
+        ...row,
+        tableType: tableType,
+        parentId: parentId
+      }));
+
+      // Bulk insert into RxDB collection
+      await collection.bulkInsert(transformedRecords);
+
+      return transformedRecords;
+    } catch (error) {
+      console.error(`[SpaceStore] Error loading child records:`, error);
+      return [];
+    }
+  }
+
+  /**
+   * Get child records from RxDB (local cache)
+   *
+   * @param parentId - ID of the parent entity
+   * @param tableType - Type of child table
+   * @param options - Query options
+   * @returns Records from local RxDB collection
+   */
+  async getChildRecords(
+    parentId: string,
+    tableType: string,
+    options: { limit?: number; orderBy?: string; orderDirection?: 'asc' | 'desc' } = {}
+  ): Promise<any[]> {
+    if (!parentId || !tableType) {
+      return [];
+    }
+
+    const entityType = this.getEntityTypeFromTableType(tableType);
+    if (!entityType) {
+      return [];
+    }
+
+    const collectionName = `${entityType}_children`;
+    const collection = this.childCollections.get(collectionName) || this.db?.collections[collectionName];
+
+    if (!collection) {
+      return [];
+    }
+
+    try {
+      const { limit = 50, orderBy, orderDirection = 'asc' } = options;
+
+      let query = collection.find({
+        selector: {
+          parentId: parentId,
+          tableType: tableType
+        },
+        limit
+      });
+
+      if (orderBy) {
+        query = query.sort({ [orderBy]: orderDirection });
+      }
+
+      const results = await query.exec();
+      return results.map((doc: RxDocument<any>) => doc.toJSON());
+    } catch (error) {
+      console.error(`[SpaceStore] Error querying child records:`, error);
+      return [];
+    }
+  }
+
+  /**
+   * Determine entity type from child table name
+   * e.g., 'achievement_in_breed' -> 'breed'
+   *       'litter' -> 'pet' (if configured)
+   */
+  private getEntityTypeFromTableType(tableType: string): string | null {
+    // Check for "_in_breed", "_in_pet", "_in_kennel" patterns
+    if (tableType.includes('_in_breed') || tableType.includes('_breed')) {
+      return 'breed';
+    }
+    if (tableType.includes('_in_pet') || tableType.includes('_pet')) {
+      return 'pet';
+    }
+    if (tableType.includes('_in_kennel') || tableType.includes('_kennel')) {
+      return 'kennel';
+    }
+
+    // For tables like 'litter', 'breed_division' etc., need explicit mapping
+    const tableEntityMap: Record<string, string> = {
+      'breed_division': 'breed',
+      'breed_synonym': 'breed',
+      'breed_forecast': 'breed',
+      'related_breed': 'breed',
+      'litter': 'pet',
+      // Add more mappings as needed
+    };
+
+    return tableEntityMap[tableType] || null;
   }
 
   dispose() {
