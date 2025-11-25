@@ -2,18 +2,50 @@ import { useRef, useState, useEffect, useMemo, useCallback } from "react";
 import { TabsContainer, Tab } from "../tabs/TabsContainer";
 import { PageMenu } from "../tabs/PageMenu";
 import { useTabNavigation } from "@/hooks/useTabNavigation";
-import { BreedAchievementsTab } from "../breed/tabs/BreedAchievementsTab";
-import { BreedPatronsTab } from "../breed/tabs/BreedPatronsTab";
-import { BreedTopPetsTab } from "../breed/tabs/BreedTopPetsTab";
-import { BreedTopKennelsTab } from "../breed/tabs/BreedTopKennelsTab";
 
-// Component registry - maps component names from config to actual components
-const TAB_COMPONENT_REGISTRY: Record<string, React.ComponentType<any>> = {
-  BreedAchievementsTab,
-  BreedPatronsTab,
-  BreedTopPetsTab,
-  BreedTopKennelsTab,
-};
+/**
+ * Dynamic tab component registry using Vite's glob imports
+ *
+ * Automatically imports all tab components from:
+ * - ../breed/tabs/**Tab.tsx
+ * - ../kennel/tabs/**Tab.tsx
+ * - ../pet/tabs/**Tab.tsx
+ *
+ * This allows adding new tabs without modifying this file.
+ * Just create MyNewTab.tsx and reference "MyNewTab" in config.
+ */
+const breedTabModules = import.meta.glob('../breed/tabs/*Tab.tsx', { eager: true });
+const kennelTabModules = import.meta.glob('../kennel/tabs/*Tab.tsx', { eager: true });
+const petTabModules = import.meta.glob('../pet/tabs/*Tab.tsx', { eager: true });
+
+// Combine all tab modules into single registry
+const TAB_COMPONENT_REGISTRY: Record<string, React.ComponentType<any>> = {};
+
+// Helper to extract component name from path and register it
+function registerModules(modules: Record<string, any>) {
+  for (const [path, module] of Object.entries(modules)) {
+    // Extract component name from path: "../breed/tabs/BreedAchievementsTab.tsx" -> "BreedAchievementsTab"
+    const match = path.match(/\/([^/]+)Tab\.tsx$/);
+    if (match) {
+      const componentName = match[1] + 'Tab';
+      // Module might export as default or named export
+      const Component = (module as any)[componentName] || (module as any).default;
+      if (Component) {
+        TAB_COMPONENT_REGISTRY[componentName] = Component;
+      }
+    }
+  }
+}
+
+// Register all tab components
+registerModules(breedTabModules);
+registerModules(kennelTabModules);
+registerModules(petTabModules);
+
+// Log registered components in development
+if (process.env.NODE_ENV === 'development') {
+  console.log('[TabOutletRenderer] Registered tab components:', Object.keys(TAB_COMPONENT_REGISTRY));
+}
 
 // Tab config from database
 interface TabConfig {
