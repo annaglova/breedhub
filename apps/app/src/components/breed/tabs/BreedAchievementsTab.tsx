@@ -89,16 +89,26 @@ export function BreedAchievementsTab() {
   const breedId = selectedEntity?.id;
 
   // Load achievement_in_breed records for this breed
+  // Note: Can't sort by 'date' in RxDB because it's in 'additional' JSON field
+  // Will sort in memory after fetching
   const {
-    data: achievementsInBreed,
+    data: achievementsInBreedRaw,
     isLoading: isLoadingChildren,
     error: childrenError
   } = useChildRecords<AchievementInBreed>({
     parentId: breedId,
-    tableType: 'achievement_in_breed',
-    orderBy: 'date',
-    orderDirection: 'desc'
+    tableType: 'achievement_in_breed'
   });
+
+  // Sort achievements by date (desc) in memory
+  const achievementsInBreed = useMemo(() => {
+    if (!achievementsInBreedRaw) return [];
+    return [...achievementsInBreedRaw].sort((a, b) => {
+      const dateA = a.additional?.date || '';
+      const dateB = b.additional?.date || '';
+      return dateB.localeCompare(dateA); // desc
+    });
+  }, [achievementsInBreedRaw]);
 
   // Load achievement dictionary via DictionaryStore (RxDB → Supabase)
   const [achievementDict, setAchievementDict] = useState<AchievementDictionary[]>([]);
