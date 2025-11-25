@@ -1,16 +1,42 @@
 # Покрокова інструкція створення нового Store в BreedHub
 
-## 🆕 ОНОВЛЕНО: Entity Store Pattern
+## 🎯 Поточна Архітектура (2024-11-25)
 
-Тепер ми використовуємо **два підходи** для stores:
-1. **Entity Store Pattern** - для всіх нових бізнес-сутностей (РЕКОМЕНДОВАНО)
-2. **Legacy підхід** - для складних конфігурацій (залишаємо як є)
+BreedHub використовує **SpaceStore** як центральний інструмент для роботи з даними.
 
-Дивіться [STORE_ARCHITECTURE.md](./STORE_ARCHITECTURE.md) для детальної інформації про вибір підходу.
+### Три рівні Store Architecture:
+
+1. **SpaceStore (PRIMARY)** - Універсальний config-driven store для всіх entity types
+   - ✅ Використовується для 95% випадків
+   - ✅ Config-driven через `app_config` з Supabase
+   - ✅ ID-First loading pattern
+   - ✅ Dictionary support через DictionaryStore
+   - ✅ Child records support через `breed_children` collection
+
+2. **DictionaryStore** - Спеціалізований store для довідників
+   - ✅ Universal `dictionaries` collection
+   - ✅ Optional `additional` JSON field для extra полів
+   - ✅ ID-First pattern для мінімального трафіку
+
+3. **Entity Store Pattern** - Для специфічних випадків
+   - ⚠️ Використовується рідко
+   - ⚠️ Тільки коли SpaceStore не підходить
+
+### Коли що використовувати:
+
+| Сценарій | Інструмент | Приклад |
+|----------|-----------|---------|
+| Списки entities (breeds, pets, kennels) | **SpaceStore** | Breed list, Pet profiles |
+| Довідники (achievements, colors, sizes) | **DictionaryStore** | Achievement levels, Coat colors |
+| Дочірні записи (achievements_in_breed) | **SpaceStore.loadChildRecords()** | Breed achievements, Kennel breeds |
+| Складна custom логіка | **Entity Store** | Special calculations |
+
+---
 
 ## КРИТИЧНО ВАЖЛИВИЙ ПРИНЦИП
 
 ### Функціонал пишемо на сторах, а НЕ на компонентах!
+
 **ЗАВЖДИ** вся бізнес-логіка, обробка даних, розрахунки та правила мають бути в stores. Компоненти React відповідають ТІЛЬКИ за відображення UI та виклик методів store.
 
 #### ✅ Що має бути в Store:
@@ -34,121 +60,299 @@
 - Бізнес-правила
 - Складні розрахунки
 - Фільтрацію/сортування (окрім UI презентації)
+- Прямі запити до Supabase
 
-## Передумови
-- Таблиця вже створена в Supabase
-- Всі таблиці мають стандартну структуру з полем `id` (не `uid`!)
+---
 
-## 🎯 Метод 1: Entity Store Pattern (РЕКОМЕНДОВАНО)
+## 🏠 Local-First Principle
 
-### Коли використовувати
-- Для всіх нових бізнес-сутностей (тварини, користувачі, повідомлення, клуби, події)
-- Коли потрібні стандартні CRUD операції
-- Для простих списків з фільтрацією та сортуванням
+**ЗАВЖДИ:** Всі дані йдуть через RxDB → Store → UI, ніколи напряму з Supabase в UI.
 
-### Крок 1: Створити базовий EntityStore (якщо ще не існує)
-
-**Файл:** `packages/rxdb-store/src/stores/base/entity-store.ts`
-
-```typescript
-import { signal, computed } from '@preact/signals-react';
-
-export class EntityStore<T extends { id: string }> {
-  protected ids = signal<string[]>([]);
-  protected entities = signal<Map<string, T>>(new Map());
-  
-  // Computed як в NgRx withEntities
-  entityMap = computed(() => this.entities.value);
-  entityList = computed(() => 
-    this.ids.value.map(id => this.entities.value.get(id)!).filter(Boolean)
-  );
-  total = computed(() => this.ids.value.length);
-  
-  // Entity methods
-  setAll(entities: T[]) { /* ... */ }
-  addOne(entity: T) { /* ... */ }
-  updateOne(id: string, changes: Partial<T>) { /* ... */ }
-  removeOne(id: string) { /* ... */ }
-  // ... інші методи
-}
+### Data Flow:
+```
+Supabase ↔ RxDB (local cache) ↔ Store → UI
 ```
 
-### Крок 2: Створити специфічний Entity Store
+### Обов'язково:
+- ✅ Entity lists через `SpaceStore.applyFilters()` / `loadMore()`
+- ✅ Dictionaries через `DictionaryStore.getDictionary()`
+- ✅ Child records через `SpaceStore.loadChildRecords()`
+- ❌ **НІКОЛИ** не робити `supabase.from('table').select()` напряму в UI
 
-**Файл:** `packages/rxdb-store/src/stores/[entity-name].store.ts`
+### Приклад (правильно ✅):
+```typescript
+// ✅ CORRECT: Через SpaceStore
+const spaceStore = useSpaceStore();
+await spaceStore.applyFilters('breed', { status: 'active' });
+const breeds = spaceStore.getEntityStore('breed').entityList.value;
+```
+
+### Приклад (неправильно ❌):
+```typescript
+// ❌ WRONG: Напряму до Supabase в UI
+const { data } = await supabase.from('breed').select('*');
+```
+
+---
+
+## 🎯 Метод 1: SpaceStore (РЕКОМЕНДОВАНО для 95% випадків)
+
+### Коли використовувати:
+- **Завжди** як перший варіант для нових features
+- Списки entities (breeds, pets, kennels, clubs)
+- Фільтрація та пагінація
+- CRUD операції
+- Child records (achievements_in_breed, breed_divisions)
+
+### Що НЕ потрібно створювати:
+- ❌ Нові stores
+- ❌ Нові RxDB schemas
+- ❌ Нові collections
+- ❌ Нові types
+
+**SpaceStore вже налаштований і готовий до використання!**
+
+### Крок 1: Переконатися що entity config існує в Supabase
+
+Entity configs зберігаються в таблиці `app_config`:
+
+```sql
+-- Приклад entity config для breed
+SELECT * FROM app_config
+WHERE key = 'entity.breed';
+```
+
+Config містить:
+- `table_name` - назва таблиці в Supabase
+- `id_field` - primary key поле (зазвичай 'id')
+- `name_field` - поле для відображення назви
+- `filters` - доступні фільтри
+- `sorts` - доступні сортування
+- `fields` - список полів для завантаження
+
+### Крок 2: Використання SpaceStore в компоненті
 
 ```typescript
-import { computed } from '@preact/signals-react';
-import { EntityStore } from './base/entity-store';
-import { getDatabase } from '../services/database.service';
-import type { EntityDefinition } from '../types/[entity-name].types';
+import { useSpaceStore, useSelectedEntity } from '@/contexts/SpaceContext';
+import { useEffect } from 'react';
 
-class EntityStoreImpl extends EntityStore<EntityDefinition> {
-  private static instance: EntityStoreImpl;
-  
-  static getInstance() {
-    if (!this.instance) {
-      this.instance = new EntityStoreImpl();
-      this.instance.initialize();
-    }
-    return this.instance;
-  }
-  
-  // Специфічні computed
-  activeEntities = computed(() => 
-    this.entityList.value.filter(e => !e._deleted)
-  );
-  
-  // RxDB інтеграція
-  async initialize() {
-    const db = await getDatabase();
-    const collection = db.collections.entities;
-    
-    // Завантаження даних
-    const docs = await collection.find().exec();
-    this.setAll(docs.map(d => d.toJSON()));
-    
-    // Підписка на зміни
-    collection.$.subscribe(changeEvent => {
-      // Оновлення store при змінах
+function BreedListComponent() {
+  const spaceStore = useSpaceStore();
+  const selectedEntity = useSelectedEntity();
+
+  // 1. Load entities з фільтрами
+  useEffect(() => {
+    spaceStore.applyFilters('breed', {
+      status: 'active',
+      country: 'Ukraine'
     });
-  }
-  
-  // CRUD з RxDB
-  async create(data: Omit<EntityDefinition, 'id'>) {
-    const db = await getDatabase();
-    const newEntity = {
-      ...data,
-      id: crypto.randomUUID(),
-      created_at: new Date().toISOString()
-    };
-    
-    await db.collections.entities.insert(newEntity);
-    this.addOne(newEntity as EntityDefinition);
-    return newEntity;
-  }
-  
-  async update(id: string, changes: Partial<EntityDefinition>) {
-    const db = await getDatabase();
-    const doc = await db.collections.entities.findOne(id).exec();
-    if (doc) {
-      await doc.patch(changes);
-      this.updateOne(id, changes);
-    }
-  }
-}
+  }, []);
 
-export const entityStore = EntityStoreImpl.getInstance();
+  // 2. Отримати entity store для конкретного типу
+  const breedStore = spaceStore.getEntityStore('breed');
+
+  // 3. Використати computed values
+  const breeds = breedStore.entityList.value;
+  const total = breedStore.total.value;
+  const isLoading = breedStore.loading.value;
+
+  // 4. Pagination
+  const handleLoadMore = () => {
+    spaceStore.loadMore('breed');
+  };
+
+  // 5. Selection
+  const handleSelectBreed = (breedId: string) => {
+    breedStore.selectEntity(breedId);
+  };
+
+  return (
+    <div>
+      <h2>Breeds: {total}</h2>
+      {isLoading && <Loader />}
+
+      {breeds.map(breed => (
+        <BreedCard
+          key={breed.id}
+          breed={breed}
+          isSelected={selectedEntity?.id === breed.id}
+          onClick={() => handleSelectBreed(breed.id)}
+        />
+      ))}
+
+      <button onClick={handleLoadMore}>Load More</button>
+    </div>
+  );
+}
 ```
 
-## 🔧 Метод 2: Legacy підхід (для складних випадків)
+### Крок 3: Child Records через SpaceStore
 
-### Коли використовувати
-- Для конфігурацій UI
-- Коли є складні ієрархічні залежності
-- Для систем з каскадними оновленнями
+Для дочірніх таблиць (як `achievement_in_breed`) використовуємо `loadChildRecords`:
 
-### Крок 1: Створити типи для нової сутності
+```typescript
+import { useChildRecords } from '@/hooks/useChildRecords';
+
+function BreedAchievementsTab() {
+  const selectedEntity = useSelectedEntity();
+  const breedId = selectedEntity?.id;
+
+  // Hook автоматично завантажує child records через SpaceStore
+  const {
+    data: achievements,
+    isLoading,
+    error
+  } = useChildRecords({
+    parentId: breedId,
+    tableType: 'achievement_in_breed',
+    orderBy: 'date',
+    orderDirection: 'desc'
+  });
+
+  // achievements тепер містить дані з 'additional' JSON поля
+  return (
+    <div>
+      {achievements.map(record => (
+        <Achievement
+          key={record.id}
+          achievementId={record.additional?.achievement_id}
+          date={record.additional?.date}
+        />
+      ))}
+    </div>
+  );
+}
+```
+
+### Переваги SpaceStore:
+
+✅ **Zero configuration** - працює out of the box
+✅ **ID-First loading** - 70% зменшення трафіку
+✅ **Automatic caching** - через RxDB
+✅ **Config-driven** - все через `app_config`
+✅ **Selection support** - `selectedEntity`, `selectFirst()`
+✅ **Pagination** - `loadMore()` з cursor
+✅ **Filtering** - через `applyFilters()`
+✅ **Child records** - через `loadChildRecords()`
+
+---
+
+## 📚 Метод 2: DictionaryStore (для довідників)
+
+### Коли використовувати:
+- Довідники (achievements, coat_colors, pet_sizes)
+- Малі таблиці з простою структурою
+- Статичні дані що рідко змінюються
+
+### Що НЕ потрібно створювати:
+- ❌ Нові schemas
+- ❌ Нові collections
+- ❌ Нові stores
+
+**DictionaryStore вже налаштований і готовий!**
+
+### Використання в компоненті:
+
+```typescript
+import { dictionaryStore } from '@breedhub/rxdb-store';
+import { useEffect, useState } from 'react';
+
+function AchievementDictionaryComponent() {
+  const [achievements, setAchievements] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadDictionary() {
+      try {
+        // Ensure initialized
+        if (!dictionaryStore.initialized.value) {
+          await dictionaryStore.initialize();
+        }
+
+        // Load dictionary (ID-First: Supabase IDs → RxDB cache → fetch missing)
+        const { records } = await dictionaryStore.getDictionary('achievement', {
+          idField: 'id',
+          nameField: 'name',
+          limit: 100,
+          additionalFields: ['int_value', 'position', 'description', 'entity']
+        });
+
+        // Filter and transform
+        const breedAchievements = records
+          .filter(r => r.additional?.entity === 'breed')
+          .map(r => ({
+            id: r.id,
+            name: r.name,
+            description: r.additional?.description || '',
+            intValue: r.additional?.int_value || 0,
+            position: r.additional?.position || 0
+          }))
+          .sort((a, b) => a.position - b.position);
+
+        setAchievements(breedAchievements);
+      } catch (err) {
+        console.error('Error loading dictionary:', err);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    loadDictionary();
+  }, []);
+
+  return (
+    <div>
+      {isLoading ? <Loader /> : (
+        achievements.map(achievement => (
+          <AchievementCard key={achievement.id} achievement={achievement} />
+        ))
+      )}
+    </div>
+  );
+}
+```
+
+### DictionaryStore Structure:
+
+```typescript
+interface DictionaryDocument {
+  composite_id: string;  // "achievement::uuid"
+  table_name: string;    // "achievement"
+  id: string;
+  name: string;
+  additional?: {         // Optional JSON для extra полів
+    int_value?: number;
+    position?: number;
+    description?: string;
+    entity?: string;
+    // ... будь-які інші поля
+  };
+  cachedAt: number;
+}
+```
+
+### Переваги DictionaryStore:
+
+✅ **Universal schema** - один collection для всіх довідників
+✅ **Additional fields** - гнучкість через JSON поле
+✅ **ID-First** - завантажує тільки missing records
+✅ **Automatic caching** - TTL-based cleanup
+✅ **Zero maintenance** - не потрібно створювати нові collections
+
+---
+
+## 🔧 Метод 3: Entity Store Pattern (рідко потрібен)
+
+### Коли використовувати:
+- ⚠️ **Тільки якщо SpaceStore не підходить**
+- Складна специфічна логіка
+- Custom computed values
+- Унікальні бізнес-правила
+
+### Передумови:
+Таблиця вже створена в Supabase з полем `id` (не `uid`!)
+
+### Крок 1: Створити типи
 
 **Файл:** `packages/rxdb-store/src/types/[entity-name].types.ts`
 
@@ -192,16 +396,22 @@ export const entitySchema: RxJsonSchema<EntityDefinition> = {
     },
     // ... інші поля відповідно до типу
     created_at: {
-      type: 'string'
+      type: 'string',
+      maxLength: 250  // ВАЖЛИВО для timestamps з мікросекундами
     },
     updated_at: {
-      type: 'string'
+      type: 'string',
+      maxLength: 250
     },
     _deleted: {
       type: 'boolean'
     }
   },
-  required: ['id', 'name', 'created_at', 'updated_at']
+  required: ['id', 'name', 'created_at', 'updated_at'],
+  indexes: [
+    'name',  // Тільки якщо потрібен пошук
+    ['_deleted', 'created_at']  // Composite для filtered lists
+  ]
 };
 ```
 
@@ -217,8 +427,8 @@ import { EntityCollection } from '../types/[entity-name].types';
 // 2. Додати до типу DatabaseCollections
 export type DatabaseCollections = {
   breeds: BreedCollectionTyped;
-  books: BookCollection;
-  property_registry: PropertyCollection;
+  dictionaries: DictionaryCollection;
+  breed_children: BreedChildrenCollection;
   entities: EntityCollection;  // <-- ДОДАТИ
 };
 
@@ -231,279 +441,222 @@ const collectionsToAdd = {
 };
 ```
 
-### Крок 4: Створити Signal Store (Legacy підхід)
+### Крок 4: Створити Entity Store
 
-**Файл:** `packages/rxdb-store/src/stores/[entity-name].signal-store.ts`
+**Файл:** `packages/rxdb-store/src/stores/[entity-name].store.ts`
 
 ```typescript
-import { signal, computed, batch } from '@preact/signals-react';
+import { computed } from '@preact/signals-react';
+import { EntityStore } from './base/entity-store';
 import { getDatabase } from '../services/database.service';
 import { createClient } from '@supabase/supabase-js';
-import { Subscription } from 'rxjs';
-import type { RxCollection } from 'rxdb';
-import { EntityDefinition, EntityDocument } from '../types/[entity-name].types';
+import type { EntityDefinition } from '../types/[entity-name].types';
 
-export type { EntityDefinition, EntityDocument } from '../types/[entity-name].types';
-
-class EntitySignalStore {
-  private static instance: EntitySignalStore;
-  
-  // Signals
-  entities = signal<Map<string, EntityDefinition>>(new Map());
-  loading = signal<boolean>(false);
-  error = signal<string | null>(null);
-  syncEnabled = signal<boolean>(false);
-  
-  // Computed values
-  entitiesList = computed(() => {
-    const entitiesMap = this.entities.value;
-    return Array.from(entitiesMap.values())
-      .filter(entity => !entity._deleted)
-      .sort((a, b) => (a.name || '').localeCompare(b.name || ''));
-  });
-  
-  totalCount = computed(() => {
-    return this.entitiesList.value.length;
-  });
-  
-  private dbSubscription: Subscription | null = null;
+class EntityStoreImpl extends EntityStore<EntityDefinition> {
+  private static instance: EntityStoreImpl;
   private supabase: any = null;
-  
-  private constructor() {
-    this.initializeSupabase();
-    this.initializeStore();
-  }
-  
-  static getInstance(): EntitySignalStore {
-    if (!EntitySignalStore.instance) {
-      EntitySignalStore.instance = new EntitySignalStore();
+
+  static getInstance() {
+    if (!this.instance) {
+      this.instance = new EntityStoreImpl();
+      this.instance.initialize();
     }
-    return EntitySignalStore.instance;
+    return this.instance;
   }
-  
+
+  private constructor() {
+    super();
+    this.initializeSupabase();
+  }
+
   private initializeSupabase() {
     const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
     const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-    
+
     if (supabaseUrl && supabaseKey) {
       this.supabase = createClient(supabaseUrl, supabaseKey);
     }
   }
-  
-  private async initializeStore() {
+
+  // Специфічні computed
+  activeEntities = computed(() =>
+    this.entityList.value.filter(e => !e._deleted)
+  );
+
+  // RxDB інтеграція
+  async initialize() {
     try {
       this.loading.value = true;
       const db = await getDatabase();
-      
-      if (!db.collections.entities) {  // <-- ЗМІНИТИ назву колекції
-        this.error.value = 'Entities collection not initialized';
-        return;
-      }
-      
-      const collection = db.collections.entities as RxCollection<EntityDefinition>;
-      
-      // Load initial data
-      const allEntities = await collection.find().exec();
-      const entitiesMap = new Map<string, EntityDefinition>();
-      
-      allEntities.forEach((doc: EntityDocument) => {
-        entitiesMap.set(doc.id, doc.toJSON() as EntityDefinition);
-      });
-      
-      this.entities.value = entitiesMap;
-      
-      // Subscribe to changes
-      this.dbSubscription = collection.$.subscribe((changeEvent: any) => {
+      const collection = db.collections.entities;
+
+      // Завантаження даних з RxDB
+      const docs = await collection.find().exec();
+      this.setAll(docs.map(d => d.toJSON()));
+
+      // Підписка на зміни
+      collection.$.subscribe(changeEvent => {
         if (changeEvent.operation === 'INSERT' || changeEvent.operation === 'UPDATE') {
-          const newEntities = new Map(this.entities.value);
-          const entityData = changeEvent.documentData;
-          
-          if (entityData && entityData.id) {
-            newEntities.set(entityData.id, entityData);
+          const data = changeEvent.documentData;
+          if (data && data.id) {
+            this.addOne(data);
           }
-          
-          this.entities.value = newEntities;
         } else if (changeEvent.operation === 'DELETE') {
-          const newEntities = new Map(this.entities.value);
           const deleteId = changeEvent.documentId || changeEvent.documentData?.id;
-          
           if (deleteId) {
-            newEntities.delete(deleteId);
+            this.removeOne(deleteId);
           }
-          
-          this.entities.value = newEntities;
         }
       });
-      
-      // Auto-enable sync if Supabase configured
+
+      // Auto-sync з Supabase
       if (this.supabase) {
-        try {
-          await this.enableSync();
-        } catch (syncError) {
-          console.error('Failed to enable sync:', syncError);
-        }
+        await this.syncFromSupabase();
       }
-      
     } catch (error) {
-      this.error.value = error instanceof Error ? error.message : 'Failed to initialize store';
+      this.error.value = error instanceof Error ? error.message : 'Failed to initialize';
     } finally {
       this.loading.value = false;
     }
   }
-  
-  async enableSync(): Promise<void> {
-    if (!this.supabase) {
-      throw new Error('Supabase client not initialized');
-    }
-    
-    try {
-      const db = await getDatabase();
-      const collection = db.collections.entities as RxCollection<EntityDefinition>;
-      
-      // Pull from Supabase
-      const { data, error } = await this.supabase
-        .from('entities')  // <-- ЗМІНИТИ назву таблиці
-        .select('*')
-        .order('name');
-      
-      if (error) throw error;
-      
-      if (data && data.length > 0) {
-        // ВАЖЛИВО: Мапінг полів Supabase -> RxDB
-        const mappedData = data.map((item: any) => ({
-          id: item.id,
-          name: item.name,
-          // ... інші поля
-          created_at: item.created_at,
-          updated_at: item.updated_at,
-          _deleted: item.deleted || false  // ВАЖЛИВО: deleted -> _deleted
-        }));
-        
-        await collection.bulkUpsert(mappedData);
-      }
-      
-      this.syncEnabled.value = true;
-      
-    } catch (error) {
-      throw error;
-    }
-  }
-  
-  async createEntity(entity: Omit<EntityDefinition, 'id' | 'created_at' | 'updated_at'>): Promise<EntityDefinition> {
+
+  // CRUD з RxDB + Supabase sync
+  async create(data: Omit<EntityDefinition, 'id' | 'created_at' | 'updated_at'>) {
     this.loading.value = true;
     try {
       const db = await getDatabase();
-      const collection = db.collections.entities as RxCollection<EntityDefinition>;
-      
       const id = crypto.randomUUID();
       const now = new Date().toISOString();
-      
+
       const newEntity: EntityDefinition = {
-        ...entity,
+        ...data,
         id,
         created_at: now,
         updated_at: now,
         _deleted: false
       };
-      
-      await collection.insert(newEntity);
-      
-      if (this.syncEnabled.value && this.supabase) {
+
+      // 1. Insert to RxDB (local)
+      await db.collections.entities.insert(newEntity);
+      this.addOne(newEntity);
+
+      // 2. Sync to Supabase
+      if (this.supabase) {
         await this.supabase
-          .from('entities')  // <-- ЗМІНИТИ назву таблиці
+          .from('entities')
           .insert({
             ...newEntity,
-            deleted: newEntity._deleted  // ВАЖЛИВО: _deleted -> deleted
+            deleted: newEntity._deleted  // Map _deleted → deleted
           });
       }
-      
+
       return newEntity;
     } catch (error) {
-      this.error.value = `Failed to create entity: ${error}`;
+      this.error.value = `Failed to create: ${error}`;
       throw error;
     } finally {
       this.loading.value = false;
     }
   }
-  
-  async updateEntity(id: string, updates: Partial<EntityDefinition>): Promise<void> {
+
+  async update(id: string, changes: Partial<EntityDefinition>) {
     this.loading.value = true;
     try {
       const db = await getDatabase();
-      const collection = db.collections.entities as RxCollection<EntityDefinition>;
-      
-      const doc = await collection.findOne(id).exec();
+      const doc = await db.collections.entities.findOne(id).exec();
+
       if (!doc) {
         throw new Error(`Entity ${id} not found`);
       }
-      
-      await doc.patch({
-        ...updates,
+
+      const updates = {
+        ...changes,
         updated_at: new Date().toISOString()
-      });
-      
-      if (this.syncEnabled.value && this.supabase) {
+      };
+
+      // 1. Update RxDB
+      await doc.patch(updates);
+      this.updateOne(id, updates);
+
+      // 2. Sync to Supabase
+      if (this.supabase) {
         await this.supabase
-          .from('entities')  // <-- ЗМІНИТИ назву таблиці
-          .update({
-            ...updates,
-            updated_at: new Date().toISOString()
-          })
+          .from('entities')
+          .update(updates)
           .eq('id', id);
       }
-      
     } catch (error) {
-      this.error.value = `Failed to update entity: ${error}`;
+      this.error.value = `Failed to update: ${error}`;
       throw error;
     } finally {
       this.loading.value = false;
     }
   }
-  
-  async deleteEntity(id: string): Promise<void> {
+
+  async delete(id: string) {
     this.loading.value = true;
     try {
       const db = await getDatabase();
-      const collection = db.collections.entities as RxCollection<EntityDefinition>;
-      
-      const doc = await collection.findOne(id).exec();
+      const doc = await db.collections.entities.findOne(id).exec();
+
       if (!doc) {
         throw new Error(`Entity ${id} not found`);
       }
-      
+
       // Soft delete
       await doc.patch({
         _deleted: true,
         updated_at: new Date().toISOString()
       });
-      
-      if (this.syncEnabled.value && this.supabase) {
+
+      if (this.supabase) {
         await this.supabase
-          .from('entities')  // <-- ЗМІНИТИ назву таблиці
-          .update({ 
-            deleted: true, 
-            updated_at: new Date().toISOString() 
+          .from('entities')
+          .update({
+            deleted: true,
+            updated_at: new Date().toISOString()
           })
           .eq('id', id);
       }
-      
     } catch (error) {
-      this.error.value = `Failed to delete entity: ${error}`;
+      this.error.value = `Failed to delete: ${error}`;
       throw error;
     } finally {
       this.loading.value = false;
     }
   }
-  
-  cleanup() {
-    if (this.dbSubscription) {
-      this.dbSubscription.unsubscribe();
-      this.dbSubscription = null;
+
+  private async syncFromSupabase() {
+    try {
+      const { data, error } = await this.supabase
+        .from('entities')
+        .select('*')
+        .order('name');
+
+      if (error) throw error;
+
+      if (data && data.length > 0) {
+        const db = await getDatabase();
+        const collection = db.collections.entities;
+
+        // Map Supabase fields → RxDB
+        const mappedData = data.map((item: any) => ({
+          id: item.id,
+          name: item.name,
+          created_at: item.created_at,
+          updated_at: item.updated_at,
+          _deleted: item.deleted || false  // deleted → _deleted
+        }));
+
+        await collection.bulkUpsert(mappedData);
+      }
+    } catch (error) {
+      console.error('[EntityStore] Sync failed:', error);
     }
   }
 }
 
-export const entityStore = EntitySignalStore.getInstance();
+export const entityStore = EntityStoreImpl.getInstance();
 ```
 
 ### Крок 5: Експортувати з index.ts
@@ -512,207 +665,127 @@ export const entityStore = EntitySignalStore.getInstance();
 
 ```typescript
 // Entity Store
-export { entityStore } from './stores/[entity-name].signal-store';
+export { entityStore } from './stores/[entity-name].store';
 export type { EntityDefinition, EntityDocument } from './types/[entity-name].types';
 export { entitySchema } from './collections/[entity-name].schema';
 ```
 
-## Використання в компонентах
-
-### Entity Store Pattern
+### Використання в компонентах:
 
 ```typescript
 import { entityStore } from '@breedhub/rxdb-store';
 
 const MyComponent = () => {
-  const entities = entityStore.entityList.value;
+  const entities = entityStore.activeEntities.value;
   const total = entityStore.total.value;
-  
+  const isLoading = entityStore.loading.value;
+
   const handleCreate = async (data) => {
     await entityStore.create(data);
   };
-  
-  const handleUpdate = (id, changes) => {
-    entityStore.updateOne(id, changes);
+
+  const handleUpdate = async (id, changes) => {
+    await entityStore.update(id, changes);
   };
-  
+
+  const handleDelete = async (id) => {
+    await entityStore.delete(id);
+  };
+
   return (
     <div>
       <h2>Total: {total}</h2>
+      {isLoading && <Loader />}
       {entities.map(entity => (
-        <EntityCard key={entity.id} entity={entity} />
+        <EntityCard
+          key={entity.id}
+          entity={entity}
+          onUpdate={(changes) => handleUpdate(entity.id, changes)}
+          onDelete={() => handleDelete(entity.id)}
+        />
       ))}
     </div>
   );
 };
 ```
 
-### Legacy підхід
+---
 
-```typescript
-import { entityStore, type EntityDefinition } from '@breedhub/rxdb-store';
+## 🎯 Порівняння підходів
 
-const MyComponent = () => {
-  const entities = entityStore.entitiesList.value;
-  const loading = entityStore.loading.value;
-  const error = entityStore.error.value;
-  
-  // Subscribe to changes
-  useEffect(() => {
-    const unsubscribe = entityStore.entitiesList.subscribe(() => {
-      forceUpdate({});
-    });
-    return () => unsubscribe();
-  }, []);
-  
-  // CRUD operations
-  const handleCreate = async (data) => {
-    await entityStore.createEntity(data);
-  };
-  
-  const handleUpdate = async (id, updates) => {
-    await entityStore.updateEntity(id, updates);
-  };
-  
-  const handleDelete = async (id) => {
-    await entityStore.deleteEntity(id);
-  };
-  
-  return (
-    // Your UI
-  );
-};
-```
+| Аспект | SpaceStore | DictionaryStore | Entity Store |
+|--------|-----------|----------------|--------------|
+| **Використання** | 95% випадків | Довідники | Рідко |
+| **Setup** | Zero config | Zero config | Складний |
+| **Гнучкість** | Висока | Середня | Максимальна |
+| **ID-First** | ✅ Так | ✅ Так | ⚠️ Manual |
+| **Caching** | ✅ Auto | ✅ Auto | ⚠️ Manual |
+| **Config-driven** | ✅ Так | ⚠️ Частково | ❌ Ні |
+| **Child records** | ✅ Так | ❌ Ні | ⚠️ Manual |
+| **Selection** | ✅ Так | ❌ Ні | ✅ Так |
+| **Pagination** | ✅ Так | ❌ Ні | ⚠️ Manual |
+| **Maintenance** | Низький | Низький | Високий |
+
+---
 
 ## КРИТИЧНІ моменти - НЕ ЗАБУТИ!
 
-1. **Завжди використовуйте `id`, НЕ `uid`** як primary key
-2. **Мапінг полів при синхронізації:**
-   - Supabase `deleted` -> RxDB `_deleted`
-   - RxDB `_deleted` -> Supabase `deleted`
-3. **Розділіть типи, схеми та стори** у різні файли щоб уникнути circular dependencies
-4. **Автоматична синхронізація** відбувається в `initializeStore()` - не потрібні кнопки
-5. **Soft delete** - використовуйте `_deleted` поле замість фізичного видалення
+### 1. Local-First Pattern
+- ✅ Всі дані через RxDB → Store → UI
+- ❌ **НІКОЛИ** напряму `supabase.from()` в компонентах
 
-## 🚀 Стратегія розвитку Store Architecture
+### 2. Primary Key
+- ✅ Завжди використовуйте `id`, НЕ `uid`
+- ✅ Тип: `string` з `maxLength: 100`
 
-### Поточний стан
-1. **Configuration Store** - залишається для UI конфігурацій (НЕ чіпаємо)
-2. **Entity Store Pattern** - для всіх нових бізнес-сутностей (АКТИВНО використовуємо)
-3. **Legacy stores** - поступова міграція на Entity Store Pattern де можливо
+### 3. Мапінг полів при синхронізації
+- Supabase `deleted` → RxDB `_deleted`
+- RxDB `_deleted` → Supabase `deleted`
 
-### План розвитку
+### 4. Timestamps
+- ✅ `maxLength: 250` для timestamps (підтримка мікросекунд)
+- ✅ ISO 8601 format
 
-#### Phase 1 (CURRENT) - Entity Store для нових сутностей
-- ✅ Створено базовий EntityStore клас
-- ✅ Документовано підхід
-- 🔄 Використовуємо для всіх нових features
+### 5. Soft Delete
+- ✅ Використовуйте `_deleted: boolean`
+- ❌ НЕ використовуйте фізичне видалення
 
-#### Phase 2 - Оптимізація Entity Store
-- Додати підтримку pagination
-- Додати підтримку virtual scrolling
-- Додати caching strategies
-- Додати optimistic updates
+### 6. SpaceStore First
+- ✅ **Завжди** спочатку розглядайте SpaceStore
+- ✅ Тільки потім інші варіанти
 
-#### Phase 3 - Selective Migration
-- Ідентифікувати прості legacy stores
-- Мігрувати на Entity Store Pattern
-- Configuration Store залишити як є
+### 7. Additional Fields Pattern
+- ✅ DictionaryStore: `additional` JSON поле
+- ✅ Child Collections: `additional` JSON поле
+- ✅ Flexible schema без bloat
 
-## Майбутнє: Universal Store Architecture (довгострокова перспектива)
-
-### Концепція
-Замість створення окремого store для кожної сутності, ми рухаємось до єдиного універсального store, який конфігурується:
-
-```typescript
-// Замість цього:
-class BreedStore { /* специфічний код */ }
-class PetStore { /* специфічний код */ }
-
-// Будемо мати це:
-class UniversalStore {
-  constructor(config: EntityConfig) {
-    // Store адаптується під конфігурацію
-  }
-}
-
-// Використання:
-const breedStore = new UniversalStore(breedConfig);
-const petStore = new UniversalStore(petConfig);
-```
-
-### Переваги Universal Store:
-
-1. **Zero-code для нових сутностей** - тільки конфігурація
-2. **Консистентність** - всі stores працюють однаково
-3. **Легше тестування** - один store для всіх випадків
-4. **Автоматичні оптимізації** - покращення в одному місці
-5. **Type-safety** - через TypeScript generics
-
-### Конфігурація визначатиме:
-
-```typescript
-interface EntityConfig {
-  tableName: string;
-  primaryKey: string;
-  fields: FieldConfig[];
-  validations: ValidationRule[];
-  relations: RelationConfig[];
-  indexes: IndexConfig[];
-  hooks: {
-    beforeCreate?: (data: any) => any;
-    afterCreate?: (data: any) => void;
-    beforeUpdate?: (data: any) => any;
-    afterUpdate?: (data: any) => void;
-  };
-  features: {
-    softDelete: boolean;
-    versioning: boolean;
-    audit: boolean;
-    realtime: boolean;
-  };
-}
-```
-
-### Міграція на Universal Store:
-
-1. **Phase 1**: Створити UniversalStore клас
-2. **Phase 2**: Адаптувати існуючі stores
-3. **Phase 3**: Генерувати конфігурації з app_config
-4. **Phase 4**: Повністю перейти на конфігураційний підхід
-
-### Інтеграція з Property-Based Config:
-
-- Конфігурації stores будуть частиною app_config
-- Properties визначатимуть поведінку полів
-- Наслідування та override працюватимуть для stores
-- Динамічне створення stores з конфігурацій
-
-## Перевірка роботи
-
-1. Перевірте що колекція додана в `database.service.ts`
-2. Перевірте експорти в `index.ts`
-3. Запустіть додаток і перевірте консоль на помилки
-4. Перевірте що дані завантажуються з Supabase автоматично
-5. Перевірте CRUD операції
+---
 
 ## Типові помилки
 
+### Помилки RxDB:
 - **"Cannot access 'getDatabase' before initialization"** - circular dependency, розділіть файли
 - **"collection not found"** - забули додати в database.service.ts
-- **"does not provide an export"** - забули додати експорт в index.ts
+- **"another instance created this collection with different schema"** - схема змінилась, очистіть IndexedDB
+
+### Помилки схеми:
 - **422 status при bulkUpsert** - невірний мапінг полів або схема не відповідає даним
-- **"must NOT have more than X characters"** - збільште maxLength для текстових полів (рекомендовано 250)
-- **"must NOT have additional properties"** - не додавайте поле `deleted` в RxDB документ, використовуйте тільки `_deleted`
+- **"must NOT have more than X characters"** - збільште maxLength (рекомендовано 250 для timestamps)
+- **"must NOT have additional properties"** - не додавайте `deleted` в RxDB, тільки `_deleted`
 - **"object does not match schema"** - перевірте що всі required поля присутні
+
+### Помилки бази:
 - **"db.destroy is not a function"** - база зламана, очистіть IndexedDB через браузер
-- **"another instance created this collection with different schema"** - схема змінилась, потрібно видалити IndexedDB
+- **Boolean поля в індексах** - МАЮТЬ бути в `required`
+- **Nullable поля** - НЕ можна використовувати в індексах
+
+---
 
 ## Важливі особливості RxDB схем
 
 ### maxLength для текстових полів
-Всі текстові поля що використовуються в індексах МАЮТЬ мати `maxLength`. Рекомендовані значення:
-- ID та основні поля: `250` 
+Всі текстові поля що використовуються в індексах МАЮТЬ мати `maxLength`:
+- ID та основні поля: `100`
 - Enum поля: `50`
 - Timestamps: `250` (для підтримки різних форматів з мікросекундами)
 
@@ -735,17 +808,19 @@ Boolean поля що використовуються в індексах МА�
 ### Nullable поля
 Поля з типом `['string', 'null']` НЕ можна використовувати в індексах. Або робіть поле required, або не індексуйте.
 
+---
+
 ## Очищення бази при помилках схеми
 
 Якщо змінили схему і отримуєте помилку "another instance created this collection with different schema":
 
-1. **Через UI браузера:**
-   - Відкрийте Developer Tools (F12)
-   - Application/Storage → IndexedDB
-   - Видаліть базу `breedhub`
-   - Перезавантажте сторінку
+### 1. Через UI браузера:
+- Відкрийте Developer Tools (F12)
+- Application/Storage → IndexedDB
+- Видаліть базу `breedhub`
+- Перезавантажте сторінку
 
-2. **Через консоль браузера:**
+### 2. Через консоль браузера:
 ```javascript
 // Видалити всі бази
 const dbs = await indexedDB.databases();
@@ -755,13 +830,15 @@ for (const db of dbs) {
 location.reload();
 ```
 
-3. **Конкретні бази RxDB:**
+### 3. Конкретні бази RxDB:
 ```javascript
 indexedDB.deleteDatabase('breedhub');
 indexedDB.deleteDatabase('_rxdb_internal');
 indexedDB.deleteDatabase('rxdb-dexie-breedhub');
 location.reload();
 ```
+
+---
 
 ## Налагодження синхронізації
 
@@ -774,40 +851,54 @@ console.log('[Store] Mapped data:', mappedData);
 console.log('[Store] BulkUpsert result:', result);
 ```
 
-### Перевірка даних з Supabase
+### Перевірка даних з Supabase:
 1. Чи є файл `.env` з правильними credentials
 2. Чи повертає Supabase дані (перевірте в Network tab)
 3. Чи всі required поля присутні в даних
 4. Чи правильно мапляться поля (особливо `deleted` → `_deleted`)
 
+---
+
 ## Чеклист для нового store
 
-### Entity Store Pattern (РЕКОМЕНДОВАНО)
-- [ ] Визначено що це бізнес-сутність (не конфігурація)
-- [ ] Створено або перевірено існування `base/entity-store.ts`
+### SpaceStore (РЕКОМЕНДОВАНО - 95% випадків)
+- [ ] Перевірено що це entity з CRUD операціями
+- [ ] Entity config існує в `app_config` Supabase
+- [ ] Використовується `useSpaceStore()` в компонентах
+- [ ] Використовується `applyFilters()` для фільтрації
+- [ ] Використовується `loadMore()` для пагінації
+- [ ] Для child records використовується `useChildRecords()` hook
+- [ ] **НЕ створено** нових stores/schemas/collections
+
+### DictionaryStore (для довідників)
+- [ ] Це довідник (мала таблиця з простою структурою)
+- [ ] Використовується `dictionaryStore.getDictionary()`
+- [ ] Вказано `additionalFields` для extra полів
+- [ ] Дані фільтруються client-side (малі обсяги)
+- [ ] **НЕ створено** нових schemas/collections
+
+### Entity Store (тільки якщо SpaceStore не підходить!)
+- [ ] Обґрунтовано чому SpaceStore не підходить
 - [ ] Створено типи в `types/[entity].types.ts`
 - [ ] Створено схему в `collections/[entity].schema.ts`
-- [ ] Створено Entity Store в `stores/[entity].store.ts` що extends EntityStore
-- [ ] Додано специфічні computed values
-- [ ] Реалізовано CRUD методи з RxDB
-- [ ] Додано колекцію в `database.service.ts`
-- [ ] Експортовано з `index.ts`
-
-### Legacy підхід (для складних випадків)
-- [ ] Створено типи в `types/[entity].types.ts`
-- [ ] Створено схему в `collections/[entity].schema.ts` 
 - [ ] Всі string поля в індексах мають `maxLength`
 - [ ] Boolean поля в індексах додані в `required`
 - [ ] Використовується `_deleted`, НЕ `deleted` в RxDB
 - [ ] Додано колекцію в `database.service.ts`
-- [ ] Створено signal store в `stores/[entity].signal-store.ts`
+- [ ] Створено Entity Store що extends EntityStore
 - [ ] Правильний мапінг `deleted` <-> `_deleted`
 - [ ] Експортовано з `index.ts`
 - [ ] Немає circular dependencies
-- [ ] Store автоматично синхронізується в `initializeStore()`
-- [ ] НЕ додано кнопок для ручної синхронізації
+
+---
 
 ## 🔗 Пов'язана документація
 
-- [STORE_ARCHITECTURE.md](./STORE_ARCHITECTURE.md) - Детальна архітектура Store Pattern
-- [PRODUCT_STRATEGY.md](./PRODUCT_STRATEGY.md) - Стратегія розвитку продукту
+- [CORE_PRINCIPLES.md](./CORE_PRINCIPLES.md) - Local-First Architecture principles
+- [CONFIG_ARCHITECTURE.md](./CONFIG_ARCHITECTURE.md) - Config-driven development
+- [LOCAL_FIRST_ROADMAP.md](./LOCAL_FIRST_ROADMAP.md) - Overall architecture roadmap
+- [CHILD_TABLES_IMPLEMENTATION_PLAN.md](./CHILD_TABLES_IMPLEMENTATION_PLAN.md) - Child collections pattern
+
+---
+
+**Last Updated:** 2024-11-25
