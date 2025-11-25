@@ -1,7 +1,18 @@
-# Dictionary Loading Strategy
+# [ARCHIVED] Dictionary Loading Strategy
 
-**Generated:** 2025-10-06
-**Updated:** 2025-10-21
+> ⚠️ **СТАТУС: АРХІВНИЙ** - Документ виконав свою роль
+>
+> **Дата архівації:** 2024-11-25
+>
+> **Причина:** Детальна історія еволюції від offset до ID-First pagination.
+> Всі core principles перенесені в [CORE_PRINCIPLES.md](./CORE_PRINCIPLES.md),
+> практичні приклади в [STORE_CREATION_GUIDE.md](./STORE_CREATION_GUIDE.md),
+> архітектурні деталі в [SPACE_STORE_ARCHITECTURE.md](./SPACE_STORE_ARCHITECTURE.md).
+
+---
+
+**Generated:** 2024-10-06
+**Updated:** 2024-10-21
 
 ## Executive Summary
 

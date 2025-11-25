@@ -83,22 +83,62 @@ interface DictionaryDocument {
     entity?: string;
     // ... будь-які інші поля
   };
-  cachedAt: number;
+  cachedAt: number;      // Unix timestamp для TTL cleanup
 }
 ```
 
+### Коли використовувати:
+- ✅ **Малі довідники** (< 1000 records): achievements, colors, sizes
+- ✅ **DropdownInput** - завжди використовує DictionaryStore
+- ✅ **LookupInput** - якщо немає `dataSource: "collection"` в config
+- ❌ **Не використовувати** для main entities (breeds, pets) - вони через SpaceStore
+
 ### Використання:
 ```typescript
+// Basic usage
 await dictionaryStore.getDictionary('achievement', {
+  idField: 'id',
+  nameField: 'name',
   additionalFields: ['int_value', 'position', 'description', 'entity']
 });
+
+// With search and pagination
+await dictionaryStore.getDictionary('coat_color', {
+  search: 'red',
+  limit: 30,
+  offset: 0
+});
 ```
+
+### TTL і Cleanup:
+- **TTL:** 14 днів (автоматичне видалення старих записів)
+- **Cleanup:** Викликається автоматично при старті app
+- **Cache warming:** Природнє накопичення популярних records
 
 ### Чому JSON поле:
 - ✅ Схема залишається стабільною
 - ✅ Гнучкість для різних довідників
 - ✅ Не потрібна індексація (ID-First робить фільтрацію в Supabase)
 - ✅ Малі довідники - швидко навіть без індексів
+
+### Config Integration:
+```json
+// Entity config field
+{
+  "name": "pet_type_id",
+  "component": "DropdownInput",
+  "referencedTable": "pet_type"
+  // No dataSource → uses DictionaryStore by default
+}
+
+// Main entity - uses SpaceStore instead
+{
+  "name": "breed_id",
+  "component": "LookupInput",
+  "referencedTable": "breed",
+  "dataSource": "collection"  // → uses SpaceStore, not DictionaryStore
+}
+```
 
 ---
 
