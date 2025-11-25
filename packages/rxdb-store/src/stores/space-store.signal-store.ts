@@ -169,15 +169,15 @@ class SpaceStore {
       const totalTime = performance.now() - startTime;
       console.log(`[SpaceStore] ✅ INITIALIZED IN ${totalTime.toFixed(0)}ms`);
 
-      // Run initial cleanup for child collections (async, don't wait)
-      this.cleanupExpiredChildren().catch(error => {
-        console.error('[SpaceStore] Initial child cleanup failed:', error);
+      // Run initial cleanup for all collections (async, don't wait)
+      this.cleanupExpiredRecords().catch(error => {
+        console.error('[SpaceStore] Initial cleanup failed:', error);
       });
 
       // Schedule periodic cleanup (every 24 hours)
       setInterval(() => {
-        this.cleanupExpiredChildren().catch(error => {
-          console.error('[SpaceStore] Periodic child cleanup failed:', error);
+        this.cleanupExpiredRecords().catch(error => {
+          console.error('[SpaceStore] Periodic cleanup failed:', error);
         });
       }, 24 * 60 * 60 * 1000);
 
@@ -917,7 +917,15 @@ class SpaceStore {
       await this.db.addCollections({
         [entityType]: {
           schema: schema,
-          migrationStrategies: {}
+          migrationStrategies: {
+            // Version 0→1: Add cachedAt field for TTL cleanup
+            1: (oldDoc: any) => {
+              return {
+                ...oldDoc,
+                cachedAt: Date.now()
+              };
+            }
+          }
         }
       });
       console.log(`[SpaceStore] Created collection ${entityType}`);
@@ -1137,10 +1145,19 @@ class SpaceStore {
     if (!properties._deleted) {
       properties._deleted = { type: 'boolean' };
     }
-    
+    // Add cachedAt for TTL cleanup (same pattern as dictionaries and child collections)
+    if (!properties.cachedAt) {
+      properties.cachedAt = {
+        type: 'number',
+        multipleOf: 1,
+        minimum: 0,
+        maximum: 9999999999999
+      };
+    }
+
     // Create schema
     const schema: RxJsonSchema<BusinessEntity> = {
-      version: 0,
+      version: 1, // Bumped from 0 to 1 for cachedAt field addition
       primaryKey: 'id',
       type: 'object',
       properties,
@@ -2568,6 +2585,9 @@ class SpaceStore {
     mapped.created_at = mapped.created_at || supabaseDoc.created_at;
     mapped.updated_at = mapped.updated_at || supabaseDoc.updated_at;
 
+    // Add cachedAt for TTL cleanup (same pattern as dictionaries and child collections)
+    mapped.cachedAt = Date.now();
+
     // ✅ IMPORTANT: Remove service fields that might have been copied
     delete mapped._meta;
     delete mapped._attachments;
@@ -3310,12 +3330,13 @@ class SpaceStore {
   }
 
   /**
-   * Cleanup expired child collection records (older than TTL)
+   * Cleanup expired records (older than TTL) from ALL collections
+   * Cleans both entity collections AND child collections
    * Called on initialize and every 24 hours
    * Same pattern as DictionaryStore.cleanupExpired()
    */
-  async cleanupExpiredChildren(): Promise<void> {
-    if (this.childCollections.size === 0) {
+  async cleanupExpiredRecords(): Promise<void> {
+    if (!this.db) {
       return;
     }
 
@@ -3323,7 +3344,33 @@ class SpaceStore {
     let totalCleaned = 0;
 
     try {
-      // Cleanup each child collection
+      // 1. Cleanup entity collections (breed, pet, kennel, etc.)
+      for (const entityType of this.availableEntityTypes.value) {
+        const collection = this.db.collections[entityType];
+        if (!collection) continue;
+
+        const expiredDocs = await collection
+          .find({
+            selector: {
+              cachedAt: {
+                $lt: expiryTime
+              }
+            }
+          })
+          .exec();
+
+        if (expiredDocs.length > 0) {
+          console.log(`[SpaceStore] Cleaning up ${expiredDocs.length} expired records from ${entityType}`);
+
+          for (const doc of expiredDocs) {
+            await doc.remove(); // Soft delete → RxDB cleanup will handle
+          }
+
+          totalCleaned += expiredDocs.length;
+        }
+      }
+
+      // 2. Cleanup child collections (breed_children, etc.)
       for (const [collectionName, collection] of this.childCollections.entries()) {
         const expiredDocs = await collection
           .find({
@@ -3347,7 +3394,7 @@ class SpaceStore {
       }
 
       if (totalCleaned > 0) {
-        console.log(`[SpaceStore] Cleanup complete: ${totalCleaned} expired child records removed`);
+        console.log(`[SpaceStore] Cleanup complete: ${totalCleaned} expired records removed (entities + children)`);
       }
     } catch (error) {
       console.error('[SpaceStore] Cleanup failed:', error);
