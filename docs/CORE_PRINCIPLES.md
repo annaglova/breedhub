@@ -177,16 +177,142 @@ const { data, isLoading, error } = useChildRecords({
 
 ## 5. 📝 Configuration-Driven Development
 
-**Правило:** Все визначається конфігурацією, мінімум хардкоду.
+**Правило:** Все визначається конфігурацією, мінімум хардкоду. UI генерується динамічно на основі конфігів.
 
-### Винятки:
+### Джерело конфігурації:
+```
+Supabase `app_config` table → SpaceStore.entityConfigs → Dynamic UI
+```
+
+Всі entity definitions, fields, tabs, views зберігаються в базі і завантажуються при старті.
+
+### Що конфігурується:
+
+#### 1. **Entity Structure** (entity config)
+```json
+{
+  "name": "breed",
+  "table_name": "breed",
+  "display_name": "Breed",
+  "icon": "dog",
+  "fields": [...],
+  "tabs": [...],
+  "views": [...]
+}
+```
+
+#### 2. **Field Definitions** (field config)
+```json
+{
+  "name": "coat_color_id",
+  "label": "Coat Color",
+  "component": "DropdownInput",
+  "referencedTable": "coat_color",
+  "validation": {
+    "required": true
+  }
+  // No dataSource → uses DictionaryStore
+}
+
+{
+  "name": "breed_id",
+  "label": "Breed",
+  "component": "LookupInput",
+  "referencedTable": "breed",
+  "dataSource": "collection",  // → uses SpaceStore
+  "validation": {
+    "required": true
+  }
+}
+```
+
+#### 3. **Component Mapping** (dynamic rendering)
+```typescript
+// UI dynamically selects component based on config
+const componentMap = {
+  'TextInput': TextInput,
+  'DropdownInput': DropdownInput,
+  'LookupInput': LookupInput,
+  'DateInput': DateInput,
+  'ImageUpload': ImageUpload
+};
+
+// Render field based on config.component
+const Component = componentMap[fieldConfig.component];
+return <Component {...fieldConfig} />;
+```
+
+#### 4. **Tabs & Views** (UI structure)
+```json
+{
+  "tabs": [
+    {
+      "name": "overview",
+      "label": "Overview",
+      "component": "OverviewTab",
+      "fields": ["name", "description", "status"]
+    },
+    {
+      "name": "achievements",
+      "label": "Achievements",
+      "component": "BreedAchievementsTab",
+      "childTable": "achievement_in_breed"
+    }
+  ]
+}
+```
+
+### Як це працює:
+
+```typescript
+// 1. SpaceStore loads configs from Supabase
+const entityConfig = spaceStore.getEntityConfig('breed');
+
+// 2. UI uses config to render dynamic form
+function DynamicForm({ entityType }) {
+  const config = spaceStore.getEntityConfig(entityType);
+
+  return (
+    <>
+      {config.fields.map(fieldConfig => (
+        <DynamicField key={fieldConfig.name} config={fieldConfig} />
+      ))}
+    </>
+  );
+}
+
+// 3. DynamicField chooses component based on config
+function DynamicField({ config }) {
+  const Component = componentMap[config.component];
+  return <Component {...config} />;
+}
+```
+
+### Переваги:
+
+✅ **Швидкі зміни без деплою** - змінив config в БД, перезавантажив UI
+✅ **Консистентність** - всі entities працюють однаково
+✅ **Масштабованість** - додати нову entity = додати config
+✅ **Тестування** - можна легко тестувати різні конфігурації
+✅ **A/B тестування** - різні конфіги для різних користувачів
+
+### Винятки (коли можна хардкод):
+
 Специфічні компоненти (як `BreedAchievementsTab`) можуть мати хардкод, якщо:
-- Унікальна логіка тільки для цього entity
-- Ніколи не будуть переиспользовуватись
-- Проста підтримка важливіша за гнучкість
+- ✅ Унікальна логіка тільки для цього entity
+- ✅ Ніколи не будуть переиспользовуватись
+- ✅ Проста підтримка важливіша за гнучкість
 
 ### Principle: YAGNI
+
 Не ускладнювати передчасно. Конфіги додаємо коли реально потрібна гнучкість.
+
+**Приклад:** `BreedAchievementsTab` має хардкод логіку для achievement mutations.
+Це OK, бо інші entities не мають таких складних achievement flows.
+
+### Документація:
+- `/docs/CONFIG_ARCHITECTURE.md` - Детальна архітектура конфігів
+- `/docs/STORE_CREATION_GUIDE.md` - Як працювати зі stores через конфіги
 
 ---
 
@@ -214,4 +340,4 @@ const { data, isLoading, error } = useChildRecords({
 
 ---
 
-**Last Updated:** 2024-11-24
+**Last Updated:** 2024-11-25
