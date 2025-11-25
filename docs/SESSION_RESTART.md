@@ -1,6 +1,6 @@
 # 🔄 SESSION RESTART - BREEDHUB PROJECT
 
-## 📅 Останнє оновлення: 2025-11-10
+## 📅 Останнє оновлення: 2024-11-25
 
 ---
 
@@ -39,66 +39,30 @@
 - ✅ Структура: `src/assets/images/background-images/`
 - ✅ cover_background.png з Angular проекту
 
-### 🚧 Поточна робота: Extensions Architecture
+### 🚧 Поточна робота: Extensions Architecture & Child Tables
 
 **Мета:** Впровадити систему extensions для дочірніх таблиць (child tables)
 
 **Документація:**
-- [PUBLIC_PAGE_IMPLEMENTATION_PLAN.md](./PUBLIC_PAGE_IMPLEMENTATION_PLAN.md) - секції про Child Tables Storage (лінії 159-380, 462-747)
-- Варіант C: Per-Entity Child Collections з proper schema
+- [CHILD_TABLES_IMPLEMENTATION_PLAN.md](./CHILD_TABLES_IMPLEMENTATION_PLAN.md) - детальна архітектура
+- [TODO.md](./TODO.md) - активні задачі
 
 **Архітектура:**
-```javascript
-space: {
-  entitySchemaName: "breed",
-
-  fields: {
-    // Main entity fields (source of truth для RxDB schema)
-  },
-
-  extensions: {
-    "breed_extension_top_patrons": {
-      tableName: "breed_top_patrons",  // Окрема таблиця
-      fields: {
-        id: {...},
-        breed_id: {...},     // FK to parent
-        patron_id: {...},
-        rank: {...}
-      }
-    },
-    "breed_extension_measurements": {
-      tableName: "breed_measurements",
-      fields: {...}
-    }
-  }
-}
+```
+db.breed (main entity)
+  └── db.breed_children (universal collection)
+      ├── achievement_in_breed records (additional field)
+      ├── breed_division records (additional field)
+      └── breed_measurements records (additional field)
 ```
 
-**RxDB Collections:**
-- `db.breed` - основна таблиця
-- `db.breed_children` - ВСІ дочірні таблиці для breed (union schema)
-- Meta fields: `_table_type`, `_parent_id`
-
-**Задачі:**
-- [ ] Додати логіку збору extensions в `parseSpaceConfigurations()`
-- [ ] Створити `generateChildSchemaFromExtensions()` метод
-- [ ] Розширити `ensureCollection()` для підтримки `_children` колекцій
-- [ ] Додати `queryExtensionRecords()` метод в SpaceStore
-- [ ] Тестування з реальними extensions конфігами
-
 **Принципи:**
-- Extension = завжди окрема таблиця (не JSONB поле)
-- Tab може використовувати extension через reference
-- Extensions в корені space (не в tabs)
-- Union schema - всі поля з усіх extensions в одній колекції
+- Extension = окрема таблиця в Supabase
+- Зберігання в RxDB через universal `breed_children` collection
+- Union schema з `additional` JSON field для flexibility
+- Meta fields: `tableType`, `parentId` для розрізнення типів
 
-### 🚧 Наступні кроки (Phase 3 - після Extensions):
-
-**Phase 3 - Navigation & Tab Content:**
-- [ ] Навігаційні кнопки (expand/fullscreen, prev/next)
-- [ ] Tab content components (DetailsTab, etc.)
-- [ ] Child tables інтеграція в tabs через extensions
-- [ ] Підключення реальних даних замість моків
+**Детальні задачі:** Дивись [TODO.md](./TODO.md) → "Extensions Architecture"
 
 ---
 
@@ -302,20 +266,30 @@ node apps/config-admin/scripts/test/check-db.cjs
 
 ## 📚 ДЕТАЛЬНА ДОКУМЕНТАЦІЯ
 
+### Основні документи
+- [CORE_PRINCIPLES.md](./CORE_PRINCIPLES.md) - 🔥 **Фундаментальні принципи (Source of Truth)**
+- [TODO.md](./TODO.md) - Активні задачі та roadmap
+- [SESSION_RESTART.md](./SESSION_RESTART.md) - Цей документ (швидкий старт)
+
 ### Реалізація
-- `/docs/FILTERING_IMPLEMENTATION_PLAN.md` - 🔥 **Filtering, Search, Counter (COMPLETE)**
-- `/docs/ID_FIRST_PAGINATION.md` - ID-First architecture details
-- `/docs/DICTIONARY_LOADING_STRATEGY.md` - Dictionary loading strategy
-- `/docs/LOCAL_FIRST_ROADMAP.md` - Загальний roadmap проекту
-- `/docs/UNIVERSAL_STORE_IMPLEMENTATION.md` - Universal store architecture
+- [FILTERING_IMPLEMENTATION_PLAN.md](./FILTERING_IMPLEMENTATION_PLAN.md) - Filtering, Search, Counter (COMPLETE)
+- [DYNAMIC_VIEW_ROWS_IMPLEMENTATION.md](./DYNAMIC_VIEW_ROWS_IMPLEMENTATION.md) - ID-First pagination details
+- [CHILD_TABLES_IMPLEMENTATION_PLAN.md](./CHILD_TABLES_IMPLEMENTATION_PLAN.md) - Child collections architecture
+- [LOCAL_FIRST_ROADMAP.md](./LOCAL_FIRST_ROADMAP.md) - Загальний roadmap проекту
 
 ### Архітектура
-- `/docs/PROPERTY_BASED_CONFIG_ARCHITECTURE.md` - Конфігураційна система
-- `/docs/SPACE_STORE_ARCHITECTURE.md` - SpaceStore архітектура
+- [SPACE_STORE_ARCHITECTURE.md](./SPACE_STORE_ARCHITECTURE.md) - SpaceStore детальна архітектура
+- [STORE_CREATION_GUIDE.md](./STORE_CREATION_GUIDE.md) - Як працювати зі stores
+- [CONFIG_ARCHITECTURE.md](./CONFIG_ARCHITECTURE.md) - Config-driven development
 
 ### Config Admin
 - `/apps/config-admin/docs/SCRIPTS.md` - Config generation scripts
 - `/apps/config-admin/docs/WORKFLOW.md` - Development workflow
+
+### Архівовані документи
+- [archive/DICTIONARY_LOADING_STRATEGY.md](./archive/DICTIONARY_LOADING_STRATEGY.md) - Історія еволюції pagination
+- [archive/ANGULAR_PATTERNS_TO_ADOPT.md](./archive/ANGULAR_PATTERNS_TO_ADOPT.md) - Міграція з Angular
+- [archive/MONOREPO_ANALYSIS.md](./archive/MONOREPO_ANALYSIS.md) - Monorepo decision history
 
 ---
 
@@ -406,70 +380,18 @@ return [...startsWithResults, ...containsResults];
 
 ---
 
-## 📋 ЩО НЕ ЗРОБИЛИ (TODO)
+## 🎯 НАСТУПНІ КРОКИ
 
-### 🟡 ПРІОРИТЕТ 1: PWA Phase 2
+**Детальний список задач:** [TODO.md](./TODO.md)
 
-**Статус:** 🟡 Optional (Phase 1 Complete)
+**Поточний фокус:**
+1. **Extensions Architecture** - Child tables implementation (In Progress)
+2. **Phase 3** - Navigation & Tab Content (After Extensions)
 
-**Що можна додати:**
-- [ ] Custom offline page (зараз fallback на index.html)
-- [ ] Deeper RxDB integration в Service Worker
-- [ ] Cache strategy optimization
-- [ ] Install prompt UI
-
-**Estimated:** 4-6 годин
-
----
-
-### 🟡 ПРІОРИТЕТ 2: Performance Optimization
-
-**Статус:** 🟡 Optional
-
-**Можливі покращення:**
-- [ ] Performance metrics (cache hit rate tracking)
-- [ ] Bundle size optimization
-- [ ] Lazy loading для non-critical components
-- [ ] Virtual scrolling для великих списків
-
-**Estimated:** Varies
-
----
-
-### 🟢 ПРІОРИТЕТ 3: Edge Cases
-
-**Статус:** 🟢 Low Priority
-
-**Складні сценарії:**
-- [ ] Complex filter scenarios (OR/AND logic)
-- [ ] Special operators (IN, BETWEEN, NOT IN)
-- [ ] Nested JSONB filtering
-- [ ] Date range filtering with timezone
-
-**Note:** Додаються по мірі виникнення, не критичні зараз
-
-**Estimated:** Incremental
-
----
-
-## 🎯 NEXT STEPS
-
-**Поточна робота:**
-1. **Public Page Cover Implementation** - Phase 1 (PRIORITY)
-   - CoverTemplate.tsx - базовий wrapper
-   - DefaultCover.tsx - найпростіший варіант
-   - Інтеграція в PublicPageTemplate
-   - Мок дані для візуалізації
-
-**Наступні фази:**
-2. **Public Page Tabs & Content** - dynamic tab rendering з config
-3. **Child Tables Integration** - kennels, pets lists в tabs
-4. **Page Actions** - navigation, fullscreen buttons
-
-**Опціонально (після Public Page):**
-5. **PWA Phase 2** - custom offline page, покращити UX (4-6 годин)
-6. **Performance Metrics** - tracking для оптимізації (2-3 години)
-7. **Edge Cases** - складні фільтри, додаються по потребі
+**Опціонально:**
+- PWA Phase 2 - custom offline page (4-6 годин)
+- Performance Optimization - metrics, virtual scrolling
+- Edge Cases - складні фільтри (за потребою)
 
 ---
 
