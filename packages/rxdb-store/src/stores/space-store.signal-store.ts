@@ -95,6 +95,9 @@ class SpaceStore {
   // Child collections - lazy created on-demand
   private childCollections = new Map<string, RxCollection<any>>();
 
+  // Cache metadata for child collections
+  private readonly CHILD_TTL = 14 * 24 * 60 * 60 * 1000; // 14 days (same as DictionaryStore)
+
   // Track which entity types are available
   availableEntityTypes = signal<string[]>([]);
   
@@ -165,6 +168,18 @@ class SpaceStore {
       this.initialized.value = true;
       const totalTime = performance.now() - startTime;
       console.log(`[SpaceStore] ✅ INITIALIZED IN ${totalTime.toFixed(0)}ms`);
+
+      // Run initial cleanup for child collections (async, don't wait)
+      this.cleanupExpiredChildren().catch(error => {
+        console.error('[SpaceStore] Initial child cleanup failed:', error);
+      });
+
+      // Schedule periodic cleanup (every 24 hours)
+      setInterval(() => {
+        this.cleanupExpiredChildren().catch(error => {
+          console.error('[SpaceStore] Periodic child cleanup failed:', error);
+        });
+      }, 24 * 60 * 60 * 1000);
 
       // ⚠️ DISABLED: Replication conflicts with ID-First pagination
       // ID-First загружає дані через applyFilters з правильним orderBy
@@ -3292,6 +3307,51 @@ class SpaceStore {
     };
 
     return tableEntityMap[tableType] || null;
+  }
+
+  /**
+   * Cleanup expired child collection records (older than TTL)
+   * Called on initialize and every 24 hours
+   * Same pattern as DictionaryStore.cleanupExpired()
+   */
+  async cleanupExpiredChildren(): Promise<void> {
+    if (this.childCollections.size === 0) {
+      return;
+    }
+
+    const expiryTime = Date.now() - this.CHILD_TTL;
+    let totalCleaned = 0;
+
+    try {
+      // Cleanup each child collection
+      for (const [collectionName, collection] of this.childCollections.entries()) {
+        const expiredDocs = await collection
+          .find({
+            selector: {
+              cachedAt: {
+                $lt: expiryTime
+              }
+            }
+          })
+          .exec();
+
+        if (expiredDocs.length > 0) {
+          console.log(`[SpaceStore] Cleaning up ${expiredDocs.length} expired records from ${collectionName}`);
+
+          for (const doc of expiredDocs) {
+            await doc.remove(); // Soft delete → RxDB cleanup will handle
+          }
+
+          totalCleaned += expiredDocs.length;
+        }
+      }
+
+      if (totalCleaned > 0) {
+        console.log(`[SpaceStore] Cleanup complete: ${totalCleaned} expired child records removed`);
+      }
+    } catch (error) {
+      console.error('[SpaceStore] Cleanup failed:', error);
+    }
   }
 
   dispose() {

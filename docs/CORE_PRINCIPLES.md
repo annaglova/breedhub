@@ -173,6 +173,18 @@ const { data, isLoading, error } = useChildRecords({
 });
 ```
 
+### TTL і Cleanup:
+- **TTL:** 14 днів (автоматичне видалення старих записів)
+- **Cleanup:** Викликається автоматично при старті SpaceStore та кожні 24 години
+- **Cache warming:** Природнє накопичення популярних records
+- **Важливо:** Запобігає розростанню клієнта - старі дані видаляються автоматично
+
+```typescript
+// SpaceStore.cleanupExpiredChildren()
+// Runs on initialize and every 24 hours
+// Removes child records older than 14 days
+```
+
 ---
 
 ## 5. 📝 Configuration-Driven Development
