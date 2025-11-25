@@ -87,7 +87,10 @@ class DictionaryStore {
             migrationStrategies: {
               // Version 1: Added composite index [table_name, name, id] for stable sorting
               // No data migration needed - only index change
-              1: (oldDoc: any) => oldDoc
+              1: (oldDoc: any) => oldDoc,
+              // Version 2: Added 'additional' field for extra dictionary data
+              // No data migration needed - new field is optional
+              2: (oldDoc: any) => oldDoc
             }
           }
         });
@@ -244,13 +247,20 @@ class DictionaryStore {
     tableName: string,
     idField: string,
     nameField: string,
-    ids: string[]
+    ids: string[],
+    additionalFields?: string[]
   ): Promise<DictionaryDocument[]> {
     if (ids.length === 0) return [];
 
+    // Build select string with additional fields
+    const selectFields = [idField, nameField];
+    if (additionalFields?.length) {
+      selectFields.push(...additionalFields);
+    }
+
     const { data, error } = await supabase
       .from(tableName)
-      .select(`${idField}, ${nameField}`)
+      .select(selectFields.join(', '))
       .in(idField, ids);
 
     if (error) {
@@ -258,13 +268,26 @@ class DictionaryStore {
     }
 
     // Transform to DictionaryDocument
-    return (data || []).map(record => ({
-      composite_id: `${tableName}::${record[idField]}`,
-      table_name: tableName,
-      id: String(record[idField]),
-      name: String(record[nameField]),
-      cachedAt: Date.now()
-    }));
+    return (data || []).map(record => {
+      // Extract additional fields into object
+      const additional: Record<string, any> = {};
+      if (additionalFields?.length) {
+        for (const field of additionalFields) {
+          if (record[field] !== undefined) {
+            additional[field] = record[field];
+          }
+        }
+      }
+
+      return {
+        composite_id: `${tableName}::${record[idField]}`,
+        table_name: tableName,
+        id: String(record[idField]),
+        name: String(record[nameField]),
+        additional: Object.keys(additional).length > 0 ? additional : undefined,
+        cachedAt: Date.now()
+      };
+    });
   }
 
   /**
@@ -283,6 +306,7 @@ class DictionaryStore {
       search?: string;     // Search query (case-insensitive)
       limit?: number;      // Records per page (default: 30)
       cursor?: string | null; // ✅ Cursor for keyset pagination (replaces offset)
+      additionalFields?: string[]; // Extra fields to fetch and store in 'additional'
     } = {}
   ): Promise<{ records: DictionaryDocument[]; total: number; hasMore: boolean; nextCursor: string | null }> {
     if (!this.collection) {
@@ -294,7 +318,8 @@ class DictionaryStore {
       nameField = 'name',
       search,
       limit = 30,
-      cursor = null
+      cursor = null,
+      additionalFields
     } = options;
 
     console.log(`[DictionaryStore] 🆔 ID-First getDictionary ${tableName}:`, {
@@ -362,7 +387,8 @@ class DictionaryStore {
           tableName,
           idField,
           nameField,
-          missingIds
+          missingIds,
+          additionalFields
         );
 
         console.log(`[DictionaryStore] ✅ Fetched ${freshRecords.length} fresh records`);

@@ -3171,8 +3171,8 @@ class SpaceStore {
         parentId: parentId
       }));
 
-      // Bulk insert into RxDB collection
-      await collection.bulkInsert(transformedRecords);
+      // Bulk upsert into RxDB collection (update if exists, insert if not)
+      await collection.bulkUpsert(transformedRecords);
 
       return transformedRecords;
     } catch (error) {

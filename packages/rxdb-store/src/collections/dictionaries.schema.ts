@@ -14,6 +14,10 @@ export interface DictionaryDocument {
   // Display data
   name: string;          // Display name from source table
 
+  // Additional fields (optional, for dictionaries with extra data)
+  // e.g., { int_value, position, description, entity, ... }
+  additional?: Record<string, any>;
+
   // Cache metadata
   cachedAt: number;      // Unix timestamp for TTL cleanup
 }
@@ -33,7 +37,7 @@ export interface DictionaryDocument {
  * - breed.id + breed.admin_name → {id, name: admin_name}
  */
 export const dictionariesSchema: RxJsonSchema<DictionaryDocument> = {
-  version: 1,  // ⬆️ Bumped for index change (table_name,name,id)
+  version: 2,  // ⬆️ Bumped for additional field
   primaryKey: {
     // Composite key: combines table_name and id
     key: 'composite_id',
@@ -69,7 +73,13 @@ export const dictionariesSchema: RxJsonSchema<DictionaryDocument> = {
       maxLength: 250
     },
 
-    // 5. Cache timestamp for TTL
+    // 5. Additional fields (optional JSON object)
+    // For dictionaries with extra data like int_value, position, description, entity
+    additional: {
+      type: 'object'
+    },
+
+    // 6. Cache timestamp for TTL
     cachedAt: {
       type: 'number',
       multipleOf: 1,        // Required for indexed number fields in RxDB

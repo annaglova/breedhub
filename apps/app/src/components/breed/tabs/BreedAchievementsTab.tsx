@@ -3,7 +3,7 @@ import { AlternatingTimeline } from "@ui/components/timeline";
 import { Check, Loader2 } from "lucide-react";
 import { useSelectedEntity } from "@/contexts/SpaceContext";
 import { useChildRecords } from "@/hooks/useChildRecords";
-import { supabase } from "@breedhub/rxdb-store";
+import { dictionaryStore } from "@breedhub/rxdb-store";
 
 /**
  * Achievement data structure
@@ -91,26 +91,45 @@ export function BreedAchievementsTab() {
     orderDirection: 'desc'
   });
 
-  // Load achievement dictionary
+  // Load achievement dictionary via DictionaryStore (RxDB → Supabase)
   const [achievementDict, setAchievementDict] = useState<AchievementDictionary[]>([]);
   const [isLoadingDict, setIsLoadingDict] = useState(true);
+  const [dictError, setDictError] = useState<Error | null>(null);
 
   useEffect(() => {
     async function loadDictionary() {
       try {
-        const { data, error } = await supabase
-          .from('achievement')
-          .select('id, name, description, int_value, position')
-          .order('position', { ascending: true });
-
-        if (error) {
-          console.error('[BreedAchievementsTab] Failed to load achievement dictionary:', error);
-          return;
+        // Ensure DictionaryStore is initialized
+        if (!dictionaryStore.initialized.value) {
+          await dictionaryStore.initialize();
         }
 
-        setAchievementDict(data || []);
+        // Load via DictionaryStore (ID-First: Supabase IDs → RxDB cache → fetch missing)
+        // Additional fields stored in 'additional' JSON object
+        const { records } = await dictionaryStore.getDictionary('achievement', {
+          idField: 'id',
+          nameField: 'name',
+          limit: 100, // Small dictionary, load all
+          additionalFields: ['int_value', 'position', 'description', 'entity']
+        });
+
+        // Filter for breed entity and transform to expected format
+        // DictionaryStore returns { id, name, additional: { int_value, position, ... }, ... }
+        const breedAchievements = records
+          .filter((r: any) => r.additional?.entity === 'breed')
+          .map((r: any) => ({
+            id: r.id,
+            name: r.name,
+            description: r.additional?.description || '',
+            int_value: r.additional?.int_value || 0,
+            position: r.additional?.position || 0
+          }))
+          .sort((a, b) => a.position - b.position);
+
+        setAchievementDict(breedAchievements);
       } catch (err) {
         console.error('[BreedAchievementsTab] Error loading dictionary:', err);
+        setDictError(err as Error);
       } finally {
         setIsLoadingDict(false);
       }
@@ -132,7 +151,7 @@ export function BreedAchievementsTab() {
     // Map dictionary entries to Achievement format
     return achievementDict
       .filter(dict => dict.int_value >= 0) // Filter out special entries
-      .sort((a, b) => b.int_value - a.int_value) // Sort by value descending (highest first)
+      // Already sorted by position from Supabase query
       .map(dict => {
         const achieved = achievedMap.get(dict.id);
         return {
@@ -159,12 +178,13 @@ export function BreedAchievementsTab() {
   }
 
   // Error state
-  if (childrenError) {
+  if (childrenError || dictError) {
+    const errorMessage = childrenError?.message || dictError?.message || 'Unknown error';
     return (
       <div className="py-4 px-6">
         <div className="bg-red-50 border border-red-200 rounded-lg p-4">
           <p className="text-red-700 font-semibold">Failed to load achievements</p>
-          <p className="text-red-600 text-sm mt-1">{childrenError.message}</p>
+          <p className="text-red-600 text-sm mt-1">{errorMessage}</p>
         </div>
       </div>
     );
