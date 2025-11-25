@@ -312,11 +312,7 @@ const CardComponent = getComponent(config.component);
 
 ## 💡 Future Improvements
 
-- [ ] Hot reload for component registry in development
-- [ ] Component preview system for config admin
-- [ ] Automatic TypeScript types generation from configs
-- [ ] Performance monitoring for dynamic components
-- [ ] Component versioning system
+**Дивись:** [TODO.md](./TODO.md) → "UI Architecture Improvements"
 
 ---
 

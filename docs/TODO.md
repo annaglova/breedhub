@@ -1,6 +1,6 @@
 # 📋 TODO - BreedHub Active Tasks
 
-**Last Updated:** 2024-11-25
+**Last Updated:** 2025-11-25
 
 ---
 
@@ -155,6 +155,14 @@ space: {
 - [ ] Add validation UI - Visual validation rules builder (3 days)
 - [ ] Export/Import configs - Backup and share configurations (2 days)
 - [ ] Refactor icon helper to other apps - Migrate config-admin and landing apps to use centralized `getIconComponent` from UI package (2-3 hours)
+
+### UI Architecture Improvements
+**Source:** [UI_ARCHITECTURE_PRINCIPLES.md](./UI_ARCHITECTURE_PRINCIPLES.md)
+- [ ] Hot reload for component registry in development
+- [ ] Component preview system for config admin
+- [ ] Automatic TypeScript types generation from configs
+- [ ] Performance monitoring for dynamic components
+- [ ] Component versioning system
 
 ### After Phase 3
 - [ ] Universal search - Search across all entities (3 days)
