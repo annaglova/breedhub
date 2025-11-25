@@ -31,12 +31,17 @@ interface AchievementDictionary {
 
 /**
  * Achievement in breed record from child table
+ * Now using 'additional' field pattern (like DictionaryDocument)
  */
 interface AchievementInBreed {
   id: string;
-  achievement_id: string;
-  breed_id: string;
-  date: string;
+  tableType: string;
+  parentId: string;
+  additional?: {
+    achievement_id?: string;
+    date?: string;
+  };
+  cachedAt: number;
 }
 
 /**
@@ -70,10 +75,14 @@ function formatDate(dateString: string): string {
  *
  * REFERENCE: /Users/annaglova/projects/org/.../breed-support-levels.component.ts
  *
- * Data flow:
- * 1. Load achievement_in_breed records for current breed (via useChildRecords)
- * 2. Load achievement dictionary from Supabase
+ * Data flow (Local-First Architecture):
+ * 1. Load achievement_in_breed records via useChildRecords → SpaceStore → RxDB
+ *    - Fields stored in 'additional' JSON: achievement_id, date
+ * 2. Load achievement dictionary via DictionaryStore → RxDB
+ *    - Fields stored in 'additional' JSON: int_value, position, description, entity
  * 3. Merge and display in timeline (all levels, with achieved dates marked)
+ *
+ * ✅ Follows CORE_PRINCIPLES.md: All data through RxDB → UI, never direct Supabase
  */
 export function BreedAchievementsTab() {
   const selectedEntity = useSelectedEntity();
@@ -143,9 +152,13 @@ export function BreedAchievementsTab() {
     if (!achievementDict.length) return [];
 
     // Create a map of achieved achievements by achievement_id
+    // Note: achievement_id is now in 'additional' field
     const achievedMap = new Map<string, AchievementInBreed>();
     achievementsInBreed.forEach(record => {
-      achievedMap.set(record.achievement_id, record);
+      const achievementId = record.additional?.achievement_id;
+      if (achievementId) {
+        achievedMap.set(achievementId, record);
+      }
     });
 
     // Map dictionary entries to Achievement format
@@ -159,7 +172,7 @@ export function BreedAchievementsTab() {
           name: dict.name,
           description: dict.description || '',
           intValue: dict.int_value,
-          date: achieved?.date,
+          date: achieved?.additional?.date,  // Read from additional field
           active: !!achieved
         };
       });

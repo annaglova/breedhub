@@ -5,7 +5,7 @@ import { RxCollection, RxDocument, RxJsonSchema } from 'rxdb';
 import { EntityStore } from './base/entity-store';
 import { appStore } from './app-store.signal-store';
 import { entityReplicationService } from '../services/entity-replication.service';
-import { breedChildrenSchema, BreedChildrenDocument } from '../collections/breed-children.schema';
+import { breedChildrenSchema, breedChildrenMigrationStrategies, BreedChildrenDocument } from '../collections/breed-children.schema';
 
 // Universal entity interface for all business entities
 interface BusinessEntity {
@@ -3062,11 +3062,14 @@ class SpaceStore {
     }
 
     try {
+      // Get migration strategies for this entity type
+      const migrationStrategies = this.getChildCollectionMigrationStrategies(entityType);
+
       // Create collection
       const collections = await this.db.addCollections({
         [collectionName]: {
           schema: schema,
-          migrationStrategies: {}
+          migrationStrategies: migrationStrategies
         }
       });
 
@@ -3094,6 +3097,19 @@ class SpaceStore {
       default:
         console.warn(`[SpaceStore] No child schema defined for entity type: ${entityType}`);
         return null;
+    }
+  }
+
+  /**
+   * Get migration strategies for child collection based on entity type
+   */
+  private getChildCollectionMigrationStrategies(entityType: string): any {
+    switch (entityType.toLowerCase()) {
+      case 'breed':
+        return breedChildrenMigrationStrategies;
+      // TODO: Add migration strategies for other entities
+      default:
+        return {};
     }
   }
 
@@ -3164,12 +3180,27 @@ class SpaceStore {
         return [];
       }
 
-      // Transform and insert into RxDB
-      const transformedRecords = data.map((row: Record<string, any>) => ({
-        ...row,
-        tableType: tableType,
-        parentId: parentId
-      }));
+      // Transform records: extract core fields + put everything else in 'additional'
+      const transformedRecords = data.map((row: Record<string, any>) => {
+        const { id, created_at, updated_at, created_by, updated_by, ...rest } = row;
+
+        // Build additional object with all non-core fields
+        const additional: Record<string, any> = {};
+        for (const [key, value] of Object.entries(rest)) {
+          // Skip the parent ID field (e.g., breed_id)
+          if (key !== parentIdField && value !== undefined && value !== null) {
+            additional[key] = value;
+          }
+        }
+
+        return {
+          id,
+          tableType,
+          parentId,
+          additional: Object.keys(additional).length > 0 ? additional : undefined,
+          cachedAt: Date.now()
+        };
+      });
 
       // Bulk upsert into RxDB collection (update if exists, insert if not)
       await collection.bulkUpsert(transformedRecords);
