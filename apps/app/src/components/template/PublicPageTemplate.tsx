@@ -13,7 +13,6 @@ import { SpaceProvider } from "@/contexts/SpaceContext";
 interface PublicPageTemplateProps {
   className?: string;
   isDrawerMode?: boolean;
-  pageType?: PageType;
   spaceConfigSignal?: Signal<any>; // TODO: Define proper SpaceConfig type from DB structure
   entityType?: string; // Required to get selectedEntity from store
 }
@@ -27,18 +26,20 @@ interface PublicPageTemplateProps {
 export function PublicPageTemplate({
   className,
   isDrawerMode = false,
-  pageType,
   spaceConfigSignal,
   entityType,
 }: PublicPageTemplateProps) {
   // Very first log - check if component renders at all
-  console.log('[PublicPageTemplate] COMPONENT RENDER START', { isDrawerMode, pageType, entityType });
+  console.log('[PublicPageTemplate] COMPONENT RENDER START', { isDrawerMode, entityType });
 
   useSignals();
 
   // Use spaceConfig from signal
   const spaceConfig = spaceConfigSignal?.value;
-  const pageConfig = getPageConfig(spaceConfig, { pageType });
+
+  // Get page config without specifying pageType - will use isDefault or first page
+  // pageType is defined IN the page config itself, not passed as prop
+  const pageConfig = getPageConfig(spaceConfig);
 
   // Get space permissions from config
   // TODO: Get real permissions from space config after it's implemented
@@ -224,7 +225,7 @@ export function PublicPageTemplate({
             <div className="p-4 bg-red-50 border border-red-200 rounded-lg mb-6">
               <p className="text-red-700 font-semibold">Page configuration not found</p>
               <p className="text-red-600 text-sm mt-1">
-                {pageType ? `No page found with pageType: ${pageType}` : 'No pages configured for this space'}
+                No pages configured for this space
               </p>
             </div>
           )}

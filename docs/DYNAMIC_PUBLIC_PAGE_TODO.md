@@ -169,22 +169,23 @@ return pageEntries[0]?.[1] || null;
 ---
 
 ### ✅ Phase 5: Update Page Config in DB
-**Task:** Оновити конфіг page в Supabase
+**Status:** ✅ COMPLETED - Configured through config-admin app
 
-- [ ] Додати `pageType: "view"` в page config
-- [ ] Додати `isDefault: true` в page config
-- [ ] Додати `order: 1` в block config
-- [ ] Запустити rebuild hierarchy
+**Task:** Налаштувати page config з правильними полями
 
-**SQL або через UI:**
-```sql
-UPDATE app_config
-SET data = jsonb_set(
-  jsonb_set(data, '{pageType}', '"view"'),
-  '{isDefault}', 'true'
-)
-WHERE id = 'config_page_1757849573807';
-```
+**Виконано:**
+- [x] Додати `pageType: "view"` в page config (налаштовано через config-admin)
+- [x] Додати `isDefault: true` в page config (налаштовано через config-admin)
+- [x] Додати `order` в block configs (налаштовано для кожного блоку)
+- [x] Config hierarchy побудована автоматично при збереженні
+
+**Implementation:**
+Замість SQL скриптів, всі конфіги управляються через config-admin UI:
+- Відкрити config-admin app
+- Знайти page config для breed
+- Встановити `pageType: "view"`, `isDefault: true`
+- Встановити `order` для кожного блоку в секції blocks
+- Зберегти - hierarchy rebuilds автоматично
 
 ---
 
@@ -246,19 +247,40 @@ const selectedEntity = selectedEntitySignal?.value;
 ---
 
 ### ✅ Phase 7: Connect to SpaceView/Drawer
-**Файл:** Де рендериться PublicPageTemplate (потрібно знайти)
+**Файл:** `apps/app/src/pages/SpacePage.tsx:94`
 
-- [ ] Знайти де викликається `<PublicPageTemplate>`
-- [ ] Додати `pageType="view"` prop
-- [ ] Перевірити що spaceStore ініціалізований
-- [ ] Перевірити що selectedEntity встановлений
+**Status:** ✅ COMPLETED + Architecture Fix
 
-**Code:**
+**Виконано:**
+- [x] Знайти де викликається `<PublicPageTemplate>` - SpacePage.tsx:94
+- [x] Передати `spaceConfigSignal` та `entityType` props
+- [x] Перевірити що spaceStore ініціалізований - так, лінія 71-77
+- [x] Перевірити що selectedEntity встановлений - так, через getSelectedEntity()
+- [x] **ARCHITECTURE FIX:** Видалено `pageType` з props PublicPageTemplate
+
+**Важливе архітектурне рішення:**
+`pageType` НЕ повинен бути пропсом компонента! Він має бути **в конфігу page** (в БД).
+
+**Чому:**
+- `pageType` - це property конкретної page config, не SpacePage
+- Один space може мати багато pages (view, edit, create, custom)
+- getPageConfig() читає pageType з config.pageType (не з props)
+- Адміністратор налаштовує pageType через config-admin UI
+
+**Поточна реалізація (правильна):**
 ```typescript
-<PublicPageTemplate
+// SpacePage.tsx:94
+<DetailComponent
   isDrawerMode={true}
-  pageType="view"  // NEW
+  spaceConfigSignal={spaceConfigSignal}
+  entityType={entityType}
+  // NO pageType prop - it's in the page config itself!
 />
+
+// PublicPageTemplate.tsx:42
+const pageConfig = getPageConfig(spaceConfig);
+// Returns page with isDefault: true OR first page
+// pageConfig.pageType is "view" (from DB config)
 ```
 
 ---
