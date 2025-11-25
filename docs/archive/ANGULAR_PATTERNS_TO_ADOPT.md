@@ -1,8 +1,22 @@
-# Патерни з Angular проекту для впровадження
+# [ARCHIVED] Патерни з Angular проекту для впровадження
+
+> ⚠️ **СТАТУС: АРХІВНИЙ** - Документ застарів, більшість patterns вже реалізовано
+>
+> **Дата архівації:** 2024-11-25
+>
+> **Причина:** Корисні patterns вже впроваджені в EntityStore та SpaceStore.
+> Залишкові patterns не актуальні через різницю Angular vs React архітектури.
+
+---
 
 ## 🎯 Що взяти зі старого проекту
 
-### 1. ✅ **withSelectedEntity Pattern**
+### 1. ✅ **withSelectedEntity Pattern** [РЕАЛІЗОВАНО]
+
+> **Статус:** ✅ ПОВНІСТЮ РЕАЛІЗОВАНО в EntityStore
+> - `selectedId`, `selectedEntity`, `hasSelection`
+> - `selectEntity()`, `selectFirst()`, `clearSelection()`
+> - Використовується через `useSelectedEntity()` hook
 
 **Старий Angular код:**
 ```typescript
@@ -47,7 +61,12 @@ class EntityStore<T extends { id: string }> {
 }
 ```
 
-### 2. ✅ **Lifecycle Hooks**
+### 2. ❌ **Lifecycle Hooks** [НЕ АКТУАЛЬНО]
+
+> **Статус:** ❌ НЕ ПОТРІБНО
+> - React має `useEffect` для lifecycle management
+> - Cleanup автоматичний через React component lifecycle
+> - SpaceStore ініціалізація через React Context
 
 **Старий Angular код:**
 ```typescript
@@ -95,7 +114,13 @@ class SpaceStore {
 }
 ```
 
-### 3. ✅ **Filter Composition**
+### 3. ⚠️ **Filter Composition** [ЧАСТКОВО - ІНШИЙ ПІДХІД]
+
+> **Статус:** ⚠️ РЕАЛІЗОВАНО ІНАКШЕ
+> - Фільтрація через `SpaceStore.applyFilters()` на рівні Supabase
+> - ID-First pattern: Supabase фільтрує → IDs → завантажуємо records
+> - Client-side `filteredEntities` computed НЕ потрібен
+> - Фільтри застосовуються безпосередньо в SQL запитах
 
 **Старий Angular код:**
 ```typescript
@@ -133,7 +158,12 @@ class EntityStore<T> {
 }
 ```
 
-### 4. ✅ **Unique ID Generation Pattern**
+### 4. ❌ **Unique ID Generation Pattern** [НЕ АКТУАЛЬНО]
+
+> **Статус:** ❌ НЕ ВИКОРИСТОВУЄТЬСЯ
+> - Використовуємо прості UUID з Supabase
+> - Тип визначається через параметр `entityType`, не через composite ID
+> - DictionaryDocument має `composite_id` (`table_name::id`), але для інших цілей
 
 **Старий Angular код:**
 ```typescript
@@ -159,7 +189,12 @@ class SpaceStore {
 }
 ```
 
-### 5. ✅ **Factory Pattern для Dynamic Stores**
+### 5. ✅ **Factory Pattern для Dynamic Stores** [РЕАЛІЗОВАНО]
+
+> **Статус:** ✅ ПОВНІСТЮ РЕАЛІЗОВАНО
+> - `SpaceStore.getEntityStore()` динамічно створює EntityStore instances
+> - Config-driven через `entityConfigs`
+> - Автоматичне створення stores для різних entity types
 
 **Старий Angular код:**
 ```typescript
@@ -206,46 +241,63 @@ class SpaceStore {
 - Angular: FilterStore, PageStore, etc.
 - Наш підхід: Все в одному SpaceStore
 
-## 📊 Порівняльна таблиця
+## 📊 Порівняльна таблиця (ФІНАЛЬНИЙ СТАТУС)
 
-| Функція | Angular (старий) | React (новий) | Статус |
-|---------|-----------------|---------------|---------|
-| Normalized storage | withEntities | EntityStore class | ✅ Готово |
-| Selected entity | withSelectedId | selectedEntity signal | 🔄 Додати |
-| Lifecycle hooks | withHooks | initializeEntity/cleanup | 🔄 Додати |
-| Filters | withFilteredByFilterStore | filteredEntities computed | 🔄 Додати |
-| Auto-select first | withSelectedEntityWithFirstDefault | selectFirst() | 🔄 Додати |
-| Dynamic creation | Factory pattern | getEntityStore() | ✅ Готово |
-| Config-driven | DI tokens | Props/context | ✅ Готово |
+| Функція | Angular (старий) | React (новий) | Статус | Примітки |
+|---------|-----------------|---------------|---------|----------|
+| Normalized storage | withEntities | EntityStore class | ✅ Готово | Повністю реалізовано |
+| Selected entity | withSelectedId | selectedEntity signal | ✅ Готово | + hasSelection computed |
+| Lifecycle hooks | withHooks | React useEffect | ✅ Готово | Через React, не store |
+| Filters | withFilteredByFilterStore | SpaceStore.applyFilters | ✅ Готово | Server-side, ID-First |
+| Auto-select first | withSelectedEntityWithFirstDefault | selectFirst() | ✅ Готово | В EntityStore |
+| Dynamic creation | Factory pattern | getEntityStore() | ✅ Готово | SpaceStore factory |
+| Config-driven | DI tokens | entityConfigs + Context | ✅ Готово | React patterns |
+| Composite IDs | type-id pattern | Simple UUIDs | ❌ Не потрібно | Supabase UUIDs |
 
-## 🚀 План імплементації
+## ~~🚀 План імплементації~~ ✅ ЗАВЕРШЕНО
 
-1. **Фаза 1: Selection (ЗАРАЗ)**
-   - Додати selectedId та selectedEntity в EntityStore
-   - Імплементувати selectEntity(), selectFirst()
-   - Тестування з UI
+~~1. **Фаза 1: Selection (ЗАРАЗ)**~~ ✅ ГОТОВО
+   - ✅ Додано selectedId та selectedEntity в EntityStore
+   - ✅ Імплементовано selectEntity(), selectFirst(), clearSelection()
+   - ✅ Протестовано з UI через useSelectedEntity()
 
-2. **Фаза 2: Lifecycle**
-   - initializeEntity() в SpaceStore
-   - cleanupEntity() для cleanup
-   - Auto-load при mount
+~~2. **Фаза 2: Lifecycle**~~ ✅ ГОТОВО (через React)
+   - ✅ React useEffect замість lifecycle hooks
+   - ✅ SpaceContext ініціалізація
+   - ✅ Автоматичний cleanup
 
-3. **Фаза 3: Filters**
-   - filters signal в EntityStore
-   - filteredEntities computed
-   - Integration з UI фільтрами
+~~3. **Фаза 3: Filters**~~ ✅ ГОТОВО (інший підхід)
+   - ✅ SpaceStore.applyFilters() з ID-First pattern
+   - ✅ Server-side фільтрація через Supabase
+   - ✅ Pagination з cursor
 
-4. **Фаза 4: Real-time**
-   - Supabase realtime subscriptions
-   - Auto-sync при змінах
-   - Optimistic updates
+~~4. **Фаза 4: Real-time**~~ ⚠️ ВИМКНЕНО
+   - ⚠️ Supabase realtime конфліктує з ID-First pagination
+   - ⚠️ Залишено можливість увімкнути при потребі
 
-## 💡 Висновки
+## 💡 Висновки (ФІНАЛЬНІ)
 
-Старий Angular проект має багато корисних патернів, але ми беремо тільки те, що:
-1. Спрощує роботу з даними
-2. Покращує UX (selection, auto-select)
-3. Не ускладнює архітектуру
-4. Легко адаптується до React
+✅ **Міграція завершена успішно!** Всі корисні patterns з Angular проекту адаптовані:
 
-Основний принцип: **Беремо ідеї, а не імплементацію**. Адаптуємо під нашу просту архітектуру з одним SpaceStore.
+**Що реалізовано:**
+1. ✅ Selection pattern (selectedEntity, selectFirst)
+2. ✅ Normalized storage (EntityStore з Map)
+3. ✅ Dynamic stores (factory pattern в SpaceStore)
+4. ✅ Config-driven (entityConfigs)
+5. ✅ Filters (через Supabase ID-First pattern)
+
+**Що не потрібно:**
+1. ❌ NgRx lifecycle hooks → React useEffect
+2. ❌ Client-side filters → Server-side через Supabase
+3. ❌ Composite IDs → Prості Supabase UUIDs
+4. ❌ DI system → React Context
+
+**Основний принцип виконаний:** Взяли ідеї, адаптували під React + RxDB + Local-First архітектуру.
+
+---
+
+**Документація поточної архітектури:**
+- [CORE_PRINCIPLES.md](./CORE_PRINCIPLES.md) - Local-First Architecture patterns
+- [LOCAL_FIRST_ROADMAP.md](./LOCAL_FIRST_ROADMAP.md) - Overall architecture
+- EntityStore: `/packages/rxdb-store/src/stores/base/entity-store.ts`
+- SpaceStore: `/packages/rxdb-store/src/stores/space-store.signal-store.ts`
