@@ -3,10 +3,16 @@ import { TabsContainer, Tab } from "../tabs/TabsContainer";
 import { PageMenu } from "../tabs/PageMenu";
 import { useTabNavigation } from "@/hooks/useTabNavigation";
 import { BreedAchievementsTab } from "../breed/tabs/BreedAchievementsTab";
+import { BreedPatronsTab } from "../breed/tabs/BreedPatronsTab";
+import { BreedTopPetsTab } from "../breed/tabs/BreedTopPetsTab";
+import { BreedTopKennelsTab } from "../breed/tabs/BreedTopKennelsTab";
 
 // Component registry - maps component names from config to actual components
 const TAB_COMPONENT_REGISTRY: Record<string, React.ComponentType<any>> = {
   BreedAchievementsTab,
+  BreedPatronsTab,
+  BreedTopPetsTab,
+  BreedTopKennelsTab,
 };
 
 // Tab config from database
