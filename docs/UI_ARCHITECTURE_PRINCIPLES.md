@@ -1,6 +1,6 @@
 # 🎨 UI Architecture Principles
 
-## 📅 Last Updated: 2025-09-29
+## 📅 Last Updated: 2025-11-25
 
 ## 🎯 Core Philosophy
 
@@ -117,6 +117,84 @@ export function getComponent(name: string) {
 - Components can be specified by string name in config
 - New components can be added without changing core code
 - Fallback handling for missing components
+
+### 4.1. **Automatic Component Discovery (Vite Glob Imports)** ✨ NEW
+
+For scalable applications with many components, use automatic registration with Vite glob imports:
+
+```typescript
+// Automatic discovery using Vite's import.meta.glob()
+const breedTabModules = import.meta.glob('../breed/tabs/*Tab.tsx', { eager: true });
+const kennelTabModules = import.meta.glob('../kennel/tabs/*Tab.tsx', { eager: true });
+const petTabModules = import.meta.glob('../pet/tabs/*Tab.tsx', { eager: true });
+
+// Auto-register all discovered components
+const TAB_COMPONENT_REGISTRY: Record<string, React.ComponentType<any>> = {};
+
+function registerModules(modules: Record<string, any>) {
+  for (const [path, module] of Object.entries(modules)) {
+    // Extract component name: "../breed/tabs/BreedAchievementsTab.tsx" -> "BreedAchievementsTab"
+    const match = path.match(/\/([^/]+)Tab\.tsx$/);
+    if (match) {
+      const componentName = match[1] + 'Tab';
+      const Component = module[componentName] || module.default;
+      if (Component) {
+        TAB_COMPONENT_REGISTRY[componentName] = Component;
+      }
+    }
+  }
+}
+
+registerModules(breedTabModules);
+registerModules(kennelTabModules);
+registerModules(petTabModules);
+```
+
+**Benefits:**
+- ✅ **Zero-config** - add new component file → automatically registered
+- ✅ **Convention-based** - follows naming pattern (*Tab.tsx, *Card.tsx, etc.)
+- ✅ **Scalable** - supports 100+ components without manual imports
+- ✅ **Tree-shaking** - Vite optimizes bundle automatically
+- ✅ **Type-safe** - maintains TypeScript type checking
+
+**When to use:**
+- When you have many components (10+ tabs, cards, etc.)
+- When components follow a naming convention
+- When you want developers to add components without touching registry code
+
+**Example:**
+```typescript
+// 1. Create file: apps/app/src/components/breed/tabs/BreedHistoryTab.tsx
+export function BreedHistoryTab() {
+  return <div>History content</div>;
+}
+
+// 2. Reference in database config
+{
+  "component": "BreedHistoryTab"  // Automatically discovered!
+}
+
+// 3. Done! No code changes needed
+```
+
+**Use cases in BreedHub:**
+- ✅ **Tab components** - BreedAchievementsTab, BreedPatronsTab, etc.
+- ✅ **Card components** - BreedListCard, BreedGridCard, etc.
+- ✅ **Block components** - HeroBlock, TabBlock, etc.
+- ✅ **Input components** - TextInput, DropdownInput, etc.
+
+**Alternative: Manual registry** (for small apps or special cases)
+```typescript
+// Use manual registration when:
+// - You have < 10 components
+// - Components don't follow naming convention
+// - You need explicit control over what's registered
+
+const COMPONENT_REGISTRY = {
+  SpecialComponent1: SpecialComponent1,
+  LegacyComponent: LegacyComponent,
+};
+```
 
 ### 5. **Universal Components Over Specific Ones**
 
