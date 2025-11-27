@@ -118,6 +118,12 @@
   height: 100%;
 }
 
+/* Tab content padding - unified padding for tab content */
+.tab-content {
+  padding-top: 1rem; /* pt-4 */
+  padding-bottom: 1rem; /* pb-4 */
+}
+
 /* Drawer margins using custom breakpoints from Angular project */
 @media (min-width: 1440px) {
   .xl\:mr-165 {

@@ -1,6 +1,6 @@
-import { cn } from "@ui/lib/utils";
 import { Icon } from "@/components/shared/Icon";
 import type { IconConfig } from "@breedhub/rxdb-store";
+import { cn } from "@ui/lib/utils";
 
 interface TabHeaderProps {
   label: string;
@@ -38,10 +38,10 @@ export function TabHeader({
       <div className={cn(className)} style={style}>
         <div
           className={cn(
-            "mb-5 flex w-full items-center text-2xl font-semibold",
+            "mb-6 flex w-full items-center text-2xl font-semibold",
             "text-sub-header-color bg-header-ground/75 backdrop-blur-sm",
             "px-6 py-2",
-            isFirst ? "mt-5" : "mt-10"
+            isFirst ? "mt-6" : "mt-12"
           )}
         >
           {/* Icon */}
@@ -66,7 +66,11 @@ export function TabHeader({
               className="ml-auto hover:bg-hover-surface-header p-2 rounded transition-colors"
               title="Full screen view"
             >
-              <Icon icon={{ name: "Maximize2", source: "lucide" }} size={16} className="text-sub-header-color" />
+              <Icon
+                icon={{ name: "Maximize2", source: "lucide" }}
+                size={16}
+                className="text-sub-header-color"
+              />
             </a>
           )}
         </div>

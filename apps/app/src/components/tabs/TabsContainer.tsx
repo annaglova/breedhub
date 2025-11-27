@@ -84,9 +84,7 @@ export function TabsContainer({
                 id={tab.fragment}
                 onVisibilityChange={handleVisibilityChange}
               >
-                <div className="px-0 pb-8">
-                  <Component />
-                </div>
+                <Component />
               </ScrollableTab>
             </section>
           );
@@ -113,9 +111,7 @@ export function TabsContainer({
       />
 
       {/* Active Tab Content */}
-      <div className="px-0 pb-8">
-        <Component />
-      </div>
+      <Component />
     </div>
   );
 }

@@ -1,9 +1,9 @@
-import { useEffect, useState, useMemo } from "react";
-import { AlternatingTimeline } from "@ui/components/timeline";
-import { Check, Loader2 } from "lucide-react";
 import { useSelectedEntity } from "@/contexts/SpaceContext";
 import { useChildRecords } from "@/hooks/useChildRecords";
 import { dictionaryStore } from "@breedhub/rxdb-store";
+import { AlternatingTimeline } from "@ui/components/timeline";
+import { Check, Loader2 } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 
 /**
  * Achievement data structure
@@ -94,24 +94,26 @@ export function BreedAchievementsTab() {
   const {
     data: achievementsInBreedRaw,
     isLoading: isLoadingChildren,
-    error: childrenError
+    error: childrenError,
   } = useChildRecords<AchievementInBreed>({
     parentId: breedId,
-    tableType: 'achievement_in_breed'
+    tableType: "achievement_in_breed",
   });
 
   // Sort achievements by date (desc) in memory
   const achievementsInBreed = useMemo(() => {
     if (!achievementsInBreedRaw) return [];
     return [...achievementsInBreedRaw].sort((a, b) => {
-      const dateA = a.additional?.date || '';
-      const dateB = b.additional?.date || '';
+      const dateA = a.additional?.date || "";
+      const dateB = b.additional?.date || "";
       return dateB.localeCompare(dateA); // desc
     });
   }, [achievementsInBreedRaw]);
 
   // Load achievement dictionary via DictionaryStore (RxDB → Supabase)
-  const [achievementDict, setAchievementDict] = useState<AchievementDictionary[]>([]);
+  const [achievementDict, setAchievementDict] = useState<
+    AchievementDictionary[]
+  >([]);
   const [isLoadingDict, setIsLoadingDict] = useState(true);
   const [dictError, setDictError] = useState<Error | null>(null);
 
@@ -125,29 +127,29 @@ export function BreedAchievementsTab() {
 
         // Load via DictionaryStore (ID-First: Supabase IDs → RxDB cache → fetch missing)
         // Additional fields stored in 'additional' JSON object
-        const { records } = await dictionaryStore.getDictionary('achievement', {
-          idField: 'id',
-          nameField: 'name',
+        const { records } = await dictionaryStore.getDictionary("achievement", {
+          idField: "id",
+          nameField: "name",
           limit: 100, // Small dictionary, load all
-          additionalFields: ['int_value', 'position', 'description', 'entity']
+          additionalFields: ["int_value", "position", "description", "entity"],
         });
 
         // Filter for breed entity and transform to expected format
         // DictionaryStore returns { id, name, additional: { int_value, position, ... }, ... }
         const breedAchievements = records
-          .filter((r: any) => r.additional?.entity === 'breed')
+          .filter((r: any) => r.additional?.entity === "breed")
           .map((r: any) => ({
             id: r.id,
             name: r.name,
-            description: r.additional?.description || '',
+            description: r.additional?.description || "",
             int_value: r.additional?.int_value || 0,
-            position: r.additional?.position || 0
+            position: r.additional?.position || 0,
           }))
           .sort((a, b) => a.position - b.position);
 
         setAchievementDict(breedAchievements);
       } catch (err) {
-        console.error('[BreedAchievementsTab] Error loading dictionary:', err);
+        console.error("[BreedAchievementsTab] Error loading dictionary:", err);
         setDictError(err as Error);
       } finally {
         setIsLoadingDict(false);
@@ -164,7 +166,7 @@ export function BreedAchievementsTab() {
     // Create a map of achieved achievements by achievement_id
     // Note: achievement_id is now in 'additional' field
     const achievedMap = new Map<string, AchievementInBreed>();
-    achievementsInBreed.forEach(record => {
+    achievementsInBreed.forEach((record) => {
       const achievementId = record.additional?.achievement_id;
       if (achievementId) {
         achievedMap.set(achievementId, record);
@@ -172,20 +174,22 @@ export function BreedAchievementsTab() {
     });
 
     // Map dictionary entries to Achievement format
-    return achievementDict
-      .filter(dict => dict.int_value >= 0) // Filter out special entries
-      // Already sorted by position from Supabase query
-      .map(dict => {
-        const achieved = achievedMap.get(dict.id);
-        return {
-          id: dict.id,
-          name: dict.name,
-          description: dict.description || '',
-          intValue: dict.int_value,
-          date: achieved?.additional?.date,  // Read from additional field
-          active: !!achieved
-        };
-      });
+    return (
+      achievementDict
+        .filter((dict) => dict.int_value >= 0) // Filter out special entries
+        // Already sorted by position from Supabase query
+        .map((dict) => {
+          const achieved = achievedMap.get(dict.id);
+          return {
+            id: dict.id,
+            name: dict.name,
+            description: dict.description || "",
+            intValue: dict.int_value,
+            date: achieved?.additional?.date, // Read from additional field
+            active: !!achieved,
+          };
+        })
+    );
   }, [achievementDict, achievementsInBreed]);
 
   // Loading state
@@ -202,11 +206,14 @@ export function BreedAchievementsTab() {
 
   // Error state
   if (childrenError || dictError) {
-    const errorMessage = childrenError?.message || dictError?.message || 'Unknown error';
+    const errorMessage =
+      childrenError?.message || dictError?.message || "Unknown error";
     return (
       <div className="py-4 px-6">
         <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-          <p className="text-red-700 font-semibold">Failed to load achievements</p>
+          <p className="text-red-700 font-semibold">
+            Failed to load achievements
+          </p>
           <p className="text-red-600 text-sm mt-1">{errorMessage}</p>
         </div>
       </div>
@@ -242,7 +249,7 @@ export function BreedAchievementsTab() {
   }));
 
   return (
-    <div className="py-4 px-6">
+    <div className="px-6">
       <AlternatingTimeline
         items={timelineItems}
         layout="right"
