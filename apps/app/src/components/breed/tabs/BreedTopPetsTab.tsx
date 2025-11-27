@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
 import { PetCard, type Pet } from "@/components/shared/PetCard";
 import { cn } from "@ui/lib/utils";
+import { useEffect, useState } from "react";
 
 interface BreedTopPetsTabProps {
   isFullscreen?: boolean; // Fullscreen/drawer mode - shows more columns
@@ -16,7 +16,9 @@ interface BreedTopPetsTabProps {
  *
  * Similar to Angular breed-top-pets.component.ts
  */
-export function BreedTopPetsTab({ isFullscreen = false }: BreedTopPetsTabProps) {
+export function BreedTopPetsTab({
+  isFullscreen = false,
+}: BreedTopPetsTabProps) {
   const [pets, setPets] = useState<Pet[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -32,9 +34,10 @@ export function BreedTopPetsTab({ isFullscreen = false }: BreedTopPetsTabProps) 
         sex: "male",
         countryOfBirth: "USA",
         dateOfBirth: "2020-05-15",
-        titles: "Ch. Int. Ch. Grand Ch. World Winner 2023, European Winner 2023, National Winner 2022",
+        titles:
+          "Ch. Int. Ch. Grand Ch. World Winner 2023, European Winner 2023, National Winner 2022",
         father: { name: "Supreme Gold Star", url: "/pet/father1" },
-        mother: { name: "Royal Diamond Lady", url: "/pet/mother1" }
+        mother: { name: "Royal Diamond Lady", url: "/pet/mother1" },
       },
       {
         id: "2",
@@ -44,9 +47,10 @@ export function BreedTopPetsTab({ isFullscreen = false }: BreedTopPetsTabProps) 
         sex: "female",
         countryOfBirth: "UK",
         dateOfBirth: "2019-08-22",
-        titles: "Int. Ch. Multi Ch. Best in Show Winner, Westminster Winner 2023",
+        titles:
+          "Int. Ch. Multi Ch. Best in Show Winner, Westminster Winner 2023",
         father: { name: "Moonlight Shadow", url: "/pet/father2" },
-        mother: { name: "Silver Belle", url: "/pet/mother2" }
+        mother: { name: "Silver Belle", url: "/pet/mother2" },
       },
       {
         id: "3",
@@ -57,7 +61,7 @@ export function BreedTopPetsTab({ isFullscreen = false }: BreedTopPetsTabProps) 
         countryOfBirth: "Germany",
         dateOfBirth: "2021-03-10",
         father: { name: "Bronze King", url: "/pet/father3" },
-        mother: { name: "Crown Jewel", url: "/pet/mother3" }
+        mother: { name: "Crown Jewel", url: "/pet/mother3" },
       },
       {
         id: "4",
@@ -69,7 +73,7 @@ export function BreedTopPetsTab({ isFullscreen = false }: BreedTopPetsTabProps) 
         dateOfBirth: "2020-11-05",
         titles: "Junior Champion, Young Champion, Club Winner 2022",
         father: { name: "Royal Rose", url: "/pet/father4" },
-        mother: { name: "Amber Dream", url: "/pet/mother4" }
+        mother: { name: "Amber Dream", url: "/pet/mother4" },
       },
       {
         id: "5",
@@ -80,7 +84,7 @@ export function BreedTopPetsTab({ isFullscreen = false }: BreedTopPetsTabProps) 
         countryOfBirth: "Canada",
         dateOfBirth: "2019-06-18",
         father: { name: "Dark Shadow", url: "/pet/father5" },
-        mother: { name: "Knight's Lady", url: "/pet/mother5" }
+        mother: { name: "Knight's Lady", url: "/pet/mother5" },
       },
       {
         id: "6",
@@ -92,8 +96,8 @@ export function BreedTopPetsTab({ isFullscreen = false }: BreedTopPetsTabProps) 
         dateOfBirth: "2021-09-30",
         titles: "Ch. National Winner 2023, Best of Breed Multiple Times",
         father: { name: "Starlight Express", url: "/pet/father6" },
-        mother: { name: "Velvet Touch", url: "/pet/mother6" }
-      }
+        mother: { name: "Velvet Touch", url: "/pet/mother6" },
+      },
     ];
 
     setPets(mockPets);
@@ -121,7 +125,7 @@ export function BreedTopPetsTab({ isFullscreen = false }: BreedTopPetsTabProps) 
   return (
     <div
       className={cn(
-        "mt-3 grid gap-3 sm:grid-cols-2",
+        "grid gap-3 sm:grid-cols-2 px-6",
         // In fullscreen mode, show more columns on larger screens
         isFullscreen && "lg:grid-cols-3 xxl:grid-cols-4"
       )}

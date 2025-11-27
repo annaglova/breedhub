@@ -25,13 +25,13 @@ interface AchievementOutletProps {
 export function AchievementOutlet({
   entity,
   component,
-  className = '',
+  className = "",
   pageConfig,
   spacePermissions,
   children,
 }: AchievementOutletProps) {
   return (
-    <div className={`mb-6 ${className}`}>
+    <div className={` ${className}`}>
       {/* Achievement content - entity-specific component via children */}
       {children}
     </div>

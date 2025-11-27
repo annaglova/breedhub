@@ -1,9 +1,9 @@
+import { Icon } from "@/components/shared/Icon";
+import { usePageActions } from "@/hooks/usePageActions";
+import { usePageMenu } from "@/hooks/usePageMenu";
+import type { PageConfig } from "@/types/page-config.types";
+import type { SpacePermissions } from "@/types/page-menu.types";
 import { Button } from "@ui/components/button";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@ui/components/tooltip";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,13 +11,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@ui/components/dropdown-menu";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@ui/components/tooltip";
 import { Heart, MoreVertical } from "lucide-react";
-import { Icon } from "@/components/shared/Icon";
 import { NavigationButtons } from "./cover/NavigationButtons";
-import { usePageMenu } from "@/hooks/usePageMenu";
-import { usePageActions } from "@/hooks/usePageActions";
-import type { PageConfig } from "@/types/page-config.types";
-import type { SpacePermissions } from "@/types/page-menu.types";
 
 interface NameOutletProps {
   entity?: any;
@@ -51,7 +51,7 @@ interface NameOutletProps {
 export function NameOutlet({
   entity,
   component,
-  className = '',
+  className = "",
   isLoading = false,
   onTop = false,
   pageConfig,
@@ -63,7 +63,7 @@ export function NameOutlet({
   // Get menu items for sticky context (when onTop)
   const menuItems = usePageMenu({
     pageConfig: pageConfig || null,
-    context: 'sticky',
+    context: "sticky",
     spacePermissions,
   });
 
@@ -84,7 +84,7 @@ export function NameOutlet({
   if (isLoading) {
     return (
       <div className={`relative bg-card-ground ${className}`}>
-        <div className="flex flex-col space-y-5 pb-3 pt-1">
+        <div className="flex flex-col space-y-5 pb-10 pt-1">
           {/* Additional info skeleton */}
           <div className="h-4 w-32 bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
 
@@ -145,7 +145,7 @@ export function NameOutlet({
               <Button
                 variant="accent"
                 className="rounded-full h-[2.6rem] w-[2.6rem] flex items-center justify-center"
-                onClick={() => executeAction('support')}
+                onClick={() => executeAction("support")}
                 type="button"
               >
                 <Heart size={16} fill="currentColor" />
@@ -181,7 +181,9 @@ export function NameOutlet({
                       <Icon icon={item.icon} size={16} />
                       {item.label}
                     </DropdownMenuItem>
-                    {item.hasDivider && <DropdownMenuSeparator key={`divider-${item.id}`} />}
+                    {item.hasDivider && (
+                      <DropdownMenuSeparator key={`divider-${item.id}`} />
+                    )}
                   </>
                 ))}
               </DropdownMenuContent>
@@ -193,7 +195,7 @@ export function NameOutlet({
                 <Button
                   variant="ghost-secondary"
                   className="size-[2.6rem] rounded-full p-0"
-                  onClick={() => console.log('[TODO] More options')}
+                  onClick={() => console.log("[TODO] More options")}
                   type="button"
                 >
                   <MoreVertical size={16} />

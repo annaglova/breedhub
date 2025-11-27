@@ -1,14 +1,13 @@
-import { useCoverDimensions } from "@/hooks/useCoverDimensions";
-import { cn } from "@ui/lib/utils";
-import { useRef, useState, useEffect } from "react";
-import { getPageConfig } from "@/utils/getPageConfig";
 import { BlockRenderer } from "@/components/blocks/BlockRenderer";
 import { TabOutletRenderer } from "@/components/blocks/TabOutletRenderer";
-import type { PageType } from "@/types/page-config.types";
-import { spaceStore } from "@breedhub/rxdb-store";
-import { useSignals } from "@preact/signals-react/runtime";
-import { Signal } from "@preact/signals-react";
 import { SpaceProvider } from "@/contexts/SpaceContext";
+import { useCoverDimensions } from "@/hooks/useCoverDimensions";
+import { getPageConfig } from "@/utils/getPageConfig";
+import { spaceStore } from "@breedhub/rxdb-store";
+import { Signal } from "@preact/signals-react";
+import { useSignals } from "@preact/signals-react/runtime";
+import { cn } from "@ui/lib/utils";
+import { useEffect, useRef, useState } from "react";
 
 interface PublicPageTemplateProps {
   className?: string;
@@ -30,7 +29,10 @@ export function PublicPageTemplate({
   entityType,
 }: PublicPageTemplateProps) {
   // Very first log - check if component renders at all
-  console.log('[PublicPageTemplate] COMPONENT RENDER START', { isDrawerMode, entityType });
+  console.log("[PublicPageTemplate] COMPONENT RENDER START", {
+    isDrawerMode,
+    entityType,
+  });
 
   useSignals();
 
@@ -51,17 +53,19 @@ export function PublicPageTemplate({
 
   // Get selectedEntity signal from store using entityType
   // This is called INSIDE the component, after entity store is created
-  const selectedEntitySignal = entityType ? spaceStore.getSelectedEntity(entityType) : null;
+  const selectedEntitySignal = entityType
+    ? spaceStore.getSelectedEntity(entityType)
+    : null;
   const selectedEntity = selectedEntitySignal?.value;
 
   // Debug logging
-  if (process.env.NODE_ENV === 'development') {
-    console.log('[PublicPageTemplate] State:', {
+  if (process.env.NODE_ENV === "development") {
+    console.log("[PublicPageTemplate] State:", {
       hasSpaceConfig: !!spaceConfig,
       hasPageConfig: !!pageConfig,
       hasSelectedEntity: !!selectedEntity,
       pageConfig,
-      selectedEntity
+      selectedEntity,
     });
   }
 
@@ -81,12 +85,12 @@ export function PublicPageTemplate({
   const PAGE_MENU_TOP = nameBlockHeight > 0 ? nameBlockHeight : 0;
   const TAB_HEADER_TOP = nameOnTop ? nameBlockHeight : 0;
 
-
   useEffect(() => {
     if (!nameContainerRef.current) return;
 
     // Find the scrollable container (overflow-auto parent)
-    let scrollContainer: HTMLElement | null = nameContainerRef.current.parentElement;
+    let scrollContainer: HTMLElement | null =
+      nameContainerRef.current.parentElement;
     while (scrollContainer) {
       const overflowY = window.getComputedStyle(scrollContainer).overflowY;
       if (overflowY === "auto" || overflowY === "scroll") {
@@ -109,12 +113,12 @@ export function PublicPageTemplate({
     };
 
     // Check on scroll
-    scrollContainer.addEventListener('scroll', checkSticky);
+    scrollContainer.addEventListener("scroll", checkSticky);
     // Check initially
     checkSticky();
 
     return () => {
-      scrollContainer?.removeEventListener('scroll', checkSticky);
+      scrollContainer?.removeEventListener("scroll", checkSticky);
     };
   }, [pageConfig, selectedEntity]); // Re-run when config or entity changes
 
@@ -215,129 +219,145 @@ export function PublicPageTemplate({
           className
         )}
       >
-      <div className="flex flex-auto flex-col items-center overflow-auto">
-        <div
-          ref={contentContainerRef}
-          className="w-full max-w-3xl lg:max-w-4xl xxl:max-w-5xl"
-        >
-          {/* Dynamic Blocks Section */}
-          {!pageConfig && (
-            <div className="p-4 bg-red-50 border border-red-200 rounded-lg mb-6">
-              <p className="text-red-700 font-semibold">Page configuration not found</p>
-              <p className="text-red-600 text-sm mt-1">
-                No pages configured for this space
-              </p>
-            </div>
-          )}
+        <div className="flex flex-auto flex-col items-center overflow-auto">
+          <div
+            ref={contentContainerRef}
+            className="w-full max-w-3xl lg:max-w-4xl xxl:max-w-5xl"
+          >
+            {/* Dynamic Blocks Section */}
+            {!pageConfig && (
+              <div className="p-4 bg-red-50 border border-red-200 rounded-lg mb-6">
+                <p className="text-red-700 font-semibold">
+                  Page configuration not found
+                </p>
+                <p className="text-red-600 text-sm mt-1">
+                  No pages configured for this space
+                </p>
+              </div>
+            )}
 
-          {!selectedEntity && pageConfig && (
-            <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg mb-6">
-              <p className="text-yellow-700 font-semibold">No entity selected</p>
-              <p className="text-yellow-600 text-sm mt-1">Please select an entity to view</p>
-            </div>
-          )}
+            {!selectedEntity && pageConfig && (
+              <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg mb-6">
+                <p className="text-yellow-700 font-semibold">
+                  No entity selected
+                </p>
+                <p className="text-yellow-600 text-sm mt-1">
+                  Please select an entity to view
+                </p>
+              </div>
+            )}
 
-          {pageConfig && selectedEntity && (() => {
-            // Sort blocks by order
-            const sortedBlocks = Object.entries(pageConfig.blocks)
-              .sort(([, a], [, b]) => (a.order || 0) - (b.order || 0));
-
-            if (process.env.NODE_ENV === 'development') {
-              console.log('[PublicPageTemplate] Rendering blocks:', {
-                pageConfig,
-                selectedEntity,
-                blocksCount: sortedBlocks.length,
-                sortedBlocks
-              });
-            }
-
-            // Render each block with its appropriate container
-            return sortedBlocks.map(([blockId, blockConfig]) => {
-              // CoverOutlet needs dimensions from parent container
-              if (blockConfig.outlet === 'CoverOutlet') {
-                return (
-                  <BlockRenderer
-                    key={blockId}
-                    blockConfig={{
-                      ...blockConfig,
-                      coverWidth: coverDimensions.width,
-                      coverHeight: coverDimensions.height,
-                      isDrawerMode,
-                    }}
-                    entity={selectedEntity}
-                    pageConfig={pageConfig}
-                    spacePermissions={spacePermissions}
-                  />
+            {pageConfig &&
+              selectedEntity &&
+              (() => {
+                // Sort blocks by order
+                const sortedBlocks = Object.entries(pageConfig.blocks).sort(
+                  ([, a], [, b]) => (a.order || 0) - (b.order || 0)
                 );
-              }
 
-              // AvatarOutlet renders without wrapper (has -mt-32 inside)
-              if (blockConfig.outlet === 'AvatarOutlet') {
-                return (
-                  <BlockRenderer
-                    key={blockId}
-                    blockConfig={{
-                      ...blockConfig,
-                      size: 176, // Avatar size constant
-                    }}
-                    entity={selectedEntity}
-                    pageConfig={pageConfig}
-                    spacePermissions={spacePermissions}
-                  />
-                );
-              }
+                if (process.env.NODE_ENV === "development") {
+                  console.log("[PublicPageTemplate] Rendering blocks:", {
+                    pageConfig,
+                    selectedEntity,
+                    blocksCount: sortedBlocks.length,
+                    sortedBlocks,
+                  });
+                }
 
-              // NameOutlet needs sticky wrapper and onTop state
-              if (blockConfig.outlet === 'NameOutlet') {
-                return (
-                  <div key={blockId} ref={nameContainerRef} className="sticky top-0 z-30">
+                // Render each block with its appropriate container
+                return sortedBlocks.map(([blockId, blockConfig]) => {
+                  // CoverOutlet needs dimensions from parent container
+                  if (blockConfig.outlet === "CoverOutlet") {
+                    return (
+                      <BlockRenderer
+                        key={blockId}
+                        blockConfig={{
+                          ...blockConfig,
+                          coverWidth: coverDimensions.width,
+                          coverHeight: coverDimensions.height,
+                          isDrawerMode,
+                        }}
+                        entity={selectedEntity}
+                        pageConfig={pageConfig}
+                        spacePermissions={spacePermissions}
+                      />
+                    );
+                  }
+
+                  // AvatarOutlet renders without wrapper (has -mt-32 inside)
+                  if (blockConfig.outlet === "AvatarOutlet") {
+                    return (
+                      <BlockRenderer
+                        key={blockId}
+                        blockConfig={{
+                          ...blockConfig,
+                          size: 176, // Avatar size constant
+                        }}
+                        entity={selectedEntity}
+                        pageConfig={pageConfig}
+                        spacePermissions={spacePermissions}
+                      />
+                    );
+                  }
+
+                  // NameOutlet needs sticky wrapper and onTop state
+                  if (blockConfig.outlet === "NameOutlet") {
+                    return (
+                      <div
+                        key={blockId}
+                        ref={nameContainerRef}
+                        className="sticky top-0 z-30"
+                      >
+                        <BlockRenderer
+                          blockConfig={{
+                            ...blockConfig,
+                            onTop: nameOnTop,
+                          }}
+                          entity={selectedEntity}
+                          pageConfig={pageConfig}
+                          spacePermissions={spacePermissions}
+                        />
+                      </div>
+                    );
+                  }
+
+                  // TabOutlet - Dynamic tabs from config
+                  if (blockConfig.outlet === "TabOutlet") {
+                    // blockConfig.tabs contains the tabs configuration from database
+                    const tabsConfig = (blockConfig as any).tabs;
+                    if (!tabsConfig) {
+                      console.warn(
+                        "[TabOutlet] No tabs config found in block:",
+                        blockConfig
+                      );
+                      return null;
+                    }
+                    return (
+                      <TabOutletRenderer
+                        key={blockId}
+                        tabsConfig={tabsConfig}
+                        pageMenuTop={PAGE_MENU_TOP}
+                        tabHeaderTop={TAB_HEADER_TOP}
+                      />
+                    );
+                  }
+
+                  // Default: simple wrapper with margin
+                  return (
                     <BlockRenderer
-                      blockConfig={{
-                        ...blockConfig,
-                        onTop: nameOnTop,
-                      }}
+                      key={blockId}
+                      blockConfig={blockConfig}
                       entity={selectedEntity}
+                      className="mb-4"
                       pageConfig={pageConfig}
                       spacePermissions={spacePermissions}
                     />
-                  </div>
-                );
-              }
-
-              // TabOutlet - Dynamic tabs from config
-              if (blockConfig.outlet === 'TabOutlet') {
-                // blockConfig.tabs contains the tabs configuration from database
-                const tabsConfig = (blockConfig as any).tabs;
-                if (!tabsConfig) {
-                  console.warn('[TabOutlet] No tabs config found in block:', blockConfig);
-                  return null;
-                }
-                return (
-                  <TabOutletRenderer
-                    key={blockId}
-                    tabsConfig={tabsConfig}
-                    pageMenuTop={PAGE_MENU_TOP}
-                    tabHeaderTop={TAB_HEADER_TOP}
-                  />
-                );
-              }
-
-              // Default: simple wrapper with margin
-              return (
-                <BlockRenderer
-                  key={blockId}
-                  blockConfig={blockConfig}
-                  entity={selectedEntity}
-                  className="mb-6"
-                  pageConfig={pageConfig}
-                  spacePermissions={spacePermissions}
-                />
-              );
-            });
-          })()}
+                  );
+                });
+              })()}
+          </div>
         </div>
       </div>
-    </div>
     </SpaceProvider>
   ) : (
     <div className="p-8 text-center">

@@ -34,13 +34,14 @@ export function BreedName({
   const displayAchievement = entity?.achievements?.support_level || achievement;
 
   // Measurements from entity.measurements (same as BreedListCard)
-  const displayPetCount = entity?.measurements?.pet_profile_count ?? petProfileCount;
+  const displayPetCount =
+    entity?.measurements?.pet_profile_count ?? petProfileCount;
   const displayKennelCount = entity?.measurements?.kennel_count ?? kennelCount;
   const displayPatronCount = entity?.measurements?.patron_count ?? patronCount;
   return (
     <div className="pb-3 cursor-default">
       {/* Achievement */}
-      <div className="text-md mb-3">
+      <div className="text-md mb-2">
         <span className="uppercase">{displayAchievement}</span>
       </div>
 
