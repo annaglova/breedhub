@@ -53,7 +53,7 @@ export function AvatarCard({ entity, model }: AvatarCardProps) {
         {/* Avatar container - relative for badge positioning */}
         <div className="relative">
           {/* Avatar circle with border */}
-          <div className="relative flex size-40 overflow-hidden rounded-full border border-border bg-card shadow-sm">
+          <div className="relative flex size-40 overflow-hidden rounded-full border border-surface-border bg-card shadow-sm">
             <img
               className="absolute right-0 top-0 h-full w-auto max-w-[150%] object-cover"
               src={avatarUrl}

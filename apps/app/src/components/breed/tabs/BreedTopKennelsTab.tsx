@@ -1,74 +1,76 @@
 import { useState, useEffect } from "react";
 import { AvatarCard, type AvatarEntity } from "@/components/shared/AvatarCard";
+import { cn } from "@ui/lib/utils";
+
+interface BreedTopKennelsTabProps {
+  isFullscreen?: boolean; // Fullscreen/drawer mode - shows more columns
+}
 
 /**
  * BreedTopKennelsTab component
  * Displays a grid of top kennels in the breed
  *
+ * Grid columns:
+ * - Default (drawer): 2 cols → sm:3 cols
+ * - Fullscreen: 2 cols → sm:3 cols → lg:4 cols → xxl:5 cols
+ *
  * Similar to Angular breed-top-kennels.component.ts
  */
-export function BreedTopKennelsTab() {
+export function BreedTopKennelsTab({ isFullscreen = false }: BreedTopKennelsTabProps) {
   const [kennels, setKennels] = useState<AvatarEntity[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     // TODO: Load kennels from SpaceStore child records
     // For now, using mock data
+    // Kennels displayed in rating order, no placement badges (badges are for patrons only)
     const mockKennels: AvatarEntity[] = [
       {
         id: "1",
         name: "Golden Heritage Kennels",
         avatarUrl: "https://api.dicebear.com/7.x/initials/svg?seed=Golden Heritage",
-        place: 1,
         url: "/kennel/1"
       },
       {
         id: "2",
         name: "Royal Crown Breeding",
         avatarUrl: "https://api.dicebear.com/7.x/initials/svg?seed=Royal Crown",
-        place: 2,
         url: "/kennel/2"
       },
       {
         id: "3",
         name: "Silver Star Kennel",
         avatarUrl: "https://api.dicebear.com/7.x/initials/svg?seed=Silver Star",
-        place: 3,
         url: "/kennel/3"
       },
       {
         id: "4",
         name: "Diamond Legacy",
         avatarUrl: "https://api.dicebear.com/7.x/initials/svg?seed=Diamond Legacy",
-        place: 4,
         url: "/kennel/4"
       },
       {
         id: "5",
         name: "Platinum Pride Kennel",
         avatarUrl: "https://api.dicebear.com/7.x/initials/svg?seed=Platinum Pride",
-        place: 5,
         url: "/kennel/5"
       },
       {
         id: "6",
         name: "Champion's Choice",
         avatarUrl: "https://api.dicebear.com/7.x/initials/svg?seed=Champions Choice",
-        place: 6,
         url: "/kennel/6"
       },
       {
         id: "7",
         name: "Elite Breeding House",
         avatarUrl: "https://api.dicebear.com/7.x/initials/svg?seed=Elite Breeding",
-        place: 10,
         url: "/kennel/7"
       },
       {
         id: "8",
         name: "Noble Bloodline Kennel",
         avatarUrl: "https://api.dicebear.com/7.x/initials/svg?seed=Noble Bloodline",
-        place: 12,
         url: "/kennel/8"
       },
       {
@@ -108,7 +110,13 @@ export function BreedTopKennelsTab() {
   }
 
   return (
-    <div className="mt-3 grid grid-cols-2 gap-y-6 sm:grid-cols-3 lg:grid-cols-4 xxl:grid-cols-5">
+    <div
+      className={cn(
+        "mt-3 grid grid-cols-2 gap-y-6 sm:grid-cols-3",
+        // In fullscreen mode, show more columns on larger screens
+        isFullscreen && "lg:grid-cols-4 xxl:grid-cols-5"
+      )}
+    >
       {kennels.map((kennel) => (
         <AvatarCard key={kennel.id} entity={kennel} model="kennel" />
       ))}

@@ -250,19 +250,23 @@ const TimelineContent = React.forwardRef<
 TimelineContent.displayName = "TimelineContent";
 
 // Timeline Card component for enhanced styling
-const TimelineCard = React.forwardRef<
-  HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement>
->(({ className, ...props }, ref) => (
-  <div
-    ref={ref}
-    className={cn(
-      "bg-white border border-gray-200 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow",
-      className
-    )}
-    {...props}
-  />
-));
+interface TimelineCardProps extends React.HTMLAttributes<HTMLDivElement> {
+  animated?: boolean;
+}
+
+const TimelineCard = React.forwardRef<HTMLDivElement, TimelineCardProps>(
+  ({ className, animated = false, ...props }, ref) => (
+    <div
+      ref={ref}
+      className={cn(
+        "bg-white border border-gray-200 rounded-lg p-4 shadow-sm",
+        animated && "hover:shadow-md transition-shadow",
+        className
+      )}
+      {...props}
+    />
+  )
+);
 TimelineCard.displayName = "TimelineCard";
 
 const TimelineTitle = React.forwardRef<
@@ -316,6 +320,7 @@ interface AlternatingTimelineProps {
   connectorVariant?: VariantProps<typeof timelineConnectorVariants>["variant"];
   showCards?: boolean;
   layout?: "alternating" | "left" | "right";
+  animated?: boolean; // Enable hover effects on cards (default: false for professional UI)
 }
 
 const AlternatingTimeline = React.forwardRef<
@@ -330,6 +335,7 @@ const AlternatingTimeline = React.forwardRef<
       connectorVariant = "primary",
       showCards = true,
       layout = "alternating",
+      animated = false,
     },
     ref
   ) => {
@@ -367,7 +373,7 @@ const AlternatingTimeline = React.forwardRef<
                     )}
                   >
                     {showCards ? (
-                      <TimelineCard>
+                      <TimelineCard animated={animated}>
                         <TimelineContent>
                           <TimelineTitle>{item.title}</TimelineTitle>
                           {item.description && (
@@ -449,7 +455,7 @@ const AlternatingTimeline = React.forwardRef<
                     )}
                   >
                     {showCards ? (
-                      <TimelineCard>
+                      <TimelineCard animated={animated}>
                         <TimelineContent>
                           <TimelineTitle>{item.title}</TimelineTitle>
                           {item.description && (
