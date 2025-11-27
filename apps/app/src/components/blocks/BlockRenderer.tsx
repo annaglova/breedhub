@@ -41,6 +41,26 @@ export const BlockRenderer: React.FC<BlockRendererProps> = ({
     });
   }
 
+  // TabOutlet is special - it renders tabs directly without a block component
+  // The tabs config is passed directly to the outlet
+  if (outlet === 'TabOutlet') {
+    const OutletComponent = getOutletComponent(outlet);
+    if (!OutletComponent) {
+      console.error(`[BlockRenderer] TabOutlet not found in registry`);
+      return null;
+    }
+    return (
+      <OutletComponent
+        entity={entity}
+        component={component}
+        {...restConfig}
+        className={className}
+        pageConfig={pageConfig}
+        spacePermissions={spacePermissions}
+      />
+    );
+  }
+
   // Get component from registry
   const BlockComponent = getBlockComponent(component);
 

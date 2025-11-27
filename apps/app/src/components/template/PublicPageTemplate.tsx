@@ -1,5 +1,4 @@
 import { BlockRenderer } from "@/components/blocks/BlockRenderer";
-import { TabOutletRenderer } from "@/components/blocks/TabOutletRenderer";
 import { SpaceProvider } from "@/contexts/SpaceContext";
 import { useCoverDimensions } from "@/hooks/useCoverDimensions";
 import { getPageConfig } from "@/utils/getPageConfig";
@@ -322,22 +321,19 @@ export function PublicPageTemplate({
                   }
 
                   // TabOutlet - Dynamic tabs from config
+                  // Now handled by BlockRenderer like other outlets
                   if (blockConfig.outlet === "TabOutlet") {
-                    // blockConfig.tabs contains the tabs configuration from database
-                    const tabsConfig = (blockConfig as any).tabs;
-                    if (!tabsConfig) {
-                      console.warn(
-                        "[TabOutlet] No tabs config found in block:",
-                        blockConfig
-                      );
-                      return null;
-                    }
                     return (
-                      <TabOutletRenderer
+                      <BlockRenderer
                         key={blockId}
-                        tabsConfig={tabsConfig}
-                        pageMenuTop={PAGE_MENU_TOP}
-                        tabHeaderTop={TAB_HEADER_TOP}
+                        blockConfig={{
+                          ...blockConfig,
+                          pageMenuTop: PAGE_MENU_TOP,
+                          tabHeaderTop: TAB_HEADER_TOP,
+                        }}
+                        entity={selectedEntity}
+                        pageConfig={pageConfig}
+                        spacePermissions={spacePermissions}
                       />
                     );
                   }

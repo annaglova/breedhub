@@ -3,6 +3,7 @@ import { AvatarOutlet } from '../template/AvatarOutlet';
 import { CoverOutlet } from '../template/CoverOutlet';
 import { NameOutlet } from '../template/NameOutlet';
 import { AchievementOutlet } from '../template/AchievementOutlet';
+import { TabOutlet } from '../template/TabOutlet';
 import { BreedAvatar } from '../breed/BreedAvatar';
 import { BreedName } from '../breed/BreedName';
 import { BreedAchievements } from '../breed/BreedAchievements';
@@ -17,7 +18,7 @@ const OUTLET_COMPONENTS: Record<string, React.ComponentType<any>> = {
   'AvatarOutlet': AvatarOutlet,
   'NameOutlet': NameOutlet,
   'AchievementOutlet': AchievementOutlet,
-  // Add more outlets here: TabsOutlet, etc.
+  'TabOutlet': TabOutlet,
 };
 
 /**
