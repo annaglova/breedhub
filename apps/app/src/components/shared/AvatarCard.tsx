@@ -49,24 +49,27 @@ export function AvatarCard({ entity, model }: AvatarCardProps) {
 
   return (
     <Link to={entity.url}>
-      <div className="relative flex flex-col items-center justify-center">
-        {/* Avatar circle */}
-        <div className="card relative flex size-40 overflow-hidden rounded-full">
-          <img
-            className="absolute right-0 top-0 h-full w-auto max-w-[150%] object-cover"
-            src={avatarUrl}
-            alt={entity.name}
-          />
-        </div>
+      <div className="flex flex-col items-center justify-center">
+        {/* Avatar container - relative for badge positioning */}
+        <div className="relative">
+          {/* Avatar circle with border */}
+          <div className="relative flex size-40 overflow-hidden rounded-full border border-border bg-card shadow-sm">
+            <img
+              className="absolute right-0 top-0 h-full w-auto max-w-[150%] object-cover"
+              src={avatarUrl}
+              alt={entity.name}
+            />
+          </div>
 
-        {/* Placement badge */}
-        {showPlaceBadge && (
-          <PatronPlace
-            iconName={`place-${entity.place}`}
-            iconSize={18}
-            className="absolute right-3 top-2 rounded-full border border-white"
-          />
-        )}
+          {/* Placement badge - positioned on the border of avatar circle */}
+          {showPlaceBadge && (
+            <PatronPlace
+              iconName={`place-${entity.place}`}
+              iconSize={18}
+              className="absolute right-3 top-2 rounded-full border border-white"
+            />
+          )}
+        </div>
 
         {/* Name */}
         <div className="mt-2 text-center">{entity.name}</div>

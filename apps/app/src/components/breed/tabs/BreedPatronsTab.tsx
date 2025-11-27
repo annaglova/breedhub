@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { AvatarCard } from "@/components/shared/AvatarCard";
+import { cn } from "@ui/lib/utils";
 
 /**
  * Patron data structure
@@ -12,13 +13,21 @@ interface Patron {
   url: string; // Link to patron profile
 }
 
+interface BreedPatronsTabProps {
+  isFullscreen?: boolean; // Fullscreen/drawer mode - shows more columns
+}
+
 /**
  * BreedPatronsTab component
  * Displays a grid of patron avatars with placement badges
  *
+ * Grid columns:
+ * - Default (drawer): 2 cols → sm:3 cols
+ * - Fullscreen: 2 cols → sm:3 cols → lg:4 cols → xxl:5 cols
+ *
  * Similar to Angular breed-patrons.component.ts
  */
-export function BreedPatronsTab() {
+export function BreedPatronsTab({ isFullscreen = false }: BreedPatronsTabProps) {
   const [patrons, setPatrons] = useState<Patron[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -131,7 +140,13 @@ export function BreedPatronsTab() {
   }
 
   return (
-    <div className="mt-3 grid grid-cols-2 gap-y-6 sm:grid-cols-3 lg:grid-cols-4 xxl:grid-cols-5">
+    <div
+      className={cn(
+        "mt-3 grid grid-cols-2 gap-y-6 sm:grid-cols-3",
+        // In fullscreen mode, show more columns on larger screens
+        isFullscreen && "lg:grid-cols-4 xxl:grid-cols-5"
+      )}
+    >
       {patrons.map((patron) => (
         <AvatarCard
           key={patron.id}
