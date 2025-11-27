@@ -1,5 +1,5 @@
-import { Trophy, Medal, Award, Star } from "lucide-react";
 import { cn } from "@ui/lib/utils";
+import * as CustomIcons from "@shared/icons";
 
 /**
  * Props for PatronPlace component
@@ -12,21 +12,11 @@ interface PatronPlaceProps {
 }
 
 /**
- * Get appropriate icon component based on place number
- */
-function getPlaceIcon(place: number) {
-  if (place === 1) return Trophy;
-  if (place === 2) return Medal;
-  if (place === 3) return Award;
-  return Star;
-}
-
-/**
  * PatronPlace component
  * Displays placement badge icon with appropriate styling
  *
+ * Uses custom SVG icons from @shared/icons (patron-places)
  * Similar to Angular patron-place.component.ts
- * Uses Lucide icons instead of svg-icon
  */
 export function PatronPlace({
   iconName,
@@ -34,17 +24,23 @@ export function PatronPlace({
   mode = "default",
   className
 }: PatronPlaceProps) {
-  // Extract place number from iconName (e.g., "place-1" -> 1)
-  const place = parseInt(iconName.replace("place-", ""), 10);
-  const Icon = getPlaceIcon(place);
+  // Convert iconName to export name (e.g., "place-1" -> "PatronPlacesPlace1Icon")
+  const placeNumber = iconName.replace("place-", "");
+  const exportName = `PatronPlacesPlace${placeNumber}Icon`;
+  const IconComponent = (CustomIcons as any)[exportName];
+
+  if (!IconComponent) {
+    console.warn(`[PatronPlace] Icon not found: ${exportName}`);
+    return null;
+  }
 
   if (mode === "default") {
     return (
       <div className={cn("bg-accent-600 rounded-full p-1", className)}>
-        <Icon
-          size={iconSize}
-          className="text-white"
-          strokeWidth={2}
+        <IconComponent
+          width={iconSize}
+          height={iconSize}
+          style={{ fill: "white" }}
         />
       </div>
     );
@@ -52,10 +48,11 @@ export function PatronPlace({
 
   // Secondary mode
   return (
-    <Icon
-      size={iconSize}
-      className={cn("text-secondary-400", className)}
-      strokeWidth={2}
+    <IconComponent
+      width={iconSize}
+      height={iconSize}
+      className={className}
+      style={{ fill: "rgb(var(--secondary-400))" }}
     />
   );
 }
