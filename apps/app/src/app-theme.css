@@ -21,6 +21,26 @@
   border: 1px solid rgb(var(--surface-border));
 }
 
+.card {
+  background: rgb(var(--card-ground));
+  border: 1px solid rgb(var(--surface-border));
+  display: flex;
+  overflow: hidden;
+  padding: 1rem;
+}
+
+@media (min-width: 640px) {
+  .card {
+    padding: 1.75rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .card {
+    border-radius: 12px;
+  }
+}
+
 .fake-card {
   background: rgb(var(--card-ground));
   border: 1px solid rgb(var(--surface-border));

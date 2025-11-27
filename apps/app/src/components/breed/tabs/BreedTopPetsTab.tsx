@@ -1,13 +1,22 @@
 import { useState, useEffect } from "react";
 import { PetCard, type Pet } from "@/components/shared/PetCard";
+import { cn } from "@ui/lib/utils";
+
+interface BreedTopPetsTabProps {
+  isFullscreen?: boolean; // Fullscreen/drawer mode - shows more columns
+}
 
 /**
  * BreedTopPetsTab component
  * Displays a grid of top pets in the breed
  *
+ * Grid columns:
+ * - Default (drawer): 1 col → sm:2 cols
+ * - Fullscreen: 1 col → sm:2 cols → lg:3 cols → xxl:4 cols
+ *
  * Similar to Angular breed-top-pets.component.ts
  */
-export function BreedTopPetsTab() {
+export function BreedTopPetsTab({ isFullscreen = false }: BreedTopPetsTabProps) {
   const [pets, setPets] = useState<Pet[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -110,7 +119,13 @@ export function BreedTopPetsTab() {
   }
 
   return (
-    <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xxl:grid-cols-4">
+    <div
+      className={cn(
+        "mt-3 grid gap-3 sm:grid-cols-2",
+        // In fullscreen mode, show more columns on larger screens
+        isFullscreen && "lg:grid-cols-3 xxl:grid-cols-4"
+      )}
+    >
       {pets.map((pet) => (
         <PetCard key={pet.id} pet={pet} mode="default" />
       ))}

@@ -78,7 +78,7 @@ export function PetCard({ pet, mode = "default" }: PetCardProps) {
 
       <div className="flex h-auto flex-col items-center justify-center">
         {/* Avatar */}
-        <div className="flex size-36 items-center justify-center overflow-hidden rounded-xl border border-border sm:size-44">
+        <div className="flex size-36 items-center justify-center overflow-hidden rounded-xl border border-surface-border sm:size-44">
           <img
             className="h-full w-auto max-w-[150%] object-cover"
             src={pet.avatarUrl}
@@ -111,9 +111,9 @@ export function PetCard({ pet, mode = "default" }: PetCardProps) {
         </div>
 
         {/* Divider */}
-        <div className="flex w-full flex-col border-t border-border">
+        <div className="flex w-full flex-col border-t border-surface-border">
           {/* Birth info */}
-          <em className="text-muted-foreground mb-2 mt-3 text-center text-sm">
+          <em className="text-secondary mb-2 mt-3 text-center text-sm">
             {pet.countryOfBirth} {formatYear(pet.dateOfBirth)}
           </em>
 
@@ -139,7 +139,7 @@ export function PetCard({ pet, mode = "default" }: PetCardProps) {
               {/* Default mode: Father/Mother */}
               {!pet.titles && mode === "default" && (
                 <div className="grid w-full gap-y-3" style={{ gridTemplateColumns: "44px auto" }}>
-                  <span className="text-muted-foreground">Father</span>
+                  <span className="text-secondary">Father</span>
                   <Link
                     to={pet.father?.url || "#"}
                     className="hover:underline overflow-hidden"
@@ -152,7 +152,7 @@ export function PetCard({ pet, mode = "default" }: PetCardProps) {
                     {pet.father?.name || "Unknown"}
                   </Link>
 
-                  <span className="text-muted-foreground">Mother</span>
+                  <span className="text-secondary">Mother</span>
                   <Link
                     to={pet.mother?.url || "#"}
                     className="hover:underline overflow-hidden"
@@ -170,12 +170,12 @@ export function PetCard({ pet, mode = "default" }: PetCardProps) {
               {/* Litter mode: Breed/Status */}
               {!pet.titles && mode === "litter" && (
                 <div className="grid w-full gap-y-3" style={{ gridTemplateColumns: "44px auto" }}>
-                  <span className="text-muted-foreground">Breed</span>
+                  <span className="text-secondary">Breed</span>
                   <Link to={pet.breed?.url || "#"} className="hover:underline">
                     {pet.breed?.name || "Unknown"}
                   </Link>
 
-                  <span className="text-muted-foreground">Status</span>
+                  <span className="text-secondary">Status</span>
                   <span>{pet.status || "Unknown"}</span>
                 </div>
               )}
