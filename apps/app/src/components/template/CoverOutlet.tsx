@@ -1,5 +1,10 @@
 import React from 'react';
 import { Expand } from 'lucide-react';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@ui/components/tooltip";
 import { NavigationButtons } from './cover/NavigationButtons';
 
 interface CoverOutletProps {
@@ -62,13 +67,17 @@ export function CoverOutlet({
         {/* Navigation buttons */}
         <div className="z-40 flex w-full pb-2">
           {isDrawerMode && (
-            <button
-              onClick={handleExpand}
-              title="Expand"
-              className="mr-auto hidden md:block"
-            >
-              <Expand size={22} className="text-white" />
-            </button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  onClick={handleExpand}
+                  className="mr-auto hidden md:block"
+                >
+                  <Expand size={22} className="text-white" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">Full screen view</TooltipContent>
+            </Tooltip>
           )}
           <NavigationButtons
             mode="white"

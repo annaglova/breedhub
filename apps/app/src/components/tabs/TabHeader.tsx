@@ -1,5 +1,10 @@
 import { Icon } from "@/components/shared/Icon";
 import type { IconConfig } from "@breedhub/rxdb-store";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@ui/components/tooltip";
 import { cn } from "@ui/lib/utils";
 
 interface TabHeaderProps {
@@ -61,17 +66,21 @@ export function TabHeader({
 
           {/* Fullscreen button */}
           {fullscreenUrl && !badge && (
-            <a
-              href={fullscreenUrl}
-              className="ml-auto hover:bg-hover-surface-header p-2 rounded transition-colors"
-              title="Full screen view"
-            >
-              <Icon
-                icon={{ name: "Expand", source: "lucide" }}
-                size={16}
-                className="text-sub-header-color"
-              />
-            </a>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <a
+                  href={fullscreenUrl}
+                  className="ml-auto hover:bg-hover-surface-header p-2 rounded transition-colors"
+                >
+                  <Icon
+                    icon={{ name: "Expand", source: "lucide" }}
+                    size={16}
+                    className="text-sub-header-color"
+                  />
+                </a>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">Full screen view</TooltipContent>
+            </Tooltip>
           )}
         </div>
       </div>
@@ -86,13 +95,17 @@ export function TabHeader({
           Full screen view
         </span>
         {fullscreenUrl && (
-          <a
-            href={fullscreenUrl}
-            className="text-secondary border border-secondary-500 flex size-9 items-center justify-center rounded-full hover:bg-secondary/10 transition-colors"
-            title="Full screen view"
-          >
-            <Icon icon={{ name: "Expand", source: "lucide" }} size={16} />
-          </a>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <a
+                href={fullscreenUrl}
+                className="text-secondary border border-secondary-500 flex size-9 items-center justify-center rounded-full hover:bg-secondary/10 transition-colors"
+              >
+                <Icon icon={{ name: "Expand", source: "lucide" }} size={16} />
+              </a>
+            </TooltipTrigger>
+            <TooltipContent side="bottom">Full screen view</TooltipContent>
+          </Tooltip>
         )}
       </div>
     </div>

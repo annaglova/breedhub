@@ -1,3 +1,8 @@
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@ui/components/tooltip";
 import { ArrowLeft, ChevronDown } from "lucide-react";
 
 interface NavigationButtonsProps {
@@ -35,40 +40,48 @@ export function NavigationButtons({
   return (
     <div className={`flex shrink-0 ${className}`}>
       {/* Back button */}
-      <button
-        onClick={handleBack}
-        title="Back"
-        className={`
-          left-button flex items-center justify-center px-2.5  text-xl
-          border border-r-[0.5px]
-          ${
-            isWhiteMode
-              ? "border-white bg-white/30 text-white hover:bg-white/60"
-              : "border-secondary dark:border-secondary-400 text-secondary dark:text-secondary-400 hover:bg-secondary/10 hover:dark:bg-secondary-700"
-          }
-        `}
-        style={{ borderRadius: "2rem 0 0 2rem" }}
-      >
-        <ArrowLeft size={20} />
-      </button>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <button
+            onClick={handleBack}
+            className={`
+              left-button flex items-center justify-center px-2.5 text-xl
+              border border-r-[0.5px]
+              ${
+                isWhiteMode
+                  ? "border-white bg-white/30 text-white hover:bg-white/60"
+                  : "border-secondary dark:border-secondary-400 text-secondary dark:text-secondary-400 hover:bg-secondary/10 hover:dark:bg-secondary-700"
+              }
+            `}
+            style={{ borderRadius: "2rem 0 0 2rem" }}
+          >
+            <ArrowLeft size={20} />
+          </button>
+        </TooltipTrigger>
+        <TooltipContent side="bottom">Back</TooltipContent>
+      </Tooltip>
 
       {/* Navigate button (history menu) */}
-      <button
-        onClick={handleNavigate}
-        title="Navigate"
-        className={`
-          right-button flex items-center justify-center px-2.5  text-xl
-          border border-l-[0.5px]
-          ${
-            isWhiteMode
-              ? "border-white bg-white/30 text-white hover:bg-white/60"
-              : "border-secondary dark:border-secondary-400 text-secondary dark:text-secondary-400 hover:bg-secondary/10 hover:dark:bg-secondary-700"
-          }
-        `}
-        style={{ borderRadius: "0 2rem 2rem 0" }}
-      >
-        <ChevronDown size={20} />
-      </button>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <button
+            onClick={handleNavigate}
+            className={`
+              right-button flex items-center justify-center px-2.5 text-xl
+              border border-l-[0.5px]
+              ${
+                isWhiteMode
+                  ? "border-white bg-white/30 text-white hover:bg-white/60"
+                  : "border-secondary dark:border-secondary-400 text-secondary dark:text-secondary-400 hover:bg-secondary/10 hover:dark:bg-secondary-700"
+              }
+            `}
+            style={{ borderRadius: "0 2rem 2rem 0" }}
+          >
+            <ChevronDown size={20} />
+          </button>
+        </TooltipTrigger>
+        <TooltipContent side="bottom">Navigate</TooltipContent>
+      </Tooltip>
     </div>
   );
 }
