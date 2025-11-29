@@ -1,7 +1,7 @@
 {
   "summary": {
     "totalEntities": 258,
-    "uniqueFields": 564,
+    "uniqueFields": 565,
     "baseFields": 34,
     "properties": 12,
     "entityFieldsGenerated": 2854
@@ -98,7 +98,7 @@
       "percentage": "6.2%"
     },
     {
-      "name": "url",
+      "name": "slug",
       "occurrences": 16,
       "percentage": "6.2%"
     },
@@ -123,7 +123,7 @@
   ],
   "analysis": {
     "fieldTypes": {
-      "unknown": 383,
+      "unknown": 384,
       "uuid": 91,
       "string": 27,
       "text": 8,

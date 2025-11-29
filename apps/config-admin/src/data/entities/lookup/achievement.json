@@ -60,32 +60,6 @@
       "defaultValue": ""
     },
     {
-      "id": "field_category_id",
-      "name": "category_id",
-      "fieldType": "uuid",
-      "component": "DropdownInput",
-      "required": false,
-      "isSystem": false,
-      "isPrimaryKey": false,
-      "isUnique": false,
-      "sortOrder": 30,
-      "permissions": {
-        "read": [
-          "*"
-        ],
-        "write": [
-          "admin",
-          "editor"
-        ]
-      },
-      "isForeignKey": true,
-      "referencedTable": "achievement_category",
-      "referencedFieldID": "id",
-      "displayName": "Category",
-      "placeholder": "Enter category",
-      "referencedFieldName": "name"
-    },
-    {
       "id": "field_int_value",
       "name": "int_value",
       "fieldType": "number",
@@ -94,7 +68,7 @@
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 40,
+      "sortOrder": 30,
       "permissions": {
         "read": [
           "*"
@@ -121,7 +95,7 @@
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 50,
+      "sortOrder": 40,
       "permissions": {
         "read": [
           "*"
@@ -138,6 +112,32 @@
         "scale": 0
       },
       "defaultValue": "0"
+    },
+    {
+      "id": "field_entity",
+      "name": "entity",
+      "fieldType": "string",
+      "component": "TextInput",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 50,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "maxLength": 50,
+      "displayName": "Entity",
+      "placeholder": "Enter entity",
+      "validation": {
+        "maxLength": 50
+      }
     },
     {
       "id": "field_id",
@@ -245,6 +245,6 @@
     "totalFields": 10,
     "systemFields": 5,
     "customFields": 5,
-    "generatedAt": "2025-11-20T10:51:43.553Z"
+    "generatedAt": "2025-11-29T15:27:28.757Z"
   }
 }

@@ -705,9 +705,9 @@
       "category": "frequent"
     },
     {
-      "id": "field_url",
+      "id": "field_slug",
       "type": "field",
-      "name": "url",
+      "name": "slug",
       "frequency": 0.06201550387596899,
       "occurrences": 16,
       "commonProps": {
@@ -717,7 +717,7 @@
         "isSystem": false,
         "isPrimaryKey": false,
         "isUnique": false,
-        "displayName": "Url",
+        "displayName": "Slug",
         "permissions": {
           "read": [
             "*"
@@ -952,33 +952,6 @@
       "category": "frequent"
     },
     {
-      "id": "field_category_id",
-      "type": "field",
-      "name": "category_id",
-      "frequency": 0.03488372093023256,
-      "occurrences": 9,
-      "commonProps": {
-        "fieldType": "uuid",
-        "component": "DropdownInput",
-        "required": false,
-        "isSystem": false,
-        "isPrimaryKey": false,
-        "isUnique": false,
-        "displayName": "Category",
-        "permissions": {
-          "read": [
-            "*"
-          ],
-          "write": [
-            "admin",
-            "editor"
-          ]
-        }
-      },
-      "isSystem": false,
-      "category": "frequent"
-    },
-    {
       "id": "field_currency_id",
       "type": "field",
       "name": "currency_id",
@@ -1098,6 +1071,33 @@
         "referencedFieldID": "id",
         "referencedFieldName": "name",
         "dataSource": "collection"
+      },
+      "isSystem": false,
+      "category": "frequent"
+    },
+    {
+      "id": "field_category_id",
+      "type": "field",
+      "name": "category_id",
+      "frequency": 0.031007751937984496,
+      "occurrences": 8,
+      "commonProps": {
+        "fieldType": "uuid",
+        "component": "DropdownInput",
+        "required": false,
+        "isSystem": false,
+        "isPrimaryKey": false,
+        "isUnique": false,
+        "displayName": "Category",
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "admin",
+            "editor"
+          ]
+        }
       },
       "isSystem": false,
       "category": "frequent"
@@ -2496,13 +2496,13 @@
       ]
     },
     {
-      "id": "account_field_url",
+      "id": "account_field_slug",
       "type": "entity_field",
       "deps": [
-        "field_url"
+        "field_slug"
       ],
       "category": "account",
-      "caption": "account url field",
+      "caption": "account slug field",
       "self_data": {
         "fieldType": "string",
         "component": "TextInput",
@@ -2521,12 +2521,10 @@
           ]
         },
         "maxLength": 250,
-        "displayName": "Url",
-        "placeholder": "Enter url",
+        "displayName": "Slug",
+        "placeholder": "Enter slug",
         "validation": {
-          "maxLength": 250,
-          "pattern": "^https?://.+",
-          "message": "Invalid URL format"
+          "maxLength": 250
         },
         "defaultValue": ""
       },
@@ -6258,13 +6256,13 @@
       ]
     },
     {
-      "id": "breed_field_url",
+      "id": "breed_field_slug",
       "type": "entity_field",
       "deps": [
-        "field_url"
+        "field_slug"
       ],
       "category": "breed",
-      "caption": "breed url field",
+      "caption": "breed slug field",
       "self_data": {
         "fieldType": "string",
         "component": "TextInput",
@@ -6283,12 +6281,10 @@
           ]
         },
         "maxLength": 500,
-        "displayName": "Url",
-        "placeholder": "Enter url",
+        "displayName": "Slug",
+        "placeholder": "Enter slug",
         "validation": {
-          "maxLength": 500,
-          "pattern": "^https?://.+",
-          "message": "Invalid URL format"
+          "maxLength": 500
         },
         "defaultValue": ""
       },
@@ -7783,13 +7779,13 @@
       ]
     },
     {
-      "id": "collection_field_url",
+      "id": "collection_field_slug",
       "type": "entity_field",
       "deps": [
-        "field_url"
+        "field_slug"
       ],
       "category": "collection",
-      "caption": "collection url field",
+      "caption": "collection slug field",
       "self_data": {
         "fieldType": "string",
         "component": "TextInput",
@@ -7808,12 +7804,10 @@
           ]
         },
         "maxLength": 500,
-        "displayName": "Url",
-        "placeholder": "Enter url",
+        "displayName": "Slug",
+        "placeholder": "Enter slug",
         "validation": {
-          "maxLength": 500,
-          "pattern": "^https?://.+",
-          "message": "Invalid URL format"
+          "maxLength": 500
         },
         "defaultValue": ""
       },
@@ -9734,13 +9728,13 @@
       ]
     },
     {
-      "id": "conf_item_field_url",
+      "id": "conf_item_field_slug",
       "type": "entity_field",
       "deps": [
-        "field_url"
+        "field_slug"
       ],
       "category": "conf_item",
-      "caption": "conf_item url field",
+      "caption": "conf_item slug field",
       "self_data": {
         "fieldType": "string",
         "component": "TextInput",
@@ -9759,12 +9753,10 @@
           ]
         },
         "maxLength": 250,
-        "displayName": "Url",
-        "placeholder": "Enter url",
+        "displayName": "Slug",
+        "placeholder": "Enter slug",
         "validation": {
-          "maxLength": 250,
-          "pattern": "^https?://.+",
-          "message": "Invalid URL format"
+          "maxLength": 250
         },
         "defaultValue": ""
       },
@@ -11992,13 +11984,13 @@
       ]
     },
     {
-      "id": "contact_field_url",
+      "id": "contact_field_slug",
       "type": "entity_field",
       "deps": [
-        "field_url"
+        "field_slug"
       ],
       "category": "contact",
-      "caption": "contact url field",
+      "caption": "contact slug field",
       "self_data": {
         "fieldType": "string",
         "component": "TextInput",
@@ -12017,12 +12009,10 @@
           ]
         },
         "maxLength": 250,
-        "displayName": "Url",
-        "placeholder": "Enter url",
+        "displayName": "Slug",
+        "placeholder": "Enter slug",
         "validation": {
-          "maxLength": 250,
-          "pattern": "^https?://.+",
-          "message": "Invalid URL format"
+          "maxLength": 250
         },
         "defaultValue": ""
       },
@@ -12652,13 +12642,13 @@
       ]
     },
     {
-      "id": "cover_field_url",
+      "id": "cover_field_slug",
       "type": "entity_field",
       "deps": [
-        "field_url"
+        "field_slug"
       ],
       "category": "cover",
-      "caption": "cover url field",
+      "caption": "cover slug field",
       "self_data": {
         "fieldType": "string",
         "component": "TextInput",
@@ -12677,12 +12667,10 @@
           ]
         },
         "maxLength": 500,
-        "displayName": "Url",
-        "placeholder": "Enter url",
+        "displayName": "Slug",
+        "placeholder": "Enter slug",
         "validation": {
-          "maxLength": 500,
-          "pattern": "^https?://.+",
-          "message": "Invalid URL format"
+          "maxLength": 500
         },
         "defaultValue": ""
       },
@@ -13802,13 +13790,13 @@
       ]
     },
     {
-      "id": "event_field_url",
+      "id": "event_field_slug",
       "type": "entity_field",
       "deps": [
-        "field_url"
+        "field_slug"
       ],
       "category": "event",
-      "caption": "event url field",
+      "caption": "event slug field",
       "self_data": {
         "fieldType": "string",
         "component": "TextInput",
@@ -13827,12 +13815,10 @@
           ]
         },
         "maxLength": 250,
-        "displayName": "Url",
-        "placeholder": "Enter url",
+        "displayName": "Slug",
+        "placeholder": "Enter slug",
         "validation": {
-          "maxLength": 250,
-          "pattern": "^https?://.+",
-          "message": "Invalid URL format"
+          "maxLength": 250
         },
         "defaultValue": ""
       },
@@ -15615,13 +15601,13 @@
       ]
     },
     {
-      "id": "litter_field_url",
+      "id": "litter_field_slug",
       "type": "entity_field",
       "deps": [
-        "field_url"
+        "field_slug"
       ],
       "category": "litter",
-      "caption": "litter url field",
+      "caption": "litter slug field",
       "self_data": {
         "fieldType": "string",
         "component": "TextInput",
@@ -15640,12 +15626,10 @@
           ]
         },
         "maxLength": 250,
-        "displayName": "Url",
-        "placeholder": "Enter url",
+        "displayName": "Slug",
+        "placeholder": "Enter slug",
         "validation": {
-          "maxLength": 250,
-          "pattern": "^https?://.+",
-          "message": "Invalid URL format"
+          "maxLength": 250
         },
         "defaultValue": ""
       },
@@ -18713,13 +18697,13 @@
       ]
     },
     {
-      "id": "pet_field_url",
+      "id": "pet_field_slug",
       "type": "entity_field",
       "deps": [
-        "field_url"
+        "field_slug"
       ],
       "category": "pet",
-      "caption": "pet url field",
+      "caption": "pet slug field",
       "self_data": {
         "fieldType": "string",
         "component": "TextInput",
@@ -18738,12 +18722,10 @@
           ]
         },
         "maxLength": 500,
-        "displayName": "Url",
-        "placeholder": "Enter url",
+        "displayName": "Slug",
+        "placeholder": "Enter slug",
         "validation": {
-          "maxLength": 500,
-          "pattern": "^https?://.+",
-          "message": "Invalid URL format"
+          "maxLength": 500
         },
         "defaultValue": ""
       },
@@ -19838,13 +19820,13 @@
       ]
     },
     {
-      "id": "post_field_url",
+      "id": "post_field_slug",
       "type": "entity_field",
       "deps": [
-        "field_url"
+        "field_slug"
       ],
       "category": "post",
-      "caption": "post url field",
+      "caption": "post slug field",
       "self_data": {
         "fieldType": "string",
         "component": "TextInput",
@@ -19863,12 +19845,10 @@
           ]
         },
         "maxLength": 250,
-        "displayName": "Url",
-        "placeholder": "Enter url",
+        "displayName": "Slug",
+        "placeholder": "Enter slug",
         "validation": {
-          "maxLength": 250,
-          "pattern": "^https?://.+",
-          "message": "Invalid URL format"
+          "maxLength": 250
         },
         "defaultValue": ""
       },
@@ -21024,13 +21004,13 @@
       ]
     },
     {
-      "id": "product_field_url",
+      "id": "product_field_slug",
       "type": "entity_field",
       "deps": [
-        "field_url"
+        "field_slug"
       ],
       "category": "product",
-      "caption": "product url field",
+      "caption": "product slug field",
       "self_data": {
         "fieldType": "string",
         "component": "TextInput",
@@ -21049,12 +21029,10 @@
           ]
         },
         "maxLength": 250,
-        "displayName": "Url",
-        "placeholder": "Enter url",
+        "displayName": "Slug",
+        "placeholder": "Enter slug",
         "validation": {
-          "maxLength": 250,
-          "pattern": "^https?://.+",
-          "message": "Invalid URL format"
+          "maxLength": 250
         },
         "defaultValue": ""
       },
@@ -23320,13 +23298,13 @@
       ]
     },
     {
-      "id": "project_field_url",
+      "id": "project_field_slug",
       "type": "entity_field",
       "deps": [
-        "field_url"
+        "field_slug"
       ],
       "category": "project",
-      "caption": "project url field",
+      "caption": "project slug field",
       "self_data": {
         "fieldType": "string",
         "component": "TextInput",
@@ -23345,12 +23323,10 @@
           ]
         },
         "maxLength": 250,
-        "displayName": "Url",
-        "placeholder": "Enter url",
+        "displayName": "Slug",
+        "placeholder": "Enter slug",
         "validation": {
-          "maxLength": 250,
-          "pattern": "^https?://.+",
-          "message": "Invalid URL format"
+          "maxLength": 250
         },
         "defaultValue": ""
       },
@@ -24486,13 +24462,13 @@
       ]
     },
     {
-      "id": "quest_field_url",
+      "id": "quest_field_slug",
       "type": "entity_field",
       "deps": [
-        "field_url"
+        "field_slug"
       ],
       "category": "quest",
-      "caption": "quest url field",
+      "caption": "quest slug field",
       "self_data": {
         "fieldType": "string",
         "component": "TextInput",
@@ -24511,12 +24487,10 @@
           ]
         },
         "maxLength": 250,
-        "displayName": "Url",
-        "placeholder": "Enter url",
+        "displayName": "Slug",
+        "placeholder": "Enter slug",
         "validation": {
-          "maxLength": 250,
-          "pattern": "^https?://.+",
-          "message": "Invalid URL format"
+          "maxLength": 250
         },
         "defaultValue": ""
       },
@@ -29296,42 +29270,6 @@
       ]
     },
     {
-      "id": "achievement_field_category_id",
-      "type": "entity_field",
-      "deps": [
-        "field_category_id"
-      ],
-      "category": "achievement",
-      "caption": "achievement category_id field",
-      "self_data": {
-        "fieldType": "uuid",
-        "component": "DropdownInput",
-        "required": false,
-        "isSystem": false,
-        "isPrimaryKey": false,
-        "isUnique": false,
-        "sortOrder": 30,
-        "permissions": {
-          "read": [
-            "*"
-          ],
-          "write": [
-            "admin",
-            "editor"
-          ]
-        },
-        "isForeignKey": true,
-        "referencedTable": "achievement_category",
-        "referencedFieldID": "id",
-        "displayName": "Category",
-        "placeholder": "Enter category",
-        "referencedFieldName": "name"
-      },
-      "tags": [
-        "dictionary"
-      ]
-    },
-    {
       "id": "achievement_field_int_value",
       "type": "entity_field",
       "deps": [
@@ -29349,7 +29287,7 @@
         "isSystem": false,
         "isPrimaryKey": false,
         "isUnique": false,
-        "sortOrder": 40,
+        "sortOrder": 30,
         "permissions": {
           "read": [
             "*"
@@ -29386,7 +29324,7 @@
         "isSystem": false,
         "isPrimaryKey": false,
         "isUnique": false,
-        "sortOrder": 50,
+        "sortOrder": 40,
         "permissions": {
           "read": [
             "*"
@@ -29403,6 +29341,46 @@
           "scale": 0
         },
         "defaultValue": "0"
+      },
+      "tags": [
+        "dictionary"
+      ]
+    },
+    {
+      "id": "achievement_field_entity",
+      "type": "entity_field",
+      "deps": [
+        "property_not_required",
+        "property_not_system",
+        "property_not_primary_key",
+        "property_not_unique",
+        "property_maxlength_50"
+      ],
+      "category": "achievement",
+      "caption": "achievement entity field",
+      "self_data": {
+        "fieldType": "string",
+        "component": "TextInput",
+        "required": false,
+        "isSystem": false,
+        "isPrimaryKey": false,
+        "isUnique": false,
+        "sortOrder": 50,
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "admin",
+            "editor"
+          ]
+        },
+        "maxLength": 50,
+        "displayName": "Entity",
+        "placeholder": "Enter entity",
+        "validation": {
+          "maxLength": 50
+        }
       },
       "tags": [
         "dictionary"
@@ -40891,13 +40869,13 @@
       ]
     },
     {
-      "id": "country_field_url",
+      "id": "country_field_slug",
       "type": "entity_field",
       "deps": [
-        "field_url"
+        "field_slug"
       ],
       "category": "country",
-      "caption": "country url field",
+      "caption": "country slug field",
       "self_data": {
         "fieldType": "string",
         "component": "TextInput",
@@ -40916,12 +40894,10 @@
           ]
         },
         "maxLength": 500,
-        "displayName": "Url",
-        "placeholder": "Enter url",
+        "displayName": "Slug",
+        "placeholder": "Enter slug",
         "validation": {
-          "maxLength": 500,
-          "pattern": "^https?://.+",
-          "message": "Invalid URL format"
+          "maxLength": 500
         },
         "defaultValue": ""
       },
@@ -52712,13 +52688,13 @@
       ]
     },
     {
-      "id": "pet_type_field_url",
+      "id": "pet_type_field_slug",
       "type": "entity_field",
       "deps": [
-        "field_url"
+        "field_slug"
       ],
       "category": "pet_type",
-      "caption": "pet_type url field",
+      "caption": "pet_type slug field",
       "self_data": {
         "fieldType": "string",
         "component": "TextInput",
@@ -52737,12 +52713,10 @@
           ]
         },
         "maxLength": 500,
-        "displayName": "Url",
-        "placeholder": "Enter url",
+        "displayName": "Slug",
+        "placeholder": "Enter slug",
         "validation": {
-          "maxLength": 500,
-          "pattern": "^https?://.+",
-          "message": "Invalid URL format"
+          "maxLength": 500
         },
         "defaultValue": ""
       },
@@ -85746,13 +85720,13 @@
       ]
     },
     {
-      "id": "pet_old_field_url",
+      "id": "pet_old_field_slug",
       "type": "entity_field",
       "deps": [
-        "field_url"
+        "field_slug"
       ],
       "category": "pet_old",
-      "caption": "pet_old url field",
+      "caption": "pet_old slug field",
       "self_data": {
         "fieldType": "string",
         "component": "TextInput",
@@ -85771,12 +85745,10 @@
           ]
         },
         "maxLength": 500,
-        "displayName": "Url",
-        "placeholder": "Enter url",
+        "displayName": "Slug",
+        "placeholder": "Enter slug",
         "validation": {
-          "maxLength": 500,
-          "pattern": "^https?://.+",
-          "message": "Invalid URL format"
+          "maxLength": 500
         },
         "defaultValue": ""
       },

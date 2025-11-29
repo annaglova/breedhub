@@ -134,8 +134,8 @@
       "defaultValue": ""
     },
     {
-      "id": "field_url",
-      "name": "url",
+      "id": "field_slug",
+      "name": "slug",
       "fieldType": "string",
       "component": "TextInput",
       "required": true,
@@ -153,12 +153,10 @@
         ]
       },
       "maxLength": 500,
-      "displayName": "Url",
-      "placeholder": "Enter url",
+      "displayName": "Slug",
+      "placeholder": "Enter slug",
       "validation": {
-        "maxLength": 500,
-        "pattern": "^https?://.+",
-        "message": "Invalid URL format"
+        "maxLength": 500
       },
       "defaultValue": ""
     },
@@ -394,6 +392,6 @@
     "totalFields": 16,
     "systemFields": 5,
     "customFields": 11,
-    "generatedAt": "2025-11-20T10:51:26.566Z"
+    "generatedAt": "2025-11-29T15:27:12.422Z"
   }
 }
