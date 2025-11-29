@@ -54,6 +54,7 @@ interface TabConfig {
   component: string;
   label?: string;
   icon?: { name: string; source: string };
+  slug?: string; // URL-friendly identifier for the tab (e.g., "achievements", "patrons")
   // New config options
   badge?: string; // "Coming soon", "New", "Beta", etc.
   fullscreenButton?: boolean; // Show fullscreen button
@@ -97,9 +98,12 @@ function convertTabConfigToTabs(tabsConfig: Record<string, TabConfig>): Tab[] {
         .replace(/([A-Z])/g, ' $1')
         .trim();
 
+    // Use slug from config for URL fragment, fallback to tabId
+    const fragment = config.slug || tabId;
+
     tabs.push({
       id: tabId,
-      fragment: tabId,
+      fragment,
       label,
       icon: config.icon || { name: 'Circle', source: 'lucide' },
       component: Component,
@@ -117,11 +121,21 @@ function convertTabConfigToTabs(tabsConfig: Record<string, TabConfig>): Tab[] {
 }
 
 /**
- * Get default tab fragment from tabs config
+ * Get default tab fragment (slug) from tabs config
  */
 function getDefaultTabFragment(tabsConfig: Record<string, TabConfig>): string | undefined {
   const defaultEntry = Object.entries(tabsConfig).find(([, config]) => config.isDefault);
-  return defaultEntry ? defaultEntry[0] : Object.keys(tabsConfig)[0];
+  if (defaultEntry) {
+    const [tabId, config] = defaultEntry;
+    return config.slug || tabId;
+  }
+  // Fallback to first tab
+  const firstEntry = Object.entries(tabsConfig)[0];
+  if (firstEntry) {
+    const [tabId, config] = firstEntry;
+    return config.slug || tabId;
+  }
+  return undefined;
 }
 
 /**

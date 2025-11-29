@@ -66,9 +66,17 @@ export function useTabNavigation({
   mode = "scroll",
   defaultTab,
 }: UseTabNavigationProps): UseTabNavigationReturn {
-  // Initialize activeTab with default or first tab
-  const initialTab = defaultTab || tabs[0]?.fragment || "";
-  const [activeTab, setActiveTab] = useState<string>(initialTab);
+  // Initialize activeTab from URL hash or default
+  const getInitialTab = () => {
+    const hash = window.location.hash.slice(1);
+    // Check if hash matches any tab fragment
+    if (hash && tabs.some(tab => tab.fragment === hash)) {
+      return hash;
+    }
+    return defaultTab || tabs[0]?.fragment || "";
+  };
+
+  const [activeTab, setActiveTab] = useState<string>(getInitialTab);
   const [visibilityMap, setVisibilityMap] = useState<Record<string, number>>(
     {}
   );
@@ -77,12 +85,28 @@ export function useTabNavigation({
   // Track if user manually clicked on tab (to prevent IntersectionObserver from overriding)
   const isManualScrollRef = useRef(false);
 
+  // Update URL hash when activeTab changes
+  const updateUrlHash = useCallback((fragment: string) => {
+    const url = new URL(window.location.href);
+    url.hash = fragment;
+    window.history.replaceState(null, '', url.toString());
+  }, []);
+
+  // Set initial hash on mount if not present
+  useEffect(() => {
+    const hash = window.location.hash.slice(1);
+    if (!hash && activeTab) {
+      updateUrlHash(activeTab);
+    }
+  }, []); // Only on mount
+
   // Handle tab change
   const handleTabChange = useCallback(
     (fragment: string) => {
       // Mark as manual scroll to prevent IntersectionObserver from overriding
       isManualScrollRef.current = true;
       setActiveTab(fragment);
+      updateUrlHash(fragment);
 
       if (mode === "scroll") {
         // Find the tab section element
@@ -112,7 +136,7 @@ export function useTabNavigation({
         });
       }
     },
-    [mode]
+    [mode, updateUrlHash]
   );
 
   // Separate function for scroll logic
@@ -296,9 +320,6 @@ export function useTabNavigation({
         setTimeout(() => {
           isManualScrollRef.current = false;
         }, 1000);
-
-        // TODO Phase 3: Update URL hash
-        // window.history.replaceState(null, '', `#${fragment}`);
   };
 
   // Handle visibility change (scroll mode only)
@@ -326,23 +347,14 @@ export function useTabNavigation({
         // Update activeTab if most visible tab changed and visibility > 50%
         if (mostVisibleTab && maxVisibility > 0.5 && mostVisibleTab !== activeTab) {
           setActiveTab(mostVisibleTab);
-          // TODO Phase 3: Update URL hash
-          // window.history.replaceState(null, '', `#${mostVisibleTab}`);
+          updateUrlHash(mostVisibleTab);
         }
 
         return newMap;
       });
     },
-    [activeTab]
+    [activeTab, updateUrlHash]
   );
-
-  // Initialize from URL hash on mount (Phase 3)
-  // useEffect(() => {
-  //   const hash = window.location.hash.slice(1);
-  //   if (hash && tabs.some(tab => tab.fragment === hash)) {
-  //     setActiveTab(hash);
-  //   }
-  // }, [tabs]);
 
   // Return based on mode
   if (mode === "scroll") {
