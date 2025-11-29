@@ -6,7 +6,7 @@ interface TabHeaderProps {
   label: string;
   icon: IconConfig; // Changed from React.ReactNode to IconConfig for universal icon support
   mode?: "list" | "compact";
-  comingSoon?: boolean;
+  badge?: string; // "Coming soon", "New", "Beta", etc.
   fullscreenUrl?: string;
   isFirst?: boolean;
   className?: string;
@@ -27,7 +27,7 @@ export function TabHeader({
   label,
   icon,
   mode = "list",
-  comingSoon = false,
+  badge,
   fullscreenUrl,
   isFirst = false,
   className,
@@ -52,22 +52,22 @@ export function TabHeader({
           {/* Label */}
           <span>{label}</span>
 
-          {/* Coming soon label */}
-          {comingSoon && (
+          {/* Badge label (Coming soon, New, Beta, etc.) */}
+          {badge && (
             <div className="text-center text-sm font-bold uppercase text-primary ml-auto">
-              Coming soon
+              {badge}
             </div>
           )}
 
           {/* Fullscreen button */}
-          {fullscreenUrl && !comingSoon && (
+          {fullscreenUrl && !badge && (
             <a
               href={fullscreenUrl}
               className="ml-auto hover:bg-hover-surface-header p-2 rounded transition-colors"
               title="Full screen view"
             >
               <Icon
-                icon={{ name: "Maximize2", source: "lucide" }}
+                icon={{ name: "Expand", source: "lucide" }}
                 size={16}
                 className="text-sub-header-color"
               />
@@ -91,7 +91,7 @@ export function TabHeader({
             className="text-secondary border border-secondary-500 flex size-9 items-center justify-center rounded-full hover:bg-secondary/10 transition-colors"
             title="Full screen view"
           >
-            <Icon icon={{ name: "Maximize2", source: "lucide" }} size={16} />
+            <Icon icon={{ name: "Expand", source: "lucide" }} size={16} />
           </a>
         )}
       </div>

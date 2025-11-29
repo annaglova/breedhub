@@ -9,8 +9,9 @@ export interface Tab {
   fragment: string;
   label: string;
   icon: IconConfig; // Changed from React.ReactNode to IconConfig for universal icon support
-  comingSoon?: boolean;
-  fullscreenUrl?: string;
+  badge?: string; // "Coming soon", "New", "Beta", etc.
+  fullscreenButton?: boolean; // Show fullscreen button (generates URL from fragment)
+  recordsCount?: number; // Number of records to fetch for this tab
   component: React.ComponentType<any>;
 }
 
@@ -64,6 +65,8 @@ export function TabsContainer({
       <div className={cn("w-full", className)}>
         {tabs.map((tab, index) => {
           const Component = tab.component;
+          // Generate fullscreen URL from fragment if fullscreenButton is enabled
+          const fullscreenUrl = tab.fullscreenButton ? `#${tab.fragment}/fullscreen` : undefined;
 
           return (
             <section key={tab.id} className="relative">
@@ -72,8 +75,8 @@ export function TabsContainer({
                 label={tab.label}
                 icon={tab.icon}
                 mode="list"
-                comingSoon={tab.comingSoon}
-                fullscreenUrl={tab.fullscreenUrl}
+                badge={tab.badge}
+                fullscreenUrl={fullscreenUrl}
                 isFirst={index === 0}
                 className="sticky z-20"
                 style={{ top: `${tabHeaderTop}px` }}
@@ -84,7 +87,7 @@ export function TabsContainer({
                 id={tab.fragment}
                 onVisibilityChange={handleVisibilityChange}
               >
-                <Component />
+                <Component recordsCount={tab.recordsCount} />
               </ScrollableTab>
             </section>
           );
@@ -98,6 +101,7 @@ export function TabsContainer({
   if (!activeTabData) return null;
 
   const Component = activeTabData.component;
+  const fullscreenUrl = activeTabData.fullscreenButton ? `#${activeTabData.fragment}/fullscreen` : undefined;
 
   return (
     <div className={cn("w-full", className)}>
@@ -105,13 +109,13 @@ export function TabsContainer({
         label={activeTabData.label}
         icon={activeTabData.icon}
         mode="compact"
-        comingSoon={activeTabData.comingSoon}
-        fullscreenUrl={activeTabData.fullscreenUrl}
+        badge={activeTabData.badge}
+        fullscreenUrl={fullscreenUrl}
         isFirst={false}
       />
 
       {/* Active Tab Content */}
-      <Component />
+      <Component recordsCount={activeTabData.recordsCount} />
     </div>
   );
 }

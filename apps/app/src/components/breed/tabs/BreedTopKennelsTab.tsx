@@ -4,6 +4,7 @@ import { cn } from "@ui/lib/utils";
 
 interface BreedTopKennelsTabProps {
   isFullscreen?: boolean; // Fullscreen/drawer mode - shows more columns
+  recordsCount?: number; // Number of records to display (from config)
 }
 
 /**
@@ -16,12 +17,15 @@ interface BreedTopKennelsTabProps {
  *
  * Similar to Angular breed-top-kennels.component.ts
  */
-export function BreedTopKennelsTab({ isFullscreen = false }: BreedTopKennelsTabProps) {
+export function BreedTopKennelsTab({ isFullscreen = false, recordsCount }: BreedTopKennelsTabProps) {
   const [kennels, setKennels] = useState<AvatarEntity[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // TODO: Load kennels from SpaceStore child records
+    // TODO: Load kennels from SpaceStore child records using recordsCount
+    // recordsCount will be used in API query: { limit: recordsCount }
+    console.log('[BreedTopKennelsTab] recordsCount from config:', recordsCount);
+
     // For now, using mock data
     // Kennels displayed in rating order, no placement badges (badges are for patrons only)
     const mockKennels: AvatarEntity[] = [

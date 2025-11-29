@@ -15,6 +15,7 @@ interface Patron {
 
 interface BreedPatronsTabProps {
   isFullscreen?: boolean; // Fullscreen/drawer mode - shows more columns
+  recordsCount?: number; // Number of records to display (from config)
 }
 
 /**
@@ -27,12 +28,15 @@ interface BreedPatronsTabProps {
  *
  * Similar to Angular breed-patrons.component.ts
  */
-export function BreedPatronsTab({ isFullscreen = false }: BreedPatronsTabProps) {
+export function BreedPatronsTab({ isFullscreen = false, recordsCount }: BreedPatronsTabProps) {
   const [patrons, setPatrons] = useState<Patron[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // TODO: Load patrons from SpaceStore child records
+    // TODO: Load patrons from SpaceStore child records using recordsCount
+    // recordsCount will be used in API query: { limit: recordsCount }
+    console.log('[BreedPatronsTab] recordsCount from config:', recordsCount);
+
     // For now, using mock data
     const mockPatrons: Patron[] = [
       {

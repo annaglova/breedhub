@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 
 interface BreedTopPetsTabProps {
   isFullscreen?: boolean; // Fullscreen/drawer mode - shows more columns
+  recordsCount?: number; // Number of records to display (from config)
 }
 
 /**
@@ -18,12 +19,16 @@ interface BreedTopPetsTabProps {
  */
 export function BreedTopPetsTab({
   isFullscreen = false,
+  recordsCount,
 }: BreedTopPetsTabProps) {
   const [pets, setPets] = useState<Pet[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // TODO: Load pets from SpaceStore child records
+    // TODO: Load pets from SpaceStore child records using recordsCount
+    // recordsCount will be used in API query: { limit: recordsCount }
+    console.log('[BreedTopPetsTab] recordsCount from config:', recordsCount);
+
     // For now, using mock data
     const mockPets: Pet[] = [
       {

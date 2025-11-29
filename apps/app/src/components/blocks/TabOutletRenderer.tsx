@@ -54,6 +54,10 @@ interface TabConfig {
   component: string;
   label?: string;
   icon?: { name: string; source: string };
+  // New config options
+  badge?: string; // "Coming soon", "New", "Beta", etc.
+  fullscreenButton?: boolean; // Show fullscreen button
+  recordsCount?: number; // Number of records to fetch for this tab
 }
 
 interface TabOutletRendererProps {
@@ -67,6 +71,9 @@ interface TabOutletRendererProps {
 interface ExtendedTab extends Tab {
   _order: number;
   _isDefault?: boolean;
+  badge?: string;
+  fullscreenButton?: boolean;
+  recordsCount?: number;
 }
 
 /**
@@ -96,6 +103,11 @@ function convertTabConfigToTabs(tabsConfig: Record<string, TabConfig>): Tab[] {
       label,
       icon: config.icon || { name: 'Circle', source: 'lucide' },
       component: Component,
+      // New config options
+      badge: config.badge,
+      fullscreenButton: config.fullscreenButton,
+      recordsCount: config.recordsCount,
+      // Internal fields
       _order: config.order,
       _isDefault: config.isDefault,
     });

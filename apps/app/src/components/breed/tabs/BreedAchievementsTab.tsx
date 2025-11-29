@@ -84,7 +84,13 @@ function formatDate(dateString: string): string {
  *
  * ✅ Follows CORE_PRINCIPLES.md: All data through RxDB → UI, never direct Supabase
  */
-export function BreedAchievementsTab() {
+interface BreedAchievementsTabProps {
+  recordsCount?: number; // Number of records to display (from config) - not used for achievements
+}
+
+export function BreedAchievementsTab({ recordsCount }: BreedAchievementsTabProps) {
+  // recordsCount is accepted for interface consistency but not used for achievements
+  // (achievements are always shown in full)
   const selectedEntity = useSelectedEntity();
   const breedId = selectedEntity?.id;
 
