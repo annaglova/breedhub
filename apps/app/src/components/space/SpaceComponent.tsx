@@ -403,7 +403,9 @@ export function SpaceComponent<T extends { id: string }>({
         const hasEntityId =
           pathSegments.length > 2 && pathSegments[2] !== "new";
         if (!hasEntityId) {
-          const slug = normalizeForUrl(data.entities[0].name || data.entities[0].id);
+          // Use slug from DB if available, otherwise generate from name
+          const entity = data.entities[0];
+          const slug = entity.slug || normalizeForUrl(entity.name || entity.id);
           // Preserve query params (sort, filters, etc.) when auto-selecting
           navigate(`${slug}${location.search}#overview`);
         }
@@ -526,7 +528,8 @@ export function SpaceComponent<T extends { id: string }>({
       spaceStore.selectEntity(config.entitySchemaName, entity.id);
 
       // Navigate using friendly slug, preserving current query params (sort, filters, etc.)
-      const slug = normalizeForUrl(entity.name || entity.id);
+      // Use slug from DB if available, otherwise generate from name
+      const slug = entity.slug || normalizeForUrl(entity.name || entity.id);
       navigate(`${slug}${location.search}#overview`);
     },
     [navigate, config.entitySchemaName, location.search]
