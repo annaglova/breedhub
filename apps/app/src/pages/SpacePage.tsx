@@ -36,6 +36,8 @@ function DetailWrapper({
 
 interface SpacePageProps {
   entityType: string; // 'breed', 'pet', 'kennel', etc.
+  selectedEntityId?: string; // Pre-selected entity ID (from SlugResolver)
+  selectedSlug?: string; // Pretty URL slug (from SlugResolver) - for URL display
 }
 
 /**
@@ -50,7 +52,7 @@ interface SpacePageProps {
  * Usage in AppRouter:
  * <Route path="breeds/*" element={<SpacePage entityType="breed" />} />
  */
-export function SpacePage({ entityType }: SpacePageProps) {
+export function SpacePage({ entityType, selectedEntityId, selectedSlug }: SpacePageProps) {
   useSignals();
 
   // Get hook from registry
@@ -100,6 +102,25 @@ export function SpacePage({ entityType }: SpacePageProps) {
       <div className="p-8 text-center">
         <p className="text-gray-600">Loading space configuration...</p>
       </div>
+    );
+  }
+
+  // When selectedEntityId is provided (from SlugResolver), render with pre-selected entity
+  // This is used for pretty URLs like /affenpinscher
+  if (selectedEntityId) {
+    return (
+      <SpaceComponent
+        configSignal={spaceConfigSignal}
+        useEntitiesHook={useEntitiesHook}
+        initialSelectedEntityId={selectedEntityId}
+        initialSelectedSlug={selectedSlug}
+      >
+        <DetailWrapper
+          DetailComponent={DetailComponent}
+          spaceConfigSignal={spaceConfigSignal}
+          entityType={entityType}
+        />
+      </SpaceComponent>
     );
   }
 

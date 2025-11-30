@@ -6,7 +6,51 @@ import { spaceStore } from "@breedhub/rxdb-store";
 import { Signal } from "@preact/signals-react";
 import { useSignals } from "@preact/signals-react/runtime";
 import { cn } from "@ui/lib/utils";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+
+/**
+ * Get default tab fragment from page config
+ * Looks for TabOutlet block and finds tab with isDefault: true
+ * Returns the tab slug/id, or first tab as fallback
+ */
+function getDefaultTabFragment(pageConfig: any): string | undefined {
+  if (!pageConfig?.blocks) {
+    return undefined;
+  }
+
+  // Find TabOutlet block which contains tabs config
+  const tabOutletBlock = Object.values(pageConfig.blocks).find(
+    (block: any) => block.outlet === 'TabOutlet' && block.tabs
+  ) as any;
+
+  if (!tabOutletBlock?.tabs) {
+    return undefined;
+  }
+
+  const tabsConfig = tabOutletBlock.tabs;
+
+  // Find tab with isDefault: true
+  const defaultEntry = Object.entries(tabsConfig).find(
+    ([, config]: [string, any]) => config.isDefault === true
+  );
+
+  if (defaultEntry) {
+    const [tabId, config] = defaultEntry as [string, any];
+    return config.slug || tabId;
+  }
+
+  // Fallback to first tab (sorted by order)
+  const sortedTabs = Object.entries(tabsConfig).sort(
+    ([, a]: [string, any], [, b]: [string, any]) => (a.order || 0) - (b.order || 0)
+  );
+
+  if (sortedTabs.length > 0) {
+    const [tabId, config] = sortedTabs[0] as [string, any];
+    return config.slug || tabId;
+  }
+
+  return undefined;
+}
 
 interface PublicPageTemplateProps {
   className?: string;
@@ -269,7 +313,7 @@ export function PublicPageTemplate({
 
                 // Render each block with its appropriate container
                 return sortedBlocks.map(([blockId, blockConfig]) => {
-                  // CoverOutlet needs dimensions from parent container
+                  // CoverOutlet needs dimensions from parent container + defaultTab for expand
                   if (blockConfig.outlet === "CoverOutlet") {
                     return (
                       <BlockRenderer
@@ -279,6 +323,7 @@ export function PublicPageTemplate({
                           coverWidth: coverDimensions.width,
                           coverHeight: coverDimensions.height,
                           isDrawerMode,
+                          defaultTab: getDefaultTabFragment(pageConfig),
                         }}
                         entity={selectedEntity}
                         pageConfig={pageConfig}

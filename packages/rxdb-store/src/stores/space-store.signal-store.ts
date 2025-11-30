@@ -116,6 +116,9 @@ class SpaceStore {
   // Sync state
   syncProgress = signal<{ entity: string; loaded: number; total: number } | null>(null);
   isSyncing = signal<boolean>(false);
+
+  // UI state - fullscreen mode for drawer (when opened from pretty URL or expand button)
+  isFullscreen = signal<boolean>(false);
   
   // Computed values
   isLoading = computed(() => this.loading.value);
@@ -3338,8 +3341,27 @@ class SpaceStore {
     this.initialized.value = false;
     this.availableEntityTypes.value = [];
     this.supabaseLoader = null;
+    this.isFullscreen.value = false;
 
     console.log('[SpaceStore] Disposed');
+  }
+
+  // UI state methods
+
+  /**
+   * Set fullscreen mode for drawer
+   * Called when opening entity from pretty URL or expand button
+   */
+  setFullscreen(value: boolean): void {
+    this.isFullscreen.value = value;
+  }
+
+  /**
+   * Clear fullscreen mode
+   * Called when closing drawer or navigating away
+   */
+  clearFullscreen(): void {
+    this.isFullscreen.value = false;
   }
 }
 

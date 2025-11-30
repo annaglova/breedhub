@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Expand } from 'lucide-react';
 import {
   Tooltip,
@@ -6,6 +7,8 @@ import {
   TooltipTrigger,
 } from "@ui/components/tooltip";
 import { NavigationButtons } from './cover/NavigationButtons';
+import { spaceStore } from '@breedhub/rxdb-store';
+import { normalizeForUrl } from '@/components/space/utils/filter-url-helpers';
 
 interface CoverOutletProps {
   entity: any;
@@ -16,6 +19,8 @@ interface CoverOutletProps {
   coverHeight: number;
   // Drawer mode flag
   isDrawerMode?: boolean;
+  // Default tab fragment for expand (from config, e.g., 'achievements')
+  defaultTab?: string;
   // Component to render inside the cover
   children?: React.ReactNode;
 }
@@ -42,12 +47,36 @@ export function CoverOutlet({
   coverWidth,
   coverHeight,
   isDrawerMode = false,
+  defaultTab,
   children,
 }: CoverOutletProps) {
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  // Check if already in fullscreen mode
+  const isFullscreen = spaceStore.isFullscreen.value;
+
   const handleExpand = () => {
-    console.log('[CoverOutlet] Expand to fullscreen');
-    // TODO: Implement expand
+    if (!entity) return;
+
+    // Get slug from entity (use existing slug or normalize name)
+    const slug = entity.slug || normalizeForUrl(entity.name || entity.id);
+
+    // Build pretty URL: /{slug}#{defaultTab}
+    // Open on default tab from config so user sees the beautiful cover
+    // No query params - fullscreen mode is clean URL
+    const hash = defaultTab ? `#${defaultTab}` : '';
+    const prettyUrl = `/${slug}${hash}`;
+
+    console.log('[CoverOutlet] handleExpand:', { entity, slug, defaultTab, prettyUrl });
+
+    // Navigate to pretty URL (absolute path from root)
+    // SlugResolver will set fullscreen in store and render SpacePage
+    navigate(prettyUrl);
   };
+
+  // Show expand button only in drawer mode AND not already fullscreen
+  const showExpandButton = isDrawerMode && !isFullscreen;
 
   return (
     <div
@@ -66,7 +95,7 @@ export function CoverOutlet({
       <div className="flex w-full max-w-3xl flex-col lg:max-w-4xl xxl:max-w-5xl">
         {/* Navigation buttons */}
         <div className="z-40 flex w-full pb-2">
-          {isDrawerMode && (
+          {showExpandButton && (
             <Tooltip>
               <TooltipTrigger asChild>
                 <button

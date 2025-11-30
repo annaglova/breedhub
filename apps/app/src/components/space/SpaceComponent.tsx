@@ -39,11 +39,20 @@ interface SpaceComponentProps<T> {
     error: Error | null;
     isFetching: boolean;
   };
+  // Pre-selected entity ID (from SlugResolver for pretty URLs)
+  initialSelectedEntityId?: string;
+  // Pre-selected entity slug (from SlugResolver for pretty URLs - for display/navigation)
+  initialSelectedSlug?: string;
+  // Children to render in drawer (when initialSelectedEntityId is provided)
+  children?: React.ReactNode;
 }
 
 export function SpaceComponent<T extends { id: string }>({
   configSignal,
   useEntitiesHook,
+  initialSelectedEntityId,
+  initialSelectedSlug,
+  children,
 }: SpaceComponentProps<T>) {
   useSignals();
 
@@ -216,7 +225,11 @@ export function SpaceComponent<T extends { id: string }>({
   }, [searchParams, setSearchParams]);
 
   // 🎯 Set default view in URL if no view param exists
+  // Skip in fullscreen/pretty URL mode - we don't need query params there
   useEffect(() => {
+    // Skip URL modification in fullscreen mode (pretty URL like /affenpinscher#overview)
+    if (initialSelectedEntityId) return;
+
     const hasViewParam = searchParams.has("view");
 
     // If no view param and we have a default view, add it to URL
@@ -225,10 +238,14 @@ export function SpaceComponent<T extends { id: string }>({
       newParams.set("view", defaultView);
       setSearchParams(newParams, { replace: true }); // replace to not add history entry
     }
-  }, [searchParams, setSearchParams, defaultView]);
+  }, [searchParams, setSearchParams, defaultView, initialSelectedEntityId]);
 
   // 🎯 Set default sort in URL if no sort param exists
+  // Skip in fullscreen/pretty URL mode - we don't need query params there
   useEffect(() => {
+    // Skip URL modification in fullscreen mode (pretty URL like /affenpinscher#overview)
+    if (initialSelectedEntityId) return;
+
     const hasSortParam = searchParams.has("sort");
 
     // If no sort param and we have a default sort option, add it to URL
@@ -237,7 +254,7 @@ export function SpaceComponent<T extends { id: string }>({
       newParams.set("sort", defaultSortOption.id);
       setSearchParams(newParams, { replace: true }); // replace to not add history entry
     }
-  }, [searchParams, setSearchParams, defaultSortOption]);
+  }, [searchParams, setSearchParams, defaultSortOption, initialSelectedEntityId]);
 
   // 🆕 Memoize orderBy to prevent infinite loop (new object on each render)
   const orderBy = useMemo(() => {
@@ -380,7 +397,8 @@ export function SpaceComponent<T extends { id: string }>({
   });
 
   // UI state
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  // When initialSelectedEntityId is provided (from SlugResolver), drawer should be open
+  const [isDrawerOpen, setIsDrawerOpen] = useState(!!initialSelectedEntityId);
   const [headerHeight, setHeaderHeight] = useState(0);
   const headerRef = useRef<HTMLDivElement>(null);
 
@@ -467,9 +485,40 @@ export function SpaceComponent<T extends { id: string }>({
     isInitialLoad
   ]);
 
-  // Check if drawer should be open based on route
+  // Initialize selection from props (for pretty URLs via SlugResolver)
+  // This runs ONCE on mount when initialSelectedEntityId is provided
+  useEffect(() => {
+    if (initialSelectedEntityId) {
+      console.log('[SpaceComponent] Initializing from SlugResolver:', {
+        entityId: initialSelectedEntityId,
+        slug: initialSelectedSlug
+      });
+
+      // Select entity in store
+      spaceStore.selectEntity(config.entitySchemaName, initialSelectedEntityId);
+
+      // Save route for offline access
+      if (initialSelectedSlug) {
+        routeStore.saveRoute({
+          slug: initialSelectedSlug,
+          entity: config.entitySchemaName,
+          entity_id: initialSelectedEntityId,
+          model: config.entitySchemaModel || config.entitySchemaName
+        });
+      }
+    }
+  }, []); // Run only once on mount
+
+  // Check if drawer should be open based on route OR initialSelectedEntityId
   // Sync EntityStore selection with URL (bidirectional)
   useEffect(() => {
+    // If we have initialSelectedEntityId, drawer should be open (pretty URL mode)
+    // Skip URL-based logic in this case
+    if (initialSelectedEntityId) {
+      setIsDrawerOpen(true);
+      return;
+    }
+
     const pathSegments = location.pathname.split("/");
     const hasEntitySegment = pathSegments.length > 2 && pathSegments[2] !== "new";
     setIsDrawerOpen(hasEntitySegment);
@@ -510,9 +559,17 @@ export function SpaceComponent<T extends { id: string }>({
         }
 
         // Save route for offline access (when URL is restored or navigated directly)
-        // Use urlSegment as slug (it's already the friendly slug from URL)
+        // If urlSegment is UUID, find entity and get proper slug from it
+        let slugToSave = urlSegment;
+        if (isUUID) {
+          const entity = allEntities.find(e => e.id === entityId);
+          if (entity) {
+            slugToSave = (entity as any).slug || normalizeForUrl((entity as any).name || entity.id);
+          }
+        }
+
         routeStore.saveRoute({
-          slug: urlSegment,
+          slug: slugToSave,
           entity: config.entitySchemaName,
           entity_id: entityId,
           model: config.entitySchemaModel || config.entitySchemaName
@@ -521,8 +578,10 @@ export function SpaceComponent<T extends { id: string }>({
     } else {
       // Clear selection if no entity in URL
       spaceStore.clearSelection(config.entitySchemaName);
+      // Clear fullscreen mode when no entity in URL (drawer closed)
+      spaceStore.clearFullscreen();
     }
-  }, [location.pathname, config.entitySchemaName, config.entitySchemaModel, allEntities]);
+  }, [location.pathname, config.entitySchemaName, config.entitySchemaModel, allEntities, initialSelectedEntityId]);
 
   // Measure header height
   useEffect(() => {
@@ -828,20 +887,37 @@ export function SpaceComponent<T extends { id: string }>({
 
   const handleBackdropClick = () => {
     setIsDrawerOpen(false);
-    // Navigate back to list without specific entity
-    // Get the base path from current pathname (e.g., /breeds/uuid → /breeds)
-    const basePath = location.pathname.split('/').slice(0, 2).join('/');
-    navigate(basePath);
+    // Clear fullscreen mode when closing drawer
+    spaceStore.clearFullscreen();
+
+    // Navigate back to list
+    // If we're in pretty URL mode (initialSelectedEntityId provided), go to entity list
+    // Otherwise, get base path from current URL (e.g., /breeds/uuid → /breeds)
+    if (initialSelectedEntityId) {
+      // Pretty URL mode - navigate to entity list (e.g., /breeds)
+      const entityPath = config.entitySchemaName === 'breed' ? '/breeds' :
+                         config.entitySchemaName === 'pet' ? '/pets' :
+                         config.entitySchemaName === 'kennel' ? '/kennels' :
+                         config.entitySchemaName === 'contact' ? '/contacts' :
+                         config.entitySchemaName === 'event' ? '/events' :
+                         config.entitySchemaName === 'litter' ? '/litters' :
+                         config.entitySchemaName === 'account' ? '/accounts' :
+                         '/';
+      navigate(entityPath);
+    } else {
+      // Normal mode - get base path from URL
+      const basePath = location.pathname.split('/').slice(0, 2).join('/');
+      navigate(basePath);
+    }
   };
 
-  // Check if opened from pretty URL (fullscreen mode)
-  const locationState = location.state as { fullscreen?: boolean; fromSlug?: string } | null;
-  const isFullscreenFromSlug = locationState?.fullscreen === true;
+  // Check if fullscreen mode is active (from store - set by SlugResolver or expand button)
+  const isFullscreen = spaceStore.isFullscreen.value;
 
   // Drawer mode depends on screen size (using custom breakpoints)
-  // When opened from pretty URL (fullscreen mode), always use "over" mode
+  // When fullscreen mode is active, always use "over" mode
   const getDrawerMode = () => {
-    if (isFullscreenFromSlug) return "over"; // Force fullscreen when from pretty URL
+    if (isFullscreen) return "over"; // Force fullscreen from store
     if (isMoreThan2XL) return "side-transparent"; // 2xl+ (1536px+) - transparent background, gap between cards
     if (isMoreThanMD) return "side"; // md (768px+) - side drawer with backdrop
     return "over"; // < md (less than 768px) - fullscreen overlay
@@ -1066,7 +1142,7 @@ export function SpaceComponent<T extends { id: string }>({
                 isDrawerOpen ? "translate-x-0 opacity-100" : "translate-x-full opacity-0 pointer-events-none"
               )}
             >
-              {isDrawerOpen && <Outlet />}
+              {isDrawerOpen && (children || <Outlet />)}
             </div>
           )}
         </div>
@@ -1084,7 +1160,7 @@ export function SpaceComponent<T extends { id: string }>({
               isDrawerOpen ? "translate-x-0 opacity-100" : "translate-x-full opacity-0 pointer-events-none"
             )}
           >
-            {isDrawerOpen && <Outlet />}
+            {isDrawerOpen && (children || <Outlet />)}
           </div>
         )}
       </div>

@@ -1,29 +1,26 @@
 import { useEffect, useState } from 'react';
-import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { routeStore } from '@breedhub/rxdb-store';
+import { useParams, useNavigate } from 'react-router-dom';
+import { routeStore, spaceStore } from '@breedhub/rxdb-store';
+import { SpacePage } from './SpacePage';
 
 /**
- * Entity type to URL path mapping
+ * Route info resolved from slug
  */
-const ENTITY_PATHS: Record<string, string> = {
-  breed: 'breeds',
-  pet: 'pets',
-  kennel: 'kennels',
-  contact: 'contacts',
-  event: 'events',
-  litter: 'litters',
-  account: 'accounts'
-};
+interface ResolvedRoute {
+  entity: string;      // 'breed', 'pet', etc.
+  entity_id: string;   // UUID of the entity
+  model: string;       // model name for API
+}
 
 /**
- * SlugResolver - Resolves pretty URLs and redirects to internal routes
+ * SlugResolver - Resolves pretty URLs and renders SpacePage directly
  *
  * Handles URLs like /affenpinscher by:
- * 1. Resolving slug via RouteStore
- * 2. Redirecting to /breeds/:id with fullscreen state
+ * 1. Resolving slug via RouteStore to get entity type and ID
+ * 2. Setting fullscreen mode in store
+ * 3. Rendering SpacePage with pre-selected entity (NO redirect!)
  *
- * The actual page rendering happens in SpacePage/Drawer (existing code).
- * This component only handles the resolution and redirect.
+ * URL stays pretty: /affenpinscher#achievements
  *
  * Flow:
  * /affenpinscher#achievements
@@ -32,18 +29,22 @@ const ENTITY_PATHS: Record<string, string> = {
  *   ↓
  * { entity: 'breed', entity_id: 'uuid', model: 'breed' }
  *   ↓
- * navigate('/breeds/uuid#achievements', { state: { fullscreen: true }, replace: true })
+ * spaceStore.setFullscreen(true)
+ *   ↓
+ * <SpacePage entityType="breed" selectedEntityId="uuid" selectedSlug="affenpinscher" />
  */
 export function SlugResolver() {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
-  const location = useLocation();
 
   const [error, setError] = useState<string | null>(null);
+  const [resolvedRoute, setResolvedRoute] = useState<ResolvedRoute | null>(null);
+  const [isResolving, setIsResolving] = useState(true);
 
   useEffect(() => {
     if (!slug) {
       setError('No slug provided');
+      setIsResolving(false);
       return;
     }
 
@@ -51,6 +52,9 @@ export function SlugResolver() {
   }, [slug]);
 
   async function resolveSlug(slugToResolve: string) {
+    console.log('[SlugResolver] Resolving slug:', slugToResolve);
+    setIsResolving(true);
+
     try {
       // Ensure RouteStore is initialized
       if (!routeStore.initialized.value) {
@@ -59,32 +63,25 @@ export function SlugResolver() {
 
       // Resolve slug to entity info
       const route = await routeStore.resolveRoute(slugToResolve);
+      console.log('[SlugResolver] Resolved route:', route);
 
       if (!route) {
         setError(`Page not found: /${slugToResolve}`);
+        setIsResolving(false);
         return;
       }
 
-      // Get path for entity type
-      const entityPath = ENTITY_PATHS[route.entity];
-      if (!entityPath) {
-        setError(`Unknown entity type: ${route.entity}`);
-        return;
-      }
+      // Set fullscreen mode in store (persists across navigation)
+      spaceStore.setFullscreen(true);
 
-      // Build redirect URL with hash preserved
-      const hash = location.hash || '';
-      const redirectUrl = `/${entityPath}/${route.entity_id}${hash}`;
-
-      // Redirect with fullscreen state
-      navigate(redirectUrl, {
-        replace: true,
-        state: { fullscreen: true, fromSlug: slugToResolve }
-      });
+      // Store resolved route and render SpacePage
+      setResolvedRoute(route);
+      setIsResolving(false);
 
     } catch (err) {
       console.error('[SlugResolver] Error:', err);
       setError(err instanceof Error ? err.message : 'Failed to resolve URL');
+      setIsResolving(false);
     }
   }
 
@@ -108,12 +105,24 @@ export function SlugResolver() {
   }
 
   // Loading state while resolving
-  return (
-    <div className="flex items-center justify-center min-h-[60vh]">
-      <div className="text-center">
-        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600 mx-auto mb-4"></div>
-        <p className="text-gray-500 text-sm">Resolving...</p>
+  if (isResolving || !resolvedRoute) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-500 text-sm">Resolving...</p>
+        </div>
       </div>
-    </div>
+    );
+  }
+
+  // Render SpacePage directly with pre-selected entity
+  // URL stays as /{slug}#{tab} - no redirect!
+  return (
+    <SpacePage
+      entityType={resolvedRoute.entity}
+      selectedEntityId={resolvedRoute.entity_id}
+      selectedSlug={slug}
+    />
   );
 }
