@@ -30,17 +30,6 @@ export const BlockRenderer: React.FC<BlockRendererProps> = ({
 }) => {
   const { outlet, component, ...restConfig } = blockConfig;
 
-  // Debug logging
-  if (process.env.NODE_ENV === 'development') {
-    console.log('[BlockRenderer] Rendering block:', {
-      outlet,
-      component,
-      blockConfig,
-      entity,
-      hasEntity: !!entity
-    });
-  }
-
   // TabOutlet is special - it renders tabs directly without a block component
   // The tabs config is passed directly to the outlet
   if (outlet === 'TabOutlet') {
@@ -63,16 +52,6 @@ export const BlockRenderer: React.FC<BlockRendererProps> = ({
 
   // Get component from registry
   const BlockComponent = getBlockComponent(component);
-
-  // Debug: Check what we got
-  if (process.env.NODE_ENV === 'development') {
-    console.log('[BlockRenderer] Component lookup:', {
-      componentName: component,
-      found: !!BlockComponent,
-      componentType: typeof BlockComponent,
-      BlockComponent
-    });
-  }
 
   // Handle missing component
   if (!BlockComponent) {

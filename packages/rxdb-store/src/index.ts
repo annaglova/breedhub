@@ -35,6 +35,11 @@ export { dictionaryStore } from './stores/dictionary-store.signal-store';
 export type { DictionaryCollection } from './stores/dictionary-store.signal-store';
 export type { DictionaryDocument } from './collections/dictionaries.schema';
 
+// Route Store - URL slug resolution for fullscreen pages
+export { routeStore } from './stores/route-store.signal-store';
+export type { RouteCollection, ResolvedRoute } from './stores/route-store.signal-store';
+export type { RouteDocument } from './collections/routes.schema';
+
 // Mixin Engine
 export { mixinEngine, MixinEngineService } from './services/mixin-engine.service';
 

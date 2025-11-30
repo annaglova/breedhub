@@ -4,6 +4,7 @@ import { Subscription } from 'rxjs';
 import { RxCollection, RxDocument } from 'rxdb';
 import { EntityStore } from './base/entity-store';
 import { dictionaryStore } from './dictionary-store.signal-store';
+import { routeStore } from './route-store.signal-store';
 
 // App config ID we're working with
 const APP_CONFIG_ID = 'config_app_1757849573544';
@@ -133,9 +134,10 @@ class AppStore {
 
       this.initialized.value = true;
 
-      // Initialize DictionaryStore асинхронно (без await!)
+      // Initialize stores асинхронно (без await!)
       // Не блокуємо AppStore initialization
       this.initializeDictionaryStore();
+      this.initializeRouteStore();
 
     } catch (err) {
       console.error('[AppStore] Failed to initialize:', err);
@@ -152,12 +154,24 @@ class AppStore {
    */
   private async initializeDictionaryStore() {
     try {
-      console.log('[AppStore] Initializing DictionaryStore...');
       await dictionaryStore.initialize();
-      console.log('[AppStore] DictionaryStore ready');
     } catch (error) {
       console.error('[AppStore] DictionaryStore initialization failed:', error);
       // Don't throw - app can work without dictionaries cache
+    }
+  }
+
+  /**
+   * Initialize RouteStore in background
+   * Called after AppStore is initialized
+   * Runs asynchronously - doesn't block app startup
+   */
+  private async initializeRouteStore() {
+    try {
+      await routeStore.initialize();
+    } catch (error) {
+      console.error('[AppStore] RouteStore initialization failed:', error);
+      // Don't throw - app can work without route cache
     }
   }
   

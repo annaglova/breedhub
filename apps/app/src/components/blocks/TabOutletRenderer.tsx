@@ -42,11 +42,6 @@ registerModules(breedTabModules);
 registerModules(kennelTabModules);
 registerModules(petTabModules);
 
-// Log registered components in development
-if (process.env.NODE_ENV === 'development') {
-  console.log('[TabOutletRenderer] Registered tab components:', Object.keys(TAB_COMPONENT_REGISTRY));
-}
-
 // Tab config from database
 interface TabConfig {
   isDefault?: boolean;
@@ -203,15 +198,6 @@ export function TabOutletRenderer({
         </p>
       </div>
     );
-  }
-
-  if (process.env.NODE_ENV === 'development') {
-    console.log('[TabOutletRenderer] Rendering tabs:', {
-      tabsCount: tabs.length,
-      tabs: tabs.map(t => ({ id: t.id, label: t.label })),
-      activeTab,
-      defaultTab,
-    });
   }
 
   return (

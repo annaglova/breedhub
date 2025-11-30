@@ -43,15 +43,6 @@ const BLOCK_COMPONENTS: Record<string, React.ComponentType<any>> = {
 export function getOutletComponent(name: string): React.ComponentType<any> | undefined {
   const component = OUTLET_COMPONENTS[name];
 
-  if (process.env.NODE_ENV === 'development') {
-    console.log('[ComponentRegistry] Outlet lookup:', {
-      requestedName: name,
-      found: !!component,
-      availableOutlets: Object.keys(OUTLET_COMPONENTS),
-      component
-    });
-  }
-
   if (!component && process.env.NODE_ENV === 'development') {
     console.error(`[ComponentRegistry] Unknown outlet: ${name}`);
   }
@@ -68,15 +59,6 @@ export function getOutletComponent(name: string): React.ComponentType<any> | und
  */
 export function getBlockComponent(name: string): React.ComponentType<any> | undefined {
   const component = BLOCK_COMPONENTS[name];
-
-  if (process.env.NODE_ENV === 'development') {
-    console.log('[ComponentRegistry] Component lookup:', {
-      requestedName: name,
-      found: !!component,
-      availableComponents: Object.keys(BLOCK_COMPONENTS),
-      component
-    });
-  }
 
   if (!component && process.env.NODE_ENV === 'development') {
     console.error(`[ComponentRegistry] Unknown component: ${name}`);
