@@ -372,16 +372,20 @@ export class EntityStore<T extends { id: string }> {
   
   /**
    * Select an entity by ID
+   *
+   * Note: Sets selectedId even if entity is not yet loaded in the store.
+   * This allows selecting entities from pretty URLs (SlugResolver) before
+   * the entity data is fetched. The UI will render the entity once it loads.
    */
   selectEntity(id: string | null): void {
     if (id === null) {
       this.selectedId.value = null;
       return;
     }
-    
-    if (this.entities.value.has(id)) {
-      this.selectedId.value = id;
-    }
+
+    // Always set selectedId - entity may not be loaded yet (e.g., from pretty URL)
+    // The UI will display the entity once it's fetched
+    this.selectedId.value = id;
   }
   
   /**

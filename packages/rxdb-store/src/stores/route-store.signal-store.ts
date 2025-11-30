@@ -124,6 +124,8 @@ class RouteStore {
    * 4. Return resolved route or null
    */
   async resolveRoute(slug: string): Promise<ResolvedRoute | null> {
+    console.log('[RouteStore] resolveRoute called:', slug);
+
     if (!this.collection) {
       console.warn('[RouteStore] Not initialized, initializing now...');
       await this.initialize();
@@ -133,28 +135,42 @@ class RouteStore {
       throw new Error('[RouteStore] Failed to initialize');
     }
 
-    // 1. Check RxDB cache first
+    // 1. Check RxDB cache first (exact match by primary key)
     const cached = await this.collection.findOne(slug).exec();
+    console.log('[RouteStore] RxDB cache result:', cached ? {
+      slug: cached.slug,
+      entity: cached.entity,
+      entity_id: cached.entity_id
+    } : null);
 
     if (cached) {
-      // Check if not expired
-      const isExpired = Date.now() - cached.cachedAt > DEFAULT_TTL;
+      // Verify exact slug match (paranoid check)
+      if (cached.slug !== slug) {
+        console.warn('[RouteStore] Cache returned wrong slug!', { expected: slug, got: cached.slug });
+        await cached.remove();
+      } else {
+        // Check if not expired
+        const isExpired = Date.now() - cached.cachedAt > DEFAULT_TTL;
 
-      if (!isExpired) {
-        return {
-          slug: cached.slug,
-          entity: cached.entity,
-          entity_id: cached.entity_id,
-          model: cached.model
-        };
+        if (!isExpired) {
+          console.log('[RouteStore] Returning cached route:', cached.slug);
+          return {
+            slug: cached.slug,
+            entity: cached.entity,
+            entity_id: cached.entity_id,
+            model: cached.model
+          };
+        }
+
+        // Expired - remove from cache
+        console.log('[RouteStore] Cache expired, removing:', cached.slug);
+        await cached.remove();
       }
-
-      // Expired - remove from cache
-      await cached.remove();
     }
 
     // 2. Fetch from Supabase (if online)
     if (isOffline()) {
+      console.log('[RouteStore] Offline, cannot fetch from Supabase');
       return null;
     }
 
@@ -163,6 +179,7 @@ class RouteStore {
 
       if (route) {
         // 3. Cache in RxDB
+        console.log('[RouteStore] Caching route in RxDB:', route.slug);
         await this.collection.upsert({
           slug: route.slug,
           entity: route.entity,
@@ -174,11 +191,13 @@ class RouteStore {
         return route;
       }
 
+      console.log('[RouteStore] Route not found anywhere:', slug);
       return null;
 
     } catch (error) {
       if (isNetworkError(error)) {
         // Network error - return null (offline mode)
+        console.log('[RouteStore] Network error, returning null');
         return null;
       }
       throw error;
@@ -189,24 +208,33 @@ class RouteStore {
    * Fetch route from Supabase
    */
   private async fetchRouteFromSupabase(slug: string): Promise<ResolvedRoute | null> {
+    console.log('[RouteStore] Fetching from Supabase:', slug);
+
     const { data, error } = await supabase
       .from('routes')
       .select('slug, entity, entity_id, model')
       .eq('slug', slug)
       .single();
 
+    console.log('[RouteStore] Supabase response:', { data, error });
+
     if (error) {
-      if (error.code === 'PGRST116') {
-        // No rows returned - route not found
+      // PGRST116 = no rows returned
+      // 42P01 = table does not exist
+      if (error.code === 'PGRST116' || error.code === '42P01') {
+        console.log('[RouteStore] Route not found in Supabase:', slug);
         return null;
       }
+      console.error('[RouteStore] Supabase error:', error);
       throw error;
     }
 
     if (!data) {
+      console.log('[RouteStore] No data returned for:', slug);
       return null;
     }
 
+    console.log('[RouteStore] Found route:', data);
     return {
       slug: data.slug,
       entity: data.entity,

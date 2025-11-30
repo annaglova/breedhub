@@ -6,6 +6,7 @@ import { EntityStore } from './base/entity-store';
 import { appStore } from './app-store.signal-store';
 import { entityReplicationService } from '../services/entity-replication.service';
 import { breedChildrenSchema, breedChildrenMigrationStrategies, BreedChildrenDocument } from '../collections/breed-children.schema';
+import { supabase } from '../supabase/client';
 
 // Helpers
 import {
@@ -2999,6 +3000,63 @@ class SpaceStore {
       return;
     }
     entityStore.selectEntity(id);
+  }
+
+  /**
+   * Fetch entity by ID from Supabase and add to store if not already present.
+   * Used when navigating directly to entity via pretty URL (e.g., /akita).
+   * The entity may not be in the paginated list, so we need to fetch it directly.
+   */
+  async fetchAndSelectEntity(entityType: string, id: string): Promise<boolean> {
+    // Wait for entity store to be available (with retries)
+    let entityStore = this.entityStores.get(entityType.toLowerCase());
+    let retries = 30; // 3 seconds max wait
+    while (!entityStore && retries > 0) {
+      await new Promise(resolve => setTimeout(resolve, 100));
+      entityStore = this.entityStores.get(entityType.toLowerCase());
+      retries--;
+    }
+
+    if (!entityStore) {
+      console.warn(`[SpaceStore] No entity store found for ${entityType} after retries`);
+      return false;
+    }
+
+    // Check if entity is already in store
+    if (entityStore.entities.value.has(id)) {
+      console.log(`[SpaceStore] Entity ${id} already in store, selecting`);
+      entityStore.selectEntity(id);
+      return true;
+    }
+
+    // Fetch from Supabase using imported client
+    console.log(`[SpaceStore] Fetching entity ${id} from Supabase`);
+    try {
+      const { data, error } = await supabase
+        .from(entityType)
+        .select('*')
+        .eq('id', id)
+        .single();
+
+      if (error) {
+        console.error(`[SpaceStore] Error fetching entity ${id}:`, error);
+        return false;
+      }
+
+      if (!data) {
+        console.warn(`[SpaceStore] Entity ${id} not found in Supabase`);
+        return false;
+      }
+
+      // Add to store using upsertOne
+      console.log(`[SpaceStore] Adding entity ${id} to store:`, data.name || data.id);
+      entityStore.upsertOne(data);
+      entityStore.selectEntity(id);
+      return true;
+    } catch (err) {
+      console.error(`[SpaceStore] Error in fetchAndSelectEntity:`, err);
+      return false;
+    }
   }
 
   /**

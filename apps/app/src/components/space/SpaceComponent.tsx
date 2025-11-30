@@ -414,7 +414,11 @@ export function SpaceComponent<T extends { id: string }>({
   const allEntities = data?.entities || [];
 
   // Auto-select first entity for xxl+ screens on initial load
+  // Skip when initialSelectedEntityId is provided (pretty URL mode from SlugResolver)
   useEffect(() => {
+    // Don't auto-select in pretty URL mode - entity is already selected by SlugResolver
+    if (initialSelectedEntityId) return;
+
     if (data?.entities && !isLoading && isMoreThan2XL) {
       if (data.entities.length > 0 && !selectedEntityId) {
         const pathSegments = location.pathname.split("/");
@@ -438,7 +442,7 @@ export function SpaceComponent<T extends { id: string }>({
         }
       }
     }
-  }, [data, isLoading, isMoreThan2XL, selectedEntityId, navigate, location.pathname, location.search, config.entitySchemaName, config.entitySchemaModel]);
+  }, [data, isLoading, isMoreThan2XL, selectedEntityId, navigate, location.pathname, location.search, config.entitySchemaName, config.entitySchemaModel, initialSelectedEntityId]);
 
   // Cache totalCount to localStorage (separate from auto-select)
   useEffect(() => {
@@ -494,8 +498,9 @@ export function SpaceComponent<T extends { id: string }>({
         slug: initialSelectedSlug
       });
 
-      // Select entity in store
-      spaceStore.selectEntity(config.entitySchemaName, initialSelectedEntityId);
+      // Fetch and select entity - it may not be in the paginated list yet
+      // This ensures the entity is loaded even if it's not in the first N items
+      spaceStore.fetchAndSelectEntity(config.entitySchemaName, initialSelectedEntityId);
 
       // Save route for offline access
       if (initialSelectedSlug) {
@@ -512,9 +517,16 @@ export function SpaceComponent<T extends { id: string }>({
   // Check if drawer should be open based on route OR initialSelectedEntityId
   // Sync EntityStore selection with URL (bidirectional)
   useEffect(() => {
+    console.log('[SpaceComponent] URL sync effect:', {
+      initialSelectedEntityId,
+      pathname: location.pathname,
+      allEntitiesCount: allEntities.length
+    });
+
     // If we have initialSelectedEntityId, drawer should be open (pretty URL mode)
     // Skip URL-based logic in this case
     if (initialSelectedEntityId) {
+      console.log('[SpaceComponent] Skipping URL sync - using initialSelectedEntityId');
       setIsDrawerOpen(true);
       return;
     }
