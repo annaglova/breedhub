@@ -587,24 +587,25 @@ import { getOrCreateCollection } from '../helpers/collection-factory.helper';
 
 ## 3. TODO Checklist
 
-### Phase 1: Extract Helpers (Foundation)
+### Phase 1: Extract Helpers (Foundation) ✅ COMPLETED
 
-- [ ] Create `helpers/` directory
-- [ ] Create `helpers/index.ts` (re-exports)
-- [ ] Create `helpers/ttl-cleanup.helper.ts`
-  - [ ] `DEFAULT_TTL` constant
-  - [ ] `CacheableDocument` interface
-  - [ ] `cleanupExpiredDocuments()` function
-  - [ ] `cleanupMultipleCollections()` function
-- [ ] Create `helpers/cleanup-scheduler.helper.ts`
-  - [ ] `CLEANUP_INTERVAL` constant
-  - [ ] `schedulePeriodicCleanup()` function
-  - [ ] `runInitialCleanup()` function
-- [ ] Create `helpers/network-helpers.ts`
-  - [ ] `isOnline()` function
-  - [ ] `isNetworkError()` function
-- [ ] Create `helpers/collection-factory.helper.ts`
-  - [ ] `getOrCreateCollection()` function
+- [x] Create `helpers/` directory
+- [x] Create `helpers/index.ts` (re-exports)
+- [x] Create `helpers/ttl-cleanup.helper.ts`
+  - [x] `DEFAULT_TTL` constant
+  - [x] `CacheableDocument` interface
+  - [x] `cleanupExpiredDocuments()` function
+  - [x] `cleanupMultipleCollections()` function
+- [x] Create `helpers/cleanup-scheduler.helper.ts`
+  - [x] `CLEANUP_INTERVAL` constant
+  - [x] `schedulePeriodicCleanup()` function
+  - [x] `runInitialCleanup()` function
+- [x] Create `helpers/network-helpers.ts`
+  - [x] `isOnline()` function
+  - [x] `isOffline()` function
+  - [x] `isNetworkError()` function
+- [x] Create `helpers/collection-factory.helper.ts`
+  - [x] `getOrCreateCollection()` function
 - [ ] Create `helpers/hybrid-search.helper.ts` (optional, can do later)
   - [ ] `HybridSearchConfig` interface
   - [ ] `calculateHybridLimits()` function
@@ -685,4 +686,4 @@ packages/rxdb-store/src/
 
 ---
 
-**Last Updated:** 2024-11-30
+**Last Updated:** 2025-11-30
