@@ -801,12 +801,20 @@ export function SpaceComponent<T extends { id: string }>({
 
   const handleBackdropClick = () => {
     setIsDrawerOpen(false);
-    // Navigate back to breeds list without specific breed
-    navigate("/breeds");
+    // Navigate back to list without specific entity
+    // Get the base path from current pathname (e.g., /breeds/uuid → /breeds)
+    const basePath = location.pathname.split('/').slice(0, 2).join('/');
+    navigate(basePath);
   };
 
+  // Check if opened from pretty URL (fullscreen mode)
+  const locationState = location.state as { fullscreen?: boolean; fromSlug?: string } | null;
+  const isFullscreenFromSlug = locationState?.fullscreen === true;
+
   // Drawer mode depends on screen size (using custom breakpoints)
+  // When opened from pretty URL (fullscreen mode), always use "over" mode
   const getDrawerMode = () => {
+    if (isFullscreenFromSlug) return "over"; // Force fullscreen when from pretty URL
     if (isMoreThan2XL) return "side-transparent"; // 2xl+ (1536px+) - transparent background, gap between cards
     if (isMoreThanMD) return "side"; // md (768px+) - side drawer with backdrop
     return "over"; // < md (less than 768px) - fullscreen overlay

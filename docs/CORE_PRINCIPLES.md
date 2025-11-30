@@ -328,7 +328,90 @@ function DynamicField({ config }) {
 
 ---
 
-## 6. 🚀 Progressive Enhancement
+## 6. 🔗 Route Store & Pretty URLs
+
+**Правило:** Pretty URLs резолвляться через RouteStore з local-first підходом.
+
+### URL Patterns:
+
+```
+/breeds                      → Space listing (known route)
+/breeds/affenpinscher        → Entity in drawer (slug in URL)
+/affenpinscher               → Pretty URL → needs resolution
+/affenpinscher#achievements  → Pretty URL with tab
+```
+
+### Route Resolution Flow:
+
+```
+При відкритті entity (expand/click):
+  → Зберігаємо в routes колекцію { slug, entity, entity_id, model }
+
+При зовнішньому URL /affenpinscher:
+  → RxDB routes → знайшли? → redirect до /breeds/:id з fullscreen state
+  → Не знайшли → Supabase routes → кеш + redirect
+  → Не знайшли → 404
+```
+
+### Slug Storage:
+
+**slug залишається в entity таблиці** (source of truth):
+```sql
+breeds:
+  id, name, slug, ...  ← slug тут
+
+routes (lookup index):
+  slug (PK), entity, entity_id, model  ← для резолву /affenpinscher
+```
+
+### Чому так:
+- ✅ При завантаженні списку вже отримуємо slug разом з entity
+- ✅ Offline-first - коли юзер клікає entity, slug вже є
+- ✅ Routes колекція наповнюється lazy (тільки відкриті entities)
+- ✅ Не забиваємо кеш непотрібним
+
+### Data Flow:
+
+```typescript
+// 1. User clicks entity in list
+handleEntityClick(entity) {
+  // Save route for offline access
+  routeStore.saveRoute({
+    slug: entity.slug,
+    entity: 'breed',
+    entity_id: entity.id,
+    model: 'breed'
+  });
+
+  // Navigate with slug
+  navigate(`${entity.slug}#overview`);
+}
+
+// 2. External link /affenpinscher
+SlugResolver {
+  // Try local cache first
+  route = await routeStore.resolveRoute('affenpinscher');
+
+  // Redirect with fullscreen state
+  navigate(`/breeds/${route.entity_id}`, {
+    state: { fullscreen: true }
+  });
+}
+```
+
+### Fullscreen Mode:
+
+Коли відкрито через pretty URL:
+- `location.state.fullscreen === true`
+- SpaceComponent форсує drawer mode `"over"` (fullscreen)
+- Незалежно від розміру екрану
+
+### Документація:
+- `/docs/ROUTE_STORE_AND_REFACTORING.md` - Детальний план
+
+---
+
+## 7. 🚀 Progressive Enhancement
 
 **Правило:** Починаємо з простого, ускладнюємо по потребі.
 
@@ -352,4 +435,4 @@ function DynamicField({ config }) {
 
 ---
 
-**Last Updated:** 2025-11-25
+**Last Updated:** 2025-11-30

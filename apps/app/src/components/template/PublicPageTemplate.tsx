@@ -11,6 +11,7 @@ import { useEffect, useRef, useState } from "react";
 interface PublicPageTemplateProps {
   className?: string;
   isDrawerMode?: boolean;
+  isFullscreenMode?: boolean; // When true, renders as fullscreen page (from pretty URL)
   spaceConfigSignal?: Signal<any>; // TODO: Define proper SpaceConfig type from DB structure
   entityType?: string; // Required to get selectedEntity from store
 }
@@ -24,12 +25,14 @@ interface PublicPageTemplateProps {
 export function PublicPageTemplate({
   className,
   isDrawerMode = false,
+  isFullscreenMode = false,
   spaceConfigSignal,
   entityType,
 }: PublicPageTemplateProps) {
   // Very first log - check if component renders at all
   console.log("[PublicPageTemplate] COMPONENT RENDER START", {
     isDrawerMode,
+    isFullscreenMode,
     entityType,
   });
 
@@ -215,6 +218,7 @@ export function PublicPageTemplate({
         className={cn(
           "size-full flex flex-col content-padding",
           isDrawerMode && "bg-white dark:bg-gray-900",
+          isFullscreenMode && "min-h-screen bg-white dark:bg-gray-900",
           className
         )}
       >

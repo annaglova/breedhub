@@ -1,11 +1,38 @@
 import React, { useMemo } from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, useLocation } from 'react-router-dom';
 import { SpaceComponent } from '@/components/space/SpaceComponent';
 import { PublicPageTemplate } from '@/components/template/PublicPageTemplate';
 import { getEntityHook } from '@/hooks/hookRegistry';
 import { appStore, spaceStore } from '@breedhub/rxdb-store';
 import { useSignals } from '@preact/signals-react/runtime';
 import { getComponent } from '@/components/space/componentRegistry';
+
+/**
+ * Wrapper component that reads location.state.fullscreen
+ * and passes appropriate isDrawerMode prop
+ */
+function DetailWrapper({
+  DetailComponent,
+  spaceConfigSignal,
+  entityType
+}: {
+  DetailComponent: React.ComponentType<any>;
+  spaceConfigSignal: any;
+  entityType: string;
+}) {
+  const location = useLocation();
+  const state = location.state as { fullscreen?: boolean; fromSlug?: string } | null;
+  const isFullscreen = state?.fullscreen === true;
+
+  return (
+    <DetailComponent
+      isDrawerMode={!isFullscreen}
+      isFullscreenMode={isFullscreen}
+      spaceConfigSignal={spaceConfigSignal}
+      entityType={entityType}
+    />
+  );
+}
 
 interface SpacePageProps {
   entityType: string; // 'breed', 'pet', 'kennel', etc.
@@ -88,10 +115,16 @@ export function SpacePage({ entityType }: SpacePageProps) {
           />
         }
       >
-        {/* Drawer route */}
+        {/* Drawer route - DetailWrapper checks for fullscreen state */}
         <Route
           path=":id"
-          element={<DetailComponent isDrawerMode={true} spaceConfigSignal={spaceConfigSignal} entityType={entityType} />}
+          element={
+            <DetailWrapper
+              DetailComponent={DetailComponent}
+              spaceConfigSignal={spaceConfigSignal}
+              entityType={entityType}
+            />
+          }
         />
 
         {/* New entity form */}

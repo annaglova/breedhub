@@ -633,15 +633,62 @@ import { getOrCreateCollection } from '../helpers/collection-factory.helper';
   - [x] Replace network detection (3 places) with isOffline/isNetworkError helpers
   - [ ] Optionally: extract hybrid search to helper (deferred)
 
-### Phase 4: Router Integration
+### Phase 4: Router Integration ✅ COMPLETED
 
-- [ ] Create `DynamicEntityPage.tsx` component
-- [ ] Add catch-all route `/:slug` in AppRouter
-- [ ] Implement `needsRouteResolution()` logic
-- [ ] Load entity using resolved route info
-- [ ] Render correct page component based on `model`
+- [x] Create `SlugResolver.tsx` component (замість DynamicEntityPage)
+- [x] Add catch-all route `/:slug` in AppRouter
+- [x] Implement redirect with `state: { fullscreen: true }`
+- [x] Update SpaceComponent to detect fullscreen state and force drawer mode "over"
+- [x] Update PublicPageTemplate with `isFullscreenMode` prop
 
-### Phase 5: URL Generation (Already Done)
+#### Route Resolution Flow
+
+```
+При відкритті entity (expand/click):
+  → Зберігаємо в routes колекцію { slug, entity, entity_id, model }
+
+При зовнішньому URL /affenpinscher:
+  → RxDB routes → знайшли? → redirect до /breeds/:id з fullscreen state
+  → Не знайшли → Supabase routes → кеш + redirect
+  → Не знайшли → 404
+```
+
+**Переваги:**
+- Offline для всього, що юзер відкривав
+- Не забиваємо кеш непотрібним (тільки реально відкриті entities)
+- Зовнішні лінки працюють (з fallback до Supabase)
+
+#### Slug Storage Decision
+
+**slug залишається в entity таблиці** (не виносимо в routes):
+- При завантаженні списку вже отримуємо slug разом з entity
+- Консистентність - slug логічно належить entity
+- Routes таблиця - це lookup index для зворотнього резолву (slug → entity)
+- Offline-first - коли юзер клікає entity в списку, slug вже є
+
+```
+breeds таблиця:
+  id, name, slug, ...  ← source of truth
+
+routes таблиця (lookup index):
+  slug (PK), entity, entity_id, model  ← для резолву /affenpinscher
+```
+
+#### Files Changed
+
+- `apps/app/src/pages/SlugResolver.tsx` - NEW (резолвить slug, робить redirect)
+- `apps/app/src/router/AppRouter.tsx` - catch-all route `:slug`
+- `apps/app/src/pages/SpacePage.tsx` - DetailWrapper для fullscreen state
+- `apps/app/src/components/space/SpaceComponent.tsx` - fullscreen detection, force "over" mode
+- `apps/app/src/components/template/PublicPageTemplate.tsx` - `isFullscreenMode` prop
+
+### Phase 5: Routes Population (TODO)
+
+- [ ] Зберігати route в колекцію при відкритті entity (expand/click)
+- [ ] Метод `RouteStore.saveRoute({ slug, entity, entity_id, model })`
+- [ ] Викликати з SpaceComponent при handleEntityClick
+
+### Phase 6: URL Generation (Already Done)
 
 - [x] Update `handleEntityClick` to use `entity.slug` if available
 - [x] Update auto-select first entity to use `entity.slug`

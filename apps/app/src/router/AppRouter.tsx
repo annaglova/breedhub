@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AppLayout } from '@/layouts/AppLayout';
 import { SpacePage } from '@/pages/SpacePage';
+import { SlugResolver } from '@/pages/SlugResolver';
 import { SupabaseLoader } from '@/components/test/SupabaseLoader';
 import { TestDictionaryPage } from '@/pages/TestDictionaryPage';
 import { TestPage } from '@/pages/TestPage';
@@ -47,9 +48,10 @@ export function AppRouter() {
             <Route path="dictionary" element={<TestDictionaryPage />} />
             <Route path="page" element={<TestPage />} />
           </Route>
-          
-          {/* Direct breed pages - TODO: migrate to config-driven routing */}
-          {/* <Route path=":breedId" element={<BreedDetailPage />} /> */}
+
+          {/* Slug resolver - catch-all for pretty URLs */}
+          {/* Resolves /affenpinscher → /breeds/:id with fullscreen state */}
+          <Route path=":slug" element={<SlugResolver />} />
         </Route>
       </Routes>
     </BrowserRouter>
