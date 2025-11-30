@@ -1,8 +1,18 @@
 import { signal } from '@preact/signals-react';
-import type { RxCollection, RxDatabase } from 'rxdb';
+import type { RxCollection } from 'rxdb';
 import { getDatabase } from '../services/database.service';
 import { dictionariesSchema, type DictionaryDocument } from '../collections/dictionaries.schema';
 import { supabase } from '../supabase/client';
+
+// Helpers
+import {
+  DEFAULT_TTL,
+  cleanupExpiredDocuments,
+  schedulePeriodicCleanup,
+  runInitialCleanup,
+  isNetworkError,
+  isOffline
+} from '../helpers';
 
 // Collection type
 export type DictionaryCollection = RxCollection<DictionaryDocument>;
@@ -38,16 +48,13 @@ class DictionaryStore {
   error = signal<string | null>(null);
 
   // Database
-  private db: RxDatabase | null = null;
+  private db: any = null;  // RxDatabase type is too strict
   private collection: DictionaryCollection | null = null;
 
-  // Cache metadata
-  private readonly TTL = 14 * 24 * 60 * 60 * 1000; // 14 days
+  // Cleanup interval reference
+  private cleanupInterval: ReturnType<typeof setInterval> | null = null;
 
-  private constructor() {
-    // Using centralized Supabase client from supabase/client.ts
-    console.log('[DictionaryStore] Using centralized Supabase client');
-  }
+  private constructor() {}
 
   static getInstance(): DictionaryStore {
     if (!DictionaryStore.instance) {
@@ -64,11 +71,9 @@ class DictionaryStore {
    */
   async initialize(): Promise<void> {
     if (this.initialized.value) {
-      console.log('[DictionaryStore] Already initialized');
       return;
     }
 
-    console.log('[DictionaryStore] Initializing...');
     this.loading.value = true;
     this.error.value = null;
 
@@ -76,46 +81,36 @@ class DictionaryStore {
       // Get database
       this.db = await getDatabase();
 
-      // Check if collection already exists
+      // Check if collection already exists, create if needed
+      // Note: DictionaryStore needs migration strategies, so we can't use getOrCreateCollection helper
       if (!this.db.dictionaries) {
-        console.log('[DictionaryStore] Creating dictionaries collection...');
-
-        // Create universal dictionaries collection
         await this.db.addCollections({
           dictionaries: {
             schema: dictionariesSchema,
             migrationStrategies: {
               // Version 1: Added composite index [table_name, name, id] for stable sorting
-              // No data migration needed - only index change
               1: (oldDoc: any) => oldDoc,
               // Version 2: Added 'additional' field for extra dictionary data
-              // No data migration needed - new field is optional
               2: (oldDoc: any) => oldDoc
             }
           }
         });
-
-        console.log('[DictionaryStore] Dictionaries collection created');
-      } else {
-        console.log('[DictionaryStore] Dictionaries collection already exists');
       }
 
       this.collection = this.db.dictionaries as DictionaryCollection;
       this.initialized.value = true;
 
-      console.log('[DictionaryStore] Initialized (no preloading)');
+      // Run initial cleanup using helper
+      runInitialCleanup(
+        () => this.runCleanup(),
+        '[DictionaryStore]'
+      );
 
-      // Run initial cleanup (async, don't wait)
-      this.cleanupExpired().catch(error => {
-        console.error('[DictionaryStore] Initial cleanup failed:', error);
-      });
-
-      // Schedule periodic cleanup (every 24 hours)
-      setInterval(() => {
-        this.cleanupExpired().catch(error => {
-          console.error('[DictionaryStore] Periodic cleanup failed:', error);
-        });
-      }, 24 * 60 * 60 * 1000);
+      // Schedule periodic cleanup using helper
+      this.cleanupInterval = schedulePeriodicCleanup(
+        () => this.runCleanup(),
+        '[DictionaryStore]'
+      );
 
     } catch (error) {
       console.error('[DictionaryStore] Initialization failed:', error);
@@ -149,8 +144,6 @@ class DictionaryStore {
 
     // 🎯 HYBRID SEARCH: If search provided, fetch starts_with + contains separately
     if (search && !cursor) {
-      console.log('[DictionaryStore] 🔍 Hybrid search mode:', search);
-
       // Phase 1: Starts with (high priority)
       const startsWithQuery = supabase
         .from(tableName)
@@ -171,8 +164,6 @@ class DictionaryStore {
         name: String(record[nameField])
       }));
 
-      console.log(`[DictionaryStore] ✅ Starts with: ${startsWithResults.length} results`);
-
       // Phase 2: Contains (lower priority) - only if we have room
       const remainingLimit = limit - startsWithResults.length;
       if (remainingLimit > 0) {
@@ -187,15 +178,11 @@ class DictionaryStore {
 
         const { data: containsData, error: containsError } = await containsQuery;
 
-        if (containsError) {
-          console.warn('[DictionaryStore] Contains search failed:', containsError);
-        } else {
+        if (!containsError) {
           const containsResults = (containsData || []).map(record => ({
             id: String(record[idField]),
             name: String(record[nameField])
           }));
-
-          console.log(`[DictionaryStore] ✅ Contains: ${containsResults.length} results`);
 
           // Merge: starts_with first, then contains
           return [...startsWithResults, ...containsResults];
@@ -322,24 +309,13 @@ class DictionaryStore {
       additionalFields
     } = options;
 
-    console.log(`[DictionaryStore] 🆔 ID-First getDictionary ${tableName}:`, {
-      search: search || 'none',
-      limit,
-      cursor,
-      idField,
-      nameField
-    });
-
     // 📴 PREVENTIVE OFFLINE CHECK: Skip Supabase if browser is offline
-    if (!navigator.onLine) {
-      console.warn(`[DictionaryStore] 📴 Browser is offline, using RxDB directly for ${tableName}`);
+    if (isOffline()) {
       return this.getDictionaryOffline(tableName, { search, limit, cursor, nameField });
     }
 
     try {
       // 🆔 PHASE 1: Fetch IDs + name field from Supabase (lightweight ~1KB for 30 records)
-      console.log('[DictionaryStore] 🆔 Phase 1: Fetching IDs from Supabase...');
-
       const idsData = await this.fetchDictionaryIDsFromSupabase(
         tableName,
         idField,
@@ -348,7 +324,6 @@ class DictionaryStore {
       );
 
       if (!idsData || idsData.length === 0) {
-        console.log('[DictionaryStore] ⚠️ No IDs returned from Supabase');
         return {
           records: [],
           total: 0,
@@ -357,15 +332,11 @@ class DictionaryStore {
         };
       }
 
-      console.log(`[DictionaryStore] ✅ Got ${idsData.length} IDs from Supabase`);
-
       // Extract IDs and calculate nextCursor
       const ids = idsData.map(d => d.id);
       const nextCursor = idsData[idsData.length - 1]?.name ?? null;
 
       // 💾 PHASE 2: Check RxDB cache for these IDs
-      console.log('[DictionaryStore] 💾 Phase 2: Checking RxDB cache...');
-
       const cached = await this.collection.find({
         selector: {
           table_name: tableName,
@@ -374,15 +345,12 @@ class DictionaryStore {
       }).exec();
 
       const cachedMap = new Map(cached.map(doc => [doc.id, doc.toJSON()]));
-      console.log(`[DictionaryStore] 📦 Found ${cachedMap.size}/${ids.length} in cache (${Math.round(cachedMap.size / ids.length * 100)}% hit rate)`);
 
       // 🌐 PHASE 3: Fetch missing full records from Supabase
       const missingIds = ids.filter(id => !cachedMap.has(id));
 
       let freshRecords: DictionaryDocument[] = [];
       if (missingIds.length > 0) {
-        console.log(`[DictionaryStore] 🌐 Phase 3: Fetching ${missingIds.length} missing full records...`);
-
         freshRecords = await this.fetchDictionaryRecordsByIDs(
           tableName,
           idField,
@@ -391,15 +359,10 @@ class DictionaryStore {
           additionalFields
         );
 
-        console.log(`[DictionaryStore] ✅ Fetched ${freshRecords.length} fresh records`);
-
         // Cache fresh records in RxDB
         if (freshRecords.length > 0) {
-          const result = await this.collection.bulkInsert(freshRecords);
-          console.log(`[DictionaryStore] 💾 Cached ${result.success.length} fresh records (errors: ${result.error.length})`);
+          await this.collection.bulkInsert(freshRecords);
         }
-      } else {
-        console.log('[DictionaryStore] ✨ All records in cache! (100% hit rate)');
       }
 
       // 🔀 PHASE 4: Merge cached + fresh, maintain order from IDs query
@@ -428,13 +391,11 @@ class DictionaryStore {
         if (!error && count !== null) {
           serverTotal = count;
         }
-      } catch (error) {
-        console.warn(`[DictionaryStore] Failed to get server count:`, error);
+      } catch {
+        // Ignore count errors
       }
 
       const hasMore = idsData.length >= limit;
-
-      console.log(`[DictionaryStore] ✅ Returning ${orderedRecords.length} records (hasMore: ${hasMore}, total: ${serverTotal})`);
 
       return {
         records: orderedRecords,
@@ -444,30 +405,9 @@ class DictionaryStore {
       };
 
     } catch (error) {
-      // Check if this is a network error (offline mode)
-      const errorMessage = error instanceof Error ? error.message.toLowerCase() : '';
-      const errorName = (error as any)?.name?.toLowerCase() || '';
-      const errorCode = (error as any)?.code?.toLowerCase() || '';
-      const errorString = String(error).toLowerCase();
-
-      const isNetworkError = errorMessage.includes('fetch') ||
-                            errorMessage.includes('network') ||
-                            errorMessage.includes('disconnected') ||
-                            errorMessage.includes('failed to fetch') ||
-                            errorName.includes('network') ||
-                            errorName.includes('fetch') ||
-                            errorName.includes('disconnected') ||
-                            errorCode.includes('network') ||
-                            errorCode.includes('disconnected') ||
-                            errorCode.includes('err_internet_disconnected') ||
-                            errorString.includes('err_internet_disconnected') ||
-                            (error instanceof TypeError && errorMessage.includes('fetch')) ||
-                            !navigator.onLine;
-
-      if (isNetworkError) {
-        console.warn(`[DictionaryStore] ⚠️ Network unavailable for ${tableName}, using offline mode`);
-      } else {
-        console.error(`[DictionaryStore] ❌ Failed to get dictionary ${tableName}:`, error);
+      // Check if this is a network error using helper
+      if (!isNetworkError(error)) {
+        console.error(`[DictionaryStore] Failed to get dictionary ${tableName}:`, error);
       }
 
       // 🔌 OFFLINE FALLBACK: Work with RxDB cache only
@@ -484,8 +424,6 @@ class DictionaryStore {
   ): Promise<{ records: DictionaryDocument[]; total: number; hasMore: boolean; nextCursor: string | null }> {
     const { search, limit, cursor, nameField } = options;
 
-    console.log('[DictionaryStore] 🔌 OFFLINE MODE: Falling back to RxDB cache...');
-
     if (!this.collection) {
       return {
         records: [],
@@ -500,8 +438,6 @@ class DictionaryStore {
 
       // 🎯 HYBRID SEARCH: If search provided, fetch starts_with + contains separately
       if (search && !cursor) {
-        console.log('[DictionaryStore] 🔍 OFFLINE: Hybrid search mode:', search);
-
         // Escape regex special characters
         const escapedSearch = search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
@@ -519,7 +455,6 @@ class DictionaryStore {
         }).exec();
 
         const startsWithResults = startsWithDocs.map(doc => doc.toJSON());
-        console.log(`[DictionaryStore] ✅ OFFLINE: Got ${startsWithResults.length} starts_with results`);
 
         // Phase 2: Contains (lower priority, 30% of limit)
         const remainingLimit = limit - startsWithResults.length;
@@ -541,8 +476,6 @@ class DictionaryStore {
             .map(doc => doc.toJSON())
             .filter(record => !startsWithIds.has(record.id))
             .slice(0, remainingLimit);
-
-          console.log(`[DictionaryStore] ✅ OFFLINE: Got ${containsResults.length} contains results (after filtering)`);
 
           records = [...startsWithResults, ...containsResults];
         } else {
@@ -568,17 +501,13 @@ class DictionaryStore {
       const nextCursor = records.length > 0 ? records[records.length - 1][nameField] : null;
       const hasMore = records.length >= limit;
 
-      console.log(`[DictionaryStore] 📦 OFFLINE: Returned ${records.length} records from cache (hasMore: ${hasMore})`);
-
       return {
         records,
         total: records.length, // Can't get accurate total in offline mode
         hasMore,
         nextCursor
       };
-    } catch (cacheError) {
-      console.error('[DictionaryStore] ❌ OFFLINE: Cache query failed:', cacheError);
-
+    } catch {
       // Final fallback: empty result
       return {
         records: [],
@@ -590,37 +519,16 @@ class DictionaryStore {
   }
 
   /**
-   * Cleanup expired dictionary records (older than TTL)
-   * Called on initialize and every 24 hours
+   * Cleanup expired dictionary records using helper
    */
-  async cleanupExpired(): Promise<void> {
+  private async runCleanup(): Promise<void> {
     if (!this.collection) return;
 
-    const expiryTime = Date.now() - this.TTL;
-
-    try {
-      const expiredDocs = await this.collection
-        .find({
-          selector: {
-            cachedAt: {
-              $lt: expiryTime
-            }
-          }
-        })
-        .exec();
-
-      if (expiredDocs.length > 0) {
-        console.log(`[DictionaryStore] Cleaning up ${expiredDocs.length} expired records`);
-
-        for (const doc of expiredDocs) {
-          await doc.remove(); // Soft delete → RxDB cleanup will handle
-        }
-
-        console.log(`[DictionaryStore] Cleanup complete`);
-      }
-    } catch (error) {
-      console.error('[DictionaryStore] Cleanup failed:', error);
-    }
+    await cleanupExpiredDocuments(
+      this.collection,
+      DEFAULT_TTL,
+      '[DictionaryStore]'
+    );
   }
 
   /**
@@ -632,7 +540,6 @@ class DictionaryStore {
 
     try {
       await this.collection.find().remove();
-      console.log('[DictionaryStore] All dictionary cache cleared');
     } catch (error) {
       console.error('[DictionaryStore] Failed to clear cache:', error);
       throw error;
