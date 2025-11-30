@@ -13,22 +13,37 @@ Resolve URL slugs to entity information for fullscreen pages.
 
 **URL Pattern:** `/{slug}#{tab}` (e.g., `/affenpinscher#achievements`)
 
-### Database Table: `routes`
+### Database Table: `routes` ✅ UPDATED
 
 ```sql
 CREATE TABLE routes (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  slug VARCHAR(255) NOT NULL UNIQUE,
+  slug VARCHAR(255) PRIMARY KEY,      -- slug як PK (унікальний)
   entity VARCHAR(50) NOT NULL,        -- 'breed', 'pet', 'account', 'contact'...
   entity_id UUID NOT NULL,
   model VARCHAR(50) NOT NULL,         -- 'breed', 'kennel', 'club', 'federation'...
-  redirect_to UUID REFERENCES routes(id),
+  deleted BOOLEAN DEFAULT FALSE,      -- soft delete
   created_at TIMESTAMP DEFAULT NOW(),
   updated_at TIMESTAMP DEFAULT NOW()
 );
 
--- Unique index on slug (automatic from UNIQUE constraint)
-CREATE UNIQUE INDEX routes_slug_idx ON routes(slug);
+-- Index для швидкого invalidate по entity_id
+CREATE INDEX routes_entity_id_idx ON routes(entity, entity_id);
+
+-- Index для фільтрації активних записів
+CREATE INDEX routes_deleted_idx ON routes(deleted) WHERE deleted = FALSE;
+```
+
+**Migration від старої структури:**
+```sql
+ALTER TABLE routes DROP CONSTRAINT IF EXISTS routes_redirect_to_fkey;
+ALTER TABLE routes DROP COLUMN IF EXISTS redirect_to;
+ALTER TABLE routes DROP CONSTRAINT routes_pkey CASCADE;
+ALTER TABLE routes DROP COLUMN IF EXISTS id;
+ALTER TABLE routes ADD PRIMARY KEY (slug);
+ALTER TABLE routes DROP CONSTRAINT IF EXISTS routes_slug_key;
+ALTER TABLE routes ADD COLUMN IF NOT EXISTS deleted BOOLEAN DEFAULT FALSE;
+CREATE INDEX IF NOT EXISTS routes_entity_id_idx ON routes(entity, entity_id);
+CREATE INDEX IF NOT EXISTS routes_deleted_idx ON routes(deleted) WHERE deleted = FALSE;
 ```
 
 **Key Decision:** `model` field is ALWAYS filled, same as `entity` for simple cases:

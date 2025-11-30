@@ -406,12 +406,21 @@ export function SpaceComponent<T extends { id: string }>({
           // Use slug from DB if available, otherwise generate from name
           const entity = data.entities[0];
           const slug = entity.slug || normalizeForUrl(entity.name || entity.id);
+
+          // Save route for offline access (same as handleEntityClick)
+          routeStore.saveRoute({
+            slug,
+            entity: config.entitySchemaName,
+            entity_id: entity.id,
+            model: config.entitySchemaModel || config.entitySchemaName
+          });
+
           // Preserve query params (sort, filters, etc.) when auto-selecting
           navigate(`${slug}${location.search}#overview`);
         }
       }
     }
-  }, [data, isLoading, isMoreThan2XL, selectedEntityId, navigate, location.pathname, location.search]);
+  }, [data, isLoading, isMoreThan2XL, selectedEntityId, navigate, location.pathname, location.search, config.entitySchemaName, config.entitySchemaModel]);
 
   // Cache totalCount to localStorage (separate from auto-select)
   useEffect(() => {
@@ -499,12 +508,21 @@ export function SpaceComponent<T extends { id: string }>({
         if (currentSelectedId !== entityId) {
           spaceStore.selectEntity(config.entitySchemaName, entityId);
         }
+
+        // Save route for offline access (when URL is restored or navigated directly)
+        // Use urlSegment as slug (it's already the friendly slug from URL)
+        routeStore.saveRoute({
+          slug: urlSegment,
+          entity: config.entitySchemaName,
+          entity_id: entityId,
+          model: config.entitySchemaModel || config.entitySchemaName
+        });
       }
     } else {
       // Clear selection if no entity in URL
       spaceStore.clearSelection(config.entitySchemaName);
     }
-  }, [location.pathname, config.entitySchemaName, allEntities]);
+  }, [location.pathname, config.entitySchemaName, config.entitySchemaModel, allEntities]);
 
   // Measure header height
   useEffect(() => {
