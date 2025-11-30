@@ -7,6 +7,17 @@ import { appStore } from './app-store.signal-store';
 import { entityReplicationService } from '../services/entity-replication.service';
 import { breedChildrenSchema, breedChildrenMigrationStrategies, BreedChildrenDocument } from '../collections/breed-children.schema';
 
+// Helpers
+import {
+  DEFAULT_TTL,
+  cleanupExpiredDocuments,
+  cleanupMultipleCollections,
+  schedulePeriodicCleanup,
+  runInitialCleanup,
+  isNetworkError,
+  isOffline
+} from '../helpers';
+
 // Universal entity interface for all business entities
 interface BusinessEntity {
   id: string;
@@ -95,8 +106,8 @@ class SpaceStore {
   // Child collections - lazy created on-demand
   private childCollections = new Map<string, RxCollection<any>>();
 
-  // Cache metadata for child collections
-  private readonly CHILD_TTL = 14 * 24 * 60 * 60 * 1000; // 14 days (same as DictionaryStore)
+  // Cleanup interval reference
+  private cleanupInterval: ReturnType<typeof setInterval> | null = null;
 
   // Track which entity types are available
   availableEntityTypes = signal<string[]>([]);
@@ -167,19 +178,19 @@ class SpaceStore {
 
       this.initialized.value = true;
       const totalTime = performance.now() - startTime;
-      console.log(`[SpaceStore] ✅ INITIALIZED IN ${totalTime.toFixed(0)}ms`);
+      console.log(`[SpaceStore] Initialized in ${totalTime.toFixed(0)}ms`);
 
-      // Run initial cleanup for all collections (async, don't wait)
-      this.cleanupExpiredRecords().catch(error => {
-        console.error('[SpaceStore] Initial cleanup failed:', error);
-      });
+      // Run initial cleanup using helper
+      runInitialCleanup(
+        () => this.runCleanup(),
+        '[SpaceStore]'
+      );
 
-      // Schedule periodic cleanup (every 24 hours)
-      setInterval(() => {
-        this.cleanupExpiredRecords().catch(error => {
-          console.error('[SpaceStore] Periodic cleanup failed:', error);
-        });
-      }, 24 * 60 * 60 * 1000);
+      // Schedule periodic cleanup using helper
+      this.cleanupInterval = schedulePeriodicCleanup(
+        () => this.runCleanup(),
+        '[SpaceStore]'
+      );
 
       // ⚠️ DISABLED: Replication conflicts with ID-First pagination
       // ID-First загружає дані через applyFilters з правильним orderBy
@@ -1636,8 +1647,7 @@ class SpaceStore {
     const fieldConfigs = options?.fieldConfigs || spaceConfig?.filter_fields || {};
 
     // 📴 PREVENTIVE OFFLINE CHECK: Skip Supabase if browser is offline
-    if (!navigator.onLine) {
-      console.warn('[SpaceStore] 📴 Browser is offline, using RxDB directly (no network attempt)');
+    if (isOffline()) {
 
       try {
         const localResults = await this.filterLocalEntities(
@@ -1830,32 +1840,9 @@ class SpaceStore {
       };
 
     } catch (error) {
-      // Check if this is a network error (offline mode)
-      const errorMessage = ((error as any)?.message || '').toLowerCase();
-      const errorName = ((error as any)?.name || '').toLowerCase();
-      const errorCode = ((error as any)?.code || '').toLowerCase();
-      const errorString = String(error).toLowerCase();
-
-      const isNetworkError = errorMessage.includes('fetch') ||
-                            errorMessage.includes('network') ||
-                            errorMessage.includes('disconnected') ||
-                            errorMessage.includes('failed to fetch') ||
-                            errorName.includes('network') ||
-                            errorName.includes('fetch') ||
-                            errorName.includes('disconnected') ||
-                            errorCode.includes('network') ||
-                            errorCode.includes('disconnected') ||
-                            errorCode.includes('err_internet_disconnected') ||
-                            errorString.includes('err_internet_disconnected') ||
-                            (error instanceof TypeError && errorMessage.includes('fetch')) ||
-                            !navigator.onLine; // Fallback: check browser online status
-
       // 📴 OFFLINE FALLBACK: Use RxDB cache with proper filtering
-      if (isNetworkError) {
-        console.warn('[SpaceStore] ⚠️ Network unavailable, using offline fallback (RxDB only)');
-      } else {
-        console.warn('[SpaceStore] ⚠️ Error, using offline fallback (RxDB only)');
-        console.error('[SpaceStore] Error details:', error);
+      if (!isNetworkError(error)) {
+        console.error('[SpaceStore] applyFilters error:', error);
       }
 
       try {
@@ -1868,9 +1855,7 @@ class SpaceStore {
           throw new Error(`Collection ${entityType} not found`);
         }
 
-        // ✅ Use proper filterLocalEntities() for offline mode
-        console.log('[SpaceStore] 🔍 Filtering locally in RxDB with same logic as online...');
-
+        // Use proper filterLocalEntities() for offline mode
         const localResults = await this.filterLocalEntities(
           entityType,
           filters,
@@ -2473,35 +2458,11 @@ class SpaceStore {
     error = queryError;
 
     if (error) {
-      // Check if this is a network error (offline mode)
-      const errorMessage = error.message?.toLowerCase() || '';
-      const errorName = (error as any)?.name?.toLowerCase() || '';
-      const errorCode = (error as any)?.code?.toLowerCase() || '';
-      const errorString = String(error).toLowerCase();
-
-      const isNetworkError = errorMessage.includes('fetch') ||
-                            errorMessage.includes('network') ||
-                            errorMessage.includes('disconnected') ||
-                            errorMessage.includes('failed to fetch') ||
-                            errorName.includes('network') ||
-                            errorName.includes('fetch') ||
-                            errorName.includes('disconnected') ||
-                            errorCode.includes('network') ||
-                            errorCode.includes('disconnected') ||
-                            errorCode.includes('err_internet_disconnected') ||
-                            errorString.includes('err_internet_disconnected') ||
-                            (error instanceof TypeError && errorMessage.includes('fetch')) ||
-                            !navigator.onLine; // Fallback: check browser online status
-
-      if (isNetworkError) {
-        console.warn('[SpaceStore] ⚠️ Network unavailable for IDs query, will use offline mode');
-      } else {
-        console.error('[SpaceStore] ❌ IDs query error:', error);
+      if (!isNetworkError(error)) {
+        console.error('[SpaceStore] IDs query error:', error);
       }
       throw error;
     }
-
-    console.log(`[SpaceStore] ✅ Fetched ${data?.length || 0} IDs (~${Math.round((data?.length || 0) * 0.1)}KB)`);
 
     return data || [];
   }
@@ -3330,75 +3291,29 @@ class SpaceStore {
   }
 
   /**
-   * Cleanup expired records (older than TTL) from ALL collections
-   * Cleans both entity collections AND child collections
-   * Called on initialize and every 24 hours
-   * Same pattern as DictionaryStore.cleanupExpired()
+   * Cleanup expired records using helpers
    */
-  async cleanupExpiredRecords(): Promise<void> {
-    if (!this.db) {
-      return;
+  private async runCleanup(): Promise<void> {
+    if (!this.db) return;
+
+    // Build collections list for cleanup
+    const collections: Array<{ collection: RxCollection<any>; name: string }> = [];
+
+    // 1. Add entity collections (breed, pet, kennel, etc.)
+    for (const entityType of this.availableEntityTypes.value) {
+      const collection = this.db.collections[entityType];
+      if (collection) {
+        collections.push({ collection, name: entityType });
+      }
     }
 
-    const expiryTime = Date.now() - this.CHILD_TTL;
-    let totalCleaned = 0;
-
-    try {
-      // 1. Cleanup entity collections (breed, pet, kennel, etc.)
-      for (const entityType of this.availableEntityTypes.value) {
-        const collection = this.db.collections[entityType];
-        if (!collection) continue;
-
-        const expiredDocs = await collection
-          .find({
-            selector: {
-              cachedAt: {
-                $lt: expiryTime
-              }
-            }
-          })
-          .exec();
-
-        if (expiredDocs.length > 0) {
-          console.log(`[SpaceStore] Cleaning up ${expiredDocs.length} expired records from ${entityType}`);
-
-          for (const doc of expiredDocs) {
-            await doc.remove(); // Soft delete → RxDB cleanup will handle
-          }
-
-          totalCleaned += expiredDocs.length;
-        }
-      }
-
-      // 2. Cleanup child collections (breed_children, etc.)
-      for (const [collectionName, collection] of this.childCollections.entries()) {
-        const expiredDocs = await collection
-          .find({
-            selector: {
-              cachedAt: {
-                $lt: expiryTime
-              }
-            }
-          })
-          .exec();
-
-        if (expiredDocs.length > 0) {
-          console.log(`[SpaceStore] Cleaning up ${expiredDocs.length} expired records from ${collectionName}`);
-
-          for (const doc of expiredDocs) {
-            await doc.remove(); // Soft delete → RxDB cleanup will handle
-          }
-
-          totalCleaned += expiredDocs.length;
-        }
-      }
-
-      if (totalCleaned > 0) {
-        console.log(`[SpaceStore] Cleanup complete: ${totalCleaned} expired records removed (entities + children)`);
-      }
-    } catch (error) {
-      console.error('[SpaceStore] Cleanup failed:', error);
+    // 2. Add child collections (breed_children, etc.)
+    for (const [name, collection] of this.childCollections.entries()) {
+      collections.push({ collection, name });
     }
+
+    // Use helper to cleanup all collections
+    await cleanupMultipleCollections(collections, DEFAULT_TTL, '[SpaceStore]');
   }
 
   dispose() {

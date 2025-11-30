@@ -611,27 +611,27 @@ import { getOrCreateCollection } from '../helpers/collection-factory.helper';
   - [ ] `calculateHybridLimits()` function
   - [ ] `buildHybridSearchSelectors()` function
 
-### Phase 2: RouteStore Implementation
+### Phase 2: RouteStore Implementation ✅ COMPLETED
 
-- [ ] Create `collections/routes.schema.ts`
-- [ ] Create `stores/route-store.signal-store.ts` (using helpers)
-- [ ] Export from `index.ts`
-- [ ] Test: `resolveRoute(slug)` returns correct entity info
+- [x] Create `collections/routes.schema.ts`
+- [x] Create `stores/route-store.signal-store.ts` (using helpers)
+- [x] Export from `index.ts`
+- [x] Test: `resolveRoute(slug)` returns correct entity info
 
-### Phase 3: Refactor Existing Stores
+### Phase 3: Refactor Existing Stores ✅ COMPLETED
 
-- [ ] Refactor DictionaryStore to use helpers
-  - [ ] Replace TTL constant with import
-  - [ ] Replace cleanup logic with helper
-  - [ ] Replace scheduler with helper
-  - [ ] Replace network detection with helper
-  - [ ] Replace collection creation with helper
-- [ ] Refactor SpaceStore to use helpers
-  - [ ] Replace CHILD_TTL with import
-  - [ ] Replace cleanup logic with helper
-  - [ ] Replace scheduler with helper
-  - [ ] Replace network detection (2 places!) with helper
-  - [ ] Optionally: extract hybrid search to helper
+- [x] Refactor DictionaryStore to use helpers
+  - [x] Replace TTL constant with import
+  - [x] Replace cleanup logic with helper
+  - [x] Replace scheduler with helper
+  - [x] Replace network detection with helper
+  - [x] Remove verbose console.logs
+- [x] Refactor SpaceStore to use helpers
+  - [x] Replace CHILD_TTL with import
+  - [x] Replace cleanup logic with cleanupMultipleCollections helper
+  - [x] Replace scheduler with helper
+  - [x] Replace network detection (3 places) with isOffline/isNetworkError helpers
+  - [ ] Optionally: extract hybrid search to helper (deferred)
 
 ### Phase 4: Router Integration
 
