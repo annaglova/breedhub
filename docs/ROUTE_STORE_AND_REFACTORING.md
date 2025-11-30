@@ -682,11 +682,39 @@ routes таблиця (lookup index):
 - `apps/app/src/components/space/SpaceComponent.tsx` - fullscreen detection, force "over" mode
 - `apps/app/src/components/template/PublicPageTemplate.tsx` - `isFullscreenMode` prop
 
-### Phase 5: Routes Population (TODO)
+### Phase 5: Routes Population ✅ COMPLETED
 
-- [ ] Зберігати route в колекцію при відкритті entity (expand/click)
-- [ ] Метод `RouteStore.saveRoute({ slug, entity, entity_id, model })`
-- [ ] Викликати з SpaceComponent при handleEntityClick
+- [x] Додати `entitySchemaModel` до SpaceConfig типів
+- [x] Метод `RouteStore.saveRoute({ slug, entity, entity_id, model })`
+- [x] Викликати з SpaceComponent при handleEntityClick
+
+#### Implementation Details
+
+```typescript
+// SpaceComponent.tsx - handleEntityClick
+const handleEntityClick = (entity) => {
+  const slug = entity.slug || normalizeForUrl(entity.name);
+
+  // Save route for offline access
+  routeStore.saveRoute({
+    slug,
+    entity: config.entitySchemaName,    // 'breed'
+    entity_id: entity.id,
+    model: config.entitySchemaModel     // 'breed', 'kennel', 'club'
+  });
+
+  navigate(`${slug}#overview`);
+};
+```
+
+#### Config Structure
+
+```json
+{
+  "entitySchemaName": "breed",    // Table/entity type
+  "entitySchemaModel": "breed"    // Rendering model (fallback to entitySchemaName)
+}
+```
 
 ### Phase 6: URL Generation (Already Done)
 

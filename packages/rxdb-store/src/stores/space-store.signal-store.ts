@@ -34,6 +34,7 @@ interface SpaceConfig {
   path?: string;
   label?: string;
   entitySchemaName?: string;
+  entitySchemaModel?: string; // Rendering model (e.g., 'breed', 'kennel', 'club')
   fields?: Record<string, FieldConfig>;
   sort_fields?: Record<string, any>;
   filter_fields?: Record<string, any>;
@@ -312,6 +313,7 @@ class SpaceStore {
               path: space.path,
               label: space.label,
               entitySchemaName: space.entitySchemaName,
+              entitySchemaModel: space.entitySchemaModel || space.entitySchemaName, // Fallback to entitySchemaName
               fields: Object.fromEntries(uniqueFields),
               sort_fields: normalizedSortFields,
               filter_fields: normalizedFilterFields,

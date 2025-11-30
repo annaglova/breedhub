@@ -1,7 +1,7 @@
 import { mediaQueries } from "@/config/breakpoints";
 import { SpaceConfig } from "@/core/space/types";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
-import { getDatabase, spaceStore } from "@breedhub/rxdb-store";
+import { getDatabase, spaceStore, routeStore } from "@breedhub/rxdb-store";
 import { useSignals } from "@preact/signals-react/runtime";
 import { Signal } from "@preact/signals-react";
 import { Button } from "@ui/components/button";
@@ -530,9 +530,18 @@ export function SpaceComponent<T extends { id: string }>({
       // Navigate using friendly slug, preserving current query params (sort, filters, etc.)
       // Use slug from DB if available, otherwise generate from name
       const slug = entity.slug || normalizeForUrl(entity.name || entity.id);
+
+      // Save route to local cache for offline access to pretty URLs
+      routeStore.saveRoute({
+        slug,
+        entity: config.entitySchemaName,
+        entity_id: entity.id,
+        model: config.entitySchemaModel || config.entitySchemaName
+      });
+
       navigate(`${slug}${location.search}#overview`);
     },
-    [navigate, config.entitySchemaName, location.search]
+    [navigate, config.entitySchemaName, config.entitySchemaModel, location.search]
   );
 
   // 🆕 ID-First: Use loadMore from hook (with cursor pagination)

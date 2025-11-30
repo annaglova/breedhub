@@ -216,6 +216,38 @@ class RouteStore {
   }
 
   /**
+   * Save route to local cache
+   *
+   * Called when user opens an entity (expand/click).
+   * This enables offline access to pretty URLs for previously viewed entities.
+   *
+   * @param route Route information to cache
+   */
+  async saveRoute(route: ResolvedRoute): Promise<void> {
+    if (!this.collection) {
+      await this.initialize();
+    }
+
+    if (!this.collection) {
+      console.warn('[RouteStore] Cannot save route - not initialized');
+      return;
+    }
+
+    try {
+      await this.collection.upsert({
+        slug: route.slug,
+        entity: route.entity,
+        entity_id: route.entity_id,
+        model: route.model,
+        cachedAt: Date.now()
+      });
+    } catch (error) {
+      // Non-critical - just log
+      console.warn('[RouteStore] Failed to save route:', error);
+    }
+  }
+
+  /**
    * Clear cached route (e.g., when entity is updated/deleted)
    */
   async invalidateRoute(slug: string): Promise<void> {

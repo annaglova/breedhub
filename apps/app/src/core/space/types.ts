@@ -39,7 +39,8 @@ export interface SpaceConfig<T = any> {
   id: string;
   url: string;
   entitySchemaName: string;
-  
+  entitySchemaModel?: string; // Rendering model (e.g., 'breed', 'kennel', 'club')
+
   // View configuration
   viewConfig: ViewConfig[];
   defaultView?: ViewMode;
