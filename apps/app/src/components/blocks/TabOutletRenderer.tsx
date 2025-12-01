@@ -62,6 +62,7 @@ interface TabOutletRendererProps {
   tabHeaderTop: number;
   onPageMenuRef?: (ref: HTMLDivElement | null) => void;
   entityId?: string; // Entity ID - when changed, reset to default tab
+  entitySlug?: string; // Entity slug for generating fullscreen URLs (e.g., "affenpinscher")
 }
 
 // Extended tab with internal ordering fields
@@ -149,6 +150,7 @@ export function TabOutletRenderer({
   tabHeaderTop,
   onPageMenuRef,
   entityId,
+  entitySlug,
 }: TabOutletRendererProps) {
   const pageMenuRef = useRef<HTMLDivElement>(null);
   const [pageMenuHeight, setPageMenuHeight] = useState(0);
@@ -228,6 +230,7 @@ export function TabOutletRenderer({
         onTabChange={handleTabChange}
         onVisibilityChange={handleVisibilityChange}
         tabHeaderTop={actualTabHeaderTop}
+        entitySlug={entitySlug}
       />
     </>
   );

@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import { Routes, Route, useLocation } from 'react-router-dom';
 import { SpaceComponent } from '@/components/space/SpaceComponent';
 import { PublicPageTemplate } from '@/components/template/PublicPageTemplate';
+import { TabPageTemplate } from '@/components/template/TabPageTemplate';
 import { getEntityHook } from '@/hooks/hookRegistry';
 import { appStore, spaceStore } from '@breedhub/rxdb-store';
 import { useSignals } from '@preact/signals-react/runtime';
@@ -34,10 +35,39 @@ function DetailWrapper({
   );
 }
 
+/**
+ * Wrapper for TabPageTemplate in drawer fullscreen mode
+ */
+function TabDetailWrapper({
+  entityType,
+  entityId,
+  entitySlug,
+  tabSlug,
+  spaceConfigSignal
+}: {
+  entityType: string;
+  entityId: string;
+  entitySlug: string;
+  tabSlug: string;
+  spaceConfigSignal: any;
+}) {
+  return (
+    <TabPageTemplate
+      entityType={entityType}
+      entityId={entityId}
+      entitySlug={entitySlug}
+      tabSlug={tabSlug}
+      isDrawerMode={false}
+      isFullscreenMode={true}
+    />
+  );
+}
+
 interface SpacePageProps {
   entityType: string; // 'breed', 'pet', 'kennel', etc.
   selectedEntityId?: string; // Pre-selected entity ID (from SlugResolver)
   selectedSlug?: string; // Pretty URL slug (from SlugResolver) - for URL display
+  tabSlug?: string; // Tab slug for tab fullscreen mode (from TabPageResolver)
 }
 
 /**
@@ -52,7 +82,7 @@ interface SpacePageProps {
  * Usage in AppRouter:
  * <Route path="breeds/*" element={<SpacePage entityType="breed" />} />
  */
-export function SpacePage({ entityType, selectedEntityId, selectedSlug }: SpacePageProps) {
+export function SpacePage({ entityType, selectedEntityId, selectedSlug, tabSlug }: SpacePageProps) {
   useSignals();
 
   // Get hook from registry
@@ -105,9 +135,30 @@ export function SpacePage({ entityType, selectedEntityId, selectedSlug }: SpaceP
     );
   }
 
-  // When selectedEntityId is provided (from SlugResolver), render with pre-selected entity
-  // This is used for pretty URLs like /affenpinscher
+  // When selectedEntityId is provided (from SlugResolver/TabPageResolver), render with pre-selected entity
+  // This is used for pretty URLs like /affenpinscher or /affenpinscher/patrons
   if (selectedEntityId) {
+    // Tab fullscreen mode: render TabPageTemplate in drawer fullscreen
+    if (tabSlug && selectedSlug) {
+      return (
+        <SpaceComponent
+          configSignal={spaceConfigSignal}
+          useEntitiesHook={useEntitiesHook}
+          initialSelectedEntityId={selectedEntityId}
+          initialSelectedSlug={selectedSlug}
+        >
+          <TabDetailWrapper
+            entityType={entityType}
+            entityId={selectedEntityId}
+            entitySlug={selectedSlug}
+            tabSlug={tabSlug}
+            spaceConfigSignal={spaceConfigSignal}
+          />
+        </SpaceComponent>
+      );
+    }
+
+    // Normal fullscreen mode: render PublicPageTemplate
     return (
       <SpaceComponent
         configSignal={spaceConfigSignal}

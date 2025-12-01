@@ -22,6 +22,7 @@ interface TabsContainerProps {
   onTabChange?: (fragment: string) => void; // Required in tabs mode
   onVisibilityChange?: (id: string, visibility: number) => void; // Optional visibility tracking callback
   tabHeaderTop?: number; // Top position for sticky TabHeader in scroll mode
+  entitySlug?: string; // Entity slug for generating fullscreen URLs (e.g., "affenpinscher")
   className?: string;
 }
 
@@ -49,6 +50,7 @@ export function TabsContainer({
   onTabChange,
   onVisibilityChange,
   tabHeaderTop = 0,
+  entitySlug,
   className,
 }: TabsContainerProps) {
   // Use provided visibility handler or create internal one
@@ -66,7 +68,13 @@ export function TabsContainer({
         {tabs.map((tab, index) => {
           const Component = tab.component;
           // Generate fullscreen URL from fragment if fullscreenButton is enabled
-          const fullscreenUrl = tab.fullscreenButton ? `#${tab.fragment}/fullscreen` : undefined;
+          // New format: /{entitySlug}/{tabSlug} (nested route)
+          // Fallback to hash-based URL if entitySlug not provided
+          const fullscreenUrl = tab.fullscreenButton
+            ? entitySlug
+              ? `/${entitySlug}/${tab.fragment}`
+              : `#${tab.fragment}/fullscreen`
+            : undefined;
 
           return (
             <section key={tab.id} className="relative">
@@ -101,7 +109,12 @@ export function TabsContainer({
   if (!activeTabData) return null;
 
   const Component = activeTabData.component;
-  const fullscreenUrl = activeTabData.fullscreenButton ? `#${activeTabData.fragment}/fullscreen` : undefined;
+  // New format: /{entitySlug}/{tabSlug} (nested route)
+  const fullscreenUrl = activeTabData.fullscreenButton
+    ? entitySlug
+      ? `/${entitySlug}/${activeTabData.fragment}`
+      : `#${activeTabData.fragment}/fullscreen`
+    : undefined;
 
   return (
     <div className={cn("w-full", className)}>

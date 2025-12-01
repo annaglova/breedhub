@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AppLayout } from '@/layouts/AppLayout';
 import { SpacePage } from '@/pages/SpacePage';
 import { SlugResolver } from '@/pages/SlugResolver';
+import { TabPageResolver } from '@/pages/TabPageResolver';
 import { SupabaseLoader } from '@/components/test/SupabaseLoader';
 import { TestDictionaryPage } from '@/pages/TestDictionaryPage';
 import { TestPage } from '@/pages/TestPage';
@@ -52,6 +53,10 @@ export function AppRouter() {
           {/* Slug resolver - catch-all for pretty URLs */}
           {/* Resolves /affenpinscher → /breeds/:id with fullscreen state */}
           <Route path=":slug" element={<SlugResolver />} />
+
+          {/* Tab page resolver - for tab fullscreen mode */}
+          {/* Resolves /affenpinscher/achievements → single tab view */}
+          <Route path=":slug/:tabSlug" element={<TabPageResolver />} />
         </Route>
       </Routes>
     </BrowserRouter>
