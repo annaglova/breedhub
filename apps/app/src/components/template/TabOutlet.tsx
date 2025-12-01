@@ -76,6 +76,7 @@ export function TabOutlet({
         tabsConfig={tabs}
         pageMenuTop={pageMenuTop}
         tabHeaderTop={tabHeaderTop}
+        entityId={entity?.id}
       />
     </div>
   );

@@ -22,6 +22,7 @@ interface UseTabNavigationProps {
   tabs: Tab[];
   mode?: "scroll" | "tabs";
   defaultTab?: string; // Default active tab (default: first tab)
+  entityId?: string; // Entity ID - when changed, reset to default tab
 }
 
 interface DebugInfo {
@@ -65,6 +66,7 @@ export function useTabNavigation({
   tabs,
   mode = "scroll",
   defaultTab,
+  entityId,
 }: UseTabNavigationProps): UseTabNavigationReturn {
   // Initialize activeTab from URL hash or default
   const getInitialTab = () => {
@@ -99,6 +101,44 @@ export function useTabNavigation({
       updateUrlHash(activeTab);
     }
   }, []); // Only on mount
+
+  // Reset to default tab when entity changes (drawer mode)
+  // Use ref to track previous entityId to avoid running on initial mount
+  const prevEntityIdRef = useRef(entityId);
+  useEffect(() => {
+    if (entityId && prevEntityIdRef.current && entityId !== prevEntityIdRef.current) {
+      // Entity changed - reset to default tab
+      const newTab = defaultTab || tabs[0]?.fragment || "";
+      if (newTab) {
+        setActiveTab(newTab);
+        updateUrlHash(newTab);
+
+        // In scroll mode, scroll to top of the container to show default tab
+        if (mode === "scroll") {
+          // Find scrollable container and scroll to top
+          // Use requestAnimationFrame to wait for DOM update
+          requestAnimationFrame(() => {
+            const element = document.getElementById(`tab-${newTab}`);
+            if (element) {
+              let scrollContainer: HTMLElement | null = element.parentElement;
+              while (scrollContainer && scrollContainer !== document.body) {
+                const styles = window.getComputedStyle(scrollContainer);
+                if (styles.overflowY === 'auto' || styles.overflowY === 'scroll') {
+                  break;
+                }
+                scrollContainer = scrollContainer.parentElement;
+              }
+
+              if (scrollContainer && scrollContainer !== document.body) {
+                scrollContainer.scrollTop = 0;
+              }
+            }
+          });
+        }
+      }
+    }
+    prevEntityIdRef.current = entityId;
+  }, [entityId, defaultTab, tabs, mode]);
 
   // Handle tab change
   const handleTabChange = useCallback(

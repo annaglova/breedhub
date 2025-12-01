@@ -61,6 +61,7 @@ interface TabOutletRendererProps {
   pageMenuTop: number;
   tabHeaderTop: number;
   onPageMenuRef?: (ref: HTMLDivElement | null) => void;
+  entityId?: string; // Entity ID - when changed, reset to default tab
 }
 
 // Extended tab with internal ordering fields
@@ -147,6 +148,7 @@ export function TabOutletRenderer({
   pageMenuTop,
   tabHeaderTop,
   onPageMenuRef,
+  entityId,
 }: TabOutletRendererProps) {
   const pageMenuRef = useRef<HTMLDivElement>(null);
   const [pageMenuHeight, setPageMenuHeight] = useState(0);
@@ -176,10 +178,12 @@ export function TabOutletRenderer({
   const defaultTab = useMemo(() => getDefaultTabFragment(tabsConfig), [tabsConfig]);
 
   // Tab navigation hook with default tab from config (respects isDefault: true)
+  // Pass entityId to reset tab when entity changes in drawer mode
   const { activeTab, handleTabChange, handleVisibilityChange } = useTabNavigation({
     tabs,
     mode: "scroll",
     defaultTab,
+    entityId,
   });
 
   // Pass ref to parent if needed
