@@ -327,6 +327,8 @@ export function TabPageTemplate({
                   blockConfig={{
                     ...nameBlockConfig,
                     onTop: nameOnTop,
+                    // In tab fullscreen mode, name links to page fullscreen (not self)
+                    linkToFullscreen: true,
                   }}
                   entity={selectedEntity}
                   pageConfig={pageConfig}

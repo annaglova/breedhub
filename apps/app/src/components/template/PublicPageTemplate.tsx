@@ -360,6 +360,9 @@ export function PublicPageTemplate({
                           blockConfig={{
                             ...blockConfig,
                             onTop: nameOnTop,
+                            // In fullscreen mode, don't link to self
+                            // In drawer mode, link to fullscreen page
+                            linkToFullscreen: !isFullscreenMode,
                           }}
                           entity={selectedEntity}
                           pageConfig={pageConfig}

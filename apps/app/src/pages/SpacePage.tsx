@@ -159,6 +159,7 @@ export function SpacePage({ entityType, selectedEntityId, selectedSlug, tabSlug 
     }
 
     // Normal fullscreen mode: render PublicPageTemplate
+    // Pretty URL always means fullscreen mode (no drawer)
     return (
       <SpaceComponent
         configSignal={spaceConfigSignal}
@@ -166,8 +167,9 @@ export function SpacePage({ entityType, selectedEntityId, selectedSlug, tabSlug 
         initialSelectedEntityId={selectedEntityId}
         initialSelectedSlug={selectedSlug}
       >
-        <DetailWrapper
-          DetailComponent={DetailComponent}
+        <DetailComponent
+          isDrawerMode={false}
+          isFullscreenMode={true}
           spaceConfigSignal={spaceConfigSignal}
           entityType={entityType}
         />
