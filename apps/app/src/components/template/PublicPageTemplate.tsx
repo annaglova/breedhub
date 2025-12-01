@@ -7,6 +7,7 @@ import { Signal } from "@preact/signals-react";
 import { useSignals } from "@preact/signals-react/runtime";
 import { cn } from "@ui/lib/utils";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { PublicPageSkeleton } from "./PublicPageSkeleton";
 
 /**
  * Get default tab fragment from page config
@@ -283,15 +284,9 @@ export function PublicPageTemplate({
               </div>
             )}
 
+            {/* Show skeleton while entity is loading */}
             {!selectedEntity && pageConfig && (
-              <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg mb-6">
-                <p className="text-yellow-700 font-semibold">
-                  No entity selected
-                </p>
-                <p className="text-yellow-600 text-sm mt-1">
-                  Please select an entity to view
-                </p>
-              </div>
+              <PublicPageSkeleton />
             )}
 
             {pageConfig &&

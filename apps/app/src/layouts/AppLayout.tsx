@@ -1,6 +1,6 @@
 import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
-import { LoadingBar } from "@/components/layout/LoadingBar";
+import { LoadingBar } from "@/components/shared/LoadingBar";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { cn } from "@ui/lib/utils";

@@ -1123,6 +1123,7 @@ export function SpaceComponent<T extends { id: string }>({
               onLoadMore={handleLoadMore}
               hasMore={hasMore}
               isLoadingMore={isLoadingMore}
+              isLoading={isLoading}
             />
             {/* Bottom spacer like in Angular */}
             <div

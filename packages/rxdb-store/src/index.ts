@@ -40,6 +40,9 @@ export { routeStore } from './stores/route-store.signal-store';
 export type { RouteCollection, ResolvedRoute } from './stores/route-store.signal-store';
 export type { RouteDocument } from './collections/routes.schema';
 
+// Loading Store - Global loading state management
+export { loadingStore } from './stores/loading-store';
+
 // Mixin Engine
 export { mixinEngine, MixinEngineService } from './services/mixin-engine.service';
 

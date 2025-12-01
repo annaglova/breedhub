@@ -1,17 +1,20 @@
 import { useEffect } from 'react';
-import { useAppDispatch } from '@/store/hooks';
-import { startLoading, stopLoading } from '@/store/loadingSlice';
+import { loadingStore } from '@breedhub/rxdb-store';
 import axios from 'axios';
 
+/**
+ * useLoadingBar - Sets up axios interceptors to track loading state
+ *
+ * Automatically tracks all axios requests and updates loadingStore.
+ * Call this once in App.tsx to enable global loading tracking.
+ */
 export function useLoadingBar() {
-  const dispatch = useAppDispatch();
-
   useEffect(() => {
     // Request interceptor
     const requestInterceptor = axios.interceptors.request.use(
       (config) => {
         const url = config.url || 'unknown';
-        dispatch(startLoading(url));
+        loadingStore.startLoading(url);
         return config;
       },
       (error) => {
@@ -23,12 +26,12 @@ export function useLoadingBar() {
     const responseInterceptor = axios.interceptors.response.use(
       (response) => {
         const url = response.config.url || 'unknown';
-        dispatch(stopLoading(url));
+        loadingStore.stopLoading(url);
         return response;
       },
       (error) => {
         const url = error.config?.url || 'unknown';
-        dispatch(stopLoading(url));
+        loadingStore.stopLoading(url);
         return Promise.reject(error);
       }
     );
@@ -38,19 +41,19 @@ export function useLoadingBar() {
       axios.interceptors.request.eject(requestInterceptor);
       axios.interceptors.response.eject(responseInterceptor);
     };
-  }, [dispatch]);
+  }, []);
 }
 
-// Manual loading control
+/**
+ * useManualLoading - Manual loading control for non-axios operations
+ */
 export function useManualLoading() {
-  const dispatch = useAppDispatch();
-
   const startManualLoading = (key: string) => {
-    dispatch(startLoading(key));
+    loadingStore.startLoading(key);
   };
 
   const stopManualLoading = (key: string) => {
-    dispatch(stopLoading(key));
+    loadingStore.stopLoading(key);
   };
 
   return { startManualLoading, stopManualLoading };

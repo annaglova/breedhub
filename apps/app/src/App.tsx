@@ -1,7 +1,5 @@
 import React, { useEffect } from 'react';
-import { Provider } from 'react-redux';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { store } from '@/store';
+import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClient } from '@/core/queryClient';
 import { AuthProvider } from '@/core/auth';
 import { AppRouter } from '@/router/AppRouter';
@@ -77,13 +75,9 @@ function AppContent() {
 
 function App() {
   return (
-    <div>
-      <Provider store={store}>
-        <QueryClientProvider client={queryClient}>
-          <AppContent />
-        </QueryClientProvider>
-      </Provider>
-    </div>
+    <QueryClientProvider client={queryClient}>
+      <AppContent />
+    </QueryClientProvider>
   );
 }
 

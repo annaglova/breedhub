@@ -2,6 +2,7 @@ import React, { useRef, useCallback, useEffect } from 'react';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { cn } from '@ui/lib/utils';
 import { getComponent, FallbackComponent } from './componentRegistry';
+import { ListCardSkeleton, GridCardSkeleton } from './ListCardSkeleton';
 
 // View configuration interface that matches our config structure
 interface ViewConfig {
@@ -27,6 +28,7 @@ interface SpaceViewProps<T> {
   onLoadMore?: () => void;
   hasMore?: boolean;
   isLoadingMore?: boolean;
+  isLoading?: boolean; // Initial loading state
 }
 
 // Helper to determine if view should render as grid
@@ -71,6 +73,9 @@ function getViewClasses(viewType: string, dividers: boolean) {
   };
 }
 
+// Number of skeleton items to show while loading
+const SKELETON_COUNT = 8;
+
 export function SpaceView<T extends { id: string }>({
   viewConfig,
   entities,
@@ -78,7 +83,8 @@ export function SpaceView<T extends { id: string }>({
   onEntityClick,
   onLoadMore,
   hasMore = false,
-  isLoadingMore = false
+  isLoadingMore = false,
+  isLoading = false
 }: SpaceViewProps<T>) {
   const parentRef = useRef<HTMLDivElement>(null);
 
@@ -221,6 +227,37 @@ export function SpaceView<T extends { id: string }>({
     totalRows,
     classes
   ]);
+
+  // Show skeleton loading state when loading and no entities yet
+  if (isLoading && entities.length === 0) {
+    const SkeletonComponent = isGrid ? GridCardSkeleton : ListCardSkeleton;
+
+    return (
+      <div
+        ref={parentRef}
+        className={classes.container}
+        style={{
+          paddingBottom: 'var(--content-padding, 1rem)'
+        }}
+      >
+        {isGrid ? (
+          // Grid skeleton
+          <div className={classes.gridRow}>
+            {Array.from({ length: SKELETON_COUNT }).map((_, i) => (
+              <SkeletonComponent key={i} />
+            ))}
+          </div>
+        ) : (
+          // List skeleton
+          <div className="divide-y divide-gray-200 dark:divide-gray-700">
+            {Array.from({ length: SKELETON_COUNT }).map((_, i) => (
+              <SkeletonComponent key={i} />
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div
