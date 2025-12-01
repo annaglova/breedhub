@@ -4,6 +4,7 @@ import Templates from './pages/Templates'
 import AppConfig from './pages/AppConfig'
 import { Settings, Tag, Database, FileText, Package } from 'lucide-react'
 import { RegenerateButton } from './components/RegenerateButton'
+import { ForceSyncButton } from './components/ForceSyncButton'
 
 function Navigation() {
   const location = useLocation();
@@ -61,6 +62,7 @@ function App() {
                   <h1 className="text-xl font-bold">Config Admin</h1>
                 </div>
                 <RegenerateButton />
+                <ForceSyncButton />
               </div>
               <Navigation />
             </div>

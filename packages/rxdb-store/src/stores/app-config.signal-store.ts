@@ -2647,25 +2647,125 @@ class AppConfigStore {
   
   async resetStore(): Promise<void> {
     console.log('[AppConfigStore] Resetting store...');
-    
+
     if (this.dbSubscription) {
       this.dbSubscription.unsubscribe();
       this.dbSubscription = null;
     }
-    
+
     if (this.realtimeChannel) {
       await supabase.removeChannel(this.realtimeChannel);
       this.realtimeChannel = null;
     }
-    
+
     batch(() => {
       this.configs.value = new Map();
       this.loading.value = false;
       this.error.value = null;
       this.syncEnabled.value = false;
     });
-    
+
     await this.initializeStore();
+  }
+
+  /**
+   * Force sync all local configs to Supabase.
+   * Useful when configs were created offline and need to be pushed to server.
+   * Compares local RxDB configs with Supabase and upserts missing/different ones.
+   */
+  async forceSyncToSupabase(): Promise<{ synced: number; errors: string[] }> {
+    console.log('[AppConfigStore] Force sync to Supabase started...');
+
+    const errors: string[] = [];
+    let synced = 0;
+
+    if (!supabase) {
+      return { synced: 0, errors: ['Supabase client not available'] };
+    }
+
+    try {
+      // Get all local configs
+      const localConfigs = Array.from(this.configs.value.values());
+      console.log(`[AppConfigStore] Found ${localConfigs.length} local configs`);
+
+      // Get all Supabase config IDs for comparison
+      const { data: supabaseConfigs, error: fetchError } = await supabase
+        .from('app_config')
+        .select('id, updated_at');
+
+      if (fetchError) {
+        console.error('[AppConfigStore] Failed to fetch Supabase configs:', fetchError);
+        return { synced: 0, errors: [`Failed to fetch Supabase configs: ${fetchError.message}`] };
+      }
+
+      const supabaseConfigMap = new Map(
+        (supabaseConfigs || []).map(c => [c.id, c.updated_at])
+      );
+
+      console.log(`[AppConfigStore] Found ${supabaseConfigMap.size} configs in Supabase`);
+
+      // Find configs that exist locally but not in Supabase, or are newer locally
+      const configsToSync: AppConfig[] = [];
+
+      for (const config of localConfigs) {
+        if (config._deleted) continue; // Skip deleted configs
+
+        const supabaseUpdatedAt = supabaseConfigMap.get(config.id);
+
+        if (!supabaseUpdatedAt) {
+          // Doesn't exist in Supabase - need to insert
+          console.log(`[AppConfigStore] Config ${config.id} missing in Supabase`);
+          configsToSync.push(config);
+        } else {
+          // Exists - check if local is newer
+          const localTime = new Date(config.updated_at).getTime();
+          const supabaseTime = new Date(supabaseUpdatedAt).getTime();
+
+          if (localTime > supabaseTime) {
+            console.log(`[AppConfigStore] Config ${config.id} is newer locally`);
+            configsToSync.push(config);
+          }
+        }
+      }
+
+      console.log(`[AppConfigStore] ${configsToSync.length} configs need syncing`);
+
+      // Upsert configs in batches of 50
+      const batchSize = 50;
+      for (let i = 0; i < configsToSync.length; i += batchSize) {
+        const batch = configsToSync.slice(i, i + batchSize);
+
+        const supabaseData = batch.map(config => {
+          const { _deleted, _rev, ...rest } = config;
+          return {
+            ...rest,
+            deleted: _deleted || false
+          };
+        });
+
+        const { error: upsertError } = await supabase
+          .from('app_config')
+          .upsert(supabaseData, { onConflict: 'id' });
+
+        if (upsertError) {
+          console.error(`[AppConfigStore] Batch upsert error:`, upsertError);
+          errors.push(`Batch ${Math.floor(i / batchSize) + 1} failed: ${upsertError.message}`);
+        } else {
+          synced += batch.length;
+          console.log(`[AppConfigStore] Synced batch ${Math.floor(i / batchSize) + 1}: ${batch.length} configs`);
+        }
+      }
+
+      console.log(`[AppConfigStore] Force sync completed. Synced: ${synced}, Errors: ${errors.length}`);
+      return { synced, errors };
+
+    } catch (error) {
+      console.error('[AppConfigStore] Force sync error:', error);
+      return {
+        synced,
+        errors: [...errors, error instanceof Error ? error.message : 'Unknown error']
+      };
+    }
   }
 }
 
