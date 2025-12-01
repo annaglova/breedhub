@@ -33,18 +33,36 @@ interface ResolvedRoute {
  *   ↓
  * <SpacePage entityType="breed" selectedEntityId="uuid" selectedSlug="affenpinscher" />
  */
+// Cache for resolved routes to avoid re-resolving on navigation
+const resolvedRoutesCache = new Map<string, ResolvedRoute>();
+
 export function SlugResolver() {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
 
   const [error, setError] = useState<string | null>(null);
-  const [resolvedRoute, setResolvedRoute] = useState<ResolvedRoute | null>(null);
-  const [isResolving, setIsResolving] = useState(true);
+  const [resolvedRoute, setResolvedRoute] = useState<ResolvedRoute | null>(() => {
+    // Check cache on initial render for instant display
+    return slug ? resolvedRoutesCache.get(slug) || null : null;
+  });
+  const [isResolving, setIsResolving] = useState(() => {
+    // If cached, no need to resolve
+    return slug ? !resolvedRoutesCache.has(slug) : false;
+  });
 
   useEffect(() => {
     if (!slug) {
       setError('No slug provided');
       setIsResolving(false);
+      return;
+    }
+
+    // Check cache first - instant render
+    const cached = resolvedRoutesCache.get(slug);
+    if (cached) {
+      setResolvedRoute(cached);
+      setIsResolving(false);
+      spaceStore.setFullscreen(true);
       return;
     }
 
@@ -70,6 +88,9 @@ export function SlugResolver() {
         setIsResolving(false);
         return;
       }
+
+      // Cache the resolved route
+      resolvedRoutesCache.set(slugToResolve, route);
 
       // Set fullscreen mode in store (persists across navigation)
       spaceStore.setFullscreen(true);

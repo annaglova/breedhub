@@ -3008,17 +3008,12 @@ class SpaceStore {
    * The entity may not be in the paginated list, so we need to fetch it directly.
    */
   async fetchAndSelectEntity(entityType: string, id: string): Promise<boolean> {
-    // Wait for entity store to be available (with retries)
-    let entityStore = this.entityStores.get(entityType.toLowerCase());
-    let retries = 30; // 3 seconds max wait
-    while (!entityStore && retries > 0) {
-      await new Promise(resolve => setTimeout(resolve, 100));
-      entityStore = this.entityStores.get(entityType.toLowerCase());
-      retries--;
-    }
+    // Use getEntityStore which will create the store if it doesn't exist
+    // This handles the case when navigating directly to pretty URL
+    const entityStore = await this.getEntityStore(entityType.toLowerCase());
 
     if (!entityStore) {
-      console.warn(`[SpaceStore] No entity store found for ${entityType} after retries`);
+      console.warn(`[SpaceStore] Could not get/create entity store for ${entityType}`);
       return false;
     }
 
@@ -3073,14 +3068,17 @@ class SpaceStore {
 
   /**
    * Get the selected entity signal for reactive updates
+   * Returns a computed signal that automatically updates when entity store becomes available
    */
   getSelectedEntity(entityType: string) {
-    const entityStore = this.entityStores.get(entityType.toLowerCase());
-    if (!entityStore) {
-      console.warn(`[SpaceStore] No entity store found for ${entityType}`);
-      return computed(() => null);
-    }
-    return entityStore.selectedEntity;
+    // Return a computed that checks for entity store reactively
+    return computed(() => {
+      const entityStore = this.entityStores.get(entityType.toLowerCase());
+      if (!entityStore) {
+        return null;
+      }
+      return entityStore.selectedEntity.value;
+    });
   }
 
   // ============================================================

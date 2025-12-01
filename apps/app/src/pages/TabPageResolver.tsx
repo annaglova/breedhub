@@ -12,6 +12,9 @@ interface ResolvedRoute {
   model: string;       // model name for API
 }
 
+// Cache for resolved routes to avoid re-resolving on navigation
+const resolvedRoutesCache = new Map<string, ResolvedRoute>();
+
 /**
  * TabPageResolver - Resolves /slug/tabSlug URLs for tab fullscreen mode
  *
@@ -38,8 +41,14 @@ export function TabPageResolver() {
   const navigate = useNavigate();
 
   const [error, setError] = useState<string | null>(null);
-  const [resolvedRoute, setResolvedRoute] = useState<ResolvedRoute | null>(null);
-  const [isResolving, setIsResolving] = useState(true);
+  const [resolvedRoute, setResolvedRoute] = useState<ResolvedRoute | null>(() => {
+    // Check cache on initial render for instant display
+    return slug ? resolvedRoutesCache.get(slug) || null : null;
+  });
+  const [isResolving, setIsResolving] = useState(() => {
+    // If cached, no need to resolve
+    return slug ? !resolvedRoutesCache.has(slug) : false;
+  });
 
   useEffect(() => {
     if (!slug) {
@@ -51,6 +60,15 @@ export function TabPageResolver() {
     if (!tabSlug) {
       // No tab slug - redirect to main page
       navigate(`/${slug}`, { replace: true });
+      return;
+    }
+
+    // Check cache first - instant render
+    const cached = resolvedRoutesCache.get(slug);
+    if (cached) {
+      setResolvedRoute(cached);
+      setIsResolving(false);
+      spaceStore.setFullscreen(true);
       return;
     }
 
@@ -76,6 +94,9 @@ export function TabPageResolver() {
         setIsResolving(false);
         return;
       }
+
+      // Cache the resolved route
+      resolvedRoutesCache.set(slugToResolve, route);
 
       // Set fullscreen mode in store (tab pages are always fullscreen)
       spaceStore.setFullscreen(true);

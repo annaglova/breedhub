@@ -4,6 +4,7 @@ import {
   TooltipTrigger,
 } from "@ui/components/tooltip";
 import { ArrowLeft, ChevronDown } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 interface NavigationButtonsProps {
   mode?: "default" | "white";
@@ -18,16 +19,16 @@ interface NavigationButtonsProps {
  * Two buttons in a group:
  * - Left: Back button (arrow-left) - returns to previous page
  * - Right: Navigate button (angle-down) - opens history menu
- *
- * Note: Currently visual only, no navigation functionality
  */
 export function NavigationButtons({
   mode = "white",
   className = "",
 }: NavigationButtonsProps) {
+  const navigate = useNavigate();
+
   const handleBack = () => {
-    console.log("[NavigationButtons] Back clicked");
-    // TODO: Implement navigation back logic
+    // Navigate back in browser history
+    navigate(-1);
   };
 
   const handleNavigate = () => {

@@ -535,6 +535,13 @@ export function SpaceComponent<T extends { id: string }>({
     const hasEntitySegment = pathSegments.length > 2 && pathSegments[2] !== "new";
     setIsDrawerOpen(hasEntitySegment);
 
+    // Clear fullscreen mode when NOT in pretty URL mode (drawer mode)
+    // This handles the case when navigating back from fullscreen to drawer
+    if (spaceStore.isFullscreen.value) {
+      console.log('[SpaceComponent] Clearing fullscreen mode (not in pretty URL mode)');
+      spaceStore.clearFullscreen();
+    }
+
     // Sync URL → EntityStore (URL is source of truth on route change)
     if (hasEntitySegment) {
       const urlSegment = pathSegments[2];
@@ -948,7 +955,10 @@ export function SpaceComponent<T extends { id: string }>({
   }
 
   // Show loading state only on initial load
-  if (isInitialLoad && isLoading) {
+  // SKIP loading state when initialSelectedEntityId is provided (pretty URL mode)
+  // In this case, entity is fetched separately via fetchAndSelectEntity
+  // and we render children (fullscreen content) directly
+  if (isInitialLoad && isLoading && !initialSelectedEntityId) {
     return (
       <div className="relative h-full overflow-hidden">
         <div

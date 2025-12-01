@@ -146,8 +146,13 @@ export function TabPageTemplate({
   const selectedEntitySignal = spaceStore.getSelectedEntity(entityType);
   const selectedEntity = selectedEntitySignal?.value;
 
-  // Entity selection is handled by SpaceComponent wrapper
-  // No need to call selectEntity here
+  // Ensure entity is loaded - SpaceComponent may not have finished loading yet
+  useEffect(() => {
+    if (!selectedEntity && entityId) {
+      console.log('[TabPageTemplate] Entity not in store, fetching:', entityId);
+      spaceStore.fetchAndSelectEntity(entityType, entityId);
+    }
+  }, [entityType, entityId, selectedEntity]);
 
   // Get tabs config from page config
   const tabsConfig = useMemo(() => {
