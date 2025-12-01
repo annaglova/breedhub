@@ -1,6 +1,6 @@
 # 📋 TODO - BreedHub Active Tasks
 
-**Last Updated:** 2025-11-25
+**Last Updated:** 2025-12-01
 
 ---
 
@@ -127,23 +127,23 @@ space: {
 - [ ] Undo/Redo support
 - [ ] Batch update optimization
 
-### Phase 3.0: Redux Cleanup (2-3 days)
+### ✅ Phase 3.0: Redux Cleanup (COMPLETED 01.12.2025)
 **Goal:** Remove Redux/RTK Query in favor of Preact Signals
 
-- [ ] Audit all Redux usage in the codebase
-- [ ] Remove Redux dependencies from package.json
-- [ ] Remove /store folder with Redux code
-- [ ] Replace `useQuery` hooks with direct SpaceStore subscriptions
-- [ ] Replace React Query with RxDB subscriptions
-- [ ] Update components to use Preact Signals
-- [ ] Remove Redux DevTools integration
-- [ ] Clean up unused Redux-related imports
+- [x] Audit all Redux usage in the codebase
+- [x] Remove Redux dependencies from package.json (@reduxjs/toolkit, react-redux)
+- [x] Remove /store folder with Redux code
+- [x] Replace loading state with signals-based loadingStore
+- [x] Update components to use Preact Signals
+- [x] Clean up unused Redux-related imports
 
-**Migration Strategy:**
-1. Identify all components using Redux/RTK Query
-2. Create Signals-based replacements
-3. Test each migration
-4. Remove Redux code after successful migration
+**What Was Done:**
+1. Created `loadingStore` using Preact Signals
+2. Created LoadingBar component using signals
+3. Updated useLoadingBar hook to use signals instead of Redux
+4. Removed Redux Provider from App.tsx
+5. Deleted entire /store folder with Redux code
+6. Removed @reduxjs/toolkit and react-redux from package.json
 
 ---
 

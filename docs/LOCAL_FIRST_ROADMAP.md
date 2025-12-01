@@ -1,6 +1,6 @@
 # 🚀 Local-First PWA Implementation Roadmap з RxDB
 
-## 📊 CURRENT STATUS: 01.10.2025
+## 📊 CURRENT STATUS: 01.12.2025
 
 ### ✅ COMPLETED PHASES:
 1. **Phase 0:** RxDB Setup ✅ (17.08.2024)
@@ -443,24 +443,24 @@ Supabase Configs → ConfigLoaderService → DynamicUniversalStore → UI Compon
 
 ### Goal: Create configuration-driven stores
 
-### 🧹 Phase 3.0: Redux Cleanup (2-3 days)
+### ✅ Phase 3.0: Redux Cleanup (COMPLETED 01.12.2025)
 **Goal:** Remove Redux/RTK Query in favor of Preact Signals
 
-#### Tasks:
-- [ ] Audit all Redux usage in the codebase
-- [ ] Remove Redux dependencies from package.json
-- [ ] Remove /store folder with Redux code
-- [ ] Replace `useQuery` hooks with direct SpaceStore subscriptions
-- [ ] Replace React Query with RxDB subscriptions
-- [ ] Update components to use Preact Signals
-- [ ] Remove Redux DevTools integration
-- [ ] Clean up unused Redux-related imports
+#### Completed Tasks:
+- [x] Audit all Redux usage in the codebase
+- [x] Remove Redux dependencies from package.json (@reduxjs/toolkit, react-redux)
+- [x] Remove /store folder with Redux code
+- [x] Replace loading state with signals-based loadingStore
+- [x] Update components to use Preact Signals
+- [x] Clean up unused Redux-related imports
 
-#### Migration Strategy:
-1. Identify all components using Redux/RTK Query
-2. Create Signals-based replacements
-3. Test each migration
-4. Remove Redux code after successful migration
+#### What Was Done:
+1. Created `loadingStore` using Preact Signals (packages/rxdb-store/src/stores/loading-store.ts)
+2. Created LoadingBar component using signals (apps/app/src/components/shared/LoadingBar.tsx)
+3. Updated useLoadingBar hook to use signals instead of Redux
+4. Removed Redux Provider from App.tsx
+5. Deleted entire /store folder with Redux code
+6. Removed @reduxjs/toolkit and react-redux from package.json
 
 ---
 
@@ -733,7 +733,7 @@ pnpm dev:playground
 
 ## Development Tools:
 - Chrome DevTools → Application tab для PWA
-- Redux DevTools для signals debugging
+- Preact Signals DevTools для signals debugging
 - Supabase Dashboard для database monitoring
 - VS Code з TypeScript support
 
