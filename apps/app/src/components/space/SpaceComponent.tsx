@@ -30,6 +30,7 @@ import {
   normalizeForUrl,
 } from "./utils/filter-url-helpers";
 import { ViewChanger } from "./ViewChanger";
+import { PublicPageSkeleton } from "@/components/template/PublicPageSkeleton";
 
 interface SpaceComponentProps<T> {
   configSignal: Signal<any>; // TODO: Define proper SpaceConfig type from DB structure
@@ -964,7 +965,9 @@ export function SpaceComponent<T extends { id: string }>({
         <div
           className={cn(
             "flex flex-col cursor-default h-full overflow-hidden",
-            needCardClass ? "fake-card" : "card-surface"
+            needCardClass ? "fake-card" : "card-surface",
+            // For side-transparent mode (xxl+): ALWAYS reserve space for drawer
+            drawerMode === "side-transparent" && "mr-[46.25rem]"
           )}
         >
           <div
@@ -1003,9 +1006,27 @@ export function SpaceComponent<T extends { id: string }>({
             </div>
           </div>
         </div>
+
+        {/* Drawer skeleton for side-transparent mode during loading */}
+        {drawerMode === "side-transparent" && (
+          <div
+            className={cn(
+              "absolute top-0 right-0 h-full z-40",
+              "w-[45rem]",
+              needCardClass ? "fake-card" : "card-surface",
+              "rounded-l-xl overflow-hidden"
+            )}
+          >
+            <PublicPageSkeleton />
+          </div>
+        )}
       </div>
     );
   }
+
+  // For side-transparent mode: get selected entity to check if content is ready
+  const selectedEntityData = spaceStore.getSelectedEntity(config.entitySchemaName).value;
+  const hasEntityContent = !!selectedEntityData;
 
   return (
     <TooltipProvider>
@@ -1016,8 +1037,9 @@ export function SpaceComponent<T extends { id: string }>({
             "relative flex flex-col cursor-default h-full overflow-hidden",
             needCardClass ? "fake-card" : "card-surface",
             "transition-all duration-300 ease-out",
-            // Only shrink the list for side-transparent mode (xxl+)
-            isDrawerOpen && drawerMode === "side-transparent" && "mr-[46.25rem]" // 45rem + 1.25rem gap
+            // For side-transparent mode (xxl+): ALWAYS reserve space for drawer
+            // This prevents layout shift when drawer content loads
+            drawerMode === "side-transparent" && "mr-[46.25rem]" // 45rem + 1.25rem gap
           )}
         >
           {/* Header */}
@@ -1171,19 +1193,22 @@ export function SpaceComponent<T extends { id: string }>({
         </div>
 
         {/* Drawer for side-transparent mode (outside main content) */}
+        {/* ALWAYS visible on xxl+ screens - shows skeleton or content */}
         {drawerMode === "side-transparent" && (
           <div
             className={cn(
               "absolute top-0 right-0 h-full z-40",
               "w-[45rem]",
               needCardClass ? "fake-card" : "card-surface",
-              "rounded-l-xl overflow-hidden",
-              "transform transition-all duration-300 ease-out",
-              // Show/hide animation
-              isDrawerOpen ? "translate-x-0 opacity-100" : "translate-x-full opacity-0 pointer-events-none"
+              "rounded-l-xl overflow-hidden"
             )}
           >
-            {isDrawerOpen && (children || <Outlet />)}
+            {/* Show content if drawer is open AND entity is loaded, otherwise show skeleton */}
+            {isDrawerOpen && hasEntityContent ? (
+              children || <Outlet />
+            ) : (
+              <PublicPageSkeleton />
+            )}
           </div>
         )}
       </div>
