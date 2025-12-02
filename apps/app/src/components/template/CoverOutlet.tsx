@@ -21,6 +21,8 @@ interface CoverOutletProps {
   isDrawerMode?: boolean;
   // Default tab fragment for expand (from config, e.g., 'achievements')
   defaultTab?: string;
+  // Loading state - shows skeleton when true
+  isLoading?: boolean;
   // Component to render inside the cover
   children?: React.ReactNode;
 }
@@ -48,6 +50,7 @@ export function CoverOutlet({
   coverHeight,
   isDrawerMode = false,
   defaultTab,
+  isLoading = false,
   children,
 }: CoverOutletProps) {
   const navigate = useNavigate();
@@ -55,6 +58,33 @@ export function CoverOutlet({
 
   // Check if already in fullscreen mode
   const isFullscreen = spaceStore.isFullscreen.value;
+
+  // Show skeleton when loading - uses exact same dimensions as real cover
+  if (isLoading) {
+    return (
+      <div
+        className={`relative overflow-hidden rounded-lg mb-6 ${className}`}
+        style={{
+          width: `${coverWidth}px`,
+          maxWidth: `${coverWidth}px`,
+          height: `${coverHeight}px`,
+          maxHeight: `${coverHeight}px`,
+        }}
+      >
+        {/* Background skeleton */}
+        <div className="absolute inset-0 bg-gray-200 dark:bg-gray-700 animate-pulse" />
+
+        {/* Top gradient overlay (same as real cover) */}
+        <div className="absolute top-0 z-10 h-28 w-full bg-gradient-to-b from-gray-300/40 to-transparent dark:from-gray-600/40" />
+
+        {/* Navigation buttons placeholder */}
+        <div className="absolute top-4 right-6 z-40 flex gap-2">
+          <div className="w-8 h-8 rounded-full bg-gray-300/50 dark:bg-gray-600/50" />
+          <div className="w-8 h-8 rounded-full bg-gray-300/50 dark:bg-gray-600/50" />
+        </div>
+      </div>
+    );
+  }
 
   const handleExpand = () => {
     if (!entity) return;

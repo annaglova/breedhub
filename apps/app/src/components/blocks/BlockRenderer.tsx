@@ -9,6 +9,8 @@ interface BlockRendererProps {
   className?: string;
   pageConfig?: PageConfig | null;
   spacePermissions?: SpacePermissions;
+  // Loading state - passed to outlets for skeleton rendering
+  isLoading?: boolean;
 }
 
 /**
@@ -27,6 +29,7 @@ export const BlockRenderer: React.FC<BlockRendererProps> = ({
   className,
   pageConfig,
   spacePermissions,
+  isLoading = false,
 }) => {
   const { outlet, component, ...restConfig } = blockConfig;
 
@@ -46,6 +49,7 @@ export const BlockRenderer: React.FC<BlockRendererProps> = ({
         className={className}
         pageConfig={pageConfig}
         spacePermissions={spacePermissions}
+        isLoading={isLoading}
       />
     );
   }
@@ -115,6 +119,7 @@ export const BlockRenderer: React.FC<BlockRendererProps> = ({
   }
 
   // Render outlet wrapping component
+  // Pass isLoading to outlet - outlet shows skeleton when loading
   return (
     <OutletComponent
       entity={entity}
@@ -123,13 +128,17 @@ export const BlockRenderer: React.FC<BlockRendererProps> = ({
       className={className}
       pageConfig={pageConfig}
       spacePermissions={spacePermissions}
+      isLoading={isLoading}
     >
-      <BlockComponent
-        entity={entity}
-        {...restConfig}
-        pageConfig={pageConfig}
-        spacePermissions={spacePermissions}
-      />
+      {/* Only render block component when not loading */}
+      {!isLoading && (
+        <BlockComponent
+          entity={entity}
+          {...restConfig}
+          pageConfig={pageConfig}
+          spacePermissions={spacePermissions}
+        />
+      )}
     </OutletComponent>
   );
 };

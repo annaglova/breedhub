@@ -22,6 +22,9 @@ interface TabOutletProps {
   pageConfig?: PageConfig | null;
   spacePermissions?: SpacePermissions;
 
+  // Loading state - shows skeleton when true
+  isLoading?: boolean;
+
   // Tab-specific props from block config
   tabs?: Record<string, TabConfig>;
   pageMenuTop?: number;
@@ -55,11 +58,40 @@ export function TabOutlet({
   className = "",
   pageConfig,
   spacePermissions,
+  isLoading = false,
   tabs,
   pageMenuTop = 0,
   tabHeaderTop = 0,
   children,
 }: TabOutletProps) {
+  // Show skeleton when loading - uses tabs config to show correct number of tab headers
+  if (isLoading) {
+    const tabCount = tabs ? Object.keys(tabs).length : 4;
+
+    return (
+      <div className={`mt-4 ${className}`}>
+        {/* Tab headers skeleton */}
+        <div className="flex gap-4 border-b border-gray-200 dark:border-gray-700 pb-2">
+          {Array.from({ length: tabCount }).map((_, i) => (
+            <div
+              key={i}
+              className="h-4 bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse"
+              style={{ width: `${60 + Math.random() * 40}px` }}
+            />
+          ))}
+        </div>
+
+        {/* Tab content skeleton */}
+        <div className="mt-6 space-y-4">
+          <div className="h-4 w-full bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
+          <div className="h-4 w-5/6 bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
+          <div className="h-4 w-4/6 bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
+          <div className="h-32 w-full bg-gray-200 dark:bg-gray-700 rounded-lg mt-6 animate-pulse" />
+        </div>
+      </div>
+    );
+  }
+
   // Validate tabs config
   if (!tabs) {
     if (process.env.NODE_ENV === "development") {

@@ -7,7 +7,6 @@ import { Signal } from "@preact/signals-react";
 import { useSignals } from "@preact/signals-react/runtime";
 import { cn } from "@ui/lib/utils";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { PublicPageSkeleton } from "./PublicPageSkeleton";
 
 /**
  * Get default tab fragment from page config
@@ -284,14 +283,11 @@ export function PublicPageTemplate({
               </div>
             )}
 
-            {/* Show skeleton while entity is loading */}
-            {!selectedEntity && pageConfig && (
-              <PublicPageSkeleton />
-            )}
-
+            {/* Render blocks - each outlet handles its own skeleton via isLoading prop */}
             {pageConfig &&
-              selectedEntity &&
               (() => {
+                // Determine loading state - no entity means loading
+                const isEntityLoading = !selectedEntity;
                 // Sort blocks by order
                 const sortedBlocks = Object.entries(pageConfig.blocks).sort(
                   ([, a], [, b]) => (a.order || 0) - (b.order || 0)
@@ -307,6 +303,7 @@ export function PublicPageTemplate({
                 }
 
                 // Render each block with its appropriate container
+                // Pass isLoading to each block - outlets will show skeletons when loading
                 return sortedBlocks.map(([blockId, blockConfig]) => {
                   // CoverOutlet needs dimensions from parent container + defaultTab for expand
                   if (blockConfig.outlet === "CoverOutlet") {
@@ -323,6 +320,7 @@ export function PublicPageTemplate({
                         entity={selectedEntity}
                         pageConfig={pageConfig}
                         spacePermissions={spacePermissions}
+                        isLoading={isEntityLoading}
                       />
                     );
                   }
@@ -339,6 +337,7 @@ export function PublicPageTemplate({
                         entity={selectedEntity}
                         pageConfig={pageConfig}
                         spacePermissions={spacePermissions}
+                        isLoading={isEntityLoading}
                       />
                     );
                   }
@@ -362,6 +361,7 @@ export function PublicPageTemplate({
                           entity={selectedEntity}
                           pageConfig={pageConfig}
                           spacePermissions={spacePermissions}
+                          isLoading={isEntityLoading}
                         />
                       </div>
                     );
@@ -381,6 +381,7 @@ export function PublicPageTemplate({
                         entity={selectedEntity}
                         pageConfig={pageConfig}
                         spacePermissions={spacePermissions}
+                        isLoading={isEntityLoading}
                       />
                     );
                   }
@@ -394,6 +395,7 @@ export function PublicPageTemplate({
                       className="mb-4"
                       pageConfig={pageConfig}
                       spacePermissions={spacePermissions}
+                      isLoading={isEntityLoading}
                     />
                   );
                 });

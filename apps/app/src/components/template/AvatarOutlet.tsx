@@ -32,6 +32,9 @@ interface AvatarOutletProps {
   pageConfig?: PageConfig | null;
   spacePermissions?: SpacePermissions;
 
+  // Loading state - shows skeleton when true
+  isLoading?: boolean;
+
   // Legacy handlers (deprecated - use pageConfig.menus instead)
   onEdit?: () => void;
   onMoreOptions?: () => void;
@@ -58,10 +61,34 @@ export function AvatarOutlet({
   className = '',
   pageConfig,
   spacePermissions = { canEdit: true, canDelete: false, canAdd: false },
+  isLoading = false,
   onEdit,
   onMoreOptions,
   children,
 }: AvatarOutletProps) {
+  // Show skeleton when loading - respects hasAvatar/hasActions from config
+  if (isLoading) {
+    return (
+      <div className={`-mt-32 flex flex-auto items-end relative pb-3 top-0 z-30 px-6 pointer-events-none ${className}`}>
+        {/* Avatar skeleton - only if hasAvatar */}
+        {hasAvatar && (
+          <div
+            className="rounded-full bg-gray-300 dark:bg-gray-600 ring-4 ring-white dark:ring-gray-900 shrink-0 animate-pulse"
+            style={{ width: AVATAR_SIZE, height: AVATAR_SIZE }}
+          />
+        )}
+
+        {/* Action buttons skeleton - only if hasActions */}
+        {hasActions && (
+          <div className="mb-1 ml-auto flex gap-2">
+            <div className="w-20 h-10 rounded-full bg-gray-200 dark:bg-gray-700 animate-pulse" />
+            <div className="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700 animate-pulse" />
+          </div>
+        )}
+      </div>
+    );
+  }
+
   // Get menu items for avatar context
   const menuItems = usePageMenu({
     pageConfig: pageConfig || null,
