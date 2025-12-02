@@ -1,6 +1,5 @@
 import { BlockRenderer } from "@/components/blocks/BlockRenderer";
 import { SpaceProvider } from "@/contexts/SpaceContext";
-import { useCoverDimensions } from "@/hooks/useCoverDimensions";
 import { getPageConfig } from "@/utils/getPageConfig";
 import { spaceStore } from "@breedhub/rxdb-store";
 import { Signal } from "@preact/signals-react";
@@ -115,12 +114,9 @@ export function PublicPageTemplate({
     });
   }
 
-  // Ref to content container for cover dimension calculation
+  // Refs for sticky behavior
   const contentContainerRef = useRef<HTMLDivElement>(null);
   const nameContainerRef = useRef<HTMLDivElement>(null);
-
-  // Calculate cover dimensions based on content container width
-  const coverDimensions = useCoverDimensions(contentContainerRef);
 
   // Track if name container is stuck to top
   const [nameOnTop, setNameOnTop] = useState(false);
@@ -305,15 +301,13 @@ export function PublicPageTemplate({
                 // Render each block with its appropriate container
                 // Pass isLoading to each block - outlets will show skeletons when loading
                 return sortedBlocks.map(([blockId, blockConfig]) => {
-                  // CoverOutlet needs dimensions from parent container + defaultTab for expand
+                  // CoverOutlet calculates its own dimensions + needs defaultTab for expand
                   if (blockConfig.outlet === "CoverOutlet") {
                     return (
                       <BlockRenderer
                         key={blockId}
                         blockConfig={{
                           ...blockConfig,
-                          coverWidth: coverDimensions.width,
-                          coverHeight: coverDimensions.height,
                           isDrawerMode,
                           defaultTab: getDefaultTabFragment(pageConfig),
                         }}

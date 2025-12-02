@@ -30,7 +30,6 @@ import {
   normalizeForUrl,
 } from "./utils/filter-url-helpers";
 import { ViewChanger } from "./ViewChanger";
-import { PublicPageSkeleton } from "@/components/template/PublicPageSkeleton";
 
 interface SpaceComponentProps<T> {
   configSignal: Signal<any>; // TODO: Define proper SpaceConfig type from DB structure
@@ -1007,7 +1006,7 @@ export function SpaceComponent<T extends { id: string }>({
           </div>
         </div>
 
-        {/* Drawer skeleton for side-transparent mode during loading */}
+        {/* Drawer for side-transparent mode - always visible on xxl+ */}
         {drawerMode === "side-transparent" && (
           <div
             className={cn(
@@ -1017,16 +1016,13 @@ export function SpaceComponent<T extends { id: string }>({
               "rounded-l-xl overflow-hidden"
             )}
           >
-            <PublicPageSkeleton />
+            {/* PublicPageTemplate handles its own loading skeletons via outlets */}
+            {children || <Outlet />}
           </div>
         )}
       </div>
     );
   }
-
-  // For side-transparent mode: get selected entity to check if content is ready
-  const selectedEntityData = spaceStore.getSelectedEntity(config.entitySchemaName).value;
-  const hasEntityContent = !!selectedEntityData;
 
   return (
     <TooltipProvider>
@@ -1203,12 +1199,8 @@ export function SpaceComponent<T extends { id: string }>({
               "rounded-l-xl overflow-hidden"
             )}
           >
-            {/* Show content if drawer is open AND entity is loaded, otherwise show skeleton */}
-            {isDrawerOpen && hasEntityContent ? (
-              children || <Outlet />
-            ) : (
-              <PublicPageSkeleton />
-            )}
+            {/* Show content - PublicPageTemplate handles its own loading skeletons via outlets */}
+            {children || <Outlet />}
           </div>
         )}
       </div>
