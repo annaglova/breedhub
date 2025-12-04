@@ -69,9 +69,9 @@ export function TabOutlet({
     const tabCount = tabs ? Object.keys(tabs).length : 4;
 
     return (
-      <div className={`mt-4 ${className}`}>
+      <div className={`mt-9 ${className}`}>
         {/* Tab headers skeleton */}
-        <div className="flex gap-4 border-b border-gray-200 dark:border-gray-700 pb-2">
+        <div className="flex gap-4 border-b border-gray-200 dark:border-gray-700 pb-4">
           {Array.from({ length: tabCount }).map((_, i) => (
             <div
               key={i}
@@ -82,11 +82,13 @@ export function TabOutlet({
         </div>
 
         {/* Tab content skeleton */}
-        <div className="mt-6 space-y-4">
-          <div className="h-4 w-full bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
-          <div className="h-4 w-5/6 bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
-          <div className="h-4 w-4/6 bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
-          <div className="h-32 w-full bg-gray-200 dark:bg-gray-700 rounded-lg mt-6 animate-pulse" />
+        <div className="mt-6 space-y-5">
+          <div className="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded-lg animate-pulse" />
+          <div className="space-y-5 px-5">
+            <div className="h-32 w-full bg-gray-200 dark:bg-gray-700 rounded-lg mt-6 animate-pulse" />
+            <div className="h-32 w-full bg-gray-200 dark:bg-gray-700 rounded-lg mt-6 animate-pulse" />
+            <div className="h-32 w-full bg-gray-200 dark:bg-gray-700 rounded-lg mt-6 animate-pulse" />
+          </div>
         </div>
       </div>
     );

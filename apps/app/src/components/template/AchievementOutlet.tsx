@@ -10,6 +10,9 @@ interface AchievementOutletProps {
   pageConfig?: PageConfig | null;
   spacePermissions?: SpacePermissions;
 
+  // Loading state - shows skeleton when true
+  isLoading?: boolean;
+
   // Component to render inside the outlet
   children?: React.ReactNode;
 }
@@ -28,8 +31,21 @@ export function AchievementOutlet({
   className = "",
   pageConfig,
   spacePermissions,
+  isLoading = false,
   children,
 }: AchievementOutletProps) {
+  // Show skeleton when loading - 3 chip placeholders
+  if (isLoading) {
+    return (
+      <div className={`flex flex-wrap gap-2  ${className}`}>
+        {/* Chip skeleton placeholders */}
+        <div className="h-7 w-32 rounded-full bg-gray-200 dark:bg-gray-700 animate-pulse" />
+        <div className="h-7 w-40 rounded-full bg-gray-200 dark:bg-gray-700 animate-pulse" />
+        <div className="h-7 w-28 rounded-full bg-gray-200 dark:bg-gray-700 animate-pulse" />
+      </div>
+    );
+  }
+
   return (
     <div className={` ${className}`}>
       {/* Achievement content - entity-specific component via children */}

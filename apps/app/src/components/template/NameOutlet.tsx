@@ -84,7 +84,7 @@ export function NameOutlet({
   if (isLoading) {
     return (
       <div className={`relative bg-card-ground ${className}`}>
-        <div className="flex flex-col space-y-5 pb-10 pt-1">
+        <div className="flex flex-col space-y-4 pb-5 pt-1">
           {/* Additional info skeleton */}
           <div className="h-4 w-32 bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
 
