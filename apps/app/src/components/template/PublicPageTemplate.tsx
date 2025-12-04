@@ -310,6 +310,7 @@ export function PublicPageTemplate({
                           ...blockConfig,
                           isDrawerMode,
                           defaultTab: getDefaultTabFragment(pageConfig),
+                          entityType, // For per-space navigation history
                         }}
                         entity={selectedEntity}
                         pageConfig={pageConfig}
@@ -351,6 +352,7 @@ export function PublicPageTemplate({
                             // In fullscreen mode, don't link to self
                             // In drawer mode, link to fullscreen page
                             linkToFullscreen: !isFullscreenMode,
+                            entityType, // For per-space navigation history
                           }}
                           entity={selectedEntity}
                           pageConfig={pageConfig}

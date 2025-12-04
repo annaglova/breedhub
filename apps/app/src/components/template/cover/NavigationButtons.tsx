@@ -17,6 +17,7 @@ import { useSignals } from "@preact/signals-react/runtime";
 interface NavigationButtonsProps {
   mode?: "default" | "white";
   className?: string;
+  entityType?: string; // Required for per-space history
 }
 
 /**
@@ -26,18 +27,21 @@ interface NavigationButtonsProps {
  *
  * Two buttons in a group:
  * - Left: Back button (arrow-left) - returns to previous page
- * - Right: Navigate button (angle-down) - opens history menu with last 5 pages
+ * - Right: Navigate button (angle-down) - opens history menu with last 5 pages for current space
  */
 export function NavigationButtons({
   mode = "white",
   className = "",
+  entityType,
 }: NavigationButtonsProps) {
   useSignals();
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Get history excluding current page
-  const historyEntries = navigationHistoryStore.getHistoryExcludingCurrent(location.pathname);
+  // Get history for current entity type (excluding current page)
+  const historyEntries = entityType
+    ? navigationHistoryStore.getHistoryForType(entityType, location.pathname)
+    : [];
   const hasHistory = historyEntries.length > 0;
 
   const handleBack = () => {

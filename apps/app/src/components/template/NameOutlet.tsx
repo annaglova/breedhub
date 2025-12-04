@@ -30,6 +30,9 @@ interface NameOutletProps {
   pageConfig?: PageConfig | null;
   spacePermissions?: SpacePermissions;
 
+  // Entity type for per-space navigation history
+  entityType?: string;
+
   // Legacy handlers (deprecated - use pageConfig.menus instead)
   onSupport?: () => void;
   onMoreOptions?: () => void;
@@ -56,6 +59,7 @@ export function NameOutlet({
   onTop = false,
   pageConfig,
   spacePermissions = { canEdit: true, canDelete: false, canAdd: false },
+  entityType,
   onSupport,
   onMoreOptions,
   children,
@@ -113,7 +117,7 @@ export function NameOutlet({
       {/* Navigation buttons - top right (default/gray when sticky) */}
       {onTop && (
         <div className="absolute right-0 top-0">
-          <NavigationButtons mode="default" />
+          <NavigationButtons mode="default" entityType={entityType} />
         </div>
       )}
 

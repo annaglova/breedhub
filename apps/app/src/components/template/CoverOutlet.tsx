@@ -33,6 +33,8 @@ interface CoverOutletProps {
   defaultTab?: string;
   // Loading state - shows skeleton when true
   isLoading?: boolean;
+  // Entity type for per-space navigation history
+  entityType?: string;
   // Component to render inside the cover
   children?: React.ReactNode;
 }
@@ -59,6 +61,7 @@ export function CoverOutlet({
   isDrawerMode = false,
   defaultTab,
   isLoading = false,
+  entityType,
   children,
 }: CoverOutletProps) {
   const navigate = useNavigate();
@@ -222,7 +225,7 @@ export function CoverOutlet({
               <TooltipContent side="bottom">Full screen view</TooltipContent>
             </Tooltip>
           )}
-          <NavigationButtons mode="white" className="sticky top-0 ml-auto" />
+          <NavigationButtons mode="white" className="sticky top-0 ml-auto" entityType={entityType} />
         </div>
 
         {/* Gradient overlay */}

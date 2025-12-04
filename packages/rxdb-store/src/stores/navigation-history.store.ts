@@ -9,32 +9,35 @@ const MAX_HISTORY_SIZE = 5;
 export interface NavigationEntry {
   path: string;       // Full URL path (e.g., "/affenpinscher")
   title: string;      // Human-readable title (e.g., "Affenpinscher")
-  entityType?: string; // Optional entity type (e.g., "breed")
+  entityType: string; // Entity type (e.g., "breed") - required for space-based history
   timestamp: number;  // When the page was visited
+}
+
+/**
+ * History storage structure - per entity type
+ */
+interface HistoryStorage {
+  [entityType: string]: NavigationEntry[];
 }
 
 /**
  * NavigationHistoryStore
  *
- * Stores the last 5 visited pages in localStorage for quick navigation.
+ * Stores the last 5 visited pages PER ENTITY TYPE in localStorage.
  * Used by NavigationButtons dropdown menu.
  *
  * Features:
+ * - Per-space history (breeds have their own history, pets have their own, etc.)
  * - Persists to localStorage (survives page refresh)
- * - Max 5 entries (removes oldest when adding new)
+ * - Max 5 entries per entity type
  * - Deduplicates consecutive visits to same page
  * - Works in PWA offline mode
  */
 class NavigationHistoryStore {
   private static instance: NavigationHistoryStore;
 
-  // Reactive state
-  private _history = signal<NavigationEntry[]>([]);
-
-  // Computed values
-  history = computed(() => this._history.value);
-  hasHistory = computed(() => this._history.value.length > 0);
-  isEmpty = computed(() => this._history.value.length === 0);
+  // Reactive state - all history by entity type
+  private _historyByType = signal<HistoryStorage>({});
 
   private constructor() {
     this.loadFromStorage();
@@ -48,17 +51,18 @@ class NavigationHistoryStore {
   }
 
   /**
-   * Add a page to navigation history
+   * Add a page to navigation history for specific entity type
    *
-   * @param path - URL path (e.g., "/affenpinscher" or "/breeds")
+   * @param path - URL path (e.g., "/affenpinscher")
    * @param title - Human-readable title
-   * @param entityType - Optional entity type for styling
+   * @param entityType - Entity type (e.g., "breed") - required
    */
-  addEntry(path: string, title: string, entityType?: string): void {
-    const currentHistory = this._history.value;
+  addEntry(path: string, title: string, entityType: string): void {
+    const allHistory = this._historyByType.value;
+    const typeHistory = allHistory[entityType] || [];
 
-    // Don't add if same as most recent entry
-    if (currentHistory.length > 0 && currentHistory[0].path === path) {
+    // Don't add if same as most recent entry for this type
+    if (typeHistory.length > 0 && typeHistory[0].path === path) {
       return;
     }
 
@@ -76,36 +80,54 @@ class NavigationHistoryStore {
     };
 
     // Remove any existing entry with same path (to avoid duplicates)
-    const filteredHistory = currentHistory.filter(entry => entry.path !== path);
+    const filteredHistory = typeHistory.filter(entry => entry.path !== path);
 
     // Add new entry at the beginning, limit to MAX_HISTORY_SIZE
-    const newHistory = [newEntry, ...filteredHistory].slice(0, MAX_HISTORY_SIZE);
+    const newTypeHistory = [newEntry, ...filteredHistory].slice(0, MAX_HISTORY_SIZE);
 
-    this._history.value = newHistory;
+    this._historyByType.value = {
+      ...allHistory,
+      [entityType]: newTypeHistory,
+    };
+
     this.saveToStorage();
   }
 
   /**
-   * Remove a specific entry from history
+   * Get history for specific entity type (excluding current page)
    */
-  removeEntry(path: string): void {
-    this._history.value = this._history.value.filter(entry => entry.path !== path);
+  getHistoryForType(entityType: string, currentPath?: string): NavigationEntry[] {
+    const typeHistory = this._historyByType.value[entityType] || [];
+    if (currentPath) {
+      return typeHistory.filter(entry => entry.path !== currentPath);
+    }
+    return typeHistory;
+  }
+
+  /**
+   * Check if entity type has any history
+   */
+  hasHistoryForType(entityType: string): boolean {
+    const typeHistory = this._historyByType.value[entityType] || [];
+    return typeHistory.length > 0;
+  }
+
+  /**
+   * Clear history for specific entity type
+   */
+  clearHistoryForType(entityType: string): void {
+    const allHistory = this._historyByType.value;
+    const { [entityType]: _, ...rest } = allHistory;
+    this._historyByType.value = rest;
     this.saveToStorage();
   }
 
   /**
    * Clear all navigation history
    */
-  clearHistory(): void {
-    this._history.value = [];
+  clearAllHistory(): void {
+    this._historyByType.value = {};
     this.saveToStorage();
-  }
-
-  /**
-   * Get history entries (excluding current page)
-   */
-  getHistoryExcludingCurrent(currentPath: string): NavigationEntry[] {
-    return this._history.value.filter(entry => entry.path !== currentPath);
   }
 
   /**
@@ -116,13 +138,17 @@ class NavigationHistoryStore {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored) {
         const parsed = JSON.parse(stored);
+        // Handle old format (array) - clear it
         if (Array.isArray(parsed)) {
-          this._history.value = parsed;
+          this._historyByType.value = {};
+          this.saveToStorage();
+        } else if (typeof parsed === 'object') {
+          this._historyByType.value = parsed;
         }
       }
     } catch (e) {
       console.warn('[NavigationHistoryStore] Failed to load from storage:', e);
-      this._history.value = [];
+      this._historyByType.value = {};
     }
   }
 
@@ -131,7 +157,7 @@ class NavigationHistoryStore {
    */
   private saveToStorage(): void {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(this._history.value));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(this._historyByType.value));
     } catch (e) {
       console.warn('[NavigationHistoryStore] Failed to save to storage:', e);
     }
