@@ -134,13 +134,14 @@ class NavigationHistoryStore {
   }
 
   /**
-   * Format title with proper capitalization
+   * Format title to UPPERCASE
    */
   private formatTitle(title: string): string {
-    return title
-      .split(/[-\s]+/)
-      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-      .join(' ');
+    if (!title) return '';
+    // Replace dashes with spaces and convert to UPPERCASE
+    const formatted = title.replace(/-/g, ' ').toUpperCase();
+    console.log('[NavigationHistory] formatTitle:', title, '->', formatted);
+    return formatted;
   }
 
   /**

@@ -105,7 +105,7 @@ export function NavigationButtons({
         </Tooltip>
 
         {hasHistory && (
-          <DropdownMenuContent align="start" className="w-56">
+          <DropdownMenuContent align="end" className="w-56">
             {historyEntries.map((entry) => (
               <DropdownMenuItem
                 key={entry.path}
