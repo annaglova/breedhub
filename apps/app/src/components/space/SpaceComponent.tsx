@@ -989,20 +989,77 @@ export function SpaceComponent<T extends { id: string }>({
                   }))}
                 />
               </div>
-              {spaceStore.configReady.value && (
-                <EntitiesCounter
-                  entitiesCount={0}
-                  total={0}
-                  entityType={config.entitySchemaName}
-                  initialCount={rowsPerPage}
+              <EntitiesCounter
+                entitiesCount={0}
+                total={0}
+                entityType={config.entitySchemaName}
+                initialCount={rowsPerPage}
+              />
+            </div>
+
+            {/* Search + Add button */}
+            <div className="mt-4 flex items-center space-x-3">
+              <div className="relative w-full">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  type="text"
+                  value=""
+                  readOnly
+                  placeholder={config?.naming?.searchPlaceholder || `Search ${config?.label || 'entities'}...`}
+                  className="pl-10 rounded-full w-full cursor-auto"
                 />
+              </div>
+
+              {finalConfig.canAdd && (
+                <Button
+                  className={cn(
+                    "rounded-full font-bold flex-shrink-0",
+                    needCardClass
+                      ? "h-10 px-4"
+                      : "w-10 h-10 flex items-center justify-center"
+                  )}
+                >
+                  <Plus className="h-5 w-5 flex-shrink-0" />
+                  {needCardClass && (
+                    <span className="text-base font-semibold">Add</span>
+                  )}
+                </Button>
               )}
             </div>
+
+            {/* Filters */}
+            <FiltersSection
+              className="mt-4"
+              sortOptions={sortOptions}
+              defaultSortOption={selectedSortOption}
+              onSortChange={() => {}}
+              filterFields={filterFields}
+              filters={[]}
+              onFilterRemove={() => {}}
+              onFiltersApply={() => {}}
+              currentFilterValues={{}}
+            />
           </div>
-          <div className="flex-1 flex items-center justify-center">
-            <div className="text-gray-500">
-              Loading {config?.naming?.plural?.other || config?.label || 'entities'}...
-            </div>
+
+          {/* SpaceView with skeletons */}
+          <div className="relative flex-1 overflow-hidden">
+            <SpaceView
+              viewConfig={{
+                viewType: viewMode,
+                component:
+                  finalConfig.viewConfigs?.find(v => v.viewType === viewMode)?.component ||
+                  "GenericListCard",
+                itemHeight: viewMode === "grid" ? 280 : 68,
+                dividers: viewMode === "list" || viewMode === "rows",
+                overscan: 3,
+              }}
+              entities={[]}
+              isLoading={true}
+            />
+            <div
+              className="bg-card-ground w-full absolute bottom-0"
+              style={{ height: 'var(--content-padding, 1rem)' }}
+            />
           </div>
         </div>
 

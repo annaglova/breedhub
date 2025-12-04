@@ -126,13 +126,9 @@ export function SpacePage({ entityType, selectedEntityId, selectedSlug, tabSlug 
     [entityType]
   );
 
-  // Show loading state if config not ready
+  // Config should be pre-generated and always available
   if (!spaceConfigSignal.value) {
-    return (
-      <div className="p-8 text-center">
-        <p className="text-gray-600">Loading space configuration...</p>
-      </div>
-    );
+    return null;
   }
 
   // When selectedEntityId is provided (from SlugResolver/TabPageResolver), render with pre-selected entity
