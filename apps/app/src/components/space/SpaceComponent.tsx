@@ -1,7 +1,7 @@
 import { mediaQueries } from "@/config/breakpoints";
 import { SpaceConfig } from "@/core/space/types";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
-import { getDatabase, spaceStore, routeStore, navigationHistoryStore } from "@breedhub/rxdb-store";
+import { getDatabase, spaceStore, routeStore } from "@breedhub/rxdb-store";
 import { useSignals } from "@preact/signals-react/runtime";
 import { Signal } from "@preact/signals-react";
 import { Button } from "@ui/components/button";
@@ -634,9 +634,8 @@ export function SpaceComponent<T extends { id: string }>({
         model: config.entitySchemaModel || config.entitySchemaName
       });
 
-      // Add to navigation history with entity name
-      const title = entity.name || slug;
-      navigationHistoryStore.addEntry(`/${slug}`, title, config.entitySchemaName);
+      // Note: Navigation history is only saved for fullscreen pages (in SlugResolver)
+      // Drawer mode clicks are quick previews, not "full visits"
 
       navigate(`${slug}${location.search}#overview`);
     },
