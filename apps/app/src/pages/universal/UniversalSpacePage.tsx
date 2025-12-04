@@ -14,7 +14,7 @@ import {
 
 // Generic hook for entities (will be replaced with SpaceStore later)
 function useGenericEntities(entityType: string) {
-  return (params: { rows: number; from: number }) => {
+  return (params: { recordsCount: number; from: number }) => {
     // TODO: Replace with SpaceStore.getEntityStore(entityType)
     return {
       data: { entities: [], total: 0 },

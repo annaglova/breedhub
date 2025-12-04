@@ -33,7 +33,7 @@ import { ViewChanger } from "./ViewChanger";
 
 interface SpaceComponentProps<T> {
   configSignal: Signal<any>; // TODO: Define proper SpaceConfig type from DB structure
-  useEntitiesHook: (params: { rows: number; from: number }) => {
+  useEntitiesHook: (params: { recordsCount: number; from: number }) => {
     data: { entities: T[]; total: number } | undefined;
     isLoading: boolean;
     error: Error | null;
@@ -87,13 +87,12 @@ export function SpaceComponent<T extends { id: string }>({
   // Using .value makes the component re-render when selection changes
   const selectedEntityId = spaceStore.getSelectedIdSignal(config.entitySchemaName).value;
 
-  // Get rows from view config (динамічно!)
-  const rowsPerPage = useMemo(() => {
+  // Get records count from view config (динамічно!)
+  const recordsCount = useMemo(() => {
     if (!spaceStore.configReady.value) {
       return 30; // Simple fallback - won't cause loading because useEntities waits for configReady
     }
-    const rows = spaceStore.getViewRows(config.entitySchemaName, viewMode);
-    return rows;
+    return spaceStore.getViewRecordsCount(config.entitySchemaName, viewMode);
   }, [config.entitySchemaName, viewMode, spaceStore.configReady.value]);
 
   // Get sort options from view config
@@ -390,7 +389,7 @@ export function SpaceComponent<T extends { id: string }>({
     isLoadingMore,
     loadMore,
   } = useEntitiesHook({
-    rows: rowsPerPage,
+    recordsCount: recordsCount,
     from: 0,
     filters,
     orderBy,
@@ -993,7 +992,7 @@ export function SpaceComponent<T extends { id: string }>({
                 entitiesCount={0}
                 total={0}
                 entityType={config.entitySchemaName}
-                initialCount={rowsPerPage}
+                initialCount={recordsCount}
               />
             </div>
 
@@ -1052,7 +1051,7 @@ export function SpaceComponent<T extends { id: string }>({
                 itemHeight: viewMode === "grid" ? 280 : 68,
                 dividers: viewMode === "list" || viewMode === "rows",
                 overscan: 3,
-                skeletonCount: Math.ceil(rowsPerPage / 2),
+                skeletonCount: Math.ceil(recordsCount / 2),
               }}
               entities={[]}
               isLoading={true}
@@ -1122,7 +1121,7 @@ export function SpaceComponent<T extends { id: string }>({
                   entitiesCount={allEntities.length}
                   total={totalCount}
                   entityType={config.entitySchemaName}
-                  initialCount={rowsPerPage}
+                  initialCount={recordsCount}
                 />
               )}
             </div>
@@ -1192,7 +1191,7 @@ export function SpaceComponent<T extends { id: string }>({
                 itemHeight: viewMode === "grid" ? 280 : 68,
                 dividers: viewMode === "list" || viewMode === "rows",
                 overscan: 3,
-                skeletonCount: Math.ceil(rowsPerPage / 2),
+                skeletonCount: Math.ceil(recordsCount / 2),
               }}
               entities={allEntities}
               selectedId={selectedEntityId}

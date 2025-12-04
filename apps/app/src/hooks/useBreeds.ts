@@ -5,7 +5,7 @@ import { useEntities } from './useEntities';
  * Now uses the universal useEntities hook with ID-First support
  */
 export function useBreeds(params: {
-  rows?: number;
+  recordsCount?: number;
   from?: number;
   filters?: any;
   orderBy?: {
@@ -16,7 +16,7 @@ export function useBreeds(params: {
 } = {}) {
   return useEntities({
     entityType: 'breed',
-    rows: params.rows || 50,
+    recordsCount: params.recordsCount || 50,
     from: params.from || 0,
     filters: params.filters,
     orderBy: params.orderBy

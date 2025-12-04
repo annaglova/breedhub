@@ -39,7 +39,7 @@ interface SpaceConfig {
   fields?: Record<string, FieldConfig>;
   sort_fields?: Record<string, any>;
   filter_fields?: Record<string, any>;
-  rows?: number;
+  recordsCount?: number;
   pages?: Record<string, any>;
   views?: Record<string, any>;
   canAdd?: boolean;
@@ -321,7 +321,7 @@ class SpaceStore {
               fields: Object.fromEntries(uniqueFields),
               sort_fields: normalizedSortFields,
               filter_fields: normalizedFilterFields,
-              rows: space.rows,
+              recordsCount: space.recordsCount,
               pages: space.pages,
               views: space.views,
               canAdd: space.canAdd,
@@ -404,13 +404,13 @@ class SpaceStore {
   }
 
   /**
-   * Get default rows for entity (used for replication batch size)
-   * Takes the first view's rows or falls back to space-level rows
+   * Get default records count for entity (used for replication batch size)
+   * Takes the first view's recordsCount or falls back to space-level recordsCount
    *
    * @param entityType - Entity type (e.g., 'breed', 'animal')
-   * @returns Number of rows, or default 50
+   * @returns Number of records, or default 50
    */
-  getDefaultViewRows(entityType: string): number {
+  getDefaultRecordsCount(entityType: string): number {
     let spaceConfig = this.spaceConfigs.get(entityType);
 
     if (!spaceConfig) {
@@ -424,39 +424,39 @@ class SpaceStore {
     }
 
     if (!spaceConfig) {
-      console.warn(`[SpaceStore] No space config found for ${entityType}, using default rows: 50`);
+      console.warn(`[SpaceStore] No space config found for ${entityType}, using default recordsCount: 50`);
       return 50;
     }
 
-    // Get rows from first view (most common case)
+    // Get recordsCount from first view (most common case)
     if (spaceConfig.views) {
       for (const [viewKey, viewConfig] of Object.entries(spaceConfig.views)) {
-        if (viewConfig.rows) {
-          console.log(`[SpaceStore] Default rows for ${entityType}: ${viewConfig.rows} (from first view ${viewKey})`);
-          return viewConfig.rows;
+        if (viewConfig.recordsCount) {
+          console.log(`[SpaceStore] Default recordsCount for ${entityType}: ${viewConfig.recordsCount} (from first view ${viewKey})`);
+          return viewConfig.recordsCount;
         }
       }
     }
 
-    // Fallback to space level rows
-    if (spaceConfig.rows) {
-      console.log(`[SpaceStore] Default rows for ${entityType}: ${spaceConfig.rows} (from space config)`);
-      return spaceConfig.rows;
+    // Fallback to space level recordsCount
+    if (spaceConfig.recordsCount) {
+      console.log(`[SpaceStore] Default recordsCount for ${entityType}: ${spaceConfig.recordsCount} (from space config)`);
+      return spaceConfig.recordsCount;
     }
 
-    console.warn(`[SpaceStore] No rows config found for ${entityType}, using default: 50`);
+    console.warn(`[SpaceStore] No recordsCount config found for ${entityType}, using default: 50`);
     return 50;
   }
 
   /**
-   * Get rows per page for specific view
+   * Get records count for specific view
    * This determines BOTH UI pagination AND replication batch size
    *
    * @param entityType - Entity type (e.g., 'breed', 'animal')
    * @param viewType - View type (e.g., 'list', 'grid')
-   * @returns Number of rows configured for this view, or default 50
+   * @returns Number of records configured for this view, or default 50
    */
-  getViewRows(entityType: string, viewType: string): number {
+  getViewRecordsCount(entityType: string, viewType: string): number {
     // Try exact match first
     let spaceConfig = this.spaceConfigs.get(entityType);
 
@@ -472,27 +472,27 @@ class SpaceStore {
     }
 
     if (!spaceConfig) {
-      console.warn(`[SpaceStore] No space config found for ${entityType}, using default rows: 50`);
+      console.warn(`[SpaceStore] No space config found for ${entityType}, using default recordsCount: 50`);
       return 50;
     }
 
     // Try to find view config by viewType inside views object
-    // views structure: { "config_view_123": { viewType: "list", rows: 60, ... }, ... }
+    // views structure: { "config_view_123": { viewType: "list", recordsCount: 60, ... }, ... }
     if (spaceConfig.views) {
       for (const [viewKey, viewConfig] of Object.entries(spaceConfig.views)) {
-        if (viewConfig.viewType === viewType && viewConfig.rows) {
-          return viewConfig.rows;
+        if (viewConfig.viewType === viewType && viewConfig.recordsCount) {
+          return viewConfig.recordsCount;
         }
       }
     }
 
-    // Fallback to space level rows
-    if (spaceConfig.rows) {
-      return spaceConfig.rows;
+    // Fallback to space level recordsCount
+    if (spaceConfig.recordsCount) {
+      return spaceConfig.recordsCount;
     }
 
     // Final fallback
-    console.warn(`[SpaceStore] No rows config found for ${entityType}/${viewType}, using default: 50`);
+    console.warn(`[SpaceStore] No recordsCount config found for ${entityType}/${viewType}, using default: 50`);
     return 50;
   }
 

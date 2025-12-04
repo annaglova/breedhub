@@ -4,7 +4,7 @@ import { useSignals } from '@preact/signals-react/runtime';
 
 interface UseEntitiesParams {
   entityType: string;
-  rows?: number;
+  recordsCount?: number;
   from?: number;
   filters?: Record<string, any>;
   orderBy?: {
@@ -25,7 +25,7 @@ interface UseEntitiesParams {
  */
 export function useEntities({
   entityType,
-  rows = 50,
+  recordsCount = 50,
   from = 0,
   filters,
   orderBy
@@ -65,7 +65,7 @@ export function useEntities({
         entityType,
         filters || {},
         {
-          limit: rows,
+          limit: recordsCount,
           cursor,
           orderBy: orderBy || { field: 'name', direction: 'asc' }
         }
@@ -105,7 +105,7 @@ export function useEntities({
       isLoadingRef.current = false;
       setIsLoadingMore(false);
     }
-  }, [entityType, filters, orderBy, rows, cursor, hasMore, useIDFirst]);
+  }, [entityType, filters, orderBy, recordsCount, cursor, hasMore, useIDFirst]);
 
   // ID-First mode: Initial load effect + subscribe to totalFromServer
   useEffect(() => {
@@ -157,7 +157,7 @@ export function useEntities({
           entityType,
           filters || {},
           {
-            limit: rows,
+            limit: recordsCount,
             cursor: null,
             orderBy: orderBy || { field: 'name', direction: 'asc' }
           }
@@ -219,7 +219,7 @@ export function useEntities({
         unsubscribeTotal();
       }
     };
-  }, [entityType, filters, orderBy, rows, useIDFirst]);
+  }, [entityType, filters, orderBy, recordsCount, useIDFirst]);
 
   // Manual replication mode: Subscribe to entityList (backward compatibility)
   useEffect(() => {
