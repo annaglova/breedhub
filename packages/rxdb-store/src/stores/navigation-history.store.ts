@@ -67,10 +67,7 @@ class NavigationHistoryStore {
     }
 
     // Capitalize first letter of each word for consistent display
-    const formattedTitle = title
-      .split(/[-\s]+/)
-      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-      .join(' ');
+    const formattedTitle = this.formatTitle(title);
 
     const newEntry: NavigationEntry = {
       path,
@@ -131,6 +128,16 @@ class NavigationHistoryStore {
   }
 
   /**
+   * Format title with proper capitalization
+   */
+  private formatTitle(title: string): string {
+    return title
+      .split(/[-\s]+/)
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(' ');
+  }
+
+  /**
    * Load history from localStorage
    */
   private loadFromStorage(): void {
@@ -143,7 +150,16 @@ class NavigationHistoryStore {
           this._historyByType.value = {};
           this.saveToStorage();
         } else if (typeof parsed === 'object') {
-          this._historyByType.value = parsed;
+          // Re-format titles on load to fix any lowercase entries
+          const formatted: HistoryStorage = {};
+          for (const [entityType, entries] of Object.entries(parsed)) {
+            formatted[entityType] = (entries as NavigationEntry[]).map(entry => ({
+              ...entry,
+              title: this.formatTitle(entry.title),
+            }));
+          }
+          this._historyByType.value = formatted;
+          this.saveToStorage(); // Save formatted version
         }
       }
     } catch (e) {
