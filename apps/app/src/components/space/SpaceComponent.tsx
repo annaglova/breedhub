@@ -953,6 +953,27 @@ export function SpaceComponent<T extends { id: string }>({
     );
   }
 
+  // FULLSCREEN MODE OPTIMIZATION
+  // When in fullscreen mode (pretty URL like /affenpinscher or /affenpinscher/achievements),
+  // don't render the Space list content (header, filters, entities) underneath the drawer.
+  // Only render the fullscreen drawer with children.
+  // This prevents unnecessary rendering and potential flashing.
+  if (isFullscreen && initialSelectedEntityId) {
+    return (
+      <div className="relative h-full overflow-hidden">
+        <div
+          className={cn(
+            "absolute inset-0 z-40",
+            needCardClass ? "fake-card" : "card-surface",
+            "overflow-hidden"
+          )}
+        >
+          {children || <Outlet />}
+        </div>
+      </div>
+    );
+  }
+
   // Show loading state only on initial load
   // SKIP loading state when initialSelectedEntityId is provided (pretty URL mode)
   // In this case, entity is fetched separately via fetchAndSelectEntity
