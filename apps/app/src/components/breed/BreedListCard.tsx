@@ -1,5 +1,5 @@
 import { BreedProgressLight } from "@/components/shared/BreedProgressLight";
-import { EntityListCardWrapper } from "@/components/shared/EntityListCardWrapper";
+import { EntityListCardWrapper } from "@/components/space/EntityListCardWrapper";
 import { NoteFlag } from "@/components/shared/NoteFlag";
 import { TopPatrons } from "@/components/shared/TopPatrons";
 
