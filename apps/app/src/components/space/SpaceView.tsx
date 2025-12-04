@@ -2,7 +2,8 @@ import React, { useRef, useCallback, useEffect } from 'react';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { cn } from '@ui/lib/utils';
 import { getComponent, FallbackComponent } from './componentRegistry';
-import { ListCardSkeleton, GridCardSkeleton } from './ListCardSkeleton';
+import { ListCardSkeletonList } from './EntityListCardWrapper';
+import { GridCardSkeleton } from './GridCardSkeleton';
 
 // View configuration interface that matches our config structure
 interface ViewConfig {
@@ -11,6 +12,7 @@ interface ViewConfig {
   itemHeight: number;
   dividers: boolean;
   overscan: number;
+  skeletonCount?: number;
   columns?: number | {
     default: number;
     sm?: number;
@@ -73,8 +75,8 @@ function getViewClasses(viewType: string, dividers: boolean) {
   };
 }
 
-// Number of skeleton items to show while loading
-const SKELETON_COUNT = 8;
+// Default number of skeleton items to show while loading
+const DEFAULT_SKELETON_COUNT = 8;
 
 export function SpaceView<T extends { id: string }>({
   viewConfig,
@@ -230,7 +232,7 @@ export function SpaceView<T extends { id: string }>({
 
   // Show skeleton loading state when loading and no entities yet
   if (isLoading && entities.length === 0) {
-    const SkeletonComponent = isGrid ? GridCardSkeleton : ListCardSkeleton;
+    const skeletonCount = viewConfig.skeletonCount || DEFAULT_SKELETON_COUNT;
 
     return (
       <div
@@ -243,17 +245,17 @@ export function SpaceView<T extends { id: string }>({
         {isGrid ? (
           // Grid skeleton
           <div className={classes.gridRow}>
-            {Array.from({ length: SKELETON_COUNT }).map((_, i) => (
-              <SkeletonComponent key={i} />
+            {Array.from({ length: skeletonCount }).map((_, i) => (
+              <GridCardSkeleton key={i} itemHeight={viewConfig.itemHeight} />
             ))}
           </div>
         ) : (
-          // List skeleton
-          <div className="divide-y divide-gray-200 dark:divide-gray-700">
-            {Array.from({ length: SKELETON_COUNT }).map((_, i) => (
-              <SkeletonComponent key={i} />
-            ))}
-          </div>
+          // List skeleton - count, height, dividers from config
+          <ListCardSkeletonList
+            count={skeletonCount}
+            itemHeight={viewConfig.itemHeight}
+            dividers={viewConfig.dividers}
+          />
         )}
       </div>
     );

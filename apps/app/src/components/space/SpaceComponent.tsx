@@ -1052,6 +1052,7 @@ export function SpaceComponent<T extends { id: string }>({
                 itemHeight: viewMode === "grid" ? 280 : 68,
                 dividers: viewMode === "list" || viewMode === "rows",
                 overscan: 3,
+                skeletonCount: Math.ceil(rowsPerPage / 2),
               }}
               entities={[]}
               isLoading={true}
@@ -1191,6 +1192,7 @@ export function SpaceComponent<T extends { id: string }>({
                 itemHeight: viewMode === "grid" ? 280 : 68,
                 dividers: viewMode === "list" || viewMode === "rows",
                 overscan: 3,
+                skeletonCount: Math.ceil(rowsPerPage / 2),
               }}
               entities={allEntities}
               selectedId={selectedEntityId}
