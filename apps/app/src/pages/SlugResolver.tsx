@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { routeStore, spaceStore } from '@breedhub/rxdb-store';
+import { routeStore, spaceStore, navigationHistoryStore } from '@breedhub/rxdb-store';
 import { SpacePage } from './SpacePage';
 
 /**
@@ -94,6 +94,14 @@ export function SlugResolver() {
 
       // Set fullscreen mode in store (persists across navigation)
       spaceStore.setFullscreen(true);
+
+      // Add to navigation history with human-readable title
+      // Use slug as title (formatted) - entity name will be loaded later
+      const formattedTitle = slugToResolve
+        .split('-')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ');
+      navigationHistoryStore.addEntry(`/${slugToResolve}`, formattedTitle, route.entity);
 
       // Store resolved route and render SpacePage
       setResolvedRoute(route);

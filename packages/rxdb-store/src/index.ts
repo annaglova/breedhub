@@ -43,6 +43,10 @@ export type { RouteDocument } from './collections/routes.schema';
 // Loading Store - Global loading state management
 export { loadingStore } from './stores/loading-store';
 
+// Navigation History Store - Recent pages for quick navigation
+export { navigationHistoryStore } from './stores/navigation-history.store';
+export type { NavigationEntry } from './stores/navigation-history.store';
+
 // Mixin Engine
 export { mixinEngine, MixinEngineService } from './services/mixin-engine.service';
 
