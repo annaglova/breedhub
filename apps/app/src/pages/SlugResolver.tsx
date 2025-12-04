@@ -95,13 +95,8 @@ export function SlugResolver() {
       // Set fullscreen mode in store (persists across navigation)
       spaceStore.setFullscreen(true);
 
-      // Add to navigation history with human-readable title
-      // Use slug as title (formatted) - entity name will be loaded later
-      const formattedTitle = slugToResolve
-        .split('-')
-        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-        .join(' ');
-      navigationHistoryStore.addEntry(`/${slugToResolve}`, formattedTitle, route.entity);
+      // Add to navigation history (store will format the title)
+      navigationHistoryStore.addEntry(`/${slugToResolve}`, slugToResolve, route.entity);
 
       // Store resolved route and render SpacePage
       setResolvedRoute(route);

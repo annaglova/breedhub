@@ -62,9 +62,15 @@ class NavigationHistoryStore {
       return;
     }
 
+    // Capitalize first letter of each word for consistent display
+    const formattedTitle = title
+      .split(/[-\s]+/)
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(' ');
+
     const newEntry: NavigationEntry = {
       path,
-      title,
+      title: formattedTitle,
       entityType,
       timestamp: Date.now(),
     };
