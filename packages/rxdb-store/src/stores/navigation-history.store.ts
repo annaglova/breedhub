@@ -92,13 +92,19 @@ class NavigationHistoryStore {
 
   /**
    * Get history for specific entity type (excluding current page)
+   * Always formats titles with proper capitalization
    */
   getHistoryForType(entityType: string, currentPath?: string): NavigationEntry[] {
     const typeHistory = this._historyByType.value[entityType] || [];
-    if (currentPath) {
-      return typeHistory.filter(entry => entry.path !== currentPath);
-    }
-    return typeHistory;
+    const filtered = currentPath
+      ? typeHistory.filter(entry => entry.path !== currentPath)
+      : typeHistory;
+
+    // Always format titles when returning
+    return filtered.map(entry => ({
+      ...entry,
+      title: this.formatTitle(entry.title),
+    }));
   }
 
   /**
