@@ -6,7 +6,77 @@ import { Check, ChevronRight, Circle } from "lucide-react"
 
 import { cn } from "../lib/utils"
 
-const DropdownMenu = DropdownMenuPrimitive.Root
+/**
+ * Global registry to track open dropdowns and close others when a new one opens.
+ * This ensures only one dropdown is open at a time across the entire app.
+ */
+type CloseCallback = () => void
+const dropdownRegistry = new Set<CloseCallback>()
+
+function registerDropdown(closeCallback: CloseCallback) {
+  // Close all other open dropdowns
+  dropdownRegistry.forEach((cb) => cb())
+  dropdownRegistry.add(closeCallback)
+}
+
+function unregisterDropdown(closeCallback: CloseCallback) {
+  dropdownRegistry.delete(closeCallback)
+}
+
+/**
+ * Enhanced DropdownMenu that automatically closes other dropdowns when opened.
+ * Wraps Radix DropdownMenu.Root with global state management.
+ */
+const DropdownMenu = React.forwardRef<
+  React.ElementRef<typeof DropdownMenuPrimitive.Root>,
+  React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Root>
+>(({ onOpenChange, ...props }, ref) => {
+  const [internalOpen, setInternalOpen] = React.useState(props.open ?? false)
+  const isControlled = props.open !== undefined
+
+  const closeCallback = React.useCallback(() => {
+    if (isControlled) {
+      onOpenChange?.(false)
+    } else {
+      setInternalOpen(false)
+    }
+  }, [isControlled, onOpenChange])
+
+  const handleOpenChange = React.useCallback(
+    (open: boolean) => {
+      if (open) {
+        // Register this dropdown and close all others
+        registerDropdown(closeCallback)
+      } else {
+        unregisterDropdown(closeCallback)
+      }
+
+      if (!isControlled) {
+        setInternalOpen(open)
+      }
+      onOpenChange?.(open)
+    },
+    [closeCallback, isControlled, onOpenChange]
+  )
+
+  // Cleanup on unmount
+  React.useEffect(() => {
+    return () => {
+      unregisterDropdown(closeCallback)
+    }
+  }, [closeCallback])
+
+  return (
+    <DropdownMenuPrimitive.Root
+      {...props}
+      // modal={false} allows tooltips to work while dropdown is open
+      modal={props.modal ?? false}
+      open={isControlled ? props.open : internalOpen}
+      onOpenChange={handleOpenChange}
+    />
+  )
+})
+DropdownMenu.displayName = "DropdownMenu"
 
 const DropdownMenuTrigger = DropdownMenuPrimitive.Trigger
 
