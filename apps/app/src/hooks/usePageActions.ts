@@ -1,4 +1,5 @@
 import { useCallback } from 'react';
+import { toast } from '@breedhub/rxdb-store';
 
 /**
  * Hook for handling page menu actions
@@ -21,16 +22,22 @@ export function usePageActions(
   const handleCopyLink = useCallback(() => {
     const url = window.location.href;
     navigator.clipboard.writeText(url).then(() => {
-      console.log('[PageActions] Link copied:', url);
-      // TODO: Show toast notification
+      toast.success('Посилання скопійовано');
+    }).catch(() => {
+      toast.error('Не вдалося скопіювати посилання');
     });
   }, []);
 
   const handleCopyName = useCallback(() => {
     const name = entity?.name || entity?.label || '';
+    if (!name) {
+      toast.warning('Немає назви для копіювання');
+      return;
+    }
     navigator.clipboard.writeText(name).then(() => {
-      console.log('[PageActions] Name copied:', name);
-      // TODO: Show toast notification
+      toast.success('Назву скопійовано');
+    }).catch(() => {
+      toast.error('Не вдалося скопіювати назву');
     });
   }, [entity]);
 

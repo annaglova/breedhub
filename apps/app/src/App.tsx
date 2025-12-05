@@ -4,7 +4,8 @@ import { queryClient } from '@/core/queryClient';
 import { AuthProvider } from '@/core/auth';
 import { AppRouter } from '@/router/AppRouter';
 import { useLoadingBar } from '@/hooks/useLoadingBar';
-import { spaceStore, appStore } from '@breedhub/rxdb-store';
+import { spaceStore, appStore, toastStore } from '@breedhub/rxdb-store';
+import { Toaster } from '@ui/components/toast/Toaster';
 import "./app-theme.css";
 
 function AppContent() {
@@ -69,6 +70,10 @@ function AppContent() {
   return (
     <AuthProvider>
       <AppRouter />
+      <Toaster
+        toasts={toastStore.toasts}
+        onRemove={(id) => toastStore.remove(id)}
+      />
     </AuthProvider>
   );
 }

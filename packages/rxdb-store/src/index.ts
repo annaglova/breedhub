@@ -47,6 +47,10 @@ export { loadingStore } from './stores/loading-store';
 export { navigationHistoryStore } from './stores/navigation-history.store';
 export type { NavigationEntry } from './stores/navigation-history.store';
 
+// Toast Store - Ephemeral toast notifications
+export { toastStore, toast } from './stores/toast.store';
+export type { Toast, ToastType, ToastOptions } from './stores/toast.store';
+
 // Mixin Engine
 export { mixinEngine, MixinEngineService } from './services/mixin-engine.service';
 
