@@ -20,13 +20,18 @@ export function usePageActions(
   }, [entity]);
 
   const handleCopyLink = useCallback(() => {
-    const url = window.location.href;
+    const slug = entity?.slug;
+    if (!slug) {
+      toast.warning('No link to copy');
+      return;
+    }
+    const url = `${window.location.origin}/${slug}`;
     navigator.clipboard.writeText(url).then(() => {
       toast.success('Link copied');
     }).catch(() => {
       toast.error('Failed to copy link');
     });
-  }, []);
+  }, [entity]);
 
   const handleCopyName = useCallback(() => {
     const name = entity?.name || entity?.label || '';
