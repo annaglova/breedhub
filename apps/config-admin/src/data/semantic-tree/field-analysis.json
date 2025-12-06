@@ -18191,7 +18191,7 @@
           "isSystem": true,
           "isPrimaryKey": true,
           "isUnique": true,
-          "sortOrder": 220,
+          "sortOrder": 230,
           "permissions": {
             "read": [
               "*"
@@ -24615,7 +24615,7 @@
           "isSystem": true,
           "isPrimaryKey": false,
           "isUnique": false,
-          "sortOrder": 230,
+          "sortOrder": 240,
           "permissions": {
             "read": [
               "*"
@@ -30991,7 +30991,7 @@
           "isSystem": true,
           "isPrimaryKey": false,
           "isUnique": false,
-          "sortOrder": 240,
+          "sortOrder": 250,
           "permissions": {
             "read": [
               "*"
@@ -37367,7 +37367,7 @@
           "isSystem": true,
           "isPrimaryKey": false,
           "isUnique": false,
-          "sortOrder": 250,
+          "sortOrder": 260,
           "permissions": {
             "read": [
               "*"
@@ -43743,7 +43743,7 @@
           "isSystem": true,
           "isPrimaryKey": false,
           "isUnique": false,
-          "sortOrder": 260,
+          "sortOrder": 270,
           "permissions": {
             "read": [
               "*"
@@ -59956,6 +59956,43 @@
     "commonProps": null
   },
   {
+    "key": "support_data",
+    "name": "support_data",
+    "occurrences": 1,
+    "entities": [
+      "breed"
+    ],
+    "variations": [
+      {
+        "entity": "breed",
+        "category": "main",
+        "config": {
+          "id": "field_support_data",
+          "name": "support_data",
+          "fieldType": "json",
+          "component": "TextareaInput",
+          "required": false,
+          "isSystem": false,
+          "isPrimaryKey": false,
+          "isUnique": false,
+          "sortOrder": 220,
+          "permissions": {
+            "read": [
+              "*"
+            ],
+            "write": [
+              "admin",
+              "editor"
+            ]
+          },
+          "displayName": "Support Data",
+          "placeholder": "Enter support data"
+        }
+      }
+    ],
+    "commonProps": null
+  },
+  {
     "key": "deleted",
     "name": "deleted",
     "occurrences": 1,
@@ -59975,7 +60012,7 @@
           "isSystem": true,
           "isPrimaryKey": false,
           "isUnique": false,
-          "sortOrder": 270,
+          "sortOrder": 280,
           "permissions": {
             "read": [
               "*"

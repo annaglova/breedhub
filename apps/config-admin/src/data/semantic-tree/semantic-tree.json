@@ -6637,6 +6637,42 @@
       ]
     },
     {
+      "id": "breed_field_support_data",
+      "type": "entity_field",
+      "deps": [
+        "property_not_required",
+        "property_not_system",
+        "property_not_primary_key",
+        "property_not_unique"
+      ],
+      "category": "breed",
+      "caption": "breed support_data field",
+      "self_data": {
+        "fieldType": "json",
+        "component": "TextareaInput",
+        "required": false,
+        "isSystem": false,
+        "isPrimaryKey": false,
+        "isUnique": false,
+        "sortOrder": 220,
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "admin",
+            "editor"
+          ]
+        },
+        "displayName": "Support Data",
+        "placeholder": "Enter support data"
+      },
+      "tags": [
+        "main",
+        "breed"
+      ]
+    },
+    {
       "id": "breed_field_id",
       "type": "entity_field",
       "deps": [
@@ -6651,7 +6687,7 @@
         "isSystem": true,
         "isPrimaryKey": true,
         "isUnique": true,
-        "sortOrder": 220,
+        "sortOrder": 230,
         "permissions": {
           "read": [
             "*"
@@ -6682,7 +6718,7 @@
         "isSystem": true,
         "isPrimaryKey": false,
         "isUnique": false,
-        "sortOrder": 230,
+        "sortOrder": 240,
         "permissions": {
           "read": [
             "*"
@@ -6713,7 +6749,7 @@
         "isSystem": true,
         "isPrimaryKey": false,
         "isUnique": false,
-        "sortOrder": 240,
+        "sortOrder": 250,
         "permissions": {
           "read": [
             "*"
@@ -6744,7 +6780,7 @@
         "isSystem": true,
         "isPrimaryKey": false,
         "isUnique": false,
-        "sortOrder": 250,
+        "sortOrder": 260,
         "permissions": {
           "read": [
             "*"
@@ -6775,7 +6811,7 @@
         "isSystem": true,
         "isPrimaryKey": false,
         "isUnique": false,
-        "sortOrder": 260,
+        "sortOrder": 270,
         "permissions": {
           "read": [
             "*"
@@ -6810,7 +6846,7 @@
         "isSystem": true,
         "isPrimaryKey": false,
         "isUnique": false,
-        "sortOrder": 270,
+        "sortOrder": 280,
         "permissions": {
           "read": [
             "*"

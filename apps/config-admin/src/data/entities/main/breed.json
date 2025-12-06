@@ -536,6 +536,28 @@
       "placeholder": "Enter achievements"
     },
     {
+      "id": "field_support_data",
+      "name": "support_data",
+      "fieldType": "json",
+      "component": "TextareaInput",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 220,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "displayName": "Support Data",
+      "placeholder": "Enter support data"
+    },
+    {
       "id": "field_id",
       "name": "id",
       "fieldType": "uuid",
@@ -544,7 +566,7 @@
       "isSystem": true,
       "isPrimaryKey": true,
       "isUnique": true,
-      "sortOrder": 220,
+      "sortOrder": 230,
       "permissions": {
         "read": [
           "*"
@@ -564,7 +586,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 230,
+      "sortOrder": 240,
       "permissions": {
         "read": [
           "*"
@@ -584,7 +606,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 240,
+      "sortOrder": 250,
       "permissions": {
         "read": [
           "*"
@@ -604,7 +626,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 250,
+      "sortOrder": 260,
       "permissions": {
         "read": [
           "*"
@@ -624,7 +646,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 260,
+      "sortOrder": 270,
       "permissions": {
         "read": [
           "*"
@@ -644,7 +666,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 270,
+      "sortOrder": 280,
       "permissions": {
         "read": [
           "*"
@@ -658,9 +680,9 @@
   ],
   "metadata": {
     "tableName": "breed",
-    "totalFields": 27,
+    "totalFields": 28,
     "systemFields": 6,
-    "customFields": 21,
-    "generatedAt": "2025-11-29T15:27:03.311Z"
+    "customFields": 22,
+    "generatedAt": "2025-12-06T11:55:55.048Z"
   }
 }
