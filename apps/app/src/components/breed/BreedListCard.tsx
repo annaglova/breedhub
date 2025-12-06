@@ -64,7 +64,7 @@ export function BreedListCard({
         {/* Avatar */}
         <div
           className={`size-10 rounded-full border border-surface-border flex-shrink-0 relative outline outline-2 outline-offset-2 ${
-            breed.PatronCount > 0
+            breed.AchievementProgress > 0
               ? "outline-primary-300 dark:outline-primary-400"
               : "outline-gray-300 dark:outline-gray-400"
           }`}
