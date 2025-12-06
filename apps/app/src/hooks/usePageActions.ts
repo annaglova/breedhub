@@ -22,22 +22,22 @@ export function usePageActions(
   const handleCopyLink = useCallback(() => {
     const url = window.location.href;
     navigator.clipboard.writeText(url).then(() => {
-      toast.success('Посилання скопійовано');
+      toast.success('Link copied');
     }).catch(() => {
-      toast.error('Не вдалося скопіювати посилання');
+      toast.error('Failed to copy link');
     });
   }, []);
 
   const handleCopyName = useCallback(() => {
     const name = entity?.name || entity?.label || '';
     if (!name) {
-      toast.warning('Немає назви для копіювання');
+      toast.warning('No name to copy');
       return;
     }
     navigator.clipboard.writeText(name).then(() => {
-      toast.success('Назву скопійовано');
+      toast.success('Name copied');
     }).catch(() => {
-      toast.error('Не вдалося скопіювати назву');
+      toast.error('Failed to copy name');
     });
   }, [entity]);
 
