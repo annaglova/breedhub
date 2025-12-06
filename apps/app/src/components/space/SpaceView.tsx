@@ -31,6 +31,7 @@ interface SpaceViewProps<T> {
   hasMore?: boolean;
   isLoadingMore?: boolean;
   isLoading?: boolean; // Initial loading state
+  searchQuery?: string; // Current search query for empty state
 }
 
 // Helper to determine if view should render as grid
@@ -86,7 +87,8 @@ export function SpaceView<T extends { id: string }>({
   onLoadMore,
   hasMore = false,
   isLoadingMore = false,
-  isLoading = false
+  isLoading = false,
+  searchQuery = ""
 }: SpaceViewProps<T>) {
   const parentRef = useRef<HTMLDivElement>(null);
 
@@ -257,6 +259,27 @@ export function SpaceView<T extends { id: string }>({
             dividers={viewConfig.dividers}
           />
         )}
+      </div>
+    );
+  }
+
+  // Show empty state when not loading and no entities
+  if (!isLoading && entities.length === 0) {
+    return (
+      <div
+        ref={parentRef}
+        className={cn(classes.container, "flex items-center justify-center")}
+        style={{
+          paddingBottom: 'var(--content-padding, 1rem)'
+        }}
+      >
+        <div className="text-center text-gray-500">
+          {searchQuery ? (
+            <p>No results for "{searchQuery}"</p>
+          ) : (
+            <p>No items found</p>
+          )}
+        </div>
       </div>
     );
   }
