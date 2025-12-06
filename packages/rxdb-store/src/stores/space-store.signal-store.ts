@@ -1757,15 +1757,19 @@ class SpaceStore {
 
       const lastRecord = idsData[idsData.length - 1];
 
-      // ✅ Use COMPOSITE cursor (value + id) for stable pagination with tie-breaker
+      // ✅ Use COMPOSITE cursor (value + tieBreaker) for stable pagination
+      // tieBreaker field comes from config (e.g., "name" or "id")
+      const tieBreakerField = orderBy.tieBreaker?.field || 'id';
       let nextCursor: any = null;
       if (lastRecord) {
         const orderValue = lastRecord[orderBy.field] ?? null;
+        const tieBreakerValue = lastRecord[tieBreakerField] ?? null;
 
-        // Composite cursor: {value, id} for tie-breaker support
+        // Composite cursor: {value, tieBreaker, tieBreakerField} for proper pagination
         nextCursor = JSON.stringify({
           value: orderValue,
-          id: lastRecord.id
+          tieBreaker: tieBreakerValue,
+          tieBreakerField
         });
       }
       console.log('[SpaceStore] nextCursor extracted:', nextCursor);
@@ -2407,9 +2411,15 @@ class SpaceStore {
     }
 
     // 📄 REGULAR QUERY: No search or cursor pagination
+    // Include tieBreaker field in select for cursor pagination
+    const tieBreakerField = orderBy.tieBreaker?.field || 'id';
+    const selectFields = tieBreakerField !== orderBy.field && tieBreakerField !== 'id'
+      ? `id, ${orderBy.field}, ${tieBreakerField}`
+      : `id, ${orderBy.field}`;
+
     let query = supabase
       .from(entityType)
-      .select(`id, ${orderBy.field}`);
+      .select(selectFields);
 
     // Filter out deleted records
     query = query.or('deleted.is.null,deleted.eq.false');
@@ -2430,27 +2440,32 @@ class SpaceStore {
       query = this.applySupabaseFilter(query, fieldKey, operator, value);
     }
 
-    // Apply cursor (keyset pagination with tie-breaker)
-    let cursorData: { value: any; id: string } | null = null;
+    // Apply cursor (keyset pagination with tie-breaker from config)
+    let cursorData: { value: any; tieBreaker: any; tieBreakerField: string } | null = null;
     let data: any[] = [];
     let error: any = null;
 
     if (cursor !== null) {
-      // Parse composite cursor {value, id}
+      // Parse composite cursor {value, tieBreaker, tieBreakerField}
       try {
         cursorData = JSON.parse(cursor);
       } catch (e) {
-        // Fallback for old simple cursor format
-        cursorData = { value: cursor, id: '' };
+        // Fallback for old cursor format
+        cursorData = { value: cursor, tieBreaker: '', tieBreakerField: 'id' };
       }
 
       console.log(`[SpaceStore] 🔑 Cursor parsed:`, cursorData);
 
-      // Composite cursor with tie-breaker
-      // WHERE (field > value) OR (field = value AND id > cursor_id)
-      const orCondition = orderBy.direction === 'asc'
-        ? `${orderBy.field}.gt.${cursorData.value},and(${orderBy.field}.eq.${cursorData.value},id.gt.${cursorData.id})`
-        : `${orderBy.field}.lt.${cursorData.value},and(${orderBy.field}.eq.${cursorData.value},id.gt.${cursorData.id})`;
+      // Use tieBreakerField from cursor (or fallback to config)
+      const tbField = cursorData.tieBreakerField || tieBreakerField;
+      const tbDirection = orderBy.tieBreaker?.direction || 'asc';
+
+      // Composite cursor with tie-breaker from config
+      // WHERE (field > value) OR (field = value AND tieBreakerField > tieBreakerValue)
+      const mainOp = orderBy.direction === 'asc' ? 'gt' : 'lt';
+      const tbOp = tbDirection === 'asc' ? 'gt' : 'lt';
+
+      const orCondition = `${orderBy.field}.${mainOp}.${cursorData.value},and(${orderBy.field}.eq.${cursorData.value},${tbField}.${tbOp}.${cursorData.tieBreaker})`;
 
       console.log(`[SpaceStore] 🔑 Applying composite cursor filter:`, orCondition);
       query = query.or(orCondition);
