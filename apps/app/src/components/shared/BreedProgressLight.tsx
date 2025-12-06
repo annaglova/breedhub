@@ -1,4 +1,3 @@
-import { Breed } from "@/services/api";
 import {
   Tooltip,
   TooltipContent,
@@ -6,7 +5,10 @@ import {
 } from "@ui/components/tooltip";
 
 interface BreedProgressLightProps {
-  breed: Breed;
+  breed: {
+    AchievementProgress?: number;
+    SupportLabel?: string;
+  };
   className?: string;
 }
 
@@ -14,16 +16,10 @@ export function BreedProgressLight({
   breed,
   className = "",
 }: BreedProgressLightProps) {
-  // Якщо немає прогресу, не показуємо компонент
+  // Don't show progress bar if no progress
   if (!breed.AchievementProgress || breed.AchievementProgress <= 0) {
     return null;
   }
-
-  // Функція для пошуку останнього досягнення (аналог findElementWithMaxPosition)
-  const getLastAchievement = () => {
-    // Поки що просто повертаємо placeholder, оскільки в нашій моделі немає Achievements
-    return "Breed's support level";
-  };
 
   return (
     <Tooltip>
@@ -40,7 +36,7 @@ export function BreedProgressLight({
         </div>
       </TooltipTrigger>
       <TooltipContent side="bottom" align="center" sideOffset={5}>
-        <div>{getLastAchievement()}</div>
+        <div>{breed.SupportLabel || "Breed's support level"}</div>
       </TooltipContent>
     </Tooltip>
   );
