@@ -45,14 +45,8 @@ export function BreedListCard({
     AchievementProgress: entity.support_data?.progress_percent || 0,
     SupportLabel: entity.support_data?.label || "",
     HasNotes: Math.random() > 0.7, // Random for visual testing
-    TopPatrons:
-      entity.measurements?.patron_count > 0
-        ? [
-            { id: "1", name: "Top Patron 1", avatar: null },
-            { id: "2", name: "Top Patron 2", avatar: null },
-            { id: "3", name: "Top Patron 3", avatar: null },
-          ].slice(0, Math.min(3, Math.floor(Math.random() * 4)))
-        : [],
+    // Top patrons from top_patrons JSONB field
+    TopPatrons: entity.top_patrons || [],
   };
   return (
     <EntityListCardWrapper
@@ -121,7 +115,7 @@ export function BreedListCard({
         </div>
       </div>
 
-      {/* Top Patrons - hardcoded for visual, hidden on small screens */}
+      {/* Top Patrons from JSONB field, hidden on small screens */}
       {breed.TopPatrons && breed.TopPatrons.length > 0 && (
         <TopPatrons
           patrons={breed.TopPatrons}
