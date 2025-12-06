@@ -45,8 +45,8 @@ export function BreedListCard({
     AchievementProgress: entity.support_data?.progress_percent || 0,
     SupportLabel: entity.support_data?.label || "",
     HasNotes: Math.random() > 0.7, // Random for visual testing
-    // Top patrons from top_patrons JSONB field
-    TopPatrons: entity.top_patrons || [],
+    // Top patrons from top_patrons JSONB field (object with order keys: {"1": {...}, "2": {...}})
+    TopPatrons: entity.top_patrons ? Object.values(entity.top_patrons) : [],
   };
   return (
     <EntityListCardWrapper
