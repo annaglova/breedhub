@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
 import { AvatarCard, type AvatarEntity } from "@/components/shared/AvatarCard";
+import { spaceStore } from "@breedhub/rxdb-store";
+import { useSignals } from "@preact/signals-react/runtime";
 import { cn } from "@ui/lib/utils";
 
 interface BreedTopKennelsTabProps {
-  isFullscreen?: boolean; // Fullscreen/drawer mode - shows more columns
   recordsCount?: number; // Number of records to display (from config)
 }
 
@@ -17,7 +18,12 @@ interface BreedTopKennelsTabProps {
  *
  * Similar to Angular breed-top-kennels.component.ts
  */
-export function BreedTopKennelsTab({ isFullscreen = false, recordsCount }: BreedTopKennelsTabProps) {
+export function BreedTopKennelsTab({ recordsCount }: BreedTopKennelsTabProps) {
+  useSignals();
+
+  // Read fullscreen state from spaceStore
+  // Reference: Angular breed-top-kennels.component.ts - more columns on fullscreen
+  const isFullscreen = spaceStore.isFullscreen.value;
   const [kennels, setKennels] = useState<AvatarEntity[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 

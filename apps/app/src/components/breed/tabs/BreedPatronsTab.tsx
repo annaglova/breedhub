@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import { AvatarCard } from "@/components/shared/AvatarCard";
+import { spaceStore } from "@breedhub/rxdb-store";
+import { useSignals } from "@preact/signals-react/runtime";
 import { cn } from "@ui/lib/utils";
 
 /**
@@ -14,7 +16,6 @@ interface Patron {
 }
 
 interface BreedPatronsTabProps {
-  isFullscreen?: boolean; // Fullscreen/drawer mode - shows more columns
   recordsCount?: number; // Number of records to display (from config)
 }
 
@@ -28,7 +29,12 @@ interface BreedPatronsTabProps {
  *
  * Similar to Angular breed-patrons.component.ts
  */
-export function BreedPatronsTab({ isFullscreen = false, recordsCount }: BreedPatronsTabProps) {
+export function BreedPatronsTab({ recordsCount }: BreedPatronsTabProps) {
+  useSignals();
+
+  // Read fullscreen state from spaceStore
+  // Reference: Angular breed-patrons.component.ts - more columns on fullscreen
+  const isFullscreen = spaceStore.isFullscreen.value;
   const [patrons, setPatrons] = useState<Patron[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 

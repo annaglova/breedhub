@@ -1,9 +1,10 @@
 import { PetCard, type Pet } from "@/components/shared/PetCard";
+import { spaceStore } from "@breedhub/rxdb-store";
+import { useSignals } from "@preact/signals-react/runtime";
 import { cn } from "@ui/lib/utils";
 import { useEffect, useState } from "react";
 
 interface BreedTopPetsTabProps {
-  isFullscreen?: boolean; // Fullscreen/drawer mode - shows more columns
   recordsCount?: number; // Number of records to display (from config)
 }
 
@@ -17,10 +18,12 @@ interface BreedTopPetsTabProps {
  *
  * Similar to Angular breed-top-pets.component.ts
  */
-export function BreedTopPetsTab({
-  isFullscreen = false,
-  recordsCount,
-}: BreedTopPetsTabProps) {
+export function BreedTopPetsTab({ recordsCount }: BreedTopPetsTabProps) {
+  useSignals();
+
+  // Read fullscreen state from spaceStore
+  // Reference: Angular breed-top-pets.component.ts - more columns on fullscreen
+  const isFullscreen = spaceStore.isFullscreen.value;
   const [pets, setPets] = useState<Pet[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
