@@ -1,6 +1,6 @@
-import { useState, useEffect, useCallback } from "react";
-import { ArrowUp } from "lucide-react";
 import { cn } from "@ui/lib/utils";
+import { ArrowUp } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
 
 interface ScrollToTopButtonProps {
   /** Scroll container element - if not provided, uses window */
@@ -76,16 +76,16 @@ export function ScrollToTopButton({
     <button
       onClick={scrollToTop}
       className={cn(
-        // Base styles - positioned at 1/3 from bottom (bottom-[33vh])
-        "fixed bottom-[33vh] right-6 z-50",
-        "w-10 h-10 rounded-full",
+        // Base styles - positioned at 1/4 from bottom (bottom-[25vh])
+        "fixed bottom-[25vh] right-6 z-50",
+        "w-12 h-12 rounded-full",
         // Subtle style matching TabHeader - translucent with blur
         "bg-header-ground/75 backdrop-blur-sm",
-        "text-secondary border border-secondary-300",
+        "text-secondary border border-secondary-200",
         "shadow-sm",
         "flex items-center justify-center",
         // Hover/active states
-        "hover:bg-header-ground/90 hover:border-secondary-400",
+        "hover:bg-header-ground/90 hover:border-secondary-300",
         "active:scale-95",
         // Transition for visibility and interactions
         "transition-all duration-300 ease-in-out",
