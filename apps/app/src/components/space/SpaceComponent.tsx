@@ -978,7 +978,7 @@ export function SpaceComponent<T extends { id: string }>({
           className={cn(
             "absolute inset-0 z-40",
             needCardClass ? "fake-card" : "card-surface",
-            "overflow-hidden"
+            "overflow-auto"
           )}
         >
           {children || <Outlet />}
