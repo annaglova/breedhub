@@ -76,10 +76,8 @@ export function ScrollToTopButton({
     <button
       onClick={scrollToTop}
       className={cn(
-        // Base styles - positioned at 1/4 from bottom
-        // Responsive right position: near edge on mobile, near content edge on large screens
-        "fixed bottom-[25vh] z-50",
-        "right-6 xl:right-[calc(50%-480px)] xxl:right-[calc(50%-560px)]",
+        // Base styles - positioned at 1/4 from bottom (bottom-[25vh])
+        "fixed bottom-[25vh] right-6 z-50",
         "w-12 h-12 rounded-full",
         // Subtle style matching TabHeader - translucent with blur
         "bg-header-ground/75 backdrop-blur-sm",
