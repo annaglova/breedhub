@@ -1,6 +1,8 @@
 import { useSelectedEntity } from "@/contexts/SpaceContext";
 import { useChildRecords } from "@/hooks/useChildRecords";
-import { dictionaryStore } from "@breedhub/rxdb-store";
+import { useMediaQuery } from "@/hooks/useMediaQuery";
+import { dictionaryStore, spaceStore } from "@breedhub/rxdb-store";
+import { useSignals } from "@preact/signals-react/runtime";
 import { AlternatingTimeline } from "@ui/components/timeline";
 import { Check, Loader2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
@@ -89,10 +91,18 @@ interface BreedAchievementsTabProps {
 }
 
 export function BreedAchievementsTab({ recordsCount }: BreedAchievementsTabProps) {
+  useSignals();
+
   // recordsCount is accepted for interface consistency but not used for achievements
   // (achievements are always shown in full)
   const selectedEntity = useSelectedEntity();
   const breedId = selectedEntity?.id;
+
+  // Timeline layout: "alternating" on fullscreen + large screens, "right" otherwise
+  // Reference: Angular breed-support-levels.component.ts - alternate mode only when fullscreen AND >= 960px
+  const isFullscreen = spaceStore.isFullscreen.value;
+  const isLargeScreen = useMediaQuery("(min-width: 960px)");
+  const timelineLayout = isFullscreen && isLargeScreen ? "alternating" : "right";
 
   // Load achievement_in_breed records for this breed
   // Note: Can't sort by 'date' in RxDB because it's in 'additional' JSON field
@@ -258,7 +268,7 @@ export function BreedAchievementsTab({ recordsCount }: BreedAchievementsTabProps
     <div className="px-6">
       <AlternatingTimeline
         items={timelineItems}
-        layout="right"
+        layout={timelineLayout}
         showCards={true}
         connectorVariant="primary"
         size="default"
