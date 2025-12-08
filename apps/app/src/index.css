@@ -5,6 +5,16 @@
 @import "@shared/theme/custom-theme.css";
 @import "./tailwind.theme.css";
 
+/* Hide text cursor but allow selection and copy */
+* {
+  caret-color: transparent;
+}
+
+/* Show cursor in actual input fields */
+input, textarea, [contenteditable="true"] {
+  caret-color: auto;
+}
+
 /* Heading Typography - Using Roboto for visual hierarchy */
 h1, h2, h3, h4, h5, h6 {
   font-family: 'Roboto', sans-serif;
