@@ -5,6 +5,8 @@ import { useCallback, useEffect, useState } from "react";
 interface ScrollToTopButtonProps {
   /** Scroll container element - if not provided, uses window */
   scrollContainer?: HTMLElement | null;
+  /** Content container element - used to calculate right position on large screens */
+  contentContainer?: HTMLElement | null;
   /** Threshold as fraction of viewport height (0.33 = 1/3) */
   threshold?: number;
   /** Additional CSS classes */
@@ -16,17 +18,21 @@ interface ScrollToTopButtonProps {
  *
  * Appears with fade-in animation when user scrolls past threshold.
  * Clicking smoothly scrolls to top.
+ * On large screens (>=960px), positions relative to content container edge.
  *
  * Usage:
  * - For window scroll: <ScrollToTopButton />
  * - For container scroll: <ScrollToTopButton scrollContainer={containerRef.current} />
+ * - With content alignment: <ScrollToTopButton contentContainer={contentRef.current} />
  */
 export function ScrollToTopButton({
   scrollContainer,
+  contentContainer,
   threshold = 0.33,
   className,
 }: ScrollToTopButtonProps) {
   const [isVisible, setIsVisible] = useState(false);
+  const [rightPosition, setRightPosition] = useState(24); // default right-6 = 24px
 
   // Check scroll position and update visibility
   const checkScrollPosition = useCallback(() => {
@@ -57,6 +63,33 @@ export function ScrollToTopButton({
     };
   }, [scrollContainer, checkScrollPosition]);
 
+  // Calculate right position based on content container
+  // On screens >= 960px, align to content edge; otherwise use default 24px
+  const calculateRightPosition = useCallback(() => {
+    const isLargeScreen = window.innerWidth >= 960;
+
+    if (!isLargeScreen || !contentContainer) {
+      setRightPosition(24); // right-6
+      return;
+    }
+
+    const contentRect = contentContainer.getBoundingClientRect();
+    const windowWidth = window.innerWidth;
+    // Position button 24px from the right edge of content
+    const rightFromContentEdge = windowWidth - contentRect.right + 24;
+    setRightPosition(Math.max(24, rightFromContentEdge));
+  }, [contentContainer]);
+
+  // Recalculate position on resize and when contentContainer changes
+  useEffect(() => {
+    calculateRightPosition();
+
+    window.addEventListener("resize", calculateRightPosition);
+    return () => {
+      window.removeEventListener("resize", calculateRightPosition);
+    };
+  }, [calculateRightPosition]);
+
   // Scroll to top handler
   const scrollToTop = () => {
     if (scrollContainer) {
@@ -75,9 +108,11 @@ export function ScrollToTopButton({
   return (
     <button
       onClick={scrollToTop}
+      style={{ right: `${rightPosition}px` }}
       className={cn(
         // Base styles - positioned at 1/4 from bottom (bottom-[25vh])
-        "fixed bottom-[25vh] right-6 z-50",
+        // right position is calculated dynamically based on content container
+        "fixed bottom-[25vh] z-50",
         "w-12 h-12 rounded-full",
         // Subtle style matching TabHeader - translucent with blur
         "bg-header-ground/75 backdrop-blur-sm",

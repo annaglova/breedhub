@@ -125,8 +125,9 @@ export function TabPageTemplate({
   useSignals();
   const navigate = useNavigate();
 
-  // Refs for sticky behavior
+  // Refs for sticky behavior and scroll button positioning
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const contentContainerRef = useRef<HTMLDivElement>(null);
   const nameContainerRef = useRef<HTMLDivElement>(null);
 
   // Track if name container is stuck to top
@@ -322,7 +323,10 @@ export function TabPageTemplate({
           ref={scrollContainerRef}
           className="flex flex-auto flex-col items-center overflow-auto"
         >
-          <div className="w-full max-w-3xl lg:max-w-4xl xxl:max-w-5xl">
+          <div
+            ref={contentContainerRef}
+            className="w-full max-w-3xl lg:max-w-4xl xxl:max-w-5xl"
+          >
             {/* Name Block - Sticky at top */}
             {nameBlockConfig && (
               <div
@@ -372,7 +376,10 @@ export function TabPageTemplate({
         </div>
 
         {/* Scroll to top button */}
-        <ScrollToTopButton scrollContainer={scrollContainerRef.current} />
+        <ScrollToTopButton
+          scrollContainer={scrollContainerRef.current}
+          contentContainer={contentContainerRef.current}
+        />
       </div>
     </SpaceProvider>
   );

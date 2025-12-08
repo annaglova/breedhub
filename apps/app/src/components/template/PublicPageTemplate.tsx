@@ -405,7 +405,10 @@ export function PublicPageTemplate({
         </div>
 
         {/* Scroll to top button */}
-        <ScrollToTopButton scrollContainer={scrollContainerRef.current} />
+        <ScrollToTopButton
+          scrollContainer={scrollContainerRef.current}
+          contentContainer={contentContainerRef.current}
+        />
       </div>
     </SpaceProvider>
   ) : (
