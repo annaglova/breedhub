@@ -78,11 +78,14 @@ export function ScrollToTopButton({
       className={cn(
         // Base styles - positioned at 1/3 from bottom (bottom-[33vh])
         "fixed bottom-[33vh] right-6 z-50",
-        "w-12 h-12 rounded-full",
-        "bg-primary text-white shadow-lg",
+        "w-10 h-10 rounded-full",
+        // Subtle style matching TabHeader - translucent with blur
+        "bg-header-ground/75 backdrop-blur-sm",
+        "text-secondary border border-secondary-300",
+        "shadow-sm",
         "flex items-center justify-center",
         // Hover/active states
-        "hover:bg-primary/90 hover:shadow-xl",
+        "hover:bg-header-ground/90 hover:border-secondary-400",
         "active:scale-95",
         // Transition for visibility and interactions
         "transition-all duration-300 ease-in-out",
