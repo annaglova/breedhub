@@ -9,6 +9,8 @@ interface ScrollToTopButtonProps {
   contentContainer?: HTMLElement | null;
   /** Threshold as fraction of viewport height (0.33 = 1/3) */
   threshold?: number;
+  /** Position mode: 'fixed' for fullscreen pages, 'absolute' for embedded containers */
+  positioning?: 'fixed' | 'absolute';
   /** Additional CSS classes */
   className?: string;
 }
@@ -29,6 +31,7 @@ export function ScrollToTopButton({
   scrollContainer,
   contentContainer,
   threshold = 0.33,
+  positioning = 'fixed',
   className,
 }: ScrollToTopButtonProps) {
   const [isVisible, setIsVisible] = useState(false);
@@ -108,12 +111,14 @@ export function ScrollToTopButton({
   return (
     <button
       onClick={scrollToTop}
-      style={{ right: `${rightPosition}px` }}
+      style={positioning === 'fixed' ? { right: `${rightPosition}px` } : undefined}
       className={cn(
-        // Base styles - positioned at 1/4 from bottom (bottom-[25vh])
-        // right position is calculated dynamically based on content container
-        "fixed bottom-[25vh] z-50",
-        "w-12 h-12 rounded-full",
+        // Base styles
+        "w-12 h-12 rounded-full z-50",
+        // Position mode - same relative bottom offset for consistency
+        positioning === 'fixed'
+          ? "fixed bottom-[10vh]"
+          : "absolute bottom-[10%] right-6",
         // Subtle style matching TabHeader - translucent with blur
         "bg-header-ground/75 backdrop-blur-sm",
         "text-secondary border border-secondary-200",

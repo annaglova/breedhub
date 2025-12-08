@@ -4,6 +4,7 @@ import { cn } from '@ui/lib/utils';
 import { getComponent, FallbackComponent } from './componentRegistry';
 import { ListCardSkeletonList } from './EntityListCardWrapper';
 import { GridCardSkeleton } from './GridCardSkeleton';
+import { ScrollToTopButton } from '@/components/shared/ScrollToTopButton';
 
 // View configuration interface that matches our config structure
 interface ViewConfig {
@@ -285,22 +286,25 @@ export function SpaceView<T extends { id: string }>({
   }
 
   return (
-    <div
-      ref={parentRef}
-      className={classes.container}
-      style={{
-        paddingBottom: 'var(--content-padding, 1rem)' // Match header padding for consistency
-      }}
-    >
+    <div className="relative h-full">
       <div
+        ref={parentRef}
+        className={classes.container}
         style={{
-          height: `${virtualizer.getTotalSize()}px`,
-          width: '100%',
-          position: 'relative',
+          paddingBottom: 'var(--content-padding, 1rem)' // Match header padding for consistency
         }}
       >
-        {virtualizer.getVirtualItems().map(renderVirtualItem)}
+        <div
+          style={{
+            height: `${virtualizer.getTotalSize()}px`,
+            width: '100%',
+            position: 'relative',
+          }}
+        >
+          {virtualizer.getVirtualItems().map(renderVirtualItem)}
+        </div>
       </div>
+      <ScrollToTopButton scrollContainer={parentRef.current} positioning="absolute" />
     </div>
   );
 }
