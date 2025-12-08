@@ -564,8 +564,18 @@ export function SpaceComponent<T extends { id: string }>({
         if (matchingEntity) {
           entityId = matchingEntity.id;
           console.log('[SpaceComponent] Found entity by slug:', matchingEntity.name, '→', entityId);
+        } else if (allEntities.length > 0 && !isLoading) {
+          // Entity not found in current page (may be outside pagination due to sorting)
+          // Fallback: select first entity in list and update URL to match
+          console.warn('[SpaceComponent] Entity not found for slug:', urlSegment, '- selecting first entity');
+          const firstEntity = allEntities[0];
+          entityId = firstEntity.id;
+          const newSlug = (firstEntity as any).slug || normalizeForUrl((firstEntity as any).name || firstEntity.id);
+
+          // Update URL to match the actually selected entity
+          navigate(`${newSlug}${location.search}${location.hash}`, { replace: true });
         } else {
-          console.warn('[SpaceComponent] No entity found for slug:', urlSegment);
+          console.warn('[SpaceComponent] No entity found for slug:', urlSegment, '(waiting for data)');
         }
       }
 

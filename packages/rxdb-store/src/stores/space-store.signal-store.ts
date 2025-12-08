@@ -1988,7 +1988,11 @@ class SpaceStore {
     }
 
     // Helper function for JavaScript sorting (for RxDB offline mode)
+    // Supports tieBreaker from config for stable sorting when primary values are equal
     const sortResults = (results: any[]): any[] => {
+      // Get tieBreaker from config, fallback to id
+      const tieBreaker = orderBy.tieBreaker || { field: 'id', direction: 'asc' as const };
+
       return results.sort((a, b) => {
         const aVal = a[orderBy.field];
         const bVal = b[orderBy.field];
@@ -1997,12 +2001,31 @@ class SpaceStore {
         if (aVal === null || aVal === undefined) return 1;
         if (bVal === null || bVal === undefined) return -1;
 
-        // Compare values
+        // Compare primary field values
+        let primaryCompare: number;
         if (orderBy.direction === 'asc') {
-          return aVal < bVal ? -1 : aVal > bVal ? 1 : 0;
+          primaryCompare = aVal < bVal ? -1 : aVal > bVal ? 1 : 0;
         } else {
-          return aVal > bVal ? -1 : aVal < bVal ? 1 : 0;
+          primaryCompare = aVal > bVal ? -1 : aVal < bVal ? 1 : 0;
         }
+
+        // If primary values are equal, use tieBreaker
+        if (primaryCompare === 0) {
+          const aTieVal = a[tieBreaker.field];
+          const bTieVal = b[tieBreaker.field];
+
+          // Handle null/undefined in tieBreaker
+          if (aTieVal === null || aTieVal === undefined) return 1;
+          if (bTieVal === null || bTieVal === undefined) return -1;
+
+          if (tieBreaker.direction === 'asc') {
+            return aTieVal < bTieVal ? -1 : aTieVal > bTieVal ? 1 : 0;
+          } else {
+            return aTieVal > bTieVal ? -1 : aTieVal < bTieVal ? 1 : 0;
+          }
+        }
+
+        return primaryCompare;
       });
     };
 
@@ -2076,8 +2099,12 @@ class SpaceStore {
         // For JSONB fields, don't use RxDB sort (not supported), sort in JS instead
         const queryOptions: any = { selector: startsWithSelector };
         if (!orderBy.parameter) {
-          // Only use RxDB sort for regular fields
-          queryOptions.sort = [{ [orderBy.field]: orderBy.direction === 'asc' ? 'asc' : 'desc' }];
+          // Only use RxDB sort for regular fields, include tieBreaker for stable sorting
+          const tieBreaker = orderBy.tieBreaker || { field: 'id', direction: 'asc' as const };
+          queryOptions.sort = [
+            { [orderBy.field]: orderBy.direction === 'asc' ? 'asc' : 'desc' },
+            { [tieBreaker.field]: tieBreaker.direction === 'asc' ? 'asc' : 'desc' }
+          ];
         }
 
         const startsWithDocs = await collection.find(queryOptions).exec();
@@ -2137,8 +2164,12 @@ class SpaceStore {
           // For JSONB fields, don't use RxDB sort (not supported), sort in JS instead
           const containsQueryOptions: any = { selector: containsSelector };
           if (!orderBy.parameter) {
-            // Only use RxDB sort for regular fields
-            containsQueryOptions.sort = [{ [orderBy.field]: orderBy.direction === 'asc' ? 'asc' : 'desc' }];
+            // Only use RxDB sort for regular fields, include tieBreaker for stable sorting
+            const tieBreaker = orderBy.tieBreaker || { field: 'id', direction: 'asc' as const };
+            containsQueryOptions.sort = [
+              { [orderBy.field]: orderBy.direction === 'asc' ? 'asc' : 'desc' },
+              { [tieBreaker.field]: tieBreaker.direction === 'asc' ? 'asc' : 'desc' }
+            ];
           }
 
           const containsDocs = await collection.find(containsQueryOptions).exec();
@@ -2237,8 +2268,12 @@ class SpaceStore {
         // For JSONB fields, don't use RxDB sort (not supported), sort in JS instead
         const regularQueryOptions: any = { selector };
         if (!orderBy.parameter) {
-          // Only use RxDB sort for regular fields
-          regularQueryOptions.sort = [{ [orderBy.field]: orderBy.direction === 'asc' ? 'asc' : 'desc' }];
+          // Only use RxDB sort for regular fields, include tieBreaker for stable sorting
+          const tieBreaker = orderBy.tieBreaker || { field: 'id', direction: 'asc' as const };
+          regularQueryOptions.sort = [
+            { [orderBy.field]: orderBy.direction === 'asc' ? 'asc' : 'desc' },
+            { [tieBreaker.field]: tieBreaker.direction === 'asc' ? 'asc' : 'desc' }
+          ];
         }
         // Don't apply limit in RxDB query if we have JSONB sorting (need to sort all, then limit)
         if (!orderBy.parameter && limit > 0) {
