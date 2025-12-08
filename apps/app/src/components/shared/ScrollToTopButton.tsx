@@ -76,8 +76,8 @@ export function ScrollToTopButton({
     <button
       onClick={scrollToTop}
       className={cn(
-        // Base styles
-        "fixed bottom-6 right-6 z-50",
+        // Base styles - positioned at 1/3 from bottom (bottom-[33vh])
+        "fixed bottom-[33vh] right-6 z-50",
         "w-12 h-12 rounded-full",
         "bg-primary text-white shadow-lg",
         "flex items-center justify-center",

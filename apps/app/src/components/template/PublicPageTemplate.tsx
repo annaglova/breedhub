@@ -404,10 +404,8 @@ export function PublicPageTemplate({
           </div>
         </div>
 
-        {/* Scroll to top button - only in fullscreen mode */}
-        {isFullscreenMode && (
-          <ScrollToTopButton scrollContainer={scrollContainerRef.current} />
-        )}
+        {/* Scroll to top button */}
+        <ScrollToTopButton scrollContainer={scrollContainerRef.current} />
       </div>
     </SpaceProvider>
   ) : (
