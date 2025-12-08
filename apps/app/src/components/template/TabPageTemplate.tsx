@@ -334,6 +334,9 @@ export function TabPageTemplate({
                     onTop: nameOnTop,
                     // In tab fullscreen mode, name links to page fullscreen (not self)
                     linkToFullscreen: true,
+                    // Always show navigation buttons (no cover in tab fullscreen)
+                    alwaysShowNavigation: true,
+                    entityType,
                   }}
                   entity={selectedEntity}
                   pageConfig={pageConfig}

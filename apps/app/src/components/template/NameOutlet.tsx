@@ -26,6 +26,9 @@ interface NameOutletProps {
   isLoading?: boolean;
   onTop?: boolean;
 
+  // Always show navigation buttons (for tab fullscreen mode without cover)
+  alwaysShowNavigation?: boolean;
+
   // Menu configuration (from page config)
   pageConfig?: PageConfig | null;
   spacePermissions?: SpacePermissions;
@@ -57,6 +60,7 @@ export function NameOutlet({
   className = "",
   isLoading = false,
   onTop = false,
+  alwaysShowNavigation = false,
   pageConfig,
   spacePermissions = { canEdit: true, canDelete: false, canAdd: false },
   entityType,
@@ -114,8 +118,8 @@ export function NameOutlet({
       {/* Name content slot - entity-specific component via children */}
       {children}
 
-      {/* Navigation buttons - top right (default/gray when sticky) */}
-      {onTop && (
+      {/* Navigation buttons - top right (default/gray when sticky or alwaysShowNavigation) */}
+      {(onTop || alwaysShowNavigation) && (
         <div className="absolute right-0 top-0">
           <NavigationButtons mode="default" entityType={entityType} />
         </div>
