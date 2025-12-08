@@ -2,6 +2,7 @@ import { useMemo, useRef, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { BlockRenderer } from "@/components/blocks/BlockRenderer";
 import { SpaceProvider } from "@/contexts/SpaceContext";
+import { ScrollToTopButton } from "@/components/shared/ScrollToTopButton";
 import { getPageConfig } from "@/utils/getPageConfig";
 import { spaceStore } from "@breedhub/rxdb-store";
 import { useSignals } from "@preact/signals-react/runtime";
@@ -369,6 +370,9 @@ export function TabPageTemplate({
             </div>
           </div>
         </div>
+
+        {/* Scroll to top button */}
+        <ScrollToTopButton scrollContainer={scrollContainerRef.current} />
       </div>
     </SpaceProvider>
   );

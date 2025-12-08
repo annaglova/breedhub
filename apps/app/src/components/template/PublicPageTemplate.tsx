@@ -1,11 +1,12 @@
 import { BlockRenderer } from "@/components/blocks/BlockRenderer";
 import { SpaceProvider } from "@/contexts/SpaceContext";
+import { ScrollToTopButton } from "@/components/shared/ScrollToTopButton";
 import { getPageConfig } from "@/utils/getPageConfig";
 import { spaceStore } from "@breedhub/rxdb-store";
 import { Signal } from "@preact/signals-react";
 import { useSignals } from "@preact/signals-react/runtime";
 import { cn } from "@ui/lib/utils";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 /**
  * Get default tab fragment from page config
@@ -114,7 +115,8 @@ export function PublicPageTemplate({
     });
   }
 
-  // Refs for sticky behavior
+  // Refs for sticky behavior and scroll
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
   const contentContainerRef = useRef<HTMLDivElement>(null);
   const nameContainerRef = useRef<HTMLDivElement>(null);
 
@@ -262,7 +264,10 @@ export function PublicPageTemplate({
           className
         )}
       >
-        <div className="flex flex-auto flex-col items-center overflow-auto">
+        <div
+          ref={scrollContainerRef}
+          className="flex flex-auto flex-col items-center overflow-auto"
+        >
           <div
             ref={contentContainerRef}
             className="w-full max-w-3xl lg:max-w-4xl xxl:max-w-5xl"
@@ -398,6 +403,11 @@ export function PublicPageTemplate({
               })()}
           </div>
         </div>
+
+        {/* Scroll to top button - only in fullscreen mode */}
+        {isFullscreenMode && (
+          <ScrollToTopButton scrollContainer={scrollContainerRef.current} />
+        )}
       </div>
     </SpaceProvider>
   ) : (
