@@ -130,7 +130,7 @@ export function useTabNavigation({
               }
 
               if (scrollContainer && scrollContainer !== document.body) {
-                scrollContainer.scrollTop = 0;
+                scrollContainer.scrollTo({ top: 0, behavior: 'smooth' });
               }
             }
           });
@@ -196,8 +196,8 @@ export function useTabNavigation({
           }
 
           if (scrollContainer && scrollContainer !== document.body) {
-            // Scroll container to top
-            scrollContainer.scrollTop = 0;
+            // Scroll container to top smoothly
+            scrollContainer.scrollTo({ top: 0, behavior: 'smooth' });
           } else {
             // Fallback to window scroll
             window.scrollTo({ top: 0, behavior: "smooth" });
@@ -336,8 +336,8 @@ export function useTabNavigation({
           const scrollTopBefore = scrollContainer.scrollTop;
 
           // DON'T use scrollIntoView - it scrolls wrong container
-          // Manually scroll our specific container
-          scrollContainer.scrollTop = targetScroll;
+          // Manually scroll our specific container with smooth behavior
+          scrollContainer.scrollTo({ top: targetScroll, behavior: 'smooth' });
 
           const scrollTopAfter = scrollContainer.scrollTop;
 
