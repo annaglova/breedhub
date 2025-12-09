@@ -966,26 +966,8 @@ export function SpaceComponent<T extends { id: string }>({
     );
   }
 
-  // FULLSCREEN MODE OPTIMIZATION
-  // When in fullscreen mode (pretty URL like /affenpinscher or /affenpinscher/achievements),
-  // don't render the Space list content (header, filters, entities) underneath the drawer.
-  // Only render the fullscreen drawer with children.
-  // This prevents unnecessary rendering and potential flashing.
-  if (isFullscreen && initialSelectedEntityId) {
-    return (
-      <div className="relative h-full overflow-hidden">
-        <div
-          className={cn(
-            "absolute inset-0 z-40",
-            needCardClass ? "fake-card" : "card-surface",
-            "overflow-auto"
-          )}
-        >
-          {children || <Outlet />}
-        </div>
-      </div>
-    );
-  }
+  // Fullscreen mode flag - used to control drawer size and hide space list
+  const showFullscreen = isFullscreen && initialSelectedEntityId;
 
   // Show loading state only on initial load
   // SKIP loading state when initialSelectedEntityId is provided (pretty URL mode)
@@ -1118,7 +1100,8 @@ export function SpaceComponent<T extends { id: string }>({
   return (
     <TooltipProvider>
       <div className="relative h-full overflow-hidden">
-        {/* Main Content */}
+        {/* Main Content - hidden when fullscreen */}
+        {!showFullscreen && (
         <div
           className={cn(
             "relative flex flex-col cursor-default h-full overflow-hidden",
@@ -1256,46 +1239,42 @@ export function SpaceComponent<T extends { id: string }>({
               onClick={handleBackdropClick}
             />
           )}
+        </div>
+        )}
 
-          {/* Drawer for side/over modes (inside main content) */}
-          {(drawerMode === "side" || drawerMode === "over") && (
-            <div
-              className={cn(
-                "absolute top-0 right-0 h-full z-40",
-                "transform transition-all duration-300 ease-out",
-                // Width based on mode
-                drawerMode === "over" && "inset-0",
-                drawerMode === "side" && "w-[40rem]",
-                // Background
-                "bg-white",
-                // Rounded corners for side mode on larger screens
-                drawerMode === "side" && isMoreThanSM && "rounded-l-xl overflow-hidden",
-                // Shadow for side mode
-                drawerMode === "side" && "shadow-xl",
-                // Show/hide animation
-                isDrawerOpen ? "translate-x-0 opacity-100" : "translate-x-full opacity-0 pointer-events-none"
-              )}
-            >
-              {isDrawerOpen && (children || <Outlet />)}
+        {/* Unified Drawer - single element for all modes with smooth transitions */}
+        <div
+          className={cn(
+            "absolute top-0 bottom-0 right-0 z-40",
+            "transition-all duration-300 ease-out",
+            // Width based on mode and fullscreen state - use percentages for smooth transition
+            (showFullscreen || drawerMode === "over") && "w-full",
+            !showFullscreen && drawerMode === "side" && "w-[60%]",
+            !showFullscreen && drawerMode === "side-transparent" && "w-[45rem]",
+            // Background
+            showFullscreen
+              ? (needCardClass ? "fake-card" : "card-surface")
+              : drawerMode === "side-transparent"
+                ? (needCardClass ? "fake-card" : "card-surface")
+                : "bg-white",
+            // Rounded corners (not for fullscreen or over mode)
+            !showFullscreen && drawerMode !== "over" && "rounded-l-xl overflow-hidden",
+            // Shadow for side mode only
+            !showFullscreen && drawerMode === "side" && "shadow-xl",
+            // Show/hide animation (always visible in fullscreen or side-transparent)
+            showFullscreen || drawerMode === "side-transparent"
+              ? "opacity-100"
+              : isDrawerOpen
+                ? "opacity-100"
+                : "translate-x-full opacity-0 pointer-events-none"
+          )}
+        >
+          {(showFullscreen || isDrawerOpen || drawerMode === "side-transparent") && (
+            <div className="h-full overflow-auto">
+              {children || <Outlet />}
             </div>
           )}
         </div>
-
-        {/* Drawer for side-transparent mode (outside main content) */}
-        {/* ALWAYS visible on xxl+ screens - shows skeleton or content */}
-        {drawerMode === "side-transparent" && (
-          <div
-            className={cn(
-              "absolute top-0 right-0 h-full z-40",
-              "w-[45rem]",
-              needCardClass ? "fake-card" : "card-surface",
-              "rounded-l-xl overflow-hidden"
-            )}
-          >
-            {/* Show content - PublicPageTemplate handles its own loading skeletons via outlets */}
-            {children || <Outlet />}
-          </div>
-        )}
       </div>
     </TooltipProvider>
   );
