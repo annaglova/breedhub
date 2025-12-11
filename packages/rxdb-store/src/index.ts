@@ -8,13 +8,14 @@ export { entityReplicationService, EntityReplicationService } from './services/e
 
 // Hooks
 export { useReplicationState, SyncStatusIndicator } from './hooks/useReplicationState';
-export { 
-  useRxData, 
-  useRxDB, 
-  useRxDocument, 
+export {
+  useRxData,
+  useRxDB,
+  useRxDocument,
   useRxCollection,
   useOfflineQueue
 } from './hooks/useRxCollection';
+export { useTabData } from './hooks/useTabData';
 
 // Database types
 export type { DatabaseCollections, AppDatabase } from './services/database.service';
@@ -56,3 +57,19 @@ export { mixinEngine, MixinEngineService } from './services/mixin-engine.service
 
 // Supabase utilities
 export { supabase, checkSupabaseConnection } from './supabase/client';
+
+// Tab Data Service - Universal tab data loading
+export { tabDataService } from './services/tab-data.service';
+export type {
+  DataSourceConfig,
+  DataSourceType,
+  ChildTableConfig,
+  DictionaryMergeConfig,
+  MainEntityConfig,
+  RpcConfig,
+  OrderConfig,
+  TabDataResult,
+  UseTabDataOptions,
+  MergedDictionaryItem,
+  EnrichedChildItem,
+} from './types/tab-data.types';

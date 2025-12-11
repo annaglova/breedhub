@@ -54,6 +54,7 @@ interface TabConfig {
   badge?: string; // "Coming soon", "New", "Beta", etc.
   fullscreenButton?: boolean; // Show fullscreen button
   recordsCount?: number; // Number of records to fetch for this tab
+  dataSource?: any; // Config-driven data loading (see TAB_DATA_SERVICE_ARCHITECTURE.md)
 }
 
 interface TabOutletRendererProps {
@@ -72,6 +73,7 @@ interface ExtendedTab extends Tab {
   badge?: string;
   fullscreenButton?: boolean;
   recordsCount?: number;
+  dataSource?: any;
 }
 
 /**
@@ -108,6 +110,7 @@ function convertTabConfigToTabs(tabsConfig: Record<string, TabConfig>): Tab[] {
       badge: config.badge,
       fullscreenButton: config.fullscreenButton,
       recordsCount: config.recordsCount,
+      dataSource: config.dataSource,
       // Internal fields
       _order: config.order,
       _isDefault: config.isDefault,

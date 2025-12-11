@@ -12,6 +12,7 @@ export interface Tab {
   badge?: string; // "Coming soon", "New", "Beta", etc.
   fullscreenButton?: boolean; // Show fullscreen button (generates URL from fragment)
   recordsCount?: number; // Number of records to fetch for this tab
+  dataSource?: any; // Config-driven data loading (see TAB_DATA_SERVICE_ARCHITECTURE.md)
   component: React.ComponentType<any>;
 }
 
@@ -95,7 +96,10 @@ export function TabsContainer({
                 id={tab.fragment}
                 onVisibilityChange={handleVisibilityChange}
               >
-                <Component recordsCount={tab.recordsCount} />
+                <Component
+                  recordsCount={tab.recordsCount}
+                  dataSource={tab.dataSource}
+                />
               </ScrollableTab>
             </section>
           );
@@ -128,7 +132,10 @@ export function TabsContainer({
       />
 
       {/* Active Tab Content */}
-      <Component recordsCount={activeTabData.recordsCount} />
+      <Component
+        recordsCount={activeTabData.recordsCount}
+        dataSource={activeTabData.dataSource}
+      />
     </div>
   );
 }

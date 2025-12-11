@@ -1,49 +1,22 @@
 import { useSelectedEntity } from "@/contexts/SpaceContext";
-import { useChildRecords } from "@/hooks/useChildRecords";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
-import { dictionaryStore, spaceStore } from "@breedhub/rxdb-store";
+import { spaceStore, useTabData } from "@breedhub/rxdb-store";
+import type { DataSourceConfig, MergedDictionaryItem } from "@breedhub/rxdb-store";
 import { useSignals } from "@preact/signals-react/runtime";
 import { AlternatingTimeline } from "@ui/components/timeline";
 import { Check, Loader2 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 
 /**
- * Achievement data structure
- * Maps to achievement_in_breed child table + achievement dictionary
+ * Achievement item for timeline display
  */
-interface Achievement {
+interface TimelineAchievement {
   id: string;
   name: string;
   description: string;
-  intValue: number; // Amount in USD
-  date?: string; // Date when achieved (null if not yet achieved)
-  active: boolean; // Whether this level has been reached
-}
-
-/**
- * Achievement dictionary entry from Supabase
- */
-interface AchievementDictionary {
-  id: string;
-  name: string;
-  description: string;
-  int_value: number;
-  position: number;
-}
-
-/**
- * Achievement in breed record from child table
- * Now using 'additional' field pattern (like DictionaryDocument)
- */
-interface AchievementInBreed {
-  id: string;
-  tableType: string;
-  parentId: string;
-  additional?: {
-    achievement_id?: string;
-    date?: string;
-  };
-  cachedAt: number;
+  intValue: number;
+  date?: string;
+  active: boolean;
 }
 
 /**
@@ -75,142 +48,74 @@ function formatDate(dateString: string): string {
  * Displays breed achievement/support levels in a timeline format.
  * Shows which levels have been achieved and when.
  *
- * REFERENCE: /Users/annaglova/projects/org/.../breed-support-levels.component.ts
+ * Data flow (Config-Driven, Local-First):
+ * 1. dataSource config defines what to load
+ * 2. useTabData → TabDataService → SpaceStore + DictionaryStore → RxDB
+ * 3. Data is merged automatically based on config (showAll: true)
+ * 4. Component only handles UI rendering
  *
- * Data flow (Local-First Architecture):
- * 1. Load achievement_in_breed records via useChildRecords → SpaceStore → RxDB
- *    - Fields stored in 'additional' JSON: achievement_id, date
- * 2. Load achievement dictionary via DictionaryStore → RxDB
- *    - Fields stored in 'additional' JSON: int_value, position, description, entity
- * 3. Merge and display in timeline (all levels, with achieved dates marked)
- *
- * ✅ Follows CORE_PRINCIPLES.md: All data through RxDB → UI, never direct Supabase
+ * @see docs/TAB_DATA_SERVICE_ARCHITECTURE.md
  */
 interface BreedAchievementsTabProps {
-  recordsCount?: number; // Number of records to display (from config) - not used for achievements
+  recordsCount?: number;
+  dataSource?: DataSourceConfig;
 }
 
-export function BreedAchievementsTab({ recordsCount }: BreedAchievementsTabProps) {
+export function BreedAchievementsTab({
+  dataSource,
+}: BreedAchievementsTabProps) {
   useSignals();
 
-  // recordsCount is accepted for interface consistency but not used for achievements
-  // (achievements are always shown in full)
   const selectedEntity = useSelectedEntity();
   const breedId = selectedEntity?.id;
 
   // Timeline layout: "alternating" on fullscreen + large screens, "right" otherwise
-  // Reference: Angular breed-support-levels.component.ts - alternate mode only when fullscreen AND >= 960px
   const isFullscreen = spaceStore.isFullscreen.value;
   const isLargeScreen = useMediaQuery("(min-width: 960px)");
   const timelineLayout = isFullscreen && isLargeScreen ? "alternating" : "right";
 
-  // Load achievement_in_breed records for this breed
-  // Note: Can't sort by 'date' in RxDB because it's in 'additional' JSON field
-  // Will sort in memory after fetching
-  const {
-    data: achievementsInBreedRaw,
-    isLoading: isLoadingChildren,
-    error: childrenError,
-  } = useChildRecords<AchievementInBreed>({
+  // Load data via useTabData (config-driven, local-first)
+  // TabDataService handles: child records + dictionary + merge
+  const { data, isLoading, error } = useTabData<MergedDictionaryItem>({
     parentId: breedId,
-    tableType: "achievement_in_breed",
+    dataSource: dataSource!,
+    enabled: !!dataSource && !!breedId,
   });
 
-  // Sort achievements by date (desc) in memory
-  const achievementsInBreed = useMemo(() => {
-    if (!achievementsInBreedRaw) return [];
-    return [...achievementsInBreedRaw].sort((a, b) => {
-      const dateA = a.additional?.date || "";
-      const dateB = b.additional?.date || "";
-      return dateB.localeCompare(dateA); // desc
-    });
-  }, [achievementsInBreedRaw]);
+  // Transform merged data to timeline format
+  const achievements = useMemo<TimelineAchievement[]>(() => {
+    if (!data || data.length === 0) return [];
 
-  // Load achievement dictionary via DictionaryStore (RxDB → Supabase)
-  const [achievementDict, setAchievementDict] = useState<
-    AchievementDictionary[]
-  >([]);
-  const [isLoadingDict, setIsLoadingDict] = useState(true);
-  const [dictError, setDictError] = useState<Error | null>(null);
+    return data
+      .filter((item) => (item.int_value ?? 0) >= 0) // Filter out special entries
+      .map((item) => ({
+        id: item.id,
+        name: item.name,
+        description: item.description || "",
+        intValue: item.int_value || 0,
+        // _achievedRecord contains the child record with date in additional
+        date: item._achievedRecord?.additional?.date,
+        active: item._achieved,
+      }));
+  }, [data]);
 
-  useEffect(() => {
-    async function loadDictionary() {
-      try {
-        // Ensure DictionaryStore is initialized
-        if (!dictionaryStore.initialized.value) {
-          await dictionaryStore.initialize();
-        }
-
-        // Load via DictionaryStore (ID-First: Supabase IDs → RxDB cache → fetch missing)
-        // Additional fields stored in 'additional' JSON object
-        const { records } = await dictionaryStore.getDictionary("achievement", {
-          idField: "id",
-          nameField: "name",
-          limit: 100, // Small dictionary, load all
-          additionalFields: ["int_value", "position", "description", "entity"],
-        });
-
-        // Filter for breed entity and transform to expected format
-        // DictionaryStore returns { id, name, additional: { int_value, position, ... }, ... }
-        const breedAchievements = records
-          .filter((r: any) => r.additional?.entity === "breed")
-          .map((r: any) => ({
-            id: r.id,
-            name: r.name,
-            description: r.additional?.description || "",
-            int_value: r.additional?.int_value || 0,
-            position: r.additional?.position || 0,
-          }))
-          .sort((a, b) => a.position - b.position);
-
-        setAchievementDict(breedAchievements);
-      } catch (err) {
-        console.error("[BreedAchievementsTab] Error loading dictionary:", err);
-        setDictError(err as Error);
-      } finally {
-        setIsLoadingDict(false);
-      }
-    }
-
-    loadDictionary();
-  }, []);
-
-  // Merge achievement dictionary with breed's achievements
-  const achievements = useMemo<Achievement[]>(() => {
-    if (!achievementDict.length) return [];
-
-    // Create a map of achieved achievements by achievement_id
-    // Note: achievement_id is now in 'additional' field
-    const achievedMap = new Map<string, AchievementInBreed>();
-    achievementsInBreed.forEach((record) => {
-      const achievementId = record.additional?.achievement_id;
-      if (achievementId) {
-        achievedMap.set(achievementId, record);
-      }
-    });
-
-    // Map dictionary entries to Achievement format
+  // No dataSource config - show warning
+  if (!dataSource) {
     return (
-      achievementDict
-        .filter((dict) => dict.int_value >= 0) // Filter out special entries
-        // Already sorted by position from Supabase query
-        .map((dict) => {
-          const achieved = achievedMap.get(dict.id);
-          return {
-            id: dict.id,
-            name: dict.name,
-            description: dict.description || "",
-            intValue: dict.int_value,
-            date: achieved?.additional?.date, // Read from additional field
-            active: !!achieved,
-          };
-        })
+      <div className="py-4 px-6">
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+          <p className="text-yellow-700 font-semibold">
+            Missing dataSource configuration
+          </p>
+          <p className="text-yellow-600 text-sm mt-1">
+            Add dataSource to tab config to enable data loading
+          </p>
+        </div>
+      </div>
     );
-  }, [achievementDict, achievementsInBreed]);
+  }
 
   // Loading state
-  const isLoading = isLoadingChildren || isLoadingDict;
-
   if (isLoading) {
     return (
       <div className="py-4 px-6 flex items-center justify-center min-h-[200px]">
@@ -221,16 +126,14 @@ export function BreedAchievementsTab({ recordsCount }: BreedAchievementsTabProps
   }
 
   // Error state
-  if (childrenError || dictError) {
-    const errorMessage =
-      childrenError?.message || dictError?.message || "Unknown error";
+  if (error) {
     return (
       <div className="py-4 px-6">
         <div className="bg-red-50 border border-red-200 rounded-lg p-4">
           <p className="text-red-700 font-semibold">
             Failed to load achievements
           </p>
-          <p className="text-red-600 text-sm mt-1">{errorMessage}</p>
+          <p className="text-red-600 text-sm mt-1">{error.message}</p>
         </div>
       </div>
     );
