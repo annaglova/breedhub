@@ -1,18 +1,77 @@
 # 🧪 Testing Strategy для Local-First PWA Implementation
 
+## 📊 Поточний стан тестування (оновлено: грудень 2024)
+
+### ✅ Реалізовано: 110 unit тестів
+
+| Модуль | Файл тестів | К-сть тестів | Статус |
+|--------|-------------|--------------|--------|
+| EntityStore | `stores/base/__tests__/entity-store.test.ts` | 52 | ✅ Готово |
+| SpaceStore helpers | `stores/__tests__/space-store.test.ts` | 44 | ✅ Готово |
+| TabDataService | `services/__tests__/tab-data.service.test.ts` | 14 | ✅ Готово |
+
+**Запуск тестів:**
+```bash
+cd packages/rxdb-store
+pnpm test           # watch mode
+pnpm test -- --run  # single run
+npx vitest run      # альтернатива
+```
+
+### Покриття по модулях:
+
+**EntityStore (52 тести)** - база для всіх сторів:
+- Ініціалізація та початковий стан
+- CRUD: setAll, addOne/Many, updateOne/Many, upsertOne/Many, removeOne/Many/All
+- Selection: selectEntity, selectFirst, selectLast, clearSelection
+- Selectors: selectById, selectByIds, selectWhere, hasEntity
+- State management: loading, error, totalFromServer, reset
+
+**SpaceStore helpers (44 тести)** - чисті функції парсингу:
+- `removeFieldPrefix()` - видалення префіксу entity з полів
+- `detectOperator()` - автодетект оператора фільтра по типу поля
+- `getEntityTypeFromTableType()` - визначення типу entity з таблиці
+- `parseSortOptions()` - парсинг sort_fields з конфігу
+- `parseFilterFields()` - парсинг filter_fields з конфігу
+- `findMainFilterField()` - пошук головного поля фільтра для search
+
+**TabDataService (14 тестів)** - оркестрація завантаження даних:
+- Роутинг по типах dataSource (child, child_view, child_with_dictionary, main_filtered)
+- loadChild - передача limit/orderBy
+- loadChildWithDictionary - merge dictionary з children, showAll/filter/orderBy
+- loadMainFiltered - applyFilters з правильними параметрами
+
+### ❌ Не покрито (потребує інтеграційних тестів):
+
+| Модуль | Складність | Пріоритет | Примітка |
+|--------|------------|-----------|----------|
+| `network-helpers.ts` | Легко | Низький | 3 прості функції (isOnline, isOffline, isNetworkError) |
+| `ttl-cleanup.helper.ts` | Середня | Середній | Потребує RxDB mock |
+| `DictionaryStore` | Середня | Середній | Кешування словників |
+| SpaceStore інтеграція | Складно | Високий | RxDB + Supabase |
+| Collection creation | Складно | Середній | Динамічне створення схем |
+
+### 🎯 Рекомендації для подальшого тестування:
+
+1. **Інтеграційні тести** - додавати при знаходженні багів або рефакторингу
+2. **E2E тести (Playwright)** - для критичних user flows
+3. **network-helpers.ts** - швидко додати (~10 тестів) якщо потрібно
+
+---
+
 ## 📋 Загальні принципи тестування
 
 ### Типи тестів:
-1. **Unit Tests** - окремі функції та компоненти
-2. **Integration Tests** - взаємодія між модулями
-3. **E2E Tests** - повні user flows
+1. **Unit Tests** - окремі функції та компоненти ✅ РЕАЛІЗОВАНО
+2. **Integration Tests** - взаємодія між модулями (частково)
+3. **E2E Tests** - повні user flows (TODO)
 4. **Performance Tests** - швидкість та memory usage
 5. **Offline Tests** - робота без інтернету
 6. **Sync Tests** - синхронізація даних
 
 ### Інструменти:
-- **Vitest** - unit та integration тести
-- **Playwright** - E2E тестування
+- **Vitest** - unit та integration тести ✅ Налаштовано
+- **Playwright** - E2E тестування (TODO)
 - **Chrome DevTools** - performance та network testing
 - **Playground** - ручне тестування та демо
 
