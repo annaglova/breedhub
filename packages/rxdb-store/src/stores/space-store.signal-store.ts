@@ -3287,6 +3287,11 @@ class SpaceStore {
         return [];
       }
 
+      // Normalize VIEW name to base table name for RxDB storage
+      // e.g., 'top_pet_in_breed_with_pet' -> 'top_pet_in_breed'
+      //       'top_patron_in_breed_with_contact' -> 'top_patron_in_breed'
+      const normalizedTableType = tableType.replace(/_with_\w+$/, '');
+
       // Transform records: extract core fields + put everything else in 'additional'
       const transformedRecords = data.map((row: Record<string, any>) => {
         const { id, created_at, updated_at, created_by, updated_by, ...rest } = row;
@@ -3302,7 +3307,7 @@ class SpaceStore {
 
         return {
           id,
-          tableType,
+          tableType: normalizedTableType,
           parentId,
           additional: Object.keys(additional).length > 0 ? additional : undefined,
           cachedAt: Date.now()
@@ -3348,13 +3353,17 @@ class SpaceStore {
       return [];
     }
 
+    // Normalize VIEW name to base table name for RxDB query
+    // e.g., 'top_pet_in_breed_with_pet' -> 'top_pet_in_breed'
+    const normalizedTableType = tableType.replace(/_with_\w+$/, '');
+
     try {
       const { limit = 50, orderBy, orderDirection = 'asc' } = options;
 
       let query = collection.find({
         selector: {
           parentId: parentId,
-          tableType: tableType
+          tableType: normalizedTableType
         },
         limit
       });
