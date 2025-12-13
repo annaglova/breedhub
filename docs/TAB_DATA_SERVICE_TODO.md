@@ -1,7 +1,7 @@
 # Tab Data Service - Implementation TODO
 
 **Created:** 2025-12-11
-**Updated:** 2025-12-11
+**Updated:** 2025-12-13
 **Related:** [TAB_DATA_SERVICE_ARCHITECTURE.md](./TAB_DATA_SERVICE_ARCHITECTURE.md)
 
 ---
@@ -92,16 +92,17 @@
 
 ---
 
-## Phase 3: Migrate BreedPatronsTab
+## Phase 3: Migrate BreedPatronsTab ✅ DONE
 
 ### 3.1 Database Migration
 - [x] Create `20251211_create_top_patron_view.sql` migration
-- [ ] Apply migration to database
+- [x] Apply migration to database
   - Creates `top_patron_in_breed_with_contact` VIEW
   - Embeds contact data as JSONB
+  - Synthetic UUID from composite key (md5)
 
 ### 3.2 Update Tab Config
-- [ ] Update patrons tab config in app_config
+- [x] Update patrons tab config in app_config
   ```json
   {
     "dataSource": {
@@ -117,13 +118,17 @@
   ```
 
 ### 3.3 Refactor Component
-- [ ] Remove mock data
-- [ ] Add `useTabData` with `dataSource` prop
-- [ ] Update data mapping for patron avatars
-- [ ] Handle embedded `contact` JSONB field
-- [ ] Test patrons display
-- [ ] Test empty state
-- [ ] Test loading state
+- [x] Remove mock data
+- [x] Add `useTabData` with `dataSource` prop
+- [x] Update data mapping for patron avatars
+- [x] Handle embedded `contact` JSONB field
+- [x] Test patrons display
+- [x] Test empty state
+- [x] Test loading state
+
+### 3.4 Fullscreen Support
+- [x] Add dataSource passing to TabPageTemplate for fullscreen mode
+- [x] Conditional fullscreen button (show only when records >= limit)
 
 ---
 

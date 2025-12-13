@@ -1,6 +1,7 @@
 import { PetSexMark, type SexCode } from "./PetSexMark";
 import { Link } from "react-router-dom";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@ui/components/tooltip";
+import defaultDogImage from "@/assets/images/pettypes/dog.jpeg";
 
 /**
  * Pet entity structure
@@ -81,7 +82,7 @@ export function PetCard({ pet, mode = "default" }: PetCardProps) {
         <div className="flex size-36 items-center justify-center overflow-hidden rounded-xl border border-surface-border sm:size-44">
           <img
             className="h-full w-auto max-w-[150%] object-cover"
-            src={pet.avatarUrl}
+            src={pet.avatarUrl || defaultDogImage}
             alt={pet.name}
           />
         </div>
