@@ -5,7 +5,7 @@ import type { DataSourceConfig, MergedDictionaryItem } from "@breedhub/rxdb-stor
 import { useSignals } from "@preact/signals-react/runtime";
 import { AlternatingTimeline } from "@ui/components/timeline";
 import { Check, Loader2 } from "lucide-react";
-import { useMemo } from "react";
+import { useMemo, useEffect } from "react";
 
 /**
  * Achievement item for timeline display
@@ -59,10 +59,12 @@ function formatDate(dateString: string): string {
 interface BreedAchievementsTabProps {
   recordsCount?: number;
   dataSource?: DataSourceConfig;
+  onLoadedCount?: (count: number) => void; // Report loaded count for conditional fullscreen
 }
 
 export function BreedAchievementsTab({
   dataSource,
+  onLoadedCount,
 }: BreedAchievementsTabProps) {
   useSignals();
 
@@ -81,6 +83,13 @@ export function BreedAchievementsTab({
     dataSource: dataSource!,
     enabled: !!dataSource && !!breedId,
   });
+
+  // Report loaded count for conditional fullscreen button
+  useEffect(() => {
+    if (!isLoading && data && onLoadedCount) {
+      onLoadedCount(data.length);
+    }
+  }, [data, isLoading, onLoadedCount]);
 
   // Transform merged data to timeline format
   const achievements = useMemo<TimelineAchievement[]>(() => {

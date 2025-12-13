@@ -6,6 +6,8 @@ import { cn } from "@ui/lib/utils";
 
 interface BreedTopKennelsTabProps {
   recordsCount?: number; // Number of records to display (from config)
+  dataSource?: any; // Config-driven data loading (not yet implemented)
+  onLoadedCount?: (count: number) => void; // Report loaded count for conditional fullscreen
 }
 
 /**

@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useEffect } from "react";
 import { AvatarCard, AvatarEntity } from "@/components/shared/AvatarCard";
 import { useSelectedEntity } from "@/contexts/SpaceContext";
 import { spaceStore, useTabData } from "@breedhub/rxdb-store";
@@ -29,6 +29,7 @@ interface PatronViewRecord {
 interface BreedPatronsTabProps {
   recordsCount?: number;
   dataSource?: DataSourceConfig;
+  onLoadedCount?: (count: number) => void; // Report loaded count for conditional fullscreen
 }
 
 /**
@@ -48,7 +49,7 @@ interface BreedPatronsTabProps {
  *
  * @see docs/TAB_DATA_SERVICE_ARCHITECTURE.md
  */
-export function BreedPatronsTab({ dataSource }: BreedPatronsTabProps) {
+export function BreedPatronsTab({ dataSource, onLoadedCount }: BreedPatronsTabProps) {
   useSignals();
 
   const selectedEntity = useSelectedEntity();
@@ -62,6 +63,13 @@ export function BreedPatronsTab({ dataSource }: BreedPatronsTabProps) {
     dataSource: dataSource!,
     enabled: !!dataSource && !!breedId,
   });
+
+  // Report loaded count for conditional fullscreen button
+  useEffect(() => {
+    if (!isLoading && data && onLoadedCount) {
+      onLoadedCount(data.length);
+    }
+  }, [data, isLoading, onLoadedCount]);
 
   // Transform VIEW data to AvatarEntity format
   const patrons = useMemo<AvatarEntity[]>(() => {

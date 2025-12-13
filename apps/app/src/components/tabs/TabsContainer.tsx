@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { cn } from "@ui/lib/utils";
 import { TabHeader } from "./TabHeader";
 import { ScrollableTab } from "./ScrollableTab";
@@ -14,6 +14,24 @@ export interface Tab {
   recordsCount?: number; // Number of records to fetch for this tab
   dataSource?: any; // Config-driven data loading (see TAB_DATA_SERVICE_ARCHITECTURE.md)
   component: React.ComponentType<any>;
+}
+
+/**
+ * Determine if fullscreen button should be shown
+ * - If no recordsCount configured, always show (if fullscreenButton: true)
+ * - If recordsCount configured but data not loaded yet, don't show
+ * - If loaded records >= recordsCount, show (there might be more records)
+ * - If loaded records < recordsCount, don't show (all records fit on page)
+ */
+function shouldShowFullscreen(
+  fullscreenButton: boolean | undefined,
+  recordsCount: number | undefined,
+  loadedCount: number | undefined
+): boolean {
+  if (!fullscreenButton) return false;
+  if (recordsCount === undefined) return true; // No limit configured, always show
+  if (loadedCount === undefined) return false; // Data not loaded yet, hide
+  return loadedCount >= recordsCount; // Show only if there might be more
 }
 
 interface TabsContainerProps {
@@ -54,6 +72,17 @@ export function TabsContainer({
   entitySlug,
   className,
 }: TabsContainerProps) {
+  // Track loaded record counts per tab (for conditional fullscreen button)
+  const [loadedCounts, setLoadedCounts] = useState<Record<string, number>>({});
+
+  // Callback for tab components to report their loaded count
+  const handleLoadedCount = useCallback((tabId: string, count: number) => {
+    setLoadedCounts(prev => {
+      if (prev[tabId] === count) return prev; // No change
+      return { ...prev, [tabId]: count };
+    });
+  }, []);
+
   // Use provided visibility handler or create internal one
   const handleVisibilityChange =
     onVisibilityChange ||
@@ -68,10 +97,16 @@ export function TabsContainer({
       <div className={cn("w-full", className)}>
         {tabs.map((tab, index) => {
           const Component = tab.component;
-          // Generate fullscreen URL from fragment if fullscreenButton is enabled
-          // New format: /{entitySlug}/{tabSlug} (nested route)
-          // Fallback to hash-based URL if entitySlug not provided
-          const fullscreenUrl = tab.fullscreenButton
+
+          // Determine if fullscreen button should be shown
+          const showFullscreen = shouldShowFullscreen(
+            tab.fullscreenButton,
+            tab.recordsCount,
+            loadedCounts[tab.id]
+          );
+
+          // Generate fullscreen URL only if button should be shown
+          const fullscreenUrl = showFullscreen
             ? entitySlug
               ? `/${entitySlug}/${tab.fragment}`
               : `#${tab.fragment}/fullscreen`
@@ -99,6 +134,7 @@ export function TabsContainer({
                 <Component
                   recordsCount={tab.recordsCount}
                   dataSource={tab.dataSource}
+                  onLoadedCount={(count: number) => handleLoadedCount(tab.id, count)}
                 />
               </ScrollableTab>
             </section>
@@ -113,8 +149,16 @@ export function TabsContainer({
   if (!activeTabData) return null;
 
   const Component = activeTabData.component;
-  // New format: /{entitySlug}/{tabSlug} (nested route)
-  const fullscreenUrl = activeTabData.fullscreenButton
+
+  // Determine if fullscreen button should be shown
+  const showFullscreen = shouldShowFullscreen(
+    activeTabData.fullscreenButton,
+    activeTabData.recordsCount,
+    loadedCounts[activeTabData.id]
+  );
+
+  // Generate fullscreen URL only if button should be shown
+  const fullscreenUrl = showFullscreen
     ? entitySlug
       ? `/${entitySlug}/${activeTabData.fragment}`
       : `#${activeTabData.fragment}/fullscreen`
@@ -135,6 +179,7 @@ export function TabsContainer({
       <Component
         recordsCount={activeTabData.recordsCount}
         dataSource={activeTabData.dataSource}
+        onLoadedCount={(count: number) => handleLoadedCount(activeTabData.id, count)}
       />
     </div>
   );
