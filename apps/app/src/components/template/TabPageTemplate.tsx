@@ -45,6 +45,7 @@ interface TabConfig {
   badge?: string;
   fullscreenButton?: boolean;
   recordsCount?: number;
+  dataSource?: any; // Config-driven data loading
 }
 
 interface TabPageTemplateProps {
@@ -91,6 +92,7 @@ function convertFullscreenTabsToArray(tabsConfig: Record<string, TabConfig>): Ta
       badge: config.badge,
       fullscreenButton: config.fullscreenButton,
       recordsCount: config.recordsCount,
+      dataSource: config.dataSource,
       _order: config.order,
     } as Tab & { _order: number });
   }
@@ -370,6 +372,8 @@ export function TabPageTemplate({
               <TabComponent
                 entity={selectedEntity}
                 mode="fullscreen"
+                recordsCount={currentTab.recordsCount}
+                dataSource={currentTab.dataSource}
               />
             </div>
           </div>
