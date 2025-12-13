@@ -1,7 +1,12 @@
-import { PetSexMark, type SexCode } from "./PetSexMark";
-import { Link } from "react-router-dom";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@ui/components/tooltip";
 import defaultDogImage from "@/assets/images/pettypes/dog.jpeg";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@ui/components/tooltip";
+import { PetSexMark, type SexCode } from "./PetSexMark";
+import { SmartLink } from "./SmartLink";
 
 /**
  * Pet entity structure
@@ -16,14 +21,17 @@ export interface Pet {
   dateOfBirth?: string;
   titles?: string; // TrimTitles
   father?: {
+    id?: string;
     name: string;
     url: string;
   };
   mother?: {
+    id?: string;
     name: string;
     url: string;
   };
   breed?: {
+    id?: string;
     name: string;
     url: string;
   };
@@ -50,7 +58,13 @@ function formatYear(dateString?: string): string {
 /**
  * Truncate text to specific number of lines (CSS clamp simulation)
  */
-function TruncatedText({ text, maxLines = 4 }: { text: string; maxLines?: number }) {
+function TruncatedText({
+  text,
+  maxLines = 4,
+}: {
+  text: string;
+  maxLines?: number;
+}) {
   return (
     <div
       className="overflow-hidden text-center leading-[1.75rem]"
@@ -69,13 +83,19 @@ function TruncatedText({ text, maxLines = 4 }: { text: string; maxLines?: number
  * PetCard component
  * Displays pet information card with avatar, name, titles, and pedigree
  *
+ * Uses SmartLink for all entity links with quick actions support.
+ *
  * Similar to Angular pet-card.component.ts
  */
 export function PetCard({ pet, mode = "default" }: PetCardProps) {
   return (
     <div className="card flex flex-col items-center justify-center px-6 py-3 sm:px-8 cursor-default caret-transparent">
       {/* Sex indicator bar */}
-      <PetSexMark sex={pet.sex} style="horizontal" className="mb-4 w-36 sm:w-44" />
+      <PetSexMark
+        sex={pet.sex}
+        style="horizontal"
+        className="mb-4 w-36 sm:w-44"
+      />
 
       <div className="flex h-auto flex-col items-center justify-center">
         {/* Avatar */}
@@ -87,28 +107,17 @@ export function PetCard({ pet, mode = "default" }: PetCardProps) {
           />
         </div>
 
-        {/* Name with tooltip */}
+        {/* Name with SmartLink */}
         <div className="my-3 flex min-h-12 w-48 items-center justify-center text-center font-semibold md:w-52">
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Link
-                  to={pet.url}
-                  className="hover:underline overflow-hidden"
-                  style={{
-                    display: "-webkit-box",
-                    WebkitBoxOrient: "vertical",
-                    WebkitLineClamp: 2,
-                  }}
-                >
-                  {pet.name}
-                </Link>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>{pet.name}</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+          <SmartLink
+            to={pet.url}
+            entityType="pet"
+            entityId={pet.id}
+            rows={2}
+            showTooltip={false}
+          >
+            {pet.name}
+          </SmartLink>
         </div>
 
         {/* Divider */}
@@ -139,42 +148,52 @@ export function PetCard({ pet, mode = "default" }: PetCardProps) {
 
               {/* Default mode: Father/Mother */}
               {!pet.titles && mode === "default" && (
-                <div className="grid w-full gap-y-3" style={{ gridTemplateColumns: "44px auto" }}>
+                <div
+                  className="grid w-full gap-y-3"
+                  style={{ gridTemplateColumns: "44px auto" }}
+                >
                   <span className="text-secondary">Father</span>
-                  <Link
+                  <SmartLink
                     to={pet.father?.url || "#"}
-                    className="hover:underline overflow-hidden"
-                    style={{
-                      display: "-webkit-box",
-                      WebkitBoxOrient: "vertical",
-                      WebkitLineClamp: 2,
-                    }}
+                    entityType="pet"
+                    entityId={pet.father?.id}
+                    rows={2}
+                    showTooltip={false}
+                    disableActions={!pet.father?.id}
                   >
                     {pet.father?.name || "Unknown"}
-                  </Link>
+                  </SmartLink>
 
                   <span className="text-secondary">Mother</span>
-                  <Link
+                  <SmartLink
                     to={pet.mother?.url || "#"}
-                    className="hover:underline overflow-hidden"
-                    style={{
-                      display: "-webkit-box",
-                      WebkitBoxOrient: "vertical",
-                      WebkitLineClamp: 2,
-                    }}
+                    entityType="pet"
+                    entityId={pet.mother?.id}
+                    rows={2}
+                    showTooltip={false}
+                    disableActions={!pet.mother?.id}
                   >
                     {pet.mother?.name || "Unknown"}
-                  </Link>
+                  </SmartLink>
                 </div>
               )}
 
               {/* Litter mode: Breed/Status */}
               {!pet.titles && mode === "litter" && (
-                <div className="grid w-full gap-y-3" style={{ gridTemplateColumns: "44px auto" }}>
+                <div
+                  className="grid w-full gap-y-3"
+                  style={{ gridTemplateColumns: "44px auto" }}
+                >
                   <span className="text-secondary">Breed</span>
-                  <Link to={pet.breed?.url || "#"} className="hover:underline">
+                  <SmartLink
+                    to={pet.breed?.url || "#"}
+                    entityType="breed"
+                    entityId={pet.breed?.id}
+                    showTooltip={false}
+                    disableActions={!pet.breed?.id}
+                  >
                     {pet.breed?.name || "Unknown"}
-                  </Link>
+                  </SmartLink>
 
                   <span className="text-secondary">Status</span>
                   <span>{pet.status || "Unknown"}</span>

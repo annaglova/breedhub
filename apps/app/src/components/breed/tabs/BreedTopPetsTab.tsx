@@ -28,10 +28,12 @@ interface TopPetViewRecord {
     date_of_birth?: string;
     titles?: string;
     father?: {
+      id?: string;
       name: string;
       slug: string;
     };
     mother?: {
+      id?: string;
       name: string;
       slug: string;
     };
@@ -101,10 +103,12 @@ export function BreedTopPetsTab({ dataSource, onLoadedCount }: BreedTopPetsTabPr
         dateOfBirth: pet?.date_of_birth,
         titles: pet?.titles,
         father: pet?.father ? {
+          id: pet.father.id,
           name: pet.father.name,
           url: pet.father.slug ? `/${pet.father.slug}` : "#",
         } : undefined,
         mother: pet?.mother ? {
+          id: pet.mother.id,
           name: pet.mother.name,
           url: pet.mother.slug ? `/${pet.mother.slug}` : "#",
         } : undefined,
