@@ -4235,15 +4235,25 @@ class SpaceStore {
 
   /**
    * Get loaded count for a specific tab
+   * Lazy loads from sessionStorage if needed
    */
   getTabLoadedCount(entityId: string, tabId: string): number | undefined {
+    // Lazy load from storage if empty
+    if (Object.keys(this.tabLoadedCountsMap.value).length === 0) {
+      this.loadTabLoadedCountsFromStorage();
+    }
     return this.tabLoadedCountsMap.value[entityId]?.[tabId];
   }
 
   /**
    * Get all loaded counts for an entity
+   * Lazy loads from sessionStorage if needed
    */
   getTabLoadedCounts(entityId: string): Record<string, number> {
+    // Lazy load from storage if empty
+    if (Object.keys(this.tabLoadedCountsMap.value).length === 0) {
+      this.loadTabLoadedCountsFromStorage();
+    }
     return this.tabLoadedCountsMap.value[entityId] || {};
   }
 
