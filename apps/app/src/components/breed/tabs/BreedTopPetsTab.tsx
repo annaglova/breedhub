@@ -1,7 +1,7 @@
-import { useMemo, useEffect } from "react";
+import { useMemo, useEffect, useRef, useCallback } from "react";
 import { PetCard, type Pet } from "@/components/shared/PetCard";
 import { useSelectedEntity } from "@/contexts/SpaceContext";
-import { spaceStore, useTabData } from "@breedhub/rxdb-store";
+import { spaceStore, useTabData, useInfiniteTabData } from "@breedhub/rxdb-store";
 import type { DataSourceConfig } from "@breedhub/rxdb-store";
 import { useSignals } from "@preact/signals-react/runtime";
 import { cn } from "@ui/lib/utils";
@@ -57,6 +57,10 @@ interface BreedTopPetsTabProps {
  * 3. VIEW pre-joins pet data with parents, sex, country as JSONB
  * 4. Component transforms to Pet format for PetCard
  *
+ * Loading modes:
+ * - Drawer: useTabData (load all at once, limited to ~20)
+ * - Fullscreen: useInfiniteTabData (infinite scroll with ID-First pagination)
+ *
  * Grid columns:
  * - Default (drawer): 1 col → sm:2 cols
  * - Fullscreen: 1 col → sm:2 cols → lg:3 cols → xxl:4 cols
@@ -70,21 +74,29 @@ export function BreedTopPetsTab({ dataSource, onLoadedCount }: BreedTopPetsTabPr
   const breedId = selectedEntity?.id;
   const isFullscreen = spaceStore.isFullscreen.value;
 
-  // Load data via useTabData (config-driven, local-first)
-  const { data, isLoading, error } = useTabData<TopPetViewRecord>({
+  console.log('[BreedTopPetsTab] render:', { breedId, isFullscreen, selectedEntity: selectedEntity?.name });
+
+  // Drawer mode: load all at once (limited)
+  const drawerResult = useTabData<TopPetViewRecord>({
     parentId: breedId,
     dataSource: dataSource!,
-    enabled: !!dataSource && !!breedId,
+    enabled: !!dataSource && !!breedId && !isFullscreen,
   });
 
-  // Report loaded count for conditional fullscreen button
-  useEffect(() => {
-    if (!isLoading && data && onLoadedCount) {
-      onLoadedCount(data.length);
-    }
-  }, [data, isLoading, onLoadedCount]);
+  // Fullscreen mode: infinite scroll with ID-First pagination
+  const infiniteResult = useInfiniteTabData<TopPetViewRecord>({
+    parentId: breedId,
+    dataSource: dataSource!,
+    enabled: !!dataSource && !!breedId && isFullscreen,
+    pageSize: 30,
+  });
 
-  // Transform VIEW data to Pet format
+  // Use appropriate data based on mode
+  const data = isFullscreen ? infiniteResult.data : drawerResult.data;
+  const isLoading = isFullscreen ? infiniteResult.isLoading : drawerResult.isLoading;
+  const error = isFullscreen ? infiniteResult.error : drawerResult.error;
+
+  // Transform VIEW data to Pet format (must be before useEffect that uses pets.length)
   const pets = useMemo<Pet[]>(() => {
     if (!data || data.length === 0) return [];
 
@@ -115,6 +127,47 @@ export function BreedTopPetsTab({ dataSource, onLoadedCount }: BreedTopPetsTabPr
       };
     });
   }, [data]);
+
+  // Infinite scroll refs and handlers (must be before any returns!)
+  const loadMoreRef = useRef<HTMLDivElement>(null);
+  const { hasMore, isLoadingMore, loadMore } = infiniteResult;
+
+  const handleLoadMore = useCallback(() => {
+    if (isFullscreen && hasMore && !isLoadingMore) {
+      loadMore();
+    }
+  }, [isFullscreen, hasMore, isLoadingMore, loadMore]);
+
+  // Report loaded count for conditional fullscreen button
+  useEffect(() => {
+    if (!isLoading && data && onLoadedCount) {
+      onLoadedCount(data.length);
+    }
+  }, [data, isLoading, onLoadedCount]);
+
+  // IntersectionObserver for infinite scroll
+  // Dependencies include `pets.length` to re-run when data loads and ref becomes available
+  useEffect(() => {
+    console.log('[BreedTopPetsTab] IntersectionObserver effect:', { isFullscreen, hasRef: !!loadMoreRef.current, petsLength: pets.length });
+    if (!isFullscreen || !loadMoreRef.current) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        console.log('[BreedTopPetsTab] IntersectionObserver fired:', {
+          isIntersecting: entries[0]?.isIntersecting,
+          hasMore,
+          isLoadingMore
+        });
+        if (entries[0]?.isIntersecting) {
+          handleLoadMore();
+        }
+      },
+      { threshold: 0.1, rootMargin: "100px" }
+    );
+
+    observer.observe(loadMoreRef.current);
+    return () => observer.disconnect();
+  }, [isFullscreen, handleLoadMore, hasMore, isLoadingMore, pets.length]);
 
   // No dataSource config - show warning
   if (!dataSource) {
@@ -166,16 +219,35 @@ export function BreedTopPetsTab({ dataSource, onLoadedCount }: BreedTopPetsTabPr
   }
 
   return (
-    <div
-      className={cn(
-        "grid gap-3 sm:grid-cols-2 px-6",
-        // In fullscreen mode, show more columns on larger screens
-        isFullscreen && "lg:grid-cols-3 xxl:grid-cols-4"
+    <>
+      <div
+        className={cn(
+          "grid gap-3 sm:grid-cols-2 px-6",
+          // In fullscreen mode, show more columns on larger screens
+          isFullscreen && "lg:grid-cols-3 xxl:grid-cols-4"
+        )}
+      >
+        {pets.map((pet) => (
+          <PetCard key={pet.id} pet={pet} mode="default" />
+        ))}
+      </div>
+
+      {/* Infinite scroll trigger & loading indicator */}
+      {isFullscreen && (
+        <div ref={loadMoreRef} className="py-4 flex justify-center">
+          {isLoadingMore && (
+            <div className="flex items-center gap-2 text-secondary">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              <span>Loading more...</span>
+            </div>
+          )}
+          {!hasMore && pets.length > 0 && (
+            <span className="text-muted-foreground text-sm">
+              All {pets.length} pets loaded
+            </span>
+          )}
+        </div>
       )}
-    >
-      {pets.map((pet) => (
-        <PetCard key={pet.id} pet={pet} mode="default" />
-      ))}
-    </div>
+    </>
   );
 }

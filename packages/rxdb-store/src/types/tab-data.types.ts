@@ -209,3 +209,61 @@ export interface EnrichedChildItem {
     [key: string]: any;
   } | null;
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Pagination Types (ID-First Architecture)
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Pagination options for ID-First loading
+ */
+export interface PaginationOptions {
+  /** Number of records per page (default: 30) */
+  limit?: number;
+  /** Composite cursor as JSON string (from previous page) */
+  cursor?: string | null;
+}
+
+/**
+ * Paginated result from ID-First loading
+ */
+export interface PaginatedResult<T = any> {
+  /** Records for current page */
+  records: T[];
+  /** Total count (may be approximate) */
+  total: number;
+  /** Whether more records are available */
+  hasMore: boolean;
+  /** Cursor for next page (JSON string) */
+  nextCursor: string | null;
+}
+
+/**
+ * Result from useInfiniteTabData hook
+ */
+export interface InfiniteTabDataResult<T = any> {
+  /** Accumulated data from all loaded pages */
+  data: T[];
+  /** Initial loading state (first page) */
+  isLoading: boolean;
+  /** Loading more state (subsequent pages) */
+  isLoadingMore: boolean;
+  /** Whether more records are available */
+  hasMore: boolean;
+  /** Error if any */
+  error: Error | null;
+  /** Total records loaded */
+  total: number;
+  /** Load next page */
+  loadMore: () => Promise<void>;
+  /** Reset and reload from beginning */
+  refetch: () => Promise<void>;
+}
+
+/**
+ * Options for useInfiniteTabData hook
+ */
+export interface UseInfiniteTabDataOptions extends UseTabDataOptions {
+  /** Records per page (default: 30) */
+  pageSize?: number;
+}

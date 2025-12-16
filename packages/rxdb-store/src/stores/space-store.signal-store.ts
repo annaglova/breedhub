@@ -3457,6 +3457,677 @@ class SpaceStore {
     return tableEntityMap[tableType] || null;
   }
 
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Child Tables: ID-First Loading (same pattern as main entities)
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /**
+   * Load child records with ID-First architecture (same as applyFilters)
+   *
+   * 4-phase loading:
+   * 1. Fetch IDs + orderBy field from Supabase (lightweight ~1KB)
+   * 2. Check RxDB cache for these IDs
+   * 3. Fetch missing full records from Supabase
+   * 4. Merge cached + fresh, maintain order
+   *
+   * @param parentId - Parent entity ID (e.g., breed_id)
+   * @param tableType - Child table/view name (e.g., 'top_pet_in_breed_with_pet')
+   * @param filters - Optional additional filters
+   * @param options - Pagination options
+   */
+  async applyChildFilters(
+    parentId: string,
+    tableType: string,
+    filters: Record<string, any> = {},
+    options: {
+      limit?: number;
+      cursor?: string | null;
+      orderBy?: OrderBy;
+    } = {}
+  ): Promise<{ records: any[]; total: number; hasMore: boolean; nextCursor: string | null }> {
+    const limit = options.limit || 30;
+    const cursor = options.cursor ?? null;
+    const orderBy: OrderBy = options.orderBy || {
+      field: 'id',
+      direction: 'asc',
+      tieBreaker: { field: 'id', direction: 'asc' }
+    };
+
+    // Determine entity type from table name
+    const entityType = this.getEntityTypeFromTableType(tableType);
+    if (!entityType) {
+      console.error(`[SpaceStore] Cannot determine entity type from table: ${tableType}`);
+      return { records: [], total: 0, hasMore: false, nextCursor: null };
+    }
+
+    const parentIdField = `${entityType}_id`;
+
+    console.log('[SpaceStore] applyChildFilters (ID-First):', {
+      parentId,
+      tableType,
+      filters,
+      limit,
+      cursor,
+      orderBy
+    });
+
+    // 📴 PREVENTIVE OFFLINE CHECK
+    if (isOffline()) {
+      console.log('[SpaceStore] 📴 Offline mode for child records');
+      try {
+        const localResults = await this.filterLocalChildEntities(
+          parentId,
+          tableType,
+          filters,
+          limit,
+          cursor,
+          orderBy
+        );
+
+        const hasMore = localResults.length >= limit;
+        const lastRecord = localResults[localResults.length - 1];
+        const nextCursor = hasMore && lastRecord
+          ? JSON.stringify({
+              value: lastRecord.additional?.[orderBy.field] ?? lastRecord[orderBy.field],
+              tieBreaker: lastRecord.id,
+              tieBreakerField: 'id'
+            })
+          : null;
+
+        return {
+          records: localResults,
+          total: localResults.length,
+          hasMore,
+          nextCursor
+        };
+      } catch (error) {
+        console.error('[SpaceStore] Offline child loading failed:', error);
+        return { records: [], total: 0, hasMore: false, nextCursor: null };
+      }
+    }
+
+    try {
+      // 🆔 PHASE 1: Fetch IDs + ordering field from Supabase
+      console.log('[SpaceStore] 🆔 Phase 1: Fetching child IDs...');
+
+      const idsData = await this.fetchChildIDsFromSupabase(
+        parentId,
+        tableType,
+        parentIdField,
+        filters,
+        limit,
+        cursor,
+        orderBy
+      );
+
+      if (!idsData || idsData.length === 0) {
+        console.log('[SpaceStore] ⚠️ No child IDs returned');
+        return { records: [], total: 0, hasMore: false, nextCursor: null };
+      }
+
+      console.log(`[SpaceStore] ✅ Got ${idsData.length} child IDs`, idsData.slice(0, 3));
+
+      // Extract IDs and calculate nextCursor
+      const ids = idsData.map(d => d.id);
+      const lastRecord = idsData[idsData.length - 1];
+      const tieBreakerField = orderBy.tieBreaker?.field || 'id';
+
+      let nextCursor: string | null = null;
+      if (lastRecord && idsData.length >= limit) {
+        nextCursor = JSON.stringify({
+          value: lastRecord[orderBy.field] ?? null,
+          tieBreaker: lastRecord[tieBreakerField] ?? lastRecord.id,
+          tieBreakerField
+        });
+        console.log('[SpaceStore] 📍 nextCursor calculated:', {
+          lastRecord,
+          orderByField: orderBy.field,
+          value: lastRecord[orderBy.field],
+          tieBreaker: lastRecord[tieBreakerField],
+          nextCursor
+        });
+      } else {
+        console.log('[SpaceStore] ⚠️ No nextCursor:', {
+          hasLastRecord: !!lastRecord,
+          idsDataLength: idsData.length,
+          limit,
+          condition: `${idsData.length} >= ${limit} = ${idsData.length >= limit}`
+        });
+      }
+
+      // 💾 PHASE 2: Check RxDB cache
+      console.log('[SpaceStore] 💾 Phase 2: Checking RxDB cache...');
+
+      const collection = await this.ensureChildCollection(entityType);
+      if (!collection) {
+        return { records: [], total: 0, hasMore: false, nextCursor: null };
+      }
+
+      const cached = await collection.find({
+        selector: { id: { $in: ids } }
+      }).exec();
+
+      const cachedMap = new Map(cached.map(d => [d.id, d.toJSON()]));
+      console.log(`[SpaceStore] 📦 Found ${cachedMap.size}/${ids.length} in cache`);
+
+      // 🌐 PHASE 3: Fetch missing full records
+      const missingIds = ids.filter(id => !cachedMap.has(id));
+
+      let freshRecords: any[] = [];
+      if (missingIds.length > 0) {
+        console.log(`[SpaceStore] 🌐 Phase 3: Fetching ${missingIds.length} missing records...`);
+
+        freshRecords = await this.fetchChildRecordsByIDs(
+          tableType,
+          missingIds,
+          parentId,
+          parentIdField
+        );
+
+        console.log(`[SpaceStore] ✅ Fetched ${freshRecords.length} fresh child records`);
+
+        // Cache fresh records
+        if (freshRecords.length > 0) {
+          await collection.bulkUpsert(freshRecords);
+          console.log(`[SpaceStore] 💾 Cached ${freshRecords.length} records`);
+        }
+      }
+
+      // 🔀 PHASE 4: Merge & maintain order
+      const recordsMap = new Map([
+        ...cachedMap,
+        ...freshRecords.map(r => [r.id, r])
+      ]);
+
+      const orderedRecords = ids
+        .map(id => recordsMap.get(id))
+        .filter(Boolean);
+
+      const hasMore = idsData.length >= limit;
+
+      console.log(`[SpaceStore] ✅ Returning ${orderedRecords.length} child records (hasMore: ${hasMore})`);
+
+      return {
+        records: orderedRecords,
+        total: orderedRecords.length,
+        hasMore,
+        nextCursor
+      };
+
+    } catch (error) {
+      // 📴 OFFLINE FALLBACK
+      if (!isNetworkError(error)) {
+        console.error('[SpaceStore] applyChildFilters error:', error);
+      }
+
+      try {
+        const localResults = await this.filterLocalChildEntities(
+          parentId,
+          tableType,
+          filters,
+          limit,
+          cursor,
+          orderBy
+        );
+
+        return {
+          records: localResults,
+          total: localResults.length,
+          hasMore: localResults.length >= limit,
+          nextCursor: null
+        };
+      } catch (offlineError) {
+        console.error('[SpaceStore] Offline fallback failed:', offlineError);
+        return { records: [], total: 0, hasMore: false, nextCursor: null };
+      }
+    }
+  }
+
+  /**
+   * 🆔 ID-First Phase 1: Fetch child IDs + ordering field from Supabase
+   */
+  private async fetchChildIDsFromSupabase(
+    parentId: string,
+    tableType: string,
+    parentIdField: string,
+    filters: Record<string, any>,
+    limit: number,
+    cursor: string | null,
+    orderBy: OrderBy
+  ): Promise<Array<{ id: string; [key: string]: any }>> {
+    const { supabase } = await import('../supabase/client');
+
+    // Select only id + orderBy fields for lightweight query
+    const tieBreakerField = orderBy.tieBreaker?.field || 'id';
+    const selectFields = tieBreakerField !== orderBy.field && tieBreakerField !== 'id'
+      ? `id, ${orderBy.field}, ${tieBreakerField}`
+      : `id, ${orderBy.field}`;
+
+    let query = supabase
+      .from(tableType)
+      .select(selectFields)
+      .eq(parentIdField, parentId);
+
+    // Apply additional filters (for future use)
+    for (const [fieldKey, value] of Object.entries(filters)) {
+      if (value === undefined || value === null || value === '') continue;
+      query = query.eq(fieldKey, value);
+    }
+
+    // Apply cursor (composite keyset pagination)
+    if (cursor) {
+      try {
+        const cursorData = JSON.parse(cursor);
+        const tbField = cursorData.tieBreakerField || tieBreakerField;
+        const mainOp = orderBy.direction === 'asc' ? 'gt' : 'lt';
+        const tbDirection = orderBy.tieBreaker?.direction || 'asc';
+        const tbOp = tbDirection === 'asc' ? 'gt' : 'lt';
+
+        const orCondition = `${orderBy.field}.${mainOp}.${cursorData.value},and(${orderBy.field}.eq.${cursorData.value},${tbField}.${tbOp}.${cursorData.tieBreaker})`;
+        query = query.or(orCondition);
+      } catch (e) {
+        console.warn('[SpaceStore] Failed to parse child cursor:', e);
+      }
+    }
+
+    // Apply order
+    query = query.order(orderBy.field, { ascending: orderBy.direction === 'asc' });
+    if (orderBy.tieBreaker) {
+      query = query.order(orderBy.tieBreaker.field, { ascending: orderBy.tieBreaker.direction === 'asc' });
+    }
+
+    // Apply limit
+    query = query.limit(limit);
+
+    const { data, error } = await query;
+
+    if (error) {
+      console.error('[SpaceStore] Child IDs query error:', error);
+      throw error;
+    }
+
+    return data || [];
+  }
+
+  /**
+   * 🌐 ID-First Phase 3: Fetch full child records by IDs
+   */
+  private async fetchChildRecordsByIDs(
+    tableType: string,
+    ids: string[],
+    parentId: string,
+    parentIdField: string
+  ): Promise<any[]> {
+    if (ids.length === 0) return [];
+
+    const { supabase } = await import('../supabase/client');
+
+    const { data, error } = await supabase
+      .from(tableType)
+      .select('*')
+      .in('id', ids);
+
+    if (error) {
+      console.error('[SpaceStore] Fetch child records by IDs error:', error);
+      throw error;
+    }
+
+    if (!data) return [];
+
+    // Normalize VIEW name for RxDB storage
+    const normalizedTableType = tableType.replace(/_with_\w+$/, '');
+
+    // Transform to RxDB format
+    return data.map((row: Record<string, any>) => {
+      const { id, created_at, updated_at, created_by, updated_by, ...rest } = row;
+
+      const additional: Record<string, any> = {};
+      for (const [key, value] of Object.entries(rest)) {
+        if (key !== parentIdField && value !== undefined && value !== null) {
+          additional[key] = value;
+        }
+      }
+
+      return {
+        id,
+        tableType: normalizedTableType,
+        parentId,
+        additional: Object.keys(additional).length > 0 ? additional : undefined,
+        cachedAt: Date.now()
+      };
+    });
+  }
+
+  /**
+   * 🌐 Direct VIEW query with keyset pagination (Local-First with RxDB caching)
+   *
+   * For VIEWs with JOINs, WHERE id IN (...) is very slow due to query planner issues.
+   * Instead, we fetch full records directly with WHERE parent_id = X and cursor pagination.
+   *
+   * Local-First flow:
+   * 1. Query VIEW directly with parent_id filter + keyset pagination
+   * 2. Transform records to RxDB format (breed_children schema)
+   * 3. Cache in RxDB for offline access
+   * 4. Return records with pagination cursor
+   *
+   * @param parentId - Parent entity ID (e.g., breed_id)
+   * @param viewName - VIEW name (e.g., 'top_pet_in_breed_with_pet')
+   * @param parentField - Field linking to parent (e.g., 'breed_id')
+   * @param options - Pagination options
+   */
+  async loadChildViewDirect(
+    parentId: string,
+    viewName: string,
+    parentField: string,
+    options: {
+      limit?: number;
+      cursor?: string | null;
+      orderBy?: OrderBy;
+    } = {}
+  ): Promise<{ records: any[]; total: number; hasMore: boolean; nextCursor: string | null }> {
+    const limit = options.limit || 30;
+    const cursor = options.cursor ?? null;
+    const orderBy: OrderBy = options.orderBy || {
+      field: 'placement',
+      direction: 'asc',
+      tieBreaker: { field: 'id', direction: 'asc' }
+    };
+
+    // Determine entity type from VIEW name
+    const entityType = this.getEntityTypeFromTableType(viewName);
+    if (!entityType) {
+      console.error(`[SpaceStore] Cannot determine entity type from VIEW: ${viewName}`);
+      return { records: [], total: 0, hasMore: false, nextCursor: null };
+    }
+
+    console.log('[SpaceStore] loadChildViewDirect (Local-First):', {
+      viewName,
+      parentId,
+      parentField,
+      entityType,
+      limit,
+      cursor: cursor ? '(set)' : null,
+      orderBy
+    });
+
+    // 📴 PREVENTIVE OFFLINE CHECK - use cached data
+    if (isOffline()) {
+      console.log('[SpaceStore] 📴 Offline mode for VIEW');
+      try {
+        const localResults = await this.filterLocalChildEntities(
+          parentId,
+          viewName,
+          {},
+          limit,
+          cursor,
+          orderBy
+        );
+
+        const hasMore = localResults.length >= limit;
+        const lastRecord = localResults[localResults.length - 1];
+        const nextCursor = hasMore && lastRecord
+          ? JSON.stringify({
+              value: lastRecord.additional?.[orderBy.field] ?? lastRecord[orderBy.field],
+              tieBreaker: lastRecord.id,
+              tieBreakerField: 'id'
+            })
+          : null;
+
+        return {
+          records: localResults,
+          total: localResults.length,
+          hasMore,
+          nextCursor
+        };
+      } catch (error) {
+        console.error('[SpaceStore] Offline VIEW loading failed:', error);
+        return { records: [], total: 0, hasMore: false, nextCursor: null };
+      }
+    }
+
+    try {
+      const { supabase } = await import('../supabase/client');
+
+      // 🌐 PHASE 1: Query VIEW directly with full records
+      console.log('[SpaceStore] 🌐 Phase 1: Fetching VIEW records...');
+
+      let query = supabase
+        .from(viewName)
+        .select('*')
+        .eq(parentField, parentId);
+
+      // Apply cursor (keyset pagination)
+      if (cursor) {
+        try {
+          const cursorData = JSON.parse(cursor);
+          const tieBreakerField = cursorData.tieBreakerField || orderBy.tieBreaker?.field || 'id';
+          const mainOp = orderBy.direction === 'asc' ? 'gt' : 'lt';
+          const tbDirection = orderBy.tieBreaker?.direction || 'asc';
+          const tbOp = tbDirection === 'asc' ? 'gt' : 'lt';
+
+          const orCondition = `${orderBy.field}.${mainOp}.${cursorData.value},and(${orderBy.field}.eq.${cursorData.value},${tieBreakerField}.${tbOp}.${cursorData.tieBreaker})`;
+          query = query.or(orCondition);
+        } catch (e) {
+          console.warn('[SpaceStore] Failed to parse VIEW cursor:', e);
+        }
+      }
+
+      // Apply order
+      query = query.order(orderBy.field, { ascending: orderBy.direction === 'asc' });
+      if (orderBy.tieBreaker) {
+        query = query.order(orderBy.tieBreaker.field, { ascending: orderBy.tieBreaker.direction === 'asc' });
+      }
+
+      // Apply limit
+      query = query.limit(limit);
+
+      const { data, error } = await query;
+
+      if (error) {
+        console.error('[SpaceStore] loadChildViewDirect error:', error);
+        throw error;
+      }
+
+      const rawRecords = data || [];
+      console.log(`[SpaceStore] ✅ Fetched ${rawRecords.length} VIEW records`);
+
+      // 💾 PHASE 2: Transform & Cache in RxDB (Local-First!)
+      console.log('[SpaceStore] 💾 Phase 2: Caching in RxDB...');
+
+      const collection = await this.ensureChildCollection(entityType);
+      if (!collection) {
+        console.warn('[SpaceStore] ⚠️ No collection, returning raw records');
+        // Still return records even without caching
+        const hasMore = rawRecords.length >= limit;
+        const lastRecord = rawRecords[rawRecords.length - 1];
+        const nextCursor = hasMore && lastRecord
+          ? JSON.stringify({
+              value: lastRecord[orderBy.field] ?? null,
+              tieBreaker: lastRecord[orderBy.tieBreaker?.field || 'id'] ?? lastRecord.id,
+              tieBreakerField: orderBy.tieBreaker?.field || 'id'
+            })
+          : null;
+        return { records: rawRecords, total: rawRecords.length, hasMore, nextCursor };
+      }
+
+      // Normalize VIEW name to base table for RxDB storage
+      // e.g., 'top_pet_in_breed_with_pet' -> 'top_pet_in_breed'
+      const normalizedTableType = viewName.replace(/_with_\w+$/, '');
+
+      // Transform to RxDB format (breed_children schema)
+      const transformedRecords = rawRecords.map((row: Record<string, any>) => {
+        const { id, created_at, updated_at, created_by, updated_by, ...rest } = row;
+
+        // Build additional object with all non-core fields
+        const additional: Record<string, any> = {};
+        for (const [key, value] of Object.entries(rest)) {
+          // Skip the parent ID field (e.g., breed_id)
+          if (key !== parentField && value !== undefined && value !== null) {
+            additional[key] = value;
+          }
+        }
+
+        return {
+          id,
+          tableType: normalizedTableType,
+          parentId,
+          additional: Object.keys(additional).length > 0 ? additional : undefined,
+          cachedAt: Date.now()
+        };
+      });
+
+      // Bulk upsert into RxDB collection (update if exists, insert if not)
+      if (transformedRecords.length > 0) {
+        await collection.bulkUpsert(transformedRecords);
+        console.log(`[SpaceStore] 💾 Cached ${transformedRecords.length} records in RxDB`);
+      }
+
+      // Calculate nextCursor from raw records
+      let nextCursor: string | null = null;
+      if (rawRecords.length >= limit) {
+        const lastRecord = rawRecords[rawRecords.length - 1];
+        const tieBreakerField = orderBy.tieBreaker?.field || 'id';
+        nextCursor = JSON.stringify({
+          value: lastRecord[orderBy.field] ?? null,
+          tieBreaker: lastRecord[tieBreakerField] ?? lastRecord.id,
+          tieBreakerField
+        });
+      }
+
+      const hasMore = rawRecords.length >= limit;
+
+      console.log(`[SpaceStore] ✅ loadChildViewDirect: ${transformedRecords.length} records (hasMore: ${hasMore})`);
+
+      // Return transformed records (RxDB format with additional field)
+      return {
+        records: transformedRecords,
+        total: transformedRecords.length,
+        hasMore,
+        nextCursor
+      };
+
+    } catch (error) {
+      // 📴 OFFLINE FALLBACK
+      if (!isNetworkError(error)) {
+        console.error('[SpaceStore] loadChildViewDirect failed:', error);
+      }
+
+      try {
+        console.log('[SpaceStore] 📴 Falling back to local cache...');
+        const localResults = await this.filterLocalChildEntities(
+          parentId,
+          viewName,
+          {},
+          limit,
+          cursor,
+          orderBy
+        );
+
+        return {
+          records: localResults,
+          total: localResults.length,
+          hasMore: localResults.length >= limit,
+          nextCursor: null
+        };
+      } catch (offlineError) {
+        console.error('[SpaceStore] Offline fallback failed:', offlineError);
+        return { records: [], total: 0, hasMore: false, nextCursor: null };
+      }
+    }
+  }
+
+  /**
+   * 📴 Filter child entities from local RxDB cache (offline mode)
+   */
+  private async filterLocalChildEntities(
+    parentId: string,
+    tableType: string,
+    filters: Record<string, any>,
+    limit: number,
+    cursor: string | null,
+    orderBy: OrderBy
+  ): Promise<any[]> {
+    const entityType = this.getEntityTypeFromTableType(tableType);
+    if (!entityType) return [];
+
+    const collectionName = `${entityType}_children`;
+    const collection = this.childCollections.get(collectionName) || this.db?.collections[collectionName];
+    if (!collection) return [];
+
+    const normalizedTableType = tableType.replace(/_with_\w+$/, '');
+
+    // Build selector
+    const selector: any = {
+      parentId,
+      tableType: normalizedTableType
+    };
+
+    // Apply additional filters
+    for (const [key, value] of Object.entries(filters)) {
+      if (value !== undefined && value !== null && value !== '') {
+        selector[`additional.${key}`] = value;
+      }
+    }
+
+    const results = await collection.find({ selector }).exec();
+    let records = results.map((doc: any) => doc.toJSON());
+
+    // Sort by orderBy field (in additional)
+    const tieBreaker = orderBy.tieBreaker || { field: 'id', direction: 'asc' as const };
+
+    records.sort((a: any, b: any) => {
+      const aVal = a.additional?.[orderBy.field] ?? a[orderBy.field];
+      const bVal = b.additional?.[orderBy.field] ?? b[orderBy.field];
+
+      if (aVal === null || aVal === undefined) return 1;
+      if (bVal === null || bVal === undefined) return -1;
+
+      let cmp: number;
+      if (orderBy.direction === 'asc') {
+        cmp = aVal < bVal ? -1 : aVal > bVal ? 1 : 0;
+      } else {
+        cmp = aVal > bVal ? -1 : aVal < bVal ? 1 : 0;
+      }
+
+      if (cmp === 0) {
+        const aTie = a[tieBreaker.field];
+        const bTie = b[tieBreaker.field];
+        if (tieBreaker.direction === 'asc') {
+          return aTie < bTie ? -1 : aTie > bTie ? 1 : 0;
+        } else {
+          return aTie > bTie ? -1 : aTie < bTie ? 1 : 0;
+        }
+      }
+
+      return cmp;
+    });
+
+    // Apply cursor filter
+    if (cursor) {
+      try {
+        const cursorData = JSON.parse(cursor);
+        const cursorValue = cursorData.value;
+        const cursorTieBreaker = cursorData.tieBreaker;
+
+        records = records.filter((r: any) => {
+          const val = r.additional?.[orderBy.field] ?? r[orderBy.field];
+          const tie = r[tieBreaker.field];
+
+          if (orderBy.direction === 'asc') {
+            return val > cursorValue || (val === cursorValue && tie > cursorTieBreaker);
+          } else {
+            return val < cursorValue || (val === cursorValue && tie > cursorTieBreaker);
+          }
+        });
+      } catch (e) {
+        // Ignore cursor parse errors
+      }
+    }
+
+    // Apply limit
+    return records.slice(0, limit);
+  }
+
   /**
    * Cleanup expired records using helpers
    */

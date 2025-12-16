@@ -7,13 +7,15 @@
  * @see docs/TAB_DATA_SERVICE_ARCHITECTURE.md
  */
 
-import { spaceStore } from '../stores/space-store.signal-store';
+import { spaceStore, type OrderBy } from '../stores/space-store.signal-store';
 import { dictionaryStore } from '../stores/dictionary-store.signal-store';
 import type {
   DataSourceConfig,
   OrderConfig,
   MergedDictionaryItem,
   EnrichedChildItem,
+  PaginationOptions,
+  PaginatedResult,
 } from '../types/tab-data.types';
 
 class TabDataService {
@@ -63,6 +65,58 @@ class TabDataService {
     }
   }
 
+  /**
+   * Load tab data with pagination support (ID-First architecture)
+   *
+   * Uses composite cursor for stable, consistent pagination.
+   * Routes to appropriate loading strategy while maintaining Local-First.
+   *
+   * @param parentId - Parent entity ID (e.g., breed ID)
+   * @param dataSource - DataSource configuration from tab config
+   * @param pagination - Pagination options (cursor, limit)
+   * @returns Paginated result with records, hasMore, nextCursor
+   */
+  async loadTabDataPaginated(
+    parentId: string,
+    dataSource: DataSourceConfig,
+    pagination?: PaginationOptions
+  ): Promise<PaginatedResult<any>> {
+    if (!parentId) {
+      console.warn('[TabDataService] parentId is required');
+      return { records: [], total: 0, hasMore: false, nextCursor: null };
+    }
+
+    if (!dataSource || !dataSource.type) {
+      console.warn('[TabDataService] dataSource with type is required');
+      return { records: [], total: 0, hasMore: false, nextCursor: null };
+    }
+
+    switch (dataSource.type) {
+      case 'child':
+        return this.loadChildPaginated(parentId, dataSource, pagination);
+
+      case 'child_view':
+        return this.loadChildViewPaginated(parentId, dataSource, pagination);
+
+      case 'child_with_dictionary':
+        // Dictionary merge doesn't support pagination (needs all records for merge)
+        const dictResult = await this.loadChildWithDictionary(parentId, dataSource);
+        return { records: dictResult, total: dictResult.length, hasMore: false, nextCursor: null };
+
+      case 'main_filtered':
+        return this.loadMainFilteredPaginated(parentId, dataSource, pagination);
+
+      case 'rpc':
+        // RPC doesn't support pagination
+        const rpcResult = await this.loadRpc(parentId, dataSource);
+        return { records: rpcResult, total: rpcResult.length, hasMore: false, nextCursor: null };
+
+      default:
+        console.error(`[TabDataService] Unknown dataSource type: ${(dataSource as any).type}`);
+        return { records: [], total: 0, hasMore: false, nextCursor: null };
+    }
+  }
+
   // ─────────────────────────────────────────────────────────────────────────────
   // Loading Strategies
   // ─────────────────────────────────────────────────────────────────────────────
@@ -104,6 +158,134 @@ class TabDataService {
   ): Promise<any[]> {
     // Implementation identical to child - VIEW is treated as regular table
     return this.loadChild(parentId, dataSource);
+  }
+
+  /**
+   * Type: child - with ID-First pagination
+   *
+   * Uses SpaceStore.applyChildFilters() for proper cursor-based pagination.
+   */
+  private async loadChildPaginated(
+    parentId: string,
+    dataSource: DataSourceConfig,
+    pagination?: PaginationOptions
+  ): Promise<PaginatedResult<any>> {
+    const config = dataSource.childTable;
+
+    if (!config) {
+      console.error('[TabDataService] childTable config is required for type: child');
+      return { records: [], total: 0, hasMore: false, nextCursor: null };
+    }
+
+    // Build OrderBy from config
+    const orderBy: OrderBy = {
+      field: config.orderBy?.[0]?.field || 'id',
+      direction: config.orderBy?.[0]?.direction || 'asc',
+      tieBreaker: { field: 'id', direction: 'asc' }
+    };
+
+    const finalLimit = pagination?.limit ?? config.limit ?? 30;
+    console.log('[TabDataService] loadChildPaginated:', {
+      paginationLimit: pagination?.limit,
+      configLimit: config.limit,
+      finalLimit,
+      cursor: pagination?.cursor
+    });
+
+    // Use unified ID-First loading
+    return spaceStore.applyChildFilters(
+      parentId,
+      config.table,
+      {}, // No additional filters
+      {
+        limit: pagination?.limit ?? config.limit ?? 30,
+        cursor: pagination?.cursor ?? null,
+        orderBy,
+      }
+    );
+  }
+
+  /**
+   * Type: child_view - Direct keyset pagination (NOT ID-First)
+   *
+   * VIEWs with JOINs are slow with `WHERE id IN (...)`.
+   * Instead, use direct query with `WHERE parent_id = X` and cursor pagination.
+   * This is more efficient because VIEW is optimized for parent_id filtering.
+   */
+  private async loadChildViewPaginated(
+    parentId: string,
+    dataSource: DataSourceConfig,
+    pagination?: PaginationOptions
+  ): Promise<PaginatedResult<any>> {
+    const config = dataSource.childTable;
+
+    if (!config) {
+      console.error('[TabDataService] childTable config is required for type: child_view');
+      return { records: [], total: 0, hasMore: false, nextCursor: null };
+    }
+
+    const limit = pagination?.limit ?? config.limit ?? 30;
+    const cursor = pagination?.cursor ?? null;
+    const orderField = config.orderBy?.[0]?.field || 'placement';
+    const orderDirection = config.orderBy?.[0]?.direction || 'asc';
+
+    console.log('[TabDataService] loadChildViewPaginated (direct):', {
+      table: config.table,
+      parentId,
+      limit,
+      cursor,
+      orderField
+    });
+
+    // Direct query to VIEW (more efficient than ID-First for JOINed VIEWs)
+    return spaceStore.loadChildViewDirect(
+      parentId,
+      config.table,
+      config.parentField,
+      {
+        limit,
+        cursor,
+        orderBy: {
+          field: orderField,
+          direction: orderDirection,
+          tieBreaker: { field: 'id', direction: 'asc' }
+        }
+      }
+    );
+  }
+
+  /**
+   * Type: main_filtered - with ID-First pagination
+   *
+   * Uses SpaceStore.applyFilters() which already supports cursor pagination.
+   */
+  private async loadMainFilteredPaginated(
+    parentId: string,
+    dataSource: DataSourceConfig,
+    pagination?: PaginationOptions
+  ): Promise<PaginatedResult<any>> {
+    const config = dataSource.mainEntity;
+
+    if (!config) {
+      console.error('[TabDataService] mainEntity config is required for type: main_filtered');
+      return { records: [], total: 0, hasMore: false, nextCursor: null };
+    }
+
+    return spaceStore.applyFilters(
+      config.entity,
+      { [config.filterField]: parentId },
+      {
+        limit: pagination?.limit ?? config.limit ?? 30,
+        cursor: pagination?.cursor ?? null,
+        orderBy: config.orderBy?.[0]
+          ? {
+              field: config.orderBy[0].field,
+              direction: config.orderBy[0].direction,
+              tieBreaker: { field: 'id', direction: 'asc' }
+            }
+          : undefined,
+      }
+    );
   }
 
   /**

@@ -174,13 +174,17 @@ export function TabPageTemplate({
   const selectedEntitySignal = spaceStore.getSelectedEntity(entityType);
   const selectedEntity = selectedEntitySignal?.value;
 
-  // Ensure entity is loaded - SpaceComponent may not have finished loading yet
+  // Ensure correct entity is selected based on URL entityId
+  // If selectedEntity is different from entityId, fetch and select the correct one
   useEffect(() => {
-    if (!selectedEntity && entityId) {
-      console.log('[TabPageTemplate] Entity not in store, fetching:', entityId);
+    if (entityId && selectedEntity?.id !== entityId) {
+      console.log('[TabPageTemplate] Entity mismatch, fetching correct entity:', {
+        currentId: selectedEntity?.id,
+        expectedId: entityId
+      });
       spaceStore.fetchAndSelectEntity(entityType, entityId);
     }
-  }, [entityType, entityId, selectedEntity]);
+  }, [entityType, entityId, selectedEntity?.id]);
 
   // Get tabs config from page config
   const tabsConfig = useMemo(() => {
@@ -337,8 +341,8 @@ export function TabPageTemplate({
     );
   }
 
-  // Entity not found
-  if (!selectedEntity) {
+  // Entity not loaded or wrong entity selected (wait for correct entity from URL)
+  if (!selectedEntity || selectedEntity.id !== entityId) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="text-center">
