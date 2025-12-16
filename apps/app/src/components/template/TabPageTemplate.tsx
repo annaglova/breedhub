@@ -320,7 +320,7 @@ export function TabPageTemplate({
 
     resizeObserver.observe(nameContainerRef.current);
     return () => resizeObserver.disconnect();
-  }, []);
+  }, [pageConfig, selectedEntity]);
 
   // PageMenu top position (under Name when sticky)
   const PAGE_MENU_TOP = nameBlockHeight > 0 ? nameBlockHeight : 0;
@@ -423,21 +423,19 @@ export function TabPageTemplate({
 
             {/* PageMenu - Sticky under Name */}
             <div
-              className="sticky z-20 -mt-px bg-card-ground"
+              className="sticky z-20 -mt-px"
               style={{ top: `${PAGE_MENU_TOP}px` }}
             >
-              <div className="border-b border-surface-border">
-                {countsLoading ? (
-                  <PageMenuSkeleton tabCount={3} />
-                ) : (
-                  <PageMenu
-                    tabs={fullscreenTabs}
-                    activeTab={activeTabSlug}
-                    onTabChange={handleTabChange}
-                    mode="tabs"
-                  />
-                )}
-              </div>
+              {countsLoading ? (
+                <PageMenuSkeleton tabCount={3} />
+              ) : (
+                <PageMenu
+                  tabs={fullscreenTabs}
+                  activeTab={activeTabSlug}
+                  onTabChange={handleTabChange}
+                  mode="tabs"
+                />
+              )}
             </div>
 
             {/* Tab Content */}
