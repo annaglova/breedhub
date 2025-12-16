@@ -174,7 +174,7 @@ class DatabaseService {
 
   public async closeDatabase(): Promise<void> {
     if (this.db) {
-      await this.db.destroy();
+      await (this.db as any).destroy();
       this.db = null;
       this.dbPromise = null;
     }
@@ -182,10 +182,6 @@ class DatabaseService {
 
   public async clearAllData(): Promise<void> {
     const db = await this.getDatabase();
-    // Clear books collection if it exists
-    if (db.books) {
-      await db.books.find().remove();
-    }
     // Clear app_config collection if it exists
     if (db.app_config) {
       await db.app_config.find().remove();
@@ -194,14 +190,14 @@ class DatabaseService {
 
   public async removeDatabase(): Promise<void> {
     console.log('[DatabaseService] Removing database...');
-    
+
     // Close existing connection
     if (this.db) {
-      await this.db.destroy();
+      await (this.db as any).destroy();
       this.db = null;
       this.dbPromise = null;
     }
-    
+
     // Remove the database completely
     await removeRxDatabase('breedhub', getRxStorageDexie());
     console.log('[DatabaseService] Database removed successfully');

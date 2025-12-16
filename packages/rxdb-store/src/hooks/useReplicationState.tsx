@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { RxReplicationState } from 'rxdb';
+import type { RxReplicationState } from 'rxdb/plugins/replication';
 import { Subscription } from 'rxjs';
 
 export interface ReplicationStatus {
@@ -32,14 +32,14 @@ export function useReplicationState(
 
     // Subscribe to active status
     subscriptions.push(
-      replicationState.active$.subscribe(active => {
+      replicationState.active$.subscribe((active: boolean) => {
         setStatus(prev => ({ ...prev, active }));
       })
     );
 
     // Subscribe to errors
     subscriptions.push(
-      replicationState.error$.subscribe(error => {
+      replicationState.error$.subscribe((error: Error | null) => {
         setStatus(prev => ({ ...prev, error }));
       })
     );

@@ -30,8 +30,8 @@ export class EntityReplicationService {
   private totalCountCallbacks: Map<string, Array<(total: number) => void>> = new Map();
 
   constructor() {
-    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-    const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+    const supabaseUrl = (import.meta as any).env?.VITE_SUPABASE_URL;
+    const supabaseKey = (import.meta as any).env?.VITE_SUPABASE_ANON_KEY;
 
     if (!supabaseUrl || !supabaseKey) {
       throw new Error('Missing Supabase environment variables. Please set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in .env file');
@@ -174,8 +174,8 @@ export class EntityReplicationService {
             // BUT: завжди дозволяємо перший pull для завантаження totalCount
             const hasMetadata = this.entityMetadata.has(entityType);
 
-            if (checkpointOrNull?.lastPullAt && checkpointOrNull?.pulled) {
-              const lastPull = new Date(checkpointOrNull.lastPullAt).getTime();
+            if ((checkpointOrNull as any)?.lastPullAt && (checkpointOrNull as any)?.pulled) {
+              const lastPull = new Date((checkpointOrNull as any).lastPullAt).getTime();
               const now = new Date().getTime();
               const timeSinceLastPull = now - lastPull;
 
@@ -206,8 +206,8 @@ export class EntityReplicationService {
             const limit = effectiveBatchSize;  // Always use config value as-is
 
             // Subtract 5sec to catch late updates
-            const checkpointDate = checkpointOrNull?.updated_at
-              ? new Date(new Date(checkpointOrNull.updated_at).getTime() - 5000).toISOString()
+            const checkpointDate = (checkpointOrNull as any)?.updated_at
+              ? new Date(new Date((checkpointOrNull as any).updated_at).getTime() - 5000).toISOString()
               : new Date(0).toISOString();
 
             try {

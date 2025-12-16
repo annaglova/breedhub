@@ -1,753 +1,418 @@
-# Scroll-Based Tabs Implementation Plan
+# Scroll-Based Tabs with Infinite Scroll - Implementation Complete
 
-**Дата:** 2025-11-03
-**Статус:** 🟡 Planning
-**Автор:** Implementation Plan
-
----
-
-## 📋 Executive Summary
-
-**Задача:** Створити scroll-based tabs систему для Public Pages з auto URL sync та IntersectionObserver tracking.
-
-**Ключова відмінність:** На відміну від стандартних Radix Tabs, наші таби працюють через scroll секції з автоматичною синхронізацією URL hash та видимістю контенту.
-
-**Reference:** Angular implementation в `/Users/annaglova/projects/org`
+**Дата завершення:** 2025-12-16
+**Статус:** ✅ DONE
+**Автор:** Implementation Complete
 
 ---
 
-## ❌ Чому НЕ використовуємо існуючі Radix Tabs?
+## Executive Summary
 
-### Проблема 1: State Management
-**Radix Tabs:**
-```tsx
-// Працює через controlled state
-<Tabs value="achievements" onValueChange={setValue}>
-  <TabsContent value="achievements">...</TabsContent>
-  <TabsContent value="patrons">...</TabsContent>
-</Tabs>
+Реалізовано scroll-based tabs систему з підтримкою **Infinite Scroll** та **Local-First ID-First архітектурою**.
+
+**Ключові принципи:**
+1. **Local-First** - Всі дані в UI рендеряться з RxDB
+2. **ID-First Pagination** - Keyset cursor pagination для стабільного infinite scroll
+3. **Config-Driven** - Таби конфігуруються через `app_config.json`
+4. **Two Loading Modes** - Drawer (обмежений) та Fullscreen (infinite scroll)
+
+---
+
+## Архітектура
+
+### Data Flow (Local-First)
+
 ```
-- Рендерить тільки **активний** TabsContent
-- Інші таби **unmounted**
-- Switching = mount/unmount cycle
-
-**Наша задача:**
-- ✅ Всі таби завжди в DOM
-- ✅ Scroll між секціями (не switching)
-- ✅ IntersectionObserver tracking visibility
-- ✅ Auto URL hash update при scroll
-
-### Проблема 2: Scroll Behavior
-**Radix Tabs:**
-- Click на tab trigger → показує інший content
-- Немає scroll між секціями
-- Немає scroll position tracking
-
-**Наша задача:**
-- ✅ Всі таби = scroll sections на одній сторінці
-- ✅ Scroll to tab при зміні URL hash
-- ✅ Auto-update hash при scroll до табу
-- ✅ Smooth scroll transitions
-
-### Проблема 3: URL Integration
-**Radix Tabs:**
-- Не підтримує URL hash sync out of box
-- Треба manually синхронізувати state з URL
-
-**Наша задача:**
-- ✅ URL hash = source of truth
-- ✅ `/breeds/german-shepherd#patrons` → scroll до Patrons tab
-- ✅ Scroll до Achievements → URL = `#achievements`
-
-### Висновок:
-
-| Критерій | Radix Tabs | Scroll Tabs (наша задача) |
-|----------|-----------|---------------------------|
-| **Рендеринг** | Один активний tab | Всі таби в DOM |
-| **Navigation** | Click → switch | Scroll між секціями |
-| **URL** | Manual sync | Auto hash sync |
-| **Visibility** | Boolean (active/not) | Percentage (0-100%) |
-| **Use case** | Компактний UI з табами | Long-form content зі scroll |
-
-**Рішення:** Створюємо власні scroll-based tabs компоненти.
-
----
-
-## 🔗 Angular Reference Links
-
-### Core Components:
-- **TabHeader:** `/Users/annaglova/projects/org/libs/schema/ui/template/tab-header.component.ts`
-- **TabStore:** `/Users/annaglova/projects/org/libs/schema/store/page-tab-store/tab.storeV2.service.ts`
-- **TabStore State:** `/Users/annaglova/projects/org/libs/schema/store/page-tab-store/tab-store-state-va2.ts`
-- **ScrollableTab Directive:** `/Users/annaglova/projects/org/libs/schema/ui/scrollable-tab-ui/scrollable-tab.directive.ts`
-- **Page Tabs Feature:** `/Users/annaglova/projects/org/libs/schema/store/page-tab-store/tabs/page-tabs.feature.ts`
-- **Page Tabs Visibility:** `/Users/annaglova/projects/org/libs/schema/store/page-tab-store/tabs/page-tabs-visibility.feature.ts`
-
-### Breed Page Implementation:
-- **Routing:** `/Users/annaglova/projects/org/libs/schema/domain/breed/pages/breed-page/breed.routing.ts`
-- **BreedSupportLevels:** `/Users/annaglova/projects/org/libs/schema/domain/breed/pages/breed-page/components/breed-support-levels/breed-support-levels.component.ts`
-- **BreedPatrons:** `/Users/annaglova/projects/org/libs/schema/domain/breed/pages/breed-page/components/breed-patrons/breed-patrons.component.ts`
-- **BreedTopPets:** `/Users/annaglova/projects/org/libs/schema/domain/breed/pages/breed-page/components/breed-top-pets/breed-top-pets.component.ts`
-- **BreedTopKennels:** `/Users/annaglova/projects/org/libs/schema/domain/breed/pages/breed-page/components/breed-top-kennels/breed-top-kennels.component.ts`
-- **BreedMoments:** `/Users/annaglova/projects/org/libs/schema/domain/breed/pages/breed-page/components/breed-moments/breed-moments.component.ts`
-
----
-
-## 📊 Angular Tab System Analysis
-
-### Tab Structure (з Angular):
-```typescript
-export type Tab = {
-  fragment: string;      // URL hash: 'achievements', 'patrons'
-  label: string;         // Display name: 'Breed achievements'
-  icon: string;          // PrimeNG icon: 'pi pi-check-circle'
-  tabIndex: number;      // Order: 0, 1, 2...
-  id: string;            // Unique ID
-  url: string;           // Fullscreen URL (optional)
-  top: number;           // Scroll position
-  hiddenFn: () => Signal<boolean>; // Visibility function
-};
+┌─────────────────────────────────────────────────────────────────┐
+│                        UI Component                              │
+│  (BreedTopPetsTab, BreedPatronsTab, BreedTopKennelsTab)        │
+└─────────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                    React Hooks Layer                             │
+│  useTabData (drawer) │ useInfiniteTabData (fullscreen)          │
+└─────────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                     TabDataService                               │
+│  loadTabData() │ loadTabDataPaginated()                         │
+│  Routes to correct loading method based on dataSource config    │
+└─────────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                       SpaceStore                                 │
+│  loadChildViewDirect() - Direct query with RxDB caching         │
+│                                                                  │
+│  IMPORTANT: All data cached in RxDB before returning!           │
+└─────────────────────────────────────────────────────────────────┘
+                              │
+              ┌───────────────┴───────────────┐
+              ▼                               ▼
+┌─────────────────────────┐     ┌─────────────────────────┐
+│        Supabase         │     │         RxDB            │
+│  (Source of Truth)      │     │  (Local Cache)          │
+│  VIEW with JOINs        │     │  breed_children         │
+└─────────────────────────┘     └─────────────────────────┘
 ```
 
-### Tab Store Механіка:
+### Keyset (Cursor) Pagination
 
-**1. Visibility Tracking:**
+**Чому НЕ offset pagination:**
+- Offset стає повільним на великих датасетах
+- Записи можуть дублюватися або пропускатися при зміні даних
+- Неможливо кешувати ефективно
+
+**Composite Cursor формат:**
 ```typescript
-// ScrollableTabDirective на кожному табі
-observeBodyVisibility(resize$) {
-  // IntersectionObserver → bodyVisibility (0-1)
+interface CompositeCursor {
+  value: any;        // Значення поля сортування (e.g., rating)
+  tieBreaker: any;   // ID для унікальності при однакових values
 }
 
-// TabStore computed
-firstViewportTab = computed(() =>
-  entities.find(tab => tab.bodyVisibility() > 0.02)
-);
+// Приклад cursor: { value: 5, tieBreaker: "uuid-123" }
+// SQL: WHERE (rating < 5) OR (rating = 5 AND id > 'uuid-123')
 ```
 
-**2. Auto URL Sync:**
-```typescript
-// Коли змінюється найбільш видимий таб
-if (currentFragment !== urlFragment) {
-  navStore.changeFragment(firstViewportTab.fragment);
-}
-```
+**Keyset Query Pattern:**
+```sql
+-- Перша сторінка (без cursor)
+SELECT * FROM top_pet_in_breed_with_pet
+WHERE breed_id = $1
+ORDER BY rating DESC, id ASC
+LIMIT 30
 
-**3. Auto Scroll:**
-```typescript
-// Коли змінюється URL hash
-const to = selectedTab.initTop() - scrollDelta + 15;
-scrollTo(to, { behavior: 'smooth' });
-```
-
-### Tab Header Modes:
-
-**Mode: "list"** (в контенті сторінки)
-```tsx
-<div className="mb-5 flex w-full items-center text-2xl font-semibold">
-  <Icon />
-  <span>Breed achievements</span>
-  <button>window-maximize icon</button> // Fullscreen
-</div>
-```
-
-**Mode: "compact"** (мала кнопка справа)
-```tsx
-<div className="ml-auto flex items-center">
-  <span>Full screen view</span>
-  <button>window-maximize</button>
-</div>
-```
-
-**Coming Soon Label:**
-```tsx
-{tab.fragment === 'moments' && (
-  <div className="text-sm font-bold uppercase text-primary ml-auto">
-    Coming soon
-  </div>
-)}
+-- Наступні сторінки (з cursor)
+SELECT * FROM top_pet_in_breed_with_pet
+WHERE breed_id = $1
+  AND (
+    rating < $cursorValue
+    OR (rating = $cursorValue AND id > $cursorTieBreaker)
+  )
+ORDER BY rating DESC, id ASC
+LIMIT 30
 ```
 
 ---
 
-## 🎯 Implementation Plan
+## Компоненти
 
-### Phase 1: Базова структура (2-3 дні) ⬅️ START HERE
+### 1. Tab Components
 
-**Мета:** Створити scroll-based tabs без auto-scroll механізму
-
-#### 1.1 Create `TabHeader.tsx`
-**Location:** `/apps/app/src/components/tabs/TabHeader.tsx`
-
-```typescript
-interface TabHeaderProps {
-  label: string;
-  icon: React.ReactNode;
-  mode?: "list" | "compact"; // list = у контенті, compact = fullscreen button
-  comingSoon?: boolean;
-  fullscreenUrl?: string; // URL для fullscreen mode
-  className?: string;
-}
-
-/**
- * TabHeader - Header для scroll-based tab
- *
- * Reference: /Users/annaglova/projects/org/libs/schema/ui/template/tab-header.component.ts
- *
- * Features:
- * - Two modes: list (large header in content) | compact (small button)
- * - Optional "Coming soon" label
- * - Optional fullscreen button
- */
-```
-
-**Visual:**
-- **List mode:** Великий header (text-2xl) з іконкою, full width
-- **Compact mode:** Справа align, мала кнопка з window-maximize icon
-- **Coming soon:** Primary text справа
-
-**CSS classes (from Angular):**
+**BreedTopPetsTab** (`apps/app/src/components/breed/tabs/BreedTopPetsTab.tsx`)
 ```tsx
-// List mode
-className="mb-5 flex w-full items-center text-2xl font-semibold text-sub-header-color bg-header-ground/75 backdrop-blur-sm"
+// Два режими завантаження
+const drawerResult = useTabData<TopPetViewRecord>({
+  parentId: breedId,
+  dataSource: dataSource!,
+  enabled: !!dataSource && !!breedId && !isFullscreen,
+});
 
-// First tab has mt-5, others mt-10
-{isFirst ? 'mt-5' : 'mt-10'}
+const infiniteResult = useInfiniteTabData<TopPetViewRecord>({
+  parentId: breedId,
+  dataSource: dataSource!,
+  enabled: !!dataSource && !!breedId && isFullscreen,
+  pageSize: 30,
+});
 
-// Icon + Label
-<Icon size={20} className="mr-2" />
-<span>{label}</span>
+// Data transformation - працює з обома форматами
+const pets = useMemo(() => {
+  return data.map((record) => {
+    // VIEW format: record.pet
+    // RxDB format: record.additional?.pet
+    const pet = record.pet || (record as any).additional?.pet;
+    return { /* ... */ };
+  });
+}, [data]);
 
-// Coming soon
-{comingSoon && (
-  <div className="text-center text-sm font-bold uppercase text-primary ml-auto">
-    Coming soon
-  </div>
-)}
+// IntersectionObserver для auto-load
+useEffect(() => {
+  if (!isFullscreen || !loadMoreRef.current) return;
 
-// Fullscreen button
-{fullscreenUrl && (
-  <a href={fullscreenUrl} className="ml-auto">
-    <Maximize2 size={16} className="text-sub-header-color" />
-  </a>
-)}
-```
-
-#### 1.2 Create `ScrollableTab.tsx`
-**Location:** `/apps/app/src/components/tabs/ScrollableTab.tsx`
-
-```typescript
-interface ScrollableTabProps {
-  id: string; // Tab ID = URL fragment
-  children: React.ReactNode;
-  onVisibilityChange?: (id: string, visibility: number) => void;
-  className?: string;
-}
-
-/**
- * ScrollableTab - Wrapper для tab content з visibility tracking
- *
- * Reference: /Users/annaglova/projects/org/libs/schema/ui/scrollable-tab-ui/scrollable-tab.directive.ts
- *
- * Features:
- * - IntersectionObserver для tracking visibility
- * - Викликає onVisibilityChange(id, 0.0-1.0)
- * - ID для scroll targeting
- */
-```
-
-**Implementation:**
-```tsx
-export function ScrollableTab({ id, children, onVisibilityChange, className }: ScrollableTabProps) {
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!ref.current || !onVisibilityChange) return;
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        // intersectionRatio = 0.0 (not visible) to 1.0 (fully visible)
-        onVisibilityChange(id, entry.intersectionRatio);
-      },
-      {
-        threshold: Array.from({ length: 101 }, (_, i) => i / 100), // 0.00, 0.01, ... 1.00
-        rootMargin: '0px',
+  const observer = new IntersectionObserver(
+    (entries) => {
+      if (entries[0]?.isIntersecting) {
+        handleLoadMore();
       }
+    },
+    { threshold: 0.1, rootMargin: "100px" }
+  );
+
+  observer.observe(loadMoreRef.current);
+  return () => observer.disconnect();
+}, [isFullscreen, handleLoadMore, hasMore, isLoadingMore, pets.length]);
+```
+
+**BreedPatronsTab** - Аналогічна структура для патронів
+**BreedTopKennelsTab** - TODO: Оновити для infinite scroll
+
+### 2. Hooks
+
+**useTabData** (`packages/rxdb-store/src/hooks/useTabData.ts`)
+- Для drawer mode (обмежена кількість записів)
+- Завантажує всі записи одразу
+- Простий state: `{ data, isLoading, error }`
+
+**useInfiniteTabData** (`packages/rxdb-store/src/hooks/useInfiniteTabData.ts`)
+```typescript
+function useInfiniteTabData<T>({
+  parentId,
+  dataSource,
+  enabled = true,
+  pageSize = 30,
+}: UseInfiniteTabDataOptions): InfiniteTabDataResult<T> {
+  const [data, setData] = useState<T[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+
+  // Composite cursor ref
+  const cursorRef = useRef<string | null>(null);
+
+  const loadMore = useCallback(async () => {
+    if (!hasMore || loadingRef.current || !cursorRef.current) return;
+
+    const result = await tabDataService.loadTabDataPaginated(
+      parentId,
+      dataSource,
+      { cursor: cursorRef.current, limit: pageSize }
     );
 
-    observer.observe(ref.current);
-    return () => observer.disconnect();
-  }, [id, onVisibilityChange]);
+    // Accumulate data
+    setData(prev => [...prev, ...result.records]);
+    setHasMore(result.hasMore);
+    cursorRef.current = result.nextCursor;
+  }, [parentId, dataSource, hasMore, pageSize]);
 
-  return (
-    <div ref={ref} id={`tab-${id}`} className={className}>
-      {children}
-    </div>
-  );
+  return { data, isLoading, isLoadingMore, hasMore, loadMore, refetch };
 }
 ```
 
-#### 1.3 Create `TabsContainer.tsx`
-**Location:** `/apps/app/src/components/tabs/TabsContainer.tsx`
+### 3. Services
 
+**TabDataService** (`packages/rxdb-store/src/services/tab-data.service.ts`)
 ```typescript
-interface Tab {
-  id: string;           // Unique ID
-  fragment: string;     // URL hash: 'achievements'
-  label: string;        // 'Breed achievements'
-  icon: React.ReactNode; // Lucide icon component
-  comingSoon?: boolean; // Show "Coming soon" label
-  fullscreenUrl?: string; // Optional fullscreen URL
-  component: React.ComponentType<any>; // Tab content component
+async loadTabDataPaginated(
+  parentId: string,
+  dataSource: DataSourceConfig,
+  pagination?: PaginationOptions
+): Promise<PaginatedResult<any>> {
+  const config = dataSource.config;
+
+  // Route to appropriate loading method
+  if (config.type === 'childView') {
+    return this.loadChildViewPaginated(parentId, dataSource, pagination);
+  }
+
+  // ... other types
 }
 
-interface TabsContainerProps {
-  tabs: Tab[];
-  className?: string;
-}
+private async loadChildViewPaginated(
+  parentId: string,
+  dataSource: DataSourceConfig,
+  pagination?: PaginationOptions
+): Promise<PaginatedResult<any>> {
+  const { cursor, limit = 30 } = pagination || {};
 
-/**
- * TabsContainer - Container для всіх scroll-based tabs
- *
- * Reference: /Users/annaglova/projects/org/libs/schema/domain/breed/pages/breed-page/breed.routing.ts
- *
- * Features:
- * - Рендерить всі таби як scroll sections
- * - TabHeader + ScrollableTab для кожного табу
- * - Visibility tracking для всіх табів
- */
-```
-
-**Structure:**
-```tsx
-export function TabsContainer({ tabs, className }: TabsContainerProps) {
-  const [visibilityMap, setVisibilityMap] = useState<Record<string, number>>({});
-
-  const handleVisibilityChange = (id: string, visibility: number) => {
-    setVisibilityMap(prev => ({ ...prev, [id]: visibility }));
+  // Parse composite cursor
+  let orderBy: OrderBy = {
+    field: config.orderBy?.field || 'rating',
+    direction: config.orderBy?.direction || 'desc',
+    tieBreaker: { field: 'id', direction: 'asc' }
   };
 
-  return (
-    <div className={className}>
-      {tabs.map((tab, index) => {
-        const Component = tab.component;
-
-        return (
-          <ScrollableTab
-            key={tab.id}
-            id={tab.fragment}
-            onVisibilityChange={handleVisibilityChange}
-          >
-            <TabHeader
-              label={tab.label}
-              icon={tab.icon}
-              mode="list"
-              comingSoon={tab.comingSoon}
-              fullscreenUrl={tab.fullscreenUrl}
-              className={index === 0 ? 'mt-5' : 'mt-10'}
-            />
-            <Component />
-          </ScrollableTab>
-        );
-      })}
-    </div>
+  // Direct query to VIEW (more efficient than ID-First for JOINed VIEWs)
+  return spaceStore.loadChildViewDirect(
+    parentId,
+    config.table,
+    config.parentField,
+    { limit, cursor, orderBy }
   );
 }
 ```
 
-#### 1.4 Create Mock Tab Component
-**Location:** `/apps/app/src/components/breed/tabs/BreedAchievementsTab.tsx`
+### 4. SpaceStore - loadChildViewDirect
 
 ```typescript
-/**
- * BreedAchievementsTab - Achievements timeline tab
- *
- * Reference: /Users/annaglova/projects/org/.../breed-support-levels.component.ts
- *
- * TODO: Implement timeline with mock data
- * For now - simple placeholder
- */
-export function BreedAchievementsTab() {
-  return (
-    <div className="mt-3">
-      <p className="text-muted-foreground">Achievements timeline coming soon...</p>
-    </div>
-  );
-}
-```
+async loadChildViewDirect(
+  parentId: string,
+  viewName: string,
+  parentField: string,
+  options: { limit?: number; cursor?: string | null; orderBy?: OrderBy; } = {}
+): Promise<{ records: any[]; total: number; hasMore: boolean; nextCursor: string | null }> {
 
-#### 1.5 Integrate в PublicPageTemplate
+  // 📴 OFFLINE: Return from RxDB cache
+  if (!navigator.onLine) {
+    const localRecords = await this.filterLocalChildEntities(/* ... */);
+    return { records: localRecords, total: localRecords.length, hasMore: false, nextCursor: null };
+  }
 
-```tsx
-// Add to PublicPageTemplate.tsx after BreedAchievements
+  // 🌐 ONLINE: Build Supabase query with keyset pagination
+  let query = supabase
+    .from(viewName)
+    .select('*', { count: 'exact' })
+    .eq(parentField, parentId)
+    .order(orderField, { ascending: orderDirection === 'asc' })
+    .order('id', { ascending: true })
+    .limit(limit);
 
-const mockTabs = [
-  {
-    id: 'achievements',
-    fragment: 'achievements',
-    label: 'Breed achievements',
-    icon: <CheckCircle size={20} />,
-    component: BreedAchievementsTab,
-  },
-  {
-    id: 'patrons',
-    fragment: 'patrons',
-    label: 'Patrons',
-    icon: <Heart size={20} />,
-    component: () => <div className="mt-3">Patrons tab coming soon...</div>,
-  },
-  {
-    id: 'moments',
-    fragment: 'moments',
-    label: 'Moments',
-    icon: <Image size={20} />,
-    comingSoon: true,
-    component: () => <div className="mt-3">Moments gallery coming soon...</div>,
-  },
-];
-
-// After BreedAchievements
-<TabsContainer tabs={mockTabs} />
-```
-
-**Deliverables Phase 1:**
-- ✅ TabHeader component (2 modes)
-- ✅ ScrollableTab component (IntersectionObserver)
-- ✅ TabsContainer (renders all tabs)
-- ✅ Mock BreedAchievementsTab
-- ✅ Integrated в PublicPageTemplate
-- ✅ Візуально працює scroll між табами
-
----
-
-### Phase 2: URL Fragment Sync (1 день)
-
-**Мета:** Синхронізувати URL hash з найбільш видимим табом
-
-#### 2.1 Create `useTabScroll` hook
-**Location:** `/apps/app/src/hooks/useTabScroll.ts`
-
-```typescript
-/**
- * useTabScroll - Hook для scroll-based tabs з URL sync
- *
- * Reference: /Users/annaglova/projects/org/.../tab.storeV2.service.ts
- *
- * Features:
- * - Трекає visibility всіх табів
- * - Auto-update URL hash при scroll
- * - Returns activeTab ID
- */
-interface UseTabScrollOptions {
-  tabs: Tab[];
-  threshold?: number; // Min visibility to consider "active" (default 0.02)
-}
-
-function useTabScroll({ tabs, threshold = 0.02 }: UseTabScrollOptions) {
-  const [visibilityMap, setVisibilityMap] = useState<Record<string, number>>({});
-  const [activeTab, setActiveTab] = useState<string>(tabs[0]?.fragment || '');
-
-  // Find most visible tab (> threshold)
-  const mostVisibleTab = useMemo(() => {
-    const visible = Object.entries(visibilityMap)
-      .filter(([_, visibility]) => visibility > threshold)
-      .sort(([, a], [, b]) => b - a);
-
-    return visible[0]?.[0]; // Return ID of most visible
-  }, [visibilityMap, threshold]);
-
-  // Auto-update URL hash when most visible changes
-  useEffect(() => {
-    if (mostVisibleTab && mostVisibleTab !== activeTab) {
-      window.location.hash = mostVisibleTab;
-      setActiveTab(mostVisibleTab);
+  // Apply cursor filter (keyset pagination)
+  if (cursor) {
+    const { value, tieBreaker } = JSON.parse(cursor);
+    if (orderDirection === 'desc') {
+      query = query.or(`${orderField}.lt.${value},and(${orderField}.eq.${value},id.gt.${tieBreaker})`);
+    } else {
+      query = query.or(`${orderField}.gt.${value},and(${orderField}.eq.${value},id.gt.${tieBreaker})`);
     }
-  }, [mostVisibleTab, activeTab]);
+  }
 
-  return {
-    activeTab,
-    visibilityMap,
-    setVisibility: (id: string, visibility: number) => {
-      setVisibilityMap(prev => ({ ...prev, [id]: visibility }));
-    },
-  };
+  const { data: rawRecords, count, error } = await query;
+
+  // 💾 CACHE IN RXDB (Local-First!)
+  const collection = await this.ensureChildCollection(entityType);
+  const normalizedTableType = viewName.replace(/_with_\w+$/, '');
+
+  const transformedRecords = rawRecords.map((row) => {
+    const { id, [parentField]: pId, ...rest } = row;
+    return {
+      id,
+      tableType: normalizedTableType,
+      parentId,
+      additional: { ...rest },  // All joined data goes here
+      cachedAt: Date.now()
+    };
+  });
+
+  await collection.bulkUpsert(transformedRecords);
+
+  // Build next cursor
+  const lastRecord = rawRecords[rawRecords.length - 1];
+  const nextCursor = hasMore ? JSON.stringify({
+    value: lastRecord[orderField],
+    tieBreaker: lastRecord.id
+  }) : null;
+
+  return { records: transformedRecords, total: count, hasMore, nextCursor };
 }
 ```
-
-#### 2.2 Integrate в TabsContainer
-
-```tsx
-export function TabsContainer({ tabs }: TabsContainerProps) {
-  const { activeTab, setVisibility } = useTabScroll({ tabs });
-
-  return (
-    <div>
-      {tabs.map(tab => (
-        <ScrollableTab
-          key={tab.id}
-          id={tab.fragment}
-          onVisibilityChange={setVisibility}
-        >
-          {/* ... */}
-        </ScrollableTab>
-      ))}
-    </div>
-  );
-}
-```
-
-**Deliverables Phase 2:**
-- ✅ useTabScroll hook
-- ✅ Auto URL hash update при scroll
-- ✅ activeTab tracking
 
 ---
 
-### Phase 3: Auto-scroll механізм (1-2 дні)
+## Config Structure
 
-**Мета:** Scroll до табу при зміні URL hash
-
-#### 3.1 Add scroll method to useTabScroll
-
-```typescript
-function useTabScroll({ tabs, threshold = 0.02 }: UseTabScrollOptions) {
-  // ... existing code
-
-  // Scroll to tab when hash changes (manually or from URL)
-  useEffect(() => {
-    const handleHashChange = () => {
-      const hash = window.location.hash.slice(1); // Remove #
-      if (hash && hash !== activeTab) {
-        const element = document.getElementById(`tab-${hash}`);
-        if (element) {
-          // Calculate scroll position (like Angular)
-          const scrollDelta = 80; // Account for sticky header
-          const top = element.offsetTop - scrollDelta;
-
-          window.scrollTo({
-            top,
-            behavior: 'smooth',
-          });
-
-          setActiveTab(hash);
+**app_config.json - Tab з dataSource:**
+```json
+{
+  "tabs": {
+    "topPets": {
+      "order": 1,
+      "component": "BreedTopPetsTab",
+      "label": "Top Pets",
+      "icon": { "name": "Trophy", "source": "lucide" },
+      "slug": "top-pets",
+      "fullscreenButton": true,
+      "recordsCount": 20,
+      "dataSource": {
+        "type": "config",
+        "config": {
+          "type": "childView",
+          "table": "top_pet_in_breed_with_pet",
+          "parentField": "breed_id",
+          "orderBy": {
+            "field": "rating",
+            "direction": "desc"
+          }
         }
       }
-    };
-
-    window.addEventListener('hashchange', handleHashChange);
-
-    // Initial scroll on mount
-    handleHashChange();
-
-    return () => window.removeEventListener('hashchange', handleHashChange);
-  }, [activeTab]);
-
-  return { activeTab, visibilityMap, setVisibility };
+    }
+  }
 }
 ```
 
-#### 3.2 Add "ready to scroll" flag
+---
 
-```typescript
-// Like Angular TabStoreV2 readyToScroll flag
-const [readyToScroll, setReadyToScroll] = useState(false);
+## Key Principles
 
-useEffect(() => {
-  // Enable scroll after initial render
-  const timer = setTimeout(() => setReadyToScroll(true), 500);
-  return () => clearTimeout(timer);
-}, []);
-
-// Only scroll if ready
-if (readyToScroll && hash !== activeTab) {
-  scrollToTab(hash);
-}
+### 1. Local-First
+```
+✅ ВСІ дані в UI рендеряться з RxDB
+✅ Supabase → RxDB → UI (ніколи напряму)
+✅ Offline mode працює з кешованими даними
 ```
 
-**Deliverables Phase 3:**
-- ✅ Auto-scroll на hash change
-- ✅ Smooth scroll з offset для sticky header
-- ✅ "Ready to scroll" flag (prevent scroll on mount)
-
----
-
-### Phase 4: Tab Content Components (3-5 днів)
-
-**Мета:** Створити реальний контент для кожного табу
-
-#### 4.1 BreedAchievementsTab (Timeline)
-**Location:** `/apps/app/src/components/breed/tabs/BreedAchievementsTab.tsx`
-
-**Reference:** `/Users/annaglova/projects/org/.../breed-support-levels.component.ts`
-
-**UI:** Timeline component (може використати Timeline з `/packages/ui/components/timeline.tsx` якщо є)
-
-**Mock data:**
-```typescript
-const mockAchievements = [
-  {
-    id: '1',
-    name: 'Golden Achievement',
-    intValue: 5000,
-    date: '2024-06-15',
-    description: 'Reached 5000 supporters milestone',
-    active: true,
-  },
-  {
-    id: '2',
-    name: 'Silver Achievement',
-    intValue: 1000,
-    date: '2023-03-20',
-    description: 'First 1000 supporters',
-    active: true,
-  },
-  {
-    id: '3',
-    name: 'Platinum Achievement',
-    intValue: 10000,
-    description: 'Reach 10000 supporters',
-    active: false, // Not achieved yet
-  },
-];
+### 2. ID-First (для VIEWs)
+```
+⚠️ VIEWs з JOINs повільні з WHERE id IN (...)
+✅ Використовуємо прямий запит WHERE parent_id = X
+✅ Результати кешуємо в RxDB для offline
 ```
 
-#### 4.2 BreedPatronsTab
-**Location:** `/apps/app/src/components/breed/tabs/BreedPatronsTab.tsx`
-
-**Reference:** `/Users/annaglova/projects/org/.../breed-patrons.component.ts`
-
-**UI:** Grid/List патронів з avatars
-
-#### 4.3 BreedTopPetsTab
-**Location:** `/apps/app/src/components/breed/tabs/BreedTopPetsTab.tsx`
-
-**Reference:** `/Users/annaglova/projects/org/.../breed-top-pets.component.ts`
-
-**UI:** Grid топ петів
-
-#### 4.4 BreedTopKennelsTab
-**Location:** `/apps/app/src/components/breed/tabs/BreedTopKennelsTab.tsx`
-
-**Reference:** `/Users/annaglova/projects/org/.../breed-top-kennels.component.ts`
-
-**UI:** Grid топ розплідників
-
-#### 4.5 BreedMomentsTab
-**Location:** `/apps/app/src/components/breed/tabs/BreedMomentsTab.tsx`
-
-**Reference:** `/Users/annaglova/projects/org/.../breed-moments.component.ts`
-
-**UI:** Photo gallery (може бути "Coming soon" placeholder)
-
-**Deliverables Phase 4:**
-- ✅ 5 tab components з mock data
-- ✅ Реальний UI (не placeholder)
-- ✅ Використання UI components з `/packages/ui`
-
----
-
-### Phase 5: Sticky Tabs Navigation (опціонально, 1 день)
-
-**Мета:** Sticky tabs bar вгорі при скролі (як breadcrumbs)
-
-**Component:** `StickyTabsBar.tsx`
-
-```tsx
-interface StickyTabsBarProps {
-  tabs: Tab[];
-  activeTab: string;
-  onTabClick: (fragment: string) => void;
-}
-
-/**
- * StickyTabsBar - Sticky navigation bar з табами
- *
- * Shows when user scrolls past BreedName
- * Allows quick navigation between tabs
- */
+### 3. Keyset Pagination
+```
+✅ Composite cursor: { value, tieBreaker }
+✅ Стабільна пагінація навіть при зміні даних
+✅ Ефективний для великих датасетів
 ```
 
-**Visual:**
-- Sticky top з backdrop-blur
-- Horizontal scroll якщо багато табів
-- Active tab highlighted
-- Click → smooth scroll до табу
+### 4. Two Loading Modes
+```
+Drawer Mode:
+- useTabData hook
+- Завантажує всі записи (обмежено recordsCount)
+- Для швидкого preview
 
-**Deliverables Phase 5:**
-- ✅ StickyTabsBar component
-- ✅ Show/hide на scroll
-- ✅ Click → scroll до табу
-
----
-
-## 📊 Timeline Summary
-
-| Phase | Назва | Компоненти | Час | Пріоритет |
-|-------|-------|------------|-----|-----------|
-| **1** | Базова структура | TabHeader, ScrollableTab, TabsContainer, Mock tab | 2-3 дні | **HIGH** ⬅️ |
-| **2** | URL Fragment Sync | useTabScroll hook, auto hash update | 1 день | **HIGH** |
-| **3** | Auto-scroll | Scroll to tab, smooth behavior | 1-2 дні | **MEDIUM** |
-| **4** | Tab Content | 5 tab components з mock data | 3-5 днів | **HIGH** |
-| **5** | Sticky Navigation | StickyTabsBar (optional) | 1 день | **LOW** |
-
-**Total:** 7-12 днів
+Fullscreen Mode:
+- useInfiniteTabData hook
+- Infinite scroll з cursor pagination
+- IntersectionObserver для auto-load
+```
 
 ---
 
-## ✅ Success Criteria
+## Files Changed
 
-**Phase 1:**
-- ✅ Всі таби рендеряться як scroll sections
-- ✅ TabHeader показує назву + іконку
-- ✅ "Coming soon" label працює
-- ✅ IntersectionObserver трекає visibility
-- ✅ Console.log показує visibility changes
+### Core Implementation
+- `packages/rxdb-store/src/stores/space-store.signal-store.ts` - loadChildViewDirect з RxDB caching
+- `packages/rxdb-store/src/services/tab-data.service.ts` - loadTabDataPaginated routing
+- `packages/rxdb-store/src/hooks/useInfiniteTabData.ts` - NEW: infinite scroll hook
+- `packages/rxdb-store/src/types/tab-data.types.ts` - Pagination types
 
-**Phase 2:**
-- ✅ URL hash auto-updates при scroll
-- ✅ `/breeds/german-shepherd#patrons` показує patrons section
-- ✅ Scroll patrons → URL змінюється на `#patrons`
+### Tab Components
+- `apps/app/src/components/breed/tabs/BreedTopPetsTab.tsx` - Infinite scroll support
+- `apps/app/src/components/breed/tabs/BreedPatronsTab.tsx` - Infinite scroll support
+- `apps/app/src/components/breed/tabs/BreedTopKennelsTab.tsx` - TODO
 
-**Phase 3:**
-- ✅ Клік на fullscreen button → scroll до табу
-- ✅ Manual URL change → smooth scroll
-- ✅ Scroll offset враховує sticky header
-
-**Phase 4:**
-- ✅ Всі 5 табів мають реальний контент
-- ✅ Mock data показується коректно
-- ✅ UI виглядає як в Angular проекті
-
-**Phase 5:**
-- ✅ Sticky bar показується при scroll
-- ✅ Click на tab → scroll працює
-- ✅ Active tab highlighted
+### Templates
+- `apps/app/src/components/template/TabPageTemplate.tsx` - Fullscreen tab page
 
 ---
 
-## 🔗 Related Documents
+## Testing
 
-- [SESSION_RESTART.md](./SESSION_RESTART.md) - Поточний стан проекту
-- [PUBLIC_PAGE_IMPLEMENTATION_PLAN.md](./PUBLIC_PAGE_IMPLEMENTATION_PLAN.md) - Public page architecture
-- [PROPERTY_BASED_CONFIG_ARCHITECTURE.md](./PROPERTY_BASED_CONFIG_ARCHITECTURE.md) - Config system (майбутнє)
-
----
-
-## 📝 Notes
-
-**Angular Tab Store НЕ потрібен:**
-- В Angular: NgRx SignalStore з computed values
-- В React: Простий useState + useEffect
-- SpaceStore збере page data пізніше
-
-**Hardcoded перший, Config потім:**
-- Спочатку hardcode tabs в PublicPageTemplate
-- Потім витягнемо з app_config (Phase 3 з PUBLIC_PAGE_IMPLEMENTATION_PLAN.md)
-
-**Timeline component:**
-- Перевір чи є в `/packages/ui/components/timeline.tsx`
-- Якщо немає - створимо простий для BreedAchievementsTab
+```bash
+# Manual testing steps:
+1. Open breed page (e.g., /german-shepherd)
+2. Scroll to Top Pets tab
+3. Click fullscreen button → navigates to /german-shepherd/top-pets
+4. Scroll down → more pets load automatically
+5. Check browser DevTools → RxDB collections populated
+6. Go offline → cached data still displays
+```
 
 ---
 
-**Status:** ✅ Plan Ready
-**Next Step:** Start Phase 1 - Create TabHeader component
+## Known Limitations
+
+1. **BreedTopKennelsTab** - Ще не оновлений для infinite scroll
+2. **Search in fullscreen** - Не реалізовано (потребує server-side search)
+3. **Sorting in fullscreen** - Фіксований порядок з конфігу
+
+---
+
+## Related Documents
+
+- [SPACE_STORE_ARCHITECTURE.md](../SPACE_STORE_ARCHITECTURE.md) - SpaceStore та ID-First pattern
+- [TAB_DATA_SERVICE_ARCHITECTURE.md](../TAB_DATA_SERVICE_ARCHITECTURE.md) - TabDataService routing
+- [CHILD_TABLES_IMPLEMENTATION_PLAN.md](../CHILD_TABLES_IMPLEMENTATION_PLAN.md) - Child records architecture
