@@ -1,14 +1,14 @@
-import { useMemo, useRef, useState, useEffect } from "react";
+import { useMemo, useRef, useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { BlockRenderer } from "@/components/blocks/BlockRenderer";
 import { SpaceProvider } from "@/contexts/SpaceContext";
 import { ScrollToTopButton } from "@/components/shared/ScrollToTopButton";
 import { getPageConfig } from "@/utils/getPageConfig";
-import { spaceStore } from "@breedhub/rxdb-store";
+import { spaceStore, tabDataService } from "@breedhub/rxdb-store";
 import { useSignals } from "@preact/signals-react/runtime";
 import { cn } from "@ui/lib/utils";
 import { Tab } from "@/components/tabs/TabsContainer";
-import { PageMenu } from "@/components/tabs/PageMenu";
+import { PageMenu, PageMenuSkeleton } from "@/components/tabs/PageMenu";
 
 // Dynamic tab component registry (same as TabOutletRenderer)
 const breedTabModules = import.meta.glob('../breed/tabs/*Tab.tsx', { eager: true });
@@ -59,15 +59,39 @@ interface TabPageTemplateProps {
 }
 
 /**
- * Convert tab config object to Tab[] array
- * Only includes tabs with fullscreenButton: true
+ * Determine if tab should be shown in fullscreen PageMenu
+ * Same logic as shouldShowFullscreen in TabsContainer
  */
-function convertFullscreenTabsToArray(tabsConfig: Record<string, TabConfig>): Tab[] {
+function shouldShowInFullscreenMenu(
+  fullscreenButton: boolean | undefined,
+  recordsCount: number | undefined,
+  loadedCount: number | undefined
+): boolean {
+  if (!fullscreenButton) return false;
+  if (recordsCount === undefined) return true; // No limit configured, always show
+  if (loadedCount === undefined) return true; // Data not loaded yet, show by default
+  return loadedCount >= recordsCount; // Show only if there might be more records
+}
+
+/**
+ * Convert tab config object to Tab[] array
+ * Only includes tabs that should be shown in fullscreen mode
+ * (fullscreenButton: true AND loadedCount >= recordsCount)
+ */
+function convertFullscreenTabsToArray(
+  tabsConfig: Record<string, TabConfig>,
+  loadedCounts: Record<string, number>
+): Tab[] {
   const tabs: Tab[] = [];
 
   for (const [tabId, config] of Object.entries(tabsConfig)) {
-    // Only include tabs with fullscreenButton enabled
-    if (!config.fullscreenButton) continue;
+    // Check if tab should be shown (fullscreenButton + records count check)
+    const shouldShow = shouldShowInFullscreenMenu(
+      config.fullscreenButton,
+      config.recordsCount,
+      loadedCounts[tabId]
+    );
+    if (!shouldShow) continue;
 
     const Component = TAB_COMPONENT_REGISTRY[config.component];
     if (!Component) {
@@ -167,10 +191,55 @@ export function TabPageTemplate({
     return tabOutletBlock?.tabs || {};
   }, [pageConfig]);
 
-  // Get only fullscreen-enabled tabs
+  // State for loaded counts - fetched directly for fullscreen page
+  const [loadedCounts, setLoadedCounts] = useState<Record<string, number>>({});
+  const [countsLoading, setCountsLoading] = useState(true);
+
+  // Load counts for all fullscreen-enabled tabs
+  // This runs on direct fullscreen URL navigation (no sessionStorage data)
+  useEffect(() => {
+    const loadTabCounts = async () => {
+      if (!entityId || !tabsConfig || Object.keys(tabsConfig).length === 0) {
+        setCountsLoading(false);
+        return;
+      }
+
+      // First try to get from spaceStore (if coming from main page)
+      const storedCounts = spaceStore.getTabLoadedCounts(entityId);
+      if (Object.keys(storedCounts).length > 0) {
+        setLoadedCounts(storedCounts);
+        setCountsLoading(false);
+        return;
+      }
+
+      // Otherwise, load data for each fullscreen-enabled tab
+      const counts: Record<string, number> = {};
+
+      for (const [tabId, config] of Object.entries(tabsConfig)) {
+        if (!config.fullscreenButton || !config.dataSource) continue;
+
+        try {
+          const records = await tabDataService.loadTabData(entityId, config.dataSource);
+          counts[tabId] = records.length;
+          // Also save to spaceStore for consistency
+          spaceStore.setTabLoadedCount(entityId, tabId, records.length);
+        } catch (error) {
+          console.error(`[TabPageTemplate] Error loading tab ${tabId}:`, error);
+          counts[tabId] = 0;
+        }
+      }
+
+      setLoadedCounts(counts);
+      setCountsLoading(false);
+    };
+
+    loadTabCounts();
+  }, [entityId, tabsConfig]);
+
+  // Get only fullscreen-enabled tabs with sufficient records
   const fullscreenTabs = useMemo(
-    () => convertFullscreenTabsToArray(tabsConfig),
-    [tabsConfig]
+    () => convertFullscreenTabsToArray(tabsConfig, loadedCounts),
+    [tabsConfig, loadedCounts]
   );
 
   // Local state for active tab to prevent flickering on tab change
@@ -358,12 +427,16 @@ export function TabPageTemplate({
               style={{ top: `${PAGE_MENU_TOP}px` }}
             >
               <div className="border-b border-surface-border">
-                <PageMenu
-                  tabs={fullscreenTabs}
-                  activeTab={activeTabSlug}
-                  onTabChange={handleTabChange}
-                  mode="tabs"
-                />
+                {countsLoading ? (
+                  <PageMenuSkeleton tabCount={3} />
+                ) : (
+                  <PageMenu
+                    tabs={fullscreenTabs}
+                    activeTab={activeTabSlug}
+                    onTabChange={handleTabChange}
+                    mode="tabs"
+                  />
+                )}
               </div>
             </div>
 

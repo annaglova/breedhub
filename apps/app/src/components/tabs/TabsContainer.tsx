@@ -2,7 +2,7 @@ import { useState, useCallback } from "react";
 import { cn } from "@ui/lib/utils";
 import { TabHeader } from "./TabHeader";
 import { ScrollableTab } from "./ScrollableTab";
-import type { IconConfig } from "@breedhub/rxdb-store";
+import { spaceStore, type IconConfig } from "@breedhub/rxdb-store";
 
 export interface Tab {
   id: string;
@@ -42,6 +42,7 @@ interface TabsContainerProps {
   onVisibilityChange?: (id: string, visibility: number) => void; // Optional visibility tracking callback
   tabHeaderTop?: number; // Top position for sticky TabHeader in scroll mode
   entitySlug?: string; // Entity slug for generating fullscreen URLs (e.g., "affenpinscher")
+  entityId?: string; // Entity ID for storing loaded counts in spaceStore
   className?: string;
 }
 
@@ -70,6 +71,7 @@ export function TabsContainer({
   onVisibilityChange,
   tabHeaderTop = 0,
   entitySlug,
+  entityId,
   className,
 }: TabsContainerProps) {
   // Track loaded record counts per tab (for conditional fullscreen button)
@@ -81,7 +83,12 @@ export function TabsContainer({
       if (prev[tabId] === count) return prev; // No change
       return { ...prev, [tabId]: count };
     });
-  }, []);
+
+    // Also store in spaceStore for fullscreen mode to access
+    if (entityId) {
+      spaceStore.setTabLoadedCount(entityId, tabId, count);
+    }
+  }, [entityId]);
 
   // Use provided visibility handler or create internal one
   const handleVisibilityChange =

@@ -234,6 +234,7 @@ export function TabOutletRenderer({
         onVisibilityChange={handleVisibilityChange}
         tabHeaderTop={actualTabHeaderTop}
         entitySlug={entitySlug}
+        entityId={entityId}
       />
     </>
   );

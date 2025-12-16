@@ -1,6 +1,6 @@
-import { useEffect, useRef, useState, useMemo } from "react";
-import { cn } from "@ui/lib/utils";
 import { Icon } from "@/components/shared/Icon";
+import { cn } from "@ui/lib/utils";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { Tab } from "./TabsContainer";
 
 interface PageMenuProps {
@@ -95,13 +95,14 @@ export function PageMenu({
     // Right button - ховаємо коли кінець останнього табу видимий
     let showRight = false;
     if (fullTabsWidth > containerWidth) {
-      const lastTabEndVisible = scrollLeft + containerWidth >= fullTabsWidth - BUTTON_OFFSET;
+      const lastTabEndVisible =
+        scrollLeft + containerWidth >= fullTabsWidth - BUTTON_OFFSET;
       showRight = !lastTabEndVisible;
     }
 
     // Update state only if changed (prevent loops)
-    setShowLeftButton(prev => prev !== showLeft ? showLeft : prev);
-    setShowRightButton(prev => prev !== showRight ? showRight : prev);
+    setShowLeftButton((prev) => (prev !== showLeft ? showLeft : prev));
+    setShowRightButton((prev) => (prev !== showRight ? showRight : prev));
   }, [scrollLeft, containerWidth, fullTabsWidth, BUTTON_OFFSET]);
 
   // Auto-scroll active tab into view (ТІЛЬКИ при зміні activeTab)
@@ -192,7 +193,11 @@ export function PageMenu({
             className="absolute left-0 top-0 z-20 h-full bg-card-ground border-r border-surface-border group transition-colors px-1"
             aria-label="Previous tab"
           >
-            <Icon icon={{ name: "ChevronLeft", source: "lucide" }} size={20} className="text-surface-400 group-hover:text-primary transition-colors" />
+            <Icon
+              icon={{ name: "ChevronLeft", source: "lucide" }}
+              size={20}
+              className="text-surface-400 group-hover:text-primary transition-colors"
+            />
           </button>
         )}
 
@@ -203,7 +208,11 @@ export function PageMenu({
             className="absolute right-0 top-0 z-20 h-full bg-card-ground border-l border-surface-border group transition-colors px-1"
             aria-label="Next tab"
           >
-            <Icon icon={{ name: "ChevronRight", source: "lucide" }} size={20} className="text-surface-400 group-hover:text-primary transition-colors" />
+            <Icon
+              icon={{ name: "ChevronRight", source: "lucide" }}
+              size={20}
+              className="text-surface-400 group-hover:text-primary transition-colors"
+            />
           </button>
         )}
 
@@ -298,4 +307,33 @@ if (typeof document !== "undefined") {
   const styleTag = document.createElement("style");
   styleTag.textContent = styles;
   document.head.appendChild(styleTag);
+}
+
+/**
+ * PageMenuSkeleton - Loading skeleton for PageMenu
+ * Shows animated placeholder tabs while data is loading
+ * Style matches the existing skeleton pattern used in TabOutlet
+ */
+interface PageMenuSkeletonProps {
+  tabCount?: number;
+  className?: string;
+}
+
+export function PageMenuSkeleton({
+  tabCount = 3,
+  className,
+}: PageMenuSkeletonProps) {
+  return (
+    <div className={cn("relative w-full", className)}>
+      <div className="flex w-full gap-4 px-5 py-[17px] border-b border-surface-border bg-card-ground">
+        {Array.from({ length: tabCount }).map((_, index) => (
+          <div
+            key={index}
+            className="h-4 bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse"
+            style={{ width: `${60 + (index % 3) * 20}px` }}
+          />
+        ))}
+      </div>
+    </div>
+  );
 }

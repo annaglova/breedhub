@@ -120,7 +120,11 @@ class SpaceStore {
 
   // UI state - fullscreen mode for drawer (when opened from pretty URL or expand button)
   isFullscreen = signal<boolean>(false);
-  
+
+  // Tab loaded counts per entity - used to determine if fullscreen tab should be shown
+  // Structure: { [entityId]: { [tabId]: loadedCount } }
+  private tabLoadedCountsMap = signal<Record<string, Record<string, number>>>({});
+
   // Computed values
   isLoading = computed(() => this.loading.value);
   hasError = computed(() => this.error.value !== null);
@@ -3360,20 +3364,63 @@ class SpaceStore {
     try {
       const { limit = 50, orderBy, orderDirection = 'asc' } = options;
 
-      let query = collection.find({
+      // Child records schema only has: id, parentId, tableType, cachedAt, additional
+      // Fields like 'placement', 'rating', etc. are stored inside 'additional'
+      // RxDB cannot sort by nested fields, so we sort in JS after fetching
+      const schemaFields = new Set(['id', 'parentId', 'tableType', 'cachedAt', 'additional']);
+      const isSchemaField = orderBy ? schemaFields.has(orderBy) : false;
+
+      // Build query options - RxDB doesn't allow undefined/null for limit
+      const queryOptions: { selector: Record<string, any>; limit?: number } = {
         selector: {
           parentId: parentId,
           tableType: normalizedTableType
-        },
-        limit
-      });
+        }
+      };
 
-      if (orderBy) {
+      // Only add limit if sorting by schema field (otherwise we fetch all for JS sorting)
+      if (isSchemaField && limit > 0) {
+        queryOptions.limit = limit;
+      }
+
+      let query = collection.find(queryOptions);
+
+      // Only use RxDB sort for schema fields
+      if (orderBy && isSchemaField) {
         query = query.sort({ [orderBy]: orderDirection });
       }
 
       const results = await query.exec();
-      return results.map((doc: RxDocument<any>) => doc.toJSON());
+      let records = results.map((doc: RxDocument<any>) => doc.toJSON());
+
+      // For non-schema fields (stored in 'additional'), sort in JavaScript
+      if (orderBy && !isSchemaField) {
+        records.sort((a: any, b: any) => {
+          const aVal = a.additional?.[orderBy] ?? null;
+          const bVal = b.additional?.[orderBy] ?? null;
+
+          // Handle nulls - push to end
+          if (aVal === null && bVal === null) return 0;
+          if (aVal === null) return 1;
+          if (bVal === null) return -1;
+
+          // Numeric comparison
+          if (typeof aVal === 'number' && typeof bVal === 'number') {
+            return orderDirection === 'asc' ? aVal - bVal : bVal - aVal;
+          }
+
+          // String comparison
+          const comparison = String(aVal).localeCompare(String(bVal));
+          return orderDirection === 'asc' ? comparison : -comparison;
+        });
+
+        // Apply limit after sorting
+        if (limit > 0) {
+          records = records.slice(0, limit);
+        }
+      }
+
+      return records;
     } catch (error) {
       console.error(`[SpaceStore] Error querying child records:`, error);
       return [];
@@ -3477,6 +3524,99 @@ class SpaceStore {
    */
   clearFullscreen(): void {
     this.isFullscreen.value = false;
+  }
+
+  // ==========================================
+  // Tab Loaded Counts (for fullscreen filtering)
+  // ==========================================
+
+  private readonly TAB_COUNTS_STORAGE_KEY = 'breedhub_tab_loaded_counts';
+
+  /**
+   * Set loaded count for a specific tab
+   * Called by TabsContainer when tab data is loaded
+   * Also persists to sessionStorage for cross-navigation access
+   */
+  setTabLoadedCount(entityId: string, tabId: string, count: number): void {
+    const current = this.tabLoadedCountsMap.value;
+    const entityCounts = current[entityId] || {};
+
+    // Skip if unchanged
+    if (entityCounts[tabId] === count) return;
+
+    const newCounts = {
+      ...current,
+      [entityId]: {
+        ...entityCounts,
+        [tabId]: count
+      }
+    };
+
+    this.tabLoadedCountsMap.value = newCounts;
+
+    // Persist to sessionStorage for fullscreen navigation
+    try {
+      sessionStorage.setItem(this.TAB_COUNTS_STORAGE_KEY, JSON.stringify(newCounts));
+    } catch (e) {
+      // Ignore storage errors
+    }
+  }
+
+  /**
+   * Get loaded count for a specific tab
+   */
+  getTabLoadedCount(entityId: string, tabId: string): number | undefined {
+    return this.tabLoadedCountsMap.value[entityId]?.[tabId];
+  }
+
+  /**
+   * Get all loaded counts for an entity
+   */
+  getTabLoadedCounts(entityId: string): Record<string, number> {
+    return this.tabLoadedCountsMap.value[entityId] || {};
+  }
+
+  /**
+   * Clear loaded counts for an entity (e.g., when drawer closes)
+   */
+  clearTabLoadedCounts(entityId: string): void {
+    const current = this.tabLoadedCountsMap.value;
+    if (!current[entityId]) return;
+
+    const { [entityId]: _, ...rest } = current;
+    this.tabLoadedCountsMap.value = rest;
+
+    // Update sessionStorage
+    try {
+      sessionStorage.setItem(this.TAB_COUNTS_STORAGE_KEY, JSON.stringify(rest));
+    } catch (e) {
+      // Ignore storage errors
+    }
+  }
+
+  /**
+   * Load tab counts from sessionStorage (called on init or when needed)
+   */
+  loadTabLoadedCountsFromStorage(): void {
+    try {
+      const stored = sessionStorage.getItem(this.TAB_COUNTS_STORAGE_KEY);
+      if (stored) {
+        this.tabLoadedCountsMap.value = JSON.parse(stored);
+      }
+    } catch (e) {
+      // Ignore parse errors
+    }
+  }
+
+  /**
+   * Get the signal for reactive access in components
+   */
+  get tabLoadedCounts() {
+    // Lazy load from storage if empty
+    if (Object.keys(this.tabLoadedCountsMap.value).length === 0) {
+      this.loadTabLoadedCountsFromStorage();
+    }
+    return this.tabLoadedCountsMap;
   }
 }
 
