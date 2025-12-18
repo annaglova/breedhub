@@ -194,18 +194,33 @@ export function SpaceComponent<T extends { id: string }>({
     return sortOptions.find((option) => option.isDefault) || sortOptions[0];
   }, [sortOptions]);
 
-  // 🆕 Read sort ID from URL or use default
+  // 🆕 localStorage key for persisting sort preference per entity type
+  const sortStorageKey = `breedhub:sort:${config.entitySchemaName}`;
+
+  // 🆕 Read sort ID from URL, localStorage, or use default
   const sortId = searchParams.get("sort");
 
   const selectedSortOption = useMemo(() => {
-    // If URL param exists, find matching sort option by ID
+    // 1. If URL param exists, find matching sort option by ID (highest priority - for sharing links)
     if (sortId) {
       const found = sortOptions.find((option) => option.id === sortId);
       if (found) return found;
     }
-    // Otherwise use default
+
+    // 2. Try to read from localStorage (persisted preference)
+    try {
+      const savedSortId = localStorage.getItem(sortStorageKey);
+      if (savedSortId) {
+        const found = sortOptions.find((option) => option.id === savedSortId);
+        if (found) return found;
+      }
+    } catch (e) {
+      // localStorage not available, continue to default
+    }
+
+    // 3. Otherwise use default
     return defaultSortOption;
-  }, [sortId, sortOptions, defaultSortOption]);
+  }, [sortId, sortOptions, defaultSortOption, sortStorageKey]);
 
   // 🧹 Cleanup legacy URL params on mount
   useEffect(() => {
@@ -239,7 +254,7 @@ export function SpaceComponent<T extends { id: string }>({
     }
   }, [searchParams, setSearchParams, defaultView, initialSelectedEntityId]);
 
-  // 🎯 Set default sort in URL if no sort param exists
+  // 🎯 Set sort in URL if no sort param exists (uses localStorage preference or default)
   // Skip in fullscreen/pretty URL mode - we don't need query params there
   useEffect(() => {
     // Skip URL modification in fullscreen mode (pretty URL like /affenpinscher#overview)
@@ -247,13 +262,13 @@ export function SpaceComponent<T extends { id: string }>({
 
     const hasSortParam = searchParams.has("sort");
 
-    // If no sort param and we have a default sort option, add it to URL
-    if (!hasSortParam && defaultSortOption?.id) {
+    // If no sort param, add selectedSortOption (which already considers localStorage preference)
+    if (!hasSortParam && selectedSortOption?.id) {
       const newParams = new URLSearchParams(searchParams);
-      newParams.set("sort", defaultSortOption.id);
+      newParams.set("sort", selectedSortOption.id);
       setSearchParams(newParams, { replace: true }); // replace to not add history entry
     }
-  }, [searchParams, setSearchParams, defaultSortOption, initialSelectedEntityId]);
+  }, [searchParams, setSearchParams, selectedSortOption, initialSelectedEntityId]);
 
   // 🆕 Memoize orderBy to prevent infinite loop (new object on each render)
   const orderBy = useMemo(() => {
@@ -659,7 +674,7 @@ export function SpaceComponent<T extends { id: string }>({
     }
   }, [loadMore]);
 
-  // 🆕 Handle sort change - update URL with sort ID
+  // 🆕 Handle sort change - update URL with sort ID and persist to localStorage
   const handleSortChange = useCallback(
     (option: any) => {
       const newParams = new URLSearchParams(searchParams);
@@ -672,9 +687,16 @@ export function SpaceComponent<T extends { id: string }>({
       // Set new slug-based sort
       newParams.set("sort", option.id);
 
+      // 🆕 Persist sort preference to localStorage
+      try {
+        localStorage.setItem(sortStorageKey, option.id);
+      } catch (e) {
+        // localStorage not available, continue without persisting
+      }
+
       setSearchParams(newParams);
     },
-    [searchParams, setSearchParams]
+    [searchParams, setSearchParams, sortStorageKey]
   );
 
   // 🆕 Handle filters apply - update URL with filter params (using slugs)
