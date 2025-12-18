@@ -252,7 +252,7 @@ export const DropdownInput = forwardRef<HTMLInputElement, DropdownInputProps>(
         {isOpen && (
           <div
             ref={dropdownListRef}
-            className="absolute z-50 mt-1 w-full bg-white border border-gray-200 rounded-md shadow-lg max-h-[40vh] overflow-auto"
+            className="absolute z-50 mt-1 w-full bg-white border border-gray-200 rounded-md shadow-lg max-h-[40vh] overflow-auto text-base"
           >
             {loading && dynamicOptions.length === 0 ? (
               <div className="px-3 py-2 text-gray-500 text-center">
@@ -269,7 +269,7 @@ export const DropdownInput = forwardRef<HTMLInputElement, DropdownInputProps>(
                     key={option.value}
                     onClick={() => handleSelect(option)}
                     className={cn(
-                      "px-3 py-2 text-base cursor-pointer transition-colors flex items-center justify-between",
+                      "px-3 py-2 cursor-pointer transition-colors flex items-center justify-between",
                       "hover:bg-gray-100",
                       option.disabled && "opacity-50 cursor-not-allowed",
                       option.value === value && "bg-primary-50 text-primary-700"
@@ -278,7 +278,7 @@ export const DropdownInput = forwardRef<HTMLInputElement, DropdownInputProps>(
                     aria-selected={option.value === value}
                     aria-disabled={option.disabled}
                   >
-                    <span className="!text-[16px]">{option.label}</span>
+                    <span>{option.label}</span>
                     {option.value === value && (
                       <Check className="h-4 w-4 text-primary-600" />
                     )}

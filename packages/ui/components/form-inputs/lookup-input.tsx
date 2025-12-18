@@ -433,7 +433,7 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
         {isOpen && filteredOptions.length > 0 && (
           <div
             ref={dropdownListRef}
-            className="absolute z-50 mt-1 w-full bg-white border border-gray-200 rounded-md shadow-lg max-h-[40vh] overflow-auto"
+            className="absolute z-50 mt-1 w-full bg-white border border-gray-200 rounded-md shadow-lg max-h-[40vh] overflow-auto text-base"
           >
             {/* 🔍 DEBUG: Total count */}
             <div className="px-3 py-1 text-xs text-gray-400 border-b border-gray-100 bg-gray-50 sticky top-0">
@@ -444,13 +444,13 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
                 key={option.value}
                 onClick={() => handleSelect(option)}
                 className={cn(
-                  "px-3 py-2 text-base cursor-pointer transition-colors",
+                  "px-3 py-2 cursor-pointer transition-colors",
                   "hover:bg-gray-100",
                   highlightedIndex === index && "bg-gray-100",
                   option.value === value && "bg-primary-50 text-primary-700"
                 )}
               >
-                <div className="!text-[16px] font-medium">{option.label}</div>
+                <div className="font-medium">{option.label}</div>
                 {option.description && (
                   <div className="text-sm text-gray-500">{option.description}</div>
                 )}
