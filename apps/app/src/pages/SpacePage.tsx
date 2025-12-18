@@ -139,6 +139,7 @@ export function SpacePage({ entityType, selectedEntityId, selectedSlug, tabSlug 
     if (tabSlug && selectedSlug) {
       return (
         <SpaceComponent
+          key={entityType}
           configSignal={spaceConfigSignal}
           useEntitiesHook={useEntitiesHook}
           initialSelectedEntityId={selectedEntityId}
@@ -159,6 +160,7 @@ export function SpacePage({ entityType, selectedEntityId, selectedSlug, tabSlug 
     // Pretty URL always means fullscreen mode (no drawer)
     return (
       <SpaceComponent
+        key={entityType}
         configSignal={spaceConfigSignal}
         useEntitiesHook={useEntitiesHook}
         initialSelectedEntityId={selectedEntityId}
@@ -181,6 +183,7 @@ export function SpacePage({ entityType, selectedEntityId, selectedSlug, tabSlug 
         path="/"
         element={
           <SpaceComponent
+            key={entityType}
             configSignal={spaceConfigSignal}
             useEntitiesHook={useEntitiesHook}
           />
