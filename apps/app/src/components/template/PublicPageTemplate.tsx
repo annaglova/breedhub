@@ -286,6 +286,7 @@ export function PublicPageTemplate({
 
             {/* Render blocks - each outlet handles its own skeleton via isLoading prop */}
             {pageConfig &&
+              pageConfig.blocks &&
               (() => {
                 // Determine loading state - no entity means loading
                 const isEntityLoading = !selectedEntity;
