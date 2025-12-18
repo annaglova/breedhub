@@ -223,6 +223,7 @@ export const DropdownInput = forwardRef<HTMLInputElement, DropdownInputProps>(
               !hasError && !disabled && "border-gray-300 hover:border-gray-400 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20",
               className
             )}
+            style={{ caretColor: 'transparent' }}
             aria-expanded={isOpen}
             aria-haspopup="listbox"
             aria-invalid={hasError ? "true" : undefined}

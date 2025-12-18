@@ -704,6 +704,7 @@ class SpaceStore {
     referencedTable?: string;
     referencedFieldID?: string;
     referencedFieldName?: string;
+    dataSource?: 'dictionary' | 'collection';
     // Filter behavior props
     isLocked?: boolean;
     dependsOn?: string;
@@ -752,6 +753,7 @@ class SpaceStore {
       referencedTable?: string;
       referencedFieldID?: string;
       referencedFieldName?: string;
+      dataSource?: 'dictionary' | 'collection';
       isLocked?: boolean;
       dependsOn?: string;
       disabledUntil?: string;
@@ -782,6 +784,7 @@ class SpaceStore {
         referencedTable: field.referencedTable,
         referencedFieldID: field.referencedFieldID,
         referencedFieldName: field.referencedFieldName,
+        dataSource: field.dataSource,
         // Filter behavior props
         isLocked: field.isLocked,
         dependsOn: field.dependsOn,

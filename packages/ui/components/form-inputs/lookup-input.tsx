@@ -61,6 +61,7 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
     const [inputValue, setInputValue] = useState(""); // ✅ Internal input state (what user types)
     const [searchQuery, setSearchQuery] = useState(""); // ✅ Debounced search query (sent to server)
     const [isEditing, setIsEditing] = useState(false); // ✅ Track if user is typing
+    const [cachedSelectedOption, setCachedSelectedOption] = useState<LookupOption | null>(null); // ✅ Cache selected option
 
     // Validation state
     const hasError = touched && !!error;
@@ -91,8 +92,10 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
       return Array.from(seen.values());
     }, [currentOptions]);
 
-    // Find selected option
-    const selectedOption = deduplicatedOptions.find(opt => opt.value === value);
+    // Find selected option - use cached version if available, otherwise search in options
+    const selectedOption = cachedSelectedOption?.value === value
+      ? cachedSelectedOption
+      : deduplicatedOptions.find(opt => opt.value === value);
 
     const loadDictionaryOptions = useCallback(async (query: string = '', append: boolean = false) => {
       if (!referencedTable) return;
@@ -215,8 +218,18 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
     }, [isOpen, referencedTable, dynamicOptions.length, loadDictionaryOptions]);
 
     // Reset options when filterByValue changes (cascade filter dependency)
+    // Track previous filterByValue to detect actual changes
+    const prevFilterByValueRef = useRef(filterByValue);
     useEffect(() => {
       if (filterBy && referencedTable) {
+        const isActualChange = prevFilterByValueRef.current !== filterByValue;
+        prevFilterByValueRef.current = filterByValue;
+
+        if (!isActualChange) {
+          // Skip if filterByValue didn't actually change (initial render)
+          return;
+        }
+
         console.log('[LookupInput] filterByValue changed, resetting options:', filterByValue);
         setDynamicOptions([]);
         cursorRef.current = null;
@@ -297,6 +310,7 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
     const handleSelect = (option: LookupOption) => {
       onValueChange?.(option.value);
       setInputValue(option.label); // ✅ Set selected label
+      setCachedSelectedOption(option); // ✅ Cache selected option
       setIsEditing(false); // ✅ Stop editing mode
       setIsOpen(false);
     };
@@ -305,6 +319,7 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
       e.stopPropagation();
       onValueChange?.('');
       setInputValue(''); // ✅ Clear input
+      setCachedSelectedOption(null); // ✅ Clear cached option
       setIsEditing(false); // ✅ Not editing after clear
       // ❌ Don't open dropdown - user can click to open if needed
     };
@@ -405,6 +420,7 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
               !hasError && !disabled && "border-gray-300 hover:border-gray-400 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20",
               className
             )}
+            style={{ caretColor: isEditing ? 'auto' : 'transparent' }}
             aria-invalid={hasError ? "true" : undefined}
             {...props}
           />

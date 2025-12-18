@@ -58,6 +58,7 @@ export interface FilterFieldConfig {
   referencedTable?: string;
   referencedFieldID?: string;
   referencedFieldName?: string;
+  dataSource?: 'dictionary' | 'collection'; // How to load options: dictionary (default) or collection (for cascade filtering)
   // Filter behavior props
   isLocked?: boolean; // If true, filter chip cannot be removed (required for partitioned tables)
   dependsOn?: string; // Field ID that this field depends on (cascade filter)
@@ -284,10 +285,20 @@ export function FiltersDialog({
                 }
 
                 const disabled = isFieldDisabled(field);
+
                 // Get parent field value for filterBy (cascade filtering) - only for LookupInput
-                const parentFieldValue = field.dependsOn
-                  ? filterValues[field.dependsOn]
-                  : undefined;
+                // dependsOn can be full ID (pet_field_pet_type_id) or short ID (pet_type_id)
+                // filterValues uses short IDs, so we need to find the matching field
+                let parentFieldValue: string | undefined;
+                if (field.dependsOn) {
+                  const parentField = filterFields.find(f =>
+                    f.id === field.dependsOn || // Exact match
+                    field.dependsOn?.endsWith(f.id) // Full ID ends with short ID
+                  );
+                  const parentKey = parentField?.id || field.dependsOn;
+                  parentFieldValue = filterValues[parentKey];
+                  console.log(`[FiltersDialog] Cascade filter: ${field.id}, dependsOn=${field.dependsOn}, parentKey=${parentKey}, parentValue=${parentFieldValue}`);
+                }
 
                 // Only pass filterBy/filterByValue to LookupInput component
                 const cascadeProps = field.component === 'LookupInput'
@@ -305,6 +316,7 @@ export function FiltersDialog({
                       referencedTable={field.referencedTable}
                       referencedFieldID={field.referencedFieldID}
                       referencedFieldName={field.referencedFieldName}
+                      dataSource={field.dataSource}
                       value={filterValues[field.id] || ""}
                       onValueChange={(value: any) =>
                         handleValueChange(field.id, value)
