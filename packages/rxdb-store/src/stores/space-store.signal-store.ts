@@ -704,6 +704,11 @@ class SpaceStore {
     referencedTable?: string;
     referencedFieldID?: string;
     referencedFieldName?: string;
+    // Filter behavior props
+    isLocked?: boolean;
+    dependsOn?: string;
+    disabledUntil?: string;
+    filterBy?: string;
   }> {
     // Try exact match first
     let spaceConfig = this.spaceConfigs.get(entityType);
@@ -747,6 +752,10 @@ class SpaceStore {
       referencedTable?: string;
       referencedFieldID?: string;
       referencedFieldName?: string;
+      isLocked?: boolean;
+      dependsOn?: string;
+      disabledUntil?: string;
+      filterBy?: string;
     }> = [];
 
     // Parse filter fields (exclude mainFilterField - it's for search bar, not modal)
@@ -772,7 +781,12 @@ class SpaceStore {
         order: field.order || 0,
         referencedTable: field.referencedTable,
         referencedFieldID: field.referencedFieldID,
-        referencedFieldName: field.referencedFieldName
+        referencedFieldName: field.referencedFieldName,
+        // Filter behavior props
+        isLocked: field.isLocked,
+        dependsOn: field.dependsOn,
+        disabledUntil: field.disabledUntil,
+        filterBy: field.filterBy
       });
     }
 

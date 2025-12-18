@@ -23,6 +23,7 @@ interface DropdownInputProps extends Omit<React.InputHTMLAttributes<HTMLInputEle
   disabled?: boolean;
   className?: string;
   fieldClassName?: string;
+  touched?: boolean;
   // Dictionary loading props
   referencedTable?: string;
   referencedFieldID?: string;
@@ -42,6 +43,7 @@ export const DropdownInput = forwardRef<HTMLInputElement, DropdownInputProps>(
     disabled,
     className,
     fieldClassName,
+    touched,
     referencedTable,
     referencedFieldID = 'id',
     referencedFieldName = 'name',
@@ -55,6 +57,9 @@ export const DropdownInput = forwardRef<HTMLInputElement, DropdownInputProps>(
     const dropdownRef = useRef<HTMLDivElement>(null);
     const dropdownListRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
+
+    // Validation state
+    const hasError = touched && !!error;
 
     // Use dynamic options if referencedTable is provided, otherwise use static options
     const activeOptions = referencedTable ? dynamicOptions : options;
@@ -198,8 +203,8 @@ export const DropdownInput = forwardRef<HTMLInputElement, DropdownInputProps>(
     }, [handleScroll, isOpen]);
 
     const selectElement = (
-      <div className="relative" ref={dropdownRef}>
-        <div 
+      <div className="group/field relative" ref={dropdownRef}>
+        <div
           className="relative cursor-pointer"
           onClick={() => !disabled && setIsOpen(!isOpen)}
         >
@@ -212,14 +217,21 @@ export const DropdownInput = forwardRef<HTMLInputElement, DropdownInputProps>(
             disabled={disabled}
             onKeyDown={handleKeyDown}
             className={cn(
-              "cursor-pointer pr-10",
+              "peer cursor-pointer pr-10 transition-all duration-200",
+              disabled && "bg-gray-50 border-gray-200 text-gray-500 cursor-not-allowed",
+              hasError && "border-red-500 hover:border-red-600 focus:border-red-500 focus:ring-2 focus:ring-red-500/20",
+              !hasError && !disabled && "border-gray-300 hover:border-gray-400 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20",
               className
             )}
             aria-expanded={isOpen}
             aria-haspopup="listbox"
+            aria-invalid={hasError ? "true" : undefined}
             {...props}
           />
-          <div className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400">
+          <div className={cn(
+            "absolute inset-y-0 right-0 pr-3 flex items-center transition-colors",
+            hasError ? "text-red-400" : "text-gray-400"
+          )}>
             {value ? (
               <button
                 type="button"
@@ -294,10 +306,14 @@ export const DropdownInput = forwardRef<HTMLInputElement, DropdownInputProps>(
       return (
         <FormField
           label={label}
-          error={error}
-          helperText={!error ? helperText : undefined}
+          error={hasError ? error : undefined}
+          helperText={!hasError ? helperText : undefined}
           required={required}
           className={fieldClassName}
+          labelClassName={cn(
+            "transition-colors",
+            hasError ? "text-red-600" : "text-gray-700 group-focus-within:text-primary-600"
+          )}
         >
           {selectElement}
         </FormField>

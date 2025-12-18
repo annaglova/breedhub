@@ -24,6 +24,11 @@ export interface FilterFieldConfig {
   referencedTable?: string;
   referencedFieldID?: string;
   referencedFieldName?: string;
+  // Filter behavior props
+  isLocked?: boolean; // If true, filter chip cannot be removed (required for partitioned tables)
+  dependsOn?: string; // Field ID that this field depends on (cascade filter)
+  disabledUntil?: string; // Field ID - this field is disabled until that field has a value
+  filterBy?: string; // Field name in referenced table to filter options by dependsOn value
 }
 
 interface FiltersSectionProps {

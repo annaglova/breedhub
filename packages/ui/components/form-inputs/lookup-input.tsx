@@ -22,11 +22,15 @@ interface LookupInputProps extends Omit<React.InputHTMLAttributes<HTMLInputEleme
   onSearch?: (query: string) => void;
   loading?: boolean;
   fieldClassName?: string;
+  touched?: boolean;
   // Dictionary loading props
   referencedTable?: string;
   referencedFieldID?: string;
   referencedFieldName?: string;
   dataSource?: 'collection' | 'dictionary'; // Default: dictionary
+  // Cascade filter props (for dependent fields)
+  filterBy?: string; // Field name in referenced table to filter by (e.g., "pet_type_id")
+  filterByValue?: string; // Value to filter by (e.g., selected pet_type_id value)
 }
 
 export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
@@ -42,17 +46,24 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
     loading: externalLoading,
     className,
     fieldClassName,
+    touched,
     placeholder = "Search...",
     referencedTable,
     referencedFieldID = 'id',
     referencedFieldName = 'name',
     dataSource = 'dictionary', // Default to dictionary
+    filterBy,
+    filterByValue,
+    disabled,
     ...props
   }, ref) => {
     const [isOpen, setIsOpen] = useState(false);
     const [inputValue, setInputValue] = useState(""); // ✅ Internal input state (what user types)
     const [searchQuery, setSearchQuery] = useState(""); // ✅ Debounced search query (sent to server)
     const [isEditing, setIsEditing] = useState(false); // ✅ Track if user is typing
+
+    // Validation state
+    const hasError = touched && !!error;
     const [highlightedIndex, setHighlightedIndex] = useState(0);
     const [dynamicOptions, setDynamicOptions] = useState<LookupOption[]>(options);
     const [internalLoading, setInternalLoading] = useState(false);
@@ -105,12 +116,16 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
 
         if (dataSource === 'collection') {
           // Mode: Use SpaceStore.applyFilters() for main entities
-          console.log('[LookupInput] Loading from collection via SpaceStore:', referencedTable, 'search:', query, 'cursor:', currentCursor);
+          console.log('[LookupInput] Loading from collection via SpaceStore:', referencedTable, 'search:', query, 'cursor:', currentCursor, 'filterBy:', filterBy, 'filterByValue:', filterByValue);
 
           // Build filters object for applyFilters
           const filters: Record<string, any> = {};
           if (query) {
             filters[referencedFieldName] = query;
+          }
+          // Add cascade filter if provided
+          if (filterBy && filterByValue) {
+            filters[filterBy] = filterByValue;
           }
 
           // Call universal filtering method with keyset pagination
@@ -181,7 +196,7 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
         isLoadingRef.current = false; // 🔒 Release lock
         setInternalLoading(false);
       }
-    }, [referencedTable, referencedFieldID, referencedFieldName, dataSource]);
+    }, [referencedTable, referencedFieldID, referencedFieldName, dataSource, filterBy, filterByValue]);
 
     // ✅ Sync inputValue with selectedOption when value changes externally
     useEffect(() => {
@@ -198,6 +213,20 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
         loadDictionaryOptions();
       }
     }, [isOpen, referencedTable, dynamicOptions.length, loadDictionaryOptions]);
+
+    // Reset options when filterByValue changes (cascade filter dependency)
+    useEffect(() => {
+      if (filterBy && referencedTable) {
+        console.log('[LookupInput] filterByValue changed, resetting options:', filterByValue);
+        setDynamicOptions([]);
+        cursorRef.current = null;
+        setHasMore(true);
+        // If dropdown is open, reload immediately
+        if (isOpen) {
+          loadDictionaryOptions('', false);
+        }
+      }
+    }, [filterByValue, filterBy, referencedTable, isOpen]);
 
     // ✅ Debounced search - trigger on inputValue change ONLY when editing
     useEffect(() => {
@@ -281,6 +310,7 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
     };
 
     const handleFocus = () => {
+      if (disabled) return; // Don't open if disabled
       setIsOpen(true);
       if (!isEditing && value) {
         // ✅ On focus with selected value - clear input for typing
@@ -350,9 +380,12 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
     }, [handleScroll, isOpen]);
 
     const inputElement = (
-      <div className="relative" ref={dropdownRef}>
+      <div className="group/field relative" ref={dropdownRef}>
         <div className="relative">
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+          <div className={cn(
+            "absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none transition-colors z-10",
+            hasError ? "text-red-400 peer-focus:text-red-500" : "text-gray-400 peer-focus:text-primary-600 peer-hover:text-gray-500"
+          )}>
             <Search className="h-4 w-4" />
           </div>
           <Input
@@ -364,22 +397,33 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
             onBlur={handleBlur}
             onKeyDown={handleKeyDown}
             placeholder={placeholder}
+            disabled={disabled}
             className={cn(
-              "pl-10 pr-10",
+              "peer pl-10 pr-10 transition-all duration-200",
+              disabled && "bg-gray-50 border-gray-200 text-gray-500 cursor-not-allowed",
+              hasError && "border-red-500 hover:border-red-600 focus:border-red-500 focus:ring-2 focus:ring-red-500/20",
+              !hasError && !disabled && "border-gray-300 hover:border-gray-400 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20",
               className
             )}
+            aria-invalid={hasError ? "true" : undefined}
             {...props}
           />
           {loading && (
             <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
-              <Loader2 className="h-4 w-4 animate-spin text-gray-400" />
+              <Loader2 className={cn(
+                "h-4 w-4 animate-spin",
+                hasError ? "text-red-400" : "text-gray-400"
+              )} />
             </div>
           )}
           {!loading && value && (
             <button
               type="button"
               onClick={handleClear}
-              className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
+              className={cn(
+                "absolute inset-y-0 right-0 pr-3 flex items-center transition-colors",
+                hasError ? "text-red-400 hover:text-red-600" : "text-gray-400 hover:text-gray-600"
+              )}
             >
               <X className="h-4 w-4" />
             </button>
@@ -440,10 +484,14 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
       return (
         <FormField
           label={label}
-          error={error}
-          helperText={!error ? helperText : undefined}
+          error={hasError ? error : undefined}
+          helperText={!hasError ? helperText : undefined}
           required={required}
           className={fieldClassName}
+          labelClassName={cn(
+            "transition-colors",
+            hasError ? "text-red-600" : "text-gray-700 group-focus-within:text-primary-600"
+          )}
         >
           {inputElement}
         </FormField>

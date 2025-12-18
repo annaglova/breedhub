@@ -5,4 +5,4 @@
 @import "./tailwind.landing.css";
 @import "@shared/theme/custom-theme.css";
 @import "./landing-theme.css";
-@import "./focus-styles.css";
+@import "@shared/theme/focus-styles.css";

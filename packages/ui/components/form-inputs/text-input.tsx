@@ -2,7 +2,6 @@ import React, { forwardRef } from "react";
 import { Input } from "../input";
 import { FormField } from "../form-field";
 import { cn } from "@ui/lib/utils";
-import { Check } from "lucide-react";
 
 interface TextInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'type'> {
   label?: string;
@@ -15,20 +14,19 @@ interface TextInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement
 }
 
 export const TextInput = forwardRef<HTMLInputElement, TextInputProps>(
-  ({ 
-    label, 
+  ({
+    label,
     error,
-    helperText, 
-    required, 
-    className, 
+    helperText,
+    required,
+    className,
     fieldClassName,
     icon,
     touched = true,
-    ...props 
+    ...props
   }, ref) => {
     const hasError = touched && !!error;
-    const isValid = touched && !error && props.value && props.value !== "";
-    
+
     const inputElement = (
       <div className="group/field relative">
         <Input
@@ -38,10 +36,8 @@ export const TextInput = forwardRef<HTMLInputElement, TextInputProps>(
             "peer transition-all duration-200",
             props.disabled && "bg-gray-50 border-gray-200 text-gray-500 cursor-not-allowed",
             hasError && "border-red-500 hover:border-red-600 focus:border-red-500 focus:ring-2 focus:ring-red-500/20",
-            isValid && !props.disabled && "border-green-500 hover:border-green-600 focus:border-green-500 focus:ring-2 focus:ring-green-500/20",
-            !hasError && !isValid && !props.disabled && "border-gray-300 hover:border-gray-400 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20",
+            !hasError && !props.disabled && "border-gray-300 hover:border-gray-400 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20",
             icon && "pl-10",
-            isValid && !icon && "pr-10",
             className
           )}
           aria-invalid={hasError ? "true" : undefined}
@@ -51,16 +47,9 @@ export const TextInput = forwardRef<HTMLInputElement, TextInputProps>(
         {icon && (
           <div className={cn(
             "absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none transition-colors z-10 top-0",
-            hasError ? "text-red-400 peer-focus:text-red-500" : 
-            isValid ? "text-green-500 peer-focus:text-green-600" :
-            "text-gray-400 peer-focus:text-primary-600 peer-hover:text-gray-500"
+            hasError ? "text-red-400 peer-focus:text-red-500" : "text-gray-400 peer-focus:text-primary-600 peer-hover:text-gray-500"
           )}>
             {icon}
-          </div>
-        )}
-        {isValid && (
-          <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none z-10 peer-focus:opacity-0">
-            <Check className="h-4 w-4 text-green-500" />
           </div>
         )}
       </div>
@@ -76,9 +65,7 @@ export const TextInput = forwardRef<HTMLInputElement, TextInputProps>(
           className={fieldClassName}
           labelClassName={cn(
             "transition-colors",
-            hasError ? "text-red-600" :
-            isValid ? "text-green-600" :
-            "text-gray-700 group-focus-within:text-primary-600"
+            hasError ? "text-red-600" : "text-gray-700 group-focus-within:text-primary-600"
           )}
         >
           {inputElement}

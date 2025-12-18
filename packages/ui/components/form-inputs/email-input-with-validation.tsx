@@ -2,7 +2,7 @@ import React, { forwardRef, useEffect, useState, useRef } from "react";
 import { Input } from "../input";
 import { FormField } from "../form-field";
 import { cn } from "@ui/lib/utils";
-import { Mail, Check, AlertCircle, Loader2, Info } from "lucide-react";
+import { Mail, AlertCircle, Loader2, Info } from "lucide-react";
 import { useDebouncedValidation } from "@shared/hooks/useDebouncedValidation";
 import { useAutoFillDetection } from "@shared/hooks/useAutoFillDetection";
 import { validateEmailAsync } from "@shared/utils/emailValidation";
@@ -96,7 +96,6 @@ export const EmailInputWithValidation = forwardRef<HTMLInputElement, EmailInputW
     // Combine external and validation errors
     const error = externalError || (touched && validationError) || "";
     const hasError = touched && !!error;
-    const isValid = hasValidated && !error && localValue !== "";
     
     const defaultIcon = <Mail className="h-4 w-4" />;
 
@@ -149,10 +148,9 @@ export const EmailInputWithValidation = forwardRef<HTMLInputElement, EmailInputW
             "peer transition-all duration-200 pl-10",
             props.disabled && "bg-gray-50 border-gray-200 text-gray-500 cursor-not-allowed",
             hasError && "border-red-500 hover:border-red-600 focus:border-red-500 focus:ring-2 focus:ring-red-500/20",
-            isValid && !props.disabled && !isDisposable && "border-green-500 hover:border-green-600 focus:border-green-500 focus:ring-2 focus:ring-green-500/20 pr-10",
             isDisposable && "border-yellow-500 hover:border-yellow-600 focus:border-yellow-500 focus:ring-2 focus:ring-yellow-500/20",
             isAutoFilled && "!bg-blue-50 !border-blue-300",
-            !hasError && !isValid && !props.disabled && "border-gray-300 hover:border-gray-400 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20",
+            !hasError && !props.disabled && "border-gray-300 hover:border-gray-400 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20",
             className
           )}
           autoComplete="email"
@@ -164,8 +162,7 @@ export const EmailInputWithValidation = forwardRef<HTMLInputElement, EmailInputW
         {/* Icon */}
         <div className={cn(
           "absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none transition-colors z-10 top-0",
-          hasError ? "text-red-400 peer-focus:text-red-500" : 
-          isValid && !isDisposable ? "text-green-500 peer-focus:text-green-600" :
+          hasError ? "text-red-400 peer-focus:text-red-500" :
           isDisposable ? "text-yellow-500 peer-focus:text-yellow-600" :
           "text-gray-400 peer-focus:text-primary-600 peer-hover:text-gray-500"
         )}>
@@ -176,9 +173,6 @@ export const EmailInputWithValidation = forwardRef<HTMLInputElement, EmailInputW
         <div className="absolute inset-y-0 right-0 pr-3 flex items-center z-10">
           {isValidating && (
             <Loader2 className="h-4 w-4 text-gray-400 animate-spin" />
-          )}
-          {!isValidating && isValid && !isDisposable && (
-            <Check className="h-4 w-4 text-green-500 peer-focus:opacity-0" />
           )}
           {!isValidating && isDisposable && (
             <TooltipProvider>
@@ -228,7 +222,6 @@ export const EmailInputWithValidation = forwardRef<HTMLInputElement, EmailInputW
           labelClassName={cn(
             "transition-colors",
             hasError ? "text-red-600" :
-            isValid && !isDisposable ? "text-green-600" :
             isDisposable ? "text-yellow-600" :
             "text-gray-700 group-focus-within:text-primary-600"
           )}

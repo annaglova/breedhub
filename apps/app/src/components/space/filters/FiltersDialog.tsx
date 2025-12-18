@@ -58,6 +58,11 @@ export interface FilterFieldConfig {
   referencedTable?: string;
   referencedFieldID?: string;
   referencedFieldName?: string;
+  // Filter behavior props
+  isLocked?: boolean; // If true, filter chip cannot be removed (required for partitioned tables)
+  dependsOn?: string; // Field ID that this field depends on (cascade filter)
+  disabledUntil?: string; // Field ID - this field is disabled until that field has a value
+  filterBy?: string; // Field name in referenced table to filter options by dependsOn value
 }
 
 interface FiltersDialogProps {
@@ -116,15 +121,51 @@ export function FiltersDialog({
   const [filterValues, setFilterValues] =
     React.useState<Record<string, any>>(initialValues);
 
+  // State for validation errors
+  const [errors, setErrors] = React.useState<Record<string, string>>({});
+
+  // State for touched fields (user interacted with field)
+  const [touched, setTouched] = React.useState<Record<string, boolean>>({});
+
   // Update filter values when initialValues change (URL changed)
   React.useEffect(() => {
     if (open) {
       setFilterValues(initialValues);
+      setErrors({}); // Clear errors when dialog opens
+      setTouched({}); // Clear touched state
     }
   }, [open, initialValues]);
 
+  // Validate required fields
+  const validateForm = (): boolean => {
+    const newErrors: Record<string, string> = {};
+    const newTouched: Record<string, boolean> = {};
+
+    for (const field of filterFields) {
+      // Mark all fields as touched on submit
+      newTouched[field.id] = true;
+
+      if (field.required) {
+        const value = filterValues[field.id];
+        if (!value || value === "") {
+          newErrors[field.id] = `${toSentenceCase(field.displayName)} is required`;
+        }
+      }
+    }
+
+    setTouched((prev) => ({ ...prev, ...newTouched }));
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleApply = (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Validate required fields
+    if (!validateForm()) {
+      console.log('[FiltersDialog] Validation failed:', errors);
+      return;
+    }
 
     // Check if there are any changes compared to initial values
     const hasChanges = JSON.stringify(filterValues) !== JSON.stringify(initialValues);
@@ -147,10 +188,62 @@ export function FiltersDialog({
 
   const handleValueChange = (fieldId: string, value: any) => {
     console.log("[FiltersDialog] Value changed:", fieldId, "=", value);
-    setFilterValues((prev) => ({
-      ...prev,
-      [fieldId]: value,
-    }));
+
+    // Mark field as touched
+    if (!touched[fieldId]) {
+      setTouched((prev) => ({ ...prev, [fieldId]: true }));
+    }
+
+    // Find field config for validation
+    const fieldConfig = filterFields.find((f) => f.id === fieldId);
+
+    // Validate field in real-time
+    if (fieldConfig?.required) {
+      if (!value || value === "") {
+        setErrors((prev) => ({
+          ...prev,
+          [fieldId]: `${toSentenceCase(fieldConfig.displayName)} is required`,
+        }));
+      } else {
+        // Clear error if value is valid
+        setErrors((prev) => {
+          const newErrors = { ...prev };
+          delete newErrors[fieldId];
+          return newErrors;
+        });
+      }
+    }
+
+    // Find fields that depend on this field and clear their values
+    const dependentFields = filterFields.filter(
+      (f) => f.dependsOn === fieldId || f.disabledUntil === fieldId
+    );
+
+    setFilterValues((prev) => {
+      const newValues = {
+        ...prev,
+        [fieldId]: value,
+      };
+
+      // Clear dependent field values when parent field changes
+      for (const depField of dependentFields) {
+        if (prev[depField.id] !== undefined) {
+          console.log(
+            `[FiltersDialog] Clearing dependent field: ${depField.id}`
+          );
+          newValues[depField.id] = "";
+        }
+      }
+
+      return newValues;
+    });
+  };
+
+  // Check if a field should be disabled based on disabledUntil
+  const isFieldDisabled = (field: FilterFieldConfig): boolean => {
+    if (!field.disabledUntil) return false;
+    const dependsOnValue = filterValues[field.disabledUntil];
+    return !dependsOnValue || dependsOnValue === "";
   };
 
   return (
@@ -174,6 +267,12 @@ export function FiltersDialog({
                   return null;
                 }
 
+                const disabled = isFieldDisabled(field);
+                // Get parent field value for filterBy (cascade filtering)
+                const parentFieldValue = field.dependsOn
+                  ? filterValues[field.dependsOn]
+                  : undefined;
+
                 return (
                   <div key={field.id} className="space-y-2">
                     <Component
@@ -189,6 +288,11 @@ export function FiltersDialog({
                       onValueChange={(value: any) =>
                         handleValueChange(field.id, value)
                       }
+                      disabled={disabled}
+                      filterBy={field.filterBy}
+                      filterByValue={parentFieldValue}
+                      error={errors[field.id]}
+                      touched={touched[field.id]}
                     />
                   </div>
                 );
