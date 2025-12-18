@@ -16,6 +16,7 @@ import {
   RadioInput,
   TimeInput,
   SwitchInput,
+  SearchInput,
 } from "@ui/components/form-inputs";
 import { User, Pencil } from "lucide-react";
 import {
@@ -310,6 +311,37 @@ export default function TestInputsPage() {
                 switchLabel="Email notifications"
                 description="Receive email updates about your dog's activities"
                 error={errors.notifications?.message}
+              />
+            </div>
+
+            {/* Search Input */}
+            <div>
+              <h3 className="text-lg font-semibold mb-2">Search Input</h3>
+              <SearchInput
+                label="Search"
+                placeholder="Search breeds..."
+                helperText="Type to search for dog breeds"
+              />
+            </div>
+
+            {/* Search Input - Pill style */}
+            <div>
+              <h3 className="text-lg font-semibold mb-2">Search Input (Pill style)</h3>
+              <SearchInput
+                placeholder="Search pets..."
+                pill
+              />
+            </div>
+
+            {/* Search Input - With debounce */}
+            <div>
+              <h3 className="text-lg font-semibold mb-2">Search Input (Debounced 300ms)</h3>
+              <SearchInput
+                label="Debounced Search"
+                placeholder="Type and wait..."
+                debounceMs={300}
+                onValueChange={(value) => console.log('Debounced value:', value)}
+                onImmediateChange={(value) => console.log('Immediate value:', value)}
               />
             </div>
 

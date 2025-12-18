@@ -5,7 +5,7 @@ import { getDatabase, spaceStore, routeStore } from "@breedhub/rxdb-store";
 import { useSignals } from "@preact/signals-react/runtime";
 import { Signal } from "@preact/signals-react";
 import { Button } from "@ui/components/button";
-import { Input } from "@ui/components/input";
+import { SearchInput } from "@ui/components/form-inputs";
 import {
   Tooltip,
   TooltipContent,
@@ -13,7 +13,7 @@ import {
   TooltipTrigger,
 } from "@ui/components/tooltip";
 import { cn } from "@ui/lib/utils";
-import { Plus, Search } from "lucide-react";
+import { Plus } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Outlet,
@@ -1036,16 +1036,14 @@ export function SpaceComponent<T extends { id: string }>({
 
             {/* Search + Add button */}
             <div className="mt-4 flex items-center space-x-3">
-              <div className="relative w-full">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  type="text"
-                  value=""
-                  readOnly
-                  placeholder={config?.naming?.searchPlaceholder || `Search ${config?.label || 'entities'}...`}
-                  className="pl-10 rounded-full w-full cursor-auto"
-                />
-              </div>
+              <SearchInput
+                value=""
+                placeholder={config?.naming?.searchPlaceholder || `Search ${config?.label || 'entities'}...`}
+                pill
+                disabled
+                showClearButton={false}
+                className="w-full"
+              />
 
               {finalConfig.canAdd && (
                 <Button
@@ -1168,16 +1166,13 @@ export function SpaceComponent<T extends { id: string }>({
             {/* Main actions */}
             <div className="mt-4 flex items-center space-x-3">
               {/* Search */}
-              <div className="relative w-full">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  type="text"
-                  value={searchValue}
-                  onChange={(e) => setSearchValue(e.target.value)}
-                  placeholder={config?.naming?.searchPlaceholder || `Search ${config?.label || 'entities'}...`}
-                  className="pl-10 rounded-full w-full cursor-auto"
-                />
-              </div>
+              <SearchInput
+                value={searchValue}
+                onValueChange={setSearchValue}
+                placeholder={config?.naming?.searchPlaceholder || `Search ${config?.label || 'entities'}...`}
+                pill
+                className="w-full"
+              />
 
               {/* Add button */}
               {finalConfig.canAdd && (

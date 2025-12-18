@@ -12,6 +12,7 @@ export { CheckboxInput } from './checkbox-input';
 export { RadioInput } from './radio-input';
 export { TimeInput } from './time-input';
 export { SwitchInput } from './switch-input';
+export { SearchInput } from './search-input';
 export { FormField } from '../form-field';
 export { withValidation, ValidationRules, AutoCorrect } from './with-validation';
 export type { ValidationRule, WithValidationProps } from './with-validation';
