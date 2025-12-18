@@ -242,9 +242,21 @@ export function FiltersDialog({
   // Check if a field should be disabled based on disabledUntil
   const isFieldDisabled = (field: FilterFieldConfig): boolean => {
     if (!field.disabledUntil) return false;
-    const dependsOnValue = filterValues[field.disabledUntil];
+
+    // Find the field that this depends on
+    // disabledUntil can be full ID (pet_field_pet_type_id) or short ID (pet_type_id)
+    // filterFields use short IDs (pet_type_id), filterValues also use short IDs
+    const dependsOnField = filterFields.find(f =>
+      f.id === field.disabledUntil || // Exact match (short ID)
+      field.disabledUntil.endsWith(f.id) // Full ID ends with short ID (pet_field_pet_type_id ends with pet_type_id)
+    );
+
+    // Get value by the actual field ID used in filterValues
+    const dependsOnKey = dependsOnField?.id || field.disabledUntil;
+    const dependsOnValue = filterValues[dependsOnKey];
     const isDisabled = !dependsOnValue || dependsOnValue === "";
-    console.log(`[FiltersDialog] isFieldDisabled: ${field.id}, disabledUntil=${field.disabledUntil}, dependsOnValue=${dependsOnValue}, isDisabled=${isDisabled}`);
+
+    console.log(`[FiltersDialog] isFieldDisabled: ${field.id}, disabledUntil=${field.disabledUntil}, dependsOnField=${dependsOnField?.id}, dependsOnKey=${dependsOnKey}, dependsOnValue=${dependsOnValue}, isDisabled=${isDisabled}`);
     return isDisabled;
   };
 
@@ -259,6 +271,8 @@ export function FiltersDialog({
           <div className="mt-2 flex flex-col rounded-lg bg-modal-card-ground px-6 py-4">
             <div className="grid gap-3 sm:grid-cols-2">
               {/* Dynamic Filter Fields from config */}
+              {console.log('[FiltersDialog] Rendering fields:', JSON.stringify(filterFields.map(f => ({ id: f.id, slug: f.slug, disabledUntil: f.disabledUntil, dependsOn: f.dependsOn }))))}
+              {console.log('[FiltersDialog] Current filterValues:', filterValues)}
               {filterFields.map((field) => {
                 const Component = componentMap[field.component];
 
@@ -270,10 +284,15 @@ export function FiltersDialog({
                 }
 
                 const disabled = isFieldDisabled(field);
-                // Get parent field value for filterBy (cascade filtering)
+                // Get parent field value for filterBy (cascade filtering) - only for LookupInput
                 const parentFieldValue = field.dependsOn
                   ? filterValues[field.dependsOn]
                   : undefined;
+
+                // Only pass filterBy/filterByValue to LookupInput component
+                const cascadeProps = field.component === 'LookupInput'
+                  ? { filterBy: field.filterBy, filterByValue: parentFieldValue }
+                  : {};
 
                 return (
                   <div key={field.id} className="space-y-2">
@@ -291,10 +310,9 @@ export function FiltersDialog({
                         handleValueChange(field.id, value)
                       }
                       disabled={disabled}
-                      filterBy={field.filterBy}
-                      filterByValue={parentFieldValue}
                       error={errors[field.id]}
                       touched={touched[field.id]}
+                      {...cascadeProps}
                     />
                   </div>
                 );

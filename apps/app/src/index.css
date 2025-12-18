@@ -7,8 +7,15 @@
 @import "./tailwind.theme.css";
 
 /* Hide caret in non-input elements (dropdowns, dialogs etc) */
-div, span, button, [role="listbox"], [role="option"], [role="dialog"] {
+/* Exclude input and textarea to keep caret visible where user types */
+div:not(:has(> input:focus)):not(:has(> textarea:focus)),
+span, button, [role="listbox"], [role="option"], [role="dialog"] {
   caret-color: transparent;
+}
+
+/* Ensure inputs and textareas always show caret */
+input, textarea {
+  caret-color: auto;
 }
 
 /* Heading Typography - Using Roboto for visual hierarchy */
