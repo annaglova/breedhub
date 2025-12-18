@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AppLayout } from '@/layouts/AppLayout';
 import { SpacePage } from '@/pages/SpacePage';
@@ -7,6 +7,8 @@ import { TabPageResolver } from '@/pages/TabPageResolver';
 import { SupabaseLoader } from '@/components/test/SupabaseLoader';
 import { TestDictionaryPage } from '@/pages/TestDictionaryPage';
 import { TestPage } from '@/pages/TestPage';
+import { spaceStore } from '@breedhub/rxdb-store';
+import { useSignals } from '@preact/signals-react/runtime';
 
 // Temporary placeholder component
 function PlaceholderPage({ title }: { title: string }) {
@@ -18,31 +20,56 @@ function PlaceholderPage({ title }: { title: string }) {
   );
 }
 
+/**
+ * Hook to get dynamic space routes from config
+ */
+function useSpaceRoutes() {
+  useSignals();
+
+  return useMemo(() => {
+    if (!spaceStore.configReady.value) return { routes: [], defaultSlug: 'breeds' };
+
+    const spaceConfigs = spaceStore.getAllSpaceConfigs();
+    const defaultSlug = spaceConfigs[0]?.slug || 'breeds';
+
+    return { routes: spaceConfigs, defaultSlug };
+  }, [spaceStore.configReady.value]);
+}
+
 export function AppRouter() {
+  const { routes: spaceConfigs, defaultSlug } = useSpaceRoutes();
+
   return (
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<AppLayout />}>
-          <Route index element={<Navigate to="/breeds" replace />} />
-          <Route path="breeds/*" element={<SpacePage entityType="breed" />} />
-          <Route path="pets" element={<PlaceholderPage title="Pets" />} />
-          <Route path="litters" element={<PlaceholderPage title="Litters" />} />
-          <Route path="kennels" element={<PlaceholderPage title="Kennels" />} />
-          <Route path="events" element={<PlaceholderPage title="Events" />} />
-          <Route path="contacts" element={<PlaceholderPage title="Contacts" />} />
-          
-          {/* Marketplace routes */}
+          {/* Default redirect to first space */}
+          <Route index element={<Navigate to={`/${defaultSlug}`} replace />} />
+
+          {/* Dynamic space routes from app_config */}
+          {spaceConfigs.map((space) => {
+            if (!space.slug || !space.entitySchemaName) return null;
+            return (
+              <Route
+                key={space.id}
+                path={`${space.slug}/*`}
+                element={<SpacePage entityType={space.entitySchemaName} />}
+              />
+            );
+          })}
+
+          {/* Marketplace routes - TODO: make dynamic from workspaces */}
           <Route path="marketplace">
             <Route index element={<Navigate to="/marketplace/pets" replace />} />
             <Route path="pets" element={<PlaceholderPage title="Marketplace - Pets" />} />
           </Route>
-          
-          {/* Test mating routes */}
+
+          {/* Test mating routes - TODO: make dynamic from workspaces */}
           <Route path="mating">
             <Route index element={<Navigate to="/mating/pets" replace />} />
             <Route path="pets" element={<PlaceholderPage title="Test Mating - Pets" />} />
           </Route>
-          
+
           {/* Test routes */}
           <Route path="test">
             <Route path="supabase" element={<SupabaseLoader />} />

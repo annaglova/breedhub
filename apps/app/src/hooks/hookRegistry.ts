@@ -1,4 +1,5 @@
 import { useBreeds } from './useBreeds';
+import { usePets } from './usePets';
 
 /**
  * Hook Registry - maps entity types to their data hooks
@@ -10,7 +11,7 @@ import { useBreeds } from './useBreeds';
  */
 export const hookRegistry: Record<string, any> = {
   'breed': useBreeds,
-  // 'pet': usePets,        // TODO: create usePets hook
+  'pet': usePets,
   // 'kennel': useKennels,  // TODO: create useKennels hook
   // 'litter': useLitters,  // TODO: create useLitters hook
   // ... add more as needed

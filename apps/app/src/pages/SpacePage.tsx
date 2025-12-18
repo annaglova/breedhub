@@ -88,19 +88,6 @@ export function SpacePage({ entityType, selectedEntityId, selectedSlug, tabSlug 
   // Get hook from registry
   const useEntitiesHook = getEntityHook(entityType);
 
-  if (!useEntitiesHook) {
-    return (
-      <div className="p-8 text-center">
-        <p className="text-red-600">
-          Hook not found for entity type: {entityType}
-        </p>
-        <p className="text-sm text-gray-500 mt-2">
-          Add hook to hookRegistry.ts
-        </p>
-      </div>
-    );
-  }
-
   // Get page config from app_config (SpaceStore reads this dynamically)
   // We just need the component name for drawer
   const pageComponent = useMemo(() => {
@@ -125,6 +112,20 @@ export function SpacePage({ entityType, selectedEntityId, selectedSlug, tabSlug 
     () => spaceStore.getSpaceConfigSignal(entityType),
     [entityType]
   );
+
+  // Early returns AFTER all hooks are called (React rules of hooks)
+  if (!useEntitiesHook) {
+    return (
+      <div className="p-8 text-center">
+        <p className="text-red-600">
+          Hook not found for entity type: {entityType}
+        </p>
+        <p className="text-sm text-gray-500 mt-2">
+          Add hook to hookRegistry.ts
+        </p>
+      </div>
+    );
+  }
 
   // Config should be pre-generated and always available
   if (!spaceConfigSignal.value) {

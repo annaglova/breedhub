@@ -32,8 +32,10 @@ interface BusinessEntity {
 interface SpaceConfig {
   id: string;
   icon?: string;
-  path?: string;
+  slug?: string;
+  path?: string;  // @deprecated use slug instead
   label?: string;
+  order?: number;
   entitySchemaName?: string;
   entitySchemaModel?: string; // Rendering model (e.g., 'breed', 'kennel', 'club')
   fields?: Record<string, FieldConfig>;
@@ -318,8 +320,10 @@ class SpaceStore {
             const spaceConfig: SpaceConfig = {
               id: space.id || spaceKey,
               icon: space.icon,
-              path: space.path,
+              slug: space.slug || space.path?.replace(/^\//, ''), // Use slug or extract from path
+              path: space.path, // @deprecated - keep for backwards compatibility
               label: space.label,
+              order: space.order,
               entitySchemaName: space.entitySchemaName,
               entitySchemaModel: space.entitySchemaModel || space.entitySchemaName, // Fallback to entitySchemaName
               fields: Object.fromEntries(uniqueFields),
@@ -342,7 +346,21 @@ class SpaceStore {
     
     this.availableEntityTypes.value = entityTypes;
   }
-  
+
+  /**
+   * Get all space configurations for dynamic routing
+   * Returns array of space configs sorted by order
+   */
+  getAllSpaceConfigs(): SpaceConfig[] {
+    const configs = Array.from(this.spaceConfigs.values());
+    // Sort by order, undefined order goes to end
+    return configs.sort((a, b) => {
+      const orderA = a.order ?? 999;
+      const orderB = b.order ?? 999;
+      return orderA - orderB;
+    });
+  }
+
   /**
    * Get space configuration for an entity type
    * Returns title, permissions, and other UI config
