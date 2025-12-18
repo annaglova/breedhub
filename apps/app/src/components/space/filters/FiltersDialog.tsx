@@ -243,7 +243,9 @@ export function FiltersDialog({
   const isFieldDisabled = (field: FilterFieldConfig): boolean => {
     if (!field.disabledUntil) return false;
     const dependsOnValue = filterValues[field.disabledUntil];
-    return !dependsOnValue || dependsOnValue === "";
+    const isDisabled = !dependsOnValue || dependsOnValue === "";
+    console.log(`[FiltersDialog] isFieldDisabled: ${field.id}, disabledUntil=${field.disabledUntil}, dependsOnValue=${dependsOnValue}, isDisabled=${isDisabled}`);
+    return isDisabled;
   };
 
   return (

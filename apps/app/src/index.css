@@ -6,14 +6,9 @@
 @import "@shared/theme/focus-styles.css";
 @import "./tailwind.theme.css";
 
-/* Hide text cursor but allow selection and copy */
-* {
+/* Hide caret in non-input elements (dropdowns, dialogs etc) */
+div, span, button, [role="listbox"], [role="option"], [role="dialog"] {
   caret-color: transparent;
-}
-
-/* Show cursor in actual input fields */
-input, textarea, [contenteditable="true"] {
-  caret-color: auto;
 }
 
 /* Heading Typography - Using Roboto for visual hierarchy */
