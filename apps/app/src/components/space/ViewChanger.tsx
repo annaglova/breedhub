@@ -68,12 +68,12 @@ export function ViewChanger({
                   isFirst={isFirst}
                   isLast={isLast}
                   isActive={isActive}
-                  onClick={() => handleViewChange(view.id)}
+                  onClick={isActive ? undefined : () => handleViewChange(view.id)}
                   className={cn(
-                    "small-button-icon border-slate-600 transition-all",
+                    "small-button-icon border border-slate-600 transition-all",
                     isActive
-                      ? "bg-slate-600 hover:bg-slate-500 text-white z-10"
-                      : "bg-white hover:bg-slate-100 text-slate-600 hover:text-slate-600"
+                      ? "bg-slate-600 text-white z-10 cursor-default"
+                      : "bg-transparent hover:bg-slate-100 text-slate-600 hover:text-slate-600 cursor-pointer"
                   )}
                   aria-label={view.tooltip}
                 >

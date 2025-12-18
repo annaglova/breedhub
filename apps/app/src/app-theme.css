@@ -107,7 +107,6 @@
 .small-button-icon[data-state="closed"] {
   outline: none !important;
   box-shadow: none !important;
-  border-color: transparent !important;
 }
 
 .small-button-icon *,

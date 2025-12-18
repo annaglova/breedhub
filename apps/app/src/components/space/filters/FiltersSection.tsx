@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Chip } from '@ui/components/chip';
 import { SortFilterSelector, SortOption } from './SortFilterSelector';
 import { cn } from '@ui/lib/utils';
@@ -54,6 +54,11 @@ export function FiltersSection({
   className
 }: FiltersSectionProps) {
   const [selectedSort, setSelectedSort] = useState<SortOption | undefined>(defaultSortOption);
+
+  // Sync selectedSort with defaultSortOption when it changes (e.g., navigating between spaces)
+  useEffect(() => {
+    setSelectedSort(defaultSortOption);
+  }, [defaultSortOption]);
 
   const handleSortChange = (option: SortOption) => {
     setSelectedSort(option);
