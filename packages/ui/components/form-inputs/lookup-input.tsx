@@ -1,9 +1,15 @@
-import React, { forwardRef, useState, useRef, useEffect, useCallback } from "react";
-import { Input } from "../input";
-import { FormField } from "../form-field";
-import { cn } from "@ui/lib/utils";
-import { Search, X, Loader2 } from "lucide-react";
 import { dictionaryStore, spaceStore } from "@breedhub/rxdb-store";
+import { cn } from "@ui/lib/utils";
+import { Loader2, Search, X } from "lucide-react";
+import React, {
+  forwardRef,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
+import { FormField } from "../form-field";
+import { Input } from "../input";
 
 interface LookupOption {
   value: string;
@@ -11,7 +17,11 @@ interface LookupOption {
   description?: string;
 }
 
-interface LookupInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'value' | 'onChange'> {
+interface LookupInputProps
+  extends Omit<
+    React.InputHTMLAttributes<HTMLInputElement>,
+    "value" | "onChange"
+  > {
   label?: string;
   error?: string;
   helperText?: string;
@@ -27,52 +37,60 @@ interface LookupInputProps extends Omit<React.InputHTMLAttributes<HTMLInputEleme
   referencedTable?: string;
   referencedFieldID?: string;
   referencedFieldName?: string;
-  dataSource?: 'collection' | 'dictionary'; // Default: dictionary
+  dataSource?: "collection" | "dictionary"; // Default: dictionary
   // Cascade filter props (for dependent fields)
   filterBy?: string; // Field name in referenced table to filter by (e.g., "pet_type_id")
   filterByValue?: string; // Value to filter by (e.g., selected pet_type_id value)
+  // Style variant for disabled state
+  disabledOnGray?: boolean; // Use white background when disabled (for gray backgrounds)
 }
 
 export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
-  ({
-    label,
-    error,
-    helperText,
-    required,
-    options = [],
-    value,
-    onValueChange,
-    onSearch,
-    loading: externalLoading,
-    className,
-    fieldClassName,
-    touched,
-    placeholder = "Search...",
-    referencedTable,
-    referencedFieldID = 'id',
-    referencedFieldName = 'name',
-    dataSource = 'dictionary', // Default to dictionary
-    filterBy,
-    filterByValue,
-    disabled,
-    ...props
-  }, ref) => {
+  (
+    {
+      label,
+      error,
+      helperText,
+      required,
+      options = [],
+      value,
+      onValueChange,
+      onSearch,
+      loading: externalLoading,
+      className,
+      fieldClassName,
+      touched,
+      placeholder = "Search...",
+      referencedTable,
+      referencedFieldID = "id",
+      referencedFieldName = "name",
+      dataSource = "dictionary", // Default to dictionary
+      filterBy,
+      filterByValue,
+      disabled,
+      disabledOnGray,
+      ...props
+    },
+    ref
+  ) => {
     const [isOpen, setIsOpen] = useState(false);
     const [inputValue, setInputValue] = useState(""); // ✅ Internal input state (what user types)
     const [searchQuery, setSearchQuery] = useState(""); // ✅ Debounced search query (sent to server)
     const [isEditing, setIsEditing] = useState(false); // ✅ Track if user is typing
-    const [cachedSelectedOption, setCachedSelectedOption] = useState<LookupOption | null>(null); // ✅ Cache selected option
+    const [cachedSelectedOption, setCachedSelectedOption] =
+      useState<LookupOption | null>(null); // ✅ Cache selected option
 
     // Validation state
     const hasError = touched && !!error;
     const [highlightedIndex, setHighlightedIndex] = useState(0);
-    const [dynamicOptions, setDynamicOptions] = useState<LookupOption[]>(options);
+    const [dynamicOptions, setDynamicOptions] =
+      useState<LookupOption[]>(options);
     const [internalLoading, setInternalLoading] = useState(false);
     const [hasMore, setHasMore] = useState(true);
     const dropdownRef = useRef<HTMLDivElement>(null);
     const dropdownListRef = useRef<HTMLDivElement>(null);
     const searchTimeoutRef = useRef<NodeJS.Timeout>();
-    const prevSearchQueryRef = useRef<string>('');
+    const prevSearchQueryRef = useRef<string>("");
     const cursorRef = useRef<string | null>(null); // ✅ Keyset pagination: last seen value
     const isLoadingRef = useRef(false); // 🔒 Prevent race conditions
 
@@ -84,7 +102,7 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
     // ✅ Deduplicate options (handles race conditions between scroll/replication)
     const deduplicatedOptions = React.useMemo(() => {
       const seen = new Map<string, LookupOption>();
-      currentOptions.forEach(opt => {
+      currentOptions.forEach((opt) => {
         if (!seen.has(opt.value)) {
           seen.set(opt.value, opt);
         }
@@ -93,120 +111,174 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
     }, [currentOptions]);
 
     // Find selected option - use cached version if available, otherwise search in options
-    const selectedOption = cachedSelectedOption?.value === value
-      ? cachedSelectedOption
-      : deduplicatedOptions.find(opt => opt.value === value);
+    const selectedOption =
+      cachedSelectedOption?.value === value
+        ? cachedSelectedOption
+        : deduplicatedOptions.find((opt) => opt.value === value);
 
-    const loadDictionaryOptions = useCallback(async (query: string = '', append: boolean = false) => {
-      if (!referencedTable) return;
+    const loadDictionaryOptions = useCallback(
+      async (query: string = "", append: boolean = false) => {
+        if (!referencedTable) return;
 
-      // 🔒 CRITICAL: Prevent multiple simultaneous calls (race condition fix)
-      if (isLoadingRef.current) {
-        console.log('[LookupInput] ⚠️ Already loading, skipping duplicate call');
-        return;
-      }
-
-      isLoadingRef.current = true;
-      setInternalLoading(true);
-
-      try {
-        // ✅ KEYSET PAGINATION: Use cursor instead of offset
-        const currentCursor = append ? cursorRef.current : null;
-
-        let opts: LookupOption[] = [];
-        let more = false;
-        let nextCursor: string | null = null;
-
-        if (dataSource === 'collection') {
-          // Mode: Use SpaceStore.applyFilters() for main entities
-          console.log('[LookupInput] Loading from collection via SpaceStore:', referencedTable, 'search:', query, 'cursor:', currentCursor, 'filterBy:', filterBy, 'filterByValue:', filterByValue);
-
-          // Build filters object for applyFilters
-          const filters: Record<string, any> = {};
-          if (query) {
-            filters[referencedFieldName] = query;
-          }
-          // Add cascade filter if provided
-          if (filterBy && filterByValue) {
-            filters[filterBy] = filterByValue;
-          }
-
-          // Call universal filtering method with keyset pagination
-          const result = await spaceStore.applyFilters(
-            referencedTable,
-            filters,
-            {
-              limit: 30,
-              cursor: currentCursor,
-              orderBy: {
-                field: 'name',
-                direction: 'asc',
-                tieBreaker: {
-                  field: 'id',
-                  direction: 'asc'
-                }
-              }  // Always A-Z with id tie-breaker for stable sort
-            }
+        // 🔒 CRITICAL: Prevent multiple simultaneous calls (race condition fix)
+        if (isLoadingRef.current) {
+          console.log(
+            "[LookupInput] ⚠️ Already loading, skipping duplicate call"
           );
+          return;
+        }
 
-          opts = result.records.map((record: any) => ({
-            value: String(record[referencedFieldID]),
-            label: String(record[referencedFieldName])
-          }));
+        isLoadingRef.current = true;
+        setInternalLoading(true);
 
-          more = result.hasMore;
-          nextCursor = result.nextCursor;
-
-          console.log('[LookupInput] Loaded from SpaceStore:', opts.length, 'hasMore:', more, 'nextCursor:', nextCursor);
-        } else {
-          // Mode: Use DictionaryStore with ID-First pagination ✅
+        try {
+          // ✅ KEYSET PAGINATION: Use cursor instead of offset
           const currentCursor = append ? cursorRef.current : null;
-          console.log('[LookupInput] Loading from dictionary (ID-First):', referencedTable, 'search:', query, 'cursor:', currentCursor);
 
-          const { records, hasMore: dictHasMore, nextCursor: dictNextCursor } = await dictionaryStore.getDictionary(referencedTable, {
-            idField: referencedFieldID,
-            nameField: referencedFieldName,
-            search: query,
-            limit: 30,
-            cursor: currentCursor  // ✅ Use cursor instead of offset
-          });
+          let opts: LookupOption[] = [];
+          let more = false;
+          let nextCursor: string | null = null;
 
-          opts = records.map(record => ({
-            value: record.id,
-            label: record.name
-          }));
+          if (dataSource === "collection") {
+            // Mode: Use SpaceStore.applyFilters() for main entities
+            console.log(
+              "[LookupInput] Loading from collection via SpaceStore:",
+              referencedTable,
+              "search:",
+              query,
+              "cursor:",
+              currentCursor,
+              "filterBy:",
+              filterBy,
+              "filterByValue:",
+              filterByValue
+            );
 
-          more = dictHasMore;
-          nextCursor = dictNextCursor;  // ✅ Get nextCursor from DictionaryStore
+            // Build filters object for applyFilters
+            const filters: Record<string, any> = {};
+            if (query) {
+              filters[referencedFieldName] = query;
+            }
+            // Add cascade filter if provided
+            if (filterBy && filterByValue) {
+              filters[filterBy] = filterByValue;
+            }
 
-          console.log('[LookupInput] Loaded from dictionary:', opts.length, 'hasMore:', more, 'nextCursor:', nextCursor);
+            // Call universal filtering method with keyset pagination
+            const result = await spaceStore.applyFilters(
+              referencedTable,
+              filters,
+              {
+                limit: 30,
+                cursor: currentCursor,
+                orderBy: {
+                  field: "name",
+                  direction: "asc",
+                  tieBreaker: {
+                    field: "id",
+                    direction: "asc",
+                  },
+                }, // Always A-Z with id tie-breaker for stable sort
+              }
+            );
+
+            opts = result.records.map((record: any) => ({
+              value: String(record[referencedFieldID]),
+              label: String(record[referencedFieldName]),
+            }));
+
+            more = result.hasMore;
+            nextCursor = result.nextCursor;
+
+            console.log(
+              "[LookupInput] Loaded from SpaceStore:",
+              opts.length,
+              "hasMore:",
+              more,
+              "nextCursor:",
+              nextCursor
+            );
+          } else {
+            // Mode: Use DictionaryStore with ID-First pagination ✅
+            const currentCursor = append ? cursorRef.current : null;
+            console.log(
+              "[LookupInput] Loading from dictionary (ID-First):",
+              referencedTable,
+              "search:",
+              query,
+              "cursor:",
+              currentCursor
+            );
+
+            const {
+              records,
+              hasMore: dictHasMore,
+              nextCursor: dictNextCursor,
+            } = await dictionaryStore.getDictionary(referencedTable, {
+              idField: referencedFieldID,
+              nameField: referencedFieldName,
+              search: query,
+              limit: 30,
+              cursor: currentCursor, // ✅ Use cursor instead of offset
+            });
+
+            opts = records.map((record) => ({
+              value: record.id,
+              label: record.name,
+            }));
+
+            more = dictHasMore;
+            nextCursor = dictNextCursor; // ✅ Get nextCursor from DictionaryStore
+
+            console.log(
+              "[LookupInput] Loaded from dictionary:",
+              opts.length,
+              "hasMore:",
+              more,
+              "nextCursor:",
+              nextCursor
+            );
+          }
+
+          if (append) {
+            // ✅ ID-First ensures no duplicates - trust the server response
+            setDynamicOptions((prev) => [...prev, ...opts]);
+          } else {
+            setDynamicOptions(opts);
+          }
+
+          // ✅ Always trust nextCursor from server (ID-First returns correct cursor)
+          cursorRef.current = nextCursor;
+
+          setHasMore(more);
+        } catch (error) {
+          console.error(
+            `[LookupInput] Failed to load ${
+              dataSource === "collection" ? "collection" : "dictionary"
+            } ${referencedTable}:`,
+            error
+          );
+        } finally {
+          isLoadingRef.current = false; // 🔒 Release lock
+          setInternalLoading(false);
         }
-
-        if (append) {
-          // ✅ ID-First ensures no duplicates - trust the server response
-          setDynamicOptions(prev => [...prev, ...opts]);
-        } else {
-          setDynamicOptions(opts);
-        }
-
-        // ✅ Always trust nextCursor from server (ID-First returns correct cursor)
-        cursorRef.current = nextCursor;
-
-        setHasMore(more);
-      } catch (error) {
-        console.error(`[LookupInput] Failed to load ${dataSource === 'collection' ? 'collection' : 'dictionary'} ${referencedTable}:`, error);
-      } finally {
-        isLoadingRef.current = false; // 🔒 Release lock
-        setInternalLoading(false);
-      }
-    }, [referencedTable, referencedFieldID, referencedFieldName, dataSource, filterBy, filterByValue]);
+      },
+      [
+        referencedTable,
+        referencedFieldID,
+        referencedFieldName,
+        dataSource,
+        filterBy,
+        filterByValue,
+      ]
+    );
 
     // ✅ Sync inputValue with selectedOption when value changes externally
     useEffect(() => {
       if (!isEditing && selectedOption) {
         setInputValue(selectedOption.label);
       } else if (!value) {
-        setInputValue('');
+        setInputValue("");
       }
     }, [value, selectedOption, isEditing]);
 
@@ -230,13 +302,16 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
           return;
         }
 
-        console.log('[LookupInput] filterByValue changed, resetting options:', filterByValue);
+        console.log(
+          "[LookupInput] filterByValue changed, resetting options:",
+          filterByValue
+        );
         setDynamicOptions([]);
         cursorRef.current = null;
         setHasMore(true);
         // If dropdown is open, reload immediately
         if (isOpen) {
-          loadDictionaryOptions('', false);
+          loadDictionaryOptions("", false);
         }
       }
     }, [filterByValue, filterBy, referencedTable, isOpen]);
@@ -259,7 +334,10 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
 
         // Debounce: wait 500ms after user stops typing
         searchTimeoutRef.current = setTimeout(() => {
-          console.log('[LookupInput] 🔍 Debounced search triggered:', currentQuery);
+          console.log(
+            "[LookupInput] 🔍 Debounced search triggered:",
+            currentQuery
+          );
           setSearchQuery(currentQuery);
           setDynamicOptions([]);
           cursorRef.current = null; // ✅ Reset cursor
@@ -275,16 +353,25 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
     }, [inputValue, isEditing, referencedTable, loadDictionaryOptions]);
 
     // Filter options based on search (only if not using server-side search)
-    const filteredOptions = referencedTable ? deduplicatedOptions : deduplicatedOptions.filter(option =>
-      option.label.toLowerCase().includes(inputValue.toLowerCase()) ||
-      option.value.toLowerCase().includes(inputValue.toLowerCase()) ||
-      (option.description && option.description.toLowerCase().includes(inputValue.toLowerCase()))
-    );
+    const filteredOptions = referencedTable
+      ? deduplicatedOptions
+      : deduplicatedOptions.filter(
+          (option) =>
+            option.label.toLowerCase().includes(inputValue.toLowerCase()) ||
+            option.value.toLowerCase().includes(inputValue.toLowerCase()) ||
+            (option.description &&
+              option.description
+                .toLowerCase()
+                .includes(inputValue.toLowerCase()))
+        );
 
     // Handle clicks outside
     useEffect(() => {
       const handleClickOutside = (e: MouseEvent) => {
-        if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        if (
+          dropdownRef.current &&
+          !dropdownRef.current.contains(e.target as Node)
+        ) {
           setIsOpen(false);
           // ✅ Exit editing mode and restore selected value
           if (value && selectedOption) {
@@ -295,7 +382,8 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
       };
 
       document.addEventListener("mousedown", handleClickOutside);
-      return () => document.removeEventListener("mousedown", handleClickOutside);
+      return () =>
+        document.removeEventListener("mousedown", handleClickOutside);
     }, [value, selectedOption]);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -317,8 +405,8 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
 
     const handleClear = (e: React.MouseEvent) => {
       e.stopPropagation();
-      onValueChange?.('');
-      setInputValue(''); // ✅ Clear input
+      onValueChange?.("");
+      setInputValue(""); // ✅ Clear input
       setCachedSelectedOption(null); // ✅ Clear cached option
       setIsEditing(false); // ✅ Not editing after clear
       // ❌ Don't open dropdown - user can click to open if needed
@@ -329,7 +417,7 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
       setIsOpen(true);
       if (!isEditing && value) {
         // ✅ On focus with selected value - clear input for typing
-        setInputValue('');
+        setInputValue("");
         setIsEditing(true);
       }
     };
@@ -351,13 +439,13 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
       switch (e.key) {
         case "ArrowDown":
           e.preventDefault();
-          setHighlightedIndex(prev =>
+          setHighlightedIndex((prev) =>
             prev < filteredOptions.length - 1 ? prev + 1 : prev
           );
           break;
         case "ArrowUp":
           e.preventDefault();
-          setHighlightedIndex(prev => prev > 0 ? prev - 1 : 0);
+          setHighlightedIndex((prev) => (prev > 0 ? prev - 1 : 0));
           break;
         case "Enter":
           e.preventDefault();
@@ -376,11 +464,18 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
       if (!referencedTable || !hasMore || loading) return;
 
       const scrollElement = dropdownListRef.current;
-      const scrollBottom = scrollElement.scrollHeight - scrollElement.scrollTop - scrollElement.clientHeight;
+      const scrollBottom =
+        scrollElement.scrollHeight -
+        scrollElement.scrollTop -
+        scrollElement.clientHeight;
 
       // Load more when scrolled to bottom (with 50px threshold)
       if (scrollBottom < 50) {
-        console.log('[LookupInput] Scroll to bottom, loading more...', 'searchQuery:', searchQuery);
+        console.log(
+          "[LookupInput] Scroll to bottom, loading more...",
+          "searchQuery:",
+          searchQuery
+        );
         loadDictionaryOptions(searchQuery, true); // ✅ Use debounced searchQuery
       }
     }, [referencedTable, hasMore, loading, searchQuery, loadDictionaryOptions]);
@@ -390,23 +485,27 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
       const scrollElement = dropdownListRef.current;
       if (!scrollElement || !isOpen) return;
 
-      scrollElement.addEventListener('scroll', handleScroll);
-      return () => scrollElement.removeEventListener('scroll', handleScroll);
+      scrollElement.addEventListener("scroll", handleScroll);
+      return () => scrollElement.removeEventListener("scroll", handleScroll);
     }, [handleScroll, isOpen]);
 
     const inputElement = (
       <div className="group/field relative" ref={dropdownRef}>
         <div className="relative">
-          <div className={cn(
-            "absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none transition-colors z-10",
-            hasError ? "text-red-400 peer-focus:text-red-500" : "text-gray-400 peer-focus:text-primary-600 peer-hover:text-gray-500"
-          )}>
+          <div
+            className={cn(
+              "absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none transition-colors z-10",
+              hasError
+                ? "text-red-400 peer-focus:text-red-500"
+                : "text-gray-400 peer-focus:text-primary-600 peer-hover:text-gray-500"
+            )}
+          >
             <Search className="h-4 w-4" />
           </div>
           <Input
             ref={ref}
             type="text"
-            value={isEditing ? inputValue : (selectedOption?.label || "")}
+            value={isEditing ? inputValue : selectedOption?.label || ""}
             onChange={handleInputChange}
             onFocus={handleFocus}
             onBlur={handleBlur}
@@ -415,30 +514,42 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
             disabled={disabled}
             className={cn(
               "peer pl-10 pr-10 transition-all duration-200",
-              disabled && "bg-gray-50 border-gray-200 text-gray-500 cursor-not-allowed",
-              hasError && "border-red-500 hover:border-red-600 focus:border-red-500 focus:ring-2 focus:ring-red-500/20",
-              !hasError && !disabled && "border-gray-300 hover:border-gray-400 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20",
+              disabled &&
+                !disabledOnGray &&
+                "bg-gray-50 border-gray-200 text-gray-400 cursor-not-allowed",
+              disabled &&
+                disabledOnGray &&
+                "bg-white/95 border-gray-300 text-gray-400 cursor-not-allowed",
+              hasError &&
+                "border-red-500 hover:border-red-600 focus:border-red-500 focus:ring-2 focus:ring-red-500/20",
+              !hasError &&
+                !disabled &&
+                "border-gray-300 hover:border-gray-400 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20",
               className
             )}
-            style={{ caretColor: isEditing ? 'auto' : 'transparent' }}
+            style={{ caretColor: isEditing ? "auto" : "transparent" }}
             aria-invalid={hasError ? "true" : undefined}
             {...props}
           />
           {loading && (
             <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
-              <Loader2 className={cn(
-                "h-4 w-4 animate-spin",
-                hasError ? "text-red-400" : "text-gray-400"
-              )} />
+              <Loader2
+                className={cn(
+                  "h-4 w-4 animate-spin",
+                  hasError ? "text-red-400" : "text-gray-400"
+                )}
+              />
             </div>
           )}
-          {!loading && value && (
+          {!loading && value && !required && (
             <button
               type="button"
               onClick={handleClear}
               className={cn(
                 "absolute inset-y-0 right-0 pr-3 flex items-center transition-colors",
-                hasError ? "text-red-400 hover:text-red-600" : "text-gray-400 hover:text-gray-600"
+                hasError
+                  ? "text-red-400 hover:text-red-600"
+                  : "text-gray-400 hover:text-gray-600"
               )}
             >
               <X className="h-4 w-4" />
@@ -468,7 +579,9 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
               >
                 <div className="font-medium">{option.label}</div>
                 {option.description && (
-                  <div className="text-sm text-gray-500">{option.description}</div>
+                  <div className="text-sm text-gray-500">
+                    {option.description}
+                  </div>
                 )}
               </div>
             ))}
@@ -506,7 +619,9 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
           className={fieldClassName}
           labelClassName={cn(
             "transition-colors",
-            hasError ? "text-red-600" : "text-gray-700 group-focus-within:text-primary-600"
+            hasError
+              ? "text-red-600"
+              : "text-gray-700 group-focus-within:text-primary-600"
           )}
         >
           {inputElement}

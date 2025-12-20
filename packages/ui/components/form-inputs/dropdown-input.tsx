@@ -1,9 +1,15 @@
-import React, { forwardRef, useState, useRef, useEffect, useCallback } from "react";
-import { Input } from "../input";
-import { FormField } from "../form-field";
-import { cn } from "@ui/lib/utils";
-import { ChevronDown, Check, X } from "lucide-react";
 import { dictionaryStore } from "@breedhub/rxdb-store";
+import { cn } from "@ui/lib/utils";
+import { Check, ChevronDown, X } from "lucide-react";
+import React, {
+  forwardRef,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
+import { FormField } from "../form-field";
+import { Input } from "../input";
 
 interface DropdownOption {
   value: string;
@@ -11,7 +17,11 @@ interface DropdownOption {
   disabled?: boolean;
 }
 
-interface DropdownInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'value' | 'onChange'> {
+interface DropdownInputProps
+  extends Omit<
+    React.InputHTMLAttributes<HTMLInputElement>,
+    "value" | "onChange"
+  > {
   label?: string;
   error?: string;
   helperText?: string;
@@ -28,31 +38,38 @@ interface DropdownInputProps extends Omit<React.InputHTMLAttributes<HTMLInputEle
   referencedTable?: string;
   referencedFieldID?: string;
   referencedFieldName?: string;
+  // Style variant for disabled state
+  disabledOnGray?: boolean; // Use white background when disabled (for gray backgrounds)
 }
 
 export const DropdownInput = forwardRef<HTMLInputElement, DropdownInputProps>(
-  ({
-    label,
-    error,
-    helperText,
-    required,
-    placeholder = "Select an option",
-    options = [],
-    value,
-    onValueChange,
-    disabled,
-    className,
-    fieldClassName,
-    touched,
-    referencedTable,
-    referencedFieldID = 'id',
-    referencedFieldName = 'name',
-    ...props
-  }, ref) => {
+  (
+    {
+      label,
+      error,
+      helperText,
+      required,
+      placeholder = "Select an option",
+      options = [],
+      value,
+      onValueChange,
+      disabled,
+      className,
+      fieldClassName,
+      touched,
+      referencedTable,
+      referencedFieldID = "id",
+      referencedFieldName = "name",
+      disabledOnGray,
+      ...props
+    },
+    ref
+  ) => {
     const [isOpen, setIsOpen] = useState(false);
     const [loading, setLoading] = useState(false);
-    const [dynamicOptions, setDynamicOptions] = useState<DropdownOption[]>(options);
-    const [cursor, setCursor] = useState<string | null>(null);  // ✅ Cursor instead of offset
+    const [dynamicOptions, setDynamicOptions] =
+      useState<DropdownOption[]>(options);
+    const [cursor, setCursor] = useState<string | null>(null); // ✅ Cursor instead of offset
     const [hasMore, setHasMore] = useState(true);
     const dropdownRef = useRef<HTMLDivElement>(null);
     const dropdownListRef = useRef<HTMLDivElement>(null);
@@ -65,51 +82,70 @@ export const DropdownInput = forwardRef<HTMLInputElement, DropdownInputProps>(
     const activeOptions = referencedTable ? dynamicOptions : options;
 
     // Find selected option
-    const selectedOption = activeOptions?.find(opt => opt.value === value);
+    const selectedOption = activeOptions?.find((opt) => opt.value === value);
 
-    const loadDictionaryOptions = useCallback(async (append: boolean = false) => {
-      if (!referencedTable) return;
+    const loadDictionaryOptions = useCallback(
+      async (append: boolean = false) => {
+        if (!referencedTable) return;
 
-      setLoading(true);
+        setLoading(true);
 
-      try {
-        const currentCursor = append ? cursor : null;  // ✅ Use cursor
-        console.log('[DropdownInput] Loading dictionary (ID-First):', referencedTable, 'cursor:', currentCursor);
+        try {
+          const currentCursor = append ? cursor : null; // ✅ Use cursor
+          console.log(
+            "[DropdownInput] Loading dictionary (ID-First):",
+            referencedTable,
+            "cursor:",
+            currentCursor
+          );
 
-        const { records, hasMore: more, nextCursor } = await dictionaryStore.getDictionary(referencedTable, {
-          idField: referencedFieldID,
-          nameField: referencedFieldName,
-          limit: 30,
-          cursor: currentCursor  // ✅ Pass cursor instead of offset
-        });
-
-        // Transform to dropdown options
-        const opts: DropdownOption[] = records.map(record => ({
-          value: record.id,
-          label: record.name
-        }));
-
-        console.log('[DropdownInput] Loaded options:', opts.length, 'hasMore:', more, 'nextCursor:', nextCursor);
-
-        if (append) {
-          // Deduplicate by value (ID) to prevent React key warnings
-          setDynamicOptions(prev => {
-            const existingIds = new Set(prev.map(opt => opt.value));
-            const newOpts = opts.filter(opt => !existingIds.has(opt.value));
-            return [...prev, ...newOpts];
+          const {
+            records,
+            hasMore: more,
+            nextCursor,
+          } = await dictionaryStore.getDictionary(referencedTable, {
+            idField: referencedFieldID,
+            nameField: referencedFieldName,
+            limit: 30,
+            cursor: currentCursor, // ✅ Pass cursor instead of offset
           });
-        } else {
-          setDynamicOptions(opts);
-        }
 
-        setCursor(nextCursor);  // ✅ Save nextCursor for next scroll
-        setHasMore(more);
-      } catch (error) {
-        console.error(`Failed to load dictionary ${referencedTable}:`, error);
-      } finally {
-        setLoading(false);
-      }
-    }, [referencedTable, referencedFieldID, referencedFieldName, cursor]);
+          // Transform to dropdown options
+          const opts: DropdownOption[] = records.map((record) => ({
+            value: record.id,
+            label: record.name,
+          }));
+
+          console.log(
+            "[DropdownInput] Loaded options:",
+            opts.length,
+            "hasMore:",
+            more,
+            "nextCursor:",
+            nextCursor
+          );
+
+          if (append) {
+            // Deduplicate by value (ID) to prevent React key warnings
+            setDynamicOptions((prev) => {
+              const existingIds = new Set(prev.map((opt) => opt.value));
+              const newOpts = opts.filter((opt) => !existingIds.has(opt.value));
+              return [...prev, ...newOpts];
+            });
+          } else {
+            setDynamicOptions(opts);
+          }
+
+          setCursor(nextCursor); // ✅ Save nextCursor for next scroll
+          setHasMore(more);
+        } catch (error) {
+          console.error(`Failed to load dictionary ${referencedTable}:`, error);
+        } finally {
+          setLoading(false);
+        }
+      },
+      [referencedTable, referencedFieldID, referencedFieldName, cursor]
+    );
 
     // Load dictionary data when dropdown opens
     useEffect(() => {
@@ -121,22 +157,42 @@ export const DropdownInput = forwardRef<HTMLInputElement, DropdownInputProps>(
     // Pre-load dictionary options if we have a value but no options yet
     // This ensures selected values are displayed correctly in forms
     useEffect(() => {
-      if (value && referencedTable && dynamicOptions.length === 0 && !loading && !isOpen) {
-        console.log('[DropdownInput] Pre-loading options because value exists:', value);
+      if (
+        value &&
+        referencedTable &&
+        dynamicOptions.length === 0 &&
+        !loading &&
+        !isOpen
+      ) {
+        console.log(
+          "[DropdownInput] Pre-loading options because value exists:",
+          value
+        );
         loadDictionaryOptions();
       }
-    }, [value, referencedTable, dynamicOptions.length, loading, isOpen, loadDictionaryOptions]);
+    }, [
+      value,
+      referencedTable,
+      dynamicOptions.length,
+      loading,
+      isOpen,
+      loadDictionaryOptions,
+    ]);
 
     // Handle clicks outside
     useEffect(() => {
       const handleClickOutside = (e: MouseEvent) => {
-        if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        if (
+          dropdownRef.current &&
+          !dropdownRef.current.contains(e.target as Node)
+        ) {
           setIsOpen(false);
         }
       };
 
       document.addEventListener("mousedown", handleClickOutside);
-      return () => document.removeEventListener("mousedown", handleClickOutside);
+      return () =>
+        document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
     const handleSelect = (option: DropdownOption) => {
@@ -154,34 +210,44 @@ export const DropdownInput = forwardRef<HTMLInputElement, DropdownInputProps>(
 
     const handleClear = (e: React.MouseEvent) => {
       e.stopPropagation();
-      onValueChange?.('');
+      onValueChange?.("");
     };
 
     const handleScroll = useCallback(() => {
       if (!dropdownListRef.current) {
-        console.log('[DropdownInput] handleScroll: no ref');
+        console.log("[DropdownInput] handleScroll: no ref");
         return;
       }
 
       const scrollElement = dropdownListRef.current;
-      const scrollBottom = scrollElement.scrollHeight - scrollElement.scrollTop - scrollElement.clientHeight;
+      const scrollBottom =
+        scrollElement.scrollHeight -
+        scrollElement.scrollTop -
+        scrollElement.clientHeight;
 
-      console.log('[DropdownInput] Scroll event:', {
+      console.log("[DropdownInput] Scroll event:", {
         scrollBottom,
         hasMore,
         loading,
         cursor,
-        referencedTable
+        referencedTable,
       });
 
       if (!referencedTable || !hasMore || loading) {
-        console.log('[DropdownInput] Scroll blocked:', { referencedTable, hasMore, loading });
+        console.log("[DropdownInput] Scroll blocked:", {
+          referencedTable,
+          hasMore,
+          loading,
+        });
         return;
       }
 
       // Load more when scrolled to bottom (with 50px threshold)
       if (scrollBottom < 50) {
-        console.log('[DropdownInput] Scroll to bottom, loading more... cursor:', cursor);
+        console.log(
+          "[DropdownInput] Scroll to bottom, loading more... cursor:",
+          cursor
+        );
         loadDictionaryOptions(true);
       }
     }, [referencedTable, hasMore, loading, cursor, loadDictionaryOptions]);
@@ -190,15 +256,18 @@ export const DropdownInput = forwardRef<HTMLInputElement, DropdownInputProps>(
     useEffect(() => {
       const scrollElement = dropdownListRef.current;
       if (!scrollElement || !isOpen) {
-        console.log('[DropdownInput] Scroll listener setup skipped:', { hasElement: !!scrollElement, isOpen });
+        console.log("[DropdownInput] Scroll listener setup skipped:", {
+          hasElement: !!scrollElement,
+          isOpen,
+        });
         return;
       }
 
-      console.log('[DropdownInput] Setting up scroll listener');
-      scrollElement.addEventListener('scroll', handleScroll);
+      console.log("[DropdownInput] Setting up scroll listener");
+      scrollElement.addEventListener("scroll", handleScroll);
       return () => {
-        console.log('[DropdownInput] Removing scroll listener');
-        scrollElement.removeEventListener('scroll', handleScroll);
+        console.log("[DropdownInput] Removing scroll listener");
+        scrollElement.removeEventListener("scroll", handleScroll);
       };
     }, [handleScroll, isOpen]);
 
@@ -218,22 +287,32 @@ export const DropdownInput = forwardRef<HTMLInputElement, DropdownInputProps>(
             onKeyDown={handleKeyDown}
             className={cn(
               "peer cursor-pointer pr-10 transition-all duration-200",
-              disabled && "bg-gray-50 border-gray-200 text-gray-500 cursor-not-allowed",
-              hasError && "border-red-500 hover:border-red-600 focus:border-red-500 focus:ring-2 focus:ring-red-500/20",
-              !hasError && !disabled && "border-gray-300 hover:border-gray-400 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20",
+              disabled &&
+                !disabledOnGray &&
+                "bg-gray-50 border-gray-200 text-gray-400 cursor-not-allowed",
+              disabled &&
+                disabledOnGray &&
+                "bg-white/95 border-gray-300 text-gray-400 cursor-not-allowed",
+              hasError &&
+                "border-red-500 hover:border-red-600 focus:border-red-500 focus:ring-2 focus:ring-red-500/20",
+              !hasError &&
+                !disabled &&
+                "border-gray-300 hover:border-gray-400 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20",
               className
             )}
-            style={{ caretColor: 'transparent' }}
+            style={{ caretColor: "transparent" }}
             aria-expanded={isOpen}
             aria-haspopup="listbox"
             aria-invalid={hasError ? "true" : undefined}
             {...props}
           />
-          <div className={cn(
-            "absolute inset-y-0 right-0 pr-3 flex items-center transition-colors",
-            hasError ? "text-red-400" : "text-gray-400"
-          )}>
-            {value ? (
+          <div
+            className={cn(
+              "absolute inset-y-0 right-0 pr-3 flex items-center transition-colors",
+              hasError ? "text-red-400" : "text-gray-400"
+            )}
+          >
+            {value && !required ? (
               <button
                 type="button"
                 onClick={handleClear}
@@ -242,10 +321,12 @@ export const DropdownInput = forwardRef<HTMLInputElement, DropdownInputProps>(
                 <X className="h-4 w-4" />
               </button>
             ) : (
-              <ChevronDown className={cn(
-                "h-4 w-4 transition-transform pointer-events-none",
-                isOpen && "rotate-180"
-              )} />
+              <ChevronDown
+                className={cn(
+                  "h-4 w-4 transition-transform pointer-events-none",
+                  isOpen && "rotate-180"
+                )}
+              />
             )}
           </div>
         </div>
@@ -313,7 +394,9 @@ export const DropdownInput = forwardRef<HTMLInputElement, DropdownInputProps>(
           className={fieldClassName}
           labelClassName={cn(
             "transition-colors",
-            hasError ? "text-red-600" : "text-gray-700 group-focus-within:text-primary-600"
+            hasError
+              ? "text-red-600"
+              : "text-gray-700 group-focus-within:text-primary-600"
           )}
         >
           {selectElement}

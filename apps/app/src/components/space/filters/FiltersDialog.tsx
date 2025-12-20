@@ -162,6 +162,11 @@ export function FiltersDialog({
   const handleApply = (e: React.FormEvent) => {
     e.preventDefault();
 
+    // Remove focus from submit button after click
+    if (document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
+
     // Validate required fields
     if (!validateForm()) {
       console.log('[FiltersDialog] Validation failed:', errors);
@@ -216,8 +221,12 @@ export function FiltersDialog({
     }
 
     // Find fields that depend on this field and clear their values
+    // dependsOn/disabledUntil can be full ID (pet_field_pet_type_id) or short ID (pet_type_id)
     const dependentFields = filterFields.filter(
-      (f) => f.dependsOn === fieldId || f.disabledUntil === fieldId
+      (f) => f.dependsOn === fieldId ||
+             f.dependsOn?.endsWith(fieldId) ||
+             f.disabledUntil === fieldId ||
+             f.disabledUntil?.endsWith(fieldId)
     );
 
     setFilterValues((prev) => {
@@ -322,6 +331,7 @@ export function FiltersDialog({
                         handleValueChange(field.id, value)
                       }
                       disabled={disabled}
+                      disabledOnGray={disabled}
                       error={errors[field.id]}
                       touched={touched[field.id]}
                       {...cascadeProps}
