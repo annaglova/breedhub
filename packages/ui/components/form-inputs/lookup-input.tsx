@@ -116,6 +116,49 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
         ? cachedSelectedOption
         : deduplicatedOptions.find((opt) => opt.value === value);
 
+    // ✅ Pre-load selected option when value exists but no option found (e.g., dialog reopened)
+    useEffect(() => {
+      if (value && !selectedOption && referencedTable && !internalLoading) {
+        console.log("[LookupInput] Pre-loading selected value:", value);
+
+        const loadSelectedRecord = async () => {
+          try {
+            setInternalLoading(true);
+
+            if (dataSource === "collection") {
+              // Load from collection (spaceStore)
+              const record = await spaceStore.getRecordById(referencedTable, value);
+              if (record) {
+                const option: LookupOption = {
+                  value: record[referencedFieldID] as string,
+                  label: record[referencedFieldName] as string,
+                };
+                setCachedSelectedOption(option);
+                setInputValue(option.label);
+              }
+            } else {
+              // Load from dictionary (dictionaryStore)
+              const record = await dictionaryStore.getRecordById(referencedTable, value);
+              if (record) {
+                const option: LookupOption = {
+                  value: record[referencedFieldID] as string,
+                  label: record[referencedFieldName] as string,
+                };
+                setCachedSelectedOption(option);
+                setInputValue(option.label);
+              }
+            }
+          } catch (error) {
+            console.error("[LookupInput] Failed to pre-load selected value:", error);
+          } finally {
+            setInternalLoading(false);
+          }
+        };
+
+        loadSelectedRecord();
+      }
+    }, [value, selectedOption, referencedTable, dataSource, referencedFieldID, referencedFieldName, internalLoading]);
+
     const loadDictionaryOptions = useCallback(
       async (query: string = "", append: boolean = false) => {
         if (!referencedTable) return;

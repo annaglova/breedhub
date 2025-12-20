@@ -4334,6 +4334,30 @@ class SpaceStore {
     }
     return this.tabLoadedCountsMap;
   }
+
+  /**
+   * Get a single record by ID from a collection
+   * Used for pre-loading selected values in LookupInput
+   */
+  async getRecordById(
+    tableName: string,
+    id: string
+  ): Promise<Record<string, unknown> | null> {
+    const collection = this.db?.collections?.[tableName];
+
+    if (!collection) {
+      console.warn(`[SpaceStore] Collection ${tableName} not found`);
+      return null;
+    }
+
+    try {
+      const doc = await collection.findOne(id).exec();
+      return doc ? doc.toJSON() : null;
+    } catch (error) {
+      console.error(`[SpaceStore] getRecordById failed for ${tableName}:`, error);
+      return null;
+    }
+  }
 }
 
 // Export singleton instance

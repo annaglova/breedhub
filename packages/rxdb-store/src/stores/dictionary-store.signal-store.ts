@@ -545,6 +545,56 @@ class DictionaryStore {
       throw error;
     }
   }
+
+  /**
+   * Get a single record by ID from dictionary table
+   * Used for pre-loading selected values in LookupInput
+   */
+  async getRecordById(
+    tableName: string,
+    id: string,
+    options: { idField?: string; nameField?: string } = {}
+  ): Promise<Record<string, unknown> | null> {
+    const { idField = 'id', nameField = 'name' } = options;
+
+    try {
+      // First check local RxDB cache
+      if (this.collection) {
+        const cached = await this.collection.findOne({
+          selector: {
+            table: tableName,
+            id: id
+          }
+        }).exec();
+
+        if (cached) {
+          return { [idField]: cached.id, [nameField]: cached.name };
+        }
+      }
+
+      // If not in cache, fetch from Supabase
+      if (!isOffline()) {
+        const supabase = getSupabase();
+        const { data, error } = await supabase
+          .from(tableName)
+          .select(`${idField},${nameField}`)
+          .eq(idField, id)
+          .single();
+
+        if (error) {
+          console.error('[DictionaryStore] getRecordById error:', error);
+          return null;
+        }
+
+        return data;
+      }
+
+      return null;
+    } catch (error) {
+      console.error('[DictionaryStore] getRecordById failed:', error);
+      return null;
+    }
+  }
 }
 
 // Export singleton instance
