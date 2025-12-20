@@ -197,6 +197,9 @@ export function SpaceComponent<T extends { id: string }>({
   // 🆕 localStorage key for persisting sort preference per entity type
   const sortStorageKey = `breedhub:sort:${config.entitySchemaName}`;
 
+  // 🆕 localStorage key for persisting filter preferences per entity type
+  const filtersStorageKey = `breedhub:filters:${config.entitySchemaName}`;
+
   // 🆕 Read sort ID from URL, localStorage, or use default
   const sortId = searchParams.get("sort");
 
@@ -269,6 +272,68 @@ export function SpaceComponent<T extends { id: string }>({
       setSearchParams(newParams, { replace: true }); // replace to not add history entry
     }
   }, [searchParams, setSearchParams, selectedSortOption, initialSelectedEntityId]);
+
+  // 🆕 Apply saved filters from localStorage on initial load (if no filters in URL)
+  const hasAppliedSavedFilters = useRef(false);
+  useEffect(() => {
+    // Skip if already applied or in fullscreen mode
+    if (hasAppliedSavedFilters.current || initialSelectedEntityId) return;
+    // Wait for filterFields to be loaded
+    if (filterFields.length === 0) return;
+
+    const reservedParams = ["sort", "view", "sortBy", "sortDir", "sortParam"];
+
+    // Check if URL already has any filter params
+    let hasFilterParams = false;
+    searchParams.forEach((_, key) => {
+      if (!reservedParams.includes(key)) {
+        hasFilterParams = true;
+      }
+    });
+
+    // If URL already has filters, don't override with localStorage
+    if (hasFilterParams) {
+      hasAppliedSavedFilters.current = true;
+      return;
+    }
+
+    // Try to read saved filters from localStorage
+    try {
+      const savedFilters = localStorage.getItem(filtersStorageKey);
+      if (savedFilters) {
+        const parsedFilters = JSON.parse(savedFilters) as Record<string, string>;
+
+        // Apply saved filters to URL (convert IDs to labels)
+        const applyFilters = async () => {
+          const newParams = new URLSearchParams(searchParams);
+          const rxdb = await getDatabase();
+
+          for (const [fieldId, value] of Object.entries(parsedFilters)) {
+            if (value) {
+              const fieldConfig = filterFields.find((f) => f.id === fieldId);
+              const urlKey = fieldConfig?.slug || fieldId;
+
+              // Convert ID to label for URL
+              const label = await getLabelForValue(fieldConfig, value, rxdb);
+              const normalizedLabel = normalizeForUrl(label);
+
+              console.log('[SpaceComponent] Applying saved filter:', fieldId, '→', normalizedLabel);
+              newParams.set(urlKey, normalizedLabel);
+            }
+          }
+
+          setSearchParams(newParams, { replace: true });
+        };
+
+        applyFilters();
+      }
+    } catch (e) {
+      // localStorage not available or parse error
+      console.warn('[SpaceComponent] Could not load saved filters:', e);
+    }
+
+    hasAppliedSavedFilters.current = true;
+  }, [searchParams, setSearchParams, filterFields, filtersStorageKey, initialSelectedEntityId]);
 
   // 🆕 Memoize orderBy to prevent infinite loop (new object on each render)
   const orderBy = useMemo(() => {
@@ -738,6 +803,23 @@ export function SpaceComponent<T extends { id: string }>({
           }
         }
 
+        // 🆕 Persist filter preferences to localStorage (store IDs, not labels)
+        try {
+          const filtersToStore: Record<string, string> = {};
+          for (const [fieldId, value] of Object.entries(filterValues)) {
+            if (value !== undefined && value !== null && value !== "") {
+              filtersToStore[fieldId] = String(value);
+            }
+          }
+          if (Object.keys(filtersToStore).length > 0) {
+            localStorage.setItem(filtersStorageKey, JSON.stringify(filtersToStore));
+          } else {
+            localStorage.removeItem(filtersStorageKey);
+          }
+        } catch (e) {
+          // localStorage not available, continue without persisting
+        }
+
         setSearchParams(newParams);
       } catch (error) {
         console.error(
@@ -755,17 +837,39 @@ export function SpaceComponent<T extends { id: string }>({
         setSearchParams(newParams);
       }
     },
-    [searchParams, setSearchParams, filterFields]
+    [searchParams, setSearchParams, filterFields, filtersStorageKey]
   );
 
-  // 🆕 Handle filter remove - remove specific filter from URL
+  // 🆕 Handle filter remove - remove specific filter from URL and update localStorage
   const handleFilterRemove = useCallback(
     (filter: { id: string }) => {
       const newParams = new URLSearchParams(searchParams);
       newParams.delete(filter.id);
+
+      // 🆕 Update localStorage - remove this filter from saved preferences
+      try {
+        const savedFilters = localStorage.getItem(filtersStorageKey);
+        if (savedFilters) {
+          const parsedFilters = JSON.parse(savedFilters) as Record<string, string>;
+          // Find the field ID from the slug (filter.id could be slug)
+          const fieldConfig = filterFields.find((f) => f.slug === filter.id || f.id === filter.id);
+          const fieldId = fieldConfig?.id || filter.id;
+
+          delete parsedFilters[fieldId];
+
+          if (Object.keys(parsedFilters).length > 0) {
+            localStorage.setItem(filtersStorageKey, JSON.stringify(parsedFilters));
+          } else {
+            localStorage.removeItem(filtersStorageKey);
+          }
+        }
+      } catch (e) {
+        // localStorage not available
+      }
+
       setSearchParams(newParams);
     },
-    [searchParams, setSearchParams]
+    [searchParams, setSearchParams, filtersStorageKey, filterFields]
   );
 
   // Helper to convert "Pet Type" → "Pet type" (sentence case)
