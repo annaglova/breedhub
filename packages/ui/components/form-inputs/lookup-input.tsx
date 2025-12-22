@@ -548,6 +548,7 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
           <Input
             ref={ref}
             type="text"
+            autoComplete="off"
             value={isEditing ? inputValue : selectedOption?.label || ""}
             onChange={handleInputChange}
             onFocus={handleFocus}
