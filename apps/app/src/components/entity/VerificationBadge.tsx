@@ -7,7 +7,10 @@ interface VerificationBadgeProps {
   className?: string;
 }
 
+// Verification status IDs
 const VERIFIED_STATUS_ID = "13c697a5-4895-4ec8-856c-536b925fd54f";
+const ON_VERIFICATION_STATUS_ID = "8b8a9341-6ac2-4129-b7fb-8db4a6d1f334";
+const VERIFICATION_NEEDED_STATUS_ID = "62ca5750-351c-49ed-81bd-1e8fd459d15f";
 
 /**
  * VerificationBadge - displays verification status badge
@@ -18,6 +21,11 @@ const VERIFIED_STATUS_ID = "13c697a5-4895-4ec8-856c-536b925fd54f";
  * - string (status ID)
  * - object with Id and Name
  * - undefined (hidden)
+ *
+ * Colors:
+ * - Verified → primary (confirmed)
+ * - On verification → gray (processing)
+ * - Verification needed → destructive (action required)
  */
 export function VerificationBadge({
   status,
@@ -30,16 +38,21 @@ export function VerificationBadge({
   // Don't render if no status
   if (!statusId) return null;
 
-  const isVerified = statusId === VERIFIED_STATUS_ID;
+  const getColorClass = () => {
+    switch (statusId) {
+      case VERIFIED_STATUS_ID:
+        return "fill-primary";
+      case VERIFICATION_NEEDED_STATUS_ID:
+        return "fill-destructive";
+      case ON_VERIFICATION_STATUS_ID:
+      default:
+        return "fill-gray-400";
+    }
+  };
 
   return (
     <CommonVerifiedIcon
-      className={cn(
-        isVerified
-          ? "fill-primary"
-          : "fill-gray-400",
-        className
-      )}
+      className={cn(getColorClass(), className)}
       width={size}
       height={size}
     />

@@ -75,11 +75,8 @@ export function PetListCard({
     Avatar: entity.avatar_url,
     // Status - resolved from dictionary
     PetStatus: petStatusName,
-    // Verification status - TODO: use real data when available
-    // Verified UUID: "13c697a5-4895-4ec8-856c-536b925fd54f" (shows green), others show gray
-    VerificationStatus: entity.verification_status_id
-      ? { Id: entity.verification_status_id }
-      : Math.random() > 0.6 ? { Id: "13c697a5-4895-4ec8-856c-536b925fd54f" } : undefined, // Mock for visual testing
+    // Verification status - uses real data from entity
+    VerificationStatus: entity.verification_status_id,
     // Dates and measurements
     DateOfBirth: entity.date_of_birth,
     COI: entity.coi,
