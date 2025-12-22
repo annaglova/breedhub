@@ -548,7 +548,8 @@ class DictionaryStore {
 
   /**
    * Get a single record by ID from dictionary table
-   * Used for pre-loading selected values in LookupInput
+   * Used for pre-loading selected values in LookupInput and dictionary lookups
+   * Fetches ALL fields (id, name, code, etc.) for flexibility
    */
   async getRecordById(
     tableName: string,
@@ -568,21 +569,51 @@ class DictionaryStore {
         }).exec();
 
         if (cached) {
-          return { [idField]: cached.id, [nameField]: cached.name };
+          // Return cached data with additional fields if available
+          const result: Record<string, unknown> = {
+            [idField]: cached.id,
+            [nameField]: cached.name
+          };
+          // Merge additional fields if present
+          if (cached.additional) {
+            Object.assign(result, cached.additional);
+          }
+          return result;
         }
       }
 
-      // If not in cache, fetch from Supabase
+      // If not in cache, fetch from Supabase (fetch ALL fields for flexibility)
       if (!isOffline()) {
         const { data, error } = await supabase
           .from(tableName)
-          .select(`${idField},${nameField}`)
+          .select('*')
           .eq(idField, id)
           .single();
 
         if (error) {
           console.error('[DictionaryStore] getRecordById error:', error);
           return null;
+        }
+
+        // Cache the record for future use
+        if (data && this.collection) {
+          try {
+            // Extract additional fields (everything except id, name)
+            const { [idField]: fetchedId, [nameField]: fetchedName, ...additionalFields } = data;
+            const hasAdditional = Object.keys(additionalFields).length > 0;
+
+            await this.collection.upsert({
+              composite_id: `${tableName}::${data[idField]}`,
+              table_name: tableName,
+              id: String(data[idField]),
+              name: String(data[nameField]),
+              additional: hasAdditional ? additionalFields : undefined,
+              cachedAt: Date.now()
+            });
+          } catch (cacheError) {
+            // Ignore cache errors, still return data
+            console.warn('[DictionaryStore] Failed to cache record:', cacheError);
+          }
         }
 
         return data;

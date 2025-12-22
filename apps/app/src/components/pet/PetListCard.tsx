@@ -11,6 +11,7 @@ interface PetEntity {
   name?: string;
   avatar_url?: string;
   pet_status_id?: string;
+  sex_id?: string;
   verification_status_id?: string;
   date_of_birth?: string;
   coi?: number;
@@ -50,6 +51,21 @@ export function PetListCard({
 }: PetListCardProps) {
   // Resolve pet_status_id to name via dictionary lookup
   const petStatusName = useDictionaryValue("pet_status", entity.pet_status_id);
+
+  // Resolve sex_id to code via dictionary lookup for avatar outline color
+  const sexCode = useDictionaryValue("sex", entity.sex_id, "code");
+
+  // Determine avatar outline color based on sex
+  const getOutlineClass = () => {
+    switch (sexCode) {
+      case "male":
+        return "outline-blue-300 dark:outline-blue-400";
+      case "female":
+        return "outline-pink-300 dark:outline-pink-400";
+      default:
+        return "outline-gray-300 dark:outline-gray-400";
+    }
+  };
 
   // Extract data from the entity - use real DB values + mock for UI components
   const pet = {
@@ -92,7 +108,7 @@ export function PetListCard({
       <div className="flex items-center w-full">
         {/* Avatar with verification badge */}
         <div className="relative flex">
-          <div className="size-10 rounded-full border border-surface-border flex-shrink-0 outline outline-2 outline-offset-2 outline-gray-300 dark:outline-gray-400">
+          <div className={`size-10 rounded-full border border-surface-border flex-shrink-0 outline outline-2 outline-offset-2 ${getOutlineClass()}`}>
             <div className="w-full h-full rounded-full overflow-hidden">
               {pet.Avatar ? (
                 <img
