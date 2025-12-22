@@ -4,6 +4,7 @@ import { VerificationBadge } from "@/components/entity/VerificationBadge";
 import { TierMark } from "@/components/entity/TierMark";
 import { PetServices } from "@/components/entity/PetServices";
 import { useDictionaryValue } from "@/hooks/useDictionaryValue";
+import defaultPetAvatar from "@/assets/images/pettypes/dog.jpeg";
 
 // Interface for pet data from RxDB
 interface PetEntity {
@@ -110,26 +111,20 @@ export function PetListCard({
         <div className="relative flex">
           <div className={`size-10 rounded-full border border-surface-border flex-shrink-0 outline outline-2 outline-offset-2 ${getOutlineClass()}`}>
             <div className="w-full h-full rounded-full overflow-hidden">
-              {pet.Avatar ? (
-                <img
-                  src={pet.Avatar}
-                  alt={pet.Name}
-                  className="w-full h-full object-cover"
-                  loading="lazy"
-                  onError={(e) => {
-                    e.currentTarget.style.display = "none";
-                    e.currentTarget.nextElementSibling?.classList.remove(
-                      "hidden"
-                    );
-                  }}
-                />
-              ) : null}
-              <div
-                className="w-full h-full flex items-center justify-center text-gray-600 dark:text-gray-200 text-lg uppercase bg-gray-200 dark:bg-gray-700"
-                style={{ display: pet.Avatar ? "none" : "flex" }}
-              >
-                {pet.Name?.charAt(0)}
-              </div>
+              <img
+                src={pet.Avatar || defaultPetAvatar}
+                alt={pet.Name}
+                className="w-full h-full object-cover"
+                loading="lazy"
+                onError={(e) => {
+                  // Fallback to default avatar on error (prevent infinite loop)
+                  const target = e.currentTarget;
+                  if (!target.dataset.fallback) {
+                    target.dataset.fallback = "true";
+                    target.src = defaultPetAvatar;
+                  }
+                }}
+              />
             </div>
           </div>
           {/* Verification badge - bottom right of avatar */}
