@@ -942,7 +942,7 @@ export function SpaceComponent<T extends { id: string }>({
           filters.push({
             id: key,
             label: `${displayName}: ${displayValue}`,
-            isRequired: fieldConfig?.isLocked ?? false,
+            isRequired: fieldConfig?.required ?? false,
           });
         }
       }
