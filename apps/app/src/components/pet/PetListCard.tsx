@@ -3,24 +3,20 @@ import { NoteFlag } from "@/components/shared/NoteFlag";
 import { VerificationBadge } from "@/components/entity/VerificationBadge";
 import { TierMark } from "@/components/entity/TierMark";
 import { PetServices } from "@/components/entity/PetServices";
+import { useDictionaryValue } from "@/hooks/useDictionaryValue";
 
 // Interface for pet data from RxDB
 interface PetEntity {
-  id?: string;
-  Id?: string;
+  id: string;
   name?: string;
-  Name?: string;
   avatar_url?: string;
-  Avatar?: string;
-  pet_status?: string | { Id?: string; Name?: string };
   pet_status_id?: string;
-  verification_status?: string | { Id?: string; Name?: string };
   verification_status_id?: string;
   date_of_birth?: string;
   coi?: number;
-  inbreeding_percent?: number;
   tier_marks?: any[];
   services?: any[];
+  notes?: string;
   [key: string]: any;
 }
 
@@ -52,34 +48,29 @@ export function PetListCard({
   selected = false,
   onClick,
 }: PetListCardProps) {
-  // Extract data from the entity with fallbacks
+  // Resolve pet_status_id to name via dictionary lookup
+  const petStatusName = useDictionaryValue("pet_status", entity.pet_status_id);
+
+  // Extract data from the entity - use real DB values
   const pet = {
-    Id: entity.Id || entity.id,
-    Name: entity.Name || entity.name || "Unknown",
-    Avatar: entity.Avatar || entity.avatar_url,
-    // Status - can be object or string
-    PetStatus:
-      typeof entity.pet_status === "object"
-        ? (entity.pet_status as any)?.Name
-        : entity.pet_status || entity.pet_status_id,
-    // Verification - use real data or random for visual testing
-    VerificationStatus:
-      entity.verification_status ||
-      entity.verification_status_id ||
-      (Math.random() > 0.5 ? { Id: "13c697a5-4895-4ec8-856c-536b925fd54f" } : undefined),
+    Id: entity.id,
+    Name: entity.name || "Unknown",
+    Avatar: entity.avatar_url,
+    // Status - resolved from dictionary
+    PetStatus: petStatusName,
+    // Verification status
+    VerificationStatus: entity.verification_status_id
+      ? { Id: entity.verification_status_id }
+      : undefined,
     // Dates and measurements
     DateOfBirth: entity.date_of_birth,
-    COI: entity.coi ?? entity.inbreeding_percent,
-    // Notes - random for visual testing
-    HasNotes: Math.random() > 0.7,
-    // Tier marks - random for visual testing
-    TierMarks: entity.tier_marks || (Math.random() > 0.6 ? [
-      { Contact: { Id: "c1", Name: "Test Patron" }, Product: { Name: Math.random() > 0.5 ? "Supreme Patron" : "Professional" }, Type: Math.random() > 0.5 ? "breeder" : "owner" }
-    ] : []),
-    // Services - random for visual testing
-    Services: entity.services || (Math.random() > 0.5 ? [
-      { ServiceType: { Id: ["ea48e37d-8f65-4122-bc00-d012848d78ae", "3370ee61-86de-49ae-a8ec-5cef5f213ecd", "ddc59ace-c622-4d6b-b473-19e9a313ed21"][Math.floor(Math.random() * 3)] } }
-    ] : []),
+    COI: entity.coi,
+    // Notes - check if notes field exists and has content
+    HasNotes: !!entity.notes,
+    // Tier marks - from DB
+    TierMarks: entity.tier_marks || [],
+    // Services - from DB
+    Services: entity.services || [],
   };
 
   const formattedDate = formatDate(pet.DateOfBirth);

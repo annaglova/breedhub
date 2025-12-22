@@ -562,7 +562,7 @@ class DictionaryStore {
       if (this.collection) {
         const cached = await this.collection.findOne({
           selector: {
-            table: tableName,
+            table_name: tableName,
             id: id
           }
         }).exec();
@@ -574,7 +574,6 @@ class DictionaryStore {
 
       // If not in cache, fetch from Supabase
       if (!isOffline()) {
-        const supabase = getSupabase();
         const { data, error } = await supabase
           .from(tableName)
           .select(`${idField},${nameField}`)

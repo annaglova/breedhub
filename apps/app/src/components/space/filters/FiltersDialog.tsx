@@ -169,7 +169,6 @@ export function FiltersDialog({
 
     // Validate required fields
     if (!validateForm()) {
-      console.log('[FiltersDialog] Validation failed:', errors);
       return;
     }
 
@@ -177,11 +176,7 @@ export function FiltersDialog({
     const hasChanges = JSON.stringify(filterValues) !== JSON.stringify(initialValues);
 
     if (hasChanges) {
-      console.log('[FiltersDialog] Filters changed, applying:', filterValues);
-      // Only call onApply if there are actual changes
       onApply?.(filterValues);
-    } else {
-      console.log('[FiltersDialog] No changes detected, skipping apply');
     }
 
     onOpenChange(false);
@@ -193,8 +188,6 @@ export function FiltersDialog({
   };
 
   const handleValueChange = (fieldId: string, value: any) => {
-    console.log("[FiltersDialog] Value changed:", fieldId, "=", value);
-
     // Mark field as touched
     if (!touched[fieldId]) {
       setTouched((prev) => ({ ...prev, [fieldId]: true }));
@@ -238,9 +231,6 @@ export function FiltersDialog({
       // Clear dependent field values when parent field changes
       for (const depField of dependentFields) {
         if (prev[depField.id] !== undefined) {
-          console.log(
-            `[FiltersDialog] Clearing dependent field: ${depField.id}`
-          );
           newValues[depField.id] = "";
         }
       }
@@ -264,10 +254,7 @@ export function FiltersDialog({
     // Get value by the actual field ID used in filterValues
     const dependsOnKey = dependsOnField?.id || field.disabledUntil;
     const dependsOnValue = filterValues[dependsOnKey];
-    const isDisabled = !dependsOnValue || dependsOnValue === "";
-
-    console.log(`[FiltersDialog] isFieldDisabled: ${field.id}, disabledUntil=${field.disabledUntil}, dependsOnField=${dependsOnField?.id}, dependsOnKey=${dependsOnKey}, dependsOnValue=${dependsOnValue}, isDisabled=${isDisabled}`);
-    return isDisabled;
+    return !dependsOnValue || dependsOnValue === "";
   };
 
   return (
@@ -280,9 +267,6 @@ export function FiltersDialog({
         <form onSubmit={handleApply}>
           <div className="mt-2 flex flex-col rounded-lg bg-modal-card-ground px-6 py-4">
             <div className="grid gap-3 sm:grid-cols-2">
-              {/* Dynamic Filter Fields from config */}
-              {console.log('[FiltersDialog] Rendering fields:', JSON.stringify(filterFields.map(f => ({ id: f.id, slug: f.slug, disabledUntil: f.disabledUntil, dependsOn: f.dependsOn }))))}
-              {console.log('[FiltersDialog] Current filterValues:', filterValues)}
               {filterFields.map((field) => {
                 const Component = componentMap[field.component];
 
@@ -306,7 +290,6 @@ export function FiltersDialog({
                   );
                   const parentKey = parentField?.id || field.dependsOn;
                   parentFieldValue = filterValues[parentKey];
-                  console.log(`[FiltersDialog] Cascade filter: ${field.id}, dependsOn=${field.dependsOn}, parentKey=${parentKey}, parentValue=${parentFieldValue}`);
                 }
 
                 // Only pass filterBy/filterByValue to LookupInput component

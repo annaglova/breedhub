@@ -578,7 +578,7 @@
       },
       "displayName": "Top Patrons",
       "placeholder": "Enter top patrons",
-      "defaultValue": "[]"
+      "defaultValue": "{}"
     },
     {
       "id": "field_id",
@@ -706,6 +706,6 @@
     "totalFields": 29,
     "systemFields": 6,
     "customFields": 23,
-    "generatedAt": "2025-12-06T14:01:40.916Z"
+    "generatedAt": "2025-12-22T10:25:10.677Z"
   }
 }

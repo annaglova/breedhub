@@ -200,7 +200,7 @@
       },
       "isForeignKey": true,
       "referencedTable": "pet",
-      "referencedFieldID": "id",
+      "referencedFieldID": "breed_id",
       "dataSource": "collection",
       "displayName": "Father",
       "placeholder": "Enter father",
@@ -227,7 +227,7 @@
       },
       "isForeignKey": true,
       "referencedTable": "pet_manchester_terrier_toy",
-      "referencedFieldID": "id",
+      "referencedFieldID": "breed_id",
       "displayName": "Mother",
       "placeholder": "Enter mother",
       "referencedFieldName": "name"
@@ -1074,7 +1074,7 @@
       },
       "isForeignKey": true,
       "referencedTable": "pet_manchester_terrier_toy",
-      "referencedFieldID": "id",
+      "referencedFieldID": "breed_id",
       "displayName": "Mother Breed",
       "placeholder": "Enter mother breed",
       "referencedFieldName": "name"
@@ -1100,7 +1100,7 @@
       },
       "isForeignKey": true,
       "referencedTable": "pet",
-      "referencedFieldID": "id",
+      "referencedFieldID": "breed_id",
       "dataSource": "collection",
       "displayName": "Father Breed",
       "placeholder": "Enter father breed",
@@ -1129,6 +1129,31 @@
       "placeholder": "Enter measurements"
     },
     {
+      "id": "field_rating",
+      "name": "rating",
+      "fieldType": "number",
+      "component": "NumberInput",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 450,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "displayName": "Rating",
+      "placeholder": "Enter rating",
+      "validation": {
+        "precision": 53
+      }
+    },
+    {
       "id": "field_id",
       "name": "id",
       "fieldType": "uuid",
@@ -1137,7 +1162,7 @@
       "isSystem": true,
       "isPrimaryKey": true,
       "isUnique": true,
-      "sortOrder": 450,
+      "sortOrder": 460,
       "permissions": {
         "read": [
           "*"
@@ -1157,7 +1182,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 460,
+      "sortOrder": 470,
       "permissions": {
         "read": [
           "*"
@@ -1177,7 +1202,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 470,
+      "sortOrder": 480,
       "permissions": {
         "read": [
           "*"
@@ -1197,7 +1222,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 480,
+      "sortOrder": 490,
       "permissions": {
         "read": [
           "*"
@@ -1217,7 +1242,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 490,
+      "sortOrder": 500,
       "permissions": {
         "read": [
           "*"
@@ -1227,13 +1252,33 @@
         ]
       },
       "displayName": "Updated By"
+    },
+    {
+      "id": "field_deleted",
+      "name": "deleted",
+      "fieldType": "boolean",
+      "component": "CheckboxInput",
+      "required": false,
+      "isSystem": true,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 510,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "system"
+        ]
+      },
+      "displayName": "Deleted"
     }
   ],
   "metadata": {
     "tableName": "pet",
-    "totalFields": 49,
-    "systemFields": 5,
-    "customFields": 44,
-    "generatedAt": "2025-12-06T14:01:44.614Z"
+    "totalFields": 51,
+    "systemFields": 6,
+    "customFields": 45,
+    "generatedAt": "2025-12-22T10:25:16.888Z"
   }
 }

@@ -53,7 +53,7 @@
       },
       "isForeignKey": true,
       "referencedTable": "pet_manchester_terrier_toy",
-      "referencedFieldID": "id",
+      "referencedFieldID": "breed_id",
       "displayName": "Pet",
       "placeholder": "Enter pet",
       "referencedFieldName": "name"
@@ -183,7 +183,7 @@
       },
       "isForeignKey": true,
       "referencedTable": "pet_manchester_terrier_toy",
-      "referencedFieldID": "id",
+      "referencedFieldID": "breed_id",
       "displayName": "Pet Breed",
       "placeholder": "Enter pet breed",
       "referencedFieldName": "name"
@@ -294,6 +294,6 @@
     "totalFields": 12,
     "systemFields": 5,
     "customFields": 7,
-    "generatedAt": "2025-12-06T14:02:50.554Z"
+    "generatedAt": "2025-12-22T10:27:17.012Z"
   }
 }
