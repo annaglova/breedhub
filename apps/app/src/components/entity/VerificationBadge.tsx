@@ -1,4 +1,4 @@
-import { BadgeCheck } from "lucide-react";
+import { CommonVerifiedIcon } from "@shared/icons";
 import { cn } from "@ui/lib/utils";
 
 interface VerificationBadgeProps {
@@ -21,7 +21,7 @@ const VERIFIED_STATUS_ID = "13c697a5-4895-4ec8-856c-536b925fd54f";
  */
 export function VerificationBadge({
   status,
-  size = 12,
+  size = 16,
   className,
 }: VerificationBadgeProps) {
   // Extract status ID
@@ -33,15 +33,15 @@ export function VerificationBadge({
   const isVerified = statusId === VERIFIED_STATUS_ID;
 
   return (
-    <BadgeCheck
+    <CommonVerifiedIcon
       className={cn(
-        "bg-white dark:bg-gray-900 rounded-full",
         isVerified
-          ? "text-primary-500"
-          : "text-gray-400",
+          ? "fill-primary"
+          : "fill-gray-400",
         className
       )}
-      style={{ width: size, height: size }}
+      width={size}
+      height={size}
     />
   );
 }
