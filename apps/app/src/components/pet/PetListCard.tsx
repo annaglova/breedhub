@@ -17,7 +17,7 @@ interface PetEntity {
   date_of_birth?: string;
   coi?: number;
   tier_marks?: any[];
-  services?: any[];
+  services?: Record<string, string>; // Format: {"1": "service_id", "2": "service_id"}
   notes?: string;
   [key: string]: any;
 }
@@ -87,12 +87,9 @@ export function PetListCard({
     TierMarks: entity.tier_marks?.length ? entity.tier_marks : (Math.random() > 0.8 ? [
       { Type: "breeder", Product: { Name: "Professional" }, Contact: { Name: "Mock Breeder" } }
     ] : []), // Mock for visual testing
-    // Services - TODO: use real data when available
-    // Format: { ServiceType: { Id: "uuid" } } - UUIDs from PetServices.tsx SERVICE_CONFIG
-    Services: entity.services?.length ? entity.services : (Math.random() > 0.7 ? [
-      { ServiceType: { Id: "ea48e37d-8f65-4122-bc00-d012848d78ae" } }, // Mating
-      { ServiceType: { Id: "ddc59ace-c622-4d6b-b473-19e9a313ed21" } }, // Sale
-    ] : []), // Mock for visual testing
+    // Services - uses real data from entity
+    // Format: {"1": "service_id", "2": "service_id", ...}
+    Services: entity.services,
   };
 
   const formattedDate = formatDate(pet.DateOfBirth);
