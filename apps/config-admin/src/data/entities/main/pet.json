@@ -1154,6 +1154,29 @@
       }
     },
     {
+      "id": "field_services",
+      "name": "services",
+      "fieldType": "json",
+      "component": "TextareaInput",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 460,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "displayName": "Services",
+      "placeholder": "Enter services",
+      "defaultValue": "{}"
+    },
+    {
       "id": "field_id",
       "name": "id",
       "fieldType": "uuid",
@@ -1162,7 +1185,7 @@
       "isSystem": true,
       "isPrimaryKey": true,
       "isUnique": true,
-      "sortOrder": 460,
+      "sortOrder": 470,
       "permissions": {
         "read": [
           "*"
@@ -1182,7 +1205,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 470,
+      "sortOrder": 480,
       "permissions": {
         "read": [
           "*"
@@ -1202,7 +1225,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 480,
+      "sortOrder": 490,
       "permissions": {
         "read": [
           "*"
@@ -1222,7 +1245,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 490,
+      "sortOrder": 500,
       "permissions": {
         "read": [
           "*"
@@ -1242,7 +1265,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 500,
+      "sortOrder": 510,
       "permissions": {
         "read": [
           "*"
@@ -1262,7 +1285,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 510,
+      "sortOrder": 520,
       "permissions": {
         "read": [
           "*"
@@ -1276,9 +1299,9 @@
   ],
   "metadata": {
     "tableName": "pet",
-    "totalFields": 51,
+    "totalFields": 52,
     "systemFields": 6,
-    "customFields": 45,
-    "generatedAt": "2025-12-22T10:25:16.888Z"
+    "customFields": 46,
+    "generatedAt": "2025-12-22T16:18:51.676Z"
   }
 }

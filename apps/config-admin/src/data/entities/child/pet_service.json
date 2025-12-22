@@ -6,11 +6,11 @@
   "category": "child",
   "fields": [
     {
-      "id": "field_service_type_id",
-      "name": "service_type_id",
-      "fieldType": "uuid",
-      "component": "DropdownInput",
-      "required": false,
+      "id": "field_name",
+      "name": "name",
+      "fieldType": "string",
+      "component": "TextInput",
+      "required": true,
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -24,19 +24,20 @@
           "editor"
         ]
       },
-      "isForeignKey": true,
-      "referencedTable": "pet_service_type",
-      "referencedFieldID": "id",
-      "displayName": "Service Type",
-      "placeholder": "Enter service type",
-      "referencedFieldName": "name"
+      "maxLength": 250,
+      "displayName": "Name",
+      "placeholder": "Enter name",
+      "validation": {
+        "maxLength": 250
+      },
+      "defaultValue": ""
     },
     {
-      "id": "field_pet_id",
-      "name": "pet_id",
-      "fieldType": "uuid",
-      "component": "DropdownInput",
-      "required": false,
+      "id": "field_description",
+      "name": "description",
+      "fieldType": "string",
+      "component": "TextareaInput",
+      "required": true,
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -50,136 +51,13 @@
           "editor"
         ]
       },
-      "isForeignKey": true,
-      "referencedTable": "pet_manchester_terrier_toy",
-      "referencedFieldID": "breed_id",
-      "displayName": "Pet",
-      "placeholder": "Enter pet",
-      "referencedFieldName": "name"
-    },
-    {
-      "id": "field_currency_id",
-      "name": "currency_id",
-      "fieldType": "uuid",
-      "component": "DropdownInput",
-      "required": false,
-      "isSystem": false,
-      "isPrimaryKey": false,
-      "isUnique": false,
-      "sortOrder": 30,
-      "permissions": {
-        "read": [
-          "*"
-        ],
-        "write": [
-          "admin",
-          "editor"
-        ]
+      "maxLength": 250,
+      "displayName": "Description",
+      "placeholder": "Enter description",
+      "validation": {
+        "maxLength": 250
       },
-      "isForeignKey": true,
-      "referencedTable": "currency",
-      "referencedFieldID": "id",
-      "displayName": "Currency",
-      "placeholder": "Enter currency",
-      "referencedFieldName": "name"
-    },
-    {
-      "id": "field_price",
-      "name": "price",
-      "fieldType": "number",
-      "component": "NumberInput",
-      "required": true,
-      "isSystem": false,
-      "isPrimaryKey": false,
-      "isUnique": false,
-      "sortOrder": 40,
-      "permissions": {
-        "read": [
-          "*"
-        ],
-        "write": [
-          "admin",
-          "editor"
-        ]
-      },
-      "displayName": "Price",
-      "placeholder": "Enter price",
-      "defaultValue": "0"
-    },
-    {
-      "id": "field_pet_service_status_id",
-      "name": "pet_service_status_id",
-      "fieldType": "uuid",
-      "component": "DropdownInput",
-      "required": false,
-      "isSystem": false,
-      "isPrimaryKey": false,
-      "isUnique": false,
-      "sortOrder": 50,
-      "permissions": {
-        "read": [
-          "*"
-        ],
-        "write": [
-          "admin",
-          "editor"
-        ]
-      },
-      "isForeignKey": true,
-      "referencedTable": "pet_service_status",
-      "referencedFieldID": "id",
-      "displayName": "Pet Service Status",
-      "placeholder": "Enter pet service status",
-      "referencedFieldName": "name"
-    },
-    {
-      "id": "field_date",
-      "name": "date",
-      "fieldType": "date",
-      "component": "DateInput",
-      "required": false,
-      "isSystem": false,
-      "isPrimaryKey": false,
-      "isUnique": false,
-      "sortOrder": 60,
-      "permissions": {
-        "read": [
-          "*"
-        ],
-        "write": [
-          "admin",
-          "editor"
-        ]
-      },
-      "displayName": "Date",
-      "placeholder": "Enter date",
-      "defaultValue": "(timezone(utc"
-    },
-    {
-      "id": "field_pet_breed_id",
-      "name": "pet_breed_id",
-      "fieldType": "uuid",
-      "component": "DropdownInput",
-      "required": false,
-      "isSystem": false,
-      "isPrimaryKey": false,
-      "isUnique": false,
-      "sortOrder": 70,
-      "permissions": {
-        "read": [
-          "*"
-        ],
-        "write": [
-          "admin",
-          "editor"
-        ]
-      },
-      "isForeignKey": true,
-      "referencedTable": "pet_manchester_terrier_toy",
-      "referencedFieldID": "breed_id",
-      "displayName": "Pet Breed",
-      "placeholder": "Enter pet breed",
-      "referencedFieldName": "name"
+      "defaultValue": ""
     },
     {
       "id": "field_id",
@@ -190,7 +68,7 @@
       "isSystem": true,
       "isPrimaryKey": true,
       "isUnique": true,
-      "sortOrder": 80,
+      "sortOrder": 30,
       "permissions": {
         "read": [
           "*"
@@ -210,7 +88,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 90,
+      "sortOrder": 40,
       "permissions": {
         "read": [
           "*"
@@ -230,7 +108,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 100,
+      "sortOrder": 50,
       "permissions": {
         "read": [
           "*"
@@ -250,7 +128,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 110,
+      "sortOrder": 60,
       "permissions": {
         "read": [
           "*"
@@ -270,7 +148,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 120,
+      "sortOrder": 70,
       "permissions": {
         "read": [
           "*"
@@ -284,9 +162,9 @@
   ],
   "metadata": {
     "tableName": "pet_service",
-    "totalFields": 12,
+    "totalFields": 7,
     "systemFields": 5,
-    "customFields": 7,
-    "generatedAt": "2025-12-22T10:27:17.856Z"
+    "customFields": 2,
+    "generatedAt": "2025-12-22T16:21:03.928Z"
   }
 }

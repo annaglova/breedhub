@@ -2,7 +2,7 @@
   {
     "key": "name",
     "name": "name",
-    "occurrences": 163,
+    "occurrences": 164,
     "entities": [
       "account",
       "breed",
@@ -159,6 +159,7 @@
       "license_manager",
       "location_in_event",
       "pet_old",
+      "pet_service",
       "pet_service_feature_in_pet",
       "producer_card",
       "product_source",
@@ -4963,6 +4964,37 @@
         }
       },
       {
+        "entity": "pet_service",
+        "category": "child",
+        "config": {
+          "id": "field_name",
+          "name": "name",
+          "fieldType": "string",
+          "component": "TextInput",
+          "required": true,
+          "isSystem": false,
+          "isPrimaryKey": false,
+          "isUnique": false,
+          "sortOrder": 10,
+          "permissions": {
+            "read": [
+              "*"
+            ],
+            "write": [
+              "admin",
+              "editor"
+            ]
+          },
+          "maxLength": 250,
+          "displayName": "Name",
+          "placeholder": "Enter name",
+          "validation": {
+            "maxLength": 250
+          },
+          "defaultValue": ""
+        }
+      },
+      {
         "entity": "pet_service_feature_in_pet",
         "category": "child",
         "config": {
@@ -5235,7 +5267,7 @@
   {
     "key": "description",
     "name": "description",
-    "occurrences": 145,
+    "occurrences": 146,
     "entities": [
       "account",
       "breed",
@@ -5371,6 +5403,7 @@
       "issue_type",
       "pet_additional_info",
       "pet_lifecycle",
+      "pet_service",
       "producer_card",
       "product_source",
       "project_entry_type",
@@ -9519,6 +9552,37 @@
           },
           "displayName": "Description",
           "placeholder": "Enter description",
+          "defaultValue": ""
+        }
+      },
+      {
+        "entity": "pet_service",
+        "category": "child",
+        "config": {
+          "id": "field_description",
+          "name": "description",
+          "fieldType": "string",
+          "component": "TextareaInput",
+          "required": true,
+          "isSystem": false,
+          "isPrimaryKey": false,
+          "isUnique": false,
+          "sortOrder": 20,
+          "permissions": {
+            "read": [
+              "*"
+            ],
+            "write": [
+              "admin",
+              "editor"
+            ]
+          },
+          "maxLength": 250,
+          "displayName": "Description",
+          "placeholder": "Enter description",
+          "validation": {
+            "maxLength": 250
+          },
           "defaultValue": ""
         }
       },
@@ -18481,7 +18545,7 @@
           "isSystem": true,
           "isPrimaryKey": true,
           "isUnique": true,
-          "sortOrder": 460,
+          "sortOrder": 470,
           "permissions": {
             "read": [
               "*"
@@ -23377,7 +23441,7 @@
           "isSystem": true,
           "isPrimaryKey": true,
           "isUnique": true,
-          "sortOrder": 80,
+          "sortOrder": 30,
           "permissions": {
             "read": [
               "*"
@@ -24953,7 +25017,7 @@
           "isSystem": true,
           "isPrimaryKey": false,
           "isUnique": false,
-          "sortOrder": 470,
+          "sortOrder": 480,
           "permissions": {
             "read": [
               "*"
@@ -29801,7 +29865,7 @@
           "isSystem": true,
           "isPrimaryKey": false,
           "isUnique": false,
-          "sortOrder": 90,
+          "sortOrder": 40,
           "permissions": {
             "read": [
               "*"
@@ -31377,7 +31441,7 @@
           "isSystem": true,
           "isPrimaryKey": false,
           "isUnique": false,
-          "sortOrder": 480,
+          "sortOrder": 490,
           "permissions": {
             "read": [
               "*"
@@ -36225,7 +36289,7 @@
           "isSystem": true,
           "isPrimaryKey": false,
           "isUnique": false,
-          "sortOrder": 100,
+          "sortOrder": 50,
           "permissions": {
             "read": [
               "*"
@@ -37755,7 +37819,7 @@
           "isSystem": true,
           "isPrimaryKey": false,
           "isUnique": false,
-          "sortOrder": 490,
+          "sortOrder": 500,
           "permissions": {
             "read": [
               "*"
@@ -42603,7 +42667,7 @@
           "isSystem": true,
           "isPrimaryKey": false,
           "isUnique": false,
-          "sortOrder": 110,
+          "sortOrder": 60,
           "permissions": {
             "read": [
               "*"
@@ -44179,7 +44243,7 @@
           "isSystem": true,
           "isPrimaryKey": false,
           "isUnique": false,
-          "sortOrder": 500,
+          "sortOrder": 510,
           "permissions": {
             "read": [
               "*"
@@ -49027,7 +49091,7 @@
           "isSystem": true,
           "isPrimaryKey": false,
           "isUnique": false,
-          "sortOrder": 120,
+          "sortOrder": 70,
           "permissions": {
             "read": [
               "*"
@@ -56367,7 +56431,7 @@
   {
     "key": "pet_id",
     "name": "pet_id",
-    "occurrences": 24,
+    "occurrences": 23,
     "entities": [
       "activity",
       "note",
@@ -56388,7 +56452,6 @@
       "pet_lifecycle",
       "pet_measurement",
       "pet_pedigree_cycle",
-      "pet_service",
       "pet_service_feature_in_pet",
       "producer_card",
       "title_in_pet",
@@ -56941,36 +57004,6 @@
       },
       {
         "entity": "pet_pedigree_cycle",
-        "category": "child",
-        "config": {
-          "id": "field_pet_id",
-          "name": "pet_id",
-          "fieldType": "uuid",
-          "component": "DropdownInput",
-          "required": false,
-          "isSystem": false,
-          "isPrimaryKey": false,
-          "isUnique": false,
-          "sortOrder": 20,
-          "permissions": {
-            "read": [
-              "*"
-            ],
-            "write": [
-              "admin",
-              "editor"
-            ]
-          },
-          "isForeignKey": true,
-          "referencedTable": "pet_manchester_terrier_toy",
-          "referencedFieldID": "breed_id",
-          "displayName": "Pet",
-          "placeholder": "Enter pet",
-          "referencedFieldName": "name"
-        }
-      },
-      {
-        "entity": "pet_service",
         "category": "child",
         "config": {
           "id": "field_pet_id",
@@ -57616,7 +57649,7 @@
   {
     "key": "pet_breed_id",
     "name": "pet_breed_id",
-    "occurrences": 20,
+    "occurrences": 19,
     "entities": [
       "activity",
       "note",
@@ -57634,7 +57667,6 @@
       "pet_lifecycle",
       "pet_measurement",
       "pet_pedigree_cycle",
-      "pet_service",
       "pet_service_feature_in_pet",
       "producer_card",
       "title_in_pet"
@@ -58092,36 +58124,6 @@
       },
       {
         "entity": "pet_pedigree_cycle",
-        "category": "child",
-        "config": {
-          "id": "field_pet_breed_id",
-          "name": "pet_breed_id",
-          "fieldType": "uuid",
-          "component": "DropdownInput",
-          "required": false,
-          "isSystem": false,
-          "isPrimaryKey": false,
-          "isUnique": false,
-          "sortOrder": 70,
-          "permissions": {
-            "read": [
-              "*"
-            ],
-            "write": [
-              "admin",
-              "editor"
-            ]
-          },
-          "isForeignKey": true,
-          "referencedTable": "pet_manchester_terrier_toy",
-          "referencedFieldID": "breed_id",
-          "displayName": "Pet Breed",
-          "placeholder": "Enter pet breed",
-          "referencedFieldName": "name"
-        }
-      },
-      {
-        "entity": "pet_service",
         "category": "child",
         "config": {
           "id": "field_pet_breed_id",
@@ -60255,7 +60257,7 @@
           "isSystem": true,
           "isPrimaryKey": false,
           "isUnique": false,
-          "sortOrder": 510,
+          "sortOrder": 520,
           "permissions": {
             "read": [
               "*"
@@ -60661,7 +60663,7 @@
   {
     "key": "date",
     "name": "date",
-    "occurrences": 16,
+    "occurrences": 15,
     "entities": [
       "cashflow",
       "order",
@@ -60675,7 +60677,6 @@
       "pet_in_project",
       "pet_lifecycle",
       "pet_measurement",
-      "pet_service",
       "pet_service_in_litter",
       "post_comment",
       "title_in_pet"
@@ -60999,33 +61000,6 @@
         }
       },
       {
-        "entity": "pet_service",
-        "category": "child",
-        "config": {
-          "id": "field_date",
-          "name": "date",
-          "fieldType": "date",
-          "component": "DateInput",
-          "required": false,
-          "isSystem": false,
-          "isPrimaryKey": false,
-          "isUnique": false,
-          "sortOrder": 60,
-          "permissions": {
-            "read": [
-              "*"
-            ],
-            "write": [
-              "admin",
-              "editor"
-            ]
-          },
-          "displayName": "Date",
-          "placeholder": "Enter date",
-          "defaultValue": "(timezone(utc"
-        }
-      },
-      {
         "entity": "pet_service_in_litter",
         "category": "child",
         "config": {
@@ -61126,7 +61100,7 @@
   {
     "key": "currency_id",
     "name": "currency_id",
-    "occurrences": 9,
+    "occurrences": 8,
     "entities": [
       "cashflow",
       "invoice",
@@ -61134,7 +61108,6 @@
       "product",
       "breed_forecast",
       "fin_account",
-      "pet_service",
       "pet_service_in_litter",
       "product_price"
     ],
@@ -61302,36 +61275,6 @@
           "isPrimaryKey": false,
           "isUnique": false,
           "sortOrder": 20,
-          "permissions": {
-            "read": [
-              "*"
-            ],
-            "write": [
-              "admin",
-              "editor"
-            ]
-          },
-          "isForeignKey": true,
-          "referencedTable": "currency",
-          "referencedFieldID": "id",
-          "displayName": "Currency",
-          "placeholder": "Enter currency",
-          "referencedFieldName": "name"
-        }
-      },
-      {
-        "entity": "pet_service",
-        "category": "child",
-        "config": {
-          "id": "field_currency_id",
-          "name": "currency_id",
-          "fieldType": "uuid",
-          "component": "DropdownInput",
-          "required": false,
-          "isSystem": false,
-          "isPrimaryKey": false,
-          "isUnique": false,
-          "sortOrder": 30,
           "permissions": {
             "read": [
               "*"
@@ -72273,6 +72216,44 @@
     }
   },
   {
+    "key": "services",
+    "name": "services",
+    "occurrences": 1,
+    "entities": [
+      "pet"
+    ],
+    "variations": [
+      {
+        "entity": "pet",
+        "category": "main",
+        "config": {
+          "id": "field_services",
+          "name": "services",
+          "fieldType": "json",
+          "component": "TextareaInput",
+          "required": false,
+          "isSystem": false,
+          "isPrimaryKey": false,
+          "isUnique": false,
+          "sortOrder": 460,
+          "permissions": {
+            "read": [
+              "*"
+            ],
+            "write": [
+              "admin",
+              "editor"
+            ]
+          },
+          "displayName": "Services",
+          "placeholder": "Enter services",
+          "defaultValue": "{}"
+        }
+      }
+    ],
+    "commonProps": null
+  },
+  {
     "key": "publication_date",
     "name": "publication_date",
     "occurrences": 1,
@@ -73053,11 +73034,10 @@
   {
     "key": "price",
     "name": "price",
-    "occurrences": 5,
+    "occurrences": 4,
     "entities": [
       "product",
       "invoice_product",
-      "pet_service",
       "pet_service_in_litter",
       "product_price"
     ],
@@ -73102,33 +73082,6 @@
           "isPrimaryKey": false,
           "isUnique": false,
           "sortOrder": 90,
-          "permissions": {
-            "read": [
-              "*"
-            ],
-            "write": [
-              "admin",
-              "editor"
-            ]
-          },
-          "displayName": "Price",
-          "placeholder": "Enter price",
-          "defaultValue": "0"
-        }
-      },
-      {
-        "entity": "pet_service",
-        "category": "child",
-        "config": {
-          "id": "field_price",
-          "name": "price",
-          "fieldType": "number",
-          "component": "NumberInput",
-          "required": true,
-          "isSystem": false,
-          "isPrimaryKey": false,
-          "isUnique": false,
-          "sortOrder": 40,
           "permissions": {
             "read": [
               "*"
@@ -80381,10 +80334,9 @@
   {
     "key": "service_type_id",
     "name": "service_type_id",
-    "occurrences": 4,
+    "occurrences": 3,
     "entities": [
       "pet_service_by_options",
-      "pet_service",
       "pet_service_in_account",
       "pet_service_in_litter"
     ],
@@ -80412,37 +80364,7 @@
             ]
           },
           "isForeignKey": true,
-          "referencedTable": "pet_service_type",
-          "referencedFieldID": "id",
-          "displayName": "Service Type",
-          "placeholder": "Enter service type",
-          "referencedFieldName": "name"
-        }
-      },
-      {
-        "entity": "pet_service",
-        "category": "child",
-        "config": {
-          "id": "field_service_type_id",
-          "name": "service_type_id",
-          "fieldType": "uuid",
-          "component": "DropdownInput",
-          "required": false,
-          "isSystem": false,
-          "isPrimaryKey": false,
-          "isUnique": false,
-          "sortOrder": 10,
-          "permissions": {
-            "read": [
-              "*"
-            ],
-            "write": [
-              "admin",
-              "editor"
-            ]
-          },
-          "isForeignKey": true,
-          "referencedTable": "pet_service_type",
+          "referencedTable": "pet_service",
           "referencedFieldID": "id",
           "displayName": "Service Type",
           "placeholder": "Enter service type",
@@ -80472,7 +80394,7 @@
             ]
           },
           "isForeignKey": true,
-          "referencedTable": "pet_service_type",
+          "referencedTable": "pet_service",
           "referencedFieldID": "id",
           "displayName": "Service Type",
           "placeholder": "Enter service type",
@@ -80502,7 +80424,7 @@
             ]
           },
           "isForeignKey": true,
-          "referencedTable": "pet_service_type",
+          "referencedTable": "pet_service",
           "referencedFieldID": "id",
           "displayName": "Service Type",
           "placeholder": "Enter service type",
@@ -80561,7 +80483,7 @@
             ]
           },
           "isForeignKey": true,
-          "referencedTable": "pet_service_type",
+          "referencedTable": "pet_service",
           "referencedFieldID": "id",
           "displayName": "Pet Service Type",
           "placeholder": "Enter pet service type",
@@ -80591,7 +80513,7 @@
             ]
           },
           "isForeignKey": true,
-          "referencedTable": "pet_service_type",
+          "referencedTable": "pet_service",
           "referencedFieldID": "id",
           "displayName": "Pet Service Type",
           "placeholder": "Enter pet service type",
@@ -87017,28 +86939,26 @@
     "commonProps": null
   },
   {
-    "key": "pet_service_status_id",
-    "name": "pet_service_status_id",
-    "occurrences": 3,
+    "key": "pet_service_feature_id",
+    "name": "pet_service_feature_id",
+    "occurrences": 1,
     "entities": [
-      "pet_service",
-      "pet_service_in_account",
-      "pet_service_in_litter"
+      "pet_service_feature_in_pet"
     ],
     "variations": [
       {
-        "entity": "pet_service",
+        "entity": "pet_service_feature_in_pet",
         "category": "child",
         "config": {
-          "id": "field_pet_service_status_id",
-          "name": "pet_service_status_id",
+          "id": "field_pet_service_feature_id",
+          "name": "pet_service_feature_id",
           "fieldType": "uuid",
           "component": "DropdownInput",
           "required": false,
           "isSystem": false,
           "isPrimaryKey": false,
           "isUnique": false,
-          "sortOrder": 50,
+          "sortOrder": 30,
           "permissions": {
             "read": [
               "*"
@@ -87049,13 +86969,25 @@
             ]
           },
           "isForeignKey": true,
-          "referencedTable": "pet_service_status",
+          "referencedTable": "pet_service_feature",
           "referencedFieldID": "id",
-          "displayName": "Pet Service Status",
-          "placeholder": "Enter pet service status",
+          "displayName": "Pet Service Feature",
+          "placeholder": "Enter pet service feature",
           "referencedFieldName": "name"
         }
-      },
+      }
+    ],
+    "commonProps": null
+  },
+  {
+    "key": "pet_service_status_id",
+    "name": "pet_service_status_id",
+    "occurrences": 2,
+    "entities": [
+      "pet_service_in_account",
+      "pet_service_in_litter"
+    ],
+    "variations": [
       {
         "entity": "pet_service_in_account",
         "category": "child",
@@ -87135,47 +87067,6 @@
         ]
       }
     }
-  },
-  {
-    "key": "pet_service_feature_id",
-    "name": "pet_service_feature_id",
-    "occurrences": 1,
-    "entities": [
-      "pet_service_feature_in_pet"
-    ],
-    "variations": [
-      {
-        "entity": "pet_service_feature_in_pet",
-        "category": "child",
-        "config": {
-          "id": "field_pet_service_feature_id",
-          "name": "pet_service_feature_id",
-          "fieldType": "uuid",
-          "component": "DropdownInput",
-          "required": false,
-          "isSystem": false,
-          "isPrimaryKey": false,
-          "isUnique": false,
-          "sortOrder": 30,
-          "permissions": {
-            "read": [
-              "*"
-            ],
-            "write": [
-              "admin",
-              "editor"
-            ]
-          },
-          "isForeignKey": true,
-          "referencedTable": "pet_service_feature",
-          "referencedFieldID": "id",
-          "displayName": "Pet Service Feature",
-          "placeholder": "Enter pet service feature",
-          "referencedFieldName": "name"
-        }
-      }
-    ],
-    "commonProps": null
   },
   {
     "key": "pet_size_id",
