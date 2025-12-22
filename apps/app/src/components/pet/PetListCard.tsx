@@ -51,26 +51,34 @@ export function PetListCard({
   // Resolve pet_status_id to name via dictionary lookup
   const petStatusName = useDictionaryValue("pet_status", entity.pet_status_id);
 
-  // Extract data from the entity - use real DB values
+  // Extract data from the entity - use real DB values + mock for UI components
   const pet = {
     Id: entity.id,
     Name: entity.name || "Unknown",
     Avatar: entity.avatar_url,
     // Status - resolved from dictionary
     PetStatus: petStatusName,
-    // Verification status
+    // Verification status - TODO: use real data when available
+    // Verified UUID: "13c697a5-4895-4ec8-856c-536b925fd54f" (shows green), others show gray
     VerificationStatus: entity.verification_status_id
       ? { Id: entity.verification_status_id }
-      : undefined,
+      : Math.random() > 0.6 ? { Id: "13c697a5-4895-4ec8-856c-536b925fd54f" } : undefined, // Mock for visual testing
     // Dates and measurements
     DateOfBirth: entity.date_of_birth,
     COI: entity.coi,
-    // Notes - check if notes field exists and has content
-    HasNotes: !!entity.notes,
-    // Tier marks - from DB
-    TierMarks: entity.tier_marks || [],
-    // Services - from DB
-    Services: entity.services || [],
+    // Notes - TODO: use real data when available
+    HasNotes: !!entity.notes || Math.random() > 0.7, // Mock for visual testing
+    // Tier marks - TODO: use real data when available
+    // Format: { Type: "breeder"|"contact"|"owner", Product: { Name: "..." }, Contact: { Name: "..." } }
+    TierMarks: entity.tier_marks?.length ? entity.tier_marks : (Math.random() > 0.8 ? [
+      { Type: "breeder", Product: { Name: "Professional" }, Contact: { Name: "Mock Breeder" } }
+    ] : []), // Mock for visual testing
+    // Services - TODO: use real data when available
+    // Format: { ServiceType: { Id: "uuid" } } - UUIDs from PetServices.tsx SERVICE_CONFIG
+    Services: entity.services?.length ? entity.services : (Math.random() > 0.7 ? [
+      { ServiceType: { Id: "ea48e37d-8f65-4122-bc00-d012848d78ae" } }, // Mating
+      { ServiceType: { Id: "ddc59ace-c622-4d6b-b473-19e9a313ed21" } }, // Sale
+    ] : []), // Mock for visual testing
   };
 
   const formattedDate = formatDate(pet.DateOfBirth);
