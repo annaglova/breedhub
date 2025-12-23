@@ -1,14 +1,19 @@
 import { cn } from "@ui/lib/utils";
-import { User, Home, Crown } from "lucide-react";
+import { User, Home } from "lucide-react";
 
-interface TierMarkData {
-  Contact?: { Id?: string; Name?: string };
-  Product?: { Name?: string };
-  Type?: "breeder" | "contact" | "owner";
+// New format from DB: { owner: {...}, breeder: {...} }
+interface TierMarkEntry {
+  contact_name?: string;
+  product_name?: string;
+}
+
+interface TierMarksData {
+  owner?: TierMarkEntry;
+  breeder?: TierMarkEntry;
 }
 
 interface TierMarkProps {
-  tierMarks?: TierMarkData[];
+  tierMarks?: TierMarksData;
   mode?: "list" | "full";
   className?: string;
 }
@@ -20,42 +25,62 @@ interface TierMarkProps {
  *
  * Shows colored badges for different patron types:
  * - breeder (primary color)
- * - contact/owner (accent color)
+ * - owner (accent color)
+ *
+ * Data format from DB:
+ * {
+ *   "owner": { "contact_name": "John Doe", "product_name": "Professional" },
+ *   "breeder": { "contact_name": "Jane Smith", "product_name": "Supreme Patron" }
+ * }
  */
 export function TierMark({
   tierMarks,
   mode = "list",
   className,
 }: TierMarkProps) {
-  if (!tierMarks || tierMarks.length === 0) return null;
+  if (!tierMarks) return null;
 
-  // Transform tier marks
-  const tiers = tierMarks.map((tierMark) => {
-    const isBreeder = tierMark.Type === "breeder";
-    const productName = tierMark.Product?.Name || "Professional";
-    const shortName =
-      productName === "Supreme Patron" ? "Suprm" : "Pro";
+  // Transform tier marks from object format to array for rendering
+  const tiers: Array<{
+    color: string;
+    contactName: string;
+    name: string;
+    shortName: string;
+    type: "owner" | "breeder";
+  }> = [];
 
-    return {
-      color: isBreeder
-        ? "bg-primary-500"
-        : "bg-accent-600",
-      contactName: tierMark.Contact?.Name || "",
-      iconType: tierMark.Type,
+  // Process breeder first (will appear first in UI)
+  if (tierMarks.breeder?.product_name) {
+    const productName = tierMarks.breeder.product_name;
+    tiers.push({
+      color: "bg-primary", // breeder = primary color
+      contactName: tierMarks.breeder.contact_name || "",
       name: productName,
-      shortName,
-      type: tierMark.Type,
-    };
-  });
+      shortName: productName === "Supreme Patron" ? "Suprm" : "Pro",
+      type: "breeder",
+    });
+  }
+
+  // Then owner
+  if (tierMarks.owner?.product_name) {
+    const productName = tierMarks.owner.product_name;
+    tiers.push({
+      color: "bg-accent-600", // owner = accent color
+      contactName: tierMarks.owner.contact_name || "",
+      name: productName,
+      shortName: productName === "Supreme Patron" ? "Suprm" : "Pro",
+      type: "owner",
+    });
+  }
+
+  if (tiers.length === 0) return null;
 
   const IconComponent = ({ type }: { type?: string }) => {
     switch (type) {
       case "breeder":
-        return <Home className="w-3.5 h-3.5 text-white" />;
+        return <Home className="w-3.5 h-3.5" />;
       case "owner":
-        return <User className="w-3.5 h-3.5 text-white" />;
-      case "contact":
-        return <Crown className="w-3.5 h-3.5 text-white" />;
+        return <User className="w-3.5 h-3.5" />;
       default:
         return null;
     }

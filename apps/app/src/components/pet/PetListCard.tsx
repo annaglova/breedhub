@@ -6,6 +6,17 @@ import { PetServices } from "@/components/entity/PetServices";
 import { useDictionaryValue } from "@/hooks/useDictionaryValue";
 import defaultPetAvatar from "@/assets/images/pettypes/dog.jpeg";
 
+// Tier marks format from DB
+interface TierMarkEntry {
+  contact_name?: string;
+  product_name?: string;
+}
+
+interface TierMarksData {
+  owner?: TierMarkEntry;
+  breeder?: TierMarkEntry;
+}
+
 // Interface for pet data from RxDB
 interface PetEntity {
   id: string;
@@ -16,7 +27,7 @@ interface PetEntity {
   verification_status_id?: string;
   date_of_birth?: string;
   coi?: number;
-  tier_marks?: any[];
+  tier_marks?: TierMarksData;
   services?: Record<string, string>; // Format: {"1": "service_id", "2": "service_id"}
   notes?: string;
   [key: string]: any;
@@ -82,11 +93,9 @@ export function PetListCard({
     COI: entity.coi,
     // Notes - TODO: use real data when available
     HasNotes: !!entity.notes || Math.random() > 0.7, // Mock for visual testing
-    // Tier marks - TODO: use real data when available
-    // Format: { Type: "breeder"|"contact"|"owner", Product: { Name: "..." }, Contact: { Name: "..." } }
-    TierMarks: entity.tier_marks?.length ? entity.tier_marks : (Math.random() > 0.8 ? [
-      { Type: "breeder", Product: { Name: "Professional" }, Contact: { Name: "Mock Breeder" } }
-    ] : []), // Mock for visual testing
+    // Tier marks - uses real data from entity
+    // Format: { owner: { contact_name, product_name }, breeder: { contact_name, product_name } }
+    TierMarks: entity.tier_marks,
     // Services - uses real data from entity
     // Format: {"1": "service_id", "2": "service_id", ...}
     Services: entity.services,
