@@ -19681,6 +19681,43 @@
       ]
     },
     {
+      "id": "pet_field_tier_marks",
+      "type": "entity_field",
+      "deps": [
+        "property_not_required",
+        "property_not_system",
+        "property_not_primary_key",
+        "property_not_unique"
+      ],
+      "category": "pet",
+      "caption": "pet tier_marks field",
+      "self_data": {
+        "fieldType": "json",
+        "component": "TextareaInput",
+        "required": false,
+        "isSystem": false,
+        "isPrimaryKey": false,
+        "isUnique": false,
+        "sortOrder": 470,
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "admin",
+            "editor"
+          ]
+        },
+        "displayName": "Tier Marks",
+        "placeholder": "Enter tier marks",
+        "defaultValue": "{}"
+      },
+      "tags": [
+        "main",
+        "pet"
+      ]
+    },
+    {
       "id": "pet_field_id",
       "type": "entity_field",
       "deps": [
@@ -19695,7 +19732,7 @@
         "isSystem": true,
         "isPrimaryKey": true,
         "isUnique": true,
-        "sortOrder": 470,
+        "sortOrder": 480,
         "permissions": {
           "read": [
             "*"
@@ -19726,7 +19763,7 @@
         "isSystem": true,
         "isPrimaryKey": false,
         "isUnique": false,
-        "sortOrder": 480,
+        "sortOrder": 490,
         "permissions": {
           "read": [
             "*"
@@ -19757,7 +19794,7 @@
         "isSystem": true,
         "isPrimaryKey": false,
         "isUnique": false,
-        "sortOrder": 490,
+        "sortOrder": 500,
         "permissions": {
           "read": [
             "*"
@@ -19788,7 +19825,7 @@
         "isSystem": true,
         "isPrimaryKey": false,
         "isUnique": false,
-        "sortOrder": 500,
+        "sortOrder": 510,
         "permissions": {
           "read": [
             "*"
@@ -19819,7 +19856,7 @@
         "isSystem": true,
         "isPrimaryKey": false,
         "isUnique": false,
-        "sortOrder": 510,
+        "sortOrder": 520,
         "permissions": {
           "read": [
             "*"
@@ -19854,7 +19891,7 @@
         "isSystem": true,
         "isPrimaryKey": false,
         "isUnique": false,
-        "sortOrder": 520,
+        "sortOrder": 530,
         "permissions": {
           "read": [
             "*"

@@ -1177,6 +1177,29 @@
       "defaultValue": "{}"
     },
     {
+      "id": "field_tier_marks",
+      "name": "tier_marks",
+      "fieldType": "json",
+      "component": "TextareaInput",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 470,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "displayName": "Tier Marks",
+      "placeholder": "Enter tier marks",
+      "defaultValue": "{}"
+    },
+    {
       "id": "field_id",
       "name": "id",
       "fieldType": "uuid",
@@ -1185,7 +1208,7 @@
       "isSystem": true,
       "isPrimaryKey": true,
       "isUnique": true,
-      "sortOrder": 470,
+      "sortOrder": 480,
       "permissions": {
         "read": [
           "*"
@@ -1205,7 +1228,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 480,
+      "sortOrder": 490,
       "permissions": {
         "read": [
           "*"
@@ -1225,7 +1248,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 490,
+      "sortOrder": 500,
       "permissions": {
         "read": [
           "*"
@@ -1245,7 +1268,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 500,
+      "sortOrder": 510,
       "permissions": {
         "read": [
           "*"
@@ -1265,7 +1288,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 510,
+      "sortOrder": 520,
       "permissions": {
         "read": [
           "*"
@@ -1285,7 +1308,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 520,
+      "sortOrder": 530,
       "permissions": {
         "read": [
           "*"
@@ -1299,9 +1322,9 @@
   ],
   "metadata": {
     "tableName": "pet",
-    "totalFields": 52,
+    "totalFields": 53,
     "systemFields": 6,
-    "customFields": 46,
-    "generatedAt": "2025-12-22T16:18:51.676Z"
+    "customFields": 47,
+    "generatedAt": "2025-12-23T10:53:55.204Z"
   }
 }
