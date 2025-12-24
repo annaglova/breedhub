@@ -1188,9 +1188,9 @@ export function SpaceComponent<T extends { id: string }>({
                 component:
                   finalConfig.viewConfigs?.find(v => v.viewType === viewMode)?.component ||
                   "GenericListCard",
-                itemHeight: viewMode === "grid" ? 280 : 68,
-                dividers: viewMode === "list" || viewMode === "rows",
-                overscan: 3,
+                itemHeight: finalConfig.viewConfigs?.find(v => v.viewType === viewMode)?.itemHeight || 68,
+                dividers: finalConfig.viewConfigs?.find(v => v.viewType === viewMode)?.dividers ?? true,
+                overscan: finalConfig.viewConfigs?.find(v => v.viewType === viewMode)?.overscan || 3,
                 skeletonCount: Math.ceil(recordsCount / 2),
               }}
               entities={[]}
@@ -1326,9 +1326,9 @@ export function SpaceComponent<T extends { id: string }>({
                 component:
                   finalConfig.viewConfigs?.find(v => v.viewType === viewMode)?.component ||
                   "GenericListCard",
-                itemHeight: viewMode === "grid" ? 280 : 68,
-                dividers: viewMode === "list" || viewMode === "rows",
-                overscan: 3,
+                itemHeight: finalConfig.viewConfigs?.find(v => v.viewType === viewMode)?.itemHeight || 68,
+                dividers: finalConfig.viewConfigs?.find(v => v.viewType === viewMode)?.dividers ?? true,
+                overscan: finalConfig.viewConfigs?.find(v => v.viewType === viewMode)?.overscan || 3,
                 skeletonCount: Math.ceil(recordsCount / 2),
               }}
               entities={allEntities}

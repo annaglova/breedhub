@@ -38,7 +38,7 @@ interface SpaceViewProps<T> {
 // Helper to determine if view should render as grid
 function isGridLayout(viewType: string): boolean {
   // Grid-like layouts need special handling
-  const gridTypes = ['grid', 'cards', 'tiles', 'masonry'];
+  const gridTypes = ['grid', 'cards', 'tiles', 'masonry', 'tab'];
   return gridTypes.includes(viewType.toLowerCase());
 }
 

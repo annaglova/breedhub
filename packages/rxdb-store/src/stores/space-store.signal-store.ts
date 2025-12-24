@@ -400,6 +400,10 @@ class SpaceStore {
       icon?: string;
       tooltip?: string;
       component?: string;
+      itemHeight?: number;
+      dividers?: boolean;
+      overscan?: number;
+      recordsCount?: number;
     }> = [];
 
     if (spaceConfig.views) {
@@ -409,7 +413,11 @@ class SpaceStore {
             viewType: view.viewType,
             icon: view.icon,
             tooltip: view.tooltip,
-            component: view.component
+            component: view.component,
+            itemHeight: view.itemHeight,
+            dividers: view.dividers,
+            overscan: view.overscan,
+            recordsCount: view.recordsCount,
           });
         }
       });
