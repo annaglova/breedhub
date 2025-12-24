@@ -1784,11 +1784,44 @@ class SpaceStore {
         orderBy
       );
 
+      // On first page, fetch global total count (separate lightweight query without filters)
+      if (cursor === null) {
+        const entityStore = this.entityStores.get(entityType);
+        const cachedTotal = entityStore?.totalFromServer.value;
+
+        // Only fetch if we don't have cached total yet
+        if (cachedTotal === null || cachedTotal === undefined) {
+          try {
+            const { supabase } = await import('../supabase/client');
+            const { count: globalCount, error: countError } = await supabase
+              .from(entityType)
+              .select('*', { count: 'exact', head: true })
+              .or('deleted.is.null,deleted.eq.false');
+
+            if (!countError && globalCount !== null) {
+              console.log(`[SpaceStore] 📊 Global total count: ${globalCount}`);
+              if (entityStore) {
+                entityStore.setTotalFromServer(globalCount);
+              }
+              // Cache to localStorage
+              try {
+                localStorage.setItem(`totalCount_${entityType}`, globalCount.toString());
+              } catch (e) {
+                console.warn(`[SpaceStore] Failed to cache totalCount:`, e);
+              }
+            }
+          } catch (e) {
+            console.warn(`[SpaceStore] Failed to fetch global count:`, e);
+          }
+        }
+      }
+
       if (!idsData || idsData.length === 0) {
         console.log('[SpaceStore] ⚠️ No IDs returned from Supabase');
+        const entityStore = this.entityStores.get(entityType);
         return {
           records: [],
-          total: 0,
+          total: entityStore?.totalFromServer.value ?? 0,
           hasMore: false,
           nextCursor: null
         };

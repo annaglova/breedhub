@@ -540,14 +540,15 @@ export function SpaceComponent<T extends { id: string }>({
 
         // Save totalCount to localStorage ONLY on FIRST load (not during pagination)
         // This prevents the count from growing during infinite scroll
-        const reservedParams = ["sort", "view", "sortBy", "sortDir", "sortParam"];
+        const reservedParams = ["sort", "view", "sortBy", "sortDir", "sortParam", "type"];
         const hasFilters = Array.from(searchParams.keys()).some(
           key => !reservedParams.includes(key)
         );
 
         if (!hasFilters) {
           try {
-            const cached = localStorage.getItem(`totalCount_${config.entitySchemaName}`);
+            const cacheKey = `totalCount_${config.entitySchemaName}`;
+            const cached = localStorage.getItem(cacheKey);
             const cachedTotal = cached ? parseInt(cached, 10) : 0;
 
             // Only save on FIRST load when:
@@ -559,7 +560,7 @@ export function SpaceComponent<T extends { id: string }>({
             const shouldSave = isFirstLoad && isRealTotal;
 
             if (shouldSave) {
-              localStorage.setItem(`totalCount_${config.entitySchemaName}`, data.total.toString());
+              localStorage.setItem(cacheKey, data.total.toString());
             }
           } catch (e) {
             console.warn('Failed to cache totalCount:', e);
