@@ -82,9 +82,9 @@ export function TierMark({
   const IconComponent = ({ type }: { type?: string }) => {
     switch (type) {
       case "breeder":
-        return <Home className="w-3.5 h-3.5" style={{ fill: "rgb(255 255 255)" }} />;
+        return <Home className="w-3.5 h-3.5" />;
       case "owner":
-        return <User className="w-3.5 h-3.5" style={{ fill: "rgb(255 255 255)" }} />;
+        return <User className="w-3.5 h-3.5" />;
       default:
         return null;
     }
