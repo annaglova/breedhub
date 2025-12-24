@@ -83,6 +83,13 @@ export function SpaceComponent<T extends { id: string }>({
 
   const viewMode = searchParams.get("view") || defaultView;
 
+  // Check if current view is a grid-like view (tab, grid, cards, etc.)
+  // Grid views don't have selection/drawer - clicking goes directly to fullscreen
+  const isGridView = useMemo(() => {
+    const gridTypes = ['grid', 'cards', 'tiles', 'masonry', 'tab'];
+    return gridTypes.includes(viewMode.toLowerCase());
+  }, [viewMode]);
+
   // Get selected entity ID from EntityStore as reactive signal
   // Using .value makes the component re-render when selection changes
   const selectedEntityId = spaceStore.getSelectedIdSignal(config.entitySchemaName).value;
@@ -724,12 +731,18 @@ export function SpaceComponent<T extends { id: string }>({
         model: config.entitySchemaModel || config.entitySchemaName
       });
 
+      // For grid views (tab, grid, etc.) - go directly to fullscreen
+      // No intermediate drawer state
+      if (isGridView) {
+        spaceStore.setFullscreen(true);
+      }
+
       // Note: Navigation history is only saved for fullscreen pages (in SlugResolver)
       // Drawer mode clicks are quick previews, not "full visits"
 
       navigate(`${slug}${location.search}#overview`);
     },
-    [navigate, config.entitySchemaName, config.entitySchemaModel, location.search]
+    [navigate, config.entitySchemaName, config.entitySchemaModel, location.search, isGridView]
   );
 
   // 🆕 ID-First: Use loadMore from hook (with cursor pagination)
@@ -1106,8 +1119,8 @@ export function SpaceComponent<T extends { id: string }>({
           className={cn(
             "flex flex-col cursor-default h-full overflow-hidden",
             needCardClass ? "fake-card" : "card-surface",
-            // For side-transparent mode (xxl+): ALWAYS reserve space for drawer
-            drawerMode === "side-transparent" && "mr-[46.25rem]"
+            // For side-transparent mode (xxl+): reserve space for drawer (only for list views)
+            !isGridView && drawerMode === "side-transparent" && "mr-[46.25rem]"
           )}
         >
           <div
@@ -1203,8 +1216,8 @@ export function SpaceComponent<T extends { id: string }>({
           </div>
         </div>
 
-        {/* Drawer for side-transparent mode - always visible on xxl+ */}
-        {drawerMode === "side-transparent" && (
+        {/* Drawer for side-transparent mode - always visible on xxl+ (only for list views) */}
+        {!isGridView && drawerMode === "side-transparent" && (
           <div
             className={cn(
               "absolute top-0 right-0 h-full z-40",
@@ -1231,9 +1244,9 @@ export function SpaceComponent<T extends { id: string }>({
             "relative flex flex-col cursor-default h-full overflow-hidden",
             needCardClass ? "fake-card" : "card-surface",
             "transition-all duration-300 ease-out",
-            // For side-transparent mode (xxl+): ALWAYS reserve space for drawer
-            // This prevents layout shift when drawer content loads
-            drawerMode === "side-transparent" && "mr-[46.25rem]" // 45rem + 1.25rem gap
+            // For side-transparent mode (xxl+): reserve space for drawer (only for list views)
+            // Grid views don't have side drawer - they go directly to fullscreen
+            !isGridView && drawerMode === "side-transparent" && "mr-[46.25rem]" // 45rem + 1.25rem gap
           )}
         >
           {/* Header */}
@@ -1332,7 +1345,7 @@ export function SpaceComponent<T extends { id: string }>({
                 skeletonCount: Math.ceil(recordsCount / 2),
               }}
               entities={allEntities}
-              selectedId={selectedEntityId}
+              selectedId={isGridView ? undefined : selectedEntityId}
               onEntityClick={handleEntityClick}
               onLoadMore={handleLoadMore}
               hasMore={hasMore}
@@ -1347,8 +1360,8 @@ export function SpaceComponent<T extends { id: string }>({
             />
           </div>
 
-          {/* Backdrop for drawer (only for side/over modes inside content) */}
-          {(drawerMode === "side" || drawerMode === "over") && (
+          {/* Backdrop for drawer (only for side/over modes inside content, not in grid view) */}
+          {!isGridView && (drawerMode === "side" || drawerMode === "over") && (
             <div
               className={cn(
                 "absolute inset-0 z-30 transition-opacity duration-300",
@@ -1364,38 +1377,39 @@ export function SpaceComponent<T extends { id: string }>({
         )}
 
         {/* Unified Drawer - single element for all modes with smooth transitions */}
-        <div
-          className={cn(
-            "absolute top-0 bottom-0 right-0 z-40",
-            "transition-all duration-300 ease-out",
-            // Width based on mode and fullscreen state - use percentages for smooth transition
-            (showFullscreen || drawerMode === "over") && "w-full",
-            !showFullscreen && drawerMode === "side" && "w-[60%]",
-            !showFullscreen && drawerMode === "side-transparent" && "w-[45rem]",
-            // Background
-            showFullscreen
-              ? (needCardClass ? "fake-card" : "card-surface")
-              : drawerMode === "side-transparent"
+        {/* For grid view: only render when fullscreen. For list view: normal drawer behavior */}
+        {(isGridView ? showFullscreen : (showFullscreen || isDrawerOpen || drawerMode === "side-transparent")) && (
+          <div
+            className={cn(
+              "absolute top-0 bottom-0 right-0 z-40",
+              "transition-all duration-300 ease-out",
+              // Width based on mode and fullscreen state - use percentages for smooth transition
+              (showFullscreen || drawerMode === "over") && "w-full",
+              !showFullscreen && drawerMode === "side" && "w-[60%]",
+              !showFullscreen && drawerMode === "side-transparent" && "w-[45rem]",
+              // Background
+              showFullscreen
                 ? (needCardClass ? "fake-card" : "card-surface")
-                : "bg-white",
-            // Rounded corners (not for fullscreen or over mode)
-            !showFullscreen && drawerMode !== "over" && "rounded-l-xl overflow-hidden",
-            // Shadow for side mode only
-            !showFullscreen && drawerMode === "side" && "shadow-xl",
-            // Show/hide animation (always visible in fullscreen or side-transparent)
-            showFullscreen || drawerMode === "side-transparent"
-              ? "opacity-100"
-              : isDrawerOpen
+                : drawerMode === "side-transparent"
+                  ? (needCardClass ? "fake-card" : "card-surface")
+                  : "bg-white",
+              // Rounded corners (not for fullscreen or over mode)
+              !showFullscreen && drawerMode !== "over" && "rounded-l-xl overflow-hidden",
+              // Shadow for side mode only
+              !showFullscreen && drawerMode === "side" && "shadow-xl",
+              // Show/hide animation (always visible in fullscreen or side-transparent for list views)
+              showFullscreen || drawerMode === "side-transparent"
                 ? "opacity-100"
-                : "translate-x-full opacity-0 pointer-events-none"
-          )}
-        >
-          {(showFullscreen || isDrawerOpen || drawerMode === "side-transparent") && (
+                : isDrawerOpen
+                  ? "opacity-100"
+                  : "translate-x-full opacity-0 pointer-events-none"
+            )}
+          >
             <div className="h-full overflow-auto">
               {children || <Outlet />}
             </div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
     </TooltipProvider>
   );
