@@ -71,6 +71,8 @@ export const DropdownInput = forwardRef<HTMLInputElement, DropdownInputProps>(
       useState<DropdownOption[]>(options);
     const [cursor, setCursor] = useState<string | null>(null); // ✅ Cursor instead of offset
     const [hasMore, setHasMore] = useState(true);
+    const [cachedSelectedOption, setCachedSelectedOption] =
+      useState<DropdownOption | null>(null); // ✅ Cache selected option (like LookupInput)
     const dropdownRef = useRef<HTMLDivElement>(null);
     const dropdownListRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
@@ -81,8 +83,11 @@ export const DropdownInput = forwardRef<HTMLInputElement, DropdownInputProps>(
     // Use dynamic options if referencedTable is provided, otherwise use static options
     const activeOptions = referencedTable ? dynamicOptions : options;
 
-    // Find selected option
-    const selectedOption = activeOptions?.find((opt) => opt.value === value);
+    // Find selected option - use cached version if available, otherwise search in options
+    const selectedOption =
+      cachedSelectedOption?.value === value
+        ? cachedSelectedOption
+        : activeOptions?.find((opt) => opt.value === value);
 
     const loadDictionaryOptions = useCallback(
       async (append: boolean = false) => {
@@ -154,30 +159,31 @@ export const DropdownInput = forwardRef<HTMLInputElement, DropdownInputProps>(
       }
     }, [isOpen, referencedTable, dynamicOptions.length, loadDictionaryOptions]);
 
-    // Pre-load dictionary options if we have a value but no options yet
-    // This ensures selected values are displayed correctly in forms
+    // ✅ Pre-load ONLY the selected record by ID (like LookupInput)
+    // This is instant - no need to load all options
     useEffect(() => {
-      if (
-        value &&
-        referencedTable &&
-        dynamicOptions.length === 0 &&
-        !loading &&
-        !isOpen
-      ) {
-        console.log(
-          "[DropdownInput] Pre-loading options because value exists:",
-          value
-        );
-        loadDictionaryOptions();
+      if (value && !selectedOption && referencedTable && !loading) {
+        console.log("[DropdownInput] Pre-loading selected value:", value);
+
+        const loadSelectedRecord = async () => {
+          try {
+            const record = await dictionaryStore.getRecordById(referencedTable, value);
+            if (record) {
+              const option: DropdownOption = {
+                value: record[referencedFieldID] as string,
+                label: record[referencedFieldName] as string,
+              };
+              setCachedSelectedOption(option);
+              console.log("[DropdownInput] Cached selected option:", option.label);
+            }
+          } catch (error) {
+            console.error("[DropdownInput] Failed to pre-load selected value:", error);
+          }
+        };
+
+        loadSelectedRecord();
       }
-    }, [
-      value,
-      referencedTable,
-      dynamicOptions.length,
-      loading,
-      isOpen,
-      loadDictionaryOptions,
-    ]);
+    }, [value, selectedOption, referencedTable, referencedFieldID, referencedFieldName, loading]);
 
     // Handle clicks outside
     useEffect(() => {
@@ -198,6 +204,7 @@ export const DropdownInput = forwardRef<HTMLInputElement, DropdownInputProps>(
     const handleSelect = (option: DropdownOption) => {
       if (!option.disabled) {
         onValueChange?.(option.value);
+        setCachedSelectedOption(option); // ✅ Cache selected option
         setIsOpen(false);
       }
     };
@@ -211,6 +218,7 @@ export const DropdownInput = forwardRef<HTMLInputElement, DropdownInputProps>(
     const handleClear = (e: React.MouseEvent) => {
       e.stopPropagation();
       onValueChange?.("");
+      setCachedSelectedOption(null); // ✅ Clear cache
     };
 
     const handleScroll = useCallback(() => {
