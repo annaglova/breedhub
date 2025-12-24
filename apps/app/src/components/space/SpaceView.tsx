@@ -1,10 +1,12 @@
-import React, { useRef, useCallback, useEffect } from 'react';
-import { useVirtualizer } from '@tanstack/react-virtual';
-import { cn } from '@ui/lib/utils';
-import { getComponent, FallbackComponent } from './componentRegistry';
-import { ListCardSkeletonList } from './EntityListCardWrapper';
-import { GridCardSkeleton } from './GridCardSkeleton';
-import { ScrollToTopButton } from '@/components/shared/ScrollToTopButton';
+import { ScrollToTopButton } from "@/components/shared/ScrollToTopButton";
+import { mediaQueries } from "@/config/breakpoints";
+import { useMediaQuery } from "@/hooks/useMediaQuery";
+import { useVirtualizer } from "@tanstack/react-virtual";
+import { cn } from "@ui/lib/utils";
+import { useCallback, useEffect, useRef } from "react";
+import { FallbackComponent, getComponent } from "./componentRegistry";
+import { ListCardSkeletonList } from "./EntityListCardWrapper";
+import { GridCardSkeleton } from "./GridCardSkeleton";
 
 // View configuration interface that matches our config structure
 interface ViewConfig {
@@ -14,13 +16,15 @@ interface ViewConfig {
   dividers: boolean;
   overscan: number;
   skeletonCount?: number;
-  columns?: number | {
-    default: number;
-    sm?: number;
-    md?: number;
-    lg?: number;
-    xl?: number;
-  };
+  columns?:
+    | number
+    | {
+        default: number;
+        sm?: number;
+        md?: number;
+        lg?: number;
+        xl?: number;
+      };
 }
 
 interface SpaceViewProps<T> {
@@ -38,42 +42,24 @@ interface SpaceViewProps<T> {
 // Helper to determine if view should render as grid
 function isGridLayout(viewType: string): boolean {
   // Grid-like layouts need special handling
-  const gridTypes = ['grid', 'cards', 'tiles', 'masonry', 'tab'];
+  const gridTypes = ["grid", "cards", "tiles", "masonry", "tab"];
   return gridTypes.includes(viewType.toLowerCase());
 }
 
-// Helper to get columns count
-function getColumnsCount(viewConfig: ViewConfig): number {
-  // Single column layouts
-  if (!isGridLayout(viewConfig.viewType)) {
-    return 1;
-  }
-
-  // Grid layouts with columns config
-  if (viewConfig.columns) {
-    if (typeof viewConfig.columns === 'number') {
-      return viewConfig.columns;
-    }
-    // TODO: In production, this should check actual screen size
-    // For now, use default or fallback to 3
-    return viewConfig.columns.default || 3;
-  }
-
-  // Default for grid without columns config
-  return 3;
-}
-
 // Get CSS classes for different view types
-function getViewClasses(viewType: string, dividers: boolean) {
+function getViewClasses(viewType: string, dividers: boolean, columns: number) {
   const isGrid = isGridLayout(viewType);
+
+  // Map column count to Tailwind classes
+  const gridColsClass = `grid-cols-${columns}`;
 
   return {
     container: cn(
       "virtual-space-view h-full overflow-auto",
       dividers && !isGrid && "divide-y divide-gray-200"
     ),
-    gridRow: isGrid ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 px-4" : "",
-    listItem: !isGrid ? "" : ""
+    gridRow: isGrid ? cn("grid px-4 py-3", gridColsClass) : "",
+    listItem: !isGrid ? "" : "",
   };
 }
 
@@ -89,7 +75,7 @@ export function SpaceView<T extends { id: string }>({
   hasMore = false,
   isLoadingMore = false,
   isLoading = false,
-  searchQuery = ""
+  searchQuery = "",
 }: SpaceViewProps<T>) {
   const parentRef = useRef<HTMLDivElement>(null);
 
@@ -98,8 +84,19 @@ export function SpaceView<T extends { id: string }>({
 
   // Calculate layout parameters
   const isGrid = isGridLayout(viewConfig.viewType);
-  const columns = getColumnsCount(viewConfig);
-  const classes = getViewClasses(viewConfig.viewType, viewConfig.dividers);
+
+  // Responsive columns based on screen size (matching old Angular project)
+  // lg+ (1280px): 4 cols, md+ (768px): 3 cols, sm+ (640px): 2 cols, <sm: 1 col
+  const isMoreThanSM = useMediaQuery(mediaQueries.sm);
+  const isMoreThanMD = useMediaQuery(mediaQueries.md);
+  const isMoreThanLG = useMediaQuery(mediaQueries.lg);
+  const columns = isMoreThanLG ? 4 : isMoreThanMD ? 3 : isMoreThanSM ? 2 : 1;
+
+  const classes = getViewClasses(
+    viewConfig.viewType,
+    viewConfig.dividers,
+    columns
+  );
 
   // Calculate rows for virtualization
   const totalRows = isGrid
@@ -119,7 +116,10 @@ export function SpaceView<T extends { id: string }>({
     if (!parentRef.current || isLoadingMore) return;
 
     const scrollElement = parentRef.current;
-    const scrollBottom = scrollElement.scrollHeight - scrollElement.scrollTop - scrollElement.clientHeight;
+    const scrollBottom =
+      scrollElement.scrollHeight -
+      scrollElement.scrollTop -
+      scrollElement.clientHeight;
 
     // Trigger when we're within 100px of the bottom
     if (scrollBottom < 100) {
@@ -132,106 +132,109 @@ export function SpaceView<T extends { id: string }>({
     // Only subscribe to scroll events if we have more data to load
     if (!scrollElement || !hasMore || !onLoadMore) return;
 
-    scrollElement.addEventListener('scroll', handleScroll);
-    return () => scrollElement.removeEventListener('scroll', handleScroll);
+    scrollElement.addEventListener("scroll", handleScroll);
+    return () => scrollElement.removeEventListener("scroll", handleScroll);
   }, [handleScroll, hasMore, onLoadMore]);
 
   // Render a single virtual item
-  const renderVirtualItem = useCallback((virtualRow: any) => {
-    // Check if this is the loading row
-    const isLoadingRow = hasMore && virtualRow.index >= totalRows;
+  const renderVirtualItem = useCallback(
+    (virtualRow: any) => {
+      // Check if this is the loading row
+      const isLoadingRow = hasMore && virtualRow.index >= totalRows;
 
-    if (isLoadingRow) {
-      return (
-        <div
-          key="loader"
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            width: '100%',
-            transform: `translateY(${virtualRow.start}px)`,
-            height: `${virtualRow.size}px`,
-          }}
-          className="flex items-center justify-center"
-        >
-          <div className="text-gray-500">Loading more...</div>
-        </div>
-      );
-    }
+      if (isLoadingRow) {
+        return (
+          <div
+            key="loader"
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              width: "100%",
+              transform: `translateY(${virtualRow.start}px)`,
+              height: `${virtualRow.size}px`,
+            }}
+            className="flex items-center justify-center"
+          >
+            <div className="text-gray-500">Loading more...</div>
+          </div>
+        );
+      }
 
-    // Render based on layout type
-    if (isGrid) {
-      // Grid layout - render multiple items per row
-      const startIdx = virtualRow.index * columns;
-      const endIdx = Math.min(startIdx + columns, entities.length);
-      const rowEntities = entities.slice(startIdx, endIdx);
+      // Render based on layout type
+      if (isGrid) {
+        // Grid layout - render multiple items per row
+        const startIdx = virtualRow.index * columns;
+        const endIdx = Math.min(startIdx + columns, entities.length);
+        const rowEntities = entities.slice(startIdx, endIdx);
 
-      if (rowEntities.length === 0) return null;
+        if (rowEntities.length === 0) return null;
 
-      return (
-        <div
-          key={virtualRow.key}
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            width: '100%',
-            transform: `translateY(${virtualRow.start}px)`,
-            height: `${virtualRow.size}px`,
-          }}
-          className={classes.gridRow}
-        >
-          {rowEntities.map((entity) => (
-            <div key={entity.id}>
-              <CardComponent
-                entity={entity}
-                selected={selectedId === entity.id}
-                index={entities.indexOf(entity)}
-                onClick={() => onEntityClick?.(entity)}
-              />
-            </div>
-          ))}
-        </div>
-      );
-    } else {
-      // List layout - render single item per row
-      const entity = entities[virtualRow.index];
-      if (!entity) return null;
+        return (
+          <div
+            key={virtualRow.key}
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              width: "100%",
+              transform: `translateY(${virtualRow.start}px)`,
+              height: `${virtualRow.size}px`,
+            }}
+            className={classes.gridRow}
+          >
+            {rowEntities.map((entity) => (
+              <div key={entity.id}>
+                <CardComponent
+                  entity={entity}
+                  selected={selectedId === entity.id}
+                  index={entities.indexOf(entity)}
+                  onClick={() => onEntityClick?.(entity)}
+                />
+              </div>
+            ))}
+          </div>
+        );
+      } else {
+        // List layout - render single item per row
+        const entity = entities[virtualRow.index];
+        if (!entity) return null;
 
-      return (
-        <div
-          key={virtualRow.key}
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            width: '100%',
-            transform: `translateY(${virtualRow.start}px)`,
-            height: `${virtualRow.size}px`,
-          }}
-          className={classes.listItem}
-        >
-          <CardComponent
-            entity={entity}
-            selected={selectedId === entity.id}
-            index={virtualRow.index}
-            onClick={() => onEntityClick?.(entity)}
-          />
-        </div>
-      );
-    }
-  }, [
-    entities,
-    columns,
-    isGrid,
-    selectedId,
-    onEntityClick,
-    CardComponent,
-    hasMore,
-    totalRows,
-    classes
-  ]);
+        return (
+          <div
+            key={virtualRow.key}
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              width: "100%",
+              transform: `translateY(${virtualRow.start}px)`,
+              height: `${virtualRow.size}px`,
+            }}
+            className={classes.listItem}
+          >
+            <CardComponent
+              entity={entity}
+              selected={selectedId === entity.id}
+              index={virtualRow.index}
+              onClick={() => onEntityClick?.(entity)}
+            />
+          </div>
+        );
+      }
+    },
+    [
+      entities,
+      columns,
+      isGrid,
+      selectedId,
+      onEntityClick,
+      CardComponent,
+      hasMore,
+      totalRows,
+      classes,
+    ]
+  );
 
   // Show skeleton loading state when loading and no entities yet
   if (isLoading && entities.length === 0) {
@@ -242,7 +245,7 @@ export function SpaceView<T extends { id: string }>({
         ref={parentRef}
         className={classes.container}
         style={{
-          paddingBottom: 'var(--content-padding, 1rem)'
+          paddingBottom: "var(--content-padding, 1rem)",
         }}
       >
         {isGrid ? (
@@ -271,7 +274,7 @@ export function SpaceView<T extends { id: string }>({
         ref={parentRef}
         className={cn(classes.container, "flex items-center justify-center")}
         style={{
-          paddingBottom: 'var(--content-padding, 1rem)'
+          paddingBottom: "var(--content-padding, 1rem)",
         }}
       >
         <div className="text-center text-gray-500">
@@ -291,20 +294,23 @@ export function SpaceView<T extends { id: string }>({
         ref={parentRef}
         className={classes.container}
         style={{
-          paddingBottom: 'var(--content-padding, 1rem)' // Match header padding for consistency
+          paddingBottom: "var(--content-padding, 1rem)", // Match header padding for consistency
         }}
       >
         <div
           style={{
             height: `${virtualizer.getTotalSize()}px`,
-            width: '100%',
-            position: 'relative',
+            width: "100%",
+            position: "relative",
           }}
         >
           {virtualizer.getVirtualItems().map(renderVirtualItem)}
         </div>
       </div>
-      <ScrollToTopButton scrollContainer={parentRef.current} positioning="absolute" />
+      <ScrollToTopButton
+        scrollContainer={parentRef.current}
+        positioning="absolute"
+      />
     </div>
   );
 }
