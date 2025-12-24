@@ -20,7 +20,7 @@ interface TierMarksData {
 
 interface TierMarkProps {
   tierMarks?: TierMarksData;
-  mode?: "list" | "full";
+  mode?: "list" | "grid" | "full";
   className?: string;
 }
 
@@ -93,14 +93,14 @@ export function TierMark({
   // Host classes - matches Angular @HostBinding
   const hostClasses = cn(
     "absolute right-0 z-10 flex rounded-l-full",
-    mode === "list" ? "bg-transparent sm:bg-primary" : "bg-primary",
+    mode === "list" ? "bg-transparent sm:bg-primary" : mode === "grid" ? "bg-transparent" : "bg-primary",
     className
   );
 
   return (
     <TooltipProvider delayDuration={300}>
       <div className={hostClasses}>
-        {/* Mobile view - just dots (only in list mode) */}
+        {/* Mobile view - just dots (in list mode) */}
         {mode === "list" && (
           <div className="flex space-x-1 pr-4 sm:hidden">
             {tiers.map((tier, index) => (
@@ -120,8 +120,28 @@ export function TierMark({
           </div>
         )}
 
-        {/* Desktop view - full badges */}
-        {tiers.map((tier, index) => (
+        {/* Grid mode - dots only (always visible) */}
+        {mode === "grid" && (
+          <div className="flex space-x-1 pr-4">
+            {tiers.map((tier, index) => (
+              <Tooltip key={index}>
+                <TooltipTrigger asChild>
+                  <div
+                    className="size-4 rounded-full"
+                    style={{ background: tier.color }}
+                  />
+                </TooltipTrigger>
+                <TooltipContent side="top">
+                  <p>{tier.name}</p>
+                  <p className="text-muted-foreground">{tier.contactName}</p>
+                </TooltipContent>
+              </Tooltip>
+            ))}
+          </div>
+        )}
+
+        {/* Desktop view - full badges (list and full modes) */}
+        {mode !== "grid" && tiers.map((tier, index) => (
           <Tooltip key={index}>
             <TooltipTrigger asChild>
               <div

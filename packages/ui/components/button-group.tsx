@@ -33,9 +33,9 @@ const ButtonGroupItem = React.forwardRef<
       isFirst && "rounded-l-md",
       isLast && "rounded-r-md",
       !isFirst && !isLast && "rounded-none",
-      // Colors
+      // Colors - no hover effect when active
       isActive
-        ? "bg-primary text-primary-foreground hover:bg-primary/90 z-10"
+        ? "bg-primary text-primary-foreground z-10"
         : "bg-background hover:bg-accent hover:text-accent-foreground",
       className
     )}
