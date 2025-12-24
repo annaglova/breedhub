@@ -19,6 +19,9 @@ import {
   isOffline
 } from '../helpers';
 
+// Utils
+import { removeFieldPrefix, addFieldPrefix } from '../utils/field-normalization';
+
 // Universal entity interface for all business entities
 interface BusinessEntity {
   id: string;
@@ -247,7 +250,7 @@ class SpaceStore {
 
     Object.entries(space.fields).forEach(([fieldKey, fieldValue]: [string, any]) => {
       // Normalize field name: remove entity prefix (breed_field_pet_type_id -> pet_type_id)
-      const normalizedFieldName = this.removeFieldPrefix(fieldKey, entitySchemaName);
+      const normalizedFieldName = removeFieldPrefix(fieldKey, entitySchemaName);
 
       // In static config, fieldValue is already merged data
       const fieldData = fieldValue;
@@ -302,7 +305,7 @@ class SpaceStore {
             const normalizedSortFields = space.sort_fields
               ? Object.fromEntries(
                   Object.entries(space.sort_fields).map(([key, value]) => [
-                    this.removeFieldPrefix(key, space.entitySchemaName),
+                    removeFieldPrefix(key, space.entitySchemaName),
                     value
                   ])
                 )
@@ -311,7 +314,7 @@ class SpaceStore {
             const normalizedFilterFields = space.filter_fields
               ? Object.fromEntries(
                   Object.entries(space.filter_fields).map(([key, value]) => [
-                    this.removeFieldPrefix(key, space.entitySchemaName),
+                    removeFieldPrefix(key, space.entitySchemaName),
                     value
                   ])
                 )
@@ -1725,7 +1728,7 @@ class SpaceStore {
           if (value !== undefined && value !== null && value !== '') {
             let fieldConfig = fieldConfigs[fieldKey];
             if (!fieldConfig) {
-              const prefixedKey = `${entityType}_field_${fieldKey}`;
+              const prefixedKey = addFieldPrefix(fieldKey, entityType);
               fieldConfig = fieldConfigs[prefixedKey];
             }
             const fieldType = fieldConfig?.fieldType || 'string';
@@ -1962,7 +1965,7 @@ class SpaceStore {
 
           let fieldConfig = fieldConfigs[fieldKey];
           if (!fieldConfig) {
-            const prefixedKey = `${entityType}_field_${fieldKey}`;
+            const prefixedKey = addFieldPrefix(fieldKey, entityType);
             fieldConfig = fieldConfigs[prefixedKey];
           }
 
@@ -2031,15 +2034,6 @@ class SpaceStore {
         } as any;
       }
     }
-  }
-
-  /**
-   * 🔧 Helper: Remove entity_field_ prefix from field name
-   * Used for converting config field names to DB field names
-   * Example: breed_field_measurements -> measurements
-   */
-  private removeFieldPrefix(fieldName: string, entityType: string): string {
-    return fieldName.replace(new RegExp(`^${entityType}_field_`), '');
   }
 
   /**
@@ -2118,7 +2112,7 @@ class SpaceStore {
 
         let fieldConfig = fieldConfigs[fieldKey];
         if (!fieldConfig) {
-          const prefixedKey = `${entityType}_field_${fieldKey}`;
+          const prefixedKey = addFieldPrefix(fieldKey, entityType);
           fieldConfig = fieldConfigs[prefixedKey];
         }
 
@@ -2151,7 +2145,7 @@ class SpaceStore {
 
           let fieldConfig = fieldConfigs[fieldKey];
           if (!fieldConfig) {
-            const prefixedKey = `${entityType}_field_${fieldKey}`;
+            const prefixedKey = addFieldPrefix(fieldKey, entityType);
             fieldConfig = fieldConfigs[prefixedKey];
           }
 
@@ -2216,7 +2210,7 @@ class SpaceStore {
 
             let fieldConfig = fieldConfigs[fieldKey];
             if (!fieldConfig) {
-              const prefixedKey = `${entityType}_field_${fieldKey}`;
+              const prefixedKey = addFieldPrefix(fieldKey, entityType);
               fieldConfig = fieldConfigs[prefixedKey];
             }
 
@@ -2287,7 +2281,7 @@ class SpaceStore {
           // Try to find field config (with and without prefix)
           let fieldConfig = fieldConfigs[fieldKey];
           if (!fieldConfig) {
-            const prefixedKey = `${entityType}_field_${fieldKey}`;
+            const prefixedKey = addFieldPrefix(fieldKey, entityType);
             fieldConfig = fieldConfigs[prefixedKey];
           }
 

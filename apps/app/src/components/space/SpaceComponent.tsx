@@ -1,7 +1,7 @@
 import { mediaQueries } from "@/config/breakpoints";
 import { SpaceConfig } from "@/core/space/types";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
-import { getDatabase, spaceStore, routeStore } from "@breedhub/rxdb-store";
+import { getDatabase, spaceStore, routeStore, extractFieldName } from "@breedhub/rxdb-store";
 import { useSignals } from "@preact/signals-react/runtime";
 import { Signal } from "@preact/signals-react";
 import { Button } from "@ui/components/button";
@@ -129,13 +129,7 @@ export function SpaceComponent<T extends { id: string }>({
   // Generate URL-friendly slug from field ID
   // If slug exists in config - use it, otherwise extract from field ID
   const getFieldSlug = (field: { id: string; slug?: string }): string => {
-    if (field.slug) {
-      return field.slug;
-    }
-
-    // Extract field name from ID: "breed_field_name" → "name"
-    const parts = field.id.split('_field_');
-    return parts.length > 1 ? parts[1] : field.id;
+    return field.slug || extractFieldName(field.id);
   };
 
   // Read search value from URL on initial mount only

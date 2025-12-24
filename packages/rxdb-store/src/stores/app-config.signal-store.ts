@@ -4,6 +4,7 @@ import { getDatabase } from '../services/database.service';
 import { supabase } from '../supabase/client';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 import { getAvailableChildTypes } from '../../../../apps/config-admin/src/types/config-types';
+import { extractFieldName } from '../utils/field-normalization';
 
 // Tree node interface for config tree
 export interface TreeNode {
@@ -1500,13 +1501,7 @@ class AppConfigStore {
   
   // Get field display name
   getFieldDisplayName(field: AppConfig): string {
-    const id = field.id;
-    if (id.startsWith('field_')) {
-      return id.substring(6);
-    }
-    // Remove entity prefix for entity fields
-    const parts = id.split('_field_');
-    return parts.length > 1 ? parts[1] : id;
+    return extractFieldName(field.id);
   }
   
   // Build hierarchical structure for fields

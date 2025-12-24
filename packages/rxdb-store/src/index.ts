@@ -82,3 +82,13 @@ export type {
 
 // Export OrderBy type from SpaceStore
 export type { OrderBy } from './stores/space-store.signal-store';
+
+// Utils - Field normalization helpers
+export {
+  removeFieldPrefix,
+  addFieldPrefix,
+  hasFieldPrefix,
+  extractFieldName,
+  normalizeToDbField,
+  normalizeToConfigField
+} from './utils';
