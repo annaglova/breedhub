@@ -177,11 +177,11 @@ export function PetListCard({
         </div>
       </div>
 
-      {/* Tier Marks - absolute top right */}
+      {/* Tier Marks - positioned by component (absolute right-0) */}
       <TierMark
         tierMarks={pet.TierMarks}
         mode="list"
-        className="absolute top-3 right-0"
+        className="top-3"
       />
     </EntityListCardWrapper>
   );
