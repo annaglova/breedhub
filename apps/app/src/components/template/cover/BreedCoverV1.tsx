@@ -1,5 +1,5 @@
 import * as PatronIcons from "@shared/icons";
-import { spaceStore } from "@breedhub/rxdb-store";
+import { getDatabase, supabase } from "@breedhub/rxdb-store";
 import { Button } from "@ui/components/button";
 import {
   Tooltip,
@@ -77,25 +77,58 @@ export function BreedCoverV1({
 }: BreedCoverV1Props) {
   // Check if entity IS a breed or HAS a breed_id reference
   const isBreedEntity = !entity.breed_id;
-  const breedId = entity.breed_id || entity.id || entity.Id;
+  const breedId = entity.breed_id;
 
   // State for loaded breed (when entity has breed_id)
   const [loadedBreed, setLoadedBreed] = useState<EntityWithBreed | null>(null);
 
-  // Load breed data if entity has breed_id (pet/kennel)
+  // Load breed directly from RxDB when entity has breed_id
   useEffect(() => {
     if (!isBreedEntity && breedId) {
-      console.log('[BreedCoverV1] Loading breed for breed_id:', breedId);
+      console.log('[BreedCoverV1] Loading breed from RxDB for breed_id:', breedId);
 
-      // Select breed - this triggers loading from RxDB/Supabase
-      spaceStore.selectEntity('breed', breedId);
+      const loadBreed = async () => {
+        try {
+          // Get RxDB database
+          const db = await getDatabase();
+          if (!db) {
+            console.warn('[BreedCoverV1] Database not initialized');
+            return;
+          }
 
-      // Get breed from store
-      const breedSignal = spaceStore.getSelectedEntity('breed');
-      if (breedSignal?.value) {
-        setLoadedBreed(breedSignal.value);
-        console.log('[BreedCoverV1] Loaded breed:', breedSignal.value.name);
-      }
+          const breedCollection = db.collections['breed'];
+          if (!breedCollection) {
+            console.warn('[BreedCoverV1] Breed collection not found');
+            return;
+          }
+
+          // Query breed by ID
+          const breedDoc = await breedCollection.findOne(breedId).exec();
+
+          if (breedDoc) {
+            const breedData = breedDoc.toJSON();
+            console.log('[BreedCoverV1] Loaded breed from RxDB:', breedData.name);
+            setLoadedBreed(breedData);
+          } else {
+            console.log('[BreedCoverV1] Breed not in RxDB, fetching from Supabase...');
+            // Fallback to Supabase
+            const { data, error } = await supabase
+              .from('breed')
+              .select('id, name, top_patrons')
+              .eq('id', breedId)
+              .single();
+
+            if (data && !error) {
+              console.log('[BreedCoverV1] Loaded breed from Supabase:', data.name);
+              setLoadedBreed(data);
+            }
+          }
+        } catch (err) {
+          console.error('[BreedCoverV1] Error loading breed:', err);
+        }
+      };
+
+      loadBreed();
     }
   }, [isBreedEntity, breedId]);
 
