@@ -2700,6 +2700,16 @@ class SpaceStore {
     const schema = collection.schema.jsonSchema;
     const mapped: any = {};
 
+    // Helper to check if schema allows null for a field
+    const allowsNull = (fieldSchema: any): boolean => {
+      if (!fieldSchema) return false;
+      // Check if type is array with "null" in it: ["string", "null"]
+      if (Array.isArray(fieldSchema.type)) {
+        return fieldSchema.type.includes('null');
+      }
+      return false;
+    };
+
     // If we have schema, use it to map fields
     if (schema?.properties) {
       for (const fieldName in schema.properties) {
@@ -2707,7 +2717,15 @@ class SpaceStore {
           // Special handling for deleted field
           mapped._deleted = Boolean(supabaseDoc.deleted);
         } else if (supabaseDoc.hasOwnProperty(fieldName)) {
-          mapped[fieldName] = supabaseDoc[fieldName];
+          const value = supabaseDoc[fieldName];
+          const fieldSchema = schema.properties[fieldName];
+
+          // Skip null values for fields that don't allow null
+          if (value === null && !allowsNull(fieldSchema)) {
+            continue;
+          }
+
+          mapped[fieldName] = value;
         }
       }
     } else {
@@ -2718,6 +2736,11 @@ class SpaceStore {
       for (const key in supabaseDoc) {
         // Skip RxDB service fields
         if (serviceFields.includes(key)) {
+          continue;
+        }
+
+        // Skip null values in fallback mode
+        if (supabaseDoc[key] === null) {
           continue;
         }
 
