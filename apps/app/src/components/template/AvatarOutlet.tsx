@@ -51,7 +51,7 @@ interface AvatarOutletProps {
  * Positioned with -mt-32 to overlap cover
  *
  * Config-driven: use hasAvatar, hasActions flags to control visibility
- * Wraps entity-specific avatar components (BreedAvatar, KennelAvatar, etc.)
+ * Wraps EntityAvatar component (universal for all entity types)
  */
 export function AvatarOutlet({
   entity,

@@ -1,6 +1,6 @@
 # 📋 TODO - BreedHub Active Tasks
 
-**Last Updated:** 2025-12-01
+**Last Updated:** 2025-12-25
 
 ---
 
@@ -148,6 +148,50 @@ space: {
 ---
 
 ## 🚀 QUICK WINS (Can be done in parallel)
+
+### Component Refactoring
+
+#### Universal EntityAvatar (замість BreedAvatar)
+**Статус:** TODO
+
+**Проблема:** `BreedAvatar` не є breed-specific, логіка універсальна для всіх entity types.
+
+**Архітектура:**
+- `AvatarOutlet` - layout, positioning (-mt-32), action buttons (Edit, More)
+- `EntityAvatar` - рендеринг аватара + badges (окремий компонент для reusability)
+
+**Фаза 1 - Universal Avatar (зараз):**
+- [ ] Переіменувати `BreedAvatar` → `EntityAvatar`
+- [ ] Перенести в `components/shared/` або `components/template/`
+- [ ] Avatar URL resolution - universal logic (avatar_url, image, logo_url з fallback)
+- [ ] Оновити ComponentRegistry
+- [ ] Видалити breed-specific код (TopPet, BreedPatronage - це для badges)
+
+**Фаза 2 - Avatar Badges (пізніше):**
+- [ ] Badge slot/overlay система в EntityAvatar
+- [ ] Config-driven badges через `blockConfig.badges`
+- [ ] Імплементувати badges по entity type:
+  - **Pet**: "Top Pet" badge (trophy icon) - якщо пет є топом породи
+  - **Contact**: Patronage badges з місцем (1st, 2nd, 3rd)
+  - **Kennel**: Verified badge
+  - **Breed**: TBD
+
+**Приклад конфігу (Фаза 2):**
+```json
+{
+  "outlet": "AvatarOutlet",
+  "component": "EntityAvatar",
+  "badges": {
+    "topPet": { "field": "is_top_pet", "icon": "trophy" },
+    "patronage": { "field": "Patronage", "showPlace": true },
+    "verified": { "field": "is_verified", "icon": "check-circle" }
+  }
+}
+```
+
+**Estimated:** Фаза 1: 1 година, Фаза 2: 2-3 години
+
+---
 
 ### Config Admin Improvements
 - [ ] Create more templates - Add templates for common entities (1 day)
