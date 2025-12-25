@@ -209,7 +209,7 @@ export function CoverOutlet({
       <div className="absolute top-0 z-10 h-28 w-full bg-gradient-to-b from-[#200e4c]/40 to-transparent" />
 
       {/* Cover component wrapper */}
-      <div className="flex w-full max-w-3xl flex-col lg:max-w-4xl xxl:max-w-5xl">
+      <div className="flex w-full h-full max-w-3xl flex-col lg:max-w-4xl xxl:max-w-5xl">
         {/* Navigation buttons */}
         <div className="z-40 flex w-full pb-2">
           {showExpandButton && (

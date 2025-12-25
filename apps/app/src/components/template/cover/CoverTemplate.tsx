@@ -25,7 +25,7 @@ export function CoverTemplate({
     <div className={`flex size-full flex-col ${className}`}>
       {coverImg && (
         <>
-          {/* Background cover image */}
+          {/* Background cover image - positions relative to CoverOutlet container */}
           <img
             className="absolute inset-0 size-full object-cover"
             src={coverImg}

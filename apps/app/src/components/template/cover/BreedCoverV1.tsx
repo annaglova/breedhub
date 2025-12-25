@@ -1,4 +1,5 @@
 import * as PatronIcons from "@shared/icons";
+import { spaceStore } from "@breedhub/rxdb-store";
 import { Button } from "@ui/components/button";
 import {
   Tooltip,
@@ -6,18 +7,20 @@ import {
   TooltipTrigger,
 } from "@ui/components/tooltip";
 import { Heart } from "lucide-react";
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { CoverTemplate } from "./CoverTemplate";
 import { PatronAvatar } from "./PatronAvatar";
 
-// Interface for entity from RxDB
-interface BreedEntity {
+// Interface for any entity (breed, pet, kennel, etc.)
+interface EntityWithBreed {
   id?: string;
   Id?: string;
   name?: string;
   Name?: string;
   avatar_url?: string;
   Avatar?: string;
+  breed_id?: string; // Pet/kennel have this to reference breed
+  top_patrons?: Record<string, TopPatron>; // JSONB field in breed table
   measurements?: {
     patron_count?: number;
     [key: string]: any;
@@ -25,34 +28,46 @@ interface BreedEntity {
   [key: string]: any;
 }
 
-interface Breed {
+// Patron from top_patrons JSONB (stored as {"1": {...}, "2": {...}})
+interface TopPatron {
+  name: string;
+  avatar?: string;
+  contributions?: number;
+}
+
+// Display format for PatronAvatar component
+interface PatronDisplay {
   Id: string;
-  Name: string;
-  TopPatrons?: Array<{
-    Id: string;
-    Contact?: {
-      Name?: string;
-      Url?: string;
-      AvatarUrl?: string;
-    };
-    Place?: number;
-    Rating: number;
-  }>;
+  Contact?: {
+    Name?: string;
+    Url?: string;
+    AvatarUrl?: string;
+  };
+  Place?: number;
+  Rating: number;
+}
+
+interface BreedDisplayData {
+  id: string;
+  name: string;
+  patrons: PatronDisplay[];
 }
 
 interface BreedCoverV1Props {
-  entity: BreedEntity;
+  entity: EntityWithBreed;
   coverImg?: string;
   isFullscreen?: boolean;
   className?: string;
 }
 
 /**
- * BreedCoverV1 - Breed cover with top patrons
+ * BreedCoverV1 - Universal breed cover with top patrons
  *
- * Adapted from Angular: libs/schema/ui/template/page-header/ui/breed-cover-v1.component.ts
+ * Works with any entity that has breed connection:
+ * - Breed: uses entity.name, entity.top_patrons directly
+ * - Pet/Kennel: loads breed via entity.breed_id
+ *
  * Shows breed name + top 4 patrons OR "You may be the first one!" if no patrons
- * Now works with RxDB entity data
  */
 export function BreedCoverV1({
   entity,
@@ -60,12 +75,63 @@ export function BreedCoverV1({
   isFullscreen = false,
   className = "",
 }: BreedCoverV1Props) {
-  // Transform entity to breed format
-  const breed: Breed = useMemo(() => ({
-    Id: entity.Id || entity.id || '',
-    Name: entity.Name || entity.name || 'Unknown',
-    TopPatrons: [], // TODO: Get from measurements or separate query
-  }), [entity]);
+  // Check if entity IS a breed or HAS a breed_id reference
+  const isBreedEntity = !entity.breed_id;
+  const breedId = entity.breed_id || entity.id || entity.Id;
+
+  // State for loaded breed (when entity has breed_id)
+  const [loadedBreed, setLoadedBreed] = useState<EntityWithBreed | null>(null);
+
+  // Load breed data if entity has breed_id (pet/kennel)
+  useEffect(() => {
+    if (!isBreedEntity && breedId) {
+      console.log('[BreedCoverV1] Loading breed for breed_id:', breedId);
+
+      // Select breed - this triggers loading from RxDB/Supabase
+      spaceStore.selectEntity('breed', breedId);
+
+      // Get breed from store
+      const breedSignal = spaceStore.getSelectedEntity('breed');
+      if (breedSignal?.value) {
+        setLoadedBreed(breedSignal.value);
+        console.log('[BreedCoverV1] Loaded breed:', breedSignal.value.name);
+      }
+    }
+  }, [isBreedEntity, breedId]);
+
+  // Transform top_patrons JSONB to display format
+  const transformPatrons = (topPatrons?: Record<string, TopPatron>): PatronDisplay[] => {
+    if (!topPatrons) return [];
+    return Object.entries(topPatrons).map(([key, patron], index) => ({
+      Id: key,
+      Contact: {
+        Name: patron.name,
+        AvatarUrl: patron.avatar,
+      },
+      Place: index + 1,
+      Rating: patron.contributions || 0,
+    }));
+  };
+
+  // Calculate breed display data
+  const breed: BreedDisplayData = useMemo(() => {
+    // Use loaded breed for pet/kennel, or entity itself for breed
+    const sourceEntity = isBreedEntity ? entity : loadedBreed;
+
+    if (!sourceEntity) {
+      return {
+        id: breedId || '',
+        name: 'Loading...',
+        patrons: [],
+      };
+    }
+
+    return {
+      id: sourceEntity.id || sourceEntity.Id || '',
+      name: sourceEntity.name || sourceEntity.Name || 'Unknown',
+      patrons: transformPatrons(sourceEntity.top_patrons),
+    };
+  }, [entity, isBreedEntity, loadedBreed, breedId]);
 
   // Default cover image from assets
   const actualCoverImg = coverImg || entity.avatar_url || entity.Avatar ||
@@ -73,22 +139,22 @@ export function BreedCoverV1({
 
   // Calculate patron length (max 3 on mobile, 4 on desktop)
   const patronLength = useMemo(() => {
-    if (!breed?.TopPatrons) return 0;
+    if (!breed?.patrons?.length) return 0;
     const isMobile = typeof window !== "undefined" && window.screen.width < 600;
     return isMobile
-      ? Math.min(breed.TopPatrons.length, 3)
-      : breed.TopPatrons.length;
-  }, [breed?.TopPatrons]);
+      ? Math.min(breed.patrons.length, 3)
+      : Math.min(breed.patrons.length, 4);
+  }, [breed?.patrons]);
 
   const handleBecomePatron = () => {
     // TODO: Navigate to become patron page
-    console.log("Become patron:", breed.Id);
+    console.log("Become patron:", breed.id);
   };
 
   if (!entity) return null;
 
   return (
-    <CoverTemplate coverImg={actualCoverImg} className={`relateve ${className}`}>
+    <CoverTemplate coverImg={actualCoverImg} className={className}>
       <div className="z-20 ml-auto flex size-full flex-col justify-between pb-3 sm:w-auto sm:pb-2 sm:pt-1 pt-10">
         {/* Patrons */}
         <div className="flex w-full justify-between sm:flex-col sm:space-y-2">
@@ -98,7 +164,7 @@ export function BreedCoverV1({
             }`}
             style={{ fontFamily: 'Roboto, sans-serif' }}
           >
-            {breed.Name}
+            {breed.name}
             {patronLength > 0 && " top patrons"}
           </div>
           <div className="ml-auto mr-2 mt-2 sm:mt-0">
@@ -109,7 +175,7 @@ export function BreedCoverV1({
                   gridTemplateColumns: `repeat(${patronLength}, minmax(0, 1fr))`,
                 }}
               >
-                {breed.TopPatrons?.slice(0, 4).map((patron, index) => (
+                {breed.patrons?.slice(0, 4).map((patron, index) => (
                   <PatronAvatar key={patron.Id || index} patron={patron} />
                 ))}
               </div>
