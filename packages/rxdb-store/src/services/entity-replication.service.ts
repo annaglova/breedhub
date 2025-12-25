@@ -261,9 +261,10 @@ export class EntityReplicationService {
                     ...(checkpointToPreserve ? { lastCheckpoint: checkpointToPreserve } : {})
                   });
 
-                  // Cache in localStorage for instant access on next load
+                  // Cache in localStorage for instant access on next load (with TTL timestamp)
                   try {
-                    localStorage.setItem(`totalCount_${entityType}`, count.toString());
+                    const cacheData = { value: count, timestamp: Date.now() };
+                    localStorage.setItem(`totalCount_${entityType}`, JSON.stringify(cacheData));
                   } catch (e) {
                     console.warn(`[EntityReplication-${entityType}] Failed to cache totalCount in localStorage:`, e);
                   }
@@ -629,13 +630,34 @@ export class EntityReplicationService {
       return memoryTotal;
     }
 
-    // Try localStorage cache
+    // Try localStorage cache (with TTL check)
+    const TOTAL_COUNT_TTL_MS = 14 * 24 * 60 * 60 * 1000; // 14 days
     try {
       const cached = localStorage.getItem(`totalCount_${entityType}`);
       if (cached) {
-        const count = parseInt(cached, 10);
-        console.log(`[EntityReplication-${entityType}] 📦 Using cached totalCount from localStorage: ${count}`);
-        return count;
+        // Try JSON format first (new format with TTL)
+        try {
+          const parsed = JSON.parse(cached);
+          if (typeof parsed === 'object' && parsed.value && parsed.timestamp) {
+            const age = Date.now() - parsed.timestamp;
+            if (age < TOTAL_COUNT_TTL_MS && parsed.value > 0) {
+              console.log(`[EntityReplication-${entityType}] 📦 Using cached totalCount: ${parsed.value} (age: ${Math.round(age / 1000 / 60 / 60)}h)`);
+              return parsed.value;
+            }
+            // Cache expired
+            console.log(`[EntityReplication-${entityType}] 📦 Cache expired, returning 0`);
+            return 0;
+          }
+        } catch {
+          // Legacy format (plain number string) - migrate it
+          const count = parseInt(cached, 10);
+          if (!isNaN(count) && count > 0) {
+            const cacheData = { value: count, timestamp: Date.now() };
+            localStorage.setItem(`totalCount_${entityType}`, JSON.stringify(cacheData));
+            console.log(`[EntityReplication-${entityType}] 📦 Migrated legacy cache: ${count}`);
+            return count;
+          }
+        }
       }
     } catch (e) {
       console.warn(`[EntityReplication-${entityType}] Failed to read totalCount from localStorage:`, e);

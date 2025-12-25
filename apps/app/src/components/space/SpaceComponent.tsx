@@ -543,18 +543,36 @@ export function SpaceComponent<T extends { id: string }>({
           try {
             const cacheKey = `totalCount_${config.entitySchemaName}`;
             const cached = localStorage.getItem(cacheKey);
-            const cachedTotal = cached ? parseInt(cached, 10) : 0;
+            const TOTAL_COUNT_TTL_MS = 14 * 24 * 60 * 60 * 1000; // 14 days
 
-            // Only save on FIRST load when:
-            // 1. No cache exists (cachedTotal === 0)
-            // 2. Total is valid and REAL (greater than current loaded entities)
-            // Don't save if total === entitiesCount (means server hasn't sent real total yet)
+            let cachedTotal = 0;
+            let cacheExpired = false;
+
+            if (cached) {
+              // Try JSON format first (new format with TTL)
+              try {
+                const parsed = JSON.parse(cached);
+                if (typeof parsed === 'object' && parsed.value && parsed.timestamp) {
+                  const age = Date.now() - parsed.timestamp;
+                  if (age < TOTAL_COUNT_TTL_MS && parsed.value > 0) {
+                    cachedTotal = parsed.value;
+                  } else {
+                    cacheExpired = true;
+                  }
+                }
+              } catch {
+                // Legacy format - treat as expired to force refresh
+                cacheExpired = true;
+              }
+            }
+
+            // Save when: no cache OR cache expired, and total is valid
             const isRealTotal = data.total > data.entities.length;
-            const isFirstLoad = cachedTotal === 0;
-            const shouldSave = isFirstLoad && isRealTotal;
+            const shouldSave = (cachedTotal === 0 || cacheExpired) && isRealTotal;
 
             if (shouldSave) {
-              localStorage.setItem(cacheKey, data.total.toString());
+              const cacheData = { value: data.total, timestamp: Date.now() };
+              localStorage.setItem(cacheKey, JSON.stringify(cacheData));
             }
           } catch (e) {
             console.warn('Failed to cache totalCount:', e);

@@ -1788,12 +1788,44 @@ class SpaceStore {
       );
 
       // On first page, fetch global total count (separate lightweight query without filters)
+      // TTL: 14 days - these counts don't change often
+      const TOTAL_COUNT_TTL_MS = 14 * 24 * 60 * 60 * 1000; // 14 days
+
       if (cursor === null) {
         const entityStore = this.entityStores.get(entityType);
-        const cachedTotal = entityStore?.totalFromServer.value;
+        let shouldFetchCount = false;
 
-        // Only fetch if we don't have cached total yet
-        if (cachedTotal === null || cachedTotal === undefined) {
+        // Check if we need to fetch (no cache or expired TTL)
+        try {
+          const cacheKey = `totalCount_${entityType}`;
+          const cached = localStorage.getItem(cacheKey);
+
+          if (cached) {
+            const { value, timestamp } = JSON.parse(cached);
+            const age = Date.now() - timestamp;
+
+            if (age < TOTAL_COUNT_TTL_MS && value > 0) {
+              // Cache is valid - use it
+              if (entityStore && entityStore.totalFromServer.value === null) {
+                entityStore.setTotalFromServer(value);
+              }
+              console.log(`[SpaceStore] 📊 Using cached total: ${value} (age: ${Math.round(age / 1000 / 60 / 60)}h)`);
+            } else {
+              // Cache expired
+              shouldFetchCount = true;
+              console.log(`[SpaceStore] 📊 Cache expired, will refresh total count`);
+            }
+          } else {
+            // No cache
+            shouldFetchCount = true;
+          }
+        } catch (e) {
+          // Invalid cache format or error - fetch fresh
+          shouldFetchCount = true;
+        }
+
+        // Fetch fresh count if needed
+        if (shouldFetchCount) {
           try {
             const { supabase } = await import('../supabase/client');
             const { count: globalCount, error: countError } = await supabase
@@ -1802,13 +1834,14 @@ class SpaceStore {
               .or('deleted.is.null,deleted.eq.false');
 
             if (!countError && globalCount !== null) {
-              console.log(`[SpaceStore] 📊 Global total count: ${globalCount}`);
+              console.log(`[SpaceStore] 📊 Fresh total count: ${globalCount}`);
               if (entityStore) {
                 entityStore.setTotalFromServer(globalCount);
               }
-              // Cache to localStorage
+              // Cache to localStorage with timestamp
               try {
-                localStorage.setItem(`totalCount_${entityType}`, globalCount.toString());
+                const cacheData = { value: globalCount, timestamp: Date.now() };
+                localStorage.setItem(`totalCount_${entityType}`, JSON.stringify(cacheData));
               } catch (e) {
                 console.warn(`[SpaceStore] Failed to cache totalCount:`, e);
               }

@@ -238,13 +238,33 @@ export class EntityStore<T extends { id: string }> {
    * Called immediately on EntityStore creation for instant UI feedback
    */
   initTotalFromCache(entityType: string): void {
+    const TOTAL_COUNT_TTL_MS = 14 * 24 * 60 * 60 * 1000; // 14 days
     try {
       const cached = localStorage.getItem(`totalCount_${entityType}`);
       if (cached) {
-        const count = parseInt(cached, 10);
-        if (!isNaN(count) && count > 0) {
-          this.totalFromServer.value = count;
-          console.log(`[EntityStore-${entityType}] ⚡ Instant totalFromServer from cache: ${count}`);
+        // Try JSON format first (new format with TTL)
+        try {
+          const parsed = JSON.parse(cached);
+          if (typeof parsed === 'object' && parsed.value && parsed.timestamp) {
+            const age = Date.now() - parsed.timestamp;
+            if (age < TOTAL_COUNT_TTL_MS && parsed.value > 0) {
+              this.totalFromServer.value = parsed.value;
+              console.log(`[EntityStore-${entityType}] ⚡ Instant totalFromServer from cache: ${parsed.value} (age: ${Math.round(age / 1000 / 60 / 60)}h)`);
+              return;
+            }
+            // Cache expired - don't use it
+            console.log(`[EntityStore-${entityType}] ⏰ Cache expired, will fetch fresh`);
+            return;
+          }
+        } catch {
+          // Legacy format (plain number string) - migrate it
+          const count = parseInt(cached, 10);
+          if (!isNaN(count) && count > 0) {
+            const cacheData = { value: count, timestamp: Date.now() };
+            localStorage.setItem(`totalCount_${entityType}`, JSON.stringify(cacheData));
+            this.totalFromServer.value = count;
+            console.log(`[EntityStore-${entityType}] ⚡ Migrated legacy cache: ${count}`);
+          }
         }
       }
     } catch (e) {

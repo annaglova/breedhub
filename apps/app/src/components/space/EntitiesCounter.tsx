@@ -1,4 +1,3 @@
-import React, { useEffect, useState } from 'react';
 
 interface EntitiesCounterProps {
   entitiesCount: number;
@@ -15,19 +14,40 @@ function formatNumber(num: number): string {
   return num.toLocaleString('en-US');
 }
 
+// TTL for cached total counts - 14 days
+const TOTAL_COUNT_TTL_MS = 14 * 24 * 60 * 60 * 1000;
+
 export function EntitiesCounter({
   entitiesCount,
   total,
   entityType = 'entity',
   initialCount = 0
 }: EntitiesCounterProps) {
-  // Read cached total from localStorage (read-only, never writes)
-  const getCachedTotal = () => {
+  // Read cached total from localStorage with TTL check
+  const getCachedTotal = (): number => {
     try {
       const cached = localStorage.getItem(`totalCount_${entityType}`);
-      if (cached) {
+      if (!cached) return 0;
+
+      // Try JSON format first (new format with TTL)
+      try {
+        const parsed = JSON.parse(cached);
+        if (typeof parsed === 'object' && parsed.value && parsed.timestamp) {
+          const age = Date.now() - parsed.timestamp;
+          if (age < TOTAL_COUNT_TTL_MS && parsed.value > 0) {
+            return parsed.value;
+          }
+          // Cache expired - remove it
+          localStorage.removeItem(`totalCount_${entityType}`);
+          return 0;
+        }
+      } catch {
+        // Not JSON - try legacy format (plain number string)
         const count = parseInt(cached, 10);
         if (!isNaN(count) && count > 0) {
+          // Migrate to new format with current timestamp
+          const cacheData = { value: count, timestamp: Date.now() };
+          localStorage.setItem(`totalCount_${entityType}`, JSON.stringify(cacheData));
           return count;
         }
       }
