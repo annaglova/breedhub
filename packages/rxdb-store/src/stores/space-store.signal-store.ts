@@ -3174,6 +3174,7 @@ class SpaceStore {
 
   /**
    * Select an entity by ID for a given entity type
+   * If entity is not in memory, loads it from RxDB collection
    */
   selectEntity(entityType: string, id: string | null): void {
     const entityStore = this.entityStores.get(entityType.toLowerCase());
@@ -3181,7 +3182,80 @@ class SpaceStore {
       console.warn(`[SpaceStore] No entity store found for ${entityType}`);
       return;
     }
+
+    // Set selectedId immediately
     entityStore.selectEntity(id);
+
+    // If entity not in memory, load from RxDB
+    if (id && !entityStore.entityMap.value.has(id)) {
+      this.loadEntityFromRxDB(entityType.toLowerCase(), id, entityStore);
+    }
+  }
+
+  /**
+   * Load entity from RxDB collection and add to entityStore
+   * This ensures selectedEntity works even when entity is not in paginated list
+   */
+  private async loadEntityFromRxDB(entityType: string, id: string, entityStore: EntityStore<any>): Promise<void> {
+    if (!this.db) {
+      console.warn('[SpaceStore] Database not initialized');
+      return;
+    }
+
+    const collection = this.db.collections[entityType];
+    if (!collection) {
+      console.warn(`[SpaceStore] Collection ${entityType} not found`);
+      return;
+    }
+
+    try {
+      const doc = await collection.findOne(id).exec();
+      if (doc) {
+        const entity = doc.toJSON();
+        console.log(`[SpaceStore] Loaded entity ${id} from RxDB, adding to store`);
+        entityStore.addOne(entity);
+      } else {
+        console.log(`[SpaceStore] Entity ${id} not found in RxDB, will fetch from Supabase`);
+        // Entity not in RxDB - fetch from Supabase
+        this.fetchEntityFromSupabase(entityType, id, entityStore);
+      }
+    } catch (err) {
+      console.error(`[SpaceStore] Error loading entity from RxDB:`, err);
+    }
+  }
+
+  /**
+   * Fetch entity from Supabase and add to both RxDB and entityStore
+   */
+  private async fetchEntityFromSupabase(entityType: string, id: string, entityStore: EntityStore<any>): Promise<void> {
+    try {
+      const { supabase } = await import('../supabase/client');
+
+      const { data, error } = await supabase
+        .from(entityType)
+        .select('*')
+        .eq('id', id)
+        .single();
+
+      if (error || !data) {
+        console.warn(`[SpaceStore] Entity ${id} not found in Supabase`);
+        return;
+      }
+
+      console.log(`[SpaceStore] Fetched entity ${id} from Supabase`);
+
+      // Add to RxDB collection
+      const collection = this.db?.collections[entityType];
+      if (collection) {
+        const mapped = this.mapToRxDBFormat(data, entityType);
+        await collection.upsert(mapped);
+      }
+
+      // Add to entityStore
+      entityStore.addOne(data);
+    } catch (err) {
+      console.error(`[SpaceStore] Error fetching entity from Supabase:`, err);
+    }
   }
 
   /**
