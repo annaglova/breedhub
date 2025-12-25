@@ -95,7 +95,13 @@ export function CoverOutlet({
         "[CoverOutlet] parentWidth:",
         parentWidth,
         "isLoading:",
-        isLoading
+        isLoading,
+        "entityType:",
+        entityType,
+        "containerRef:",
+        containerRef.current,
+        "parentElement:",
+        containerRef.current?.parentElement
       );
 
       if (parentWidth > 0) {
@@ -106,7 +112,7 @@ export function CoverOutlet({
     };
 
     updateDimensions();
-  }, [isLoading]);
+  }, [isLoading, entity]);
 
   // ResizeObserver for responsive updates
   useEffect(() => {
@@ -202,7 +208,7 @@ export function CoverOutlet({
   return (
     <div
       ref={containerRef}
-      className={`relative flex size-full justify-center overflow-hidden rounded-lg border border-gray-200 px-6 pt-4 shadow-sm sm:pb-3 sm:pt-6 mb-6 ${className}`}
+      className={`relative flex justify-center overflow-hidden rounded-lg border border-gray-200 px-6 pt-4 shadow-sm sm:pb-3 sm:pt-6 mb-6 ${className}`}
       style={coverStyle}
     >
       {/* Top gradient overlay */}
