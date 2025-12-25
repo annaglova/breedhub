@@ -169,32 +169,12 @@ export function useEntities({
 
         if (!isMounted) return;
 
-        // Subscribe to totalFromServer to get real count from manual replication
-        if (entityStore) {
-          const totalFromServer = entityStore.totalFromServer.value;
-          const realTotal = totalFromServer !== null ? totalFromServer : result.records.length;
-
-          setData({
-            entities: result.records,
-            total: realTotal  // Use real count from server, not just loaded records
-          });
-
-          // Subscribe to future updates
-          unsubscribeTotal = entityStore.totalFromServer.subscribe((total) => {
-            if (!isMounted) return;
-            const finalTotal = total !== null ? total : result.records.length;
-            setData(prev => ({
-              ...prev,
-              total: finalTotal
-            }));
-          });
-        } else {
-          // Fallback if entityStore not available
-          setData({
-            entities: result.records,
-            total: result.records.length
-          });
-        }
+        // Use result.total from applyFilters (filter-aware count)
+        // Don't use entityStore.totalFromServer - it's global and doesn't respect filters
+        setData({
+          entities: result.records,
+          total: result.total  // Filter-aware total from applyFilters
+        });
 
         setCursor(result.nextCursor);
         setHasMore(result.hasMore);

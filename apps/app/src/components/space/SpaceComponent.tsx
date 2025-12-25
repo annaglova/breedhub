@@ -533,15 +533,32 @@ export function SpaceComponent<T extends { id: string }>({
         setTotalCount(data.total);
 
         // Save totalCount to localStorage ONLY on FIRST load (not during pagination)
-        // This prevents the count from growing during infinite scroll
+        // For spaces with totalFilterKey, save with filter-specific key
         const reservedParams = ["sort", "view", "sortBy", "sortDir", "sortParam", "type"];
-        const hasFilters = Array.from(searchParams.keys()).some(
-          key => !reservedParams.includes(key)
+        const totalFilterKey = config.totalFilterKey;
+        // Use filters object (has normalized field names and actual IDs) instead of searchParams
+        const totalFilterValue = totalFilterKey && filters ? filters[totalFilterKey] : null;
+
+        // Exclude totalFilterKey from "hasFilters" check
+        const filterParams = totalFilterKey
+          ? [...reservedParams, totalFilterKey]
+          : reservedParams;
+        const hasOtherFilters = Array.from(searchParams.keys()).some(
+          key => !filterParams.includes(key)
         );
 
-        if (!hasFilters) {
+        // For spaces with totalFilterKey: allow caching when only that filter is applied
+        // For spaces without: only cache when no filters
+        const canCache = totalFilterKey
+          ? (totalFilterValue && !hasOtherFilters) // Must have totalFilterKey filter, no other filters
+          : !hasOtherFilters; // No filters at all
+
+        if (canCache) {
           try {
-            const cacheKey = `totalCount_${config.entitySchemaName}`;
+            // Build cache key - include filter value if totalFilterKey is set
+            const cacheKey = totalFilterKey && totalFilterValue
+              ? `totalCount_${config.entitySchemaName}_${totalFilterKey}_${totalFilterValue}`
+              : `totalCount_${config.entitySchemaName}`;
             const cached = localStorage.getItem(cacheKey);
             const TOTAL_COUNT_TTL_MS = 14 * 24 * 60 * 60 * 1000; // 14 days
 
@@ -585,6 +602,8 @@ export function SpaceComponent<T extends { id: string }>({
     isLoading,
     searchParams,
     config.entitySchemaName,
+    config.totalFilterKey,
+    filters,
     isInitialLoad
   ]);
 
@@ -1161,6 +1180,8 @@ export function SpaceComponent<T extends { id: string }>({
                 total={0}
                 entityType={config.entitySchemaName}
                 initialCount={recordsCount}
+                totalFilterKey={config.totalFilterKey}
+                totalFilterValue={config.totalFilterKey && filters ? filters[config.totalFilterKey] : null}
               />
             </div>
 
@@ -1289,6 +1310,8 @@ export function SpaceComponent<T extends { id: string }>({
                   total={totalCount}
                   entityType={config.entitySchemaName}
                   initialCount={recordsCount}
+                  totalFilterKey={config.totalFilterKey}
+                  totalFilterValue={config.totalFilterKey && filters ? filters[config.totalFilterKey] : null}
                 />
               )}
             </div>

@@ -40,6 +40,7 @@ export interface SpaceConfig<T = any> {
   url: string;
   entitySchemaName: string;
   entitySchemaModel?: string; // Rendering model (e.g., 'breed', 'kennel', 'club')
+  totalFilterKey?: string; // Field to group totalCount by (e.g., 'breed_id' for pet, 'pet_type_id' for breed)
 
   // View configuration
   viewConfig: ViewConfig[];

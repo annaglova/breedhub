@@ -41,6 +41,7 @@ interface SpaceConfig {
   order?: number;
   entitySchemaName?: string;
   entitySchemaModel?: string; // Rendering model (e.g., 'breed', 'kennel', 'club')
+  totalFilterKey?: string; // Field to group totalCount by (e.g., 'breed_id' for pet, 'pet_type_id' for breed)
   fields?: Record<string, FieldConfig>;
   sort_fields?: Record<string, any>;
   filter_fields?: Record<string, any>;
@@ -329,6 +330,7 @@ class SpaceStore {
               order: space.order,
               entitySchemaName: space.entitySchemaName,
               entitySchemaModel: space.entitySchemaModel || space.entitySchemaName, // Fallback to entitySchemaName
+              totalFilterKey: space.totalFilterKey, // Field to group totalCount by
               fields: Object.fromEntries(uniqueFields),
               sort_fields: normalizedSortFields,
               filter_fields: normalizedFilterFields,
@@ -1787,7 +1789,8 @@ class SpaceStore {
         orderBy
       );
 
-      // On first page, fetch global total count (separate lightweight query without filters)
+      // On first page, fetch total count
+      // For partitioned spaces (e.g., pet by breed_id), count within partition
       // TTL: 14 days - these counts don't change often
       const TOTAL_COUNT_TTL_MS = 14 * 24 * 60 * 60 * 1000; // 14 days
 
@@ -1795,9 +1798,18 @@ class SpaceStore {
         const entityStore = this.entityStores.get(entityType);
         let shouldFetchCount = false;
 
+        // Check if this space has a totalFilterKey (e.g., breed_id for pet, pet_type_id for breed)
+        const totalFilterKey = spaceConfig?.totalFilterKey;
+        const totalFilterValue = totalFilterKey ? filters[totalFilterKey] : null;
+        const hasFilterKey = totalFilterKey && totalFilterValue;
+
+        // Build cache key - include filter value if totalFilterKey is set and active
+        const cacheKey = hasFilterKey
+          ? `totalCount_${entityType}_${totalFilterKey}_${totalFilterValue}`
+          : `totalCount_${entityType}`;
+
         // Check if we need to fetch (no cache or expired TTL)
         try {
-          const cacheKey = `totalCount_${entityType}`;
           const cached = localStorage.getItem(cacheKey);
 
           if (cached) {
@@ -1809,7 +1821,8 @@ class SpaceStore {
               if (entityStore && entityStore.totalFromServer.value === null) {
                 entityStore.setTotalFromServer(value);
               }
-              console.log(`[SpaceStore] 📊 Using cached total: ${value} (age: ${Math.round(age / 1000 / 60 / 60)}h)`);
+              const filterInfo = hasFilterKey ? ` (${totalFilterKey}=${totalFilterValue})` : '';
+              console.log(`[SpaceStore] 📊 Using cached total: ${value}${filterInfo} (age: ${Math.round(age / 1000 / 60 / 60)}h)`);
             } else {
               // Cache expired
               shouldFetchCount = true;
@@ -1824,30 +1837,45 @@ class SpaceStore {
           shouldFetchCount = true;
         }
 
-        // Fetch fresh count if needed
-        if (shouldFetchCount) {
+        // Skip fetching if totalFilterKey is required but not provided
+        // (user hasn't selected the mandatory filter yet)
+        if (totalFilterKey && !totalFilterValue) {
+          console.log(`[SpaceStore] 📊 Waiting for ${totalFilterKey} filter to be selected`);
+          // Don't fetch - let UI show "..." until filter is selected
+        } else if (shouldFetchCount) {
+          // Fetch fresh count if needed
           try {
             const { supabase } = await import('../supabase/client');
-            const { count: globalCount, error: countError } = await supabase
+
+            // Build query - add filter if totalFilterKey is set
+            let countQuery = supabase
               .from(entityType)
               .select('*', { count: 'exact', head: true })
               .or('deleted.is.null,deleted.eq.false');
 
-            if (!countError && globalCount !== null) {
-              console.log(`[SpaceStore] 📊 Fresh total count: ${globalCount}`);
+            // Add filter for grouped count
+            if (hasFilterKey) {
+              countQuery = countQuery.eq(totalFilterKey, totalFilterValue);
+            }
+
+            const { count: totalCount, error: countError } = await countQuery;
+
+            if (!countError && totalCount !== null) {
+              const filterInfo = hasFilterKey ? ` (${totalFilterKey}=${totalFilterValue})` : '';
+              console.log(`[SpaceStore] 📊 Fresh total count: ${totalCount}${filterInfo}`);
               if (entityStore) {
-                entityStore.setTotalFromServer(globalCount);
+                entityStore.setTotalFromServer(totalCount);
               }
               // Cache to localStorage with timestamp
               try {
-                const cacheData = { value: globalCount, timestamp: Date.now() };
-                localStorage.setItem(`totalCount_${entityType}`, JSON.stringify(cacheData));
+                const cacheData = { value: totalCount, timestamp: Date.now() };
+                localStorage.setItem(cacheKey, JSON.stringify(cacheData));
               } catch (e) {
                 console.warn(`[SpaceStore] Failed to cache totalCount:`, e);
               }
             }
           } catch (e) {
-            console.warn(`[SpaceStore] Failed to fetch global count:`, e);
+            console.warn(`[SpaceStore] Failed to fetch total count:`, e);
           }
         }
       }

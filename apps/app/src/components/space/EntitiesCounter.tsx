@@ -1,9 +1,10 @@
-
 interface EntitiesCounterProps {
   entitiesCount: number;
   total: number;
   entityType?: string;
   initialCount?: number;
+  totalFilterKey?: string;
+  totalFilterValue?: string | null;
 }
 
 /**
@@ -21,12 +22,29 @@ export function EntitiesCounter({
   entitiesCount,
   total,
   entityType = 'entity',
-  initialCount = 0
+  initialCount = 0,
+  totalFilterKey,
+  totalFilterValue
 }: EntitiesCounterProps) {
+  // If totalFilterKey is required but not selected, show "..." (waiting for filter)
+  if (totalFilterKey && !totalFilterValue) {
+    const displayEntitiesCount = entitiesCount > 0 ? entitiesCount : initialCount;
+    return (
+      <div className="text-sm text-muted-foreground mt-2">
+        Showing {formatNumber(displayEntitiesCount)} of <span className="inline-block animate-pulse">...</span>
+      </div>
+    );
+  }
+
+  // Build cache key - include filter value if totalFilterKey is set
+  const cacheKey = totalFilterKey && totalFilterValue
+    ? `totalCount_${entityType}_${totalFilterKey}_${totalFilterValue}`
+    : `totalCount_${entityType}`;
+
   // Read cached total from localStorage with TTL check
   const getCachedTotal = (): number => {
     try {
-      const cached = localStorage.getItem(`totalCount_${entityType}`);
+      const cached = localStorage.getItem(cacheKey);
       if (!cached) return 0;
 
       // Try JSON format first (new format with TTL)
@@ -38,7 +56,7 @@ export function EntitiesCounter({
             return parsed.value;
           }
           // Cache expired - remove it
-          localStorage.removeItem(`totalCount_${entityType}`);
+          localStorage.removeItem(cacheKey);
           return 0;
         }
       } catch {
@@ -47,7 +65,7 @@ export function EntitiesCounter({
         if (!isNaN(count) && count > 0) {
           // Migrate to new format with current timestamp
           const cacheData = { value: count, timestamp: Date.now() };
-          localStorage.setItem(`totalCount_${entityType}`, JSON.stringify(cacheData));
+          localStorage.setItem(cacheKey, JSON.stringify(cacheData));
           return count;
         }
       }
@@ -83,7 +101,7 @@ export function EntitiesCounter({
   if (entitiesCount > 0 && entitiesCount >= displayTotal && isConfirmedTotal) {
     return (
       <div className="text-sm text-muted-foreground mt-2">
-        Showing all {formatNumber(displayTotal)} items
+        Showing all {formatNumber(displayTotal)}
       </div>
     );
   }
@@ -91,7 +109,7 @@ export function EntitiesCounter({
   // Default: show current count vs total
   return (
     <div className="text-sm text-muted-foreground mt-2">
-      Showing {formatNumber(displayEntitiesCount)} of {formatNumber(displayTotal)} items
+      Showing {formatNumber(displayEntitiesCount)} of {formatNumber(displayTotal)}
     </div>
   );
 }
