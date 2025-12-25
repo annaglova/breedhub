@@ -81,7 +81,26 @@ export function SpaceComponent<T extends { id: string }>({
     return spaceStore.getDefaultView(config.entitySchemaName);
   }, [config, config?.entitySchemaName, spaceStore.configReady.value]);
 
-  const viewMode = searchParams.get("view") || defaultView;
+  // 🆕 localStorage key for persisting view preference per entity type
+  const viewStorageKey = `breedhub:view:${config.entitySchemaName}`;
+
+  // 🆕 Read view from URL, localStorage, or use default (same pattern as sort)
+  const viewMode = useMemo(() => {
+    // 1. URL param has highest priority (for sharing links)
+    const urlView = searchParams.get("view");
+    if (urlView) return urlView;
+
+    // 2. Try to read from localStorage (persisted preference)
+    try {
+      const savedView = localStorage.getItem(viewStorageKey);
+      if (savedView) return savedView;
+    } catch (e) {
+      // localStorage not available, continue to default
+    }
+
+    // 3. Otherwise use default from config
+    return defaultView;
+  }, [searchParams, viewStorageKey, defaultView]);
 
   // Check if current view is a grid-like view (tab, grid, cards, etc.)
   // Grid views don't have selection/drawer - clicking goes directly to fullscreen
@@ -242,7 +261,7 @@ export function SpaceComponent<T extends { id: string }>({
     }
   }, [searchParams, setSearchParams]);
 
-  // 🎯 Set default view in URL if no view param exists
+  // 🎯 Set view in URL if no view param exists (uses localStorage preference or default)
   // Skip in fullscreen/pretty URL mode - we don't need query params there
   useEffect(() => {
     // Skip URL modification in fullscreen mode (pretty URL like /affenpinscher#overview)
@@ -250,13 +269,13 @@ export function SpaceComponent<T extends { id: string }>({
 
     const hasViewParam = searchParams.has("view");
 
-    // If no view param and we have a default view, add it to URL
-    if (!hasViewParam && defaultView) {
+    // If no view param, add viewMode (which already considers localStorage preference)
+    if (!hasViewParam && viewMode) {
       const newParams = new URLSearchParams(searchParams);
-      newParams.set("view", defaultView);
+      newParams.set("view", viewMode);
       setSearchParams(newParams, { replace: true }); // replace to not add history entry
     }
-  }, [searchParams, setSearchParams, defaultView, initialSelectedEntityId]);
+  }, [searchParams, setSearchParams, viewMode, initialSelectedEntityId]);
 
   // 🎯 Set sort in URL if no sort param exists (uses localStorage preference or default)
   // Skip in fullscreen/pretty URL mode - we don't need query params there
@@ -809,6 +828,18 @@ export function SpaceComponent<T extends { id: string }>({
     [searchParams, setSearchParams, sortStorageKey]
   );
 
+  // 🆕 Handle view change - persist to localStorage (URL is updated by ViewChanger)
+  const handleViewChange = useCallback(
+    (view: string) => {
+      try {
+        localStorage.setItem(viewStorageKey, view);
+      } catch (e) {
+        // localStorage not available, continue without persisting
+      }
+    },
+    [viewStorageKey]
+  );
+
   // 🆕 Handle filters apply - update URL with filter params (using slugs)
   // Convert ID values to readable labels for URL
   const handleFiltersApply = useCallback(
@@ -1173,6 +1204,7 @@ export function SpaceComponent<T extends { id: string }>({
                     icon: v.icon,
                     tooltip: v.tooltip,
                   }))}
+                  onViewChange={handleViewChange}
                 />
               </div>
               <EntitiesCounter
@@ -1302,6 +1334,7 @@ export function SpaceComponent<T extends { id: string }>({
                     icon: v.icon,
                     tooltip: v.tooltip,
                   }))}
+                  onViewChange={handleViewChange}
                 />
               </div>
               {spaceStore.configReady.value && (
