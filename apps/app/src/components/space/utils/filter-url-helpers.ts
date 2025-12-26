@@ -1,5 +1,6 @@
 import type { RxDatabase } from 'rxdb';
 import type { FilterFieldConfig } from '../filters/FiltersDialog';
+import { supabase } from '@breedhub/rxdb-store';
 
 /**
  * Normalize text for URL
@@ -60,7 +61,8 @@ function getCollectionInfo(
  *
  * Priority:
  * 1. RxDB dictionary/collection lookup
- * 2. Fallback to ID
+ * 2. Supabase fallback (if RxDB empty) + cache result in RxDB
+ * 3. Fallback to raw ID
  */
 export async function getLabelForValue(
   fieldConfig: FilterFieldConfig | undefined,
@@ -71,15 +73,14 @@ export async function getLabelForValue(
     return value;
   }
 
-  // Dynamic lookup (RxDB) - dictionaries or regular collections
-  if (fieldConfig.referencedTable && fieldConfig.referencedFieldID && fieldConfig.referencedFieldName) {
-    const collectionInfo = getCollectionInfo(fieldConfig, rxdb);
+  if (!fieldConfig.referencedTable || !fieldConfig.referencedFieldID || !fieldConfig.referencedFieldName) {
+    return value;
+  }
 
-    if (!collectionInfo) {
-      console.warn(`[getLabelForValue] Collection not found: ${fieldConfig.referencedTable}`);
-      return value; // Fallback
-    }
+  // 1. Try RxDB lookup first
+  const collectionInfo = getCollectionInfo(fieldConfig, rxdb);
 
+  if (collectionInfo) {
     try {
       const collection = rxdb.collections[collectionInfo.collectionName];
 
@@ -100,22 +101,54 @@ export async function getLabelForValue(
       }
 
       if (doc) {
-        const label = doc[fieldConfig.referencedFieldName];
-        console.log('[getLabelForValue]', value, '→', label, `(from ${collectionInfo.isDictionary ? 'dictionary' : 'collection'})`);
-        return label || value;
+        return doc[fieldConfig.referencedFieldName] || value;
+      }
+
+      // Check if collection has any data - if yes, item doesn't exist
+      const count = await collection.count().exec();
+      if (count > 0) {
+        return value;
       }
     } catch (err) {
-      console.error(`[getLabelForValue] Error fetching doc:`, err);
+      console.warn('[getLabelForValue] RxDB error:', err);
     }
   }
 
-  // Fallback
-  return value;
+  // 2. Supabase fallback (RxDB empty or collection not found)
+  try {
+    const tableName = fieldConfig.referencedTable;
+    const idField = fieldConfig.referencedFieldID || 'id';
+    const nameField = fieldConfig.referencedFieldName || 'name';
+
+    const { data, error } = await supabase
+      .from(tableName)
+      .select('*')
+      .eq(idField, value)
+      .single();
+
+    if (error || !data) {
+      return value;
+    }
+
+    const label = data[nameField];
+
+    // 3. Cache in RxDB for future lookups
+    await cacheInRxDB(rxdb, fieldConfig, data);
+
+    return label || value;
+  } catch (err) {
+    console.warn('[getLabelForValue] Supabase fallback error:', err);
+    return value;
+  }
 }
 
 /**
  * Find value (ID) by label
  * Supports normalized labels (e.g., "long-hair" matches "Long Hair")
+ *
+ * Priority:
+ * 1. RxDB lookup (fast, local)
+ * 2. Supabase fallback (if RxDB empty) + cache result in RxDB
  */
 export async function getValueForLabel(
   fieldConfig: FilterFieldConfig | undefined,
@@ -126,48 +159,141 @@ export async function getValueForLabel(
     return null;
   }
 
+  if (!fieldConfig.referencedTable || !fieldConfig.referencedFieldName || !fieldConfig.referencedFieldID) {
+    return null;
+  }
+
   const normalizedSearchLabel = normalizeForUrl(label);
+  const idField = fieldConfig.referencedFieldID;
+  const nameField = fieldConfig.referencedFieldName;
 
-  // Dynamic lookup (RxDB) - dictionaries or regular collections
-  if (fieldConfig.referencedTable && fieldConfig.referencedFieldName) {
-    const collectionInfo = getCollectionInfo(fieldConfig, rxdb);
+  // 1. Try RxDB lookup first
+  const collectionInfo = getCollectionInfo(fieldConfig, rxdb);
 
-    if (!collectionInfo) {
-      console.warn(`[getValueForLabel] Collection not found: ${fieldConfig.referencedTable}`);
-      return null;
-    }
-
+  if (collectionInfo) {
     try {
       const collection = rxdb.collections[collectionInfo.collectionName];
 
       let docs;
       if (collectionInfo.isDictionary && collectionInfo.tableName) {
-        // Query dictionaries collection with table_name filter
         docs = await collection.find({
-          selector: {
-            table_name: collectionInfo.tableName
-          }
+          selector: { table_name: collectionInfo.tableName }
         }).exec();
       } else {
-        // Query regular collection - get all docs
         docs = await collection.find().exec();
       }
 
       // Find by normalized label match
-      const match = docs.find(doc =>
-        normalizeForUrl(doc[fieldConfig.referencedFieldName]) === normalizedSearchLabel
+      const match = docs.find((doc: any) =>
+        normalizeForUrl(doc[nameField]) === normalizedSearchLabel
       );
 
       if (match) {
-        const matchId = match[fieldConfig.referencedFieldID];
-        console.log('[getValueForLabel]', label, '→', matchId, `(from ${collectionInfo.isDictionary ? 'dictionary' : 'collection'})`);
-        return matchId;
+        return match[idField];
+      }
+
+      // If RxDB has docs but no match, don't fallback (item doesn't exist)
+      if (docs.length > 0) {
+        return null;
       }
     } catch (err) {
-      console.error(`[getValueForLabel] Error fetching docs:`, err);
+      console.warn('[getValueForLabel] RxDB error:', err);
     }
   }
 
-  // Not found
-  return null;
+  // 2. Supabase fallback (RxDB empty or collection not found)
+  try {
+    const tableName = fieldConfig.referencedTable;
+
+    const { data, error } = await supabase
+      .from(tableName)
+      .select('*')
+      .ilike(nameField, label);
+
+    if (error || !data || data.length === 0) {
+      return null;
+    }
+
+    // Find by normalized label match (same logic as RxDB)
+    const match = data.find((item: any) =>
+      normalizeForUrl(item[nameField]) === normalizedSearchLabel
+    );
+
+    if (!match) {
+      return null;
+    }
+
+    const matchId = match[idField];
+
+    // 3. Cache in RxDB for future lookups
+    await cacheInRxDB(rxdb, fieldConfig, match);
+
+    return matchId;
+  } catch (err) {
+    console.warn('[getValueForLabel] Supabase fallback error:', err);
+    return null;
+  }
+}
+
+/**
+ * Cache Supabase result in RxDB for future lookups
+ *
+ * Logic:
+ * 1. If collection with referencedTable name exists → cache there (filter fields by schema)
+ * 2. Otherwise → cache in 'dictionaries' collection with table_name field
+ */
+async function cacheInRxDB(
+  rxdb: RxDatabase,
+  fieldConfig: FilterFieldConfig,
+  record: any
+): Promise<void> {
+  try {
+    const tableName = fieldConfig.referencedTable;
+    if (!tableName) {
+      return;
+    }
+
+    // Check if dedicated collection exists (e.g., 'breed', 'pet')
+    const hasDedicatedCollection = !!rxdb.collections[tableName];
+    const collectionName = hasDedicatedCollection ? tableName : 'dictionaries';
+
+    if (!rxdb.collections[collectionName]) {
+      return;
+    }
+
+    const collection = rxdb.collections[collectionName];
+
+    // Prepare record for RxDB
+    let rxdbRecord: any;
+
+    if (!hasDedicatedCollection) {
+      // For dictionaries collection - needs specific schema fields
+      rxdbRecord = {
+        id: record.id,
+        name: record.name,
+        table_name: tableName,
+        cachedAt: Date.now(),
+        _deleted: false,
+      };
+    } else {
+      // For dedicated collections - filter to only allowed schema properties
+      const schema = collection.schema.jsonSchema;
+      const allowedProps = new Set(Object.keys(schema.properties || {}));
+
+      rxdbRecord = { _deleted: false };
+      for (const key of Object.keys(record)) {
+        if (allowedProps.has(key)) {
+          rxdbRecord[key] = record[key];
+        }
+      }
+      if (!rxdbRecord.updated_at) {
+        rxdbRecord.updated_at = new Date().toISOString();
+      }
+    }
+
+    await collection.upsert(rxdbRecord);
+  } catch (err) {
+    // Don't fail if caching fails - it's just an optimization
+    console.warn('[cacheInRxDB] Failed to cache:', err);
+  }
 }
