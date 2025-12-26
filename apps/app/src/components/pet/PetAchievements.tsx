@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { ChevronDown } from "lucide-react";
 import { Chip } from "@ui/components/chip";
 import {
@@ -42,6 +42,11 @@ export function PetAchievements({
   const [expanded, setExpanded] = useState(false);
 
   const petId = entity?.id;
+
+  // Reset expanded state when navigating to a different pet
+  useEffect(() => {
+    setExpanded(false);
+  }, [petId]);
 
   // Load titles via useTabData (config-driven, local-first)
   const { data, isLoading } = useTabData({
