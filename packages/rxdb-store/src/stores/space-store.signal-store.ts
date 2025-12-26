@@ -6,6 +6,7 @@ import { EntityStore } from './base/entity-store';
 import { appStore } from './app-store.signal-store';
 import { entityReplicationService } from '../services/entity-replication.service';
 import { breedChildrenSchema, breedChildrenMigrationStrategies, BreedChildrenDocument } from '../collections/breed-children.schema';
+import { petChildrenSchema, petChildrenMigrationStrategies, PetChildrenDocument } from '../collections/pet-children.schema';
 import { supabase } from '../supabase/client';
 
 // Helpers
@@ -3425,9 +3426,9 @@ class SpaceStore {
     switch (entityType.toLowerCase()) {
       case 'breed':
         return breedChildrenSchema;
-      // TODO: Add pet_children and kennel_children schemas when needed
-      // case 'pet':
-      //   return petChildrenSchema;
+      case 'pet':
+        return petChildrenSchema;
+      // TODO: Add kennel_children schema when needed
       // case 'kennel':
       //   return kennelChildrenSchema;
       default:
@@ -3443,6 +3444,8 @@ class SpaceStore {
     switch (entityType.toLowerCase()) {
       case 'breed':
         return breedChildrenMigrationStrategies;
+      case 'pet':
+        return petChildrenMigrationStrategies;
       // TODO: Add migration strategies for other entities
       default:
         return {};

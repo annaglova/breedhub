@@ -51,15 +51,20 @@ export function PetAchievements({
   });
 
   // Transform VIEW data to component format
+  // Data from child_view is stored with fields in 'additional' object
   const titles = useMemo<PetTitle[]>(() => {
     if (!data || data.length === 0) return [];
 
-    return data.map((item: any) => ({
-      id: item.id,
-      name: item.title_name || "",
-      countryCode: item.country_code || "",
-      country: item.country_name || "",
-    }));
+    return data.map((item: any) => {
+      // Fields can be in 'additional' (RxDB cache) or at root level (direct Supabase)
+      const additional = item.additional || {};
+      return {
+        id: item.id,
+        name: additional.title_name || item.title_name || "",
+        countryCode: additional.country_code || item.country_code || "",
+        country: additional.country_name || item.country_name || "",
+      };
+    });
   }, [data]);
 
   const isComponentMode = mode === "component";
