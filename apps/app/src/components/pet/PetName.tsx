@@ -3,6 +3,7 @@ import { NoteFlagButton } from "@ui/components/note-flag-button";
 import { VerificationBadge } from "@/components/entity/VerificationBadge";
 import { PetSexMark } from "@/components/shared/PetSexMark";
 import { useDictionaryValue } from "@/hooks/useDictionaryValue";
+import { useCollectionValue } from "@/hooks/useCollectionValue";
 
 interface PetNameProps {
   entity?: any;
@@ -45,27 +46,33 @@ export function PetName({
   const petStatusName = useDictionaryValue("pet_status", entity?.pet_status_id);
   const sexCode = useDictionaryValue("sex", entity?.sex_id, "code");
 
+  // Get breed data from collection by breed_id
+  const breed = useCollectionValue<{ name?: string; slug?: string }>(
+    "breed",
+    entity?.breed_id
+  );
+
   // Extract data from entity
   const displayName = entity?.name || "Unknown Pet";
-  const breedName = entity?.breed?.name || entity?.breed_name;
-  const breedSlug = entity?.breed?.slug || entity?.breed_slug;
+  const breedName = entity?.breed?.name || entity?.breed_name || breed?.name;
+  const breedSlug = entity?.breed?.slug || entity?.breed_slug || breed?.slug;
   const dateOfBirth = formatDate(entity?.date_of_birth);
   const coi = entity?.coi;
 
   return (
     <div className="pb-3 cursor-default">
-      {/* Breed link */}
+      {/* Breed link - same position as support level in BreedName */}
       {breedName && (
-        <div className="text-md mb-3 max-w-72 sm:max-w-full flex">
+        <div className="text-md mb-2">
           {breedSlug ? (
             <Link
               to={`/${breedSlug}`}
-              className="truncate text-primary hover:underline"
+              className="uppercase hover:underline"
             >
               {breedName}
             </Link>
           ) : (
-            <span className="truncate">{breedName}</span>
+            <span className="uppercase">{breedName}</span>
           )}
         </div>
       )}
