@@ -7,7 +7,7 @@ import {
 } from "@ui/components/tooltip";
 import { Expand } from "lucide-react";
 import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { NavigationButtons } from "./cover/NavigationButtons";
 
 /**
@@ -65,7 +65,6 @@ export function CoverOutlet({
   children,
 }: CoverOutletProps) {
   const navigate = useNavigate();
-  const location = useLocation();
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Calculate dimensions based on parent container width
@@ -91,23 +90,8 @@ export function CoverOutlet({
         }
       }
 
-      console.log(
-        "[CoverOutlet] parentWidth:",
-        parentWidth,
-        "isLoading:",
-        isLoading,
-        "entityType:",
-        entityType,
-        "containerRef:",
-        containerRef.current,
-        "parentElement:",
-        containerRef.current?.parentElement
-      );
-
       if (parentWidth > 0) {
-        const dims = calculateCoverDimensions(parentWidth);
-        console.log("[CoverOutlet] calculated dimensions:", dims);
-        setDimensions(dims);
+        setDimensions(calculateCoverDimensions(parentWidth));
       }
     };
 
@@ -145,18 +129,8 @@ export function CoverOutlet({
     maxHeight: `${coverHeight}px`,
   };
 
-  console.log(
-    "[CoverOutlet] RENDER isLoading:",
-    isLoading,
-    "dimensions:",
-    coverWidth,
-    "x",
-    coverHeight
-  );
-
   // Show skeleton when loading
   if (isLoading) {
-    console.log("[CoverOutlet] Rendering SKELETON with:", coverStyle);
     return (
       <div
         ref={containerRef}
@@ -189,13 +163,6 @@ export function CoverOutlet({
     // No query params - fullscreen mode is clean URL
     const hash = defaultTab ? `#${defaultTab}` : "";
     const prettyUrl = `/${slug}${hash}`;
-
-    console.log("[CoverOutlet] handleExpand:", {
-      entity,
-      slug,
-      defaultTab,
-      prettyUrl,
-    });
 
     // Navigate to pretty URL (absolute path from root)
     // SlugResolver will set fullscreen in store and render SpacePage

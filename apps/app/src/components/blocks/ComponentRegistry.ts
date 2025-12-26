@@ -8,6 +8,7 @@ import { EntityAvatar } from '../shared/EntityAvatar';
 import { BreedName } from '../breed/BreedName';
 import { BreedAchievements } from '../breed/BreedAchievements';
 import { PetName } from '../pet/PetName';
+import { PetAchievements } from '../pet/PetAchievements';
 import type React from 'react';
 
 /**
@@ -33,6 +34,7 @@ const BLOCK_COMPONENTS: Record<string, React.ComponentType<any>> = {
   'BreedName': BreedName,
   'BreedAchievements': BreedAchievements,
   'PetName': PetName,
+  'PetAchievements': PetAchievements,
   // Add more block components here as needed
 };
 
