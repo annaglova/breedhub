@@ -965,12 +965,12 @@ export function SpaceComponent<T extends { id: string }>({
   // 🆕 Read active filters from URL (excluding 'sort' and 'view')
   // Convert normalized labels back to display labels
   const [activeFilters, setActiveFilters] = useState<
-    Array<{ id: string; label: string; isRequired: boolean }>
+    Array<{ id: string; label: string; isRequired: boolean; order: number }>
   >([]);
 
   useEffect(() => {
     const loadActiveFilters = async () => {
-      const filters: Array<{ id: string; label: string; isRequired: boolean }> =
+      const filters: Array<{ id: string; label: string; isRequired: boolean; order: number }> =
         [];
       const reservedParams = ["sort", "view", "sortBy", "sortDir", "sortParam"];
 
@@ -1019,9 +1019,13 @@ export function SpaceComponent<T extends { id: string }>({
             id: key,
             label: `${displayName}: ${displayValue}`,
             isRequired: fieldConfig?.required ?? false,
+            order: fieldConfig?.order ?? 999,
           });
         }
       }
+
+      // Sort by order from config
+      filters.sort((a, b) => a.order - b.order);
 
       setActiveFilters(filters);
     };
