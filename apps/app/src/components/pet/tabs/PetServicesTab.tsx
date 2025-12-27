@@ -7,7 +7,8 @@ import {
   Baby,
   CalendarClock,
   ShoppingCart,
-  Heart,
+  Mars,
+  Venus,
   Home,
   Snowflake,
 } from "lucide-react";
@@ -48,7 +49,7 @@ const SERVICE_ICONS: Record<string, React.ReactNode> = {
   "children-for-sale": <Baby className="h-4 w-4" />,
   "pre-reservation": <CalendarClock className="h-4 w-4" />,
   "sale": <ShoppingCart className="h-4 w-4" />,
-  "mating": <Heart className="h-4 w-4" />,
+  "mating": <span className="flex -space-x-1"><Mars className="h-3.5 w-3.5" /><Venus className="h-3.5 w-3.5" /></span>,
   "rent": <Home className="h-4 w-4" />,
   "frozen-sperm": <Snowflake className="h-4 w-4" />,
 };
