@@ -236,7 +236,7 @@ export function PetGeneralTab({ onLoadedCount }: PetGeneralTabProps) {
 
           {/* Sex & DOB */}
           <div className="grid grid-cols-[16px_60px_1fr] sm:grid-cols-[22px_70px_1fr] items-center gap-3 px-4 pb-2 flex-1">
-            <InfoRow icon={<User size={iconSize} />} label="Sex">
+            <InfoRow icon={<span className="flex -space-x-1"><Mars size={iconSize - 2} /><Venus size={iconSize - 2} /></span>} label="Sex">
               <span>{data.sex?.name || "—"}</span>
             </InfoRow>
             <InfoRow icon={<Calendar size={iconSize} />} label="DOB">
