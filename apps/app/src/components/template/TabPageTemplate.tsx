@@ -36,7 +36,8 @@ registerModules(petTabModules);
 
 // Tab config from database
 interface TabConfig {
-  isDefault?: boolean;
+  isDefault?: boolean; // Fallback default tab
+  preferDefault?: boolean; // Preferred default if tab has data/is visible
   order: number;
   component: string;
   label?: string;

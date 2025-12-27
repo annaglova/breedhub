@@ -44,7 +44,8 @@ registerModules(petTabModules);
 
 // Tab config from database
 interface TabConfig {
-  isDefault?: boolean;
+  isDefault?: boolean; // Fallback default tab (used if no preferDefault tabs are visible)
+  preferDefault?: boolean; // Preferred default if tab has data/is visible (checked first, by order)
   order: number;
   component: string;
   label?: string;
@@ -122,19 +123,42 @@ function convertTabConfigToTabs(tabsConfig: Record<string, TabConfig>): Tab[] {
 
 /**
  * Get default tab fragment (slug) from tabs config
+ *
+ * Priority:
+ * 1. First tab with preferDefault: true (sorted by order) - for tabs that should be default when they have data
+ * 2. Tab with isDefault: true - fallback default
+ * 3. First tab by order - ultimate fallback
+ *
+ * Note: In future, preferDefault tabs will only be selected if they have data.
+ * For now, preferDefault is treated same as highest priority default.
  */
 function getDefaultTabFragment(tabsConfig: Record<string, TabConfig>): string | undefined {
-  const defaultEntry = Object.entries(tabsConfig).find(([, config]) => config.isDefault);
+  // Sort all tabs by order for consistent processing
+  const sortedEntries = Object.entries(tabsConfig).sort(
+    ([, a], [, b]) => (a.order || 0) - (b.order || 0)
+  );
+
+  // 1. Find first tab with preferDefault: true (by order)
+  // TODO: In future, also check if tab has data/is visible
+  const preferDefaultEntry = sortedEntries.find(([, config]) => config.preferDefault);
+  if (preferDefaultEntry) {
+    const [tabId, config] = preferDefaultEntry;
+    return config.slug || tabId;
+  }
+
+  // 2. Find tab with isDefault: true
+  const defaultEntry = sortedEntries.find(([, config]) => config.isDefault);
   if (defaultEntry) {
     const [tabId, config] = defaultEntry;
     return config.slug || tabId;
   }
-  // Fallback to first tab
-  const firstEntry = Object.entries(tabsConfig)[0];
-  if (firstEntry) {
-    const [tabId, config] = firstEntry;
+
+  // 3. Fallback to first tab by order
+  if (sortedEntries.length > 0) {
+    const [tabId, config] = sortedEntries[0];
     return config.slug || tabId;
   }
+
   return undefined;
 }
 

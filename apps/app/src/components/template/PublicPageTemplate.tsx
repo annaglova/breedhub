@@ -10,8 +10,14 @@ import { useEffect, useRef, useState } from "react";
 
 /**
  * Get default tab fragment from page config
- * Looks for TabOutlet block and finds tab with isDefault: true
- * Returns the tab slug/id, or first tab as fallback
+ * Looks for TabOutlet block and finds default tab
+ *
+ * Priority:
+ * 1. First tab with preferDefault: true (by order) - for tabs that should be default when they have data
+ * 2. Tab with isDefault: true - fallback default
+ * 3. First tab by order - ultimate fallback
+ *
+ * Note: In future, preferDefault tabs will only be selected if they have data.
  */
 function getDefaultTabFragment(pageConfig: any): string | undefined {
   if (!pageConfig?.blocks) {
@@ -29,8 +35,24 @@ function getDefaultTabFragment(pageConfig: any): string | undefined {
 
   const tabsConfig = tabOutletBlock.tabs;
 
-  // Find tab with isDefault: true
-  const defaultEntry = Object.entries(tabsConfig).find(
+  // Sort all tabs by order for consistent processing
+  const sortedTabs = Object.entries(tabsConfig).sort(
+    ([, a]: [string, any], [, b]: [string, any]) => (a.order || 0) - (b.order || 0)
+  );
+
+  // 1. Find first tab with preferDefault: true (by order)
+  // TODO: In future, also check if tab has data/is visible
+  const preferDefaultEntry = sortedTabs.find(
+    ([, config]: [string, any]) => config.preferDefault === true
+  );
+
+  if (preferDefaultEntry) {
+    const [tabId, config] = preferDefaultEntry as [string, any];
+    return config.slug || tabId;
+  }
+
+  // 2. Find tab with isDefault: true
+  const defaultEntry = sortedTabs.find(
     ([, config]: [string, any]) => config.isDefault === true
   );
 
@@ -39,11 +61,7 @@ function getDefaultTabFragment(pageConfig: any): string | undefined {
     return config.slug || tabId;
   }
 
-  // Fallback to first tab (sorted by order)
-  const sortedTabs = Object.entries(tabsConfig).sort(
-    ([, a]: [string, any], [, b]: [string, any]) => (a.order || 0) - (b.order || 0)
-  );
-
+  // 3. Fallback to first tab by order
   if (sortedTabs.length > 0) {
     const [tabId, config] = sortedTabs[0] as [string, any];
     return config.slug || tabId;
