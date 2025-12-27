@@ -1,9 +1,9 @@
 import { EntityTabCardWrapper } from "@/components/space/EntityTabCardWrapper";
 import { NoteFlag } from "@/components/shared/NoteFlag";
-import { VerificationBadge } from "@/components/entity/VerificationBadge";
-import { TierMark } from "@/components/entity/TierMark";
-import { PetServices } from "@/components/entity/PetServices";
-import { PetSexMark } from "@/components/entity/PetSexMark";
+import { VerificationBadge } from "@/components/shared/VerificationBadge";
+import { TierMark } from "@/components/shared/TierMark";
+import { PetServices } from "@/components/shared/PetServices";
+import { PetSexMark } from "@/components/shared/PetSexMark";
 import { useDictionaryValue } from "@/hooks/useDictionaryValue";
 import defaultPetAvatar from "@/assets/images/pettypes/dog.jpeg";
 

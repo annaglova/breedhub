@@ -1,10 +1,18 @@
+import { useDictionaryValue } from "@/hooks/useDictionaryValue";
 import { CommonVerifiedIcon } from "@shared/icons";
 import { cn } from "@ui/lib/utils";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@ui/components/tooltip";
 
 interface VerificationBadgeProps {
   status?: string | { Id?: string; Name?: string };
   size?: number;
   className?: string;
+  /** Display mode - tooltip only shown in "page" mode */
+  mode?: "page" | "list";
 }
 
 // Verification status IDs
@@ -31,9 +39,16 @@ export function VerificationBadge({
   status,
   size = 16,
   className,
+  mode = "list",
 }: VerificationBadgeProps) {
   // Extract status ID
   const statusId = typeof status === "object" ? status?.Id : status;
+
+  // Load status name from dictionary (only in page mode)
+  const statusName = useDictionaryValue(
+    mode === "page" ? "verification_status" : undefined,
+    statusId
+  );
 
   // Don't render if no status
   if (!statusId) return null;
@@ -50,11 +65,28 @@ export function VerificationBadge({
     }
   };
 
-  return (
+  const icon = (
     <CommonVerifiedIcon
       className={cn(getColorClass(), className)}
       width={size}
       height={size}
     />
+  );
+
+  // List mode - no tooltip
+  if (mode === "list") {
+    return icon;
+  }
+
+  // Page mode - with tooltip
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <span className="inline-flex">{icon}</span>
+      </TooltipTrigger>
+      <TooltipContent side="top">
+        <p>{statusName || "Loading..."}</p>
+      </TooltipContent>
+    </Tooltip>
   );
 }

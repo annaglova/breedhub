@@ -1,9 +1,9 @@
-import { Link } from "react-router-dom";
-import { NoteFlagButton } from "@ui/components/note-flag-button";
-import { VerificationBadge } from "@/components/entity/VerificationBadge";
+import { VerificationBadge } from "@/components/shared/VerificationBadge";
 import { PetSexMark } from "@/components/shared/PetSexMark";
-import { useDictionaryValue } from "@/hooks/useDictionaryValue";
 import { useCollectionValue } from "@/hooks/useCollectionValue";
+import { useDictionaryValue } from "@/hooks/useDictionaryValue";
+import { NoteFlagButton } from "@ui/components/note-flag-button";
+import { Link } from "react-router-dom";
 
 interface PetNameProps {
   entity?: any;
@@ -65,10 +65,7 @@ export function PetName({
       {breedName && (
         <div className="text-md mb-2">
           {breedSlug ? (
-            <Link
-              to={`/${breedSlug}`}
-              className="uppercase hover:underline"
-            >
+            <Link to={`/${breedSlug}`} className="uppercase hover:underline">
               {breedName}
             </Link>
           ) : (
@@ -96,7 +93,7 @@ export function PetName({
         <VerificationBadge
           status={entity?.verification_status_id}
           size={16}
-          className="self-center"
+          mode="page"
         />
 
         {/* Note flag */}
@@ -104,7 +101,7 @@ export function PetName({
           hasNotes={hasNotes}
           onClick={onNotesClick}
           mode="page"
-          className="pr-7 self-start"
+          className="self-start"
         />
       </div>
 
