@@ -12,7 +12,8 @@ import {
   Activity,
   Palette,
   Scale,
-  CircleUser,
+  Mars,
+  Venus,
 } from "lucide-react";
 
 /**
@@ -220,13 +221,13 @@ export function PetGeneralTab({ onLoadedCount }: PetGeneralTabProps) {
           {/* Father & Mother */}
           <div className="grid grid-cols-[16px_60px_1fr] sm:grid-cols-[22px_70px_1fr] items-center gap-3 px-4 pb-2 flex-1">
             <InfoRow
-              icon={<CircleUser size={iconSize} className="text-blue-400" />}
+              icon={<Mars size={iconSize} />}
               label="Father"
             >
               <EntityLink entity={data.father} />
             </InfoRow>
             <InfoRow
-              icon={<CircleUser size={iconSize} className="text-pink-400" />}
+              icon={<Venus size={iconSize} />}
               label="Mother"
             >
               <EntityLink entity={data.mother} />
