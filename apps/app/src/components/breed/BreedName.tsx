@@ -1,5 +1,5 @@
-import { Link } from "react-router-dom";
 import { NoteFlagButton } from "@ui/components/note-flag-button";
+import { Link } from "react-router-dom";
 
 interface BreedNameProps {
   entity?: any;
@@ -67,7 +67,7 @@ export function BreedName({
           hasNotes={hasNotes}
           onClick={onNotesClick}
           mode="page"
-          className="pr-7 self-start"
+          className="self-start"
         />
       </div>
 
