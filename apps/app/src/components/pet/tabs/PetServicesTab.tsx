@@ -1,16 +1,16 @@
+import { useEffect } from "react";
 import { useSelectedEntity } from "@/contexts/SpaceContext";
 import { spaceStore } from "@breedhub/rxdb-store";
 import { useSignals } from "@preact/signals-react/runtime";
 import { Badge } from "@ui/components/badge";
 import { cn } from "@ui/lib/utils";
 import {
-  Baby,
+  PawPrint,
   CalendarClock,
   ShoppingCart,
-  Mars,
-  Venus,
-  Home,
+  Handshake,
   Snowflake,
+  VenusAndMars,
 } from "lucide-react";
 
 /**
@@ -46,11 +46,11 @@ interface ChildForSale {
 
 // Service type IDs → icons mapping
 const SERVICE_ICONS: Record<string, React.ReactNode> = {
-  "children-for-sale": <Baby className="h-4 w-4" />,
+  "children-for-sale": <PawPrint className="h-4 w-4" />,
   "pre-reservation": <CalendarClock className="h-4 w-4" />,
   "sale": <ShoppingCart className="h-4 w-4" />,
-  "mating": <span className="flex -space-x-1"><Mars className="h-3.5 w-3.5" /><Venus className="h-3.5 w-3.5" /></span>,
-  "rent": <Home className="h-4 w-4" />,
+  "mating": <VenusAndMars className="h-4 w-4" />,
+  "rent": <Handshake className="h-4 w-4" />,
   "frozen-sperm": <Snowflake className="h-4 w-4" />,
 };
 
@@ -131,10 +131,12 @@ export function PetServicesTab({ onLoadedCount }: PetServicesTabProps) {
   const features = MOCK_FEATURES;
   const childrenForSale = MOCK_CHILDREN_FOR_SALE;
 
-  // Report count
-  if (onLoadedCount) {
-    onLoadedCount(services.length);
-  }
+  // Report count after render
+  useEffect(() => {
+    if (onLoadedCount) {
+      onLoadedCount(services.length);
+    }
+  }, [onLoadedCount, services.length]);
 
   return (
     <div className="flex flex-col space-y-8 px-6 cursor-default">
@@ -142,7 +144,7 @@ export function PetServicesTab({ onLoadedCount }: PetServicesTabProps) {
       {childrenForSale.length > 0 && (
         <div>
           <div className="flex items-center space-x-2 mb-3">
-            <Baby className="h-4 w-4 text-secondary-400" />
+            <PawPrint className="h-4 w-4 text-secondary-400" />
             <span className="font-bold">Children available for sale</span>
           </div>
           <div className="grid gap-2 grid-cols-2 sm:grid-cols-3">
@@ -152,7 +154,7 @@ export function PetServicesTab({ onLoadedCount }: PetServicesTabProps) {
                 className="card flex items-center space-x-3 p-3 bg-even-card-ground"
               >
                 <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
-                  <Baby className="h-5 w-5 text-gray-400" />
+                  <PawPrint className="h-5 w-5 text-gray-400" />
                 </div>
                 <span className="font-medium truncate">{child.name}</span>
               </div>

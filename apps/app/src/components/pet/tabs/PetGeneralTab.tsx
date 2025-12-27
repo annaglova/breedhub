@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useSelectedEntity } from "@/contexts/SpaceContext";
 import { spaceStore } from "@breedhub/rxdb-store";
 import { useSignals } from "@preact/signals-react/runtime";
@@ -6,14 +7,18 @@ import { Link } from "react-router-dom";
 import {
   CalendarHeart,
   MapPin,
+  MapPinHouse,
   User,
-  UserCheck,
-  Building2,
-  Activity,
+  UserStar,
+  House,
+  HouseHeart,
+  CircleCheckBig,
   Palette,
   Scale,
   Mars,
   Venus,
+  VenusAndMars,
+  Waves,
 } from "lucide-react";
 
 /**
@@ -201,10 +206,12 @@ export function PetGeneralTab({ onLoadedCount }: PetGeneralTabProps) {
   // For now using mock data
   const data = MOCK_DATA;
 
-  // Report count (always 1 for general info)
-  if (onLoadedCount) {
-    onLoadedCount(1);
-  }
+  // Report count after render (always 1 for general info)
+  useEffect(() => {
+    if (onLoadedCount) {
+      onLoadedCount(1);
+    }
+  }, [onLoadedCount]);
 
   const iconSize = 16;
 
@@ -236,7 +243,7 @@ export function PetGeneralTab({ onLoadedCount }: PetGeneralTabProps) {
 
           {/* Sex & DOB */}
           <div className="grid grid-cols-[16px_60px_1fr] sm:grid-cols-[22px_70px_1fr] items-center gap-3 px-4 pb-2 flex-1">
-            <InfoRow icon={<span className="flex -space-x-1"><Mars size={iconSize - 2} /><Venus size={iconSize - 2} /></span>} label="Sex">
+            <InfoRow icon={<VenusAndMars size={iconSize} />} label="Sex">
               <span>{data.sex?.name || "—"}</span>
             </InfoRow>
             <InfoRow icon={<CalendarHeart size={iconSize} />} label="DOB">
@@ -256,11 +263,11 @@ export function PetGeneralTab({ onLoadedCount }: PetGeneralTabProps) {
         >
           {/* Breeder side */}
           <div className="grid grid-cols-[16px_60px_1fr] sm:grid-cols-[22px_70px_1fr] items-center gap-3 px-4 pb-2 flex-1">
-            <InfoRow icon={<UserCheck size={iconSize} />} label="Breeder">
+            <InfoRow icon={<UserStar size={iconSize} />} label="Breeder">
               <EntityLink entity={data.breeder} />
             </InfoRow>
             <InfoRow
-              icon={<Building2 size={iconSize} />}
+              icon={<House size={iconSize} />}
               label="Kennel"
               subLabel="breeder"
             >
@@ -284,14 +291,14 @@ export function PetGeneralTab({ onLoadedCount }: PetGeneralTabProps) {
               <EntityLink entity={data.owner} />
             </InfoRow>
             <InfoRow
-              icon={<Building2 size={iconSize} />}
+              icon={<HouseHeart size={iconSize} />}
               label="Kennel"
               subLabel="owner"
             >
               <EntityLink entity={data.ownerKennel} />
             </InfoRow>
             <InfoRow
-              icon={<MapPin size={iconSize} />}
+              icon={<MapPinHouse size={iconSize} />}
               label="Country"
               subLabel="of stay"
             >
@@ -310,12 +317,12 @@ export function PetGeneralTab({ onLoadedCount }: PetGeneralTabProps) {
           )}
         >
           <div className="grid grid-cols-[16px_70px_1fr] sm:grid-cols-[22px_80px_1fr] items-center gap-3">
-            <InfoRow icon={<Activity size={iconSize} />} label="Status">
+            <InfoRow icon={<CircleCheckBig size={iconSize} />} label="Status">
               <span>{data.petStatus?.name || "—"}</span>
             </InfoRow>
           </div>
           <div className="grid grid-cols-[16px_70px_1fr] sm:grid-cols-[22px_80px_1fr] items-center gap-3">
-            <InfoRow icon={<Palette size={iconSize} />} label="Coat type">
+            <InfoRow icon={<Waves size={iconSize} />} label="Coat type">
               <span>{data.coatType?.name || "—"}</span>
             </InfoRow>
           </div>
