@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState, useCallback, useEffect } from 'react';
 import defaultDogImage from '@/assets/images/pettypes/dog.jpeg';
 
 interface EntityAvatarProps {
@@ -20,6 +20,8 @@ interface EntityAvatarProps {
  * 3. entity.logo_url (for kennels)
  * 4. entity.Avatar (legacy field)
  * 5. Fallback to default image
+ *
+ * Includes error handling - if image fails to load, shows default image.
  *
  * Used by: AvatarOutlet, cards, lists, search results
  *
@@ -68,6 +70,24 @@ export function EntityAvatar({
     return defaultImage;
   }, [entity, defaultImage]);
 
+  // Track current image source (for error fallback)
+  const [imgSrc, setImgSrc] = useState(avatarUrl);
+  const [hasError, setHasError] = useState(false);
+
+  // Handle image load error - switch to fallback
+  const handleError = useCallback(() => {
+    if (!hasError) {
+      setHasError(true);
+      setImgSrc(defaultImage);
+    }
+  }, [hasError, defaultImage]);
+
+  // Reset when avatarUrl changes (new entity)
+  useEffect(() => {
+    setImgSrc(avatarUrl);
+    setHasError(false);
+  }, [avatarUrl]);
+
   // Generate alt text
   const altText = alt || entity?.name || entity?.Name || 'Entity avatar';
 
@@ -77,9 +97,10 @@ export function EntityAvatar({
       <div className="flex size-full items-center justify-center overflow-hidden rounded-full border border-gray-200 ring-4 ring-white">
         <img
           className="size-full object-cover"
-          src={avatarUrl}
+          src={imgSrc}
           alt={altText}
           loading="lazy"
+          onError={handleError}
         />
       </div>
 

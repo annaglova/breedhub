@@ -11,6 +11,9 @@ import { useEffect, useMemo, useState } from "react";
 import { CoverTemplate } from "./CoverTemplate";
 import { PatronAvatar } from "./PatronAvatar";
 
+// Import default cover image as asset (Vite will process this correctly)
+import defaultCoverImage from "@/assets/images/background-images/cover_background.png";
+
 // Interface for any entity (breed, pet, kennel, etc.)
 interface EntityWithBreed {
   id?: string;
@@ -166,9 +169,9 @@ export function BreedCoverV1({
     };
   }, [entity, isBreedEntity, loadedBreed, breedId]);
 
-  // Default cover image from assets
-  const actualCoverImg = coverImg || entity.avatar_url || entity.Avatar ||
-    '/src/assets/images/background-images/cover_background.png';
+  // Cover image: use prop if provided, otherwise default
+  // Future: coverImg will come from entity.cover_url via config
+  const actualCoverImg = coverImg || defaultCoverImage;
 
   // Calculate patron length (max 3 on mobile, 4 on desktop)
   const patronLength = useMemo(() => {

@@ -654,16 +654,9 @@ export function SpaceComponent<T extends { id: string }>({
   // Check if drawer should be open based on route OR initialSelectedEntityId
   // Sync EntityStore selection with URL (bidirectional)
   useEffect(() => {
-    console.log('[SpaceComponent] URL sync effect:', {
-      initialSelectedEntityId,
-      pathname: location.pathname,
-      allEntitiesCount: allEntities.length
-    });
-
     // If we have initialSelectedEntityId, drawer should be open (pretty URL mode)
     // Skip URL-based logic in this case
     if (initialSelectedEntityId) {
-      console.log('[SpaceComponent] Skipping URL sync - using initialSelectedEntityId');
       setIsDrawerOpen(true);
       return;
     }
@@ -675,7 +668,6 @@ export function SpaceComponent<T extends { id: string }>({
     // Clear fullscreen mode when NOT in pretty URL mode (drawer mode)
     // This handles the case when navigating back from fullscreen to drawer
     if (spaceStore.isFullscreen.value) {
-      console.log('[SpaceComponent] Clearing fullscreen mode (not in pretty URL mode)');
       spaceStore.clearFullscreen();
     }
 
@@ -691,29 +683,39 @@ export function SpaceComponent<T extends { id: string }>({
       if (isUUID) {
         // Direct UUID - use as is
         entityId = urlSegment;
-        console.log('[SpaceComponent] URL segment is UUID:', entityId);
       } else {
-        // Friendly slug - find entity by normalized name
-        console.log('[SpaceComponent] URL segment is slug:', urlSegment);
+        // Friendly slug - find entity by normalized name or slug field
         const matchingEntity = allEntities.find(entity =>
-          normalizeForUrl(entity.name) === urlSegment
+          normalizeForUrl(entity.name) === urlSegment ||
+          (entity as any).slug === urlSegment
         );
 
         if (matchingEntity) {
           entityId = matchingEntity.id;
-          console.log('[SpaceComponent] Found entity by slug:', matchingEntity.name, '→', entityId);
         } else if (allEntities.length > 0 && !isLoading) {
-          // Entity not found in current page (may be outside pagination due to sorting)
-          // Fallback: select first entity in list and update URL to match
-          console.warn('[SpaceComponent] Entity not found for slug:', urlSegment, '- selecting first entity');
-          const firstEntity = allEntities[0];
-          entityId = firstEntity.id;
-          const newSlug = (firstEntity as any).slug || normalizeForUrl((firstEntity as any).name || firstEntity.id);
+          // Entity not found in current filtered list
+          // Check if current selection is still valid in the new list
+          const currentSelectedId = spaceStore.getSelectedId(config.entitySchemaName);
+          const currentEntityStillInList = currentSelectedId &&
+            allEntities.some(e => e.id === currentSelectedId);
 
-          // Update URL to match the actually selected entity
-          navigate(`${newSlug}${location.search}${location.hash}`, { replace: true });
-        } else {
-          console.warn('[SpaceComponent] No entity found for slug:', urlSegment, '(waiting for data)');
+          if (currentEntityStillInList) {
+            // Current selection is still valid - keep it, just update URL to match
+            const currentEntity = allEntities.find(e => e.id === currentSelectedId);
+            if (currentEntity) {
+              const correctSlug = (currentEntity as any).slug || normalizeForUrl((currentEntity as any).name || currentEntity.id);
+              navigate(`${correctSlug}${location.search}${location.hash}`, { replace: true });
+              entityId = currentSelectedId;
+            }
+          } else {
+            // Current entity not in list anymore (filter changed) - fallback to first
+            const firstEntity = allEntities[0];
+            entityId = firstEntity.id;
+            const newSlug = (firstEntity as any).slug || normalizeForUrl((firstEntity as any).name || firstEntity.id);
+
+            // Update URL to match the actually selected entity
+            navigate(`${newSlug}${location.search}${location.hash}`, { replace: true });
+          }
         }
       }
 
