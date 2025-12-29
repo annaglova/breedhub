@@ -80,7 +80,7 @@ export function PetPedigreeTab({
   const pedigreePet = MOCK_PEDIGREE_PET;
 
   return (
-    <div className="mt-3">
+    <div>
       {/* Hint about generations - only in scroll mode */}
       {!isFullscreen && (
         <p className="text-secondary text-sm mb-3">

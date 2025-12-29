@@ -140,7 +140,7 @@ export function PetChildrenTab({ onLoadedCount }: PetChildrenTabProps) {
       {litters.length > 0 ? (
         <div
           className={cn(
-            "mt-3 grid gap-3",
+            "grid gap-3",
             isFullscreen && "lg:grid-cols-2"
           )}
         >
@@ -224,7 +224,7 @@ export function PetChildrenTab({ onLoadedCount }: PetChildrenTabProps) {
           ))}
         </div>
       ) : (
-        <div className="card mt-5 flex flex-auto flex-col p-6 lg:px-8">
+        <div className="card flex flex-auto flex-col p-6 lg:px-8">
           <span className="text-secondary p-8 text-center font-medium">
             There are no children!
           </span>
