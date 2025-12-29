@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState, useCallback } from "react";
 import { cn } from "@ui/lib/utils";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 interface HorizontalScrollbarProps {
   /** Reference to the scrollable container */
@@ -14,13 +14,16 @@ interface HorizontalScrollbarProps {
  * Visual style similar to BreedProgressLight - rounded border with thumb inside.
  * Supports both click-to-scroll and drag-to-scroll on the thumb.
  */
+// Padding inside track (thumb won't touch edges)
+const TRACK_PADDING = 3;
+
 export function HorizontalScrollbar({
   scrollContainerRef,
   className,
 }: HorizontalScrollbarProps) {
   const trackRef = useRef<HTMLDivElement>(null);
   const [thumbWidth, setThumbWidth] = useState(20);
-  const [thumbLeft, setThumbLeft] = useState(0);
+  const [thumbLeft, setThumbLeft] = useState(TRACK_PADDING);
   const [isDragging, setIsDragging] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
   const dragStartX = useRef(0);
@@ -29,8 +32,7 @@ export function HorizontalScrollbar({
   // Calculate thumb size and position based on scroll container
   const updateThumb = useCallback(() => {
     const container = scrollContainerRef.current;
-    const track = trackRef.current;
-    if (!container || !track) return;
+    if (!container) return;
 
     const { scrollWidth, clientWidth, scrollLeft } = container;
 
@@ -41,16 +43,30 @@ export function HorizontalScrollbar({
     }
     setIsVisible(true);
 
+    // Track might not be rendered yet, calculate on next frame
+    const track = trackRef.current;
+    if (!track) {
+      requestAnimationFrame(() => updateThumb());
+      return;
+    }
+
     const trackWidth = track.clientWidth;
+    if (trackWidth === 0) {
+      requestAnimationFrame(() => updateThumb());
+      return;
+    }
+
+    // Available width for thumb (excluding padding on both sides)
+    const availableWidth = trackWidth - TRACK_PADDING * 2;
 
     // Calculate thumb width as proportion of visible area
-    const thumbW = Math.max((clientWidth / scrollWidth) * trackWidth, 30);
+    const thumbW = Math.max((clientWidth / scrollWidth) * availableWidth, 30);
     setThumbWidth(thumbW);
 
-    // Calculate thumb position
+    // Calculate thumb position (starts at TRACK_PADDING, ends at trackWidth - TRACK_PADDING - thumbW)
     const maxScroll = scrollWidth - clientWidth;
-    const maxThumbLeft = trackWidth - thumbW;
-    const thumbL = (scrollLeft / maxScroll) * maxThumbLeft;
+    const maxThumbLeft = availableWidth - thumbW;
+    const thumbL = TRACK_PADDING + (scrollLeft / maxScroll) * maxThumbLeft;
     setThumbLeft(thumbL);
   }, [scrollContainerRef]);
 
@@ -107,14 +123,15 @@ export function HorizontalScrollbar({
     if (!track || !container) return;
 
     const rect = track.getBoundingClientRect();
-    const clickX = e.clientX - rect.left;
+    const clickX = e.clientX - rect.left - TRACK_PADDING;
     const trackWidth = track.clientWidth;
+    const availableWidth = trackWidth - TRACK_PADDING * 2;
 
     const { scrollWidth, clientWidth } = container;
     const maxScroll = scrollWidth - clientWidth;
 
-    // Calculate scroll position from click
-    const scrollTo = (clickX / trackWidth) * maxScroll;
+    // Calculate scroll position from click (accounting for padding)
+    const scrollTo = Math.max(0, Math.min(maxScroll, (clickX / availableWidth) * maxScroll));
     container.scrollTo({ left: scrollTo, behavior: "smooth" });
   };
 
@@ -129,9 +146,10 @@ export function HorizontalScrollbar({
 
       const deltaX = e.clientX - dragStartX.current;
       const trackWidth = track.clientWidth;
+      const availableWidth = trackWidth - TRACK_PADDING * 2;
       const { scrollWidth, clientWidth } = container;
       const maxScroll = scrollWidth - clientWidth;
-      const maxThumbLeft = trackWidth - thumbWidth;
+      const maxThumbLeft = availableWidth - thumbWidth;
 
       // Convert thumb movement to scroll movement
       const scrollDelta = (deltaX / maxThumbLeft) * maxScroll;
