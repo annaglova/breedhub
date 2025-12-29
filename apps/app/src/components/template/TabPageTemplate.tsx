@@ -1,14 +1,13 @@
 import { useMemo, useRef, useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
+import { Pencil } from "lucide-react";
 import { BlockRenderer } from "@/components/blocks/BlockRenderer";
 import { SpaceProvider } from "@/contexts/SpaceContext";
 import { ScrollToTopButton } from "@/components/shared/ScrollToTopButton";
-import { Icon } from "@/components/shared/Icon";
 import { getPageConfig } from "@/utils/getPageConfig";
 import { spaceStore, tabDataService } from "@breedhub/rxdb-store";
 import { useSignals } from "@preact/signals-react/runtime";
 import { cn } from "@ui/lib/utils";
-import { Button } from "@ui/components/button";
 import { Tab } from "@/components/tabs/TabsContainer";
 import { PageMenu, PageMenuSkeleton } from "@/components/tabs/PageMenu";
 import { TabActionsHeader } from "@/components/tabs/TabActionsHeader";
@@ -455,24 +454,27 @@ export function TabPageTemplate({
               )}
 
               {/* TabActionsHeader - Renders actions based on tab's actionType */}
-              <TabActionsHeader>
-                {currentTab.actionType === "pedigreeGenerations" && (
-                  <PedigreeGenerationSelector
-                    generations={pedigreeGenerations}
-                    onGenerationsChange={setPedigreeGenerations}
-                  />
-                )}
-                {currentTab.actionType === "edit" && spaceConfig?.canEdit && (
-                  <Button
-                    variant="outline-secondary"
-                    className="rounded-full h-[2.6rem] px-4 text-base font-semibold"
-                    type="button"
-                  >
-                    <Icon icon={{ name: "Pencil", source: "lucide" }} size={16} />
-                    <span className="ml-2">Edit</span>
-                  </Button>
-                )}
-              </TabActionsHeader>
+              <TabActionsHeader
+                left={
+                  currentTab.actionType === "pedigreeGenerations" ? (
+                    <PedigreeGenerationSelector
+                      generations={pedigreeGenerations}
+                      onGenerationsChange={setPedigreeGenerations}
+                    />
+                  ) : undefined
+                }
+                right={
+                  currentTab.actionType === "edit" && spaceConfig?.canEdit ? (
+                    <button
+                      type="button"
+                      className="flex items-center text-base font-semibold text-sub-header-color hover:text-foreground transition-colors"
+                    >
+                      <Pencil className="mr-1.5 h-4 w-4" />
+                      Edit
+                    </button>
+                  ) : undefined
+                }
+              />
             </div>
 
             {/* Tab Content */}
