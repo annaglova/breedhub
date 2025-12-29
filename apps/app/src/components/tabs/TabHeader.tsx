@@ -70,13 +70,9 @@ export function TabHeader({
               <TooltipTrigger asChild>
                 <a
                   href={fullscreenUrl}
-                  className="ml-auto hover:bg-hover-surface-header p-2 rounded transition-colors"
+                  className="ml-auto text-sub-header-color hover:text-foreground/70 transition-colors"
                 >
-                  <Icon
-                    icon={{ name: "Expand", source: "lucide" }}
-                    size={16}
-                    className="text-sub-header-color"
-                  />
+                  <Icon icon={{ name: "Expand", source: "lucide" }} size={18} />
                 </a>
               </TooltipTrigger>
               <TooltipContent side="bottom">Full screen view</TooltipContent>

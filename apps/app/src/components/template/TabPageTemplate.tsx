@@ -467,9 +467,9 @@ export function TabPageTemplate({
                   currentTab.actionType === "edit" && spaceConfig?.canEdit ? (
                     <button
                       type="button"
-                      className="flex items-center text-base font-semibold text-sub-header-color hover:text-foreground transition-colors"
+                      className="flex items-center text-lg font-semibold text-sub-header-color hover:text-foreground/70 transition-colors"
                     >
-                      <Pencil className="mr-1.5 h-4 w-4" />
+                      <Pencil className="mr-2 h-5 w-5" />
                       Edit
                     </button>
                   ) : undefined
