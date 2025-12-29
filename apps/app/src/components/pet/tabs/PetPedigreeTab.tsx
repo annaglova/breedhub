@@ -1,11 +1,13 @@
 import { useSelectedEntity } from "@/contexts/SpaceContext";
 import { spaceStore } from "@breedhub/rxdb-store";
 import { useSignals } from "@preact/signals-react/runtime";
+import { useRef, useState, useCallback } from "react";
 import {
   PedigreeTree,
   GenerationCount,
   MOCK_PEDIGREE_PET,
 } from "@/components/shared/pedigree";
+import { HorizontalScrollbar } from "@/components/shared/HorizontalScrollbar";
 
 /** Default generations to show in scroll mode */
 const DEFAULT_GENERATIONS: GenerationCount = 4;
@@ -39,6 +41,35 @@ export function PetPedigreeTab({
   const selectedEntity = useSelectedEntity();
   const isFullscreen = spaceStore.isFullscreen.value || mode === "fullscreen";
 
+  // Direct drag-to-scroll implementation
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const dragStartX = useRef(0);
+  const scrollStartLeft = useRef(0);
+
+  const handleMouseDown = useCallback((e: React.MouseEvent) => {
+    if (!scrollRef.current) return;
+    setIsDragging(true);
+    dragStartX.current = e.clientX;
+    scrollStartLeft.current = scrollRef.current.scrollLeft;
+    e.preventDefault();
+  }, []);
+
+  const handleMouseMove = useCallback((e: React.MouseEvent) => {
+    if (!isDragging || !scrollRef.current) return;
+    e.preventDefault();
+    const deltaX = e.clientX - dragStartX.current;
+    scrollRef.current.scrollLeft = scrollStartLeft.current - deltaX;
+  }, [isDragging]);
+
+  const handleMouseUp = useCallback(() => {
+    setIsDragging(false);
+  }, []);
+
+  const handleMouseLeave = useCallback(() => {
+    setIsDragging(false);
+  }, []);
+
   // Use passed generations in fullscreen mode, default in scroll mode
   const generations = isFullscreen && pedigreeGenerations !== undefined
     ? pedigreeGenerations
@@ -57,8 +88,25 @@ export function PetPedigreeTab({
         </p>
       )}
 
-      {/* Pedigree tree */}
-      <div className="overflow-x-auto">
+      {/* Custom horizontal scrollbar - on top */}
+      <HorizontalScrollbar
+        scrollContainerRef={scrollRef}
+        className="mb-3 mx-auto max-w-md"
+      />
+
+      {/* Pedigree tree with drag-to-scroll */}
+      <div
+        ref={scrollRef}
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
+        onMouseLeave={handleMouseLeave}
+        className="overflow-x-auto scrollbar-hide"
+        style={{
+          cursor: isDragging ? "grabbing" : "grab",
+          userSelect: isDragging ? "none" : "auto",
+        }}
+      >
         {pedigreePet ? (
           <PedigreeTree pet={pedigreePet} generations={generations} />
         ) : (

@@ -89,7 +89,7 @@ export function PedigreeTree({ pet, generations }: PedigreeTreeProps) {
   const limit = generations - 1;
 
   return (
-    <div className="flex flex-row gap-3 overflow-x-auto">
+    <div className="flex flex-row gap-3 w-max">
       {/* Subject (level -1) - vertical sidebar card */}
       <PedigreeCard pet={pet} sex={pet.sex?.code} level={-1} />
 
