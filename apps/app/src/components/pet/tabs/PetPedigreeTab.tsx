@@ -81,13 +81,6 @@ export function PetPedigreeTab({
 
   return (
     <div>
-      {/* Hint about generations - only in scroll mode */}
-      {!isFullscreen && (
-        <p className="text-secondary text-sm mb-3">
-          Showing {DEFAULT_GENERATIONS} generations. View in fullscreen for more options.
-        </p>
-      )}
-
       {/* Custom horizontal scrollbar - on top */}
       <HorizontalScrollbar
         scrollContainerRef={scrollRef}

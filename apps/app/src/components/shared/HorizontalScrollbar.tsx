@@ -15,7 +15,7 @@ interface HorizontalScrollbarProps {
  * Supports both click-to-scroll and drag-to-scroll on the thumb.
  */
 // Padding inside track (thumb won't touch edges)
-const TRACK_PADDING = 3;
+const TRACK_PADDING = 2;
 
 export function HorizontalScrollbar({
   scrollContainerRef,
@@ -175,14 +175,14 @@ export function HorizontalScrollbar({
     <div
       ref={trackRef}
       className={cn(
-        "h-[10px] w-full rounded-full border border-primary-500 cursor-pointer relative",
+        "h-[8px] w-full rounded-full border border-secondary cursor-pointer relative",
         className
       )}
       onClick={handleTrackClick}
     >
       <div
         className={cn(
-          "absolute top-0.5 bottom-0.5 rounded-full bg-primary-500 cursor-grab",
+          "absolute top-[1px] bottom-[1px] rounded-full bg-secondary cursor-grab",
           isDragging && "cursor-grabbing"
         )}
         style={{
