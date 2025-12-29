@@ -16,11 +16,11 @@ export interface Tab {
   component: React.ComponentType<any>;
   /**
    * Tab action type for fullscreen mode:
-   * - "pedigree-generations": Generation selector for pedigree tab
+   * - "pedigreeGenerations": Generation selector for pedigree tab
    * - "edit": Edit button (only shown if canEdit in space config)
    * - undefined/null: No actions
    */
-  actionType?: "pedigree-generations" | "edit";
+  actionType?: "pedigreeGenerations" | "edit";
 }
 
 /**

@@ -52,7 +52,7 @@ interface TabConfig {
   fullscreenButton?: boolean;
   recordsCount?: number;
   dataSource?: any; // Config-driven data loading
-  actionType?: "pedigree-generations" | "edit"; // Fullscreen mode action type
+  actionType?: "pedigreeGenerations" | "edit"; // Fullscreen mode action type
 }
 
 interface TabPageTemplateProps {
@@ -455,7 +455,7 @@ export function TabPageTemplate({
 
             {/* TabActionsHeader - Renders actions based on tab's actionType */}
             <TabActionsHeader>
-              {currentTab.actionType === "pedigree-generations" && (
+              {currentTab.actionType === "pedigreeGenerations" && (
                 <PedigreeGenerationSelector
                   generations={pedigreeGenerations}
                   onGenerationsChange={setPedigreeGenerations}
