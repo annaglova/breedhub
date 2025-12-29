@@ -46,7 +46,7 @@ export function TabActionsHeader({
       className={cn(
         "flex w-full items-center justify-end",
         "text-sub-header-color bg-header-ground/75 backdrop-blur-sm",
-        "px-6 py-2",
+        "px-6 h-[3.25rem]",
         className
       )}
       style={style}
