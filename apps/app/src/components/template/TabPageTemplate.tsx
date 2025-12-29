@@ -9,6 +9,11 @@ import { useSignals } from "@preact/signals-react/runtime";
 import { cn } from "@ui/lib/utils";
 import { Tab } from "@/components/tabs/TabsContainer";
 import { PageMenu, PageMenuSkeleton } from "@/components/tabs/PageMenu";
+import { TabActionsHeader } from "@/components/tabs/TabActionsHeader";
+import {
+  PedigreeGenerationSelector,
+  type GenerationCount,
+} from "@/components/shared/pedigree";
 
 // Dynamic tab component registry (same as TabOutletRenderer)
 const breedTabModules = import.meta.glob('../breed/tabs/*Tab.tsx', { eager: true });
@@ -47,6 +52,7 @@ interface TabConfig {
   fullscreenButton?: boolean;
   recordsCount?: number;
   dataSource?: any; // Config-driven data loading
+  actionType?: "pedigree-generations" | "edit"; // Fullscreen mode action type
 }
 
 interface TabPageTemplateProps {
@@ -118,6 +124,7 @@ function convertFullscreenTabsToArray(
       fullscreenButton: config.fullscreenButton,
       recordsCount: config.recordsCount,
       dataSource: config.dataSource,
+      actionType: config.actionType,
       _order: config.order,
     } as Tab & { _order: number });
   }
@@ -160,6 +167,9 @@ export function TabPageTemplate({
   // Track if name container is stuck to top
   const [nameOnTop, setNameOnTop] = useState(false);
   const [nameBlockHeight, setNameBlockHeight] = useState(0);
+
+  // Pedigree generations state (for pedigree-generations action type)
+  const [pedigreeGenerations, setPedigreeGenerations] = useState<GenerationCount>(4);
 
   // Get spaceConfig signal
   const spaceConfigSignal = useMemo(
@@ -443,6 +453,21 @@ export function TabPageTemplate({
               )}
             </div>
 
+            {/* TabActionsHeader - Renders actions based on tab's actionType */}
+            <TabActionsHeader>
+              {currentTab.actionType === "pedigree-generations" && (
+                <PedigreeGenerationSelector
+                  generations={pedigreeGenerations}
+                  onGenerationsChange={setPedigreeGenerations}
+                />
+              )}
+              {currentTab.actionType === "edit" && spaceConfig?.canEdit && (
+                <button className="text-sm font-medium text-primary hover:underline">
+                  Edit
+                </button>
+              )}
+            </TabActionsHeader>
+
             {/* Tab Content */}
             <div className="pt-6 pb-8">
               <TabComponent
@@ -450,6 +475,8 @@ export function TabPageTemplate({
                 mode="fullscreen"
                 recordsCount={currentTab.recordsCount}
                 dataSource={currentTab.dataSource}
+                pedigreeGenerations={pedigreeGenerations}
+                onPedigreeGenerationsChange={setPedigreeGenerations}
               />
             </div>
           </div>

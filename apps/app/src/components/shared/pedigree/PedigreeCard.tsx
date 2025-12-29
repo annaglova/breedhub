@@ -1,0 +1,290 @@
+import { cn } from "@ui/lib/utils";
+import { Link } from "react-router-dom";
+import { PetSexMark } from "@/components/shared/PetSexMark";
+import type { SexCode } from "@/components/shared/PetSexMark";
+import type { PedigreePet } from "./types";
+
+interface PedigreeCardProps {
+  pet: PedigreePet;
+  sex?: SexCode;
+  /** Visual level: -1, 0, 1, 2, 3 */
+  level: number;
+}
+
+/**
+ * Format year from date string
+ */
+function formatYear(dateString?: string): string {
+  if (!dateString) return "";
+  try {
+    return new Date(dateString).getFullYear().toString();
+  } catch {
+    return "";
+  }
+}
+
+/**
+ * PedigreeCard - Individual pet card in pedigree
+ *
+ * Different visual styles based on level:
+ * - level -1: Vertical rotated name with sex mark (sidebar style)
+ * - level 0: Large card with avatar 176px, min-h-[403px]
+ * - level 1: Medium card with avatar 104px, min-h-[196.25px]
+ * - level 2: Small card with avatar 64px, min-h-[92.88px]
+ * - level 3: Pill-shaped with just sex mark and name
+ *
+ * Based on Angular: pedigree-card.component.ts
+ */
+export function PedigreeCard({ pet, sex, level }: PedigreeCardProps) {
+  const isEmpty = !pet || pet.id === "unknown";
+  const petSex = sex || pet.sex?.code;
+
+  // Country + Year
+  const countryYear = [pet.countryOfBirth?.code, formatYear(pet.dateOfBirth)]
+    .filter(Boolean)
+    .join(" ");
+
+  // Level -1: Vertical sidebar card
+  if (level === -1) {
+    return (
+      <div className="card min-w-10 max-w-10 flex flex-col items-center justify-center rounded-full p-4 gap-3 bg-even-card-ground">
+        <div
+          className="rotate-180 font-medium"
+          style={{ writingMode: "vertical-lr" }}
+        >
+          {pet.name}
+        </div>
+        <PetSexMark sex={petSex} style="round" />
+      </div>
+    );
+  }
+
+  // Level 0: Large card (parents level)
+  if (level === 0) {
+    return (
+      <div className="card flex min-w-72 max-w-72 w-full flex-col items-center justify-center px-6 py-3 min-h-[403px] bg-even-card-ground">
+        <PetSexMark
+          sex={petSex}
+          style="horizontal"
+          className="top-0 mb-4 w-44"
+        />
+
+        {/* Avatar 176px */}
+        <div className="flex size-44 items-center justify-center overflow-hidden rounded-xl border border-border relative">
+          {pet.avatarUrl ? (
+            <img
+              className="w-full h-auto max-h-[200%] absolute inset-0 m-auto"
+              src={pet.avatarUrl}
+              alt={pet.name}
+            />
+          ) : (
+            <div className="size-full bg-secondary-100 dark:bg-secondary-800" />
+          )}
+        </div>
+
+        {!isEmpty ? (
+          <>
+            {/* Name */}
+            {pet.url ? (
+              <Link
+                to={`/${pet.url}`}
+                className="mt-4 sm:mt-6 flex min-h-10 w-full items-center justify-center text-center text-primary hover:underline line-clamp-2"
+              >
+                {pet.name}
+              </Link>
+            ) : (
+              <span className="mt-4 sm:mt-6 flex min-h-10 w-full items-center justify-center text-center line-clamp-2">
+                {pet.name}
+              </span>
+            )}
+
+            {/* Country + Year + Titles */}
+            <div className="h-20 mt-3 sm:mt-4 w-full border-t border-border pt-3 flex flex-col overflow-hidden">
+              {countryYear && (
+                <em className="text-secondary mb-1 text-center text-sm">
+                  {countryYear}
+                </em>
+              )}
+              {pet.titles && (
+                <div
+                  className="text-center text-base leading-[1.6rem] line-clamp-2"
+                  title={pet.titles}
+                >
+                  {pet.titles}
+                </div>
+              )}
+            </div>
+          </>
+        ) : (
+          <>
+            {/* Empty pet placeholder */}
+            <span className="mt-4 sm:mt-6 flex min-h-10 w-full items-center justify-center text-center text-secondary">
+              Unknown
+            </span>
+            <div className="mt-3 sm:mt-4 flex w-full flex-col items-center border-t border-border">
+              <div className="rounded-full bg-secondary-200 dark:bg-secondary-700 w-1/3 h-2 mb-1.5 mt-3" />
+              <div className="rounded-full bg-secondary-200 dark:bg-secondary-700 w-full h-3 my-1.5" />
+              <div className="rounded-full bg-secondary-200 dark:bg-secondary-700 w-full h-3 my-1.5" />
+              <div className="rounded-full bg-secondary-200 dark:bg-secondary-700 w-full h-3 my-1.5" />
+            </div>
+          </>
+        )}
+      </div>
+    );
+  }
+
+  // Level 1: Medium card (grandparents level)
+  if (level === 1) {
+    return (
+      <div className="card flex min-w-72 max-w-72 flex-col items-center px-6 py-3 min-h-[196.25px] bg-even-card-ground">
+        <PetSexMark sex={petSex} style="horizontal" className="w-44" />
+
+        {!isEmpty ? (
+          <>
+            {/* Name */}
+            {pet.url ? (
+              <Link
+                to={`/${pet.url}`}
+                className="flex min-h-10 justify-center w-full text-center text-primary hover:underline line-clamp-2"
+              >
+                {pet.name}
+              </Link>
+            ) : (
+              <span className="flex min-h-10 justify-center w-full text-center line-clamp-2">
+                {pet.name}
+              </span>
+            )}
+
+            {/* Avatar + Titles row */}
+            <div className="flex w-full items-center h-full">
+              {/* Avatar 104px */}
+              <div className="h-26 w-26 min-w-26 flex items-center justify-center overflow-hidden rounded-xl border border-border relative">
+                {pet.avatarUrl ? (
+                  <img
+                    className="w-full h-auto max-h-[200%] absolute inset-0 m-auto"
+                    src={pet.avatarUrl}
+                    alt={pet.name}
+                  />
+                ) : (
+                  <div className="size-full bg-secondary-100 dark:bg-secondary-800" />
+                )}
+              </div>
+
+              {/* Titles */}
+              {pet.titles && (
+                <div
+                  className="ml-3 text-base leading-[1.6rem] line-clamp-5"
+                  title={pet.titles}
+                >
+                  {pet.titles}
+                </div>
+              )}
+            </div>
+
+            {/* Country + Year */}
+            {countryYear && (
+              <em className="text-secondary text-center text-sm mt-auto">
+                {countryYear}
+              </em>
+            )}
+          </>
+        ) : (
+          <>
+            {/* Empty pet placeholder */}
+            <div className="rounded-full bg-secondary-200 dark:bg-secondary-700 w-full h-4 my-3" />
+            <div className="flex w-full items-center h-full">
+              <div className="h-26 w-26 min-w-26 rounded-xl border border-border bg-secondary-100 dark:bg-secondary-800" />
+              <div className="m-3 w-full space-y-4">
+                <div className="rounded-full bg-secondary-200 dark:bg-secondary-700 w-full h-3" />
+                <div className="rounded-full bg-secondary-200 dark:bg-secondary-700 w-full h-3" />
+                <div className="rounded-full bg-secondary-200 dark:bg-secondary-700 w-full h-3" />
+              </div>
+            </div>
+            <div className="rounded-full bg-secondary-200 dark:bg-secondary-700 w-1/3 h-2 mt-3" />
+          </>
+        )}
+      </div>
+    );
+  }
+
+  // Level 2: Small card (great-grandparents level)
+  if (level === 2) {
+    return (
+      <div className="card min-w-72 max-w-72 p-3 flex min-h-[92.88px] bg-even-card-ground">
+        {/* Avatar 64px */}
+        <div className="size-16 min-w-16 overflow-hidden self-center rounded-xl border border-border relative">
+          {pet.avatarUrl ? (
+            <img
+              className="w-full h-auto max-h-[200%] absolute inset-0 m-auto"
+              src={pet.avatarUrl}
+              alt={pet.name}
+            />
+          ) : (
+            <div className="size-full bg-secondary-100 dark:bg-secondary-800" />
+          )}
+        </div>
+
+        <div className="ml-2 flex w-full flex-col items-center">
+          <PetSexMark sex={petSex} style="horizontal" className="mx-auto w-36" />
+
+          {!isEmpty ? (
+            <>
+              {/* Name */}
+              {pet.url ? (
+                <Link
+                  to={`/${pet.url}`}
+                  className="flex min-h-10 items-center justify-center text-center text-primary hover:underline line-clamp-2"
+                >
+                  {pet.name}
+                </Link>
+              ) : (
+                <span className="flex min-h-10 items-center justify-center text-center line-clamp-2">
+                  {pet.name}
+                </span>
+              )}
+
+              {/* Titles truncated */}
+              {pet.titles && (
+                <div className="h-6 w-44 overflow-hidden">
+                  <div className="truncate text-base" title={pet.titles}>
+                    {pet.titles}
+                  </div>
+                </div>
+              )}
+            </>
+          ) : (
+            <div className="flex size-full flex-col items-center space-y-5 pt-5">
+              <div className="rounded-full bg-secondary-200 dark:bg-secondary-700 w-full h-4" />
+              <div className="rounded-full bg-secondary-200 dark:bg-secondary-700 w-1/2 h-3" />
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // Level 3: Pill-shaped card (gen 4+)
+  return (
+    <div className="card flex min-w-72 max-w-72 flex-row items-center rounded-full py-[0.65rem] pl-3 pr-5 bg-even-card-ground">
+      <PetSexMark sex={petSex} style="round" className="mr-3 w-4 shrink-0" />
+
+      {!isEmpty ? (
+        pet.url ? (
+          <Link
+            to={`/${pet.url}`}
+            className="max-w-60 shrink-0 truncate text-primary hover:underline"
+            title={`${pet.name}\n${pet.titles || ""}`}
+          >
+            {pet.name}
+          </Link>
+        ) : (
+          <span className="max-w-60 shrink-0 truncate">{pet.name}</span>
+        )
+      ) : (
+        <div className="flex w-full justify-center">
+          <div className="rounded-full bg-secondary-200 dark:bg-secondary-700 w-full h-4 my-1" />
+        </div>
+      )}
+    </div>
+  );
+}

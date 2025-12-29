@@ -14,6 +14,13 @@ export interface Tab {
   recordsCount?: number; // Number of records to fetch for this tab
   dataSource?: any; // Config-driven data loading (see TAB_DATA_SERVICE_ARCHITECTURE.md)
   component: React.ComponentType<any>;
+  /**
+   * Tab action type for fullscreen mode:
+   * - "pedigree-generations": Generation selector for pedigree tab
+   * - "edit": Edit button (only shown if canEdit in space config)
+   * - undefined/null: No actions
+   */
+  actionType?: "pedigree-generations" | "edit";
 }
 
 /**
