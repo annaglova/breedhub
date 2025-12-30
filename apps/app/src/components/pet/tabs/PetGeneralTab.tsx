@@ -5,7 +5,7 @@ import { useSignals } from "@preact/signals-react/runtime";
 import { cn } from "@ui/lib/utils";
 import { Link } from "react-router-dom";
 import {
-  CalendarHeart,
+  Cake,
   MapPin,
   MapPinHouse,
   User,
@@ -246,7 +246,7 @@ export function PetGeneralTab({ onLoadedCount }: PetGeneralTabProps) {
             <InfoRow icon={<VenusAndMars size={iconSize} />} label="Sex">
               <span>{data.sex?.name || "—"}</span>
             </InfoRow>
-            <InfoRow icon={<CalendarHeart size={iconSize} />} label="DOB">
+            <InfoRow icon={<Cake size={iconSize} />} label="DOB">
               <span>{formatDate(data.dateOfBirth)}</span>
             </InfoRow>
           </div>
