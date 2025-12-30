@@ -131,7 +131,10 @@ export function HorizontalScrollbar({
     const maxScroll = scrollWidth - clientWidth;
 
     // Calculate scroll position from click (accounting for padding)
-    const scrollTo = Math.max(0, Math.min(maxScroll, (clickX / availableWidth) * maxScroll));
+    const scrollTo = Math.max(
+      0,
+      Math.min(maxScroll, (clickX / availableWidth) * maxScroll)
+    );
     container.scrollTo({ left: scrollTo, behavior: "smooth" });
   };
 
@@ -175,7 +178,7 @@ export function HorizontalScrollbar({
     <div
       ref={trackRef}
       className={cn(
-        "h-[8px] w-full rounded-full border border-secondary cursor-pointer relative",
+        "h-[8px] w-full rounded-full border border-secondary cursor-pointer relative bg-header-ground/75 backdrop-blur-sm",
         className
       )}
       onClick={handleTrackClick}

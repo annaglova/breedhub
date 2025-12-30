@@ -12,6 +12,9 @@ import { HorizontalScrollbar } from "@/components/shared/HorizontalScrollbar";
 /** Default generations to show in scroll mode */
 const DEFAULT_GENERATIONS: GenerationCount = 4;
 
+/** TabHeader height in list mode (py-2 + content) */
+const TAB_HEADER_HEIGHT = 48;
+
 interface PetPedigreeTabProps {
   onLoadedCount?: (count: number) => void;
   mode?: "scroll" | "fullscreen";
@@ -19,6 +22,10 @@ interface PetPedigreeTabProps {
   pedigreeGenerations?: GenerationCount;
   /** Callback to update generations (fullscreen mode) */
   onPedigreeGenerationsChange?: (count: GenerationCount) => void;
+  /** Top position of TabHeader (for sticky scrollbar calculation in scroll mode) */
+  tabHeaderTop?: number;
+  /** Direct sticky top value (for fullscreen mode) */
+  stickyScrollbarTop?: number;
 }
 
 /**
@@ -35,6 +42,8 @@ export function PetPedigreeTab({
   mode,
   pedigreeGenerations,
   onPedigreeGenerationsChange,
+  tabHeaderTop = 0,
+  stickyScrollbarTop,
 }: PetPedigreeTabProps) {
   useSignals();
 
@@ -81,11 +90,16 @@ export function PetPedigreeTab({
 
   return (
     <div>
-      {/* Custom horizontal scrollbar - on top */}
-      <HorizontalScrollbar
-        scrollContainerRef={scrollRef}
-        className="mb-3 mx-auto max-w-md"
-      />
+      {/* Custom horizontal scrollbar - sticky under TabHeader */}
+      <div
+        className="sticky z-10 py-2 mb-3"
+        style={{ top: `${stickyScrollbarTop ?? (tabHeaderTop + TAB_HEADER_HEIGHT)}px` }}
+      >
+        <HorizontalScrollbar
+          scrollContainerRef={scrollRef}
+          className="mx-auto max-w-md"
+        />
+      </div>
 
       {/* Pedigree tree with drag-to-scroll */}
       <div

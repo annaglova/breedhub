@@ -149,6 +149,7 @@ export function TabsContainer({
                   recordsCount={tab.recordsCount}
                   dataSource={tab.dataSource}
                   onLoadedCount={(count: number) => handleLoadedCount(tab.id, count)}
+                  tabHeaderTop={tabHeaderTop}
                 />
               </ScrollableTab>
             </section>

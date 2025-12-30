@@ -486,6 +486,7 @@ export function TabPageTemplate({
                 dataSource={currentTab.dataSource}
                 pedigreeGenerations={pedigreeGenerations}
                 onPedigreeGenerationsChange={setPedigreeGenerations}
+                stickyScrollbarTop={PAGE_MENU_TOP + 102}
               />
             </div>
           </div>
