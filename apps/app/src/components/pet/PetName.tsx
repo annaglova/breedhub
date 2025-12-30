@@ -130,7 +130,7 @@ export function PetName({
           {coi !== undefined && coi !== null && (
             <div className="hidden sm:flex items-center">
               <span className="mr-2">&bull;</span>
-              <span>COI - {(coi * 100).toFixed(2)}%</span>
+              <span>COI - {Number(coi).toFixed(2)}%</span>
             </div>
           )}
         </div>
