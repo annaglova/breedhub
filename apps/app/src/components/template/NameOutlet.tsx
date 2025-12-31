@@ -3,6 +3,8 @@ import { mediaQueries } from "@/config/breakpoints";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { usePageActions } from "@/hooks/usePageActions";
 import { usePageMenu } from "@/hooks/usePageMenu";
+import { spaceStore } from "@breedhub/rxdb-store";
+import { useSignals } from "@preact/signals-react/runtime";
 import type { PageConfig } from "@/types/page-config.types";
 import type { SpacePermissions } from "@/types/page-menu.types";
 import { Button } from "@ui/components/button";
@@ -70,9 +72,15 @@ export function NameOutlet({
   onMoreOptions,
   children,
 }: NameOutletProps) {
+  useSignals();
+
   // Check if screen is md+ (768px) and xl+ (1440px)
   const isMdScreen = useMediaQuery(mediaQueries.md);
   const isXlScreen = useMediaQuery(mediaQueries.xl);
+  const isFullscreen = spaceStore.isFullscreen.value;
+
+  // Show full Patronate button only on xl+ screens AND in fullscreen mode
+  const showFullPatronateButton = isXlScreen && isFullscreen;
 
   // Get menu items for sticky context (when onTop)
   const allMenuItems = usePageMenu({
@@ -81,14 +89,14 @@ export function NameOutlet({
     spacePermissions,
   });
 
-  // On md+ screens, filter out Edit from dropdown (it will be shown as separate button)
-  const menuItems = isMdScreen
+  // On md+ fullscreen, filter out Edit from dropdown (it will be shown as separate button)
+  const menuItems = (isMdScreen && isFullscreen)
     ? allMenuItems.filter((item) => item.action !== "edit")
     : allMenuItems;
 
-  // Check if Edit action is available (for showing separate button on md+)
+  // Check if Edit action is available (for showing separate button on md+ fullscreen)
   const editMenuItem = allMenuItems.find((item) => item.action === "edit");
-  const showEditButton = isMdScreen && editMenuItem && spacePermissions.canEdit;
+  const showEditButton = isMdScreen && isFullscreen && editMenuItem && spacePermissions.canEdit;
 
   // Action handlers
   const { executeAction } = usePageActions(entity, {
@@ -153,13 +161,13 @@ export function NameOutlet({
             </Tooltip>
           )}
 
-          {/* Support button - full size with text on xl+, icon-only on smaller */}
+          {/* Support button - full size with text on xl+ fullscreen, icon-only otherwise */}
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
                 variant="accent"
                 className={
-                  isXlScreen
+                  showFullPatronateButton
                     ? "rounded-full h-[2.6rem] px-4 flex items-center"
                     : "rounded-full h-[2.6rem] w-[2.6rem] flex items-center justify-center"
                 }
@@ -167,7 +175,7 @@ export function NameOutlet({
                 type="button"
               >
                 <Heart size={16} fill="currentColor" />
-                {isXlScreen && (
+                {showFullPatronateButton && (
                   <span className="ml-2 text-base font-semibold">Patronate</span>
                 )}
               </Button>

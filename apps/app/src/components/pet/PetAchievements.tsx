@@ -92,11 +92,14 @@ export function PetAchievements({
 
   return (
     <div
-      className={cn("pt-3", isComponentMode && titles.length > 0 && "pb-6")}
+      className={cn(
+        // Page mode: horizontal padding to match BreedAchievementsTab
+        !isComponentMode && "px-6"
+      )}
     >
       <div
         aria-label="pet titles"
-        className="flex flex-wrap items-center gap-2 font-medium"
+        className="flex flex-wrap items-center gap-2 font-medium mt-2"
       >
         {/* Expand/collapse button - only in component mode with 6+ titles */}
         {isComponentMode && hasMoreTitles && (
