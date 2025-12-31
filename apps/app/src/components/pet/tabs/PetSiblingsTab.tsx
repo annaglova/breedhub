@@ -2,8 +2,7 @@ import { useSelectedEntity } from "@/contexts/SpaceContext";
 import { spaceStore } from "@breedhub/rxdb-store";
 import { useSignals } from "@preact/signals-react/runtime";
 import { cn } from "@ui/lib/utils";
-import { Link } from "react-router-dom";
-import { PetSexMark } from "@/components/shared/PetSexMark";
+import { PetLinkRow } from "@/components/shared/PetLinkRow";
 
 /**
  * Sibling pet
@@ -154,33 +153,18 @@ export function PetSiblingsTab({ onLoadedCount }: PetSiblingsTabProps) {
 
               {/* Sibling rows */}
               {group.pets.map((sibling) => (
-                <div
+                <PetLinkRow
                   key={sibling.id}
-                  className={cn(
-                    "grid items-center gap-3 px-6 py-2 lg:px-8",
+                  id={sibling.id}
+                  name={sibling.name}
+                  url={sibling.url}
+                  sex={sibling.sex}
+                  gridCols={
                     isFullscreen
                       ? "grid-cols-[82px_auto] lg:grid-cols-[64px_auto]"
                       : "grid-cols-[28px_auto] sm:grid-cols-[72px_auto] md:grid-cols-[82px_auto]"
-                  )}
-                >
-                  {/* Sex */}
-                  <div className="flex flex-row items-center space-x-2.5">
-                    <PetSexMark sex={sibling.sex?.code} style="vertical" />
-                    <span className="hidden sm:block">{sibling.sex?.name}</span>
-                  </div>
-
-                  {/* Pet name */}
-                  {sibling.url ? (
-                    <Link
-                      to={`/${sibling.url}`}
-                      className="text-primary hover:underline truncate"
-                    >
-                      {sibling.name}
-                    </Link>
-                  ) : (
-                    <span className="truncate">{sibling.name}</span>
-                  )}
-                </div>
+                  }
+                />
               ))}
             </div>
           ))}

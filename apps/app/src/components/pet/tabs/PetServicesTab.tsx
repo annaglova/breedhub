@@ -5,13 +5,14 @@ import { useSignals } from "@preact/signals-react/runtime";
 import { Badge } from "@ui/components/badge";
 import { cn } from "@ui/lib/utils";
 import {
-  PawPrint,
   CalendarClock,
+  PawPrint,
   ShoppingCart,
   Handshake,
   Snowflake,
   VenusAndMars,
 } from "lucide-react";
+import { LitterCard, LitterData } from "@/components/shared/LitterCard";
 
 /**
  * Service type with icon mapping
@@ -34,19 +35,8 @@ interface ServiceFeature {
   name: string;
 }
 
-/**
- * Child for sale
- */
-interface ChildForSale {
-  id: string;
-  name: string;
-  avatarUrl?: string;
-  slug?: string;
-}
-
 // Service type IDs → icons mapping
 const SERVICE_ICONS: Record<string, React.ReactNode> = {
-  "children-for-sale": <PawPrint className="h-4 w-4" />,
   "pre-reservation": <CalendarClock className="h-4 w-4" />,
   "sale": <ShoppingCart className="h-4 w-4" />,
   "mating": <VenusAndMars className="h-4 w-4" />,
@@ -100,10 +90,28 @@ const MOCK_FEATURES: ServiceFeature[] = [
   { id: "5", name: "Vaccinated" },
 ];
 
-const MOCK_CHILDREN_FOR_SALE: ChildForSale[] = [
-  { id: "1", name: "Puppy Max", slug: "puppy-max" },
-  { id: "2", name: "Puppy Bella", slug: "puppy-bella" },
+// Mock litters with children for sale (same format as PetChildrenTab)
+const MOCK_LITTERS_FOR_SALE: LitterData[] = [
+  {
+    date: "2023-06-15",
+    anotherParent: {
+      name: "Beautiful Bella aus Bayern",
+      url: "beautiful-bella-aus-bayern",
+    },
+    pets: [
+      {
+        id: "2",
+        name: "Princess Luna vom Königsberg",
+        url: "princess-luna-vom-konigsberg",
+        sex: { code: "female", name: "Female" },
+        availableForSale: true,
+      },
+    ],
+  },
 ];
+
+// Mock current pet sex (to determine "Father" or "Mother" label)
+const MOCK_PET_SEX_CODE = "male";
 
 interface PetServicesTabProps {
   onLoadedCount?: (count: number) => void;
@@ -113,7 +121,7 @@ interface PetServicesTabProps {
  * PetServicesTab - Pet services and offers
  *
  * Displays:
- * 1. Children available for sale (if any)
+ * 1. Children available for sale (if any) - using same LitterCard as PetChildrenTab
  * 2. Service cards (Sale, Mating, Rent, Frozen sperm)
  * 3. Service features as chips
  *
@@ -129,7 +137,11 @@ export function PetServicesTab({ onLoadedCount }: PetServicesTabProps) {
   // For now using mock data
   const services = MOCK_SERVICES;
   const features = MOCK_FEATURES;
-  const childrenForSale = MOCK_CHILDREN_FOR_SALE;
+  const littersForSale = MOCK_LITTERS_FOR_SALE;
+  const petSexCode = MOCK_PET_SEX_CODE;
+
+  // Determine label for the other parent based on current pet's sex
+  const anotherParentRole = petSexCode === "male" ? "Mother" : "Father";
 
   // Report count after render
   useEffect(() => {
@@ -140,24 +152,27 @@ export function PetServicesTab({ onLoadedCount }: PetServicesTabProps) {
 
   return (
     <div className="flex flex-col space-y-8 px-6 cursor-default">
-      {/* Children available for sale */}
-      {childrenForSale.length > 0 && (
+      {/* Children available for sale - using same LitterCard as PetChildrenTab */}
+      {littersForSale.length > 0 && (
         <div>
           <div className="flex items-center space-x-2 mb-3">
             <PawPrint className="h-4 w-4 text-secondary-400" />
             <span className="font-bold">Children available for sale</span>
           </div>
-          <div className="grid gap-2 grid-cols-2 sm:grid-cols-3">
-            {childrenForSale.map((child) => (
-              <div
-                key={child.id}
-                className="card flex items-center space-x-3 p-3 bg-even-card-ground"
-              >
-                <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
-                  <PawPrint className="h-5 w-5 text-gray-400" />
-                </div>
-                <span className="font-medium truncate">{child.name}</span>
-              </div>
+          <div
+            className={cn(
+              "grid gap-3",
+              isFullscreen && "lg:grid-cols-2"
+            )}
+          >
+            {littersForSale.map((litter, litterIndex) => (
+              <LitterCard
+                key={`${litter.date}-${litterIndex}`}
+                litter={litter}
+                anotherParentRole={anotherParentRole}
+                isFullscreen={isFullscreen}
+                className="bg-even-card-ground"
+              />
             ))}
           </div>
         </div>
