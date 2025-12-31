@@ -412,7 +412,7 @@ export function TabPageTemplate({
         >
           <div
             ref={contentContainerRef}
-            className="w-full max-w-3xl lg:max-w-4xl xxl:max-w-5xl"
+            className="w-full"
           >
             {/* Name Block - Sticky at top */}
             {nameBlockConfig && (
@@ -478,7 +478,13 @@ export function TabPageTemplate({
             </div>
 
             {/* Tab Content */}
-            <div className="pt-6 pb-8">
+            <div
+              className={cn(
+                "pt-6 pb-8 mx-auto w-full",
+                // Pedigree tab gets full width, others are constrained
+                activeTabSlug !== "pedigree" && "max-w-5xl lg:max-w-6xl xxl:max-w-7xl"
+              )}
+            >
               <TabComponent
                 entity={selectedEntity}
                 mode="fullscreen"
