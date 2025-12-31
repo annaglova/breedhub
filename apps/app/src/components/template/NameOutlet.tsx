@@ -70,8 +70,9 @@ export function NameOutlet({
   onMoreOptions,
   children,
 }: NameOutletProps) {
-  // Check if screen is md+ (768px)
+  // Check if screen is md+ (768px) and xl+ (1440px)
   const isMdScreen = useMediaQuery(mediaQueries.md);
+  const isXlScreen = useMediaQuery(mediaQueries.xl);
 
   // Get menu items for sticky context (when onTop)
   const allMenuItems = usePageMenu({
@@ -152,19 +153,26 @@ export function NameOutlet({
             </Tooltip>
           )}
 
-          {/* Support button */}
+          {/* Support button - full size with text on xl+, icon-only on smaller */}
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
                 variant="accent"
-                className="rounded-full h-[2.6rem] w-[2.6rem] flex items-center justify-center"
+                className={
+                  isXlScreen
+                    ? "rounded-full h-[2.6rem] px-4 flex items-center"
+                    : "rounded-full h-[2.6rem] w-[2.6rem] flex items-center justify-center"
+                }
                 onClick={() => executeAction("support")}
                 type="button"
               >
                 <Heart size={16} fill="currentColor" />
+                {isXlScreen && (
+                  <span className="ml-2 text-base font-semibold">Patronate</span>
+                )}
               </Button>
             </TooltipTrigger>
-            <TooltipContent side="bottom">Support</TooltipContent>
+            <TooltipContent side="bottom">Support your breed</TooltipContent>
           </Tooltip>
 
           {/* More options dropdown menu */}
