@@ -1,8 +1,10 @@
+import { Icon } from "@/components/shared/Icon";
+import { useWorkspaceSpaces } from "@/hooks/useAppStore";
+import type { IconConfig } from "@breedhub/rxdb-store";
 import { Button } from "@ui/components/button";
-import { cn, getIconComponent } from "@ui/lib/utils";
+import { cn } from "@ui/lib/utils";
 import { X } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
-import { useWorkspaceSpaces } from "@/hooks/useAppStore";
 
 interface SidebarProps {
   isCollapsed?: boolean;
@@ -20,6 +22,15 @@ export function Sidebar({
   const location = useLocation();
   const { workspace, spaces } = useWorkspaceSpaces();
 
+  // Helper to normalize icon to IconConfig format (same as Header.tsx)
+  const normalizeIcon = (icon: string | IconConfig): IconConfig => {
+    if (typeof icon === 'string') {
+      // Legacy string format - assume it's Lucide
+      return { name: icon, source: 'lucide' };
+    }
+    return icon;
+  };
+
   // Sort spaces by order parameter, then convert to menu items format
   const menuItems = spaces
     .sort((a: any, b: any) => (a.order ?? 0) - (b.order ?? 0))
@@ -31,7 +42,7 @@ export function Sidebar({
 
     return {
       id: space.id,
-      icon: getIconComponent(space.icon),
+      icon: normalizeIcon(space.icon),
       label: space.label || space.id,
       path: fullPath
     };
@@ -63,7 +74,6 @@ export function Sidebar({
         <h2 className="text-primary font-bold text-lg mb-6 mt-6">SPACES</h2>
         <ul className="space-y-1">
           {menuItems.map((item) => {
-            const Icon = item.icon;
             const isActive = location.pathname.startsWith(item.path);
 
             return (
@@ -78,7 +88,7 @@ export function Sidebar({
                   )}
                   onClick={onClose}
                 >
-                  <Icon className="h-5 w-5 flex-shrink-0" />
+                  <Icon icon={item.icon} size={20} className="flex-shrink-0" />
                   {!isCollapsed && <span>{item.label}</span>}
                 </Link>
               </li>

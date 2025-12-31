@@ -10,7 +10,6 @@ import {
   MapPinHouse,
   User,
   UserStar,
-  House,
   HouseHeart,
   CircleCheckBig,
   Palette,
@@ -267,7 +266,7 @@ export function PetGeneralTab({ onLoadedCount }: PetGeneralTabProps) {
               <EntityLink entity={data.breeder} />
             </InfoRow>
             <InfoRow
-              icon={<House size={iconSize} />}
+              icon={<HouseHeart size={iconSize} />}
               label="Kennel"
               subLabel="breeder"
             >
