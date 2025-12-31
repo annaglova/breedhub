@@ -20,14 +20,23 @@ interface PedigreeNodeProps {
 
 /**
  * Calculate visual level based on generation and limit
- * Matches Angular logic from pedigree-card.component.ts
+ *
+ * Two different behaviors:
+ * - ≤4 generations (limit ≤ 3): Remove cards from END (no pill, no small, etc.)
+ *   Formula: gen - 1
+ *   2 gens: 0,1 | 3 gens: 0,1,2 | 4 gens: 0,1,2,3
+ *
+ * - ≥5 generations (limit ≥ 4): Add large cards at FRONT
+ *   Formula: max(gen - limit + 2, 0)
+ *   5 gens: 0,0,1,2,3 | 6 gens: 0,0,0,1,2,3 | 7 gens: 0,0,0,0,1,2,3
  */
 function calculateLevel(gen: number, limit: number): number {
-  if (limit >= 5) {
-    const value = gen - limit + 3;
-    return value > 0 ? value : 0;
-  } else {
+  if (limit <= 3) {
+    // ≤4 generations: simple progression 0,1,2,3
     return gen - 1;
+  } else {
+    // ≥5 generations: last 3 are 1,2,3, earlier ones are 0
+    return Math.max(gen - limit + 2, 0);
   }
 }
 
