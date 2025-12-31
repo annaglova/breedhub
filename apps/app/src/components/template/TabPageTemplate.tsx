@@ -15,6 +15,7 @@ import {
   PedigreeGenerationSelector,
   type GenerationCount,
 } from "@/components/shared/pedigree";
+import { mediaQueries } from "@/config/breakpoints";
 
 // Dynamic tab component registry (same as TabOutletRenderer)
 const breedTabModules = import.meta.glob('../breed/tabs/*Tab.tsx', { eager: true });
@@ -169,8 +170,10 @@ export function TabPageTemplate({
   const [nameOnTop, setNameOnTop] = useState(false);
   const [nameBlockHeight, setNameBlockHeight] = useState(0);
 
-  // Pedigree generations state (for pedigree-generations action type)
-  const [pedigreeGenerations, setPedigreeGenerations] = useState<GenerationCount>(4);
+  // Pedigree generations state - default 5 for XXL screens (1536px+), 4 otherwise
+  const [pedigreeGenerations, setPedigreeGenerations] = useState<GenerationCount>(() =>
+    window.matchMedia(mediaQueries.xxl).matches ? 5 : 4
+  );
 
   // Get spaceConfig signal
   const spaceConfigSignal = useMemo(

@@ -172,7 +172,18 @@ export function HorizontalScrollbar({
     };
   }, [isDragging, scrollContainerRef, thumbWidth]);
 
-  if (!isVisible) return null;
+  // Inactive state - show faded track without thumb
+  if (!isVisible) {
+    return (
+      <div
+        ref={trackRef}
+        className={cn(
+          "h-[8px] w-full rounded-full border border-secondary/30 relative bg-secondary/5",
+          className
+        )}
+      />
+    );
+  }
 
   return (
     <div
