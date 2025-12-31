@@ -1,4 +1,6 @@
 import { Icon } from "@/components/shared/Icon";
+import { mediaQueries } from "@/config/breakpoints";
+import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { usePageActions } from "@/hooks/usePageActions";
 import { usePageMenu } from "@/hooks/usePageMenu";
 import type { PageConfig } from "@/types/page-config.types";
@@ -16,7 +18,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@ui/components/tooltip";
-import { Heart, MoreVertical } from "lucide-react";
+import { Heart, MoreVertical, Pencil } from "lucide-react";
 import { NavigationButtons } from "./cover/NavigationButtons";
 
 interface NameOutletProps {
@@ -68,25 +70,29 @@ export function NameOutlet({
   onMoreOptions,
   children,
 }: NameOutletProps) {
+  // Check if screen is md+ (768px)
+  const isMdScreen = useMediaQuery(mediaQueries.md);
+
   // Get menu items for sticky context (when onTop)
-  const menuItems = usePageMenu({
+  const allMenuItems = usePageMenu({
     pageConfig: pageConfig || null,
     context: "sticky",
     spacePermissions,
   });
 
-  // TODO: Add button items (duplicateOnDesktop) for large screens only
-  // const buttonItems = usePageMenuButtons({
-  //   pageConfig: pageConfig || null,
-  //   context: 'sticky',
-  //   spacePermissions,
-  //   containerWidth: 1280,
-  // });
+  // On md+ screens, filter out Edit from dropdown (it will be shown as separate button)
+  const menuItems = isMdScreen
+    ? allMenuItems.filter((item) => item.action !== "edit")
+    : allMenuItems;
+
+  // Check if Edit action is available (for showing separate button on md+)
+  const editMenuItem = allMenuItems.find((item) => item.action === "edit");
+  const showEditButton = isMdScreen && editMenuItem && spacePermissions.canEdit;
 
   // Action handlers
   const { executeAction } = usePageActions(entity, {
     // Custom handlers can be passed here
-    support: onSupport,
+    ...(onSupport && { support: onSupport }),
   });
 
   if (isLoading) {
@@ -128,24 +134,23 @@ export function NameOutlet({
       {/* Action buttons - bottom right */}
       {onTop && (
         <div className="absolute bottom-1 right-0 flex gap-1">
-          {/* TODO: Add Edit button for large screens (minWidth: 1024)
-          {buttonItems.map((item) => (
-            <Tooltip key={item.id}>
+          {/* Edit button - only on md+ screens, with extra spacing from action buttons */}
+          {showEditButton && (
+            <Tooltip>
               <TooltipTrigger asChild>
                 <Button
                   variant="outline-secondary"
-                  className="rounded-full h-[2.6rem] px-4 text-base font-semibold"
-                  onClick={() => executeAction(item.action)}
+                  className="rounded-full h-[2.6rem] px-4 text-base font-semibold mr-4"
+                  onClick={() => executeAction("edit")}
                   type="button"
                 >
-                  <Icon icon={item.icon} size={16} />
-                  <span className="ml-2">{item.label}</span>
+                  <Pencil size={16} />
+                  <span className="ml-2">Edit</span>
                 </Button>
               </TooltipTrigger>
-              <TooltipContent side="bottom">{item.label}</TooltipContent>
+              <TooltipContent side="bottom">Edit</TooltipContent>
             </Tooltip>
-          ))}
-          */}
+          )}
 
           {/* Support button */}
           <Tooltip>
