@@ -137,7 +137,7 @@ function InfoRow({
   return (
     <>
       <span className="text-secondary-400">{icon}</span>
-      <div className="flex flex-col">
+      <div className="flex flex-col leading-tight">
         <span className="text-secondary">{label}</span>
         {subLabel && <span className="text-secondary text-sm">{subLabel}</span>}
       </div>
