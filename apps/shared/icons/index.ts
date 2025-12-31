@@ -38,7 +38,6 @@ export { default as LogoLogoWhiteIcon } from './logo/logo-white.svg?react';
 export { default as LogoLogoIcon } from './logo/logo.svg?react';
 export { default as MenuBreedIcon } from './menu/breed.svg?react';
 export { default as MenuGiftInIcon } from './menu/gift-in.svg?react';
-export { default as MenuLitter1Icon } from './menu/litter-1.svg?react';
 export { default as MenuLitterIcon } from './menu/litter.svg?react';
 export { default as MenuMarketplaceIcon } from './menu/marketplace.svg?react';
 export { default as MenuPostIcon } from './menu/post.svg?react';
