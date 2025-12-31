@@ -200,7 +200,7 @@ export default function Product() {
     <LandingLayout>
       <div className="relative overflow-hidden">
         {/* Background SVG */}
-        <div className="absolute right-[-7vw] top-[-23vw] w-full md:right-[-17vw] md:top-[-27vw] xxl:top-[-35vw] xxxl:top-[-42vw] -z-1">
+        <div className="absolute right-[-7vw] top-[-23vw] w-full md:right-[-17vw] md:top-[-27vw] xxl:top-[-35vw] 3xl:top-[-42vw] -z-1">
           <LandingFigure style={{ width: "100%" }} />
         </div>
         {/* Content */}

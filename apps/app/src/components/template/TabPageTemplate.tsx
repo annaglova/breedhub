@@ -172,7 +172,7 @@ export function TabPageTemplate({
 
   // Pedigree generations state - default 5 for XXL screens (1536px+), 4 otherwise
   const [pedigreeGenerations, setPedigreeGenerations] = useState<GenerationCount>(() =>
-    window.matchMedia(mediaQueries.xxl).matches ? 5 : 4
+    window.matchMedia(mediaQueries['2xl']).matches ? 5 : 4
   );
 
   // Get spaceConfig signal

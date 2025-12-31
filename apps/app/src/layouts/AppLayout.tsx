@@ -18,7 +18,7 @@ export function AppLayout() {
   const footerRef = useRef<HTMLDivElement>(null);
 
   // Custom breakpoints
-  const isXXXL = useMediaQuery("(min-width: 1920px)"); // xxxl
+  const is3XL = useMediaQuery("(min-width: 1920px)"); // 3xl
   const isLG = useMediaQuery("(min-width: 1280px)");   // lg
 
   // Measure heights
@@ -54,7 +54,7 @@ export function AppLayout() {
 
       {/* Main wrapper with sidebar and content */}
       <div className="flex flex-1">
-        {/* Sidebar - starts from top */}
+        {/* Sidebar - starts from top, hidden on 3xl (replaced by menu in content) */}
         <Sidebar
           isCollapsed={!isSidebarOpen}
           className={cn(
@@ -87,25 +87,28 @@ export function AppLayout() {
             onMenuClick={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
           />
 
-          {/* Content area */}
-          <div className="flex flex-1 overflow-hidden lg:pr-5 3xl:justify-center">
-            {/* Left menu column - only on xxxl */}
-            {isXXXL && (
-              <div className="hidden w-64 pr-5 3xl:block">
-                <Sidebar isCollapsed={false} asMenu />
-              </div>
-            )}
+          {/* Content area - centered with max-width on ultra-wide screens */}
+          <div className="flex flex-1 overflow-hidden lg:pr-5 3xl:pr-0 3xl:justify-center">
+            {/* Content container with max-width */}
+            <div className="flex flex-1 3xl:flex-initial 3xl:w-full 3xl:max-w-[2016px]">
+              {/* Left menu column - only on 3xl */}
+              {is3XL && (
+                <div className="hidden w-64 pr-5 3xl:block shrink-0">
+                  <Sidebar isCollapsed={false} asMenu />
+                </div>
+              )}
 
-            {/* Main content */}
-            <main
-              className="flex-1 overflow-hidden"
-              style={{ height: `${mainHeight - (isLG ? 20 : 0)}px` }}
-            >
-              <Outlet />
-            </main>
+              {/* Main content */}
+              <main
+                className="flex-1 overflow-hidden 3xl:max-w-[1504px]"
+                style={{ height: `${mainHeight - (isLG ? 20 : 0)}px` }}
+              >
+                <Outlet />
+              </main>
 
-            {/* Right spacer column - only on xxxl */}
-            {isXXXL && <div className="hidden w-64 pl-5 3xl:block" />}
+              {/* Right spacer column - only on 3xl */}
+              {is3XL && <div className="hidden w-64 pl-5 3xl:block shrink-0" />}
+            </div>
           </div>
         </div>
       </div>

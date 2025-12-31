@@ -57,20 +57,21 @@ export const Header = forwardRef<HTMLElement, HeaderProps>(
     <TooltipProvider>
       <header
         ref={ref}
-        className={cn(
-          "w-full flex items-center justify-between",
-
-          "3xl:justify-center"
-        )}
+        className="w-full"
       >
         <div className="flex items-center justify-between w-full h-16 px-4 md:px-6">
+          {/* Logo - only on 3xl when sidebar is hidden */}
+          <Link to="/" className="hidden 3xl:flex items-center ml-3">
+            <img src="/logo-text.svg" alt="BreedHub" className="h-10 w-auto" />
+          </Link>
+
           {/* Mobile menu button */}
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
                 variant="ghost"
                 size="icon"
-                className="topbar-menubutton lg:hidden ml-3 "
+                className="topbar-menubutton lg:hidden ml-3"
                 onClick={onMenuClick}
                 aria-label="Menu"
               >
@@ -131,12 +132,7 @@ export const Header = forwardRef<HTMLElement, HeaderProps>(
           )}
 
           {/* Right side menu */}
-          <div
-            className={cn(
-              "flex items-center gap-3 mr-3 md:mr-0",
-              "3xl:absolute 3xl:right-[2.15rem]"
-            )}
-          >
+          <div className="flex items-center gap-3 mr-3 md:mr-0">
             {/* Dark mode toggle */}
             {/* <Button
               variant="default"

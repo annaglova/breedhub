@@ -5,11 +5,11 @@ We've implemented custom breakpoints from the Angular project to maintain consis
 
 ## Breakpoint Values
 - **sm**: 640px (native Tailwind)
-- **md**: 768px (native Tailwind)  
-- **lg**: 1280px (custom from Angular, native is 1024px)
-- **xl**: 1440px (custom from Angular, native is 1280px)
-- **xxl**: 1536px (custom from Angular, same as native)
-- **xxxl**: 1920px (custom from Angular, native doesn't have this)
+- **md**: 768px (native Tailwind)
+- **lg**: 1280px (custom, native is 1024px)
+- **xl**: 1440px (custom, native is 1280px)
+- **2xl**: 1536px (native Tailwind)
+- **3xl**: 1920px (custom for ultra-wide screens)
 
 ## Key Changes
 
@@ -35,7 +35,7 @@ We've implemented custom breakpoints from the Angular project to maintain consis
 ## Drawer Behavior
 - **Mobile to md (< 768px)**: Fullscreen overlay
 - **md (768px+)**: Side drawer with backdrop, 40rem width
-- **xxl (1536px+)**: Transparent background, 45rem width + 1.25rem gap
+- **2xl (1536px+)**: Transparent background, 45rem width + 1.25rem gap
 
 ## Migration Notes
 When converting styles from Angular, remember to use these custom breakpoints instead of Tailwind defaults.

@@ -506,7 +506,7 @@ export function SpaceComponent<T extends { id: string }>({
   const isMoreThanMD = useMediaQuery(mediaQueries.md); // 960px
   const isMoreThanLG = useMediaQuery(mediaQueries.lg); // 1280px
   const isMoreThanXL = useMediaQuery(mediaQueries.xl); // 1440px
-  const isMoreThan2XL = useMediaQuery(mediaQueries.xxl); // 1536px
+  const isMoreThan2XL = useMediaQuery(mediaQueries['2xl']); // 1536px
   const needCardClass = isMoreThanLG;
 
   // Get all entities directly from data (no accumulation needed)

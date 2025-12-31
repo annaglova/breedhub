@@ -210,10 +210,10 @@ export default {
       screens: {
         sm: "640px",     // Native Tailwind
         md: "768px",     // Native Tailwind
-        lg: "1280px",    // Custom from Angular project (native Tailwind: 1024px)
-        xl: "1440px",    // Custom from Angular project (native Tailwind: 1280px)
-        xxl: "1536px",   // Custom from Angular project (native Tailwind: 1536px - same)
-        xxxl: "1920px",  // Custom from Angular project (native Tailwind: doesn't exist, 2xl is 1536px)
+        lg: "1280px",    // Custom (native Tailwind: 1024px)
+        xl: "1440px",    // Custom (native Tailwind: 1280px)
+        "2xl": "1536px", // Native Tailwind
+        "3xl": "1920px", // Custom for ultra-wide screens
       },
       opacity: {
         12: "0.12",

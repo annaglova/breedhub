@@ -9,7 +9,7 @@ export default function Cookie() {
   return (
     <div className="relative min-h-screen bg-white overflow-hidden">
       {/* Background SVG */}
-      <div className="absolute right-[-30vw] top-[-13vw] w-full md:right-[-47vw] md:top-[-17vw] xxl:top-[-25vw] xxxl:top-[-32vw]">
+      <div className="absolute right-[-30vw] top-[-13vw] w-full md:right-[-47vw] md:top-[-17vw] xxl:top-[-25vw] 3xl:top-[-32vw]">
         <LandingFigure style={{ width: "80%" }} />
       </div>
 
