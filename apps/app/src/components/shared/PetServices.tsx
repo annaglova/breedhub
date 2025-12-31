@@ -5,13 +5,13 @@ import {
   TooltipTrigger,
 } from "@ui/components/tooltip";
 import {
-  PetServicesChildrenForSaleIcon,
-  PetServicesPreReservationIcon,
-  PetServicesSaleIcon,
-  PetServicesMatingIcon,
-  PetServicesRentIcon,
-  PetServicesFrozenSpermIcon,
-} from "@shared/icons";
+  PawPrint,
+  CalendarClock,
+  ShoppingCart,
+  VenusAndMars,
+  Handshake,
+  Snowflake,
+} from "lucide-react";
 import { useDictionaryValue } from "@/hooks/useDictionaryValue";
 
 // Services JSON format: {"1": "service_id", "2": "service_id", ...}
@@ -25,28 +25,34 @@ interface PetServicesProps {
 
 // Service type IDs -> icons mapping (icons are hardcoded, names from dictionary)
 const SERVICE_ICONS: Record<string, { icon: React.ComponentType<any>; order: number }> = {
+  // Children for sale
   "3370ee61-86de-49ae-a8ec-5cef5f213ecd": {
-    icon: PetServicesChildrenForSaleIcon,
+    icon: PawPrint,
     order: 0,
   },
+  // Pre-reservation
   "e922b16d-c0c0-46c6-af83-855ddad013f6": {
-    icon: PetServicesPreReservationIcon,
+    icon: CalendarClock,
     order: 0,
   },
+  // Sale
   "ddc59ace-c622-4d6b-b473-19e9a313ed21": {
-    icon: PetServicesSaleIcon,
+    icon: ShoppingCart,
     order: 1,
   },
+  // Mating
   "ea48e37d-8f65-4122-bc00-d012848d78ae": {
-    icon: PetServicesMatingIcon,
+    icon: VenusAndMars,
     order: 2,
   },
+  // Rent
   "8a97a5df-a169-4b6e-b72b-7512106fdcf8": {
-    icon: PetServicesRentIcon,
+    icon: Handshake,
     order: 3,
   },
+  // Frozen sperm
   "28655f5b-06d8-4308-ba0d-de2f5b9ef9bf": {
-    icon: PetServicesFrozenSpermIcon,
+    icon: Snowflake,
     order: 4,
   },
 };
@@ -66,11 +72,7 @@ function ServiceIcon({ serviceId }: { serviceId: string }) {
     <Tooltip>
       <TooltipTrigger asChild>
         <span className="cursor-default">
-          <IconComponent
-            className="w-4 h-4 fill-gray-400"
-            width={16}
-            height={16}
-          />
+          <IconComponent className="w-4 h-4 text-secondary-400" />
         </span>
       </TooltipTrigger>
       <TooltipContent side="bottom">
