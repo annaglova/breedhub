@@ -16,6 +16,7 @@ interface ViewConfig {
   dividers: boolean;
   overscan: number;
   skeletonCount?: number;
+  hasAvatar?: boolean;
   columns?:
     | number
     | {
@@ -256,11 +257,12 @@ export function SpaceView<T extends { id: string }>({
             ))}
           </div>
         ) : (
-          // List skeleton - count, height, dividers from config
+          // List skeleton - count, height, dividers, hasAvatar from config
           <ListCardSkeletonList
             count={skeletonCount}
             itemHeight={viewConfig.itemHeight}
             dividers={viewConfig.dividers}
+            hasAvatar={viewConfig.hasAvatar}
           />
         )}
       </div>
