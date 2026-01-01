@@ -344,14 +344,14 @@ export function PublicPageTemplate({
                     );
                   }
 
-                  // AvatarOutlet renders without wrapper (has -mt-32 inside)
+                  // AvatarOutlet renders without wrapper
                   if (blockConfig.outlet === "AvatarOutlet") {
                     return (
                       <BlockRenderer
                         key={blockId}
                         blockConfig={{
                           ...blockConfig,
-                          size: 176, // Avatar size constant
+                          isFullscreenMode,
                         }}
                         entity={selectedEntity}
                         pageConfig={pageConfig}

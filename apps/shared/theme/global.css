@@ -1,48 +1,6 @@
+/* Base font-size: 16px - browser standard for predictable rem units */
 html {
-  font-size: 15px; /* базово — маленькі екрани */
-}
-
-@media (max-width: 639.98px) {
-  /* Телефони */
-  html {
-    font-size: 15px;
-  }
-}
-@media (min-width: 640px) and (max-width: 767.98px) {
-  /* Великі телефони/маленькі планшети */
-  html {
-    font-size: 16px;
-  }
-}
-@media (min-width: 768px) and (max-width: 1023.98px) {
-  /* Планшети */
-  html {
-    font-size: 17px;
-  }
-}
-@media (min-width: 1024px) and (max-width: 1279.98px) {
-  /* Маленькі ноутбуки, великі планшети */
-  html {
-    font-size: 16px;
-  }
-}
-@media (min-width: 1280px) and (max-width: 1535.98px) {
-  /* Стандартні десктопи */
-  html {
-    font-size: 15px;
-  }
-}
-@media (min-width: 1536px) and (max-width: 1959.98px) {
-  /* Великі десктопи */
-  html {
-    font-size: 14.2px;
-  }
-}
-@media (min-width: 1960px) {
-  /* Дуже великі монітори */
-  html {
-    font-size: 13px;
-  }
+  font-size: 16px;
 }
 
 h1,

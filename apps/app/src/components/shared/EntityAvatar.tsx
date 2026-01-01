@@ -3,12 +3,17 @@ import defaultDogImage from '@/assets/images/pettypes/dog.jpeg';
 
 interface EntityAvatarProps {
   entity: any;
+  /** Fixed size in pixels (use for non-responsive contexts) */
   size?: number;
+  /** Responsive size classes (overrides size prop) */
+  sizeClassName?: string;
   className?: string;
   /** Default image to use when no avatar found */
   defaultImage?: string;
   /** Alt text for the avatar image */
   alt?: string;
+  /** Fullscreen mode - larger avatar from sm breakpoint */
+  isFullscreenMode?: boolean;
 }
 
 /**
@@ -30,12 +35,21 @@ interface EntityAvatarProps {
  * - Contact: Patronage badges
  * - Kennel: Verified badge
  */
+// Avatar sizing per mode (must match AvatarOutlet):
+// - До sm: size-40 (обидва режими)
+// - sm до xl: drawer size-40, fullscreen size-44
+// - Від xl: size-44 (обидва режими)
+const SIZE_DRAWER = 'size-40 xl:size-44';
+const SIZE_FULLSCREEN = 'size-40 sm:size-44';
+
 export function EntityAvatar({
   entity,
-  size = 176,
+  size,
+  sizeClassName,
   className = '',
   defaultImage = defaultDogImage,
   alt,
+  isFullscreenMode = false,
 }: EntityAvatarProps) {
   const avatarUrl = useMemo(() => {
     if (!entity) {
@@ -91,8 +105,19 @@ export function EntityAvatar({
   // Generate alt text
   const altText = alt || entity?.name || entity?.Name || 'Entity avatar';
 
+  // Priority: sizeClassName > size > mode-based default
+  const sizeStyles = sizeClassName
+    ? {}
+    : size
+      ? { width: size, height: size }
+      : {};
+
+  // Use explicit sizeClassName, or fixed size (no classes), or mode-based responsive
+  const defaultSizeClasses = isFullscreenMode ? SIZE_FULLSCREEN : SIZE_DRAWER;
+  const sizeClasses = sizeClassName || (size ? '' : defaultSizeClasses);
+
   return (
-    <div className={`relative ${className}`} style={{ width: size, height: size }}>
+    <div className={`relative ${sizeClasses} ${className}`} style={sizeStyles}>
       {/* Avatar image */}
       <div className="flex size-full items-center justify-center overflow-hidden rounded-full border border-gray-200 ring-4 ring-white">
         <img

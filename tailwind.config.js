@@ -13,12 +13,7 @@ export default {
     "./packages/ui/**/*.{js,ts,jsx,tsx}",
   ],
   // Safelist for dynamically generated grid column classes (responsive grid view)
-  safelist: [
-    'grid-cols-1',
-    'grid-cols-2',
-    'grid-cols-3',
-    'grid-cols-4',
-  ],
+  safelist: ["grid-cols-1", "grid-cols-2", "grid-cols-3", "grid-cols-4"],
   darkMode: "class",
   important: true,
   theme: {
@@ -208,10 +203,10 @@ export default {
         "10xl": "8rem",
       },
       screens: {
-        sm: "640px",     // Native Tailwind
-        md: "768px",     // Native Tailwind
-        lg: "1280px",    // Custom (native Tailwind: 1024px)
-        xl: "1440px",    // Custom (native Tailwind: 1280px)
+        sm: "640px", // Native Tailwind
+        md: "768px", // Native Tailwind
+        lg: "1024px", // Native Tailwind
+        xl: "1280px", // Native Tailwind
         "2xl": "1536px", // Native Tailwind
         "3xl": "1920px", // Custom for ultra-wide screens
       },
