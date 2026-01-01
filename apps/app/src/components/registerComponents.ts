@@ -2,6 +2,7 @@ import { registerComponent, setFallbackComponent } from './space/componentRegist
 
 // Import all card components
 import { BreedListCard } from './breed/BreedListCard';
+import { LitterListCard } from './litter/LitterListCard';
 import { PetListCard } from './pet/PetListCard';
 import { PetTabCard } from './pet/PetTabCard';
 import { GenericListCard } from './space/GenericListCard';
@@ -18,6 +19,9 @@ export function registerAllComponents() {
 
   // Breed components
   registerComponent('BreedListCard', BreedListCard);
+
+  // Litter components
+  registerComponent('LitterListCard', LitterListCard);
 
   // Pet components
   registerComponent('PetListCard', PetListCard);
