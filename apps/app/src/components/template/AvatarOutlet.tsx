@@ -128,20 +128,9 @@ export function AvatarOutlet({
     edit: onEdit,
   });
 
-  // Check if we have menu config - if not, use fallback UI
-  const hasMenuConfig =
-    pageConfig?.menus && Object.keys(pageConfig.menus).length > 0;
-  const showFallbackButtons = !hasMenuConfig && hasActions;
-
-  // Show Edit button if:
-  // 1. No menu config at all (fallback mode), OR
-  // 2. Has menu config but no duplicate buttons for Edit action
-  const hasEditButton = buttonItems.some((item) => item.action === "edit");
-  const showEditFallback =
-    hasActions && spacePermissions.canEdit && !hasEditButton;
-
-  // Show More Options fallback if has menu config but no menu items (filtered out)
-  const showMoreOptionsFallback = hasMenuConfig && menuItems.length === 0;
+  // Check if we have any buttons or menu items to show
+  const hasButtons = buttonItems.length > 0;
+  const hasMenuItems = menuItems.length > 0;
 
   return (
     <div
@@ -150,10 +139,10 @@ export function AvatarOutlet({
       {/* Avatar - entity-specific component via children */}
       {hasAvatar && <div className="pointer-events-auto">{children}</div>}
 
-      {/* Action buttons - config-driven */}
-      {hasActions && (hasMenuConfig || showEditFallback) && (
+      {/* Action buttons - strictly config-driven, no fallbacks */}
+      {hasActions && (hasButtons || hasMenuItems) && (
         <div className="mb-1 ml-auto flex gap-2 pointer-events-auto">
-          {/* Separate buttons for items with duplicateOnDesktop */}
+          {/* Buttons from config (duplicateOnDesktop items) */}
           {buttonItems.map((item) => (
             <Tooltip key={item.id}>
               <TooltipTrigger asChild>
@@ -171,26 +160,8 @@ export function AvatarOutlet({
             </Tooltip>
           ))}
 
-          {/* Fallback Edit button if not in buttonItems */}
-          {showEditFallback && (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="outline-secondary"
-                  className="rounded-full h-[2.6rem] px-4 text-base font-semibold"
-                  onClick={() => executeAction("edit")}
-                  type="button"
-                >
-                  <Icon icon={{ name: "Pencil", source: "lucide" }} size={16} />
-                  <span className="ml-2">Edit</span>
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side="bottom">Edit</TooltipContent>
-            </Tooltip>
-          )}
-
           {/* More options dropdown menu */}
-          {menuItems.length > 0 && (
+          {hasMenuItems && (
             <DropdownMenu>
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -224,61 +195,6 @@ export function AvatarOutlet({
               </DropdownMenuContent>
             </DropdownMenu>
           )}
-
-          {/* Fallback More Options button if no menu items */}
-          {showMoreOptionsFallback && (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost-secondary"
-                  className="size-[2.6rem] rounded-full p-0"
-                  onClick={() => console.log("[TODO] More options")}
-                  type="button"
-                >
-                  <MoreVertical size={16} />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side="bottom">More options</TooltipContent>
-            </Tooltip>
-          )}
-        </div>
-      )}
-
-      {/* Fallback buttons when no menu config */}
-      {showFallbackButtons && (
-        <div className="mb-1 ml-auto flex gap-2 pointer-events-auto">
-          {/* Edit button */}
-          {spacePermissions.canEdit && (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="outline-secondary"
-                  className="rounded-full h-[2.6rem] px-4 text-base font-semibold"
-                  onClick={() => executeAction("edit")}
-                  type="button"
-                >
-                  <Icon icon={{ name: "Pencil", source: "lucide" }} size={16} />
-                  <span className="ml-2">Edit</span>
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side="bottom">Edit</TooltipContent>
-            </Tooltip>
-          )}
-
-          {/* More options button */}
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost-secondary"
-                className="size-[2.6rem] rounded-full p-0"
-                onClick={() => console.log("[TODO] More options")}
-                type="button"
-              >
-                <MoreVertical size={16} />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side="bottom">More options</TooltipContent>
-          </Tooltip>
         </div>
       )}
     </div>
