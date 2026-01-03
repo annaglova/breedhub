@@ -1,5 +1,5 @@
-import * as PatronIcons from "@shared/icons";
 import { getDatabase, supabase } from "@breedhub/rxdb-store";
+import * as PatronIcons from "@shared/icons";
 import { Button } from "@ui/components/button";
 import {
   Tooltip,
@@ -88,20 +88,23 @@ export function BreedCoverV1({
   // Load breed directly from RxDB when entity has breed_id
   useEffect(() => {
     if (!isBreedEntity && breedId) {
-      console.log('[BreedCoverV1] Loading breed from RxDB for breed_id:', breedId);
+      console.log(
+        "[BreedCoverV1] Loading breed from RxDB for breed_id:",
+        breedId
+      );
 
       const loadBreed = async () => {
         try {
           // Get RxDB database
           const db = await getDatabase();
           if (!db) {
-            console.warn('[BreedCoverV1] Database not initialized');
+            console.warn("[BreedCoverV1] Database not initialized");
             return;
           }
 
-          const breedCollection = db.collections['breed'];
+          const breedCollection = db.collections["breed"];
           if (!breedCollection) {
-            console.warn('[BreedCoverV1] Breed collection not found');
+            console.warn("[BreedCoverV1] Breed collection not found");
             return;
           }
 
@@ -110,24 +113,32 @@ export function BreedCoverV1({
 
           if (breedDoc) {
             const breedData = breedDoc.toJSON();
-            console.log('[BreedCoverV1] Loaded breed from RxDB:', breedData.name);
+            console.log(
+              "[BreedCoverV1] Loaded breed from RxDB:",
+              breedData.name
+            );
             setLoadedBreed(breedData);
           } else {
-            console.log('[BreedCoverV1] Breed not in RxDB, fetching from Supabase...');
+            console.log(
+              "[BreedCoverV1] Breed not in RxDB, fetching from Supabase..."
+            );
             // Fallback to Supabase
             const { data, error } = await supabase
-              .from('breed')
-              .select('id, name, top_patrons')
-              .eq('id', breedId)
+              .from("breed")
+              .select("id, name, top_patrons")
+              .eq("id", breedId)
               .single();
 
             if (data && !error) {
-              console.log('[BreedCoverV1] Loaded breed from Supabase:', data.name);
+              console.log(
+                "[BreedCoverV1] Loaded breed from Supabase:",
+                data.name
+              );
               setLoadedBreed(data);
             }
           }
         } catch (err) {
-          console.error('[BreedCoverV1] Error loading breed:', err);
+          console.error("[BreedCoverV1] Error loading breed:", err);
         }
       };
 
@@ -136,7 +147,9 @@ export function BreedCoverV1({
   }, [isBreedEntity, breedId]);
 
   // Transform top_patrons JSONB to display format
-  const transformPatrons = (topPatrons?: Record<string, TopPatron>): PatronDisplay[] => {
+  const transformPatrons = (
+    topPatrons?: Record<string, TopPatron>
+  ): PatronDisplay[] => {
     if (!topPatrons) return [];
     return Object.entries(topPatrons).map(([key, patron], index) => ({
       Id: key,
@@ -156,15 +169,15 @@ export function BreedCoverV1({
 
     if (!sourceEntity) {
       return {
-        id: breedId || '',
-        name: 'Loading...',
+        id: breedId || "",
+        name: "Loading...",
         patrons: [],
       };
     }
 
     return {
-      id: sourceEntity.id || sourceEntity.Id || '',
-      name: sourceEntity.name || sourceEntity.Name || 'Unknown',
+      id: sourceEntity.id || sourceEntity.Id || "",
+      name: sourceEntity.name || sourceEntity.Name || "Unknown",
       patrons: transformPatrons(sourceEntity.top_patrons),
     };
   }, [entity, isBreedEntity, loadedBreed, breedId]);
@@ -191,14 +204,14 @@ export function BreedCoverV1({
 
   return (
     <CoverTemplate coverImg={actualCoverImg} className={className}>
-      <div className="z-20 ml-auto flex size-full flex-col justify-between pb-3 sm:w-auto sm:pb-2 sm:pt-1 pt-10">
+      <div className="z-20 ml-auto flex size-full flex-col justify-between pb-3 sm:w-auto sm:pb-2 sm:pt-1  border border-green-500">
         {/* Patrons */}
         <div className="flex w-full justify-between sm:flex-col sm:space-y-2">
           <div
-            className={`text-md absolute top-5 sm:text-end font-medium uppercase text-white max-w-64 text-left sm:max-w-full sm:static sm:text-xl ${
+            className={`text-md absolute top-5 sm:text-end font-medium uppercase text-white max-w-64 text-left sm:max-w-full sm:static sm:text-xl border border-red-400${
               isFullscreen ? "sm:mt-3" : ""
             }`}
-            style={{ fontFamily: 'Roboto, sans-serif' }}
+            style={{ fontFamily: "Roboto, sans-serif" }}
           >
             {breed.name}
             {patronLength > 0 && " top patrons"}
@@ -216,12 +229,12 @@ export function BreedCoverV1({
                 ))}
               </div>
             ) : (
-              <div className="relative flex items-center space-x-3">
+              <div className="relative flex items-center sm:space-x-3 border border-blue-400">
                 <span className="hidden text-end text-white sm:block">
                   There are no patrons in the breed <br />
                   You may be the first one!
                 </span>
-                <div className="group mt-2 flex size-11 items-center justify-center overflow-hidden rounded-full border border-white bg-white/30 text-7xl text-white sm:size-16">
+                <div className="group sm:mt-2 flex size-11 items-center justify-center overflow-hidden rounded-full border border-white bg-white/30 text-7xl text-white sm:size-16">
                   {/* Question mark icon */}
                   <svg
                     className="duration-300 group-hover:scale-125"

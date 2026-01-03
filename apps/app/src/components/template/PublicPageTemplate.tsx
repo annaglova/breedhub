@@ -1,6 +1,6 @@
 import { BlockRenderer } from "@/components/blocks/BlockRenderer";
-import { SpaceProvider } from "@/contexts/SpaceContext";
 import { ScrollToTopButton } from "@/components/shared/ScrollToTopButton";
+import { SpaceProvider } from "@/contexts/SpaceContext";
 import { getPageConfig } from "@/utils/getPageConfig";
 import { spaceStore } from "@breedhub/rxdb-store";
 import { Signal } from "@preact/signals-react";
@@ -26,7 +26,7 @@ function getDefaultTabFragment(pageConfig: any): string | undefined {
 
   // Find TabOutlet block which contains tabs config
   const tabOutletBlock = Object.values(pageConfig.blocks).find(
-    (block: any) => block.outlet === 'TabOutlet' && block.tabs
+    (block: any) => block.outlet === "TabOutlet" && block.tabs
   ) as any;
 
   if (!tabOutletBlock?.tabs) {
@@ -37,7 +37,8 @@ function getDefaultTabFragment(pageConfig: any): string | undefined {
 
   // Sort all tabs by order for consistent processing
   const sortedTabs = Object.entries(tabsConfig).sort(
-    ([, a]: [string, any], [, b]: [string, any]) => (a.order || 0) - (b.order || 0)
+    ([, a]: [string, any], [, b]: [string, any]) =>
+      (a.order || 0) - (b.order || 0)
   );
 
   // 1. Find first tab with preferDefault: true (by order)

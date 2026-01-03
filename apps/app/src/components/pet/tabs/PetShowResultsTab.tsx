@@ -124,7 +124,7 @@ export function PetShowResultsTab({ onLoadedCount }: PetShowResultsTabProps) {
   const results = MOCK_RESULTS;
 
   return (
-    <div className="card flex flex-auto flex-col p-6 lg:px-8 cursor-default">
+    <div className="card card-rounded flex flex-auto flex-col p-6 lg:px-8 cursor-default">
       {results.length > 0 ? (
         <div className="grid">
           {/* Header */}

@@ -89,7 +89,7 @@ function TruncatedText({
  */
 export function PetCard({ pet, mode = "default" }: PetCardProps) {
   return (
-    <div className="card flex flex-col items-center justify-center px-6 py-3 sm:px-8 cursor-default caret-transparent">
+    <div className="card card-rounded flex flex-col items-center justify-center px-6 py-3 sm:px-8 cursor-default caret-transparent">
       {/* Sex indicator bar */}
       <PetSexMark
         sex={pet.sex}

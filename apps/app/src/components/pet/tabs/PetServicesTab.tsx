@@ -188,7 +188,7 @@ export function PetServicesTab({ onLoadedCount }: PetServicesTabProps) {
         {services.map((service) => (
           <div
             key={service.id}
-            className="card flex items-center space-x-5 p-6 lg:px-8 bg-even-card-ground"
+            className="card card-rounded flex items-center space-x-5 p-6 lg:px-8 bg-even-card-ground"
           >
             <span className="text-secondary-400">
               {SERVICE_ICONS[service.iconName] || <ShoppingCart className="h-4 w-4" />}

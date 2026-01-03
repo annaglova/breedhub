@@ -62,7 +62,7 @@ export function PedigreeCard({ pet, sex, level }: PedigreeCardProps) {
   // Level 0: Large card (parents level)
   if (level === 0) {
     return (
-      <div className="card flex min-w-72 max-w-72 w-full flex-col items-center justify-center px-6 py-3 min-h-[403px] bg-even-card-ground">
+      <div className="card card-rounded flex min-w-72 max-w-72 w-full flex-col items-center justify-center px-6 py-3 min-h-[403px] bg-even-card-ground">
         <PetSexMark
           sex={petSex}
           style="horizontal"
@@ -136,7 +136,7 @@ export function PedigreeCard({ pet, sex, level }: PedigreeCardProps) {
   // Level 1: Medium card (grandparents level)
   if (level === 1) {
     return (
-      <div className="card flex min-w-72 max-w-72 flex-col items-center px-6 py-3 min-h-[196.25px] bg-even-card-ground">
+      <div className="card card-rounded flex min-w-72 max-w-72 flex-col items-center px-6 py-3 min-h-[196.25px] bg-even-card-ground">
         <PetSexMark sex={petSex} style="horizontal" className="w-44" />
 
         {!isEmpty ? (
@@ -210,7 +210,7 @@ export function PedigreeCard({ pet, sex, level }: PedigreeCardProps) {
   // Level 2: Small card (great-grandparents level)
   if (level === 2) {
     return (
-      <div className="card min-w-72 max-w-72 p-3 flex min-h-[92.88px] bg-even-card-ground">
+      <div className="card card-rounded min-w-72 max-w-72 p-3 flex min-h-[92.88px] bg-even-card-ground">
         {/* Avatar 64px */}
         <div className="size-16 min-w-16 overflow-hidden self-center rounded-xl border border-border relative">
           {pet.avatarUrl ? (

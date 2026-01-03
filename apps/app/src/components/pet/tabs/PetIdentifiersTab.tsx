@@ -65,7 +65,7 @@ export function PetIdentifiersTab({ onLoadedCount }: PetIdentifiersTabProps) {
   const identifiers = MOCK_IDENTIFIERS;
 
   return (
-    <div className="card flex flex-auto flex-col p-6 lg:px-8 cursor-default">
+    <div className="card card-rounded flex flex-auto flex-col p-6 lg:px-8 cursor-default">
       {identifiers.length > 0 ? (
         <div className="grid">
           {/* Header */}

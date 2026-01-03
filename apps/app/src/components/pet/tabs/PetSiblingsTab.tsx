@@ -144,7 +144,7 @@ export function PetSiblingsTab({ onLoadedCount }: PetSiblingsTabProps) {
           {siblingGroups.map((group, groupIndex) => (
             <div
               key={group.date || groupIndex}
-              className="card flex flex-auto flex-col p-6 md:px-10"
+              className="card card-rounded flex flex-auto flex-col p-6 md:px-10"
             >
               {/* Group header - DOB date */}
               <div className="grid gap-3 border-b border-border px-6 py-3 font-semibold lg:px-8">
@@ -170,7 +170,7 @@ export function PetSiblingsTab({ onLoadedCount }: PetSiblingsTabProps) {
           ))}
         </div>
       ) : (
-        <div className="card flex flex-auto flex-col p-6 lg:px-8">
+        <div className="card card-rounded flex flex-auto flex-col p-6 lg:px-8">
           <span className="text-secondary p-8 text-center font-medium">
             There are no siblings!
           </span>

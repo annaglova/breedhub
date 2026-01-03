@@ -77,7 +77,7 @@ export function LitterCard({
     : "grid-cols-[52px_auto] sm:grid-cols-[100px_auto] md:grid-cols-[110px_auto]";
 
   return (
-    <div className={cn("card flex flex-auto flex-col p-6 lg:px-8", className)}>
+    <div className={cn("card card-rounded flex flex-auto flex-col p-6 lg:px-8", className)}>
       {/* Litter header */}
       <div
         className={cn(
