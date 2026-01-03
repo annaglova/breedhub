@@ -107,10 +107,11 @@ export function AvatarOutlet({
     );
   }
 
-  // TODO: Get real container width for responsive behavior
+  // Buttons are always shown (icon-only on mobile, with label on sm+)
+  // So we always use "desktop" width to exclude duplicateOnDesktop from menu
   const containerWidth = 1280;
 
-  // Get button items (duplicateOnDesktop items shown as buttons on desktop)
+  // Get button items (duplicateOnDesktop items - shown on all screens)
   const buttonItems = usePageMenuButtons({
     pageConfig: pageConfig || null,
     context: "avatar",
@@ -118,7 +119,7 @@ export function AvatarOutlet({
     containerWidth,
   });
 
-  // Get dropdown menu items (excludes items shown as buttons on desktop)
+  // Get dropdown menu items (excludes duplicateOnDesktop items on all screens)
   const menuItems = usePageMenuDropdown({
     pageConfig: pageConfig || null,
     context: "avatar",
@@ -146,18 +147,18 @@ export function AvatarOutlet({
       {/* Action buttons - strictly config-driven, no fallbacks */}
       {hasActions && (hasButtons || hasMenuItems) && (
         <div className="mb-1 ml-auto flex gap-2 pointer-events-auto">
-          {/* Buttons from config (duplicateOnDesktop items) */}
+          {/* Buttons from config (duplicateOnDesktop items) - icon only on mobile, with label on sm+ */}
           {buttonItems.map((item) => (
             <Tooltip key={item.id}>
               <TooltipTrigger asChild>
                 <Button
                   variant="outline-secondary"
-                  className="rounded-full h-[2.6rem] px-4 text-base font-semibold"
+                  className="rounded-full h-[2.6rem] w-[2.6rem] sm:w-auto sm:px-4 text-base font-semibold"
                   onClick={() => executeAction(item.action, item.actionParams)}
                   type="button"
                 >
                   <Icon icon={item.icon} size={16} />
-                  <span className="ml-2">{item.label}</span>
+                  <span className="hidden sm:inline ml-2">{item.label}</span>
                 </Button>
               </TooltipTrigger>
               <TooltipContent side="bottom">{item.label}</TooltipContent>
