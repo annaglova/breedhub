@@ -97,7 +97,7 @@ export function PetPedigreeTab({
       >
         <HorizontalScrollbar
           scrollContainerRef={scrollRef}
-          className="mx-auto max-w-md"
+          className="mx-auto max-w-52 sm:max-w-md"
         />
       </div>
 

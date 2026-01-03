@@ -1,4 +1,5 @@
 import { useTheme } from "@/hooks/useTheme";
+import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { useAppWorkspaces } from "@/hooks/useAppStore";
 import { useOnlineStatus } from "@/hooks/useOnlineStatus";
 import { Button } from "@ui/components/button";
@@ -29,6 +30,10 @@ export const Header = forwardRef<HTMLElement, HeaderProps>(
   const { theme, toggleTheme } = useTheme();
   const [isUserDrawerOpen, setIsUserDrawerOpen] = useState(false);
   const isOnline = useOnlineStatus();
+  const isMD = useMediaQuery("(min-width: 768px)");
+
+  // Icon size: 20px on < md, 24px on md+
+  const navIconSize = isMD ? 24 : 20;
 
   // TODO: In production, workspaces should be loaded statically to prevent flashing
   // See docs/UNIVERSAL_STORE_IMPLEMENTATION.md for details
@@ -59,7 +64,7 @@ export const Header = forwardRef<HTMLElement, HeaderProps>(
         ref={ref}
         className="w-full"
       >
-        <div className="flex items-center justify-between w-full h-16 px-4 md:px-6">
+        <div className="flex items-center justify-between w-full h-14 md:h-16 px-4 md:px-6">
           {/* Logo - only on 3xl when sidebar is hidden */}
           <Link to="/" className="hidden 3xl:flex items-center ml-3">
             <img src="/logo-text.svg" alt="BreedHub" className="h-10 w-auto" />
@@ -83,9 +88,9 @@ export const Header = forwardRef<HTMLElement, HeaderProps>(
             </TooltipContent>
           </Tooltip>
 
-          {/* Navigation tabs - only show if not home */}
+          {/* Navigation tabs - only show if not home, hidden on mobile (shown in footer) */}
           {!isHome && (
-            <nav className="flex-1 flex justify-center">
+            <nav className="hidden sm:flex flex-1 justify-center">
               <div className="flex items-center min-h-[1.5rem]">
                 {error ? (
                   // Show error state
@@ -111,7 +116,7 @@ export const Header = forwardRef<HTMLElement, HeaderProps>(
                           >
                             <Icon
                               icon={item.icon}
-                              size={24}
+                              size={navIconSize}
                               className={cn(
                                 isActive
                                   ? "text-primary"
@@ -155,7 +160,7 @@ export const Header = forwardRef<HTMLElement, HeaderProps>(
               onClick={() => setIsUserDrawerOpen(true)}
             >
               <AvatarWithStatus
-                size="default"
+                size={isMD ? "default" : "sm"}
                 isOnline={isOnline}
                 showStatus={true}
                 statusPosition="top-right"

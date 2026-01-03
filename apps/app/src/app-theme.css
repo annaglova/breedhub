@@ -3,16 +3,19 @@
 /* Content padding - unified padding for pages and spaces */
 :root {
   --content-padding: 1rem; /* p-4 on mobile */
+  --content-padding-bottom: 0; /* No bottom padding on mobile - footer is visible */
 }
 
 @media (min-width: 640px) {
   :root {
     --content-padding: 1.5rem; /* p-6 on sm+ */
+    --content-padding-bottom: 1.5rem; /* Bottom padding on sm+ - footer is hidden */
   }
 }
 
 .content-padding {
   padding: var(--content-padding);
+  padding-bottom: var(--content-padding-bottom);
 }
 
 /* Card styles from Angular project */

@@ -1283,7 +1283,7 @@ export function SpaceComponent<T extends { id: string }>({
             />
             <div
               className="bg-card-ground w-full absolute bottom-0"
-              style={{ height: 'var(--content-padding, 1rem)' }}
+              style={{ height: 'var(--content-padding-bottom, 0)' }}
             />
           </div>
         </div>
@@ -1431,7 +1431,7 @@ export function SpaceComponent<T extends { id: string }>({
             {/* Bottom spacer like in Angular */}
             <div
               className="bg-card-ground w-full absolute bottom-0"
-              style={{ height: 'var(--content-padding, 1rem)' }}
+              style={{ height: 'var(--content-padding-bottom, 0)' }}
             />
           </div>
 

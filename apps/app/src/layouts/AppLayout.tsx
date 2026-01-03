@@ -49,11 +49,11 @@ export function AppLayout() {
   const mainHeight = screenHeight - topBarHeight - footerHeight;
 
   return (
-    <div className="layout-container bg-gray-100 flex flex-col">
+    <div className="layout-container bg-gray-100 flex flex-col h-screen">
       <LoadingBar />
 
       {/* Main wrapper with sidebar and content */}
-      <div className="flex flex-1">
+      <div className="flex flex-1 min-h-0">
         {/* Sidebar - starts from top, hidden on 3xl (replaced by menu in content) */}
         <Sidebar
           isCollapsed={!isSidebarOpen}
@@ -101,7 +101,7 @@ export function AppLayout() {
               {/* Main content */}
               <main
                 className="flex-1 overflow-hidden 3xl:max-w-[1504px]"
-                style={{ height: `${mainHeight - (isLG ? 20 : 0)}px` }}
+                style={isLG ? { height: `${mainHeight - 20}px` } : undefined}
               >
                 <Outlet />
               </main>
@@ -113,7 +113,7 @@ export function AppLayout() {
         </div>
       </div>
 
-      {/* Footer - full width */}
+      {/* Footer - shows workspace navigation on mobile (< sm), copyright on sm+ */}
       <Footer ref={footerRef} className="bg-footer-ground" />
     </div>
   );
