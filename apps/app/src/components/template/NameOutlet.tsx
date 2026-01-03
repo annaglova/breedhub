@@ -95,8 +95,9 @@ export function NameOutlet({
     : allMenuItems;
 
   // Check if Edit action is available (for showing separate button on md+ fullscreen)
+  // If edit is in menu config, show it - no additional permission checks needed
   const editMenuItem = allMenuItems.find((item) => item.action === "edit");
-  const showEditButton = isMdScreen && isFullscreen && editMenuItem && spacePermissions.canEdit;
+  const showEditButton = isMdScreen && isFullscreen && !!editMenuItem;
 
   // Action handlers
   const { executeAction } = usePageActions(entity, {

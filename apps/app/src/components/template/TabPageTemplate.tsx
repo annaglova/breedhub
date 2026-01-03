@@ -467,7 +467,7 @@ export function TabPageTemplate({
                   ) : undefined
                 }
                 right={
-                  currentTab.actionType === "edit" && spaceConfig?.canEdit ? (
+                  currentTab.actionType === "edit" ? (
                     <button
                       type="button"
                       className="flex items-center text-lg font-semibold text-sub-header-color hover:text-foreground/70 transition-colors focus:outline-none focus-visible:outline-none"
