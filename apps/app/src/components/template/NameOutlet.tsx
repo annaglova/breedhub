@@ -205,7 +205,7 @@ export function NameOutlet({
                   <>
                     <DropdownMenuItem
                       key={item.id}
-                      onClick={() => executeAction(item.action)}
+                      onClick={() => executeAction(item.action, item.actionParams)}
                     >
                       <Icon icon={item.icon} size={16} />
                       {item.label}

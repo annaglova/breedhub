@@ -31,7 +31,10 @@ export interface PageMenuItem {
   label: string;
 
   /** Action identifier */
-  action: string;  // 'edit' | 'copy_link' | 'copy_name' | 'make_note' | 'bug_report' | etc.
+  action: string;  // 'edit' | 'copy_link' | 'copy_name' | 'make_note' | 'bug_report' | 'navigate_to_tab' | etc.
+
+  /** Optional parameters for action (e.g., { tab: 'pets', fullscreen: true } for navigate_to_tab) */
+  actionParams?: Record<string, any>;
 
   /** Visibility rules */
   visibility: PageMenuItemVisibility;

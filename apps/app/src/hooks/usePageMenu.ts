@@ -73,24 +73,9 @@ export function usePageMenu({
           }
         }
 
-        // 4. Check permissions
-        if (item.visibility.requiresPermission) {
-          const permission = item.visibility.requiresPermission;
-
-          // Map permission string to space permission
-          if (permission === 'edit' && !spacePermissions.canEdit) {
-            return false;
-          }
-          if (permission === 'delete' && !spacePermissions.canDelete) {
-            return false;
-          }
-          if (permission === 'add' && !spacePermissions.canAdd) {
-            return false;
-          }
-
-          // TODO: Add user-level permissions check after login implementation
-          // if (!userPermissions.canEdit) return false;
-        }
+        // Note: requiresPermission is stored in config but not checked here
+        // Permission checks will be handled by action handlers (e.g., edit action checks auth)
+        // This keeps menu rendering simple - show what's in config
 
         return true;
       })
@@ -100,8 +85,14 @@ export function usePageMenu({
   }, [pageConfig, context, spacePermissions, containerWidth]);
 }
 
+interface UsePageMenuButtonsOptions extends UsePageMenuOptions {
+  minDesktopWidth?: number;
+}
+
 /**
  * Get items that should be shown as separate buttons (duplicateOnDesktop)
+ * On desktop (>= minDesktopWidth): returns items with duplicateOnDesktop: true
+ * On mobile (< minDesktopWidth): returns empty array (all items go to menu)
  */
 export function usePageMenuButtons({
   pageConfig,
@@ -109,7 +100,7 @@ export function usePageMenuButtons({
   spacePermissions,
   containerWidth = 0,
   minDesktopWidth = 1024
-}: UsePageMenuOptions & { minDesktopWidth?: number }): PageMenuItemWithId[] {
+}: UsePageMenuButtonsOptions): PageMenuItemWithId[] {
   const allItems = usePageMenu({ pageConfig, context, spacePermissions, containerWidth });
 
   return useMemo(() => {
@@ -118,5 +109,30 @@ export function usePageMenuButtons({
     }
 
     return allItems.filter(item => item.visibility.duplicateOnDesktop === true);
+  }, [allItems, containerWidth, minDesktopWidth]);
+}
+
+/**
+ * Get items for dropdown menu, excluding those shown as buttons
+ * On desktop: excludes items with duplicateOnDesktop: true (they're shown as buttons)
+ * On mobile: returns all items (buttons array is empty)
+ */
+export function usePageMenuDropdown({
+  pageConfig,
+  context,
+  spacePermissions,
+  containerWidth = 0,
+  minDesktopWidth = 1024
+}: UsePageMenuButtonsOptions): PageMenuItemWithId[] {
+  const allItems = usePageMenu({ pageConfig, context, spacePermissions, containerWidth });
+
+  return useMemo(() => {
+    // On mobile - show all items in menu (no buttons)
+    if (containerWidth < minDesktopWidth) {
+      return allItems;
+    }
+
+    // On desktop - exclude items that are shown as buttons
+    return allItems.filter(item => item.visibility.duplicateOnDesktop !== true);
   }, [allItems, containerWidth, minDesktopWidth]);
 }

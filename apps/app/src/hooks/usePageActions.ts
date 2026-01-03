@@ -1,5 +1,13 @@
 import { useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { toast } from '@breedhub/rxdb-store';
+
+interface NavigateToTabParams {
+  tab: string;
+  fullscreen?: boolean;
+}
+
+type ActionParams = NavigateToTabParams | Record<string, any>;
 
 /**
  * Hook for handling page menu actions
@@ -12,8 +20,9 @@ import { toast } from '@breedhub/rxdb-store';
  */
 export function usePageActions(
   entity: any,
-  customHandlers?: Record<string, () => void>
+  customHandlers?: Record<string, (params?: ActionParams) => void>
 ) {
+  const navigate = useNavigate();
   const handleEdit = useCallback(() => {
     console.log('[PageActions] Edit:', entity);
     // TODO: Navigate to edit page
@@ -71,8 +80,30 @@ export function usePageActions(
     // TODO: Export entity data
   }, [entity]);
 
+  const handleNavigateToTab = useCallback((params?: ActionParams) => {
+    const { tab, fullscreen } = (params || {}) as NavigateToTabParams;
+    if (!tab) {
+      console.warn('[PageActions] navigate_to_tab: missing tab param');
+      return;
+    }
+
+    const slug = entity?.slug;
+    if (!slug) {
+      console.warn('[PageActions] navigate_to_tab: missing entity slug');
+      return;
+    }
+
+    if (fullscreen) {
+      // Navigate to fullscreen tab page: /{slug}/{tab}
+      navigate(`/${slug}/${tab}`);
+    } else {
+      // Navigate to tab fragment: /{slug}#{tab}
+      navigate(`/${slug}#${tab}`);
+    }
+  }, [entity, navigate]);
+
   // Default action handlers
-  const defaultHandlers: Record<string, () => void> = {
+  const defaultHandlers: Record<string, (params?: ActionParams) => void> = {
     edit: handleEdit,
     copy_link: handleCopyLink,
     copy_name: handleCopyName,
@@ -81,21 +112,22 @@ export function usePageActions(
     share: handleShare,
     delete: handleDelete,
     export: handleExport,
+    navigate_to_tab: handleNavigateToTab,
   };
 
   /**
-   * Execute action by name
+   * Execute action by name with optional params
    */
-  const executeAction = useCallback((action: string) => {
+  const executeAction = useCallback((action: string, params?: ActionParams) => {
     // Try custom handler first
     if (customHandlers?.[action]) {
-      customHandlers[action]();
+      customHandlers[action](params);
       return;
     }
 
     // Fall back to default handler
     if (defaultHandlers[action]) {
-      defaultHandlers[action]();
+      defaultHandlers[action](params);
       return;
     }
 

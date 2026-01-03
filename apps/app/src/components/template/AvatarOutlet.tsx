@@ -1,6 +1,6 @@
 import { Icon } from "@/components/shared/Icon";
 import { usePageActions } from "@/hooks/usePageActions";
-import { usePageMenu, usePageMenuButtons } from "@/hooks/usePageMenu";
+import { usePageMenuButtons, usePageMenuDropdown } from "@/hooks/usePageMenu";
 import type { PageConfig } from "@/types/page-config.types";
 import type { SpacePermissions } from "@/types/page-menu.types";
 import { Button } from "@ui/components/button";
@@ -107,19 +107,23 @@ export function AvatarOutlet({
     );
   }
 
-  // Get menu items for avatar context
-  const menuItems = usePageMenu({
-    pageConfig: pageConfig || null,
-    context: "avatar",
-    spacePermissions,
-  });
+  // TODO: Get real container width for responsive behavior
+  const containerWidth = 1280;
 
-  // Get button items (duplicateOnDesktop)
+  // Get button items (duplicateOnDesktop items shown as buttons on desktop)
   const buttonItems = usePageMenuButtons({
     pageConfig: pageConfig || null,
     context: "avatar",
     spacePermissions,
-    containerWidth: 1280, // TODO: Get real container width
+    containerWidth,
+  });
+
+  // Get dropdown menu items (excludes items shown as buttons on desktop)
+  const menuItems = usePageMenuDropdown({
+    pageConfig: pageConfig || null,
+    context: "avatar",
+    spacePermissions,
+    containerWidth,
   });
 
   // Action handlers
@@ -149,7 +153,7 @@ export function AvatarOutlet({
                 <Button
                   variant="outline-secondary"
                   className="rounded-full h-[2.6rem] px-4 text-base font-semibold"
-                  onClick={() => executeAction(item.action)}
+                  onClick={() => executeAction(item.action, item.actionParams)}
                   type="button"
                 >
                   <Icon icon={item.icon} size={16} />
@@ -182,7 +186,7 @@ export function AvatarOutlet({
                   <>
                     <DropdownMenuItem
                       key={item.id}
-                      onClick={() => executeAction(item.action)}
+                      onClick={() => executeAction(item.action, item.actionParams)}
                     >
                       <Icon icon={item.icon} size={16} />
                       {item.label}
