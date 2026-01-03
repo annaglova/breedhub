@@ -54,7 +54,7 @@ export default function Pricing() {
             <h1 className="text-white tracking-tight leading-tight">
               Choose Your Plan
             </h1>
-            <p className="text-2xl text-gray-600 xl:text-white max-w-3xl mx-auto mt-2 tracking-wide leading-relaxed">
+            <p className="text-2xl text-slate-600 xl:text-white max-w-3xl mx-auto mt-2 tracking-wide leading-relaxed">
               Join thousands of professional breeders who trust BreedHub to
               manage their breeding programs
             </p>
@@ -66,7 +66,7 @@ export default function Pricing() {
           </div>
 
           {/* Features Comparison Section */}
-          <div className="bg-gray-50 py-20">
+          <div className="bg-slate-50 py-20">
             <div className="landing-content-container">
               <h2 className="text-4xl font-bold text-center mb-12 tracking-tight">
                 Compare Features
@@ -106,7 +106,7 @@ export default function Pricing() {
                     {category.features.map((feature, featIndex) => (
                       <div
                         key={featIndex}
-                        className="grid py-3 hover:bg-gray-50 border-b border-gray-100"
+                        className="grid py-3 hover:bg-slate-50 border-b border-slate-100"
                         style={{
                           gridTemplateColumns: "20px auto 112px 112px 112px",
                         }}
@@ -129,7 +129,7 @@ export default function Pricing() {
                                 </span>
                               )}
                             </div>
-                            <p className="text-gray-600">
+                            <p className="text-slate-600">
                               {feature.description}
                             </p>
                           </div>
@@ -161,8 +161,8 @@ export default function Pricing() {
                         px-4 py-2 rounded-full text-md font-medium transition-all 
                         ${
                           showMobileTier === index
-                            ? "bg-white/70 text-gray-900 shadow-sm  "
-                            : "text-gray-600"
+                            ? "bg-white/70 text-slate-900 shadow-sm  "
+                            : "text-slate-600"
                         }
                       `}
                       >
@@ -191,7 +191,7 @@ export default function Pricing() {
                     {category.features.map((feature, featIndex) => (
                       <div
                         key={featIndex}
-                        className="grid py-3 border-b border-gray-100"
+                        className="grid py-3 border-b border-slate-100"
                         style={{ gridTemplateColumns: "auto 64px" }}
                       >
                         <div className="pr-2">
@@ -213,7 +213,7 @@ export default function Pricing() {
                                   </span>
                                 )}
                               </div>
-                              <p className=" text-gray-600">
+                              <p className=" text-slate-600">
                                 {feature.description}
                               </p>
                             </div>
@@ -313,13 +313,13 @@ export default function Pricing() {
               {faqItems.map((item, index) => (
                 <div
                   key={index}
-                  className="mb-4 border border-gray-200 rounded-lg overflow-hidden shadow-sm"
+                  className="mb-4 border border-slate-200 rounded-lg overflow-hidden shadow-sm"
                 >
-                  <div className="p-6 bg-white hover:bg-gray-50 transition-colors">
-                    <h3 className="text-xl font-bold text-gray-900 mb-2 tracking-wide">
+                  <div className="p-6 bg-white hover:bg-slate-50 transition-colors">
+                    <h3 className="text-xl font-bold text-slate-900 mb-2 tracking-wide">
                       {item.question}
                     </h3>
-                    <p className="text-gray-600">{item.answer}</p>
+                    <p className="text-slate-600">{item.answer}</p>
                   </div>
                 </div>
               ))}

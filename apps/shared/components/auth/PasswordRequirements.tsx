@@ -36,7 +36,7 @@ export function PasswordRequirements({
 
   if (compact && !password) {
     return (
-      <div className={cn("text-xs text-gray-500", className)}>
+      <div className={cn("text-xs text-slate-500", className)}>
         Password must contain at least 8 characters, uppercase & lowercase letters, numbers, and special characters.
       </div>
     );
@@ -47,13 +47,13 @@ export function PasswordRequirements({
       {/* Password Strength Indicator - Always visible */}
       <div>
         <div className="flex items-center justify-between mb-2">
-          <span className="text-sm text-gray-600">Password strength:</span>
+          <span className="text-sm text-slate-600">Password strength:</span>
           {password ? (
             <span className={cn("text-sm font-medium", strengthColors[strength - 1])}>
               {strengthLabels[strength - 1]}
             </span>
           ) : (
-            <span className="text-sm text-gray-400">Not entered</span>
+            <span className="text-sm text-slate-400">Not entered</span>
           )}
         </div>
         
@@ -72,7 +72,7 @@ export function PasswordRequirements({
                       "bg-blue-500",
                       "bg-green-500",
                     ][strength - 1]
-                  : "bg-gray-200"
+                  : "bg-slate-200"
               )}
             />
           ))}
@@ -84,7 +84,7 @@ export function PasswordRequirements({
         <p className={cn(
           "leading-relaxed",
           compact ? "text-xs" : "text-sm",
-          password ? "text-gray-600" : "text-gray-500"
+          password ? "text-slate-600" : "text-slate-500"
         )}>
           Your password must be at least 8 characters long and include uppercase and lowercase letters, numbers, and special characters.
         </p>

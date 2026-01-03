@@ -109,9 +109,9 @@ export default function TestInputsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12">
+    <div className="min-h-screen bg-slate-50 py-12">
       <div className="max-w-4xl mx-auto px-4">
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">Form Inputs Test Page</h1>
+        <h1 className="text-3xl font-bold text-slate-900 mb-8">Form Inputs Test Page</h1>
         
         <div className="bg-white rounded-lg shadow-md p-8">
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
@@ -357,7 +357,7 @@ export default function TestInputsPage() {
           </form>
 
           {/* Form Data Display */}
-          <div className="mt-8 p-4 bg-gray-100 rounded-md">
+          <div className="mt-8 p-4 bg-slate-100 rounded-md">
             <h3 className="text-lg font-semibold mb-2">Form Data:</h3>
             <pre className="text-sm">{JSON.stringify(watch(), null, 2)}</pre>
           </div>
@@ -365,7 +365,7 @@ export default function TestInputsPage() {
 
         {/* Examples without labels */}
         <div className="bg-white rounded-lg shadow-md p-8 mt-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">Inputs without labels</h2>
+          <h2 className="text-2xl font-bold text-slate-900 mb-6">Inputs without labels</h2>
           
           <div className="space-y-4">
             <TextInput

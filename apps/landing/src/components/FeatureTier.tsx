@@ -30,7 +30,7 @@ export default function FeatureTier({ featureTier }: FeatureTierProps) {
   if (typeof featureTier === "string" && featureTier.length > 0) {
     return (
       <div className="text-center">
-        <span className="text-sm font-medium text-gray-700">{featureTier}</span>
+        <span className="text-sm font-medium text-slate-700">{featureTier}</span>
       </div>
     );
   }
@@ -39,7 +39,7 @@ export default function FeatureTier({ featureTier }: FeatureTierProps) {
   return (
     <div className="flex justify-center">
       <svg
-        className="w-5 h-5 text-gray-400 flex-shrink-0"
+        className="w-5 h-5 text-slate-400 flex-shrink-0"
         fill="none"
         stroke="currentColor"
         viewBox="0 0 24 24"

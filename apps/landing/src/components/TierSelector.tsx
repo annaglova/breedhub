@@ -68,7 +68,7 @@ export default function TierSelector({
   const getAlternativePricing = (tier: Tier) => {
     if (tier.name === "Supreme Patron") {
       return (
-        <div className="text-gray-500  space-y-1">
+        <div className="text-slate-500  space-y-1">
           <div>
             Minimum payment is <span className="font-bold">$20.00</span>
           </div>
@@ -107,7 +107,7 @@ export default function TierSelector({
       );
     }
 
-    return <div className="text-gray-500 space-y-1">{alternatives}</div>;
+    return <div className="text-slate-500 space-y-1">{alternatives}</div>;
   };
 
   return (
@@ -123,8 +123,8 @@ export default function TierSelector({
                 relative px-4 sm:px-6 py-3 rounded-full transition-all duration-200 text-base
                 ${
                   selectedBillingType === type.value
-                    ? "bg-white/90 text-gray-700 shadow-md cursor-pointer font-bold"
-                    : "text-gray-600 hover:text-gray-700 hover:bg-white/30 cursor-pointer"
+                    ? "bg-white/90 text-slate-700 shadow-md cursor-pointer font-bold"
+                    : "text-slate-600 hover:text-slate-700 hover:bg-white/30 cursor-pointer"
                 }
               `}
             >
@@ -141,7 +141,7 @@ export default function TierSelector({
                   ${
                     selectedBillingType === type.value
                       ? "text-green-600"
-                      : "text-gray-500"
+                      : "text-slate-500"
                   }
                 `}
                 >
@@ -174,7 +174,7 @@ export default function TierSelector({
                 ${
                   tier.isPopular
                     ? "border-primary outline outline-2 outline-offset-2 outline-primary"
-                    : "border-gray-200"
+                    : "border-slate-200"
                 }
                 ${tier.isComingSoon ? "coming-soon" : ""}
               `}
@@ -191,7 +191,7 @@ export default function TierSelector({
                 <h3 className="text-xl font-bold mb-2 uppercase">
                   {tier.name}
                 </h3>
-                <p className=" text-gray-600 w-3/4 text-center">
+                <p className=" text-slate-600 w-3/4 text-center">
                   {tier.description}
                 </p>
               </div>
@@ -240,7 +240,7 @@ export default function TierSelector({
                         )}
                       </div>
 
-                      <span className="text-gray-600 uppercase text-md  max-w-14">
+                      <span className="text-slate-600 uppercase text-md  max-w-14">
                         per month
                       </span>
                     </div>
@@ -251,7 +251,7 @@ export default function TierSelector({
                       {formatPrice(tier)}
                     </div>
                     {formatPrice(tier) !== "Free" ? (
-                      <div className="text-gray-600 mt-1 uppercase text-md">
+                      <div className="text-slate-600 mt-1 uppercase text-md">
                         per month
                       </div>
                     ) : (
@@ -296,7 +296,7 @@ export default function TierSelector({
               {/* Features */}
               <div className="space-y-3 mt-auto">
                 {tier.featuresHeader && (
-                  <p className="text-md font-medium text-gray-700 mb-2 uppercase text-center">
+                  <p className="text-md font-medium text-slate-700 mb-2 uppercase text-center">
                     {tier.featuresHeader}
                   </p>
                 )}
@@ -315,7 +315,7 @@ export default function TierSelector({
                         d="M5 13l4 4L19 7"
                       />
                     </svg>
-                    <span className=" text-gray-700">{feature.name}</span>
+                    <span className=" text-slate-700">{feature.name}</span>
                   </div>
                 ))}
               </div>

@@ -193,7 +193,7 @@ export default function Templates() {
           className={`flex items-center justify-between h-10 p-2 rounded-md ${
             selectedNode === node.id
               ? "bg-blue-50 border-l-4 border-l-blue-500"
-              : "bg-gray-50 hover:bg-gray-100"
+              : "bg-slate-50 hover:bg-slate-100"
           }`}
           onClick={() => setSelectedNode(node.id)}
         >
@@ -204,7 +204,7 @@ export default function Templates() {
                   e.stopPropagation();
                   toggleExpand(node.id);
                 }}
-                className="p-0.5 hover:bg-gray-200 rounded"
+                className="p-0.5 hover:bg-slate-200 rounded"
               >
                 {isExpanded ? (
                   <ChevronDown className="w-4 h-4" />
@@ -215,9 +215,9 @@ export default function Templates() {
             )}
             {!hasChildren && <div className="w-5" />}
 
-            <Icon className={`w-4 h-4 ${TypeInfo?.color || "text-gray-600"}`} />
+            <Icon className={`w-4 h-4 ${TypeInfo?.color || "text-slate-600"}`} />
             <span className="font-mono text-sm">{node.name}</span>
-            <span className="text-xs text-gray-500">({node.templateType})</span>
+            <span className="text-xs text-slate-500">({node.templateType})</span>
           </div>
 
           <div className="flex gap-1">
@@ -228,7 +228,7 @@ export default function Templates() {
                   setAddParentId(node.id);
                   setShowAddModal(true);
                 }}
-                className="p-1 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded"
+                className="p-1 text-slate-400 hover:text-green-600 hover:bg-green-50 rounded"
                 title="Add child"
               >
                 <Plus className="w-4 h-4" />
@@ -239,7 +239,7 @@ export default function Templates() {
                 e.stopPropagation();
                 setViewingNode(node.id);
               }}
-              className="p-1 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded"
+              className="p-1 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded"
               title="View config"
             >
               <Eye className="w-4 h-4" />
@@ -249,7 +249,7 @@ export default function Templates() {
                 e.stopPropagation();
                 startEditNode(node);
               }}
-              className="p-1 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded"
+              className="p-1 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded"
               title="Edit config"
             >
               <Edit className="w-4 h-4" />
@@ -259,7 +259,7 @@ export default function Templates() {
                 e.stopPropagation();
                 cloneTemplate(node.id);
               }}
-              className="p-1 text-gray-400 hover:text-purple-600 hover:bg-purple-50 rounded"
+              className="p-1 text-slate-400 hover:text-purple-600 hover:bg-purple-50 rounded"
               title="Clone"
             >
               <Copy className="w-4 h-4" />
@@ -269,7 +269,7 @@ export default function Templates() {
                 e.stopPropagation();
                 deleteTemplate(node.id);
               }}
-              className="p-1 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded"
+              className="p-1 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded"
               title="Delete"
             >
               <Trash className="w-4 h-4" />
@@ -364,13 +364,13 @@ export default function Templates() {
                   return filteredData.length > 0 ? (
                     <div>{filteredData.map((node) => renderNode(node))}</div>
                   ) : (
-                    <div className="text-center text-gray-500 py-8 border border-red-500">
+                    <div className="text-center text-slate-500 py-8 border border-red-500">
                       No templates found matching "{searchQuery}"
                     </div>
                   );
                 })()
               ) : (
-                <div className="text-center text-gray-500 py-8">
+                <div className="text-center text-slate-500 py-8">
                   No templates yet. Click "Add App Template" to create your
                   first template.
                 </div>
@@ -401,11 +401,11 @@ export default function Templates() {
                   <button
                     key={type}
                     onClick={() => addTemplate(type, addParentId)}
-                    className="w-full p-3 flex items-center gap-3 border rounded-lg hover:bg-gray-50"
+                    className="w-full p-3 flex items-center gap-3 border rounded-lg hover:bg-slate-50"
                   >
                     <Icon
                       className={`w-5 h-5 ${
-                        TypeInfo?.color || "text-gray-600"
+                        TypeInfo?.color || "text-slate-600"
                       }`}
                     />
                     <span className="font-medium">
@@ -422,7 +422,7 @@ export default function Templates() {
                   setShowAddModal(false);
                   setAddParentId(null);
                 }}
-                className="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
+                className="px-4 py-2 text-slate-700 bg-slate-100 rounded-md hover:bg-slate-200"
               >
                 Cancel
               </button>

@@ -20,15 +20,15 @@ export default function PageHeader({
 }: PageHeaderProps) {
   return (
     <div className="mb-8">
-      <div className="flex items-center gap-4 pb-3 border-b border-gray-200">
+      <div className="flex items-center gap-4 pb-3 border-b border-slate-200">
         <div className="relative flex-1">
-          <Search className="absolute left-0 top-2.5 h-5 w-5 text-gray-400" />
+          <Search className="absolute left-0 top-2.5 h-5 w-5 text-slate-400" />
           <input
             type="text"
             placeholder={searchPlaceholder}
             value={searchValue}
             onChange={(e) => onSearchChange(e.target.value)}
-            className="w-full pl-8 pr-3 py-2 text-lg border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400"
+            className="w-full pl-8 pr-3 py-2 text-lg border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-slate-400"
           />
         </div>
         

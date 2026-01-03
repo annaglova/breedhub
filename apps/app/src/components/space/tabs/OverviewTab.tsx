@@ -30,7 +30,7 @@ export function OverviewTab({
     <div>
       {/* Main image - only in preview modes */}
       {isPreview && entity.avatar_url && (
-        <div className="w-full h-64 bg-gray-100">
+        <div className="w-full h-64 bg-slate-100">
           <img
             src={entity.avatar_url}
             alt={entity.name}
@@ -42,10 +42,10 @@ export function OverviewTab({
       <div className="p-6 space-y-6">
         {/* Title and origin */}
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">
+          <h1 className="text-2xl font-bold text-slate-900">
             {entity.name || 'Unknown'}
           </h1>
-          <p className="text-gray-600 mt-1">
+          <p className="text-slate-600 mt-1">
             {entity.authentic_name || entity.admin_name || ''}
           </p>
         </div>
@@ -54,18 +54,18 @@ export function OverviewTab({
         <div className="grid grid-cols-2 gap-4">
           {entity.pet_profile_count !== undefined && (
             <div className="flex items-center gap-2">
-              <Dog className="h-5 w-5 text-gray-400" />
+              <Dog className="h-5 w-5 text-slate-400" />
               <div>
-                <p className="text-sm text-gray-600">Pets</p>
+                <p className="text-sm text-slate-600">Pets</p>
                 <p className="font-semibold">{entity.pet_profile_count}</p>
               </div>
             </div>
           )}
           {entity.kennel_count !== undefined && (
             <div className="flex items-center gap-2">
-              <Building className="h-5 w-5 text-gray-400" />
+              <Building className="h-5 w-5 text-slate-400" />
               <div>
-                <p className="text-sm text-gray-600">Kennels</p>
+                <p className="text-sm text-slate-600">Kennels</p>
                 <p className="font-semibold">{entity.kennel_count}</p>
               </div>
             </div>
@@ -74,29 +74,29 @@ export function OverviewTab({
 
         {/* Characteristics */}
         <div>
-          <h3 className="font-semibold text-gray-900 mb-3">Characteristics</h3>
+          <h3 className="font-semibold text-slate-900 mb-3">Characteristics</h3>
           <div className="space-y-2">
             {entity.pet_type_id && (
               <div className="flex justify-between">
-                <span className="text-gray-600">Type</span>
+                <span className="text-slate-600">Type</span>
                 <span className="font-medium capitalize">{entity.pet_type_id}</span>
               </div>
             )}
             {entity.rating !== undefined && (
               <div className="flex justify-between">
-                <span className="text-gray-600">Rating</span>
+                <span className="text-slate-600">Rating</span>
                 <span className="font-medium">{entity.rating}%</span>
               </div>
             )}
             {entity.achievement_progress !== undefined && (
               <div className="flex justify-between">
-                <span className="text-gray-600">Achievement Progress</span>
+                <span className="text-slate-600">Achievement Progress</span>
                 <span className="font-medium">{entity.achievement_progress}%</span>
               </div>
             )}
             {entity.patron_count !== undefined && (
               <div className="flex justify-between">
-                <span className="text-gray-600">Patrons</span>
+                <span className="text-slate-600">Patrons</span>
                 <span className="font-medium">{entity.patron_count}</span>
               </div>
             )}
@@ -109,7 +109,7 @@ export function OverviewTab({
           entity.differ_by_size ||
           entity.differ_by_body_feature) && (
           <div>
-            <h3 className="font-semibold text-gray-900 mb-3">Features</h3>
+            <h3 className="font-semibold text-slate-900 mb-3">Features</h3>
             <div className="flex flex-wrap gap-2">
               {entity.differ_by_coat_color && (
                 <Badge variant="secondary">Different coat colors</Badge>
@@ -150,7 +150,7 @@ export function OverviewTab({
         {isPreview && entity.name && (
           <div className="border-t pt-6">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="font-semibold text-gray-900">
+              <h3 className="font-semibold text-slate-900">
                 Top {entity.name} Pets
               </h3>
               <button
@@ -162,18 +162,18 @@ export function OverviewTab({
             </div>
             <div className="space-y-3">
               {/* Mock pet items - TODO: Load from child tables */}
-              <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                <div className="w-12 h-12 bg-gray-200 rounded-full" />
+              <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg">
+                <div className="w-12 h-12 bg-slate-200 rounded-full" />
                 <div className="flex-1 min-w-0">
                   <p className="font-medium text-sm truncate">CH Majestic Thunder</p>
-                  <p className="text-xs text-gray-600">Storm Crest Cattery</p>
+                  <p className="text-xs text-slate-600">Storm Crest Cattery</p>
                 </div>
               </div>
-              <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                <div className="w-12 h-12 bg-gray-200 rounded-full" />
+              <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg">
+                <div className="w-12 h-12 bg-slate-200 rounded-full" />
                 <div className="flex-1 min-w-0">
                   <p className="font-medium text-sm truncate">GC Silver Moon Rising</p>
-                  <p className="text-xs text-gray-600">Moonlight Maine Coons</p>
+                  <p className="text-xs text-slate-600">Moonlight Maine Coons</p>
                 </div>
               </div>
             </div>

@@ -4,11 +4,11 @@ import * as React from "react";
 import { cn } from "@ui/lib/utils";
 
 const inputVariants = cva(
-  "flex w-full rounded-md border bg-white text-gray-900 transition-all file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-gray-900 placeholder:text-gray-500 disabled:cursor-not-allowed disabled:opacity-50 outline-none focus:outline-none",
+  "flex w-full rounded-md border bg-white text-slate-900 transition-all file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-slate-900 placeholder:text-slate-500 disabled:cursor-not-allowed disabled:opacity-50 outline-none focus:outline-none",
   {
     variants: {
       variant: {
-        default: "border-gray-300",
+        default: "border-slate-300",
         destructive: "border-warning-500",
         ghost: "border-transparent bg-transparent",
       },
@@ -40,7 +40,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
       return (
         <div className="relative">
           {startIcon && (
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
               {startIcon}
             </div>
           )}
@@ -55,7 +55,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             {...props}
           />
           {endIcon && (
-            <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-gray-400">
+            <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
               {endIcon}
             </div>
           )}

@@ -326,7 +326,7 @@ const Properties: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 auto-rows-fr">
               {paginatedProperties.length === 0 &&
               filteredProperties.length === 0 ? (
-                <div className="col-span-full bg-white rounded-lg shadow-sm border p-8 text-center text-gray-500">
+                <div className="col-span-full bg-white rounded-lg shadow-sm border p-8 text-center text-slate-500">
                   No properties found
                 </div>
               ) : (
@@ -350,7 +350,7 @@ const Properties: React.FC = () => {
                             </h3>
                             <PropertyCategoryIcon category={property.category} />
                           </div>
-                          <p className="text-sm text-gray-500 mt-1">
+                          <p className="text-sm text-slate-500 mt-1">
                             Type: {property.type}
                           </p>
                           {property.tags && property.tags.length > 0 && (
@@ -358,7 +358,7 @@ const Properties: React.FC = () => {
                               {property.tags.map((tag) => (
                                 <span
                                   key={tag}
-                                  className="px-2 py-0.5 text-sm bg-gray-100 text-gray-600 rounded"
+                                  className="px-2 py-0.5 text-sm bg-slate-100 text-slate-600 rounded"
                                 >
                                   {tag}
                                 </span>
@@ -369,14 +369,14 @@ const Properties: React.FC = () => {
                         <div className="flex gap-1 ml-2">
                           <button
                             onClick={() => copyProperty(property)}
-                            className="p-1.5 text-gray-500 hover:text-blue-600 transition-colors"
+                            className="p-1.5 text-slate-500 hover:text-blue-600 transition-colors"
                             title="Copy property"
                           >
                             <Copy className="w-4 h-4" />
                           </button>
                           <button
                             onClick={() => openViewModal(property)}
-                            className="p-1.5 text-gray-500 hover:text-blue-600 transition-colors"
+                            className="p-1.5 text-slate-500 hover:text-blue-600 transition-colors"
                             title="View details"
                           >
                             <Eye className="w-4 h-4" />
@@ -411,7 +411,7 @@ const Properties: React.FC = () => {
                             </button>
                             <button
                               onClick={cancelEdit}
-                              className="flex-1 px-2 py-1 border rounded text-xs hover:bg-gray-50 transition-colors"
+                              className="flex-1 px-2 py-1 border rounded text-xs hover:bg-slate-50 transition-colors"
                             >
                               Cancel
                             </button>
@@ -420,7 +420,7 @@ const Properties: React.FC = () => {
                       ) : (
                         <div>
                           {expandedId === property.id ? (
-                            <pre className="text-xs font-mono bg-gray-50 p-2 rounded overflow-x-auto max-h-40">
+                            <pre className="text-xs font-mono bg-slate-50 p-2 rounded overflow-x-auto max-h-40">
                               {JSON.stringify(property.data || {}, null, 2)}
                             </pre>
                           ) : (
@@ -429,10 +429,10 @@ const Properties: React.FC = () => {
                                 .slice(0, 3)
                                 .map(([key, value]) => (
                                   <div key={key} className="text-sm">
-                                    <span className="font-medium text-gray-600">
+                                    <span className="font-medium text-slate-600">
                                       {key}:
                                     </span>{" "}
-                                    <span className="text-gray-800">
+                                    <span className="text-slate-800">
                                       {typeof value === "object"
                                         ? JSON.stringify(value)
                                         : String(value)}
@@ -441,7 +441,7 @@ const Properties: React.FC = () => {
                                 ))}
                               {Object.keys(property.data || {}).length >
                                 3 && (
-                                <div className="text-sm text-gray-400">
+                                <div className="text-sm text-slate-400">
                                   +{Object.keys(property.data || {}).length - 3}{" "}
                                   more...
                                 </div>
@@ -454,11 +454,11 @@ const Properties: React.FC = () => {
 
                     {/* Card Footer */}
                     <div className="px-4 py-2 border-t bg-white rounded-b-lg flex justify-between items-center mt-auto">
-                      <div className="text-sm text-gray-500">
+                      <div className="text-sm text-slate-500">
                         v{property.version || 1}
                       </div>
                       {property.category === 'system' ? (
-                        <div className="text-xs text-gray-400 italic">
+                        <div className="text-xs text-slate-400 italic">
                           Cannot delete system property
                         </div>
                       ) : (
@@ -491,7 +491,7 @@ const Properties: React.FC = () => {
                 <button
                   onClick={() => goToPage(currentPage - 1)}
                   disabled={currentPage === 1}
-                  className="p-2 border rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className="p-2 border rounded-md hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   <ChevronLeft className="w-4 h-4" />
                 </button>
@@ -514,7 +514,7 @@ const Properties: React.FC = () => {
                       ${
                         page === currentPage
                           ? "bg-blue-600 text-white border-blue-600"
-                          : "hover:bg-gray-50"
+                          : "hover:bg-slate-50"
                       }
                     `}
                           >
@@ -548,7 +548,7 @@ const Properties: React.FC = () => {
                 <button
                   onClick={() => goToPage(currentPage + 1)}
                   disabled={currentPage === totalPages}
-                  className="p-2 border rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className="p-2 border rounded-md hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   <ChevronRight className="w-4 h-4" />
                 </button>
@@ -556,7 +556,7 @@ const Properties: React.FC = () => {
             )}
 
             {/* Stats */}
-            <div className="mt-4 text-center text-sm text-gray-500">
+            <div className="mt-4 text-center text-sm text-slate-500">
               Showing {startIndex + 1}-
               {Math.min(endIndex, filteredProperties.length)} of{" "}
               {filteredProperties.length} properties

@@ -27,11 +27,11 @@ export default function NotFound() {
             </div>
 
             {/* Error Message */}
-            <h1 className="text-6xl md:text-8xl font-bold text-gray-900 mb-4">404</h1>
-            <h2 className="text-2xl md:text-3xl font-semibold text-gray-700 mb-4">
+            <h1 className="text-6xl md:text-8xl font-bold text-slate-900 mb-4">404</h1>
+            <h2 className="text-2xl md:text-3xl font-semibold text-slate-700 mb-4">
               Page Not Found
             </h2>
-            <p className="text-lg text-gray-600 mb-8 max-w-md mx-auto">
+            <p className="text-lg text-slate-600 mb-8 max-w-md mx-auto">
               Oops! The page you're looking for doesn't exist. It might have been moved or deleted.
             </p>
 
@@ -45,7 +45,7 @@ export default function NotFound() {
               </Link>
               <button
                 onClick={() => window.history.back()}
-                className="w-full sm:w-auto bg-gray-200 text-gray-700 px-6 py-3 rounded-lg font-medium hover:bg-gray-300 transition"
+                className="w-full sm:w-auto bg-slate-200 text-slate-700 px-6 py-3 rounded-lg font-medium hover:bg-slate-300 transition"
               >
                 <ArrowLeft className="inline-block w-4 h-4 mr-2" />
                 Go Back
@@ -53,21 +53,21 @@ export default function NotFound() {
             </div>
 
             {/* Helpful Links */}
-            <div className="mt-12 pt-8 border-t border-gray-200">
-              <p className="text-gray-600 mb-4">Here are some helpful links:</p>
+            <div className="mt-12 pt-8 border-t border-slate-200">
+              <p className="text-slate-600 mb-4">Here are some helpful links:</p>
               <div className="flex flex-wrap gap-4 justify-center text-sm">
                 <Link to="/product" className="text-primary-500 hover:text-primary-600 transition">
                   Product Features
                 </Link>
-                <span className="text-gray-300">•</span>
+                <span className="text-slate-300">•</span>
                 <Link to="/pricing" className="text-primary-500 hover:text-primary-600 transition">
                   Pricing Plans
                 </Link>
-                <span className="text-gray-300">•</span>
+                <span className="text-slate-300">•</span>
                 <Link to="/about" className="text-primary-500 hover:text-primary-600 transition">
                   About Us
                 </Link>
-                <span className="text-gray-300">•</span>
+                <span className="text-slate-300">•</span>
                 <a href="mailto:support@breedhub" className="text-primary-500 hover:text-primary-600 transition">
                   Contact Support
                 </a>

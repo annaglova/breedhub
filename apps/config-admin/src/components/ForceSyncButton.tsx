@@ -32,7 +32,7 @@ export function ForceSyncButton() {
       <button
         onClick={handleForceSync}
         disabled={isLoading}
-        className="flex items-center gap-2 px-3 py-2 bg-white text-gray-600 border border-gray-200 rounded-md hover:bg-gray-50 hover:border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        className="flex items-center gap-2 px-3 py-2 bg-white text-slate-600 border border-slate-200 rounded-md hover:bg-slate-50 hover:border-slate-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         title="Push all local configs to Supabase (useful for offline-created configs)"
       >
         {isLoading ? (
@@ -57,13 +57,13 @@ export function ForceSyncButton() {
               </h3>
             </div>
 
-            <div className="bg-gray-50 rounded-md p-4 mb-4">
-              <p className="text-sm text-gray-600">
+            <div className="bg-slate-50 rounded-md p-4 mb-4">
+              <p className="text-sm text-slate-600">
                 <strong>{result.synced}</strong> configs synced to Supabase
               </p>
 
               {result.errors.length > 0 && (
-                <div className="mt-3 pt-3 border-t border-gray-200">
+                <div className="mt-3 pt-3 border-t border-slate-200">
                   <p className="text-sm text-red-600 font-medium mb-2">Errors:</p>
                   <ul className="text-sm text-red-500 list-disc list-inside">
                     {result.errors.map((err, i) => (

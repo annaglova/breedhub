@@ -27,7 +27,7 @@ export function RegenerateButton() {
       <button
         onClick={handleRegenerate}
         disabled={isLoading}
-        className="flex items-center gap-2 px-3 py-2 bg-white text-gray-600 border border-gray-200 rounded-md hover:bg-gray-50 hover:border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        className="flex items-center gap-2 px-3 py-2 bg-white text-slate-600 border border-slate-200 rounded-md hover:bg-slate-50 hover:border-slate-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         title="Regenerate configurations from entity schemas"
       >
         {isLoading ? (
@@ -43,22 +43,22 @@ export function RegenerateButton() {
           <div className="bg-white rounded-lg shadow-xl p-6 max-w-lg w-full mx-4">
             <h3 className="text-lg font-semibold mb-4">Manual Regeneration Required</h3>
             
-            <div className="bg-gray-50 rounded-md p-4 mb-4">
-              <p className="text-sm text-gray-600 mb-3">
+            <div className="bg-slate-50 rounded-md p-4 mb-4">
+              <p className="text-sm text-slate-600 mb-3">
                 Run these commands in your terminal:
               </p>
-              <code className="block bg-gray-900 text-green-400 p-3 rounded text-sm overflow-x-auto">
-                <span className="text-gray-400"># Navigate to config-admin directory:</span><br/>
+              <code className="block bg-slate-900 text-green-400 p-3 rounded text-sm overflow-x-auto">
+                <span className="text-slate-400"># Navigate to config-admin directory:</span><br/>
                 cd apps/config-admin<br/><br/>
-                <span className="text-gray-400"># 0. Generate entity JSON structures from database (if DB schema changed):</span><br/>
+                <span className="text-slate-400"># 0. Generate entity JSON structures from database (if DB schema changed):</span><br/>
                 node scripts/generate-entity-configs.cjs<br/>
-                <span className="text-gray-400"># This takes a while - reads all tables and generates JSON files</span><br/><br/>
-                <span className="text-gray-400"># 1. Generate semantic tree:</span><br/>
+                <span className="text-slate-400"># This takes a while - reads all tables and generates JSON files</span><br/><br/>
+                <span className="text-slate-400"># 1. Generate semantic tree:</span><br/>
                 node scripts/analyze-fields.cjs<br/><br/>
-                <span className="text-gray-400"># 2. Generate SQL and run cascade:</span><br/>
+                <span className="text-slate-400"># 2. Generate SQL and run cascade:</span><br/>
                 node scripts/generate-sql-inserts.cjs<br/>
-                <span className="text-gray-400"># Answer 'y' when prompted to insert to database</span><br/><br/>
-                <span className="text-gray-400"># 3. (Optional) Rebuild full hierarchy:</span><br/>
+                <span className="text-slate-400"># Answer 'y' when prompted to insert to database</span><br/><br/>
+                <span className="text-slate-400"># 3. (Optional) Rebuild full hierarchy:</span><br/>
                 node scripts/rebuild-hierarchy.cjs full
               </code>
             </div>
@@ -72,7 +72,7 @@ export function RegenerateButton() {
             <div className="flex gap-3 justify-end">
               <button
                 onClick={() => setShowInstructions(false)}
-                className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-md transition-colors"
+                className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-md transition-colors"
               >
                 Cancel
               </button>

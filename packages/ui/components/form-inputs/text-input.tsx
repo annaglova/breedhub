@@ -34,9 +34,9 @@ export const TextInput = forwardRef<HTMLInputElement, TextInputProps>(
           type="text"
           className={cn(
             "peer transition-all duration-200",
-            props.disabled && "bg-gray-50 border-gray-200 text-gray-500 cursor-not-allowed",
+            props.disabled && "bg-slate-50 border-slate-200 text-slate-500 cursor-not-allowed",
             hasError && "border-red-500 hover:border-red-600 focus:border-red-500 focus:ring-2 focus:ring-red-500/20",
-            !hasError && !props.disabled && "border-gray-300 hover:border-gray-400 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20",
+            !hasError && !props.disabled && "border-slate-300 hover:border-slate-400 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20",
             icon && "pl-10",
             className
           )}
@@ -47,7 +47,7 @@ export const TextInput = forwardRef<HTMLInputElement, TextInputProps>(
         {icon && (
           <div className={cn(
             "absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none transition-colors z-10 top-0",
-            hasError ? "text-red-400 peer-focus:text-red-500" : "text-gray-400 peer-focus:text-primary-600 peer-hover:text-gray-500"
+            hasError ? "text-red-400 peer-focus:text-red-500" : "text-slate-400 peer-focus:text-primary-600 peer-hover:text-slate-500"
           )}>
             {icon}
           </div>
@@ -65,7 +65,7 @@ export const TextInput = forwardRef<HTMLInputElement, TextInputProps>(
           className={fieldClassName}
           labelClassName={cn(
             "transition-colors",
-            hasError ? "text-red-600" : "text-gray-700 group-focus-within:text-primary-600"
+            hasError ? "text-red-600" : "text-slate-700 group-focus-within:text-primary-600"
           )}
         >
           {inputElement}

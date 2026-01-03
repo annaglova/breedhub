@@ -169,7 +169,7 @@ export default function SignUp() {
           <AuthHeader
             rightContent={
               <div className="flex items-center gap-4">
-                <span className="hidden text-gray-700 sm:block">
+                <span className="hidden text-slate-700 sm:block">
                   Already have an account?
                 </span>
                 <AuthButton to="/sign-in">Sign in</AuthButton>
@@ -180,7 +180,7 @@ export default function SignUp() {
           {/* Content */}
           <div className="relative z-10 flex flex-1 items-start sm:items-center justify-center px-0 sm:px-6 pb-4 sm:pb-8 pt-2 sm:pt-4">
             <div className="w-full sm:max-w-md animate-scaleIn">
-              <div className="bg-transparent sm:bg-white rounded-none sm:rounded-xl sm:shadow-xl p-4 sm:p-6 lg:p-8 sm:border sm:border-gray-100">
+              <div className="bg-transparent sm:bg-white rounded-none sm:rounded-xl sm:shadow-xl p-4 sm:p-6 lg:p-8 sm:border sm:border-slate-100">
                 {/* Icon */}
                 <div className="mx-auto flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-purple-100 shadow-sm mb-3 sm:mb-4">
                   <UserPlus className="w-5 h-5 sm:w-6 sm:h-6 text-purple-600" />
@@ -188,10 +188,10 @@ export default function SignUp() {
 
                 {/* Compact Header */}
                 <div className="text-center mb-4 sm:mb-6">
-                  <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-gray-900">
+                  <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">
                     Let's get started!
                   </h1>
-                  <p className="mt-1 text-sm text-gray-700">
+                  <p className="mt-1 text-sm text-slate-700">
                     Create your account to begin
                   </p>
                 </div>
@@ -231,7 +231,7 @@ export default function SignUp() {
                         signUpMode
                       />
 
-                      <p className="text-center text-sm text-gray-500 mt-6">
+                      <p className="text-center text-sm text-slate-500 mt-6">
                         Fast, secure account creation
                       </p>
                     </div>
@@ -302,7 +302,7 @@ export default function SignUp() {
                               />
                               <label
                                 htmlFor="agreements"
-                                className="ml-2 text-base text-gray-700"
+                                className="ml-2 text-base text-slate-700"
                               >
                                 I agree to the{" "}
                                 <Link
@@ -353,7 +353,7 @@ export default function SignUp() {
                 </div>
 
                 {/* Sign in link */}
-                <p className="mt-6 text-center text-sm sm:text-base text-gray-700">
+                <p className="mt-6 text-center text-sm sm:text-base text-slate-700">
                   Already have an account?{" "}
                   <Link
                     to="/sign-in"

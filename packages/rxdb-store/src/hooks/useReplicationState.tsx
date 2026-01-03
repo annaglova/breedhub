@@ -93,7 +93,7 @@ export function SyncStatusIndicator({
   const getStatusColor = () => {
     if (status.error) return 'text-red-500';
     if (status.active) return 'text-green-500';
-    return 'text-gray-500';
+    return 'text-slate-500';
   };
 
   const getStatusText = () => {
@@ -115,7 +115,7 @@ export function SyncStatusIndicator({
         {getStatusText()}
       </span>
       {(status.completedPush > 0 || status.completedPull > 0) && (
-        <span className="text-xs text-gray-400">
+        <span className="text-xs text-slate-400">
           (↑{status.completedPush} ↓{status.completedPull})
         </span>
       )}

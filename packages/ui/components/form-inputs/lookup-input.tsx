@@ -540,7 +540,7 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
               "absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none transition-colors z-10",
               hasError
                 ? "text-red-400 peer-focus:text-red-500"
-                : "text-gray-400 peer-focus:text-primary-600 peer-hover:text-gray-500"
+                : "text-slate-400 peer-focus:text-primary-600 peer-hover:text-slate-500"
             )}
           >
             <Search className="h-4 w-4" />
@@ -560,15 +560,15 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
               "peer pl-10 pr-10 transition-all duration-200",
               disabled &&
                 !disabledOnGray &&
-                "bg-gray-50 border-gray-200 text-gray-400 cursor-not-allowed",
+                "bg-slate-50 border-slate-200 text-slate-400 cursor-not-allowed",
               disabled &&
                 disabledOnGray &&
-                "bg-white/95 border-gray-300 text-gray-400 cursor-not-allowed",
+                "bg-white/95 border-slate-300 text-slate-400 cursor-not-allowed",
               hasError &&
                 "border-red-500 hover:border-red-600 focus:border-red-500 focus:ring-2 focus:ring-red-500/20",
               !hasError &&
                 !disabled &&
-                "border-gray-300 hover:border-gray-400 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20",
+                "border-slate-300 hover:border-slate-400 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20",
               className
             )}
             style={{ caretColor: isEditing ? "auto" : "transparent" }}
@@ -580,7 +580,7 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
               <Loader2
                 className={cn(
                   "h-4 w-4 animate-spin",
-                  hasError ? "text-red-400" : "text-gray-400"
+                  hasError ? "text-red-400" : "text-slate-400"
                 )}
               />
             </div>
@@ -593,7 +593,7 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
                 "absolute inset-y-0 right-0 pr-3 flex items-center transition-colors",
                 hasError
                   ? "text-red-400 hover:text-red-600"
-                  : "text-gray-400 hover:text-gray-600"
+                  : "text-slate-400 hover:text-slate-600"
               )}
             >
               <X className="h-4 w-4" />
@@ -604,10 +604,10 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
         {isOpen && filteredOptions.length > 0 && (
           <div
             ref={dropdownListRef}
-            className="absolute z-50 mt-1 w-full bg-white border border-gray-200 rounded-md shadow-lg max-h-[40vh] overflow-auto text-base"
+            className="absolute z-50 mt-1 w-full bg-white border border-slate-200 rounded-md shadow-lg max-h-[40vh] overflow-auto text-base"
           >
             {/* 🔍 DEBUG: Total count */}
-            <div className="px-3 py-1 text-xs text-gray-400 border-b border-gray-100 bg-gray-50 sticky top-0">
+            <div className="px-3 py-1 text-xs text-slate-400 border-b border-slate-100 bg-slate-50 sticky top-0">
               Showing {filteredOptions.length} breeds
             </div>
             {filteredOptions.map((option, index) => (
@@ -616,27 +616,27 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
                 onClick={() => handleSelect(option)}
                 className={cn(
                   "px-3 py-2 cursor-pointer transition-colors",
-                  "hover:bg-gray-100",
-                  highlightedIndex === index && "bg-gray-100",
+                  "hover:bg-slate-100",
+                  highlightedIndex === index && "bg-slate-100",
                   option.value === value && "bg-primary-50 text-primary-700"
                 )}
               >
                 <div className="font-medium">{option.label}</div>
                 {option.description && (
-                  <div className="text-sm text-gray-500">
+                  <div className="text-sm text-slate-500">
                     {option.description}
                   </div>
                 )}
               </div>
             ))}
             {loading && (
-              <div className="px-3 py-2 text-center text-sm text-gray-500">
+              <div className="px-3 py-2 text-center text-sm text-slate-500">
                 <Loader2 className="h-4 w-4 animate-spin inline-block mr-2" />
                 Loading more...
               </div>
             )}
             {!hasMore && filteredOptions.length > 0 && (
-              <div className="px-3 py-2 text-center text-sm text-gray-400">
+              <div className="px-3 py-2 text-center text-sm text-slate-400">
                 No more results
               </div>
             )}
@@ -644,8 +644,8 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
         )}
 
         {isOpen && filteredOptions.length === 0 && !loading && (
-          <div className="absolute z-50 mt-1 w-full bg-white border border-gray-200 rounded-md shadow-lg">
-            <div className="px-3 py-2 text-gray-500 text-center">
+          <div className="absolute z-50 mt-1 w-full bg-white border border-slate-200 rounded-md shadow-lg">
+            <div className="px-3 py-2 text-slate-500 text-center">
               No results found
             </div>
           </div>
@@ -665,7 +665,7 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
             "transition-colors",
             hasError
               ? "text-red-600"
-              : "text-gray-700 group-focus-within:text-primary-600"
+              : "text-slate-700 group-focus-within:text-primary-600"
           )}
         >
           {inputElement}

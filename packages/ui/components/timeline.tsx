@@ -167,7 +167,7 @@ const TimelineItem = React.forwardRef<HTMLDivElement, TimelineItemProps>(
       <div
         className={cn(
           "flex-1 min-w-0",
-          card && "bg-white border border-gray-200 rounded-lg p-4 shadow-sm",
+          card && "bg-white border border-slate-200 rounded-lg p-4 shadow-sm",
           itemLayout === "left" && "md:pr-8 md:text-right",
           itemLayout === "right" && "md:pl-8 md:text-left",
           layout === "alternating" && "md:w-[calc(50%-2rem)]"
@@ -259,7 +259,7 @@ const TimelineCard = React.forwardRef<HTMLDivElement, TimelineCardProps>(
     <div
       ref={ref}
       className={cn(
-        "bg-white border border-gray-200 rounded-lg p-4 shadow-sm",
+        "bg-white border border-slate-200 rounded-lg p-4 shadow-sm",
         animated && "hover:shadow-md transition-shadow",
         className
       )}

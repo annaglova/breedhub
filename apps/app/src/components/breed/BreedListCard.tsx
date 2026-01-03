@@ -60,7 +60,7 @@ export function BreedListCard({
           className={`size-10 rounded-full border border-surface-border flex-shrink-0 relative outline outline-2 outline-offset-2 ${
             breed.AchievementProgress > 0
               ? "outline-primary-300 dark:outline-primary-400"
-              : "outline-gray-300 dark:outline-gray-400"
+              : "outline-slate-300 dark:outline-slate-400"
           }`}
         >
           <div className="w-full h-full rounded-full overflow-hidden">
@@ -79,7 +79,7 @@ export function BreedListCard({
               />
             ) : null}
             <div
-              className="w-full h-full flex items-center justify-center text-gray-600 dark:text-gray-200 text-lg uppercase bg-gray-200 dark:bg-gray-700"
+              className="w-full h-full flex items-center justify-center text-slate-600 dark:text-slate-200 text-lg uppercase bg-slate-200 dark:bg-slate-700"
               style={{ display: breed.Avatar ? "none" : "flex" }}
             >
               {breed.Name?.charAt(0)}
@@ -96,14 +96,14 @@ export function BreedListCard({
             <NoteFlag isVisible={breed.HasNotes} className="flex-shrink-0 self-start" />
           </div>
 
-          <div className="flex items-center text-sm text-gray-600">
+          <div className="flex items-center text-sm text-slate-600">
             <div className="flex items-center gap-2">
               <span>Pet profiles - {breed.PetProfileCount || 0}</span>
-              <span className="text-gray-400 hidden sm:inline">•</span>
+              <span className="text-slate-400 hidden sm:inline">•</span>
               <span className="hidden sm:inline">
                 Kennels - {breed.KennelCount || 0}
               </span>
-              <span className="text-gray-400 hidden min-[400px]:inline">•</span>
+              <span className="text-slate-400 hidden min-[400px]:inline">•</span>
               <span className="hidden min-[400px]:inline">
                 Patrons - {breed.PatronCount || 0}
               </span>

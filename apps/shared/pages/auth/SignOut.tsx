@@ -43,7 +43,7 @@ export default function SignOut() {
         {/* Header */}
         <AuthHeader rightContent={
           <div className="flex items-center gap-4">
-            <span className="hidden text-gray-700 sm:block">Go to</span>
+            <span className="hidden text-slate-700 sm:block">Go to</span>
             <AuthButton to="/">
               Homepage
             </AuthButton>
@@ -70,13 +70,13 @@ export default function SignOut() {
                   />
                 </svg>
               </div>
-              <h2 className="mt-4 text-2xl font-bold text-gray-900">
+              <h2 className="mt-4 text-2xl font-bold text-slate-900">
                 You are signed out
               </h2>
-              <p className="mt-2 text-base text-gray-700">
+              <p className="mt-2 text-base text-slate-700">
                 Thank you for using Breedhub. Till next time!
               </p>
-              <p className="mt-6 text-base text-gray-500">
+              <p className="mt-6 text-base text-slate-500">
                 Redirecting to homepage in {countdown}...
               </p>
             </div>

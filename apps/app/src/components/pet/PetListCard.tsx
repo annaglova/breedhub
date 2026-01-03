@@ -75,7 +75,7 @@ export function PetListCard({
       case "female":
         return "outline-pink-300 dark:outline-pink-400";
       default:
-        return "outline-gray-300 dark:outline-gray-400";
+        return "outline-slate-300 dark:outline-slate-400";
     }
   };
 
@@ -150,14 +150,14 @@ export function PetListCard({
 
           {/* Info row */}
           <div className="flex items-center">
-            <div className="text-sm text-gray-600 dark:text-gray-400 flex space-x-1 truncate">
+            <div className="text-sm text-slate-600 dark:text-slate-400 flex space-x-1 truncate">
               {/* Pet Status */}
               {pet.PetStatus && <span>{pet.PetStatus}</span>}
 
               {/* Date of Birth */}
               {formattedDate && (
                 <>
-                  {pet.PetStatus && <span className="text-gray-400">•</span>}
+                  {pet.PetStatus && <span className="text-slate-400">•</span>}
                   <span>{formattedDate}</span>
                 </>
               )}
@@ -165,7 +165,7 @@ export function PetListCard({
               {/* COI - hidden on mobile */}
               {pet.COI !== undefined && pet.COI !== null && (
                 <span className="hidden sm:flex items-center space-x-1">
-                  <span className="text-gray-400">•</span>
+                  <span className="text-slate-400">•</span>
                   <span>COI - {pet.COI}%</span>
                 </span>
               )}

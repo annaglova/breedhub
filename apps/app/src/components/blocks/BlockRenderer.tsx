@@ -68,7 +68,7 @@ export const BlockRenderer: React.FC<BlockRendererProps> = ({
           <div className="text-red-600 text-sm mt-2">
             Make sure the component is registered in ComponentRegistry
           </div>
-          <div className="text-gray-600 text-xs mt-2 font-mono">
+          <div className="text-slate-600 text-xs mt-2 font-mono">
             Config: {JSON.stringify(blockConfig, null, 2)}
           </div>
         </div>
@@ -107,7 +107,7 @@ export const BlockRenderer: React.FC<BlockRendererProps> = ({
           <div className="text-orange-600 text-sm mt-2">
             Make sure the outlet is registered in ComponentRegistry
           </div>
-          <div className="text-gray-600 text-xs mt-2 font-mono">
+          <div className="text-slate-600 text-xs mt-2 font-mono">
             Config: {JSON.stringify(blockConfig, null, 2)}
           </div>
         </div>

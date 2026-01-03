@@ -110,14 +110,14 @@ export function NameOutlet({
       <div className={`relative bg-card-ground ${className}`}>
         <div className="flex flex-col space-y-4 pb-5 pt-1">
           {/* Additional info skeleton */}
-          <div className="h-4 w-32 bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
+          <div className="h-4 w-32 bg-slate-200 dark:bg-slate-700 rounded-full animate-pulse" />
 
           {/* Name skeleton */}
           <div className="space-y-2">
-            <div className="h-6 w-96 bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse my-0.5" />
+            <div className="h-6 w-96 bg-slate-200 dark:bg-slate-700 rounded-full animate-pulse my-0.5" />
             <div className="flex items-center space-x-2">
-              <div className="size-5 bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
-              <div className="h-3 w-32 bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
+              <div className="size-5 bg-slate-200 dark:bg-slate-700 rounded-full animate-pulse" />
+              <div className="h-3 w-32 bg-slate-200 dark:bg-slate-700 rounded-full animate-pulse" />
             </div>
           </div>
         </div>

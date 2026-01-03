@@ -69,7 +69,7 @@ export default function ConfigViewModal({
         <div className="px-6 py-4 border-b bg-white">
           <div className="grid grid-cols-3 gap-4">
             <div>
-              <label className="block text-xs font-medium text-gray-500 mb-1">
+              <label className="block text-xs font-medium text-slate-500 mb-1">
                 {config.type === 'property' ? 'Tags' : 'Caption'}
               </label>
               <div className="text-sm">
@@ -86,26 +86,26 @@ export default function ConfigViewModal({
                       ))}
                     </div>
                   ) : (
-                    <span className="text-gray-400 italic">No tags</span>
+                    <span className="text-slate-400 italic">No tags</span>
                   )
                 ) : (
-                  <div className="text-gray-900">
+                  <div className="text-slate-900">
                     {config.caption || (
-                      <span className="text-gray-400 italic">No caption</span>
+                      <span className="text-slate-400 italic">No caption</span>
                     )}
                   </div>
                 )}
               </div>
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-500 mb-1">
+              <label className="block text-xs font-medium text-slate-500 mb-1">
                 Version
               </label>
-              <div className="text-sm text-gray-900">{config.version || 1}</div>
+              <div className="text-sm text-slate-900">{config.version || 1}</div>
             </div>
             {config.type !== 'property' && (
               <div>
-                <label className="block text-xs font-medium text-gray-500 mb-1">
+                <label className="block text-xs font-medium text-slate-500 mb-1">
                   Dependencies
                 </label>
                 <div className="text-sm">
@@ -114,7 +114,7 @@ export default function ConfigViewModal({
                       {config.deps.length} deps
                     </span>
                   ) : (
-                    <span className="text-gray-400">No dependencies</span>
+                    <span className="text-slate-400">No dependencies</span>
                   )}
                 </div>
               </div>
@@ -123,12 +123,12 @@ export default function ConfigViewModal({
 
           {/* Show dependencies if any (not for properties) */}
           {config.type !== 'property' && config.deps && config.deps.length > 0 && (
-            <div className="mt-3 pt-3 border-t border-gray-200">
+            <div className="mt-3 pt-3 border-t border-slate-200">
               <div className="flex gap-1 overflow-x-auto pb-1">
                 {config.deps.map((dep, index) => (
                   <span
                     key={index}
-                    className="px-2 py-0.5 bg-gray-100 text-gray-700 rounded text-xs font-mono whitespace-nowrap flex-shrink-0"
+                    className="px-2 py-0.5 bg-slate-100 text-slate-700 rounded text-xs font-mono whitespace-nowrap flex-shrink-0"
                   >
                     {dep}
                   </span>
@@ -147,12 +147,12 @@ export default function ConfigViewModal({
                 className={`px-6 py-3 font-medium text-sm transition-colors relative ${
                   activeTab === "self"
                     ? "text-blue-600 border-b-2 border-blue-600 bg-white"
-                    : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+                    : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
                 }`}
               >
                 Self Data
                 {hasData(config.self_data) && (
-                  <span className="ml-2 px-1.5 py-0.5 bg-gray-100 text-gray-600 rounded text-xs">
+                  <span className="ml-2 px-1.5 py-0.5 bg-slate-100 text-slate-600 rounded text-xs">
                     {countFields(config.self_data)}
                   </span>
                 )}
@@ -162,7 +162,7 @@ export default function ConfigViewModal({
                 className={`px-6 py-3 font-medium text-sm transition-colors relative ${
                   activeTab === "override"
                     ? "text-blue-600 border-b-2 border-blue-600 bg-white"
-                    : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+                    : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
                 }`}
               >
                 Override Data
@@ -177,7 +177,7 @@ export default function ConfigViewModal({
                 className={`px-6 py-3 font-medium text-sm transition-colors relative ${
                   activeTab === "data"
                     ? "text-blue-600 border-b-2 border-blue-600 bg-white"
-                    : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+                    : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
                 }`}
               >
                 Data (Computed)
@@ -195,16 +195,16 @@ export default function ConfigViewModal({
                 <div className="h-full flex flex-col">
                   <div className="mb-1 flex items-center justify-between ">
                     <div className="flex items-center gap-2">
-                      <h4 className="text-sm font-medium text-gray-700">
+                      <h4 className="text-sm font-medium text-slate-700">
                         Self Data
                       </h4>
-                      <div className="flex bg-gray-100 rounded border">
+                      <div className="flex bg-slate-100 rounded border">
                         <button
                           onClick={() => setViewMode("raw")}
                           className={`px-2 py-1 text-xs rounded-l transition-colors border-r ${
                             viewMode === "raw" 
                               ? "bg-white text-blue-600" 
-                              : "text-gray-600 hover:text-gray-900"
+                              : "text-slate-600 hover:text-slate-900"
                           }`}
                           title="Raw JSON"
                         >
@@ -215,7 +215,7 @@ export default function ConfigViewModal({
                           className={`px-2 py-1 text-xs rounded-r transition-colors ${
                             viewMode === "tree" 
                               ? "bg-white text-blue-600" 
-                              : "text-gray-600 hover:text-gray-900"
+                              : "text-slate-600 hover:text-slate-900"
                           }`}
                           title="Tree view"
                         >
@@ -225,7 +225,7 @@ export default function ConfigViewModal({
                     </div>
                     <button
                       onClick={() => handleCopy(config.self_data, "self")}
-                      className="p-1 text-gray-500 hover:text-gray-700 transition-colors"
+                      className="p-1 text-slate-500 hover:text-slate-700 transition-colors"
                       title="Copy to clipboard"
                     >
                       {copiedTab === "self" ? (
@@ -235,7 +235,7 @@ export default function ConfigViewModal({
                       )}
                     </button>
                   </div>
-                  <div className="flex-1 min-h-0 border rounded-lg bg-gray-50 overflow-hidden">
+                  <div className="flex-1 min-h-0 border rounded-lg bg-slate-50 overflow-hidden">
                     {viewMode === "tree" ? (
                       <JsonTreeView data={config.self_data || {}} />
                     ) : (
@@ -252,16 +252,16 @@ export default function ConfigViewModal({
                 <div className="h-full flex flex-col">
                   <div className="mb-1 flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <h4 className="text-sm font-medium text-gray-700">
+                      <h4 className="text-sm font-medium text-slate-700">
                         Override Data
                       </h4>
-                      <div className="flex bg-gray-100 rounded border">
+                      <div className="flex bg-slate-100 rounded border">
                         <button
                           onClick={() => setViewMode("raw")}
                           className={`px-2 py-1 text-xs rounded-l transition-colors border-r ${
                             viewMode === "raw" 
                               ? "bg-white text-blue-600" 
-                              : "text-gray-600 hover:text-gray-900"
+                              : "text-slate-600 hover:text-slate-900"
                           }`}
                           title="Raw JSON"
                         >
@@ -272,7 +272,7 @@ export default function ConfigViewModal({
                           className={`px-2 py-1 text-xs rounded-r transition-colors ${
                             viewMode === "tree" 
                               ? "bg-white text-blue-600" 
-                              : "text-gray-600 hover:text-gray-900"
+                              : "text-slate-600 hover:text-slate-900"
                           }`}
                           title="Tree view"
                         >
@@ -284,7 +284,7 @@ export default function ConfigViewModal({
                       onClick={() =>
                         handleCopy(config.override_data, "override")
                       }
-                      className="p-1 text-gray-500 hover:text-gray-700 transition-colors"
+                      className="p-1 text-slate-500 hover:text-slate-700 transition-colors"
                       title="Copy to clipboard"
                     >
                       {copiedTab === "override" ? (
@@ -294,7 +294,7 @@ export default function ConfigViewModal({
                       )}
                     </button>
                   </div>
-                  <div className="flex-1 min-h-0 border rounded-lg bg-gray-50 overflow-hidden">
+                  <div className="flex-1 min-h-0 border rounded-lg bg-slate-50 overflow-hidden">
                     {viewMode === "tree" ? (
                       <JsonTreeView data={config.override_data || {}} />
                     ) : (
@@ -311,16 +311,16 @@ export default function ConfigViewModal({
                 <div className="h-full flex flex-col">
                   <div className="mb-1 flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <h4 className="text-sm font-medium text-gray-700">
+                      <h4 className="text-sm font-medium text-slate-700">
                         Data (Computed)
                       </h4>
-                      <div className="flex bg-gray-100 rounded border">
+                      <div className="flex bg-slate-100 rounded border">
                         <button
                           onClick={() => setViewMode("raw")}
                           className={`px-2 py-1 text-xs rounded-l transition-colors border-r ${
                             viewMode === "raw" 
                               ? "bg-white text-blue-600" 
-                              : "text-gray-600 hover:text-gray-900"
+                              : "text-slate-600 hover:text-slate-900"
                           }`}
                           title="Raw JSON"
                         >
@@ -331,7 +331,7 @@ export default function ConfigViewModal({
                           className={`px-2 py-1 text-xs rounded-r transition-colors ${
                             viewMode === "tree" 
                               ? "bg-white text-blue-600" 
-                              : "text-gray-600 hover:text-gray-900"
+                              : "text-slate-600 hover:text-slate-900"
                           }`}
                           title="Tree view"
                         >
@@ -341,7 +341,7 @@ export default function ConfigViewModal({
                     </div>
                     <button
                       onClick={() => handleCopy(config.data, "data")}
-                      className="p-1 text-gray-500 hover:text-gray-700 transition-colors"
+                      className="p-1 text-slate-500 hover:text-slate-700 transition-colors"
                       title="Copy to clipboard"
                     >
                       {copiedTab === "data" ? (
@@ -351,7 +351,7 @@ export default function ConfigViewModal({
                       )}
                     </button>
                   </div>
-                  <div className="flex-1 min-h-0 border rounded-lg bg-gray-50 overflow-hidden">
+                  <div className="flex-1 min-h-0 border rounded-lg bg-slate-50 overflow-hidden">
                     {viewMode === "tree" ? (
                       <JsonTreeView data={config.data || {}} />
                     ) : (
@@ -372,16 +372,16 @@ export default function ConfigViewModal({
             <div className="flex flex-col h-full">
               <div className="mb-2 flex items-center justify-between flex-shrink-0">
                 <div className="flex items-center gap-2">
-                  <h4 className="text-sm font-medium text-gray-700">
+                  <h4 className="text-sm font-medium text-slate-700">
                     Data (Computed)
                   </h4>
-                  <div className="flex bg-gray-100 rounded">
+                  <div className="flex bg-slate-100 rounded">
                     <button
                       onClick={() => setViewMode("tree")}
                       className={`px-2 py-1 text-xs rounded transition-colors ${
                         viewMode === "tree" 
                           ? "bg-white text-blue-600 shadow-sm" 
-                          : "text-gray-600 hover:text-gray-900"
+                          : "text-slate-600 hover:text-slate-900"
                       }`}
                       title="Tree view"
                     >
@@ -392,7 +392,7 @@ export default function ConfigViewModal({
                       className={`px-2 py-1 text-xs rounded transition-colors ${
                         viewMode === "raw" 
                           ? "bg-white text-blue-600 shadow-sm" 
-                          : "text-gray-600 hover:text-gray-900"
+                          : "text-slate-600 hover:text-slate-900"
                       }`}
                       title="Raw JSON"
                     >
@@ -402,7 +402,7 @@ export default function ConfigViewModal({
                 </div>
                 <button
                   onClick={() => handleCopy(config.data, "data-only")}
-                  className="p-1 text-gray-500 hover:text-gray-700 transition-colors"
+                  className="p-1 text-slate-500 hover:text-slate-700 transition-colors"
                   title="Copy to clipboard"
                 >
                   {copiedTab === "data-only" ? (
@@ -412,7 +412,7 @@ export default function ConfigViewModal({
                   )}
                 </button>
               </div>
-              <div className="flex-1 border rounded-lg bg-gray-50 overflow-hidden min-h-0">
+              <div className="flex-1 border rounded-lg bg-slate-50 overflow-hidden min-h-0">
                 {viewMode === "tree" ? (
                   <JsonTreeView data={config.data || {}} />
                 ) : (
@@ -431,7 +431,7 @@ export default function ConfigViewModal({
         <div className="px-6 py-4 border-t flex justify-end gap-2">
           <button
             onClick={onClose}
-            className="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
+            className="px-4 py-2 text-slate-700 bg-slate-100 rounded-md hover:bg-slate-200"
           >
             Close
           </button>

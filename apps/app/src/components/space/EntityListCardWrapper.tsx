@@ -73,15 +73,15 @@ export function ListCardSkeletonList({
         >
           {/* Avatar skeleton - only if hasAvatar is true */}
           {hasAvatar && (
-            <div className="size-11 rounded-full bg-gray-200 dark:bg-gray-700 shrink-0" />
+            <div className="size-11 rounded-full bg-slate-200 dark:bg-slate-700 shrink-0" />
           )}
 
           {/* Text content */}
           <div className="flex-1 min-w-0 space-y-2">
             {/* Title */}
-            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded-full w-3/4" />
+            <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded-full w-3/4" />
             {/* Subtitle */}
-            <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded-full w-1/2" />
+            <div className="h-3 bg-slate-200 dark:bg-slate-700 rounded-full w-1/2" />
           </div>
         </div>
       ))}

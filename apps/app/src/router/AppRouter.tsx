@@ -14,8 +14,8 @@ import { useSignals } from '@preact/signals-react/runtime';
 function PlaceholderPage({ title }: { title: string }) {
   return (
     <div className="p-8">
-      <h1 className="text-3xl font-bold text-gray-900 mb-4">{title}</h1>
-      <p className="text-gray-600">This section is under construction.</p>
+      <h1 className="text-3xl font-bold text-slate-900 mb-4">{title}</h1>
+      <p className="text-slate-600">This section is under construction.</p>
     </div>
   );
 }

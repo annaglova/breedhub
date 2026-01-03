@@ -89,7 +89,7 @@ export const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(
         {/* Search icon */}
         <div className={cn(
           "absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none transition-colors z-10",
-          hasError ? "text-red-400" : "text-gray-400 group-focus-within/field:text-primary-600"
+          hasError ? "text-red-400" : "text-slate-400 group-focus-within/field:text-primary-600"
         )}>
           <Search className="h-4 w-4" />
         </div>
@@ -105,9 +105,9 @@ export const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(
             "peer pl-10 w-full transition-all duration-200",
             showClearButton && internalValue && "pr-10",
             pill && "rounded-full",
-            disabled && "bg-gray-50 border-gray-200 text-gray-500 cursor-not-allowed",
+            disabled && "bg-slate-50 border-slate-200 text-slate-500 cursor-not-allowed",
             hasError && "border-red-500 hover:border-red-600 focus:border-red-500 focus:ring-2 focus:ring-red-500/20",
-            !hasError && !disabled && "border-gray-300 hover:border-gray-400 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20"
+            !hasError && !disabled && "border-slate-300 hover:border-slate-400 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20"
           )}
           aria-invalid={hasError ? "true" : undefined}
           aria-describedby={hasError ? `${props.id}-error` : undefined}
@@ -121,7 +121,7 @@ export const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(
             onClick={handleClear}
             className={cn(
               "absolute inset-y-0 right-0 pr-3 flex items-center transition-colors",
-              hasError ? "text-red-400 hover:text-red-600" : "text-gray-400 hover:text-gray-600"
+              hasError ? "text-red-400 hover:text-red-600" : "text-slate-400 hover:text-slate-600"
             )}
             aria-label="Clear search"
           >
@@ -141,7 +141,7 @@ export const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(
           className={fieldClassName}
           labelClassName={cn(
             "transition-colors",
-            hasError ? "text-red-600" : "text-gray-700 group-focus-within:text-primary-600"
+            hasError ? "text-red-600" : "text-slate-700 group-focus-within:text-primary-600"
           )}
         >
           {inputElement}

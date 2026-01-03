@@ -44,7 +44,7 @@ export default function Feature({
             Coming soon
           </div>
         )}
-        <div className="text-gray-600">{featureDescription}</div>
+        <div className="text-slate-600">{featureDescription}</div>
       </div>
     </div>
   );

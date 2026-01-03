@@ -18,7 +18,7 @@ export default function Terms() {
             {/* Page header */}
             <div className="relative space-y-3 text-center">
               <h1 className="text-white tracking-tight leading-tight">Terms and Conditions</h1>
-              <p className="text-2xl text-gray-600 xl:text-white max-w-3xl mx-auto mt-2 tracking-wide leading-relaxed">
+              <p className="text-2xl text-slate-600 xl:text-white max-w-3xl mx-auto mt-2 tracking-wide leading-relaxed">
                 Please read these terms carefully before using BreedHub. 
                 By using our platform, you agree to be bound by these terms
               </p>
@@ -29,7 +29,7 @@ export default function Terms() {
                   <h2 className="text-2xl font-semibold mb-4 tracking-wide">
                     1. Acceptance of Terms
                   </h2>
-                  <p className="text-gray-700 mb-4 leading-relaxed">
+                  <p className="text-slate-700 mb-4 leading-relaxed">
                     By accessing and using BreedHub, you accept and agree to be
                     bound by the terms and provision of this agreement. If you
                     do not agree to abide by the above, please do not use this
@@ -41,14 +41,14 @@ export default function Terms() {
                   <h2 className="text-2xl font-semibold mb-4 tracking-wide">
                     2. Use License
                   </h2>
-                  <p className="text-gray-700 mb-4 leading-relaxed">
+                  <p className="text-slate-700 mb-4 leading-relaxed">
                     Permission is granted to temporarily access the materials
                     (information or software) on BreedHub for personal,
                     non-commercial transitory viewing only. This is the grant of
                     a license, not a transfer of title, and under this license
                     you may not:
                   </p>
-                  <ul className="list-disc pl-6 text-gray-700 mb-4">
+                  <ul className="list-disc pl-6 text-slate-700 mb-4">
                     <li>modify or copy the materials;</li>
                     <li>
                       use the materials for any commercial purpose, or for any
@@ -69,11 +69,11 @@ export default function Terms() {
                   <h2 className="text-2xl font-semibold mb-4 tracking-wide">
                     3. Account Registration
                   </h2>
-                  <p className="text-gray-700 mb-4 leading-relaxed">
+                  <p className="text-slate-700 mb-4 leading-relaxed">
                     To use certain features of BreedHub, you must register for
                     an account. You agree to:
                   </p>
-                  <ul className="list-disc pl-6 text-gray-700 mb-4">
+                  <ul className="list-disc pl-6 text-slate-700 mb-4">
                     <li>
                       provide accurate, current, and complete information during
                       registration;
@@ -97,7 +97,7 @@ export default function Terms() {
                   <h2 className="text-2xl font-semibold mb-4 tracking-wide">
                     4. Breeding Data and Privacy
                   </h2>
-                  <p className="text-gray-700 mb-4 leading-relaxed">
+                  <p className="text-slate-700 mb-4 leading-relaxed">
                     You retain all rights to the breeding data you submit to
                     BreedHub. By submitting data, you grant us a license to use,
                     store, and display your content solely for the purpose of
@@ -109,7 +109,7 @@ export default function Terms() {
                   <h2 className="text-2xl font-semibold mb-4 tracking-wide">
                     5. Subscription and Payments
                   </h2>
-                  <p className="text-gray-700 mb-4 leading-relaxed">
+                  <p className="text-slate-700 mb-4 leading-relaxed">
                     Some aspects of the Service are provided for a fee. You will
                     be charged in advance on a recurring basis (monthly, yearly,
                     or 3-yearly). You can cancel your subscription at any time
@@ -119,7 +119,7 @@ export default function Terms() {
 
                 <section className="mb-8">
                   <h2 className="text-2xl font-semibold mb-4 tracking-wide">6. Disclaimer</h2>
-                  <p className="text-gray-700 mb-4 leading-relaxed">
+                  <p className="text-slate-700 mb-4 leading-relaxed">
                     The materials on BreedHub are provided on an 'as is' basis.
                     BreedHub makes no warranties, expressed or implied, and
                     hereby disclaims and negates all other warranties including,
@@ -134,7 +134,7 @@ export default function Terms() {
                   <h2 className="text-2xl font-semibold mb-4 tracking-wide">
                     7. Limitations
                   </h2>
-                  <p className="text-gray-700 mb-4 leading-relaxed">
+                  <p className="text-slate-700 mb-4 leading-relaxed">
                     In no event shall BreedHub or its suppliers be liable for
                     any damages (including, without limitation, damages for loss
                     of data or profit, or due to business interruption) arising
@@ -149,7 +149,7 @@ export default function Terms() {
                   <h2 className="text-2xl font-semibold mb-4 tracking-wide">
                     8. Revisions and Errata
                   </h2>
-                  <p className="text-gray-700 mb-4 leading-relaxed">
+                  <p className="text-slate-700 mb-4 leading-relaxed">
                     The materials appearing on BreedHub could include technical,
                     typographical, or photographic errors. BreedHub does not
                     warrant that any of the materials on its website are
@@ -163,7 +163,7 @@ export default function Terms() {
                   <h2 className="text-2xl font-semibold mb-4 tracking-wide">
                     9. Governing Law
                   </h2>
-                  <p className="text-gray-700 mb-4 leading-relaxed">
+                  <p className="text-slate-700 mb-4 leading-relaxed">
                     These terms and conditions are governed by and construed in
                     accordance with the laws of Ukraine and you irrevocably
                     submit to the exclusive jurisdiction of the courts in that
@@ -175,11 +175,11 @@ export default function Terms() {
                   <h2 className="text-2xl font-semibold mb-4 tracking-wide">
                     10. Contact Information
                   </h2>
-                  <p className="text-gray-700">
+                  <p className="text-slate-700">
                     If you have any questions about these Terms and Conditions,
                     please contact us at:
                   </p>
-                  <p className="text-gray-700 mt-2">
+                  <p className="text-slate-700 mt-2">
                     Email:{" "}
                     <a
                       href="mailto:info@breedhub"
@@ -190,7 +190,7 @@ export default function Terms() {
                   </p>
                 </section>
               </div>
-              <p className="text-gray-500 text-sm text-center mt-8">
+              <p className="text-slate-500 text-sm text-center mt-8">
                 Last updated: {new Date().toLocaleDateString()}
               </p>
             </div>

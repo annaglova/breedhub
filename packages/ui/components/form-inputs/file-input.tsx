@@ -153,19 +153,19 @@ export const FileInput = forwardRef<HTMLInputElement, FileInputProps>(
           onDrop={handleDrop}
           onClick={handleClick}
           className={cn(
-            "relative flex cursor-pointer flex-col items-center justify-center rounded-md border-2 border-dashed border-gray-300 p-6 text-center transition-colors",
-            "hover:border-primary-500 hover:bg-gray-50",
+            "relative flex cursor-pointer flex-col items-center justify-center rounded-md border-2 border-dashed border-slate-300 p-6 text-center transition-colors",
+            "hover:border-primary-500 hover:bg-slate-50",
             dragActive && "border-primary-500 bg-primary-50",
             disabled && "cursor-not-allowed opacity-50",
             (error || validationError) && "border-red-500 hover:border-red-500",
             className
           )}
         >
-          <Upload className="mb-2 h-8 w-8 text-gray-400" />
-          <p className="text-base font-medium text-gray-700">
+          <Upload className="mb-2 h-8 w-8 text-slate-400" />
+          <p className="text-base font-medium text-slate-700">
             {dragActive ? "Drop files here" : "Drop files here or click to browse"}
           </p>
-          <p className="mt-1 text-xs text-gray-500">
+          <p className="mt-1 text-xs text-slate-500">
             {accept && `Accepts: ${accept}`}
             {maxSize && ` • Max size: ${formatFileSize(maxSize)}`}
             {multiple && maxFiles && ` • Max files: ${maxFiles}`}
@@ -177,15 +177,15 @@ export const FileInput = forwardRef<HTMLInputElement, FileInputProps>(
             {files.map((file, index) => (
               <div
                 key={`${file.name}-${index}`}
-                className="flex items-center justify-between rounded-md border border-gray-200 bg-gray-50 p-3"
+                className="flex items-center justify-between rounded-md border border-slate-200 bg-slate-50 p-3"
               >
                 <div className="flex items-center space-x-3">
-                  <div className="text-gray-500">{getFileIcon(file)}</div>
+                  <div className="text-slate-500">{getFileIcon(file)}</div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-base font-medium text-gray-700 truncate">
+                    <p className="text-base font-medium text-slate-700 truncate">
                       {file.name}
                     </p>
-                    <p className="text-xs text-gray-500">
+                    <p className="text-xs text-slate-500">
                       {formatFileSize(file.size)}
                     </p>
                   </div>
@@ -197,7 +197,7 @@ export const FileInput = forwardRef<HTMLInputElement, FileInputProps>(
                       e.stopPropagation();
                       handleRemove(index);
                     }}
-                    className="ml-4 text-gray-400 hover:text-red-500 transition-colors"
+                    className="ml-4 text-slate-400 hover:text-red-500 transition-colors"
                   >
                     <X className="h-4 w-4" />
                   </button>

@@ -558,8 +558,8 @@ const AppConfig: React.FC = () => {
         }}
         className={`relative px-4 py-2 mb-2 rounded-md transition-all min-h-[2.5rem] ${
           isBaseField 
-            ? "bg-gray-100 hover:bg-gray-100 cursor-default" 
-            : "bg-gray-50 hover:bg-gray-100 cursor-grab active:cursor-grabbing"
+            ? "bg-slate-100 hover:bg-slate-100 cursor-default" 
+            : "bg-slate-50 hover:bg-slate-100 cursor-grab active:cursor-grabbing"
         } ${
           draggedField === field.id ? "opacity-50" : ""
         } ${
@@ -571,7 +571,7 @@ const AppConfig: React.FC = () => {
       >
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 flex-1">
-            <GripVertical className={`w-4 h-4 ${isBaseField ? 'text-gray-300 cursor-not-allowed' : 'text-gray-400 cursor-move'}`} />
+            <GripVertical className={`w-4 h-4 ${isBaseField ? 'text-slate-300 cursor-not-allowed' : 'text-slate-400 cursor-move'}`} />
             <span className="text-sm font-mono">{field.id}</span>
             {hasOverride && (
               <span className="text-xs px-2 py-0.5 bg-blue-100 text-blue-700 rounded">
@@ -592,7 +592,7 @@ const AppConfig: React.FC = () => {
                 e.stopPropagation();
                 setViewingField(field.id);
               }}
-              className="p-1 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded"
+              className="p-1 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded"
               title="View field"
             >
               <Eye className="w-4 h-4" />
@@ -607,7 +607,7 @@ const AppConfig: React.FC = () => {
                   JSON.stringify(field.override_data || {}, null, 2)
                 );
               }}
-              className="p-1 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded"
+              className="p-1 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded"
               title="Edit field"
             >
               <Edit className="w-4 h-4" />
@@ -622,7 +622,7 @@ const AppConfig: React.FC = () => {
                     showPropertyDropdown === field.id ? null : field.id
                   );
                 }}
-                className="p-1 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded"
+                className="p-1 text-slate-400 hover:text-green-600 hover:bg-green-50 rounded"
                 title="Add property"
               >
                 <Plus className="w-4 h-4" />
@@ -630,8 +630,8 @@ const AppConfig: React.FC = () => {
 
               {showPropertyDropdown === field.id && (
                 <div className="absolute right-0 top-8 w-48 bg-white border rounded-md shadow-lg z-50 max-h-60 overflow-y-auto">
-                  <div className="p-2 border-b bg-gray-50">
-                    <span className="text-xs font-semibold text-gray-600">
+                  <div className="p-2 border-b bg-slate-50">
+                    <span className="text-xs font-semibold text-slate-600">
                       Add Property to Field
                     </span>
                   </div>
@@ -650,7 +650,7 @@ const AppConfig: React.FC = () => {
                             setShowPropertyDropdown(null);
                           }}
                           disabled={alreadyAdded}
-                          className={`w-full text-left px-2 py-1 text-xs rounded hover:bg-gray-50 transition-colors ${
+                          className={`w-full text-left px-2 py-1 text-xs rounded hover:bg-slate-50 transition-colors ${
                             alreadyAdded
                               ? "opacity-50 cursor-not-allowed"
                               : "cursor-pointer"
@@ -662,7 +662,7 @@ const AppConfig: React.FC = () => {
                             {propName}
                           </span>
                           {alreadyAdded && (
-                            <span className="text-gray-400 ml-1">(added)</span>
+                            <span className="text-slate-400 ml-1">(added)</span>
                           )}
                         </button>
                       );
@@ -700,7 +700,7 @@ const AppConfig: React.FC = () => {
                     appConfigStore.updateConfigWithCascade(selectedConfig, updates);
                   }
                 }}
-                className="p-1 text-gray-400 hover:text-orange-600 hover:bg-orange-50 rounded"
+                className="p-1 text-slate-400 hover:text-orange-600 hover:bg-orange-50 rounded"
                 title="Remove from config"
               >
                 <X className="w-4 h-4" />
@@ -732,7 +732,7 @@ const AppConfig: React.FC = () => {
                       e.stopPropagation();
                       appConfigStore.removeDependencyWithUI(field.id, propId);
                     }}
-                    className="ml-1 text-gray-400 hover:text-red-600"
+                    className="ml-1 text-slate-400 hover:text-red-600"
                   >
                     <X className="w-3 h-3" />
                   </button>
@@ -870,12 +870,12 @@ const AppConfig: React.FC = () => {
           key={node.id}
           style={{ marginLeft: level > 0 ? "24px" : "0px", marginBottom: "8px" }}
         >
-          <div className="flex items-center justify-between h-10 p-2 rounded-md bg-gray-50 hover:bg-gray-100">
+          <div className="flex items-center justify-between h-10 p-2 rounded-md bg-slate-50 hover:bg-slate-100">
             <div className="flex items-center gap-2 min-w-0 flex-1">
               <div className="w-5 flex-shrink-0" />
               <Database className="w-4 h-4 text-blue-600 flex-shrink-0" />
               <span className="font-mono text-sm truncate">{field?.caption || node.name}</span>
-              <span className="text-xs text-gray-500 truncate">({node.id})</span>
+              <span className="text-xs text-slate-500 truncate">({node.id})</span>
 
               {/* Order indicator for field references */}
               {(() => {
@@ -904,7 +904,7 @@ const AppConfig: React.FC = () => {
                   // View field data in config
                   setViewingFieldInConfig(node.id);
                 }}
-                className="p-1 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded"
+                className="p-1 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded"
                 title="View field"
               >
                 <Eye className="w-4 h-4" />
@@ -920,7 +920,7 @@ const AppConfig: React.FC = () => {
                     alert('Parent grouping config not found');
                   }
                 }}
-                className="p-1 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded"
+                className="p-1 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded"
                 title="Edit field override"
               >
                 <Edit className="w-4 h-4" />
@@ -962,7 +962,7 @@ const AppConfig: React.FC = () => {
                     await appConfigStore.cascadeUpdateUp(parentConfig.id);
                   }
                 }}
-                className="p-1 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded"
+                className="p-1 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded"
                 title="Remove from config"
               >
                 <X className="w-4 h-4" />
@@ -975,7 +975,7 @@ const AppConfig: React.FC = () => {
 
     const TypeInfo = configTypes[node.configType || ""] || {
       icon: Package,
-      color: "text-gray-600",
+      color: "text-slate-600",
     };
     const Icon = TypeInfo.icon;
     const isExpanded = expandedNodes.has(node.id);
@@ -1002,7 +1002,7 @@ const AppConfig: React.FC = () => {
               ? "bg-green-100 border-2 border-green-400 border-dashed"
               : selectedConfig === node.id
               ? "bg-blue-50 border-l-4 border-l-blue-500"
-              : "bg-gray-50 hover:bg-gray-100"
+              : "bg-slate-50 hover:bg-slate-100"
           }`}
           onClick={(e) => {
             e.stopPropagation();
@@ -1039,7 +1039,7 @@ const AppConfig: React.FC = () => {
                       e.stopPropagation();
                       toggleNodeExpand(node.id);
                     }}
-                    className="p-0.5 hover:bg-gray-200 rounded"
+                    className="p-0.5 hover:bg-slate-200 rounded"
                   >
                     {isExpanded ? (
                       <ChevronDown className="w-4 h-4" />
@@ -1110,7 +1110,7 @@ const AppConfig: React.FC = () => {
                             e.stopPropagation();
                             await reorderChild(parentId, node.id, 'up');
                           }}
-                          className="p-1 text-gray-400 hover:text-orange-600 hover:bg-orange-50 rounded"
+                          className="p-1 text-slate-400 hover:text-orange-600 hover:bg-orange-50 rounded"
                           title="Move up"
                         >
                           <ArrowUp className="w-4 h-4" />
@@ -1122,7 +1122,7 @@ const AppConfig: React.FC = () => {
                             e.stopPropagation();
                             await reorderChild(parentId, node.id, 'down');
                           }}
-                          className="p-1 text-gray-400 hover:text-orange-600 hover:bg-orange-50 rounded"
+                          className="p-1 text-slate-400 hover:text-orange-600 hover:bg-orange-50 rounded"
                           title="Move down"
                         >
                           <ArrowDown className="w-4 h-4" />
@@ -1140,7 +1140,7 @@ const AppConfig: React.FC = () => {
                         setAddParentId(node.id);
                         setShowAddModal(true);
                       }}
-                      className="p-1 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded"
+                      className="p-1 text-slate-400 hover:text-green-600 hover:bg-green-50 rounded"
                       title="Add child config"
                     >
                       <Plus className="w-4 h-4" />
@@ -1151,7 +1151,7 @@ const AppConfig: React.FC = () => {
                         setCreateParentId(node.id);
                         setShowTemplateSelect(true);
                       }}
-                      className="p-1 text-gray-400 hover:text-purple-600 hover:bg-purple-50 rounded"
+                      className="p-1 text-slate-400 hover:text-purple-600 hover:bg-purple-50 rounded"
                       title="Add from template"
                     >
                       <Package className="w-4 h-4" />
@@ -1163,7 +1163,7 @@ const AppConfig: React.FC = () => {
                     e.stopPropagation();
                     setViewingConfig(node.id);
                   }}
-                  className="p-1 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded"
+                  className="p-1 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded"
                   title="View config"
                 >
                   <Eye className="w-4 h-4" />
@@ -1173,7 +1173,7 @@ const AppConfig: React.FC = () => {
                     e.stopPropagation();
                     startEditConfig(node.id);
                   }}
-                  className="p-1 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded"
+                  className="p-1 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded"
                   title="Edit config"
                 >
                   <Edit className="w-4 h-4" />
@@ -1183,7 +1183,7 @@ const AppConfig: React.FC = () => {
                     e.stopPropagation();
                     deleteConfig(node.id);
                   }}
-                  className="p-1 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded"
+                  className="p-1 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded"
                   title="Delete"
                 >
                   <Trash className="w-4 h-4" />
@@ -1225,7 +1225,7 @@ const AppConfig: React.FC = () => {
                               }
                             }
                           }}
-                          className="ml-1 text-gray-400 hover:text-red-600"
+                          className="ml-1 text-slate-400 hover:text-red-600"
                         >
                           <X className="w-3 h-3" />
                         </button>
@@ -1261,7 +1261,7 @@ const AppConfig: React.FC = () => {
   // Filter config nodes based on search
 
   return (
-    <div className="h-full bg-gray-50 p-4 overflow-hidden">
+    <div className="h-full bg-slate-50 p-4 overflow-hidden">
       <div className="max-w-full mx-auto h-full">
         <div className="flex gap-4 h-[calc(100vh-7rem)]">
           {/* Left Column - Working Configs - 37.5% */}
@@ -1331,13 +1331,13 @@ const AppConfig: React.FC = () => {
                       ))}
                     </div>
                   ) : (
-                    <div className="text-center text-gray-500 py-8">
+                    <div className="text-center text-slate-500 py-8">
                       No configs found matching "{configSearchQuery}"
                     </div>
                   );
                 })()
               ) : (
-                <div className="text-center text-gray-500 py-8">
+                <div className="text-center text-slate-500 py-8">
                   No working configs yet. Click "From Template" to create.
                 </div>
               )}
@@ -1414,7 +1414,7 @@ const AppConfig: React.FC = () => {
               <div className="mb-2">
                 <div
                   onClick={() => toggleSection("base")}
-                  className="flex items-center justify-between h-10 p-2 rounded-md bg-gray-50 hover:bg-gray-100 cursor-pointer"
+                  className="flex items-center justify-between h-10 p-2 rounded-md bg-slate-50 hover:bg-slate-100 cursor-pointer"
                 >
                   <div className="flex items-center h-full gap-2">
                     {expandedSections.has("base") ? (
@@ -1424,7 +1424,7 @@ const AppConfig: React.FC = () => {
                     )}
                     <Layers className="w-5 h-5 text-blue-600" />
                     <span className="font-mono text-sm">Base Fields</span>
-                    <span className="text-xs text-gray-500">
+                    <span className="text-xs text-slate-500">
                       ({filteredStructure.base.length})
                     </span>
                   </div>
@@ -1446,7 +1446,7 @@ const AppConfig: React.FC = () => {
                 <div className="mb-2">
                   <div
                     onClick={() => toggleSection("main-entities")}
-                    className="flex items-center justify-between h-10 p-2 rounded-md bg-gray-50 hover:bg-gray-100 cursor-pointer"
+                    className="flex items-center justify-between h-10 p-2 rounded-md bg-slate-50 hover:bg-slate-100 cursor-pointer"
                   >
                     <div className="flex items-center h-full gap-2">
                       {expandedSections.has("main-entities") ? (
@@ -1456,7 +1456,7 @@ const AppConfig: React.FC = () => {
                       )}
                       <Package className="w-5 h-5 text-green-600" />
                       <span className="font-mono text-sm">Main Entities</span>
-                      <span className="text-xs text-gray-500">
+                      <span className="text-xs text-slate-500">
                         ({Object.keys(filteredStructure.main).length})
                       </span>
                     </div>
@@ -1473,7 +1473,7 @@ const AppConfig: React.FC = () => {
                           {/* Entity Group (capitalized) */}
                           <div
                             onClick={() => toggleSection(`group-${entityName}`)}
-                            className="flex items-center justify-between h-10 p-2 rounded-md bg-gray-50 hover:bg-gray-100 cursor-pointer"
+                            className="flex items-center justify-between h-10 p-2 rounded-md bg-slate-50 hover:bg-slate-100 cursor-pointer"
                           >
                             <div className="flex items-center h-full gap-2">
                               {expandedSections.has(`group-${entityName}`) ? (
@@ -1486,7 +1486,7 @@ const AppConfig: React.FC = () => {
                                   entityName.slice(1)}{" "}
                                 Section
                               </span>
-                              <span className="text-xs text-gray-500">
+                              <span className="text-xs text-slate-500">
                                 ({1 + Object.keys(entityData.children).length}{" "}
                                 tables)
                               </span>
@@ -1502,7 +1502,7 @@ const AppConfig: React.FC = () => {
                                   onClick={() =>
                                     toggleSection(`main-${entityName}`)
                                   }
-                                  className="flex items-center justify-between h-10 p-2 rounded-md bg-gray-50 hover:bg-gray-100 cursor-pointer"
+                                  className="flex items-center justify-between h-10 p-2 rounded-md bg-slate-50 hover:bg-slate-100 cursor-pointer"
                                 >
                                   <div className="flex items-center h-full gap-2">
                                     {expandedSections.has(
@@ -1518,7 +1518,7 @@ const AppConfig: React.FC = () => {
                                     <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded">
                                       main
                                     </span>
-                                    <span className="text-xs text-gray-500">
+                                    <span className="text-xs text-slate-500">
                                       ({entityData.fields.length} fields)
                                     </span>
                                   </div>
@@ -1555,7 +1555,7 @@ const AppConfig: React.FC = () => {
                                                 `child-${childName}`
                                               )
                                             }
-                                            className="flex items-center justify-between h-10 p-2 rounded-md bg-gray-50 hover:bg-gray-100 cursor-pointer"
+                                            className="flex items-center justify-between h-10 p-2 rounded-md bg-slate-50 hover:bg-slate-100 cursor-pointer"
                                           >
                                             <div className="flex items-center h-full gap-2">
                                               {expandedSections.has(
@@ -1572,11 +1572,11 @@ const AppConfig: React.FC = () => {
                                                 <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">
                                                   child
                                                 </span>
-                                                <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded">
+                                                <span className="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded">
                                                   {entityName}
                                                 </span>
                                               </div>
-                                              <span className="text-xs text-gray-500">
+                                              <span className="text-xs text-slate-500">
                                                 ({childFields.length} fields)
                                               </span>
                                             </div>
@@ -1614,7 +1614,7 @@ const AppConfig: React.FC = () => {
                 <div className="mb-2">
                   <div
                     onClick={() => toggleSection("dictionaries")}
-                    className="flex items-center justify-between h-10 p-2 rounded-md bg-gray-50 hover:bg-gray-100 cursor-pointer"
+                    className="flex items-center justify-between h-10 p-2 rounded-md bg-slate-50 hover:bg-slate-100 cursor-pointer"
                   >
                     <div className="flex items-center h-full gap-2">
                       {expandedSections.has("dictionaries") ? (
@@ -1624,7 +1624,7 @@ const AppConfig: React.FC = () => {
                       )}
                       <Book className="w-5 h-5 text-orange-600" />
                       <span className="font-mono text-sm">Dictionaries</span>
-                      <span className="text-xs text-gray-500">
+                      <span className="text-xs text-slate-500">
                         ({Object.keys(filteredStructure.dictionaries).length})
                       </span>
                     </div>
@@ -1641,7 +1641,7 @@ const AppConfig: React.FC = () => {
                           >
                             <div
                               onClick={() => toggleSection(`dict-${dictName}`)}
-                              className="flex items-center justify-between h-10 p-2 rounded-md bg-gray-50 hover:bg-gray-100 cursor-pointer"
+                              className="flex items-center justify-between h-10 p-2 rounded-md bg-slate-50 hover:bg-slate-100 cursor-pointer"
                             >
                               <div className="flex items-center h-full gap-2">
                                 {expandedSections.has(`dict-${dictName}`) ? (
@@ -1655,7 +1655,7 @@ const AppConfig: React.FC = () => {
                                 <span className="text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded">
                                   dict
                                 </span>
-                                <span className="text-xs text-gray-500">
+                                <span className="text-xs text-slate-500">
                                   ({dictFields.length})
                                 </span>
                               </div>
@@ -1720,7 +1720,7 @@ const AppConfig: React.FC = () => {
 
             <div className="flex-1 overflow-y-auto">
               {properties.length === 0 ? (
-                <div className="text-center text-gray-500 py-8">
+                <div className="text-center text-slate-500 py-8">
                   No properties found
                 </div>
               ) : (
@@ -1745,7 +1745,7 @@ const AppConfig: React.FC = () => {
                         className={`p-3 border rounded-lg transition-all cursor-move ${
                           draggedProperty === property.id
                             ? "opacity-50 scale-95 border-blue-400"
-                            : "hover:bg-gray-50"
+                            : "hover:bg-slate-50"
                         }`}
                         draggable
                         onDragStart={() => setDraggedProperty(property.id)}
@@ -1756,7 +1756,7 @@ const AppConfig: React.FC = () => {
                       >
                         <div className="flex items-start justify-between gap-2">
                           <div className="flex items-center gap-2 flex-1">
-                            <GripVertical className="w-4 h-4 text-gray-400 mt-0.5 flex-shrink-0" />
+                            <GripVertical className="w-4 h-4 text-slate-400 mt-0.5 flex-shrink-0" />
                             <div className="flex-1">
                               <div className="flex items-center justify-between">
                                 <div
@@ -1768,7 +1768,7 @@ const AppConfig: React.FC = () => {
                                 </div>
                                 <PropertyCategoryIcon category={property.category} />
                               </div>
-                              <div className="text-xs text-gray-500 mt-1">
+                              <div className="text-xs text-slate-500 mt-1">
                                 {Object.entries(property.data || {})
                                   .slice(0, 2)
                                   .map(([key, value]) => (
@@ -1836,7 +1836,7 @@ const AppConfig: React.FC = () => {
 
                 if (templates.length === 0) {
                   return (
-                    <div className="text-center text-gray-500 py-8">
+                    <div className="text-center text-slate-500 py-8">
                       No templates available for this level
                     </div>
                   );
@@ -1847,7 +1847,7 @@ const AppConfig: React.FC = () => {
                     {templates.map((template) => {
                       const TypeInfo = configTypes[template.type] || {
                         icon: Package,
-                        color: "text-gray-600",
+                        color: "text-slate-600",
                       };
                       const Icon = TypeInfo.icon;
 
@@ -1855,13 +1855,13 @@ const AppConfig: React.FC = () => {
                         <button
                           key={template.id}
                           onClick={() => createFromTemplate(template.id)}
-                          className="p-4 border rounded-lg hover:bg-gray-50 flex flex-col items-center gap-2"
+                          className="p-4 border rounded-lg hover:bg-slate-50 flex flex-col items-center gap-2"
                         >
                           <Icon className={`w-8 h-8 ${TypeInfo.color}`} />
                           <div className="text-sm font-medium">
                             {template.caption || template.id}
                           </div>
-                          <div className="text-xs text-gray-500">
+                          <div className="text-xs text-slate-500">
                             {template.type}
                           </div>
                         </button>
@@ -1878,7 +1878,7 @@ const AppConfig: React.FC = () => {
                   setShowTemplateSelect(false);
                   setCreateParentId(null);
                 }}
-                className="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
+                className="px-4 py-2 text-slate-700 bg-slate-100 rounded-md hover:bg-slate-200"
               >
                 Cancel
               </button>
@@ -1999,7 +1999,7 @@ const AppConfig: React.FC = () => {
               ).map((type) => {
                 const TypeInfo = configTypes[type] || {
                   icon: Package,
-                  color: "text-gray-600",
+                  color: "text-slate-600",
                 };
                 const Icon = TypeInfo.icon;
 
@@ -2007,10 +2007,10 @@ const AppConfig: React.FC = () => {
                   <button
                     key={type}
                     onClick={() => createWorkingConfig(type, addParentId)}
-                    className="w-full p-3 flex items-center gap-3 border rounded-lg hover:bg-gray-50"
+                    className="w-full p-3 flex items-center gap-3 border rounded-lg hover:bg-slate-50"
                   >
                     <Icon
-                      className={`w-5 h-5 ${TypeInfo.color || "text-gray-600"}`}
+                      className={`w-5 h-5 ${TypeInfo.color || "text-slate-600"}`}
                     />
                     <span className="font-medium">{TypeInfo.name || type}</span>
                   </button>
@@ -2024,7 +2024,7 @@ const AppConfig: React.FC = () => {
                   setShowAddModal(false);
                   setAddParentId(null);
                 }}
-                className="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
+                className="px-4 py-2 text-slate-700 bg-slate-100 rounded-md hover:bg-slate-200"
               >
                 Cancel
               </button>
@@ -2044,7 +2044,7 @@ const AppConfig: React.FC = () => {
             <div className="flex-1 overflow-y-auto space-y-4">
               {/* Field Info */}
               <div>
-                <div className="text-sm font-medium text-gray-700 mb-2">
+                <div className="text-sm font-medium text-slate-700 mb-2">
                   Current Field Data (computed from base + parent overrides)
                 </div>
                 <textarea
@@ -2059,15 +2059,15 @@ const AppConfig: React.FC = () => {
                     2
                   )}
                   readOnly
-                  className="w-full h-48 p-2 border rounded font-mono text-sm bg-gray-50"
+                  className="w-full h-48 p-2 border rounded font-mono text-sm bg-slate-50"
                 />
               </div>
               
               {/* Override Editor */}
               <div>
-                <div className="text-sm font-medium text-gray-700 mb-2">
+                <div className="text-sm font-medium text-slate-700 mb-2">
                   Field Override Properties
-                  <span className="text-xs text-gray-500 ml-2">
+                  <span className="text-xs text-slate-500 ml-2">
                     (These values will override the field properties in this context)
                   </span>
                 </div>
@@ -2088,7 +2088,7 @@ const AppConfig: React.FC = () => {
             <div className="mt-4 flex justify-end gap-2">
               <button
                 onClick={() => setFieldOverrideEditor(null)}
-                className="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
+                className="px-4 py-2 text-slate-700 bg-slate-100 rounded-md hover:bg-slate-200"
               >
                 Cancel
               </button>

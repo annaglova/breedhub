@@ -36,7 +36,7 @@ export function MobileStickyButton() {
           setIsVisible(false);
           setHasInteracted(true);
         }}
-        className="absolute top-2 right-2 p-2 text-gray-400 hover:text-gray-600"
+        className="absolute top-2 right-2 p-2 text-slate-400 hover:text-slate-600"
         aria-label="Close"
       >
         <X className="w-5 h-5" />

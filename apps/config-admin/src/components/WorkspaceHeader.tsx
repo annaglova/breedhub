@@ -86,7 +86,7 @@ export default function WorkspaceHeader({
   const marginClass = containerPadding === 6 ? '-mx-6 px-6' : '-mx-4 px-4';
   
   return (
-    <div className={`border-b border-gray-200 ${marginClass} pb-4 mb-4`}>
+    <div className={`border-b border-slate-200 ${marginClass} pb-4 mb-4`}>
       {/* Title row if provided */}
       {(title || typeof itemCount === 'number') && (
         <div className="flex items-center justify-between mb-3">
@@ -95,14 +95,14 @@ export default function WorkspaceHeader({
               {TitleIcon && <TitleIcon className="w-5 h-5" />}
               {title}
               {note && (
-                <span className="text-xs font-normal text-gray-500 ml-2">
+                <span className="text-xs font-normal text-slate-500 ml-2">
                   {note}
                 </span>
               )}
             </h2>
           )}
           {typeof itemCount === 'number' && (
-            <span className="text-xs text-gray-500">
+            <span className="text-xs text-slate-500">
               {itemCount} items
             </span>
           )}
@@ -114,7 +114,7 @@ export default function WorkspaceHeader({
         <div className="flex items-center gap-2">
           {showSearch && (
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+              <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
               <input
                 type="text"
                 placeholder={searchPlaceholder}
@@ -129,7 +129,7 @@ export default function WorkspaceHeader({
           {showFilter && (
             <div className={`flex items-center gap-2 ${filterFullWidth ? 'flex-1' : ''}`}>
               {filterLabel && (
-                <label className="text-sm font-medium text-gray-700 whitespace-nowrap">
+                <label className="text-sm font-medium text-slate-700 whitespace-nowrap">
                   {filterLabel}
                 </label>
               )}
@@ -158,7 +158,7 @@ export default function WorkspaceHeader({
                 type="checkbox"
                 checked={checkboxChecked}
                 onChange={(e) => onCheckboxChange?.(e.target.checked)}
-                className="rounded border-gray-300"
+                className="rounded border-slate-300"
               />
             </label>
           )}
@@ -178,7 +178,7 @@ export default function WorkspaceHeader({
               {onCollapseAll && (
                 <button
                   onClick={onCollapseAll}
-                  className="px-3 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors"
+                  className="px-3 py-2 bg-slate-600 text-white rounded-md hover:bg-slate-700 transition-colors"
                   title="Collapse all"
                 >
                   <Minimize2 className="w-4 h-4" />
@@ -205,7 +205,7 @@ export default function WorkspaceHeader({
                 key={index}
                 onClick={button.onClick}
                 className={`px-4 py-2 text-white rounded-md transition-colors flex items-center gap-2 whitespace-nowrap text-sm ${
-                  button.className || 'bg-gray-600 hover:bg-gray-700'
+                  button.className || 'bg-slate-600 hover:bg-slate-700'
                 }`}
               >
                 {ButtonIcon && <ButtonIcon className="w-4 h-4" />}

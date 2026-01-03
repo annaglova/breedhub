@@ -33,7 +33,7 @@ export function AuthHeader({
         ? rightContent
         : rightButtonLink && (
             <div className="flex items-center gap-2 sm:gap-4">
-              <span className="hidden text-gray-600 sm:block text-sm sm:text-base">
+              <span className="hidden text-slate-600 sm:block text-sm sm:text-base">
                 {rightButtonLabel}
               </span>
               <Link to={rightButtonLink}>

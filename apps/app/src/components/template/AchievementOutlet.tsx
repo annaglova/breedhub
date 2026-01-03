@@ -39,9 +39,9 @@ export function AchievementOutlet({
     return (
       <div className={`flex flex-wrap gap-2  ${className}`}>
         {/* Chip skeleton placeholders */}
-        <div className="h-7 w-32 rounded-full bg-gray-200 dark:bg-gray-700 animate-pulse" />
-        <div className="h-7 w-40 rounded-full bg-gray-200 dark:bg-gray-700 animate-pulse" />
-        <div className="h-7 w-28 rounded-full bg-gray-200 dark:bg-gray-700 animate-pulse" />
+        <div className="h-7 w-32 rounded-full bg-slate-200 dark:bg-slate-700 animate-pulse" />
+        <div className="h-7 w-40 rounded-full bg-slate-200 dark:bg-slate-700 animate-pulse" />
+        <div className="h-7 w-28 rounded-full bg-slate-200 dark:bg-slate-700 animate-pulse" />
       </div>
     );
   }

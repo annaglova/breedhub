@@ -65,7 +65,7 @@ export const AuthPasswordInput = forwardRef<HTMLInputElement, AuthPasswordInputP
       <div className="space-y-1">
         {showLabel && showForgotLink && (
           <div className="flex items-center justify-between">
-            <label className="block text-base font-medium text-gray-700">
+            <label className="block text-base font-medium text-slate-700">
               {label}
             </label>
             <a 
@@ -98,7 +98,7 @@ export const AuthPasswordInput = forwardRef<HTMLInputElement, AuthPasswordInputP
         
         {/* Додаткові підказки для нових паролів */}
         {isNewPassword && !value && !displayError && (
-          <p className="text-xs text-gray-500 mt-1">
+          <p className="text-xs text-slate-500 mt-1">
             At least {minLength} characters
           </p>
         )}

@@ -99,7 +99,7 @@ export function CustomCalendar({
   return (
     <div
       className={cn(
-        "px-4 bg-white rounded-lg border border-gray-200",
+        "px-4 bg-white rounded-lg border border-slate-200",
         className
       )}
     >
@@ -107,7 +107,7 @@ export function CustomCalendar({
       <div className="flex items-center justify-between py-4">
         <button
           onClick={() => setCurrentDate(subMonths(currentDate, 1))}
-          className="p-1.5 rounded hover:bg-gray-100 transition-colors"
+          className="p-1.5 rounded hover:bg-slate-100 transition-colors"
           type="button"
         >
           <ChevronLeft className="h-4 w-4" />
@@ -133,7 +133,7 @@ export function CustomCalendar({
 
         <button
           onClick={() => setCurrentDate(addMonths(currentDate, 1))}
-          className="p-1.5 rounded hover:bg-gray-100 transition-colors"
+          className="p-1.5 rounded hover:bg-slate-100 transition-colors"
           type="button"
         >
           <ChevronRight className="h-4 w-4" />
@@ -145,7 +145,7 @@ export function CustomCalendar({
         {["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"].map((day) => (
           <div
             key={day}
-            className="text-center text-xs font-medium text-gray-500 py-1"
+            className="text-center text-xs font-medium text-slate-500 py-1"
           >
             {day}
           </div>
@@ -167,9 +167,9 @@ export function CustomCalendar({
               disabled={isDisabled}
               className={cn(
                 "h-9 w-9 rounded-full text-sm transition-colors",
-                "hover:bg-gray-100",
+                "hover:bg-slate-100",
                 "focus:outline-none focus:ring-2 focus:ring-primary-500/20",
-                isCurrentMonth ? "text-gray-900" : "text-gray-400",
+                isCurrentMonth ? "text-slate-900" : "text-slate-400",
                 isSelected &&
                   "bg-primary-50 text-primary-700 font-bold hover:bg-primary-50",
                 isToday && !isSelected && "text-primary-700 font-bold",
@@ -191,7 +191,7 @@ export function CustomCalendar({
           className={cn(
             "w-full py-2 px-4",
             "bg-primary-50 border border-primary-50 rounded-md",
-            "text-sm font-medium text-gray-700",
+            "text-sm font-medium text-slate-700",
             "hover:primary-100 hover:border-primary-500",
             "focus:outline-none focus:ring-2 focus:ring-primary-500/20",
             "transition-all"

@@ -41,7 +41,7 @@ export function ErrorWithHints({ error, hints, className }: ErrorWithHintsProps)
               {showHints && (
                 <ul className="mt-2 space-y-1 animate-slideDown">
                   {hints.map((hint, index) => (
-                    <li key={index} className="text-xs text-gray-700 flex items-start">
+                    <li key={index} className="text-xs text-slate-700 flex items-start">
                       <span className="mr-1">•</span>
                       <span>{hint}</span>
                     </li>

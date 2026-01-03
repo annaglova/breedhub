@@ -329,7 +329,7 @@ export function PageMenuSkeleton({
         {Array.from({ length: tabCount }).map((_, index) => (
           <div
             key={index}
-            className="h-4 bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse"
+            className="h-4 bg-slate-200 dark:bg-slate-700 rounded-full animate-pulse"
             style={{ width: `${60 + (index % 3) * 20}px` }}
           />
         ))}

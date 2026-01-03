@@ -57,8 +57,8 @@ function TreeNode({ nodeKey, value, level = 0, searchTerm = '', path = '', force
   
   // Format primitive values
   const formatValue = (val: any) => {
-    if (val === null) return <span className="text-gray-400">null</span>;
-    if (val === undefined) return <span className="text-gray-400">undefined</span>;
+    if (val === null) return <span className="text-slate-400">null</span>;
+    if (val === undefined) return <span className="text-slate-400">undefined</span>;
     if (typeof val === 'boolean') return <span className="text-blue-600">{String(val)}</span>;
     if (typeof val === 'number') return <span className="text-green-600">{val}</span>;
     if (typeof val === 'string') {
@@ -86,10 +86,10 @@ function TreeNode({ nodeKey, value, level = 0, searchTerm = '', path = '', force
     // Leaf node
     return (
       <div 
-        className={`flex items-center py-0.5 hover:bg-gray-50 ${nodeMatches || valueMatches ? 'bg-yellow-50' : ''}`}
+        className={`flex items-center py-0.5 hover:bg-slate-50 ${nodeMatches || valueMatches ? 'bg-yellow-50' : ''}`}
         style={{ paddingLeft: `${indent}px` }}
       >
-        <span className="text-gray-600 mr-2">{highlightMatch(nodeKey)}:</span>
+        <span className="text-slate-600 mr-2">{highlightMatch(nodeKey)}:</span>
         {formatValue(value)}
       </div>
     );
@@ -99,21 +99,21 @@ function TreeNode({ nodeKey, value, level = 0, searchTerm = '', path = '', force
   return (
     <div className={nodeMatches ? 'bg-yellow-50' : ''}>
       <div
-        className="flex items-center py-0.5 hover:bg-gray-50 cursor-pointer group"
+        className="flex items-center py-0.5 hover:bg-slate-50 cursor-pointer group"
         style={{ paddingLeft: `${indent}px` }}
         onClick={() => setIsExpanded(!isExpanded)}
       >
-        <button className="p-0.5 hover:bg-gray-200 rounded">
+        <button className="p-0.5 hover:bg-slate-200 rounded">
           {isExpanded ? (
-            <ChevronDown className="w-4 h-4 text-gray-500" />
+            <ChevronDown className="w-4 h-4 text-slate-500" />
           ) : (
-            <ChevronRight className="w-4 h-4 text-gray-500" />
+            <ChevronRight className="w-4 h-4 text-slate-500" />
           )}
         </button>
-        <span className="text-gray-700 font-medium mx-1">
+        <span className="text-slate-700 font-medium mx-1">
           {highlightMatch(nodeKey)}
         </span>
-        <span className="text-gray-400 text-sm">{getTypeLabel()}</span>
+        <span className="text-slate-400 text-sm">{getTypeLabel()}</span>
       </div>
       {isExpanded && !isEmpty && (
         <div>
@@ -133,7 +133,7 @@ function TreeNode({ nodeKey, value, level = 0, searchTerm = '', path = '', force
       )}
       {isExpanded && isEmpty && (
         <div 
-          className="text-gray-400 text-sm py-0.5"
+          className="text-slate-400 text-sm py-0.5"
           style={{ paddingLeft: `${indent + 20}px` }}
         >
           {isArray ? '[]' : '{}'}
@@ -157,13 +157,13 @@ export default function JsonTreeView({ data, initialExpanded = false, searchTerm
   }, [localSearch]);
   
   if (!data) {
-    return <div className="text-gray-400 p-4">No data</div>;
+    return <div className="text-slate-400 p-4">No data</div>;
   }
   
   return (
     <div className="h-full flex flex-col">
       {/* Controls */}
-      <div className="flex items-center gap-2 p-2 border-b bg-gray-50">
+      <div className="flex items-center gap-2 p-2 border-b bg-slate-50">
         <input
           type="text"
           value={localSearch}
@@ -177,7 +177,7 @@ export default function JsonTreeView({ data, initialExpanded = false, searchTerm
             setForceCollapseAll(false);
             setTimeout(() => setForceExpandAll(false), 100);
           }}
-          className="p-1 text-gray-500 hover:text-gray-700 hover:bg-gray-200 rounded"
+          className="p-1 text-slate-500 hover:text-slate-700 hover:bg-slate-200 rounded"
           title="Expand all"
         >
           <Maximize2 className="w-4 h-4" />
@@ -188,7 +188,7 @@ export default function JsonTreeView({ data, initialExpanded = false, searchTerm
             setForceExpandAll(false);
             setTimeout(() => setForceCollapseAll(false), 100);
           }}
-          className="p-1 text-gray-500 hover:text-gray-700 hover:bg-gray-200 rounded"
+          className="p-1 text-slate-500 hover:text-slate-700 hover:bg-slate-200 rounded"
           title="Collapse all"
         >
           <Minimize2 className="w-4 h-4" />

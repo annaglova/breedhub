@@ -45,7 +45,7 @@ const MenuItem: React.FC<MenuItemProps & { isScrolled?: boolean }> = ({
             ? "text-primary-600 font-bold"
             : "text-white font-bold"
           : isScrolled
-          ? "text-gray-700 hover:text-primary-600 font-medium"
+          ? "text-slate-700 hover:text-primary-600 font-medium"
           : "text-white hover:text-white font-medium"
       )}
       style={{
@@ -236,7 +236,7 @@ export default function LandingMenu({ className }: LandingMenuProps) {
           <div className="md:hidden">
             <button
               onClick={toggleMobileMenu}
-              className="p-3 min-w-[44px] min-h-[44px] text-gray-700 hover:text-primary-600 transition-colors"
+              className="p-3 min-w-[44px] min-h-[44px] text-slate-700 hover:text-primary-600 transition-colors"
               aria-label="Toggle menu"
             >
               <Menu className="h-6 w-6" />
@@ -272,7 +272,7 @@ export default function LandingMenu({ className }: LandingMenuProps) {
           }}
         >
           {/* Sidebar Header */}
-          <div className="flex items-center justify-between p-4 border-b bg-gray-50">
+          <div className="flex items-center justify-between p-4 border-b bg-slate-50">
             <Link
               to="/"
               onClick={() => setIsMobileMenuOpen(false)}
@@ -281,13 +281,13 @@ export default function LandingMenu({ className }: LandingMenuProps) {
               <h2 className="text-xl font-bold text-primary-600 hover:text-primary-700 transition-colors">
                 Breedhub
               </h2>
-              <p className="text-xs text-gray-600 uppercase tracking-wider font-medium">
+              <p className="text-xs text-slate-600 uppercase tracking-wider font-medium">
                 Menu
               </p>
             </Link>
             <button
               onClick={() => setIsMobileMenuOpen(false)}
-              className="p-3 min-w-[44px] min-h-[44px] text-gray-500 hover:text-gray-700 transition-colors rounded-md hover:bg-gray-200"
+              className="p-3 min-w-[44px] min-h-[44px] text-slate-500 hover:text-slate-700 transition-colors rounded-md hover:bg-slate-200"
               aria-label="Close menu"
             >
               <X className="h-5 w-5" />
@@ -298,7 +298,7 @@ export default function LandingMenu({ className }: LandingMenuProps) {
           <nav className="flex flex-col p-4 space-y-6">
             {/* Services section */}
             <div>
-              <p className="px-4 pb-2 text-sm font-bold text-gray-600 uppercase tracking-wider">
+              <p className="px-4 pb-2 text-sm font-bold text-slate-600 uppercase tracking-wider">
                 Services
               </p>
               <div className="space-y-1">
@@ -309,7 +309,7 @@ export default function LandingMenu({ className }: LandingMenuProps) {
                     "block px-4 py-2 ml-2 text-base font-medium rounded-md transition-colors duration-200",
                     location.pathname === "/product"
                       ? "text-primary-600 bg-primary-50 font-bold"
-                      : "text-gray-700 hover:text-primary-600 hover:bg-primary-50 font-medium"
+                      : "text-slate-700 hover:text-primary-600 hover:bg-primary-50 font-medium"
                   )}
                 >
                   Product
@@ -321,7 +321,7 @@ export default function LandingMenu({ className }: LandingMenuProps) {
                     "block px-4 py-2 ml-2 text-base font-medium rounded-md transition-colors duration-200",
                     location.pathname === "/pricing"
                       ? "text-primary-600 bg-primary-50 font-bold"
-                      : "text-gray-700 hover:text-primary-600 hover:bg-primary-50 font-medium"
+                      : "text-slate-700 hover:text-primary-600 hover:bg-primary-50 font-medium"
                   )}
                 >
                   Pricing
@@ -333,7 +333,7 @@ export default function LandingMenu({ className }: LandingMenuProps) {
                     "block px-4 py-2 ml-2 text-base font-medium rounded-md transition-colors duration-200",
                     location.pathname === "/sign-in"
                       ? "text-primary-600 bg-primary-50 font-bold"
-                      : "text-gray-700 hover:text-primary-600 hover:bg-primary-50 font-medium"
+                      : "text-slate-700 hover:text-primary-600 hover:bg-primary-50 font-medium"
                   )}
                 >
                   Sign In
@@ -345,7 +345,7 @@ export default function LandingMenu({ className }: LandingMenuProps) {
                     "block px-4 py-2 ml-2 text-base font-medium rounded-md transition-colors duration-200",
                     location.pathname === "/about"
                       ? "text-primary-600 bg-primary-50 font-bold"
-                      : "text-gray-700 hover:text-primary-600 hover:bg-primary-50 font-medium"
+                      : "text-slate-700 hover:text-primary-600 hover:bg-primary-50 font-medium"
                   )}
                 >
                   About
@@ -355,7 +355,7 @@ export default function LandingMenu({ className }: LandingMenuProps) {
 
             {/* Spaces section */}
             <div>
-              <p className="px-4 pb-2 text-sm font-bold text-gray-600 uppercase tracking-wider">
+              <p className="px-4 pb-2 text-sm font-bold text-slate-600 uppercase tracking-wider">
                 Spaces
               </p>
               <div className="space-y-1">
@@ -368,7 +368,7 @@ export default function LandingMenu({ className }: LandingMenuProps) {
                       "block px-4 py-2 ml-2 text-base font-medium rounded-md transition-colors duration-200",
                       location.pathname === item.to
                         ? "text-primary-600 bg-primary-50 font-bold"
-                        : "text-gray-700 hover:text-primary-600 hover:bg-primary-50 font-medium"
+                        : "text-slate-700 hover:text-primary-600 hover:bg-primary-50 font-medium"
                     )}
                   >
                     {item.label}
@@ -379,7 +379,7 @@ export default function LandingMenu({ className }: LandingMenuProps) {
 
             {/* Terms section */}
             <div>
-              <p className="px-4 pb-2 text-sm font-bold text-gray-600 uppercase tracking-wider">
+              <p className="px-4 pb-2 text-sm font-bold text-slate-600 uppercase tracking-wider">
                 Terms
               </p>
               <div className="space-y-1">
@@ -390,7 +390,7 @@ export default function LandingMenu({ className }: LandingMenuProps) {
                     "block px-4 py-2 ml-2 text-base font-medium rounded-md transition-colors duration-200",
                     location.pathname === "/terms-and-conditions"
                       ? "text-primary-600 bg-primary-50 font-bold"
-                      : "text-gray-700 hover:text-primary-600 hover:bg-primary-50 font-medium"
+                      : "text-slate-700 hover:text-primary-600 hover:bg-primary-50 font-medium"
                   )}
                 >
                   Terms & Conditions
@@ -402,7 +402,7 @@ export default function LandingMenu({ className }: LandingMenuProps) {
                     "block px-4 py-2 ml-2 text-base font-medium rounded-md transition-colors duration-200",
                     location.pathname === "/privacy-policy"
                       ? "text-primary-600 bg-primary-50 font-bold"
-                      : "text-gray-700 hover:text-primary-600 hover:bg-primary-50 font-medium"
+                      : "text-slate-700 hover:text-primary-600 hover:bg-primary-50 font-medium"
                   )}
                 >
                   Privacy Policy

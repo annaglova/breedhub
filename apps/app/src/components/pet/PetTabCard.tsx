@@ -125,14 +125,14 @@ export function PetTabCard({
           <PetSexMark sex={sexCode} style="round" className="mr-2" />
 
           {/* Status and date */}
-          <div className="text-gray-600 dark:text-gray-400 flex space-x-1 truncate text-sm">
+          <div className="text-slate-600 dark:text-slate-400 flex space-x-1 truncate text-sm">
             {/* Pet Status */}
             {pet.PetStatus && <span>{pet.PetStatus}</span>}
 
             {/* Date of Birth */}
             {formattedDate && (
               <>
-                {pet.PetStatus && <span className="text-gray-400">•</span>}
+                {pet.PetStatus && <span className="text-slate-400">•</span>}
                 <span>{formattedDate}</span>
               </>
             )}

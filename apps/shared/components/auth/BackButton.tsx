@@ -36,7 +36,7 @@ export function BackButton({
         onClick={handleClick}
         className={cn(
           "inline-flex items-center justify-center w-10 h-10 rounded-full",
-          "text-gray-600 hover:text-gray-900 hover:bg-gray-100",
+          "text-slate-600 hover:text-slate-900 hover:bg-slate-100",
           "transition-all duration-200 focus:outline-none focus:ring-2",
           "focus:ring-primary-500/20 focus:ring-offset-2",
           className
@@ -68,7 +68,7 @@ export function BackButton({
       onClick={handleClick}
       className={cn(
         "inline-flex items-center text-sm font-medium",
-        "text-gray-600 hover:text-gray-900",
+        "text-slate-600 hover:text-slate-900",
         "transition-colors duration-200",
         "focus:outline-none focus:ring-2 focus:ring-primary-500/20 rounded",
         className

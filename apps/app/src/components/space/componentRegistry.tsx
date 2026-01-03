@@ -32,7 +32,7 @@ export function clearRegistry() {
 // Default fallback component - will be replaced after registration
 export let FallbackComponent: React.ComponentType<any> = ({ entity }) => (
   <div className="p-4 border rounded">
-    <p className="text-gray-500">Component not found</p>
+    <p className="text-slate-500">Component not found</p>
     <pre className="text-xs mt-2">{JSON.stringify(entity, null, 2)}</pre>
   </div>
 );

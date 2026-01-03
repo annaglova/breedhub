@@ -21,9 +21,9 @@ export const getFieldStateClasses = (
   switch (state) {
     case "hover":
       return {
-        input: cn(baseInputClasses, "border-gray-400 hover:border-gray-500"),
-        icon: "text-gray-500",
-        label: "text-gray-700",
+        input: cn(baseInputClasses, "border-slate-400 hover:border-slate-500"),
+        icon: "text-slate-500",
+        label: "text-slate-700",
       };
 
     case "focus":
@@ -60,17 +60,17 @@ export const getFieldStateClasses = (
       return {
         input: cn(
           baseInputClasses,
-          "bg-gray-50 border-gray-200 text-gray-500 cursor-not-allowed"
+          "bg-slate-50 border-slate-200 text-slate-500 cursor-not-allowed"
         ),
-        icon: "text-gray-300",
-        label: "text-gray-400",
+        icon: "text-slate-300",
+        label: "text-slate-400",
       };
 
     default:
       return {
-        input: cn(baseInputClasses, "border-gray-300"),
-        icon: "text-gray-400",
-        label: "text-gray-700",
+        input: cn(baseInputClasses, "border-slate-300"),
+        icon: "text-slate-400",
+        label: "text-slate-700",
       };
   }
 };

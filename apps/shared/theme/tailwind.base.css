@@ -12,7 +12,7 @@
     --modal-card-ground: 248 250 252; /* slate 50 */
     --hover-card-ground: 241 245 249; /* slate 100 */
     --focus-card-ground: 237 231 246; /* primary 50 */
-    --footer-ground: 71 85 105; /* slate 600 */
+    --footer-ground: 203 213 225; /* slate 300 */
     --header-ground: 241 245 249; /* slate 100 */
     --hover-header-ground: 226 232 240; /* slate 200 */
     --surface-border: 226 232 240; /* slate 200 */
@@ -79,7 +79,7 @@
     --warning-950: 69 10 10; /* red-950 */
 
     /* Input state variables */
-    --input-border-default: #d1d5db; /* gray-300 */
+    --input-border-default: #d1d5db; /* slate-300 */
     --input-border-hover: rgb(var(--primary-500));
     --input-border-focus: rgb(var(--primary-500));
     --input-outline-width: 3px;
@@ -198,13 +198,13 @@
   }
 
   /* Force remove outline with higher specificity */
-  .flex.rounded-lg.bg-gray-100 button:focus,
-  .flex.rounded-lg.bg-gray-100 button:focus-visible {
+  .flex.rounded-lg.bg-slate-100 button:focus,
+  .flex.rounded-lg.bg-slate-100 button:focus-visible {
     outline: none !important;
   }
 
   /* Remove box-shadow from tab buttons */
-  .flex.rounded-lg.bg-gray-100 button {
+  .flex.rounded-lg.bg-slate-100 button {
     --tw-ring-offset-shadow: 0 0 transparent !important;
     --tw-ring-shadow: 0 0 transparent !important;
     --tw-shadow: 0 0 transparent !important;
@@ -212,10 +212,10 @@
   }
 
   /* Ensure shadow is removed in all states */
-  .flex.rounded-lg.bg-gray-100 button:focus,
-  .flex.rounded-lg.bg-gray-100 button:focus-visible,
-  .flex.rounded-lg.bg-gray-100 button:active,
-  .flex.rounded-lg.bg-gray-100 button:hover {
+  .flex.rounded-lg.bg-slate-100 button:focus,
+  .flex.rounded-lg.bg-slate-100 button:focus-visible,
+  .flex.rounded-lg.bg-slate-100 button:active,
+  .flex.rounded-lg.bg-slate-100 button:hover {
     --tw-ring-offset-shadow: 0 0 transparent !important;
     --tw-ring-shadow: 0 0 transparent !important;
     --tw-shadow: 0 0 transparent !important;
@@ -229,7 +229,7 @@
   input:-webkit-autofill:active {
     -webkit-transition: background-color 5000s ease-in-out 0s;
     transition: background-color 5000s ease-in-out 0s;
-    -webkit-text-fill-color: rgb(17 24 39) !important; /* gray-900 */
+    -webkit-text-fill-color: rgb(17 24 39) !important; /* slate-900 */
     font-weight: 500;
   }
 
@@ -239,7 +239,7 @@
     input:-webkit-autofill:hover,
     input:-webkit-autofill:focus,
     input:-webkit-autofill:active {
-      -webkit-text-fill-color: rgb(243 244 246) !important; /* gray-100 */
+      -webkit-text-fill-color: rgb(243 244 246) !important; /* slate-100 */
     }
   }
 

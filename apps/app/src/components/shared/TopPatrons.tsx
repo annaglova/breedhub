@@ -33,7 +33,7 @@ export function TopPatrons({
       {patrons.slice(0, maxDisplay).map((patron, index) => (
         <div
           key={index}
-          className="w-6 h-6 rounded-full flex items-center justify-center text-gray-600 dark:text-gray-200 text-[10px] border border-gray-300 dark:border-gray-400 font-semibold shadow-sm bg-gray-200 dark:bg-gray-700"
+          className="w-6 h-6 rounded-full flex items-center justify-center text-slate-600 dark:text-slate-200 text-[10px] border border-slate-300 dark:border-slate-400 font-semibold shadow-sm bg-slate-200 dark:bg-slate-700"
           style={{
             boxShadow: "0 0 0 1px rgba(255, 255, 255, 0.5)",
             backgroundImage: patron.avatar

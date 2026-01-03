@@ -112,9 +112,9 @@ export const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(
             onChange={handleChange}
             className={cn(
               "peer transition-all duration-200 pr-10",
-              props.disabled && "bg-gray-50 border-gray-200 text-gray-500 cursor-not-allowed",
+              props.disabled && "bg-slate-50 border-slate-200 text-slate-500 cursor-not-allowed",
               hasError && "border-red-500 hover:border-red-600 focus:border-red-500 focus:ring-2 focus:ring-red-500/20",
-              !hasError && !props.disabled && "border-gray-300 hover:border-gray-400 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20",
+              !hasError && !props.disabled && "border-slate-300 hover:border-slate-400 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20",
               showIcon && "pl-10",
               className
             )}
@@ -126,7 +126,7 @@ export const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(
           {showIcon && (
             <div className={cn(
               "absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none transition-colors z-10 top-0",
-              hasError ? "text-red-400 peer-focus:text-red-500" : "text-gray-400 peer-focus:text-primary-600 peer-hover:text-gray-500"
+              hasError ? "text-red-400 peer-focus:text-red-500" : "text-slate-400 peer-focus:text-primary-600 peer-hover:text-slate-500"
             )}>
               <Lock className="h-4 w-4" />
             </div>
@@ -136,9 +136,9 @@ export const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(
             onClick={handleToggleVisibility}
             className={cn(
               "absolute inset-y-0 right-0 pr-3 flex items-center transition-colors z-10",
-              "hover:text-gray-600 focus:outline-none rounded",
+              "hover:text-slate-600 focus:outline-none rounded",
               hasError ? "text-red-400 peer-focus:text-red-500" : 
-              "text-gray-400 peer-focus:text-primary-600"
+              "text-slate-400 peer-focus:text-primary-600"
             )}
             aria-label={showPassword ? "Hide password" : "Show password"}
             tabIndex={-1}
@@ -152,7 +152,7 @@ export const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(
         {showStrengthIndicator && value && (
           <div className="mt-2 space-y-1">
             <div className="flex items-center justify-between text-xs">
-              <span className="text-gray-600">Password strength:</span>
+              <span className="text-slate-600">Password strength:</span>
               {strength.label && (
                 <span className={cn(
                   "font-medium",
@@ -173,7 +173,7 @@ export const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(
                     "h-1 flex-1 rounded-full transition-colors",
                     level <= strength.score
                       ? strength.color
-                      : "bg-gray-200"
+                      : "bg-slate-200"
                   )}
                 />
               ))}
@@ -190,7 +190,7 @@ export const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(
             <div className={cn(
               "flex items-center gap-1 mb-1",
               "text-base font-medium transition-colors",
-              hasError ? "text-red-600" : "text-gray-700 group-focus-within:text-primary-600"
+              hasError ? "text-red-600" : "text-slate-700 group-focus-within:text-primary-600"
             )}>
               <span>{label}</span>
               {required && <span className="text-warning-500">*</span>}
@@ -204,7 +204,7 @@ export const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(
                 <span>{error}</span>
               </p>
             ) : !hasError && helperText ? (
-              <p className="text-gray-500 text-sm text-left">
+              <p className="text-slate-500 text-sm text-left">
                 {helperText}
               </p>
             ) : null}

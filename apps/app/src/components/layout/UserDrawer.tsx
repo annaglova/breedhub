@@ -24,12 +24,12 @@ export function UserDrawer({ isOpen, onClose }: UserDrawerProps) {
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b">
           <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
-              <User className="h-5 w-5 text-gray-600" />
+            <div className="h-10 w-10 rounded-full bg-slate-200 flex items-center justify-center">
+              <User className="h-5 w-5 text-slate-600" />
             </div>
             <div>
               <div className="font-semibold">Guest User</div>
-              <div className="text-sm text-gray-600">Not signed in</div>
+              <div className="text-sm text-slate-600">Not signed in</div>
             </div>
           </div>
           <Button
@@ -45,7 +45,7 @@ export function UserDrawer({ isOpen, onClose }: UserDrawerProps) {
         {/* Menu items */}
         <nav className="flex-1 p-4 overflow-y-auto">
           {loading ? (
-            <div className="text-center text-gray-500 py-4">Loading menu...</div>
+            <div className="text-center text-slate-500 py-4">Loading menu...</div>
           ) : (
             <div className="space-y-1">
               {menuItems.map((item, index) => {
@@ -53,7 +53,7 @@ export function UserDrawer({ isOpen, onClose }: UserDrawerProps) {
                   return (
                     <div
                       key={`sep-${index}`}
-                      className="my-3 border-t border-gray-200"
+                      className="my-3 border-t border-slate-200"
                     />
                   );
                 }
@@ -66,11 +66,11 @@ export function UserDrawer({ isOpen, onClose }: UserDrawerProps) {
                     onClick={onClose}
                     className={cn(
                       "flex items-center justify-between px-3 py-2 rounded-lg transition-colors",
-                      "hover:bg-gray-100"
+                      "hover:bg-slate-100"
                     )}
                   >
                     <div className="flex items-center gap-3">
-                      {Icon && <Icon className="h-5 w-5 text-gray-600" />}
+                      {Icon && <Icon className="h-5 w-5 text-slate-600" />}
                       <span>{item.label}</span>
                     </div>
                     {item.badge && (

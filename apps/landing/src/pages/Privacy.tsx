@@ -18,7 +18,7 @@ export default function Privacy() {
             {/* Page header */}
             <div className="relative space-y-3 text-center">
               <h1 className="text-white tracking-tight leading-tight">Privacy Policy</h1>
-              <p className="text-2xl text-gray-600 xl:text-white max-w-3xl mx-auto mt-2 tracking-wide leading-relaxed">
+              <p className="text-2xl text-slate-600 xl:text-white max-w-3xl mx-auto mt-2 tracking-wide leading-relaxed">
                 Your privacy is important to us. Learn how we collect, use, 
                 and protect your information when you use BreedHub
               </p>
@@ -29,7 +29,7 @@ export default function Privacy() {
                   <h2 className="text-2xl font-semibold mb-4 tracking-wide">
                     1. Introduction
                   </h2>
-                  <p className="text-gray-700 mb-4 leading-relaxed">
+                  <p className="text-slate-700 mb-4 leading-relaxed">
                     BreedHub ("we," "our," or "us") is committed to protecting
                     your privacy. This Privacy Policy explains how we collect,
                     use, disclose, and safeguard your information when you use
@@ -41,10 +41,10 @@ export default function Privacy() {
                   <h2 className="text-2xl font-semibold mb-4 tracking-wide">
                     2. Information We Collect
                   </h2>
-                  <p className="text-gray-700 mb-4 leading-relaxed">
+                  <p className="text-slate-700 mb-4 leading-relaxed">
                     We collect information you provide directly to us, such as:
                   </p>
-                  <ul className="list-disc pl-6 text-gray-700 mb-4">
+                  <ul className="list-disc pl-6 text-slate-700 mb-4">
                     <li>Account information (name, email, password)</li>
                     <li>
                       Profile information (kennel name, location, contact
@@ -59,11 +59,11 @@ export default function Privacy() {
                     </li>
                     <li>Communications between you and other users</li>
                   </ul>
-                  <p className="text-gray-700 mb-4 leading-relaxed">
+                  <p className="text-slate-700 mb-4 leading-relaxed">
                     We automatically collect certain information when you use
                     our platform:
                   </p>
-                  <ul className="list-disc pl-6 text-gray-700 mb-4">
+                  <ul className="list-disc pl-6 text-slate-700 mb-4">
                     <li>Log data (IP address, browser type, pages visited)</li>
                     <li>
                       Device information (hardware model, operating system)
@@ -79,10 +79,10 @@ export default function Privacy() {
                   <h2 className="text-2xl font-semibold mb-4 tracking-wide">
                     3. How We Use Your Information
                   </h2>
-                  <p className="text-gray-700 mb-4 leading-relaxed">
+                  <p className="text-slate-700 mb-4 leading-relaxed">
                     We use the information we collect to:
                   </p>
-                  <ul className="list-disc pl-6 text-gray-700 mb-4">
+                  <ul className="list-disc pl-6 text-slate-700 mb-4">
                     <li>Provide, maintain, and improve our services</li>
                     <li>Process transactions and send related information</li>
                     <li>
@@ -100,11 +100,11 @@ export default function Privacy() {
                   <h2 className="text-2xl font-semibold mb-4 tracking-wide">
                     4. Information Sharing and Disclosure
                   </h2>
-                  <p className="text-gray-700 mb-4 leading-relaxed">
+                  <p className="text-slate-700 mb-4 leading-relaxed">
                     We do not sell, trade, or rent your personal information. We
                     may share your information in the following situations:
                   </p>
-                  <ul className="list-disc pl-6 text-gray-700 mb-4">
+                  <ul className="list-disc pl-6 text-slate-700 mb-4">
                     <li>With your consent or at your direction</li>
                     <li>With service providers who assist in our operations</li>
                     <li>
@@ -126,7 +126,7 @@ export default function Privacy() {
                   <h2 className="text-2xl font-semibold mb-4 tracking-wide">
                     5. Data Security
                   </h2>
-                  <p className="text-gray-700 mb-4 leading-relaxed">
+                  <p className="text-slate-700 mb-4 leading-relaxed">
                     We implement appropriate technical and organizational
                     measures to protect your personal information against
                     unauthorized access, alteration, disclosure, or destruction.
@@ -139,8 +139,8 @@ export default function Privacy() {
                   <h2 className="text-2xl font-semibold mb-4 tracking-wide">
                     6. Your Rights and Choices
                   </h2>
-                  <p className="text-gray-700 mb-4 leading-relaxed">You have the right to:</p>
-                  <ul className="list-disc pl-6 text-gray-700 mb-4">
+                  <p className="text-slate-700 mb-4 leading-relaxed">You have the right to:</p>
+                  <ul className="list-disc pl-6 text-slate-700 mb-4">
                     <li>Access and receive a copy of your personal data</li>
                     <li>Update or correct your information</li>
                     <li>Delete your account and associated data</li>
@@ -155,7 +155,7 @@ export default function Privacy() {
                   <h2 className="text-2xl font-semibold mb-4 tracking-wide">
                     7. Children's Privacy
                   </h2>
-                  <p className="text-gray-700 mb-4 leading-relaxed">
+                  <p className="text-slate-700 mb-4 leading-relaxed">
                     BreedHub is not intended for children under 13 years of age.
                     We do not knowingly collect personal information from
                     children under 13. If we learn we have collected information
@@ -168,7 +168,7 @@ export default function Privacy() {
                   <h2 className="text-2xl font-semibold mb-4 tracking-wide">
                     8. International Data Transfers
                   </h2>
-                  <p className="text-gray-700 mb-4 leading-relaxed">
+                  <p className="text-slate-700 mb-4 leading-relaxed">
                     Your information may be transferred to and processed in
                     countries other than your country of residence. These
                     countries may have data protection laws different from those
@@ -181,7 +181,7 @@ export default function Privacy() {
                   <h2 className="text-2xl font-semibold mb-4 tracking-wide">
                     9. Changes to This Policy
                   </h2>
-                  <p className="text-gray-700 mb-4 leading-relaxed">
+                  <p className="text-slate-700 mb-4 leading-relaxed">
                     We may update this Privacy Policy from time to time. We will
                     notify you of any changes by posting the new Privacy Policy
                     on this page and updating the "Last updated" date.
@@ -192,11 +192,11 @@ export default function Privacy() {
                   <h2 className="text-2xl font-semibold mb-4 tracking-wide">
                     10. Contact Us
                   </h2>
-                  <p className="text-gray-700 leading-relaxed">
+                  <p className="text-slate-700 leading-relaxed">
                     If you have any questions about this Privacy Policy, please
                     contact us at:
                   </p>
-                  <p className="text-gray-700 mt-2">
+                  <p className="text-slate-700 mt-2">
                     Email:{" "}
                     <a
                       href="mailto:privacy@breedhub"
@@ -205,10 +205,10 @@ export default function Privacy() {
                       privacy@breedhub
                     </a>
                   </p>
-                  <p className="text-gray-700 leading-relaxed">Address: Breedhub, Ukraine</p>
+                  <p className="text-slate-700 leading-relaxed">Address: Breedhub, Ukraine</p>
                 </section>
               </div>
-              <p className="text-gray-500 text-sm text-center mt-8">
+              <p className="text-slate-500 text-sm text-center mt-8">
                 Last updated: {new Date().toLocaleDateString()}
               </p>
             </div>

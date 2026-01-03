@@ -119,7 +119,7 @@ export function EntityAvatar({
   return (
     <div className={`relative ${sizeClasses} ${className}`} style={sizeStyles}>
       {/* Avatar image */}
-      <div className="flex size-full items-center justify-center overflow-hidden rounded-full border border-gray-200 ring-4 ring-white">
+      <div className="flex size-full items-center justify-center overflow-hidden rounded-full border border-slate-200 ring-4 ring-white">
         <img
           className="size-full object-cover"
           src={imgSrc}

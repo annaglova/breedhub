@@ -350,7 +350,7 @@ export function TabPageTemplate({
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="text-center">
           <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-500 text-sm">Loading configuration...</p>
+          <p className="text-slate-500 text-sm">Loading configuration...</p>
         </div>
       </div>
     );
@@ -362,7 +362,7 @@ export function TabPageTemplate({
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="text-center">
           <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-500 text-sm">Loading entity...</p>
+          <p className="text-slate-500 text-sm">Loading entity...</p>
         </div>
       </div>
     );
@@ -373,9 +373,9 @@ export function TabPageTemplate({
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="text-center max-w-md mx-auto p-8">
-          <div className="text-6xl mb-4 text-gray-300">404</div>
-          <h1 className="text-xl font-bold text-gray-900 mb-2">Tab Not Found</h1>
-          <p className="text-gray-600 mb-6">
+          <div className="text-6xl mb-4 text-slate-300">404</div>
+          <h1 className="text-xl font-bold text-slate-900 mb-2">Tab Not Found</h1>
+          <p className="text-slate-600 mb-6">
             Tab "{tabSlug}" doesn't exist or is not available in fullscreen mode.
           </p>
           <button

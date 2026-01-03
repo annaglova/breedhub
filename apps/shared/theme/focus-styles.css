@@ -57,7 +57,7 @@ select:focus-visible {
   input:focus-visible,
   textarea:focus-visible,
   select:focus-visible {
-    @apply ring-primary-400 ring-offset-gray-900;
+    @apply ring-primary-400 ring-offset-slate-900;
   }
 }
 

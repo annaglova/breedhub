@@ -61,7 +61,7 @@ export function VerificationBadge({
         return "fill-destructive";
       case ON_VERIFICATION_STATUS_ID:
       default:
-        return "fill-gray-400";
+        return "fill-slate-400";
     }
   };
 

@@ -114,7 +114,7 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(
     const inputElement = (
       <div className="relative">
         {prefix && (
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
             <span className="select-none">{prefix}</span>
           </div>
         )}
@@ -133,7 +133,7 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(
           {...props}
         />
         {suffix && (
-          <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-gray-400">
+          <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
             <span className="select-none">{suffix}</span>
           </div>
         )}

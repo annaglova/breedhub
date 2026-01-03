@@ -44,7 +44,7 @@ const DropdownMenu: React.FC<DropdownMenuProps> = ({ label, items, icon }) => {
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
           "flex items-center space-x-1 px-4 py-2 text-sm font-medium rounded-md transition-colors duration-200",
-          "text-gray-700 hover:text-primary-600 hover:bg-gray-50"
+          "text-slate-700 hover:text-primary-600 hover:bg-slate-50"
         )}
       >
         {icon && <span className="h-4 w-4">{icon}</span>}
@@ -58,26 +58,26 @@ const DropdownMenu: React.FC<DropdownMenuProps> = ({ label, items, icon }) => {
       </button>
 
       {isOpen && (
-        <div className="absolute top-full right-0 mt-1 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
+        <div className="absolute top-full right-0 mt-1 w-56 bg-white rounded-lg shadow-lg border border-slate-200 py-2 z-50">
           {items.map((item) => (
             <Link
               key={item.to}
               to={item.to}
               onClick={() => setIsOpen(false)}
-              className="block px-4 py-2 hover:bg-gray-50 transition-colors"
+              className="block px-4 py-2 hover:bg-slate-50 transition-colors"
             >
               <div className="flex items-start space-x-3">
                 {item.icon && (
-                  <span className="h-5 w-5 text-gray-400 mt-0.5">
+                  <span className="h-5 w-5 text-slate-400 mt-0.5">
                     {item.icon}
                   </span>
                 )}
                 <div>
-                  <div className="text-sm font-medium text-gray-900">
+                  <div className="text-sm font-medium text-slate-900">
                     {item.label}
                   </div>
                   {item.description && (
-                    <div className="text-xs text-gray-500 mt-0.5">
+                    <div className="text-xs text-slate-500 mt-0.5">
                       {item.description}
                     </div>
                   )}
@@ -188,7 +188,7 @@ export default function LandingMenuAdvanced({
             : "bg-white/80 backdrop-blur-sm shadow-md"
         );
       default:
-        return cn(baseStyles, "bg-white border-b border-gray-200");
+        return cn(baseStyles, "bg-white border-b border-slate-200");
     }
   };
 
@@ -220,7 +220,7 @@ export default function LandingMenuAdvanced({
                     "px-4 py-2 text-sm font-medium rounded-md transition-colors duration-200",
                     location.pathname === "/pricing"
                       ? "text-primary-600 bg-primary-50"
-                      : "text-gray-700 hover:text-primary-600 hover:bg-gray-50"
+                      : "text-slate-700 hover:text-primary-600 hover:bg-slate-50"
                   )}
                 >
                   Pricing
@@ -316,7 +316,7 @@ export default function LandingMenuAdvanced({
                   "px-4 py-3 text-base font-medium rounded-md transition-colors duration-200",
                   location.pathname === item.to
                     ? "text-primary-600 bg-primary-50"
-                    : "text-gray-700 hover:text-primary-600 hover:bg-gray-50"
+                    : "text-slate-700 hover:text-primary-600 hover:bg-slate-50"
                 )}
               >
                 {item.label}
@@ -325,7 +325,7 @@ export default function LandingMenuAdvanced({
 
             {/* Mobile dropdown sections */}
             <div className="border-t pt-4 mt-4">
-              <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+              <div className="px-4 py-2 text-xs font-semibold text-slate-500 uppercase tracking-wider">
                 Product Features
               </div>
               {productDropdownItems.map((item) => (
@@ -333,7 +333,7 @@ export default function LandingMenuAdvanced({
                   key={item.to}
                   to={item.to}
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className="block px-4 py-2 text-sm text-gray-600 hover:text-primary-600"
+                  className="block px-4 py-2 text-sm text-slate-600 hover:text-primary-600"
                 >
                   {item.label}
                 </Link>
@@ -341,7 +341,7 @@ export default function LandingMenuAdvanced({
             </div>
 
             <div className="border-t pt-4 mt-4">
-              <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+              <div className="px-4 py-2 text-xs font-semibold text-slate-500 uppercase tracking-wider">
                 Resources
               </div>
               {resourcesDropdownItems.map((item) => (
@@ -349,7 +349,7 @@ export default function LandingMenuAdvanced({
                   key={item.to}
                   to={item.to}
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className="block px-4 py-2 text-sm text-gray-600 hover:text-primary-600"
+                  className="block px-4 py-2 text-sm text-slate-600 hover:text-primary-600"
                 >
                   {item.label}
                 </Link>

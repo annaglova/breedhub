@@ -58,12 +58,12 @@ export function SocialLoginButtons({
           onClick={() => handleSocialLogin("google", onGoogleLogin)}
           disabled={loadingProvider !== null}
           variant="outline"
-          className="w-full h-10 sm:h-12 text-sm sm:text-base font-medium border-gray-300 hover:bg-gray-50"
+          className="w-full h-10 sm:h-12 text-sm sm:text-base font-medium border-slate-300 hover:bg-slate-50"
         >
           {loadingProvider === "google" ? (
-            <Spinner className="mr-2 text-gray-600" />
+            <Spinner className="mr-2 text-slate-600" />
           ) : (
-            <div className="bg-gray-100 rounded-full w-6 h-6 flex items-center justify-center mr-2 shadow-sm p-1">
+            <div className="bg-slate-100 rounded-full w-6 h-6 flex items-center justify-center mr-2 shadow-sm p-1">
               <svg className="w-4 h-4" viewBox="0 0 24 24">
                 <path
                   fill="#4285F4"
@@ -92,7 +92,7 @@ export function SocialLoginButtons({
         <button
           onClick={() => handleSocialLogin("apple", onAppleLogin)}
           disabled={loadingProvider !== null}
-          className="w-full bg-black hover:bg-gray-900 text-white h-10 sm:h-12 text-sm sm:text-base font-medium rounded-md transition-all inline-flex items-center justify-center gap-2 disabled:pointer-events-none disabled:opacity-50"
+          className="w-full bg-black hover:bg-slate-900 text-white h-10 sm:h-12 text-sm sm:text-base font-medium rounded-md transition-all inline-flex items-center justify-center gap-2 disabled:pointer-events-none disabled:opacity-50"
         >
           {loadingProvider === "apple" ? (
             <Spinner className="mr-2" />

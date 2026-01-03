@@ -66,7 +66,7 @@ export function PasswordStrength({ password, className }: PasswordStrengthProps)
   return (
     <div className={cn("space-y-2", className)}>
       <div className="flex items-center justify-between">
-        <span className="text-sm text-gray-600">Password strength:</span>
+        <span className="text-sm text-slate-600">Password strength:</span>
         <span className={cn(
           "text-sm font-medium",
           strength === 0 && "text-red-600",
@@ -87,7 +87,7 @@ export function PasswordStrength({ password, className }: PasswordStrengthProps)
               "h-1 flex-1 rounded-full transition-all",
               i < strength
                 ? strengthColors[strength - 1]
-                : "bg-gray-200"
+                : "bg-slate-200"
             )}
           />
         ))}

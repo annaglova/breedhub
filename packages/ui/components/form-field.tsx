@@ -18,7 +18,7 @@ export const FormField = forwardRef<HTMLDivElement, FormFieldProps>(
     return (
       <div ref={ref} className={cn("group", className)}>
         {label && (
-          <Label className={cn("block text-base font-medium text-gray-700 mb-1", labelClassName)}>
+          <Label className={cn("block text-base font-medium text-slate-700 mb-1", labelClassName)}>
             {label}
             {required && <span className="text-warning-500 ml-1">*</span>}
           </Label>
@@ -48,7 +48,7 @@ export const FormField = forwardRef<HTMLDivElement, FormFieldProps>(
           ) : helperText ? (
             <p
               id={`${children.props.id}-helper`}
-              className="text-gray-500 text-sm text-left"
+              className="text-slate-500 text-sm text-left"
             >
               {helperText}
             </p>

@@ -65,24 +65,24 @@ export function TabNavigation({
     switch (variant) {
       case "pills":
         return {
-          container: "flex space-x-2 p-1 bg-gray-100 rounded-lg",
+          container: "flex space-x-2 p-1 bg-slate-100 rounded-lg",
           tab: "flex-1 py-2 px-4 text-sm font-medium rounded-md transition-all focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:ring-offset-2",
-          activeTab: "bg-white text-gray-900 shadow-sm",
-          inactiveTab: "text-gray-500 hover:text-gray-700",
+          activeTab: "bg-white text-slate-900 shadow-sm",
+          inactiveTab: "text-slate-500 hover:text-slate-700",
         };
       case "underline":
         return {
-          container: "flex border-b border-gray-200",
+          container: "flex border-b border-slate-200",
           tab: "py-2 px-4 text-sm font-medium border-b-2 transition-all focus:outline-none focus:ring-2 focus:ring-primary-500/20 rounded-t",
           activeTab: "border-primary-600 text-primary-600",
-          inactiveTab: "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300",
+          inactiveTab: "border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300",
         };
       default:
         return {
-          container: "flex rounded-lg bg-gray-100 p-[2px]",
+          container: "flex rounded-lg bg-slate-100 p-[2px]",
           tab: "flex-1 py-2.5 px-4 text-base font-medium rounded-md transition-all focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:ring-offset-2",
-          activeTab: "bg-white text-gray-900 shadow-sm",
-          inactiveTab: "text-gray-400 hover:text-gray-700",
+          activeTab: "bg-white text-slate-900 shadow-sm",
+          inactiveTab: "text-slate-400 hover:text-slate-700",
         };
     }
   };

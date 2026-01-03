@@ -49,7 +49,7 @@ export function AppLayout() {
   const mainHeight = screenHeight - topBarHeight - footerHeight;
 
   return (
-    <div className="layout-container bg-gray-100 flex flex-col h-screen">
+    <div className="layout-container bg-slate-100 flex flex-col h-screen">
       <LoadingBar />
 
       {/* Main wrapper with sidebar and content */}

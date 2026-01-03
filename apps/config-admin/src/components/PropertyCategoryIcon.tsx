@@ -21,7 +21,7 @@ export default function PropertyCategoryIcon({
   
   return (
     <Sparkles 
-      className={`text-gray-400 ${className}`}
+      className={`text-slate-400 ${className}`}
       title="Custom property"
     />
   );

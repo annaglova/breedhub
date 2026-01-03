@@ -125,7 +125,7 @@ export const TimeInput = forwardRef<HTMLInputElement, TimeInputProps>(
       <div className="relative" ref={dropdownRef}>
         <div className="relative">
           {showIcon && (
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
               <Clock className="h-4 w-4" />
             </div>
           )}
@@ -147,14 +147,14 @@ export const TimeInput = forwardRef<HTMLInputElement, TimeInputProps>(
         </div>
 
         {isOpen && !disabled && (
-          <div className="absolute z-50 mt-1 w-full bg-white border border-gray-200 rounded-md shadow-lg" style={{ maxHeight: '320px', overflowY: 'auto' }}>
+          <div className="absolute z-50 mt-1 w-full bg-white border border-slate-200 rounded-md shadow-lg" style={{ maxHeight: '320px', overflowY: 'auto' }}>
             {filteredOptions.map((option) => (
               <button
                 key={option.value}
                 type="button"
                 onClick={() => handleTimeSelect(option.value)}
                 className={cn(
-                  "w-full px-3 py-2 text-left hover:bg-gray-100 focus:bg-gray-100 focus:outline-none",
+                  "w-full px-3 py-2 text-left hover:bg-slate-100 focus:bg-slate-100 focus:outline-none",
                   inputValue === option.value && "bg-primary-50 text-primary-700"
                 )}
               >

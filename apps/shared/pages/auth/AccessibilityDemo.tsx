@@ -42,7 +42,7 @@ export default function AccessibilityDemo() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-slate-50">
       {/* Skip Links */}
       <SkipLinks 
         links={[
@@ -61,10 +61,10 @@ export default function AccessibilityDemo() {
       {/* Header */}
       <header className="bg-white shadow-sm">
         <div className="max-w-4xl mx-auto px-4 py-6">
-          <h1 className="text-3xl font-bold text-gray-900">
+          <h1 className="text-3xl font-bold text-slate-900">
             Accessibility Features Demo
           </h1>
-          <p className="mt-2 text-gray-600">
+          <p className="mt-2 text-slate-600">
             Testing auto-fill detection, skip links, and screen reader support
           </p>
         </div>
@@ -74,7 +74,7 @@ export default function AccessibilityDemo() {
       <main id="main-content" className="max-w-4xl mx-auto px-4 py-8">
         {/* Features Section */}
         <section id="features-section" className="mb-12">
-          <h2 className="text-2xl font-semibold text-gray-900 mb-6">
+          <h2 className="text-2xl font-semibold text-slate-900 mb-6">
             Implemented Features
           </h2>
           
@@ -85,11 +85,11 @@ export default function AccessibilityDemo() {
                 <div className="bg-blue-100 p-3 rounded-full">
                   <Eye className="w-6 h-6 text-blue-600" />
                 </div>
-                <h3 className="ml-3 text-lg font-medium text-gray-900">
+                <h3 className="ml-3 text-lg font-medium text-slate-900">
                   Auto-fill Detection
                 </h3>
               </div>
-              <ul className="space-y-2 text-sm text-gray-600">
+              <ul className="space-y-2 text-sm text-slate-600">
                 <li className="flex items-start">
                   <CheckCircle className="w-4 h-4 text-green-500 mr-2 mt-0.5" />
                   <span>Detects browser auto-fill</span>
@@ -111,11 +111,11 @@ export default function AccessibilityDemo() {
                 <div className="bg-purple-100 p-3 rounded-full">
                   <Keyboard className="w-6 h-6 text-purple-600" />
                 </div>
-                <h3 className="ml-3 text-lg font-medium text-gray-900">
+                <h3 className="ml-3 text-lg font-medium text-slate-900">
                   Skip Links
                 </h3>
               </div>
-              <ul className="space-y-2 text-sm text-gray-600">
+              <ul className="space-y-2 text-sm text-slate-600">
                 <li className="flex items-start">
                   <CheckCircle className="w-4 h-4 text-green-500 mr-2 mt-0.5" />
                   <span>Hidden by default</span>
@@ -137,11 +137,11 @@ export default function AccessibilityDemo() {
                 <div className="bg-green-100 p-3 rounded-full">
                   <Info className="w-6 h-6 text-green-600" />
                 </div>
-                <h3 className="ml-3 text-lg font-medium text-gray-900">
+                <h3 className="ml-3 text-lg font-medium text-slate-900">
                   Screen Reader
                 </h3>
               </div>
-              <ul className="space-y-2 text-sm text-gray-600">
+              <ul className="space-y-2 text-sm text-slate-600">
                 <li className="flex items-start">
                   <CheckCircle className="w-4 h-4 text-green-500 mr-2 mt-0.5" />
                   <span>ARIA live regions</span>
@@ -161,7 +161,7 @@ export default function AccessibilityDemo() {
 
         {/* Demo Form */}
         <section className="mb-12">
-          <h2 className="text-2xl font-semibold text-gray-900 mb-6">
+          <h2 className="text-2xl font-semibold text-slate-900 mb-6">
             Try It Out
           </h2>
           
@@ -177,7 +177,7 @@ export default function AccessibilityDemo() {
                   touched={true}
                   aria-describedby="email-help"
                 />
-                <p id="email-help" className="mt-2 text-sm text-gray-500">
+                <p id="email-help" className="mt-2 text-sm text-slate-500">
                   Tab through the page to see skip links, or use the test panel to inspect ARIA attributes.
                 </p>
               </div>
@@ -206,10 +206,10 @@ export default function AccessibilityDemo() {
 
         {/* Instructions */}
         <section className="bg-blue-50 rounded-lg p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">
+          <h2 className="text-lg font-semibold text-slate-900 mb-4">
             Testing Instructions
           </h2>
-          <ol className="space-y-3 text-sm text-gray-700">
+          <ol className="space-y-3 text-sm text-slate-700">
             <li>
               <strong>Skip Links:</strong> Press Tab when the page loads to reveal skip links
             </li>

@@ -20,7 +20,7 @@ export function BreedNameComponent() {
   
   return (
     <div className="flex items-center gap-3 px-4">
-      <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+      <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
         {breed.name}
       </h1>
       {breed.has_notes && (

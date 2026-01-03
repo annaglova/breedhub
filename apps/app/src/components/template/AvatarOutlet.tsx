@@ -92,15 +92,15 @@ export function AvatarOutlet({
         {/* Avatar skeleton - only if hasAvatar */}
         {hasAvatar && (
           <div
-            className={`rounded-full bg-gray-300 dark:bg-gray-600 ring-4 ring-white dark:ring-gray-900 shrink-0 animate-pulse ${avatarConfig.size}`}
+            className={`rounded-full bg-slate-300 dark:bg-slate-600 ring-4 ring-white dark:ring-slate-900 shrink-0 animate-pulse ${avatarConfig.size}`}
           />
         )}
 
         {/* Action buttons skeleton - only if hasActions */}
         {hasActions && (
           <div className="mb-1 ml-auto flex gap-2">
-            <div className="w-20 h-10 rounded-full bg-gray-200 dark:bg-gray-700 animate-pulse" />
-            <div className="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700 animate-pulse" />
+            <div className="w-20 h-10 rounded-full bg-slate-200 dark:bg-slate-700 animate-pulse" />
+            <div className="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-700 animate-pulse" />
           </div>
         )}
       </div>

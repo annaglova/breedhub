@@ -297,15 +297,15 @@ export const DropdownInput = forwardRef<HTMLInputElement, DropdownInputProps>(
               "peer cursor-pointer pr-10 transition-all duration-200",
               disabled &&
                 !disabledOnGray &&
-                "bg-gray-50 border-gray-200 text-gray-400 cursor-not-allowed",
+                "bg-slate-50 border-slate-200 text-slate-400 cursor-not-allowed",
               disabled &&
                 disabledOnGray &&
-                "bg-white/95 border-gray-300 text-gray-400 cursor-not-allowed",
+                "bg-white/95 border-slate-300 text-slate-400 cursor-not-allowed",
               hasError &&
                 "border-red-500 hover:border-red-600 focus:border-red-500 focus:ring-2 focus:ring-red-500/20",
               !hasError &&
                 !disabled &&
-                "border-gray-300 hover:border-gray-400 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20",
+                "border-slate-300 hover:border-slate-400 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20",
               className
             )}
             style={{ caretColor: "transparent" }}
@@ -317,14 +317,14 @@ export const DropdownInput = forwardRef<HTMLInputElement, DropdownInputProps>(
           <div
             className={cn(
               "absolute inset-y-0 right-0 pr-3 flex items-center transition-colors",
-              hasError ? "text-red-400" : "text-gray-400"
+              hasError ? "text-red-400" : "text-slate-400"
             )}
           >
             {value && !required ? (
               <button
                 type="button"
                 onClick={handleClear}
-                className="hover:text-gray-600 pointer-events-auto"
+                className="hover:text-slate-600 pointer-events-auto"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -342,14 +342,14 @@ export const DropdownInput = forwardRef<HTMLInputElement, DropdownInputProps>(
         {isOpen && (
           <div
             ref={dropdownListRef}
-            className="absolute z-50 mt-1 w-full bg-white border border-gray-200 rounded-md shadow-lg max-h-[40vh] overflow-auto text-base"
+            className="absolute z-50 mt-1 w-full bg-white border border-slate-200 rounded-md shadow-lg max-h-[40vh] overflow-auto text-base"
           >
             {loading && dynamicOptions.length === 0 ? (
-              <div className="px-3 py-2 text-gray-500 text-center">
+              <div className="px-3 py-2 text-slate-500 text-center">
                 Loading...
               </div>
             ) : !activeOptions || activeOptions.length === 0 ? (
-              <div className="px-3 py-2 text-gray-500 text-center">
+              <div className="px-3 py-2 text-slate-500 text-center">
                 No options available
               </div>
             ) : (
@@ -360,7 +360,7 @@ export const DropdownInput = forwardRef<HTMLInputElement, DropdownInputProps>(
                     onClick={() => handleSelect(option)}
                     className={cn(
                       "px-3 py-2 cursor-pointer transition-colors flex items-center justify-between",
-                      "hover:bg-gray-100",
+                      "hover:bg-slate-100",
                       option.disabled && "opacity-50 cursor-not-allowed",
                       option.value === value && "bg-primary-50 text-primary-700"
                     )}
@@ -375,13 +375,13 @@ export const DropdownInput = forwardRef<HTMLInputElement, DropdownInputProps>(
                   </div>
                 ))}
                 {loading && (
-                  <div className="px-3 py-2 text-center text-sm text-gray-500">
+                  <div className="px-3 py-2 text-center text-sm text-slate-500">
                     <span className="inline-block animate-spin mr-2">⏳</span>
                     Loading more...
                   </div>
                 )}
                 {!hasMore && activeOptions.length > 0 && (
-                  <div className="px-3 py-2 text-center text-sm text-gray-400">
+                  <div className="px-3 py-2 text-center text-sm text-slate-400">
                     No more results
                   </div>
                 )}
@@ -404,7 +404,7 @@ export const DropdownInput = forwardRef<HTMLInputElement, DropdownInputProps>(
             "transition-colors",
             hasError
               ? "text-red-600"
-              : "text-gray-700 group-focus-within:text-primary-600"
+              : "text-slate-700 group-focus-within:text-primary-600"
           )}
         >
           {selectElement}

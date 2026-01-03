@@ -159,12 +159,12 @@ export default function Payment() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
       <div className="max-w-2xl w-full">
         {isLoading && (
           <div className="text-center">
             <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500"></div>
-            <p className="mt-4 text-gray-600">Loading payment processor...</p>
+            <p className="mt-4 text-slate-600">Loading payment processor...</p>
           </div>
         )}
 
@@ -174,7 +174,7 @@ export default function Payment() {
               <AlertCircle className="w-12 h-12" />
             </div>
             <h2 className="text-2xl font-bold mb-2">Payment Error</h2>
-            <p className="text-gray-600 mb-6">{error}</p>
+            <p className="text-slate-600 mb-6">{error}</p>
             <button
               onClick={() => navigate(-1)}
               className="bg-primary-500 text-white px-6 py-3 rounded-lg hover:bg-primary-600 transition"
@@ -187,7 +187,7 @@ export default function Payment() {
         {!isLoading && !error && (
           <div className="bg-white rounded-lg shadow-lg p-8">
             <h2 className="text-2xl font-bold mb-4">Complete Your Payment</h2>
-            <div className="mb-6 text-gray-600">
+            <div className="mb-6 text-slate-600">
               <p><strong>Product:</strong> {product}</p>
               {!isGift && <p><strong>Billing:</strong> {getBillingPeriodText()}</p>}
               {product === "Supreme Patron" && customPrice && (
@@ -202,7 +202,7 @@ export default function Payment() {
             <div className="mt-6 text-center">
               <button
                 onClick={() => navigate(-1)}
-                className="text-gray-500 hover:text-gray-700 underline"
+                className="text-slate-500 hover:text-slate-700 underline"
               >
                 Cancel and go back
               </button>

@@ -120,7 +120,7 @@ export function SpacePage({ entityType, selectedEntityId, selectedSlug, tabSlug 
         <p className="text-red-600">
           Hook not found for entity type: {entityType}
         </p>
-        <p className="text-sm text-gray-500 mt-2">
+        <p className="text-sm text-slate-500 mt-2">
           Add hook to hookRegistry.ts
         </p>
       </div>

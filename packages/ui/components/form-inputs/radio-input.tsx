@@ -68,7 +68,7 @@ export const RadioInput = forwardRef<HTMLDivElement, RadioInputProps>(
                 {option.label}
               </Label>
               {option.description && (
-                <p className="text-sm text-gray-500 mt-1">{option.description}</p>
+                <p className="text-sm text-slate-500 mt-1">{option.description}</p>
               )}
             </div>
           </div>

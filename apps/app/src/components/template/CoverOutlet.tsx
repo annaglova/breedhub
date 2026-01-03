@@ -138,15 +138,15 @@ export function CoverOutlet({
         style={coverStyle}
       >
         {/* Background skeleton */}
-        <div className="absolute inset-0 bg-gray-200 dark:bg-gray-700 animate-pulse" />
+        <div className="absolute inset-0 bg-slate-200 dark:bg-slate-700 animate-pulse" />
 
         {/* Top gradient overlay (same as real cover) */}
-        <div className="absolute top-0 z-10 h-28 w-full bg-gradient-to-b from-gray-300/40 to-transparent dark:from-gray-600/40" />
+        <div className="absolute top-0 z-10 h-28 w-full bg-gradient-to-b from-slate-300/40 to-transparent dark:from-slate-600/40" />
 
         {/* Navigation buttons placeholder */}
         <div className="absolute top-4 right-6 z-40 flex gap-2">
-          <div className="w-8 h-8 rounded-full bg-gray-300/50 dark:bg-gray-600/50" />
-          <div className="w-8 h-8 rounded-full bg-gray-300/50 dark:bg-gray-600/50" />
+          <div className="w-8 h-8 rounded-full bg-slate-300/50 dark:bg-slate-600/50" />
+          <div className="w-8 h-8 rounded-full bg-slate-300/50 dark:bg-slate-600/50" />
         </div>
       </div>
     );
@@ -175,7 +175,7 @@ export function CoverOutlet({
   return (
     <div
       ref={containerRef}
-      className={`relative flex justify-center overflow-hidden rounded-lg border border-gray-200 px-6 pt-4 shadow-sm sm:pb-3 sm:pt-6 mb-6 ${className}`}
+      className={`relative flex justify-center overflow-hidden rounded-lg border border-slate-200 px-6 pt-4 shadow-sm sm:pb-3 sm:pt-6 mb-6 ${className}`}
       style={coverStyle}
     >
       {/* Top gradient overlay */}

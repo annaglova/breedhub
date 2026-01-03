@@ -72,11 +72,11 @@ export function EnhancedSocialLoginButtons({
           disabled={loadingProvider !== null}
           className={cn(
             buttonBaseClass,
-            "bg-white border-2 border-gray-200 hover:border-gray-300 text-gray-700"
+            "bg-white border-2 border-slate-200 hover:border-slate-300 text-slate-700"
           )}
         >
           {loadingProvider === "google" ? (
-            <Spinner className="w-5 h-5 text-gray-600" />
+            <Spinner className="w-5 h-5 text-slate-600" />
           ) : (
             <>
               <svg className="w-5 h-5" viewBox="0 0 24 24">
@@ -111,7 +111,7 @@ export function EnhancedSocialLoginButtons({
           disabled={loadingProvider !== null}
           className={cn(
             buttonBaseClass,
-            "bg-black hover:bg-gray-900 text-white"
+            "bg-black hover:bg-slate-900 text-white"
           )}
         >
           {loadingProvider === "apple" ? (

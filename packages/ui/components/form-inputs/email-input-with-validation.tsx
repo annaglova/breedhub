@@ -146,11 +146,11 @@ export const EmailInputWithValidation = forwardRef<HTMLInputElement, EmailInputW
           data-autofilled={isAutoFilled ? "true" : undefined}
           className={cn(
             "peer transition-all duration-200 pl-10",
-            props.disabled && "bg-gray-50 border-gray-200 text-gray-500 cursor-not-allowed",
+            props.disabled && "bg-slate-50 border-slate-200 text-slate-500 cursor-not-allowed",
             hasError && "border-red-500 hover:border-red-600 focus:border-red-500 focus:ring-2 focus:ring-red-500/20",
             isDisposable && "border-yellow-500 hover:border-yellow-600 focus:border-yellow-500 focus:ring-2 focus:ring-yellow-500/20",
             isAutoFilled && "!bg-blue-50 !border-blue-300",
-            !hasError && !props.disabled && "border-gray-300 hover:border-gray-400 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20",
+            !hasError && !props.disabled && "border-slate-300 hover:border-slate-400 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20",
             className
           )}
           autoComplete="email"
@@ -164,7 +164,7 @@ export const EmailInputWithValidation = forwardRef<HTMLInputElement, EmailInputW
           "absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none transition-colors z-10 top-0",
           hasError ? "text-red-400 peer-focus:text-red-500" :
           isDisposable ? "text-yellow-500 peer-focus:text-yellow-600" :
-          "text-gray-400 peer-focus:text-primary-600 peer-hover:text-gray-500"
+          "text-slate-400 peer-focus:text-primary-600 peer-hover:text-slate-500"
         )}>
           {icon || defaultIcon}
         </div>
@@ -172,7 +172,7 @@ export const EmailInputWithValidation = forwardRef<HTMLInputElement, EmailInputW
         {/* Status indicators */}
         <div className="absolute inset-y-0 right-0 pr-3 flex items-center z-10">
           {isValidating && (
-            <Loader2 className="h-4 w-4 text-gray-400 animate-spin" />
+            <Loader2 className="h-4 w-4 text-slate-400 animate-spin" />
           )}
           {!isValidating && isDisposable && (
             <TooltipProvider>
@@ -223,7 +223,7 @@ export const EmailInputWithValidation = forwardRef<HTMLInputElement, EmailInputW
             "transition-colors",
             hasError ? "text-red-600" :
             isDisposable ? "text-yellow-600" :
-            "text-gray-700 group-focus-within:text-primary-600"
+            "text-slate-700 group-focus-within:text-primary-600"
           )}
         >
           {inputElement}

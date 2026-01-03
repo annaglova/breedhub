@@ -153,7 +153,7 @@ export function ScreenReaderTestPanel({
             {/* Currently Focused */}
             {focusedElement && (
               <div className="p-4 border-b">
-                <h3 className="font-medium text-gray-900 mb-2">Currently Focused</h3>
+                <h3 className="font-medium text-slate-900 mb-2">Currently Focused</h3>
                 <div className="bg-blue-50 p-3 rounded-md text-sm">
                   <p className="font-mono text-xs text-blue-900">
                     {focusedElement.tagName.toLowerCase()}
@@ -171,7 +171,7 @@ export function ScreenReaderTestPanel({
 
             {/* Live Announcements */}
             <div className="p-4 border-b">
-              <h3 className="font-medium text-gray-900 mb-2">Live Announcements</h3>
+              <h3 className="font-medium text-slate-900 mb-2">Live Announcements</h3>
               {announcements.length > 0 ? (
                 <div className="space-y-2">
                   {announcements.map((announcement, index) => (
@@ -181,13 +181,13 @@ export function ScreenReaderTestPanel({
                   ))}
                 </div>
               ) : (
-                <p className="text-sm text-gray-500">No announcements yet</p>
+                <p className="text-sm text-slate-500">No announcements yet</p>
               )}
             </div>
 
             {/* ARIA Elements */}
             <div className="p-4">
-              <h3 className="font-medium text-gray-900 mb-2">
+              <h3 className="font-medium text-slate-900 mb-2">
                 ARIA Elements ({ariaElements.length})
               </h3>
               <div className="space-y-2">
@@ -197,18 +197,18 @@ export function ScreenReaderTestPanel({
                     <button
                       key={index}
                       onClick={() => highlightElement(element)}
-                      className="w-full text-left p-2 bg-gray-50 hover:bg-gray-100 rounded-md transition-colors"
+                      className="w-full text-left p-2 bg-slate-50 hover:bg-slate-100 rounded-md transition-colors"
                     >
-                      <div className="text-sm font-mono text-gray-700">
+                      <div className="text-sm font-mono text-slate-700">
                         {element.tagName.toLowerCase()}
                         {element.id && <span className="text-purple-600">#{element.id}</span>}
                       </div>
                       {label && (
-                        <div className="text-xs text-gray-600 truncate">
+                        <div className="text-xs text-slate-600 truncate">
                           {label}
                         </div>
                       )}
-                      <div className="text-xs text-gray-500 mt-1">
+                      <div className="text-xs text-slate-500 mt-1">
                         {Object.entries(info).map(([key, value]) => (
                           <span key={key} className="mr-2">
                             {key}="{value}"
@@ -223,10 +223,10 @@ export function ScreenReaderTestPanel({
           </div>
 
           {/* Footer */}
-          <div className="border-t p-4 bg-gray-50">
+          <div className="border-t p-4 bg-slate-50">
             <div className="flex items-start space-x-2">
               <Info className="w-4 h-4 text-blue-600 mt-0.5" />
-              <div className="text-xs text-gray-600">
+              <div className="text-xs text-slate-600">
                 <p>This panel helps test screen reader compatibility.</p>
                 <p className="mt-1">Click elements to highlight them on the page.</p>
               </div>

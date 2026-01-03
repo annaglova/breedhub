@@ -31,9 +31,9 @@ export function TestDictionaryPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-6 px-4">
+    <div className="min-h-screen bg-slate-50 py-6 px-4">
       <div className="max-w-2xl mx-auto">
-        <h1 className="text-2xl font-bold text-gray-900 mb-4">
+        <h1 className="text-2xl font-bold text-slate-900 mb-4">
           Dictionary & Filtering Test
         </h1>
 
@@ -49,7 +49,7 @@ export function TestDictionaryPage() {
               value={coatColorDropdown}
               onValueChange={setCoatColorDropdown}
             />
-            <p className="mt-1 text-xs text-gray-500">
+            <p className="mt-1 text-xs text-slate-500">
               DropdownInput → DictionaryStore.getDictionary() with ID-First
             </p>
           </div>
@@ -65,7 +65,7 @@ export function TestDictionaryPage() {
               value={coatColorLookup}
               onValueChange={setCoatColorLookup}
             />
-            <p className="mt-1 text-xs text-gray-500">
+            <p className="mt-1 text-xs text-slate-500">
               LookupInput → DictionaryStore.getDictionary() with search + scroll
             </p>
           </div>
@@ -82,7 +82,7 @@ export function TestDictionaryPage() {
               value={breed}
               onValueChange={setBreed}
             />
-            <p className="mt-1 text-xs text-gray-500">
+            <p className="mt-1 text-xs text-slate-500">
               Uses SpaceStore.applyFilters() → RxDB first, then Supabase
             </p>
           </div>
@@ -92,7 +92,7 @@ export function TestDictionaryPage() {
             <button
               onClick={testApplyFilters}
               disabled={filterLoading}
-              className="w-full px-4 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:bg-gray-400 font-medium"
+              className="w-full px-4 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:bg-slate-400 font-medium"
             >
               {filterLoading ? '🔄 Searching...' : '🧪 Test applyFilters: name="golden"'}
             </button>
@@ -104,7 +104,7 @@ export function TestDictionaryPage() {
                 </p>
                 <ul className="text-xs space-y-1 max-h-32 overflow-y-auto">
                   {filterResults.map((record, i) => (
-                    <li key={record.id || i} className="text-gray-700">
+                    <li key={record.id || i} className="text-slate-700">
                       • {record.name || record.id}
                     </li>
                   ))}
@@ -114,7 +114,7 @@ export function TestDictionaryPage() {
           </div>
 
           {/* Console hint */}
-          <p className="text-xs text-gray-500 text-center pt-2">
+          <p className="text-xs text-slate-500 text-center pt-2">
             💡 Open browser console to see [SpaceStore] logs
           </p>
         </div>

@@ -221,7 +221,7 @@ const AvatarWithStatus = React.forwardRef<
     <div className="relative inline-block">
       <Avatar ref={ref} size={size} className={className} {...props}>
         {src && <AvatarImage src={src} alt={alt || name || "Avatar"} />}
-        <AvatarFallback size={size} className="bg-gray-200 text-gray-600">
+        <AvatarFallback size={size} className="bg-slate-200 text-slate-600">
           {name ? getInitials(name) : (
             <User className="h-1/2 w-1/2" />
           )}
@@ -230,10 +230,10 @@ const AvatarWithStatus = React.forwardRef<
       {showStatus && (
         <span
           className={cn(
-            "absolute rounded-full border-2 border-gray-100",
+            "absolute rounded-full border-2 border-slate-100",
             statusSizeClasses[size || 'default'],
             statusPositionClasses[statusPosition],
-            isOnline ? "bg-green-500" : "bg-gray-400"
+            isOnline ? "bg-green-500" : "bg-slate-400"
           )}
           aria-label={isOnline ? "Online" : "Offline"}
         />

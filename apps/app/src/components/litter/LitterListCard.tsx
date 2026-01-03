@@ -108,14 +108,14 @@ export function LitterListCard({
 
           {/* Info row */}
           <div className="flex items-center">
-            <div className="text-sm text-gray-600 dark:text-gray-400 flex space-x-1 truncate">
+            <div className="text-sm text-slate-600 dark:text-slate-400 flex space-x-1 truncate">
               {/* Status */}
               {litter.Status && <span>{litter.Status}</span>}
 
               {/* Kennel */}
               {litter.KennelName && (
                 <>
-                  {litter.Status && <span className="text-gray-400">•</span>}
+                  {litter.Status && <span className="text-slate-400">•</span>}
                   <span>{litter.KennelName}</span>
                 </>
               )}
@@ -124,7 +124,7 @@ export function LitterListCard({
               {formattedDate && (
                 <>
                   {(litter.Status || litter.KennelName) && (
-                    <span className="text-gray-400">•</span>
+                    <span className="text-slate-400">•</span>
                   )}
                   <span>{formattedDate}</span>
                 </>

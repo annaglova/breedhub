@@ -20,7 +20,7 @@ export default function RegistryLayout({
   contentClassName = ''
 }: RegistryLayoutProps) {
   return (
-    <div className="h-full bg-gray-50 p-4 overflow-hidden">
+    <div className="h-full bg-slate-50 p-4 overflow-hidden">
       <div className="max-w-7xl mx-auto h-full">
         <div className={`bg-white rounded-lg shadow-md p-6 h-[calc(100vh-7rem)] flex flex-col ${className}`}>
           <WorkspaceHeader {...headerProps} />

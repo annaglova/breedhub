@@ -82,8 +82,8 @@ export function Sidebar({
                   to={item.path}
                   className={cn(
                     "flex items-center gap-3 px-3 py-2 rounded-lg transition-colors",
-                    "text-gray-900 hover:bg-gray-200",
-                    isActive && "bg-gray-200 font-semibold",
+                    "text-slate-900 hover:bg-slate-200",
+                    isActive && "bg-slate-200 font-semibold",
                     isCollapsed && "justify-center"
                   )}
                   onClick={onClose}
@@ -93,7 +93,7 @@ export function Sidebar({
                     size={20}
                     className={cn(
                       "flex-shrink-0",
-                      isActive ? "text-gray-600" : "text-gray-400"
+                      isActive ? "text-slate-600" : "text-slate-400"
                     )}
                   />
                   {!isCollapsed && <span>{item.label}</span>}

@@ -55,7 +55,7 @@ export const Footer = forwardRef<HTMLElement, FooterProps>(
         )}
       >
         {/* Copyright text - only on sm+ */}
-        <span className="hidden sm:inline text-sm text-white">
+        <span className="hidden sm:inline text-sm text-secondary">
           Breedhub © {currentYear}
         </span>
 
@@ -76,18 +76,14 @@ export const Footer = forwardRef<HTMLElement, FooterProps>(
                   className={cn(
                     "flex items-center justify-center",
                     "w-12 h-10 rounded-lg transition-colors",
-                    isActive
-                      ? "bg-white/20"
-                      : "hover:bg-white/10"
+                    isActive ? "bg-white/20" : "hover:bg-white/10"
                   )}
                   aria-label={item.label}
                 >
                   <Icon
                     icon={item.icon}
                     size={22}
-                    className={cn(
-                      isActive ? "text-white" : "text-white/60"
-                    )}
+                    className={cn(isActive ? "text-white" : "text-white/60")}
                   />
                 </Link>
               );

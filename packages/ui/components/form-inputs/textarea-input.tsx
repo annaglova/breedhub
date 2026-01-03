@@ -47,7 +47,7 @@ export const TextareaInput = forwardRef<HTMLTextAreaElement, TextareaInputProps>
         {showCharCount && (
           <div className="mt-1 text-right text-sm">
             <span className={cn(
-              "text-gray-500",
+              "text-slate-500",
               isOverLimit && "text-red-500"
             )}>
               {charCount}

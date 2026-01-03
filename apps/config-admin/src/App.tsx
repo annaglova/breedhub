@@ -16,7 +16,7 @@ function Navigation() {
         className={`flex items-center gap-2 px-3 py-2 rounded-md transition-colors ${
           location.pathname === '/' 
             ? 'bg-blue-50 text-blue-600' 
-            : 'text-gray-600 hover:bg-gray-50'
+            : 'text-slate-600 hover:bg-slate-50'
         }`}
       >
         <Tag className="w-4 h-4" />
@@ -27,7 +27,7 @@ function Navigation() {
         className={`flex items-center gap-2 px-3 py-2 rounded-md transition-colors ${
           location.pathname === '/templates' 
             ? 'bg-blue-50 text-blue-600' 
-            : 'text-gray-600 hover:bg-gray-50'
+            : 'text-slate-600 hover:bg-slate-50'
         }`}
       >
         <FileText className="w-4 h-4" />
@@ -38,7 +38,7 @@ function Navigation() {
         className={`flex items-center gap-2 px-3 py-2 rounded-md transition-colors ${
           location.pathname === '/app-config' 
             ? 'bg-blue-50 text-blue-600' 
-            : 'text-gray-600 hover:bg-gray-50'
+            : 'text-slate-600 hover:bg-slate-50'
         }`}
       >
         <Package className="w-4 h-4" />
@@ -51,7 +51,7 @@ function Navigation() {
 function App() {
   return (
     <Router>
-      <div className="h-screen bg-gray-50 overflow-hidden flex flex-col">
+      <div className="h-screen bg-slate-50 overflow-hidden flex flex-col">
         {/* Header */}
         <header className="bg-white border-b">
           <div className="container mx-auto px-6 py-4">

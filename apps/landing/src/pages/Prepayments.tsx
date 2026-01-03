@@ -77,13 +77,13 @@ export default function Prepayments() {
               <LogoWhite className="h-10 w-auto" />
             </Link>
             <nav className="hidden md:flex items-center space-x-8">
-              <Link to="/product" className="text-gray-700 hover:text-primary-500 transition">
+              <Link to="/product" className="text-slate-700 hover:text-primary-500 transition">
                 Product
               </Link>
-              <Link to="/pricing" className="text-gray-700 hover:text-primary-500 transition">
+              <Link to="/pricing" className="text-slate-700 hover:text-primary-500 transition">
                 Pricing
               </Link>
-              <Link to="/about" className="text-gray-700 hover:text-primary-500 transition">
+              <Link to="/about" className="text-slate-700 hover:text-primary-500 transition">
                 About
               </Link>
             </nav>
@@ -98,7 +98,7 @@ export default function Prepayments() {
                 <h1 className="text-4xl md:text-5xl font-bold mb-4">
                   Choose Your Breed
                 </h1>
-                <p className="text-xl text-gray-600">
+                <p className="text-xl text-slate-600">
                   Select the breed you want to support with your subscription
                 </p>
               </div>
@@ -107,7 +107,7 @@ export default function Prepayments() {
                 <div className="mb-6">
                   <label 
                     htmlFor="breed-select" 
-                    className="block text-sm font-medium text-gray-700 mb-2"
+                    className="block text-sm font-medium text-slate-700 mb-2"
                   >
                     Select a breed <span className="text-red-500">*</span>
                   </label>
@@ -117,7 +117,7 @@ export default function Prepayments() {
                     onChange={handleBreedChange}
                     className={`
                       w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500
-                      ${formError ? 'border-red-500' : 'border-gray-300'}
+                      ${formError ? 'border-red-500' : 'border-slate-300'}
                     `}
                   >
                     <option value="">-- Select a breed --</option>
@@ -153,7 +153,7 @@ export default function Prepayments() {
               <div className="text-center mb-8">
                 <button
                   onClick={handleBackToBreedSelection}
-                  className="text-gray-500 hover:text-gray-700 mb-4 inline-flex items-center"
+                  className="text-slate-500 hover:text-slate-700 mb-4 inline-flex items-center"
                 >
                   <ArrowLeft className="inline-block w-4 h-4 mr-2" />
                   Back to breed selection
@@ -161,7 +161,7 @@ export default function Prepayments() {
                 <h1 className="text-4xl md:text-5xl font-bold mb-4">
                   Choose Your Plan
                 </h1>
-                <p className="text-xl text-gray-600">
+                <p className="text-xl text-slate-600">
                   Supporting: <span className="font-semibold text-primary-500">{selectedBreedName}</span>
                 </p>
               </div>

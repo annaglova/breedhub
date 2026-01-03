@@ -58,8 +58,8 @@ export function SimpleCaptcha({ onVerify, className }: SimpleCaptchaProps) {
   }
 
   return (
-    <div className={cn("p-4 bg-gray-50 border border-gray-200 rounded-lg", className)}>
-      <p className="text-sm font-medium text-gray-700 mb-3">
+    <div className={cn("p-4 bg-slate-50 border border-slate-200 rounded-lg", className)}>
+      <p className="text-sm font-medium text-slate-700 mb-3">
         Please solve this simple math problem to continue:
       </p>
       <div className="flex items-center gap-3">
@@ -85,7 +85,7 @@ export function SimpleCaptcha({ onVerify, className }: SimpleCaptchaProps) {
         <button
           type="button"
           onClick={generateQuestion}
-          className="text-sm text-gray-500 hover:text-gray-700"
+          className="text-sm text-slate-500 hover:text-slate-700"
           title="Generate new question"
         >
           <RefreshCw className="w-4 h-4" />

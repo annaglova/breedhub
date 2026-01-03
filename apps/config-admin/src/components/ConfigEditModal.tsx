@@ -60,7 +60,7 @@ export default function ConfigEditModal({
           {/* Config ID (if editable) */}
           {allowEditId && (
             <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-slate-700 mb-1">
                 Config ID
               </label>
               <input
@@ -79,9 +79,9 @@ export default function ConfigEditModal({
               {showTags && !hideCaption ? (
                 /* Tags field for properties - takes priority over caption */
                 <>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-slate-700 mb-1">
                     Tags
-                    <span className="text-xs text-gray-500 ml-2">
+                    <span className="text-xs text-slate-500 ml-2">
                       (comma-separated, e.g., field, string)
                     </span>
                   </label>
@@ -96,7 +96,7 @@ export default function ConfigEditModal({
               ) : !hideCaption ? (
                 /* Caption field for non-property configs */
                 <>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-slate-700 mb-1">
                     Caption
                   </label>
                   <input
@@ -110,9 +110,9 @@ export default function ConfigEditModal({
               ) : showTags ? (
                 /* Only tags for properties when caption is hidden */
                 <>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-slate-700 mb-1">
                     Tags
-                    <span className="text-xs text-gray-500 ml-2">
+                    <span className="text-xs text-slate-500 ml-2">
                       (comma-separated, e.g., field, string)
                     </span>
                   </label>
@@ -127,7 +127,7 @@ export default function ConfigEditModal({
               ) : null}
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-slate-700 mb-1">
                 Version
               </label>
               <input
@@ -143,7 +143,7 @@ export default function ConfigEditModal({
           {/* Data Field (Override Data or Self Data) - Hidden for grouping configs */}
           {!hideOverrideData && (
             <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-slate-700 mb-1">
                 {dataFieldLabel}
               </label>
               <textarea
@@ -170,7 +170,7 @@ export default function ConfigEditModal({
         <div className="px-6 py-4 border-t flex justify-end gap-2">
           <button
             onClick={onClose}
-            className="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
+            className="px-4 py-2 text-slate-700 bg-slate-100 rounded-md hover:bg-slate-200"
           >
             Cancel
           </button>

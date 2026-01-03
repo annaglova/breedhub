@@ -227,7 +227,7 @@ export default function SignIn() {
           {/* Content */}
           <div className="relative z-10 flex flex-1 items-start sm:items-center justify-center px-0 sm:px-6 pb-4 sm:pb-8 pt-2 sm:pt-4">
             <div className="w-full sm:max-w-md animate-scaleIn">
-              <div className="bg-transparent sm:bg-white rounded-none sm:rounded-xl sm:shadow-xl p-4 sm:p-6 lg:p-8 sm:border sm:border-gray-100">
+              <div className="bg-transparent sm:bg-white rounded-none sm:rounded-xl sm:shadow-xl p-4 sm:p-6 lg:p-8 sm:border sm:border-slate-100">
                 {/* Icon */}
                 <div className="mx-auto flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-purple-100 shadow-sm mb-3 sm:mb-4">
                   <User className="w-5 h-5 sm:w-6 sm:h-6 text-purple-600" />
@@ -235,10 +235,10 @@ export default function SignIn() {
 
                 {/* Compact Header */}
                 <div className="text-center mb-4 sm:mb-6">
-                  <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-gray-900">
+                  <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">
                     Welcome back!
                   </h1>
-                  <p className="mt-1 text-sm text-gray-700">
+                  <p className="mt-1 text-sm text-slate-700">
                     Sign in to continue
                   </p>
                 </div>
@@ -277,7 +277,7 @@ export default function SignIn() {
                         onAppleLogin={() => handleSocialLogin("apple")}
                       />
 
-                      <p className="text-center text-sm text-gray-500 pt-5">
+                      <p className="text-center text-sm text-slate-500 pt-5">
                         Secure, one-click sign in
                       </p>
                     </div>
@@ -343,7 +343,7 @@ export default function SignIn() {
                               />
                               <label
                                 htmlFor="remember"
-                                className="ml-2 text-sm text-gray-700 cursor-pointer"
+                                className="ml-2 text-sm text-slate-700 cursor-pointer"
                               >
                                 Remember me
                               </label>
@@ -371,7 +371,7 @@ export default function SignIn() {
                 </div>
 
                 {/* Sign up link */}
-                <p className="mt-6 text-center text-sm sm:text-base text-gray-700">
+                <p className="mt-6 text-center text-sm sm:text-base text-slate-700">
                   Don't have an account?{" "}
                   <Link
                     to="/sign-up"

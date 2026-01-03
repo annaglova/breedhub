@@ -41,7 +41,7 @@ export const configTypes: Record<string, ConfigTypeInfo> = {
   view: { name: "View", icon: Grid, color: "text-yellow-600" },
   page: { name: "Page", icon: File, color: "text-orange-600" },
   block: { name: "Block", icon: Box, color: "text-violet-600" },
-  sort: { name: "Sort Config", icon: Settings, color: "text-gray-600" },
+  sort: { name: "Sort Config", icon: Settings, color: "text-slate-600" },
   filter: { name: "Filter Config", icon: Filter, color: "text-cyan-600" },
   fields: { name: "Fields Config", icon: List, color: "text-indigo-600" },
   tab: { name: "Tab", icon: Layers, color: "text-pink-600" },

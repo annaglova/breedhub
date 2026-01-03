@@ -44,7 +44,7 @@
 /* Removed problematic border-border class */
 
 body {
-  @apply bg-white text-gray-900;
+  @apply bg-white text-slate-900;
   margin: 0;
   min-width: 320px;
   min-height: 100vh;

@@ -40,8 +40,8 @@ export function CustomDropdown({ value, options, onChange, className }: CustomDr
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
           "flex items-center justify-between",
-          "bg-white border border-gray-300 rounded-md",
-          "px-3 py-2 text-base font-medium text-gray-700",
+          "bg-white border border-slate-300 rounded-md",
+          "px-3 py-2 text-base font-medium text-slate-700",
           "cursor-pointer transition-all",
           "hover:border-primary-500 focus:border-primary-500",
           "focus:outline-none focus:ring-2 focus:ring-primary-500/20",
@@ -56,7 +56,7 @@ export function CustomDropdown({ value, options, onChange, className }: CustomDr
       </button>
       
       {isOpen && (
-        <div className="absolute z-10 mt-1 w-full bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto">
+        <div className="absolute z-10 mt-1 w-full bg-white border border-slate-300 rounded-md shadow-lg max-h-60 overflow-auto">
           {options.map((option) => (
             <button
               key={option.value}
@@ -64,7 +64,7 @@ export function CustomDropdown({ value, options, onChange, className }: CustomDr
               onClick={() => handleSelect(option.value)}
               className={cn(
                 "w-full px-3 py-2 text-left text-base",
-                "hover:bg-gray-100 transition-colors",
+                "hover:bg-slate-100 transition-colors",
                 value === option.value && "bg-primary-50 text-primary-700 font-medium"
               )}
             >

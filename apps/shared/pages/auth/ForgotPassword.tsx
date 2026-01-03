@@ -100,7 +100,7 @@ export default function ForgotPassword() {
         <AuthHeader 
           rightContent={
             <div className="flex items-center gap-4">
-              <span className="hidden text-gray-700 sm:block">Return to</span>
+              <span className="hidden text-slate-700 sm:block">Return to</span>
               <AuthButton to="/sign-in">
                 Login page
               </AuthButton>
@@ -111,7 +111,7 @@ export default function ForgotPassword() {
         {/* Content */}
         <div className="relative z-10 flex flex-1 items-start sm:items-center justify-center px-0 sm:px-6 pb-4 sm:pb-8 pt-2 sm:pt-4">
           <div className="w-full sm:max-w-md animate-scaleIn">
-            <div className="bg-transparent sm:bg-white rounded-none sm:rounded-xl sm:shadow-xl p-4 sm:p-6 lg:p-8 sm:border sm:border-gray-100">
+            <div className="bg-transparent sm:bg-white rounded-none sm:rounded-xl sm:shadow-xl p-4 sm:p-6 lg:p-8 sm:border sm:border-slate-100">
             {!isSuccess ? (
               <>
                 {/* Icon */}
@@ -121,10 +121,10 @@ export default function ForgotPassword() {
 
                 {/* Title */}
                 <div className="text-center mb-4 sm:mb-6">
-                  <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-gray-900">
+                  <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">
                     Forgot password?
                   </h1>
-                  <p className="mt-1 text-sm text-gray-700">
+                  <p className="mt-1 text-sm text-slate-700">
                     Fill the form to reset your password
                   </p>
                 </div>
@@ -166,7 +166,7 @@ export default function ForgotPassword() {
                 </AuthFormWrapper>
 
                 {/* Back to login link */}
-                <p className="mt-6 text-center text-sm sm:text-base text-gray-700">
+                <p className="mt-6 text-center text-sm sm:text-base text-slate-700">
                   Remember your password?{" "}
                   <Link
                     to="/sign-in"
@@ -195,19 +195,19 @@ export default function ForgotPassword() {
                       />
                     </svg>
                   </div>
-                  <h2 className="mt-3 sm:mt-4 text-xl sm:text-2xl font-bold text-gray-900">
+                  <h2 className="mt-3 sm:mt-4 text-xl sm:text-2xl font-bold text-slate-900">
                     Check your email
                   </h2>
-                  <p className="mt-1 sm:mt-2 text-sm sm:text-base text-gray-700">
+                  <p className="mt-1 sm:mt-2 text-sm sm:text-base text-slate-700">
                     Password reset sent! You'll receive an email if you are registered on our system.
                   </p>
-                  <p className="mt-1 text-sm sm:text-base text-gray-500">
+                  <p className="mt-1 text-sm sm:text-base text-slate-500">
                     Sent to: {watchEmail}
                   </p>
                 </div>
 
                 <Link to="/sign-in">
-                  <Button className="mt-6 sm:mt-8 w-full h-12 bg-white hover:bg-gray-50 border border-gray-300 text-gray-700 text-base font-semibold rounded-xl transition-all">
+                  <Button className="mt-6 sm:mt-8 w-full h-12 bg-white hover:bg-slate-50 border border-slate-300 text-slate-700 text-base font-semibold rounded-xl transition-all">
                     Back to sign in
                   </Button>
                 </Link>

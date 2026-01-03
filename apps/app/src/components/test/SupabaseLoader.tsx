@@ -116,7 +116,7 @@ export const SupabaseLoader: React.FC = () => {
           <span className={`px-3 py-1 rounded ${
             connectionStatus === 'connected' ? 'bg-green-100 text-green-700' :
             connectionStatus === 'error' ? 'bg-red-100 text-red-700' :
-            'bg-gray-100 text-gray-700'
+            'bg-slate-100 text-slate-700'
           }`}>
             {connectionStatus}
           </span>
@@ -210,7 +210,7 @@ export const SupabaseLoader: React.FC = () => {
           <button
             onClick={disableRealtime}
             disabled={loading}
-            className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 disabled:opacity-50"
+            className="px-4 py-2 bg-slate-500 text-white rounded hover:bg-slate-600 disabled:opacity-50"
           >
             Disable All Realtime
           </button>
@@ -224,18 +224,18 @@ export const SupabaseLoader: React.FC = () => {
             {selectedEntity} Data ({entityData.length} records)
           </h3>
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+            <table className="min-w-full divide-y divide-slate-200">
+              <thead className="bg-slate-50">
                 <tr>
-                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
                     Name
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody className="bg-white divide-y divide-slate-200">
                 {entityData.slice(0, 10).map((item, idx) => (
                   <tr key={idx}>
-                    <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">
+                    <td className="px-4 py-2 whitespace-nowrap text-sm text-slate-900">
                       {item.name || 'No name'}
                     </td>
                   </tr>

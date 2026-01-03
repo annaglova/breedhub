@@ -114,9 +114,9 @@ export function SlugResolver() {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="text-center max-w-md mx-auto p-8">
-          <div className="text-8xl mb-4 text-gray-300">404</div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Page Not Found</h1>
-          <p className="text-gray-600 mb-6">{error}</p>
+          <div className="text-8xl mb-4 text-slate-300">404</div>
+          <h1 className="text-2xl font-bold text-slate-900 mb-2">Page Not Found</h1>
+          <p className="text-slate-600 mb-6">{error}</p>
           <button
             onClick={() => navigate('/')}
             className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
@@ -134,7 +134,7 @@ export function SlugResolver() {
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="text-center">
           <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-500 text-sm">Resolving...</p>
+          <p className="text-slate-500 text-sm">Resolving...</p>
         </div>
       </div>
     );

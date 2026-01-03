@@ -211,7 +211,7 @@ export default function Product() {
               <h1 className="text-white tracking-tight leading-tight">
                 Everything You Need for Professional Breeding
               </h1>
-              <p className="text-2xl text-gray-600 xl:text-white max-w-3xl mx-auto mt-2 tracking-wide leading-relaxed">
+              <p className="text-2xl text-slate-600 xl:text-white max-w-3xl mx-auto mt-2 tracking-wide leading-relaxed">
                 Discover the comprehensive suite of tools designed to streamline
                 your breeding program, connect with the community, and grow your
                 kennel's success
@@ -223,7 +223,7 @@ export default function Product() {
               {isLoading ? (
                 <div className="text-center py-20">
                   <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500"></div>
-                  <p className="mt-4 text-gray-600">Loading features...</p>
+                  <p className="mt-4 text-slate-600">Loading features...</p>
                 </div>
               ) : (
                 <div className="space-y-16">
@@ -322,7 +322,7 @@ export default function Product() {
               <h3 className="text-xl font-bold mb-2 tracking-wide">
                 Secure & Private
               </h3>
-              <p className="text-gray-600 leading-relaxed">
+              <p className="text-slate-600 leading-relaxed">
                 Your data is protected with enterprise-grade security. Control
                 who sees what.
               </p>
@@ -334,7 +334,7 @@ export default function Product() {
               <h3 className="text-xl font-bold mb-2 tracking-wide">
                 Mobile Ready
               </h3>
-              <p className="text-gray-600 leading-relaxed">
+              <p className="text-slate-600 leading-relaxed">
                 Access your data anywhere with our mobile-optimized progressive
                 web app.
               </p>
@@ -346,7 +346,7 @@ export default function Product() {
               <h3 className="text-xl font-bold mb-2 tracking-wide">
                 Community Driven
               </h3>
-              <p className="text-gray-600 leading-relaxed">
+              <p className="text-slate-600 leading-relaxed">
                 Built by breeders, for breeders. Your feedback shapes our
                 development.
               </p>

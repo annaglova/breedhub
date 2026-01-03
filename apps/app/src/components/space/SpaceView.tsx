@@ -57,7 +57,7 @@ function getViewClasses(viewType: string, dividers: boolean, columns: number) {
   return {
     container: cn(
       "virtual-space-view h-full overflow-auto",
-      dividers && !isGrid && "divide-y divide-gray-200"
+      dividers && !isGrid && "divide-y divide-slate-200"
     ),
     gridRow: isGrid ? cn("grid px-4 py-3", gridColsClass) : "",
     listItem: !isGrid ? "" : "",
@@ -157,7 +157,7 @@ export function SpaceView<T extends { id: string }>({
             }}
             className="flex items-center justify-center"
           >
-            <div className="text-gray-500">Loading more...</div>
+            <div className="text-slate-500">Loading more...</div>
           </div>
         );
       }
@@ -279,7 +279,7 @@ export function SpaceView<T extends { id: string }>({
           paddingBottom: "var(--content-padding-bottom, 0)",
         }}
       >
-        <div className="text-center text-gray-500">
+        <div className="text-center text-slate-500">
           {searchQuery ? (
             <p>No results for "{searchQuery}"</p>
           ) : (

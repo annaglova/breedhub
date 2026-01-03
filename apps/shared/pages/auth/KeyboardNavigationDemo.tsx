@@ -8,15 +8,15 @@ export default function KeyboardNavigationDemo() {
   const [activeTab, setActiveTab] = useState("instructions");
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
+    <div className="min-h-screen bg-slate-50 p-8">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="mb-8">
           <BackButton to="/sign-in" className="mb-4" />
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+          <h1 className="text-3xl font-bold text-slate-900 mb-2">
             Keyboard Navigation Demo
           </h1>
-          <p className="text-gray-600">
+          <p className="text-slate-600">
             Test keyboard navigation features for accessibility
           </p>
         </div>
@@ -26,10 +26,10 @@ export default function KeyboardNavigationDemo() {
           <div className="flex items-start space-x-3 mb-4">
             <Keyboard className="w-5 h-5 text-blue-500 mt-0.5" />
             <div>
-              <h2 className="text-lg font-semibold text-gray-900 mb-2">
+              <h2 className="text-lg font-semibold text-slate-900 mb-2">
                 Keyboard Shortcuts
               </h2>
-              <ul className="space-y-2 text-sm text-gray-600">
+              <ul className="space-y-2 text-sm text-slate-600">
                 <li className="flex items-center">
                   <ArrowLeft className="w-4 h-4 mr-2" />
                   <span><kbd>←</kbd> Arrow Left: Navigate to previous tab</span>
@@ -53,7 +53,7 @@ export default function KeyboardNavigationDemo() {
 
         {/* Tab Navigation Demo */}
         <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">
+          <h3 className="text-lg font-semibold text-slate-900 mb-4">
             Tab Navigation Example
           </h3>
           
@@ -77,10 +77,10 @@ export default function KeyboardNavigationDemo() {
                 aria-labelledby="tab-instructions"
                 className="space-y-4"
               >
-                <p className="text-gray-600">
+                <p className="text-slate-600">
                   Try using your keyboard to navigate between tabs:
                 </p>
-                <ol className="list-decimal list-inside space-y-2 text-gray-600">
+                <ol className="list-decimal list-inside space-y-2 text-slate-600">
                   <li>Click on any tab to focus it</li>
                   <li>Use arrow keys (← →) to switch between tabs</li>
                   <li>The focused tab will be highlighted with a focus ring</li>
@@ -96,7 +96,7 @@ export default function KeyboardNavigationDemo() {
                 aria-labelledby="tab-demo"
                 className="space-y-4"
               >
-                <p className="text-gray-600 mb-4">
+                <p className="text-slate-600 mb-4">
                   This is a demo of keyboard-accessible tab navigation.
                 </p>
                 <div className="flex space-x-4">
@@ -113,7 +113,7 @@ export default function KeyboardNavigationDemo() {
                 aria-labelledby="tab-code"
                 className="space-y-4"
               >
-                <pre className="bg-gray-900 text-gray-100 p-4 rounded-md overflow-x-auto text-sm">
+                <pre className="bg-slate-900 text-slate-100 p-4 rounded-md overflow-x-auto text-sm">
 {`<TabNavigation
   tabs={[
     { id: "tab1", label: "Tab 1" },

@@ -68,12 +68,12 @@ export function TabCardSkeletonGrid({ count = 6 }: TabCardSkeletonGridProps) {
           className="flex flex-col h-[280px] p-3 rounded-md animate-pulse"
         >
           {/* Image skeleton */}
-          <div className="relative h-[206px] rounded-xl bg-gray-200 dark:bg-gray-700" />
+          <div className="relative h-[206px] rounded-xl bg-slate-200 dark:bg-slate-700" />
 
           {/* Content skeleton */}
           <div className="w-full p-2 space-y-2">
-            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded-full w-3/4" />
-            <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded-full w-1/2" />
+            <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded-full w-3/4" />
+            <div className="h-3 bg-slate-200 dark:bg-slate-700 rounded-full w-1/2" />
           </div>
         </div>
       ))}

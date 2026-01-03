@@ -19,7 +19,7 @@ export default function About() {
             {/* Page header */}
             <div className="relative space-y-3 text-center">
               <h1 className="text-white tracking-tight leading-tight">Hello, from the Breedhub team!</h1>
-              <p className="text-2xl text-gray-600 xl:text-white max-w-3xl mx-auto mt-2 tracking-wide leading-relaxed">
+              <p className="text-2xl text-slate-600 xl:text-white max-w-3xl mx-auto mt-2 tracking-wide leading-relaxed">
                 We're passionate breeders and developers united by a common
                 mission - making professional breeding accessible and enjoyable
                 for everyone

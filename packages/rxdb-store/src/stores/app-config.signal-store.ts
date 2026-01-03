@@ -1481,7 +1481,7 @@ class AppConfigStore {
     if (data.includes('primary')) return 'text-purple-600';
     if (data.includes('unique')) return 'text-blue-600';
     if (data.includes('maxLength')) return 'text-green-600';
-    return 'text-gray-600';
+    return 'text-slate-600';
   }
   
   // Get property border color for cards
@@ -1496,7 +1496,7 @@ class AppConfigStore {
     if (data.includes('primary')) return 'border-purple-200 bg-purple-50';
     if (data.includes('unique')) return 'border-blue-200 bg-blue-50';
     if (data.includes('maxLength')) return 'border-green-200 bg-green-50';
-    return 'border-gray-200 bg-gray-50';
+    return 'border-slate-200 bg-slate-50';
   }
   
   // Get field display name

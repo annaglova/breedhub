@@ -278,8 +278,8 @@ export function PublicPageTemplate({
       <div
         className={cn(
           "size-full flex flex-col content-padding",
-          isDrawerMode && "bg-white dark:bg-gray-900",
-          isFullscreenMode && "min-h-screen bg-white dark:bg-gray-900",
+          isDrawerMode && "bg-white dark:bg-slate-900",
+          isFullscreenMode && "min-h-screen bg-white dark:bg-slate-900",
           className
         )}
       >
@@ -434,7 +434,7 @@ export function PublicPageTemplate({
   ) : (
     <div className="p-8 text-center">
       <p className="text-red-600">Space configuration signal is required</p>
-      <p className="text-sm text-gray-500 mt-2">
+      <p className="text-sm text-slate-500 mt-2">
         Make sure spaceConfigSignal is passed to PublicPageTemplate
       </p>
     </div>

@@ -26,14 +26,14 @@ export function ProgressIndicator({
     return (
       <div className={cn("w-full", className)}>
         <div className="flex justify-between mb-2">
-          <span className="text-sm font-medium text-gray-700">
+          <span className="text-sm font-medium text-slate-700">
             Step {currentIndex + 1} of {steps.length}
           </span>
-          <span className="text-sm text-gray-500">
+          <span className="text-sm text-slate-500">
             {Math.round(progress)}% complete
           </span>
         </div>
-        <div className="w-full bg-gray-200 rounded-full h-2">
+        <div className="w-full bg-slate-200 rounded-full h-2">
           <div
             className="bg-primary-600 h-2 rounded-full transition-all duration-300"
             style={{ width: `${progress}%` }}
@@ -53,7 +53,7 @@ export function ProgressIndicator({
               "h-2 w-2 rounded-full transition-all duration-300",
               step.status === "completed" ? "bg-primary-600 w-8" :
               step.status === "current" ? "bg-primary-600 w-8 animate-pulse" :
-              "bg-gray-300"
+              "bg-slate-300"
             )}
             aria-label={`Step ${index + 1}: ${step.label} - ${step.status}`}
           />
@@ -82,7 +82,7 @@ export function ProgressIndicator({
                     ? "bg-primary-600 border-primary-600 text-white"
                     : step.status === "current"
                     ? "border-primary-600 text-primary-600 bg-white"
-                    : "border-gray-300 text-gray-400 bg-white"
+                    : "border-slate-300 text-slate-400 bg-white"
                 )}
               >
                 {step.status === "completed" ? (
@@ -96,14 +96,14 @@ export function ProgressIndicator({
                   className={cn(
                     "text-sm font-medium transition-colors duration-300",
                     step.status === "completed" || step.status === "current"
-                      ? "text-gray-900"
-                      : "text-gray-400"
+                      ? "text-slate-900"
+                      : "text-slate-400"
                   )}
                 >
                   {step.label}
                 </p>
                 {step.description && (
-                  <p className="text-xs text-gray-500 mt-0.5">
+                  <p className="text-xs text-slate-500 mt-0.5">
                     {step.description}
                   </p>
                 )}
@@ -115,7 +115,7 @@ export function ProgressIndicator({
                   "flex-1 h-0.5 mx-4 transition-all duration-300",
                   steps[index + 1].status !== "upcoming"
                     ? "bg-primary-600"
-                    : "bg-gray-300"
+                    : "bg-slate-300"
                 )}
               />
             )}
