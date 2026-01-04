@@ -3,6 +3,7 @@ import { registerComponent, setFallbackComponent } from './space/componentRegist
 // Import all card components
 import { BreedListCard } from './breed/BreedListCard';
 import { ContactListCard } from './contact/ContactListCard';
+import { EventListCard } from './event/EventListCard';
 import { KennelListCard } from './kennel/KennelListCard';
 import { LitterListCard } from './litter/LitterListCard';
 import { PetListCard } from './pet/PetListCard';
@@ -24,6 +25,9 @@ export function registerAllComponents() {
 
   // Contact components
   registerComponent('ContactListCard', ContactListCard);
+
+  // Event components
+  registerComponent('EventListCard', EventListCard);
 
   // Kennel components
   registerComponent('KennelListCard', KennelListCard);
