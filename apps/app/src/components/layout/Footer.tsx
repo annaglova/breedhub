@@ -30,6 +30,15 @@ export const Footer = forwardRef<HTMLElement, FooterProps>(
       return icon;
     };
 
+    // Helper to get space slugs from workspace config
+    const getSpaceSlugs = (spaces: any): string[] => {
+      if (!spaces) return [];
+      const spacesArray = Array.isArray(spaces) ? spaces : Object.values(spaces);
+      return spacesArray
+        .map((space: any) => space?.slug)
+        .filter((slug): slug is string => typeof slug === 'string');
+    };
+
     // Sort workspaces by order parameter
     const navItems = workspaces
       .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
@@ -38,6 +47,7 @@ export const Footer = forwardRef<HTMLElement, FooterProps>(
         icon: normalizeIcon(workspace.icon),
         label: workspace.label,
         path: workspace.path,
+        spaceSlugs: getSpaceSlugs(workspace.spaces),
       }));
 
     const currentYear = new Date().getFullYear();
@@ -65,16 +75,12 @@ export const Footer = forwardRef<HTMLElement, FooterProps>(
             <span className="text-red-400 text-xs">Error</span>
           ) : (
             navItems.map((item) => {
-              // Home workspace is active for breeds, pets, kennels, litters, contacts, events
+              // Workspace is active if path matches OR if current path matches any of its space slugs
               const isActive =
                 location.pathname === item.path ||
-                (item.path === "/" &&
-                  (location.pathname.startsWith("/breeds") ||
-                   location.pathname.startsWith("/pet") ||
-                   location.pathname.startsWith("/kennel") ||
-                   location.pathname.startsWith("/litter") ||
-                   location.pathname.startsWith("/contact") ||
-                   location.pathname.startsWith("/event")));
+                item.spaceSlugs.some((slug: string) =>
+                  location.pathname.startsWith(`/${slug}`)
+                );
 
               return (
                 <Link

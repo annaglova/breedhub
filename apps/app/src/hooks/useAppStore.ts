@@ -52,13 +52,22 @@ export function useAppWorkspaces() {
  */
 export function useCurrentWorkspace(pathname: string) {
   const { workspaces } = useAppWorkspaces();
-  
+
+  // Helper to get space slugs from workspace config
+  const getSpaceSlugs = (spaces: any): string[] => {
+    if (!spaces) return [];
+    const spacesArray = Array.isArray(spaces) ? spaces : Object.values(spaces);
+    return spacesArray
+      .map((space: any) => space?.slug)
+      .filter((slug): slug is string => typeof slug === 'string');
+  };
+
   // Find workspace that matches the current path
   const currentWorkspace = workspaces.find(w => {
     if (w.path === pathname) return true;
-    // Handle nested paths (e.g., /breeds/xxx matches home workspace)
-    if (w.path === '/' && pathname.startsWith('/breeds')) return true;
-    return false;
+    // Check if pathname matches any of workspace's space slugs
+    const spaceSlugs = getSpaceSlugs(w.spaces);
+    return spaceSlugs.some(slug => pathname.startsWith(`/${slug}`));
   });
 
   return currentWorkspace;

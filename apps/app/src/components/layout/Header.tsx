@@ -48,6 +48,15 @@ export const Header = forwardRef<HTMLElement, HeaderProps>(
     return icon;
   };
 
+  // Helper to get space slugs from workspace config
+  const getSpaceSlugs = (spaces: any): string[] => {
+    if (!spaces) return [];
+    const spacesArray = Array.isArray(spaces) ? spaces : Object.values(spaces);
+    return spacesArray
+      .map((space: any) => space?.slug)
+      .filter((slug): slug is string => typeof slug === 'string');
+  };
+
   // Sort workspaces by order parameter, then map to navigation items
   const navItems = workspaces
     .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
@@ -55,7 +64,8 @@ export const Header = forwardRef<HTMLElement, HeaderProps>(
       id: workspace.id,
       icon: normalizeIcon(workspace.icon),
       label: workspace.label,
-      path: workspace.path
+      path: workspace.path,
+      spaceSlugs: getSpaceSlugs(workspace.spaces)
     }));
 
   return (
@@ -98,16 +108,12 @@ export const Header = forwardRef<HTMLElement, HeaderProps>(
                 ) : (
                   // Always show workspaces (either default or from DB)
                   navItems.map((item) => {
-                    // Home workspace is active for breeds, pets, kennels, litters, contacts, events
+                    // Workspace is active if path matches OR if current path matches any of its space slugs
                     const isActive =
                       location.pathname === item.path ||
-                      (item.path === "/" &&
-                        (location.pathname.startsWith("/breeds") ||
-                         location.pathname.startsWith("/pet") ||
-                         location.pathname.startsWith("/kennel") ||
-                         location.pathname.startsWith("/litter") ||
-                         location.pathname.startsWith("/contact") ||
-                         location.pathname.startsWith("/event")));
+                      item.spaceSlugs.some((slug: string) =>
+                        location.pathname.startsWith(`/${slug}`)
+                      );
 
                     return (
                       <Tooltip key={item.id}>
