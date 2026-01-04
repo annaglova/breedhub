@@ -1239,11 +1239,11 @@ export function SpaceComponent<T extends { id: string }>({
                   className={cn(
                     "rounded-full font-bold flex-shrink-0",
                     needCardClass
-                      ? "h-10 px-4"
-                      : "w-10 h-10 flex items-center justify-center"
+                      ? "h-[2.25rem] px-4"
+                      : "h-[2.25rem] w-[2.25rem] flex items-center justify-center"
                   )}
                 >
-                  <Plus className="h-5 w-5 flex-shrink-0" />
+                  <Plus className="h-4 w-4 flex-shrink-0" />
                   {needCardClass && (
                     <span className="text-base font-semibold">Add</span>
                   )}
@@ -1375,11 +1375,11 @@ export function SpaceComponent<T extends { id: string }>({
                       className={cn(
                         "rounded-full font-bold flex-shrink-0",
                         needCardClass
-                          ? "h-10 px-4"
-                          : "w-10 h-10 flex items-center justify-center"
+                          ? "h-[2.25rem] px-4"
+                          : "h-[2.25rem] w-[2.25rem] flex items-center justify-center"
                       )}
                     >
-                      <Plus className="h-5 w-5 flex-shrink-0" />
+                      <Plus className="h-4 w-4 flex-shrink-0" />
                       {needCardClass && (
                         <span className="text-base font-semibold">Add</span>
                       )}
