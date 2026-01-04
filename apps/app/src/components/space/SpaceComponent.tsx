@@ -1,9 +1,13 @@
 import { mediaQueries } from "@/config/breakpoints";
-import { SpaceConfig } from "@/core/space/types";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
-import { getDatabase, spaceStore, routeStore, extractFieldName } from "@breedhub/rxdb-store";
-import { useSignals } from "@preact/signals-react/runtime";
+import {
+  extractFieldName,
+  getDatabase,
+  routeStore,
+  spaceStore,
+} from "@breedhub/rxdb-store";
 import { Signal } from "@preact/signals-react";
+import { useSignals } from "@preact/signals-react/runtime";
 import { Button } from "@ui/components/button";
 import { SearchInput } from "@ui/components/form-inputs";
 import {
@@ -76,7 +80,7 @@ export function SpaceComponent<T extends { id: string }>({
   // Get default view from app_config (isDefault: true)
   const defaultView = useMemo(() => {
     if (!spaceStore.configReady.value || !config) {
-      return 'list'; // Default fallback
+      return "list"; // Default fallback
     }
     return spaceStore.getDefaultView(config.entitySchemaName);
   }, [config, config?.entitySchemaName, spaceStore.configReady.value]);
@@ -105,13 +109,15 @@ export function SpaceComponent<T extends { id: string }>({
   // Check if current view is a grid-like view (tab, grid, cards, etc.)
   // Grid views don't have selection/drawer - clicking goes directly to fullscreen
   const isGridView = useMemo(() => {
-    const gridTypes = ['grid', 'cards', 'tiles', 'masonry', 'tab'];
+    const gridTypes = ["grid", "cards", "tiles", "masonry", "tab"];
     return gridTypes.includes(viewMode.toLowerCase());
   }, [viewMode]);
 
   // Get selected entity ID from EntityStore as reactive signal
   // Using .value makes the component re-render when selection changes
-  const selectedEntityId = spaceStore.getSelectedIdSignal(config.entitySchemaName).value;
+  const selectedEntityId = spaceStore.getSelectedIdSignal(
+    config.entitySchemaName
+  ).value;
 
   // Get records count from view config (динамічно!)
   const recordsCount = useMemo(() => {
@@ -291,7 +297,12 @@ export function SpaceComponent<T extends { id: string }>({
       newParams.set("sort", selectedSortOption.id);
       setSearchParams(newParams, { replace: true }); // replace to not add history entry
     }
-  }, [searchParams, setSearchParams, selectedSortOption, initialSelectedEntityId]);
+  }, [
+    searchParams,
+    setSearchParams,
+    selectedSortOption,
+    initialSelectedEntityId,
+  ]);
 
   // 🆕 Apply saved filters from localStorage on initial load (if no filters in URL)
   const hasAppliedSavedFilters = useRef(false);
@@ -321,7 +332,10 @@ export function SpaceComponent<T extends { id: string }>({
     try {
       const savedFilters = localStorage.getItem(filtersStorageKey);
       if (savedFilters) {
-        const parsedFilters = JSON.parse(savedFilters) as Record<string, string>;
+        const parsedFilters = JSON.parse(savedFilters) as Record<
+          string,
+          string
+        >;
 
         // Apply saved filters to URL (convert IDs to labels)
         const applyFilters = async () => {
@@ -337,7 +351,12 @@ export function SpaceComponent<T extends { id: string }>({
               const label = await getLabelForValue(fieldConfig, value, rxdb);
               const normalizedLabel = normalizeForUrl(label);
 
-              console.log('[SpaceComponent] Applying saved filter:', fieldId, '→', normalizedLabel);
+              console.log(
+                "[SpaceComponent] Applying saved filter:",
+                fieldId,
+                "→",
+                normalizedLabel
+              );
               newParams.set(urlKey, normalizedLabel);
             }
           }
@@ -349,11 +368,17 @@ export function SpaceComponent<T extends { id: string }>({
       }
     } catch (e) {
       // localStorage not available or parse error
-      console.warn('[SpaceComponent] Could not load saved filters:', e);
+      console.warn("[SpaceComponent] Could not load saved filters:", e);
     }
 
     hasAppliedSavedFilters.current = true;
-  }, [searchParams, setSearchParams, filterFields, filtersStorageKey, initialSelectedEntityId]);
+  }, [
+    searchParams,
+    setSearchParams,
+    filterFields,
+    filtersStorageKey,
+    initialSelectedEntityId,
+  ]);
 
   // 🆕 Memoize orderBy to prevent infinite loop (new object on each render)
   const orderBy = useMemo(() => {
@@ -438,7 +463,12 @@ export function SpaceComponent<T extends { id: string }>({
                   if (mainFieldSlug === urlKey) {
                     // Add mainFilterField to filters (for search)
                     // Hybrid search will be automatically triggered by space-store
-                    console.log('[SpaceComponent] 🔍 Adding search filter:', mainFilterField.id, '=', urlValue);
+                    console.log(
+                      "[SpaceComponent] 🔍 Adding search filter:",
+                      mainFilterField.id,
+                      "=",
+                      urlValue
+                    );
                     filterObj[mainFilterField.id] = urlValue;
                     return;
                   }
@@ -506,7 +536,7 @@ export function SpaceComponent<T extends { id: string }>({
   const isMoreThanMD = useMediaQuery(mediaQueries.md); // 960px
   const isMoreThanLG = useMediaQuery(mediaQueries.lg); // 1280px
   const isMoreThanXL = useMediaQuery(mediaQueries.xl); // 1440px
-  const isMoreThan2XL = useMediaQuery(mediaQueries['2xl']); // 1536px
+  const isMoreThan2XL = useMediaQuery(mediaQueries["2xl"]); // 1536px
   const needCardClass = isMoreThanLG;
 
   // Get all entities directly from data (no accumulation needed)
@@ -533,7 +563,7 @@ export function SpaceComponent<T extends { id: string }>({
             slug,
             entity: config.entitySchemaName,
             entity_id: entity.id,
-            model: config.entitySchemaModel || config.entitySchemaName
+            model: config.entitySchemaModel || config.entitySchemaName,
           });
 
           // Preserve query params (sort, filters, etc.) when auto-selecting
@@ -541,7 +571,18 @@ export function SpaceComponent<T extends { id: string }>({
         }
       }
     }
-  }, [data, isLoading, isMoreThan2XL, selectedEntityId, navigate, location.pathname, location.search, config.entitySchemaName, config.entitySchemaModel, initialSelectedEntityId]);
+  }, [
+    data,
+    isLoading,
+    isMoreThan2XL,
+    selectedEntityId,
+    navigate,
+    location.pathname,
+    location.search,
+    config.entitySchemaName,
+    config.entitySchemaModel,
+    initialSelectedEntityId,
+  ]);
 
   // Cache totalCount to localStorage (separate from auto-select)
   useEffect(() => {
@@ -553,31 +594,40 @@ export function SpaceComponent<T extends { id: string }>({
 
         // Save totalCount to localStorage ONLY on FIRST load (not during pagination)
         // For spaces with totalFilterKey, save with filter-specific key
-        const reservedParams = ["sort", "view", "sortBy", "sortDir", "sortParam", "type"];
+        const reservedParams = [
+          "sort",
+          "view",
+          "sortBy",
+          "sortDir",
+          "sortParam",
+          "type",
+        ];
         const totalFilterKey = config.totalFilterKey;
         // Use filters object (has normalized field names and actual IDs) instead of searchParams
-        const totalFilterValue = totalFilterKey && filters ? filters[totalFilterKey] : null;
+        const totalFilterValue =
+          totalFilterKey && filters ? filters[totalFilterKey] : null;
 
         // Exclude totalFilterKey from "hasFilters" check
         const filterParams = totalFilterKey
           ? [...reservedParams, totalFilterKey]
           : reservedParams;
         const hasOtherFilters = Array.from(searchParams.keys()).some(
-          key => !filterParams.includes(key)
+          (key) => !filterParams.includes(key)
         );
 
         // For spaces with totalFilterKey: allow caching when only that filter is applied
         // For spaces without: only cache when no filters
         const canCache = totalFilterKey
-          ? (totalFilterValue && !hasOtherFilters) // Must have totalFilterKey filter, no other filters
+          ? totalFilterValue && !hasOtherFilters // Must have totalFilterKey filter, no other filters
           : !hasOtherFilters; // No filters at all
 
         if (canCache) {
           try {
             // Build cache key - include filter value if totalFilterKey is set
-            const cacheKey = totalFilterKey && totalFilterValue
-              ? `totalCount_${config.entitySchemaName}_${totalFilterKey}_${totalFilterValue}`
-              : `totalCount_${config.entitySchemaName}`;
+            const cacheKey =
+              totalFilterKey && totalFilterValue
+                ? `totalCount_${config.entitySchemaName}_${totalFilterKey}_${totalFilterValue}`
+                : `totalCount_${config.entitySchemaName}`;
             const cached = localStorage.getItem(cacheKey);
             const TOTAL_COUNT_TTL_MS = 14 * 24 * 60 * 60 * 1000; // 14 days
 
@@ -588,7 +638,11 @@ export function SpaceComponent<T extends { id: string }>({
               // Try JSON format first (new format with TTL)
               try {
                 const parsed = JSON.parse(cached);
-                if (typeof parsed === 'object' && parsed.value && parsed.timestamp) {
+                if (
+                  typeof parsed === "object" &&
+                  parsed.value &&
+                  parsed.timestamp
+                ) {
                   const age = Date.now() - parsed.timestamp;
                   if (age < TOTAL_COUNT_TTL_MS && parsed.value > 0) {
                     cachedTotal = parsed.value;
@@ -604,14 +658,15 @@ export function SpaceComponent<T extends { id: string }>({
 
             // Save when: no cache OR cache expired, and total is valid
             const isRealTotal = data.total > data.entities.length;
-            const shouldSave = (cachedTotal === 0 || cacheExpired) && isRealTotal;
+            const shouldSave =
+              (cachedTotal === 0 || cacheExpired) && isRealTotal;
 
             if (shouldSave) {
               const cacheData = { value: data.total, timestamp: Date.now() };
               localStorage.setItem(cacheKey, JSON.stringify(cacheData));
             }
           } catch (e) {
-            console.warn('Failed to cache totalCount:', e);
+            console.warn("Failed to cache totalCount:", e);
           }
         }
       }
@@ -623,21 +678,24 @@ export function SpaceComponent<T extends { id: string }>({
     config.entitySchemaName,
     config.totalFilterKey,
     filters,
-    isInitialLoad
+    isInitialLoad,
   ]);
 
   // Initialize selection from props (for pretty URLs via SlugResolver)
   // This runs ONCE on mount when initialSelectedEntityId is provided
   useEffect(() => {
     if (initialSelectedEntityId) {
-      console.log('[SpaceComponent] Initializing from SlugResolver:', {
+      console.log("[SpaceComponent] Initializing from SlugResolver:", {
         entityId: initialSelectedEntityId,
-        slug: initialSelectedSlug
+        slug: initialSelectedSlug,
       });
 
       // Fetch and select entity - it may not be in the paginated list yet
       // This ensures the entity is loaded even if it's not in the first N items
-      spaceStore.fetchAndSelectEntity(config.entitySchemaName, initialSelectedEntityId);
+      spaceStore.fetchAndSelectEntity(
+        config.entitySchemaName,
+        initialSelectedEntityId
+      );
 
       // Save route for offline access
       if (initialSelectedSlug) {
@@ -645,7 +703,7 @@ export function SpaceComponent<T extends { id: string }>({
           slug: initialSelectedSlug,
           entity: config.entitySchemaName,
           entity_id: initialSelectedEntityId,
-          model: config.entitySchemaModel || config.entitySchemaName
+          model: config.entitySchemaModel || config.entitySchemaName,
         });
       }
     }
@@ -662,7 +720,8 @@ export function SpaceComponent<T extends { id: string }>({
     }
 
     const pathSegments = location.pathname.split("/");
-    const hasEntitySegment = pathSegments.length > 2 && pathSegments[2] !== "new";
+    const hasEntitySegment =
+      pathSegments.length > 2 && pathSegments[2] !== "new";
     setIsDrawerOpen(hasEntitySegment);
 
     // Clear fullscreen mode when NOT in pretty URL mode (drawer mode)
@@ -676,7 +735,10 @@ export function SpaceComponent<T extends { id: string }>({
       const urlSegment = pathSegments[2];
 
       // Check if it's a UUID (contains hyphens and is 36 chars) or a friendly slug
-      const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(urlSegment);
+      const isUUID =
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+          urlSegment
+        );
 
       let entityId: string | undefined;
 
@@ -685,9 +747,10 @@ export function SpaceComponent<T extends { id: string }>({
         entityId = urlSegment;
       } else {
         // Friendly slug - find entity by normalized name or slug field
-        const matchingEntity = allEntities.find(entity =>
-          normalizeForUrl(entity.name) === urlSegment ||
-          (entity as any).slug === urlSegment
+        const matchingEntity = allEntities.find(
+          (entity) =>
+            normalizeForUrl(entity.name) === urlSegment ||
+            (entity as any).slug === urlSegment
         );
 
         if (matchingEntity) {
@@ -695,33 +758,50 @@ export function SpaceComponent<T extends { id: string }>({
         } else if (allEntities.length > 0 && !isLoading) {
           // Entity not found in current filtered list
           // Check if current selection is still valid in the new list
-          const currentSelectedId = spaceStore.getSelectedId(config.entitySchemaName);
-          const currentEntityStillInList = currentSelectedId &&
-            allEntities.some(e => e.id === currentSelectedId);
+          const currentSelectedId = spaceStore.getSelectedId(
+            config.entitySchemaName
+          );
+          const currentEntityStillInList =
+            currentSelectedId &&
+            allEntities.some((e) => e.id === currentSelectedId);
 
           if (currentEntityStillInList) {
             // Current selection is still valid - keep it, just update URL to match
-            const currentEntity = allEntities.find(e => e.id === currentSelectedId);
+            const currentEntity = allEntities.find(
+              (e) => e.id === currentSelectedId
+            );
             if (currentEntity) {
-              const correctSlug = (currentEntity as any).slug || normalizeForUrl((currentEntity as any).name || currentEntity.id);
-              navigate(`${correctSlug}${location.search}${location.hash}`, { replace: true });
+              const correctSlug =
+                (currentEntity as any).slug ||
+                normalizeForUrl(
+                  (currentEntity as any).name || currentEntity.id
+                );
+              navigate(`${correctSlug}${location.search}${location.hash}`, {
+                replace: true,
+              });
               entityId = currentSelectedId;
             }
           } else {
             // Current entity not in list anymore (filter changed) - fallback to first
             const firstEntity = allEntities[0];
             entityId = firstEntity.id;
-            const newSlug = (firstEntity as any).slug || normalizeForUrl((firstEntity as any).name || firstEntity.id);
+            const newSlug =
+              (firstEntity as any).slug ||
+              normalizeForUrl((firstEntity as any).name || firstEntity.id);
 
             // Update URL to match the actually selected entity
-            navigate(`${newSlug}${location.search}${location.hash}`, { replace: true });
+            navigate(`${newSlug}${location.search}${location.hash}`, {
+              replace: true,
+            });
           }
         }
       }
 
       // Update selection if we found an ID and it's different
       if (entityId) {
-        const currentSelectedId = spaceStore.getSelectedId(config.entitySchemaName);
+        const currentSelectedId = spaceStore.getSelectedId(
+          config.entitySchemaName
+        );
         if (currentSelectedId !== entityId) {
           spaceStore.selectEntity(config.entitySchemaName, entityId);
         }
@@ -730,9 +810,11 @@ export function SpaceComponent<T extends { id: string }>({
         // If urlSegment is UUID, find entity and get proper slug from it
         let slugToSave = urlSegment;
         if (isUUID) {
-          const entity = allEntities.find(e => e.id === entityId);
+          const entity = allEntities.find((e) => e.id === entityId);
           if (entity) {
-            slugToSave = (entity as any).slug || normalizeForUrl((entity as any).name || entity.id);
+            slugToSave =
+              (entity as any).slug ||
+              normalizeForUrl((entity as any).name || entity.id);
           }
         }
 
@@ -740,7 +822,7 @@ export function SpaceComponent<T extends { id: string }>({
           slug: slugToSave,
           entity: config.entitySchemaName,
           entity_id: entityId,
-          model: config.entitySchemaModel || config.entitySchemaName
+          model: config.entitySchemaModel || config.entitySchemaName,
         });
       }
     } else {
@@ -749,7 +831,13 @@ export function SpaceComponent<T extends { id: string }>({
       // Clear fullscreen mode when no entity in URL (drawer closed)
       spaceStore.clearFullscreen();
     }
-  }, [location.pathname, config.entitySchemaName, config.entitySchemaModel, allEntities, initialSelectedEntityId]);
+  }, [
+    location.pathname,
+    config.entitySchemaName,
+    config.entitySchemaModel,
+    allEntities,
+    initialSelectedEntityId,
+  ]);
 
   // Measure header height
   useEffect(() => {
@@ -781,7 +869,7 @@ export function SpaceComponent<T extends { id: string }>({
         slug,
         entity: config.entitySchemaName,
         entity_id: entity.id,
-        model: config.entitySchemaModel || config.entitySchemaName
+        model: config.entitySchemaModel || config.entitySchemaName,
       });
 
       // For grid views (tab, grid, etc.) - go directly to fullscreen
@@ -795,7 +883,13 @@ export function SpaceComponent<T extends { id: string }>({
 
       navigate(`${slug}${location.search}#overview`);
     },
-    [navigate, config.entitySchemaName, config.entitySchemaModel, location.search, isGridView]
+    [
+      navigate,
+      config.entitySchemaName,
+      config.entitySchemaModel,
+      location.search,
+      isGridView,
+    ]
   );
 
   // 🆕 ID-First: Use loadMore from hook (with cursor pagination)
@@ -890,7 +984,10 @@ export function SpaceComponent<T extends { id: string }>({
             }
           }
           if (Object.keys(filtersToStore).length > 0) {
-            localStorage.setItem(filtersStorageKey, JSON.stringify(filtersToStore));
+            localStorage.setItem(
+              filtersStorageKey,
+              JSON.stringify(filtersToStore)
+            );
           } else {
             localStorage.removeItem(filtersStorageKey);
           }
@@ -928,15 +1025,23 @@ export function SpaceComponent<T extends { id: string }>({
       try {
         const savedFilters = localStorage.getItem(filtersStorageKey);
         if (savedFilters) {
-          const parsedFilters = JSON.parse(savedFilters) as Record<string, string>;
+          const parsedFilters = JSON.parse(savedFilters) as Record<
+            string,
+            string
+          >;
           // Find the field ID from the slug (filter.id could be slug)
-          const fieldConfig = filterFields.find((f) => f.slug === filter.id || f.id === filter.id);
+          const fieldConfig = filterFields.find(
+            (f) => f.slug === filter.id || f.id === filter.id
+          );
           const fieldId = fieldConfig?.id || filter.id;
 
           delete parsedFilters[fieldId];
 
           if (Object.keys(parsedFilters).length > 0) {
-            localStorage.setItem(filtersStorageKey, JSON.stringify(parsedFilters));
+            localStorage.setItem(
+              filtersStorageKey,
+              JSON.stringify(parsedFilters)
+            );
           } else {
             localStorage.removeItem(filtersStorageKey);
           }
@@ -972,8 +1077,12 @@ export function SpaceComponent<T extends { id: string }>({
 
   useEffect(() => {
     const loadActiveFilters = async () => {
-      const filters: Array<{ id: string; label: string; isRequired: boolean; order: number }> =
-        [];
+      const filters: Array<{
+        id: string;
+        label: string;
+        isRequired: boolean;
+        order: number;
+      }> = [];
       const reservedParams = ["sort", "view", "sortBy", "sortDir", "sortParam"];
 
       const rxdb = await getDatabase();
@@ -1134,18 +1243,26 @@ export function SpaceComponent<T extends { id: string }>({
     // Otherwise, get base path from current URL (e.g., /breeds/uuid → /breeds)
     if (initialSelectedEntityId) {
       // Pretty URL mode - navigate to entity list (e.g., /breeds)
-      const entityPath = config.entitySchemaName === 'breed' ? '/breeds' :
-                         config.entitySchemaName === 'pet' ? '/pets' :
-                         config.entitySchemaName === 'kennel' ? '/kennels' :
-                         config.entitySchemaName === 'contact' ? '/contacts' :
-                         config.entitySchemaName === 'event' ? '/events' :
-                         config.entitySchemaName === 'litter' ? '/litters' :
-                         config.entitySchemaName === 'account' ? '/accounts' :
-                         '/';
+      const entityPath =
+        config.entitySchemaName === "breed"
+          ? "/breeds"
+          : config.entitySchemaName === "pet"
+          ? "/pets"
+          : config.entitySchemaName === "kennel"
+          ? "/kennels"
+          : config.entitySchemaName === "contact"
+          ? "/contacts"
+          : config.entitySchemaName === "event"
+          ? "/events"
+          : config.entitySchemaName === "litter"
+          ? "/litters"
+          : config.entitySchemaName === "account"
+          ? "/accounts"
+          : "/";
       navigate(entityPath);
     } else {
       // Normal mode - get base path from URL
-      const basePath = location.pathname.split('/').slice(0, 2).join('/');
+      const basePath = location.pathname.split("/").slice(0, 2).join("/");
       navigate(basePath);
     }
   };
@@ -1168,7 +1285,9 @@ export function SpaceComponent<T extends { id: string }>({
     return (
       <div className="p-8 text-center">
         <p className="text-red-600">
-          Error loading {config?.naming?.plural?.other || config?.label || 'entities'}. Please try again later.
+          Error loading{" "}
+          {config?.naming?.plural?.other || config?.label || "entities"}. Please
+          try again later.
         </p>
       </div>
     );
@@ -1194,17 +1313,13 @@ export function SpaceComponent<T extends { id: string }>({
         >
           <div
             ref={headerRef}
-            className="z-20 flex flex-col justify-between border-b border-surface-border content-padding"
+            className="z-20 flex flex-col justify-between border-b border-surface-border space-padding"
           >
             <div className="w-full">
               <div className="flex w-full justify-between">
-                <h1 className="text-4xl">
-                  {finalConfig.title}
-                </h1>
+                <h1 className="text-4xl">{finalConfig.title}</h1>
                 <ViewChanger
-                  views={
-                    finalConfig.viewTypes || []
-                  }
+                  views={finalConfig.viewTypes || []}
                   viewConfigs={finalConfig.viewConfigs?.map((v) => ({
                     id: v.viewType,
                     icon: v.icon,
@@ -1219,7 +1334,11 @@ export function SpaceComponent<T extends { id: string }>({
                 entityType={config.entitySchemaName}
                 initialCount={recordsCount}
                 totalFilterKey={config.totalFilterKey}
-                totalFilterValue={config.totalFilterKey && filters ? filters[config.totalFilterKey] : null}
+                totalFilterValue={
+                  config.totalFilterKey && filters
+                    ? filters[config.totalFilterKey]
+                    : null
+                }
               />
             </div>
 
@@ -1227,7 +1346,10 @@ export function SpaceComponent<T extends { id: string }>({
             <div className="mt-4 flex items-center space-x-3">
               <SearchInput
                 value=""
-                placeholder={config?.naming?.searchPlaceholder || `Search ${config?.label || 'entities'}...`}
+                placeholder={
+                  config?.naming?.searchPlaceholder ||
+                  `Search ${config?.label || "entities"}...`
+                }
                 pill
                 disabled
                 showClearButton={false}
@@ -1266,16 +1388,22 @@ export function SpaceComponent<T extends { id: string }>({
           </div>
 
           {/* SpaceView with skeletons */}
-          <div className="relative flex-1 overflow-hidden">
+          <div className="relative flex-1 overflow-hidden border border-red-600">
             <SpaceView
               viewConfig={{
                 viewType: viewMode,
                 component:
-                  finalConfig.viewConfigs?.find(v => v.viewType === viewMode)?.component ||
-                  "GenericListCard",
-                itemHeight: finalConfig.viewConfigs?.find(v => v.viewType === viewMode)?.itemHeight || 68,
-                dividers: finalConfig.viewConfigs?.find(v => v.viewType === viewMode)?.dividers ?? true,
-                overscan: finalConfig.viewConfigs?.find(v => v.viewType === viewMode)?.overscan || 3,
+                  finalConfig.viewConfigs?.find((v) => v.viewType === viewMode)
+                    ?.component || "GenericListCard",
+                itemHeight:
+                  finalConfig.viewConfigs?.find((v) => v.viewType === viewMode)
+                    ?.itemHeight || 68,
+                dividers:
+                  finalConfig.viewConfigs?.find((v) => v.viewType === viewMode)
+                    ?.dividers ?? true,
+                overscan:
+                  finalConfig.viewConfigs?.find((v) => v.viewType === viewMode)
+                    ?.overscan || 3,
                 skeletonCount: Math.ceil(recordsCount / 2),
               }}
               entities={[]}
@@ -1283,7 +1411,7 @@ export function SpaceComponent<T extends { id: string }>({
             />
             <div
               className="bg-card-ground w-full absolute bottom-0"
-              style={{ height: 'var(--content-padding-bottom, 0)' }}
+              style={{ height: "var(--content-padding)" }}
             />
           </div>
         </div>
@@ -1311,149 +1439,169 @@ export function SpaceComponent<T extends { id: string }>({
       <div className="relative h-full overflow-hidden">
         {/* Main Content - hidden when fullscreen */}
         {!showFullscreen && (
-        <div
-          className={cn(
-            "relative flex flex-col cursor-default h-full overflow-hidden",
-            needCardClass ? "fake-card" : "card-surface",
-            "transition-all duration-300 ease-out",
-            // For side-transparent mode (xxl+): reserve space for drawer (only for list views)
-            // Grid views don't have side drawer - they go directly to fullscreen
-            !isGridView && drawerMode === "side-transparent" && "mr-[46.25rem]" // 45rem + 1.25rem gap
-          )}
-        >
-          {/* Header */}
           <div
-            ref={headerRef}
-            className="z-20 flex flex-col justify-between border-b border-surface-border content-padding"
+            className={cn(
+              "relative flex flex-col cursor-default h-full overflow-hidden",
+              needCardClass ? "fake-card" : "card-surface",
+              "transition-all duration-300 ease-out",
+              // For side-transparent mode (xxl+): reserve space for drawer (only for list views)
+              // Grid views don't have side drawer - they go directly to fullscreen
+              !isGridView &&
+                drawerMode === "side-transparent" &&
+                "mr-[46.25rem]" // 45rem + 1.25rem gap
+            )}
           >
-            <div className="w-full">
-              <div className="flex w-full justify-between">
-                <h1 className="text-4xl">
-                  {finalConfig.title}
-                </h1>
-                <ViewChanger
-                  views={
-                    finalConfig.viewTypes || []
-                  }
-                  viewConfigs={finalConfig.viewConfigs?.map((v) => ({
-                    id: v.viewType,
-                    icon: v.icon,
-                    tooltip: v.tooltip,
-                  }))}
-                  onViewChange={handleViewChange}
-                />
+            {/* Header */}
+            <div
+              ref={headerRef}
+              className="z-20 flex flex-col justify-between border-b border-surface-border space-padding"
+            >
+              <div className="w-full">
+                <div className="flex w-full justify-between">
+                  <h1 className="text-4xl">{finalConfig.title}</h1>
+                  <ViewChanger
+                    views={finalConfig.viewTypes || []}
+                    viewConfigs={finalConfig.viewConfigs?.map((v) => ({
+                      id: v.viewType,
+                      icon: v.icon,
+                      tooltip: v.tooltip,
+                    }))}
+                    onViewChange={handleViewChange}
+                  />
+                </div>
+                {spaceStore.configReady.value && (
+                  <EntitiesCounter
+                    entitiesCount={allEntities.length}
+                    total={totalCount}
+                    entityType={config.entitySchemaName}
+                    initialCount={recordsCount}
+                    totalFilterKey={config.totalFilterKey}
+                    totalFilterValue={
+                      config.totalFilterKey && filters
+                        ? filters[config.totalFilterKey]
+                        : null
+                    }
+                  />
+                )}
               </div>
-              {spaceStore.configReady.value && (
-                <EntitiesCounter
-                  entitiesCount={allEntities.length}
-                  total={totalCount}
-                  entityType={config.entitySchemaName}
-                  initialCount={recordsCount}
-                  totalFilterKey={config.totalFilterKey}
-                  totalFilterValue={config.totalFilterKey && filters ? filters[config.totalFilterKey] : null}
+
+              {/* Main actions */}
+              <div className="mt-4 flex items-center space-x-3">
+                {/* Search */}
+                <SearchInput
+                  value={searchValue}
+                  onValueChange={setSearchValue}
+                  placeholder={
+                    config?.naming?.searchPlaceholder ||
+                    `Search ${config?.label || "entities"}...`
+                  }
+                  pill
+                  className="w-full"
+                />
+
+                {/* Add button */}
+                {finalConfig.canAdd && (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        onClick={handleCreateNew}
+                        className={cn(
+                          "rounded-full font-bold flex-shrink-0",
+                          needCardClass
+                            ? "h-[2.25rem] px-4"
+                            : "h-[2.25rem] w-[2.25rem] flex items-center justify-center"
+                        )}
+                      >
+                        <Plus className="h-4 w-4 flex-shrink-0" />
+                        {needCardClass && (
+                          <span className="text-base font-semibold">Add</span>
+                        )}
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom">
+                      <p>Add new record</p>
+                    </TooltipContent>
+                  </Tooltip>
+                )}
+              </div>
+
+              {/* Filters */}
+              <FiltersSection
+                className="mt-4"
+                sortOptions={sortOptions}
+                defaultSortOption={selectedSortOption}
+                onSortChange={handleSortChange}
+                filterFields={filterFields}
+                filters={activeFilters}
+                onFilterRemove={handleFilterRemove}
+                onFiltersApply={handleFiltersApply}
+                currentFilterValues={currentFilterValues}
+              />
+            </div>
+
+            {/* Content Scroller */}
+            <div className="relative flex-1 overflow-hidden">
+              <SpaceView
+                viewConfig={{
+                  viewType: viewMode,
+                  component:
+                    finalConfig.viewConfigs?.find(
+                      (v) => v.viewType === viewMode
+                    )?.component || "GenericListCard",
+                  itemHeight:
+                    finalConfig.viewConfigs?.find(
+                      (v) => v.viewType === viewMode
+                    )?.itemHeight || 68,
+                  dividers:
+                    finalConfig.viewConfigs?.find(
+                      (v) => v.viewType === viewMode
+                    )?.dividers ?? true,
+                  overscan:
+                    finalConfig.viewConfigs?.find(
+                      (v) => v.viewType === viewMode
+                    )?.overscan || 3,
+                  skeletonCount: Math.ceil(recordsCount / 2),
+                }}
+                entities={allEntities}
+                selectedId={isGridView ? undefined : selectedEntityId}
+                onEntityClick={handleEntityClick}
+                onLoadMore={handleLoadMore}
+                hasMore={hasMore}
+                isLoadingMore={isLoadingMore}
+                isLoading={isLoading}
+                searchQuery={debouncedSearchValue}
+              />
+              {/* Bottom spacer like in Angular */}
+              <div
+                className="bg-card-ground w-full absolute bottom-0"
+                style={{ height: "var(--content-padding)" }}
+              />
+            </div>
+
+            {/* Backdrop for drawer (only for side/over modes inside content, not in grid view) */}
+            {!isGridView &&
+              (drawerMode === "side" || drawerMode === "over") && (
+                <div
+                  className={cn(
+                    "absolute inset-0 z-30 transition-opacity duration-300",
+                    isMoreThanLG && "rounded-xl",
+                    isDrawerOpen
+                      ? "bg-black/40 opacity-100"
+                      : "opacity-0 pointer-events-none"
+                  )}
+                  onClick={handleBackdropClick}
                 />
               )}
-            </div>
-
-            {/* Main actions */}
-            <div className="mt-4 flex items-center space-x-3">
-              {/* Search */}
-              <SearchInput
-                value={searchValue}
-                onValueChange={setSearchValue}
-                placeholder={config?.naming?.searchPlaceholder || `Search ${config?.label || 'entities'}...`}
-                pill
-                className="w-full"
-              />
-
-              {/* Add button */}
-              {finalConfig.canAdd && (
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      onClick={handleCreateNew}
-                      className={cn(
-                        "rounded-full font-bold flex-shrink-0",
-                        needCardClass
-                          ? "h-[2.25rem] px-4"
-                          : "h-[2.25rem] w-[2.25rem] flex items-center justify-center"
-                      )}
-                    >
-                      <Plus className="h-4 w-4 flex-shrink-0" />
-                      {needCardClass && (
-                        <span className="text-base font-semibold">Add</span>
-                      )}
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent side="bottom">
-                    <p>Add new record</p>
-                  </TooltipContent>
-                </Tooltip>
-              )}
-            </div>
-
-            {/* Filters */}
-            <FiltersSection
-              className="mt-4"
-              sortOptions={sortOptions}
-              defaultSortOption={selectedSortOption}
-              onSortChange={handleSortChange}
-              filterFields={filterFields}
-              filters={activeFilters}
-              onFilterRemove={handleFilterRemove}
-              onFiltersApply={handleFiltersApply}
-              currentFilterValues={currentFilterValues}
-            />
           </div>
-
-          {/* Content Scroller */}
-          <div className="relative flex-1 overflow-hidden">
-            <SpaceView
-              viewConfig={{
-                viewType: viewMode,
-                component:
-                  finalConfig.viewConfigs?.find(v => v.viewType === viewMode)?.component ||
-                  "GenericListCard",
-                itemHeight: finalConfig.viewConfigs?.find(v => v.viewType === viewMode)?.itemHeight || 68,
-                dividers: finalConfig.viewConfigs?.find(v => v.viewType === viewMode)?.dividers ?? true,
-                overscan: finalConfig.viewConfigs?.find(v => v.viewType === viewMode)?.overscan || 3,
-                skeletonCount: Math.ceil(recordsCount / 2),
-              }}
-              entities={allEntities}
-              selectedId={isGridView ? undefined : selectedEntityId}
-              onEntityClick={handleEntityClick}
-              onLoadMore={handleLoadMore}
-              hasMore={hasMore}
-              isLoadingMore={isLoadingMore}
-              isLoading={isLoading}
-              searchQuery={debouncedSearchValue}
-            />
-            {/* Bottom spacer like in Angular */}
-            <div
-              className="bg-card-ground w-full absolute bottom-0"
-              style={{ height: 'var(--content-padding-bottom, 0)' }}
-            />
-          </div>
-
-          {/* Backdrop for drawer (only for side/over modes inside content, not in grid view) */}
-          {!isGridView && (drawerMode === "side" || drawerMode === "over") && (
-            <div
-              className={cn(
-                "absolute inset-0 z-30 transition-opacity duration-300",
-                isMoreThanLG && "rounded-xl",
-                isDrawerOpen
-                  ? "bg-black/40 opacity-100"
-                  : "opacity-0 pointer-events-none"
-              )}
-              onClick={handleBackdropClick}
-            />
-          )}
-        </div>
         )}
 
         {/* Unified Drawer - single element for all modes with smooth transitions */}
         {/* For grid view: only render when fullscreen. For list view: normal drawer behavior */}
-        {(isGridView ? showFullscreen : (showFullscreen || isDrawerOpen || drawerMode === "side-transparent")) && (
+        {(isGridView
+          ? showFullscreen
+          : showFullscreen ||
+            isDrawerOpen ||
+            drawerMode === "side-transparent") && (
           <div
             className={cn(
               "absolute top-0 bottom-0 right-0 z-40",
@@ -1461,28 +1609,34 @@ export function SpaceComponent<T extends { id: string }>({
               // Width based on mode and fullscreen state - use percentages for smooth transition
               (showFullscreen || drawerMode === "over") && "w-full",
               !showFullscreen && drawerMode === "side" && "w-[60%]",
-              !showFullscreen && drawerMode === "side-transparent" && "w-[45rem]",
+              !showFullscreen &&
+                drawerMode === "side-transparent" &&
+                "w-[45rem]",
               // Background
               showFullscreen
-                ? (needCardClass ? "fake-card" : "card-surface")
+                ? needCardClass
+                  ? "fake-card"
+                  : "card-surface"
                 : drawerMode === "side-transparent"
-                  ? (needCardClass ? "fake-card" : "card-surface")
-                  : "bg-white",
+                ? needCardClass
+                  ? "fake-card"
+                  : "card-surface"
+                : "bg-white",
               // Rounded corners (not for fullscreen or over mode)
-              !showFullscreen && drawerMode !== "over" && "rounded-l-xl overflow-hidden",
+              !showFullscreen &&
+                drawerMode !== "over" &&
+                "rounded-l-xl overflow-hidden",
               // Shadow for side mode only
               !showFullscreen && drawerMode === "side" && "shadow-xl",
               // Show/hide animation (always visible in fullscreen or side-transparent for list views)
               showFullscreen || drawerMode === "side-transparent"
                 ? "opacity-100"
                 : isDrawerOpen
-                  ? "opacity-100"
-                  : "translate-x-full opacity-0 pointer-events-none"
+                ? "opacity-100"
+                : "translate-x-full opacity-0 pointer-events-none"
             )}
           >
-            <div className="h-full overflow-auto">
-              {children || <Outlet />}
-            </div>
+            <div className="h-full overflow-auto">{children || <Outlet />}</div>
           </div>
         )}
       </div>

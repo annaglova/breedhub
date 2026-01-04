@@ -248,7 +248,7 @@ export function SpaceView<T extends { id: string }>({
         ref={parentRef}
         className={classes.container}
         style={{
-          paddingBottom: "var(--content-padding-bottom, 0)",
+          paddingBottom: "var(--content-padding)",
         }}
       >
         {isGrid ? (
@@ -284,7 +284,7 @@ export function SpaceView<T extends { id: string }>({
         ref={parentRef}
         className={cn(classes.container, "flex items-center justify-center")}
         style={{
-          paddingBottom: "var(--content-padding-bottom, 0)",
+          paddingBottom: "var(--content-padding)",
         }}
       >
         <div className="text-center text-slate-500">
@@ -304,7 +304,7 @@ export function SpaceView<T extends { id: string }>({
         ref={parentRef}
         className={classes.container}
         style={{
-          paddingBottom: "var(--content-padding-bottom, 0)", // Match header padding for consistency
+          paddingBottom: "var(--content-padding)", // Match header padding for consistency
         }}
       >
         <div

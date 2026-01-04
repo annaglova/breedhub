@@ -18,6 +18,11 @@
   padding-bottom: var(--content-padding-bottom);
 }
 
+/* Space padding - like content-padding but always has bottom padding */
+.space-padding {
+  padding: var(--content-padding);
+}
+
 /* Card styles from Angular project */
 .card-surface {
   background: rgb(var(--card-ground));
