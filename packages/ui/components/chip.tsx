@@ -37,7 +37,7 @@ const Chip = React.forwardRef<HTMLDivElement, ChipProps>(
       <div
         ref={ref}
         className={cn(
-          "inline-flex items-center gap-2 rounded-full px-4 h-8 text-base transition-colors",
+          "inline-flex items-center gap-2 rounded-full px-3 h-7 text-sm transition-colors",
           variantClasses,
           className
         )}
