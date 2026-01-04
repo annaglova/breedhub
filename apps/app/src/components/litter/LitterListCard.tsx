@@ -2,7 +2,6 @@ import { NoteFlag } from "@/components/shared/NoteFlag";
 import { PetServices } from "@/components/shared/PetServices";
 import { TierMark } from "@/components/shared/TierMark";
 import { EntityListCardWrapper } from "@/components/space/EntityListCardWrapper";
-import { Mars, Venus } from "lucide-react";
 // TODO: Uncomment when connecting real data
 // import { useDictionaryValue } from "@/hooks/useDictionaryValue";
 
@@ -103,8 +102,8 @@ export function LitterListCard({
         {/* Details - no avatar for litter */}
         <div className="w-full">
           {/* Father row */}
-          <div className="relative flex w-[calc(100vw-82px)] items-center space-x-1 md:w-auto">
-            <Mars size={14} className="text-blue-500 flex-shrink-0" />
+          <div className="relative flex w-[calc(100vw-82px)] items-center space-x-1.5 md:w-auto">
+            <div className="size-2 rounded-full bg-blue-500 flex-shrink-0" />
             <span
               className="text-sm uppercase truncate"
               title={litter.FatherName}
@@ -115,8 +114,8 @@ export function LitterListCard({
           </div>
 
           {/* Mother row */}
-          <div className="relative flex w-[calc(100vw-82px)] items-center space-x-1 md:w-auto">
-            <Venus size={14} className="text-pink-500 flex-shrink-0" />
+          <div className="relative flex w-[calc(100vw-82px)] items-center space-x-1.5 md:w-auto">
+            <div className="size-2 rounded-full bg-pink-500 flex-shrink-0" />
             <span
               className="text-sm uppercase truncate"
               title={litter.MotherName}
