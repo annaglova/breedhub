@@ -23,12 +23,14 @@ import { MoreVertical } from "lucide-react";
 // - sm до xl: drawer size-40/-mt-[88px], fullscreen size-44/-mt-[108px]
 // - Від xl: size-44, -mt-[108px] (обидва режими)
 const AVATAR_DRAWER = {
-  size: "size-40 xl:size-44",
-  offset: "-mt-[100px] xl:-mt-[108px]",
+  size: "size-32 xl:size-40",
+  offset: "-mt-[88px] xl:-mt-[102px]",
+  padding: "pl-6 xl:pl-12",
 };
 const AVATAR_FULLSCREEN = {
-  size: "size-40 sm:size-44",
-  offset: "-mt-[100px] sm:-mt-[108px]",
+  size: "size-32 sm:size-40",
+  offset: "-mt-[88px] sm:-mt-[102px]",
+  padding: "pl-6 sm:pl-12",
 };
 
 interface AvatarOutletProps {
@@ -87,7 +89,7 @@ export function AvatarOutlet({
   if (isLoading) {
     return (
       <div
-        className={`${avatarConfig.offset} flex flex-auto items-end relative pb-3 top-0 z-30 px-6 pointer-events-none ${className}`}
+        className={`${avatarConfig.offset} ${avatarConfig.padding} flex flex-auto items-end relative pb-3 top-0 z-30 pointer-events-none ${className}`}
       >
         {/* Avatar skeleton - only if hasAvatar */}
         {hasAvatar && (
@@ -139,7 +141,7 @@ export function AvatarOutlet({
 
   return (
     <div
-      className={`${avatarConfig.offset} flex flex-auto items-end relative pb-3 top-0 z-30 px-6 pointer-events-none ${className}`}
+      className={`${avatarConfig.offset} ${avatarConfig.padding} flex flex-auto items-end relative pb-3 top-0 z-30 pointer-events-none ${className}`}
     >
       {/* Avatar - entity-specific component via children */}
       {hasAvatar && <div className="pointer-events-auto">{children}</div>}
@@ -187,7 +189,9 @@ export function AvatarOutlet({
                   <>
                     <DropdownMenuItem
                       key={item.id}
-                      onClick={() => executeAction(item.action, item.actionParams)}
+                      onClick={() =>
+                        executeAction(item.action, item.actionParams)
+                      }
                     >
                       <Icon icon={item.icon} size={16} />
                       {item.label}

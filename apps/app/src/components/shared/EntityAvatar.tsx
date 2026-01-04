@@ -1,5 +1,5 @@
-import { useMemo, useState, useCallback, useEffect } from 'react';
-import defaultDogImage from '@/assets/images/pettypes/dog.jpeg';
+import defaultDogImage from "@/assets/images/pettypes/dog.jpeg";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 interface EntityAvatarProps {
   entity: any;
@@ -39,14 +39,14 @@ interface EntityAvatarProps {
 // - До sm: size-40 (обидва режими)
 // - sm до xl: drawer size-40, fullscreen size-44
 // - Від xl: size-44 (обидва режими)
-const SIZE_DRAWER = 'size-40 xl:size-44';
-const SIZE_FULLSCREEN = 'size-40 sm:size-44';
+const SIZE_DRAWER = "size-32 xl:size-40";
+const SIZE_FULLSCREEN = "size-32 sm:size-40";
 
 export function EntityAvatar({
   entity,
   size,
   sizeClassName,
-  className = '',
+  className = "",
   defaultImage = defaultDogImage,
   alt,
   isFullscreenMode = false,
@@ -103,18 +103,18 @@ export function EntityAvatar({
   }, [avatarUrl]);
 
   // Generate alt text
-  const altText = alt || entity?.name || entity?.Name || 'Entity avatar';
+  const altText = alt || entity?.name || entity?.Name || "Entity avatar";
 
   // Priority: sizeClassName > size > mode-based default
   const sizeStyles = sizeClassName
     ? {}
     : size
-      ? { width: size, height: size }
-      : {};
+    ? { width: size, height: size }
+    : {};
 
   // Use explicit sizeClassName, or fixed size (no classes), or mode-based responsive
   const defaultSizeClasses = isFullscreenMode ? SIZE_FULLSCREEN : SIZE_DRAWER;
-  const sizeClasses = sizeClassName || (size ? '' : defaultSizeClasses);
+  const sizeClasses = sizeClassName || (size ? "" : defaultSizeClasses);
 
   return (
     <div className={`relative ${sizeClasses} ${className}`} style={sizeStyles}>
