@@ -2,6 +2,7 @@ import { NoteFlag } from "@/components/shared/NoteFlag";
 import { PetServices } from "@/components/shared/PetServices";
 import { TierMark } from "@/components/shared/TierMark";
 import { EntityListCardWrapper } from "@/components/space/EntityListCardWrapper";
+import { Mars, Venus } from "lucide-react";
 // TODO: Uncomment when connecting real data
 // import { useDictionaryValue } from "@/hooks/useDictionaryValue";
 
@@ -65,6 +66,9 @@ export function LitterListCard({
   const litter = {
     Id: entity.id,
     Name: entity.name || "Unknown",
+    // Father and Mother - mock data
+    FatherName: "Champion Rocky vom Haus",
+    MotherName: "Luna of Golden Dreams",
     // Status - mock for visual testing (always show)
     Status: "Born",
     // Kennel - mock for visual testing (always show)
@@ -97,13 +101,28 @@ export function LitterListCard({
     >
       <div className="flex items-center w-full">
         {/* Details - no avatar for litter */}
-        <div className="w-full space-y-0.5">
-          {/* Name row */}
-          <div className="relative flex w-[calc(100vw-82px)] space-x-1 md:w-auto">
-            <span className="text-md truncate" title={litter.Name}>
-              {litter.Name}
+        <div className="w-full">
+          {/* Father row */}
+          <div className="relative flex w-[calc(100vw-82px)] items-center space-x-1 md:w-auto">
+            <Mars size={14} className="text-blue-500 flex-shrink-0" />
+            <span
+              className="text-sm uppercase truncate"
+              title={litter.FatherName}
+            >
+              {litter.FatherName}
             </span>
             <NoteFlag isVisible={litter.HasNotes} />
+          </div>
+
+          {/* Mother row */}
+          <div className="relative flex w-[calc(100vw-82px)] items-center space-x-1 md:w-auto">
+            <Venus size={14} className="text-pink-500 flex-shrink-0" />
+            <span
+              className="text-sm uppercase truncate"
+              title={litter.MotherName}
+            >
+              {litter.MotherName}
+            </span>
           </div>
 
           {/* Info row */}
@@ -149,8 +168,9 @@ export function LitterListCard({
 LitterListCard.Skeleton = function LitterListCardSkeleton() {
   return (
     <div className="flex items-center gap-3 px-4 sm:px-7 h-[68px] animate-pulse border-b border-surface-border">
-      <div className="flex-1 min-w-0 space-y-2">
-        <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded-full w-3/4" />
+      <div className="flex-1 min-w-0 space-y-1">
+        <div className="h-3 bg-slate-200 dark:bg-slate-700 rounded-full w-3/4" />
+        <div className="h-3 bg-slate-200 dark:bg-slate-700 rounded-full w-2/3" />
         <div className="h-3 bg-slate-200 dark:bg-slate-700 rounded-full w-1/2" />
       </div>
     </div>

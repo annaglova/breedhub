@@ -30,7 +30,9 @@ export function EntityListCardWrapper({
 
   return (
     <div
-      className={`relative flex items-center h-full cursor-pointer px-4 sm:px-7 ${dividers ? "border-b border-surface-border" : ""} ${className}`}
+      className={`relative flex items-center h-full cursor-pointer px-4 sm:px-7 ${
+        dividers ? "border-b border-surface-border" : ""
+      } ${className}`}
       style={{
         backgroundColor: getBackgroundColor(),
         transition: "background-color 150ms",
@@ -66,7 +68,9 @@ export function ListCardSkeletonList({
       {Array.from({ length: count }).map((_, i) => (
         <div
           key={i}
-          className={`flex items-center gap-3 px-4 sm:px-7 animate-pulse ${dividers ? "border-b border-surface-border" : ""}`}
+          className={`flex items-center gap-3 px-4 sm:px-7 animate-pulse ${
+            dividers ? "border-b border-surface-border" : ""
+          }`}
           style={{ height: itemHeight }}
         >
           {/* Avatar skeleton */}
