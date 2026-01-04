@@ -268,7 +268,31 @@ export const getKennelsByBreed = (breedId: string) =>
 export const getKennelsByCountry = (countryId: string) => 
   mockKennels.filter(k => k.country_id === countryId);
 
-export const getTopRatedKennels = (limit: number = 5) => 
+export const getTopRatedKennels = (limit: number = 5) =>
   mockKennels
     .sort((a, b) => (b.rating || 0) - (a.rating || 0))
     .slice(0, limit);
+
+/**
+ * Convert mock kennel to list card format
+ */
+export const toKennelListCardFormat = (kennel: Kennel) => ({
+  id: kennel.id,
+  name: kennel.name,
+  avatar_url: kennel.avatar_url,
+  has_user: kennel.is_verified,
+  verification_status: kennel.verification_status,
+  owner: { name: mockContacts.find(c => c.id === kennel.owner_contact_id)?.name },
+  federation: { alternative_name: kennel.kennel_club_memberships?.[0] },
+  established_year: kennel.established_year,
+  has_notes: Math.random() > 0.7,
+  tier_marks: Math.random() > 0.5 ? {
+    owner: { contact_name: "Premium Member", product_name: "Gold" }
+  } : undefined,
+  services: Math.random() > 0.6 ? { "1": "stud", "2": "puppies" } : undefined,
+});
+
+/**
+ * Get all kennels in list card format
+ */
+export const getKennelsForListView = () => mockKennels.map(toKennelListCardFormat);
