@@ -1388,7 +1388,7 @@ export function SpaceComponent<T extends { id: string }>({
           </div>
 
           {/* SpaceView with skeletons */}
-          <div className="relative flex-1 overflow-hidden border border-red-600">
+          <div className="relative flex-1 overflow-hidden">
             <SpaceView
               viewConfig={{
                 viewType: viewMode,
