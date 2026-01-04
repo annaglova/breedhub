@@ -1,5 +1,5 @@
-import { useState, useMemo, useEffect } from "react";
-import { ChevronDown } from "lucide-react";
+import type { DataSourceConfig } from "@breedhub/rxdb-store";
+import { useTabData } from "@breedhub/rxdb-store";
 import { Chip } from "@ui/components/chip";
 import {
   Tooltip,
@@ -8,8 +8,8 @@ import {
   TooltipTrigger,
 } from "@ui/components/tooltip";
 import { cn } from "@ui/lib/utils";
-import { useTabData } from "@breedhub/rxdb-store";
-import type { DataSourceConfig } from "@breedhub/rxdb-store";
+import { ChevronDown } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 
 interface PetTitle {
   id: string;
@@ -99,7 +99,7 @@ export function PetAchievements({
     >
       <div
         aria-label="pet titles"
-        className="flex flex-wrap items-center gap-2 font-medium mt-2"
+        className="flex flex-wrap items-center gap-2  mt-2"
       >
         {/* Expand/collapse button - only in component mode with 6+ titles */}
         {isComponentMode && hasMoreTitles && (
@@ -139,14 +139,17 @@ export function PetAchievements({
               <TooltipTrigger asChild>
                 <div>
                   <Chip
-                    label={`${title.name}${title.countryCode ? ` ${title.countryCode}` : ""}`}
+                    label={`${title.name}${
+                      title.countryCode ? ` ${title.countryCode}` : ""
+                    }`}
                     variant="primary"
                   />
                 </div>
               </TooltipTrigger>
               <TooltipContent side="top">
                 <p>
-                  {title.name}{title.country ? ` ${title.country}` : ""}
+                  {title.name}
+                  {title.country ? ` ${title.country}` : ""}
                 </p>
               </TooltipContent>
             </Tooltip>

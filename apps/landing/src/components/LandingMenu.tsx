@@ -45,8 +45,8 @@ const MenuItem: React.FC<MenuItemProps & { isScrolled?: boolean }> = ({
             ? "text-primary-600 font-bold"
             : "text-white font-bold"
           : isScrolled
-          ? "text-slate-700 hover:text-primary-600 font-medium"
-          : "text-white hover:text-white font-medium"
+          ? "text-slate-700 hover:text-primary-600 "
+          : "text-white hover:text-white "
       )}
       style={{
         backgroundColor: isActive
@@ -281,7 +281,7 @@ export default function LandingMenu({ className }: LandingMenuProps) {
               <h2 className="text-xl font-bold text-primary-600 hover:text-primary-700 transition-colors">
                 Breedhub
               </h2>
-              <p className="text-xs text-slate-600 uppercase tracking-wider font-medium">
+              <p className="text-xs text-slate-600 uppercase tracking-wider ">
                 Menu
               </p>
             </Link>
@@ -306,10 +306,10 @@ export default function LandingMenu({ className }: LandingMenuProps) {
                   to="/product"
                   onClick={() => setIsMobileMenuOpen(false)}
                   className={cn(
-                    "block px-4 py-2 ml-2 text-base font-medium rounded-md transition-colors duration-200",
+                    "block px-4 py-2 ml-2 text-base  rounded-md transition-colors duration-200",
                     location.pathname === "/product"
                       ? "text-primary-600 bg-primary-50 font-bold"
-                      : "text-slate-700 hover:text-primary-600 hover:bg-primary-50 font-medium"
+                      : "text-slate-700 hover:text-primary-600 hover:bg-primary-50 "
                   )}
                 >
                   Product
@@ -318,10 +318,10 @@ export default function LandingMenu({ className }: LandingMenuProps) {
                   to="/pricing"
                   onClick={() => setIsMobileMenuOpen(false)}
                   className={cn(
-                    "block px-4 py-2 ml-2 text-base font-medium rounded-md transition-colors duration-200",
+                    "block px-4 py-2 ml-2 text-base  rounded-md transition-colors duration-200",
                     location.pathname === "/pricing"
                       ? "text-primary-600 bg-primary-50 font-bold"
-                      : "text-slate-700 hover:text-primary-600 hover:bg-primary-50 font-medium"
+                      : "text-slate-700 hover:text-primary-600 hover:bg-primary-50 "
                   )}
                 >
                   Pricing
@@ -330,10 +330,10 @@ export default function LandingMenu({ className }: LandingMenuProps) {
                   to="/sign-in"
                   onClick={() => setIsMobileMenuOpen(false)}
                   className={cn(
-                    "block px-4 py-2 ml-2 text-base font-medium rounded-md transition-colors duration-200",
+                    "block px-4 py-2 ml-2 text-base  rounded-md transition-colors duration-200",
                     location.pathname === "/sign-in"
                       ? "text-primary-600 bg-primary-50 font-bold"
-                      : "text-slate-700 hover:text-primary-600 hover:bg-primary-50 font-medium"
+                      : "text-slate-700 hover:text-primary-600 hover:bg-primary-50 "
                   )}
                 >
                   Sign In
@@ -342,10 +342,10 @@ export default function LandingMenu({ className }: LandingMenuProps) {
                   to="/about"
                   onClick={() => setIsMobileMenuOpen(false)}
                   className={cn(
-                    "block px-4 py-2 ml-2 text-base font-medium rounded-md transition-colors duration-200",
+                    "block px-4 py-2 ml-2 text-base  rounded-md transition-colors duration-200",
                     location.pathname === "/about"
                       ? "text-primary-600 bg-primary-50 font-bold"
-                      : "text-slate-700 hover:text-primary-600 hover:bg-primary-50 font-medium"
+                      : "text-slate-700 hover:text-primary-600 hover:bg-primary-50 "
                   )}
                 >
                   About
@@ -365,10 +365,10 @@ export default function LandingMenu({ className }: LandingMenuProps) {
                     to={item.to}
                     onClick={() => setIsMobileMenuOpen(false)}
                     className={cn(
-                      "block px-4 py-2 ml-2 text-base font-medium rounded-md transition-colors duration-200",
+                      "block px-4 py-2 ml-2 text-base  rounded-md transition-colors duration-200",
                       location.pathname === item.to
                         ? "text-primary-600 bg-primary-50 font-bold"
-                        : "text-slate-700 hover:text-primary-600 hover:bg-primary-50 font-medium"
+                        : "text-slate-700 hover:text-primary-600 hover:bg-primary-50 "
                     )}
                   >
                     {item.label}
@@ -387,10 +387,10 @@ export default function LandingMenu({ className }: LandingMenuProps) {
                   to="/terms-and-conditions"
                   onClick={() => setIsMobileMenuOpen(false)}
                   className={cn(
-                    "block px-4 py-2 ml-2 text-base font-medium rounded-md transition-colors duration-200",
+                    "block px-4 py-2 ml-2 text-base  rounded-md transition-colors duration-200",
                     location.pathname === "/terms-and-conditions"
                       ? "text-primary-600 bg-primary-50 font-bold"
-                      : "text-slate-700 hover:text-primary-600 hover:bg-primary-50 font-medium"
+                      : "text-slate-700 hover:text-primary-600 hover:bg-primary-50 "
                   )}
                 >
                   Terms & Conditions
@@ -399,10 +399,10 @@ export default function LandingMenu({ className }: LandingMenuProps) {
                   to="/privacy-policy"
                   onClick={() => setIsMobileMenuOpen(false)}
                   className={cn(
-                    "block px-4 py-2 ml-2 text-base font-medium rounded-md transition-colors duration-200",
+                    "block px-4 py-2 ml-2 text-base  rounded-md transition-colors duration-200",
                     location.pathname === "/privacy-policy"
                       ? "text-primary-600 bg-primary-50 font-bold"
-                      : "text-slate-700 hover:text-primary-600 hover:bg-primary-50 font-medium"
+                      : "text-slate-700 hover:text-primary-600 hover:bg-primary-50 "
                   )}
                 >
                   Privacy Policy
@@ -416,7 +416,7 @@ export default function LandingMenu({ className }: LandingMenuProps) {
             <div className="space-y-2">
               <a href="/auth/sign-in" className="block">
                 <button
-                  className="w-full rounded-md font-medium text-base py-3 px-5 text-primary-600 bg-transparent transition-all duration-300 min-h-[44px]"
+                  className="w-full rounded-md  text-base py-3 px-5 text-primary-600 bg-transparent transition-all duration-300 min-h-[44px]"
                   style={{
                     border: `2px solid rgb(var(--primary-500) / 0.3)`,
                   }}
@@ -427,7 +427,7 @@ export default function LandingMenu({ className }: LandingMenuProps) {
               </a>
               <Link to="/pricing" className="block">
                 <button
-                  className="w-full rounded-md font-medium text-base py-3 px-5 text-white bg-primary-500 transition-all duration-300 min-h-[44px]"
+                  className="w-full rounded-md  text-base py-3 px-5 text-white bg-primary-500 transition-all duration-300 min-h-[44px]"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   Get Started

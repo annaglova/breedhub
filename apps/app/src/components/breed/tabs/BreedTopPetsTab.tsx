@@ -1,11 +1,15 @@
-import { useMemo, useEffect, useRef, useCallback } from "react";
 import { PetCard, type Pet } from "@/components/shared/PetCard";
 import { useSelectedEntity } from "@/contexts/SpaceContext";
-import { spaceStore, useTabData, useInfiniteTabData } from "@breedhub/rxdb-store";
 import type { DataSourceConfig } from "@breedhub/rxdb-store";
+import {
+  spaceStore,
+  useInfiniteTabData,
+  useTabData,
+} from "@breedhub/rxdb-store";
 import { useSignals } from "@preact/signals-react/runtime";
 import { cn } from "@ui/lib/utils";
 import { Loader2 } from "lucide-react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 
 /**
  * Raw pet data from VIEW (top_pet_in_breed_with_pet)
@@ -67,14 +71,21 @@ interface BreedTopPetsTabProps {
  *
  * @see docs/TAB_DATA_SERVICE_ARCHITECTURE.md
  */
-export function BreedTopPetsTab({ dataSource, onLoadedCount }: BreedTopPetsTabProps) {
+export function BreedTopPetsTab({
+  dataSource,
+  onLoadedCount,
+}: BreedTopPetsTabProps) {
   useSignals();
 
   const selectedEntity = useSelectedEntity();
   const breedId = selectedEntity?.id;
   const isFullscreen = spaceStore.isFullscreen.value;
 
-  console.log('[BreedTopPetsTab] render:', { breedId, isFullscreen, selectedEntity: selectedEntity?.name });
+  console.log("[BreedTopPetsTab] render:", {
+    breedId,
+    isFullscreen,
+    selectedEntity: selectedEntity?.name,
+  });
 
   // Drawer mode: load all at once (limited)
   const drawerResult = useTabData<TopPetViewRecord>({
@@ -93,7 +104,9 @@ export function BreedTopPetsTab({ dataSource, onLoadedCount }: BreedTopPetsTabPr
 
   // Use appropriate data based on mode
   const data = isFullscreen ? infiniteResult.data : drawerResult.data;
-  const isLoading = isFullscreen ? infiniteResult.isLoading : drawerResult.isLoading;
+  const isLoading = isFullscreen
+    ? infiniteResult.isLoading
+    : drawerResult.isLoading;
   const error = isFullscreen ? infiniteResult.error : drawerResult.error;
 
   // Transform VIEW data to Pet format (must be before useEffect that uses pets.length)
@@ -114,16 +127,20 @@ export function BreedTopPetsTab({ dataSource, onLoadedCount }: BreedTopPetsTabPr
         countryOfBirth: pet?.country_of_birth,
         dateOfBirth: pet?.date_of_birth,
         titles: pet?.titles,
-        father: pet?.father ? {
-          id: pet.father.id,
-          name: pet.father.name,
-          url: pet.father.slug ? `/${pet.father.slug}` : "#",
-        } : undefined,
-        mother: pet?.mother ? {
-          id: pet.mother.id,
-          name: pet.mother.name,
-          url: pet.mother.slug ? `/${pet.mother.slug}` : "#",
-        } : undefined,
+        father: pet?.father
+          ? {
+              id: pet.father.id,
+              name: pet.father.name,
+              url: pet.father.slug ? `/${pet.father.slug}` : "#",
+            }
+          : undefined,
+        mother: pet?.mother
+          ? {
+              id: pet.mother.id,
+              name: pet.mother.name,
+              url: pet.mother.slug ? `/${pet.mother.slug}` : "#",
+            }
+          : undefined,
       };
     });
   }, [data]);
@@ -148,15 +165,19 @@ export function BreedTopPetsTab({ dataSource, onLoadedCount }: BreedTopPetsTabPr
   // IntersectionObserver for infinite scroll
   // Dependencies include `pets.length` to re-run when data loads and ref becomes available
   useEffect(() => {
-    console.log('[BreedTopPetsTab] IntersectionObserver effect:', { isFullscreen, hasRef: !!loadMoreRef.current, petsLength: pets.length });
+    console.log("[BreedTopPetsTab] IntersectionObserver effect:", {
+      isFullscreen,
+      hasRef: !!loadMoreRef.current,
+      petsLength: pets.length,
+    });
     if (!isFullscreen || !loadMoreRef.current) return;
 
     const observer = new IntersectionObserver(
       (entries) => {
-        console.log('[BreedTopPetsTab] IntersectionObserver fired:', {
+        console.log("[BreedTopPetsTab] IntersectionObserver fired:", {
           isIntersecting: entries[0]?.isIntersecting,
           hasMore,
-          isLoadingMore
+          isLoadingMore,
         });
         if (entries[0]?.isIntersecting) {
           handleLoadMore();
@@ -211,7 +232,7 @@ export function BreedTopPetsTab({ dataSource, onLoadedCount }: BreedTopPetsTabPr
   if (pets.length === 0) {
     return (
       <div className="card card-rounded mt-5 flex flex-auto flex-col p-6 lg:px-8">
-        <span className="text-muted-foreground p-8 text-center font-medium">
+        <span className="text-muted-foreground p-8 text-center ">
           There are no pets in the Breed!
         </span>
       </div>

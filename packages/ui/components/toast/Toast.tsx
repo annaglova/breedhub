@@ -1,8 +1,8 @@
 "use client";
 
-import * as React from "react";
 import { cn } from "@ui/lib/utils";
-import { X, CheckCircle, XCircle, Info, AlertTriangle } from "lucide-react";
+import { AlertTriangle, CheckCircle, Info, X, XCircle } from "lucide-react";
+import * as React from "react";
 
 export type ToastType = "success" | "error" | "info" | "warning";
 
@@ -25,10 +25,13 @@ const icons: Record<ToastType, React.ReactNode> = {
 };
 
 const styles: Record<ToastType, string> = {
-  success: "bg-slate-50 border-slate-200 text-slate-800 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-200",
-  error: "bg-slate-50 border-slate-200 text-slate-800 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-200",
+  success:
+    "bg-slate-50 border-slate-200 text-slate-800 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-200",
+  error:
+    "bg-slate-50 border-slate-200 text-slate-800 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-200",
   info: "bg-slate-50 border-slate-200 text-slate-800 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-200",
-  warning: "bg-slate-50 border-slate-200 text-slate-800 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-200",
+  warning:
+    "bg-slate-50 border-slate-200 text-slate-800 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-200",
 };
 
 const iconStyles: Record<ToastType, string> = {
@@ -59,12 +62,10 @@ export function Toast({ id, type, message, action, onClose }: ToastProps) {
       role="alert"
     >
       {/* Icon */}
-      <div className={cn("shrink-0", iconStyles[type])}>
-        {icons[type]}
-      </div>
+      <div className={cn("shrink-0", iconStyles[type])}>{icons[type]}</div>
 
       {/* Message */}
-      <p className="flex-1 text-sm font-medium">{message}</p>
+      <p className="flex-1 text-sm ">{message}</p>
 
       {/* Action button */}
       {action && (

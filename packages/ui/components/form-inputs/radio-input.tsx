@@ -1,8 +1,8 @@
-import React, { forwardRef } from "react";
-import { RadioGroup, RadioGroupItem } from "../radio-group";
+import { cn } from "@ui/lib/utils";
+import { forwardRef } from "react";
 import { FormField } from "../form-field";
 import { Label } from "../label";
-import { cn } from "@ui/lib/utils";
+import { RadioGroup, RadioGroupItem } from "../radio-group";
 
 interface RadioOption {
   value: string;
@@ -26,19 +26,22 @@ interface RadioInputProps {
 }
 
 export const RadioInput = forwardRef<HTMLDivElement, RadioInputProps>(
-  ({ 
-    label, 
-    error,
-    helperText, 
-    required,
-    value,
-    onValueChange,
-    options,
-    orientation = "vertical",
-    className,
-    fieldClassName,
-    disabled,
-  }, ref) => {
+  (
+    {
+      label,
+      error,
+      helperText,
+      required,
+      value,
+      onValueChange,
+      options,
+      orientation = "vertical",
+      className,
+      fieldClassName,
+      disabled,
+    },
+    ref
+  ) => {
     const radioGroupElement = (
       <RadioGroup
         ref={ref}
@@ -46,7 +49,9 @@ export const RadioInput = forwardRef<HTMLDivElement, RadioInputProps>(
         onValueChange={onValueChange}
         disabled={disabled}
         className={cn(
-          orientation === "horizontal" ? "flex flex-row space-x-4" : "space-y-2",
+          orientation === "horizontal"
+            ? "flex flex-row space-x-4"
+            : "space-y-2",
           className
         )}
       >
@@ -61,14 +66,17 @@ export const RadioInput = forwardRef<HTMLDivElement, RadioInputProps>(
               <Label
                 htmlFor={`radio-${option.value}`}
                 className={cn(
-                  "text-base font-medium leading-none",
-                  (option.disabled || disabled) && "cursor-not-allowed opacity-70"
+                  "text-base  leading-none",
+                  (option.disabled || disabled) &&
+                    "cursor-not-allowed opacity-70"
                 )}
               >
                 {option.label}
               </Label>
               {option.description && (
-                <p className="text-sm text-slate-500 mt-1">{option.description}</p>
+                <p className="text-sm text-slate-500 mt-1">
+                  {option.description}
+                </p>
               )}
             </div>
           </div>

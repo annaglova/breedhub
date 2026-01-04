@@ -8,7 +8,7 @@ import * as React from "react";
 import { cn } from "@ui/lib/utils";
 
 const navigationMenuTriggerStyle = cva(
-  "group inline-flex h-9 w-max items-center justify-center rounded-md bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50 data-[active]:bg-accent/50 data-[state=open]:bg-accent/50"
+  "group inline-flex h-9 w-max items-center justify-center rounded-md bg-background px-4 py-2 text-sm  transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50 data-[active]:bg-accent/50 data-[state=open]:bg-accent/50"
 );
 
 const NavigationMenu = React.forwardRef<
@@ -47,7 +47,7 @@ NavigationMenuList.displayName = NavigationMenuPrimitive.List.displayName;
 const NavigationMenuItem = NavigationMenuPrimitive.Item;
 
 const navigationMenuTriggerVariants = cva(
-  "group inline-flex h-9 w-max items-center justify-center rounded-md bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50 data-[active]:bg-accent/50 data-[state=open]:bg-accent/50",
+  "group inline-flex h-9 w-max items-center justify-center rounded-md bg-background px-4 py-2 text-sm  transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50 data-[active]:bg-accent/50 data-[state=open]:bg-accent/50",
   {
     variants: {
       variant: {
@@ -75,14 +75,21 @@ const NavigationMenuTrigger = React.forwardRef<
 >(({ className, children, variant, icon, badge, ...props }, ref) => (
   <NavigationMenuPrimitive.Trigger
     ref={ref}
-    className={cn(navigationMenuTriggerVariants({ variant }), "group", className)}
+    className={cn(
+      navigationMenuTriggerVariants({ variant }),
+      "group",
+      className
+    )}
     {...props}
   >
     <div className="flex items-center gap-2">
       {icon && <span className="flex-shrink-0">{icon}</span>}
       <span>{children}</span>
       {badge && <span className="flex-shrink-0">{badge}</span>}
-      <ChevronDown className="relative top-[1px] ml-1 h-3 w-3 transition duration-300 group-data-[state=open]:rotate-180" aria-hidden="true" />
+      <ChevronDown
+        className="relative top-[1px] ml-1 h-3 w-3 transition duration-300 group-data-[state=open]:rotate-180"
+        aria-hidden="true"
+      />
     </div>
   </NavigationMenuPrimitive.Trigger>
 ));
@@ -120,7 +127,8 @@ const NavigationMenuViewport = React.forwardRef<
     />
   </div>
 ));
-NavigationMenuViewport.displayName = NavigationMenuPrimitive.Viewport.displayName;
+NavigationMenuViewport.displayName =
+  NavigationMenuPrimitive.Viewport.displayName;
 
 const NavigationMenuIndicator = React.forwardRef<
   React.ElementRef<typeof NavigationMenuPrimitive.Indicator>,
@@ -137,7 +145,8 @@ const NavigationMenuIndicator = React.forwardRef<
     <div className="relative top-[60%] h-2 w-2 rotate-45 rounded-tl-sm bg-border shadow-md" />
   </NavigationMenuPrimitive.Indicator>
 ));
-NavigationMenuIndicator.displayName = NavigationMenuPrimitive.Indicator.displayName;
+NavigationMenuIndicator.displayName =
+  NavigationMenuPrimitive.Indicator.displayName;
 
 // Enhanced Navigation Components
 
@@ -166,8 +175,10 @@ const NavigationMenuItemWithDescription = React.forwardRef<
       )}
     >
       <div className="flex items-center gap-2">
-        {icon && <span className="flex-shrink-0 text-muted-foreground">{icon}</span>}
-        <div className="text-sm font-medium leading-none">{title}</div>
+        {icon && (
+          <span className="flex-shrink-0 text-muted-foreground">{icon}</span>
+        )}
+        <div className="text-sm  leading-none">{title}</div>
       </div>
       {description && (
         <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
@@ -177,7 +188,8 @@ const NavigationMenuItemWithDescription = React.forwardRef<
     </a>
   </NavigationMenuLink>
 ));
-NavigationMenuItemWithDescription.displayName = "NavigationMenuItemWithDescription";
+NavigationMenuItemWithDescription.displayName =
+  "NavigationMenuItemWithDescription";
 
 // Breadcrumb Navigation
 interface BreadcrumbProps {
@@ -192,15 +204,16 @@ interface BreadcrumbProps {
 
 const Breadcrumb = React.forwardRef<HTMLNavElement, BreadcrumbProps>(
   ({ items, separator, className }, ref) => {
-    const defaultSeparator = (
-      <ChevronRight className="h-3 w-3" />
-    );
+    const defaultSeparator = <ChevronRight className="h-3 w-3" />;
 
     return (
       <nav
         ref={ref}
         aria-label="Breadcrumb"
-        className={cn("flex items-center space-x-1 text-sm text-muted-foreground", className)}
+        className={cn(
+          "flex items-center space-x-1 text-sm text-muted-foreground",
+          className
+        )}
       >
         {items.map((item, index) => (
           <React.Fragment key={index}>
@@ -219,7 +232,11 @@ const Breadcrumb = React.forwardRef<HTMLNavElement, BreadcrumbProps>(
                   {item.label}
                 </a>
               ) : (
-                <span className={index === items.length - 1 ? "text-foreground font-medium" : ""}>
+                <span
+                  className={
+                    index === items.length - 1 ? "text-foreground " : ""
+                  }
+                >
                   {item.label}
                 </span>
               )}
@@ -272,11 +289,11 @@ const SidebarNav = React.forwardRef<HTMLNavElement, SidebarNavProps>(
               {item.badge && item.badge}
             </a>
           ) : (
-            <div className="px-3 py-2 text-sm font-medium text-muted-foreground">
+            <div className="px-3 py-2 text-sm  text-muted-foreground">
               {item.title}
             </div>
           )}
-          
+
           {item.children && (
             <div className="ml-4 space-y-1">
               {item.children.map((child, childIndex) => (
@@ -304,17 +321,17 @@ const SidebarNav = React.forwardRef<HTMLNavElement, SidebarNavProps>(
 SidebarNav.displayName = "SidebarNav";
 
 export {
-  navigationMenuTriggerStyle,
-  NavigationMenu,
-  NavigationMenuList,
-  NavigationMenuItem,
-  NavigationMenuContent,
-  NavigationMenuTrigger,
-  NavigationMenuLink,
-  NavigationMenuIndicator,
-  NavigationMenuViewport,
-  NavigationMenuItemWithDescription,
   Breadcrumb,
-  SidebarNav,
+  NavigationMenu,
+  NavigationMenuContent,
+  NavigationMenuIndicator,
+  NavigationMenuItem,
+  NavigationMenuItemWithDescription,
+  NavigationMenuLink,
+  NavigationMenuList,
+  NavigationMenuTrigger,
+  navigationMenuTriggerStyle,
   navigationMenuTriggerVariants,
+  NavigationMenuViewport,
+  SidebarNav,
 };

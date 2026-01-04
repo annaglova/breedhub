@@ -14,11 +14,19 @@ interface FormFieldProps {
 }
 
 export const FormField = forwardRef<HTMLDivElement, FormFieldProps>(
-  ({ label, error, helperText, required, className, labelClassName, children }, ref) => {
+  (
+    { label, error, helperText, required, className, labelClassName, children },
+    ref
+  ) => {
     return (
       <div ref={ref} className={cn("group", className)}>
         {label && (
-          <Label className={cn("block text-base font-medium text-slate-700 mb-1", labelClassName)}>
+          <Label
+            className={cn(
+              "block text-base  text-slate-700 mb-1",
+              labelClassName
+            )}
+          >
             {label}
             {required && <span className="text-warning-500 ml-1">*</span>}
           </Label>

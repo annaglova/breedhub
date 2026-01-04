@@ -1,10 +1,13 @@
-import React, { forwardRef, useRef, useState } from "react";
-import { Input } from "../input";
-import { FormField } from "../form-field";
 import { cn } from "@ui/lib/utils";
-import { Upload, X, File, Image, FileText } from "lucide-react";
+import { File, FileText, Image, Upload, X } from "lucide-react";
+import React, { forwardRef, useRef, useState } from "react";
+import { FormField } from "../form-field";
 
-interface FileInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'type' | 'value' | 'onChange'> {
+interface FileInputProps
+  extends Omit<
+    React.InputHTMLAttributes<HTMLInputElement>,
+    "type" | "value" | "onChange"
+  > {
   label?: string;
   error?: string;
   helperText?: string;
@@ -20,37 +23,41 @@ interface FileInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement
 }
 
 const formatFileSize = (bytes: number): string => {
-  if (bytes === 0) return '0 Bytes';
+  if (bytes === 0) return "0 Bytes";
   const k = 1024;
-  const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+  const sizes = ["Bytes", "KB", "MB", "GB"];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
 };
 
 const getFileIcon = (file: File) => {
-  if (file.type.startsWith('image/')) return <Image className="h-4 w-4" />;
-  if (file.type.includes('pdf') || file.type.includes('document')) return <FileText className="h-4 w-4" />;
+  if (file.type.startsWith("image/")) return <Image className="h-4 w-4" />;
+  if (file.type.includes("pdf") || file.type.includes("document"))
+    return <FileText className="h-4 w-4" />;
   return <File className="h-4 w-4" />;
 };
 
 export const FileInput = forwardRef<HTMLInputElement, FileInputProps>(
-  ({ 
-    label, 
-    error,
-    helperText, 
-    required,
-    value,
-    onValueChange,
-    accept,
-    multiple = false,
-    maxSize,
-    maxFiles = 10,
-    showPreview = true,
-    className,
-    fieldClassName,
-    disabled,
-    ...props 
-  }, ref) => {
+  (
+    {
+      label,
+      error,
+      helperText,
+      required,
+      value,
+      onValueChange,
+      accept,
+      multiple = false,
+      maxSize,
+      maxFiles = 10,
+      showPreview = true,
+      className,
+      fieldClassName,
+      disabled,
+      ...props
+    },
+    ref
+  ) => {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [dragActive, setDragActive] = useState(false);
     const [validationError, setValidationError] = useState<string | null>(null);
@@ -72,7 +79,7 @@ export const FileInput = forwardRef<HTMLInputElement, FileInputProps>(
       let error: string | null = null;
 
       const filesArray = Array.from(fileList);
-      
+
       // Check max files
       if (multiple && filesArray.length > maxFiles) {
         error = `Maximum ${maxFiles} files allowed`;
@@ -83,7 +90,9 @@ export const FileInput = forwardRef<HTMLInputElement, FileInputProps>(
       for (const file of filesArray) {
         // Check file size
         if (maxSize && file.size > maxSize) {
-          error = `File "${file.name}" exceeds maximum size of ${formatFileSize(maxSize)}`;
+          error = `File "${file.name}" exceeds maximum size of ${formatFileSize(
+            maxSize
+          )}`;
           break;
         }
         validFiles.push(file);
@@ -98,7 +107,11 @@ export const FileInput = forwardRef<HTMLInputElement, FileInputProps>(
       e.stopPropagation();
       setDragActive(false);
 
-      if (disabled || !e.dataTransfer.files || e.dataTransfer.files.length === 0) {
+      if (
+        disabled ||
+        !e.dataTransfer.files ||
+        e.dataTransfer.files.length === 0
+      ) {
         return;
       }
 
@@ -162,8 +175,10 @@ export const FileInput = forwardRef<HTMLInputElement, FileInputProps>(
           )}
         >
           <Upload className="mb-2 h-8 w-8 text-slate-400" />
-          <p className="text-base font-medium text-slate-700">
-            {dragActive ? "Drop files here" : "Drop files here or click to browse"}
+          <p className="text-base  text-slate-700">
+            {dragActive
+              ? "Drop files here"
+              : "Drop files here or click to browse"}
           </p>
           <p className="mt-1 text-xs text-slate-500">
             {accept && `Accepts: ${accept}`}
@@ -182,7 +197,7 @@ export const FileInput = forwardRef<HTMLInputElement, FileInputProps>(
                 <div className="flex items-center space-x-3">
                   <div className="text-slate-500">{getFileIcon(file)}</div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-base font-medium text-slate-700 truncate">
+                    <p className="text-base  text-slate-700 truncate">
                       {file.name}
                     </p>
                     <p className="text-xs text-slate-500">

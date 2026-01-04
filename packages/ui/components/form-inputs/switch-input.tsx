@@ -1,7 +1,7 @@
-import React, { forwardRef } from "react";
-import { Switch } from "../switch";
-import { FormField } from "../form-field";
 import { cn } from "@ui/lib/utils";
+import { forwardRef } from "react";
+import { FormField } from "../form-field";
+import { Switch } from "../switch";
 
 interface SwitchInputProps {
   label?: string;
@@ -18,19 +18,22 @@ interface SwitchInputProps {
 }
 
 export const SwitchInput = forwardRef<HTMLButtonElement, SwitchInputProps>(
-  ({ 
-    label, 
-    error,
-    helperText, 
-    required,
-    checked,
-    onCheckedChange,
-    switchLabel,
-    description,
-    className,
-    fieldClassName,
-    disabled,
-  }, ref) => {
+  (
+    {
+      label,
+      error,
+      helperText,
+      required,
+      checked,
+      onCheckedChange,
+      switchLabel,
+      description,
+      className,
+      fieldClassName,
+      disabled,
+    },
+    ref
+  ) => {
     const switchElement = (
       <div className={cn("flex items-start space-x-3", className)}>
         <Switch
@@ -44,7 +47,7 @@ export const SwitchInput = forwardRef<HTMLButtonElement, SwitchInputProps>(
             {switchLabel && (
               <label
                 className={cn(
-                  "text-base font-medium leading-none",
+                  "text-base  leading-none",
                   disabled && "cursor-not-allowed opacity-70"
                 )}
               >

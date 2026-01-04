@@ -12,7 +12,11 @@ interface SkipLinksProps {
 }
 
 const defaultLinks: SkipLink[] = [
-  { id: "skip-to-main", label: "Skip to main content", targetId: "main-content" },
+  {
+    id: "skip-to-main",
+    label: "Skip to main content",
+    targetId: "main-content",
+  },
   { id: "skip-to-nav", label: "Skip to navigation", targetId: "navigation" },
   { id: "skip-to-footer", label: "Skip to footer", targetId: "footer" },
 ];
@@ -39,7 +43,7 @@ export function SkipLinks({ links = defaultLinks, className }: SkipLinksProps) {
                   handleSkip(link.targetId);
                 }}
                 className={cn(
-                  "block px-4 py-2 text-sm font-medium text-slate-700",
+                  "block px-4 py-2 text-sm  text-slate-700",
                   "hover:bg-slate-100 hover:text-slate-900",
                   "focus:bg-primary-100 focus:text-primary-700 focus:outline-none",
                   "rounded-md transition-colors"

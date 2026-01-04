@@ -1,21 +1,25 @@
+import { zodResolver } from "@hookform/resolvers/zod";
 import FooterFigure from "@shared/assets/backgrounds/footer-figure.svg?react";
 import { AuthFooter } from "@shared/components/auth/AuthFooter";
 import { AuthHeader } from "@shared/components/auth/AuthHeader";
-import { EmailInput, PasswordInput } from "@ui/components/form-inputs";
 import { SocialLoginButtons } from "@shared/components/auth/SocialLoginButtons";
-import { AuthFormWrapper } from "@ui/components/auth-forms";
 import { useRateLimiter } from "@shared/hooks/useRateLimiter";
 import { useTranslations } from "@shared/i18n";
 import AuthLayout from "@shared/layouts/AuthLayout";
-import { sanitizeErrorMessage, logSecurityEvent, hashForLogging } from "@shared/utils/securityUtils";
 import { signInSchema, type SignInFormData } from "@shared/utils/authSchemas";
+import {
+  hashForLogging,
+  logSecurityEvent,
+  sanitizeErrorMessage,
+} from "@shared/utils/securityUtils";
+import { AuthFormWrapper } from "@ui/components/auth-forms";
 import { Button } from "@ui/components/button";
 import { Checkbox } from "@ui/components/checkbox";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { EmailInput, PasswordInput } from "@ui/components/form-inputs";
+import { AlertCircle, Mail, User } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import { User, Mail, Lock, AlertCircle } from "lucide-react";
 
 export default function SignInWithI18n() {
   const navigate = useNavigate();
@@ -23,9 +27,10 @@ export default function SignInWithI18n() {
   const [isLoading, setIsLoading] = useState(false);
   const [generalError, setGeneralError] = useState("");
   const t = useTranslations();
-  
-  const { checkRateLimit, recordAttempt, clearAttempts, remainingAttempts } = useRateLimiter('login');
-  
+
+  const { checkRateLimit, recordAttempt, clearAttempts, remainingAttempts } =
+    useRateLimiter("login");
+
   const {
     register,
     handleSubmit,
@@ -48,7 +53,7 @@ export default function SignInWithI18n() {
     if (!rateLimitCheck.allowed) {
       setGeneralError(rateLimitCheck.message || t.auth.errors.tooManyAttempts);
       logSecurityEvent({
-        type: 'rate_limit',
+        type: "rate_limit",
         email: hashForLogging(data.email),
       });
       return;
@@ -59,28 +64,30 @@ export default function SignInWithI18n() {
     try {
       // Record the attempt
       recordAttempt(data.email);
-      
+
       // Log the attempt
       logSecurityEvent({
-        type: 'login_attempt',
+        type: "login_attempt",
         email: hashForLogging(data.email),
       });
 
       // TODO: Implement actual authentication
-      await new Promise((resolve, reject) => setTimeout(() => {
-        if (Math.random() > 0.5) {
-          resolve(true);
-        } else {
-          reject(new Error("Invalid credentials"));
-        }
-      }, 1000));
+      await new Promise((resolve, reject) =>
+        setTimeout(() => {
+          if (Math.random() > 0.5) {
+            resolve(true);
+          } else {
+            reject(new Error("Invalid credentials"));
+          }
+        }, 1000)
+      );
 
       // Clear attempts on successful login
       clearAttempts(data.email);
-      
+
       // Log successful login
       logSecurityEvent({
-        type: 'login_success',
+        type: "login_success",
         email: hashForLogging(data.email),
       });
 
@@ -91,29 +98,34 @@ export default function SignInWithI18n() {
       // Use secure error message
       const errorMessage = sanitizeErrorMessage(error);
       setGeneralError(errorMessage);
-      
+
       // Log failed attempt
       logSecurityEvent({
-        type: 'login_failure',
+        type: "login_failure",
         email: hashForLogging(data.email),
         details: { remainingAttempts },
       });
-      
+
       // Shake animation handled by AuthFormWrapper
-      
+
       // Show remaining attempts if getting low
       if (remainingAttempts > 0 && remainingAttempts <= 2) {
-        const attemptText = remainingAttempts === 1 
-          ? t.auth.errors.attemptsRemaining 
-          : t.auth.errors.attemptsRemainingPlural;
-        setGeneralError(`${errorMessage} (${remainingAttempts} ${attemptText})`);
+        const attemptText =
+          remainingAttempts === 1
+            ? t.auth.errors.attemptsRemaining
+            : t.auth.errors.attemptsRemainingPlural;
+        setGeneralError(
+          `${errorMessage} (${remainingAttempts} ${attemptText})`
+        );
       }
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleSocialLogin = async (provider: "facebook" | "google" | "apple") => {
+  const handleSocialLogin = async (
+    provider: "facebook" | "google" | "apple"
+  ) => {
     try {
       // TODO: Implement social login
       await new Promise((resolve) => setTimeout(resolve, 1000));
@@ -176,9 +188,9 @@ export default function SignInWithI18n() {
               </div>
 
               {/* Sign In Form */}
-              <AuthFormWrapper 
-                formId="signin-form" 
-                onSubmit={handleSubmit(onSubmit)} 
+              <AuthFormWrapper
+                formId="signin-form"
+                onSubmit={handleSubmit(onSubmit)}
                 isLoading={isLoading}
               >
                 <div className="space-y-4">
@@ -190,7 +202,9 @@ export default function SignInWithI18n() {
                     autoComplete="email"
                     icon={<Mail className="w-4 h-4" />}
                     aria-label={t.auth.signIn.emailLabel}
-                    placeholder={t.auth.signIn.emailPlaceholder || "Enter your email"}
+                    placeholder={
+                      t.auth.signIn.emailPlaceholder || "Enter your email"
+                    }
                   />
 
                   <PasswordInput
@@ -201,7 +215,9 @@ export default function SignInWithI18n() {
                     autoComplete="current-password"
                     showIcon
                     aria-label={t.auth.signIn.passwordLabel}
-                    placeholder={t.auth.signIn.passwordPlaceholder || "Enter your password"}
+                    placeholder={
+                      t.auth.signIn.passwordPlaceholder || "Enter your password"
+                    }
                   />
                 </div>
 
@@ -257,7 +273,7 @@ export default function SignInWithI18n() {
                 {t.auth.signIn.noAccount}{" "}
                 <Link
                   to="/sign-up"
-                  className="font-medium text-primary-600 hover:text-primary-500 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500/20 rounded"
+                  className=" text-primary-600 hover:text-primary-500 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500/20 rounded"
                 >
                   {t.auth.signIn.signUpLink}
                 </Link>

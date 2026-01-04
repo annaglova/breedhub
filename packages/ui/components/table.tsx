@@ -4,27 +4,24 @@ import * as React from "react";
 
 import { cn } from "@ui/lib/utils";
 
-const tableVariants = cva(
-  "w-full caption-bottom text-sm",
-  {
-    variants: {
-      variant: {
-        default: "border-collapse",
-        bordered: "border border-border",
-        striped: "",
-      },
-      size: {
-        sm: "text-xs",
-        default: "text-sm",
-        lg: "text-base",
-      },
+const tableVariants = cva("w-full caption-bottom text-sm", {
+  variants: {
+    variant: {
+      default: "border-collapse",
+      bordered: "border border-border",
+      striped: "",
     },
-    defaultVariants: {
-      variant: "default",
-      size: "default",
+    size: {
+      sm: "text-xs",
+      default: "text-sm",
+      lg: "text-base",
     },
-  }
-);
+  },
+  defaultVariants: {
+    variant: "default",
+    size: "default",
+  },
+});
 
 interface TableProps
   extends React.HTMLAttributes<HTMLTableElement>,
@@ -69,30 +66,26 @@ const TableFooter = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <tfoot
     ref={ref}
-    className={cn(
-      "border-t bg-muted/50 font-medium [&>tr]:last:border-b-0",
-      className
-    )}
+    className={cn("border-t bg-muted/50  [&>tr]:last:border-b-0", className)}
     {...props}
   />
 ));
 TableFooter.displayName = "TableFooter";
 
-const tableRowVariants = cva(
-  "border-b transition-colors",
-  {
-    variants: {
-      variant: {
-        default: "hover:bg-muted/50 data-[state=selected]:bg-muted",
-        clickable: "hover:bg-muted/50 cursor-pointer data-[state=selected]:bg-muted",
-        striped: "even:bg-muted/20 hover:bg-muted/50 data-[state=selected]:bg-muted",
-      },
+const tableRowVariants = cva("border-b transition-colors", {
+  variants: {
+    variant: {
+      default: "hover:bg-muted/50 data-[state=selected]:bg-muted",
+      clickable:
+        "hover:bg-muted/50 cursor-pointer data-[state=selected]:bg-muted",
+      striped:
+        "even:bg-muted/20 hover:bg-muted/50 data-[state=selected]:bg-muted",
     },
-    defaultVariants: {
-      variant: "default",
-    },
-  }
-);
+  },
+  defaultVariants: {
+    variant: "default",
+  },
+});
 
 interface TableRowProps
   extends React.HTMLAttributes<HTMLTableRowElement>,
@@ -115,7 +108,7 @@ const tableCellVariants = cva(
     variants: {
       variant: {
         default: "",
-        head: "h-10 px-2 text-left align-middle font-medium text-muted-foreground",
+        head: "h-10 px-2 text-left align-middle  text-muted-foreground",
         numeric: "text-right font-mono",
         center: "text-center",
       },
@@ -175,7 +168,13 @@ const TableCaption = React.forwardRef<
 TableCaption.displayName = "TableCaption";
 
 // Loading state component
-const TableSkeleton = ({ rows = 5, columns = 4 }: { rows?: number; columns?: number }) => (
+const TableSkeleton = ({
+  rows = 5,
+  columns = 4,
+}: {
+  rows?: number;
+  columns?: number;
+}) => (
   <Table>
     <TableHeader>
       <TableRow>
@@ -201,11 +200,11 @@ const TableSkeleton = ({ rows = 5, columns = 4 }: { rows?: number; columns?: num
 );
 
 // Empty state component
-const TableEmpty = ({ 
+const TableEmpty = ({
   message = "No data available",
   columns,
-  children
-}: { 
+  children,
+}: {
   message?: string;
   columns: number;
   children?: React.ReactNode;
@@ -224,16 +223,16 @@ const TableEmpty = ({
 
 export {
   Table,
-  TableHeader,
   TableBody,
+  TableCaption,
+  TableCell,
+  tableCellVariants,
+  TableEmpty,
   TableFooter,
   TableHead,
+  TableHeader,
   TableRow,
-  TableCell,
-  TableCaption,
-  TableSkeleton,
-  TableEmpty,
-  tableVariants,
   tableRowVariants,
-  tableCellVariants,
+  TableSkeleton,
+  tableVariants,
 };

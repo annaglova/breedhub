@@ -1,31 +1,30 @@
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import { usePageTitle } from "@/hooks/usePageTitle";
-import {
-  NumberInput,
-  TextInput,
-  EmailInput,
-  PasswordInput,
-  DropdownInput,
-  LookupInput,
-  DateInput,
-  TextareaInput,
-  FileInput,
-  CheckboxInput,
-  RadioInput,
-  TimeInput,
-  SwitchInput,
-  SearchInput,
-} from "@ui/components/form-inputs";
-import { User, Pencil } from "lucide-react";
+import { zodResolver } from "@hookform/resolvers/zod";
 import {
   emailValidator,
-  simplePasswordValidator,
-  requiredString,
   optionalString,
-  createEnumValidator
+  requiredString,
+  simplePasswordValidator,
 } from "@shared/utils/validation";
+import {
+  CheckboxInput,
+  DateInput,
+  DropdownInput,
+  EmailInput,
+  FileInput,
+  LookupInput,
+  NumberInput,
+  PasswordInput,
+  RadioInput,
+  SearchInput,
+  SwitchInput,
+  TextareaInput,
+  TextInput,
+  TimeInput,
+} from "@ui/components/form-inputs";
+import { Pencil, User } from "lucide-react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 
 const countryOptions = [
   { value: "us", label: "United States" },
@@ -36,15 +35,35 @@ const countryOptions = [
 ];
 
 const dogBreedOptions = [
-  { value: "golden", label: "Golden Retriever", description: "Friendly and intelligent" },
-  { value: "german", label: "German Shepherd", description: "Loyal and versatile" },
+  {
+    value: "golden",
+    label: "Golden Retriever",
+    description: "Friendly and intelligent",
+  },
+  {
+    value: "german",
+    label: "German Shepherd",
+    description: "Loyal and versatile",
+  },
   { value: "bulldog", label: "Bulldog", description: "Gentle and courageous" },
   { value: "poodle", label: "Poodle", description: "Active and intelligent" },
   { value: "beagle", label: "Beagle", description: "Curious and friendly" },
-  { value: "rottweiler", label: "Rottweiler", description: "Confident guardian" },
-  { value: "yorkshire", label: "Yorkshire Terrier", description: "Affectionate and sprightly" },
+  {
+    value: "rottweiler",
+    label: "Rottweiler",
+    description: "Confident guardian",
+  },
+  {
+    value: "yorkshire",
+    label: "Yorkshire Terrier",
+    description: "Affectionate and sprightly",
+  },
   { value: "dachshund", label: "Dachshund", description: "Curious and lively" },
-  { value: "siberian", label: "Siberian Husky", description: "Outgoing and energetic" },
+  {
+    value: "siberian",
+    label: "Siberian Husky",
+    description: "Outgoing and energetic",
+  },
   { value: "boxer", label: "Boxer", description: "Fun-loving and loyal" },
 ];
 
@@ -53,7 +72,8 @@ const testFormSchema = z.object({
   text: requiredString("Full name"),
   email: emailValidator,
   password: simplePasswordValidator,
-  number: z.string()
+  number: z
+    .string()
     .min(1, "Number is required")
     .refine((val) => !isNaN(parseFloat(val)), "Must be a valid number")
     .refine((val) => parseFloat(val) >= 5, "Number must be at least 5")
@@ -64,10 +84,12 @@ const testFormSchema = z.object({
   date: z.date().nullable().optional(),
   description: optionalString,
   file: z.instanceof(File).nullable().optional(),
-  agree: z.boolean().refine((val) => val === true, "You must agree to the terms"),
+  agree: z
+    .boolean()
+    .refine((val) => val === true, "You must agree to the terms"),
   gender: optionalString,
   time: optionalString,
-  notifications: z.boolean()
+  notifications: z.boolean(),
 });
 
 type TestFormData = z.infer<typeof testFormSchema>;
@@ -81,7 +103,7 @@ export default function TestInputsPage() {
     formState: { errors, touchedFields },
     setValue,
     watch,
-    control
+    control,
   } = useForm<TestFormData>({
     resolver: zodResolver(testFormSchema),
     mode: "onChange", // Real-time validation
@@ -100,7 +122,7 @@ export default function TestInputsPage() {
       gender: "",
       time: "",
       notifications: false,
-    }
+    },
   });
 
   const onSubmit = (data: TestFormData) => {
@@ -111,8 +133,10 @@ export default function TestInputsPage() {
   return (
     <div className="min-h-screen bg-slate-50 py-12">
       <div className="max-w-4xl mx-auto px-4">
-        <h1 className="text-3xl font-bold text-slate-900 mb-8">Form Inputs Test Page</h1>
-        
+        <h1 className="text-3xl font-bold text-slate-900 mb-8">
+          Form Inputs Test Page
+        </h1>
+
         <div className="bg-white rounded-lg shadow-md p-8">
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             {/* Text Input */}
@@ -175,13 +199,17 @@ export default function TestInputsPage() {
 
             {/* Dropdown Input */}
             <div>
-              <h3 className="text-lg font-semibold mb-2">Dropdown Input (static options)</h3>
+              <h3 className="text-lg font-semibold mb-2">
+                Dropdown Input (static options)
+              </h3>
               <DropdownInput
                 label="Country"
                 placeholder="Select your country"
                 options={countryOptions}
                 value={watch("country")}
-                onValueChange={(value) => setValue("country", value, { shouldValidate: true })}
+                onValueChange={(value) =>
+                  setValue("country", value, { shouldValidate: true })
+                }
                 error={errors.country?.message}
                 touched={touchedFields.country}
                 required
@@ -190,7 +218,9 @@ export default function TestInputsPage() {
 
             {/* Dropdown Input with Dictionary */}
             <div>
-              <h3 className="text-lg font-semibold mb-2">Dropdown Input (DictionaryStore)</h3>
+              <h3 className="text-lg font-semibold mb-2">
+                Dropdown Input (DictionaryStore)
+              </h3>
               <DropdownInput
                 label="Pet Type"
                 placeholder="Select pet type"
@@ -204,13 +234,17 @@ export default function TestInputsPage() {
 
             {/* Lookup Input */}
             <div>
-              <h3 className="text-lg font-semibold mb-2">Lookup Input (with search)</h3>
+              <h3 className="text-lg font-semibold mb-2">
+                Lookup Input (with search)
+              </h3>
               <LookupInput
                 label="Dog Breed"
                 placeholder="Search for a breed..."
                 options={dogBreedOptions}
                 value={watch("breed")}
-                onValueChange={(value) => setValue("breed", value, { shouldValidate: true })}
+                onValueChange={(value) =>
+                  setValue("breed", value, { shouldValidate: true })
+                }
                 error={errors.breed?.message}
                 touched={touchedFields.breed}
                 required
@@ -264,7 +298,9 @@ export default function TestInputsPage() {
               <h3 className="text-lg font-semibold mb-2">Checkbox Input</h3>
               <CheckboxInput
                 checked={watch("agree")}
-                onCheckedChange={(checked) => setValue("agree", checked, { shouldValidate: true })}
+                onCheckedChange={(checked) =>
+                  setValue("agree", checked, { shouldValidate: true })
+                }
                 checkboxLabel="I agree to the terms and conditions"
                 required
                 error={errors.agree?.message}
@@ -277,10 +313,20 @@ export default function TestInputsPage() {
               <RadioInput
                 label="Select Gender"
                 value={watch("gender")}
-                onValueChange={(value) => setValue("gender", value, { shouldValidate: true })}
+                onValueChange={(value) =>
+                  setValue("gender", value, { shouldValidate: true })
+                }
                 options={[
-                  { value: "male", label: "Male", description: "For male dogs" },
-                  { value: "female", label: "Female", description: "For female dogs" },
+                  {
+                    value: "male",
+                    label: "Male",
+                    description: "For male dogs",
+                  },
+                  {
+                    value: "female",
+                    label: "Female",
+                    description: "For female dogs",
+                  },
                   { value: "other", label: "Other / Not specified" },
                 ]}
                 required
@@ -307,7 +353,9 @@ export default function TestInputsPage() {
               <SwitchInput
                 label="Notification Settings"
                 checked={watch("notifications")}
-                onCheckedChange={(checked) => setValue("notifications", checked)}
+                onCheckedChange={(checked) =>
+                  setValue("notifications", checked)
+                }
                 switchLabel="Email notifications"
                 description="Receive email updates about your dog's activities"
                 error={errors.notifications?.message}
@@ -326,22 +374,27 @@ export default function TestInputsPage() {
 
             {/* Search Input - Pill style */}
             <div>
-              <h3 className="text-lg font-semibold mb-2">Search Input (Pill style)</h3>
-              <SearchInput
-                placeholder="Search pets..."
-                pill
-              />
+              <h3 className="text-lg font-semibold mb-2">
+                Search Input (Pill style)
+              </h3>
+              <SearchInput placeholder="Search pets..." pill />
             </div>
 
             {/* Search Input - With debounce */}
             <div>
-              <h3 className="text-lg font-semibold mb-2">Search Input (Debounced 300ms)</h3>
+              <h3 className="text-lg font-semibold mb-2">
+                Search Input (Debounced 300ms)
+              </h3>
               <SearchInput
                 label="Debounced Search"
                 placeholder="Type and wait..."
                 debounceMs={300}
-                onValueChange={(value) => console.log('Debounced value:', value)}
-                onImmediateChange={(value) => console.log('Immediate value:', value)}
+                onValueChange={(value) =>
+                  console.log("Debounced value:", value)
+                }
+                onImmediateChange={(value) =>
+                  console.log("Immediate value:", value)
+                }
               />
             </div>
 
@@ -349,7 +402,7 @@ export default function TestInputsPage() {
             <div className="pt-4">
               <button
                 type="submit"
-                className="w-full bg-primary-500 text-white py-3 px-4 rounded-md hover:bg-primary-600 transition-colors font-medium"
+                className="w-full bg-primary-500 text-white py-3 px-4 rounded-md hover:bg-primary-600 transition-colors "
               >
                 Submit Form
               </button>
@@ -365,64 +418,45 @@ export default function TestInputsPage() {
 
         {/* Examples without labels */}
         <div className="bg-white rounded-lg shadow-md p-8 mt-8">
-          <h2 className="text-2xl font-bold text-slate-900 mb-6">Inputs without labels</h2>
-          
+          <h2 className="text-2xl font-bold text-slate-900 mb-6">
+            Inputs without labels
+          </h2>
+
           <div className="space-y-4">
             <TextInput
               placeholder="Text input without label"
               icon={<Pencil className="h-4 w-4" />}
             />
-            
-            <EmailInput
-              placeholder="Email without label"
-            />
-            
+
+            <EmailInput placeholder="Email without label" />
+
             <PasswordInput
               placeholder="Password without label"
               showStrengthIndicator
             />
-            
-            <NumberInput
-              placeholder="Price"
-              prefix="$"
-              min={0}
-              step={0.01}
-            />
-            
+
+            <NumberInput placeholder="Price" prefix="$" min={0} step={0.01} />
+
             <DropdownInput
               placeholder="Select option"
               options={countryOptions}
             />
-            
+
             <LookupInput
               placeholder="Search breeds..."
               options={dogBreedOptions}
             />
-            
-            <DateInput
-              placeholder="Select date"
-            />
-            
-            <TimeInput
-              placeholder="Select time"
-              use24Hour
-            />
-            
-            <TextareaInput
-              placeholder="Enter your message..."
-              rows={3}
-            />
-            
-            <FileInput
-              accept=".pdf,.doc,.docx"
-              multiple
-              maxFiles={3}
-            />
-            
-            <CheckboxInput
-              checkboxLabel="Subscribe to newsletter"
-            />
-            
+
+            <DateInput placeholder="Select date" />
+
+            <TimeInput placeholder="Select time" use24Hour />
+
+            <TextareaInput placeholder="Enter your message..." rows={3} />
+
+            <FileInput accept=".pdf,.doc,.docx" multiple maxFiles={3} />
+
+            <CheckboxInput checkboxLabel="Subscribe to newsletter" />
+
             <RadioInput
               options={[
                 { value: "option1", label: "Option 1" },
@@ -431,10 +465,8 @@ export default function TestInputsPage() {
               ]}
               orientation="horizontal"
             />
-            
-            <SwitchInput
-              switchLabel="Enable feature"
-            />
+
+            <SwitchInput switchLabel="Enable feature" />
           </div>
         </div>
       </div>

@@ -1,5 +1,5 @@
-import { EntityListCardWrapper } from "@/components/space/EntityListCardWrapper";
 import { NoteFlag } from "@/components/shared/NoteFlag";
+import { EntityListCardWrapper } from "@/components/space/EntityListCardWrapper";
 
 // Interface for event data from RxDB/Supabase
 interface EventEntity {
@@ -70,7 +70,7 @@ export function EventListCard({
         <div className="w-full space-y-0.5">
           {/* Name row */}
           <div className="relative flex w-[calc(100vw-82px)] space-x-1 md:w-auto">
-            <span className="truncate font-medium" title={event.Name}>
+            <span className="truncate " title={event.Name}>
               {event.Name}
             </span>
             <NoteFlag isVisible={event.HasNotes} />
@@ -85,7 +85,9 @@ export function EventListCard({
               {/* Status */}
               {event.StatusName && (
                 <>
-                  {formattedDate && <span className="text-slate-400">&bull;</span>}
+                  {formattedDate && (
+                    <span className="text-slate-400">&bull;</span>
+                  )}
                   <span>{event.StatusName}</span>
                 </>
               )}

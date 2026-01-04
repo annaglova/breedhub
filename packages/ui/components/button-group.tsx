@@ -1,5 +1,5 @@
-import * as React from "react"
-import { cn } from "../lib/utils"
+import * as React from "react";
+import { cn } from "../lib/utils";
 
 const ButtonGroup = React.forwardRef<
   HTMLDivElement,
@@ -10,22 +10,22 @@ const ButtonGroup = React.forwardRef<
     className={cn("inline-flex -space-x-px", className)}
     {...props}
   />
-))
-ButtonGroup.displayName = "ButtonGroup"
+));
+ButtonGroup.displayName = "ButtonGroup";
 
 const ButtonGroupItem = React.forwardRef<
   HTMLButtonElement,
   React.ButtonHTMLAttributes<HTMLButtonElement> & {
-    isFirst?: boolean
-    isLast?: boolean
-    isActive?: boolean
+    isFirst?: boolean;
+    isLast?: boolean;
+    isActive?: boolean;
   }
 >(({ className, isFirst, isLast, isActive, ...props }, ref) => (
   <button
     ref={ref}
     className={cn(
       "relative inline-flex items-center justify-center px-3 py-2",
-      "text-sm font-medium transition-colors",
+      "text-sm  transition-colors",
       "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
       "disabled:pointer-events-none disabled:opacity-50",
       // Border and shape
@@ -41,7 +41,7 @@ const ButtonGroupItem = React.forwardRef<
     )}
     {...props}
   />
-))
-ButtonGroupItem.displayName = "ButtonGroupItem"
+));
+ButtonGroupItem.displayName = "ButtonGroupItem";
 
-export { ButtonGroup, ButtonGroupItem }
+export { ButtonGroup, ButtonGroupItem };

@@ -101,7 +101,7 @@ export function PetIdentifiersTab({ onLoadedCount }: PetIdentifiersTabProps) {
           ))}
         </div>
       ) : (
-        <span className="text-secondary p-8 text-center font-medium">
+        <span className="text-secondary p-8 text-center ">
           There are no pet identifiers!
         </span>
       )}

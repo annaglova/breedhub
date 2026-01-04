@@ -296,7 +296,7 @@ export default function TierSelector({
               {/* Features */}
               <div className="space-y-3 mt-auto">
                 {tier.featuresHeader && (
-                  <p className="text-md font-medium text-slate-700 mb-2 uppercase text-center">
+                  <p className="text-md  text-slate-700 mb-2 uppercase text-center">
                     {tier.featuresHeader}
                   </p>
                 )}

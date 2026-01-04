@@ -1,6 +1,5 @@
-import React from 'react';
-import { Search, Plus, Maximize2, Minimize2 } from 'lucide-react';
-import type { LucideIcon } from 'lucide-react';
+import type { LucideIcon } from "lucide-react";
+import { Maximize2, Minimize2, Plus, Search } from "lucide-react";
 
 interface ExtraButton {
   text: string;
@@ -15,13 +14,13 @@ export interface WorkspaceHeaderProps {
   titleIcon?: LucideIcon;
   itemCount?: number;
   note?: string; // Additional note text (e.g., "Press ESC to deselect")
-  
+
   // Search section
   showSearch?: boolean;
   searchPlaceholder?: string;
   searchValue?: string;
   onSearchChange?: (value: string) => void;
-  
+
   // Filter section
   showFilter?: boolean;
   filterLabel?: string;
@@ -29,27 +28,27 @@ export interface WorkspaceHeaderProps {
   onFilterChange?: (value: string) => void;
   filterOptions?: Array<{ value: string; label: string }>;
   filterFullWidth?: boolean; // Control filter width
-  
+
   // Tree controls
   showTreeControls?: boolean;
   onCollapseAll?: () => void;
   onExpandAll?: () => void;
-  
+
   // Add button section
   showAddButton?: boolean;
   addButtonText?: string;
   onAddClick?: () => void;
-  
+
   // Extra buttons
   extraButtons?: ExtraButton[];
-  
+
   // Custom checkbox (for special filters)
   showCheckbox?: boolean;
   checkboxIcon?: LucideIcon;
   checkboxChecked?: boolean;
   onCheckboxChange?: (checked: boolean) => void;
   checkboxTooltip?: string;
-  
+
   // Layout
   containerPadding?: 4 | 6; // parent container padding size
 }
@@ -81,14 +80,14 @@ export default function WorkspaceHeader({
   checkboxChecked = false,
   onCheckboxChange,
   checkboxTooltip,
-  containerPadding = 6
+  containerPadding = 6,
 }: WorkspaceHeaderProps) {
-  const marginClass = containerPadding === 6 ? '-mx-6 px-6' : '-mx-4 px-4';
-  
+  const marginClass = containerPadding === 6 ? "-mx-6 px-6" : "-mx-4 px-4";
+
   return (
     <div className={`border-b border-slate-200 ${marginClass} pb-4 mb-4`}>
       {/* Title row if provided */}
-      {(title || typeof itemCount === 'number') && (
+      {(title || typeof itemCount === "number") && (
         <div className="flex items-center justify-between mb-3">
           {title && (
             <h2 className="text-lg font-semibold flex items-center gap-2">
@@ -101,14 +100,12 @@ export default function WorkspaceHeader({
               )}
             </h2>
           )}
-          {typeof itemCount === 'number' && (
-            <span className="text-xs text-slate-500">
-              {itemCount} items
-            </span>
+          {typeof itemCount === "number" && (
+            <span className="text-xs text-slate-500">{itemCount} items</span>
           )}
         </div>
       )}
-      
+
       {/* Search and controls row */}
       {(showSearch || showFilter || showAddButton || showTreeControls) && (
         <div className="flex items-center gap-2">
@@ -124,19 +121,25 @@ export default function WorkspaceHeader({
               />
             </div>
           )}
-          
+
           {/* Filter dropdown */}
           {showFilter && (
-            <div className={`flex items-center gap-2 ${filterFullWidth ? 'flex-1' : ''}`}>
+            <div
+              className={`flex items-center gap-2 ${
+                filterFullWidth ? "flex-1" : ""
+              }`}
+            >
               {filterLabel && (
-                <label className="text-sm font-medium text-slate-700 whitespace-nowrap">
+                <label className="text-sm  text-slate-700 whitespace-nowrap">
                   {filterLabel}
                 </label>
               )}
               <select
                 value={filterValue}
                 onChange={(e) => onFilterChange?.(e.target.value)}
-                className={`${filterFullWidth ? 'w-full' : 'min-w-[200px]'} px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                className={`${
+                  filterFullWidth ? "w-full" : "min-w-[200px]"
+                } px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500`}
               >
                 {filterOptions.map((option) => (
                   <option key={option.value} value={option.value}>
@@ -146,11 +149,11 @@ export default function WorkspaceHeader({
               </select>
             </div>
           )}
-          
+
           {/* Custom checkbox for special filters */}
           {showCheckbox && CheckboxIcon && (
-            <label 
-              className="flex items-center gap-2 cursor-pointer" 
+            <label
+              className="flex items-center gap-2 cursor-pointer"
               title={checkboxTooltip}
             >
               <CheckboxIcon className="w-4 h-4 text-blue-600" />
@@ -162,7 +165,7 @@ export default function WorkspaceHeader({
               />
             </label>
           )}
-          
+
           {/* Tree controls */}
           {showTreeControls && (
             <>
@@ -186,7 +189,7 @@ export default function WorkspaceHeader({
               )}
             </>
           )}
-          
+
           {showAddButton && onAddClick && (
             <button
               onClick={onAddClick}
@@ -196,7 +199,7 @@ export default function WorkspaceHeader({
               {addButtonText}
             </button>
           )}
-          
+
           {/* Extra buttons */}
           {extraButtons.map((button, index) => {
             const ButtonIcon = button.icon;
@@ -205,7 +208,7 @@ export default function WorkspaceHeader({
                 key={index}
                 onClick={button.onClick}
                 className={`px-4 py-2 text-white rounded-md transition-colors flex items-center gap-2 whitespace-nowrap text-sm ${
-                  button.className || 'bg-slate-600 hover:bg-slate-700'
+                  button.className || "bg-slate-600 hover:bg-slate-700"
                 }`}
               >
                 {ButtonIcon && <ButtonIcon className="w-4 h-4" />}

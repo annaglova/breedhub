@@ -1,5 +1,5 @@
-import { ChevronRight, ChevronDown, Copy, Check, Maximize2, Minimize2 } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { ChevronDown, ChevronRight, Maximize2, Minimize2 } from "lucide-react";
+import { useEffect, useState } from "react";
 
 interface JsonTreeViewProps {
   data: any;
@@ -17,9 +17,17 @@ interface TreeNodeProps {
   forceCollapseAll?: boolean;
 }
 
-function TreeNode({ nodeKey, value, level = 0, searchTerm = '', path = '', forceExpandAll = false, forceCollapseAll = false }: TreeNodeProps) {
+function TreeNode({
+  nodeKey,
+  value,
+  level = 0,
+  searchTerm = "",
+  path = "",
+  forceExpandAll = false,
+  forceCollapseAll = false,
+}: TreeNodeProps) {
   const [isExpanded, setIsExpanded] = useState(level < 3); // Auto-expand first 3 levels by default
-  
+
   // Handle force expand/collapse
   useEffect(() => {
     if (forceExpandAll) {
@@ -28,40 +36,52 @@ function TreeNode({ nodeKey, value, level = 0, searchTerm = '', path = '', force
       setIsExpanded(level < 3); // Reset to default for levels < 3, collapse others
     }
   }, [forceExpandAll, forceCollapseAll, level]);
-  
+
   const currentPath = path ? `${path}.${nodeKey}` : nodeKey;
   const indent = level * 20;
-  
+
   // Helper to check if value is an object or array
-  const isExpandable = value !== null && typeof value === 'object';
+  const isExpandable = value !== null && typeof value === "object";
   const isArray = Array.isArray(value);
   const isEmpty = isExpandable && Object.keys(value).length === 0;
-  
+
   // Count children
   const childCount = isExpandable ? Object.keys(value).length : 0;
-  
+
   // Highlight search term
   const highlightMatch = (text: string) => {
     if (!searchTerm) return text;
-    const regex = new RegExp(`(${searchTerm})`, 'gi');
+    const regex = new RegExp(`(${searchTerm})`, "gi");
     const parts = text.split(regex);
-    return parts.map((part, i) => 
-      regex.test(part) ? <span key={i} className="bg-yellow-200">{part}</span> : part
+    return parts.map((part, i) =>
+      regex.test(part) ? (
+        <span key={i} className="bg-yellow-200">
+          {part}
+        </span>
+      ) : (
+        part
+      )
     );
   };
-  
+
   // Check if current node or children match search
-  const nodeMatches = searchTerm && nodeKey.toLowerCase().includes(searchTerm.toLowerCase());
-  const valueMatches = searchTerm && !isExpandable && String(value).toLowerCase().includes(searchTerm.toLowerCase());
-  
-  
+  const nodeMatches =
+    searchTerm && nodeKey.toLowerCase().includes(searchTerm.toLowerCase());
+  const valueMatches =
+    searchTerm &&
+    !isExpandable &&
+    String(value).toLowerCase().includes(searchTerm.toLowerCase());
+
   // Format primitive values
   const formatValue = (val: any) => {
     if (val === null) return <span className="text-slate-400">null</span>;
-    if (val === undefined) return <span className="text-slate-400">undefined</span>;
-    if (typeof val === 'boolean') return <span className="text-blue-600">{String(val)}</span>;
-    if (typeof val === 'number') return <span className="text-green-600">{val}</span>;
-    if (typeof val === 'string') {
+    if (val === undefined)
+      return <span className="text-slate-400">undefined</span>;
+    if (typeof val === "boolean")
+      return <span className="text-blue-600">{String(val)}</span>;
+    if (typeof val === "number")
+      return <span className="text-green-600">{val}</span>;
+    if (typeof val === "string") {
       // Check if it's a long string
       if (val.length > 50) {
         return (
@@ -74,19 +94,21 @@ function TreeNode({ nodeKey, value, level = 0, searchTerm = '', path = '', force
     }
     return String(val);
   };
-  
+
   // Get type label
   const getTypeLabel = () => {
     if (isArray) return `Array[${childCount}]`;
     if (isExpandable) return `Object{${childCount}}`;
-    return '';
+    return "";
   };
-  
+
   if (!isExpandable) {
     // Leaf node
     return (
-      <div 
-        className={`flex items-center py-0.5 hover:bg-slate-50 ${nodeMatches || valueMatches ? 'bg-yellow-50' : ''}`}
+      <div
+        className={`flex items-center py-0.5 hover:bg-slate-50 ${
+          nodeMatches || valueMatches ? "bg-yellow-50" : ""
+        }`}
         style={{ paddingLeft: `${indent}px` }}
       >
         <span className="text-slate-600 mr-2">{highlightMatch(nodeKey)}:</span>
@@ -94,10 +116,10 @@ function TreeNode({ nodeKey, value, level = 0, searchTerm = '', path = '', force
       </div>
     );
   }
-  
+
   // Expandable node
   return (
-    <div className={nodeMatches ? 'bg-yellow-50' : ''}>
+    <div className={nodeMatches ? "bg-yellow-50" : ""}>
       <div
         className="flex items-center py-0.5 hover:bg-slate-50 cursor-pointer group"
         style={{ paddingLeft: `${indent}px` }}
@@ -110,9 +132,7 @@ function TreeNode({ nodeKey, value, level = 0, searchTerm = '', path = '', force
             <ChevronRight className="w-4 h-4 text-slate-500" />
           )}
         </button>
-        <span className="text-slate-700 font-medium mx-1">
-          {highlightMatch(nodeKey)}
-        </span>
+        <span className="text-slate-700  mx-1">{highlightMatch(nodeKey)}</span>
         <span className="text-slate-400 text-sm">{getTypeLabel()}</span>
       </div>
       {isExpanded && !isEmpty && (
@@ -132,22 +152,26 @@ function TreeNode({ nodeKey, value, level = 0, searchTerm = '', path = '', force
         </div>
       )}
       {isExpanded && isEmpty && (
-        <div 
+        <div
           className="text-slate-400 text-sm py-0.5"
           style={{ paddingLeft: `${indent + 20}px` }}
         >
-          {isArray ? '[]' : '{}'}
+          {isArray ? "[]" : "{}"}
         </div>
       )}
     </div>
   );
 }
 
-export default function JsonTreeView({ data, initialExpanded = false, searchTerm = '' }: JsonTreeViewProps) {
+export default function JsonTreeView({
+  data,
+  initialExpanded = false,
+  searchTerm = "",
+}: JsonTreeViewProps) {
   const [localSearch, setLocalSearch] = useState(searchTerm);
   const [forceExpandAll, setForceExpandAll] = useState(false);
   const [forceCollapseAll, setForceCollapseAll] = useState(false);
-  
+
   // Auto-expand when searching
   useEffect(() => {
     if (localSearch.trim()) {
@@ -155,11 +179,11 @@ export default function JsonTreeView({ data, initialExpanded = false, searchTerm
       setForceCollapseAll(false);
     }
   }, [localSearch]);
-  
+
   if (!data) {
     return <div className="text-slate-400 p-4">No data</div>;
   }
-  
+
   return (
     <div className="h-full flex flex-col">
       {/* Controls */}
@@ -194,10 +218,10 @@ export default function JsonTreeView({ data, initialExpanded = false, searchTerm
           <Minimize2 className="w-4 h-4" />
         </button>
       </div>
-      
+
       {/* Tree */}
       <div className="flex-1 overflow-auto font-mono text-sm px-6 py-2">
-        {typeof data === 'object' && data !== null ? (
+        {typeof data === "object" && data !== null ? (
           Object.entries(data).map(([key, value]) => (
             <TreeNode
               key={key}

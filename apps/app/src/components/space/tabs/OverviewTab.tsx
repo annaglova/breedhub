@@ -1,11 +1,10 @@
-import React from 'react';
-import { Dog, Building, Heart } from 'lucide-react';
-import { Button } from '@ui/components/button';
-import { Badge } from '@ui/components/badge';
+import { Badge } from "@ui/components/badge";
+import { Button } from "@ui/components/button";
+import { Building, Dog, Heart } from "lucide-react";
 
 interface OverviewTabProps {
   entity: any;
-  mode?: 'drawer' | 'fullscreen' | 'tab-fullscreen';
+  mode?: "drawer" | "fullscreen" | "tab-fullscreen";
   recordsLimit?: number;
   onExpand?: () => void;
 }
@@ -19,12 +18,11 @@ interface OverviewTabProps {
  */
 export function OverviewTab({
   entity,
-  mode = 'drawer',
+  mode = "drawer",
   recordsLimit = 10,
-  onExpand
+  onExpand,
 }: OverviewTabProps) {
-
-  const isPreview = mode !== 'tab-fullscreen';
+  const isPreview = mode !== "tab-fullscreen";
 
   return (
     <div>
@@ -43,10 +41,10 @@ export function OverviewTab({
         {/* Title and origin */}
         <div>
           <h1 className="text-2xl font-bold text-slate-900">
-            {entity.name || 'Unknown'}
+            {entity.name || "Unknown"}
           </h1>
           <p className="text-slate-600 mt-1">
-            {entity.authentic_name || entity.admin_name || ''}
+            {entity.authentic_name || entity.admin_name || ""}
           </p>
         </div>
 
@@ -79,25 +77,25 @@ export function OverviewTab({
             {entity.pet_type_id && (
               <div className="flex justify-between">
                 <span className="text-slate-600">Type</span>
-                <span className="font-medium capitalize">{entity.pet_type_id}</span>
+                <span className=" capitalize">{entity.pet_type_id}</span>
               </div>
             )}
             {entity.rating !== undefined && (
               <div className="flex justify-between">
                 <span className="text-slate-600">Rating</span>
-                <span className="font-medium">{entity.rating}%</span>
+                <span className="">{entity.rating}%</span>
               </div>
             )}
             {entity.achievement_progress !== undefined && (
               <div className="flex justify-between">
                 <span className="text-slate-600">Achievement Progress</span>
-                <span className="font-medium">{entity.achievement_progress}%</span>
+                <span className="">{entity.achievement_progress}%</span>
               </div>
             )}
             {entity.patron_count !== undefined && (
               <div className="flex justify-between">
                 <span className="text-slate-600">Patrons</span>
-                <span className="font-medium">{entity.patron_count}</span>
+                <span className="">{entity.patron_count}</span>
               </div>
             )}
           </div>
@@ -130,16 +128,10 @@ export function OverviewTab({
         {/* Action buttons - only in preview mode */}
         {isPreview && (
           <div className="space-y-3 pt-4">
-            <Button
-              className="w-full"
-              onClick={onExpand}
-            >
+            <Button className="w-full" onClick={onExpand}>
               View Full Details
             </Button>
-            <Button
-              variant="outline"
-              className="w-full"
-            >
+            <Button variant="outline" className="w-full">
               <Heart className="h-4 w-4 mr-2" />
               Add to Favorites
             </Button>
@@ -165,15 +157,17 @@ export function OverviewTab({
               <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg">
                 <div className="w-12 h-12 bg-slate-200 rounded-full" />
                 <div className="flex-1 min-w-0">
-                  <p className="font-medium text-sm truncate">CH Majestic Thunder</p>
+                  <p className=" text-sm truncate">CH Majestic Thunder</p>
                   <p className="text-xs text-slate-600">Storm Crest Cattery</p>
                 </div>
               </div>
               <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg">
                 <div className="w-12 h-12 bg-slate-200 rounded-full" />
                 <div className="flex-1 min-w-0">
-                  <p className="font-medium text-sm truncate">GC Silver Moon Rising</p>
-                  <p className="text-xs text-slate-600">Moonlight Maine Coons</p>
+                  <p className=" text-sm truncate">GC Silver Moon Rising</p>
+                  <p className="text-xs text-slate-600">
+                    Moonlight Maine Coons
+                  </p>
                 </div>
               </div>
             </div>

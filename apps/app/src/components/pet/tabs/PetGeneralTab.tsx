@@ -1,24 +1,24 @@
-import { useEffect } from "react";
 import { useSelectedEntity } from "@/contexts/SpaceContext";
 import { spaceStore } from "@breedhub/rxdb-store";
 import { useSignals } from "@preact/signals-react/runtime";
 import { cn } from "@ui/lib/utils";
-import { Link } from "react-router-dom";
 import {
   Cake,
+  CircleCheckBig,
+  HouseHeart,
   MapPin,
   MapPinHouse,
-  User,
-  UserStar,
-  HouseHeart,
-  CircleCheckBig,
+  Mars,
   Palette,
   Scale,
-  Mars,
+  User,
+  UserStar,
   Venus,
   VenusAndMars,
   Waves,
 } from "lucide-react";
+import { useEffect } from "react";
+import { Link } from "react-router-dom";
 
 /**
  * Link entity (Father, Mother, Breeder, Owner, Kennel)
@@ -110,7 +110,7 @@ function EntityLink({ entity }: { entity?: LinkEntity }) {
 
   if (url) {
     return (
-      <Link to={url} className="text-primary hover:underline font-medium">
+      <Link to={url} className="text-primary hover:underline ">
         {entity.name}
       </Link>
     );
@@ -157,7 +157,7 @@ function Fieldset({
 }) {
   return (
     <fieldset className="border border-border rounded-lg">
-      <legend className="ml-4 px-2 text-sm font-medium text-muted-foreground">
+      <legend className="ml-4 px-2 text-sm  text-muted-foreground">
         {legend}
       </legend>
       <div className="p-4 pt-2">{children}</div>
@@ -226,16 +226,10 @@ export function PetGeneralTab({ onLoadedCount }: PetGeneralTabProps) {
         >
           {/* Father & Mother */}
           <div className="grid grid-cols-[16px_60px_1fr] sm:grid-cols-[22px_70px_1fr] items-center gap-3 px-4 pb-2 flex-1">
-            <InfoRow
-              icon={<Mars size={iconSize} />}
-              label="Father"
-            >
+            <InfoRow icon={<Mars size={iconSize} />} label="Father">
               <EntityLink entity={data.father} />
             </InfoRow>
-            <InfoRow
-              icon={<Venus size={iconSize} />}
-              label="Mother"
-            >
+            <InfoRow icon={<Venus size={iconSize} />} label="Mother">
               <EntityLink entity={data.mother} />
             </InfoRow>
           </div>

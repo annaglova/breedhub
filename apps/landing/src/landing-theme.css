@@ -225,7 +225,7 @@
   .landing-raised-button {
     transition: none;
   }
-  
+
   .landing-raised-button:active::after {
     animation: none;
   }
@@ -249,7 +249,7 @@
 
 /* Menu Buttons */
 .landing-menu-button {
-  @apply rounded-full font-medium text-base px-6 py-3 transform transition-all duration-300;
+  @apply rounded-full  text-base px-6 py-3 transform transition-all duration-300;
   @apply hover:scale-105 min-h-[44px];
   position: relative;
   overflow: hidden;
@@ -289,11 +289,11 @@
 
 /* Hide scrollbar for tab lists */
 .scrollbar-hide {
-  -ms-overflow-style: none;  /* IE and Edge */
-  scrollbar-width: none;  /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
 }
 .scrollbar-hide::-webkit-scrollbar {
-  display: none;  /* Chrome, Safari and Opera */
+  display: none; /* Chrome, Safari and Opera */
 }
 
 /* Tab scroll indicator */
@@ -301,7 +301,7 @@
   position: relative;
 }
 .tab-scroll-indicator::after {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   right: 0;
@@ -343,12 +343,7 @@
 }
 
 .animate-shimmer {
-  background: linear-gradient(
-    90deg,
-    #f0f0f0 0px,
-    #f8f8f8 40px,
-    #f0f0f0 80px
-  );
+  background: linear-gradient(90deg, #f0f0f0 0px, #f8f8f8 40px, #f0f0f0 80px);
   background-size: 1000px 100%;
   animation: shimmer 2s infinite linear;
 }

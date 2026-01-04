@@ -1,5 +1,4 @@
-import React from 'react';
-import { cn } from '@ui/lib/utils';
+import { cn } from "@ui/lib/utils";
 
 interface GenericListCardProps<T = any> {
   entity: T;
@@ -8,11 +7,9 @@ interface GenericListCardProps<T = any> {
   onClick?: () => void;
 }
 
-export function GenericListCard<T extends { Id?: string; id?: string; Name?: string; name?: string }>({
-  entity,
-  selected,
-  onClick
-}: GenericListCardProps<T>) {
+export function GenericListCard<
+  T extends { Id?: string; id?: string; Name?: string; name?: string }
+>({ entity, selected, onClick }: GenericListCardProps<T>) {
   return (
     <div
       className={cn(
@@ -21,11 +18,11 @@ export function GenericListCard<T extends { Id?: string; id?: string; Name?: str
       )}
       onClick={onClick}
     >
-      <div className="font-medium">
-        {entity.Name || entity.name || entity.Id || entity.id || 'Unnamed'}
+      <div className="">
+        {entity.Name || entity.name || entity.Id || entity.id || "Unnamed"}
       </div>
       <div className="text-sm text-slate-500 mt-1">
-        ID: {entity.Id || entity.id || 'N/A'}
+        ID: {entity.Id || entity.id || "N/A"}
       </div>
     </div>
   );

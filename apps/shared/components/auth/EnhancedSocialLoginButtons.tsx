@@ -37,7 +37,7 @@ export function EnhancedSocialLoginButtons({
   };
 
   const buttonBaseClass =
-    "group relative w-full h-12 font-medium rounded-xl transition-all transform hover:scale-[1.02] hover:shadow-lg inline-flex items-center justify-center gap-3 disabled:pointer-events-none disabled:opacity-50";
+    "group relative w-full h-12  rounded-xl transition-all transform hover:scale-[1.02] hover:shadow-lg inline-flex items-center justify-center gap-3 disabled:pointer-events-none disabled:opacity-50";
 
   return (
     <div className={cn("space-y-7", className)}>

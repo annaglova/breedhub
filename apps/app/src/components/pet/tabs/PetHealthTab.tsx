@@ -124,7 +124,9 @@ export function PetHealthTab({ onLoadedCount }: PetHealthTabProps) {
               )}
             >
               {/* Date */}
-              <div className={cn("hidden", isFullscreen ? "block" : "md:block")}>
+              <div
+                className={cn("hidden", isFullscreen ? "block" : "md:block")}
+              >
                 {formatDate(healthExam.date)}
               </div>
 
@@ -141,7 +143,7 @@ export function PetHealthTab({ onLoadedCount }: PetHealthTabProps) {
           ))}
         </div>
       ) : (
-        <span className="text-secondary p-8 text-center font-medium">
+        <span className="text-secondary p-8 text-center ">
           There are no health results!
         </span>
       )}

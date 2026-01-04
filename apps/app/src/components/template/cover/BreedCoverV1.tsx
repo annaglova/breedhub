@@ -208,7 +208,7 @@ export function BreedCoverV1({
         {/* Patrons */}
         <div className="flex w-full justify-between sm:flex-col sm:space-y-2">
           <div
-            className={`text-md absolute top-5 sm:text-end font-medium uppercase text-white max-w-64 text-left sm:max-w-full sm:static sm:text-xl border border-red-400${
+            className={`text-md absolute top-5 sm:text-end  uppercase text-white max-w-64 text-left sm:max-w-full sm:static sm:text-xl border border-red-400${
               isFullscreen ? "sm:mt-3" : ""
             }`}
             style={{ fontFamily: "Roboto, sans-serif" }}

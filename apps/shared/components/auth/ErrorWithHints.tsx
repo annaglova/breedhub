@@ -1,6 +1,6 @@
+import { cn } from "@ui/lib/utils";
 import { AlertCircle, Info } from "lucide-react";
 import { useState } from "react";
-import { cn } from "@ui/lib/utils";
 
 interface ErrorWithHintsProps {
   error: string;
@@ -8,11 +8,15 @@ interface ErrorWithHintsProps {
   className?: string;
 }
 
-export function ErrorWithHints({ error, hints, className }: ErrorWithHintsProps) {
+export function ErrorWithHints({
+  error,
+  hints,
+  className,
+}: ErrorWithHintsProps) {
   const [showHints, setShowHints] = useState(false);
 
   return (
-    <div 
+    <div
       className={cn(
         "mt-4 p-3 bg-red-50 border border-red-200 rounded-md animate-fadeIn",
         className
@@ -24,8 +28,8 @@ export function ErrorWithHints({ error, hints, className }: ErrorWithHintsProps)
       <div className="flex items-start">
         <AlertCircle className="w-4 h-4 mr-2 mt-0.5 text-red-600 flex-shrink-0" />
         <div className="flex-1">
-          <p className="text-sm text-red-600 font-medium">{error}</p>
-          
+          <p className="text-sm text-red-600 ">{error}</p>
+
           {hints && hints.length > 0 && (
             <>
               <button
@@ -37,11 +41,14 @@ export function ErrorWithHints({ error, hints, className }: ErrorWithHintsProps)
                 <Info className="w-3 h-3" />
                 {showHints ? "Hide" : "Show"} helpful tips
               </button>
-              
+
               {showHints && (
                 <ul className="mt-2 space-y-1 animate-slideDown">
                   {hints.map((hint, index) => (
-                    <li key={index} className="text-xs text-slate-700 flex items-start">
+                    <li
+                      key={index}
+                      className="text-xs text-slate-700 flex items-start"
+                    >
                       <span className="mr-1">•</span>
                       <span>{hint}</span>
                     </li>

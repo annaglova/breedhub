@@ -1,7 +1,7 @@
 import { BreedProgressLight } from "@/components/shared/BreedProgressLight";
-import { EntityListCardWrapper } from "@/components/space/EntityListCardWrapper";
 import { NoteFlag } from "@/components/shared/NoteFlag";
 import { TopPatrons } from "@/components/shared/TopPatrons";
+import { EntityListCardWrapper } from "@/components/space/EntityListCardWrapper";
 
 // Interface for real data from RxDB
 interface BreedEntity {
@@ -90,10 +90,13 @@ export function BreedListCard({
         {/* Details */}
         <div className="ml-4 flex-1 min-w-0">
           <div className="flex items-center gap-1">
-            <span className="font-medium truncate uppercase max-w-[200px] min-[430px]:max-w-[220px] min-[500px]:max-w-[300px] sm:max-w-[350px] min-[640px]:max-w-none">
+            <span className="text-md truncate uppercase max-w-[200px] min-[430px]:max-w-[220px] min-[500px]:max-w-[300px] sm:max-w-[350px] min-[640px]:max-w-none">
               {breed.Name}
             </span>
-            <NoteFlag isVisible={breed.HasNotes} className="flex-shrink-0 self-start" />
+            <NoteFlag
+              isVisible={breed.HasNotes}
+              className="flex-shrink-0 self-start"
+            />
           </div>
 
           <div className="flex items-center text-sm text-slate-600">
@@ -103,7 +106,9 @@ export function BreedListCard({
               <span className="hidden sm:inline">
                 Kennels - {breed.KennelCount || 0}
               </span>
-              <span className="text-slate-400 hidden min-[400px]:inline">•</span>
+              <span className="text-slate-400 hidden min-[400px]:inline">
+                •
+              </span>
               <span className="hidden min-[400px]:inline">
                 Patrons - {breed.PatronCount || 0}
               </span>

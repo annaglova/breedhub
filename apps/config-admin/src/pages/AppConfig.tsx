@@ -1,7 +1,7 @@
 import { appConfigStore } from "@breedhub/rxdb-store";
 import {
-  ArrowUp,
   ArrowDown,
+  ArrowUp,
   Book,
   ChevronDown,
   ChevronRight,
@@ -20,8 +20,8 @@ import {
 import React, { useEffect, useState } from "react";
 import ConfigEditModal from "../components/ConfigEditModal";
 import ConfigViewModal from "../components/ConfigViewModal";
-import WorkspaceHeader from "../components/WorkspaceHeader";
 import PropertyCategoryIcon from "../components/PropertyCategoryIcon";
+import WorkspaceHeader from "../components/WorkspaceHeader";
 import type { BaseConfig, TreeNode } from "../types/config-types";
 import { configTypes, getAvailableChildTypes } from "../types/config-types";
 
@@ -65,7 +65,7 @@ const AppConfig: React.FC = () => {
   const [editingConfigData, setEditingConfigData] = useState<string>("");
   const [editingConfigCaption, setEditingConfigCaption] = useState<string>("");
   const [editingConfigVersion, setEditingConfigVersion] = useState<number>(1);
-  
+
   // Field override editor state
   const [fieldOverrideEditor, setFieldOverrideEditor] = useState<{
     parentConfigId: string;
@@ -81,11 +81,12 @@ const AppConfig: React.FC = () => {
     main: {},
     dictionaries: {},
   });
-  const [filteredStructure, setFilteredStructure] = useState<HierarchicalStructure>({
-    base: [],
-    main: {},
-    dictionaries: {},
-  });
+  const [filteredStructure, setFilteredStructure] =
+    useState<HierarchicalStructure>({
+      base: [],
+      main: {},
+      dictionaries: {},
+    });
   const [expandedSections, setExpandedSections] = useState<Set<string>>(
     new Set(["main-entities"])
   );
@@ -108,7 +109,9 @@ const AppConfig: React.FC = () => {
   const [editingCaption, setEditingCaption] = useState<string>("");
   const [editingVersion, setEditingVersion] = useState<number>(1);
   const [viewingField, setViewingField] = useState<string | null>(null);
-  const [viewingFieldInConfig, setViewingFieldInConfig] = useState<string | null>(null);
+  const [viewingFieldInConfig, setViewingFieldInConfig] = useState<
+    string | null
+  >(null);
   const [viewingProperty, setViewingProperty] = useState<string | null>(null);
 
   // Handle escape key to deselect
@@ -144,7 +147,9 @@ const AppConfig: React.FC = () => {
       const propertyConfigs = appConfigStore.getProperties();
       // Include is_system property in this view (same as Properties page)
       const allConfigs = appConfigStore.configsList.value || [];
-      const systemProp = allConfigs.find(c => c.id === "property_is_system" && !c._deleted);
+      const systemProp = allConfigs.find(
+        (c) => c.id === "property_is_system" && !c._deleted
+      );
       if (systemProp) {
         setProperties([...propertyConfigs, systemProp]);
       } else {
@@ -158,7 +163,7 @@ const AppConfig: React.FC = () => {
     const interval = setInterval(loadData, 1000);
     return () => clearInterval(interval);
   }, []);
-  
+
   // Auto-expand all nodes when searching Working Configs
   useEffect(() => {
     if (configSearchQuery) {
@@ -209,34 +214,42 @@ const AppConfig: React.FC = () => {
     const newStructure = appConfigStore.buildFieldsStructure(fields);
     setStructure(newStructure);
     // Apply filter if search query exists
-    const filtered = appConfigStore.filterFieldsStructure(newStructure, searchQuery);
+    const filtered = appConfigStore.filterFieldsStructure(
+      newStructure,
+      searchQuery
+    );
     setFilteredStructure(filtered);
   }, [fields, searchQuery]);
 
   // Check if property can be applied to a specific config type
-  const canApplyPropertyToType = (propertyId: string, targetType: string): boolean => {
-    const property = properties.find(p => p.id === propertyId);
+  const canApplyPropertyToType = (
+    propertyId: string,
+    targetType: string
+  ): boolean => {
+    const property = properties.find((p) => p.id === propertyId);
     if (!property?.tags || property.tags.length === 0) {
       return true; // No tags means it can be applied anywhere
     }
-    
+
     // Support both formats: "field" and "applicable_to:field"
     let allowedTypes = [];
-    
+
     // Check for new format tags (applicable_to:)
-    const applicableTags = property.tags.filter(t => t.startsWith('applicable_to:'));
+    const applicableTags = property.tags.filter((t) =>
+      t.startsWith("applicable_to:")
+    );
     if (applicableTags.length > 0) {
-      allowedTypes = applicableTags.map(t => t.replace('applicable_to:', ''));
+      allowedTypes = applicableTags.map((t) => t.replace("applicable_to:", ""));
     } else {
       // Use old format tags directly (field, app, etc.)
-      allowedTypes = property.tags.filter(t => !t.includes(':'));
+      allowedTypes = property.tags.filter((t) => !t.includes(":"));
     }
-    
+
     // If no allowed types found, allow everywhere
     if (allowedTypes.length === 0) {
       return true;
     }
-    
+
     return allowedTypes.includes(targetType);
   };
 
@@ -275,27 +288,34 @@ const AppConfig: React.FC = () => {
   };
 
   // Reorder child in parent's deps
-  const reorderChild = async (parentId: string, childId: string, direction: 'up' | 'down') => {
+  const reorderChild = async (
+    parentId: string,
+    childId: string,
+    direction: "up" | "down"
+  ) => {
     const parent = workingConfigs.find((c) => c.id === parentId);
     if (!parent || !parent.deps) return;
 
     // Filter out properties - only work with config deps
-    const configDeps = parent.deps.filter(d => !d.startsWith('property_'));
+    const configDeps = parent.deps.filter((d) => !d.startsWith("property_"));
 
     const currentIndex = configDeps.indexOf(childId);
     if (currentIndex === -1) return;
 
     // Check boundaries within config deps only
-    if (direction === 'up' && currentIndex === 0) return;
-    if (direction === 'down' && currentIndex === configDeps.length - 1) return;
+    if (direction === "up" && currentIndex === 0) return;
+    if (direction === "down" && currentIndex === configDeps.length - 1) return;
 
     // Swap positions in config deps
     const newConfigDeps = [...configDeps];
-    const newIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
-    [newConfigDeps[currentIndex], newConfigDeps[newIndex]] = [newConfigDeps[newIndex], newConfigDeps[currentIndex]];
+    const newIndex = direction === "up" ? currentIndex - 1 : currentIndex + 1;
+    [newConfigDeps[currentIndex], newConfigDeps[newIndex]] = [
+      newConfigDeps[newIndex],
+      newConfigDeps[currentIndex],
+    ];
 
     // Reconstruct full deps array: properties first, then reordered configs
-    const propertyDeps = parent.deps.filter(d => d.startsWith('property_'));
+    const propertyDeps = parent.deps.filter((d) => d.startsWith("property_"));
     const newDeps = [...propertyDeps, ...newConfigDeps];
 
     // Update parent config
@@ -332,7 +352,7 @@ const AppConfig: React.FC = () => {
     }
   };
 
-  // Create config from template  
+  // Create config from template
   const createFromTemplate = async (templateId: string) => {
     await appConfigStore.createConfigFromTemplate(templateId, createParentId);
     setShowTemplateSelect(false);
@@ -355,24 +375,27 @@ const AppConfig: React.FC = () => {
       setExpandedNodes(newExpanded);
     }
   };
-  
+
   // Open field override editor
   const openFieldOverrideEditor = (parentConfigId: string, fieldId: string) => {
-    const parentConfig = workingConfigs.find(c => c.id === parentConfigId);
-    
-    if (!parentConfig || !appConfigStore.isGroupingConfigType(parentConfig.type)) {
-      console.error('Invalid parent config or not a grouping type');
+    const parentConfig = workingConfigs.find((c) => c.id === parentConfigId);
+
+    if (
+      !parentConfig ||
+      !appConfigStore.isGroupingConfigType(parentConfig.type)
+    ) {
+      console.error("Invalid parent config or not a grouping type");
       return;
     }
-    
+
     // Get existing override for this field from parent's override_data
     // For all grouping configs (fields, sort, filter), overrides are stored directly under field ID
     const existingOverride = parentConfig.override_data?.[fieldId] || {};
-    
+
     setFieldOverrideEditor({
       parentConfigId,
       fieldId,
-      fieldOverrideData: JSON.stringify(existingOverride, null, 2)
+      fieldOverrideData: JSON.stringify(existingOverride, null, 2),
     });
   };
 
@@ -381,20 +404,28 @@ const AppConfig: React.FC = () => {
     if (!fieldOverrideEditor) return;
 
     try {
-      const fieldOverride = JSON.parse(fieldOverrideEditor.fieldOverrideData || "{}");
-      const parentConfig = workingConfigs.find(c => c.id === fieldOverrideEditor.parentConfigId);
-      
+      const fieldOverride = JSON.parse(
+        fieldOverrideEditor.fieldOverrideData || "{}"
+      );
+      const parentConfig = workingConfigs.find(
+        (c) => c.id === fieldOverrideEditor.parentConfigId
+      );
+
       if (!parentConfig) {
         alert("Parent config not found");
         return;
       }
 
       // Get current override_data or initialize - create a deep copy to avoid extensibility issues
-      let currentOverrideData = JSON.parse(JSON.stringify(parentConfig.override_data || {}));
-      
+      let currentOverrideData = JSON.parse(
+        JSON.stringify(parentConfig.override_data || {})
+      );
+
       // For grouping configs (fields, sort, filter), store overrides directly by field ID
       // For other configs, store overrides under fields key
-      const isGroupingConfig = ['fields', 'sort', 'filter'].includes(parentConfig.type);
+      const isGroupingConfig = ["fields", "sort", "filter"].includes(
+        parentConfig.type
+      );
 
       if (isGroupingConfig) {
         // Grouping configs store overrides directly by field ID
@@ -410,31 +441,33 @@ const AppConfig: React.FC = () => {
         }
 
         if (Object.keys(fieldOverride).length > 0) {
-          currentOverrideData.fields[fieldOverrideEditor.fieldId] = fieldOverride;
+          currentOverrideData.fields[fieldOverrideEditor.fieldId] =
+            fieldOverride;
         } else {
           delete currentOverrideData.fields[fieldOverrideEditor.fieldId];
         }
       }
 
-      console.log('Saving field override:', {
+      console.log("Saving field override:", {
         parentConfigId: fieldOverrideEditor.parentConfigId,
         fieldId: fieldOverrideEditor.fieldId,
         fieldOverride,
-        currentOverrideData
+        currentOverrideData,
       });
 
       // Update parent config's override_data
       await appConfigStore.updateTemplate(fieldOverrideEditor.parentConfigId, {
-        override_data: currentOverrideData
+        override_data: currentOverrideData,
       });
 
       setFieldOverrideEditor(null);
     } catch (error) {
       console.error("Error saving field override:", error);
-      alert(error instanceof Error ? error.message : "Failed to save field override");
+      alert(
+        error instanceof Error ? error.message : "Failed to save field override"
+      );
     }
   };
-  
 
   // Get available templates for current level
   const getAvailableTemplates = (parentType: string | null) => {
@@ -492,7 +525,7 @@ const AppConfig: React.FC = () => {
   // Render field item with full functionality restored
   const renderFieldItem = (field: Field, index?: number) => {
     // Check if field is a base field (all fields with type: 'field')
-    const isBaseField = field.type === 'field';
+    const isBaseField = field.type === "field";
     const hasOverride =
       field.override_data && Object.keys(field.override_data).length > 0;
     const hasDeps = field.deps && field.deps.length > 0;
@@ -509,8 +542,8 @@ const AppConfig: React.FC = () => {
             return;
           }
           console.log("Field drag start:", field.id);
-          e.dataTransfer.setData('text/plain', field.id);
-          e.dataTransfer.effectAllowed = 'copy';
+          e.dataTransfer.setData("text/plain", field.id);
+          e.dataTransfer.effectAllowed = "copy";
           // Use setTimeout to prevent drag interruption in overflow containers
           setTimeout(() => setDraggedField(field.id), 0);
         }}
@@ -523,8 +556,10 @@ const AppConfig: React.FC = () => {
         onDragOver={(e) => {
           if (draggedProperty) {
             // Check if property can be applied to fields based on tags
-            if (canApplyPropertyToType(draggedProperty, 'field') || 
-                canApplyPropertyToType(draggedProperty, 'entity_field')) {
+            if (
+              canApplyPropertyToType(draggedProperty, "field") ||
+              canApplyPropertyToType(draggedProperty, "entity_field")
+            ) {
               e.preventDefault();
               setDragOverField(field.id);
             }
@@ -540,38 +575,55 @@ const AppConfig: React.FC = () => {
           e.stopPropagation();
           if (draggedProperty && !field.deps?.includes(draggedProperty)) {
             // Check if property can be applied to fields based on tags
-            if (!canApplyPropertyToType(draggedProperty, 'field') && 
-                !canApplyPropertyToType(draggedProperty, 'entity_field')) {
-              const property = properties.find(p => p.id === draggedProperty);
+            if (
+              !canApplyPropertyToType(draggedProperty, "field") &&
+              !canApplyPropertyToType(draggedProperty, "entity_field")
+            ) {
+              const property = properties.find((p) => p.id === draggedProperty);
               const tags = property?.tags || [];
-              const allowedTypes = tags.filter(t => !t.includes(':'));
-              alert(`Property "${draggedProperty.replace('property_', '')}" cannot be applied to fields. It can only be applied to: ${allowedTypes.join(', ')}`);
+              const allowedTypes = tags.filter((t) => !t.includes(":"));
+              alert(
+                `Property "${draggedProperty.replace(
+                  "property_",
+                  ""
+                )}" cannot be applied to fields. It can only be applied to: ${allowedTypes.join(
+                  ", "
+                )}`
+              );
               setDraggedProperty(null);
               setDragOverField(null);
               return;
             }
-            
+
             await appConfigStore.addDependencyWithUI(field.id, draggedProperty);
           }
           setDraggedProperty(null);
           setDragOverField(null);
         }}
         className={`relative px-4 py-2 mb-2 rounded-md transition-all min-h-[2.5rem] ${
-          isBaseField 
-            ? "bg-slate-100 hover:bg-slate-100 cursor-default" 
+          isBaseField
+            ? "bg-slate-100 hover:bg-slate-100 cursor-default"
             : "bg-slate-50 hover:bg-slate-100 cursor-grab active:cursor-grabbing"
-        } ${
-          draggedField === field.id ? "opacity-50" : ""
-        } ${
+        } ${draggedField === field.id ? "opacity-50" : ""} ${
           dragOverField === field.id
             ? "bg-green-100 border-2 border-green-400 border-dashed"
             : ""
         }`}
-        title={isBaseField ? `"${field.id}" is a shared field and cannot be dragged` : `Drag "${field.id}" to add it to a config`}
+        title={
+          isBaseField
+            ? `"${field.id}" is a shared field and cannot be dragged`
+            : `Drag "${field.id}" to add it to a config`
+        }
       >
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 flex-1">
-            <GripVertical className={`w-4 h-4 ${isBaseField ? 'text-slate-300 cursor-not-allowed' : 'text-slate-400 cursor-move'}`} />
+            <GripVertical
+              className={`w-4 h-4 ${
+                isBaseField
+                  ? "text-slate-300 cursor-not-allowed"
+                  : "text-slate-400 cursor-move"
+              }`}
+            />
             <span className="text-sm font-mono">{field.id}</span>
             {hasOverride && (
               <span className="text-xs px-2 py-0.5 bg-blue-100 text-blue-700 rounded">
@@ -645,7 +697,10 @@ const AppConfig: React.FC = () => {
                           key={prop.id}
                           onClick={() => {
                             if (!alreadyAdded) {
-                              appConfigStore.addDependencyWithUI(field.id, prop.id);
+                              appConfigStore.addDependencyWithUI(
+                                field.id,
+                                prop.id
+                              );
                             }
                             setShowPropertyDropdown(null);
                           }}
@@ -671,7 +726,6 @@ const AppConfig: React.FC = () => {
               )}
             </div>
 
-
             {/* Remove from config button - only when in config context */}
             {isBaseField && selectedConfig && (
               <button
@@ -684,20 +738,29 @@ const AppConfig: React.FC = () => {
                   if (config) {
                     const updatedDeps =
                       config.deps?.filter((d) => d !== field.id) || [];
-                    
+
                     // For grouping configs, also clean override_data for this field
                     let updates: any = { deps: updatedDeps };
-                    
-                    if ((config.type === 'fields' || config.type === 'sort' || config.type === 'filter')) {
+
+                    if (
+                      config.type === "fields" ||
+                      config.type === "sort" ||
+                      config.type === "filter"
+                    ) {
                       // Always update override_data, even if field is not there (to ensure cleanup)
-                      const cleanedOverrideData = { ...(config.override_data || {}) };
+                      const cleanedOverrideData = {
+                        ...(config.override_data || {}),
+                      };
                       if (cleanedOverrideData[field.id]) {
                         delete cleanedOverrideData[field.id];
                       }
                       updates.override_data = cleanedOverrideData;
                     }
-                    
-                    appConfigStore.updateConfigWithCascade(selectedConfig, updates);
+
+                    appConfigStore.updateConfigWithCascade(
+                      selectedConfig,
+                      updates
+                    );
                   }
                 }}
                 className="p-1 text-slate-400 hover:text-orange-600 hover:bg-orange-50 rounded"
@@ -765,17 +828,22 @@ const AppConfig: React.FC = () => {
         setDraggedProperty(null);
         return;
       }
-      
+
       // Check if property can be applied based on tags
       if (!canApplyPropertyToType(draggedProperty, nodeType)) {
-        const property = properties.find(p => p.id === draggedProperty);
+        const property = properties.find((p) => p.id === draggedProperty);
         const tags = property?.tags || [];
-        const allowedTypes = tags.filter(t => !t.includes(':'));
-        alert(`Property "${draggedProperty.replace('property_', '')}" can only be applied to: ${allowedTypes.join(', ')}`);
+        const allowedTypes = tags.filter((t) => !t.includes(":"));
+        alert(
+          `Property "${draggedProperty.replace(
+            "property_",
+            ""
+          )}" can only be applied to: ${allowedTypes.join(", ")}`
+        );
         setDraggedProperty(null);
         return;
       }
-      
+
       // Allow properties on other configs
       await appConfigStore.addDependencyWithUI(nodeId, draggedProperty);
       setDraggedProperty(null);
@@ -798,7 +866,7 @@ const AppConfig: React.FC = () => {
     }
 
     // Get the field data
-    const field = fields.find(f => f.id === draggedField);
+    const field = fields.find((f) => f.id === draggedField);
     if (!field) {
       alert(`Field "${draggedField}" not found`);
       return;
@@ -809,24 +877,24 @@ const AppConfig: React.FC = () => {
 
     // Prepare updates based on config type
     let updates: any = { deps: updatedDeps };
-    
+
     if (nodeType === "sort") {
       // For sort config, add sortOrder array to existing field data in override_data
       const existingOverride = config.override_data || {};
       const existingFieldData = existingOverride[draggedField] || {};
-      
+
       updates.override_data = {
         ...existingOverride,
         [draggedField]: {
-          ...existingFieldData,  // Keep all existing field properties
+          ...existingFieldData, // Keep all existing field properties
           sortOrder: [
-            { 
-              order: 1, 
-              direction: "asc", 
-              icon: "arrow-up", 
-              label: "A-Z" 
-            }
-          ]
+            {
+              order: 1,
+              direction: "asc",
+              icon: "arrow-up",
+              label: "A-Z",
+            },
+          ],
         },
       };
     } else if (nodeType === "filter") {
@@ -843,15 +911,15 @@ const AppConfig: React.FC = () => {
         },
       };
     }
-    
+
     // Update config - for fields/sort/filter, self_data will be rebuilt automatically
     await appConfigStore.updateConfig(nodeId, updates);
-    
+
     // Rebuild parent's self_data for grouping configs
     if (nodeType === "fields" || nodeType === "sort" || nodeType === "filter") {
       await appConfigStore.rebuildParentSelfData(nodeId);
     }
-    
+
     // Cascade changes up the tree
     await appConfigStore.cascadeUpdateUp(nodeId);
 
@@ -859,27 +927,43 @@ const AppConfig: React.FC = () => {
   };
 
   // Render config node - parentId parameter tracks the immediate parent config
-  const renderConfigNode = (node: TreeNode, level: number = 0, parentId: string | null = null) => {
+  const renderConfigNode = (
+    node: TreeNode,
+    level: number = 0,
+    parentId: string | null = null
+  ) => {
     // Special handling for field reference nodes
-    if (node.configType === 'field_ref') {
-      const field = fields.find(f => f.id === node.id);
+    if (node.configType === "field_ref") {
+      const field = fields.find((f) => f.id === node.id);
       // Use the passed parentId to find the specific parent config
-      const parentConfig = parentId ? workingConfigs.find(c => c.id === parentId) : null;
+      const parentConfig = parentId
+        ? workingConfigs.find((c) => c.id === parentId)
+        : null;
       return (
         <div
           key={node.id}
-          style={{ marginLeft: level > 0 ? "24px" : "0px", marginBottom: "8px" }}
+          style={{
+            marginLeft: level > 0 ? "24px" : "0px",
+            marginBottom: "8px",
+          }}
         >
           <div className="flex items-center justify-between h-10 p-2 rounded-md bg-slate-50 hover:bg-slate-100">
             <div className="flex items-center gap-2 min-w-0 flex-1">
               <div className="w-5 flex-shrink-0" />
               <Database className="w-4 h-4 text-blue-600 flex-shrink-0" />
-              <span className="font-mono text-sm truncate">{field?.caption || node.name}</span>
-              <span className="text-xs text-slate-500 truncate">({node.id})</span>
+              <span className="font-mono text-sm truncate">
+                {field?.caption || node.name}
+              </span>
+              <span className="text-xs text-slate-500 truncate">
+                ({node.id})
+              </span>
 
               {/* Order indicator for field references */}
               {(() => {
-                if (parentConfig && ['fields', 'sort', 'filter'].includes(parentConfig.type)) {
+                if (
+                  parentConfig &&
+                  ["fields", "sort", "filter"].includes(parentConfig.type)
+                ) {
                   const fieldData = parentConfig.data?.[node.id];
                   if (fieldData) {
                     const fieldOrder = fieldData.order;
@@ -913,11 +997,14 @@ const AppConfig: React.FC = () => {
                 onClick={(e) => {
                   e.stopPropagation();
                   // Edit field override in parent context - use the specific parent from tree context
-                  if (parentConfig && appConfigStore.isGroupingConfigType(parentConfig.type)) {
+                  if (
+                    parentConfig &&
+                    appConfigStore.isGroupingConfigType(parentConfig.type)
+                  ) {
                     // Open field override editor for this field in THIS specific grouping config's context
                     openFieldOverrideEditor(parentConfig.id, node.id);
                   } else {
-                    alert('Parent grouping config not found');
+                    alert("Parent grouping config not found");
                   }
                 }}
                 className="p-1 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded"
@@ -930,34 +1017,45 @@ const AppConfig: React.FC = () => {
                   e.stopPropagation();
                   // Use the specific parent config passed from tree context
                   if (parentConfig) {
-                    const updatedDeps = parentConfig.deps.filter(d => d !== node.id);
-                    
+                    const updatedDeps = parentConfig.deps.filter(
+                      (d) => d !== node.id
+                    );
+
                     // Also clean up override_data if it exists for this field
-                    let updatedOverrideData = parentConfig.override_data ? 
-                      JSON.parse(JSON.stringify(parentConfig.override_data)) : {};
-                    
+                    let updatedOverrideData = parentConfig.override_data
+                      ? JSON.parse(JSON.stringify(parentConfig.override_data))
+                      : {};
+
                     // Use the actual field ID
                     const fieldId = node.id;
-                    
+
                     // Remove field override if it exists
-                    if (updatedOverrideData.fields && updatedOverrideData.fields[fieldId]) {
+                    if (
+                      updatedOverrideData.fields &&
+                      updatedOverrideData.fields[fieldId]
+                    ) {
                       delete updatedOverrideData.fields[fieldId];
-                      
+
                       // If fields object is now empty, remove it
-                      if (Object.keys(updatedOverrideData.fields).length === 0) {
+                      if (
+                        Object.keys(updatedOverrideData.fields).length === 0
+                      ) {
                         delete updatedOverrideData.fields;
                       }
                     }
-                    
+
                     // Update deps and override_data
                     await appConfigStore.updateConfig(parentConfig.id, {
                       deps: updatedDeps,
-                      override_data: Object.keys(updatedOverrideData).length > 0 ? updatedOverrideData : {}
+                      override_data:
+                        Object.keys(updatedOverrideData).length > 0
+                          ? updatedOverrideData
+                          : {},
                     });
-                    
+
                     // Then rebuild parent's self_data from remaining deps
                     await appConfigStore.rebuildParentSelfData(parentConfig.id);
-                    
+
                     // Finally cascade updates up the tree
                     await appConfigStore.cascadeUpdateUp(parentConfig.id);
                   }
@@ -1015,9 +1113,14 @@ const AppConfig: React.FC = () => {
               setDragOverConfig(node.id);
             }
             // Allow properties on non-grouping configs only
-            else if (draggedProperty && !["fields", "sort", "filter"].includes(node.configType || "")) {
+            else if (
+              draggedProperty &&
+              !["fields", "sort", "filter"].includes(node.configType || "")
+            ) {
               // Check if property can be applied based on tags
-              if (canApplyPropertyToType(draggedProperty, node.configType || "")) {
+              if (
+                canApplyPropertyToType(draggedProperty, node.configType || "")
+              ) {
                 e.preventDefault();
                 setDragOverConfig(node.id);
               }
@@ -1056,10 +1159,18 @@ const AppConfig: React.FC = () => {
                 {/* Order indicator */}
                 {(() => {
                   // Types that need order: workspace, space, view, tab, block, menu_section, menu_item
-                  const needsOrderTypes = ['workspace', 'space', 'view', 'tab', 'block', 'menu_section', 'menu_item'];
-                  const config = workingConfigs.find(c => c.id === node.id);
+                  const needsOrderTypes = [
+                    "workspace",
+                    "space",
+                    "view",
+                    "tab",
+                    "block",
+                    "menu_section",
+                    "menu_item",
+                  ];
+                  const config = workingConfigs.find((c) => c.id === node.id);
 
-                  if (needsOrderTypes.includes(node.configType || '')) {
+                  if (needsOrderTypes.includes(node.configType || "")) {
                     const order = config?.data?.order;
                     return order !== undefined ? (
                       <span className="flex items-center justify-center w-5 h-5 rounded-full bg-slate-100 text-slate-600 text-xs">
@@ -1090,74 +1201,81 @@ const AppConfig: React.FC = () => {
 
               <div className="flex gap-1">
                 {/* Move Up/Down buttons - only show for children (when parentId exists) */}
-                {parentId && (() => {
-                  const parent = workingConfigs.find(c => c.id === parentId);
-                  if (!parent?.deps) return null;
+                {parentId &&
+                  (() => {
+                    const parent = workingConfigs.find(
+                      (c) => c.id === parentId
+                    );
+                    if (!parent?.deps) return null;
 
-                  // Filter out properties - only work with config deps for ordering
-                  const configDeps = parent.deps.filter(d => !d.startsWith('property_'));
-                  const currentIndex = configDeps.indexOf(node.id);
-                  if (currentIndex === -1) return null;
+                    // Filter out properties - only work with config deps for ordering
+                    const configDeps = parent.deps.filter(
+                      (d) => !d.startsWith("property_")
+                    );
+                    const currentIndex = configDeps.indexOf(node.id);
+                    if (currentIndex === -1) return null;
 
-                  const isFirst = currentIndex === 0;
-                  const isLast = currentIndex === configDeps.length - 1;
+                    const isFirst = currentIndex === 0;
+                    const isLast = currentIndex === configDeps.length - 1;
 
-                  return (
-                    <>
-                      {!isFirst && (
-                        <button
-                          onClick={async (e) => {
-                            e.stopPropagation();
-                            await reorderChild(parentId, node.id, 'up');
-                          }}
-                          className="p-1 text-slate-400 hover:text-orange-600 hover:bg-orange-50 rounded"
-                          title="Move up"
-                        >
-                          <ArrowUp className="w-4 h-4" />
-                        </button>
-                      )}
-                      {!isLast && (
-                        <button
-                          onClick={async (e) => {
-                            e.stopPropagation();
-                            await reorderChild(parentId, node.id, 'down');
-                          }}
-                          className="p-1 text-slate-400 hover:text-orange-600 hover:bg-orange-50 rounded"
-                          title="Move down"
-                        >
-                          <ArrowDown className="w-4 h-4" />
-                        </button>
-                      )}
-                    </>
-                  );
-                })()}
+                    return (
+                      <>
+                        {!isFirst && (
+                          <button
+                            onClick={async (e) => {
+                              e.stopPropagation();
+                              await reorderChild(parentId, node.id, "up");
+                            }}
+                            className="p-1 text-slate-400 hover:text-orange-600 hover:bg-orange-50 rounded"
+                            title="Move up"
+                          >
+                            <ArrowUp className="w-4 h-4" />
+                          </button>
+                        )}
+                        {!isLast && (
+                          <button
+                            onClick={async (e) => {
+                              e.stopPropagation();
+                              await reorderChild(parentId, node.id, "down");
+                            }}
+                            className="p-1 text-slate-400 hover:text-orange-600 hover:bg-orange-50 rounded"
+                            title="Move down"
+                          >
+                            <ArrowDown className="w-4 h-4" />
+                          </button>
+                        )}
+                      </>
+                    );
+                  })()}
                 {getAvailableChildTypes(node.configType || "").length > 0 &&
-                 getAvailableChildTypes(node.configType || "").some(type => appConfigStore.canAddConfigType(node.id, type)) && (
-                  <>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setAddParentId(node.id);
-                        setShowAddModal(true);
-                      }}
-                      className="p-1 text-slate-400 hover:text-green-600 hover:bg-green-50 rounded"
-                      title="Add child config"
-                    >
-                      <Plus className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setCreateParentId(node.id);
-                        setShowTemplateSelect(true);
-                      }}
-                      className="p-1 text-slate-400 hover:text-purple-600 hover:bg-purple-50 rounded"
-                      title="Add from template"
-                    >
-                      <Package className="w-4 h-4" />
-                    </button>
-                  </>
-                )}
+                  getAvailableChildTypes(node.configType || "").some((type) =>
+                    appConfigStore.canAddConfigType(node.id, type)
+                  ) && (
+                    <>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setAddParentId(node.id);
+                          setShowAddModal(true);
+                        }}
+                        className="p-1 text-slate-400 hover:text-green-600 hover:bg-green-50 rounded"
+                        title="Add child config"
+                      >
+                        <Plus className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setCreateParentId(node.id);
+                          setShowTemplateSelect(true);
+                        }}
+                        className="p-1 text-slate-400 hover:text-purple-600 hover:bg-purple-50 rounded"
+                        title="Add from template"
+                      >
+                        <Package className="w-4 h-4" />
+                      </button>
+                    </>
+                  )}
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
@@ -1213,14 +1331,30 @@ const AppConfig: React.FC = () => {
                         <button
                           onClick={async (e) => {
                             e.stopPropagation();
-                            if (confirm(`Remove property "${prop.caption || propId}" from this config?`)) {
+                            if (
+                              confirm(
+                                `Remove property "${
+                                  prop.caption || propId
+                                }" from this config?`
+                              )
+                            ) {
                               // Remove property from config deps
-                              const updatedDeps = (node.deps || []).filter(d => d !== propId);
-                              await appConfigStore.updateConfig(node.id, { deps: updatedDeps });
-                              
+                              const updatedDeps = (node.deps || []).filter(
+                                (d) => d !== propId
+                              );
+                              await appConfigStore.updateConfig(node.id, {
+                                deps: updatedDeps,
+                              });
+
                               // Rebuild and cascade if needed
-                              if (appConfigStore.isHighLevelType(node.configType || '')) {
-                                await appConfigStore.rebuildParentSelfData(node.id);
+                              if (
+                                appConfigStore.isHighLevelType(
+                                  node.configType || ""
+                                )
+                              ) {
+                                await appConfigStore.rebuildParentSelfData(
+                                  node.id
+                                );
                                 await appConfigStore.cascadeUpdateUp(node.id);
                               }
                             }
@@ -1242,15 +1376,24 @@ const AppConfig: React.FC = () => {
           <div className="mt-2">
             {/* Sort children by deps order */}
             {(() => {
-              const sortedChildren = node.deps && node.deps.length > 0
-                ? node.deps
-                    .map(depId => node.children.find(child => child.id === depId))
-                    .filter((child): child is TreeNode => child !== undefined)
-                    // Add any children not in deps at the end
-                    .concat(node.children.filter(child => !node.deps?.includes(child.id)))
-                : node.children;
+              const sortedChildren =
+                node.deps && node.deps.length > 0
+                  ? node.deps
+                      .map((depId) =>
+                        node.children.find((child) => child.id === depId)
+                      )
+                      .filter((child): child is TreeNode => child !== undefined)
+                      // Add any children not in deps at the end
+                      .concat(
+                        node.children.filter(
+                          (child) => !node.deps?.includes(child.id)
+                        )
+                      )
+                  : node.children;
 
-              return sortedChildren.map((child) => renderConfigNode(child, level + 1, node.id));
+              return sortedChildren.map((child) =>
+                renderConfigNode(child, level + 1, node.id)
+              );
             })()}
           </div>
         )}
@@ -1315,7 +1458,10 @@ const AppConfig: React.FC = () => {
             >
               {configTree.length > 0 ? (
                 (() => {
-                  const filteredData = appConfigStore.filterConfigTree(configTree, configSearchQuery);
+                  const filteredData = appConfigStore.filterConfigTree(
+                    configTree,
+                    configSearchQuery
+                  );
                   return filteredData.length > 0 ? (
                     <div
                       className="pb-4"
@@ -1327,7 +1473,9 @@ const AppConfig: React.FC = () => {
                       }}
                     >
                       {filteredData.map((node, index) => (
-                        <div key={node.id}>{renderConfigNode(node, 0, null)}</div>
+                        <div key={node.id}>
+                          {renderConfigNode(node, 0, null)}
+                        </div>
                       ))}
                     </div>
                   ) : (
@@ -1366,7 +1514,7 @@ const AppConfig: React.FC = () => {
                 allSections.add("base");
                 allSections.add("main-entities");
                 allSections.add("dictionaries");
-                
+
                 // Add all entity groups
                 Object.keys(filteredStructure.main).forEach((entity) => {
                   allSections.add(`group-${entity}`);
@@ -1378,12 +1526,12 @@ const AppConfig: React.FC = () => {
                     });
                   }
                 });
-                
+
                 // Add all dictionary groups
                 Object.keys(filteredStructure.dictionaries).forEach((dict) => {
                   allSections.add(`dict-${dict}`);
                 });
-                
+
                 setExpandedSections(allSections);
                 setIsTreeExpanded(true);
               }}
@@ -1400,14 +1548,13 @@ const AppConfig: React.FC = () => {
                 </span>
               </div>
             )}
-            
 
-            <div 
+            <div
               className="flex-1 overflow-y-auto"
-              style={{ 
-                position: 'relative',
-                transform: 'translateZ(0)', /* Force GPU acceleration */
-                willChange: 'scroll-position'
+              style={{
+                position: "relative",
+                transform: "translateZ(0)" /* Force GPU acceleration */,
+                willChange: "scroll-position",
               }}
             >
               {/* Base Fields Section */}
@@ -1436,7 +1583,9 @@ const AppConfig: React.FC = () => {
                     style={{ marginLeft: "24px" }}
                     className="mt-2 space-y-2"
                   >
-                    {filteredStructure.base.map((field) => renderFieldItem(field))}
+                    {filteredStructure.base.map((field) =>
+                      renderFieldItem(field)
+                    )}
                   </div>
                 )}
               </div>
@@ -1701,8 +1850,8 @@ const AppConfig: React.FC = () => {
                 { value: "field", label: "Field Properties" },
                 ...Object.entries(configTypes).map(([key, info]) => ({
                   value: key,
-                  label: info.name
-                }))
+                  label: info.name,
+                })),
               ]}
               showAddButton={false}
               showCheckbox={true}
@@ -1726,16 +1875,18 @@ const AppConfig: React.FC = () => {
               ) : (
                 <div className="space-y-2 ">
                   {properties
-                    .filter(property => {
+                    .filter((property) => {
                       // Filter by type
-                      const hasNoType = !property.tags || property.tags.length === 0;
-                      const matchesType = propertyFilterType === "all" ||
+                      const hasNoType =
+                        !property.tags || property.tags.length === 0;
+                      const matchesType =
+                        propertyFilterType === "all" ||
                         property.tags?.includes(propertyFilterType) ||
                         hasNoType; // Include universal properties (no type = applies to all)
 
                       // Filter by system/custom
-                      const matchesSystemFilter = showSystemProperties ||
-                        property.category !== 'system';
+                      const matchesSystemFilter =
+                        showSystemProperties || property.category !== "system";
 
                       return matchesType && matchesSystemFilter;
                     })
@@ -1766,13 +1917,18 @@ const AppConfig: React.FC = () => {
                                 >
                                   {property.id.replace("property_", "")}
                                 </div>
-                                <PropertyCategoryIcon category={property.category} />
+                                <PropertyCategoryIcon
+                                  category={property.category}
+                                />
                               </div>
                               <div className="text-xs text-slate-500 mt-1">
                                 {Object.entries(property.data || {})
                                   .slice(0, 2)
                                   .map(([key, value]) => (
-                                    <span key={key} className="inline-block mr-3">
+                                    <span
+                                      key={key}
+                                      className="inline-block mr-3"
+                                    >
                                       {key}:{" "}
                                       {typeof value === "object"
                                         ? JSON.stringify(value)
@@ -1826,13 +1982,15 @@ const AppConfig: React.FC = () => {
                   ? workingConfigs.find((c) => c.id === createParentId)
                   : null;
                 // For root level (no parent), filter to only app templates
-                const parentType = createParentId === null ? null : (parentConfig?.type || null);
+                const parentType =
+                  createParentId === null ? null : parentConfig?.type || null;
                 const allTemplates = getAvailableTemplates(parentType);
-                
+
                 // Filter to only app templates when at root level
-                const templates = createParentId === null 
-                  ? allTemplates.filter(t => t.type === 'app')
-                  : allTemplates;
+                const templates =
+                  createParentId === null
+                    ? allTemplates.filter((t) => t.type === "app")
+                    : allTemplates;
 
                 if (templates.length === 0) {
                   return (
@@ -1858,7 +2016,7 @@ const AppConfig: React.FC = () => {
                           className="p-4 border rounded-lg hover:bg-slate-50 flex flex-col items-center gap-2"
                         >
                           <Icon className={`w-8 h-8 ${TypeInfo.color}`} />
-                          <div className="text-sm font-medium">
+                          <div className="text-sm ">
                             {template.caption || template.id}
                           </div>
                           <div className="text-xs text-slate-500">
@@ -1908,32 +2066,35 @@ const AppConfig: React.FC = () => {
         })()}
 
       {/* Edit Config Modal */}
-      {editingConfig && (() => {
-        const config = workingConfigs.find((c) => c.id === editingConfig);
-        const isGroupingType = config ? appConfigStore.isGroupingConfigType(config.type) : false;
-        
-        return (
-          <ConfigEditModal
-            isOpen={true}
-            onClose={() => {
-              setEditingConfig(null);
-              setEditingConfigData("");
-              setEditingConfigCaption("");
-              setEditingConfigVersion(1);
-            }}
-            onSave={saveConfigEdit}
-            title="Edit Config"
-            configId={editingConfig}
-            caption={editingConfigCaption}
-            hideOverrideData={isGroupingType}
-            version={editingConfigVersion}
-            overrideData={editingConfigData}
-            onCaptionChange={setEditingConfigCaption}
-            onVersionChange={setEditingConfigVersion}
-            onOverrideDataChange={setEditingConfigData}
-          />
-        );
-      })()}
+      {editingConfig &&
+        (() => {
+          const config = workingConfigs.find((c) => c.id === editingConfig);
+          const isGroupingType = config
+            ? appConfigStore.isGroupingConfigType(config.type)
+            : false;
+
+          return (
+            <ConfigEditModal
+              isOpen={true}
+              onClose={() => {
+                setEditingConfig(null);
+                setEditingConfigData("");
+                setEditingConfigCaption("");
+                setEditingConfigVersion(1);
+              }}
+              onSave={saveConfigEdit}
+              title="Edit Config"
+              configId={editingConfig}
+              caption={editingConfigCaption}
+              hideOverrideData={isGroupingType}
+              version={editingConfigVersion}
+              overrideData={editingConfigData}
+              onCaptionChange={setEditingConfigCaption}
+              onVersionChange={setEditingConfigVersion}
+              onOverrideDataChange={setEditingConfigData}
+            />
+          );
+        })()}
 
       {/* View Field in Config Modal */}
       {viewingFieldInConfig &&
@@ -2010,9 +2171,11 @@ const AppConfig: React.FC = () => {
                     className="w-full p-3 flex items-center gap-3 border rounded-lg hover:bg-slate-50"
                   >
                     <Icon
-                      className={`w-5 h-5 ${TypeInfo.color || "text-slate-600"}`}
+                      className={`w-5 h-5 ${
+                        TypeInfo.color || "text-slate-600"
+                      }`}
                     />
-                    <span className="font-medium">{TypeInfo.name || type}</span>
+                    <span className="">{TypeInfo.name || type}</span>
                   </button>
                 );
               })}
@@ -2040,20 +2203,30 @@ const AppConfig: React.FC = () => {
             <h3 className="text-lg font-semibold mb-4">
               Edit Field Override: {fieldOverrideEditor.fieldId}
             </h3>
-            
+
             <div className="flex-1 overflow-y-auto space-y-4">
               {/* Field Info */}
               <div>
-                <div className="text-sm font-medium text-slate-700 mb-2">
+                <div className="text-sm  text-slate-700 mb-2">
                   Current Field Data (computed from base + parent overrides)
                 </div>
                 <textarea
                   value={JSON.stringify(
                     (() => {
-                      const field = fields.find(f => f.id === fieldOverrideEditor.fieldId);
-                      const parentConfig = workingConfigs.find(c => c.id === fieldOverrideEditor.parentConfigId);
+                      const field = fields.find(
+                        (f) => f.id === fieldOverrideEditor.fieldId
+                      );
+                      const parentConfig = workingConfigs.find(
+                        (c) => c.id === fieldOverrideEditor.parentConfigId
+                      );
                       // Show the computed field data including any parent overrides
-                      return parentConfig?.data?.fields?.[fieldOverrideEditor.fieldId] || field?.data || {};
+                      return (
+                        parentConfig?.data?.fields?.[
+                          fieldOverrideEditor.fieldId
+                        ] ||
+                        field?.data ||
+                        {}
+                      );
                     })(),
                     null,
                     2
@@ -2062,13 +2235,14 @@ const AppConfig: React.FC = () => {
                   className="w-full h-48 p-2 border rounded font-mono text-sm bg-slate-50"
                 />
               </div>
-              
+
               {/* Override Editor */}
               <div>
-                <div className="text-sm font-medium text-slate-700 mb-2">
+                <div className="text-sm  text-slate-700 mb-2">
                   Field Override Properties
                   <span className="text-xs text-slate-500 ml-2">
-                    (These values will override the field properties in this context)
+                    (These values will override the field properties in this
+                    context)
                   </span>
                 </div>
                 <textarea
@@ -2076,7 +2250,7 @@ const AppConfig: React.FC = () => {
                   onChange={(e) => {
                     setFieldOverrideEditor({
                       ...fieldOverrideEditor,
-                      fieldOverrideData: e.target.value
+                      fieldOverrideData: e.target.value,
                     });
                   }}
                   className="w-full h-48 p-2 border rounded font-mono text-sm"
@@ -2084,7 +2258,7 @@ const AppConfig: React.FC = () => {
                 />
               </div>
             </div>
-            
+
             <div className="mt-4 flex justify-end gap-2">
               <button
                 onClick={() => setFieldOverrideEditor(null)}

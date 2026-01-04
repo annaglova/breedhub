@@ -127,7 +127,10 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
 
             if (dataSource === "collection") {
               // Load from collection (spaceStore)
-              const record = await spaceStore.getRecordById(referencedTable, value);
+              const record = await spaceStore.getRecordById(
+                referencedTable,
+                value
+              );
               if (record) {
                 const option: LookupOption = {
                   value: record[referencedFieldID] as string,
@@ -138,7 +141,10 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
               }
             } else {
               // Load from dictionary (dictionaryStore)
-              const record = await dictionaryStore.getRecordById(referencedTable, value);
+              const record = await dictionaryStore.getRecordById(
+                referencedTable,
+                value
+              );
               if (record) {
                 const option: LookupOption = {
                   value: record[referencedFieldID] as string,
@@ -149,7 +155,10 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
               }
             }
           } catch (error) {
-            console.error("[LookupInput] Failed to pre-load selected value:", error);
+            console.error(
+              "[LookupInput] Failed to pre-load selected value:",
+              error
+            );
           } finally {
             setInternalLoading(false);
           }
@@ -157,7 +166,15 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
 
         loadSelectedRecord();
       }
-    }, [value, selectedOption, referencedTable, dataSource, referencedFieldID, referencedFieldName, internalLoading]);
+    }, [
+      value,
+      selectedOption,
+      referencedTable,
+      dataSource,
+      referencedFieldID,
+      referencedFieldName,
+      internalLoading,
+    ]);
 
     const loadDictionaryOptions = useCallback(
       async (query: string = "", append: boolean = false) => {
@@ -621,7 +638,7 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
                   option.value === value && "bg-primary-50 text-primary-700"
                 )}
               >
-                <div className="font-medium">{option.label}</div>
+                <div className="">{option.label}</div>
                 {option.description && (
                   <div className="text-sm text-slate-500">
                     {option.description}

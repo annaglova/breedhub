@@ -1,8 +1,8 @@
+import { PetLinkRow } from "@/components/shared/PetLinkRow";
 import { useSelectedEntity } from "@/contexts/SpaceContext";
 import { spaceStore } from "@breedhub/rxdb-store";
 import { useSignals } from "@preact/signals-react/runtime";
 import { cn } from "@ui/lib/utils";
-import { PetLinkRow } from "@/components/shared/PetLinkRow";
 
 /**
  * Sibling pet
@@ -67,13 +67,13 @@ function groupSiblingsByDate(siblings: SiblingPet[]): SiblingGroup[] {
   // Sort by date (newest first)
   const sorted = [...siblings].sort((a, b) => {
     if (!a.dateOfBirth || !b.dateOfBirth) return 0;
-    return new Date(b.dateOfBirth).getTime() - new Date(a.dateOfBirth).getTime();
+    return (
+      new Date(b.dateOfBirth).getTime() - new Date(a.dateOfBirth).getTime()
+    );
   });
 
   sorted.forEach((pet) => {
-    const existingGroup = grouped.find(
-      (g) => g.date === pet.dateOfBirth
-    );
+    const existingGroup = grouped.find((g) => g.date === pet.dateOfBirth);
 
     if (existingGroup) {
       existingGroup.pets.push(pet);
@@ -171,7 +171,7 @@ export function PetSiblingsTab({ onLoadedCount }: PetSiblingsTabProps) {
         </div>
       ) : (
         <div className="card card-rounded flex flex-auto flex-col p-6 lg:px-8">
-          <span className="text-secondary p-8 text-center font-medium">
+          <span className="text-secondary p-8 text-center ">
             There are no siblings!
           </span>
         </div>

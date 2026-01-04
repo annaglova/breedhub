@@ -1,7 +1,6 @@
-import { useState, useEffect } from "react";
-import { Button } from "@ui/components/button";
 import { cn } from "@ui/lib/utils";
-import { Eye, EyeOff, Volume2, Info, CheckCircle, AlertCircle } from "lucide-react";
+import { Eye, EyeOff, Info, Volume2 } from "lucide-react";
+import { useEffect, useState } from "react";
 
 interface ScreenReaderTestPanelProps {
   className?: string;
@@ -12,14 +11,16 @@ interface ScreenReaderTestPanelProps {
  * Development tool for testing screen reader compatibility
  * Shows ARIA attributes, roles, and announces changes
  */
-export function ScreenReaderTestPanel({ 
+export function ScreenReaderTestPanel({
   className,
-  defaultOpen = false 
+  defaultOpen = false,
 }: ScreenReaderTestPanelProps) {
   const [isOpen, setIsOpen] = useState(defaultOpen);
   const [ariaElements, setAriaElements] = useState<HTMLElement[]>([]);
   const [announcements, setAnnouncements] = useState<string[]>([]);
-  const [focusedElement, setFocusedElement] = useState<HTMLElement | null>(null);
+  const [focusedElement, setFocusedElement] = useState<HTMLElement | null>(
+    null
+  );
 
   // Only show in development
   if (process.env.NODE_ENV === "production") {
@@ -31,20 +32,22 @@ export function ScreenReaderTestPanel({
 
     // Find all elements with ARIA attributes
     const findAriaElements = () => {
-      const elements = document.querySelectorAll<HTMLElement>([
-        '[role]',
-        '[aria-label]',
-        '[aria-labelledby]',
-        '[aria-describedby]',
-        '[aria-live]',
-        '[aria-invalid]',
-        '[aria-selected]',
-        '[aria-current]',
-        '[aria-expanded]',
-        '[aria-hidden="false"]',
-        '[tabindex]'
-      ].join(','));
-      
+      const elements = document.querySelectorAll<HTMLElement>(
+        [
+          "[role]",
+          "[aria-label]",
+          "[aria-labelledby]",
+          "[aria-describedby]",
+          "[aria-live]",
+          "[aria-invalid]",
+          "[aria-selected]",
+          "[aria-current]",
+          "[aria-expanded]",
+          '[aria-hidden="false"]',
+          "[tabindex]",
+        ].join(",")
+      );
+
       setAriaElements(Array.from(elements));
     };
 
@@ -52,12 +55,17 @@ export function ScreenReaderTestPanel({
     const observer = new MutationObserver((mutations) => {
       mutations.forEach((mutation) => {
         const target = mutation.target as HTMLElement;
-        const liveRegion = target.closest('[aria-live], [role="alert"], [role="status"]');
-        
-        if (liveRegion && mutation.type === 'childList') {
+        const liveRegion = target.closest(
+          '[aria-live], [role="alert"], [role="status"]'
+        );
+
+        if (liveRegion && mutation.type === "childList") {
           const text = liveRegion.textContent?.trim();
           if (text) {
-            setAnnouncements(prev => [...prev.slice(-4), `[${new Date().toLocaleTimeString()}] ${text}`]);
+            setAnnouncements((prev) => [
+              ...prev.slice(-4),
+              `[${new Date().toLocaleTimeString()}] ${text}`,
+            ]);
           }
         }
       });
@@ -75,45 +83,46 @@ export function ScreenReaderTestPanel({
       subtree: true,
       characterData: true,
     });
-    
-    document.addEventListener('focus', handleFocus, true);
-    
+
+    document.addEventListener("focus", handleFocus, true);
+
     // Re-scan periodically
     const interval = setInterval(findAriaElements, 2000);
 
     return () => {
       observer.disconnect();
-      document.removeEventListener('focus', handleFocus, true);
+      document.removeEventListener("focus", handleFocus, true);
       clearInterval(interval);
     };
   }, [isOpen]);
 
   const getAriaInfo = (element: HTMLElement) => {
     const info: Record<string, string> = {};
-    
+
     // Get all ARIA attributes
-    Array.from(element.attributes).forEach(attr => {
-      if (attr.name.startsWith('aria-') || attr.name === 'role') {
+    Array.from(element.attributes).forEach((attr) => {
+      if (attr.name.startsWith("aria-") || attr.name === "role") {
         info[attr.name] = attr.value;
       }
     });
-    
+
     // Get computed label
-    const label = element.getAttribute('aria-label') || 
-                 element.getAttribute('aria-labelledby') ||
-                 element.textContent?.trim().substring(0, 50);
-    
+    const label =
+      element.getAttribute("aria-label") ||
+      element.getAttribute("aria-labelledby") ||
+      element.textContent?.trim().substring(0, 50);
+
     return { info, label };
   };
 
   const highlightElement = (element: HTMLElement) => {
-    element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    element.style.outline = '3px solid #6366f1';
-    element.style.outlineOffset = '2px';
-    
+    element.scrollIntoView({ behavior: "smooth", block: "center" });
+    element.style.outline = "3px solid #6366f1";
+    element.style.outlineOffset = "2px";
+
     setTimeout(() => {
-      element.style.outline = '';
-      element.style.outlineOffset = '';
+      element.style.outline = "";
+      element.style.outlineOffset = "";
     }, 2000);
   };
 
@@ -153,29 +162,35 @@ export function ScreenReaderTestPanel({
             {/* Currently Focused */}
             {focusedElement && (
               <div className="p-4 border-b">
-                <h3 className="font-medium text-slate-900 mb-2">Currently Focused</h3>
+                <h3 className=" text-slate-900 mb-2">Currently Focused</h3>
                 <div className="bg-blue-50 p-3 rounded-md text-sm">
                   <p className="font-mono text-xs text-blue-900">
                     {focusedElement.tagName.toLowerCase()}
                     {focusedElement.id && `#${focusedElement.id}`}
-                    {focusedElement.className && `.${focusedElement.className.split(' ')[0]}`}
+                    {focusedElement.className &&
+                      `.${focusedElement.className.split(" ")[0]}`}
                   </p>
-                  {Object.entries(getAriaInfo(focusedElement).info).map(([key, value]) => (
-                    <div key={key} className="mt-1">
-                      <span className="text-blue-700">{key}:</span> {value}
-                    </div>
-                  ))}
+                  {Object.entries(getAriaInfo(focusedElement).info).map(
+                    ([key, value]) => (
+                      <div key={key} className="mt-1">
+                        <span className="text-blue-700">{key}:</span> {value}
+                      </div>
+                    )
+                  )}
                 </div>
               </div>
             )}
 
             {/* Live Announcements */}
             <div className="p-4 border-b">
-              <h3 className="font-medium text-slate-900 mb-2">Live Announcements</h3>
+              <h3 className=" text-slate-900 mb-2">Live Announcements</h3>
               {announcements.length > 0 ? (
                 <div className="space-y-2">
                   {announcements.map((announcement, index) => (
-                    <div key={index} className="bg-green-50 p-2 rounded text-sm text-green-800">
+                    <div
+                      key={index}
+                      className="bg-green-50 p-2 rounded text-sm text-green-800"
+                    >
                       {announcement}
                     </div>
                   ))}
@@ -187,7 +202,7 @@ export function ScreenReaderTestPanel({
 
             {/* ARIA Elements */}
             <div className="p-4">
-              <h3 className="font-medium text-slate-900 mb-2">
+              <h3 className=" text-slate-900 mb-2">
                 ARIA Elements ({ariaElements.length})
               </h3>
               <div className="space-y-2">
@@ -201,7 +216,9 @@ export function ScreenReaderTestPanel({
                     >
                       <div className="text-sm font-mono text-slate-700">
                         {element.tagName.toLowerCase()}
-                        {element.id && <span className="text-purple-600">#{element.id}</span>}
+                        {element.id && (
+                          <span className="text-purple-600">#{element.id}</span>
+                        )}
                       </div>
                       {label && (
                         <div className="text-xs text-slate-600 truncate">
@@ -228,7 +245,9 @@ export function ScreenReaderTestPanel({
               <Info className="w-4 h-4 text-blue-600 mt-0.5" />
               <div className="text-xs text-slate-600">
                 <p>This panel helps test screen reader compatibility.</p>
-                <p className="mt-1">Click elements to highlight them on the page.</p>
+                <p className="mt-1">
+                  Click elements to highlight them on the page.
+                </p>
               </div>
             </div>
           </div>

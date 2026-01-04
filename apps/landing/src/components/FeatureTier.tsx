@@ -30,7 +30,7 @@ export default function FeatureTier({ featureTier }: FeatureTierProps) {
   if (typeof featureTier === "string" && featureTier.length > 0) {
     return (
       <div className="text-center">
-        <span className="text-sm font-medium text-slate-700">{featureTier}</span>
+        <span className="text-sm  text-slate-700">{featureTier}</span>
       </div>
     );
   }

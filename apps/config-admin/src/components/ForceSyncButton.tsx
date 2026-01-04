@@ -1,10 +1,13 @@
-import { useState } from 'react';
-import { Upload, Loader2, CheckCircle, XCircle } from 'lucide-react';
-import { appConfigStore } from '@breedhub/rxdb-store';
+import { appConfigStore } from "@breedhub/rxdb-store";
+import { CheckCircle, Loader2, Upload, XCircle } from "lucide-react";
+import { useState } from "react";
 
 export function ForceSyncButton() {
   const [isLoading, setIsLoading] = useState(false);
-  const [result, setResult] = useState<{ synced: number; errors: string[] } | null>(null);
+  const [result, setResult] = useState<{
+    synced: number;
+    errors: string[];
+  } | null>(null);
 
   const handleForceSync = async () => {
     setIsLoading(true);
@@ -16,7 +19,7 @@ export function ForceSyncButton() {
     } catch (error) {
       setResult({
         synced: 0,
-        errors: [error instanceof Error ? error.message : 'Unknown error']
+        errors: [error instanceof Error ? error.message : "Unknown error"],
       });
     } finally {
       setIsLoading(false);
@@ -40,7 +43,7 @@ export function ForceSyncButton() {
         ) : (
           <Upload className="w-4 h-4" />
         )}
-        {isLoading ? 'Syncing...' : 'Force Sync'}
+        {isLoading ? "Syncing..." : "Force Sync"}
       </button>
 
       {result && (
@@ -53,7 +56,9 @@ export function ForceSyncButton() {
                 <XCircle className="w-8 h-8 text-amber-500" />
               )}
               <h3 className="text-lg font-semibold">
-                {result.errors.length === 0 ? 'Sync Complete' : 'Sync Completed with Errors'}
+                {result.errors.length === 0
+                  ? "Sync Complete"
+                  : "Sync Completed with Errors"}
               </h3>
             </div>
 
@@ -64,7 +69,7 @@ export function ForceSyncButton() {
 
               {result.errors.length > 0 && (
                 <div className="mt-3 pt-3 border-t border-slate-200">
-                  <p className="text-sm text-red-600 font-medium mb-2">Errors:</p>
+                  <p className="text-sm text-red-600  mb-2">Errors:</p>
                   <ul className="text-sm text-red-500 list-disc list-inside">
                     {result.errors.map((err, i) => (
                       <li key={i}>{err}</li>
@@ -77,7 +82,11 @@ export function ForceSyncButton() {
             {result.synced > 0 && (
               <div className="bg-blue-50 border border-blue-200 rounded-md p-3 mb-4">
                 <p className="text-sm text-blue-800">
-                  <strong>Next step:</strong> Run <code className="bg-blue-100 px-1 rounded">node scripts/rebuild-hierarchy.cjs full</code> to update the hierarchy.
+                  <strong>Next step:</strong> Run{" "}
+                  <code className="bg-blue-100 px-1 rounded">
+                    node scripts/rebuild-hierarchy.cjs full
+                  </code>{" "}
+                  to update the hierarchy.
                 </p>
               </div>
             )}

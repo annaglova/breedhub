@@ -202,7 +202,7 @@ export function PetShowResultsTab({ onLoadedCount }: PetShowResultsTabProps) {
           ))}
         </div>
       ) : (
-        <span className="text-secondary p-8 text-center font-medium">
+        <span className="text-secondary p-8 text-center ">
           There are no show results!
         </span>
       )}

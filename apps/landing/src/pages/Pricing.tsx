@@ -122,7 +122,7 @@ export default function Pricing() {
                         <div className="pr-4">
                           <div>
                             <div className="flex items-center gap-2 mb-1">
-                              <p className=" font-medium">{feature.name}</p>
+                              <p className=" ">{feature.name}</p>
                               {feature.status === "COMING SOON" && (
                                 <span className="text-xs bg-primary-300 text-white px-2 py-0.5 rounded-full flex-shrink-0 text-center uppercase">
                                   Coming Soon
@@ -158,7 +158,7 @@ export default function Pricing() {
                         key={index}
                         onClick={() => setShowMobileTier(index)}
                         className={`
-                        px-4 py-2 rounded-full text-md font-medium transition-all 
+                        px-4 py-2 rounded-full text-md  transition-all 
                         ${
                           showMobileTier === index
                             ? "bg-white/70 text-slate-900 shadow-sm  "
@@ -206,7 +206,7 @@ export default function Pricing() {
                             </div>
                             <div className="flex-1">
                               <div className="flex items-center gap-2 mb-1">
-                                <p className=" font-medium">{feature.name}</p>
+                                <p className=" ">{feature.name}</p>
                                 {feature.status === "COMING SOON" && (
                                   <span className="text-xs bg-primary-300 text-white px-2 py-0.5 rounded-full flex-shrink-0 text-center uppercase">
                                     Coming Soon

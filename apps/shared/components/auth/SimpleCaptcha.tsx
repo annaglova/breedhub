@@ -1,8 +1,8 @@
 import { Button } from "@ui/components/button";
 import { Input } from "@ui/components/input";
 import { cn } from "@ui/lib/utils";
-import { useEffect, useState } from "react";
 import { CheckCircle, RefreshCw } from "lucide-react";
+import { useEffect, useState } from "react";
 
 interface SimpleCaptchaProps {
   onVerify: (isValid: boolean) => void;
@@ -48,18 +48,28 @@ export function SimpleCaptcha({ onVerify, className }: SimpleCaptchaProps) {
 
   if (isVerified) {
     return (
-      <div className={cn("p-4 bg-green-50 border border-green-200 rounded-lg", className)}>
+      <div
+        className={cn(
+          "p-4 bg-green-50 border border-green-200 rounded-lg",
+          className
+        )}
+      >
         <div className="flex items-center text-green-700">
           <CheckCircle className="w-4 h-4 mr-2" />
-          <span className="text-sm font-medium">Verified! You can proceed.</span>
+          <span className="text-sm ">Verified! You can proceed.</span>
         </div>
       </div>
     );
   }
 
   return (
-    <div className={cn("p-4 bg-slate-50 border border-slate-200 rounded-lg", className)}>
-      <p className="text-sm font-medium text-slate-700 mb-3">
+    <div
+      className={cn(
+        "p-4 bg-slate-50 border border-slate-200 rounded-lg",
+        className
+      )}
+    >
+      <p className="text-sm  text-slate-700 mb-3">
         Please solve this simple math problem to continue:
       </p>
       <div className="flex items-center gap-3">
@@ -72,7 +82,7 @@ export function SimpleCaptcha({ onVerify, className }: SimpleCaptchaProps) {
           onChange={(e) => setUserAnswer(e.target.value)}
           className="w-20"
           placeholder="?"
-          onKeyDown={(e) => e.key === 'Enter' && handleVerify()}
+          onKeyDown={(e) => e.key === "Enter" && handleVerify()}
         />
         <Button
           type="button"
@@ -91,9 +101,7 @@ export function SimpleCaptcha({ onVerify, className }: SimpleCaptchaProps) {
           <RefreshCw className="w-4 h-4" />
         </button>
       </div>
-      {error && (
-        <p className="mt-2 text-sm text-red-600">{error}</p>
-      )}
+      {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
     </div>
   );
 }

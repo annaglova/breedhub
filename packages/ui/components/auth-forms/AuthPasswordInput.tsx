@@ -1,8 +1,9 @@
+import { cn } from "@ui/lib/utils";
 import React, { forwardRef, useState } from "react";
 import { PasswordInput } from "../form-inputs/password-input";
-import { cn } from "@ui/lib/utils";
 
-interface AuthPasswordInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'type'> {
+interface AuthPasswordInputProps
+  extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "type"> {
   label?: string;
   error?: string;
   touched?: boolean;
@@ -25,37 +26,43 @@ interface AuthPasswordInputProps extends Omit<React.InputHTMLAttributes<HTMLInpu
  * - Вбудована перевірка мінімальної довжини
  * - Опційний індикатор сили пароля
  */
-export const AuthPasswordInput = forwardRef<HTMLInputElement, AuthPasswordInputProps>(
-  ({ 
-    label = "Password",
-    error,
-    touched = false,
-    showLabel = true,
-    showForgotLink = false,
-    forgotLinkText = "Forgot password?",
-    forgotLinkHref = "/forgot-password",
-    showStrength = false,
-    isNewPassword = false,
-    minLength = 8,
-    onPasswordToggleChange,
-    onChange,
-    value,
-    className,
-    ...props 
-  }, ref) => {
+export const AuthPasswordInput = forwardRef<
+  HTMLInputElement,
+  AuthPasswordInputProps
+>(
+  (
+    {
+      label = "Password",
+      error,
+      touched = false,
+      showLabel = true,
+      showForgotLink = false,
+      forgotLinkText = "Forgot password?",
+      forgotLinkHref = "/forgot-password",
+      showStrength = false,
+      isNewPassword = false,
+      minLength = 8,
+      onPasswordToggleChange,
+      onChange,
+      value,
+      className,
+      ...props
+    },
+    ref
+  ) => {
     const [localError, setLocalError] = useState<string>("");
 
     // Валідація довжини пароля
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       const newValue = e.target.value;
-      
+
       // Перевірка мінімальної довжини тільки якщо є значення
       if (newValue && newValue.length < minLength) {
         setLocalError(`Password must be at least ${minLength} characters`);
       } else {
         setLocalError("");
       }
-      
+
       onChange?.(e);
     };
 
@@ -65,10 +72,8 @@ export const AuthPasswordInput = forwardRef<HTMLInputElement, AuthPasswordInputP
       <div className="space-y-1">
         {showLabel && showForgotLink && (
           <div className="flex items-center justify-between">
-            <label className="block text-base font-medium text-slate-700">
-              {label}
-            </label>
-            <a 
+            <label className="block text-base  text-slate-700">{label}</label>
+            <a
               href={forgotLinkHref}
               className="text-sm text-primary-600 hover:text-primary-500 transition-colors"
               tabIndex={-1} // Щоб не переривати flow табуляції
@@ -77,7 +82,7 @@ export const AuthPasswordInput = forwardRef<HTMLInputElement, AuthPasswordInputP
             </a>
           </div>
         )}
-        
+
         <PasswordInput
           ref={ref}
           label={showLabel && !showForgotLink ? label : undefined}
@@ -88,14 +93,11 @@ export const AuthPasswordInput = forwardRef<HTMLInputElement, AuthPasswordInputP
           onPasswordToggleChange={onPasswordToggleChange}
           value={value}
           onChange={handleChange}
-          className={cn(
-            "transition-all duration-200",
-            className
-          )}
+          className={cn("transition-all duration-200", className)}
           minLength={minLength}
           {...props}
         />
-        
+
         {/* Додаткові підказки для нових паролів */}
         {isNewPassword && !value && !displayError && (
           <p className="text-xs text-slate-500 mt-1">

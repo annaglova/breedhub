@@ -1,13 +1,13 @@
+import { HorizontalScrollbar } from "@/components/shared/HorizontalScrollbar";
+import {
+  GenerationCount,
+  MOCK_PEDIGREE_PET,
+  PedigreeTree,
+} from "@/components/shared/pedigree";
 import { useSelectedEntity } from "@/contexts/SpaceContext";
 import { spaceStore } from "@breedhub/rxdb-store";
 import { useSignals } from "@preact/signals-react/runtime";
-import { useRef, useState, useCallback } from "react";
-import {
-  PedigreeTree,
-  GenerationCount,
-  MOCK_PEDIGREE_PET,
-} from "@/components/shared/pedigree";
-import { HorizontalScrollbar } from "@/components/shared/HorizontalScrollbar";
+import { useCallback, useRef, useState } from "react";
 
 /** Default generations to show in scroll mode */
 const DEFAULT_GENERATIONS: GenerationCount = 4;
@@ -64,12 +64,15 @@ export function PetPedigreeTab({
     e.preventDefault();
   }, []);
 
-  const handleMouseMove = useCallback((e: React.MouseEvent) => {
-    if (!isDragging || !scrollRef.current) return;
-    e.preventDefault();
-    const deltaX = e.clientX - dragStartX.current;
-    scrollRef.current.scrollLeft = scrollStartLeft.current - deltaX;
-  }, [isDragging]);
+  const handleMouseMove = useCallback(
+    (e: React.MouseEvent) => {
+      if (!isDragging || !scrollRef.current) return;
+      e.preventDefault();
+      const deltaX = e.clientX - dragStartX.current;
+      scrollRef.current.scrollLeft = scrollStartLeft.current - deltaX;
+    },
+    [isDragging]
+  );
 
   const handleMouseUp = useCallback(() => {
     setIsDragging(false);
@@ -80,9 +83,10 @@ export function PetPedigreeTab({
   }, []);
 
   // Use passed generations in fullscreen mode, default in scroll mode
-  const generations = isFullscreen && pedigreeGenerations !== undefined
-    ? pedigreeGenerations
-    : DEFAULT_GENERATIONS;
+  const generations =
+    isFullscreen && pedigreeGenerations !== undefined
+      ? pedigreeGenerations
+      : DEFAULT_GENERATIONS;
 
   // TODO: Load real pedigree data from entity
   // For now using mock data
@@ -93,7 +97,9 @@ export function PetPedigreeTab({
       {/* Custom horizontal scrollbar - sticky under TabHeader */}
       <div
         className="sticky z-10 py-2 mb-3"
-        style={{ top: `${stickyScrollbarTop ?? (tabHeaderTop + TAB_HEADER_HEIGHT)}px` }}
+        style={{
+          top: `${stickyScrollbarTop ?? tabHeaderTop + TAB_HEADER_HEIGHT}px`,
+        }}
       >
         <HorizontalScrollbar
           scrollContainerRef={scrollRef}
@@ -117,7 +123,7 @@ export function PetPedigreeTab({
         {pedigreePet ? (
           <PedigreeTree pet={pedigreePet} generations={generations} />
         ) : (
-          <span className="text-secondary p-8 text-center font-medium block">
+          <span className="text-secondary p-8 text-center  block">
             No pedigree data available
           </span>
         )}

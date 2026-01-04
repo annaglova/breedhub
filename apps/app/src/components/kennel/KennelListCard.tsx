@@ -1,8 +1,8 @@
-import { EntityListCardWrapper } from "@/components/space/EntityListCardWrapper";
 import { NoteFlag } from "@/components/shared/NoteFlag";
-import { VerificationBadge } from "@/components/shared/VerificationBadge";
-import { TierMark } from "@/components/shared/TierMark";
 import { PetServices } from "@/components/shared/PetServices";
+import { TierMark } from "@/components/shared/TierMark";
+import { VerificationBadge } from "@/components/shared/VerificationBadge";
+import { EntityListCardWrapper } from "@/components/space/EntityListCardWrapper";
 
 // Tier marks format from DB
 interface TierMarkEntry {
@@ -113,7 +113,9 @@ export function KennelListCard({
       <div className="flex items-center w-full">
         {/* Avatar with verification badge */}
         <div className="relative flex">
-          <div className={`size-10 rounded-full border border-surface-border flex-shrink-0 outline outline-2 outline-offset-2 ${getOutlineClass()}`}>
+          <div
+            className={`size-10 rounded-full border border-surface-border flex-shrink-0 outline outline-2 outline-offset-2 ${getOutlineClass()}`}
+          >
             <div className="w-full h-full rounded-full overflow-hidden">
               {kennel.Avatar ? (
                 <img
@@ -126,12 +128,18 @@ export function KennelListCard({
                     if (!target.dataset.fallback) {
                       target.dataset.fallback = "true";
                       target.style.display = "none";
-                      target.parentElement?.querySelector(".fallback-avatar")?.classList.remove("hidden");
+                      target.parentElement
+                        ?.querySelector(".fallback-avatar")
+                        ?.classList.remove("hidden");
                     }
                   }}
                 />
               ) : null}
-              <div className={`fallback-avatar flex size-full items-center justify-center rounded-full bg-slate-200 text-lg uppercase text-slate-600 dark:bg-slate-700 dark:text-slate-200 ${kennel.Avatar ? "hidden" : ""}`}>
+              <div
+                className={`fallback-avatar flex size-full items-center justify-center rounded-full bg-slate-200 text-lg uppercase text-slate-600 dark:bg-slate-700 dark:text-slate-200 ${
+                  kennel.Avatar ? "hidden" : ""
+                }`}
+              >
                 {firstLetter}
               </div>
             </div>
@@ -148,7 +156,7 @@ export function KennelListCard({
         <div className="ml-4 w-full space-y-0.5">
           {/* Name row */}
           <div className="relative flex w-[calc(100vw-122px)] space-x-1 md:w-auto">
-            <span className="truncate font-medium" title={kennel.Name}>
+            <span className="truncate " title={kennel.Name}>
               {kennel.Name}
             </span>
             <NoteFlag isVisible={kennel.HasNotes} />
@@ -163,7 +171,9 @@ export function KennelListCard({
               {/* Federation */}
               {kennel.FederationName && (
                 <>
-                  {kennel.OwnerName && <span className="text-slate-400">•</span>}
+                  {kennel.OwnerName && (
+                    <span className="text-slate-400">•</span>
+                  )}
                   <span>{kennel.FederationName}</span>
                 </>
               )}
@@ -184,11 +194,7 @@ export function KennelListCard({
       </div>
 
       {/* Tier Marks - positioned by component (absolute right-0) */}
-      <TierMark
-        tierMarks={kennel.TierMarks}
-        mode="list"
-        className="top-3"
-      />
+      <TierMark tierMarks={kennel.TierMarks} mode="list" className="top-3" />
     </EntityListCardWrapper>
   );
 }

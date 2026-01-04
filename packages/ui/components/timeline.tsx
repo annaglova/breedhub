@@ -522,7 +522,7 @@ const GroupedTimeline = React.forwardRef<HTMLDivElement, GroupedTimelineProps>(
     <Timeline ref={ref} className={className} size={size}>
       {groups.map((group, groupIndex) => (
         <div key={groupIndex} className="space-y-4">
-          <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+          <div className="flex items-center gap-2 text-sm  text-muted-foreground">
             <div className="h-px flex-1 bg-border" />
             <span className="px-2">{group.date}</span>
             <div className="h-px flex-1 bg-border" />

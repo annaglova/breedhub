@@ -1,8 +1,8 @@
+import { LitterCard, LitterData } from "@/components/shared/LitterCard";
 import { useSelectedEntity } from "@/contexts/SpaceContext";
 import { spaceStore } from "@breedhub/rxdb-store";
 import { useSignals } from "@preact/signals-react/runtime";
 import { cn } from "@ui/lib/utils";
-import { LitterCard, LitterData } from "@/components/shared/LitterCard";
 
 // Mock data for visual development
 const MOCK_LITTERS: LitterData[] = [
@@ -94,12 +94,7 @@ export function PetChildrenTab({ onLoadedCount }: PetChildrenTabProps) {
   return (
     <>
       {litters.length > 0 ? (
-        <div
-          className={cn(
-            "grid gap-3",
-            isFullscreen && "lg:grid-cols-2"
-          )}
-        >
+        <div className={cn("grid gap-3", isFullscreen && "lg:grid-cols-2")}>
           {litters.map((litter, litterIndex) => (
             <LitterCard
               key={`${litter.date}-${litterIndex}`}
@@ -111,7 +106,7 @@ export function PetChildrenTab({ onLoadedCount }: PetChildrenTabProps) {
         </div>
       ) : (
         <div className="card card-rounded flex flex-auto flex-col p-6 lg:px-8">
-          <span className="text-secondary p-8 text-center font-medium">
+          <span className="text-secondary p-8 text-center ">
             There are no children!
           </span>
         </div>

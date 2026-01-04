@@ -2,7 +2,7 @@ import { useSelectedEntity } from "@/contexts/SpaceContext";
 import { spaceStore } from "@breedhub/rxdb-store";
 import { useSignals } from "@preact/signals-react/runtime";
 import { AlternatingTimeline } from "@ui/components/timeline";
-import { Cake, Trophy, Baby, HeartOff, Info } from "lucide-react";
+import { Baby, Cake, HeartOff, Info, Trophy } from "lucide-react";
 import { useMemo } from "react";
 
 /**
@@ -94,7 +94,9 @@ function getEventIcon(typeId: string) {
 /**
  * Get dot variant for event type
  */
-function getEventVariant(typeId: string): "primary" | "success" | "default" | "inactive" {
+function getEventVariant(
+  typeId: string
+): "primary" | "success" | "default" | "inactive" {
   switch (typeId) {
     case EVENT_TYPES.BIRTHDAY:
       return "success";
@@ -169,7 +171,7 @@ export function PetTimelineTab({ onLoadedCount }: PetTimelineTabProps) {
         />
       ) : (
         <div className="card card-rounded flex flex-auto flex-col p-6 lg:px-8">
-          <span className="text-secondary p-8 text-center font-medium">
+          <span className="text-secondary p-8 text-center ">
             No timeline events yet
           </span>
         </div>

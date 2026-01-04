@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { LitterCard, LitterData } from "@/components/shared/LitterCard";
 import { useSelectedEntity } from "@/contexts/SpaceContext";
 import { spaceStore } from "@breedhub/rxdb-store";
 import { useSignals } from "@preact/signals-react/runtime";
@@ -6,13 +6,13 @@ import { Badge } from "@ui/components/badge";
 import { cn } from "@ui/lib/utils";
 import {
   CalendarClock,
+  Handshake,
   PawPrint,
   ShoppingCart,
-  Handshake,
   Snowflake,
   VenusAndMars,
 } from "lucide-react";
-import { LitterCard, LitterData } from "@/components/shared/LitterCard";
+import { useEffect } from "react";
 
 /**
  * Service type with icon mapping
@@ -38,9 +38,9 @@ interface ServiceFeature {
 // Service type IDs → icons mapping
 const SERVICE_ICONS: Record<string, React.ReactNode> = {
   "pre-reservation": <CalendarClock className="h-4 w-4" />,
-  "sale": <ShoppingCart className="h-4 w-4" />,
-  "mating": <VenusAndMars className="h-4 w-4" />,
-  "rent": <Handshake className="h-4 w-4" />,
+  sale: <ShoppingCart className="h-4 w-4" />,
+  mating: <VenusAndMars className="h-4 w-4" />,
+  rent: <Handshake className="h-4 w-4" />,
   "frozen-sperm": <Snowflake className="h-4 w-4" />,
 };
 
@@ -159,12 +159,7 @@ export function PetServicesTab({ onLoadedCount }: PetServicesTabProps) {
             <PawPrint className="h-4 w-4 text-secondary-400" />
             <span className="font-bold">Children available for sale</span>
           </div>
-          <div
-            className={cn(
-              "grid gap-3",
-              isFullscreen && "lg:grid-cols-2"
-            )}
-          >
+          <div className={cn("grid gap-3", isFullscreen && "lg:grid-cols-2")}>
             {littersForSale.map((litter, litterIndex) => (
               <LitterCard
                 key={`${litter.date}-${litterIndex}`}
@@ -191,7 +186,9 @@ export function PetServicesTab({ onLoadedCount }: PetServicesTabProps) {
             className="card card-rounded flex items-center space-x-5 p-6 lg:px-8 bg-even-card-ground"
           >
             <span className="text-secondary-400">
-              {SERVICE_ICONS[service.iconName] || <ShoppingCart className="h-4 w-4" />}
+              {SERVICE_ICONS[service.iconName] || (
+                <ShoppingCart className="h-4 w-4" />
+              )}
             </span>
             <span className="font-bold">{service.serviceTypeName}</span>
             <div className="flex space-x-2 ml-auto">
@@ -216,7 +213,7 @@ export function PetServicesTab({ onLoadedCount }: PetServicesTabProps) {
             <Badge
               key={feature.id}
               variant="secondary"
-              className="font-medium text-base px-4 py-1"
+              className=" text-base px-4 py-1"
             >
               {feature.name}
             </Badge>

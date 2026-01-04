@@ -1,11 +1,15 @@
-import { useMemo, useEffect, useRef, useCallback } from "react";
 import { AvatarCard, AvatarEntity } from "@/components/shared/AvatarCard";
 import { useSelectedEntity } from "@/contexts/SpaceContext";
-import { spaceStore, useTabData, useInfiniteTabData } from "@breedhub/rxdb-store";
 import type { DataSourceConfig } from "@breedhub/rxdb-store";
+import {
+  spaceStore,
+  useInfiniteTabData,
+  useTabData,
+} from "@breedhub/rxdb-store";
 import { useSignals } from "@preact/signals-react/runtime";
 import { cn } from "@ui/lib/utils";
 import { Loader2 } from "lucide-react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 
 /**
  * Raw patron data from VIEW (top_patron_in_breed_with_contact)
@@ -53,7 +57,10 @@ interface BreedPatronsTabProps {
  *
  * @see docs/TAB_DATA_SERVICE_ARCHITECTURE.md
  */
-export function BreedPatronsTab({ dataSource, onLoadedCount }: BreedPatronsTabProps) {
+export function BreedPatronsTab({
+  dataSource,
+  onLoadedCount,
+}: BreedPatronsTabProps) {
   useSignals();
 
   const selectedEntity = useSelectedEntity();
@@ -77,7 +84,9 @@ export function BreedPatronsTab({ dataSource, onLoadedCount }: BreedPatronsTabPr
 
   // Use appropriate data based on mode
   const data = isFullscreen ? infiniteResult.data : drawerResult.data;
-  const isLoading = isFullscreen ? infiniteResult.isLoading : drawerResult.isLoading;
+  const isLoading = isFullscreen
+    ? infiniteResult.isLoading
+    : drawerResult.isLoading;
   const error = isFullscreen ? infiniteResult.error : drawerResult.error;
 
   // Transform VIEW data to AvatarEntity format (must be before useEffect that uses patrons.length)
@@ -88,14 +97,17 @@ export function BreedPatronsTab({ dataSource, onLoadedCount }: BreedPatronsTabPr
       // Contact data is embedded as JSONB in VIEW
       // For child records, data is in `additional` field
       const contact = record.contact || (record as any).additional?.contact;
-      const placement = record.placement ?? (record as any).additional?.placement;
+      const placement =
+        record.placement ?? (record as any).additional?.placement;
 
       return {
         id: contact?.id || record.contact_id || record.id,
         name: contact?.name || "Unknown",
         avatarUrl: contact?.avatar_url || "",
         place: placement,
-        url: contact?.slug ? `/${contact.slug}` : `/contact/${contact?.id || record.contact_id}`,
+        url: contact?.slug
+          ? `/${contact.slug}`
+          : `/contact/${contact?.id || record.contact_id}`,
       };
     });
   }, [data]);
@@ -177,7 +189,7 @@ export function BreedPatronsTab({ dataSource, onLoadedCount }: BreedPatronsTabPr
   if (patrons.length === 0) {
     return (
       <div className="card card-rounded mt-5 flex flex-auto flex-col p-6 lg:px-8">
-        <span className="text-muted-foreground p-8 text-center font-medium">
+        <span className="text-muted-foreground p-8 text-center ">
           There are no patrons in Breed!
         </span>
       </div>
@@ -194,11 +206,7 @@ export function BreedPatronsTab({ dataSource, onLoadedCount }: BreedPatronsTabPr
         )}
       >
         {patrons.map((patron) => (
-          <AvatarCard
-            key={patron.id}
-            entity={patron}
-            model="contact"
-          />
+          <AvatarCard key={patron.id} entity={patron} model="contact" />
         ))}
       </div>
 

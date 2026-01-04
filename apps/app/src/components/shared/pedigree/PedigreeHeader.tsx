@@ -34,14 +34,16 @@ export function PedigreeHeader({
       <div className="flex items-center gap-3">
         <label
           htmlFor="pedigree-generations"
-          className="text-sm font-medium text-secondary whitespace-nowrap"
+          className="text-sm  text-secondary whitespace-nowrap"
         >
           Generations
         </label>
         <select
           id="pedigree-generations"
           value={generations}
-          onChange={(e) => onGenerationsChange(Number(e.target.value) as GenerationCount)}
+          onChange={(e) =>
+            onGenerationsChange(Number(e.target.value) as GenerationCount)
+          }
           className={cn(
             "rounded-md border border-border bg-card px-3 py-1.5 text-sm",
             "focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent",

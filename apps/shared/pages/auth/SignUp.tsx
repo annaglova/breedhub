@@ -357,7 +357,7 @@ export default function SignUp() {
                   Already have an account?{" "}
                   <Link
                     to="/sign-in"
-                    className="font-medium text-primary-600 hover:text-primary-500 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500/20 rounded"
+                    className=" text-primary-600 hover:text-primary-500 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500/20 rounded"
                   >
                     Sign in
                   </Link>

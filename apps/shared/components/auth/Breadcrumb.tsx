@@ -1,6 +1,6 @@
+import { cn } from "@ui/lib/utils";
 import { ChevronRight, Home } from "lucide-react";
 import { Link } from "react-router-dom";
-import { cn } from "@ui/lib/utils";
 
 export interface BreadcrumbItem {
   label: string;
@@ -14,19 +14,27 @@ interface BreadcrumbProps {
   showHome?: boolean;
 }
 
-export function Breadcrumb({ items, className, showHome = true }: BreadcrumbProps) {
-  const allItems = showHome 
-    ? [{ label: "Home", href: "/" }, ...items]
-    : items;
+export function Breadcrumb({
+  items,
+  className,
+  showHome = true,
+}: BreadcrumbProps) {
+  const allItems = showHome ? [{ label: "Home", href: "/" }, ...items] : items;
 
   return (
-    <nav aria-label="Breadcrumb" className={cn("flex items-center space-x-1 text-sm", className)}>
+    <nav
+      aria-label="Breadcrumb"
+      className={cn("flex items-center space-x-1 text-sm", className)}
+    >
       {allItems.map((item, index) => (
         <div key={index} className="flex items-center">
           {index > 0 && (
-            <ChevronRight className="mx-1 h-4 w-4 text-slate-400" aria-hidden="true" />
+            <ChevronRight
+              className="mx-1 h-4 w-4 text-slate-400"
+              aria-hidden="true"
+            />
           )}
-          
+
           {item.href && !item.current ? (
             <Link
               to={item.href}
@@ -41,7 +49,7 @@ export function Breadcrumb({ items, className, showHome = true }: BreadcrumbProp
           ) : (
             <span
               className={cn(
-                "font-medium",
+                "",
                 item.current ? "text-slate-900" : "text-slate-500"
               )}
               aria-current={item.current ? "page" : undefined}

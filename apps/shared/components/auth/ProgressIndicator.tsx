@@ -1,5 +1,5 @@
-import { Check } from "lucide-react";
 import { cn } from "@ui/lib/utils";
+import { Check } from "lucide-react";
 
 export interface ProgressStep {
   id: string;
@@ -14,19 +14,19 @@ interface ProgressIndicatorProps {
   variant?: "dots" | "bar" | "steps";
 }
 
-export function ProgressIndicator({ 
-  steps, 
+export function ProgressIndicator({
+  steps,
   className,
-  variant = "steps" 
+  variant = "steps",
 }: ProgressIndicatorProps) {
-  const currentIndex = steps.findIndex(step => step.status === "current");
+  const currentIndex = steps.findIndex((step) => step.status === "current");
   const progress = ((currentIndex + 1) / steps.length) * 100;
 
   if (variant === "bar") {
     return (
       <div className={cn("w-full", className)}>
         <div className="flex justify-between mb-2">
-          <span className="text-sm font-medium text-slate-700">
+          <span className="text-sm  text-slate-700">
             Step {currentIndex + 1} of {steps.length}
           </span>
           <span className="text-sm text-slate-500">
@@ -45,15 +45,19 @@ export function ProgressIndicator({
 
   if (variant === "dots") {
     return (
-      <div className={cn("flex items-center justify-center space-x-2", className)}>
+      <div
+        className={cn("flex items-center justify-center space-x-2", className)}
+      >
         {steps.map((step, index) => (
           <div
             key={step.id}
             className={cn(
               "h-2 w-2 rounded-full transition-all duration-300",
-              step.status === "completed" ? "bg-primary-600 w-8" :
-              step.status === "current" ? "bg-primary-600 w-8 animate-pulse" :
-              "bg-slate-300"
+              step.status === "completed"
+                ? "bg-primary-600 w-8"
+                : step.status === "current"
+                ? "bg-primary-600 w-8 animate-pulse"
+                : "bg-slate-300"
             )}
             aria-label={`Step ${index + 1}: ${step.label} - ${step.status}`}
           />
@@ -88,13 +92,13 @@ export function ProgressIndicator({
                 {step.status === "completed" ? (
                   <Check className="w-5 h-5" />
                 ) : (
-                  <span className="text-sm font-medium">{index + 1}</span>
+                  <span className="text-sm ">{index + 1}</span>
                 )}
               </span>
               <div className="ml-3">
                 <p
                   className={cn(
-                    "text-sm font-medium transition-colors duration-300",
+                    "text-sm  transition-colors duration-300",
                     step.status === "completed" || step.status === "current"
                       ? "text-slate-900"
                       : "text-slate-400"

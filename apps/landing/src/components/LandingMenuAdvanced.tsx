@@ -1,8 +1,18 @@
 import { cn } from "@/utils";
 import LogoTextWhite from "@shared/icons/logo/logo-text-white.svg?react";
 import LogoText from "@shared/icons/logo/logo-text.svg?react";
-import { ChevronDown, Zap, Archive, Globe, Info, FileText, Lock, Menu, X } from "lucide-react";
 import { Button } from "@ui/components/button";
+import {
+  Archive,
+  ChevronDown,
+  FileText,
+  Globe,
+  Info,
+  Lock,
+  Menu,
+  X,
+  Zap,
+} from "lucide-react";
 import React, { useEffect, useRef, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 
@@ -43,7 +53,7 @@ const DropdownMenu: React.FC<DropdownMenuProps> = ({ label, items, icon }) => {
       <button
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
-          "flex items-center space-x-1 px-4 py-2 text-sm font-medium rounded-md transition-colors duration-200",
+          "flex items-center space-x-1 px-4 py-2 text-sm  rounded-md transition-colors duration-200",
           "text-slate-700 hover:text-primary-600 hover:bg-slate-50"
         )}
       >
@@ -73,9 +83,7 @@ const DropdownMenu: React.FC<DropdownMenuProps> = ({ label, items, icon }) => {
                   </span>
                 )}
                 <div>
-                  <div className="text-sm font-medium text-slate-900">
-                    {item.label}
-                  </div>
+                  <div className="text-sm  text-slate-900">{item.label}</div>
                   {item.description && (
                     <div className="text-xs text-slate-500 mt-0.5">
                       {item.description}
@@ -130,7 +138,7 @@ export default function LandingMenuAdvanced({
       to: "/product",
       label: "Features",
       description: "Explore all product features",
-      icon: <Zap />
+      icon: <Zap />,
     },
     {
       to: "/product#pedigree",
@@ -217,7 +225,7 @@ export default function LandingMenuAdvanced({
                 <Link
                   to="/pricing"
                   className={cn(
-                    "px-4 py-2 text-sm font-medium rounded-md transition-colors duration-200",
+                    "px-4 py-2 text-sm  rounded-md transition-colors duration-200",
                     location.pathname === "/pricing"
                       ? "text-primary-600 bg-primary-50"
                       : "text-slate-700 hover:text-primary-600 hover:bg-slate-50"
@@ -313,7 +321,7 @@ export default function LandingMenuAdvanced({
                 to={item.to}
                 onClick={() => setIsMobileMenuOpen(false)}
                 className={cn(
-                  "px-4 py-3 text-base font-medium rounded-md transition-colors duration-200",
+                  "px-4 py-3 text-base  rounded-md transition-colors duration-200",
                   location.pathname === item.to
                     ? "text-primary-600 bg-primary-50"
                     : "text-slate-700 hover:text-primary-600 hover:bg-slate-50"

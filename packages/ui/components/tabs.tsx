@@ -6,37 +6,37 @@ import * as React from "react";
 
 import { cn } from "@ui/lib/utils";
 
-const tabsListVariants = cva(
-  "inline-flex items-center text-muted-foreground",
-  {
-    variants: {
-      variant: {
-        default: "h-9 justify-center rounded-lg bg-muted p-1",
-        underline: "h-10 justify-start border-b border-border bg-transparent p-0",
-        pills: "h-9 justify-start bg-transparent p-0 gap-1",
-        card: "h-10 justify-start border-b border-border bg-card p-0",
-      },
-      size: {
-        sm: "h-8 text-xs",
-        default: "h-9 text-sm",
-        lg: "h-10 text-base",
-      },
+const tabsListVariants = cva("inline-flex items-center text-muted-foreground", {
+  variants: {
+    variant: {
+      default: "h-9 justify-center rounded-lg bg-muted p-1",
+      underline: "h-10 justify-start border-b border-border bg-transparent p-0",
+      pills: "h-9 justify-start bg-transparent p-0 gap-1",
+      card: "h-10 justify-start border-b border-border bg-card p-0",
     },
-    defaultVariants: {
-      variant: "default",
-      size: "default",
+    size: {
+      sm: "h-8 text-xs",
+      default: "h-9 text-sm",
+      lg: "h-10 text-base",
     },
-  }
-);
+  },
+  defaultVariants: {
+    variant: "default",
+    size: "default",
+  },
+});
 
 const tabsTriggerVariants = cva(
-  "inline-flex items-center justify-center whitespace-nowrap px-3 py-1 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
+  "inline-flex items-center justify-center whitespace-nowrap px-3 py-1 text-sm  ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
   {
     variants: {
       variant: {
-        default: "rounded-md data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow",
-        underline: "h-9 rounded-none border-b-2 border-transparent bg-transparent px-4 pb-3 pt-2 font-semibold data-[state=active]:border-primary data-[state=active]:text-foreground",
-        pills: "rounded-full bg-muted/50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm",
+        default:
+          "rounded-md data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow",
+        underline:
+          "h-9 rounded-none border-b-2 border-transparent bg-transparent px-4 pb-3 pt-2 font-semibold data-[state=active]:border-primary data-[state=active]:text-foreground",
+        pills:
+          "rounded-full bg-muted/50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm",
         card: "h-9 rounded-t-lg border-b-2 border-transparent bg-transparent px-4 data-[state=active]:border-primary data-[state=active]:bg-background data-[state=active]:text-foreground",
       },
       size: {
@@ -53,13 +53,13 @@ const tabsTriggerVariants = cva(
 );
 
 interface TabsProps extends React.ComponentProps<typeof TabsPrimitive.Root> {
-  variant?: VariantProps<typeof tabsListVariants>['variant'];
-  size?: VariantProps<typeof tabsListVariants>['size'];
+  variant?: VariantProps<typeof tabsListVariants>["variant"];
+  size?: VariantProps<typeof tabsListVariants>["size"];
 }
 
 const Tabs = TabsPrimitive.Root;
 
-interface TabsListProps 
+interface TabsListProps
   extends React.ComponentProps<typeof TabsPrimitive.List>,
     VariantProps<typeof tabsListVariants> {}
 
@@ -220,7 +220,7 @@ const TabWithCounter = React.forwardRef<
       ref={ref}
       badge={
         shouldShowBadge ? (
-          <span className="inline-flex items-center justify-center rounded-full bg-primary px-2 py-0.5 text-xs font-medium text-primary-foreground min-w-[1.25rem] h-5">
+          <span className="inline-flex items-center justify-center rounded-full bg-primary px-2 py-0.5 text-xs  text-primary-foreground min-w-[1.25rem] h-5">
             {count}
           </span>
         ) : undefined
@@ -247,27 +247,30 @@ interface ManagedTabsProps {
   defaultValue?: string;
   value?: string;
   onValueChange?: (value: string) => void;
-  variant?: VariantProps<typeof tabsListVariants>['variant'];
-  size?: VariantProps<typeof tabsListVariants>['size'];
+  variant?: VariantProps<typeof tabsListVariants>["variant"];
+  size?: VariantProps<typeof tabsListVariants>["size"];
   className?: string;
   listClassName?: string;
   contentClassName?: string;
 }
 
 const ManagedTabs = React.forwardRef<HTMLDivElement, ManagedTabsProps>(
-  ({ 
-    tabs, 
-    defaultValue,
-    value,
-    onValueChange,
-    variant,
-    size,
-    className,
-    listClassName,
-    contentClassName 
-  }, ref) => {
+  (
+    {
+      tabs,
+      defaultValue,
+      value,
+      onValueChange,
+      variant,
+      size,
+      className,
+      listClassName,
+      contentClassName,
+    },
+    ref
+  ) => {
     return (
-      <Tabs 
+      <Tabs
         ref={ref}
         value={value}
         defaultValue={defaultValue || tabs[0]?.value}
@@ -283,20 +286,23 @@ const ManagedTabs = React.forwardRef<HTMLDivElement, ManagedTabsProps>(
               variant={variant}
               size={size}
               icon={tab.icon}
-              badge={tab.badge || (tab.count !== undefined ? (
-                <span className="inline-flex items-center justify-center rounded-full bg-primary px-2 py-0.5 text-xs font-medium text-primary-foreground min-w-[1.25rem] h-5">
-                  {tab.count}
-                </span>
-              ) : undefined)}
+              badge={
+                tab.badge ||
+                (tab.count !== undefined ? (
+                  <span className="inline-flex items-center justify-center rounded-full bg-primary px-2 py-0.5 text-xs  text-primary-foreground min-w-[1.25rem] h-5">
+                    {tab.count}
+                  </span>
+                ) : undefined)
+              }
             >
               {tab.label}
             </TabsTrigger>
           ))}
         </TabsList>
-        
+
         {tabs.map((tab) => (
-          <TabsContent 
-            key={tab.value} 
+          <TabsContent
+            key={tab.value}
             value={tab.value}
             className={contentClassName}
           >
@@ -310,17 +316,17 @@ const ManagedTabs = React.forwardRef<HTMLDivElement, ManagedTabsProps>(
 ManagedTabs.displayName = "ManagedTabs";
 
 export {
+  ManagedTabs,
+  ScrollableTabs,
+  ScrollableTabsList,
   Tabs,
-  TabsList,
-  TabsTrigger,
   TabsContent,
+  TabsList,
+  tabsListVariants,
+  TabsTrigger,
+  tabsTriggerVariants,
+  TabWithCounter,
   VerticalTabs,
   VerticalTabsList,
   VerticalTabsTrigger,
-  ScrollableTabs,
-  ScrollableTabsList,
-  TabWithCounter,
-  ManagedTabs,
-  tabsListVariants,
-  tabsTriggerVariants,
 };

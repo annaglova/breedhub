@@ -1,7 +1,6 @@
-import { cn } from "@ui/lib/utils";
-import { Link } from "react-router-dom";
-import { PetSexMark } from "@/components/shared/PetSexMark";
 import type { SexCode } from "@/components/shared/PetSexMark";
+import { PetSexMark } from "@/components/shared/PetSexMark";
+import { Link } from "react-router-dom";
 import type { PedigreePet } from "./types";
 
 interface PedigreeCardProps {
@@ -48,10 +47,7 @@ export function PedigreeCard({ pet, sex, level }: PedigreeCardProps) {
   if (level === -1) {
     return (
       <div className="card min-w-10 max-w-10 flex flex-col items-center justify-center rounded-full p-4 gap-3 bg-even-card-ground">
-        <div
-          className="rotate-180 font-medium"
-          style={{ writingMode: "vertical-lr" }}
-        >
+        <div className="rotate-180 " style={{ writingMode: "vertical-lr" }}>
           {pet.name}
         </div>
         <PetSexMark sex={petSex} style="round" />
@@ -225,7 +221,11 @@ export function PedigreeCard({ pet, sex, level }: PedigreeCardProps) {
         </div>
 
         <div className="ml-2 flex w-full flex-col items-center">
-          <PetSexMark sex={petSex} style="horizontal" className="mx-auto w-36" />
+          <PetSexMark
+            sex={petSex}
+            style="horizontal"
+            className="mx-auto w-36"
+          />
 
           {!isEmpty ? (
             <>

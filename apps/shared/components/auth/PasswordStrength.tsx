@@ -6,7 +6,10 @@ interface PasswordStrengthProps {
   className?: string;
 }
 
-export function PasswordStrength({ password, className }: PasswordStrengthProps) {
+export function PasswordStrength({
+  password,
+  className,
+}: PasswordStrengthProps) {
   const [strength, setStrength] = useState(0);
   const [feedback, setFeedback] = useState<string[]>([]);
 
@@ -67,15 +70,17 @@ export function PasswordStrength({ password, className }: PasswordStrengthProps)
     <div className={cn("space-y-2", className)}>
       <div className="flex items-center justify-between">
         <span className="text-sm text-slate-600">Password strength:</span>
-        <span className={cn(
-          "text-sm font-medium",
-          strength === 0 && "text-red-600",
-          strength === 1 && "text-orange-600",
-          strength === 2 && "text-yellow-600",
-          strength === 3 && "text-blue-600",
-          strength === 4 && "text-green-600",
-          strength === 5 && "text-green-600"
-        )}>
+        <span
+          className={cn(
+            "text-sm ",
+            strength === 0 && "text-red-600",
+            strength === 1 && "text-orange-600",
+            strength === 2 && "text-yellow-600",
+            strength === 3 && "text-blue-600",
+            strength === 4 && "text-green-600",
+            strength === 5 && "text-green-600"
+          )}
+        >
           {strengthLabels[strength]}
         </span>
       </div>
@@ -85,9 +90,7 @@ export function PasswordStrength({ password, className }: PasswordStrengthProps)
             key={i}
             className={cn(
               "h-1 flex-1 rounded-full transition-all",
-              i < strength
-                ? strengthColors[strength - 1]
-                : "bg-slate-200"
+              i < strength ? strengthColors[strength - 1] : "bg-slate-200"
             )}
           />
         ))}

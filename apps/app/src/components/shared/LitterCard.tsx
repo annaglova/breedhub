@@ -1,6 +1,6 @@
+import { PetLinkRow } from "@/components/shared/PetLinkRow";
 import { cn } from "@ui/lib/utils";
 import { Link } from "react-router-dom";
-import { PetLinkRow } from "@/components/shared/PetLinkRow";
 
 /**
  * Child pet in a litter
@@ -77,7 +77,12 @@ export function LitterCard({
     : "grid-cols-[52px_auto] sm:grid-cols-[100px_auto] md:grid-cols-[110px_auto]";
 
   return (
-    <div className={cn("card card-rounded flex flex-auto flex-col p-6 lg:px-8", className)}>
+    <div
+      className={cn(
+        "card card-rounded flex flex-auto flex-col p-6 lg:px-8",
+        className
+      )}
+    >
       {/* Litter header */}
       <div
         className={cn(
@@ -98,12 +103,14 @@ export function LitterCard({
           {litter.anotherParent?.url ? (
             <Link
               to={`/${litter.anotherParent.url}`}
-              className="text-primary hover:underline font-medium truncate"
+              className="text-primary hover:underline  truncate"
             >
               {litter.anotherParent.name}
             </Link>
           ) : (
-            <span className="truncate">{litter.anotherParent?.name || "—"}</span>
+            <span className="truncate">
+              {litter.anotherParent?.name || "—"}
+            </span>
           )}
           <p className="text-secondary text-sm font-light">
             {anotherParentRole}

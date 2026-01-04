@@ -1,11 +1,11 @@
-import React, { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
-import { usePageTitle } from "@/hooks/usePageTitle";
+import LandingFigure from "@/assets/backgrounds/landing-figure.svg?react";
 import Footer from "@/components/Footer";
 import TierSelector from "@/components/TierSelector";
-import LandingFigure from "@/assets/backgrounds/landing-figure.svg?react";
+import { usePageTitle } from "@/hooks/usePageTitle";
 import LogoWhite from "@shared/icons/logo/logo-white.svg?react";
-import { Info, ArrowLeft } from "lucide-react";
+import { ArrowLeft, Info } from "lucide-react";
+import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 
 // Mock breed data - replace with API call when ready
 const mockBreeds = [
@@ -32,13 +32,13 @@ export default function Prepayments() {
 
   const handleBreedSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!selectedBreed) {
       setFormError("Please select a breed to continue");
       return;
     }
 
-    const breed = mockBreeds.find(b => b.id === selectedBreed);
+    const breed = mockBreeds.find((b) => b.id === selectedBreed);
     if (breed) {
       setSelectedBreedName(breed.name);
       setShowTierSelector(true);
@@ -77,13 +77,22 @@ export default function Prepayments() {
               <LogoWhite className="h-10 w-auto" />
             </Link>
             <nav className="hidden md:flex items-center space-x-8">
-              <Link to="/product" className="text-slate-700 hover:text-primary-500 transition">
+              <Link
+                to="/product"
+                className="text-slate-700 hover:text-primary-500 transition"
+              >
                 Product
               </Link>
-              <Link to="/pricing" className="text-slate-700 hover:text-primary-500 transition">
+              <Link
+                to="/pricing"
+                className="text-slate-700 hover:text-primary-500 transition"
+              >
                 Pricing
               </Link>
-              <Link to="/about" className="text-slate-700 hover:text-primary-500 transition">
+              <Link
+                to="/about"
+                className="text-slate-700 hover:text-primary-500 transition"
+              >
                 About
               </Link>
             </nav>
@@ -103,11 +112,14 @@ export default function Prepayments() {
                 </p>
               </div>
 
-              <form onSubmit={handleBreedSubmit} className="bg-white rounded-lg shadow-lg p-8">
+              <form
+                onSubmit={handleBreedSubmit}
+                className="bg-white rounded-lg shadow-lg p-8"
+              >
                 <div className="mb-6">
-                  <label 
-                    htmlFor="breed-select" 
-                    className="block text-sm font-medium text-slate-700 mb-2"
+                  <label
+                    htmlFor="breed-select"
+                    className="block text-sm  text-slate-700 mb-2"
                   >
                     Select a breed <span className="text-red-500">*</span>
                   </label>
@@ -117,11 +129,11 @@ export default function Prepayments() {
                     onChange={handleBreedChange}
                     className={`
                       w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500
-                      ${formError ? 'border-red-500' : 'border-slate-300'}
+                      ${formError ? "border-red-500" : "border-slate-300"}
                     `}
                   >
                     <option value="">-- Select a breed --</option>
-                    {mockBreeds.map(breed => (
+                    {mockBreeds.map((breed) => (
                       <option key={breed.id} value={breed.id}>
                         {breed.name}
                       </option>
@@ -135,14 +147,15 @@ export default function Prepayments() {
                 <div className="bg-blue-50 rounded-lg p-4 mb-6">
                   <p className="text-sm text-blue-700">
                     <Info className="inline-block w-4 h-4 mr-2" />
-                    By selecting a breed, you'll be supporting its community and helping improve 
-                    breeding data and resources for all {selectedBreedName || "breed"} enthusiasts.
+                    By selecting a breed, you'll be supporting its community and
+                    helping improve breeding data and resources for all{" "}
+                    {selectedBreedName || "breed"} enthusiasts.
                   </p>
                 </div>
 
                 <button
                   type="submit"
-                  className="w-full bg-primary-500 text-white py-3 px-6 rounded-lg font-medium hover:bg-primary-600 transition"
+                  className="w-full bg-primary-500 text-white py-3 px-6 rounded-lg  hover:bg-primary-600 transition"
                 >
                   Continue to Plan Selection
                 </button>
@@ -162,13 +175,16 @@ export default function Prepayments() {
                   Choose Your Plan
                 </h1>
                 <p className="text-xl text-slate-600">
-                  Supporting: <span className="font-semibold text-primary-500">{selectedBreedName}</span>
+                  Supporting:{" "}
+                  <span className="font-semibold text-primary-500">
+                    {selectedBreedName}
+                  </span>
                 </p>
               </div>
 
               {/* Pass breed parameter to tier links */}
               <div className="breed-tier-selector">
-                <TierSelector 
+                <TierSelector
                   onBillingTypeChange={handleBillingTypeChange}
                   breedId={selectedBreed}
                 />

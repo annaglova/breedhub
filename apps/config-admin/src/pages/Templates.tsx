@@ -13,14 +13,8 @@ import { useEffect, useState } from "react";
 import ConfigEditModal from "../components/ConfigEditModal";
 import ConfigViewModal from "../components/ConfigViewModal";
 import RegistryLayout from "../components/RegistryLayout";
-import type { 
-  BaseConfig, 
-  TreeNode 
-} from "../types/config-types";
-import { 
-  configTypes, 
-  getAvailableChildTypes 
-} from "../types/config-types";
+import type { BaseConfig, TreeNode } from "../types/config-types";
+import { configTypes, getAvailableChildTypes } from "../types/config-types";
 
 type Template = BaseConfig;
 
@@ -62,7 +56,7 @@ export default function Templates() {
     const unsubscribe = appConfigStore.configs.subscribe(loadTemplates);
     return () => unsubscribe();
   }, []);
-  
+
   // Auto-expand all nodes when searching
   useEffect(() => {
     if (searchQuery) {
@@ -89,9 +83,9 @@ export default function Templates() {
   // Add new template
   const addTemplate = async (type: string, parentId: string | null) => {
     try {
-      console.log('[Templates] Creating template:', type, 'parent:', parentId);
+      console.log("[Templates] Creating template:", type, "parent:", parentId);
       await appConfigStore.createTemplate(type, parentId);
-      console.log('[Templates] Template created successfully');
+      console.log("[Templates] Template created successfully");
 
       // Expand parent node to show the new child
       if (parentId) {
@@ -104,7 +98,7 @@ export default function Templates() {
       setAddType("");
       setAddParentId(null);
     } catch (error) {
-      console.error('[Templates] Error creating template:', error);
+      console.error("[Templates] Error creating template:", error);
       alert(`Failed to create template: ${error.message || error}`);
     }
   };
@@ -163,8 +157,6 @@ export default function Templates() {
     await appConfigStore.cloneTemplate(nodeId);
   };
 
-
-
   // Get field display name (reuse from Fields page pattern)
   const getFieldDisplayName = (field: { id: string; caption?: string }) => {
     if (field.caption) return field.caption;
@@ -178,11 +170,11 @@ export default function Templates() {
   // Render tree node
   const renderNode = (node: TreeNode, level: number = 0) => {
     const template = templates.find((t) => t.id === node.id);
-    const TypeInfo = configTypes[node.templateType || ''];
+    const TypeInfo = configTypes[node.templateType || ""];
     const Icon = TypeInfo?.icon || FileCode;
     const isExpanded = expandedNodes.has(node.id);
     const hasChildren = node.children.length > 0;
-    const availableChildTypes = getAvailableChildTypes(node.templateType || '');
+    const availableChildTypes = getAvailableChildTypes(node.templateType || "");
 
     return (
       <div
@@ -215,25 +207,32 @@ export default function Templates() {
             )}
             {!hasChildren && <div className="w-5" />}
 
-            <Icon className={`w-4 h-4 ${TypeInfo?.color || "text-slate-600"}`} />
+            <Icon
+              className={`w-4 h-4 ${TypeInfo?.color || "text-slate-600"}`}
+            />
             <span className="font-mono text-sm">{node.name}</span>
-            <span className="text-xs text-slate-500">({node.templateType})</span>
+            <span className="text-xs text-slate-500">
+              ({node.templateType})
+            </span>
           </div>
 
           <div className="flex gap-1">
-            {availableChildTypes.length > 0 && availableChildTypes.some(type => appConfigStore.canAddConfigType(node.id, type)) && (
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setAddParentId(node.id);
-                  setShowAddModal(true);
-                }}
-                className="p-1 text-slate-400 hover:text-green-600 hover:bg-green-50 rounded"
-                title="Add child"
-              >
-                <Plus className="w-4 h-4" />
-              </button>
-            )}
+            {availableChildTypes.length > 0 &&
+              availableChildTypes.some((type) =>
+                appConfigStore.canAddConfigType(node.id, type)
+              ) && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setAddParentId(node.id);
+                    setShowAddModal(true);
+                  }}
+                  className="p-1 text-slate-400 hover:text-green-600 hover:bg-green-50 rounded"
+                  title="Add child"
+                >
+                  <Plus className="w-4 h-4" />
+                </button>
+              )}
             <button
               onClick={(e) => {
                 e.stopPropagation();
@@ -337,46 +336,49 @@ export default function Templates() {
         onAddClick: () => {
           setAddParentId(addButtonContext.parentId);
           setShowAddModal(true);
-        }
+        },
       }}
     >
       <div
-            onClick={(e) => {
-              // Only deselect if clicking on the container itself, not on child elements
-              if (e.target === e.currentTarget) {
-                setSelectedNode(null);
-              }
-            }}
-          >
-            {/* Tree View */}
-            <div
-              className="min-h-full"
-              onClick={(e) => {
-                // Check if clicked on empty space within tree container
-                if (e.target === e.currentTarget) {
-                  setSelectedNode(null);
-                }
-              }}
-            >
-              {treeData.length > 0 ? (
-                (() => {
-                  const filteredData = appConfigStore.filterConfigTree(treeData, searchQuery);
-                  return filteredData.length > 0 ? (
-                    <div>{filteredData.map((node) => renderNode(node))}</div>
-                  ) : (
-                    <div className="text-center text-slate-500 py-8 border border-red-500">
-                      No templates found matching "{searchQuery}"
-                    </div>
-                  );
-                })()
+        onClick={(e) => {
+          // Only deselect if clicking on the container itself, not on child elements
+          if (e.target === e.currentTarget) {
+            setSelectedNode(null);
+          }
+        }}
+      >
+        {/* Tree View */}
+        <div
+          className="min-h-full"
+          onClick={(e) => {
+            // Check if clicked on empty space within tree container
+            if (e.target === e.currentTarget) {
+              setSelectedNode(null);
+            }
+          }}
+        >
+          {treeData.length > 0 ? (
+            (() => {
+              const filteredData = appConfigStore.filterConfigTree(
+                treeData,
+                searchQuery
+              );
+              return filteredData.length > 0 ? (
+                <div>{filteredData.map((node) => renderNode(node))}</div>
               ) : (
-                <div className="text-center text-slate-500 py-8">
-                  No templates yet. Click "Add App Template" to create your
-                  first template.
+                <div className="text-center text-slate-500 py-8 border border-red-500">
+                  No templates found matching "{searchQuery}"
                 </div>
-              )}
+              );
+            })()
+          ) : (
+            <div className="text-center text-slate-500 py-8">
+              No templates yet. Click "Add App Template" to create your first
+              template.
             </div>
-          </div>
+          )}
+        </div>
+      </div>
 
       {/* Add Modal */}
       {showAddModal && (
@@ -408,9 +410,7 @@ export default function Templates() {
                         TypeInfo?.color || "text-slate-600"
                       }`}
                     />
-                    <span className="font-medium">
-                      {TypeInfo?.name || type}
-                    </span>
+                    <span className="">{TypeInfo?.name || type}</span>
                   </button>
                 );
               })}
@@ -432,32 +432,35 @@ export default function Templates() {
       )}
 
       {/* Edit Modal */}
-      {editingNode && (() => {
-        const template = templates.find((t) => t.id === editingNode);
-        const isGroupingType = template ? appConfigStore.isGroupingConfigType(template.type) : false;
-        
-        return (
-          <ConfigEditModal
-            isOpen={true}
-            onClose={() => {
-              setEditingNode(null);
-              setEditingData("");
-              setEditingCaption("");
-              setEditingVersion(1);
-            }}
-            onSave={saveNodeEdit}
-            title="Edit Template"
-            configId={editingNode}
-            caption={editingCaption}
-            version={editingVersion}
-            overrideData={editingData}
-            onCaptionChange={setEditingCaption}
-            onVersionChange={setEditingVersion}
-            onOverrideDataChange={setEditingData}
-            hideOverrideData={isGroupingType}
-          />
-        );
-      })()}
+      {editingNode &&
+        (() => {
+          const template = templates.find((t) => t.id === editingNode);
+          const isGroupingType = template
+            ? appConfigStore.isGroupingConfigType(template.type)
+            : false;
+
+          return (
+            <ConfigEditModal
+              isOpen={true}
+              onClose={() => {
+                setEditingNode(null);
+                setEditingData("");
+                setEditingCaption("");
+                setEditingVersion(1);
+              }}
+              onSave={saveNodeEdit}
+              title="Edit Template"
+              configId={editingNode}
+              caption={editingCaption}
+              version={editingVersion}
+              overrideData={editingData}
+              onCaptionChange={setEditingCaption}
+              onVersionChange={setEditingVersion}
+              onOverrideDataChange={setEditingData}
+              hideOverrideData={isGroupingType}
+            />
+          );
+        })()}
 
       {/* View Modal */}
       {viewingNode &&

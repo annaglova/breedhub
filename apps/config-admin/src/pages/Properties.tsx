@@ -1,22 +1,19 @@
 import { appConfigStore } from "@breedhub/rxdb-store";
 import {
-  Check,
   ChevronLeft,
   ChevronRight,
-  Code,
   Copy,
   Edit2,
   Eye,
-  Save,
   Settings,
   Tag,
   Trash2,
 } from "lucide-react";
 import React, { useEffect, useState } from "react";
-import RegistryLayout from "../components/RegistryLayout";
-import PropertyCategoryIcon from "../components/PropertyCategoryIcon";
 import ConfigEditModal from "../components/ConfigEditModal";
 import ConfigViewModal from "../components/ConfigViewModal";
+import PropertyCategoryIcon from "../components/PropertyCategoryIcon";
+import RegistryLayout from "../components/RegistryLayout";
 import { configTypes } from "../types/config-types";
 
 interface Property {
@@ -63,7 +60,9 @@ const Properties: React.FC = () => {
       const props = appConfigStore.getProperties();
       // Include is_system property in this view
       const allConfigs = appConfigStore.configsList.value || [];
-      const systemProp = allConfigs.find(c => c.id === "property_is_system" && !c._deleted);
+      const systemProp = allConfigs.find(
+        (c) => c.id === "property_is_system" && !c._deleted
+      );
       if (systemProp) {
         setProperties([...props, systemProp]);
       } else {
@@ -84,7 +83,7 @@ const Properties: React.FC = () => {
 
     // Filter by type if selected
     if (selectedType !== "all") {
-      filtered = filtered.filter(prop => {
+      filtered = filtered.filter((prop) => {
         const hasNoType = !prop.tags || prop.tags.length === 0;
         return prop.tags?.includes(selectedType) || hasNoType; // Include universal properties (no type = applies to all)
       });
@@ -92,7 +91,7 @@ const Properties: React.FC = () => {
 
     // Filter by system/custom
     if (!showSystemProperties) {
-      filtered = filtered.filter(prop => prop.category !== 'system');
+      filtered = filtered.filter((prop) => prop.category !== "system");
     }
 
     setFilteredProperties(filtered);
@@ -110,7 +109,9 @@ const Properties: React.FC = () => {
     setEditingData(JSON.stringify(property.data || {}, null, 2));
     setEditingCaption(property.caption || "");
     setEditingVersion(property.version || 1);
-    setEditingTags(Array.isArray(property.tags) ? property.tags.join(", ") : "");
+    setEditingTags(
+      Array.isArray(property.tags) ? property.tags.join(", ") : ""
+    );
   };
 
   // Start creating new property
@@ -129,7 +130,12 @@ const Properties: React.FC = () => {
 
     try {
       const selfData = JSON.parse(editingData);
-      const tagsArray = editingTags.trim() ? editingTags.split(',').map(tag => tag.trim()).filter(Boolean) : [];
+      const tagsArray = editingTags.trim()
+        ? editingTags
+            .split(",")
+            .map((tag) => tag.trim())
+            .filter(Boolean)
+        : [];
 
       const result = await appConfigStore.updatePropertyWithIdChangeAndTags(
         editingId,
@@ -186,7 +192,12 @@ const Properties: React.FC = () => {
 
       try {
         const selfData = JSON.parse(editingData);
-        const tagsArray = editingTags.trim() ? editingTags.split(',').map(tag => tag.trim()).filter(Boolean) : [];
+        const tagsArray = editingTags.trim()
+          ? editingTags
+              .split(",")
+              .map((tag) => tag.trim())
+              .filter(Boolean)
+          : [];
 
         const result = await appConfigStore.createPropertyWithTags(
           editingNewId,
@@ -241,24 +252,24 @@ const Properties: React.FC = () => {
 
   // Copy property (duplicate with _copy suffix)
   const copyProperty = async (property: Property) => {
-    const baseName = property.id.replace('property_', '');
+    const baseName = property.id.replace("property_", "");
     let newId = `property_${baseName}_copy`;
     let counter = 1;
-    
+
     // Check if _copy already exists, add counter if needed
-    while (properties.find(p => p.id === newId)) {
+    while (properties.find((p) => p.id === newId)) {
       newId = `property_${baseName}_copy${counter}`;
       counter++;
     }
-    
+
     // Start creating mode with copied data
     setIsCreating(true);
     setEditingId(null);
     setEditingNewId(newId);
     setEditingData(JSON.stringify(property.data || {}, null, 2));
-    setEditingCaption(property.caption ? `${property.caption} (Copy)` : '');
+    setEditingCaption(property.caption ? `${property.caption} (Copy)` : "");
     setEditingVersion(1);
-    setEditingTags(property.tags?.join(', ') || '');
+    setEditingTags(property.tags?.join(", ") || "");
   };
 
   // Open view modal
@@ -293,8 +304,8 @@ const Properties: React.FC = () => {
     { value: "field", label: "Field Properties" },
     ...Object.entries(configTypes).map(([key, info]) => ({
       value: key,
-      label: info.name
-    }))
+      label: info.name,
+    })),
   ];
 
   return (
@@ -319,197 +330,189 @@ const Properties: React.FC = () => {
         checkboxIcon: Settings,
         checkboxChecked: showSystemProperties,
         onCheckboxChange: setShowSystemProperties,
-        checkboxTooltip: "Show/hide system properties"
+        checkboxTooltip: "Show/hide system properties",
       }}
     >
-            {/* Properties Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 auto-rows-fr">
-              {paginatedProperties.length === 0 &&
-              filteredProperties.length === 0 ? (
-                <div className="col-span-full bg-white rounded-lg shadow-sm border p-8 text-center text-slate-500">
-                  No properties found
+      {/* Properties Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 auto-rows-fr">
+        {paginatedProperties.length === 0 && filteredProperties.length === 0 ? (
+          <div className="col-span-full bg-white rounded-lg shadow-sm border p-8 text-center text-slate-500">
+            No properties found
+          </div>
+        ) : (
+          paginatedProperties.map((property) => (
+            <div
+              key={property.id}
+              className={`bg-white rounded-lg shadow-sm border-2 transition-all hover:shadow-md flex flex-col h-full ${appConfigStore.getPropertyBorderColor(
+                property
+              )}`}
+            >
+              {/* Card Header */}
+              <div className="px-4 py-2 border-b bg-white rounded-t-lg">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <h3 className=" text-base truncate" title={property.id}>
+                        {property.id.replace("property_", "")}
+                      </h3>
+                      <PropertyCategoryIcon category={property.category} />
+                    </div>
+                    <p className="text-sm text-slate-500 mt-1">
+                      Type: {property.type}
+                    </p>
+                    {property.tags && property.tags.length > 0 && (
+                      <div className="flex flex-wrap gap-1 mt-2">
+                        {property.tags.map((tag) => (
+                          <span
+                            key={tag}
+                            className="px-2 py-0.5 text-sm bg-slate-100 text-slate-600 rounded"
+                          >
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex gap-1 ml-2">
+                    <button
+                      onClick={() => copyProperty(property)}
+                      className="p-1.5 text-slate-500 hover:text-blue-600 transition-colors"
+                      title="Copy property"
+                    >
+                      <Copy className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => openViewModal(property)}
+                      className="p-1.5 text-slate-500 hover:text-blue-600 transition-colors"
+                      title="View details"
+                    >
+                      <Eye className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
-              ) : (
-                paginatedProperties.map((property) => (
-                  <div
-                    key={property.id}
-                    className={`bg-white rounded-lg shadow-sm border-2 transition-all hover:shadow-md flex flex-col h-full ${appConfigStore.getPropertyBorderColor(
-                      property
-                    )}`}
-                  >
-                    {/* Card Header */}
-                    <div className="px-4 py-2 border-b bg-white rounded-t-lg">
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2">
-                            <h3
-                              className="font-medium text-base truncate"
-                              title={property.id}
-                            >
-                              {property.id.replace("property_", "")}
-                            </h3>
-                            <PropertyCategoryIcon category={property.category} />
-                          </div>
-                          <p className="text-sm text-slate-500 mt-1">
-                            Type: {property.type}
-                          </p>
-                          {property.tags && property.tags.length > 0 && (
-                            <div className="flex flex-wrap gap-1 mt-2">
-                              {property.tags.map((tag) => (
-                                <span
-                                  key={tag}
-                                  className="px-2 py-0.5 text-sm bg-slate-100 text-slate-600 rounded"
-                                >
-                                  {tag}
-                                </span>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                        <div className="flex gap-1 ml-2">
-                          <button
-                            onClick={() => copyProperty(property)}
-                            className="p-1.5 text-slate-500 hover:text-blue-600 transition-colors"
-                            title="Copy property"
-                          >
-                            <Copy className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={() => openViewModal(property)}
-                            className="p-1.5 text-slate-500 hover:text-blue-600 transition-colors"
-                            title="View details"
-                          >
-                            <Eye className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </div>
-                    </div>
+              </div>
 
-                    {/* Card Body */}
-                    <div className="px-4 py-3 flex-1">
-                      {editingId === property.id ? (
-                        <div className="space-y-2">
-                          <input
-                            type="text"
-                            value={editingNewId}
-                            onChange={(e) => setEditingNewId(e.target.value)}
-                            placeholder="Property ID"
-                            className="w-full px-2 py-1 border rounded text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
-                          />
-                          <textarea
-                            value={editingData}
-                            onChange={(e) => setEditingData(e.target.value)}
-                            rows={4}
-                            className="w-full px-2 py-1 border rounded font-mono text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
-                          />
-                          <div className="flex gap-1">
-                            <button
-                              onClick={saveEdit}
-                              className="flex-1 px-2 py-1 bg-green-600 text-white rounded text-xs hover:bg-green-700 transition-colors"
-                            >
-                              Save
-                            </button>
-                            <button
-                              onClick={cancelEdit}
-                              className="flex-1 px-2 py-1 border rounded text-xs hover:bg-slate-50 transition-colors"
-                            >
-                              Cancel
-                            </button>
-                          </div>
-                        </div>
-                      ) : (
-                        <div>
-                          {expandedId === property.id ? (
-                            <pre className="text-xs font-mono bg-slate-50 p-2 rounded overflow-x-auto max-h-40">
-                              {JSON.stringify(property.data || {}, null, 2)}
-                            </pre>
-                          ) : (
-                            <div className="space-y-1.5">
-                              {Object.entries(property.data || {})
-                                .slice(0, 3)
-                                .map(([key, value]) => (
-                                  <div key={key} className="text-sm">
-                                    <span className="font-medium text-slate-600">
-                                      {key}:
-                                    </span>{" "}
-                                    <span className="text-slate-800">
-                                      {typeof value === "object"
-                                        ? JSON.stringify(value)
-                                        : String(value)}
-                                    </span>
-                                  </div>
-                                ))}
-                              {Object.keys(property.data || {}).length >
-                                3 && (
-                                <div className="text-sm text-slate-400">
-                                  +{Object.keys(property.data || {}).length - 3}{" "}
-                                  more...
-                                </div>
-                              )}
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Card Footer */}
-                    <div className="px-4 py-2 border-t bg-white rounded-b-lg flex justify-between items-center mt-auto">
-                      <div className="text-sm text-slate-500">
-                        v{property.version || 1}
-                      </div>
-                      {property.category === 'system' ? (
-                        <div className="text-xs text-slate-400 italic">
-                          Cannot delete system property
-                        </div>
-                      ) : (
-                        <div className="flex gap-1.5">
-                          <button
-                            onClick={() => startEdit(property)}
-                            className="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors"
-                            title="Edit"
-                          >
-                            <Edit2 className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={() => deleteProperty(property.id)}
-                            className="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors"
-                            title="Delete"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
-                      )}
+              {/* Card Body */}
+              <div className="px-4 py-3 flex-1">
+                {editingId === property.id ? (
+                  <div className="space-y-2">
+                    <input
+                      type="text"
+                      value={editingNewId}
+                      onChange={(e) => setEditingNewId(e.target.value)}
+                      placeholder="Property ID"
+                      className="w-full px-2 py-1 border rounded text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    />
+                    <textarea
+                      value={editingData}
+                      onChange={(e) => setEditingData(e.target.value)}
+                      rows={4}
+                      className="w-full px-2 py-1 border rounded font-mono text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    />
+                    <div className="flex gap-1">
+                      <button
+                        onClick={saveEdit}
+                        className="flex-1 px-2 py-1 bg-green-600 text-white rounded text-xs hover:bg-green-700 transition-colors"
+                      >
+                        Save
+                      </button>
+                      <button
+                        onClick={cancelEdit}
+                        className="flex-1 px-2 py-1 border rounded text-xs hover:bg-slate-50 transition-colors"
+                      >
+                        Cancel
+                      </button>
                     </div>
                   </div>
-                ))
-              )}
+                ) : (
+                  <div>
+                    {expandedId === property.id ? (
+                      <pre className="text-xs font-mono bg-slate-50 p-2 rounded overflow-x-auto max-h-40">
+                        {JSON.stringify(property.data || {}, null, 2)}
+                      </pre>
+                    ) : (
+                      <div className="space-y-1.5">
+                        {Object.entries(property.data || {})
+                          .slice(0, 3)
+                          .map(([key, value]) => (
+                            <div key={key} className="text-sm">
+                              <span className=" text-slate-600">{key}:</span>{" "}
+                              <span className="text-slate-800">
+                                {typeof value === "object"
+                                  ? JSON.stringify(value)
+                                  : String(value)}
+                              </span>
+                            </div>
+                          ))}
+                        {Object.keys(property.data || {}).length > 3 && (
+                          <div className="text-sm text-slate-400">
+                            +{Object.keys(property.data || {}).length - 3}{" "}
+                            more...
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Card Footer */}
+              <div className="px-4 py-2 border-t bg-white rounded-b-lg flex justify-between items-center mt-auto">
+                <div className="text-sm text-slate-500">
+                  v{property.version || 1}
+                </div>
+                {property.category === "system" ? (
+                  <div className="text-xs text-slate-400 italic">
+                    Cannot delete system property
+                  </div>
+                ) : (
+                  <div className="flex gap-1.5">
+                    <button
+                      onClick={() => startEdit(property)}
+                      className="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                      title="Edit"
+                    >
+                      <Edit2 className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => deleteProperty(property.id)}
+                      className="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors"
+                      title="Delete"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
+          ))
+        )}
+      </div>
 
-            {/* Pagination */}
-            {totalPages > 1 && (
-              <div className="mt-6 flex items-center justify-center gap-2">
-                <button
-                  onClick={() => goToPage(currentPage - 1)}
-                  disabled={currentPage === 1}
-                  className="p-2 border rounded-md hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                >
-                  <ChevronLeft className="w-4 h-4" />
-                </button>
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="mt-6 flex items-center justify-center gap-2">
+          <button
+            onClick={() => goToPage(currentPage - 1)}
+            disabled={currentPage === 1}
+            className="p-2 border rounded-md hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          >
+            <ChevronLeft className="w-4 h-4" />
+          </button>
 
-                <div className="flex gap-1">
-                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(
-                    (page) => {
-                      // Show first page, last page, current page, and pages around current
-                      if (
-                        page === 1 ||
-                        page === totalPages ||
-                        Math.abs(page - currentPage) <= 1
-                      ) {
-                        return (
-                          <button
-                            key={page}
-                            onClick={() => goToPage(page)}
-                            className={`
+          <div className="flex gap-1">
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
+              // Show first page, last page, current page, and pages around current
+              if (
+                page === 1 ||
+                page === totalPages ||
+                Math.abs(page - currentPage) <= 1
+              ) {
+                return (
+                  <button
+                    key={page}
+                    onClick={() => goToPage(page)}
+                    className={`
                       px-3 py-1 border rounded-md transition-colors
                       ${
                         page === currentPage
@@ -517,51 +520,46 @@ const Properties: React.FC = () => {
                           : "hover:bg-slate-50"
                       }
                     `}
-                          >
-                            {page}
-                          </button>
-                        );
-                      }
-                      // Show ellipsis
-                      if (page === 2 && currentPage > 3) {
-                        return (
-                          <span key={page} className="px-2">
-                            ...
-                          </span>
-                        );
-                      }
-                      if (
-                        page === totalPages - 1 &&
-                        currentPage < totalPages - 2
-                      ) {
-                        return (
-                          <span key={page} className="px-2">
-                            ...
-                          </span>
-                        );
-                      }
-                      return null;
-                    }
-                  )}
-                </div>
+                  >
+                    {page}
+                  </button>
+                );
+              }
+              // Show ellipsis
+              if (page === 2 && currentPage > 3) {
+                return (
+                  <span key={page} className="px-2">
+                    ...
+                  </span>
+                );
+              }
+              if (page === totalPages - 1 && currentPage < totalPages - 2) {
+                return (
+                  <span key={page} className="px-2">
+                    ...
+                  </span>
+                );
+              }
+              return null;
+            })}
+          </div>
 
-                <button
-                  onClick={() => goToPage(currentPage + 1)}
-                  disabled={currentPage === totalPages}
-                  className="p-2 border rounded-md hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                >
-                  <ChevronRight className="w-4 h-4" />
-                </button>
-              </div>
-            )}
+          <button
+            onClick={() => goToPage(currentPage + 1)}
+            disabled={currentPage === totalPages}
+            className="p-2 border rounded-md hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          >
+            <ChevronRight className="w-4 h-4" />
+          </button>
+        </div>
+      )}
 
-            {/* Stats */}
-            <div className="mt-4 text-center text-sm text-slate-500">
-              Showing {startIndex + 1}-
-              {Math.min(endIndex, filteredProperties.length)} of{" "}
-              {filteredProperties.length} properties
-              {searchQuery && ` (filtered from ${properties.length} total)`}
-            </div>
+      {/* Stats */}
+      <div className="mt-4 text-center text-sm text-slate-500">
+        Showing {startIndex + 1}-{Math.min(endIndex, filteredProperties.length)}{" "}
+        of {filteredProperties.length} properties
+        {searchQuery && ` (filtered from ${properties.length} total)`}
+      </div>
 
       {/* Edit/Create Modal */}
       <ConfigEditModal
@@ -599,7 +597,7 @@ const Properties: React.FC = () => {
           }}
           title="Property"
           config={viewModalConfig}
-          hideIntermediateData={true}  // Hide Self Data and Override Data for properties
+          hideIntermediateData={true} // Hide Self Data and Override Data for properties
         />
       )}
     </RegistryLayout>

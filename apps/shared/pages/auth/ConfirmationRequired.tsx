@@ -1,14 +1,12 @@
 import FooterFigure from "@shared/assets/backgrounds/footer-figure.svg?react";
+import { AuthButton } from "@shared/components/auth/AuthButton";
 import { AuthFooter } from "@shared/components/auth/AuthFooter";
 import { AuthHeader } from "@shared/components/auth/AuthHeader";
-import { AuthButton } from "@shared/components/auth/AuthButton";
-import AuthLayout from "@shared/layouts/AuthLayout";
-import { Button } from "@ui/components/button";
-import { useToast } from "@ui/hooks/use-toast";
-import { useState } from "react";
-import { Link } from "react-router-dom";
-import { Check } from "lucide-react";
 import { Spinner } from "@shared/components/auth/Spinner";
+import AuthLayout from "@shared/layouts/AuthLayout";
+import { useToast } from "@ui/hooks/use-toast";
+import { Check } from "lucide-react";
+import { useState } from "react";
 
 export default function ConfirmationRequired() {
   const [isResending, setIsResending] = useState(false);
@@ -23,7 +21,7 @@ export default function ConfirmationRequired() {
       // TODO: Implement actual resend logic
       await new Promise((resolve) => setTimeout(resolve, 1500));
       setResendSuccess(true);
-      
+
       toast({
         variant: "success",
         title: "Email resent!",
@@ -33,7 +31,8 @@ export default function ConfirmationRequired() {
       toast({
         variant: "destructive",
         title: "Failed to resend",
-        description: "Unable to resend confirmation email. Please try again later.",
+        description:
+          "Unable to resend confirmation email. Please try again later.",
       });
       console.error("Failed to resend email", error);
     } finally {
@@ -54,9 +53,7 @@ export default function ConfirmationRequired() {
           rightContent={
             <div className="flex items-center gap-4">
               <span className="hidden text-slate-700 sm:block">Return to</span>
-              <AuthButton to="/sign-in">
-                Login page
-              </AuthButton>
+              <AuthButton to="/sign-in">Login page</AuthButton>
             </div>
           }
         />
@@ -96,7 +93,7 @@ export default function ConfirmationRequired() {
 
               {/* Tips */}
               <div className="mt-4 sm:mt-6 rounded-lg bg-slate-50 p-3 sm:p-4">
-                <h3 className="text-base font-medium text-slate-900">
+                <h3 className="text-base  text-slate-900">
                   Didn't receive an email?
                 </h3>
                 <ul className="mt-2 space-y-1.5 text-base text-slate-700">
@@ -111,7 +108,7 @@ export default function ConfirmationRequired() {
                 type="button"
                 onClick={handleResendEmail}
                 disabled={isResending || resendSuccess}
-                className="mt-4 sm:mt-6 w-full text-center text-base text-primary-600 hover:text-primary-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center font-medium"
+                className="mt-4 sm:mt-6 w-full text-center text-base text-primary-600 hover:text-primary-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center "
               >
                 {isResending ? (
                   <>

@@ -5,33 +5,30 @@ import * as React from "react";
 
 import { cn } from "@ui/lib/utils";
 
-const ratingVariants = cva(
-  "flex items-center gap-1",
-  {
-    variants: {
-      size: {
-        xs: "text-xs",
-        sm: "text-sm", 
-        default: "text-base",
-        lg: "text-lg",
-        xl: "text-xl",
-      },
-      variant: {
-        default: "text-yellow-400",
-        secondary: "text-muted-foreground",
-        success: "text-green-500",
-        warning: "text-yellow-500",
-        destructive: "text-red-500",
-      },
+const ratingVariants = cva("flex items-center gap-1", {
+  variants: {
+    size: {
+      xs: "text-xs",
+      sm: "text-sm",
+      default: "text-base",
+      lg: "text-lg",
+      xl: "text-xl",
     },
-    defaultVariants: {
-      size: "default",
-      variant: "default",
+    variant: {
+      default: "text-yellow-400",
+      secondary: "text-muted-foreground",
+      success: "text-green-500",
+      warning: "text-yellow-500",
+      destructive: "text-red-500",
     },
-  }
-);
+  },
+  defaultVariants: {
+    size: "default",
+    variant: "default",
+  },
+});
 
-interface RatingProps 
+interface RatingProps
   extends React.HTMLAttributes<HTMLDivElement>,
     VariantProps<typeof ratingVariants> {
   value: number;
@@ -48,10 +45,14 @@ interface RatingProps
   onRatingChange?: (rating: number) => void;
 }
 
-const StarIcon = ({ filled = false, half = false, className }: { 
-  filled?: boolean; 
-  half?: boolean; 
-  className?: string; 
+const StarIcon = ({
+  filled = false,
+  half = false,
+  className,
+}: {
+  filled?: boolean;
+  half?: boolean;
+  className?: string;
 }) => (
   <svg
     className={cn("w-4 h-4", className)}
@@ -78,39 +79,42 @@ const StarIcon = ({ filled = false, half = false, className }: {
 );
 
 const Rating = React.forwardRef<HTMLDivElement, RatingProps>(
-  ({ 
-    className,
-    value,
-    max = 5,
-    precision = 1,
-    readonly = true,
-    showValue = false,
-    showCount = false,
-    count,
-    allowHover = false,
-    size,
-    variant,
-    emptyIcon,
-    filledIcon,
-    halfIcon,
-    onRatingChange,
-    ...props 
-  }, ref) => {
+  (
+    {
+      className,
+      value,
+      max = 5,
+      precision = 1,
+      readonly = true,
+      showValue = false,
+      showCount = false,
+      count,
+      allowHover = false,
+      size,
+      variant,
+      emptyIcon,
+      filledIcon,
+      halfIcon,
+      onRatingChange,
+      ...props
+    },
+    ref
+  ) => {
     const [hoverValue, setHoverValue] = React.useState<number | null>(null);
     const isInteractive = !readonly && onRatingChange;
-    
+
     const displayValue = hoverValue !== null ? hoverValue : value;
-    
+
     const handleStarClick = (starValue: number) => {
       if (!isInteractive) return;
       onRatingChange?.(starValue);
     };
-    
+
     const handleStarHover = (starValue: number) => {
       if (!isInteractive || !allowHover) return;
       setHoverValue(starValue);
     };
-    
+
     const handleMouseLeave = () => {
       if (!isInteractive || !allowHover) return;
       setHoverValue(null);
@@ -119,14 +123,17 @@ const Rating = React.forwardRef<HTMLDivElement, RatingProps>(
     const renderStar = (index: number) => {
       const starValue = index + 1;
       const filled = displayValue >= starValue;
-      const half = precision === 0.5 && displayValue >= starValue - 0.5 && displayValue < starValue;
-      
+      const half =
+        precision === 0.5 &&
+        displayValue >= starValue - 0.5 &&
+        displayValue < starValue;
+
       let icon = <StarIcon filled={filled} half={half} />;
-      
+
       if (filled && filledIcon) icon = filledIcon;
       else if (half && halfIcon) icon = halfIcon;
       else if (!filled && !half && emptyIcon) icon = emptyIcon;
-      
+
       return (
         <span
           key={index}
@@ -154,18 +161,18 @@ const Rating = React.forwardRef<HTMLDivElement, RatingProps>(
         <div className="flex items-center gap-0.5">
           {Array.from({ length: max }, (_, index) => renderStar(index))}
         </div>
-        
+
         {(showValue || showCount) && (
           <div className="flex items-center gap-1 ml-2 text-sm text-muted-foreground">
             {showValue && (
-              <span className="font-medium">
+              <span className="">
                 {value.toFixed(precision === 0.5 ? 1 : 0)}
                 {max !== 5 && ` / ${max}`}
               </span>
             )}
             {showCount && count !== undefined && (
               <span>
-                ({count.toLocaleString()} {count === 1 ? 'review' : 'reviews'})
+                ({count.toLocaleString()} {count === 1 ? "review" : "reviews"})
               </span>
             )}
           </div>
@@ -177,7 +184,7 @@ const Rating = React.forwardRef<HTMLDivElement, RatingProps>(
 Rating.displayName = "Rating";
 
 // Rating Input Component for forms
-interface RatingInputProps extends Omit<RatingProps, 'readonly' | 'value'> {
+interface RatingInputProps extends Omit<RatingProps, "readonly" | "value"> {
   name?: string;
   value?: number;
   defaultValue?: number;
@@ -186,21 +193,25 @@ interface RatingInputProps extends Omit<RatingProps, 'readonly' | 'value'> {
 }
 
 const RatingInput = React.forwardRef<HTMLDivElement, RatingInputProps>(
-  ({ 
-    name,
-    value: controlledValue,
-    defaultValue = 0,
-    onRatingChange,
-    disabled = false,
-    required = false,
-    ...props 
-  }, ref) => {
+  (
+    {
+      name,
+      value: controlledValue,
+      defaultValue = 0,
+      onRatingChange,
+      disabled = false,
+      required = false,
+      ...props
+    },
+    ref
+  ) => {
     const [internalValue, setInternalValue] = React.useState(defaultValue);
-    const value = controlledValue !== undefined ? controlledValue : internalValue;
-    
+    const value =
+      controlledValue !== undefined ? controlledValue : internalValue;
+
     const handleRatingChange = (newRating: number) => {
       if (disabled) return;
-      
+
       if (controlledValue === undefined) {
         setInternalValue(newRating);
       }
@@ -219,12 +230,7 @@ const RatingInput = React.forwardRef<HTMLDivElement, RatingInputProps>(
           {...props}
         />
         {name && (
-          <input
-            type="hidden"
-            name={name}
-            value={value}
-            required={required}
-          />
+          <input type="hidden" name={name} value={value} required={required} />
         )}
       </>
     );
@@ -250,14 +256,20 @@ const RatingSummary = React.forwardRef<HTMLDivElement, RatingSummaryProps>(
             ({totalReviews.toLocaleString()} reviews)
           </span>
         </div>
-        
+
         <div className="space-y-1">
           {ratings.map((rating) => {
-            const percentage = totalReviews > 0 ? (rating.count / totalReviews) * 100 : 0;
-            
+            const percentage =
+              totalReviews > 0 ? (rating.count / totalReviews) * 100 : 0;
+
             return (
-              <div key={rating.stars} className="flex items-center gap-2 text-sm">
-                <span className="w-3 text-muted-foreground">{rating.stars}</span>
+              <div
+                key={rating.stars}
+                className="flex items-center gap-2 text-sm"
+              >
+                <span className="w-3 text-muted-foreground">
+                  {rating.stars}
+                </span>
                 <StarIcon filled className="w-3 h-3 text-yellow-400" />
                 <div className="flex-1 bg-muted rounded-full h-2">
                   <div
@@ -278,10 +290,4 @@ const RatingSummary = React.forwardRef<HTMLDivElement, RatingSummaryProps>(
 );
 RatingSummary.displayName = "RatingSummary";
 
-export { 
-  Rating, 
-  RatingInput, 
-  RatingSummary,
-  StarIcon,
-  ratingVariants,
-};
+export { Rating, RatingInput, RatingSummary, ratingVariants, StarIcon };

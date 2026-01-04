@@ -1,9 +1,13 @@
+import { cn } from "@ui/lib/utils";
 import React, { forwardRef } from "react";
 import { Checkbox } from "../checkbox";
 import { FormField } from "../form-field";
-import { cn } from "@ui/lib/utils";
 
-interface CheckboxInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'type' | 'value' | 'onChange'> {
+interface CheckboxInputProps
+  extends Omit<
+    React.InputHTMLAttributes<HTMLInputElement>,
+    "type" | "value" | "onChange"
+  > {
   label?: string;
   error?: string;
   helperText?: string;
@@ -16,20 +20,23 @@ interface CheckboxInputProps extends Omit<React.InputHTMLAttributes<HTMLInputEle
 }
 
 export const CheckboxInput = forwardRef<HTMLInputElement, CheckboxInputProps>(
-  ({ 
-    label, 
-    error,
-    helperText, 
-    required,
-    checked,
-    onCheckedChange,
-    checkboxLabel,
-    className,
-    fieldClassName,
-    disabled,
-    indeterminate,
-    ...props 
-  }, ref) => {
+  (
+    {
+      label,
+      error,
+      helperText,
+      required,
+      checked,
+      onCheckedChange,
+      checkboxLabel,
+      className,
+      fieldClassName,
+      disabled,
+      indeterminate,
+      ...props
+    },
+    ref
+  ) => {
     const checkboxElement = (
       <div className={cn("flex items-center space-x-3", className)}>
         <Checkbox
@@ -43,7 +50,7 @@ export const CheckboxInput = forwardRef<HTMLInputElement, CheckboxInputProps>(
           <label
             htmlFor={props.id}
             className={cn(
-              "text-base font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70",
+              "text-base  leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70",
               disabled && "cursor-not-allowed opacity-70"
             )}
           >

@@ -29,7 +29,7 @@ export function BreedAchievements({
   const displayMajorPatron = entity?.achievements?.major_patron || majorPatron;
   const displayTopPet = entity?.achievements?.top_pet || topPet;
   return (
-    <div className="flex flex-wrap gap-2 font-medium mt-2">
+    <div className="flex flex-wrap gap-2  mt-2">
       {displayTopKennel && (
         <a href={`/${displayTopKennel.url}`} className="no-underline">
           <Chip

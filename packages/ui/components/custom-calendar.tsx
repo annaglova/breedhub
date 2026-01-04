@@ -143,10 +143,7 @@ export function CustomCalendar({
       {/* Weekday headers */}
       <div className="grid grid-cols-7 mb-2 ">
         {["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"].map((day) => (
-          <div
-            key={day}
-            className="text-center text-xs font-medium text-slate-500 py-1"
-          >
+          <div key={day} className="text-center text-xs  text-slate-500 py-1">
             {day}
           </div>
         ))}
@@ -191,7 +188,7 @@ export function CustomCalendar({
           className={cn(
             "w-full py-2 px-4",
             "bg-primary-50 border border-primary-50 rounded-md",
-            "text-sm font-medium text-slate-700",
+            "text-sm  text-slate-700",
             "hover:primary-100 hover:border-primary-500",
             "focus:outline-none focus:ring-2 focus:ring-primary-500/20",
             "transition-all"

@@ -67,52 +67,63 @@ interface ProgressProps
 const Progress = React.forwardRef<
   React.ElementRef<typeof ProgressPrimitive.Root>,
   ProgressProps
->(({ 
-  className, 
-  value = 0, 
-  max = 100,
-  size, 
-  variant,
-  animated,
-  showValue = false,
-  formatValue,
-  ...props 
-}, ref) => {
-  const percentage = Math.min(Math.max((value / max) * 100, 0), 100);
-  
-  const formatValueDefault = React.useCallback((val: number, maxVal: number) => {
-    return `${Math.round((val / maxVal) * 100)}%`;
-  }, []);
+>(
+  (
+    {
+      className,
+      value = 0,
+      max = 100,
+      size,
+      variant,
+      animated,
+      showValue = false,
+      formatValue,
+      ...props
+    },
+    ref
+  ) => {
+    const percentage = Math.min(Math.max((value / max) * 100, 0), 100);
 
-  const displayValue = formatValue ? formatValue(value, max) : formatValueDefault(value, max);
+    const formatValueDefault = React.useCallback(
+      (val: number, maxVal: number) => {
+        return `${Math.round((val / maxVal) * 100)}%`;
+      },
+      []
+    );
 
-  return (
-    <div className="space-y-1">
-      {showValue && (
-        <div className="flex justify-between text-sm text-muted-foreground">
-          <span>Progress</span>
-          <span>{displayValue}</span>
-        </div>
-      )}
-      <ProgressPrimitive.Root
-        ref={ref}
-        className={cn(progressVariants({ size, variant }), className)}
-        value={value}
-        max={max}
-        {...props}
-      >
-        <ProgressPrimitive.Indicator
-          className={cn(progressIndicatorVariants({ variant, animated }))}
-          style={{ transform: `translateX(-${100 - percentage}%)` }}
-        />
-      </ProgressPrimitive.Root>
-    </div>
-  );
-});
+    const displayValue = formatValue
+      ? formatValue(value, max)
+      : formatValueDefault(value, max);
+
+    return (
+      <div className="space-y-1">
+        {showValue && (
+          <div className="flex justify-between text-sm text-muted-foreground">
+            <span>Progress</span>
+            <span>{displayValue}</span>
+          </div>
+        )}
+        <ProgressPrimitive.Root
+          ref={ref}
+          className={cn(progressVariants({ size, variant }), className)}
+          value={value}
+          max={max}
+          {...props}
+        >
+          <ProgressPrimitive.Indicator
+            className={cn(progressIndicatorVariants({ variant, animated }))}
+            style={{ transform: `translateX(-${100 - percentage}%)` }}
+          />
+        </ProgressPrimitive.Root>
+      </div>
+    );
+  }
+);
 Progress.displayName = ProgressPrimitive.Root.displayName;
 
 // Circular Progress Component
-interface CircularProgressProps extends VariantProps<typeof progressIndicatorVariants> {
+interface CircularProgressProps
+  extends VariantProps<typeof progressIndicatorVariants> {
   value?: number;
   max?: number;
   size?: number;
@@ -122,38 +133,55 @@ interface CircularProgressProps extends VariantProps<typeof progressIndicatorVar
   className?: string;
 }
 
-const CircularProgress = React.forwardRef<HTMLDivElement, CircularProgressProps>(
-  ({ 
-    value = 0, 
-    max = 100, 
-    size = 48,
-    strokeWidth = 4,
-    variant = "default",
-    showValue = false,
-    formatValue,
-    className,
-  }, ref) => {
+const CircularProgress = React.forwardRef<
+  HTMLDivElement,
+  CircularProgressProps
+>(
+  (
+    {
+      value = 0,
+      max = 100,
+      size = 48,
+      strokeWidth = 4,
+      variant = "default",
+      showValue = false,
+      formatValue,
+      className,
+    },
+    ref
+  ) => {
     const percentage = Math.min(Math.max((value / max) * 100, 0), 100);
     const radius = (size - strokeWidth) / 2;
     const circumference = 2 * Math.PI * radius;
     const strokeDashoffset = circumference - (percentage / 100) * circumference;
-    
-    const formatValueDefault = React.useCallback((val: number, maxVal: number) => {
-      return `${Math.round((val / maxVal) * 100)}%`;
-    }, []);
 
-    const displayValue = formatValue ? formatValue(value, max) : formatValueDefault(value, max);
+    const formatValueDefault = React.useCallback(
+      (val: number, maxVal: number) => {
+        return `${Math.round((val / maxVal) * 100)}%`;
+      },
+      []
+    );
+
+    const displayValue = formatValue
+      ? formatValue(value, max)
+      : formatValueDefault(value, max);
 
     const colorMap = {
       default: "stroke-primary",
-      secondary: "stroke-secondary", 
+      secondary: "stroke-secondary",
       success: "stroke-green-600",
       warning: "stroke-yellow-600",
       destructive: "stroke-destructive",
     };
 
     return (
-      <div ref={ref} className={cn("relative inline-flex items-center justify-center", className)}>
+      <div
+        ref={ref}
+        className={cn(
+          "relative inline-flex items-center justify-center",
+          className
+        )}
+      >
         <svg width={size} height={size} className="transform -rotate-90">
           {/* Background circle */}
           <circle
@@ -172,7 +200,10 @@ const CircularProgress = React.forwardRef<HTMLDivElement, CircularProgressProps>
             r={radius}
             strokeWidth={strokeWidth}
             fill="none"
-            className={cn(colorMap[variant as keyof typeof colorMap], "transition-all duration-300")}
+            className={cn(
+              colorMap[variant as keyof typeof colorMap],
+              "transition-all duration-300"
+            )}
             strokeDasharray={circumference}
             strokeDashoffset={strokeDashoffset}
             strokeLinecap="round"
@@ -180,9 +211,7 @@ const CircularProgress = React.forwardRef<HTMLDivElement, CircularProgressProps>
         </svg>
         {showValue && (
           <div className="absolute inset-0 flex items-center justify-center">
-            <span className="text-xs font-medium text-foreground">
-              {displayValue}
-            </span>
+            <span className="text-xs  text-foreground">{displayValue}</span>
           </div>
         )}
       </div>
@@ -196,48 +225,55 @@ interface MultiStepProgressProps {
   currentStep: number;
   totalSteps: number;
   steps?: string[];
-  variant?: VariantProps<typeof progressIndicatorVariants>['variant'];
+  variant?: VariantProps<typeof progressIndicatorVariants>["variant"];
   className?: string;
 }
 
-const MultiStepProgress = React.forwardRef<HTMLDivElement, MultiStepProgressProps>(
-  ({ currentStep, totalSteps, steps, variant = "default", className }, ref) => {
-    const percentage = (currentStep / totalSteps) * 100;
+const MultiStepProgress = React.forwardRef<
+  HTMLDivElement,
+  MultiStepProgressProps
+>(({ currentStep, totalSteps, steps, variant = "default", className }, ref) => {
+  const percentage = (currentStep / totalSteps) * 100;
 
-    return (
-      <div ref={ref} className={cn("space-y-2", className)}>
-        {steps && (
-          <div className="flex justify-between text-sm text-muted-foreground">
-            <span>Step {currentStep} of {totalSteps}</span>
-            <span>{steps[currentStep - 1]}</span>
-          </div>
-        )}
-        <div className="flex space-x-1">
-          {Array.from({ length: totalSteps }).map((_, index) => (
-            <div
-              key={index}
-              className={cn(
-                "h-2 flex-1 rounded-full transition-colors",
-                index < currentStep 
-                  ? variant === "success" ? "bg-green-600" : 
-                    variant === "warning" ? "bg-yellow-600" :
-                    variant === "destructive" ? "bg-destructive" : "bg-primary"
-                  : "bg-muted"
-              )}
-            />
-          ))}
+  return (
+    <div ref={ref} className={cn("space-y-2", className)}>
+      {steps && (
+        <div className="flex justify-between text-sm text-muted-foreground">
+          <span>
+            Step {currentStep} of {totalSteps}
+          </span>
+          <span>{steps[currentStep - 1]}</span>
         </div>
-        <Progress value={percentage} variant={variant} />
+      )}
+      <div className="flex space-x-1">
+        {Array.from({ length: totalSteps }).map((_, index) => (
+          <div
+            key={index}
+            className={cn(
+              "h-2 flex-1 rounded-full transition-colors",
+              index < currentStep
+                ? variant === "success"
+                  ? "bg-green-600"
+                  : variant === "warning"
+                  ? "bg-yellow-600"
+                  : variant === "destructive"
+                  ? "bg-destructive"
+                  : "bg-primary"
+                : "bg-muted"
+            )}
+          />
+        ))}
       </div>
-    );
-  }
-);
+      <Progress value={percentage} variant={variant} />
+    </div>
+  );
+});
 MultiStepProgress.displayName = "MultiStepProgress";
 
-export { 
-  Progress, 
-  CircularProgress, 
+export {
+  CircularProgress,
   MultiStepProgress,
-  progressVariants,
+  Progress,
   progressIndicatorVariants,
+  progressVariants,
 };

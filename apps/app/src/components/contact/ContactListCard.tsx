@@ -1,7 +1,7 @@
-import { EntityListCardWrapper } from "@/components/space/EntityListCardWrapper";
 import { NoteFlag } from "@/components/shared/NoteFlag";
-import { VerificationBadge } from "@/components/shared/VerificationBadge";
 import { TierMark } from "@/components/shared/TierMark";
+import { VerificationBadge } from "@/components/shared/VerificationBadge";
+import { EntityListCardWrapper } from "@/components/space/EntityListCardWrapper";
 
 // Tier marks format from DB
 interface TierMarkEntry {
@@ -78,7 +78,11 @@ export function ContactListCard({
   // Mock data for UI development - will be replaced with real data
   const contact = {
     Id: entity.id,
-    Name: entity.name || entity.display_name || `${entity.first_name || ''} ${entity.last_name || ''}`.trim() || "Unknown",
+    Name:
+      entity.name ||
+      entity.display_name ||
+      `${entity.first_name || ""} ${entity.last_name || ""}`.trim() ||
+      "Unknown",
     Avatar: entity.avatar_url,
     // HasUser - mock for visual testing (always show outline)
     HasUser: true,
@@ -113,7 +117,9 @@ export function ContactListCard({
       <div className="flex items-center w-full">
         {/* Avatar with verification badge */}
         <div className="relative flex">
-          <div className={`size-10 rounded-full border border-surface-border flex-shrink-0 outline outline-2 outline-offset-2 ${getOutlineClass()}`}>
+          <div
+            className={`size-10 rounded-full border border-surface-border flex-shrink-0 outline outline-2 outline-offset-2 ${getOutlineClass()}`}
+          >
             <div className="w-full h-full rounded-full overflow-hidden">
               {contact.Avatar ? (
                 <img
@@ -126,12 +132,18 @@ export function ContactListCard({
                     if (!target.dataset.fallback) {
                       target.dataset.fallback = "true";
                       target.style.display = "none";
-                      target.parentElement?.querySelector(".fallback-avatar")?.classList.remove("hidden");
+                      target.parentElement
+                        ?.querySelector(".fallback-avatar")
+                        ?.classList.remove("hidden");
                     }
                   }}
                 />
               ) : null}
-              <div className={`fallback-avatar flex size-full items-center justify-center rounded-full bg-slate-200 text-lg uppercase text-slate-600 dark:bg-slate-700 dark:text-slate-200 ${contact.Avatar ? "hidden" : ""}`}>
+              <div
+                className={`fallback-avatar flex size-full items-center justify-center rounded-full bg-slate-200 text-lg uppercase text-slate-600 dark:bg-slate-700 dark:text-slate-200 ${
+                  contact.Avatar ? "hidden" : ""
+                }`}
+              >
                 {firstLetter}
               </div>
             </div>
@@ -148,7 +160,7 @@ export function ContactListCard({
         <div className="ml-4 w-full space-y-0.5">
           {/* Name row */}
           <div className="relative flex w-[calc(100vw-122px)] space-x-1 md:w-auto">
-            <span className="truncate font-medium" title={contact.Name}>
+            <span className="truncate " title={contact.Name}>
               {contact.Name}
             </span>
             <NoteFlag isVisible={contact.HasNotes} />
@@ -163,7 +175,9 @@ export function ContactListCard({
               {/* Judge */}
               {contact.IsJudge && (
                 <>
-                  {contact.IsBreeder && <span className="text-slate-400">&bull;</span>}
+                  {contact.IsBreeder && (
+                    <span className="text-slate-400">&bull;</span>
+                  )}
                   <span>Judge</span>
                 </>
               )}
@@ -186,11 +200,7 @@ export function ContactListCard({
       </div>
 
       {/* Tier Marks - positioned by component (absolute right-0) */}
-      <TierMark
-        tierMarks={contact.TierMarks}
-        mode="list"
-        className="top-3"
-      />
+      <TierMark tierMarks={contact.TierMarks} mode="list" className="top-3" />
     </EntityListCardWrapper>
   );
 }

@@ -1,6 +1,6 @@
-import React, { useState } from "react";
-import { DropdownInput, LookupInput } from "@ui/components/form-inputs";
 import { spaceStore } from "@breedhub/rxdb-store";
+import { DropdownInput, LookupInput } from "@ui/components/form-inputs";
+import { useState } from "react";
 
 export function TestDictionaryPage() {
   const [coatColorDropdown, setCoatColorDropdown] = useState<string>("");
@@ -13,18 +13,20 @@ export function TestDictionaryPage() {
   const testApplyFilters = async () => {
     setFilterLoading(true);
     try {
-      console.log('[TestPage] Testing spaceStore.applyFilters() with search "golden"');
+      console.log(
+        '[TestPage] Testing spaceStore.applyFilters() with search "golden"'
+      );
 
       const result = await spaceStore.applyFilters(
-        'breed',
-        { name: 'golden' },  // Search for breeds with "golden" in name
+        "breed",
+        { name: "golden" }, // Search for breeds with "golden" in name
         { limit: 30 }
       );
 
-      console.log('[TestPage] Filter results:', result);
+      console.log("[TestPage] Filter results:", result);
       setFilterResults(result.records);
     } catch (error) {
-      console.error('[TestPage] Filter test error:', error);
+      console.error("[TestPage] Filter test error:", error);
     } finally {
       setFilterLoading(false);
     }
@@ -92,9 +94,11 @@ export function TestDictionaryPage() {
             <button
               onClick={testApplyFilters}
               disabled={filterLoading}
-              className="w-full px-4 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:bg-slate-400 font-medium"
+              className="w-full px-4 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:bg-slate-400 "
             >
-              {filterLoading ? '🔄 Searching...' : '🧪 Test applyFilters: name="golden"'}
+              {filterLoading
+                ? "🔄 Searching..."
+                : '🧪 Test applyFilters: name="golden"'}
             </button>
 
             {filterResults.length > 0 && (

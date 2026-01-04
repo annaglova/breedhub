@@ -3,15 +3,20 @@ import FooterFigure from "@shared/assets/backgrounds/footer-figure.svg?react";
 import { AuthButton } from "@shared/components/auth/AuthButton";
 import { AuthFooter } from "@shared/components/auth/AuthFooter";
 import { AuthHeader } from "@shared/components/auth/AuthHeader";
-import { LoadingButton } from "@shared/components/auth/LoadingButton";
 import { AuthPageWrapper } from "@shared/components/auth/AuthPageWrapper";
-import { ProgressIndicator, ProgressStep } from "@shared/components/auth/ProgressIndicator";
 import { BackButton } from "@shared/components/auth/BackButton";
+import { LoadingButton } from "@shared/components/auth/LoadingButton";
 import { PasswordRequirements } from "@shared/components/auth/PasswordRequirements";
+import {
+  ProgressIndicator,
+  ProgressStep,
+} from "@shared/components/auth/ProgressIndicator";
 import AuthLayout from "@shared/layouts/AuthLayout";
-import { signUpWithProfileSchema, type SignUpWithProfileFormData } from "@shared/utils/authSchemas";
+import {
+  signUpWithProfileSchema,
+  type SignUpWithProfileFormData,
+} from "@shared/utils/authSchemas";
 import { AuthFormWrapper } from "@ui/components/auth-forms";
-import { Button } from "@ui/components/button";
 import { Checkbox } from "@ui/components/checkbox";
 import {
   EmailInput,
@@ -19,8 +24,7 @@ import {
   TextInput,
 } from "@ui/components/form-inputs";
 import { useToast } from "@ui/hooks/use-toast";
-import { cn } from "@ui/lib/utils";
-import { AlertCircle, Mail, User, UserPlus, Building } from "lucide-react";
+import { Building, Mail, User, UserPlus } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Link, useNavigate } from "react-router-dom";
@@ -39,20 +43,35 @@ export default function SignUpMultiStep() {
       id: "account",
       label: "Account Info",
       description: "Basic information",
-      status: currentStep === 0 ? "current" : currentStep > 0 ? "completed" : "upcoming"
+      status:
+        currentStep === 0
+          ? "current"
+          : currentStep > 0
+          ? "completed"
+          : "upcoming",
     },
     {
       id: "security",
       label: "Security",
       description: "Create password",
-      status: currentStep === 1 ? "current" : currentStep > 1 ? "completed" : "upcoming"
+      status:
+        currentStep === 1
+          ? "current"
+          : currentStep > 1
+          ? "completed"
+          : "upcoming",
     },
     {
       id: "profile",
       label: "Profile",
       description: "Complete setup",
-      status: currentStep === 2 ? "current" : currentStep > 2 ? "completed" : "upcoming"
-    }
+      status:
+        currentStep === 2
+          ? "current"
+          : currentStep > 2
+          ? "completed"
+          : "upcoming",
+    },
   ];
 
   const {
@@ -71,7 +90,7 @@ export default function SignUpMultiStep() {
 
   const handleNext = async () => {
     let fieldsToValidate: (keyof StepFormData)[] = [];
-    
+
     switch (currentStep) {
       case 0:
         fieldsToValidate = ["name", "email"];
@@ -85,11 +104,11 @@ export default function SignUpMultiStep() {
     }
 
     const isValid = await trigger(fieldsToValidate);
-    
+
     if (isValid) {
       const currentData = watch();
       setFormData({ ...formData, ...currentData });
-      
+
       if (currentStep < steps.length - 1) {
         setCurrentStep(currentStep + 1);
       } else {
@@ -107,17 +126,17 @@ export default function SignUpMultiStep() {
 
   const onSubmit = async (data: StepFormData) => {
     setIsLoading(true);
-    
+
     try {
       // TODO: Implement actual registration
       await new Promise((resolve) => setTimeout(resolve, 1500));
-      
+
       toast({
         variant: "success",
         title: "Account created!",
         description: "Please check your email to confirm your account.",
       });
-      
+
       navigate("/confirmation-required");
     } catch (error) {
       toast({
@@ -194,7 +213,7 @@ export default function SignUpMultiStep() {
                         icon={<User className="w-4 h-4" />}
                         placeholder="Enter your full name"
                       />
-                      
+
                       <EmailInput
                         label="Email address"
                         {...register("email")}
@@ -220,10 +239,10 @@ export default function SignUpMultiStep() {
                         placeholder="Create a strong password"
                         helperText="Password must comply with security requirements"
                       />
-                      
+
                       <div className="mt-3">
-                        <PasswordRequirements 
-                          password={watchPassword} 
+                        <PasswordRequirements
+                          password={watchPassword}
                           showTitle={true}
                           compact={false}
                         />
@@ -240,13 +259,15 @@ export default function SignUpMultiStep() {
                         icon={<Building className="w-4 h-4" />}
                         placeholder="Enter your kennel name"
                       />
-                      
+
                       <div className="space-y-2">
                         <div className="flex items-start">
                           <Checkbox
                             id="agreements"
                             {...register("agreements")}
-                            className={errors.agreements ? "border-red-500" : ""}
+                            className={
+                              errors.agreements ? "border-red-500" : ""
+                            }
                           />
                           <label
                             htmlFor="agreements"
@@ -288,14 +309,20 @@ export default function SignUpMultiStep() {
                     ) : (
                       <div />
                     )}
-                    
+
                     <LoadingButton
                       type="submit"
                       isLoading={isLoading}
-                      loadingText={currentStep === steps.length - 1 ? "Creating..." : "Next"}
+                      loadingText={
+                        currentStep === steps.length - 1
+                          ? "Creating..."
+                          : "Next"
+                      }
                       className="ml-auto px-8"
                     >
-                      {currentStep === steps.length - 1 ? "Create account" : "Continue"}
+                      {currentStep === steps.length - 1
+                        ? "Create account"
+                        : "Continue"}
                     </LoadingButton>
                   </div>
                 </AuthFormWrapper>
@@ -305,7 +332,7 @@ export default function SignUpMultiStep() {
                   Already have an account?{" "}
                   <Link
                     to="/sign-in"
-                    className="font-medium text-primary-600 hover:text-primary-500"
+                    className=" text-primary-600 hover:text-primary-500"
                   >
                     Sign in
                   </Link>

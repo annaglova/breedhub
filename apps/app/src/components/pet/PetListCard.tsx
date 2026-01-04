@@ -1,10 +1,10 @@
-import { EntityListCardWrapper } from "@/components/space/EntityListCardWrapper";
-import { NoteFlag } from "@/components/shared/NoteFlag";
-import { VerificationBadge } from "@/components/shared/VerificationBadge";
-import { TierMark } from "@/components/shared/TierMark";
-import { PetServices } from "@/components/shared/PetServices";
-import { useDictionaryValue } from "@/hooks/useDictionaryValue";
 import defaultPetAvatar from "@/assets/images/pettypes/dog.jpeg";
+import { NoteFlag } from "@/components/shared/NoteFlag";
+import { PetServices } from "@/components/shared/PetServices";
+import { TierMark } from "@/components/shared/TierMark";
+import { VerificationBadge } from "@/components/shared/VerificationBadge";
+import { EntityListCardWrapper } from "@/components/space/EntityListCardWrapper";
+import { useDictionaryValue } from "@/hooks/useDictionaryValue";
 
 // Tier marks format from DB
 interface TierMarkEntry {
@@ -112,7 +112,9 @@ export function PetListCard({
       <div className="flex items-center w-full">
         {/* Avatar with verification badge */}
         <div className="relative flex">
-          <div className={`size-10 rounded-full border border-surface-border flex-shrink-0 outline outline-2 outline-offset-2 ${getOutlineClass()}`}>
+          <div
+            className={`size-10 rounded-full border border-surface-border flex-shrink-0 outline outline-2 outline-offset-2 ${getOutlineClass()}`}
+          >
             <div className="w-full h-full rounded-full overflow-hidden">
               <img
                 src={pet.Avatar || defaultPetAvatar}
@@ -142,7 +144,7 @@ export function PetListCard({
         <div className="ml-4 w-full space-y-0.5">
           {/* Name row */}
           <div className="relative flex w-[calc(100vw-122px)] space-x-1 md:w-auto">
-            <span className="truncate font-medium" title={pet.Name}>
+            <span className="truncate " title={pet.Name}>
               {pet.Name}
             </span>
             <NoteFlag isVisible={pet.HasNotes} />
@@ -178,11 +180,7 @@ export function PetListCard({
       </div>
 
       {/* Tier Marks - positioned by component (absolute right-0) */}
-      <TierMark
-        tierMarks={pet.TierMarks}
-        mode="list"
-        className="top-3"
-      />
+      <TierMark tierMarks={pet.TierMarks} mode="list" className="top-3" />
     </EntityListCardWrapper>
   );
 }

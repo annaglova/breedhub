@@ -1,4 +1,4 @@
-import { Check, Copy, Code, FolderTree } from "lucide-react";
+import { Check, Code, Copy, FolderTree } from "lucide-react";
 import { useState } from "react";
 import JsonTreeView from "./JsonTreeView";
 
@@ -69,11 +69,11 @@ export default function ConfigViewModal({
         <div className="px-6 py-4 border-b bg-white">
           <div className="grid grid-cols-3 gap-4">
             <div>
-              <label className="block text-xs font-medium text-slate-500 mb-1">
-                {config.type === 'property' ? 'Tags' : 'Caption'}
+              <label className="block text-xs  text-slate-500 mb-1">
+                {config.type === "property" ? "Tags" : "Caption"}
               </label>
               <div className="text-sm">
-                {config.type === 'property' ? (
+                {config.type === "property" ? (
                   config.tags && config.tags.length > 0 ? (
                     <div className="flex flex-wrap gap-1">
                       {config.tags.map((tag) => (
@@ -98,19 +98,21 @@ export default function ConfigViewModal({
               </div>
             </div>
             <div>
-              <label className="block text-xs font-medium text-slate-500 mb-1">
+              <label className="block text-xs  text-slate-500 mb-1">
                 Version
               </label>
-              <div className="text-sm text-slate-900">{config.version || 1}</div>
+              <div className="text-sm text-slate-900">
+                {config.version || 1}
+              </div>
             </div>
-            {config.type !== 'property' && (
+            {config.type !== "property" && (
               <div>
-                <label className="block text-xs font-medium text-slate-500 mb-1">
+                <label className="block text-xs  text-slate-500 mb-1">
                   Dependencies
                 </label>
                 <div className="text-sm">
                   {config.deps && config.deps.length > 0 ? (
-                    <span className="text-blue-600 font-medium">
+                    <span className="text-blue-600 ">
                       {config.deps.length} deps
                     </span>
                   ) : (
@@ -122,20 +124,22 @@ export default function ConfigViewModal({
           </div>
 
           {/* Show dependencies if any (not for properties) */}
-          {config.type !== 'property' && config.deps && config.deps.length > 0 && (
-            <div className="mt-3 pt-3 border-t border-slate-200">
-              <div className="flex gap-1 overflow-x-auto pb-1">
-                {config.deps.map((dep, index) => (
-                  <span
-                    key={index}
-                    className="px-2 py-0.5 bg-slate-100 text-slate-700 rounded text-xs font-mono whitespace-nowrap flex-shrink-0"
-                  >
-                    {dep}
-                  </span>
-                ))}
+          {config.type !== "property" &&
+            config.deps &&
+            config.deps.length > 0 && (
+              <div className="mt-3 pt-3 border-t border-slate-200">
+                <div className="flex gap-1 overflow-x-auto pb-1">
+                  {config.deps.map((dep, index) => (
+                    <span
+                      key={index}
+                      className="px-2 py-0.5 bg-slate-100 text-slate-700 rounded text-xs font-mono whitespace-nowrap flex-shrink-0"
+                    >
+                      {dep}
+                    </span>
+                  ))}
+                </div>
               </div>
-            </div>
-          )}
+            )}
         </div>
 
         {/* Tabs */}
@@ -144,7 +148,7 @@ export default function ConfigViewModal({
             <div className="flex border-b">
               <button
                 onClick={() => setActiveTab("self")}
-                className={`px-6 py-3 font-medium text-sm transition-colors relative ${
+                className={`px-6 py-3  text-sm transition-colors relative ${
                   activeTab === "self"
                     ? "text-blue-600 border-b-2 border-blue-600 bg-white"
                     : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
@@ -159,7 +163,7 @@ export default function ConfigViewModal({
               </button>
               <button
                 onClick={() => setActiveTab("override")}
-                className={`px-6 py-3 font-medium text-sm transition-colors relative ${
+                className={`px-6 py-3  text-sm transition-colors relative ${
                   activeTab === "override"
                     ? "text-blue-600 border-b-2 border-blue-600 bg-white"
                     : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
@@ -174,7 +178,7 @@ export default function ConfigViewModal({
               </button>
               <button
                 onClick={() => setActiveTab("data")}
-                className={`px-6 py-3 font-medium text-sm transition-colors relative ${
+                className={`px-6 py-3  text-sm transition-colors relative ${
                   activeTab === "data"
                     ? "text-blue-600 border-b-2 border-blue-600 bg-white"
                     : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
@@ -195,15 +199,13 @@ export default function ConfigViewModal({
                 <div className="h-full flex flex-col">
                   <div className="mb-1 flex items-center justify-between ">
                     <div className="flex items-center gap-2">
-                      <h4 className="text-sm font-medium text-slate-700">
-                        Self Data
-                      </h4>
+                      <h4 className="text-sm  text-slate-700">Self Data</h4>
                       <div className="flex bg-slate-100 rounded border">
                         <button
                           onClick={() => setViewMode("raw")}
                           className={`px-2 py-1 text-xs rounded-l transition-colors border-r ${
-                            viewMode === "raw" 
-                              ? "bg-white text-blue-600" 
+                            viewMode === "raw"
+                              ? "bg-white text-blue-600"
                               : "text-slate-600 hover:text-slate-900"
                           }`}
                           title="Raw JSON"
@@ -213,8 +215,8 @@ export default function ConfigViewModal({
                         <button
                           onClick={() => setViewMode("tree")}
                           className={`px-2 py-1 text-xs rounded-r transition-colors ${
-                            viewMode === "tree" 
-                              ? "bg-white text-blue-600" 
+                            viewMode === "tree"
+                              ? "bg-white text-blue-600"
                               : "text-slate-600 hover:text-slate-900"
                           }`}
                           title="Tree view"
@@ -252,15 +254,13 @@ export default function ConfigViewModal({
                 <div className="h-full flex flex-col">
                   <div className="mb-1 flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <h4 className="text-sm font-medium text-slate-700">
-                        Override Data
-                      </h4>
+                      <h4 className="text-sm  text-slate-700">Override Data</h4>
                       <div className="flex bg-slate-100 rounded border">
                         <button
                           onClick={() => setViewMode("raw")}
                           className={`px-2 py-1 text-xs rounded-l transition-colors border-r ${
-                            viewMode === "raw" 
-                              ? "bg-white text-blue-600" 
+                            viewMode === "raw"
+                              ? "bg-white text-blue-600"
                               : "text-slate-600 hover:text-slate-900"
                           }`}
                           title="Raw JSON"
@@ -270,8 +270,8 @@ export default function ConfigViewModal({
                         <button
                           onClick={() => setViewMode("tree")}
                           className={`px-2 py-1 text-xs rounded-r transition-colors ${
-                            viewMode === "tree" 
-                              ? "bg-white text-blue-600" 
+                            viewMode === "tree"
+                              ? "bg-white text-blue-600"
                               : "text-slate-600 hover:text-slate-900"
                           }`}
                           title="Tree view"
@@ -311,15 +311,15 @@ export default function ConfigViewModal({
                 <div className="h-full flex flex-col">
                   <div className="mb-1 flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <h4 className="text-sm font-medium text-slate-700">
+                      <h4 className="text-sm  text-slate-700">
                         Data (Computed)
                       </h4>
                       <div className="flex bg-slate-100 rounded border">
                         <button
                           onClick={() => setViewMode("raw")}
                           className={`px-2 py-1 text-xs rounded-l transition-colors border-r ${
-                            viewMode === "raw" 
-                              ? "bg-white text-blue-600" 
+                            viewMode === "raw"
+                              ? "bg-white text-blue-600"
                               : "text-slate-600 hover:text-slate-900"
                           }`}
                           title="Raw JSON"
@@ -329,8 +329,8 @@ export default function ConfigViewModal({
                         <button
                           onClick={() => setViewMode("tree")}
                           className={`px-2 py-1 text-xs rounded-r transition-colors ${
-                            viewMode === "tree" 
-                              ? "bg-white text-blue-600" 
+                            viewMode === "tree"
+                              ? "bg-white text-blue-600"
                               : "text-slate-600 hover:text-slate-900"
                           }`}
                           title="Tree view"
@@ -372,15 +372,13 @@ export default function ConfigViewModal({
             <div className="flex flex-col h-full">
               <div className="mb-2 flex items-center justify-between flex-shrink-0">
                 <div className="flex items-center gap-2">
-                  <h4 className="text-sm font-medium text-slate-700">
-                    Data (Computed)
-                  </h4>
+                  <h4 className="text-sm  text-slate-700">Data (Computed)</h4>
                   <div className="flex bg-slate-100 rounded">
                     <button
                       onClick={() => setViewMode("tree")}
                       className={`px-2 py-1 text-xs rounded transition-colors ${
-                        viewMode === "tree" 
-                          ? "bg-white text-blue-600 shadow-sm" 
+                        viewMode === "tree"
+                          ? "bg-white text-blue-600 shadow-sm"
                           : "text-slate-600 hover:text-slate-900"
                       }`}
                       title="Tree view"
@@ -390,8 +388,8 @@ export default function ConfigViewModal({
                     <button
                       onClick={() => setViewMode("raw")}
                       className={`px-2 py-1 text-xs rounded transition-colors ${
-                        viewMode === "raw" 
-                          ? "bg-white text-blue-600 shadow-sm" 
+                        viewMode === "raw"
+                          ? "bg-white text-blue-600 shadow-sm"
                           : "text-slate-600 hover:text-slate-900"
                       }`}
                       title="Raw JSON"

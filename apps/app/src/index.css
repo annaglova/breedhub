@@ -9,18 +9,28 @@
 /* Hide caret in non-input elements (dropdowns, dialogs etc) */
 /* Exclude input and textarea to keep caret visible where user types */
 div:not(:has(> input:focus)):not(:has(> textarea:focus)),
-span, button, [role="listbox"], [role="option"], [role="dialog"] {
+span,
+button,
+[role="listbox"],
+[role="option"],
+[role="dialog"] {
   caret-color: transparent;
 }
 
 /* Ensure inputs and textareas always show caret */
-input, textarea {
+input,
+textarea {
   caret-color: auto;
 }
 
 /* Heading Typography - Using Roboto for visual hierarchy */
-h1, h2, h3, h4, h5, h6 {
-  font-family: 'Roboto', sans-serif;
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: "Roboto", sans-serif;
 }
 
 h1 {
@@ -35,9 +45,6 @@ h3 {
   @apply font-semibold;
 }
 
-h4 {
-  @apply font-medium;
-}
 
 /* Layout container styles */
 .layout-container {
@@ -47,11 +54,11 @@ h4 {
 
 /* Hide scrollbar utility */
 .scrollbar-hide {
-  -ms-overflow-style: none;  /* IE and Edge */
-  scrollbar-width: none;  /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
 }
 .scrollbar-hide::-webkit-scrollbar {
-  display: none;  /* Chrome, Safari and Opera */
+  display: none; /* Chrome, Safari and Opera */
 }
 
 /* Loading bar animation */
@@ -95,25 +102,27 @@ h4 {
 }
 
 .loading-bar-indeterminate::before {
-  content: '';
+  content: "";
   position: absolute;
   background-color: rgb(var(--primary));
   top: 0;
   left: 0;
   bottom: 0;
   will-change: left, right;
-  animation: loading-indeterminate 2.1s cubic-bezier(0.65, 0.815, 0.735, 0.395) infinite;
+  animation: loading-indeterminate 2.1s cubic-bezier(0.65, 0.815, 0.735, 0.395)
+    infinite;
 }
 
 .loading-bar-indeterminate::after {
-  content: '';
+  content: "";
   position: absolute;
   background-color: rgb(var(--primary));
   top: 0;
   left: 0;
   bottom: 0;
   will-change: left, right;
-  animation: loading-indeterminate-short 2.1s cubic-bezier(0.165, 0.84, 0.44, 1) infinite;
+  animation: loading-indeterminate-short 2.1s cubic-bezier(0.165, 0.84, 0.44, 1)
+    infinite;
   animation-delay: 1.15s;
 }
 

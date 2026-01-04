@@ -1,6 +1,5 @@
 import { cn } from "@ui/lib/utils";
 
-
 const requirements = [
   { regex: /.{8,}/ },
   { regex: /[A-Z]/ },
@@ -16,19 +15,21 @@ interface PasswordRequirementsProps {
   className?: string;
 }
 
-export function PasswordRequirements({ 
-  password, 
+export function PasswordRequirements({
+  password,
   showTitle = true,
   compact = false,
-  className 
+  className,
 }: PasswordRequirementsProps) {
-  const metRequirements = password ? requirements.filter(req => req.regex.test(password)).length : 0;
+  const metRequirements = password
+    ? requirements.filter((req) => req.regex.test(password)).length
+    : 0;
   const strength = Math.min(metRequirements, 5);
 
   const strengthLabels = ["Very Weak", "Weak", "Fair", "Good", "Strong"];
   const strengthColors = [
     "text-red-600",
-    "text-orange-600", 
+    "text-orange-600",
     "text-yellow-600",
     "text-blue-600",
     "text-green-600",
@@ -37,7 +38,8 @@ export function PasswordRequirements({
   if (compact && !password) {
     return (
       <div className={cn("text-xs text-slate-500", className)}>
-        Password must contain at least 8 characters, uppercase & lowercase letters, numbers, and special characters.
+        Password must contain at least 8 characters, uppercase & lowercase
+        letters, numbers, and special characters.
       </div>
     );
   }
@@ -49,14 +51,14 @@ export function PasswordRequirements({
         <div className="flex items-center justify-between mb-2">
           <span className="text-sm text-slate-600">Password strength:</span>
           {password ? (
-            <span className={cn("text-sm font-medium", strengthColors[strength - 1])}>
+            <span className={cn("text-sm ", strengthColors[strength - 1])}>
               {strengthLabels[strength - 1]}
             </span>
           ) : (
             <span className="text-sm text-slate-400">Not entered</span>
           )}
         </div>
-        
+
         {/* Strength bars - always visible */}
         <div className="flex gap-1">
           {[...Array(5)].map((_, i) => (
@@ -78,15 +80,18 @@ export function PasswordRequirements({
           ))}
         </div>
       </div>
-      
+
       {/* Password Requirements - Always visible */}
       <div>
-        <p className={cn(
-          "leading-relaxed",
-          compact ? "text-xs" : "text-sm",
-          password ? "text-slate-600" : "text-slate-500"
-        )}>
-          Your password must be at least 8 characters long and include uppercase and lowercase letters, numbers, and special characters.
+        <p
+          className={cn(
+            "leading-relaxed",
+            compact ? "text-xs" : "text-sm",
+            password ? "text-slate-600" : "text-slate-500"
+          )}
+        >
+          Your password must be at least 8 characters long and include uppercase
+          and lowercase letters, numbers, and special characters.
         </p>
       </div>
     </div>

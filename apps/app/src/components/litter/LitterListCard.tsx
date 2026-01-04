@@ -1,7 +1,7 @@
-import { EntityListCardWrapper } from "@/components/space/EntityListCardWrapper";
 import { NoteFlag } from "@/components/shared/NoteFlag";
-import { TierMark } from "@/components/shared/TierMark";
 import { PetServices } from "@/components/shared/PetServices";
+import { TierMark } from "@/components/shared/TierMark";
+import { EntityListCardWrapper } from "@/components/space/EntityListCardWrapper";
 // TODO: Uncomment when connecting real data
 // import { useDictionaryValue } from "@/hooks/useDictionaryValue";
 
@@ -77,7 +77,7 @@ export function LitterListCard({
     // Requires product_name to display!
     TierMarks: {
       owner: { contact_name: "Mock Owner", product_name: "Professional" },
-      breeder: { contact_name: "Mock Breeder", product_name: "Supreme Patron" }
+      breeder: { contact_name: "Mock Breeder", product_name: "Supreme Patron" },
     },
     // Services - mock for visual testing (always show)
     // Must use real service IDs from SERVICE_ICONS in PetServices.tsx
@@ -100,7 +100,7 @@ export function LitterListCard({
         <div className="w-full space-y-0.5">
           {/* Name row */}
           <div className="relative flex w-[calc(100vw-82px)] space-x-1 md:w-auto">
-            <span className="truncate font-medium" title={litter.Name}>
+            <span className="truncate " title={litter.Name}>
               {litter.Name}
             </span>
             <NoteFlag isVisible={litter.HasNotes} />
@@ -138,11 +138,7 @@ export function LitterListCard({
       </div>
 
       {/* Tier Marks - positioned by component (absolute right-0) */}
-      <TierMark
-        tierMarks={litter.TierMarks}
-        mode="list"
-        className="top-3"
-      />
+      <TierMark tierMarks={litter.TierMarks} mode="list" className="top-3" />
     </EntityListCardWrapper>
   );
 }

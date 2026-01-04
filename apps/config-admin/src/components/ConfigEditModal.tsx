@@ -1,5 +1,3 @@
-import React from 'react';
-
 interface ConfigEditModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -43,7 +41,7 @@ export default function ConfigEditModal({
   hideCaption = false,
   showTags = false,
   tags = "",
-  onTagsChange
+  onTagsChange,
 }: ConfigEditModalProps) {
   if (!isOpen) return null;
 
@@ -60,7 +58,7 @@ export default function ConfigEditModal({
           {/* Config ID (if editable) */}
           {allowEditId && (
             <div className="mb-4">
-              <label className="block text-sm font-medium text-slate-700 mb-1">
+              <label className="block text-sm  text-slate-700 mb-1">
                 Config ID
               </label>
               <input
@@ -79,7 +77,7 @@ export default function ConfigEditModal({
               {showTags && !hideCaption ? (
                 /* Tags field for properties - takes priority over caption */
                 <>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                  <label className="block text-sm  text-slate-700 mb-1">
                     Tags
                     <span className="text-xs text-slate-500 ml-2">
                       (comma-separated, e.g., field, string)
@@ -96,7 +94,7 @@ export default function ConfigEditModal({
               ) : !hideCaption ? (
                 /* Caption field for non-property configs */
                 <>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                  <label className="block text-sm  text-slate-700 mb-1">
                     Caption
                   </label>
                   <input
@@ -110,7 +108,7 @@ export default function ConfigEditModal({
               ) : showTags ? (
                 /* Only tags for properties when caption is hidden */
                 <>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                  <label className="block text-sm  text-slate-700 mb-1">
                     Tags
                     <span className="text-xs text-slate-500 ml-2">
                       (comma-separated, e.g., field, string)
@@ -127,7 +125,7 @@ export default function ConfigEditModal({
               ) : null}
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">
+              <label className="block text-sm  text-slate-700 mb-1">
                 Version
               </label>
               <input
@@ -143,7 +141,7 @@ export default function ConfigEditModal({
           {/* Data Field (Override Data or Self Data) - Hidden for grouping configs */}
           {!hideOverrideData && (
             <div className="mb-4">
-              <label className="block text-sm font-medium text-slate-700 mb-1">
+              <label className="block text-sm  text-slate-700 mb-1">
                 {dataFieldLabel}
               </label>
               <textarea
@@ -154,13 +152,14 @@ export default function ConfigEditModal({
               />
             </div>
           )}
-          
+
           {/* Note for grouping configs */}
           {hideOverrideData && (
             <div className="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-md">
               <p className="text-sm text-yellow-800">
-                <strong>Note:</strong> Grouping configs (fields, sort, filter) cannot have override data. 
-                Only Caption and Version can be edited.
+                <strong>Note:</strong> Grouping configs (fields, sort, filter)
+                cannot have override data. Only Caption and Version can be
+                edited.
               </p>
             </div>
           )}

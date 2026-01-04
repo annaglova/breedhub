@@ -1,7 +1,7 @@
+import { Button } from "@ui/components/button";
+import { cn } from "@ui/lib/utils";
 import { ArrowLeft, ChevronLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { cn } from "@ui/lib/utils";
-import { Button } from "@ui/components/button";
 
 interface BackButtonProps {
   to?: string;
@@ -11,12 +11,12 @@ interface BackButtonProps {
   onClick?: () => void;
 }
 
-export function BackButton({ 
-  to, 
-  label = "Back", 
+export function BackButton({
+  to,
+  label = "Back",
   variant = "text",
   className,
-  onClick 
+  onClick,
 }: BackButtonProps) {
   const navigate = useNavigate();
 
@@ -67,7 +67,7 @@ export function BackButton({
     <button
       onClick={handleClick}
       className={cn(
-        "inline-flex items-center text-sm font-medium",
+        "inline-flex items-center text-sm ",
         "text-slate-600 hover:text-slate-900",
         "transition-colors duration-200",
         "focus:outline-none focus:ring-2 focus:ring-primary-500/20 rounded",

@@ -21,11 +21,16 @@ export function AuthHeader({
           to="/"
           className="flex items-center cursor-pointer relative z-10 rounded p-2 -m-2"
           aria-label="Go to homepage"
-          style={{ border: 'none', outline: 'none', boxShadow: 'none' }}
+          style={{ border: "none", outline: "none", boxShadow: "none" }}
         >
           <LogoText
             className="h-10 w-auto cursor-pointer"
-            style={{ marginTop: "6px", border: 'none', outline: 'none', boxShadow: 'none' }}
+            style={{
+              marginTop: "6px",
+              border: "none",
+              outline: "none",
+              boxShadow: "none",
+            }}
           />
         </Link>
       </div>
@@ -38,7 +43,7 @@ export function AuthHeader({
               </span>
               <Link to={rightButtonLink}>
                 <button
-                  className="rounded-full font-medium text-base px-6 py-2.5 transform transition-all duration-300 hover:scale-105 text-white relative overflow-hidden bg-primary-500 hover:bg-primary-600 border-2 border-primary-500 hover:border-primary-600"
+                  className="rounded-full  text-base px-6 py-2.5 transform transition-all duration-300 hover:scale-105 text-white relative overflow-hidden bg-primary-500 hover:bg-primary-600 border-2 border-primary-500 hover:border-primary-600"
                   aria-label={rightButtonText}
                 >
                   {rightButtonText}

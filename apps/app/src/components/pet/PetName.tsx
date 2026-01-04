@@ -1,5 +1,5 @@
-import { VerificationBadge } from "@/components/shared/VerificationBadge";
 import { PetSexMark } from "@/components/shared/PetSexMark";
+import { VerificationBadge } from "@/components/shared/VerificationBadge";
 import { useCollectionValue } from "@/hooks/useCollectionValue";
 import { useDictionaryValue } from "@/hooks/useDictionaryValue";
 import { NoteFlagButton } from "@ui/components/note-flag-button";
@@ -107,7 +107,7 @@ export function PetName({
 
       {/* Additional info: sex, status, DOB, COI */}
       <div className="flex items-center">
-        <div className="text-secondary flex flex-wrap items-center space-x-2 font-medium">
+        <div className="text-secondary flex flex-wrap items-center space-x-2 ">
           {/* Sex mark (round style) */}
           <PetSexMark sex={sexCode as any} style="round" className="shrink-0" />
 

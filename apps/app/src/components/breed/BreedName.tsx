@@ -73,7 +73,7 @@ export function BreedName({
 
       {/* Statistics */}
       <div className="flex items-center">
-        <div className="text-primary flex flex-wrap items-center space-x-2 font-medium">
+        <div className="text-primary flex flex-wrap items-center space-x-2 ">
           {/* Color indicator */}
           <div className="bg-primary-300 dark:bg-surface-400 size-4 rounded-full"></div>
 
