@@ -153,7 +153,7 @@ export function AvatarOutlet({
               <TooltipTrigger asChild>
                 <Button
                   variant="outline-secondary"
-                  className="rounded-full h-[2.6rem] w-[2.6rem] sm:w-auto sm:px-4 text-base font-semibold"
+                  className="rounded-full h-[2.25rem] w-[2.25rem] sm:w-auto sm:px-4 text-base font-semibold"
                   onClick={() => executeAction(item.action, item.actionParams)}
                   type="button"
                 >
@@ -173,7 +173,7 @@ export function AvatarOutlet({
                   <DropdownMenuTrigger asChild>
                     <Button
                       variant="ghost-secondary"
-                      className="size-[2.6rem] rounded-full p-0"
+                      className="size-[2.25rem] rounded-full p-0"
                       type="button"
                     >
                       <MoreVertical size={16} />

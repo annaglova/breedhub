@@ -42,7 +42,7 @@ export function DefaultCover({
         <div className="flex items-end z-40 relative">
           <Button
             variant="outline"
-            className="ml-auto rounded-full h-[2.6rem] px-4 bg-white/30 border-white text-white hover:bg-white/60 hover:text-white text-base font-semibold"
+            className="ml-auto rounded-full h-[2.25rem] px-4 bg-white/30 border-white text-white hover:bg-white/60 hover:text-white text-base font-semibold"
             aria-label="Become a breed patron"
             type="button"
           >

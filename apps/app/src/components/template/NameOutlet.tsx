@@ -150,7 +150,7 @@ export function NameOutlet({
               <TooltipTrigger asChild>
                 <Button
                   variant="outline-secondary"
-                  className="rounded-full h-[2.6rem] px-4 text-base font-semibold mr-4"
+                  className="rounded-full h-[2.25rem] px-4 text-base font-semibold mr-4"
                   onClick={() => executeAction("edit")}
                   type="button"
                 >
@@ -169,8 +169,8 @@ export function NameOutlet({
                 variant="accent"
                 className={
                   showFullPatronateButton
-                    ? "rounded-full h-[2.6rem] px-4 flex items-center"
-                    : "rounded-full h-[2.6rem] w-[2.6rem] flex items-center justify-center"
+                    ? "rounded-full h-[2.25rem] px-4 flex items-center"
+                    : "rounded-full h-[2.25rem] w-[2.25rem] flex items-center justify-center"
                 }
                 onClick={() => executeAction("support")}
                 type="button"
@@ -192,7 +192,7 @@ export function NameOutlet({
                   <DropdownMenuTrigger asChild>
                     <Button
                       variant="ghost-secondary"
-                      className="size-[2.6rem] rounded-full p-0"
+                      className="size-[2.25rem] rounded-full p-0"
                       type="button"
                     >
                       <MoreVertical size={16} />
@@ -224,7 +224,7 @@ export function NameOutlet({
               <TooltipTrigger asChild>
                 <Button
                   variant="ghost-secondary"
-                  className="size-[2.6rem] rounded-full p-0"
+                  className="size-[2.25rem] rounded-full p-0"
                   onClick={() => console.log("[TODO] More options")}
                   type="button"
                 >

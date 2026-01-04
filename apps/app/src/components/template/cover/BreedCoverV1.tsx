@@ -289,7 +289,7 @@ export function BreedCoverV1({
             <TooltipTrigger asChild>
               <Button
                 variant="accent"
-                className="hidden ml-auto rounded-full h-[2.6rem] px-4 sm:flex"
+                className="hidden ml-auto rounded-full h-[2.25rem] px-4 sm:flex"
                 aria-label="Become a breed patron"
                 onClick={handleBecomePatron}
                 type="button"
@@ -308,7 +308,7 @@ export function BreedCoverV1({
             <TooltipTrigger asChild>
               <Button
                 variant="accent"
-                className="ml-auto rounded-full h-[2.6rem] w-[2.6rem] flex items-center justify-center sm:hidden"
+                className="ml-auto rounded-full h-[2.25rem] w-[2.25rem] flex items-center justify-center sm:hidden"
                 aria-label="Become a breed patron"
                 onClick={handleBecomePatron}
                 type="button"

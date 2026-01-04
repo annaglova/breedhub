@@ -70,7 +70,7 @@
 
 /* Custom button sizes */
 .small-button {
-  height: 2.6rem !important;
+  height: 2.25rem !important;
   font-size: 0.875rem !important; /* text-base */
   font-weight: 600 !important; /* font-semibold */
 }
@@ -97,8 +97,8 @@
 
 /* Icon button variant - for circular icon-only buttons */
 .small-button-icon {
-  width: 2.6rem !important;
-  height: 2.6rem !important;
+  width: 2.25rem !important;
+  height: 2.25rem !important;
   padding: 0 !important;
 }
 
