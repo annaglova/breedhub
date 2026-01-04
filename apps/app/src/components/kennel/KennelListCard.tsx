@@ -156,7 +156,7 @@ export function KennelListCard({
         <div className="ml-4 w-full space-y-0.5">
           {/* Name row */}
           <div className="relative flex w-[calc(100vw-122px)] space-x-1 md:w-auto">
-            <span className="truncate " title={kennel.Name}>
+            <span className="text-md truncate" title={kennel.Name}>
               {kennel.Name}
             </span>
             <NoteFlag isVisible={kennel.HasNotes} />

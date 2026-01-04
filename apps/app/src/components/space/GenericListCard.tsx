@@ -18,7 +18,7 @@ export function GenericListCard<
       )}
       onClick={onClick}
     >
-      <div className="">
+      <div className="text-md">
         {entity.Name || entity.name || entity.Id || entity.id || "Unnamed"}
       </div>
       <div className="text-sm text-slate-500 mt-1">

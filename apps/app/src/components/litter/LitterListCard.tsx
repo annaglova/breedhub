@@ -100,7 +100,7 @@ export function LitterListCard({
         <div className="w-full space-y-0.5">
           {/* Name row */}
           <div className="relative flex w-[calc(100vw-82px)] space-x-1 md:w-auto">
-            <span className="truncate " title={litter.Name}>
+            <span className="text-md truncate" title={litter.Name}>
               {litter.Name}
             </span>
             <NoteFlag isVisible={litter.HasNotes} />
