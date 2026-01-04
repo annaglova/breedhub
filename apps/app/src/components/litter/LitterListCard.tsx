@@ -103,7 +103,7 @@ export function LitterListCard({
         <div className="w-full">
           {/* Father row */}
           <div className="relative flex w-[calc(100vw-82px)] items-center space-x-1.5 md:w-auto">
-            <div className="size-2 rounded-full bg-blue-500 flex-shrink-0" />
+            <div className="size-2 rounded-full bg-blue-300 dark:bg-blue-400 flex-shrink-0" />
             <span
               className="text-sm uppercase truncate"
               title={litter.FatherName}
@@ -115,7 +115,7 @@ export function LitterListCard({
 
           {/* Mother row */}
           <div className="relative flex w-[calc(100vw-82px)] items-center space-x-1.5 md:w-auto">
-            <div className="size-2 rounded-full bg-pink-500 flex-shrink-0" />
+            <div className="size-2 rounded-full bg-pink-300 dark:bg-pink-400 flex-shrink-0" />
             <span
               className="text-sm uppercase truncate"
               title={litter.MotherName}
