@@ -71,19 +71,34 @@ export function KennelListCard({
       : "outline-slate-300 dark:outline-slate-400";
   };
 
-  // Extract data from the entity - handle both DB format and mock format
+  // Mock data for UI development - will be replaced with real data
   const kennel = {
     Id: entity.id,
     Name: entity.name || "Unknown",
     Avatar: entity.avatar_url,
-    HasUser: entity.has_user,
-    VerificationStatus: entity.verification_status_id || entity.verification_status,
-    OwnerName: entity.owner_name || entity.owner?.name,
-    FederationName: entity.federation_name || entity.federation?.alternative_name || entity.federation?.name,
-    FoundationYear: getYear(entity.company_foundation_date, entity.established_year),
-    HasNotes: entity.has_notes ?? !!entity.notes,
-    TierMarks: entity.tier_marks,
-    Services: entity.services,
+    // HasUser - mock for visual testing (always show outline)
+    HasUser: true,
+    // VerificationStatus - mock for visual testing (always show verified)
+    VerificationStatus: "verified",
+    // Owner - mock for visual testing (always show)
+    OwnerName: "Mock Owner",
+    // Federation - mock for visual testing (always show)
+    FederationName: "AKC",
+    // Foundation year - mock for visual testing (always show)
+    FoundationYear: "2010",
+    // Notes - mock for visual testing (always show)
+    HasNotes: true,
+    // Tier marks - mock for visual testing (always show)
+    // Requires product_name to display!
+    TierMarks: {
+      owner: { contact_name: "Mock Owner", product_name: "Professional" },
+    },
+    // Services - mock for visual testing (always show)
+    // Must use real service IDs from SERVICE_ICONS in PetServices.tsx
+    Services: {
+      "1": "3370ee61-86de-49ae-a8ec-5cef5f213ecd", // Children for sale
+      "2": "ea48e37d-8f65-4122-bc00-d012848d78ae", // Mating
+    },
   };
 
   // Get first letter for fallback avatar
