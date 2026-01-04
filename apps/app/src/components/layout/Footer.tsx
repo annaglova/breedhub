@@ -65,9 +65,16 @@ export const Footer = forwardRef<HTMLElement, FooterProps>(
             <span className="text-red-400 text-xs">Error</span>
           ) : (
             navItems.map((item) => {
+              // Home workspace is active for breeds, pets, kennels, litters, contacts, events
               const isActive =
                 location.pathname === item.path ||
-                (item.path === "/" && location.pathname.startsWith("/breeds"));
+                (item.path === "/" &&
+                  (location.pathname.startsWith("/breeds") ||
+                   location.pathname.startsWith("/pet") ||
+                   location.pathname.startsWith("/kennel") ||
+                   location.pathname.startsWith("/litter") ||
+                   location.pathname.startsWith("/contact") ||
+                   location.pathname.startsWith("/event")));
 
               return (
                 <Link

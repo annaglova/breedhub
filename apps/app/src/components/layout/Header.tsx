@@ -98,10 +98,16 @@ export const Header = forwardRef<HTMLElement, HeaderProps>(
                 ) : (
                   // Always show workspaces (either default or from DB)
                   navItems.map((item) => {
+                    // Home workspace is active for breeds, pets, kennels, litters, contacts, events
                     const isActive =
                       location.pathname === item.path ||
                       (item.path === "/" &&
-                        location.pathname.startsWith("/breeds"));
+                        (location.pathname.startsWith("/breeds") ||
+                         location.pathname.startsWith("/pet") ||
+                         location.pathname.startsWith("/kennel") ||
+                         location.pathname.startsWith("/litter") ||
+                         location.pathname.startsWith("/contact") ||
+                         location.pathname.startsWith("/event")));
 
                     return (
                       <Tooltip key={item.id}>
