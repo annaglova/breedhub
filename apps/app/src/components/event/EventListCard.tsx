@@ -96,3 +96,17 @@ export function EventListCard({
     </EntityListCardWrapper>
   );
 }
+
+/**
+ * Skeleton for EventListCard - no avatar, just text placeholders
+ */
+EventListCard.Skeleton = function EventListCardSkeleton() {
+  return (
+    <div className="flex items-center gap-3 px-4 sm:px-7 h-[68px] animate-pulse border-b border-surface-border">
+      <div className="flex-1 min-w-0 space-y-2">
+        <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded-full w-3/4" />
+        <div className="h-3 bg-slate-200 dark:bg-slate-700 rounded-full w-1/2" />
+      </div>
+    </div>
+  );
+};

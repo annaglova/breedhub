@@ -54,14 +54,12 @@ interface ListCardSkeletonListProps {
   count?: number;
   itemHeight?: number;
   dividers?: boolean;
-  hasAvatar?: boolean;
 }
 
 export function ListCardSkeletonList({
   count = 8,
   itemHeight = 68,
   dividers = true,
-  hasAvatar = false
 }: ListCardSkeletonListProps) {
   return (
     <div>
@@ -71,10 +69,8 @@ export function ListCardSkeletonList({
           className={`flex items-center gap-3 px-4 sm:px-7 animate-pulse ${dividers ? "border-b border-surface-border" : ""}`}
           style={{ height: itemHeight }}
         >
-          {/* Avatar skeleton - only if hasAvatar is true */}
-          {hasAvatar && (
-            <div className="size-11 rounded-full bg-slate-200 dark:bg-slate-700 shrink-0" />
-          )}
+          {/* Avatar skeleton */}
+          <div className="size-11 rounded-full bg-slate-200 dark:bg-slate-700 shrink-0" />
 
           {/* Text content */}
           <div className="flex-1 min-w-0 space-y-2">

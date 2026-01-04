@@ -16,7 +16,6 @@ interface ViewConfig {
   dividers: boolean;
   overscan: number;
   skeletonCount?: number;
-  hasAvatar?: boolean;
   columns?:
     | number
     | {
@@ -241,6 +240,9 @@ export function SpaceView<T extends { id: string }>({
   if (isLoading && entities.length === 0) {
     const skeletonCount = viewConfig.skeletonCount || DEFAULT_SKELETON_COUNT;
 
+    // Check if component has custom skeleton
+    const CustomSkeleton = (CardComponent as any).Skeleton;
+
     return (
       <div
         ref={parentRef}
@@ -256,13 +258,19 @@ export function SpaceView<T extends { id: string }>({
               <GridCardSkeleton key={i} itemHeight={viewConfig.itemHeight} />
             ))}
           </div>
+        ) : CustomSkeleton ? (
+          // Custom skeleton from component
+          <div>
+            {Array.from({ length: skeletonCount }).map((_, i) => (
+              <CustomSkeleton key={i} />
+            ))}
+          </div>
         ) : (
-          // List skeleton - count, height, dividers, hasAvatar from config
+          // Default list skeleton
           <ListCardSkeletonList
             count={skeletonCount}
             itemHeight={viewConfig.itemHeight}
             dividers={viewConfig.dividers}
-            hasAvatar={viewConfig.hasAvatar}
           />
         )}
       </div>
