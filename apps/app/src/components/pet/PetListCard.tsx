@@ -174,7 +174,7 @@ export function PetListCard({
             </div>
 
             {/* Pet Services - right side of info row */}
-            <PetServices services={pet.Services} className="ml-auto" />
+            <PetServices services={pet.Services} className="ml-auto mt-1" />
           </div>
         </div>
       </div>

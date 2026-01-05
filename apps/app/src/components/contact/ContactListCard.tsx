@@ -184,7 +184,7 @@ export function ContactListCard({
             </div>
 
             {/* Breed Patronage icons - right side of info row */}
-            <div className="ml-auto flex space-x-1">
+            <div className="ml-auto flex space-x-1 mt-1">
               {contact.BreedPatronage?.map((patronage) => (
                 <span
                   key={patronage.breed_id}

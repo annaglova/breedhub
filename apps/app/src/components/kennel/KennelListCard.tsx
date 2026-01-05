@@ -188,7 +188,7 @@ export function KennelListCard({
             </div>
 
             {/* Pet Services - right side of info row */}
-            <PetServices services={kennel.Services} className="ml-auto" />
+            <PetServices services={kennel.Services} className="ml-auto mt-1" />
           </div>
         </div>
       </div>
