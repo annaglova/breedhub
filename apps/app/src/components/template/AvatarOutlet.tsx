@@ -143,8 +143,12 @@ export function AvatarOutlet({
     <div
       className={`${avatarConfig.offset} ${avatarConfig.padding} flex flex-auto items-end relative pb-3 top-0 z-30 pointer-events-none ${className}`}
     >
-      {/* Avatar - entity-specific component via children */}
-      {hasAvatar && <div className="pointer-events-auto">{children}</div>}
+      {/* Avatar - entity-specific component via children, or spacer to maintain layout */}
+      {hasAvatar ? (
+        <div className="pointer-events-auto">{children}</div>
+      ) : (
+        <div className={avatarConfig.size} />
+      )}
 
       {/* Action buttons - strictly config-driven, no fallbacks */}
       {hasActions && (hasButtons || hasMenuItems) && (
