@@ -1,5 +1,7 @@
+import defaultDogImage from "@/assets/images/pettypes/dog.jpeg";
 import type { SexCode } from "@/components/shared/PetSexMark";
 import { PetSexMark } from "@/components/shared/PetSexMark";
+import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import type { PedigreePet } from "./types";
 
@@ -20,6 +22,45 @@ function formatYear(dateString?: string): string {
   } catch {
     return "";
   }
+}
+
+/**
+ * PetImage - Image with fallback to default dog image
+ */
+function PetImage({
+  src,
+  alt,
+  className = "",
+}: {
+  src?: string;
+  alt: string;
+  className?: string;
+}) {
+  const [imgSrc, setImgSrc] = useState(src || defaultDogImage);
+  const [hasError, setHasError] = useState(false);
+
+  const handleError = useCallback(() => {
+    if (!hasError) {
+      setHasError(true);
+      setImgSrc(defaultDogImage);
+    }
+  }, [hasError]);
+
+  // Reset when src changes
+  useEffect(() => {
+    setImgSrc(src || defaultDogImage);
+    setHasError(false);
+  }, [src]);
+
+  return (
+    <img
+      className={className}
+      src={imgSrc}
+      alt={alt}
+      loading="lazy"
+      onError={handleError}
+    />
+  );
 }
 
 /**
@@ -67,15 +108,11 @@ export function PedigreeCard({ pet, sex, level }: PedigreeCardProps) {
 
         {/* Avatar 176px */}
         <div className="flex size-44 items-center justify-center overflow-hidden rounded-xl border border-border relative">
-          {pet.avatarUrl ? (
-            <img
-              className="w-full h-auto max-h-[200%] absolute inset-0 m-auto"
-              src={pet.avatarUrl}
-              alt={pet.name}
-            />
-          ) : (
-            <div className="size-full bg-secondary-100 dark:bg-secondary-800" />
-          )}
+          <PetImage
+            className="w-full h-auto max-h-[200%] absolute inset-0 m-auto"
+            src={pet.avatarUrl}
+            alt={pet.name}
+          />
         </div>
 
         {!isEmpty ? (
@@ -155,15 +192,11 @@ export function PedigreeCard({ pet, sex, level }: PedigreeCardProps) {
             <div className="flex w-full items-center h-full">
               {/* Avatar 104px */}
               <div className="h-26 w-26 min-w-26 flex items-center justify-center overflow-hidden rounded-xl border border-border relative">
-                {pet.avatarUrl ? (
-                  <img
-                    className="w-full h-auto max-h-[200%] absolute inset-0 m-auto"
-                    src={pet.avatarUrl}
-                    alt={pet.name}
-                  />
-                ) : (
-                  <div className="size-full bg-secondary-100 dark:bg-secondary-800" />
-                )}
+                <PetImage
+                  className="w-full h-auto max-h-[200%] absolute inset-0 m-auto"
+                  src={pet.avatarUrl}
+                  alt={pet.name}
+                />
               </div>
 
               {/* Titles */}
@@ -209,15 +242,11 @@ export function PedigreeCard({ pet, sex, level }: PedigreeCardProps) {
       <div className="card card-rounded min-w-72 max-w-72 p-3 flex min-h-[92.88px] bg-even-card-ground">
         {/* Avatar 64px */}
         <div className="size-16 min-w-16 overflow-hidden self-center rounded-xl border border-border relative">
-          {pet.avatarUrl ? (
-            <img
-              className="w-full h-auto max-h-[200%] absolute inset-0 m-auto"
-              src={pet.avatarUrl}
-              alt={pet.name}
-            />
-          ) : (
-            <div className="size-full bg-secondary-100 dark:bg-secondary-800" />
-          )}
+          <PetImage
+            className="w-full h-auto max-h-[200%] absolute inset-0 m-auto"
+            src={pet.avatarUrl}
+            alt={pet.name}
+          />
         </div>
 
         <div className="ml-2 flex w-full flex-col items-center">
