@@ -1,4 +1,5 @@
 import { BreedCoverV1 } from '../template/cover/BreedCoverV1';
+import { DefaultCover } from '../template/cover/DefaultCover';
 import { AvatarOutlet } from '../template/AvatarOutlet';
 import { CoverOutlet } from '../template/CoverOutlet';
 import { NameOutlet } from '../template/NameOutlet';
@@ -29,6 +30,7 @@ const OUTLET_COMPONENTS: Record<string, React.ComponentType<any>> = {
  */
 const BLOCK_COMPONENTS: Record<string, React.ComponentType<any>> = {
   'BreedCoverV1': BreedCoverV1,
+  'DefaultCover': DefaultCover,
   'EntityAvatar': EntityAvatar,
   'BreedAvatar': EntityAvatar, // Alias for backwards compatibility
   'BreedName': BreedName,

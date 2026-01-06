@@ -9,6 +9,7 @@ import {
 import { Heart } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { CoverTemplate } from "./CoverTemplate";
+import { DefaultCover } from "./DefaultCover";
 import { PatronAvatar } from "./PatronAvatar";
 
 // Import default cover image as asset (Vite will process this correctly)
@@ -201,6 +202,22 @@ export function BreedCoverV1({
   };
 
   if (!entity) return null;
+
+  // Fallback to DefaultCover when:
+  // - Entity is not a breed AND has no breed_id to load breed from
+  // - OR entity has breed_id but breed failed to load (still null after attempt)
+  const hasNoBreedData = !isBreedEntity && !breedId;
+  const breedFailedToLoad = !isBreedEntity && breedId && !loadedBreed;
+
+  if (hasNoBreedData) {
+    return (
+      <DefaultCover
+        coverImg={actualCoverImg}
+        isFullscreen={isFullscreen}
+        className={className}
+      />
+    );
+  }
 
   return (
     <CoverTemplate coverImg={actualCoverImg} className={className}>
