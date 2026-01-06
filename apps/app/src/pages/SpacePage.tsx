@@ -166,6 +166,14 @@ export function SpacePage({ entityType, selectedEntityId, selectedSlug, tabSlug 
         useEntitiesHook={useEntitiesHook}
         initialSelectedEntityId={selectedEntityId}
         initialSelectedSlug={selectedSlug}
+        drawerFallback={
+          <DetailComponent
+            isDrawerMode={false}
+            isFullscreenMode={true}
+            spaceConfigSignal={spaceConfigSignal}
+            entityType={entityType}
+          />
+        }
       >
         <DetailComponent
           isDrawerMode={false}
