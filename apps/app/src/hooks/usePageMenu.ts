@@ -56,8 +56,13 @@ export function usePageMenu({
         ...item
       }))
       .filter(item => {
+        // Skip items without visibility config
+        if (!item.visibility) {
+          return false;
+        }
+
         // 1. Check if item should appear in this context
-        if (!item.visibility.contexts.includes(context)) {
+        if (!item.visibility.contexts?.includes(context)) {
           return false;
         }
 
