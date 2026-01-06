@@ -91,7 +91,14 @@ export function CoverOutlet({
       }
 
       if (parentWidth > 0) {
-        setDimensions(calculateCoverDimensions(parentWidth));
+        // Only update if dimensions actually changed to prevent re-render loop
+        setDimensions(prev => {
+          const newDims = calculateCoverDimensions(parentWidth);
+          if (prev.width === newDims.width && prev.height === newDims.height) {
+            return prev;
+          }
+          return newDims;
+        });
       }
     };
 
@@ -107,7 +114,14 @@ export function CoverOutlet({
       for (const entry of entries) {
         const parentWidth = entry.contentRect.width;
         if (parentWidth > 0) {
-          setDimensions(calculateCoverDimensions(parentWidth));
+          // Only update if dimensions actually changed
+          setDimensions(prev => {
+            const newDims = calculateCoverDimensions(parentWidth);
+            if (prev.width === newDims.width && prev.height === newDims.height) {
+              return prev;
+            }
+            return newDims;
+          });
         }
       }
     });

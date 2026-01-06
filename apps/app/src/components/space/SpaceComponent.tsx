@@ -49,6 +49,8 @@ interface SpaceComponentProps<T> {
   initialSelectedSlug?: string;
   // Children to render in drawer (when initialSelectedEntityId is provided)
   children?: React.ReactNode;
+  // Fallback content for drawer when no entity selected (config-driven skeleton)
+  drawerFallback?: React.ReactNode;
 }
 
 export function SpaceComponent<T extends { id: string }>({
@@ -57,6 +59,7 @@ export function SpaceComponent<T extends { id: string }>({
   initialSelectedEntityId,
   initialSelectedSlug,
   children,
+  drawerFallback,
 }: SpaceComponentProps<T>) {
   useSignals();
 
@@ -1426,8 +1429,8 @@ export function SpaceComponent<T extends { id: string }>({
               "rounded-l-xl overflow-hidden"
             )}
           >
-            {/* PublicPageTemplate handles its own loading skeletons via outlets */}
-            {children || <Outlet />}
+            {/* Show config-driven skeleton when no entity selected */}
+            {children || (selectedEntityId ? <Outlet /> : drawerFallback)}
           </div>
         )}
       </div>
@@ -1636,7 +1639,9 @@ export function SpaceComponent<T extends { id: string }>({
                 : "translate-x-full opacity-0 pointer-events-none"
             )}
           >
-            <div className="h-full overflow-auto">{children || <Outlet />}</div>
+            <div className="h-full overflow-auto">
+              {children || (selectedEntityId ? <Outlet /> : drawerFallback)}
+            </div>
           </div>
         )}
       </div>

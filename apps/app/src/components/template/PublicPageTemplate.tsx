@@ -6,7 +6,7 @@ import { spaceStore } from "@breedhub/rxdb-store";
 import { Signal } from "@preact/signals-react";
 import { useSignals } from "@preact/signals-react/runtime";
 import { cn } from "@ui/lib/utils";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 
 /**
  * Get default tab fragment from page config
@@ -92,13 +92,6 @@ export function PublicPageTemplate({
   spaceConfigSignal,
   entityType,
 }: PublicPageTemplateProps) {
-  // Very first log - check if component renders at all
-  console.log("[PublicPageTemplate] COMPONENT RENDER START", {
-    isDrawerMode,
-    isFullscreenMode,
-    entityType,
-  });
-
   useSignals();
 
   // Use spaceConfig from signal
@@ -123,16 +116,6 @@ export function PublicPageTemplate({
     : null;
   const selectedEntity = selectedEntitySignal?.value;
 
-  // Debug logging
-  if (process.env.NODE_ENV === "development") {
-    console.log("[PublicPageTemplate] State:", {
-      hasSpaceConfig: !!spaceConfig,
-      hasPageConfig: !!pageConfig,
-      hasSelectedEntity: !!selectedEntity,
-      pageConfig,
-      selectedEntity,
-    });
-  }
 
   // Refs for sticky behavior and scroll
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -200,76 +183,6 @@ export function PublicPageTemplate({
     return () => resizeObserver.disconnect();
   }, []);
 
-  // TODO: mockBreed can be removed when entity data is fully dynamic
-  const mockBreed = {
-    Id: "mock-breed-1",
-    Name: "German Shepherd",
-    TopPatrons: [
-      {
-        Id: "1",
-        Contact: {
-          Name: "John Doe",
-          Url: "john-doe",
-          AvatarUrl: "https://i.pravatar.cc/150?img=12",
-        },
-        Place: 1,
-        Rating: 100,
-      },
-      {
-        Id: "2",
-        Contact: {
-          Name: "Jane Smith",
-          Url: "jane-smith",
-          AvatarUrl: "https://i.pravatar.cc/150?img=47",
-        },
-        Place: 2,
-        Rating: 90,
-      },
-      {
-        Id: "3",
-        Contact: {
-          Name: "Bob Johnson",
-          Url: "bob-johnson",
-          AvatarUrl: "https://i.pravatar.cc/150?img=33",
-        },
-        Place: 3,
-        Rating: 80,
-      },
-    ], // Top patrons
-    // TopPatrons: [
-    //   {
-    //     Id: "1",
-    //     Contact: {
-    //       Name: "John Doe",
-    //       Url: "john-doe",
-    //       AvatarUrl: "https://i.pravatar.cc/150?img=12",
-    //     },
-    //     Place: 1,
-    //     Rating: 100,
-    //   },
-    //   {
-    //     Id: "2",
-    //     Contact: {
-    //       Name: "Jane Smith",
-    //       Url: "jane-smith",
-    //       AvatarUrl: "https://i.pravatar.cc/150?img=47",
-    //     },
-    //     Place: 2,
-    //     Rating: 90,
-    //   },
-    //   {
-    //     Id: "3",
-    //     Contact: {
-    //       Name: "Bob Johnson",
-    //       Url: "bob-johnson",
-    //       AvatarUrl: "https://i.pravatar.cc/150?img=33",
-    //     },
-    //     Place: 3,
-    //     Rating: 80,
-    //   },
-    // ],
-  };
-
   return spaceConfigSignal ? (
     <SpaceProvider
       spaceConfigSignal={spaceConfigSignal}
@@ -313,15 +226,6 @@ export function PublicPageTemplate({
                 const sortedBlocks = Object.entries(pageConfig.blocks).sort(
                   ([, a], [, b]) => (a.order || 0) - (b.order || 0)
                 );
-
-                if (process.env.NODE_ENV === "development") {
-                  console.log("[PublicPageTemplate] Rendering blocks:", {
-                    pageConfig,
-                    selectedEntity,
-                    blocksCount: sortedBlocks.length,
-                    sortedBlocks,
-                  });
-                }
 
                 // Render each block with its appropriate container
                 // Pass isLoading to each block - outlets will show skeletons when loading
