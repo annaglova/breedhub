@@ -685,13 +685,20 @@ export function SpaceComponent<T extends { id: string }>({
   ]);
 
   // Initialize selection from props (for pretty URLs via SlugResolver)
-  // This runs ONCE on mount when initialSelectedEntityId is provided
+  // This runs when initialSelectedEntityId changes (entity navigation in pretty URL mode)
   useEffect(() => {
     if (initialSelectedEntityId) {
       console.log("[SpaceComponent] Initializing from SlugResolver:", {
         entityId: initialSelectedEntityId,
         slug: initialSelectedSlug,
       });
+
+      // Clear any stale selection first to show skeleton while loading
+      // This prevents showing wrong entity from IndexedDB cache
+      const currentSelected = spaceStore.getSelectedId(config.entitySchemaName);
+      if (currentSelected !== initialSelectedEntityId) {
+        spaceStore.clearSelection(config.entitySchemaName);
+      }
 
       // Fetch and select entity - it may not be in the paginated list yet
       // This ensures the entity is loaded even if it's not in the first N items
@@ -710,7 +717,7 @@ export function SpaceComponent<T extends { id: string }>({
         });
       }
     }
-  }, []); // Run only once on mount
+  }, [initialSelectedEntityId, initialSelectedSlug, config.entitySchemaName, config.entitySchemaModel]);
 
   // Check if drawer should be open based on route OR initialSelectedEntityId
   // Sync EntityStore selection with URL (bidirectional)
