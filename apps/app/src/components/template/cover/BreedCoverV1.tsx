@@ -79,8 +79,9 @@ export function BreedCoverV1({
   isFullscreen = false,
   className = "",
 }: BreedCoverV1Props) {
-  // Check if entity IS a breed or HAS a breed_id reference
-  const isBreedEntity = !entity.breed_id;
+  // Check if entity IS a breed (has top_patrons) or HAS a breed_id reference
+  // Note: entities without breed_id AND without top_patrons (like events) should use DefaultCover
+  const isBreedEntity = !!entity.top_patrons;
   const breedId = entity.breed_id;
 
   // State for loaded breed (when entity has breed_id)

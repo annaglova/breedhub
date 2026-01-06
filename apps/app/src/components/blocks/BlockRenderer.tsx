@@ -31,7 +31,16 @@ export const BlockRenderer: React.FC<BlockRendererProps> = ({
   spacePermissions,
   isLoading = false,
 }) => {
-  const { outlet, component, ...restConfig } = blockConfig;
+  const { outlet, component: configComponent, ...restConfig } = blockConfig;
+
+  // Auto-detect cover component based on entity data
+  // If component is not specified or "auto" for CoverOutlet, determine automatically
+  let component = configComponent;
+  if (outlet === 'CoverOutlet' && (!configComponent || configComponent === 'auto')) {
+    // Has breed data (is breed with top_patrons, or has breed_id reference)
+    const hasBreedData = entity?.top_patrons || entity?.breed_id;
+    component = hasBreedData ? 'BreedCoverV1' : 'DefaultCover';
+  }
 
   // TabOutlet is special - it renders tabs directly without a block component
   // The tabs config is passed directly to the outlet
