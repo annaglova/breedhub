@@ -10,6 +10,7 @@ import { useTabNavigation } from "@/hooks/useTabNavigation";
  * - ../breed/tabs/**Tab.tsx
  * - ../kennel/tabs/**Tab.tsx
  * - ../pet/tabs/**Tab.tsx
+ * - ../litter/tabs/**Tab.tsx
  *
  * This allows adding new tabs without modifying this file.
  * Just create MyNewTab.tsx and reference "MyNewTab" in config.
@@ -17,6 +18,7 @@ import { useTabNavigation } from "@/hooks/useTabNavigation";
 const breedTabModules = import.meta.glob('../breed/tabs/*Tab.tsx', { eager: true });
 const kennelTabModules = import.meta.glob('../kennel/tabs/*Tab.tsx', { eager: true });
 const petTabModules = import.meta.glob('../pet/tabs/*Tab.tsx', { eager: true });
+const litterTabModules = import.meta.glob('../litter/tabs/*Tab.tsx', { eager: true });
 
 // Combine all tab modules into single registry
 const TAB_COMPONENT_REGISTRY: Record<string, React.ComponentType<any>> = {};
@@ -41,6 +43,7 @@ function registerModules(modules: Record<string, any>) {
 registerModules(breedTabModules);
 registerModules(kennelTabModules);
 registerModules(petTabModules);
+registerModules(litterTabModules);
 
 // Tab config from database
 interface TabConfig {
