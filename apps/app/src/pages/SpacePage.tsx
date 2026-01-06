@@ -127,8 +127,7 @@ export function SpacePage({ entityType, selectedEntityId, selectedSlug, tabSlug 
     );
   }
 
-  // Config should be ready - if not, return null briefly while it loads
-  // (config is pre-generated and loads quickly from app_config)
+  // Config should be pre-generated and always available
   if (!spaceConfigSignal.value) {
     return null;
   }
@@ -166,14 +165,6 @@ export function SpacePage({ entityType, selectedEntityId, selectedSlug, tabSlug 
         useEntitiesHook={useEntitiesHook}
         initialSelectedEntityId={selectedEntityId}
         initialSelectedSlug={selectedSlug}
-        drawerFallback={
-          <DetailComponent
-            isDrawerMode={false}
-            isFullscreenMode={true}
-            spaceConfigSignal={spaceConfigSignal}
-            entityType={entityType}
-          />
-        }
       >
         <DetailComponent
           isDrawerMode={false}
@@ -195,13 +186,6 @@ export function SpacePage({ entityType, selectedEntityId, selectedSlug, tabSlug 
             key={entityType}
             configSignal={spaceConfigSignal}
             useEntitiesHook={useEntitiesHook}
-            drawerFallback={
-              <DetailComponent
-                isDrawerMode={true}
-                spaceConfigSignal={spaceConfigSignal}
-                entityType={entityType}
-              />
-            }
           />
         }
       >

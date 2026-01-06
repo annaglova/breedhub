@@ -49,8 +49,6 @@ interface SpaceComponentProps<T> {
   initialSelectedSlug?: string;
   // Children to render in drawer (when initialSelectedEntityId is provided)
   children?: React.ReactNode;
-  // Fallback content for drawer when no entity selected (config-driven skeleton)
-  drawerFallback?: React.ReactNode;
 }
 
 export function SpaceComponent<T extends { id: string }>({
@@ -59,7 +57,6 @@ export function SpaceComponent<T extends { id: string }>({
   initialSelectedEntityId,
   initialSelectedSlug,
   children,
-  drawerFallback,
 }: SpaceComponentProps<T>) {
   useSignals();
 
@@ -121,46 +118,6 @@ export function SpaceComponent<T extends { id: string }>({
   const selectedEntityId = spaceStore.getSelectedIdSignal(
     config.entitySchemaName
   ).value;
-
-  // Track if selection has been verified against URL (prevents stale entity flash)
-  // Initialize based on whether we already have the correct entity selected
-  const [isSelectionVerified, setIsSelectionVerified] = useState(() => {
-    // In pretty URL mode, check if correct entity is already selected
-    if (initialSelectedEntityId) {
-      const currentSelected = spaceStore.getSelectedId(config.entitySchemaName);
-      // If selection matches expected, we're verified immediately
-      // Otherwise, we'll clear and reload (handled by effect)
-      return currentSelected === initialSelectedEntityId;
-    }
-    // In list mode, we need to verify against URL first
-    return false;
-  });
-
-  // Clear stale selection on mount to prevent showing wrong entity from IndexedDB cache
-  // The URL sync effect will restore correct selection from URL
-  useEffect(() => {
-    // Skip in pretty URL mode - handled by initialSelectedEntityId effect
-    if (initialSelectedEntityId) {
-      // If already verified (correct entity was selected), nothing to do
-      const currentSelected = spaceStore.getSelectedId(config.entitySchemaName);
-      if (currentSelected === initialSelectedEntityId) {
-        setIsSelectionVerified(true);
-        return;
-      }
-      // Wrong entity selected - will be handled by the other effect
-      // Don't set verified here, let that effect do it
-      return;
-    }
-
-    // In list mode, clear any cached selection on mount
-    // URL sync effect will set the correct one based on URL
-    const currentSelected = spaceStore.getSelectedId(config.entitySchemaName);
-    if (currentSelected) {
-      console.log("[SpaceComponent] Clearing stale selection on mount:", currentSelected);
-      spaceStore.clearSelection(config.entitySchemaName);
-    }
-    setIsSelectionVerified(true);
-  }, [config.entitySchemaName, initialSelectedEntityId]); // Only on mount/space change
 
   // Get records count from view config (динамічно!)
   const recordsCount = useMemo(() => {
@@ -725,20 +682,13 @@ export function SpaceComponent<T extends { id: string }>({
   ]);
 
   // Initialize selection from props (for pretty URLs via SlugResolver)
-  // This runs when initialSelectedEntityId changes (entity navigation in pretty URL mode)
+  // This runs ONCE on mount when initialSelectedEntityId is provided
   useEffect(() => {
     if (initialSelectedEntityId) {
       console.log("[SpaceComponent] Initializing from SlugResolver:", {
         entityId: initialSelectedEntityId,
         slug: initialSelectedSlug,
       });
-
-      // Clear any stale selection first to show skeleton while loading
-      // This prevents showing wrong entity from IndexedDB cache
-      const currentSelected = spaceStore.getSelectedId(config.entitySchemaName);
-      if (currentSelected !== initialSelectedEntityId) {
-        spaceStore.clearSelection(config.entitySchemaName);
-      }
 
       // Fetch and select entity - it may not be in the paginated list yet
       // This ensures the entity is loaded even if it's not in the first N items
@@ -757,14 +707,7 @@ export function SpaceComponent<T extends { id: string }>({
         });
       }
     }
-  }, [initialSelectedEntityId, initialSelectedSlug, config.entitySchemaName, config.entitySchemaModel]);
-
-  // Mark selection as verified when correct entity is loaded (for pretty URL mode)
-  useEffect(() => {
-    if (initialSelectedEntityId && selectedEntityId === initialSelectedEntityId && !isSelectionVerified) {
-      setIsSelectionVerified(true);
-    }
-  }, [initialSelectedEntityId, selectedEntityId, isSelectionVerified]);
+  }, []); // Run only once on mount
 
   // Check if drawer should be open based on route OR initialSelectedEntityId
   // Sync EntityStore selection with URL (bidirectional)
@@ -814,8 +757,7 @@ export function SpaceComponent<T extends { id: string }>({
           entityId = matchingEntity.id;
         } else if (allEntities.length > 0 && !isLoading) {
           // Entity not found in current filtered list
-          // On initial load, URL is source of truth - don't fall back to stale store selection
-          // On subsequent navigation, check if current selection is still valid
+          // Check if current selection is still valid in the new list
           const currentSelectedId = spaceStore.getSelectedId(
             config.entitySchemaName
           );
@@ -823,10 +765,7 @@ export function SpaceComponent<T extends { id: string }>({
             currentSelectedId &&
             allEntities.some((e) => e.id === currentSelectedId);
 
-          // Only keep current selection if:
-          // 1. Not initial load (user navigated within app)
-          // 2. Current selection is in the filtered list
-          if (!isInitialLoad && currentEntityStillInList) {
+          if (currentEntityStillInList) {
             // Current selection is still valid - keep it, just update URL to match
             const currentEntity = allEntities.find(
               (e) => e.id === currentSelectedId
@@ -843,7 +782,7 @@ export function SpaceComponent<T extends { id: string }>({
               entityId = currentSelectedId;
             }
           } else {
-            // Initial load OR entity not in list - fallback to first
+            // Current entity not in list anymore (filter changed) - fallback to first
             const firstEntity = allEntities[0];
             entityId = firstEntity.id;
             const newSlug =
@@ -1487,10 +1426,8 @@ export function SpaceComponent<T extends { id: string }>({
               "rounded-l-xl overflow-hidden"
             )}
           >
-            {/* Show config-driven skeleton when no entity selected or not verified */}
-            {isSelectionVerified
-              ? (children || (selectedEntityId ? <Outlet /> : drawerFallback))
-              : drawerFallback}
+            {/* PublicPageTemplate handles its own loading skeletons via outlets */}
+            {children || <Outlet />}
           </div>
         )}
       </div>
@@ -1699,12 +1636,7 @@ export function SpaceComponent<T extends { id: string }>({
                 : "translate-x-full opacity-0 pointer-events-none"
             )}
           >
-            <div className="h-full overflow-auto">
-              {/* Show skeleton until selection is verified against URL */}
-              {isSelectionVerified
-                ? (children || (selectedEntityId ? <Outlet /> : drawerFallback))
-                : drawerFallback}
-            </div>
+            <div className="h-full overflow-auto">{children || <Outlet />}</div>
           </div>
         )}
       </div>
