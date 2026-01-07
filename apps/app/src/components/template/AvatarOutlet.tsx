@@ -91,11 +91,13 @@ export function AvatarOutlet({
       <div
         className={`${avatarConfig.offset} ${avatarConfig.padding} flex flex-auto items-end relative pb-3 top-0 z-30 pointer-events-none ${className}`}
       >
-        {/* Avatar skeleton - only if hasAvatar */}
-        {hasAvatar && (
+        {/* Avatar skeleton - or spacer to maintain layout */}
+        {hasAvatar ? (
           <div
             className={`rounded-full bg-slate-300 dark:bg-slate-600 ring-4 ring-white dark:ring-slate-900 shrink-0 animate-pulse ${avatarConfig.size}`}
           />
+        ) : (
+          <div className={avatarConfig.size} />
         )}
 
         {/* Action buttons skeleton - only if hasActions */}
