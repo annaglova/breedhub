@@ -93,13 +93,6 @@ export function PublicPageTemplate({
   spaceConfigSignal,
   entityType,
 }: PublicPageTemplateProps) {
-  // Very first log - check if component renders at all
-  console.log("[PublicPageTemplate] COMPONENT RENDER START", {
-    isDrawerMode,
-    isFullscreenMode,
-    entityType,
-  });
-
   useSignals();
 
   // Use spaceConfig from signal
@@ -127,17 +120,6 @@ export function PublicPageTemplate({
   // Check if entity and all critical related data is fully loaded
   // This prevents "dribbling" effect where UI parts appear at different times
   const isEntityFullyLoaded = useEntityFullyLoaded(entityType, selectedEntity);
-
-  // Debug logging
-  if (process.env.NODE_ENV === "development") {
-    console.log("[PublicPageTemplate] State:", {
-      hasSpaceConfig: !!spaceConfig,
-      hasPageConfig: !!pageConfig,
-      hasSelectedEntity: !!selectedEntity,
-      pageConfig,
-      selectedEntity,
-    });
-  }
 
   // Refs for sticky behavior and scroll
   const scrollContainerRef = useRef<HTMLDivElement>(null);

@@ -1031,8 +1031,9 @@ class SpaceStore {
 
       console.log(`[SpaceStore] 📊 Loaded ${entities.length} entities from RxDB collection ${entityType}`);
 
-      // Update store with autoSelectFirst enabled
-      entityStore.setAll(entities, true); // Auto-select first entity
+      // Update store WITHOUT autoSelectFirst - let SpaceComponent handle selection
+      // SpaceComponent knows about URL routing and will select appropriate entity
+      entityStore.setAll(entities, false);
       entityStore.setLoading(false);
       
       // Store collection reference

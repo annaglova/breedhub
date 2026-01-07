@@ -189,6 +189,20 @@ export function SpacePage({ entityType, selectedEntityId, selectedSlug, tabSlug 
           />
         }
       >
+        {/* Index route - render PublicPageTemplate in drawer even without entity selected
+            This shows proper skeletons instead of white screen during space transitions */}
+        <Route
+          index
+          element={
+            <DetailComponent
+              key={entityType}
+              isDrawerMode={true}
+              spaceConfigSignal={spaceConfigSignal}
+              entityType={entityType}
+            />
+          }
+        />
+
         {/* Drawer route - DetailWrapper checks for fullscreen state */}
         <Route
           path=":id"
