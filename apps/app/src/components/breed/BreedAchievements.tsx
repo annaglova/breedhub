@@ -32,17 +32,6 @@ export function BreedAchievements({
   // Check if we have any achievements
   const hasAnyAchievement = displayTopKennel || displayMajorPatron || displayTopPet;
 
-  // Show skeleton while entity exists but achievements might be loading
-  // (entity present but achievements field is undefined - could be loading)
-  if (entity && entity.achievements === undefined) {
-    return (
-      <div className="flex flex-wrap gap-2 mt-2 min-h-[2rem]">
-        <div className="h-7 w-32 bg-slate-200 dark:bg-slate-700 rounded-full animate-pulse" />
-        <div className="h-7 w-28 bg-slate-200 dark:bg-slate-700 rounded-full animate-pulse" />
-      </div>
-    );
-  }
-
   // Don't render if no achievements
   if (!hasAnyAchievement) {
     return null;
