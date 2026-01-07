@@ -115,21 +115,25 @@ export function LitterName({
 
   return (
     <div className="pb-3 cursor-default">
-      {/* Breeds section - multiple breeds separated by bullets */}
-      {breeds && breeds.length > 0 && (
-        <div className="text-md mb-3 flex flex-wrap items-center space-x-1">
-          {/* First breed - no bullet before */}
-          <EntityLink entity={breeds[0]} className="uppercase" />
+      {/* Breeds section - always render container to prevent layout shift */}
+      <div className="text-md mb-3 min-h-[1.5rem] flex flex-wrap items-center space-x-1">
+        {breeds && breeds.length > 0 ? (
+          <>
+            {/* First breed - no bullet before */}
+            <EntityLink entity={breeds[0]} className="uppercase" />
 
-          {/* Rest of breeds - with bullet before each */}
-          {breeds.slice(1).map((breed) => (
-            <div key={breed.id || breed.name} className="flex space-x-1">
-              <span className="text-primary">&bull;</span>
-              <EntityLink entity={breed} className="uppercase" />
-            </div>
-          ))}
-        </div>
-      )}
+            {/* Rest of breeds - with bullet before each */}
+            {breeds.slice(1).map((breed) => (
+              <div key={breed.id || breed.name} className="flex space-x-1">
+                <span className="text-primary">&bull;</span>
+                <EntityLink entity={breed} className="uppercase" />
+              </div>
+            ))}
+          </>
+        ) : (
+          <div className="h-4 w-32 bg-slate-200 dark:bg-slate-700 rounded-full animate-pulse" />
+        )}
+      </div>
 
       {/* Litter name with note flag */}
       <div className="flex space-x-1.5">

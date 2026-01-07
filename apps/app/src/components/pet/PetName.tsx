@@ -62,17 +62,21 @@ export function PetName({
   return (
     <div className="pb-3 cursor-default">
       {/* Breed link - same position as support level in BreedName */}
-      {breedName && (
-        <div className="text-md mb-2">
-          {breedSlug ? (
+      {/* Always render container to prevent layout shift when breed loads */}
+      <div className="text-md mb-2 min-h-[1.5rem]">
+        {breedName ? (
+          breedSlug ? (
             <Link to={`/${breedSlug}`} className="uppercase hover:underline">
               {breedName}
             </Link>
           ) : (
             <span className="uppercase">{breedName}</span>
-          )}
-        </div>
-      )}
+          )
+        ) : entity?.breed_id ? (
+          // Skeleton while breed is loading
+          <div className="h-4 w-32 bg-slate-200 dark:bg-slate-700 rounded-full animate-pulse" />
+        ) : null}
+      </div>
 
       {/* Pet name with verification and note flag */}
       <div className="flex space-x-1.5">

@@ -81,11 +81,29 @@ export function PetAchievements({
 
   const buttonLabel = expanded ? "Show main titles" : "Show all titles";
 
-  // Don't render if no dataSource or loading with no data yet
-  if (!dataSource || (isLoading && titles.length === 0)) {
+  // Don't render if no dataSource configured
+  if (!dataSource) {
     return null;
   }
 
+  // Show skeleton while loading to prevent layout shift
+  if (isLoading && titles.length === 0) {
+    return (
+      <div
+        className={cn(
+          !isComponentMode && "px-6"
+        )}
+      >
+        <div className="flex flex-wrap items-center gap-2 mt-2 min-h-[2rem]">
+          <div className="h-7 w-20 bg-slate-200 dark:bg-slate-700 rounded-full animate-pulse" />
+          <div className="h-7 w-16 bg-slate-200 dark:bg-slate-700 rounded-full animate-pulse" />
+          <div className="h-7 w-24 bg-slate-200 dark:bg-slate-700 rounded-full animate-pulse" />
+        </div>
+      </div>
+    );
+  }
+
+  // Don't render if no achievements after loading
   if (titles.length === 0) {
     return null;
   }

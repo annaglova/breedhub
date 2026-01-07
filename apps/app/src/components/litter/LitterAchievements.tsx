@@ -100,13 +100,23 @@ export function LitterAchievements({
     displayMother.id !== NULL_ID &&
     displayMother.name;
 
-  // Hide if no parents
+  // Show skeleton while entity exists but parents might be loading
+  if (entity && entity.father === undefined && entity.mother === undefined && !father && !mother) {
+    return (
+      <div className="flex flex-wrap gap-2 mt-3 mb-6 min-h-[2rem]" aria-label="parents">
+        <div className="h-8 w-40 bg-slate-200 dark:bg-slate-700 rounded-full animate-pulse" />
+        <div className="h-8 w-36 bg-slate-200 dark:bg-slate-700 rounded-full animate-pulse" />
+      </div>
+    );
+  }
+
+  // Hide if no parents after loading
   if (!hasFather && !hasMother) {
     return null;
   }
 
   return (
-    <div className="flex flex-wrap gap-2 mt-3 mb-6" aria-label="parents">
+    <div className="flex flex-wrap gap-2 mt-3 mb-6 min-h-[2rem]" aria-label="parents">
       {hasFather && (
         <ParentChip
           parent={displayFather}

@@ -44,9 +44,13 @@ export function BreedName({
   const displayPatronCount = entity?.measurements?.patron_count ?? patronCount;
   return (
     <div className="pb-3 cursor-default">
-      {/* Achievement */}
-      <div className="text-md mb-2">
-        <span className="uppercase">{displayAchievement}</span>
+      {/* Achievement - always render container to prevent layout shift */}
+      <div className="text-md mb-2 min-h-[1.5rem]">
+        {displayAchievement ? (
+          <span className="uppercase">{displayAchievement}</span>
+        ) : (
+          <div className="h-4 w-32 bg-slate-200 dark:bg-slate-700 rounded-full animate-pulse" />
+        )}
       </div>
 
       {/* Breed name with note flag */}
