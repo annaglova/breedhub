@@ -2,6 +2,7 @@ import { PetCard, type Pet } from "@/components/shared/PetCard";
 import { useSelectedEntity } from "@/contexts/SpaceContext";
 import { spaceStore } from "@breedhub/rxdb-store";
 import { useSignals } from "@preact/signals-react/runtime";
+import { useEffect } from "react";
 
 /**
  * Mock children data for development
@@ -96,10 +97,12 @@ export function LitterChildrenTab({
   const children: Pet[] =
     selectedEntity?.children || selectedEntity?.Children || MOCK_CHILDREN;
 
-  // Report loaded count to parent
-  if (onLoadedCount) {
-    onLoadedCount(children.length);
-  }
+  // Report loaded count to parent (in useEffect to avoid setState during render)
+  useEffect(() => {
+    if (onLoadedCount) {
+      onLoadedCount(children.length);
+    }
+  }, [onLoadedCount, children.length]);
 
   // Check if we have children data
   const hasChildren = children && children.length > 0;

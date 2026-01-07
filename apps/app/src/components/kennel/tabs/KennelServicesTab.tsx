@@ -2,6 +2,7 @@ import { PetCard, type Pet } from "@/components/shared/PetCard";
 import { useSelectedEntity } from "@/contexts/SpaceContext";
 import { spaceStore } from "@breedhub/rxdb-store";
 import { useSignals } from "@preact/signals-react/runtime";
+import { useEffect } from "react";
 
 /**
  * Mock pets for sale data for development
@@ -114,10 +115,12 @@ export function KennelServicesTab({
     ? selectedEntity?.pets_for_sale || selectedEntity?.PetsForSale || []
     : MOCK_PETS_FOR_SALE;
 
-  // Report loaded count to parent
-  if (onLoadedCount) {
-    onLoadedCount(petsForSale.length);
-  }
+  // Report loaded count to parent (in useEffect to avoid setState during render)
+  useEffect(() => {
+    if (onLoadedCount) {
+      onLoadedCount(petsForSale.length);
+    }
+  }, [onLoadedCount, petsForSale.length]);
 
   // Check if we have pets for sale
   const hasPets = petsForSale && petsForSale.length > 0;

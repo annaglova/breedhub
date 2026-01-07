@@ -2,6 +2,7 @@ import { PetCard, type Pet } from "@/components/shared/PetCard";
 import { useSelectedEntity } from "@/contexts/SpaceContext";
 import { spaceStore } from "@breedhub/rxdb-store";
 import { useSignals } from "@preact/signals-react/runtime";
+import { useEffect } from "react";
 
 /**
  * Mock kennel pets data for development
@@ -139,10 +140,12 @@ export function KennelPetsTab({
     ? selectedEntity?.kennel_pets || selectedEntity?.KennelPets || []
     : MOCK_KENNEL_PETS;
 
-  // Report loaded count to parent
-  if (onLoadedCount) {
-    onLoadedCount(kennelPets.length);
-  }
+  // Report loaded count to parent (in useEffect to avoid setState during render)
+  useEffect(() => {
+    if (onLoadedCount) {
+      onLoadedCount(kennelPets.length);
+    }
+  }, [onLoadedCount, kennelPets.length]);
 
   // Check if we have pets
   const hasPets = kennelPets && kennelPets.length > 0;
