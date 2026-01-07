@@ -25,13 +25,13 @@ function formatYear(dateString?: string): string {
 
 // Mock data for development
 const MOCK_KENNEL = {
-  name: "Von Haus Example",
-  slug: "von-haus-example",
-  country: { name: "Germany" },
-  owner: { name: "Hans Mueller", slug: "hans-mueller" },
-  federation: { alternativeName: "FCI" },
-  companyFoundationDate: "2010-05-15",
-  verificationStatusId: "verified",
+  name: "Haus Wunderbar German Shepherds",
+  slug: "haus-wunderbar",
+  country: { name: "Germany", code: "DE" },
+  owner: { name: "Klaus Bergmann", slug: "klaus-bergmann" },
+  federation: { alternativeName: "VDH / FCI" },
+  companyFoundationDate: "1998-03-20",
+  verification_status_id: "verified",
   hasNotes: true,
 };
 
@@ -48,7 +48,9 @@ export function KennelName({
   linkToFullscreen = true,
 }: KennelNameProps) {
   // Use entity data or mock for development
-  const kennel = entity || MOCK_KENNEL;
+  // Check if entity has actual data (not just empty object)
+  const hasEntityData = entity && entity.name;
+  const kennel = hasEntityData ? entity : MOCK_KENNEL;
 
   // Extract data from entity
   const displayName = kennel?.name || "Unknown Kennel";
@@ -60,10 +62,10 @@ export function KennelName({
 
   return (
     <div className="pb-3 cursor-default">
-      {/* Country - same position as breed in PetName */}
+      {/* Country - same position as achievement in BreedName */}
       <div className="text-md mb-2 min-h-[1.5rem]">
         {countryName && (
-          <span>{countryName}</span>
+          <span className="uppercase">{countryName}</span>
         )}
       </div>
 
