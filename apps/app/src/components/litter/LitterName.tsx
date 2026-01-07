@@ -115,9 +115,9 @@ export function LitterName({
 
   return (
     <div className="pb-3 cursor-default">
-      {/* Breeds section - always render container to prevent layout shift */}
+      {/* Breeds section */}
       <div className="text-md mb-3 min-h-[1.5rem] flex flex-wrap items-center space-x-1">
-        {breeds && breeds.length > 0 ? (
+        {breeds && breeds.length > 0 && (
           <>
             {/* First breed - no bullet before */}
             <EntityLink entity={breeds[0]} className="uppercase" />
@@ -130,8 +130,6 @@ export function LitterName({
               </div>
             ))}
           </>
-        ) : (
-          <div className="h-4 w-32 bg-slate-200 dark:bg-slate-700 rounded-full animate-pulse" />
         )}
       </div>
 

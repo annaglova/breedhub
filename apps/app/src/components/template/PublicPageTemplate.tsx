@@ -1,6 +1,7 @@
 import { BlockRenderer } from "@/components/blocks/BlockRenderer";
 import { ScrollToTopButton } from "@/components/shared/ScrollToTopButton";
 import { SpaceProvider } from "@/contexts/SpaceContext";
+import { useEntityFullyLoaded } from "@/hooks/useEntityFullyLoaded";
 import { getPageConfig } from "@/utils/getPageConfig";
 import { spaceStore } from "@breedhub/rxdb-store";
 import { Signal } from "@preact/signals-react";
@@ -122,6 +123,10 @@ export function PublicPageTemplate({
     ? spaceStore.getSelectedEntity(entityType)
     : null;
   const selectedEntity = selectedEntitySignal?.value;
+
+  // Check if entity and all critical related data is fully loaded
+  // This prevents "dribbling" effect where UI parts appear at different times
+  const isEntityFullyLoaded = useEntityFullyLoaded(entityType, selectedEntity);
 
   // Debug logging
   if (process.env.NODE_ENV === "development") {
@@ -307,7 +312,11 @@ export function PublicPageTemplate({
             {pageConfig &&
               pageConfig.blocks &&
               (() => {
-                // Determine loading state - no entity means loading
+                // Loading states:
+                // - isAboveFoldLoading: for blocks before tabs (cover, avatar, name, achievements)
+                //   Waits until ALL related data is loaded to prevent "dribbling" effect
+                // - isEntityLoading: for tabs - just checks if entity exists
+                const isAboveFoldLoading = !isEntityFullyLoaded;
                 const isEntityLoading = !selectedEntity;
                 // Sort blocks by order
                 const sortedBlocks = Object.entries(pageConfig.blocks).sort(
@@ -324,7 +333,8 @@ export function PublicPageTemplate({
                 }
 
                 // Render each block with its appropriate container
-                // Pass isLoading to each block - outlets will show skeletons when loading
+                // Above-fold blocks use isAboveFoldLoading (waits for all related data)
+                // TabOutlet uses isEntityLoading (just needs entity to exist)
                 return sortedBlocks.map(([blockId, blockConfig]) => {
                   // CoverOutlet calculates its own dimensions + needs defaultTab for expand
                   if (blockConfig.outlet === "CoverOutlet") {
@@ -340,7 +350,7 @@ export function PublicPageTemplate({
                         entity={selectedEntity}
                         pageConfig={pageConfig}
                         spacePermissions={spacePermissions}
-                        isLoading={isEntityLoading}
+                        isLoading={isAboveFoldLoading}
                       />
                     );
                   }
@@ -357,7 +367,7 @@ export function PublicPageTemplate({
                         entity={selectedEntity}
                         pageConfig={pageConfig}
                         spacePermissions={spacePermissions}
-                        isLoading={isEntityLoading}
+                        isLoading={isAboveFoldLoading}
                       />
                     );
                   }
@@ -382,14 +392,15 @@ export function PublicPageTemplate({
                           entity={selectedEntity}
                           pageConfig={pageConfig}
                           spacePermissions={spacePermissions}
-                          isLoading={isEntityLoading}
+                          isLoading={isAboveFoldLoading}
                         />
                       </div>
                     );
                   }
 
                   // TabOutlet - Dynamic tabs from config
-                  // Now handled by BlockRenderer like other outlets
+                  // Uses isAboveFoldLoading - tabs appear together with other content
+                  // Tab content has its own loading states via useTabData
                   if (blockConfig.outlet === "TabOutlet") {
                     return (
                       <BlockRenderer
@@ -402,12 +413,12 @@ export function PublicPageTemplate({
                         entity={selectedEntity}
                         pageConfig={pageConfig}
                         spacePermissions={spacePermissions}
-                        isLoading={isEntityLoading}
+                        isLoading={isAboveFoldLoading}
                       />
                     );
                   }
 
-                  // Default: simple wrapper with margin
+                  // Default blocks (like achievements) - use above-fold loading
                   return (
                     <BlockRenderer
                       key={blockId}
@@ -416,7 +427,7 @@ export function PublicPageTemplate({
                       className="mb-4"
                       pageConfig={pageConfig}
                       spacePermissions={spacePermissions}
-                      isLoading={isEntityLoading}
+                      isLoading={isAboveFoldLoading}
                     />
                   );
                 });
