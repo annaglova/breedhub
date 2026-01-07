@@ -14,6 +14,7 @@ import { LitterName } from '../litter/LitterName';
 import { LitterAchievements } from '../litter/LitterAchievements';
 import { KennelName } from '../kennel/KennelName';
 import { KennelAchievements } from '../kennel/KennelAchievements';
+import { ContactName } from '../contact/ContactName';
 import type React from 'react';
 
 /**
@@ -45,6 +46,7 @@ const BLOCK_COMPONENTS: Record<string, React.ComponentType<any>> = {
   'LitterAchievements': LitterAchievements,
   'KennelName': KennelName,
   'KennelAchievements': KennelAchievements,
+  'ContactName': ContactName,
   // Add more block components here as needed
 };
 

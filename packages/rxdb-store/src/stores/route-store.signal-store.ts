@@ -261,6 +261,12 @@ class RouteStore {
       return;
     }
 
+    // Skip if slug is empty - primary key is required
+    if (!route.slug) {
+      console.warn('[RouteStore] Cannot save route - slug is empty');
+      return;
+    }
+
     try {
       await this.collection.upsert({
         slug: route.slug,
