@@ -7,6 +7,8 @@ interface PedigreeTreeProps {
   pet: PedigreePet;
   /** Number of generations to display (2-7) */
   generations: GenerationCount;
+  /** Hide subject card (for litter mode - show only parents) */
+  hideSubject?: boolean;
 }
 
 interface PedigreeNodeProps {
@@ -93,14 +95,16 @@ function PedigreeNode({ pet, sex, gen, limit }: PedigreeNodeProps) {
  *
  * Based on Angular: pedigree-page.component.ts
  */
-export function PedigreeTree({ pet, generations }: PedigreeTreeProps) {
+export function PedigreeTree({ pet, generations, hideSubject = false }: PedigreeTreeProps) {
   // limit = generations - 1 (як в Angular: this.pedigreeStore.generationsDisplayCount() - 1)
   const limit = generations - 1;
 
   return (
     <div className="flex flex-row gap-3 w-max">
-      {/* Subject (level -1) - vertical sidebar card */}
-      <PedigreeCard pet={pet} sex={pet.sex?.code} level={-1} />
+      {/* Subject (level -1) - vertical sidebar card (hidden in litter mode) */}
+      {!hideSubject && (
+        <PedigreeCard pet={pet} sex={pet.sex?.code} level={-1} />
+      )}
 
       {/* Ancestors tree */}
       <div className="flex w-full flex-auto flex-col gap-3">
