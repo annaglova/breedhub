@@ -35,19 +35,15 @@ export function ContactName({
   onNotesClick,
   linkToFullscreen = true,
 }: ContactNameProps) {
-  // Use entity data or mock for development
-  // Check if entity has actual data (not just empty object)
-  const hasEntityData = entity && entity.name;
-  const contact = hasEntityData ? entity : MOCK_CONTACT;
+  // Extract data from entity with fallback to mock for each field
+  const displayName = entity?.name || entity?.Name || MOCK_CONTACT.name;
+  const countryName = entity?.country?.name || entity?.Country?.Name || entity?.country_name || MOCK_CONTACT.country.name;
+  const slug = entity?.slug || entity?.Url || entity?.url || MOCK_CONTACT.slug;
 
-  // Extract data from entity
-  const displayName = contact?.name || "Unknown Contact";
-  const countryName = contact?.country?.name || contact?.country_name;
-  const slug = contact?.slug || contact?.url;
-
-  // Career roles - normalize to arrays
-  const breederBreeds = contact?.career?.breeder || contact?.career?.Breeder || [];
-  const judgeCategories = contact?.career?.judge || contact?.career?.Judge || [];
+  // Career roles - normalize to arrays with mock fallback
+  const career = entity?.career || entity?.Career || MOCK_CONTACT.career;
+  const breederBreeds = career?.breeder || career?.Breeder || [];
+  const judgeCategories = career?.judge || career?.Judge || [];
   const isBreeder = breederBreeds.length > 0;
   const isJudge = judgeCategories.length > 0;
 
@@ -77,14 +73,14 @@ export function ContactName({
 
         {/* Verification badge */}
         <VerificationBadge
-          status={contact?.verification_status_id || contact?.verificationStatusId}
+          status={entity?.verification_status_id || entity?.verificationStatusId || MOCK_CONTACT.verification_status_id}
           size={16}
           mode="page"
         />
 
         {/* Note flag */}
         <NoteFlagButton
-          hasNotes={hasNotes || contact?.hasNotes}
+          hasNotes={hasNotes || entity?.hasNotes || MOCK_CONTACT.hasNotes}
           onClick={onNotesClick}
           mode="page"
           className="self-start pr-7"
