@@ -125,7 +125,7 @@ function JudgeAvatar({ judge }: { judge: Judge }) {
   const initial = judge.name?.charAt(0)?.toUpperCase() || "?";
 
   return (
-    <div className="outline-offset-2.5 flex-0 flex size-10 items-center justify-center overflow-hidden rounded-full border outline outline-2 outline-offset-2 outline-surface-300 dark:outline-surface-400">
+    <div className="flex-0 flex size-10 items-center justify-center overflow-hidden rounded-full border outline outline-2 outline-offset-2 outline-secondary-300 dark:outline-secondary-400">
       {judge.avatarUrl ? (
         <img
           className="size-full object-cover"
