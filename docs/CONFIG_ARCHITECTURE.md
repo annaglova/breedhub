@@ -435,3 +435,19 @@ FROM config;
 - Завантажує тільки необхідне
 - Підтримує realtime оновлення
 - Легко масштабується
+
+## Development Notes
+
+### RxDB Collection Limit Patch
+
+RxDB у безкоштовній версії має ліміт 16 колекцій. Для розробки ми використовуємо патч, який обходить це обмеження.
+
+**Як працює:**
+- Скрипт `scripts/patch-rxdb.cjs` автоматично запускається після `pnpm install` (через `postinstall` hook)
+- Патч змінює функцію `hasPremiumFlag()` в RxDB, щоб вона повертала `true`
+- Автор RxDB явно дозволяє це: *"Yes you are allowed to fork the repo and just overwrite this function"*
+
+**Для production:**
+- Потрібно придбати RxDB Premium: https://rxdb.info/premium
+- Видалити `postinstall` скрипт з `package.json`
+- Видалити файл `scripts/patch-rxdb.cjs`
