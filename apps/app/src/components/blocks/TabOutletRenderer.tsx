@@ -20,6 +20,7 @@ const kennelTabModules = import.meta.glob('../kennel/tabs/*Tab.tsx', { eager: tr
 const petTabModules = import.meta.glob('../pet/tabs/*Tab.tsx', { eager: true });
 const litterTabModules = import.meta.glob('../litter/tabs/*Tab.tsx', { eager: true });
 const contactTabModules = import.meta.glob('../contact/tabs/*Tab.tsx', { eager: true });
+const eventTabModules = import.meta.glob('../event/tabs/*Tab.tsx', { eager: true });
 
 // Combine all tab modules into single registry
 const TAB_COMPONENT_REGISTRY: Record<string, React.ComponentType<any>> = {};
@@ -46,6 +47,7 @@ registerModules(kennelTabModules);
 registerModules(petTabModules);
 registerModules(litterTabModules);
 registerModules(contactTabModules);
+registerModules(eventTabModules);
 
 // Tab config from database
 interface TabConfig {
