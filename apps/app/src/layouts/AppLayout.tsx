@@ -62,8 +62,10 @@ export function AppLayout() {
       {/* Main wrapper with sidebar and content */}
       <div className="flex flex-1 min-h-0">
         {/* Sidebar - starts from top, hidden on 3xl (replaced by menu in content) */}
+        {/* In fullscreen mode: show logo only, hide menu */}
         <Sidebar
           isCollapsed={!isSidebarOpen}
+          hideMenu={isFullscreen}
           className={cn(
             "h-full z-20",
             "hidden lg:block 3xl:hidden",

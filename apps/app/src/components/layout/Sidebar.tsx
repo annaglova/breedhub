@@ -11,6 +11,7 @@ interface SidebarProps {
   onClose?: () => void;
   className?: string;
   asMenu?: boolean;
+  hideMenu?: boolean; // Hide menu but keep logo
 }
 
 export function Sidebar({
@@ -18,6 +19,7 @@ export function Sidebar({
   onClose,
   className,
   asMenu = false,
+  hideMenu = false,
 }: SidebarProps) {
   const location = useLocation();
   const { workspace, spaces } = useWorkspaceSpaces();
@@ -69,40 +71,42 @@ export function Sidebar({
         </div>
       )}
 
-      {/* Navigation menu */}
-      <nav className="flex-1 p-4">
-        <h2 className="text-primary font-bold text-lg mb-6 mt-6">SPACES</h2>
-        <ul className="space-y-1">
-          {menuItems.map((item) => {
-            const isActive = location.pathname.startsWith(item.path);
+      {/* Navigation menu - hidden when hideMenu is true */}
+      {!hideMenu && (
+        <nav className="flex-1 p-4">
+          <h2 className="text-primary font-bold text-lg mb-6 mt-6">SPACES</h2>
+          <ul className="space-y-1">
+            {menuItems.map((item) => {
+              const isActive = location.pathname.startsWith(item.path);
 
-            return (
-              <li key={item.id}>
-                <Link
-                  to={item.path}
-                  className={cn(
-                    "flex items-center gap-3 px-3 py-2 rounded-lg transition-colors",
-                    "text-slate-900 hover:bg-slate-200",
-                    isActive && "bg-slate-200 font-semibold",
-                    isCollapsed && "justify-center"
-                  )}
-                  onClick={onClose}
-                >
-                  <Icon
-                    icon={item.icon}
-                    size={20}
+              return (
+                <li key={item.id}>
+                  <Link
+                    to={item.path}
                     className={cn(
-                      "flex-shrink-0",
-                      isActive ? "text-slate-600" : "text-slate-400"
+                      "flex items-center gap-3 px-3 py-2 rounded-lg transition-colors",
+                      "text-slate-900 hover:bg-slate-200",
+                      isActive && "bg-slate-200 font-semibold",
+                      isCollapsed && "justify-center"
                     )}
-                  />
-                  {!isCollapsed && <span>{item.label}</span>}
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
-      </nav>
+                    onClick={onClose}
+                  >
+                    <Icon
+                      icon={item.icon}
+                      size={20}
+                      className={cn(
+                        "flex-shrink-0",
+                        isActive ? "text-slate-600" : "text-slate-400"
+                      )}
+                    />
+                    {!isCollapsed && <span>{item.label}</span>}
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        </nav>
+      )}
     </aside>
   );
 }
