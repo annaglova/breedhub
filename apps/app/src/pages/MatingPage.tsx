@@ -88,60 +88,71 @@ export function MatingPage() {
   return (
     <ToolPageLayout>
       {/* Sticky header section */}
-      <div className="sticky top-0 z-20 bg-white dark:bg-zinc-900 -mx-4 sm:-mx-6 px-4 sm:px-6 -mt-4 pt-4">
-        {/* Header with controls */}
-        <div className="flex items-center justify-between pb-4 border-b">
-          <div className="flex items-center gap-4">
-            <h1 className="text-2xl">Test Mating</h1>
-            <PedigreeGenerationSelector
-              generations={generations}
-              onGenerationsChange={setGenerations}
-            />
+      <div className="sticky top-0 z-20 -mx-4 sm:-mx-6 -mt-4">
+        {/* Header with white background */}
+        <div className="bg-white dark:bg-zinc-900 px-4 sm:px-6 pt-4">
+          {/* Header with controls */}
+          <div className="flex items-center justify-between pb-4 border-b">
+            <div className="flex items-center gap-4">
+              <h1 className="text-2xl">Test Mating</h1>
+              <PedigreeGenerationSelector
+                generations={generations}
+                onGenerationsChange={setGenerations}
+              />
+            </div>
+
+            <Button
+              variant="accent"
+              onClick={handleSaveToLitters}
+              className="rounded-full h-[2.25rem] px-4 gap-2"
+            >
+              <Save className="h-4 w-4 flex-shrink-0" />
+              <span className="text-base font-semibold">Save mating to litters</span>
+            </Button>
           </div>
 
-          <Button
-            variant="accent"
-            onClick={handleSaveToLitters}
-            className="rounded-full h-[2.25rem] px-4 gap-2"
-          >
-            <Save className="h-4 w-4 flex-shrink-0" />
-            <span className="text-base font-semibold">Save mating to litters</span>
-          </Button>
-        </div>
+          {/* Pet selection */}
+          <div className="flex gap-4 py-4 border-b">
+            <div className="flex-1">
+              <label className="block text-sm font-medium mb-2">
+                Select Father
+              </label>
+              <div
+                onClick={() => setFatherModalOpen(true)}
+                className="h-20 border-2 border-dashed border-slate-300 rounded-lg flex items-center justify-center text-slate-400 cursor-pointer hover:border-primary hover:text-primary transition-colors"
+              >
+                {father ? (
+                  <span className="text-foreground font-medium">{father.name}</span>
+                ) : (
+                  "Click to select father"
+                )}
+              </div>
+            </div>
 
-        {/* Pet selection */}
-        <div className="flex gap-4 py-4 border-b">
-        <div className="flex-1">
-          <label className="block text-sm font-medium mb-2">
-            Select Father
-          </label>
-          <div
-            onClick={() => setFatherModalOpen(true)}
-            className="h-20 border-2 border-dashed border-slate-300 rounded-lg flex items-center justify-center text-slate-400 cursor-pointer hover:border-primary hover:text-primary transition-colors"
-          >
-            {father ? (
-              <span className="text-foreground font-medium">{father.name}</span>
-            ) : (
-              "Click to select father"
-            )}
+            <div className="flex-1">
+              <label className="block text-sm font-medium mb-2">
+                Select Mother
+              </label>
+              <div
+                onClick={() => setMotherModalOpen(true)}
+                className="h-20 border-2 border-dashed border-slate-300 rounded-lg flex items-center justify-center text-slate-400 cursor-pointer hover:border-primary hover:text-primary transition-colors"
+              >
+                {mother ? (
+                  <span className="text-foreground font-medium">{mother.name}</span>
+                ) : (
+                  "Click to select mother"
+                )}
+              </div>
+            </div>
           </div>
         </div>
 
-        <div className="flex-1">
-          <label className="block text-sm font-medium mb-2">
-            Select Mother
-          </label>
-          <div
-            onClick={() => setMotherModalOpen(true)}
-            className="h-20 border-2 border-dashed border-slate-300 rounded-lg flex items-center justify-center text-slate-400 cursor-pointer hover:border-primary hover:text-primary transition-colors"
-          >
-            {mother ? (
-              <span className="text-foreground font-medium">{mother.name}</span>
-            ) : (
-              "Click to select mother"
-            )}
-          </div>
-        </div>
+        {/* Horizontal scrollbar - transparent background */}
+        <div className="px-4 sm:px-6 py-2 mb-6">
+          <HorizontalScrollbar
+            scrollContainerRef={scrollRef}
+            className="mx-auto max-w-52 sm:max-w-md"
+          />
         </div>
       </div>
 
@@ -177,15 +188,7 @@ export function MatingPage() {
       />
 
       {/* Pedigree tree */}
-      <div className="pt-4">
-        {/* Horizontal scrollbar */}
-        <div className="py-2 mb-3">
-          <HorizontalScrollbar
-            scrollContainerRef={scrollRef}
-            className="mx-auto max-w-52 sm:max-w-md"
-          />
-        </div>
-
+      <div>
         {/* Pedigree tree with drag-to-scroll */}
         <div
           ref={scrollRef}
