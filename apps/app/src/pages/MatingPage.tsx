@@ -87,28 +87,30 @@ export function MatingPage() {
 
   return (
     <ToolPageLayout>
-      {/* Header with controls */}
-      <div className="flex items-center justify-between pb-4 border-b">
-        <div className="flex items-center gap-4">
-          <h1 className="text-2xl">Test Mating</h1>
-          <PedigreeGenerationSelector
-            generations={generations}
-            onGenerationsChange={setGenerations}
-          />
+      {/* Sticky header section */}
+      <div className="sticky top-0 z-20 bg-card-surface -mx-4 sm:-mx-6 px-4 sm:px-6 -mt-4 pt-4">
+        {/* Header with controls */}
+        <div className="flex items-center justify-between pb-4 border-b">
+          <div className="flex items-center gap-4">
+            <h1 className="text-2xl">Test Mating</h1>
+            <PedigreeGenerationSelector
+              generations={generations}
+              onGenerationsChange={setGenerations}
+            />
+          </div>
+
+          <Button
+            variant="accent"
+            onClick={handleSaveToLitters}
+            className="rounded-full h-[2.25rem] px-4 gap-2"
+          >
+            <Save className="h-4 w-4 flex-shrink-0" />
+            <span className="text-base font-semibold">Save mating to litters</span>
+          </Button>
         </div>
 
-        <Button
-          variant="accent"
-          onClick={handleSaveToLitters}
-          className="rounded-full h-[2.25rem] px-4 gap-2"
-        >
-          <Save className="h-4 w-4 flex-shrink-0" />
-          <span className="text-base font-semibold">Save mating to litters</span>
-        </Button>
-      </div>
-
-      {/* Pet selection */}
-      <div className="flex gap-4 py-4 border-b">
+        {/* Pet selection */}
+        <div className="flex gap-4 py-4 border-b">
         <div className="flex-1">
           <label className="block text-sm font-medium mb-2">
             Select Father
@@ -139,6 +141,7 @@ export function MatingPage() {
               "Click to select mother"
             )}
           </div>
+        </div>
         </div>
       </div>
 
@@ -176,7 +179,7 @@ export function MatingPage() {
       {/* Pedigree tree */}
       <div className="pt-4">
         {/* Custom horizontal scrollbar */}
-        <div className="sticky z-10 py-2 mb-3 top-0">
+        <div className="py-2 mb-3">
           <HorizontalScrollbar
             scrollContainerRef={scrollRef}
             className="mx-auto max-w-52 sm:max-w-md"
