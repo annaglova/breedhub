@@ -52,20 +52,20 @@ export const configTypes: Record<string, ConfigTypeInfo> = {
   menu_item: { name: "Menu Item", icon: FileText, color: "text-slate-600" },
 };
 
-// Child type mappings
+// Child type mappings - KEEP IN SYNC with packages/rxdb-store/src/stores/app-config.signal-store.ts
 export const childTypeMapping: Record<string, string[]> = {
   app: ["workspace", "user_config"],
-  workspace: ["space"],
-  space: ["view", "page", "fields", "extension"],
+  workspace: ["space", "page"],
+  space: ["view", "page", "fields", "sort", "filter", "extension"],
   view: ["fields", "sort", "filter", "extension", "block"],
   page: ["fields", "tab", "menu_config", "extension", "block"],
-  block: ["tab", "fields", "sort", "filter", "extension"],  // Block can contain tabs, fields, sort, filter, extensions
+  block: ["tab", "fields", "sort", "filter", "extension"],
   tab: ["fields", "sort", "filter", "view"],
-  extension: ["fields", "sort", "filter", "view"],  // Extension can contain view
+  extension: ["fields", "sort", "filter", "view"],
   user_config: ["menu_config"],
   menu_config: ["menu_section", "menu_item"],
   menu_section: ["menu_item"],
-  menu_item: [], // Final node - no children
+  menu_item: [],
 };
 
 // Get available child types for a parent type

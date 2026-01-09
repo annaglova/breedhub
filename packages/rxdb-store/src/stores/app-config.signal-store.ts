@@ -81,6 +81,7 @@ const childContainerMapping: Record<string, Record<string, string | null>> = {
   },
   'workspace': {
     'space': 'spaces',
+    'page': 'pages',
     'property': null
   },
   'space': {
@@ -159,6 +160,22 @@ const childContainerMapping: Record<string, Record<string, string | null>> = {
   'menu_item': {
     'property': null
   }
+};
+
+// Child type mappings - defines which config types can be children of which parent types
+export const childTypeMapping: Record<string, string[]> = {
+  app: ["workspace", "user_config"],
+  workspace: ["space", "page"],
+  space: ["view", "page", "fields", "sort", "filter", "extension"],
+  view: ["fields", "sort", "filter", "extension", "block"],
+  page: ["fields", "tab", "menu_config", "extension", "block"],
+  block: ["tab", "fields", "sort", "filter", "extension"],
+  tab: ["fields", "sort", "filter", "view"],
+  extension: ["fields", "sort", "filter", "view"],
+  user_config: ["menu_config"],
+  menu_config: ["menu_section", "menu_item"],
+  menu_section: ["menu_item"],
+  menu_item: [],
 };
 
 // Types that cannot have properties
@@ -1033,22 +1050,6 @@ class AppConfigStore {
   
   // Get child types for a parent type (from config mapping)
   getChildTypesForParentType(parentType: string): string[] {
-    // Import childTypeMapping or define it here
-    const childTypeMapping: Record<string, string[]> = {
-      app: ["workspace", "user_config"],
-      workspace: ["space"],
-      space: ["view", "page", "fields", "sort", "filter", "extension"],
-      view: ["fields", "sort", "filter", "extension", "block"],
-      page: ["fields", "tab", "menu_config", "extension", "block"],
-      block: ["tab", "fields", "sort", "filter", "extension"],
-      tab: ["fields", "sort", "filter", "view"],
-      extension: ["fields", "sort", "filter", "view"],
-      user_config: ["menu_config"],
-      menu_config: ["menu_section", "menu_item"],
-      menu_section: ["menu_item"],
-      menu_item: [],
-    };
-
     return childTypeMapping[parentType] || [];
   }
 

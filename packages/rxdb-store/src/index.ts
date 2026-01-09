@@ -22,7 +22,7 @@ export { useInfiniteTabData } from './hooks/useInfiniteTabData';
 export type { DatabaseCollections, AppDatabase } from './services/database.service';
 
 // App Config Store
-export { appConfigStore } from './stores/app-config.signal-store';
+export { appConfigStore, childTypeMapping } from './stores/app-config.signal-store';
 export type { AppConfig, AppConfigDocument, AppConfigCollection } from './stores/app-config.signal-store';
 
 // App Store
