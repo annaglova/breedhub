@@ -1,3 +1,4 @@
+import { PetSelectorModal } from "@/components/pet/PetSelectorModal";
 import { HorizontalScrollbar } from "@/components/shared/HorizontalScrollbar";
 import {
   GenerationCount,
@@ -34,6 +35,10 @@ export function MatingPage() {
   // Selected pets for mating
   const [father, setFather] = useState<PedigreePet | null>(null);
   const [mother, setMother] = useState<PedigreePet | null>(null);
+
+  // Modal state
+  const [fatherModalOpen, setFatherModalOpen] = useState(false);
+  const [motherModalOpen, setMotherModalOpen] = useState(false);
 
   // Direct drag-to-scroll implementation
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -108,9 +113,15 @@ export function MatingPage() {
           <label className="block text-sm font-medium mb-2">
             Select Father
           </label>
-          {/* TODO: Replace with PetSelector component */}
-          <div className="h-20 border-2 border-dashed border-slate-300 rounded-lg flex items-center justify-center text-slate-400 cursor-pointer hover:border-primary hover:text-primary transition-colors">
-            {father ? father.name : "Click to select father"}
+          <div
+            onClick={() => setFatherModalOpen(true)}
+            className="h-20 border-2 border-dashed border-slate-300 rounded-lg flex items-center justify-center text-slate-400 cursor-pointer hover:border-primary hover:text-primary transition-colors"
+          >
+            {father ? (
+              <span className="text-foreground font-medium">{father.name}</span>
+            ) : (
+              "Click to select father"
+            )}
           </div>
         </div>
 
@@ -118,12 +129,49 @@ export function MatingPage() {
           <label className="block text-sm font-medium mb-2">
             Select Mother
           </label>
-          {/* TODO: Replace with PetSelector component */}
-          <div className="h-20 border-2 border-dashed border-slate-300 rounded-lg flex items-center justify-center text-slate-400 cursor-pointer hover:border-primary hover:text-primary transition-colors">
-            {mother ? mother.name : "Click to select mother"}
+          <div
+            onClick={() => setMotherModalOpen(true)}
+            className="h-20 border-2 border-dashed border-slate-300 rounded-lg flex items-center justify-center text-slate-400 cursor-pointer hover:border-primary hover:text-primary transition-colors"
+          >
+            {mother ? (
+              <span className="text-foreground font-medium">{mother.name}</span>
+            ) : (
+              "Click to select mother"
+            )}
           </div>
         </div>
       </div>
+
+      {/* Pet selector modals */}
+      <PetSelectorModal
+        open={fatherModalOpen}
+        onOpenChange={setFatherModalOpen}
+        onSelect={(pet) => {
+          setFather({
+            id: pet.id,
+            name: pet.name || "Unknown",
+            avatarUrl: pet.avatar_url,
+          });
+        }}
+        sexFilter="male"
+        title="Select Father"
+        excludeIds={mother ? [mother.id] : []}
+      />
+
+      <PetSelectorModal
+        open={motherModalOpen}
+        onOpenChange={setMotherModalOpen}
+        onSelect={(pet) => {
+          setMother({
+            id: pet.id,
+            name: pet.name || "Unknown",
+            avatarUrl: pet.avatar_url,
+          });
+        }}
+        sexFilter="female"
+        title="Select Mother"
+        excludeIds={father ? [father.id] : []}
+      />
 
       {/* Pedigree tree */}
       <div className="pt-4">
