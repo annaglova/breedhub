@@ -81,8 +81,8 @@ export function MatingPage() {
         <div className="flex items-center gap-4">
           <h1 className="text-2xl">Test Mating</h1>
           <PedigreeGenerationSelector
-            value={generations}
-            onChange={setGenerations}
+            generations={generations}
+            onGenerationsChange={setGenerations}
           />
         </div>
 

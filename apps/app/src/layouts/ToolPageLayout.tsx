@@ -19,16 +19,21 @@ interface ToolPageLayoutProps {
  */
 export function ToolPageLayout({ children, className }: ToolPageLayoutProps) {
   return (
-    <div
-      className={cn(
-        "size-full overflow-hidden",
-        "card-surface",
-        "md:rounded-xl",
-        className
-      )}
-    >
-      <div className="size-full overflow-auto content-padding">
-        {children}
+    <div className="relative size-full">
+      <div
+        className={cn(
+          "absolute inset-0 flex flex-col content-padding overflow-hidden",
+          "card-surface",
+          "md:rounded-xl",
+          className
+        )}
+      >
+        {/* Scrollable content container */}
+        <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden">
+          <div className="w-full">
+            {children}
+          </div>
+        </div>
       </div>
     </div>
   );
