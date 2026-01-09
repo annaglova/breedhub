@@ -3,13 +3,20 @@ import { Header } from "@/components/layout/Header";
 import { LoadingBar } from "@/components/shared/LoadingBar";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
+import { spaceStore } from "@breedhub/rxdb-store";
+import { useSignals } from "@preact/signals-react/runtime";
 import { cn } from "@ui/lib/utils";
 import { useEffect, useRef, useState } from "react";
 import { Outlet } from "react-router-dom";
 
 export function AppLayout() {
+  useSignals();
+
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+
+  // Hide sidebar menu on 3xl in fullscreen mode
+  const isFullscreen = spaceStore.isFullscreen.value;
   const [screenHeight, setScreenHeight] = useState(window.innerHeight);
   const [topBarHeight, setTopBarHeight] = useState(0);
   const [footerHeight, setFooterHeight] = useState(0);
@@ -91,10 +98,10 @@ export function AppLayout() {
           <div className="flex flex-1 overflow-hidden lg:pr-5 3xl:pr-0 3xl:justify-center">
             {/* Content container with max-width */}
             <div className="flex flex-1 3xl:flex-initial 3xl:w-full 3xl:max-w-[2016px]">
-              {/* Left menu column - only on 3xl */}
+              {/* Left menu column - only on 3xl, empty in fullscreen */}
               {is3XL && (
                 <div className="hidden w-64 pr-5 3xl:block shrink-0">
-                  <Sidebar isCollapsed={false} asMenu />
+                  {!isFullscreen && <Sidebar isCollapsed={false} asMenu />}
                 </div>
               )}
 
