@@ -82,7 +82,7 @@ export function MatingPage() {
     <ToolPageLayout>
       <div className="flex flex-col h-full">
         {/* Header with controls */}
-        <div className="flex items-center justify-between p-4 border-b">
+        <div className="flex items-center justify-between pb-4 border-b">
         <div className="flex items-center gap-4">
           <h1 className="text-xl font-semibold">Test Mating</h1>
           <PedigreeGenerationSelector
@@ -92,17 +92,17 @@ export function MatingPage() {
         </div>
 
         <Button
+          variant="accent"
           onClick={handleSaveToLitters}
-          disabled={!father || !mother}
-          className="gap-2"
+          className="rounded-full h-[2.25rem] px-4 gap-2"
         >
-          <Save className="h-4 w-4" />
-          Save mating to litters
+          <Save className="h-4 w-4 flex-shrink-0" />
+          <span className="text-base font-semibold">Save mating to litters</span>
         </Button>
       </div>
 
       {/* Pet selection */}
-      <div className="flex gap-4 p-4 border-b bg-slate-50">
+      <div className="flex gap-4 py-4 border-b">
         <div className="flex-1">
           <label className="block text-sm font-medium text-slate-700 mb-2">
             Select Father
@@ -125,7 +125,7 @@ export function MatingPage() {
       </div>
 
       {/* Pedigree tree */}
-      <div className="flex-1 overflow-hidden p-4">
+      <div className="flex-1 overflow-hidden pt-4">
         {/* Custom horizontal scrollbar */}
         <div className="sticky z-10 py-2 mb-3 top-0">
           <HorizontalScrollbar
