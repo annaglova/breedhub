@@ -61,17 +61,13 @@ export function MatingPage() {
     setIsDragging(false);
   }, []);
 
-  // Build virtual pet from selected parents
-  const virtualPet: PedigreePet | null = (father || mother)
-    ? {
-        id: "mating-preview",
-        name: "Mating Preview",
-        father: father || undefined,
-        mother: mother || undefined,
-      }
-    : null;
-
-  const hasParents = father || mother;
+  // Build virtual pet from selected parents (always show structure)
+  const virtualPet: PedigreePet = {
+    id: "mating-preview",
+    name: "Offspring",
+    father: father || undefined,
+    mother: mother || undefined,
+  };
 
   const handleSaveToLitters = () => {
     // TODO: Implement save to litters
@@ -80,11 +76,10 @@ export function MatingPage() {
 
   return (
     <ToolPageLayout>
-      <div className="flex flex-col h-full">
-        {/* Header with controls */}
-        <div className="flex items-center justify-between pb-4 border-b">
+      {/* Header with controls */}
+      <div className="flex items-center justify-between pb-4 border-b">
         <div className="flex items-center gap-4">
-          <h1 className="text-4xl">Test Mating</h1>
+          <h1 className="text-2xl">Test Mating</h1>
           <PedigreeGenerationSelector
             value={generations}
             onChange={setGenerations}
@@ -104,7 +99,7 @@ export function MatingPage() {
       {/* Pet selection */}
       <div className="flex gap-4 py-4 border-b">
         <div className="flex-1">
-          <label className="block text-sm font-medium text-slate-700 mb-2">
+          <label className="block text-sm font-medium mb-2">
             Select Father
           </label>
           {/* TODO: Replace with PetSelector component */}
@@ -114,7 +109,7 @@ export function MatingPage() {
         </div>
 
         <div className="flex-1">
-          <label className="block text-sm font-medium text-slate-700 mb-2">
+          <label className="block text-sm font-medium mb-2">
             Select Mother
           </label>
           {/* TODO: Replace with PetSelector component */}
@@ -125,7 +120,7 @@ export function MatingPage() {
       </div>
 
       {/* Pedigree tree */}
-      <div className="flex-1 overflow-hidden pt-4">
+      <div className="pt-4">
         {/* Custom horizontal scrollbar */}
         <div className="sticky z-10 py-2 mb-3 top-0">
           <HorizontalScrollbar
@@ -147,19 +142,12 @@ export function MatingPage() {
             userSelect: isDragging ? "none" : "auto",
           }}
         >
-          {virtualPet && hasParents ? (
-            <PedigreeTree
-              pet={virtualPet}
-              generations={generations}
-              hideSubject
-            />
-          ) : (
-            <div className="flex items-center justify-center h-64 text-slate-400">
-              <p>Select father and/or mother to preview pedigree</p>
-            </div>
-          )}
+          <PedigreeTree
+            pet={virtualPet}
+            generations={generations}
+            hideSubject
+          />
         </div>
-      </div>
       </div>
     </ToolPageLayout>
   );
