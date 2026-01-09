@@ -88,7 +88,7 @@ export function MatingPage() {
   return (
     <ToolPageLayout>
       {/* Sticky header section */}
-      <div className="sticky top-0 z-20 bg-card-surface -mx-4 sm:-mx-6 px-4 sm:px-6 -mt-4 pt-4">
+      <div className="sticky top-0 z-20 bg-white dark:bg-zinc-900 -mx-4 sm:-mx-6 px-4 sm:px-6 -mt-4 pt-4">
         {/* Header with controls */}
         <div className="flex items-center justify-between pb-4 border-b">
           <div className="flex items-center gap-4">
