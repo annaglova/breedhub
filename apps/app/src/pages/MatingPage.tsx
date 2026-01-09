@@ -143,6 +143,14 @@ export function MatingPage() {
           </div>
         </div>
         </div>
+
+        {/* Horizontal scrollbar - part of sticky header */}
+        <div className="py-2">
+          <HorizontalScrollbar
+            scrollContainerRef={scrollRef}
+            className="mx-auto max-w-52 sm:max-w-md"
+          />
+        </div>
       </div>
 
       {/* Pet selector modals */}
@@ -178,14 +186,6 @@ export function MatingPage() {
 
       {/* Pedigree tree */}
       <div className="pt-4">
-        {/* Custom horizontal scrollbar */}
-        <div className="py-2 mb-3">
-          <HorizontalScrollbar
-            scrollContainerRef={scrollRef}
-            className="mx-auto max-w-52 sm:max-w-md"
-          />
-        </div>
-
         {/* Pedigree tree with drag-to-scroll */}
         <div
           ref={scrollRef}
