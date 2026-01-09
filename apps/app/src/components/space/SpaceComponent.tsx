@@ -1622,7 +1622,10 @@ export function SpaceComponent<T extends { id: string }>({
                   ? "fake-card"
                   : "card-surface"
                 : "bg-white",
-              // Rounded corners (not for fullscreen or over mode)
+              // Rounded corners
+              // Fullscreen: rounded from md+ (like regular pages)
+              // Side drawer: left corners only
+              showFullscreen && "md:rounded-xl overflow-hidden",
               !showFullscreen &&
                 drawerMode !== "over" &&
                 "rounded-l-xl overflow-hidden",
