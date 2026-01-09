@@ -7,6 +7,7 @@ import { TabPageResolver } from '@/pages/TabPageResolver';
 import { SupabaseLoader } from '@/components/test/SupabaseLoader';
 import { TestDictionaryPage } from '@/pages/TestDictionaryPage';
 import { TestPage } from '@/pages/TestPage';
+import { MatingPage } from '@/pages/MatingPage';
 import { spaceStore } from '@breedhub/rxdb-store';
 import { useSignals } from '@preact/signals-react/runtime';
 
@@ -64,11 +65,8 @@ export function AppRouter() {
             <Route path="pets" element={<PlaceholderPage title="Marketplace - Pets" />} />
           </Route>
 
-          {/* Test mating routes - TODO: make dynamic from workspaces */}
-          <Route path="mating">
-            <Route index element={<Navigate to="/mating/pets" replace />} />
-            <Route path="pets" element={<PlaceholderPage title="Test Mating - Pets" />} />
-          </Route>
+          {/* Test mating page */}
+          <Route path="mating" element={<MatingPage />} />
 
           {/* Test routes */}
           <Route path="test">
