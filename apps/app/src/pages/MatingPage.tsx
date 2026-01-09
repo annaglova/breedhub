@@ -5,13 +5,19 @@ import {
   PedigreeTree,
   type PedigreePet,
 } from "@/components/shared/pedigree";
+import { mediaQueries } from "@/config/breakpoints";
 import { ToolPageLayout } from "@/layouts/ToolPageLayout";
 import { Button } from "@ui/components/button";
 import { Save } from "lucide-react";
 import { useCallback, useRef, useState } from "react";
 
-/** Default generations to show */
-const DEFAULT_GENERATIONS: GenerationCount = 4;
+/** Get default generations based on screen size */
+function getDefaultGenerations(): GenerationCount {
+  if (window.matchMedia(mediaQueries.xl).matches) return 5;
+  if (window.matchMedia(mediaQueries.lg).matches) return 4;
+  if (window.matchMedia(mediaQueries.md).matches) return 3;
+  return 2;
+}
 
 /**
  * MatingPage - Test mating calculator
@@ -23,7 +29,7 @@ const DEFAULT_GENERATIONS: GenerationCount = 4;
  * with pet selection controls.
  */
 export function MatingPage() {
-  const [generations, setGenerations] = useState<GenerationCount>(DEFAULT_GENERATIONS);
+  const [generations, setGenerations] = useState<GenerationCount>(getDefaultGenerations);
 
   // Selected pets for mating
   const [father, setFather] = useState<PedigreePet | null>(null);
