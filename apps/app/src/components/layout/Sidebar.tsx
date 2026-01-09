@@ -71,8 +71,8 @@ export function Sidebar({
         </div>
       )}
 
-      {/* Navigation menu - hidden when hideMenu is true */}
-      {!hideMenu && (
+      {/* Navigation menu - hidden when hideMenu is true or no spaces */}
+      {!hideMenu && spaces.length > 0 && (
         <nav className="flex-1 p-4">
           <h2 className="text-primary font-bold text-lg mb-6 mt-6">SPACES</h2>
           <ul className="space-y-1">

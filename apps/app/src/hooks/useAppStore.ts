@@ -91,10 +91,14 @@ export function useWorkspaceSpaces(workspacePath?: string) {
 
   // Get spaces from workspace config
   const spaces = workspace?.spaces || [];
-  
+
+  // Get pages from workspace config (for tool workspaces)
+  const pages = workspace?.pages || [];
+
   return {
     workspace,
-    spaces: Array.isArray(spaces) ? spaces : Object.values(spaces)
+    spaces: Array.isArray(spaces) ? spaces : Object.values(spaces),
+    pages: Array.isArray(pages) ? pages : Object.values(pages)
   };
 }
 

@@ -7,8 +7,8 @@ import { TabPageResolver } from '@/pages/TabPageResolver';
 import { SupabaseLoader } from '@/components/test/SupabaseLoader';
 import { TestDictionaryPage } from '@/pages/TestDictionaryPage';
 import { TestPage } from '@/pages/TestPage';
-import { MatingPage } from '@/pages/MatingPage';
-import { spaceStore } from '@breedhub/rxdb-store';
+import { getPage, PageNotFound } from '@/pages/pageRegistry';
+import { appStore, spaceStore } from '@breedhub/rxdb-store';
 import { useSignals } from '@preact/signals-react/runtime';
 
 // Temporary placeholder component
@@ -37,8 +37,51 @@ function useSpaceRoutes() {
   }, [spaceStore.configReady.value]);
 }
 
+/**
+ * Hook to get dynamic page routes from workspace config
+ * Returns pages from workspaces that have pages (tool workspaces)
+ */
+function usePageRoutes() {
+  useSignals();
+
+  return useMemo(() => {
+    if (!appStore.isDataLoaded.value) return [];
+
+    const workspaces = appStore.workspaces.value;
+    const pageRoutes: Array<{
+      path: string;
+      component: string;
+      workspaceId: string;
+    }> = [];
+
+    // Find workspaces with pages (tool workspaces)
+    workspaces.forEach((workspace: any) => {
+      if (workspace.pages && workspace.path) {
+        // Get pages from workspace
+        const pages = Array.isArray(workspace.pages)
+          ? workspace.pages
+          : Object.values(workspace.pages);
+
+        // Find default page or first page
+        const defaultPage = pages.find((p: any) => p.isDefault) || pages[0];
+
+        if (defaultPage?.component) {
+          pageRoutes.push({
+            path: workspace.path.replace(/^\//, ''), // Remove leading slash
+            component: defaultPage.component,
+            workspaceId: workspace.id || workspace.configKey
+          });
+        }
+      }
+    });
+
+    return pageRoutes;
+  }, [appStore.isDataLoaded.value, appStore.workspaces.value]);
+}
+
 export function AppRouter() {
   const { routes: spaceConfigs, defaultSlug } = useSpaceRoutes();
+  const pageRoutes = usePageRoutes();
 
   return (
     <BrowserRouter>
@@ -59,14 +102,23 @@ export function AppRouter() {
             );
           })}
 
+          {/* Dynamic page routes from workspace config (tool pages) */}
+          {pageRoutes.map((page) => {
+            const PageComponent = getPage(page.component);
+            return (
+              <Route
+                key={page.workspaceId}
+                path={page.path}
+                element={PageComponent ? <PageComponent /> : <PageNotFound componentName={page.component} />}
+              />
+            );
+          })}
+
           {/* Marketplace routes - TODO: make dynamic from workspaces */}
           <Route path="marketplace">
             <Route index element={<Navigate to="/marketplace/pets" replace />} />
             <Route path="pets" element={<PlaceholderPage title="Marketplace - Pets" />} />
           </Route>
-
-          {/* Test mating page */}
-          <Route path="mating" element={<MatingPage />} />
 
           {/* Test routes */}
           <Route path="test">

@@ -5,8 +5,7 @@ import {
   PedigreeTree,
   type PedigreePet,
 } from "@/components/shared/pedigree";
-import { spaceStore } from "@breedhub/rxdb-store";
-import { useSignals } from "@preact/signals-react/runtime";
+import { ToolPageLayout } from "@/layouts/ToolPageLayout";
 import { Button } from "@ui/components/button";
 import { Save } from "lucide-react";
 import { useCallback, useRef, useState } from "react";
@@ -24,8 +23,6 @@ const DEFAULT_GENERATIONS: GenerationCount = 4;
  * with pet selection controls.
  */
 export function MatingPage() {
-  useSignals();
-
   const [generations, setGenerations] = useState<GenerationCount>(DEFAULT_GENERATIONS);
 
   // Selected pets for mating
@@ -82,9 +79,10 @@ export function MatingPage() {
   };
 
   return (
-    <div className="flex flex-col h-full">
-      {/* Header with controls */}
-      <div className="flex items-center justify-between p-4 border-b">
+    <ToolPageLayout>
+      <div className="flex flex-col h-full">
+        {/* Header with controls */}
+        <div className="flex items-center justify-between p-4 border-b">
         <div className="flex items-center gap-4">
           <h1 className="text-xl font-semibold">Test Mating</h1>
           <PedigreeGenerationSelector
@@ -162,6 +160,7 @@ export function MatingPage() {
           )}
         </div>
       </div>
-    </div>
+      </div>
+    </ToolPageLayout>
   );
 }
