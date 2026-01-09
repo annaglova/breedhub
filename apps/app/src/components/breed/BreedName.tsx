@@ -53,7 +53,7 @@ export function BreedName({
 
       {/* Breed name with note flag */}
       <div className="flex space-x-1.5">
-        <h1 className="truncate py-0.5 text-3xl font-bold">
+        <div className="truncate py-0.5 text-3xl font-bold">
           {linkToFullscreen && entity?.slug ? (
             <Link
               to={`/${entity.slug}`}
@@ -64,7 +64,7 @@ export function BreedName({
           ) : (
             <span className="cursor-default">{displayName}</span>
           )}
-        </h1>
+        </div>
         <NoteFlagButton
           hasNotes={hasNotes}
           onClick={onNotesClick}
