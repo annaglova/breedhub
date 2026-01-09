@@ -84,7 +84,7 @@ export function MatingPage() {
         {/* Header with controls */}
         <div className="flex items-center justify-between pb-4 border-b">
         <div className="flex items-center gap-4">
-          <h1 className="text-3xl">Test Mating</h1>
+          <h1 className="text-4xl">Test Mating</h1>
           <PedigreeGenerationSelector
             value={generations}
             onChange={setGenerations}
