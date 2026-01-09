@@ -143,14 +143,14 @@ export function MatingPage() {
           </div>
         </div>
         </div>
+      </div>
 
-        {/* Horizontal scrollbar - part of sticky header */}
-        <div className="py-2">
-          <HorizontalScrollbar
-            scrollContainerRef={scrollRef}
-            className="mx-auto max-w-52 sm:max-w-md"
-          />
-        </div>
+      {/* Horizontal scrollbar - sticky below header */}
+      <div className="sticky top-[188px] z-10 py-2">
+        <HorizontalScrollbar
+          scrollContainerRef={scrollRef}
+          className="mx-auto max-w-52 sm:max-w-md"
+        />
       </div>
 
       {/* Pet selector modals */}
