@@ -109,7 +109,7 @@ export function PedigreeCard({ pet, sex, level }: PedigreeCardProps) {
         {/* Avatar 176px */}
         <div className="flex size-44 items-center justify-center overflow-hidden rounded-xl border border-border relative">
           <PetImage
-            className="w-full h-auto max-h-[200%] absolute inset-0 m-auto"
+            className="size-full object-cover"
             src={pet.avatarUrl}
             alt={pet.name}
           />
@@ -193,7 +193,7 @@ export function PedigreeCard({ pet, sex, level }: PedigreeCardProps) {
               {/* Avatar 104px */}
               <div className="h-26 w-26 min-w-26 flex items-center justify-center overflow-hidden rounded-xl border border-border relative">
                 <PetImage
-                  className="w-full h-auto max-h-[200%] absolute inset-0 m-auto"
+                  className="size-full object-cover"
                   src={pet.avatarUrl}
                   alt={pet.name}
                 />
@@ -222,7 +222,14 @@ export function PedigreeCard({ pet, sex, level }: PedigreeCardProps) {
             {/* Empty pet placeholder */}
             <div className="rounded-full bg-secondary-200 dark:bg-secondary-700 w-full h-4 my-3" />
             <div className="flex w-full items-center h-full">
-              <div className="h-26 w-26 min-w-26 rounded-xl border border-border bg-secondary-100 dark:bg-secondary-800" />
+              {/* Avatar 104px with fallback */}
+              <div className="h-26 w-26 min-w-26 flex items-center justify-center overflow-hidden rounded-xl border border-border relative">
+                <PetImage
+                  className="size-full object-cover"
+                  src={undefined}
+                  alt="Unknown"
+                />
+              </div>
               <div className="m-3 w-full space-y-4">
                 <div className="rounded-full bg-secondary-200 dark:bg-secondary-700 w-full h-3" />
                 <div className="rounded-full bg-secondary-200 dark:bg-secondary-700 w-full h-3" />
@@ -243,7 +250,7 @@ export function PedigreeCard({ pet, sex, level }: PedigreeCardProps) {
         {/* Avatar 64px */}
         <div className="size-16 min-w-16 overflow-hidden self-center rounded-xl border border-border relative">
           <PetImage
-            className="w-full h-auto max-h-[200%] absolute inset-0 m-auto"
+            className="size-full object-cover"
             src={pet.avatarUrl}
             alt={pet.name}
           />
