@@ -104,10 +104,10 @@ export function MatingPage() {
           <Button
             variant="accent"
             onClick={handleSaveToLitters}
-            className="rounded-full h-[2.25rem] px-4 gap-2"
+            className="rounded-full h-[2.25rem] w-[2.25rem] sm:w-auto sm:px-4 gap-2"
           >
             <Save className="h-4 w-4 flex-shrink-0" />
-            <span className="text-base font-semibold">Save mating to litters</span>
+            <span className="hidden sm:inline text-base font-semibold">Save mating to litters</span>
           </Button>
         </div>
 

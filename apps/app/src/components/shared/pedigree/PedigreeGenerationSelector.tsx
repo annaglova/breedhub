@@ -32,7 +32,7 @@ export function PedigreeGenerationSelector({
           className="flex items-center text-lg font-semibold text-sub-header-color hover:text-foreground/70 transition-colors focus:outline-none focus-visible:outline-none"
         >
           <TreeDeciduous className="mr-2 h-6 w-6" />
-          {generations} generations
+          {generations}<span className="hidden sm:inline"> generations</span>
           <ChevronDown className="ml-1.5 h-5 w-5" />
         </button>
       </DropdownMenuTrigger>
