@@ -53,6 +53,7 @@ function usePageRoutes() {
       component: string;
       workspaceId: string;
       pageConfig: any;
+      workspaceConfig: any;
     }> = [];
 
     // Find workspaces with pages (tool workspaces)
@@ -72,6 +73,7 @@ function usePageRoutes() {
             component: defaultPage.component,
             workspaceId: workspace.id || workspace.configKey,
             pageConfig: defaultPage,
+            workspaceConfig: workspace,
           });
         }
       }
@@ -111,7 +113,7 @@ export function AppRouter() {
               <Route
                 key={page.workspaceId}
                 path={page.path}
-                element={PageComponent ? <PageComponent pageConfig={page.pageConfig} /> : <PageNotFound componentName={page.component} />}
+                element={PageComponent ? <PageComponent pageConfig={page.pageConfig} workspaceConfig={page.workspaceConfig} /> : <PageNotFound componentName={page.component} />}
               />
             );
           })}

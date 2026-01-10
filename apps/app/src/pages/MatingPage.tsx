@@ -38,8 +38,16 @@ function getDefaultGenerations(): GenerationCount {
   return 2;
 }
 
+interface WorkspaceConfig {
+  id?: string;
+  label?: string;
+  icon?: { name: string; source: string };
+  path?: string;
+}
+
 interface MatingPageProps {
   pageConfig?: PageConfig | null;
+  workspaceConfig?: WorkspaceConfig | null;
 }
 
 /**
@@ -51,7 +59,7 @@ interface MatingPageProps {
  * Similar to LitterPedigreeTab but as standalone page
  * with pet selection controls.
  */
-export function MatingPage({ pageConfig }: MatingPageProps) {
+export function MatingPage({ pageConfig, workspaceConfig }: MatingPageProps) {
   const [generations, setGenerations] = useState<GenerationCount>(getDefaultGenerations);
 
   // Selected pets for mating
@@ -138,7 +146,7 @@ export function MatingPage({ pageConfig }: MatingPageProps) {
         {/* Header row */}
         <div className="flex items-center justify-between pb-4 bg-white dark:bg-zinc-900 border-b border-border">
           <div className="flex items-center gap-4">
-            <h1 className="text-2xl">Test Mating</h1>
+            <h1 className="text-2xl">{workspaceConfig?.label || "Test Mating"}</h1>
             <PedigreeGenerationSelector
               generations={generations}
               onGenerationsChange={setGenerations}
