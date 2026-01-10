@@ -1,59 +1,29 @@
 /* Focus styles for keyboard navigation accessibility */
 
-/* Base focus styles for all interactive elements */
+/* Opt-in focus styles - add this class to elements that need focus ring */
 .focus-visible-styles:focus-visible {
   @apply outline-none ring-2 ring-primary-500 ring-offset-2;
 }
 
-/* Button focus styles */
-button:focus-visible,
-.landing-raised-button:focus-visible,
-.landing-cta-button:focus-visible,
-.landing-menu-button:focus-visible {
-  @apply outline-none ring-2 ring-primary-500 ring-offset-2;
-}
-
-/* Link focus styles */
-a:focus-visible {
-  @apply outline-none ring-2 ring-primary-500 ring-offset-2 rounded;
-}
-
-/* Tab focus styles */
-.active-tab-button:focus-visible {
-  @apply outline-none ring-2 ring-primary-500 ring-offset-2;
-}
-
-/* Form element focus styles */
+/* Form element focus styles - these always need visible focus */
 input:focus-visible,
 textarea:focus-visible,
 select:focus-visible {
   @apply outline-none ring-2 ring-primary-500 ring-offset-2;
 }
 
-/* Card/clickable container focus styles */
-.cursor-pointer:focus-visible,
-[role="button"]:focus-visible {
-  @apply outline-none ring-2 ring-primary-500 ring-offset-2 rounded-lg;
-}
-
-/* High contrast mode support */
+/* High contrast mode support - only for form elements */
 @media (prefers-contrast: high) {
-  button:focus-visible,
-  a:focus-visible,
   input:focus-visible,
   textarea:focus-visible,
-  select:focus-visible,
-  .cursor-pointer:focus-visible,
-  [role="button"]:focus-visible {
+  select:focus-visible {
     outline: 2px solid rgb(var(--primary-600));
     outline-offset: 2px;
   }
 }
 
-/* Dark mode focus styles */
+/* Dark mode focus styles - only for form elements */
 @media (prefers-color-scheme: dark) {
-  button:focus-visible,
-  a:focus-visible,
   input:focus-visible,
   textarea:focus-visible,
   select:focus-visible {
@@ -73,17 +43,12 @@ select:focus-visible {
   .text-secondary-600 {
     @apply text-secondary-800;
   }
-  
+
   .text-slate-500 {
     @apply text-slate-700;
   }
-  
+
   .border {
     @apply border-2;
-  }
-  
-  button,
-  a {
-    @apply font-bold;
   }
 }
