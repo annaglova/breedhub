@@ -332,7 +332,7 @@ export function PedigreeCard({ pet, sex, level, canSelectPet, isSelected, onSele
             </>
           ) : (
             <div className="flex size-full flex-col items-center space-y-5 pt-5">
-              <div className="rounded-full bg-secondary-200 dark:bg-secondary-700 w-2/3 h-4" />
+              <div className="rounded-full bg-secondary-200 dark:bg-secondary-700 w-full h-4" />
               <div className="rounded-full bg-secondary-200 dark:bg-secondary-700 w-1/2 h-3" />
             </div>
           )}
