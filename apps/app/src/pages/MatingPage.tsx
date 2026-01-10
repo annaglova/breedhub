@@ -92,9 +92,9 @@ export function MatingPage() {
       {/* Sticky header section */}
       <div className="sticky top-0 z-20 -mx-4 sm:-mx-6 -mt-4">
         {/* Header with white background */}
-        <div className="bg-white dark:bg-zinc-900 px-4 sm:px-6 pt-4">
+        <div className="bg-white dark:bg-zinc-900 px-4 sm:px-6 pt-4 border-b border-border">
           {/* Header with controls */}
-          <div className="flex items-center justify-between pb-4 border-b">
+          <div className="flex items-center justify-between pb-4">
             <div className="flex items-center gap-4">
               <h1 className="text-2xl">Test Mating</h1>
               <PedigreeGenerationSelector
@@ -112,9 +112,10 @@ export function MatingPage() {
               <span className="text-base font-semibold">Save mating to litters</span>
             </Button>
           </div>
+        </div>
 
-          {/* Compact parent selectors */}
-          <div className="flex items-center gap-3 py-3 border-b">
+        {/* Compact parent selectors - TabHeader style */}
+        <div className="flex items-center gap-3 px-6 py-2 bg-header-ground/75 backdrop-blur-sm">
             {/* Father selector chip */}
             <div
               onClick={() => setFatherModalOpen(true)}
@@ -172,11 +173,10 @@ export function MatingPage() {
                 </button>
               )}
             </div>
-          </div>
         </div>
 
         {/* Horizontal scrollbar - transparent background */}
-        <div className="px-4 sm:px-6 py-2 mb-6">
+        <div className="px-4 sm:px-6 pt-4 pb-2 mb-6">
           <HorizontalScrollbar
             scrollContainerRef={scrollRef}
             className="mx-auto max-w-52 sm:max-w-md"
