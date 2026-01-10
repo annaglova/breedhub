@@ -262,7 +262,7 @@ export function PedigreeCard({ pet, sex, level, canSelectPet, isSelected, onSele
         ) : (
           <>
             {/* Empty pet placeholder */}
-            <div className="rounded-full bg-secondary-200 dark:bg-secondary-700 w-full h-4 my-3" />
+            <div className="rounded-full bg-secondary-200 dark:bg-secondary-700 w-full h-4 mt-3 shrink-0" />
             <div className="flex w-full items-center h-full">
               {/* Avatar 104px with fallback */}
               <div className="h-26 w-26 min-w-26 flex items-center justify-center overflow-hidden rounded-xl border border-border relative">
