@@ -6,10 +6,12 @@ import {
   PedigreeTree,
   type PedigreePet,
 } from "@/components/shared/pedigree";
+import { PetSexMark } from "@/components/shared/PetSexMark";
 import { mediaQueries } from "@/config/breakpoints";
 import { ToolPageLayout } from "@/layouts/ToolPageLayout";
 import { Button } from "@ui/components/button";
-import { Save } from "lucide-react";
+import { cn } from "@ui/lib/utils";
+import { Save, X } from "lucide-react";
 import { useCallback, useRef, useState } from "react";
 
 /** Get default generations based on screen size */
@@ -111,38 +113,64 @@ export function MatingPage() {
             </Button>
           </div>
 
-          {/* Pet selection */}
-          <div className="flex gap-4 py-4 border-b">
-            <div className="flex-1">
-              <label className="block text-sm font-medium mb-2">
-                Select Father
-              </label>
-              <div
-                onClick={() => setFatherModalOpen(true)}
-                className="h-20 border-2 border-dashed border-slate-300 rounded-lg flex items-center justify-center text-slate-400 cursor-pointer hover:border-primary hover:text-primary transition-colors"
-              >
-                {father ? (
-                  <span className="text-foreground font-medium">{father.name}</span>
-                ) : (
-                  "Click to select father"
-                )}
-              </div>
+          {/* Compact parent selectors */}
+          <div className="flex items-center gap-3 py-3 border-b">
+            {/* Father selector chip */}
+            <div
+              onClick={() => setFatherModalOpen(true)}
+              className={cn(
+                "flex items-center gap-2 px-3 py-1.5 rounded-full cursor-pointer transition-colors",
+                "border border-blue-300 dark:border-blue-400",
+                father
+                  ? "bg-blue-50 dark:bg-blue-900/30"
+                  : "hover:bg-blue-50 dark:hover:bg-blue-900/20"
+              )}
+            >
+              <PetSexMark sex="male" style="round" className="shrink-0" />
+              <span className="text-sm font-medium truncate max-w-32">
+                {father?.name || "Select father"}
+              </span>
+              {father && (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setFather(null);
+                  }}
+                  className="ml-1 p-0.5 rounded-full hover:bg-blue-200 dark:hover:bg-blue-800 transition-colors"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              )}
             </div>
 
-            <div className="flex-1">
-              <label className="block text-sm font-medium mb-2">
-                Select Mother
-              </label>
-              <div
-                onClick={() => setMotherModalOpen(true)}
-                className="h-20 border-2 border-dashed border-slate-300 rounded-lg flex items-center justify-center text-slate-400 cursor-pointer hover:border-primary hover:text-primary transition-colors"
-              >
-                {mother ? (
-                  <span className="text-foreground font-medium">{mother.name}</span>
-                ) : (
-                  "Click to select mother"
-                )}
-              </div>
+            {/* Mother selector chip */}
+            <div
+              onClick={() => setMotherModalOpen(true)}
+              className={cn(
+                "flex items-center gap-2 px-3 py-1.5 rounded-full cursor-pointer transition-colors",
+                "border border-pink-300 dark:border-pink-400",
+                mother
+                  ? "bg-pink-50 dark:bg-pink-900/30"
+                  : "hover:bg-pink-50 dark:hover:bg-pink-900/20"
+              )}
+            >
+              <PetSexMark sex="female" style="round" className="shrink-0" />
+              <span className="text-sm font-medium truncate max-w-32">
+                {mother?.name || "Select mother"}
+              </span>
+              {mother && (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setMother(null);
+                  }}
+                  className="ml-1 p-0.5 rounded-full hover:bg-pink-200 dark:hover:bg-pink-800 transition-colors"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              )}
             </div>
           </div>
         </div>
