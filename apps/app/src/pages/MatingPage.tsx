@@ -112,17 +112,11 @@ export function MatingPage() {
         </div>
 
         {/* Parent selectors */}
-        <div className="flex items-center gap-3 py-2 bg-header-ground/75 backdrop-blur-sm">
+        <div className="flex items-center gap-3 py-2 bg-header-ground/75 backdrop-blur-sm px-2">
           {/* Father selector chip */}
           <div
             onClick={() => setFatherModalOpen(true)}
-            className={cn(
-              "flex items-center gap-2 px-3 py-1.5 rounded-full cursor-pointer transition-colors",
-              "border border-blue-300 dark:border-blue-400",
-              father
-                ? "bg-blue-50 dark:bg-blue-900/30"
-                : "hover:bg-blue-50 dark:hover:bg-blue-900/20"
-            )}
+            className="flex items-center gap-2 px-3 py-1.5 rounded-full cursor-pointer transition-colors border border-border hover:bg-secondary-100 dark:hover:bg-secondary-800"
           >
             <PetSexMark sex="male" style="round" className="shrink-0" />
             <span className="text-sm font-medium truncate max-w-32">
@@ -135,7 +129,7 @@ export function MatingPage() {
                   e.stopPropagation();
                   setFather(null);
                 }}
-                className="ml-1 p-0.5 rounded-full hover:bg-blue-200 dark:hover:bg-blue-800 transition-colors"
+                className="ml-1 p-0.5 rounded-full hover:bg-secondary-200 dark:hover:bg-secondary-700 transition-colors"
               >
                 <X className="h-3 w-3" />
               </button>
@@ -145,13 +139,7 @@ export function MatingPage() {
           {/* Mother selector chip */}
           <div
             onClick={() => setMotherModalOpen(true)}
-            className={cn(
-              "flex items-center gap-2 px-3 py-1.5 rounded-full cursor-pointer transition-colors",
-              "border border-pink-300 dark:border-pink-400",
-              mother
-                ? "bg-pink-50 dark:bg-pink-900/30"
-                : "hover:bg-pink-50 dark:hover:bg-pink-900/20"
-            )}
+            className="flex items-center gap-2 px-3 py-1.5 rounded-full cursor-pointer transition-colors border border-border hover:bg-secondary-100 dark:hover:bg-secondary-800"
           >
             <PetSexMark sex="female" style="round" className="shrink-0" />
             <span className="text-sm font-medium truncate max-w-32">
@@ -164,7 +152,7 @@ export function MatingPage() {
                   e.stopPropagation();
                   setMother(null);
                 }}
-                className="ml-1 p-0.5 rounded-full hover:bg-pink-200 dark:hover:bg-pink-800 transition-colors"
+                className="ml-1 p-0.5 rounded-full hover:bg-secondary-200 dark:hover:bg-secondary-700 transition-colors"
               >
                 <X className="h-3 w-3" />
               </button>

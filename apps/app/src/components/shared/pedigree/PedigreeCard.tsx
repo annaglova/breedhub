@@ -154,7 +154,7 @@ export function PedigreeCard({ pet, sex, level, canSelectPet, isSelected, onSele
             {canSelectPet && (
               <button
                 onClick={handleSelectClick}
-                className="mt-4 bg-secondary-200 dark:bg-secondary-700 rounded-full px-2.5 py-1 hover:bg-secondary-300 dark:hover:bg-secondary-600 text-sm"
+                className="mt-4 bg-secondary-200 dark:bg-secondary-700 rounded-full px-4 py-1 hover:bg-secondary-300 dark:hover:bg-secondary-600 text-sm"
               >
                 {getButtonText()}
               </button>
@@ -183,7 +183,7 @@ export function PedigreeCard({ pet, sex, level, canSelectPet, isSelected, onSele
             {canSelectPet && (
               <button
                 onClick={handleSelectClick}
-                className="mt-4 bg-secondary-200 dark:bg-secondary-700 rounded-full px-2.5 py-1 hover:bg-secondary-300 dark:hover:bg-secondary-600 text-sm"
+                className="mt-4 bg-secondary-200 dark:bg-secondary-700 rounded-full px-4 py-1 hover:bg-secondary-300 dark:hover:bg-secondary-600 text-sm"
               >
                 {getButtonText()}
               </button>
