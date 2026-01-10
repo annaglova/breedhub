@@ -112,11 +112,11 @@ export function MatingPage() {
         </div>
 
         {/* Parent selectors */}
-        <div className="flex items-center gap-3 py-2 bg-header-ground/75 backdrop-blur-sm px-2">
+        <div className="grid grid-cols-2 gap-3 py-2 bg-header-ground/75 backdrop-blur-sm px-2">
           {/* Father selector chip */}
           <div
             onClick={() => setFatherModalOpen(true)}
-            className="flex items-center gap-2 px-3 py-1.5 rounded-full cursor-pointer transition-colors border border-border hover:bg-secondary-100 dark:hover:bg-secondary-800"
+            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full cursor-pointer transition-colors border border-gray-400 hover:bg-secondary-200 w-fit"
           >
             <PetSexMark sex="male" style="round" className="shrink-0" />
             <span className="text-sm font-medium truncate max-w-32">
@@ -139,7 +139,7 @@ export function MatingPage() {
           {/* Mother selector chip */}
           <div
             onClick={() => setMotherModalOpen(true)}
-            className="flex items-center gap-2 px-3 py-1.5 rounded-full cursor-pointer transition-colors border border-border hover:bg-secondary-100 dark:hover:bg-secondary-800"
+            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full cursor-pointer transition-colors border border-gray-400 hover:bg-secondary-200 w-fit"
           >
             <PetSexMark sex="female" style="round" className="shrink-0" />
             <span className="text-sm font-medium truncate max-w-32">
