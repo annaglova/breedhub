@@ -3,13 +3,19 @@ import type { SexCode } from "@/components/shared/PetSexMark";
 import { PetSexMark } from "@/components/shared/PetSexMark";
 import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import type { PedigreePet } from "./types";
+import type { OnSelectPetCallback, PedigreePet } from "./types";
 
 interface PedigreeCardProps {
   pet: PedigreePet;
   sex?: SexCode;
   /** Visual level: -1, 0, 1, 2, 3 */
   level: number;
+  /** Whether selection button should be shown */
+  canSelectPet?: boolean;
+  /** Whether a pet is already selected (for "Select" vs "Change" text) */
+  isSelected?: boolean;
+  /** Callback when selection button is clicked */
+  onSelectPet?: OnSelectPetCallback;
 }
 
 /**
@@ -75,9 +81,22 @@ function PetImage({
  *
  * Based on Angular: pedigree-card.component.ts
  */
-export function PedigreeCard({ pet, sex, level }: PedigreeCardProps) {
+export function PedigreeCard({ pet, sex, level, canSelectPet, isSelected, onSelectPet }: PedigreeCardProps) {
   const isEmpty = !pet || pet.id === "unknown";
   const petSex = sex || pet.sex?.code;
+
+  // Button text: "Select father/mother" or "Change father/mother"
+  const getButtonText = () => {
+    const action = isSelected ? "Change" : "Select";
+    const parent = petSex === "male" ? "father" : "mother";
+    return `${action} ${parent}`;
+  };
+
+  const handleSelectClick = () => {
+    if (onSelectPet && petSex) {
+      onSelectPet(petSex as "male" | "female");
+    }
+  };
 
   // Country + Year
   const countryYear = [pet.countryOfBirth?.code, formatYear(pet.dateOfBirth)]
@@ -131,6 +150,16 @@ export function PedigreeCard({ pet, sex, level }: PedigreeCardProps) {
               </span>
             )}
 
+            {/* Selection button (Change) */}
+            {canSelectPet && (
+              <button
+                onClick={handleSelectClick}
+                className="mt-4 bg-secondary-200 dark:bg-secondary-700 rounded-full px-2.5 py-1 hover:bg-secondary-300 dark:hover:bg-secondary-600 text-sm"
+              >
+                {getButtonText()}
+              </button>
+            )}
+
             {/* Country + Year + Titles */}
             <div className="h-20 mt-3 sm:mt-4 w-full border-t border-border pt-3 flex flex-col overflow-hidden">
               {countryYear && (
@@ -150,10 +179,19 @@ export function PedigreeCard({ pet, sex, level }: PedigreeCardProps) {
           </>
         ) : (
           <>
-            {/* Empty pet placeholder */}
-            <span className="mt-4 sm:mt-6 flex min-h-10 w-full items-center justify-center text-center text-secondary">
-              Unknown
-            </span>
+            {/* Selection button (Select) for empty pet */}
+            {canSelectPet ? (
+              <button
+                onClick={handleSelectClick}
+                className="mt-4 bg-secondary-200 dark:bg-secondary-700 rounded-full px-2.5 py-1 hover:bg-secondary-300 dark:hover:bg-secondary-600 text-sm"
+              >
+                {getButtonText()}
+              </button>
+            ) : (
+              <span className="mt-4 sm:mt-6 flex min-h-10 w-full items-center justify-center text-center text-secondary">
+                Unknown
+              </span>
+            )}
             <div className="mt-3 sm:mt-4 flex w-full flex-col items-center border-t border-border">
               <div className="rounded-full bg-secondary-200 dark:bg-secondary-700 w-1/3 h-2 mb-1.5 mt-3" />
               <div className="rounded-full bg-secondary-200 dark:bg-secondary-700 w-full h-3 my-1.5" />

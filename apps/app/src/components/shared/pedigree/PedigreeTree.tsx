@@ -1,5 +1,5 @@
 import { PedigreeCard } from "./PedigreeCard";
-import type { PedigreePet, GenerationCount } from "./types";
+import type { PedigreePet, GenerationCount, OnSelectPetCallback } from "./types";
 import { UNKNOWN_PET } from "./mock-data";
 
 interface PedigreeTreeProps {
@@ -9,6 +9,14 @@ interface PedigreeTreeProps {
   generations: GenerationCount;
   /** Hide subject card (for litter mode - show only parents) */
   hideSubject?: boolean;
+  /** Enable mating mode with selection buttons on parent cards */
+  matingMode?: boolean;
+  /** Callback when selecting a pet in mating mode */
+  onSelectPet?: OnSelectPetCallback;
+  /** Currently selected father (to determine if "Select" or "Change") */
+  selectedFather?: PedigreePet | null;
+  /** Currently selected mother (to determine if "Select" or "Change") */
+  selectedMother?: PedigreePet | null;
 }
 
 interface PedigreeNodeProps {
@@ -18,6 +26,12 @@ interface PedigreeNodeProps {
   gen: number;
   /** Max generations to show */
   limit: number;
+  /** Enable mating mode with selection buttons */
+  matingMode?: boolean;
+  /** Callback when selecting a pet in mating mode */
+  onSelectPet?: OnSelectPetCallback;
+  /** Is pet already selected (for "Select" vs "Change" button text) */
+  isSelected?: boolean;
 }
 
 /**
@@ -54,15 +68,25 @@ function calculateLevel(gen: number, limit: number): number {
  *   </div>
  * </div>
  */
-function PedigreeNode({ pet, sex, gen, limit }: PedigreeNodeProps) {
+function PedigreeNode({ pet, sex, gen, limit, matingMode, onSelectPet, isSelected }: PedigreeNodeProps) {
   const petData = pet || UNKNOWN_PET;
   const level = calculateLevel(gen, limit);
   const needChildren = gen <= limit;
 
+  // Show selection button only on first generation (parents level) in mating mode
+  const canSelectPet = matingMode && gen === 1;
+
   return (
     <div className="flex w-full flex-row space-x-3">
       {/* Card */}
-      <PedigreeCard pet={petData} sex={sex} level={level} />
+      <PedigreeCard
+        pet={petData}
+        sex={sex}
+        level={level}
+        canSelectPet={canSelectPet}
+        isSelected={isSelected}
+        onSelectPet={onSelectPet}
+      />
 
       {/* Children (Father/Mother) */}
       {needChildren && (
@@ -95,7 +119,15 @@ function PedigreeNode({ pet, sex, gen, limit }: PedigreeNodeProps) {
  *
  * Based on Angular: pedigree-page.component.ts
  */
-export function PedigreeTree({ pet, generations, hideSubject = false }: PedigreeTreeProps) {
+export function PedigreeTree({
+  pet,
+  generations,
+  hideSubject = false,
+  matingMode = false,
+  onSelectPet,
+  selectedFather,
+  selectedMother,
+}: PedigreeTreeProps) {
   // limit = generations - 1 (як в Angular: this.pedigreeStore.generationsDisplayCount() - 1)
   const limit = generations - 1;
 
@@ -108,8 +140,24 @@ export function PedigreeTree({ pet, generations, hideSubject = false }: Pedigree
 
       {/* Ancestors tree */}
       <div className="flex w-full flex-auto flex-col gap-3">
-        <PedigreeNode pet={pet.father} sex="male" gen={1} limit={limit} />
-        <PedigreeNode pet={pet.mother} sex="female" gen={1} limit={limit} />
+        <PedigreeNode
+          pet={pet.father}
+          sex="male"
+          gen={1}
+          limit={limit}
+          matingMode={matingMode}
+          onSelectPet={onSelectPet}
+          isSelected={!!selectedFather}
+        />
+        <PedigreeNode
+          pet={pet.mother}
+          sex="female"
+          gen={1}
+          limit={limit}
+          matingMode={matingMode}
+          onSelectPet={onSelectPet}
+          isSelected={!!selectedMother}
+        />
       </div>
     </div>
   );

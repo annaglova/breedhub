@@ -234,6 +234,16 @@ export function MatingPage() {
             pet={virtualPet}
             generations={generations}
             hideSubject
+            matingMode
+            selectedFather={father}
+            selectedMother={mother}
+            onSelectPet={(sex) => {
+              if (sex === "male") {
+                setFatherModalOpen(true);
+              } else {
+                setMotherModalOpen(true);
+              }
+            }}
           />
         </div>
       </div>

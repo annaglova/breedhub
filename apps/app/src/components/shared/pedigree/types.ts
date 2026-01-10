@@ -32,3 +32,8 @@ export type PedigreeMode = "pet" | "litter" | "mating";
  */
 export const GENERATION_OPTIONS = [2, 3, 4, 5, 6, 7] as const;
 export type GenerationCount = (typeof GENERATION_OPTIONS)[number];
+
+/**
+ * Callback for selecting a pet in mating mode
+ */
+export type OnSelectPetCallback = (sex: "male" | "female") => void;
