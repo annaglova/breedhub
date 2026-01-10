@@ -1,5 +1,6 @@
 import { PetSelectorModal } from "@/components/pet/PetSelectorModal";
 import { HorizontalScrollbar } from "@/components/shared/HorizontalScrollbar";
+import { Icon } from "@/components/shared/Icon";
 import {
   GenerationCount,
   PedigreeGenerationSelector,
@@ -8,10 +9,25 @@ import {
 } from "@/components/shared/pedigree";
 import { PetSexMark } from "@/components/shared/PetSexMark";
 import { mediaQueries } from "@/config/breakpoints";
+import { usePageActions } from "@/hooks/usePageActions";
+import { usePageMenu } from "@/hooks/usePageMenu";
 import { ToolPageLayout } from "@/layouts/ToolPageLayout";
+import type { PageConfig } from "@/types/page-config.types";
+import { toast } from "@breedhub/rxdb-store";
 import { Button } from "@ui/components/button";
-import { cn } from "@ui/lib/utils";
-import { Save, X } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@ui/components/dropdown-menu";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@ui/components/tooltip";
+import { MoreVertical, Save, X } from "lucide-react";
 import { useCallback, useRef, useState } from "react";
 
 /** Get default generations based on screen size */
@@ -20,6 +36,10 @@ function getDefaultGenerations(): GenerationCount {
   if (window.matchMedia(mediaQueries.lg).matches) return 4;
   if (window.matchMedia(mediaQueries.md).matches) return 3;
   return 2;
+}
+
+interface MatingPageProps {
+  pageConfig?: PageConfig | null;
 }
 
 /**
@@ -31,7 +51,7 @@ function getDefaultGenerations(): GenerationCount {
  * Similar to LitterPedigreeTab but as standalone page
  * with pet selection controls.
  */
-export function MatingPage() {
+export function MatingPage({ pageConfig }: MatingPageProps) {
   const [generations, setGenerations] = useState<GenerationCount>(getDefaultGenerations);
 
   // Selected pets for mating
@@ -87,6 +107,30 @@ export function MatingPage() {
     console.log("Save mating to litters", { father, mother });
   };
 
+  // Menu items from config
+  const menuItems = usePageMenu({
+    pageConfig: pageConfig || null,
+    context: "avatar",
+    spacePermissions: { canEdit: false, canDelete: false, canAdd: false },
+  });
+
+  // Custom copy_link handler for tool page (no entity)
+  const handleCopyLink = useCallback(() => {
+    const url = window.location.href;
+    navigator.clipboard.writeText(url).then(() => {
+      toast.success("Link copied");
+    }).catch(() => {
+      toast.error("Failed to copy link");
+    });
+  }, []);
+
+  // Action handlers
+  const { executeAction } = usePageActions(null, {
+    copy_link: handleCopyLink,
+  });
+
+  const hasMenuItems = menuItems.length > 0;
+
   return (
     <ToolPageLayout>
       {/* Sticky header */}
@@ -101,14 +145,52 @@ export function MatingPage() {
             />
           </div>
 
-          <Button
-            variant="accent"
-            onClick={handleSaveToLitters}
-            className="rounded-full h-[2.25rem] w-[2.25rem] sm:w-auto sm:px-4 gap-2"
-          >
-            <Save className="h-4 w-4 flex-shrink-0" />
-            <span className="hidden sm:inline text-base font-semibold">Save mating to litters</span>
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="accent"
+              onClick={handleSaveToLitters}
+              className="rounded-full h-[2.25rem] w-[2.25rem] sm:w-auto sm:px-4 gap-2"
+            >
+              <Save className="h-4 w-4 flex-shrink-0" />
+              <span className="hidden sm:inline text-base font-semibold">Save mating to litters</span>
+            </Button>
+
+            {/* More options dropdown menu */}
+            {hasMenuItems && (
+              <DropdownMenu>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="ghost-secondary"
+                        className="size-[2.25rem] rounded-full p-0"
+                        type="button"
+                      >
+                        <MoreVertical size={16} />
+                      </Button>
+                    </DropdownMenuTrigger>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom">More options</TooltipContent>
+                </Tooltip>
+                <DropdownMenuContent align="end">
+                  {menuItems.map((item) => (
+                    <>
+                      <DropdownMenuItem
+                        key={item.id}
+                        onClick={() => executeAction(item.action, item.actionParams)}
+                      >
+                        <Icon icon={item.icon} size={16} />
+                        {item.label}
+                      </DropdownMenuItem>
+                      {item.hasDivider && (
+                        <DropdownMenuSeparator key={`divider-${item.id}`} />
+                      )}
+                    </>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+          </div>
         </div>
 
         {/* Parent selectors */}

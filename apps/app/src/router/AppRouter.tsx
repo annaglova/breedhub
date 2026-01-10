@@ -52,6 +52,7 @@ function usePageRoutes() {
       path: string;
       component: string;
       workspaceId: string;
+      pageConfig: any;
     }> = [];
 
     // Find workspaces with pages (tool workspaces)
@@ -69,7 +70,8 @@ function usePageRoutes() {
           pageRoutes.push({
             path: workspace.path.replace(/^\//, ''), // Remove leading slash
             component: defaultPage.component,
-            workspaceId: workspace.id || workspace.configKey
+            workspaceId: workspace.id || workspace.configKey,
+            pageConfig: defaultPage,
           });
         }
       }
@@ -109,7 +111,7 @@ export function AppRouter() {
               <Route
                 key={page.workspaceId}
                 path={page.path}
-                element={PageComponent ? <PageComponent /> : <PageNotFound componentName={page.component} />}
+                element={PageComponent ? <PageComponent pageConfig={page.pageConfig} /> : <PageNotFound componentName={page.component} />}
               />
             );
           })}
