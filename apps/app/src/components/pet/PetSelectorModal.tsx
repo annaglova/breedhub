@@ -80,16 +80,16 @@ function PetSelectorItem({
     <div
       onClick={onClick}
       className={cn(
-        "flex items-center p-3 cursor-pointer rounded-lg transition-colors",
+        "flex items-center p-2 cursor-pointer rounded-md transition-colors",
         "hover:bg-slate-100 dark:hover:bg-slate-800",
         selected && "bg-primary-50 dark:bg-primary-900/30 ring-2 ring-primary-500"
       )}
     >
-      {/* Avatar */}
+      {/* Avatar - compact size */}
       <div
         className={cn(
-          "size-10 rounded-full border border-surface-border flex-shrink-0",
-          "ring-2 ring-offset-2",
+          "size-8 rounded-full border border-surface-border flex-shrink-0",
+          "ring-[1.5px] ring-offset-1",
           getRingClass()
         )}
       >
@@ -110,10 +110,10 @@ function PetSelectorItem({
         </div>
       </div>
 
-      {/* Details */}
-      <div className="ml-4 flex-1 min-w-0">
-        <div className="text-md truncate font-medium">{pet.name || "Unknown"}</div>
-        <div className="text-sm text-slate-500 dark:text-slate-400 flex space-x-1">
+      {/* Details - compact layout */}
+      <div className="ml-3 flex-1 min-w-0">
+        <div className="text-sm truncate font-medium">{pet.name || "Unknown"}</div>
+        <div className="text-xs text-slate-500 dark:text-slate-400 flex space-x-1">
           {petStatusName && <span>{petStatusName}</span>}
           {pet.date_of_birth && (
             <>
