@@ -152,12 +152,12 @@ export const DropdownInput = forwardRef<HTMLInputElement, DropdownInputProps>(
       [referencedTable, referencedFieldID, referencedFieldName, cursor]
     );
 
-    // Load dictionary data when dropdown opens
+    // Pre-load dictionary data on mount (for small dictionaries like pet_type)
     useEffect(() => {
-      if (isOpen && referencedTable && dynamicOptions.length === 0) {
+      if (referencedTable && dynamicOptions.length === 0) {
         loadDictionaryOptions();
       }
-    }, [isOpen, referencedTable, dynamicOptions.length, loadDictionaryOptions]);
+    }, [referencedTable]); // eslint-disable-line react-hooks/exhaustive-deps
 
     // ✅ Pre-load ONLY the selected record by ID (like LookupInput)
     // This is instant - no need to load all options
