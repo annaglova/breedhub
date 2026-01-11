@@ -44,10 +44,12 @@ function PetSelectorItem({
   pet,
   selected,
   onClick,
+  index,
 }: {
   pet: PetEntity;
   selected: boolean;
   onClick: () => void;
+  index: number;
 }) {
   const petStatusName = useDictionaryValue("pet_status", pet.pet_status_id);
   const sexCode = useDictionaryValue("sex", pet.sex_id, "code");
@@ -80,10 +82,10 @@ function PetSelectorItem({
     <div
       onClick={onClick}
       className={cn(
-        "flex items-center px-3 py-2 cursor-pointer transition-colors rounded-md",
-        "bg-white dark:bg-slate-900",
-        "hover:bg-slate-50 dark:hover:bg-slate-800",
-        selected && "bg-primary-50 dark:bg-primary-900/30 ring-1 ring-primary-300 dark:ring-primary-500"
+        "flex items-center px-4 py-2 cursor-pointer transition-colors",
+        index % 2 === 0 ? "bg-card-ground" : "bg-even-card-ground",
+        "hover:bg-slate-100 dark:hover:bg-slate-800",
+        selected && "!bg-primary-50 dark:!bg-primary-900/30"
       )}
     >
       {/* Avatar - compact size */}
@@ -418,7 +420,7 @@ export function PetSelectorModal({
         <div
           ref={scrollContainerRef}
           onScroll={handleScroll}
-          className="flex-1 min-h-0 overflow-y-auto bg-modal-card-ground rounded-lg p-2 space-y-1"
+          className="flex-1 min-h-0 overflow-y-auto rounded-lg border border-border"
         >
           {!shouldFetch ? (
             <div className="text-center py-8 text-slate-500">
@@ -434,12 +436,13 @@ export function PetSelectorModal({
             </div>
           ) : (
             <>
-              {filteredEntities.map((pet) => (
+              {filteredEntities.map((pet, index) => (
                 <PetSelectorItem
                   key={pet.id}
                   pet={pet}
                   selected={selectedPet?.id === pet.id}
                   onClick={() => setSelectedPet(pet)}
+                  index={index}
                 />
               ))}
 
