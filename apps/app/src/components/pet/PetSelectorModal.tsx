@@ -1,6 +1,7 @@
 import defaultPetAvatar from "@/assets/images/pettypes/dog.jpeg";
 import { useDictionaryValue } from "@/hooks/useDictionaryValue";
 import { useEntities } from "@/hooks/useEntities";
+import { dictionaryStore } from "@breedhub/rxdb-store";
 import { Button } from "@ui/components/button";
 import {
   Dialog,
@@ -151,13 +152,36 @@ export function PetSelectorModal({
   const [petTypeId, setPetTypeId] = useState<string>("");
   const [breedId, setBreedId] = useState<string>("");
 
+  // Resolve sexFilter code to sex_id UUID
+  const [sexId, setSexId] = useState<string | null>(null);
+  useEffect(() => {
+    if (!sexFilter) {
+      setSexId(null);
+      return;
+    }
+
+    const resolveSexId = async () => {
+      try {
+        const { records } = await dictionaryStore.getDictionary("sex");
+        const sexRecord = records.find((r: any) => r.code === sexFilter);
+        if (sexRecord) {
+          setSexId(sexRecord.id);
+        }
+      } catch (error) {
+        console.error("[PetSelectorModal] Failed to resolve sex_id:", error);
+      }
+    };
+
+    resolveSexId();
+  }, [sexFilter]);
+
   // Build filters based on props and filter state
   const filters = useMemo(() => {
     const f: Record<string, any> = {};
 
-    // Add sex filter if specified
-    if (sexFilter) {
-      f.sex_code = sexFilter;
+    // Add sex filter if resolved (sexId is UUID from dictionary)
+    if (sexId) {
+      f.sex_id = sexId;
     }
 
     // Add pet type filter
@@ -170,13 +194,23 @@ export function PetSelectorModal({
       f.breed_id = breedId;
     }
 
-    // Add name search filter
+    // Add name search filter (uses actual field name for hybrid search)
     if (searchQuery.trim()) {
-      f.name_search = searchQuery.trim().toUpperCase();
+      f.name = searchQuery.trim().toUpperCase();
     }
 
     return Object.keys(f).length > 0 ? f : undefined;
-  }, [sexFilter, petTypeId, breedId, searchQuery]);
+  }, [sexId, petTypeId, breedId, searchQuery]);
+
+  // Field configs for filter operators
+  // - name: 'contains' for hybrid search (starts_with + contains)
+  // - UUID fields: 'eq' for exact match
+  const fieldConfigs = useMemo(() => ({
+    name: { fieldType: 'string', operator: 'contains' },
+    pet_type_id: { fieldType: 'uuid', operator: 'eq' },
+    breed_id: { fieldType: 'uuid', operator: 'eq' },
+    sex_id: { fieldType: 'uuid', operator: 'eq' }
+  }), []);
 
   // Reset breed when pet type changes
   const handlePetTypeChange = (value: string) => {
@@ -188,15 +222,20 @@ export function PetSelectorModal({
   const shouldFetch = !!breedId;
 
   // Stable orderBy reference to prevent infinite re-renders
-  const orderBy = useMemo(() => ({ field: "name", direction: "asc" as const }), []);
+  const orderBy = useMemo(() => ({
+    field: "name",
+    direction: "asc" as const,
+    tieBreaker: { field: "id", direction: "asc" as const }
+  }), []);
 
-  // Fetch pets with filters
+  // Fetch pets with filters (hybrid lookup with ID-First pagination)
   const { data, isLoading, isLoadingMore, hasMore, loadMore } = useEntities({
     entityType: "pet",
     recordsCount: 30,
     filters,
     orderBy,
     enabled: shouldFetch,
+    fieldConfigs,
   });
 
   // Filter out excluded IDs
@@ -244,19 +283,20 @@ export function PetSelectorModal({
           <DialogTitle>{title}</DialogTitle>
         </DialogHeader>
 
-        {/* Search */}
-        <div className="">
-          <SearchInput
-            value={searchQuery}
-            onValueChange={setSearchQuery}
-            debounceMs={300}
-            placeholder="Search by name..."
-            pill
-          />
-        </div>
-
-        {/* Filters - 2 columns with gray background */}
+        {/* Filters with gray background */}
         <div className="bg-modal-card-ground rounded-lg px-6 py-4">
+          {/* Search */}
+          <div className="mb-4">
+            <SearchInput
+              value={searchQuery}
+              onValueChange={setSearchQuery}
+              debounceMs={300}
+              placeholder="Search by name..."
+              pill
+            />
+          </div>
+
+          {/* Filter dropdowns - 2 columns */}
           <div className="grid grid-cols-2 gap-3">
             {/* Pet Type filter */}
             <DropdownInput
@@ -296,10 +336,7 @@ export function PetSelectorModal({
           ) : isLoading ? (
             "Loading..."
           ) : (
-            <>
-              Showing {filteredEntities.length}
-              {data.total > 0 && ` of ${data.total}`} pets
-            </>
+            `${filteredEntities.length} pets`
           )}
         </div>
 

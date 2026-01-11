@@ -18,6 +18,8 @@ interface UseEntitiesParams {
   };
   /** If false, data fetching is disabled */
   enabled?: boolean;
+  /** Field configs for filter operator detection (e.g., { name: { fieldType: 'string', operator: 'contains' } }) */
+  fieldConfigs?: Record<string, { fieldType?: string; operator?: string }>;
 }
 
 /**
@@ -35,7 +37,8 @@ export function useEntities({
   from = 0,
   filters,
   orderBy,
-  enabled = true
+  enabled = true,
+  fieldConfigs
 }: UseEntitiesParams) {
   useSignals();
 
@@ -74,7 +77,8 @@ export function useEntities({
         {
           limit: recordsCount,
           cursor,
-          orderBy: orderBy || { field: 'name', direction: 'asc' }
+          orderBy: orderBy || { field: 'name', direction: 'asc' },
+          fieldConfigs
         }
       );
 
@@ -112,7 +116,7 @@ export function useEntities({
       isLoadingRef.current = false;
       setIsLoadingMore(false);
     }
-  }, [entityType, filters, orderBy, recordsCount, cursor, hasMore, useIDFirst, enabled]);
+  }, [entityType, filters, orderBy, recordsCount, cursor, hasMore, useIDFirst, enabled, fieldConfigs]);
 
   // ID-First mode: Initial load effect + subscribe to totalFromServer
   useEffect(() => {
@@ -173,7 +177,8 @@ export function useEntities({
           {
             limit: recordsCount,
             cursor: null,
-            orderBy: orderBy || { field: 'name', direction: 'asc' }
+            orderBy: orderBy || { field: 'name', direction: 'asc' },
+            fieldConfigs
           }
         );
 
@@ -213,7 +218,7 @@ export function useEntities({
         unsubscribeTotal();
       }
     };
-  }, [entityType, filters, orderBy, recordsCount, useIDFirst, enabled]);
+  }, [entityType, filters, orderBy, recordsCount, useIDFirst, enabled, fieldConfigs]);
 
   // Manual replication mode: Subscribe to entityList (backward compatibility)
   useEffect(() => {
