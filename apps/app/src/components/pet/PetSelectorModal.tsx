@@ -8,6 +8,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@ui/components/dialog";
+import { DropdownInput } from "@ui/components/form-inputs/dropdown-input";
+import { LookupInput } from "@ui/components/form-inputs/lookup-input";
 import { SearchInput } from "@ui/components/form-inputs/search-input";
 import { cn } from "@ui/lib/utils";
 import { Loader2 } from "lucide-react";
@@ -145,7 +147,11 @@ export function PetSelectorModal({
   const [selectedPet, setSelectedPet] = useState<PetEntity | null>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
-  // Build filters based on props
+  // Filter states
+  const [petTypeId, setPetTypeId] = useState<string>("");
+  const [breedId, setBreedId] = useState<string>("");
+
+  // Build filters based on props and filter state
   const filters = useMemo(() => {
     const f: Record<string, any> = {};
 
@@ -154,20 +160,43 @@ export function PetSelectorModal({
       f.sex_code = sexFilter;
     }
 
+    // Add pet type filter
+    if (petTypeId) {
+      f.pet_type_id = petTypeId;
+    }
+
+    // Add breed filter
+    if (breedId) {
+      f.breed_id = breedId;
+    }
+
     // Add name search filter
     if (searchQuery.trim()) {
       f.name_search = searchQuery.trim().toUpperCase();
     }
 
     return Object.keys(f).length > 0 ? f : undefined;
-  }, [sexFilter, searchQuery]);
+  }, [sexFilter, petTypeId, breedId, searchQuery]);
+
+  // Reset breed when pet type changes
+  const handlePetTypeChange = (value: string) => {
+    setPetTypeId(value);
+    setBreedId(""); // Reset breed when pet type changes
+  };
+
+  // Only fetch pets when breed is selected
+  const shouldFetch = !!breedId;
+
+  // Stable orderBy reference to prevent infinite re-renders
+  const orderBy = useMemo(() => ({ field: "name", direction: "asc" as const }), []);
 
   // Fetch pets with filters
   const { data, isLoading, isLoadingMore, hasMore, loadMore } = useEntities({
     entityType: "pet",
     recordsCount: 30,
     filters,
-    orderBy: { field: "name", direction: "asc" },
+    orderBy,
+    enabled: shouldFetch,
   });
 
   // Filter out excluded IDs
@@ -177,11 +206,13 @@ export function PetSelectorModal({
     return data.entities.filter((e) => !excludeSet.has(e.id));
   }, [data.entities, excludeIds]);
 
-  // Reset selection when modal opens/closes
+  // Reset selection and filters when modal opens/closes
   useEffect(() => {
     if (!open) {
       setSelectedPet(null);
       setSearchQuery("");
+      setPetTypeId("");
+      setBreedId("");
     }
   }, [open]);
 
@@ -214,7 +245,7 @@ export function PetSelectorModal({
         </DialogHeader>
 
         {/* Search */}
-        <div className="mb-4">
+        <div className="">
           <SearchInput
             value={searchQuery}
             onValueChange={setSearchQuery}
@@ -224,9 +255,45 @@ export function PetSelectorModal({
           />
         </div>
 
+        {/* Filters - 2 columns with gray background */}
+        <div className="bg-modal-card-ground rounded-lg px-6 py-4">
+          <div className="grid grid-cols-2 gap-3">
+            {/* Pet Type filter */}
+            <DropdownInput
+              label="Pet type"
+              placeholder="Select pet type..."
+              required
+              value={petTypeId}
+              onValueChange={handlePetTypeChange}
+              referencedTable="pet_type"
+              referencedFieldID="id"
+              referencedFieldName="name"
+            />
+
+            {/* Breed filter */}
+            <LookupInput
+              label="Breed"
+              placeholder="Select breed..."
+              required
+              value={breedId}
+              onValueChange={setBreedId}
+              referencedTable="breed"
+              referencedFieldID="id"
+              referencedFieldName="name"
+              dataSource="collection"
+              filterBy="pet_type_id"
+              filterByValue={petTypeId}
+              disabled={!petTypeId}
+              disabledOnGray
+            />
+          </div>
+        </div>
+
         {/* Counter */}
         <div className="text-sm text-slate-500 mb-2">
-          {isLoading ? (
+          {!shouldFetch ? (
+            ""
+          ) : isLoading ? (
             "Loading..."
           ) : (
             <>
@@ -243,7 +310,11 @@ export function PetSelectorModal({
           className="flex-1 min-h-0 overflow-y-auto space-y-1 border rounded-lg p-2"
           style={{ maxHeight: "400px" }}
         >
-          {isLoading && filteredEntities.length === 0 ? (
+          {!shouldFetch ? (
+            <div className="text-center py-8 text-slate-500">
+              Select a breed to search
+            </div>
+          ) : isLoading && filteredEntities.length === 0 ? (
             <div className="flex items-center justify-center py-8">
               <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
             </div>

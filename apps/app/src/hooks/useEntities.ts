@@ -16,6 +16,8 @@ interface UseEntitiesParams {
       direction: 'asc' | 'desc';
     };
   };
+  /** If false, data fetching is disabled */
+  enabled?: boolean;
 }
 
 /**
@@ -32,7 +34,8 @@ export function useEntities({
   recordsCount = 50,
   from = 0,
   filters,
-  orderBy
+  orderBy,
+  enabled = true
 }: UseEntitiesParams) {
   useSignals();
 
@@ -54,8 +57,8 @@ export function useEntities({
 
   // ID-First mode: loadMore with cursor pagination
   const loadMore = useCallback(async () => {
-    if (!useIDFirst || isLoadingRef.current || !hasMore) {
-      console.log('[useEntities] loadMore blocked:', { useIDFirst, isLoading: isLoadingRef.current, hasMore });
+    if (!useIDFirst || isLoadingRef.current || !hasMore || !enabled) {
+      console.log('[useEntities] loadMore blocked:', { useIDFirst, isLoading: isLoadingRef.current, hasMore, enabled });
       return;
     }
 
@@ -109,11 +112,18 @@ export function useEntities({
       isLoadingRef.current = false;
       setIsLoadingMore(false);
     }
-  }, [entityType, filters, orderBy, recordsCount, cursor, hasMore, useIDFirst]);
+  }, [entityType, filters, orderBy, recordsCount, cursor, hasMore, useIDFirst, enabled]);
 
   // ID-First mode: Initial load effect + subscribe to totalFromServer
   useEffect(() => {
     if (!useIDFirst) return;
+
+    // Skip loading if disabled
+    if (!enabled) {
+      setIsLoading(prev => prev ? false : prev);
+      setData(prev => prev.entities.length === 0 && prev.total === 0 ? prev : { entities: [], total: 0 });
+      return;
+    }
 
     // ⚠️ Don't start loading until SpaceStore config is ready (to avoid multiple loads with changing params)
     if (!spaceStore.configReady.value) {
@@ -203,7 +213,7 @@ export function useEntities({
         unsubscribeTotal();
       }
     };
-  }, [entityType, filters, orderBy, recordsCount, useIDFirst]);
+  }, [entityType, filters, orderBy, recordsCount, useIDFirst, enabled]);
 
   // Manual replication mode: Subscribe to entityList (backward compatibility)
   useEffect(() => {
