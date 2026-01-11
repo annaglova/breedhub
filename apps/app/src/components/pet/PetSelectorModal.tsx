@@ -83,7 +83,7 @@ function PetSelectorItem({
       onClick={onClick}
       className={cn(
         "flex items-center px-4 py-2 cursor-pointer transition-colors",
-        index % 2 === 0 ? "bg-card-ground" : "bg-even-card-ground",
+        index % 2 === 0 ? "bg-even-card-ground" : "bg-card-ground",
         "hover:bg-slate-100 dark:hover:bg-slate-800",
         selected && "!bg-primary-50 dark:!bg-primary-900/30"
       )}
@@ -115,7 +115,9 @@ function PetSelectorItem({
 
       {/* Details - compact layout */}
       <div className="ml-3 flex-1 min-w-0">
-        <div className="text-sm truncate font-medium">{pet.name || "Unknown"}</div>
+        <div className="text-sm truncate font-medium">
+          {pet.name || "Unknown"}
+        </div>
         <div className="text-xs text-slate-500 dark:text-slate-400 flex space-x-1">
           {petStatusName && <span>{petStatusName}</span>}
           {pet.date_of_birth && (
@@ -171,12 +173,14 @@ export function PetSelectorModal({
         // Wait for dictionaryStore to be initialized
         let retries = 20;
         while (!dictionaryStore.initialized.value && retries > 0) {
-          await new Promise(resolve => setTimeout(resolve, 100));
+          await new Promise((resolve) => setTimeout(resolve, 100));
           retries--;
         }
 
         if (!dictionaryStore.initialized.value) {
-          console.warn("[PetSelectorModal] DictionaryStore not initialized after retries");
+          console.warn(
+            "[PetSelectorModal] DictionaryStore not initialized after retries"
+          );
           return;
         }
 
@@ -236,12 +240,15 @@ export function PetSelectorModal({
   // Field configs for filter operators
   // - name: 'contains' for hybrid search (starts_with + contains)
   // - UUID fields: 'eq' for exact match
-  const fieldConfigs = useMemo(() => ({
-    name: { fieldType: 'string', operator: 'contains' },
-    pet_type_id: { fieldType: 'uuid', operator: 'eq' },
-    breed_id: { fieldType: 'uuid', operator: 'eq' },
-    sex_id: { fieldType: 'uuid', operator: 'eq' }
-  }), []);
+  const fieldConfigs = useMemo(
+    () => ({
+      name: { fieldType: "string", operator: "contains" },
+      pet_type_id: { fieldType: "uuid", operator: "eq" },
+      breed_id: { fieldType: "uuid", operator: "eq" },
+      sex_id: { fieldType: "uuid", operator: "eq" },
+    }),
+    []
+  );
 
   // Reset breed when pet type changes
   const handlePetTypeChange = (value: string) => {
@@ -253,11 +260,14 @@ export function PetSelectorModal({
   const shouldFetch = !!breedId;
 
   // Stable orderBy reference to prevent infinite re-renders
-  const orderBy = useMemo(() => ({
-    field: "name",
-    direction: "asc" as const,
-    tieBreaker: { field: "id", direction: "asc" as const }
-  }), []);
+  const orderBy = useMemo(
+    () => ({
+      field: "name",
+      direction: "asc" as const,
+      tieBreaker: { field: "id", direction: "asc" as const },
+    }),
+    []
+  );
 
   // Fetch pets with filters (hybrid lookup with ID-First pagination)
   const { data, isLoading, isLoadingMore, hasMore, loadMore } = useEntities({
@@ -361,15 +371,13 @@ export function PetSelectorModal({
         <div className="bg-modal-card-ground rounded-lg px-6 py-4">
           {/* Counter - always visible above search */}
           <div className="text-sm text-slate-500 mb-3 min-h-[20px]">
-            {!shouldFetch ? (
-              "Select filters to search"
-            ) : isLoading ? (
-              "Loading..."
-            ) : totalCount !== null ? (
-              `${filteredEntities.length} of ${totalCount} pets`
-            ) : (
-              `${filteredEntities.length} pets`
-            )}
+            {!shouldFetch
+              ? "Select filters to search"
+              : isLoading
+              ? "Loading..."
+              : totalCount !== null
+              ? `${filteredEntities.length} of ${totalCount} pets`
+              : `${filteredEntities.length} pets`}
           </div>
 
           {/* Search */}
@@ -416,27 +424,25 @@ export function PetSelectorModal({
           </div>
         </div>
 
-        {/* Pet list */}
-        <div
-          ref={scrollContainerRef}
-          onScroll={handleScroll}
-          className="flex-1 min-h-0 overflow-y-auto rounded-lg border border-border"
-        >
-          {!shouldFetch ? (
-            <div className="text-center py-8 text-slate-500">
-              Select a breed to search
-            </div>
-          ) : isLoading && filteredEntities.length === 0 ? (
-            <div className="flex items-center justify-center py-8">
-              <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
-            </div>
-          ) : filteredEntities.length === 0 ? (
-            <div className="text-center py-8 text-slate-500">
-              No pets found
-            </div>
-          ) : (
-            <>
-              {filteredEntities.map((pet, index) => (
+        {/* Pet list - padding on outer container, scroll inside */}
+        <div className="flex-1 min-h-0 flex flex-col rounded-lg border border-border p-2">
+          <div
+            ref={scrollContainerRef}
+            onScroll={handleScroll}
+            className="flex-1 min-h-0 overflow-y-auto"
+          >
+            {!shouldFetch ? (
+              <div className="text-center py-8 text-slate-500">
+                Select a breed to search
+              </div>
+            ) : isLoading && filteredEntities.length === 0 ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
+              </div>
+            ) : filteredEntities.length === 0 ? (
+              <div className="text-center py-8 text-slate-500">No pets found</div>
+            ) : (
+              filteredEntities.map((pet, index) => (
                 <PetSelectorItem
                   key={pet.id}
                   pet={pet}
@@ -444,26 +450,9 @@ export function PetSelectorModal({
                   onClick={() => setSelectedPet(pet)}
                   index={index}
                 />
-              ))}
-
-              {/* Loading more indicator */}
-              {isLoadingMore && (
-                <div className="flex items-center justify-center py-4">
-                  <Loader2 className="h-5 w-5 animate-spin text-slate-400" />
-                  <span className="ml-2 text-sm text-slate-500">
-                    Loading more...
-                  </span>
-                </div>
-              )}
-
-              {/* End of list */}
-              {!hasMore && filteredEntities.length > 0 && (
-                <div className="text-center py-2 text-sm text-slate-400">
-                  No more results
-                </div>
-              )}
-            </>
-          )}
+              ))
+            )}
+          </div>
         </div>
 
         {/* Actions */}
