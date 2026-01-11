@@ -52,14 +52,14 @@ function PetSelectorItem({
   const petStatusName = useDictionaryValue("pet_status", pet.pet_status_id);
   const sexCode = useDictionaryValue("sex", pet.sex_id, "code");
 
-  const getOutlineClass = () => {
+  const getRingClass = () => {
     switch (sexCode) {
       case "male":
-        return "outline-blue-300 dark:outline-blue-400";
+        return "ring-blue-300 dark:ring-blue-400";
       case "female":
-        return "outline-pink-300 dark:outline-pink-400";
+        return "ring-pink-300 dark:ring-pink-400";
       default:
-        return "outline-slate-300 dark:outline-slate-400";
+        return "ring-slate-300 dark:ring-slate-400";
     }
   };
 
@@ -89,8 +89,8 @@ function PetSelectorItem({
       <div
         className={cn(
           "size-10 rounded-full border border-surface-border flex-shrink-0",
-          "outline outline-2 outline-offset-2",
-          getOutlineClass()
+          "ring-2 ring-offset-2",
+          getRingClass()
         )}
       >
         <div className="w-full h-full rounded-full overflow-hidden">
@@ -389,7 +389,7 @@ export function PetSelectorModal({
         <div
           ref={scrollContainerRef}
           onScroll={handleScroll}
-          className="flex-1 min-h-0 overflow-y-auto space-y-1 border rounded-lg p-2"
+          className="flex-1 min-h-0 overflow-y-auto space-y-1 border rounded-lg p-4"
           style={{ maxHeight: "400px" }}
         >
           {!shouldFetch ? (
