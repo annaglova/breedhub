@@ -204,49 +204,53 @@ export function MatingPage({ pageConfig, workspaceConfig }: MatingPageProps) {
         {/* Parent selectors */}
         <div className="grid grid-cols-2 gap-3 py-2 bg-header-ground/75 backdrop-blur-sm px-2">
           {/* Father selector chip */}
-          <div
-            onClick={() => setFatherModalOpen(true)}
-            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full cursor-pointer transition-colors border border-gray-400 hover:bg-secondary-200 w-fit"
-          >
-            <PetSexMark sex="male" style="round" className="shrink-0" />
-            <span className="text-sm font-medium truncate max-w-32">
-              {father?.name || "Select father"}
-            </span>
-            {father && (
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setFather(null);
-                }}
-                className="ml-1 p-0.5 rounded-full hover:bg-secondary-200 dark:hover:bg-secondary-700 transition-colors"
-              >
-                <X className="h-3 w-3" />
-              </button>
-            )}
+          <div className="flex justify-center">
+            <div
+              onClick={() => setFatherModalOpen(true)}
+              className="inline-flex items-center justify-center gap-2 px-4 py-1.5 rounded-full cursor-pointer transition-colors border border-gray-400 hover:bg-secondary-200 min-w-[200px]"
+            >
+              <PetSexMark sex="male" style="round" className="shrink-0" />
+              <span className="text-sm font-medium truncate max-w-32">
+                {father?.name || "Select father"}
+              </span>
+              {father && (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setFather(null);
+                  }}
+                  className="ml-1 p-0.5 rounded-full hover:bg-secondary-200 dark:hover:bg-secondary-700 transition-colors"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              )}
+            </div>
           </div>
 
           {/* Mother selector chip */}
-          <div
-            onClick={() => setMotherModalOpen(true)}
-            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full cursor-pointer transition-colors border border-gray-400 hover:bg-secondary-200 w-fit"
-          >
-            <PetSexMark sex="female" style="round" className="shrink-0" />
-            <span className="text-sm font-medium truncate max-w-32">
-              {mother?.name || "Select mother"}
-            </span>
-            {mother && (
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setMother(null);
-                }}
-                className="ml-1 p-0.5 rounded-full hover:bg-secondary-200 dark:hover:bg-secondary-700 transition-colors"
-              >
-                <X className="h-3 w-3" />
-              </button>
-            )}
+          <div className="flex justify-center">
+            <div
+              onClick={() => setMotherModalOpen(true)}
+              className="inline-flex items-center justify-center gap-2 px-4 py-1.5 rounded-full cursor-pointer transition-colors border border-gray-400 hover:bg-secondary-200 min-w-[200px]"
+            >
+              <PetSexMark sex="female" style="round" className="shrink-0" />
+              <span className="text-sm font-medium truncate max-w-32">
+                {mother?.name || "Select mother"}
+              </span>
+              {mother && (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setMother(null);
+                  }}
+                  className="ml-1 p-0.5 rounded-full hover:bg-secondary-200 dark:hover:bg-secondary-700 transition-colors"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              )}
+            </div>
           </div>
         </div>
 
