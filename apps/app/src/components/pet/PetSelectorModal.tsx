@@ -313,13 +313,14 @@ export function PetSelectorModal({
     fieldConfigs,
   });
 
-  // Filter out excluded IDs and prepend preloaded pet if not in list
+  // Filter out excluded IDs and always show preloaded pet first
   const filteredEntities = useMemo(() => {
     const excludeSet = new Set(excludeIds);
     let entities = data.entities.filter((e) => !excludeSet.has(e.id));
 
-    // Prepend preloaded pet if it exists and is not already in the list
-    if (preloadedPet && !entities.some((e) => e.id === preloadedPet.id)) {
+    // Always show preloaded pet first (remove from list if exists, then prepend)
+    if (preloadedPet) {
+      entities = entities.filter((e) => e.id !== preloadedPet.id);
       entities = [preloadedPet, ...entities];
     }
 
