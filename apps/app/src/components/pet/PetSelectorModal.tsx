@@ -1,7 +1,7 @@
 import defaultPetAvatar from "@/assets/images/pettypes/dog.jpeg";
 import { useDictionaryValue } from "@/hooks/useDictionaryValue";
 import { useEntities } from "@/hooks/useEntities";
-import { dictionaryStore } from "@breedhub/rxdb-store";
+import { dictionaryStore, supabase } from "@breedhub/rxdb-store";
 import { Button } from "@ui/components/button";
 import {
   Dialog,
@@ -245,6 +245,48 @@ export function PetSelectorModal({
     return data.entities.filter((e) => !excludeSet.has(e.id));
   }, [data.entities, excludeIds]);
 
+  // Fetch total count when filters change
+  const [totalCount, setTotalCount] = useState<number | null>(null);
+  useEffect(() => {
+    if (!shouldFetch) {
+      setTotalCount(null);
+      return;
+    }
+
+    const fetchCount = async () => {
+      try {
+        let query = supabase
+          .from("pet")
+          .select("*", { count: "exact", head: true })
+          .or("deleted.is.null,deleted.eq.false");
+
+        // Apply filters
+        if (sexId) {
+          query = query.eq("sex_id", sexId);
+        }
+        if (petTypeId) {
+          query = query.eq("pet_type_id", petTypeId);
+        }
+        if (breedId) {
+          query = query.eq("breed_id", breedId);
+        }
+        if (searchQuery.trim()) {
+          query = query.ilike("name", `%${searchQuery.trim()}%`);
+        }
+
+        const { count, error } = await query;
+
+        if (!error && count !== null) {
+          setTotalCount(count);
+        }
+      } catch (error) {
+        console.error("[PetSelectorModal] Failed to fetch count:", error);
+      }
+    };
+
+    fetchCount();
+  }, [shouldFetch, sexId, petTypeId, breedId, searchQuery]);
+
   // Reset selection and filters when modal opens/closes
   useEffect(() => {
     if (!open) {
@@ -252,6 +294,7 @@ export function PetSelectorModal({
       setSearchQuery("");
       setPetTypeId("");
       setBreedId("");
+      setTotalCount(null);
     }
   }, [open]);
 
@@ -335,6 +378,8 @@ export function PetSelectorModal({
             ""
           ) : isLoading ? (
             "Loading..."
+          ) : totalCount !== null ? (
+            `${filteredEntities.length} of ${totalCount} pets`
           ) : (
             `${filteredEntities.length} pets`
           )}
