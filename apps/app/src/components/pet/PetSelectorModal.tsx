@@ -48,6 +48,8 @@ interface PetSelectorModalProps {
   initialSelectedId?: string;
   /** Allowed breed IDs for selection (for breed restrictions in mating) */
   allowedBreedIds?: string[] | null;
+  /** Lock pet type selection (when other parent is already selected) */
+  lockPetType?: boolean;
 }
 
 /**
@@ -166,6 +168,7 @@ export function PetSelectorModal({
   initialSexId,
   initialSelectedId,
   allowedBreedIds,
+  lockPetType,
 }: PetSelectorModalProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedPet, setSelectedPet] = useState<PetEntity | null>(null);
@@ -481,6 +484,8 @@ export function PetSelectorModal({
               referencedTable="pet_type"
               referencedFieldID="id"
               referencedFieldName="name"
+              disabled={lockPetType}
+              disabledOnGray
             />
 
             {/* Breed filter */}

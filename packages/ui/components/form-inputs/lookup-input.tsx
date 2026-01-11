@@ -214,7 +214,9 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
               "filterBy:",
               filterBy,
               "filterByValue:",
-              filterByValue
+              filterByValue,
+              "filterByIds:",
+              filterByIds
             );
 
             // Build filters object for applyFilters
@@ -236,6 +238,8 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
             if (filterByIds && filterByIds.length > 0) {
               fieldConfigs[referencedFieldID] = { fieldType: 'uuid', operator: 'in' };
             }
+
+            console.log("[LookupInput] Final filters:", filters, "fieldConfigs:", fieldConfigs);
 
             // Call universal filtering method with keyset pagination
             const result = await spaceStore.applyFilters(

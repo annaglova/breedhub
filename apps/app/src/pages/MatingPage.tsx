@@ -452,6 +452,7 @@ export function MatingPage({ pageConfig, workspaceConfig }: MatingPageProps) {
         initialSexId={father?.sexId}
         initialSelectedId={father?.id}
         allowedBreedIds={allowedBreedsForFather}
+        lockPetType={!!mother?.petTypeId}
       />
 
       <PetSelectorModal
@@ -476,6 +477,7 @@ export function MatingPage({ pageConfig, workspaceConfig }: MatingPageProps) {
         initialSexId={mother?.sexId}
         initialSelectedId={mother?.id}
         allowedBreedIds={allowedBreedsForMother}
+        lockPetType={!!father?.petTypeId}
       />
 
       {/* Pedigree tree */}
