@@ -46,6 +46,8 @@ interface PetSelectorModalProps {
   initialSexId?: string;
   /** Initially selected pet ID (to pre-select when changing) */
   initialSelectedId?: string;
+  /** Allowed breed IDs for selection (for breed restrictions in mating) */
+  allowedBreedIds?: string[] | null;
 }
 
 /**
@@ -163,6 +165,7 @@ export function PetSelectorModal({
   initialBreedId,
   initialSexId,
   initialSelectedId,
+  allowedBreedIds,
 }: PetSelectorModalProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedPet, setSelectedPet] = useState<PetEntity | null>(null);
@@ -493,6 +496,7 @@ export function PetSelectorModal({
               dataSource="collection"
               filterBy="pet_type_id"
               filterByValue={petTypeId}
+              filterByIds={allowedBreedIds}
               disabled={!petTypeId}
               disabledOnGray
             />

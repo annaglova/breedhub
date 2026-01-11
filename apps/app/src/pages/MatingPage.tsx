@@ -28,7 +28,7 @@ import {
   TooltipTrigger,
 } from "@ui/components/tooltip";
 import { MoreVertical, Save, X } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
 /** Get default generations based on screen size */
@@ -76,6 +76,72 @@ export function MatingPage({ pageConfig, workspaceConfig }: MatingPageProps) {
   // Modal state
   const [fatherModalOpen, setFatherModalOpen] = useState(false);
   const [motherModalOpen, setMotherModalOpen] = useState(false);
+
+  // Allowed breeds for second parent (based on first parent's breed)
+  const [allowedBreedsForFather, setAllowedBreedsForFather] = useState<string[] | null>(null);
+  const [allowedBreedsForMother, setAllowedBreedsForMother] = useState<string[] | null>(null);
+
+  // Fetch allowed breeds when mother is selected (for father selection)
+  useEffect(() => {
+    if (!mother?.breedId) {
+      setAllowedBreedsForFather(null);
+      return;
+    }
+
+    const fetchAllowedBreeds = async () => {
+      try {
+        // Get related breeds from related_breed table
+        const { data } = await supabase
+          .from("related_breed")
+          .select("connected_breed_id")
+          .eq("breed_id", mother.breedId);
+
+        if (data && data.length > 0) {
+          // Has related breeds - allow those + the original breed
+          const relatedIds = data.map((r) => r.connected_breed_id);
+          setAllowedBreedsForFather([mother.breedId, ...relatedIds]);
+        } else {
+          // No related breeds - only allow the same breed (pure breeding)
+          setAllowedBreedsForFather([mother.breedId]);
+        }
+      } catch (error) {
+        console.error("[MatingPage] Failed to fetch allowed breeds:", error);
+        // On error, allow only same breed
+        setAllowedBreedsForFather([mother.breedId]);
+      }
+    };
+
+    fetchAllowedBreeds();
+  }, [mother?.breedId]);
+
+  // Fetch allowed breeds when father is selected (for mother selection)
+  useEffect(() => {
+    if (!father?.breedId) {
+      setAllowedBreedsForMother(null);
+      return;
+    }
+
+    const fetchAllowedBreeds = async () => {
+      try {
+        const { data } = await supabase
+          .from("related_breed")
+          .select("connected_breed_id")
+          .eq("breed_id", father.breedId);
+
+        if (data && data.length > 0) {
+          const relatedIds = data.map((r) => r.connected_breed_id);
+          setAllowedBreedsForMother([father.breedId, ...relatedIds]);
+        } else {
+          setAllowedBreedsForMother([father.breedId]);
+        }
+      } catch (error) {
+        console.error("[MatingPage] Failed to fetch allowed breeds:", error);
+        setAllowedBreedsForMother([father.breedId]);
+      }
+    };
+
+    fetchAllowedBreeds();
+  }, [father?.breedId]);
 
   // Resolve slugs from URL to pets on mount
   useEffect(() => {
@@ -381,10 +447,11 @@ export function MatingPage({ pageConfig, workspaceConfig }: MatingPageProps) {
         sexFilter="male"
         title="Select Father"
         excludeIds={mother ? [mother.id] : []}
-        initialPetTypeId={father?.petTypeId}
-        initialBreedId={father?.breedId}
+        initialPetTypeId={father?.petTypeId || mother?.petTypeId}
+        initialBreedId={father?.breedId || mother?.breedId}
         initialSexId={father?.sexId}
         initialSelectedId={father?.id}
+        allowedBreedIds={allowedBreedsForFather}
       />
 
       <PetSelectorModal
@@ -404,10 +471,11 @@ export function MatingPage({ pageConfig, workspaceConfig }: MatingPageProps) {
         sexFilter="female"
         title="Select Mother"
         excludeIds={father ? [father.id] : []}
-        initialPetTypeId={mother?.petTypeId}
-        initialBreedId={mother?.breedId}
+        initialPetTypeId={mother?.petTypeId || father?.petTypeId}
+        initialBreedId={mother?.breedId || father?.breedId}
         initialSexId={mother?.sexId}
         initialSelectedId={mother?.id}
+        allowedBreedIds={allowedBreedsForMother}
       />
 
       {/* Pedigree tree */}

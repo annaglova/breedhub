@@ -41,6 +41,8 @@ interface LookupInputProps
   // Cascade filter props (for dependent fields)
   filterBy?: string; // Field name in referenced table to filter by (e.g., "pet_type_id")
   filterByValue?: string; // Value to filter by (e.g., selected pet_type_id value)
+  // Filter by specific IDs (for breed restrictions in mating)
+  filterByIds?: string[] | null; // Only show records with these IDs
   // Style variant for disabled state
   disabledOnGray?: boolean; // Use white background when disabled (for gray backgrounds)
 }
@@ -67,6 +69,7 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
       dataSource = "dictionary", // Default to dictionary
       filterBy,
       filterByValue,
+      filterByIds,
       disabled,
       disabledOnGray,
       ...props
@@ -223,6 +226,16 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
             if (filterBy && filterByValue) {
               filters[filterBy] = filterByValue;
             }
+            // Add ID filter if provided (for breed restrictions)
+            if (filterByIds && filterByIds.length > 0) {
+              filters[referencedFieldID] = filterByIds;
+            }
+
+            // Build fieldConfigs for proper operator detection
+            const fieldConfigs: Record<string, any> = {};
+            if (filterByIds && filterByIds.length > 0) {
+              fieldConfigs[referencedFieldID] = { fieldType: 'uuid', operator: 'in' };
+            }
 
             // Call universal filtering method with keyset pagination
             const result = await spaceStore.applyFilters(
@@ -239,6 +252,7 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
                     direction: "asc",
                   },
                 }, // Always A-Z with id tie-breaker for stable sort
+                fieldConfigs: Object.keys(fieldConfigs).length > 0 ? fieldConfigs : undefined,
               }
             );
 
@@ -330,6 +344,7 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
         dataSource,
         filterBy,
         filterByValue,
+        filterByIds,
       ]
     );
 
@@ -375,6 +390,25 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
         }
       }
     }, [filterByValue, filterBy, referencedTable, isOpen]);
+
+    // Reset options when filterByIds changes (for breed restrictions)
+    const prevFilterByIdsRef = useRef(filterByIds);
+    useEffect(() => {
+      if (referencedTable) {
+        const isActualChange = prevFilterByIdsRef.current !== filterByIds;
+        prevFilterByIdsRef.current = filterByIds;
+
+        if (!isActualChange) return;
+
+        console.log("[LookupInput] filterByIds changed, resetting options");
+        setDynamicOptions([]);
+        cursorRef.current = null;
+        setHasMore(true);
+        if (isOpen) {
+          loadDictionaryOptions("", false);
+        }
+      }
+    }, [filterByIds, referencedTable, isOpen, loadDictionaryOptions]);
 
     // ✅ Debounced search - trigger on inputValue change ONLY when editing
     useEffect(() => {
