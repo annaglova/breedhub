@@ -95,7 +95,7 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
     const searchTimeoutRef = useRef<NodeJS.Timeout>();
     const prevSearchQueryRef = useRef<string>("");
     const cursorRef = useRef<string | null>(null); // ✅ Keyset pagination: last seen value
-    const isLoadingRef = useRef(false); // 🔒 Prevent race conditions
+    const requestCounterRef = useRef(0); // 🔒 Track request ID to handle race conditions
 
     const loading = externalLoading || internalLoading;
 
@@ -183,15 +183,10 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
       async (query: string = "", append: boolean = false) => {
         if (!referencedTable) return;
 
-        // 🔒 CRITICAL: Prevent multiple simultaneous calls (race condition fix)
-        if (isLoadingRef.current) {
-          console.log(
-            "[LookupInput] ⚠️ Already loading, skipping duplicate call"
-          );
-          return;
-        }
+        // 🔒 Increment request counter and capture this request's ID
+        requestCounterRef.current += 1;
+        const thisRequestId = requestCounterRef.current;
 
-        isLoadingRef.current = true;
         setInternalLoading(true);
 
         try {
@@ -235,6 +230,11 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
 
             // Build fieldConfigs for proper operator detection
             const fieldConfigs: Record<string, any> = {};
+            // Add config for filterBy field (cascade filter like pet_type_id)
+            if (filterBy && filterByValue) {
+              fieldConfigs[filterBy] = { fieldType: 'uuid', operator: 'eq' };
+            }
+            // Add config for ID filter (breed restrictions)
             if (filterByIds && filterByIds.length > 0) {
               fieldConfigs[referencedFieldID] = { fieldType: 'uuid', operator: 'in' };
             }
@@ -268,14 +268,6 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
             more = result.hasMore;
             nextCursor = result.nextCursor;
 
-            console.log(
-              "[LookupInput] Loaded from SpaceStore:",
-              opts.length,
-              "hasMore:",
-              more,
-              "nextCursor:",
-              nextCursor
-            );
           } else {
             // Mode: Use DictionaryStore with ID-First pagination ✅
             const currentCursor = append ? cursorRef.current : null;
@@ -318,6 +310,11 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
             );
           }
 
+          // 🔒 Check if this request is still the latest one (race condition fix)
+          if (thisRequestId !== requestCounterRef.current) {
+            return; // Ignore stale request results
+          }
+
           if (append) {
             // ✅ ID-First ensures no duplicates - trust the server response
             setDynamicOptions((prev) => [...prev, ...opts]);
@@ -337,8 +334,10 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
             error
           );
         } finally {
-          isLoadingRef.current = false; // 🔒 Release lock
-          setInternalLoading(false);
+          // Only clear loading state if this is still the latest request
+          if (thisRequestId === requestCounterRef.current) {
+            setInternalLoading(false);
+          }
         }
       },
       [
