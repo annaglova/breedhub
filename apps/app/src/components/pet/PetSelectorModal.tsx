@@ -341,7 +341,7 @@ export function PetSelectorModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent size="lg" className="max-h-[90vh] flex flex-col">
+      <DialogContent size="lg" className="h-[70vh] flex flex-col">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
         </DialogHeader>
@@ -410,7 +410,6 @@ export function PetSelectorModal({
           ref={scrollContainerRef}
           onScroll={handleScroll}
           className="flex-1 min-h-0 overflow-y-auto space-y-1 border rounded-lg p-4"
-          style={{ maxHeight: "400px" }}
         >
           {!shouldFetch ? (
             <div className="text-center py-8 text-slate-500">
