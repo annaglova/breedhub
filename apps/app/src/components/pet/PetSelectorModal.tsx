@@ -152,11 +152,12 @@ export function PetSelectorModal({
   const [petTypeId, setPetTypeId] = useState<string>("");
   const [breedId, setBreedId] = useState<string>("");
 
-  // Resolve sexFilter code to sex_id UUID (only when modal is open)
+  // Resolve sexFilter code to sex_id UUID (only when modal is open AND pet type is selected)
+  // Sex dictionary has separate entries per pet_type (Male for dogs, male(cat), Male(Horse))
   const [sexId, setSexId] = useState<string | null>(null);
   useEffect(() => {
-    if (!open || !sexFilter) {
-      if (!sexFilter) setSexId(null);
+    if (!open || !sexFilter || !petTypeId) {
+      if (!sexFilter || !petTypeId) setSexId(null);
       return;
     }
 
@@ -179,7 +180,14 @@ export function PetSelectorModal({
         const { records } = await dictionaryStore.getDictionary("sex");
         if (!isMounted) return;
 
-        const sexRecord = records.find((r: any) => r.code === sexFilter);
+        // Find sex record matching both code AND pet_type_id
+        // Note: cached records have fields in 'additional' object
+        const sexRecord = records.find((r: any) => {
+          const code = r.code || r.additional?.code;
+          const petType = r.pet_type_id || r.additional?.pet_type_id;
+          return code === sexFilter && petType === petTypeId;
+        });
+
         if (sexRecord) {
           setSexId(sexRecord.id);
         }
@@ -193,7 +201,7 @@ export function PetSelectorModal({
     return () => {
       isMounted = false;
     };
-  }, [open, sexFilter]);
+  }, [open, sexFilter, petTypeId]);
 
   // Build filters based on props and filter state
   const filters = useMemo(() => {
