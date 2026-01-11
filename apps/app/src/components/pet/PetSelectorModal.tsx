@@ -152,17 +152,33 @@ export function PetSelectorModal({
   const [petTypeId, setPetTypeId] = useState<string>("");
   const [breedId, setBreedId] = useState<string>("");
 
-  // Resolve sexFilter code to sex_id UUID
+  // Resolve sexFilter code to sex_id UUID (only when modal is open)
   const [sexId, setSexId] = useState<string | null>(null);
   useEffect(() => {
-    if (!sexFilter) {
-      setSexId(null);
+    if (!open || !sexFilter) {
+      if (!sexFilter) setSexId(null);
       return;
     }
 
+    let isMounted = true;
+
     const resolveSexId = async () => {
       try {
+        // Wait for dictionaryStore to be initialized
+        let retries = 20;
+        while (!dictionaryStore.initialized.value && retries > 0) {
+          await new Promise(resolve => setTimeout(resolve, 100));
+          retries--;
+        }
+
+        if (!dictionaryStore.initialized.value) {
+          console.warn("[PetSelectorModal] DictionaryStore not initialized after retries");
+          return;
+        }
+
         const { records } = await dictionaryStore.getDictionary("sex");
+        if (!isMounted) return;
+
         const sexRecord = records.find((r: any) => r.code === sexFilter);
         if (sexRecord) {
           setSexId(sexRecord.id);
@@ -173,7 +189,11 @@ export function PetSelectorModal({
     };
 
     resolveSexId();
-  }, [sexFilter]);
+
+    return () => {
+      isMounted = false;
+    };
+  }, [open, sexFilter]);
 
   // Build filters based on props and filter state
   const filters = useMemo(() => {
