@@ -13,7 +13,7 @@ import { usePageActions } from "@/hooks/usePageActions";
 import { usePageMenu } from "@/hooks/usePageMenu";
 import { ToolPageLayout } from "@/layouts/ToolPageLayout";
 import type { PageConfig } from "@/types/page-config.types";
-import { routeStore, supabase, toast } from "@breedhub/rxdb-store";
+import { spaceStore, supabase, toast } from "@breedhub/rxdb-store";
 import { Button } from "@ui/components/button";
 import {
   DropdownMenu,
@@ -144,66 +144,43 @@ export function MatingPage({ pageConfig, workspaceConfig }: MatingPageProps) {
   }, [father?.breedId]);
 
   // Resolve slugs from URL to pets on mount
+  // Local-first: RxDB → Supabase fallback
   useEffect(() => {
-    if (!fatherSlug && !motherSlug) return;
+    if (!fatherSlug && !motherSlug) {
+      return;
+    }
 
     isResolvingRef.current = true;
 
+    const resolvePetBySlug = async (slug: string): Promise<PedigreePet | null> => {
+      // Use spaceStore.fetchEntityBySlug - fast local-first lookup
+      const petData = await spaceStore.fetchEntityBySlug<any>('pet', slug);
+
+      if (petData) {
+        return {
+          id: petData.id,
+          name: petData.name || 'Unknown',
+          slug: petData.slug,
+          avatarUrl: petData.avatar_url,
+          breedId: petData.breed_id,
+          petTypeId: petData.pet_type_id,
+          sexId: petData.sex_id,
+        };
+      }
+
+      return null;
+    };
+
     const resolveSlugs = async () => {
       try {
-        // Ensure RouteStore is initialized
-        if (!routeStore.initialized.value) {
-          await routeStore.initialize();
-        }
+        // Resolve both in parallel
+        const [fatherPet, motherPet] = await Promise.all([
+          fatherSlug && !father ? resolvePetBySlug(fatherSlug) : null,
+          motherSlug && !mother ? resolvePetBySlug(motherSlug) : null,
+        ]);
 
-        // Resolve father slug
-        if (fatherSlug && !father) {
-          const route = await routeStore.resolveRoute(fatherSlug);
-          if (route && route.entity === 'pet') {
-            // Fetch pet data from Supabase
-            const { data: petData } = await supabase
-              .from('pet')
-              .select('id, name, slug, avatar_url, breed_id, pet_type_id, sex_id')
-              .eq('id', route.entity_id)
-              .single();
-
-            if (petData) {
-              setFather({
-                id: petData.id,
-                name: petData.name || 'Unknown',
-                slug: petData.slug,
-                avatarUrl: petData.avatar_url,
-                breedId: petData.breed_id,
-                petTypeId: petData.pet_type_id,
-                sexId: petData.sex_id,
-              });
-            }
-          }
-        }
-
-        // Resolve mother slug
-        if (motherSlug && !mother) {
-          const route = await routeStore.resolveRoute(motherSlug);
-          if (route && route.entity === 'pet') {
-            const { data: petData } = await supabase
-              .from('pet')
-              .select('id, name, slug, avatar_url, breed_id, pet_type_id, sex_id')
-              .eq('id', route.entity_id)
-              .single();
-
-            if (petData) {
-              setMother({
-                id: petData.id,
-                name: petData.name || 'Unknown',
-                slug: petData.slug,
-                avatarUrl: petData.avatar_url,
-                breedId: petData.breed_id,
-                petTypeId: petData.pet_type_id,
-                sexId: petData.sex_id,
-              });
-            }
-          }
-        }
+        if (fatherPet) setFather(fatherPet);
+        if (motherPet) setMother(motherPet);
       } catch (error) {
         console.error('[MatingPage] Error resolving slugs:', error);
       } finally {

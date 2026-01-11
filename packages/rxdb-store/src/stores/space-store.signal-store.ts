@@ -3336,6 +3336,59 @@ class SpaceStore {
   }
 
   /**
+   * Fetch entity by slug - fast local-first lookup
+   *
+   * Unlike fetchAndSelectEntity, this doesn't wait for config/store initialization.
+   * It queries RxDB collection directly if available, then falls back to Supabase.
+   *
+   * @param entityType - Entity type (e.g., 'pet')
+   * @param slug - Entity slug
+   * @returns Entity data or null
+   */
+  async fetchEntityBySlug<T = any>(entityType: string, slug: string): Promise<T | null> {
+    const collectionName = entityType.toLowerCase();
+
+    // 1. Try RxDB collection directly (instant if collection exists)
+    if (this.db?.collections[collectionName]) {
+      try {
+        const docs = await this.db.collections[collectionName]
+          .find({ selector: { slug } })
+          .exec();
+
+        if (docs.length > 0) {
+          return docs[0].toJSON() as T;
+        }
+      } catch (err) {
+        console.warn(`[SpaceStore] Error querying RxDB by slug:`, err);
+      }
+    }
+
+    // 2. Fallback to Supabase
+    try {
+      const { data, error } = await supabase
+        .from(entityType)
+        .select('*')
+        .eq('slug', slug)
+        .single();
+
+      if (error || !data) {
+        return null;
+      }
+
+      // Cache in RxDB if collection exists
+      if (this.db?.collections[collectionName]) {
+        const mapped = this.mapToRxDBFormat(data, collectionName);
+        await this.db.collections[collectionName].upsert(mapped);
+      }
+
+      return data as T;
+    } catch (err) {
+      console.error(`[SpaceStore] Error fetching by slug from Supabase:`, err);
+      return null;
+    }
+  }
+
+  /**
    * Clear selection for a given entity type
    */
   clearSelection(entityType: string): void {
