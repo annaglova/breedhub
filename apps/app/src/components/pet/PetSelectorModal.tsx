@@ -19,6 +19,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 interface PetEntity {
   id: string;
   name?: string;
+  slug?: string;
   avatar_url?: string;
   pet_status_id?: string;
   sex_id?: string;

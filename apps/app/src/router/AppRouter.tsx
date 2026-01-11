@@ -109,11 +109,41 @@ export function AppRouter() {
           {/* Dynamic page routes from workspace config (tool pages) */}
           {pageRoutes.map((page) => {
             const PageComponent = getPage(page.component);
+            if (!PageComponent) {
+              return (
+                <Route
+                  key={page.workspaceId}
+                  path={page.path}
+                  element={<PageNotFound componentName={page.component} />}
+                />
+              );
+            }
+
+            // Mating page supports URL params for father/mother slugs
+            if (page.component === 'MatingPage') {
+              return (
+                <React.Fragment key={page.workspaceId}>
+                  <Route
+                    path={page.path}
+                    element={<PageComponent pageConfig={page.pageConfig} workspaceConfig={page.workspaceConfig} />}
+                  />
+                  <Route
+                    path={`${page.path}/:fatherSlug`}
+                    element={<PageComponent pageConfig={page.pageConfig} workspaceConfig={page.workspaceConfig} />}
+                  />
+                  <Route
+                    path={`${page.path}/:fatherSlug/:motherSlug`}
+                    element={<PageComponent pageConfig={page.pageConfig} workspaceConfig={page.workspaceConfig} />}
+                  />
+                </React.Fragment>
+              );
+            }
+
             return (
               <Route
                 key={page.workspaceId}
                 path={page.path}
-                element={PageComponent ? <PageComponent pageConfig={page.pageConfig} workspaceConfig={page.workspaceConfig} /> : <PageNotFound componentName={page.component} />}
+                element={<PageComponent pageConfig={page.pageConfig} workspaceConfig={page.workspaceConfig} />}
               />
             );
           })}

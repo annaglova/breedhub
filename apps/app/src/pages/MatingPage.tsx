@@ -13,7 +13,7 @@ import { usePageActions } from "@/hooks/usePageActions";
 import { usePageMenu } from "@/hooks/usePageMenu";
 import { ToolPageLayout } from "@/layouts/ToolPageLayout";
 import type { PageConfig } from "@/types/page-config.types";
-import { toast } from "@breedhub/rxdb-store";
+import { routeStore, supabase, toast } from "@breedhub/rxdb-store";
 import { Button } from "@ui/components/button";
 import {
   DropdownMenu,
@@ -28,7 +28,8 @@ import {
   TooltipTrigger,
 } from "@ui/components/tooltip";
 import { MoreVertical, Save, X } from "lucide-react";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 
 /** Get default generations based on screen size */
 function getDefaultGenerations(): GenerationCount {
@@ -60,15 +61,114 @@ interface MatingPageProps {
  * with pet selection controls.
  */
 export function MatingPage({ pageConfig, workspaceConfig }: MatingPageProps) {
+  const { fatherSlug, motherSlug } = useParams<{ fatherSlug?: string; motherSlug?: string }>();
+  const navigate = useNavigate();
+
   const [generations, setGenerations] = useState<GenerationCount>(getDefaultGenerations);
 
   // Selected pets for mating
   const [father, setFather] = useState<PedigreePet | null>(null);
   const [mother, setMother] = useState<PedigreePet | null>(null);
 
+  // Track if we're currently resolving slugs (to prevent URL update during resolution)
+  const isResolvingRef = useRef(false);
+
   // Modal state
   const [fatherModalOpen, setFatherModalOpen] = useState(false);
   const [motherModalOpen, setMotherModalOpen] = useState(false);
+
+  // Resolve slugs from URL to pets on mount
+  useEffect(() => {
+    if (!fatherSlug && !motherSlug) return;
+
+    isResolvingRef.current = true;
+
+    const resolveSlugs = async () => {
+      try {
+        // Ensure RouteStore is initialized
+        if (!routeStore.initialized.value) {
+          await routeStore.initialize();
+        }
+
+        // Resolve father slug
+        if (fatherSlug && !father) {
+          const route = await routeStore.resolveRoute(fatherSlug);
+          if (route && route.entity === 'pet') {
+            // Fetch pet data from Supabase
+            const { data: petData } = await supabase
+              .from('pet')
+              .select('id, name, slug, avatar_url, breed_id, pet_type_id, sex_id')
+              .eq('id', route.entity_id)
+              .single();
+
+            if (petData) {
+              setFather({
+                id: petData.id,
+                name: petData.name || 'Unknown',
+                slug: petData.slug,
+                avatarUrl: petData.avatar_url,
+                breedId: petData.breed_id,
+                petTypeId: petData.pet_type_id,
+                sexId: petData.sex_id,
+              });
+            }
+          }
+        }
+
+        // Resolve mother slug
+        if (motherSlug && !mother) {
+          const route = await routeStore.resolveRoute(motherSlug);
+          if (route && route.entity === 'pet') {
+            const { data: petData } = await supabase
+              .from('pet')
+              .select('id, name, slug, avatar_url, breed_id, pet_type_id, sex_id')
+              .eq('id', route.entity_id)
+              .single();
+
+            if (petData) {
+              setMother({
+                id: petData.id,
+                name: petData.name || 'Unknown',
+                slug: petData.slug,
+                avatarUrl: petData.avatar_url,
+                breedId: petData.breed_id,
+                petTypeId: petData.pet_type_id,
+                sexId: petData.sex_id,
+              });
+            }
+          }
+        }
+      } catch (error) {
+        console.error('[MatingPage] Error resolving slugs:', error);
+      } finally {
+        isResolvingRef.current = false;
+      }
+    };
+
+    resolveSlugs();
+  }, [fatherSlug, motherSlug]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Update URL when father/mother change
+  useEffect(() => {
+    // Don't update URL while resolving slugs from URL
+    if (isResolvingRef.current) return;
+
+    const basePath = workspaceConfig?.path || '/mating';
+    let newPath = basePath;
+
+    if (father?.slug) {
+      newPath = `${basePath}/${father.slug}`;
+      if (mother?.slug) {
+        newPath = `${basePath}/${father.slug}/${mother.slug}`;
+      }
+    }
+
+    // Only navigate if path changed
+    const currentPath = window.location.pathname;
+    if (currentPath !== newPath) {
+      navigate(newPath, { replace: true });
+    }
+  }, [father?.slug, mother?.slug, workspaceConfig?.path, navigate]);
 
   // Direct drag-to-scroll implementation
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -271,6 +371,7 @@ export function MatingPage({ pageConfig, workspaceConfig }: MatingPageProps) {
           setFather({
             id: pet.id,
             name: pet.name || "Unknown",
+            slug: pet.slug,
             avatarUrl: pet.avatar_url,
             breedId: pet.breed_id,
             petTypeId: pet.pet_type_id,
@@ -292,6 +393,7 @@ export function MatingPage({ pageConfig, workspaceConfig }: MatingPageProps) {
           setMother({
             id: pet.id,
             name: pet.name || "Unknown",
+            slug: pet.slug,
             avatarUrl: pet.avatar_url,
             breedId: pet.breed_id,
             petTypeId: pet.pet_type_id,

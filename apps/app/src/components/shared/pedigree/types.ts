@@ -6,6 +6,7 @@ import type { SexCode } from "@/components/shared/PetSexMark";
 export interface PedigreePet {
   id: string;
   name: string;
+  slug?: string;
   url?: string;
   sex?: {
     code?: SexCode;
