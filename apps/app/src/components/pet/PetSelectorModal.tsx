@@ -80,9 +80,10 @@ function PetSelectorItem({
     <div
       onClick={onClick}
       className={cn(
-        "flex items-center p-2 cursor-pointer rounded-md transition-colors",
-        "hover:bg-slate-100 dark:hover:bg-slate-800",
-        selected && "bg-primary-50 dark:bg-primary-900/30 ring-2 ring-primary-500"
+        "flex items-center px-3 py-2 cursor-pointer transition-colors rounded-md",
+        "bg-white dark:bg-slate-900",
+        "hover:bg-slate-50 dark:hover:bg-slate-800",
+        selected && "bg-primary-50 dark:bg-primary-900/30 ring-1 ring-primary-300 dark:ring-primary-500"
       )}
     >
       {/* Avatar - compact size */}
@@ -417,7 +418,7 @@ export function PetSelectorModal({
         <div
           ref={scrollContainerRef}
           onScroll={handleScroll}
-          className="flex-1 min-h-0 overflow-y-auto space-y-1 border rounded-lg p-4"
+          className="flex-1 min-h-0 overflow-y-auto bg-modal-card-ground rounded-lg p-2 space-y-1"
         >
           {!shouldFetch ? (
             <div className="text-center py-8 text-slate-500">
