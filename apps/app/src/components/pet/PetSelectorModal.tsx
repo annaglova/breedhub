@@ -166,6 +166,7 @@ export function PetSelectorModal({
 }: PetSelectorModalProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedPet, setSelectedPet] = useState<PetEntity | null>(null);
+  const [preloadedPet, setPreloadedPet] = useState<PetEntity | null>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   // Filter states
@@ -312,12 +313,18 @@ export function PetSelectorModal({
     fieldConfigs,
   });
 
-  // Filter out excluded IDs
+  // Filter out excluded IDs and prepend preloaded pet if not in list
   const filteredEntities = useMemo(() => {
-    if (excludeIds.length === 0) return data.entities;
     const excludeSet = new Set(excludeIds);
-    return data.entities.filter((e) => !excludeSet.has(e.id));
-  }, [data.entities, excludeIds]);
+    let entities = data.entities.filter((e) => !excludeSet.has(e.id));
+
+    // Prepend preloaded pet if it exists and is not already in the list
+    if (preloadedPet && !entities.some((e) => e.id === preloadedPet.id)) {
+      entities = [preloadedPet, ...entities];
+    }
+
+    return entities;
+  }, [data.entities, excludeIds, preloadedPet]);
 
   // Fetch total count when filters change
   const [totalCount, setTotalCount] = useState<number | null>(null);
@@ -366,6 +373,7 @@ export function PetSelectorModal({
     if (open) {
       // Modal opening - set initial values if provided
       setSelectedPet(null);
+      setPreloadedPet(null);
       setSearchQuery("");
       setPetTypeId(initialPetTypeId || "");
       setBreedId(initialBreedId || "");
@@ -373,6 +381,7 @@ export function PetSelectorModal({
     } else {
       // Modal closing - reset everything
       setSelectedPet(null);
+      setPreloadedPet(null);
       setSearchQuery("");
       setPetTypeId("");
       setBreedId("");
@@ -380,15 +389,29 @@ export function PetSelectorModal({
     }
   }, [open, initialPetTypeId, initialBreedId]);
 
-  // Pre-select pet when data is loaded and initialSelectedId is provided
+  // Preload the initially selected pet by ID
   useEffect(() => {
-    if (!open || !initialSelectedId || selectedPet) return;
+    if (!open || !initialSelectedId) return;
 
-    const pet = filteredEntities.find((e) => e.id === initialSelectedId);
-    if (pet) {
-      setSelectedPet(pet);
-    }
-  }, [open, initialSelectedId, filteredEntities, selectedPet]);
+    const loadPet = async () => {
+      try {
+        const { data: petData } = await supabase
+          .from("pet")
+          .select("id, name, slug, avatar_url, pet_status_id, sex_id, date_of_birth, breed_id, pet_type_id")
+          .eq("id", initialSelectedId)
+          .single();
+
+        if (petData) {
+          setPreloadedPet(petData);
+          setSelectedPet(petData);
+        }
+      } catch (error) {
+        console.error("[PetSelectorModal] Failed to preload pet:", error);
+      }
+    };
+
+    loadPet();
+  }, [open, initialSelectedId]);
 
   // Handle scroll for infinite loading
   const handleScroll = useCallback(() => {
