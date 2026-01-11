@@ -328,6 +328,19 @@ export function PetSelectorModal({
 
         {/* Filters with gray background */}
         <div className="bg-modal-card-ground rounded-lg px-6 py-4">
+          {/* Counter - always visible above search */}
+          <div className="text-sm text-slate-500 mb-3 min-h-[20px]">
+            {!shouldFetch ? (
+              "Select filters to search"
+            ) : isLoading ? (
+              "Loading..."
+            ) : totalCount !== null ? (
+              `${filteredEntities.length} of ${totalCount} pets`
+            ) : (
+              `${filteredEntities.length} pets`
+            )}
+          </div>
+
           {/* Search */}
           <div className="mb-4">
             <SearchInput
@@ -370,19 +383,6 @@ export function PetSelectorModal({
               disabledOnGray
             />
           </div>
-        </div>
-
-        {/* Counter */}
-        <div className="text-sm text-slate-500 mb-2">
-          {!shouldFetch ? (
-            ""
-          ) : isLoading ? (
-            "Loading..."
-          ) : totalCount !== null ? (
-            `${filteredEntities.length} of ${totalCount} pets`
-          ) : (
-            `${filteredEntities.length} pets`
-          )}
         </div>
 
         {/* Pet list */}
