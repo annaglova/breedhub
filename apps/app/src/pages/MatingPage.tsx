@@ -384,6 +384,7 @@ export function MatingPage({ pageConfig, workspaceConfig }: MatingPageProps) {
         initialPetTypeId={father?.petTypeId}
         initialBreedId={father?.breedId}
         initialSexId={father?.sexId}
+        initialSelectedId={father?.id}
       />
 
       <PetSelectorModal
@@ -406,6 +407,7 @@ export function MatingPage({ pageConfig, workspaceConfig }: MatingPageProps) {
         initialPetTypeId={mother?.petTypeId}
         initialBreedId={mother?.breedId}
         initialSexId={mother?.sexId}
+        initialSelectedId={mother?.id}
       />
 
       {/* Pedigree tree */}

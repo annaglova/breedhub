@@ -44,6 +44,8 @@ interface PetSelectorModalProps {
   initialBreedId?: string;
   /** Initial sex_id (use directly instead of resolving from sexFilter) */
   initialSexId?: string;
+  /** Initially selected pet ID (to pre-select when changing) */
+  initialSelectedId?: string;
 }
 
 /**
@@ -160,6 +162,7 @@ export function PetSelectorModal({
   initialPetTypeId,
   initialBreedId,
   initialSexId,
+  initialSelectedId,
 }: PetSelectorModalProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedPet, setSelectedPet] = useState<PetEntity | null>(null);
@@ -376,6 +379,16 @@ export function PetSelectorModal({
       setTotalCount(null);
     }
   }, [open, initialPetTypeId, initialBreedId]);
+
+  // Pre-select pet when data is loaded and initialSelectedId is provided
+  useEffect(() => {
+    if (!open || !initialSelectedId || selectedPet) return;
+
+    const pet = filteredEntities.find((e) => e.id === initialSelectedId);
+    if (pet) {
+      setSelectedPet(pet);
+    }
+  }, [open, initialSelectedId, filteredEntities, selectedPet]);
 
   // Handle scroll for infinite loading
   const handleScroll = useCallback(() => {
