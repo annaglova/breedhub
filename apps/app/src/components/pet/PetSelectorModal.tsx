@@ -23,6 +23,8 @@ interface PetEntity {
   pet_status_id?: string;
   sex_id?: string;
   date_of_birth?: string;
+  breed_id?: string;
+  pet_type_id?: string;
 }
 
 interface PetSelectorModalProps {
@@ -35,6 +37,12 @@ interface PetSelectorModalProps {
   title?: string;
   /** Exclude pet IDs from results */
   excludeIds?: string[];
+  /** Initial pet type filter (pre-fill from previously selected pet) */
+  initialPetTypeId?: string;
+  /** Initial breed filter (pre-fill from previously selected pet) */
+  initialBreedId?: string;
+  /** Initial sex_id (use directly instead of resolving from sexFilter) */
+  initialSexId?: string;
 }
 
 /**
@@ -148,6 +156,9 @@ export function PetSelectorModal({
   sexFilter,
   title = "Select Pet",
   excludeIds = [],
+  initialPetTypeId,
+  initialBreedId,
+  initialSexId,
 }: PetSelectorModalProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedPet, setSelectedPet] = useState<PetEntity | null>(null);
@@ -157,12 +168,30 @@ export function PetSelectorModal({
   const [petTypeId, setPetTypeId] = useState<string>("");
   const [breedId, setBreedId] = useState<string>("");
 
-  // Resolve sexFilter code to sex_id UUID (only when modal is open AND pet type is selected)
-  // Sex dictionary has separate entries per pet_type (Male for dogs, male(cat), Male(Horse))
+  // Resolve sexFilter code to sex_id UUID
+  // If initialSexId is provided (from previously selected pet), use it directly
+  // Otherwise resolve from dictionary (only when pet type is selected)
   const [sexId, setSexId] = useState<string | null>(null);
   useEffect(() => {
-    if (!open || !sexFilter || !petTypeId) {
-      if (!sexFilter || !petTypeId) setSexId(null);
+    if (!open) {
+      return;
+    }
+
+    // If initialSexId provided, use it directly - no async resolution needed
+    if (initialSexId) {
+      setSexId(initialSexId);
+      return;
+    }
+
+    // No sexFilter means no sex filtering needed
+    if (!sexFilter) {
+      setSexId(null);
+      return;
+    }
+
+    // Need to resolve sexFilter code to UUID, but requires petTypeId
+    if (!petTypeId) {
+      setSexId(null);
       return;
     }
 
@@ -208,7 +237,7 @@ export function PetSelectorModal({
     return () => {
       isMounted = false;
     };
-  }, [open, sexFilter, petTypeId]);
+  }, [open, sexFilter, petTypeId, initialSexId]);
 
   // Build filters based on props and filter state
   const filters = useMemo(() => {
@@ -328,16 +357,24 @@ export function PetSelectorModal({
     fetchCount();
   }, [shouldFetch, sexId, petTypeId, breedId, searchQuery]);
 
-  // Reset selection and filters when modal opens/closes
+  // Reset selection and set initial filters when modal opens/closes
   useEffect(() => {
-    if (!open) {
+    if (open) {
+      // Modal opening - set initial values if provided
+      setSelectedPet(null);
+      setSearchQuery("");
+      setPetTypeId(initialPetTypeId || "");
+      setBreedId(initialBreedId || "");
+      setTotalCount(null);
+    } else {
+      // Modal closing - reset everything
       setSelectedPet(null);
       setSearchQuery("");
       setPetTypeId("");
       setBreedId("");
       setTotalCount(null);
     }
-  }, [open]);
+  }, [open, initialPetTypeId, initialBreedId]);
 
   // Handle scroll for infinite loading
   const handleScroll = useCallback(() => {

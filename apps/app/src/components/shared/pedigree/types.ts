@@ -18,6 +18,9 @@ export interface PedigreePet {
   };
   titles?: string;
   avatarUrl?: string;
+  breedId?: string;
+  petTypeId?: string;
+  sexId?: string;
   father?: PedigreePet;
   mother?: PedigreePet;
 }

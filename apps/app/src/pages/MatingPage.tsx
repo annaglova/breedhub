@@ -272,11 +272,17 @@ export function MatingPage({ pageConfig, workspaceConfig }: MatingPageProps) {
             id: pet.id,
             name: pet.name || "Unknown",
             avatarUrl: pet.avatar_url,
+            breedId: pet.breed_id,
+            petTypeId: pet.pet_type_id,
+            sexId: pet.sex_id,
           });
         }}
         sexFilter="male"
         title="Select Father"
         excludeIds={mother ? [mother.id] : []}
+        initialPetTypeId={father?.petTypeId}
+        initialBreedId={father?.breedId}
+        initialSexId={father?.sexId}
       />
 
       <PetSelectorModal
@@ -287,11 +293,17 @@ export function MatingPage({ pageConfig, workspaceConfig }: MatingPageProps) {
             id: pet.id,
             name: pet.name || "Unknown",
             avatarUrl: pet.avatar_url,
+            breedId: pet.breed_id,
+            petTypeId: pet.pet_type_id,
+            sexId: pet.sex_id,
           });
         }}
         sexFilter="female"
         title="Select Mother"
         excludeIds={father ? [father.id] : []}
+        initialPetTypeId={mother?.petTypeId}
+        initialBreedId={mother?.breedId}
+        initialSexId={mother?.sexId}
       />
 
       {/* Pedigree tree */}
