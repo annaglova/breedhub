@@ -5,6 +5,7 @@ import {
   Book,
   ChevronDown,
   ChevronRight,
+  Copy,
   Database,
   Edit,
   Eye,
@@ -59,6 +60,8 @@ const AppConfig: React.FC = () => {
   const [configSearchQuery, setConfigSearchQuery] = useState("");
   const [showTemplateSelect, setShowTemplateSelect] = useState(false);
   const [createParentId, setCreateParentId] = useState<string | null>(null);
+  const [showExistingSelect, setShowExistingSelect] = useState(false);
+  const [createExistingParentId, setCreateExistingParentId] = useState<string | null>(null);
   const [showAddModal, setShowAddModal] = useState(false);
   const [addParentId, setAddParentId] = useState<string | null>(null);
   const [viewingConfig, setViewingConfig] = useState<string | null>(null);
@@ -384,6 +387,23 @@ const AppConfig: React.FC = () => {
       newExpanded.add(createParentId);
       setExpandedNodes(newExpanded);
     }
+  };
+
+  // Create config from existing config (copy)
+  const createFromExisting = async (sourceConfigId: string) => {
+    await appConfigStore.createConfigFromExisting(sourceConfigId, createExistingParentId);
+    setShowExistingSelect(false);
+    setCreateExistingParentId(null);
+    if (createExistingParentId) {
+      const newExpanded = new Set(expandedNodes);
+      newExpanded.add(createExistingParentId);
+      setExpandedNodes(newExpanded);
+    }
+  };
+
+  // Get available existing configs to copy
+  const getAvailableExistingConfigs = (parentType: string | null) => {
+    return appConfigStore.getAvailableExistingConfigs(parentType);
   };
 
   // Create working config
@@ -1326,18 +1346,32 @@ const AppConfig: React.FC = () => {
                         getAvailableChildTypes(node.configType || "").some((type) =>
                           appConfigStore.canAddConfigType(node.id, type)
                         ) && (
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setCreateParentId(node.id);
-                            setShowTemplateSelect(true);
-                            setConfigNodeMenu(null);
-                          }}
-                          className="w-full flex items-center gap-2 px-3 py-2 text-sm text-slate-700 hover:bg-purple-50 hover:text-purple-600"
-                        >
-                          <Package className="w-4 h-4" />
-                          Add from template
-                        </button>
+                        <>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setCreateParentId(node.id);
+                              setShowTemplateSelect(true);
+                              setConfigNodeMenu(null);
+                            }}
+                            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-slate-700 hover:bg-purple-50 hover:text-purple-600"
+                          >
+                            <Package className="w-4 h-4" />
+                            Add from template
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setCreateExistingParentId(node.id);
+                              setShowExistingSelect(true);
+                              setConfigNodeMenu(null);
+                            }}
+                            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-slate-700 hover:bg-blue-50 hover:text-blue-600"
+                          >
+                            <Copy className="w-4 h-4" />
+                            Copy from existing
+                          </button>
+                        </>
                       )}
                       <button
                         onClick={(e) => {
@@ -2082,6 +2116,82 @@ const AppConfig: React.FC = () => {
                 onClick={() => {
                   setShowTemplateSelect(false);
                   setCreateParentId(null);
+                }}
+                className="px-4 py-2 text-slate-700 bg-slate-100 rounded-md hover:bg-slate-200"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Existing Config Selection Modal */}
+      {showExistingSelect && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-2xl w-full max-h-[80vh] flex flex-col">
+            <h3 className="text-lg font-semibold mb-4">
+              {createExistingParentId ? "Copy from Existing Config" : "Copy from Existing App Config"}
+            </h3>
+
+            <div className="flex-1 overflow-y-auto">
+              {(() => {
+                const parentConfig = createExistingParentId
+                  ? workingConfigs.find((c) => c.id === createExistingParentId)
+                  : null;
+                const parentType =
+                  createExistingParentId === null ? null : parentConfig?.type || null;
+                const allExistingConfigs = getAvailableExistingConfigs(parentType);
+
+                // Filter to only app configs when at root level
+                const existingConfigs =
+                  createExistingParentId === null
+                    ? allExistingConfigs.filter((c) => c.type === "app")
+                    : allExistingConfigs;
+
+                if (existingConfigs.length === 0) {
+                  return (
+                    <div className="text-center text-slate-500 py-8">
+                      No existing configs available to copy
+                    </div>
+                  );
+                }
+
+                return (
+                  <div className="grid grid-cols-2 gap-4">
+                    {existingConfigs.map((config) => {
+                      const TypeInfo = configTypes[config.type] || {
+                        icon: Package,
+                        color: "text-slate-600",
+                      };
+                      const Icon = TypeInfo.icon;
+
+                      return (
+                        <button
+                          key={config.id}
+                          onClick={() => createFromExisting(config.id)}
+                          className="p-4 border rounded-lg hover:bg-slate-50 flex flex-col items-center gap-2"
+                        >
+                          <Icon className={`w-8 h-8 ${TypeInfo.color}`} />
+                          <div className="text-sm">
+                            {config.caption || config.id}
+                          </div>
+                          <div className="text-xs text-slate-500">
+                            {config.type}
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                );
+              })()}
+            </div>
+
+            <div className="mt-4 flex justify-end gap-2">
+              <button
+                onClick={() => {
+                  setShowExistingSelect(false);
+                  setCreateExistingParentId(null);
                 }}
                 className="px-4 py-2 text-slate-700 bg-slate-100 rounded-md hover:bg-slate-200"
               >

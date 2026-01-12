@@ -990,6 +990,88 @@ class AppConfigStore {
     return created;
   }
 
+  // Create working config from existing config (copy)
+  async createConfigFromExisting(sourceConfigId: string, parentId: string | null = null): Promise<AppConfig> {
+    const source = this.configs.value.get(sourceConfigId);
+    if (!source) {
+      throw new Error(`Source config ${sourceConfigId} not found`);
+    }
+
+    // Generate unique ID for the copy
+    const timestamp = Date.now();
+    const configId = `${source.type}_${timestamp}`;
+
+    // Create the main config (initially with empty deps)
+    const newConfig: Omit<AppConfig, 'created_at' | 'updated_at' | 'data'> = {
+      id: configId,
+      type: source.type,
+      self_data: {}, // Start with empty self_data, will be rebuilt from children
+      override_data: { ...source.override_data },
+      deps: [], // Will be filled with child config IDs
+      tags: [], // No template tag for working config
+      caption: `${source.caption || source.id} (copy)`,
+      version: source.version || 1,
+      _deleted: false
+    };
+
+    const created = await this.createConfig(newConfig);
+
+    // Recursively create child configs from source children
+    if (source.deps && source.deps.length > 0) {
+      const childConfigIds: string[] = [];
+
+      for (const childSourceId of source.deps) {
+        const childSource = this.configs.value.get(childSourceId);
+
+        // Only copy high-level structure configs (not field references or properties)
+        if (childSource && this.isHighLevelType(childSource.type)) {
+          // Recursively create config from child source
+          const childConfig = await this.createConfigFromExisting(childSourceId, configId);
+          childConfigIds.push(childConfig.id);
+        } else if (childSource && childSource.type === 'field') {
+          // Keep field references as-is (they're shared)
+          childConfigIds.push(childSourceId);
+        } else if (childSource && childSource.type.startsWith('property_')) {
+          // Keep property references as-is (they're shared)
+          childConfigIds.push(childSourceId);
+        }
+      }
+
+      // Update the created config's deps with the new child config IDs
+      if (childConfigIds.length > 0) {
+        await this.updateConfig(configId, { deps: childConfigIds });
+
+        // Rebuild self_data from children for high-level structures
+        if (this.isHighLevelType(created.type)) {
+          await this.rebuildParentSelfData(configId);
+        }
+      }
+    }
+
+    // If has parent, add child to parent
+    if (parentId) {
+      await this.addChildToParent(parentId, configId);
+    }
+
+    return created;
+  }
+
+  // Get available existing configs that can be copied as children
+  getAvailableExistingConfigs(parentType: string | null): AppConfig[] {
+    const allConfigs = Array.from(this.configs.value.values());
+
+    // Filter to working configs only (not templates, not deleted, not fields/properties)
+    return allConfigs.filter(
+      (config) =>
+        !config.tags?.includes('template') &&
+        !config._deleted &&
+        config.type !== 'field' &&
+        config.type !== 'entity_field' &&
+        config.type !== 'property' &&
+        (parentType === null || this.canAddChildType(parentType, config.type))
+    );
+  }
+
   // Check if a config type can be added to parent (for singleton configs)
   canAddConfigType(parentId: string, configType: string): boolean {
     const parent = this.configs.value.get(parentId);
