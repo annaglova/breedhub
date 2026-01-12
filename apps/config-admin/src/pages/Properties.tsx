@@ -95,11 +95,12 @@ const Properties: React.FC = () => {
     }
 
     setFilteredProperties(filtered);
-    // Reset to first page when filters change
-    if (searchQuery || selectedType !== "all" || showSystemProperties) {
-      setCurrentPage(1);
-    }
   }, [searchQuery, selectedType, showSystemProperties, properties]);
+
+  // Reset to first page only when filters change (not when properties data updates)
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, selectedType, showSystemProperties]);
 
   // Start editing a property
   const startEdit = (property: Property) => {
