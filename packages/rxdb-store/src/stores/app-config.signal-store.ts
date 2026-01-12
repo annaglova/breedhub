@@ -1023,15 +1023,15 @@ class AppConfigStore {
       for (const childSourceId of source.deps) {
         const childSource = this.configs.value.get(childSourceId);
 
-        // Only copy high-level structure configs (not field references or properties)
-        if (childSource && this.isHighLevelType(childSource.type)) {
+        // Copy high-level structure configs AND grouping configs (fields, sort, filter)
+        if (childSource && (this.isHighLevelType(childSource.type) || this.isGroupingConfigType(childSource.type))) {
           // Recursively create config from child source
           const childConfig = await this.createConfigFromExisting(childSourceId, configId);
           childConfigIds.push(childConfig.id);
-        } else if (childSource && childSource.type === 'field') {
+        } else if (childSource && (childSource.type === 'field' || childSource.type === 'entity_field')) {
           // Keep field references as-is (they're shared)
           childConfigIds.push(childSourceId);
-        } else if (childSource && childSource.type.startsWith('property_')) {
+        } else if (childSource && childSource.type === 'property') {
           // Keep property references as-is (they're shared)
           childConfigIds.push(childSourceId);
         }
@@ -1041,8 +1041,8 @@ class AppConfigStore {
       if (childConfigIds.length > 0) {
         await this.updateConfig(configId, { deps: childConfigIds });
 
-        // Rebuild self_data from children for high-level structures
-        if (this.isHighLevelType(created.type)) {
+        // Rebuild self_data from children for high-level and grouping structures
+        if (this.isHighLevelType(created.type) || this.isGroupingConfigType(created.type)) {
           await this.rebuildParentSelfData(configId);
         }
       }
