@@ -81,7 +81,7 @@ const childContainerMapping: Record<string, Record<string, string | null>> = {
     'property': null  // goes to root
   },
   'entities': {
-    'schema': 'schemas',
+    'schema': null,  // schemas merge directly into entities (no extra wrapper)
     'property': null
   },
   'schema': {
