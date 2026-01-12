@@ -238,19 +238,41 @@ class SpaceStore {
    * - tab can have fields
    */
   /**
-   * Get field schema from space.fields (root level)
-   * space.fields is the single source of truth for all available fields in the space
+   * Build entity schemas map from appConfig.entities
+   * Key is entitySchemaName, value is the schema config
    */
-  private getSpaceFieldsSchema(space: any, appConfig: any, entitySchemaName: string): Map<string, FieldConfig> {
+  private buildEntitySchemasMap(appConfig: any): Map<string, any> {
+    const entitySchemas = new Map<string, any>();
+
+    if (!appConfig?.entities) {
+      console.warn('[SpaceStore] No entities found in app config');
+      return entitySchemas;
+    }
+
+    // Iterate through entities container (config_schema_xxx -> schema)
+    Object.entries(appConfig.entities).forEach(([schemaKey, schema]: [string, any]) => {
+      if (schema.entitySchemaName) {
+        entitySchemas.set(schema.entitySchemaName, schema);
+      }
+    });
+
+    console.log(`[SpaceStore] Built entity schemas map with ${entitySchemas.size} schemas:`, Array.from(entitySchemas.keys()));
+    return entitySchemas;
+  }
+
+  /**
+   * Get field schema from entity schema (from entities container)
+   * entities.fields is the single source of truth for all available fields
+   */
+  private getEntityFieldsSchema(entitySchema: any, entitySchemaName: string): Map<string, FieldConfig> {
     const uniqueFields = new Map<string, FieldConfig>();
 
-    // Only process fields from space.fields (root level)
-    // This is the single source of truth for all fields in the space
-    if (!space.fields || typeof space.fields !== 'object') {
+    // Get fields from entity schema
+    if (!entitySchema?.fields || typeof entitySchema.fields !== 'object') {
       return uniqueFields;
     }
 
-    Object.entries(space.fields).forEach(([fieldKey, fieldValue]: [string, any]) => {
+    Object.entries(entitySchema.fields).forEach(([fieldKey, fieldValue]: [string, any]) => {
       // Normalize field name: remove entity prefix (breed_field_pet_type_id -> pet_type_id)
       const normalizedFieldName = removeFieldPrefix(fieldKey, entitySchemaName);
 
@@ -283,6 +305,9 @@ class SpaceStore {
    * Parse space configurations from app config hierarchy
    * NOTE: appConfig is already the merged data (appConfig.data from DB)
    * In production it will be static pre-generated config from localStorage
+   *
+   * Fields are now sourced from appConfig.entities (entity schemas)
+   * instead of from space.fields directly.
    */
   private parseSpaceConfigurations(appConfig: any) {
     if (!appConfig?.workspaces) {
@@ -293,6 +318,9 @@ class SpaceStore {
     const entityTypes: string[] = [];
     this.spaceConfigs.clear();
 
+    // Build entity schemas map from appConfig.entities
+    const entitySchemas = this.buildEntitySchemasMap(appConfig);
+
     // Iterate through workspaces
     Object.entries(appConfig.workspaces).forEach(([workspaceKey, workspace]: [string, any]) => {
       if (workspace.spaces) {
@@ -300,8 +328,17 @@ class SpaceStore {
         Object.entries(workspace.spaces).forEach(([spaceKey, space]: [string, any]) => {
           // Check for entitySchemaName
           if (space.entitySchemaName) {
-            // Get field schema from space.fields (single source of truth)
-            const uniqueFields = this.getSpaceFieldsSchema(space, appConfig, space.entitySchemaName);
+            // Get entity schema from entities map
+            const entitySchema = entitySchemas.get(space.entitySchemaName);
+
+            // Get field schema from entities (single source of truth)
+            const uniqueFields = entitySchema
+              ? this.getEntityFieldsSchema(entitySchema, space.entitySchemaName)
+              : new Map<string, FieldConfig>();
+
+            if (!entitySchema) {
+              console.warn(`[SpaceStore] No entity schema found for ${space.entitySchemaName}`);
+            }
 
             // Normalize keys in sort_fields and filter_fields too
             const normalizedSortFields = space.sort_fields
@@ -322,6 +359,11 @@ class SpaceStore {
                 )
               : undefined;
 
+            // Use entitySchemaModel from entity schema if available, fallback to space config
+            const entitySchemaModel = entitySchema?.entitySchemaModel
+              || space.entitySchemaModel
+              || space.entitySchemaName;
+
             const spaceConfig: SpaceConfig = {
               id: space.id || spaceKey,
               icon: space.icon,
@@ -330,7 +372,7 @@ class SpaceStore {
               label: space.label,
               order: space.order,
               entitySchemaName: space.entitySchemaName,
-              entitySchemaModel: space.entitySchemaModel || space.entitySchemaName, // Fallback to entitySchemaName
+              entitySchemaModel: entitySchemaModel, // From entity schema or space
               totalFilterKey: space.totalFilterKey, // Field to group totalCount by
               fields: Object.fromEntries(uniqueFields),
               sort_fields: normalizedSortFields,
@@ -342,14 +384,14 @@ class SpaceStore {
               canEdit: space.canEdit,
               canDelete: space.canDelete
             };
-            
+
             this.spaceConfigs.set(space.entitySchemaName, spaceConfig);
             entityTypes.push(space.entitySchemaName);
           }
         });
       }
     });
-    
+
     this.availableEntityTypes.value = entityTypes;
   }
 
