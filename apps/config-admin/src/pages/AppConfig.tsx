@@ -10,6 +10,7 @@ import {
   Eye,
   GripVertical,
   Layers,
+  MoreVertical,
   Package,
   Plus,
   Settings,
@@ -104,6 +105,7 @@ const AppConfig: React.FC = () => {
   const [showPropertyDropdown, setShowPropertyDropdown] = useState<
     string | null
   >(null);
+  const [configNodeMenu, setConfigNodeMenu] = useState<string | null>(null);
   const [editingField, setEditingField] = useState<string | null>(null);
   const [editingOverrideData, setEditingOverrideData] = useState<string>("");
   const [editingCaption, setEditingCaption] = useState<string>("");
@@ -119,12 +121,32 @@ const AppConfig: React.FC = () => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         setSelectedConfig(null);
+        setConfigNodeMenu(null);
       }
     };
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
+
+  // Close config node menu on outside click
+  useEffect(() => {
+    if (!configNodeMenu) return;
+
+    const handleClickOutside = () => {
+      setConfigNodeMenu(null);
+    };
+
+    // Delay to prevent immediate closing on the same click that opened it
+    const timeoutId = setTimeout(() => {
+      document.addEventListener("click", handleClickOutside);
+    }, 0);
+
+    return () => {
+      clearTimeout(timeoutId);
+      document.removeEventListener("click", handleClickOutside);
+    };
+  }, [configNodeMenu]);
 
   // Build tree structure from configs
 
@@ -1251,30 +1273,17 @@ const AppConfig: React.FC = () => {
                   getAvailableChildTypes(node.configType || "").some((type) =>
                     appConfigStore.canAddConfigType(node.id, type)
                   ) && (
-                    <>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setAddParentId(node.id);
-                          setShowAddModal(true);
-                        }}
-                        className="p-1 text-slate-400 hover:text-green-600 hover:bg-green-50 rounded"
-                        title="Add child config"
-                      >
-                        <Plus className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setCreateParentId(node.id);
-                          setShowTemplateSelect(true);
-                        }}
-                        className="p-1 text-slate-400 hover:text-purple-600 hover:bg-purple-50 rounded"
-                        title="Add from template"
-                      >
-                        <Package className="w-4 h-4" />
-                      </button>
-                    </>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setAddParentId(node.id);
+                        setShowAddModal(true);
+                      }}
+                      className="p-1 text-slate-400 hover:text-green-600 hover:bg-green-50 rounded"
+                      title="Add child config"
+                    >
+                      <Plus className="w-4 h-4" />
+                    </button>
                   )}
                 <button
                   onClick={(e) => {
@@ -1296,16 +1305,54 @@ const AppConfig: React.FC = () => {
                 >
                   <Edit className="w-4 h-4" />
                 </button>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    deleteConfig(node.id);
-                  }}
-                  className="p-1 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded"
-                  title="Delete"
-                >
-                  <Trash className="w-4 h-4" />
-                </button>
+                {/* Kebab menu for less frequent actions */}
+                <div className="relative">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setConfigNodeMenu(configNodeMenu === node.id ? null : node.id);
+                    }}
+                    className="p-1 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded"
+                    title="More options"
+                  >
+                    <MoreVertical className="w-4 h-4" />
+                  </button>
+                  {configNodeMenu === node.id && (
+                    <div
+                      className="absolute right-0 top-full mt-1 z-50 bg-white border border-slate-200 rounded-md shadow-lg py-1 min-w-[160px]"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      {getAvailableChildTypes(node.configType || "").length > 0 &&
+                        getAvailableChildTypes(node.configType || "").some((type) =>
+                          appConfigStore.canAddConfigType(node.id, type)
+                        ) && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setCreateParentId(node.id);
+                            setShowTemplateSelect(true);
+                            setConfigNodeMenu(null);
+                          }}
+                          className="w-full flex items-center gap-2 px-3 py-2 text-sm text-slate-700 hover:bg-purple-50 hover:text-purple-600"
+                        >
+                          <Package className="w-4 h-4" />
+                          Add from template
+                        </button>
+                      )}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          deleteConfig(node.id);
+                          setConfigNodeMenu(null);
+                        }}
+                        className="w-full flex items-center gap-2 px-3 py-2 text-sm text-slate-700 hover:bg-red-50 hover:text-red-600"
+                      >
+                        <Trash className="w-4 h-4" />
+                        Delete
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
 
