@@ -76,9 +76,9 @@ function deepMerge(target: any, source: any): any {
 const childContainerMapping: Record<string, Record<string, string | null>> = {
   'app': {
     'workspace': 'workspaces',
-    'user_config': 'user_config',
-    'entities': 'entities',
-    'property': null  // goes to root
+    'user_config': 'user_config',  // stays in user_config container
+    'entities': null,              // merges directly to root
+    'property': null               // goes to root
   },
   'entities': {
     'schema': null,  // schemas merge directly into entities (no extra wrapper)
@@ -2615,6 +2615,29 @@ class AppConfigStore {
             // For empty configs (like fields config), store empty object
             newSelfData[containerKey][childId] = childData;
           }
+        } else {
+          // containerKey is null - child data merges directly to root (like user_config in app, schema in entities)
+          // This is similar to how properties work, but preserves the child ID as key
+          let childData: any = {};
+
+          // Start with child's self_data
+          if (child.self_data) {
+            const { tags, type, deps, caption, version, created_at, updated_at, _deleted, _rev, ...cleanSelfData } = child.self_data;
+            if (Object.keys(cleanSelfData).length > 0) {
+              childData = { ...cleanSelfData };
+            }
+          }
+
+          // Apply override_data on top
+          if (child.override_data) {
+            const { tags, type, deps, caption, version, created_at, updated_at, _deleted, _rev, ...cleanOverrideData } = child.override_data;
+            if (Object.keys(cleanOverrideData).length > 0) {
+              Object.assign(childData, cleanOverrideData);
+            }
+          }
+
+          // Merge child data with child ID as key directly to root
+          newSelfData[childId] = childData;
         }
       } else {
         console.warn('[rebuildParentSelfData] Child type', child.type, 'is not allowed for parent type', parent.type);

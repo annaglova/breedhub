@@ -244,7 +244,7 @@ const configTypeMapping = {
     children: {
       'workspace': 'workspaces',
       'user_config': null,  // user_config goes directly to root, not in a container
-      'entities': 'entities'  // entities goes into 'entities' container
+      'entities': null       // entities goes directly to root, not in a container
     },
     sortChildren: ['workspace']  // These children need to preserve deps order
   }
