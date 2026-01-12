@@ -359,10 +359,9 @@ class SpaceStore {
                 )
               : undefined;
 
-            // Use entitySchemaModel from entity schema if available, fallback to space config
-            const entitySchemaModel = entitySchema?.entitySchemaModel
-              || space.entitySchemaModel
-              || space.entitySchemaName;
+            // entitySchemaModel defines UI rendering model, should come from space config
+            // Same schema (e.g., "account") can have different models in different spaces (e.g., "kennel", "federation")
+            const entitySchemaModel = space.entitySchemaModel || space.entitySchemaName;
 
             const spaceConfig: SpaceConfig = {
               id: space.id || spaceKey,
@@ -372,7 +371,7 @@ class SpaceStore {
               label: space.label,
               order: space.order,
               entitySchemaName: space.entitySchemaName,
-              entitySchemaModel: entitySchemaModel, // From entity schema or space
+              entitySchemaModel: entitySchemaModel, // UI rendering model from space config
               totalFilterKey: space.totalFilterKey, // Field to group totalCount by
               fields: Object.fromEntries(uniqueFields),
               sort_fields: normalizedSortFields,
