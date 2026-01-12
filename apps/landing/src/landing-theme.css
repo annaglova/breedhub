@@ -6,7 +6,8 @@
   cursor: default;
 }
 
-/* Remove text cursor on text elements */
+/* Remove text cursor on text elements but allow selection */
+/* Note: caret-color: transparent is in index.css for all apps */
 .landing-cursor p,
 .landing-cursor span,
 .landing-cursor h1,
@@ -25,10 +26,6 @@
 .landing-cursor article,
 .landing-cursor section {
   cursor: default !important;
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-  user-select: none;
 }
 
 /* Pointer cursor for interactive elements */

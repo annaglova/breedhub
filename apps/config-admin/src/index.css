@@ -49,3 +49,20 @@ body {
   min-width: 320px;
   min-height: 100vh;
 }
+
+/* Hide caret in non-input elements (dropdowns, dialogs etc) */
+/* Exclude input and textarea to keep caret visible where user types */
+div:not(:has(> input:focus)):not(:has(> textarea:focus)),
+span,
+button,
+[role="listbox"],
+[role="option"],
+[role="dialog"] {
+  caret-color: transparent;
+}
+
+/* Ensure inputs and textareas always show caret */
+input,
+textarea {
+  caret-color: auto;
+}

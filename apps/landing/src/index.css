@@ -6,3 +6,20 @@
 @import "@shared/theme/custom-theme.css";
 @import "./landing-theme.css";
 @import "@shared/theme/focus-styles.css";
+
+/* Hide caret in non-input elements (dropdowns, dialogs etc) */
+/* Exclude input and textarea to keep caret visible where user types */
+div:not(:has(> input:focus)):not(:has(> textarea:focus)),
+span,
+button,
+[role="listbox"],
+[role="option"],
+[role="dialog"] {
+  caret-color: transparent;
+}
+
+/* Ensure inputs and textareas always show caret */
+input,
+textarea {
+  caret-color: auto;
+}
