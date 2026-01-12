@@ -50,7 +50,7 @@ export default function ConfigEditModal({
       <div className="bg-white rounded-lg max-w-2xl w-full max-h-[80vh] flex flex-col">
         {/* Fixed Header */}
         <div className="px-6 py-4 border-b">
-          <h3 className="text-lg font-semibold">{title}</h3>
+          <h3 className="text-lg font-semibold">{title}: {configId}</h3>
         </div>
 
         {/* Scrollable Content */}
