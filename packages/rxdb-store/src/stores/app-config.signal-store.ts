@@ -77,7 +77,16 @@ const childContainerMapping: Record<string, Record<string, string | null>> = {
   'app': {
     'workspace': 'workspaces',
     'user_config': 'user_config',
+    'entities': 'entities',
     'property': null  // goes to root
+  },
+  'entities': {
+    'schema': 'schemas',
+    'property': null
+  },
+  'schema': {
+    'fields': 'fields',
+    'property': null
   },
   'workspace': {
     'space': 'spaces',
@@ -164,7 +173,7 @@ const childContainerMapping: Record<string, Record<string, string | null>> = {
 
 // Child type mappings - defines which config types can be children of which parent types
 export const childTypeMapping: Record<string, string[]> = {
-  app: ["workspace", "user_config"],
+  app: ["workspace", "user_config", "entities"],
   workspace: ["space", "page"],
   space: ["view", "page", "fields", "sort", "filter", "extension"],
   view: ["fields", "sort", "filter", "extension", "block"],
@@ -176,13 +185,15 @@ export const childTypeMapping: Record<string, string[]> = {
   menu_config: ["menu_section", "menu_item"],
   menu_section: ["menu_item"],
   menu_item: [],
+  entities: ["schema"],
+  schema: ["fields"],
 };
 
 // Types that cannot have properties
 const noPropertyTypes = ['fields', 'sort_fields', 'filter_fields'];
 
 // High-level structure types (containers that have children)
-const highLevelTypes = ['app', 'workspace', 'space', 'view', 'page', 'block', 'tab', 'user_config', 'menu_config', 'menu_section', 'menu_item', 'extension'];
+const highLevelTypes = ['app', 'workspace', 'space', 'view', 'page', 'block', 'tab', 'user_config', 'menu_config', 'menu_section', 'menu_item', 'extension', 'entities', 'schema'];
 const groupingTypes = ['fields', 'sort', 'filter']; // Grouping configs that don't merge deps data
 
 class AppConfigStore {
