@@ -215,7 +215,8 @@ const configTypeMapping = {
   'workspace': {
     type: 'container',
     children: {
-      'space': 'spaces'
+      'space': 'spaces',
+      'page': 'pages'
     }
   },
   'user_config': {
