@@ -98,9 +98,9 @@ function PetSelectorItem({
       onClick={onClick}
       className={cn(
         "flex items-center px-4 py-2 cursor-pointer transition-colors",
-        index % 2 === 0 ? "bg-even-card-ground" : "bg-card-ground",
+        !selected && (index % 2 === 0 ? "bg-even-card-ground" : "bg-card-ground"),
         !selected && "hover:bg-slate-100 dark:hover:bg-slate-800",
-        selected && "!bg-primary-50 dark:!bg-primary-900/30"
+        selected && "bg-primary-50 dark:bg-primary-900/30"
       )}
     >
       {/* Avatar - compact size */}
