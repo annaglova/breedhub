@@ -119,26 +119,7 @@ export function AppRouter() {
               );
             }
 
-            // Mating page supports URL params for father/mother slugs
-            if (page.component === 'MatingPage') {
-              return (
-                <React.Fragment key={page.workspaceId}>
-                  <Route
-                    path={page.path}
-                    element={<PageComponent pageConfig={page.pageConfig} workspaceConfig={page.workspaceConfig} />}
-                  />
-                  <Route
-                    path={`${page.path}/:fatherSlug`}
-                    element={<PageComponent pageConfig={page.pageConfig} workspaceConfig={page.workspaceConfig} />}
-                  />
-                  <Route
-                    path={`${page.path}/:fatherSlug/:motherSlug`}
-                    element={<PageComponent pageConfig={page.pageConfig} workspaceConfig={page.workspaceConfig} />}
-                  />
-                </React.Fragment>
-              );
-            }
-
+            // All tool pages use query params for data (e.g., /mating?father=slug&mother=slug)
             return (
               <Route
                 key={page.workspaceId}

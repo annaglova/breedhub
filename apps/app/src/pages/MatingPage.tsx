@@ -29,7 +29,7 @@ import {
 } from "@ui/components/tooltip";
 import { MoreVertical, Save, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 
 /** Get default generations based on screen size */
 function getDefaultGenerations(): GenerationCount {
@@ -61,8 +61,11 @@ interface MatingPageProps {
  * with pet selection controls.
  */
 export function MatingPage({ pageConfig, workspaceConfig }: MatingPageProps) {
-  const { fatherSlug, motherSlug } = useParams<{ fatherSlug?: string; motherSlug?: string }>();
-  const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  // Get slugs from query params
+  const fatherSlug = searchParams.get('father') || undefined;
+  const motherSlug = searchParams.get('mother') || undefined;
 
   const [generations, setGenerations] = useState<GenerationCount>(getDefaultGenerations);
 
@@ -196,22 +199,23 @@ export function MatingPage({ pageConfig, workspaceConfig }: MatingPageProps) {
     // Don't update URL while resolving slugs from URL
     if (isResolvingRef.current) return;
 
-    const basePath = workspaceConfig?.path || '/mating';
-    let newPath = basePath;
+    const newParams = new URLSearchParams();
 
     if (father?.slug) {
-      newPath = `${basePath}/${father.slug}`;
-      if (mother?.slug) {
-        newPath = `${basePath}/${father.slug}/${mother.slug}`;
-      }
+      newParams.set('father', father.slug);
+    }
+    if (mother?.slug) {
+      newParams.set('mother', mother.slug);
     }
 
-    // Only navigate if path changed
-    const currentPath = window.location.pathname;
-    if (currentPath !== newPath) {
-      navigate(newPath, { replace: true });
+    // Only update if params changed
+    const currentParams = searchParams.toString();
+    const newParamsString = newParams.toString();
+
+    if (currentParams !== newParamsString) {
+      setSearchParams(newParams, { replace: true });
     }
-  }, [father?.slug, mother?.slug, workspaceConfig?.path, navigate]);
+  }, [father?.slug, mother?.slug, searchParams, setSearchParams]);
 
   // Direct drag-to-scroll implementation
   const scrollRef = useRef<HTMLDivElement>(null);
