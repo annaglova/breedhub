@@ -1,4 +1,4 @@
-import { ToolPageLayout } from "@/layouts/ToolPageLayout";
+import { ContentPageLayout } from "@/layouts/ContentPageLayout";
 import { Button } from "@ui/components/button";
 import {
   Dialog,
@@ -171,7 +171,7 @@ export function WelcomePage() {
   const activeStep = questSteps.find((s) => s.id === activeStepId);
 
   return (
-    <ToolPageLayout>
+    <ContentPageLayout>
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-2xl font-bold mb-2">Welcome</h1>
@@ -194,15 +194,13 @@ export function WelcomePage() {
       </div>
 
       {/* Timeline */}
-      <div className="max-w-4xl mx-auto">
-        <AlternatingTimeline
-          items={timelineItems}
-          layout="alternating"
-          showCards
-          animated
-          connectorVariant="primary"
-        />
-      </div>
+      <AlternatingTimeline
+        items={timelineItems}
+        layout="alternating"
+        showCards
+        animated
+        connectorVariant="primary"
+      />
 
       {/* Step Dialog */}
       <Dialog open={!!activeStepId} onOpenChange={(open) => !open && setActiveStepId(null)}>
@@ -237,6 +235,6 @@ export function WelcomePage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </ToolPageLayout>
+    </ContentPageLayout>
   );
 }
