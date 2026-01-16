@@ -172,39 +172,44 @@ export function WelcomePage() {
           variant: step.completed ? ("success" as const) : ("inactive" as const),
           content: (
             <div
-              className={`group flex w-full items-center justify-between rounded-lg border border-slate-200 bg-white px-6 pb-4 pt-6 shadow-sm transition-shadow hover:shadow-lg dark:border-slate-700 dark:bg-slate-800 ${isLeftSide ? "flex-row-reverse" : ""}`}
+              className="group flex w-full flex-col rounded-lg border border-slate-200 bg-white px-6 pb-4 pt-6 shadow-sm transition-shadow hover:shadow-lg dark:border-slate-700 dark:bg-slate-800"
               onClick={() => setActiveStepId(step.id)}
               role="button"
               tabIndex={0}
               onKeyDown={(e) => e.key === "Enter" && setActiveStepId(step.id)}
             >
-              {/* Text content */}
-              <div className={`flex flex-col space-y-2 ${isLeftSide ? "pl-4" : "pr-4"}`}>
-                <h3 className="text-2xl font-semibold">{step.title}</h3>
-                <p className="pt-2 leading-relaxed text-secondary-600 dark:text-secondary-400">
-                  {step.description}
-                </p>
-                <div>
-                  <Button
-                    variant={step.completed ? "ghost" : "outline"}
-                    size="sm"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setActiveStepId(step.id);
-                    }}
-                  >
-                    {step.completed ? "View" : "Start step"}
-                  </Button>
-                </div>
-              </div>
+              {/* Title - full width header */}
+              <h3 className="text-2xl font-semibold">{step.title}</h3>
 
-              {/* Image with scale on hover */}
-              <div className="shrink-0">
-                <img
-                  src={`/images/welcome/${theme}/${step.image}`}
-                  alt={step.title}
-                  className="mx-2 size-28 object-contain transition-transform duration-300 group-hover:scale-110"
-                />
+              {/* Content row: text + image */}
+              <div className={`flex items-center justify-between ${isLeftSide ? "flex-row-reverse" : ""}`}>
+                {/* Text content */}
+                <div className={`flex flex-col space-y-2 ${isLeftSide ? "pl-4" : "pr-4"}`}>
+                  <p className="pt-2 leading-relaxed text-secondary-600 dark:text-secondary-400">
+                    {step.description}
+                  </p>
+                  <div>
+                    <Button
+                      variant={step.completed ? "ghost" : "outline"}
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setActiveStepId(step.id);
+                      }}
+                    >
+                      {step.completed ? "View" : "Start step"}
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Image with scale on hover */}
+                <div className="shrink-0">
+                  <img
+                    src={`/images/welcome/${theme}/${step.image}`}
+                    alt={step.title}
+                    className="mx-2 size-28 object-contain transition-transform duration-300 group-hover:scale-110"
+                  />
+                </div>
               </div>
             </div>
           ),
