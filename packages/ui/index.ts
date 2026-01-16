@@ -26,6 +26,7 @@ export * from "./components/rating";
 export * from "./components/tabs";
 export * from "./components/navigation-menu";
 export * from "./components/timeline";
+export * from "./components/major-point";
 
 // Feedback Components
 export * from "./components/toast";

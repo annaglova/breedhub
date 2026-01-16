@@ -368,7 +368,7 @@ const AlternatingTimeline = React.forwardRef<
                     className={cn(
                       "w-full",
                       layout === "alternating" &&
-                        "md:w-5/12 md:text-right md:pr-8",
+                        "md:w-[48%] md:text-right md:pr-8",
                       layout === "left" && "pl-8"
                     )}
                   >
@@ -408,7 +408,7 @@ const AlternatingTimeline = React.forwardRef<
 
                 {/* Empty space for right-aligned items */}
                 {position === "right" && layout === "alternating" && (
-                  <div className="w-5/12" />
+                  <div className="w-[48%]" />
                 )}
 
                 {/* Dot with connector */}
@@ -441,7 +441,7 @@ const AlternatingTimeline = React.forwardRef<
 
                 {/* Empty space for left-aligned items */}
                 {position === "left" && layout === "alternating" && (
-                  <div className="w-5/12" />
+                  <div className="w-[48%]" />
                 )}
 
                 {/* Right card */}
@@ -450,7 +450,7 @@ const AlternatingTimeline = React.forwardRef<
                     className={cn(
                       "w-full",
                       layout === "alternating" &&
-                        "md:w-5/12 md:text-left md:pl-8",
+                        "md:w-[48%] md:text-left md:pl-8",
                       layout === "right" && "pr-12"
                     )}
                   >
