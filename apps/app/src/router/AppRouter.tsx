@@ -4,6 +4,7 @@ import { AppLayout } from '@/layouts/AppLayout';
 import { SpacePage } from '@/pages/SpacePage';
 import { SlugResolver } from '@/pages/SlugResolver';
 import { TabPageResolver } from '@/pages/TabPageResolver';
+import { WelcomePage } from '@/pages/WelcomePage';
 import { SupabaseLoader } from '@/components/test/SupabaseLoader';
 import { TestDictionaryPage } from '@/pages/TestDictionaryPage';
 import { TestPage } from '@/pages/TestPage';
@@ -141,6 +142,9 @@ export function AppRouter() {
             <Route path="dictionary" element={<TestDictionaryPage />} />
             <Route path="page" element={<TestPage />} />
           </Route>
+
+          {/* Welcome/onboarding page */}
+          <Route path="welcome" element={<WelcomePage />} />
 
           {/* Slug resolver - catch-all for pretty URLs */}
           {/* Resolves /affenpinscher → /breeds/:id with fullscreen state */}
