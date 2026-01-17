@@ -21,12 +21,12 @@ import {
 import { MajorPoint } from "@ui/components/major-point";
 import { AlternatingTimeline } from "@ui/components/timeline";
 import {
-  Building2,
   Check,
   Crown,
   Gift,
   GitMerge,
   Globe,
+  HouseHeart,
   Image,
   Settings,
   ShieldCheck,
@@ -72,7 +72,7 @@ export function WelcomePage() {
         title: "Enter your kennel name",
         description:
           "Enter your kennel name so we can link your account to the correct kennel in our system.",
-        icon: <Building2 className="h-4 w-4" />,
+        icon: <HouseHeart className="h-4 w-4" />,
         completed: completedSteps.has("enter_kennel_name"),
         color: "primary",
         image: "kennel.png",
