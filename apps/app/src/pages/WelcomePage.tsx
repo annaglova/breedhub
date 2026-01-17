@@ -203,7 +203,7 @@ export function WelcomePage() {
                     isLeftSide ? "pl-0" : "pr-0"
                   }`}
                 >
-                  <p className="pt-2 text-secondary-600 dark:text-secondary-400">
+                  <p className="pt-2 text-secondary-600 dark:text-secondary-400 text-[0.9rem]">
                     {step.description}
                   </p>
                   <div>
@@ -292,7 +292,7 @@ export function WelcomePage() {
               {activeStep?.icon}
               {activeStep?.title}
             </DialogTitle>
-            <DialogDescription>{activeStep?.description}</DialogDescription>
+            <DialogDescription className="text-base">{activeStep?.description}</DialogDescription>
           </DialogHeader>
 
           {/* Step-specific content */}
