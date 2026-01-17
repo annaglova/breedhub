@@ -33,7 +33,7 @@ function StepCard({
       <span className="text-primary text-xl font-bold">Step {step}</span>
       <span className="text-center text-sm">{title}</span>
       <div className="flex h-full">
-        <Icon className="h-11 w-11 self-end text-primary/60" />
+        <Icon className="h-8 w-8 self-end text-primary/60" />
       </div>
     </div>
   );
@@ -123,14 +123,14 @@ function ExchangeTierCard({
       {/* Months selector */}
       <div className="mb-6">
         <div className="text-sm text-secondary-600 dark:text-secondary-400 text-center mb-2">Months of usage</div>
-        <div className="flex">
+        <div className="flex h-10">
           <Button
             variant="secondary"
-            className="rounded-r-none"
+            className="rounded-r-none h-full px-4"
             onClick={decrement}
             disabled={tier.isComingSoon || months <= 0}
           >
-            <span>−</span>
+            <span className="text-lg">−</span>
           </Button>
           <Input
             type="number"
@@ -139,16 +139,16 @@ function ExchangeTierCard({
               const val = parseInt(e.target.value) || 0;
               setMonths(Math.max(0, Math.min(40, val)));
             }}
-            className="rounded-none text-center flex-1"
+            className="rounded-none text-center flex-1 h-full"
             disabled={tier.isComingSoon}
           />
           <Button
             variant="default"
-            className="rounded-l-none"
+            className="rounded-l-none h-full px-4"
             onClick={increment}
             disabled={tier.isComingSoon || months >= 40}
           >
-            <span>+</span>
+            <span className="text-lg">+</span>
           </Button>
         </div>
       </div>
@@ -270,16 +270,17 @@ export function ReferralPage() {
             {/* Referral link */}
             <div className="flex flex-col md:order-1">
               <span className="text-primary text-3xl font-bold">Your referral link</span>
-              <div className="mt-3 flex">
+              <div className="mt-3 flex h-10">
                 <Input
                   type="text"
                   value={referralLink}
                   readOnly
-                  className="rounded-r-none min-w-0 flex-1"
+                  disabled
+                  className="rounded-r-none min-w-0 flex-1 h-full"
                 />
                 <Button
                   onClick={handleCopyLink}
-                  className="rounded-l-none shrink-0 gap-2"
+                  className="rounded-l-none shrink-0 gap-2 h-full"
                 >
                   <Copy className="h-4 w-4" />
                   Copy link
