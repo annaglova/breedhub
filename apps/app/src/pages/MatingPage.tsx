@@ -28,7 +28,7 @@ import {
   TooltipTrigger,
 } from "@ui/components/tooltip";
 import { MoreVertical, Save, X } from "lucide-react";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 
 /** Get default generations based on screen size */
@@ -64,10 +64,12 @@ export function MatingPage({ pageConfig, workspaceConfig }: MatingPageProps) {
   const [searchParams, setSearchParams] = useSearchParams();
 
   // Get slugs from query params
-  const fatherSlug = searchParams.get('father') || undefined;
-  const motherSlug = searchParams.get('mother') || undefined;
+  const fatherSlug = searchParams.get("father") || undefined;
+  const motherSlug = searchParams.get("mother") || undefined;
 
-  const [generations, setGenerations] = useState<GenerationCount>(getDefaultGenerations);
+  const [generations, setGenerations] = useState<GenerationCount>(
+    getDefaultGenerations
+  );
 
   // Selected pets for mating
   const [father, setFather] = useState<PedigreePet | null>(null);
@@ -81,8 +83,12 @@ export function MatingPage({ pageConfig, workspaceConfig }: MatingPageProps) {
   const [motherModalOpen, setMotherModalOpen] = useState(false);
 
   // Allowed breeds for second parent (based on first parent's breed)
-  const [allowedBreedsForFather, setAllowedBreedsForFather] = useState<string[] | null>(null);
-  const [allowedBreedsForMother, setAllowedBreedsForMother] = useState<string[] | null>(null);
+  const [allowedBreedsForFather, setAllowedBreedsForFather] = useState<
+    string[] | null
+  >(null);
+  const [allowedBreedsForMother, setAllowedBreedsForMother] = useState<
+    string[] | null
+  >(null);
 
   // Fetch allowed breeds when mother is selected (for father selection)
   useEffect(() => {
@@ -155,14 +161,16 @@ export function MatingPage({ pageConfig, workspaceConfig }: MatingPageProps) {
 
     isResolvingRef.current = true;
 
-    const resolvePetBySlug = async (slug: string): Promise<PedigreePet | null> => {
+    const resolvePetBySlug = async (
+      slug: string
+    ): Promise<PedigreePet | null> => {
       // Use spaceStore.fetchEntityBySlug - fast local-first lookup
-      const petData = await spaceStore.fetchEntityBySlug<any>('pet', slug);
+      const petData = await spaceStore.fetchEntityBySlug<any>("pet", slug);
 
       if (petData) {
         return {
           id: petData.id,
-          name: petData.name || 'Unknown',
+          name: petData.name || "Unknown",
           slug: petData.slug,
           avatarUrl: petData.avatar_url,
           breedId: petData.breed_id,
@@ -185,7 +193,7 @@ export function MatingPage({ pageConfig, workspaceConfig }: MatingPageProps) {
         if (fatherPet) setFather(fatherPet);
         if (motherPet) setMother(motherPet);
       } catch (error) {
-        console.error('[MatingPage] Error resolving slugs:', error);
+        console.error("[MatingPage] Error resolving slugs:", error);
       } finally {
         isResolvingRef.current = false;
       }
@@ -202,10 +210,10 @@ export function MatingPage({ pageConfig, workspaceConfig }: MatingPageProps) {
     const newParams = new URLSearchParams();
 
     if (father?.slug) {
-      newParams.set('father', father.slug);
+      newParams.set("father", father.slug);
     }
     if (mother?.slug) {
-      newParams.set('mother', mother.slug);
+      newParams.set("mother", mother.slug);
     }
 
     // Only update if params changed
@@ -272,11 +280,14 @@ export function MatingPage({ pageConfig, workspaceConfig }: MatingPageProps) {
   // Custom copy_link handler for tool page (no entity)
   const handleCopyLink = useCallback(() => {
     const url = window.location.href;
-    navigator.clipboard.writeText(url).then(() => {
-      toast.success("Link copied");
-    }).catch(() => {
-      toast.error("Failed to copy link");
-    });
+    navigator.clipboard
+      .writeText(url)
+      .then(() => {
+        toast.success("Link copied");
+      })
+      .catch(() => {
+        toast.error("Failed to copy link");
+      });
   }, []);
 
   // Action handlers
@@ -293,7 +304,9 @@ export function MatingPage({ pageConfig, workspaceConfig }: MatingPageProps) {
         {/* Header row */}
         <div className="flex items-center justify-between pb-4 bg-white dark:bg-zinc-900 border-b border-border">
           <div className="flex items-center gap-4">
-            <h1 className="text-2xl">{workspaceConfig?.label || "Test Mating"}</h1>
+            <h1 className="text-2xl">
+              {workspaceConfig?.label || "Test Mating"}
+            </h1>
             <PedigreeGenerationSelector
               generations={generations}
               onGenerationsChange={setGenerations}
@@ -307,7 +320,9 @@ export function MatingPage({ pageConfig, workspaceConfig }: MatingPageProps) {
               className="rounded-full h-[2.25rem] w-[2.25rem] sm:w-auto sm:px-4 gap-2"
             >
               <Save className="h-4 w-4 flex-shrink-0" />
-              <span className="hidden sm:inline text-base font-semibold">Save mating to litters</span>
+              <span className="hidden sm:inline text-base font-semibold">
+                Save mating to litters
+              </span>
             </Button>
 
             {/* More options dropdown menu */}
@@ -332,7 +347,9 @@ export function MatingPage({ pageConfig, workspaceConfig }: MatingPageProps) {
                     <>
                       <DropdownMenuItem
                         key={item.id}
-                        onClick={() => executeAction(item.action, item.actionParams)}
+                        onClick={() =>
+                          executeAction(item.action, item.actionParams)
+                        }
                       >
                         <Icon icon={item.icon} size={16} />
                         {item.label}

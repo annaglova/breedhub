@@ -1,3 +1,4 @@
+import { useTheme } from "@/hooks/useTheme";
 import { ContentPageLayout } from "@/layouts/ContentPageLayout";
 import { Button } from "@ui/components/button";
 import {
@@ -9,9 +10,7 @@ import {
   DialogTitle,
 } from "@ui/components/dialog";
 import { MajorPoint } from "@ui/components/major-point";
-import {
-  AlternatingTimeline,
-} from "@ui/components/timeline";
+import { AlternatingTimeline } from "@ui/components/timeline";
 import {
   Building2,
   Check,
@@ -25,7 +24,6 @@ import {
   User,
 } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
-import { useTheme } from "@/hooks/useTheme";
 
 /**
  * Quest step definition
@@ -123,8 +121,7 @@ export function WelcomePage() {
       {
         id: "select_tier",
         title: "Select your tier",
-        description:
-          "Choose the subscription tier that best fits your needs.",
+        description: "Choose the subscription tier that best fits your needs.",
         icon: <Crown className="h-4 w-4" />,
         completed: completedSteps.has("select_tier"),
         color: "warning",
@@ -169,7 +166,9 @@ export function WelcomePage() {
           id: step.id,
           title: "",
           icon: step.completed ? <Check className="h-4 w-4" /> : step.icon,
-          variant: step.completed ? ("success" as const) : ("inactive" as const),
+          variant: step.completed
+            ? ("success" as const)
+            : ("inactive" as const),
           content: (
             <div
               className="group flex w-full flex-col rounded-lg border border-slate-200 bg-white px-6 pb-4 pt-6 shadow-sm transition-shadow hover:shadow-lg dark:border-slate-700 dark:bg-slate-800"
@@ -179,13 +178,21 @@ export function WelcomePage() {
               onKeyDown={(e) => e.key === "Enter" && setActiveStepId(step.id)}
             >
               {/* Title - full width header */}
-              <h3 className="text-2xl font-semibold">{step.title}</h3>
+              <h3 className="text-xl font-semibold">{step.title}</h3>
 
               {/* Content row: text + image */}
-              <div className={`flex items-center justify-between ${isLeftSide ? "flex-row-reverse" : ""}`}>
+              <div
+                className={`flex items-center justify-between ${
+                  isLeftSide ? "flex-row-reverse" : ""
+                }`}
+              >
                 {/* Text content */}
-                <div className={`flex flex-col space-y-2 ${isLeftSide ? "pl-4" : "pr-4"}`}>
-                  <p className="pt-2 leading-relaxed text-secondary-600 dark:text-secondary-400">
+                <div
+                  className={`flex flex-col space-y-2 ${
+                    isLeftSide ? "pl-0" : "pr-0"
+                  }`}
+                >
+                  <p className="pt-2 text-secondary-600 dark:text-secondary-400 ">
                     {step.description}
                   </p>
                   <div>
@@ -207,7 +214,7 @@ export function WelcomePage() {
                   <img
                     src={`/images/welcome/${theme}/${step.image}`}
                     alt={step.title}
-                    className="mx-2 size-28 object-contain transition-transform duration-300 group-hover:scale-110"
+                    className="mx-2 size-20 object-contain transition-transform duration-300 group-hover:scale-110"
                   />
                 </div>
               </div>
@@ -231,15 +238,13 @@ export function WelcomePage() {
     <ContentPageLayout>
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-semibold mb-6">Welcome</h1>
+        <h1 className="text-2xl font-semibold mb-6">Welcome</h1>
 
         {/* Hero section with intro and progress */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
           {/* Intro text */}
           <div className="flex-1 space-y-2">
-            <h2 className="text-2xl font-semibold">
-              Get started with Breedhub
-            </h2>
+            <h2 className="text-xl font-semibold">Get started with Breedhub</h2>
             <p className="text-secondary-600 dark:text-secondary-400 leading-7 max-w-xl">
               Complete these simple steps to set up your account and get the
               most out of Breedhub.
@@ -267,7 +272,10 @@ export function WelcomePage() {
       />
 
       {/* Step Dialog */}
-      <Dialog open={!!activeStepId} onOpenChange={(open) => !open && setActiveStepId(null)}>
+      <Dialog
+        open={!!activeStepId}
+        onOpenChange={(open) => !open && setActiveStepId(null)}
+      >
         <DialogContent size="lg">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
