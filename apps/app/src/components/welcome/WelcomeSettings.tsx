@@ -14,7 +14,7 @@ export function WelcomeSettings({ onComplete }: WelcomeSettingsProps) {
       {/* Placeholder for settings form */}
       <div className="rounded-lg border border-dashed border-secondary-300 dark:border-secondary-600 p-6 text-center">
         <p className="text-secondary-500 dark:text-secondary-400">
-          Account settings will be configured here
+          Settings options coming soon
         </p>
       </div>
     </div>

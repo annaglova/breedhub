@@ -18,8 +18,8 @@ export function WelcomeKennelVerification({
   return (
     <div className="flex flex-col space-y-4">
       <FileInput
-        label="Upload verification document"
-        helperText="Upload a document to verify that you own this kennel"
+        label="Verification document"
+        helperText="Upload a document that confirms your kennel ownership"
         accept="image/*,.pdf"
         value={file}
         onValueChange={(files) => setFile(files as File | null)}

@@ -50,14 +50,13 @@ export function WelcomeReferral({ onComplete }: WelcomeReferralProps) {
       </div>
 
       <p className="text-sm text-secondary-500 dark:text-secondary-400">
-        Share your personal link
+        Share your personal link with friends
       </p>
 
       <p className="leading-7 text-secondary-700 dark:text-secondary-300">
-        You can send your referral link directly to your friends or publish a
-        post on social networks. More details about the referral program are
-        described on the Referrals page. This step will be closed automatically
-        after you get 5 referrals.
+        Send this link to friends or share it on social media. For more details,
+        visit the Referrals page. This step completes automatically once you
+        reach 5 referrals.
       </p>
     </div>
   );

@@ -16,7 +16,7 @@ export function WelcomeTierSelection({
       {/* Placeholder for tier selection cards */}
       <div className="rounded-lg border border-dashed border-secondary-300 dark:border-secondary-600 p-6 text-center">
         <p className="text-secondary-500 dark:text-secondary-400">
-          Subscription tier options will be displayed here
+          Subscription options coming soon
         </p>
       </div>
     </div>
