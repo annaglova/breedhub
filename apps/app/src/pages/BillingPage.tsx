@@ -1,3 +1,4 @@
+import { BillingTierSelector } from "@/components/billing/BillingTierSelector";
 import { ContentPageLayout } from "@/layouts/ContentPageLayout";
 import { MajorPoint } from "@ui/components/major-point";
 import { BarChart3, Crown } from "lucide-react";
@@ -160,12 +161,14 @@ export function BillingPage() {
             </div>
           </div>
 
-          {/* Tier changer placeholder */}
-          <div className="rounded-lg border border-dashed border-secondary-300 dark:border-secondary-600 p-8 text-center">
-            <p className="text-secondary-500 dark:text-secondary-400">
-              Tier selection coming soon
-            </p>
-          </div>
+          {/* Tier Selector */}
+          <BillingTierSelector
+            currentPlanId="professional"
+            onSelectPlan={(tierId, billingType) => {
+              console.log("Selected plan:", tierId, "billing:", billingType);
+              // TODO: Implement plan change logic
+            }}
+          />
 
           {/* Transaction Details */}
           <div className="flex flex-col space-y-3">
