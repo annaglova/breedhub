@@ -196,16 +196,15 @@ export function WelcomePage() {
                     {step.description}
                   </p>
                   <div>
-                    <Button
-                      variant={step.completed ? "ghost" : "outline"}
-                      size="sm"
+                    <button
+                      className="text-lg font-semibold text-primary hover:bg-primary-50 dark:hover:bg-primary-900/30 px-3 py-1.5 rounded-full transition-colors"
                       onClick={(e) => {
                         e.stopPropagation();
                         setActiveStepId(step.id);
                       }}
                     >
-                      {step.completed ? "View" : "Start step"}
-                    </Button>
+                      {step.completed ? "View" : "Start"}
+                    </button>
                   </div>
                 </div>
 
@@ -214,7 +213,7 @@ export function WelcomePage() {
                   <img
                     src={`/images/welcome/${theme}/${step.image}`}
                     alt={step.title}
-                    className="mx-2 size-20 object-contain transition-transform duration-300 group-hover:scale-110"
+                    className="mx-2 size-20 object-contain transition-transform duration-300 group-hover:scale-110 opacity-90"
                   />
                 </div>
               </div>
