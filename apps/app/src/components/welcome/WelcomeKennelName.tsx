@@ -26,17 +26,13 @@ export function WelcomeKennelName({ onComplete }: WelcomeKennelNameProps) {
         />
       </div>
 
-      {hasKennel && (
-        <div className="flex w-full items-center gap-4">
-          <TextInput
-            label="Enter your kennel name"
-            placeholder="Kennel name"
-            value={kennelName}
-            onChange={(e) => setKennelName(e.target.value)}
-            className="flex-1"
-          />
-        </div>
-      )}
+      <TextInput
+        label="Enter your kennel name"
+        placeholder="Kennel name"
+        value={kennelName}
+        onChange={(e) => setKennelName(e.target.value)}
+        disabled={!hasKennel}
+      />
     </div>
   );
 }
