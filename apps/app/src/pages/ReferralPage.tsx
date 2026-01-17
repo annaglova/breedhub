@@ -3,7 +3,7 @@ import { Button } from "@ui/components/button";
 import { Input } from "@ui/components/input";
 import { MajorPoint } from "@ui/components/major-point";
 import { toast } from "@breedhub/rxdb-store";
-import { ArrowLeftRight, Copy, Gift, Heart, Info, Percent, Wallet } from "lucide-react";
+import { ArrowLeftRight, Check, Copy, Gift, Heart, Info, Percent, Wallet } from "lucide-react";
 import { useState } from "react";
 
 /**
@@ -39,50 +39,139 @@ function StepCard({
   );
 }
 
+interface ExchangeTier {
+  name: string;
+  description: string;
+  price: number;
+  featuresHeader: string;
+  features: string[];
+  isComingSoon?: boolean;
+}
+
+const EXCHANGE_TIERS: ExchangeTier[] = [
+  {
+    name: "Professional",
+    description: "Best for a professional breeder",
+    price: 100,
+    featuresHeader: "Everything in free forever and",
+    features: [
+      "Litter management",
+      "Kennel management",
+      "An ability to manage the publicity of your data",
+    ],
+  },
+  {
+    name: "Prime",
+    description: "Best for a professional kennel",
+    price: 150,
+    featuresHeader: "Everything in professional and",
+    features: [
+      "Kennel site",
+      "Various site skins",
+      "Pages visits analytics",
+    ],
+    isComingSoon: true,
+  },
+];
+
 /**
  * Tier exchange card
  */
 function ExchangeTierCard({
-  name,
-  price,
-  color,
-  isComingSoon,
+  tier,
+  colorClass,
+  borderColor,
 }: {
-  name: string;
-  price: number;
-  color: "primary" | "secondary";
-  isComingSoon?: boolean;
+  tier: ExchangeTier;
+  colorClass: string;
+  borderColor: string;
 }) {
   const [months, setMonths] = useState(1);
-  const colorClass = color === "primary" ? "text-primary" : "text-secondary-400";
+
+  const decrement = () => setMonths((m) => Math.max(0, m - 1));
+  const increment = () => setMonths((m) => Math.min(40, m + 1));
 
   return (
-    <div className={`card card-rounded p-6 relative ${isComingSoon ? "opacity-60" : ""}`}>
-      {isComingSoon && (
-        <div className="absolute top-2 right-0 bg-accent text-white text-xs font-bold uppercase px-2 py-0.5 rounded-l-full">
-          Coming soon
+    <div
+      className="card card-rounded relative h-full flex-col p-6 outline outline-2 outline-offset-2"
+      style={{ outlineColor: borderColor, borderColor: borderColor }}
+    >
+      {tier.isComingSoon && (
+        <div className="absolute top-4 right-4">
+          <span className="bg-warning-100 dark:bg-warning-900/50 text-warning-700 dark:text-warning-400 px-2 py-0.5 rounded text-xs font-medium">
+            Coming Soon
+          </span>
         </div>
       )}
-      <div className="flex flex-col items-center">
-        <h3 className={`text-xl font-bold uppercase ${colorClass}`}>{name}</h3>
-        <div className="mt-4 text-center">
-          <span className={`text-4xl font-bold ${colorClass}`}>{price}</span>
-          <span className="text-secondary-500 text-sm uppercase ml-2">PetCoins/month</span>
+
+      {/* Tier Header */}
+      <div className="mb-6 text-center">
+        <h3 className="text-lg font-bold uppercase mb-1">{tier.name}</h3>
+        <p className="text-sm text-secondary-600 dark:text-secondary-400">
+          {tier.description}
+        </p>
+      </div>
+
+      {/* Price */}
+      <div className="mb-6 text-center">
+        <div className={`text-3xl font-bold ${colorClass}`}>
+          {tier.price}
         </div>
-        <div className="mt-6 flex items-center gap-3">
+        <div className="text-secondary-500 text-sm uppercase mt-1">PetCoins per month</div>
+      </div>
+
+      {/* Months selector */}
+      <div className="mb-6">
+        <div className="text-sm text-secondary-600 dark:text-secondary-400 text-center mb-2">Months of usage</div>
+        <div className="flex">
+          <Button
+            variant="secondary"
+            className="rounded-r-none"
+            onClick={decrement}
+            disabled={tier.isComingSoon || months <= 0}
+          >
+            <span>−</span>
+          </Button>
           <Input
             type="number"
             value={months}
-            onChange={(e) => setMonths(Math.max(1, parseInt(e.target.value) || 1))}
-            className="w-20 text-center"
-            min={1}
-            disabled={isComingSoon}
+            onChange={(e) => {
+              const val = parseInt(e.target.value) || 0;
+              setMonths(Math.max(0, Math.min(40, val)));
+            }}
+            className="rounded-none text-center flex-1"
+            disabled={tier.isComingSoon}
           />
-          <span className="text-secondary-500">months</span>
+          <Button
+            variant="default"
+            className="rounded-l-none"
+            onClick={increment}
+            disabled={tier.isComingSoon || months >= 40}
+          >
+            <span>+</span>
+          </Button>
         </div>
-        <Button className="mt-4 w-full" disabled={isComingSoon}>
-          Exchange for {price * months} PetCoins
-        </Button>
+      </div>
+
+      {/* Exchange Button */}
+      <Button className="w-full mb-6 gap-2" disabled={tier.isComingSoon || months === 0}>
+        <ArrowLeftRight className="h-4 w-4" />
+        Exchange
+      </Button>
+
+      {/* Features */}
+      <div className="space-y-3 mt-auto">
+        <p className="text-xs text-secondary-500 dark:text-secondary-400 uppercase text-center mb-2">
+          {tier.featuresHeader}
+        </p>
+        {tier.features.map((feature, index) => (
+          <div key={index} className="flex items-start gap-2">
+            <Check className="w-4 h-4 text-green-500 shrink-0 mt-0.5" />
+            <span className="text-sm text-secondary-700 dark:text-secondary-300">
+              {feature}
+            </span>
+          </div>
+        ))}
       </div>
     </div>
   );
@@ -329,15 +418,14 @@ export function ReferralPage() {
           <div className="flex justify-center">
             <div className="grid grid-cols-1 gap-10 md:grid-cols-2">
               <ExchangeTierCard
-                name="Professional"
-                price={100}
-                color="primary"
+                tier={EXCHANGE_TIERS[0]}
+                colorClass="text-primary"
+                borderColor="rgb(var(--primary))"
               />
               <ExchangeTierCard
-                name="Prime"
-                price={150}
-                color="secondary"
-                isComingSoon
+                tier={EXCHANGE_TIERS[1]}
+                colorClass="text-secondary-400"
+                borderColor="rgb(var(--secondary-400))"
               />
             </div>
           </div>
