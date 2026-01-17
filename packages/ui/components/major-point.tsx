@@ -35,7 +35,7 @@ export function MajorPoint({
   return (
     <div className={cn("flex flex-col lg:flex-row lg:items-center", className)}>
       {/* Label section */}
-      <div className="lg:border-r lg:border-border lg:pr-3">
+      <div className="w-30 lg:w-34 lg:border-r lg:border-border lg:p-3">
         <span className="text-lg font-bold uppercase">{name}</span>
         {secondaryName && (
           <div className="text-secondary-500 text-base hidden lg:block">
@@ -45,7 +45,7 @@ export function MajorPoint({
       </div>
 
       {/* Value section */}
-      <span className={cn("text-2xl font-semibold lg:pl-3", valueClassName)}>
+      <span className={cn("text-3xl font-semibold lg:p-3", valueClassName)}>
         {value}
       </span>
 
