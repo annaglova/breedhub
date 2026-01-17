@@ -264,7 +264,7 @@ export function FiltersDialog({
         </DialogHeader>
 
         <form onSubmit={handleApply}>
-          <div className="mt-2 flex flex-col rounded-lg bg-modal-card-ground px-6 py-4">
+          <div className="modal-card">
             <div className="grid gap-3 sm:grid-cols-2">
               {filterFields.map((field) => {
                 const Component = componentMap[field.component];
@@ -389,18 +389,18 @@ export function FiltersDialog({
             </div>
           </div>
 
-          <div className="mt-8 grid grid-cols-2 gap-3">
+          <div className="modal-actions">
             <Button
               type="button"
               variant="secondary"
               onClick={handleCancel}
-              className="small-button bg-secondary-100 hover:bg-secondary-200 focus:bg-secondary-300 text-slate-800 dark:text-zinc-900 dark:bg-surface-400 dark:hover:bg-surface-300"
+              className="small-button modal-btn-cancel"
             >
               Cancel
             </Button>
             <Button
               type="submit"
-              className="small-button bg-primary-50 dark:bg-primary-300 hover:bg-primary-100 focus:bg-primary-200 dark:hover:bg-primary-300 dark:focus:bg-primary-200 text-primary dark:text-zinc-900"
+              className="small-button modal-btn-submit"
             >
               Apply filters
             </Button>

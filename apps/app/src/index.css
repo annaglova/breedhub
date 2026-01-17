@@ -184,3 +184,22 @@ h6 {
   scrollbar-width: thin;
   scrollbar-color: rgb(var(--secondary-300)) transparent;
 }
+
+/* Modal dialog utilities */
+.modal-card {
+  @apply mt-2 flex flex-col rounded-lg bg-modal-card-ground px-6 py-4;
+}
+
+.modal-actions {
+  @apply mt-8 grid grid-cols-2 gap-3;
+}
+
+.modal-btn-cancel {
+  @apply bg-secondary-100 hover:bg-secondary-200 focus:bg-secondary-300 text-slate-800;
+  @apply dark:text-zinc-900 dark:bg-surface-400 dark:hover:bg-surface-300;
+}
+
+.modal-btn-submit {
+  @apply bg-primary-50 hover:bg-primary-100 focus:bg-primary-200 text-primary;
+  @apply dark:bg-primary-300 dark:hover:bg-primary-300 dark:focus:bg-primary-200 dark:text-zinc-900;
+}
