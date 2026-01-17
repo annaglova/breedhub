@@ -27,7 +27,7 @@ export function WelcomeContactName({ onComplete }: WelcomeContactNameProps) {
   };
 
   return (
-    <div className="flex flex-col space-y-6">
+    <div className="flex flex-col">
       <div className="grid grid-cols-2 gap-4">
         <TextInput
           label="First name"
@@ -55,13 +55,15 @@ export function WelcomeContactName({ onComplete }: WelcomeContactNameProps) {
             onChange={(e) => handleAdditionalNameChange(index, e.target.value)}
           />
         ))}
-        <button
-          type="button"
-          onClick={handleAddName}
-          className="text-sm font-medium text-primary hover:text-primary-600"
-        >
-          + Add another name
-        </button>
+        {additionalNames.length < 3 && (
+          <button
+            type="button"
+            onClick={handleAddName}
+            className="text-sm font-medium text-primary hover:text-primary-600"
+          >
+            + Add another name
+          </button>
+        )}
       </div>
     </div>
   );

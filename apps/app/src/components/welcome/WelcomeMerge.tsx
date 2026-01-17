@@ -11,7 +11,7 @@ interface WelcomeMergeProps {
 export function WelcomeMerge({ onComplete }: WelcomeMergeProps) {
   return (
     <div className="flex flex-col space-y-4">
-      <p className="leading-7 text-secondary-700 dark:text-secondary-300">
+      <p className="text-[0.9rem] leading-7 text-secondary-700 dark:text-secondary-300">
         We found records that may be duplicates of your account. Select the ones
         you want to merge, then click Submit.
       </p>

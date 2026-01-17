@@ -28,7 +28,7 @@ export function WelcomeReferral({ onComplete }: WelcomeReferralProps) {
 
   return (
     <div className="flex flex-col space-y-4">
-      <h3 className="text-primary text-xl font-semibold">Your referral link</h3>
+      <h3 className="text-primary text-xl font-semibold">Your personal referral link</h3>
 
       {/* Link display card */}
       <div className="flex items-center gap-3 rounded-lg bg-secondary-100 dark:bg-secondary-800 px-4 py-3">
@@ -47,7 +47,7 @@ export function WelcomeReferral({ onComplete }: WelcomeReferralProps) {
         Copy to clipboard
       </Button>
 
-      <p className="leading-7 text-secondary-700 dark:text-secondary-300">
+      <p className="text-[0.9rem] leading-7 text-secondary-700 dark:text-secondary-300">
         Send this link to friends or share it on social media. For more details,
         visit the Referrals page. This step completes automatically once you
         reach 5 referrals.
