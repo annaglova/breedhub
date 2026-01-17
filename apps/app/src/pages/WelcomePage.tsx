@@ -192,12 +192,12 @@ export function WelcomePage() {
                     isLeftSide ? "pl-0" : "pr-0"
                   }`}
                 >
-                  <p className="pt-2 text-secondary-600 dark:text-secondary-400 ">
+                  <p className="pt-2 text-secondary-600 dark:text-secondary-400 text-[0.9rem] ">
                     {step.description}
                   </p>
                   <div>
                     <button
-                      className="text-lg font-semibold text-primary hover:bg-primary-50 dark:hover:bg-primary-900/30 px-3 py-1.5 rounded-full transition-colors"
+                      className="text-base font-semibold text-primary hover:bg-primary-50 dark:hover:bg-primary-900/30 px-3 py-1.5 rounded-full transition-colors"
                       onClick={(e) => {
                         e.stopPropagation();
                         setActiveStepId(step.id);
