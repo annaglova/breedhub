@@ -15,8 +15,6 @@ import { Button } from "@ui/components/button";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@ui/components/dialog";
@@ -292,7 +290,6 @@ export function WelcomePage() {
               {activeStep?.icon}
               {activeStep?.title}
             </DialogTitle>
-            <DialogDescription className="text-base">{activeStep?.description}</DialogDescription>
           </DialogHeader>
 
           {/* Step-specific content */}
