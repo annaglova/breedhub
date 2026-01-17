@@ -137,33 +137,24 @@ export function BillingTierSelector({
     <div className="flex flex-col">
       {/* Billing Type Selector */}
       <div className="flex justify-center mb-8">
-        <div className="inline-flex rounded-full bg-secondary-100 dark:bg-secondary-800 p-1">
+        <div className="inline-flex rounded-full border border-primary bg-primary/50 p-0.5">
           {billingTypes.map((type) => (
             <button
               key={type.value}
               onClick={() => setSelectedBillingType(type.value)}
               className={`
-                relative px-3 sm:px-5 py-2 rounded-full transition-all duration-200 text-sm
+                relative px-4 sm:px-6 py-2.5 rounded-full transition-all duration-200 text-sm text-white
                 ${
                   selectedBillingType === type.value
-                    ? "bg-white dark:bg-secondary-700 text-foreground shadow-sm font-bold"
-                    : "text-secondary-600 dark:text-secondary-400 hover:text-foreground"
+                    ? "bg-primary shadow pointer-events-none"
+                    : "bg-transparent hover:bg-primary/30"
                 }
               `}
             >
               <span className="hidden sm:inline">{type.label}</span>
               <span className="sm:hidden">{type.labelShort}</span>
               {type.discount && (
-                <span
-                  className={`
-                    ml-1 text-sm font-bold
-                    ${
-                      selectedBillingType === type.value
-                        ? "text-green-600 dark:text-green-400"
-                        : "text-secondary-500 dark:text-secondary-500"
-                    }
-                  `}
-                >
+                <span className="ml-1.5 text-sm font-bold">
                   -{type.discount}
                 </span>
               )}
