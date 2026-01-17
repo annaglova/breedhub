@@ -1,6 +1,6 @@
 import { ContentPageLayout } from "@/layouts/ContentPageLayout";
 import { MajorPoint } from "@ui/components/major-point";
-import { BarChart3, Layers } from "lucide-react";
+import { BarChart3, Crown } from "lucide-react";
 import { useState } from "react";
 
 /**
@@ -67,28 +67,46 @@ export function BillingPage() {
         <h1 className="text-2xl font-semibold">Billing</h1>
 
         {/* Tab buttons */}
-        <div className="flex rounded-lg bg-secondary-100 dark:bg-secondary-800 p-1">
+        <div className="flex">
           <button
             onClick={() => setActiveTab("tiers")}
-            className={`flex items-center gap-2 rounded-md px-4 py-2 text-sm font-medium transition-colors ${
-              activeTab === "tiers"
-                ? "bg-white dark:bg-secondary-700 text-foreground shadow-sm"
-                : "text-secondary-600 dark:text-secondary-400 hover:text-foreground"
-            }`}
+            className="group flex flex-col"
           >
-            <Layers className="h-4 w-4" />
-            Tiers
+            <div
+              className={`flex items-center px-4 py-2 transition-colors ${
+                activeTab === "tiers" ? "text-primary" : "text-secondary"
+              }`}
+            >
+              <Crown className="mr-2 h-[18px] w-[18px]" />
+              <span className="font-bold">Tiers</span>
+            </div>
+            <div
+              className={`border-b-2 transition-colors ${
+                activeTab === "tiers"
+                  ? "border-primary"
+                  : "border-surface-300 group-hover:border-surface-400"
+              }`}
+            />
           </button>
           <button
             onClick={() => setActiveTab("performance")}
-            className={`flex items-center gap-2 rounded-md px-4 py-2 text-sm font-medium transition-colors ${
-              activeTab === "performance"
-                ? "bg-white dark:bg-secondary-700 text-foreground shadow-sm"
-                : "text-secondary-600 dark:text-secondary-400 hover:text-foreground"
-            }`}
+            className="group flex flex-col"
           >
-            <BarChart3 className="h-4 w-4" />
-            Performance
+            <div
+              className={`flex items-center px-4 py-2 transition-colors ${
+                activeTab === "performance" ? "text-primary" : "text-secondary"
+              }`}
+            >
+              <BarChart3 className="mr-2 h-[18px] w-[18px]" />
+              <span className="font-bold">Performance</span>
+            </div>
+            <div
+              className={`border-b-2 transition-colors ${
+                activeTab === "performance"
+                  ? "border-primary"
+                  : "border-surface-300 group-hover:border-surface-400"
+              }`}
+            />
           </button>
         </div>
       </div>
@@ -120,7 +138,7 @@ export function BillingPage() {
                 valueClassName="text-accent"
               />
               <div className="mt-2 flex items-center justify-end gap-2">
-                <span className="text-xl font-bold uppercase text-accent">
+                <span className="text-lg font-bold uppercase text-accent">
                   {currentBreed}
                 </span>
                 <button className="text-secondary-400 hover:text-secondary-600">
@@ -176,7 +194,9 @@ export function BillingPage() {
                       <div>{transaction.product}</div>
                       <div className="hidden md:block">{transaction.plan}</div>
                       <div>{transaction.period}</div>
-                      <div className="hidden sm:block">{transaction.status}</div>
+                      <div className="hidden sm:block">
+                        {transaction.status}
+                      </div>
                       <div className="hidden md:block">{transaction.price}</div>
                     </div>
                   ))}
@@ -197,7 +217,9 @@ export function BillingPage() {
           {/* Hero section */}
           <div className="flex flex-col gap-6 md:flex-row md:justify-between">
             <div className="flex flex-col space-y-2 md:order-1">
-              <h2 className="text-2xl font-semibold">View performance details</h2>
+              <h2 className="text-2xl font-semibold">
+                View performance details
+              </h2>
               <p className="text-[0.9rem] leading-7 text-secondary-600 dark:text-secondary-400">
                 You can track your usage of paid services below.
               </p>

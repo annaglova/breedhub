@@ -45,12 +45,7 @@ export function MajorPoint({
       </div>
 
       {/* Value section */}
-      <span
-        className={cn(
-          "text-3xl font-semibold lg:pl-3",
-          valueClassName
-        )}
-      >
+      <span className={cn("text-2xl font-semibold lg:pl-3", valueClassName)}>
         {value}
       </span>
 
