@@ -1,3 +1,14 @@
+import {
+  WelcomeContactName,
+  WelcomeCover,
+  WelcomeKennelName,
+  WelcomeKennelVerification,
+  WelcomeMerge,
+  WelcomeReferral,
+  WelcomeSettings,
+  WelcomeSite,
+  WelcomeTierSelection,
+} from "@/components/welcome";
 import { useTheme } from "@/hooks/useTheme";
 import { ContentPageLayout } from "@/layouts/ContentPageLayout";
 import { Button } from "@ui/components/button";
@@ -284,26 +295,38 @@ export function WelcomePage() {
             <DialogDescription>{activeStep?.description}</DialogDescription>
           </DialogHeader>
 
-          {/* Step-specific content will go here */}
+          {/* Step-specific content */}
           <div className="py-4">
-            <div className="bg-secondary-100 dark:bg-secondary-900 rounded-lg p-8 text-center">
-              <p className="text-muted-foreground">
-                Step content for "{activeStep?.title}" will be implemented here
-              </p>
+            <div className="rounded-lg bg-modal-card-ground px-6 py-4">
+              {activeStepId === "enter_kennel_name" && <WelcomeKennelName />}
+              {activeStepId === "verify_kennel" && <WelcomeKennelVerification />}
+              {activeStepId === "enter_user_name" && <WelcomeContactName />}
+              {activeStepId === "merge_duplicates" && <WelcomeMerge />}
+              {activeStepId === "default_settings" && <WelcomeSettings />}
+              {activeStepId === "share_referral" && <WelcomeReferral />}
+              {activeStepId === "select_tier" && <WelcomeTierSelection />}
+              {activeStepId === "customize_cover" && <WelcomeCover />}
+              {activeStepId === "publish_site" && <WelcomeSite />}
             </div>
           </div>
 
-          <DialogFooter>
-            <Button variant="ghost" onClick={() => setActiveStepId(null)}>
+          <div className="mt-8 grid grid-cols-2 gap-3">
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => setActiveStepId(null)}
+              className="small-button bg-secondary-100 hover:bg-secondary-200 focus:bg-secondary-300 text-slate-800 dark:text-zinc-900 dark:bg-surface-400 dark:hover:bg-surface-300"
+            >
               Cancel
             </Button>
             <Button
-              variant="accent"
+              type="button"
               onClick={() => activeStepId && handleCompleteStep(activeStepId)}
+              className="small-button bg-primary-50 dark:bg-primary-300 hover:bg-primary-100 focus:bg-primary-200 dark:hover:bg-primary-300 dark:focus:bg-primary-200 text-primary dark:text-zinc-900"
             >
-              {activeStep?.completed ? "Done" : "Complete Step"}
+              {activeStep?.completed ? "Done" : "Complete step"}
             </Button>
-          </DialogFooter>
+          </div>
         </DialogContent>
       </Dialog>
     </ContentPageLayout>
