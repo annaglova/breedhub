@@ -170,11 +170,11 @@ export function BillingPage() {
           {/* Transaction Details */}
           <div className="flex flex-col space-y-3">
             <h2 className="text-2xl font-semibold">Details</h2>
-            <div className="rounded-lg bg-card-ground dark:bg-card-ground overflow-hidden">
+            <div className="card card-rounded flex flex-auto flex-col p-6 lg:px-8">
               {transactions.length > 0 ? (
-                <div>
+                <div className="grid">
                   {/* Header */}
-                  <div className="grid grid-cols-[1fr_100px_100px] sm:grid-cols-[1fr_120px_180px_100px] md:grid-cols-[1fr_120px_180px_100px_80px] gap-3 border-b border-secondary-200 dark:border-secondary-700 px-6 py-3 font-semibold text-secondary-600 dark:text-secondary-400">
+                  <div className="grid grid-cols-[1fr_100px_100px] sm:grid-cols-[1fr_120px_180px_100px] md:grid-cols-[1fr_120px_180px_100px_80px] gap-3 border-b border-border px-6 py-3 font-bold text-secondary lg:px-8">
                     <div>Product</div>
                     <div className="hidden md:block">Plan</div>
                     <div>Period</div>
@@ -185,26 +185,22 @@ export function BillingPage() {
                   {transactions.map((transaction, index) => (
                     <div
                       key={transaction.id}
-                      className={`grid grid-cols-[1fr_100px_100px] sm:grid-cols-[1fr_120px_180px_100px] md:grid-cols-[1fr_120px_180px_100px_80px] gap-3 px-6 py-3 ${
-                        index % 2 === 1
-                          ? "bg-secondary-50 dark:bg-secondary-800/50"
-                          : ""
+                      className={`grid grid-cols-[1fr_100px_100px] sm:grid-cols-[1fr_120px_180px_100px] md:grid-cols-[1fr_120px_180px_100px_80px] items-center gap-3 px-6 py-2 lg:px-8 ${
+                        index % 2 === 0 ? "bg-card-ground" : "bg-even-card-ground"
                       }`}
                     >
                       <div>{transaction.product}</div>
                       <div className="hidden md:block">{transaction.plan}</div>
                       <div>{transaction.period}</div>
-                      <div className="hidden sm:block">
-                        {transaction.status}
-                      </div>
+                      <div className="hidden sm:block">{transaction.status}</div>
                       <div className="hidden md:block">{transaction.price}</div>
                     </div>
                   ))}
                 </div>
               ) : (
-                <p className="p-8 text-center font-medium text-secondary-500 dark:text-secondary-400">
+                <span className="text-secondary p-8 text-center">
                   There are no paid services yet!
-                </p>
+                </span>
               )}
             </div>
           </div>
@@ -237,11 +233,11 @@ export function BillingPage() {
           {/* Performance Details */}
           <div className="flex flex-col space-y-3">
             <h2 className="text-2xl font-semibold">Details</h2>
-            <div className="rounded-lg bg-card-ground dark:bg-card-ground overflow-hidden">
+            <div className="card card-rounded flex flex-auto flex-col p-6 lg:px-8">
               {performanceRecords.length > 0 ? (
-                <div>
+                <div className="grid">
                   {/* Header */}
-                  <div className="grid grid-cols-[1fr_60px] sm:grid-cols-[1fr_180px_60px] md:grid-cols-[1fr_180px_120px] gap-3 border-b border-secondary-200 dark:border-secondary-700 px-6 py-3 font-semibold text-secondary-600 dark:text-secondary-400">
+                  <div className="grid grid-cols-[1fr_60px] sm:grid-cols-[1fr_180px_60px] md:grid-cols-[1fr_180px_120px] gap-3 border-b border-border px-6 py-3 font-bold text-secondary lg:px-8">
                     <div>Product</div>
                     <div className="hidden sm:block">Period</div>
                     <div>Status</div>
@@ -250,10 +246,8 @@ export function BillingPage() {
                   {performanceRecords.map((record, index) => (
                     <div
                       key={record.id}
-                      className={`grid grid-cols-[1fr_60px] sm:grid-cols-[1fr_180px_60px] md:grid-cols-[1fr_180px_120px] gap-3 px-6 py-3 ${
-                        index % 2 === 1
-                          ? "bg-secondary-50 dark:bg-secondary-800/50"
-                          : ""
+                      className={`grid grid-cols-[1fr_60px] sm:grid-cols-[1fr_180px_60px] md:grid-cols-[1fr_180px_120px] items-center gap-3 px-6 py-2 lg:px-8 ${
+                        index % 2 === 0 ? "bg-card-ground" : "bg-even-card-ground"
                       }`}
                     >
                       <div>{record.product}</div>
@@ -263,9 +257,9 @@ export function BillingPage() {
                   ))}
                 </div>
               ) : (
-                <p className="p-8 text-center font-medium text-secondary-500 dark:text-secondary-400">
+                <span className="text-secondary p-8 text-center">
                   There are no paid services yet!
-                </p>
+                </span>
               )}
             </div>
           </div>
