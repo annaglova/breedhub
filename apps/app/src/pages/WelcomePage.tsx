@@ -203,7 +203,7 @@ export function WelcomePage() {
                     isLeftSide ? "pl-0" : "pr-0"
                   }`}
                 >
-                  <p className="pt-2 text-secondary-600 dark:text-secondary-400 text-[0.9rem] ">
+                  <p className="pt-2 text-secondary-600 dark:text-secondary-400">
                     {step.description}
                   </p>
                   <div>
