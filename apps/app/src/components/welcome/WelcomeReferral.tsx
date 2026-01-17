@@ -1,6 +1,6 @@
+import { toast } from "@breedhub/rxdb-store";
 import { Button } from "@ui/components/button";
-import { Input } from "@ui/components/input";
-import { Link } from "lucide-react";
+import { Copy, Link } from "lucide-react";
 import { useState } from "react";
 
 interface WelcomeReferralProps {
@@ -16,15 +16,13 @@ interface WelcomeReferralProps {
 export function WelcomeReferral({ onComplete }: WelcomeReferralProps) {
   // TODO: Get actual referral link from user data
   const [referralLink] = useState("https://breedhub.com/ref/abc123");
-  const [copied, setCopied] = useState(false);
 
   const handleCopyLink = async () => {
     try {
       await navigator.clipboard.writeText(referralLink);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      toast.success("Link copied");
     } catch (err) {
-      console.error("Failed to copy link:", err);
+      toast.error("Failed to copy link");
     }
   };
 
@@ -32,26 +30,22 @@ export function WelcomeReferral({ onComplete }: WelcomeReferralProps) {
     <div className="flex flex-col space-y-4">
       <h3 className="text-primary text-xl font-semibold">Your referral link</h3>
 
-      <div className="flex">
-        <Input
-          className="flex-1 rounded-r-none"
-          value={referralLink}
-          readOnly
-          disabled
-        />
-        <Button
-          onClick={handleCopyLink}
-          className="shrink-0 rounded-l-none gap-2"
-          variant="default"
-        >
-          <Link className="h-4 w-4" />
-          {copied ? "Copied!" : "Copy link"}
-        </Button>
+      {/* Link display card */}
+      <div className="flex items-center gap-3 rounded-lg bg-secondary-100 dark:bg-secondary-800 px-4 py-3">
+        <Link className="h-5 w-5 text-secondary-500 dark:text-secondary-400 shrink-0" />
+        <span className="text-secondary-700 dark:text-secondary-300 text-sm break-all">
+          {referralLink}
+        </span>
       </div>
 
-      <p className="text-sm text-secondary-500 dark:text-secondary-400">
-        Share your personal link with friends
-      </p>
+      {/* Copy button */}
+      <Button
+        onClick={handleCopyLink}
+        className="w-full gap-2 font-semibold"
+      >
+        <Copy className="h-4 w-4" />
+        Copy to clipboard
+      </Button>
 
       <p className="leading-7 text-secondary-700 dark:text-secondary-300">
         Send this link to friends or share it on social media. For more details,
