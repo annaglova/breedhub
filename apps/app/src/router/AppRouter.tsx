@@ -5,6 +5,7 @@ import { SpacePage } from '@/pages/SpacePage';
 import { SlugResolver } from '@/pages/SlugResolver';
 import { TabPageResolver } from '@/pages/TabPageResolver';
 import { BillingPage } from '@/pages/BillingPage';
+import { ReferralPage } from '@/pages/ReferralPage';
 import { WelcomePage } from '@/pages/WelcomePage';
 import { SupabaseLoader } from '@/components/test/SupabaseLoader';
 import { TestDictionaryPage } from '@/pages/TestDictionaryPage';
@@ -149,6 +150,9 @@ export function AppRouter() {
 
           {/* Billing page */}
           <Route path="billing" element={<BillingPage />} />
+
+          {/* Referral page */}
+          <Route path="referral" element={<ReferralPage />} />
 
           {/* Slug resolver - catch-all for pretty URLs */}
           {/* Resolves /affenpinscher → /breeds/:id with fullscreen state */}
