@@ -196,7 +196,7 @@ h6 {
 
 .modal-btn-cancel {
   @apply bg-secondary-100 hover:bg-secondary-200 focus:bg-secondary-300 text-slate-800;
-  @apply dark:text-zinc-900 dark:bg-surface-400 dark:hover:bg-surface-300;
+  @apply dark:text-zinc-900 dark:bg-secondary-400 dark:hover:bg-secondary-300;
 }
 
 .modal-btn-submit {
