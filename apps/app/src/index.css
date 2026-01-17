@@ -194,12 +194,3 @@ h6 {
   @apply mt-8 grid grid-cols-2 gap-3;
 }
 
-.modal-btn-cancel {
-  @apply bg-secondary-100 hover:bg-secondary-200 focus:bg-secondary-300 text-slate-800;
-  @apply dark:text-zinc-900 dark:bg-secondary-400 dark:hover:bg-secondary-300;
-}
-
-.modal-btn-submit {
-  @apply bg-primary-50 hover:bg-primary-100 focus:bg-primary-200 text-primary;
-  @apply dark:bg-primary-300 dark:hover:bg-primary-300 dark:focus:bg-primary-200 dark:text-zinc-900;
-}

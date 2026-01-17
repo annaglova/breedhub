@@ -394,13 +394,13 @@ export function FiltersDialog({
               type="button"
               variant="secondary"
               onClick={handleCancel}
-              className="small-button modal-btn-cancel"
+              className="small-button bg-secondary-100 hover:bg-secondary-200 focus:bg-secondary-300 text-slate-800 dark:text-zinc-900 dark:bg-surface-400 dark:hover:bg-surface-300"
             >
               Cancel
             </Button>
             <Button
               type="submit"
-              className="small-button modal-btn-submit"
+              className="small-button bg-primary-50 dark:bg-primary-300 hover:bg-primary-100 focus:bg-primary-200 dark:hover:bg-primary-300 dark:focus:bg-primary-200 text-primary dark:text-zinc-900"
             >
               Apply filters
             </Button>
