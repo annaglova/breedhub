@@ -348,9 +348,9 @@ export default function Landing() {
           <LandingFigure style={{ width: "80%" }} />
         </div>
         {/* Page space */}
-        <div className="max-w-11xl relative mt-24 flex w-full min-w-0 flex-auto flex-col items-center px-6 md:px-10 lg:px-40 md:mt-32">
+        <div className="max-w-11xl relative mt-24 flex w-full min-w-0 flex-auto flex-col items-center px-6 md:px-10 lg:px-20 xl:px-28 md:mt-32">
           {/* General info */}
-          <div className="flex flex-col lg:space-x-24 lg:pl-24 lg:flex-row lg:border-l">
+          <div className="flex flex-col lg:space-x-24 lg:flex-row 2xl:pl-24 2xl:border-l">
             <div className="order-2 flex w-[100%] flex-col justify-center space-y-10 lg:order-1 lg:w-[70%] lg:space-y-14">
               <div className="flex w-full flex-col">
                 <h1 className="tracking-tight leading-tight">
