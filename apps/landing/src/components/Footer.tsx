@@ -33,7 +33,7 @@ export default function Footer() {
       </div>
 
       {/* Content */}
-      <div className="relative z-10 flex flex-col px-8 pb-5 pt-14 text-white sm:px-10 md:px-40 xl:px-60">
+      <div className="relative z-10 flex flex-col px-8 pb-5 pt-14 text-white sm:px-10 md:px-20 lg:px-40 xl:px-60">
         <div className="grid w-full grid-cols-2 justify-between gap-10 uppercase md:flex">
           <div className="order-4 flex flex-col space-y-2 md:order-1">
             {/* Logo with glow effect */}
