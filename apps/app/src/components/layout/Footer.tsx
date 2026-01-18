@@ -75,12 +75,16 @@ export const Footer = forwardRef<HTMLElement, FooterProps>(
             <span className="text-red-400 text-xs">Error</span>
           ) : (
             navItems.map((item) => {
-              // Workspace is active if path matches OR if current path matches any of its space slugs
+              // Workspace is active if:
+              // 1. Path exactly matches workspace path (e.g., /my)
+              // 2. Path starts with workspace path + "/" (e.g., /my/notes for workspace /my)
+              // 3. For root workspace ("/"), check if path matches any space slug
               const isActive =
                 location.pathname === item.path ||
-                item.spaceSlugs.some((slug: string) =>
+                (item.path !== '/' && location.pathname.startsWith(item.path + '/')) ||
+                (item.path === '/' && item.spaceSlugs.some((slug: string) =>
                   location.pathname.startsWith(`/${slug}`)
-                );
+                ));
 
               return (
                 <Link
