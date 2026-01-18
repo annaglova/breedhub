@@ -33,9 +33,9 @@ export default function Footer() {
       </div>
 
       {/* Content */}
-      <div className="relative z-10 flex flex-col px-8 pb-5 pt-14 text-white sm:px-10 lg:px-40 xl:px-60">
-        <div className="grid w-full grid-cols-2 justify-between gap-10 uppercase lg:flex">
-          <div className="order-4 flex flex-col space-y-2 lg:order-1">
+      <div className="relative z-10 flex flex-col px-8 pb-5 pt-14 text-white sm:px-10 md:px-40 xl:px-60">
+        <div className="grid w-full grid-cols-2 justify-between gap-10 uppercase md:flex">
+          <div className="order-4 flex flex-col space-y-2 md:order-1">
             {/* Logo with glow effect */}
             <div className="group flex justify-center">
               <LogoWhite
@@ -46,14 +46,14 @@ export default function Footer() {
               />
             </div>
             {/* Contact (Desktop, hidden on mobile) */}
-            <div className="hidden lg:flex xl:hidden">
-              <div className="flex flex-col lg:space-y-2">
+            <div className="hidden md:flex xl:hidden">
+              <div className="flex flex-col md:space-y-2">
                 <a href="mailto:info@breedhub">
                   <span className="text-center font-bold lowercase">
                     info&#64;breedhub
                   </span>
                 </a>
-                <div className="flex items-center gap-4 self-end lg:self-center">
+                <div className="flex items-center gap-4 self-end md:self-center">
                   <a
                     href="https://facebook.com/breedhub"
                     target="_blank"
@@ -85,12 +85,12 @@ export default function Footer() {
             </div>
           </div>
 
-          <div className="order-3 col-span-2 flex items-center justify-center lg:hidden">
+          <div className="order-3 col-span-2 flex items-center justify-center md:hidden">
             <div className="h-[1px] w-[30vw] bg-white/20"></div>
           </div>
 
           {/* Spaces */}
-          <div className="order-1 flex justify-center space-x-6 lg:order-2">
+          <div className="order-1 flex justify-center space-x-6 md:order-2">
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center">
                 <svg
@@ -132,7 +132,7 @@ export default function Footer() {
           </div>
 
           {/* For users */}
-          <div className="order-2 flex justify-center space-x-6 lg:order-3">
+          <div className="order-2 flex justify-center space-x-6 md:order-3">
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center">
                 <svg
@@ -189,7 +189,7 @@ export default function Footer() {
           </div>
 
           {/* Contact (Mobile and xl+) */}
-          <div className="order-5 lg:hidden xl:order-4 xl:flex xl:space-x-6">
+          <div className="order-5 md:hidden xl:order-4 xl:flex xl:space-x-6">
             <div className="hidden xl:flex items-center gap-2">
               <div className="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center">
                 <svg
@@ -249,7 +249,7 @@ export default function Footer() {
           </span>
 
           {/* Decorative element */}
-          <div className="hidden lg:flex items-center gap-2 opacity-20">
+          <div className="hidden md:flex items-center gap-2 opacity-20">
             <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
             <div
               className="w-3 h-3 bg-white rounded-full animate-pulse"
