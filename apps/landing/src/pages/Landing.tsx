@@ -348,7 +348,7 @@ export default function Landing() {
           <LandingFigure style={{ width: "80%" }} />
         </div>
         {/* Page space */}
-        <div className="max-w-11xl relative mt-24 flex w-full min-w-0 flex-auto flex-col items-center px-6 md:px-10 lg:px-20 xl:px-28 md:mt-32">
+        <div className="max-w-11xl relative mt-24 flex w-full min-w-0 flex-auto flex-col items-center px-6 md:px-10 lg:px-20 xl:px-28 lg:mt-32">
           {/* General info */}
           <div className="flex flex-col w-full 2xl:flex-row 2xl:space-x-16 2xl:pl-24 2xl:border-l">
             {/* Left column at 2xl, full width otherwise */}
@@ -369,7 +369,7 @@ export default function Landing() {
               </div>
 
               {/* Content row: left side + image at lg/xl, just content at 2xl */}
-              <div className="flex flex-col lg:flex-row 2xl:flex-col lg:space-x-16 2xl:space-x-0 mt-10 order-1 lg:order-2">
+              <div className="flex flex-col lg:flex-row 2xl:flex-col lg:space-x-16 2xl:space-x-0 lg:mt-10 order-1 lg:order-2">
                 {/* Left content: breeds, button, benefits */}
                 <div className="order-2 lg:order-1 flex flex-col space-y-10 lg:w-[55%] 2xl:w-full">
                   {/* Breeds rating */}
