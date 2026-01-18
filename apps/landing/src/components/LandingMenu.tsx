@@ -162,8 +162,8 @@ export default function LandingMenu({ className }: LandingMenuProps) {
 
           {/* Desktop Menu - Different layout based on screen size */}
           <div className="hidden lg:flex items-center">
-            {/* Menu for screens < 1536px - standard layout */}
-            <div className="2xl:hidden flex items-center space-x-8">
+            {/* Menu for screens lg+ - standard layout */}
+            <div className="flex items-center space-x-8">
               {/* Menu items */}
               <div className="flex items-center space-x-1">
                 <MenuItem
@@ -196,40 +196,6 @@ export default function LandingMenu({ className }: LandingMenuProps) {
               </div>
             </div>
 
-            {/* Menu for screens >= 1536px (2xl) - container-based layout */}
-            <div className="hidden 2xl:flex items-center justify-center absolute left-0 right-0">
-              <div className="landing-content-container">
-                <div className="flex items-center justify-end space-x-1">
-                  <MenuItem
-                    to="/product"
-                    label="Product"
-                    isScrolled={isScrolled}
-                  />
-                  <MenuItem
-                    to="/pricing"
-                    label="Pricing"
-                    isScrolled={isScrolled}
-                  />
-                  <MenuItem to="/about" label="About" isScrolled={isScrolled} />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Auth Buttons for 2xl screens - Fixed position */}
-          <div className="hidden 2xl:flex items-center space-x-3">
-            <a href="/sign-in">
-              <button className="landing-menu-button landing-menu-button-outline">
-                Sign In
-              </button>
-            </a>
-            <LoadingButton
-              to="/pricing"
-              className="landing-menu-button landing-menu-button-primary"
-              loadingText="Loading..."
-            >
-              Get Started
-            </LoadingButton>
           </div>
 
           {/* Mobile Menu Button */}
