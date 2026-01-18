@@ -1,5 +1,9 @@
 import React from 'react';
 import { MatingPage } from './MatingPage';
+import { BillingPage } from './BillingPage';
+import { ReferralPage } from './ReferralPage';
+import { GiftPage } from './GiftPage';
+import { WelcomePage } from './WelcomePage';
 
 /**
  * Page component registry for tool pages (non-entity workspaces)
@@ -23,6 +27,10 @@ export function hasPage(name: string): boolean {
 
 // Register tool pages
 registerPage('MatingPage', MatingPage);
+registerPage('BillingPage', BillingPage);
+registerPage('ReferralPage', ReferralPage);
+registerPage('GiftPage', GiftPage);
+registerPage('WelcomePage', WelcomePage);
 
 // Fallback component for unknown pages
 export const PageNotFound: React.FC<{ componentName?: string }> = ({ componentName }) => (
