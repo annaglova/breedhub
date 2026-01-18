@@ -135,7 +135,7 @@ export default function LandingMenu({ className }: LandingMenuProps) {
         className={cn(
           "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
           isMobileMenuOpen &&
-            "md:opacity-100 opacity-30 pointer-events-none md:pointer-events-auto",
+            "lg:opacity-100 opacity-30 pointer-events-none lg:pointer-events-auto",
           isScrolled && "menu-scrolled",
           className
         )}
@@ -161,7 +161,7 @@ export default function LandingMenu({ className }: LandingMenuProps) {
           </div>
 
           {/* Desktop Menu - Different layout based on screen size */}
-          <div className="hidden md:flex items-center">
+          <div className="hidden lg:flex items-center">
             {/* Menu for screens < 1536px - standard layout */}
             <div className="2xl:hidden flex items-center space-x-8">
               {/* Menu items */}
@@ -233,7 +233,7 @@ export default function LandingMenu({ className }: LandingMenuProps) {
           </div>
 
           {/* Mobile Menu Button */}
-          <div className="md:hidden">
+          <div className="lg:hidden">
             <button
               onClick={toggleMobileMenu}
               className="p-3 min-w-[44px] min-h-[44px] text-slate-700 hover:text-primary-600 transition-colors"
@@ -248,7 +248,7 @@ export default function LandingMenu({ className }: LandingMenuProps) {
       {/* Mobile Sidebar */}
       <div
         className={cn(
-          "fixed inset-0 z-[60] md:hidden transition-opacity duration-300",
+          "fixed inset-0 z-[60] lg:hidden transition-opacity duration-300",
           isMobileMenuOpen
             ? "opacity-100 pointer-events-auto"
             : "opacity-0 pointer-events-none"
