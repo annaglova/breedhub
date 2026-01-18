@@ -1,6 +1,7 @@
 import LandingFigure from "@/assets/backgrounds/landing-figure.svg?react";
 import type { PublicProductService } from "@/components/FeatureBlock";
 import FeatureBlock from "@/components/FeatureBlock";
+import LandingPageHero from "@/components/LandingPageHero";
 import { usePageTitle } from "@/hooks/usePageTitle";
 import LandingLayout from "@/layouts/LandingLayout";
 import { landingService } from "@/services/api.service";
@@ -199,42 +200,29 @@ export default function Product() {
   return (
     <LandingLayout>
       <div className="relative overflow-hidden">
-        {/* Background SVG */}
-        <div className="absolute right-[-30vw] top-[-13vw] w-full md:right-[-47vw] md:top-[-17vw] lg:right-[-28vw] lg:top-[-26vw] 2xl:right-[-35vw] xxl:top-[-25vw] 3xl:top-[-32vw] -z-1">
-          <LandingFigure className="w-[100%] lg:w-[90%] 2xl:w-[80%]" />
-        </div>
-        {/* Content */}
-        <div className="flex flex-col items-center justify-center pt-14 sm:pt-32">
-          <div className="landing-content-container">
-            {/* Header Section */}
-            <div className="relative space-y-3 text-center">
-              <h1 className="text-white tracking-tight leading-tight">
-                Everything You Need for Professional Breeding
-              </h1>
-              <p className="text-2xl text-slate-600 xl:text-white max-w-3xl mx-auto mt-2 tracking-wide leading-relaxed">
-                Discover the comprehensive suite of tools designed to streamline
-                your breeding program, connect with the community, and grow your
-                kennel's success
-              </p>
-            </div>
+        {/* Hero Section */}
+        <LandingPageHero
+          title="Everything You Need for Professional Breeding"
+          subtitle="Discover the comprehensive suite of tools designed to streamline your breeding program, connect with the community, and grow your kennel's success"
+        />
 
-            {/* Features Section */}
-            <div className="landing-content-card">
-              {isLoading ? (
-                <div className="text-center py-20">
-                  <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500"></div>
-                  <p className="mt-4 text-slate-600">Loading features...</p>
-                </div>
-              ) : (
-                <div className="space-y-16">
-                  {services.map((service) => (
-                    <FeatureBlock key={service.id} service={service} />
-                  ))}
-                </div>
-              )}
-            </div>
+        {/* Features Section */}
+        <div className="landing-content-container -mt-32 sm:-mt-44 relative z-10">
+          <div className="landing-content-card">
+            {isLoading ? (
+              <div className="text-center py-20">
+                <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500"></div>
+                <p className="mt-4 text-slate-600">Loading features...</p>
+              </div>
+            ) : (
+              <div className="space-y-16">
+                {services.map((service) => (
+                  <FeatureBlock key={service.id} service={service} />
+                ))}
+              </div>
+            )}
           </div>
-        </div>{" "}
+        </div>
         {/* CTA Section */}
         <div className="relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-br from-primary-500 to-accent-500 opacity-90"></div>
