@@ -350,8 +350,8 @@ export default function Landing() {
         {/* Page space */}
         <div className="max-w-11xl relative mt-24 flex w-full min-w-0 flex-auto flex-col items-center px-6 md:px-10 lg:px-40 md:mt-32">
           {/* General info */}
-          <div className="flex flex-col md:space-x-24 md:pl-24 md:flex-row md:border-l">
-            <div className="order-2 flex w-[100%] flex-col justify-center space-y-10 md:order-1 md:w-[70%] md:space-y-14">
+          <div className="flex flex-col lg:space-x-24 lg:pl-24 lg:flex-row lg:border-l">
+            <div className="order-2 flex w-[100%] flex-col justify-center space-y-10 lg:order-1 lg:w-[70%] lg:space-y-14">
               <div className="flex w-full flex-col">
                 <h1 className="tracking-tight leading-tight">
                   Elevating
@@ -375,7 +375,7 @@ export default function Landing() {
                 ))}
               </div>
               {/* Action button */}
-              <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
+              <div className="flex flex-col lg:flex-row items-start lg:items-center gap-4">
                 <LoadingButton
                   to="/pricing"
                   className="landing-raised-button landing-raised-button-pink px-10 py-4 text-lg min-w-[180px]"
@@ -451,7 +451,7 @@ export default function Landing() {
               </div>
             </div>
             {/* Image */}
-            <div className="order-1 mb-10 flex h-auto w-full overflow-hidden rounded-2xl shadow-xl transition-shadow duration-300 hover:shadow-2xl md:order-2 md:mt-0 md:mb-0 group">
+            <div className="order-1 mb-10 flex h-auto w-full overflow-hidden rounded-2xl shadow-xl transition-shadow duration-300 hover:shadow-2xl lg:order-2 lg:mt-0 lg:mb-0 group">
               <img
                 className="min-h-[100%] min-w-[100%] shrink-0 object-cover transition-transform duration-700 group-hover:scale-105"
                 src={PetSpaceImage}
