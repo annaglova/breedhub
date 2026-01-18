@@ -348,10 +348,10 @@ export default function Landing() {
           <LandingFigure style={{ width: "80%" }} />
         </div>
         {/* Page space */}
-        <div className="max-w-11xl relative mt-24 flex w-full min-w-0 flex-auto flex-col items-center px-6 lg:px-40 sm:px-10 md:mt-32">
+        <div className="max-w-11xl relative mt-24 flex w-full min-w-0 flex-auto flex-col items-center px-6 md:px-10 lg:px-40 md:mt-32">
           {/* General info */}
           <div className="flex flex-col md:space-x-24 md:pl-24 md:flex-row md:border-l">
-            <div className="order-2 flex w-[100%] flex-col justify-center space-y-10 md:order-1 md:w-[70%] sm:space-y-14">
+            <div className="order-2 flex w-[100%] flex-col justify-center space-y-10 md:order-1 md:w-[70%] md:space-y-14">
               <div className="flex w-full flex-col">
                 <h1 className="tracking-tight leading-tight">
                   Elevating
@@ -375,7 +375,7 @@ export default function Landing() {
                 ))}
               </div>
               {/* Action button */}
-              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+              <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
                 <LoadingButton
                   to="/pricing"
                   className="landing-raised-button landing-raised-button-pink px-10 py-4 text-lg min-w-[180px]"
@@ -466,7 +466,7 @@ export default function Landing() {
             <div className="text-secondary-600 mb-8 shrink-0 text-start text-4xl font-semibold xl:mb-0 xl:mr-12">
               Best pet's knowledge base
             </div>
-            <div className="grid w-full gap-3 md:grid-cols-3 sm:grid-cols-2">
+            <div className="grid w-full gap-3 md:grid-cols-3">
               {statisticsData.map((stat, index) => (
                 <div key={index}>
                   {stat.href ? (
@@ -527,8 +527,8 @@ export default function Landing() {
             </li>
           </ul>
           {/* Tabs — десктоп */}
-          <div className="border-primary-50 mt-10 flex w-full flex-col overflow-hidden rounded-[3rem] border bg-purple-50/50 pt-8 shadow-xl shadow-slate-300 md:mt-24 sm:pt-12 xl:pt-16">
-            <div className="px-8 pb-8 md:px-20 sm:px-10 sm:pb-10 xl:px-32 xl:pb-16">
+          <div className="border-primary-50 mt-10 flex w-full flex-col overflow-hidden rounded-[3rem] border bg-purple-50/50 pt-8 shadow-xl shadow-slate-300 md:mt-24 md:pt-12 xl:pt-16">
+            <div className="px-8 pb-8 md:px-20 md:pb-10 xl:px-32 xl:pb-16">
               <ul
                 className="hidden w-[50%] list-none flex-wrap pb-4 pt-3 md:flex"
                 role="tablist"
@@ -681,7 +681,7 @@ export default function Landing() {
               {/* Action button */}
               <LoadingButton
                 to="/product"
-                className="landing-raised-button landing-raised-button-primary mt-3 min-w-[180px] px-6 sm:mt-5 xl:mt-0"
+                className="landing-raised-button landing-raised-button-primary mt-3 min-w-[180px] px-6 md:mt-5 xl:mt-0"
                 loadingText="Loading features..."
               >
                 See All Features
@@ -691,7 +691,7 @@ export default function Landing() {
           </div>
 
           {/* Top breeds by rating */}
-          <div className="mt-32 max-w-screen mb-10 w-full lg:px-0 md:max-w-4xl md:px-6 sm:px-10 md:mt-40">
+          <div className="mt-32 max-w-screen mb-10 w-full lg:px-0 md:max-w-4xl md:px-6 md:mt-40">
             <div className="text-secondary-600 mb-10 w-full text-center text-4xl font-semibold">
               Top Breeds by Pet Profiles
             </div>
@@ -740,7 +740,7 @@ export default function Landing() {
               />
             </li>
           </ul>
-          <div className="mt-10 flex w-full flex-col rounded-[3rem] border border-pink-100 bg-pink-50/50 px-8 pb-24 pt-8 shadow-xl shadow-slate-300 md:mt-24 md:px-20 sm:px-10 sm:pt-12 xl:px-32 xl:pt-16">
+          <div className="mt-10 flex w-full flex-col rounded-[3rem] border border-pink-100 bg-pink-50/50 px-8 pb-24 pt-8 shadow-xl shadow-slate-300 md:mt-24 md:px-20 md:pt-12 xl:px-32 xl:pt-16">
             <ul
               className="hidden w-[70%] list-none flex-wrap pb-4 pt-3 md:flex xl:w-[65%]"
               role="tablist"
@@ -865,16 +865,16 @@ export default function Landing() {
                 <div className="order-1 relative flex h-[500px] min-w-[50%] flex-col rounded-2xl border bg-white shadow-lg transition-shadow duration-300 hover:shadow-xl xl:order-2">
                   <div className="h-full overflow-auto p-8">
                     {/* Header */}
-                    <div className="grid grid-cols-[42px_auto] sm:grid-cols-[104px_auto] items-center gap-3 border-b pb-2 font-semibold">
-                      <div className="hidden text-center sm:block">
+                    <div className="grid grid-cols-[42px_auto] md:grid-cols-[104px_auto] items-center gap-3 border-b pb-2 font-semibold">
+                      <div className="hidden text-center md:block">
                         $ per month *
                       </div>
-                      <div className="text-center sm:hidden">$ *</div>
+                      <div className="text-center md:hidden">$ *</div>
                       <div>Goals</div>
                     </div>
 
                     <div className="flex space-x-3">
-                      <div className="hidden space-x-2 sm:flex">
+                      <div className="hidden space-x-2 md:flex">
                         <div className="flex w-1 items-end pb-2 pt-5">
                           <div className="h-[20%] w-full rounded-full bg-fuchsia-300"></div>
                         </div>
@@ -893,7 +893,7 @@ export default function Landing() {
                       </div>
 
                       {/* Rows */}
-                      <div className="grid grid-cols-[42px_auto] sm:grid-cols-[52px_auto] grid-rows-[94px_94px_82px_132px_122px] sm:grid-rows-[76px_76px_76px_96px_76px] md:grid-rows-[56px_56px_56px_56px_56px] items-center pt-3">
+                      <div className="grid grid-cols-[42px_auto] md:grid-cols-[52px_auto] grid-rows-[94px_94px_82px_132px_122px] md:grid-rows-[56px_56px_56px_56px_56px] items-center pt-3">
                         {specialAchievements.map((achievement) => (
                           <>
                             <div
@@ -984,12 +984,12 @@ export default function Landing() {
             {/* Action button */}
             <LoadingButton
               to="/breeds"
-              className="landing-raised-button landing-raised-button-pink mt-3 w-fit px-6 sm:mt-5 xl:mt-0"
+              className="landing-raised-button landing-raised-button-pink mt-3 w-fit px-6 md:mt-5 xl:mt-0"
               loadingText="Loading breeds..."
             >
               Choose Your Breed
             </LoadingButton>
-            <div className="mt-6 w-full rounded-full bg-pink-100 py-1 sm:mt-8 xl:mt-10"></div>
+            <div className="mt-6 w-full rounded-full bg-pink-100 py-1 md:mt-8 xl:mt-10"></div>
           </div>
 
           {/* Call to Action Section */}
