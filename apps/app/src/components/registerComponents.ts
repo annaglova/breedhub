@@ -6,6 +6,7 @@ import { ContactListCard } from './contact/ContactListCard';
 import { EventListCard } from './event/EventListCard';
 import { KennelListCard } from './kennel/KennelListCard';
 import { LitterListCard } from './litter/LitterListCard';
+import { NoteTabCard } from './note/NoteTabCard';
 import { PetListCard } from './pet/PetListCard';
 import { PetTabCard } from './pet/PetTabCard';
 import { GenericListCard } from './space/GenericListCard';
@@ -34,6 +35,9 @@ export function registerAllComponents() {
 
   // Litter components
   registerComponent('LitterListCard', LitterListCard);
+
+  // Note components
+  registerComponent('NoteTabCard', NoteTabCard);
 
   // Pet components
   registerComponent('PetListCard', PetListCard);

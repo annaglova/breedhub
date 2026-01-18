@@ -12,6 +12,7 @@ export * from './kennels.mock';
 export * from './pets.mock';
 export * from './litters.mock';
 export * from './events.mock';
+export * from './notes.mock';
 
 // Export mock data service
 export { MockDataService } from './mock-data.service';
