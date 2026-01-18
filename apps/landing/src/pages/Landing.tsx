@@ -481,7 +481,7 @@ export default function Landing() {
           </div>
 
           {/* Key indicators */}
-          <div className="mt-24 flex w-full flex-col items-center xl:flex-row md:mt-32">
+          <div className="mt-20 flex w-full flex-col items-center xl:flex-row lg:mt-24">
             <div className="text-secondary-600 mb-8 shrink-0 text-start text-4xl font-semibold xl:mb-0 xl:mr-12">
               Best pet's knowledge base
             </div>
@@ -515,7 +515,7 @@ export default function Landing() {
 
           {/* Tabs — мобільна версія */}
           <ul
-            className="mt-24 flex list-none overflow-x-auto scrollbar-hide lg:hidden"
+            className="mt-20 flex list-none overflow-x-auto scrollbar-hide lg:hidden"
             role="tablist"
           >
             <li>
@@ -546,7 +546,7 @@ export default function Landing() {
             </li>
           </ul>
           {/* Tabs — десктоп */}
-          <div className="border-primary-50 mt-10 flex w-full flex-col overflow-hidden rounded-[3rem] border bg-purple-50/50 pt-8 shadow-xl shadow-slate-300 lg:mt-24 lg:pt-12 xl:pt-16">
+          <div className="border-primary-50 mt-10 flex w-full flex-col overflow-hidden rounded-[3rem] border bg-purple-50/50 pt-8 shadow-lg shadow-slate-200 lg:mt-20 lg:pt-12 xl:pt-16">
             <div className="px-8 pb-8 lg:px-20 lg:pb-10 xl:px-32 xl:pb-16">
               <ul
                 className="hidden list-none flex-wrap pb-4 pt-3 lg:flex"
@@ -710,7 +710,7 @@ export default function Landing() {
           </div>
 
           {/* Top breeds by rating */}
-          <div className="mt-32 max-w-screen mb-10 w-full lg:px-0 md:max-w-4xl md:px-6 md:mt-40">
+          <div className="mt-20 max-w-screen mb-10 w-full lg:px-0 md:max-w-4xl md:px-6 lg:mt-24">
             <div className="text-secondary-600 mb-10 w-full text-center text-4xl font-semibold">
               Top Breeds by Pet Profiles
             </div>
@@ -723,7 +723,7 @@ export default function Landing() {
 
           {/* Breed promotion */}
           <ul
-            className="mt-32 flex list-none overflow-x-auto scrollbar-hide lg:hidden lg:mt-40"
+            className="mt-24 flex list-none overflow-x-auto scrollbar-hide lg:hidden"
             role="tablist"
           >
             <li>
@@ -759,7 +759,7 @@ export default function Landing() {
               />
             </li>
           </ul>
-          <div className="mt-10 flex w-full flex-col rounded-[3rem] border border-pink-100 bg-pink-50/50 px-8 pb-24 pt-8 shadow-xl shadow-slate-300 lg:mt-24 lg:px-20 lg:pt-12 xl:px-32 xl:pt-16">
+          <div className="mt-10 flex w-full flex-col rounded-[3rem] border border-pink-100 bg-pink-50/50 px-8 pb-24 pt-8 shadow-lg shadow-slate-200 lg:mt-20 lg:px-20 lg:pt-12 xl:px-32 xl:pt-16">
             <ul
               className="hidden list-none flex-wrap pb-4 pt-3 lg:flex"
               role="tablist"
@@ -1012,7 +1012,7 @@ export default function Landing() {
           </div>
 
           {/* Call to Action Section */}
-          <div className="mt-32 mb-20 w-full md:mt-40">
+          <div className="mt-24 mb-20 w-full lg:mt-32">
             <div className="relative overflow-hidden rounded-3xl">
               <div className="absolute inset-0 bg-gradient-to-br from-primary-500 to-accent-500 opacity-90"></div>
 
