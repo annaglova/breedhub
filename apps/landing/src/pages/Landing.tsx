@@ -527,8 +527,8 @@ export default function Landing() {
             </li>
           </ul>
           {/* Tabs — десктоп */}
-          <div className="border-primary-50 mt-10 flex w-full flex-col overflow-hidden rounded-[3rem] border bg-purple-50/50 pt-8 shadow-xl shadow-slate-300 md:mt-24 md:pt-12 xl:pt-16">
-            <div className="px-8 pb-8 md:px-20 md:pb-10 xl:px-32 xl:pb-16">
+          <div className="border-primary-50 mt-10 flex w-full flex-col overflow-hidden rounded-[3rem] border bg-purple-50/50 pt-8 shadow-xl shadow-slate-300 lg:mt-24 lg:pt-12 xl:pt-16">
+            <div className="px-8 pb-8 lg:px-20 lg:pb-10 xl:px-32 xl:pb-16">
               <ul
                 className="hidden w-[50%] list-none flex-wrap pb-4 pt-3 lg:flex"
                 role="tablist"
@@ -740,7 +740,7 @@ export default function Landing() {
               />
             </li>
           </ul>
-          <div className="mt-10 flex w-full flex-col rounded-[3rem] border border-pink-100 bg-pink-50/50 px-8 pb-24 pt-8 shadow-xl shadow-slate-300 md:mt-24 md:px-20 md:pt-12 xl:px-32 xl:pt-16">
+          <div className="mt-10 flex w-full flex-col rounded-[3rem] border border-pink-100 bg-pink-50/50 px-8 pb-24 pt-8 shadow-xl shadow-slate-300 lg:mt-24 lg:px-20 lg:pt-12 xl:px-32 xl:pt-16">
             <ul
               className="hidden w-[70%] list-none flex-wrap pb-4 pt-3 lg:flex xl:w-[65%]"
               role="tablist"
