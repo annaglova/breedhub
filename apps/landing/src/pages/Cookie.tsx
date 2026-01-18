@@ -9,8 +9,8 @@ export default function Cookie() {
   return (
     <div className="relative min-h-screen bg-white overflow-hidden">
       {/* Background SVG */}
-      <div className="absolute right-[-30vw] top-[-13vw] w-full md:right-[-47vw] md:top-[-17vw] xxl:top-[-25vw] 3xl:top-[-32vw]">
-        <LandingFigure style={{ width: "80%" }} />
+      <div className="absolute right-[-30vw] top-[-13vw] w-full md:right-[-47vw] md:top-[-17vw] lg:right-[-28vw] lg:top-[-26vw] 2xl:right-[-35vw] xxl:top-[-25vw] 3xl:top-[-32vw] -z-1">
+        <LandingFigure className="w-[100%] lg:w-[90%] 2xl:w-[80%]" />
       </div>
 
       {/* Content */}

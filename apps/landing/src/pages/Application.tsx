@@ -59,8 +59,8 @@ export default function Application() {
     <LandingLayout>
       <div className="pb-20 relative overflow-hidden">
         {/* Background */}
-        <div className="xxl:top-[-64vw] absolute right-[-7vw] top-[-23vw] w-full md:right-[-10vw] md:top-[-47vw] lg:top-[-59vw]">
-          <LandingFigure style={{ width: "100vw" }} />
+        <div className="absolute right-[-30vw] top-[-13vw] w-full md:right-[-47vw] md:top-[-17vw] lg:right-[-28vw] lg:top-[-26vw] 2xl:right-[-35vw] xxl:top-[-25vw] 3xl:top-[-32vw] -z-1">
+          <LandingFigure className="w-[100%] lg:w-[90%] 2xl:w-[80%]" />
         </div>
 
         <div className="flex flex-col items-center justify-center pt-14 sm:pt-32">
