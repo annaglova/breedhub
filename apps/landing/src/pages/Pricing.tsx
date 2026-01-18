@@ -44,7 +44,7 @@ export default function Pricing() {
       <div className="relative  overflow-hidden">
         {/* Background SVG */}
         <div className="absolute top-0 right-0 w-full h-full pointer-events-none">
-          <HeaderFigure className="absolute top-[-20%] right-[-10%] w-[120%] h-auto" />
+          <HeaderFigure className="absolute top-0 lg:top-[-7vw] xl:top-[-22vw] 2xl:top-[-36vw] 3xl:top-[-48vw] left-1/2 -translate-x-1/2 h-auto w-[120%]" />
         </div>
 
         {/* Content */}
