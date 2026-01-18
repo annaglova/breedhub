@@ -123,31 +123,27 @@ export default function TierSelector({
                 relative px-4 sm:px-6 py-3 rounded-full transition-all duration-200 text-base
                 ${
                   selectedBillingType === type.value
-                    ? "bg-white text-slate-700 font-bold"
+                    ? "bg-white text-slate-700"
                     : "text-slate-600 hover:text-slate-700 hover:bg-white/50"
                 }
               `}
             >
-              <span className="hidden sm:inline cursor-pointer">
-                {type.label}
+              {/* Invisible bold text to reserve width */}
+              <span className="invisible font-bold">
+                <span className="hidden sm:inline">{type.label}</span>
+                <span className="sm:hidden">{type.labelShort}</span>
+                {type.discount && <span className="ml-1.5">Save {type.discount}</span>}
               </span>
-              <span className="sm:hidden cursor-pointer">
-                {type.labelShort}
+              {/* Visible text positioned on top */}
+              <span className={`absolute inset-0 flex items-center justify-center ${selectedBillingType === type.value ? "font-bold" : ""}`}>
+                <span className="hidden sm:inline">{type.label}</span>
+                <span className="sm:hidden">{type.labelShort}</span>
+                {type.discount && (
+                  <span className={`ml-1.5 font-bold ${selectedBillingType === type.value ? "text-green-600" : "text-slate-500"}`}>
+                    Save {type.discount}
+                  </span>
+                )}
               </span>
-              {type.discount && (
-                <span
-                  className={`
-                  ml-1.5 text-base font-bold cursor-pointer
-                  ${
-                    selectedBillingType === type.value
-                      ? "text-green-600"
-                      : "text-slate-500"
-                  }
-                `}
-                >
-                  Save {type.discount}
-                </span>
-              )}
             </button>
           ))}
         </div>
