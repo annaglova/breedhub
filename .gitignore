@@ -33,3 +33,4 @@ dist
 !.env.example
 
 query-services.js
+repo-export.txt
