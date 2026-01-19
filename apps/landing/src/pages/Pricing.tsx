@@ -42,9 +42,12 @@ export default function Pricing() {
   return (
     <LandingLayout>
       <div className="relative  overflow-hidden">
-        {/* Background SVG */}
-        <div className="absolute top-0 right-0 w-full h-full pointer-events-none">
-          <HeaderFigure className="absolute top-0 lg:top-[-7vw] xl:top-[-22vw] 2xl:top-[-36vw] 3xl:top-[-48vw] left-1/2 -translate-x-1/2 h-auto w-[120%]" />
+        {/* Background container - 3/5 screen height */}
+        <div className="absolute top-0 left-0 w-full h-[80vh] overflow-hidden">
+          <HeaderFigure
+            className="absolute inset-0 w-full h-full"
+            preserveAspectRatio="xMidYMax slice"
+          />
         </div>
 
         {/* Content */}
