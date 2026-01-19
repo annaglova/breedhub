@@ -9,9 +9,12 @@ export default function About() {
   return (
     <LandingLayout>
       <div className="pb-20 relative overflow-hidden">
-        {/* Background */}
-        <div className="absolute right-[-30vw] top-[-13vw] w-full md:right-[-47vw] md:top-[-17vw] lg:right-[-28vw] lg:top-[-26vw] 2xl:right-[-35vw] xxl:top-[-25vw] 3xl:top-[-32vw] -z-1">
-          <LandingFigure className="w-[100%] lg:w-[90%] 2xl:w-[80%]" />
+        {/* Background container - 4/5 screen height, left aligned with content, right to edge */}
+        <div className="absolute top-0 right-0 h-[80vh] -z-1 left-[max(1.5rem,calc(50%-30.5rem))] overflow-hidden">
+          <LandingFigure
+            className="absolute inset-0 w-full h-full"
+            preserveAspectRatio="xMidYMax slice"
+          />
         </div>
 
         <div className="flex flex-col items-center justify-center pt-14 sm:pt-32">
