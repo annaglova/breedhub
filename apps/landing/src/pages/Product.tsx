@@ -1,7 +1,6 @@
 import LandingFigure from "@/assets/backgrounds/landing-figure.svg?react";
 import type { PublicProductService } from "@/components/FeatureBlock";
 import FeatureBlock from "@/components/FeatureBlock";
-import LandingPageHero from "@/components/LandingPageHero";
 import { usePageTitle } from "@/hooks/usePageTitle";
 import LandingLayout from "@/layouts/LandingLayout";
 import { landingService } from "@/services/api.service";
@@ -200,11 +199,27 @@ export default function Product() {
   return (
     <LandingLayout>
       <div className="relative overflow-hidden">
+        {/* Background container - 4/5 screen height, left aligned with content, right to edge */}
+        <div className="absolute top-0 right-0 h-[80vh] -z-1 left-[max(1.5rem,calc(50%-30.5rem))] overflow-hidden">
+          <LandingFigure
+            className="absolute inset-0 w-full h-full"
+            preserveAspectRatio="xMidYMax slice"
+          />
+        </div>
+
         {/* Hero Section */}
-        <LandingPageHero
-          title="Everything You Need for Professional Breeding"
-          subtitle="Discover the comprehensive suite of tools designed to streamline your breeding program, connect with the community, and grow your kennel's success"
-        />
+        <div className="pt-14 pb-40 sm:pt-32 sm:pb-52">
+          <div className="landing-content-container">
+            <div className="text-center space-y-3">
+              <h1 className="text-white tracking-tight leading-tight">
+                Everything You Need for Professional Breeding
+              </h1>
+              <p className="text-2xl text-white/90 max-w-3xl mx-auto mt-2 tracking-wide leading-relaxed">
+                Discover the comprehensive suite of tools designed to streamline your breeding program, connect with the community, and grow your kennel's success
+              </p>
+            </div>
+          </div>
+        </div>
 
         {/* Features Section */}
         <div className="landing-content-container -mt-32 sm:-mt-44 relative z-10">
