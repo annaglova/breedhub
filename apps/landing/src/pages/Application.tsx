@@ -1,14 +1,10 @@
 // apps/landing/src/pages/Application.tsx
 
-import LandingFigure from "@/assets/backgrounds/landing-figure.svg?react";
 import breedImg from "@/assets/images/breed-space.jpeg";
 import kennelImg from "@/assets/images/kennel-space.jpeg";
 import litterImg from "@/assets/images/litter-space.jpeg";
 import petImg from "@/assets/images/pet-space.jpeg";
-import LandingLayout from "@/layouts/LandingLayout";
-
-// Якщо SpaceLinkCard вже є — імпортуємо його.
-// Якщо ні — можу дати швидкий шаблон для нього!
+import LandingContentLayout from "@/layouts/LandingContentLayout";
 import SpaceLinkCard from "../components/SpaceLinkCard";
 
 const spaces = [
@@ -56,31 +52,21 @@ const spaces = [
 
 export default function Application() {
   return (
-    <LandingLayout>
-      <div className="pb-20 relative overflow-hidden">
-        {/* Background */}
-        <div className="absolute right-[-30vw] top-[-13vw] w-full md:right-[-47vw] md:top-[-17vw] lg:right-[-28vw] lg:top-[-26vw] 2xl:right-[-35vw] xxl:top-[-25vw] 3xl:top-[-32vw] -z-1">
-          <LandingFigure className="w-[100%] lg:w-[90%] 2xl:w-[80%]" />
-        </div>
-
-        <div className="flex flex-col items-center justify-center pt-14 sm:pt-32">
-          <div className="landing-content-container">
-            {/* Page header */}
-            <div className="relative space-y-3 text-center  text-white">
-              <h1 className="tracking-tight leading-tight">Let's get started</h1>
-              <h3 className="tracking-wide leading-relaxed">
-                with your <span className="font-bold">AWESOME</span> spaces
-              </h3>
-            </div>
-            {/* Grid for cards */}
-            <div className="mt-10 grid gap-14 md:grid-cols-2 sm:mt-20">
-              {spaces.map((space) => (
-                <SpaceLinkCard key={space.name} space={space} />
-              ))}
-            </div>
-          </div>
-        </div>
+    <LandingContentLayout
+      title="Let's get started"
+      subtitle={
+        <>
+          with your <span className="font-bold">AWESOME</span> spaces
+        </>
+      }
+      useContentCard={false}
+    >
+      {/* Grid for cards */}
+      <div className="mt-10 grid gap-14 md:grid-cols-2 sm:mt-20">
+        {spaces.map((space) => (
+          <SpaceLinkCard key={space.name} space={space} />
+        ))}
       </div>
-    </LandingLayout>
+    </LandingContentLayout>
   );
 }
