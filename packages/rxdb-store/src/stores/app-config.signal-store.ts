@@ -367,29 +367,49 @@ class AppConfigStore {
       console.error('[AppConfigStore] Supabase client not initialized');
       throw new Error('Supabase client not initialized');
     }
-    
+
     console.log('[AppConfigStore] Enabling Supabase sync...');
     console.log('[AppConfigStore] Supabase URL:', import.meta.env.VITE_SUPABASE_URL);
-    
+
     try {
-      const { data, error } = await supabase
-        .from('app_config')
-        .select('*')
-        .or('deleted.eq.false,deleted.is.null');
-      
-      console.log('[AppConfigStore] Supabase query result:', { data, error });
-      
-      if (error) {
-        console.error('[AppConfigStore] Supabase query error:', error);
-        throw error;
+      // Fetch all records with pagination (Supabase limits to 1000 per request)
+      const BATCH_SIZE = 1000;
+      let allData: any[] = [];
+      let offset = 0;
+      let hasMore = true;
+
+      while (hasMore) {
+        const { data: batch, error } = await supabase
+          .from('app_config')
+          .select('*')
+          .or('deleted.eq.false,deleted.is.null')
+          .range(offset, offset + BATCH_SIZE - 1)
+          .order('id');
+
+        if (error) {
+          console.error('[AppConfigStore] Supabase query error:', error);
+          throw error;
+        }
+
+        if (batch && batch.length > 0) {
+          allData = allData.concat(batch);
+          console.log(`[AppConfigStore] Fetched batch: ${batch.length} records (total: ${allData.length})`);
+          offset += BATCH_SIZE;
+          hasMore = batch.length === BATCH_SIZE;
+        } else {
+          hasMore = false;
+        }
       }
-      
+
+      const data = allData;
+      console.log('[AppConfigStore] Supabase total fetched:', data.length, 'records');
+
       if (!data || data.length === 0) {
         console.warn('[AppConfigStore] No data found in Supabase app_config table');
         this.syncEnabled.value = true;
         return;
       }
-      
+
       if (data && data.length > 0) {
         console.log('[AppConfigStore] Fetched from Supabase:', data.length, 'records');
         console.log('[AppConfigStore] First record sample:', data[0]);
@@ -2769,18 +2789,35 @@ class AppConfigStore {
       const localConfigs = Array.from(this.configs.value.values());
       console.log(`[AppConfigStore] Found ${localConfigs.length} local configs`);
 
-      // Get all Supabase config IDs for comparison
-      const { data: supabaseConfigs, error: fetchError } = await supabase
-        .from('app_config')
-        .select('id, updated_at');
+      // Get all Supabase config IDs for comparison (with pagination)
+      const BATCH_SIZE = 1000;
+      let allSupabaseConfigs: any[] = [];
+      let offset = 0;
+      let hasMore = true;
 
-      if (fetchError) {
-        console.error('[AppConfigStore] Failed to fetch Supabase configs:', fetchError);
-        return { synced: 0, errors: [`Failed to fetch Supabase configs: ${fetchError.message}`] };
+      while (hasMore) {
+        const { data: batch, error: fetchError } = await supabase
+          .from('app_config')
+          .select('id, updated_at')
+          .range(offset, offset + BATCH_SIZE - 1)
+          .order('id');
+
+        if (fetchError) {
+          console.error('[AppConfigStore] Failed to fetch Supabase configs:', fetchError);
+          return { synced: 0, errors: [`Failed to fetch Supabase configs: ${fetchError.message}`] };
+        }
+
+        if (batch && batch.length > 0) {
+          allSupabaseConfigs = allSupabaseConfigs.concat(batch);
+          offset += BATCH_SIZE;
+          hasMore = batch.length === BATCH_SIZE;
+        } else {
+          hasMore = false;
+        }
       }
 
       const supabaseConfigMap = new Map(
-        (supabaseConfigs || []).map(c => [c.id, c.updated_at])
+        allSupabaseConfigs.map(c => [c.id, c.updated_at])
       );
 
       console.log(`[AppConfigStore] Found ${supabaseConfigMap.size} configs in Supabase`);
