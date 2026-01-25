@@ -2535,7 +2535,7 @@ class SpaceStore {
       const fieldType = fieldConfig.fieldType || 'string';
       const operator = this.detectOperator(fieldType, fieldConfig.operator);
 
-      return (fieldType === 'string' || fieldType === 'text') && operator === 'contains';
+      return (fieldType === 'string' || fieldType === 'text') && (operator === 'contains' || operator === 'ilike');
     });
 
     // Use hybrid search if: (1) has search filter, (2) no cursor (first page)

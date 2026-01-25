@@ -183,6 +183,13 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
       async (query: string = "", append: boolean = false) => {
         if (!referencedTable) return;
 
+        // 🔒 Skip loading if cascade filter is configured but parent value is not set yet
+        // This prevents loading unfiltered options when parent field hasn't been selected
+        if (dataSource === "collection" && filterBy && !filterByValue) {
+          console.log("[LookupInput] Skipping load - waiting for filterByValue:", filterBy);
+          return;
+        }
+
         // 🔒 Increment request counter and capture this request's ID
         requestCounterRef.current += 1;
         const thisRequestId = requestCounterRef.current;
@@ -360,12 +367,16 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
       }
     }, [value, selectedOption, isEditing]);
 
-    // Load dictionary data on focus/search
+    // Load dictionary data on focus (initial load only)
+    // Allow loading when: dropdown is open, no options yet, and either not editing OR editing with empty input
+    // This ensures initial load happens even when isEditing=true on dropdown open
     useEffect(() => {
-      if (isOpen && referencedTable && dynamicOptions.length === 0) {
+      const shouldLoad = isOpen && referencedTable && dynamicOptions.length === 0 &&
+        (!isEditing || (isEditing && inputValue.trim() === ""));
+      if (shouldLoad) {
         loadDictionaryOptions();
       }
-    }, [isOpen, referencedTable, dynamicOptions.length, loadDictionaryOptions]);
+    }, [isOpen, referencedTable, dynamicOptions.length, isEditing, inputValue, loadDictionaryOptions]);
 
     // Reset options when filterByValue changes (cascade filter dependency)
     // Track previous filterByValue to detect actual changes
@@ -392,7 +403,7 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
           loadDictionaryOptions("", false);
         }
       }
-    }, [filterByValue, filterBy, referencedTable, isOpen]);
+    }, [filterByValue, filterBy, referencedTable, isOpen, loadDictionaryOptions]);
 
     // Reset options when filterByIds changes (for breed restrictions)
     const prevFilterByIdsRef = useRef(filterByIds);
