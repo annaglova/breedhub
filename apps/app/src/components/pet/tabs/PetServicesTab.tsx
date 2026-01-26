@@ -1,6 +1,6 @@
 import { LitterCard, LitterData } from "@/components/shared/LitterCard";
 import { useSelectedEntity } from "@/contexts/SpaceContext";
-import { spaceStore, useTabData } from "@breedhub/rxdb-store";
+import { spaceStore, useTabData, dictionaryStore } from "@breedhub/rxdb-store";
 import type { DataSourceConfig } from "@breedhub/rxdb-store";
 import { useSignals } from "@preact/signals-react/runtime";
 import { Badge } from "@ui/components/badge";
@@ -14,7 +14,7 @@ import {
   Snowflake,
   VenusAndMars,
 } from "lucide-react";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 /**
  * Service type with icon mapping
@@ -47,11 +47,11 @@ const SERVICE_ICONS: Record<string, React.ReactNode> = {
   "Children for sale": <PawPrint className="h-4 w-4" />,
 };
 
-// Default dataSource configs for services (using VIEWs with joined data)
+// Default dataSource configs for services (using base tables + client-side dictionary merge)
 const DEFAULT_SERVICES_DATASOURCE: DataSourceConfig = {
   type: "child",
   childTable: {
-    table: "pet_service_in_pet_with_details",
+    table: "pet_service_in_pet",
     parentField: "pet_id",
   },
 };
@@ -59,7 +59,7 @@ const DEFAULT_SERVICES_DATASOURCE: DataSourceConfig = {
 const DEFAULT_FEATURES_DATASOURCE: DataSourceConfig = {
   type: "child",
   childTable: {
-    table: "pet_service_feature_in_pet_with_details",
+    table: "pet_service_feature_in_pet",
     parentField: "pet_id",
   },
 };
@@ -96,6 +96,52 @@ export function PetServicesTab({
   const petId = selectedEntity?.id;
   const isFullscreen = spaceStore.isFullscreen.value;
 
+  // Dictionaries state
+  const [serviceTypesMap, setServiceTypesMap] = useState<Map<string, any>>(new Map());
+  const [currencyMap, setCurrencyMap] = useState<Map<string, any>>(new Map());
+  const [featuresMap, setFeaturesMap] = useState<Map<string, any>>(new Map());
+  const [dictsLoading, setDictsLoading] = useState(true);
+
+  // Load dictionaries on mount
+  useEffect(() => {
+    async function loadDictionaries() {
+      try {
+        // Ensure dictionaryStore is initialized
+        if (!dictionaryStore.initialized.value) {
+          await dictionaryStore.initialize();
+        }
+
+        // Load all required dictionaries in parallel
+        const [serviceTypes, currencies, features] = await Promise.all([
+          dictionaryStore.getDictionary("pet_service", {
+            idField: "id",
+            nameField: "name"
+          }),
+          dictionaryStore.getDictionary("currency", {
+            idField: "id",
+            nameField: "short_name",
+            additionalFields: ["name"]
+          }),
+          dictionaryStore.getDictionary("pet_service_feature", {
+            idField: "id",
+            nameField: "name"
+          }),
+        ]);
+
+        // Build lookup maps
+        setServiceTypesMap(new Map(serviceTypes.records.map((r: any) => [r.id, r])));
+        setCurrencyMap(new Map(currencies.records.map((r: any) => [r.id, r])));
+        setFeaturesMap(new Map(features.records.map((r: any) => [r.id, r])));
+      } catch (error) {
+        console.error("[PetServicesTab] Failed to load dictionaries:", error);
+      } finally {
+        setDictsLoading(false);
+      }
+    }
+
+    loadDictionaries();
+  }, []);
+
   // Load services via useTabData
   const {
     data: servicesRaw,
@@ -117,47 +163,55 @@ export function PetServicesTab({
     enabled: !!petId,
   });
 
-  // Transform raw services data to UI format
-  // Data comes from VIEW pet_service_in_pet_with_details with joined fields
+  // Transform raw services data to UI format with dictionary merge
   // Filter out "Children for sale" - it's displayed separately with actual children cards
   const services = useMemo<PetService[]>(() => {
-    if (!servicesRaw || servicesRaw.length === 0) return [];
+    if (!servicesRaw || servicesRaw.length === 0 || dictsLoading) return [];
 
     return servicesRaw
-      .filter((item: any) => {
-        const typeName = item.additional?.service_type_name || item.service_type_name || "";
-        return typeName.toLowerCase() !== "children for sale";
+      .map((item: any, index: number) => {
+        const serviceTypeId = item.additional?.service_type_id || item.service_type_id;
+        const currencyId = item.additional?.currency_id || item.currency_id;
+        const serviceType = serviceTypesMap.get(serviceTypeId);
+        const currency = currencyMap.get(currencyId);
+
+        return {
+          id: item.id,
+          serviceTypeId,
+          serviceTypeName: serviceType?.name || "Unknown",
+          iconName: serviceType?.name || "sale",
+          price: item.additional?.price ?? item.price,
+          currencyName: currency?.name || currency?.additional?.name || "",
+          order: index + 1,
+        };
       })
-      .map((item: any, index: number) => ({
-        id: item.id,
-        serviceTypeId: item.additional?.service_type_id || item.service_type_id,
-        serviceTypeName: item.additional?.service_type_name || item.service_type_name || "Unknown",
-        iconName: item.additional?.service_type_name || item.service_type_name || "sale",
-        price: item.additional?.price ?? item.price,
-        currencyName: item.additional?.currency_short_name || item.currency_short_name || item.additional?.currency_name || item.currency_name,
-        order: index + 1,
-      }));
-  }, [servicesRaw]);
+      .filter((service) => service.serviceTypeName.toLowerCase() !== "children for sale");
+  }, [servicesRaw, serviceTypesMap, currencyMap, dictsLoading]);
 
   // Check if pet has "Children for sale" service enabled
   const hasChildrenForSaleService = useMemo(() => {
-    if (!servicesRaw || servicesRaw.length === 0) return false;
+    if (!servicesRaw || servicesRaw.length === 0 || dictsLoading) return false;
     return servicesRaw.some((item: any) => {
-      const typeName = item.additional?.service_type_name || item.service_type_name || "";
-      return typeName.toLowerCase() === "children for sale";
+      const serviceTypeId = item.additional?.service_type_id || item.service_type_id;
+      const serviceType = serviceTypesMap.get(serviceTypeId);
+      return serviceType?.name?.toLowerCase() === "children for sale";
     });
-  }, [servicesRaw]);
+  }, [servicesRaw, serviceTypesMap, dictsLoading]);
 
-  // Transform raw features data to UI format
-  // Data comes from VIEW pet_service_feature_in_pet_with_details with joined fields
+  // Transform raw features data to UI format with dictionary merge
   const features = useMemo<ServiceFeature[]>(() => {
-    if (!featuresRaw || featuresRaw.length === 0) return [];
+    if (!featuresRaw || featuresRaw.length === 0 || dictsLoading) return [];
 
-    return featuresRaw.map((item: any) => ({
-      id: item.id,
-      name: item.additional?.feature_name || item.feature_name || item.additional?.name || item.name || "Unknown",
-    }));
-  }, [featuresRaw]);
+    return featuresRaw.map((item: any) => {
+      const featureId = item.additional?.pet_service_feature_id || item.pet_service_feature_id;
+      const feature = featuresMap.get(featureId);
+
+      return {
+        id: item.id,
+        name: feature?.name || "Unknown",
+      };
+    });
+  }, [featuresRaw, featuresMap, dictsLoading]);
 
   // TODO: Load children for sale when hasChildrenForSaleService is true
   // Need to query pet's children with available_for_sale = true
@@ -170,7 +224,7 @@ export function PetServicesTab({
   // Determine label for the other parent based on current pet's sex
   const anotherParentRole = petSexCode === "male" ? "Mother" : "Father";
 
-  const isLoading = servicesLoading || featuresLoading;
+  const isLoading = servicesLoading || featuresLoading || dictsLoading;
 
   // Report count after data loads
   useEffect(() => {

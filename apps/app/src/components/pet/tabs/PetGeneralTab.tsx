@@ -17,7 +17,7 @@ import {
   VenusAndMars,
   Waves,
 } from "lucide-react";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
 
 /**
@@ -58,47 +58,74 @@ interface PetGeneralData {
   weight?: number;
 }
 
-// Mock data for visual development
-const MOCK_DATA: PetGeneralData = {
-  father: {
-    id: "1",
-    name: "Champion Maximus vom Königsberg",
-    slug: "champion-maximus-vom-konigsberg",
-  },
-  mother: {
-    id: "2",
-    name: "Beautiful Bella aus Bayern",
-    slug: "beautiful-bella-aus-bayern",
-  },
-  sex: { id: "male", name: "Male" },
-  dateOfBirth: "2021-05-15",
-  breeder: {
-    id: "3",
-    name: "John Smith",
-    slug: "john-smith",
-  },
-  breederKennel: {
-    id: "4",
-    name: "Königsberg Kennel",
-    slug: "konigsberg-kennel",
-  },
-  countryOfBirth: { id: "de", name: "Germany" },
-  owner: {
-    id: "5",
-    name: "Anna Johnson",
-    slug: "anna-johnson",
-  },
-  ownerKennel: {
-    id: "6",
-    name: "Golden Valley Kennel",
-    slug: "golden-valley-kennel",
-  },
-  countryOfStay: { id: "us", name: "United States" },
-  petStatus: { id: "1", name: "Active producer" },
-  coatType: { id: "1", name: "Long" },
-  coatColor: { id: "1", name: "Black and Tan" },
-  weight: 32.5,
-};
+/**
+ * Transform selected entity to PetGeneralData format
+ * Data comes from entity with joined lookup names in additional field
+ */
+function transformEntityToGeneralData(entity: any): PetGeneralData {
+  if (!entity) return {};
+
+  const additional = entity.additional || {};
+
+  return {
+    father: additional.father ? {
+      id: entity.father_id,
+      name: additional.father.name || additional.father_name,
+      slug: additional.father.slug || additional.father_slug,
+    } : undefined,
+    mother: additional.mother ? {
+      id: entity.mother_id,
+      name: additional.mother.name || additional.mother_name,
+      slug: additional.mother.slug || additional.mother_slug,
+    } : undefined,
+    sex: additional.sex ? {
+      id: entity.sex_id,
+      name: additional.sex.name || additional.sex_name,
+    } : undefined,
+    dateOfBirth: entity.date_of_birth,
+    breeder: additional.breeder ? {
+      id: entity.breeder_id,
+      name: additional.breeder.name || additional.breeder_name,
+      slug: additional.breeder.slug || additional.breeder_slug,
+    } : undefined,
+    breederKennel: additional.kennel ? {
+      id: entity.kennel_id,
+      name: additional.kennel.name || additional.kennel_name,
+      slug: additional.kennel.slug || additional.kennel_slug,
+    } : undefined,
+    countryOfBirth: additional.country_of_birth ? {
+      id: entity.country_of_birth_id,
+      name: additional.country_of_birth.name || additional.country_of_birth_name,
+    } : undefined,
+    owner: additional.owner ? {
+      id: entity.owner_id,
+      name: additional.owner.name || additional.owner_name,
+      slug: additional.owner.slug || additional.owner_slug,
+    } : undefined,
+    ownerKennel: additional.owner_kennel ? {
+      id: entity.owner_kennel_id,
+      name: additional.owner_kennel.name || additional.owner_kennel_name,
+      slug: additional.owner_kennel.slug || additional.owner_kennel_slug,
+    } : undefined,
+    countryOfStay: additional.country_of_stay ? {
+      id: entity.country_of_stay_id,
+      name: additional.country_of_stay.name || additional.country_of_stay_name,
+    } : undefined,
+    petStatus: additional.pet_status ? {
+      id: entity.pet_status_id,
+      name: additional.pet_status.name || additional.pet_status_name,
+    } : undefined,
+    coatType: additional.coat_type ? {
+      id: entity.coat_type_id,
+      name: additional.coat_type.name || additional.coat_type_name,
+    } : undefined,
+    coatColor: additional.coat_color ? {
+      id: entity.coat_color_id,
+      name: additional.coat_color.name || additional.coat_color_name,
+    } : undefined,
+    weight: entity.weight && entity.weight > 0 ? entity.weight : undefined,
+  };
+}
 
 /**
  * EntityLink - Renders a link to an entity or plain text
@@ -201,9 +228,11 @@ export function PetGeneralTab({ onLoadedCount }: PetGeneralTabProps) {
   const selectedEntity = useSelectedEntity();
   const isFullscreen = spaceStore.isFullscreen.value;
 
-  // TODO: Load real data from entity
-  // For now using mock data
-  const data = MOCK_DATA;
+  // Transform entity data to UI format
+  const data = useMemo(
+    () => transformEntityToGeneralData(selectedEntity),
+    [selectedEntity]
+  );
 
   // Report count after render (always 1 for general info)
   useEffect(() => {
