@@ -1,18 +1,20 @@
 import { LitterCard, LitterData } from "@/components/shared/LitterCard";
 import { useSelectedEntity } from "@/contexts/SpaceContext";
-import { spaceStore } from "@breedhub/rxdb-store";
+import { spaceStore, useTabData } from "@breedhub/rxdb-store";
+import type { DataSourceConfig } from "@breedhub/rxdb-store";
 import { useSignals } from "@preact/signals-react/runtime";
 import { Badge } from "@ui/components/badge";
 import { cn } from "@ui/lib/utils";
 import {
   CalendarClock,
   Handshake,
+  Loader2,
   PawPrint,
   ShoppingCart,
   Snowflake,
   VenusAndMars,
 } from "lucide-react";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 
 /**
  * Service type with icon mapping
@@ -35,86 +37,37 @@ interface ServiceFeature {
   name: string;
 }
 
-// Service type IDs → icons mapping
+// Service type name → icon mapping
 const SERVICE_ICONS: Record<string, React.ReactNode> = {
-  "pre-reservation": <CalendarClock className="h-4 w-4" />,
-  sale: <ShoppingCart className="h-4 w-4" />,
-  mating: <VenusAndMars className="h-4 w-4" />,
-  rent: <Handshake className="h-4 w-4" />,
-  "frozen-sperm": <Snowflake className="h-4 w-4" />,
+  "Pre reservation": <CalendarClock className="h-4 w-4" />,
+  "Sale": <ShoppingCart className="h-4 w-4" />,
+  "Mating": <VenusAndMars className="h-4 w-4" />,
+  "Rent": <Handshake className="h-4 w-4" />,
+  "Frozen sperm": <Snowflake className="h-4 w-4" />,
+  "Children for sale": <PawPrint className="h-4 w-4" />,
 };
 
-// Mock data for visual development
-const MOCK_SERVICES: PetService[] = [
-  {
-    id: "1",
-    serviceTypeId: "ddc59ace-c622-4d6b-b473-19e9a313ed21",
-    serviceTypeName: "Sale",
-    iconName: "sale",
-    price: 2500,
-    currencyName: "USD",
-    order: 1,
+// Default dataSource configs for services (using VIEWs with joined data)
+const DEFAULT_SERVICES_DATASOURCE: DataSourceConfig = {
+  type: "child",
+  childTable: {
+    table: "pet_service_in_pet_with_details",
+    parentField: "pet_id",
   },
-  {
-    id: "2",
-    serviceTypeId: "ea48e37d-8f65-4122-bc00-d012848d78ae",
-    serviceTypeName: "Mating",
-    iconName: "mating",
-    price: 1000,
-    currencyName: "USD",
-    order: 2,
-  },
-  {
-    id: "3",
-    serviceTypeId: "8a97a5df-a169-4b6e-b72b-7512106fdcf8",
-    serviceTypeName: "Rent",
-    iconName: "rent",
-    order: 3,
-  },
-  {
-    id: "4",
-    serviceTypeId: "28655f5b-06d8-4308-ba0d-de2f5b9ef9bf",
-    serviceTypeName: "Frozen sperm",
-    iconName: "frozen-sperm",
-    price: 500,
-    currencyName: "EUR",
-    order: 4,
-  },
-];
+};
 
-const MOCK_FEATURES: ServiceFeature[] = [
-  { id: "1", name: "Delivery available" },
-  { id: "2", name: "Health guarantee" },
-  { id: "3", name: "Pedigree documents" },
-  { id: "4", name: "Microchipped" },
-  { id: "5", name: "Vaccinated" },
-];
-
-// Mock litters with children for sale (same format as PetChildrenTab)
-const MOCK_LITTERS_FOR_SALE: LitterData[] = [
-  {
-    date: "2023-06-15",
-    anotherParent: {
-      name: "Beautiful Bella aus Bayern",
-      url: "beautiful-bella-aus-bayern",
-    },
-    pets: [
-      {
-        id: "2",
-        name: "Princess Luna vom Königsberg",
-        url: "princess-luna-vom-konigsberg",
-        sex: { code: "female", name: "Female" },
-        availableForSale: true,
-      },
-    ],
+const DEFAULT_FEATURES_DATASOURCE: DataSourceConfig = {
+  type: "child",
+  childTable: {
+    table: "pet_service_feature_in_pet_with_details",
+    parentField: "pet_id",
   },
-];
-
-// Mock current pet sex (to determine "Father" or "Mother" label)
-const MOCK_PET_SEX_CODE = "male";
+};
 
 interface PetServicesTabProps {
   onLoadedCount?: (count: number) => void;
+  dataSource?: DataSourceConfig;
+  featuresDataSource?: DataSourceConfig;
 }
 
 /**
@@ -125,30 +78,139 @@ interface PetServicesTabProps {
  * 2. Service cards (Sale, Mating, Rent, Frozen sperm)
  * 3. Service features as chips
  *
+ * Data flow (Config-Driven, Local-First):
+ * 1. dataSource config defines what to load
+ * 2. useTabData → TabDataService → SpaceStore → RxDB
+ * 3. Component transforms raw data for UI rendering
+ *
  * Based on Angular: pet-services.component.ts
  */
-export function PetServicesTab({ onLoadedCount }: PetServicesTabProps) {
+export function PetServicesTab({
+  onLoadedCount,
+  dataSource,
+  featuresDataSource,
+}: PetServicesTabProps) {
   useSignals();
 
   const selectedEntity = useSelectedEntity();
+  const petId = selectedEntity?.id;
   const isFullscreen = spaceStore.isFullscreen.value;
 
-  // TODO: Load real data from dataSource
-  // For now using mock data
-  const services = MOCK_SERVICES;
-  const features = MOCK_FEATURES;
-  const littersForSale = MOCK_LITTERS_FOR_SALE;
-  const petSexCode = MOCK_PET_SEX_CODE;
+  // Load services via useTabData
+  const {
+    data: servicesRaw,
+    isLoading: servicesLoading,
+    error: servicesError
+  } = useTabData({
+    parentId: petId,
+    dataSource: dataSource || DEFAULT_SERVICES_DATASOURCE,
+    enabled: !!petId,
+  });
+
+  // Load features via useTabData
+  const {
+    data: featuresRaw,
+    isLoading: featuresLoading,
+  } = useTabData({
+    parentId: petId,
+    dataSource: featuresDataSource || DEFAULT_FEATURES_DATASOURCE,
+    enabled: !!petId,
+  });
+
+  // Transform raw services data to UI format
+  // Data comes from VIEW pet_service_in_pet_with_details with joined fields
+  // Filter out "Children for sale" - it's displayed separately with actual children cards
+  const services = useMemo<PetService[]>(() => {
+    if (!servicesRaw || servicesRaw.length === 0) return [];
+
+    return servicesRaw
+      .filter((item: any) => {
+        const typeName = item.additional?.service_type_name || item.service_type_name || "";
+        return typeName.toLowerCase() !== "children for sale";
+      })
+      .map((item: any, index: number) => ({
+        id: item.id,
+        serviceTypeId: item.additional?.service_type_id || item.service_type_id,
+        serviceTypeName: item.additional?.service_type_name || item.service_type_name || "Unknown",
+        iconName: item.additional?.service_type_name || item.service_type_name || "sale",
+        price: item.additional?.price ?? item.price,
+        currencyName: item.additional?.currency_short_name || item.currency_short_name || item.additional?.currency_name || item.currency_name,
+        order: index + 1,
+      }));
+  }, [servicesRaw]);
+
+  // Check if pet has "Children for sale" service enabled
+  const hasChildrenForSaleService = useMemo(() => {
+    if (!servicesRaw || servicesRaw.length === 0) return false;
+    return servicesRaw.some((item: any) => {
+      const typeName = item.additional?.service_type_name || item.service_type_name || "";
+      return typeName.toLowerCase() === "children for sale";
+    });
+  }, [servicesRaw]);
+
+  // Transform raw features data to UI format
+  // Data comes from VIEW pet_service_feature_in_pet_with_details with joined fields
+  const features = useMemo<ServiceFeature[]>(() => {
+    if (!featuresRaw || featuresRaw.length === 0) return [];
+
+    return featuresRaw.map((item: any) => ({
+      id: item.id,
+      name: item.additional?.feature_name || item.feature_name || item.additional?.name || item.name || "Unknown",
+    }));
+  }, [featuresRaw]);
+
+  // TODO: Load children for sale when hasChildrenForSaleService is true
+  // Need to query pet's children with available_for_sale = true
+  // For now, this section is hidden until children loading is implemented
+  const littersForSale: LitterData[] = [];
+
+  // Get pet sex from selected entity
+  const petSexCode = selectedEntity?.additional?.sex?.code || "male";
 
   // Determine label for the other parent based on current pet's sex
   const anotherParentRole = petSexCode === "male" ? "Mother" : "Father";
 
-  // Report count after render
+  const isLoading = servicesLoading || featuresLoading;
+
+  // Report count after data loads
   useEffect(() => {
-    if (onLoadedCount) {
+    if (!isLoading && onLoadedCount) {
       onLoadedCount(services.length);
     }
-  }, [onLoadedCount, services.length]);
+  }, [isLoading, onLoadedCount, services.length]);
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="py-4 px-6 flex items-center justify-center min-h-[200px]">
+        <Loader2 className="h-6 w-6 animate-spin text-primary" />
+        <span className="ml-2 text-secondary">Loading services...</span>
+      </div>
+    );
+  }
+
+  // Error state
+  if (servicesError) {
+    return (
+      <div className="py-4 px-6">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <p className="text-red-700 font-semibold">Failed to load services</p>
+          <p className="text-red-600 text-sm mt-1">{servicesError.message}</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Empty state
+  if (services.length === 0 && features.length === 0) {
+    return (
+      <div className="py-4 px-6">
+        <div className="bg-slate-50 border border-slate-200 rounded-lg p-4 text-center">
+          <p className="text-slate-600">No services available for this pet</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col space-y-8 px-6 cursor-default">
@@ -186,7 +248,7 @@ export function PetServicesTab({ onLoadedCount }: PetServicesTabProps) {
             className="card card-rounded flex items-center space-x-5 p-6 lg:px-8 bg-even-card-ground"
           >
             <span className="text-secondary-400">
-              {SERVICE_ICONS[service.iconName] || (
+              {SERVICE_ICONS[service.serviceTypeName] || (
                 <ShoppingCart className="h-4 w-4" />
               )}
             </span>
