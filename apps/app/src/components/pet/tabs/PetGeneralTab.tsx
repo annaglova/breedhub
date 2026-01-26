@@ -1,11 +1,12 @@
 import { useSelectedEntity } from "@/contexts/SpaceContext";
-import { spaceStore } from "@breedhub/rxdb-store";
+import { spaceStore, dictionaryStore } from "@breedhub/rxdb-store";
 import { useSignals } from "@preact/signals-react/runtime";
 import { cn } from "@ui/lib/utils";
 import {
   Cake,
   CircleCheckBig,
   HouseHeart,
+  Loader2,
   MapPin,
   MapPinHouse,
   Mars,
@@ -17,7 +18,7 @@ import {
   VenusAndMars,
   Waves,
 } from "lucide-react";
-import { useEffect, useMemo } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
 /**
@@ -59,72 +60,15 @@ interface PetGeneralData {
 }
 
 /**
- * Transform selected entity to PetGeneralData format
- * Data comes from entity with joined lookup names in additional field
+ * Load lookup data by ID using dictionaryStore
+ * Returns null if id is not provided
  */
-function transformEntityToGeneralData(entity: any): PetGeneralData {
-  if (!entity) return {};
-
-  const additional = entity.additional || {};
-
-  return {
-    father: additional.father ? {
-      id: entity.father_id,
-      name: additional.father.name || additional.father_name,
-      slug: additional.father.slug || additional.father_slug,
-    } : undefined,
-    mother: additional.mother ? {
-      id: entity.mother_id,
-      name: additional.mother.name || additional.mother_name,
-      slug: additional.mother.slug || additional.mother_slug,
-    } : undefined,
-    sex: additional.sex ? {
-      id: entity.sex_id,
-      name: additional.sex.name || additional.sex_name,
-    } : undefined,
-    dateOfBirth: entity.date_of_birth,
-    breeder: additional.breeder ? {
-      id: entity.breeder_id,
-      name: additional.breeder.name || additional.breeder_name,
-      slug: additional.breeder.slug || additional.breeder_slug,
-    } : undefined,
-    breederKennel: additional.kennel ? {
-      id: entity.kennel_id,
-      name: additional.kennel.name || additional.kennel_name,
-      slug: additional.kennel.slug || additional.kennel_slug,
-    } : undefined,
-    countryOfBirth: additional.country_of_birth ? {
-      id: entity.country_of_birth_id,
-      name: additional.country_of_birth.name || additional.country_of_birth_name,
-    } : undefined,
-    owner: additional.owner ? {
-      id: entity.owner_id,
-      name: additional.owner.name || additional.owner_name,
-      slug: additional.owner.slug || additional.owner_slug,
-    } : undefined,
-    ownerKennel: additional.owner_kennel ? {
-      id: entity.owner_kennel_id,
-      name: additional.owner_kennel.name || additional.owner_kennel_name,
-      slug: additional.owner_kennel.slug || additional.owner_kennel_slug,
-    } : undefined,
-    countryOfStay: additional.country_of_stay ? {
-      id: entity.country_of_stay_id,
-      name: additional.country_of_stay.name || additional.country_of_stay_name,
-    } : undefined,
-    petStatus: additional.pet_status ? {
-      id: entity.pet_status_id,
-      name: additional.pet_status.name || additional.pet_status_name,
-    } : undefined,
-    coatType: additional.coat_type ? {
-      id: entity.coat_type_id,
-      name: additional.coat_type.name || additional.coat_type_name,
-    } : undefined,
-    coatColor: additional.coat_color ? {
-      id: entity.coat_color_id,
-      name: additional.coat_color.name || additional.coat_color_name,
-    } : undefined,
-    weight: entity.weight && entity.weight > 0 ? entity.weight : undefined,
-  };
+async function loadLookupById(
+  table: string,
+  id: string | null | undefined
+): Promise<Record<string, unknown> | null> {
+  if (!id) return null;
+  return dictionaryStore.getRecordById(table, id);
 }
 
 /**
@@ -228,20 +172,102 @@ export function PetGeneralTab({ onLoadedCount }: PetGeneralTabProps) {
   const selectedEntity = useSelectedEntity();
   const isFullscreen = spaceStore.isFullscreen.value;
 
-  // Transform entity data to UI format
-  const data = useMemo(
-    () => transformEntityToGeneralData(selectedEntity),
-    [selectedEntity]
-  );
+  // State for lookup data
+  const [data, setData] = useState<PetGeneralData>({});
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Report count after render (always 1 for general info)
+  // Load lookup data when entity changes
   useEffect(() => {
-    if (onLoadedCount) {
+    if (!selectedEntity) {
+      setData({});
+      setIsLoading(false);
+      return;
+    }
+
+    async function loadLookups() {
+      setIsLoading(true);
+
+      try {
+        // Ensure dictionaryStore is initialized
+        if (!dictionaryStore.initialized.value) {
+          await dictionaryStore.initialize();
+        }
+
+        // Load all lookups in parallel - only fetch records by specific IDs
+        const [
+          sex,
+          petStatus,
+          coatType,
+          coatColor,
+          countryOfBirth,
+          countryOfStay,
+          father,
+          mother,
+          breeder,
+          owner,
+          kennel,
+          ownerKennel,
+        ] = await Promise.all([
+          // Dictionaries
+          loadLookupById("sex", selectedEntity.sex_id),
+          loadLookupById("pet_status", selectedEntity.pet_status_id),
+          loadLookupById("coat_type", selectedEntity.coat_type_id),
+          loadLookupById("coat_color", selectedEntity.coat_color_id),
+          loadLookupById("country", selectedEntity.country_of_birth_id),
+          loadLookupById("country", selectedEntity.country_of_stay_id),
+          // Entities (pet, contact, account) - also use dictionaryStore for simplicity
+          loadLookupById("pet", selectedEntity.father_id),
+          loadLookupById("pet", selectedEntity.mother_id),
+          loadLookupById("contact", selectedEntity.breeder_id),
+          loadLookupById("contact", selectedEntity.owner_id),
+          loadLookupById("account", selectedEntity.kennel_id),
+          loadLookupById("account", selectedEntity.owner_kennel_id),
+        ]);
+
+        setData({
+          sex: sex ? { id: selectedEntity.sex_id, name: String(sex.name || "") } : undefined,
+          petStatus: petStatus ? { id: selectedEntity.pet_status_id, name: String(petStatus.name || "") } : undefined,
+          coatType: coatType ? { id: selectedEntity.coat_type_id, name: String(coatType.name || "") } : undefined,
+          coatColor: coatColor ? { id: selectedEntity.coat_color_id, name: String(coatColor.name || "") } : undefined,
+          countryOfBirth: countryOfBirth ? { id: selectedEntity.country_of_birth_id, name: String(countryOfBirth.name || "") } : undefined,
+          countryOfStay: countryOfStay ? { id: selectedEntity.country_of_stay_id, name: String(countryOfStay.name || "") } : undefined,
+          father: father ? { id: selectedEntity.father_id, name: String(father.name || ""), slug: String(father.slug || "") } : undefined,
+          mother: mother ? { id: selectedEntity.mother_id, name: String(mother.name || ""), slug: String(mother.slug || "") } : undefined,
+          breeder: breeder ? { id: selectedEntity.breeder_id, name: String(breeder.name || ""), slug: String(breeder.slug || "") } : undefined,
+          owner: owner ? { id: selectedEntity.owner_id, name: String(owner.name || ""), slug: String(owner.slug || "") } : undefined,
+          breederKennel: kennel ? { id: selectedEntity.kennel_id, name: String(kennel.name || ""), slug: String(kennel.slug || "") } : undefined,
+          ownerKennel: ownerKennel ? { id: selectedEntity.owner_kennel_id, name: String(ownerKennel.name || ""), slug: String(ownerKennel.slug || "") } : undefined,
+          dateOfBirth: selectedEntity.date_of_birth,
+          weight: selectedEntity.weight && selectedEntity.weight > 0 ? selectedEntity.weight : undefined,
+        });
+      } catch (error) {
+        console.error("[PetGeneralTab] Failed to load lookups:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    loadLookups();
+  }, [selectedEntity?.id]); // Only reload when pet ID changes
+
+  // Report count after data loads
+  useEffect(() => {
+    if (!isLoading && onLoadedCount) {
       onLoadedCount(1);
     }
-  }, [onLoadedCount]);
+  }, [isLoading, onLoadedCount]);
 
   const iconSize = 16;
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="py-4 px-6 flex items-center justify-center min-h-[200px]">
+        <Loader2 className="h-6 w-6 animate-spin text-primary" />
+        <span className="ml-2 text-secondary">Loading...</span>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col space-y-5 px-6 cursor-default">
