@@ -96,51 +96,11 @@ export function PetServicesTab({
   const petId = selectedEntity?.id;
   const isFullscreen = spaceStore.isFullscreen.value;
 
-  // Dictionaries state
+  // Lookup maps state - populated after child records load
   const [serviceTypesMap, setServiceTypesMap] = useState<Map<string, any>>(new Map());
   const [currencyMap, setCurrencyMap] = useState<Map<string, any>>(new Map());
   const [featuresMap, setFeaturesMap] = useState<Map<string, any>>(new Map());
-  const [dictsLoading, setDictsLoading] = useState(true);
-
-  // Load dictionaries on mount
-  useEffect(() => {
-    async function loadDictionaries() {
-      try {
-        // Ensure dictionaryStore is initialized
-        if (!dictionaryStore.initialized.value) {
-          await dictionaryStore.initialize();
-        }
-
-        // Load all required dictionaries in parallel
-        const [serviceTypes, currencies, features] = await Promise.all([
-          dictionaryStore.getDictionary("pet_service", {
-            idField: "id",
-            nameField: "name"
-          }),
-          dictionaryStore.getDictionary("currency", {
-            idField: "id",
-            nameField: "short_name",
-            additionalFields: ["name"]
-          }),
-          dictionaryStore.getDictionary("pet_service_feature", {
-            idField: "id",
-            nameField: "name"
-          }),
-        ]);
-
-        // Build lookup maps
-        setServiceTypesMap(new Map(serviceTypes.records.map((r: any) => [r.id, r])));
-        setCurrencyMap(new Map(currencies.records.map((r: any) => [r.id, r])));
-        setFeaturesMap(new Map(features.records.map((r: any) => [r.id, r])));
-      } catch (error) {
-        console.error("[PetServicesTab] Failed to load dictionaries:", error);
-      } finally {
-        setDictsLoading(false);
-      }
-    }
-
-    loadDictionaries();
-  }, []);
+  const [lookupsLoading, setLookupsLoading] = useState(false);
 
   // Load services via useTabData
   const {
@@ -163,10 +123,95 @@ export function PetServicesTab({
     enabled: !!petId,
   });
 
+  // Load lookups by specific IDs from child records (not entire dictionaries)
+  useEffect(() => {
+    if (servicesLoading || featuresLoading) return;
+    if (!servicesRaw?.length && !featuresRaw?.length) {
+      setLookupsLoading(false);
+      return;
+    }
+
+    async function loadLookupsByIds() {
+      setLookupsLoading(true);
+
+      try {
+        // Ensure dictionaryStore is initialized
+        if (!dictionaryStore.initialized.value) {
+          await dictionaryStore.initialize();
+        }
+
+        // Extract unique IDs from child records
+        const serviceTypeIds = new Set<string>();
+        const currencyIds = new Set<string>();
+        const featureIds = new Set<string>();
+
+        servicesRaw?.forEach((item: any) => {
+          const serviceTypeId = item.additional?.service_type_id || item.service_type_id;
+          const currencyId = item.additional?.currency_id || item.currency_id;
+          if (serviceTypeId) serviceTypeIds.add(serviceTypeId);
+          if (currencyId) currencyIds.add(currencyId);
+        });
+
+        featuresRaw?.forEach((item: any) => {
+          const featureId = item.additional?.pet_service_feature_id || item.pet_service_feature_id;
+          if (featureId) featureIds.add(featureId);
+        });
+
+        // Load only needed records in parallel
+        const lookupPromises: Promise<[string, string, any]>[] = [];
+
+        serviceTypeIds.forEach(id => {
+          lookupPromises.push(
+            dictionaryStore.getRecordById("pet_service", id)
+              .then(record => ["serviceType", id, record] as [string, string, any])
+          );
+        });
+
+        currencyIds.forEach(id => {
+          lookupPromises.push(
+            dictionaryStore.getRecordById("currency", id)
+              .then(record => ["currency", id, record] as [string, string, any])
+          );
+        });
+
+        featureIds.forEach(id => {
+          lookupPromises.push(
+            dictionaryStore.getRecordById("pet_service_feature", id)
+              .then(record => ["feature", id, record] as [string, string, any])
+          );
+        });
+
+        const results = await Promise.all(lookupPromises);
+
+        // Build maps from results
+        const newServiceTypesMap = new Map<string, any>();
+        const newCurrencyMap = new Map<string, any>();
+        const newFeaturesMap = new Map<string, any>();
+
+        results.forEach(([type, id, record]) => {
+          if (!record) return;
+          if (type === "serviceType") newServiceTypesMap.set(id, record);
+          else if (type === "currency") newCurrencyMap.set(id, record);
+          else if (type === "feature") newFeaturesMap.set(id, record);
+        });
+
+        setServiceTypesMap(newServiceTypesMap);
+        setCurrencyMap(newCurrencyMap);
+        setFeaturesMap(newFeaturesMap);
+      } catch (error) {
+        console.error("[PetServicesTab] Failed to load lookups:", error);
+      } finally {
+        setLookupsLoading(false);
+      }
+    }
+
+    loadLookupsByIds();
+  }, [servicesRaw, featuresRaw, servicesLoading, featuresLoading]);
+
   // Transform raw services data to UI format with dictionary merge
   // Filter out "Children for sale" - it's displayed separately with actual children cards
   const services = useMemo<PetService[]>(() => {
-    if (!servicesRaw || servicesRaw.length === 0 || dictsLoading) return [];
+    if (!servicesRaw || servicesRaw.length === 0 || lookupsLoading) return [];
 
     return servicesRaw
       .map((item: any, index: number) => {
@@ -186,21 +231,21 @@ export function PetServicesTab({
         };
       })
       .filter((service) => service.serviceTypeName.toLowerCase() !== "children for sale");
-  }, [servicesRaw, serviceTypesMap, currencyMap, dictsLoading]);
+  }, [servicesRaw, serviceTypesMap, currencyMap, lookupsLoading]);
 
   // Check if pet has "Children for sale" service enabled
   const hasChildrenForSaleService = useMemo(() => {
-    if (!servicesRaw || servicesRaw.length === 0 || dictsLoading) return false;
+    if (!servicesRaw || servicesRaw.length === 0 || lookupsLoading) return false;
     return servicesRaw.some((item: any) => {
       const serviceTypeId = item.additional?.service_type_id || item.service_type_id;
       const serviceType = serviceTypesMap.get(serviceTypeId);
       return serviceType?.name?.toLowerCase() === "children for sale";
     });
-  }, [servicesRaw, serviceTypesMap, dictsLoading]);
+  }, [servicesRaw, serviceTypesMap, lookupsLoading]);
 
   // Transform raw features data to UI format with dictionary merge
   const features = useMemo<ServiceFeature[]>(() => {
-    if (!featuresRaw || featuresRaw.length === 0 || dictsLoading) return [];
+    if (!featuresRaw || featuresRaw.length === 0 || lookupsLoading) return [];
 
     return featuresRaw.map((item: any) => {
       const featureId = item.additional?.pet_service_feature_id || item.pet_service_feature_id;
@@ -211,7 +256,7 @@ export function PetServicesTab({
         name: feature?.name || "Unknown",
       };
     });
-  }, [featuresRaw, featuresMap, dictsLoading]);
+  }, [featuresRaw, featuresMap, lookupsLoading]);
 
   // TODO: Load children for sale when hasChildrenForSaleService is true
   // Need to query pet's children with available_for_sale = true
@@ -224,7 +269,7 @@ export function PetServicesTab({
   // Determine label for the other parent based on current pet's sex
   const anotherParentRole = petSexCode === "male" ? "Mother" : "Father";
 
-  const isLoading = servicesLoading || featuresLoading || dictsLoading;
+  const isLoading = servicesLoading || featuresLoading || lookupsLoading;
 
   // Report count after data loads
   useEffect(() => {
