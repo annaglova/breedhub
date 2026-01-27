@@ -1,29 +1,19 @@
 import { useSelectedEntity } from "@/contexts/SpaceContext";
-import { spaceStore, useTabData, dictionaryStore } from "@breedhub/rxdb-store";
+import { spaceStore, useTabData } from "@breedhub/rxdb-store";
 import type { DataSourceConfig } from "@breedhub/rxdb-store";
 import { useSignals } from "@preact/signals-react/runtime";
 import { cn } from "@ui/lib/utils";
 import { Loader2 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
 
 /**
  * Pet identifier (microchip, registration, etc.)
  */
 interface PetIdentifier {
   id: string;
-  typeId: string;
   typeName: string;
   value: string;
 }
-
-// Default dataSource config for identifiers
-const DEFAULT_IDENTIFIERS_DATASOURCE: DataSourceConfig = {
-  type: "child",
-  childTable: {
-    table: "pet_identifier",
-    parentField: "pet_id",
-  },
-};
 
 interface PetIdentifiersTabProps {
   onLoadedCount?: (count: number) => void;
@@ -37,11 +27,11 @@ interface PetIdentifiersTabProps {
  * - Identifier type name
  * - Identifier value
  *
- * Data flow (Pattern B - Child Records + Lookups):
- * 1. Load child records via useTabData (pet_identifier)
- * 2. Extract unique pet_identifier_type_id values
- * 3. Load only needed types via dictionaryStore.getRecordById
- * 4. Merge and render
+ * Data flow:
+ * - Uses VIEW pet_identifier_with_type which:
+ *   - JOINs pet_identifier with pet_identifier_type
+ *   - Filters by is_public = true (hides private/parsing data)
+ *   - Includes type_name directly
  *
  * Based on Angular: pet-identifiers.component.ts
  */
@@ -55,93 +45,27 @@ export function PetIdentifiersTab({
   const petId = selectedEntity?.id;
   const isFullscreen = spaceStore.isFullscreen.value;
 
-  // Lookup map state
-  const [identifierTypesMap, setIdentifierTypesMap] = useState<Map<string, any>>(new Map());
-  const [lookupsLoading, setLookupsLoading] = useState(false);
-
-  // Load identifiers via useTabData
+  // Load identifiers via useTabData (VIEW includes type_name, no lookup needed)
   const {
     data: identifiersRaw,
-    isLoading: identifiersLoading,
-    error: identifiersError,
+    isLoading,
+    error,
   } = useTabData({
     parentId: petId,
-    dataSource: dataSource || DEFAULT_IDENTIFIERS_DATASOURCE,
-    enabled: !!petId,
+    dataSource: dataSource!,
+    enabled: !!dataSource && !!petId,
   });
-
-  // Load lookups by specific IDs from child records
-  useEffect(() => {
-    if (identifiersLoading) return;
-    if (!identifiersRaw?.length) {
-      setLookupsLoading(false);
-      return;
-    }
-
-    async function loadLookupsByIds() {
-      setLookupsLoading(true);
-
-      try {
-        // Ensure dictionaryStore is initialized
-        if (!dictionaryStore.initialized.value) {
-          await dictionaryStore.initialize();
-        }
-
-        // Extract unique type IDs from child records
-        const typeIds = new Set<string>();
-
-        identifiersRaw.forEach((item: any) => {
-          const typeId = item.additional?.pet_identifier_type_id || item.pet_identifier_type_id;
-          if (typeId) typeIds.add(typeId);
-        });
-
-        // Load only needed records in parallel
-        const lookupPromises: Promise<[string, any]>[] = [];
-
-        typeIds.forEach(id => {
-          lookupPromises.push(
-            dictionaryStore.getRecordById("pet_identifier_type", id)
-              .then(record => [id, record] as [string, any])
-          );
-        });
-
-        const results = await Promise.all(lookupPromises);
-
-        // Build map from results
-        const newTypesMap = new Map<string, any>();
-        results.forEach(([id, record]) => {
-          if (record) newTypesMap.set(id, record);
-        });
-
-        setIdentifierTypesMap(newTypesMap);
-      } catch (error) {
-        console.error("[PetIdentifiersTab] Failed to load lookups:", error);
-      } finally {
-        setLookupsLoading(false);
-      }
-    }
-
-    loadLookupsByIds();
-  }, [identifiersRaw, identifiersLoading]);
 
   // Transform raw data to UI format
   const identifiers = useMemo<PetIdentifier[]>(() => {
-    if (!identifiersRaw || identifiersRaw.length === 0 || lookupsLoading) return [];
+    if (!identifiersRaw || identifiersRaw.length === 0) return [];
 
-    return identifiersRaw.map((item: any) => {
-      const typeId = item.additional?.pet_identifier_type_id || item.pet_identifier_type_id;
-      const identifierType = identifierTypesMap.get(typeId);
-
-      return {
-        id: item.id,
-        typeId,
-        typeName: identifierType?.name || "Unknown",
-        value: item.additional?.value || item.value || "",
-      };
-    });
-  }, [identifiersRaw, identifierTypesMap, lookupsLoading]);
-
-  const isLoading = identifiersLoading || lookupsLoading;
+    return identifiersRaw.map((item: any) => ({
+      id: item.id,
+      typeName: item.type_name || item.additional?.type_name || "Unknown",
+      value: item.value || item.additional?.value || "",
+    }));
+  }, [identifiersRaw]);
 
   // Report count after data loads
   useEffect(() => {
@@ -149,6 +73,11 @@ export function PetIdentifiersTab({
       onLoadedCount(identifiers.length);
     }
   }, [isLoading, onLoadedCount, identifiers.length]);
+
+  // Don't render if no dataSource configured
+  if (!dataSource) {
+    return null;
+  }
 
   // Loading state
   if (isLoading) {
@@ -161,12 +90,12 @@ export function PetIdentifiersTab({
   }
 
   // Error state
-  if (identifiersError) {
+  if (error) {
     return (
       <div className="py-4 px-6">
         <div className="bg-red-50 border border-red-200 rounded-lg p-4">
           <p className="text-red-700 font-semibold">Failed to load identifiers</p>
-          <p className="text-red-600 text-sm mt-1">{identifiersError.message}</p>
+          <p className="text-red-600 text-sm mt-1">{error.message}</p>
         </div>
       </div>
     );

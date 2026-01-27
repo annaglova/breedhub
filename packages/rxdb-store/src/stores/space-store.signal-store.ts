@@ -3809,14 +3809,18 @@ class SpaceStore {
    *       'litter' -> 'pet' (if configured)
    */
   private getEntityTypeFromTableType(tableType: string): string | null {
+    // Normalize VIEW name first (remove _with_xxx suffix)
+    // e.g., 'pet_identifier_with_type' -> 'pet_identifier'
+    const normalizedTable = tableType.replace(/_with_\w+$/, '');
+
     // Check for "_in_breed", "_in_pet", "_in_kennel" patterns
-    if (tableType.includes('_in_breed') || tableType.includes('_breed')) {
+    if (normalizedTable.includes('_in_breed') || normalizedTable.includes('_breed')) {
       return 'breed';
     }
-    if (tableType.includes('_in_pet') || tableType.includes('_pet')) {
+    if (normalizedTable.includes('_in_pet') || normalizedTable.includes('_pet')) {
       return 'pet';
     }
-    if (tableType.includes('_in_kennel') || tableType.includes('_kennel')) {
+    if (normalizedTable.includes('_in_kennel') || normalizedTable.includes('_kennel')) {
       return 'kennel';
     }
 
@@ -3831,7 +3835,7 @@ class SpaceStore {
       // Add more mappings as needed
     };
 
-    return tableEntityMap[tableType] || null;
+    return tableEntityMap[normalizedTable] || null;
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
@@ -4217,6 +4221,19 @@ class SpaceStore {
       return { records: [], total: 0, hasMore: false, nextCursor: null };
     }
 
+    // Check for partition config in entity schema (e.g., pet partitioned by breed_id)
+    const entitySchema = this.entitySchemas.get(entityType);
+    const partitionConfig = entitySchema?.partition;
+    let partitionValue: string | undefined;
+
+    // If entity is partitioned, get partition key value from parent entity
+    if (partitionConfig) {
+      const parentEntity = await this.getById(entityType, parentId);
+      if (parentEntity) {
+        partitionValue = (parentEntity as any)[partitionConfig.keyField];
+      }
+    }
+
     console.log('[SpaceStore] loadChildViewDirect (Local-First):', {
       viewName,
       parentId,
@@ -4224,7 +4241,9 @@ class SpaceStore {
       entityType,
       limit,
       cursor: cursor ? '(set)' : null,
-      orderBy
+      orderBy,
+      partitionField: partitionConfig?.childFilterField,
+      partitionValue
     });
 
     // 📴 PREVENTIVE OFFLINE CHECK - use cached data
@@ -4272,6 +4291,12 @@ class SpaceStore {
         .from(viewName)
         .select('*')
         .eq(parentField, parentId);
+
+      // Add partition filter if configured (for partition pruning on partitioned tables)
+      if (partitionConfig && partitionValue) {
+        query = query.eq(partitionConfig.childFilterField, partitionValue);
+        console.log(`[SpaceStore] 🔧 Partition filter: ${partitionConfig.childFilterField} = ${partitionValue}`);
+      }
 
       // Apply cursor (keyset pagination)
       if (cursor) {
