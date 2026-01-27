@@ -11,18 +11,26 @@ import type { RxJsonSchema } from 'rxdb';
  * - pedigree_in_pet
  * - litter (pet as parent/offspring)
  * - pet_service_in_pet
+ * - pet_service_feature_in_pet
+ * - pet_identifier (microchips, registrations)
  * - media_in_pet
  *
  * Design pattern (same as BreedChildrenDocument):
- * - Core fields: id, tableType, parentId
+ * - Core fields: id, tableType, parentId, partitionId (optional)
  * - All table-specific fields stored in 'additional' JSON object
  * - Flexible schema without bloat from union of all possible fields
+ * - partitionId enables partition pruning for PostgreSQL queries
  */
 export interface PetChildrenDocument {
   // Core fields (required)
   id: string;
   tableType: string;
   parentId: string;  // pet_id reference
+
+  // Partition key (optional)
+  // For partitioned entities, stores the partition key value (e.g., breed_id for pet)
+  // This enables partition pruning when querying child tables
+  partitionId?: string;
 
   // Additional fields (optional JSON object)
   // Stores all table-specific fields like:
@@ -40,10 +48,10 @@ export interface PetChildrenDocument {
  * RxDB Schema for pet_children collection
  *
  * Design (same pattern as breed_children):
- * - Core fields: id, tableType, parentId, cachedAt
+ * - Core fields: id, tableType, parentId, partitionId, cachedAt
  * - All table-specific fields in 'additional' JSON object
  * - Indexed by [parentId, tableType] for efficient parent queries
- * - No indexing on additional fields (not needed for this pattern)
+ * - partitionId stores breed_id for partition pruning (pet table is partitioned)
  */
 export const petChildrenSchema: RxJsonSchema<PetChildrenDocument> = {
   version: 0,
@@ -68,13 +76,20 @@ export const petChildrenSchema: RxJsonSchema<PetChildrenDocument> = {
       maxLength: 36
     },
 
-    // 4. Additional fields (optional JSON object)
+    // 4. Partition key (optional)
+    // For partitioned entities like pet (partitioned by breed_id)
+    partitionId: {
+      type: 'string',
+      maxLength: 36
+    },
+
+    // 5. Additional fields (optional JSON object)
     // Stores all table-specific fields
     additional: {
       type: 'object'
     },
 
-    // 5. Cache timestamp for TTL
+    // 6. Cache timestamp for TTL
     cachedAt: {
       type: 'number',
       multipleOf: 1,

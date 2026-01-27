@@ -68,6 +68,26 @@ interface FieldConfig {
   component?: string;
 }
 
+/**
+ * Partition configuration for partitioned tables (e.g., pet partitioned by breed_id)
+ * When present, child table queries will include the partition filter field
+ */
+interface PartitionConfig {
+  /** Field name in the main entity (e.g., 'breed_id' for pet) */
+  keyField: string;
+  /** Corresponding field name in child tables (e.g., 'pet_breed_id') */
+  childFilterField: string;
+}
+
+/**
+ * Entity schema configuration (from entities container in app_config)
+ */
+interface EntitySchemaConfig {
+  entitySchemaName: string;
+  fields: Record<string, any>;
+  partition?: PartitionConfig;
+}
+
 // OrderBy configuration with tie-breaker support
 export interface OrderBy {
   field: string;
@@ -111,6 +131,9 @@ class SpaceStore {
   private entityStores = new Map<string, EntityStore<BusinessEntity>>();
   private entitySubscriptions = new Map<string, Subscription>();
   private spaceConfigs = new Map<string, SpaceConfig>();
+
+  // Entity schemas from app_config.entities (includes partition config)
+  private entitySchemas = new Map<string, EntitySchemaConfig>();
 
   // Child collections - lazy created on-demand
   private childCollections = new Map<string, RxCollection<any>>();
@@ -241,8 +264,8 @@ class SpaceStore {
    * Build entity schemas map from appConfig.entities
    * Key is entitySchemaName, value is the schema config
    */
-  private buildEntitySchemasMap(appConfig: any): Map<string, any> {
-    const entitySchemas = new Map<string, any>();
+  private buildEntitySchemasMap(appConfig: any): Map<string, EntitySchemaConfig> {
+    const entitySchemas = new Map<string, EntitySchemaConfig>();
 
     if (!appConfig?.entities) {
       console.warn('[SpaceStore] No entities found in app config');
@@ -318,8 +341,9 @@ class SpaceStore {
     const entityTypes: string[] = [];
     this.spaceConfigs.clear();
 
-    // Build entity schemas map from appConfig.entities
-    const entitySchemas = this.buildEntitySchemasMap(appConfig);
+    // Build entity schemas map from appConfig.entities and store as class property
+    this.entitySchemas = this.buildEntitySchemasMap(appConfig);
+    const entitySchemas = this.entitySchemas;
 
     // Iterate through workspaces
     Object.entries(appConfig.workspaces).forEach(([workspaceKey, workspace]: [string, any]) => {
@@ -3592,12 +3616,30 @@ class SpaceStore {
       // Determine the parent ID field name (e.g., 'breed_id' for breed children)
       const parentIdField = `${entityType}_id`;
 
+      // Check for partition config in entity schema
+      const entitySchema = this.entitySchemas.get(entityType);
+      const partitionConfig = entitySchema?.partition;
+      let partitionValue: string | undefined;
+
+      // If entity is partitioned, get partition key value from parent entity
+      if (partitionConfig) {
+        const parentEntity = await this.getEntityById(entityType, parentId);
+        if (parentEntity) {
+          partitionValue = parentEntity[partitionConfig.keyField];
+        }
+      }
+
       // Build Supabase query
       let query = supabase
         .from(tableType)
         .select('*')
         .eq(parentIdField, parentId)
         .limit(limit);
+
+      // Add partition filter if configured (for partition pruning)
+      if (partitionConfig && partitionValue) {
+        query = query.eq(partitionConfig.childFilterField, partitionValue);
+      }
 
       if (orderBy) {
         query = query.order(orderBy, { ascending: orderDirection === 'asc' });
@@ -3626,19 +3668,30 @@ class SpaceStore {
         // Build additional object with all non-core fields
         const additional: Record<string, any> = {};
         for (const [key, value] of Object.entries(rest)) {
-          // Skip the parent ID field (e.g., breed_id)
-          if (key !== parentIdField && value !== undefined && value !== null) {
+          // Skip the parent ID field (e.g., pet_id)
+          if (key === parentIdField) continue;
+          // Skip the partition filter field (e.g., pet_breed_id) - stored as top-level partitionId
+          if (partitionConfig && key === partitionConfig.childFilterField) continue;
+          if (value !== undefined && value !== null) {
             additional[key] = value;
           }
         }
 
-        return {
+        // Build record with optional partitionId for partitioned entities
+        const record: Record<string, any> = {
           id,
           tableType: normalizedTableType,
           parentId,
           additional: Object.keys(additional).length > 0 ? additional : undefined,
           cachedAt: Date.now()
         };
+
+        // Add partitionId as top-level field if entity is partitioned
+        if (partitionConfig && partitionValue) {
+          record.partitionId = partitionValue;
+        }
+
+        return record;
       });
 
       // Bulk upsert into RxDB collection (update if exists, insert if not)
