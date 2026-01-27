@@ -3774,6 +3774,7 @@ class SpaceStore {
       'breed_forecast': 'breed',
       'related_breed': 'breed',
       'litter': 'pet',
+      'pet_identifier': 'pet',
       // Add more mappings as needed
     };
 
