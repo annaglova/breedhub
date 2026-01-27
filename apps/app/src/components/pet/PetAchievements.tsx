@@ -1,5 +1,5 @@
 import type { DataSourceConfig } from "@breedhub/rxdb-store";
-import { useTabData } from "@breedhub/rxdb-store";
+import { dictionaryStore, useTabData } from "@breedhub/rxdb-store";
 import { Chip } from "@ui/components/chip";
 import {
   Tooltip,
@@ -16,6 +16,7 @@ interface PetTitle {
   name: string;
   countryCode: string;
   country: string;
+  rating?: number;
 }
 
 interface PetAchievementsProps {
@@ -32,7 +33,10 @@ interface PetAchievementsProps {
  * Based on Angular: libs/schema/domain/pet/lib/pet-titles/pet-titles.component.ts
  * Shows champion titles with country codes as chips with tooltips
  *
- * Data comes from title_in_pet_with_details VIEW via useTabData
+ * Uses Pattern B: Load child records + resolve lookups via dictionaryStore
+ * - title_in_pet child records (title_id, country_id)
+ * - title lookup (name, rating)
+ * - country lookup (name, code)
  */
 export function PetAchievements({
   entity,
@@ -40,6 +44,9 @@ export function PetAchievements({
   dataSource,
 }: PetAchievementsProps) {
   const [expanded, setExpanded] = useState(false);
+  const [titlesMap, setTitlesMap] = useState<Map<string, any>>(new Map());
+  const [countriesMap, setCountriesMap] = useState<Map<string, any>>(new Map());
+  const [lookupsLoading, setLookupsLoading] = useState(false);
 
   const petId = entity?.id;
 
@@ -48,29 +55,106 @@ export function PetAchievements({
     setExpanded(false);
   }, [petId]);
 
-  // Load titles via useTabData (config-driven, local-first)
-  const { data, isLoading } = useTabData({
+  // Load title_in_pet child records via useTabData (config-driven, local-first)
+  const { data: rawData, isLoading: dataLoading } = useTabData({
     parentId: petId,
     dataSource: dataSource!,
     enabled: !!dataSource && !!petId,
   });
 
-  // Transform VIEW data to component format
-  // Data from child_view is stored with fields in 'additional' object
-  const titles = useMemo<PetTitle[]>(() => {
-    if (!data || data.length === 0) return [];
+  // Load lookups by specific IDs from child records (Pattern B)
+  useEffect(() => {
+    if (dataLoading || !rawData?.length) {
+      setTitlesMap(new Map());
+      setCountriesMap(new Map());
+      return;
+    }
 
-    return data.map((item: any) => {
-      // Fields can be in 'additional' (RxDB cache) or at root level (direct Supabase)
-      const additional = item.additional || {};
+    async function loadLookupsByIds() {
+      setLookupsLoading(true);
+
+      // Ensure dictionaryStore is initialized
+      if (!dictionaryStore.initialized.value) {
+        await dictionaryStore.initialize();
+      }
+
+      // Extract unique IDs from child records
+      const titleIds = new Set<string>();
+      const countryIds = new Set<string>();
+
+      rawData.forEach((item: any) => {
+        const titleId = item.additional?.title_id || item.title_id;
+        const countryId = item.additional?.country_id || item.country_id;
+        if (titleId) titleIds.add(titleId);
+        if (countryId) countryIds.add(countryId);
+      });
+
+      // Load only needed records in parallel
+      const lookupPromises: Promise<[string, string, any]>[] = [];
+
+      titleIds.forEach((id) => {
+        lookupPromises.push(
+          dictionaryStore
+            .getRecordById("title", id)
+            .then((record) => ["title", id, record] as [string, string, any])
+        );
+      });
+
+      countryIds.forEach((id) => {
+        lookupPromises.push(
+          dictionaryStore
+            .getRecordById("country", id)
+            .then((record) => ["country", id, record] as [string, string, any])
+        );
+      });
+
+      const results = await Promise.all(lookupPromises);
+
+      // Build maps from results
+      const newTitlesMap = new Map<string, any>();
+      const newCountriesMap = new Map<string, any>();
+
+      results.forEach(([type, id, record]) => {
+        if (!record) return;
+        if (type === "title") newTitlesMap.set(id, record);
+        else if (type === "country") newCountriesMap.set(id, record);
+      });
+
+      setTitlesMap(newTitlesMap);
+      setCountriesMap(newCountriesMap);
+      setLookupsLoading(false);
+    }
+
+    loadLookupsByIds();
+  }, [rawData, dataLoading]);
+
+  // Transform and enrich data with lookups, then sort by rating
+  const titles = useMemo<PetTitle[]>(() => {
+    if (!rawData || rawData.length === 0) return [];
+
+    const enriched = rawData.map((item: any) => {
+      const titleId = item.additional?.title_id || item.title_id;
+      const countryId = item.additional?.country_id || item.country_id;
+      const title = titlesMap.get(titleId);
+      const country = countriesMap.get(countryId);
+
       return {
         id: item.id,
-        name: additional.title_name || item.title_name || "",
-        countryCode: additional.country_code || item.country_code || "",
-        country: additional.country_name || item.country_name || "",
+        name: title?.name || "",
+        countryCode: country?.code || "",
+        country: country?.name || "",
+        rating: title?.rating ?? 0,
       };
     });
-  }, [data]);
+
+    // Sort by rating (desc), then by name (asc)
+    return enriched.sort((a, b) => {
+      if (b.rating !== a.rating) return b.rating - a.rating;
+      return a.name.localeCompare(b.name);
+    });
+  }, [rawData, titlesMap, countriesMap]);
+
+  const isLoading = dataLoading || lookupsLoading;
 
   const isComponentMode = mode === "component";
   const displayCount = expanded ? titles.length : 5;
