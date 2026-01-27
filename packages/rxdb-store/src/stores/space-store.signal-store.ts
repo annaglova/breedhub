@@ -3623,9 +3623,9 @@ class SpaceStore {
 
       // If entity is partitioned, get partition key value from parent entity
       if (partitionConfig) {
-        const parentEntity = await this.getEntityById(entityType, parentId);
+        const parentEntity = await this.getById(entityType, parentId);
         if (parentEntity) {
-          partitionValue = parentEntity[partitionConfig.keyField];
+          partitionValue = (parentEntity as any)[partitionConfig.keyField];
         }
       }
 
