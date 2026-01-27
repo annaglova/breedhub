@@ -19,7 +19,7 @@ export interface OrderConfig {
 
 /**
  * Child table configuration
- * Used for types: child, child_with_dictionary, child_view
+ * Used for types: child, child_with_dictionary
  */
 export interface ChildTableConfig {
   /** Table name (or VIEW name for partitioned tables) */
@@ -94,9 +94,8 @@ export interface RpcConfig {
  * DataSource type determines loading strategy
  */
 export type DataSourceType =
-  | 'child'                 // Simple child table
+  | 'child'                 // Simple child table (auto-detects VIEWs by name)
   | 'child_with_dictionary' // Child + dictionary merge
-  | 'child_view'            // VIEW for partitioned tables
   | 'main_filtered'         // Main entity with filter
   | 'rpc';                  // Supabase RPC function
 
@@ -122,10 +121,10 @@ export type DataSourceType =
  * }
  * ```
  *
- * @example Child view (patrons with contact)
+ * @example Child view (patrons with contact) - auto-detected by `_with_` in table name
  * ```json
  * {
- *   "type": "child_view",
+ *   "type": "child",
  *   "childTable": {
  *     "table": "top_patron_in_breed_with_contact",
  *     "parentField": "breed_id",
@@ -139,7 +138,7 @@ export interface DataSourceConfig {
   /** Type determines loading strategy */
   type: DataSourceType;
 
-  /** Child table config (for child, child_with_dictionary, child_view) */
+  /** Child table config (for child, child_with_dictionary) */
   childTable?: ChildTableConfig;
 
   /** Dictionary config (for child_with_dictionary) */

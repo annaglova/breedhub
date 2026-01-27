@@ -89,17 +89,18 @@ describe('TabDataService', () => {
       expect(result).toEqual([{ id: '1' }]);
     });
 
-    it('should route to loadChildView for type: child_view', async () => {
+    it('should handle VIEW tables (with _with_ in name) via child type', async () => {
       vi.mocked(spaceStore.loadChildRecords).mockResolvedValue([{ id: '1' }]);
 
       const result = await tabDataService.loadTabData('parent-id', {
-        type: 'child_view',
+        type: 'child',
         childTable: {
           table: 'top_patron_in_breed_with_contact',
           parentField: 'breed_id',
         },
       });
 
+      // VIEWs are auto-detected by name pattern and handled by loadChild
       expect(spaceStore.loadChildRecords).toHaveBeenCalledWith(
         'parent-id',
         'top_patron_in_breed_with_contact',

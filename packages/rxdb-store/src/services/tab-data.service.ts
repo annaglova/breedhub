@@ -47,9 +47,6 @@ class TabDataService {
       case 'child':
         return this.loadChild(parentId, dataSource);
 
-      case 'child_view':
-        return this.loadChildView(parentId, dataSource);
-
       case 'child_with_dictionary':
         return this.loadChildWithDictionary(parentId, dataSource);
 
@@ -94,9 +91,6 @@ class TabDataService {
     switch (dataSource.type) {
       case 'child':
         return this.loadChildPaginated(parentId, dataSource, pagination);
-
-      case 'child_view':
-        return this.loadChildViewPaginated(parentId, dataSource, pagination);
 
       case 'child_with_dictionary':
         // Dictionary merge doesn't support pagination (needs all records for merge)
@@ -146,24 +140,11 @@ class TabDataService {
   }
 
   /**
-   * Type: child_view - VIEW for partitioned tables
+   * Type: child - with pagination (auto-detects VIEWs)
    *
-   * Same as child, but table is a VIEW with pre-joined data.
-   * VIEW handles JOINs at database level (for partitioned tables).
-   * Data flow: SpaceStore.loadChildRecords() → RxDB → return
-   */
-  private async loadChildView(
-    parentId: string,
-    dataSource: DataSourceConfig
-  ): Promise<any[]> {
-    // Implementation identical to child - VIEW is treated as regular table
-    return this.loadChild(parentId, dataSource);
-  }
-
-  /**
-   * Type: child - with ID-First pagination
-   *
-   * Uses SpaceStore.applyChildFilters() for proper cursor-based pagination.
+   * Auto-detects VIEWs by table name pattern (`_with_`) and uses appropriate strategy:
+   * - VIEWs: Direct keyset pagination (more efficient for JOINed VIEWs)
+   * - Regular tables: ID-First pagination via applyChildFilters()
    */
   private async loadChildPaginated(
     parentId: string,
@@ -177,79 +158,65 @@ class TabDataService {
       return { records: [], total: 0, hasMore: false, nextCursor: null };
     }
 
-    // Build OrderBy from config
+    const limit = pagination?.limit ?? config.limit ?? 30;
+    const cursor = pagination?.cursor ?? null;
+
+    // Auto-detect VIEW by name pattern (VIEWs have `_with_` in name)
+    const isView = config.table.includes('_with_');
+
+    if (isView) {
+      // VIEWs with JOINs are slow with `WHERE id IN (...)`.
+      // Use direct query with `WHERE parent_id = X` and cursor pagination.
+      const orderField = config.orderBy?.[0]?.field || 'placement';
+      const orderDirection = config.orderBy?.[0]?.direction || 'asc';
+
+      console.log('[TabDataService] loadChildPaginated (VIEW - direct keyset):', {
+        table: config.table,
+        parentId,
+        limit,
+        cursor,
+        orderField
+      });
+
+      return spaceStore.loadChildViewDirect(
+        parentId,
+        config.table,
+        config.parentField,
+        {
+          limit,
+          cursor,
+          orderBy: {
+            field: orderField,
+            direction: orderDirection,
+            tieBreaker: { field: 'id', direction: 'asc' }
+          }
+        }
+      );
+    }
+
+    // Regular tables: Use ID-First pagination
     const orderBy: OrderBy = {
       field: config.orderBy?.[0]?.field || 'id',
       direction: config.orderBy?.[0]?.direction || 'asc',
       tieBreaker: { field: 'id', direction: 'asc' }
     };
 
-    const finalLimit = pagination?.limit ?? config.limit ?? 30;
-    console.log('[TabDataService] loadChildPaginated:', {
-      paginationLimit: pagination?.limit,
-      configLimit: config.limit,
-      finalLimit,
-      cursor: pagination?.cursor
+    console.log('[TabDataService] loadChildPaginated (table - ID-First):', {
+      table: config.table,
+      parentId,
+      limit,
+      cursor,
+      orderBy: orderBy.field
     });
 
-    // Use unified ID-First loading
     return spaceStore.applyChildFilters(
       parentId,
       config.table,
       {}, // No additional filters
       {
-        limit: pagination?.limit ?? config.limit ?? 30,
-        cursor: pagination?.cursor ?? null,
-        orderBy,
-      }
-    );
-  }
-
-  /**
-   * Type: child_view - Direct keyset pagination (NOT ID-First)
-   *
-   * VIEWs with JOINs are slow with `WHERE id IN (...)`.
-   * Instead, use direct query with `WHERE parent_id = X` and cursor pagination.
-   * This is more efficient because VIEW is optimized for parent_id filtering.
-   */
-  private async loadChildViewPaginated(
-    parentId: string,
-    dataSource: DataSourceConfig,
-    pagination?: PaginationOptions
-  ): Promise<PaginatedResult<any>> {
-    const config = dataSource.childTable;
-
-    if (!config) {
-      console.error('[TabDataService] childTable config is required for type: child_view');
-      return { records: [], total: 0, hasMore: false, nextCursor: null };
-    }
-
-    const limit = pagination?.limit ?? config.limit ?? 30;
-    const cursor = pagination?.cursor ?? null;
-    const orderField = config.orderBy?.[0]?.field || 'placement';
-    const orderDirection = config.orderBy?.[0]?.direction || 'asc';
-
-    console.log('[TabDataService] loadChildViewPaginated (direct):', {
-      table: config.table,
-      parentId,
-      limit,
-      cursor,
-      orderField
-    });
-
-    // Direct query to VIEW (more efficient than ID-First for JOINed VIEWs)
-    return spaceStore.loadChildViewDirect(
-      parentId,
-      config.table,
-      config.parentField,
-      {
         limit,
         cursor,
-        orderBy: {
-          field: orderField,
-          direction: orderDirection,
-          tieBreaker: { field: 'id', direction: 'asc' }
-        }
+        orderBy,
       }
     );
   }
