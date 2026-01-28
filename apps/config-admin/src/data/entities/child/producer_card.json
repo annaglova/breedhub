@@ -180,8 +180,8 @@
         ]
       },
       "isForeignKey": true,
-      "referencedTable": "pet_manchester_terrier_toy",
-      "referencedFieldID": "breed_id",
+      "referencedTable": "pet_appenzell_cattle_dog",
+      "referencedFieldID": "id",
       "displayName": "Pet Breed",
       "placeholder": "Enter pet breed",
       "referencedFieldName": "name"
@@ -292,6 +292,6 @@
     "totalFields": 12,
     "systemFields": 5,
     "customFields": 7,
-    "generatedAt": "2025-12-23T10:56:00.290Z"
+    "generatedAt": "2026-01-28T13:07:44.788Z"
   }
 }

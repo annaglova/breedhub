@@ -463,6 +463,60 @@
       "placeholder": "Enter end date"
     },
     {
+      "id": "field_father_breed_id",
+      "name": "father_breed_id",
+      "fieldType": "uuid",
+      "component": "LookupInput",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 190,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "isForeignKey": true,
+      "referencedTable": "breed",
+      "referencedFieldID": "id",
+      "dataSource": "collection",
+      "displayName": "Father Breed",
+      "placeholder": "Enter father breed",
+      "referencedFieldName": "name"
+    },
+    {
+      "id": "field_mother_breed_id",
+      "name": "mother_breed_id",
+      "fieldType": "uuid",
+      "component": "LookupInput",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 200,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "isForeignKey": true,
+      "referencedTable": "breed",
+      "referencedFieldID": "id",
+      "dataSource": "collection",
+      "displayName": "Mother Breed",
+      "placeholder": "Enter mother breed",
+      "referencedFieldName": "name"
+    },
+    {
       "id": "field_id",
       "name": "id",
       "fieldType": "uuid",
@@ -471,7 +525,7 @@
       "isSystem": true,
       "isPrimaryKey": true,
       "isUnique": true,
-      "sortOrder": 190,
+      "sortOrder": 210,
       "permissions": {
         "read": [
           "*"
@@ -491,7 +545,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 200,
+      "sortOrder": 220,
       "permissions": {
         "read": [
           "*"
@@ -511,7 +565,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 210,
+      "sortOrder": 230,
       "permissions": {
         "read": [
           "*"
@@ -531,7 +585,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 220,
+      "sortOrder": 240,
       "permissions": {
         "read": [
           "*"
@@ -551,7 +605,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 230,
+      "sortOrder": 250,
       "permissions": {
         "read": [
           "*"
@@ -561,13 +615,33 @@
         ]
       },
       "displayName": "Updated By"
+    },
+    {
+      "id": "field_deleted",
+      "name": "deleted",
+      "fieldType": "boolean",
+      "component": "CheckboxInput",
+      "required": false,
+      "isSystem": true,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 260,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "system"
+        ]
+      },
+      "displayName": "Deleted"
     }
   ],
   "metadata": {
     "tableName": "litter",
-    "totalFields": 23,
-    "systemFields": 5,
-    "customFields": 18,
-    "generatedAt": "2025-12-23T10:53:56.817Z"
+    "totalFields": 26,
+    "systemFields": 6,
+    "customFields": 20,
+    "generatedAt": "2026-01-28T13:07:07.392Z"
   }
 }

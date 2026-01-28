@@ -117,7 +117,7 @@
       "id": "field_pet_id",
       "name": "pet_id",
       "fieldType": "uuid",
-      "component": "DropdownInput",
+      "component": "LookupInput",
       "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -133,8 +133,9 @@
         ]
       },
       "isForeignKey": true,
-      "referencedTable": "pet_manchester_terrier_toy",
-      "referencedFieldID": "breed_id",
+      "referencedTable": "pet",
+      "referencedFieldID": "id",
+      "dataSource": "collection",
       "displayName": "Pet",
       "placeholder": "Enter pet",
       "referencedFieldName": "name"
@@ -327,7 +328,7 @@
       "id": "field_redirect_id",
       "name": "redirect_id",
       "fieldType": "uuid",
-      "component": "LookupInput",
+      "component": "DropdownInput",
       "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -343,12 +344,11 @@
         ]
       },
       "isForeignKey": true,
-      "referencedTable": "public_data",
+      "referencedTable": "redirect",
       "referencedFieldID": "id",
-      "dataSource": "collection",
       "displayName": "Redirect",
       "placeholder": "Enter redirect",
-      "referencedFieldName": "name"
+      "referencedFieldName": "id"
     },
     {
       "id": "field_pet_type_id",
@@ -422,11 +422,11 @@
         ]
       },
       "isForeignKey": true,
-      "referencedTable": "title_in_pet",
+      "referencedTable": "pet_titles",
       "referencedFieldID": "id",
       "displayName": "Pet Titles",
       "placeholder": "Enter pet titles",
-      "referencedFieldName": "description"
+      "referencedFieldName": "id"
     },
     {
       "id": "field_has_owner",
@@ -471,11 +471,11 @@
         ]
       },
       "isForeignKey": true,
-      "referencedTable": "pet_manchester_terrier_toy",
-      "referencedFieldID": "breed_id",
+      "referencedTable": "pet_breed",
+      "referencedFieldID": "id",
       "displayName": "Pet Breed",
       "placeholder": "Enter pet breed",
-      "referencedFieldName": "name"
+      "referencedFieldName": "id"
     },
     {
       "id": "field_id",
@@ -484,8 +484,8 @@
       "component": "TextInput",
       "required": true,
       "isSystem": true,
-      "isPrimaryKey": true,
-      "isUnique": true,
+      "isPrimaryKey": false,
+      "isUnique": false,
       "sortOrder": 190,
       "permissions": {
         "read": [
@@ -583,6 +583,6 @@
     "totalFields": 23,
     "systemFields": 5,
     "customFields": 18,
-    "generatedAt": "2025-12-23T10:54:18.021Z"
+    "generatedAt": "2026-01-28T13:07:13.665Z"
   }
 }

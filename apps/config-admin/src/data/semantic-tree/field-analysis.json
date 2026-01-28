@@ -15339,11 +15339,11 @@
             ]
           },
           "isForeignKey": true,
-          "referencedTable": "raw_data_status",
+          "referencedTable": "status",
           "referencedFieldID": "id",
           "displayName": "Status",
           "placeholder": "Enter status",
-          "referencedFieldName": "name"
+          "referencedFieldName": "id"
         }
       },
       {
@@ -18473,7 +18473,7 @@
           "isSystem": true,
           "isPrimaryKey": true,
           "isUnique": true,
-          "sortOrder": 190,
+          "sortOrder": 210,
           "permissions": {
             "read": [
               "*"
@@ -18545,7 +18545,7 @@
           "isSystem": true,
           "isPrimaryKey": true,
           "isUnique": true,
-          "sortOrder": 480,
+          "sortOrder": 490,
           "permissions": {
             "read": [
               "*"
@@ -18663,8 +18663,8 @@
           "component": "TextInput",
           "required": true,
           "isSystem": true,
-          "isPrimaryKey": true,
-          "isUnique": true,
+          "isPrimaryKey": false,
+          "isUnique": false,
           "sortOrder": 190,
           "permissions": {
             "read": [
@@ -18711,8 +18711,8 @@
           "component": "TextInput",
           "required": true,
           "isSystem": true,
-          "isPrimaryKey": true,
-          "isUnique": true,
+          "isPrimaryKey": false,
+          "isUnique": false,
           "sortOrder": 180,
           "permissions": {
             "read": [
@@ -22551,8 +22551,8 @@
           "component": "TextInput",
           "required": true,
           "isSystem": true,
-          "isPrimaryKey": true,
-          "isUnique": true,
+          "isPrimaryKey": false,
+          "isUnique": false,
           "sortOrder": 110,
           "permissions": {
             "read": [
@@ -23249,7 +23249,7 @@
           "isSystem": true,
           "isPrimaryKey": true,
           "isUnique": true,
-          "sortOrder": 100,
+          "sortOrder": 110,
           "permissions": {
             "read": [
               "*"
@@ -23703,8 +23703,8 @@
           "component": "TextInput",
           "required": true,
           "isSystem": true,
-          "isPrimaryKey": true,
-          "isUnique": true,
+          "isPrimaryKey": false,
+          "isUnique": false,
           "sortOrder": 40,
           "permissions": {
             "read": [
@@ -24945,7 +24945,7 @@
           "isSystem": true,
           "isPrimaryKey": false,
           "isUnique": false,
-          "sortOrder": 200,
+          "sortOrder": 220,
           "permissions": {
             "read": [
               "*"
@@ -25017,7 +25017,7 @@
           "isSystem": true,
           "isPrimaryKey": false,
           "isUnique": false,
-          "sortOrder": 490,
+          "sortOrder": 500,
           "permissions": {
             "read": [
               "*"
@@ -29673,7 +29673,7 @@
           "isSystem": true,
           "isPrimaryKey": false,
           "isUnique": false,
-          "sortOrder": 110,
+          "sortOrder": 120,
           "permissions": {
             "read": [
               "*"
@@ -31369,7 +31369,7 @@
           "isSystem": true,
           "isPrimaryKey": false,
           "isUnique": false,
-          "sortOrder": 210,
+          "sortOrder": 230,
           "permissions": {
             "read": [
               "*"
@@ -31441,7 +31441,7 @@
           "isSystem": true,
           "isPrimaryKey": false,
           "isUnique": false,
-          "sortOrder": 500,
+          "sortOrder": 510,
           "permissions": {
             "read": [
               "*"
@@ -36097,7 +36097,7 @@
           "isSystem": true,
           "isPrimaryKey": false,
           "isUnique": false,
-          "sortOrder": 120,
+          "sortOrder": 130,
           "permissions": {
             "read": [
               "*"
@@ -37747,7 +37747,7 @@
           "isSystem": true,
           "isPrimaryKey": false,
           "isUnique": false,
-          "sortOrder": 220,
+          "sortOrder": 240,
           "permissions": {
             "read": [
               "*"
@@ -37819,7 +37819,7 @@
           "isSystem": true,
           "isPrimaryKey": false,
           "isUnique": false,
-          "sortOrder": 510,
+          "sortOrder": 520,
           "permissions": {
             "read": [
               "*"
@@ -42475,7 +42475,7 @@
           "isSystem": true,
           "isPrimaryKey": false,
           "isUnique": false,
-          "sortOrder": 130,
+          "sortOrder": 140,
           "permissions": {
             "read": [
               "*"
@@ -44171,7 +44171,7 @@
           "isSystem": true,
           "isPrimaryKey": false,
           "isUnique": false,
-          "sortOrder": 230,
+          "sortOrder": 250,
           "permissions": {
             "read": [
               "*"
@@ -44243,7 +44243,7 @@
           "isSystem": true,
           "isPrimaryKey": false,
           "isUnique": false,
-          "sortOrder": 520,
+          "sortOrder": 530,
           "permissions": {
             "read": [
               "*"
@@ -48899,7 +48899,7 @@
           "isSystem": true,
           "isPrimaryKey": false,
           "isUnique": false,
-          "sortOrder": 140,
+          "sortOrder": 150,
           "permissions": {
             "read": [
               "*"
@@ -50000,6 +50000,307 @@
       "isPrimaryKey": false,
       "isUnique": false,
       "displayName": "Updated By",
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "system"
+        ]
+      }
+    }
+  },
+  {
+    "key": "deleted",
+    "name": "deleted",
+    "occurrences": 11,
+    "entities": [
+      "account",
+      "breed",
+      "contact",
+      "litter",
+      "note",
+      "pet",
+      "project",
+      "title",
+      "title_in_pet",
+      "top_patron_in_breed",
+      "top_pet_in_breed"
+    ],
+    "variations": [
+      {
+        "entity": "account",
+        "category": "main",
+        "config": {
+          "id": "field_deleted",
+          "name": "deleted",
+          "fieldType": "boolean",
+          "component": "CheckboxInput",
+          "required": false,
+          "isSystem": true,
+          "isPrimaryKey": false,
+          "isUnique": false,
+          "sortOrder": 510,
+          "permissions": {
+            "read": [
+              "*"
+            ],
+            "write": [
+              "system"
+            ]
+          },
+          "displayName": "Deleted"
+        }
+      },
+      {
+        "entity": "breed",
+        "category": "main",
+        "config": {
+          "id": "field_deleted",
+          "name": "deleted",
+          "fieldType": "boolean",
+          "component": "CheckboxInput",
+          "required": false,
+          "isSystem": true,
+          "isPrimaryKey": false,
+          "isUnique": false,
+          "sortOrder": 290,
+          "permissions": {
+            "read": [
+              "*"
+            ],
+            "write": [
+              "system"
+            ]
+          },
+          "displayName": "Deleted"
+        }
+      },
+      {
+        "entity": "contact",
+        "category": "main",
+        "config": {
+          "id": "field_deleted",
+          "name": "deleted",
+          "fieldType": "boolean",
+          "component": "CheckboxInput",
+          "required": false,
+          "isSystem": true,
+          "isPrimaryKey": false,
+          "isUnique": false,
+          "sortOrder": 610,
+          "permissions": {
+            "read": [
+              "*"
+            ],
+            "write": [
+              "system"
+            ]
+          },
+          "displayName": "Deleted"
+        }
+      },
+      {
+        "entity": "litter",
+        "category": "main",
+        "config": {
+          "id": "field_deleted",
+          "name": "deleted",
+          "fieldType": "boolean",
+          "component": "CheckboxInput",
+          "required": false,
+          "isSystem": true,
+          "isPrimaryKey": false,
+          "isUnique": false,
+          "sortOrder": 260,
+          "permissions": {
+            "read": [
+              "*"
+            ],
+            "write": [
+              "system"
+            ]
+          },
+          "displayName": "Deleted"
+        }
+      },
+      {
+        "entity": "note",
+        "category": "main",
+        "config": {
+          "id": "field_deleted",
+          "name": "deleted",
+          "fieldType": "boolean",
+          "component": "CheckboxInput",
+          "required": false,
+          "isSystem": true,
+          "isPrimaryKey": false,
+          "isUnique": false,
+          "sortOrder": 200,
+          "permissions": {
+            "read": [
+              "*"
+            ],
+            "write": [
+              "system"
+            ]
+          },
+          "displayName": "Deleted"
+        }
+      },
+      {
+        "entity": "pet",
+        "category": "main",
+        "config": {
+          "id": "field_deleted",
+          "name": "deleted",
+          "fieldType": "boolean",
+          "component": "CheckboxInput",
+          "required": false,
+          "isSystem": true,
+          "isPrimaryKey": false,
+          "isUnique": false,
+          "sortOrder": 540,
+          "permissions": {
+            "read": [
+              "*"
+            ],
+            "write": [
+              "system"
+            ]
+          },
+          "displayName": "Deleted"
+        }
+      },
+      {
+        "entity": "project",
+        "category": "main",
+        "config": {
+          "id": "field_deleted",
+          "name": "deleted",
+          "fieldType": "boolean",
+          "component": "CheckboxInput",
+          "required": false,
+          "isSystem": true,
+          "isPrimaryKey": false,
+          "isUnique": false,
+          "sortOrder": 510,
+          "permissions": {
+            "read": [
+              "*"
+            ],
+            "write": [
+              "system"
+            ]
+          },
+          "displayName": "Deleted"
+        }
+      },
+      {
+        "entity": "title",
+        "category": "lookup",
+        "config": {
+          "id": "field_deleted",
+          "name": "deleted",
+          "fieldType": "boolean",
+          "component": "CheckboxInput",
+          "required": false,
+          "isSystem": true,
+          "isPrimaryKey": false,
+          "isUnique": false,
+          "sortOrder": 120,
+          "permissions": {
+            "read": [
+              "*"
+            ],
+            "write": [
+              "system"
+            ]
+          },
+          "displayName": "Deleted"
+        }
+      },
+      {
+        "entity": "title_in_pet",
+        "category": "child",
+        "config": {
+          "id": "field_deleted",
+          "name": "deleted",
+          "fieldType": "boolean",
+          "component": "CheckboxInput",
+          "required": false,
+          "isSystem": true,
+          "isPrimaryKey": false,
+          "isUnique": false,
+          "sortOrder": 150,
+          "permissions": {
+            "read": [
+              "*"
+            ],
+            "write": [
+              "system"
+            ]
+          },
+          "displayName": "Deleted"
+        }
+      },
+      {
+        "entity": "top_patron_in_breed",
+        "category": "child",
+        "config": {
+          "id": "field_deleted",
+          "name": "deleted",
+          "fieldType": "boolean",
+          "component": "CheckboxInput",
+          "required": false,
+          "isSystem": true,
+          "isPrimaryKey": false,
+          "isUnique": false,
+          "sortOrder": 90,
+          "permissions": {
+            "read": [
+              "*"
+            ],
+            "write": [
+              "system"
+            ]
+          },
+          "displayName": "Deleted"
+        }
+      },
+      {
+        "entity": "top_pet_in_breed",
+        "category": "child",
+        "config": {
+          "id": "field_deleted",
+          "name": "deleted",
+          "fieldType": "boolean",
+          "component": "CheckboxInput",
+          "required": false,
+          "isSystem": true,
+          "isPrimaryKey": false,
+          "isUnique": false,
+          "sortOrder": 100,
+          "permissions": {
+            "read": [
+              "*"
+            ],
+            "write": [
+              "system"
+            ]
+          },
+          "displayName": "Deleted"
+        }
+      }
+    ],
+    "commonProps": {
+      "fieldType": "boolean",
+      "component": "CheckboxInput",
+      "required": false,
+      "isSystem": true,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "displayName": "Deleted",
       "permissions": {
         "read": [
           "*"
@@ -56585,7 +56886,7 @@
           "id": "field_pet_id",
           "name": "pet_id",
           "fieldType": "uuid",
-          "component": "DropdownInput",
+          "component": "LookupInput",
           "required": false,
           "isSystem": false,
           "isPrimaryKey": false,
@@ -56601,8 +56902,9 @@
             ]
           },
           "isForeignKey": true,
-          "referencedTable": "pet_manchester_terrier_toy",
-          "referencedFieldID": "breed_id",
+          "referencedTable": "pet",
+          "referencedFieldID": "id",
+          "dataSource": "collection",
           "displayName": "Pet",
           "placeholder": "Enter pet",
           "referencedFieldName": "name"
@@ -57649,7 +57951,7 @@
   {
     "key": "pet_breed_id",
     "name": "pet_breed_id",
-    "occurrences": 19,
+    "occurrences": 20,
     "entities": [
       "activity",
       "note",
@@ -57662,6 +57964,7 @@
       "note_test_record",
       "pet_additional_info",
       "pet_health_exam_result",
+      "pet_identifier",
       "pet_in_activity",
       "pet_in_project",
       "pet_lifecycle",
@@ -57695,7 +57998,7 @@
             ]
           },
           "isForeignKey": true,
-          "referencedTable": "pet_manchester_terrier_toy",
+          "referencedTable": "pet_tamaskan",
           "referencedFieldID": "breed_id",
           "displayName": "Pet Breed",
           "placeholder": "Enter pet breed",
@@ -57725,8 +58028,8 @@
             ]
           },
           "isForeignKey": true,
-          "referencedTable": "pet_manchester_terrier_toy",
-          "referencedFieldID": "breed_id",
+          "referencedTable": "pet_gordon_setter",
+          "referencedFieldID": "id",
           "displayName": "Pet Breed",
           "placeholder": "Enter pet breed",
           "referencedFieldName": "name"
@@ -57755,8 +58058,8 @@
             ]
           },
           "isForeignKey": true,
-          "referencedTable": "pet_manchester_terrier_toy",
-          "referencedFieldID": "breed_id",
+          "referencedTable": "pet_korthals_griffon",
+          "referencedFieldID": "id",
           "displayName": "Pet Breed",
           "placeholder": "Enter pet breed",
           "referencedFieldName": "name"
@@ -57785,8 +58088,8 @@
             ]
           },
           "isForeignKey": true,
-          "referencedTable": "pet_manchester_terrier_toy",
-          "referencedFieldID": "breed_id",
+          "referencedTable": "pet_spanish_alano",
+          "referencedFieldID": "id",
           "displayName": "Pet Breed",
           "placeholder": "Enter pet breed",
           "referencedFieldName": "name"
@@ -57815,11 +58118,11 @@
             ]
           },
           "isForeignKey": true,
-          "referencedTable": "pet_manchester_terrier_toy",
-          "referencedFieldID": "breed_id",
+          "referencedTable": "pet_breed",
+          "referencedFieldID": "id",
           "displayName": "Pet Breed",
           "placeholder": "Enter pet breed",
-          "referencedFieldName": "name"
+          "referencedFieldName": "id"
         }
       },
       {
@@ -57875,8 +58178,8 @@
             ]
           },
           "isForeignKey": true,
-          "referencedTable": "pet_manchester_terrier_toy",
-          "referencedFieldID": "breed_id",
+          "referencedTable": "pet_appenzell_cattle_dog",
+          "referencedFieldID": "id",
           "displayName": "Pet Breed",
           "placeholder": "Enter pet breed",
           "referencedFieldName": "name"
@@ -57905,7 +58208,7 @@
             ]
           },
           "isForeignKey": true,
-          "referencedTable": "pet_manchester_terrier_toy",
+          "referencedTable": "pet_appenzell_cattle_dog",
           "referencedFieldID": "breed_id",
           "displayName": "Pet Breed",
           "placeholder": "Enter pet breed",
@@ -57935,8 +58238,8 @@
             ]
           },
           "isForeignKey": true,
-          "referencedTable": "pet_manchester_terrier_toy",
-          "referencedFieldID": "breed_id",
+          "referencedTable": "pet_appenzell_cattle_dog",
+          "referencedFieldID": "id",
           "displayName": "Pet Breed",
           "placeholder": "Enter pet breed",
           "referencedFieldName": "name"
@@ -57965,8 +58268,8 @@
             ]
           },
           "isForeignKey": true,
-          "referencedTable": "pet_manchester_terrier_toy",
-          "referencedFieldID": "breed_id",
+          "referencedTable": "pet_appenzell_cattle_dog",
+          "referencedFieldID": "id",
           "displayName": "Pet Breed",
           "placeholder": "Enter pet breed",
           "referencedFieldName": "name"
@@ -57995,11 +58298,41 @@
             ]
           },
           "isForeignKey": true,
-          "referencedTable": "pet_manchester_terrier_toy",
+          "referencedTable": "pet_korthals_griffon",
           "referencedFieldID": "breed_id",
           "displayName": "Pet Breed",
           "placeholder": "Enter pet breed",
           "referencedFieldName": "name"
+        }
+      },
+      {
+        "entity": "pet_identifier",
+        "category": "child",
+        "config": {
+          "id": "field_pet_breed_id",
+          "name": "pet_breed_id",
+          "fieldType": "uuid",
+          "component": "DropdownInput",
+          "required": false,
+          "isSystem": false,
+          "isPrimaryKey": false,
+          "isUnique": false,
+          "sortOrder": 100,
+          "permissions": {
+            "read": [
+              "*"
+            ],
+            "write": [
+              "admin",
+              "editor"
+            ]
+          },
+          "isForeignKey": true,
+          "referencedTable": "pet_breed",
+          "referencedFieldID": "id",
+          "displayName": "Pet Breed",
+          "placeholder": "Enter pet breed",
+          "referencedFieldName": "id"
         }
       },
       {
@@ -58025,7 +58358,7 @@
             ]
           },
           "isForeignKey": true,
-          "referencedTable": "pet_manchester_terrier_toy",
+          "referencedTable": "pet_spanish_alano",
           "referencedFieldID": "breed_id",
           "displayName": "Pet Breed",
           "placeholder": "Enter pet breed",
@@ -58055,8 +58388,8 @@
             ]
           },
           "isForeignKey": true,
-          "referencedTable": "pet_manchester_terrier_toy",
-          "referencedFieldID": "breed_id",
+          "referencedTable": "pet_spanish_alano",
+          "referencedFieldID": "id",
           "displayName": "Pet Breed",
           "placeholder": "Enter pet breed",
           "referencedFieldName": "name"
@@ -58085,7 +58418,7 @@
             ]
           },
           "isForeignKey": true,
-          "referencedTable": "pet_manchester_terrier_toy",
+          "referencedTable": "pet_korthals_griffon",
           "referencedFieldID": "breed_id",
           "displayName": "Pet Breed",
           "placeholder": "Enter pet breed",
@@ -58115,7 +58448,7 @@
             ]
           },
           "isForeignKey": true,
-          "referencedTable": "pet_manchester_terrier_toy",
+          "referencedTable": "pet_korthals_griffon",
           "referencedFieldID": "breed_id",
           "displayName": "Pet Breed",
           "placeholder": "Enter pet breed",
@@ -58145,8 +58478,8 @@
             ]
           },
           "isForeignKey": true,
-          "referencedTable": "pet_manchester_terrier_toy",
-          "referencedFieldID": "breed_id",
+          "referencedTable": "pet_appenzell_cattle_dog",
+          "referencedFieldID": "id",
           "displayName": "Pet Breed",
           "placeholder": "Enter pet breed",
           "referencedFieldName": "name"
@@ -58175,7 +58508,7 @@
             ]
           },
           "isForeignKey": true,
-          "referencedTable": "pet_manchester_terrier_toy",
+          "referencedTable": "pet_korthals_griffon",
           "referencedFieldID": "breed_id",
           "displayName": "Pet Breed",
           "placeholder": "Enter pet breed",
@@ -58205,8 +58538,8 @@
             ]
           },
           "isForeignKey": true,
-          "referencedTable": "pet_manchester_terrier_toy",
-          "referencedFieldID": "breed_id",
+          "referencedTable": "pet_appenzell_cattle_dog",
+          "referencedFieldID": "id",
           "displayName": "Pet Breed",
           "placeholder": "Enter pet breed",
           "referencedFieldName": "name"
@@ -58235,7 +58568,7 @@
             ]
           },
           "isForeignKey": true,
-          "referencedTable": "pet_manchester_terrier_toy",
+          "referencedTable": "pet_korthals_griffon",
           "referencedFieldID": "breed_id",
           "displayName": "Pet Breed",
           "placeholder": "Enter pet breed",
@@ -60209,132 +60542,6 @@
       }
     ],
     "commonProps": null
-  },
-  {
-    "key": "deleted",
-    "name": "deleted",
-    "occurrences": 4,
-    "entities": [
-      "breed",
-      "pet",
-      "top_patron_in_breed",
-      "top_pet_in_breed"
-    ],
-    "variations": [
-      {
-        "entity": "breed",
-        "category": "main",
-        "config": {
-          "id": "field_deleted",
-          "name": "deleted",
-          "fieldType": "boolean",
-          "component": "CheckboxInput",
-          "required": false,
-          "isSystem": true,
-          "isPrimaryKey": false,
-          "isUnique": false,
-          "sortOrder": 290,
-          "permissions": {
-            "read": [
-              "*"
-            ],
-            "write": [
-              "system"
-            ]
-          },
-          "displayName": "Deleted"
-        }
-      },
-      {
-        "entity": "pet",
-        "category": "main",
-        "config": {
-          "id": "field_deleted",
-          "name": "deleted",
-          "fieldType": "boolean",
-          "component": "CheckboxInput",
-          "required": false,
-          "isSystem": true,
-          "isPrimaryKey": false,
-          "isUnique": false,
-          "sortOrder": 530,
-          "permissions": {
-            "read": [
-              "*"
-            ],
-            "write": [
-              "system"
-            ]
-          },
-          "displayName": "Deleted"
-        }
-      },
-      {
-        "entity": "top_patron_in_breed",
-        "category": "child",
-        "config": {
-          "id": "field_deleted",
-          "name": "deleted",
-          "fieldType": "boolean",
-          "component": "CheckboxInput",
-          "required": false,
-          "isSystem": true,
-          "isPrimaryKey": false,
-          "isUnique": false,
-          "sortOrder": 90,
-          "permissions": {
-            "read": [
-              "*"
-            ],
-            "write": [
-              "system"
-            ]
-          },
-          "displayName": "Deleted"
-        }
-      },
-      {
-        "entity": "top_pet_in_breed",
-        "category": "child",
-        "config": {
-          "id": "field_deleted",
-          "name": "deleted",
-          "fieldType": "boolean",
-          "component": "CheckboxInput",
-          "required": false,
-          "isSystem": true,
-          "isPrimaryKey": false,
-          "isUnique": false,
-          "sortOrder": 100,
-          "permissions": {
-            "read": [
-              "*"
-            ],
-            "write": [
-              "system"
-            ]
-          },
-          "displayName": "Deleted"
-        }
-      }
-    ],
-    "commonProps": {
-      "fieldType": "boolean",
-      "component": "CheckboxInput",
-      "required": false,
-      "isSystem": true,
-      "isPrimaryKey": false,
-      "isUnique": false,
-      "displayName": "Deleted",
-      "permissions": {
-        "read": [
-          "*"
-        ],
-        "write": [
-          "system"
-        ]
-      }
-    }
   },
   {
     "key": "number",
@@ -68310,8 +68517,8 @@
             ]
           },
           "isForeignKey": true,
-          "referencedTable": "pet_manchester_terrier_toy",
-          "referencedFieldID": "breed_id",
+          "referencedTable": "pet_spanish_alano",
+          "referencedFieldID": "id",
           "displayName": "Mother",
           "placeholder": "Enter mother",
           "referencedFieldName": "name"
@@ -69069,6 +69276,246 @@
       "isPrimaryKey": false,
       "isUnique": false,
       "displayName": "Is Public",
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      }
+    }
+  },
+  {
+    "key": "father_breed_id",
+    "name": "father_breed_id",
+    "occurrences": 3,
+    "entities": [
+      "litter",
+      "pet",
+      "pet_old"
+    ],
+    "variations": [
+      {
+        "entity": "litter",
+        "category": "main",
+        "config": {
+          "id": "field_father_breed_id",
+          "name": "father_breed_id",
+          "fieldType": "uuid",
+          "component": "LookupInput",
+          "required": false,
+          "isSystem": false,
+          "isPrimaryKey": false,
+          "isUnique": false,
+          "sortOrder": 190,
+          "permissions": {
+            "read": [
+              "*"
+            ],
+            "write": [
+              "admin",
+              "editor"
+            ]
+          },
+          "isForeignKey": true,
+          "referencedTable": "breed",
+          "referencedFieldID": "id",
+          "dataSource": "collection",
+          "displayName": "Father Breed",
+          "placeholder": "Enter father breed",
+          "referencedFieldName": "name"
+        }
+      },
+      {
+        "entity": "pet",
+        "category": "main",
+        "config": {
+          "id": "field_father_breed_id",
+          "name": "father_breed_id",
+          "fieldType": "uuid",
+          "component": "DropdownInput",
+          "required": false,
+          "isSystem": false,
+          "isPrimaryKey": false,
+          "isUnique": false,
+          "sortOrder": 430,
+          "permissions": {
+            "read": [
+              "*"
+            ],
+            "write": [
+              "admin",
+              "editor"
+            ]
+          },
+          "isForeignKey": true,
+          "referencedTable": "father_breed",
+          "referencedFieldID": "id",
+          "displayName": "Father Breed",
+          "placeholder": "Enter father breed",
+          "referencedFieldName": "id"
+        }
+      },
+      {
+        "entity": "pet_old",
+        "category": "child",
+        "config": {
+          "id": "field_father_breed_id",
+          "name": "father_breed_id",
+          "fieldType": "uuid",
+          "component": "DropdownInput",
+          "required": false,
+          "isSystem": false,
+          "isPrimaryKey": false,
+          "isUnique": false,
+          "sortOrder": 460,
+          "permissions": {
+            "read": [
+              "*"
+            ],
+            "write": [
+              "admin",
+              "editor"
+            ]
+          },
+          "isForeignKey": true,
+          "referencedTable": "father_breed",
+          "referencedFieldID": "id",
+          "displayName": "Father Breed",
+          "placeholder": "Enter father breed",
+          "referencedFieldName": "id"
+        }
+      }
+    ],
+    "commonProps": {
+      "fieldType": "uuid",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "displayName": "Father Breed",
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      }
+    }
+  },
+  {
+    "key": "mother_breed_id",
+    "name": "mother_breed_id",
+    "occurrences": 3,
+    "entities": [
+      "litter",
+      "pet",
+      "pet_old"
+    ],
+    "variations": [
+      {
+        "entity": "litter",
+        "category": "main",
+        "config": {
+          "id": "field_mother_breed_id",
+          "name": "mother_breed_id",
+          "fieldType": "uuid",
+          "component": "LookupInput",
+          "required": false,
+          "isSystem": false,
+          "isPrimaryKey": false,
+          "isUnique": false,
+          "sortOrder": 200,
+          "permissions": {
+            "read": [
+              "*"
+            ],
+            "write": [
+              "admin",
+              "editor"
+            ]
+          },
+          "isForeignKey": true,
+          "referencedTable": "breed",
+          "referencedFieldID": "id",
+          "dataSource": "collection",
+          "displayName": "Mother Breed",
+          "placeholder": "Enter mother breed",
+          "referencedFieldName": "name"
+        }
+      },
+      {
+        "entity": "pet",
+        "category": "main",
+        "config": {
+          "id": "field_mother_breed_id",
+          "name": "mother_breed_id",
+          "fieldType": "uuid",
+          "component": "DropdownInput",
+          "required": false,
+          "isSystem": false,
+          "isPrimaryKey": false,
+          "isUnique": false,
+          "sortOrder": 420,
+          "permissions": {
+            "read": [
+              "*"
+            ],
+            "write": [
+              "admin",
+              "editor"
+            ]
+          },
+          "isForeignKey": true,
+          "referencedTable": "mother_breed",
+          "referencedFieldID": "id",
+          "displayName": "Mother Breed",
+          "placeholder": "Enter mother breed",
+          "referencedFieldName": "id"
+        }
+      },
+      {
+        "entity": "pet_old",
+        "category": "child",
+        "config": {
+          "id": "field_mother_breed_id",
+          "name": "mother_breed_id",
+          "fieldType": "uuid",
+          "component": "DropdownInput",
+          "required": false,
+          "isSystem": false,
+          "isPrimaryKey": false,
+          "isUnique": false,
+          "sortOrder": 450,
+          "permissions": {
+            "read": [
+              "*"
+            ],
+            "write": [
+              "admin",
+              "editor"
+            ]
+          },
+          "isForeignKey": true,
+          "referencedTable": "mother_breed",
+          "referencedFieldID": "id",
+          "displayName": "Mother Breed",
+          "placeholder": "Enter mother breed",
+          "referencedFieldName": "id"
+        }
+      }
+    ],
+    "commonProps": {
+      "fieldType": "uuid",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "displayName": "Mother Breed",
       "permissions": {
         "read": [
           "*"
@@ -70372,11 +70819,11 @@
             ]
           },
           "isForeignKey": true,
-          "referencedTable": "pet_size",
+          "referencedTable": "size",
           "referencedFieldID": "id",
           "displayName": "Size",
           "placeholder": "Enter size",
-          "referencedFieldName": "name"
+          "referencedFieldName": "id"
         }
       },
       {
@@ -70709,11 +71156,11 @@
             ]
           },
           "isForeignKey": true,
-          "referencedTable": "country",
+          "referencedTable": "country_of_birth",
           "referencedFieldID": "id",
           "displayName": "Country Of Birth",
           "placeholder": "Enter country of birth",
-          "referencedFieldName": "name"
+          "referencedFieldName": "id"
         }
       },
       {
@@ -71045,7 +71492,7 @@
           "id": "field_owner_kennel_id",
           "name": "owner_kennel_id",
           "fieldType": "uuid",
-          "component": "LookupInput",
+          "component": "DropdownInput",
           "required": false,
           "isSystem": false,
           "isPrimaryKey": false,
@@ -71061,12 +71508,11 @@
             ]
           },
           "isForeignKey": true,
-          "referencedTable": "account",
+          "referencedTable": "owner_kennel",
           "referencedFieldID": "id",
-          "dataSource": "collection",
           "displayName": "Owner Kennel",
           "placeholder": "Enter owner kennel",
-          "referencedFieldName": "name"
+          "referencedFieldName": "id"
         }
       },
       {
@@ -71102,6 +71548,7 @@
     ],
     "commonProps": {
       "fieldType": "uuid",
+      "component": "DropdownInput",
       "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -71543,11 +71990,11 @@
             ]
           },
           "isForeignKey": true,
-          "referencedTable": "country",
+          "referencedTable": "country_of_stay",
           "referencedFieldID": "id",
           "displayName": "Country Of Stay",
           "placeholder": "Enter country of stay",
-          "referencedFieldName": "name"
+          "referencedFieldName": "id"
         }
       },
       {
@@ -72038,184 +72485,6 @@
     }
   },
   {
-    "key": "mother_breed_id",
-    "name": "mother_breed_id",
-    "occurrences": 2,
-    "entities": [
-      "pet",
-      "pet_old"
-    ],
-    "variations": [
-      {
-        "entity": "pet",
-        "category": "main",
-        "config": {
-          "id": "field_mother_breed_id",
-          "name": "mother_breed_id",
-          "fieldType": "uuid",
-          "component": "DropdownInput",
-          "required": false,
-          "isSystem": false,
-          "isPrimaryKey": false,
-          "isUnique": false,
-          "sortOrder": 420,
-          "permissions": {
-            "read": [
-              "*"
-            ],
-            "write": [
-              "admin",
-              "editor"
-            ]
-          },
-          "isForeignKey": true,
-          "referencedTable": "pet_manchester_terrier_toy",
-          "referencedFieldID": "breed_id",
-          "displayName": "Mother Breed",
-          "placeholder": "Enter mother breed",
-          "referencedFieldName": "name"
-        }
-      },
-      {
-        "entity": "pet_old",
-        "category": "child",
-        "config": {
-          "id": "field_mother_breed_id",
-          "name": "mother_breed_id",
-          "fieldType": "uuid",
-          "component": "DropdownInput",
-          "required": false,
-          "isSystem": false,
-          "isPrimaryKey": false,
-          "isUnique": false,
-          "sortOrder": 450,
-          "permissions": {
-            "read": [
-              "*"
-            ],
-            "write": [
-              "admin",
-              "editor"
-            ]
-          },
-          "isForeignKey": true,
-          "referencedTable": "mother_breed",
-          "referencedFieldID": "id",
-          "displayName": "Mother Breed",
-          "placeholder": "Enter mother breed",
-          "referencedFieldName": "id"
-        }
-      }
-    ],
-    "commonProps": {
-      "fieldType": "uuid",
-      "component": "DropdownInput",
-      "required": false,
-      "isSystem": false,
-      "isPrimaryKey": false,
-      "isUnique": false,
-      "displayName": "Mother Breed",
-      "permissions": {
-        "read": [
-          "*"
-        ],
-        "write": [
-          "admin",
-          "editor"
-        ]
-      }
-    }
-  },
-  {
-    "key": "father_breed_id",
-    "name": "father_breed_id",
-    "occurrences": 2,
-    "entities": [
-      "pet",
-      "pet_old"
-    ],
-    "variations": [
-      {
-        "entity": "pet",
-        "category": "main",
-        "config": {
-          "id": "field_father_breed_id",
-          "name": "father_breed_id",
-          "fieldType": "uuid",
-          "component": "LookupInput",
-          "required": false,
-          "isSystem": false,
-          "isPrimaryKey": false,
-          "isUnique": false,
-          "sortOrder": 430,
-          "permissions": {
-            "read": [
-              "*"
-            ],
-            "write": [
-              "admin",
-              "editor"
-            ]
-          },
-          "isForeignKey": true,
-          "referencedTable": "pet",
-          "referencedFieldID": "breed_id",
-          "dataSource": "collection",
-          "displayName": "Father Breed",
-          "placeholder": "Enter father breed",
-          "referencedFieldName": "name"
-        }
-      },
-      {
-        "entity": "pet_old",
-        "category": "child",
-        "config": {
-          "id": "field_father_breed_id",
-          "name": "father_breed_id",
-          "fieldType": "uuid",
-          "component": "DropdownInput",
-          "required": false,
-          "isSystem": false,
-          "isPrimaryKey": false,
-          "isUnique": false,
-          "sortOrder": 460,
-          "permissions": {
-            "read": [
-              "*"
-            ],
-            "write": [
-              "admin",
-              "editor"
-            ]
-          },
-          "isForeignKey": true,
-          "referencedTable": "father_breed",
-          "referencedFieldID": "id",
-          "displayName": "Father Breed",
-          "placeholder": "Enter father breed",
-          "referencedFieldName": "id"
-        }
-      }
-    ],
-    "commonProps": {
-      "fieldType": "uuid",
-      "required": false,
-      "isSystem": false,
-      "isPrimaryKey": false,
-      "isUnique": false,
-      "displayName": "Father Breed",
-      "permissions": {
-        "read": [
-          "*"
-        ],
-        "write": [
-          "admin",
-          "editor"
-        ]
-      }
-    }
-  },
-  {
     "key": "services",
     "name": "services",
     "occurrences": 1,
@@ -72285,6 +72554,44 @@
           },
           "displayName": "Tier Marks",
           "placeholder": "Enter tier marks",
+          "defaultValue": "{}"
+        }
+      }
+    ],
+    "commonProps": null
+  },
+  {
+    "key": "pedigree",
+    "name": "pedigree",
+    "occurrences": 1,
+    "entities": [
+      "pet"
+    ],
+    "variations": [
+      {
+        "entity": "pet",
+        "category": "main",
+        "config": {
+          "id": "field_pedigree",
+          "name": "pedigree",
+          "fieldType": "json",
+          "component": "TextareaInput",
+          "required": false,
+          "isSystem": false,
+          "isPrimaryKey": false,
+          "isUnique": false,
+          "sortOrder": 480,
+          "permissions": {
+            "read": [
+              "*"
+            ],
+            "write": [
+              "admin",
+              "editor"
+            ]
+          },
+          "displayName": "Pedigree",
+          "placeholder": "Enter pedigree",
           "defaultValue": "{}"
         }
       }
@@ -75506,7 +75813,7 @@
           "id": "field_redirect_id",
           "name": "redirect_id",
           "fieldType": "uuid",
-          "component": "LookupInput",
+          "component": "DropdownInput",
           "required": false,
           "isSystem": false,
           "isPrimaryKey": false,
@@ -75522,12 +75829,11 @@
             ]
           },
           "isForeignKey": true,
-          "referencedTable": "public_data",
+          "referencedTable": "redirect",
           "referencedFieldID": "id",
-          "dataSource": "collection",
           "displayName": "Redirect",
           "placeholder": "Enter redirect",
-          "referencedFieldName": "name"
+          "referencedFieldName": "id"
         }
       }
     ],
@@ -75564,11 +75870,11 @@
             ]
           },
           "isForeignKey": true,
-          "referencedTable": "title_in_pet",
+          "referencedTable": "pet_titles",
           "referencedFieldID": "id",
           "displayName": "Pet Titles",
           "placeholder": "Enter pet titles",
-          "referencedFieldName": "description"
+          "referencedFieldName": "id"
         }
       }
     ],
@@ -81290,7 +81596,7 @@
           "referencedFieldID": "id",
           "displayName": "Sys Culture Def",
           "placeholder": "Enter sys culture def",
-          "defaultValue": "extensions.uuid_generate_v4()",
+          "defaultValue": "uuid_generate_v4()",
           "referencedFieldName": "id"
         }
       }

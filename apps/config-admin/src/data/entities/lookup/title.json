@@ -257,13 +257,33 @@
         ]
       },
       "displayName": "Updated By"
+    },
+    {
+      "id": "field_deleted",
+      "name": "deleted",
+      "fieldType": "boolean",
+      "component": "CheckboxInput",
+      "required": false,
+      "isSystem": true,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 120,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "system"
+        ]
+      },
+      "displayName": "Deleted"
     }
   ],
   "metadata": {
     "tableName": "title",
-    "totalFields": 11,
-    "systemFields": 5,
+    "totalFields": 12,
+    "systemFields": 6,
     "customFields": 6,
-    "generatedAt": "2025-12-23T10:55:18.473Z"
+    "generatedAt": "2026-01-28T13:07:32.537Z"
   }
 }

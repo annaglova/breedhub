@@ -234,6 +234,32 @@
       "defaultValue": "false"
     },
     {
+      "id": "field_pet_breed_id",
+      "name": "pet_breed_id",
+      "fieldType": "uuid",
+      "component": "DropdownInput",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 100,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "isForeignKey": true,
+      "referencedTable": "pet_breed",
+      "referencedFieldID": "id",
+      "displayName": "Pet Breed",
+      "placeholder": "Enter pet breed",
+      "referencedFieldName": "id"
+    },
+    {
       "id": "field_id",
       "name": "id",
       "fieldType": "uuid",
@@ -242,7 +268,7 @@
       "isSystem": true,
       "isPrimaryKey": true,
       "isUnique": true,
-      "sortOrder": 100,
+      "sortOrder": 110,
       "permissions": {
         "read": [
           "*"
@@ -262,7 +288,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 110,
+      "sortOrder": 120,
       "permissions": {
         "read": [
           "*"
@@ -282,7 +308,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 120,
+      "sortOrder": 130,
       "permissions": {
         "read": [
           "*"
@@ -302,7 +328,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 130,
+      "sortOrder": 140,
       "permissions": {
         "read": [
           "*"
@@ -322,7 +348,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 140,
+      "sortOrder": 150,
       "permissions": {
         "read": [
           "*"
@@ -336,9 +362,9 @@
   ],
   "metadata": {
     "tableName": "pet_identifier",
-    "totalFields": 14,
+    "totalFields": 15,
     "systemFields": 5,
-    "customFields": 9,
-    "generatedAt": "2025-12-23T10:55:47.107Z"
+    "customFields": 10,
+    "generatedAt": "2026-01-28T13:07:41.275Z"
   }
 }

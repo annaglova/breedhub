@@ -1554,13 +1554,33 @@
         ]
       },
       "displayName": "Updated By"
+    },
+    {
+      "id": "field_deleted",
+      "name": "deleted",
+      "fieldType": "boolean",
+      "component": "CheckboxInput",
+      "required": false,
+      "isSystem": true,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 610,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "system"
+        ]
+      },
+      "displayName": "Deleted"
     }
   ],
   "metadata": {
     "tableName": "contact",
-    "totalFields": 60,
-    "systemFields": 5,
+    "totalFields": 61,
+    "systemFields": 6,
     "customFields": 55,
-    "generatedAt": "2025-12-23T10:54:00.021Z"
+    "generatedAt": "2026-01-28T13:07:08.333Z"
   }
 }

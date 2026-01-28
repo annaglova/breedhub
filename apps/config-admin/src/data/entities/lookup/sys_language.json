@@ -133,7 +133,7 @@
       "referencedFieldID": "id",
       "displayName": "Sys Culture Def",
       "placeholder": "Enter sys culture def",
-      "defaultValue": "extensions.uuid_generate_v4()",
+      "defaultValue": "uuid_generate_v4()",
       "referencedFieldName": "id"
     },
     {
@@ -242,6 +242,6 @@
     "totalFields": 10,
     "systemFields": 5,
     "customFields": 5,
-    "generatedAt": "2025-12-23T10:55:16.515Z"
+    "generatedAt": "2026-01-28T13:07:31.889Z"
   }
 }

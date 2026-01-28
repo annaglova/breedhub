@@ -226,8 +226,8 @@
         ]
       },
       "isForeignKey": true,
-      "referencedTable": "pet_manchester_terrier_toy",
-      "referencedFieldID": "breed_id",
+      "referencedTable": "pet_spanish_alano",
+      "referencedFieldID": "id",
       "displayName": "Mother",
       "placeholder": "Enter mother",
       "referencedFieldName": "name"
@@ -432,11 +432,11 @@
         ]
       },
       "isForeignKey": true,
-      "referencedTable": "pet_size",
+      "referencedTable": "size",
       "referencedFieldID": "id",
       "displayName": "Size",
       "placeholder": "Enter size",
-      "referencedFieldName": "name"
+      "referencedFieldName": "id"
     },
     {
       "id": "field_body_feature_id",
@@ -538,11 +538,11 @@
         ]
       },
       "isForeignKey": true,
-      "referencedTable": "country",
+      "referencedTable": "country_of_birth",
       "referencedFieldID": "id",
       "displayName": "Country Of Birth",
       "placeholder": "Enter country of birth",
-      "referencedFieldName": "name"
+      "referencedFieldName": "id"
     },
     {
       "id": "field_titles",
@@ -674,7 +674,7 @@
       "id": "field_owner_kennel_id",
       "name": "owner_kennel_id",
       "fieldType": "uuid",
-      "component": "LookupInput",
+      "component": "DropdownInput",
       "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -690,12 +690,11 @@
         ]
       },
       "isForeignKey": true,
-      "referencedTable": "account",
+      "referencedTable": "owner_kennel",
       "referencedFieldID": "id",
-      "dataSource": "collection",
       "displayName": "Owner Kennel",
       "placeholder": "Enter owner kennel",
-      "referencedFieldName": "name"
+      "referencedFieldName": "id"
     },
     {
       "id": "field_full_breed_name",
@@ -822,11 +821,11 @@
         ]
       },
       "isForeignKey": true,
-      "referencedTable": "country",
+      "referencedTable": "country_of_stay",
       "referencedFieldID": "id",
       "displayName": "Country Of Stay",
       "placeholder": "Enter country of stay",
-      "referencedFieldName": "name"
+      "referencedFieldName": "id"
     },
     {
       "id": "field_calc_date_of_birth",
@@ -1073,17 +1072,17 @@
         ]
       },
       "isForeignKey": true,
-      "referencedTable": "pet_manchester_terrier_toy",
-      "referencedFieldID": "breed_id",
+      "referencedTable": "mother_breed",
+      "referencedFieldID": "id",
       "displayName": "Mother Breed",
       "placeholder": "Enter mother breed",
-      "referencedFieldName": "name"
+      "referencedFieldName": "id"
     },
     {
       "id": "field_father_breed_id",
       "name": "father_breed_id",
       "fieldType": "uuid",
-      "component": "LookupInput",
+      "component": "DropdownInput",
       "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
@@ -1099,12 +1098,11 @@
         ]
       },
       "isForeignKey": true,
-      "referencedTable": "pet",
-      "referencedFieldID": "breed_id",
-      "dataSource": "collection",
+      "referencedTable": "father_breed",
+      "referencedFieldID": "id",
       "displayName": "Father Breed",
       "placeholder": "Enter father breed",
-      "referencedFieldName": "name"
+      "referencedFieldName": "id"
     },
     {
       "id": "field_measurements",
@@ -1200,6 +1198,29 @@
       "defaultValue": "{}"
     },
     {
+      "id": "field_pedigree",
+      "name": "pedigree",
+      "fieldType": "json",
+      "component": "TextareaInput",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 480,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "displayName": "Pedigree",
+      "placeholder": "Enter pedigree",
+      "defaultValue": "{}"
+    },
+    {
       "id": "field_id",
       "name": "id",
       "fieldType": "uuid",
@@ -1208,7 +1229,7 @@
       "isSystem": true,
       "isPrimaryKey": true,
       "isUnique": true,
-      "sortOrder": 480,
+      "sortOrder": 490,
       "permissions": {
         "read": [
           "*"
@@ -1228,7 +1249,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 490,
+      "sortOrder": 500,
       "permissions": {
         "read": [
           "*"
@@ -1248,7 +1269,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 500,
+      "sortOrder": 510,
       "permissions": {
         "read": [
           "*"
@@ -1268,7 +1289,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 510,
+      "sortOrder": 520,
       "permissions": {
         "read": [
           "*"
@@ -1288,7 +1309,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 520,
+      "sortOrder": 530,
       "permissions": {
         "read": [
           "*"
@@ -1308,7 +1329,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 530,
+      "sortOrder": 540,
       "permissions": {
         "read": [
           "*"
@@ -1322,9 +1343,9 @@
   ],
   "metadata": {
     "tableName": "pet",
-    "totalFields": 53,
+    "totalFields": 54,
     "systemFields": 6,
-    "customFields": 47,
-    "generatedAt": "2025-12-23T10:53:55.204Z"
+    "customFields": 48,
+    "generatedAt": "2026-01-28T13:07:06.971Z"
   }
 }
