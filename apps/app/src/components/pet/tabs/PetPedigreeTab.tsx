@@ -5,6 +5,7 @@ import {
 } from "@/components/shared/pedigree";
 import type { PedigreePet } from "@/components/shared/pedigree/types";
 import { useSelectedEntity } from "@/contexts/SpaceContext";
+import { useDictionaryValue } from "@/hooks/useDictionaryValue";
 import { spaceStore, usePedigree } from "@breedhub/rxdb-store";
 import { useSignals } from "@preact/signals-react/runtime";
 import { Loader2 } from "lucide-react";
@@ -89,16 +90,16 @@ export function PetPedigreeTab({
       ? pedigreeGenerations
       : DEFAULT_GENERATIONS;
 
-  // Load pedigree data via hook - always load max 7 generations
+  // Load pedigree from JSONB field - already contains all 7 generations
   // Display is controlled by `generations` prop passed to PedigreeTree
-  const { father, mother, ancestors, isLoading, error } = usePedigree({
-    fatherId: (selectedEntity as any)?.father_id || null,
-    fatherBreedId: (selectedEntity as any)?.father_breed_id || null,
-    motherId: (selectedEntity as any)?.mother_id || null,
-    motherBreedId: (selectedEntity as any)?.mother_breed_id || null,
-    depth: 7, // Always load max, display fewer based on `generations`
+  const { father, mother, ancestorCount, isLoading, error } = usePedigree({
+    pedigree: (selectedEntity as any)?.pedigree,
     enabled: !!selectedEntity?.id,
   });
+
+  // Resolve subject pet's FK fields via dictionaryStore (Pattern C)
+  const sexCode = useDictionaryValue("sex", (selectedEntity as any)?.sex_id, "code");
+  const countryCode = useDictionaryValue("country", (selectedEntity as any)?.country_of_birth_id, "code");
 
   // Build unified pedigree pet from subject + ancestors
   const pedigreePet = useMemo<PedigreePet | null>(() => {
@@ -114,21 +115,19 @@ export function PetPedigreeTab({
       dateOfBirth: pet.date_of_birth,
       titles: pet.titles,
       avatarUrl: pet.avatar_url,
-      sex: pet.sex_code
-        ? { code: pet.sex_code, name: pet.sex_name }
-        : undefined,
-      countryOfBirth: pet.country_code ? { code: pet.country_code } : undefined,
+      sex: sexCode ? { code: sexCode } : undefined,
+      countryOfBirth: countryCode ? { code: countryCode } : undefined,
       father,
       mother,
     };
-  }, [selectedEntity, father, mother]);
+  }, [selectedEntity, father, mother, sexCode, countryCode]);
 
   // Report ancestors count
   useEffect(() => {
     if (!isLoading && onLoadedCount) {
-      onLoadedCount(ancestors.length);
+      onLoadedCount(ancestorCount);
     }
-  }, [isLoading, ancestors.length, onLoadedCount]);
+  }, [isLoading, ancestorCount, onLoadedCount]);
 
   // Loading state
   if (isLoading) {

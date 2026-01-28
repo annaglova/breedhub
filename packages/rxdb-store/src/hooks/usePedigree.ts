@@ -1,18 +1,13 @@
 /**
- * usePedigree - Hook for loading pedigree tree data
+ * usePedigree - Hook for loading pedigree tree from JSONB field
  *
- * Loads ancestors for both parents using RPC function `get_pedigree_ancestors`.
- * Caches pet data in RxDB for future lookups.
- * Returns tree structure ready for PedigreeTree component.
+ * Reads the pedigree JSONB from the pet entity (pre-computed on the server),
+ * fetches ancestor pet data in batch, and builds the tree structure.
  *
  * @example
  * ```tsx
- * const { father, mother, isLoading, error, refetch } = usePedigree({
- *   fatherId: pet.father_id,
- *   fatherBreedId: pet.father_breed_id,
- *   motherId: pet.mother_id,
- *   motherBreedId: pet.mother_breed_id,
- *   depth: 5,
+ * const { father, mother, isLoading } = usePedigree({
+ *   pedigree: pet.pedigree,
  *   enabled: !!pet.id
  * });
  * ```
@@ -23,16 +18,8 @@ import { spaceStore } from '../stores/space-store.signal-store';
 import type { PedigreePet, PedigreeResult } from '../stores/space-store.signal-store';
 
 export interface UsePedigreeOptions {
-  /** Father's pet ID (can be null if no father) */
-  fatherId: string | null;
-  /** Father's breed ID for partition pruning */
-  fatherBreedId: string | null;
-  /** Mother's pet ID (can be null if no mother) */
-  motherId: string | null;
-  /** Mother's breed ID for partition pruning */
-  motherBreedId: string | null;
-  /** Number of generations to load (2-7, default 7) */
-  depth?: number;
+  /** Pedigree JSONB from pet entity */
+  pedigree: Record<string, { id: string; bid: string }> | null | undefined;
   /** Enable/disable loading */
   enabled?: boolean;
 }
@@ -42,22 +29,16 @@ export interface UsePedigreeResult {
   father?: PedigreePet;
   /** Mother's pedigree tree */
   mother?: PedigreePet;
-  /** Raw ancestor data (for debugging/caching) */
-  ancestors: any[];
+  /** Ancestor count */
+  ancestorCount: number;
   /** Loading state */
   isLoading: boolean;
   /** Error if any */
   error: Error | null;
-  /** Manual refetch function */
-  refetch: () => Promise<void>;
 }
 
 export function usePedigree({
-  fatherId,
-  fatherBreedId,
-  motherId,
-  motherBreedId,
-  depth = 7,
+  pedigree,
   enabled = true,
 }: UsePedigreeOptions): UsePedigreeResult {
   const [result, setResult] = useState<PedigreeResult>({ ancestors: [] });
@@ -67,17 +48,15 @@ export function usePedigree({
   const mountedRef = useRef(true);
 
   const loadPedigree = useCallback(async () => {
-    // Skip if disabled or no parents
-    if (!enabled || (!fatherId && !motherId)) {
+    // Skip if disabled or no pedigree data
+    if (!enabled || !pedigree || Object.keys(pedigree).length === 0) {
       setResult({ ancestors: [] });
       setIsLoading(false);
       return;
     }
 
     // Prevent duplicate loads
-    if (loadingRef.current) {
-      return;
-    }
+    if (loadingRef.current) return;
 
     loadingRef.current = true;
     setIsLoading(true);
@@ -95,14 +74,7 @@ export function usePedigree({
         throw new Error('SpaceStore not initialized');
       }
 
-      // Load pedigree via SpaceStore
-      const pedigreeResult = await spaceStore.loadPedigree(
-        fatherId,
-        fatherBreedId,
-        motherId,
-        motherBreedId,
-        depth
-      );
+      const pedigreeResult = await spaceStore.loadPedigreeFromJsonb(pedigree);
 
       if (mountedRef.current) {
         setResult(pedigreeResult);
@@ -117,9 +89,9 @@ export function usePedigree({
     } finally {
       loadingRef.current = false;
     }
-  }, [fatherId, fatherBreedId, motherId, motherBreedId, depth, enabled]);
+  }, [pedigree, enabled]);
 
-  // Load on mount and when params change
+  // Load on mount and when pedigree changes
   useEffect(() => {
     mountedRef.current = true;
     loadPedigree();
@@ -129,18 +101,11 @@ export function usePedigree({
     };
   }, [loadPedigree]);
 
-  // Manual refetch
-  const refetch = useCallback(async () => {
-    loadingRef.current = false;
-    await loadPedigree();
-  }, [loadPedigree]);
-
   return {
     father: result.father,
     mother: result.mother,
-    ancestors: result.ancestors,
+    ancestorCount: result.ancestors.length,
     isLoading,
     error,
-    refetch,
   };
 }
