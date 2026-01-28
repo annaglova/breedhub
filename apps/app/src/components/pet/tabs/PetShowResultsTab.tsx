@@ -1,11 +1,13 @@
 import { useSelectedEntity } from "@/contexts/SpaceContext";
-import { spaceStore } from "@breedhub/rxdb-store";
+import { spaceStore, useTabData } from "@breedhub/rxdb-store";
+import type { DataSourceConfig } from "@breedhub/rxdb-store";
 import { useSignals } from "@preact/signals-react/runtime";
 import { cn } from "@ui/lib/utils";
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, Loader2 } from "lucide-react";
+import { useEffect, useMemo } from "react";
 
 /**
- * Show result entry
+ * Show result entry (UI format)
  */
 interface ShowResult {
   id: string;
@@ -21,65 +23,6 @@ interface ShowResult {
   };
   webLink?: string;
 }
-
-// Mock data for visual development
-const MOCK_RESULTS: ShowResult[] = [
-  {
-    id: "1",
-    date: "2024-03-15",
-    project: {
-      countryCode: "DE",
-      cityName: "Berlin",
-      category: "CAC",
-    },
-    result: "V1, CAC, CACIB, BOB",
-    judge: {
-      name: "Hans Mueller",
-    },
-    webLink: "https://example.com/show/1",
-  },
-  {
-    id: "2",
-    date: "2024-02-20",
-    project: {
-      countryCode: "AT",
-      cityName: "Vienna",
-      category: "CAC",
-    },
-    result: "V1, CAC, R.CACIB",
-    judge: {
-      name: "Maria Schmidt",
-    },
-    webLink: "https://example.com/show/2",
-  },
-  {
-    id: "3",
-    date: "2024-01-10",
-    project: {
-      countryCode: "CZ",
-      cityName: "Prague",
-      category: "CAC",
-    },
-    result: "V2, R.CAC",
-    judge: {
-      name: "Jan Novak",
-    },
-  },
-  {
-    id: "4",
-    date: "2023-12-05",
-    project: {
-      countryCode: "PL",
-      cityName: "Warsaw",
-      category: "CAC",
-    },
-    result: "V1, CAC, BOS",
-    judge: {
-      name: "Anna Kowalska",
-    },
-    webLink: "https://example.com/show/4",
-  },
-];
 
 /**
  * Format date to locale string
@@ -99,6 +42,7 @@ function formatDate(dateString?: string): string {
 
 interface PetShowResultsTabProps {
   onLoadedCount?: (count: number) => void;
+  dataSource?: DataSourceConfig;
 }
 
 /**
@@ -113,15 +57,80 @@ interface PetShowResultsTabProps {
  *
  * Based on Angular: pet-show-results.component.ts
  */
-export function PetShowResultsTab({ onLoadedCount }: PetShowResultsTabProps) {
+export function PetShowResultsTab({
+  onLoadedCount,
+  dataSource,
+}: PetShowResultsTabProps) {
   useSignals();
 
   const selectedEntity = useSelectedEntity();
+  const petId = selectedEntity?.id;
   const isFullscreen = spaceStore.isFullscreen.value;
 
-  // TODO: Load real data from entity
-  // For now using mock data
-  const results = MOCK_RESULTS;
+  // Load show results via useTabData (VIEW includes all JOINed data)
+  const {
+    data: resultsRaw,
+    isLoading,
+    error,
+  } = useTabData({
+    parentId: petId,
+    dataSource: dataSource!,
+    enabled: !!dataSource && !!petId,
+  });
+
+  // Transform raw data to UI format
+  const results = useMemo<ShowResult[]>(() => {
+    if (!resultsRaw || resultsRaw.length === 0) return [];
+
+    return resultsRaw.map((item: any) => ({
+      id: item.id,
+      date: item.date || item.additional?.date || "",
+      project: {
+        countryCode: item.country_code || item.additional?.country_code,
+        cityName: item.city_name || item.additional?.city_name,
+        category: item.category_name || item.additional?.category_name,
+      },
+      result: item.result || item.additional?.result || "",
+      judge: {
+        name: item.judge_name || item.additional?.judge_name,
+      },
+      webLink: item.web_link || item.additional?.web_link,
+    }));
+  }, [resultsRaw]);
+
+  // Report count after data loads
+  useEffect(() => {
+    if (!isLoading && onLoadedCount) {
+      onLoadedCount(results.length);
+    }
+  }, [isLoading, onLoadedCount, results.length]);
+
+  // Don't render if no dataSource configured
+  if (!dataSource) {
+    return null;
+  }
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="py-4 px-6 flex items-center justify-center min-h-[200px]">
+        <Loader2 className="h-6 w-6 animate-spin text-primary" />
+        <span className="ml-2 text-secondary">Loading show results...</span>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="py-4 px-6">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <p className="text-red-700 font-semibold">Failed to load show results</p>
+          <p className="text-red-600 text-sm mt-1">{error.message}</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="card card-rounded flex flex-auto flex-col p-6 lg:px-8 cursor-default">
