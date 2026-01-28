@@ -1,11 +1,14 @@
 import { PetLinkRow } from "@/components/shared/PetLinkRow";
 import { useSelectedEntity } from "@/contexts/SpaceContext";
-import { spaceStore } from "@breedhub/rxdb-store";
+import { spaceStore, useTabData } from "@breedhub/rxdb-store";
+import type { DataSourceConfig } from "@breedhub/rxdb-store";
 import { useSignals } from "@preact/signals-react/runtime";
 import { cn } from "@ui/lib/utils";
+import { Loader2 } from "lucide-react";
+import { useEffect, useMemo } from "react";
 
 /**
- * Sibling pet
+ * Sibling pet (UI format)
  */
 interface SiblingPet {
   id: string;
@@ -25,38 +28,6 @@ interface SiblingGroup {
   date?: string;
   pets: SiblingPet[];
 }
-
-// Mock data for visual development
-const MOCK_SIBLINGS: SiblingPet[] = [
-  {
-    id: "1",
-    name: "Strong Max vom Königsberg",
-    url: "strong-max-vom-konigsberg",
-    sex: { code: "male", name: "Male" },
-    dateOfBirth: "2021-05-15",
-  },
-  {
-    id: "2",
-    name: "Beautiful Luna vom Königsberg",
-    url: "beautiful-luna-vom-konigsberg",
-    sex: { code: "female", name: "Female" },
-    dateOfBirth: "2021-05-15",
-  },
-  {
-    id: "3",
-    name: "Brave Rex vom Königsberg",
-    url: "brave-rex-vom-konigsberg",
-    sex: { code: "male", name: "Male" },
-    dateOfBirth: "2021-05-15",
-  },
-  {
-    id: "4",
-    name: "Sweet Bella vom Königsberg",
-    url: "sweet-bella-vom-konigsberg",
-    sex: { code: "female", name: "Female" },
-    dateOfBirth: "2021-05-15",
-  },
-];
 
 /**
  * Group siblings by date of birth
@@ -111,6 +82,7 @@ function formatDate(dateString?: string): string {
 
 interface PetSiblingsTabProps {
   onLoadedCount?: (count: number) => void;
+  dataSource?: DataSourceConfig;
 }
 
 /**
@@ -122,15 +94,81 @@ interface PetSiblingsTabProps {
  *
  * Based on Angular: pet-siblings.component.ts
  */
-export function PetSiblingsTab({ onLoadedCount }: PetSiblingsTabProps) {
+export function PetSiblingsTab({
+  onLoadedCount,
+  dataSource,
+}: PetSiblingsTabProps) {
   useSignals();
 
   const selectedEntity = useSelectedEntity();
+  const petId = selectedEntity?.id;
   const isFullscreen = spaceStore.isFullscreen.value;
 
-  // TODO: Load real data from entity
-  // For now using mock data
-  const siblingGroups = groupSiblingsByDate(MOCK_SIBLINGS);
+  // Load siblings via useTabData (VIEW with self-join on pet table)
+  const {
+    data: siblingsRaw,
+    isLoading,
+    error,
+  } = useTabData({
+    parentId: petId,
+    dataSource: dataSource!,
+    enabled: !!dataSource && !!petId,
+  });
+
+  // Transform raw data to UI format
+  const siblings = useMemo<SiblingPet[]>(() => {
+    if (!siblingsRaw || siblingsRaw.length === 0) return [];
+
+    return siblingsRaw.map((item: any) => ({
+      id: item.id,
+      name: item.name || item.additional?.name || "",
+      url: item.slug || item.additional?.slug,
+      sex: {
+        code: item.sex_code || item.additional?.sex_code,
+        name: item.sex_name || item.additional?.sex_name,
+      },
+      dateOfBirth: item.date_of_birth || item.additional?.date_of_birth,
+    }));
+  }, [siblingsRaw]);
+
+  // Group siblings by date
+  const siblingGroups = useMemo(() => {
+    return groupSiblingsByDate(siblings);
+  }, [siblings]);
+
+  // Report count after data loads
+  useEffect(() => {
+    if (!isLoading && onLoadedCount) {
+      onLoadedCount(siblings.length);
+    }
+  }, [isLoading, onLoadedCount, siblings.length]);
+
+  // Don't render if no dataSource configured
+  if (!dataSource) {
+    return null;
+  }
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="py-4 px-6 flex items-center justify-center min-h-[200px]">
+        <Loader2 className="h-6 w-6 animate-spin text-primary" />
+        <span className="ml-2 text-secondary">Loading siblings...</span>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="py-4 px-6">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <p className="text-red-700 font-semibold">Failed to load siblings</p>
+          <p className="text-red-600 text-sm mt-1">{error.message}</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>
