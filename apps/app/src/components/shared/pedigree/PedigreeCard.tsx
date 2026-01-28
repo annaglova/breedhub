@@ -1,7 +1,7 @@
 import defaultDogImage from "@/assets/images/pettypes/dog.jpeg";
 import type { SexCode } from "@/components/shared/PetSexMark";
 import { PetSexMark } from "@/components/shared/PetSexMark";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import type { OnSelectPetCallback, PedigreePet } from "./types";
 
@@ -31,7 +31,13 @@ function formatYear(dateString?: string): string {
 }
 
 /**
+ * Cache of broken image URLs to prevent repeated load attempts across re-renders
+ */
+const brokenImageCache = new Set<string>();
+
+/**
  * PetImage - Image with fallback to default dog image
+ * Remembers broken URLs to prevent flickering on re-renders
  */
 function PetImage({
   src,
@@ -42,20 +48,27 @@ function PetImage({
   alt: string;
   className?: string;
 }) {
-  const [imgSrc, setImgSrc] = useState(src || defaultDogImage);
-  const [hasError, setHasError] = useState(false);
+  // Check if URL is already known to be broken
+  const isBroken = src ? brokenImageCache.has(src) : false;
+  const initialSrc = !src || isBroken ? defaultDogImage : src;
+
+  const [imgSrc, setImgSrc] = useState(initialSrc);
+  const currentSrcRef = useRef(src);
 
   const handleError = useCallback(() => {
-    if (!hasError) {
-      setHasError(true);
-      setImgSrc(defaultDogImage);
+    if (src) {
+      brokenImageCache.add(src);
     }
-  }, [hasError]);
+    setImgSrc(defaultDogImage);
+  }, [src]);
 
-  // Reset when src changes
+  // Only reset when src actually changes to a different value
   useEffect(() => {
-    setImgSrc(src || defaultDogImage);
-    setHasError(false);
+    if (currentSrcRef.current !== src) {
+      currentSrcRef.current = src;
+      const isBrokenUrl = src ? brokenImageCache.has(src) : false;
+      setImgSrc(!src || isBrokenUrl ? defaultDogImage : src);
+    }
   }, [src]);
 
   return (
