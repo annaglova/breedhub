@@ -128,16 +128,10 @@ export function SlugResolver() {
     );
   }
 
-  // Loading state while resolving
+  // Loading state while resolving - return null for instant transition
+  // (resolution is fast, spinner would just flash annoyingly)
   if (isResolving || !resolvedRoute) {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-slate-500 text-sm">Resolving...</p>
-        </div>
-      </div>
-    );
+    return null;
   }
 
   // Render SpacePage directly with pre-selected entity

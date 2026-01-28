@@ -99,6 +99,37 @@ export interface OrderBy {
 }
 
 /**
+ * Pedigree pet for UI (tree structure)
+ */
+export interface PedigreePet {
+  id: string;
+  name: string;
+  slug?: string;
+  breedId?: string;
+  dateOfBirth?: string;
+  titles?: string;
+  avatarUrl?: string;
+  sex?: {
+    code?: string;
+    name?: string;
+  };
+  countryOfBirth?: {
+    code?: string;
+  };
+  father?: PedigreePet;
+  mother?: PedigreePet;
+}
+
+/**
+ * Result from loadPedigree method
+ */
+export interface PedigreeResult {
+  father?: PedigreePet;
+  mother?: PedigreePet;
+  ancestors: any[];
+}
+
+/**
  * SpaceStore - Universal dynamic store for ALL business entities
  * 
  * This store dynamically creates and manages entity stores for any business entity type
@@ -4531,6 +4562,178 @@ class SpaceStore {
 
     // Apply limit
     return records.slice(0, limit);
+  }
+
+  // ==========================================
+  // Pedigree Loading (RPC-based)
+  // ==========================================
+
+  /**
+   * Load pedigree ancestors using RPC
+   *
+   * Loads ancestors for both parents recursively up to specified depth.
+   * Caches all pet records in RxDB for future lookups.
+   * Returns tree structure ready for PedigreeTree component.
+   *
+   * @param fatherId - Father's pet ID (can be null)
+   * @param fatherBreedId - Father's breed ID for partition pruning
+   * @param motherId - Mother's pet ID (can be null)
+   * @param motherBreedId - Mother's breed ID for partition pruning
+   * @param depth - Number of generations to load (2-7)
+   * @returns Pedigree tree with father and mother branches
+   */
+  async loadPedigree(
+    fatherId: string | null,
+    fatherBreedId: string | null,
+    motherId: string | null,
+    motherBreedId: string | null,
+    depth: number = 7
+  ): Promise<PedigreeResult> {
+    console.log('[SpaceStore] 🌳 Loading pedigree...', { fatherId, motherId, depth });
+
+    if (!fatherId && !motherId) {
+      console.log('[SpaceStore] No parents to load pedigree for');
+      return { ancestors: [] };
+    }
+
+    try {
+      const { supabase } = await import('../supabase/client');
+
+      // Call RPC function
+      const { data, error } = await supabase.rpc('get_pedigree_ancestors', {
+        p_father_id: fatherId,
+        p_father_breed_id: fatherBreedId,
+        p_mother_id: motherId,
+        p_mother_breed_id: motherBreedId,
+        p_depth: depth
+      });
+
+      if (error) {
+        console.error('[SpaceStore] Failed to load pedigree:', error);
+        throw error;
+      }
+
+      if (!data || data.length === 0) {
+        console.log('[SpaceStore] No ancestors found');
+        return { ancestors: [] };
+      }
+
+      console.log(`[SpaceStore] 🌳 Loaded ${data.length} ancestors`);
+
+      // Cache pets in RxDB
+      await this.cachePedigreeAncestors(data);
+
+      // Build tree structure
+      const tree = this.buildPedigreeTree(data, fatherId, motherId);
+
+      return {
+        ...tree,
+        ancestors: data // Return raw data for debugging/caching
+      };
+    } catch (error) {
+      console.error('[SpaceStore] Error loading pedigree:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Cache pedigree ancestors in RxDB pet collection
+   */
+  private async cachePedigreeAncestors(ancestors: any[]): Promise<void> {
+    if (!this.db || ancestors.length === 0) return;
+
+    const collection = this.db.collections['pet'];
+    if (!collection) {
+      console.warn('[SpaceStore] Pet collection not found for caching');
+      return;
+    }
+
+    // Transform to RxDB format
+    const records = ancestors.map(ancestor => ({
+      id: ancestor.id,
+      name: ancestor.name,
+      slug: ancestor.slug,
+      breed_id: ancestor.breed_id,
+      date_of_birth: ancestor.date_of_birth,
+      titles: ancestor.titles,
+      avatar_url: ancestor.avatar_url,
+      father_id: ancestor.father_id,
+      father_breed_id: ancestor.father_breed_id,
+      mother_id: ancestor.mother_id,
+      mother_breed_id: ancestor.mother_breed_id,
+      // We don't have full entity data (created_at, updated_at, etc.)
+      // but we cache what we have for quick lookups
+      cachedAt: Date.now()
+    }));
+
+    try {
+      await collection.bulkUpsert(records);
+      console.log(`[SpaceStore] 💾 Cached ${records.length} pedigree ancestors in RxDB`);
+    } catch (error) {
+      console.warn('[SpaceStore] Failed to cache pedigree ancestors:', error);
+    }
+  }
+
+  /**
+   * Build pedigree tree from flat ancestor list
+   *
+   * Uses the path field to determine position in tree:
+   * - path[0] = 'father' or 'mother' (root branch)
+   * - path[1..n] = position in that branch
+   */
+  private buildPedigreeTree(
+    ancestors: any[],
+    fatherId: string | null,
+    motherId: string | null
+  ): { father?: PedigreePet; mother?: PedigreePet } {
+    // Create a map of id -> ancestor for quick lookup
+    const ancestorMap = new Map<string, any>();
+    for (const ancestor of ancestors) {
+      ancestorMap.set(ancestor.id, ancestor);
+    }
+
+    // Helper to convert raw ancestor to PedigreePet
+    const toPedigreePet = (ancestor: any): PedigreePet => ({
+      id: ancestor.id,
+      name: ancestor.name,
+      slug: ancestor.slug || undefined,
+      breedId: ancestor.breed_id,
+      dateOfBirth: ancestor.date_of_birth || undefined,
+      titles: ancestor.titles || undefined,
+      avatarUrl: ancestor.avatar_url || undefined,
+      sex: ancestor.sex_code ? {
+        code: ancestor.sex_code,
+        name: ancestor.sex_name || undefined
+      } : undefined,
+      countryOfBirth: ancestor.country_code ? {
+        code: ancestor.country_code
+      } : undefined
+    });
+
+    // Recursive function to build tree branch
+    const buildBranch = (petId: string | null): PedigreePet | undefined => {
+      if (!petId) return undefined;
+
+      const ancestor = ancestorMap.get(petId);
+      if (!ancestor) return undefined;
+
+      const pet = toPedigreePet(ancestor);
+
+      // Recursively add parents
+      if (ancestor.father_id) {
+        pet.father = buildBranch(ancestor.father_id);
+      }
+      if (ancestor.mother_id) {
+        pet.mother = buildBranch(ancestor.mother_id);
+      }
+
+      return pet;
+    };
+
+    return {
+      father: buildBranch(fatherId),
+      mother: buildBranch(motherId)
+    };
   }
 
   /**

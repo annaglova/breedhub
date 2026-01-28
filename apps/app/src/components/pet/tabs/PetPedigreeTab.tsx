@@ -1,13 +1,14 @@
 import { HorizontalScrollbar } from "@/components/shared/HorizontalScrollbar";
 import {
   GenerationCount,
-  MOCK_PEDIGREE_PET,
   PedigreeTree,
 } from "@/components/shared/pedigree";
+import type { PedigreePet } from "@/components/shared/pedigree/types";
 import { useSelectedEntity } from "@/contexts/SpaceContext";
-import { spaceStore } from "@breedhub/rxdb-store";
+import { spaceStore, usePedigree } from "@breedhub/rxdb-store";
 import { useSignals } from "@preact/signals-react/runtime";
-import { useCallback, useRef, useState } from "react";
+import { Loader2 } from "lucide-react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 /** Default generations to show in scroll mode */
 const DEFAULT_GENERATIONS: GenerationCount = 4;
@@ -88,9 +89,68 @@ export function PetPedigreeTab({
       ? pedigreeGenerations
       : DEFAULT_GENERATIONS;
 
-  // TODO: Load real pedigree data from entity
-  // For now using mock data
-  const pedigreePet = MOCK_PEDIGREE_PET;
+  // Load pedigree data via hook - always load max 7 generations
+  // Display is controlled by `generations` prop passed to PedigreeTree
+  const { father, mother, ancestors, isLoading, error } = usePedigree({
+    fatherId: (selectedEntity as any)?.father_id || null,
+    fatherBreedId: (selectedEntity as any)?.father_breed_id || null,
+    motherId: (selectedEntity as any)?.mother_id || null,
+    motherBreedId: (selectedEntity as any)?.mother_breed_id || null,
+    depth: 7, // Always load max, display fewer based on `generations`
+    enabled: !!selectedEntity?.id,
+  });
+
+  // Build unified pedigree pet from subject + ancestors
+  const pedigreePet = useMemo<PedigreePet | null>(() => {
+    if (!selectedEntity) return null;
+
+    // Build subject pet from entity
+    const pet = selectedEntity as any;
+    return {
+      id: pet.id,
+      name: pet.name || "",
+      slug: pet.slug,
+      breedId: pet.breed_id,
+      dateOfBirth: pet.date_of_birth,
+      titles: pet.titles,
+      avatarUrl: pet.avatar_url,
+      sex: pet.sex_code
+        ? { code: pet.sex_code, name: pet.sex_name }
+        : undefined,
+      countryOfBirth: pet.country_code ? { code: pet.country_code } : undefined,
+      father,
+      mother,
+    };
+  }, [selectedEntity, father, mother]);
+
+  // Report ancestors count
+  useEffect(() => {
+    if (!isLoading && onLoadedCount) {
+      onLoadedCount(ancestors.length);
+    }
+  }, [isLoading, ancestors.length, onLoadedCount]);
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="py-4 px-6 flex items-center justify-center min-h-[200px]">
+        <Loader2 className="h-6 w-6 animate-spin text-primary" />
+        <span className="ml-2 text-secondary">Loading pedigree...</span>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="py-4 px-6">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <p className="text-red-700 font-semibold">Failed to load pedigree</p>
+          <p className="text-red-600 text-sm mt-1">{error.message}</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -123,7 +183,7 @@ export function PetPedigreeTab({
         {pedigreePet ? (
           <PedigreeTree pet={pedigreePet} generations={generations} />
         ) : (
-          <span className="text-secondary p-8 text-center  block">
+          <span className="text-secondary p-8 text-center block">
             No pedigree data available
           </span>
         )}

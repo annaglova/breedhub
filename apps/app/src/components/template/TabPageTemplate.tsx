@@ -344,28 +344,14 @@ export function TabPageTemplate({
   // PageMenu top position (under Name when sticky)
   const PAGE_MENU_TOP = nameBlockHeight > 0 ? nameBlockHeight : 0;
 
-  // Loading state
+  // Loading state - return null for instant transition (no spinner flash)
   if (!spaceConfig || !pageConfig) {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-slate-500 text-sm">Loading configuration...</p>
-        </div>
-      </div>
-    );
+    return null;
   }
 
-  // Entity not loaded or wrong entity selected (wait for correct entity from URL)
+  // Entity not loaded or wrong entity selected - return null for instant transition
   if (!selectedEntity || selectedEntity.id !== entityId) {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-slate-500 text-sm">Loading entity...</p>
-        </div>
-      </div>
-    );
+    return null;
   }
 
   // Tab not found

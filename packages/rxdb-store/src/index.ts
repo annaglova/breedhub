@@ -17,6 +17,8 @@ export {
 } from './hooks/useRxCollection';
 export { useTabData } from './hooks/useTabData';
 export { useInfiniteTabData } from './hooks/useInfiniteTabData';
+export { usePedigree } from './hooks/usePedigree';
+export type { UsePedigreeOptions, UsePedigreeResult } from './hooks/usePedigree';
 
 // Database types
 export type { DatabaseCollections, AppDatabase } from './services/database.service';
@@ -81,7 +83,7 @@ export type {
 } from './types/tab-data.types';
 
 // Export OrderBy type from SpaceStore
-export type { OrderBy } from './stores/space-store.signal-store';
+export type { OrderBy, PedigreePet, PedigreeResult } from './stores/space-store.signal-store';
 
 // Utils - Field normalization helpers
 export {
