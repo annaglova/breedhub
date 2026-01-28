@@ -1,10 +1,13 @@
 import { useSelectedEntity } from "@/contexts/SpaceContext";
-import { spaceStore } from "@breedhub/rxdb-store";
+import { spaceStore, useTabData } from "@breedhub/rxdb-store";
+import type { DataSourceConfig } from "@breedhub/rxdb-store";
 import { useSignals } from "@preact/signals-react/runtime";
 import { cn } from "@ui/lib/utils";
+import { Loader2 } from "lucide-react";
+import { useEffect, useMemo } from "react";
 
 /**
- * Health exam entry
+ * Health exam entry (UI format)
  */
 interface HealthExam {
   id: string;
@@ -16,40 +19,6 @@ interface HealthExam {
     name?: string;
   };
 }
-
-// Mock data for visual development
-const MOCK_RESULTS: HealthExam[] = [
-  {
-    id: "1",
-    date: "2024-01-15",
-    healthExamObject: { name: "Hip Dysplasia (HD)" },
-    healthExamResult: { name: "A (Excellent)" },
-  },
-  {
-    id: "2",
-    date: "2024-01-15",
-    healthExamObject: { name: "Elbow Dysplasia (ED)" },
-    healthExamResult: { name: "0 (Normal)" },
-  },
-  {
-    id: "3",
-    date: "2023-11-20",
-    healthExamObject: { name: "Eye Examination" },
-    healthExamResult: { name: "Clear" },
-  },
-  {
-    id: "4",
-    date: "2023-10-05",
-    healthExamObject: { name: "Heart Examination" },
-    healthExamResult: { name: "Normal" },
-  },
-  {
-    id: "5",
-    date: "2023-08-12",
-    healthExamObject: { name: "DM (Degenerative Myelopathy)" },
-    healthExamResult: { name: "N/N (Clear)" },
-  },
-];
 
 /**
  * Format date to locale string
@@ -69,6 +38,7 @@ function formatDate(dateString?: string): string {
 
 interface PetHealthTabProps {
   onLoadedCount?: (count: number) => void;
+  dataSource?: DataSourceConfig;
 }
 
 /**
@@ -81,15 +51,76 @@ interface PetHealthTabProps {
  *
  * Based on Angular: pet-health.component.ts
  */
-export function PetHealthTab({ onLoadedCount }: PetHealthTabProps) {
+export function PetHealthTab({
+  onLoadedCount,
+  dataSource,
+}: PetHealthTabProps) {
   useSignals();
 
   const selectedEntity = useSelectedEntity();
+  const petId = selectedEntity?.id;
   const isFullscreen = spaceStore.isFullscreen.value;
 
-  // TODO: Load real data from entity
-  // For now using mock data
-  const results = MOCK_RESULTS;
+  // Load health results via useTabData (VIEW includes JOINed data)
+  const {
+    data: resultsRaw,
+    isLoading,
+    error,
+  } = useTabData({
+    parentId: petId,
+    dataSource: dataSource!,
+    enabled: !!dataSource && !!petId,
+  });
+
+  // Transform raw data to UI format
+  const results = useMemo<HealthExam[]>(() => {
+    if (!resultsRaw || resultsRaw.length === 0) return [];
+
+    return resultsRaw.map((item: any) => ({
+      id: item.id,
+      date: item.date || item.additional?.date || "",
+      healthExamObject: {
+        name: item.object_name || item.additional?.object_name,
+      },
+      healthExamResult: {
+        name: item.result_name || item.additional?.result_name,
+      },
+    }));
+  }, [resultsRaw]);
+
+  // Report count after data loads
+  useEffect(() => {
+    if (!isLoading && onLoadedCount) {
+      onLoadedCount(results.length);
+    }
+  }, [isLoading, onLoadedCount, results.length]);
+
+  // Don't render if no dataSource configured
+  if (!dataSource) {
+    return null;
+  }
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="py-4 px-6 flex items-center justify-center min-h-[200px]">
+        <Loader2 className="h-6 w-6 animate-spin text-primary" />
+        <span className="ml-2 text-secondary">Loading health results...</span>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="py-4 px-6">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <p className="text-red-700 font-semibold">Failed to load health results</p>
+          <p className="text-red-600 text-sm mt-1">{error.message}</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="card card-rounded flex flex-auto flex-col p-6 lg:px-8 cursor-default">

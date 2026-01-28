@@ -3833,6 +3833,7 @@ class SpaceStore {
       'litter': 'pet',
       'pet_identifier': 'pet',
       'pet_in_project': 'pet',
+      'pet_health_exam_result': 'pet',
     };
 
     return tableEntityMap[normalizedTable] || null;
