@@ -1,10 +1,14 @@
 import { useSelectedEntity } from "@/contexts/SpaceContext";
-import { spaceStore, useTabData } from "@breedhub/rxdb-store";
+import {
+  spaceStore,
+  useInfiniteTabData,
+  useTabData,
+} from "@breedhub/rxdb-store";
 import type { DataSourceConfig } from "@breedhub/rxdb-store";
 import { useSignals } from "@preact/signals-react/runtime";
 import { cn } from "@ui/lib/utils";
 import { ExternalLink, Loader2 } from "lucide-react";
-import { useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 
 /**
  * Show result entry (UI format)
@@ -67,16 +71,27 @@ export function PetShowResultsTab({
   const petId = selectedEntity?.id;
   const isFullscreen = spaceStore.isFullscreen.value;
 
-  // Load show results via useTabData (VIEW includes all JOINed data)
-  const {
-    data: resultsRaw,
-    isLoading,
-    error,
-  } = useTabData({
+  // Drawer mode: load limited data
+  const drawerResult = useTabData({
     parentId: petId,
     dataSource: dataSource!,
-    enabled: !!dataSource && !!petId,
+    enabled: !!dataSource && !!petId && !isFullscreen,
   });
+
+  // Fullscreen mode: infinite scroll with pagination
+  const infiniteResult = useInfiniteTabData({
+    parentId: petId,
+    dataSource: dataSource!,
+    enabled: !!dataSource && !!petId && isFullscreen,
+    pageSize: 30,
+  });
+
+  // Use appropriate data based on mode
+  const resultsRaw = isFullscreen ? infiniteResult.data : drawerResult.data;
+  const isLoading = isFullscreen
+    ? infiniteResult.isLoading
+    : drawerResult.isLoading;
+  const error = isFullscreen ? infiniteResult.error : drawerResult.error;
 
   // Transform raw data to UI format
   const results = useMemo<ShowResult[]>(() => {
@@ -98,12 +113,39 @@ export function PetShowResultsTab({
     }));
   }, [resultsRaw]);
 
+  // Infinite scroll refs and handlers
+  const loadMoreRef = useRef<HTMLDivElement>(null);
+  const { hasMore, isLoadingMore, loadMore } = infiniteResult;
+
+  const handleLoadMore = useCallback(() => {
+    if (isFullscreen && hasMore && !isLoadingMore) {
+      loadMore();
+    }
+  }, [isFullscreen, hasMore, isLoadingMore, loadMore]);
+
   // Report count after data loads
   useEffect(() => {
     if (!isLoading && onLoadedCount) {
       onLoadedCount(results.length);
     }
   }, [isLoading, onLoadedCount, results.length]);
+
+  // IntersectionObserver for infinite scroll
+  useEffect(() => {
+    if (!isFullscreen || !loadMoreRef.current) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) {
+          handleLoadMore();
+        }
+      },
+      { threshold: 0.1, rootMargin: "100px" }
+    );
+
+    observer.observe(loadMoreRef.current);
+    return () => observer.disconnect();
+  }, [isFullscreen, handleLoadMore, hasMore, isLoadingMore, results.length]);
 
   // Don't render if no dataSource configured
   if (!dataSource) {
@@ -133,88 +175,107 @@ export function PetShowResultsTab({
   }
 
   return (
-    <div className="card card-rounded flex flex-auto flex-col p-6 lg:px-8 cursor-default">
-      {results.length > 0 ? (
-        <div className="grid">
-          {/* Header */}
-          <div
-            className={cn(
-              "grid gap-3 border-b border-border px-6 py-3 font-bold text-secondary md:px-8",
-              isFullscreen
-                ? "grid-cols-[132px_auto_44px] lg:grid-cols-[132px_226px_auto_176px_44px]"
-                : "grid-cols-[132px_auto_44px]"
-            )}
-          >
-            <span>Date</span>
-            <span className={cn("hidden", isFullscreen && "lg:block")}>
-              Show
-            </span>
-            <span>Result</span>
-            <span className={cn("hidden", isFullscreen && "lg:block")}>
-              Judge
-            </span>
-            <span>Details</span>
-          </div>
-
-          {/* Rows */}
-          {results.map((showResult, index) => (
+    <>
+      <div className="card card-rounded flex flex-auto flex-col p-6 lg:px-8 cursor-default">
+        {results.length > 0 ? (
+          <div className="grid">
+            {/* Header */}
             <div
-              key={showResult.id}
               className={cn(
-                "grid items-center gap-3 rounded-md px-6 py-2 md:px-8",
+                "grid gap-3 border-b border-border px-6 py-3 font-bold text-secondary md:px-8",
                 isFullscreen
                   ? "grid-cols-[132px_auto_44px] lg:grid-cols-[132px_226px_auto_176px_44px]"
-                  : "grid-cols-[132px_auto_44px]",
-                index % 2 === 0 ? "bg-card-ground" : "bg-even-card-ground"
+                  : "grid-cols-[132px_auto_44px]"
               )}
             >
-              {/* Date */}
-              <span>{formatDate(showResult.date)}</span>
-
-              {/* Show */}
-              <span
-                className={cn("hidden truncate", isFullscreen && "lg:block")}
-              >
-                {[
-                  showResult.project?.countryCode,
-                  showResult.project?.cityName,
-                  showResult.project?.category,
-                ]
-                  .filter(Boolean)
-                  .join(" ")}
+              <span>Date</span>
+              <span className={cn("hidden", isFullscreen && "lg:block")}>
+                Show
               </span>
-
-              {/* Result */}
-              <span className="truncate">{showResult.result}</span>
-
-              {/* Judge */}
-              <span
-                className={cn("hidden truncate", isFullscreen && "lg:block")}
-              >
-                {showResult.judge?.name}
+              <span>Result</span>
+              <span className={cn("hidden", isFullscreen && "lg:block")}>
+                Judge
               </span>
-
-              {/* Details link */}
-              <div>
-                {showResult.webLink && (
-                  <a
-                    href={showResult.webLink}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center justify-center text-primary hover:text-primary/80"
-                  >
-                    <ExternalLink className="h-4 w-4" />
-                  </a>
-                )}
-              </div>
+              <span>Details</span>
             </div>
-          ))}
+
+            {/* Rows */}
+            {results.map((showResult, index) => (
+              <div
+                key={showResult.id}
+                className={cn(
+                  "grid items-center gap-3 rounded-md px-6 py-2 md:px-8",
+                  isFullscreen
+                    ? "grid-cols-[132px_auto_44px] lg:grid-cols-[132px_226px_auto_176px_44px]"
+                    : "grid-cols-[132px_auto_44px]",
+                  index % 2 === 0 ? "bg-card-ground" : "bg-even-card-ground"
+                )}
+              >
+                {/* Date */}
+                <span>{formatDate(showResult.date)}</span>
+
+                {/* Show */}
+                <span
+                  className={cn("hidden truncate", isFullscreen && "lg:block")}
+                >
+                  {[
+                    showResult.project?.countryCode,
+                    showResult.project?.cityName,
+                    showResult.project?.category,
+                  ]
+                    .filter(Boolean)
+                    .join(" ")}
+                </span>
+
+                {/* Result */}
+                <span className="truncate">{showResult.result}</span>
+
+                {/* Judge */}
+                <span
+                  className={cn("hidden truncate", isFullscreen && "lg:block")}
+                >
+                  {showResult.judge?.name}
+                </span>
+
+                {/* Details link */}
+                <div>
+                  {showResult.webLink && (
+                    <a
+                      href={showResult.webLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center justify-center text-primary hover:text-primary/80"
+                    >
+                      <ExternalLink className="h-4 w-4" />
+                    </a>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <span className="text-secondary p-8 text-center ">
+            There are no show results!
+          </span>
+        )}
+      </div>
+
+      {/* Infinite scroll trigger & loading indicator */}
+      {isFullscreen && (
+        <div ref={loadMoreRef} className="py-4 flex justify-center">
+          {isLoadingMore && (
+            <div className="flex items-center gap-2 text-secondary">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              <span>Loading more...</span>
+            </div>
+          )}
+          {!hasMore && results.length > 0 && (
+            <span className="text-muted-foreground text-sm">
+              All {results.length} show results loaded
+            </span>
+          )}
         </div>
-      ) : (
-        <span className="text-secondary p-8 text-center ">
-          There are no show results!
-        </span>
       )}
-    </div>
+    </>
   );
 }

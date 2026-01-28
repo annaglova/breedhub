@@ -1,11 +1,15 @@
 import { LitterCard, LitterData } from "@/components/shared/LitterCard";
 import { useSelectedEntity } from "@/contexts/SpaceContext";
-import { spaceStore, useTabData } from "@breedhub/rxdb-store";
+import {
+  spaceStore,
+  useInfiniteTabData,
+  useTabData,
+} from "@breedhub/rxdb-store";
 import type { DataSourceConfig } from "@breedhub/rxdb-store";
 import { useSignals } from "@preact/signals-react/runtime";
 import { cn } from "@ui/lib/utils";
 import { Loader2 } from "lucide-react";
-import { useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 
 /**
  * Group children into litters by date + other parent
@@ -97,16 +101,27 @@ export function PetChildrenTab({
   const petId = selectedEntity?.id;
   const isFullscreen = spaceStore.isFullscreen.value;
 
-  // Load children via useTabData (VIEW with UNION for father/mother)
-  const {
-    data: childrenRaw,
-    isLoading,
-    error,
-  } = useTabData({
+  // Drawer mode: load limited data
+  const drawerResult = useTabData({
     parentId: petId,
     dataSource: dataSource!,
-    enabled: !!dataSource && !!petId,
+    enabled: !!dataSource && !!petId && !isFullscreen,
   });
+
+  // Fullscreen mode: infinite scroll with pagination
+  const infiniteResult = useInfiniteTabData({
+    parentId: petId,
+    dataSource: dataSource!,
+    enabled: !!dataSource && !!petId && isFullscreen,
+    pageSize: 30,
+  });
+
+  // Use appropriate data based on mode
+  const childrenRaw = isFullscreen ? infiniteResult.data : drawerResult.data;
+  const isLoading = isFullscreen
+    ? infiniteResult.isLoading
+    : drawerResult.isLoading;
+  const error = isFullscreen ? infiniteResult.error : drawerResult.error;
 
   // Transform and group children into litters
   const { litters, parentRole } = useMemo(() => {
@@ -139,12 +154,39 @@ export function PetChildrenTab({
     return litters.reduce((sum, litter) => sum + litter.pets.length, 0);
   }, [litters]);
 
+  // Infinite scroll refs and handlers
+  const loadMoreRef = useRef<HTMLDivElement>(null);
+  const { hasMore, isLoadingMore, loadMore } = infiniteResult;
+
+  const handleLoadMore = useCallback(() => {
+    if (isFullscreen && hasMore && !isLoadingMore) {
+      loadMore();
+    }
+  }, [isFullscreen, hasMore, isLoadingMore, loadMore]);
+
   // Report count after data loads
   useEffect(() => {
     if (!isLoading && onLoadedCount) {
       onLoadedCount(totalChildren);
     }
   }, [isLoading, onLoadedCount, totalChildren]);
+
+  // IntersectionObserver for infinite scroll
+  useEffect(() => {
+    if (!isFullscreen || !loadMoreRef.current) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) {
+          handleLoadMore();
+        }
+      },
+      { threshold: 0.1, rootMargin: "100px" }
+    );
+
+    observer.observe(loadMoreRef.current);
+    return () => observer.disconnect();
+  }, [isFullscreen, handleLoadMore, hasMore, isLoadingMore, totalChildren]);
 
   // Don't render if no dataSource configured
   if (!dataSource) {
@@ -191,6 +233,23 @@ export function PetChildrenTab({
           <span className="text-secondary p-8 text-center ">
             There are no children!
           </span>
+        </div>
+      )}
+
+      {/* Infinite scroll trigger & loading indicator */}
+      {isFullscreen && (
+        <div ref={loadMoreRef} className="py-4 flex justify-center">
+          {isLoadingMore && (
+            <div className="flex items-center gap-2 text-secondary">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              <span>Loading more...</span>
+            </div>
+          )}
+          {!hasMore && totalChildren > 0 && (
+            <span className="text-muted-foreground text-sm">
+              All {totalChildren} children loaded
+            </span>
+          )}
         </div>
       )}
     </>
