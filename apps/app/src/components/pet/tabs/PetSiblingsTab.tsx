@@ -35,9 +35,11 @@ interface SiblingGroup {
 function groupSiblingsByDate(siblings: SiblingPet[]): SiblingGroup[] {
   const grouped: SiblingGroup[] = [];
 
-  // Sort by date (newest first)
+  // Sort by date (newest first, nulls at the end)
   const sorted = [...siblings].sort((a, b) => {
-    if (!a.dateOfBirth || !b.dateOfBirth) return 0;
+    if (!a.dateOfBirth && !b.dateOfBirth) return 0;
+    if (!a.dateOfBirth) return 1; // a is null, put after b
+    if (!b.dateOfBirth) return -1; // b is null, put after a
     return (
       new Date(b.dateOfBirth).getTime() - new Date(a.dateOfBirth).getTime()
     );
