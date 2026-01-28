@@ -149,6 +149,16 @@ export function PetChildrenTab({
   // If current pet is "father", other parent is "Mother" and vice versa
   const anotherParentRole = parentRole === "father" ? "Mother" : "Father";
 
+  // In drawer mode, hide the last litter (it might be incomplete due to limit)
+  // Exception: if there's only 1 litter, show it anyway
+  const visibleLitters = useMemo(() => {
+    if (isFullscreen) return litters;
+    if (litters.length <= 1) return litters;
+    return litters.slice(0, -1); // Hide last potentially incomplete litter
+  }, [litters, isFullscreen]);
+
+  const hiddenLittersCount = litters.length - visibleLitters.length;
+
   // Count total children across all litters
   const totalChildren = useMemo(() => {
     return litters.reduce((sum, litter) => sum + litter.pets.length, 0);
@@ -217,9 +227,9 @@ export function PetChildrenTab({
 
   return (
     <>
-      {litters.length > 0 ? (
+      {visibleLitters.length > 0 ? (
         <div className={cn("grid gap-3", isFullscreen && "lg:grid-cols-2")}>
-          {litters.map((litter, litterIndex) => (
+          {visibleLitters.map((litter, litterIndex) => (
             <LitterCard
               key={`${litter.date}-${litterIndex}`}
               litter={litter}
@@ -232,6 +242,15 @@ export function PetChildrenTab({
         <div className="card card-rounded flex flex-auto flex-col p-6 lg:px-8">
           <span className="text-secondary p-8 text-center ">
             There are no children!
+          </span>
+        </div>
+      )}
+
+      {/* Hidden litters hint (drawer mode only) */}
+      {!isFullscreen && hiddenLittersCount > 0 && (
+        <div className="py-3 flex justify-center">
+          <span className="text-muted-foreground text-sm">
+            more in fullscreen
           </span>
         </div>
       )}
