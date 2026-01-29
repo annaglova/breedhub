@@ -18545,7 +18545,7 @@
           "isSystem": true,
           "isPrimaryKey": true,
           "isUnique": true,
-          "sortOrder": 490,
+          "sortOrder": 500,
           "permissions": {
             "read": [
               "*"
@@ -25017,7 +25017,7 @@
           "isSystem": true,
           "isPrimaryKey": false,
           "isUnique": false,
-          "sortOrder": 500,
+          "sortOrder": 510,
           "permissions": {
             "read": [
               "*"
@@ -31441,7 +31441,7 @@
           "isSystem": true,
           "isPrimaryKey": false,
           "isUnique": false,
-          "sortOrder": 510,
+          "sortOrder": 520,
           "permissions": {
             "read": [
               "*"
@@ -37819,7 +37819,7 @@
           "isSystem": true,
           "isPrimaryKey": false,
           "isUnique": false,
-          "sortOrder": 520,
+          "sortOrder": 530,
           "permissions": {
             "read": [
               "*"
@@ -44243,7 +44243,7 @@
           "isSystem": true,
           "isPrimaryKey": false,
           "isUnique": false,
-          "sortOrder": 530,
+          "sortOrder": 540,
           "permissions": {
             "read": [
               "*"
@@ -50160,7 +50160,7 @@
           "isSystem": true,
           "isPrimaryKey": false,
           "isUnique": false,
-          "sortOrder": 540,
+          "sortOrder": 550,
           "permissions": {
             "read": [
               "*"
@@ -72593,6 +72593,43 @@
           "displayName": "Pedigree",
           "placeholder": "Enter pedigree",
           "defaultValue": "{}"
+        }
+      }
+    ],
+    "commonProps": null
+  },
+  {
+    "key": "titles_display",
+    "name": "titles_display",
+    "occurrences": 1,
+    "entities": [
+      "pet"
+    ],
+    "variations": [
+      {
+        "entity": "pet",
+        "category": "main",
+        "config": {
+          "id": "field_titles_display",
+          "name": "titles_display",
+          "fieldType": "json",
+          "component": "TextareaInput",
+          "required": false,
+          "isSystem": false,
+          "isPrimaryKey": false,
+          "isUnique": false,
+          "sortOrder": 490,
+          "permissions": {
+            "read": [
+              "*"
+            ],
+            "write": [
+              "admin",
+              "editor"
+            ]
+          },
+          "displayName": "Titles Display",
+          "placeholder": "Enter titles display"
         }
       }
     ],

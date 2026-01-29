@@ -1,10 +1,10 @@
 {
   "summary": {
     "totalEntities": 258,
-    "uniqueFields": 570,
+    "uniqueFields": 571,
     "baseFields": 36,
     "properties": 12,
-    "entityFieldsGenerated": 2874
+    "entityFieldsGenerated": 2875
   },
   "topFields": [
     {
@@ -123,7 +123,7 @@
   ],
   "analysis": {
     "fieldTypes": {
-      "unknown": 388,
+      "unknown": 389,
       "uuid": 91,
       "string": 27,
       "text": 8,
