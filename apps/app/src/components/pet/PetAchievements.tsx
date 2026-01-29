@@ -1,3 +1,4 @@
+import { useAboveFoldBlock } from "@/contexts/AboveFoldLoadingContext";
 import type { DataSourceConfig } from "@breedhub/rxdb-store";
 import { dictionaryStore, useTabData } from "@breedhub/rxdb-store";
 import { Chip } from "@ui/components/chip";
@@ -156,6 +157,10 @@ export function PetAchievements({
 
   const isLoading = dataLoading || lookupsLoading;
 
+  // Register loading state with above-fold context
+  // This enables coordinated loading with other above-fold blocks
+  useAboveFoldBlock("pet-achievements", !isLoading);
+
   const isComponentMode = mode === "component";
   const displayCount = expanded ? titles.length : 5;
   const hasMoreTitles = titles.length > 5;
@@ -170,25 +175,9 @@ export function PetAchievements({
     return null;
   }
 
-  // Show skeleton while loading to prevent layout shift
-  if (isLoading && titles.length === 0) {
-    return (
-      <div
-        className={cn(
-          !isComponentMode && "px-6"
-        )}
-      >
-        <div className="flex flex-wrap items-center gap-2 mt-2 min-h-[2rem]">
-          <div className="h-7 w-20 bg-slate-200 dark:bg-slate-700 rounded-full animate-pulse" />
-          <div className="h-7 w-16 bg-slate-200 dark:bg-slate-700 rounded-full animate-pulse" />
-          <div className="h-7 w-24 bg-slate-200 dark:bg-slate-700 rounded-full animate-pulse" />
-        </div>
-      </div>
-    );
-  }
-
   // Don't render if no achievements after loading
-  if (titles.length === 0) {
+  // Note: Skeleton is now handled by AchievementOutlet for coordinated above-fold loading
+  if (!isLoading && titles.length === 0) {
     return null;
   }
 

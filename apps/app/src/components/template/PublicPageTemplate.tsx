@@ -1,5 +1,10 @@
 import { BlockRenderer } from "@/components/blocks/BlockRenderer";
 import { ScrollToTopButton } from "@/components/shared/ScrollToTopButton";
+import {
+  AboveFoldLoadingProvider,
+  useAllAboveFoldReady,
+  useSkeletonWithDelay,
+} from "@/contexts/AboveFoldLoadingContext";
 import { SpaceProvider } from "@/contexts/SpaceContext";
 import { useEntityFullyLoaded } from "@/hooks/useEntityFullyLoaded";
 import { getPageConfig } from "@/utils/getPageConfig";
@@ -78,6 +83,167 @@ interface PublicPageTemplateProps {
   isFullscreenMode?: boolean; // When true, renders as fullscreen page (from pretty URL)
   spaceConfigSignal?: Signal<any>; // TODO: Define proper SpaceConfig type from DB structure
   entityType?: string; // Required to get selectedEntity from store
+}
+
+/**
+ * Props for AboveFoldBlocks inner component
+ */
+interface AboveFoldBlocksProps {
+  pageConfig: any;
+  selectedEntity: any;
+  spacePermissions: any;
+  isDrawerMode: boolean;
+  isFullscreenMode: boolean;
+  entityType?: string;
+  nameContainerRef: React.RefObject<HTMLDivElement>;
+  nameOnTop: boolean;
+  PAGE_MENU_TOP: number;
+  TAB_HEADER_TOP: number;
+  isEntityFullyLoaded: boolean;
+}
+
+/**
+ * AboveFoldBlocks - Renders above-fold blocks with coordinated loading
+ *
+ * This component uses AboveFoldLoadingContext to coordinate loading:
+ * - Blocks are always rendered (invisible when loading)
+ * - Components register their loading state via useAboveFoldBlock
+ * - When ALL blocks are ready, content becomes visible together
+ */
+function AboveFoldBlocks({
+  pageConfig,
+  selectedEntity,
+  spacePermissions,
+  isDrawerMode,
+  isFullscreenMode,
+  entityType,
+  nameContainerRef,
+  nameOnTop,
+  PAGE_MENU_TOP,
+  TAB_HEADER_TOP,
+  isEntityFullyLoaded,
+}: AboveFoldBlocksProps) {
+  // Check if all above-fold blocks are ready (from context)
+  const allBlocksReady = useAllAboveFoldReady();
+
+  // Combined loading state: entity must be loaded AND all blocks must be ready
+  const isAboveFoldLoading = !isEntityFullyLoaded || !allBlocksReady;
+
+  // Delayed skeleton: only show skeleton if loading takes > 100ms
+  // This prevents skeleton flicker for cached data that loads quickly
+  const shouldShowSkeleton = useSkeletonWithDelay(isAboveFoldLoading);
+
+  // Sort blocks by order
+  const sortedBlocks = Object.entries(pageConfig.blocks).sort(
+    ([, a]: [string, any], [, b]: [string, any]) => (a.order || 0) - (b.order || 0)
+  );
+
+  if (process.env.NODE_ENV === "development") {
+    console.log("[AboveFoldBlocks] Rendering:", {
+      isEntityFullyLoaded,
+      allBlocksReady,
+      isAboveFoldLoading,
+      shouldShowSkeleton,
+      blocksCount: sortedBlocks.length,
+    });
+  }
+
+  return (
+    <>
+      {sortedBlocks.map(([blockId, blockConfig]: [string, any]) => {
+        // CoverOutlet calculates its own dimensions + needs defaultTab for expand
+        if (blockConfig.outlet === "CoverOutlet") {
+          return (
+            <BlockRenderer
+              key={blockId}
+              blockConfig={{
+                ...blockConfig,
+                isDrawerMode,
+                defaultTab: getDefaultTabFragment(pageConfig),
+                entityType,
+              }}
+              entity={selectedEntity}
+              pageConfig={pageConfig}
+              spacePermissions={spacePermissions}
+              isLoading={shouldShowSkeleton}
+            />
+          );
+        }
+
+        // AvatarOutlet renders without wrapper
+        if (blockConfig.outlet === "AvatarOutlet") {
+          return (
+            <BlockRenderer
+              key={blockId}
+              blockConfig={{
+                ...blockConfig,
+                isFullscreenMode,
+              }}
+              entity={selectedEntity}
+              pageConfig={pageConfig}
+              spacePermissions={spacePermissions}
+              isLoading={shouldShowSkeleton}
+            />
+          );
+        }
+
+        // NameOutlet needs sticky wrapper and onTop state
+        if (blockConfig.outlet === "NameOutlet") {
+          return (
+            <div
+              key={blockId}
+              ref={nameContainerRef}
+              className="sticky top-0 z-30"
+            >
+              <BlockRenderer
+                blockConfig={{
+                  ...blockConfig,
+                  onTop: nameOnTop,
+                  linkToFullscreen: !isFullscreenMode,
+                  entityType,
+                }}
+                entity={selectedEntity}
+                pageConfig={pageConfig}
+                spacePermissions={spacePermissions}
+                isLoading={shouldShowSkeleton}
+              />
+            </div>
+          );
+        }
+
+        // TabOutlet - Dynamic tabs from config
+        if (blockConfig.outlet === "TabOutlet") {
+          return (
+            <BlockRenderer
+              key={blockId}
+              blockConfig={{
+                ...blockConfig,
+                pageMenuTop: PAGE_MENU_TOP,
+                tabHeaderTop: TAB_HEADER_TOP,
+              }}
+              entity={selectedEntity}
+              pageConfig={pageConfig}
+              spacePermissions={spacePermissions}
+              isLoading={shouldShowSkeleton}
+            />
+          );
+        }
+
+        // Default blocks (like achievements)
+        return (
+          <BlockRenderer
+            key={blockId}
+            blockConfig={blockConfig}
+            entity={selectedEntity}
+            className="mb-4"
+            pageConfig={pageConfig}
+            spacePermissions={spacePermissions}
+            isLoading={shouldShowSkeleton}
+          />
+        );
+      })}
+    </>
+  );
 }
 
 /**
@@ -290,130 +456,24 @@ export function PublicPageTemplate({
               </div>
             )}
 
-            {/* Render blocks - each outlet handles its own skeleton via isLoading prop */}
-            {pageConfig &&
-              pageConfig.blocks &&
-              (() => {
-                // Loading states:
-                // - isAboveFoldLoading: for blocks before tabs (cover, avatar, name, achievements)
-                //   Waits until ALL related data is loaded to prevent "dribbling" effect
-                // - isEntityLoading: for tabs - just checks if entity exists
-                const isAboveFoldLoading = !isEntityFullyLoaded;
-                const isEntityLoading = !selectedEntity;
-                // Sort blocks by order
-                const sortedBlocks = Object.entries(pageConfig.blocks).sort(
-                  ([, a], [, b]) => (a.order || 0) - (b.order || 0)
-                );
-
-                if (process.env.NODE_ENV === "development") {
-                  console.log("[PublicPageTemplate] Rendering blocks:", {
-                    pageConfig,
-                    selectedEntity,
-                    blocksCount: sortedBlocks.length,
-                    sortedBlocks,
-                  });
-                }
-
-                // Render each block with its appropriate container
-                // Above-fold blocks use isAboveFoldLoading (waits for all related data)
-                // TabOutlet uses isEntityLoading (just needs entity to exist)
-                return sortedBlocks.map(([blockId, blockConfig]) => {
-                  // CoverOutlet calculates its own dimensions + needs defaultTab for expand
-                  if (blockConfig.outlet === "CoverOutlet") {
-                    return (
-                      <BlockRenderer
-                        key={blockId}
-                        blockConfig={{
-                          ...blockConfig,
-                          isDrawerMode,
-                          defaultTab: getDefaultTabFragment(pageConfig),
-                          entityType, // For per-space navigation history
-                        }}
-                        entity={selectedEntity}
-                        pageConfig={pageConfig}
-                        spacePermissions={spacePermissions}
-                        isLoading={isAboveFoldLoading}
-                      />
-                    );
-                  }
-
-                  // AvatarOutlet renders without wrapper
-                  if (blockConfig.outlet === "AvatarOutlet") {
-                    return (
-                      <BlockRenderer
-                        key={blockId}
-                        blockConfig={{
-                          ...blockConfig,
-                          isFullscreenMode,
-                        }}
-                        entity={selectedEntity}
-                        pageConfig={pageConfig}
-                        spacePermissions={spacePermissions}
-                        isLoading={isAboveFoldLoading}
-                      />
-                    );
-                  }
-
-                  // NameOutlet needs sticky wrapper and onTop state
-                  if (blockConfig.outlet === "NameOutlet") {
-                    return (
-                      <div
-                        key={blockId}
-                        ref={nameContainerRef}
-                        className="sticky top-0 z-30"
-                      >
-                        <BlockRenderer
-                          blockConfig={{
-                            ...blockConfig,
-                            onTop: nameOnTop,
-                            // In fullscreen mode, don't link to self
-                            // In drawer mode, link to fullscreen page
-                            linkToFullscreen: !isFullscreenMode,
-                            entityType, // For per-space navigation history
-                          }}
-                          entity={selectedEntity}
-                          pageConfig={pageConfig}
-                          spacePermissions={spacePermissions}
-                          isLoading={isAboveFoldLoading}
-                        />
-                      </div>
-                    );
-                  }
-
-                  // TabOutlet - Dynamic tabs from config
-                  // Uses isAboveFoldLoading - tabs appear together with other content
-                  // Tab content has its own loading states via useTabData
-                  if (blockConfig.outlet === "TabOutlet") {
-                    return (
-                      <BlockRenderer
-                        key={blockId}
-                        blockConfig={{
-                          ...blockConfig,
-                          pageMenuTop: PAGE_MENU_TOP,
-                          tabHeaderTop: TAB_HEADER_TOP,
-                        }}
-                        entity={selectedEntity}
-                        pageConfig={pageConfig}
-                        spacePermissions={spacePermissions}
-                        isLoading={isAboveFoldLoading}
-                      />
-                    );
-                  }
-
-                  // Default blocks (like achievements) - use above-fold loading
-                  return (
-                    <BlockRenderer
-                      key={blockId}
-                      blockConfig={blockConfig}
-                      entity={selectedEntity}
-                      className="mb-4"
-                      pageConfig={pageConfig}
-                      spacePermissions={spacePermissions}
-                      isLoading={isAboveFoldLoading}
-                    />
-                  );
-                });
-              })()}
+            {/* Render blocks with coordinated loading via AboveFoldLoadingProvider */}
+            {pageConfig && pageConfig.blocks && (
+              <AboveFoldLoadingProvider>
+                <AboveFoldBlocks
+                  pageConfig={pageConfig}
+                  selectedEntity={selectedEntity}
+                  spacePermissions={spacePermissions}
+                  isDrawerMode={isDrawerMode}
+                  isFullscreenMode={isFullscreenMode}
+                  entityType={entityType}
+                  nameContainerRef={nameContainerRef}
+                  nameOnTop={nameOnTop}
+                  PAGE_MENU_TOP={PAGE_MENU_TOP}
+                  TAB_HEADER_TOP={TAB_HEADER_TOP}
+                  isEntityFullyLoaded={isEntityFullyLoaded}
+                />
+              </AboveFoldLoadingProvider>
+            )}
           </div>
         </div>
 

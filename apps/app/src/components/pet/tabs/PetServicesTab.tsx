@@ -47,6 +47,9 @@ const SERVICE_ICONS: Record<string, React.ReactNode> = {
   "Children for sale": <PawPrint className="h-4 w-4" />,
 };
 
+// Known service type ID for "Children for sale"
+const CHILDREN_FOR_SALE_SERVICE_ID = "3370ee61-86de-49ae-a8ec-5cef5f213ecd";
+
 // Default dataSource configs for services (using base tables + client-side dictionary merge)
 const DEFAULT_SERVICES_DATASOURCE: DataSourceConfig = {
   type: "child",
@@ -105,13 +108,22 @@ export function PetServicesTab({
   const petId = selectedEntity?.id;
   const isFullscreen = spaceStore.isFullscreen.value;
 
+  // Quick check from JSONB: does pet have ANY services?
+  // Format: {"1": "service_id", "2": "service_id", ...}
+  const servicesJsonb = selectedEntity?.services as Record<string, string> | undefined;
+  const hasAnyServices = servicesJsonb && Object.keys(servicesJsonb).length > 0;
+
+  // Quick check from JSONB: does pet have "Children for sale" service?
+  const hasChildrenForSaleInJsonb = hasAnyServices &&
+    Object.values(servicesJsonb!).includes(CHILDREN_FOR_SALE_SERVICE_ID);
+
   // Lookup maps state - populated after child records load
   const [serviceTypesMap, setServiceTypesMap] = useState<Map<string, any>>(new Map());
   const [currencyMap, setCurrencyMap] = useState<Map<string, any>>(new Map());
   const [featuresMap, setFeaturesMap] = useState<Map<string, any>>(new Map());
   const [lookupsLoading, setLookupsLoading] = useState(false);
 
-  // Load services via useTabData
+  // Load services via useTabData - ONLY if JSONB indicates services exist
   const {
     data: servicesRaw,
     isLoading: servicesLoading,
@@ -119,27 +131,27 @@ export function PetServicesTab({
   } = useTabData({
     parentId: petId,
     dataSource: dataSource || DEFAULT_SERVICES_DATASOURCE,
-    enabled: !!petId,
+    enabled: !!petId && hasAnyServices,
   });
 
-  // Load features via useTabData
+  // Load features via useTabData - ONLY if JSONB indicates services exist
   const {
     data: featuresRaw,
     isLoading: featuresLoading,
   } = useTabData({
     parentId: petId,
     dataSource: featuresDataSource || DEFAULT_FEATURES_DATASOURCE,
-    enabled: !!petId,
+    enabled: !!petId && hasAnyServices,
   });
 
-  // Load children for sale via useTabData (uses VIEW with enriched data)
+  // Load children for sale via useTabData - ONLY if JSONB indicates this service exists
   const {
     data: childrenForSaleRaw,
     isLoading: childrenForSaleLoading,
   } = useTabData({
     parentId: petId,
     dataSource: CHILDREN_FOR_SALE_DATASOURCE,
-    enabled: !!petId,
+    enabled: !!petId && hasChildrenForSaleInJsonb,
   });
 
   // Load lookups by specific IDs from child records (not entire dictionaries)
@@ -252,15 +264,9 @@ export function PetServicesTab({
       .filter((service) => service.serviceTypeName.toLowerCase() !== "children for sale");
   }, [servicesRaw, serviceTypesMap, currencyMap, lookupsLoading]);
 
-  // Check if pet has "Children for sale" service enabled
-  const hasChildrenForSaleService = useMemo(() => {
-    if (!servicesRaw || servicesRaw.length === 0 || lookupsLoading) return false;
-    return servicesRaw.some((item: any) => {
-      const serviceTypeId = item.additional?.service_type_id || item.service_type_id;
-      const serviceType = serviceTypesMap.get(serviceTypeId);
-      return serviceType?.name?.toLowerCase() === "children for sale";
-    });
-  }, [servicesRaw, serviceTypesMap, lookupsLoading]);
+  // Check if pet has "Children for sale" service - use JSONB for instant check
+  // No need to wait for lookups, we know the service ID
+  const hasChildrenForSaleService = hasChildrenForSaleInJsonb;
 
   // Transform raw features data to UI format with dictionary merge
   const features = useMemo<ServiceFeature[]>(() => {
@@ -347,7 +353,17 @@ export function PetServicesTab({
   // Determine label for the other parent based on current pet's role
   const anotherParentRole = parentRoleForSale === "father" ? "Mother" : "Father";
 
-  const isLoading = servicesLoading || featuresLoading || lookupsLoading || childrenForSaleLoading;
+  // Fast path: if JSONB says no services, we're done immediately
+  // No need to wait for any queries
+  const noServicesFromJsonb = !hasAnyServices;
+
+  // Core loading: services, features, and their lookups (only if hasAnyServices)
+  const coreLoading = hasAnyServices && (servicesLoading || featuresLoading || lookupsLoading);
+
+  // Children for sale loading only matters if JSONB indicates this service exists
+  const childrenLoading = hasChildrenForSaleInJsonb && childrenForSaleLoading;
+
+  const isLoading = coreLoading || childrenLoading;
 
   // Report count after data loads
   useEffect(() => {
@@ -378,8 +394,8 @@ export function PetServicesTab({
     );
   }
 
-  // Empty state
-  if (services.length === 0 && features.length === 0 && littersForSale.length === 0) {
+  // Empty state - instant from JSONB or after loading
+  if (noServicesFromJsonb || (services.length === 0 && features.length === 0 && littersForSale.length === 0)) {
     return (
       <div className="py-4 px-6">
         <div className="bg-slate-50 border border-slate-200 rounded-lg p-4 text-center">

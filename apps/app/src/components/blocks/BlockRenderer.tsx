@@ -9,7 +9,11 @@ interface BlockRendererProps {
   className?: string;
   pageConfig?: PageConfig | null;
   spacePermissions?: SpacePermissions;
-  // Loading state - passed to outlets for skeleton rendering
+  /**
+   * Loading state for skeleton rendering
+   * When true, outlet shows skeleton but component STILL renders (invisible)
+   * This allows components to trigger their data loading
+   */
   isLoading?: boolean;
 }
 
@@ -129,6 +133,8 @@ export const BlockRenderer: React.FC<BlockRendererProps> = ({
 
   // Render outlet wrapping component
   // Pass isLoading to outlet - outlet shows skeleton when loading
+  // IMPORTANT: Always render BlockComponent so it can trigger data loading
+  // The outlet handles visibility (skeleton overlay when loading)
   return (
     <OutletComponent
       entity={entity}
@@ -139,15 +145,14 @@ export const BlockRenderer: React.FC<BlockRendererProps> = ({
       spacePermissions={spacePermissions}
       isLoading={isLoading}
     >
-      {/* Only render block component when not loading */}
-      {!isLoading && (
-        <BlockComponent
-          entity={entity}
-          {...restConfig}
-          pageConfig={pageConfig}
-          spacePermissions={spacePermissions}
-        />
-      )}
+      {/* Always render block component to trigger data loading */}
+      {/* Outlet handles visibility via isLoading prop */}
+      <BlockComponent
+        entity={entity}
+        {...restConfig}
+        pageConfig={pageConfig}
+        spacePermissions={spacePermissions}
+      />
     </OutletComponent>
   );
 };

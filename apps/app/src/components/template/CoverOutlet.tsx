@@ -143,29 +143,6 @@ export function CoverOutlet({
     maxHeight: `${coverHeight}px`,
   };
 
-  // Show skeleton when loading
-  if (isLoading) {
-    return (
-      <div
-        ref={containerRef}
-        className={`relative overflow-hidden rounded-lg mb-6 ${className}`}
-        style={coverStyle}
-      >
-        {/* Background skeleton */}
-        <div className="absolute inset-0 bg-slate-200 dark:bg-slate-700 animate-pulse" />
-
-        {/* Top gradient overlay (same as real cover) */}
-        <div className="absolute top-0 z-10 h-28 w-full bg-gradient-to-b from-slate-300/40 to-transparent dark:from-slate-600/40" />
-
-        {/* Navigation buttons placeholder */}
-        <div className="absolute top-4 right-6 z-40 flex gap-2">
-          <div className="w-8 h-8 rounded-full bg-slate-300/50 dark:bg-slate-600/50" />
-          <div className="w-8 h-8 rounded-full bg-slate-300/50 dark:bg-slate-600/50" />
-        </div>
-      </div>
-    );
-  }
-
   const handleExpand = () => {
     if (!entity) return;
 
@@ -192,11 +169,28 @@ export function CoverOutlet({
       className={`relative flex justify-center overflow-hidden rounded-lg border border-slate-200 px-6 pt-4 shadow-sm sm:pb-3 sm:pt-6 mb-6 ${className}`}
       style={coverStyle}
     >
+      {/* Skeleton overlay - shown when loading */}
+      {isLoading && (
+        <>
+          {/* Background skeleton */}
+          <div className="absolute inset-0 bg-slate-200 dark:bg-slate-700 animate-pulse z-50" />
+
+          {/* Top gradient overlay (same as real cover) */}
+          <div className="absolute top-0 z-50 h-28 w-full bg-gradient-to-b from-slate-300/40 to-transparent dark:from-slate-600/40" />
+
+          {/* Navigation buttons placeholder */}
+          <div className="absolute top-4 right-6 z-50 flex gap-2">
+            <div className="w-8 h-8 rounded-full bg-slate-300/50 dark:bg-slate-600/50" />
+            <div className="w-8 h-8 rounded-full bg-slate-300/50 dark:bg-slate-600/50" />
+          </div>
+        </>
+      )}
+
       {/* Top gradient overlay */}
       <div className="absolute top-0 z-10 h-28 w-full bg-gradient-to-b from-[#200e4c]/40 to-transparent" />
 
-      {/* Cover component wrapper */}
-      <div className="flex w-full h-full max-w-3xl flex-col lg:max-w-4xl xxl:max-w-5xl">
+      {/* Cover component wrapper - always rendered to trigger data loading */}
+      <div className={`flex w-full h-full max-w-3xl flex-col lg:max-w-4xl xxl:max-w-5xl ${isLoading ? "invisible" : ""}`}>
         {/* Navigation buttons */}
         <div className="z-40 flex w-full pb-2">
           {showExpandButton && (

@@ -105,34 +105,36 @@ export function NameOutlet({
     ...(onSupport && { support: onSupport }),
   });
 
-  if (isLoading) {
-    return (
-      <div className={`relative bg-card-ground ${className}`}>
-        <div className="flex flex-col space-y-4 pb-5 pt-1">
-          {/* Additional info skeleton */}
-          <div className="h-4 w-32 bg-slate-200 dark:bg-slate-700 rounded-full animate-pulse" />
-
-          {/* Name skeleton */}
-          <div className="space-y-2">
-            <div className="h-6 w-96 bg-slate-200 dark:bg-slate-700 rounded-full animate-pulse my-0.5" />
-            <div className="flex items-center space-x-2">
-              <div className="size-5 bg-slate-200 dark:bg-slate-700 rounded-full animate-pulse" />
-              <div className="h-3 w-32 bg-slate-200 dark:bg-slate-700 rounded-full animate-pulse" />
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div
       className={`relative bg-card-ground ${
         onTop ? "border-b border-surface-border" : ""
       } ${className}`}
     >
+      {/* Skeleton overlay - shown when loading */}
+      {isLoading && (
+        <div className="absolute inset-0 z-50 bg-card-ground">
+          <div className="flex flex-col space-y-4 pb-5 pt-1">
+            {/* Additional info skeleton */}
+            <div className="h-4 w-32 bg-slate-200 dark:bg-slate-700 rounded-full animate-pulse" />
+
+            {/* Name skeleton */}
+            <div className="space-y-2">
+              <div className="h-6 w-96 bg-slate-200 dark:bg-slate-700 rounded-full animate-pulse my-0.5" />
+              <div className="flex items-center space-x-2">
+                <div className="size-5 bg-slate-200 dark:bg-slate-700 rounded-full animate-pulse" />
+                <div className="h-3 w-32 bg-slate-200 dark:bg-slate-700 rounded-full animate-pulse" />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Name content slot - entity-specific component via children */}
-      {children}
+      {/* Always rendered to trigger data loading, invisible when loading */}
+      <div className={isLoading ? "invisible" : ""}>
+        {children}
+      </div>
 
       {/* Navigation buttons - top right (default/gray when sticky or alwaysShowNavigation) */}
       {(onTop || alwaysShowNavigation) && (

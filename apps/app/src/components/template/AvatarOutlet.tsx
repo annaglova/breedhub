@@ -85,32 +85,6 @@ export function AvatarOutlet({
   // Select avatar config based on mode
   const avatarConfig = isFullscreenMode ? AVATAR_FULLSCREEN : AVATAR_DRAWER;
 
-  // Show skeleton when loading - respects hasAvatar/hasActions from config
-  if (isLoading) {
-    return (
-      <div
-        className={`${avatarConfig.offset} ${avatarConfig.padding} flex flex-auto items-end relative pb-3 top-0 z-30 pointer-events-none ${className}`}
-      >
-        {/* Avatar skeleton - or spacer to maintain layout */}
-        {hasAvatar ? (
-          <div
-            className={`rounded-full bg-slate-300 dark:bg-slate-600 ring-4 ring-white dark:ring-slate-900 shrink-0 animate-pulse ${avatarConfig.size}`}
-          />
-        ) : (
-          <div className={avatarConfig.size} />
-        )}
-
-        {/* Action buttons skeleton - only if hasActions */}
-        {hasActions && (
-          <div className="mb-1 ml-auto flex gap-2">
-            <div className="w-20 h-10 rounded-full bg-slate-200 dark:bg-slate-700 animate-pulse" />
-            <div className="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-700 animate-pulse" />
-          </div>
-        )}
-      </div>
-    );
-  }
-
   // Buttons are always shown (icon-only on mobile, with label on sm+)
   // So we always use "desktop" width to exclude duplicateOnDesktop from menu
   const containerWidth = 1280;
@@ -145,9 +119,30 @@ export function AvatarOutlet({
     <div
       className={`${avatarConfig.offset} ${avatarConfig.padding} flex flex-auto items-end relative pb-3 top-0 z-30 pointer-events-none ${className}`}
     >
+      {/* Skeleton overlay - shown when loading */}
+      {isLoading && (
+        <>
+          {/* Avatar skeleton - or spacer to maintain layout */}
+          {hasAvatar ? (
+            <div
+              className={`absolute left-0 ${avatarConfig.padding} rounded-full bg-slate-300 dark:bg-slate-600 ring-4 ring-white dark:ring-slate-900 shrink-0 animate-pulse ${avatarConfig.size}`}
+            />
+          ) : null}
+
+          {/* Action buttons skeleton - only if hasActions */}
+          {hasActions && (
+            <div className="absolute right-0 mb-1 flex gap-2">
+              <div className="w-20 h-10 rounded-full bg-slate-200 dark:bg-slate-700 animate-pulse" />
+              <div className="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-700 animate-pulse" />
+            </div>
+          )}
+        </>
+      )}
+
       {/* Avatar - entity-specific component via children, or spacer to maintain layout */}
+      {/* Always rendered to trigger data loading, invisible when loading */}
       {hasAvatar ? (
-        <div className="pointer-events-auto">{children}</div>
+        <div className={`pointer-events-auto ${isLoading ? "invisible" : ""}`}>{children}</div>
       ) : (
         <div className={avatarConfig.size} />
       )}
