@@ -5,7 +5,6 @@ import { cn } from "@ui/lib/utils";
 import { useEffect, useState } from "react";
 
 interface BreedTopKennelsTabProps {
-  recordsCount?: number; // Number of records to display (from config)
   dataSource?: any; // Config-driven data loading (not yet implemented)
   onLoadedCount?: (count: number) => void; // Report loaded count for conditional fullscreen
 }
@@ -20,7 +19,7 @@ interface BreedTopKennelsTabProps {
  *
  * Similar to Angular breed-top-kennels.component.ts
  */
-export function BreedTopKennelsTab({ recordsCount }: BreedTopKennelsTabProps) {
+export function BreedTopKennelsTab({ dataSource }: BreedTopKennelsTabProps) {
   useSignals();
 
   // Read fullscreen state from spaceStore
@@ -30,9 +29,7 @@ export function BreedTopKennelsTab({ recordsCount }: BreedTopKennelsTabProps) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // TODO: Load kennels from SpaceStore child records using recordsCount
-    // recordsCount will be used in API query: { limit: recordsCount }
-    console.log("[BreedTopKennelsTab] recordsCount from config:", recordsCount);
+    // TODO: Load kennels from SpaceStore using dataSource config
 
     // For now, using mock data
     // Kennels displayed in rating order, no placement badges (badges are for patrons only)

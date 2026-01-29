@@ -57,7 +57,6 @@ function formatDate(dateString: string): string {
  * @see docs/TAB_DATA_SERVICE_ARCHITECTURE.md
  */
 interface BreedAchievementsTabProps {
-  recordsCount?: number;
   dataSource?: DataSourceConfig;
   onLoadedCount?: (count: number) => void; // Report loaded count for conditional fullscreen
 }

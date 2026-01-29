@@ -11,7 +11,7 @@ export interface Tab {
   icon: IconConfig; // Changed from React.ReactNode to IconConfig for universal icon support
   badge?: string; // "Coming soon", "New", "Beta", etc.
   fullscreenButton?: boolean; // Show fullscreen button (generates URL from fragment)
-  recordsCount?: number; // Number of records to fetch for this tab
+  expandAlways?: boolean; // Always show expand button (e.g., for Pedigree tab)
   dataSource?: any; // Config-driven data loading (see TAB_DATA_SERVICE_ARCHITECTURE.md)
   component: React.ComponentType<any>;
   /**
@@ -25,20 +25,18 @@ export interface Tab {
 
 /**
  * Determine if fullscreen button should be shown
- * - If no recordsCount configured, always show (if fullscreenButton: true)
- * - If recordsCount configured but data not loaded yet, don't show
- * - If loaded records >= recordsCount, show (there might be more records)
- * - If loaded records < recordsCount, don't show (all records fit on page)
+ * Simple local-first logic:
+ * - expandAlways: true → always show (e.g., Pedigree tab)
+ * - Otherwise → show if RxDB has any data (loadedCount > 0)
  */
 function shouldShowFullscreen(
   fullscreenButton: boolean | undefined,
-  recordsCount: number | undefined,
+  expandAlways: boolean | undefined,
   loadedCount: number | undefined
 ): boolean {
   if (!fullscreenButton) return false;
-  if (recordsCount === undefined) return true; // No limit configured, always show
-  if (loadedCount === undefined) return false; // Data not loaded yet, hide
-  return loadedCount >= recordsCount; // Show only if there might be more
+  if (expandAlways) return true;
+  return (loadedCount ?? 0) > 0;
 }
 
 interface TabsContainerProps {
@@ -115,7 +113,7 @@ export function TabsContainer({
           // Determine if fullscreen button should be shown
           const showFullscreen = shouldShowFullscreen(
             tab.fullscreenButton,
-            tab.recordsCount,
+            tab.expandAlways,
             loadedCounts[tab.id]
           );
 
@@ -146,7 +144,6 @@ export function TabsContainer({
                 onVisibilityChange={handleVisibilityChange}
               >
                 <Component
-                  recordsCount={tab.recordsCount}
                   dataSource={tab.dataSource}
                   onLoadedCount={(count: number) => handleLoadedCount(tab.id, count)}
                   tabHeaderTop={tabHeaderTop}
@@ -168,7 +165,7 @@ export function TabsContainer({
   // Determine if fullscreen button should be shown
   const showFullscreen = shouldShowFullscreen(
     activeTabData.fullscreenButton,
-    activeTabData.recordsCount,
+    activeTabData.expandAlways,
     loadedCounts[activeTabData.id]
   );
 
@@ -192,7 +189,6 @@ export function TabsContainer({
 
       {/* Active Tab Content */}
       <Component
-        recordsCount={activeTabData.recordsCount}
         dataSource={activeTabData.dataSource}
         onLoadedCount={(count: number) => handleLoadedCount(activeTabData.id, count)}
       />

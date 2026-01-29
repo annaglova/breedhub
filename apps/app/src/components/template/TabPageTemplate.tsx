@@ -52,7 +52,7 @@ interface TabConfig {
   slug?: string;
   badge?: string;
   fullscreenButton?: boolean;
-  recordsCount?: number;
+  expandAlways?: boolean; // Always show expand button (e.g., Pedigree tab)
   dataSource?: any; // Config-driven data loading
   actionType?: "pedigreeGenerations" | "edit"; // Fullscreen mode action type
 }
@@ -69,23 +69,24 @@ interface TabPageTemplateProps {
 
 /**
  * Determine if tab should be shown in fullscreen PageMenu
- * Same logic as shouldShowFullscreen in TabsContainer
+ * Simple local-first logic:
+ * - expandAlways: true → always show (e.g., Pedigree tab)
+ * - Otherwise → show if RxDB has any data (loadedCount > 0)
  */
 function shouldShowInFullscreenMenu(
   fullscreenButton: boolean | undefined,
-  recordsCount: number | undefined,
+  expandAlways: boolean | undefined,
   loadedCount: number | undefined
 ): boolean {
   if (!fullscreenButton) return false;
-  if (recordsCount === undefined) return true; // No limit configured, always show
-  if (loadedCount === undefined) return true; // Data not loaded yet, show by default
-  return loadedCount >= recordsCount; // Show only if there might be more records
+  if (expandAlways) return true;
+  return (loadedCount ?? 0) > 0;
 }
 
 /**
  * Convert tab config object to Tab[] array
  * Only includes tabs that should be shown in fullscreen mode
- * (fullscreenButton: true AND loadedCount >= recordsCount)
+ * (expandAlways: true OR loadedCount > 0)
  */
 function convertFullscreenTabsToArray(
   tabsConfig: Record<string, TabConfig>,
@@ -94,10 +95,10 @@ function convertFullscreenTabsToArray(
   const tabs: Tab[] = [];
 
   for (const [tabId, config] of Object.entries(tabsConfig)) {
-    // Check if tab should be shown (fullscreenButton + records count check)
+    // Check if tab should be shown (expandAlways OR has data)
     const shouldShow = shouldShowInFullscreenMenu(
       config.fullscreenButton,
-      config.recordsCount,
+      config.expandAlways,
       loadedCounts[tabId]
     );
     if (!shouldShow) continue;
@@ -124,7 +125,7 @@ function convertFullscreenTabsToArray(
       component: Component,
       badge: config.badge,
       fullscreenButton: config.fullscreenButton,
-      recordsCount: config.recordsCount,
+      expandAlways: config.expandAlways,
       dataSource: config.dataSource,
       actionType: config.actionType,
       _order: config.order,
@@ -477,7 +478,6 @@ export function TabPageTemplate({
               <TabComponent
                 entity={selectedEntity}
                 mode="fullscreen"
-                recordsCount={currentTab.recordsCount}
                 dataSource={currentTab.dataSource}
                 pedigreeGenerations={pedigreeGenerations}
                 onPedigreeGenerationsChange={setPedigreeGenerations}

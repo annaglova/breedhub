@@ -61,7 +61,7 @@ interface TabConfig {
   // New config options
   badge?: string; // "Coming soon", "New", "Beta", etc.
   fullscreenButton?: boolean; // Show fullscreen button
-  recordsCount?: number; // Number of records to fetch for this tab
+  expandAlways?: boolean; // Always show expand button (e.g., Pedigree tab)
   dataSource?: any; // Config-driven data loading (see TAB_DATA_SERVICE_ARCHITECTURE.md)
 }
 
@@ -80,7 +80,7 @@ interface ExtendedTab extends Tab {
   _isDefault?: boolean;
   badge?: string;
   fullscreenButton?: boolean;
-  recordsCount?: number;
+  expandAlways?: boolean;
   dataSource?: any;
 }
 
@@ -117,7 +117,7 @@ function convertTabConfigToTabs(tabsConfig: Record<string, TabConfig>): Tab[] {
       // New config options
       badge: config.badge,
       fullscreenButton: config.fullscreenButton,
-      recordsCount: config.recordsCount,
+      expandAlways: config.expandAlways,
       dataSource: config.dataSource,
       // Internal fields
       _order: config.order,

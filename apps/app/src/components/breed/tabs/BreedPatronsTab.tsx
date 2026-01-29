@@ -31,7 +31,6 @@ interface PatronViewRecord {
 }
 
 interface BreedPatronsTabProps {
-  recordsCount?: number;
   dataSource?: DataSourceConfig;
   onLoadedCount?: (count: number) => void; // Report loaded count for conditional fullscreen
 }

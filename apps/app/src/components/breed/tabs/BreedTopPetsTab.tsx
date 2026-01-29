@@ -45,7 +45,6 @@ interface TopPetViewRecord {
 }
 
 interface BreedTopPetsTabProps {
-  recordsCount?: number;
   dataSource?: DataSourceConfig;
   onLoadedCount?: (count: number) => void;
 }
