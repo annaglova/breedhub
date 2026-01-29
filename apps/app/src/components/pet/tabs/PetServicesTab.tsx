@@ -64,6 +64,15 @@ const DEFAULT_FEATURES_DATASOURCE: DataSourceConfig = {
   },
 };
 
+// DataSource for children available for sale (uses VIEW with enriched data)
+const CHILDREN_FOR_SALE_DATASOURCE: DataSourceConfig = {
+  type: "child",
+  childTable: {
+    table: "pet_child_for_sale_with_details",
+    parentField: "pet_id",
+  },
+};
+
 interface PetServicesTabProps {
   onLoadedCount?: (count: number) => void;
   dataSource?: DataSourceConfig;
@@ -120,6 +129,16 @@ export function PetServicesTab({
   } = useTabData({
     parentId: petId,
     dataSource: featuresDataSource || DEFAULT_FEATURES_DATASOURCE,
+    enabled: !!petId,
+  });
+
+  // Load children for sale via useTabData (uses VIEW with enriched data)
+  const {
+    data: childrenForSaleRaw,
+    isLoading: childrenForSaleLoading,
+  } = useTabData({
+    parentId: petId,
+    dataSource: CHILDREN_FOR_SALE_DATASOURCE,
     enabled: !!petId,
   });
 
@@ -258,18 +277,77 @@ export function PetServicesTab({
     });
   }, [featuresRaw, featuresMap, lookupsLoading]);
 
-  // TODO: Load children for sale when hasChildrenForSaleService is true
-  // Need to query pet's children with available_for_sale = true
-  // For now, this section is hidden until children loading is implemented
-  const littersForSale: LitterData[] = [];
+  // Group children for sale into litters (same logic as PetChildrenTab)
+  const { littersForSale, parentRoleForSale } = useMemo(() => {
+    if (!childrenForSaleRaw || childrenForSaleRaw.length === 0) {
+      return { littersForSale: [], parentRoleForSale: null };
+    }
 
-  // Get pet sex from selected entity
-  const petSexCode = selectedEntity?.additional?.sex?.code || "male";
+    // Get parent role from first child (should be same for all)
+    const firstChild = childrenForSaleRaw[0];
+    const parentRole = firstChild?.parent_role || firstChild?.additional?.parent_role || null;
 
-  // Determine label for the other parent based on current pet's sex
-  const anotherParentRole = petSexCode === "male" ? "Mother" : "Father";
+    // Group by date + other_parent_id
+    const grouped = new Map<string, LitterData>();
 
-  const isLoading = servicesLoading || featuresLoading || lookupsLoading;
+    for (const item of childrenForSaleRaw) {
+      const child = {
+        id: item.id,
+        name: item.name || item.additional?.name || "",
+        slug: item.slug || item.additional?.slug,
+        date_of_birth: item.date_of_birth || item.additional?.date_of_birth,
+        sex_code: item.sex_code || item.additional?.sex_code,
+        sex_name: item.sex_name || item.additional?.sex_name,
+        other_parent_id: item.other_parent_id || item.additional?.other_parent_id,
+        other_parent_name: item.other_parent_name || item.additional?.other_parent_name,
+        other_parent_slug: item.other_parent_slug || item.additional?.other_parent_slug,
+      };
+
+      const key = `${child.date_of_birth || "unknown"}:${child.other_parent_id || "unknown"}`;
+
+      if (!grouped.has(key)) {
+        grouped.set(key, {
+          date: child.date_of_birth || "",
+          anotherParent: {
+            name: child.other_parent_name,
+            url: child.other_parent_slug,
+          },
+          pets: [],
+        });
+      }
+
+      grouped.get(key)!.pets.push({
+        id: child.id,
+        name: child.name,
+        url: child.slug,
+        sex: {
+          code: child.sex_code,
+          name: child.sex_name,
+        },
+        availableForSale: true, // All children in this section are for sale
+      });
+    }
+
+    // Sort litters by date (newest first)
+    const litters = Array.from(grouped.values()).sort((a, b) => {
+      if (!a.date && !b.date) return 0;
+      if (!a.date) return 1;
+      if (!b.date) return -1;
+      return new Date(b.date).getTime() - new Date(a.date).getTime();
+    });
+
+    // Sort pets within each litter (males first)
+    litters.forEach((litter) => {
+      litter.pets.sort((a, b) => (b.sex?.code === "male" ? 1 : -1));
+    });
+
+    return { littersForSale: litters, parentRoleForSale: parentRole };
+  }, [childrenForSaleRaw]);
+
+  // Determine label for the other parent based on current pet's role
+  const anotherParentRole = parentRoleForSale === "father" ? "Mother" : "Father";
+
+  const isLoading = servicesLoading || featuresLoading || lookupsLoading || childrenForSaleLoading;
 
   // Report count after data loads
   useEffect(() => {
@@ -301,7 +379,7 @@ export function PetServicesTab({
   }
 
   // Empty state
-  if (services.length === 0 && features.length === 0) {
+  if (services.length === 0 && features.length === 0 && littersForSale.length === 0) {
     return (
       <div className="py-4 px-6">
         <div className="bg-slate-50 border border-slate-200 rounded-lg p-4 text-center">

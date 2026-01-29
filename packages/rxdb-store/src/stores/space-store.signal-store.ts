@@ -3920,9 +3920,22 @@ class SpaceStore {
       'pet_health_exam_result': 'pet',
       'pet_sibling': 'pet',
       'pet_child': 'pet',
+      'pet_child_for_sale': 'pet',
     };
 
-    return tableEntityMap[normalizedTable] || null;
+    // Try exact match first
+    if (tableEntityMap[normalizedTable]) {
+      return tableEntityMap[normalizedTable];
+    }
+
+    // Try prefix match (e.g., 'pet_child_for_sale' starts with 'pet_child')
+    for (const [prefix, entityType] of Object.entries(tableEntityMap)) {
+      if (normalizedTable.startsWith(prefix)) {
+        return entityType;
+      }
+    }
+
+    return null;
   }
 
   // ─────────────────────────────────────────────────────────────────────────────

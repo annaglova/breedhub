@@ -26,6 +26,7 @@ function groupChildrenIntoLitters(
     other_parent_id?: string;
     other_parent_name?: string;
     other_parent_slug?: string;
+    available_for_sale?: boolean;
   }>
 ): { litters: LitterData[]; parentRole: string | null } {
   if (!children.length) return { litters: [], parentRole: null };
@@ -58,6 +59,7 @@ function groupChildrenIntoLitters(
         code: child.sex_code,
         name: child.sex_name,
       },
+      availableForSale: child.available_for_sale,
     });
   }
 
@@ -140,6 +142,7 @@ export function PetChildrenTab({
       other_parent_id: item.other_parent_id || item.additional?.other_parent_id,
       other_parent_name: item.other_parent_name || item.additional?.other_parent_name,
       other_parent_slug: item.other_parent_slug || item.additional?.other_parent_slug,
+      available_for_sale: item.available_for_sale || item.additional?.available_for_sale,
     }));
 
     return groupChildrenIntoLitters(children);
