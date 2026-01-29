@@ -3488,6 +3488,56 @@ class SpaceStore {
   }
 
   /**
+   * Fetch entity by ID (ID-First: RxDB → Supabase fallback)
+   *
+   * Similar to fetchEntityBySlug but uses primary key lookup.
+   * Used for preloading entities when ID is known (e.g., modal preselection).
+   *
+   * @param entityType - Entity type (e.g., 'pet', 'breed')
+   * @param id - Entity UUID
+   * @returns Entity data or null
+   */
+  async fetchEntityById<T = any>(entityType: string, id: string): Promise<T | null> {
+    const collectionName = entityType.toLowerCase();
+
+    // 1. Try RxDB collection directly (instant if cached)
+    if (this.db?.collections[collectionName]) {
+      try {
+        const doc = await this.db.collections[collectionName].findOne(id).exec();
+        if (doc) {
+          return doc.toJSON() as T;
+        }
+      } catch (err) {
+        console.warn(`[SpaceStore] Error querying RxDB by id:`, err);
+      }
+    }
+
+    // 2. Fallback to Supabase
+    try {
+      const { data, error } = await supabase
+        .from(entityType)
+        .select('*')
+        .eq('id', id)
+        .single();
+
+      if (error || !data) {
+        return null;
+      }
+
+      // Cache in RxDB if collection exists
+      if (this.db?.collections[collectionName]) {
+        const mapped = this.mapToRxDBFormat(data, collectionName);
+        await this.db.collections[collectionName].upsert(mapped);
+      }
+
+      return data as T;
+    } catch (err) {
+      console.error(`[SpaceStore] Error fetching by id from Supabase:`, err);
+      return null;
+    }
+  }
+
+  /**
    * Clear selection for a given entity type
    */
   clearSelection(entityType: string): void {

@@ -13,7 +13,7 @@ import { usePageActions } from "@/hooks/usePageActions";
 import { usePageMenu } from "@/hooks/usePageMenu";
 import { ToolPageLayout } from "@/layouts/ToolPageLayout";
 import type { PageConfig } from "@/types/page-config.types";
-import { spaceStore, supabase, toast } from "@breedhub/rxdb-store";
+import { spaceStore, supabase, toast, usePedigree } from "@breedhub/rxdb-store";
 import { Button } from "@ui/components/button";
 import {
   DropdownMenu,
@@ -71,9 +71,23 @@ export function MatingPage({ pageConfig, workspaceConfig }: MatingPageProps) {
     getDefaultGenerations
   );
 
-  // Selected pets for mating
+  // Selected pets for mating (basic info only)
   const [father, setFather] = useState<PedigreePet | null>(null);
   const [mother, setMother] = useState<PedigreePet | null>(null);
+
+  // Pedigree JSONB for each parent (to load their ancestors)
+  const [fatherPedigree, setFatherPedigree] = useState<Record<string, { id: string; bid: string }> | null>(null);
+  const [motherPedigree, setMotherPedigree] = useState<Record<string, { id: string; bid: string }> | null>(null);
+
+  // Load ancestor trees from pedigree JSONB
+  const { father: fatherAncestorFather, mother: fatherAncestorMother } = usePedigree({
+    pedigree: fatherPedigree,
+    enabled: !!father,
+  });
+  const { father: motherAncestorFather, mother: motherAncestorMother } = usePedigree({
+    pedigree: motherPedigree,
+    enabled: !!mother,
+  });
 
   // Track if we're currently resolving slugs (to prevent URL update during resolution)
   const isResolvingRef = useRef(false);
@@ -161,37 +175,38 @@ export function MatingPage({ pageConfig, workspaceConfig }: MatingPageProps) {
 
     isResolvingRef.current = true;
 
-    const resolvePetBySlug = async (
-      slug: string
-    ): Promise<PedigreePet | null> => {
-      // Use spaceStore.fetchEntityBySlug - fast local-first lookup
-      const petData = await spaceStore.fetchEntityBySlug<any>("pet", slug);
-
-      if (petData) {
-        return {
-          id: petData.id,
-          name: petData.name || "Unknown",
-          slug: petData.slug,
-          avatarUrl: petData.avatar_url,
-          breedId: petData.breed_id,
-          petTypeId: petData.pet_type_id,
-          sexId: petData.sex_id,
-        };
-      }
-
-      return null;
-    };
-
     const resolveSlugs = async () => {
       try {
-        // Resolve both in parallel
-        const [fatherPet, motherPet] = await Promise.all([
-          fatherSlug && !father ? resolvePetBySlug(fatherSlug) : null,
-          motherSlug && !mother ? resolvePetBySlug(motherSlug) : null,
+        // Resolve both in parallel using fetchEntityBySlug (ID-First)
+        const [fatherData, motherData] = await Promise.all([
+          fatherSlug && !father ? spaceStore.fetchEntityBySlug<any>("pet", fatherSlug) : null,
+          motherSlug && !mother ? spaceStore.fetchEntityBySlug<any>("pet", motherSlug) : null,
         ]);
 
-        if (fatherPet) setFather(fatherPet);
-        if (motherPet) setMother(motherPet);
+        if (fatherData) {
+          setFather({
+            id: fatherData.id,
+            name: fatherData.name || "Unknown",
+            slug: fatherData.slug,
+            avatarUrl: fatherData.avatar_url,
+            breedId: fatherData.breed_id,
+            petTypeId: fatherData.pet_type_id,
+            sexId: fatherData.sex_id,
+          });
+          setFatherPedigree(fatherData.pedigree || null);
+        }
+        if (motherData) {
+          setMother({
+            id: motherData.id,
+            name: motherData.name || "Unknown",
+            slug: motherData.slug,
+            avatarUrl: motherData.avatar_url,
+            breedId: motherData.breed_id,
+            petTypeId: motherData.pet_type_id,
+            sexId: motherData.sex_id,
+          });
+          setMotherPedigree(motherData.pedigree || null);
+        }
       } catch (error) {
         console.error("[MatingPage] Error resolving slugs:", error);
       } finally {
@@ -257,12 +272,20 @@ export function MatingPage({ pageConfig, workspaceConfig }: MatingPageProps) {
     setIsDragging(false);
   }, []);
 
-  // Build virtual pet from selected parents (always show structure)
+  // Build virtual pet from selected parents with their ancestor trees
   const virtualPet: PedigreePet = {
     id: "mating-preview",
     name: "Offspring",
-    father: father || undefined,
-    mother: mother || undefined,
+    father: father ? {
+      ...father,
+      father: fatherAncestorFather,
+      mother: fatherAncestorMother,
+    } : undefined,
+    mother: mother ? {
+      ...mother,
+      father: motherAncestorFather,
+      mother: motherAncestorMother,
+    } : undefined,
   };
 
   const handleSaveToLitters = () => {
@@ -383,6 +406,7 @@ export function MatingPage({ pageConfig, workspaceConfig }: MatingPageProps) {
                   onClick={(e) => {
                     e.stopPropagation();
                     setFather(null);
+                    setFatherPedigree(null);
                   }}
                   className="ml-1 p-0.5 rounded-full hover:bg-secondary-200 dark:hover:bg-secondary-700 transition-colors"
                 >
@@ -408,6 +432,7 @@ export function MatingPage({ pageConfig, workspaceConfig }: MatingPageProps) {
                   onClick={(e) => {
                     e.stopPropagation();
                     setMother(null);
+                    setMotherPedigree(null);
                   }}
                   className="ml-1 p-0.5 rounded-full hover:bg-secondary-200 dark:hover:bg-secondary-700 transition-colors"
                 >
@@ -441,6 +466,7 @@ export function MatingPage({ pageConfig, workspaceConfig }: MatingPageProps) {
             petTypeId: pet.pet_type_id,
             sexId: pet.sex_id,
           });
+          setFatherPedigree(pet.pedigree || null);
         }}
         sexFilter="male"
         title="Select Father"
@@ -466,6 +492,7 @@ export function MatingPage({ pageConfig, workspaceConfig }: MatingPageProps) {
             petTypeId: pet.pet_type_id,
             sexId: pet.sex_id,
           });
+          setMotherPedigree(pet.pedigree || null);
         }}
         sexFilter="female"
         title="Select Mother"

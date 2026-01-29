@@ -1,7 +1,7 @@
 import defaultPetAvatar from "@/assets/images/pettypes/dog.jpeg";
 import { useDictionaryValue } from "@/hooks/useDictionaryValue";
 import { useEntities } from "@/hooks/useEntities";
-import { dictionaryStore, supabase } from "@breedhub/rxdb-store";
+import { dictionaryStore, spaceStore, supabase } from "@breedhub/rxdb-store";
 import { Button } from "@ui/components/button";
 import {
   Dialog,
@@ -26,6 +26,7 @@ interface PetEntity {
   date_of_birth?: string;
   breed_id?: string;
   pet_type_id?: string;
+  pedigree?: Record<string, { id: string; bid: string }> | null;
 }
 
 interface PetSelectorModalProps {
@@ -98,9 +99,10 @@ function PetSelectorItem({
       onClick={onClick}
       className={cn(
         "flex items-center px-4 py-2 cursor-pointer transition-colors",
-        !selected && (index % 2 === 0 ? "bg-even-card-ground" : "bg-card-ground"),
+        !selected &&
+          (index % 2 === 0 ? "bg-even-card-ground" : "bg-card-ground"),
         !selected && "hover:bg-slate-100 dark:hover:bg-slate-800",
-        selected && "bg-primary-50 dark:bg-primary-900/30"
+        selected && "bg-primary-50 dark:bg-primary-900/30",
       )}
     >
       {/* Avatar - compact size */}
@@ -108,7 +110,7 @@ function PetSelectorItem({
         className={cn(
           "size-8 rounded-full border border-surface-border flex-shrink-0",
           "ring-[1.5px] ring-offset-1",
-          getRingClass()
+          getRingClass(),
         )}
       >
         <div className="w-full h-full rounded-full overflow-hidden">
@@ -219,7 +221,7 @@ export function PetSelectorModal({
 
         if (!dictionaryStore.initialized.value) {
           console.warn(
-            "[PetSelectorModal] DictionaryStore not initialized after retries"
+            "[PetSelectorModal] DictionaryStore not initialized after retries",
           );
           return;
         }
@@ -287,7 +289,7 @@ export function PetSelectorModal({
       breed_id: { fieldType: "uuid", operator: "eq" },
       sex_id: { fieldType: "uuid", operator: "eq" },
     }),
-    []
+    [],
   );
 
   // Reset breed when pet type changes
@@ -306,7 +308,7 @@ export function PetSelectorModal({
       direction: "asc" as const,
       tieBreaker: { field: "id", direction: "asc" as const },
     }),
-    []
+    [],
   );
 
   // Fetch pets with filters (hybrid lookup with ID-First pagination)
@@ -396,17 +398,16 @@ export function PetSelectorModal({
     }
   }, [open, initialPetTypeId, initialBreedId]);
 
-  // Preload the initially selected pet by ID
+  // Preload the initially selected pet by ID (ID-First: RxDB → Supabase)
   useEffect(() => {
     if (!open || !initialSelectedId) return;
 
     const loadPet = async () => {
       try {
-        const { data: petData } = await supabase
-          .from("pet")
-          .select("id, name, slug, avatar_url, pet_status_id, sex_id, date_of_birth, breed_id, pet_type_id")
-          .eq("id", initialSelectedId)
-          .single();
+        const petData = await spaceStore.fetchEntityById<PetEntity>(
+          "pet",
+          initialSelectedId,
+        );
 
         if (petData) {
           setPreloadedPet(petData);
@@ -450,28 +451,6 @@ export function PetSelectorModal({
 
         {/* Filters with gray background */}
         <div className="bg-modal-card-ground rounded-lg px-6 py-4">
-          {/* Counter - always visible above search */}
-          <div className="text-sm text-slate-500 mb-3 min-h-[20px]">
-            {!shouldFetch
-              ? "Select filters to search"
-              : isLoading
-              ? "Loading..."
-              : totalCount !== null
-              ? `${filteredEntities.length} of ${totalCount} pets`
-              : `${filteredEntities.length} pets`}
-          </div>
-
-          {/* Search */}
-          <div className="mb-4">
-            <SearchInput
-              value={searchQuery}
-              onValueChange={setSearchQuery}
-              debounceMs={300}
-              placeholder="Search by name..."
-              pill
-            />
-          </div>
-
           {/* Filter dropdowns - 2 columns */}
           <div className="grid grid-cols-2 gap-3">
             {/* Pet Type filter */}
@@ -506,6 +485,30 @@ export function PetSelectorModal({
               disabledOnGray
             />
           </div>
+
+          {/* Counter */}
+          <div className="text-sm text-slate-500 mb-2 min-h-[20px]">
+            {!shouldFetch
+              ? "Select breed to search"
+              : isLoading
+                ? "Loading..."
+                : totalCount !== null
+                  ? `${filteredEntities.length} of ${totalCount} pets`
+                  : `${filteredEntities.length} pets`}
+          </div>
+
+          {/* Search */}
+          <div className="mb-3">
+            <SearchInput
+              value={searchQuery}
+              onValueChange={setSearchQuery}
+              debounceMs={300}
+              placeholder="Search by name..."
+              pill
+              disabled={!shouldFetch}
+              disabledOnGray
+            />
+          </div>
         </div>
 
         {/* Pet list - padding on outer container, scroll inside */}
@@ -524,7 +527,9 @@ export function PetSelectorModal({
                 <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
               </div>
             ) : filteredEntities.length === 0 ? (
-              <div className="text-center py-8 text-slate-500">No pets found</div>
+              <div className="text-center py-8 text-slate-500">
+                No pets found
+              </div>
             ) : (
               filteredEntities.map((pet, index) => (
                 <PetSelectorItem

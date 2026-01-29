@@ -23,6 +23,8 @@ interface SearchInputProps extends Omit<React.InputHTMLAttributes<HTMLInputEleme
   pill?: boolean;
   /** Show clear button when there's text */
   showClearButton?: boolean;
+  /** Use white background when disabled (for gray backgrounds) */
+  disabledOnGray?: boolean;
 }
 
 export const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(
@@ -42,6 +44,7 @@ export const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(
     showClearButton = true,
     placeholder = "Search...",
     disabled,
+    disabledOnGray,
     ...props
   }, ref) => {
     const hasError = touched && !!error;
@@ -105,7 +108,8 @@ export const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(
             "peer pl-10 w-full transition-all duration-200",
             showClearButton && internalValue && "pr-10",
             pill && "rounded-full",
-            disabled && "bg-slate-50 border-slate-200 text-slate-500 cursor-not-allowed",
+            disabled && !disabledOnGray && "bg-slate-50 border-slate-200 text-slate-500 cursor-not-allowed",
+            disabled && disabledOnGray && "bg-white/95 border-slate-300 text-slate-400 cursor-not-allowed",
             hasError && "border-red-500 hover:border-red-600 focus:border-red-500 focus:ring-2 focus:ring-red-500/20",
             !hasError && !disabled && "border-slate-300 hover:border-slate-400 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20"
           )}
