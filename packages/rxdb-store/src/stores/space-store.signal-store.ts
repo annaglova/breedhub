@@ -1260,6 +1260,15 @@ class SpaceStore {
           schemaType = 'boolean';
           break;
         case 'json':
+          // If defaultValue is "{}" - it's an object, otherwise allow any JSON
+          if (fieldConfig?.defaultValue === '{}') {
+            schemaType = 'object';
+          } else {
+            // No restriction - can be object, array, or any valid JSON
+            properties[fieldKey] = {};
+            return;
+          }
+          break;
         case 'object':
           schemaType = 'object';
           break;

@@ -1,5 +1,4 @@
-import type { DataSourceConfig } from "@breedhub/rxdb-store";
-import { dictionaryStore, useTabData } from "@breedhub/rxdb-store";
+import { dictionaryStore } from "@breedhub/rxdb-store";
 import { Chip } from "@ui/components/chip";
 import {
   Tooltip,
@@ -10,6 +9,16 @@ import {
 import { cn } from "@ui/lib/utils";
 import { ChevronDown } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+
+interface TitleDisplayItem {
+  id: string;
+  name: string;
+  rating: number;
+  country_id?: string;
+  amount?: number;
+  date?: string;
+  confirmed?: boolean;
+}
 
 interface PetTitle {
   id: string;
@@ -23,54 +32,38 @@ interface PetAchievementsProps {
   entity?: any;
   /** Component mode shows expand/collapse button when > 5 titles */
   mode?: "component" | "page";
-  /** DataSource config from space config */
-  dataSource?: DataSourceConfig;
 }
 
 /**
  * PetAchievements - Displays pet titles/achievements as chips
  *
- * Based on Angular: libs/schema/domain/pet/lib/pet-titles/pet-titles.component.ts
- * Shows champion titles with country codes as chips with tooltips
- *
- * Uses Pattern B: Load child records + resolve lookups via dictionaryStore
- * - title_in_pet child records (title_id, country_id)
- * - title lookup (name, rating)
- * - country lookup (name, code)
+ * Uses titles_display JSONB field from pet entity for instant rendering.
+ * Only resolves country lookups via dictionaryStore for country code/name.
  */
 export function PetAchievements({
   entity,
   mode = "component",
-  dataSource,
 }: PetAchievementsProps) {
   const [expanded, setExpanded] = useState(false);
-  const [titlesMap, setTitlesMap] = useState<Map<string, any>>(new Map());
   const [countriesMap, setCountriesMap] = useState<Map<string, any>>(new Map());
   const [lookupsLoading, setLookupsLoading] = useState(false);
 
   const petId = entity?.id;
+  const titlesDisplay = entity?.titles_display as TitleDisplayItem[] | undefined;
 
   // Reset expanded state when navigating to a different pet
   useEffect(() => {
     setExpanded(false);
   }, [petId]);
 
-  // Load title_in_pet child records via useTabData (config-driven, local-first)
-  const { data: rawData, isLoading: dataLoading } = useTabData({
-    parentId: petId,
-    dataSource: dataSource!,
-    enabled: !!dataSource && !!petId,
-  });
-
-  // Load lookups by specific IDs from child records (Pattern B)
+  // Load country lookups for country_id resolution
   useEffect(() => {
-    if (dataLoading || !rawData?.length) {
-      setTitlesMap(new Map());
+    if (!titlesDisplay?.length) {
       setCountriesMap(new Map());
       return;
     }
 
-    async function loadLookupsByIds() {
+    async function loadCountryLookups() {
       setLookupsLoading(true);
 
       // Ensure dictionaryStore is initialized
@@ -78,88 +71,57 @@ export function PetAchievements({
         await dictionaryStore.initialize();
       }
 
-      // Extract unique IDs from child records
-      const titleIds = new Set<string>();
+      // Extract unique country IDs
       const countryIds = new Set<string>();
-
-      rawData.forEach((item: any) => {
-        const titleId = item.additional?.title_id || item.title_id;
-        const countryId = item.additional?.country_id || item.country_id;
-        if (titleId) titleIds.add(titleId);
-        if (countryId) countryIds.add(countryId);
+      titlesDisplay.forEach((item) => {
+        if (item.country_id) countryIds.add(item.country_id);
       });
 
-      // Load only needed records in parallel
-      const lookupPromises: Promise<[string, string, any]>[] = [];
+      if (countryIds.size === 0) {
+        setCountriesMap(new Map());
+        setLookupsLoading(false);
+        return;
+      }
 
-      titleIds.forEach((id) => {
-        lookupPromises.push(
-          dictionaryStore
-            .getRecordById("title", id)
-            .then((record) => ["title", id, record] as [string, string, any])
-        );
-      });
+      // Load country records in parallel
+      const results = await Promise.all(
+        Array.from(countryIds).map(async (id) => {
+          const record = await dictionaryStore.getRecordById("country", id);
+          return [id, record] as [string, any];
+        })
+      );
 
-      countryIds.forEach((id) => {
-        lookupPromises.push(
-          dictionaryStore
-            .getRecordById("country", id)
-            .then((record) => ["country", id, record] as [string, string, any])
-        );
-      });
-
-      const results = await Promise.all(lookupPromises);
-
-      // Build maps from results
-      const newTitlesMap = new Map<string, any>();
       const newCountriesMap = new Map<string, any>();
-
-      results.forEach(([type, id, record]) => {
-        if (!record) return;
-        if (type === "title") newTitlesMap.set(id, record);
-        else if (type === "country") newCountriesMap.set(id, record);
+      results.forEach(([id, record]) => {
+        if (record) newCountriesMap.set(id, record);
       });
 
-      setTitlesMap(newTitlesMap);
       setCountriesMap(newCountriesMap);
       setLookupsLoading(false);
     }
 
-    loadLookupsByIds();
-  }, [rawData, dataLoading]);
+    loadCountryLookups();
+  }, [titlesDisplay]);
 
-  // Transform and enrich data with lookups, then sort by rating
+  // Transform titles_display with country lookups
   const titles = useMemo<PetTitle[]>(() => {
-    if (!rawData || rawData.length === 0) return [];
+    if (!titlesDisplay?.length) return [];
 
-    const enriched = rawData.map((item: any) => {
-      const titleId = item.additional?.title_id || item.title_id;
-      const countryId = item.additional?.country_id || item.country_id;
-      const title = titlesMap.get(titleId);
-      const country = countriesMap.get(countryId);
+    return titlesDisplay.map((item) => {
+      const country = item.country_id ? countriesMap.get(item.country_id) : null;
 
       return {
         id: item.id,
-        name: title?.name || "",
+        name: item.name || "",
         countryCode: country?.code || "",
         country: country?.name || "",
-        rating: title?.rating ?? 0,
+        rating: item.rating ?? 0,
       };
     });
+    // Data is already sorted by rating in JSONB from initialization script
+  }, [titlesDisplay, countriesMap]);
 
-    // Sort by rating (desc), then by name (asc)
-    return enriched.sort((a, b) => {
-      if (b.rating !== a.rating) return b.rating - a.rating;
-      return a.name.localeCompare(b.name);
-    });
-  }, [rawData, titlesMap, countriesMap]);
-
-  const isLoading = dataLoading || lookupsLoading;
-
-  // Note: We intentionally don't register with AboveFoldLoadingContext here.
-  // Achievements load async from child table, but we don't want to delay
-  // the entire above-fold section waiting for them.
-  // The AchievementOutlet handles skeleton based on entity loading state.
+  const isLoading = lookupsLoading;
 
   const isComponentMode = mode === "component";
   const displayCount = expanded ? titles.length : 5;
@@ -170,14 +132,13 @@ export function PetAchievements({
 
   const buttonLabel = expanded ? "Show main titles" : "Show all titles";
 
-  // Don't render if no dataSource configured
-  if (!dataSource) {
+  // Don't render if no titles_display data
+  if (!titlesDisplay?.length) {
     return null;
   }
 
-  // Don't render if no achievements after loading
-  // Note: Skeleton is now handled by AchievementOutlet for coordinated above-fold loading
-  if (!isLoading && titles.length === 0) {
+  // Show loading state while resolving country lookups
+  if (isLoading && titles.length === 0) {
     return null;
   }
 
@@ -190,7 +151,7 @@ export function PetAchievements({
     >
       <div
         aria-label="pet titles"
-        className="flex flex-wrap items-center gap-2  mt-2"
+        className="flex flex-wrap items-center gap-2 mt-2"
       >
         {/* Expand/collapse button - only in component mode with 6+ titles */}
         {isComponentMode && hasMoreTitles && (
@@ -224,8 +185,8 @@ export function PetAchievements({
         )}
 
         {/* Title chips */}
-        {visibleTitles.map((title) => (
-          <TooltipProvider key={title.id}>
+        {visibleTitles.map((title, index) => (
+          <TooltipProvider key={`${title.id}-${title.countryCode}-${index}`}>
             <Tooltip>
               <TooltipTrigger asChild>
                 <div>
