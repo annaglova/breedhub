@@ -23,6 +23,7 @@ interface SiblingPet {
     name?: string;
   };
   dateOfBirth?: string;
+  availableForSale?: boolean;
 }
 
 /**
@@ -145,6 +146,7 @@ export function PetSiblingsTab({
         name: item.sex_name || item.additional?.sex_name,
       },
       dateOfBirth: item.date_of_birth || item.additional?.date_of_birth,
+      availableForSale: item.available_for_sale || item.additional?.available_for_sale,
     }));
   }, [siblingsRaw]);
 
@@ -241,10 +243,11 @@ export function PetSiblingsTab({
                   name={sibling.name}
                   url={sibling.url}
                   sex={sibling.sex}
+                  availableForSale={sibling.availableForSale}
                   gridCols={
                     isFullscreen
-                      ? "grid-cols-[82px_auto] lg:grid-cols-[64px_auto]"
-                      : "grid-cols-[28px_auto] sm:grid-cols-[72px_auto] md:grid-cols-[82px_auto]"
+                      ? "grid-cols-[110px_auto] lg:grid-cols-[115px_auto] xl:grid-cols-[130px_auto]"
+                      : "grid-cols-[52px_auto] sm:grid-cols-[100px_auto] md:grid-cols-[110px_auto]"
                   }
                 />
               ))}
