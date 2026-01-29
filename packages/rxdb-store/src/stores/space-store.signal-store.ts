@@ -3707,9 +3707,24 @@ class SpaceStore {
 
       // If entity is partitioned, get partition key value from parent entity
       if (partitionConfig) {
-        const parentEntity = await this.getById(entityType, parentId);
+        // First try memory store (fast)
+        let parentEntity = await this.getById(entityType, parentId);
+        let partitionSource = 'memory';
+
+        // If not in memory, try RxDB collection
+        if (!parentEntity && this.db?.collections[entityType]) {
+          const doc = await this.db.collections[entityType].findOne(parentId).exec();
+          if (doc) {
+            parentEntity = doc.toJSON();
+            partitionSource = 'RxDB';
+          }
+        }
+
         if (parentEntity) {
           partitionValue = (parentEntity as any)[partitionConfig.keyField];
+          console.log(`[SpaceStore] Partition filter: ${partitionConfig.childFilterField}=${partitionValue} (from ${partitionSource})`);
+        } else {
+          console.warn(`[SpaceStore] Could not find parent entity for partition key. Table: ${tableType}, parentId: ${parentId}`);
         }
       }
 
@@ -3983,13 +3998,43 @@ class SpaceStore {
 
     const parentIdField = `${entityType}_id`;
 
+    // Check for partition config in entity schema
+    const entitySchema = this.entitySchemas.get(entityType);
+    const partitionConfig = entitySchema?.partition;
+    let partitionValue: string | undefined;
+
+    // If entity is partitioned, get partition key value from parent entity
+    if (partitionConfig) {
+      // First try memory store (fast)
+      let parentEntity = await this.getById(entityType, parentId);
+      let partitionSource = 'memory';
+
+      // If not in memory, try RxDB collection
+      if (!parentEntity && this.db?.collections[entityType]) {
+        const doc = await this.db.collections[entityType].findOne(parentId).exec();
+        if (doc) {
+          parentEntity = doc.toJSON();
+          partitionSource = 'RxDB';
+        }
+      }
+
+      if (parentEntity) {
+        partitionValue = (parentEntity as any)[partitionConfig.keyField];
+        console.log(`[SpaceStore] applyChildFilters partition filter: ${partitionConfig.childFilterField}=${partitionValue} (from ${partitionSource})`);
+      } else {
+        console.warn(`[SpaceStore] Could not find parent entity for partition key. Table: ${tableType}, parentId: ${parentId}`);
+      }
+    }
+
     console.log('[SpaceStore] applyChildFilters (ID-First):', {
       parentId,
       tableType,
       filters,
       limit,
       cursor,
-      orderBy
+      orderBy,
+      partitionField: partitionConfig?.childFilterField,
+      partitionValue
     });
 
     // 📴 PREVENTIVE OFFLINE CHECK
@@ -4038,7 +4083,9 @@ class SpaceStore {
         filters,
         limit,
         cursor,
-        orderBy
+        orderBy,
+        partitionConfig?.childFilterField,
+        partitionValue
       );
 
       if (!idsData || idsData.length === 0) {
@@ -4102,7 +4149,9 @@ class SpaceStore {
           tableType,
           missingIds,
           parentId,
-          parentIdField
+          parentIdField,
+          partitionConfig?.childFilterField,
+          partitionValue
         );
 
         console.log(`[SpaceStore] ✅ Fetched ${freshRecords.length} fresh child records`);
@@ -4174,7 +4223,9 @@ class SpaceStore {
     filters: Record<string, any>,
     limit: number,
     cursor: string | null,
-    orderBy: OrderBy
+    orderBy: OrderBy,
+    partitionField?: string,
+    partitionValue?: string
   ): Promise<Array<{ id: string; [key: string]: any }>> {
     const { supabase } = await import('../supabase/client');
 
@@ -4188,6 +4239,11 @@ class SpaceStore {
       .from(tableType)
       .select(selectFields)
       .eq(parentIdField, parentId);
+
+    // Apply partition filter if configured (for partition pruning)
+    if (partitionField && partitionValue) {
+      query = query.eq(partitionField, partitionValue);
+    }
 
     // Apply additional filters (for future use)
     for (const [fieldKey, value] of Object.entries(filters)) {
@@ -4237,7 +4293,9 @@ class SpaceStore {
     tableType: string,
     ids: string[],
     parentId: string,
-    parentIdField: string
+    parentIdField: string,
+    partitionField?: string,
+    partitionValue?: string
   ): Promise<any[]> {
     if (ids.length === 0) return [];
 
@@ -4264,18 +4322,29 @@ class SpaceStore {
 
       const additional: Record<string, any> = {};
       for (const [key, value] of Object.entries(rest)) {
-        if (key !== parentIdField && value !== undefined && value !== null) {
+        // Skip parentIdField and partitionField - stored as top-level fields
+        if (key === parentIdField) continue;
+        if (partitionField && key === partitionField) continue;
+        if (value !== undefined && value !== null) {
           additional[key] = value;
         }
       }
 
-      return {
+      // Build record with optional partitionId for partitioned entities
+      const record: Record<string, any> = {
         id,
         tableType: normalizedTableType,
         parentId,
         additional: Object.keys(additional).length > 0 ? additional : undefined,
         cachedAt: Date.now()
       };
+
+      // Add partitionId as top-level field if entity is partitioned
+      if (partitionValue) {
+        record.partitionId = partitionValue;
+      }
+
+      return record;
     });
   }
 
@@ -4328,9 +4397,24 @@ class SpaceStore {
 
     // If entity is partitioned, get partition key value from parent entity
     if (partitionConfig) {
-      const parentEntity = await this.getById(entityType, parentId);
+      // First try memory store (fast)
+      let parentEntity = await this.getById(entityType, parentId);
+      let partitionSource = 'memory';
+
+      // If not in memory, try RxDB collection
+      if (!parentEntity && this.db?.collections[entityType]) {
+        const doc = await this.db.collections[entityType].findOne(parentId).exec();
+        if (doc) {
+          parentEntity = doc.toJSON();
+          partitionSource = 'RxDB';
+        }
+      }
+
       if (parentEntity) {
         partitionValue = (parentEntity as any)[partitionConfig.keyField];
+        console.log(`[SpaceStore] VIEW partition filter: ${partitionConfig.childFilterField}=${partitionValue} (from ${partitionSource})`);
+      } else {
+        console.warn(`[SpaceStore] Could not find parent entity for partition key. VIEW: ${viewName}, parentId: ${parentId}`);
       }
     }
 
