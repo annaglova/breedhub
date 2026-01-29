@@ -1,4 +1,3 @@
-import { useAboveFoldBlock } from "@/contexts/AboveFoldLoadingContext";
 import type { DataSourceConfig } from "@breedhub/rxdb-store";
 import { dictionaryStore, useTabData } from "@breedhub/rxdb-store";
 import { Chip } from "@ui/components/chip";
@@ -157,9 +156,10 @@ export function PetAchievements({
 
   const isLoading = dataLoading || lookupsLoading;
 
-  // Register loading state with above-fold context
-  // This enables coordinated loading with other above-fold blocks
-  useAboveFoldBlock("pet-achievements", !isLoading);
+  // Note: We intentionally don't register with AboveFoldLoadingContext here.
+  // Achievements load async from child table, but we don't want to delay
+  // the entire above-fold section waiting for them.
+  // The AchievementOutlet handles skeleton based on entity loading state.
 
   const isComponentMode = mode === "component";
   const displayCount = expanded ? titles.length : 5;
