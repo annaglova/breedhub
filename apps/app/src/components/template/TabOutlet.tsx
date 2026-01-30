@@ -1,6 +1,7 @@
 import { TabOutletRenderer } from "@/components/blocks/TabOutletRenderer";
 import type { PageConfig } from "@/types/page-config.types";
 import type { SpacePermissions } from "@/types/page-menu.types";
+import { useMemo } from "react";
 
 /**
  * Tab config from database
@@ -103,12 +104,48 @@ export function TabOutlet({
     return null;
   }
 
+  // Filter out tabs with preferDefault: true that have no data
+  // This allows tabs to be hidden when they're empty (e.g., services/offers tab)
+  const visibleTabs = useMemo(() => {
+    const filtered: Record<string, TabConfig> = {};
+
+    for (const [tabId, tabConfig] of Object.entries(tabs)) {
+      // Tabs without preferDefault are always visible
+      if (!tabConfig.preferDefault) {
+        filtered[tabId] = tabConfig;
+        continue;
+      }
+
+      // For preferDefault tabs, check if they have data based on component
+      // Currently supported: PetServicesTab (checks entity.services JSONB)
+      // Future: LitterServicesTab, KennelServicesTab
+      let hasData = true;
+
+      if (tabConfig.component === "PetServicesTab") {
+        const servicesJsonb = entity?.services as Record<string, string> | undefined;
+        hasData = !!(servicesJsonb && Object.keys(servicesJsonb).length > 0);
+      }
+
+      // Only include tab if it has data
+      if (hasData) {
+        filtered[tabId] = tabConfig;
+      }
+    }
+
+    return filtered;
+  }, [tabs, entity?.services]);
+
+  // If all tabs were filtered out, don't render anything
+  if (Object.keys(visibleTabs).length === 0) {
+    return null;
+  }
+
   // TabOutlet uses TabOutletRenderer for actual rendering
   // This provides consistent outlet interface while keeping tab logic centralized
   return (
     <div className={className}>
       <TabOutletRenderer
-        tabsConfig={tabs}
+        tabsConfig={visibleTabs}
         pageMenuTop={pageMenuTop}
         tabHeaderTop={tabHeaderTop}
         entityId={entity?.id}
