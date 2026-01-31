@@ -2,113 +2,74 @@ import { useSelectedEntity } from "@/contexts/SpaceContext";
 import { spaceStore } from "@breedhub/rxdb-store";
 import { useSignals } from "@preact/signals-react/runtime";
 import { AlternatingTimeline } from "@ui/components/timeline";
-import { Baby, Cake, HeartOff, Info, Trophy } from "lucide-react";
+import { Baby, Cake, HeartOff, Info, Newspaper, Repeat, Trophy } from "lucide-react";
 import { useMemo } from "react";
 
 /**
- * Timeline event type IDs from database
- */
-const EVENT_TYPES = {
-  BIRTHDAY: "52de412c-be03-42fb-861d-62bda67a9745",
-  SHOW: "de388cd8-05be-47ee-bcce-55bbe7fc6ca8",
-  LITTER: "5b23dcaf-2b4d-44c8-ada7-7b0077975a7c",
-  DEATH: "62c2cad4-9fcf-4c75-b8ef-dcf9d44f346f",
-} as const;
-
-/**
- * Timeline event from API
+ * Timeline event from JSONB (pet.timeline)
  */
 interface TimelineEvent {
-  Id: string;
-  Name: string;
-  Date: string;
-  Text?: string;
-  Type: {
-    Id: string;
-    Name: string;
-  };
-}
-
-// Mock data for visual development
-const MOCK_TIMELINE: TimelineEvent[] = [
-  {
-    Id: "1",
-    Name: "Born",
-    Date: "May 15, 2021",
-    Text: "Champion Max vom Königsberg was born in Berlin, Germany",
-    Type: {
-      Id: EVENT_TYPES.BIRTHDAY,
-      Name: "Birthday",
-    },
-  },
-  {
-    Id: "2",
-    Name: "First Show Win",
-    Date: "October 8, 2022",
-    Text: "Best of Breed at the Berlin Dog Show 2022",
-    Type: {
-      Id: EVENT_TYPES.SHOW,
-      Name: "Show",
-    },
-  },
-  {
-    Id: "3",
-    Name: "Champion Title",
-    Date: "March 20, 2023",
-    Text: "Achieved German Champion title after winning at Crufts qualifier",
-    Type: {
-      Id: EVENT_TYPES.SHOW,
-      Name: "Show",
-    },
-  },
-  {
-    Id: "4",
-    Name: "First Litter",
-    Date: "June 5, 2023",
-    Text: "Father of 6 beautiful puppies with Beautiful Bella aus Bayern",
-    Type: {
-      Id: EVENT_TYPES.LITTER,
-      Name: "Litter",
-    },
-  },
-];
-
-/**
- * Get icon for event type
- */
-function getEventIcon(typeId: string) {
-  switch (typeId) {
-    case EVENT_TYPES.BIRTHDAY:
-      return <Cake className="h-4 w-4" />;
-    case EVENT_TYPES.SHOW:
-      return <Trophy className="h-4 w-4" />;
-    case EVENT_TYPES.LITTER:
-      return <Baby className="h-4 w-4" />;
-    case EVENT_TYPES.DEATH:
-      return <HeartOff className="h-4 w-4" />;
-    default:
-      return <Info className="h-4 w-4" />;
-  }
+  id: string;  // post UUID
+  d: string;   // date YYYY-MM-DD
+  t: string;   // type: birthday, litter, show, date of death, publication, repost
 }
 
 /**
- * Get dot variant for event type
+ * Type configuration for icons and styling
  */
-function getEventVariant(
-  typeId: string
-): "primary" | "success" | "default" | "inactive" {
-  switch (typeId) {
-    case EVENT_TYPES.BIRTHDAY:
-      return "success";
-    case EVENT_TYPES.SHOW:
-      return "primary";
-    case EVENT_TYPES.LITTER:
-      return "primary";
-    case EVENT_TYPES.DEATH:
-      return "default";
-    default:
-      return "inactive";
-  }
+const TYPE_CONFIG: Record<string, {
+  icon: React.ReactNode;
+  variant: "primary" | "success" | "default" | "inactive";
+  label: string;
+}> = {
+  birthday: {
+    icon: <Cake className="h-4 w-4" />,
+    variant: "success",
+    label: "Birthday"
+  },
+  litter: {
+    icon: <Baby className="h-4 w-4" />,
+    variant: "primary",
+    label: "Litter"
+  },
+  show: {
+    icon: <Trophy className="h-4 w-4" />,
+    variant: "primary",
+    label: "Show"
+  },
+  "date of death": {
+    icon: <HeartOff className="h-4 w-4" />,
+    variant: "default",
+    label: "Passed away"
+  },
+  publication: {
+    icon: <Newspaper className="h-4 w-4" />,
+    variant: "inactive",
+    label: "Publication"
+  },
+  repost: {
+    icon: <Repeat className="h-4 w-4" />,
+    variant: "inactive",
+    label: "Repost"
+  },
+};
+
+const DEFAULT_TYPE_CONFIG = {
+  icon: <Info className="h-4 w-4" />,
+  variant: "inactive" as const,
+  label: "Event"
+};
+
+/**
+ * Format date for display
+ */
+function formatDate(dateStr: string): string {
+  const date = new Date(dateStr);
+  return date.toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric"
+  });
 }
 
 interface PetTimelineTabProps {
@@ -124,7 +85,7 @@ interface PetTimelineTabProps {
  * - Litters
  * - Death (if applicable)
  *
- * Based on Angular: pet-timeline.component.ts
+ * Data source: pet.timeline JSONB field
  */
 export function PetTimelineTab({ onLoadedCount }: PetTimelineTabProps) {
   useSignals();
@@ -132,37 +93,34 @@ export function PetTimelineTab({ onLoadedCount }: PetTimelineTabProps) {
   const selectedEntity = useSelectedEntity();
   const isFullscreen = spaceStore.isFullscreen.value;
 
-  // TODO: Load real data from entity.Timeline
-  // For now using mock data
-  const timeline = MOCK_TIMELINE;
+  // Get timeline from entity JSONB (sorted DESC - newest first for display)
+  const timeline = useMemo(() => {
+    const events = (selectedEntity?.timeline as TimelineEvent[] | undefined) ?? [];
+    // Reverse to show newest first (data is stored ASC)
+    return [...events].reverse();
+  }, [selectedEntity?.timeline]);
 
   // Convert timeline events to AlternatingTimeline format
   const timelineItems = useMemo(() => {
-    const items = timeline.map((event) => ({
-      id: event.Id,
-      title: event.Name,
-      description: event.Text,
-      date: event.Date,
-      icon: getEventIcon(event.Type.Id),
-      variant: getEventVariant(event.Type.Id),
-    }));
+    if (timeline.length === 0) {
+      return [];
+    }
 
-    // Add "Coming soon" placeholder at the end
-    items.push({
-      id: "coming-soon",
-      title: "More exciting events to come",
-      description: "Special events from your pet's life will be displayed here",
-      date: "Coming soon",
-      icon: <Info className="h-4 w-4" />,
-      variant: "inactive" as const,
+    return timeline.map((event) => {
+      const config = TYPE_CONFIG[event.t] ?? DEFAULT_TYPE_CONFIG;
+      return {
+        id: event.id,
+        title: config.label,
+        date: formatDate(event.d),
+        icon: config.icon,
+        variant: config.variant,
+      };
     });
-
-    return items;
   }, [timeline]);
 
   return (
     <div className="px-6 cursor-default">
-      {timelineItems.length > 1 ? (
+      {timelineItems.length > 0 ? (
         <AlternatingTimeline
           items={timelineItems}
           layout={isFullscreen ? "alternating" : "right"}
@@ -171,7 +129,7 @@ export function PetTimelineTab({ onLoadedCount }: PetTimelineTabProps) {
         />
       ) : (
         <div className="card card-rounded flex flex-auto flex-col p-6 lg:px-8">
-          <span className="text-secondary p-8 text-center ">
+          <span className="text-secondary p-8 text-center">
             No timeline events yet
           </span>
         </div>

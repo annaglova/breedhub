@@ -59,8 +59,8 @@
       "referencedFieldName": "name"
     },
     {
-      "id": "field_record_id",
-      "name": "record_id",
+      "id": "field_entity_id",
+      "name": "entity_id",
       "fieldType": "uuid",
       "component": "DropdownInput",
       "required": false,
@@ -78,15 +78,15 @@
         ]
       },
       "isForeignKey": true,
-      "referencedTable": "record",
+      "referencedTable": "entity",
       "referencedFieldID": "id",
-      "displayName": "Record",
-      "placeholder": "Enter record",
+      "displayName": "Entity",
+      "placeholder": "Enter entity",
       "referencedFieldName": "id"
     },
     {
-      "id": "field_entity_name",
-      "name": "entity_name",
+      "id": "field_entity",
+      "name": "entity",
       "fieldType": "string",
       "component": "TextInput",
       "required": true,
@@ -104,8 +104,8 @@
         ]
       },
       "maxLength": 50,
-      "displayName": "Entity Name",
-      "placeholder": "Enter entity name",
+      "displayName": "Entity",
+      "placeholder": "Enter entity",
       "validation": {
         "maxLength": 50
       },
@@ -191,6 +191,32 @@
       "defaultValue": ""
     },
     {
+      "id": "field_entity_partition_id",
+      "name": "entity_partition_id",
+      "fieldType": "uuid",
+      "component": "DropdownInput",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 80,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "isForeignKey": true,
+      "referencedTable": "entity_partition",
+      "referencedFieldID": "id",
+      "displayName": "Entity Partition",
+      "placeholder": "Enter entity partition",
+      "referencedFieldName": "id"
+    },
+    {
       "id": "field_id",
       "name": "id",
       "fieldType": "uuid",
@@ -199,7 +225,7 @@
       "isSystem": true,
       "isPrimaryKey": true,
       "isUnique": true,
-      "sortOrder": 80,
+      "sortOrder": 90,
       "permissions": {
         "read": [
           "*"
@@ -219,7 +245,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 90,
+      "sortOrder": 100,
       "permissions": {
         "read": [
           "*"
@@ -239,7 +265,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 100,
+      "sortOrder": 110,
       "permissions": {
         "read": [
           "*"
@@ -259,7 +285,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 110,
+      "sortOrder": 120,
       "permissions": {
         "read": [
           "*"
@@ -279,7 +305,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 120,
+      "sortOrder": 130,
       "permissions": {
         "read": [
           "*"
@@ -293,9 +319,9 @@
   ],
   "metadata": {
     "tableName": "post_participant",
-    "totalFields": 12,
+    "totalFields": 13,
     "systemFields": 5,
-    "customFields": 7,
-    "generatedAt": "2026-01-29T16:32:07.601Z"
+    "customFields": 8,
+    "generatedAt": "2026-01-31T14:24:57.732Z"
   }
 }

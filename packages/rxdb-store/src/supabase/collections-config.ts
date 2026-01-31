@@ -75,6 +75,17 @@ export const petSchema: RxJsonSchema<any> = {
     updated_at: {
       type: 'string',
       format: 'date-time'
+    },
+    timeline: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          id: { type: 'string' },
+          d: { type: 'string' },
+          t: { type: 'string' }
+        }
+      }
     }
   },
   required: ['id', 'breed_id', 'name'],
