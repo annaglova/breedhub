@@ -2,7 +2,7 @@ import { useSelectedEntity } from "@/contexts/SpaceContext";
 import { spaceStore } from "@breedhub/rxdb-store";
 import { useSignals } from "@preact/signals-react/runtime";
 import { AlternatingTimeline } from "@ui/components/timeline";
-import { Baby, Cake, HeartOff, Info, Newspaper, Repeat, Trophy } from "lucide-react";
+import { Baby, Cake, HeartOff, Info, Newspaper, Repeat, Sparkles, Trophy } from "lucide-react";
 import { useMemo } from "react";
 
 /**
@@ -100,13 +100,18 @@ export function PetTimelineTab({ onLoadedCount }: PetTimelineTabProps) {
     return [...events].reverse();
   }, [selectedEntity?.timeline]);
 
+  // Check if pet has passed away (has death event in timeline)
+  const hasPassedAway = useMemo(() => {
+    return timeline.some(event => event.t === "date of death");
+  }, [timeline]);
+
   // Convert timeline events to AlternatingTimeline format
   const timelineItems = useMemo(() => {
     if (timeline.length === 0) {
       return [];
     }
 
-    return timeline.map((event) => {
+    const items = timeline.map((event) => {
       const config = TYPE_CONFIG[event.t] ?? DEFAULT_TYPE_CONFIG;
       return {
         id: event.id,
@@ -116,7 +121,21 @@ export function PetTimelineTab({ onLoadedCount }: PetTimelineTabProps) {
         variant: config.variant,
       };
     });
-  }, [timeline]);
+
+    // Add optimistic "future" block for living pets
+    if (!hasPassedAway) {
+      items.unshift({
+        id: "future-events",
+        title: "The adventure continues",
+        description: "More exciting moments to come",
+        date: "",
+        icon: <Sparkles className="h-4 w-4" />,
+        variant: "success" as const,
+      });
+    }
+
+    return items;
+  }, [timeline, hasPassedAway]);
 
   return (
     <div className="px-6 cursor-default">
