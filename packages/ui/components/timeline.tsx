@@ -314,6 +314,7 @@ interface AlternatingTimelineProps {
     icon?: React.ReactNode;
     variant?: VariantProps<typeof timelineDotVariants>["variant"];
     content?: React.ReactNode;
+    isGap?: boolean; // Gap indicator - no card, borderless dot
   }>;
   className?: string;
   size?: VariantProps<typeof timelineVariants>["size"];
@@ -372,7 +373,10 @@ const AlternatingTimeline = React.forwardRef<
                       layout === "left" && "pl-8"
                     )}
                   >
-                    {showCards ? (
+                    {item.isGap ? (
+                      /* Gap indicator - empty space, no card */
+                      <div className="h-8" />
+                    ) : showCards ? (
                       <TimelineCard animated={animated}>
                         <TimelineContent>
                           <TimelineTitle>{item.title}</TimelineTitle>
@@ -424,10 +428,12 @@ const AlternatingTimeline = React.forwardRef<
                 >
                   <div
                     className={cn(
-                      timelineDotVariants({
-                        size: size,
-                        variant: item.variant,
-                      }),
+                      item.isGap
+                        ? "relative z-10 flex items-center justify-center h-8 w-8 text-secondary-400"
+                        : timelineDotVariants({
+                            size: size,
+                            variant: item.variant,
+                          }),
                       "z-10"
                     )}
                   >
@@ -454,7 +460,10 @@ const AlternatingTimeline = React.forwardRef<
                       layout === "right" && "pr-12"
                     )}
                   >
-                    {showCards ? (
+                    {item.isGap ? (
+                      /* Gap indicator - empty space, no card */
+                      <div className="h-8" />
+                    ) : showCards ? (
                       <TimelineCard animated={animated}>
                         <TimelineContent>
                           <TimelineTitle>{item.title}</TimelineTitle>

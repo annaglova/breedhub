@@ -2,7 +2,7 @@ import { useSelectedEntity } from "@/contexts/SpaceContext";
 import { spaceStore } from "@breedhub/rxdb-store";
 import { useSignals } from "@preact/signals-react/runtime";
 import { AlternatingTimeline } from "@ui/components/timeline";
-import { Baby, Cake, HeartOff, Info, MoreHorizontal, Newspaper, Repeat, Sparkles, Trophy } from "lucide-react";
+import { Baby, Cake, HeartOff, Info, MoreVertical, Newspaper, Repeat, Sparkles, Trophy } from "lucide-react";
 import { useMemo } from "react";
 
 /**
@@ -151,13 +151,14 @@ export function PetTimelineTab({ onLoadedCount }: PetTimelineTabProps) {
     // Last 4 items: 3 events after birthday + birthday itself
     const lastFour = timelineItems.slice(-4);
 
-    // Gap indicator with three dots
+    // Gap indicator with vertical three dots
     const gapItem = {
       id: "timeline-gap",
       title: "",
       date: "",
-      icon: <MoreHorizontal className="h-4 w-4" />,
+      icon: <MoreVertical className="h-4 w-4" />,
       variant: "inactive" as const,
+      isGap: true,
     };
 
     return [firstItem, gapItem, ...lastFour];
