@@ -60,7 +60,6 @@ export const routesSchema: RxJsonSchema<RouteDocument> = {
   indexes: [
     'entity',
     'entity_id',
-    'entity_partition_id',
     'cachedAt'
   ]
 };
