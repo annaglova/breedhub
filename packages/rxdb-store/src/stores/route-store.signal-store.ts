@@ -86,10 +86,14 @@ class RouteStore {
       this.db = await getDatabase();
 
       // Use helper for collection creation
+      // Migration strategy for v0 → v1: add optional entity_partition_id field
       this.collection = await getOrCreateCollection<RouteDocument>(
         this.db,
         'routes',
-        routesSchema
+        routesSchema,
+        {
+          1: (oldDoc: any) => oldDoc // v0 → v1: entity_partition_id is optional, no data migration needed
+        }
       );
 
       this.initialized.value = true;
