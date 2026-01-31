@@ -315,6 +315,7 @@ interface AlternatingTimelineProps {
     variant?: VariantProps<typeof timelineDotVariants>["variant"];
     content?: React.ReactNode;
     isGap?: boolean; // Gap indicator - no card, borderless dot
+    gapText?: string; // Text to show in gap space
   }>;
   className?: string;
   size?: VariantProps<typeof timelineVariants>["size"];
@@ -374,8 +375,12 @@ const AlternatingTimeline = React.forwardRef<
                     )}
                   >
                     {item.isGap ? (
-                      /* Gap indicator - empty space, no card */
-                      <div className="h-8" />
+                      /* Gap indicator - hint text */
+                      <div className="h-8 flex items-center">
+                        {item.gapText && (
+                          <span className="text-secondary-400 text-sm italic">{item.gapText}</span>
+                        )}
+                      </div>
                     ) : showCards ? (
                       <TimelineCard animated={animated}>
                         <TimelineContent>
@@ -461,8 +466,12 @@ const AlternatingTimeline = React.forwardRef<
                     )}
                   >
                     {item.isGap ? (
-                      /* Gap indicator - empty space, no card */
-                      <div className="h-8" />
+                      /* Gap indicator - hint text */
+                      <div className="h-8 flex items-center">
+                        {item.gapText && (
+                          <span className="text-secondary-400 text-sm italic">{item.gapText}</span>
+                        )}
+                      </div>
                     ) : showCards ? (
                       <TimelineCard animated={animated}>
                         <TimelineContent>

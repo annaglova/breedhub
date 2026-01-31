@@ -159,6 +159,7 @@ export function PetTimelineTab({ onLoadedCount }: PetTimelineTabProps) {
       icon: <MoreVertical className="h-4 w-4" />,
       variant: "inactive" as const,
       isGap: true,
+      gapText: "View full timeline in fullscreen",
     };
 
     return [firstItem, gapItem, ...lastFour];
@@ -182,12 +183,6 @@ export function PetTimelineTab({ onLoadedCount }: PetTimelineTabProps) {
             No timeline events yet
           </span>
         </div>
-      )}
-      {/* Show "View full timeline" hint in drawer mode when truncated */}
-      {!isFullscreen && timelineItems.length > 6 && (
-        <p className="text-secondary text-center text-sm mt-4">
-          Open fullscreen to see the complete timeline
-        </p>
       )}
     </div>
   );
