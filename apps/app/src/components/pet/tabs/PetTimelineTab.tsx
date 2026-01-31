@@ -2,7 +2,7 @@ import { useSelectedEntity } from "@/contexts/SpaceContext";
 import { spaceStore } from "@breedhub/rxdb-store";
 import { useSignals } from "@preact/signals-react/runtime";
 import { AlternatingTimeline } from "@ui/components/timeline";
-import { Baby, Cake, HeartOff, Info, Newspaper, Repeat, Sparkles, Trophy } from "lucide-react";
+import { Baby, Cake, HeartOff, Info, MoreHorizontal, Newspaper, Repeat, Sparkles, Trophy } from "lucide-react";
 import { useMemo } from "react";
 
 /**
@@ -137,11 +137,40 @@ export function PetTimelineTab({ onLoadedCount }: PetTimelineTabProps) {
     return items;
   }, [timeline, hasPassedAway]);
 
+  // Create truncated version for drawer mode
+  // Shows: birthday -> 3 next events -> gap -> latest/future
+  const truncatedItems = useMemo(() => {
+    // If 6 or fewer items, show all (no need for truncation)
+    if (timelineItems.length <= 6) {
+      return timelineItems;
+    }
+
+    // First item (future/latest at top)
+    const firstItem = timelineItems[0];
+
+    // Last 4 items: 3 events after birthday + birthday itself
+    const lastFour = timelineItems.slice(-4);
+
+    // Gap indicator with three dots
+    const gapItem = {
+      id: "timeline-gap",
+      title: "",
+      date: "",
+      icon: <MoreHorizontal className="h-4 w-4" />,
+      variant: "inactive" as const,
+    };
+
+    return [firstItem, gapItem, ...lastFour];
+  }, [timelineItems]);
+
+  // Use truncated in drawer mode, full in fullscreen
+  const displayItems = isFullscreen ? timelineItems : truncatedItems;
+
   return (
     <div className="px-6 cursor-default">
-      {timelineItems.length > 0 ? (
+      {displayItems.length > 0 ? (
         <AlternatingTimeline
-          items={timelineItems}
+          items={displayItems}
           layout={isFullscreen ? "alternating" : "right"}
           showCards={true}
           connectorVariant="primary"
@@ -152,6 +181,12 @@ export function PetTimelineTab({ onLoadedCount }: PetTimelineTabProps) {
             No timeline events yet
           </span>
         </div>
+      )}
+      {/* Show "View full timeline" hint in drawer mode when truncated */}
+      {!isFullscreen && timelineItems.length > 6 && (
+        <p className="text-secondary text-center text-sm mt-4">
+          Open fullscreen to see the complete timeline
+        </p>
       )}
     </div>
   );
