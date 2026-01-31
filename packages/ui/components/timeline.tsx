@@ -375,8 +375,8 @@ const AlternatingTimeline = React.forwardRef<
                     )}
                   >
                     {item.isGap ? (
-                      /* Gap indicator - hint text */
-                      <div className="h-8 flex items-center">
+                      /* Gap indicator - hint text centered */
+                      <div className="h-8 flex items-center justify-center">
                         {item.gapText && (
                           <span className="text-secondary-400 text-sm italic">{item.gapText}</span>
                         )}
@@ -466,8 +466,8 @@ const AlternatingTimeline = React.forwardRef<
                     )}
                   >
                     {item.isGap ? (
-                      /* Gap indicator - hint text */
-                      <div className="h-8 flex items-center">
+                      /* Gap indicator - hint text centered */
+                      <div className="h-8 flex items-center justify-center">
                         {item.gapText && (
                           <span className="text-secondary-400 text-sm italic">{item.gapText}</span>
                         )}
