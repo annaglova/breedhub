@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { routeStore, spaceStore, navigationHistoryStore } from '@breedhub/rxdb-store';
+import { routeStore, spaceStore, navigationHistoryStore, getDatabase } from '@breedhub/rxdb-store';
 import { SpacePage } from './SpacePage';
 
 /**
@@ -9,6 +9,7 @@ import { SpacePage } from './SpacePage';
 interface ResolvedRoute {
   entity: string;      // 'breed', 'pet', etc.
   entity_id: string;   // UUID of the entity
+  entity_partition_id?: string; // Partition key for partitioned tables (e.g., breed_id for pet)
   model: string;       // model name for API
 }
 
@@ -147,6 +148,7 @@ export function TabPageResolver() {
     <SpacePage
       entityType={resolvedRoute.entity}
       selectedEntityId={resolvedRoute.entity_id}
+      selectedPartitionId={resolvedRoute.entity_partition_id}
       selectedSlug={slug}
       tabSlug={tabSlug}
     />

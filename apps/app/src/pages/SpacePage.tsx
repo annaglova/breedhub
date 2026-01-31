@@ -41,12 +41,14 @@ function DetailWrapper({
 function TabDetailWrapper({
   entityType,
   entityId,
+  entityPartitionId,
   entitySlug,
   tabSlug,
   spaceConfigSignal
 }: {
   entityType: string;
   entityId: string;
+  entityPartitionId?: string;
   entitySlug: string;
   tabSlug: string;
   spaceConfigSignal: any;
@@ -55,6 +57,7 @@ function TabDetailWrapper({
     <TabPageTemplate
       entityType={entityType}
       entityId={entityId}
+      entityPartitionId={entityPartitionId}
       entitySlug={entitySlug}
       tabSlug={tabSlug}
       isDrawerMode={false}
@@ -66,6 +69,7 @@ function TabDetailWrapper({
 interface SpacePageProps {
   entityType: string; // 'breed', 'pet', 'kennel', etc.
   selectedEntityId?: string; // Pre-selected entity ID (from SlugResolver)
+  selectedPartitionId?: string; // Partition key for partitioned tables (e.g., breed_id for pet)
   selectedSlug?: string; // Pretty URL slug (from SlugResolver) - for URL display
   tabSlug?: string; // Tab slug for tab fullscreen mode (from TabPageResolver)
 }
@@ -82,7 +86,7 @@ interface SpacePageProps {
  * Usage in AppRouter:
  * <Route path="breeds/*" element={<SpacePage entityType="breed" />} />
  */
-export function SpacePage({ entityType, selectedEntityId, selectedSlug, tabSlug }: SpacePageProps) {
+export function SpacePage({ entityType, selectedEntityId, selectedPartitionId, selectedSlug, tabSlug }: SpacePageProps) {
   useSignals();
 
   // Get hook from registry
@@ -143,11 +147,13 @@ export function SpacePage({ entityType, selectedEntityId, selectedSlug, tabSlug 
           configSignal={spaceConfigSignal}
           useEntitiesHook={useEntitiesHook}
           initialSelectedEntityId={selectedEntityId}
+          initialSelectedPartitionId={selectedPartitionId}
           initialSelectedSlug={selectedSlug}
         >
           <TabDetailWrapper
             entityType={entityType}
             entityId={selectedEntityId}
+            entityPartitionId={selectedPartitionId}
             entitySlug={selectedSlug}
             tabSlug={tabSlug}
             spaceConfigSignal={spaceConfigSignal}
@@ -164,6 +170,7 @@ export function SpacePage({ entityType, selectedEntityId, selectedSlug, tabSlug 
         configSignal={spaceConfigSignal}
         useEntitiesHook={useEntitiesHook}
         initialSelectedEntityId={selectedEntityId}
+        initialSelectedPartitionId={selectedPartitionId}
         initialSelectedSlug={selectedSlug}
       >
         <DetailComponent

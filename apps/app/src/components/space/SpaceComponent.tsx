@@ -45,6 +45,8 @@ interface SpaceComponentProps<T> {
   };
   // Pre-selected entity ID (from SlugResolver for pretty URLs)
   initialSelectedEntityId?: string;
+  // Pre-selected partition ID (for partitioned tables like pet - used for partition pruning)
+  initialSelectedPartitionId?: string;
   // Pre-selected entity slug (from SlugResolver for pretty URLs - for display/navigation)
   initialSelectedSlug?: string;
   // Children to render in drawer (when initialSelectedEntityId is provided)
@@ -55,6 +57,7 @@ export function SpaceComponent<T extends { id: string }>({
   configSignal,
   useEntitiesHook,
   initialSelectedEntityId,
+  initialSelectedPartitionId,
   initialSelectedSlug,
   children,
 }: SpaceComponentProps<T>) {
@@ -692,9 +695,11 @@ export function SpaceComponent<T extends { id: string }>({
 
       // Fetch and select entity - it may not be in the paginated list yet
       // This ensures the entity is loaded even if it's not in the first N items
+      // Pass partition ID for partitioned tables (enables partition pruning)
       spaceStore.fetchAndSelectEntity(
         config.entitySchemaName,
-        initialSelectedEntityId
+        initialSelectedEntityId,
+        initialSelectedPartitionId
       );
 
       // Save route for offline access

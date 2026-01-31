@@ -3395,8 +3395,12 @@ class SpaceStore {
    * Fetch entity by ID from Supabase and add to store if not already present.
    * Used when navigating directly to entity via pretty URL (e.g., /akita).
    * The entity may not be in the paginated list, so we need to fetch it directly.
+   *
+   * @param entityType - Entity type (e.g., 'pet', 'breed')
+   * @param id - Entity UUID
+   * @param partitionId - Optional partition key value for partition pruning (e.g., breed_id for pet)
    */
-  async fetchAndSelectEntity(entityType: string, id: string): Promise<boolean> {
+  async fetchAndSelectEntity(entityType: string, id: string, partitionId?: string): Promise<boolean> {
     // Use getEntityStore which will create the store if it doesn't exist
     // This handles the case when navigating directly to pretty URL
     const entityStore = await this.getEntityStore(entityType.toLowerCase());
@@ -3414,13 +3418,22 @@ class SpaceStore {
     }
 
     // Fetch from Supabase using imported client
-    console.log(`[SpaceStore] Fetching entity ${id} from Supabase`);
+    console.log(`[SpaceStore] Fetching entity ${id} from Supabase`, partitionId ? `(partition: ${partitionId})` : '');
     try {
-      const { data, error } = await supabase
-        .from(entityType)
-        .select('*')
-        .eq('id', id)
-        .single();
+      // Get partition config from entity config
+      const config = this.getConfigByEntityType(entityType);
+      const partitionKeyField = config?.partition?.keyField;
+
+      // Build query with partition pruning if available
+      let query = supabase.from(entityType).select('*');
+
+      if (partitionId && partitionKeyField) {
+        // Use partition key for partition pruning (much faster for partitioned tables)
+        console.log(`[SpaceStore] Using partition pruning: ${partitionKeyField}=${partitionId}`);
+        query = query.eq(partitionKeyField, partitionId);
+      }
+
+      const { data, error } = await query.eq('id', id).single();
 
       if (error) {
         console.error(`[SpaceStore] Error fetching entity ${id}:`, error);

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { routeStore, spaceStore, navigationHistoryStore } from '@breedhub/rxdb-store';
+import { routeStore, spaceStore, navigationHistoryStore, getDatabase } from '@breedhub/rxdb-store';
 import { SpacePage } from './SpacePage';
 
 /**
@@ -9,6 +9,7 @@ import { SpacePage } from './SpacePage';
 interface ResolvedRoute {
   entity: string;      // 'breed', 'pet', etc.
   entity_id: string;   // UUID of the entity
+  entity_partition_id?: string; // Partition key for partitioned tables (e.g., breed_id for pet)
   model: string;       // model name for API
 }
 
@@ -95,8 +96,22 @@ export function SlugResolver() {
       // Set fullscreen mode in store (persists across navigation)
       spaceStore.setFullscreen(true);
 
-      // Add to navigation history (store will format the title)
-      navigationHistoryStore.addEntry(`/${slugToResolve}`, slugToResolve, route.entity);
+      // Add to navigation history with entity NAME (not slug)
+      // Get name from RxDB - entity should be cached there
+      let entityName = slugToResolve; // fallback to slug
+      try {
+        const db = await getDatabase();
+        const collection = db.collections[route.entity];
+        if (collection) {
+          const entity = await collection.findOne(route.entity_id).exec();
+          if (entity?.name) {
+            entityName = entity.name;
+          }
+        }
+      } catch (e) {
+        console.warn('[SlugResolver] Could not get entity name from RxDB:', e);
+      }
+      navigationHistoryStore.addEntry(`/${slugToResolve}`, entityName, route.entity);
 
       // Store resolved route and render SpacePage
       setResolvedRoute(route);
@@ -140,6 +155,7 @@ export function SlugResolver() {
     <SpacePage
       entityType={resolvedRoute.entity}
       selectedEntityId={resolvedRoute.entity_id}
+      selectedPartitionId={resolvedRoute.entity_partition_id}
       selectedSlug={slug}
     />
   );

@@ -25,6 +25,7 @@ export interface ResolvedRoute {
   slug: string;
   entity: string;
   entity_id: string;
+  entity_partition_id?: string; // Partition key for partitioned tables (e.g., breed_id for pet)
   model: string;
 }
 
@@ -158,6 +159,7 @@ class RouteStore {
             slug: cached.slug,
             entity: cached.entity,
             entity_id: cached.entity_id,
+            entity_partition_id: cached.entity_partition_id,
             model: cached.model
           };
         }
@@ -184,6 +186,7 @@ class RouteStore {
           slug: route.slug,
           entity: route.entity,
           entity_id: route.entity_id,
+          entity_partition_id: route.entity_partition_id,
           model: route.model,
           cachedAt: Date.now()
         });
@@ -212,7 +215,7 @@ class RouteStore {
 
     const { data, error } = await supabase
       .from('routes')
-      .select('slug, entity, entity_id, model')
+      .select('slug, entity, entity_id, entity_partition_id, model')
       .eq('slug', slug)
       .single();
 
@@ -239,6 +242,7 @@ class RouteStore {
       slug: data.slug,
       entity: data.entity,
       entity_id: data.entity_id,
+      entity_partition_id: data.entity_partition_id,
       model: data.model
     };
   }
@@ -272,6 +276,7 @@ class RouteStore {
         slug: route.slug,
         entity: route.entity,
         entity_id: route.entity_id,
+        entity_partition_id: route.entity_partition_id,
         model: route.model,
         cachedAt: Date.now()
       });

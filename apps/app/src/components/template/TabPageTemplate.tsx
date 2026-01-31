@@ -60,6 +60,7 @@ interface TabConfig {
 interface TabPageTemplateProps {
   entityType: string;
   entityId: string;
+  entityPartitionId?: string; // Partition key for partitioned tables (e.g., breed_id for pet)
   entitySlug: string;
   tabSlug: string;
   className?: string;
@@ -153,6 +154,7 @@ function convertFullscreenTabsToArray(
 export function TabPageTemplate({
   entityType,
   entityId,
+  entityPartitionId,
   entitySlug,
   tabSlug,
   className,
@@ -196,11 +198,12 @@ export function TabPageTemplate({
     if (entityId && selectedEntity?.id !== entityId) {
       console.log('[TabPageTemplate] Entity mismatch, fetching correct entity:', {
         currentId: selectedEntity?.id,
-        expectedId: entityId
+        expectedId: entityId,
+        partitionId: entityPartitionId
       });
-      spaceStore.fetchAndSelectEntity(entityType, entityId);
+      spaceStore.fetchAndSelectEntity(entityType, entityId, entityPartitionId);
     }
-  }, [entityType, entityId, selectedEntity?.id]);
+  }, [entityType, entityId, entityPartitionId, selectedEntity?.id]);
 
   // Get tabs config from page config
   const tabsConfig = useMemo(() => {
