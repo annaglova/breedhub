@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { routeStore, spaceStore } from '@breedhub/rxdb-store';
+import { routeStore, spaceStore, navigationHistoryStore } from '@breedhub/rxdb-store';
 import { SpacePage } from './SpacePage';
 
 /**
@@ -100,6 +100,10 @@ export function TabPageResolver() {
 
       // Set fullscreen mode in store (tab pages are always fullscreen)
       spaceStore.setFullscreen(true);
+
+      // Add to navigation history - save MAIN entity link (not tab link)
+      // So user can quickly return to this entity from recent pages
+      navigationHistoryStore.addEntry(`/${slugToResolve}`, slugToResolve, route.entity);
 
       // Store resolved route and render TabPageTemplate
       setResolvedRoute(route);
