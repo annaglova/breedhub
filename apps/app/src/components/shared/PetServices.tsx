@@ -14,12 +14,12 @@ import {
 } from "lucide-react";
 import { useDictionaryValue } from "@/hooks/useDictionaryValue";
 
-// Services JSON format: {"1": "service_id", "2": "service_id", ...}
-// This avoids RxDB array issues
-type ServicesJson = Record<string, string>;
+// Services format: array of service UUIDs (new) or object (legacy)
+// Order is determined by SERVICE_ICONS config, not array order
+type ServicesData = string[] | Record<string, string>;
 
 interface PetServicesProps {
-  services?: ServicesJson;
+  services?: ServicesData;
   className?: string;
 }
 
@@ -87,14 +87,18 @@ function ServiceIcon({ serviceId }: { serviceId: string }) {
  *
  * Used in: Pet, Litter list cards
  *
- * Services format: {"1": "service_id", "2": "service_id", ...}
+ * Services format: ["service_id", "service_id", ...]
  * Names loaded from pet_service dictionary
  */
 export function PetServices({ services, className }: PetServicesProps) {
-  if (!services || Object.keys(services).length === 0) return null;
+  if (!services) return null;
 
-  // Extract service IDs from JSON object and sort by order
-  const serviceIds = Object.values(services)
+  // Support both array (new) and object (legacy) formats
+  const ids = Array.isArray(services) ? services : Object.values(services);
+  if (ids.length === 0) return null;
+
+  // Filter known services and sort by order from config
+  const serviceIds = ids
     .filter((id) => SERVICE_ICONS[id])
     .sort((a, b) => {
       const orderA = SERVICE_ICONS[a]?.order ?? 999;

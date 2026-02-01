@@ -28,7 +28,7 @@ interface PetEntity {
   date_of_birth?: string;
   coi?: number;
   tier_marks?: TierMarksData;
-  services?: Record<string, string>; // Format: {"1": "service_id", "2": "service_id"}
+  services?: string[] | Record<string, string>; // New: ["id", ...], Legacy: {"1": "id", ...}
   notes?: string;
   [key: string]: any;
 }
@@ -97,7 +97,7 @@ export function PetListCard({
     // Format: { owner: { contact_name, product_name }, breeder: { contact_name, product_name } }
     TierMarks: entity.tier_marks,
     // Services - uses real data from entity
-    // Format: {"1": "service_id", "2": "service_id", ...}
+    // Format: ["service_id", "service_id", ...]
     Services: entity.services,
   };
 
