@@ -1,74 +1,9 @@
 import { PetCard, type Pet } from "@/components/shared/PetCard";
 import { useSelectedEntity } from "@/contexts/SpaceContext";
-import { spaceStore } from "@breedhub/rxdb-store";
+import { spaceStore, dictionaryStore } from "@breedhub/rxdb-store";
 import { useSignals } from "@preact/signals-react/runtime";
-import { useEffect } from "react";
-
-/**
- * Mock children data for development
- */
-const MOCK_CHILDREN: Pet[] = [
-  {
-    id: "child-1",
-    name: "Rex Junior",
-    avatarUrl: "",
-    url: "/pet/rex-junior",
-    sex: "male",
-    countryOfBirth: "UA",
-    dateOfBirth: "2024-03-15",
-    breed: {
-      id: "breed-1",
-      name: "German Shepherd",
-      url: "/breed/german-shepherd",
-    },
-    status: "Available",
-  },
-  {
-    id: "child-2",
-    name: "Luna Belle",
-    avatarUrl: "",
-    url: "/pet/luna-belle",
-    sex: "female",
-    countryOfBirth: "UA",
-    dateOfBirth: "2024-03-15",
-    breed: {
-      id: "breed-1",
-      name: "German Shepherd",
-      url: "/breed/german-shepherd",
-    },
-    status: "Reserved",
-  },
-  {
-    id: "child-3",
-    name: "Max Power",
-    avatarUrl: "",
-    url: "/pet/max-power",
-    sex: "male",
-    countryOfBirth: "UA",
-    dateOfBirth: "2024-03-15",
-    breed: {
-      id: "breed-1",
-      name: "German Shepherd",
-      url: "/breed/german-shepherd",
-    },
-    status: "Sold",
-  },
-  {
-    id: "child-4",
-    name: "Bella Star",
-    avatarUrl: "",
-    url: "/pet/bella-star",
-    sex: "female",
-    countryOfBirth: "UA",
-    dateOfBirth: "2024-03-15",
-    breed: {
-      id: "breed-1",
-      name: "German Shepherd",
-      url: "/breed/german-shepherd",
-    },
-    status: "Available",
-  },
-];
+import { Loader2 } from "lucide-react";
+import { useEffect, useState } from "react";
 
 interface LitterChildrenTabProps {
   onLoadedCount?: (count: number) => void;
@@ -76,12 +11,56 @@ interface LitterChildrenTabProps {
 }
 
 /**
+ * Load lookup data by ID using dictionaryStore
+ */
+async function loadLookupById(
+  table: string,
+  id: string | null | undefined
+): Promise<Record<string, unknown> | null> {
+  if (!id) return null;
+  return dictionaryStore.getRecordById(table, id);
+}
+
+/**
+ * Transform raw pet record to PetCard format with enrichment
+ */
+async function enrichPetForCard(rawPet: any): Promise<Pet> {
+  // Load lookups in parallel
+  const [sex, breed, petStatus, country] = await Promise.all([
+    loadLookupById("sex", rawPet.sex_id),
+    loadLookupById("breed", rawPet.breed_id),
+    loadLookupById("pet_status", rawPet.pet_status_id),
+    loadLookupById("country", rawPet.country_of_birth_id),
+  ]);
+
+  return {
+    id: rawPet.id,
+    name: rawPet.name || "Unknown",
+    avatarUrl: rawPet.avatar_url || "",
+    url: rawPet.slug ? `/${rawPet.slug}` : `/pet/${rawPet.id}`,
+    sex: (sex?.code as string) || undefined,
+    countryOfBirth: (country?.code as string) || undefined,
+    dateOfBirth: rawPet.date_of_birth,
+    titles: rawPet.titles,
+    breed: breed
+      ? {
+          id: rawPet.breed_id,
+          name: String(breed.name || ""),
+          url: breed.slug ? `/${breed.slug}` : "",
+        }
+      : undefined,
+    status: (petStatus?.name as string) || undefined,
+  };
+}
+
+/**
  * LitterChildrenTab - Litter's children (puppies/kittens)
  *
- * Displays the litter's children in a grid format using PetCard.
- * Shows breed and status instead of father/mother (litter mode).
+ * Loads real children data from database:
+ * 1. Fetch pets where litter_id = entity.id via spaceStore
+ * 2. Enrich each pet with sex, breed, status via dictionaryStore
  *
- * Based on Angular: litter-children.component.ts
+ * Displays in grid format using PetCard (litter mode).
  */
 export function LitterChildrenTab({
   onLoadedCount,
@@ -92,20 +71,72 @@ export function LitterChildrenTab({
   const selectedEntity = useSelectedEntity();
   const isFullscreen = spaceStore.isFullscreen.value || mode === "fullscreen";
 
-  // Get children from entity or use mock data
-  // TODO: Load real children data from entity
-  const children: Pet[] =
-    selectedEntity?.children || selectedEntity?.Children || MOCK_CHILDREN;
+  // State for children data
+  const [children, setChildren] = useState<Pet[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Report loaded count to parent (in useEffect to avoid setState during render)
+  // Load children when entity changes
   useEffect(() => {
-    if (onLoadedCount) {
+    if (!selectedEntity?.id) {
+      setChildren([]);
+      setIsLoading(false);
+      return;
+    }
+
+    async function loadChildren() {
+      setIsLoading(true);
+
+      try {
+        // Ensure dictionaryStore is initialized
+        if (!dictionaryStore.initialized.value) {
+          await dictionaryStore.initialize();
+        }
+
+        // Load pets where litter_id = entity.id
+        const result = await spaceStore.applyFilters(
+          "pet",
+          { litter_id: selectedEntity.id },
+          { limit: 50 }
+        );
+
+        const rawPets = result.records || [];
+
+        // Enrich each pet with lookups
+        const enrichedPets = await Promise.all(
+          rawPets.map((pet: any) => enrichPetForCard(pet))
+        );
+
+        setChildren(enrichedPets);
+      } catch (error) {
+        console.error("[LitterChildrenTab] Failed to load children:", error);
+        setChildren([]);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    loadChildren();
+  }, [selectedEntity?.id]);
+
+  // Report loaded count to parent
+  useEffect(() => {
+    if (!isLoading && onLoadedCount) {
       onLoadedCount(children.length);
     }
-  }, [onLoadedCount, children.length]);
+  }, [isLoading, children.length, onLoadedCount]);
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="py-4 px-6 flex items-center justify-center min-h-[200px]">
+        <Loader2 className="h-6 w-6 animate-spin text-primary" />
+        <span className="ml-2 text-secondary">Loading...</span>
+      </div>
+    );
+  }
 
   // Check if we have children data
-  const hasChildren = children && children.length > 0;
+  const hasChildren = children.length > 0;
 
   return (
     <div className="mt-3">
