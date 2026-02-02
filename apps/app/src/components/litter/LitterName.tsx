@@ -1,34 +1,6 @@
 import { NoteFlagButton } from "@ui/components/note-flag-button";
 import { Link } from "react-router-dom";
-
-// Breed reference in litter
-interface LitterBreed {
-  id?: string;
-  name: string;
-  url?: string;
-  slug?: string;
-}
-
-// Kennel reference in litter
-interface LitterKennel {
-  id?: string;
-  name: string;
-  url?: string;
-  slug?: string;
-}
-
-// Status reference
-interface LitterStatus {
-  id?: string;
-  name?: string;
-}
-
-// Federation reference
-interface LitterFederation {
-  id?: string;
-  name?: string;
-  alternativeName?: string;
-}
+import { useDictionaryValue } from "@/hooks/useDictionaryValue";
 
 interface LitterNameProps {
   entity?: any;
@@ -38,58 +10,38 @@ interface LitterNameProps {
   linkToFullscreen?: boolean;
 }
 
-// Mock data for visual development
-const MOCK_LITTER = {
-  name: "A-litter vom Königsberg",
-  slug: "a-litter-vom-konigsberg",
-  breeds: [
-    { id: "1", name: "German Shepherd", slug: "german-shepherd" },
-    { id: "2", name: "Belgian Malinois", slug: "belgian-malinois" },
-  ] as LitterBreed[],
-  status: { id: "1", name: "Born" } as LitterStatus,
-  kennel: {
-    id: "1",
-    name: "Königsberg Kennel",
-    slug: "konigsberg-kennel",
-  } as LitterKennel,
-  federation: {
-    id: "1",
-    name: "FCI",
-    alternativeName: "FCI",
-  } as LitterFederation,
-  hasNotes: true,
-};
-
 /**
- * EntityLink - Renders a link to an entity (breed, kennel) or plain text
+ * EntityLink - Renders a link to an entity or plain text
  */
 function EntityLink({
-  entity,
+  name,
+  slug,
   className = "",
 }: {
-  entity?: { name: string; url?: string; slug?: string };
+  name?: string;
+  slug?: string;
   className?: string;
 }) {
-  if (!entity) return null;
+  if (!name) return null;
 
-  const url = entity.slug ? `/${entity.slug}` : entity.url;
-
-  if (url) {
+  if (slug) {
     return (
-      <Link to={url} className={`hover:underline ${className}`}>
-        {entity.name}
+      <Link to={`/${slug}`} className={`hover:underline ${className}`}>
+        {name}
       </Link>
     );
   }
 
-  return <span className={className}>{entity.name}</span>;
+  return <span className={className}>{name}</span>;
 }
 
 /**
  * LitterName - Displays litter name and details
  *
- * Based on Angular: libs/schema/domain/litter/lib/litter-name/litter-name.component.ts
- * Shows: breed links (multiple), litter name, status, kennel, federation
+ * Uses real data from litter_with_parents VIEW:
+ * - breed_name, breed_slug - from VIEW
+ * - kennel_name - from VIEW
+ * - status_id - resolved via dictionary
  */
 export function LitterName({
   entity,
@@ -97,39 +49,29 @@ export function LitterName({
   onNotesClick,
   linkToFullscreen = true,
 }: LitterNameProps) {
-  // Use entity data or fallback to mock for development
-  const litter = entity || MOCK_LITTER;
+  // Resolve status_id to name via dictionary lookup
+  const statusName = useDictionaryValue("litter_status", entity?.status_id);
 
-  // Extract data - support both camelCase and snake_case
-  const displayName = litter.name || litter.Name || "Unknown Litter";
-  const slug = litter.slug || litter.Slug;
-  const breeds: LitterBreed[] =
-    litter.breeds || litter.LitterBreeds || MOCK_LITTER.breeds;
-  const status: LitterStatus | undefined =
-    litter.status || litter.Status || MOCK_LITTER.status;
-  const kennel: LitterKennel | undefined =
-    litter.kennel || litter.Kennel || MOCK_LITTER.kennel;
-  const federation: LitterFederation | undefined =
-    litter.federation || litter.Federation || MOCK_LITTER.federation;
-  const hasNotesFlag = hasNotes || litter.hasNotes || litter.HasNotes;
+  // Extract data from entity
+  const displayName = entity?.name || "Unknown Litter";
+  const slug = entity?.slug;
+
+  // Breed from VIEW (father_breed_id joined to breed table)
+  const breedName = entity?.breed_name;
+  const breedSlug = entity?.breed_slug;
+
+  // Kennel from VIEW
+  const kennelName = entity?.kennel_name;
+
+  // Notes flag
+  const hasNotesFlag = hasNotes || !!entity?.notes;
 
   return (
     <div className="pb-3 cursor-default">
-      {/* Breeds section */}
+      {/* Breed section */}
       <div className="text-md mb-3 min-h-[1.5rem] flex flex-wrap items-center space-x-1">
-        {breeds && breeds.length > 0 && (
-          <>
-            {/* First breed - no bullet before */}
-            <EntityLink entity={breeds[0]} className="uppercase" />
-
-            {/* Rest of breeds - with bullet before each */}
-            {breeds.slice(1).map((breed) => (
-              <div key={breed.id || breed.name} className="flex space-x-1">
-                <span className="text-primary">&bull;</span>
-                <EntityLink entity={breed} className="uppercase" />
-              </div>
-            ))}
-          </>
+        {breedName && (
+          <EntityLink name={breedName} slug={breedSlug} className="uppercase" />
         )}
       </div>
 
@@ -157,32 +99,24 @@ export function LitterName({
         />
       </div>
 
-      {/* Info row: status, kennel, federation */}
+      {/* Info row: kennel, status */}
       <div className="flex items-center">
         <div className="text-secondary flex flex-wrap items-center space-x-2 font-medium">
-          {/* Color indicator (like in PetName) */}
+          {/* Color indicator */}
           <div className="bg-primary-300 dark:bg-surface-400 size-4 rounded-full" />
 
-          {/* Status - no bullet before first item */}
-          {status?.name && (
+          {/* Kennel - first item, no bullet */}
+          {kennelName && (
             <div className="flex items-center">
-              <span>{status.name}</span>
+              <span>{kennelName}</span>
             </div>
           )}
 
-          {/* Kennel - with bullet before */}
-          {kennel?.name && (
+          {/* Status - with bullet before */}
+          {statusName && (
             <div className="flex items-center">
-              <span className="mr-2">&bull;</span>
-              <EntityLink entity={kennel} />
-            </div>
-          )}
-
-          {/* Federation - with bullet before */}
-          {federation?.alternativeName && (
-            <div className="flex items-center">
-              <span className="mr-2">&bull;</span>
-              <span>{federation.alternativeName}</span>
+              {kennelName && <span className="mr-2">&bull;</span>}
+              <span>{statusName}</span>
             </div>
           )}
         </div>
