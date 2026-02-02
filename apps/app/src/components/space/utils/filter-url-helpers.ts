@@ -104,8 +104,19 @@ export async function getLabelForValue(
         return doc[fieldConfig.referencedFieldName] || value;
       }
 
-      // Check if collection has any data - if yes, item doesn't exist
-      const count = await collection.count().exec();
+      // Check if collection has data for this specific table
+      // For dictionaries - check count with table_name filter
+      // For regular collections - check total count
+      let count = 0;
+      if (collectionInfo.isDictionary && collectionInfo.tableName) {
+        count = await collection.count({
+          selector: { table_name: collectionInfo.tableName }
+        }).exec();
+      } else {
+        count = await collection.count().exec();
+      }
+
+      // If collection has data but item not found - it doesn't exist
       if (count > 0) {
         return value;
       }
