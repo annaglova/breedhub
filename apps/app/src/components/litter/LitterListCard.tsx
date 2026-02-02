@@ -121,21 +121,21 @@ export function LitterListCard({
           {/* Info row */}
           <div className="flex items-center">
             <div className="text-sm text-slate-600 dark:text-slate-400 flex space-x-1 truncate">
-              {/* Status */}
-              {litter.Status && <span>{litter.Status}</span>}
-
               {/* Kennel */}
-              {litter.KennelName && (
+              {litter.KennelName && <span>{litter.KennelName}</span>}
+
+              {/* Status */}
+              {litter.Status && (
                 <>
-                  {litter.Status && <span className="text-slate-400">•</span>}
-                  <span>{litter.KennelName}</span>
+                  {litter.KennelName && <span className="text-slate-400">•</span>}
+                  <span>{litter.Status}</span>
                 </>
               )}
 
               {/* Date of Birth */}
               {formattedDate && (
                 <>
-                  {(litter.Status || litter.KennelName) && (
+                  {(litter.KennelName || litter.Status) && (
                     <span className="text-slate-400">•</span>
                   )}
                   <span>{formattedDate}</span>
