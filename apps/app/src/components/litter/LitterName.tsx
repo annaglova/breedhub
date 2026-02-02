@@ -1,5 +1,6 @@
 import { NoteFlagButton } from "@ui/components/note-flag-button";
 import { Link } from "react-router-dom";
+import { useCollectionValue } from "@/hooks/useCollectionValue";
 import { useDictionaryValue } from "@/hooks/useDictionaryValue";
 
 interface LitterNameProps {
@@ -52,13 +53,19 @@ export function LitterName({
   // Resolve status_id to name via dictionary lookup
   const statusName = useDictionaryValue("litter_status", entity?.status_id);
 
+  // Get breed data from collection by father_breed_id (enrichment pattern)
+  const breed = useCollectionValue<{ name?: string; slug?: string }>(
+    "breed",
+    entity?.father_breed_id
+  );
+
   // Extract data from entity
   const displayName = entity?.name || "Unknown Litter";
   const slug = entity?.slug;
 
-  // Breed from VIEW (father_breed_id joined to breed table)
-  const breedName = entity?.breed_name;
-  const breedSlug = entity?.breed_slug;
+  // Breed from enrichment (useCollectionValue)
+  const breedName = breed?.name;
+  const breedSlug = breed?.slug;
 
   // Kennel from VIEW
   const kennelName = entity?.kennel_name;

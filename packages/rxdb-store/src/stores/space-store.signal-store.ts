@@ -114,8 +114,7 @@ const ENTITY_VIEW_SOURCES: Record<string, {
       father_name: { type: 'string', maxLength: 500 },
       mother_name: { type: 'string', maxLength: 500 },
       kennel_name: { type: 'string', maxLength: 500 },
-      breed_name: { type: 'string', maxLength: 500 },
-      breed_slug: { type: 'string', maxLength: 500 },
+      // breed_name, breed_slug: use enrichment via useCollectionValue instead
     },
   },
 };
