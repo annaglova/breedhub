@@ -1,17 +1,17 @@
 import { useSelectedEntity } from "@/contexts/SpaceContext";
-import { spaceStore } from "@breedhub/rxdb-store";
+import { spaceStore, dictionaryStore } from "@breedhub/rxdb-store";
 import { useSignals } from "@preact/signals-react/runtime";
 import { cn } from "@ui/lib/utils";
 import {
   Cake,
   CircleCheckBig,
   HouseHeart,
-  MapPin,
+  Loader2,
   Mars,
   UserStar,
   Venus,
 } from "lucide-react";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
 /**
@@ -41,40 +41,22 @@ interface LitterGeneralData {
   dateOfBirth?: string;
   breeder?: LinkEntity;
   kennel?: LinkEntity;
-  country?: DictionaryValue;
   status?: DictionaryValue;
-  maleCount?: number;
-  femaleCount?: number;
+  maleAmount?: number;
+  femaleAmount?: number;
 }
 
-// Mock data for visual development
-const MOCK_DATA: LitterGeneralData = {
-  father: {
-    id: "1",
-    name: "Champion Rocky vom Haus",
-    slug: "champion-rocky-vom-haus",
-  },
-  mother: {
-    id: "2",
-    name: "Luna of Golden Dreams",
-    slug: "luna-of-golden-dreams",
-  },
-  dateOfBirth: "2024-06-15",
-  breeder: {
-    id: "3",
-    name: "John Smith",
-    slug: "john-smith",
-  },
-  kennel: {
-    id: "4",
-    name: "Königsberg Kennel",
-    slug: "konigsberg-kennel",
-  },
-  country: { id: "de", name: "Germany" },
-  status: { id: "1", name: "Born" },
-  maleCount: 3,
-  femaleCount: 2,
-};
+/**
+ * Load lookup data by ID using dictionaryStore
+ * Returns null if id is not provided
+ */
+async function loadLookupById(
+  table: string,
+  id: string | null | undefined
+): Promise<Record<string, unknown> | null> {
+  if (!id) return null;
+  return dictionaryStore.getRecordById(table, id);
+}
 
 /**
  * EntityLink - Renders a link to an entity or plain text
@@ -166,10 +148,10 @@ interface LitterGeneralTabProps {
  *
  * Displays:
  * 1. Birth details - Father, Mother, DOB
- * 2. Origin and Ownership - Breeder, Kennel, Country
+ * 2. Origin and Ownership - Breeder, Kennel
  * 3. Additional data - Status, Males count, Females count
  *
- * Based on Angular: litter-info.component.ts
+ * Uses enrichment pattern via dictionaryStore.getRecordById()
  */
 export function LitterGeneralTab({ onLoadedCount }: LitterGeneralTabProps) {
   useSignals();
@@ -177,18 +159,84 @@ export function LitterGeneralTab({ onLoadedCount }: LitterGeneralTabProps) {
   const selectedEntity = useSelectedEntity();
   const isFullscreen = spaceStore.isFullscreen.value;
 
-  // TODO: Load real data from entity
-  // For now using mock data
-  const data = MOCK_DATA;
+  // State for lookup data
+  const [data, setData] = useState<LitterGeneralData>({});
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Report count after render (always 1 for general info)
+  // Load lookup data when entity changes
   useEffect(() => {
-    if (onLoadedCount) {
+    if (!selectedEntity) {
+      setData({});
+      setIsLoading(false);
+      return;
+    }
+
+    async function loadLookups() {
+      setIsLoading(true);
+
+      try {
+        // Ensure dictionaryStore is initialized
+        if (!dictionaryStore.initialized.value) {
+          await dictionaryStore.initialize();
+        }
+
+        // Load all lookups in parallel
+        const [father, mother, breeder, kennel, status] = await Promise.all([
+          loadLookupById("pet", selectedEntity.father_id),
+          loadLookupById("pet", selectedEntity.mother_id),
+          loadLookupById("contact", selectedEntity.breeder_id),
+          loadLookupById("account", selectedEntity.kennel_id),
+          loadLookupById("litter_status", selectedEntity.status_id),
+        ]);
+
+        setData({
+          father: father
+            ? { id: selectedEntity.father_id, name: String(father.name || ""), slug: String(father.slug || "") }
+            : undefined,
+          mother: mother
+            ? { id: selectedEntity.mother_id, name: String(mother.name || ""), slug: String(mother.slug || "") }
+            : undefined,
+          breeder: breeder
+            ? { id: selectedEntity.breeder_id, name: String(breeder.name || ""), slug: String(breeder.slug || "") }
+            : undefined,
+          kennel: kennel
+            ? { id: selectedEntity.kennel_id, name: String(kennel.name || ""), slug: String(kennel.slug || "") }
+            : undefined,
+          status: status
+            ? { id: selectedEntity.status_id, name: String(status.name || "") }
+            : undefined,
+          dateOfBirth: selectedEntity.date_of_birth,
+          maleAmount: selectedEntity.male_amount,
+          femaleAmount: selectedEntity.female_amount,
+        });
+      } catch (error) {
+        console.error("[LitterGeneralTab] Failed to load lookups:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    loadLookups();
+  }, [selectedEntity?.id]);
+
+  // Report count after data loads
+  useEffect(() => {
+    if (!isLoading && onLoadedCount) {
       onLoadedCount(1);
     }
-  }, [onLoadedCount]);
+  }, [isLoading, onLoadedCount]);
 
   const iconSize = 16;
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="py-4 px-6 flex items-center justify-center min-h-[200px]">
+        <Loader2 className="h-6 w-6 animate-spin text-primary" />
+        <span className="ml-2 text-secondary">Loading...</span>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col space-y-5 px-6 cursor-default">
@@ -234,9 +282,6 @@ export function LitterGeneralTab({ onLoadedCount }: LitterGeneralTabProps) {
             <InfoRow icon={<HouseHeart size={iconSize} />} label="Kennel">
               <EntityLink entity={data.kennel} />
             </InfoRow>
-            <InfoRow icon={<MapPin size={iconSize} />} label="Country">
-              <span>{data.country?.name || "—"}</span>
-            </InfoRow>
           </div>
         </div>
       </Fieldset>
@@ -254,17 +299,17 @@ export function LitterGeneralTab({ onLoadedCount }: LitterGeneralTabProps) {
               <span>{data.status?.name || "—"}</span>
             </InfoRow>
           </div>
-          {data.maleCount !== undefined && data.maleCount > 0 && (
+          {data.maleAmount !== undefined && data.maleAmount > 0 && (
             <div className="grid grid-cols-[16px_70px_1fr] sm:grid-cols-[22px_80px_1fr] items-center gap-3">
               <InfoRow icon={<Mars size={iconSize} />} label="Males">
-                <span>{data.maleCount}</span>
+                <span>{data.maleAmount}</span>
               </InfoRow>
             </div>
           )}
-          {data.femaleCount !== undefined && data.femaleCount > 0 && (
+          {data.femaleAmount !== undefined && data.femaleAmount > 0 && (
             <div className="grid grid-cols-[16px_70px_1fr] sm:grid-cols-[22px_80px_1fr] items-center gap-3">
               <InfoRow icon={<Venus size={iconSize} />} label="Females">
-                <span>{data.femaleCount}</span>
+                <span>{data.femaleAmount}</span>
               </InfoRow>
             </div>
           )}
