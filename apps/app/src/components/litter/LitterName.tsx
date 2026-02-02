@@ -39,10 +39,10 @@ function EntityLink({
 /**
  * LitterName - Displays litter name and details
  *
- * Uses real data from litter_with_parents VIEW:
- * - breed_name, breed_slug - from VIEW
- * - kennel_name - from VIEW
- * - status_id - resolved via dictionary
+ * Enrichment pattern (like PetName):
+ * - breed: useCollectionValue by father_breed_id
+ * - kennel: useCollectionValue by kennel_id (account table)
+ * - status: useDictionaryValue by status_id
  */
 export function LitterName({
   entity,
@@ -59,16 +59,22 @@ export function LitterName({
     entity?.father_breed_id
   );
 
+  // Get kennel (account) data from collection by kennel_id (enrichment pattern)
+  const kennel = useCollectionValue<{ name?: string }>(
+    "account",
+    entity?.kennel_id
+  );
+
   // Extract data from entity
   const displayName = entity?.name || "Unknown Litter";
   const slug = entity?.slug;
 
-  // Breed from enrichment (useCollectionValue)
-  const breedName = breed?.name;
-  const breedSlug = breed?.slug;
+  // Breed from enrichment with fallback (like PetName)
+  const breedName = entity?.breed?.name || breed?.name;
+  const breedSlug = entity?.breed?.slug || breed?.slug;
 
-  // Kennel from VIEW
-  const kennelName = entity?.kennel_name;
+  // Kennel from enrichment with fallback
+  const kennelName = entity?.kennel?.name || kennel?.name;
 
   // Notes flag
   const hasNotesFlag = hasNotes || !!entity?.notes;
