@@ -1119,15 +1119,24 @@ export function SpaceComponent<T extends { id: string }>({
             ? toSentenceCase(fieldConfig.displayName)
             : key;
 
-          // Convert URL label → Display label (cat → Cat)
+          // Convert URL value → Display label
+          // URL can contain either UUID directly or slug/label
           let displayValue = urlValue;
           if (fieldConfig?.referencedTable) {
-            // Get UUID from URL label
-            const valueId = await getValueForLabel(fieldConfig, urlValue, rxdb);
-            if (valueId) {
-              // Get display label from UUID
-              const label = await getLabelForValue(fieldConfig, valueId, rxdb);
+            // Check if urlValue is a UUID (direct ID)
+            const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(urlValue);
+
+            if (isUUID) {
+              // URL has UUID directly - get label for this ID
+              const label = await getLabelForValue(fieldConfig, urlValue, rxdb);
               displayValue = label;
+            } else {
+              // URL has slug/label - find ID first, then get display label
+              const valueId = await getValueForLabel(fieldConfig, urlValue, rxdb);
+              if (valueId) {
+                const label = await getLabelForValue(fieldConfig, valueId, rxdb);
+                displayValue = label;
+              }
             }
           }
 
