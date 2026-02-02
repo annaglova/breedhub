@@ -40,7 +40,9 @@ function EntityLink({
  * LitterName - Displays litter name and details
  *
  * Enrichment pattern (like PetName):
- * - breed: useCollectionValue by father_breed_id
+ * - breeds: useCollectionValue by father_breed_id and mother_breed_id
+ *   - Same breed → show one
+ *   - Different breeds → show both with "×" (e.g., cross-breeding dachshunds)
  * - kennel: useCollectionValue by kennel_id (account table)
  * - status: useDictionaryValue by status_id
  */
@@ -53,10 +55,17 @@ export function LitterName({
   // Resolve status_id to name via dictionary lookup
   const statusName = useDictionaryValue("litter_status", entity?.status_id);
 
-  // Get breed data from collection by father_breed_id (enrichment pattern)
-  const breed = useCollectionValue<{ name?: string; slug?: string }>(
+  // Get father breed data from collection (enrichment pattern)
+  const fatherBreed = useCollectionValue<{ name?: string; slug?: string }>(
     "breed",
     entity?.father_breed_id
+  );
+
+  // Get mother breed data from collection (enrichment pattern)
+  // Only fetch if different from father's breed
+  const motherBreed = useCollectionValue<{ name?: string; slug?: string }>(
+    "breed",
+    entity?.mother_breed_id !== entity?.father_breed_id ? entity?.mother_breed_id : undefined
   );
 
   // Get kennel (account) data from collection by kennel_id (enrichment pattern)
@@ -69,9 +78,12 @@ export function LitterName({
   const displayName = entity?.name || "Unknown Litter";
   const slug = entity?.slug;
 
-  // Breed from enrichment with fallback (like PetName)
-  const breedName = entity?.breed?.name || breed?.name;
-  const breedSlug = entity?.breed?.slug || breed?.slug;
+  // Breeds: same → one, different → both with "×"
+  const fatherBreedName = fatherBreed?.name;
+  const fatherBreedSlug = fatherBreed?.slug;
+  const motherBreedName = motherBreed?.name;
+  const motherBreedSlug = motherBreed?.slug;
+  const isCrossBreed = entity?.father_breed_id !== entity?.mother_breed_id && motherBreedName;
 
   // Kennel from enrichment with fallback (including VIEW field)
   const kennelName = entity?.kennel?.name || entity?.kennel_name || kennel?.name;
@@ -81,10 +93,16 @@ export function LitterName({
 
   return (
     <div className="pb-3 cursor-default">
-      {/* Breed section */}
+      {/* Breed section: same breed → one, different → both with × */}
       <div className="text-md mb-3 min-h-[1.5rem] flex flex-wrap items-center space-x-1">
-        {breedName && (
-          <EntityLink name={breedName} slug={breedSlug} className="uppercase" />
+        {fatherBreedName && (
+          <EntityLink name={fatherBreedName} slug={fatherBreedSlug} className="uppercase" />
+        )}
+        {isCrossBreed && (
+          <>
+            <span className="text-secondary">×</span>
+            <EntityLink name={motherBreedName} slug={motherBreedSlug} className="uppercase" />
+          </>
         )}
       </div>
 
