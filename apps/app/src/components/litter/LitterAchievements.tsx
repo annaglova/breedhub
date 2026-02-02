@@ -1,37 +1,18 @@
+import { useCollectionValue } from "@/hooks/useCollectionValue";
 import { cn } from "@ui/lib/utils";
 import { Mars, Venus } from "lucide-react";
 import { Link } from "react-router-dom";
 
-// Parent reference in litter
+// Parent data from enrichment
 interface Parent {
   id?: string;
-  name: string;
-  url?: string;
+  name?: string;
   slug?: string;
 }
 
 interface LitterAchievementsProps {
   entity?: any;
-  father?: Parent;
-  mother?: Parent;
 }
-
-// Null ID constant (similar to Angular nullId)
-const NULL_ID = "00000000-0000-0000-0000-000000000000";
-
-// Mock data for visual development
-const MOCK_PARENTS = {
-  father: {
-    id: "1",
-    name: "Champion Rocky vom Haus",
-    slug: "champion-rocky-vom-haus",
-  } as Parent,
-  mother: {
-    id: "2",
-    name: "Luna of Golden Dreams",
-    slug: "luna-of-golden-dreams",
-  } as Parent,
-};
 
 /**
  * ParentChip - Chip with icon for parent (father/mother)
@@ -74,52 +55,45 @@ function ParentChip({
 /**
  * LitterAchievements - Displays litter's parents as chips
  *
- * Based on Angular: libs/schema/domain/litter/lib/litter-achievements/litter-achievements.component.ts
- * Shows father and mother as clickable chips with male/female icons
+ * Enrichment pattern:
+ * - father: useCollectionValue by father_id (pet collection)
+ * - mother: useCollectionValue by mother_id (pet collection)
+ *
+ * Shows father and mother as clickable chips with male/female icons (white)
  */
-export function LitterAchievements({
-  entity,
-  father,
-  mother,
-}: LitterAchievementsProps) {
-  // Use entity data or fallback to mock/props for development
-  const displayFather: Parent | undefined =
-    entity?.father || entity?.Father || father || MOCK_PARENTS.father;
-  const displayMother: Parent | undefined =
-    entity?.mother || entity?.Mother || mother || MOCK_PARENTS.mother;
+export function LitterAchievements({ entity }: LitterAchievementsProps) {
+  // Get father data from collection (enrichment pattern)
+  const father = useCollectionValue<Parent>("pet", entity?.father_id);
 
-  // Check if parent has valid ID (not null ID)
-  const hasFather =
-    displayFather &&
-    displayFather.id &&
-    displayFather.id !== NULL_ID &&
-    displayFather.name;
-  const hasMother =
-    displayMother &&
-    displayMother.id &&
-    displayMother.id !== NULL_ID &&
-    displayMother.name;
+  // Get mother data from collection (enrichment pattern)
+  const mother = useCollectionValue<Parent>("pet", entity?.mother_id);
+
+  // Fallback to VIEW fields if enrichment not ready yet
+  const displayFather: Parent | undefined = father ||
+    (entity?.father_name ? { name: entity.father_name } : undefined);
+  const displayMother: Parent | undefined = mother ||
+    (entity?.mother_name ? { name: entity.mother_name } : undefined);
 
   // Hide if no parents
-  if (!hasFather && !hasMother) {
+  if (!displayFather?.name && !displayMother?.name) {
     return null;
   }
 
   return (
     <div className="flex flex-wrap gap-2 mt-3 mb-6 min-h-[2rem]" aria-label="parents">
-      {hasFather && (
+      {displayFather?.name && (
         <ParentChip
           parent={displayFather}
           icon={<Mars size={16} />}
-          iconClassName="text-blue-200"
+          iconClassName="text-white"
         />
       )}
 
-      {hasMother && (
+      {displayMother?.name && (
         <ParentChip
           parent={displayMother}
           icon={<Venus size={16} />}
-          iconClassName="text-pink-200"
+          iconClassName="text-white"
         />
       )}
     </div>
