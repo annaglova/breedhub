@@ -5134,10 +5134,20 @@ class SpaceStore {
    * Get a single record by ID from a collection
    * Used for pre-loading selected values in LookupInput
    */
+  /**
+   * Get a single record by ID (ID-First pattern)
+   *
+   * 1. Check RxDB cache first
+   * 2. If not found, fetch from Supabase
+   * 3. Cache in RxDB for future requests
+   * 4. Return record
+   */
   async getRecordById(
     tableName: string,
     id: string
   ): Promise<Record<string, unknown> | null> {
+    if (!id) return null;
+
     const collection = this.db?.collections?.[tableName];
 
     if (!collection) {
@@ -5146,10 +5156,31 @@ class SpaceStore {
     }
 
     try {
+      // Phase 1: Check RxDB cache
       const doc = await collection.findOne(id).exec();
-      return doc ? doc.toJSON() : null;
+      if (doc) {
+        return doc.toJSON();
+      }
+
+      // Phase 2: Fetch from Supabase
+      const { data, error } = await supabase
+        .from(tableName)
+        .select('*')
+        .eq('id', id)
+        .single();
+
+      if (error || !data) {
+        console.warn(`[SpaceStore] getRecordById: ${tableName}/${id} not found in Supabase`);
+        return null;
+      }
+
+      // Phase 3: Cache in RxDB
+      const mapped = this.mapToRxDBFormat(data, tableName);
+      await collection.upsert(mapped);
+
+      return data;
     } catch (error) {
-      console.error(`[SpaceStore] getRecordById failed for ${tableName}:`, error);
+      console.error(`[SpaceStore] getRecordById failed for ${tableName}/${id}:`, error);
       return null;
     }
   }
