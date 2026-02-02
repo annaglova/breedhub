@@ -446,6 +446,7 @@ class TabDataService {
    * Sort records by orderBy config
    *
    * Handles both flat records and DictionaryStore format (with `additional` field)
+   * Uses NULLS LAST behavior: null/undefined values are pushed to the end
    */
   private sortRecords(
     records: any[],
@@ -454,8 +455,16 @@ class TabDataService {
     return [...records].sort((a, b) => {
       for (const order of orderBy) {
         // Check in `additional` field first (DictionaryStore format)
-        const aVal = a.additional?.[order.field] ?? a[order.field] ?? 0;
-        const bVal = b.additional?.[order.field] ?? b[order.field] ?? 0;
+        const aVal = a.additional?.[order.field] ?? a[order.field];
+        const bVal = b.additional?.[order.field] ?? b[order.field];
+
+        // NULLS LAST: push null/undefined to the end
+        const aIsNull = aVal === null || aVal === undefined;
+        const bIsNull = bVal === null || bVal === undefined;
+
+        if (aIsNull && bIsNull) continue; // Both null, check next field
+        if (aIsNull) return 1;  // a is null, push to end
+        if (bIsNull) return -1; // b is null, push to end
 
         if (aVal !== bVal) {
           const comparison = aVal < bVal ? -1 : 1;

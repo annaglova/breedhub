@@ -2590,17 +2590,18 @@ class SpaceStore {
   /**
    * Helper: Apply orderBy with optional tieBreaker to Supabase query
    * Adds .order() calls for primary sort and tie-breaker sort
+   * Uses nullsFirst: false to push NULL values to the end (NULLS LAST)
    */
   private applyOrderBy<T>(
     query: any,
     orderBy: OrderBy
   ): any {
-    // Primary orderBy
-    query = query.order(orderBy.field, { ascending: orderBy.direction === 'asc' });
+    // Primary orderBy (NULLS LAST to keep empty values at the end)
+    query = query.order(orderBy.field, { ascending: orderBy.direction === 'asc', nullsFirst: false });
 
     // TieBreaker orderBy (if provided)
     if (orderBy.tieBreaker) {
-      query = query.order(orderBy.tieBreaker.field, { ascending: orderBy.tieBreaker.direction === 'asc' });
+      query = query.order(orderBy.tieBreaker.field, { ascending: orderBy.tieBreaker.direction === 'asc', nullsFirst: false });
     }
 
     return query;
@@ -3810,7 +3811,7 @@ class SpaceStore {
       }
 
       if (orderBy) {
-        query = query.order(orderBy, { ascending: orderDirection === 'asc' });
+        query = query.order(orderBy, { ascending: orderDirection === 'asc', nullsFirst: false });
       }
 
       const { data, error } = await query;
@@ -4336,10 +4337,10 @@ class SpaceStore {
       }
     }
 
-    // Apply order
-    query = query.order(orderBy.field, { ascending: orderBy.direction === 'asc' });
+    // Apply order (NULLS LAST)
+    query = query.order(orderBy.field, { ascending: orderBy.direction === 'asc', nullsFirst: false });
     if (orderBy.tieBreaker) {
-      query = query.order(orderBy.tieBreaker.field, { ascending: orderBy.tieBreaker.direction === 'asc' });
+      query = query.order(orderBy.tieBreaker.field, { ascending: orderBy.tieBreaker.direction === 'asc', nullsFirst: false });
     }
 
     // Apply limit
@@ -4567,10 +4568,10 @@ class SpaceStore {
         }
       }
 
-      // Apply order
-      query = query.order(orderBy.field, { ascending: orderBy.direction === 'asc' });
+      // Apply order (NULLS LAST)
+      query = query.order(orderBy.field, { ascending: orderBy.direction === 'asc', nullsFirst: false });
       if (orderBy.tieBreaker) {
-        query = query.order(orderBy.tieBreaker.field, { ascending: orderBy.tieBreaker.direction === 'asc' });
+        query = query.order(orderBy.tieBreaker.field, { ascending: orderBy.tieBreaker.direction === 'asc', nullsFirst: false });
       }
 
       // Apply limit

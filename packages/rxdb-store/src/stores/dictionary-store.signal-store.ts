@@ -149,8 +149,8 @@ class DictionaryStore {
         .from(tableName)
         .select(`${idField}, ${nameField}`)
         .ilike(nameField, `${search}%`)  // ✅ Starts with
-        .order(nameField, { ascending: true })
-        .order(idField, { ascending: true })  // ✅ Tie-breaker for stable sort
+        .order(nameField, { ascending: true, nullsFirst: false })
+        .order(idField, { ascending: true, nullsFirst: false })  // ✅ Tie-breaker for stable sort
         .limit(Math.ceil(limit * 0.7));  // 70% for starts_with
 
       const { data: startsWithData, error: startsWithError } = await startsWithQuery;
@@ -172,8 +172,8 @@ class DictionaryStore {
           .select(`${idField}, ${nameField}`)
           .ilike(nameField, `%${search}%`)  // ✅ Contains
           .not(nameField, 'ilike', `${search}%`)  // ❌ Exclude starts_with (already fetched)
-          .order(nameField, { ascending: true })
-          .order(idField, { ascending: true })  // ✅ Tie-breaker for stable sort
+          .order(nameField, { ascending: true, nullsFirst: false })
+          .order(idField, { ascending: true, nullsFirst: false })  // ✅ Tie-breaker for stable sort
           .limit(remainingLimit);
 
         const { data: containsData, error: containsError } = await containsQuery;
@@ -207,10 +207,10 @@ class DictionaryStore {
       query = query.gt(nameField, cursor);
     }
 
-    // ✅ Always sort A-Z by name for dictionaries, with id tie-breaker
+    // ✅ Always sort A-Z by name for dictionaries, with id tie-breaker (NULLS LAST)
     query = query
-      .order(nameField, { ascending: true })
-      .order(idField, { ascending: true })  // ✅ Tie-breaker for stable sort
+      .order(nameField, { ascending: true, nullsFirst: false })
+      .order(idField, { ascending: true, nullsFirst: false })  // ✅ Tie-breaker for stable sort
       .limit(limit);
 
     const { data, error } = await query;
