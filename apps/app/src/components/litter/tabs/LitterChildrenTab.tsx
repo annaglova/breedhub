@@ -1,6 +1,6 @@
 import { PetCard, type Pet } from "@/components/shared/PetCard";
 import { useSelectedEntity } from "@/contexts/SpaceContext";
-import { spaceStore, dictionaryStore } from "@breedhub/rxdb-store";
+import { spaceStore, dictionaryStore, supabase } from "@breedhub/rxdb-store";
 import { useSignals } from "@preact/signals-react/runtime";
 import { Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -93,17 +93,24 @@ export function LitterChildrenTab({
         }
 
         // Load pets where litter_id = entity.id
-        const result = await spaceStore.applyFilters(
-          "pet",
-          { litter_id: selectedEntity.id },
-          { limit: 50 }
-        );
+        // Use direct Supabase query (pet table is partitioned, but litter_id query works)
+        const { data: rawPets, error } = await supabase
+          .from("pet")
+          .select("*")
+          .eq("litter_id", selectedEntity.id)
+          .or("deleted.is.null,deleted.eq.false")
+          .order("name", { ascending: true })
+          .limit(50);
 
-        const rawPets = result.records || [];
+        if (error) {
+          console.error("[LitterChildrenTab] Supabase error:", error);
+          setChildren([]);
+          return;
+        }
 
         // Enrich each pet with lookups
         const enrichedPets = await Promise.all(
-          rawPets.map((pet: any) => enrichPetForCard(pet))
+          (rawPets || []).map((pet: any) => enrichPetForCard(pet))
         );
 
         setChildren(enrichedPets);
