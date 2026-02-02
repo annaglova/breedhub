@@ -92,25 +92,82 @@ export function LitterChildrenTab({
           await dictionaryStore.initialize();
         }
 
-        // Load pets where litter_id = entity.id
-        // Use direct Supabase query (pet table is partitioned, but litter_id query works)
-        const { data: rawPets, error } = await supabase
-          .from("pet")
-          .select("*")
-          .eq("litter_id", selectedEntity.id)
-          .or("deleted.is.null,deleted.eq.false")
-          .order("name", { ascending: true })
-          .limit(50);
+        // ID-First: Load pets where litter_id = entity.id
+        // 1. Check RxDB first
+        let rawPets: any[] = [];
+        const db = spaceStore.db;
+        const collection = db?.collections?.["pet"];
 
-        if (error) {
-          console.error("[LitterChildrenTab] Supabase error:", error);
-          setChildren([]);
-          return;
+        if (collection) {
+          const cachedDocs = await collection
+            .find({ selector: { litter_id: selectedEntity.id, _deleted: false } })
+            .exec();
+          rawPets = cachedDocs.map((doc: any) => doc.toJSON());
+          console.log(`[LitterChildrenTab] RxDB cache: ${rawPets.length} children`);
+        }
+
+        // 2. If not in RxDB, fetch from Supabase and cache
+        if (rawPets.length === 0) {
+          // Get breed_id(s) from parents for partition pruning
+          const fatherBreedId = selectedEntity.father_breed_id;
+          const motherBreedId = selectedEntity.mother_breed_id;
+
+          // Collect unique parent breed IDs
+          const parentBreedIds = [...new Set([fatherBreedId, motherBreedId].filter(Boolean))];
+
+          if (parentBreedIds.length === 0) {
+            console.warn("[LitterChildrenTab] No breed_id available from parents");
+            setChildren([]);
+            return;
+          }
+
+          // Get related breeds (children can be different breed than parents, e.g., mini dachshund → rabbit dachshund)
+          const { data: relatedBreeds } = await supabase
+            .from("related_breed")
+            .select("connected_breed_id")
+            .in("breed_id", parentBreedIds);
+
+          const relatedBreedIds = (relatedBreeds || [])
+            .map((r) => r.connected_breed_id)
+            .filter(Boolean);
+
+          // Combine parent breeds + related breeds
+          const allBreedIds = [...new Set([...parentBreedIds, ...relatedBreedIds])];
+
+          console.log("[LitterChildrenTab] Fetching from Supabase, litter_id:", selectedEntity.id, "breed_ids:", allBreedIds);
+
+          const { data, error } = await supabase
+            .from("pet")
+            .select("*")
+            .eq("litter_id", selectedEntity.id)
+            .in("breed_id", allBreedIds)
+            .or("deleted.is.null,deleted.eq.false")
+            .order("name", { ascending: true })
+            .limit(50);
+
+          if (error) {
+            console.error("[LitterChildrenTab] Supabase error:", error.message, error.code, error.details, error.hint);
+            setChildren([]);
+            return;
+          }
+
+          rawPets = data || [];
+
+          // Cache in RxDB for future requests
+          if (rawPets.length > 0 && collection) {
+            const mapped = rawPets.map((pet) => ({
+              ...pet,
+              _deleted: false,
+              updated_at: pet.updated_at || new Date().toISOString(),
+            }));
+            await collection.bulkUpsert(mapped);
+            console.log(`[LitterChildrenTab] Cached ${rawPets.length} children in RxDB`);
+          }
         }
 
         // Enrich each pet with lookups
         const enrichedPets = await Promise.all(
-          (rawPets || []).map((pet: any) => enrichPetForCard(pet))
+          rawPets.map((pet: any) => enrichPetForCard(pet))
         );
 
         setChildren(enrichedPets);
