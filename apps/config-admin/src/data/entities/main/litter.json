@@ -517,6 +517,52 @@
       "referencedFieldName": "name"
     },
     {
+      "id": "field_services",
+      "name": "services",
+      "fieldType": "json",
+      "component": "TextareaInput",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 210,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "displayName": "Services",
+      "placeholder": "Enter services",
+      "defaultValue": "{}"
+    },
+    {
+      "id": "field_tier_marks",
+      "name": "tier_marks",
+      "fieldType": "json",
+      "component": "TextareaInput",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 220,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "displayName": "Tier Marks",
+      "placeholder": "Enter tier marks",
+      "defaultValue": "{}"
+    },
+    {
       "id": "field_id",
       "name": "id",
       "fieldType": "uuid",
@@ -525,7 +571,7 @@
       "isSystem": true,
       "isPrimaryKey": true,
       "isUnique": true,
-      "sortOrder": 210,
+      "sortOrder": 230,
       "permissions": {
         "read": [
           "*"
@@ -545,7 +591,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 220,
+      "sortOrder": 240,
       "permissions": {
         "read": [
           "*"
@@ -565,7 +611,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 230,
+      "sortOrder": 250,
       "permissions": {
         "read": [
           "*"
@@ -585,7 +631,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 240,
+      "sortOrder": 260,
       "permissions": {
         "read": [
           "*"
@@ -605,7 +651,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 250,
+      "sortOrder": 270,
       "permissions": {
         "read": [
           "*"
@@ -625,7 +671,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 260,
+      "sortOrder": 280,
       "permissions": {
         "read": [
           "*"
@@ -639,9 +685,9 @@
   ],
   "metadata": {
     "tableName": "litter",
-    "totalFields": 26,
+    "totalFields": 28,
     "systemFields": 6,
-    "customFields": 20,
-    "generatedAt": "2026-01-31T14:24:12.339Z"
+    "customFields": 22,
+    "generatedAt": "2026-02-02T13:48:34.858Z"
   }
 }

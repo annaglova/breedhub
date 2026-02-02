@@ -18473,7 +18473,7 @@
           "isSystem": true,
           "isPrimaryKey": true,
           "isUnique": true,
-          "sortOrder": 210,
+          "sortOrder": 230,
           "permissions": {
             "read": [
               "*"
@@ -24945,7 +24945,7 @@
           "isSystem": true,
           "isPrimaryKey": false,
           "isUnique": false,
-          "sortOrder": 220,
+          "sortOrder": 240,
           "permissions": {
             "read": [
               "*"
@@ -31369,7 +31369,7 @@
           "isSystem": true,
           "isPrimaryKey": false,
           "isUnique": false,
-          "sortOrder": 230,
+          "sortOrder": 250,
           "permissions": {
             "read": [
               "*"
@@ -37747,7 +37747,7 @@
           "isSystem": true,
           "isPrimaryKey": false,
           "isUnique": false,
-          "sortOrder": 240,
+          "sortOrder": 260,
           "permissions": {
             "read": [
               "*"
@@ -44171,7 +44171,7 @@
           "isSystem": true,
           "isPrimaryKey": false,
           "isUnique": false,
-          "sortOrder": 250,
+          "sortOrder": 270,
           "permissions": {
             "read": [
               "*"
@@ -50013,16 +50013,20 @@
   {
     "key": "deleted",
     "name": "deleted",
-    "occurrences": 11,
+    "occurrences": 15,
     "entities": [
       "account",
       "breed",
       "contact",
+      "event",
       "litter",
       "note",
       "pet",
       "project",
+      "account_industry",
+      "pet_type",
       "title",
+      "contact_in_breed",
       "title_in_pet",
       "top_patron_in_breed",
       "top_pet_in_breed"
@@ -50101,6 +50105,30 @@
         }
       },
       {
+        "entity": "event",
+        "category": "main",
+        "config": {
+          "id": "field_deleted",
+          "name": "deleted",
+          "fieldType": "boolean",
+          "component": "CheckboxInput",
+          "required": true,
+          "isSystem": true,
+          "isPrimaryKey": false,
+          "isUnique": false,
+          "sortOrder": 320,
+          "permissions": {
+            "read": [
+              "*"
+            ],
+            "write": [
+              "system"
+            ]
+          },
+          "displayName": "Deleted"
+        }
+      },
+      {
         "entity": "litter",
         "category": "main",
         "config": {
@@ -50112,7 +50140,7 @@
           "isSystem": true,
           "isPrimaryKey": false,
           "isUnique": false,
-          "sortOrder": 260,
+          "sortOrder": 280,
           "permissions": {
             "read": [
               "*"
@@ -50197,6 +50225,54 @@
         }
       },
       {
+        "entity": "account_industry",
+        "category": "lookup",
+        "config": {
+          "id": "field_deleted",
+          "name": "deleted",
+          "fieldType": "boolean",
+          "component": "CheckboxInput",
+          "required": true,
+          "isSystem": true,
+          "isPrimaryKey": false,
+          "isUnique": false,
+          "sortOrder": 90,
+          "permissions": {
+            "read": [
+              "*"
+            ],
+            "write": [
+              "system"
+            ]
+          },
+          "displayName": "Deleted"
+        }
+      },
+      {
+        "entity": "pet_type",
+        "category": "lookup",
+        "config": {
+          "id": "field_deleted",
+          "name": "deleted",
+          "fieldType": "boolean",
+          "component": "CheckboxInput",
+          "required": true,
+          "isSystem": true,
+          "isPrimaryKey": false,
+          "isUnique": false,
+          "sortOrder": 120,
+          "permissions": {
+            "read": [
+              "*"
+            ],
+            "write": [
+              "system"
+            ]
+          },
+          "displayName": "Deleted"
+        }
+      },
+      {
         "entity": "title",
         "category": "lookup",
         "config": {
@@ -50205,6 +50281,30 @@
           "fieldType": "boolean",
           "component": "CheckboxInput",
           "required": false,
+          "isSystem": true,
+          "isPrimaryKey": false,
+          "isUnique": false,
+          "sortOrder": 120,
+          "permissions": {
+            "read": [
+              "*"
+            ],
+            "write": [
+              "system"
+            ]
+          },
+          "displayName": "Deleted"
+        }
+      },
+      {
+        "entity": "contact_in_breed",
+        "category": "child",
+        "config": {
+          "id": "field_deleted",
+          "name": "deleted",
+          "fieldType": "boolean",
+          "component": "CheckboxInput",
+          "required": true,
           "isSystem": true,
           "isPrimaryKey": false,
           "isUnique": false,
@@ -50296,7 +50396,6 @@
     "commonProps": {
       "fieldType": "boolean",
       "component": "CheckboxInput",
-      "required": false,
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -69496,6 +69595,172 @@
     }
   },
   {
+    "key": "services",
+    "name": "services",
+    "occurrences": 2,
+    "entities": [
+      "litter",
+      "pet"
+    ],
+    "variations": [
+      {
+        "entity": "litter",
+        "category": "main",
+        "config": {
+          "id": "field_services",
+          "name": "services",
+          "fieldType": "json",
+          "component": "TextareaInput",
+          "required": false,
+          "isSystem": false,
+          "isPrimaryKey": false,
+          "isUnique": false,
+          "sortOrder": 210,
+          "permissions": {
+            "read": [
+              "*"
+            ],
+            "write": [
+              "admin",
+              "editor"
+            ]
+          },
+          "displayName": "Services",
+          "placeholder": "Enter services",
+          "defaultValue": "{}"
+        }
+      },
+      {
+        "entity": "pet",
+        "category": "main",
+        "config": {
+          "id": "field_services",
+          "name": "services",
+          "fieldType": "json",
+          "component": "TextareaInput",
+          "required": false,
+          "isSystem": false,
+          "isPrimaryKey": false,
+          "isUnique": false,
+          "sortOrder": 460,
+          "permissions": {
+            "read": [
+              "*"
+            ],
+            "write": [
+              "admin",
+              "editor"
+            ]
+          },
+          "displayName": "Services",
+          "placeholder": "Enter services",
+          "defaultValue": "{}"
+        }
+      }
+    ],
+    "commonProps": {
+      "fieldType": "json",
+      "component": "TextareaInput",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "displayName": "Services",
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      }
+    }
+  },
+  {
+    "key": "tier_marks",
+    "name": "tier_marks",
+    "occurrences": 2,
+    "entities": [
+      "litter",
+      "pet"
+    ],
+    "variations": [
+      {
+        "entity": "litter",
+        "category": "main",
+        "config": {
+          "id": "field_tier_marks",
+          "name": "tier_marks",
+          "fieldType": "json",
+          "component": "TextareaInput",
+          "required": false,
+          "isSystem": false,
+          "isPrimaryKey": false,
+          "isUnique": false,
+          "sortOrder": 220,
+          "permissions": {
+            "read": [
+              "*"
+            ],
+            "write": [
+              "admin",
+              "editor"
+            ]
+          },
+          "displayName": "Tier Marks",
+          "placeholder": "Enter tier marks",
+          "defaultValue": "{}"
+        }
+      },
+      {
+        "entity": "pet",
+        "category": "main",
+        "config": {
+          "id": "field_tier_marks",
+          "name": "tier_marks",
+          "fieldType": "json",
+          "component": "TextareaInput",
+          "required": false,
+          "isSystem": false,
+          "isPrimaryKey": false,
+          "isUnique": false,
+          "sortOrder": 470,
+          "permissions": {
+            "read": [
+              "*"
+            ],
+            "write": [
+              "admin",
+              "editor"
+            ]
+          },
+          "displayName": "Tier Marks",
+          "placeholder": "Enter tier marks",
+          "defaultValue": "{}"
+        }
+      }
+    ],
+    "commonProps": {
+      "fieldType": "json",
+      "component": "TextareaInput",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "displayName": "Tier Marks",
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      }
+    }
+  },
+  {
     "key": "record_id",
     "name": "record_id",
     "occurrences": 5,
@@ -72420,82 +72685,6 @@
         "scale": 0
       }
     }
-  },
-  {
-    "key": "services",
-    "name": "services",
-    "occurrences": 1,
-    "entities": [
-      "pet"
-    ],
-    "variations": [
-      {
-        "entity": "pet",
-        "category": "main",
-        "config": {
-          "id": "field_services",
-          "name": "services",
-          "fieldType": "json",
-          "component": "TextareaInput",
-          "required": false,
-          "isSystem": false,
-          "isPrimaryKey": false,
-          "isUnique": false,
-          "sortOrder": 460,
-          "permissions": {
-            "read": [
-              "*"
-            ],
-            "write": [
-              "admin",
-              "editor"
-            ]
-          },
-          "displayName": "Services",
-          "placeholder": "Enter services",
-          "defaultValue": "{}"
-        }
-      }
-    ],
-    "commonProps": null
-  },
-  {
-    "key": "tier_marks",
-    "name": "tier_marks",
-    "occurrences": 1,
-    "entities": [
-      "pet"
-    ],
-    "variations": [
-      {
-        "entity": "pet",
-        "category": "main",
-        "config": {
-          "id": "field_tier_marks",
-          "name": "tier_marks",
-          "fieldType": "json",
-          "component": "TextareaInput",
-          "required": false,
-          "isSystem": false,
-          "isPrimaryKey": false,
-          "isUnique": false,
-          "sortOrder": 470,
-          "permissions": {
-            "read": [
-              "*"
-            ],
-            "write": [
-              "admin",
-              "editor"
-            ]
-          },
-          "displayName": "Tier Marks",
-          "placeholder": "Enter tier marks",
-          "defaultValue": "{}"
-        }
-      }
-    ],
-    "commonProps": null
   },
   {
     "key": "pedigree",

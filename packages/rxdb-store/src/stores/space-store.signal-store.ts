@@ -99,6 +99,26 @@ export interface OrderBy {
 }
 
 /**
+ * VIEW source mapping for entities that should fetch from a VIEW instead of base table.
+ * VIEWs are used to enrich entities with JOINed data (e.g., parent names).
+ * Key: entityType, Value: { viewName, extraFields }
+ */
+const ENTITY_VIEW_SOURCES: Record<string, {
+  viewName: string;
+  /** Extra fields provided by the VIEW (added to RxDB schema) */
+  extraFields: Record<string, { type: string; maxLength?: number }>;
+}> = {
+  litter: {
+    viewName: 'litter_with_parents',
+    extraFields: {
+      father_name: { type: 'string', maxLength: 500 },
+      mother_name: { type: 'string', maxLength: 500 },
+      kennel_name: { type: 'string', maxLength: 500 },
+    },
+  },
+};
+
+/**
  * Pedigree pet for UI (tree structure)
  */
 export interface PedigreePet {
@@ -1090,7 +1110,9 @@ class SpaceStore {
                 ...oldDoc,
                 cachedAt: Date.now()
               };
-            }
+            },
+            // Version 1→2: Add VIEW extra fields (pass through, fields added on next fetch)
+            2: (oldDoc: any) => oldDoc
           }
         }
       });
@@ -1331,9 +1353,20 @@ class SpaceStore {
       };
     }
 
+    // Add VIEW-specific extra fields (e.g., father_name, mother_name for litter)
+    const viewConfig = ENTITY_VIEW_SOURCES[entityType];
+    if (viewConfig?.extraFields) {
+      for (const [fieldName, fieldSchema] of Object.entries(viewConfig.extraFields)) {
+        if (!properties[fieldName]) {
+          properties[fieldName] = { ...fieldSchema };
+          console.log(`[SpaceStore] Added VIEW extra field: ${fieldName}`);
+        }
+      }
+    }
+
     // Create schema
     const schema: RxJsonSchema<BusinessEntity> = {
-      version: 1, // Bumped from 0 to 1 for cachedAt field addition
+      version: 2, // Bumped from 1 to 2 for VIEW extra fields (father_name, mother_name, kennel_name for litter)
       primaryKey: 'id',
       type: 'object',
       properties,
@@ -2574,6 +2607,15 @@ class SpaceStore {
   }
 
   /**
+   * Get Supabase source table/VIEW name for an entity type.
+   * If entity has a VIEW configured, returns VIEW name; otherwise returns entity type.
+   */
+  private getSupabaseSource(entityType: string): string {
+    const viewConfig = ENTITY_VIEW_SOURCES[entityType];
+    return viewConfig?.viewName || entityType;
+  }
+
+  /**
    * 🆔 ID-First Phase 1: Fetch IDs + ordering field from Supabase
    * Lightweight query (~1KB for 30 records instead of ~30KB)
    *
@@ -2620,8 +2662,9 @@ class SpaceStore {
 
       // Phase 1: Starts with (high priority, 70% of limit)
       const startsWithLimit = Math.ceil(limit * 0.7);
+      const sourceName = this.getSupabaseSource(entityType);
       let startsWithQuery = supabase
-        .from(entityType)
+        .from(sourceName)
         .select(`id, ${orderBy.field}`)
         .or('deleted.is.null,deleted.eq.false')
         .ilike(searchField, `${searchValue}%`); // Starts with
@@ -2651,7 +2694,7 @@ class SpaceStore {
       const remainingLimit = limit - startsWithResults.length;
       if (remainingLimit > 0) {
         let containsQuery = supabase
-          .from(entityType)
+          .from(sourceName)
           .select(`id, ${orderBy.field}`)
           .or('deleted.is.null,deleted.eq.false')
           .ilike(searchField, `%${searchValue}%`)  // Contains
@@ -2694,8 +2737,10 @@ class SpaceStore {
       ? `id, ${orderBy.field}, ${tieBreakerField}`
       : `id, ${orderBy.field}`;
 
+    // Use VIEW source if configured (e.g., litter_with_parents for litter)
+    const sourceName = this.getSupabaseSource(entityType);
     let query = supabase
-      .from(entityType)
+      .from(sourceName)
       .select(selectFields);
 
     // Filter out deleted records
@@ -2779,10 +2824,12 @@ class SpaceStore {
 
     const { supabase } = await import('../supabase/client');
 
-    console.log(`[SpaceStore] 🌐 Fetching ${ids.length} full records by IDs...`);
+    // Use VIEW source if configured (e.g., litter_with_parents for litter)
+    const sourceName = this.getSupabaseSource(entityType);
+    console.log(`[SpaceStore] 🌐 Fetching ${ids.length} full records by IDs from ${sourceName}...`);
 
     const { data, error } = await supabase
-      .from(entityType)
+      .from(sourceName)
       .select('*')
       .in('id', ids);
 

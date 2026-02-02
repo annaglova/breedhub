@@ -2,8 +2,7 @@ import { NoteFlag } from "@/components/shared/NoteFlag";
 import { PetServices } from "@/components/shared/PetServices";
 import { TierMark } from "@/components/shared/TierMark";
 import { EntityListCardWrapper } from "@/components/space/EntityListCardWrapper";
-// TODO: Uncomment when connecting real data
-// import { useDictionaryValue } from "@/hooks/useDictionaryValue";
+import { useDictionaryValue } from "@/hooks/useDictionaryValue";
 
 // Tier marks format from DB
 interface TierMarkEntry {
@@ -16,17 +15,20 @@ interface TierMarksData {
   breeder?: TierMarkEntry;
 }
 
-// Interface for litter data from RxDB
+// Interface for litter data from RxDB (enriched via litter_with_parents VIEW)
 interface LitterEntity {
   id: string;
   name?: string;
   notes?: string;
   status_id?: string;
   kennel_id?: string;
-  kennel_name?: string; // Resolved kennel name (if joined)
+  // Enriched fields from VIEW
+  father_name?: string;
+  mother_name?: string;
+  kennel_name?: string;
   date_of_birth?: string;
   tier_marks?: TierMarksData;
-  services?: Record<string, string>;
+  services?: string[] | Record<string, string>; // New: ["id", ...], Legacy: {"1": "id", ...}
   [key: string]: any;
 }
 
@@ -58,36 +60,28 @@ export function LitterListCard({
   selected = false,
   onClick,
 }: LitterListCardProps) {
-  // TODO: Replace with real dictionary lookup when ready
-  // const statusName = useDictionaryValue("litter_status", entity.status_id);
+  // Resolve status_id to name via dictionary lookup
+  const statusName = useDictionaryValue("litter_status", entity.status_id);
 
-  // Mock data for UI development - will be replaced with real data
+  // Extract data from entity - use real DB values from VIEW
   const litter = {
     Id: entity.id,
     Name: entity.name || "Unknown",
-    // Father and Mother - mock data
-    FatherName: "Champion Rocky vom Haus",
-    MotherName: "Luna of Golden Dreams",
-    // Status - mock for visual testing (always show)
-    Status: "Born",
-    // Kennel - mock for visual testing (always show)
-    KennelName: "Mock Kennel",
+    // Father and Mother - from VIEW (litter_with_parents)
+    FatherName: entity.father_name || "",
+    MotherName: entity.mother_name || "",
+    // Status - resolved from dictionary
+    Status: statusName,
+    // Kennel - from VIEW
+    KennelName: entity.kennel_name,
     // Dates
     DateOfBirth: entity.date_of_birth,
-    // Notes - mock for visual testing (always show)
-    HasNotes: true,
-    // Tier marks - mock for visual testing (always show)
-    // Requires product_name to display!
-    TierMarks: {
-      owner: { contact_name: "Mock Owner", product_name: "Professional" },
-      breeder: { contact_name: "Mock Breeder", product_name: "Supreme Patron" },
-    },
-    // Services - mock for visual testing (always show)
-    // Must use real service IDs from SERVICE_ICONS in PetServices.tsx
-    Services: {
-      "1": "3370ee61-86de-49ae-a8ec-5cef5f213ecd", // Children for sale
-      "2": "ea48e37d-8f65-4122-bc00-d012848d78ae", // Mating
-    },
+    // Notes - uses real data from entity
+    HasNotes: !!entity.notes,
+    // Tier marks - uses real data from entity
+    TierMarks: entity.tier_marks,
+    // Services - uses real data from entity
+    Services: entity.services,
   };
 
   const formattedDate = formatDate(litter.DateOfBirth);
@@ -108,7 +102,7 @@ export function LitterListCard({
               className="text-sm uppercase truncate"
               title={litter.FatherName}
             >
-              {litter.FatherName}
+              {litter.FatherName || "—"}
             </span>
             <NoteFlag isVisible={litter.HasNotes} />
           </div>
@@ -120,7 +114,7 @@ export function LitterListCard({
               className="text-sm uppercase truncate"
               title={litter.MotherName}
             >
-              {litter.MotherName}
+              {litter.MotherName || "—"}
             </span>
           </div>
 
