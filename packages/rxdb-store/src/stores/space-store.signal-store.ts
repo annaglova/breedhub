@@ -113,7 +113,8 @@ const ENTITY_VIEW_SOURCES: Record<string, {
     extraFields: {
       father_name: { type: 'string', maxLength: 500 },
       mother_name: { type: 'string', maxLength: 500 },
-      // kennel, breed: use enrichment via useCollectionValue instead
+      kennel_name: { type: 'string', maxLength: 500 }, // for LitterListCard
+      // breed: use enrichment via useCollectionValue in LitterName
     },
   },
 };

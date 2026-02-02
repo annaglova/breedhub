@@ -73,8 +73,8 @@ export function LitterName({
   const breedName = entity?.breed?.name || breed?.name;
   const breedSlug = entity?.breed?.slug || breed?.slug;
 
-  // Kennel from enrichment with fallback
-  const kennelName = entity?.kennel?.name || kennel?.name;
+  // Kennel from enrichment with fallback (including VIEW field)
+  const kennelName = entity?.kennel?.name || entity?.kennel_name || kennel?.name;
 
   // Notes flag
   const hasNotesFlag = hasNotes || !!entity?.notes;
