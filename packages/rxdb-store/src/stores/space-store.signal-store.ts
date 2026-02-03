@@ -178,7 +178,7 @@ class SpaceStore {
   private appStore = appStore;
   
   // Database reference
-  private db: any = null;
+  public db: any = null;
   
   // Dynamic entity stores - one EntityStore per entity type
   private entityStores = new Map<string, EntityStore<BusinessEntity>>();
@@ -2850,7 +2850,7 @@ class SpaceStore {
    * Map Supabase record to RxDB format
    * Extracted from fetchFilteredFromSupabase for reusability
    */
-  private mapToRxDBFormat(supabaseDoc: any, entityType: string): any {
+  public mapToRxDBFormat(supabaseDoc: any, entityType: string): any {
     const collection = this.db?.collections[entityType];
     if (!collection) {
       console.warn(`[SpaceStore] Collection ${entityType} not found for mapping`);

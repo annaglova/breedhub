@@ -117,11 +117,10 @@ export function TabOutlet({
       }
 
       // For preferDefault tabs, check if they have data based on component
-      // Currently supported: PetServicesTab (checks entity.services JSONB)
-      // Future: LitterServicesTab, KennelServicesTab
+      // Supported: PetServicesTab, LitterServicesTab (check entity.services JSONB)
       let hasData = true;
 
-      if (tabConfig.component === "PetServicesTab") {
+      if (tabConfig.component === "PetServicesTab" || tabConfig.component === "LitterServicesTab") {
         const servicesJsonb = entity?.services as Record<string, string> | undefined;
         hasData = !!(servicesJsonb && Object.keys(servicesJsonb).length > 0);
       }

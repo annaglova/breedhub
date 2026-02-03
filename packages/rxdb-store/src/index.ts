@@ -19,6 +19,8 @@ export { useTabData } from './hooks/useTabData';
 export { useInfiniteTabData } from './hooks/useInfiniteTabData';
 export { usePedigree } from './hooks/usePedigree';
 export type { UsePedigreeOptions, UsePedigreeResult } from './hooks/usePedigree';
+export { useLitterPedigree } from './hooks/useLitterPedigree';
+export type { UseLitterPedigreeOptions, UseLitterPedigreeResult } from './hooks/useLitterPedigree';
 
 // Database types
 export type { DatabaseCollections, AppDatabase } from './services/database.service';

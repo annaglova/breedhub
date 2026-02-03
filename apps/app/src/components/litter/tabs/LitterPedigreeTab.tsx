@@ -1,14 +1,14 @@
 import { HorizontalScrollbar } from "@/components/shared/HorizontalScrollbar";
 import {
   GenerationCount,
-  MOCK_PEDIGREE_PET,
   PedigreeTree,
   type PedigreePet,
 } from "@/components/shared/pedigree";
 import { useSelectedEntity } from "@/contexts/SpaceContext";
-import { spaceStore } from "@breedhub/rxdb-store";
+import { spaceStore, useLitterPedigree } from "@breedhub/rxdb-store";
 import { useSignals } from "@preact/signals-react/runtime";
-import { useCallback, useRef, useState } from "react";
+import { Loader2 } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 /** Default generations to show in scroll mode */
 const DEFAULT_GENERATIONS: GenerationCount = 4;
@@ -88,22 +88,56 @@ export function LitterPedigreeTab({
       ? pedigreeGenerations
       : DEFAULT_GENERATIONS;
 
+  // Load pedigree from parent pets
+  const { father, mother, ancestorCount, isLoading, error } = useLitterPedigree({
+    fatherId: selectedEntity?.father_id,
+    fatherBreedId: selectedEntity?.father_breed_id,
+    motherId: selectedEntity?.mother_id,
+    motherBreedId: selectedEntity?.mother_breed_id,
+    enabled: !!selectedEntity?.id,
+  });
+
+  // Report loaded count to parent
+  useEffect(() => {
+    if (!isLoading && onLoadedCount) {
+      onLoadedCount(ancestorCount);
+    }
+  }, [isLoading, ancestorCount, onLoadedCount]);
+
   // Build pedigree pet from litter's father and mother
-  // Father and mother from litter become the root ancestors
-  // TODO: Load real pedigree data from entity
-  // For now using mock data (same as PetPedigreeTab)
   const pedigreePet: PedigreePet | null = selectedEntity
     ? {
         id: selectedEntity.id,
         name: selectedEntity.name || "Litter",
-        // Father and mother from litter entity (or mock for now)
-        father: selectedEntity.father || selectedEntity.Father || MOCK_PEDIGREE_PET.father,
-        mother: selectedEntity.mother || selectedEntity.Mother || MOCK_PEDIGREE_PET.mother,
+        father,
+        mother,
       }
     : null;
 
   // Check if we have parent data
-  const hasParents = pedigreePet?.father || pedigreePet?.mother;
+  const hasParents = father || mother;
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="py-4 px-6 flex items-center justify-center min-h-[200px]">
+        <Loader2 className="h-6 w-6 animate-spin text-primary" />
+        <span className="ml-2 text-secondary">Loading pedigree...</span>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="py-4 px-6">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <p className="text-red-700 font-semibold">Failed to load pedigree</p>
+          <p className="text-red-600 text-sm mt-1">{error.message}</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div>
