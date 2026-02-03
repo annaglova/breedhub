@@ -1,0 +1,70 @@
+{
+  "id": "entity_pet_self_rating_update_queue",
+  "type": "entity",
+  "name": "pet_self_rating_update_queue",
+  "displayName": "Pet Self Rating Update Queue",
+  "category": "child",
+  "fields": [
+    {
+      "id": "field_pet_id",
+      "name": "pet_id",
+      "fieldType": "uuid",
+      "component": "LookupInput",
+      "required": true,
+      "isSystem": false,
+      "isPrimaryKey": true,
+      "isUnique": true,
+      "sortOrder": 10,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "isForeignKey": true,
+      "referencedTable": "pet",
+      "referencedFieldID": "id",
+      "dataSource": "collection",
+      "displayName": "Pet",
+      "placeholder": "Enter pet",
+      "referencedFieldName": "name"
+    },
+    {
+      "id": "field_breed_id",
+      "name": "breed_id",
+      "fieldType": "uuid",
+      "component": "LookupInput",
+      "required": true,
+      "isSystem": false,
+      "isPrimaryKey": true,
+      "isUnique": true,
+      "sortOrder": 20,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "isForeignKey": true,
+      "referencedTable": "breed",
+      "referencedFieldID": "id",
+      "dataSource": "collection",
+      "displayName": "Breed",
+      "placeholder": "Enter breed",
+      "referencedFieldName": "name"
+    }
+  ],
+  "metadata": {
+    "tableName": "pet_self_rating_update_queue",
+    "totalFields": 2,
+    "systemFields": 0,
+    "customFields": 2,
+    "generatedAt": "2026-02-03T17:47:35.867Z"
+  }
+}

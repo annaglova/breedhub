@@ -78,8 +78,8 @@
       "referencedFieldName": "name"
     },
     {
-      "id": "field_project_id",
-      "name": "project_id",
+      "id": "field_program_id",
+      "name": "program_id",
       "fieldType": "uuid",
       "component": "LookupInput",
       "required": false,
@@ -97,11 +97,11 @@
         ]
       },
       "isForeignKey": true,
-      "referencedTable": "project",
+      "referencedTable": "program",
       "referencedFieldID": "id",
       "dataSource": "collection",
-      "displayName": "Project",
-      "placeholder": "Enter project",
+      "displayName": "Program",
+      "placeholder": "Enter program",
       "referencedFieldName": "name"
     },
     {
@@ -366,7 +366,7 @@
       },
       "isForeignKey": true,
       "referencedTable": "pet_gordon_setter",
-      "referencedFieldID": "id",
+      "referencedFieldID": "breed_id",
       "displayName": "Pet Breed",
       "placeholder": "Enter pet breed",
       "referencedFieldName": "name"
@@ -497,6 +497,6 @@
     "totalFields": 20,
     "systemFields": 6,
     "customFields": 14,
-    "generatedAt": "2026-02-02T13:48:37.696Z"
+    "generatedAt": "2026-02-03T17:47:13.015Z"
   }
 }

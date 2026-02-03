@@ -1,111 +1,111 @@
 {
   "summary": {
-    "totalEntities": 258,
-    "uniqueFields": 573,
+    "totalEntities": 266,
+    "uniqueFields": 576,
     "baseFields": 37,
-    "properties": 12,
-    "entityFieldsGenerated": 2883
+    "properties": 13,
+    "entityFieldsGenerated": 2971
   },
   "topFields": [
     {
       "name": "id",
-      "occurrences": 258,
-      "percentage": "100.0%"
+      "occurrences": 265,
+      "percentage": "99.6%"
     },
     {
       "name": "created_at",
-      "occurrences": 256,
-      "percentage": "99.2%"
+      "occurrences": 263,
+      "percentage": "98.9%"
     },
     {
       "name": "updated_at",
-      "occurrences": 256,
-      "percentage": "99.2%"
+      "occurrences": 263,
+      "percentage": "98.9%"
     },
     {
       "name": "created_by",
-      "occurrences": 254,
-      "percentage": "98.4%"
+      "occurrences": 261,
+      "percentage": "98.1%"
     },
     {
       "name": "updated_by",
-      "occurrences": 254,
-      "percentage": "98.4%"
+      "occurrences": 261,
+      "percentage": "98.1%"
     },
     {
       "name": "name",
-      "occurrences": 164,
-      "percentage": "63.6%"
+      "occurrences": 168,
+      "percentage": "63.2%"
     },
     {
       "name": "description",
-      "occurrences": 146,
-      "percentage": "56.6%"
+      "occurrences": 149,
+      "percentage": "56.0%"
     },
     {
       "name": "contact_id",
       "occurrences": 37,
-      "percentage": "14.3%"
+      "percentage": "13.9%"
     },
     {
       "name": "breed_id",
-      "occurrences": 35,
-      "percentage": "13.6%"
+      "occurrences": 36,
+      "percentage": "13.5%"
     },
     {
       "name": "code",
-      "occurrences": 30,
-      "percentage": "11.6%"
-    },
-    {
-      "name": "account_id",
-      "occurrences": 23,
-      "percentage": "8.9%"
+      "occurrences": 31,
+      "percentage": "11.7%"
     },
     {
       "name": "pet_id",
-      "occurrences": 23,
-      "percentage": "8.9%"
+      "occurrences": 27,
+      "percentage": "10.2%"
+    },
+    {
+      "name": "account_id",
+      "occurrences": 24,
+      "percentage": "9.0%"
     },
     {
       "name": "notes",
-      "occurrences": 22,
-      "percentage": "8.5%"
+      "occurrences": 23,
+      "percentage": "8.6%"
     },
     {
       "name": "pet_breed_id",
-      "occurrences": 20,
-      "percentage": "7.8%"
+      "occurrences": 23,
+      "percentage": "8.6%"
     },
     {
       "name": "pet_type_id",
-      "occurrences": 20,
-      "percentage": "7.8%"
+      "occurrences": 21,
+      "percentage": "7.9%"
     },
     {
       "name": "type_id",
-      "occurrences": 17,
-      "percentage": "6.6%"
+      "occurrences": 18,
+      "percentage": "6.8%"
     },
     {
       "name": "owner_id",
-      "occurrences": 16,
-      "percentage": "6.2%"
+      "occurrences": 17,
+      "percentage": "6.4%"
     },
     {
       "name": "status_id",
-      "occurrences": 16,
-      "percentage": "6.2%"
+      "occurrences": 17,
+      "percentage": "6.4%"
     },
     {
       "name": "slug",
-      "occurrences": 16,
-      "percentage": "6.2%"
+      "occurrences": 17,
+      "percentage": "6.4%"
     },
     {
-      "name": "cover_id",
-      "occurrences": 15,
-      "percentage": "5.8%"
+      "name": "date",
+      "occurrences": 17,
+      "percentage": "6.4%"
     }
   ],
   "systemFields": [
@@ -123,9 +123,9 @@
   ],
   "analysis": {
     "fieldTypes": {
-      "unknown": 388,
-      "uuid": 91,
-      "string": 28,
+      "unknown": 385,
+      "uuid": 94,
+      "string": 31,
       "text": 8,
       "number": 27,
       "json": 3,

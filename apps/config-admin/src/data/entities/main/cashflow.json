@@ -6,8 +6,8 @@
   "category": "main",
   "fields": [
     {
-      "id": "field_project_id",
-      "name": "project_id",
+      "id": "field_program_id",
+      "name": "program_id",
       "fieldType": "uuid",
       "component": "LookupInput",
       "required": false,
@@ -25,11 +25,11 @@
         ]
       },
       "isForeignKey": true,
-      "referencedTable": "project",
+      "referencedTable": "program",
       "referencedFieldID": "id",
       "dataSource": "collection",
-      "displayName": "Project",
-      "placeholder": "Enter project",
+      "displayName": "Program",
+      "placeholder": "Enter program",
       "referencedFieldName": "name"
     },
     {
@@ -517,6 +517,6 @@
     "totalFields": 21,
     "systemFields": 5,
     "customFields": 16,
-    "generatedAt": "2026-02-02T13:48:43.782Z"
+    "generatedAt": "2026-02-03T17:47:18.751Z"
   }
 }

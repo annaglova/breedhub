@@ -84,6 +84,27 @@
       }
     },
     {
+      "id": "property_maxlength_500",
+      "type": "property",
+      "category": "system",
+      "tags": [
+        "field",
+        "string"
+      ],
+      "override_data": {
+        "maxLength": 500,
+        "validation": {
+          "maxLength": 500
+        }
+      },
+      "data": {
+        "maxLength": 500,
+        "validation": {
+          "maxLength": 500
+        }
+      }
+    },
+    {
       "id": "property_maxlength_50",
       "type": "property",
       "category": "system",
@@ -119,7 +140,7 @@
       }
     },
     {
-      "id": "property_maxlength_500",
+      "id": "property_maxlength_255",
       "type": "property",
       "category": "system",
       "tags": [
@@ -127,15 +148,15 @@
         "string"
       ],
       "override_data": {
-        "maxLength": 500,
+        "maxLength": 255,
         "validation": {
-          "maxLength": 500
+          "maxLength": 255
         }
       },
       "data": {
-        "maxLength": 500,
+        "maxLength": 255,
         "validation": {
-          "maxLength": 500
+          "maxLength": 255
         }
       }
     },
@@ -211,8 +232,8 @@
       "id": "field_id",
       "type": "field",
       "name": "id",
-      "frequency": 1,
-      "occurrences": 258,
+      "frequency": 1.0271317829457365,
+      "occurrences": 265,
       "commonProps": {
         "fieldType": "uuid",
         "component": "TextInput",
@@ -235,8 +256,8 @@
       "id": "field_created_at",
       "type": "field",
       "name": "created_at",
-      "frequency": 0.9922480620155039,
-      "occurrences": 256,
+      "frequency": 1.0193798449612403,
+      "occurrences": 263,
       "commonProps": {
         "fieldType": "datetime",
         "component": "DateInput",
@@ -261,8 +282,8 @@
       "id": "field_updated_at",
       "type": "field",
       "name": "updated_at",
-      "frequency": 0.9922480620155039,
-      "occurrences": 256,
+      "frequency": 1.0193798449612403,
+      "occurrences": 263,
       "commonProps": {
         "fieldType": "datetime",
         "component": "DateInput",
@@ -287,8 +308,8 @@
       "id": "field_created_by",
       "type": "field",
       "name": "created_by",
-      "frequency": 0.9844961240310077,
-      "occurrences": 254,
+      "frequency": 1.0116279069767442,
+      "occurrences": 261,
       "commonProps": {
         "fieldType": "uuid",
         "component": "TextInput",
@@ -318,8 +339,8 @@
       "id": "field_updated_by",
       "type": "field",
       "name": "updated_by",
-      "frequency": 0.9844961240310077,
-      "occurrences": 254,
+      "frequency": 1.0116279069767442,
+      "occurrences": 261,
       "commonProps": {
         "fieldType": "uuid",
         "component": "TextInput",
@@ -349,8 +370,8 @@
       "id": "field_name",
       "type": "field",
       "name": "name",
-      "frequency": 0.6356589147286822,
-      "occurrences": 164,
+      "frequency": 0.6511627906976745,
+      "occurrences": 168,
       "commonProps": {
         "required": true,
         "isSystem": false,
@@ -368,6 +389,7 @@
         },
         "maxLengthVariations": [
           250,
+          500,
           50
         ]
       },
@@ -378,8 +400,8 @@
       "id": "field_description",
       "type": "field",
       "name": "description",
-      "frequency": 0.5658914728682171,
-      "occurrences": 146,
+      "frequency": 0.5775193798449613,
+      "occurrences": 149,
       "commonProps": {
         "component": "TextareaInput",
         "isSystem": false,
@@ -440,8 +462,8 @@
       "id": "field_breed_id",
       "type": "field",
       "name": "breed_id",
-      "frequency": 0.13565891472868216,
-      "occurrences": 35,
+      "frequency": 0.13953488372093023,
+      "occurrences": 36,
       "commonProps": {
         "fieldType": "uuid",
         "component": "LookupInput",
@@ -469,8 +491,8 @@
       "id": "field_code",
       "type": "field",
       "name": "code",
-      "frequency": 0.11627906976744186,
-      "occurrences": 30,
+      "frequency": 0.12015503875968993,
+      "occurrences": 31,
       "commonProps": {
         "required": true,
         "isSystem": false,
@@ -495,11 +517,34 @@
       "category": "frequent"
     },
     {
+      "id": "field_pet_id",
+      "type": "field",
+      "name": "pet_id",
+      "frequency": 0.10465116279069768,
+      "occurrences": 27,
+      "commonProps": {
+        "fieldType": "uuid",
+        "isSystem": false,
+        "displayName": "Pet",
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "admin",
+            "editor"
+          ]
+        }
+      },
+      "isSystem": false,
+      "category": "frequent"
+    },
+    {
       "id": "field_account_id",
       "type": "field",
       "name": "account_id",
-      "frequency": 0.08914728682170543,
-      "occurrences": 23,
+      "frequency": 0.09302325581395349,
+      "occurrences": 24,
       "commonProps": {
         "fieldType": "uuid",
         "component": "LookupInput",
@@ -530,35 +575,11 @@
       }
     },
     {
-      "id": "field_pet_id",
-      "type": "field",
-      "name": "pet_id",
-      "frequency": 0.08914728682170543,
-      "occurrences": 23,
-      "commonProps": {
-        "fieldType": "uuid",
-        "isSystem": false,
-        "isPrimaryKey": false,
-        "displayName": "Pet",
-        "permissions": {
-          "read": [
-            "*"
-          ],
-          "write": [
-            "admin",
-            "editor"
-          ]
-        }
-      },
-      "isSystem": false,
-      "category": "frequent"
-    },
-    {
       "id": "field_notes",
       "type": "field",
       "name": "notes",
-      "frequency": 0.08527131782945736,
-      "occurrences": 22,
+      "frequency": 0.08914728682170543,
+      "occurrences": 23,
       "commonProps": {
         "fieldType": "text",
         "component": "TextareaInput",
@@ -584,8 +605,8 @@
       "id": "field_pet_type_id",
       "type": "field",
       "name": "pet_type_id",
-      "frequency": 0.07751937984496124,
-      "occurrences": 20,
+      "frequency": 0.08139534883720931,
+      "occurrences": 21,
       "commonProps": {
         "fieldType": "uuid",
         "component": "DropdownInput",
@@ -615,8 +636,8 @@
       "id": "field_type_id",
       "type": "field",
       "name": "type_id",
-      "frequency": 0.06589147286821706,
-      "occurrences": 17,
+      "frequency": 0.06976744186046512,
+      "occurrences": 18,
       "commonProps": {
         "fieldType": "uuid",
         "component": "DropdownInput",
@@ -642,8 +663,8 @@
       "id": "field_owner_id",
       "type": "field",
       "name": "owner_id",
-      "frequency": 0.06201550387596899,
-      "occurrences": 16,
+      "frequency": 0.06589147286821706,
+      "occurrences": 17,
       "commonProps": {
         "fieldType": "uuid",
         "component": "LookupInput",
@@ -679,8 +700,8 @@
       "id": "field_status_id",
       "type": "field",
       "name": "status_id",
-      "frequency": 0.06201550387596899,
-      "occurrences": 16,
+      "frequency": 0.06589147286821706,
+      "occurrences": 17,
       "commonProps": {
         "fieldType": "uuid",
         "component": "DropdownInput",
@@ -706,8 +727,8 @@
       "id": "field_slug",
       "type": "field",
       "name": "slug",
-      "frequency": 0.06201550387596899,
-      "occurrences": 16,
+      "frequency": 0.06589147286821706,
+      "occurrences": 17,
       "commonProps": {
         "fieldType": "string",
         "component": "TextInput",
@@ -727,8 +748,35 @@
         },
         "maxLengthVariations": [
           250,
-          500
+          500,
+          255
         ]
+      },
+      "isSystem": false,
+      "category": "frequent"
+    },
+    {
+      "id": "field_date",
+      "type": "field",
+      "name": "date",
+      "frequency": 0.06589147286821706,
+      "occurrences": 17,
+      "commonProps": {
+        "component": "DateInput",
+        "required": false,
+        "isSystem": false,
+        "isPrimaryKey": false,
+        "isUnique": false,
+        "displayName": "Date",
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "admin",
+            "editor"
+          ]
+        }
       },
       "isSystem": false,
       "category": "frequent"
@@ -737,8 +785,8 @@
       "id": "field_cover_id",
       "type": "field",
       "name": "cover_id",
-      "frequency": 0.05813953488372093,
-      "occurrences": 15,
+      "frequency": 0.06201550387596899,
+      "occurrences": 16,
       "commonProps": {
         "fieldType": "uuid",
         "component": "LookupInput",
@@ -769,8 +817,8 @@
       "id": "field_deleted",
       "type": "field",
       "name": "deleted",
-      "frequency": 0.05813953488372093,
-      "occurrences": 15,
+      "frequency": 0.06201550387596899,
+      "occurrences": 16,
       "commonProps": {
         "fieldType": "boolean",
         "component": "CheckboxInput",
@@ -791,37 +839,11 @@
       "category": "frequent"
     },
     {
-      "id": "field_date",
-      "type": "field",
-      "name": "date",
-      "frequency": 0.05813953488372093,
-      "occurrences": 15,
-      "commonProps": {
-        "component": "DateInput",
-        "required": false,
-        "isSystem": false,
-        "isPrimaryKey": false,
-        "isUnique": false,
-        "displayName": "Date",
-        "permissions": {
-          "read": [
-            "*"
-          ],
-          "write": [
-            "admin",
-            "editor"
-          ]
-        }
-      },
-      "isSystem": false,
-      "category": "frequent"
-    },
-    {
       "id": "field_color",
       "type": "field",
       "name": "color",
-      "frequency": 0.05426356589147287,
-      "occurrences": 14,
+      "frequency": 0.05813953488372093,
+      "occurrences": 15,
       "commonProps": {
         "isSystem": false,
         "isPrimaryKey": false,
@@ -975,6 +997,125 @@
       "category": "frequent"
     },
     {
+      "id": "field_start_date",
+      "type": "field",
+      "name": "start_date",
+      "frequency": 0.03488372093023256,
+      "occurrences": 9,
+      "commonProps": {
+        "component": "DateInput",
+        "required": false,
+        "isSystem": false,
+        "isPrimaryKey": false,
+        "isUnique": false,
+        "displayName": "Start Date",
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "admin",
+            "editor"
+          ]
+        }
+      },
+      "isSystem": false,
+      "category": "frequent"
+    },
+    {
+      "id": "field_event_id",
+      "type": "field",
+      "name": "event_id",
+      "frequency": 0.03488372093023256,
+      "occurrences": 9,
+      "commonProps": {
+        "fieldType": "uuid",
+        "component": "LookupInput",
+        "required": false,
+        "isSystem": false,
+        "isPrimaryKey": false,
+        "isUnique": false,
+        "displayName": "Event",
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "admin",
+            "editor"
+          ]
+        },
+        "isForeignKey": true,
+        "referencedTable": "event",
+        "referencedFieldID": "id",
+        "referencedFieldName": "name",
+        "dataSource": "collection"
+      },
+      "isSystem": false,
+      "category": "frequent"
+    },
+    {
+      "id": "field_number",
+      "type": "field",
+      "name": "number",
+      "frequency": 0.03488372093023256,
+      "occurrences": 9,
+      "commonProps": {
+        "required": true,
+        "isSystem": false,
+        "isPrimaryKey": false,
+        "isUnique": false,
+        "displayName": "Number",
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "admin",
+            "editor"
+          ]
+        },
+        "maxLengthVariations": [
+          50,
+          250,
+          500
+        ]
+      },
+      "isSystem": false,
+      "category": "frequent"
+    },
+    {
+      "id": "field_currency_id",
+      "type": "field",
+      "name": "currency_id",
+      "frequency": 0.03488372093023256,
+      "occurrences": 9,
+      "commonProps": {
+        "fieldType": "uuid",
+        "component": "DropdownInput",
+        "required": false,
+        "isSystem": false,
+        "isPrimaryKey": false,
+        "isUnique": false,
+        "displayName": "Currency",
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "admin",
+            "editor"
+          ]
+        },
+        "isForeignKey": true,
+        "referencedTable": "currency",
+        "referencedFieldID": "id",
+        "referencedFieldName": "name"
+      },
+      "isSystem": false,
+      "category": "frequent"
+    },
+    {
       "id": "field_avatar_url",
       "type": "field",
       "name": "avatar_url",
@@ -1005,64 +1146,6 @@
         "maxLengthVariations": [
           500
         ]
-      },
-      "isSystem": false,
-      "category": "frequent"
-    },
-    {
-      "id": "field_start_date",
-      "type": "field",
-      "name": "start_date",
-      "frequency": 0.031007751937984496,
-      "occurrences": 8,
-      "commonProps": {
-        "component": "DateInput",
-        "required": false,
-        "isSystem": false,
-        "isPrimaryKey": false,
-        "isUnique": false,
-        "displayName": "Start Date",
-        "permissions": {
-          "read": [
-            "*"
-          ],
-          "write": [
-            "admin",
-            "editor"
-          ]
-        }
-      },
-      "isSystem": false,
-      "category": "frequent"
-    },
-    {
-      "id": "field_event_id",
-      "type": "field",
-      "name": "event_id",
-      "frequency": 0.031007751937984496,
-      "occurrences": 8,
-      "commonProps": {
-        "fieldType": "uuid",
-        "component": "LookupInput",
-        "required": false,
-        "isSystem": false,
-        "isPrimaryKey": false,
-        "isUnique": false,
-        "displayName": "Event",
-        "permissions": {
-          "read": [
-            "*"
-          ],
-          "write": [
-            "admin",
-            "editor"
-          ]
-        },
-        "isForeignKey": true,
-        "referencedTable": "event",
-        "referencedFieldID": "id",
-        "referencedFieldName": "name",
-        "dataSource": "collection"
       },
       "isSystem": false,
       "category": "frequent"
@@ -1116,67 +1199,6 @@
             "editor"
           ]
         }
-      },
-      "isSystem": false,
-      "category": "frequent"
-    },
-    {
-      "id": "field_number",
-      "type": "field",
-      "name": "number",
-      "frequency": 0.031007751937984496,
-      "occurrences": 8,
-      "commonProps": {
-        "required": true,
-        "isSystem": false,
-        "isPrimaryKey": false,
-        "isUnique": false,
-        "displayName": "Number",
-        "permissions": {
-          "read": [
-            "*"
-          ],
-          "write": [
-            "admin",
-            "editor"
-          ]
-        },
-        "maxLengthVariations": [
-          50,
-          250,
-          500
-        ]
-      },
-      "isSystem": false,
-      "category": "frequent"
-    },
-    {
-      "id": "field_currency_id",
-      "type": "field",
-      "name": "currency_id",
-      "frequency": 0.031007751937984496,
-      "occurrences": 8,
-      "commonProps": {
-        "fieldType": "uuid",
-        "component": "DropdownInput",
-        "required": false,
-        "isSystem": false,
-        "isPrimaryKey": false,
-        "isUnique": false,
-        "displayName": "Currency",
-        "permissions": {
-          "read": [
-            "*"
-          ],
-          "write": [
-            "admin",
-            "editor"
-          ]
-        },
-        "isForeignKey": true,
-        "referencedTable": "currency",
-        "referencedFieldID": "id",
-        "referencedFieldName": "name"
       },
       "isSystem": false,
       "category": "frequent"
@@ -5315,7 +5337,7 @@
       ]
     },
     {
-      "id": "activity_field_project_id",
+      "id": "activity_field_program_id",
       "type": "entity_field",
       "deps": [
         "property_not_required",
@@ -5324,7 +5346,7 @@
         "property_not_unique"
       ],
       "category": "activity",
-      "caption": "activity project_id field",
+      "caption": "activity program_id field",
       "self_data": {
         "fieldType": "uuid",
         "component": "LookupInput",
@@ -5343,11 +5365,11 @@
           ]
         },
         "isForeignKey": true,
-        "referencedTable": "project",
+        "referencedTable": "program",
         "referencedFieldID": "id",
         "dataSource": "collection",
-        "displayName": "Project",
-        "placeholder": "Enter project",
+        "displayName": "Program",
+        "placeholder": "Enter program",
         "referencedFieldName": "name"
       },
       "tags": [
@@ -5774,8 +5796,8 @@
           ]
         },
         "isForeignKey": true,
-        "referencedTable": "pet_tamaskan",
-        "referencedFieldID": "breed_id",
+        "referencedTable": "pet_croatian_shepherd",
+        "referencedFieldID": "id",
         "displayName": "Pet Breed",
         "placeholder": "Enter pet breed",
         "referencedFieldName": "name"
@@ -6999,7 +7021,7 @@
       ]
     },
     {
-      "id": "cashflow_field_project_id",
+      "id": "cashflow_field_program_id",
       "type": "entity_field",
       "deps": [
         "property_not_required",
@@ -7008,7 +7030,7 @@
         "property_not_unique"
       ],
       "category": "cashflow",
-      "caption": "cashflow project_id field",
+      "caption": "cashflow program_id field",
       "self_data": {
         "fieldType": "uuid",
         "component": "LookupInput",
@@ -7027,11 +7049,11 @@
           ]
         },
         "isForeignKey": true,
-        "referencedTable": "project",
+        "referencedTable": "program",
         "referencedFieldID": "id",
         "dataSource": "collection",
-        "displayName": "Project",
-        "placeholder": "Enter project",
+        "displayName": "Program",
+        "placeholder": "Enter program",
         "referencedFieldName": "name"
       },
       "tags": [
@@ -15001,7 +15023,7 @@
       ]
     },
     {
-      "id": "invoice_field_project_id",
+      "id": "invoice_field_program_id",
       "type": "entity_field",
       "deps": [
         "property_not_required",
@@ -15010,7 +15032,7 @@
         "property_not_unique"
       ],
       "category": "invoice",
-      "caption": "invoice project_id field",
+      "caption": "invoice program_id field",
       "self_data": {
         "fieldType": "uuid",
         "component": "LookupInput",
@@ -15029,11 +15051,11 @@
           ]
         },
         "isForeignKey": true,
-        "referencedTable": "project",
+        "referencedTable": "program",
         "referencedFieldID": "id",
         "dataSource": "collection",
-        "displayName": "Project",
-        "placeholder": "Enter project",
+        "displayName": "Program",
+        "placeholder": "Enter program",
         "referencedFieldName": "name"
       },
       "tags": [
@@ -16295,6 +16317,43 @@
       ]
     },
     {
+      "id": "litter_field_children",
+      "type": "entity_field",
+      "deps": [
+        "property_not_required",
+        "property_not_system",
+        "property_not_primary_key",
+        "property_not_unique"
+      ],
+      "category": "litter",
+      "caption": "litter children field",
+      "self_data": {
+        "fieldType": "json",
+        "component": "TextareaInput",
+        "required": false,
+        "isSystem": false,
+        "isPrimaryKey": false,
+        "isUnique": false,
+        "sortOrder": 230,
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "admin",
+            "editor"
+          ]
+        },
+        "displayName": "Children",
+        "placeholder": "Enter children",
+        "defaultValue": "[]"
+      },
+      "tags": [
+        "main",
+        "litter"
+      ]
+    },
+    {
       "id": "litter_field_id",
       "type": "entity_field",
       "deps": [
@@ -16309,7 +16368,7 @@
         "isSystem": true,
         "isPrimaryKey": true,
         "isUnique": true,
-        "sortOrder": 230,
+        "sortOrder": 240,
         "permissions": {
           "read": [
             "*"
@@ -16340,7 +16399,7 @@
         "isSystem": true,
         "isPrimaryKey": false,
         "isUnique": false,
-        "sortOrder": 240,
+        "sortOrder": 250,
         "permissions": {
           "read": [
             "*"
@@ -16371,7 +16430,7 @@
         "isSystem": true,
         "isPrimaryKey": false,
         "isUnique": false,
-        "sortOrder": 250,
+        "sortOrder": 260,
         "permissions": {
           "read": [
             "*"
@@ -16402,7 +16461,7 @@
         "isSystem": true,
         "isPrimaryKey": false,
         "isUnique": false,
-        "sortOrder": 260,
+        "sortOrder": 270,
         "permissions": {
           "read": [
             "*"
@@ -16433,7 +16492,7 @@
         "isSystem": true,
         "isPrimaryKey": false,
         "isUnique": false,
-        "sortOrder": 270,
+        "sortOrder": 280,
         "permissions": {
           "read": [
             "*"
@@ -16464,7 +16523,7 @@
         "isSystem": true,
         "isPrimaryKey": false,
         "isUnique": false,
-        "sortOrder": 280,
+        "sortOrder": 290,
         "permissions": {
           "read": [
             "*"
@@ -16586,7 +16645,7 @@
       ]
     },
     {
-      "id": "note_field_project_id",
+      "id": "note_field_program_id",
       "type": "entity_field",
       "deps": [
         "property_not_required",
@@ -16595,7 +16654,7 @@
         "property_not_unique"
       ],
       "category": "note",
-      "caption": "note project_id field",
+      "caption": "note program_id field",
       "self_data": {
         "fieldType": "uuid",
         "component": "LookupInput",
@@ -16614,11 +16673,11 @@
           ]
         },
         "isForeignKey": true,
-        "referencedTable": "project",
+        "referencedTable": "program",
         "referencedFieldID": "id",
         "dataSource": "collection",
-        "displayName": "Project",
-        "placeholder": "Enter project",
+        "displayName": "Program",
+        "placeholder": "Enter program",
         "referencedFieldName": "name"
       },
       "tags": [
@@ -17005,7 +17064,7 @@
         },
         "isForeignKey": true,
         "referencedTable": "pet_gordon_setter",
-        "referencedFieldID": "id",
+        "referencedFieldID": "breed_id",
         "displayName": "Pet Breed",
         "placeholder": "Enter pet breed",
         "referencedFieldName": "name"
@@ -18954,47 +19013,6 @@
       ]
     },
     {
-      "id": "pet_field_litter_id",
-      "type": "entity_field",
-      "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
-      ],
-      "category": "pet",
-      "caption": "pet litter_id field",
-      "self_data": {
-        "fieldType": "uuid",
-        "component": "LookupInput",
-        "required": false,
-        "isSystem": false,
-        "isPrimaryKey": false,
-        "isUnique": false,
-        "sortOrder": 190,
-        "permissions": {
-          "read": [
-            "*"
-          ],
-          "write": [
-            "admin",
-            "editor"
-          ]
-        },
-        "isForeignKey": true,
-        "referencedTable": "litter",
-        "referencedFieldID": "id",
-        "dataSource": "collection",
-        "displayName": "Litter",
-        "placeholder": "Enter litter",
-        "referencedFieldName": "name"
-      },
-      "tags": [
-        "main",
-        "pet"
-      ]
-    },
-    {
       "id": "pet_field_call_name",
       "type": "entity_field",
       "deps": [
@@ -19013,7 +19031,7 @@
         "isSystem": false,
         "isPrimaryKey": false,
         "isUnique": false,
-        "sortOrder": 200,
+        "sortOrder": 190,
         "permissions": {
           "read": [
             "*"
@@ -19051,7 +19069,7 @@
         "isSystem": false,
         "isPrimaryKey": false,
         "isUnique": false,
-        "sortOrder": 210,
+        "sortOrder": 200,
         "permissions": {
           "read": [
             "*"
@@ -19092,7 +19110,7 @@
         "isSystem": false,
         "isPrimaryKey": false,
         "isUnique": false,
-        "sortOrder": 220,
+        "sortOrder": 210,
         "permissions": {
           "read": [
             "*"
@@ -19129,7 +19147,7 @@
         "isSystem": false,
         "isPrimaryKey": false,
         "isUnique": false,
-        "sortOrder": 230,
+        "sortOrder": 220,
         "permissions": {
           "read": [
             "*"
@@ -19163,7 +19181,7 @@
         "isSystem": false,
         "isPrimaryKey": false,
         "isUnique": false,
-        "sortOrder": 240,
+        "sortOrder": 230,
         "permissions": {
           "read": [
             "*"
@@ -19205,7 +19223,7 @@
         "isSystem": false,
         "isPrimaryKey": false,
         "isUnique": false,
-        "sortOrder": 250,
+        "sortOrder": 240,
         "permissions": {
           "read": [
             "*"
@@ -19246,7 +19264,7 @@
         "isSystem": false,
         "isPrimaryKey": false,
         "isUnique": false,
-        "sortOrder": 260,
+        "sortOrder": 250,
         "permissions": {
           "read": [
             "*"
@@ -19283,7 +19301,7 @@
         "isSystem": false,
         "isPrimaryKey": false,
         "isUnique": false,
-        "sortOrder": 270,
+        "sortOrder": 260,
         "permissions": {
           "read": [
             "*"
@@ -19325,7 +19343,7 @@
         "isSystem": false,
         "isPrimaryKey": false,
         "isUnique": false,
-        "sortOrder": 280,
+        "sortOrder": 270,
         "permissions": {
           "read": [
             "*"
@@ -19363,7 +19381,7 @@
         "isSystem": false,
         "isPrimaryKey": false,
         "isUnique": false,
-        "sortOrder": 290,
+        "sortOrder": 280,
         "permissions": {
           "read": [
             "*"
@@ -19406,7 +19424,7 @@
         "isSystem": false,
         "isPrimaryKey": false,
         "isUnique": false,
-        "sortOrder": 300,
+        "sortOrder": 290,
         "permissions": {
           "read": [
             "*"
@@ -19446,7 +19464,7 @@
         "isSystem": false,
         "isPrimaryKey": false,
         "isUnique": false,
-        "sortOrder": 310,
+        "sortOrder": 300,
         "permissions": {
           "read": [
             "*"
@@ -19480,7 +19498,7 @@
         "isSystem": false,
         "isPrimaryKey": false,
         "isUnique": false,
-        "sortOrder": 320,
+        "sortOrder": 310,
         "permissions": {
           "read": [
             "*"
@@ -19521,7 +19539,7 @@
         "isSystem": false,
         "isPrimaryKey": false,
         "isUnique": false,
-        "sortOrder": 330,
+        "sortOrder": 320,
         "permissions": {
           "read": [
             "*"
@@ -19557,7 +19575,7 @@
         "isSystem": false,
         "isPrimaryKey": false,
         "isUnique": false,
-        "sortOrder": 340,
+        "sortOrder": 330,
         "permissions": {
           "read": [
             "*"
@@ -19594,7 +19612,7 @@
         "isSystem": false,
         "isPrimaryKey": false,
         "isUnique": false,
-        "sortOrder": 350,
+        "sortOrder": 340,
         "permissions": {
           "read": [
             "*"
@@ -19634,7 +19652,7 @@
         "isSystem": false,
         "isPrimaryKey": false,
         "isUnique": false,
-        "sortOrder": 360,
+        "sortOrder": 350,
         "permissions": {
           "read": [
             "*"
@@ -19675,7 +19693,7 @@
         "isSystem": false,
         "isPrimaryKey": false,
         "isUnique": false,
-        "sortOrder": 370,
+        "sortOrder": 360,
         "permissions": {
           "read": [
             "*"
@@ -19709,7 +19727,7 @@
         "isSystem": false,
         "isPrimaryKey": false,
         "isUnique": false,
-        "sortOrder": 380,
+        "sortOrder": 370,
         "permissions": {
           "read": [
             "*"
@@ -19750,7 +19768,7 @@
         "isSystem": false,
         "isPrimaryKey": false,
         "isUnique": false,
-        "sortOrder": 390,
+        "sortOrder": 380,
         "permissions": {
           "read": [
             "*"
@@ -19791,7 +19809,7 @@
         "isSystem": false,
         "isPrimaryKey": false,
         "isUnique": false,
-        "sortOrder": 400,
+        "sortOrder": 390,
         "permissions": {
           "read": [
             "*"
@@ -19828,7 +19846,7 @@
         "isSystem": false,
         "isPrimaryKey": false,
         "isUnique": false,
-        "sortOrder": 410,
+        "sortOrder": 400,
         "permissions": {
           "read": [
             "*"
@@ -19866,7 +19884,7 @@
         "isSystem": false,
         "isPrimaryKey": false,
         "isUnique": false,
-        "sortOrder": 420,
+        "sortOrder": 410,
         "permissions": {
           "read": [
             "*"
@@ -19904,7 +19922,7 @@
         "isSystem": false,
         "isPrimaryKey": false,
         "isUnique": false,
-        "sortOrder": 430,
+        "sortOrder": 420,
         "permissions": {
           "read": [
             "*"
@@ -19945,7 +19963,7 @@
         "isSystem": false,
         "isPrimaryKey": false,
         "isUnique": false,
-        "sortOrder": 440,
+        "sortOrder": 430,
         "permissions": {
           "read": [
             "*"
@@ -19978,7 +19996,7 @@
         "isSystem": false,
         "isPrimaryKey": false,
         "isUnique": false,
-        "sortOrder": 450,
+        "sortOrder": 440,
         "permissions": {
           "read": [
             "*"
@@ -20017,7 +20035,7 @@
         "isSystem": false,
         "isPrimaryKey": false,
         "isUnique": false,
-        "sortOrder": 460,
+        "sortOrder": 450,
         "permissions": {
           "read": [
             "*"
@@ -20054,7 +20072,7 @@
         "isSystem": false,
         "isPrimaryKey": false,
         "isUnique": false,
-        "sortOrder": 470,
+        "sortOrder": 460,
         "permissions": {
           "read": [
             "*"
@@ -20091,7 +20109,7 @@
         "isSystem": false,
         "isPrimaryKey": false,
         "isUnique": false,
-        "sortOrder": 480,
+        "sortOrder": 470,
         "permissions": {
           "read": [
             "*"
@@ -20128,7 +20146,7 @@
         "isSystem": false,
         "isPrimaryKey": false,
         "isUnique": false,
-        "sortOrder": 490,
+        "sortOrder": 480,
         "permissions": {
           "read": [
             "*"
@@ -20164,7 +20182,7 @@
         "isSystem": false,
         "isPrimaryKey": false,
         "isUnique": false,
-        "sortOrder": 500,
+        "sortOrder": 490,
         "permissions": {
           "read": [
             "*"
@@ -20197,7 +20215,7 @@
         "isSystem": true,
         "isPrimaryKey": true,
         "isUnique": true,
-        "sortOrder": 510,
+        "sortOrder": 500,
         "permissions": {
           "read": [
             "*"
@@ -20228,7 +20246,7 @@
         "isSystem": true,
         "isPrimaryKey": false,
         "isUnique": false,
-        "sortOrder": 520,
+        "sortOrder": 510,
         "permissions": {
           "read": [
             "*"
@@ -20259,7 +20277,7 @@
         "isSystem": true,
         "isPrimaryKey": false,
         "isUnique": false,
-        "sortOrder": 530,
+        "sortOrder": 520,
         "permissions": {
           "read": [
             "*"
@@ -20290,7 +20308,7 @@
         "isSystem": true,
         "isPrimaryKey": false,
         "isUnique": false,
-        "sortOrder": 540,
+        "sortOrder": 530,
         "permissions": {
           "read": [
             "*"
@@ -20321,7 +20339,7 @@
         "isSystem": true,
         "isPrimaryKey": false,
         "isUnique": false,
-        "sortOrder": 550,
+        "sortOrder": 540,
         "permissions": {
           "read": [
             "*"
@@ -20352,7 +20370,7 @@
         "isSystem": true,
         "isPrimaryKey": false,
         "isUnique": false,
-        "sortOrder": 560,
+        "sortOrder": 550,
         "permissions": {
           "read": [
             "*"
@@ -22430,6 +22448,757 @@
       ]
     },
     {
+      "id": "program_field_parent_id",
+      "type": "entity_field",
+      "deps": [
+        "property_not_required",
+        "property_not_system",
+        "property_not_primary_key",
+        "property_not_unique"
+      ],
+      "category": "program",
+      "caption": "program parent_id field",
+      "self_data": {
+        "fieldType": "uuid",
+        "component": "LookupInput",
+        "required": false,
+        "isSystem": false,
+        "isPrimaryKey": false,
+        "isUnique": false,
+        "sortOrder": 10,
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "admin",
+            "editor"
+          ]
+        },
+        "isForeignKey": true,
+        "referencedTable": "program",
+        "referencedFieldID": "id",
+        "dataSource": "collection",
+        "displayName": "Parent",
+        "placeholder": "Enter parent",
+        "referencedFieldName": "name"
+      },
+      "tags": [
+        "main",
+        "program"
+      ]
+    },
+    {
+      "id": "program_field_event_id",
+      "type": "entity_field",
+      "deps": [
+        "field_event_id"
+      ],
+      "category": "program",
+      "caption": "program event_id field",
+      "self_data": {
+        "fieldType": "uuid",
+        "component": "LookupInput",
+        "required": false,
+        "isSystem": false,
+        "isPrimaryKey": false,
+        "isUnique": false,
+        "sortOrder": 20,
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "admin",
+            "editor"
+          ]
+        },
+        "isForeignKey": true,
+        "referencedTable": "event",
+        "referencedFieldID": "id",
+        "dataSource": "collection",
+        "displayName": "Event",
+        "placeholder": "Enter event",
+        "referencedFieldName": "name"
+      },
+      "tags": [
+        "main",
+        "program"
+      ]
+    },
+    {
+      "id": "program_field_competition_id",
+      "type": "entity_field",
+      "deps": [
+        "property_not_required",
+        "property_not_system",
+        "property_not_primary_key",
+        "property_not_unique"
+      ],
+      "category": "program",
+      "caption": "program competition_id field",
+      "self_data": {
+        "fieldType": "uuid",
+        "component": "LookupInput",
+        "required": false,
+        "isSystem": false,
+        "isPrimaryKey": false,
+        "isUnique": false,
+        "sortOrder": 30,
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "admin",
+            "editor"
+          ]
+        },
+        "isForeignKey": true,
+        "referencedTable": "competition",
+        "referencedFieldID": "id",
+        "dataSource": "collection",
+        "displayName": "Competition",
+        "placeholder": "Enter competition",
+        "referencedFieldName": "name"
+      },
+      "tags": [
+        "main",
+        "program"
+      ]
+    },
+    {
+      "id": "program_field_name",
+      "type": "entity_field",
+      "deps": [
+        "field_name"
+      ],
+      "category": "program",
+      "caption": "program name field",
+      "self_data": {
+        "fieldType": "string",
+        "component": "TextInput",
+        "required": true,
+        "isSystem": false,
+        "isPrimaryKey": false,
+        "isUnique": false,
+        "sortOrder": 40,
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "admin",
+            "editor"
+          ]
+        },
+        "maxLength": 500,
+        "displayName": "Name",
+        "placeholder": "Enter name",
+        "validation": {
+          "maxLength": 500
+        },
+        "defaultValue": ""
+      },
+      "tags": [
+        "main",
+        "program"
+      ]
+    },
+    {
+      "id": "program_field_notes",
+      "type": "entity_field",
+      "deps": [
+        "field_notes"
+      ],
+      "category": "program",
+      "caption": "program notes field",
+      "self_data": {
+        "fieldType": "text",
+        "component": "TextareaInput",
+        "required": true,
+        "isSystem": false,
+        "isPrimaryKey": false,
+        "isUnique": false,
+        "sortOrder": 50,
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "admin",
+            "editor"
+          ]
+        },
+        "displayName": "Notes",
+        "placeholder": "Enter notes",
+        "defaultValue": ""
+      },
+      "tags": [
+        "main",
+        "program"
+      ]
+    },
+    {
+      "id": "program_field_slug",
+      "type": "entity_field",
+      "deps": [
+        "field_slug"
+      ],
+      "category": "program",
+      "caption": "program slug field",
+      "self_data": {
+        "fieldType": "string",
+        "component": "TextInput",
+        "required": true,
+        "isSystem": false,
+        "isPrimaryKey": false,
+        "isUnique": false,
+        "sortOrder": 60,
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "admin",
+            "editor"
+          ]
+        },
+        "maxLength": 255,
+        "displayName": "Slug",
+        "placeholder": "Enter slug",
+        "validation": {
+          "maxLength": 255
+        },
+        "defaultValue": ""
+      },
+      "tags": [
+        "main",
+        "program"
+      ]
+    },
+    {
+      "id": "program_field_start_date",
+      "type": "entity_field",
+      "deps": [
+        "field_start_date"
+      ],
+      "category": "program",
+      "caption": "program start_date field",
+      "self_data": {
+        "fieldType": "date",
+        "component": "DateInput",
+        "required": false,
+        "isSystem": false,
+        "isPrimaryKey": false,
+        "isUnique": false,
+        "sortOrder": 70,
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "admin",
+            "editor"
+          ]
+        },
+        "displayName": "Start Date",
+        "placeholder": "Enter start date"
+      },
+      "tags": [
+        "main",
+        "program"
+      ]
+    },
+    {
+      "id": "program_field_end_date",
+      "type": "entity_field",
+      "deps": [
+        "property_not_required",
+        "property_not_system",
+        "property_not_primary_key",
+        "property_not_unique"
+      ],
+      "category": "program",
+      "caption": "program end_date field",
+      "self_data": {
+        "fieldType": "date",
+        "component": "DateInput",
+        "required": false,
+        "isSystem": false,
+        "isPrimaryKey": false,
+        "isUnique": false,
+        "sortOrder": 80,
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "admin",
+            "editor"
+          ]
+        },
+        "displayName": "End Date",
+        "placeholder": "Enter end date"
+      },
+      "tags": [
+        "main",
+        "program"
+      ]
+    },
+    {
+      "id": "program_field_status_id",
+      "type": "entity_field",
+      "deps": [
+        "field_status_id"
+      ],
+      "category": "program",
+      "caption": "program status_id field",
+      "self_data": {
+        "fieldType": "uuid",
+        "component": "DropdownInput",
+        "required": false,
+        "isSystem": false,
+        "isPrimaryKey": false,
+        "isUnique": false,
+        "sortOrder": 90,
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "admin",
+            "editor"
+          ]
+        },
+        "isForeignKey": true,
+        "referencedTable": "program_status",
+        "referencedFieldID": "id",
+        "displayName": "Status",
+        "placeholder": "Enter status",
+        "referencedFieldName": "name"
+      },
+      "tags": [
+        "main",
+        "program"
+      ]
+    },
+    {
+      "id": "program_field_type_id",
+      "type": "entity_field",
+      "deps": [
+        "field_type_id"
+      ],
+      "category": "program",
+      "caption": "program type_id field",
+      "self_data": {
+        "fieldType": "uuid",
+        "component": "DropdownInput",
+        "required": false,
+        "isSystem": false,
+        "isPrimaryKey": false,
+        "isUnique": false,
+        "sortOrder": 100,
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "admin",
+            "editor"
+          ]
+        },
+        "isForeignKey": true,
+        "referencedTable": "program_type",
+        "referencedFieldID": "id",
+        "displayName": "Type",
+        "placeholder": "Enter type",
+        "referencedFieldName": "name"
+      },
+      "tags": [
+        "main",
+        "program"
+      ]
+    },
+    {
+      "id": "program_field_owner_id",
+      "type": "entity_field",
+      "deps": [
+        "field_owner_id"
+      ],
+      "category": "program",
+      "caption": "program owner_id field",
+      "self_data": {
+        "fieldType": "uuid",
+        "component": "LookupInput",
+        "required": false,
+        "isSystem": false,
+        "isPrimaryKey": false,
+        "isUnique": false,
+        "sortOrder": 110,
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "admin",
+            "editor"
+          ]
+        },
+        "isForeignKey": true,
+        "referencedTable": "contact",
+        "referencedFieldID": "id",
+        "dataSource": "collection",
+        "displayName": "Owner",
+        "placeholder": "Enter owner",
+        "referencedFieldName": "name"
+      },
+      "tags": [
+        "main",
+        "program"
+      ]
+    },
+    {
+      "id": "program_field_account_id",
+      "type": "entity_field",
+      "deps": [
+        "field_account_id"
+      ],
+      "category": "program",
+      "caption": "program account_id field",
+      "self_data": {
+        "fieldType": "uuid",
+        "component": "LookupInput",
+        "required": false,
+        "isSystem": false,
+        "isPrimaryKey": false,
+        "isUnique": false,
+        "sortOrder": 120,
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "admin",
+            "editor"
+          ]
+        },
+        "isForeignKey": true,
+        "referencedTable": "account",
+        "referencedFieldID": "id",
+        "dataSource": "collection",
+        "displayName": "Account",
+        "placeholder": "Enter account",
+        "referencedFieldName": "name"
+      },
+      "tags": [
+        "main",
+        "program"
+      ]
+    },
+    {
+      "id": "program_field_cover_id",
+      "type": "entity_field",
+      "deps": [
+        "field_cover_id"
+      ],
+      "category": "program",
+      "caption": "program cover_id field",
+      "self_data": {
+        "fieldType": "uuid",
+        "component": "LookupInput",
+        "required": false,
+        "isSystem": false,
+        "isPrimaryKey": false,
+        "isUnique": false,
+        "sortOrder": 130,
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "admin",
+            "editor"
+          ]
+        },
+        "isForeignKey": true,
+        "referencedTable": "cover",
+        "referencedFieldID": "id",
+        "dataSource": "collection",
+        "displayName": "Cover",
+        "placeholder": "Enter cover",
+        "referencedFieldName": "name"
+      },
+      "tags": [
+        "main",
+        "program"
+      ]
+    },
+    {
+      "id": "program_field_pet_type_id",
+      "type": "entity_field",
+      "deps": [
+        "field_pet_type_id"
+      ],
+      "category": "program",
+      "caption": "program pet_type_id field",
+      "self_data": {
+        "fieldType": "uuid",
+        "component": "DropdownInput",
+        "required": false,
+        "isSystem": false,
+        "isPrimaryKey": false,
+        "isUnique": false,
+        "sortOrder": 140,
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "admin",
+            "editor"
+          ]
+        },
+        "isForeignKey": true,
+        "referencedTable": "pet_type",
+        "referencedFieldID": "id",
+        "displayName": "Pet Type",
+        "placeholder": "Enter pet type",
+        "referencedFieldName": "name"
+      },
+      "tags": [
+        "main",
+        "program"
+      ]
+    },
+    {
+      "id": "program_field_order",
+      "type": "entity_field",
+      "deps": [
+        "property_required",
+        "property_not_system",
+        "property_not_primary_key",
+        "property_not_unique"
+      ],
+      "category": "program",
+      "caption": "program order field",
+      "self_data": {
+        "fieldType": "number",
+        "component": "NumberInput",
+        "required": true,
+        "isSystem": false,
+        "isPrimaryKey": false,
+        "isUnique": false,
+        "sortOrder": 150,
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "admin",
+            "editor"
+          ]
+        },
+        "displayName": "Order",
+        "placeholder": "Enter order",
+        "validation": {
+          "precision": 32,
+          "scale": 0
+        },
+        "defaultValue": "0"
+      },
+      "tags": [
+        "main",
+        "program"
+      ]
+    },
+    {
+      "id": "program_field_id",
+      "type": "entity_field",
+      "deps": [
+        "field_id"
+      ],
+      "category": "program",
+      "caption": "program id field",
+      "self_data": {
+        "fieldType": "uuid",
+        "component": "TextInput",
+        "required": true,
+        "isSystem": true,
+        "isPrimaryKey": true,
+        "isUnique": true,
+        "sortOrder": 160,
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "system"
+          ]
+        },
+        "displayName": "Id"
+      },
+      "tags": [
+        "main",
+        "program"
+      ]
+    },
+    {
+      "id": "program_field_deleted",
+      "type": "entity_field",
+      "deps": [
+        "field_deleted"
+      ],
+      "category": "program",
+      "caption": "program deleted field",
+      "self_data": {
+        "fieldType": "boolean",
+        "component": "CheckboxInput",
+        "required": true,
+        "isSystem": true,
+        "isPrimaryKey": false,
+        "isUnique": false,
+        "sortOrder": 170,
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "system"
+          ]
+        },
+        "displayName": "Deleted"
+      },
+      "tags": [
+        "main",
+        "program"
+      ]
+    },
+    {
+      "id": "program_field_created_at",
+      "type": "entity_field",
+      "deps": [
+        "field_created_at"
+      ],
+      "category": "program",
+      "caption": "program created_at field",
+      "self_data": {
+        "fieldType": "datetime",
+        "component": "DateInput",
+        "required": false,
+        "isSystem": true,
+        "isPrimaryKey": false,
+        "isUnique": false,
+        "sortOrder": 180,
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "system"
+          ]
+        },
+        "displayName": "Created At"
+      },
+      "tags": [
+        "main",
+        "program"
+      ]
+    },
+    {
+      "id": "program_field_created_by",
+      "type": "entity_field",
+      "deps": [
+        "field_created_by"
+      ],
+      "category": "program",
+      "caption": "program created_by field",
+      "self_data": {
+        "fieldType": "uuid",
+        "component": "TextInput",
+        "required": false,
+        "isSystem": true,
+        "isPrimaryKey": false,
+        "isUnique": false,
+        "sortOrder": 190,
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "system"
+          ]
+        },
+        "displayName": "Created By"
+      },
+      "tags": [
+        "main",
+        "program"
+      ]
+    },
+    {
+      "id": "program_field_updated_at",
+      "type": "entity_field",
+      "deps": [
+        "field_updated_at"
+      ],
+      "category": "program",
+      "caption": "program updated_at field",
+      "self_data": {
+        "fieldType": "datetime",
+        "component": "DateInput",
+        "required": false,
+        "isSystem": true,
+        "isPrimaryKey": false,
+        "isUnique": false,
+        "sortOrder": 200,
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "system"
+          ]
+        },
+        "displayName": "Updated At"
+      },
+      "tags": [
+        "main",
+        "program"
+      ]
+    },
+    {
+      "id": "program_field_updated_by",
+      "type": "entity_field",
+      "deps": [
+        "field_updated_by"
+      ],
+      "category": "program",
+      "caption": "program updated_by field",
+      "self_data": {
+        "fieldType": "uuid",
+        "component": "TextInput",
+        "required": false,
+        "isSystem": true,
+        "isPrimaryKey": false,
+        "isUnique": false,
+        "sortOrder": 210,
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "system"
+          ]
+        },
+        "displayName": "Updated By"
+      },
+      "tags": [
+        "main",
+        "program"
+      ]
+    },
+    {
       "id": "project_field_notes",
       "type": "entity_field",
       "deps": [
@@ -22610,7 +23379,7 @@
         "referencedFieldID": "id",
         "displayName": "Project Entry Type",
         "placeholder": "Enter project entry type",
-        "referencedFieldName": "name"
+        "referencedFieldName": "id"
       },
       "tags": [
         "main",
@@ -22718,7 +23487,7 @@
           ]
         },
         "isForeignKey": true,
-        "referencedTable": "project_status",
+        "referencedTable": "program_status",
         "referencedFieldID": "id",
         "displayName": "Status",
         "placeholder": "Enter status",
@@ -23948,7 +24717,7 @@
           ]
         },
         "isForeignKey": true,
-        "referencedTable": "project_category",
+        "referencedTable": "program_type",
         "referencedFieldID": "id",
         "displayName": "Category",
         "placeholder": "Enter category",
@@ -24567,7 +25336,7 @@
       ]
     },
     {
-      "id": "public_data_field_project_id",
+      "id": "public_data_field_program_id",
       "type": "entity_field",
       "deps": [
         "property_not_required",
@@ -24576,7 +25345,7 @@
         "property_not_unique"
       ],
       "category": "public_data",
-      "caption": "public_data project_id field",
+      "caption": "public_data program_id field",
       "self_data": {
         "fieldType": "uuid",
         "component": "LookupInput",
@@ -24595,11 +25364,11 @@
           ]
         },
         "isForeignKey": true,
-        "referencedTable": "project",
+        "referencedTable": "program",
         "referencedFieldID": "id",
         "dataSource": "collection",
-        "displayName": "Project",
-        "placeholder": "Enter project",
+        "displayName": "Program",
+        "placeholder": "Enter program",
         "referencedFieldName": "name"
       },
       "tags": [
@@ -26280,7 +27049,7 @@
       ]
     },
     {
-      "id": "raw_data_field_project_id",
+      "id": "raw_data_field_program_id",
       "type": "entity_field",
       "deps": [
         "property_not_required",
@@ -26289,7 +27058,7 @@
         "property_not_unique"
       ],
       "category": "raw_data",
-      "caption": "raw_data project_id field",
+      "caption": "raw_data program_id field",
       "self_data": {
         "fieldType": "uuid",
         "component": "LookupInput",
@@ -26308,11 +27077,11 @@
           ]
         },
         "isForeignKey": true,
-        "referencedTable": "project",
+        "referencedTable": "program",
         "referencedFieldID": "id",
         "dataSource": "collection",
-        "displayName": "Project",
-        "placeholder": "Enter project",
+        "displayName": "Program",
+        "placeholder": "Enter program",
         "referencedFieldName": "name"
       },
       "tags": [
@@ -30330,9 +31099,7 @@
         },
         "defaultValue": ""
       },
-      "tags": [
-        "dictionary"
-      ]
+      "tags": []
     },
     {
       "id": "achievement_category_field_description",
@@ -30367,9 +31134,7 @@
         },
         "defaultValue": ""
       },
-      "tags": [
-        "dictionary"
-      ]
+      "tags": []
     },
     {
       "id": "achievement_category_field_id",
@@ -30397,9 +31162,7 @@
         },
         "displayName": "Id"
       },
-      "tags": [
-        "dictionary"
-      ]
+      "tags": []
     },
     {
       "id": "achievement_category_field_created_at",
@@ -30427,9 +31190,7 @@
         },
         "displayName": "Created At"
       },
-      "tags": [
-        "dictionary"
-      ]
+      "tags": []
     },
     {
       "id": "achievement_category_field_created_by",
@@ -30457,9 +31218,7 @@
         },
         "displayName": "Created By"
       },
-      "tags": [
-        "dictionary"
-      ]
+      "tags": []
     },
     {
       "id": "achievement_category_field_updated_at",
@@ -30487,9 +31246,7 @@
         },
         "displayName": "Updated At"
       },
-      "tags": [
-        "dictionary"
-      ]
+      "tags": []
     },
     {
       "id": "achievement_category_field_updated_by",
@@ -30517,9 +31274,7 @@
         },
         "displayName": "Updated By"
       },
-      "tags": [
-        "dictionary"
-      ]
+      "tags": []
     },
     {
       "id": "activity_category_field_name",
@@ -52100,9 +52855,7 @@
         },
         "defaultValue": ""
       },
-      "tags": [
-        "dictionary"
-      ]
+      "tags": []
     },
     {
       "id": "pet_service_type_field_description",
@@ -52137,9 +52890,7 @@
         },
         "defaultValue": ""
       },
-      "tags": [
-        "dictionary"
-      ]
+      "tags": []
     },
     {
       "id": "pet_service_type_field_id",
@@ -52167,9 +52918,7 @@
         },
         "displayName": "Id"
       },
-      "tags": [
-        "dictionary"
-      ]
+      "tags": []
     },
     {
       "id": "pet_service_type_field_created_at",
@@ -52197,9 +52946,7 @@
         },
         "displayName": "Created At"
       },
-      "tags": [
-        "dictionary"
-      ]
+      "tags": []
     },
     {
       "id": "pet_service_type_field_created_by",
@@ -52227,9 +52974,7 @@
         },
         "displayName": "Created By"
       },
-      "tags": [
-        "dictionary"
-      ]
+      "tags": []
     },
     {
       "id": "pet_service_type_field_updated_at",
@@ -52257,9 +53002,7 @@
         },
         "displayName": "Updated At"
       },
-      "tags": [
-        "dictionary"
-      ]
+      "tags": []
     },
     {
       "id": "pet_service_type_field_updated_by",
@@ -52287,9 +53030,7 @@
         },
         "displayName": "Updated By"
       },
-      "tags": [
-        "dictionary"
-      ]
+      "tags": []
     },
     {
       "id": "pet_service_type_by_entity_field_entity_name",
@@ -55269,6 +56010,529 @@
       ]
     },
     {
+      "id": "program_status_field_name",
+      "type": "entity_field",
+      "deps": [
+        "field_name"
+      ],
+      "category": "program_status",
+      "caption": "program_status name field",
+      "self_data": {
+        "fieldType": "string",
+        "component": "TextInput",
+        "required": true,
+        "isSystem": false,
+        "isPrimaryKey": false,
+        "isUnique": false,
+        "sortOrder": 10,
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "admin",
+            "editor"
+          ]
+        },
+        "maxLength": 250,
+        "displayName": "Name",
+        "placeholder": "Enter name",
+        "validation": {
+          "maxLength": 250
+        },
+        "defaultValue": ""
+      },
+      "tags": [
+        "dictionary"
+      ]
+    },
+    {
+      "id": "program_status_field_description",
+      "type": "entity_field",
+      "deps": [
+        "field_description"
+      ],
+      "category": "program_status",
+      "caption": "program_status description field",
+      "self_data": {
+        "fieldType": "string",
+        "component": "TextareaInput",
+        "required": true,
+        "isSystem": false,
+        "isPrimaryKey": false,
+        "isUnique": false,
+        "sortOrder": 20,
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "admin",
+            "editor"
+          ]
+        },
+        "maxLength": 250,
+        "displayName": "Description",
+        "placeholder": "Enter description",
+        "validation": {
+          "maxLength": 250
+        },
+        "defaultValue": ""
+      },
+      "tags": [
+        "dictionary"
+      ]
+    },
+    {
+      "id": "program_status_field_is_final",
+      "type": "entity_field",
+      "deps": [
+        "property_required",
+        "property_not_system",
+        "property_not_primary_key",
+        "property_not_unique"
+      ],
+      "category": "program_status",
+      "caption": "program_status is_final field",
+      "self_data": {
+        "fieldType": "boolean",
+        "component": "CheckboxInput",
+        "required": true,
+        "isSystem": false,
+        "isPrimaryKey": false,
+        "isUnique": false,
+        "sortOrder": 30,
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "admin",
+            "editor"
+          ]
+        },
+        "displayName": "Is Final",
+        "placeholder": "Enter is final",
+        "defaultValue": "false"
+      },
+      "tags": [
+        "dictionary"
+      ]
+    },
+    {
+      "id": "program_status_field_id",
+      "type": "entity_field",
+      "deps": [
+        "field_id"
+      ],
+      "category": "program_status",
+      "caption": "program_status id field",
+      "self_data": {
+        "fieldType": "uuid",
+        "component": "TextInput",
+        "required": true,
+        "isSystem": true,
+        "isPrimaryKey": true,
+        "isUnique": true,
+        "sortOrder": 40,
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "system"
+          ]
+        },
+        "displayName": "Id"
+      },
+      "tags": [
+        "dictionary"
+      ]
+    },
+    {
+      "id": "program_status_field_created_at",
+      "type": "entity_field",
+      "deps": [
+        "field_created_at"
+      ],
+      "category": "program_status",
+      "caption": "program_status created_at field",
+      "self_data": {
+        "fieldType": "datetime",
+        "component": "DateInput",
+        "required": false,
+        "isSystem": true,
+        "isPrimaryKey": false,
+        "isUnique": false,
+        "sortOrder": 50,
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "system"
+          ]
+        },
+        "displayName": "Created At"
+      },
+      "tags": [
+        "dictionary"
+      ]
+    },
+    {
+      "id": "program_status_field_created_by",
+      "type": "entity_field",
+      "deps": [
+        "field_created_by"
+      ],
+      "category": "program_status",
+      "caption": "program_status created_by field",
+      "self_data": {
+        "fieldType": "uuid",
+        "component": "TextInput",
+        "required": false,
+        "isSystem": true,
+        "isPrimaryKey": false,
+        "isUnique": false,
+        "sortOrder": 60,
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "system"
+          ]
+        },
+        "displayName": "Created By"
+      },
+      "tags": [
+        "dictionary"
+      ]
+    },
+    {
+      "id": "program_status_field_updated_at",
+      "type": "entity_field",
+      "deps": [
+        "field_updated_at"
+      ],
+      "category": "program_status",
+      "caption": "program_status updated_at field",
+      "self_data": {
+        "fieldType": "datetime",
+        "component": "DateInput",
+        "required": false,
+        "isSystem": true,
+        "isPrimaryKey": false,
+        "isUnique": false,
+        "sortOrder": 70,
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "system"
+          ]
+        },
+        "displayName": "Updated At"
+      },
+      "tags": [
+        "dictionary"
+      ]
+    },
+    {
+      "id": "program_status_field_updated_by",
+      "type": "entity_field",
+      "deps": [
+        "field_updated_by"
+      ],
+      "category": "program_status",
+      "caption": "program_status updated_by field",
+      "self_data": {
+        "fieldType": "uuid",
+        "component": "TextInput",
+        "required": false,
+        "isSystem": true,
+        "isPrimaryKey": false,
+        "isUnique": false,
+        "sortOrder": 80,
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "system"
+          ]
+        },
+        "displayName": "Updated By"
+      },
+      "tags": [
+        "dictionary"
+      ]
+    },
+    {
+      "id": "program_type_field_name",
+      "type": "entity_field",
+      "deps": [
+        "field_name"
+      ],
+      "category": "program_type",
+      "caption": "program_type name field",
+      "self_data": {
+        "fieldType": "string",
+        "component": "TextInput",
+        "required": true,
+        "isSystem": false,
+        "isPrimaryKey": false,
+        "isUnique": false,
+        "sortOrder": 10,
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "admin",
+            "editor"
+          ]
+        },
+        "maxLength": 250,
+        "displayName": "Name",
+        "placeholder": "Enter name",
+        "validation": {
+          "maxLength": 250
+        },
+        "defaultValue": ""
+      },
+      "tags": [
+        "dictionary"
+      ]
+    },
+    {
+      "id": "program_type_field_description",
+      "type": "entity_field",
+      "deps": [
+        "field_description"
+      ],
+      "category": "program_type",
+      "caption": "program_type description field",
+      "self_data": {
+        "fieldType": "string",
+        "component": "TextareaInput",
+        "required": true,
+        "isSystem": false,
+        "isPrimaryKey": false,
+        "isUnique": false,
+        "sortOrder": 20,
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "admin",
+            "editor"
+          ]
+        },
+        "maxLength": 250,
+        "displayName": "Description",
+        "placeholder": "Enter description",
+        "validation": {
+          "maxLength": 250
+        },
+        "defaultValue": ""
+      },
+      "tags": [
+        "dictionary"
+      ]
+    },
+    {
+      "id": "program_type_field_event_type_id",
+      "type": "entity_field",
+      "deps": [
+        "property_not_required",
+        "property_not_system",
+        "property_not_primary_key",
+        "property_not_unique"
+      ],
+      "category": "program_type",
+      "caption": "program_type event_type_id field",
+      "self_data": {
+        "fieldType": "uuid",
+        "component": "DropdownInput",
+        "required": false,
+        "isSystem": false,
+        "isPrimaryKey": false,
+        "isUnique": false,
+        "sortOrder": 30,
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "admin",
+            "editor"
+          ]
+        },
+        "isForeignKey": true,
+        "referencedTable": "event_type",
+        "referencedFieldID": "id",
+        "displayName": "Event Type",
+        "placeholder": "Enter event type",
+        "referencedFieldName": "name"
+      },
+      "tags": [
+        "dictionary"
+      ]
+    },
+    {
+      "id": "program_type_field_id",
+      "type": "entity_field",
+      "deps": [
+        "field_id"
+      ],
+      "category": "program_type",
+      "caption": "program_type id field",
+      "self_data": {
+        "fieldType": "uuid",
+        "component": "TextInput",
+        "required": true,
+        "isSystem": true,
+        "isPrimaryKey": true,
+        "isUnique": true,
+        "sortOrder": 40,
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "system"
+          ]
+        },
+        "displayName": "Id"
+      },
+      "tags": [
+        "dictionary"
+      ]
+    },
+    {
+      "id": "program_type_field_created_at",
+      "type": "entity_field",
+      "deps": [
+        "field_created_at"
+      ],
+      "category": "program_type",
+      "caption": "program_type created_at field",
+      "self_data": {
+        "fieldType": "datetime",
+        "component": "DateInput",
+        "required": false,
+        "isSystem": true,
+        "isPrimaryKey": false,
+        "isUnique": false,
+        "sortOrder": 50,
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "system"
+          ]
+        },
+        "displayName": "Created At"
+      },
+      "tags": [
+        "dictionary"
+      ]
+    },
+    {
+      "id": "program_type_field_created_by",
+      "type": "entity_field",
+      "deps": [
+        "field_created_by"
+      ],
+      "category": "program_type",
+      "caption": "program_type created_by field",
+      "self_data": {
+        "fieldType": "uuid",
+        "component": "TextInput",
+        "required": false,
+        "isSystem": true,
+        "isPrimaryKey": false,
+        "isUnique": false,
+        "sortOrder": 60,
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "system"
+          ]
+        },
+        "displayName": "Created By"
+      },
+      "tags": [
+        "dictionary"
+      ]
+    },
+    {
+      "id": "program_type_field_updated_at",
+      "type": "entity_field",
+      "deps": [
+        "field_updated_at"
+      ],
+      "category": "program_type",
+      "caption": "program_type updated_at field",
+      "self_data": {
+        "fieldType": "datetime",
+        "component": "DateInput",
+        "required": false,
+        "isSystem": true,
+        "isPrimaryKey": false,
+        "isUnique": false,
+        "sortOrder": 70,
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "system"
+          ]
+        },
+        "displayName": "Updated At"
+      },
+      "tags": [
+        "dictionary"
+      ]
+    },
+    {
+      "id": "program_type_field_updated_by",
+      "type": "entity_field",
+      "deps": [
+        "field_updated_by"
+      ],
+      "category": "program_type",
+      "caption": "program_type updated_by field",
+      "self_data": {
+        "fieldType": "uuid",
+        "component": "TextInput",
+        "required": false,
+        "isSystem": true,
+        "isPrimaryKey": false,
+        "isUnique": false,
+        "sortOrder": 80,
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "system"
+          ]
+        },
+        "displayName": "Updated By"
+      },
+      "tags": [
+        "dictionary"
+      ]
+    },
+    {
       "id": "project_category_field_name",
       "type": "entity_field",
       "deps": [
@@ -55301,9 +56565,7 @@
         },
         "defaultValue": ""
       },
-      "tags": [
-        "dictionary"
-      ]
+      "tags": []
     },
     {
       "id": "project_category_field_description",
@@ -55338,9 +56600,7 @@
         },
         "defaultValue": ""
       },
-      "tags": [
-        "dictionary"
-      ]
+      "tags": []
     },
     {
       "id": "project_category_field_event_type_id",
@@ -55377,9 +56637,7 @@
         "placeholder": "Enter event type",
         "referencedFieldName": "name"
       },
-      "tags": [
-        "dictionary"
-      ]
+      "tags": []
     },
     {
       "id": "project_category_field_id",
@@ -55407,9 +56665,7 @@
         },
         "displayName": "Id"
       },
-      "tags": [
-        "dictionary"
-      ]
+      "tags": []
     },
     {
       "id": "project_category_field_created_at",
@@ -55437,9 +56693,7 @@
         },
         "displayName": "Created At"
       },
-      "tags": [
-        "dictionary"
-      ]
+      "tags": []
     },
     {
       "id": "project_category_field_created_by",
@@ -55467,9 +56721,7 @@
         },
         "displayName": "Created By"
       },
-      "tags": [
-        "dictionary"
-      ]
+      "tags": []
     },
     {
       "id": "project_category_field_updated_at",
@@ -55497,9 +56749,7 @@
         },
         "displayName": "Updated At"
       },
-      "tags": [
-        "dictionary"
-      ]
+      "tags": []
     },
     {
       "id": "project_category_field_updated_by",
@@ -55527,9 +56777,7 @@
         },
         "displayName": "Updated By"
       },
-      "tags": [
-        "dictionary"
-      ]
+      "tags": []
     },
     {
       "id": "project_status_field_name",
@@ -55564,9 +56812,7 @@
         },
         "defaultValue": ""
       },
-      "tags": [
-        "dictionary"
-      ]
+      "tags": []
     },
     {
       "id": "project_status_field_description",
@@ -55601,9 +56847,7 @@
         },
         "defaultValue": ""
       },
-      "tags": [
-        "dictionary"
-      ]
+      "tags": []
     },
     {
       "id": "project_status_field_is_final",
@@ -55637,9 +56881,7 @@
         "placeholder": "Enter is final",
         "defaultValue": "false"
       },
-      "tags": [
-        "dictionary"
-      ]
+      "tags": []
     },
     {
       "id": "project_status_field_id",
@@ -55667,9 +56909,7 @@
         },
         "displayName": "Id"
       },
-      "tags": [
-        "dictionary"
-      ]
+      "tags": []
     },
     {
       "id": "project_status_field_created_at",
@@ -55697,9 +56937,7 @@
         },
         "displayName": "Created At"
       },
-      "tags": [
-        "dictionary"
-      ]
+      "tags": []
     },
     {
       "id": "project_status_field_created_by",
@@ -55727,9 +56965,7 @@
         },
         "displayName": "Created By"
       },
-      "tags": [
-        "dictionary"
-      ]
+      "tags": []
     },
     {
       "id": "project_status_field_updated_at",
@@ -55757,9 +56993,7 @@
         },
         "displayName": "Updated At"
       },
-      "tags": [
-        "dictionary"
-      ]
+      "tags": []
     },
     {
       "id": "project_status_field_updated_by",
@@ -55787,9 +57021,7 @@
         },
         "displayName": "Updated By"
       },
-      "tags": [
-        "dictionary"
-      ]
+      "tags": []
     },
     {
       "id": "project_type_field_name",
@@ -59864,6 +61096,343 @@
         "isPrimaryKey": false,
         "isUnique": false,
         "sortOrder": 90,
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "system"
+          ]
+        },
+        "displayName": "Updated By"
+      },
+      "tags": [
+        "dictionary"
+      ]
+    },
+    {
+      "id": "service_status_field_name",
+      "type": "entity_field",
+      "deps": [
+        "field_name"
+      ],
+      "category": "service_status",
+      "caption": "service_status name field",
+      "self_data": {
+        "fieldType": "string",
+        "component": "TextInput",
+        "required": true,
+        "isSystem": false,
+        "isPrimaryKey": false,
+        "isUnique": false,
+        "sortOrder": 10,
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "admin",
+            "editor"
+          ]
+        },
+        "maxLength": 250,
+        "displayName": "Name",
+        "placeholder": "Enter name",
+        "validation": {
+          "maxLength": 250
+        },
+        "defaultValue": ""
+      },
+      "tags": [
+        "dictionary"
+      ]
+    },
+    {
+      "id": "service_status_field_description",
+      "type": "entity_field",
+      "deps": [
+        "field_description"
+      ],
+      "category": "service_status",
+      "caption": "service_status description field",
+      "self_data": {
+        "fieldType": "string",
+        "component": "TextareaInput",
+        "required": true,
+        "isSystem": false,
+        "isPrimaryKey": false,
+        "isUnique": false,
+        "sortOrder": 20,
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "admin",
+            "editor"
+          ]
+        },
+        "maxLength": 250,
+        "displayName": "Description",
+        "placeholder": "Enter description",
+        "validation": {
+          "maxLength": 250
+        },
+        "defaultValue": ""
+      },
+      "tags": [
+        "dictionary"
+      ]
+    },
+    {
+      "id": "service_status_field_process_listeners",
+      "type": "entity_field",
+      "deps": [
+        "property_required",
+        "property_not_system",
+        "property_not_primary_key",
+        "property_not_unique"
+      ],
+      "category": "service_status",
+      "caption": "service_status process_listeners field",
+      "self_data": {
+        "fieldType": "number",
+        "component": "NumberInput",
+        "required": true,
+        "isSystem": false,
+        "isPrimaryKey": false,
+        "isUnique": false,
+        "sortOrder": 30,
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "admin",
+            "editor"
+          ]
+        },
+        "displayName": "Process Listeners",
+        "placeholder": "Enter process listeners",
+        "validation": {
+          "precision": 32,
+          "scale": 0
+        },
+        "defaultValue": "0"
+      },
+      "tags": [
+        "dictionary"
+      ]
+    },
+    {
+      "id": "service_status_field_active",
+      "type": "entity_field",
+      "deps": [
+        "property_required",
+        "property_not_system",
+        "property_not_primary_key",
+        "property_not_unique"
+      ],
+      "category": "service_status",
+      "caption": "service_status active field",
+      "self_data": {
+        "fieldType": "boolean",
+        "component": "CheckboxInput",
+        "required": true,
+        "isSystem": false,
+        "isPrimaryKey": false,
+        "isUnique": false,
+        "sortOrder": 40,
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "admin",
+            "editor"
+          ]
+        },
+        "displayName": "Active",
+        "placeholder": "Enter active",
+        "defaultValue": "false"
+      },
+      "tags": [
+        "dictionary"
+      ]
+    },
+    {
+      "id": "service_status_field_color",
+      "type": "entity_field",
+      "deps": [
+        "field_color"
+      ],
+      "category": "service_status",
+      "caption": "service_status color field",
+      "self_data": {
+        "fieldType": "string",
+        "component": "TextInput",
+        "required": true,
+        "isSystem": false,
+        "isPrimaryKey": false,
+        "isUnique": false,
+        "sortOrder": 50,
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "admin",
+            "editor"
+          ]
+        },
+        "maxLength": 250,
+        "displayName": "Color",
+        "placeholder": "Enter color",
+        "validation": {
+          "maxLength": 250
+        },
+        "defaultValue": ""
+      },
+      "tags": [
+        "dictionary"
+      ]
+    },
+    {
+      "id": "service_status_field_id",
+      "type": "entity_field",
+      "deps": [
+        "field_id"
+      ],
+      "category": "service_status",
+      "caption": "service_status id field",
+      "self_data": {
+        "fieldType": "uuid",
+        "component": "TextInput",
+        "required": true,
+        "isSystem": true,
+        "isPrimaryKey": true,
+        "isUnique": true,
+        "sortOrder": 60,
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "system"
+          ]
+        },
+        "displayName": "Id"
+      },
+      "tags": [
+        "dictionary"
+      ]
+    },
+    {
+      "id": "service_status_field_created_at",
+      "type": "entity_field",
+      "deps": [
+        "field_created_at"
+      ],
+      "category": "service_status",
+      "caption": "service_status created_at field",
+      "self_data": {
+        "fieldType": "datetime",
+        "component": "DateInput",
+        "required": false,
+        "isSystem": true,
+        "isPrimaryKey": false,
+        "isUnique": false,
+        "sortOrder": 70,
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "system"
+          ]
+        },
+        "displayName": "Created At"
+      },
+      "tags": [
+        "dictionary"
+      ]
+    },
+    {
+      "id": "service_status_field_created_by",
+      "type": "entity_field",
+      "deps": [
+        "field_created_by"
+      ],
+      "category": "service_status",
+      "caption": "service_status created_by field",
+      "self_data": {
+        "fieldType": "uuid",
+        "component": "TextInput",
+        "required": false,
+        "isSystem": true,
+        "isPrimaryKey": false,
+        "isUnique": false,
+        "sortOrder": 80,
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "system"
+          ]
+        },
+        "displayName": "Created By"
+      },
+      "tags": [
+        "dictionary"
+      ]
+    },
+    {
+      "id": "service_status_field_updated_at",
+      "type": "entity_field",
+      "deps": [
+        "field_updated_at"
+      ],
+      "category": "service_status",
+      "caption": "service_status updated_at field",
+      "self_data": {
+        "fieldType": "datetime",
+        "component": "DateInput",
+        "required": false,
+        "isSystem": true,
+        "isPrimaryKey": false,
+        "isUnique": false,
+        "sortOrder": 90,
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "system"
+          ]
+        },
+        "displayName": "Updated At"
+      },
+      "tags": [
+        "dictionary"
+      ]
+    },
+    {
+      "id": "service_status_field_updated_by",
+      "type": "entity_field",
+      "deps": [
+        "field_updated_by"
+      ],
+      "category": "service_status",
+      "caption": "service_status updated_by field",
+      "self_data": {
+        "fieldType": "uuid",
+        "component": "TextInput",
+        "required": false,
+        "isSystem": true,
+        "isPrimaryKey": false,
+        "isUnique": false,
+        "sortOrder": 100,
         "permissions": {
           "read": [
             "*"
@@ -83891,6 +85460,989 @@
       ]
     },
     {
+      "id": "pet_in_litter_field_litter_id",
+      "type": "entity_field",
+      "deps": [
+        "property_required",
+        "property_not_system",
+        "property_not_primary_key",
+        "property_not_unique"
+      ],
+      "category": "pet_in_litter",
+      "caption": "pet_in_litter litter_id field",
+      "self_data": {
+        "fieldType": "uuid",
+        "component": "LookupInput",
+        "required": true,
+        "isSystem": false,
+        "isPrimaryKey": false,
+        "isUnique": false,
+        "sortOrder": 10,
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "admin",
+            "editor"
+          ]
+        },
+        "isForeignKey": true,
+        "referencedTable": "litter",
+        "referencedFieldID": "id",
+        "dataSource": "collection",
+        "displayName": "Litter",
+        "placeholder": "Enter litter",
+        "referencedFieldName": "name"
+      },
+      "tags": [
+        "child",
+        "pet"
+      ]
+    },
+    {
+      "id": "pet_in_litter_field_pet_id",
+      "type": "entity_field",
+      "deps": [
+        "field_pet_id"
+      ],
+      "category": "pet_in_litter",
+      "caption": "pet_in_litter pet_id field",
+      "self_data": {
+        "fieldType": "uuid",
+        "component": "LookupInput",
+        "required": true,
+        "isSystem": false,
+        "isPrimaryKey": false,
+        "isUnique": false,
+        "sortOrder": 20,
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "admin",
+            "editor"
+          ]
+        },
+        "isForeignKey": true,
+        "referencedTable": "pet",
+        "referencedFieldID": "id",
+        "dataSource": "collection",
+        "displayName": "Pet",
+        "placeholder": "Enter pet",
+        "referencedFieldName": "name"
+      },
+      "tags": [
+        "child",
+        "pet"
+      ]
+    },
+    {
+      "id": "pet_in_litter_field_pet_breed_id",
+      "type": "entity_field",
+      "deps": [
+        "property_required",
+        "property_not_system",
+        "property_not_primary_key",
+        "property_not_unique"
+      ],
+      "category": "pet_in_litter",
+      "caption": "pet_in_litter pet_breed_id field",
+      "self_data": {
+        "fieldType": "uuid",
+        "component": "LookupInput",
+        "required": true,
+        "isSystem": false,
+        "isPrimaryKey": false,
+        "isUnique": false,
+        "sortOrder": 30,
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "admin",
+            "editor"
+          ]
+        },
+        "isForeignKey": true,
+        "referencedTable": "breed",
+        "referencedFieldID": "id",
+        "dataSource": "collection",
+        "displayName": "Pet Breed",
+        "placeholder": "Enter pet breed",
+        "referencedFieldName": "name"
+      },
+      "tags": [
+        "child",
+        "pet"
+      ]
+    },
+    {
+      "id": "pet_in_litter_field_id",
+      "type": "entity_field",
+      "deps": [
+        "field_id"
+      ],
+      "category": "pet_in_litter",
+      "caption": "pet_in_litter id field",
+      "self_data": {
+        "fieldType": "uuid",
+        "component": "TextInput",
+        "required": true,
+        "isSystem": true,
+        "isPrimaryKey": true,
+        "isUnique": true,
+        "sortOrder": 40,
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "system"
+          ]
+        },
+        "displayName": "Id"
+      },
+      "tags": [
+        "child",
+        "pet"
+      ]
+    },
+    {
+      "id": "pet_in_litter_field_created_at",
+      "type": "entity_field",
+      "deps": [
+        "field_created_at"
+      ],
+      "category": "pet_in_litter",
+      "caption": "pet_in_litter created_at field",
+      "self_data": {
+        "fieldType": "datetime",
+        "component": "DateInput",
+        "required": false,
+        "isSystem": true,
+        "isPrimaryKey": false,
+        "isUnique": false,
+        "sortOrder": 50,
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "system"
+          ]
+        },
+        "displayName": "Created At"
+      },
+      "tags": [
+        "child",
+        "pet"
+      ]
+    },
+    {
+      "id": "pet_in_litter_field_created_by",
+      "type": "entity_field",
+      "deps": [
+        "field_created_by"
+      ],
+      "category": "pet_in_litter",
+      "caption": "pet_in_litter created_by field",
+      "self_data": {
+        "fieldType": "uuid",
+        "component": "TextInput",
+        "required": false,
+        "isSystem": true,
+        "isPrimaryKey": false,
+        "isUnique": false,
+        "sortOrder": 60,
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "system"
+          ]
+        },
+        "displayName": "Created By"
+      },
+      "tags": [
+        "child",
+        "pet"
+      ]
+    },
+    {
+      "id": "pet_in_litter_field_updated_at",
+      "type": "entity_field",
+      "deps": [
+        "field_updated_at"
+      ],
+      "category": "pet_in_litter",
+      "caption": "pet_in_litter updated_at field",
+      "self_data": {
+        "fieldType": "datetime",
+        "component": "DateInput",
+        "required": false,
+        "isSystem": true,
+        "isPrimaryKey": false,
+        "isUnique": false,
+        "sortOrder": 70,
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "system"
+          ]
+        },
+        "displayName": "Updated At"
+      },
+      "tags": [
+        "child",
+        "pet"
+      ]
+    },
+    {
+      "id": "pet_in_litter_field_updated_by",
+      "type": "entity_field",
+      "deps": [
+        "field_updated_by"
+      ],
+      "category": "pet_in_litter",
+      "caption": "pet_in_litter updated_by field",
+      "self_data": {
+        "fieldType": "uuid",
+        "component": "TextInput",
+        "required": false,
+        "isSystem": true,
+        "isPrimaryKey": false,
+        "isUnique": false,
+        "sortOrder": 80,
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "system"
+          ]
+        },
+        "displayName": "Updated By"
+      },
+      "tags": [
+        "child",
+        "pet"
+      ]
+    },
+    {
+      "id": "pet_in_program_field_program_id",
+      "type": "entity_field",
+      "deps": [
+        "property_not_required",
+        "property_not_system",
+        "property_not_primary_key",
+        "property_not_unique"
+      ],
+      "category": "pet_in_program",
+      "caption": "pet_in_program program_id field",
+      "self_data": {
+        "fieldType": "uuid",
+        "component": "LookupInput",
+        "required": false,
+        "isSystem": false,
+        "isPrimaryKey": false,
+        "isUnique": false,
+        "sortOrder": 10,
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "admin",
+            "editor"
+          ]
+        },
+        "isForeignKey": true,
+        "referencedTable": "program",
+        "referencedFieldID": "id",
+        "dataSource": "collection",
+        "displayName": "Program",
+        "placeholder": "Enter program",
+        "referencedFieldName": "name"
+      },
+      "tags": [
+        "child",
+        "pet"
+      ]
+    },
+    {
+      "id": "pet_in_program_field_pet_id",
+      "type": "entity_field",
+      "deps": [
+        "field_pet_id"
+      ],
+      "category": "pet_in_program",
+      "caption": "pet_in_program pet_id field",
+      "self_data": {
+        "fieldType": "uuid",
+        "component": "DropdownInput",
+        "required": false,
+        "isSystem": false,
+        "isPrimaryKey": false,
+        "isUnique": false,
+        "sortOrder": 20,
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "admin",
+            "editor"
+          ]
+        },
+        "isForeignKey": true,
+        "referencedTable": "pet_manchester_terrier_toy",
+        "referencedFieldID": "breed_id",
+        "displayName": "Pet",
+        "placeholder": "Enter pet",
+        "referencedFieldName": "name"
+      },
+      "tags": [
+        "child",
+        "pet"
+      ]
+    },
+    {
+      "id": "pet_in_program_field_number",
+      "type": "entity_field",
+      "deps": [
+        "field_number"
+      ],
+      "category": "pet_in_program",
+      "caption": "pet_in_program number field",
+      "self_data": {
+        "fieldType": "number",
+        "component": "NumberInput",
+        "required": true,
+        "isSystem": false,
+        "isPrimaryKey": false,
+        "isUnique": false,
+        "sortOrder": 30,
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "admin",
+            "editor"
+          ]
+        },
+        "displayName": "Number",
+        "placeholder": "Enter number",
+        "defaultValue": "0"
+      },
+      "tags": [
+        "child",
+        "pet"
+      ]
+    },
+    {
+      "id": "pet_in_program_field_class_id",
+      "type": "entity_field",
+      "deps": [
+        "property_not_required",
+        "property_not_system",
+        "property_not_primary_key",
+        "property_not_unique"
+      ],
+      "category": "pet_in_program",
+      "caption": "pet_in_program class_id field",
+      "self_data": {
+        "fieldType": "uuid",
+        "component": "DropdownInput",
+        "required": false,
+        "isSystem": false,
+        "isPrimaryKey": false,
+        "isUnique": false,
+        "sortOrder": 40,
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "admin",
+            "editor"
+          ]
+        },
+        "isForeignKey": true,
+        "referencedTable": "pet_class",
+        "referencedFieldID": "id",
+        "displayName": "Class",
+        "placeholder": "Enter class",
+        "referencedFieldName": "name"
+      },
+      "tags": [
+        "child",
+        "pet"
+      ]
+    },
+    {
+      "id": "pet_in_program_field_web_link",
+      "type": "entity_field",
+      "deps": [
+        "property_required",
+        "property_not_system",
+        "property_not_primary_key",
+        "property_not_unique",
+        "property_maxlength_250"
+      ],
+      "category": "pet_in_program",
+      "caption": "pet_in_program web_link field",
+      "self_data": {
+        "fieldType": "string",
+        "component": "TextInput",
+        "required": true,
+        "isSystem": false,
+        "isPrimaryKey": false,
+        "isUnique": false,
+        "sortOrder": 50,
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "admin",
+            "editor"
+          ]
+        },
+        "maxLength": 250,
+        "displayName": "Web Link",
+        "placeholder": "Enter web link",
+        "validation": {
+          "maxLength": 250,
+          "pattern": "^https?://.+",
+          "message": "Invalid URL format"
+        },
+        "defaultValue": ""
+      },
+      "tags": [
+        "child",
+        "pet"
+      ]
+    },
+    {
+      "id": "pet_in_program_field_result",
+      "type": "entity_field",
+      "deps": [
+        "property_required",
+        "property_not_system",
+        "property_not_primary_key",
+        "property_not_unique",
+        "property_maxlength_250"
+      ],
+      "category": "pet_in_program",
+      "caption": "pet_in_program result field",
+      "self_data": {
+        "fieldType": "string",
+        "component": "TextInput",
+        "required": true,
+        "isSystem": false,
+        "isPrimaryKey": false,
+        "isUnique": false,
+        "sortOrder": 60,
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "admin",
+            "editor"
+          ]
+        },
+        "maxLength": 250,
+        "displayName": "Result",
+        "placeholder": "Enter result",
+        "validation": {
+          "maxLength": 250
+        },
+        "defaultValue": ""
+      },
+      "tags": [
+        "child",
+        "pet"
+      ]
+    },
+    {
+      "id": "pet_in_program_field_code",
+      "type": "entity_field",
+      "deps": [
+        "field_code"
+      ],
+      "category": "pet_in_program",
+      "caption": "pet_in_program code field",
+      "self_data": {
+        "fieldType": "string",
+        "component": "TextInput",
+        "required": true,
+        "isSystem": false,
+        "isPrimaryKey": false,
+        "isUnique": false,
+        "sortOrder": 70,
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "admin",
+            "editor"
+          ]
+        },
+        "maxLength": 50,
+        "displayName": "Code",
+        "placeholder": "Enter code",
+        "validation": {
+          "maxLength": 50
+        },
+        "defaultValue": ""
+      },
+      "tags": [
+        "child",
+        "pet"
+      ]
+    },
+    {
+      "id": "pet_in_program_field_handler_id",
+      "type": "entity_field",
+      "deps": [
+        "property_not_required",
+        "property_not_system",
+        "property_not_primary_key",
+        "property_not_unique"
+      ],
+      "category": "pet_in_program",
+      "caption": "pet_in_program handler_id field",
+      "self_data": {
+        "fieldType": "uuid",
+        "component": "LookupInput",
+        "required": false,
+        "isSystem": false,
+        "isPrimaryKey": false,
+        "isUnique": false,
+        "sortOrder": 80,
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "admin",
+            "editor"
+          ]
+        },
+        "isForeignKey": true,
+        "referencedTable": "contact",
+        "referencedFieldID": "id",
+        "dataSource": "collection",
+        "displayName": "Handler",
+        "placeholder": "Enter handler",
+        "referencedFieldName": "name"
+      },
+      "tags": [
+        "child",
+        "pet"
+      ]
+    },
+    {
+      "id": "pet_in_program_field_judge_id",
+      "type": "entity_field",
+      "deps": [
+        "property_not_required",
+        "property_not_system",
+        "property_not_primary_key",
+        "property_not_unique"
+      ],
+      "category": "pet_in_program",
+      "caption": "pet_in_program judge_id field",
+      "self_data": {
+        "fieldType": "uuid",
+        "component": "LookupInput",
+        "required": false,
+        "isSystem": false,
+        "isPrimaryKey": false,
+        "isUnique": false,
+        "sortOrder": 90,
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "admin",
+            "editor"
+          ]
+        },
+        "isForeignKey": true,
+        "referencedTable": "contact",
+        "referencedFieldID": "id",
+        "dataSource": "collection",
+        "displayName": "Judge",
+        "placeholder": "Enter judge",
+        "referencedFieldName": "name"
+      },
+      "tags": [
+        "child",
+        "pet"
+      ]
+    },
+    {
+      "id": "pet_in_program_field_place_id",
+      "type": "entity_field",
+      "deps": [
+        "property_not_required",
+        "property_not_system",
+        "property_not_primary_key",
+        "property_not_unique"
+      ],
+      "category": "pet_in_program",
+      "caption": "pet_in_program place_id field",
+      "self_data": {
+        "fieldType": "uuid",
+        "component": "DropdownInput",
+        "required": false,
+        "isSystem": false,
+        "isPrimaryKey": false,
+        "isUnique": false,
+        "sortOrder": 100,
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "admin",
+            "editor"
+          ]
+        },
+        "isForeignKey": true,
+        "referencedTable": "place",
+        "referencedFieldID": "id",
+        "displayName": "Place",
+        "placeholder": "Enter place",
+        "referencedFieldName": "name"
+      },
+      "tags": [
+        "child",
+        "pet"
+      ]
+    },
+    {
+      "id": "pet_in_program_field_qualification_id",
+      "type": "entity_field",
+      "deps": [
+        "property_not_required",
+        "property_not_system",
+        "property_not_primary_key",
+        "property_not_unique"
+      ],
+      "category": "pet_in_program",
+      "caption": "pet_in_program qualification_id field",
+      "self_data": {
+        "fieldType": "uuid",
+        "component": "DropdownInput",
+        "required": false,
+        "isSystem": false,
+        "isPrimaryKey": false,
+        "isUnique": false,
+        "sortOrder": 110,
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "admin",
+            "editor"
+          ]
+        },
+        "isForeignKey": true,
+        "referencedTable": "pet_qualification",
+        "referencedFieldID": "id",
+        "displayName": "Qualification",
+        "placeholder": "Enter qualification",
+        "referencedFieldName": "name"
+      },
+      "tags": [
+        "child",
+        "pet"
+      ]
+    },
+    {
+      "id": "pet_in_program_field_date",
+      "type": "entity_field",
+      "deps": [
+        "field_date"
+      ],
+      "category": "pet_in_program",
+      "caption": "pet_in_program date field",
+      "self_data": {
+        "fieldType": "date",
+        "component": "DateInput",
+        "required": false,
+        "isSystem": false,
+        "isPrimaryKey": false,
+        "isUnique": false,
+        "sortOrder": 120,
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "admin",
+            "editor"
+          ]
+        },
+        "displayName": "Date",
+        "placeholder": "Enter date"
+      },
+      "tags": [
+        "child",
+        "pet"
+      ]
+    },
+    {
+      "id": "pet_in_program_field_temp_project_name",
+      "type": "entity_field",
+      "deps": [
+        "property_required",
+        "property_not_system",
+        "property_not_primary_key",
+        "property_not_unique",
+        "property_maxlength_500"
+      ],
+      "category": "pet_in_program",
+      "caption": "pet_in_program temp_project_name field",
+      "self_data": {
+        "fieldType": "string",
+        "component": "TextInput",
+        "required": true,
+        "isSystem": false,
+        "isPrimaryKey": false,
+        "isUnique": false,
+        "sortOrder": 130,
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "admin",
+            "editor"
+          ]
+        },
+        "maxLength": 500,
+        "displayName": "Temp Project Name",
+        "placeholder": "Enter temp project name",
+        "validation": {
+          "maxLength": 500
+        },
+        "defaultValue": ""
+      },
+      "tags": [
+        "child",
+        "pet"
+      ]
+    },
+    {
+      "id": "pet_in_program_field_pet_breed_id",
+      "type": "entity_field",
+      "deps": [
+        "property_not_required",
+        "property_not_system",
+        "property_not_primary_key",
+        "property_not_unique"
+      ],
+      "category": "pet_in_program",
+      "caption": "pet_in_program pet_breed_id field",
+      "self_data": {
+        "fieldType": "uuid",
+        "component": "DropdownInput",
+        "required": false,
+        "isSystem": false,
+        "isPrimaryKey": false,
+        "isUnique": false,
+        "sortOrder": 140,
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "admin",
+            "editor"
+          ]
+        },
+        "isForeignKey": true,
+        "referencedTable": "pet_spanish_alano",
+        "referencedFieldID": "breed_id",
+        "displayName": "Pet Breed",
+        "placeholder": "Enter pet breed",
+        "referencedFieldName": "name"
+      },
+      "tags": [
+        "child",
+        "pet"
+      ]
+    },
+    {
+      "id": "pet_in_program_field_id",
+      "type": "entity_field",
+      "deps": [
+        "field_id"
+      ],
+      "category": "pet_in_program",
+      "caption": "pet_in_program id field",
+      "self_data": {
+        "fieldType": "uuid",
+        "component": "TextInput",
+        "required": true,
+        "isSystem": true,
+        "isPrimaryKey": true,
+        "isUnique": true,
+        "sortOrder": 150,
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "system"
+          ]
+        },
+        "displayName": "Id"
+      },
+      "tags": [
+        "child",
+        "pet"
+      ]
+    },
+    {
+      "id": "pet_in_program_field_created_at",
+      "type": "entity_field",
+      "deps": [
+        "field_created_at"
+      ],
+      "category": "pet_in_program",
+      "caption": "pet_in_program created_at field",
+      "self_data": {
+        "fieldType": "datetime",
+        "component": "DateInput",
+        "required": false,
+        "isSystem": true,
+        "isPrimaryKey": false,
+        "isUnique": false,
+        "sortOrder": 160,
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "system"
+          ]
+        },
+        "displayName": "Created At"
+      },
+      "tags": [
+        "child",
+        "pet"
+      ]
+    },
+    {
+      "id": "pet_in_program_field_created_by",
+      "type": "entity_field",
+      "deps": [
+        "field_created_by"
+      ],
+      "category": "pet_in_program",
+      "caption": "pet_in_program created_by field",
+      "self_data": {
+        "fieldType": "uuid",
+        "component": "TextInput",
+        "required": false,
+        "isSystem": true,
+        "isPrimaryKey": false,
+        "isUnique": false,
+        "sortOrder": 170,
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "system"
+          ]
+        },
+        "displayName": "Created By"
+      },
+      "tags": [
+        "child",
+        "pet"
+      ]
+    },
+    {
+      "id": "pet_in_program_field_updated_at",
+      "type": "entity_field",
+      "deps": [
+        "field_updated_at"
+      ],
+      "category": "pet_in_program",
+      "caption": "pet_in_program updated_at field",
+      "self_data": {
+        "fieldType": "datetime",
+        "component": "DateInput",
+        "required": false,
+        "isSystem": true,
+        "isPrimaryKey": false,
+        "isUnique": false,
+        "sortOrder": 180,
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "system"
+          ]
+        },
+        "displayName": "Updated At"
+      },
+      "tags": [
+        "child",
+        "pet"
+      ]
+    },
+    {
+      "id": "pet_in_program_field_updated_by",
+      "type": "entity_field",
+      "deps": [
+        "field_updated_by"
+      ],
+      "category": "pet_in_program",
+      "caption": "pet_in_program updated_by field",
+      "self_data": {
+        "fieldType": "uuid",
+        "component": "TextInput",
+        "required": false,
+        "isSystem": true,
+        "isPrimaryKey": false,
+        "isUnique": false,
+        "sortOrder": 190,
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "system"
+          ]
+        },
+        "displayName": "Updated By"
+      },
+      "tags": [
+        "child",
+        "pet"
+      ]
+    },
+    {
       "id": "pet_in_project_field_project_id",
       "type": "entity_field",
       "deps": [
@@ -83926,10 +86478,7 @@
         "placeholder": "Enter project",
         "referencedFieldName": "name"
       },
-      "tags": [
-        "child",
-        "pet"
-      ]
+      "tags": []
     },
     {
       "id": "pet_in_project_field_pet_id",
@@ -83963,10 +86512,7 @@
         "placeholder": "Enter pet",
         "referencedFieldName": "name"
       },
-      "tags": [
-        "child",
-        "pet"
-      ]
+      "tags": []
     },
     {
       "id": "pet_in_project_field_number",
@@ -83997,10 +86543,7 @@
         "placeholder": "Enter number",
         "defaultValue": "0"
       },
-      "tags": [
-        "child",
-        "pet"
-      ]
+      "tags": []
     },
     {
       "id": "pet_in_project_field_class_id",
@@ -84037,10 +86580,7 @@
         "placeholder": "Enter class",
         "referencedFieldName": "name"
       },
-      "tags": [
-        "child",
-        "pet"
-      ]
+      "tags": []
     },
     {
       "id": "pet_in_project_field_web_link",
@@ -84081,10 +86621,7 @@
         },
         "defaultValue": ""
       },
-      "tags": [
-        "child",
-        "pet"
-      ]
+      "tags": []
     },
     {
       "id": "pet_in_project_field_result",
@@ -84123,10 +86660,7 @@
         },
         "defaultValue": ""
       },
-      "tags": [
-        "child",
-        "pet"
-      ]
+      "tags": []
     },
     {
       "id": "pet_in_project_field_code",
@@ -84161,10 +86695,7 @@
         },
         "defaultValue": ""
       },
-      "tags": [
-        "child",
-        "pet"
-      ]
+      "tags": []
     },
     {
       "id": "pet_in_project_field_handler_id",
@@ -84202,10 +86733,7 @@
         "placeholder": "Enter handler",
         "referencedFieldName": "name"
       },
-      "tags": [
-        "child",
-        "pet"
-      ]
+      "tags": []
     },
     {
       "id": "pet_in_project_field_judge_id",
@@ -84243,10 +86771,7 @@
         "placeholder": "Enter judge",
         "referencedFieldName": "name"
       },
-      "tags": [
-        "child",
-        "pet"
-      ]
+      "tags": []
     },
     {
       "id": "pet_in_project_field_place_id",
@@ -84283,10 +86808,7 @@
         "placeholder": "Enter place",
         "referencedFieldName": "name"
       },
-      "tags": [
-        "child",
-        "pet"
-      ]
+      "tags": []
     },
     {
       "id": "pet_in_project_field_qualification_id",
@@ -84323,10 +86845,7 @@
         "placeholder": "Enter qualification",
         "referencedFieldName": "name"
       },
-      "tags": [
-        "child",
-        "pet"
-      ]
+      "tags": []
     },
     {
       "id": "pet_in_project_field_date",
@@ -84356,10 +86875,7 @@
         "displayName": "Date",
         "placeholder": "Enter date"
       },
-      "tags": [
-        "child",
-        "pet"
-      ]
+      "tags": []
     },
     {
       "id": "pet_in_project_field_temp_project_name",
@@ -84398,10 +86914,7 @@
         },
         "defaultValue": ""
       },
-      "tags": [
-        "child",
-        "pet"
-      ]
+      "tags": []
     },
     {
       "id": "pet_in_project_field_pet_breed_id",
@@ -84438,10 +86951,7 @@
         "placeholder": "Enter pet breed",
         "referencedFieldName": "name"
       },
-      "tags": [
-        "child",
-        "pet"
-      ]
+      "tags": []
     },
     {
       "id": "pet_in_project_field_id",
@@ -84469,10 +86979,7 @@
         },
         "displayName": "Id"
       },
-      "tags": [
-        "child",
-        "pet"
-      ]
+      "tags": []
     },
     {
       "id": "pet_in_project_field_created_at",
@@ -84500,10 +87007,7 @@
         },
         "displayName": "Created At"
       },
-      "tags": [
-        "child",
-        "pet"
-      ]
+      "tags": []
     },
     {
       "id": "pet_in_project_field_created_by",
@@ -84531,10 +87035,7 @@
         },
         "displayName": "Created By"
       },
-      "tags": [
-        "child",
-        "pet"
-      ]
+      "tags": []
     },
     {
       "id": "pet_in_project_field_updated_at",
@@ -84562,10 +87063,7 @@
         },
         "displayName": "Updated At"
       },
-      "tags": [
-        "child",
-        "pet"
-      ]
+      "tags": []
     },
     {
       "id": "pet_in_project_field_updated_by",
@@ -84593,10 +87091,7 @@
         },
         "displayName": "Updated By"
       },
-      "tags": [
-        "child",
-        "pet"
-      ]
+      "tags": []
     },
     {
       "id": "pet_in_tag_field_tag_id",
@@ -88060,6 +90555,82 @@
       ]
     },
     {
+      "id": "pet_self_rating_update_queue_field_pet_id",
+      "type": "entity_field",
+      "deps": [
+        "field_pet_id"
+      ],
+      "category": "pet_self_rating_update_queue",
+      "caption": "pet_self_rating_update_queue pet_id field",
+      "self_data": {
+        "fieldType": "uuid",
+        "component": "LookupInput",
+        "required": true,
+        "isSystem": false,
+        "isPrimaryKey": true,
+        "isUnique": true,
+        "sortOrder": 10,
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "admin",
+            "editor"
+          ]
+        },
+        "isForeignKey": true,
+        "referencedTable": "pet",
+        "referencedFieldID": "id",
+        "dataSource": "collection",
+        "displayName": "Pet",
+        "placeholder": "Enter pet",
+        "referencedFieldName": "name"
+      },
+      "tags": [
+        "child",
+        "pet"
+      ]
+    },
+    {
+      "id": "pet_self_rating_update_queue_field_breed_id",
+      "type": "entity_field",
+      "deps": [
+        "field_breed_id"
+      ],
+      "category": "pet_self_rating_update_queue",
+      "caption": "pet_self_rating_update_queue breed_id field",
+      "self_data": {
+        "fieldType": "uuid",
+        "component": "LookupInput",
+        "required": true,
+        "isSystem": false,
+        "isPrimaryKey": true,
+        "isUnique": true,
+        "sortOrder": 20,
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "admin",
+            "editor"
+          ]
+        },
+        "isForeignKey": true,
+        "referencedTable": "breed",
+        "referencedFieldID": "id",
+        "dataSource": "collection",
+        "displayName": "Breed",
+        "placeholder": "Enter breed",
+        "referencedFieldName": "name"
+      },
+      "tags": [
+        "child",
+        "pet"
+      ]
+    },
+    {
       "id": "pet_service_field_name",
       "type": "entity_field",
       "deps": [
@@ -89318,6 +91889,427 @@
         "isPrimaryKey": false,
         "isUnique": false,
         "sortOrder": 110,
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "system"
+          ]
+        },
+        "displayName": "Updated By"
+      },
+      "tags": [
+        "child",
+        "pet"
+      ]
+    },
+    {
+      "id": "pet_service_in_pet_field_service_type_id",
+      "type": "entity_field",
+      "deps": [
+        "property_not_required",
+        "property_not_system",
+        "property_not_primary_key",
+        "property_not_unique"
+      ],
+      "category": "pet_service_in_pet",
+      "caption": "pet_service_in_pet service_type_id field",
+      "self_data": {
+        "fieldType": "uuid",
+        "component": "DropdownInput",
+        "required": false,
+        "isSystem": false,
+        "isPrimaryKey": false,
+        "isUnique": false,
+        "sortOrder": 10,
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "admin",
+            "editor"
+          ]
+        },
+        "isForeignKey": true,
+        "referencedTable": "pet_service",
+        "referencedFieldID": "id",
+        "displayName": "Service Type",
+        "placeholder": "Enter service type",
+        "referencedFieldName": "name"
+      },
+      "tags": [
+        "child",
+        "pet"
+      ]
+    },
+    {
+      "id": "pet_service_in_pet_field_pet_id",
+      "type": "entity_field",
+      "deps": [
+        "field_pet_id"
+      ],
+      "category": "pet_service_in_pet",
+      "caption": "pet_service_in_pet pet_id field",
+      "self_data": {
+        "fieldType": "uuid",
+        "component": "LookupInput",
+        "required": false,
+        "isSystem": false,
+        "isPrimaryKey": false,
+        "isUnique": false,
+        "sortOrder": 20,
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "admin",
+            "editor"
+          ]
+        },
+        "isForeignKey": true,
+        "referencedTable": "pet",
+        "referencedFieldID": "breed_id",
+        "dataSource": "collection",
+        "displayName": "Pet",
+        "placeholder": "Enter pet",
+        "referencedFieldName": "name"
+      },
+      "tags": [
+        "child",
+        "pet"
+      ]
+    },
+    {
+      "id": "pet_service_in_pet_field_currency_id",
+      "type": "entity_field",
+      "deps": [
+        "field_currency_id"
+      ],
+      "category": "pet_service_in_pet",
+      "caption": "pet_service_in_pet currency_id field",
+      "self_data": {
+        "fieldType": "uuid",
+        "component": "DropdownInput",
+        "required": false,
+        "isSystem": false,
+        "isPrimaryKey": false,
+        "isUnique": false,
+        "sortOrder": 30,
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "admin",
+            "editor"
+          ]
+        },
+        "isForeignKey": true,
+        "referencedTable": "currency",
+        "referencedFieldID": "id",
+        "displayName": "Currency",
+        "placeholder": "Enter currency",
+        "referencedFieldName": "name"
+      },
+      "tags": [
+        "child",
+        "pet"
+      ]
+    },
+    {
+      "id": "pet_service_in_pet_field_price",
+      "type": "entity_field",
+      "deps": [
+        "property_required",
+        "property_not_system",
+        "property_not_primary_key",
+        "property_not_unique"
+      ],
+      "category": "pet_service_in_pet",
+      "caption": "pet_service_in_pet price field",
+      "self_data": {
+        "fieldType": "number",
+        "component": "NumberInput",
+        "required": true,
+        "isSystem": false,
+        "isPrimaryKey": false,
+        "isUnique": false,
+        "sortOrder": 40,
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "admin",
+            "editor"
+          ]
+        },
+        "displayName": "Price",
+        "placeholder": "Enter price",
+        "defaultValue": "0"
+      },
+      "tags": [
+        "child",
+        "pet"
+      ]
+    },
+    {
+      "id": "pet_service_in_pet_field_pet_service_status_id",
+      "type": "entity_field",
+      "deps": [
+        "property_not_required",
+        "property_not_system",
+        "property_not_primary_key",
+        "property_not_unique"
+      ],
+      "category": "pet_service_in_pet",
+      "caption": "pet_service_in_pet pet_service_status_id field",
+      "self_data": {
+        "fieldType": "uuid",
+        "component": "DropdownInput",
+        "required": false,
+        "isSystem": false,
+        "isPrimaryKey": false,
+        "isUnique": false,
+        "sortOrder": 50,
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "admin",
+            "editor"
+          ]
+        },
+        "isForeignKey": true,
+        "referencedTable": "pet_service_status",
+        "referencedFieldID": "id",
+        "displayName": "Pet Service Status",
+        "placeholder": "Enter pet service status",
+        "referencedFieldName": "name"
+      },
+      "tags": [
+        "child",
+        "pet"
+      ]
+    },
+    {
+      "id": "pet_service_in_pet_field_date",
+      "type": "entity_field",
+      "deps": [
+        "field_date"
+      ],
+      "category": "pet_service_in_pet",
+      "caption": "pet_service_in_pet date field",
+      "self_data": {
+        "fieldType": "date",
+        "component": "DateInput",
+        "required": false,
+        "isSystem": false,
+        "isPrimaryKey": false,
+        "isUnique": false,
+        "sortOrder": 60,
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "admin",
+            "editor"
+          ]
+        },
+        "displayName": "Date",
+        "placeholder": "Enter date",
+        "defaultValue": "(timezone(utc"
+      },
+      "tags": [
+        "child",
+        "pet"
+      ]
+    },
+    {
+      "id": "pet_service_in_pet_field_pet_breed_id",
+      "type": "entity_field",
+      "deps": [
+        "property_not_required",
+        "property_not_system",
+        "property_not_primary_key",
+        "property_not_unique"
+      ],
+      "category": "pet_service_in_pet",
+      "caption": "pet_service_in_pet pet_breed_id field",
+      "self_data": {
+        "fieldType": "uuid",
+        "component": "DropdownInput",
+        "required": false,
+        "isSystem": false,
+        "isPrimaryKey": false,
+        "isUnique": false,
+        "sortOrder": 70,
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "admin",
+            "editor"
+          ]
+        },
+        "isForeignKey": true,
+        "referencedTable": "pet_appenzell_cattle_dog",
+        "referencedFieldID": "id",
+        "displayName": "Pet Breed",
+        "placeholder": "Enter pet breed",
+        "referencedFieldName": "name"
+      },
+      "tags": [
+        "child",
+        "pet"
+      ]
+    },
+    {
+      "id": "pet_service_in_pet_field_id",
+      "type": "entity_field",
+      "deps": [
+        "field_id"
+      ],
+      "category": "pet_service_in_pet",
+      "caption": "pet_service_in_pet id field",
+      "self_data": {
+        "fieldType": "uuid",
+        "component": "TextInput",
+        "required": true,
+        "isSystem": true,
+        "isPrimaryKey": true,
+        "isUnique": true,
+        "sortOrder": 80,
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "system"
+          ]
+        },
+        "displayName": "Id"
+      },
+      "tags": [
+        "child",
+        "pet"
+      ]
+    },
+    {
+      "id": "pet_service_in_pet_field_created_at",
+      "type": "entity_field",
+      "deps": [
+        "field_created_at"
+      ],
+      "category": "pet_service_in_pet",
+      "caption": "pet_service_in_pet created_at field",
+      "self_data": {
+        "fieldType": "datetime",
+        "component": "DateInput",
+        "required": false,
+        "isSystem": true,
+        "isPrimaryKey": false,
+        "isUnique": false,
+        "sortOrder": 90,
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "system"
+          ]
+        },
+        "displayName": "Created At"
+      },
+      "tags": [
+        "child",
+        "pet"
+      ]
+    },
+    {
+      "id": "pet_service_in_pet_field_created_by",
+      "type": "entity_field",
+      "deps": [
+        "field_created_by"
+      ],
+      "category": "pet_service_in_pet",
+      "caption": "pet_service_in_pet created_by field",
+      "self_data": {
+        "fieldType": "uuid",
+        "component": "TextInput",
+        "required": false,
+        "isSystem": true,
+        "isPrimaryKey": false,
+        "isUnique": false,
+        "sortOrder": 100,
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "system"
+          ]
+        },
+        "displayName": "Created By"
+      },
+      "tags": [
+        "child",
+        "pet"
+      ]
+    },
+    {
+      "id": "pet_service_in_pet_field_updated_at",
+      "type": "entity_field",
+      "deps": [
+        "field_updated_at"
+      ],
+      "category": "pet_service_in_pet",
+      "caption": "pet_service_in_pet updated_at field",
+      "self_data": {
+        "fieldType": "datetime",
+        "component": "DateInput",
+        "required": false,
+        "isSystem": true,
+        "isPrimaryKey": false,
+        "isUnique": false,
+        "sortOrder": 110,
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "system"
+          ]
+        },
+        "displayName": "Updated At"
+      },
+      "tags": [
+        "child",
+        "pet"
+      ]
+    },
+    {
+      "id": "pet_service_in_pet_field_updated_by",
+      "type": "entity_field",
+      "deps": [
+        "field_updated_by"
+      ],
+      "category": "pet_service_in_pet",
+      "caption": "pet_service_in_pet updated_by field",
+      "self_data": {
+        "fieldType": "uuid",
+        "component": "TextInput",
+        "required": false,
+        "isSystem": true,
+        "isPrimaryKey": false,
+        "isUnique": false,
+        "sortOrder": 120,
         "permissions": {
           "read": [
             "*"
@@ -93534,10 +96526,7 @@
         },
         "defaultValue": ""
       },
-      "tags": [
-        "child",
-        "project"
-      ]
+      "tags": []
     },
     {
       "id": "project_entry_type_field_description",
@@ -93572,10 +96561,7 @@
         },
         "defaultValue": ""
       },
-      "tags": [
-        "child",
-        "project"
-      ]
+      "tags": []
     },
     {
       "id": "project_entry_type_field_code",
@@ -93610,10 +96596,7 @@
         },
         "defaultValue": ""
       },
-      "tags": [
-        "child",
-        "project"
-      ]
+      "tags": []
     },
     {
       "id": "project_entry_type_field_id",
@@ -93641,10 +96624,7 @@
         },
         "displayName": "Id"
       },
-      "tags": [
-        "child",
-        "project"
-      ]
+      "tags": []
     },
     {
       "id": "project_entry_type_field_created_at",
@@ -93672,10 +96652,7 @@
         },
         "displayName": "Created At"
       },
-      "tags": [
-        "child",
-        "project"
-      ]
+      "tags": []
     },
     {
       "id": "project_entry_type_field_created_by",
@@ -93703,10 +96680,7 @@
         },
         "displayName": "Created By"
       },
-      "tags": [
-        "child",
-        "project"
-      ]
+      "tags": []
     },
     {
       "id": "project_entry_type_field_updated_at",
@@ -93734,10 +96708,7 @@
         },
         "displayName": "Updated At"
       },
-      "tags": [
-        "child",
-        "project"
-      ]
+      "tags": []
     },
     {
       "id": "project_entry_type_field_updated_by",
@@ -93765,10 +96736,7 @@
         },
         "displayName": "Updated By"
       },
-      "tags": [
-        "child",
-        "project"
-      ]
+      "tags": []
     },
     {
       "id": "quest_cycle_type_field_name",

@@ -465,33 +465,6 @@
       "referencedFieldName": "name"
     },
     {
-      "id": "field_litter_id",
-      "name": "litter_id",
-      "fieldType": "uuid",
-      "component": "LookupInput",
-      "required": false,
-      "isSystem": false,
-      "isPrimaryKey": false,
-      "isUnique": false,
-      "sortOrder": 190,
-      "permissions": {
-        "read": [
-          "*"
-        ],
-        "write": [
-          "admin",
-          "editor"
-        ]
-      },
-      "isForeignKey": true,
-      "referencedTable": "litter",
-      "referencedFieldID": "id",
-      "dataSource": "collection",
-      "displayName": "Litter",
-      "placeholder": "Enter litter",
-      "referencedFieldName": "name"
-    },
-    {
       "id": "field_call_name",
       "name": "call_name",
       "fieldType": "string",
@@ -500,7 +473,7 @@
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 200,
+      "sortOrder": 190,
       "permissions": {
         "read": [
           "*"
@@ -527,7 +500,7 @@
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 210,
+      "sortOrder": 200,
       "permissions": {
         "read": [
           "*"
@@ -553,7 +526,7 @@
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 220,
+      "sortOrder": 210,
       "permissions": {
         "read": [
           "*"
@@ -576,7 +549,7 @@
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 230,
+      "sortOrder": 220,
       "permissions": {
         "read": [
           "*"
@@ -599,7 +572,7 @@
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 240,
+      "sortOrder": 230,
       "permissions": {
         "read": [
           "*"
@@ -626,7 +599,7 @@
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 250,
+      "sortOrder": 240,
       "permissions": {
         "read": [
           "*"
@@ -653,7 +626,7 @@
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 260,
+      "sortOrder": 250,
       "permissions": {
         "read": [
           "*"
@@ -679,7 +652,7 @@
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 270,
+      "sortOrder": 260,
       "permissions": {
         "read": [
           "*"
@@ -705,7 +678,7 @@
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 280,
+      "sortOrder": 270,
       "permissions": {
         "read": [
           "*"
@@ -732,7 +705,7 @@
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 290,
+      "sortOrder": 280,
       "permissions": {
         "read": [
           "*"
@@ -761,7 +734,7 @@
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 300,
+      "sortOrder": 290,
       "permissions": {
         "read": [
           "*"
@@ -787,7 +760,7 @@
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 310,
+      "sortOrder": 300,
       "permissions": {
         "read": [
           "*"
@@ -810,7 +783,7 @@
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 320,
+      "sortOrder": 310,
       "permissions": {
         "read": [
           "*"
@@ -836,7 +809,7 @@
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 330,
+      "sortOrder": 320,
       "permissions": {
         "read": [
           "*"
@@ -858,7 +831,7 @@
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 340,
+      "sortOrder": 330,
       "permissions": {
         "read": [
           "*"
@@ -881,7 +854,7 @@
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 350,
+      "sortOrder": 340,
       "permissions": {
         "read": [
           "*"
@@ -907,7 +880,7 @@
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 360,
+      "sortOrder": 350,
       "permissions": {
         "read": [
           "*"
@@ -934,7 +907,7 @@
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 370,
+      "sortOrder": 360,
       "permissions": {
         "read": [
           "*"
@@ -957,7 +930,7 @@
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 380,
+      "sortOrder": 370,
       "permissions": {
         "read": [
           "*"
@@ -984,7 +957,7 @@
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 390,
+      "sortOrder": 380,
       "permissions": {
         "read": [
           "*"
@@ -1011,7 +984,7 @@
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 400,
+      "sortOrder": 390,
       "permissions": {
         "read": [
           "*"
@@ -1034,7 +1007,7 @@
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 410,
+      "sortOrder": 400,
       "permissions": {
         "read": [
           "*"
@@ -1061,7 +1034,7 @@
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 420,
+      "sortOrder": 410,
       "permissions": {
         "read": [
           "*"
@@ -1087,7 +1060,7 @@
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 430,
+      "sortOrder": 420,
       "permissions": {
         "read": [
           "*"
@@ -1113,7 +1086,7 @@
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 440,
+      "sortOrder": 430,
       "permissions": {
         "read": [
           "*"
@@ -1135,7 +1108,7 @@
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 450,
+      "sortOrder": 440,
       "permissions": {
         "read": [
           "*"
@@ -1160,7 +1133,7 @@
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 460,
+      "sortOrder": 450,
       "permissions": {
         "read": [
           "*"
@@ -1183,7 +1156,7 @@
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 470,
+      "sortOrder": 460,
       "permissions": {
         "read": [
           "*"
@@ -1206,7 +1179,7 @@
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 480,
+      "sortOrder": 470,
       "permissions": {
         "read": [
           "*"
@@ -1229,7 +1202,7 @@
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 490,
+      "sortOrder": 480,
       "permissions": {
         "read": [
           "*"
@@ -1251,7 +1224,7 @@
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 500,
+      "sortOrder": 490,
       "permissions": {
         "read": [
           "*"
@@ -1273,7 +1246,7 @@
       "isSystem": true,
       "isPrimaryKey": true,
       "isUnique": true,
-      "sortOrder": 510,
+      "sortOrder": 500,
       "permissions": {
         "read": [
           "*"
@@ -1293,7 +1266,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 520,
+      "sortOrder": 510,
       "permissions": {
         "read": [
           "*"
@@ -1313,7 +1286,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 530,
+      "sortOrder": 520,
       "permissions": {
         "read": [
           "*"
@@ -1333,7 +1306,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 540,
+      "sortOrder": 530,
       "permissions": {
         "read": [
           "*"
@@ -1353,7 +1326,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 550,
+      "sortOrder": 540,
       "permissions": {
         "read": [
           "*"
@@ -1373,7 +1346,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 560,
+      "sortOrder": 550,
       "permissions": {
         "read": [
           "*"
@@ -1387,9 +1360,9 @@
   ],
   "metadata": {
     "tableName": "pet",
-    "totalFields": 56,
+    "totalFields": 55,
     "systemFields": 6,
-    "customFields": 50,
-    "generatedAt": "2026-02-02T13:48:34.419Z"
+    "customFields": 49,
+    "generatedAt": "2026-02-03T17:47:09.961Z"
   }
 }

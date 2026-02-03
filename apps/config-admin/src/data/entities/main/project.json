@@ -133,7 +133,7 @@
       "referencedFieldID": "id",
       "displayName": "Project Entry Type",
       "placeholder": "Enter project entry type",
-      "referencedFieldName": "name"
+      "referencedFieldName": "id"
     },
     {
       "id": "field_type_id",
@@ -208,7 +208,7 @@
         ]
       },
       "isForeignKey": true,
-      "referencedTable": "project_status",
+      "referencedTable": "program_status",
       "referencedFieldID": "id",
       "displayName": "Status",
       "placeholder": "Enter status",
@@ -988,7 +988,7 @@
         ]
       },
       "isForeignKey": true,
-      "referencedTable": "project_category",
+      "referencedTable": "program_type",
       "referencedFieldID": "id",
       "displayName": "Category",
       "placeholder": "Enter category",
@@ -1227,6 +1227,6 @@
     "totalFields": 51,
     "systemFields": 6,
     "customFields": 45,
-    "generatedAt": "2026-02-02T13:48:39.417Z"
+    "generatedAt": "2026-02-03T17:47:14.673Z"
   }
 }

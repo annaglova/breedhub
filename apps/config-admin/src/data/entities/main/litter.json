@@ -563,6 +563,29 @@
       "defaultValue": "{}"
     },
     {
+      "id": "field_children",
+      "name": "children",
+      "fieldType": "json",
+      "component": "TextareaInput",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 230,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "displayName": "Children",
+      "placeholder": "Enter children",
+      "defaultValue": "[]"
+    },
+    {
       "id": "field_id",
       "name": "id",
       "fieldType": "uuid",
@@ -571,7 +594,7 @@
       "isSystem": true,
       "isPrimaryKey": true,
       "isUnique": true,
-      "sortOrder": 230,
+      "sortOrder": 240,
       "permissions": {
         "read": [
           "*"
@@ -591,7 +614,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 240,
+      "sortOrder": 250,
       "permissions": {
         "read": [
           "*"
@@ -611,7 +634,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 250,
+      "sortOrder": 260,
       "permissions": {
         "read": [
           "*"
@@ -631,7 +654,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 260,
+      "sortOrder": 270,
       "permissions": {
         "read": [
           "*"
@@ -651,7 +674,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 270,
+      "sortOrder": 280,
       "permissions": {
         "read": [
           "*"
@@ -671,7 +694,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 280,
+      "sortOrder": 290,
       "permissions": {
         "read": [
           "*"
@@ -685,9 +708,9 @@
   ],
   "metadata": {
     "tableName": "litter",
-    "totalFields": 28,
+    "totalFields": 29,
     "systemFields": 6,
-    "customFields": 22,
-    "generatedAt": "2026-02-02T13:48:34.858Z"
+    "customFields": 23,
+    "generatedAt": "2026-02-03T17:47:10.373Z"
   }
 }
