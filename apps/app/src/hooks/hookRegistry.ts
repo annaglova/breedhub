@@ -4,6 +4,7 @@ import { useContacts } from './useContacts';
 import { useLitters } from './useLitters';
 import { useNotes } from './useNotes';
 import { usePets } from './usePets';
+import { usePrograms } from './usePrograms';
 import { useProjects } from './useProjects';
 
 /**
@@ -21,6 +22,7 @@ export const hookRegistry: Record<string, any> = {
   'litter': useLitters,
   'note': useNotes,
   'pet': usePets,
+  'program': usePrograms,
   'project': useProjects,
   // 'kennel': useKennels,  // TODO: create useKennels hook
   // ... add more as needed
