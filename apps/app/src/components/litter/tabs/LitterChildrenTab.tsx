@@ -1,13 +1,15 @@
 import { PetCard, type Pet } from "@/components/shared/PetCard";
 import { useSelectedEntity } from "@/contexts/SpaceContext";
-import { spaceStore, dictionaryStore, supabase } from "@breedhub/rxdb-store";
+import { spaceStore, dictionaryStore, useTabData, supabase } from "@breedhub/rxdb-store";
+import type { DataSourceConfig } from "@breedhub/rxdb-store";
 import { useSignals } from "@preact/signals-react/runtime";
 import { Loader2 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 
 interface LitterChildrenTabProps {
   onLoadedCount?: (count: number) => void;
   mode?: "scroll" | "fullscreen";
+  dataSource?: DataSourceConfig;
 }
 
 /**
@@ -53,38 +55,60 @@ async function enrichPetForCard(rawPet: any): Promise<Pet> {
   };
 }
 
+// Default dataSource for pet_in_litter
+const defaultDataSource: DataSourceConfig = {
+  type: "child",
+  childTable: {
+    table: "pet_in_litter",
+    parentField: "litter_id",
+  },
+};
+
 /**
  * LitterChildrenTab - Litter's children (puppies/kittens)
  *
- * Loads real children data from database:
- * 1. Fetch pets where litter_id = entity.id via spaceStore
- * 2. Enrich each pet with sex, breed, status via dictionaryStore
+ * Data flow:
+ * 1. Load pet_in_litter records via useTabData (cached in litter_children)
+ * 2. Fetch full pet data using pet_id + pet_breed_id (partition pruning)
+ * 3. Enrich with dictionaries (sex, breed, status, country)
  *
  * Displays in grid format using PetCard (litter mode).
  */
 export function LitterChildrenTab({
   onLoadedCount,
   mode,
+  dataSource = defaultDataSource,
 }: LitterChildrenTabProps) {
   useSignals();
 
   const selectedEntity = useSelectedEntity();
+  const litterId = selectedEntity?.id;
   const isFullscreen = spaceStore.isFullscreen.value || mode === "fullscreen";
 
-  // State for children data
+  // State for enriched children
   const [children, setChildren] = useState<Pet[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isEnriching, setIsEnriching] = useState(false);
 
-  // Load children when entity changes
+  // 1. Load junction records from pet_in_litter via useTabData
+  const {
+    data: junctionRecords,
+    isLoading: isLoadingJunction,
+    error,
+  } = useTabData({
+    parentId: litterId,
+    dataSource,
+    enabled: !!litterId,
+  });
+
+  // 2. Load and enrich pet data when junction records change
   useEffect(() => {
-    if (!selectedEntity?.id) {
+    if (isLoadingJunction || !junctionRecords || junctionRecords.length === 0) {
       setChildren([]);
-      setIsLoading(false);
       return;
     }
 
-    async function loadChildren() {
-      setIsLoading(true);
+    async function loadAndEnrichPets() {
+      setIsEnriching(true);
 
       try {
         // Ensure dictionaryStore is initialized
@@ -92,109 +116,80 @@ export function LitterChildrenTab({
           await dictionaryStore.initialize();
         }
 
-        // ID-First: Load pets where litter_id = entity.id
-        // 1. Check RxDB first
-        let rawPets: any[] = [];
-        const db = spaceStore.db;
-        const collection = db?.collections?.["pet"];
+        // Extract pet_id and pet_breed_id from junction records
+        const petRefs = junctionRecords.map((record: any) => ({
+          petId: record.additional?.pet_id || record.pet_id,
+          breedId: record.additional?.pet_breed_id || record.pet_breed_id,
+        }));
 
-        if (collection) {
-          const cachedDocs = await collection
-            .find({ selector: { litter_id: selectedEntity.id, _deleted: false } })
-            .exec();
-          rawPets = cachedDocs.map((doc: any) => doc.toJSON());
-          console.log(`[LitterChildrenTab] RxDB cache: ${rawPets.length} children`);
+        // Group by breed for batch queries (partition pruning)
+        const byBreed = new Map<string, string[]>();
+        for (const ref of petRefs) {
+          if (!ref.petId || !ref.breedId) continue;
+          if (!byBreed.has(ref.breedId)) {
+            byBreed.set(ref.breedId, []);
+          }
+          byBreed.get(ref.breedId)!.push(ref.petId);
         }
 
-        // 2. If not in RxDB, fetch from Supabase and cache
-        if (rawPets.length === 0) {
-          // Get breed_id(s) from parents for partition pruning
-          const fatherBreedId = selectedEntity.father_breed_id;
-          const motherBreedId = selectedEntity.mother_breed_id;
-
-          // Collect unique parent breed IDs
-          const parentBreedIds = [...new Set([fatherBreedId, motherBreedId].filter(Boolean))];
-
-          if (parentBreedIds.length === 0) {
-            console.warn("[LitterChildrenTab] No breed_id available from parents");
-            setChildren([]);
-            return;
-          }
-
-          // Get related breeds (children can be different breed than parents, e.g., mini dachshund → rabbit dachshund)
-          const { data: relatedBreeds } = await supabase
-            .from("related_breed")
-            .select("connected_breed_id")
-            .in("breed_id", parentBreedIds);
-
-          const relatedBreedIds = (relatedBreeds || [])
-            .map((r) => r.connected_breed_id)
-            .filter(Boolean);
-
-          // Combine parent breeds + related breeds
-          const allBreedIds = [...new Set([...parentBreedIds, ...relatedBreedIds])];
-
-          console.log("[LitterChildrenTab] Fetching from Supabase, litter_id:", selectedEntity.id, "breed_ids:", allBreedIds);
-
+        // Fetch pets from each breed partition
+        const allPets: any[] = [];
+        for (const [breedId, petIds] of byBreed.entries()) {
           const { data, error } = await supabase
             .from("pet")
             .select("*")
-            .eq("litter_id", selectedEntity.id)
-            .in("breed_id", allBreedIds)
-            .or("deleted.is.null,deleted.eq.false")
-            .order("name", { ascending: true })
-            .limit(50);
+            .eq("breed_id", breedId)
+            .in("id", petIds)
+            .or("deleted.is.null,deleted.eq.false");
 
-          if (error) {
-            console.error("[LitterChildrenTab] Supabase error:", error.message, error.code, error.details, error.hint);
-            setChildren([]);
-            return;
-          }
-
-          rawPets = data || [];
-
-          // Cache in RxDB for future requests
-          if (rawPets.length > 0 && collection) {
-            const mapped = rawPets.map((pet) => ({
-              ...pet,
-              _deleted: false,
-              updated_at: pet.updated_at || new Date().toISOString(),
-            }));
-            await collection.bulkUpsert(mapped);
-            console.log(`[LitterChildrenTab] Cached ${rawPets.length} children in RxDB`);
+          if (!error && data) {
+            allPets.push(...data);
           }
         }
 
-        // Enrich each pet with lookups
+        // Enrich each pet with dictionaries
         const enrichedPets = await Promise.all(
-          rawPets.map((pet: any) => enrichPetForCard(pet))
+          allPets.map((pet) => enrichPetForCard(pet))
         );
 
         setChildren(enrichedPets);
-      } catch (error) {
-        console.error("[LitterChildrenTab] Failed to load children:", error);
+      } catch (err) {
+        console.error("[LitterChildrenTab] Failed to load pets:", err);
         setChildren([]);
       } finally {
-        setIsLoading(false);
+        setIsEnriching(false);
       }
     }
 
-    loadChildren();
-  }, [selectedEntity?.id]);
+    loadAndEnrichPets();
+  }, [junctionRecords, isLoadingJunction]);
 
   // Report loaded count to parent
   useEffect(() => {
+    const isLoading = isLoadingJunction || isEnriching;
     if (!isLoading && onLoadedCount) {
       onLoadedCount(children.length);
     }
-  }, [isLoading, children.length, onLoadedCount]);
+  }, [isLoadingJunction, isEnriching, children.length, onLoadedCount]);
 
   // Loading state
-  if (isLoading) {
+  if (isLoadingJunction || isEnriching) {
     return (
       <div className="py-4 px-6 flex items-center justify-center min-h-[200px]">
         <Loader2 className="h-6 w-6 animate-spin text-primary" />
         <span className="ml-2 text-secondary">Loading...</span>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="py-4 px-6">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <p className="text-red-700 font-semibold">Failed to load children</p>
+          <p className="text-red-600 text-sm mt-1">{error.message}</p>
+        </div>
       </div>
     );
   }

@@ -7,6 +7,7 @@ import { appStore } from './app-store.signal-store';
 import { entityReplicationService } from '../services/entity-replication.service';
 import { breedChildrenSchema, breedChildrenMigrationStrategies, BreedChildrenDocument } from '../collections/breed-children.schema';
 import { petChildrenSchema, petChildrenMigrationStrategies, PetChildrenDocument } from '../collections/pet-children.schema';
+import { litterChildrenSchema, litterChildrenMigrationStrategies } from '../collections/litter-children.schema';
 import { supabase } from '../supabase/client';
 
 // Helpers
@@ -3702,6 +3703,8 @@ class SpaceStore {
         return breedChildrenSchema;
       case 'pet':
         return petChildrenSchema;
+      case 'litter':
+        return litterChildrenSchema;
       // TODO: Add kennel_children schema when needed
       // case 'kennel':
       //   return kennelChildrenSchema;
@@ -3720,6 +3723,8 @@ class SpaceStore {
         return breedChildrenMigrationStrategies;
       case 'pet':
         return petChildrenMigrationStrategies;
+      case 'litter':
+        return litterChildrenMigrationStrategies;
       // TODO: Add migration strategies for other entities
       default:
         return {};
@@ -3983,9 +3988,12 @@ class SpaceStore {
     // e.g., 'pet_identifier_with_type' -> 'pet_identifier'
     const normalizedTable = tableType.replace(/_with_\w+$/, '');
 
-    // Check for "_in_breed", "_in_pet", "_in_kennel" patterns
+    // Check for "_in_breed", "_in_pet", "_in_kennel", "_in_litter" patterns
     if (normalizedTable.includes('_in_breed') || normalizedTable.includes('_breed')) {
       return 'breed';
+    }
+    if (normalizedTable.includes('_in_litter')) {
+      return 'litter';
     }
     if (normalizedTable.includes('_in_pet') || normalizedTable.includes('_pet')) {
       return 'pet';
