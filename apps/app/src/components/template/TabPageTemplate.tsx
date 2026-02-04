@@ -21,6 +21,9 @@ import { mediaQueries } from "@/config/breakpoints";
 const breedTabModules = import.meta.glob('../breed/tabs/*Tab.tsx', { eager: true });
 const kennelTabModules = import.meta.glob('../kennel/tabs/*Tab.tsx', { eager: true });
 const petTabModules = import.meta.glob('../pet/tabs/*Tab.tsx', { eager: true });
+const litterTabModules = import.meta.glob('../litter/tabs/*Tab.tsx', { eager: true });
+const contactTabModules = import.meta.glob('../contact/tabs/*Tab.tsx', { eager: true });
+const eventTabModules = import.meta.glob('../event/tabs/*Tab.tsx', { eager: true });
 
 const TAB_COMPONENT_REGISTRY: Record<string, React.ComponentType<any>> = {};
 
@@ -40,6 +43,9 @@ function registerModules(modules: Record<string, any>) {
 registerModules(breedTabModules);
 registerModules(kennelTabModules);
 registerModules(petTabModules);
+registerModules(litterTabModules);
+registerModules(contactTabModules);
+registerModules(eventTabModules);
 
 // Tab config from database
 interface TabConfig {
