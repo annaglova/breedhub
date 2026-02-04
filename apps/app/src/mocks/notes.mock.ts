@@ -8,7 +8,7 @@ import { mockBreeds } from './breeds.mock';
 import { mockLitters } from './litters.mock';
 
 // Type for connected entity schema names
-type EntitySchemaName = 'pet' | 'contact' | 'breed' | 'litter' | 'project' | 'account';
+type EntitySchemaName = 'pet' | 'contact' | 'breed' | 'litter' | 'project' | 'program' | 'account';
 
 export interface Note {
   id: string;
@@ -21,7 +21,7 @@ export interface Note {
   contact_id?: string;
   breed_id?: string;
   litter_id?: string;
-  project_id?: string;
+  program_id?: string;
   account_id?: string;
   deleted?: boolean;
 }

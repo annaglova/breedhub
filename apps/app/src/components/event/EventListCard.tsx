@@ -3,10 +3,10 @@ import { EntityListCardWrapper } from "@/components/space/EntityListCardWrapper"
 import { useDictionaryValue } from "@/hooks/useDictionaryValue";
 
 /**
- * Interface for project data from RxDB/Supabase
- * Note: "Events" in UI actually shows Project records, with Event as header
+ * Interface for program data from RxDB/Supabase
+ * Note: "Events" in UI actually shows Program records, with Event as header
  */
-interface ProjectEntity {
+interface ProgramEntity {
   id: string;
   name?: string;
   start_date?: string;
@@ -17,7 +17,7 @@ interface ProjectEntity {
 }
 
 interface EventListCardProps {
-  entity: ProjectEntity;
+  entity: ProgramEntity;
   selected?: boolean;
   onClick?: () => void;
 }
@@ -44,12 +44,12 @@ export function EventListCard({
   selected = false,
   onClick,
 }: EventListCardProps) {
-  // Resolve status_id to name via dictionary lookup (project_status)
-  const statusName = useDictionaryValue("project_status", entity.status_id);
+  // Resolve status_id to name via dictionary lookup (program_status)
+  const statusName = useDictionaryValue("program_status", entity.status_id);
 
   // Extract data from entity - use real DB values
-  // Date and Status are from project itself, not from event
-  const project = {
+  // Date and Status are from program itself, not from event
+  const program = {
     Id: entity.id,
     Name: entity.name || "Unknown",
     StartDate: entity.start_date,
@@ -57,7 +57,7 @@ export function EventListCard({
     HasNotes: !!entity.notes,
   };
 
-  const formattedDate = formatDate(project.StartDate);
+  const formattedDate = formatDate(program.StartDate);
 
   return (
     <EntityListCardWrapper
@@ -66,14 +66,14 @@ export function EventListCard({
       className="h-[68px] relative"
     >
       <div className="flex items-center w-full">
-        {/* Details - no avatar for project/event */}
+        {/* Details - no avatar for program/event */}
         <div className="w-full space-y-0.5">
           {/* Name row */}
           <div className="relative flex w-[calc(100vw-82px)] space-x-1 md:w-auto">
-            <span className="text-md truncate" title={project.Name}>
-              {project.Name}
+            <span className="text-md truncate" title={program.Name}>
+              {program.Name}
             </span>
-            <NoteFlag isVisible={project.HasNotes} />
+            <NoteFlag isVisible={program.HasNotes} />
           </div>
 
           {/* Info row */}
@@ -82,13 +82,13 @@ export function EventListCard({
               {/* Start Date */}
               {formattedDate && <span>{formattedDate}</span>}
 
-              {/* Project Status */}
-              {project.StatusName && (
+              {/* Program Status */}
+              {program.StatusName && (
                 <>
                   {formattedDate && (
                     <span className="text-slate-400">&bull;</span>
                   )}
-                  <span>{project.StatusName}</span>
+                  <span>{program.StatusName}</span>
                 </>
               )}
             </div>

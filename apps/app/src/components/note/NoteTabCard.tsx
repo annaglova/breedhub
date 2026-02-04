@@ -4,7 +4,7 @@ import { Pencil, Trash2 } from "lucide-react";
 import { cn } from "@ui/lib/utils";
 
 // Connected entity types
-type ConnectedEntityType = 'pet' | 'contact' | 'breed' | 'litter' | 'project' | 'account';
+type ConnectedEntityType = 'pet' | 'contact' | 'breed' | 'litter' | 'project' | 'program' | 'account';
 
 interface ConnectedEntity {
   id?: string;
@@ -24,6 +24,7 @@ interface NoteEntity {
   breed?: ConnectedEntity;
   litter?: ConnectedEntity;
   project?: ConnectedEntity;
+  program?: ConnectedEntity;
   account?: ConnectedEntity;
   [key: string]: any;
 }
@@ -72,6 +73,8 @@ function getConnectedEntity(entity: NoteEntity): ConnectedEntity | null {
       return entity.litter || null;
     case 'project':
       return entity.project || null;
+    case 'program':
+      return entity.program || null;
     case 'account':
       return entity.account || null;
     default:

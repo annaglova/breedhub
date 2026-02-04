@@ -4004,7 +4004,7 @@ class SpaceStore {
       'related_breed': 'breed',
       'litter': 'pet',
       'pet_identifier': 'pet',
-      'pet_in_project': 'pet',
+      'pet_in_program': 'pet',
       'pet_health_exam_result': 'pet',
       'pet_sibling': 'pet',
       'pet_child': 'pet',
