@@ -148,7 +148,7 @@ interface EventResultsTabProps {
  * - Judge (fullscreen only)
  * - External link
  *
- * Data source: pet_in_program_with_details VIEW
+ * Data source: program_result_with_details VIEW
  */
 export function EventResultsTab({
   onLoadedCount,

@@ -4009,6 +4009,7 @@ class SpaceStore {
       'pet_sibling': 'pet',
       'pet_child': 'pet',
       'pet_child_for_sale': 'pet',
+      'program_result': 'program',
     };
 
     // Try exact match first
