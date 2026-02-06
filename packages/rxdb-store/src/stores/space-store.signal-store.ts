@@ -4015,6 +4015,7 @@ class SpaceStore {
       'pet_child': 'pet',
       'pet_child_for_sale': 'pet',
       'program_result': 'program',
+      'judge_in_program': 'program',
     };
 
     // Try exact match first

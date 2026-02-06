@@ -5,6 +5,7 @@ import type { RxJsonSchema } from 'rxdb';
  *
  * Universal child collection for all child tables belonging to program entity:
  * - program_result (pet_in_program viewed by program)
+ * - judge_in_program (judges assigned to program)
  *
  * Design pattern (same as other child collections):
  * - Core fields: id, tableType, parentId
@@ -14,7 +15,7 @@ import type { RxJsonSchema } from 'rxdb';
 export interface ProgramChildrenDocument {
   // Core fields (required)
   id: string;
-  tableType: 'program_result';
+  tableType: 'program_result' | 'judge_in_program';
   parentId: string;  // program_id reference
 
   // Additional fields (optional JSON object)
@@ -51,7 +52,8 @@ export const programChildrenSchema: RxJsonSchema<ProgramChildrenDocument> = {
     tableType: {
       type: 'string',
       enum: [
-        'program_result'
+        'program_result',
+        'judge_in_program'
       ],
       maxLength: 50
     },
