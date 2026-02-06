@@ -1,5 +1,5 @@
 import { useSelectedEntity } from "@/contexts/SpaceContext";
-import { spaceStore } from "@breedhub/rxdb-store";
+import { spaceStore, useDictionaryValue } from "@breedhub/rxdb-store";
 import { useSignals } from "@preact/signals-react/runtime";
 import { cn } from "@ui/lib/utils";
 import { Calendar, Flag, MapPin, Trophy } from "lucide-react";
@@ -36,33 +36,6 @@ interface EventGeneralData {
   judges?: Judge[];
 }
 
-// Mock data for visual development
-const MOCK_DATA: EventGeneralData = {
-  category: { id: "1", name: "International Show" },
-  startDate: "2025-10-15",
-  country: { id: "de", name: "Germany" },
-  status: { id: "1", name: "Upcoming" },
-  judges: [
-    {
-      id: "judge-1",
-      name: "Hans Mueller",
-      slug: "hans-mueller",
-      avatarUrl: "",
-    },
-    {
-      id: "judge-2",
-      name: "Maria Schmidt",
-      slug: "maria-schmidt",
-      avatarUrl: "",
-    },
-    {
-      id: "judge-3",
-      name: "Klaus Weber",
-      slug: "klaus-weber",
-      avatarUrl: "",
-    },
-  ],
-};
 
 /**
  * Format date to locale string
@@ -166,8 +139,8 @@ interface EventGeneralTabProps {
  * EventGeneralTab - Event general information
  *
  * Displays:
- * 1. Info - Category, Date, Country, Status
- * 2. Judges - List of judges with avatars
+ * 1. Info - Type, Date, Country, Status (from program entity + dictionary enrichment)
+ * 2. Judges - List of judges with avatars (TODO: implement with VIEW)
  *
  * Based on Angular: event-info.component.ts
  */
@@ -177,9 +150,20 @@ export function EventGeneralTab({ onLoadedCount }: EventGeneralTabProps) {
   const selectedEntity = useSelectedEntity();
   const isFullscreen = spaceStore.isFullscreen.value;
 
-  // TODO: Load real data from entity when available
-  // For now always using mock data for visual development
-  const data: EventGeneralData = MOCK_DATA;
+  // Enrichment from dictionaries
+  const typeName = useDictionaryValue("program_type", selectedEntity?.type_id);
+  const statusName = useDictionaryValue("program_status", selectedEntity?.status_id);
+  const countryName = useDictionaryValue("country", selectedEntity?.country_id);
+
+  // Build data from entity + enrichment
+  const data: EventGeneralData = {
+    category: typeName ? { name: typeName } : undefined,
+    startDate: selectedEntity?.start_date,
+    country: countryName ? { name: countryName } : undefined,
+    status: statusName ? { name: statusName } : undefined,
+    // TODO: Load judges from VIEW
+    judges: [],
+  };
 
   // Report count after render (always 1 for general info)
   useEffect(() => {
