@@ -1,5 +1,6 @@
 import { useSelectedEntity } from "@/contexts/SpaceContext";
-import { spaceStore, useDictionaryValue, useTabData } from "@breedhub/rxdb-store";
+import { useDictionaryValue } from "@/hooks/useDictionaryValue";
+import { spaceStore, useTabData } from "@breedhub/rxdb-store";
 import type { DataSourceConfig } from "@breedhub/rxdb-store";
 import { useSignals } from "@preact/signals-react/runtime";
 import { cn } from "@ui/lib/utils";
