@@ -48,8 +48,9 @@ function groupByBreed(items: any[]): BreedResults[] {
   const grouped = new Map<string, BreedResults>();
 
   for (const item of items) {
-    const breedName = item.breed_name || "Unknown Breed";
-    const breedSlug = item.breed_slug;
+    // Handle both flat and RxDB additional format
+    const breedName = item.breed_name || item.additional?.breed_name || "Unknown Breed";
+    const breedSlug = item.breed_slug || item.additional?.breed_slug;
 
     if (!grouped.has(breedName)) {
       grouped.set(breedName, {
@@ -59,22 +60,24 @@ function groupByBreed(items: any[]): BreedResults[] {
       });
     }
 
+    const number = item.number ?? item.additional?.number;
+
     grouped.get(breedName)!.competitors.push({
       id: item.id,
       pet: {
-        name: item.pet_name || "Unknown",
-        slug: item.pet_slug,
+        name: item.pet_name || item.additional?.pet_name || "Unknown",
+        slug: item.pet_slug || item.additional?.pet_slug,
       },
       class: {
-        name: item.class_name,
+        name: item.class_name || item.additional?.class_name,
       },
-      number: item.number ? String(Math.floor(Number(item.number))) : undefined,
-      result: item.result,
+      number: number ? String(Math.floor(Number(number))) : undefined,
+      result: item.result || item.additional?.result,
       judge: {
-        name: item.judge_name,
-        slug: item.judge_slug,
+        name: item.judge_name || item.additional?.judge_name,
+        slug: item.judge_slug || item.additional?.judge_slug,
       },
-      webLink: item.web_link,
+      webLink: item.web_link || item.additional?.web_link,
     });
   }
 
