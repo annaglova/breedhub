@@ -394,6 +394,32 @@
       "defaultValue": "0"
     },
     {
+      "id": "field_country_id",
+      "name": "country_id",
+      "fieldType": "uuid",
+      "component": "DropdownInput",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 160,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "isForeignKey": true,
+      "referencedTable": "country",
+      "referencedFieldID": "id",
+      "displayName": "Country",
+      "placeholder": "Enter country",
+      "referencedFieldName": "name"
+    },
+    {
       "id": "field_id",
       "name": "id",
       "fieldType": "uuid",
@@ -402,7 +428,7 @@
       "isSystem": true,
       "isPrimaryKey": true,
       "isUnique": true,
-      "sortOrder": 160,
+      "sortOrder": 170,
       "permissions": {
         "read": [
           "*"
@@ -422,7 +448,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 170,
+      "sortOrder": 180,
       "permissions": {
         "read": [
           "*"
@@ -442,7 +468,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 180,
+      "sortOrder": 190,
       "permissions": {
         "read": [
           "*"
@@ -462,7 +488,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 190,
+      "sortOrder": 200,
       "permissions": {
         "read": [
           "*"
@@ -482,7 +508,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 200,
+      "sortOrder": 210,
       "permissions": {
         "read": [
           "*"
@@ -502,7 +528,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 210,
+      "sortOrder": 220,
       "permissions": {
         "read": [
           "*"
@@ -516,9 +542,9 @@
   ],
   "metadata": {
     "tableName": "program",
-    "totalFields": 21,
+    "totalFields": 22,
     "systemFields": 6,
-    "customFields": 15,
-    "generatedAt": "2026-02-03T17:47:21.432Z"
+    "customFields": 16,
+    "generatedAt": "2026-02-06T13:03:29.166Z"
   }
 }

@@ -869,8 +869,8 @@
       "id": "field_country_id",
       "type": "field",
       "name": "country_id",
-      "frequency": 0.046511627906976744,
-      "occurrences": 12,
+      "frequency": 0.050387596899224806,
+      "occurrences": 13,
       "commonProps": {
         "fieldType": "uuid",
         "component": "DropdownInput",
@@ -23013,6 +23013,43 @@
       ]
     },
     {
+      "id": "program_field_country_id",
+      "type": "entity_field",
+      "deps": [
+        "field_country_id"
+      ],
+      "category": "program",
+      "caption": "program country_id field",
+      "self_data": {
+        "fieldType": "uuid",
+        "component": "DropdownInput",
+        "required": false,
+        "isSystem": false,
+        "isPrimaryKey": false,
+        "isUnique": false,
+        "sortOrder": 160,
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "admin",
+            "editor"
+          ]
+        },
+        "isForeignKey": true,
+        "referencedTable": "country",
+        "referencedFieldID": "id",
+        "displayName": "Country",
+        "placeholder": "Enter country",
+        "referencedFieldName": "name"
+      },
+      "tags": [
+        "main",
+        "program"
+      ]
+    },
+    {
       "id": "program_field_id",
       "type": "entity_field",
       "deps": [
@@ -23027,7 +23064,7 @@
         "isSystem": true,
         "isPrimaryKey": true,
         "isUnique": true,
-        "sortOrder": 160,
+        "sortOrder": 170,
         "permissions": {
           "read": [
             "*"
@@ -23058,7 +23095,7 @@
         "isSystem": true,
         "isPrimaryKey": false,
         "isUnique": false,
-        "sortOrder": 170,
+        "sortOrder": 180,
         "permissions": {
           "read": [
             "*"
@@ -23089,7 +23126,7 @@
         "isSystem": true,
         "isPrimaryKey": false,
         "isUnique": false,
-        "sortOrder": 180,
+        "sortOrder": 190,
         "permissions": {
           "read": [
             "*"
@@ -23120,7 +23157,7 @@
         "isSystem": true,
         "isPrimaryKey": false,
         "isUnique": false,
-        "sortOrder": 190,
+        "sortOrder": 200,
         "permissions": {
           "read": [
             "*"
@@ -23151,7 +23188,7 @@
         "isSystem": true,
         "isPrimaryKey": false,
         "isUnique": false,
-        "sortOrder": 200,
+        "sortOrder": 210,
         "permissions": {
           "read": [
             "*"
@@ -23182,7 +23219,7 @@
         "isSystem": true,
         "isPrimaryKey": false,
         "isUnique": false,
-        "sortOrder": 210,
+        "sortOrder": 220,
         "permissions": {
           "read": [
             "*"
