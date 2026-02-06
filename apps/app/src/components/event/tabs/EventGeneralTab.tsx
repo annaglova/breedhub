@@ -9,17 +9,6 @@ import React, { useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
 
 /**
- * DataSource config for loading judges
- */
-const JUDGES_DATA_SOURCE: DataSourceConfig = {
-  type: "child",
-  childTable: {
-    table: "judge_in_program_with_details",
-    parentField: "program_id",
-  },
-};
-
-/**
  * Dictionary value (Country, Category, Status, etc.)
  */
 interface DictionaryValue {
@@ -146,6 +135,7 @@ function JudgeLink({ judge }: { judge: Judge }) {
 
 interface EventGeneralTabProps {
   onLoadedCount?: (count: number) => void;
+  dataSource?: DataSourceConfig;
 }
 
 /**
@@ -157,7 +147,7 @@ interface EventGeneralTabProps {
  *
  * Based on Angular: event-info.component.ts
  */
-export function EventGeneralTab({ onLoadedCount }: EventGeneralTabProps) {
+export function EventGeneralTab({ onLoadedCount, dataSource }: EventGeneralTabProps) {
   useSignals();
 
   const selectedEntity = useSelectedEntity();
@@ -169,11 +159,11 @@ export function EventGeneralTab({ onLoadedCount }: EventGeneralTabProps) {
   const statusName = useDictionaryValue("program_status", selectedEntity?.status_id);
   const countryName = useDictionaryValue("country", selectedEntity?.country_id);
 
-  // Load judges from VIEW
+  // Load judges from VIEW (if dataSource configured)
   const { data: judgesRaw } = useTabData({
     parentId: programId,
-    dataSource: JUDGES_DATA_SOURCE,
-    enabled: !!programId,
+    dataSource: dataSource!,
+    enabled: !!programId && !!dataSource,
   });
 
   // Transform judges data
