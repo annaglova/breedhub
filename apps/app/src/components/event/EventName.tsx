@@ -1,17 +1,6 @@
 import { NoteFlagButton } from "@ui/components/note-flag-button";
 import { Link } from "react-router-dom";
-
-// Country reference
-interface EventCountry {
-  id?: string;
-  name: string;
-}
-
-// Status reference
-interface EventStatus {
-  id?: string;
-  name?: string;
-}
+import { useDictionaryValue } from "@/hooks/useDictionaryValue";
 
 interface EventNameProps {
   entity?: any;
@@ -20,16 +9,6 @@ interface EventNameProps {
   /** If true, clicking on name navigates to fullscreen page */
   linkToFullscreen?: boolean;
 }
-
-// Mock data for visual development
-const MOCK_EVENT = {
-  name: "World Dog Show 2025",
-  slug: "world-dog-show-2025",
-  country: { id: "de", name: "Germany" } as EventCountry,
-  startDate: "2025-10-15",
-  status: { id: "1", name: "Upcoming" } as EventStatus,
-  hasNotes: true,
-};
 
 /**
  * Format date to locale string
@@ -45,10 +24,14 @@ function formatDate(dateString?: string): string {
 }
 
 /**
- * EventName - Displays event name and details
+ * EventName - Displays program name and details
  *
- * Based on Angular: libs/schema/domain/event/lib/event-name/event-name.component.ts
- * Shows: country, event name with note flag, start date, status
+ * Shows: country, program name with note flag, start date, status, type
+ *
+ * Enrichment pattern (like LitterName):
+ * - status: useDictionaryValue by status_id → program_status
+ * - country: useDictionaryValue by country_id → country (denormalized from event)
+ * - type: useDictionaryValue by type_id → program_type
  */
 export function EventName({
   entity,
@@ -56,25 +39,25 @@ export function EventName({
   onNotesClick,
   linkToFullscreen = true,
 }: EventNameProps) {
-  // Use entity data or fallback to mock for development
-  const event = entity || MOCK_EVENT;
+  // Resolve FK fields via dictionary lookup (enrichment pattern)
+  // All fields from program (country_id denormalized from event)
+  const statusName = useDictionaryValue("program_status", entity?.status_id);
+  const countryName = useDictionaryValue("country", entity?.country_id);
+  const typeName = useDictionaryValue("program_type", entity?.type_id);
 
-  // Extract data - support both camelCase and snake_case
-  const displayName = event.name || event.Name || "Unknown Event";
-  const slug = event.slug || event.Slug || event.url || event.Url;
-  const country: EventCountry | undefined =
-    event.country || event.Country || MOCK_EVENT.country;
-  const startDate =
-    event.startDate || event.StartDate || event.start_date || MOCK_EVENT.startDate;
-  const status: EventStatus | undefined =
-    event.status || event.Status || MOCK_EVENT.status;
-  const hasNotesFlag = hasNotes || event.hasNotes || event.HasNotes;
+  // Extract data from entity (program)
+  const displayName = entity?.name || "Unknown Program";
+  const slug = entity?.slug;
+  const startDate = entity?.start_date;
+  const hasNotesFlag = hasNotes || !!entity?.notes;
 
   return (
     <div className="pb-3 cursor-default">
-      {/* Country */}
-      <div className="text-md mb-3 min-h-[1.5rem] flex flex-wrap space-x-1 uppercase">
-        {country?.name && <span>{country.name}</span>}
+      {/* Country and Type */}
+      <div className="text-md mb-3 min-h-[1.5rem] flex flex-wrap items-center space-x-1 uppercase">
+        {countryName && <span>{countryName}</span>}
+        {countryName && typeName && <span className="text-secondary">•</span>}
+        {typeName && <span>{typeName}</span>}
       </div>
 
       {/* Event name with note flag */}
@@ -115,10 +98,10 @@ export function EventName({
           )}
 
           {/* Status - with bullet before */}
-          {status?.name && (
+          {statusName && (
             <div className="flex items-center">
-              <span className="mr-2">&bull;</span>
-              <span>{status.name}</span>
+              {startDate && <span className="mr-2">&bull;</span>}
+              <span>{statusName}</span>
             </div>
           )}
         </div>
