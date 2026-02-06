@@ -8,6 +8,7 @@ import { entityReplicationService } from '../services/entity-replication.service
 import { breedChildrenSchema, breedChildrenMigrationStrategies, BreedChildrenDocument } from '../collections/breed-children.schema';
 import { petChildrenSchema, petChildrenMigrationStrategies, PetChildrenDocument } from '../collections/pet-children.schema';
 import { litterChildrenSchema, litterChildrenMigrationStrategies } from '../collections/litter-children.schema';
+import { programChildrenSchema, programChildrenMigrationStrategies } from '../collections/program-children.schema';
 import { supabase } from '../supabase/client';
 
 // Helpers
@@ -3699,6 +3700,8 @@ class SpaceStore {
         return petChildrenSchema;
       case 'litter':
         return litterChildrenSchema;
+      case 'program':
+        return programChildrenSchema;
       // TODO: Add kennel_children schema when needed
       // case 'kennel':
       //   return kennelChildrenSchema;
@@ -3719,6 +3722,8 @@ class SpaceStore {
         return petChildrenMigrationStrategies;
       case 'litter':
         return litterChildrenMigrationStrategies;
+      case 'program':
+        return programChildrenMigrationStrategies;
       // TODO: Add migration strategies for other entities
       default:
         return {};
