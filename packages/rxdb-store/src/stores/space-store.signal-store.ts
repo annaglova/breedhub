@@ -101,6 +101,22 @@ export interface OrderBy {
 }
 
 /**
+ * Escape a value for use in PostgREST filter strings.
+ * Values containing special characters (comma, parentheses, quotes) must be quoted.
+ * @see https://postgrest.org/en/stable/references/api/tables_views.html#reserved-characters
+ */
+function escapePostgrestValue(value: any): string {
+  if (value === null || value === undefined) return 'null';
+  const str = String(value);
+  // If value contains special chars (comma, parentheses, quotes), wrap in double quotes
+  if (/[,()"]/.test(str)) {
+    // Escape internal double quotes by doubling them
+    return `"${str.replace(/"/g, '""')}"`;
+  }
+  return str;
+}
+
+/**
  * VIEW source mapping for entities that should fetch from a VIEW instead of base table.
  * VIEWs are used to enrich entities with JOINed data (e.g., parent names).
  * Key: entityType, Value: { viewName, extraFields }
@@ -2785,7 +2801,9 @@ class SpaceStore {
       const mainOp = orderBy.direction === 'asc' ? 'gt' : 'lt';
       const tbOp = tbDirection === 'asc' ? 'gt' : 'lt';
 
-      const orCondition = `${orderBy.field}.${mainOp}.${cursorData.value},and(${orderBy.field}.eq.${cursorData.value},${tbField}.${tbOp}.${cursorData.tieBreaker})`;
+      const escapedValue = escapePostgrestValue(cursorData.value);
+      const escapedTieBreaker = escapePostgrestValue(cursorData.tieBreaker);
+      const orCondition = `${orderBy.field}.${mainOp}.${escapedValue},and(${orderBy.field}.eq.${escapedValue},${tbField}.${tbOp}.${escapedTieBreaker})`;
 
       console.log(`[SpaceStore] 🔑 Applying composite cursor filter:`, orCondition);
       query = query.or(orCondition);
@@ -4340,7 +4358,9 @@ class SpaceStore {
         const tbDirection = orderBy.tieBreaker?.direction || 'asc';
         const tbOp = tbDirection === 'asc' ? 'gt' : 'lt';
 
-        const orCondition = `${orderBy.field}.${mainOp}.${cursorData.value},and(${orderBy.field}.eq.${cursorData.value},${tbField}.${tbOp}.${cursorData.tieBreaker})`;
+        const escapedValue = escapePostgrestValue(cursorData.value);
+      const escapedTieBreaker = escapePostgrestValue(cursorData.tieBreaker);
+      const orCondition = `${orderBy.field}.${mainOp}.${escapedValue},and(${orderBy.field}.eq.${escapedValue},${tbField}.${tbOp}.${escapedTieBreaker})`;
         query = query.or(orCondition);
       } catch (e) {
         console.warn('[SpaceStore] Failed to parse child cursor:', e);
@@ -4571,7 +4591,9 @@ class SpaceStore {
           const tbDirection = orderBy.tieBreaker?.direction || 'asc';
           const tbOp = tbDirection === 'asc' ? 'gt' : 'lt';
 
-          const orCondition = `${orderBy.field}.${mainOp}.${cursorData.value},and(${orderBy.field}.eq.${cursorData.value},${tieBreakerField}.${tbOp}.${cursorData.tieBreaker})`;
+          const escapedValue = escapePostgrestValue(cursorData.value);
+          const escapedTieBreaker = escapePostgrestValue(cursorData.tieBreaker);
+          const orCondition = `${orderBy.field}.${mainOp}.${escapedValue},and(${orderBy.field}.eq.${escapedValue},${tieBreakerField}.${tbOp}.${escapedTieBreaker})`;
           query = query.or(orCondition);
         } catch (e) {
           console.warn('[SpaceStore] Failed to parse VIEW cursor:', e);
