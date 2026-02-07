@@ -26,11 +26,13 @@ const AVATAR_DRAWER = {
   size: "size-32 xl:size-40",
   offset: "-mt-[88px] xl:-mt-[102px]",
   padding: "pl-6 xl:pl-12",
+  skeletonLeft: "left-6 xl:left-12",
 };
 const AVATAR_FULLSCREEN = {
   size: "size-32 sm:size-40",
   offset: "-mt-[88px] sm:-mt-[102px]",
   padding: "pl-6 sm:pl-12",
+  skeletonLeft: "left-6 sm:left-12",
 };
 
 interface AvatarOutletProps {
@@ -125,7 +127,7 @@ export function AvatarOutlet({
           {/* Avatar skeleton - or spacer to maintain layout */}
           {hasAvatar ? (
             <div
-              className={`absolute left-0 ${avatarConfig.padding} rounded-full bg-slate-300 dark:bg-slate-600 ring-4 ring-white dark:ring-slate-900 shrink-0 animate-pulse ${avatarConfig.size}`}
+              className={`absolute ${avatarConfig.skeletonLeft} rounded-full bg-slate-300 dark:bg-slate-600 ring-4 ring-white dark:ring-slate-900 shrink-0 animate-pulse ${avatarConfig.size}`}
             />
           ) : null}
 
