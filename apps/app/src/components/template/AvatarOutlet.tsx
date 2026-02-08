@@ -150,7 +150,8 @@ export function AvatarOutlet({
       )}
 
       {/* Action buttons - strictly config-driven, no fallbacks */}
-      {hasActions && (hasButtons || hasMenuItems) && (
+      {/* Hidden when loading to prevent button outlines showing through skeleton */}
+      {hasActions && (hasButtons || hasMenuItems) && !isLoading && (
         <div className="mb-1 ml-auto flex gap-2 pointer-events-auto">
           {/* Buttons from config (duplicateOnDesktop items) - icon only on mobile, with label on sm+ */}
           {buttonItems.map((item) => (
