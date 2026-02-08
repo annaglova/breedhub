@@ -1,4 +1,4 @@
-import defaultDogImage from "@/assets/images/pettypes/dog.jpeg";
+import defaultPetLogo from "@/assets/images/pettypes/dog-logo.svg";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 interface EntityAvatarProps {
@@ -47,7 +47,7 @@ export function EntityAvatar({
   size,
   sizeClassName,
   className = "",
-  defaultImage = defaultDogImage,
+  defaultImage = defaultPetLogo,
   alt,
   isFullscreenMode = false,
 }: EntityAvatarProps) {
@@ -116,17 +116,30 @@ export function EntityAvatar({
   const defaultSizeClasses = isFullscreenMode ? SIZE_FULLSCREEN : SIZE_DRAWER;
   const sizeClasses = sizeClassName || (size ? "" : defaultSizeClasses);
 
+  // Check if showing fallback (either default or after error)
+  const isShowingFallback = imgSrc === defaultImage || hasError;
+
   return (
     <div className={`relative ${sizeClasses} ${className}`} style={sizeStyles}>
-      {/* Avatar image */}
+      {/* Avatar image or fallback logo on gray */}
       <div className="flex size-full items-center justify-center overflow-hidden rounded-full border border-slate-200 ring-4 ring-white">
-        <img
-          className="size-full object-cover"
-          src={imgSrc}
-          alt={altText}
-          loading="lazy"
-          onError={handleError}
-        />
+        {isShowingFallback ? (
+          <div className="flex size-full items-center justify-center bg-slate-50 dark:bg-slate-700">
+            <img
+              className="w-2/3 h-auto"
+              src={defaultImage}
+              alt={altText}
+            />
+          </div>
+        ) : (
+          <img
+            className="size-full object-cover"
+            src={imgSrc}
+            alt={altText}
+            loading="lazy"
+            onError={handleError}
+          />
+        )}
       </div>
 
       {/*

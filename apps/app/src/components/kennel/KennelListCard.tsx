@@ -136,7 +136,7 @@ export function KennelListCard({
                 />
               ) : null}
               <div
-                className={`fallback-avatar flex size-full items-center justify-center rounded-full bg-slate-200 text-lg uppercase text-slate-600 dark:bg-slate-700 dark:text-slate-200 ${
+                className={`fallback-avatar flex size-full items-center justify-center rounded-full bg-slate-50 text-lg uppercase text-sub-header-color dark:bg-slate-700 ${
                   kennel.Avatar ? "hidden" : ""
                 }`}
               >

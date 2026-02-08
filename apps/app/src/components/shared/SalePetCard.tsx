@@ -1,4 +1,4 @@
-import defaultDogImage from "@/assets/images/pettypes/dog.jpeg";
+import defaultPetLogo from "@/assets/images/pettypes/dog-logo.svg";
 import { PetSexMark } from "@/components/shared/PetSexMark";
 import { Badge } from "@ui/components/badge";
 import { PawPrint } from "lucide-react";
@@ -121,7 +121,7 @@ function PetImage({
  *
  * Based on Angular: sale-pet-card.component.ts
  */
-export function SalePetCard({ pet, defaultImage = defaultDogImage }: SalePetCardProps) {
+export function SalePetCard({ pet, defaultImage = defaultPetLogo }: SalePetCardProps) {
   const dateYear = formatDateYear(pet.dateOfBirth);
 
   return (

@@ -21,32 +21,27 @@ interface BreedPatronage {
   place: number;
 }
 
+// Contact roles format from DB - { breeder: true, judge: true, handler: true }
+interface ContactRoles {
+  breeder?: boolean;
+  judge?: boolean;
+  handler?: boolean;
+  owner?: boolean;
+}
+
 // Interface for contact data from RxDB/Supabase
 interface ContactEntity {
   id: string;
   name?: string;
-  display_name?: string;
-  first_name?: string;
-  last_name?: string;
+  given_name?: string;
+  surname?: string;
   avatar_url?: string;
-  has_user?: boolean;
+  account_id?: string; // If not null, contact has a linked user account
   verification_status_id?: string;
-  verification_status?: string;
-  // Career flags
-  is_breeder?: boolean;
-  is_judge?: boolean;
-  is_handler?: boolean;
-  is_owner?: boolean;
-  career?: {
-    breeder?: boolean;
-    judge?: boolean;
-    handler?: boolean;
-  };
-  // Breed patronage
+  contact_roles?: ContactRoles;
   breed_patronage?: BreedPatronage[];
   tier_marks?: TierMarksData;
   notes?: string;
-  has_notes?: boolean;
   [key: string]: any;
 }
 
@@ -68,41 +63,43 @@ export function ContactListCard({
   selected = false,
   onClick,
 }: ContactListCardProps) {
-  // Determine avatar outline color based on HasUser
+  // Determine avatar outline color based on whether contact has a linked user account
+  const hasUser = !!entity.account_id;
   const getOutlineClass = () => {
-    return entity.has_user
+    return hasUser
       ? "outline-primary-300 dark:outline-primary-400"
       : "outline-slate-300 dark:outline-slate-400";
   };
 
-  // Mock data for UI development - will be replaced with real data
+  // Extract roles from contact_roles JSONB field
+  const roles = entity.contact_roles || {};
+  const isBreeder = !!roles.breeder;
+  const isJudge = !!roles.judge;
+  const isHandler = !!roles.handler;
+
+  // Build display name from available fields
+  const displayName =
+    entity.name ||
+    `${entity.given_name || ""} ${entity.surname || ""}`.trim() ||
+    "Unknown";
+
+  // Extract data from the entity - uses real DB values
   const contact = {
     Id: entity.id,
-    Name:
-      entity.name ||
-      entity.display_name ||
-      `${entity.first_name || ""} ${entity.last_name || ""}`.trim() ||
-      "Unknown",
+    Name: displayName,
     Avatar: entity.avatar_url,
-    // HasUser - mock for visual testing (always show outline)
-    HasUser: true,
-    // VerificationStatus - mock for visual testing (always show verified)
-    VerificationStatus: "verified",
-    // Career - mock for visual testing (always show both)
-    IsBreeder: true,
-    IsJudge: true,
-    // Notes - mock for visual testing (always show)
-    HasNotes: true,
-    // Breed patronage - mock for visual testing (always show)
-    BreedPatronage: [
-      { breed_id: "breed-1", breed_name: "Golden Retriever", place: 1 },
-      { breed_id: "breed-2", breed_name: "German Shepherd", place: 2 },
-    ],
-    // Tier marks - mock for visual testing (always show)
-    // Requires product_name to display!
-    TierMarks: {
-      owner: { contact_name: "Mock Owner", product_name: "Professional" },
-    },
+    // Verification status - uses real data from entity
+    VerificationStatus: entity.verification_status_id,
+    // Career roles - uses real data from contact_roles JSONB
+    IsBreeder: isBreeder,
+    IsJudge: isJudge,
+    IsHandler: isHandler,
+    // Notes - uses real data from entity
+    HasNotes: !!entity.notes,
+    // Breed patronage - uses real data from entity
+    BreedPatronage: entity.breed_patronage,
+    // Tier marks - uses real data from entity
+    TierMarks: entity.tier_marks,
   };
 
   // Get first letter for fallback avatar
@@ -140,7 +137,7 @@ export function ContactListCard({
                 />
               ) : null}
               <div
-                className={`fallback-avatar flex size-full items-center justify-center rounded-full bg-slate-200 text-lg uppercase text-slate-600 dark:bg-slate-700 dark:text-slate-200 ${
+                className={`fallback-avatar flex size-full items-center justify-center rounded-full bg-slate-50 text-lg uppercase text-sub-header-color dark:bg-slate-700 ${
                   contact.Avatar ? "hidden" : ""
                 }`}
               >
@@ -179,6 +176,16 @@ export function ContactListCard({
                     <span className="text-slate-400">&bull;</span>
                   )}
                   <span>Judge</span>
+                </>
+              )}
+
+              {/* Handler */}
+              {contact.IsHandler && (
+                <>
+                  {(contact.IsBreeder || contact.IsJudge) && (
+                    <span className="text-slate-400">&bull;</span>
+                  )}
+                  <span>Handler</span>
                 </>
               )}
             </div>

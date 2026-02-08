@@ -1,4 +1,4 @@
-import defaultPetAvatar from "@/assets/images/pettypes/dog.jpeg";
+import defaultPetLogo from "@/assets/images/pettypes/dog-logo.svg";
 import { useDictionaryValue } from "@/hooks/useDictionaryValue";
 import { useEntities } from "@/hooks/useEntities";
 import { dictionaryStore, spaceStore, supabase } from "@breedhub/rxdb-store";
@@ -115,7 +115,7 @@ function PetSelectorItem({
       >
         <div className="w-full h-full rounded-full overflow-hidden">
           <img
-            src={pet.avatar_url || defaultPetAvatar}
+            src={pet.avatar_url || defaultPetLogo}
             alt={pet.name || "Pet"}
             className="w-full h-full object-cover"
             loading="lazy"
@@ -123,7 +123,7 @@ function PetSelectorItem({
               const target = e.currentTarget;
               if (!target.dataset.fallback) {
                 target.dataset.fallback = "true";
-                target.src = defaultPetAvatar;
+                target.src = defaultPetLogo;
               }
             }}
           />

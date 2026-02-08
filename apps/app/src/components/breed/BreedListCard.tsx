@@ -79,7 +79,7 @@ export function BreedListCard({
               />
             ) : null}
             <div
-              className="w-full h-full flex items-center justify-center text-slate-600 dark:text-slate-200 text-lg uppercase bg-slate-200 dark:bg-slate-700"
+              className="w-full h-full flex items-center justify-center text-sub-header-color text-lg uppercase bg-slate-50 dark:bg-slate-700"
               style={{ display: breed.Avatar ? "none" : "flex" }}
             >
               {breed.Name?.charAt(0)}

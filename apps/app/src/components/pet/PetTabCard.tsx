@@ -5,7 +5,7 @@ import { TierMark } from "@/components/shared/TierMark";
 import { PetServices } from "@/components/shared/PetServices";
 import { PetSexMark } from "@/components/shared/PetSexMark";
 import { useDictionaryValue } from "@/hooks/useDictionaryValue";
-import defaultPetAvatar from "@/assets/images/pettypes/dog.jpeg";
+import defaultPetLogo from "@/assets/images/pettypes/dog-logo.svg";
 
 // Tier marks format from DB
 interface TierMarkEntry {
@@ -89,20 +89,37 @@ export function PetTabCard({
         {/* Tier marks - grid mode */}
         <TierMark tierMarks={pet.TierMarks} mode="grid" className="mt-3" />
 
-        {/* Pet avatar with hover scale effect */}
-        <img
-          className="w-full h-auto max-h-[200%] duration-300 group-hover:scale-110 absolute inset-0 m-auto object-cover"
-          src={pet.Avatar || defaultPetAvatar}
-          alt={pet.Name}
-          loading="lazy"
-          onError={(e) => {
-            const target = e.currentTarget;
-            if (!target.dataset.fallback) {
-              target.dataset.fallback = "true";
-              target.src = defaultPetAvatar;
-            }
-          }}
-        />
+        {/* Pet avatar with hover scale effect, or fallback logo on gray */}
+        {pet.Avatar ? (
+          <img
+            className="w-full h-auto max-h-[200%] duration-300 group-hover:scale-110 absolute inset-0 m-auto object-cover"
+            src={pet.Avatar}
+            alt={pet.Name}
+            loading="lazy"
+            onError={(e) => {
+              const target = e.currentTarget;
+              if (!target.dataset.fallback) {
+                target.dataset.fallback = "true";
+                target.style.display = "none";
+                target.parentElement
+                  ?.querySelector(".fallback-container")
+                  ?.classList.remove("hidden");
+              }
+            }}
+          />
+        ) : null}
+        {/* Fallback: logo on gray background */}
+        <div
+          className={`fallback-container absolute inset-0 flex items-center justify-center bg-slate-50 dark:bg-slate-700 ${
+            pet.Avatar ? "hidden" : ""
+          }`}
+        >
+          <img
+            src={defaultPetLogo}
+            alt={pet.Name}
+            className="w-2/3 h-auto duration-300 group-hover:scale-110"
+          />
+        </div>
       </div>
 
       {/* Content area */}

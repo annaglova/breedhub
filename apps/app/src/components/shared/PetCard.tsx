@@ -1,4 +1,4 @@
-import defaultDogImage from "@/assets/images/pettypes/dog.jpeg";
+import defaultPetLogo from "@/assets/images/pettypes/dog-logo.svg";
 import {
   Tooltip,
   TooltipContent,
@@ -100,11 +100,21 @@ export function PetCard({ pet, mode = "default" }: PetCardProps) {
       <div className="flex h-auto flex-col items-center justify-center">
         {/* Avatar */}
         <div className="flex size-36 items-center justify-center overflow-hidden rounded-xl border border-surface-border sm:size-44">
-          <img
-            className="h-full w-auto max-w-[150%] object-cover"
-            src={pet.avatarUrl || defaultDogImage}
-            alt={pet.name}
-          />
+          {pet.avatarUrl ? (
+            <img
+              className="h-full w-auto max-w-[150%] object-cover"
+              src={pet.avatarUrl}
+              alt={pet.name}
+            />
+          ) : (
+            <div className="flex size-full items-center justify-center bg-slate-50 dark:bg-slate-700">
+              <img
+                className="w-2/3 h-auto"
+                src={defaultPetLogo}
+                alt={pet.name}
+              />
+            </div>
+          )}
         </div>
 
         {/* Name with SmartLink */}

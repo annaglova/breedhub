@@ -1,4 +1,3 @@
-import defaultPetAvatar from "@/assets/images/pettypes/dog.jpeg";
 import { NoteFlag } from "@/components/shared/NoteFlag";
 import { PetServices } from "@/components/shared/PetServices";
 import { TierMark } from "@/components/shared/TierMark";
@@ -116,20 +115,31 @@ export function PetListCard({
             className={`size-10 rounded-full border border-surface-border flex-shrink-0 outline outline-2 outline-offset-2 ${getOutlineClass()}`}
           >
             <div className="w-full h-full rounded-full overflow-hidden">
-              <img
-                src={pet.Avatar || defaultPetAvatar}
-                alt={pet.Name}
-                className="w-full h-full object-cover"
-                loading="lazy"
-                onError={(e) => {
-                  // Fallback to default avatar on error (prevent infinite loop)
-                  const target = e.currentTarget;
-                  if (!target.dataset.fallback) {
-                    target.dataset.fallback = "true";
-                    target.src = defaultPetAvatar;
-                  }
-                }}
-              />
+              {pet.Avatar ? (
+                <img
+                  src={pet.Avatar}
+                  alt={pet.Name}
+                  className="w-full h-full object-cover"
+                  loading="lazy"
+                  onError={(e) => {
+                    const target = e.currentTarget;
+                    if (!target.dataset.fallback) {
+                      target.dataset.fallback = "true";
+                      target.style.display = "none";
+                      target.parentElement
+                        ?.querySelector(".fallback-avatar")
+                        ?.classList.remove("hidden");
+                    }
+                  }}
+                />
+              ) : null}
+              <div
+                className={`fallback-avatar flex size-full items-center justify-center rounded-full bg-slate-50 text-lg uppercase text-sub-header-color dark:bg-slate-700 ${
+                  pet.Avatar ? "hidden" : ""
+                }`}
+              >
+                {pet.Name?.charAt(0)?.toUpperCase() || "?"}
+              </div>
             </div>
           </div>
           {/* Verification badge - bottom right of avatar */}

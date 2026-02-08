@@ -1,4 +1,4 @@
-import defaultDogImage from "@/assets/images/pettypes/dog.jpeg";
+import defaultPetLogo from "@/assets/images/pettypes/dog-logo.svg";
 import type { SexCode } from "@/components/shared/PetSexMark";
 import { PetSexMark } from "@/components/shared/PetSexMark";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -50,7 +50,7 @@ function PetImage({
 }) {
   // Check if URL is already known to be broken
   const isBroken = src ? brokenImageCache.has(src) : false;
-  const initialSrc = !src || isBroken ? defaultDogImage : src;
+  const initialSrc = !src || isBroken ? defaultPetLogo : src;
 
   const [imgSrc, setImgSrc] = useState(initialSrc);
   const currentSrcRef = useRef(src);
@@ -59,7 +59,7 @@ function PetImage({
     if (src) {
       brokenImageCache.add(src);
     }
-    setImgSrc(defaultDogImage);
+    setImgSrc(defaultPetLogo);
   }, [src]);
 
   // Only reset when src actually changes to a different value
@@ -67,7 +67,7 @@ function PetImage({
     if (currentSrcRef.current !== src) {
       currentSrcRef.current = src;
       const isBrokenUrl = src ? brokenImageCache.has(src) : false;
-      setImgSrc(!src || isBrokenUrl ? defaultDogImage : src);
+      setImgSrc(!src || isBrokenUrl ? defaultPetLogo : src);
     }
   }, [src]);
 
