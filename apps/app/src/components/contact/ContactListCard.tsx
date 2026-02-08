@@ -78,8 +78,9 @@ export function ContactListCard({
   const isHandler = !!roles.handler;
 
   // Build display name from available fields
+  // Trim to remove leading/trailing whitespace that could break charAt(0)
   const displayName =
-    entity.name ||
+    entity.name?.trim() ||
     `${entity.given_name || ""} ${entity.surname || ""}`.trim() ||
     "Unknown";
 
@@ -102,9 +103,6 @@ export function ContactListCard({
     TierMarks: entity.tier_marks,
   };
 
-  // Get first letter for fallback avatar
-  const firstLetter = contact.Name?.charAt(0)?.toUpperCase() || "?";
-
   return (
     <EntityListCardWrapper
       selected={selected}
@@ -125,23 +123,18 @@ export function ContactListCard({
                   className="w-full h-full object-cover"
                   loading="lazy"
                   onError={(e) => {
-                    const target = e.currentTarget;
-                    if (!target.dataset.fallback) {
-                      target.dataset.fallback = "true";
-                      target.style.display = "none";
-                      target.parentElement
-                        ?.querySelector(".fallback-avatar")
-                        ?.classList.remove("hidden");
-                    }
+                    e.currentTarget.style.display = "none";
+                    e.currentTarget.nextElementSibling?.classList.remove(
+                      "hidden"
+                    );
                   }}
                 />
               ) : null}
               <div
-                className={`fallback-avatar flex size-full items-center justify-center rounded-full bg-slate-50 text-lg uppercase text-sub-header-color dark:bg-slate-700 ${
-                  contact.Avatar ? "hidden" : ""
-                }`}
+                className="w-full h-full flex items-center justify-center text-sub-header-color text-lg uppercase bg-slate-50 dark:bg-slate-700"
+                style={{ display: contact.Avatar ? "none" : "flex" }}
               >
-                {firstLetter}
+                {contact.Name?.charAt(0)}
               </div>
             </div>
           </div>
