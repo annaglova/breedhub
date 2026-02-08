@@ -147,11 +147,21 @@ export function SpaceComponent<T extends { id: string }>({
   }, [config.entitySchemaName, viewMode, spaceStore.configReady.value]);
 
   // Get the main filter field for search (from SpaceStore)
+  // Used for URL handling (first mainFilterField's slug is used for URL)
   const mainFilterField = useMemo(() => {
     if (!spaceStore.configReady.value) {
       return null; // Simple fallback - won't cause loading because useEntities waits for configReady
     }
     return spaceStore.getMainFilterField(config.entitySchemaName);
+  }, [config.entitySchemaName, spaceStore.configReady.value]);
+
+  // Get ALL main filter fields for OR logic search
+  // When multiple fields have mainFilterField: true, search applies to all with OR
+  const mainFilterFields = useMemo(() => {
+    if (!spaceStore.configReady.value) {
+      return [];
+    }
+    return spaceStore.getMainFilterFields(config.entitySchemaName);
   }, [config.entitySchemaName, spaceStore.configReady.value]);
 
   // Generate URL-friendly slug from field ID
@@ -464,15 +474,29 @@ export function SpaceComponent<T extends { id: string }>({
                 if (!fieldConfig && mainFilterField) {
                   const mainFieldSlug = getFieldSlug(mainFilterField);
                   if (mainFieldSlug === urlKey) {
-                    // Add mainFilterField to filters (for search)
-                    // Hybrid search will be automatically triggered by space-store
-                    console.log(
-                      "[SpaceComponent] 🔍 Adding search filter:",
-                      mainFilterField.id,
-                      "=",
-                      urlValue
-                    );
-                    filterObj[mainFilterField.id] = urlValue;
+                    // Add ALL mainFilterFields to filters (for OR search)
+                    // When multiple fields have mainFilterField: true, search applies to all with OR
+                    if (mainFilterFields.length > 1) {
+                      console.log(
+                        "[SpaceComponent] 🔀 Adding OR search filters:",
+                        mainFilterFields.map(f => f.id),
+                        "=",
+                        urlValue
+                      );
+                      // Add same search value to all main filter fields
+                      // space-store will detect same value and combine with OR
+                      for (const field of mainFilterFields) {
+                        filterObj[field.id] = urlValue;
+                      }
+                    } else {
+                      console.log(
+                        "[SpaceComponent] 🔍 Adding search filter:",
+                        mainFilterField.id,
+                        "=",
+                        urlValue
+                      );
+                      filterObj[mainFilterField.id] = urlValue;
+                    }
                     return;
                   }
                 }
@@ -510,7 +534,7 @@ export function SpaceComponent<T extends { id: string }>({
     };
 
     buildFilters();
-  }, [searchParams, filterFields, mainFilterField, config.entitySchemaName]);
+  }, [searchParams, filterFields, mainFilterField, mainFilterFields, config.entitySchemaName]);
 
   // 🆕 ID-First: useEntities with orderBy + filters enables ID-First pagination
   const {

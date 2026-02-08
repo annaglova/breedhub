@@ -998,6 +998,70 @@ class SpaceStore {
   }
 
   /**
+   * Get ALL main filter fields from space config's filter_fields
+   * Used when multiple fields have mainFilterField: true (e.g., litter: father_name, mother_name)
+   * These fields will be searched with OR logic
+   *
+   * @param entityType - Entity type (e.g., 'breed', 'litter')
+   * @returns Array of main filter field configurations
+   */
+  getMainFilterFields(entityType: string): Array<{
+    id: string;
+    displayName: string;
+    component: string;
+    placeholder?: string;
+    fieldType: string;
+    operator?: string;
+    slug?: string;
+  }> {
+    // Try exact match first
+    let spaceConfig = this.spaceConfigs.get(entityType);
+
+    // If not found, try case-insensitive match
+    if (!spaceConfig) {
+      const lowerEntityType = entityType.toLowerCase();
+      for (const [key, config] of this.spaceConfigs.entries()) {
+        if (key.toLowerCase() === lowerEntityType) {
+          spaceConfig = config;
+          break;
+        }
+      }
+    }
+
+    if (!spaceConfig?.filter_fields) {
+      return [];
+    }
+
+    const mainFields: Array<{
+      id: string;
+      displayName: string;
+      component: string;
+      placeholder?: string;
+      fieldType: string;
+      operator?: string;
+      slug?: string;
+    }> = [];
+
+    // Find ALL fields with mainFilterField: true
+    for (const [fieldId, fieldConfig] of Object.entries(spaceConfig.filter_fields)) {
+      const field = fieldConfig as any;
+      if (field.mainFilterField === true) {
+        mainFields.push({
+          id: fieldId,
+          displayName: field.displayName || fieldId,
+          component: field.component || 'TextInput',
+          placeholder: field.placeholder,
+          fieldType: field.fieldType || 'string',
+          operator: field.operator,
+          slug: field.slug
+        });
+      }
+    }
+
+    return mainFields;
+  }
+
+  /**
    * Load more entities for pagination (manual pull)
    * @param entityType - тип сутності
    * @param viewType - тип view (list, grid, etc.)
@@ -2663,12 +2727,24 @@ class SpaceStore {
     if (useHybridSearch) {
       console.log('[SpaceStore] 🔍 HYBRID SEARCH mode (starts_with 70% + contains 30%)');
 
-      // Separate search filters from other filters
-      const searchField = searchFilters[0][0];
-      const searchValue = searchFilters[0][1];
+      // 🔀 OR LOGIC: Check if multiple search fields have the same value (main filter fields)
+      // Group search filters by value to detect OR-combined main filter fields
+      const firstSearchValue = searchFilters[0][1];
+      const orSearchFields = searchFilters
+        .filter(([_, value]) => value === firstSearchValue)
+        .map(([fieldKey]) => fieldKey);
+
+      const isOrSearch = orSearchFields.length > 1;
+      const searchValue = firstSearchValue;
+
+      // Remove all OR search fields from filters
       const otherFilters = Object.fromEntries(
-        Object.entries(filters).filter(([key]) => key !== searchField)
+        Object.entries(filters).filter(([key]) => !orSearchFields.includes(key))
       );
+
+      if (isOrSearch) {
+        console.log(`[SpaceStore] 🔀 OR SEARCH: Searching "${searchValue}" in fields:`, orSearchFields);
+      }
 
       // Phase 1: Starts with (high priority, 70% of limit)
       const startsWithLimit = Math.ceil(limit * 0.7);
@@ -2676,8 +2752,18 @@ class SpaceStore {
       let startsWithQuery = supabase
         .from(sourceName)
         .select(`id, ${orderBy.field}`)
-        .or('deleted.is.null,deleted.eq.false')
-        .ilike(searchField, `${searchValue}%`); // Starts with
+        .or('deleted.is.null,deleted.eq.false');
+
+      // Apply search filter: OR for multiple fields, single ilike for one field
+      if (isOrSearch) {
+        // Build OR condition: father_name.ilike.John%,mother_name.ilike.John%
+        const orCondition = orSearchFields
+          .map(field => `${field}.ilike.${searchValue}%`)
+          .join(',');
+        startsWithQuery = startsWithQuery.or(orCondition);
+      } else {
+        startsWithQuery = startsWithQuery.ilike(orSearchFields[0], `${searchValue}%`);
+      }
 
       // Apply other filters
       for (const [fieldKey, value] of Object.entries(otherFilters)) {
@@ -2706,9 +2792,23 @@ class SpaceStore {
         let containsQuery = supabase
           .from(sourceName)
           .select(`id, ${orderBy.field}`)
-          .or('deleted.is.null,deleted.eq.false')
-          .ilike(searchField, `%${searchValue}%`)  // Contains
-          .not(searchField, 'ilike', `${searchValue}%`); // Exclude starts_with
+          .or('deleted.is.null,deleted.eq.false');
+
+        // Apply contains filter: OR for multiple fields, single ilike for one field
+        if (isOrSearch) {
+          // For OR search: contains in any field, excluding starts_with matches
+          // Build: (father_name ILIKE %val% AND father_name NOT ILIKE val%) OR (mother_name ILIKE %val% AND mother_name NOT ILIKE val%)
+          // This is complex in PostgREST, so we use a simpler approach:
+          // Contains in any field, then filter out starts_with results client-side (already done via mergedResults)
+          const orContainsCondition = orSearchFields
+            .map(field => `${field}.ilike.%${searchValue}%`)
+            .join(',');
+          containsQuery = containsQuery.or(orContainsCondition);
+        } else {
+          containsQuery = containsQuery
+            .ilike(orSearchFields[0], `%${searchValue}%`)
+            .not(orSearchFields[0], 'ilike', `${searchValue}%`);
+        }
 
         // Apply other filters
         for (const [fieldKey, value] of Object.entries(otherFilters)) {
@@ -2729,8 +2829,11 @@ class SpaceStore {
           const containsResults = containsData || [];
           console.log(`[SpaceStore] ✅ Contains: ${containsResults.length} results`);
 
-          // Merge: starts_with first, then contains
-          const mergedResults = [...startsWithResults, ...containsResults];
+          // Merge: starts_with first, then contains (deduplicate for OR search)
+          const startsWithIds = new Set(startsWithResults.map((r: any) => r.id));
+          const uniqueContainsResults = containsResults.filter((r: any) => !startsWithIds.has(r.id));
+          const mergedResults = [...startsWithResults, ...uniqueContainsResults];
+
           console.log(`[SpaceStore] ✅ Fetched ${mergedResults.length} IDs (~${Math.round(mergedResults.length * 0.1)}KB) via HYBRID SEARCH`);
           return mergedResults;
         }
