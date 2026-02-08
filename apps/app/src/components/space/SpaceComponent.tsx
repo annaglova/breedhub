@@ -157,12 +157,26 @@ export function SpaceComponent<T extends { id: string }>({
 
   // Get ALL main filter fields for OR logic search
   // When multiple fields have mainFilterField: true, search applies to all with OR
-  const mainFilterFields = useMemo(() => {
+  const mainFilterFieldsResult = useMemo(() => {
     if (!spaceStore.configReady.value) {
-      return [];
+      return { fields: [], searchSlug: undefined };
     }
     return spaceStore.getMainFilterFields(config.entitySchemaName);
   }, [config.entitySchemaName, spaceStore.configReady.value]);
+
+  // Extract fields array for easier use
+  const mainFilterFields = mainFilterFieldsResult.fields;
+
+  // Get the URL slug for search: use searchSlug if multiple fields, otherwise first field's slug
+  const searchUrlSlug = useMemo(() => {
+    if (mainFilterFieldsResult.searchSlug) {
+      return mainFilterFieldsResult.searchSlug;
+    }
+    if (mainFilterField) {
+      return mainFilterField.slug || extractFieldName(mainFilterField.id);
+    }
+    return null;
+  }, [mainFilterFieldsResult.searchSlug, mainFilterField]);
 
   // Generate URL-friendly slug from field ID
   // If slug exists in config - use it, otherwise extract from field ID
@@ -173,11 +187,10 @@ export function SpaceComponent<T extends { id: string }>({
   // Read search value from URL on initial mount only
   const isInitialMount = useRef(true);
   useEffect(() => {
-    if (!mainFilterField || !isInitialMount.current) return;
+    if (!searchUrlSlug || !isInitialMount.current) return;
 
-    // Use slug to read from URL
-    const slug = getFieldSlug(mainFilterField);
-    const urlValue = searchParams.get(slug);
+    // Use searchSlug to read from URL (e.g., "parent" for OR search)
+    const urlValue = searchParams.get(searchUrlSlug);
 
     if (urlValue) {
       setSearchValue(urlValue);
@@ -185,7 +198,7 @@ export function SpaceComponent<T extends { id: string }>({
     }
 
     isInitialMount.current = false;
-  }, [mainFilterField, searchParams]);
+  }, [searchUrlSlug, searchParams]);
 
   // Debounce search value (faster on delete, slower on typing)
   useEffect(() => {
@@ -206,27 +219,26 @@ export function SpaceComponent<T extends { id: string }>({
 
   // Update URL when debounced search value changes
   useEffect(() => {
-    if (!mainFilterField) {
+    if (!searchUrlSlug) {
       return;
     }
 
-    // Use slug for URL (e.g., "name" instead of "breed_field_name")
-    const slug = getFieldSlug(mainFilterField);
-    const currentValue = searchParams.get(slug);
+    // Use searchSlug for URL (e.g., "parent" for OR search)
+    const currentValue = searchParams.get(searchUrlSlug);
     const newValue = debouncedSearchValue.trim() || null;
 
     if (currentValue !== newValue) {
       const newParams = new URLSearchParams(searchParams);
 
       if (debouncedSearchValue.trim()) {
-        newParams.set(slug, debouncedSearchValue.trim());
+        newParams.set(searchUrlSlug, debouncedSearchValue.trim());
       } else {
-        newParams.delete(slug);
+        newParams.delete(searchUrlSlug);
       }
 
       setSearchParams(newParams, { replace: true });
     }
-  }, [debouncedSearchValue, mainFilterField, searchParams, setSearchParams]);
+  }, [debouncedSearchValue, searchUrlSlug, searchParams, setSearchParams]);
 
   // Find default sort option
   const defaultSortOption = useMemo(() => {
@@ -470,35 +482,32 @@ export function SpaceComponent<T extends { id: string }>({
                   fieldConfig = filterFields.find((f) => f.id === urlKey);
                 }
 
-                // If not found in filterFields, check if it's the mainFilterField
-                if (!fieldConfig && mainFilterField) {
-                  const mainFieldSlug = getFieldSlug(mainFilterField);
-                  if (mainFieldSlug === urlKey) {
-                    // Add ALL mainFilterFields to filters (for OR search)
-                    // When multiple fields have mainFilterField: true, search applies to all with OR
-                    if (mainFilterFields.length > 1) {
-                      console.log(
-                        "[SpaceComponent] 🔀 Adding OR search filters:",
-                        mainFilterFields.map(f => f.id),
-                        "=",
-                        urlValue
-                      );
-                      // Add same search value to all main filter fields
-                      // space-store will detect same value and combine with OR
-                      for (const field of mainFilterFields) {
-                        filterObj[field.id] = urlValue;
-                      }
-                    } else {
-                      console.log(
-                        "[SpaceComponent] 🔍 Adding search filter:",
-                        mainFilterField.id,
-                        "=",
-                        urlValue
-                      );
-                      filterObj[mainFilterField.id] = urlValue;
+                // If not found in filterFields, check if it's the search URL slug
+                if (!fieldConfig && searchUrlSlug && urlKey === searchUrlSlug) {
+                  // Add ALL mainFilterFields to filters (for OR search)
+                  // When multiple fields have mainFilterField: true, search applies to all with OR
+                  if (mainFilterFields.length > 1) {
+                    console.log(
+                      "[SpaceComponent] 🔀 Adding OR search filters:",
+                      mainFilterFields.map(f => f.id),
+                      "=",
+                      urlValue
+                    );
+                    // Add same search value to all main filter fields
+                    // space-store will detect same value and combine with OR
+                    for (const field of mainFilterFields) {
+                      filterObj[field.id] = urlValue;
                     }
-                    return;
+                  } else if (mainFilterField) {
+                    console.log(
+                      "[SpaceComponent] 🔍 Adding search filter:",
+                      mainFilterField.id,
+                      "=",
+                      urlValue
+                    );
+                    filterObj[mainFilterField.id] = urlValue;
                   }
+                  return;
                 }
 
                 if (fieldConfig) {
@@ -534,7 +543,7 @@ export function SpaceComponent<T extends { id: string }>({
     };
 
     buildFilters();
-  }, [searchParams, filterFields, mainFilterField, mainFilterFields, config.entitySchemaName]);
+  }, [searchParams, filterFields, mainFilterField, mainFilterFields, searchUrlSlug, config.entitySchemaName]);
 
   // 🆕 ID-First: useEntities with orderBy + filters enables ID-First pagination
   const {
@@ -1125,12 +1134,9 @@ export function SpaceComponent<T extends { id: string }>({
 
       for (const [key, urlValue] of searchParams.entries()) {
         if (!reservedParams.includes(key) && urlValue) {
-          // Skip mainFilterField - it's used for search, not displayed as filter chip
-          if (mainFilterField) {
-            const mainFieldSlug = getFieldSlug(mainFilterField);
-            if (mainFieldSlug === key) {
-              continue;
-            }
+          // Skip search URL slug - it's used for search, not displayed as filter chip
+          if (searchUrlSlug && key === searchUrlSlug) {
+            continue;
           }
 
           // Find field config by slug or field ID
@@ -1184,7 +1190,7 @@ export function SpaceComponent<T extends { id: string }>({
     } else {
       setActiveFilters([]);
     }
-  }, [searchParams, filterFields, mainFilterField]);
+  }, [searchParams, filterFields, searchUrlSlug]);
 
   // 🆕 Get current filter values for initializing FiltersDialog form
   // Need to convert label → ID (same as filters logic)
@@ -1218,12 +1224,9 @@ export function SpaceComponent<T extends { id: string }>({
           if (!reservedParams.includes(urlKey) && urlValue) {
             promises.push(
               (async () => {
-                // Skip mainFilterField - it's used for search, not in FiltersDialog
-                if (mainFilterField) {
-                  const mainFieldSlug = getFieldSlug(mainFilterField);
-                  if (mainFieldSlug === urlKey) {
-                    return;
-                  }
+                // Skip search URL slug - it's used for search, not in FiltersDialog
+                if (searchUrlSlug && urlKey === searchUrlSlug) {
+                  return;
                 }
 
                 // Find field config by slug or field ID
@@ -1265,7 +1268,7 @@ export function SpaceComponent<T extends { id: string }>({
     };
 
     buildFormValues();
-  }, [searchParams, filterFields, mainFilterField]);
+  }, [searchParams, filterFields, searchUrlSlug]);
 
   const handleCreateNew = () => {
     navigate(`${location.pathname}/new`);

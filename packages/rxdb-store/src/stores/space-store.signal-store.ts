@@ -1003,17 +1003,21 @@ class SpaceStore {
    * These fields will be searched with OR logic
    *
    * @param entityType - Entity type (e.g., 'breed', 'litter')
-   * @returns Array of main filter field configurations
+   * @returns Object with fields array and optional searchSlug for URL
    */
-  getMainFilterFields(entityType: string): Array<{
-    id: string;
-    displayName: string;
-    component: string;
-    placeholder?: string;
-    fieldType: string;
-    operator?: string;
-    slug?: string;
-  }> {
+  getMainFilterFields(entityType: string): {
+    fields: Array<{
+      id: string;
+      displayName: string;
+      component: string;
+      placeholder?: string;
+      fieldType: string;
+      operator?: string;
+      slug?: string;
+    }>;
+    /** Shared slug for URL when multiple mainFilterFields (e.g., "parent" for father_name + mother_name) */
+    searchSlug?: string;
+  } {
     // Try exact match first
     let spaceConfig = this.spaceConfigs.get(entityType);
 
@@ -1029,7 +1033,7 @@ class SpaceStore {
     }
 
     if (!spaceConfig?.filter_fields) {
-      return [];
+      return { fields: [] };
     }
 
     const mainFields: Array<{
@@ -1041,6 +1045,8 @@ class SpaceStore {
       operator?: string;
       slug?: string;
     }> = [];
+
+    let searchSlug: string | undefined;
 
     // Find ALL fields with mainFilterField: true
     for (const [fieldId, fieldConfig] of Object.entries(spaceConfig.filter_fields)) {
@@ -1055,10 +1061,14 @@ class SpaceStore {
           operator: field.operator,
           slug: field.slug
         });
+        // Use searchSlug from any of the mainFilterFields (they should all have the same)
+        if (field.searchSlug && !searchSlug) {
+          searchSlug = field.searchSlug;
+        }
       }
     }
 
-    return mainFields;
+    return { fields: mainFields, searchSlug };
   }
 
   /**
