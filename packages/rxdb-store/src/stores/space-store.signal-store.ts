@@ -120,21 +120,17 @@ function escapePostgrestValue(value: any): string {
  * VIEW source mapping for entities that should fetch from a VIEW instead of base table.
  * VIEWs are used to enrich entities with JOINed data (e.g., parent names).
  * Key: entityType, Value: { viewName, extraFields }
+ *
+ * NOTE: litter was removed from here because the litter_with_parents VIEW
+ * was too slow (~1.1s) due to JOINs to the partitioned pet table.
+ * Instead, LitterListCard uses useCollectionValue hooks for enrichment.
  */
 const ENTITY_VIEW_SOURCES: Record<string, {
   viewName: string;
   /** Extra fields provided by the VIEW (added to RxDB schema) */
   extraFields: Record<string, { type: string; maxLength?: number }>;
 }> = {
-  litter: {
-    viewName: 'litter_with_parents',
-    extraFields: {
-      father_name: { type: 'string', maxLength: 500 },
-      mother_name: { type: 'string', maxLength: 500 },
-      kennel_name: { type: 'string', maxLength: 500 }, // for LitterListCard
-      // breed: use enrichment via useCollectionValue in LitterName
-    },
-  },
+  // Currently empty - all entities use base tables with client-side enrichment
 };
 
 /**
@@ -5172,10 +5168,15 @@ class SpaceStore {
    * 2. If not found, fetch from Supabase
    * 3. Cache in RxDB for future requests
    * 4. Return record
+   *
+   * @param tableName - Table/collection name (e.g., 'pet', 'breed')
+   * @param id - Record UUID
+   * @param partitionKey - Optional partition key for partitioned tables (e.g., { field: 'breed_id', value: 'uuid' } for pet)
    */
   async getRecordById(
     tableName: string,
-    id: string
+    id: string,
+    partitionKey?: { field: string; value: string }
   ): Promise<Record<string, unknown> | null> {
     if (!id) return null;
 
@@ -5194,11 +5195,18 @@ class SpaceStore {
       }
 
       // Phase 2: Fetch from Supabase
-      const { data, error } = await supabase
+      // For partitioned tables (e.g., pet), include partition key for efficient query
+      let query = supabase
         .from(tableName)
         .select('*')
-        .eq('id', id)
-        .single();
+        .eq('id', id);
+
+      // Add partition key filter if provided (enables partition pruning)
+      if (partitionKey?.field && partitionKey?.value) {
+        query = query.eq(partitionKey.field, partitionKey.value);
+      }
+
+      const { data, error } = await query.single();
 
       if (error || !data) {
         console.warn(`[SpaceStore] getRecordById: ${tableName}/${id} not found in Supabase`);

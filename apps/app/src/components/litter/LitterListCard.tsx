@@ -2,6 +2,7 @@ import { NoteFlag } from "@/components/shared/NoteFlag";
 import { PetServices } from "@/components/shared/PetServices";
 import { TierMark } from "@/components/shared/TierMark";
 import { EntityListCardWrapper } from "@/components/space/EntityListCardWrapper";
+import { useCollectionValue } from "@/hooks/useCollectionValue";
 import { useDictionaryValue } from "@/hooks/useDictionaryValue";
 
 // Tier marks format from DB
@@ -15,17 +16,17 @@ interface TierMarksData {
   breeder?: TierMarkEntry;
 }
 
-// Interface for litter data from RxDB (enriched via litter_with_parents VIEW)
+// Interface for litter data from RxDB (base table, enriched via hooks)
 interface LitterEntity {
   id: string;
   name?: string;
   notes?: string;
   status_id?: string;
   kennel_id?: string;
-  // Enriched fields from VIEW
-  father_name?: string;
-  mother_name?: string;
-  kennel_name?: string;
+  father_id?: string;
+  father_breed_id?: string; // For partition pruning when fetching father
+  mother_id?: string;
+  mother_breed_id?: string; // For partition pruning when fetching mother
   date_of_birth?: string;
   tier_marks?: TierMarksData;
   services?: string[] | Record<string, string>; // New: ["id", ...], Legacy: {"1": "id", ...}
@@ -63,17 +64,27 @@ export function LitterListCard({
   // Resolve status_id to name via dictionary lookup
   const statusName = useDictionaryValue("litter_status", entity.status_id);
 
-  // Extract data from entity - use real DB values from VIEW
+  // Enrichment via hooks (instead of VIEW for better performance)
+  // Pet is partitioned by breed_id, so we pass it for efficient partition pruning
+  const father = useCollectionValue<{ name?: string }>("pet", entity.father_id, {
+    partitionKey: { field: "breed_id", value: entity.father_breed_id },
+  });
+  const mother = useCollectionValue<{ name?: string }>("pet", entity.mother_id, {
+    partitionKey: { field: "breed_id", value: entity.mother_breed_id },
+  });
+  const kennel = useCollectionValue<{ name?: string }>("account", entity.kennel_id);
+
+  // Extract data from entity - enriched via hooks
   const litter = {
     Id: entity.id,
     Name: entity.name || "Unknown",
-    // Father and Mother - from VIEW (litter_with_parents)
-    FatherName: entity.father_name || "",
-    MotherName: entity.mother_name || "",
+    // Father and Mother - enriched via useCollectionValue
+    FatherName: father?.name || "",
+    MotherName: mother?.name || "",
     // Status - resolved from dictionary
     Status: statusName,
-    // Kennel - from VIEW
-    KennelName: entity.kennel_name,
+    // Kennel - enriched via useCollectionValue
+    KennelName: kennel?.name,
     // Dates
     DateOfBirth: entity.date_of_birth,
     // Notes - uses real data from entity

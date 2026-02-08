@@ -63,35 +63,34 @@ function ParentChip({
  */
 export function LitterAchievements({ entity }: LitterAchievementsProps) {
   // Get father data from collection (enrichment pattern)
-  const father = useCollectionValue<Parent>("pet", entity?.father_id);
+  // Pet is partitioned by breed_id, so we pass it for efficient partition pruning
+  const father = useCollectionValue<Parent>("pet", entity?.father_id, {
+    partitionKey: { field: "breed_id", value: entity?.father_breed_id },
+  });
 
   // Get mother data from collection (enrichment pattern)
-  const mother = useCollectionValue<Parent>("pet", entity?.mother_id);
-
-  // Fallback to VIEW fields if enrichment not ready yet
-  const displayFather: Parent | undefined = father ||
-    (entity?.father_name ? { name: entity.father_name } : undefined);
-  const displayMother: Parent | undefined = mother ||
-    (entity?.mother_name ? { name: entity.mother_name } : undefined);
+  const mother = useCollectionValue<Parent>("pet", entity?.mother_id, {
+    partitionKey: { field: "breed_id", value: entity?.mother_breed_id },
+  });
 
   // Hide if no parents
-  if (!displayFather?.name && !displayMother?.name) {
+  if (!father?.name && !mother?.name) {
     return null;
   }
 
   return (
     <div className="flex flex-wrap gap-2 mt-3 mb-6 min-h-[2rem]" aria-label="parents">
-      {displayFather?.name && (
+      {father?.name && (
         <ParentChip
-          parent={displayFather}
+          parent={father}
           icon={<Mars size={16} />}
           iconClassName="text-white"
         />
       )}
 
-      {displayMother?.name && (
+      {mother?.name && (
         <ParentChip
-          parent={displayMother}
+          parent={mother}
           icon={<Venus size={16} />}
           iconClassName="text-white"
         />
