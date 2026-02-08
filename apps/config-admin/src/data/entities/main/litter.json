@@ -586,6 +586,58 @@
       "defaultValue": "[]"
     },
     {
+      "id": "field_father_name",
+      "name": "father_name",
+      "fieldType": "string",
+      "component": "TextInput",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 240,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "maxLength": 255,
+      "displayName": "Father Name",
+      "placeholder": "Enter father name",
+      "validation": {
+        "maxLength": 255
+      }
+    },
+    {
+      "id": "field_mother_name",
+      "name": "mother_name",
+      "fieldType": "string",
+      "component": "TextInput",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 250,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "maxLength": 255,
+      "displayName": "Mother Name",
+      "placeholder": "Enter mother name",
+      "validation": {
+        "maxLength": 255
+      }
+    },
+    {
       "id": "field_id",
       "name": "id",
       "fieldType": "uuid",
@@ -594,7 +646,7 @@
       "isSystem": true,
       "isPrimaryKey": true,
       "isUnique": true,
-      "sortOrder": 240,
+      "sortOrder": 260,
       "permissions": {
         "read": [
           "*"
@@ -614,7 +666,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 250,
+      "sortOrder": 270,
       "permissions": {
         "read": [
           "*"
@@ -634,7 +686,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 260,
+      "sortOrder": 280,
       "permissions": {
         "read": [
           "*"
@@ -654,7 +706,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 270,
+      "sortOrder": 290,
       "permissions": {
         "read": [
           "*"
@@ -674,7 +726,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 280,
+      "sortOrder": 300,
       "permissions": {
         "read": [
           "*"
@@ -694,7 +746,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 290,
+      "sortOrder": 310,
       "permissions": {
         "read": [
           "*"
@@ -708,9 +760,9 @@
   ],
   "metadata": {
     "tableName": "litter",
-    "totalFields": 29,
+    "totalFields": 31,
     "systemFields": 6,
-    "customFields": 23,
-    "generatedAt": "2026-02-06T13:03:17.883Z"
+    "customFields": 25,
+    "generatedAt": "2026-02-08T20:41:08.342Z"
   }
 }

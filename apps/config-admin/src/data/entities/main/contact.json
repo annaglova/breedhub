@@ -1456,6 +1456,75 @@
       "placeholder": "Enter measurements"
     },
     {
+      "id": "field_tier_marks",
+      "name": "tier_marks",
+      "fieldType": "json",
+      "component": "TextareaInput",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 560,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "displayName": "Tier Marks",
+      "placeholder": "Enter tier marks",
+      "defaultValue": "{}"
+    },
+    {
+      "id": "field_contact_roles",
+      "name": "contact_roles",
+      "fieldType": "json",
+      "component": "TextareaInput",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 570,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "displayName": "Contact Roles",
+      "placeholder": "Enter contact roles",
+      "defaultValue": "{}"
+    },
+    {
+      "id": "field_breed_patronage",
+      "name": "breed_patronage",
+      "fieldType": "json",
+      "component": "TextareaInput",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 580,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "displayName": "Breed Patronage",
+      "placeholder": "Enter breed patronage",
+      "defaultValue": "[]"
+    },
+    {
       "id": "field_id",
       "name": "id",
       "fieldType": "uuid",
@@ -1464,7 +1533,7 @@
       "isSystem": true,
       "isPrimaryKey": true,
       "isUnique": true,
-      "sortOrder": 560,
+      "sortOrder": 590,
       "permissions": {
         "read": [
           "*"
@@ -1484,7 +1553,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 570,
+      "sortOrder": 600,
       "permissions": {
         "read": [
           "*"
@@ -1504,7 +1573,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 580,
+      "sortOrder": 610,
       "permissions": {
         "read": [
           "*"
@@ -1524,7 +1593,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 590,
+      "sortOrder": 620,
       "permissions": {
         "read": [
           "*"
@@ -1544,7 +1613,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 600,
+      "sortOrder": 630,
       "permissions": {
         "read": [
           "*"
@@ -1564,7 +1633,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 610,
+      "sortOrder": 640,
       "permissions": {
         "read": [
           "*"
@@ -1578,9 +1647,9 @@
   ],
   "metadata": {
     "tableName": "contact",
-    "totalFields": 61,
+    "totalFields": 64,
     "systemFields": 6,
-    "customFields": 55,
-    "generatedAt": "2026-02-06T13:03:18.837Z"
+    "customFields": 58,
+    "generatedAt": "2026-02-08T20:41:09.415Z"
   }
 }

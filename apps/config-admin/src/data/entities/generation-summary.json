@@ -1,6 +1,11 @@
 {
   "total": 260,
-  "successful": 260,
-  "failed": [],
-  "generatedAt": "2026-02-06T13:03:15.062Z"
+  "successful": 259,
+  "failed": [
+    {
+      "table": "contact_role_for_pet",
+      "reason": "No schema found"
+    }
+  ],
+  "generatedAt": "2026-02-08T20:41:05.254Z"
 }

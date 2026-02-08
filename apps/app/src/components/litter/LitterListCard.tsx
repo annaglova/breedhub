@@ -16,17 +16,16 @@ interface TierMarksData {
   breeder?: TierMarkEntry;
 }
 
-// Interface for litter data from RxDB (base table, enriched via hooks)
+// Interface for litter data from RxDB (base table with denormalized parent names)
 interface LitterEntity {
   id: string;
   name?: string;
   notes?: string;
   status_id?: string;
   kennel_id?: string;
-  father_id?: string;
-  father_breed_id?: string; // For partition pruning when fetching father
-  mother_id?: string;
-  mother_breed_id?: string; // For partition pruning when fetching mother
+  // Denormalized parent names for fast display and search (no JOIN needed)
+  father_name?: string;
+  mother_name?: string;
   date_of_birth?: string;
   tier_marks?: TierMarksData;
   services?: string[] | Record<string, string>; // New: ["id", ...], Legacy: {"1": "id", ...}
@@ -64,34 +63,27 @@ export function LitterListCard({
   // Resolve status_id to name via dictionary lookup
   const statusName = useDictionaryValue("litter_status", entity.status_id);
 
-  // Enrichment via hooks (instead of VIEW for better performance)
-  // Pet is partitioned by breed_id, so we pass it for efficient partition pruning
-  const father = useCollectionValue<{ name?: string }>("pet", entity.father_id, {
-    partitionKey: { field: "breed_id", value: entity.father_breed_id },
-  });
-  const mother = useCollectionValue<{ name?: string }>("pet", entity.mother_id, {
-    partitionKey: { field: "breed_id", value: entity.mother_breed_id },
-  });
+  // Kennel enrichment (account table is not partitioned - fast lookup)
   const kennel = useCollectionValue<{ name?: string }>("account", entity.kennel_id);
 
-  // Extract data from entity - enriched via hooks
+  // Extract data from entity - uses denormalized parent names (no enrichment needed)
   const litter = {
     Id: entity.id,
     Name: entity.name || "Unknown",
-    // Father and Mother - enriched via useCollectionValue
-    FatherName: father?.name || "",
-    MotherName: mother?.name || "",
+    // Father and Mother - denormalized fields (no JOIN/enrichment needed)
+    FatherName: entity.father_name || "",
+    MotherName: entity.mother_name || "",
     // Status - resolved from dictionary
     Status: statusName,
     // Kennel - enriched via useCollectionValue
     KennelName: kennel?.name,
     // Dates
     DateOfBirth: entity.date_of_birth,
-    // Notes - uses real data from entity
+    // Notes
     HasNotes: !!entity.notes,
-    // Tier marks - uses real data from entity
+    // Tier marks
     TierMarks: entity.tier_marks,
-    // Services - uses real data from entity
+    // Services
     Services: entity.services,
   };
 

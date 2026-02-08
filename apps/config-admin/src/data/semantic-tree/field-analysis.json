@@ -18891,7 +18891,7 @@
           "isSystem": true,
           "isPrimaryKey": true,
           "isUnique": true,
-          "sortOrder": 560,
+          "sortOrder": 590,
           "permissions": {
             "read": [
               "*"
@@ -18987,7 +18987,7 @@
           "isSystem": true,
           "isPrimaryKey": true,
           "isUnique": true,
-          "sortOrder": 240,
+          "sortOrder": 260,
           "permissions": {
             "read": [
               "*"
@@ -20307,7 +20307,7 @@
           "isSystem": true,
           "isPrimaryKey": true,
           "isUnique": true,
-          "sortOrder": 30,
+          "sortOrder": 40,
           "permissions": {
             "read": [
               "*"
@@ -25538,7 +25538,7 @@
           "isSystem": true,
           "isPrimaryKey": false,
           "isUnique": false,
-          "sortOrder": 570,
+          "sortOrder": 600,
           "permissions": {
             "read": [
               "*"
@@ -25634,7 +25634,7 @@
           "isSystem": true,
           "isPrimaryKey": false,
           "isUnique": false,
-          "sortOrder": 250,
+          "sortOrder": 270,
           "permissions": {
             "read": [
               "*"
@@ -26954,7 +26954,7 @@
           "isSystem": true,
           "isPrimaryKey": false,
           "isUnique": false,
-          "sortOrder": 40,
+          "sortOrder": 50,
           "permissions": {
             "read": [
               "*"
@@ -32137,7 +32137,7 @@
           "isSystem": true,
           "isPrimaryKey": false,
           "isUnique": false,
-          "sortOrder": 580,
+          "sortOrder": 610,
           "permissions": {
             "read": [
               "*"
@@ -32233,7 +32233,7 @@
           "isSystem": true,
           "isPrimaryKey": false,
           "isUnique": false,
-          "sortOrder": 260,
+          "sortOrder": 280,
           "permissions": {
             "read": [
               "*"
@@ -33553,7 +33553,7 @@
           "isSystem": true,
           "isPrimaryKey": false,
           "isUnique": false,
-          "sortOrder": 50,
+          "sortOrder": 60,
           "permissions": {
             "read": [
               "*"
@@ -38690,7 +38690,7 @@
           "isSystem": true,
           "isPrimaryKey": false,
           "isUnique": false,
-          "sortOrder": 590,
+          "sortOrder": 620,
           "permissions": {
             "read": [
               "*"
@@ -38786,7 +38786,7 @@
           "isSystem": true,
           "isPrimaryKey": false,
           "isUnique": false,
-          "sortOrder": 270,
+          "sortOrder": 290,
           "permissions": {
             "read": [
               "*"
@@ -40106,7 +40106,7 @@
           "isSystem": true,
           "isPrimaryKey": false,
           "isUnique": false,
-          "sortOrder": 60,
+          "sortOrder": 70,
           "permissions": {
             "read": [
               "*"
@@ -45289,7 +45289,7 @@
           "isSystem": true,
           "isPrimaryKey": false,
           "isUnique": false,
-          "sortOrder": 600,
+          "sortOrder": 630,
           "permissions": {
             "read": [
               "*"
@@ -45385,7 +45385,7 @@
           "isSystem": true,
           "isPrimaryKey": false,
           "isUnique": false,
-          "sortOrder": 280,
+          "sortOrder": 300,
           "permissions": {
             "read": [
               "*"
@@ -46705,7 +46705,7 @@
           "isSystem": true,
           "isPrimaryKey": false,
           "isUnique": false,
-          "sortOrder": 70,
+          "sortOrder": 80,
           "permissions": {
             "read": [
               "*"
@@ -51475,7 +51475,7 @@
           "isSystem": true,
           "isPrimaryKey": false,
           "isUnique": false,
-          "sortOrder": 610,
+          "sortOrder": 640,
           "permissions": {
             "read": [
               "*"
@@ -51523,7 +51523,7 @@
           "isSystem": true,
           "isPrimaryKey": false,
           "isUnique": false,
-          "sortOrder": 290,
+          "sortOrder": 310,
           "permissions": {
             "read": [
               "*"
@@ -69144,6 +69144,193 @@
     "commonProps": null
   },
   {
+    "key": "tier_marks",
+    "name": "tier_marks",
+    "occurrences": 3,
+    "entities": [
+      "contact",
+      "litter",
+      "pet"
+    ],
+    "variations": [
+      {
+        "entity": "contact",
+        "category": "main",
+        "config": {
+          "id": "field_tier_marks",
+          "name": "tier_marks",
+          "fieldType": "json",
+          "component": "TextareaInput",
+          "required": false,
+          "isSystem": false,
+          "isPrimaryKey": false,
+          "isUnique": false,
+          "sortOrder": 560,
+          "permissions": {
+            "read": [
+              "*"
+            ],
+            "write": [
+              "admin",
+              "editor"
+            ]
+          },
+          "displayName": "Tier Marks",
+          "placeholder": "Enter tier marks",
+          "defaultValue": "{}"
+        }
+      },
+      {
+        "entity": "litter",
+        "category": "main",
+        "config": {
+          "id": "field_tier_marks",
+          "name": "tier_marks",
+          "fieldType": "json",
+          "component": "TextareaInput",
+          "required": false,
+          "isSystem": false,
+          "isPrimaryKey": false,
+          "isUnique": false,
+          "sortOrder": 220,
+          "permissions": {
+            "read": [
+              "*"
+            ],
+            "write": [
+              "admin",
+              "editor"
+            ]
+          },
+          "displayName": "Tier Marks",
+          "placeholder": "Enter tier marks",
+          "defaultValue": "{}"
+        }
+      },
+      {
+        "entity": "pet",
+        "category": "main",
+        "config": {
+          "id": "field_tier_marks",
+          "name": "tier_marks",
+          "fieldType": "json",
+          "component": "TextareaInput",
+          "required": false,
+          "isSystem": false,
+          "isPrimaryKey": false,
+          "isUnique": false,
+          "sortOrder": 460,
+          "permissions": {
+            "read": [
+              "*"
+            ],
+            "write": [
+              "admin",
+              "editor"
+            ]
+          },
+          "displayName": "Tier Marks",
+          "placeholder": "Enter tier marks",
+          "defaultValue": "{}"
+        }
+      }
+    ],
+    "commonProps": {
+      "fieldType": "json",
+      "component": "TextareaInput",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "displayName": "Tier Marks",
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      }
+    }
+  },
+  {
+    "key": "contact_roles",
+    "name": "contact_roles",
+    "occurrences": 1,
+    "entities": [
+      "contact"
+    ],
+    "variations": [
+      {
+        "entity": "contact",
+        "category": "main",
+        "config": {
+          "id": "field_contact_roles",
+          "name": "contact_roles",
+          "fieldType": "json",
+          "component": "TextareaInput",
+          "required": false,
+          "isSystem": false,
+          "isPrimaryKey": false,
+          "isUnique": false,
+          "sortOrder": 570,
+          "permissions": {
+            "read": [
+              "*"
+            ],
+            "write": [
+              "admin",
+              "editor"
+            ]
+          },
+          "displayName": "Contact Roles",
+          "placeholder": "Enter contact roles",
+          "defaultValue": "{}"
+        }
+      }
+    ],
+    "commonProps": null
+  },
+  {
+    "key": "breed_patronage",
+    "name": "breed_patronage",
+    "occurrences": 1,
+    "entities": [
+      "contact"
+    ],
+    "variations": [
+      {
+        "entity": "contact",
+        "category": "main",
+        "config": {
+          "id": "field_breed_patronage",
+          "name": "breed_patronage",
+          "fieldType": "json",
+          "component": "TextareaInput",
+          "required": false,
+          "isSystem": false,
+          "isPrimaryKey": false,
+          "isUnique": false,
+          "sortOrder": 580,
+          "permissions": {
+            "read": [
+              "*"
+            ],
+            "write": [
+              "admin",
+              "editor"
+            ]
+          },
+          "displayName": "Breed Patronage",
+          "placeholder": "Enter breed patronage",
+          "defaultValue": "[]"
+        }
+      }
+    ],
+    "commonProps": null
+  },
+  {
     "key": "redirect_url",
     "name": "redirect_url",
     "occurrences": 2,
@@ -71693,89 +71880,6 @@
     }
   },
   {
-    "key": "tier_marks",
-    "name": "tier_marks",
-    "occurrences": 2,
-    "entities": [
-      "litter",
-      "pet"
-    ],
-    "variations": [
-      {
-        "entity": "litter",
-        "category": "main",
-        "config": {
-          "id": "field_tier_marks",
-          "name": "tier_marks",
-          "fieldType": "json",
-          "component": "TextareaInput",
-          "required": false,
-          "isSystem": false,
-          "isPrimaryKey": false,
-          "isUnique": false,
-          "sortOrder": 220,
-          "permissions": {
-            "read": [
-              "*"
-            ],
-            "write": [
-              "admin",
-              "editor"
-            ]
-          },
-          "displayName": "Tier Marks",
-          "placeholder": "Enter tier marks",
-          "defaultValue": "{}"
-        }
-      },
-      {
-        "entity": "pet",
-        "category": "main",
-        "config": {
-          "id": "field_tier_marks",
-          "name": "tier_marks",
-          "fieldType": "json",
-          "component": "TextareaInput",
-          "required": false,
-          "isSystem": false,
-          "isPrimaryKey": false,
-          "isUnique": false,
-          "sortOrder": 460,
-          "permissions": {
-            "read": [
-              "*"
-            ],
-            "write": [
-              "admin",
-              "editor"
-            ]
-          },
-          "displayName": "Tier Marks",
-          "placeholder": "Enter tier marks",
-          "defaultValue": "{}"
-        }
-      }
-    ],
-    "commonProps": {
-      "fieldType": "json",
-      "component": "TextareaInput",
-      "required": false,
-      "isSystem": false,
-      "isPrimaryKey": false,
-      "isUnique": false,
-      "displayName": "Tier Marks",
-      "permissions": {
-        "read": [
-          "*"
-        ],
-        "write": [
-          "admin",
-          "editor"
-        ]
-      }
-    }
-  },
-  {
     "key": "children",
     "name": "children",
     "occurrences": 1,
@@ -71808,6 +71912,88 @@
           "displayName": "Children",
           "placeholder": "Enter children",
           "defaultValue": "[]"
+        }
+      }
+    ],
+    "commonProps": null
+  },
+  {
+    "key": "father_name",
+    "name": "father_name",
+    "occurrences": 1,
+    "entities": [
+      "litter"
+    ],
+    "variations": [
+      {
+        "entity": "litter",
+        "category": "main",
+        "config": {
+          "id": "field_father_name",
+          "name": "father_name",
+          "fieldType": "string",
+          "component": "TextInput",
+          "required": false,
+          "isSystem": false,
+          "isPrimaryKey": false,
+          "isUnique": false,
+          "sortOrder": 240,
+          "permissions": {
+            "read": [
+              "*"
+            ],
+            "write": [
+              "admin",
+              "editor"
+            ]
+          },
+          "maxLength": 255,
+          "displayName": "Father Name",
+          "placeholder": "Enter father name",
+          "validation": {
+            "maxLength": 255
+          }
+        }
+      }
+    ],
+    "commonProps": null
+  },
+  {
+    "key": "mother_name",
+    "name": "mother_name",
+    "occurrences": 1,
+    "entities": [
+      "litter"
+    ],
+    "variations": [
+      {
+        "entity": "litter",
+        "category": "main",
+        "config": {
+          "id": "field_mother_name",
+          "name": "mother_name",
+          "fieldType": "string",
+          "component": "TextInput",
+          "required": false,
+          "isSystem": false,
+          "isPrimaryKey": false,
+          "isUnique": false,
+          "sortOrder": 250,
+          "permissions": {
+            "read": [
+              "*"
+            ],
+            "write": [
+              "admin",
+              "editor"
+            ]
+          },
+          "maxLength": 255,
+          "displayName": "Mother Name",
+          "placeholder": "Enter mother name",
+          "validation": {
+            "maxLength": 255
+          }
         }
       }
     ],
@@ -81670,6 +81856,44 @@
     "commonProps": null
   },
   {
+    "key": "for_pet",
+    "name": "for_pet",
+    "occurrences": 1,
+    "entities": [
+      "contact_role"
+    ],
+    "variations": [
+      {
+        "entity": "contact_role",
+        "category": "lookup",
+        "config": {
+          "id": "field_for_pet",
+          "name": "for_pet",
+          "fieldType": "boolean",
+          "component": "CheckboxInput",
+          "required": true,
+          "isSystem": false,
+          "isPrimaryKey": false,
+          "isUnique": false,
+          "sortOrder": 30,
+          "permissions": {
+            "read": [
+              "*"
+            ],
+            "write": [
+              "admin",
+              "editor"
+            ]
+          },
+          "displayName": "For Pet",
+          "placeholder": "Enter for pet",
+          "defaultValue": "true"
+        }
+      }
+    ],
+    "commonProps": null
+  },
+  {
     "key": "image",
     "name": "image",
     "occurrences": 2,
@@ -87432,7 +87656,7 @@
             ]
           },
           "isForeignKey": true,
-          "referencedTable": "contact_role_for_pet",
+          "referencedTable": "contact_role",
           "referencedFieldID": "id",
           "displayName": "Contact Role",
           "placeholder": "Enter contact role",

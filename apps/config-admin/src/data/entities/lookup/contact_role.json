@@ -60,6 +60,29 @@
       "defaultValue": ""
     },
     {
+      "id": "field_for_pet",
+      "name": "for_pet",
+      "fieldType": "boolean",
+      "component": "CheckboxInput",
+      "required": true,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 30,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "displayName": "For Pet",
+      "placeholder": "Enter for pet",
+      "defaultValue": "true"
+    },
+    {
       "id": "field_id",
       "name": "id",
       "fieldType": "uuid",
@@ -68,7 +91,7 @@
       "isSystem": true,
       "isPrimaryKey": true,
       "isUnique": true,
-      "sortOrder": 30,
+      "sortOrder": 40,
       "permissions": {
         "read": [
           "*"
@@ -88,7 +111,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 40,
+      "sortOrder": 50,
       "permissions": {
         "read": [
           "*"
@@ -108,7 +131,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 50,
+      "sortOrder": 60,
       "permissions": {
         "read": [
           "*"
@@ -128,7 +151,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 60,
+      "sortOrder": 70,
       "permissions": {
         "read": [
           "*"
@@ -148,7 +171,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 70,
+      "sortOrder": 80,
       "permissions": {
         "read": [
           "*"
@@ -162,9 +185,9 @@
   ],
   "metadata": {
     "tableName": "contact_role",
-    "totalFields": 7,
+    "totalFields": 8,
     "systemFields": 5,
-    "customFields": 2,
-    "generatedAt": "2026-02-06T13:03:36.497Z"
+    "customFields": 3,
+    "generatedAt": "2026-02-08T20:41:27.755Z"
   }
 }
