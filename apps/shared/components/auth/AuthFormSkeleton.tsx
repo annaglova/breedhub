@@ -105,8 +105,8 @@ export function SignInSkeleton() {
       <TitleSkeleton />
       <TabsSkeleton />
 
-      {/* Social buttons area — matches sm:h-[240px] container */}
-      <div className="relative h-auto sm:h-[240px]">
+      {/* Social buttons area — matches sm:h-[340px] container */}
+      <div className="relative h-auto sm:h-[340px]">
         <div className="sm:absolute sm:inset-0 flex flex-col justify-center">
           <div className="space-y-7 mt-2 sm:mt-0">
             <div className="h-12 bg-slate-200 rounded-xl" />

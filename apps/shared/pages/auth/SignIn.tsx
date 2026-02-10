@@ -257,7 +257,7 @@ export default function SignIn() {
                 />
 
                 {/* Animated Content */}
-                <div className="relative h-auto sm:h-[240px]" ref={swipeRef}>
+                <div className="relative h-auto sm:h-[340px]" ref={swipeRef}>
                   {/* Social Login Tab */}
                   <div
                     id="tabpanel-social"
@@ -312,8 +312,8 @@ export default function SignIn() {
                             icon={<Mail className="w-4 h-4" />}
                             aria-label="Email address"
                             placeholder="Enter your email"
-                            showSuggestions={true}
-                            validateAsync={true}
+                            showSuggestions={false}
+                            validateAsync={false}
                           />
 
                           <PasswordInput
@@ -326,13 +326,6 @@ export default function SignIn() {
                             aria-label="Password"
                             placeholder="Enter your password"
                           />
-
-                          {generalError && (
-                            <ErrorWithHints
-                              error={generalError}
-                              hints={getErrorHints(generalError)}
-                            />
-                          )}
 
                           <div className="py-1 flex items-center justify-between ">
                             <div className="flex items-center">
@@ -365,6 +358,13 @@ export default function SignIn() {
                         >
                           Sign in
                         </LoadingButton>
+
+                        {generalError && (
+                          <ErrorWithHints
+                            error={generalError}
+                            hints={getErrorHints(generalError)}
+                          />
+                        )}
                       </AuthFormWrapper>
                     </div>
                   </div>

@@ -17,6 +17,8 @@ export function useDebouncedValidation<T>(
   const [hasValidated, setHasValidated] = useState(false);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
+  const validatorRef = useRef(validator);
+  validatorRef.current = validator;
 
   const validate = useCallback(async (valueToValidate: T) => {
     // Cancel any pending validation
@@ -26,13 +28,13 @@ export function useDebouncedValidation<T>(
 
     // Create new abort controller for this validation
     abortControllerRef.current = new AbortController();
-    
+
     setIsValidating(true);
     setHasValidated(true);
 
     try {
-      const result = await validator(valueToValidate);
-      
+      const result = await validatorRef.current(valueToValidate);
+
       // Check if this validation was cancelled
       if (!abortControllerRef.current.signal.aborted) {
         setError(result);
@@ -45,7 +47,7 @@ export function useDebouncedValidation<T>(
         setIsValidating(false);
       }
     }
-  }, [validator]);
+  }, []);
 
   useEffect(() => {
     // Clear any existing timeout

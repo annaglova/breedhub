@@ -157,8 +157,8 @@ export default function ForgotPassword() {
                       icon={<Mail className="w-4 h-4" />}
                       placeholder="Enter your email"
                       aria-label="Email address"
-                      showSuggestions={true}
-                      validateAsync={true}
+                      showSuggestions={false}
+                      validateAsync={false}
                     />
 
                     <Button

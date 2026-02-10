@@ -275,8 +275,8 @@ export default function SignUp() {
                             icon={<Mail className="w-4 h-4" />}
                             aria-label="Email address"
                             placeholder="Enter your email"
-                            showSuggestions={true}
-                            validateAsync={true}
+                            showSuggestions={false}
+                            validateAsync={false}
                           />
 
                           <div>
