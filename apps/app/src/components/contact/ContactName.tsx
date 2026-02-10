@@ -1,33 +1,40 @@
+import { useDictionaryValue } from "@/hooks/useDictionaryValue";
 import { VerificationBadge } from "@/components/shared/VerificationBadge";
 import { NoteFlagButton } from "@ui/components/note-flag-button";
 import { Link } from "react-router-dom";
 
+interface ContactRoles {
+  breeder?: boolean;
+  judge?: boolean;
+  handler?: boolean;
+  owner?: boolean;
+}
+
 interface ContactNameProps {
-  entity?: any;
+  entity?: {
+    name?: string;
+    slug?: string;
+    country_id?: string;
+    contact_roles?: ContactRoles;
+    verification_status_id?: string;
+    notes?: string;
+    [key: string]: any;
+  };
   hasNotes?: boolean;
   onNotesClick?: () => void;
   /** If true, clicking on name navigates to fullscreen page */
   linkToFullscreen?: boolean;
 }
 
-// Mock data for development
-const MOCK_CONTACT = {
-  name: "Klaus Bergmann",
-  slug: "klaus-bergmann",
-  country: { name: "Germany", code: "DE" },
-  career: {
-    breeder: ["German Shepherd", "Belgian Malinois"],
-    judge: ["FCI Group 1"],
-  },
-  verification_status_id: "verified",
-  hasNotes: true,
-};
-
 /**
  * ContactName - Displays contact name and details
  *
  * Based on Angular: libs/schema/domain/contact/lib/contact-name/contact-name.component.ts
  * Shows: country, name, verification status, roles (Breeder/Judge)
+ *
+ * Data sources:
+ * - name, slug, contact_roles, verification_status_id: direct from entity
+ * - country: useDictionaryValue by country_id → country table
  */
 export function ContactName({
   entity,
@@ -35,17 +42,17 @@ export function ContactName({
   onNotesClick,
   linkToFullscreen = true,
 }: ContactNameProps) {
-  // Extract data from entity with fallback to mock for each field
-  const displayName = entity?.name || entity?.Name || MOCK_CONTACT.name;
-  const countryName = entity?.country?.name || entity?.Country?.Name || entity?.country_name || MOCK_CONTACT.country.name;
-  const slug = entity?.slug || entity?.Url || entity?.url || MOCK_CONTACT.slug;
+  // Enrich country from dictionary
+  const countryName = useDictionaryValue("country", entity?.country_id);
 
-  // Career roles - normalize to arrays with mock fallback
-  const career = entity?.career || entity?.Career || MOCK_CONTACT.career;
-  const breederBreeds = career?.breeder || career?.Breeder || [];
-  const judgeCategories = career?.judge || career?.Judge || [];
-  const isBreeder = breederBreeds.length > 0;
-  const isJudge = judgeCategories.length > 0;
+  // Extract data from entity
+  const displayName = entity?.name?.trim() || "Unknown";
+  const slug = entity?.slug;
+
+  // Roles from contact_roles JSONB field
+  const roles = entity?.contact_roles || {};
+  const isBreeder = !!roles.breeder;
+  const isJudge = !!roles.judge;
 
   return (
     <div className="pb-3 cursor-default">
@@ -73,14 +80,14 @@ export function ContactName({
 
         {/* Verification badge */}
         <VerificationBadge
-          status={entity?.verification_status_id || entity?.verificationStatusId || MOCK_CONTACT.verification_status_id}
+          status={entity?.verification_status_id}
           size={16}
           mode="page"
         />
 
         {/* Note flag */}
         <NoteFlagButton
-          hasNotes={hasNotes || entity?.hasNotes || MOCK_CONTACT.hasNotes}
+          hasNotes={hasNotes || !!entity?.notes}
           onClick={onNotesClick}
           mode="page"
           className="self-start pr-7"
