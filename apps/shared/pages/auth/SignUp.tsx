@@ -3,7 +3,6 @@ import FooterFigure from "@shared/assets/backgrounds/footer-figure.svg?react";
 import { AuthButton } from "@shared/components/auth/AuthButton";
 import { AuthFooter } from "@shared/components/auth/AuthFooter";
 import { AuthHeader } from "@shared/components/auth/AuthHeader";
-import { AuthPageWrapper } from "@shared/components/auth/AuthPageWrapper";
 import { EnhancedSocialLoginButtons } from "@shared/components/auth/EnhancedSocialLoginButtons";
 import { LoadingButton } from "@shared/components/auth/LoadingButton";
 import { PasswordRequirements } from "@shared/components/auth/PasswordRequirements";
@@ -168,7 +167,6 @@ export default function SignUp() {
   };
 
   return (
-    <AuthPageWrapper>
       <AuthLayout>
         <div className="relative flex min-h-screen w-full flex-col">
           {/* Background SVG */}
@@ -381,6 +379,5 @@ export default function SignUp() {
           <AuthFooter />
         </div>
       </AuthLayout>
-    </AuthPageWrapper>
   );
 }

@@ -10,6 +10,7 @@ import { GiftPage } from '@/pages/GiftPage';
 import { WelcomePage } from '@/pages/WelcomePage';
 import { SupabaseLoader } from '@/components/test/SupabaseLoader';
 import { AuthCallbackPage } from '@/pages/AuthCallbackPage';
+import { SignInSkeleton, SignUpSkeleton, ForgotPasswordSkeleton, ResetPasswordSkeleton } from '@shared/components/auth/AuthFormSkeleton';
 import { lazy } from 'react';
 import { TestDictionaryPage } from '@/pages/TestDictionaryPage';
 
@@ -173,10 +174,10 @@ export function AppRouter() {
     <BrowserRouter>
       <Routes>
         {/* Auth routes (outside AppLayout) */}
-        <Route path="/sign-in" element={<React.Suspense fallback={null}><SignIn /></React.Suspense>} />
-        <Route path="/sign-up" element={<React.Suspense fallback={null}><SignUp /></React.Suspense>} />
-        <Route path="/forgot-password" element={<React.Suspense fallback={null}><ForgotPassword /></React.Suspense>} />
-        <Route path="/reset-password" element={<React.Suspense fallback={null}><ResetPassword /></React.Suspense>} />
+        <Route path="/sign-in" element={<React.Suspense fallback={<SignInSkeleton />}><SignIn /></React.Suspense>} />
+        <Route path="/sign-up" element={<React.Suspense fallback={<SignUpSkeleton />}><SignUp /></React.Suspense>} />
+        <Route path="/forgot-password" element={<React.Suspense fallback={<ForgotPasswordSkeleton />}><ForgotPassword /></React.Suspense>} />
+        <Route path="/reset-password" element={<React.Suspense fallback={<ResetPasswordSkeleton />}><ResetPassword /></React.Suspense>} />
         <Route path="/auth/callback" element={<AuthCallbackPage />} />
 
         {/* App routes (inside AppLayout) */}

@@ -2,7 +2,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import FooterFigure from "@shared/assets/backgrounds/footer-figure.svg?react";
 import { AuthFooter } from "@shared/components/auth/AuthFooter";
 import { AuthHeader } from "@shared/components/auth/AuthHeader";
-import { AuthPageWrapper } from "@shared/components/auth/AuthPageWrapper";
 import { EnhancedSocialLoginButtons } from "@shared/components/auth/EnhancedSocialLoginButtons";
 import { ErrorWithHints } from "@shared/components/auth/ErrorWithHints";
 import { LoadingButton } from "@shared/components/auth/LoadingButton";
@@ -215,7 +214,6 @@ export default function SignIn() {
   };
 
   return (
-    <AuthPageWrapper>
       <AuthLayout>
         <div className="relative flex min-h-screen w-full flex-col">
           {/* Background SVG */}
@@ -390,6 +388,5 @@ export default function SignIn() {
           <AuthFooter />
         </div>
       </AuthLayout>
-    </AuthPageWrapper>
   );
 }
