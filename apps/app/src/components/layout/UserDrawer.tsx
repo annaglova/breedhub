@@ -116,7 +116,7 @@ export function UserDrawer({ isOpen, onClose }: UserDrawerProps) {
           ) : (
             <>
               <Link to="/sign-in" onClick={onClose}>
-                <Button className="w-full font-semibold" variant="outline-secondary">
+                <Button className="w-full font-semibold" variant="default">
                   Sign In
                 </Button>
               </Link>

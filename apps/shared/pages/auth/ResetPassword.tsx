@@ -18,17 +18,37 @@ import { Button } from "@ui/components/button";
 import { PasswordInput } from "@ui/components/form-inputs";
 import { useToast } from "@ui/hooks/use-toast";
 import { AlertCircle, Key } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/core/supabase";
 
 export default function ResetPassword() {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
   const [isLoading, setIsLoading] = useState(false);
   const [generalError, setGeneralError] = useState("");
+  const [sessionReady, setSessionReady] = useState(false);
   const { toast } = useToast();
+
+  // Wait for Supabase to establish session from URL hash tokens
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        if (event === "PASSWORD_RECOVERY" || (event === "SIGNED_IN" && session)) {
+          setSessionReady(true);
+        }
+      }
+    );
+
+    // Check if session already exists (e.g. tokens already processed)
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        setSessionReady(true);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   const {
     register,
@@ -48,6 +68,11 @@ export default function ResetPassword() {
 
   const onSubmit = async (data: ResetPasswordFormData) => {
     setGeneralError("");
+
+    if (!sessionReady) {
+      setGeneralError("Your reset link has expired or is invalid. Please request a new one.");
+      return;
+    }
 
     setIsLoading(true);
 
@@ -78,8 +103,6 @@ export default function ResetPassword() {
     } catch (error) {
       const errorMessage = sanitizeErrorMessage(error);
       setGeneralError(errorMessage);
-
-      // Shake animation handled by AuthFormWrapper
     } finally {
       setIsLoading(false);
     }
@@ -122,7 +145,7 @@ export default function ResetPassword() {
                 isLoading={isLoading}
                 className="mt-0"
               >
-                <div className="space-y-3">
+                <div className="space-y-1">
                   <div>
                     <PasswordInput
                       label="New password"
@@ -156,19 +179,10 @@ export default function ResetPassword() {
                   />
                 </div>
 
-                {generalError && (
-                  <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-md animate-slideDown">
-                    <p className="text-sm text-red-600 flex items-center">
-                      <AlertCircle className="w-4 h-4 mr-2" />
-                      {generalError}
-                    </p>
-                  </div>
-                )}
-
                 <Button
                   type="submit"
                   disabled={isLoading}
-                  className="mt-6 w-full h-12 bg-primary-500 hover:bg-primary-600 text-white text-base font-semibold rounded-xl transition-all transform hover:scale-[1.02] hover:shadow-lg"
+                  className="mt-4 w-full h-12 bg-primary-500 hover:bg-primary-600 text-white text-base font-semibold rounded-xl transition-all transform hover:scale-[1.02] hover:shadow-lg focus-visible:outline-none focus-visible:ring-0"
                 >
                   {isLoading ? (
                     <div className="flex items-center justify-center">
@@ -179,6 +193,15 @@ export default function ResetPassword() {
                     "Reset your password"
                   )}
                 </Button>
+
+                {generalError && (
+                  <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-md animate-fadeIn">
+                    <p className="text-sm text-red-600 flex items-center">
+                      <AlertCircle className="w-4 h-4 mr-2" />
+                      {generalError}
+                    </p>
+                  </div>
+                )}
               </AuthFormWrapper>
             </div>
           </div>

@@ -212,7 +212,7 @@ export default function ForgotPassword() {
                   </div>
 
                   <Link to="/sign-in">
-                    <Button className="mt-6 sm:mt-8 w-full h-12 bg-white hover:bg-slate-50 border border-slate-300 text-slate-700 text-base font-semibold rounded-xl transition-all">
+                    <Button variant="outline-secondary" className="mt-6 sm:mt-8 w-full h-12 text-base font-semibold rounded-xl">
                       Back to sign in
                     </Button>
                   </Link>
