@@ -22,6 +22,7 @@ import { AlertCircle, Key } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { supabase } from "@/core/supabase";
 
 export default function ResetPassword() {
   const navigate = useNavigate();
@@ -52,19 +53,19 @@ export default function ResetPassword() {
     setIsLoading(true);
 
     try {
-      // TODO: Implement actual password reset with token from URL
-      const token = searchParams.get("token");
-      if (!token) {
-        throw new Error("Invalid reset link");
+      // Supabase handles session from reset link automatically via onAuthStateChange
+      // We just need to update the password
+      const { error } = await supabase.auth.updateUser({
+        password: data.password,
+      });
+      if (error) {
+        throw error;
       }
 
-      // Log the attempt
       logSecurityEvent({
         type: "password_reset",
-        details: { token: token.substring(0, 8) + "..." },
+        details: { status: "success" },
       });
-
-      await new Promise((resolve) => setTimeout(resolve, 1000));
 
       // Show success message
       toast({

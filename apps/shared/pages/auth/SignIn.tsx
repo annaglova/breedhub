@@ -30,6 +30,7 @@ import { Mail, User } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { useAuth } from "@/core/auth";
 
 export default function SignIn() {
   const navigate = useNavigate();
@@ -38,6 +39,7 @@ export default function SignIn() {
   const [generalError, setGeneralError] = useState("");
   const [authMode, setAuthMode] = useState<"social" | "email">("social");
   const { toast } = useToast();
+  const { signInWithEmail, signInWithGoogle, signInWithFacebook } = useAuth();
 
   const { checkRateLimit, recordAttempt, clearAttempts, remainingAttempts } =
     useRateLimiter("login");
@@ -128,18 +130,10 @@ export default function SignIn() {
         email: hashForLogging(data.email),
       });
 
-      // TODO: Implement actual authentication
-      // For now, simulate a login
-      await new Promise((resolve, reject) =>
-        setTimeout(() => {
-          // Simulate random success/failure for demo
-          if (Math.random() > 0.5) {
-            resolve(true);
-          } else {
-            reject(new Error("Invalid credentials"));
-          }
-        }, 1000)
-      );
+      const { error } = await signInWithEmail(data.email, data.password);
+      if (error) {
+        throw error;
+      }
 
       // Clear attempts on successful login
       clearAttempts(data.email);
@@ -191,17 +185,25 @@ export default function SignIn() {
     provider: "facebook" | "google" | "apple"
   ) => {
     try {
-      // TODO: Implement social login
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      let error;
+      if (provider === "google") {
+        ({ error } = await signInWithGoogle());
+      } else if (provider === "facebook") {
+        ({ error } = await signInWithFacebook());
+      } else {
+        // Apple not yet configured
+        toast({
+          variant: "destructive",
+          title: "Not available",
+          description: "Apple sign in is not yet available.",
+        });
+        return;
+      }
 
-      toast({
-        variant: "success",
-        title: "Welcome back!",
-        description: `Successfully signed in with ${provider}.`,
-      });
-
-      const redirectURL = searchParams.get("redirectURL") || "/app";
-      navigate(redirectURL);
+      if (error) {
+        throw error;
+      }
+      // OAuth redirects to provider — no navigation needed here
     } catch (error) {
       toast({
         variant: "destructive",

@@ -30,6 +30,8 @@ import { AlertCircle, Mail, UserPlus } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Link, useNavigate } from "react-router-dom";
+import { supabase } from "@/core/supabase";
+import { useAuth } from "@/core/auth";
 
 export default function SignUp() {
   const navigate = useNavigate();
@@ -37,6 +39,7 @@ export default function SignUp() {
   const [authMode, setAuthMode] = useState<"social" | "email">("social");
   const [generalError, setGeneralError] = useState("");
   const { toast } = useToast();
+  const { signInWithGoogle, signInWithFacebook } = useAuth();
 
   const { checkRateLimit, recordAttempt } = useRateLimiter("registration");
 
@@ -106,13 +109,13 @@ export default function SignUp() {
         email: hashForLogging(data.email),
       });
 
-      // TODO: Implement actual registration
-      await new Promise((resolve) =>
-        setTimeout(() => {
-          // Simulate success for demo
-          resolve(true);
-        }, 1000)
-      );
+      const { error } = await supabase.auth.signUp({
+        email: data.email,
+        password: data.password,
+      });
+      if (error) {
+        throw error;
+      }
 
       toast({
         variant: "success",
@@ -136,16 +139,24 @@ export default function SignUp() {
     provider: "facebook" | "google" | "apple"
   ) => {
     try {
-      // TODO: Implement social sign up
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      let error;
+      if (provider === "google") {
+        ({ error } = await signInWithGoogle());
+      } else if (provider === "facebook") {
+        ({ error } = await signInWithFacebook());
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Not available",
+          description: "Apple sign in is not yet available.",
+        });
+        return;
+      }
 
-      toast({
-        variant: "success",
-        title: "Account created!",
-        description: `Successfully signed up with ${provider}.`,
-      });
-
-      navigate("/confirmation-required");
+      if (error) {
+        throw error;
+      }
+      // OAuth redirects to provider — no navigation needed here
     } catch (error) {
       toast({
         variant: "destructive",

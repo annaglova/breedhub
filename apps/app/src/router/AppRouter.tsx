@@ -9,7 +9,15 @@ import { ReferralPage } from '@/pages/ReferralPage';
 import { GiftPage } from '@/pages/GiftPage';
 import { WelcomePage } from '@/pages/WelcomePage';
 import { SupabaseLoader } from '@/components/test/SupabaseLoader';
+import { AuthCallbackPage } from '@/pages/AuthCallbackPage';
+import { lazy } from 'react';
 import { TestDictionaryPage } from '@/pages/TestDictionaryPage';
+
+// Auth pages (lazy loaded)
+const SignIn = lazy(() => import('@shared/pages/auth/SignIn'));
+const SignUp = lazy(() => import('@shared/pages/auth/SignUp'));
+const ForgotPassword = lazy(() => import('@shared/pages/auth/ForgotPassword'));
+const ResetPassword = lazy(() => import('@shared/pages/auth/ResetPassword'));
 import { TestPage } from '@/pages/TestPage';
 import { getPage, PageNotFound } from '@/pages/pageRegistry';
 import { appStore } from '@breedhub/rxdb-store';
@@ -164,6 +172,14 @@ export function AppRouter() {
   return (
     <BrowserRouter>
       <Routes>
+        {/* Auth routes (outside AppLayout) */}
+        <Route path="/sign-in" element={<React.Suspense fallback={null}><SignIn /></React.Suspense>} />
+        <Route path="/sign-up" element={<React.Suspense fallback={null}><SignUp /></React.Suspense>} />
+        <Route path="/forgot-password" element={<React.Suspense fallback={null}><ForgotPassword /></React.Suspense>} />
+        <Route path="/reset-password" element={<React.Suspense fallback={null}><ResetPassword /></React.Suspense>} />
+        <Route path="/auth/callback" element={<AuthCallbackPage />} />
+
+        {/* App routes (inside AppLayout) */}
         <Route path="/" element={<AppLayout />}>
           {/* Default redirect to first space */}
           <Route index element={<Navigate to={`/${defaultSlug}`} replace />} />

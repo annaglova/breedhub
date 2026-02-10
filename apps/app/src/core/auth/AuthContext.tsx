@@ -12,11 +12,12 @@ interface AuthState {
 
 interface AuthContextType extends AuthState {
   // Auth methods
-  signInWithEmail: (email: string, password: string) => Promise<{ error?: AuthError }>;
-  signInWithGoogle: () => Promise<{ error?: AuthError }>;
-  signOut: () => Promise<{ error?: AuthError }>;
-  forgotPassword: (email: string) => Promise<{ error?: AuthError }>;
-  
+  signInWithEmail: (email: string, password: string) => Promise<{ error: AuthError | null }>;
+  signInWithGoogle: () => Promise<{ error: AuthError | null }>;
+  signInWithFacebook: () => Promise<{ error: AuthError | null }>;
+  signOut: () => Promise<{ error: AuthError | null }>;
+  forgotPassword: (email: string) => Promise<{ error: AuthError | null }>;
+
   // Token management
   refreshToken: () => Promise<void>;
   check: () => boolean;
@@ -169,13 +170,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
     });
-    
+
+    return { error };
+  };
+
+  const signInWithFacebook = async () => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'facebook',
+    });
+
     return { error };
   };
 
   const signOut = async () => {
     const { error } = await supabase.auth.signOut();
-    
+
     if (!error) {
       updateState({
         authenticated: false,
@@ -183,8 +192,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         user: initialUser,
       });
     }
-    
-    return { error };
+
+    return { error: error || null };
   };
 
   const forgotPassword = async (email: string) => {
@@ -226,6 +235,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     ...state,
     signInWithEmail,
     signInWithGoogle,
+    signInWithFacebook,
     signOut,
     forgotPassword,
     refreshToken,

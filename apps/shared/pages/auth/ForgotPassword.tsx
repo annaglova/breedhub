@@ -23,12 +23,14 @@ import { HelpCircle, Mail } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Link } from "react-router-dom";
+import { useAuth } from "@/core/auth";
 
 export default function ForgotPassword() {
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [generalError, setGeneralError] = useState("");
   const { toast } = useToast();
+  const { forgotPassword } = useAuth();
 
   const { checkRateLimit, recordAttempt } = useRateLimiter("passwordReset");
 
@@ -81,8 +83,10 @@ export default function ForgotPassword() {
         email: hashForLogging(data.email),
       });
 
-      // TODO: Implement actual password reset
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      const { error } = await forgotPassword(data.email);
+      if (error) {
+        throw error;
+      }
       setIsSuccess(true);
 
       toast({
