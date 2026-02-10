@@ -1,8 +1,9 @@
 import { Button } from "@ui/components/button";
 import { cn, getIconComponent } from "@ui/lib/utils";
-import { User, X } from "lucide-react";
-import { Link } from "react-router-dom";
+import { LogOut, User, X } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
 import { useUserMenu } from "@/hooks/useUserMenu";
+import { useAuth } from "@/core/auth";
 
 interface UserDrawerProps {
   isOpen: boolean;
@@ -13,6 +14,14 @@ export function UserDrawer({ isOpen, onClose }: UserDrawerProps) {
   if (!isOpen) return null;
 
   const { menuItems, loading } = useUserMenu();
+  const { authenticated, user, signOut } = useAuth();
+  const navigate = useNavigate();
+
+  const handleSignOut = async () => {
+    await signOut();
+    onClose();
+    navigate("/sign-in");
+  };
 
   return (
     <>
@@ -24,12 +33,18 @@ export function UserDrawer({ isOpen, onClose }: UserDrawerProps) {
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b">
           <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-full bg-slate-200 flex items-center justify-center">
-              <User className="h-5 w-5 text-slate-600" />
+            <div className="h-10 w-10 rounded-full bg-slate-200 flex items-center justify-center overflow-hidden">
+              {authenticated && user.avatar ? (
+                <img src={user.avatar} alt="" className="h-10 w-10 rounded-full object-cover" />
+              ) : (
+                <User className="h-5 w-5 text-slate-600" />
+              )}
             </div>
             <div>
-              <div className="font-semibold">Guest User</div>
-              <div className="text-sm text-slate-600">Not signed in</div>
+              <div className="font-semibold">{authenticated ? user.name : "Guest User"}</div>
+              <div className="text-sm text-slate-600">
+                {authenticated ? user.email : "Not signed in"}
+              </div>
             </div>
           </div>
           <Button
@@ -90,14 +105,31 @@ export function UserDrawer({ isOpen, onClose }: UserDrawerProps) {
           )}
         </nav>
 
-        {/* Footer actions */}
-        <div className="p-4 border-t space-y-2">
-          <Button className="w-full" variant="default">
-            Sign In
-          </Button>
-          <Button className="w-full" variant="outline">
-            Register
-          </Button>
+        {/* Footer actions — auth buttons */}
+        <div className="p-4 border-t flex flex-col gap-2">
+          {authenticated ? (
+            <Button
+              className="w-full"
+              variant="outline"
+              onClick={handleSignOut}
+            >
+              <LogOut className="h-4 w-4 mr-2" />
+              Sign Out
+            </Button>
+          ) : (
+            <>
+              <Link to="/sign-in" onClick={onClose}>
+                <Button className="w-full" variant="default">
+                  Sign In
+                </Button>
+              </Link>
+              <Link to="/sign-up" onClick={onClose}>
+                <Button className="w-full" variant="outline">
+                  Register
+                </Button>
+              </Link>
+            </>
+          )}
         </div>
       </div>
     </>
