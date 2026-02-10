@@ -106,8 +106,8 @@ export function UserDrawer({ isOpen, onClose }: UserDrawerProps) {
         <div className="p-4 border-t flex flex-col gap-2">
           {authenticated ? (
             <Button
-              className="w-full"
-              variant="outline"
+              className="w-full font-semibold"
+              variant="outline-secondary"
               onClick={handleSignOut}
             >
               <LogOut className="h-4 w-4 mr-2" />
@@ -116,12 +116,12 @@ export function UserDrawer({ isOpen, onClose }: UserDrawerProps) {
           ) : (
             <>
               <Link to="/sign-in" onClick={onClose}>
-                <Button className="w-full" variant="default">
+                <Button className="w-full font-semibold" variant="outline-secondary">
                   Sign In
                 </Button>
               </Link>
               <Link to="/sign-up" onClick={onClose}>
-                <Button className="w-full" variant="outline">
+                <Button className="w-full font-semibold" variant="outline-secondary">
                   Register
                 </Button>
               </Link>
