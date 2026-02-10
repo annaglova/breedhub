@@ -230,8 +230,11 @@ export default function SignUp() {
                         signUpMode
                       />
 
-                      <p className="text-center text-sm text-slate-500 mt-6">
-                        Fast, secure account creation
+                      <p className="text-center text-xs text-slate-500 mt-6">
+                        By signing up, you agree to our{" "}
+                        <Link to="/terms-and-conditions" className="text-primary-600 hover:text-primary-500">Terms of Service</Link>
+                        {" "}and{" "}
+                        <Link to="/privacy-policy" className="text-primary-600 hover:text-primary-500">Privacy Policy</Link>
                       </p>
                     </div>
                   </div>
@@ -294,7 +297,10 @@ export default function SignUp() {
                             <div className="flex items-start">
                               <Checkbox
                                 id="agreements"
-                                {...register("agreements")}
+                                checked={watch("agreements")}
+                                onCheckedChange={(checked) =>
+                                  setValue("agreements", !!checked, { shouldValidate: true })
+                                }
                                 className={
                                   errors.agreements ? "border-red-500" : ""
                                 }
