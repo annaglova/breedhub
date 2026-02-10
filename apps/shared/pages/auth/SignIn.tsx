@@ -18,7 +18,6 @@ import {
   secureErrorMessages,
 } from "@shared/utils/securityUtils";
 import { AuthFormWrapper } from "@ui/components/auth-forms";
-import { Checkbox } from "@ui/components/checkbox";
 import {
   EmailInputWithValidation,
   PasswordInput,
@@ -55,7 +54,6 @@ export default function SignIn() {
     defaultValues: {
       email: "",
       password: "",
-      rememberMe: false,
     },
   });
 
@@ -222,7 +220,7 @@ export default function SignIn() {
           </div>
 
           {/* Header */}
-          <AuthHeader rightContent={<></>} />
+          <AuthHeader />
 
           {/* Content */}
           <div className="relative z-10 flex flex-1 items-start sm:items-center justify-center px-0 sm:px-6 pb-4 sm:pb-8 pt-2 sm:pt-4">
@@ -327,20 +325,7 @@ export default function SignIn() {
                             placeholder="Enter your password"
                           />
 
-                          <div className="py-1 flex items-center justify-between ">
-                            <div className="flex items-center">
-                              <Checkbox
-                                id="remember"
-                                {...register("rememberMe")}
-                                className="h-4 w-4"
-                              />
-                              <label
-                                htmlFor="remember"
-                                className="ml-2 text-sm text-slate-700 cursor-pointer"
-                              >
-                                Remember me
-                              </label>
-                            </div>
+                          <div className="py-1 flex items-center justify-end">
                             <Link
                               to="/forgot-password"
                               className="text-sm text-primary-600 hover:text-primary-500 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500/20 rounded"
@@ -362,7 +347,6 @@ export default function SignIn() {
                         {generalError && (
                           <ErrorWithHints
                             error={generalError}
-                            hints={getErrorHints(generalError)}
                           />
                         )}
                       </AuthFormWrapper>

@@ -9,9 +9,6 @@ interface AuthHeaderProps {
 }
 
 export function AuthHeader({
-  rightButtonText = "Sign in",
-  rightButtonLink = "/sign-in",
-  rightButtonLabel = "Return to",
   rightContent,
 }: AuthHeaderProps) {
   return (
@@ -34,23 +31,7 @@ export function AuthHeader({
           />
         </Link>
       </div>
-      {rightContent
-        ? rightContent
-        : rightButtonLink && (
-            <div className="flex items-center gap-2 sm:gap-4">
-              <span className="hidden text-slate-600 sm:block text-sm sm:text-base">
-                {rightButtonLabel}
-              </span>
-              <Link to={rightButtonLink}>
-                <button
-                  className="rounded-full  text-base px-6 py-2.5 transform transition-all duration-300 hover:scale-105 text-white relative overflow-hidden bg-primary-500 hover:bg-primary-600 border-2 border-primary-500 hover:border-primary-600"
-                  aria-label={rightButtonText}
-                >
-                  {rightButtonText}
-                </button>
-              </Link>
-            </div>
-          )}
+      {rightContent}
     </div>
   );
 }

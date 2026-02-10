@@ -1,6 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import FooterFigure from "@shared/assets/backgrounds/footer-figure.svg?react";
-import { AuthButton } from "@shared/components/auth/AuthButton";
 import { AuthFooter } from "@shared/components/auth/AuthFooter";
 import { AuthHeader } from "@shared/components/auth/AuthHeader";
 import { EnhancedSocialLoginButtons } from "@shared/components/auth/EnhancedSocialLoginButtons";
@@ -175,16 +174,7 @@ export default function SignUp() {
           </div>
 
           {/* Header */}
-          <AuthHeader
-            rightContent={
-              <div className="flex items-center gap-4">
-                <span className="hidden text-slate-700 sm:block">
-                  Already have an account?
-                </span>
-                <AuthButton to="/sign-in">Sign in</AuthButton>
-              </div>
-            }
-          />
+          <AuthHeader />
 
           {/* Content */}
           <div className="relative z-10 flex flex-1 items-start sm:items-center justify-center px-0 sm:px-6 pb-4 sm:pb-8 pt-2 sm:pt-4">

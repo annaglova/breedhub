@@ -1,6 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import FooterFigure from "@shared/assets/backgrounds/footer-figure.svg?react";
-import { AuthButton } from "@shared/components/auth/AuthButton";
 import { AuthFooter } from "@shared/components/auth/AuthFooter";
 import { AuthHeader } from "@shared/components/auth/AuthHeader";
 import { PasswordRequirements } from "@shared/components/auth/PasswordRequirements";
@@ -95,14 +94,7 @@ export default function ResetPassword() {
         </div>
 
         {/* Header */}
-        <AuthHeader
-          rightContent={
-            <div className="flex items-center gap-4">
-              <span className="hidden text-slate-700 sm:block">Return to</span>
-              <AuthButton to="/sign-in">Login page</AuthButton>
-            </div>
-          }
-        />
+        <AuthHeader />
 
         {/* Content */}
         <div className="relative z-10 flex flex-1 items-start sm:items-center justify-center px-0 sm:px-6 pb-4 sm:pb-8 pt-2 sm:pt-4">

@@ -78,19 +78,37 @@ export const errorHints = {
  * Sanitize error messages to prevent information leakage
  */
 export function sanitizeErrorMessage(error: unknown): string {
-  if (typeof error === 'string') {
-    // Check for common sensitive patterns
-    if (error.toLowerCase().includes('user not found')) {
-      return secureErrorMessages.invalidCredentials;
-    }
-    if (error.toLowerCase().includes('duplicate') || error.toLowerCase().includes('already exists')) {
-      return secureErrorMessages.emailTaken;
-    }
-    if (error.toLowerCase().includes('network') || error.toLowerCase().includes('fetch')) {
-      return secureErrorMessages.networkError;
-    }
+  const message = typeof error === 'string'
+    ? error
+    : (error as any)?.message || '';
+
+  const lower = message.toLowerCase();
+
+  // Supabase: wrong email or password
+  if (lower.includes('invalid login credentials') || lower.includes('invalid credentials') || lower.includes('user not found')) {
+    return secureErrorMessages.invalidCredentials;
   }
-  
+
+  // Email already registered
+  if (lower.includes('duplicate') || lower.includes('already exists') || lower.includes('already registered')) {
+    return secureErrorMessages.emailTaken;
+  }
+
+  // Email not confirmed
+  if (lower.includes('email not confirmed')) {
+    return "Please confirm your email address before signing in.";
+  }
+
+  // Network / connection errors
+  if (lower.includes('network') || lower.includes('fetch') || lower.includes('failed to fetch')) {
+    return secureErrorMessages.networkError;
+  }
+
+  // Rate limiting
+  if (lower.includes('too many') || lower.includes('rate limit')) {
+    return secureErrorMessages.tooManyAttempts;
+  }
+
   // Default to generic error
   return secureErrorMessages.serverError;
 }
