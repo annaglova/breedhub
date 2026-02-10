@@ -31,27 +31,24 @@ export function UserDrawer({ isOpen, onClose }: UserDrawerProps) {
       {/* Drawer */}
       <div className="fixed right-0 top-0 h-full w-80 bg-white shadow-xl z-70 flex flex-col user-drawer-enter">
         {/* Header */}
-        <div className="flex items-center justify-between px-4 py-3 border-b">
-          <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-full bg-slate-200 flex items-center justify-center overflow-hidden">
-              {authenticated && user.avatar ? (
-                <img src={user.avatar} alt="" className="h-10 w-10 rounded-full object-cover" />
-              ) : (
-                <User className="h-5 w-5 text-slate-600" />
-              )}
-            </div>
-            <div>
-              <div className="font-semibold">{authenticated ? user.name : "Guest User"}</div>
-              <div className="text-sm text-slate-600">
-                {authenticated ? user.email : "Not signed in"}
-              </div>
+        <div className="flex items-center gap-4 px-4 py-3 border-b">
+          <div className="h-10 w-10 shrink-0 rounded-full bg-slate-200 flex items-center justify-center overflow-hidden">
+            {authenticated && user.avatar ? (
+              <img src={user.avatar} alt="" className="h-10 w-10 rounded-full object-cover" />
+            ) : (
+              <User className="h-5 w-5 text-slate-600" />
+            )}
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="font-semibold truncate">{authenticated ? user.name : "Guest User"}</div>
+            <div className="text-sm text-slate-600 truncate">
+              {authenticated ? user.email : "Not signed in"}
             </div>
           </div>
           <Button
-            variant="ghost"
-            size="icon"
+            variant="ghost-secondary"
             onClick={onClose}
-            className="h-8 w-8"
+            className="size-[2.25rem] shrink-0 rounded-full p-0"
           >
             <X className="h-4 w-4" />
           </Button>
