@@ -440,9 +440,10 @@ export function SpaceComponent<T extends { id: string }>({
 
   useEffect(() => {
     const buildFilters = async () => {
-      // If filterFields not loaded yet, don't build filters (wait for config to load)
-      // This prevents using URL slugs directly before field configs are available
-      if (filterFields.length === 0) {
+      // If config not loaded yet, don't build filters (wait for config to load)
+      // But allow proceeding when mainFilterField exists even if filterFields is empty
+      // (e.g., contact/event spaces that only have a mainFilterField for search)
+      if (filterFields.length === 0 && !mainFilterField) {
         setFilters(undefined);
         return;
       }
