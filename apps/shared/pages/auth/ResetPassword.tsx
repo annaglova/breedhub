@@ -98,8 +98,8 @@ export default function ResetPassword() {
         description: "Your password has been successfully reset.",
       });
 
-      // Redirect
-      navigate("/sign-in?reset=success");
+      // User already has an active session from the reset link — go straight to app
+      navigate("/");
     } catch (error) {
       const errorMessage = sanitizeErrorMessage(error);
       setGeneralError(errorMessage);
