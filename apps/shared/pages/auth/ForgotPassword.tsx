@@ -19,12 +19,14 @@ import { Button } from "@ui/components/button";
 import { EmailInputWithValidation } from "@ui/components/form-inputs";
 import { useToast } from "@ui/hooks/use-toast";
 import { HelpCircle, Mail } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/core/auth";
+import { supabase } from "@/core/supabase";
 
 export default function ForgotPassword() {
+  const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [generalError, setGeneralError] = useState("");
@@ -32,6 +34,21 @@ export default function ForgotPassword() {
   const { forgotPassword } = useAuth();
 
   const { checkRateLimit, recordAttempt } = useRateLimiter("passwordReset");
+
+  // When user resets password in another tab, session syncs — redirect to app
+  useEffect(() => {
+    if (!isSuccess) return;
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        if (session && (event === "SIGNED_IN" || event === "PASSWORD_RECOVERY")) {
+          navigate("/");
+        }
+      }
+    );
+
+    return () => subscription.unsubscribe();
+  }, [isSuccess, navigate]);
 
   const {
     register,
@@ -211,8 +228,12 @@ export default function ForgotPassword() {
                     </p>
                   </div>
 
+                  <p className="mt-4 text-xs text-slate-400 text-center">
+                    This page will redirect automatically after you reset your password.
+                  </p>
+
                   <Link to="/sign-in">
-                    <Button variant="outline-secondary" className="mt-6 sm:mt-8 w-full h-12 text-base font-semibold rounded-xl">
+                    <Button variant="outline-secondary" className="mt-4 w-full h-12 text-base font-semibold rounded-xl">
                       Back to sign in
                     </Button>
                   </Link>

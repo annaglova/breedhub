@@ -25,10 +25,11 @@ import {
 import { useToast } from "@ui/hooks/use-toast";
 import { cn } from "@ui/lib/utils";
 import { Mail, User } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/core/auth";
+import { supabase } from "@/core/supabase";
 
 export default function SignIn() {
   const navigate = useNavigate();
@@ -38,6 +39,18 @@ export default function SignIn() {
   const [authMode, setAuthMode] = useState<"social" | "email">("social");
   const { toast } = useToast();
   const { signInWithEmail, signInWithGoogle, signInWithFacebook } = useAuth();
+
+  // Auto-redirect if user becomes authenticated (e.g., password reset in another tab)
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        if (session && (event === "SIGNED_IN" || event === "PASSWORD_RECOVERY")) {
+          navigate("/");
+        }
+      }
+    );
+    return () => subscription.unsubscribe();
+  }, [navigate]);
 
   const { checkRateLimit, recordAttempt, clearAttempts, remainingAttempts } =
     useRateLimiter("login");

@@ -25,7 +25,7 @@ import {
 import { useToast } from "@ui/hooks/use-toast";
 import { cn } from "@ui/lib/utils";
 import { AlertCircle, Mail, UserPlus } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/core/supabase";
@@ -38,6 +38,18 @@ export default function SignUp() {
   const [generalError, setGeneralError] = useState("");
   const { toast } = useToast();
   const { signInWithGoogle, signInWithFacebook } = useAuth();
+
+  // Auto-redirect if user becomes authenticated (e.g., password reset in another tab)
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        if (session && (event === "SIGNED_IN" || event === "PASSWORD_RECOVERY")) {
+          navigate("/");
+        }
+      }
+    );
+    return () => subscription.unsubscribe();
+  }, [navigate]);
 
   const { checkRateLimit, recordAttempt } = useRateLimiter("registration");
 
