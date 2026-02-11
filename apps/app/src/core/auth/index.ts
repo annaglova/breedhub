@@ -1,3 +1,3 @@
-export { AuthProvider, useAuth } from './AuthContext';
-export { AuthUtils, type SimpleUser } from './auth.utils';
+export { AuthProvider, useAuth } from '@shared/core/auth';
+export { AuthUtils, type SimpleUser } from '@shared/core/auth';
 export type { Database } from '../supabase';

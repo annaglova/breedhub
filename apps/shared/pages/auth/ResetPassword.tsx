@@ -21,7 +21,7 @@ import { AlertCircle, Key } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "@/core/supabase";
+import { supabase } from "@shared/core/supabase";
 
 export default function ResetPassword() {
   const navigate = useNavigate();

@@ -28,8 +28,8 @@ import { AlertCircle, Mail, UserPlus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { Link, useNavigate } from "react-router-dom";
-import { supabase } from "@/core/supabase";
-import { useAuth } from "@/core/auth";
+import { supabase } from "@shared/core/supabase";
+import { useAuth } from "@shared/core/auth";
 
 export default function SignUp() {
   const navigate = useNavigate();

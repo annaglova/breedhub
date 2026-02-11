@@ -22,8 +22,8 @@ import { HelpCircle, Mail } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "@/core/auth";
-import { supabase } from "@/core/supabase";
+import { useAuth } from "@shared/core/auth";
+import { supabase } from "@shared/core/supabase";
 
 export default function ForgotPassword() {
   const navigate = useNavigate();
