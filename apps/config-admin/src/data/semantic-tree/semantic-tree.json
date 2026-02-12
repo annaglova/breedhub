@@ -12603,6 +12603,80 @@
       ]
     },
     {
+      "id": "contact_field_kennels",
+      "type": "entity_field",
+      "deps": [
+        "property_not_required",
+        "property_not_system",
+        "property_not_primary_key",
+        "property_not_unique"
+      ],
+      "category": "contact",
+      "caption": "contact kennels field",
+      "self_data": {
+        "fieldType": "json",
+        "component": "TextareaInput",
+        "required": false,
+        "isSystem": false,
+        "isPrimaryKey": false,
+        "isUnique": false,
+        "sortOrder": 590,
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "admin",
+            "editor"
+          ]
+        },
+        "displayName": "Kennels",
+        "placeholder": "Enter kennels",
+        "defaultValue": "[]"
+      },
+      "tags": [
+        "main",
+        "contact"
+      ]
+    },
+    {
+      "id": "contact_field_top_pets",
+      "type": "entity_field",
+      "deps": [
+        "property_not_required",
+        "property_not_system",
+        "property_not_primary_key",
+        "property_not_unique"
+      ],
+      "category": "contact",
+      "caption": "contact top_pets field",
+      "self_data": {
+        "fieldType": "json",
+        "component": "TextareaInput",
+        "required": false,
+        "isSystem": false,
+        "isPrimaryKey": false,
+        "isUnique": false,
+        "sortOrder": 600,
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "admin",
+            "editor"
+          ]
+        },
+        "displayName": "Top Pets",
+        "placeholder": "Enter top pets",
+        "defaultValue": "[]"
+      },
+      "tags": [
+        "main",
+        "contact"
+      ]
+    },
+    {
       "id": "contact_field_id",
       "type": "entity_field",
       "deps": [
@@ -12617,7 +12691,7 @@
         "isSystem": true,
         "isPrimaryKey": true,
         "isUnique": true,
-        "sortOrder": 590,
+        "sortOrder": 610,
         "permissions": {
           "read": [
             "*"
@@ -12648,7 +12722,7 @@
         "isSystem": true,
         "isPrimaryKey": false,
         "isUnique": false,
-        "sortOrder": 600,
+        "sortOrder": 620,
         "permissions": {
           "read": [
             "*"
@@ -12679,7 +12753,7 @@
         "isSystem": true,
         "isPrimaryKey": false,
         "isUnique": false,
-        "sortOrder": 610,
+        "sortOrder": 630,
         "permissions": {
           "read": [
             "*"
@@ -12710,7 +12784,7 @@
         "isSystem": true,
         "isPrimaryKey": false,
         "isUnique": false,
-        "sortOrder": 620,
+        "sortOrder": 640,
         "permissions": {
           "read": [
             "*"
@@ -12741,7 +12815,7 @@
         "isSystem": true,
         "isPrimaryKey": false,
         "isUnique": false,
-        "sortOrder": 630,
+        "sortOrder": 650,
         "permissions": {
           "read": [
             "*"
@@ -12772,7 +12846,7 @@
         "isSystem": true,
         "isPrimaryKey": false,
         "isUnique": false,
-        "sortOrder": 640,
+        "sortOrder": 660,
         "permissions": {
           "read": [
             "*"

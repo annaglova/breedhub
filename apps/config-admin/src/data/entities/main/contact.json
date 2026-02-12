@@ -1525,6 +1525,52 @@
       "defaultValue": "[]"
     },
     {
+      "id": "field_kennels",
+      "name": "kennels",
+      "fieldType": "json",
+      "component": "TextareaInput",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 590,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "displayName": "Kennels",
+      "placeholder": "Enter kennels",
+      "defaultValue": "[]"
+    },
+    {
+      "id": "field_top_pets",
+      "name": "top_pets",
+      "fieldType": "json",
+      "component": "TextareaInput",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 600,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "displayName": "Top Pets",
+      "placeholder": "Enter top pets",
+      "defaultValue": "[]"
+    },
+    {
       "id": "field_id",
       "name": "id",
       "fieldType": "uuid",
@@ -1533,7 +1579,7 @@
       "isSystem": true,
       "isPrimaryKey": true,
       "isUnique": true,
-      "sortOrder": 590,
+      "sortOrder": 610,
       "permissions": {
         "read": [
           "*"
@@ -1553,7 +1599,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 600,
+      "sortOrder": 620,
       "permissions": {
         "read": [
           "*"
@@ -1573,7 +1619,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 610,
+      "sortOrder": 630,
       "permissions": {
         "read": [
           "*"
@@ -1593,7 +1639,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 620,
+      "sortOrder": 640,
       "permissions": {
         "read": [
           "*"
@@ -1613,7 +1659,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 630,
+      "sortOrder": 650,
       "permissions": {
         "read": [
           "*"
@@ -1633,7 +1679,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 640,
+      "sortOrder": 660,
       "permissions": {
         "read": [
           "*"
@@ -1647,9 +1693,9 @@
   ],
   "metadata": {
     "tableName": "contact",
-    "totalFields": 64,
+    "totalFields": 66,
     "systemFields": 6,
-    "customFields": 58,
-    "generatedAt": "2026-02-12T10:50:21.423Z"
+    "customFields": 60,
+    "generatedAt": "2026-02-12T12:20:02.865Z"
   }
 }

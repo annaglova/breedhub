@@ -18891,7 +18891,7 @@
           "isSystem": true,
           "isPrimaryKey": true,
           "isUnique": true,
-          "sortOrder": 590,
+          "sortOrder": 610,
           "permissions": {
             "read": [
               "*"
@@ -25538,7 +25538,7 @@
           "isSystem": true,
           "isPrimaryKey": false,
           "isUnique": false,
-          "sortOrder": 600,
+          "sortOrder": 620,
           "permissions": {
             "read": [
               "*"
@@ -32137,7 +32137,7 @@
           "isSystem": true,
           "isPrimaryKey": false,
           "isUnique": false,
-          "sortOrder": 610,
+          "sortOrder": 630,
           "permissions": {
             "read": [
               "*"
@@ -38690,7 +38690,7 @@
           "isSystem": true,
           "isPrimaryKey": false,
           "isUnique": false,
-          "sortOrder": 620,
+          "sortOrder": 640,
           "permissions": {
             "read": [
               "*"
@@ -45289,7 +45289,7 @@
           "isSystem": true,
           "isPrimaryKey": false,
           "isUnique": false,
-          "sortOrder": 630,
+          "sortOrder": 650,
           "permissions": {
             "read": [
               "*"
@@ -51475,7 +51475,7 @@
           "isSystem": true,
           "isPrimaryKey": false,
           "isUnique": false,
-          "sortOrder": 640,
+          "sortOrder": 660,
           "permissions": {
             "read": [
               "*"
@@ -69292,6 +69292,82 @@
           },
           "displayName": "Breed Patronage",
           "placeholder": "Enter breed patronage",
+          "defaultValue": "[]"
+        }
+      }
+    ],
+    "commonProps": null
+  },
+  {
+    "key": "kennels",
+    "name": "kennels",
+    "occurrences": 1,
+    "entities": [
+      "contact"
+    ],
+    "variations": [
+      {
+        "entity": "contact",
+        "category": "main",
+        "config": {
+          "id": "field_kennels",
+          "name": "kennels",
+          "fieldType": "json",
+          "component": "TextareaInput",
+          "required": false,
+          "isSystem": false,
+          "isPrimaryKey": false,
+          "isUnique": false,
+          "sortOrder": 590,
+          "permissions": {
+            "read": [
+              "*"
+            ],
+            "write": [
+              "admin",
+              "editor"
+            ]
+          },
+          "displayName": "Kennels",
+          "placeholder": "Enter kennels",
+          "defaultValue": "[]"
+        }
+      }
+    ],
+    "commonProps": null
+  },
+  {
+    "key": "top_pets",
+    "name": "top_pets",
+    "occurrences": 1,
+    "entities": [
+      "contact"
+    ],
+    "variations": [
+      {
+        "entity": "contact",
+        "category": "main",
+        "config": {
+          "id": "field_top_pets",
+          "name": "top_pets",
+          "fieldType": "json",
+          "component": "TextareaInput",
+          "required": false,
+          "isSystem": false,
+          "isPrimaryKey": false,
+          "isUnique": false,
+          "sortOrder": 600,
+          "permissions": {
+            "read": [
+              "*"
+            ],
+            "write": [
+              "admin",
+              "editor"
+            ]
+          },
+          "displayName": "Top Pets",
+          "placeholder": "Enter top pets",
           "defaultValue": "[]"
         }
       }
