@@ -87,6 +87,9 @@ export function useTabNavigation({
   // Track if user manually clicked on tab (to prevent IntersectionObserver from overriding)
   const isManualScrollRef = useRef(false);
 
+  // Track if tab was explicitly selected (user click or URL hash) - prevents defaultTab sync override
+  const isExplicitTabRef = useRef(false);
+
   // Update URL hash when activeTab changes
   const updateUrlHash = useCallback((fragment: string) => {
     const url = new URL(window.location.href);
@@ -94,10 +97,13 @@ export function useTabNavigation({
     window.history.replaceState(null, '', url.toString());
   }, []);
 
-  // Set initial hash on mount if not present
+  // Set initial hash on mount if not present, and detect explicit hash selection
   useEffect(() => {
     const hash = window.location.hash.slice(1);
-    if (!hash && activeTab) {
+    if (hash && tabs.some(tab => tab.fragment === hash)) {
+      // URL has valid hash — treat as explicit tab selection (don't auto-sync)
+      isExplicitTabRef.current = true;
+    } else if (!hash && activeTab) {
       updateUrlHash(activeTab);
     }
   }, []); // Only on mount
@@ -107,7 +113,8 @@ export function useTabNavigation({
   const prevEntityIdRef = useRef(entityId);
   useEffect(() => {
     if (entityId && prevEntityIdRef.current && entityId !== prevEntityIdRef.current) {
-      // Entity changed - reset to default tab
+      // Entity changed - reset to default tab and clear explicit flag
+      isExplicitTabRef.current = false;
       const newTab = defaultTab || tabs[0]?.fragment || "";
       if (newTab) {
         setActiveTab(newTab);
@@ -140,9 +147,24 @@ export function useTabNavigation({
     prevEntityIdRef.current = entityId;
   }, [entityId, defaultTab, tabs, mode]);
 
+  // Sync activeTab with defaultTab when it changes (e.g., after entity data loads
+  // and preferDefault tab becomes visible) — only if tab wasn't explicitly chosen
+  const prevDefaultTabRef = useRef(defaultTab);
+  useEffect(() => {
+    if (defaultTab !== prevDefaultTabRef.current) {
+      prevDefaultTabRef.current = defaultTab;
+      if (!isExplicitTabRef.current && defaultTab) {
+        setActiveTab(defaultTab);
+        updateUrlHash(defaultTab);
+      }
+    }
+  }, [defaultTab, updateUrlHash]);
+
   // Handle tab change
   const handleTabChange = useCallback(
     (fragment: string) => {
+      // Mark as explicit tab selection (prevents defaultTab auto-sync)
+      isExplicitTabRef.current = true;
       // Mark as manual scroll to prevent IntersectionObserver from overriding
       isManualScrollRef.current = true;
       setActiveTab(fragment);
