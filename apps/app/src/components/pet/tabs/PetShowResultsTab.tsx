@@ -46,7 +46,7 @@ function formatDate(dateString?: string): string {
 
 interface PetShowResultsTabProps {
   onLoadedCount?: (count: number) => void;
-  dataSource?: DataSourceConfig;
+  dataSource?: DataSourceConfig[];
 }
 
 /**
@@ -74,15 +74,15 @@ export function PetShowResultsTab({
   // Drawer mode: load limited data
   const drawerResult = useTabData({
     parentId: petId,
-    dataSource: dataSource!,
-    enabled: !!dataSource && !!petId && !isFullscreen,
+    dataSource: dataSource?.[0]!,
+    enabled: !!dataSource?.[0] && !!petId && !isFullscreen,
   });
 
   // Fullscreen mode: infinite scroll with pagination
   const infiniteResult = useInfiniteTabData({
     parentId: petId,
-    dataSource: dataSource!,
-    enabled: !!dataSource && !!petId && isFullscreen,
+    dataSource: dataSource?.[0]!,
+    enabled: !!dataSource?.[0] && !!petId && isFullscreen,
     pageSize: 30,
   });
 
@@ -148,7 +148,7 @@ export function PetShowResultsTab({
   }, [isFullscreen, handleLoadMore, hasMore, isLoadingMore, results.length]);
 
   // Don't render if no dataSource configured
-  if (!dataSource) {
+  if (!dataSource?.[0]) {
     return null;
   }
 

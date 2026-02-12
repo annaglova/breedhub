@@ -50,36 +50,9 @@ const SERVICE_ICONS: Record<string, React.ReactNode> = {
 // Known service type ID for "Children for sale"
 const CHILDREN_FOR_SALE_SERVICE_ID = "3370ee61-86de-49ae-a8ec-5cef5f213ecd";
 
-// Default dataSource configs for services (using base tables + client-side dictionary merge)
-const DEFAULT_SERVICES_DATASOURCE: DataSourceConfig = {
-  type: "child",
-  childTable: {
-    table: "pet_service_in_pet",
-    parentField: "pet_id",
-  },
-};
-
-const DEFAULT_FEATURES_DATASOURCE: DataSourceConfig = {
-  type: "child",
-  childTable: {
-    table: "pet_service_feature_in_pet",
-    parentField: "pet_id",
-  },
-};
-
-// DataSource for children available for sale (uses VIEW with enriched data)
-const CHILDREN_FOR_SALE_DATASOURCE: DataSourceConfig = {
-  type: "child",
-  childTable: {
-    table: "pet_child_for_sale_with_details",
-    parentField: "pet_id",
-  },
-};
-
 interface PetServicesTabProps {
   onLoadedCount?: (count: number) => void;
-  dataSource?: DataSourceConfig;
-  featuresDataSource?: DataSourceConfig;
+  dataSource?: DataSourceConfig[];
 }
 
 /**
@@ -100,7 +73,6 @@ interface PetServicesTabProps {
 export function PetServicesTab({
   onLoadedCount,
   dataSource,
-  featuresDataSource,
 }: PetServicesTabProps) {
   useSignals();
 
@@ -130,8 +102,8 @@ export function PetServicesTab({
     error: servicesError
   } = useTabData({
     parentId: petId,
-    dataSource: dataSource || DEFAULT_SERVICES_DATASOURCE,
-    enabled: !!petId && hasAnyServices,
+    dataSource: dataSource?.[0]!,
+    enabled: !!dataSource?.[0] && !!petId && hasAnyServices,
   });
 
   // Load features via useTabData - ONLY if JSONB indicates services exist
@@ -140,8 +112,8 @@ export function PetServicesTab({
     isLoading: featuresLoading,
   } = useTabData({
     parentId: petId,
-    dataSource: featuresDataSource || DEFAULT_FEATURES_DATASOURCE,
-    enabled: !!petId && hasAnyServices,
+    dataSource: dataSource?.[1]!,
+    enabled: !!dataSource?.[1] && !!petId && hasAnyServices,
   });
 
   // Load children for sale via useTabData - ONLY if JSONB indicates this service exists
@@ -150,8 +122,8 @@ export function PetServicesTab({
     isLoading: childrenForSaleLoading,
   } = useTabData({
     parentId: petId,
-    dataSource: CHILDREN_FOR_SALE_DATASOURCE,
-    enabled: !!petId && hasChildrenForSaleInJsonb,
+    dataSource: dataSource?.[2]!,
+    enabled: !!dataSource?.[2] && !!petId && hasChildrenForSaleInJsonb,
   });
 
   // Load lookups by specific IDs from child records (not entire dictionaries)

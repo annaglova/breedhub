@@ -57,7 +57,7 @@ function formatDate(dateString: string): string {
  * @see docs/TAB_DATA_SERVICE_ARCHITECTURE.md
  */
 interface BreedAchievementsTabProps {
-  dataSource?: DataSourceConfig;
+  dataSource?: DataSourceConfig[];
   onLoadedCount?: (count: number) => void; // Report loaded count for conditional fullscreen
 }
 
@@ -79,8 +79,8 @@ export function BreedAchievementsTab({
   // TabDataService handles: child records + dictionary + merge
   const { data, isLoading, error } = useTabData<MergedDictionaryItem>({
     parentId: breedId,
-    dataSource: dataSource!,
-    enabled: !!dataSource && !!breedId,
+    dataSource: dataSource?.[0]!,
+    enabled: !!dataSource?.[0] && !!breedId,
   });
 
   // Report loaded count for conditional fullscreen button
@@ -108,7 +108,7 @@ export function BreedAchievementsTab({
   }, [data]);
 
   // No dataSource config - show warning
-  if (!dataSource) {
+  if (!dataSource?.[0]) {
     return (
       <div className="py-4 px-6">
         <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">

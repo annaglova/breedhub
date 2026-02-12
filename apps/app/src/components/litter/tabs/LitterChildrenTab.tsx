@@ -9,7 +9,7 @@ import { useEffect, useState, useMemo } from "react";
 interface LitterChildrenTabProps {
   onLoadedCount?: (count: number) => void;
   mode?: "scroll" | "fullscreen";
-  dataSource?: DataSourceConfig;
+  dataSource?: DataSourceConfig[];
 }
 
 /**
@@ -55,15 +55,6 @@ async function enrichPetForCard(rawPet: any): Promise<Pet> {
   };
 }
 
-// Default dataSource for pet_in_litter
-const defaultDataSource: DataSourceConfig = {
-  type: "child",
-  childTable: {
-    table: "pet_in_litter",
-    parentField: "litter_id",
-  },
-};
-
 /**
  * LitterChildrenTab - Litter's children (puppies/kittens)
  *
@@ -77,7 +68,7 @@ const defaultDataSource: DataSourceConfig = {
 export function LitterChildrenTab({
   onLoadedCount,
   mode,
-  dataSource = defaultDataSource,
+  dataSource,
 }: LitterChildrenTabProps) {
   useSignals();
 
@@ -96,8 +87,8 @@ export function LitterChildrenTab({
     error,
   } = useTabData({
     parentId: litterId,
-    dataSource,
-    enabled: !!litterId,
+    dataSource: dataSource?.[0]!,
+    enabled: !!dataSource?.[0] && !!litterId,
   });
 
   // 2. Load and enrich pet data when junction records change

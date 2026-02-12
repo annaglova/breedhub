@@ -17,7 +17,7 @@ interface PetIdentifier {
 
 interface PetIdentifiersTabProps {
   onLoadedCount?: (count: number) => void;
-  dataSource?: DataSourceConfig;
+  dataSource?: DataSourceConfig[];
 }
 
 /**
@@ -52,8 +52,8 @@ export function PetIdentifiersTab({
     error,
   } = useTabData({
     parentId: petId,
-    dataSource: dataSource!,
-    enabled: !!dataSource && !!petId,
+    dataSource: dataSource?.[0]!,
+    enabled: !!dataSource?.[0] && !!petId,
   });
 
   // Transform raw data to UI format
@@ -75,7 +75,7 @@ export function PetIdentifiersTab({
   }, [isLoading, onLoadedCount, identifiers.length]);
 
   // Don't render if no dataSource configured
-  if (!dataSource) {
+  if (!dataSource?.[0]) {
     return null;
   }
 

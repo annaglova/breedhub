@@ -45,7 +45,7 @@ interface TopPetViewRecord {
 }
 
 interface BreedTopPetsTabProps {
-  dataSource?: DataSourceConfig;
+  dataSource?: DataSourceConfig[];
   onLoadedCount?: (count: number) => void;
 }
 
@@ -89,15 +89,15 @@ export function BreedTopPetsTab({
   // Drawer mode: load all at once (limited)
   const drawerResult = useTabData<TopPetViewRecord>({
     parentId: breedId,
-    dataSource: dataSource!,
-    enabled: !!dataSource && !!breedId && !isFullscreen,
+    dataSource: dataSource?.[0]!,
+    enabled: !!dataSource?.[0] && !!breedId && !isFullscreen,
   });
 
   // Fullscreen mode: infinite scroll with ID-First pagination
   const infiniteResult = useInfiniteTabData<TopPetViewRecord>({
     parentId: breedId,
-    dataSource: dataSource!,
-    enabled: !!dataSource && !!breedId && isFullscreen,
+    dataSource: dataSource?.[0]!,
+    enabled: !!dataSource?.[0] && !!breedId && isFullscreen,
     pageSize: 30,
   });
 
@@ -190,7 +190,7 @@ export function BreedTopPetsTab({
   }, [isFullscreen, handleLoadMore, hasMore, isLoadingMore, pets.length]);
 
   // No dataSource config - show warning
-  if (!dataSource) {
+  if (!dataSource?.[0]) {
     return (
       <div className="py-4 px-6">
         <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">

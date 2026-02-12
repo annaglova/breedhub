@@ -36,27 +36,10 @@ const SERVICE_ICONS: Record<string, React.ReactNode> = {
   "Children for sale": <PawPrint className="h-4 w-4" />,
 };
 
-// DataSource for litter services
-const SERVICES_DATASOURCE: DataSourceConfig = {
-  type: "child",
-  childTable: {
-    table: "pet_service_in_litter",
-    parentField: "litter_id",
-  },
-};
-
-// DataSource for children available for sale (uses VIEW with enriched data)
-const CHILDREN_FOR_SALE_DATASOURCE: DataSourceConfig = {
-  type: "child",
-  childTable: {
-    table: "litter_child_for_sale_with_details",
-    parentField: "litter_id",
-  },
-};
-
 interface LitterServicesTabProps {
   onLoadedCount?: (count: number) => void;
   mode?: "scroll" | "fullscreen";
+  dataSource?: DataSourceConfig[];
 }
 
 /**
@@ -76,6 +59,7 @@ interface LitterServicesTabProps {
 export function LitterServicesTab({
   onLoadedCount,
   mode,
+  dataSource,
 }: LitterServicesTabProps) {
   useSignals();
 
@@ -99,8 +83,8 @@ export function LitterServicesTab({
     error: servicesError,
   } = useTabData({
     parentId: litterId,
-    dataSource: SERVICES_DATASOURCE,
-    enabled: !!litterId,
+    dataSource: dataSource?.[0]!,
+    enabled: !!dataSource?.[0] && !!litterId,
   });
 
   // Load children for sale via useTabData
@@ -109,8 +93,8 @@ export function LitterServicesTab({
     isLoading: childrenForSaleLoading,
   } = useTabData({
     parentId: litterId,
-    dataSource: CHILDREN_FOR_SALE_DATASOURCE,
-    enabled: !!litterId,
+    dataSource: dataSource?.[1]!,
+    enabled: !!dataSource?.[1] && !!litterId,
   });
 
   // Load lookups by specific IDs from child records

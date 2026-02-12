@@ -137,7 +137,7 @@ function ExternalLinkButton({ url }: { url?: string }) {
 
 interface EventResultsTabProps {
   onLoadedCount?: (count: number) => void;
-  dataSource?: DataSourceConfig;
+  dataSource?: DataSourceConfig[];
 }
 
 /**
@@ -166,15 +166,15 @@ export function EventResultsTab({
   // Drawer mode: load limited data
   const drawerResult = useTabData({
     parentId: programId,
-    dataSource: dataSource!,
-    enabled: !!dataSource && !!programId && !isFullscreen,
+    dataSource: dataSource?.[0]!,
+    enabled: !!dataSource?.[0] && !!programId && !isFullscreen,
   });
 
   // Fullscreen mode: infinite scroll with pagination
   const infiniteResult = useInfiniteTabData({
     parentId: programId,
-    dataSource: dataSource!,
-    enabled: !!dataSource && !!programId && isFullscreen,
+    dataSource: dataSource?.[0]!,
+    enabled: !!dataSource?.[0] && !!programId && isFullscreen,
     pageSize: 50,
   });
 
@@ -232,7 +232,7 @@ export function EventResultsTab({
   }, [isFullscreen, handleLoadMore, hasMore, isLoadingMore, totalCompetitors]);
 
   // Don't render if no dataSource configured
-  if (!dataSource) {
+  if (!dataSource?.[0]) {
     return null;
   }
 

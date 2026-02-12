@@ -135,7 +135,7 @@ function JudgeLink({ judge }: { judge: Judge }) {
 
 interface EventGeneralTabProps {
   onLoadedCount?: (count: number) => void;
-  dataSource?: DataSourceConfig;
+  dataSource?: DataSourceConfig[];
 }
 
 /**
@@ -162,8 +162,8 @@ export function EventGeneralTab({ onLoadedCount, dataSource }: EventGeneralTabPr
   // Load judges from VIEW (if dataSource configured)
   const { data: judgesRaw } = useTabData({
     parentId: programId,
-    dataSource: dataSource!,
-    enabled: !!programId && !!dataSource,
+    dataSource: dataSource?.[0]!,
+    enabled: !!programId && !!dataSource?.[0],
   });
 
   // Transform judges data

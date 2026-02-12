@@ -9,6 +9,7 @@ import { breedChildrenSchema, breedChildrenMigrationStrategies, BreedChildrenDoc
 import { petChildrenSchema, petChildrenMigrationStrategies, PetChildrenDocument } from '../collections/pet-children.schema';
 import { litterChildrenSchema, litterChildrenMigrationStrategies } from '../collections/litter-children.schema';
 import { programChildrenSchema, programChildrenMigrationStrategies } from '../collections/program-children.schema';
+import { contactChildrenSchema, contactChildrenMigrationStrategies } from '../collections/contact-children.schema';
 import { supabase } from '../supabase/client';
 
 // Helpers
@@ -3829,6 +3830,8 @@ class SpaceStore {
         return litterChildrenSchema;
       case 'program':
         return programChildrenSchema;
+      case 'contact':
+        return contactChildrenSchema;
       // TODO: Add kennel_children schema when needed
       // case 'kennel':
       //   return kennelChildrenSchema;
@@ -3851,6 +3854,8 @@ class SpaceStore {
         return litterChildrenMigrationStrategies;
       case 'program':
         return programChildrenMigrationStrategies;
+      case 'contact':
+        return contactChildrenMigrationStrategies;
       // TODO: Add migration strategies for other entities
       default:
         return {};
@@ -4143,6 +4148,8 @@ class SpaceStore {
       'pet_child_for_sale': 'pet',
       'program_result': 'program',
       'judge_in_program': 'program',
+      'contact_communication': 'contact',
+      'contact_language': 'contact',
     };
 
     // Try exact match first
