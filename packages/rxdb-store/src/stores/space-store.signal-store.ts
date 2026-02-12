@@ -3592,9 +3592,9 @@ class SpaceStore {
     // Fetch from Supabase using imported client
     console.log(`[SpaceStore] Fetching entity ${id} from Supabase`, partitionId ? `(partition: ${partitionId})` : '');
     try {
-      // Get partition config from entity config
-      const config = this.getConfigByEntityType(entityType);
-      const partitionKeyField = config?.partition?.keyField;
+      // Get partition config from entity schema
+      const entitySchema = this.entitySchemas.get(entityType);
+      const partitionKeyField = entitySchema?.partition?.keyField;
 
       // Build query with partition pruning if available
       let query = supabase.from(entityType).select('*');
