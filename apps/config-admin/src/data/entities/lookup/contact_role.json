@@ -83,6 +83,29 @@
       "defaultValue": "true"
     },
     {
+      "id": "field_for_account",
+      "name": "for_account",
+      "fieldType": "boolean",
+      "component": "CheckboxInput",
+      "required": true,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 40,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "displayName": "For Account",
+      "placeholder": "Enter for account",
+      "defaultValue": "false"
+    },
+    {
       "id": "field_id",
       "name": "id",
       "fieldType": "uuid",
@@ -91,7 +114,7 @@
       "isSystem": true,
       "isPrimaryKey": true,
       "isUnique": true,
-      "sortOrder": 40,
+      "sortOrder": 50,
       "permissions": {
         "read": [
           "*"
@@ -111,7 +134,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 50,
+      "sortOrder": 60,
       "permissions": {
         "read": [
           "*"
@@ -131,7 +154,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 60,
+      "sortOrder": 70,
       "permissions": {
         "read": [
           "*"
@@ -151,7 +174,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 70,
+      "sortOrder": 80,
       "permissions": {
         "read": [
           "*"
@@ -171,7 +194,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 80,
+      "sortOrder": 90,
       "permissions": {
         "read": [
           "*"
@@ -185,9 +208,9 @@
   ],
   "metadata": {
     "tableName": "contact_role",
-    "totalFields": 8,
+    "totalFields": 9,
     "systemFields": 5,
-    "customFields": 3,
-    "generatedAt": "2026-02-08T20:41:27.755Z"
+    "customFields": 4,
+    "generatedAt": "2026-02-12T10:50:37.968Z"
   }
 }

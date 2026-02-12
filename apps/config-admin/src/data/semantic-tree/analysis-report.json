@@ -1,10 +1,10 @@
 {
   "summary": {
     "totalEntities": 266,
-    "uniqueFields": 581,
+    "uniqueFields": 584,
     "baseFields": 37,
-    "properties": 13,
-    "entityFieldsGenerated": 2978
+    "properties": 15,
+    "entityFieldsGenerated": 2981
   },
   "topFields": [
     {
@@ -44,8 +44,8 @@
     },
     {
       "name": "contact_id",
-      "occurrences": 37,
-      "percentage": "13.9%"
+      "occurrences": 36,
+      "percentage": "13.5%"
     },
     {
       "name": "breed_id",
@@ -123,14 +123,14 @@
   ],
   "analysis": {
     "fieldTypes": {
-      "unknown": 390,
+      "unknown": 392,
       "uuid": 94,
       "string": 31,
       "text": 8,
       "number": 27,
       "json": 3,
       "datetime": 7,
-      "boolean": 14,
+      "boolean": 15,
       "date": 7
     }
   }

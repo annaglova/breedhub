@@ -20307,7 +20307,7 @@
           "isSystem": true,
           "isPrimaryKey": true,
           "isUnique": true,
-          "sortOrder": 40,
+          "sortOrder": 50,
           "permissions": {
             "read": [
               "*"
@@ -25059,7 +25059,7 @@
           "isSystem": true,
           "isPrimaryKey": true,
           "isUnique": true,
-          "sortOrder": 80,
+          "sortOrder": 100,
           "permissions": {
             "read": [
               "*"
@@ -26954,7 +26954,7 @@
           "isSystem": true,
           "isPrimaryKey": false,
           "isUnique": false,
-          "sortOrder": 50,
+          "sortOrder": 60,
           "permissions": {
             "read": [
               "*"
@@ -31658,7 +31658,7 @@
           "isSystem": true,
           "isPrimaryKey": false,
           "isUnique": false,
-          "sortOrder": 90,
+          "sortOrder": 110,
           "permissions": {
             "read": [
               "*"
@@ -33553,7 +33553,7 @@
           "isSystem": true,
           "isPrimaryKey": false,
           "isUnique": false,
-          "sortOrder": 60,
+          "sortOrder": 70,
           "permissions": {
             "read": [
               "*"
@@ -38209,7 +38209,7 @@
           "isSystem": true,
           "isPrimaryKey": false,
           "isUnique": false,
-          "sortOrder": 100,
+          "sortOrder": 120,
           "permissions": {
             "read": [
               "*"
@@ -40106,7 +40106,7 @@
           "isSystem": true,
           "isPrimaryKey": false,
           "isUnique": false,
-          "sortOrder": 70,
+          "sortOrder": 80,
           "permissions": {
             "read": [
               "*"
@@ -44810,7 +44810,7 @@
           "isSystem": true,
           "isPrimaryKey": false,
           "isUnique": false,
-          "sortOrder": 110,
+          "sortOrder": 130,
           "permissions": {
             "read": [
               "*"
@@ -46705,7 +46705,7 @@
           "isSystem": true,
           "isPrimaryKey": false,
           "isUnique": false,
-          "sortOrder": 80,
+          "sortOrder": 90,
           "permissions": {
             "read": [
               "*"
@@ -51361,7 +51361,7 @@
           "isSystem": true,
           "isPrimaryKey": false,
           "isUnique": false,
-          "sortOrder": 120,
+          "sortOrder": 140,
           "permissions": {
             "read": [
               "*"
@@ -53918,7 +53918,7 @@
   {
     "key": "contact_id",
     "name": "contact_id",
-    "occurrences": 37,
+    "occurrences": 36,
     "entities": [
       "activity",
       "invoice",
@@ -53955,8 +53955,7 @@
       "post_like",
       "quest_user_data",
       "referral",
-      "top_patron_in_breed",
-      "user_settings"
+      "top_patron_in_breed"
     ],
     "variations": [
       {
@@ -55057,37 +55056,6 @@
           "isPrimaryKey": false,
           "isUnique": true,
           "sortOrder": 20,
-          "permissions": {
-            "read": [
-              "*"
-            ],
-            "write": [
-              "admin",
-              "editor"
-            ]
-          },
-          "isForeignKey": true,
-          "referencedTable": "contact",
-          "referencedFieldID": "id",
-          "dataSource": "collection",
-          "displayName": "Contact",
-          "placeholder": "Enter contact",
-          "referencedFieldName": "name"
-        }
-      },
-      {
-        "entity": "user_settings",
-        "category": "child",
-        "config": {
-          "id": "field_contact_id",
-          "name": "contact_id",
-          "fieldType": "uuid",
-          "component": "LookupInput",
-          "required": false,
-          "isSystem": false,
-          "isPrimaryKey": false,
-          "isUnique": false,
-          "sortOrder": 10,
           "permissions": {
             "read": [
               "*"
@@ -66667,7 +66635,7 @@
           "isSystem": false,
           "isPrimaryKey": false,
           "isUnique": false,
-          "sortOrder": 20,
+          "sortOrder": 10,
           "permissions": {
             "read": [
               "*"
@@ -80440,9 +80408,10 @@
   {
     "key": "for_account",
     "name": "for_account",
-    "occurrences": 1,
+    "occurrences": 2,
     "entities": [
-      "address_type"
+      "address_type",
+      "contact_role"
     ],
     "variations": [
       {
@@ -80471,9 +80440,53 @@
           "placeholder": "Enter for account",
           "defaultValue": "false"
         }
+      },
+      {
+        "entity": "contact_role",
+        "category": "lookup",
+        "config": {
+          "id": "field_for_account",
+          "name": "for_account",
+          "fieldType": "boolean",
+          "component": "CheckboxInput",
+          "required": true,
+          "isSystem": false,
+          "isPrimaryKey": false,
+          "isUnique": false,
+          "sortOrder": 40,
+          "permissions": {
+            "read": [
+              "*"
+            ],
+            "write": [
+              "admin",
+              "editor"
+            ]
+          },
+          "displayName": "For Account",
+          "placeholder": "Enter for account",
+          "defaultValue": "false"
+        }
       }
     ],
-    "commonProps": null
+    "commonProps": {
+      "fieldType": "boolean",
+      "component": "CheckboxInput",
+      "required": true,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "displayName": "For Account",
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      }
+    }
   },
   {
     "key": "award_id",
@@ -93352,7 +93365,7 @@
           "isSystem": false,
           "isPrimaryKey": false,
           "isUnique": false,
-          "sortOrder": 30,
+          "sortOrder": 20,
           "permissions": {
             "read": [
               "*"
@@ -93393,7 +93406,7 @@
           "isSystem": false,
           "isPrimaryKey": false,
           "isUnique": false,
-          "sortOrder": 40,
+          "sortOrder": 30,
           "permissions": {
             "read": [
               "*"
@@ -93434,7 +93447,7 @@
           "isSystem": false,
           "isPrimaryKey": false,
           "isUnique": false,
-          "sortOrder": 50,
+          "sortOrder": 40,
           "permissions": {
             "read": [
               "*"
@@ -93475,7 +93488,7 @@
           "isSystem": false,
           "isPrimaryKey": false,
           "isUnique": false,
-          "sortOrder": 60,
+          "sortOrder": 50,
           "permissions": {
             "read": [
               "*"
@@ -93513,7 +93526,7 @@
           "isSystem": false,
           "isPrimaryKey": false,
           "isUnique": false,
-          "sortOrder": 70,
+          "sortOrder": 60,
           "permissions": {
             "read": [
               "*"
@@ -93526,6 +93539,131 @@
           "displayName": "Welcome Stage Complete",
           "placeholder": "Enter welcome stage complete",
           "defaultValue": "false"
+        }
+      }
+    ],
+    "commonProps": null
+  },
+  {
+    "key": "user_id",
+    "name": "user_id",
+    "occurrences": 1,
+    "entities": [
+      "user_settings"
+    ],
+    "variations": [
+      {
+        "entity": "user_settings",
+        "category": "child",
+        "config": {
+          "id": "field_user_id",
+          "name": "user_id",
+          "fieldType": "uuid",
+          "component": "DropdownInput",
+          "required": false,
+          "isSystem": false,
+          "isPrimaryKey": false,
+          "isUnique": false,
+          "sortOrder": 70,
+          "permissions": {
+            "read": [
+              "*"
+            ],
+            "write": [
+              "admin",
+              "editor"
+            ]
+          },
+          "isForeignKey": true,
+          "referencedTable": "user_profile",
+          "referencedFieldID": "id",
+          "displayName": "User",
+          "placeholder": "Enter user",
+          "referencedFieldName": "display_name"
+        }
+      }
+    ],
+    "commonProps": null
+  },
+  {
+    "key": "language",
+    "name": "language",
+    "occurrences": 1,
+    "entities": [
+      "user_settings"
+    ],
+    "variations": [
+      {
+        "entity": "user_settings",
+        "category": "child",
+        "config": {
+          "id": "field_language",
+          "name": "language",
+          "fieldType": "string",
+          "component": "TextInput",
+          "required": true,
+          "isSystem": false,
+          "isPrimaryKey": false,
+          "isUnique": false,
+          "sortOrder": 80,
+          "permissions": {
+            "read": [
+              "*"
+            ],
+            "write": [
+              "admin",
+              "editor"
+            ]
+          },
+          "maxLength": 10,
+          "displayName": "Language",
+          "placeholder": "Enter language",
+          "validation": {
+            "maxLength": 10
+          },
+          "defaultValue": "en"
+        }
+      }
+    ],
+    "commonProps": null
+  },
+  {
+    "key": "theme",
+    "name": "theme",
+    "occurrences": 1,
+    "entities": [
+      "user_settings"
+    ],
+    "variations": [
+      {
+        "entity": "user_settings",
+        "category": "child",
+        "config": {
+          "id": "field_theme",
+          "name": "theme",
+          "fieldType": "string",
+          "component": "TextInput",
+          "required": true,
+          "isSystem": false,
+          "isPrimaryKey": false,
+          "isUnique": false,
+          "sortOrder": 90,
+          "permissions": {
+            "read": [
+              "*"
+            ],
+            "write": [
+              "admin",
+              "editor"
+            ]
+          },
+          "maxLength": 20,
+          "displayName": "Theme",
+          "placeholder": "Enter theme",
+          "validation": {
+            "maxLength": 20
+          },
+          "defaultValue": "system"
         }
       }
     ],

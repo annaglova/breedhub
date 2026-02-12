@@ -225,6 +225,48 @@
       "data": {
         "isUnique": true
       }
+    },
+    {
+      "id": "property_maxlength_10",
+      "type": "property",
+      "category": "system",
+      "tags": [
+        "field",
+        "string"
+      ],
+      "override_data": {
+        "maxLength": 10,
+        "validation": {
+          "maxLength": 10
+        }
+      },
+      "data": {
+        "maxLength": 10,
+        "validation": {
+          "maxLength": 10
+        }
+      }
+    },
+    {
+      "id": "property_maxlength_20",
+      "type": "property",
+      "category": "system",
+      "tags": [
+        "field",
+        "string"
+      ],
+      "override_data": {
+        "maxLength": 20,
+        "validation": {
+          "maxLength": 20
+        }
+      },
+      "data": {
+        "maxLength": 20,
+        "validation": {
+          "maxLength": 20
+        }
+      }
     }
   ],
   "baseFields": [
@@ -429,8 +471,8 @@
       "id": "field_contact_id",
       "type": "field",
       "name": "contact_id",
-      "frequency": 0.1434108527131783,
-      "occurrences": 37,
+      "frequency": 0.13953488372093023,
+      "occurrences": 36,
       "commonProps": {
         "fieldType": "uuid",
         "component": "LookupInput",
@@ -40993,6 +41035,42 @@
       ]
     },
     {
+      "id": "contact_role_field_for_account",
+      "type": "entity_field",
+      "deps": [
+        "property_required",
+        "property_not_system",
+        "property_not_primary_key",
+        "property_not_unique"
+      ],
+      "category": "contact_role",
+      "caption": "contact_role for_account field",
+      "self_data": {
+        "fieldType": "boolean",
+        "component": "CheckboxInput",
+        "required": true,
+        "isSystem": false,
+        "isPrimaryKey": false,
+        "isUnique": false,
+        "sortOrder": 40,
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "admin",
+            "editor"
+          ]
+        },
+        "displayName": "For Account",
+        "placeholder": "Enter for account",
+        "defaultValue": "false"
+      },
+      "tags": [
+        "dictionary"
+      ]
+    },
+    {
       "id": "contact_role_field_id",
       "type": "entity_field",
       "deps": [
@@ -41007,7 +41085,7 @@
         "isSystem": true,
         "isPrimaryKey": true,
         "isUnique": true,
-        "sortOrder": 40,
+        "sortOrder": 50,
         "permissions": {
           "read": [
             "*"
@@ -41037,7 +41115,7 @@
         "isSystem": true,
         "isPrimaryKey": false,
         "isUnique": false,
-        "sortOrder": 50,
+        "sortOrder": 60,
         "permissions": {
           "read": [
             "*"
@@ -41067,7 +41145,7 @@
         "isSystem": true,
         "isPrimaryKey": false,
         "isUnique": false,
-        "sortOrder": 60,
+        "sortOrder": 70,
         "permissions": {
           "read": [
             "*"
@@ -41097,7 +41175,7 @@
         "isSystem": true,
         "isPrimaryKey": false,
         "isUnique": false,
-        "sortOrder": 70,
+        "sortOrder": 80,
         "permissions": {
           "read": [
             "*"
@@ -41127,7 +41205,7 @@
         "isSystem": true,
         "isPrimaryKey": false,
         "isUnique": false,
-        "sortOrder": 80,
+        "sortOrder": 90,
         "permissions": {
           "read": [
             "*"
@@ -104081,44 +104159,6 @@
       ]
     },
     {
-      "id": "user_settings_field_contact_id",
-      "type": "entity_field",
-      "deps": [
-        "field_contact_id"
-      ],
-      "category": "user_settings",
-      "caption": "user_settings contact_id field",
-      "self_data": {
-        "fieldType": "uuid",
-        "component": "LookupInput",
-        "required": false,
-        "isSystem": false,
-        "isPrimaryKey": false,
-        "isUnique": false,
-        "sortOrder": 10,
-        "permissions": {
-          "read": [
-            "*"
-          ],
-          "write": [
-            "admin",
-            "editor"
-          ]
-        },
-        "isForeignKey": true,
-        "referencedTable": "contact",
-        "referencedFieldID": "id",
-        "dataSource": "collection",
-        "displayName": "Contact",
-        "placeholder": "Enter contact",
-        "referencedFieldName": "name"
-      },
-      "tags": [
-        "child",
-        "contact"
-      ]
-    },
-    {
       "id": "user_settings_field_breed_id",
       "type": "entity_field",
       "deps": [
@@ -104133,7 +104173,7 @@
         "isSystem": false,
         "isPrimaryKey": false,
         "isUnique": false,
-        "sortOrder": 20,
+        "sortOrder": 10,
         "permissions": {
           "read": [
             "*"
@@ -104153,7 +104193,7 @@
       },
       "tags": [
         "child",
-        "contact"
+        "breed"
       ]
     },
     {
@@ -104174,7 +104214,7 @@
         "isSystem": false,
         "isPrimaryKey": false,
         "isUnique": false,
-        "sortOrder": 30,
+        "sortOrder": 20,
         "permissions": {
           "read": [
             "*"
@@ -104193,7 +104233,7 @@
       },
       "tags": [
         "child",
-        "contact"
+        "breed"
       ]
     },
     {
@@ -104214,7 +104254,7 @@
         "isSystem": false,
         "isPrimaryKey": false,
         "isUnique": false,
-        "sortOrder": 40,
+        "sortOrder": 30,
         "permissions": {
           "read": [
             "*"
@@ -104233,7 +104273,7 @@
       },
       "tags": [
         "child",
-        "contact"
+        "breed"
       ]
     },
     {
@@ -104254,7 +104294,7 @@
         "isSystem": false,
         "isPrimaryKey": false,
         "isUnique": false,
-        "sortOrder": 50,
+        "sortOrder": 40,
         "permissions": {
           "read": [
             "*"
@@ -104273,7 +104313,7 @@
       },
       "tags": [
         "child",
-        "contact"
+        "breed"
       ]
     },
     {
@@ -104294,7 +104334,7 @@
         "isSystem": false,
         "isPrimaryKey": false,
         "isUnique": false,
-        "sortOrder": 60,
+        "sortOrder": 50,
         "permissions": {
           "read": [
             "*"
@@ -104310,7 +104350,7 @@
       },
       "tags": [
         "child",
-        "contact"
+        "breed"
       ]
     },
     {
@@ -104331,7 +104371,7 @@
         "isSystem": false,
         "isPrimaryKey": false,
         "isUnique": false,
-        "sortOrder": 70,
+        "sortOrder": 60,
         "permissions": {
           "read": [
             "*"
@@ -104347,7 +104387,131 @@
       },
       "tags": [
         "child",
-        "contact"
+        "breed"
+      ]
+    },
+    {
+      "id": "user_settings_field_user_id",
+      "type": "entity_field",
+      "deps": [
+        "property_not_required",
+        "property_not_system",
+        "property_not_primary_key",
+        "property_not_unique"
+      ],
+      "category": "user_settings",
+      "caption": "user_settings user_id field",
+      "self_data": {
+        "fieldType": "uuid",
+        "component": "DropdownInput",
+        "required": false,
+        "isSystem": false,
+        "isPrimaryKey": false,
+        "isUnique": false,
+        "sortOrder": 70,
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "admin",
+            "editor"
+          ]
+        },
+        "isForeignKey": true,
+        "referencedTable": "user_profile",
+        "referencedFieldID": "id",
+        "displayName": "User",
+        "placeholder": "Enter user",
+        "referencedFieldName": "display_name"
+      },
+      "tags": [
+        "child",
+        "breed"
+      ]
+    },
+    {
+      "id": "user_settings_field_language",
+      "type": "entity_field",
+      "deps": [
+        "property_required",
+        "property_not_system",
+        "property_not_primary_key",
+        "property_not_unique",
+        "property_maxlength_10"
+      ],
+      "category": "user_settings",
+      "caption": "user_settings language field",
+      "self_data": {
+        "fieldType": "string",
+        "component": "TextInput",
+        "required": true,
+        "isSystem": false,
+        "isPrimaryKey": false,
+        "isUnique": false,
+        "sortOrder": 80,
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "admin",
+            "editor"
+          ]
+        },
+        "maxLength": 10,
+        "displayName": "Language",
+        "placeholder": "Enter language",
+        "validation": {
+          "maxLength": 10
+        },
+        "defaultValue": "en"
+      },
+      "tags": [
+        "child",
+        "breed"
+      ]
+    },
+    {
+      "id": "user_settings_field_theme",
+      "type": "entity_field",
+      "deps": [
+        "property_required",
+        "property_not_system",
+        "property_not_primary_key",
+        "property_not_unique",
+        "property_maxlength_20"
+      ],
+      "category": "user_settings",
+      "caption": "user_settings theme field",
+      "self_data": {
+        "fieldType": "string",
+        "component": "TextInput",
+        "required": true,
+        "isSystem": false,
+        "isPrimaryKey": false,
+        "isUnique": false,
+        "sortOrder": 90,
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "admin",
+            "editor"
+          ]
+        },
+        "maxLength": 20,
+        "displayName": "Theme",
+        "placeholder": "Enter theme",
+        "validation": {
+          "maxLength": 20
+        },
+        "defaultValue": "system"
+      },
+      "tags": [
+        "child",
+        "breed"
       ]
     },
     {
@@ -104365,7 +104529,7 @@
         "isSystem": true,
         "isPrimaryKey": true,
         "isUnique": true,
-        "sortOrder": 80,
+        "sortOrder": 100,
         "permissions": {
           "read": [
             "*"
@@ -104378,7 +104542,7 @@
       },
       "tags": [
         "child",
-        "contact"
+        "breed"
       ]
     },
     {
@@ -104396,7 +104560,7 @@
         "isSystem": true,
         "isPrimaryKey": false,
         "isUnique": false,
-        "sortOrder": 90,
+        "sortOrder": 110,
         "permissions": {
           "read": [
             "*"
@@ -104409,7 +104573,7 @@
       },
       "tags": [
         "child",
-        "contact"
+        "breed"
       ]
     },
     {
@@ -104427,7 +104591,7 @@
         "isSystem": true,
         "isPrimaryKey": false,
         "isUnique": false,
-        "sortOrder": 100,
+        "sortOrder": 120,
         "permissions": {
           "read": [
             "*"
@@ -104440,7 +104604,7 @@
       },
       "tags": [
         "child",
-        "contact"
+        "breed"
       ]
     },
     {
@@ -104458,7 +104622,7 @@
         "isSystem": true,
         "isPrimaryKey": false,
         "isUnique": false,
-        "sortOrder": 110,
+        "sortOrder": 130,
         "permissions": {
           "read": [
             "*"
@@ -104471,7 +104635,7 @@
       },
       "tags": [
         "child",
-        "contact"
+        "breed"
       ]
     },
     {
@@ -104489,7 +104653,7 @@
         "isSystem": true,
         "isPrimaryKey": false,
         "isUnique": false,
-        "sortOrder": 120,
+        "sortOrder": 140,
         "permissions": {
           "read": [
             "*"
@@ -104502,7 +104666,7 @@
       },
       "tags": [
         "child",
-        "contact"
+        "breed"
       ]
     }
   ]
