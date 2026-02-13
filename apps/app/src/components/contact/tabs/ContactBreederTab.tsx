@@ -1,10 +1,12 @@
 import { PetCard, type Pet } from "@/components/shared/PetCard";
+import type { SexCode } from "@/components/shared/PetSexMark";
 import { useSelectedEntity } from "@/contexts/SpaceContext";
-import { spaceStore } from "@breedhub/rxdb-store";
+import { spaceStore, useTabData } from "@breedhub/rxdb-store";
+import type { DataSourceConfig } from "@breedhub/rxdb-store";
 import { useSignals } from "@preact/signals-react/runtime";
 import { cn } from "@ui/lib/utils";
 import { Calendar, Dog, Home } from "lucide-react";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
 
 /**
@@ -18,107 +20,19 @@ interface LinkEntity {
 }
 
 /**
- * Breeder career data
+ * Kennel with breeds and grouped offspring
  */
-interface BreederData {
-  kennel?: LinkEntity;
-  foundationYear?: number;
-  breeds?: LinkEntity[];
-  offspringPets?: Pet[];
+interface KennelGroup {
+  id: string;
+  accountId: string;
+  accountName: string;
+  accountSlug: string;
+  accountAvatarUrl: string;
+  since: string | null;
+  isPrimary: boolean;
+  breeds: LinkEntity[];
+  offspring: Pet[];
 }
-
-// Mock data for visual development
-const MOCK_DATA: BreederData = {
-  kennel: {
-    id: "kennel-1",
-    name: "Sunshine Kennel",
-    slug: "sunshine-kennel",
-  },
-  foundationYear: 2015,
-  breeds: [
-    { id: "breed-1", name: "German Shepherd", slug: "german-shepherd" },
-    { id: "breed-2", name: "Belgian Malinois", slug: "belgian-malinois" },
-    { id: "breed-3", name: "Dutch Shepherd", slug: "dutch-shepherd" },
-  ],
-  offspringPets: [
-    {
-      id: "offspring-1",
-      name: "Max vom Sunshine",
-      avatarUrl: "",
-      url: "/pet/max-vom-sunshine",
-      sex: "male",
-      countryOfBirth: "UA",
-      dateOfBirth: "2024-03-15",
-      father: {
-        id: "father-1",
-        name: "Champion Rex von Berlin",
-        url: "/pet/champion-rex-von-berlin",
-      },
-      mother: {
-        id: "mother-1",
-        name: "Luna vom Sunshine",
-        url: "/pet/luna-vom-sunshine",
-      },
-    },
-    {
-      id: "offspring-2",
-      name: "Bella vom Sunshine",
-      avatarUrl: "",
-      url: "/pet/bella-vom-sunshine",
-      sex: "female",
-      countryOfBirth: "UA",
-      dateOfBirth: "2024-03-15",
-      father: {
-        id: "father-1",
-        name: "Champion Rex von Berlin",
-        url: "/pet/champion-rex-von-berlin",
-      },
-      mother: {
-        id: "mother-1",
-        name: "Luna vom Sunshine",
-        url: "/pet/luna-vom-sunshine",
-      },
-    },
-    {
-      id: "offspring-3",
-      name: "Rocky vom Sunshine",
-      avatarUrl: "",
-      url: "/pet/rocky-vom-sunshine",
-      sex: "male",
-      countryOfBirth: "UA",
-      dateOfBirth: "2023-08-20",
-      father: {
-        id: "father-2",
-        name: "Bruno vom München",
-        url: "/pet/bruno-vom-munchen",
-      },
-      mother: {
-        id: "mother-2",
-        name: "Stella vom Sunshine",
-        url: "/pet/stella-vom-sunshine",
-      },
-    },
-    {
-      id: "offspring-4",
-      name: "Aria vom Sunshine",
-      avatarUrl: "",
-      url: "/pet/aria-vom-sunshine",
-      sex: "female",
-      countryOfBirth: "UA",
-      dateOfBirth: "2023-05-10",
-      father: {
-        id: "father-1",
-        name: "Champion Rex von Berlin",
-        url: "/pet/champion-rex-von-berlin",
-      },
-      mother: {
-        id: "mother-1",
-        name: "Luna vom Sunshine",
-        url: "/pet/luna-vom-sunshine",
-      },
-    },
-  ],
-};
 
 /**
  * EntityLink - Renders a link to an entity or plain text
@@ -229,81 +143,210 @@ function SectionHeader({ title }: { title: string }) {
 
 interface ContactBreederTabProps {
   onLoadedCount?: (count: number) => void;
+  dataSource?: DataSourceConfig[];
 }
 
 /**
  * ContactBreederTab - Contact's breeder career information
  *
- * Displays:
- * 1. Info - Kennel, Since (foundation year), Breeds
- * 2. Offsprings - Grid of pet cards
- *
- * Based on Angular: contact-breeder.component.ts
+ * Displays per kennel:
+ * 1. Info - Kennel name, Since, Breeds
+ * 2. Offspring - Grid of pet cards grouped by kennel
  */
-export function ContactBreederTab({ onLoadedCount }: ContactBreederTabProps) {
+export function ContactBreederTab({ onLoadedCount, dataSource }: ContactBreederTabProps) {
   useSignals();
 
   const selectedEntity = useSelectedEntity();
+  const contactId = selectedEntity?.id;
   const isFullscreen = spaceStore.isFullscreen.value;
 
-  // TODO: Load real data from entity when available
-  // For now always using mock data for visual development
-  const data: BreederData = MOCK_DATA;
+  // dataSource[0] → kennels
+  const {
+    data: kennelsRaw,
+    isLoading: kennelsLoading,
+  } = useTabData({
+    parentId: contactId,
+    dataSource: dataSource?.[0]!,
+    enabled: !!dataSource?.[0] && !!contactId,
+  });
 
-  const offspringPets = data.offspringPets || [];
+  // dataSource[1] → offspring
+  const {
+    data: offspringRaw,
+    isLoading: offspringLoading,
+  } = useTabData({
+    parentId: contactId,
+    dataSource: dataSource?.[1]!,
+    enabled: !!dataSource?.[1] && !!contactId,
+  });
 
-  // Report loaded count (offspring pets count)
+  // Group offspring by kennel
+  const kennelGroups = useMemo<KennelGroup[]>(() => {
+    if (!kennelsRaw?.length) return [];
+
+    // Build breed_id → account_id map from kennel breeds
+    const breedToAccount = new Map<string, string>();
+    for (const kennel of kennelsRaw) {
+      const breeds = kennel.breeds as Array<{ id: string; name: string; slug: string }> || [];
+      for (const breed of breeds) {
+        breedToAccount.set(breed.id, kennel.account_id);
+      }
+    }
+
+    // Group offspring by account_id
+    const offspringByAccount = new Map<string, Pet[]>();
+    const ungrouped: Pet[] = [];
+
+    for (const item of offspringRaw || []) {
+      const pet: Pet = {
+        id: item.pet_id,
+        name: item.pet_name,
+        url: item.pet_slug ? `/pets/${item.pet_slug}` : "",
+        avatarUrl: item.pet_avatar_url || "",
+        sex: item.sex_name?.toLowerCase() as SexCode,
+        dateOfBirth: item.date_of_birth,
+        breed: item.breed_name ? {
+          id: item.breed_id,
+          name: item.breed_name,
+          url: `/breeds/${item.breed_slug}`,
+        } : undefined,
+        father: item.father_name ? {
+          name: item.father_name,
+          url: item.father_slug ? `/pets/${item.father_slug}` : "",
+        } : undefined,
+        mother: item.mother_name ? {
+          name: item.mother_name,
+          url: item.mother_slug ? `/pets/${item.mother_slug}` : "",
+        } : undefined,
+      };
+
+      const accountId = item.breed_id ? breedToAccount.get(item.breed_id) : null;
+      if (accountId) {
+        if (!offspringByAccount.has(accountId)) offspringByAccount.set(accountId, []);
+        offspringByAccount.get(accountId)!.push(pet);
+      } else {
+        ungrouped.push(pet);
+      }
+    }
+
+    // Build kennel groups
+    const groups: KennelGroup[] = kennelsRaw.map((kennel: any) => ({
+      id: kennel.id,
+      accountId: kennel.account_id,
+      accountName: kennel.account_name,
+      accountSlug: kennel.account_slug,
+      accountAvatarUrl: kennel.account_avatar_url,
+      since: kennel.since,
+      isPrimary: kennel.is_primary,
+      breeds: (kennel.breeds as Array<{ id: string; name: string; slug: string }> || []).map(b => ({
+        id: b.id,
+        name: b.name,
+        slug: b.slug,
+      })),
+      offspring: offspringByAccount.get(kennel.account_id) || [],
+    }));
+
+    // Add "Other" group for ungrouped offspring
+    if (ungrouped.length > 0) {
+      groups.push({
+        id: "other",
+        accountId: "other",
+        accountName: "Other",
+        accountSlug: "",
+        accountAvatarUrl: "",
+        since: null,
+        isPrimary: false,
+        breeds: [],
+        offspring: ungrouped,
+      });
+    }
+
+    return groups;
+  }, [kennelsRaw, offspringRaw]);
+
+  // Total offspring count
+  const totalOffspring = useMemo(
+    () => kennelGroups.reduce((sum, g) => sum + g.offspring.length, 0),
+    [kennelGroups]
+  );
+
+  // Report loaded count
   useEffect(() => {
     if (onLoadedCount) {
-      onLoadedCount(offspringPets.length);
+      onLoadedCount(totalOffspring);
     }
-  }, [onLoadedCount, offspringPets.length]);
+  }, [onLoadedCount, totalOffspring]);
+
+  const isLoading = kennelsLoading || offspringLoading;
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center p-8">
+        <span className="text-muted-foreground">Loading...</span>
+      </div>
+    );
+  }
+
+  if (!kennelGroups.length) {
+    return (
+      <span className="text-secondary p-8 text-center block">
+        No breeder data
+      </span>
+    );
+  }
 
   const iconSize = 16;
 
   return (
     <div className="flex flex-col space-y-5 px-6 cursor-default">
-      {/* Info */}
-      <Fieldset legend="Info">
-        <div
-          className={cn(
-            "flex flex-col",
-            isFullscreen && "lg:flex-row lg:divide-x divide-border"
-          )}
-        >
-          <div className="grid grid-cols-[16px_50px_1fr] sm:grid-cols-[22px_60px_1fr] items-center gap-3 px-4 pb-2 flex-1">
-            <InfoRow icon={<Home size={iconSize} />} label="Kennel">
-              <EntityLink entity={data.kennel} entityRole="kennel" />
-            </InfoRow>
-            <InfoRow icon={<Calendar size={iconSize} />} label="Since">
-              <span>{data.foundationYear || "—"}</span>
-            </InfoRow>
-            <InfoRow icon={<Dog size={iconSize} />} label="Breeds">
-              <BreedLinks breeds={data.breeds} />
-            </InfoRow>
-          </div>
-        </div>
-      </Fieldset>
+      {kennelGroups.map((kennel) => (
+        <div key={kennel.id} className="flex flex-col space-y-4">
+          <Fieldset legend={kennel.accountName}>
+            <div className="grid grid-cols-[16px_50px_1fr] sm:grid-cols-[22px_60px_1fr] items-center gap-3 px-4 pb-2">
+              <InfoRow icon={<Home size={iconSize} />} label="Kennel">
+                <EntityLink
+                  entity={{
+                    name: kennel.accountName,
+                    slug: kennel.accountSlug || undefined,
+                  }}
+                  entityRole="kennel"
+                />
+              </InfoRow>
+              <InfoRow icon={<Calendar size={iconSize} />} label="Since">
+                <span>
+                  {kennel.since
+                    ? new Date(kennel.since).getFullYear()
+                    : "—"}
+                </span>
+              </InfoRow>
+              <InfoRow icon={<Dog size={iconSize} />} label="Breeds">
+                <BreedLinks breeds={kennel.breeds} />
+              </InfoRow>
+            </div>
+          </Fieldset>
 
-      {/* Offsprings */}
-      <SectionHeader title="Offsprings" />
+          <SectionHeader
+            title={`Offspring (${kennel.offspring.length})`}
+          />
 
-      {offspringPets.length > 0 ? (
-        <div
-          className={cn(
-            "grid gap-3 sm:grid-cols-2",
-            isFullscreen && "lg:grid-cols-3 xxl:grid-cols-4"
+          {kennel.offspring.length > 0 ? (
+            <div
+              className={cn(
+                "grid gap-3 sm:grid-cols-2",
+                isFullscreen && "lg:grid-cols-3 xxl:grid-cols-4"
+              )}
+            >
+              {kennel.offspring.map((pet) => (
+                <PetCard key={pet.id} pet={pet} mode="default" />
+              ))}
+            </div>
+          ) : (
+            <span className="text-secondary p-4 text-center block text-sm">
+              No offspring
+            </span>
           )}
-        >
-          {offspringPets.map((pet) => (
-            <PetCard key={pet.id} pet={pet} mode="default" />
-          ))}
         </div>
-      ) : (
-        <span className="text-secondary p-8 text-center block">
-          No offspring pets
-        </span>
-      )}
+      ))}
     </div>
   );
 }

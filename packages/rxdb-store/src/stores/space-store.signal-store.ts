@@ -4150,6 +4150,8 @@ class SpaceStore {
       'judge_in_program': 'program',
       'contact_communication': 'contact',
       'contact_language': 'contact',
+      'contact_breeder_kennel': 'contact',
+      'contact_breeder_offspring': 'contact',
     };
 
     // Try exact match first
