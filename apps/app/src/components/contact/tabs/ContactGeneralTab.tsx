@@ -5,6 +5,7 @@ import { useSignals } from "@preact/signals-react/runtime";
 import { cn } from "@ui/lib/utils";
 import {
   Building2,
+  ExternalLink,
   Facebook,
   Instagram,
   Languages,
@@ -67,23 +68,95 @@ function Fieldset({
 }
 
 /**
- * ListValue - Renders a list of values with bullets
+ * Extract display name from social URL
  */
-function ListValue({ values }: { values?: string[] }) {
-  if (!values || values.length === 0) {
-    return <span className="text-muted-foreground">—</span>;
+function extractSocialHandle(url: string, platform: "facebook" | "instagram"): string {
+  try {
+    const cleaned = url.replace(/\/+$/, "");
+    const parts = cleaned.split("/");
+    const handle = parts[parts.length - 1] || url;
+    return platform === "instagram" ? `@${handle}` : handle;
+  } catch {
+    return url;
   }
+}
 
+/**
+ * Ensure URL has protocol
+ */
+function ensureUrl(value: string): string {
+  if (/^https?:\/\//i.test(value)) return value;
+  return `https://${value}`;
+}
+
+/**
+ * BulletList - Renders items separated by bullets
+ */
+function BulletList({ children }: { children: React.ReactNode[] }) {
   return (
-    <div className="flex flex-wrap space-x-1">
-      <span>{values[0]}</span>
-      {values.slice(1).map((value, index) => (
-        <div key={index} className="flex space-x-1">
-          <span className="text-secondary">&bull;</span>
-          <span>{value}</span>
+    <div className="flex flex-wrap items-center gap-x-1">
+      {children.map((child, i) => (
+        <div key={i} className="flex items-center gap-x-1">
+          {i > 0 && <span className="text-secondary">&bull;</span>}
+          {child}
         </div>
       ))}
     </div>
+  );
+}
+
+/**
+ * PhoneList - Clickable tel: links
+ */
+function PhoneList({ values }: { values: string[] }) {
+  if (values.length === 0) return <span className="text-muted-foreground">—</span>;
+  return (
+    <BulletList>
+      {values.map((phone) => (
+        <a key={phone} href={`tel:${phone.replace(/[\s\-().]/g, "")}`} className="hover:text-primary transition-colors">
+          {phone}
+        </a>
+      ))}
+    </BulletList>
+  );
+}
+
+/**
+ * EmailList - Clickable mailto: links
+ */
+function EmailList({ values }: { values: string[] }) {
+  if (values.length === 0) return <span className="text-muted-foreground">—</span>;
+  return (
+    <BulletList>
+      {values.map((email) => (
+        <a key={email} href={`mailto:${email}`} className="hover:text-primary transition-colors">
+          {email}
+        </a>
+      ))}
+    </BulletList>
+  );
+}
+
+/**
+ * SocialList - Clickable external links with extracted handle
+ */
+function SocialList({ values, platform }: { values: string[]; platform: "facebook" | "instagram" }) {
+  if (values.length === 0) return <span className="text-muted-foreground">—</span>;
+  return (
+    <BulletList>
+      {values.map((url) => (
+        <a
+          key={url}
+          href={ensureUrl(url)}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-1 hover:text-primary transition-colors"
+        >
+          {extractSocialHandle(url, platform)}
+          <ExternalLink size={12} className="text-muted-foreground" />
+        </a>
+      ))}
+    </BulletList>
   );
 }
 
@@ -233,10 +306,10 @@ export function ContactGeneralTab({ onLoadedCount, dataSource }: ContactGeneralT
           {/* Phone, Email */}
           <div className="grid grid-cols-[16px_70px_1fr] sm:grid-cols-[22px_80px_1fr] items-center gap-3 px-4 pb-2 flex-1">
             <InfoRow icon={<Phone size={iconSize} />} label="Phone">
-              <ListValue values={phoneNumbers} />
+              <PhoneList values={phoneNumbers} />
             </InfoRow>
             <InfoRow icon={<Mail size={iconSize} />} label="Email">
-              <ListValue values={emails} />
+              <EmailList values={emails} />
             </InfoRow>
           </div>
         </div>
@@ -248,12 +321,12 @@ export function ContactGeneralTab({ onLoadedCount, dataSource }: ContactGeneralT
           <div className="grid grid-cols-[16px_70px_1fr] sm:grid-cols-[22px_80px_1fr] items-center gap-3 px-4 pb-2">
             {facebookLinks.length > 0 && (
               <InfoRow icon={<Facebook size={iconSize} />} label="Facebook">
-                <ListValue values={facebookLinks} />
+                <SocialList values={facebookLinks} platform="facebook" />
               </InfoRow>
             )}
             {instagramLinks.length > 0 && (
               <InfoRow icon={<Instagram size={iconSize} />} label="Instagram">
-                <ListValue values={instagramLinks} />
+                <SocialList values={instagramLinks} platform="instagram" />
               </InfoRow>
             )}
           </div>
