@@ -52,7 +52,8 @@ registerModules(eventTabModules);
 // Tab config from database
 interface TabConfig {
   isDefault?: boolean; // Fallback default tab (used if no preferDefault tabs are visible)
-  preferDefault?: boolean; // Preferred default if tab has data/is visible (checked first, by order)
+  preferDefault?: boolean; // Preferred default tab (highest priority for initial tab selection)
+  hideWhenEmpty?: boolean; // Hide tab when entity has no relevant data
   order: number;
   component: string;
   label?: string;

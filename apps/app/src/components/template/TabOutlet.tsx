@@ -8,7 +8,8 @@ import { useMemo } from "react";
  */
 interface TabConfig {
   isDefault?: boolean; // Fallback default tab
-  preferDefault?: boolean; // Preferred default if tab has data/is visible
+  preferDefault?: boolean; // Preferred default tab (highest priority for initial tab selection)
+  hideWhenEmpty?: boolean; // Hide tab when entity has no relevant data (e.g., no services, no breeder role)
   order: number;
   component: string;
   label?: string;
@@ -104,20 +105,18 @@ export function TabOutlet({
     return null;
   }
 
-  // Filter out tabs with preferDefault: true that have no data
-  // This allows tabs to be hidden when they're empty (e.g., services/offers tab)
+  // Filter out tabs with hideWhenEmpty: true that have no data
+  // This allows tabs to be hidden when entity lacks relevant data
   const visibleTabs = useMemo(() => {
     const filtered: Record<string, TabConfig> = {};
 
     for (const [tabId, tabConfig] of Object.entries(tabs)) {
-      // Tabs without preferDefault are always visible
-      if (!tabConfig.preferDefault) {
+      if (!tabConfig.hideWhenEmpty) {
         filtered[tabId] = tabConfig;
         continue;
       }
 
-      // For preferDefault tabs, check if they have data based on component
-      // Supported: PetServicesTab, LitterServicesTab (check entity.services JSONB)
+      // Check if tab has data based on component type
       let hasData = true;
 
       if (tabConfig.component === "PetServicesTab" || tabConfig.component === "LitterServicesTab") {
@@ -125,14 +124,18 @@ export function TabOutlet({
         hasData = !!(servicesJsonb && Object.keys(servicesJsonb).length > 0);
       }
 
-      // Only include tab if it has data
+      if (tabConfig.component === "ContactBreederTab") {
+        const contactRoles = entity?.contact_roles as Record<string, any> | undefined;
+        hasData = !!(contactRoles?.breeder);
+      }
+
       if (hasData) {
         filtered[tabId] = tabConfig;
       }
     }
 
     return filtered;
-  }, [tabs, entity?.services]);
+  }, [tabs, entity?.services, entity?.contact_roles]);
 
   // If all tabs were filtered out, don't render anything
   if (Object.keys(visibleTabs).length === 0) {
