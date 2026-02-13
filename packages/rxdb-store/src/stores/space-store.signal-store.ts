@@ -4119,21 +4119,8 @@ class SpaceStore {
     // e.g., 'pet_identifier_with_type' -> 'pet_identifier'
     const normalizedTable = tableType.replace(/_with_\w+$/, '');
 
-    // Check for "_in_breed", "_in_pet", "_in_kennel", "_in_litter" patterns
-    if (normalizedTable.includes('_in_breed') || normalizedTable.includes('_breed')) {
-      return 'breed';
-    }
-    if (normalizedTable.includes('_in_litter')) {
-      return 'litter';
-    }
-    if (normalizedTable.includes('_in_pet') || normalizedTable.includes('_pet')) {
-      return 'pet';
-    }
-    if (normalizedTable.includes('_in_kennel') || normalizedTable.includes('_kennel')) {
-      return 'kennel';
-    }
-
-    // For tables like 'litter', 'breed_division' etc., need explicit mapping
+    // Explicit mapping takes priority over pattern matching
+    // (e.g., 'contact_breeder_kennel' contains '_breed' but belongs to 'contact')
     const tableEntityMap: Record<string, string> = {
       'breed_division': 'breed',
       'breed_synonym': 'breed',
@@ -4164,6 +4151,20 @@ class SpaceStore {
       if (normalizedTable.startsWith(prefix)) {
         return entityType;
       }
+    }
+
+    // Fallback: pattern matching for "_in_breed", "_in_pet", etc.
+    if (normalizedTable.includes('_in_breed') || normalizedTable.includes('_breed')) {
+      return 'breed';
+    }
+    if (normalizedTable.includes('_in_litter')) {
+      return 'litter';
+    }
+    if (normalizedTable.includes('_in_pet') || normalizedTable.includes('_pet')) {
+      return 'pet';
+    }
+    if (normalizedTable.includes('_in_kennel') || normalizedTable.includes('_kennel')) {
+      return 'kennel';
     }
 
     return null;

@@ -280,7 +280,7 @@ class RouteStore {
         slug: route.slug,
         entity: route.entity,
         entity_id: route.entity_id,
-        entity_partition_id: route.entity_partition_id,
+        entity_partition_id: route.entity_partition_id || '',
         model: route.model,
         cachedAt: Date.now()
       });
