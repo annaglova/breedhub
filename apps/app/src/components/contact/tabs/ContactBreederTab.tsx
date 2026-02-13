@@ -162,7 +162,7 @@ export function ContactBreederTab({ onLoadedCount, dataSource }: ContactBreederT
 
   // dataSource[0] → kennels
   const {
-    data: kennelsRaw,
+    data: kennelsRawData,
     isLoading: kennelsLoading,
   } = useTabData({
     parentId: contactId,
@@ -172,13 +172,23 @@ export function ContactBreederTab({ onLoadedCount, dataSource }: ContactBreederT
 
   // dataSource[1] → offspring
   const {
-    data: offspringRaw,
+    data: offspringRawData,
     isLoading: offspringLoading,
   } = useTabData({
     parentId: contactId,
     dataSource: dataSource?.[1]!,
     enabled: !!dataSource?.[1] && !!contactId,
   });
+
+  // Flatten `additional` fields to top level (RxDB child records wrap VIEW fields in additional)
+  const kennelsRaw = useMemo(
+    () => (kennelsRawData || []).map((r: any) => ({ ...r, ...r.additional })),
+    [kennelsRawData]
+  );
+  const offspringRaw = useMemo(
+    () => (offspringRawData || []).map((r: any) => ({ ...r, ...r.additional })),
+    [offspringRawData]
+  );
 
   // Group offspring by kennel
   const kennelGroups = useMemo<KennelGroup[]>(() => {

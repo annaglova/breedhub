@@ -129,6 +129,11 @@ export function TabOutlet({
         hasData = !!(contactRoles?.breeder);
       }
 
+      if (tabConfig.component === "ContactJudgeTab") {
+        const contactRoles = entity?.contact_roles as Record<string, any> | undefined;
+        hasData = !!(contactRoles?.judge);
+      }
+
       if (hasData) {
         filtered[tabId] = tabConfig;
       }
