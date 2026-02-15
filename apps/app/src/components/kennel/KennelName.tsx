@@ -23,16 +23,9 @@ function formatYear(dateString?: string): string {
   }
 }
 
-// Mock data for development
-const MOCK_KENNEL = {
-  name: "Haus Wunderbar German Shepherds",
-  slug: "haus-wunderbar",
-  country: { name: "Germany", code: "DE" },
-  owner: { name: "Klaus Bergmann", slug: "klaus-bergmann" },
-  federation: { alternativeName: "VDH / FCI" },
-  companyFoundationDate: "1998-03-20",
-  verification_status_id: "verified",
-  hasNotes: true,
+// Fallback for when entity hasn't loaded yet
+const EMPTY_KENNEL = {
+  name: "",
 };
 
 /**
@@ -47,10 +40,8 @@ export function KennelName({
   onNotesClick,
   linkToFullscreen = true,
 }: KennelNameProps) {
-  // Use entity data or mock for development
-  // Check if entity has actual data (not just empty object)
   const hasEntityData = entity && entity.name;
-  const kennel = hasEntityData ? entity : MOCK_KENNEL;
+  const kennel = hasEntityData ? entity : EMPTY_KENNEL;
 
   // Extract data from entity
   const displayName = kennel?.name || "Unknown Kennel";
