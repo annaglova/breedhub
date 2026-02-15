@@ -4060,8 +4060,11 @@ class SpaceStore {
         }
       };
 
-      // Only add limit if sorting by schema field (otherwise we fetch all for JS sorting)
-      if (isSchemaField && limit > 0) {
+      // Add limit to RxDB query when safe:
+      // - No sorting needed (no orderBy) → safe to limit in query
+      // - Sorting by schema field → RxDB handles sort + limit
+      // - Sorting by additional field → need all records for JS sort, limit applied after
+      if (limit > 0 && (!orderBy || isSchemaField)) {
         queryOptions.limit = limit;
       }
 

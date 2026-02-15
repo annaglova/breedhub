@@ -1,12 +1,16 @@
 import { PetCard, type Pet } from "@/components/shared/PetCard";
 import type { SexCode } from "@/components/shared/PetSexMark";
 import { useSelectedEntity } from "@/contexts/SpaceContext";
-import { spaceStore, useTabData } from "@breedhub/rxdb-store";
+import {
+  spaceStore,
+  useInfiniteTabData,
+  useTabData,
+} from "@breedhub/rxdb-store";
 import type { DataSourceConfig } from "@breedhub/rxdb-store";
 import { useSignals } from "@preact/signals-react/runtime";
 import { cn } from "@ui/lib/utils";
-import { Calendar, Dog, Home } from "lucide-react";
-import { useEffect, useMemo } from "react";
+import { Calendar, Dog, Home, Loader2 } from "lucide-react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import { Link } from "react-router-dom";
 
 /**
@@ -160,7 +164,7 @@ export function ContactBreederTab({ onLoadedCount, dataSource }: ContactBreederT
   const contactId = selectedEntity?.id;
   const isFullscreen = spaceStore.isFullscreen.value;
 
-  // dataSource[0] → kennels
+  // dataSource[0] → kennels (always load all — small dataset)
   const {
     data: kennelsRawData,
     isLoading: kennelsLoading,
@@ -171,14 +175,23 @@ export function ContactBreederTab({ onLoadedCount, dataSource }: ContactBreederT
   });
 
   // dataSource[1] → offspring
-  const {
-    data: offspringRawData,
-    isLoading: offspringLoading,
-  } = useTabData({
+  // Drawer: load limited set at once
+  const drawerOffspring = useTabData({
     parentId: contactId,
     dataSource: dataSource?.[1]!,
-    enabled: !!dataSource?.[1] && !!contactId,
+    enabled: !!dataSource?.[1] && !!contactId && !isFullscreen,
   });
+
+  // Fullscreen: infinite scroll with pagination
+  const infiniteOffspring = useInfiniteTabData({
+    parentId: contactId,
+    dataSource: dataSource?.[1]!,
+    enabled: !!dataSource?.[1] && !!contactId && isFullscreen,
+    pageSize: 30,
+  });
+
+  const offspringRawData = isFullscreen ? infiniteOffspring.data : drawerOffspring.data;
+  const offspringLoading = isFullscreen ? infiniteOffspring.isLoading : drawerOffspring.isLoading;
 
   // Flatten `additional` fields to top level (RxDB child records wrap VIEW fields in additional)
   const kennelsRaw = useMemo(
@@ -280,12 +293,39 @@ export function ContactBreederTab({ onLoadedCount, dataSource }: ContactBreederT
     [kennelGroups]
   );
 
+  // Infinite scroll refs and handlers
+  const loadMoreRef = useRef<HTMLDivElement>(null);
+  const { hasMore, isLoadingMore, loadMore } = infiniteOffspring;
+
+  const handleLoadMore = useCallback(() => {
+    if (isFullscreen && hasMore && !isLoadingMore) {
+      loadMore();
+    }
+  }, [isFullscreen, hasMore, isLoadingMore, loadMore]);
+
   // Report loaded count
   useEffect(() => {
     if (onLoadedCount) {
       onLoadedCount(totalOffspring);
     }
   }, [onLoadedCount, totalOffspring]);
+
+  // IntersectionObserver for infinite scroll in fullscreen
+  useEffect(() => {
+    if (!isFullscreen || !loadMoreRef.current) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) {
+          handleLoadMore();
+        }
+      },
+      { threshold: 0.1, rootMargin: "100px" }
+    );
+
+    observer.observe(loadMoreRef.current);
+    return () => observer.disconnect();
+  }, [isFullscreen, handleLoadMore, hasMore, isLoadingMore, totalOffspring]);
 
   const isLoading = kennelsLoading || offspringLoading;
 
@@ -335,9 +375,7 @@ export function ContactBreederTab({ onLoadedCount, dataSource }: ContactBreederT
             </div>
           </Fieldset>
 
-          <SectionHeader
-            title={`Offspring (${kennel.offspring.length})`}
-          />
+          <SectionHeader title="Offspring" />
 
           {kennel.offspring.length > 0 ? (
             <div
@@ -357,6 +395,23 @@ export function ContactBreederTab({ onLoadedCount, dataSource }: ContactBreederT
           )}
         </div>
       ))}
+
+      {/* Infinite scroll trigger & loading indicator */}
+      {isFullscreen && (
+        <div ref={loadMoreRef} className="py-4 flex justify-center">
+          {isLoadingMore && (
+            <div className="flex items-center gap-2 text-secondary">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              <span>Loading more...</span>
+            </div>
+          )}
+          {!hasMore && totalOffspring > 0 && (
+            <span className="text-muted-foreground text-sm">
+              All {totalOffspring} offspring loaded
+            </span>
+          )}
+        </div>
+      )}
     </div>
   );
 }
