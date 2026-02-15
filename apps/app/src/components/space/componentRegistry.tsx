@@ -1,6 +1,9 @@
 import React from 'react';
 import { OverviewTab } from './tabs';
 import { ContactGeneralTab } from '../contact/tabs/ContactGeneralTab';
+import { KennelGeneralTab } from '../kennel/tabs/KennelGeneralTab';
+import { KennelPetsTab } from '../kennel/tabs/KennelPetsTab';
+import { KennelOffspringsTab } from '../kennel/tabs/KennelOffspringsTab';
 
 // Component registry for dynamic component loading
 const componentRegistry = new Map<string, React.ComponentType<any>>();
@@ -12,6 +15,9 @@ export function registerComponent(name: string, component: React.ComponentType<a
 // Register default tab components
 registerComponent('OverviewTab', OverviewTab);
 registerComponent('ContactGeneralTab', ContactGeneralTab);
+registerComponent('KennelGeneralTab', KennelGeneralTab);
+registerComponent('KennelPetsTab', KennelPetsTab);
+registerComponent('KennelOffspringsTab', KennelOffspringsTab);
 
 export function getComponent(name: string): React.ComponentType<any> | undefined {
   return componentRegistry.get(name);

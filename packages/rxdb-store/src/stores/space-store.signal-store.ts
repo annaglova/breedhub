@@ -10,6 +10,7 @@ import { petChildrenSchema, petChildrenMigrationStrategies, PetChildrenDocument 
 import { litterChildrenSchema, litterChildrenMigrationStrategies } from '../collections/litter-children.schema';
 import { programChildrenSchema, programChildrenMigrationStrategies } from '../collections/program-children.schema';
 import { contactChildrenSchema, contactChildrenMigrationStrategies } from '../collections/contact-children.schema';
+import { accountChildrenSchema, accountChildrenMigrationStrategies } from '../collections/account-children.schema';
 import { supabase } from '../supabase/client';
 
 // Helpers
@@ -3854,9 +3855,8 @@ class SpaceStore {
         return programChildrenSchema;
       case 'contact':
         return contactChildrenSchema;
-      // TODO: Add kennel_children schema when needed
-      // case 'kennel':
-      //   return kennelChildrenSchema;
+      case 'account':
+        return accountChildrenSchema;
       default:
         console.warn(`[SpaceStore] No child schema defined for entity type: ${entityType}`);
         return null;
@@ -3878,7 +3878,8 @@ class SpaceStore {
         return programChildrenMigrationStrategies;
       case 'contact':
         return contactChildrenMigrationStrategies;
-      // TODO: Add migration strategies for other entities
+      case 'account':
+        return accountChildrenMigrationStrategies;
       default:
         return {};
     }
@@ -3895,7 +3896,7 @@ class SpaceStore {
   async loadChildRecords(
     parentId: string,
     tableType: string,
-    options: { limit?: number; orderBy?: string; orderDirection?: 'asc' | 'desc' } = {}
+    options: { limit?: number; orderBy?: string; orderDirection?: 'asc' | 'desc'; parentField?: string } = {}
   ): Promise<any[]> {
     if (!parentId || !tableType) {
       console.warn('[SpaceStore] loadChildRecords: parentId and tableType are required');
@@ -3924,10 +3925,11 @@ class SpaceStore {
     // Load from Supabase
     try {
       const { supabase } = await import('../supabase/client');
-      const { limit = 50, orderBy, orderDirection = 'asc' } = options;
+      const { limit = 50, orderBy, orderDirection = 'asc', parentField } = options;
 
       // Determine the parent ID field name (e.g., 'breed_id' for breed children)
-      const parentIdField = `${entityType}_id`;
+      // Use explicit parentField from config when provided (e.g., 'owner_kennel_id' for kennel views)
+      const parentIdField = parentField || `${entityType}_id`;
 
       // Check for partition config in entity schema
       const entitySchema = this.entitySchemas.get(entityType);
@@ -4164,6 +4166,9 @@ class SpaceStore {
       'contact_language': 'contact',
       'contact_breeder_kennel': 'contact',
       'contact_breeder_offspring': 'contact',
+      'account_communication': 'account',
+      'kennel_pet': 'account',
+      'kennel_offspring': 'account',
     };
 
     // Try exact match first

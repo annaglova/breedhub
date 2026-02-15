@@ -136,6 +136,7 @@ class TabDataService {
       limit: config.limit,
       orderBy: config.orderBy?.[0]?.field,
       orderDirection: config.orderBy?.[0]?.direction,
+      parentField: config.parentField,
     });
   }
 
@@ -293,7 +294,7 @@ class TabDataService {
     const childRecords = await spaceStore.loadChildRecords(
       parentId,
       childConfig.table,
-      { limit: childConfig.limit || 100 }
+      { limit: childConfig.limit || 100, parentField: childConfig.parentField }
     );
 
     // 2. Load dictionary via DictionaryStore (Local-First with ID-First)

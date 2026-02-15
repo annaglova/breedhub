@@ -1,171 +1,172 @@
 import { PetCard, type Pet } from "@/components/shared/PetCard";
+import type { SexCode } from "@/components/shared/PetSexMark";
 import { useSelectedEntity } from "@/contexts/SpaceContext";
-import { spaceStore } from "@breedhub/rxdb-store";
+import {
+  spaceStore,
+  useInfiniteTabData,
+  useTabData,
+} from "@breedhub/rxdb-store";
+import type { DataSourceConfig } from "@breedhub/rxdb-store";
 import { useSignals } from "@preact/signals-react/runtime";
-import { useEffect } from "react";
+import { cn } from "@ui/lib/utils";
+import { Loader2 } from "lucide-react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 
-/**
- * Mock kennel pets data for development
- */
-const MOCK_KENNEL_PETS: Pet[] = [
-  {
-    id: "kennel-pet-1",
-    name: "Champion Rex von Wunderbar",
-    avatarUrl: "",
-    url: "/pet/champion-rex-von-wunderbar",
-    sex: "male",
-    countryOfBirth: "DE",
-    dateOfBirth: "2020-03-15",
-    breed: {
-      id: "breed-1",
-      name: "German Shepherd",
-      url: "/breed/german-shepherd",
-    },
-    status: "Active producer",
-    father: {
-      id: "father-1",
-      name: "Grand Champion Kaiser",
-      url: "/pet/grand-champion-kaiser",
-    },
-    mother: {
-      id: "mother-1",
-      name: "Schöne Bella",
-      url: "/pet/schone-bella",
-    },
-  },
-  {
-    id: "kennel-pet-2",
-    name: "Bella vom Wunderbar",
-    avatarUrl: "",
-    url: "/pet/bella-vom-wunderbar",
-    sex: "female",
-    countryOfBirth: "DE",
-    dateOfBirth: "2021-06-20",
-    breed: {
-      id: "breed-1",
-      name: "German Shepherd",
-      url: "/breed/german-shepherd",
-    },
-    status: "Active producer",
-    father: {
-      id: "father-2",
-      name: "Sieger Max",
-      url: "/pet/sieger-max",
-    },
-    mother: {
-      id: "mother-2",
-      name: "Luna aus München",
-      url: "/pet/luna-aus-munchen",
-    },
-  },
-  {
-    id: "kennel-pet-3",
-    name: "Bruno vom Wunderbar",
-    avatarUrl: "",
-    url: "/pet/bruno-vom-wunderbar",
-    sex: "male",
-    countryOfBirth: "DE",
-    dateOfBirth: "2022-01-10",
-    breed: {
-      id: "breed-1",
-      name: "German Shepherd",
-      url: "/breed/german-shepherd",
-    },
-    status: "Show dog",
-    father: {
-      id: "father-1",
-      name: "Grand Champion Kaiser",
-      url: "/pet/grand-champion-kaiser",
-    },
-    mother: {
-      id: "mother-3",
-      name: "Heidi vom Schwarzwald",
-      url: "/pet/heidi-vom-schwarzwald",
-    },
-  },
-  {
-    id: "kennel-pet-4",
-    name: "Greta vom Wunderbar",
-    avatarUrl: "",
-    url: "/pet/greta-vom-wunderbar",
-    sex: "female",
-    countryOfBirth: "DE",
-    dateOfBirth: "2023-04-05",
-    breed: {
-      id: "breed-1",
-      name: "German Shepherd",
-      url: "/breed/german-shepherd",
-    },
-    status: "Young promising",
-    father: {
-      id: "father-1",
-      name: "Grand Champion Kaiser",
-      url: "/pet/grand-champion-kaiser",
-    },
-    mother: {
-      id: "mother-1",
-      name: "Schöne Bella",
-      url: "/pet/schone-bella",
-    },
-  },
-];
+function mapToPet(item: any): Pet {
+  return {
+    id: item.pet_id,
+    name: item.pet_name,
+    url: item.pet_slug ? `/pets/${item.pet_slug}` : "",
+    avatarUrl: item.pet_avatar_url || "",
+    sex: item.sex_name?.toLowerCase() as SexCode,
+    dateOfBirth: item.date_of_birth,
+    countryOfBirth: item.country_of_birth_name,
+    breed: item.breed_name
+      ? {
+          id: item.breed_id,
+          name: item.breed_name,
+          url: `/breeds/${item.breed_slug}`,
+        }
+      : undefined,
+    father: item.father_name
+      ? {
+          id: item.father_id,
+          name: item.father_name,
+          url: item.father_slug ? `/pets/${item.father_slug}` : "",
+        }
+      : undefined,
+    mother: item.mother_name
+      ? {
+          id: item.mother_id,
+          name: item.mother_name,
+          url: item.mother_slug ? `/pets/${item.mother_slug}` : "",
+        }
+      : undefined,
+  };
+}
 
 interface KennelPetsTabProps {
   onLoadedCount?: (count: number) => void;
   mode?: "scroll" | "fullscreen";
+  dataSource?: DataSourceConfig[];
 }
 
 /**
  * KennelPetsTab - Kennel's own pets
  *
- * Displays the kennel's pets in a grid format using PetCard.
- * Shows all pets registered under this kennel.
- *
- * Based on Angular: kennel-pets.component.ts
+ * Data source: dataSource[0] → kennel_pet_with_details (owner_kennel_id → account)
  */
 export function KennelPetsTab({
   onLoadedCount,
   mode,
+  dataSource,
 }: KennelPetsTabProps) {
   useSignals();
 
   const selectedEntity = useSelectedEntity();
+  const accountId = selectedEntity?.id;
   const isFullscreen = spaceStore.isFullscreen.value || mode === "fullscreen";
 
-  // Check if entity has actual data
-  const hasEntityData = selectedEntity && selectedEntity.name;
+  // Drawer: load limited set
+  const drawerData = useTabData({
+    parentId: accountId,
+    dataSource: dataSource?.[0]!,
+    enabled: !!dataSource?.[0] && !!accountId && !isFullscreen,
+  });
 
-  // Get kennel pets from entity or use mock data
-  const kennelPets: Pet[] = hasEntityData
-    ? selectedEntity?.kennel_pets || selectedEntity?.KennelPets || []
-    : MOCK_KENNEL_PETS;
+  // Fullscreen: infinite scroll
+  const infiniteData = useInfiniteTabData({
+    parentId: accountId,
+    dataSource: dataSource?.[0]!,
+    enabled: !!dataSource?.[0] && !!accountId && isFullscreen,
+    pageSize: 30,
+  });
 
-  // Report loaded count to parent (in useEffect to avoid setState during render)
+  const rawData = isFullscreen ? infiniteData.data : drawerData.data;
+  const isLoading = isFullscreen ? infiniteData.isLoading : drawerData.isLoading;
+
+  const pets = useMemo<Pet[]>(
+    () =>
+      (rawData || []).map((r: any) => mapToPet({ ...r, ...r.additional })),
+    [rawData]
+  );
+
+  // Report loaded count
   useEffect(() => {
     if (onLoadedCount) {
-      onLoadedCount(kennelPets.length);
+      onLoadedCount(pets.length);
     }
-  }, [onLoadedCount, kennelPets.length]);
+  }, [onLoadedCount, pets.length]);
 
-  // Check if we have pets
-  const hasPets = kennelPets && kennelPets.length > 0;
+  // Infinite scroll
+  const loadMoreRef = useRef<HTMLDivElement>(null);
+  const { hasMore, isLoadingMore, loadMore } = infiniteData;
+
+  const handleLoadMore = useCallback(() => {
+    if (isFullscreen && hasMore && !isLoadingMore) {
+      loadMore();
+    }
+  }, [isFullscreen, hasMore, isLoadingMore, loadMore]);
+
+  useEffect(() => {
+    if (!isFullscreen || !loadMoreRef.current) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) {
+          handleLoadMore();
+        }
+      },
+      { threshold: 0.1, rootMargin: "100px" }
+    );
+
+    observer.observe(loadMoreRef.current);
+    return () => observer.disconnect();
+  }, [isFullscreen, handleLoadMore, hasMore, isLoadingMore, pets.length]);
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center p-8">
+        <span className="text-muted-foreground">Loading...</span>
+      </div>
+    );
+  }
+
+  if (pets.length === 0) {
+    return (
+      <span className="text-secondary p-8 text-center block">
+        No pets in kennel
+      </span>
+    );
+  }
 
   return (
     <div className="mt-3">
-      {hasPets ? (
-        <div
-          className={`grid gap-3 sm:grid-cols-2 ${
-            isFullscreen ? "lg:grid-cols-3 xxl:grid-cols-4" : ""
-          }`}
-        >
-          {kennelPets.map((pet) => (
-            <PetCard key={pet.id} pet={pet} mode="default" />
-          ))}
+      <div
+        className={cn(
+          "grid gap-3 sm:grid-cols-2",
+          isFullscreen && "lg:grid-cols-3 xxl:grid-cols-4"
+        )}
+      >
+        {pets.map((pet) => (
+          <PetCard key={pet.id} pet={pet} mode="default" />
+        ))}
+      </div>
+
+      {isFullscreen && (
+        <div ref={loadMoreRef} className="py-4 flex justify-center">
+          {isLoadingMore && (
+            <div className="flex items-center gap-2 text-secondary">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              <span>Loading more...</span>
+            </div>
+          )}
+          {!hasMore && pets.length > 0 && (
+            <span className="text-muted-foreground text-sm">
+              All {pets.length} pets loaded
+            </span>
+          )}
         </div>
-      ) : (
-        <span className="text-secondary p-8 text-center block">
-          No pets in kennel
-        </span>
       )}
     </div>
   );

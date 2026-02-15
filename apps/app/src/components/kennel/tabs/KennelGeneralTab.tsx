@@ -1,9 +1,11 @@
 import { useSelectedEntity } from "@/contexts/SpaceContext";
-import { spaceStore } from "@breedhub/rxdb-store";
+import { dictionaryStore, spaceStore, useTabData } from "@breedhub/rxdb-store";
+import type { DataSourceConfig } from "@breedhub/rxdb-store";
 import { useSignals } from "@preact/signals-react/runtime";
 import { cn } from "@ui/lib/utils";
 import {
   Building2,
+  ExternalLink,
   Facebook,
   Globe,
   Instagram,
@@ -12,74 +14,17 @@ import {
   Phone,
   User,
 } from "lucide-react";
-import { useEffect } from "react";
-import { Link } from "react-router-dom";
+import { useEffect, useMemo, useState } from "react";
 
 /**
- * Link entity (Owner, etc.)
+ * Classify communication record by its `number` field
  */
-interface LinkEntity {
-  id?: string;
-  name: string;
-  url?: string;
-  slug?: string;
-}
-
-/**
- * Dictionary value (Country, City, Federation, etc.)
- */
-interface DictionaryValue {
-  id?: string;
-  name: string;
-}
-
-/**
- * Kennel general data
- */
-interface KennelGeneralData {
-  owner?: LinkEntity;
-  federation?: DictionaryValue;
-  country?: DictionaryValue;
-  city?: DictionaryValue;
-  phoneNumbers?: string[];
-  emails?: string[];
-  facebookLinks?: string[];
-  instagramLinks?: string[];
-}
-
-// Mock data for visual development
-const MOCK_DATA: KennelGeneralData = {
-  owner: {
-    id: "1",
-    name: "Klaus Bergmann",
-    slug: "klaus-bergmann",
-  },
-  federation: { id: "fci", name: "VDH / FCI" },
-  country: { id: "de", name: "Germany" },
-  city: { id: "berlin", name: "Berlin" },
-  phoneNumbers: ["+49 123 456 7890", "+49 987 654 3210"],
-  emails: ["info@haus-wunderbar.de", "breeding@haus-wunderbar.de"],
-  facebookLinks: ["facebook.com/hauswunderbar"],
-  instagramLinks: ["@hauswunderbar_gsd"],
-};
-
-/**
- * EntityLink - Renders a link to an entity or plain text
- */
-function EntityLink({ entity }: { entity?: LinkEntity }) {
-  if (!entity) return <span className="text-muted-foreground">—</span>;
-
-  const url = entity.slug ? `/${entity.slug}` : entity.url;
-
-  if (url) {
-    return (
-      <Link to={url} className="text-primary hover:underline">
-        {entity.name}
-      </Link>
-    );
-  }
-
-  return <span>{entity.name}</span>;
+function classifyCommunication(value: string): "email" | "phone" | "facebook" | "instagram" | null {
+  if (/@.+\./.test(value)) return "email";
+  if (/^\+?\d[\d\s\-().]{5,}$/.test(value)) return "phone";
+  if (/facebook\.com/i.test(value)) return "facebook";
+  if (/instagram\.com/i.test(value)) return "instagram";
+  return null;
 }
 
 /**
@@ -124,63 +69,179 @@ function Fieldset({
 }
 
 /**
- * ListValue - Renders a list of values with bullets
+ * Extract display name from social URL
  */
-function ListValue({ values }: { values?: string[] }) {
-  if (!values || values.length === 0) {
-    return <span className="text-muted-foreground">—</span>;
+function extractSocialHandle(url: string, platform: "facebook" | "instagram"): string {
+  try {
+    const cleaned = url.replace(/\/+$/, "");
+    const parts = cleaned.split("/");
+    const handle = parts[parts.length - 1] || url;
+    return platform === "instagram" ? `@${handle}` : handle;
+  } catch {
+    return url;
   }
+}
 
+/**
+ * Ensure URL has protocol
+ */
+function ensureUrl(value: string): string {
+  if (/^https?:\/\//i.test(value)) return value;
+  return `https://${value}`;
+}
+
+/**
+ * BulletList - Renders items separated by bullets
+ */
+function BulletList({ children }: { children: React.ReactNode[] }) {
   return (
-    <div className="flex flex-wrap space-x-1">
-      <span>{values[0]}</span>
-      {values.slice(1).map((value, index) => (
-        <div key={index} className="flex space-x-1">
-          <span className="text-secondary">&bull;</span>
-          <span>{value}</span>
+    <div className="flex flex-wrap items-center gap-x-1">
+      {children.map((child, i) => (
+        <div key={i} className="flex items-center gap-x-1">
+          {i > 0 && <span className="text-secondary">&bull;</span>}
+          {child}
         </div>
       ))}
     </div>
   );
 }
 
+/**
+ * PhoneList - Clickable tel: links
+ */
+function PhoneList({ values }: { values: string[] }) {
+  if (values.length === 0) return <span className="text-muted-foreground">—</span>;
+  return (
+    <BulletList>
+      {values.map((phone) => (
+        <a key={phone} href={`tel:${phone.replace(/[\s\-().]/g, "")}`} className="hover:text-primary transition-colors">
+          {phone}
+        </a>
+      ))}
+    </BulletList>
+  );
+}
+
+/**
+ * EmailList - Clickable mailto: links
+ */
+function EmailList({ values }: { values: string[] }) {
+  if (values.length === 0) return <span className="text-muted-foreground">—</span>;
+  return (
+    <BulletList>
+      {values.map((email) => (
+        <a key={email} href={`mailto:${email}`} className="hover:text-primary transition-colors">
+          {email}
+        </a>
+      ))}
+    </BulletList>
+  );
+}
+
+/**
+ * SocialList - Clickable external links with extracted handle
+ */
+function SocialList({ values, platform }: { values: string[]; platform: "facebook" | "instagram" }) {
+  if (values.length === 0) return <span className="text-muted-foreground">—</span>;
+  return (
+    <BulletList>
+      {values.map((url) => (
+        <a
+          key={url}
+          href={ensureUrl(url)}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-1 hover:text-primary transition-colors"
+        >
+          {extractSocialHandle(url, platform)}
+          <ExternalLink size={12} className="text-muted-foreground" />
+        </a>
+      ))}
+    </BulletList>
+  );
+}
+
 interface KennelGeneralTabProps {
   onLoadedCount?: (count: number) => void;
+  dataSource?: DataSourceConfig[];
 }
 
 /**
  * KennelGeneralTab - Kennel general information
  *
- * Displays:
- * 1. Info - Owner, Federation, Country, City
- * 2. Contact - Phone, Email
- * 3. Social network - Facebook, Instagram
+ * Data sources:
+ * 1. Country, City — from selectedEntity.country_id / city_id via dictionaryStore
+ * 2. Owner — from selectedEntity.owner_name (denormalized)
+ * 3. Federation — from selectedEntity.federation_name (denormalized)
+ * 4. Phone, Email, Social — dataSource[0] → account_communication, classified by regex
  *
  * Based on Angular: kennel-info.component.ts
  */
-export function KennelGeneralTab({ onLoadedCount }: KennelGeneralTabProps) {
+export function KennelGeneralTab({ onLoadedCount, dataSource }: KennelGeneralTabProps) {
   useSignals();
 
   const selectedEntity = useSelectedEntity();
+  const accountId = selectedEntity?.id;
   const isFullscreen = spaceStore.isFullscreen.value;
 
-  // Check if entity has actual data
-  const hasEntityData = selectedEntity && selectedEntity.name;
+  // 1. Country and City from dictionary
+  const [countryName, setCountryName] = useState<string | null>(null);
+  const [cityName, setCityName] = useState<string | null>(null);
 
-  // TODO: Load real data from entity
-  // For now using mock data when no entity data
-  const data: KennelGeneralData = hasEntityData
-    ? {
-        owner: selectedEntity.owner,
-        federation: selectedEntity.federation,
-        country: selectedEntity.country,
-        city: selectedEntity.city,
-        phoneNumbers: selectedEntity.phone_numbers || selectedEntity.phoneNumbers,
-        emails: selectedEntity.emails,
-        facebookLinks: selectedEntity.facebook_links || selectedEntity.facebookLinks,
-        instagramLinks: selectedEntity.instagram_links || selectedEntity.instagramLinks,
-      }
-    : MOCK_DATA;
+  useEffect(() => {
+    const countryId = selectedEntity?.country_id as string | undefined;
+    const cityId = selectedEntity?.city_id as string | undefined;
+
+    if (countryId) {
+      dictionaryStore.getRecordById("country", countryId).then((record: Record<string, unknown> | null) => {
+        setCountryName((record?.name as string) || null);
+      });
+    } else {
+      setCountryName(null);
+    }
+
+    if (cityId) {
+      dictionaryStore.getRecordById("city", cityId).then((record: Record<string, unknown> | null) => {
+        setCityName((record?.name as string) || null);
+      });
+    } else {
+      setCityName(null);
+    }
+  }, [selectedEntity?.country_id, selectedEntity?.city_id]);
+
+  // 2. Owner and Federation (denormalized fields)
+  const ownerName = (selectedEntity?.owner_name as string) || "";
+  const federationName = (selectedEntity?.federation_name as string) || "";
+
+  // 3. Communications (phone, email, social) from child table
+  const { data: communicationsRaw } = useTabData({
+    parentId: accountId,
+    dataSource: dataSource?.[0]!,
+    enabled: !!dataSource?.[0] && !!accountId,
+  });
+
+  // Classify communications into categories
+  const { phoneNumbers, emails, facebookLinks, instagramLinks } = useMemo(() => {
+    const phones: string[] = [];
+    const mails: string[] = [];
+    const fb: string[] = [];
+    const ig: string[] = [];
+
+    if (!communicationsRaw) return { phoneNumbers: phones, emails: mails, facebookLinks: fb, instagramLinks: ig };
+
+    for (const item of communicationsRaw) {
+      const value = (item as any).number || (item as any).additional?.number;
+      if (!value || typeof value !== "string") continue;
+
+      const type = classifyCommunication(value.trim());
+      if (type === "phone") phones.push(value.trim());
+      else if (type === "email") mails.push(value.trim());
+      else if (type === "facebook") fb.push(value.trim());
+      else if (type === "instagram") ig.push(value.trim());
+    }
+
+    return { phoneNumbers: phones, emails: mails, facebookLinks: fb, instagramLinks: ig };
+  }, [communicationsRaw]);
 
   // Report count after render (always 1 for general info)
   useEffect(() => {
@@ -190,6 +251,7 @@ export function KennelGeneralTab({ onLoadedCount }: KennelGeneralTabProps) {
   }, [onLoadedCount]);
 
   const iconSize = 16;
+  const hasSocial = facebookLinks.length > 0 || instagramLinks.length > 0;
 
   return (
     <div className="flex flex-col space-y-5 px-6 cursor-default">
@@ -204,20 +266,20 @@ export function KennelGeneralTab({ onLoadedCount }: KennelGeneralTabProps) {
           {/* Owner, Federation */}
           <div className="grid grid-cols-[16px_70px_1fr] sm:grid-cols-[22px_80px_1fr] items-center gap-3 px-4 pb-2 flex-1">
             <InfoRow icon={<User size={iconSize} />} label="Owner">
-              <EntityLink entity={data.owner} />
+              <span>{ownerName || "—"}</span>
             </InfoRow>
             <InfoRow icon={<Globe size={iconSize} />} label="Federation">
-              <span>{data.federation?.name || "—"}</span>
+              <span>{federationName || "—"}</span>
             </InfoRow>
           </div>
 
           {/* Country, City */}
           <div className="grid grid-cols-[16px_70px_1fr] sm:grid-cols-[22px_80px_1fr] items-center gap-3 px-4 pb-2 flex-1">
             <InfoRow icon={<MapPin size={iconSize} />} label="Country">
-              <span>{data.country?.name || "—"}</span>
+              <span>{countryName || "—"}</span>
             </InfoRow>
             <InfoRow icon={<Building2 size={iconSize} />} label="City">
-              <span>{data.city?.name || "—"}</span>
+              <span>{cityName || "—"}</span>
             </InfoRow>
           </div>
         </div>
@@ -227,25 +289,31 @@ export function KennelGeneralTab({ onLoadedCount }: KennelGeneralTabProps) {
       <Fieldset legend="Contact">
         <div className="grid grid-cols-[16px_70px_1fr] sm:grid-cols-[22px_80px_1fr] items-center gap-3 px-4 pb-2">
           <InfoRow icon={<Phone size={iconSize} />} label="Phone">
-            <ListValue values={data.phoneNumbers} />
+            <PhoneList values={phoneNumbers} />
           </InfoRow>
           <InfoRow icon={<Mail size={iconSize} />} label="Email">
-            <ListValue values={data.emails} />
+            <EmailList values={emails} />
           </InfoRow>
         </div>
       </Fieldset>
 
-      {/* Social network */}
-      <Fieldset legend="Social network">
-        <div className="grid grid-cols-[16px_70px_1fr] sm:grid-cols-[22px_80px_1fr] items-center gap-3 px-4 pb-2">
-          <InfoRow icon={<Facebook size={iconSize} />} label="Facebook">
-            <ListValue values={data.facebookLinks} />
-          </InfoRow>
-          <InfoRow icon={<Instagram size={iconSize} />} label="Instagram">
-            <ListValue values={data.instagramLinks} />
-          </InfoRow>
-        </div>
-      </Fieldset>
+      {/* Social network - only show if has data */}
+      {hasSocial && (
+        <Fieldset legend="Social network">
+          <div className="grid grid-cols-[16px_70px_1fr] sm:grid-cols-[22px_80px_1fr] items-center gap-3 px-4 pb-2">
+            {facebookLinks.length > 0 && (
+              <InfoRow icon={<Facebook size={iconSize} />} label="Facebook">
+                <SocialList values={facebookLinks} platform="facebook" />
+              </InfoRow>
+            )}
+            {instagramLinks.length > 0 && (
+              <InfoRow icon={<Instagram size={iconSize} />} label="Instagram">
+                <SocialList values={instagramLinks} platform="instagram" />
+              </InfoRow>
+            )}
+          </div>
+        </Fieldset>
+      )}
     </div>
   );
 }
