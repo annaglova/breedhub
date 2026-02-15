@@ -159,7 +159,7 @@ export function AvatarOutlet({
               <TooltipTrigger asChild>
                 <Button
                   variant="outline-secondary"
-                  className="rounded-full h-[2.25rem] w-[2.25rem] sm:w-auto sm:px-4 text-base font-semibold"
+                  className="rounded-full h-[2.25rem] w-[2.25rem] sm:w-auto sm:px-4 text-base"
                   onClick={() => executeAction(item.action, item.actionParams)}
                   type="button"
                 >

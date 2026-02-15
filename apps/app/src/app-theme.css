@@ -77,7 +77,7 @@
 .small-button {
   height: 2.25rem !important;
   font-size: 0.875rem !important; /* text-base */
-  font-weight: 600 !important; /* font-semibold */
+  font-weight: 700 !important; /* font-bold */
 }
 
 .small-button,
