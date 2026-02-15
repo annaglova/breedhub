@@ -1,5 +1,6 @@
 import { useSelectedEntity } from "@/contexts/SpaceContext";
-import { supabase } from "@breedhub/rxdb-store";
+import { spaceStore, supabase } from "@breedhub/rxdb-store";
+import { useSignals } from "@preact/signals-react/runtime";
 import {
   Table,
   TableBody,
@@ -11,6 +12,7 @@ import {
 import { cn } from "@ui/lib/utils";
 import { Check, ChevronDown, ChevronRight, Loader2, Minus } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 interface TreeNode {
   id: string;
@@ -106,13 +108,20 @@ interface ContactJudgeTabProps {
 /**
  * ContactJudgeTab - Judge competition tree with lazy loading by levels.
  *
- * Loads only the visible level via RPC. Children are fetched on expand.
+ * Two modes:
+ * - Drawer: shows BIS root auto-expanded with groups. Clicking expand navigates to fullscreen.
+ * - Fullscreen: full lazy loading — expand/collapse loads children on demand via RPC.
  */
 export function ContactJudgeTab({
   onLoadedCount,
 }: ContactJudgeTabProps) {
+  useSignals();
+
   const selectedEntity = useSelectedEntity();
   const contactId = selectedEntity?.id;
+  const isFullscreen = spaceStore.isFullscreen.value;
+  const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const [roots, setRoots] = useState<TreeNode[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -140,6 +149,24 @@ export function ContactJudgeTab({
         const children = await loadLevel(contactId, nodes[0].id);
         if (contactIdRef.current !== contactId) return;
         nodes[0] = { ...nodes[0], children, isLoaded: true, isExpanded: true };
+
+        // Auto-expand node from URL ?expand=nodeId (drawer→fullscreen transition)
+        const expandId = searchParams.get('expand');
+        if (expandId) {
+          const target = nodes[0].children.find(c => c.id === expandId);
+          if (target?.hasChildren) {
+            const grandchildren = await loadLevel(contactId, expandId);
+            if (contactIdRef.current !== contactId) return;
+            const idx = nodes[0].children.indexOf(target);
+            nodes[0].children[idx] = { ...target, children: grandchildren, isLoaded: true, isExpanded: true };
+          }
+          // Clean up expand param from URL
+          setSearchParams(prev => {
+            const next = new URLSearchParams(prev);
+            next.delete('expand');
+            return next;
+          }, { replace: true });
+        }
       }
       setRoots(nodes);
       setIsLoading(false);
@@ -154,6 +181,16 @@ export function ContactJudgeTab({
   }, [onLoadedCount, entryCount]);
 
   const handleToggle = useCallback(async (nodeId: string) => {
+    // Drawer mode: navigate to fullscreen with expand hint
+    if (!isFullscreen) {
+      const slug = selectedEntity?.slug;
+      if (slug) {
+        navigate(`/${slug}/judge?expand=${nodeId}`);
+      }
+      return;
+    }
+
+    // Fullscreen mode: regular expand/collapse with lazy loading
     const cId = contactIdRef.current;
     if (!cId) return;
 
@@ -194,7 +231,7 @@ export function ContactJudgeTab({
       next.delete(nodeId);
       return next;
     });
-  }, []);
+  }, [isFullscreen, selectedEntity?.slug, navigate]);
 
   const visibleRows = useMemo(() => flattenVisible(roots), [roots]);
 
