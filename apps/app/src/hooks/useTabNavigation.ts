@@ -115,6 +115,9 @@ export function useTabNavigation({
     if (entityId && prevEntityIdRef.current && entityId !== prevEntityIdRef.current) {
       // Entity changed - reset to default tab and clear explicit flag
       isExplicitTabRef.current = false;
+      // Reset visibility map to prevent stale entries from hidden tabs
+      // (e.g., "judge" tab from previous entity overriding the new default)
+      setVisibilityMap({});
       const newTab = defaultTab || tabs[0]?.fragment || "";
       if (newTab) {
         setActiveTab(newTab);
