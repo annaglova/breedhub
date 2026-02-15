@@ -18543,6 +18543,88 @@
     "commonProps": null
   },
   {
+    "key": "achievements",
+    "name": "achievements",
+    "occurrences": 2,
+    "entities": [
+      "account",
+      "breed"
+    ],
+    "variations": [
+      {
+        "entity": "account",
+        "category": "main",
+        "config": {
+          "id": "field_achievements",
+          "name": "achievements",
+          "fieldType": "json",
+          "component": "TextareaInput",
+          "required": false,
+          "isSystem": false,
+          "isPrimaryKey": false,
+          "isUnique": false,
+          "sortOrder": 500,
+          "permissions": {
+            "read": [
+              "*"
+            ],
+            "write": [
+              "admin",
+              "editor"
+            ]
+          },
+          "displayName": "Achievements",
+          "placeholder": "Enter achievements",
+          "defaultValue": "{}"
+        }
+      },
+      {
+        "entity": "breed",
+        "category": "main",
+        "config": {
+          "id": "field_achievements",
+          "name": "achievements",
+          "fieldType": "json",
+          "component": "TextareaInput",
+          "required": false,
+          "isSystem": false,
+          "isPrimaryKey": false,
+          "isUnique": false,
+          "sortOrder": 210,
+          "permissions": {
+            "read": [
+              "*"
+            ],
+            "write": [
+              "admin",
+              "editor"
+            ]
+          },
+          "displayName": "Achievements",
+          "placeholder": "Enter achievements"
+        }
+      }
+    ],
+    "commonProps": {
+      "fieldType": "json",
+      "component": "TextareaInput",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "displayName": "Achievements",
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      }
+    }
+  },
+  {
     "key": "id",
     "name": "id",
     "occurrences": 265,
@@ -18826,7 +18908,7 @@
           "isSystem": true,
           "isPrimaryKey": true,
           "isUnique": true,
-          "sortOrder": 500,
+          "sortOrder": 510,
           "permissions": {
             "read": [
               "*"
@@ -25473,7 +25555,7 @@
           "isSystem": true,
           "isPrimaryKey": false,
           "isUnique": false,
-          "sortOrder": 510,
+          "sortOrder": 520,
           "permissions": {
             "read": [
               "*"
@@ -32072,7 +32154,7 @@
           "isSystem": true,
           "isPrimaryKey": false,
           "isUnique": false,
-          "sortOrder": 520,
+          "sortOrder": 530,
           "permissions": {
             "read": [
               "*"
@@ -38625,7 +38707,7 @@
           "isSystem": true,
           "isPrimaryKey": false,
           "isUnique": false,
-          "sortOrder": 530,
+          "sortOrder": 540,
           "permissions": {
             "read": [
               "*"
@@ -45224,7 +45306,7 @@
           "isSystem": true,
           "isPrimaryKey": false,
           "isUnique": false,
-          "sortOrder": 540,
+          "sortOrder": 550,
           "permissions": {
             "read": [
               "*"
@@ -51530,7 +51612,7 @@
           "isSystem": true,
           "isPrimaryKey": false,
           "isUnique": false,
-          "sortOrder": 550,
+          "sortOrder": 560,
           "permissions": {
             "read": [
               "*"
@@ -62407,43 +62489,6 @@
             "precision": 24
           },
           "defaultValue": "0"
-        }
-      }
-    ],
-    "commonProps": null
-  },
-  {
-    "key": "achievements",
-    "name": "achievements",
-    "occurrences": 1,
-    "entities": [
-      "breed"
-    ],
-    "variations": [
-      {
-        "entity": "breed",
-        "category": "main",
-        "config": {
-          "id": "field_achievements",
-          "name": "achievements",
-          "fieldType": "json",
-          "component": "TextareaInput",
-          "required": false,
-          "isSystem": false,
-          "isPrimaryKey": false,
-          "isUnique": false,
-          "sortOrder": 210,
-          "permissions": {
-            "read": [
-              "*"
-            ],
-            "write": [
-              "admin",
-              "editor"
-            ]
-          },
-          "displayName": "Achievements",
-          "placeholder": "Enter achievements"
         }
       }
     ],

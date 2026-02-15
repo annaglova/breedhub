@@ -1270,6 +1270,29 @@
       "defaultValue": ""
     },
     {
+      "id": "field_achievements",
+      "name": "achievements",
+      "fieldType": "json",
+      "component": "TextareaInput",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 500,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "displayName": "Achievements",
+      "placeholder": "Enter achievements",
+      "defaultValue": "{}"
+    },
+    {
       "id": "field_id",
       "name": "id",
       "fieldType": "uuid",
@@ -1278,7 +1301,7 @@
       "isSystem": true,
       "isPrimaryKey": true,
       "isUnique": true,
-      "sortOrder": 500,
+      "sortOrder": 510,
       "permissions": {
         "read": [
           "*"
@@ -1298,7 +1321,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 510,
+      "sortOrder": 520,
       "permissions": {
         "read": [
           "*"
@@ -1318,7 +1341,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 520,
+      "sortOrder": 530,
       "permissions": {
         "read": [
           "*"
@@ -1338,7 +1361,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 530,
+      "sortOrder": 540,
       "permissions": {
         "read": [
           "*"
@@ -1358,7 +1381,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 540,
+      "sortOrder": 550,
       "permissions": {
         "read": [
           "*"
@@ -1378,7 +1401,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 550,
+      "sortOrder": 560,
       "permissions": {
         "read": [
           "*"
@@ -1392,9 +1415,9 @@
   ],
   "metadata": {
     "tableName": "account",
-    "totalFields": 55,
+    "totalFields": 56,
     "systemFields": 6,
-    "customFields": 49,
-    "generatedAt": "2026-02-15T11:47:50.286Z"
+    "customFields": 50,
+    "generatedAt": "2026-02-15T12:57:31.308Z"
   }
 }

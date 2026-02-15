@@ -3294,6 +3294,43 @@
       ]
     },
     {
+      "id": "account_field_achievements",
+      "type": "entity_field",
+      "deps": [
+        "property_not_required",
+        "property_not_system",
+        "property_not_primary_key",
+        "property_not_unique"
+      ],
+      "category": "account",
+      "caption": "account achievements field",
+      "self_data": {
+        "fieldType": "json",
+        "component": "TextareaInput",
+        "required": false,
+        "isSystem": false,
+        "isPrimaryKey": false,
+        "isUnique": false,
+        "sortOrder": 500,
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "admin",
+            "editor"
+          ]
+        },
+        "displayName": "Achievements",
+        "placeholder": "Enter achievements",
+        "defaultValue": "{}"
+      },
+      "tags": [
+        "main",
+        "account"
+      ]
+    },
+    {
       "id": "account_field_id",
       "type": "entity_field",
       "deps": [
@@ -3308,7 +3345,7 @@
         "isSystem": true,
         "isPrimaryKey": true,
         "isUnique": true,
-        "sortOrder": 500,
+        "sortOrder": 510,
         "permissions": {
           "read": [
             "*"
@@ -3339,7 +3376,7 @@
         "isSystem": true,
         "isPrimaryKey": false,
         "isUnique": false,
-        "sortOrder": 510,
+        "sortOrder": 520,
         "permissions": {
           "read": [
             "*"
@@ -3370,7 +3407,7 @@
         "isSystem": true,
         "isPrimaryKey": false,
         "isUnique": false,
-        "sortOrder": 520,
+        "sortOrder": 530,
         "permissions": {
           "read": [
             "*"
@@ -3401,7 +3438,7 @@
         "isSystem": true,
         "isPrimaryKey": false,
         "isUnique": false,
-        "sortOrder": 530,
+        "sortOrder": 540,
         "permissions": {
           "read": [
             "*"
@@ -3432,7 +3469,7 @@
         "isSystem": true,
         "isPrimaryKey": false,
         "isUnique": false,
-        "sortOrder": 540,
+        "sortOrder": 550,
         "permissions": {
           "read": [
             "*"
@@ -3463,7 +3500,7 @@
         "isSystem": true,
         "isPrimaryKey": false,
         "isUnique": false,
-        "sortOrder": 550,
+        "sortOrder": 560,
         "permissions": {
           "read": [
             "*"

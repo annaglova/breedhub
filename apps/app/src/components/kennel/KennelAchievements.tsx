@@ -1,82 +1,81 @@
 import { Chip } from "@ui/components/chip";
+import { useCollectionValue } from "@/hooks/useCollectionValue";
 import { Link } from "react-router-dom";
 
-interface TopPet {
-  name: string;
-  url: string;
+interface TopPetRef {
+  id: string;
+  breed_id: string;
+}
+
+interface Achievements {
+  pets_count?: number;
+  offsprings_count?: number;
+  top_pet?: TopPetRef;
 }
 
 interface KennelAchievementsProps {
-  entity?: any;
-  petsCount?: number;
-  offspringsCount?: number;
-  topPet?: TopPet;
+  entity?: {
+    achievements?: Achievements;
+    [key: string]: any;
+  };
 }
-
-// Mock data for development
-const MOCK_ACHIEVEMENTS = {
-  petsCount: 12,
-  offspringsCount: 45,
-  topPet: {
-    name: "Champion Rex von Haus",
-    url: "champion-rex-von-haus",
-  },
-};
 
 /**
  * KennelAchievements - Displays kennel's achievements as chips
  *
- * Based on Angular: libs/schema/domain/kennel/kennel-achievements/kennel-achievements.component.ts
- * Shows pets count, offsprings count, and top pet as clickable chips
+ * Data sources:
+ * - pets_count, offsprings_count: from entity.achievements (denormalized)
+ * - top_pet: enriched via useCollectionValue by id + breed_id (partitioned)
  */
 export function KennelAchievements({
   entity,
-  petsCount,
-  offspringsCount,
-  topPet,
 }: KennelAchievementsProps) {
-  // Extract achievements from entity or use props/mock
-  const displayPetsCount = entity?.kennel_pets?.length ?? entity?.pets_count ?? petsCount ?? MOCK_ACHIEVEMENTS.petsCount;
-  const displayOffspringsCount = entity?.offspring_pets?.length ?? entity?.offsprings_count ?? offspringsCount ?? MOCK_ACHIEVEMENTS.offspringsCount;
-  const displayTopPet = entity?.top_pet || entity?.achievements?.top_pet || topPet || MOCK_ACHIEVEMENTS.topPet;
+  const achievements = entity?.achievements;
+  const petsCount = achievements?.pets_count || 0;
+  const offspringsCount = achievements?.offsprings_count || 0;
+  const topPetRef = achievements?.top_pet;
 
-  // Check if we have any achievements to display
-  const hasAnyAchievement = displayPetsCount > 0 || displayOffspringsCount > 0 || displayTopPet;
+  // Enrich top pet from partitioned pet collection
+  const topPet = useCollectionValue<{ name?: string; slug?: string }>(
+    topPetRef ? 'pet' : undefined,
+    topPetRef?.id,
+    {
+      partitionKey: { field: 'breed_id', value: topPetRef?.breed_id }
+    }
+  );
 
-  // Don't render if no achievements
+  const hasAnyAchievement = petsCount > 0 || offspringsCount > 0 || topPet;
+
   if (!hasAnyAchievement) {
     return null;
   }
 
   return (
     <div className="flex flex-wrap gap-2 mt-2 min-h-[2rem]">
-      {/* Pets in kennel - links to #pets tab */}
-      {displayPetsCount > 0 && (
+      {petsCount > 0 && (
         <Link to="#pets" className="no-underline">
           <Chip
-            label={`Pets in kennel - ${displayPetsCount}`}
+            label={`Pets in kennel - ${petsCount}`}
             variant="primary"
             className="cursor-pointer hover:opacity-90 transition-opacity"
           />
         </Link>
       )}
 
-      {/* Offsprings - links to #offsprings tab */}
-      {displayOffspringsCount > 0 && (
+      {offspringsCount > 0 && (
         <Link to="#offsprings" className="no-underline">
           <Chip
-            label={`Offsprings - ${displayOffspringsCount}`}
+            label={`Offsprings - ${offspringsCount}`}
             variant="primary"
             className="cursor-pointer hover:opacity-90 transition-opacity"
           />
         </Link>
       )}
 
-      {/* Top pet - links to pet page */}
-      {displayTopPet && (
-        <Link to={`/${displayTopPet.url}`} className="no-underline">
+      {topPet?.name && (
+        <Link to={`/${topPet.slug || ''}`} className="no-underline">
           <Chip
-            label={`Top pet - ${displayTopPet.name}`}
+            label={`Top pet - ${topPet.name}`}
             variant="primary"
             className="cursor-pointer hover:opacity-90 transition-opacity max-w-80 sm:max-w-120"
           />

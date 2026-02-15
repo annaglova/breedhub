@@ -4,7 +4,7 @@
     "uniqueFields": 562,
     "baseFields": 37,
     "properties": 15,
-    "entityFieldsGenerated": 2956
+    "entityFieldsGenerated": 2957
   },
   "topFields": [
     {
@@ -123,11 +123,11 @@
   ],
   "analysis": {
     "fieldTypes": {
-      "unknown": 371,
+      "unknown": 370,
       "uuid": 95,
       "string": 30,
       "text": 8,
-      "json": 3,
+      "json": 4,
       "datetime": 7,
       "boolean": 15,
       "number": 26,
