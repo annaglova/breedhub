@@ -71,6 +71,16 @@ function PetImage({
     }
   }, [src]);
 
+  const isShowingFallback = imgSrc === defaultPetLogo;
+
+  if (isShowingFallback) {
+    return (
+      <div className="flex size-full items-center justify-center bg-slate-50 dark:bg-slate-700">
+        <img className="w-2/3 h-auto" src={defaultPetLogo} alt={alt} />
+      </div>
+    );
+  }
+
   return (
     <img
       className={className}
@@ -225,7 +235,7 @@ export function PedigreeCard({ pet, sex, level, canSelectPet, isSelected, onSele
   if (level === 1) {
     return (
       <div className="card card-rounded flex min-w-72 max-w-72 flex-col items-center px-6 py-3 min-h-[196.25px] bg-even-card-ground">
-        <PetSexMark sex={petSex} style="horizontal" className="w-44" />
+        <PetSexMark sex={petSex} style="horizontal" className="w-44 shrink-0" />
 
         {!isEmpty ? (
           <>
@@ -233,12 +243,12 @@ export function PedigreeCard({ pet, sex, level, canSelectPet, isSelected, onSele
             {pet.url ? (
               <Link
                 to={`/${pet.url}`}
-                className="flex min-h-10 justify-center w-full text-center text-primary hover:underline line-clamp-2"
+                className="flex min-h-10 items-center justify-center w-full text-center text-primary hover:underline line-clamp-2"
               >
                 {pet.name}
               </Link>
             ) : (
-              <span className="flex min-h-10 justify-center w-full text-center line-clamp-2">
+              <span className="flex min-h-10 items-center justify-center w-full text-center line-clamp-2">
                 {pet.name}
               </span>
             )}
