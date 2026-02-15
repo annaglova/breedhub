@@ -133,7 +133,7 @@ export function PetIdentifiersTab({
               {/* Identifier type */}
               <div>{identifier.typeName}</div>
               {/* Value */}
-              <div className="font-mono">{identifier.value}</div>
+              <div>{identifier.value}</div>
             </div>
           ))}
         </div>

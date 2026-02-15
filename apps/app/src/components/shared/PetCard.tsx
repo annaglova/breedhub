@@ -138,7 +138,7 @@ export function PetCard({ pet, mode = "default" }: PetCardProps) {
           </em>
 
           {/* Titles or Pedigree info */}
-          <div className="h-30 flex items-start overflow-hidden text-base">
+          <div className="h-30 flex items-start overflow-hidden text-base mt-1">
             <div className="w-full items-start justify-start text-base">
               {/* Titles */}
               {pet.titles && (
@@ -159,8 +159,8 @@ export function PetCard({ pet, mode = "default" }: PetCardProps) {
               {/* Default mode: Father/Mother */}
               {!pet.titles && mode === "default" && (
                 <div
-                  className="grid w-full gap-y-3"
-                  style={{ gridTemplateColumns: "44px auto" }}
+                  className="grid w-full gap-x-1 gap-y-3"
+                  style={{ gridTemplateColumns: "48px auto" }}
                 >
                   <span className="text-secondary">Father</span>
                   <SmartLink
