@@ -1,6 +1,10 @@
 @layer base {
   /* App-specific theme variables that override base theme */
 
+  body {
+    font-size: 0.875rem; /* 14px base font */
+  }
+
   :root {
     /* Light theme (default) - App-specific overrides */
     --surface-ground: 255 255 255; /* white */
