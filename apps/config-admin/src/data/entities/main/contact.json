@@ -87,59 +87,6 @@
       "referencedFieldName": "name"
     },
     {
-      "id": "field_dear",
-      "name": "dear",
-      "fieldType": "string",
-      "component": "TextInput",
-      "required": true,
-      "isSystem": false,
-      "isPrimaryKey": false,
-      "isUnique": false,
-      "sortOrder": 40,
-      "permissions": {
-        "read": [
-          "*"
-        ],
-        "write": [
-          "admin",
-          "editor"
-        ]
-      },
-      "maxLength": 250,
-      "displayName": "Dear",
-      "placeholder": "Enter dear",
-      "validation": {
-        "maxLength": 250
-      },
-      "defaultValue": ""
-    },
-    {
-      "id": "field_salutation_type_id",
-      "name": "salutation_type_id",
-      "fieldType": "uuid",
-      "component": "DropdownInput",
-      "required": false,
-      "isSystem": false,
-      "isPrimaryKey": false,
-      "isUnique": false,
-      "sortOrder": 50,
-      "permissions": {
-        "read": [
-          "*"
-        ],
-        "write": [
-          "admin",
-          "editor"
-        ]
-      },
-      "isForeignKey": true,
-      "referencedTable": "contact_salutation_type",
-      "referencedFieldID": "id",
-      "displayName": "Salutation Type",
-      "placeholder": "Enter salutation type",
-      "referencedFieldName": "name"
-    },
-    {
       "id": "field_gender_id",
       "name": "gender_id",
       "fieldType": "uuid",
@@ -148,7 +95,7 @@
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 60,
+      "sortOrder": 40,
       "permissions": {
         "read": [
           "*"
@@ -166,32 +113,6 @@
       "referencedFieldName": "name"
     },
     {
-      "id": "field_type_id",
-      "name": "type_id",
-      "fieldType": "uuid",
-      "component": "DropdownInput",
-      "required": false,
-      "isSystem": false,
-      "isPrimaryKey": false,
-      "isUnique": false,
-      "sortOrder": 70,
-      "permissions": {
-        "read": [
-          "*"
-        ],
-        "write": [
-          "admin",
-          "editor"
-        ]
-      },
-      "isForeignKey": true,
-      "referencedTable": "contact_type",
-      "referencedFieldID": "id",
-      "displayName": "Type",
-      "placeholder": "Enter type",
-      "referencedFieldName": "name"
-    },
-    {
       "id": "field_birth_date",
       "name": "birth_date",
       "fieldType": "date",
@@ -200,7 +121,7 @@
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 80,
+      "sortOrder": 50,
       "permissions": {
         "read": [
           "*"
@@ -214,143 +135,6 @@
       "placeholder": "Enter birth date"
     },
     {
-      "id": "field_phone",
-      "name": "phone",
-      "fieldType": "string",
-      "component": "TextInput",
-      "required": true,
-      "isSystem": false,
-      "isPrimaryKey": false,
-      "isUnique": false,
-      "sortOrder": 90,
-      "permissions": {
-        "read": [
-          "*"
-        ],
-        "write": [
-          "admin",
-          "editor"
-        ]
-      },
-      "maxLength": 250,
-      "displayName": "Phone",
-      "placeholder": "Enter phone",
-      "validation": {
-        "maxLength": 250
-      },
-      "defaultValue": ""
-    },
-    {
-      "id": "field_mobile_phone",
-      "name": "mobile_phone",
-      "fieldType": "string",
-      "component": "TextInput",
-      "required": true,
-      "isSystem": false,
-      "isPrimaryKey": false,
-      "isUnique": false,
-      "sortOrder": 100,
-      "permissions": {
-        "read": [
-          "*"
-        ],
-        "write": [
-          "admin",
-          "editor"
-        ]
-      },
-      "maxLength": 250,
-      "displayName": "Mobile Phone",
-      "placeholder": "Enter mobile phone",
-      "validation": {
-        "maxLength": 250
-      },
-      "defaultValue": ""
-    },
-    {
-      "id": "field_home_phone",
-      "name": "home_phone",
-      "fieldType": "string",
-      "component": "TextInput",
-      "required": true,
-      "isSystem": false,
-      "isPrimaryKey": false,
-      "isUnique": false,
-      "sortOrder": 110,
-      "permissions": {
-        "read": [
-          "*"
-        ],
-        "write": [
-          "admin",
-          "editor"
-        ]
-      },
-      "maxLength": 250,
-      "displayName": "Home Phone",
-      "placeholder": "Enter home phone",
-      "validation": {
-        "maxLength": 250
-      },
-      "defaultValue": ""
-    },
-    {
-      "id": "field_skype",
-      "name": "skype",
-      "fieldType": "string",
-      "component": "TextInput",
-      "required": true,
-      "isSystem": false,
-      "isPrimaryKey": false,
-      "isUnique": false,
-      "sortOrder": 120,
-      "permissions": {
-        "read": [
-          "*"
-        ],
-        "write": [
-          "admin",
-          "editor"
-        ]
-      },
-      "maxLength": 250,
-      "displayName": "Skype",
-      "placeholder": "Enter skype",
-      "validation": {
-        "maxLength": 250
-      },
-      "defaultValue": ""
-    },
-    {
-      "id": "field_email",
-      "name": "email",
-      "fieldType": "string",
-      "component": "EmailInput",
-      "required": true,
-      "isSystem": false,
-      "isPrimaryKey": false,
-      "isUnique": false,
-      "sortOrder": 130,
-      "permissions": {
-        "read": [
-          "*"
-        ],
-        "write": [
-          "admin",
-          "editor"
-        ]
-      },
-      "maxLength": 250,
-      "displayName": "Email",
-      "placeholder": "Enter email",
-      "validation": {
-        "maxLength": 250,
-        "pattern": "^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$",
-        "message": "Invalid email format"
-      },
-      "defaultValue": ""
-    },
-    {
       "id": "field_address_type_id",
       "name": "address_type_id",
       "fieldType": "uuid",
@@ -359,7 +143,7 @@
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 140,
+      "sortOrder": 60,
       "permissions": {
         "read": [
           "*"
@@ -385,7 +169,7 @@
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 150,
+      "sortOrder": 70,
       "permissions": {
         "read": [
           "*"
@@ -408,7 +192,7 @@
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 160,
+      "sortOrder": 80,
       "permissions": {
         "read": [
           "*"
@@ -434,7 +218,7 @@
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 170,
+      "sortOrder": 90,
       "permissions": {
         "read": [
           "*"
@@ -460,7 +244,7 @@
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 180,
+      "sortOrder": 100,
       "permissions": {
         "read": [
           "*"
@@ -487,7 +271,7 @@
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 190,
+      "sortOrder": 110,
       "permissions": {
         "read": [
           "*"
@@ -505,402 +289,6 @@
       "referencedFieldName": "name"
     },
     {
-      "id": "field_do_not_use_email",
-      "name": "do_not_use_email",
-      "fieldType": "boolean",
-      "component": "CheckboxInput",
-      "required": true,
-      "isSystem": false,
-      "isPrimaryKey": false,
-      "isUnique": false,
-      "sortOrder": 200,
-      "permissions": {
-        "read": [
-          "*"
-        ],
-        "write": [
-          "admin",
-          "editor"
-        ]
-      },
-      "displayName": "Do Not Use Email",
-      "placeholder": "Enter do not use email",
-      "validation": {
-        "pattern": "^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$",
-        "message": "Invalid email format"
-      },
-      "defaultValue": "false"
-    },
-    {
-      "id": "field_do_not_use_call",
-      "name": "do_not_use_call",
-      "fieldType": "boolean",
-      "component": "CheckboxInput",
-      "required": true,
-      "isSystem": false,
-      "isPrimaryKey": false,
-      "isUnique": false,
-      "sortOrder": 210,
-      "permissions": {
-        "read": [
-          "*"
-        ],
-        "write": [
-          "admin",
-          "editor"
-        ]
-      },
-      "displayName": "Do Not Use Call",
-      "placeholder": "Enter do not use call",
-      "defaultValue": "false"
-    },
-    {
-      "id": "field_do_not_use_fax",
-      "name": "do_not_use_fax",
-      "fieldType": "boolean",
-      "component": "CheckboxInput",
-      "required": true,
-      "isSystem": false,
-      "isPrimaryKey": false,
-      "isUnique": false,
-      "sortOrder": 220,
-      "permissions": {
-        "read": [
-          "*"
-        ],
-        "write": [
-          "admin",
-          "editor"
-        ]
-      },
-      "displayName": "Do Not Use Fax",
-      "placeholder": "Enter do not use fax",
-      "defaultValue": "false"
-    },
-    {
-      "id": "field_do_not_use_sms",
-      "name": "do_not_use_sms",
-      "fieldType": "boolean",
-      "component": "CheckboxInput",
-      "required": true,
-      "isSystem": false,
-      "isPrimaryKey": false,
-      "isUnique": false,
-      "sortOrder": 230,
-      "permissions": {
-        "read": [
-          "*"
-        ],
-        "write": [
-          "admin",
-          "editor"
-        ]
-      },
-      "displayName": "Do Not Use Sms",
-      "placeholder": "Enter do not use sms",
-      "defaultValue": "false"
-    },
-    {
-      "id": "field_do_not_use_mail",
-      "name": "do_not_use_mail",
-      "fieldType": "boolean",
-      "component": "CheckboxInput",
-      "required": true,
-      "isSystem": false,
-      "isPrimaryKey": false,
-      "isUnique": false,
-      "sortOrder": 240,
-      "permissions": {
-        "read": [
-          "*"
-        ],
-        "write": [
-          "admin",
-          "editor"
-        ]
-      },
-      "displayName": "Do Not Use Mail",
-      "placeholder": "Enter do not use mail",
-      "defaultValue": "false"
-    },
-    {
-      "id": "field_notes",
-      "name": "notes",
-      "fieldType": "text",
-      "component": "TextareaInput",
-      "required": true,
-      "isSystem": false,
-      "isPrimaryKey": false,
-      "isUnique": false,
-      "sortOrder": 250,
-      "permissions": {
-        "read": [
-          "*"
-        ],
-        "write": [
-          "admin",
-          "editor"
-        ]
-      },
-      "displayName": "Notes",
-      "placeholder": "Enter notes",
-      "defaultValue": ""
-    },
-    {
-      "id": "field_facebook",
-      "name": "facebook",
-      "fieldType": "string",
-      "component": "TextInput",
-      "required": true,
-      "isSystem": false,
-      "isPrimaryKey": false,
-      "isUnique": false,
-      "sortOrder": 260,
-      "permissions": {
-        "read": [
-          "*"
-        ],
-        "write": [
-          "admin",
-          "editor"
-        ]
-      },
-      "maxLength": 250,
-      "displayName": "Facebook",
-      "placeholder": "Enter facebook",
-      "validation": {
-        "maxLength": 250
-      },
-      "defaultValue": ""
-    },
-    {
-      "id": "field_linked_in",
-      "name": "linked_in",
-      "fieldType": "string",
-      "component": "TextInput",
-      "required": true,
-      "isSystem": false,
-      "isPrimaryKey": false,
-      "isUnique": false,
-      "sortOrder": 270,
-      "permissions": {
-        "read": [
-          "*"
-        ],
-        "write": [
-          "admin",
-          "editor"
-        ]
-      },
-      "maxLength": 250,
-      "displayName": "Linked In",
-      "placeholder": "Enter linked in",
-      "validation": {
-        "maxLength": 250,
-        "pattern": "^https?://.+",
-        "message": "Invalid URL format"
-      },
-      "defaultValue": ""
-    },
-    {
-      "id": "field_twitter",
-      "name": "twitter",
-      "fieldType": "string",
-      "component": "TextInput",
-      "required": true,
-      "isSystem": false,
-      "isPrimaryKey": false,
-      "isUnique": false,
-      "sortOrder": 280,
-      "permissions": {
-        "read": [
-          "*"
-        ],
-        "write": [
-          "admin",
-          "editor"
-        ]
-      },
-      "maxLength": 250,
-      "displayName": "Twitter",
-      "placeholder": "Enter twitter",
-      "validation": {
-        "maxLength": 250
-      },
-      "defaultValue": ""
-    },
-    {
-      "id": "field_facebook_id",
-      "name": "facebook_id",
-      "fieldType": "string",
-      "component": "DropdownInput",
-      "required": true,
-      "isSystem": false,
-      "isPrimaryKey": false,
-      "isUnique": false,
-      "sortOrder": 290,
-      "permissions": {
-        "read": [
-          "*"
-        ],
-        "write": [
-          "admin",
-          "editor"
-        ]
-      },
-      "maxLength": 250,
-      "isForeignKey": true,
-      "referencedTable": "facebook",
-      "referencedFieldID": "id",
-      "displayName": "Facebook",
-      "placeholder": "Enter facebook",
-      "validation": {
-        "maxLength": 250
-      },
-      "defaultValue": "",
-      "referencedFieldName": "id"
-    },
-    {
-      "id": "field_linked_in_id",
-      "name": "linked_in_id",
-      "fieldType": "string",
-      "component": "DropdownInput",
-      "required": true,
-      "isSystem": false,
-      "isPrimaryKey": false,
-      "isUnique": false,
-      "sortOrder": 300,
-      "permissions": {
-        "read": [
-          "*"
-        ],
-        "write": [
-          "admin",
-          "editor"
-        ]
-      },
-      "maxLength": 250,
-      "isForeignKey": true,
-      "referencedTable": "linked_in",
-      "referencedFieldID": "id",
-      "displayName": "Linked In",
-      "placeholder": "Enter linked in",
-      "validation": {
-        "maxLength": 250,
-        "pattern": "^https?://.+",
-        "message": "Invalid URL format"
-      },
-      "defaultValue": "",
-      "referencedFieldName": "id"
-    },
-    {
-      "id": "field_twitter_id",
-      "name": "twitter_id",
-      "fieldType": "string",
-      "component": "DropdownInput",
-      "required": true,
-      "isSystem": false,
-      "isPrimaryKey": false,
-      "isUnique": false,
-      "sortOrder": 310,
-      "permissions": {
-        "read": [
-          "*"
-        ],
-        "write": [
-          "admin",
-          "editor"
-        ]
-      },
-      "maxLength": 250,
-      "isForeignKey": true,
-      "referencedTable": "twitter",
-      "referencedFieldID": "id",
-      "displayName": "Twitter",
-      "placeholder": "Enter twitter",
-      "validation": {
-        "maxLength": 250
-      },
-      "defaultValue": "",
-      "referencedFieldName": "id"
-    },
-    {
-      "id": "field_contact_photo",
-      "name": "contact_photo",
-      "fieldType": "string",
-      "component": "FileInput",
-      "required": false,
-      "isSystem": false,
-      "isPrimaryKey": false,
-      "isUnique": false,
-      "sortOrder": 320,
-      "permissions": {
-        "read": [
-          "*"
-        ],
-        "write": [
-          "admin",
-          "editor"
-        ]
-      },
-      "displayName": "Contact Photo",
-      "placeholder": "Enter contact photo"
-    },
-    {
-      "id": "field_gpsn",
-      "name": "gpsn",
-      "fieldType": "string",
-      "component": "TextInput",
-      "required": true,
-      "isSystem": false,
-      "isPrimaryKey": false,
-      "isUnique": false,
-      "sortOrder": 330,
-      "permissions": {
-        "read": [
-          "*"
-        ],
-        "write": [
-          "admin",
-          "editor"
-        ]
-      },
-      "maxLength": 50,
-      "displayName": "Gpsn",
-      "placeholder": "Enter gpsn",
-      "validation": {
-        "maxLength": 50
-      },
-      "defaultValue": ""
-    },
-    {
-      "id": "field_gpse",
-      "name": "gpse",
-      "fieldType": "string",
-      "component": "TextInput",
-      "required": true,
-      "isSystem": false,
-      "isPrimaryKey": false,
-      "isUnique": false,
-      "sortOrder": 340,
-      "permissions": {
-        "read": [
-          "*"
-        ],
-        "write": [
-          "admin",
-          "editor"
-        ]
-      },
-      "maxLength": 50,
-      "displayName": "Gpse",
-      "placeholder": "Enter gpse",
-      "validation": {
-        "maxLength": 50
-      },
-      "defaultValue": ""
-    },
-    {
       "id": "field_surname",
       "name": "surname",
       "fieldType": "string",
@@ -909,7 +297,7 @@
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 350,
+      "sortOrder": 120,
       "permissions": {
         "read": [
           "*"
@@ -936,7 +324,7 @@
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 360,
+      "sortOrder": 130,
       "permissions": {
         "read": [
           "*"
@@ -955,33 +343,6 @@
       "defaultValue": ""
     },
     {
-      "id": "field_middle_name",
-      "name": "middle_name",
-      "fieldType": "string",
-      "component": "TextInput",
-      "required": true,
-      "isSystem": false,
-      "isPrimaryKey": false,
-      "isUnique": false,
-      "sortOrder": 370,
-      "permissions": {
-        "read": [
-          "*"
-        ],
-        "write": [
-          "admin",
-          "editor"
-        ]
-      },
-      "maxLength": 250,
-      "displayName": "Middle Name",
-      "placeholder": "Enter middle name",
-      "validation": {
-        "maxLength": 250
-      },
-      "defaultValue": ""
-    },
-    {
       "id": "field_confirmed",
       "name": "confirmed",
       "fieldType": "boolean",
@@ -990,7 +351,7 @@
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 380,
+      "sortOrder": 140,
       "permissions": {
         "read": [
           "*"
@@ -1005,193 +366,6 @@
       "defaultValue": "false"
     },
     {
-      "id": "field_language_id",
-      "name": "language_id",
-      "fieldType": "uuid",
-      "component": "DropdownInput",
-      "required": false,
-      "isSystem": false,
-      "isPrimaryKey": false,
-      "isUnique": false,
-      "sortOrder": 390,
-      "permissions": {
-        "read": [
-          "*"
-        ],
-        "write": [
-          "admin",
-          "editor"
-        ]
-      },
-      "isForeignKey": true,
-      "referencedTable": "sys_language",
-      "referencedFieldID": "id",
-      "displayName": "Language",
-      "placeholder": "Enter language",
-      "referencedFieldName": "name"
-    },
-    {
-      "id": "field_completeness",
-      "name": "completeness",
-      "fieldType": "number",
-      "component": "NumberInput",
-      "required": true,
-      "isSystem": false,
-      "isPrimaryKey": false,
-      "isUnique": false,
-      "sortOrder": 400,
-      "permissions": {
-        "read": [
-          "*"
-        ],
-        "write": [
-          "admin",
-          "editor"
-        ]
-      },
-      "displayName": "Completeness",
-      "placeholder": "Enter completeness",
-      "validation": {
-        "precision": 32,
-        "scale": 0
-      },
-      "defaultValue": "0"
-    },
-    {
-      "id": "field_is_non_actual_email",
-      "name": "is_non_actual_email",
-      "fieldType": "boolean",
-      "component": "CheckboxInput",
-      "required": true,
-      "isSystem": false,
-      "isPrimaryKey": false,
-      "isUnique": false,
-      "sortOrder": 410,
-      "permissions": {
-        "read": [
-          "*"
-        ],
-        "write": [
-          "admin",
-          "editor"
-        ]
-      },
-      "displayName": "Is Non Actual Email",
-      "placeholder": "Enter is non actual email",
-      "validation": {
-        "pattern": "^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$",
-        "message": "Invalid email format"
-      },
-      "defaultValue": "false"
-    },
-    {
-      "id": "field_r_id",
-      "name": "r_id",
-      "fieldType": "number",
-      "component": "DropdownInput",
-      "required": true,
-      "isSystem": false,
-      "isPrimaryKey": false,
-      "isUnique": false,
-      "sortOrder": 420,
-      "permissions": {
-        "read": [
-          "*"
-        ],
-        "write": [
-          "admin",
-          "editor"
-        ]
-      },
-      "isForeignKey": true,
-      "referencedTable": "r",
-      "referencedFieldID": "id",
-      "displayName": "R",
-      "placeholder": "Enter r",
-      "validation": {
-        "precision": 32,
-        "scale": 0
-      },
-      "referencedFieldName": "id"
-    },
-    {
-      "id": "field_age",
-      "name": "age",
-      "fieldType": "number",
-      "component": "NumberInput",
-      "required": true,
-      "isSystem": false,
-      "isPrimaryKey": false,
-      "isUnique": false,
-      "sortOrder": 430,
-      "permissions": {
-        "read": [
-          "*"
-        ],
-        "write": [
-          "admin",
-          "editor"
-        ]
-      },
-      "displayName": "Age",
-      "placeholder": "Enter age",
-      "validation": {
-        "precision": 32,
-        "scale": 0
-      },
-      "defaultValue": "0"
-    },
-    {
-      "id": "field_ti_is_invoice_by_sms",
-      "name": "ti_is_invoice_by_sms",
-      "fieldType": "boolean",
-      "component": "CheckboxInput",
-      "required": true,
-      "isSystem": false,
-      "isPrimaryKey": false,
-      "isUnique": false,
-      "sortOrder": 440,
-      "permissions": {
-        "read": [
-          "*"
-        ],
-        "write": [
-          "admin",
-          "editor"
-        ]
-      },
-      "displayName": "Ti Is Invoice By Sms",
-      "placeholder": "Enter ti is invoice by sms",
-      "defaultValue": "false"
-    },
-    {
-      "id": "field_ti_is_invoice_by_email",
-      "name": "ti_is_invoice_by_email",
-      "fieldType": "boolean",
-      "component": "CheckboxInput",
-      "required": true,
-      "isSystem": false,
-      "isPrimaryKey": false,
-      "isUnique": false,
-      "sortOrder": 450,
-      "permissions": {
-        "read": [
-          "*"
-        ],
-        "write": [
-          "admin",
-          "editor"
-        ]
-      },
-      "displayName": "Ti Is Invoice By Email",
-      "placeholder": "Enter ti is invoice by email",
-      "validation": {
-        "pattern": "^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$",
-        "message": "Invalid email format"
-      },
-      "defaultValue": "false"
-    },
-    {
       "id": "field_alternate_names",
       "name": "alternate_names",
       "fieldType": "text",
@@ -1200,7 +374,7 @@
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 460,
+      "sortOrder": 150,
       "permissions": {
         "read": [
           "*"
@@ -1223,7 +397,7 @@
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 470,
+      "sortOrder": 160,
       "permissions": {
         "read": [
           "*"
@@ -1246,33 +420,6 @@
       "referencedFieldName": "id"
     },
     {
-      "id": "field_is_email_confirmed",
-      "name": "is_email_confirmed",
-      "fieldType": "boolean",
-      "component": "CheckboxInput",
-      "required": true,
-      "isSystem": false,
-      "isPrimaryKey": false,
-      "isUnique": false,
-      "sortOrder": 480,
-      "permissions": {
-        "read": [
-          "*"
-        ],
-        "write": [
-          "admin",
-          "editor"
-        ]
-      },
-      "displayName": "Is Email Confirmed",
-      "placeholder": "Enter is email confirmed",
-      "validation": {
-        "pattern": "^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$",
-        "message": "Invalid email format"
-      },
-      "defaultValue": "false"
-    },
-    {
       "id": "field_slug",
       "name": "slug",
       "fieldType": "string",
@@ -1281,7 +428,7 @@
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 490,
+      "sortOrder": 170,
       "permissions": {
         "read": [
           "*"
@@ -1308,7 +455,7 @@
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 500,
+      "sortOrder": 180,
       "permissions": {
         "read": [
           "*"
@@ -1334,7 +481,7 @@
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 510,
+      "sortOrder": 190,
       "permissions": {
         "read": [
           "*"
@@ -1360,7 +507,7 @@
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 520,
+      "sortOrder": 200,
       "permissions": {
         "read": [
           "*"
@@ -1389,7 +536,7 @@
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 530,
+      "sortOrder": 210,
       "permissions": {
         "read": [
           "*"
@@ -1415,7 +562,7 @@
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 540,
+      "sortOrder": 220,
       "permissions": {
         "read": [
           "*"
@@ -1442,7 +589,7 @@
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 550,
+      "sortOrder": 230,
       "permissions": {
         "read": [
           "*"
@@ -1464,7 +611,7 @@
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 560,
+      "sortOrder": 240,
       "permissions": {
         "read": [
           "*"
@@ -1487,7 +634,7 @@
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 570,
+      "sortOrder": 250,
       "permissions": {
         "read": [
           "*"
@@ -1510,7 +657,7 @@
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 580,
+      "sortOrder": 260,
       "permissions": {
         "read": [
           "*"
@@ -1533,7 +680,7 @@
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 590,
+      "sortOrder": 270,
       "permissions": {
         "read": [
           "*"
@@ -1556,7 +703,7 @@
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 600,
+      "sortOrder": 280,
       "permissions": {
         "read": [
           "*"
@@ -1571,6 +718,32 @@
       "defaultValue": "[]"
     },
     {
+      "id": "field_user_id",
+      "name": "user_id",
+      "fieldType": "uuid",
+      "component": "DropdownInput",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 290,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "isForeignKey": true,
+      "referencedTable": "user_profile",
+      "referencedFieldID": "id",
+      "displayName": "User",
+      "placeholder": "Enter user",
+      "referencedFieldName": "display_name"
+    },
+    {
       "id": "field_id",
       "name": "id",
       "fieldType": "uuid",
@@ -1579,7 +752,7 @@
       "isSystem": true,
       "isPrimaryKey": true,
       "isUnique": true,
-      "sortOrder": 610,
+      "sortOrder": 300,
       "permissions": {
         "read": [
           "*"
@@ -1599,7 +772,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 620,
+      "sortOrder": 310,
       "permissions": {
         "read": [
           "*"
@@ -1619,7 +792,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 630,
+      "sortOrder": 320,
       "permissions": {
         "read": [
           "*"
@@ -1639,7 +812,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 640,
+      "sortOrder": 330,
       "permissions": {
         "read": [
           "*"
@@ -1659,7 +832,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 650,
+      "sortOrder": 340,
       "permissions": {
         "read": [
           "*"
@@ -1679,7 +852,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 660,
+      "sortOrder": 350,
       "permissions": {
         "read": [
           "*"
@@ -1693,9 +866,9 @@
   ],
   "metadata": {
     "tableName": "contact",
-    "totalFields": 66,
+    "totalFields": 35,
     "systemFields": 6,
-    "customFields": 60,
-    "generatedAt": "2026-02-12T12:20:02.865Z"
+    "customFields": 29,
+    "generatedAt": "2026-02-15T11:03:36.417Z"
   }
 }

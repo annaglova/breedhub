@@ -168,33 +168,6 @@
       "defaultValue": "false"
     },
     {
-      "id": "field_external_communication_type",
-      "name": "external_communication_type",
-      "fieldType": "string",
-      "component": "TextInput",
-      "required": true,
-      "isSystem": false,
-      "isPrimaryKey": false,
-      "isUnique": false,
-      "sortOrder": 70,
-      "permissions": {
-        "read": [
-          "*"
-        ],
-        "write": [
-          "admin",
-          "editor"
-        ]
-      },
-      "maxLength": 500,
-      "displayName": "External Communication Type",
-      "placeholder": "Enter external communication type",
-      "validation": {
-        "maxLength": 500
-      },
-      "defaultValue": ""
-    },
-    {
       "id": "field_non_actual",
       "name": "non_actual",
       "fieldType": "boolean",
@@ -203,7 +176,7 @@
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 80,
+      "sortOrder": 70,
       "permissions": {
         "read": [
           "*"
@@ -226,7 +199,7 @@
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 90,
+      "sortOrder": 80,
       "permissions": {
         "read": [
           "*"
@@ -248,7 +221,7 @@
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 100,
+      "sortOrder": 90,
       "permissions": {
         "read": [
           "*"
@@ -271,7 +244,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 110,
+      "sortOrder": 100,
       "permissions": {
         "read": [
           "*"
@@ -291,7 +264,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 120,
+      "sortOrder": 110,
       "permissions": {
         "read": [
           "*"
@@ -311,7 +284,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 130,
+      "sortOrder": 120,
       "permissions": {
         "read": [
           "*"
@@ -331,7 +304,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 140,
+      "sortOrder": 130,
       "permissions": {
         "read": [
           "*"
@@ -351,7 +324,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 150,
+      "sortOrder": 140,
       "permissions": {
         "read": [
           "*"
@@ -365,9 +338,9 @@
   ],
   "metadata": {
     "tableName": "contact_communication",
-    "totalFields": 15,
+    "totalFields": 14,
     "systemFields": 5,
-    "customFields": 10,
-    "generatedAt": "2026-02-12T12:20:29.920Z"
+    "customFields": 9,
+    "generatedAt": "2026-02-15T11:04:04.606Z"
   }
 }

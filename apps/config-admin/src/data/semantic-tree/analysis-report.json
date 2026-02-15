@@ -1,10 +1,10 @@
 {
   "summary": {
     "totalEntities": 266,
-    "uniqueFields": 586,
+    "uniqueFields": 560,
     "baseFields": 37,
     "properties": 15,
-    "entityFieldsGenerated": 2983
+    "entityFieldsGenerated": 2952
   },
   "topFields": [
     {
@@ -68,14 +68,14 @@
       "percentage": "9.0%"
     },
     {
-      "name": "notes",
-      "occurrences": 23,
-      "percentage": "8.6%"
+      "name": "pet_breed_id",
+      "occurrences": 24,
+      "percentage": "9.0%"
     },
     {
-      "name": "pet_breed_id",
-      "occurrences": 23,
-      "percentage": "8.6%"
+      "name": "notes",
+      "occurrences": 22,
+      "percentage": "8.3%"
     },
     {
       "name": "pet_type_id",
@@ -83,12 +83,12 @@
       "percentage": "7.9%"
     },
     {
-      "name": "type_id",
-      "occurrences": 18,
-      "percentage": "6.8%"
+      "name": "owner_id",
+      "occurrences": 17,
+      "percentage": "6.4%"
     },
     {
-      "name": "owner_id",
+      "name": "type_id",
       "occurrences": 17,
       "percentage": "6.4%"
     },
@@ -123,14 +123,14 @@
   ],
   "analysis": {
     "fieldTypes": {
-      "unknown": 394,
-      "uuid": 94,
-      "string": 31,
+      "unknown": 369,
+      "uuid": 95,
+      "string": 30,
       "text": 8,
-      "number": 27,
       "json": 3,
       "datetime": 7,
       "boolean": 15,
+      "number": 26,
       "date": 7
     }
   }

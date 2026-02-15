@@ -36,7 +36,7 @@ interface ContactEntity {
   given_name?: string;
   surname?: string;
   avatar_url?: string;
-  account_id?: string; // If not null, contact has a linked user account
+  user_id?: string; // If not null, contact is a registered user
   verification_status_id?: string;
   contact_roles?: ContactRoles;
   breed_patronage?: BreedPatronage[];
@@ -63,8 +63,8 @@ export function ContactListCard({
   selected = false,
   onClick,
 }: ContactListCardProps) {
-  // Determine avatar outline color based on whether contact has a linked user account
-  const hasUser = !!entity.account_id;
+  // Determine avatar outline color based on whether contact is a registered user
+  const hasUser = !!entity.user_id;
   const getOutlineClass = () => {
     return hasUser
       ? "outline-primary-300 dark:outline-primary-400"
