@@ -4169,6 +4169,7 @@ class SpaceStore {
       'account_communication': 'account',
       'kennel_pet': 'account',
       'kennel_offspring': 'account',
+      'kennel_offer': 'account',
     };
 
     // Try exact match first
