@@ -1170,6 +1170,106 @@
       "placeholder": "Enter measurements"
     },
     {
+      "id": "field_tier_marks",
+      "name": "tier_marks",
+      "fieldType": "json",
+      "component": "TextareaInput",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 460,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "displayName": "Tier Marks",
+      "placeholder": "Enter tier marks",
+      "defaultValue": "{}"
+    },
+    {
+      "id": "field_services",
+      "name": "services",
+      "fieldType": "json",
+      "component": "TextareaInput",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 470,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "displayName": "Services",
+      "placeholder": "Enter services",
+      "defaultValue": "{}"
+    },
+    {
+      "id": "field_owner_name",
+      "name": "owner_name",
+      "fieldType": "string",
+      "component": "TextInput",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 480,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "maxLength": 500,
+      "displayName": "Owner Name",
+      "placeholder": "Enter owner name",
+      "validation": {
+        "maxLength": 500
+      },
+      "defaultValue": ""
+    },
+    {
+      "id": "field_federation_name",
+      "name": "federation_name",
+      "fieldType": "string",
+      "component": "TextInput",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 490,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "maxLength": 500,
+      "displayName": "Federation Name",
+      "placeholder": "Enter federation name",
+      "validation": {
+        "maxLength": 500
+      },
+      "defaultValue": ""
+    },
+    {
       "id": "field_id",
       "name": "id",
       "fieldType": "uuid",
@@ -1178,7 +1278,7 @@
       "isSystem": true,
       "isPrimaryKey": true,
       "isUnique": true,
-      "sortOrder": 460,
+      "sortOrder": 500,
       "permissions": {
         "read": [
           "*"
@@ -1198,7 +1298,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 470,
+      "sortOrder": 510,
       "permissions": {
         "read": [
           "*"
@@ -1218,7 +1318,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 480,
+      "sortOrder": 520,
       "permissions": {
         "read": [
           "*"
@@ -1238,7 +1338,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 490,
+      "sortOrder": 530,
       "permissions": {
         "read": [
           "*"
@@ -1258,7 +1358,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 500,
+      "sortOrder": 540,
       "permissions": {
         "read": [
           "*"
@@ -1278,7 +1378,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 510,
+      "sortOrder": 550,
       "permissions": {
         "read": [
           "*"
@@ -1292,9 +1392,9 @@
   ],
   "metadata": {
     "tableName": "account",
-    "totalFields": 51,
+    "totalFields": 55,
     "systemFields": 6,
-    "customFields": 45,
-    "generatedAt": "2026-02-15T11:03:37.149Z"
+    "customFields": 49,
+    "generatedAt": "2026-02-15T11:47:50.286Z"
   }
 }

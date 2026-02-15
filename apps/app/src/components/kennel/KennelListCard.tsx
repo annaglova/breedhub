@@ -20,22 +20,13 @@ interface KennelEntity {
   id: string;
   name?: string;
   avatar_url?: string;
-  has_user?: boolean;
   verification_status_id?: string;
-  verification_status?: string;
-  // Owner can be nested object or direct field
-  owner_name?: string;
-  owner?: { name?: string };
-  // Federation can be nested object or direct field
-  federation_name?: string;
-  federation?: { alternative_name?: string; name?: string };
-  // Foundation date or year
   company_foundation_date?: string;
-  established_year?: number;
+  owner_name?: string;
+  federation_name?: string;
   tier_marks?: TierMarksData;
-  services?: Record<string, string>;
+  services?: string[] | Record<string, string>;
   notes?: string;
-  has_notes?: boolean;
   [key: string]: any;
 }
 
@@ -46,10 +37,9 @@ interface KennelListCardProps {
 }
 
 /**
- * Extract year from date string or number
+ * Extract year from date string
  */
-function getYear(dateString?: string, yearNumber?: number): string {
-  if (yearNumber) return yearNumber.toString();
+function getYear(dateString?: string): string {
   if (!dateString) return "";
   try {
     const date = new Date(dateString);
@@ -64,45 +54,20 @@ export function KennelListCard({
   selected = false,
   onClick,
 }: KennelListCardProps) {
-  // Determine avatar outline color based on HasUser
-  const getOutlineClass = () => {
-    return entity.has_user
-      ? "outline-primary-300 dark:outline-primary-400"
-      : "outline-slate-300 dark:outline-slate-400";
-  };
+  // Kennels use default slate outline (no sex-based or user-based coloring)
+  const outlineClass = "outline-slate-300 dark:outline-slate-400";
 
-  // Mock data for UI development - will be replaced with real data
   const kennel = {
-    Id: entity.id,
     Name: entity.name || "Unknown",
     Avatar: entity.avatar_url,
-    // HasUser - mock for visual testing (always show outline)
-    HasUser: true,
-    // VerificationStatus - mock for visual testing (always show verified)
-    VerificationStatus: "verified",
-    // Owner - mock for visual testing (always show)
-    OwnerName: "Mock Owner",
-    // Federation - mock for visual testing (always show)
-    FederationName: "AKC",
-    // Foundation year - mock for visual testing (always show)
-    FoundationYear: "2010",
-    // Notes - mock for visual testing (always show)
-    HasNotes: true,
-    // Tier marks - mock for visual testing (always show)
-    // Requires product_name to display!
-    TierMarks: {
-      owner: { contact_name: "Mock Owner", product_name: "Professional" },
-    },
-    // Services - mock for visual testing (always show)
-    // Must use real service IDs from SERVICE_ICONS in PetServices.tsx
-    Services: {
-      "1": "3370ee61-86de-49ae-a8ec-5cef5f213ecd", // Children for sale
-      "2": "ea48e37d-8f65-4122-bc00-d012848d78ae", // Mating
-    },
+    VerificationStatus: entity.verification_status_id,
+    OwnerName: entity.owner_name || "",
+    FederationName: entity.federation_name || "",
+    FoundationYear: getYear(entity.company_foundation_date),
+    HasNotes: !!entity.notes,
+    TierMarks: entity.tier_marks,
+    Services: entity.services,
   };
-
-  // Get first letter for fallback avatar
-  const firstLetter = kennel.Name?.charAt(0)?.toUpperCase() || "?";
 
   return (
     <EntityListCardWrapper
@@ -114,7 +79,7 @@ export function KennelListCard({
         {/* Avatar with verification badge */}
         <div className="relative flex">
           <div
-            className={`size-10 rounded-full border border-surface-border flex-shrink-0 outline outline-2 outline-offset-2 ${getOutlineClass()}`}
+            className={`size-10 rounded-full border border-surface-border flex-shrink-0 outline outline-2 outline-offset-2 ${outlineClass}`}
           >
             <div className="w-full h-full rounded-full overflow-hidden">
               {kennel.Avatar ? (
@@ -140,7 +105,7 @@ export function KennelListCard({
                   kennel.Avatar ? "hidden" : ""
                 }`}
               >
-                {firstLetter}
+                {kennel.Name?.charAt(0)?.toUpperCase() || "?"}
               </div>
             </div>
           </div>

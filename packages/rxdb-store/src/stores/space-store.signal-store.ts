@@ -55,6 +55,7 @@ interface SpaceConfig {
   canAdd?: boolean;
   canEdit?: boolean;
   canDelete?: boolean;
+  defaultFilters?: Record<string, any>; // Always applied (e.g., type_id for kennel)
 }
 
 interface FieldConfig {
@@ -475,7 +476,8 @@ class SpaceStore {
               views: space.views,
               canAdd: space.canAdd,
               canEdit: space.canEdit,
-              canDelete: space.canDelete
+              canDelete: space.canDelete,
+              defaultFilters: space.defaultFilters
             };
 
             this.spaceConfigs.set(space.entitySchemaName, spaceConfig);
@@ -1916,6 +1918,11 @@ class SpaceStore {
       }
     };
 
+    // Get space config and merge defaultFilters (e.g., type_id for kennel)
+    const spaceConfig = this.spaceConfigs.get(entityType);
+    const defaultFilters = spaceConfig?.defaultFilters || {};
+    filters = { ...defaultFilters, ...filters };
+
     console.log('[SpaceStore] applyFilters (ID-First):', {
       entityType,
       filters,
@@ -1923,9 +1930,6 @@ class SpaceStore {
       cursor,
       orderBy
     });
-
-    // Get field configs for operator detection
-    const spaceConfig = this.spaceConfigs.get(entityType);
     const fieldConfigs = options?.fieldConfigs || spaceConfig?.filter_fields || {};
 
     // 📴 PREVENTIVE OFFLINE CHECK: Skip Supabase if browser is offline
@@ -2031,9 +2035,13 @@ class SpaceStore {
         const hasFilterKey = totalFilterKey && totalFilterValue;
 
         // Build cache key - include filter value if totalFilterKey is set and active
+        // Also include defaultFilters in cache key (e.g., account with type_id=kennel vs type_id=federation)
+        const defaultFiltersSuffix = Object.keys(defaultFilters).length > 0
+          ? '_df_' + Object.entries(defaultFilters).map(([k, v]) => `${k}=${v}`).join('_')
+          : '';
         const cacheKey = hasFilterKey
-          ? `totalCount_${entityType}_${totalFilterKey}_${totalFilterValue}`
-          : `totalCount_${entityType}`;
+          ? `totalCount_${entityType}_${totalFilterKey}_${totalFilterValue}${defaultFiltersSuffix}`
+          : `totalCount_${entityType}${defaultFiltersSuffix}`;
 
         // Check if we need to fetch (no cache or expired TTL)
         try {
@@ -2079,6 +2087,13 @@ class SpaceStore {
               .from(entityType)
               .select('*', { count: 'exact', head: true })
               .or('deleted.is.null,deleted.eq.false');
+
+            // Apply defaultFilters to count query (e.g., type_id for kennel)
+            for (const [key, value] of Object.entries(defaultFilters)) {
+              if (value !== undefined && value !== null && value !== '') {
+                countQuery = countQuery.eq(key, value);
+              }
+            }
 
             // Add filter for grouped count
             if (hasFilterKey) {
