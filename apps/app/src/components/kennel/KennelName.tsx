@@ -1,9 +1,20 @@
+import { useDictionaryValue } from "@/hooks/useDictionaryValue";
 import { VerificationBadge } from "@/components/shared/VerificationBadge";
 import { NoteFlagButton } from "@ui/components/note-flag-button";
 import { Link } from "react-router-dom";
 
 interface KennelNameProps {
-  entity?: any;
+  entity?: {
+    name?: string;
+    slug?: string;
+    country_id?: string;
+    verification_status_id?: string;
+    owner_name?: string;
+    federation_name?: string;
+    company_foundation_date?: string;
+    notes?: string;
+    [key: string]: any;
+  };
   hasNotes?: boolean;
   onNotesClick?: () => void;
   /** If true, clicking on name navigates to fullscreen page */
@@ -23,16 +34,12 @@ function formatYear(dateString?: string): string {
   }
 }
 
-// Fallback for when entity hasn't loaded yet
-const EMPTY_KENNEL = {
-  name: "",
-};
-
 /**
  * KennelName - Displays kennel name and details
  *
- * Based on Angular: libs/schema/domain/kennel/kennel-name/kennel-name.component.ts
- * Shows: country, kennel name, verification status, owner, federation, since year
+ * Data sources:
+ * - name, slug, owner_name, federation_name, verification_status_id: direct from entity
+ * - country: useDictionaryValue by country_id → country table
  */
 export function KennelName({
   entity,
@@ -40,20 +47,17 @@ export function KennelName({
   onNotesClick,
   linkToFullscreen = true,
 }: KennelNameProps) {
-  const hasEntityData = entity && entity.name;
-  const kennel = hasEntityData ? entity : EMPTY_KENNEL;
+  // Enrich country from dictionary
+  const countryName = useDictionaryValue("country", entity?.country_id);
 
-  // Extract data from entity
-  const displayName = kennel?.name || "Unknown Kennel";
-  const countryName = kennel?.country?.name || kennel?.country_name;
-  const ownerName = kennel?.owner?.name || kennel?.owner_name;
-  const ownerSlug = kennel?.owner?.slug || kennel?.owner_slug;
-  const federationName = kennel?.federation?.alternativeName || kennel?.federation?.alternative_name || kennel?.federation_name;
-  const foundationYear = formatYear(kennel?.company_foundation_date || kennel?.companyFoundationDate);
+  const displayName = entity?.name?.trim() || "Unknown Kennel";
+  const ownerName = entity?.owner_name || "";
+  const federationName = entity?.federation_name || "";
+  const foundationYear = formatYear(entity?.company_foundation_date);
 
   return (
     <div className="pb-3 cursor-default">
-      {/* Country - same position as achievement in BreedName */}
+      {/* Country */}
       <div className="text-md mb-2 min-h-[1.5rem]">
         {countryName && (
           <span className="uppercase">{countryName}</span>
@@ -63,9 +67,9 @@ export function KennelName({
       {/* Kennel name with verification and note flag */}
       <div className="flex space-x-1.5">
         <div className="truncate py-0.5 text-3xl font-bold">
-          {linkToFullscreen && kennel?.slug ? (
+          {linkToFullscreen && entity?.slug ? (
             <Link
-              to={`/${kennel.slug}`}
+              to={`/${entity.slug}`}
               className="hover:text-primary transition-colors cursor-pointer"
             >
               {displayName}
@@ -77,14 +81,14 @@ export function KennelName({
 
         {/* Verification badge */}
         <VerificationBadge
-          status={kennel?.verification_status_id || kennel?.verificationStatusId}
+          status={entity?.verification_status_id}
           size={16}
           mode="page"
         />
 
         {/* Note flag */}
         <NoteFlagButton
-          hasNotes={hasNotes || kennel?.hasNotes}
+          hasNotes={hasNotes || !!entity?.notes}
           onClick={onNotesClick}
           mode="page"
           className="self-start pr-7"
@@ -99,21 +103,13 @@ export function KennelName({
 
           {/* Owner */}
           {ownerName && (
-            <div className="flex items-center">
-              {ownerSlug ? (
-                <Link to={`/${ownerSlug}`} className="hover:underline">
-                  {ownerName}
-                </Link>
-              ) : (
-                <span>{ownerName}</span>
-              )}
-            </div>
+            <span>{ownerName}</span>
           )}
 
           {/* Federation */}
           {federationName && (
             <div className="flex items-center">
-              <span className="mr-2">&bull;</span>
+              {ownerName && <span className="mr-2">&bull;</span>}
               <span>{federationName}</span>
             </div>
           )}
