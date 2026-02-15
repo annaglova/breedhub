@@ -1930,7 +1930,14 @@ class SpaceStore {
       cursor,
       orderBy
     });
-    const fieldConfigs = options?.fieldConfigs || spaceConfig?.filter_fields || {};
+    // Inject field configs for defaultFilter keys so they use 'eq' operator (not ilike)
+    const baseFieldConfigs = options?.fieldConfigs || spaceConfig?.filter_fields || {};
+    const fieldConfigs = { ...baseFieldConfigs };
+    for (const key of Object.keys(defaultFilters)) {
+      if (!fieldConfigs[key]) {
+        fieldConfigs[key] = { fieldType: 'uuid', operator: 'eq' };
+      }
+    }
 
     // 📴 PREVENTIVE OFFLINE CHECK: Skip Supabase if browser is offline
     if (isOffline()) {
