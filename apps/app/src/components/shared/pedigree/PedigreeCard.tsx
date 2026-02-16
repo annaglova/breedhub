@@ -234,7 +234,7 @@ export function PedigreeCard({ pet, sex, level, canSelectPet, isSelected, onSele
   // Level 1: Medium card (grandparents level)
   if (level === 1) {
     return (
-      <div className="card card-rounded flex min-w-72 max-w-72 flex-col items-center px-6 py-3 min-h-[196.25px] bg-even-card-ground">
+      <div className="card card-rounded flex min-w-72 max-w-72 flex-col items-center px-6 py-3 min-h-[196.25px] max-h-[196.25px] overflow-hidden bg-even-card-ground">
         <PetSexMark sex={petSex} style="horizontal" className="w-44 shrink-0" />
 
         {!isEmpty ? (
@@ -311,7 +311,7 @@ export function PedigreeCard({ pet, sex, level, canSelectPet, isSelected, onSele
   // Level 2: Small card (great-grandparents level)
   if (level === 2) {
     return (
-      <div className="card card-rounded min-w-72 max-w-72 p-3 flex min-h-[92.88px] bg-even-card-ground">
+      <div className="card card-rounded min-w-72 max-w-72 p-3 flex min-h-[92.88px] max-h-[92.88px] overflow-hidden bg-even-card-ground">
         {/* Avatar 64px */}
         <div className="size-16 min-w-16 overflow-hidden self-center rounded-xl border border-border relative">
           <PetImage
@@ -366,7 +366,7 @@ export function PedigreeCard({ pet, sex, level, canSelectPet, isSelected, onSele
 
   // Level 3: Pill-shaped card (gen 4+)
   return (
-    <div className="card flex min-w-72 max-w-72 flex-row items-center rounded-full py-[0.65rem] pl-3 pr-5 bg-even-card-ground">
+    <div className="card flex min-w-72 max-w-72 flex-row items-center rounded-full py-[0.65rem] pl-3 pr-5 min-h-[42px] max-h-[42px] overflow-hidden bg-even-card-ground">
       <PetSexMark sex={petSex} style="round" className="mr-3 w-4 shrink-0" />
 
       {!isEmpty ? (
@@ -383,7 +383,7 @@ export function PedigreeCard({ pet, sex, level, canSelectPet, isSelected, onSele
         )
       ) : (
         <div className="flex w-full justify-center">
-          <div className="rounded-full bg-secondary-200 dark:bg-secondary-700 w-full h-4 my-1" />
+          <div className="rounded-full bg-secondary-200 dark:bg-secondary-700 w-full h-4" />
         </div>
       )}
     </div>

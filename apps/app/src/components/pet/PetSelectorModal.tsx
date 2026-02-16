@@ -1,4 +1,3 @@
-import defaultPetLogo from "@/assets/images/pettypes/dog-logo.svg";
 import { useDictionaryValue } from "@/hooks/useDictionaryValue";
 import { useEntities } from "@/hooks/useEntities";
 import { dictionaryStore, spaceStore, supabase } from "@breedhub/rxdb-store";
@@ -105,7 +104,7 @@ function PetSelectorItem({
         selected && "bg-primary-50 dark:bg-primary-900/30",
       )}
     >
-      {/* Avatar - compact size */}
+      {/* Avatar - compact size with letter fallback */}
       <div
         className={cn(
           "size-8 rounded-full border border-surface-border flex-shrink-0",
@@ -114,19 +113,32 @@ function PetSelectorItem({
         )}
       >
         <div className="w-full h-full rounded-full overflow-hidden">
-          <img
-            src={pet.avatar_url || defaultPetLogo}
-            alt={pet.name || "Pet"}
-            className="w-full h-full object-cover"
-            loading="lazy"
-            onError={(e) => {
-              const target = e.currentTarget;
-              if (!target.dataset.fallback) {
-                target.dataset.fallback = "true";
-                target.src = defaultPetLogo;
-              }
-            }}
-          />
+          {pet.avatar_url ? (
+            <img
+              src={pet.avatar_url}
+              alt={pet.name || "Pet"}
+              className="w-full h-full object-cover"
+              loading="lazy"
+              onError={(e) => {
+                const target = e.currentTarget;
+                if (!target.dataset.fallback) {
+                  target.dataset.fallback = "true";
+                  target.style.display = "none";
+                  target.parentElement
+                    ?.querySelector(".fallback-avatar")
+                    ?.classList.remove("hidden");
+                }
+              }}
+            />
+          ) : null}
+          <div
+            className={cn(
+              "fallback-avatar flex size-full items-center justify-center rounded-full bg-slate-50 text-sm uppercase text-sub-header-color dark:bg-slate-700",
+              pet.avatar_url && "hidden",
+            )}
+          >
+            {pet.name?.charAt(0)?.toUpperCase() || "?"}
+          </div>
         </div>
       </div>
 
