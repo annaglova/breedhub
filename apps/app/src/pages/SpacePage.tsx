@@ -69,7 +69,8 @@ function TabDetailWrapper({
 interface SpacePageProps {
   entityType: string; // 'breed', 'pet', 'kennel', etc.
   selectedEntityId?: string; // Pre-selected entity ID (from SlugResolver)
-  selectedPartitionId?: string; // Partition key for partitioned tables (e.g., breed_id for pet)
+  selectedPartitionId?: string; // Partition key value for partitioned tables (e.g., breed_id value for pet)
+  selectedPartitionField?: string; // Partition key column name (e.g., 'breed_id') - fallback for cold load
   selectedSlug?: string; // Pretty URL slug (from SlugResolver) - for URL display
   tabSlug?: string; // Tab slug for tab fullscreen mode (from TabPageResolver)
 }
@@ -86,7 +87,7 @@ interface SpacePageProps {
  * Usage in AppRouter:
  * <Route path="breeds/*" element={<SpacePage entityType="breed" />} />
  */
-export function SpacePage({ entityType, selectedEntityId, selectedPartitionId, selectedSlug, tabSlug }: SpacePageProps) {
+export function SpacePage({ entityType, selectedEntityId, selectedPartitionId, selectedPartitionField, selectedSlug, tabSlug }: SpacePageProps) {
   useSignals();
 
   // Get hook from registry
@@ -148,6 +149,7 @@ export function SpacePage({ entityType, selectedEntityId, selectedPartitionId, s
           useEntitiesHook={useEntitiesHook}
           initialSelectedEntityId={selectedEntityId}
           initialSelectedPartitionId={selectedPartitionId}
+          initialSelectedPartitionField={selectedPartitionField}
           initialSelectedSlug={selectedSlug}
         >
           <TabDetailWrapper
@@ -171,6 +173,7 @@ export function SpacePage({ entityType, selectedEntityId, selectedPartitionId, s
         useEntitiesHook={useEntitiesHook}
         initialSelectedEntityId={selectedEntityId}
         initialSelectedPartitionId={selectedPartitionId}
+        initialSelectedPartitionField={selectedPartitionField}
         initialSelectedSlug={selectedSlug}
       >
         <DetailComponent

@@ -133,6 +133,11 @@ function AboveFoldBlocks({
   // This prevents skeleton flicker for cached data that loads quickly
   const shouldShowSkeleton = useSkeletonWithDelay(isAboveFoldLoading);
 
+  // Blocks should be invisible when no entity data at all OR skeleton is showing
+  // !selectedEntity prevents "Unknown" flash on cold load (entity not fetched yet)
+  // shouldShowSkeleton handles partial loading (entity exists but related data loading)
+  const isBlocksLoading = !selectedEntity || shouldShowSkeleton;
+
   // Sort blocks by order
   const sortedBlocks = Object.entries(pageConfig.blocks).sort(
     ([, a]: [string, any], [, b]: [string, any]) => (a.order || 0) - (b.order || 0)
@@ -165,7 +170,7 @@ function AboveFoldBlocks({
               entity={selectedEntity}
               pageConfig={pageConfig}
               spacePermissions={spacePermissions}
-              isLoading={shouldShowSkeleton}
+              isLoading={isBlocksLoading}
             />
           );
         }
@@ -182,7 +187,7 @@ function AboveFoldBlocks({
               entity={selectedEntity}
               pageConfig={pageConfig}
               spacePermissions={spacePermissions}
-              isLoading={shouldShowSkeleton}
+              isLoading={isBlocksLoading}
             />
           );
         }
@@ -205,7 +210,7 @@ function AboveFoldBlocks({
                 entity={selectedEntity}
                 pageConfig={pageConfig}
                 spacePermissions={spacePermissions}
-                isLoading={shouldShowSkeleton}
+                isLoading={isBlocksLoading}
               />
             </div>
           );
@@ -224,7 +229,7 @@ function AboveFoldBlocks({
               entity={selectedEntity}
               pageConfig={pageConfig}
               spacePermissions={spacePermissions}
-              isLoading={shouldShowSkeleton}
+              isLoading={isBlocksLoading}
             />
           );
         }
@@ -238,7 +243,7 @@ function AboveFoldBlocks({
             className="mb-4"
             pageConfig={pageConfig}
             spacePermissions={spacePermissions}
-            isLoading={shouldShowSkeleton}
+            isLoading={isBlocksLoading}
           />
         );
       })}

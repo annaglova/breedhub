@@ -9,7 +9,8 @@ import { SpacePage } from './SpacePage';
 interface ResolvedRoute {
   entity: string;      // 'breed', 'pet', etc.
   entity_id: string;   // UUID of the entity
-  entity_partition_id?: string; // Partition key for partitioned tables (e.g., breed_id for pet)
+  entity_partition_id?: string; // Partition key value for partitioned tables (e.g., breed_id value for pet)
+  partition_field?: string;     // Partition key column name in entity table (e.g., 'breed_id' for pet)
   model: string;       // model name for API
 }
 
@@ -156,6 +157,7 @@ export function SlugResolver() {
       entityType={resolvedRoute.entity}
       selectedEntityId={resolvedRoute.entity_id}
       selectedPartitionId={resolvedRoute.entity_partition_id}
+      selectedPartitionField={resolvedRoute.partition_field}
       selectedSlug={slug}
     />
   );

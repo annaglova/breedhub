@@ -47,6 +47,8 @@ interface SpaceComponentProps<T> {
   initialSelectedEntityId?: string;
   // Pre-selected partition ID (for partitioned tables like pet - used for partition pruning)
   initialSelectedPartitionId?: string;
+  // Pre-selected partition field name (e.g., 'breed_id') - fallback for cold load when entitySchemas not ready
+  initialSelectedPartitionField?: string;
   // Pre-selected entity slug (from SlugResolver for pretty URLs - for display/navigation)
   initialSelectedSlug?: string;
   // Children to render in drawer (when initialSelectedEntityId is provided)
@@ -58,6 +60,7 @@ export function SpaceComponent<T extends { id: string }>({
   useEntitiesHook,
   initialSelectedEntityId,
   initialSelectedPartitionId,
+  initialSelectedPartitionField,
   initialSelectedSlug,
   children,
 }: SpaceComponentProps<T>) {
@@ -733,7 +736,8 @@ export function SpaceComponent<T extends { id: string }>({
       spaceStore.fetchAndSelectEntity(
         config.entitySchemaName,
         initialSelectedEntityId,
-        initialSelectedPartitionId
+        initialSelectedPartitionId,
+        initialSelectedPartitionField
       );
 
       // Save route for offline access

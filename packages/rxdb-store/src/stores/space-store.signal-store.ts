@@ -3595,8 +3595,9 @@ class SpaceStore {
    * @param entityType - Entity type (e.g., 'pet', 'breed')
    * @param id - Entity UUID
    * @param partitionId - Optional partition key value for partition pruning (e.g., breed_id for pet)
+   * @param partitionField - Optional partition key column name (e.g., 'breed_id') - fallback when entitySchemas not ready
    */
-  async fetchAndSelectEntity(entityType: string, id: string, partitionId?: string): Promise<boolean> {
+  async fetchAndSelectEntity(entityType: string, id: string, partitionId?: string, partitionField?: string): Promise<boolean> {
     // Use getEntityStore which will create the store if it doesn't exist
     // This handles the case when navigating directly to pretty URL
     const entityStore = await this.getEntityStore(entityType.toLowerCase());
@@ -3616,9 +3617,9 @@ class SpaceStore {
     // Fetch from Supabase using imported client
     console.log(`[SpaceStore] Fetching entity ${id} from Supabase`, partitionId ? `(partition: ${partitionId})` : '');
     try {
-      // Get partition config from entity schema
+      // Get partition config from entity schema, with fallback to route-provided field name
       const entitySchema = this.entitySchemas.get(entityType);
-      const partitionKeyField = entitySchema?.partition?.keyField;
+      const partitionKeyField = entitySchema?.partition?.keyField || partitionField;
 
       // Build query with partition pruning if available
       let query = supabase.from(entityType).select('*');
