@@ -112,33 +112,23 @@ function PetSelectorItem({
           getRingClass(),
         )}
       >
-        <div className="w-full h-full rounded-full overflow-hidden">
+        <div className="relative w-full h-full rounded-full overflow-hidden">
+          {/* Fallback letter - always visible as base layer */}
+          <div className="flex size-full items-center justify-center rounded-full bg-slate-50 text-sm uppercase text-sub-header-color dark:bg-slate-700">
+            {pet.name?.charAt(0)?.toUpperCase() || "?"}
+          </div>
+          {/* Avatar image - overlays fallback when loaded */}
           {pet.avatar_url ? (
             <img
               src={pet.avatar_url}
               alt={pet.name || "Pet"}
-              className="w-full h-full object-cover"
+              className="absolute inset-0 w-full h-full object-cover rounded-full"
               loading="lazy"
               onError={(e) => {
-                const target = e.currentTarget;
-                if (!target.dataset.fallback) {
-                  target.dataset.fallback = "true";
-                  target.style.display = "none";
-                  target.parentElement
-                    ?.querySelector(".fallback-avatar")
-                    ?.classList.remove("hidden");
-                }
+                e.currentTarget.style.display = "none";
               }}
             />
           ) : null}
-          <div
-            className={cn(
-              "fallback-avatar flex size-full items-center justify-center rounded-full bg-slate-50 text-sm uppercase text-sub-header-color dark:bg-slate-700",
-              pet.avatar_url && "hidden",
-            )}
-          >
-            {pet.name?.charAt(0)?.toUpperCase() || "?"}
-          </div>
         </div>
       </div>
 

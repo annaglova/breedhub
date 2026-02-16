@@ -47,6 +47,16 @@ export function usePedigree({
   const loadingRef = useRef(false);
   const mountedRef = useRef(true);
 
+  // Synchronously mark as loading when new pedigree data arrives
+  // This avoids a 1-frame gap where isLoading is false between state updates
+  const prevPedigreeRef = useRef(pedigree);
+  if (pedigree !== prevPedigreeRef.current) {
+    prevPedigreeRef.current = pedigree;
+    if (enabled && pedigree && Object.keys(pedigree).length > 0 && !isLoading && !loadingRef.current) {
+      setIsLoading(true);
+    }
+  }
+
   const loadPedigree = useCallback(async () => {
     // Skip if disabled or no pedigree data
     if (!enabled || !pedigree || Object.keys(pedigree).length === 0) {

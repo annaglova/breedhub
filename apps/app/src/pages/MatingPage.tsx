@@ -28,8 +28,20 @@ import {
   TooltipTrigger,
 } from "@ui/components/tooltip";
 import { MoreVertical, Save, X } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
+
+const UNKNOWN_PET: PedigreePet = { id: "unknown", name: "Unknown" };
+
+/** Build skeleton ancestor tree for loading state */
+function buildSkeletonAncestor(depth: number): PedigreePet | undefined {
+  if (depth <= 0) return undefined;
+  return {
+    ...UNKNOWN_PET,
+    father: buildSkeletonAncestor(depth - 1),
+    mother: buildSkeletonAncestor(depth - 1),
+  };
+}
 
 /** Get default generations based on screen size */
 function getDefaultGenerations(): GenerationCount {
@@ -80,17 +92,18 @@ export function MatingPage({ pageConfig, workspaceConfig }: MatingPageProps) {
   const [motherPedigree, setMotherPedigree] = useState<Record<string, { id: string; bid: string }> | null>(null);
 
   // Load ancestor trees from pedigree JSONB
-  const { father: fatherAncestorFather, mother: fatherAncestorMother } = usePedigree({
+  const { father: fatherAncestorFather, mother: fatherAncestorMother, isLoading: fatherPedigreeLoading } = usePedigree({
     pedigree: fatherPedigree,
     enabled: !!father,
   });
-  const { father: motherAncestorFather, mother: motherAncestorMother } = usePedigree({
+  const { father: motherAncestorFather, mother: motherAncestorMother, isLoading: motherPedigreeLoading } = usePedigree({
     pedigree: motherPedigree,
     enabled: !!mother,
   });
 
-  // Track if we're currently resolving slugs (to prevent URL update during resolution)
+  // Track if we're currently resolving slugs
   const isResolvingRef = useRef(false);
+  const [isResolvingSlugs, setIsResolvingSlugs] = useState(false);
 
   // Modal state
   const [fatherModalOpen, setFatherModalOpen] = useState(false);
@@ -174,6 +187,7 @@ export function MatingPage({ pageConfig, workspaceConfig }: MatingPageProps) {
     }
 
     isResolvingRef.current = true;
+    setIsResolvingSlugs(true);
 
     const resolveSlugs = async () => {
       try {
@@ -210,6 +224,7 @@ export function MatingPage({ pageConfig, workspaceConfig }: MatingPageProps) {
         console.error("[MatingPage] Error resolving slugs:", error);
       } finally {
         isResolvingRef.current = false;
+        setIsResolvingSlugs(false);
       }
     };
 
@@ -271,6 +286,11 @@ export function MatingPage({ pageConfig, workspaceConfig }: MatingPageProps) {
     setIsDragging(false);
   }, []);
 
+  // Are we still loading? (slug resolution OR ancestor tree building)
+  const isPedigreeLoading = isResolvingSlugs ||
+    (father && fatherPedigree && fatherPedigreeLoading) ||
+    (mother && motherPedigree && motherPedigreeLoading);
+
   // Build virtual pet from selected parents with their ancestor trees
   const virtualPet: PedigreePet = {
     id: "mating-preview",
@@ -286,6 +306,23 @@ export function MatingPage({ pageConfig, workspaceConfig }: MatingPageProps) {
       mother: motherAncestorMother,
     } : undefined,
   };
+
+  // Skeleton pet for loading state (shows real parent data with skeleton ancestors)
+  const skeletonPet = useMemo<PedigreePet | null>(() => {
+    if (!isPedigreeLoading) return null;
+    const skeletonFather = father
+      ? { ...father, father: buildSkeletonAncestor(generations - 2), mother: buildSkeletonAncestor(generations - 2) }
+      : buildSkeletonAncestor(generations - 1);
+    const skeletonMother = mother
+      ? { ...mother, father: buildSkeletonAncestor(generations - 2), mother: buildSkeletonAncestor(generations - 2) }
+      : buildSkeletonAncestor(generations - 1);
+    return {
+      id: "mating-preview",
+      name: "Offspring",
+      father: skeletonFather,
+      mother: skeletonMother,
+    };
+  }, [isPedigreeLoading, father, mother, generations]);
 
   const handleSaveToLitters = () => {
     // TODO: Implement save to litters
@@ -513,14 +550,14 @@ export function MatingPage({ pageConfig, workspaceConfig }: MatingPageProps) {
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}
           onMouseLeave={handleMouseLeave}
-          className="overflow-x-auto scrollbar-hide"
+          className={`overflow-x-auto scrollbar-hide ${isPedigreeLoading ? "animate-pulse" : ""}`}
           style={{
             cursor: isDragging ? "grabbing" : "grab",
             userSelect: isDragging ? "none" : "auto",
           }}
         >
           <PedigreeTree
-            pet={virtualPet}
+            pet={isPedigreeLoading && skeletonPet ? skeletonPet : virtualPet}
             generations={generations}
             hideSubject
             matingMode
