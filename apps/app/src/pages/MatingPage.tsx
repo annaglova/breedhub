@@ -167,7 +167,7 @@ export function MatingPage({ pageConfig, workspaceConfig }: MatingPageProps) {
   }, [father?.breedId]);
 
   // Resolve slugs from URL to pets on mount
-  // Local-first: RxDB → Supabase fallback
+  // Local-first: RxDB → routes (partition-pruned) → Supabase fallback
   useEffect(() => {
     if (!fatherSlug && !motherSlug) {
       return;
@@ -177,7 +177,6 @@ export function MatingPage({ pageConfig, workspaceConfig }: MatingPageProps) {
 
     const resolveSlugs = async () => {
       try {
-        // Resolve both in parallel using fetchEntityBySlug (ID-First)
         const [fatherData, motherData] = await Promise.all([
           fatherSlug && !father ? spaceStore.fetchEntityBySlug<any>("pet", fatherSlug) : null,
           motherSlug && !mother ? spaceStore.fetchEntityBySlug<any>("pet", motherSlug) : null,

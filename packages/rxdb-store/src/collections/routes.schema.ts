@@ -10,7 +10,8 @@ export interface RouteDocument {
   slug: string;           // Primary key - unique URL slug (e.g., 'affenpinscher')
   entity: string;         // Table name: 'breed', 'pet', 'account', 'contact'
   entity_id: string;      // UUID of the entity
-  entity_partition_id?: string; // Partition key for partitioned tables (e.g., breed_id for pet)
+  entity_partition_id?: string; // Partition key value for partitioned tables (e.g., breed_id value for pet)
+  partition_field?: string;     // Partition key column name in entity table (e.g., 'breed_id' for pet)
   model: string;          // Rendering model: 'breed', 'kennel', 'club', 'federation'
   cachedAt: number;       // Unix timestamp for TTL cleanup
 }
@@ -25,7 +26,7 @@ export interface RouteDocument {
  * - Local-first: check RxDB first, fallback to Supabase, cache result
  */
 export const routesSchema: RxJsonSchema<RouteDocument> = {
-  version: 1,
+  version: 2,
   primaryKey: 'slug',
   type: 'object',
   properties: {
@@ -44,6 +45,10 @@ export const routesSchema: RxJsonSchema<RouteDocument> = {
     entity_partition_id: {
       type: 'string',
       maxLength: 36  // UUID length (optional - only for partitioned tables)
+    },
+    partition_field: {
+      type: 'string',
+      maxLength: 100  // Column name in entity table (e.g., 'breed_id')
     },
     model: {
       type: 'string',

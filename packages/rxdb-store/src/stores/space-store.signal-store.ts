@@ -3680,7 +3680,51 @@ class SpaceStore {
       }
     }
 
-    // 2. Fallback to Supabase
+    // 2. Resolve via routes table (fast PK lookup → partition-pruned query)
+    try {
+      const { data: route } = await supabase
+        .from('routes')
+        .select('entity_id, entity_partition_id, partition_field')
+        .eq('slug', slug)
+        .single();
+
+      if (route?.entity_id && route.partition_field && route.entity_partition_id) {
+        // Partition-pruned query using route info
+        const { data, error } = await supabase
+          .from(entityType)
+          .select('*')
+          .eq(route.partition_field, route.entity_partition_id)
+          .eq('id', route.entity_id)
+          .single();
+
+        if (!error && data) {
+          if (this.db?.collections[collectionName]) {
+            const mapped = this.mapToRxDBFormat(data, collectionName);
+            await this.db.collections[collectionName].upsert(mapped);
+          }
+          return data as T;
+        }
+      } else if (route?.entity_id) {
+        // Route found but no partition info — direct ID lookup
+        const { data, error } = await supabase
+          .from(entityType)
+          .select('*')
+          .eq('id', route.entity_id)
+          .single();
+
+        if (!error && data) {
+          if (this.db?.collections[collectionName]) {
+            const mapped = this.mapToRxDBFormat(data, collectionName);
+            await this.db.collections[collectionName].upsert(mapped);
+          }
+          return data as T;
+        }
+      }
+    } catch (err) {
+      console.warn(`[SpaceStore] Route lookup failed, falling back to slug query:`, err);
+    }
+
+    // 3. Fallback: direct slug query (for entities without routes)
     try {
       const { data, error } = await supabase
         .from(entityType)
@@ -3692,7 +3736,6 @@ class SpaceStore {
         return null;
       }
 
-      // Cache in RxDB if collection exists
       if (this.db?.collections[collectionName]) {
         const mapped = this.mapToRxDBFormat(data, collectionName);
         await this.db.collections[collectionName].upsert(mapped);

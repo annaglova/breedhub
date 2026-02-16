@@ -25,7 +25,8 @@ export interface ResolvedRoute {
   slug: string;
   entity: string;
   entity_id: string;
-  entity_partition_id?: string; // Partition key for partitioned tables (e.g., breed_id for pet)
+  entity_partition_id?: string; // Partition key value for partitioned tables (e.g., breed_id value for pet)
+  partition_field?: string;     // Partition key column name in entity table (e.g., 'breed_id' for pet)
   model: string;
 }
 
@@ -92,7 +93,8 @@ class RouteStore {
         'routes',
         routesSchema,
         {
-          1: (oldDoc: any) => oldDoc // v0 → v1: entity_partition_id is optional, no data migration needed
+          1: (oldDoc: any) => oldDoc, // v0 → v1: entity_partition_id is optional, no data migration needed
+          2: (oldDoc: any) => oldDoc  // v1 → v2: partition_field is optional, no data migration needed
         }
       );
 
@@ -164,6 +166,7 @@ class RouteStore {
             entity: cached.entity,
             entity_id: cached.entity_id,
             entity_partition_id: cached.entity_partition_id,
+            partition_field: cached.partition_field,
             model: cached.model
           };
         }
@@ -191,6 +194,7 @@ class RouteStore {
           entity: route.entity,
           entity_id: route.entity_id,
           entity_partition_id: route.entity_partition_id,
+          partition_field: route.partition_field,
           model: route.model,
           cachedAt: Date.now()
         });
@@ -219,7 +223,7 @@ class RouteStore {
 
     const { data, error } = await supabase
       .from('routes')
-      .select('slug, entity, entity_id, entity_partition_id, model')
+      .select('slug, entity, entity_id, entity_partition_id, partition_field, model')
       .eq('slug', slug)
       .single();
 
@@ -247,6 +251,7 @@ class RouteStore {
       entity: data.entity,
       entity_id: data.entity_id,
       entity_partition_id: data.entity_partition_id,
+      partition_field: data.partition_field,
       model: data.model
     };
   }
@@ -281,6 +286,7 @@ class RouteStore {
         entity: route.entity,
         entity_id: route.entity_id,
         entity_partition_id: route.entity_partition_id || '',
+        partition_field: route.partition_field || '',
         model: route.model,
         cachedAt: Date.now()
       });
