@@ -13,21 +13,57 @@ export function useEntityFullyLoaded(
   entityType: string | undefined,
   entity: any
 ): boolean {
-  // For Pet entities - check breed and dictionaries
+  // --- Pet ---
   const breed = useCollectionValue<{ name?: string }>(
     "breed",
     entityType === "pet" ? entity?.breed_id : undefined
   );
-
   const petStatus = useDictionaryValue(
     "pet_status",
     entityType === "pet" ? entity?.pet_status_id : undefined
   );
-
   const sexCode = useDictionaryValue(
     "sex",
     entityType === "pet" ? entity?.sex_id : undefined,
     "code"
+  );
+
+  // --- Kennel / Contact / Event: country ---
+  const country = useDictionaryValue(
+    "country",
+    entityType === "kennel" || entityType === "contact" || entityType === "event"
+      ? entity?.country_id
+      : undefined
+  );
+
+  // --- Litter ---
+  const litterStatus = useDictionaryValue(
+    "litter_status",
+    entityType === "litter" ? entity?.status_id : undefined
+  );
+  const fatherBreed = useCollectionValue<{ name?: string }>(
+    "breed",
+    entityType === "litter" ? entity?.father_breed_id : undefined
+  );
+  const motherBreed = useCollectionValue<{ name?: string }>(
+    "breed",
+    entityType === "litter" && entity?.mother_breed_id !== entity?.father_breed_id
+      ? entity?.mother_breed_id
+      : undefined
+  );
+  const litterKennel = useCollectionValue<{ name?: string }>(
+    "account",
+    entityType === "litter" ? entity?.kennel_id : undefined
+  );
+
+  // --- Event ---
+  const programStatus = useDictionaryValue(
+    "program_status",
+    entityType === "event" ? entity?.status_id : undefined
+  );
+  const programType = useDictionaryValue(
+    "program_type",
+    entityType === "event" ? entity?.type_id : undefined
   );
 
   // No entity yet - not loaded
@@ -38,36 +74,47 @@ export function useEntityFullyLoaded(
   // Check based on entity type
   switch (entityType) {
     case "pet": {
-      // Check if breed is loaded (if breed_id exists)
       if (entity.breed_id && !breed?.name && !entity.breed?.name && !entity.breed_name) {
         return false;
       }
-      // Check if pet_status is loaded (if pet_status_id exists)
       if (entity.pet_status_id && !petStatus) {
         return false;
       }
-      // Check if sex is loaded (if sex_id exists)
       if (entity.sex_id && !sexCode) {
         return false;
       }
       return true;
     }
 
-    case "breed": {
-      // Breed data is self-contained, check if achievements loaded
-      // achievements is JSONB field - if entity exists but achievements is undefined, might be loading
-      // But typically JSONB loads with entity, so just check entity exists
+    case "breed":
+      return true;
+
+    case "kennel": {
+      if (entity.country_id && !country) return false;
+      return true;
+    }
+
+    case "contact": {
+      if (entity.country_id && !country) return false;
       return true;
     }
 
     case "litter": {
-      // Litter needs breeds and parents - check if they exist
-      // These are usually embedded or loaded with entity
+      if (entity.status_id && !litterStatus) return false;
+      if (entity.father_breed_id && !fatherBreed?.name) return false;
+      if (entity.father_breed_id !== entity.mother_breed_id && entity.mother_breed_id && !motherBreed?.name) return false;
+      if (entity.kennel_id && !litterKennel?.name && !entity.kennel?.name && !entity.kennel_name) return false;
+      return true;
+    }
+
+    case "event": {
+      if (entity.status_id && !programStatus) return false;
+      if (entity.country_id && !country) return false;
+      if (entity.type_id && !programType) return false;
       return true;
     }
 
     default:
-      // For unknown types, just check if entity exists
       return true;
   }
 }
