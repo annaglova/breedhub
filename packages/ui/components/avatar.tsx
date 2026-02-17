@@ -66,7 +66,7 @@ const AvatarImage = React.forwardRef<
 AvatarImage.displayName = AvatarPrimitive.Image.displayName;
 
 const avatarFallbackVariants = cva(
-  "flex h-full w-full items-center justify-center bg-muted text-muted-foreground ",
+  "flex h-full w-full items-center justify-center bg-slate-200 text-slate-600 ",
   {
     variants: {
       size: {

@@ -37,7 +37,7 @@ export function UserDrawer({ isOpen, onClose }: UserDrawerProps) {
             size="default"
             src={authenticated ? user.avatar : undefined}
             name={authenticated ? user.name : undefined}
-            className="shrink-0"
+            className="shrink-0 border border-slate-300"
           />
           <div className="flex-1 min-w-0">
             <div className="font-semibold truncate">{authenticated ? user.name : "Guest User"}</div>
