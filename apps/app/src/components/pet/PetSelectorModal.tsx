@@ -1,3 +1,4 @@
+import { useSkeletonWithDelay } from "@/contexts/AboveFoldLoadingContext";
 import { useDictionaryValue } from "@/hooks/useDictionaryValue";
 import { useEntities } from "@/hooks/useEntities";
 import { dictionaryStore, spaceStore, supabase } from "@breedhub/rxdb-store";
@@ -12,7 +13,6 @@ import { DropdownInput } from "@ui/components/form-inputs/dropdown-input";
 import { LookupInput } from "@ui/components/form-inputs/lookup-input";
 import { SearchInput } from "@ui/components/form-inputs/search-input";
 import { cn } from "@ui/lib/utils";
-import { Loader2 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 interface PetEntity {
@@ -337,6 +337,9 @@ export function PetSelectorModal({
     return entities;
   }, [data.entities, excludeIds, preloadedPet]);
 
+  // Delay skeleton to prevent flash on fast loads
+  const showLoadingSkeleton = useSkeletonWithDelay(isLoading && filteredEntities.length === 0);
+
   // Fetch total count when filters change
   const [totalCount, setTotalCount] = useState<number | null>(null);
   useEffect(() => {
@@ -524,9 +527,20 @@ export function PetSelectorModal({
               <div className="text-center py-8 text-slate-500">
                 Select a breed to search
               </div>
-            ) : isLoading && filteredEntities.length === 0 ? (
-              <div className="flex items-center justify-center py-8">
-                <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
+            ) : showLoadingSkeleton ? (
+              <div className="animate-pulse">
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <div key={i} className={cn(
+                    "flex items-center px-4 py-2",
+                    i % 2 === 0 ? "bg-even-card-ground" : "bg-card-ground"
+                  )}>
+                    <div className="size-8 bg-slate-200 dark:bg-slate-700 rounded-full shrink-0" />
+                    <div className="ml-3 flex-1 min-w-0 space-y-1">
+                      <div className="h-3.5 bg-slate-200 dark:bg-slate-700 rounded-full w-48" />
+                      <div className="h-3 bg-slate-200 dark:bg-slate-700 rounded-full w-28" />
+                    </div>
+                  </div>
+                ))}
               </div>
             ) : filteredEntities.length === 0 ? (
               <div className="text-center py-8 text-slate-500">

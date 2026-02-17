@@ -162,12 +162,16 @@ export function BreedPatronsTab({
     );
   }
 
-  // Loading state
+  // Loading skeleton
   if (isLoading) {
     return (
-      <div className="py-4 px-6 flex items-center justify-center min-h-[200px]">
-        <Loader2 className="h-6 w-6 animate-spin text-primary" />
-        <span className="ml-2 text-secondary">Loading patrons...</span>
+      <div className="mt-3 grid grid-cols-2 gap-y-6 sm:grid-cols-3 px-6 animate-pulse">
+        {Array.from({ length: 6 }).map((_, i) => (
+          <div key={i} className="flex flex-col items-center space-y-2">
+            <div className="size-16 bg-slate-200 dark:bg-slate-700 rounded-full" />
+            <div className="h-3.5 bg-slate-200 dark:bg-slate-700 rounded-full w-20" />
+          </div>
+        ))}
       </div>
     );
   }

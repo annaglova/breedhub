@@ -206,12 +206,23 @@ export function PetChildrenTab({
     return null;
   }
 
-  // Loading state
+  // Loading skeleton
   if (isLoading) {
     return (
-      <div className="py-4 px-6 flex items-center justify-center min-h-[200px]">
-        <Loader2 className="h-6 w-6 animate-spin text-primary" />
-        <span className="ml-2 text-secondary">Loading children...</span>
+      <div className="grid gap-3 lg:grid-cols-2 animate-pulse">
+        {Array.from({ length: 2 }).map((_, i) => (
+          <div key={i} className="card card-rounded p-6 space-y-3">
+            <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded-full w-24" />
+            <div className="space-y-2">
+              {Array.from({ length: 3 }).map((_, j) => (
+                <div key={j} className="flex items-center gap-3">
+                  <div className="size-8 bg-slate-200 dark:bg-slate-700 rounded-full shrink-0" />
+                  <div className="h-3.5 bg-slate-200 dark:bg-slate-700 rounded-full w-32" />
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
       </div>
     );
   }

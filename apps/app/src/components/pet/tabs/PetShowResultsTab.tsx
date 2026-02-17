@@ -152,12 +152,22 @@ export function PetShowResultsTab({
     return null;
   }
 
-  // Loading state
+  // Loading skeleton
   if (isLoading) {
     return (
-      <div className="py-4 px-6 flex items-center justify-center min-h-[200px]">
-        <Loader2 className="h-6 w-6 animate-spin text-primary" />
-        <span className="ml-2 text-secondary">Loading show results...</span>
+      <div className="card card-rounded flex flex-auto flex-col p-6 lg:px-8 animate-pulse">
+        <div className="grid grid-cols-3 gap-3 border-b border-border px-6 py-3 md:px-8">
+          <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded-full w-12" />
+          <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded-full w-16" />
+          <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded-full w-14" />
+        </div>
+        {Array.from({ length: 4 }).map((_, i) => (
+          <div key={i} className="grid grid-cols-3 gap-3 px-6 py-3 md:px-8">
+            <div className="h-3.5 bg-slate-200 dark:bg-slate-700 rounded-full w-20" />
+            <div className="h-3.5 bg-slate-200 dark:bg-slate-700 rounded-full w-24" />
+            <div className="h-3.5 bg-slate-200 dark:bg-slate-700 rounded-full w-16" />
+          </div>
+        ))}
       </div>
     );
   }

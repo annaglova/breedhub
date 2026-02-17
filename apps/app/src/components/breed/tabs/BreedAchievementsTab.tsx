@@ -4,7 +4,7 @@ import { spaceStore, useTabData } from "@breedhub/rxdb-store";
 import type { DataSourceConfig, MergedDictionaryItem } from "@breedhub/rxdb-store";
 import { useSignals } from "@preact/signals-react/runtime";
 import { AlternatingTimeline } from "@ui/components/timeline";
-import { Check, Loader2 } from "lucide-react";
+import { Check } from "lucide-react";
 import { useMemo, useEffect } from "react";
 
 /**
@@ -123,12 +123,20 @@ export function BreedAchievementsTab({
     );
   }
 
-  // Loading state
+  // Loading skeleton
   if (isLoading) {
     return (
-      <div className="py-4 px-6 flex items-center justify-center min-h-[200px]">
-        <Loader2 className="h-6 w-6 animate-spin text-primary" />
-        <span className="ml-2 text-secondary">Loading achievements...</span>
+      <div className="px-6 animate-pulse space-y-4">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <div key={i} className="flex items-center gap-4">
+            <div className="size-8 bg-slate-200 dark:bg-slate-700 rounded-full shrink-0" />
+            <div className="flex-1 space-y-2">
+              <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded-full w-1/3" />
+              <div className="h-3 bg-slate-200 dark:bg-slate-700 rounded-full w-1/2" />
+            </div>
+            <div className="h-6 bg-slate-200 dark:bg-slate-700 rounded-full w-16" />
+          </div>
+        ))}
       </div>
     );
   }

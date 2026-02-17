@@ -236,12 +236,21 @@ export function EventResultsTab({
     return null;
   }
 
-  // Loading state
+  // Loading skeleton
   if (isLoading) {
     return (
-      <div className="py-4 px-6 flex items-center justify-center min-h-[200px]">
-        <Loader2 className="h-6 w-6 animate-spin text-primary" />
-        <span className="ml-2 text-secondary">Loading results...</span>
+      <div className="px-6 animate-pulse space-y-4">
+        <div className="h-10 bg-slate-200 dark:bg-slate-700 rounded-full w-full" />
+        {Array.from({ length: 3 }).map((_, i) => (
+          <div key={i} className="flex items-center gap-3 px-4">
+            <div className="size-8 bg-slate-200 dark:bg-slate-700 rounded-full shrink-0" />
+            <div className="flex-1 space-y-1.5">
+              <div className="h-3.5 bg-slate-200 dark:bg-slate-700 rounded-full w-2/3" />
+              <div className="h-3 bg-slate-200 dark:bg-slate-700 rounded-full w-1/3" />
+            </div>
+            <div className="h-5 bg-slate-200 dark:bg-slate-700 rounded-full w-16" />
+          </div>
+        ))}
       </div>
     );
   }

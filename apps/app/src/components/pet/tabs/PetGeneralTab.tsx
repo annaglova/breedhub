@@ -6,7 +6,6 @@ import {
   Cake,
   CircleCheckBig,
   HouseHeart,
-  Loader2,
   MapPin,
   MapPinHouse,
   Mars,
@@ -259,12 +258,24 @@ export function PetGeneralTab({ onLoadedCount }: PetGeneralTabProps) {
 
   const iconSize = 16;
 
-  // Loading state
+  // Loading skeleton
   if (isLoading) {
     return (
-      <div className="py-4 px-6 flex items-center justify-center min-h-[200px]">
-        <Loader2 className="h-6 w-6 animate-spin text-primary" />
-        <span className="ml-2 text-secondary">Loading...</span>
+      <div className="flex flex-col space-y-5 px-6 animate-pulse">
+        {Array.from({ length: 2 }).map((_, i) => (
+          <div key={i} className="space-y-3 pt-2">
+            <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded-full w-28" />
+            <div className="space-y-2 px-4">
+              {Array.from({ length: 2 }).map((_, j) => (
+                <div key={j} className="flex items-center gap-3 py-2">
+                  <div className="size-4 bg-slate-200 dark:bg-slate-700 rounded" />
+                  <div className="h-3.5 bg-slate-200 dark:bg-slate-700 rounded-full w-14" />
+                  <div className="h-3.5 bg-slate-200 dark:bg-slate-700 rounded-full w-32" />
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
       </div>
     );
   }

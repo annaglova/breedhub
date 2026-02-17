@@ -7,7 +7,6 @@ import {
 import { useSelectedEntity } from "@/contexts/SpaceContext";
 import { spaceStore, useLitterPedigree } from "@breedhub/rxdb-store";
 import { useSignals } from "@preact/signals-react/runtime";
-import { Loader2 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 /** Default generations to show in scroll mode */
@@ -117,12 +116,17 @@ export function LitterPedigreeTab({
   // Check if we have parent data
   const hasParents = father || mother;
 
-  // Loading state
+  // Loading skeleton
   if (isLoading) {
     return (
-      <div className="py-4 px-6 flex items-center justify-center min-h-[200px]">
-        <Loader2 className="h-6 w-6 animate-spin text-primary" />
-        <span className="ml-2 text-secondary">Loading pedigree...</span>
+      <div className="px-6 py-4 animate-pulse space-y-4">
+        <div className="flex gap-4 justify-center">
+          <div className="h-20 w-36 bg-slate-200 dark:bg-slate-700 rounded-lg" />
+        </div>
+        <div className="flex gap-4 justify-center">
+          <div className="h-20 w-36 bg-slate-200 dark:bg-slate-700 rounded-lg" />
+          <div className="h-20 w-36 bg-slate-200 dark:bg-slate-700 rounded-lg" />
+        </div>
       </div>
     );
   }

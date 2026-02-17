@@ -8,7 +8,6 @@ import { cn } from "@ui/lib/utils";
 import {
   CalendarClock,
   Handshake,
-  Loader2,
   PawPrint,
   ShoppingCart,
   Snowflake,
@@ -344,12 +343,16 @@ export function PetServicesTab({
     }
   }, [isLoading, onLoadedCount, services.length]);
 
-  // Loading state
+  // Loading skeleton
   if (isLoading) {
     return (
-      <div className="py-4 px-6 flex items-center justify-center min-h-[200px]">
-        <Loader2 className="h-6 w-6 animate-spin text-primary" />
-        <span className="ml-2 text-secondary">Loading services...</span>
+      <div className="flex flex-col space-y-8 px-6 animate-pulse">
+        {Array.from({ length: 3 }).map((_, i) => (
+          <div key={i} className="card card-rounded p-4 space-y-2">
+            <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded-full w-1/3" />
+            <div className="h-3 bg-slate-200 dark:bg-slate-700 rounded-full w-2/3" />
+          </div>
+        ))}
       </div>
     );
   }

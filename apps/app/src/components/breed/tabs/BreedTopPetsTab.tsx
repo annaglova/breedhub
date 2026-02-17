@@ -205,12 +205,16 @@ export function BreedTopPetsTab({
     );
   }
 
-  // Loading state
+  // Loading skeleton
   if (isLoading) {
     return (
-      <div className="py-4 px-6 flex items-center justify-center min-h-[200px]">
-        <Loader2 className="h-6 w-6 animate-spin text-primary" />
-        <span className="ml-2 text-secondary">Loading pets...</span>
+      <div className="grid gap-3 sm:grid-cols-2 px-6 animate-pulse">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <div key={i} className="card card-rounded p-4 space-y-3">
+            <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded-full w-3/4" />
+            <div className="h-3 bg-slate-200 dark:bg-slate-700 rounded-full w-1/2" />
+          </div>
+        ))}
       </div>
     );
   }
