@@ -2,6 +2,7 @@ import { useTheme } from "@/hooks/useTheme";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { useAppWorkspaces } from "@/hooks/useAppStore";
 import { useOnlineStatus } from "@/hooks/useOnlineStatus";
+import { useAuth } from "@/core/auth";
 import { Button } from "@ui/components/button";
 import { AvatarWithStatus } from "@ui/components/avatar";
 import {
@@ -30,6 +31,7 @@ export const Header = forwardRef<HTMLElement, HeaderProps>(
   const { theme, toggleTheme } = useTheme();
   const [isUserDrawerOpen, setIsUserDrawerOpen] = useState(false);
   const isOnline = useOnlineStatus();
+  const { authenticated, user } = useAuth();
   const isMD = useMediaQuery("(min-width: 768px)");
 
   // Icon size: 20px on < md, 24px on md+
@@ -177,10 +179,12 @@ export const Header = forwardRef<HTMLElement, HeaderProps>(
             >
               <AvatarWithStatus
                 size={isMD ? "default" : "sm"}
+                name={authenticated ? user.name : undefined}
+                src={authenticated ? user.avatar : undefined}
                 isOnline={isOnline}
-                showStatus={true}
+                showStatus={!isOnline}
                 statusPosition="top-right"
-                className="border"
+                className="border border-slate-300"
               />
             </button>
           </div>

@@ -70,13 +70,13 @@ const avatarFallbackVariants = cva(
   {
     variants: {
       size: {
-        xs: "text-xs",
-        sm: "text-xs",
-        default: "text-sm",
-        lg: "text-base",
-        xl: "text-lg",
-        "2xl": "text-xl",
-        "3xl": "text-2xl",
+        xs: "text-xs font-medium",
+        sm: "text-sm font-medium",
+        default: "text-base font-medium",
+        lg: "text-lg font-medium",
+        xl: "text-xl font-medium",
+        "2xl": "text-2xl font-medium",
+        "3xl": "text-3xl font-medium",
       },
     },
     defaultVariants: {

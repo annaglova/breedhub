@@ -1,6 +1,7 @@
 import { Button } from "@ui/components/button";
+import { AvatarWithFallback } from "@ui/components/avatar";
 import { cn, getIconComponent } from "@ui/lib/utils";
-import { LogOut, User, X } from "lucide-react";
+import { LogOut, X } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useUserMenu } from "@/hooks/useUserMenu";
 import { useAuth } from "@/core/auth";
@@ -32,13 +33,12 @@ export function UserDrawer({ isOpen, onClose }: UserDrawerProps) {
       <div className="fixed right-0 top-0 h-full w-80 bg-white shadow-xl z-70 flex flex-col user-drawer-enter">
         {/* Header */}
         <div className="flex items-center gap-4 px-4 py-3 border-b">
-          <div className="h-10 w-10 shrink-0 rounded-full bg-slate-200 flex items-center justify-center overflow-hidden">
-            {authenticated && user.avatar ? (
-              <img src={user.avatar} alt="" className="h-10 w-10 rounded-full object-cover" />
-            ) : (
-              <User className="h-5 w-5 text-slate-600" />
-            )}
-          </div>
+          <AvatarWithFallback
+            size="default"
+            src={authenticated ? user.avatar : undefined}
+            name={authenticated ? user.name : undefined}
+            className="shrink-0"
+          />
           <div className="flex-1 min-w-0">
             <div className="font-semibold truncate">{authenticated ? user.name : "Guest User"}</div>
             <div className="text-sm text-slate-600 truncate">
