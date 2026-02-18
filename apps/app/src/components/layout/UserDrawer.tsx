@@ -48,7 +48,7 @@ export function UserDrawer({ isOpen, onClose }: UserDrawerProps) {
           <Button
             variant="ghost-secondary"
             onClick={onClose}
-            className="size-[2.25rem] shrink-0 rounded-full p-0"
+            className="size-7 shrink-0 rounded-full p-0 focus-visible:ring-0"
           >
             <X className="h-4 w-4" />
           </Button>

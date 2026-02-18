@@ -60,12 +60,11 @@ export function Sidebar({
           </Link>
           {onClose && (
             <Button
-              variant="ghost"
-              size="icon"
+              variant="ghost-secondary"
               onClick={onClose}
-              className="lg:hidden"
+              className="size-7 shrink-0 rounded-full p-0 focus-visible:ring-0 lg:hidden"
             >
-              <X className="h-5 w-5" />
+              <X className="h-4 w-4" />
             </Button>
           )}
         </div>
@@ -85,8 +84,12 @@ export function Sidebar({
                     to={item.path}
                     className={cn(
                       "flex items-center gap-3 px-3 py-2 rounded-lg transition-colors",
-                      "text-slate-900 hover:bg-slate-200",
-                      isActive && "bg-slate-200 font-semibold",
+                      onClose
+                        ? "hover:bg-primary-50 hover:text-primary-600 hover:font-semibold"
+                        : "text-slate-900 hover:bg-slate-200",
+                      isActive && (onClose
+                        ? "bg-primary-50 text-primary-600 font-semibold"
+                        : "bg-slate-200 font-semibold"),
                       isCollapsed && "justify-center"
                     )}
                     onClick={onClose}
@@ -96,7 +99,7 @@ export function Sidebar({
                       size={20}
                       className={cn(
                         "flex-shrink-0",
-                        isActive ? "text-slate-600" : "text-slate-400"
+                        onClose ? "text-slate-400" : (isActive ? "text-slate-600" : "text-slate-400")
                       )}
                     />
                     {!isCollapsed && <span>{item.label}</span>}
