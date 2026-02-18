@@ -78,11 +78,11 @@ export function UserDrawer({ isOpen, onClose }: UserDrawerProps) {
                     onClick={onClose}
                     className={cn(
                       "flex items-center justify-between px-3 py-2 rounded-lg transition-colors",
-                      "hover:bg-slate-100"
+                      "hover:bg-primary-50 hover:text-primary-600 hover:font-semibold"
                     )}
                   >
                     <div className="flex items-center gap-3">
-                      {Icon && <Icon className="h-5 w-5 text-slate-600" />}
+                      {Icon && <Icon className="h-5 w-5 text-slate-400" />}
                       <span>{item.label}</span>
                     </div>
                     {item.badge && (
@@ -105,23 +105,26 @@ export function UserDrawer({ isOpen, onClose }: UserDrawerProps) {
         {/* Footer actions — auth buttons */}
         <div className="p-4 border-t flex flex-col gap-2">
           {authenticated ? (
-            <Button
-              className="w-full"
-              variant="outline-secondary"
+            <button
+              className="w-full h-9 rounded-md text-sm font-bold px-4 text-primary-600 bg-transparent transition-all duration-300 flex items-center justify-center gap-2"
+              style={{ border: '2px solid rgb(var(--primary-500) / 0.3)' }}
               onClick={handleSignOut}
             >
-              <LogOut className="h-4 w-4 mr-2" />
+              <LogOut className="h-4 w-4" />
               Sign Out
-            </Button>
+            </button>
           ) : (
             <>
               <Link to="/sign-in" onClick={onClose}>
-                <Button className="w-full" variant="default">
+                <button
+                  className="w-full h-9 rounded-md text-sm font-bold px-4 text-primary-600 bg-transparent transition-all duration-300"
+                  style={{ border: '2px solid rgb(var(--primary-500) / 0.3)' }}
+                >
                   Sign In
-                </Button>
+                </button>
               </Link>
               <Link to="/sign-up" onClick={onClose}>
-                <Button className="w-full" variant="outline-secondary">
+                <Button className="w-full font-bold" variant="default">
                   Register
                 </Button>
               </Link>
