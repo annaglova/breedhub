@@ -173,7 +173,7 @@ export const Header = forwardRef<HTMLElement, HeaderProps>(
 
             {/* User menu with online/offline status */}
             <button
-              className="focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded-full"
+              className="focus:outline-none focus:ring-2 focus:ring-slate-300 focus:ring-offset-2 rounded-full"
               aria-label="Profile"
               onClick={() => setIsUserDrawerOpen(true)}
             >
