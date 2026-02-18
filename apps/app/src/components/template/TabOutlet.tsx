@@ -119,7 +119,7 @@ export function TabOutlet({
       // Check if tab has data based on component type
       let hasData = true;
 
-      if (tabConfig.component === "PetServicesTab" || tabConfig.component === "LitterServicesTab") {
+      if (tabConfig.component === "PetServicesTab" || tabConfig.component === "LitterServicesTab" || tabConfig.component === "KennelServicesTab") {
         const servicesJsonb = entity?.services as Record<string, string> | undefined;
         hasData = !!(servicesJsonb && Object.keys(servicesJsonb).length > 0);
       }
