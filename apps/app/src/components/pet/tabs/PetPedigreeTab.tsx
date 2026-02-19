@@ -65,36 +65,60 @@ export function PetPedigreeTab({
   const selectedEntity = useSelectedEntity();
   const isFullscreen = spaceStore.isFullscreen.value || mode === "fullscreen";
 
-  // Direct drag-to-scroll implementation
+  // Drag-to-scroll with click-through: only starts dragging after 5px movement
+  const DRAG_THRESHOLD = 5;
   const scrollRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const isMouseDown = useRef(false);
+  const hasDragged = useRef(false);
   const dragStartX = useRef(0);
   const scrollStartLeft = useRef(0);
 
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
-    if (!scrollRef.current) return;
-    setIsDragging(true);
+    if (!scrollRef.current || e.button !== 0) return;
+    isMouseDown.current = true;
+    hasDragged.current = false;
     dragStartX.current = e.clientX;
     scrollStartLeft.current = scrollRef.current.scrollLeft;
-    e.preventDefault();
   }, []);
 
   const handleMouseMove = useCallback(
     (e: React.MouseEvent) => {
-      if (!isDragging || !scrollRef.current) return;
-      e.preventDefault();
+      if (!isMouseDown.current || !scrollRef.current) return;
       const deltaX = e.clientX - dragStartX.current;
-      scrollRef.current.scrollLeft = scrollStartLeft.current - deltaX;
+
+      if (!hasDragged.current && Math.abs(deltaX) >= DRAG_THRESHOLD) {
+        hasDragged.current = true;
+        setIsDragging(true);
+      }
+
+      if (hasDragged.current) {
+        e.preventDefault();
+        scrollRef.current.scrollLeft = scrollStartLeft.current - deltaX;
+      }
     },
-    [isDragging]
+    []
   );
 
   const handleMouseUp = useCallback(() => {
+    isMouseDown.current = false;
+    // Don't reset hasDragged here — click event fires after mouseUp
     setIsDragging(false);
   }, []);
 
   const handleMouseLeave = useCallback(() => {
+    isMouseDown.current = false;
+    hasDragged.current = false;
     setIsDragging(false);
+  }, []);
+
+  // Prevent click on links after a drag gesture (fires after mouseUp)
+  const handleClickCapture = useCallback((e: React.MouseEvent) => {
+    if (hasDragged.current) {
+      e.preventDefault();
+      e.stopPropagation();
+      hasDragged.current = false;
+    }
   }, []);
 
   // Use passed generations in fullscreen mode, default in scroll mode
@@ -191,10 +215,11 @@ export function PetPedigreeTab({
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
         onMouseLeave={handleMouseLeave}
+        onClickCapture={handleClickCapture}
         className="overflow-x-auto scrollbar-hide"
         style={{
-          cursor: isDragging ? "grabbing" : "grab",
-          userSelect: isDragging ? "none" : "auto",
+          cursor: isDragging ? "grabbing" : undefined,
+          userSelect: isDragging ? "none" : undefined,
         }}
       >
         {isLoading && skeletonPet ? (

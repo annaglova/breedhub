@@ -107,6 +107,7 @@ function PetImage({
 export function PedigreeCard({ pet, sex, level, canSelectPet, isSelected, onSelectPet }: PedigreeCardProps) {
   const isEmpty = !pet || pet.id === "unknown";
   const petSex = sex || pet.sex?.code;
+  const petUrl = pet.url || pet.slug;
 
   // Button text: "Select father/mother" or "Change father/mother"
   const getButtonText = () => {
@@ -160,9 +161,9 @@ export function PedigreeCard({ pet, sex, level, canSelectPet, isSelected, onSele
         {!isEmpty ? (
           <>
             {/* Name */}
-            {pet.url ? (
+            {petUrl ? (
               <Link
-                to={`/${pet.url}`}
+                to={`/${petUrl}`}
                 className="mt-4 sm:mt-6 flex min-h-10 w-full items-center justify-center text-center text-primary hover:underline line-clamp-2"
               >
                 {pet.name}
@@ -240,9 +241,9 @@ export function PedigreeCard({ pet, sex, level, canSelectPet, isSelected, onSele
         {!isEmpty ? (
           <>
             {/* Name */}
-            {pet.url ? (
+            {petUrl ? (
               <Link
-                to={`/${pet.url}`}
+                to={`/${petUrl}`}
                 className="flex min-h-10 items-center justify-center w-full text-center text-primary hover:underline line-clamp-2"
               >
                 {pet.name}
@@ -331,9 +332,9 @@ export function PedigreeCard({ pet, sex, level, canSelectPet, isSelected, onSele
           {!isEmpty ? (
             <>
               {/* Name */}
-              {pet.url ? (
+              {petUrl ? (
                 <Link
-                  to={`/${pet.url}`}
+                  to={`/${petUrl}`}
                   className="flex min-h-10 items-center justify-center text-center text-primary hover:underline line-clamp-2"
                 >
                   {pet.name}
@@ -370,9 +371,9 @@ export function PedigreeCard({ pet, sex, level, canSelectPet, isSelected, onSele
       <PetSexMark sex={petSex} style="round" className="mr-3 w-4 shrink-0" />
 
       {!isEmpty ? (
-        pet.url ? (
+        petUrl ? (
           <Link
-            to={`/${pet.url}`}
+            to={`/${petUrl}`}
             className="max-w-60 shrink-0 truncate text-primary hover:underline"
             title={`${pet.name}\n${pet.titles || ""}`}
           >
