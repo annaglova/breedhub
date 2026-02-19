@@ -25,19 +25,19 @@ const DUPLICATE_COLORS = [
 /**
  * Build a map of ancestor ID → Tailwind outline color class for ancestors that appear 2+ times
  */
-function buildDuplicateColorMap(pet: PedigreePet): Map<string, string> {
+function buildDuplicateColorMap(pet: PedigreePet, generations: number): Map<string, string> {
   const counts = new Map<string, number>();
 
-  function traverse(node: PedigreePet | undefined) {
-    if (!node || node.id === "unknown") return;
+  function traverse(node: PedigreePet | undefined, depth: number) {
+    if (!node || node.id === "unknown" || depth > generations) return;
     counts.set(node.id, (counts.get(node.id) || 0) + 1);
-    traverse(node.father);
-    traverse(node.mother);
+    traverse(node.father, depth + 1);
+    traverse(node.mother, depth + 1);
   }
 
-  // Traverse only ancestors (father/mother), not the subject itself
-  traverse(pet.father);
-  traverse(pet.mother);
+  // Traverse only visible ancestors (father/mother), not the subject itself
+  traverse(pet.father, 1);
+  traverse(pet.mother, 1);
 
   const colorMap = new Map<string, string>();
   let colorIndex = 0;
@@ -183,7 +183,7 @@ export function PedigreeTree({
 }: PedigreeTreeProps) {
   // limit = generations - 1 (як в Angular: this.pedigreeStore.generationsDisplayCount() - 1)
   const limit = generations - 1;
-  const duplicateColors = useMemo(() => buildDuplicateColorMap(pet), [pet]);
+  const duplicateColors = useMemo(() => buildDuplicateColorMap(pet, generations), [pet, generations]);
 
   return (
     <div className="flex flex-row gap-3 w-max">
