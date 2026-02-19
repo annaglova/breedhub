@@ -1,6 +1,6 @@
 import { PetLinkRow } from "@/components/shared/PetLinkRow";
+import { SmartLink } from "@/components/shared/SmartLink";
 import { cn } from "@ui/lib/utils";
-import { Link } from "react-router-dom";
 
 /**
  * Child pet in a litter
@@ -101,12 +101,12 @@ export function LitterCard({
         {/* Other parent */}
         <div className="flex flex-col">
           {litter.anotherParent?.url ? (
-            <Link
+            <SmartLink
               to={`/${litter.anotherParent.url}`}
-              className="text-primary hover:underline  truncate"
+              className="truncate"
             >
               {litter.anotherParent.name}
-            </Link>
+            </SmartLink>
           ) : (
             <span className="truncate">
               {litter.anotherParent?.name || "—"}

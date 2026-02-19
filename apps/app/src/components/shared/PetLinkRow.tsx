@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { SmartLink } from "@/components/shared/SmartLink";
 import { ShoppingCart } from "lucide-react";
 import { PetSexMark, SexCode } from "@/components/shared/PetSexMark";
 import { cn } from "@ui/lib/utils";
@@ -59,12 +59,12 @@ export function PetLinkRow({
 
       {/* Pet name */}
       {url ? (
-        <Link
+        <SmartLink
           to={`/${url}`}
-          className="text-primary hover:underline truncate"
+          className="truncate"
         >
           {name}
-        </Link>
+        </SmartLink>
       ) : (
         <span className="truncate">{name}</span>
       )}
