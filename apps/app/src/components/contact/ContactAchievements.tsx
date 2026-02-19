@@ -1,7 +1,7 @@
 import { dictionaryStore } from "@breedhub/rxdb-store";
 import { Chip } from "@ui/components/chip";
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { SmartLink } from "@/components/shared/SmartLink";
 
 interface EnrichedEntity {
   id: string;
@@ -90,13 +90,20 @@ export function ContactAchievements({
       {/* Kennels */}
       {kennels.map((kennel) => (
         kennel.slug ? (
-          <Link key={kennel.id} to={`/${kennel.slug}`} className="no-underline">
+          <SmartLink
+            key={kennel.id}
+            to={`/${kennel.slug}`}
+            entityType="kennel"
+            entityId={kennel.id}
+            showTooltip={false}
+            className="no-underline"
+          >
             <Chip
               label={`Kennel - ${kennel.name}`}
               variant="primary"
               className="cursor-pointer hover:opacity-90 transition-opacity max-w-80 sm:max-w-120"
             />
-          </Link>
+          </SmartLink>
         ) : (
           <Chip
             key={kennel.id}
@@ -110,13 +117,20 @@ export function ContactAchievements({
       {/* Top pets */}
       {topPets.map((pet) => (
         pet.slug ? (
-          <Link key={pet.id} to={`/${pet.slug}`} className="no-underline">
+          <SmartLink
+            key={pet.id}
+            to={`/${pet.slug}`}
+            entityType="pet"
+            entityId={pet.id}
+            showTooltip={false}
+            className="no-underline"
+          >
             <Chip
               label={`Top pet - ${pet.name}`}
               variant="primary"
               className="cursor-pointer hover:opacity-90 transition-opacity max-w-80 sm:max-w-120"
             />
-          </Link>
+          </SmartLink>
         ) : (
           <Chip
             key={pet.id}
