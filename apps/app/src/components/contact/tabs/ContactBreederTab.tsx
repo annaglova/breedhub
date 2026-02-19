@@ -11,7 +11,7 @@ import { useSignals } from "@preact/signals-react/runtime";
 import { cn } from "@ui/lib/utils";
 import { Calendar, Dog, Home, Loader2 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef } from "react";
-import { Link } from "react-router-dom";
+import { SmartLink } from "@/components/shared/SmartLink";
 
 /**
  * Link entity (Kennel, Breed, etc.)
@@ -53,18 +53,17 @@ function EntityLink({
   const url = entity.slug ? `/${entity.slug}` : entity.url;
 
   if (url) {
+    if (entityRole === "kennel") {
+      return (
+        <SmartLink to={url}>
+          {entity.name}
+        </SmartLink>
+      );
+    }
     return (
-      <Link
-        to={url}
-        className={cn(
-          "hover:underline",
-          entityRole === "kennel" && "text-kennel",
-          entityRole === "breed" && "text-breed",
-          !entityRole && "text-primary"
-        )}
-      >
+      <SmartLink to={url} className={entityRole === "breed" ? "text-breed hover:text-primary" : undefined}>
         {entity.name}
-      </Link>
+      </SmartLink>
     );
   }
 
@@ -84,7 +83,7 @@ function BreedLinks({ breeds }: { breeds?: LinkEntity[] }) {
       <EntityLink entity={breeds[0]} entityRole="breed" />
       {breeds.slice(1).map((breed) => (
         <div key={breed.id || breed.name} className="flex space-x-1">
-          <span className="text-primary">&bull;</span>
+          <span className="text-secondary-400">&bull;</span>
           <EntityLink entity={breed} entityRole="breed" />
         </div>
       ))}

@@ -99,7 +99,7 @@ function BulletList({ children }: { children: React.ReactNode[] }) {
     <div className="flex flex-wrap items-center gap-x-1">
       {children.map((child, i) => (
         <div key={i} className="flex items-center gap-x-1">
-          {i > 0 && <span className="text-secondary">&bull;</span>}
+          {i > 0 && <span className="text-secondary-400">&bull;</span>}
           {child}
         </div>
       ))}
