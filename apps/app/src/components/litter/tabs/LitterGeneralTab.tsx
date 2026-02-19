@@ -11,7 +11,7 @@ import {
   Venus,
 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { SmartLink } from "@/components/shared/SmartLink";
 
 /**
  * Link entity (Father, Mother, Breeder, Kennel)
@@ -67,9 +67,9 @@ function EntityLink({ entity }: { entity?: LinkEntity }) {
 
   if (url) {
     return (
-      <Link to={url} className="text-primary hover:underline">
+      <SmartLink to={url}>
         {entity.name}
-      </Link>
+      </SmartLink>
     );
   }
 
