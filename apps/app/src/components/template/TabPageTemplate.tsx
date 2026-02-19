@@ -335,7 +335,7 @@ export function TabPageTemplate({
     return () => {
       scrollContainer.removeEventListener("scroll", checkSticky);
     };
-  }, [pageConfig, selectedEntity]);
+  }, [pageConfig, selectedEntity, currentTab]);
 
   // Track name container height for PageMenu positioning
   useEffect(() => {
@@ -350,7 +350,7 @@ export function TabPageTemplate({
 
     resizeObserver.observe(nameContainerRef.current);
     return () => resizeObserver.disconnect();
-  }, [pageConfig, selectedEntity]);
+  }, [pageConfig, selectedEntity, currentTab]);
 
   // PageMenu top position (under Name when sticky)
   const PAGE_MENU_TOP = nameBlockHeight > 0 ? nameBlockHeight : 0;
