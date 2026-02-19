@@ -268,7 +268,7 @@ export function PedigreeCard({ pet, sex, level, canSelectPet, isSelected, onSele
               {/* Titles */}
               {pet.titles && (
                 <div
-                  className="ml-3 text-base leading-[1.6rem] line-clamp-5"
+                  className="ml-3 text-base leading-[1.6rem] line-clamp-4"
                   title={pet.titles}
                 >
                   {pet.titles}
