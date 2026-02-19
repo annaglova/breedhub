@@ -168,7 +168,7 @@ class TabDataService {
     if (isView) {
       // VIEWs with JOINs are slow with `WHERE id IN (...)`.
       // Use direct query with `WHERE parent_id = X` and cursor pagination.
-      const orderField = config.orderBy?.[0]?.field || 'placement';
+      const orderField = config.orderBy?.[0]?.field || 'id';
       const orderDirection = config.orderBy?.[0]?.direction || 'asc';
 
       console.log('[TabDataService] loadChildPaginated (VIEW - direct keyset):', {

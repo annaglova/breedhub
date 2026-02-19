@@ -4672,7 +4672,7 @@ class SpaceStore {
     const limit = options.limit || 30;
     const cursor = options.cursor ?? null;
     const orderBy: OrderBy = options.orderBy || {
-      field: 'placement',
+      field: 'id',
       direction: 'asc',
       tieBreaker: { field: 'id', direction: 'asc' }
     };
