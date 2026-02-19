@@ -3,7 +3,6 @@ import { VerificationBadge } from "@/components/shared/VerificationBadge";
 import { useCollectionValue } from "@/hooks/useCollectionValue";
 import { useDictionaryValue } from "@/hooks/useDictionaryValue";
 import { NoteFlagButton } from "@ui/components/note-flag-button";
-import { SmartLink } from "@/components/shared/SmartLink";
 import { Link } from "react-router-dom";
 
 interface PetNameProps {
@@ -66,9 +65,9 @@ export function PetName({
       <div className="text-md mb-2 min-h-[1.5rem]">
         {breedName && (
           breedSlug ? (
-            <SmartLink to={`/${breedSlug}`} className="uppercase">
+            <Link to={`/${breedSlug}`} className="uppercase hover:underline">
               {breedName}
-            </SmartLink>
+            </Link>
           ) : (
             <span className="uppercase">{breedName}</span>
           )
