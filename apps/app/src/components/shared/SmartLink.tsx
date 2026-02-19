@@ -13,8 +13,8 @@ import {
 import { cn } from "@ui/lib/utils";
 import { MoreVertical } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
-import { Link } from "react-router-dom";
-import { appStore, routeStore } from "@breedhub/rxdb-store";
+import { Link, useNavigate } from "react-router-dom";
+import { appStore, dictionaryStore, routeStore, spaceStore, toast } from "@breedhub/rxdb-store";
 import type { IconConfig } from "@breedhub/rxdb-store";
 import { Icon } from "@/components/shared/Icon";
 
@@ -143,6 +143,7 @@ export function SmartLink({
   className,
   disableActions = false,
 }: SmartLinkProps) {
+  const navigate = useNavigate();
   const [isHovered, setIsHovered] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [resolved, setResolved] = useState<ResolvedInfo | null>(null);
@@ -196,15 +197,60 @@ export function SmartLink({
     (item: ConfigMenuItem, e: React.MouseEvent) => {
       e.preventDefault();
       e.stopPropagation();
-      // TODO: implement action handlers
-      console.log(`[SmartLink] Action: ${item.action}`, {
-        entity: resolved?.entity,
-        model: resolved?.model,
-        entityId: resolved?.entityId,
-        item,
-      });
+
+      const slug = extractSlug(to);
+      const action = item.action;
+
+      switch (action) {
+        case "copy_link": {
+          const url = `${window.location.origin}/${slug}`;
+          navigator.clipboard.writeText(url).then(() => {
+            toast.success("Link copied");
+          }).catch(() => {
+            toast.error("Failed to copy link");
+          });
+          break;
+        }
+
+        case "copy_name": {
+          const name = typeof children === "string" ? children : "";
+          if (!name) {
+            toast.warning("No name to copy");
+            break;
+          }
+          navigator.clipboard.writeText(name).then(() => {
+            toast.success("Name copied");
+          }).catch(() => {
+            toast.error("Failed to copy name");
+          });
+          break;
+        }
+
+        case "test_mating": {
+          if (!resolved?.entityId || !slug) break;
+          // Fetch entity to get sex_id, then navigate
+          spaceStore.fetchEntityById("pet", resolved.entityId).then(async (entity) => {
+            let param = "father";
+            if (entity?.sex_id) {
+              try {
+                const record = await dictionaryStore.getRecordById("sex", entity.sex_id);
+                if (record?.code === "female") {
+                  param = "mother";
+                }
+              } catch {
+                // fallback to father
+              }
+            }
+            navigate(`/mating?${param}=${slug}`);
+          });
+          break;
+        }
+
+        default:
+          console.warn(`[SmartLink] Unhandled action: ${action}`);
+      }
     },
-    [resolved]
+    [resolved, to, children, navigate]
   );
 
   // Text content for tooltip

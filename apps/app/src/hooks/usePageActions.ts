@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { toast } from '@breedhub/rxdb-store';
+import { dictionaryStore, toast } from '@breedhub/rxdb-store';
 
 interface NavigateToTabParams {
   tab: string;
@@ -80,6 +80,29 @@ export function usePageActions(
     // TODO: Export entity data
   }, [entity]);
 
+  const handleTestMating = useCallback(async () => {
+    const slug = entity?.slug;
+    if (!slug) {
+      toast.warning('No pet selected');
+      return;
+    }
+
+    // Resolve sex_id to determine father/mother URL param
+    let param = 'father';
+    if (entity?.sex_id) {
+      try {
+        const record = await dictionaryStore.getRecordById('sex', entity.sex_id);
+        if (record?.code === 'female') {
+          param = 'mother';
+        }
+      } catch {
+        // fallback to father
+      }
+    }
+
+    navigate(`/mating?${param}=${slug}`);
+  }, [entity, navigate]);
+
   const handleNavigateToTab = useCallback((params?: ActionParams) => {
     const { tab, fullscreen } = (params || {}) as NavigateToTabParams;
     if (!tab) {
@@ -112,6 +135,7 @@ export function usePageActions(
     share: handleShare,
     delete: handleDelete,
     export: handleExport,
+    test_mating: handleTestMating,
     navigate_to_tab: handleNavigateToTab,
   };
 
