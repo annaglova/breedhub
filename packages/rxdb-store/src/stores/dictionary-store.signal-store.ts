@@ -568,18 +568,17 @@ class DictionaryStore {
           }
         }).exec();
 
-        if (cached) {
-          // Return cached data with additional fields if available
+        if (cached && cached.additional) {
+          // Return cached data with all fields (fully resolved record)
           const result: Record<string, unknown> = {
             [idField]: cached.id,
             [nameField]: cached.name
           };
-          // Merge additional fields if present
-          if (cached.additional) {
-            Object.assign(result, cached.additional);
-          }
+          Object.assign(result, cached.additional);
           return result;
         }
+        // If cached without additional fields (e.g. from batch getDictionary),
+        // fall through to Supabase to fetch full record with all fields
       }
 
       // If not in cache, fetch from Supabase (fetch ALL fields for flexibility)
