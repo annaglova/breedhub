@@ -5,8 +5,12 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@ui/components/tooltip";
+import { useCallback, useRef, useState } from "react";
 import { PetSexMark, type SexCode } from "./PetSexMark";
 import { SmartLink } from "./SmartLink";
+
+/** Cache of known broken image URLs to prevent flicker */
+const brokenImageCache = new Set<string>();
 
 /**
  * Pet entity structure
@@ -88,6 +92,27 @@ function TruncatedText({
  * Similar to Angular pet-card.component.ts
  */
 export function PetCard({ pet, mode = "default" }: PetCardProps) {
+  const isBroken = pet.avatarUrl ? brokenImageCache.has(pet.avatarUrl) : false;
+  const initialSrc = !pet.avatarUrl || isBroken ? defaultPetLogo : pet.avatarUrl;
+  const [imgSrc, setImgSrc] = useState(initialSrc);
+  const currentSrcRef = useRef(pet.avatarUrl);
+
+  // Reset when avatar URL changes
+  if (currentSrcRef.current !== pet.avatarUrl) {
+    currentSrcRef.current = pet.avatarUrl;
+    const broken = pet.avatarUrl ? brokenImageCache.has(pet.avatarUrl) : false;
+    setImgSrc(!pet.avatarUrl || broken ? defaultPetLogo : pet.avatarUrl);
+  }
+
+  const handleImgError = useCallback(() => {
+    if (pet.avatarUrl) {
+      brokenImageCache.add(pet.avatarUrl);
+    }
+    setImgSrc(defaultPetLogo);
+  }, [pet.avatarUrl]);
+
+  const isShowingFallback = imgSrc === defaultPetLogo;
+
   return (
     <div className="card card-rounded flex flex-col items-center justify-center px-6 py-3 sm:px-8 cursor-default caret-transparent">
       {/* Sex indicator bar */}
@@ -100,13 +125,7 @@ export function PetCard({ pet, mode = "default" }: PetCardProps) {
       <div className="flex h-auto flex-col items-center justify-center">
         {/* Avatar */}
         <div className="flex size-36 items-center justify-center overflow-hidden rounded-xl border border-surface-border sm:size-44">
-          {pet.avatarUrl ? (
-            <img
-              className="h-full w-auto max-w-[150%] object-cover"
-              src={pet.avatarUrl}
-              alt={pet.name}
-            />
-          ) : (
+          {isShowingFallback ? (
             <div className="flex size-full items-center justify-center bg-slate-50 dark:bg-slate-700">
               <img
                 className="w-2/3 h-auto"
@@ -114,6 +133,14 @@ export function PetCard({ pet, mode = "default" }: PetCardProps) {
                 alt={pet.name}
               />
             </div>
+          ) : (
+            <img
+              className="h-full w-auto max-w-[150%] object-cover"
+              src={imgSrc}
+              alt={pet.name}
+              loading="lazy"
+              onError={handleImgError}
+            />
           )}
         </div>
 
