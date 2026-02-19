@@ -254,11 +254,11 @@ export function ContactJudgeTab({
   return (
     <div className="px-6 cursor-default">
       <div className="border border-border rounded-lg overflow-hidden">
-        <Table>
+        <Table className="text-base">
           <TableHeader>
             <TableRow className="bg-muted/30 hover:bg-muted/30">
-              <TableHead className="py-3 pl-4">Competition</TableHead>
-              <TableHead className="w-32 text-center py-3">
+              <TableHead className="py-3 pl-4 text-base">Competition</TableHead>
+              <TableHead className="w-32 text-center py-3 text-base">
                 Inter. judgment
               </TableHead>
             </TableRow>
@@ -271,7 +271,7 @@ export function ContactJudgeTab({
 
               return (
                 <TableRow key={`${node.id}-${index}`} className="hover:bg-muted/50">
-                  <TableCell className="py-2">
+                  <TableCell className="py-2 text-base">
                     <div className="flex items-center" style={{ paddingLeft: indentPx }}>
                       <button
                         type="button"
@@ -294,7 +294,7 @@ export function ContactJudgeTab({
                       </span>
                     </div>
                   </TableCell>
-                  <TableCell className="w-32 text-center py-2">
+                  <TableCell className="w-32 text-center py-2 text-base">
                     {node.hasEntry ? (
                       node.internationalJudgment ? (
                         <Check size={16} className="text-accent-400 mx-auto" />
