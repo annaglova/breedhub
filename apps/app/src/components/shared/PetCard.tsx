@@ -121,10 +121,7 @@ export function PetCard({ pet, mode = "default" }: PetCardProps) {
         <div className="my-3 flex min-h-12 w-48 items-center justify-center text-center font-semibold md:w-52">
           <SmartLink
             to={pet.url}
-            entityType="pet"
-            entityId={pet.id}
             rows={2}
-            showTooltip={false}
           >
             {pet.name}
           </SmartLink>
@@ -165,10 +162,7 @@ export function PetCard({ pet, mode = "default" }: PetCardProps) {
                   <span className="text-secondary">Father</span>
                   <SmartLink
                     to={pet.father?.url || "#"}
-                    entityType="pet"
-                    entityId={pet.father?.id}
                     rows={2}
-                    showTooltip={false}
                     disableActions={!pet.father?.id}
                   >
                     {pet.father?.name || "Unknown"}
@@ -177,10 +171,7 @@ export function PetCard({ pet, mode = "default" }: PetCardProps) {
                   <span className="text-secondary">Mother</span>
                   <SmartLink
                     to={pet.mother?.url || "#"}
-                    entityType="pet"
-                    entityId={pet.mother?.id}
                     rows={2}
-                    showTooltip={false}
                     disableActions={!pet.mother?.id}
                   >
                     {pet.mother?.name || "Unknown"}
@@ -197,9 +188,6 @@ export function PetCard({ pet, mode = "default" }: PetCardProps) {
                   <span className="text-secondary">Breed</span>
                   <SmartLink
                     to={pet.breed?.url || "#"}
-                    entityType="breed"
-                    entityId={pet.breed?.id}
-                    showTooltip={false}
                     disableActions={!pet.breed?.id}
                   >
                     {pet.breed?.name || "Unknown"}

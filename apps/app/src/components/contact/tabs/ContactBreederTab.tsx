@@ -224,22 +224,22 @@ export function ContactBreederTab({ onLoadedCount, dataSource }: ContactBreederT
       const pet: Pet = {
         id: item.pet_id,
         name: item.pet_name,
-        url: item.pet_slug ? `/pets/${item.pet_slug}` : "",
+        url: item.pet_slug ? `/${item.pet_slug}` : "",
         avatarUrl: item.pet_avatar_url || "",
         sex: item.sex_name?.toLowerCase() as SexCode,
         dateOfBirth: item.date_of_birth,
         breed: item.breed_name ? {
           id: item.breed_id,
           name: item.breed_name,
-          url: `/breeds/${item.breed_slug}`,
+          url: `/${item.breed_slug}`,
         } : undefined,
         father: item.father_name ? {
           name: item.father_name,
-          url: item.father_slug ? `/pets/${item.father_slug}` : "",
+          url: item.father_slug ? `/${item.father_slug}` : "",
         } : undefined,
         mother: item.mother_name ? {
           name: item.mother_name,
-          url: item.mother_slug ? `/pets/${item.mother_slug}` : "",
+          url: item.mother_slug ? `/${item.mother_slug}` : "",
         } : undefined,
       };
 

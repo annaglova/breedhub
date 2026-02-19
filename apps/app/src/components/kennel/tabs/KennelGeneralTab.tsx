@@ -15,6 +15,7 @@ import {
   User,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import { SmartLink } from "@/components/shared/SmartLink";
 
 /**
  * Classify communication record by its `number` field
@@ -209,9 +210,25 @@ export function KennelGeneralTab({ onLoadedCount, dataSource }: KennelGeneralTab
     }
   }, [selectedEntity?.country_id, selectedEntity?.city_id]);
 
-  // 2. Owner and Federation (denormalized fields)
-  const ownerName = (selectedEntity?.owner_name as string) || "";
+  // 2. Owner from owner_id (contact entity)
+  const [owner, setOwner] = useState<{ name: string; slug?: string } | null>(null);
   const federationName = (selectedEntity?.federation_name as string) || "";
+
+  useEffect(() => {
+    const ownerId = selectedEntity?.owner_id as string | undefined;
+    if (ownerId) {
+      dictionaryStore.getRecordById("contact", ownerId).then((record: Record<string, unknown> | null) => {
+        if (record) {
+          setOwner({ name: String(record.name || ""), slug: record.slug ? String(record.slug) : undefined });
+        } else {
+          // Fallback to denormalized name
+          setOwner(selectedEntity?.owner_name ? { name: String(selectedEntity.owner_name) } : null);
+        }
+      });
+    } else {
+      setOwner(selectedEntity?.owner_name ? { name: String(selectedEntity.owner_name) } : null);
+    }
+  }, [selectedEntity?.owner_id]);
 
   // 3. Communications (phone, email, social) from child table
   const { data: communicationsRaw } = useTabData({
@@ -266,7 +283,11 @@ export function KennelGeneralTab({ onLoadedCount, dataSource }: KennelGeneralTab
           {/* Owner, Federation */}
           <div className="grid grid-cols-[16px_70px_1fr] sm:grid-cols-[22px_80px_1fr] items-center gap-3 px-4 pb-2 flex-1">
             <InfoRow icon={<User size={iconSize} />} label="Owner">
-              <span>{ownerName || "—"}</span>
+              {owner?.slug ? (
+                <SmartLink to={`/${owner.slug}`}>{owner.name}</SmartLink>
+              ) : (
+                <span>{owner?.name || "—"}</span>
+              )}
             </InfoRow>
             <InfoRow icon={<Globe size={iconSize} />} label="Federation">
               <span>{federationName || "—"}</span>

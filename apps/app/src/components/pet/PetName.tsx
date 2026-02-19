@@ -65,7 +65,7 @@ export function PetName({
       <div className="text-md mb-2 min-h-[1.5rem]">
         {breedName && (
           breedSlug ? (
-            <Link to={`/${breedSlug}`} className="uppercase hover:underline">
+            <Link to={`/${breedSlug}`} className="uppercase hover:text-primary transition-colors">
               {breedName}
             </Link>
           ) : (

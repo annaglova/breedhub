@@ -27,7 +27,7 @@ function EntityLink({
 
   if (slug) {
     return (
-      <Link to={`/${slug}`} className={`hover:underline ${className}`}>
+      <Link to={`/${slug}`} className={`hover:text-primary transition-colors ${className}`}>
         {name}
       </Link>
     );

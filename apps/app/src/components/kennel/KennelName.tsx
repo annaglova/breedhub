@@ -2,6 +2,8 @@ import { useDictionaryValue } from "@/hooks/useDictionaryValue";
 import { VerificationBadge } from "@/components/shared/VerificationBadge";
 import { NoteFlagButton } from "@ui/components/note-flag-button";
 import { Link } from "react-router-dom";
+import { dictionaryStore } from "@breedhub/rxdb-store";
+import { useEffect, useState } from "react";
 
 interface KennelNameProps {
   entity?: {
@@ -49,6 +51,19 @@ export function KennelName({
 }: KennelNameProps) {
   // Enrich country from dictionary
   const countryName = useDictionaryValue("country", entity?.country_id);
+
+  // Resolve owner from owner_id for link
+  const [ownerSlug, setOwnerSlug] = useState<string | undefined>();
+  useEffect(() => {
+    const ownerId = entity?.owner_id as string | undefined;
+    if (ownerId) {
+      dictionaryStore.getRecordById("contact", ownerId).then((record) => {
+        setOwnerSlug(record?.slug ? String(record.slug) : undefined);
+      });
+    } else {
+      setOwnerSlug(undefined);
+    }
+  }, [entity?.owner_id]);
 
   const displayName = entity?.name?.trim() || "Unknown Kennel";
   const ownerName = entity?.owner_name || "";
@@ -103,7 +118,13 @@ export function KennelName({
 
           {/* Owner */}
           {ownerName && (
-            <span>{ownerName}</span>
+            ownerSlug ? (
+              <Link to={`/${ownerSlug}`} className="hover:text-primary transition-colors">
+                {ownerName}
+              </Link>
+            ) : (
+              <span>{ownerName}</span>
+            )
           )}
 
           {/* Federation */}

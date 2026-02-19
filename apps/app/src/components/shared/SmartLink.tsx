@@ -139,7 +139,7 @@ export function SmartLink({
   to,
   children,
   rows = 1,
-  showTooltip = true,
+  showTooltip = false,
   className,
   disableActions = false,
 }: SmartLinkProps) {
