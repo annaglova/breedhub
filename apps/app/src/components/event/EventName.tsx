@@ -43,7 +43,6 @@ export function EventName({
   // All fields from program (country_id denormalized from event)
   const statusName = useDictionaryValue("program_status", entity?.status_id);
   const countryName = useDictionaryValue("country", entity?.country_id);
-  const typeName = useDictionaryValue("program_type", entity?.type_id);
 
   // Extract data from entity (program)
   const displayName = entity?.name || "Unknown Program";
@@ -53,11 +52,9 @@ export function EventName({
 
   return (
     <div className="pb-3 cursor-default">
-      {/* Country and Type */}
+      {/* Country */}
       <div className="text-md mb-3 min-h-[1.5rem] flex flex-wrap items-center space-x-1 uppercase">
         {countryName && <span>{countryName}</span>}
-        {countryName && typeName && <span className="text-secondary">•</span>}
-        {typeName && <span>{typeName}</span>}
       </div>
 
       {/* Event name with note flag */}
