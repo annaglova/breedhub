@@ -1,6 +1,54 @@
+import { useMemo } from "react";
 import { PedigreeCard } from "./PedigreeCard";
 import type { PedigreePet, GenerationCount, OnSelectPetCallback } from "./types";
 import { UNKNOWN_PET } from "./mock-data";
+
+const DUPLICATE_COLORS = [
+  "outline-violet-400",
+  "outline-amber-400",
+  "outline-emerald-400",
+  "outline-rose-400",
+  "outline-sky-400",
+  "outline-orange-400",
+  "outline-teal-400",
+  "outline-pink-400",
+  "outline-lime-400",
+  "outline-indigo-400",
+  "outline-cyan-400",
+  "outline-fuchsia-400",
+  "outline-yellow-400",
+  "outline-red-400",
+  "outline-blue-400",
+  "outline-green-400",
+];
+
+/**
+ * Build a map of ancestor ID → Tailwind outline color class for ancestors that appear 2+ times
+ */
+function buildDuplicateColorMap(pet: PedigreePet): Map<string, string> {
+  const counts = new Map<string, number>();
+
+  function traverse(node: PedigreePet | undefined) {
+    if (!node || node.id === "unknown") return;
+    counts.set(node.id, (counts.get(node.id) || 0) + 1);
+    traverse(node.father);
+    traverse(node.mother);
+  }
+
+  // Traverse only ancestors (father/mother), not the subject itself
+  traverse(pet.father);
+  traverse(pet.mother);
+
+  const colorMap = new Map<string, string>();
+  let colorIndex = 0;
+  for (const [id, count] of counts) {
+    if (count >= 2) {
+      colorMap.set(id, DUPLICATE_COLORS[colorIndex % DUPLICATE_COLORS.length]);
+      colorIndex++;
+    }
+  }
+  return colorMap;
+}
 
 interface PedigreeTreeProps {
   /** Root pet of the pedigree */
@@ -32,6 +80,8 @@ interface PedigreeNodeProps {
   onSelectPet?: OnSelectPetCallback;
   /** Is pet already selected (for "Select" vs "Change" button text) */
   isSelected?: boolean;
+  /** Map of ancestor ID → outline color class for duplicate highlighting */
+  duplicateColors?: Map<string, string>;
 }
 
 /**
@@ -68,7 +118,7 @@ function calculateLevel(gen: number, limit: number): number {
  *   </div>
  * </div>
  */
-function PedigreeNode({ pet, sex, gen, limit, matingMode, onSelectPet, isSelected }: PedigreeNodeProps) {
+function PedigreeNode({ pet, sex, gen, limit, matingMode, onSelectPet, isSelected, duplicateColors }: PedigreeNodeProps) {
   const petData = pet || UNKNOWN_PET;
   const level = calculateLevel(gen, limit);
   const needChildren = gen <= limit;
@@ -86,6 +136,7 @@ function PedigreeNode({ pet, sex, gen, limit, matingMode, onSelectPet, isSelecte
         canSelectPet={canSelectPet}
         isSelected={isSelected}
         onSelectPet={onSelectPet}
+        duplicateColor={duplicateColors?.get(petData.id)}
       />
 
       {/* Children (Father/Mother) */}
@@ -96,12 +147,14 @@ function PedigreeNode({ pet, sex, gen, limit, matingMode, onSelectPet, isSelecte
             sex="male"
             gen={gen + 1}
             limit={limit}
+            duplicateColors={duplicateColors}
           />
           <PedigreeNode
             pet={pet?.mother}
             sex="female"
             gen={gen + 1}
             limit={limit}
+            duplicateColors={duplicateColors}
           />
         </div>
       )}
@@ -130,6 +183,7 @@ export function PedigreeTree({
 }: PedigreeTreeProps) {
   // limit = generations - 1 (як в Angular: this.pedigreeStore.generationsDisplayCount() - 1)
   const limit = generations - 1;
+  const duplicateColors = useMemo(() => buildDuplicateColorMap(pet), [pet]);
 
   return (
     <div className="flex flex-row gap-3 w-max">
@@ -148,6 +202,7 @@ export function PedigreeTree({
           matingMode={matingMode}
           onSelectPet={onSelectPet}
           isSelected={!!selectedFather}
+          duplicateColors={duplicateColors}
         />
         <PedigreeNode
           pet={pet.mother}
@@ -157,6 +212,7 @@ export function PedigreeTree({
           matingMode={matingMode}
           onSelectPet={onSelectPet}
           isSelected={!!selectedMother}
+          duplicateColors={duplicateColors}
         />
       </div>
     </div>

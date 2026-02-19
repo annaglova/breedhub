@@ -16,6 +16,8 @@ interface PedigreeCardProps {
   isSelected?: boolean;
   /** Callback when selection button is clicked */
   onSelectPet?: OnSelectPetCallback;
+  /** Tailwind outline color class for duplicate ancestor highlighting */
+  duplicateColor?: string;
 }
 
 /**
@@ -104,7 +106,7 @@ function PetImage({
  *
  * Based on Angular: pedigree-card.component.ts
  */
-export function PedigreeCard({ pet, sex, level, canSelectPet, isSelected, onSelectPet }: PedigreeCardProps) {
+export function PedigreeCard({ pet, sex, level, canSelectPet, isSelected, onSelectPet, duplicateColor }: PedigreeCardProps) {
   const isEmpty = !pet || pet.id === "unknown";
   const petSex = sex || pet.sex?.code;
   const petUrl = pet.url || pet.slug;
@@ -150,7 +152,7 @@ export function PedigreeCard({ pet, sex, level, canSelectPet, isSelected, onSele
         />
 
         {/* Avatar 176px */}
-        <div className="flex size-44 items-center justify-center overflow-hidden rounded-xl border border-border relative">
+        <div className={`flex size-44 items-center justify-center overflow-hidden rounded-xl border border-border relative ${duplicateColor ? `outline outline-2 outline-offset-2 ${duplicateColor}` : ""}`}>
           <PetImage
             className="size-full object-cover"
             src={pet.avatarUrl}
@@ -257,7 +259,7 @@ export function PedigreeCard({ pet, sex, level, canSelectPet, isSelected, onSele
             {/* Avatar + Titles row */}
             <div className="flex w-full items-center h-full">
               {/* Avatar 104px */}
-              <div className="h-26 w-26 min-w-26 flex items-center justify-center overflow-hidden rounded-xl border border-border relative">
+              <div className={`h-26 w-26 min-w-26 flex items-center justify-center overflow-hidden rounded-xl border border-border relative ${duplicateColor ? `outline outline-2 outline-offset-2 ${duplicateColor}` : ""}`}>
                 <PetImage
                   className="size-full object-cover"
                   src={pet.avatarUrl}
@@ -314,7 +316,7 @@ export function PedigreeCard({ pet, sex, level, canSelectPet, isSelected, onSele
     return (
       <div className="card card-rounded min-w-72 max-w-72 p-3 flex min-h-[92.88px] max-h-[92.88px] overflow-hidden bg-even-card-ground">
         {/* Avatar 64px */}
-        <div className="size-16 min-w-16 overflow-hidden self-center rounded-xl border border-border relative">
+        <div className={`size-16 min-w-16 overflow-hidden self-center rounded-xl border border-border relative ${duplicateColor ? `outline outline-2 outline-offset-2 ${duplicateColor}` : ""}`}>
           <PetImage
             className="size-full object-cover"
             src={pet.avatarUrl}
@@ -368,7 +370,9 @@ export function PedigreeCard({ pet, sex, level, canSelectPet, isSelected, onSele
   // Level 3: Pill-shaped card (gen 4+)
   return (
     <div className="card flex min-w-72 max-w-72 flex-row items-center rounded-full py-[0.65rem] pl-3 pr-5 min-h-[42px] max-h-[42px] overflow-hidden bg-even-card-ground">
-      <PetSexMark sex={petSex} style="round" className="mr-3 w-4 shrink-0" />
+      <span className={`mr-3 shrink-0 rounded-full ${duplicateColor ? `outline outline-2 outline-offset-2 ${duplicateColor}` : ""}`}>
+        <PetSexMark sex={petSex} style="round" className="w-4" />
+      </span>
 
       {!isEmpty ? (
         petUrl ? (
