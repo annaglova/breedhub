@@ -231,6 +231,9 @@ const configTypeMapping = {
     grouping: {
       'fields': 'fields'
     },
+    children: {
+      'menu_config': 'menus'
+    },
     properties: true
   },
   'app': {

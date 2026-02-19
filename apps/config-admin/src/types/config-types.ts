@@ -67,7 +67,7 @@ export const childTypeMapping: Record<string, string[]> = {
   menu_config: ["menu_section", "menu_item"],
   menu_section: ["menu_item"],
   menu_item: [],
-  schema: ["fields"],
+  schema: ["fields", "menu_config"],
 };
 
 // Get available child types for a parent type
