@@ -2,7 +2,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@ui/components/dropdown-menu";
 import {
@@ -12,49 +11,42 @@ import {
   TooltipTrigger,
 } from "@ui/components/tooltip";
 import { cn } from "@ui/lib/utils";
-import {
-  ExternalLink,
-  GitBranch,
-  MoreVertical,
-  Scale,
-  Users,
-} from "lucide-react";
-import { useCallback, useState } from "react";
+import { MoreVertical } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { appStore, routeStore } from "@breedhub/rxdb-store";
+import type { IconConfig } from "@breedhub/rxdb-store";
+import { Icon } from "@/components/shared/Icon";
 
 /**
- * Entity types supported by SmartLink
+ * Menu item from config
  */
-export type SmartLinkEntityType =
-  | "pet"
-  | "breed"
-  | "kennel"
-  | "contact"
-  | "litter";
-
-/**
- * Quick action definition
- */
-interface QuickAction {
+interface ConfigMenuItem {
   id: string;
   label: string;
-  icon: React.ReactNode;
-  onClick: (entityId: string) => void;
-  dividerAfter?: boolean;
+  icon?: IconConfig;
+  action: string;
+  order: number;
+  model?: string;
+}
+
+/**
+ * Resolved route info for SmartLink
+ */
+interface ResolvedInfo {
+  entity: string;
+  entityId: string;
+  model: string;
 }
 
 /**
  * Props for SmartLink component
  */
 interface SmartLinkProps {
-  /** URL to navigate to */
+  /** URL to navigate to (slug-based, e.g. "/affenpinscher") */
   to: string;
   /** Display text (children) */
   children: React.ReactNode;
-  /** Entity type for quick actions menu */
-  entityType?: SmartLinkEntityType;
-  /** Entity ID for quick actions */
-  entityId?: string;
   /** Number of text rows before truncation (default: 1) */
   rows?: 1 | 2 | 3 | 4;
   /** Show tooltip with full text on hover */
@@ -66,84 +58,50 @@ interface SmartLinkProps {
 }
 
 /**
- * Get quick actions for entity type
- *
- * TODO: Expand with more actions per entity type
+ * Extract slug from URL path (remove leading slash)
  */
-function getQuickActions(entityType: SmartLinkEntityType): QuickAction[] {
-  switch (entityType) {
-    case "pet":
-      return [
-        {
-          id: "pedigree",
-          label: "View pedigree",
-          icon: <GitBranch className="h-4 w-4" />,
-          onClick: (id) => console.log("[TODO] View pedigree for", id),
-        },
-        {
-          id: "siblings",
-          label: "View siblings",
-          icon: <Users className="h-4 w-4" />,
-          onClick: (id) => console.log("[TODO] View siblings for", id),
-        },
-        {
-          id: "compare",
-          label: "Add to comparison",
-          icon: <Scale className="h-4 w-4" />,
-          onClick: (id) => console.log("[TODO] Add to comparison", id),
-          dividerAfter: true,
-        },
-        {
-          id: "open",
-          label: "Open in new tab",
-          icon: <ExternalLink className="h-4 w-4" />,
-          onClick: (id) => window.open(`/pet/${id}`, "_blank"),
-        },
-      ];
+function extractSlug(to: string): string {
+  return to.startsWith("/") ? to.slice(1) : to;
+}
 
-    case "breed":
-      return [
-        {
-          id: "open",
-          label: "Open in new tab",
-          icon: <ExternalLink className="h-4 w-4" />,
-          onClick: (id) => window.open(`/breed/${id}`, "_blank"),
-        },
-      ];
+/**
+ * Get menu items from app config for a given entity, filtered by model
+ */
+function getMenuItemsForModel(entity: string, model: string): ConfigMenuItem[] {
+  const config = appStore.appConfig.value;
+  if (!config?.data?.entities) return [];
 
-    case "kennel":
-      return [
-        {
-          id: "open",
-          label: "Open in new tab",
-          icon: <ExternalLink className="h-4 w-4" />,
-          onClick: (id) => window.open(`/kennel/${id}`, "_blank"),
-        },
-      ];
+  // Find schema with matching entitySchemaName
+  const schema = Object.values(config.data.entities as Record<string, any>).find(
+    (s: any) => s.entitySchemaName === entity
+  );
 
-    case "contact":
-      return [
-        {
-          id: "open",
-          label: "Open in new tab",
-          icon: <ExternalLink className="h-4 w-4" />,
-          onClick: (id) => window.open(`/contact/${id}`, "_blank"),
-        },
-      ];
+  if (!schema?.menus) return [];
 
-    case "litter":
-      return [
-        {
-          id: "open",
-          label: "Open in new tab",
-          icon: <ExternalLink className="h-4 w-4" />,
-          onClick: (id) => window.open(`/litter/${id}`, "_blank"),
-        },
-      ];
+  // Collect all items from all menu configs, filtered by model
+  const items: ConfigMenuItem[] = [];
 
-    default:
-      return [];
+  for (const [, menuConfig] of Object.entries(schema.menus as Record<string, any>)) {
+    if (!menuConfig?.items) continue;
+
+    for (const [itemId, item] of Object.entries(menuConfig.items as Record<string, any>)) {
+      // Filter by model: item matches if it has no model (universal) or model matches
+      if (item.model && item.model !== model) continue;
+
+      items.push({
+        id: itemId,
+        label: item.label,
+        icon: item.icon,
+        action: item.action,
+        order: item.order ?? 0,
+        model: item.model,
+      });
+    }
   }
+
+  // Sort by order
+  items.sort((a, b) => a.order - b.order);
+  return items;
 }
 
 /**
@@ -165,24 +123,14 @@ function getRowClampClass(rows: number): string {
 }
 
 /**
- * SmartLink - Link component with entity-aware quick actions
+ * SmartLink - Link component with config-driven context menu
  *
- * Features:
- * - Standard link appearance (primary color, hover underline)
- * - Optional quick actions menu (three dots on hover)
- * - Text truncation with configurable row count
- * - Tooltip with full text
- *
- * Based on Angular: libs/schema/ui/link-ui/link/link.component.ts
+ * Automatically resolves entity type and model from the slug URL via routeStore,
+ * then displays menu items from app config filtered by model.
  *
  * @example
  * ```tsx
- * <SmartLink
- *   to="/pet/123"
- *   entityType="pet"
- *   entityId="123"
- *   rows={2}
- * >
+ * <SmartLink to="/test-pet" rows={2}>
  *   Champion Golden Thunder of Excellence
  * </SmartLink>
  * ```
@@ -190,8 +138,6 @@ function getRowClampClass(rows: number): string {
 export function SmartLink({
   to,
   children,
-  entityType,
-  entityId,
   rows = 1,
   showTooltip = true,
   className,
@@ -199,10 +145,38 @@ export function SmartLink({
 }: SmartLinkProps) {
   const [isHovered, setIsHovered] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [resolved, setResolved] = useState<ResolvedInfo | null>(null);
+  const [menuItems, setMenuItems] = useState<ConfigMenuItem[]>([]);
 
-  const hasActions = !disableActions && entityType && entityId;
-  const quickActions = hasActions ? getQuickActions(entityType) : [];
-  const showActionsButton = hasActions && quickActions.length > 0;
+  // Resolve slug → entity + model via routeStore
+  useEffect(() => {
+    if (disableActions) return;
+
+    const slug = extractSlug(to);
+    if (!slug) return;
+
+    let cancelled = false;
+
+    routeStore.resolveRoute(slug).then((route) => {
+      if (cancelled) return;
+
+      if (route) {
+        setResolved({
+          entity: route.entity,
+          entityId: route.entity_id,
+          model: route.model,
+        });
+
+        // Get menu items filtered by model
+        const items = getMenuItemsForModel(route.entity, route.model);
+        setMenuItems(items);
+      }
+    });
+
+    return () => { cancelled = true; };
+  }, [to, disableActions]);
+
+  const hasActions = !disableActions && resolved && menuItems.length > 0;
 
   const handleMouseEnter = useCallback(() => setIsHovered(true), []);
   const handleMouseLeave = useCallback(() => {
@@ -218,15 +192,19 @@ export function SmartLink({
     }
   }, []);
 
-  const handleActionClick = useCallback(
-    (action: QuickAction, e: React.MouseEvent) => {
+  const handleMenuItemClick = useCallback(
+    (item: ConfigMenuItem, e: React.MouseEvent) => {
       e.preventDefault();
       e.stopPropagation();
-      if (entityId) {
-        action.onClick(entityId);
-      }
+      // TODO: implement action handlers
+      console.log(`[SmartLink] Action: ${item.action}`, {
+        entity: resolved?.entity,
+        model: resolved?.model,
+        entityId: resolved?.entityId,
+        item,
+      });
     },
-    [entityId]
+    [resolved]
   );
 
   // Text content for tooltip
@@ -260,7 +238,7 @@ export function SmartLink({
     );
 
   // If no actions, just return the link
-  if (!showActionsButton) {
+  if (!hasActions) {
     return linkWithTooltip;
   }
 
@@ -288,17 +266,17 @@ export function SmartLink({
         </DropdownMenuTrigger>
 
         <DropdownMenuContent align="start" className="min-w-[160px]">
-          {quickActions.map((action) => (
-            <div key={action.id}>
-              <DropdownMenuItem
-                onClick={(e) => handleActionClick(action, e)}
-                className="cursor-pointer"
-              >
-                {action.icon}
-                <span className="ml-2">{action.label}</span>
-              </DropdownMenuItem>
-              {action.dividerAfter && <DropdownMenuSeparator />}
-            </div>
+          {menuItems.map((item) => (
+            <DropdownMenuItem
+              key={item.id}
+              onClick={(e) => handleMenuItemClick(item, e)}
+              className="cursor-pointer"
+            >
+              {item.icon && (
+                <Icon icon={item.icon} size={16} className="h-4 w-4 shrink-0" />
+              )}
+              <span className={item.icon ? "ml-2" : ""}>{item.label}</span>
+            </DropdownMenuItem>
           ))}
         </DropdownMenuContent>
       </DropdownMenu>
