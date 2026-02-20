@@ -2,6 +2,11 @@ import { useMemo, useRef, useState, useEffect, useCallback } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Pencil, Minimize2, Maximize2 } from "lucide-react";
 import { NavigationButtons } from "@/components/template/cover/NavigationButtons";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@ui/components/tooltip";
 import { BlockRenderer } from "@/components/blocks/BlockRenderer";
 import { SpaceProvider } from "@/contexts/SpaceContext";
 import { ScrollToTopButton } from "@/components/shared/ScrollToTopButton";
@@ -63,6 +68,7 @@ interface TabConfig {
   expandAlways?: boolean; // Always show expand button (e.g., Pedigree tab)
   dataSource?: any; // Config-driven data loading
   actionType?: "pedigreeGenerations" | "edit"; // Fullscreen mode action type
+  focusMode?: boolean; // Allow collapsing header/tabs to maximize content area
 }
 
 interface TabPageTemplateProps {
@@ -137,6 +143,7 @@ function convertFullscreenTabsToArray(
       expandAlways: config.expandAlways,
       dataSource: config.dataSource,
       actionType: config.actionType,
+      focusMode: config.focusMode,
       _order: config.order,
     } as Tab & { _order: number });
   }
@@ -187,7 +194,7 @@ export function TabPageTemplate({
   );
 
   // Pedigree focus mode - collapse header and tabs to maximize tree space
-  const [isPedigreeCollapsed, setIsPedigreeCollapsed] = useState(false);
+  const [isPedigreeCollapsed, setIsPedigreeCollapsed] = useState(true);
 
   // Get spaceConfig signal
   const spaceConfigSignal = useMemo(
@@ -293,7 +300,7 @@ export function TabPageTemplate({
   );
 
   // Only allow collapse on pedigree tab
-  const isPedigreeFocusMode = isPedigreeCollapsed && currentTab?.actionType === "pedigreeGenerations";
+  const isPedigreeFocusMode = isPedigreeCollapsed && currentTab?.focusMode;
 
   // Handle tab change - update local state immediately, then update URL
   const handleTabChange = (fragment: string) => {
@@ -503,15 +510,21 @@ export function TabPageTemplate({
                       <Pencil className="mr-2 h-5 w-5" />
                       Edit
                     </button>
-                  ) : currentTab.actionType === "pedigreeGenerations" ? (
-                    <button
-                      type="button"
-                      onClick={() => setIsPedigreeCollapsed(v => !v)}
-                      className="flex items-center justify-center h-8 w-8 text-sub-header-color hover:text-foreground/70 transition-colors focus:outline-none focus-visible:outline-none"
-                      title={isPedigreeCollapsed ? "Expand header" : "Collapse header"}
-                    >
-                      {isPedigreeCollapsed ? <Maximize2 size={18} /> : <Minimize2 size={18} />}
-                    </button>
+                  ) : currentTab.focusMode ? (
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <button
+                          type="button"
+                          onClick={() => setIsPedigreeCollapsed(v => !v)}
+                          className="flex items-center justify-center h-8 w-8 text-sub-header-color hover:text-foreground/70 transition-colors focus:outline-none focus-visible:outline-none"
+                        >
+                          {isPedigreeCollapsed ? <Maximize2 size={18} /> : <Minimize2 size={18} />}
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent side="bottom">
+                        {isPedigreeCollapsed ? "Expand header" : "Collapse header"}
+                      </TooltipContent>
+                    </Tooltip>
                   ) : undefined
                 }
               />

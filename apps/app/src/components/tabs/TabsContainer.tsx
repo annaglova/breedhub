@@ -21,6 +21,7 @@ export interface Tab {
    * - undefined/null: No actions
    */
   actionType?: "pedigreeGenerations" | "edit";
+  focusMode?: boolean;
 }
 
 /**
