@@ -1,6 +1,7 @@
 import { useMemo, useRef, useState, useEffect, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
-import { Pencil } from "lucide-react";
+import { useNavigate, Link } from "react-router-dom";
+import { Pencil, Minimize2, Maximize2 } from "lucide-react";
+import { NavigationButtons } from "@/components/template/cover/NavigationButtons";
 import { BlockRenderer } from "@/components/blocks/BlockRenderer";
 import { SpaceProvider } from "@/contexts/SpaceContext";
 import { ScrollToTopButton } from "@/components/shared/ScrollToTopButton";
@@ -185,6 +186,9 @@ export function TabPageTemplate({
     window.matchMedia(mediaQueries['2xl']).matches ? 5 : 4
   );
 
+  // Pedigree focus mode - collapse header and tabs to maximize tree space
+  const [isPedigreeCollapsed, setIsPedigreeCollapsed] = useState(false);
+
   // Get spaceConfig signal
   const spaceConfigSignal = useMemo(
     () => spaceStore.getSpaceConfigSignal(entityType),
@@ -288,6 +292,9 @@ export function TabPageTemplate({
     [fullscreenTabs, activeTabSlug]
   );
 
+  // Only allow collapse on pedigree tab
+  const isPedigreeFocusMode = isPedigreeCollapsed && currentTab?.actionType === "pedigreeGenerations";
+
   // Handle tab change - update local state immediately, then update URL
   const handleTabChange = (fragment: string) => {
     // Update local state immediately (no flickering)
@@ -353,7 +360,11 @@ export function TabPageTemplate({
   }, [pageConfig, selectedEntity, currentTab]);
 
   // PageMenu top position (under Name when sticky)
-  const PAGE_MENU_TOP = nameBlockHeight > 0 ? nameBlockHeight : 0;
+  // In collapsed mode: compact bar (40px), no PageMenu
+  const COMPACT_BAR_HEIGHT = 45;
+  const PAGE_MENU_TOP = isPedigreeFocusMode
+    ? COMPACT_BAR_HEIGHT
+    : (nameBlockHeight > 0 ? nameBlockHeight : 0);
 
   // Loading state - return null for instant transition (no spinner flash)
   if (!spaceConfig || !pageConfig) {
@@ -414,11 +425,28 @@ export function TabPageTemplate({
             ref={contentContainerRef}
             className="w-full"
           >
-            {/* Name Block - Sticky at top */}
+            {/* Compact name bar - shown when pedigree focus mode is active */}
+            {isPedigreeFocusMode && (
+              <div className="sticky top-0 z-30 relative bg-card-ground border-b border-surface-border pb-2">
+                <div className="truncate text-3xl font-bold pr-24">
+                  <Link
+                    to={`/${entitySlug}`}
+                    className="hover:text-primary transition-colors"
+                  >
+                    {selectedEntity?.name}
+                  </Link>
+                </div>
+                <div className="absolute right-0 top-0">
+                  <NavigationButtons mode="default" entityType={entityType} />
+                </div>
+              </div>
+            )}
+
+            {/* Name Block - Sticky at top (hidden in pedigree focus mode) */}
             {nameBlockConfig && (
               <div
                 ref={nameContainerRef}
-                className="sticky top-0 z-30"
+                className={cn("sticky top-0 z-30", isPedigreeFocusMode && "hidden")}
               >
                 <BlockRenderer
                   blockConfig={{
@@ -442,15 +470,18 @@ export function TabPageTemplate({
               className="sticky z-20 -mt-px"
               style={{ top: `${PAGE_MENU_TOP}px` }}
             >
-              {countsLoading ? (
-                <PageMenuSkeleton tabCount={3} />
-              ) : (
-                <PageMenu
-                  tabs={fullscreenTabs}
-                  activeTab={activeTabSlug}
-                  onTabChange={handleTabChange}
-                  mode="tabs"
-                />
+              {/* PageMenu - hidden in pedigree focus mode */}
+              {!isPedigreeFocusMode && (
+                countsLoading ? (
+                  <PageMenuSkeleton tabCount={3} />
+                ) : (
+                  <PageMenu
+                    tabs={fullscreenTabs}
+                    activeTab={activeTabSlug}
+                    onTabChange={handleTabChange}
+                    mode="tabs"
+                  />
+                )
               )}
 
               {/* TabActionsHeader - Renders actions based on tab's actionType */}
@@ -472,6 +503,15 @@ export function TabPageTemplate({
                       <Pencil className="mr-2 h-5 w-5" />
                       Edit
                     </button>
+                  ) : currentTab.actionType === "pedigreeGenerations" ? (
+                    <button
+                      type="button"
+                      onClick={() => setIsPedigreeCollapsed(v => !v)}
+                      className="flex items-center justify-center h-8 w-8 text-sub-header-color hover:text-foreground/70 transition-colors focus:outline-none focus-visible:outline-none"
+                      title={isPedigreeCollapsed ? "Expand header" : "Collapse header"}
+                    >
+                      {isPedigreeCollapsed ? <Maximize2 size={18} /> : <Minimize2 size={18} />}
+                    </button>
                   ) : undefined
                 }
               />
@@ -491,7 +531,7 @@ export function TabPageTemplate({
                 dataSource={currentTab.dataSource}
                 pedigreeGenerations={pedigreeGenerations}
                 onPedigreeGenerationsChange={setPedigreeGenerations}
-                stickyScrollbarTop={PAGE_MENU_TOP + 102}
+                stickyScrollbarTop={isPedigreeFocusMode ? (COMPACT_BAR_HEIGHT + 52) : (PAGE_MENU_TOP + 102)}
               />
             </div>
           </div>

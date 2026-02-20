@@ -95,7 +95,7 @@ export function TabHeader({
             <TooltipTrigger asChild>
               <a
                 href={fullscreenUrl}
-                className="text-secondary border border-secondary-500 flex size-9 items-center justify-center rounded-full hover:bg-secondary/10 transition-colors"
+                className="text-secondary border border-secondary-500 flex size-9 items-center justify-center rounded-full hover:text-foreground/70 transition-colors"
               >
                 <Icon icon={{ name: "Expand", source: "lucide" }} size={16} />
               </a>
