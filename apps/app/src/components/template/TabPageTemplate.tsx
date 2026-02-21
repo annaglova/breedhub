@@ -69,6 +69,7 @@ interface TabConfig {
   dataSource?: any; // Config-driven data loading
   actionType?: "pedigreeGenerations" | "edit"; // Fullscreen mode action type
   focusMode?: boolean; // Allow collapsing header/tabs to maximize content area
+  zoomControl?: boolean; // Show zoom controls (80%, 90%, 100%)
 }
 
 interface TabPageTemplateProps {
@@ -144,6 +145,7 @@ function convertFullscreenTabsToArray(
       dataSource: config.dataSource,
       actionType: config.actionType,
       focusMode: config.focusMode,
+      zoomControl: config.zoomControl,
       _order: config.order,
     } as Tab & { _order: number });
   }
@@ -519,55 +521,63 @@ export function TabPageTemplate({
                       <Pencil className="mr-2 h-5 w-5" />
                       Edit
                     </button>
-                  ) : currentTab.focusMode ? (
+                  ) : (currentTab.zoomControl || currentTab.focusMode) ? (
                     <div className="flex items-center gap-0">
                       {/* Zoom controls */}
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <button
-                            type="button"
-                            onClick={handleZoomOut}
-                            disabled={!canZoomOut}
-                            className="flex items-center justify-center h-8 w-8 text-sub-header-color hover:text-foreground/70 transition-colors focus:outline-none focus-visible:outline-none disabled:opacity-30 disabled:pointer-events-none"
-                          >
-                            <Minus size={16} />
-                          </button>
-                        </TooltipTrigger>
-                        <TooltipContent side="bottom">Zoom out</TooltipContent>
-                      </Tooltip>
-                      <span className="text-sm text-sub-header-color tabular-nums w-10 text-center select-none">
-                        {pedigreeZoom}%
-                      </span>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <button
-                            type="button"
-                            onClick={handleZoomIn}
-                            disabled={!canZoomIn}
-                            className="flex items-center justify-center h-8 w-8 text-sub-header-color hover:text-foreground/70 transition-colors focus:outline-none focus-visible:outline-none disabled:opacity-30 disabled:pointer-events-none"
-                          >
-                            <Plus size={16} />
-                          </button>
-                        </TooltipTrigger>
-                        <TooltipContent side="bottom">Zoom in</TooltipContent>
-                      </Tooltip>
+                      {currentTab.zoomControl && (
+                        <>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <button
+                                type="button"
+                                onClick={handleZoomOut}
+                                disabled={!canZoomOut}
+                                className="flex items-center justify-center h-8 w-8 text-sub-header-color hover:text-foreground/70 transition-colors focus:outline-none focus-visible:outline-none disabled:opacity-30 disabled:pointer-events-none"
+                              >
+                                <Minus size={16} />
+                              </button>
+                            </TooltipTrigger>
+                            <TooltipContent side="bottom">Zoom out</TooltipContent>
+                          </Tooltip>
+                          <span className="text-sm text-sub-header-color tabular-nums w-10 text-center select-none">
+                            {pedigreeZoom}%
+                          </span>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <button
+                                type="button"
+                                onClick={handleZoomIn}
+                                disabled={!canZoomIn}
+                                className="flex items-center justify-center h-8 w-8 text-sub-header-color hover:text-foreground/70 transition-colors focus:outline-none focus-visible:outline-none disabled:opacity-30 disabled:pointer-events-none"
+                              >
+                                <Plus size={16} />
+                              </button>
+                            </TooltipTrigger>
+                            <TooltipContent side="bottom">Zoom in</TooltipContent>
+                          </Tooltip>
+                        </>
+                      )}
 
                       {/* Collapse/expand button */}
-                      <div className="ml-4" />
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <button
-                            type="button"
-                            onClick={() => setIsPedigreeCollapsed(v => !v)}
-                            className="flex items-center justify-center h-8 w-8 text-sub-header-color hover:text-foreground/70 transition-colors focus:outline-none focus-visible:outline-none"
-                          >
-                            {isPedigreeCollapsed ? <Maximize2 size={18} /> : <Minimize2 size={18} />}
-                          </button>
-                        </TooltipTrigger>
-                        <TooltipContent side="bottom">
-                          {isPedigreeCollapsed ? "Expand header" : "Collapse header"}
-                        </TooltipContent>
-                      </Tooltip>
+                      {currentTab.focusMode && (
+                        <>
+                          {currentTab.zoomControl && <div className="ml-4" />}
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <button
+                                type="button"
+                                onClick={() => setIsPedigreeCollapsed(v => !v)}
+                                className="flex items-center justify-center h-8 w-8 text-sub-header-color hover:text-foreground/70 transition-colors focus:outline-none focus-visible:outline-none"
+                              >
+                                {isPedigreeCollapsed ? <Maximize2 size={18} /> : <Minimize2 size={18} />}
+                              </button>
+                            </TooltipTrigger>
+                            <TooltipContent side="bottom">
+                              {isPedigreeCollapsed ? "Expand header" : "Collapse header"}
+                            </TooltipContent>
+                          </Tooltip>
+                        </>
+                      )}
                     </div>
                   ) : undefined
                 }

@@ -22,6 +22,7 @@ export interface Tab {
    */
   actionType?: "pedigreeGenerations" | "edit";
   focusMode?: boolean;
+  zoomControl?: boolean;
 }
 
 /**
