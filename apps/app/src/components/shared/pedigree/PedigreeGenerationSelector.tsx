@@ -29,7 +29,7 @@ export function PedigreeGenerationSelector({
       <DropdownMenuTrigger asChild>
         <button
           type="button"
-          className="flex items-center text-lg font-semibold text-sub-header-color hover:text-foreground/70 transition-colors focus:outline-none focus-visible:outline-none"
+          className="flex items-center text-[16px] font-semibold text-sub-header-color hover:text-foreground/70 transition-colors focus:outline-none focus-visible:outline-none"
         >
           <TreeDeciduous className="mr-2 h-6 w-6" />
           {generations}<span className="hidden sm:inline ml-1">generations</span>

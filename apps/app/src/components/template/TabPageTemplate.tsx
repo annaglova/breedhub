@@ -565,7 +565,7 @@ export function TabPageTemplate({
                             </TooltipTrigger>
                             <TooltipContent side="bottom">Zoom out</TooltipContent>
                           </Tooltip>
-                          <span className="text-sm text-sub-header-color tabular-nums w-10 text-center select-none">
+                          <span className="text-[16px] font-semibold text-sub-header-color tabular-nums w-10 text-center select-none">
                             {pedigreeZoom}%
                           </span>
                           <Tooltip>
