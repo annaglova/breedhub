@@ -27,7 +27,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@ui/components/tooltip";
-import { MoreVertical, Save, X } from "lucide-react";
+import { Minus, MoreVertical, Plus, Save, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 
@@ -82,6 +82,15 @@ export function MatingPage({ pageConfig, workspaceConfig }: MatingPageProps) {
   const [generations, setGenerations] = useState<GenerationCount>(
     getDefaultGenerations
   );
+
+  // Zoom control
+  const ZOOM_PRESETS = [80, 90, 100] as const;
+  const [zoom, setZoom] = useState(100);
+  const zoomIndex = ZOOM_PRESETS.indexOf(zoom as typeof ZOOM_PRESETS[number]);
+  const canZoomOut = zoomIndex > 0;
+  const canZoomIn = zoomIndex < ZOOM_PRESETS.length - 1;
+  const handleZoomOut = () => { if (canZoomOut) setZoom(ZOOM_PRESETS[zoomIndex - 1]); };
+  const handleZoomIn = () => { if (canZoomIn) setZoom(ZOOM_PRESETS[zoomIndex + 1]); };
 
   // Selected pets for mating (basic info only)
   const [father, setFather] = useState<PedigreePet | null>(null);
@@ -370,6 +379,39 @@ export function MatingPage({ pageConfig, workspaceConfig }: MatingPageProps) {
               generations={generations}
               onGenerationsChange={setGenerations}
             />
+
+            {/* Zoom controls */}
+            <div className="flex items-center">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    type="button"
+                    onClick={handleZoomOut}
+                    disabled={!canZoomOut}
+                    className="flex items-center justify-center h-8 w-8 text-sub-header-color hover:text-foreground/70 transition-colors focus:outline-none focus-visible:outline-none disabled:opacity-30 disabled:pointer-events-none"
+                  >
+                    <Minus size={16} />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom">Zoom out</TooltipContent>
+              </Tooltip>
+              <span className="text-[16px] font-semibold text-sub-header-color tabular-nums w-10 text-center select-none">
+                {zoom}%
+              </span>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    type="button"
+                    onClick={handleZoomIn}
+                    disabled={!canZoomIn}
+                    className="flex items-center justify-center h-8 w-8 text-sub-header-color hover:text-foreground/70 transition-colors focus:outline-none focus-visible:outline-none disabled:opacity-30 disabled:pointer-events-none"
+                  >
+                    <Plus size={16} />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom">Zoom in</TooltipContent>
+              </Tooltip>
+            </div>
           </div>
 
           <div className="flex items-center gap-2">
@@ -556,21 +598,23 @@ export function MatingPage({ pageConfig, workspaceConfig }: MatingPageProps) {
             userSelect: isDragging ? "none" : "auto",
           }}
         >
-          <PedigreeTree
-            pet={isPedigreeLoading && skeletonPet ? skeletonPet : virtualPet}
-            generations={generations}
-            hideSubject
-            matingMode
-            selectedFather={father}
-            selectedMother={mother}
-            onSelectPet={(sex) => {
-              if (sex === "male") {
-                setFatherModalOpen(true);
-              } else {
-                setMotherModalOpen(true);
-              }
-            }}
-          />
+          <div style={zoom !== 100 ? { zoom: zoom / 100 } : undefined}>
+            <PedigreeTree
+              pet={isPedigreeLoading && skeletonPet ? skeletonPet : virtualPet}
+              generations={generations}
+              hideSubject
+              matingMode
+              selectedFather={father}
+              selectedMother={mother}
+              onSelectPet={(sex) => {
+                if (sex === "male") {
+                  setFatherModalOpen(true);
+                } else {
+                  setMotherModalOpen(true);
+                }
+              }}
+            />
+          </div>
         </div>
       </div>
     </ToolPageLayout>
