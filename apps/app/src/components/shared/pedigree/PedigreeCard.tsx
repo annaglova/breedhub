@@ -101,10 +101,12 @@ function PetImage({
  *
  * Different visual styles based on level:
  * - level -1: Vertical rotated name with sex mark (sidebar style)
- * - level 0: Large card with avatar 176px, min-h-[403px]
- * - level 1: Medium card with avatar 104px, min-h-[196.25px]
- * - level 2: Small card with avatar 64px, min-h-[92.88px]
- * - level 3: Pill-shaped with just sex mark and name
+ * - level 0: Large card with avatar 176px, h=420px
+ * - level 1: Medium card with avatar 104px, h=204px
+ * - level 2: Small card with avatar 64px, h=96px
+ * - level 3: Pill-shaped with just sex mark and name, h=42px
+ *
+ * Heights are calculated: H(n) = 2 × H(n+1) + gap(12px)
  *
  * Based on Angular: pedigree-card.component.ts
  */
@@ -146,7 +148,7 @@ export function PedigreeCard({ pet, sex, level, canSelectPet, isSelected, onSele
   // Level 0: Large card (parents level)
   if (level === 0) {
     return (
-      <div className="card card-rounded flex min-w-72 max-w-72 w-full flex-col items-center justify-center px-6 py-3 min-h-[403px] bg-even-card-ground">
+      <div className="card card-rounded flex min-w-72 max-w-72 w-full flex-col items-center justify-center px-6 py-3 min-h-[420px] bg-even-card-ground">
         <PetSexMark
           sex={petSex}
           style="horizontal"
@@ -239,7 +241,7 @@ export function PedigreeCard({ pet, sex, level, canSelectPet, isSelected, onSele
   // Level 1: Medium card (grandparents level)
   if (level === 1) {
     return (
-      <div className="card card-rounded flex min-w-72 max-w-72 flex-col items-center px-6 py-3 min-h-[196.25px] max-h-[196.25px] overflow-hidden bg-even-card-ground">
+      <div className="card card-rounded flex min-w-72 max-w-72 flex-col items-center px-6 py-3 min-h-[204px] max-h-[204px] overflow-hidden bg-even-card-ground">
         <PetSexMark sex={petSex} style="horizontal" className="w-44 shrink-0" />
 
         {!isEmpty ? (
@@ -316,7 +318,7 @@ export function PedigreeCard({ pet, sex, level, canSelectPet, isSelected, onSele
   // Level 2: Small card (great-grandparents level)
   if (level === 2) {
     return (
-      <div className="card card-rounded min-w-72 max-w-72 p-3 flex min-h-[92.88px] max-h-[92.88px] overflow-hidden bg-even-card-ground">
+      <div className="card card-rounded min-w-72 max-w-72 p-3 flex min-h-[96px] max-h-[96px] overflow-hidden bg-even-card-ground">
         {/* Avatar 64px */}
         <div className={`size-16 min-w-16 overflow-hidden self-center rounded-xl border border-border relative ${duplicateColor ? `outline outline-2 outline-offset-2 ${duplicateColor}` : ""}`}>
           <PetImage
