@@ -465,7 +465,7 @@ export function TabPageTemplate({
                 <div className="truncate text-3xl font-bold pr-24">
                   <Link
                     to={`/${entitySlug}`}
-                    className="hover:text-primary transition-colors"
+                    className="text-foreground hover:text-primary"
                   >
                     {selectedEntity?.name}
                   </Link>
