@@ -530,10 +530,10 @@ export function TabPageTemplate({
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <div>
-                            <Switch checked={linkToPedigree} onCheckedChange={handleLinkToPedigreeChange} />
+                            <Switch variant="secondary-sm" checked={linkToPedigree} onCheckedChange={handleLinkToPedigreeChange} />
                           </div>
                         </TooltipTrigger>
-                        <TooltipContent>Navigate to pedigree</TooltipContent>
+                        <TooltipContent>{linkToPedigree ? "Navigate to pet" : "Navigate to pedigree"}</TooltipContent>
                       </Tooltip>
                     </div>
                   ) : undefined
