@@ -1,10 +1,10 @@
 export const customBreakpoints = {
-  sm: '640px',     // Native Tailwind
-  md: '768px',     // Native Tailwind
-  lg: '1280px',    // Custom (native Tailwind: 1024px)
-  xl: '1440px',    // Custom (native Tailwind: 1280px)
-  '2xl': '1536px', // Native Tailwind
-  '3xl': '1920px', // Custom for ultra-wide screens
+  sm: '640px',
+  md: '768px',
+  lg: '1024px',
+  xl: '1280px',
+  '2xl': '1536px',
+  '3xl': '1920px', // custom
 } as const;
 
 export type BreakpointKey = keyof typeof customBreakpoints;

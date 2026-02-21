@@ -571,11 +571,11 @@ export function SpaceComponent<T extends { id: string }>({
   const [headerHeight, setHeaderHeight] = useState(0);
   const headerRef = useRef<HTMLDivElement>(null);
 
-  // Responsive - using custom breakpoints from Angular project
-  const isMoreThanSM = useMediaQuery(mediaQueries.sm); // 600px
-  const isMoreThanMD = useMediaQuery(mediaQueries.md); // 960px
-  const isMoreThanLG = useMediaQuery(mediaQueries.lg); // 1280px
-  const isMoreThanXL = useMediaQuery(mediaQueries.xl); // 1440px
+  // Responsive breakpoints (synced with tailwind.config.js)
+  const isMoreThanSM = useMediaQuery(mediaQueries.sm); // 640px
+  const isMoreThanMD = useMediaQuery(mediaQueries.md); // 768px
+  const isMoreThanLG = useMediaQuery(mediaQueries.lg); // 1024px
+  const isMoreThanXL = useMediaQuery(mediaQueries.xl); // 1280px
   const isMoreThan2XL = useMediaQuery(mediaQueries["2xl"]); // 1536px
   const needCardClass = isMoreThanLG;
 
@@ -1482,7 +1482,7 @@ export function SpaceComponent<T extends { id: string }>({
 
   return (
     <TooltipProvider>
-      <div className="relative h-full overflow-hidden">
+      <div className={cn("relative h-full overflow-hidden", needCardClass && "rounded-xl")}>
         {/* Main Content - hidden when fullscreen */}
         {!showFullscreen && (
           <div
@@ -1669,12 +1669,12 @@ export function SpaceComponent<T extends { id: string }>({
                   : "card-surface"
                 : "bg-white",
               // Rounded corners
-              // Fullscreen: rounded from md+ (like regular pages)
-              // Side drawer: left corners only
               showFullscreen && "md:rounded-xl overflow-hidden",
               !showFullscreen &&
                 drawerMode !== "over" &&
-                "rounded-l-xl overflow-hidden",
+                (needCardClass
+                  ? "rounded-xl overflow-hidden"
+                  : "rounded-l-xl overflow-hidden"),
               // Shadow for side mode only
               !showFullscreen && drawerMode === "side" && "shadow-xl",
               // Show/hide animation (always visible in fullscreen or side-transparent for list views)
