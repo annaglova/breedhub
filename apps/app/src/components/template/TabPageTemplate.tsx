@@ -191,10 +191,17 @@ export function TabPageTemplate({
   const [nameOnTop, setNameOnTop] = useState(false);
   const [nameBlockHeight, setNameBlockHeight] = useState(0);
 
-  // Pedigree generations state - default 5 for XXL screens (1536px+), 4 otherwise
-  const [pedigreeGenerations, setPedigreeGenerations] = useState<GenerationCount>(() =>
-    window.matchMedia(mediaQueries['2xl']).matches ? 5 : 4
-  );
+  // Pedigree generations state - persisted in sessionStorage for navigation
+  const PEDIGREE_GENERATIONS_KEY = "pedigree-generations";
+  const [pedigreeGenerations, setPedigreeGenerations] = useState<GenerationCount>(() => {
+    const saved = sessionStorage.getItem(PEDIGREE_GENERATIONS_KEY);
+    if (saved) return Number(saved) as GenerationCount;
+    return window.matchMedia(mediaQueries['2xl']).matches ? 5 : 4;
+  });
+  const handleGenerationsChange = useCallback((count: GenerationCount) => {
+    setPedigreeGenerations(count);
+    sessionStorage.setItem(PEDIGREE_GENERATIONS_KEY, String(count));
+  }, []);
 
   // Pedigree focus mode - collapse header and tabs to maximize tree space
   const [isPedigreeCollapsed, setIsPedigreeCollapsed] = useState(true);
@@ -214,14 +221,19 @@ export function TabPageTemplate({
     }
   }, []);
 
-  // Pedigree zoom control
+  // Pedigree zoom control - persisted in sessionStorage for navigation
+  const PEDIGREE_ZOOM_KEY = "pedigree-zoom";
   const ZOOM_PRESETS = [80, 90, 100] as const;
-  const [pedigreeZoom, setPedigreeZoom] = useState(100);
+  const [pedigreeZoom, setPedigreeZoom] = useState(() => {
+    const saved = sessionStorage.getItem(PEDIGREE_ZOOM_KEY);
+    if (saved) return Number(saved);
+    return 100;
+  });
   const zoomIndex = ZOOM_PRESETS.indexOf(pedigreeZoom as typeof ZOOM_PRESETS[number]);
   const canZoomOut = zoomIndex > 0;
   const canZoomIn = zoomIndex < ZOOM_PRESETS.length - 1;
-  const handleZoomOut = () => { if (canZoomOut) setPedigreeZoom(ZOOM_PRESETS[zoomIndex - 1]); };
-  const handleZoomIn = () => { if (canZoomIn) setPedigreeZoom(ZOOM_PRESETS[zoomIndex + 1]); };
+  const handleZoomOut = () => { if (canZoomOut) { const z = ZOOM_PRESETS[zoomIndex - 1]; setPedigreeZoom(z); sessionStorage.setItem(PEDIGREE_ZOOM_KEY, String(z)); } };
+  const handleZoomIn = () => { if (canZoomIn) { const z = ZOOM_PRESETS[zoomIndex + 1]; setPedigreeZoom(z); sessionStorage.setItem(PEDIGREE_ZOOM_KEY, String(z)); } };
 
   // Get spaceConfig signal
   const spaceConfigSignal = useMemo(
@@ -525,7 +537,7 @@ export function TabPageTemplate({
                     <div className="flex items-center gap-4">
                       <PedigreeGenerationSelector
                         generations={pedigreeGenerations}
-                        onGenerationsChange={setPedigreeGenerations}
+                        onGenerationsChange={handleGenerationsChange}
                       />
                       <Tooltip>
                         <TooltipTrigger asChild>
@@ -623,7 +635,7 @@ export function TabPageTemplate({
                 mode="fullscreen"
                 dataSource={currentTab.dataSource}
                 pedigreeGenerations={pedigreeGenerations}
-                onPedigreeGenerationsChange={setPedigreeGenerations}
+                onPedigreeGenerationsChange={handleGenerationsChange}
                 pedigreeZoom={pedigreeZoom}
                 stickyScrollbarTop={isPedigreeFocusMode ? (COMPACT_BAR_HEIGHT + 52) : (PAGE_MENU_TOP + 102)}
                 linkToPedigree={linkToPedigree}
