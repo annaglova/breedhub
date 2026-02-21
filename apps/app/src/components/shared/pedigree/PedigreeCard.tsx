@@ -41,58 +41,50 @@ const brokenImageCache = new Set<string>();
 
 /**
  * PetImage - Image with fallback to default dog image
- * Remembers broken URLs to prevent flickering on re-renders
+ *
+ * Always renders fallback as base layer; real image overlays it.
+ * If the image fails to load, the fallback is already visible — no flicker.
+ * Remembers broken URLs to skip network requests on re-renders.
  */
 function PetImage({
   src,
   alt,
-  className = "",
 }: {
   src?: string;
   alt: string;
-  className?: string;
 }) {
-  // Check if URL is already known to be broken
   const isBroken = src ? brokenImageCache.has(src) : false;
-  const initialSrc = !src || isBroken ? defaultPetLogo : src;
+  const showRealImage = !!src && !isBroken;
 
-  const [imgSrc, setImgSrc] = useState(initialSrc);
+  const [imgFailed, setImgFailed] = useState(false);
   const currentSrcRef = useRef(src);
 
   const handleError = useCallback(() => {
-    if (src) {
-      brokenImageCache.add(src);
-    }
-    setImgSrc(defaultPetLogo);
+    if (src) brokenImageCache.add(src);
+    setImgFailed(true);
   }, [src]);
 
-  // Only reset when src actually changes to a different value
+  // Reset failed state when src changes
   useEffect(() => {
     if (currentSrcRef.current !== src) {
       currentSrcRef.current = src;
-      const isBrokenUrl = src ? brokenImageCache.has(src) : false;
-      setImgSrc(!src || isBrokenUrl ? defaultPetLogo : src);
+      setImgFailed(false);
     }
   }, [src]);
 
-  const isShowingFallback = imgSrc === defaultPetLogo;
-
-  if (isShowingFallback) {
-    return (
-      <div className="flex size-full items-center justify-center bg-slate-50 dark:bg-slate-700">
-        <img className="w-2/3 h-auto" src={defaultPetLogo} alt={alt} />
-      </div>
-    );
-  }
-
   return (
-    <img
-      className={className}
-      src={imgSrc}
-      alt={alt}
-      loading="lazy"
-      onError={handleError}
-    />
+    <div className="flex size-full items-center justify-center bg-slate-50 dark:bg-slate-700 relative">
+      <img className="w-2/3 h-auto" src={defaultPetLogo} alt={alt} />
+      {showRealImage && !imgFailed && (
+        <img
+          className="absolute inset-0 size-full object-cover"
+          src={src}
+          alt={alt}
+          loading="lazy"
+          onError={handleError}
+        />
+      )}
+    </div>
   );
 }
 
@@ -158,7 +150,6 @@ export function PedigreeCard({ pet, sex, level, canSelectPet, isSelected, onSele
         {/* Avatar 176px */}
         <div className={`flex size-44 items-center justify-center overflow-hidden rounded-xl border border-border relative ${duplicateColor ? `outline outline-2 outline-offset-2 ${duplicateColor}` : ""}`}>
           <PetImage
-            className="size-full object-cover"
             src={pet.avatarUrl}
             alt={pet.name}
           />
@@ -297,7 +288,6 @@ export function PedigreeCard({ pet, sex, level, canSelectPet, isSelected, onSele
               {/* Avatar 104px with fallback */}
               <div className="h-24 w-24 min-w-24 flex items-center justify-center overflow-hidden rounded-xl border border-border relative">
                 <PetImage
-                  className="size-full object-cover"
                   src={undefined}
                   alt="Unknown"
                 />
@@ -322,7 +312,6 @@ export function PedigreeCard({ pet, sex, level, canSelectPet, isSelected, onSele
         {/* Avatar 64px */}
         <div className={`size-[60px] min-w-[60px] overflow-hidden self-center rounded-xl border border-border relative ${duplicateColor ? `outline outline-2 outline-offset-2 ${duplicateColor}` : ""}`}>
           <PetImage
-            className="size-full object-cover"
             src={pet.avatarUrl}
             alt={pet.name}
           />
