@@ -65,6 +65,8 @@ interface PedigreeTreeProps {
   selectedFather?: PedigreePet | null;
   /** Currently selected mother (to determine if "Select" or "Change") */
   selectedMother?: PedigreePet | null;
+  /** When ON, pet links navigate to /pet-slug/pedigree */
+  linkToPedigree?: boolean;
 }
 
 interface PedigreeNodeProps {
@@ -82,6 +84,8 @@ interface PedigreeNodeProps {
   isSelected?: boolean;
   /** Map of ancestor ID → outline color class for duplicate highlighting */
   duplicateColors?: Map<string, string>;
+  /** When ON, pet links navigate to /pet-slug/pedigree */
+  linkToPedigree?: boolean;
 }
 
 /**
@@ -118,7 +122,7 @@ function calculateLevel(gen: number, limit: number): number {
  *   </div>
  * </div>
  */
-function PedigreeNode({ pet, sex, gen, limit, matingMode, onSelectPet, isSelected, duplicateColors }: PedigreeNodeProps) {
+function PedigreeNode({ pet, sex, gen, limit, matingMode, onSelectPet, isSelected, duplicateColors, linkToPedigree }: PedigreeNodeProps) {
   const petData = pet || UNKNOWN_PET;
   const level = calculateLevel(gen, limit);
   const needChildren = gen <= limit;
@@ -137,6 +141,7 @@ function PedigreeNode({ pet, sex, gen, limit, matingMode, onSelectPet, isSelecte
         isSelected={isSelected}
         onSelectPet={onSelectPet}
         duplicateColor={duplicateColors?.get(petData.id)}
+        linkToPedigree={linkToPedigree}
       />
 
       {/* Children (Father/Mother) */}
@@ -148,6 +153,7 @@ function PedigreeNode({ pet, sex, gen, limit, matingMode, onSelectPet, isSelecte
             gen={gen + 1}
             limit={limit}
             duplicateColors={duplicateColors}
+            linkToPedigree={linkToPedigree}
           />
           <PedigreeNode
             pet={pet?.mother}
@@ -155,6 +161,7 @@ function PedigreeNode({ pet, sex, gen, limit, matingMode, onSelectPet, isSelecte
             gen={gen + 1}
             limit={limit}
             duplicateColors={duplicateColors}
+            linkToPedigree={linkToPedigree}
           />
         </div>
       )}
@@ -180,6 +187,7 @@ export function PedigreeTree({
   onSelectPet,
   selectedFather,
   selectedMother,
+  linkToPedigree,
 }: PedigreeTreeProps) {
   // limit = generations - 1 (як в Angular: this.pedigreeStore.generationsDisplayCount() - 1)
   const limit = generations - 1;
@@ -203,6 +211,7 @@ export function PedigreeTree({
           onSelectPet={onSelectPet}
           isSelected={!!selectedFather}
           duplicateColors={duplicateColors}
+          linkToPedigree={linkToPedigree}
         />
         <PedigreeNode
           pet={pet.mother}
@@ -213,6 +222,7 @@ export function PedigreeTree({
           onSelectPet={onSelectPet}
           isSelected={!!selectedMother}
           duplicateColors={duplicateColors}
+          linkToPedigree={linkToPedigree}
         />
       </div>
     </div>

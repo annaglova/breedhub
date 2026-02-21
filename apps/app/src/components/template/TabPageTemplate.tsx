@@ -7,6 +7,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@ui/components/tooltip";
+import { Switch } from "@ui/components/switch";
 import { BlockRenderer } from "@/components/blocks/BlockRenderer";
 import { SpaceProvider } from "@/contexts/SpaceContext";
 import { ScrollToTopButton } from "@/components/shared/ScrollToTopButton";
@@ -197,6 +198,21 @@ export function TabPageTemplate({
 
   // Pedigree focus mode - collapse header and tabs to maximize tree space
   const [isPedigreeCollapsed, setIsPedigreeCollapsed] = useState(true);
+
+  // Pedigree navigation mode - when ON, pet links go to /pet-slug/pedigree
+  // Persisted in sessionStorage so it survives navigation between pedigrees
+  const LINK_TO_PEDIGREE_KEY = "pedigree-link-mode";
+  const [linkToPedigree, setLinkToPedigree] = useState(
+    () => sessionStorage.getItem(LINK_TO_PEDIGREE_KEY) === "1"
+  );
+  const handleLinkToPedigreeChange = useCallback((checked: boolean) => {
+    setLinkToPedigree(checked);
+    if (checked) {
+      sessionStorage.setItem(LINK_TO_PEDIGREE_KEY, "1");
+    } else {
+      sessionStorage.removeItem(LINK_TO_PEDIGREE_KEY);
+    }
+  }, []);
 
   // Pedigree zoom control
   const ZOOM_PRESETS = [80, 90, 100] as const;
@@ -506,10 +522,20 @@ export function TabPageTemplate({
               <TabActionsHeader
                 left={
                   currentTab.actionType === "pedigreeGenerations" ? (
-                    <PedigreeGenerationSelector
-                      generations={pedigreeGenerations}
-                      onGenerationsChange={setPedigreeGenerations}
-                    />
+                    <div className="flex items-center gap-4">
+                      <PedigreeGenerationSelector
+                        generations={pedigreeGenerations}
+                        onGenerationsChange={setPedigreeGenerations}
+                      />
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <div>
+                            <Switch checked={linkToPedigree} onCheckedChange={handleLinkToPedigreeChange} />
+                          </div>
+                        </TooltipTrigger>
+                        <TooltipContent>Navigate to pedigree</TooltipContent>
+                      </Tooltip>
+                    </div>
                   ) : undefined
                 }
                 right={
@@ -600,6 +626,7 @@ export function TabPageTemplate({
                 onPedigreeGenerationsChange={setPedigreeGenerations}
                 pedigreeZoom={pedigreeZoom}
                 stickyScrollbarTop={isPedigreeFocusMode ? (COMPACT_BAR_HEIGHT + 52) : (PAGE_MENU_TOP + 102)}
+                linkToPedigree={linkToPedigree}
               />
             </div>
           </div>

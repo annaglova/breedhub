@@ -18,6 +18,8 @@ interface PedigreeCardProps {
   onSelectPet?: OnSelectPetCallback;
   /** Tailwind outline color class for duplicate ancestor highlighting */
   duplicateColor?: string;
+  /** When ON, pet links navigate to /pet-slug/pedigree */
+  linkToPedigree?: boolean;
 }
 
 /**
@@ -106,7 +108,7 @@ function PetImage({
  *
  * Based on Angular: pedigree-card.component.ts
  */
-export function PedigreeCard({ pet, sex, level, canSelectPet, isSelected, onSelectPet, duplicateColor }: PedigreeCardProps) {
+export function PedigreeCard({ pet, sex, level, canSelectPet, isSelected, onSelectPet, duplicateColor, linkToPedigree }: PedigreeCardProps) {
   const isEmpty = !pet || pet.id === "unknown";
   const petSex = sex || pet.sex?.code;
   const petUrl = pet.url || pet.slug;
@@ -165,7 +167,7 @@ export function PedigreeCard({ pet, sex, level, canSelectPet, isSelected, onSele
             {/* Name */}
             {petUrl ? (
               <Link
-                to={`/${petUrl}`}
+                to={linkToPedigree ? `/${petUrl}/pedigree` : `/${petUrl}`}
                 className="mt-4 sm:mt-6 flex min-h-10 w-full items-center justify-center text-center text-primary hover:underline line-clamp-2"
               >
                 {pet.name}
@@ -245,7 +247,7 @@ export function PedigreeCard({ pet, sex, level, canSelectPet, isSelected, onSele
             {/* Name */}
             {petUrl ? (
               <Link
-                to={`/${petUrl}`}
+                to={linkToPedigree ? `/${petUrl}/pedigree` : `/${petUrl}`}
                 className="flex min-h-10 items-center justify-center w-full text-center text-primary hover:underline line-clamp-2"
               >
                 {pet.name}
@@ -336,7 +338,7 @@ export function PedigreeCard({ pet, sex, level, canSelectPet, isSelected, onSele
               {/* Name */}
               {petUrl ? (
                 <Link
-                  to={`/${petUrl}`}
+                  to={linkToPedigree ? `/${petUrl}/pedigree` : `/${petUrl}`}
                   className="flex min-h-10 items-center justify-center text-center text-primary hover:underline line-clamp-2"
                 >
                   {pet.name}
@@ -377,7 +379,7 @@ export function PedigreeCard({ pet, sex, level, canSelectPet, isSelected, onSele
       {!isEmpty ? (
         petUrl ? (
           <Link
-            to={`/${petUrl}`}
+            to={linkToPedigree ? `/${petUrl}/pedigree` : `/${petUrl}`}
             className="max-w-60 shrink-0 truncate text-primary hover:underline"
             title={`${pet.name}\n${pet.titles || ""}`}
           >

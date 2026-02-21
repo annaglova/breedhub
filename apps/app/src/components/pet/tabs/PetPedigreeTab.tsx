@@ -43,6 +43,8 @@ interface PetPedigreeTabProps {
   stickyScrollbarTop?: number;
   /** Zoom level percentage (fullscreen mode) */
   pedigreeZoom?: number;
+  /** When ON, pet links navigate to /pet-slug/pedigree */
+  linkToPedigree?: boolean;
 }
 
 /**
@@ -62,6 +64,7 @@ export function PetPedigreeTab({
   tabHeaderTop = 0,
   stickyScrollbarTop,
   pedigreeZoom,
+  linkToPedigree,
 }: PetPedigreeTabProps) {
   useSignals();
 
@@ -228,10 +231,10 @@ export function PetPedigreeTab({
         <div style={pedigreeZoom && pedigreeZoom !== 100 ? { zoom: pedigreeZoom / 100 } : undefined}>
           {isLoading && skeletonPet ? (
             <div className="animate-pulse">
-              <PedigreeTree pet={skeletonPet} generations={generations} />
+              <PedigreeTree pet={skeletonPet} generations={generations} linkToPedigree={linkToPedigree} />
             </div>
           ) : pedigreePet ? (
-            <PedigreeTree pet={pedigreePet} generations={generations} />
+            <PedigreeTree pet={pedigreePet} generations={generations} linkToPedigree={linkToPedigree} />
           ) : (
             <span className="text-secondary p-8 text-center block">
               No pedigree data available
