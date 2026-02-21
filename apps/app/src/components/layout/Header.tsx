@@ -136,9 +136,10 @@ export const Header = forwardRef<HTMLElement, HeaderProps>(
                               icon={item.icon}
                               size={navIconSize}
                               className={cn(
+                                "transition-colors",
                                 isActive
                                   ? "text-primary"
-                                  : "text-sub-header-color"
+                                  : "text-sub-header-color hover:text-slate-600"
                               )}
                             />
                           </Link>
