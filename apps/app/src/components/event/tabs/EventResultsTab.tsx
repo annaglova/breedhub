@@ -104,7 +104,6 @@ function EntityLink({
       <Link
         to={`/${entity.slug}`}
         className={cn(
-          "hover:underline",
           entityRole === "pet" && "text-pet",
           entityRole === "judge" && "text-contact"
         )}
@@ -283,7 +282,7 @@ export function EventResultsTab({
             {/* Breed header */}
             <div className="bg-secondary-100 w-full rounded-full px-4 py-2.5">
               {breed.slug ? (
-                <Link to={`/${breed.slug}`} className="hover:underline">
+                <Link to={`/${breed.slug}`}>
                   {breed.name}
                 </Link>
               ) : (

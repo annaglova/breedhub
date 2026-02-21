@@ -24,9 +24,9 @@
     --pet-template: 226 232 240; /* slate 200 */
     --icon-color: 148 163 184; /* slate 400 */
     --active-icon-color: 148 163 184; /* slate 400 */
+    --primary-hover: 81 45 168; /* purple 700 */
     /* Primary color*/
     --primary: 103 58 183; /* purple500 */
-    --primary-hover: 94 53 177; /* purple 600 */
     --primary-50: 237 231 246; /* purple50 */
     --primary-100: 209 196 233; /* purple 100 */
     --primary-200: 179 157 219; /* purple 200 */

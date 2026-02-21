@@ -155,7 +155,6 @@ export function NoteTabCard({
                 {connectedEntity?.slug ? (
                   <Link
                     to={`/${connectedEntity.slug}`}
-                    className="text-primary hover:underline"
                     onClick={(e) => e.stopPropagation()}
                   >
                     {connectedEntity.name}

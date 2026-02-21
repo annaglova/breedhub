@@ -1,5 +1,17 @@
 /* App.css - Custom styles for the app */
 
+/* Link styles - base color + hover darken */
+a {
+  color: rgb(var(--primary));
+  transition-property: color;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+
+a:hover {
+  color: rgb(var(--primary-hover));
+}
+
 /* Content padding - unified padding for pages and spaces */
 :root {
   --content-padding: 1rem; /* p-4 on mobile */

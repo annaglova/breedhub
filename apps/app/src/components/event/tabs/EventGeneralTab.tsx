@@ -124,7 +124,7 @@ function JudgeLink({ judge }: { judge: Judge }) {
 
   if (url) {
     return (
-      <Link to={url} className="text-contact hover:underline">
+      <Link to={url} className="text-contact">
         {judge.name}
       </Link>
     );

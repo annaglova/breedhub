@@ -168,7 +168,7 @@ export function PedigreeCard({ pet, sex, level, canSelectPet, isSelected, onSele
             {petUrl ? (
               <Link
                 to={linkToPedigree ? `/${petUrl}/pedigree` : `/${petUrl}`}
-                className="mt-4 sm:mt-6 flex min-h-10 w-full items-center justify-center text-center text-primary hover:underline line-clamp-2"
+                className="mt-4 sm:mt-6 flex min-h-10 w-full items-center justify-center text-center line-clamp-2"
               >
                 {pet.name}
               </Link>
@@ -248,7 +248,7 @@ export function PedigreeCard({ pet, sex, level, canSelectPet, isSelected, onSele
             {petUrl ? (
               <Link
                 to={linkToPedigree ? `/${petUrl}/pedigree` : `/${petUrl}`}
-                className="flex min-h-10 items-center justify-center w-full text-center text-primary hover:underline line-clamp-2"
+                className="flex min-h-10 items-center justify-center w-full text-center line-clamp-2"
               >
                 {pet.name}
               </Link>
@@ -339,7 +339,7 @@ export function PedigreeCard({ pet, sex, level, canSelectPet, isSelected, onSele
               {petUrl ? (
                 <Link
                   to={linkToPedigree ? `/${petUrl}/pedigree` : `/${petUrl}`}
-                  className="flex min-h-10 items-center justify-center text-center text-primary hover:underline line-clamp-2"
+                  className="flex min-h-10 items-center justify-center text-center line-clamp-2"
                 >
                   {pet.name}
                 </Link>
@@ -380,7 +380,7 @@ export function PedigreeCard({ pet, sex, level, canSelectPet, isSelected, onSele
         petUrl ? (
           <Link
             to={linkToPedigree ? `/${petUrl}/pedigree` : `/${petUrl}`}
-            className="max-w-60 shrink-0 truncate text-primary hover:underline"
+            className="max-w-60 shrink-0 truncate"
             title={`${pet.name}\n${pet.titles || ""}`}
           >
             {pet.name}

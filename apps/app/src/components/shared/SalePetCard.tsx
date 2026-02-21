@@ -131,7 +131,7 @@ export function SalePetCard({ pet, defaultImage = defaultPetLogo }: SalePetCardP
         {pet.breed?.slug ? (
           <Link
             to={`/${pet.breed.slug}`}
-            className="text-primary hover:underline uppercase"
+            className="uppercase"
           >
             {pet.breed.name}
           </Link>
@@ -157,7 +157,7 @@ export function SalePetCard({ pet, defaultImage = defaultPetLogo }: SalePetCardP
           <PetSexMark sex={pet.sex.code as any} style="round" />
         )}
         {pet.slug ? (
-          <Link to={`/${pet.slug}`} className="text-primary hover:underline font-medium">
+          <Link to={`/${pet.slug}`} className="font-medium">
             {pet.name}
           </Link>
         ) : (
@@ -201,7 +201,7 @@ export function SalePetCard({ pet, defaultImage = defaultPetLogo }: SalePetCardP
           </div>
           <div className="w-34 sm:w-38 lg:w-40 flex min-h-14 items-center text-center text-base">
             {pet.father?.slug ? (
-              <Link to={`/${pet.father.slug}`} className="text-primary hover:underline text-sm">
+              <Link to={`/${pet.father.slug}`} className="text-sm">
                 {pet.father.name}
               </Link>
             ) : (
@@ -226,7 +226,7 @@ export function SalePetCard({ pet, defaultImage = defaultPetLogo }: SalePetCardP
           </div>
           <div className="w-34 sm:w-38 lg:w-40 flex min-h-14 items-center text-center text-base">
             {pet.mother?.slug ? (
-              <Link to={`/${pet.mother.slug}`} className="text-primary hover:underline text-sm">
+              <Link to={`/${pet.mother.slug}`} className="text-sm">
                 {pet.mother.name}
               </Link>
             ) : (
