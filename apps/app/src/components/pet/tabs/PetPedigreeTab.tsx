@@ -41,6 +41,8 @@ interface PetPedigreeTabProps {
   tabHeaderTop?: number;
   /** Direct sticky top value (for fullscreen mode) */
   stickyScrollbarTop?: number;
+  /** Zoom level percentage (fullscreen mode) */
+  pedigreeZoom?: number;
 }
 
 /**
@@ -59,6 +61,7 @@ export function PetPedigreeTab({
   onPedigreeGenerationsChange,
   tabHeaderTop = 0,
   stickyScrollbarTop,
+  pedigreeZoom,
 }: PetPedigreeTabProps) {
   useSignals();
 
@@ -222,17 +225,19 @@ export function PetPedigreeTab({
           userSelect: isDragging ? "none" : undefined,
         }}
       >
-        {isLoading && skeletonPet ? (
-          <div className="animate-pulse">
-            <PedigreeTree pet={skeletonPet} generations={generations} />
-          </div>
-        ) : pedigreePet ? (
-          <PedigreeTree pet={pedigreePet} generations={generations} />
-        ) : (
-          <span className="text-secondary p-8 text-center block">
-            No pedigree data available
-          </span>
-        )}
+        <div style={pedigreeZoom && pedigreeZoom !== 100 ? { zoom: pedigreeZoom / 100 } : undefined}>
+          {isLoading && skeletonPet ? (
+            <div className="animate-pulse">
+              <PedigreeTree pet={skeletonPet} generations={generations} />
+            </div>
+          ) : pedigreePet ? (
+            <PedigreeTree pet={pedigreePet} generations={generations} />
+          ) : (
+            <span className="text-secondary p-8 text-center block">
+              No pedigree data available
+            </span>
+          )}
+        </div>
       </div>
     </div>
   );

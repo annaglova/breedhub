@@ -1,6 +1,6 @@
 import { useMemo, useRef, useState, useEffect, useCallback } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { Pencil, Minimize2, Maximize2 } from "lucide-react";
+import { Pencil, Minimize2, Maximize2, Minus, Plus } from "lucide-react";
 import { NavigationButtons } from "@/components/template/cover/NavigationButtons";
 import {
   Tooltip,
@@ -195,6 +195,15 @@ export function TabPageTemplate({
 
   // Pedigree focus mode - collapse header and tabs to maximize tree space
   const [isPedigreeCollapsed, setIsPedigreeCollapsed] = useState(true);
+
+  // Pedigree zoom control
+  const ZOOM_PRESETS = [80, 90, 100] as const;
+  const [pedigreeZoom, setPedigreeZoom] = useState(100);
+  const zoomIndex = ZOOM_PRESETS.indexOf(pedigreeZoom as typeof ZOOM_PRESETS[number]);
+  const canZoomOut = zoomIndex > 0;
+  const canZoomIn = zoomIndex < ZOOM_PRESETS.length - 1;
+  const handleZoomOut = () => { if (canZoomOut) setPedigreeZoom(ZOOM_PRESETS[zoomIndex - 1]); };
+  const handleZoomIn = () => { if (canZoomIn) setPedigreeZoom(ZOOM_PRESETS[zoomIndex + 1]); };
 
   // Get spaceConfig signal
   const spaceConfigSignal = useMemo(
@@ -511,20 +520,55 @@ export function TabPageTemplate({
                       Edit
                     </button>
                   ) : currentTab.focusMode ? (
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <button
-                          type="button"
-                          onClick={() => setIsPedigreeCollapsed(v => !v)}
-                          className="flex items-center justify-center h-8 w-8 text-sub-header-color hover:text-foreground/70 transition-colors focus:outline-none focus-visible:outline-none"
-                        >
-                          {isPedigreeCollapsed ? <Maximize2 size={18} /> : <Minimize2 size={18} />}
-                        </button>
-                      </TooltipTrigger>
-                      <TooltipContent side="bottom">
-                        {isPedigreeCollapsed ? "Expand header" : "Collapse header"}
-                      </TooltipContent>
-                    </Tooltip>
+                    <div className="flex items-center gap-0">
+                      {/* Zoom controls */}
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <button
+                            type="button"
+                            onClick={handleZoomOut}
+                            disabled={!canZoomOut}
+                            className="flex items-center justify-center h-8 w-8 text-sub-header-color hover:text-foreground/70 transition-colors focus:outline-none focus-visible:outline-none disabled:opacity-30 disabled:pointer-events-none"
+                          >
+                            <Minus size={16} />
+                          </button>
+                        </TooltipTrigger>
+                        <TooltipContent side="bottom">Zoom out</TooltipContent>
+                      </Tooltip>
+                      <span className="text-sm text-sub-header-color tabular-nums w-10 text-center select-none">
+                        {pedigreeZoom}%
+                      </span>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <button
+                            type="button"
+                            onClick={handleZoomIn}
+                            disabled={!canZoomIn}
+                            className="flex items-center justify-center h-8 w-8 text-sub-header-color hover:text-foreground/70 transition-colors focus:outline-none focus-visible:outline-none disabled:opacity-30 disabled:pointer-events-none"
+                          >
+                            <Plus size={16} />
+                          </button>
+                        </TooltipTrigger>
+                        <TooltipContent side="bottom">Zoom in</TooltipContent>
+                      </Tooltip>
+
+                      {/* Collapse/expand button */}
+                      <div className="ml-4" />
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <button
+                            type="button"
+                            onClick={() => setIsPedigreeCollapsed(v => !v)}
+                            className="flex items-center justify-center h-8 w-8 text-sub-header-color hover:text-foreground/70 transition-colors focus:outline-none focus-visible:outline-none"
+                          >
+                            {isPedigreeCollapsed ? <Maximize2 size={18} /> : <Minimize2 size={18} />}
+                          </button>
+                        </TooltipTrigger>
+                        <TooltipContent side="bottom">
+                          {isPedigreeCollapsed ? "Expand header" : "Collapse header"}
+                        </TooltipContent>
+                      </Tooltip>
+                    </div>
                   ) : undefined
                 }
               />
@@ -544,6 +588,7 @@ export function TabPageTemplate({
                 dataSource={currentTab.dataSource}
                 pedigreeGenerations={pedigreeGenerations}
                 onPedigreeGenerationsChange={setPedigreeGenerations}
+                pedigreeZoom={pedigreeZoom}
                 stickyScrollbarTop={isPedigreeFocusMode ? (COMPACT_BAR_HEIGHT + 52) : (PAGE_MENU_TOP + 102)}
               />
             </div>
