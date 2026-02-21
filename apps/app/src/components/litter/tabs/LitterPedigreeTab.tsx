@@ -7,7 +7,20 @@ import {
 import { useSelectedEntity } from "@/contexts/SpaceContext";
 import { spaceStore, useLitterPedigree } from "@breedhub/rxdb-store";
 import { useSignals } from "@preact/signals-react/runtime";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+
+/**
+ * Build a skeleton pedigree tree with UNKNOWN ancestors for loading state.
+ */
+function buildSkeletonAncestor(depth: number): PedigreePet | undefined {
+  if (depth <= 0) return undefined;
+  return {
+    id: "unknown",
+    name: "Unknown",
+    father: buildSkeletonAncestor(depth - 1),
+    mother: buildSkeletonAncestor(depth - 1),
+  };
+}
 
 /** Default generations to show in scroll mode */
 const DEFAULT_GENERATIONS: GenerationCount = 4;
@@ -116,20 +129,16 @@ export function LitterPedigreeTab({
   // Check if we have parent data
   const hasParents = father || mother;
 
-  // Loading skeleton
-  if (isLoading) {
-    return (
-      <div className="px-6 py-4 animate-pulse space-y-4">
-        <div className="flex gap-4 justify-center">
-          <div className="h-20 w-36 bg-slate-200 dark:bg-slate-700 rounded-lg" />
-        </div>
-        <div className="flex gap-4 justify-center">
-          <div className="h-20 w-36 bg-slate-200 dark:bg-slate-700 rounded-lg" />
-          <div className="h-20 w-36 bg-slate-200 dark:bg-slate-700 rounded-lg" />
-        </div>
-      </div>
-    );
-  }
+  // Build skeleton pet for loading state (skeleton father + mother ancestors)
+  const skeletonPet = useMemo<PedigreePet | null>(() => {
+    if (!isLoading || !selectedEntity) return null;
+    return {
+      id: selectedEntity.id,
+      name: selectedEntity.name || "Litter",
+      father: buildSkeletonAncestor(generations),
+      mother: buildSkeletonAncestor(generations),
+    };
+  }, [isLoading, selectedEntity, generations]);
 
   // Error state
   if (error) {
@@ -171,7 +180,11 @@ export function LitterPedigreeTab({
           userSelect: isDragging ? "none" : "auto",
         }}
       >
-        {pedigreePet && hasParents ? (
+        {isLoading && skeletonPet ? (
+          <div className="animate-pulse">
+            <PedigreeTree pet={skeletonPet} generations={generations} hideSubject />
+          </div>
+        ) : pedigreePet && hasParents ? (
           <PedigreeTree
             pet={pedigreePet}
             generations={generations}
