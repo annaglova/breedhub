@@ -101,10 +101,10 @@ function PetImage({
  *
  * Different visual styles based on level:
  * - level -1: Vertical rotated name with sex mark (sidebar style)
- * - level 0: Large card with avatar 176px, h=420px
- * - level 1: Medium card with avatar 104px, h=204px
- * - level 2: Small card with avatar 64px, h=96px
- * - level 3: Pill-shaped with just sex mark and name, h=42px
+ * - level 0: Large card with avatar 176px, h=404px
+ * - level 1: Medium card with avatar 104px, h=196px
+ * - level 2: Small card with avatar 64px, h=92px
+ * - level 3: Pill-shaped with just sex mark and name, h=40px
  *
  * Heights are calculated: H(n) = 2 × H(n+1) + gap(12px)
  *
@@ -148,7 +148,7 @@ export function PedigreeCard({ pet, sex, level, canSelectPet, isSelected, onSele
   // Level 0: Large card (parents level)
   if (level === 0) {
     return (
-      <div className="card card-rounded flex min-w-72 max-w-72 w-full flex-col items-center justify-center px-6 py-3 min-h-[420px] bg-even-card-ground">
+      <div className="card card-rounded flex min-w-72 max-w-72 w-full flex-col items-center justify-center px-6 py-3 min-h-[404px] bg-even-card-ground">
         <PetSexMark
           sex={petSex}
           style="horizontal"
@@ -241,7 +241,7 @@ export function PedigreeCard({ pet, sex, level, canSelectPet, isSelected, onSele
   // Level 1: Medium card (grandparents level)
   if (level === 1) {
     return (
-      <div className="card card-rounded flex min-w-72 max-w-72 flex-col items-center px-6 py-3 min-h-[204px] max-h-[204px] overflow-hidden bg-even-card-ground">
+      <div className="card card-rounded flex min-w-72 max-w-72 flex-col items-center px-6 py-3 min-h-[196px] max-h-[196px] overflow-hidden bg-even-card-ground">
         <PetSexMark sex={petSex} style="horizontal" className="w-44 shrink-0" />
 
         {!isEmpty ? (
@@ -263,7 +263,7 @@ export function PedigreeCard({ pet, sex, level, canSelectPet, isSelected, onSele
             {/* Avatar + Titles row */}
             <div className="flex w-full items-center h-full">
               {/* Avatar 104px */}
-              <div className={`h-26 w-26 min-w-26 flex items-center justify-center overflow-hidden rounded-xl border border-border relative ${duplicateColor ? `outline outline-2 outline-offset-2 ${duplicateColor}` : ""}`}>
+              <div className={`h-24 w-24 min-w-24 flex items-center justify-center overflow-hidden rounded-xl border border-border relative ${duplicateColor ? `outline outline-2 outline-offset-2 ${duplicateColor}` : ""}`}>
                 <PetImage
                   className="size-full object-cover"
                   src={pet.avatarUrl}
@@ -295,7 +295,7 @@ export function PedigreeCard({ pet, sex, level, canSelectPet, isSelected, onSele
             <div className="rounded-full bg-secondary-200 dark:bg-secondary-700 w-full h-4 mt-3 shrink-0" />
             <div className="flex w-full items-center h-full">
               {/* Avatar 104px with fallback */}
-              <div className="h-26 w-26 min-w-26 flex items-center justify-center overflow-hidden rounded-xl border border-border relative">
+              <div className="h-24 w-24 min-w-24 flex items-center justify-center overflow-hidden rounded-xl border border-border relative">
                 <PetImage
                   className="size-full object-cover"
                   src={undefined}
@@ -318,9 +318,9 @@ export function PedigreeCard({ pet, sex, level, canSelectPet, isSelected, onSele
   // Level 2: Small card (great-grandparents level)
   if (level === 2) {
     return (
-      <div className="card card-rounded min-w-72 max-w-72 p-3 flex min-h-[96px] max-h-[96px] overflow-hidden bg-even-card-ground">
+      <div className="card card-rounded min-w-72 max-w-72 p-3 flex min-h-[92px] max-h-[92px] overflow-hidden bg-even-card-ground">
         {/* Avatar 64px */}
-        <div className={`size-16 min-w-16 overflow-hidden self-center rounded-xl border border-border relative ${duplicateColor ? `outline outline-2 outline-offset-2 ${duplicateColor}` : ""}`}>
+        <div className={`size-[60px] min-w-[60px] overflow-hidden self-center rounded-xl border border-border relative ${duplicateColor ? `outline outline-2 outline-offset-2 ${duplicateColor}` : ""}`}>
           <PetImage
             className="size-full object-cover"
             src={pet.avatarUrl}
@@ -373,7 +373,7 @@ export function PedigreeCard({ pet, sex, level, canSelectPet, isSelected, onSele
 
   // Level 3: Pill-shaped card (gen 4+)
   return (
-    <div className="card flex min-w-72 max-w-72 flex-row items-center rounded-full py-[0.65rem] pl-3 pr-5 min-h-[42px] max-h-[42px] overflow-hidden bg-even-card-ground">
+    <div className="card flex min-w-72 max-w-72 flex-row items-center rounded-full py-2 pl-3 pr-5 min-h-[40px] max-h-[40px] overflow-hidden bg-even-card-ground">
       <span className={`mr-3 shrink-0 rounded-full ${duplicateColor ? `outline outline-2 outline-offset-2 ${duplicateColor}` : ""}`}>
         <PetSexMark sex={petSex} style="round" className="w-4" />
       </span>
