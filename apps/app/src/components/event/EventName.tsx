@@ -63,7 +63,7 @@ export function EventName({
           {linkToFullscreen && slug ? (
             <Link
               to={`/${slug}`}
-              className="hover:text-primary transition-colors cursor-pointer"
+              className="text-foreground hover:text-primary cursor-pointer"
             >
               {displayName}
             </Link>

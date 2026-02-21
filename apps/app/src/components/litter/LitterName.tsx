@@ -27,7 +27,7 @@ function EntityLink({
 
   if (slug) {
     return (
-      <Link to={`/${slug}`} className={`hover:text-primary transition-colors ${className}`}>
+      <Link to={`/${slug}`} className={`text-foreground hover:text-primary ${className}`}>
         {name}
       </Link>
     );
@@ -112,7 +112,7 @@ export function LitterName({
           {linkToFullscreen && slug ? (
             <Link
               to={`/${slug}`}
-              className="hover:text-primary transition-colors cursor-pointer"
+              className="text-foreground hover:text-primary cursor-pointer"
             >
               {displayName}
             </Link>

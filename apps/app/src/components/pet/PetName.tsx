@@ -65,7 +65,7 @@ export function PetName({
       <div className="text-md mb-2 min-h-[1.5rem]">
         {breedName && (
           breedSlug ? (
-            <Link to={`/${breedSlug}`} className="uppercase hover:text-primary transition-colors">
+            <Link to={`/${breedSlug}`} className="text-foreground hover:text-primary uppercase">
               {breedName}
             </Link>
           ) : (
@@ -80,7 +80,7 @@ export function PetName({
           {linkToFullscreen && entity?.slug ? (
             <Link
               to={`/${entity.slug}`}
-              className="hover:text-primary transition-colors cursor-pointer"
+              className="text-foreground hover:text-primary cursor-pointer"
             >
               {displayName}
             </Link>

@@ -85,7 +85,7 @@ export function KennelName({
           {linkToFullscreen && entity?.slug ? (
             <Link
               to={`/${entity.slug}`}
-              className="hover:text-primary transition-colors cursor-pointer"
+              className="text-foreground hover:text-primary cursor-pointer"
             >
               {displayName}
             </Link>
@@ -119,7 +119,7 @@ export function KennelName({
           {/* Owner */}
           {ownerName && (
             ownerSlug ? (
-              <Link to={`/${ownerSlug}`} className="hover:text-primary transition-colors">
+              <Link to={`/${ownerSlug}`} className="text-foreground hover:text-primary">
                 {ownerName}
               </Link>
             ) : (
