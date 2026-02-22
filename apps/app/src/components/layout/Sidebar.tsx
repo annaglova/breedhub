@@ -85,10 +85,10 @@ export function Sidebar({
                     className={cn(
                       "flex items-center gap-3 px-3 py-2 rounded-lg transition-colors",
                       onClose
-                        ? "hover:bg-primary-50 hover:text-primary-600 hover:font-semibold"
+                        ? "text-slate-800 hover:bg-primary-50 hover:font-semibold"
                         : "text-slate-900 hover:bg-slate-200",
                       isActive && (onClose
-                        ? "bg-primary-50 text-primary-600 font-semibold"
+                        ? "bg-primary-50 font-semibold"
                         : "bg-slate-200 font-semibold"),
                       isCollapsed && "justify-center"
                     )}
