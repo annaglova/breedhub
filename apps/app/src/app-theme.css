@@ -30,6 +30,18 @@ a:hover {
   padding-bottom: var(--content-padding-bottom);
 }
 
+/* Content padding only on sm+ (no padding on mobile for edge-to-edge layouts) */
+.content-padding-sm {
+  padding: 0;
+}
+
+@media (min-width: 640px) {
+  .content-padding-sm {
+    padding: var(--content-padding);
+    padding-bottom: var(--content-padding-bottom);
+  }
+}
+
 /* Space padding - like content-padding but always has bottom padding */
 .space-padding {
   padding: var(--content-padding);

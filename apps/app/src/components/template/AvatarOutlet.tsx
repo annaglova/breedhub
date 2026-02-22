@@ -119,7 +119,7 @@ export function AvatarOutlet({
 
   return (
     <div
-      className={`${avatarConfig.offset} ${avatarConfig.padding} flex flex-auto items-end relative pb-3 top-0 z-30 pointer-events-none ${className}`}
+      className={`${avatarConfig.offset} ${avatarConfig.padding} flex flex-auto items-end relative pb-0 sm:pb-3 top-0 z-30 pointer-events-none px-4 sm:px-0 ${className}`}
     >
       {/* Skeleton overlay - shown when loading */}
       {isLoading && (

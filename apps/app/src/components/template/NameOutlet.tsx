@@ -107,7 +107,7 @@ export function NameOutlet({
 
   return (
     <div
-      className={`relative bg-card-ground ${
+      className={`relative bg-card-ground px-4 sm:px-0 pt-4 sm:pt-0 ${
         onTop ? "border-b border-surface-border" : ""
       } ${className}`}
     >
@@ -138,14 +138,14 @@ export function NameOutlet({
 
       {/* Navigation buttons - top right (default/gray when sticky or alwaysShowNavigation) */}
       {(onTop || alwaysShowNavigation) && (
-        <div className="absolute right-0 top-0">
+        <div className="absolute right-4 sm:right-0 top-4 sm:top-0">
           <NavigationButtons mode="default" entityType={entityType} />
         </div>
       )}
 
       {/* Action buttons - bottom right */}
       {onTop && (
-        <div className="absolute bottom-1 right-0 flex gap-1">
+        <div className="absolute bottom-1 right-4 sm:right-0 flex gap-1">
           {/* Edit button - only on md+ screens, with extra spacing from action buttons */}
           {showEditButton && (
             <Tooltip>

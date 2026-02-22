@@ -435,7 +435,7 @@ export function PublicPageTemplate({
     >
       <div
         className={cn(
-          "size-full flex flex-col content-padding",
+          "size-full flex flex-col content-padding-sm",
           isDrawerMode && "bg-white dark:bg-slate-900",
           isFullscreenMode && "min-h-screen bg-white dark:bg-slate-900",
           className
