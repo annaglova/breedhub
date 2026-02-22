@@ -74,7 +74,7 @@ interface BreedCoverV1Props {
  * - Breed: uses entity.name, entity.top_patrons directly
  * - Pet/Kennel: loads breed via entity.breed_id
  *
- * Shows breed name + top 4 patrons OR "You may be the first one!" if no patrons
+ * Shows breed name + top 4 patrons OR "Will it be you?" if no patrons
  */
 export function BreedCoverV1({
   entity,
@@ -91,7 +91,10 @@ export function BreedCoverV1({
   // Compact layout for md drawer (sm-lg viewport, not fullscreen)
   const isSM = useMediaQuery(mediaQueries.sm);
   const isLG = useMediaQuery(mediaQueries.lg);
+  const isXL = useMediaQuery(mediaQueries.xl);
   const isMdDrawer = !fullscreen && isSM && !isLG;
+  // Reduced layout for lg drawer (1024-1279px, not fullscreen): smaller circle, shorter text
+  const isLgDrawer = !fullscreen && isLG && !isXL;
 
   // Check if entity IS a breed (has top_patrons) or HAS a breed_id reference
   // Note: entities without breed_id AND without top_patrons (like events) should use DefaultCover
@@ -238,10 +241,10 @@ export function BreedCoverV1({
   if (isMdDrawer) {
     return (
       <CoverTemplate coverImg={actualCoverImg} className={className}>
-        <div className="z-20 flex size-full flex-col justify-between pb-3 border border-green-500">
+        <div className="z-20 flex size-full flex-col justify-between pb-3 ">
           <div className="flex w-full justify-between">
             <div
-              className="text-lg uppercase text-white mt-2 max-w-[60%] truncate border border-red-400"
+              className="text-lg uppercase text-white mt-2 max-w-[60%] truncate "
               style={{ fontFamily: "Roboto, sans-serif" }}
             >
               {breed.name}
@@ -260,7 +263,7 @@ export function BreedCoverV1({
                   ))}
                 </div>
               ) : (
-                <div className="relative flex items-center space-x-2 border border-blue-400">
+                <div className="relative flex items-center space-x-2 ">
                   <span className="text-end text-white text-sm">
                     Be the first<br />patron!
                   </span>
@@ -321,11 +324,11 @@ export function BreedCoverV1({
   // Default layout — unchanged
   return (
     <CoverTemplate coverImg={actualCoverImg} className={className}>
-      <div className="z-20 ml-auto flex size-full flex-col justify-between pb-3 sm:w-auto sm:pb-2 sm:pt-1  border border-green-500">
+      <div className="z-20 ml-auto flex size-full flex-col justify-between pb-3 sm:w-auto sm:pb-2 sm:pt-1  ">
         {/* Patrons */}
         <div className="flex w-full justify-between sm:flex-col sm:space-y-2">
           <div
-            className={`text-lg absolute top-3 sm:text-end uppercase text-white max-w-48 sm:max-w-full truncate sm:text-clip text-left sm:static sm:text-xl border border-red-400${
+            className={`text-lg absolute top-3 sm:text-end uppercase text-white max-w-48 sm:max-w-full truncate sm:text-clip text-left sm:static sm:text-xl ${
               fullscreen ? " sm:mt-3" : ""
             }`}
             style={{ fontFamily: "Roboto, sans-serif" }}
@@ -346,17 +349,17 @@ export function BreedCoverV1({
                 ))}
               </div>
             ) : (
-              <div className={`relative flex items-center space-x-2 border border-blue-400 ${fullscreen ? "sm:space-x-3" : ""}`}>
-                <span className={`text-end text-white text-sm ${fullscreen ? "sm:hidden" : ""}`}>
+              <div className={`relative flex items-center space-x-2  ${!isLgDrawer ? "sm:space-x-3" : ""}`}>
+                <span className={`text-end text-white text-sm ${!isLgDrawer ? "sm:hidden" : ""}`}>
                   Be the first<br />patron!
                 </span>
-                {fullscreen && (
+                {!isLgDrawer && (
                   <span className="hidden text-end text-white sm:block">
-                    There are no patrons in the breed <br />
-                    You may be the first one!
+                    This breed needs its first champion. <br />
+                    Will it be you?
                   </span>
                 )}
-                <div className={`group flex size-11 items-center justify-center overflow-hidden rounded-full border border-white bg-white/30 text-7xl text-white ${fullscreen ? "sm:mt-2 sm:size-16" : ""}`}>
+                <div className={`group flex size-11 items-center justify-center overflow-hidden rounded-full border border-white bg-white/30 text-7xl text-white ${!isLgDrawer ? "sm:mt-2 sm:size-16" : ""}`}>
                   {/* Question mark icon */}
                   <svg
                     className="duration-300 group-hover:scale-125"
@@ -378,7 +381,7 @@ export function BreedCoverV1({
                     </text>
                   </svg>
                   <div className="bg-accent-700 absolute -right-2 top-0 rounded-full p-1">
-                    {fullscreen ? (
+                    {!isLgDrawer ? (
                       <>
                         <PatronIcons.PatronPlacesPlace1Icon
                           width={14}
@@ -407,7 +410,7 @@ export function BreedCoverV1({
           </div>
           {fullscreen && (
             <span className="hidden pt-4 text-end text-white md:block">
-              Make a contribution to the development of your favorite breed
+              Support your favorite breed's future
             </span>
           )}
         </div>
