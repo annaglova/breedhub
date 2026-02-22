@@ -166,7 +166,7 @@ export function CoverOutlet({
   return (
     <div
       ref={containerRef}
-      className={`relative flex justify-center overflow-hidden sm:rounded-lg border border-slate-200 px-6 pt-4 shadow-sm sm:pb-3 sm:pt-6 mb-6 ${className}`}
+      className={`relative flex justify-center overflow-hidden sm:rounded-lg border border-slate-200 px-3 pt-3 sm:px-6 shadow-sm sm:pb-3 sm:pt-6 mb-6 ${className}`}
       style={coverStyle}
     >
       {/* Skeleton overlay - shown when loading */}
