@@ -346,15 +346,17 @@ export function BreedCoverV1({
                 ))}
               </div>
             ) : (
-              <div className="relative flex items-center space-x-2 sm:space-x-3 border border-blue-400">
-                <span className="text-end text-white text-sm sm:hidden">
+              <div className={`relative flex items-center space-x-2 border border-blue-400 ${fullscreen ? "sm:space-x-3" : ""}`}>
+                <span className={`text-end text-white text-sm ${fullscreen ? "sm:hidden" : ""}`}>
                   Be the first<br />patron!
                 </span>
-                <span className="hidden text-end text-white sm:block">
-                  There are no patrons in the breed <br />
-                  You may be the first one!
-                </span>
-                <div className="group sm:mt-2 flex size-11 items-center justify-center overflow-hidden rounded-full border border-white bg-white/30 text-7xl text-white sm:size-16">
+                {fullscreen && (
+                  <span className="hidden text-end text-white sm:block">
+                    There are no patrons in the breed <br />
+                    You may be the first one!
+                  </span>
+                )}
+                <div className={`group flex size-11 items-center justify-center overflow-hidden rounded-full border border-white bg-white/30 text-7xl text-white ${fullscreen ? "sm:mt-2 sm:size-16" : ""}`}>
                   {/* Question mark icon */}
                   <svg
                     className="duration-300 group-hover:scale-125"
@@ -376,20 +378,28 @@ export function BreedCoverV1({
                     </text>
                   </svg>
                   <div className="bg-accent-700 absolute -right-2 top-0 rounded-full p-1">
-                    {/* Place 1 badge - small screens */}
-                    <PatronIcons.PatronPlacesPlace1Icon
-                      width={14}
-                      height={14}
-                      style={{ fill: "rgb(255, 255, 255)" }}
-                      className="sm:hidden"
-                    />
-                    {/* Place 1 badge - large screens */}
-                    <PatronIcons.PatronPlacesPlace1Icon
-                      width={18}
-                      height={18}
-                      style={{ fill: "rgb(255, 255, 255)" }}
-                      className="hidden sm:block"
-                    />
+                    {fullscreen ? (
+                      <>
+                        <PatronIcons.PatronPlacesPlace1Icon
+                          width={14}
+                          height={14}
+                          style={{ fill: "rgb(255, 255, 255)" }}
+                          className="sm:hidden"
+                        />
+                        <PatronIcons.PatronPlacesPlace1Icon
+                          width={18}
+                          height={18}
+                          style={{ fill: "rgb(255, 255, 255)" }}
+                          className="hidden sm:block"
+                        />
+                      </>
+                    ) : (
+                      <PatronIcons.PatronPlacesPlace1Icon
+                        width={14}
+                        height={14}
+                        style={{ fill: "rgb(255, 255, 255)" }}
+                      />
+                    )}
                   </div>
                 </div>
               </div>
