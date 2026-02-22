@@ -226,8 +226,8 @@ export function BreedCoverV1({
         {/* Patrons */}
         <div className="flex w-full justify-between sm:flex-col sm:space-y-2">
           <div
-            className={`text-md absolute top-5 sm:text-end  uppercase text-white max-w-64 text-left sm:max-w-full sm:static sm:text-xl border border-red-400${
-              isFullscreen ? "sm:mt-3" : ""
+            className={`text-lg absolute top-3 sm:text-end uppercase text-white max-w-48 sm:max-w-full truncate sm:text-clip text-left sm:static sm:text-xl border border-red-400${
+              isFullscreen ? " sm:mt-3" : ""
             }`}
             style={{ fontFamily: "Roboto, sans-serif" }}
           >
@@ -247,7 +247,10 @@ export function BreedCoverV1({
                 ))}
               </div>
             ) : (
-              <div className="relative flex items-center sm:space-x-3 border border-blue-400">
+              <div className="relative flex items-center space-x-2 sm:space-x-3 border border-blue-400">
+                <span className="text-end text-white text-sm sm:hidden">
+                  Be the first<br />patron!
+                </span>
                 <span className="hidden text-end text-white sm:block">
                   There are no patrons in the breed <br />
                   You may be the first one!
@@ -326,12 +329,13 @@ export function BreedCoverV1({
             <TooltipTrigger asChild>
               <Button
                 variant="accent"
-                className="ml-auto rounded-full h-[2.25rem] w-[2.25rem] flex items-center justify-center sm:hidden"
+                className="ml-auto rounded-full h-[2.25rem] px-3 flex items-center sm:hidden"
                 aria-label="Become a breed patron"
                 onClick={handleBecomePatron}
                 type="button"
               >
-                <Heart size={16} fill="currentColor" />
+                <Heart size={14} fill="currentColor" />
+                <span className="text-sm font-semibold">Patronate</span>
               </Button>
             </TooltipTrigger>
             <TooltipContent side="bottom">Support your breed</TooltipContent>
