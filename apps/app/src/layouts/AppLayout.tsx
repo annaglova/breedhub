@@ -67,7 +67,7 @@ export function AppLayout() {
           isCollapsed={!isSidebarOpen}
           hideMenu={isFullscreen}
           className={cn(
-            "h-full z-20",
+            "h-full z-20 shrink-0",
             "hidden lg:block 3xl:hidden",
             isSidebarOpen ? "w-64" : "w-16"
           )}
@@ -89,7 +89,7 @@ export function AppLayout() {
         )}
 
         {/* Content wrapper */}
-        <div className="flex-1 flex flex-col">
+        <div className="flex-1 min-w-0 flex flex-col">
           {/* Header */}
           <Header
             ref={topBarRef}

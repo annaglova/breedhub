@@ -122,7 +122,7 @@ export function SpaceComponent<T extends { id: string }>({
   // Get selected entity ID from EntityStore as reactive signal
   // Using .value makes the component re-render when selection changes
   const selectedEntityId = spaceStore.getSelectedIdSignal(
-    config.entitySchemaName
+    config.entitySchemaName,
   ).value;
 
   // Get records count from view config (динамічно!)
@@ -383,7 +383,7 @@ export function SpaceComponent<T extends { id: string }>({
                 "[SpaceComponent] Applying saved filter:",
                 fieldId,
                 "→",
-                normalizedLabel
+                normalizedLabel,
               );
               newParams.set(urlKey, normalizedLabel);
             }
@@ -438,7 +438,7 @@ export function SpaceComponent<T extends { id: string }>({
   // Label (dogs) in URL → ID (uuid) for queries
   // Same pattern as orderBy: slug for URL, normalized field name for queries
   const [filters, setFilters] = useState<Record<string, any> | undefined>(
-    undefined
+    undefined,
   );
 
   useEffect(() => {
@@ -462,7 +462,7 @@ export function SpaceComponent<T extends { id: string }>({
         let retries = 20;
         while (!rxdb.collections["dictionaries"] && retries > 0) {
           console.log(
-            "[SpaceComponent] Waiting for dictionaries collection..."
+            "[SpaceComponent] Waiting for dictionaries collection...",
           );
           await new Promise((resolve) => setTimeout(resolve, 100));
           retries--;
@@ -470,7 +470,7 @@ export function SpaceComponent<T extends { id: string }>({
 
         if (!rxdb.collections["dictionaries"]) {
           console.warn(
-            "[SpaceComponent] Dictionaries collection not ready after retries, filters may not work correctly"
+            "[SpaceComponent] Dictionaries collection not ready after retries, filters may not work correctly",
           );
         }
 
@@ -493,9 +493,9 @@ export function SpaceComponent<T extends { id: string }>({
                   if (mainFilterFields.length > 1) {
                     console.log(
                       "[SpaceComponent] 🔀 Adding OR search filters:",
-                      mainFilterFields.map(f => f.id),
+                      mainFilterFields.map((f) => f.id),
                       "=",
-                      urlValue
+                      urlValue,
                     );
                     // Add same search value to all main filter fields
                     // space-store will detect same value and combine with OR
@@ -507,7 +507,7 @@ export function SpaceComponent<T extends { id: string }>({
                       "[SpaceComponent] 🔍 Adding search filter:",
                       mainFilterField.id,
                       "=",
-                      urlValue
+                      urlValue,
                     );
                     filterObj[mainFilterField.id] = urlValue;
                   }
@@ -519,7 +519,7 @@ export function SpaceComponent<T extends { id: string }>({
                   const valueId = await getValueForLabel(
                     fieldConfig,
                     urlValue,
-                    rxdb
+                    rxdb,
                   );
 
                   if (valueId) {
@@ -530,7 +530,7 @@ export function SpaceComponent<T extends { id: string }>({
                     filterObj[fieldConfig.id] = urlValue;
                   }
                 }
-              })()
+              })(),
             );
           }
         });
@@ -547,7 +547,14 @@ export function SpaceComponent<T extends { id: string }>({
     };
 
     buildFilters();
-  }, [searchParams, filterFields, mainFilterField, mainFilterFields, searchUrlSlug, config.entitySchemaName]);
+  }, [
+    searchParams,
+    filterFields,
+    mainFilterField,
+    mainFilterFields,
+    searchUrlSlug,
+    config.entitySchemaName,
+  ]);
 
   // 🆕 ID-First: useEntities with orderBy + filters enables ID-First pagination
   const {
@@ -652,7 +659,7 @@ export function SpaceComponent<T extends { id: string }>({
           ? [...reservedParams, totalFilterKey]
           : reservedParams;
         const hasOtherFilters = Array.from(searchParams.keys()).some(
-          (key) => !filterParams.includes(key)
+          (key) => !filterParams.includes(key),
         );
 
         // For spaces with totalFilterKey: allow caching when only that filter is applied
@@ -737,7 +744,7 @@ export function SpaceComponent<T extends { id: string }>({
         config.entitySchemaName,
         initialSelectedEntityId,
         initialSelectedPartitionId,
-        initialSelectedPartitionField
+        initialSelectedPartitionField,
       );
 
       // Save route for offline access
@@ -780,7 +787,7 @@ export function SpaceComponent<T extends { id: string }>({
       // Check if it's a UUID (contains hyphens and is 36 chars) or a friendly slug
       const isUUID =
         /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
-          urlSegment
+          urlSegment,
         );
 
       let entityId: string | undefined;
@@ -793,7 +800,7 @@ export function SpaceComponent<T extends { id: string }>({
         const matchingEntity = allEntities.find(
           (entity) =>
             normalizeForUrl(entity.name) === urlSegment ||
-            (entity as any).slug === urlSegment
+            (entity as any).slug === urlSegment,
         );
 
         if (matchingEntity) {
@@ -802,7 +809,7 @@ export function SpaceComponent<T extends { id: string }>({
           // Entity not found in current filtered list
           // Check if current selection is still valid in the new list
           const currentSelectedId = spaceStore.getSelectedId(
-            config.entitySchemaName
+            config.entitySchemaName,
           );
           const currentEntityStillInList =
             currentSelectedId &&
@@ -811,13 +818,13 @@ export function SpaceComponent<T extends { id: string }>({
           if (currentEntityStillInList) {
             // Current selection is still valid - keep it, just update URL to match
             const currentEntity = allEntities.find(
-              (e) => e.id === currentSelectedId
+              (e) => e.id === currentSelectedId,
             );
             if (currentEntity) {
               const correctSlug =
                 (currentEntity as any).slug ||
                 normalizeForUrl(
-                  (currentEntity as any).name || currentEntity.id
+                  (currentEntity as any).name || currentEntity.id,
                 );
               navigate(`${correctSlug}${location.search}${location.hash}`, {
                 replace: true,
@@ -843,7 +850,7 @@ export function SpaceComponent<T extends { id: string }>({
       // Update selection if we found an ID and it's different
       if (entityId) {
         const currentSelectedId = spaceStore.getSelectedId(
-          config.entitySchemaName
+          config.entitySchemaName,
         );
         if (currentSelectedId !== entityId) {
           spaceStore.selectEntity(config.entitySchemaName, entityId);
@@ -932,7 +939,7 @@ export function SpaceComponent<T extends { id: string }>({
       config.entitySchemaModel,
       location.search,
       isGridView,
-    ]
+    ],
   );
 
   // 🆕 ID-First: Use loadMore from hook (with cursor pagination)
@@ -964,7 +971,7 @@ export function SpaceComponent<T extends { id: string }>({
 
       setSearchParams(newParams);
     },
-    [searchParams, setSearchParams, sortStorageKey]
+    [searchParams, setSearchParams, sortStorageKey],
   );
 
   // 🆕 Handle view change - persist to localStorage (URL is updated by ViewChanger)
@@ -976,7 +983,7 @@ export function SpaceComponent<T extends { id: string }>({
         // localStorage not available, continue without persisting
       }
     },
-    [viewStorageKey]
+    [viewStorageKey],
   );
 
   // 🆕 Handle filters apply - update URL with filter params (using slugs)
@@ -1005,7 +1012,7 @@ export function SpaceComponent<T extends { id: string }>({
               ":",
               value,
               "→",
-              normalizedLabel
+              normalizedLabel,
             );
             newParams.set(urlKey, normalizedLabel);
           } else {
@@ -1029,7 +1036,7 @@ export function SpaceComponent<T extends { id: string }>({
           if (Object.keys(filtersToStore).length > 0) {
             localStorage.setItem(
               filtersStorageKey,
-              JSON.stringify(filtersToStore)
+              JSON.stringify(filtersToStore),
             );
           } else {
             localStorage.removeItem(filtersStorageKey);
@@ -1042,7 +1049,7 @@ export function SpaceComponent<T extends { id: string }>({
       } catch (error) {
         console.error(
           "[handleFiltersApply] Error converting IDs to labels:",
-          error
+          error,
         );
         // Fallback: use original values if conversion fails
         Object.entries(filterValues).forEach(([fieldId, value]) => {
@@ -1055,7 +1062,7 @@ export function SpaceComponent<T extends { id: string }>({
         setSearchParams(newParams);
       }
     },
-    [searchParams, setSearchParams, filterFields, filtersStorageKey]
+    [searchParams, setSearchParams, filterFields, filtersStorageKey],
   );
 
   // 🆕 Handle filter remove - remove specific filter from URL and update localStorage
@@ -1074,7 +1081,7 @@ export function SpaceComponent<T extends { id: string }>({
           >;
           // Find the field ID from the slug (filter.id could be slug)
           const fieldConfig = filterFields.find(
-            (f) => f.slug === filter.id || f.id === filter.id
+            (f) => f.slug === filter.id || f.id === filter.id,
           );
           const fieldId = fieldConfig?.id || filter.id;
 
@@ -1083,7 +1090,7 @@ export function SpaceComponent<T extends { id: string }>({
           if (Object.keys(parsedFilters).length > 0) {
             localStorage.setItem(
               filtersStorageKey,
-              JSON.stringify(parsedFilters)
+              JSON.stringify(parsedFilters),
             );
           } else {
             localStorage.removeItem(filtersStorageKey);
@@ -1095,7 +1102,7 @@ export function SpaceComponent<T extends { id: string }>({
 
       setSearchParams(newParams);
     },
-    [searchParams, setSearchParams, filtersStorageKey, filterFields]
+    [searchParams, setSearchParams, filtersStorageKey, filterFields],
   );
 
   // Helper to convert "Pet Type" → "Pet type" (sentence case)
@@ -1159,7 +1166,10 @@ export function SpaceComponent<T extends { id: string }>({
           let displayValue = urlValue;
           if (fieldConfig?.referencedTable) {
             // Check if urlValue is a UUID (direct ID)
-            const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(urlValue);
+            const isUUID =
+              /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+                urlValue,
+              );
 
             if (isUUID) {
               // URL has UUID directly - get label for this ID
@@ -1167,9 +1177,17 @@ export function SpaceComponent<T extends { id: string }>({
               displayValue = label;
             } else {
               // URL has slug/label - find ID first, then get display label
-              const valueId = await getValueForLabel(fieldConfig, urlValue, rxdb);
+              const valueId = await getValueForLabel(
+                fieldConfig,
+                urlValue,
+                rxdb,
+              );
               if (valueId) {
-                const label = await getLabelForValue(fieldConfig, valueId, rxdb);
+                const label = await getLabelForValue(
+                  fieldConfig,
+                  valueId,
+                  rxdb,
+                );
                 displayValue = label;
               }
             }
@@ -1245,7 +1263,7 @@ export function SpaceComponent<T extends { id: string }>({
                   const valueId = await getValueForLabel(
                     fieldConfig,
                     urlValue,
-                    rxdb
+                    rxdb,
                   );
 
                   if (valueId) {
@@ -1256,7 +1274,7 @@ export function SpaceComponent<T extends { id: string }>({
                     values[fieldConfig.id] = urlValue;
                   }
                 }
-              })()
+              })(),
             );
           }
         });
@@ -1266,7 +1284,7 @@ export function SpaceComponent<T extends { id: string }>({
       } catch (error) {
         console.error(
           "[currentFilterValues] Error building form values:",
-          error
+          error,
         );
         setCurrentFilterValues({});
       }
@@ -1293,18 +1311,18 @@ export function SpaceComponent<T extends { id: string }>({
         config.entitySchemaName === "breed"
           ? "/breeds"
           : config.entitySchemaName === "pet"
-          ? "/pets"
-          : config.entitySchemaName === "kennel"
-          ? "/kennels"
-          : config.entitySchemaName === "contact"
-          ? "/contacts"
-          : config.entitySchemaName === "event"
-          ? "/events"
-          : config.entitySchemaName === "litter"
-          ? "/litters"
-          : config.entitySchemaName === "account"
-          ? "/accounts"
-          : "/";
+            ? "/pets"
+            : config.entitySchemaName === "kennel"
+              ? "/kennels"
+              : config.entitySchemaName === "contact"
+                ? "/contacts"
+                : config.entitySchemaName === "event"
+                  ? "/events"
+                  : config.entitySchemaName === "litter"
+                    ? "/litters"
+                    : config.entitySchemaName === "account"
+                      ? "/accounts"
+                      : "/";
       navigate(entityPath);
     } else {
       // Normal mode - get base path from URL
@@ -1354,7 +1372,7 @@ export function SpaceComponent<T extends { id: string }>({
             "flex flex-col cursor-default h-full overflow-hidden",
             needCardClass ? "fake-card" : "card-surface",
             // For side-transparent mode (xxl+): reserve space for drawer (only for list views)
-            !isGridView && drawerMode === "side-transparent" && "mr-[46.25rem]"
+            !isGridView && drawerMode === "side-transparent" && "mr-[46.25rem]",
           )}
         >
           <div
@@ -1408,7 +1426,7 @@ export function SpaceComponent<T extends { id: string }>({
                     "rounded-full font-bold flex-shrink-0",
                     needCardClass
                       ? "h-[2.25rem] px-4"
-                      : "h-[2.25rem] w-[2.25rem] flex items-center justify-center"
+                      : "h-[2.25rem] w-[2.25rem] flex items-center justify-center",
                   )}
                 >
                   <Plus className="h-4 w-4 flex-shrink-0" />
@@ -1469,7 +1487,7 @@ export function SpaceComponent<T extends { id: string }>({
               "absolute top-0 right-0 h-full z-40",
               "w-[45rem]",
               needCardClass ? "fake-card" : "card-surface",
-              "rounded-l-xl overflow-hidden"
+              "rounded-l-xl overflow-hidden",
             )}
           >
             {/* PublicPageTemplate handles its own loading skeletons via outlets */}
@@ -1482,7 +1500,12 @@ export function SpaceComponent<T extends { id: string }>({
 
   return (
     <TooltipProvider>
-      <div className={cn("relative h-full overflow-hidden", needCardClass && "rounded-xl")}>
+      <div
+        className={cn(
+          "relative h-full overflow-hidden",
+          needCardClass && "rounded-xl",
+        )}
+      >
         {/* Main Content - hidden when fullscreen */}
         {!showFullscreen && (
           <div
@@ -1494,7 +1517,7 @@ export function SpaceComponent<T extends { id: string }>({
               // Grid views don't have side drawer - they go directly to fullscreen
               !isGridView &&
                 drawerMode === "side-transparent" &&
-                "mr-[46.25rem]" // 45rem + 1.25rem gap
+                "mr-[46.25rem]", // 45rem + 1.25rem gap
             )}
           >
             {/* Header */}
@@ -1555,7 +1578,7 @@ export function SpaceComponent<T extends { id: string }>({
                           "rounded-full font-bold flex-shrink-0",
                           needCardClass
                             ? "h-[2.25rem] px-4"
-                            : "h-[2.25rem] w-[2.25rem] flex items-center justify-center"
+                            : "h-[2.25rem] w-[2.25rem] flex items-center justify-center",
                         )}
                       >
                         <Plus className="h-4 w-4 flex-shrink-0" />
@@ -1592,19 +1615,19 @@ export function SpaceComponent<T extends { id: string }>({
                   viewType: viewMode,
                   component:
                     finalConfig.viewConfigs?.find(
-                      (v) => v.viewType === viewMode
+                      (v) => v.viewType === viewMode,
                     )?.component || "GenericListCard",
                   itemHeight:
                     finalConfig.viewConfigs?.find(
-                      (v) => v.viewType === viewMode
+                      (v) => v.viewType === viewMode,
                     )?.itemHeight || 68,
                   dividers:
                     finalConfig.viewConfigs?.find(
-                      (v) => v.viewType === viewMode
+                      (v) => v.viewType === viewMode,
                     )?.dividers ?? true,
                   overscan:
                     finalConfig.viewConfigs?.find(
-                      (v) => v.viewType === viewMode
+                      (v) => v.viewType === viewMode,
                     )?.overscan || 3,
                   skeletonCount: Math.ceil(recordsCount / 2),
                 }}
@@ -1633,7 +1656,7 @@ export function SpaceComponent<T extends { id: string }>({
                     isMoreThanLG && "rounded-xl",
                     isDrawerOpen
                       ? "bg-black/40 opacity-100"
-                      : "opacity-0 pointer-events-none"
+                      : "opacity-0 pointer-events-none",
                   )}
                   onClick={handleBackdropClick}
                 />
@@ -1654,7 +1677,7 @@ export function SpaceComponent<T extends { id: string }>({
               "transition-all duration-300 ease-out",
               // Width based on mode and fullscreen state - use percentages for smooth transition
               (showFullscreen || drawerMode === "over") && "w-full",
-              !showFullscreen && drawerMode === "side" && "w-[60%]",
+              !showFullscreen && drawerMode === "side" && "w-[70%] xl:w-[60%]",
               !showFullscreen &&
                 drawerMode === "side-transparent" &&
                 "w-[45rem]",
@@ -1664,10 +1687,10 @@ export function SpaceComponent<T extends { id: string }>({
                   ? "fake-card"
                   : "card-surface"
                 : drawerMode === "side-transparent"
-                ? needCardClass
-                  ? "fake-card"
-                  : "card-surface"
-                : "bg-white",
+                  ? needCardClass
+                    ? "fake-card"
+                    : "card-surface"
+                  : "bg-white",
               // Rounded corners
               showFullscreen && "md:rounded-xl overflow-hidden",
               !showFullscreen &&
@@ -1681,8 +1704,8 @@ export function SpaceComponent<T extends { id: string }>({
               showFullscreen || drawerMode === "side-transparent"
                 ? "opacity-100"
                 : isDrawerOpen
-                ? "opacity-100"
-                : "translate-x-full opacity-0 pointer-events-none"
+                  ? "opacity-100"
+                  : "translate-x-full opacity-0 pointer-events-none",
             )}
           >
             <div className="h-full overflow-auto">{children || <Outlet />}</div>
