@@ -25,7 +25,7 @@ import { MoreVertical } from "lucide-react";
 const AVATAR_DRAWER = {
   size: "size-32 xl:size-40",
   offset: "-mt-[88px] xl:-mt-[102px]",
-  padding: "pl-6 xl:pl-12",
+  padding: "sm:pl-6 xl:pl-12",
   skeletonLeft: "left-6 xl:left-12",
 };
 const AVATAR_FULLSCREEN = {
