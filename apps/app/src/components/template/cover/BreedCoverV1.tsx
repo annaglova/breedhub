@@ -1,4 +1,5 @@
-import { getDatabase, supabase } from "@breedhub/rxdb-store";
+import { getDatabase, spaceStore, supabase } from "@breedhub/rxdb-store";
+import { useSignals } from "@preact/signals-react/runtime";
 import * as PatronIcons from "@shared/icons";
 import { Button } from "@ui/components/button";
 import {
@@ -6,6 +7,8 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@ui/components/tooltip";
+import { mediaQueries } from "@/config/breakpoints";
+import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { Heart } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { CoverTemplate } from "./CoverTemplate";
@@ -79,6 +82,17 @@ export function BreedCoverV1({
   isFullscreen = false,
   className = "",
 }: BreedCoverV1Props) {
+  useSignals();
+
+  // Read isFullscreen from store (prop is not passed through CoverOutlet/BlockRenderer chain)
+  const isFullscreenFromStore = spaceStore.isFullscreen.value;
+  const fullscreen = isFullscreen || isFullscreenFromStore;
+
+  // Compact layout for md drawer (sm-lg viewport, not fullscreen)
+  const isSM = useMediaQuery(mediaQueries.sm);
+  const isLG = useMediaQuery(mediaQueries.lg);
+  const isMdDrawer = !fullscreen && isSM && !isLG;
+
   // Check if entity IS a breed (has top_patrons) or HAS a breed_id reference
   // Note: entities without breed_id AND without top_patrons (like events) should use DefaultCover
   const isBreedEntity = !!entity.top_patrons;
@@ -220,6 +234,91 @@ export function BreedCoverV1({
     );
   }
 
+  // Compact layout for md drawer only
+  if (isMdDrawer) {
+    return (
+      <CoverTemplate coverImg={actualCoverImg} className={className}>
+        <div className="z-20 flex size-full flex-col justify-between pb-3 border border-green-500">
+          <div className="flex w-full justify-between">
+            <div
+              className="text-lg uppercase text-white mt-2 max-w-[60%] truncate border border-red-400"
+              style={{ fontFamily: "Roboto, sans-serif" }}
+            >
+              {breed.name}
+              {patronLength > 0 && " top patrons"}
+            </div>
+            <div className="ml-auto mr-2 mt-2">
+              {patronLength > 0 ? (
+                <div
+                  className="grid gap-2.5"
+                  style={{
+                    gridTemplateColumns: `repeat(${patronLength}, minmax(0, 1fr))`,
+                  }}
+                >
+                  {breed.patrons?.slice(0, 4).map((patron, index) => (
+                    <PatronAvatar key={patron.Id || index} patron={patron} />
+                  ))}
+                </div>
+              ) : (
+                <div className="relative flex items-center space-x-2 border border-blue-400">
+                  <span className="text-end text-white text-sm">
+                    Be the first<br />patron!
+                  </span>
+                  <div className="group flex size-11 items-center justify-center overflow-hidden rounded-full border border-white bg-white/30 text-7xl text-white">
+                    <svg
+                      className="duration-300 group-hover:scale-125"
+                      width="40"
+                      height="40"
+                      viewBox="0 0 24 24"
+                      fill="rgb(255,255,255)"
+                    >
+                      <text
+                        x="50%"
+                        y="52%"
+                        dominantBaseline="central"
+                        textAnchor="middle"
+                        fontSize="20"
+                        fontWeight="500"
+                        fontFamily="Roboto, sans-serif"
+                      >
+                        ?
+                      </text>
+                    </svg>
+                    <div className="bg-accent-700 absolute -right-2 top-0 rounded-full p-1">
+                      <PatronIcons.PatronPlacesPlace1Icon
+                        width={14}
+                        height={14}
+                        style={{ fill: "rgb(255, 255, 255)" }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+          <div className="flex items-end z-40 relative">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="accent"
+                  className="ml-auto rounded-full h-[2.25rem] px-3 flex items-center"
+                  aria-label="Become a breed patron"
+                  onClick={handleBecomePatron}
+                  type="button"
+                >
+                  <Heart size={14} fill="currentColor" />
+                  <span className="text-sm font-semibold">Patronate</span>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">Support your breed</TooltipContent>
+            </Tooltip>
+          </div>
+        </div>
+      </CoverTemplate>
+    );
+  }
+
+  // Default layout — unchanged
   return (
     <CoverTemplate coverImg={actualCoverImg} className={className}>
       <div className="z-20 ml-auto flex size-full flex-col justify-between pb-3 sm:w-auto sm:pb-2 sm:pt-1  border border-green-500">
@@ -227,7 +326,7 @@ export function BreedCoverV1({
         <div className="flex w-full justify-between sm:flex-col sm:space-y-2">
           <div
             className={`text-lg absolute top-3 sm:text-end uppercase text-white max-w-48 sm:max-w-full truncate sm:text-clip text-left sm:static sm:text-xl border border-red-400${
-              isFullscreen ? " sm:mt-3" : ""
+              fullscreen ? " sm:mt-3" : ""
             }`}
             style={{ fontFamily: "Roboto, sans-serif" }}
           >
@@ -296,7 +395,7 @@ export function BreedCoverV1({
               </div>
             )}
           </div>
-          {isFullscreen && (
+          {fullscreen && (
             <span className="hidden pt-4 text-end text-white md:block">
               Make a contribution to the development of your favorite breed
             </span>
