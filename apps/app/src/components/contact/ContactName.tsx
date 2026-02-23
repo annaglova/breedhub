@@ -65,7 +65,7 @@ export function ContactName({
 
       {/* Contact name with verification and note flag */}
       <div className="flex space-x-1.5">
-        <div className="truncate py-0.5 text-3xl font-bold">
+        <div className="truncate py-0.5 text-2xl sm:text-3xl font-bold">
           {linkToFullscreen && slug ? (
             <Link
               to={`/${slug}`}

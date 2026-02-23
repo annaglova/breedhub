@@ -270,7 +270,7 @@ function TabButton({ tab, isActive, onClick, onResize }: TabButtonProps) {
     >
       <div
         className={cn(
-          "flex shrink-0 items-center justify-center px-5 py-3.5 transition-colors",
+          "flex shrink-0 items-center justify-center px-3 sm:px-5 py-2.5 sm:py-3.5 transition-colors",
           isActive ? "text-primary" : "text-secondary"
         )}
       >
@@ -280,7 +280,7 @@ function TabButton({ tab, isActive, onClick, onResize }: TabButtonProps) {
         </div>
 
         {/* Label */}
-        <span className="shrink-0 font-bold">{tab.label}</span>
+        <span className="shrink-0 text-sm sm:text-base font-bold">{tab.label}</span>
       </div>
 
       {/* Active Indicator (bottom border) */}

@@ -53,7 +53,7 @@ export function BreedName({
 
       {/* Breed name with note flag */}
       <div className="flex space-x-1.5">
-        <div className="truncate py-0.5 text-3xl font-bold">
+        <div className="truncate py-0.5 text-2xl sm:text-3xl font-bold">
           {linkToFullscreen && entity?.slug ? (
             <Link
               to={`/${entity.slug}`}
@@ -90,8 +90,8 @@ export function BreedName({
             <span>Kennels - {displayKennelCount}</span>
           </div>
 
-          {/* Patrons - with bullet before, hidden on mobile */}
-          <div className="hidden sm:flex items-center">
+          {/* Patrons - with bullet before, hidden on small mobile */}
+          <div className="hidden xs:flex items-center">
             <span className="mr-2">&bull;</span>
             <span>Patrons - {displayPatronCount}</span>
           </div>

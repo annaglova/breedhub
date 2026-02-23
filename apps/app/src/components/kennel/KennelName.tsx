@@ -81,7 +81,7 @@ export function KennelName({
 
       {/* Kennel name with verification and note flag */}
       <div className="flex space-x-1.5">
-        <div className="truncate py-0.5 text-3xl font-bold">
+        <div className="truncate py-0.5 text-2xl sm:text-3xl font-bold">
           {linkToFullscreen && entity?.slug ? (
             <Link
               to={`/${entity.slug}`}
@@ -127,9 +127,9 @@ export function KennelName({
             )
           )}
 
-          {/* Federation - hidden on mobile */}
+          {/* Federation - hidden on small mobile */}
           {federationName && (
-            <div className="hidden sm:flex items-center">
+            <div className="hidden xs:flex items-center">
               {ownerName && <span className="mr-2">&bull;</span>}
               <span>{federationName}</span>
             </div>

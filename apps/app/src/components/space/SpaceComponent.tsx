@@ -1381,7 +1381,7 @@ export function SpaceComponent<T extends { id: string }>({
           >
             <div className="w-full">
               <div className="flex w-full justify-between">
-                <h1 className="text-4xl">{finalConfig.title}</h1>
+                <h1 className="text-3xl sm:text-4xl">{finalConfig.title}</h1>
                 <ViewChanger
                   views={finalConfig.viewTypes || []}
                   viewConfigs={finalConfig.viewConfigs?.map((v) => ({
@@ -1527,7 +1527,7 @@ export function SpaceComponent<T extends { id: string }>({
             >
               <div className="w-full">
                 <div className="flex w-full justify-between">
-                  <h1 className="text-4xl">{finalConfig.title}</h1>
+                  <h1 className="text-3xl sm:text-4xl">{finalConfig.title}</h1>
                   <ViewChanger
                     views={finalConfig.viewTypes || []}
                     viewConfigs={finalConfig.viewConfigs?.map((v) => ({

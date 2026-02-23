@@ -1,4 +1,5 @@
 export const customBreakpoints = {
+  xs: '480px',
   sm: '640px',
   md: '768px',
   lg: '1024px',
@@ -11,6 +12,7 @@ export type BreakpointKey = keyof typeof customBreakpoints;
 
 // Media queries for use with useMediaQuery hook
 export const mediaQueries = {
+  xs: `(min-width: ${customBreakpoints.xs})`,
   sm: `(min-width: ${customBreakpoints.sm})`,
   md: `(min-width: ${customBreakpoints.md})`,
   lg: `(min-width: ${customBreakpoints.lg})`,

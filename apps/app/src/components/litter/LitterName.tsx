@@ -108,7 +108,7 @@ export function LitterName({
 
       {/* Litter name with note flag */}
       <div className="flex space-x-1.5">
-        <div className="truncate py-0.5 text-3xl font-bold">
+        <div className="truncate py-0.5 text-2xl sm:text-3xl font-bold">
           {linkToFullscreen && slug ? (
             <Link
               to={`/${slug}`}
@@ -143,9 +143,9 @@ export function LitterName({
             </div>
           )}
 
-          {/* Status - with bullet before, hidden on mobile */}
+          {/* Status - with bullet before, hidden on small mobile */}
           {statusName && (
-            <div className="hidden sm:flex items-center">
+            <div className="hidden xs:flex items-center">
               {kennelName && <span className="mr-2">&bull;</span>}
               <span>{statusName}</span>
             </div>

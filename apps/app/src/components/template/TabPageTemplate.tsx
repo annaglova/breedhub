@@ -474,7 +474,7 @@ export function TabPageTemplate({
             {/* Compact name bar - shown when pedigree focus mode is active */}
             {isPedigreeFocusMode && (
               <div className="sticky top-0 z-30 relative bg-card-ground border-b border-surface-border pb-2">
-                <div className="truncate text-3xl font-bold pr-24">
+                <div className="truncate text-2xl sm:text-3xl font-bold pr-24">
                   <Link
                     to={`/${entitySlug}`}
                     className="text-foreground hover:text-primary"
