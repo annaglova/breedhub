@@ -50,7 +50,7 @@ export function PetLinkRow({
     >
       {/* Sex */}
       <div className="flex flex-row items-center space-x-2.5">
-        <PetSexMark sex={sex?.code as SexCode} style="vertical" />
+        <PetSexMark sex={sex?.code as SexCode} style="vertical" className="size-4 sm:h-4 sm:w-1" />
         <span className="hidden sm:block">{sex?.name}</span>
         {availableForSale && (
           <ShoppingCart className="h-4 w-4 text-secondary-400 ml-1.5" />
