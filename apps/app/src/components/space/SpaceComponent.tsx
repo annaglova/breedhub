@@ -1640,9 +1640,9 @@ export function SpaceComponent<T extends { id: string }>({
                 isLoading={isLoading}
                 searchQuery={debouncedSearchValue}
               />
-              {/* Bottom spacer like in Angular */}
+              {/* Bottom spacer like in Angular - hidden on mobile where footer nav is visible */}
               <div
-                className="bg-card-ground w-full absolute bottom-0"
+                className="hidden sm:block bg-card-ground w-full absolute bottom-0"
                 style={{ height: "var(--content-padding)" }}
               />
             </div>
