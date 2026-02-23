@@ -190,7 +190,7 @@ export function PetPedigreeTab({
   // Error state
   if (error) {
     return (
-      <div className="py-4 px-6">
+      <div className="py-4">
         <div className="bg-red-50 border border-red-200 rounded-lg p-4">
           <p className="text-red-700 font-semibold">Failed to load pedigree</p>
           <p className="text-red-600 text-sm mt-1">{error.message}</p>

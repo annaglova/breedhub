@@ -216,7 +216,7 @@ export function LitterServicesTab({
   // Loading skeleton
   if (isLoading) {
     return (
-      <div className="mt-3 px-6 animate-pulse">
+      <div className="mt-3 animate-pulse">
         <div className="grid gap-3">
           {Array.from({ length: 3 }).map((_, i) => (
             <div key={i} className="card card-rounded p-4 space-y-2">
@@ -232,7 +232,7 @@ export function LitterServicesTab({
   // Error state
   if (servicesError) {
     return (
-      <div className="py-4 px-6">
+      <div className="py-4">
         <div className="bg-red-50 border border-red-200 rounded-lg p-4">
           <p className="text-red-700 font-semibold">Failed to load services</p>
           <p className="text-red-600 text-sm mt-1">{servicesError.message}</p>
@@ -244,7 +244,7 @@ export function LitterServicesTab({
   // Empty state
   if (services.length === 0 && childrenForSale.length === 0) {
     return (
-      <div className="py-4 px-6">
+      <div className="py-4">
         <div className="bg-slate-50 border border-slate-200 rounded-lg p-4 text-center">
           <p className="text-slate-600">No services available for this litter</p>
         </div>
@@ -253,7 +253,7 @@ export function LitterServicesTab({
   }
 
   return (
-    <div className="mt-3 flex flex-col space-y-8 px-6 cursor-default">
+    <div className="mt-3 flex flex-col space-y-8 cursor-default">
       {/* Services grid */}
       {services.length > 0 && (
         <div

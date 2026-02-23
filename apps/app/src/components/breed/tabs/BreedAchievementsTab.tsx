@@ -110,7 +110,7 @@ export function BreedAchievementsTab({
   // No dataSource config - show warning
   if (!dataSource?.[0]) {
     return (
-      <div className="py-4 px-6">
+      <div className="py-4">
         <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
           <p className="text-yellow-700 font-semibold">
             Missing dataSource configuration
@@ -126,7 +126,7 @@ export function BreedAchievementsTab({
   // Loading skeleton
   if (isLoading) {
     return (
-      <div className="px-6 animate-pulse space-y-4">
+      <div className="animate-pulse space-y-4">
         {Array.from({ length: 4 }).map((_, i) => (
           <div key={i} className="flex items-center gap-4">
             <div className="size-8 bg-slate-200 dark:bg-slate-700 rounded-full shrink-0" />
@@ -144,7 +144,7 @@ export function BreedAchievementsTab({
   // Error state
   if (error) {
     return (
-      <div className="py-4 px-6">
+      <div className="py-4">
         <div className="bg-red-50 border border-red-200 rounded-lg p-4">
           <p className="text-red-700 font-semibold">
             Failed to load achievements
@@ -158,7 +158,7 @@ export function BreedAchievementsTab({
   // Empty state
   if (achievements.length === 0) {
     return (
-      <div className="py-4 px-6">
+      <div className="py-4">
         <div className="bg-slate-50 border border-slate-200 rounded-lg p-4 text-center">
           <p className="text-slate-600">No achievement levels available</p>
         </div>
@@ -184,7 +184,7 @@ export function BreedAchievementsTab({
   }));
 
   return (
-    <div className="px-6">
+    <div>
       <AlternatingTimeline
         items={timelineItems}
         layout={timelineLayout}

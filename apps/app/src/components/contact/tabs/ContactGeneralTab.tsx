@@ -284,7 +284,7 @@ export function ContactGeneralTab({ onLoadedCount, dataSource }: ContactGeneralT
   const hasSocial = facebookLinks.length > 0 || instagramLinks.length > 0;
 
   return (
-    <div className="flex flex-col space-y-5 px-6 cursor-default">
+    <div className="flex flex-col space-y-5 cursor-default">
       {/* Info */}
       <Fieldset legend="Info">
         <div

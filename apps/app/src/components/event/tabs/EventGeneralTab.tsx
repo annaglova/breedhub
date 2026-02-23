@@ -195,7 +195,7 @@ export function EventGeneralTab({ onLoadedCount, dataSource }: EventGeneralTabPr
   const iconSize = 16;
 
   return (
-    <div className="flex flex-col space-y-5 px-6 cursor-default">
+    <div className="flex flex-col space-y-5 cursor-default">
       {/* Info */}
       <Fieldset legend="Info">
         <div

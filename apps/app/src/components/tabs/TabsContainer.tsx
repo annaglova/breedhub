@@ -144,6 +144,7 @@ export function TabsContainer({
               <ScrollableTab
                 id={tab.fragment}
                 onVisibilityChange={handleVisibilityChange}
+                className="px-4 sm:px-0"
               >
                 <Component
                   dataSource={tab.dataSource}
@@ -190,10 +191,12 @@ export function TabsContainer({
       />
 
       {/* Active Tab Content */}
-      <Component
-        dataSource={activeTabData.dataSource}
-        onLoadedCount={(count: number) => handleLoadedCount(activeTabData.id, count)}
-      />
+      <div className="px-4 sm:px-0">
+        <Component
+          dataSource={activeTabData.dataSource}
+          onLoadedCount={(count: number) => handleLoadedCount(activeTabData.id, count)}
+        />
+      </div>
     </div>
   );
 }

@@ -63,6 +63,7 @@ interface TabConfig {
   badge?: string; // "Coming soon", "New", "Beta", etc.
   fullscreenButton?: boolean; // Show fullscreen button
   expandAlways?: boolean; // Always show expand button (e.g., Pedigree tab)
+  focusMode?: boolean; // Allow collapsing header/tabs to maximize content area
   dataSource?: any; // Config-driven data loading (see TAB_DATA_SERVICE_ARCHITECTURE.md)
 }
 
@@ -120,6 +121,7 @@ function convertTabConfigToTabs(tabsConfig: Record<string, TabConfig>): Tab[] {
       fullscreenButton: config.fullscreenButton,
       expandAlways: config.expandAlways,
       dataSource: config.dataSource,
+      focusMode: config.focusMode,
       // Internal fields
       _order: config.order,
       _isDefault: config.isDefault,

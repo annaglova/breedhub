@@ -149,7 +149,7 @@ export function BreedPatronsTab({
   // No dataSource config - show warning
   if (!dataSource?.[0]) {
     return (
-      <div className="py-4 px-6">
+      <div className="py-4">
         <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
           <p className="text-yellow-700 font-semibold">
             Missing dataSource configuration
@@ -165,7 +165,7 @@ export function BreedPatronsTab({
   // Loading skeleton
   if (isLoading) {
     return (
-      <div className="mt-3 grid grid-cols-2 gap-y-6 sm:grid-cols-3 px-6 animate-pulse">
+      <div className="mt-3 grid grid-cols-2 gap-y-6 sm:grid-cols-3 animate-pulse">
         {Array.from({ length: 6 }).map((_, i) => (
           <div key={i} className="flex flex-col items-center space-y-2">
             <div className="size-16 bg-slate-200 dark:bg-slate-700 rounded-full" />
@@ -179,7 +179,7 @@ export function BreedPatronsTab({
   // Error state
   if (error) {
     return (
-      <div className="py-4 px-6">
+      <div className="py-4">
         <div className="bg-red-50 border border-red-200 rounded-lg p-4">
           <p className="text-red-700 font-semibold">Failed to load patrons</p>
           <p className="text-red-600 text-sm mt-1">{error.message}</p>
@@ -203,7 +203,7 @@ export function BreedPatronsTab({
     <>
       <div
         className={cn(
-          "mt-3 grid grid-cols-2 gap-y-6 sm:grid-cols-3 px-6",
+          "mt-3 grid grid-cols-2 gap-y-6 sm:grid-cols-3",
           // In fullscreen mode, show more columns on larger screens
           isFullscreen && "lg:grid-cols-4 xxl:grid-cols-5"
         )}

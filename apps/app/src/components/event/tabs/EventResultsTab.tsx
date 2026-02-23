@@ -238,7 +238,7 @@ export function EventResultsTab({
   // Loading skeleton
   if (isLoading) {
     return (
-      <div className="px-6 animate-pulse space-y-4">
+      <div className="animate-pulse space-y-4">
         <div className="h-10 bg-slate-200 dark:bg-slate-700 rounded-full w-full" />
         {Array.from({ length: 3 }).map((_, i) => (
           <div key={i} className="flex items-center gap-3 px-4">
@@ -257,7 +257,7 @@ export function EventResultsTab({
   // Error state
   if (error) {
     return (
-      <div className="py-4 px-6">
+      <div className="py-4">
         <div className="bg-red-50 border border-red-200 rounded-lg p-4">
           <p className="text-red-700 font-semibold">Failed to load results</p>
           <p className="text-red-600 text-sm mt-1">{error.message}</p>
@@ -276,7 +276,7 @@ export function EventResultsTab({
 
   return (
     <>
-      <div className="px-6 cursor-default">
+      <div className="cursor-default">
         {breeds.map((breed) => (
           <div key={breed.name} className="mt-3">
             {/* Breed header */}

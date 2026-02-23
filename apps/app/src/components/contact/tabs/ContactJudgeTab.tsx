@@ -252,7 +252,7 @@ export function ContactJudgeTab({
   }
 
   return (
-    <div className="px-6 cursor-default">
+    <div className="cursor-default">
       <div className="border border-border rounded-lg overflow-hidden">
         <Table className="text-base">
           <TableHeader>

@@ -347,7 +347,7 @@ export function ContactBreederTab({ onLoadedCount, dataSource }: ContactBreederT
   const iconSize = 16;
 
   return (
-    <div className="flex flex-col space-y-5 px-6 cursor-default">
+    <div className="flex flex-col space-y-5 cursor-default">
       {kennelGroups.map((kennel) => (
         <div key={kennel.id} className="flex flex-col space-y-4">
           <Fieldset legend={kennel.accountName}>

@@ -346,7 +346,7 @@ export function PetServicesTab({
   // Loading skeleton
   if (isLoading) {
     return (
-      <div className="flex flex-col space-y-8 px-6 animate-pulse">
+      <div className="flex flex-col space-y-8 animate-pulse">
         {Array.from({ length: 3 }).map((_, i) => (
           <div key={i} className="card card-rounded p-4 space-y-2">
             <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded-full w-1/3" />
@@ -360,7 +360,7 @@ export function PetServicesTab({
   // Error state
   if (servicesError) {
     return (
-      <div className="py-4 px-6">
+      <div className="py-4">
         <div className="bg-red-50 border border-red-200 rounded-lg p-4">
           <p className="text-red-700 font-semibold">Failed to load services</p>
           <p className="text-red-600 text-sm mt-1">{servicesError.message}</p>
@@ -372,7 +372,7 @@ export function PetServicesTab({
   // Empty state - instant from JSONB or after loading
   if (noServicesFromJsonb || (services.length === 0 && features.length === 0 && littersForSale.length === 0)) {
     return (
-      <div className="py-4 px-6">
+      <div className="py-4">
         <div className="bg-slate-50 border border-slate-200 rounded-lg p-4 text-center">
           <p className="text-slate-600">No services available for this pet</p>
         </div>
@@ -381,7 +381,7 @@ export function PetServicesTab({
   }
 
   return (
-    <div className="flex flex-col space-y-8 px-6 cursor-default">
+    <div className="flex flex-col space-y-8 cursor-default">
       {/* Children available for sale - using same LitterCard as PetChildrenTab */}
       {littersForSale.length > 0 && (
         <div>

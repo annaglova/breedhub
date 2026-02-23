@@ -192,7 +192,7 @@ export function BreedTopPetsTab({
   // No dataSource config - show warning
   if (!dataSource?.[0]) {
     return (
-      <div className="py-4 px-6">
+      <div className="py-4">
         <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
           <p className="text-yellow-700 font-semibold">
             Missing dataSource configuration
@@ -208,7 +208,7 @@ export function BreedTopPetsTab({
   // Loading skeleton
   if (isLoading) {
     return (
-      <div className="grid gap-3 sm:grid-cols-2 px-6 animate-pulse">
+      <div className="grid gap-3 sm:grid-cols-2 animate-pulse">
         {Array.from({ length: 4 }).map((_, i) => (
           <div key={i} className="card card-rounded p-4 space-y-3">
             <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded-full w-3/4" />
@@ -222,7 +222,7 @@ export function BreedTopPetsTab({
   // Error state
   if (error) {
     return (
-      <div className="py-4 px-6">
+      <div className="py-4">
         <div className="bg-red-50 border border-red-200 rounded-lg p-4">
           <p className="text-red-700 font-semibold">Failed to load pets</p>
           <p className="text-red-600 text-sm mt-1">{error.message}</p>
@@ -246,7 +246,7 @@ export function BreedTopPetsTab({
     <>
       <div
         className={cn(
-          "grid gap-3 sm:grid-cols-2 px-6",
+          "grid gap-3 sm:grid-cols-2",
           // In fullscreen mode, show more columns on larger screens
           isFullscreen && "lg:grid-cols-3 xxl:grid-cols-4"
         )}

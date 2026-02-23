@@ -261,7 +261,7 @@ export function PetGeneralTab({ onLoadedCount }: PetGeneralTabProps) {
   // Loading skeleton
   if (isLoading) {
     return (
-      <div className="flex flex-col space-y-5 px-6 animate-pulse">
+      <div className="flex flex-col space-y-5 animate-pulse">
         {Array.from({ length: 2 }).map((_, i) => (
           <div key={i} className="space-y-3 pt-2">
             <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded-full w-28" />
@@ -281,7 +281,7 @@ export function PetGeneralTab({ onLoadedCount }: PetGeneralTabProps) {
   }
 
   return (
-    <div className="flex flex-col space-y-5 px-6 cursor-default">
+    <div className="flex flex-col space-y-5 cursor-default">
       {/* Birth details */}
       <Fieldset legend="Birth details">
         <div
