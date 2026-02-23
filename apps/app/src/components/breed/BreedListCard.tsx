@@ -106,10 +106,10 @@ export function BreedListCard({
               <span className="hidden sm:inline">
                 Kennels - {breed.KennelCount || 0}
               </span>
-              <span className="text-slate-400 hidden min-[400px]:inline">
+              <span className="text-slate-400 hidden xs:inline">
                 •
               </span>
-              <span className="hidden min-[400px]:inline">
+              <span className="hidden xs:inline">
                 Patrons - {breed.PatronCount || 0}
               </span>
             </div>
@@ -125,7 +125,7 @@ export function BreedListCard({
         <TopPatrons
           patrons={breed.TopPatrons}
           maxDisplay={3}
-          className="hidden min-[400px]:flex absolute top-3 right-4 sm:right-6"
+          className="hidden xs:flex absolute top-3 right-4 sm:right-6"
         />
       )}
     </EntityListCardWrapper>

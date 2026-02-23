@@ -127,22 +127,20 @@ export function LitterListCard({
               {/* Kennel */}
               {litter.KennelName && <span>{litter.KennelName}</span>}
 
-              {/* Status */}
+              {/* Status - hidden on small mobile */}
               {litter.Status && (
-                <>
+                <span className="hidden xs:flex items-center space-x-1">
                   {litter.KennelName && <span className="text-slate-400">•</span>}
                   <span>{litter.Status}</span>
-                </>
+                </span>
               )}
 
-              {/* Date of Birth */}
+              {/* Date of Birth - hidden on mobile */}
               {formattedDate && (
-                <>
-                  {(litter.KennelName || litter.Status) && (
-                    <span className="text-slate-400">•</span>
-                  )}
+                <span className="hidden sm:flex items-center space-x-1">
+                  <span className="text-slate-400">•</span>
                   <span>{formattedDate}</span>
-                </>
+                </span>
               )}
             </div>
 

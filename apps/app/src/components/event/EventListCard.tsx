@@ -82,14 +82,14 @@ export function EventListCard({
               {/* Start Date */}
               {formattedDate && <span>{formattedDate}</span>}
 
-              {/* Program Status */}
+              {/* Program Status - hidden on small mobile */}
               {program.StatusName && (
-                <>
+                <span className="hidden xs:flex items-center space-x-1">
                   {formattedDate && (
                     <span className="text-slate-400">&bull;</span>
                   )}
                   <span>{program.StatusName}</span>
-                </>
+                </span>
               )}
             </div>
           </div>

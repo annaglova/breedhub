@@ -166,12 +166,12 @@ export function PetListCard({
               {/* Pet Status */}
               {pet.PetStatus && <span>{pet.PetStatus}</span>}
 
-              {/* Date of Birth */}
+              {/* Date of Birth - hidden on small mobile */}
               {formattedDate && (
-                <>
+                <span className="hidden xs:flex items-center space-x-1">
                   {pet.PetStatus && <span className="text-slate-400">•</span>}
                   <span>{formattedDate}</span>
-                </>
+                </span>
               )}
 
               {/* COI - hidden on mobile */}

@@ -133,14 +133,14 @@ export function KennelListCard({
               {/* Owner name */}
               {kennel.OwnerName && <span>{kennel.OwnerName}</span>}
 
-              {/* Federation */}
+              {/* Federation - hidden on small mobile */}
               {kennel.FederationName && (
-                <>
+                <span className="hidden xs:flex items-center space-x-1">
                   {kennel.OwnerName && (
                     <span className="text-slate-400">•</span>
                   )}
                   <span>{kennel.FederationName}</span>
-                </>
+                </span>
               )}
 
               {/* Foundation year - hidden on mobile */}
