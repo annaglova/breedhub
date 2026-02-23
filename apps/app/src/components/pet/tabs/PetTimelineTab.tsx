@@ -178,11 +178,9 @@ export function PetTimelineTab({ onLoadedCount }: PetTimelineTabProps) {
           connectorVariant="primary"
         />
       ) : (
-        <div className="card card-rounded flex flex-auto flex-col p-6 lg:px-8">
-          <span className="text-secondary p-8 text-center">
-            No timeline events yet
-          </span>
-        </div>
+        <span className="text-secondary p-8 text-center block">
+          No timeline events yet
+        </span>
       )}
     </div>
   );

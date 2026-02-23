@@ -264,8 +264,8 @@ export function PetShowResultsTab({
             ))}
           </div>
         ) : (
-          <span className="text-secondary p-8 text-center ">
-            There are no show results!
+          <span className="text-secondary p-8 text-center block">
+            No show results data available
           </span>
         )}
       </div>

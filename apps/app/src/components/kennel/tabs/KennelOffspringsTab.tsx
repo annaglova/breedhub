@@ -135,7 +135,7 @@ export function KennelOffspringsTab({
   if (pets.length === 0) {
     return (
       <span className="text-secondary p-8 text-center block">
-        No offspring pets
+        No offspring data available
       </span>
     );
   }

@@ -191,11 +191,9 @@ export function BreedPatronsTab({
   // Empty state
   if (patrons.length === 0) {
     return (
-      <div className="card card-rounded mt-5 flex flex-auto flex-col p-6 lg:px-8">
-        <span className="text-muted-foreground p-8 text-center ">
-          There are no patrons in Breed!
-        </span>
-      </div>
+      <span className="text-secondary p-8 text-center block">
+        No patrons data available
+      </span>
     );
   }
 

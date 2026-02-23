@@ -158,11 +158,9 @@ export function BreedAchievementsTab({
   // Empty state
   if (achievements.length === 0) {
     return (
-      <div className="py-4">
-        <div className="bg-slate-50 border border-slate-200 rounded-lg p-4 text-center">
-          <p className="text-slate-600">No achievement levels available</p>
-        </div>
-      </div>
+      <span className="text-secondary p-8 text-center block">
+        No achievements data available
+      </span>
     );
   }
 

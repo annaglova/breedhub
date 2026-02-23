@@ -234,11 +234,9 @@ export function BreedTopPetsTab({
   // Empty state
   if (pets.length === 0) {
     return (
-      <div className="card card-rounded mt-5 flex flex-auto flex-col p-6 lg:px-8">
-        <span className="text-muted-foreground p-8 text-center ">
-          There are no pets in the Breed!
-        </span>
-      </div>
+      <span className="text-secondary p-8 text-center block">
+        No pets data available
+      </span>
     );
   }
 

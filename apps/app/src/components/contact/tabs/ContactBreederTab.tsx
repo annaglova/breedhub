@@ -388,8 +388,8 @@ export function ContactBreederTab({ onLoadedCount, dataSource }: ContactBreederT
               ))}
             </div>
           ) : (
-            <span className="text-secondary p-4 text-center block text-sm">
-              No offspring
+            <span className="text-secondary p-8 text-center block">
+              No offspring data available
             </span>
           )}
         </div>

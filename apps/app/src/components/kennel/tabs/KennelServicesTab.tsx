@@ -149,7 +149,7 @@ export function KennelServicesTab({
   if (pets.length === 0) {
     return (
       <span className="text-secondary p-8 text-center block">
-        No pets available for sale
+        No services data available
       </span>
     );
   }

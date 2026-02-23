@@ -268,11 +268,9 @@ export function PetSiblingsTab({
           ))}
         </div>
       ) : (
-        <div className="card card-rounded flex flex-auto flex-col p-6 lg:px-8">
-          <span className="text-secondary p-8 text-center ">
-            There are no siblings!
-          </span>
-        </div>
+        <span className="text-secondary p-8 text-center block">
+          No siblings data available
+        </span>
       )}
 
       {/* Infinite scroll trigger & loading indicator */}

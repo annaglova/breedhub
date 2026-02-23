@@ -227,8 +227,8 @@ export function PetHealthTab({
             ))}
           </div>
         ) : (
-          <span className="text-secondary p-8 text-center ">
-            There are no health results!
+          <span className="text-secondary p-8 text-center block">
+            No health results data available
           </span>
         )}
       </div>

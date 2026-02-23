@@ -268,9 +268,9 @@ export function EventResultsTab({
 
   if (breeds.length === 0) {
     return (
-      <div className="text-secondary p-8 text-center">
-        No results available
-      </div>
+      <span className="text-secondary p-8 text-center block">
+        No results data available
+      </span>
     );
   }
 

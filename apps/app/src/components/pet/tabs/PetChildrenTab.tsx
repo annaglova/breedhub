@@ -253,11 +253,9 @@ export function PetChildrenTab({
           ))}
         </div>
       ) : (
-        <div className="card card-rounded flex flex-auto flex-col p-6 lg:px-8">
-          <span className="text-secondary p-8 text-center ">
-            There are no children!
-          </span>
-        </div>
+        <span className="text-secondary p-8 text-center block">
+          No children data available
+        </span>
       )}
 
       {/* Hidden litters hint (drawer mode only) */}
