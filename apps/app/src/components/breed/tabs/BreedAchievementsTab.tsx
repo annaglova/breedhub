@@ -184,7 +184,7 @@ export function BreedAchievementsTab({
   }));
 
   return (
-    <div>
+    <div className="sm:pr-5">
       <AlternatingTimeline
         items={timelineItems}
         layout={timelineLayout}

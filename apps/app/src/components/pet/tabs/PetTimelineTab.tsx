@@ -169,7 +169,7 @@ export function PetTimelineTab({ onLoadedCount }: PetTimelineTabProps) {
   const displayItems = isFullscreen ? timelineItems : truncatedItems;
 
   return (
-    <div className="cursor-default">
+    <div className="cursor-default sm:pr-5">
       {displayItems.length > 0 ? (
         <AlternatingTimeline
           items={displayItems}
