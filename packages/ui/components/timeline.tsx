@@ -428,7 +428,7 @@ const AlternatingTimeline = React.forwardRef<
                       "left-6 md:left-1/2 md:-translate-x-1/2",
                     layout === "left" && "left-6 md:left-0 md:-translate-x-1/2",
                     layout === "right" &&
-                      "right-6 md:right-0 md:translate-x-1/2"
+                      "right-0 translate-x-1/2"
                   )}
                 >
                   <div
@@ -462,7 +462,7 @@ const AlternatingTimeline = React.forwardRef<
                       "w-full",
                       layout === "alternating" &&
                         "md:w-[48%] md:text-left md:pl-8",
-                      layout === "right" && "pr-12"
+                      layout === "right" && "pr-8 sm:pr-10"
                     )}
                   >
                     {item.isGap ? (
