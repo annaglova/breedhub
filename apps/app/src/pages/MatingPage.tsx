@@ -522,7 +522,7 @@ export function MatingPage({ pageConfig, workspaceConfig }: MatingPageProps) {
         </div>
 
         {/* Horizontal scrollbar */}
-        <div className="py-4">
+        <div className="my-5">
           <HorizontalScrollbar
             scrollContainerRef={scrollRef}
             className="mx-auto max-w-52 sm:max-w-md"
