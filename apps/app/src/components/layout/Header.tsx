@@ -127,7 +127,7 @@ export const Header = forwardRef<HTMLElement, HeaderProps>(
                           <Link
                             to={item.path}
                             className={cn(
-                              "flex items-center justify-center",
+                              "group flex items-center justify-center",
                               "px-6 sm:px-10 md:px-16 lg:px-22",
                               "py-3 transition-colors"
                             )}
@@ -139,7 +139,7 @@ export const Header = forwardRef<HTMLElement, HeaderProps>(
                                 "transition-colors",
                                 isActive
                                   ? "text-primary"
-                                  : "text-sub-header-color hover:text-slate-600"
+                                  : "text-sub-header-color group-hover:text-slate-600"
                               )}
                             />
                           </Link>
