@@ -94,9 +94,9 @@ export function EventName({
             </div>
           )}
 
-          {/* Status - with bullet before */}
+          {/* Status - with bullet before, hidden on mobile */}
           {statusName && (
-            <div className="flex items-center">
+            <div className="hidden sm:flex items-center">
               {startDate && <span className="mr-2">&bull;</span>}
               <span>{statusName}</span>
             </div>

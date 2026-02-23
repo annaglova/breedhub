@@ -90,8 +90,8 @@ export function BreedName({
             <span>Kennels - {displayKennelCount}</span>
           </div>
 
-          {/* Patrons - with bullet before */}
-          <div className="flex items-center">
+          {/* Patrons - with bullet before, hidden on mobile */}
+          <div className="hidden sm:flex items-center">
             <span className="mr-2">&bull;</span>
             <span>Patrons - {displayPatronCount}</span>
           </div>

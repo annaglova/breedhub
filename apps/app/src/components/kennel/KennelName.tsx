@@ -127,9 +127,9 @@ export function KennelName({
             )
           )}
 
-          {/* Federation */}
+          {/* Federation - hidden on mobile */}
           {federationName && (
-            <div className="flex items-center">
+            <div className="hidden sm:flex items-center">
               {ownerName && <span className="mr-2">&bull;</span>}
               <span>{federationName}</span>
             </div>

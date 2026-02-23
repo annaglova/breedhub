@@ -143,9 +143,9 @@ export function LitterName({
             </div>
           )}
 
-          {/* Status - with bullet before */}
+          {/* Status - with bullet before, hidden on mobile */}
           {statusName && (
-            <div className="flex items-center">
+            <div className="hidden sm:flex items-center">
               {kennelName && <span className="mr-2">&bull;</span>}
               <span>{statusName}</span>
             </div>

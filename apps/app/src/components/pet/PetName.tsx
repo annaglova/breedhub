@@ -118,9 +118,9 @@ export function PetName({
             </div>
           )}
 
-          {/* Date of birth */}
+          {/* Date of birth - hidden on mobile */}
           {dateOfBirth && (
-            <div className="flex items-center">
+            <div className="hidden sm:flex items-center">
               <span className="mr-2">&bull;</span>
               <span>{dateOfBirth}</span>
             </div>
