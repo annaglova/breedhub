@@ -37,13 +37,13 @@ export function PetLinkRow({
   url,
   sex,
   availableForSale,
-  gridCols = "grid-cols-[52px_auto] sm:grid-cols-[100px_auto] md:grid-cols-[110px_auto]",
+  gridCols = "grid-cols-[52px_1fr] sm:grid-cols-[100px_1fr] md:grid-cols-[110px_1fr]",
   className,
 }: PetLinkRowProps) {
   return (
     <div
       className={cn(
-        "grid items-center gap-3 px-6 py-2 lg:px-8",
+        "grid items-center gap-3 px-6 py-2 lg:px-8 min-w-0",
         gridCols,
         className
       )}

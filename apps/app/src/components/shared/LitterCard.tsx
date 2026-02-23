@@ -99,7 +99,7 @@ export function LitterCard({
         </div>
 
         {/* Other parent */}
-        <div className="flex flex-col">
+        <div className="flex flex-col min-w-0">
           {litter.anotherParent?.url ? (
             <SmartLink
               to={`/${litter.anotherParent.url}`}

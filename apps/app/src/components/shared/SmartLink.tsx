@@ -291,7 +291,7 @@ export function SmartLink({
   // With actions: wrap in container with ellipsis button
   return (
     <span
-      className="group inline-flex items-center gap-0.5"
+      className="group flex items-center gap-0.5 min-w-0"
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
