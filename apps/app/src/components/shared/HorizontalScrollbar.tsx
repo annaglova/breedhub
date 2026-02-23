@@ -175,37 +175,37 @@ export function HorizontalScrollbar({
   // Inactive state - show faded track without thumb
   if (!isVisible) {
     return (
-      <div
-        ref={trackRef}
-        className={cn(
-          "h-[8px] w-full rounded-full border border-secondary/30 relative bg-secondary/5",
-          className
-        )}
-      />
+      <div className={cn("py-3 -my-3", className)}>
+        <div
+          ref={trackRef}
+          className="h-[8px] w-full rounded-full border border-secondary/30 relative bg-secondary/5"
+        />
+      </div>
     );
   }
 
   return (
     <div
-      ref={trackRef}
-      className={cn(
-        "h-[8px] w-full rounded-full border border-secondary cursor-pointer relative bg-header-ground/75 backdrop-blur-sm",
-        className
-      )}
+      className={cn("py-3 -my-3 cursor-pointer", className)}
       onClick={handleTrackClick}
     >
       <div
-        className={cn(
-          "absolute top-[1px] bottom-[1px] rounded-full bg-secondary cursor-grab",
-          isDragging && "cursor-grabbing"
-        )}
-        style={{
-          width: `${thumbWidth}px`,
-          left: `${thumbLeft}px`,
-        }}
-        onMouseDown={handleThumbMouseDown}
-        onClick={(e) => e.stopPropagation()}
-      />
+        ref={trackRef}
+        className="h-[8px] w-full rounded-full border border-secondary relative bg-header-ground/75 backdrop-blur-sm"
+      >
+        <div
+          className={cn(
+            "absolute top-[1px] bottom-[1px] rounded-full bg-secondary cursor-grab",
+            isDragging && "cursor-grabbing"
+          )}
+          style={{
+            width: `${thumbWidth}px`,
+            left: `${thumbLeft}px`,
+          }}
+          onMouseDown={handleThumbMouseDown}
+          onClick={(e) => e.stopPropagation()}
+        />
+      </div>
     </div>
   );
 }

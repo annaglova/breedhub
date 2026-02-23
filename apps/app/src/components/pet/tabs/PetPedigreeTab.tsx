@@ -203,7 +203,7 @@ export function PetPedigreeTab({
     <div>
       {/* Custom horizontal scrollbar - sticky under TabHeader */}
       <div
-        className="sticky z-10 py-2 mb-3"
+        className="sticky z-10 mb-5"
         style={{
           top: `${stickyScrollbarTop ?? tabHeaderTop + TAB_HEADER_HEIGHT}px`,
         }}
