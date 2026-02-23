@@ -45,7 +45,7 @@ export function TabHeader({
           className={cn(
             "mb-6 flex w-full items-center text-2xl font-bold",
             "text-sub-header-color bg-header-ground/75 backdrop-blur-sm",
-            "px-4 sm:px-0 py-2",
+            "px-4 sm:px-6 py-2",
             isFirst ? "mt-6" : "mt-12"
           )}
         >
