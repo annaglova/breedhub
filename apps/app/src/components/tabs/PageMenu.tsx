@@ -280,7 +280,7 @@ function TabButton({ tab, isActive, onClick, onResize }: TabButtonProps) {
         </div>
 
         {/* Label */}
-        <span className="shrink-0 text-sm sm:text-base font-bold">{tab.label}</span>
+        <span className="shrink-0 text-base font-bold">{tab.label}</span>
       </div>
 
       {/* Active Indicator (bottom border) */}
