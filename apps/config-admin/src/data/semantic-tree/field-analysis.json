@@ -18625,6 +18625,325 @@
     }
   },
   {
+    "key": "rating",
+    "name": "rating",
+    "occurrences": 10,
+    "entities": [
+      "account",
+      "breed",
+      "contact",
+      "pet",
+      "title",
+      "account_review",
+      "contact_in_breed",
+      "pet_old",
+      "top_patron_in_breed",
+      "top_pet_in_breed"
+    ],
+    "variations": [
+      {
+        "entity": "account",
+        "category": "main",
+        "config": {
+          "id": "field_rating",
+          "name": "rating",
+          "fieldType": "number",
+          "component": "NumberInput",
+          "required": false,
+          "isSystem": false,
+          "isPrimaryKey": false,
+          "isUnique": false,
+          "sortOrder": 510,
+          "permissions": {
+            "read": [
+              "*"
+            ],
+            "write": [
+              "admin",
+              "editor"
+            ]
+          },
+          "displayName": "Rating",
+          "placeholder": "Enter rating",
+          "validation": {
+            "precision": 53
+          },
+          "defaultValue": "0"
+        }
+      },
+      {
+        "entity": "breed",
+        "category": "main",
+        "config": {
+          "id": "field_rating",
+          "name": "rating",
+          "fieldType": "number",
+          "component": "NumberInput",
+          "required": false,
+          "isSystem": false,
+          "isPrimaryKey": false,
+          "isUnique": false,
+          "sortOrder": 190,
+          "permissions": {
+            "read": [
+              "*"
+            ],
+            "write": [
+              "admin",
+              "editor"
+            ]
+          },
+          "displayName": "Rating",
+          "placeholder": "Enter rating",
+          "validation": {
+            "precision": 24
+          },
+          "defaultValue": "0"
+        }
+      },
+      {
+        "entity": "contact",
+        "category": "main",
+        "config": {
+          "id": "field_rating",
+          "name": "rating",
+          "fieldType": "number",
+          "component": "NumberInput",
+          "required": false,
+          "isSystem": false,
+          "isPrimaryKey": false,
+          "isUnique": false,
+          "sortOrder": 300,
+          "permissions": {
+            "read": [
+              "*"
+            ],
+            "write": [
+              "admin",
+              "editor"
+            ]
+          },
+          "displayName": "Rating",
+          "placeholder": "Enter rating",
+          "validation": {
+            "precision": 53
+          },
+          "defaultValue": "0"
+        }
+      },
+      {
+        "entity": "pet",
+        "category": "main",
+        "config": {
+          "id": "field_rating",
+          "name": "rating",
+          "fieldType": "number",
+          "component": "NumberInput",
+          "required": false,
+          "isSystem": false,
+          "isPrimaryKey": false,
+          "isUnique": false,
+          "sortOrder": 440,
+          "permissions": {
+            "read": [
+              "*"
+            ],
+            "write": [
+              "admin",
+              "editor"
+            ]
+          },
+          "displayName": "Rating",
+          "placeholder": "Enter rating",
+          "validation": {
+            "precision": 53
+          }
+        }
+      },
+      {
+        "entity": "title",
+        "category": "lookup",
+        "config": {
+          "id": "field_rating",
+          "name": "rating",
+          "fieldType": "number",
+          "component": "NumberInput",
+          "required": true,
+          "isSystem": false,
+          "isPrimaryKey": false,
+          "isUnique": false,
+          "sortOrder": 60,
+          "permissions": {
+            "read": [
+              "*"
+            ],
+            "write": [
+              "admin",
+              "editor"
+            ]
+          },
+          "displayName": "Rating",
+          "placeholder": "Enter rating",
+          "defaultValue": "0"
+        }
+      },
+      {
+        "entity": "account_review",
+        "category": "child",
+        "config": {
+          "id": "field_rating",
+          "name": "rating",
+          "fieldType": "number",
+          "component": "NumberInput",
+          "required": true,
+          "isSystem": false,
+          "isPrimaryKey": false,
+          "isUnique": false,
+          "sortOrder": 20,
+          "permissions": {
+            "read": [
+              "*"
+            ],
+            "write": [
+              "admin",
+              "editor"
+            ]
+          },
+          "displayName": "Rating",
+          "placeholder": "Enter rating",
+          "validation": {
+            "precision": 32,
+            "scale": 0
+          },
+          "defaultValue": "0"
+        }
+      },
+      {
+        "entity": "contact_in_breed",
+        "category": "child",
+        "config": {
+          "id": "field_rating",
+          "name": "rating",
+          "fieldType": "number",
+          "component": "NumberInput",
+          "required": true,
+          "isSystem": false,
+          "isPrimaryKey": false,
+          "isUnique": false,
+          "sortOrder": 30,
+          "permissions": {
+            "read": [
+              "*"
+            ],
+            "write": [
+              "admin",
+              "editor"
+            ]
+          },
+          "displayName": "Rating",
+          "placeholder": "Enter rating",
+          "defaultValue": "0"
+        }
+      },
+      {
+        "entity": "pet_old",
+        "category": "child",
+        "config": {
+          "id": "field_rating",
+          "name": "rating",
+          "fieldType": "number",
+          "component": "NumberInput",
+          "required": true,
+          "isSystem": false,
+          "isPrimaryKey": false,
+          "isUnique": false,
+          "sortOrder": 300,
+          "permissions": {
+            "read": [
+              "*"
+            ],
+            "write": [
+              "admin",
+              "editor"
+            ]
+          },
+          "displayName": "Rating",
+          "placeholder": "Enter rating",
+          "defaultValue": "0"
+        }
+      },
+      {
+        "entity": "top_patron_in_breed",
+        "category": "child",
+        "config": {
+          "id": "field_rating",
+          "name": "rating",
+          "fieldType": "number",
+          "component": "NumberInput",
+          "required": false,
+          "isSystem": false,
+          "isPrimaryKey": false,
+          "isUnique": false,
+          "sortOrder": 40,
+          "permissions": {
+            "read": [
+              "*"
+            ],
+            "write": [
+              "admin",
+              "editor"
+            ]
+          },
+          "displayName": "Rating",
+          "placeholder": "Enter rating"
+        }
+      },
+      {
+        "entity": "top_pet_in_breed",
+        "category": "child",
+        "config": {
+          "id": "field_rating",
+          "name": "rating",
+          "fieldType": "number",
+          "component": "NumberInput",
+          "required": false,
+          "isSystem": false,
+          "isPrimaryKey": false,
+          "isUnique": false,
+          "sortOrder": 60,
+          "permissions": {
+            "read": [
+              "*"
+            ],
+            "write": [
+              "admin",
+              "editor"
+            ]
+          },
+          "displayName": "Rating",
+          "placeholder": "Enter rating"
+        }
+      }
+    ],
+    "commonProps": {
+      "fieldType": "number",
+      "component": "NumberInput",
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "displayName": "Rating",
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      }
+    }
+  },
+  {
     "key": "id",
     "name": "id",
     "occurrences": 265,
@@ -18908,7 +19227,7 @@
           "isSystem": true,
           "isPrimaryKey": true,
           "isUnique": true,
-          "sortOrder": 510,
+          "sortOrder": 520,
           "permissions": {
             "read": [
               "*"
@@ -19076,7 +19395,7 @@
           "isSystem": true,
           "isPrimaryKey": true,
           "isUnique": true,
-          "sortOrder": 300,
+          "sortOrder": 310,
           "permissions": {
             "read": [
               "*"
@@ -25555,7 +25874,7 @@
           "isSystem": true,
           "isPrimaryKey": false,
           "isUnique": false,
-          "sortOrder": 520,
+          "sortOrder": 530,
           "permissions": {
             "read": [
               "*"
@@ -25723,7 +26042,7 @@
           "isSystem": true,
           "isPrimaryKey": false,
           "isUnique": false,
-          "sortOrder": 310,
+          "sortOrder": 320,
           "permissions": {
             "read": [
               "*"
@@ -32154,7 +32473,7 @@
           "isSystem": true,
           "isPrimaryKey": false,
           "isUnique": false,
-          "sortOrder": 530,
+          "sortOrder": 540,
           "permissions": {
             "read": [
               "*"
@@ -32322,7 +32641,7 @@
           "isSystem": true,
           "isPrimaryKey": false,
           "isUnique": false,
-          "sortOrder": 320,
+          "sortOrder": 330,
           "permissions": {
             "read": [
               "*"
@@ -38707,7 +39026,7 @@
           "isSystem": true,
           "isPrimaryKey": false,
           "isUnique": false,
-          "sortOrder": 540,
+          "sortOrder": 550,
           "permissions": {
             "read": [
               "*"
@@ -38875,7 +39194,7 @@
           "isSystem": true,
           "isPrimaryKey": false,
           "isUnique": false,
-          "sortOrder": 330,
+          "sortOrder": 340,
           "permissions": {
             "read": [
               "*"
@@ -45306,7 +45625,7 @@
           "isSystem": true,
           "isPrimaryKey": false,
           "isUnique": false,
-          "sortOrder": 550,
+          "sortOrder": 560,
           "permissions": {
             "read": [
               "*"
@@ -45474,7 +45793,7 @@
           "isSystem": true,
           "isPrimaryKey": false,
           "isUnique": false,
-          "sortOrder": 340,
+          "sortOrder": 350,
           "permissions": {
             "read": [
               "*"
@@ -51612,7 +51931,7 @@
           "isSystem": true,
           "isPrimaryKey": false,
           "isUnique": false,
-          "sortOrder": 560,
+          "sortOrder": 570,
           "permissions": {
             "read": [
               "*"
@@ -51660,7 +51979,7 @@
           "isSystem": true,
           "isPrimaryKey": false,
           "isUnique": false,
-          "sortOrder": 350,
+          "sortOrder": 360,
           "permissions": {
             "read": [
               "*"
@@ -62185,263 +62504,6 @@
       "isPrimaryKey": false,
       "isUnique": false,
       "displayName": "Public Data",
-      "permissions": {
-        "read": [
-          "*"
-        ],
-        "write": [
-          "admin",
-          "editor"
-        ]
-      }
-    }
-  },
-  {
-    "key": "rating",
-    "name": "rating",
-    "occurrences": 8,
-    "entities": [
-      "breed",
-      "pet",
-      "title",
-      "account_review",
-      "contact_in_breed",
-      "pet_old",
-      "top_patron_in_breed",
-      "top_pet_in_breed"
-    ],
-    "variations": [
-      {
-        "entity": "breed",
-        "category": "main",
-        "config": {
-          "id": "field_rating",
-          "name": "rating",
-          "fieldType": "number",
-          "component": "NumberInput",
-          "required": false,
-          "isSystem": false,
-          "isPrimaryKey": false,
-          "isUnique": false,
-          "sortOrder": 190,
-          "permissions": {
-            "read": [
-              "*"
-            ],
-            "write": [
-              "admin",
-              "editor"
-            ]
-          },
-          "displayName": "Rating",
-          "placeholder": "Enter rating",
-          "validation": {
-            "precision": 24
-          },
-          "defaultValue": "0"
-        }
-      },
-      {
-        "entity": "pet",
-        "category": "main",
-        "config": {
-          "id": "field_rating",
-          "name": "rating",
-          "fieldType": "number",
-          "component": "NumberInput",
-          "required": false,
-          "isSystem": false,
-          "isPrimaryKey": false,
-          "isUnique": false,
-          "sortOrder": 440,
-          "permissions": {
-            "read": [
-              "*"
-            ],
-            "write": [
-              "admin",
-              "editor"
-            ]
-          },
-          "displayName": "Rating",
-          "placeholder": "Enter rating",
-          "validation": {
-            "precision": 53
-          }
-        }
-      },
-      {
-        "entity": "title",
-        "category": "lookup",
-        "config": {
-          "id": "field_rating",
-          "name": "rating",
-          "fieldType": "number",
-          "component": "NumberInput",
-          "required": true,
-          "isSystem": false,
-          "isPrimaryKey": false,
-          "isUnique": false,
-          "sortOrder": 60,
-          "permissions": {
-            "read": [
-              "*"
-            ],
-            "write": [
-              "admin",
-              "editor"
-            ]
-          },
-          "displayName": "Rating",
-          "placeholder": "Enter rating",
-          "defaultValue": "0"
-        }
-      },
-      {
-        "entity": "account_review",
-        "category": "child",
-        "config": {
-          "id": "field_rating",
-          "name": "rating",
-          "fieldType": "number",
-          "component": "NumberInput",
-          "required": true,
-          "isSystem": false,
-          "isPrimaryKey": false,
-          "isUnique": false,
-          "sortOrder": 20,
-          "permissions": {
-            "read": [
-              "*"
-            ],
-            "write": [
-              "admin",
-              "editor"
-            ]
-          },
-          "displayName": "Rating",
-          "placeholder": "Enter rating",
-          "validation": {
-            "precision": 32,
-            "scale": 0
-          },
-          "defaultValue": "0"
-        }
-      },
-      {
-        "entity": "contact_in_breed",
-        "category": "child",
-        "config": {
-          "id": "field_rating",
-          "name": "rating",
-          "fieldType": "number",
-          "component": "NumberInput",
-          "required": true,
-          "isSystem": false,
-          "isPrimaryKey": false,
-          "isUnique": false,
-          "sortOrder": 30,
-          "permissions": {
-            "read": [
-              "*"
-            ],
-            "write": [
-              "admin",
-              "editor"
-            ]
-          },
-          "displayName": "Rating",
-          "placeholder": "Enter rating",
-          "defaultValue": "0"
-        }
-      },
-      {
-        "entity": "pet_old",
-        "category": "child",
-        "config": {
-          "id": "field_rating",
-          "name": "rating",
-          "fieldType": "number",
-          "component": "NumberInput",
-          "required": true,
-          "isSystem": false,
-          "isPrimaryKey": false,
-          "isUnique": false,
-          "sortOrder": 300,
-          "permissions": {
-            "read": [
-              "*"
-            ],
-            "write": [
-              "admin",
-              "editor"
-            ]
-          },
-          "displayName": "Rating",
-          "placeholder": "Enter rating",
-          "defaultValue": "0"
-        }
-      },
-      {
-        "entity": "top_patron_in_breed",
-        "category": "child",
-        "config": {
-          "id": "field_rating",
-          "name": "rating",
-          "fieldType": "number",
-          "component": "NumberInput",
-          "required": false,
-          "isSystem": false,
-          "isPrimaryKey": false,
-          "isUnique": false,
-          "sortOrder": 40,
-          "permissions": {
-            "read": [
-              "*"
-            ],
-            "write": [
-              "admin",
-              "editor"
-            ]
-          },
-          "displayName": "Rating",
-          "placeholder": "Enter rating"
-        }
-      },
-      {
-        "entity": "top_pet_in_breed",
-        "category": "child",
-        "config": {
-          "id": "field_rating",
-          "name": "rating",
-          "fieldType": "number",
-          "component": "NumberInput",
-          "required": false,
-          "isSystem": false,
-          "isPrimaryKey": false,
-          "isUnique": false,
-          "sortOrder": 60,
-          "permissions": {
-            "read": [
-              "*"
-            ],
-            "write": [
-              "admin",
-              "editor"
-            ]
-          },
-          "displayName": "Rating",
-          "placeholder": "Enter rating"
-        }
-      }
-    ],
-    "commonProps": {
-      "fieldType": "number",
-      "component": "NumberInput",
-      "isSystem": false,
-      "isPrimaryKey": false,
-      "isUnique": false,
-      "displayName": "Rating",
       "permissions": {
         "read": [
           "*"

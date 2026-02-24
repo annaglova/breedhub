@@ -744,6 +744,32 @@
       "referencedFieldName": "display_name"
     },
     {
+      "id": "field_rating",
+      "name": "rating",
+      "fieldType": "number",
+      "component": "NumberInput",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 300,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "displayName": "Rating",
+      "placeholder": "Enter rating",
+      "validation": {
+        "precision": 53
+      },
+      "defaultValue": "0"
+    },
+    {
       "id": "field_id",
       "name": "id",
       "fieldType": "uuid",
@@ -752,7 +778,7 @@
       "isSystem": true,
       "isPrimaryKey": true,
       "isUnique": true,
-      "sortOrder": 300,
+      "sortOrder": 310,
       "permissions": {
         "read": [
           "*"
@@ -772,7 +798,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 310,
+      "sortOrder": 320,
       "permissions": {
         "read": [
           "*"
@@ -792,7 +818,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 320,
+      "sortOrder": 330,
       "permissions": {
         "read": [
           "*"
@@ -812,7 +838,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 330,
+      "sortOrder": 340,
       "permissions": {
         "read": [
           "*"
@@ -832,7 +858,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 340,
+      "sortOrder": 350,
       "permissions": {
         "read": [
           "*"
@@ -852,7 +878,7 @@
       "isSystem": true,
       "isPrimaryKey": false,
       "isUnique": false,
-      "sortOrder": 350,
+      "sortOrder": 360,
       "permissions": {
         "read": [
           "*"
@@ -866,9 +892,9 @@
   ],
   "metadata": {
     "tableName": "contact",
-    "totalFields": 35,
+    "totalFields": 36,
     "systemFields": 6,
-    "customFields": 29,
-    "generatedAt": "2026-02-15T12:57:30.595Z"
+    "customFields": 30,
+    "generatedAt": "2026-02-24T12:46:57.117Z"
   }
 }

@@ -1039,6 +1039,32 @@
       "category": "frequent"
     },
     {
+      "id": "field_rating",
+      "type": "field",
+      "name": "rating",
+      "frequency": 0.03875968992248062,
+      "occurrences": 10,
+      "commonProps": {
+        "fieldType": "number",
+        "component": "NumberInput",
+        "isSystem": false,
+        "isPrimaryKey": false,
+        "isUnique": false,
+        "displayName": "Rating",
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "admin",
+            "editor"
+          ]
+        }
+      },
+      "isSystem": false,
+      "category": "frequent"
+    },
+    {
       "id": "field_start_date",
       "type": "field",
       "name": "start_date",
@@ -1206,32 +1232,6 @@
         "isPrimaryKey": false,
         "isUnique": false,
         "displayName": "Category",
-        "permissions": {
-          "read": [
-            "*"
-          ],
-          "write": [
-            "admin",
-            "editor"
-          ]
-        }
-      },
-      "isSystem": false,
-      "category": "frequent"
-    },
-    {
-      "id": "field_rating",
-      "type": "field",
-      "name": "rating",
-      "frequency": 0.031007751937984496,
-      "occurrences": 8,
-      "commonProps": {
-        "fieldType": "number",
-        "component": "NumberInput",
-        "isSystem": false,
-        "isPrimaryKey": false,
-        "isUnique": false,
-        "displayName": "Rating",
         "permissions": {
           "read": [
             "*"
@@ -3331,6 +3331,43 @@
       ]
     },
     {
+      "id": "account_field_rating",
+      "type": "entity_field",
+      "deps": [
+        "field_rating"
+      ],
+      "category": "account",
+      "caption": "account rating field",
+      "self_data": {
+        "fieldType": "number",
+        "component": "NumberInput",
+        "required": false,
+        "isSystem": false,
+        "isPrimaryKey": false,
+        "isUnique": false,
+        "sortOrder": 510,
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "admin",
+            "editor"
+          ]
+        },
+        "displayName": "Rating",
+        "placeholder": "Enter rating",
+        "validation": {
+          "precision": 53
+        },
+        "defaultValue": "0"
+      },
+      "tags": [
+        "main",
+        "account"
+      ]
+    },
+    {
       "id": "account_field_id",
       "type": "entity_field",
       "deps": [
@@ -3345,7 +3382,7 @@
         "isSystem": true,
         "isPrimaryKey": true,
         "isUnique": true,
-        "sortOrder": 510,
+        "sortOrder": 520,
         "permissions": {
           "read": [
             "*"
@@ -3376,7 +3413,7 @@
         "isSystem": true,
         "isPrimaryKey": false,
         "isUnique": false,
-        "sortOrder": 520,
+        "sortOrder": 530,
         "permissions": {
           "read": [
             "*"
@@ -3407,7 +3444,7 @@
         "isSystem": true,
         "isPrimaryKey": false,
         "isUnique": false,
-        "sortOrder": 530,
+        "sortOrder": 540,
         "permissions": {
           "read": [
             "*"
@@ -3438,7 +3475,7 @@
         "isSystem": true,
         "isPrimaryKey": false,
         "isUnique": false,
-        "sortOrder": 540,
+        "sortOrder": 550,
         "permissions": {
           "read": [
             "*"
@@ -3469,7 +3506,7 @@
         "isSystem": true,
         "isPrimaryKey": false,
         "isUnique": false,
-        "sortOrder": 550,
+        "sortOrder": 560,
         "permissions": {
           "read": [
             "*"
@@ -3500,7 +3537,7 @@
         "isSystem": true,
         "isPrimaryKey": false,
         "isUnique": false,
-        "sortOrder": 560,
+        "sortOrder": 570,
         "permissions": {
           "read": [
             "*"
@@ -11602,6 +11639,43 @@
       ]
     },
     {
+      "id": "contact_field_rating",
+      "type": "entity_field",
+      "deps": [
+        "field_rating"
+      ],
+      "category": "contact",
+      "caption": "contact rating field",
+      "self_data": {
+        "fieldType": "number",
+        "component": "NumberInput",
+        "required": false,
+        "isSystem": false,
+        "isPrimaryKey": false,
+        "isUnique": false,
+        "sortOrder": 300,
+        "permissions": {
+          "read": [
+            "*"
+          ],
+          "write": [
+            "admin",
+            "editor"
+          ]
+        },
+        "displayName": "Rating",
+        "placeholder": "Enter rating",
+        "validation": {
+          "precision": 53
+        },
+        "defaultValue": "0"
+      },
+      "tags": [
+        "main",
+        "contact"
+      ]
+    },
+    {
       "id": "contact_field_id",
       "type": "entity_field",
       "deps": [
@@ -11616,7 +11690,7 @@
         "isSystem": true,
         "isPrimaryKey": true,
         "isUnique": true,
-        "sortOrder": 300,
+        "sortOrder": 310,
         "permissions": {
           "read": [
             "*"
@@ -11647,7 +11721,7 @@
         "isSystem": true,
         "isPrimaryKey": false,
         "isUnique": false,
-        "sortOrder": 310,
+        "sortOrder": 320,
         "permissions": {
           "read": [
             "*"
@@ -11678,7 +11752,7 @@
         "isSystem": true,
         "isPrimaryKey": false,
         "isUnique": false,
-        "sortOrder": 320,
+        "sortOrder": 330,
         "permissions": {
           "read": [
             "*"
@@ -11709,7 +11783,7 @@
         "isSystem": true,
         "isPrimaryKey": false,
         "isUnique": false,
-        "sortOrder": 330,
+        "sortOrder": 340,
         "permissions": {
           "read": [
             "*"
@@ -11740,7 +11814,7 @@
         "isSystem": true,
         "isPrimaryKey": false,
         "isUnique": false,
-        "sortOrder": 340,
+        "sortOrder": 350,
         "permissions": {
           "read": [
             "*"
@@ -11771,7 +11845,7 @@
         "isSystem": true,
         "isPrimaryKey": false,
         "isUnique": false,
-        "sortOrder": 350,
+        "sortOrder": 360,
         "permissions": {
           "read": [
             "*"

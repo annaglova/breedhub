@@ -4,7 +4,7 @@
     "uniqueFields": 562,
     "baseFields": 37,
     "properties": 15,
-    "entityFieldsGenerated": 2957
+    "entityFieldsGenerated": 2959
   },
   "topFields": [
     {
@@ -128,9 +128,9 @@
       "string": 30,
       "text": 8,
       "json": 4,
+      "number": 26,
       "datetime": 7,
       "boolean": 15,
-      "number": 26,
       "date": 7
     }
   }
