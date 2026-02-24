@@ -5,6 +5,7 @@ import React, {
   forwardRef,
   useCallback,
   useEffect,
+  useMemo,
   useRef,
   useState,
 } from "react";
@@ -38,6 +39,9 @@ interface DropdownInputProps
   referencedTable?: string;
   referencedFieldID?: string;
   referencedFieldName?: string;
+  // Cascade filtering props (filter options by parent field value)
+  filterBy?: string;        // Field name to filter on (e.g. 'pet_type_id')
+  filterByValue?: string;   // Parent value to match (e.g. selected pet_type UUID)
   // Style variant for disabled state
   disabledOnGray?: boolean; // Use white background when disabled (for gray backgrounds)
 }
@@ -60,6 +64,8 @@ export const DropdownInput = forwardRef<HTMLInputElement, DropdownInputProps>(
       referencedTable,
       referencedFieldID = "id",
       referencedFieldName = "name",
+      filterBy,
+      filterByValue,
       disabledOnGray,
       ...props
     },
@@ -73,6 +79,7 @@ export const DropdownInput = forwardRef<HTMLInputElement, DropdownInputProps>(
     const [hasMore, setHasMore] = useState(true);
     const [cachedSelectedOption, setCachedSelectedOption] =
       useState<DropdownOption | null>(null); // ✅ Cache selected option (like LookupInput)
+    const [filterValueMap, setFilterValueMap] = useState<Map<string, string>>(new Map()); // filterBy field values per option
     const dropdownRef = useRef<HTMLDivElement>(null);
     const dropdownListRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
@@ -82,6 +89,12 @@ export const DropdownInput = forwardRef<HTMLInputElement, DropdownInputProps>(
 
     // Use dynamic options if referencedTable is provided, otherwise use static options
     const activeOptions = referencedTable ? dynamicOptions : options;
+
+    // Filter options by filterByValue for cascade filtering
+    const displayOptions = useMemo(() => {
+      if (!filterBy || !filterByValue) return activeOptions;
+      return activeOptions.filter(opt => filterValueMap.get(opt.value) === filterByValue);
+    }, [activeOptions, filterBy, filterByValue, filterValueMap]);
 
     // Find selected option - use cached version if available, otherwise search in options
     const selectedOption =
@@ -113,6 +126,7 @@ export const DropdownInput = forwardRef<HTMLInputElement, DropdownInputProps>(
             nameField: referencedFieldName,
             limit: 30,
             cursor: currentCursor, // ✅ Pass cursor instead of offset
+            additionalFields: filterBy ? [filterBy] : undefined,
           });
 
           // Transform to dropdown options
@@ -120,6 +134,40 @@ export const DropdownInput = forwardRef<HTMLInputElement, DropdownInputProps>(
             value: record.id,
             label: record.name,
           }));
+
+          // Build filterBy field values map for cascade filtering
+          if (filterBy) {
+            const newFilterValues = new Map<string, string>();
+            const missingFilterRecords: string[] = [];
+
+            for (const record of records) {
+              const fv = record.additional?.[filterBy];
+              if (fv) {
+                newFilterValues.set(record.id, String(fv));
+              } else {
+                missingFilterRecords.push(record.id);
+              }
+            }
+
+            // Resolve missing filter values (cached records without additional field)
+            if (missingFilterRecords.length > 0) {
+              for (const id of missingFilterRecords) {
+                const fullRecord = await dictionaryStore.getRecordById(referencedTable, id);
+                if (fullRecord?.[filterBy]) {
+                  newFilterValues.set(id, String(fullRecord[filterBy]));
+                }
+              }
+            }
+
+            setFilterValueMap(prev => {
+              if (append) {
+                const merged = new Map(prev);
+                newFilterValues.forEach((v, k) => merged.set(k, v));
+                return merged;
+              }
+              return newFilterValues;
+            });
+          }
 
           console.log(
             "[DropdownInput] Loaded options:",
@@ -149,7 +197,7 @@ export const DropdownInput = forwardRef<HTMLInputElement, DropdownInputProps>(
           setLoading(false);
         }
       },
-      [referencedTable, referencedFieldID, referencedFieldName, cursor]
+      [referencedTable, referencedFieldID, referencedFieldName, cursor, filterBy]
     );
 
     // Pre-load dictionary data on mount (for small dictionaries like pet_type)
@@ -348,13 +396,13 @@ export const DropdownInput = forwardRef<HTMLInputElement, DropdownInputProps>(
               <div className="px-3 py-2 text-slate-500 text-center">
                 Loading...
               </div>
-            ) : !activeOptions || activeOptions.length === 0 ? (
+            ) : !displayOptions || displayOptions.length === 0 ? (
               <div className="px-3 py-2 text-slate-500 text-center">
                 No options available
               </div>
             ) : (
               <>
-                {activeOptions.map((option) => (
+                {displayOptions.map((option) => (
                   <div
                     key={option.value}
                     onClick={() => handleSelect(option)}
@@ -380,7 +428,7 @@ export const DropdownInput = forwardRef<HTMLInputElement, DropdownInputProps>(
                     Loading more...
                   </div>
                 )}
-                {!hasMore && activeOptions.length > 0 && (
+                {!hasMore && displayOptions.length > 0 && (
                   <div className="px-3 py-2 text-center text-sm text-slate-400">
                     No more results
                   </div>

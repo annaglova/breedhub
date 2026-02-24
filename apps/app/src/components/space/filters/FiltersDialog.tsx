@@ -291,8 +291,8 @@ export function FiltersDialog({
                   parentFieldValue = filterValues[parentKey];
                 }
 
-                // Only pass filterBy/filterByValue to LookupInput component
-                const cascadeProps = field.component === 'LookupInput'
+                // Pass filterBy/filterByValue for cascade filtering (DropdownInput + LookupInput)
+                const cascadeProps = field.filterBy
                   ? { filterBy: field.filterBy, filterByValue: parentFieldValue }
                   : {};
 
