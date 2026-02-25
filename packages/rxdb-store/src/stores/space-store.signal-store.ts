@@ -3349,6 +3349,13 @@ class SpaceStore {
         const arrayValue = Array.isArray(value) ? value : [value];
         return query.where(fieldName).in(arrayValue);
 
+      case 'between': {
+        const [from, to] = String(value).split('_');
+        if (from) query = query.where(fieldName).gte(from);
+        if (to) query = query.where(fieldName).lte(to);
+        return query;
+      }
+
       default:
         console.warn(`[SpaceStore] Unknown RxDB operator: ${operator}`);
         return query;
@@ -3391,6 +3398,13 @@ class SpaceStore {
         // Value should be array
         const arrayValue = Array.isArray(value) ? value : [value];
         return query.in(fieldName, arrayValue);
+
+      case 'between': {
+        const [from, to] = String(value).split('_');
+        if (from) query = query.gte(fieldName, from);
+        if (to) query = query.lte(fieldName, to);
+        return query;
+      }
 
       default:
         console.warn(`[SpaceStore] Unknown Supabase operator: ${operator}`);

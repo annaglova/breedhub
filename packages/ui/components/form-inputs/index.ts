@@ -6,6 +6,7 @@ export { PasswordInput } from './password-input';
 export { DropdownInput } from './dropdown-input';
 export { LookupInput } from './lookup-input';
 export { DateInput } from './date-input';
+export { DateRangeInput } from './date-range-input';
 export { TextareaInput } from './textarea-input';
 export { FileInput } from './file-input';
 export { CheckboxInput } from './checkbox-input';

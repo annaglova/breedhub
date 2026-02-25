@@ -9,6 +9,7 @@ import {
 import {
   CheckboxInput,
   DateInput,
+  DateRangeInput,
   DropdownInput,
   EmailInput,
   FileInput,
@@ -83,6 +84,7 @@ const componentMap: Record<string, React.ComponentType<any>> = {
   NumberInput,
   CheckboxInput,
   DateInput,
+  DateRangeInput,
   TimeInput,
   DropdownInput,
   LookupInput,
