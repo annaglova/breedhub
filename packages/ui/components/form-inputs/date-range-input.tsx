@@ -3,7 +3,7 @@ import { Input } from "../input";
 import { FormField } from "../form-field";
 import { CustomDropdown } from "../custom-dropdown";
 import { cn } from "@ui/lib/utils";
-import { CalendarIcon, ChevronLeft, ChevronRight, X } from "lucide-react";
+import { CalendarIcon, X } from "lucide-react";
 import {
   format,
   parse,
@@ -14,9 +14,7 @@ import {
   addMonths,
   subMonths,
   startOfMonth,
-  endOfMonth,
   startOfWeek,
-  endOfWeek,
   eachDayOfInterval,
   isAfter,
   isBefore,
@@ -83,9 +81,10 @@ interface CalendarMonthProps {
 
 function CalendarMonth({ month, from, to, onDayClick, onMonthChange, onYearChange }: CalendarMonthProps) {
   const monthStart = startOfMonth(month);
-  const monthEnd = endOfMonth(month);
-  const calendarStart = startOfWeek(monthStart);
-  const calendarEnd = endOfWeek(monthEnd);
+  const calendarStart = startOfWeek(monthStart, { weekStartsOn: 1 });
+  // Always render exactly 6 rows (42 days) for consistent height
+  const calendarEnd = new Date(calendarStart);
+  calendarEnd.setDate(calendarStart.getDate() + 41);
   const days = eachDayOfInterval({ start: calendarStart, end: calendarEnd });
 
   const today = new Date();
@@ -299,14 +298,6 @@ export const DateRangeInput = forwardRef<HTMLInputElement, DateRangeInputProps>(
       }
     }, [dateFormat]);
 
-    const handlePrevMonth = useCallback(() => {
-      setLeftMonth((prev) => subMonths(prev, 1));
-    }, []);
-
-    const handleNextMonth = useCallback(() => {
-      setLeftMonth((prev) => addMonths(prev, 1));
-    }, []);
-
     const handleLeftMonthChange = useCallback((monthIdx: number) => {
       setLeftMonth((prev) => {
         const d = new Date(prev);
@@ -405,11 +396,11 @@ export const DateRangeInput = forwardRef<HTMLInputElement, DateRangeInputProps>(
                 onFocus={() => setSelectingField("from")}
                 placeholder={dateFormat.toLowerCase()}
                 className={cn(
-                  "text-sm h-9 w-[130px]",
+                  "text-sm h-9 flex-1",
                   selectingField === "from" && "border-primary-500 ring-1 ring-primary-500/20"
                 )}
               />
-              <span className="text-slate-400">—</span>
+              <span className="text-slate-400 shrink-0">—</span>
               <Input
                 type="text"
                 value={toInput}
@@ -417,48 +408,30 @@ export const DateRangeInput = forwardRef<HTMLInputElement, DateRangeInputProps>(
                 onFocus={() => setSelectingField("to")}
                 placeholder={dateFormat.toLowerCase()}
                 className={cn(
-                  "text-sm h-9 w-[130px]",
+                  "text-sm h-9 flex-1",
                   selectingField === "to" && "border-primary-500 ring-1 ring-primary-500/20"
                 )}
               />
             </div>
 
-            {/* Two calendars with nav arrows */}
-            <div className="flex items-start gap-4">
-              <button
-                type="button"
-                onClick={handlePrevMonth}
-                className="p-1.5 rounded hover:bg-slate-100 transition-colors mt-1"
-              >
-                <ChevronLeft className="h-4 w-4" />
-              </button>
-
-              <div className="flex gap-4">
-                <CalendarMonth
-                  month={leftMonth}
-                  from={tempFrom}
-                  to={tempTo}
-                  onDayClick={handleDayClick}
-                  onMonthChange={handleLeftMonthChange}
-                  onYearChange={handleLeftYearChange}
-                />
-                <CalendarMonth
-                  month={rightMonth}
-                  from={tempFrom}
-                  to={tempTo}
-                  onDayClick={handleDayClick}
-                  onMonthChange={handleRightMonthChange}
-                  onYearChange={handleRightYearChange}
-                />
-              </div>
-
-              <button
-                type="button"
-                onClick={handleNextMonth}
-                className="p-1.5 rounded hover:bg-slate-100 transition-colors mt-1"
-              >
-                <ChevronRight className="h-4 w-4" />
-              </button>
+            {/* Two calendars side by side */}
+            <div className="flex gap-4">
+              <CalendarMonth
+                month={leftMonth}
+                from={tempFrom}
+                to={tempTo}
+                onDayClick={handleDayClick}
+                onMonthChange={handleLeftMonthChange}
+                onYearChange={handleLeftYearChange}
+              />
+              <CalendarMonth
+                month={rightMonth}
+                from={tempFrom}
+                to={tempTo}
+                onDayClick={handleDayClick}
+                onMonthChange={handleRightMonthChange}
+                onYearChange={handleRightYearChange}
+              />
             </div>
 
             {/* Action buttons */}
