@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Chip } from '@ui/components/chip';
 import { SortFilterSelector, SortOption } from './SortFilterSelector';
 import { cn } from '@ui/lib/utils';
@@ -69,10 +69,83 @@ export function FiltersSection({
     onSortChange?.(option);
   };
 
+  // Drag-to-scroll (same pattern as PetPedigreeTab)
+  const DRAG_THRESHOLD = 5;
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const isMouseDown = useRef(false);
+  const hasDragged = useRef(false);
+  const dragStartX = useRef(0);
+  const scrollStartLeft = useRef(0);
+
+  const handleMouseDown = useCallback((e: React.MouseEvent) => {
+    if (!scrollRef.current || e.button !== 0) return;
+    isMouseDown.current = true;
+    hasDragged.current = false;
+    dragStartX.current = e.clientX;
+    scrollStartLeft.current = scrollRef.current.scrollLeft;
+  }, []);
+
+  const handleMouseMove = useCallback((e: React.MouseEvent) => {
+    if (!isMouseDown.current || !scrollRef.current) return;
+    const deltaX = e.clientX - dragStartX.current;
+    if (!hasDragged.current && Math.abs(deltaX) >= DRAG_THRESHOLD) {
+      hasDragged.current = true;
+      setIsDragging(true);
+    }
+    if (hasDragged.current) {
+      e.preventDefault();
+      scrollRef.current.scrollLeft = scrollStartLeft.current - deltaX;
+    }
+  }, []);
+
+  const handleMouseUp = useCallback(() => {
+    isMouseDown.current = false;
+    setIsDragging(false);
+  }, []);
+
+  const handleMouseLeave = useCallback(() => {
+    isMouseDown.current = false;
+    hasDragged.current = false;
+    setIsDragging(false);
+  }, []);
+
+  const handleClickCapture = useCallback((e: React.MouseEvent) => {
+    if (hasDragged.current) {
+      e.preventDefault();
+      e.stopPropagation();
+      hasDragged.current = false;
+    }
+  }, []);
+
+  // Fade edges based on scroll position
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
+
+  const updateScrollFades = useCallback(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    setCanScrollLeft(el.scrollLeft > 0);
+    setCanScrollRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 1);
+  }, []);
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    updateScrollFades();
+    el.addEventListener("scroll", updateScrollFades);
+    const ro = new ResizeObserver(updateScrollFades);
+    ro.observe(el);
+    return () => {
+      el.removeEventListener("scroll", updateScrollFades);
+      ro.disconnect();
+    };
+  }, [updateScrollFades, filters]);
+
   return (
-    <div className={cn("flex flex-wrap items-center gap-2", className)}>
+    <div className={cn("flex items-center gap-2", className)}>
       <SortFilterSelector
-        className="mr-3"
+        className="shrink-0"
         sortOptions={sortOptions}
         selectedSort={selectedSort}
         onSortChange={handleSortChange}
@@ -81,14 +154,41 @@ export function FiltersSection({
         currentFilterValues={currentFilterValues}
       />
 
-      {filters.map((filter) => (
-        <Chip
-          key={filter.id}
-          label={filter.label}
-          removable={!filter.isRequired}
-          onRemove={() => onFilterRemove?.(filter)}
-        />
-      ))}
+      {filters.length > 0 && (
+        <div className="relative min-w-0 flex-1 self-stretch">
+          {/* Left border */}
+          {canScrollLeft && (
+            <div className="absolute left-0 inset-y-0 w-px z-10 pointer-events-none bg-border" />
+          )}
+          {/* Right border */}
+          {canScrollRight && (
+            <div className="absolute right-0 inset-y-0 w-px z-10 pointer-events-none bg-border" />
+          )}
+          <div
+            ref={scrollRef}
+            onMouseDown={handleMouseDown}
+            onMouseMove={handleMouseMove}
+            onMouseUp={handleMouseUp}
+            onMouseLeave={handleMouseLeave}
+            onClickCapture={handleClickCapture}
+            className="flex items-center gap-2 overflow-x-auto scrollbar-hide h-full"
+            style={{
+              cursor: isDragging ? "grabbing" : undefined,
+              userSelect: isDragging ? "none" : undefined,
+            }}
+          >
+            {filters.map((filter) => (
+              <Chip
+                key={filter.id}
+                label={filter.label}
+                removable={!filter.isRequired}
+                onRemove={() => onFilterRemove?.(filter)}
+                className="shrink-0"
+              />
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
