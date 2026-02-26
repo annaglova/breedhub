@@ -224,6 +224,11 @@ export const DateRangeInput = forwardRef<HTMLInputElement, DateRangeInputProps>(
       if (committedFrom) return startOfMonth(committedFrom);
       return startOfMonth(new Date());
     });
+    const [rightMonth, setRightMonth] = useState<Date>(() => {
+      if (committedTo) return startOfMonth(committedTo);
+      if (committedFrom) return addMonths(startOfMonth(committedFrom), 1);
+      return addMonths(startOfMonth(new Date()), 1);
+    });
 
     const triggerRef = useRef<HTMLDivElement>(null);
     const dropdownRef = useRef<HTMLDivElement>(null);
@@ -237,9 +242,12 @@ export const DateRangeInput = forwardRef<HTMLInputElement, DateRangeInputProps>(
       setFromInput(from ? format(from, dateFormat) : "");
       setToInput(to ? format(to, dateFormat) : "");
       if (from) setLeftMonth(startOfMonth(from));
+      if (to) {
+        setRightMonth(startOfMonth(to));
+      } else if (from) {
+        setRightMonth(addMonths(startOfMonth(from), 1));
+      }
     }, [value, dateFormat]);
-
-    const rightMonth = addMonths(leftMonth, 1);
 
     const handleOpen = useCallback(() => {
       if (disabled) return;
@@ -251,6 +259,11 @@ export const DateRangeInput = forwardRef<HTMLInputElement, DateRangeInputProps>(
       setToInput(to ? format(to, dateFormat) : "");
       setSelectingField("from");
       if (from) setLeftMonth(startOfMonth(from));
+      if (to) {
+        setRightMonth(startOfMonth(to));
+      } else if (from) {
+        setRightMonth(addMonths(startOfMonth(from), 1));
+      }
 
       // Calculate position from trigger element
       if (triggerRef.current) {
@@ -373,6 +386,7 @@ export const DateRangeInput = forwardRef<HTMLInputElement, DateRangeInputProps>(
         const parsed = tryParseDate(val);
         if (parsed) {
           setTempTo(parsed);
+          setRightMonth(startOfMonth(parsed));
         }
       }
     }, [tryParseDate, autoFormatDate, toInput]);
@@ -394,21 +408,20 @@ export const DateRangeInput = forwardRef<HTMLInputElement, DateRangeInputProps>(
     }, []);
 
     const handleRightMonthChange = useCallback((monthIdx: number) => {
-      // Right month change → compute left = right - 1
-      setLeftMonth(() => {
-        const d = new Date(rightMonth);
+      setRightMonth((prev) => {
+        const d = new Date(prev);
         d.setMonth(monthIdx);
-        return subMonths(d, 1);
+        return d;
       });
-    }, [rightMonth]);
+    }, []);
 
     const handleRightYearChange = useCallback((year: number) => {
-      setLeftMonth(() => {
-        const d = new Date(rightMonth);
+      setRightMonth((prev) => {
+        const d = new Date(prev);
         d.setFullYear(year);
-        return subMonths(d, 1);
+        return d;
       });
-    }, [rightMonth]);
+    }, []);
 
     // Prevent Radix Dialog FocusScope from stealing focus from portal inputs.
     // FocusScope listens for both focusin AND focusout on document.
@@ -532,8 +545,14 @@ export const DateRangeInput = forwardRef<HTMLInputElement, DateRangeInputProps>(
                 type="text"
                 value={fromInput}
                 onChange={handleFromInputChange}
-                onClick={() => setSelectingField("from")}
-                onFocus={() => setSelectingField("from")}
+                onClick={() => {
+                  setSelectingField("from");
+                  if (tempFrom) setLeftMonth(startOfMonth(tempFrom));
+                }}
+                onFocus={() => {
+                  setSelectingField("from");
+                  if (tempFrom) setLeftMonth(startOfMonth(tempFrom));
+                }}
                 placeholder={dateFormat.toLowerCase()}
                 className={cn(
                   "flex-1",
@@ -545,8 +564,14 @@ export const DateRangeInput = forwardRef<HTMLInputElement, DateRangeInputProps>(
                 type="text"
                 value={toInput}
                 onChange={handleToInputChange}
-                onClick={() => setSelectingField("to")}
-                onFocus={() => setSelectingField("to")}
+                onClick={() => {
+                  setSelectingField("to");
+                  if (tempTo) setRightMonth(startOfMonth(tempTo));
+                }}
+                onFocus={() => {
+                  setSelectingField("to");
+                  if (tempTo) setRightMonth(startOfMonth(tempTo));
+                }}
                 placeholder={dateFormat.toLowerCase()}
                 className={cn(
                   "flex-1",
