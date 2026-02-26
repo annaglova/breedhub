@@ -92,22 +92,30 @@ function CalendarMonth({ month, from, to, onDayClick, onMonthChange, onYearChang
 
   const today = new Date();
 
+  // Normalize range direction once
+  const rangeStart = from && to ? (isBefore(from, to) ? from : to) : null;
+  const rangeEnd = from && to ? (isAfter(from, to) ? from : to) : null;
+  const hasRange = rangeStart && rangeEnd && !isSameDay(rangeStart, rangeEnd);
+
   return (
     <div className="flex-1 min-w-[240px]">
       {/* Month/Year selectors */}
-      <div className="flex gap-2 mb-3 justify-center">
-        <CustomDropdown
-          value={month.getMonth()}
-          options={monthOptions}
-          onChange={(v) => onMonthChange(v as number)}
-          className="min-w-[110px] text-sm"
-        />
-        <CustomDropdown
-          value={month.getFullYear()}
-          options={yearOptions}
-          onChange={(v) => onYearChange(v as number)}
-          className="min-w-[75px] text-sm"
-        />
+      <div className="flex gap-2 mb-3 relative z-20">
+        <div className="flex-1 min-w-0">
+          <CustomDropdown
+            value={month.getMonth()}
+            options={monthOptions}
+            onChange={(v) => onMonthChange(v as number)}
+            className="w-full"
+          />
+        </div>
+        <div className="shrink-0">
+          <CustomDropdown
+            value={month.getFullYear()}
+            options={yearOptions}
+            onChange={(v) => onYearChange(v as number)}
+          />
+        </div>
       </div>
 
       {/* Weekday headers */}
@@ -119,8 +127,8 @@ function CalendarMonth({ month, from, to, onDayClick, onMonthChange, onYearChang
         ))}
       </div>
 
-      {/* Days */}
-      <div className="grid grid-cols-7">
+      {/* Days — z-0 creates stacking context below the z-20 dropdown row */}
+      <div className="grid grid-cols-7 relative z-0">
         {days.map((day, idx) => {
           const isCurrentMonth = isSameMonth(day, month);
           const isToday = isSameDay(day, today);
@@ -128,32 +136,55 @@ function CalendarMonth({ month, from, to, onDayClick, onMonthChange, onYearChang
           const isTo = to && isSameDay(day, to);
           const isEndpoint = isFrom || isTo;
 
-          // Check if day is in range
-          let inRange = false;
-          if (from && to) {
-            const rangeStart = isBefore(from, to) ? from : to;
-            const rangeEnd = isAfter(from, to) ? from : to;
-            inRange = isWithinInterval(day, { start: rangeStart, end: rangeEnd }) && !isEndpoint;
-          }
+          // Check if day is in the middle of the range (not an endpoint)
+          const inRangeMiddle = hasRange &&
+            isWithinInterval(day, { start: rangeStart, end: rangeEnd }) && !isEndpoint;
+
+          // Endpoint that is the visual start of range (has range bg extending right)
+          const isVisualStart = hasRange && rangeStart && isSameDay(day, rangeStart);
+          // Endpoint that is the visual end of range (has range bg extending left)
+          const isVisualEnd = hasRange && rangeEnd && isSameDay(day, rangeEnd);
 
           return (
             <button
               key={idx}
               onClick={() => onDayClick(day)}
               className={cn(
-                "h-8 w-full text-sm transition-colors relative",
-                "hover:bg-slate-100",
+                "h-8 w-full relative flex items-center justify-center text-sm",
                 "focus:outline-none",
-                !isCurrentMonth && "text-slate-300",
-                isCurrentMonth && "text-slate-900",
-                isToday && !isEndpoint && "text-primary-700 font-bold",
-                isEndpoint && "bg-primary-600 text-white font-bold rounded-full hover:bg-primary-700 z-10",
-                inRange && isCurrentMonth && "bg-primary-50",
-                inRange && !isCurrentMonth && "bg-primary-50/50",
+                !isEndpoint && "hover:bg-slate-100",
               )}
               type="button"
             >
-              {format(day, "d")}
+              {/* Range background strip */}
+              {(inRangeMiddle || isVisualStart || isVisualEnd) && (
+                <div
+                  className={cn(
+                    "absolute inset-y-0",
+                    isCurrentMonth ? "bg-primary-50" : "bg-primary-50/50",
+                    isVisualStart && !isVisualEnd && "left-1/2 right-0",
+                    isVisualEnd && !isVisualStart && "left-0 right-1/2",
+                    inRangeMiddle && "left-0 right-0",
+                    isVisualStart && isVisualEnd && "hidden", // same day = no strip
+                  )}
+                />
+              )}
+              {/* Endpoint circle */}
+              {isEndpoint && (
+                <div className="absolute h-8 w-8 rounded-full bg-primary-600 hover:bg-primary-700 transition-colors" />
+              )}
+              {/* Day number */}
+              <span
+                className={cn(
+                  "relative z-10",
+                  !isCurrentMonth && !isEndpoint && "text-slate-300",
+                  isCurrentMonth && !isEndpoint && "text-slate-900",
+                  isToday && !isEndpoint && "text-primary-700 font-bold",
+                  isEndpoint && "text-white font-bold",
+                )}
+              >
+                {format(day, "d")}
+              </span>
             </button>
           );
         })}
@@ -446,8 +477,8 @@ export const DateRangeInput = forwardRef<HTMLInputElement, DateRangeInputProps>(
                 onFocus={() => setSelectingField("from")}
                 placeholder={dateFormat.toLowerCase()}
                 className={cn(
-                  "text-sm h-9 flex-1",
-                  selectingField === "from" && "border-primary-500 ring-1 ring-primary-500/20"
+                  "flex-1",
+                  selectingField === "from" && "border-primary-500 ring-2 ring-primary-500/20"
                 )}
               />
               <span className="text-slate-400 shrink-0">—</span>
@@ -458,8 +489,8 @@ export const DateRangeInput = forwardRef<HTMLInputElement, DateRangeInputProps>(
                 onFocus={() => setSelectingField("to")}
                 placeholder={dateFormat.toLowerCase()}
                 className={cn(
-                  "text-sm h-9 flex-1",
-                  selectingField === "to" && "border-primary-500 ring-1 ring-primary-500/20"
+                  "flex-1",
+                  selectingField === "to" && "border-primary-500 ring-2 ring-primary-500/20"
                 )}
               />
             </div>
@@ -484,27 +515,19 @@ export const DateRangeInput = forwardRef<HTMLInputElement, DateRangeInputProps>(
               />
             </div>
 
-            {/* Action buttons */}
+            {/* Action buttons — style matches FiltersDialog */}
             <div className="flex justify-end gap-2 mt-4 pt-3 border-t border-slate-100">
               <button
                 type="button"
                 onClick={handleCancel}
-                className={cn(
-                  "px-4 py-1.5 rounded-md text-sm",
-                  "bg-slate-100 text-slate-700 hover:bg-slate-200",
-                  "transition-colors"
-                )}
+                className="h-9 px-4 rounded-md text-sm font-bold bg-secondary-100 hover:bg-secondary-200 focus:bg-secondary-300 text-slate-800 transition-colors"
               >
                 Cancel
               </button>
               <button
                 type="button"
                 onClick={handleApply}
-                className={cn(
-                  "px-4 py-1.5 rounded-md text-sm",
-                  "bg-primary-50 text-primary-700 hover:bg-primary-100",
-                  "transition-colors"
-                )}
+                className="h-9 px-4 rounded-md text-sm font-bold bg-primary-50 hover:bg-primary-100 focus:bg-primary-200 text-primary transition-colors"
               >
                 Apply
               </button>
