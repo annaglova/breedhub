@@ -5,6 +5,7 @@ import React, {
   forwardRef,
   useCallback,
   useEffect,
+  useMemo,
   useRef,
   useState,
 } from "react";
@@ -463,7 +464,7 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
     }, [inputValue, isEditing, referencedTable, loadDictionaryOptions]);
 
     // Filter options based on search (only if not using server-side search)
-    const filteredOptions = referencedTable
+    const searchFilteredOptions = referencedTable
       ? deduplicatedOptions
       : deduplicatedOptions.filter(
           (option) =>
@@ -474,6 +475,14 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
                 .toLowerCase()
                 .includes(inputValue.toLowerCase()))
         );
+
+    // Move selected option to the top of the list (skip when user typed a search query)
+    const filteredOptions = useMemo(() => {
+      if (!value || !searchFilteredOptions.length || inputValue.trim()) return searchFilteredOptions;
+      const selected = searchFilteredOptions.find(opt => opt.value === value);
+      if (!selected) return searchFilteredOptions;
+      return [selected, ...searchFilteredOptions.filter(opt => opt.value !== value)];
+    }, [searchFilteredOptions, value, inputValue]);
 
     // Handle clicks outside — check both trigger and portal dropdown
     useEffect(() => {

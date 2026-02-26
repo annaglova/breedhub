@@ -93,10 +93,18 @@ export const DropdownInput = forwardRef<HTMLInputElement, DropdownInputProps>(
     const activeOptions = referencedTable ? dynamicOptions : options;
 
     // Filter options by filterByValue for cascade filtering
-    const displayOptions = useMemo(() => {
+    const filteredOptions = useMemo(() => {
       if (!filterBy || !filterByValue) return activeOptions;
       return activeOptions.filter(opt => filterValueMap.get(opt.value) === filterByValue);
     }, [activeOptions, filterBy, filterByValue, filterValueMap]);
+
+    // Move selected option to the top of the list
+    const displayOptions = useMemo(() => {
+      if (!value || !filteredOptions.length) return filteredOptions;
+      const selected = filteredOptions.find(opt => opt.value === value);
+      if (!selected) return filteredOptions;
+      return [selected, ...filteredOptions.filter(opt => opt.value !== value)];
+    }, [filteredOptions, value]);
 
     // Find selected option - use cached version if available, otherwise search in options
     const selectedOption =
