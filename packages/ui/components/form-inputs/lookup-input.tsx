@@ -8,6 +8,7 @@ import React, {
   useRef,
   useState,
 } from "react";
+import { createPortal } from "react-dom";
 import { FormField } from "../form-field";
 import { Input } from "../input";
 
@@ -90,8 +91,9 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
       useState<LookupOption[]>(options);
     const [internalLoading, setInternalLoading] = useState(false);
     const [hasMore, setHasMore] = useState(true);
-    const dropdownRef = useRef<HTMLDivElement>(null);
+    const triggerRef = useRef<HTMLDivElement>(null);
     const dropdownListRef = useRef<HTMLDivElement>(null);
+    const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0, width: 0 });
     const searchTimeoutRef = useRef<NodeJS.Timeout>();
     const prevSearchQueryRef = useRef<string>("");
     const cursorRef = useRef<string | null>(null); // ✅ Keyset pagination: last seen value
@@ -473,13 +475,13 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
                 .includes(inputValue.toLowerCase()))
         );
 
-    // Handle clicks outside
+    // Handle clicks outside — check both trigger and portal dropdown
     useEffect(() => {
       const handleClickOutside = (e: MouseEvent) => {
-        if (
-          dropdownRef.current &&
-          !dropdownRef.current.contains(e.target as Node)
-        ) {
+        const target = e.target as Node;
+        const inTrigger = triggerRef.current?.contains(target);
+        const inDropdown = dropdownListRef.current?.contains(target);
+        if (!inTrigger && !inDropdown) {
           setIsOpen(false);
           // ✅ Exit editing mode and restore selected value
           if (value && selectedOption) {
@@ -522,6 +524,10 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
 
     const handleFocus = () => {
       if (disabled) return; // Don't open if disabled
+      if (triggerRef.current) {
+        const rect = triggerRef.current.getBoundingClientRect();
+        setDropdownPos({ top: rect.bottom + 4, left: rect.left, width: rect.width });
+      }
       setIsOpen(true);
       if (!isEditing && value) {
         // ✅ On focus with selected value - clear input for typing
@@ -598,7 +604,7 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
     }, [handleScroll, isOpen]);
 
     const inputElement = (
-      <div className="group/field relative" ref={dropdownRef}>
+      <div className="group/field relative" ref={triggerRef}>
         <div className="relative">
           <div
             className={cn(
@@ -666,10 +672,12 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
           )}
         </div>
 
-        {isOpen && filteredOptions.length > 0 && (
+        {isOpen && filteredOptions.length > 0 && createPortal(
           <div
             ref={dropdownListRef}
-            className="absolute z-50 mt-1 w-full bg-white border border-slate-200 rounded-md shadow-lg max-h-[40vh] overflow-auto text-base"
+            data-portal-dropdown
+            className="fixed z-[9999] pointer-events-auto bg-white border border-slate-200 rounded-md shadow-lg max-h-[40vh] overflow-auto text-base"
+            style={{ top: dropdownPos.top, left: dropdownPos.left, width: dropdownPos.width }}
           >
             {/* 🔍 DEBUG: Total count */}
             <div className="px-3 py-1 text-xs text-slate-400 border-b border-slate-100 bg-slate-50 sticky top-0">
@@ -705,15 +713,21 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
                 No more results
               </div>
             )}
-          </div>
+          </div>,
+          document.body
         )}
 
-        {isOpen && filteredOptions.length === 0 && !loading && (
-          <div className="absolute z-50 mt-1 w-full bg-white border border-slate-200 rounded-md shadow-lg">
+        {isOpen && filteredOptions.length === 0 && !loading && createPortal(
+          <div
+            data-portal-dropdown
+            className="fixed z-[9999] pointer-events-auto bg-white border border-slate-200 rounded-md shadow-lg"
+            style={{ top: dropdownPos.top, left: dropdownPos.left, width: dropdownPos.width }}
+          >
             <div className="px-3 py-2 text-slate-500 text-center">
               No results found
             </div>
-          </div>
+          </div>,
+          document.body
         )}
       </div>
     );

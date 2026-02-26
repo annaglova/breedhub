@@ -433,7 +433,8 @@ export const DateRangeInput = forwardRef<HTMLInputElement, DateRangeInputProps>(
         {isOpen && !disabled && createPortal(
           <div
             ref={dropdownRef}
-            className="fixed z-[9999] bg-white rounded-lg border border-slate-200 shadow-lg p-4"
+            data-portal-dropdown
+            className="fixed z-[9999] pointer-events-auto bg-white rounded-lg border border-slate-200 shadow-lg p-4"
             style={{ top: dropdownPos.top, left: dropdownPos.left }}
           >
             {/* Date text inputs */}

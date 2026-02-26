@@ -9,6 +9,7 @@ import React, {
   useRef,
   useState,
 } from "react";
+import { createPortal } from "react-dom";
 import { FormField } from "../form-field";
 import { Input } from "../input";
 
@@ -80,9 +81,10 @@ export const DropdownInput = forwardRef<HTMLInputElement, DropdownInputProps>(
     const [cachedSelectedOption, setCachedSelectedOption] =
       useState<DropdownOption | null>(null); // ✅ Cache selected option (like LookupInput)
     const [filterValueMap, setFilterValueMap] = useState<Map<string, string>>(new Map()); // filterBy field values per option
-    const dropdownRef = useRef<HTMLDivElement>(null);
+    const triggerRef = useRef<HTMLDivElement>(null);
     const dropdownListRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
+    const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0, width: 0 });
 
     // Validation state
     const hasError = touched && !!error;
@@ -233,13 +235,13 @@ export const DropdownInput = forwardRef<HTMLInputElement, DropdownInputProps>(
       }
     }, [value, selectedOption, referencedTable, referencedFieldID, referencedFieldName, loading]);
 
-    // Handle clicks outside
+    // Handle clicks outside — check both trigger and portal dropdown
     useEffect(() => {
       const handleClickOutside = (e: MouseEvent) => {
-        if (
-          dropdownRef.current &&
-          !dropdownRef.current.contains(e.target as Node)
-        ) {
+        const target = e.target as Node;
+        const inTrigger = triggerRef.current?.contains(target);
+        const inDropdown = dropdownListRef.current?.contains(target);
+        if (!inTrigger && !inDropdown) {
           setIsOpen(false);
         }
       };
@@ -327,11 +329,20 @@ export const DropdownInput = forwardRef<HTMLInputElement, DropdownInputProps>(
       };
     }, [handleScroll, isOpen]);
 
+    const handleToggle = useCallback(() => {
+      if (disabled) return;
+      if (!isOpen && triggerRef.current) {
+        const rect = triggerRef.current.getBoundingClientRect();
+        setDropdownPos({ top: rect.bottom + 4, left: rect.left, width: rect.width });
+      }
+      setIsOpen(!isOpen);
+    }, [disabled, isOpen]);
+
     const selectElement = (
-      <div className="group/field relative" ref={dropdownRef}>
+      <div className="group/field relative" ref={triggerRef}>
         <div
           className="relative cursor-pointer"
-          onClick={() => !disabled && setIsOpen(!isOpen)}
+          onClick={handleToggle}
         >
           <Input
             ref={ref}
@@ -387,10 +398,12 @@ export const DropdownInput = forwardRef<HTMLInputElement, DropdownInputProps>(
           </div>
         </div>
 
-        {isOpen && (
+        {isOpen && createPortal(
           <div
             ref={dropdownListRef}
-            className="absolute z-50 mt-1 w-full bg-white border border-slate-200 rounded-md shadow-lg max-h-[40vh] overflow-auto text-base"
+            data-portal-dropdown
+            className="fixed z-[9999] pointer-events-auto bg-white border border-slate-200 rounded-md shadow-lg max-h-[40vh] overflow-auto text-base"
+            style={{ top: dropdownPos.top, left: dropdownPos.left, width: dropdownPos.width }}
           >
             {loading && dynamicOptions.length === 0 ? (
               <div className="px-3 py-2 text-slate-500 text-center">
@@ -435,7 +448,8 @@ export const DropdownInput = forwardRef<HTMLInputElement, DropdownInputProps>(
                 )}
               </>
             )}
-          </div>
+          </div>,
+          document.body
         )}
       </div>
     );
