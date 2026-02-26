@@ -397,7 +397,13 @@ export const DateRangeInput = forwardRef<HTMLInputElement, DateRangeInputProps>(
         d.setMonth(monthIdx);
         return d;
       });
-    }, []);
+      if (tempFrom) {
+        const updated = new Date(tempFrom);
+        updated.setMonth(monthIdx);
+        setTempFrom(updated);
+        setFromInput(format(updated, dateFormat));
+      }
+    }, [tempFrom, dateFormat]);
 
     const handleLeftYearChange = useCallback((year: number) => {
       setLeftMonth((prev) => {
@@ -405,7 +411,13 @@ export const DateRangeInput = forwardRef<HTMLInputElement, DateRangeInputProps>(
         d.setFullYear(year);
         return d;
       });
-    }, []);
+      if (tempFrom) {
+        const updated = new Date(tempFrom);
+        updated.setFullYear(year);
+        setTempFrom(updated);
+        setFromInput(format(updated, dateFormat));
+      }
+    }, [tempFrom, dateFormat]);
 
     const handleRightMonthChange = useCallback((monthIdx: number) => {
       setRightMonth((prev) => {
@@ -413,7 +425,13 @@ export const DateRangeInput = forwardRef<HTMLInputElement, DateRangeInputProps>(
         d.setMonth(monthIdx);
         return d;
       });
-    }, []);
+      if (tempTo) {
+        const updated = new Date(tempTo);
+        updated.setMonth(monthIdx);
+        setTempTo(updated);
+        setToInput(format(updated, dateFormat));
+      }
+    }, [tempTo, dateFormat]);
 
     const handleRightYearChange = useCallback((year: number) => {
       setRightMonth((prev) => {
@@ -421,6 +439,12 @@ export const DateRangeInput = forwardRef<HTMLInputElement, DateRangeInputProps>(
         d.setFullYear(year);
         return d;
       });
+      if (tempTo) {
+        const updated = new Date(tempTo);
+        updated.setFullYear(year);
+        setTempTo(updated);
+        setToInput(format(updated, dateFormat));
+      }
     }, []);
 
     // Prevent Radix Dialog FocusScope from stealing focus from portal inputs.
