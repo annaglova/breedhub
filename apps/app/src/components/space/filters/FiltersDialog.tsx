@@ -283,7 +283,7 @@ export function FiltersDialog({
 
         <form onSubmit={handleApply}>
           <div className="modal-card">
-            <div className="grid gap-3 sm:grid-cols-2">
+            <div className="grid gap-x-3 gap-y-1 sm:grid-cols-2">
               {filterFields.map((field) => {
                 const Component = componentMap[field.component];
 
