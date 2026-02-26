@@ -61,9 +61,9 @@ export function CustomDropdown({
           "bg-white border border-slate-300 rounded-md",
           "px-3 py-2 text-base text-slate-700",
           "cursor-pointer transition-all",
-          "hover:border-primary-500 focus:border-primary-500",
-          "focus:outline-none focus:ring-2 focus:ring-primary-500/20",
-          isOpen && "border-primary-500 ring-2 ring-primary-500/20",
+          "hover:border-slate-400",
+          "focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 focus:ring-offset-2",
+          isOpen && "border-primary-500 ring-2 ring-primary-500/20 ring-offset-2",
           className
         )}
       >

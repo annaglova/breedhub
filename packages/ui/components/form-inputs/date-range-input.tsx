@@ -557,8 +557,8 @@ export const DateRangeInput = forwardRef<HTMLInputElement, DateRangeInputProps>(
                 className={cn(
                   "flex-1",
                   fromInput && !tempFrom
-                    ? "border-red-500 ring-2 ring-red-500/20"
-                    : selectingField === "from" && "border-primary-500 ring-2 ring-primary-500/20"
+                    ? "border-red-500 focus:ring-2 focus:ring-red-500/20"
+                    : selectingField === "from" && "border-primary-500 focus:ring-2 focus:ring-primary-500/20"
                 )}
               />
               <span className="text-slate-400 shrink-0">—</span>
@@ -578,8 +578,8 @@ export const DateRangeInput = forwardRef<HTMLInputElement, DateRangeInputProps>(
                 className={cn(
                   "flex-1",
                   toInput && !tempTo
-                    ? "border-red-500 ring-2 ring-red-500/20"
-                    : selectingField === "to" && "border-primary-500 ring-2 ring-primary-500/20"
+                    ? "border-red-500 focus:ring-2 focus:ring-red-500/20"
+                    : selectingField === "to" && "border-primary-500 focus:ring-2 focus:ring-primary-500/20"
                 )}
               />
             </div>
