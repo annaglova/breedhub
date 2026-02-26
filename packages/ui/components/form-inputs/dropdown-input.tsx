@@ -310,22 +310,24 @@ export const DropdownInput = forwardRef<HTMLInputElement, DropdownInputProps>(
       }
     }, [referencedTable, hasMore, loading, cursor, loadDictionaryOptions]);
 
-    // Set up scroll listener
+    // Set up scroll listener + bypass react-remove-scroll lock
     useEffect(() => {
       const scrollElement = dropdownListRef.current;
       if (!scrollElement || !isOpen) {
-        console.log("[DropdownInput] Scroll listener setup skipped:", {
-          hasElement: !!scrollElement,
-          isOpen,
-        });
         return;
       }
 
-      console.log("[DropdownInput] Setting up scroll listener");
       scrollElement.addEventListener("scroll", handleScroll);
+
+      // Stop wheel event propagation to prevent react-remove-scroll from blocking scroll
+      const stopWheelPropagation = (e: WheelEvent) => {
+        e.stopPropagation();
+      };
+      scrollElement.addEventListener("wheel", stopWheelPropagation);
+
       return () => {
-        console.log("[DropdownInput] Removing scroll listener");
         scrollElement.removeEventListener("scroll", handleScroll);
+        scrollElement.removeEventListener("wheel", stopWheelPropagation);
       };
     }, [handleScroll, isOpen]);
 

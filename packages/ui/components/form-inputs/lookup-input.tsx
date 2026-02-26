@@ -594,13 +594,23 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
       }
     }, [referencedTable, hasMore, loading, searchQuery, loadDictionaryOptions]);
 
-    // Set up scroll listener
+    // Set up scroll listener + bypass react-remove-scroll lock
     useEffect(() => {
       const scrollElement = dropdownListRef.current;
       if (!scrollElement || !isOpen) return;
 
       scrollElement.addEventListener("scroll", handleScroll);
-      return () => scrollElement.removeEventListener("scroll", handleScroll);
+
+      // Stop wheel event propagation to prevent react-remove-scroll from blocking scroll
+      const stopWheelPropagation = (e: WheelEvent) => {
+        e.stopPropagation();
+      };
+      scrollElement.addEventListener("wheel", stopWheelPropagation);
+
+      return () => {
+        scrollElement.removeEventListener("scroll", handleScroll);
+        scrollElement.removeEventListener("wheel", stopWheelPropagation);
+      };
     }, [handleScroll, isOpen]);
 
     const inputElement = (
