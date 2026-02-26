@@ -134,16 +134,17 @@ function CalendarMonth({ month, from, to, onDayClick, onMonthChange, onYearChang
           const isToday = isSameDay(day, today);
           const isFrom = from && isSameDay(day, from);
           const isTo = to && isSameDay(day, to);
-          const isEndpoint = isFrom || isTo;
+          // Only show endpoint/range highlights for days in the current month
+          const isEndpoint = isCurrentMonth && (isFrom || isTo);
 
           // Check if day is in the middle of the range (not an endpoint)
-          const inRangeMiddle = hasRange &&
+          const inRangeMiddle = isCurrentMonth && hasRange &&
             isWithinInterval(day, { start: rangeStart, end: rangeEnd }) && !isEndpoint;
 
           // Endpoint that is the visual start of range (has range bg extending right)
-          const isVisualStart = hasRange && rangeStart && isSameDay(day, rangeStart);
+          const isVisualStart = isCurrentMonth && hasRange && rangeStart && isSameDay(day, rangeStart);
           // Endpoint that is the visual end of range (has range bg extending left)
-          const isVisualEnd = hasRange && rangeEnd && isSameDay(day, rangeEnd);
+          const isVisualEnd = isCurrentMonth && hasRange && rangeEnd && isSameDay(day, rangeEnd);
 
           return (
             <button
@@ -152,7 +153,7 @@ function CalendarMonth({ month, from, to, onDayClick, onMonthChange, onYearChang
               className={cn(
                 "h-8 w-full relative flex items-center justify-center text-sm",
                 "focus:outline-none",
-                !isEndpoint && "hover:bg-slate-100",
+                !isEndpoint && isCurrentMonth && "hover:bg-slate-100 hover:rounded-full",
               )}
               type="button"
             >
@@ -160,8 +161,7 @@ function CalendarMonth({ month, from, to, onDayClick, onMonthChange, onYearChang
               {(inRangeMiddle || isVisualStart || isVisualEnd) && (
                 <div
                   className={cn(
-                    "absolute inset-y-0",
-                    isCurrentMonth ? "bg-primary-50" : "bg-primary-50/50",
+                    "absolute inset-y-0 bg-primary-50",
                     isVisualStart && !isVisualEnd && "left-1/2 right-0",
                     isVisualEnd && !isVisualStart && "left-0 right-1/2",
                     inRangeMiddle && "left-0 right-0",
@@ -177,7 +177,7 @@ function CalendarMonth({ month, from, to, onDayClick, onMonthChange, onYearChang
               <span
                 className={cn(
                   "relative z-10",
-                  !isCurrentMonth && !isEndpoint && "text-slate-300",
+                  !isCurrentMonth && "text-slate-300",
                   isCurrentMonth && !isEndpoint && "text-slate-900",
                   isToday && !isEndpoint && "text-primary-700 font-bold",
                   isEndpoint && "text-white font-bold",
@@ -278,7 +278,10 @@ export const DateRangeInput = forwardRef<HTMLInputElement, DateRangeInputProps>(
 
         setTempFrom(newFrom);
         setTempTo(newTo);
-        setFromInput(newFrom ? format(newFrom, dateFormat) : "");
+        // Only update fromInput if we have a valid date (don't clear user's typed text)
+        if (newFrom) {
+          setFromInput(format(newFrom, dateFormat));
+        }
         setToInput(format(newTo, dateFormat));
         setSelectingField("from");
       }
@@ -318,32 +321,61 @@ export const DateRangeInput = forwardRef<HTMLInputElement, DateRangeInputProps>(
       setIsOpen(false);
     }, [onValueChange]);
 
+    // Try parsing date with multiple formats for flexible manual input
+    const tryParseDate = useCallback((val: string): Date | null => {
+      const formats = [
+        dateFormat,       // Primary format (e.g. MM/dd/yyyy)
+        "M/d/yyyy",       // Without leading zeros
+        "MM/dd/yyyy",
+        "dd.MM.yyyy",     // European format
+        "d.M.yyyy",
+        "yyyy-MM-dd",     // ISO format
+      ];
+      for (const fmt of formats) {
+        const parsed = parse(val, fmt, new Date());
+        if (isValid(parsed) && parsed.getFullYear() > 1900 && parsed.getFullYear() < 2100) {
+          return parsed;
+        }
+      }
+      return null;
+    }, [dateFormat]);
+
+    // Auto-format date input: "07272026" → "07/27/2026"
+    const autoFormatDate = useCallback((raw: string, prev: string): string => {
+      // If user is deleting, don't auto-format
+      if (raw.length < prev.length) return raw;
+      const digits = raw.replace(/\D/g, "").slice(0, 8); // max 8 digits (MMddyyyy)
+      if (digits.length <= 2) return digits;
+      if (digits.length <= 4) return `${digits.slice(0, 2)}/${digits.slice(2)}`;
+      return `${digits.slice(0, 2)}/${digits.slice(2, 4)}/${digits.slice(4)}`;
+    }, []);
+
     const handleFromInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-      const val = e.target.value;
+      const val = autoFormatDate(e.target.value, fromInput);
       setFromInput(val);
       if (val === "") {
         setTempFrom(null);
       } else {
-        const parsed = parse(val, dateFormat, new Date());
-        if (isValid(parsed)) {
+        const parsed = tryParseDate(val);
+        if (parsed) {
           setTempFrom(parsed);
           setLeftMonth(startOfMonth(parsed));
         }
       }
-    }, [dateFormat]);
+    }, [tryParseDate, autoFormatDate, fromInput]);
 
     const handleToInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-      const val = e.target.value;
+      const val = autoFormatDate(e.target.value, toInput);
       setToInput(val);
       if (val === "") {
         setTempTo(null);
       } else {
-        const parsed = parse(val, dateFormat, new Date());
-        if (isValid(parsed)) {
+        const parsed = tryParseDate(val);
+        if (parsed) {
           setTempTo(parsed);
         }
       }
-    }, [dateFormat]);
+    }, [tryParseDate, autoFormatDate, toInput]);
 
     const handleLeftMonthChange = useCallback((monthIdx: number) => {
       setLeftMonth((prev) => {
@@ -377,6 +409,32 @@ export const DateRangeInput = forwardRef<HTMLInputElement, DateRangeInputProps>(
         return subMonths(d, 1);
       });
     }, [rightMonth]);
+
+    // Prevent Radix Dialog FocusScope from stealing focus from portal inputs.
+    // FocusScope listens for both focusin AND focusout on document.
+    // On focusout it checks relatedTarget — if outside scope, it refocuses inside dialog.
+    // We intercept both events on window (capture phase, fires before document)
+    // and stop propagation so Radix's handlers never fire.
+    React.useEffect(() => {
+      if (!isOpen) return;
+      const handleFocusIn = (e: FocusEvent) => {
+        if (dropdownRef.current?.contains(e.target as Node)) {
+          e.stopPropagation();
+        }
+      };
+      const handleFocusOut = (e: FocusEvent) => {
+        const relatedTarget = e.relatedTarget as Node | null;
+        if (relatedTarget && dropdownRef.current?.contains(relatedTarget)) {
+          e.stopPropagation();
+        }
+      };
+      window.addEventListener("focusin", handleFocusIn, true);
+      window.addEventListener("focusout", handleFocusOut, true);
+      return () => {
+        window.removeEventListener("focusin", handleFocusIn, true);
+        window.removeEventListener("focusout", handleFocusOut, true);
+      };
+    }, [isOpen]);
 
     // Handle click outside — check both trigger and portal dropdown
     React.useEffect(() => {
@@ -474,6 +532,7 @@ export const DateRangeInput = forwardRef<HTMLInputElement, DateRangeInputProps>(
                 type="text"
                 value={fromInput}
                 onChange={handleFromInputChange}
+                onClick={() => setSelectingField("from")}
                 onFocus={() => setSelectingField("from")}
                 placeholder={dateFormat.toLowerCase()}
                 className={cn(
@@ -486,6 +545,7 @@ export const DateRangeInput = forwardRef<HTMLInputElement, DateRangeInputProps>(
                 type="text"
                 value={toInput}
                 onChange={handleToInputChange}
+                onClick={() => setSelectingField("to")}
                 onFocus={() => setSelectingField("to")}
                 placeholder={dateFormat.toLowerCase()}
                 className={cn(

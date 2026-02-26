@@ -269,6 +269,13 @@ export function FiltersDialog({
             e.preventDefault();
           }
         }}
+        onFocusOutside={(e) => {
+          // Allow focus to move to portal dropdown inputs (e.g. DateRangeInput)
+          const target = e.target as HTMLElement;
+          if (target.closest('[data-portal-dropdown]')) {
+            e.preventDefault();
+          }
+        }}
       >
         <DialogHeader>
           <DialogTitle>Select a filter</DialogTitle>
@@ -318,7 +325,7 @@ export function FiltersDialog({
                       referencedTable={field.referencedTable}
                       referencedFieldID={field.referencedFieldID}
                       referencedFieldName={field.referencedFieldName}
-                      dataSource={field.dataSource}
+                      {...(field.dataSource ? { dataSource: field.dataSource } : {})}
                       value={filterValues[field.id] || ""}
                       onValueChange={(value: any) =>
                         handleValueChange(field.id, value)
