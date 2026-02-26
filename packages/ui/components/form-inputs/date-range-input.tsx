@@ -1,4 +1,5 @@
 import React, { forwardRef, useState, useRef, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { Input } from "../input";
 import { FormField } from "../form-field";
 import { CustomDropdown } from "../custom-dropdown";
@@ -186,7 +187,9 @@ export const DateRangeInput = forwardRef<HTMLInputElement, DateRangeInputProps>(
       return startOfMonth(new Date());
     });
 
+    const triggerRef = useRef<HTMLDivElement>(null);
     const dropdownRef = useRef<HTMLDivElement>(null);
+    const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
 
     // Sync state when value prop changes externally
     React.useEffect(() => {
@@ -210,6 +213,12 @@ export const DateRangeInput = forwardRef<HTMLInputElement, DateRangeInputProps>(
       setToInput(to ? format(to, dateFormat) : "");
       setSelectingField("from");
       if (from) setLeftMonth(startOfMonth(from));
+
+      // Calculate position from trigger element
+      if (triggerRef.current) {
+        const rect = triggerRef.current.getBoundingClientRect();
+        setDropdownPos({ top: rect.bottom + 4, left: rect.left });
+      }
       setIsOpen(true);
     }, [disabled, value, dateFormat]);
 
@@ -331,11 +340,15 @@ export const DateRangeInput = forwardRef<HTMLInputElement, DateRangeInputProps>(
       });
     }, [rightMonth]);
 
-    // Handle click outside
+    // Handle click outside — check both trigger and portal dropdown
     React.useEffect(() => {
       if (!isOpen) return;
       const handleClickOutside = (e: MouseEvent) => {
-        if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        const target = e.target as Node;
+        if (
+          triggerRef.current && !triggerRef.current.contains(target) &&
+          dropdownRef.current && !dropdownRef.current.contains(target)
+        ) {
           handleCancel();
         }
       };
@@ -354,7 +367,7 @@ export const DateRangeInput = forwardRef<HTMLInputElement, DateRangeInputProps>(
     const hasValue = !!(committedFrom || committedTo);
 
     const inputElement = (
-      <div className="relative" ref={dropdownRef}>
+      <div className="relative" ref={triggerRef}>
         {/* Main trigger input */}
         <div className="relative cursor-pointer" onClick={handleOpen}>
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
@@ -384,9 +397,13 @@ export const DateRangeInput = forwardRef<HTMLInputElement, DateRangeInputProps>(
           )}
         </div>
 
-        {/* Dropdown panel */}
-        {isOpen && !disabled && (
-          <div className="absolute z-50 mt-1 bg-white rounded-lg border border-slate-200 shadow-lg p-4 w-auto left-0">
+        {/* Dropdown panel — rendered via portal to escape overflow clipping */}
+        {isOpen && !disabled && createPortal(
+          <div
+            ref={dropdownRef}
+            className="fixed z-[9999] bg-white rounded-lg border border-slate-200 shadow-lg p-4"
+            style={{ top: dropdownPos.top, left: dropdownPos.left }}
+          >
             {/* Date text inputs */}
             <div className="flex items-center gap-2 mb-4">
               <Input
@@ -459,7 +476,8 @@ export const DateRangeInput = forwardRef<HTMLInputElement, DateRangeInputProps>(
                 Apply
               </button>
             </div>
-          </div>
+          </div>,
+          document.body
         )}
       </div>
     );
