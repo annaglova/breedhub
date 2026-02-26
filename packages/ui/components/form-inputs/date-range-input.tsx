@@ -33,6 +33,8 @@ interface DateRangeInputProps {
   fieldClassName?: string;
   disabled?: boolean;
   className?: string;
+  touched?: boolean;
+  disabledOnGray?: boolean;
 }
 
 const months = [
@@ -173,8 +175,13 @@ export const DateRangeInput = forwardRef<HTMLInputElement, DateRangeInputProps>(
     className,
     fieldClassName,
     disabled,
+    touched,
+    disabledOnGray,
   }, ref) => {
     const { from: committedFrom, to: committedTo } = parseRangeValue(value);
+
+    // Validation state
+    const hasError = touched && !!error;
 
     const [isOpen, setIsOpen] = useState(false);
     const [tempFrom, setTempFrom] = useState<Date | null>(committedFrom);
@@ -367,10 +374,17 @@ export const DateRangeInput = forwardRef<HTMLInputElement, DateRangeInputProps>(
     const hasValue = !!(committedFrom || committedTo);
 
     const inputElement = (
-      <div className="relative" ref={triggerRef}>
+      <div className="group/field relative" ref={triggerRef}>
         {/* Main trigger input */}
         <div className="relative cursor-pointer" onClick={handleOpen}>
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+          <div
+            className={cn(
+              "absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none transition-colors z-10",
+              hasError
+                ? "text-red-400"
+                : "text-slate-400"
+            )}
+          >
             <CalendarIcon className="h-4 w-4" />
           </div>
           <Input
@@ -381,16 +395,34 @@ export const DateRangeInput = forwardRef<HTMLInputElement, DateRangeInputProps>(
             placeholder={placeholder || `${dateFormat.toLowerCase()} — ${dateFormat.toLowerCase()}`}
             disabled={disabled}
             className={cn(
-              "pl-10 cursor-pointer",
+              "peer pl-10 cursor-pointer transition-all duration-200",
               hasValue ? "pr-8" : "pr-3",
+              disabled &&
+                !disabledOnGray &&
+                "bg-slate-50 border-slate-200 text-slate-400 cursor-not-allowed",
+              disabled &&
+                disabledOnGray &&
+                "bg-white/95 border-slate-300 text-slate-400 cursor-not-allowed",
+              hasError &&
+                "border-red-500 hover:border-red-600 focus:border-red-500 focus:ring-2 focus:ring-red-500/20",
+              !hasError &&
+                !disabled &&
+                "border-slate-300 hover:border-slate-400 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20",
               className
             )}
+            style={{ caretColor: "transparent" }}
+            aria-invalid={hasError ? "true" : undefined}
           />
           {hasValue && !disabled && (
             <button
               type="button"
               onClick={handleClear}
-              className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600"
+              className={cn(
+                "absolute inset-y-0 right-0 pr-3 flex items-center transition-colors",
+                hasError
+                  ? "text-red-400 hover:text-red-600"
+                  : "text-slate-400 hover:text-slate-600"
+              )}
             >
               <X className="h-4 w-4" />
             </button>
@@ -486,10 +518,16 @@ export const DateRangeInput = forwardRef<HTMLInputElement, DateRangeInputProps>(
       return (
         <FormField
           label={label}
-          error={error}
-          helperText={!error ? helperText : undefined}
+          error={hasError ? error : undefined}
+          helperText={!hasError ? helperText : undefined}
           required={required}
           className={fieldClassName}
+          labelClassName={cn(
+            "transition-colors",
+            hasError
+              ? "text-red-600"
+              : "text-slate-700 group-focus-within:text-primary-600"
+          )}
         >
           {inputElement}
         </FormField>
