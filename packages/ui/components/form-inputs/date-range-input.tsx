@@ -4,7 +4,7 @@ import { Input } from "../input";
 import { FormField } from "../form-field";
 import { CustomDropdown } from "../custom-dropdown";
 import { cn } from "@ui/lib/utils";
-import { CalendarIcon, X } from "lucide-react";
+import { CalendarIcon, ChevronLeft, ChevronRight, X } from "lucide-react";
 import {
   format,
   parse,
@@ -80,9 +80,11 @@ interface CalendarMonthProps {
   onDayClick: (day: Date) => void;
   onMonthChange: (monthIdx: number) => void;
   onYearChange: (year: number) => void;
+  onPrevMonth?: () => void;
+  onNextMonth?: () => void;
 }
 
-function CalendarMonth({ month, from, to, onDayClick, onMonthChange, onYearChange }: CalendarMonthProps) {
+function CalendarMonth({ month, from, to, onDayClick, onMonthChange, onYearChange, onPrevMonth, onNextMonth }: CalendarMonthProps) {
   const monthStart = startOfMonth(month);
   const calendarStart = startOfWeek(monthStart, { weekStartsOn: 1 });
   // Always render exactly 6 rows (42 days) for consistent height
@@ -100,7 +102,16 @@ function CalendarMonth({ month, from, to, onDayClick, onMonthChange, onYearChang
   return (
     <div className="flex-1 min-w-[240px]">
       {/* Month/Year selectors */}
-      <div className="flex gap-2 mb-3 relative z-20">
+      <div className="flex items-center gap-1.5 mb-3 relative z-20">
+        {onPrevMonth && (
+          <button
+            type="button"
+            onClick={onPrevMonth}
+            className="shrink-0 h-9 w-9 flex items-center justify-center text-slate-400 hover:text-slate-700 transition-colors"
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </button>
+        )}
         <div className="flex-1 min-w-0">
           <CustomDropdown
             value={month.getMonth()}
@@ -116,6 +127,15 @@ function CalendarMonth({ month, from, to, onDayClick, onMonthChange, onYearChang
             onChange={(v) => onYearChange(v as number)}
           />
         </div>
+        {onNextMonth && (
+          <button
+            type="button"
+            onClick={onNextMonth}
+            className="shrink-0 h-9 w-9 flex items-center justify-center text-slate-400 hover:text-slate-700 transition-colors"
+          >
+            <ChevronRight className="h-4 w-4" />
+          </button>
+        )}
       </div>
 
       {/* Weekday headers */}
@@ -617,6 +637,7 @@ export const DateRangeInput = forwardRef<HTMLInputElement, DateRangeInputProps>(
                 onDayClick={handleDayClick}
                 onMonthChange={handleLeftMonthChange}
                 onYearChange={handleLeftYearChange}
+                onPrevMonth={() => setLeftMonth((prev) => subMonths(prev, 1))}
               />
               <CalendarMonth
                 month={rightMonth}
@@ -625,11 +646,12 @@ export const DateRangeInput = forwardRef<HTMLInputElement, DateRangeInputProps>(
                 onDayClick={handleDayClick}
                 onMonthChange={handleRightMonthChange}
                 onYearChange={handleRightYearChange}
+                onNextMonth={() => setRightMonth((prev) => addMonths(prev, 1))}
               />
             </div>
 
             {/* Action buttons — style matches FiltersDialog */}
-            <div className="flex justify-end gap-2 mt-4 pt-3 border-t border-slate-100">
+            <div className="grid grid-cols-2 gap-4 mt-4 pt-3 border-t border-slate-100">
               <button
                 type="button"
                 onClick={handleCancel}
