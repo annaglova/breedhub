@@ -43,6 +43,8 @@ interface DropdownInputProps
   // Cascade filtering props (filter options by parent field value)
   filterBy?: string;        // Field name to filter on (e.g. 'pet_type_id')
   filterByValue?: string;   // Parent value to match (e.g. selected pet_type UUID)
+  // Junction table filtering (many-to-many: filter by allowed IDs from junction table)
+  filterByIds?: string[] | null; // Allowed IDs from junction table query (null = no filtering)
   // Style variant for disabled state
   disabledOnGray?: boolean; // Use white background when disabled (for gray backgrounds)
 }
@@ -67,6 +69,7 @@ export const DropdownInput = forwardRef<HTMLInputElement, DropdownInputProps>(
       referencedFieldName = "name",
       filterBy,
       filterByValue,
+      filterByIds,
       disabledOnGray,
       ...props
     },
@@ -92,11 +95,23 @@ export const DropdownInput = forwardRef<HTMLInputElement, DropdownInputProps>(
     // Use dynamic options if referencedTable is provided, otherwise use static options
     const activeOptions = referencedTable ? dynamicOptions : options;
 
-    // Filter options by filterByValue for cascade filtering
+    // Filter options by filterByValue (cascade) and/or filterByIds (junction table)
     const filteredOptions = useMemo(() => {
-      if (!filterBy || !filterByValue) return activeOptions;
-      return activeOptions.filter(opt => filterValueMap.get(opt.value) === filterByValue);
-    }, [activeOptions, filterBy, filterByValue, filterValueMap]);
+      let result = activeOptions;
+
+      // Cascade filtering by parent field value
+      if (filterBy && filterByValue) {
+        result = result.filter(opt => filterValueMap.get(opt.value) === filterByValue);
+      }
+
+      // Junction table filtering by allowed IDs
+      if (filterByIds && filterByIds.length > 0) {
+        const allowedSet = new Set(filterByIds);
+        result = result.filter(opt => allowedSet.has(opt.value));
+      }
+
+      return result;
+    }, [activeOptions, filterBy, filterByValue, filterValueMap, filterByIds]);
 
     // Move selected option to the top of the list
     const displayOptions = useMemo(() => {

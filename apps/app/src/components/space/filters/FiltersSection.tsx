@@ -28,6 +28,10 @@ export interface FilterFieldConfig {
   dependsOn?: string; // Field ID that this field depends on (cascade filter)
   disabledUntil?: string; // Field ID - this field is disabled until that field has a value
   filterBy?: string; // Field name in referenced table to filter options by dependsOn value
+  // Junction table filtering (many-to-many)
+  junctionTable?: string;
+  junctionField?: string;
+  junctionFilterField?: string;
 }
 
 interface FiltersSectionProps {

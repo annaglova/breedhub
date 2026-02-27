@@ -861,6 +861,10 @@ class SpaceStore {
     dependsOn?: string;
     disabledUntil?: string;
     filterBy?: string;
+    // Junction table filtering (many-to-many)
+    junctionTable?: string;
+    junctionField?: string;
+    junctionFilterField?: string;
   }> {
     // Try exact match first
     let spaceConfig = this.spaceConfigs.get(entityType);
@@ -908,6 +912,9 @@ class SpaceStore {
       dependsOn?: string;
       disabledUntil?: string;
       filterBy?: string;
+      junctionTable?: string;
+      junctionField?: string;
+      junctionFilterField?: string;
     }> = [];
 
     // Parse filter fields (exclude mainFilterField - it's for search bar, not modal)
@@ -938,7 +945,11 @@ class SpaceStore {
         // Filter behavior props
         dependsOn: field.dependsOn,
         disabledUntil: field.disabledUntil,
-        filterBy: field.filterBy
+        filterBy: field.filterBy,
+        // Junction table filtering (many-to-many)
+        junctionTable: field.junctionTable,
+        junctionField: field.junctionField,
+        junctionFilterField: field.junctionFilterField
       });
     }
 

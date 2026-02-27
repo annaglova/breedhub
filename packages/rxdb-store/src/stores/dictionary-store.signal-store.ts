@@ -547,6 +547,83 @@ class DictionaryStore {
   }
 
   /**
+   * Get allowed IDs from a junction table (many-to-many relationship)
+   *
+   * Used for filtering dropdowns by junction tables like coat_type_in_breed.
+   * Online: SELECT DISTINCT targetField FROM junctionTable WHERE filterField = filterValue
+   * Offline: Query RxDB child collection cache
+   *
+   * @param junctionTable - Junction table name (e.g., 'coat_type_in_breed')
+   * @param targetField - Field to extract IDs from (e.g., 'coat_type_id')
+   * @param filterField - Field to filter by (e.g., 'breed_id')
+   * @param filterValue - Value to match (e.g., breed UUID)
+   * @returns Array of unique target IDs
+   */
+  async getJunctionIds(
+    junctionTable: string,
+    targetField: string,
+    filterField: string,
+    filterValue: string
+  ): Promise<string[]> {
+    // Online: query Supabase directly
+    if (!isOffline()) {
+      try {
+        const { data, error } = await supabase
+          .from(junctionTable)
+          .select(targetField)
+          .eq(filterField, filterValue);
+
+        if (error) {
+          throw new Error(`Junction query failed: ${error.message}`);
+        }
+
+        // Extract unique IDs
+        const ids = (data || [])
+          .map(row => String(row[targetField]))
+          .filter(id => id && id !== 'null' && id !== 'undefined');
+
+        return [...new Set(ids)];
+      } catch (error) {
+        if (!isNetworkError(error)) {
+          console.error(`[DictionaryStore] getJunctionIds failed for ${junctionTable}:`, error);
+        }
+        // Fall through to offline fallback
+      }
+    }
+
+    // Offline fallback: query RxDB child collection
+    try {
+      const db = await getDatabase();
+      // Derive parent entity from junction table (e.g., 'coat_type_in_breed' → 'breed_children')
+      const parentEntity = junctionTable.split('_in_').pop();
+      const collectionName = `${parentEntity}_children`;
+      const collection = db.collections[collectionName];
+
+      if (!collection) {
+        return [];
+      }
+
+      const docs = await collection.find({
+        selector: {
+          parentId: filterValue,
+          tableType: junctionTable
+        }
+      }).exec();
+
+      const ids = docs
+        .map((doc: any) => {
+          const json = doc.toJSON();
+          return String(json.additional?.[targetField] || '');
+        })
+        .filter((id: string) => id && id !== 'null' && id !== 'undefined');
+
+      return [...new Set(ids)];
+    } catch {
+      return [];
+    }
+  }
+
+  /**
    * Get a single record by ID from dictionary table
    * Used for pre-loading selected values in LookupInput and dictionary lookups
    * Fetches ALL fields (id, name, code, etc.) for flexibility

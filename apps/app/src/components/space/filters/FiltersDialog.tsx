@@ -30,6 +30,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@ui/components/select";
+import { useJunctionFilterIds } from "@breedhub/rxdb-store";
 import React from "react";
 
 export interface FilterConfig {
@@ -64,6 +65,10 @@ export interface FilterFieldConfig {
   dependsOn?: string; // Field ID that this field depends on (cascade filter)
   disabledUntil?: string; // Field ID - this field is disabled until that field has a value
   filterBy?: string; // Field name in referenced table to filter options by dependsOn value
+  // Junction table filtering (many-to-many)
+  junctionTable?: string; // Junction table name (e.g., 'coat_type_in_breed')
+  junctionField?: string; // Target field to extract IDs (e.g., 'coat_type_id')
+  junctionFilterField?: string; // Filter field in junction table (e.g., 'breed_id')
 }
 
 interface FiltersDialogProps {
@@ -94,6 +99,31 @@ const componentMap: Record<string, React.ComponentType<any>> = {
   RadioInput,
   SwitchInput,
 };
+
+/**
+ * Wrapper component for filter fields that use junction table filtering.
+ * Needed because React hooks can't be called in a loop.
+ */
+function JunctionFilterField({
+  field,
+  Component,
+  parentFieldValue,
+  ...componentProps
+}: {
+  field: FilterFieldConfig;
+  Component: React.ComponentType<any>;
+  parentFieldValue?: string;
+  [key: string]: any;
+}) {
+  const { filterByIds } = useJunctionFilterIds({
+    junctionTable: field.junctionTable!,
+    junctionField: field.junctionField!,
+    junctionFilterField: field.junctionFilterField!,
+    filterValue: parentFieldValue,
+  });
+
+  return <Component {...componentProps} filterByIds={filterByIds} />;
+}
 
 export function FiltersDialog({
   open,
@@ -314,28 +344,44 @@ export function FiltersDialog({
                   ? { filterBy: field.filterBy, filterByValue: parentFieldValue }
                   : {};
 
+                // Common props shared by both regular and junction filter fields
+                const commonProps = {
+                  label: toSentenceCase(field.displayName),
+                  placeholder: field.placeholder,
+                  required: field.required,
+                  id: field.id,
+                  options: field.options || [],
+                  referencedTable: field.referencedTable,
+                  referencedFieldID: field.referencedFieldID,
+                  referencedFieldName: field.referencedFieldName,
+                  ...(field.dataSource ? { dataSource: field.dataSource } : {}),
+                  value: filterValues[field.id] || "",
+                  onValueChange: (value: any) =>
+                    handleValueChange(field.id, value),
+                  disabled,
+                  disabledOnGray: disabled,
+                  error: errors[field.id],
+                  touched: touched[field.id],
+                  ...cascadeProps,
+                };
+
+                // Use JunctionFilterField wrapper for fields with junction table config
+                if (field.junctionTable && field.junctionField && field.junctionFilterField) {
+                  return (
+                    <div key={field.id} className="space-y-2">
+                      <JunctionFilterField
+                        field={field}
+                        Component={Component}
+                        parentFieldValue={parentFieldValue}
+                        {...commonProps}
+                      />
+                    </div>
+                  );
+                }
+
                 return (
                   <div key={field.id} className="space-y-2">
-                    <Component
-                      label={toSentenceCase(field.displayName)}
-                      placeholder={field.placeholder}
-                      required={field.required}
-                      id={field.id}
-                      options={field.options || []}
-                      referencedTable={field.referencedTable}
-                      referencedFieldID={field.referencedFieldID}
-                      referencedFieldName={field.referencedFieldName}
-                      {...(field.dataSource ? { dataSource: field.dataSource } : {})}
-                      value={filterValues[field.id] || ""}
-                      onValueChange={(value: any) =>
-                        handleValueChange(field.id, value)
-                      }
-                      disabled={disabled}
-                      disabledOnGray={disabled}
-                      error={errors[field.id]}
-                      touched={touched[field.id]}
-                      {...cascadeProps}
-                    />
+                    <Component {...commonProps} />
                   </div>
                 );
               })}
