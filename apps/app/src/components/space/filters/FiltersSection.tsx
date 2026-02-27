@@ -32,6 +32,8 @@ export interface FilterFieldConfig {
   junctionTable?: string;
   junctionField?: string;
   junctionFilterField?: string;
+  // OR fields (single filter applies to multiple DB fields with OR logic)
+  orFields?: string[];
 }
 
 interface FiltersSectionProps {

@@ -68,6 +68,8 @@ export interface FilterFieldConfig {
   junctionTable?: string; // Junction table name (e.g., 'coat_type_in_breed')
   junctionField?: string; // Target field to extract IDs (e.g., 'coat_type_id')
   junctionFilterField?: string; // Filter field in junction table (e.g., 'breed_id')
+  // OR fields (single filter applies to multiple DB fields with OR logic)
+  orFields?: string[]; // e.g., ['father_breed_id', 'mother_breed_id']
 }
 
 interface FiltersDialogProps {

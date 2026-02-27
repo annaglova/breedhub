@@ -865,6 +865,8 @@ class SpaceStore {
     junctionTable?: string;
     junctionField?: string;
     junctionFilterField?: string;
+    // OR fields (single filter applies to multiple DB fields)
+    orFields?: string[];
   }> {
     // Try exact match first
     let spaceConfig = this.spaceConfigs.get(entityType);
@@ -915,6 +917,7 @@ class SpaceStore {
       junctionTable?: string;
       junctionField?: string;
       junctionFilterField?: string;
+      orFields?: string[];
     }> = [];
 
     // Parse filter fields (exclude mainFilterField - it's for search bar, not modal)
@@ -949,7 +952,9 @@ class SpaceStore {
         // Junction table filtering (many-to-many)
         junctionTable: field.junctionTable,
         junctionField: field.junctionField,
-        junctionFilterField: field.junctionFilterField
+        junctionFilterField: field.junctionFilterField,
+        // OR fields
+        orFields: field.orFields
       });
     }
 
@@ -2460,7 +2465,7 @@ class SpaceStore {
           startsWithSelector[fieldKey] = { $regex: `^${escapedValue}`, $options: 'i' };
         }
 
-        // Apply non-string filters to selector
+        // Apply non-string filters to selector (with orFields support)
         for (const [fieldKey, value] of Object.entries(filters)) {
           if (stringFilters.some(([k]) => k === fieldKey)) continue; // Skip string filters
           if (value === undefined || value === null || value === '') continue;
@@ -2473,19 +2478,7 @@ class SpaceStore {
 
           const fieldType = fieldConfig?.fieldType || 'string';
           const operator = this.detectOperator(fieldType, fieldConfig?.operator);
-
-          // Add to selector based on operator
-          if (operator === 'eq') {
-            startsWithSelector[fieldKey] = value;
-          } else if (operator === 'gt') {
-            startsWithSelector[fieldKey] = { $gt: value };
-          } else if (operator === 'gte') {
-            startsWithSelector[fieldKey] = { $gte: value };
-          } else if (operator === 'lt') {
-            startsWithSelector[fieldKey] = { $lt: value };
-          } else if (operator === 'lte') {
-            startsWithSelector[fieldKey] = { $lte: value };
-          }
+          this.applyFilterToRxDBSelector(startsWithSelector, fieldKey, operator, value, fieldConfig);
         }
 
         // Execute starts_with query
@@ -2525,7 +2518,7 @@ class SpaceStore {
             containsSelector[fieldKey] = { $regex: escapedValue, $options: 'i' };
           }
 
-          // Apply non-string filters to selector
+          // Apply non-string filters to selector (with orFields support)
           for (const [fieldKey, value] of Object.entries(filters)) {
             if (stringFilters.some(([k]) => k === fieldKey)) continue;
             if (value === undefined || value === null || value === '') continue;
@@ -2538,19 +2531,7 @@ class SpaceStore {
 
             const fieldType = fieldConfig?.fieldType || 'string';
             const operator = this.detectOperator(fieldType, fieldConfig?.operator);
-
-            // Add to selector based on operator
-            if (operator === 'eq') {
-              containsSelector[fieldKey] = value;
-            } else if (operator === 'gt') {
-              containsSelector[fieldKey] = { $gt: value };
-            } else if (operator === 'gte') {
-              containsSelector[fieldKey] = { $gte: value };
-            } else if (operator === 'lt') {
-              containsSelector[fieldKey] = { $lt: value };
-            } else if (operator === 'lte') {
-              containsSelector[fieldKey] = { $lte: value };
-            }
+            this.applyFilterToRxDBSelector(containsSelector, fieldKey, operator, value, fieldConfig);
           }
 
           // Execute contains query
@@ -2623,24 +2604,12 @@ class SpaceStore {
             fieldType,
             operator,
             value,
-            hasFieldConfig: !!fieldConfig
+            hasFieldConfig: !!fieldConfig,
+            orFields: finalFieldConfig.orFields
           });
 
-          // Add to selector based on operator
-          if (operator === 'ilike' || operator === 'contains') {
-            const escapedValue = String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-            selector[fieldKey] = { $regex: escapedValue, $options: 'i' };
-          } else if (operator === 'eq') {
-            selector[fieldKey] = value;
-          } else if (operator === 'gt') {
-            selector[fieldKey] = { $gt: value };
-          } else if (operator === 'gte') {
-            selector[fieldKey] = { $gte: value };
-          } else if (operator === 'lt') {
-            selector[fieldKey] = { $lt: value };
-          } else if (operator === 'lte') {
-            selector[fieldKey] = { $lte: value };
-          }
+          // Apply filter to selector (with orFields support)
+          this.applyFilterToRxDBSelector(selector, fieldKey, operator, value, finalFieldConfig);
         }
 
         // ✅ KEYSET PAGINATION: Apply cursor to selector
@@ -2810,13 +2779,13 @@ class SpaceStore {
         startsWithQuery = startsWithQuery.ilike(orSearchFields[0], `${searchValue}%`);
       }
 
-      // Apply other filters
+      // Apply other filters (with orFields support)
       for (const [fieldKey, value] of Object.entries(otherFilters)) {
         if (value === undefined || value === null || value === '') continue;
         const fieldConfig = fieldConfigs[fieldKey] || {};
         const fieldType = fieldConfig.fieldType || 'string';
         const operator = this.detectOperator(fieldType, fieldConfig.operator);
-        startsWithQuery = this.applySupabaseFilter(startsWithQuery, fieldKey, operator, value);
+        startsWithQuery = this.applySupabaseFilterWithOrFields(startsWithQuery, fieldKey, operator, value, fieldConfig);
       }
 
       startsWithQuery = this.applyOrderBy(startsWithQuery, orderBy).limit(startsWithLimit);
@@ -2855,13 +2824,13 @@ class SpaceStore {
             .not(orSearchFields[0], 'ilike', `${searchValue}%`);
         }
 
-        // Apply other filters
+        // Apply other filters (with orFields support)
         for (const [fieldKey, value] of Object.entries(otherFilters)) {
           if (value === undefined || value === null || value === '') continue;
           const fieldConfig = fieldConfigs[fieldKey] || {};
           const fieldType = fieldConfig.fieldType || 'string';
           const operator = this.detectOperator(fieldType, fieldConfig.operator);
-          containsQuery = this.applySupabaseFilter(containsQuery, fieldKey, operator, value);
+          containsQuery = this.applySupabaseFilterWithOrFields(containsQuery, fieldKey, operator, value, fieldConfig);
         }
 
         containsQuery = this.applyOrderBy(containsQuery, orderBy).limit(remainingLimit);
@@ -2904,7 +2873,7 @@ class SpaceStore {
     // Filter out deleted records
     query = query.or('deleted.is.null,deleted.eq.false');
 
-    // Apply filters (AND logic)
+    // Apply filters (AND logic, with orFields support for OR across multiple DB fields)
     for (const [fieldKey, value] of Object.entries(filters)) {
       if (value === undefined || value === null || value === '') {
         continue;
@@ -2915,9 +2884,8 @@ class SpaceStore {
       const fieldType = fieldConfig.fieldType || 'string';
       const operator = this.detectOperator(fieldType, fieldConfig.operator);
 
-      // fieldKey is already the DB field name (normalized)
-      // Apply filter based on operator
-      query = this.applySupabaseFilter(query, fieldKey, operator, value);
+      // Apply filter (with orFields support for OR across multiple DB fields)
+      query = this.applySupabaseFilterWithOrFields(query, fieldKey, operator, value, fieldConfig);
     }
 
     // Apply cursor (keyset pagination with tie-breaker from config)
@@ -3123,7 +3091,7 @@ class SpaceStore {
 
       console.log(`[SpaceStore] 🔨 Building Supabase query for ${entityType}...`);
 
-      // Apply filters (AND logic)
+      // Apply filters (AND logic, with orFields support for OR across multiple DB fields)
       for (const [fieldKey, value] of Object.entries(filters)) {
         if (value === undefined || value === null || value === '') {
           continue; // Skip empty filters
@@ -3138,12 +3106,12 @@ class SpaceStore {
           fieldKey,
           fieldType,
           operator,
-          value
+          value,
+          orFields: fieldConfig.orFields
         });
 
-        // fieldKey is already the DB field name (normalized)
-        // Apply filter based on operator
-        query = this.applySupabaseFilter(query, fieldKey, operator, value);
+        // Apply filter (with orFields support for OR across multiple DB fields)
+        query = this.applySupabaseFilterWithOrFields(query, fieldKey, operator, value, fieldConfig);
       }
 
       // ✅ KEYSET PAGINATION: Apply cursor (WHERE field > cursor)
@@ -3322,6 +3290,52 @@ class SpaceStore {
   }
 
   /**
+   * Build RxDB Mango condition for a given operator and value.
+   */
+  private buildRxDBCondition(operator: string, value: any): any {
+    switch (operator) {
+      case 'ilike':
+      case 'contains': {
+        const escaped = String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        return { $regex: escaped, $options: 'i' };
+      }
+      case 'eq': return value;
+      case 'ne': return { $ne: value };
+      case 'gt': return { $gt: value };
+      case 'gte': return { $gte: value };
+      case 'lt': return { $lt: value };
+      case 'lte': return { $lte: value };
+      case 'in': return { $in: Array.isArray(value) ? value : [value] };
+      default: return value;
+    }
+  }
+
+  /**
+   * Apply filter to RxDB selector with orFields support.
+   * If fieldConfig has orFields, builds $or condition across all fields.
+   */
+  private applyFilterToRxDBSelector(
+    selector: any,
+    fieldKey: string,
+    operator: string,
+    value: any,
+    fieldConfig: any
+  ): void {
+    const orFields: string[] | undefined = fieldConfig?.orFields;
+    const condition = this.buildRxDBCondition(operator, value);
+
+    if (orFields && orFields.length > 0) {
+      // Build $or condition: match value against any of the OR fields
+      const orConditions = orFields.map(field => ({ [field]: condition }));
+      // Use $and to combine with other conditions
+      if (!selector.$and) selector.$and = [];
+      selector.$and.push({ $or: orConditions });
+    } else {
+      selector[fieldKey] = condition;
+    }
+  }
+
+  /**
    * Apply filter to RxDB query
    * Translates operator to RxDB syntax
    */
@@ -3421,6 +3435,61 @@ class SpaceStore {
         console.warn(`[SpaceStore] Unknown Supabase operator: ${operator}`);
         return query;
     }
+  }
+
+  /**
+   * Build PostgREST filter expression for a single field (e.g., "breed_id.eq.123")
+   */
+  private buildPostgrestFilterExpr(fieldName: string, operator: string, value: any): string {
+    switch (operator) {
+      case 'ilike':
+      case 'contains':
+        return `${fieldName}.ilike.%${value}%`;
+      case 'eq':
+        return `${fieldName}.eq.${value}`;
+      case 'ne':
+        return `${fieldName}.neq.${value}`;
+      case 'gt':
+        return `${fieldName}.gt.${value}`;
+      case 'gte':
+        return `${fieldName}.gte.${value}`;
+      case 'lt':
+        return `${fieldName}.lt.${value}`;
+      case 'lte':
+        return `${fieldName}.lte.${value}`;
+      case 'in': {
+        const arr = Array.isArray(value) ? value : [value];
+        return `${fieldName}.in.(${arr.join(',')})`;
+      }
+      default:
+        return `${fieldName}.eq.${value}`;
+    }
+  }
+
+  /**
+   * Apply filter with orFields support.
+   * If fieldConfig has orFields, builds OR condition across all fields.
+   * Otherwise delegates to applySupabaseFilter.
+   */
+  private applySupabaseFilterWithOrFields(
+    query: any,
+    fieldKey: string,
+    operator: string,
+    value: any,
+    fieldConfig: any
+  ): any {
+    const orFields: string[] | undefined = fieldConfig?.orFields;
+
+    if (orFields && orFields.length > 0) {
+      // Build OR condition: father_breed_id.eq.X,mother_breed_id.eq.X
+      const orCondition = orFields
+        .map(field => this.buildPostgrestFilterExpr(field, operator, value))
+        .join(',');
+      return query.or(orCondition);
+    }
+
+    // Standard single-field filter
+    return this.applySupabaseFilter(query, fieldKey, operator, value);
   }
 
   /**
