@@ -300,6 +300,7 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
               search: query,
               limit: 30,
               cursor: currentCursor, // ✅ Use cursor instead of offset
+              filterByIds: filterByIds || undefined, // Junction table filtering
             });
 
             opts = records.map((record) => ({

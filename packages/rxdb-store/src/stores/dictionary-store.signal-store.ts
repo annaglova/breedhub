@@ -138,17 +138,28 @@ class DictionaryStore {
       search?: string;
       limit: number;
       cursor: string | null;
+      filterByIds?: string[];
     }
   ): Promise<Array<{ id: string; name: string }>> {
-    const { search, limit, cursor } = options;
+    const { search, limit, cursor, filterByIds } = options;
+
+    // Helper: apply filterByIds to a query builder
+    const applyIdFilter = (q: any) => {
+      if (filterByIds && filterByIds.length > 0) {
+        return q.in(idField, filterByIds);
+      }
+      return q;
+    };
 
     // 🎯 HYBRID SEARCH: If search provided, fetch starts_with + contains separately
     if (search && !cursor) {
       // Phase 1: Starts with (high priority)
-      const startsWithQuery = supabase
+      let startsWithQuery = supabase
         .from(tableName)
         .select(`${idField}, ${nameField}`)
-        .ilike(nameField, `${search}%`)  // ✅ Starts with
+        .ilike(nameField, `${search}%`);  // ✅ Starts with
+      startsWithQuery = applyIdFilter(startsWithQuery);
+      startsWithQuery = startsWithQuery
         .order(nameField, { ascending: true, nullsFirst: false })
         .order(idField, { ascending: true, nullsFirst: false })  // ✅ Tie-breaker for stable sort
         .limit(Math.ceil(limit * 0.7));  // 70% for starts_with
@@ -167,11 +178,13 @@ class DictionaryStore {
       // Phase 2: Contains (lower priority) - only if we have room
       const remainingLimit = limit - startsWithResults.length;
       if (remainingLimit > 0) {
-        const containsQuery = supabase
+        let containsQuery = supabase
           .from(tableName)
           .select(`${idField}, ${nameField}`)
           .ilike(nameField, `%${search}%`)  // ✅ Contains
-          .not(nameField, 'ilike', `${search}%`)  // ❌ Exclude starts_with (already fetched)
+          .not(nameField, 'ilike', `${search}%`);  // ❌ Exclude starts_with (already fetched)
+        containsQuery = applyIdFilter(containsQuery);
+        containsQuery = containsQuery
           .order(nameField, { ascending: true, nullsFirst: false })
           .order(idField, { ascending: true, nullsFirst: false })  // ✅ Tie-breaker for stable sort
           .limit(remainingLimit);
@@ -196,6 +209,9 @@ class DictionaryStore {
     let query = supabase
       .from(tableName)
       .select(`${idField}, ${nameField}`);
+
+    // Apply filterByIds restriction
+    query = applyIdFilter(query);
 
     // Apply search filter (contains) if provided with cursor
     if (search) {
@@ -294,6 +310,7 @@ class DictionaryStore {
       limit?: number;      // Records per page (default: 30)
       cursor?: string | null; // ✅ Cursor for keyset pagination (replaces offset)
       additionalFields?: string[]; // Extra fields to fetch and store in 'additional'
+      filterByIds?: string[]; // Restrict results to these IDs (junction table filtering)
     } = {}
   ): Promise<{ records: DictionaryDocument[]; total: number; hasMore: boolean; nextCursor: string | null }> {
     if (!this.collection) {
@@ -306,12 +323,13 @@ class DictionaryStore {
       search,
       limit = 30,
       cursor = null,
-      additionalFields
+      additionalFields,
+      filterByIds
     } = options;
 
     // 📴 PREVENTIVE OFFLINE CHECK: Skip Supabase if browser is offline
     if (isOffline()) {
-      return this.getDictionaryOffline(tableName, { search, limit, cursor, nameField });
+      return this.getDictionaryOffline(tableName, { search, limit, cursor, nameField, filterByIds });
     }
 
     try {
@@ -320,7 +338,7 @@ class DictionaryStore {
         tableName,
         idField,
         nameField,
-        { search, limit, cursor }
+        { search, limit, cursor, filterByIds }
       );
 
       if (!idsData || idsData.length === 0) {
@@ -383,6 +401,10 @@ class DictionaryStore {
           .from(tableName)
           .select('*', { count: 'exact', head: true });
 
+        if (filterByIds && filterByIds.length > 0) {
+          countQuery = countQuery.in(idField, filterByIds);
+        }
+
         if (search) {
           countQuery = countQuery.ilike(nameField, `%${search}%`);
         }
@@ -411,7 +433,7 @@ class DictionaryStore {
       }
 
       // 🔌 OFFLINE FALLBACK: Work with RxDB cache only
-      return this.getDictionaryOffline(tableName, { search, limit, cursor, nameField });
+      return this.getDictionaryOffline(tableName, { search, limit, cursor, nameField, filterByIds });
     }
   }
 
@@ -420,9 +442,9 @@ class DictionaryStore {
    */
   private async getDictionaryOffline(
     tableName: string,
-    options: { search?: string; limit: number; cursor: string | null; nameField: string }
+    options: { search?: string; limit: number; cursor: string | null; nameField: string; filterByIds?: string[] }
   ): Promise<{ records: DictionaryDocument[]; total: number; hasMore: boolean; nextCursor: string | null }> {
-    const { search, limit, cursor, nameField } = options;
+    const { search, limit, cursor, nameField, filterByIds } = options;
 
     if (!this.collection) {
       return {
@@ -436,6 +458,11 @@ class DictionaryStore {
     try {
       let records: DictionaryDocument[] = [];
 
+      // Build base ID filter for offline filterByIds
+      const idFilter = filterByIds && filterByIds.length > 0
+        ? { id: { $in: filterByIds } }
+        : {};
+
       // 🎯 HYBRID SEARCH: If search provided, fetch starts_with + contains separately
       if (search && !cursor) {
         // Escape regex special characters
@@ -445,6 +472,7 @@ class DictionaryStore {
         const startsWithLimit = Math.ceil(limit * 0.7);
         const startsWithSelector = {
           table_name: tableName,
+          ...idFilter,
           [nameField]: { $regex: `^${escapedSearch}`, $options: 'i' }
         };
 
@@ -461,6 +489,7 @@ class DictionaryStore {
         if (remainingLimit > 0) {
           const containsSelector = {
             table_name: tableName,
+            ...idFilter,
             [nameField]: { $regex: escapedSearch, $options: 'i' }
           };
 
@@ -483,7 +512,7 @@ class DictionaryStore {
         }
       } else {
         // Regular query (no search or with cursor)
-        const selector: any = { table_name: tableName };
+        const selector: any = { table_name: tableName, ...idFilter };
 
         if (cursor) {
           selector[nameField] = { $gt: cursor };
