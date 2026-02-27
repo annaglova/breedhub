@@ -1,8 +1,8 @@
+import { useJunctionFilterIds } from "@breedhub/rxdb-store";
 import { Button } from "@ui/components/button";
 import {
   Dialog,
   DialogContent,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@ui/components/dialog";
@@ -30,7 +30,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@ui/components/select";
-import { useJunctionFilterIds } from "@breedhub/rxdb-store";
 import React from "react";
 
 export interface FilterConfig {
@@ -60,7 +59,7 @@ export interface FilterFieldConfig {
   referencedTable?: string;
   referencedFieldID?: string;
   referencedFieldName?: string;
-  dataSource?: 'dictionary' | 'collection'; // How to load options: dictionary (default) or collection (for cascade filtering)
+  dataSource?: "dictionary" | "collection"; // How to load options: dictionary (default) or collection (for cascade filtering)
   // Filter behavior props
   dependsOn?: string; // Field ID that this field depends on (cascade filter)
   disabledUntil?: string; // Field ID - this field is disabled until that field has a value
@@ -122,7 +121,13 @@ function JunctionFilterField({
     filterValue: parentFieldValue,
   });
 
-  return <Component {...componentProps} filterByIds={filterByIds} junctionFilter={junctionFilter} />;
+  return (
+    <Component
+      {...componentProps}
+      filterByIds={filterByIds}
+      junctionFilter={junctionFilter}
+    />
+  );
 }
 
 export function FiltersDialog({
@@ -180,7 +185,8 @@ export function FiltersDialog({
       if (field.required) {
         const value = filterValues[field.id];
         if (!value || value === "") {
-          newErrors[field.id] = `${toSentenceCase(field.displayName)} is required`;
+          newErrors[field.id] =
+            `${toSentenceCase(field.displayName)} is required`;
         }
       }
     }
@@ -204,7 +210,8 @@ export function FiltersDialog({
     }
 
     // Check if there are any changes compared to initial values
-    const hasChanges = JSON.stringify(filterValues) !== JSON.stringify(initialValues);
+    const hasChanges =
+      JSON.stringify(filterValues) !== JSON.stringify(initialValues);
 
     if (hasChanges) {
       onApply?.(filterValues);
@@ -247,10 +254,11 @@ export function FiltersDialog({
     // Find fields that depend on this field and clear their values
     // dependsOn/disabledUntil can be full ID (pet_field_pet_type_id) or short ID (pet_type_id)
     const dependentFields = filterFields.filter(
-      (f) => f.dependsOn === fieldId ||
-             f.dependsOn?.endsWith(fieldId) ||
-             f.disabledUntil === fieldId ||
-             f.disabledUntil?.endsWith(fieldId)
+      (f) =>
+        f.dependsOn === fieldId ||
+        f.dependsOn?.endsWith(fieldId) ||
+        f.disabledUntil === fieldId ||
+        f.disabledUntil?.endsWith(fieldId),
     );
 
     setFilterValues((prev) => {
@@ -277,9 +285,10 @@ export function FiltersDialog({
     // Find the field that this depends on
     // disabledUntil can be full ID (pet_field_pet_type_id) or short ID (pet_type_id)
     // filterFields use short IDs (pet_type_id), filterValues also use short IDs
-    const dependsOnField = filterFields.find(f =>
-      f.id === field.disabledUntil || // Exact match (short ID)
-      field.disabledUntil.endsWith(f.id) // Full ID ends with short ID (pet_field_pet_type_id ends with pet_type_id)
+    const dependsOnField = filterFields.find(
+      (f) =>
+        f.id === field.disabledUntil || // Exact match (short ID)
+        field.disabledUntil.endsWith(f.id), // Full ID ends with short ID (pet_field_pet_type_id ends with pet_type_id)
     );
 
     // Get value by the actual field ID used in filterValues
@@ -295,14 +304,14 @@ export function FiltersDialog({
         onPointerDownOutside={(e) => {
           // Prevent dialog from closing when clicking on portal dropdowns
           const target = e.target as HTMLElement;
-          if (target.closest('[data-portal-dropdown]')) {
+          if (target.closest("[data-portal-dropdown]")) {
             e.preventDefault();
           }
         }}
         onFocusOutside={(e) => {
           // Allow focus to move to portal dropdown inputs (e.g. DateRangeInput)
           const target = e.target as HTMLElement;
-          if (target.closest('[data-portal-dropdown]')) {
+          if (target.closest("[data-portal-dropdown]")) {
             e.preventDefault();
           }
         }}
@@ -319,7 +328,7 @@ export function FiltersDialog({
 
                 if (!Component) {
                   console.warn(
-                    `[FiltersDialog] Unknown component: ${field.component}`
+                    `[FiltersDialog] Unknown component: ${field.component}`,
                   );
                   return null;
                 }
@@ -331,9 +340,10 @@ export function FiltersDialog({
                 // filterValues uses short IDs, so we need to find the matching field
                 let parentFieldValue: string | undefined;
                 if (field.dependsOn) {
-                  const parentField = filterFields.find(f =>
-                    f.id === field.dependsOn || // Exact match
-                    field.dependsOn?.endsWith(f.id) // Full ID ends with short ID
+                  const parentField = filterFields.find(
+                    (f) =>
+                      f.id === field.dependsOn || // Exact match
+                      field.dependsOn?.endsWith(f.id), // Full ID ends with short ID
                   );
                   const parentKey = parentField?.id || field.dependsOn;
                   parentFieldValue = filterValues[parentKey];
@@ -341,7 +351,10 @@ export function FiltersDialog({
 
                 // Pass filterBy/filterByValue for cascade filtering (DropdownInput + LookupInput)
                 const cascadeProps = field.filterBy
-                  ? { filterBy: field.filterBy, filterByValue: parentFieldValue }
+                  ? {
+                      filterBy: field.filterBy,
+                      filterByValue: parentFieldValue,
+                    }
                   : {};
 
                 // Common props shared by both regular and junction filter fields
@@ -366,7 +379,11 @@ export function FiltersDialog({
                 };
 
                 // Use JunctionFilterField wrapper for fields with junction table config
-                if (field.junctionTable && field.junctionField && field.junctionFilterField) {
+                if (
+                  field.junctionTable &&
+                  field.junctionField &&
+                  field.junctionFilterField
+                ) {
                   return (
                     <div key={field.id} className="space-y-2">
                       <JunctionFilterField
