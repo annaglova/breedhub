@@ -303,6 +303,10 @@ export function FiltersDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         className="max-w-2xl max-h-[90vh] overflow-y-auto"
+        onOpenAutoFocus={(e) => {
+          // Prevent auto-focusing first input — it opens LookupInput dropdown
+          e.preventDefault();
+        }}
         onPointerDownOutside={(e) => {
           // Prevent dialog from closing when clicking on portal dropdowns
           const target = e.target as HTMLElement;
