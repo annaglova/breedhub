@@ -115,14 +115,14 @@ function JunctionFilterField({
   parentFieldValue?: string;
   [key: string]: any;
 }) {
-  const { filterByIds } = useJunctionFilterIds({
+  const { filterByIds, junctionFilter } = useJunctionFilterIds({
     junctionTable: field.junctionTable!,
     junctionField: field.junctionField!,
     junctionFilterField: field.junctionFilterField!,
     filterValue: parentFieldValue,
   });
 
-  return <Component {...componentProps} filterByIds={filterByIds} />;
+  return <Component {...componentProps} filterByIds={filterByIds} junctionFilter={junctionFilter} />;
 }
 
 export function FiltersDialog({

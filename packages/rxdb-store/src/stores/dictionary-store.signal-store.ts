@@ -139,12 +139,27 @@ class DictionaryStore {
       limit: number;
       cursor: string | null;
       filterByIds?: string[];
+      junctionFilter?: {
+        junctionTable: string;
+        junctionFilterField: string;
+        filterValue: string;
+      };
     }
   ): Promise<Array<{ id: string; name: string }>> {
-    const { search, limit, cursor, filterByIds } = options;
+    const { search, limit, cursor, filterByIds, junctionFilter } = options;
 
-    // Helper: apply filterByIds to a query builder
-    const applyIdFilter = (q: any) => {
+    // Determine select clause and filter strategy:
+    // - junctionFilter: use PostgREST embedded !inner join (no URL length issues)
+    // - filterByIds: use .in() (OK for small sets, URL too long for 100+ UUIDs)
+    const selectClause = junctionFilter
+      ? `${idField}, ${nameField}, ${junctionFilter.junctionTable}!inner(${junctionFilter.junctionFilterField})`
+      : `${idField}, ${nameField}`;
+
+    // Helper: apply junction or ID filter to a query builder
+    const applyFilter = (q: any) => {
+      if (junctionFilter) {
+        return q.eq(`${junctionFilter.junctionTable}.${junctionFilter.junctionFilterField}`, junctionFilter.filterValue);
+      }
       if (filterByIds && filterByIds.length > 0) {
         return q.in(idField, filterByIds);
       }
@@ -156,9 +171,9 @@ class DictionaryStore {
       // Phase 1: Starts with (high priority)
       let startsWithQuery = supabase
         .from(tableName)
-        .select(`${idField}, ${nameField}`)
+        .select(selectClause)
         .ilike(nameField, `${search}%`);  // ✅ Starts with
-      startsWithQuery = applyIdFilter(startsWithQuery);
+      startsWithQuery = applyFilter(startsWithQuery);
       startsWithQuery = startsWithQuery
         .order(nameField, { ascending: true, nullsFirst: false })
         .order(idField, { ascending: true, nullsFirst: false })  // ✅ Tie-breaker for stable sort
@@ -180,10 +195,10 @@ class DictionaryStore {
       if (remainingLimit > 0) {
         let containsQuery = supabase
           .from(tableName)
-          .select(`${idField}, ${nameField}`)
+          .select(selectClause)
           .ilike(nameField, `%${search}%`)  // ✅ Contains
           .not(nameField, 'ilike', `${search}%`);  // ❌ Exclude starts_with (already fetched)
-        containsQuery = applyIdFilter(containsQuery);
+        containsQuery = applyFilter(containsQuery);
         containsQuery = containsQuery
           .order(nameField, { ascending: true, nullsFirst: false })
           .order(idField, { ascending: true, nullsFirst: false })  // ✅ Tie-breaker for stable sort
@@ -208,10 +223,10 @@ class DictionaryStore {
     // 📄 REGULAR QUERY: No search or cursor pagination
     let query = supabase
       .from(tableName)
-      .select(`${idField}, ${nameField}`);
+      .select(selectClause);
 
-    // Apply filterByIds restriction
-    query = applyIdFilter(query);
+    // Apply junction or ID filter
+    query = applyFilter(query);
 
     // Apply search filter (contains) if provided with cursor
     if (search) {
@@ -310,7 +325,12 @@ class DictionaryStore {
       limit?: number;      // Records per page (default: 30)
       cursor?: string | null; // ✅ Cursor for keyset pagination (replaces offset)
       additionalFields?: string[]; // Extra fields to fetch and store in 'additional'
-      filterByIds?: string[]; // Restrict results to these IDs (junction table filtering)
+      filterByIds?: string[]; // Restrict results to these IDs (small sets only, uses .in() URL param)
+      junctionFilter?: { // Server-side join filter via PostgREST embedded select (no URL length issues)
+        junctionTable: string;
+        junctionFilterField: string;
+        filterValue: string;
+      };
     } = {}
   ): Promise<{ records: DictionaryDocument[]; total: number; hasMore: boolean; nextCursor: string | null }> {
     if (!this.collection) {
@@ -324,7 +344,8 @@ class DictionaryStore {
       limit = 30,
       cursor = null,
       additionalFields,
-      filterByIds
+      filterByIds,
+      junctionFilter
     } = options;
 
     // 📴 PREVENTIVE OFFLINE CHECK: Skip Supabase if browser is offline
@@ -338,7 +359,7 @@ class DictionaryStore {
         tableName,
         idField,
         nameField,
-        { search, limit, cursor, filterByIds }
+        { search, limit, cursor, filterByIds, junctionFilter }
       );
 
       if (!idsData || idsData.length === 0) {
@@ -397,11 +418,20 @@ class DictionaryStore {
       // Get total count for hasMore
       let serverTotal = 0;
       try {
+        // Use junction join for count when available (avoids URL length issues)
+        const countSelect = junctionFilter
+          ? `${idField}, ${junctionFilter.junctionTable}!inner(${junctionFilter.junctionFilterField})`
+          : '*';
         let countQuery = supabase
           .from(tableName)
-          .select('*', { count: 'exact', head: true });
+          .select(countSelect, { count: 'exact', head: true });
 
-        if (filterByIds && filterByIds.length > 0) {
+        if (junctionFilter) {
+          countQuery = countQuery.eq(
+            `${junctionFilter.junctionTable}.${junctionFilter.junctionFilterField}`,
+            junctionFilter.filterValue
+          );
+        } else if (filterByIds && filterByIds.length > 0) {
           countQuery = countQuery.in(idField, filterByIds);
         }
 

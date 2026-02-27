@@ -45,6 +45,8 @@ interface LookupInputProps
   filterByValue?: string; // Value to filter by (e.g., selected pet_type_id value)
   // Filter by specific IDs (for breed restrictions in mating)
   filterByIds?: string[] | null; // Only show records with these IDs
+  // Junction table server-side join filter (for dictionary mode with many-to-many relationships)
+  junctionFilter?: { junctionTable: string; junctionFilterField: string; filterValue: string } | null;
   // Style variant for disabled state
   disabledOnGray?: boolean; // Use white background when disabled (for gray backgrounds)
 }
@@ -72,6 +74,7 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
       filterBy,
       filterByValue,
       filterByIds,
+      junctionFilter,
       disabled,
       disabledOnGray,
       ...props
@@ -300,7 +303,8 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
               search: query,
               limit: 30,
               cursor: currentCursor, // ✅ Use cursor instead of offset
-              filterByIds: filterByIds || undefined, // Junction table filtering
+              filterByIds: filterByIds || undefined, // Small ID sets (client-side)
+              junctionFilter: junctionFilter || undefined, // Server-side join (large sets)
             });
 
             opts = records.map((record) => ({
@@ -359,6 +363,7 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
         filterBy,
         filterByValue,
         filterByIds,
+        junctionFilter,
       ]
     );
 
@@ -427,6 +432,26 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
         }
       }
     }, [filterByIds, referencedTable, isOpen, loadDictionaryOptions]);
+
+    // Reset options when junctionFilter changes (junction table server-side join)
+    const prevJunctionFilterRef = useRef(junctionFilter);
+    useEffect(() => {
+      if (referencedTable) {
+        const prev = prevJunctionFilterRef.current;
+        const isActualChange = prev?.filterValue !== junctionFilter?.filterValue
+          || prev?.junctionTable !== junctionFilter?.junctionTable;
+        prevJunctionFilterRef.current = junctionFilter;
+
+        if (!isActualChange) return;
+
+        setDynamicOptions([]);
+        cursorRef.current = null;
+        setHasMore(true);
+        if (isOpen) {
+          loadDictionaryOptions("", false);
+        }
+      }
+    }, [junctionFilter, referencedTable, isOpen, loadDictionaryOptions]);
 
     // ✅ Debounced search - trigger on inputValue change ONLY when editing
     useEffect(() => {
