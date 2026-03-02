@@ -5,6 +5,7 @@ import { KennelGeneralTab } from '../kennel/tabs/KennelGeneralTab';
 import { KennelPetsTab } from '../kennel/tabs/KennelPetsTab';
 import { KennelOffspringsTab } from '../kennel/tabs/KennelOffspringsTab';
 import { KennelServicesTab } from '../kennel/tabs/KennelServicesTab';
+import { EditPageTemplate } from '../template/EditPageTemplate';
 
 // Component registry for dynamic component loading
 const componentRegistry = new Map<string, React.ComponentType<any>>();
@@ -12,6 +13,9 @@ const componentRegistry = new Map<string, React.ComponentType<any>>();
 export function registerComponent(name: string, component: React.ComponentType<any>) {
   componentRegistry.set(name, component);
 }
+
+// Register page templates
+registerComponent('EditPageTemplate', EditPageTemplate);
 
 // Register default tab components
 registerComponent('OverviewTab', OverviewTab);

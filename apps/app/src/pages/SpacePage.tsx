@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import { Routes, Route, useLocation } from 'react-router-dom';
 import { SpaceComponent } from '@/components/space/SpaceComponent';
 import { PublicPageTemplate } from '@/components/template/PublicPageTemplate';
+import { EditPageTemplate } from '@/components/template/EditPageTemplate';
 import { TabPageTemplate } from '@/components/template/TabPageTemplate';
 import { getEntityHook } from '@/hooks/hookRegistry';
 import { appStore, spaceStore } from '@breedhub/rxdb-store';
@@ -73,6 +74,7 @@ interface SpacePageProps {
   selectedPartitionField?: string; // Partition key column name (e.g., 'breed_id') - fallback for cold load
   selectedSlug?: string; // Pretty URL slug (from SlugResolver) - for URL display
   tabSlug?: string; // Tab slug for tab fullscreen mode (from TabPageResolver)
+  editMode?: boolean; // Edit mode - renders EditPageTemplate (from EditPageResolver)
 }
 
 /**
@@ -87,7 +89,7 @@ interface SpacePageProps {
  * Usage in AppRouter:
  * <Route path="breeds/*" element={<SpacePage entityType="breed" />} />
  */
-export function SpacePage({ entityType, selectedEntityId, selectedPartitionId, selectedPartitionField, selectedSlug, tabSlug }: SpacePageProps) {
+export function SpacePage({ entityType, selectedEntityId, selectedPartitionId, selectedPartitionField, selectedSlug, tabSlug, editMode }: SpacePageProps) {
   useSignals();
 
   // Get hook from registry
@@ -137,9 +139,29 @@ export function SpacePage({ entityType, selectedEntityId, selectedPartitionId, s
     return null;
   }
 
-  // When selectedEntityId is provided (from SlugResolver/TabPageResolver), render with pre-selected entity
-  // This is used for pretty URLs like /affenpinscher or /affenpinscher/patrons
+  // When selectedEntityId is provided (from SlugResolver/TabPageResolver/EditPageResolver), render with pre-selected entity
+  // This is used for pretty URLs like /affenpinscher or /affenpinscher/patrons or /affenpinscher/edit
   if (selectedEntityId) {
+    // Edit mode: render EditPageTemplate fullscreen
+    if (editMode) {
+      return (
+        <SpaceComponent
+          key={entityType}
+          configSignal={spaceConfigSignal}
+          useEntitiesHook={useEntitiesHook}
+          initialSelectedEntityId={selectedEntityId}
+          initialSelectedPartitionId={selectedPartitionId}
+          initialSelectedPartitionField={selectedPartitionField}
+          initialSelectedSlug={selectedSlug}
+        >
+          <EditPageTemplate
+            spaceConfigSignal={spaceConfigSignal}
+            entityType={entityType}
+          />
+        </SpaceComponent>
+      );
+    }
+
     // Tab fullscreen mode: render TabPageTemplate in drawer fullscreen
     if (tabSlug && selectedSlug) {
       return (
@@ -229,8 +251,22 @@ export function SpacePage({ entityType, selectedEntityId, selectedPartitionId, s
         <Route path="new" element={<div>New {entityType} Form</div>} />
       </Route>
 
-      {/* Full page route (optional) */}
-      {/* <Route path=":id/full" element={<DetailComponent isDrawerMode={false} />} /> */}
+      {/* Edit page - fullscreen, outside drawer layout */}
+      <Route
+        path=":id/edit"
+        element={
+          <SpaceComponent
+            key={`${entityType}-edit`}
+            configSignal={spaceConfigSignal}
+            useEntitiesHook={useEntitiesHook}
+          >
+            <EditPageTemplate
+              spaceConfigSignal={spaceConfigSignal}
+              entityType={entityType}
+            />
+          </SpaceComponent>
+        }
+      />
     </Routes>
   );
 }

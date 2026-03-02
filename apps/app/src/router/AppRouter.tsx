@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AppLayout } from '@/layouts/AppLayout';
 import { SpacePage } from '@/pages/SpacePage';
 import { SlugResolver } from '@/pages/SlugResolver';
+import { EditPageResolver } from '@/pages/EditPageResolver';
 import { TabPageResolver } from '@/pages/TabPageResolver';
 import { BillingPage } from '@/pages/BillingPage';
 import { ReferralPage } from '@/pages/ReferralPage';
@@ -254,6 +255,10 @@ export function AppRouter() {
           {/* Slug resolver - catch-all for pretty URLs */}
           {/* Resolves /affenpinscher → /breeds/:id with fullscreen state */}
           <Route path=":slug" element={<SlugResolver />} />
+
+          {/* Edit page resolver - for edit mode via pretty URL */}
+          {/* Resolves /my-pet-name/edit → edit page fullscreen */}
+          <Route path=":slug/edit" element={<EditPageResolver />} />
 
           {/* Tab page resolver - for tab fullscreen mode */}
           {/* Resolves /affenpinscher/achievements → single tab view */}

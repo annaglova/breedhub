@@ -24,9 +24,13 @@ export function usePageActions(
 ) {
   const navigate = useNavigate();
   const handleEdit = useCallback(() => {
-    console.log('[PageActions] Edit:', entity);
-    // TODO: Navigate to edit page
-  }, [entity]);
+    const slug = entity?.slug;
+    if (!slug) {
+      console.warn('[PageActions] Edit: missing entity slug');
+      return;
+    }
+    navigate(`/${slug}/edit`);
+  }, [entity, navigate]);
 
   const handleCopyLink = useCallback(() => {
     const slug = entity?.slug;

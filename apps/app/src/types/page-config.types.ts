@@ -11,7 +11,7 @@ export interface BlockConfig {
 }
 
 export interface PageConfig {
-  component: 'PublicPageTemplate';
+  component: 'PublicPageTemplate' | 'EditPageTemplate';
   pageType?: PageType;
   isDefault?: boolean;
   menus?: Record<string, any>;
