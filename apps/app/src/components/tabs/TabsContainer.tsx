@@ -23,6 +23,7 @@ export interface Tab {
   actionType?: "pedigreeGenerations" | "edit";
   focusMode?: boolean;
   zoomControl?: boolean;
+  tabProps?: Record<string, any>; // Extra props passed from config to tab component
 }
 
 /**
@@ -150,6 +151,7 @@ export function TabsContainer({
                   dataSource={tab.dataSource}
                   onLoadedCount={(count: number) => handleLoadedCount(tab.id, count)}
                   tabHeaderTop={tabHeaderTop}
+                  {...tab.tabProps}
                 />
               </ScrollableTab>
             </section>
@@ -195,6 +197,7 @@ export function TabsContainer({
         <Component
           dataSource={activeTabData.dataSource}
           onLoadedCount={(count: number) => handleLoadedCount(activeTabData.id, count)}
+          {...activeTabData.tabProps}
         />
       </div>
     </div>

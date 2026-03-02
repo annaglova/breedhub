@@ -21,6 +21,7 @@ const petTabModules = import.meta.glob('../pet/tabs/*Tab.tsx', { eager: true });
 const litterTabModules = import.meta.glob('../litter/tabs/*Tab.tsx', { eager: true });
 const contactTabModules = import.meta.glob('../contact/tabs/*Tab.tsx', { eager: true });
 const eventTabModules = import.meta.glob('../event/tabs/*Tab.tsx', { eager: true });
+const editTabModules = import.meta.glob('../edit/tabs/*Tab.tsx', { eager: true });
 
 // Combine all tab modules into single registry
 const TAB_COMPONENT_REGISTRY: Record<string, React.ComponentType<any>> = {};
@@ -48,6 +49,7 @@ registerModules(petTabModules);
 registerModules(litterTabModules);
 registerModules(contactTabModules);
 registerModules(eventTabModules);
+registerModules(editTabModules);
 
 // Tab config from database
 interface TabConfig {
@@ -65,6 +67,10 @@ interface TabConfig {
   expandAlways?: boolean; // Always show expand button (e.g., Pedigree tab)
   focusMode?: boolean; // Allow collapsing header/tabs to maximize content area
   dataSource?: any; // Config-driven data loading (see TAB_DATA_SERVICE_ARCHITECTURE.md)
+  // Edit tab config
+  fields?: Record<string, any>; // Form fields config (for EditFormTab)
+  childEntity?: string; // Child entity name (for EditChildTableTab)
+  displayFields?: string[]; // Display field names (for EditChildTableTab)
 }
 
 interface TabOutletRendererProps {
@@ -74,6 +80,7 @@ interface TabOutletRendererProps {
   onPageMenuRef?: (ref: HTMLDivElement | null) => void;
   entityId?: string; // Entity ID - when changed, reset to default tab
   entitySlug?: string; // Entity slug for generating fullscreen URLs (e.g., "affenpinscher")
+  tabMode?: "scroll" | "tabs"; // scroll = all tabs rendered (public), tabs = only active shown (edit)
 }
 
 // Extended tab with internal ordering fields
@@ -110,6 +117,12 @@ function convertTabConfigToTabs(tabsConfig: Record<string, TabConfig>): Tab[] {
     // Use slug from config for URL fragment, fallback to tabId
     const fragment = config.slug || tabId;
 
+    // Build extra tabProps for edit tabs (fields, childEntity, displayFields)
+    const tabProps: Record<string, any> = {};
+    if (config.fields) tabProps.fields = config.fields;
+    if (config.childEntity) tabProps.childEntity = config.childEntity;
+    if (config.displayFields) tabProps.displayFields = config.displayFields;
+
     tabs.push({
       id: tabId,
       fragment,
@@ -122,6 +135,8 @@ function convertTabConfigToTabs(tabsConfig: Record<string, TabConfig>): Tab[] {
       expandAlways: config.expandAlways,
       dataSource: config.dataSource,
       focusMode: config.focusMode,
+      // Pass edit-specific config as tabProps
+      ...(Object.keys(tabProps).length > 0 ? { tabProps } : {}),
       // Internal fields
       _order: config.order,
       _isDefault: config.isDefault,
@@ -188,6 +203,7 @@ export function TabOutletRenderer({
   onPageMenuRef,
   entityId,
   entitySlug,
+  tabMode = "scroll",
 }: TabOutletRendererProps) {
   const pageMenuRef = useRef<HTMLDivElement>(null);
   const [pageMenuHeight, setPageMenuHeight] = useState(0);
@@ -220,7 +236,7 @@ export function TabOutletRenderer({
   // Pass entityId to reset tab when entity changes in drawer mode
   const { activeTab, handleTabChange, handleVisibilityChange } = useTabNavigation({
     tabs,
-    mode: "scroll",
+    mode: tabMode,
     defaultTab,
     entityId,
   });
@@ -255,14 +271,14 @@ export function TabOutletRenderer({
           tabs={tabs}
           activeTab={activeTab}
           onTabChange={handleTabChange}
-          mode="scroll"
+          mode={tabMode}
         />
       </div>
 
-      {/* Tabs Section - Scroll mode with all tabs rendered */}
+      {/* Tabs Section */}
       <TabsContainer
         tabs={tabs}
-        mode="scroll"
+        mode={tabMode}
         activeTab={activeTab}
         onTabChange={handleTabChange}
         onVisibilityChange={handleVisibilityChange}

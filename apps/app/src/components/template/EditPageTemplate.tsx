@@ -85,7 +85,23 @@ function EditBlocks({
           );
         }
 
-        // Skip other outlet types for now (NameOutlet, TabOutlet)
+        if (blockConfig.outlet === "TabOutlet") {
+          return (
+            <BlockRenderer
+              key={blockId}
+              blockConfig={{
+                ...blockConfig,
+                tabMode: "tabs",
+              }}
+              entity={selectedEntity}
+              pageConfig={pageConfig}
+              spacePermissions={spacePermissions}
+              isLoading={isBlocksLoading}
+            />
+          );
+        }
+
+        // Skip other outlet types for now (NameOutlet)
         return null;
       })}
     </>

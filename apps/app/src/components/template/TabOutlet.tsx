@@ -32,6 +32,7 @@ interface TabOutletProps {
   tabs?: Record<string, TabConfig>;
   pageMenuTop?: number;
   tabHeaderTop?: number;
+  tabMode?: "scroll" | "tabs"; // scroll = all tabs rendered (public), tabs = only active shown (edit)
 
   // Component to render inside the outlet (not used - tabs have special handling)
   children?: React.ReactNode;
@@ -65,6 +66,7 @@ export function TabOutlet({
   tabs,
   pageMenuTop = 0,
   tabHeaderTop = 0,
+  tabMode,
   children,
 }: TabOutletProps) {
   // Show skeleton when loading - uses tabs config to show correct number of tab headers
@@ -157,6 +159,7 @@ export function TabOutlet({
         tabHeaderTop={tabHeaderTop}
         entityId={entity?.id}
         entitySlug={entity?.slug}
+        tabMode={tabMode}
       />
     </div>
   );

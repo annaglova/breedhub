@@ -83,26 +83,26 @@ export function TabHeader({
     );
   }
 
-  // Compact mode - small button on the right
+  // Compact mode - small button on the right (only render if fullscreen URL exists)
+  if (!fullscreenUrl) return null;
+
   return (
     <div className="relative w-full py-2">
       <div className="ml-auto flex w-[3.1rem] items-center space-x-3 md:w-[10.4rem]">
         <span className="text-secondary-400 hidden md:block">
           Full screen view
         </span>
-        {fullscreenUrl && (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <a
-                href={fullscreenUrl}
-                className="text-secondary border border-secondary-500 flex size-9 items-center justify-center rounded-full hover:text-foreground/70 transition-colors"
-              >
-                <Icon icon={{ name: "Expand", source: "lucide" }} size={16} />
-              </a>
-            </TooltipTrigger>
-            <TooltipContent side="bottom">Full screen view</TooltipContent>
-          </Tooltip>
-        )}
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <a
+              href={fullscreenUrl}
+              className="text-secondary border border-secondary-500 flex size-9 items-center justify-center rounded-full hover:text-foreground/70 transition-colors"
+            >
+              <Icon icon={{ name: "Expand", source: "lucide" }} size={16} />
+            </a>
+          </TooltipTrigger>
+          <TooltipContent side="bottom">Full screen view</TooltipContent>
+        </Tooltip>
       </div>
     </div>
   );
