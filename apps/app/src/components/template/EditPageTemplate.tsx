@@ -10,8 +10,15 @@ import { getPageConfig } from "@/utils/getPageConfig";
 import { spaceStore } from "@breedhub/rxdb-store";
 import { Signal } from "@preact/signals-react";
 import { useSignals } from "@preact/signals-react/runtime";
+import { Button } from "@ui/components/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@ui/components/dialog";
 import { cn } from "@ui/lib/utils";
-import { useCallback, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 interface EditPageTemplateProps {
   className?: string;
@@ -54,6 +61,81 @@ function EditBlocks({
 
   const handleSave = useCallback(() => {
     saveHandlerRef.current?.();
+  }, []);
+
+  // --- Unsaved changes guard ---
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [showLeaveDialog, setShowLeaveDialog] = useState(false);
+  const hasUnsavedRef = useRef(false);
+  const sentinelPushedRef = useRef(false);
+
+  const onDirtyChange = useCallback((dirty: boolean) => {
+    setHasUnsavedChanges(dirty);
+    hasUnsavedRef.current = dirty;
+  }, []);
+
+  // beforeunload — browser close/refresh
+  useEffect(() => {
+    if (!hasUnsavedChanges) return;
+
+    const handler = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+    };
+
+    window.addEventListener('beforeunload', handler);
+    return () => window.removeEventListener('beforeunload', handler);
+  }, [hasUnsavedChanges]);
+
+  // popstate + pushState sentinel — browser back/forward
+  useEffect(() => {
+    if (hasUnsavedChanges && !sentinelPushedRef.current) {
+      window.history.pushState({ __unsavedGuard: true }, '');
+      sentinelPushedRef.current = true;
+    }
+
+    if (!hasUnsavedChanges && sentinelPushedRef.current) {
+      // Changes were saved/discarded — remove sentinel
+      window.history.back();
+      sentinelPushedRef.current = false;
+    }
+  }, [hasUnsavedChanges]);
+
+  useEffect(() => {
+    const handler = (e: PopStateEvent) => {
+      if (!hasUnsavedRef.current) return;
+
+      // User pressed back — push sentinel back and show dialog
+      window.history.pushState({ __unsavedGuard: true }, '');
+      setShowLeaveDialog(true);
+    };
+
+    window.addEventListener('popstate', handler);
+    return () => window.removeEventListener('popstate', handler);
+  }, []);
+
+  const handleLeaveDiscard = useCallback(() => {
+    setShowLeaveDialog(false);
+    hasUnsavedRef.current = false;
+    sentinelPushedRef.current = false;
+    // Go back: -1 for sentinel, -1 for the actual back
+    window.history.go(-2);
+  }, []);
+
+  const handleLeaveSave = useCallback(async () => {
+    setShowLeaveDialog(false);
+    try {
+      await saveHandlerRef.current?.();
+    } catch {
+      // Save failed — stay on page
+      return;
+    }
+    hasUnsavedRef.current = false;
+    sentinelPushedRef.current = false;
+    window.history.go(-2);
+  }, []);
+
+  const handleLeaveCancel = useCallback(() => {
+    setShowLeaveDialog(false);
   }, []);
 
   // Sort blocks by order
@@ -107,6 +189,7 @@ function EditBlocks({
                 tabMode: "tabs",
                 onSaveReady,
                 entityType,
+                onDirtyChange,
               }}
               entity={selectedEntity}
               pageConfig={pageConfig}
@@ -119,6 +202,48 @@ function EditBlocks({
         // Skip other outlet types for now (NameOutlet)
         return null;
       })}
+
+      {/* Unsaved changes confirmation dialog */}
+      <Dialog open={showLeaveDialog} onOpenChange={setShowLeaveDialog}>
+        <DialogContent size="sm">
+          <DialogHeader>
+            <DialogTitle>Unsaved changes</DialogTitle>
+          </DialogHeader>
+
+          <div>
+            <div className="modal-card">
+              <p className="text-base">
+                You have unsaved changes. What would you like to do?
+              </p>
+            </div>
+
+            <div className="modal-actions grid-cols-3">
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={handleLeaveCancel}
+              className="small-button bg-secondary-100 hover:bg-secondary-200 focus-visible:bg-secondary-200 text-slate-800 dark:text-zinc-900 dark:bg-surface-400 dark:hover:bg-surface-300"
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              onClick={handleLeaveDiscard}
+              className="small-button bg-pink-50 hover:bg-pink-100 focus-visible:bg-pink-200 dark:bg-pink-300 dark:hover:bg-pink-200 dark:focus-visible:bg-pink-100 text-pink-600 dark:text-zinc-900"
+            >
+              Discard
+            </Button>
+            <Button
+              type="button"
+              onClick={handleLeaveSave}
+              className="small-button bg-primary-50 dark:bg-primary-300 hover:bg-primary-100 focus-visible:bg-primary-200 dark:hover:bg-primary-300 dark:focus-visible:bg-primary-200 text-primary dark:text-zinc-900"
+            >
+              Save
+            </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

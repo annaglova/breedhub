@@ -37,6 +37,7 @@ interface TabOutletProps {
   // Edit page save orchestration (passed through to tab components via tabProps)
   onSaveReady?: (handler: () => Promise<void>) => void;
   entityType?: string;
+  onDirtyChange?: (dirty: boolean) => void;
 
   // Component to render inside the outlet (not used - tabs have special handling)
   children?: React.ReactNode;
@@ -73,6 +74,7 @@ export function TabOutlet({
   tabMode,
   onSaveReady,
   entityType,
+  onDirtyChange,
   children,
 }: TabOutletProps) {
   // Show skeleton when loading - uses tabs config to show correct number of tab headers
@@ -168,6 +170,7 @@ export function TabOutlet({
         tabMode={tabMode}
         onSaveReady={onSaveReady}
         entityType={entityType}
+        onDirtyChange={onDirtyChange}
       />
     </div>
   );

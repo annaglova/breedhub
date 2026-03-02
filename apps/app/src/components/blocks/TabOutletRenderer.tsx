@@ -84,6 +84,7 @@ interface TabOutletRendererProps {
   // Edit page save orchestration (merged into each tab's tabProps)
   onSaveReady?: (handler: () => Promise<void>) => void;
   entityType?: string;
+  onDirtyChange?: (dirty: boolean) => void;
 }
 
 // Extended tab with internal ordering fields
@@ -209,6 +210,7 @@ export function TabOutletRenderer({
   tabMode = "scroll",
   onSaveReady,
   entityType,
+  onDirtyChange,
 }: TabOutletRendererProps) {
   const pageMenuRef = useRef<HTMLDivElement>(null);
   const [pageMenuHeight, setPageMenuHeight] = useState(0);
@@ -216,15 +218,16 @@ export function TabOutletRenderer({
   // Convert config to tabs array, merging edit-specific props into tabProps
   const tabs = useMemo(() => {
     const baseTabs = convertTabConfigToTabs(tabsConfig);
-    if (!onSaveReady && !entityType) return baseTabs;
+    if (!onSaveReady && !entityType && !onDirtyChange) return baseTabs;
     const extraProps: Record<string, any> = {};
     if (onSaveReady) extraProps.onSaveReady = onSaveReady;
     if (entityType) extraProps.entityType = entityType;
+    if (onDirtyChange) extraProps.onDirtyChange = onDirtyChange;
     return baseTabs.map(tab => ({
       ...tab,
       tabProps: { ...tab.tabProps, ...extraProps },
     }));
-  }, [tabsConfig, onSaveReady, entityType]);
+  }, [tabsConfig, onSaveReady, entityType, onDirtyChange]);
 
   // Track PageMenu height for TabHeader positioning
   useEffect(() => {

@@ -68,6 +68,7 @@ interface EditFormTabProps {
   onLoadedCount?: (count: number) => void;
   entityType?: string;
   onSaveReady?: (handler: () => Promise<void>) => void;
+  onDirtyChange?: (dirty: boolean) => void;
 }
 
 /**
@@ -87,12 +88,12 @@ function getDbFieldName(fieldId: string): string {
  * Same pattern as FiltersDialog but for entity editing.
  * Uses useEditForm hook for form state and save via spaceStore.update().
  */
-export function EditFormTab({ fields, onLoadedCount, entityType, onSaveReady }: EditFormTabProps) {
+export function EditFormTab({ fields, onLoadedCount, entityType, onSaveReady, onDirtyChange }: EditFormTabProps) {
   useSignals();
 
   const selectedEntity = useSelectedEntity();
 
-  const { formChanges, handleFieldChange, handleSave } = useEditForm({
+  const { formChanges, hasChanges, handleFieldChange, handleSave } = useEditForm({
     entityType: entityType || '',
     entityId: selectedEntity?.id,
   });
@@ -103,6 +104,11 @@ export function EditFormTab({ fields, onLoadedCount, entityType, onSaveReady }: 
       onSaveReady(handleSave);
     }
   }, [onSaveReady, handleSave]);
+
+  // Notify parent about dirty state changes
+  useEffect(() => {
+    onDirtyChange?.(hasChanges);
+  }, [hasChanges, onDirtyChange]);
 
   // Sort fields by sortOrder
   const sortedFields = useMemo(() => {
