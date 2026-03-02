@@ -162,7 +162,7 @@ export function EditPageTemplate({
       <div
         className={cn(
           "size-full flex flex-col content-padding-sm",
-          "min-h-screen bg-white dark:bg-slate-900",
+          "bg-white dark:bg-slate-900",
           className
         )}
       >
