@@ -34,6 +34,10 @@ interface TabOutletProps {
   tabHeaderTop?: number;
   tabMode?: "scroll" | "tabs"; // scroll = all tabs rendered (public), tabs = only active shown (edit)
 
+  // Edit page save orchestration (passed through to tab components via tabProps)
+  onSaveReady?: (handler: () => Promise<void>) => void;
+  entityType?: string;
+
   // Component to render inside the outlet (not used - tabs have special handling)
   children?: React.ReactNode;
 }
@@ -67,6 +71,8 @@ export function TabOutlet({
   pageMenuTop = 0,
   tabHeaderTop = 0,
   tabMode,
+  onSaveReady,
+  entityType,
   children,
 }: TabOutletProps) {
   // Show skeleton when loading - uses tabs config to show correct number of tab headers
@@ -160,6 +166,8 @@ export function TabOutlet({
         entityId={entity?.id}
         entitySlug={entity?.slug}
         tabMode={tabMode}
+        onSaveReady={onSaveReady}
+        entityType={entityType}
       />
     </div>
   );

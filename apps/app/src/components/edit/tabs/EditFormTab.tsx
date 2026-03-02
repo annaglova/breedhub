@@ -1,5 +1,5 @@
 import { useSelectedEntity } from "@/contexts/SpaceContext";
-import { dictionaryStore } from "@breedhub/rxdb-store";
+import { useEditForm } from "@/hooks/useEditForm";
 import { useSignals } from "@preact/signals-react/runtime";
 import {
   CheckboxInput,
@@ -58,6 +58,8 @@ interface FieldConfig {
 interface EditFormTabProps {
   fields?: Record<string, FieldConfig>;
   onLoadedCount?: (count: number) => void;
+  entityType?: string;
+  onSaveReady?: (handler: () => Promise<void>) => void;
 }
 
 /**
@@ -75,12 +77,24 @@ function getDbFieldName(fieldId: string): string {
  *
  * Reads fields from tab config and renders them using componentMap.
  * Same pattern as FiltersDialog but for entity editing.
- * Currently read-only (MVP) - saving in next iteration.
+ * Uses useEditForm hook for form state and save via spaceStore.update().
  */
-export function EditFormTab({ fields, onLoadedCount }: EditFormTabProps) {
+export function EditFormTab({ fields, onLoadedCount, entityType, onSaveReady }: EditFormTabProps) {
   useSignals();
 
   const selectedEntity = useSelectedEntity();
+
+  const { formChanges, handleFieldChange, handleSave } = useEditForm({
+    entityType: entityType || '',
+    entityId: selectedEntity?.id,
+  });
+
+  // Register save handler with parent
+  useEffect(() => {
+    if (onSaveReady) {
+      onSaveReady(handleSave);
+    }
+  }, [onSaveReady, handleSave]);
 
   // Sort fields by sortOrder
   const sortedFields = useMemo(() => {
@@ -118,13 +132,14 @@ export function EditFormTab({ fields, onLoadedCount }: EditFormTabProps) {
         }
 
         const dbFieldName = getDbFieldName(fieldId);
-        const value = selectedEntity?.[dbFieldName] ?? "";
+        const value = formChanges[dbFieldName] ?? selectedEntity?.[dbFieldName] ?? "";
 
         return (
           <div key={fieldId} className="space-y-2">
             <Component
               label={field.displayName}
               value={value}
+              onValueChange={(val: any) => handleFieldChange(dbFieldName, val)}
               required={field.required}
               placeholder={field.placeholder}
               referencedTable={field.referencedTable}

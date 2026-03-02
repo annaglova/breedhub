@@ -52,6 +52,9 @@ interface AvatarOutletProps {
   // Fullscreen mode - larger avatar from sm breakpoint
   isFullscreenMode?: boolean;
 
+  // Save handler (from EditPageTemplate orchestration)
+  onSave?: () => void;
+
   // Legacy handlers (deprecated - use pageConfig.menus instead)
   onEdit?: () => void;
   onMoreOptions?: () => void;
@@ -80,6 +83,7 @@ export function AvatarOutlet({
   spacePermissions = { canEdit: false, canDelete: false, canAdd: false },
   isLoading = false,
   isFullscreenMode = false,
+  onSave,
   onEdit,
   onMoreOptions,
   children,
@@ -110,6 +114,7 @@ export function AvatarOutlet({
   // Action handlers
   const { executeAction } = usePageActions(entity, {
     // Custom handlers can be passed here
+    ...(onSave ? { save: onSave } : {}),
     edit: onEdit,
   });
 

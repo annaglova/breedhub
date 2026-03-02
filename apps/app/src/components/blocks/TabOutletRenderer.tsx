@@ -81,6 +81,9 @@ interface TabOutletRendererProps {
   entityId?: string; // Entity ID - when changed, reset to default tab
   entitySlug?: string; // Entity slug for generating fullscreen URLs (e.g., "affenpinscher")
   tabMode?: "scroll" | "tabs"; // scroll = all tabs rendered (public), tabs = only active shown (edit)
+  // Edit page save orchestration (merged into each tab's tabProps)
+  onSaveReady?: (handler: () => Promise<void>) => void;
+  entityType?: string;
 }
 
 // Extended tab with internal ordering fields
@@ -204,12 +207,24 @@ export function TabOutletRenderer({
   entityId,
   entitySlug,
   tabMode = "scroll",
+  onSaveReady,
+  entityType,
 }: TabOutletRendererProps) {
   const pageMenuRef = useRef<HTMLDivElement>(null);
   const [pageMenuHeight, setPageMenuHeight] = useState(0);
 
-  // Convert config to tabs array
-  const tabs = useMemo(() => convertTabConfigToTabs(tabsConfig), [tabsConfig]);
+  // Convert config to tabs array, merging edit-specific props into tabProps
+  const tabs = useMemo(() => {
+    const baseTabs = convertTabConfigToTabs(tabsConfig);
+    if (!onSaveReady && !entityType) return baseTabs;
+    const extraProps: Record<string, any> = {};
+    if (onSaveReady) extraProps.onSaveReady = onSaveReady;
+    if (entityType) extraProps.entityType = entityType;
+    return baseTabs.map(tab => ({
+      ...tab,
+      tabProps: { ...tab.tabProps, ...extraProps },
+    }));
+  }, [tabsConfig, onSaveReady, entityType]);
 
   // Track PageMenu height for TabHeader positioning
   useEffect(() => {

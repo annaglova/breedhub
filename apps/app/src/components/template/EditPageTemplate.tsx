@@ -11,6 +11,7 @@ import { spaceStore } from "@breedhub/rxdb-store";
 import { Signal } from "@preact/signals-react";
 import { useSignals } from "@preact/signals-react/runtime";
 import { cn } from "@ui/lib/utils";
+import { useCallback, useRef } from "react";
 
 interface EditPageTemplateProps {
   className?: string;
@@ -44,6 +45,17 @@ function EditBlocks({
   const shouldShowSkeleton = useSkeletonWithDelay(isAboveFoldLoading);
   const isBlocksLoading = !selectedEntity || shouldShowSkeleton;
 
+  // Save orchestration: active tab registers its save handler
+  const saveHandlerRef = useRef<(() => Promise<void>) | null>(null);
+
+  const onSaveReady = useCallback((handler: () => Promise<void>) => {
+    saveHandlerRef.current = handler;
+  }, []);
+
+  const handleSave = useCallback(() => {
+    saveHandlerRef.current?.();
+  }, []);
+
   // Sort blocks by order
   const sortedBlocks = Object.entries(pageConfig.blocks).sort(
     ([, a]: [string, any], [, b]: [string, any]) => (a.order || 0) - (b.order || 0)
@@ -76,6 +88,7 @@ function EditBlocks({
               blockConfig={{
                 ...blockConfig,
                 isFullscreenMode: true,
+                onSave: handleSave,
               }}
               entity={selectedEntity}
               pageConfig={pageConfig}
@@ -92,6 +105,8 @@ function EditBlocks({
               blockConfig={{
                 ...blockConfig,
                 tabMode: "tabs",
+                onSaveReady,
+                entityType,
               }}
               entity={selectedEntity}
               pageConfig={pageConfig}
