@@ -1546,21 +1546,33 @@ class SpaceStore {
     
     try {
       const doc = await collection.findOne(id).exec();
-      
+
       if (!doc) {
         throw new Error(`${entityType} ${id} not found`);
       }
-      
+
       const patchData = {
         ...updates,
         updated_at: new Date().toISOString()
       };
-      
+
+      // Update RxDB locally
       await doc.patch(patchData);
       entityStore.updateOne(id, patchData);
-      
-      console.log(`[SpaceStore] Updated ${entityType}:`, id);
-      
+
+      // Sync to Supabase
+      const { supabase } = await import('../supabase/client');
+      const { error: supabaseError } = await supabase
+        .from(entityType)
+        .update(patchData)
+        .eq('id', id);
+
+      if (supabaseError) {
+        console.error(`[SpaceStore] Supabase sync failed for ${entityType}:`, supabaseError);
+      } else {
+        console.log(`[SpaceStore] Updated ${entityType}:`, id);
+      }
+
     } catch (error) {
       console.error(`[SpaceStore] Failed to update ${entityType}:`, error);
       throw error;

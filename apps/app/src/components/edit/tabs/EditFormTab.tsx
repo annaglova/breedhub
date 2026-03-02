@@ -37,6 +37,14 @@ const componentMap: Record<string, React.ComponentType<any>> = {
   SwitchInput,
 };
 
+// Components using standard onChange (e.target.value)
+const ONCHANGE_COMPONENTS = new Set([
+  'TextInput', 'TextareaInput', 'NumberInput', 'EmailInput', 'PasswordInput',
+]);
+
+// Components using onCheckedChange (boolean)
+const ONCHECKED_COMPONENTS = new Set(['CheckboxInput', 'SwitchInput']);
+
 interface FieldConfig {
   displayName: string;
   component: string;
@@ -132,14 +140,26 @@ export function EditFormTab({ fields, onLoadedCount, entityType, onSaveReady }: 
         }
 
         const dbFieldName = getDbFieldName(fieldId);
-        const value = formChanges[dbFieldName] ?? selectedEntity?.[dbFieldName] ?? "";
+        const isChecked = ONCHECKED_COMPONENTS.has(field.component);
+
+        // Change handler varies by component type
+        const changeProps = ONCHANGE_COMPONENTS.has(field.component)
+          ? { onChange: (e: React.ChangeEvent<HTMLInputElement>) => handleFieldChange(dbFieldName, e.target.value) }
+          : isChecked
+            ? { onCheckedChange: (checked: boolean) => handleFieldChange(dbFieldName, checked) }
+            : { onValueChange: (val: any) => handleFieldChange(dbFieldName, val) };
+
+        // Value prop varies: checked for checkbox/switch, value for all others
+        const valueProps = isChecked
+          ? { checked: formChanges[dbFieldName] ?? selectedEntity?.[dbFieldName] ?? false }
+          : { value: formChanges[dbFieldName] ?? selectedEntity?.[dbFieldName] ?? "" };
 
         return (
           <div key={fieldId} className="space-y-2">
             <Component
               label={field.displayName}
-              value={value}
-              onValueChange={(val: any) => handleFieldChange(dbFieldName, val)}
+              {...valueProps}
+              {...changeProps}
               required={field.required}
               placeholder={field.placeholder}
               referencedTable={field.referencedTable}
