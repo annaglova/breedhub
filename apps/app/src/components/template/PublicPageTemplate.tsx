@@ -273,12 +273,10 @@ export function PublicPageTemplate({
   // pageType is defined IN the page config itself, not passed as prop
   const pageConfig = getPageConfig(spaceConfig);
 
-  // Get space permissions from config
-  // TODO: Get real permissions from space config after it's implemented
   const spacePermissions = {
-    canEdit: true,
-    canDelete: false,
-    canAdd: false,
+    canEdit: spaceConfig?.canEdit ?? false,
+    canDelete: spaceConfig?.canDelete ?? false,
+    canAdd: spaceConfig?.canAdd ?? false,
   };
 
   // Get selectedEntity signal from store using entityType

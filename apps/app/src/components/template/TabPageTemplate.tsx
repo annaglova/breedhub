@@ -356,11 +356,10 @@ export function TabPageTemplate({
     navigate(`/${entitySlug}#${tabSlug}`);
   };
 
-  // Space permissions
   const spacePermissions = {
-    canEdit: true,
-    canDelete: false,
-    canAdd: false,
+    canEdit: spaceConfig?.canEdit ?? false,
+    canDelete: spaceConfig?.canDelete ?? false,
+    canAdd: spaceConfig?.canAdd ?? false,
   };
 
   // Sticky detection - check if name container is stuck

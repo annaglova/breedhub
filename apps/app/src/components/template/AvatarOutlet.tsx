@@ -77,7 +77,7 @@ export function AvatarOutlet({
   hasActions = true,
   className = "",
   pageConfig,
-  spacePermissions = { canEdit: true, canDelete: false, canAdd: false },
+  spacePermissions = { canEdit: false, canDelete: false, canAdd: false },
   isLoading = false,
   isFullscreenMode = false,
   onEdit,

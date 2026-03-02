@@ -132,7 +132,6 @@ export function EditFormTab({ fields, onLoadedCount }: EditFormTabProps) {
               referencedFieldName={field.referencedFieldName}
               {...(field.dataSource ? { dataSource: field.dataSource } : {})}
               options={field.options || []}
-              disabled
             />
           </div>
         );

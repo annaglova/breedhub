@@ -66,7 +66,7 @@ export function NameOutlet({
   onTop = false,
   alwaysShowNavigation = false,
   pageConfig,
-  spacePermissions = { canEdit: true, canDelete: false, canAdd: false },
+  spacePermissions = { canEdit: false, canDelete: false, canAdd: false },
   entityType,
   onSupport,
   onMoreOptions,

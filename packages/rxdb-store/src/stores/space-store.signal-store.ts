@@ -475,9 +475,9 @@ class SpaceStore {
               recordsCount: space.recordsCount,
               pages: space.pages,
               views: space.views,
-              canAdd: space.canAdd,
-              canEdit: space.canEdit,
-              canDelete: space.canDelete,
+              canAdd: !!space.canAdd,
+              canEdit: !!space.canEdit,
+              canDelete: !!space.canDelete,
               defaultFilters: space.defaultFilters
             };
 

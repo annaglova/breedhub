@@ -127,9 +127,9 @@ export function EditPageTemplate({
   const pageConfig = getPageConfig(spaceConfig, { pageType: 'edit' });
 
   const spacePermissions = {
-    canEdit: true,
-    canDelete: false,
-    canAdd: false,
+    canEdit: spaceConfig?.canEdit ?? false,
+    canDelete: spaceConfig?.canDelete ?? false,
+    canAdd: spaceConfig?.canAdd ?? false,
   };
 
   const selectedEntitySignal = entityType
