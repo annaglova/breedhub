@@ -9,7 +9,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@ui/components/tooltip";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { NavigationButtons } from "./cover/NavigationButtons";
 
 interface EditNameOutletProps {
@@ -21,6 +21,7 @@ interface EditNameOutletProps {
   pageConfig?: PageConfig | null;
   spacePermissions?: SpacePermissions;
   entityType?: string;
+  onNavigateAway?: (url: string) => void;
 }
 
 /**
@@ -38,7 +39,9 @@ export function EditNameOutlet({
   pageConfig,
   spacePermissions = { canEdit: false, canDelete: false, canAdd: false },
   entityType,
+  onNavigateAway,
 }: EditNameOutletProps) {
+  const navigate = useNavigate();
   const displayName = entity?.name || "";
   const slug = entity?.slug;
 
@@ -91,12 +94,21 @@ export function EditNameOutlet({
         </div>
         <div className="truncate py-0.5 text-2xl sm:text-3xl font-bold">
           {slug ? (
-            <Link
-              to={`/${slug}`}
+            <a
+              href={`/${slug}`}
               className="text-foreground hover:text-primary cursor-pointer"
+              onClick={(e) => {
+                e.preventDefault();
+                const url = `/${slug}`;
+                if (hasUnsavedChanges && onNavigateAway) {
+                  onNavigateAway(url);
+                } else {
+                  navigate(url);
+                }
+              }}
             >
               {displayName}
-            </Link>
+            </a>
           ) : (
             <span className="cursor-default">{displayName}</span>
           )}

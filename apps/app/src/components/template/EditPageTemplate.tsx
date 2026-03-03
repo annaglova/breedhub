@@ -19,6 +19,7 @@ import {
 } from "@ui/components/dialog";
 import { cn } from "@ui/lib/utils";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { EditNameOutlet } from "./EditNameOutlet";
 
 interface EditPageTemplateProps {
@@ -120,11 +121,14 @@ function EditBlocks({
     saveHandlerRef.current?.();
   }, []);
 
+  const navigate = useNavigate();
+
   // --- Unsaved changes guard ---
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [showLeaveDialog, setShowLeaveDialog] = useState(false);
   const hasUnsavedRef = useRef(false);
   const sentinelPushedRef = useRef(false);
+  const [pendingNavigationUrl, setPendingNavigationUrl] = useState<string | null>(null);
 
   const onDirtyChange = useCallback((dirty: boolean) => {
     setHasUnsavedChanges(dirty);
@@ -173,10 +177,22 @@ function EditBlocks({
   const handleLeaveDiscard = useCallback(() => {
     setShowLeaveDialog(false);
     hasUnsavedRef.current = false;
-    sentinelPushedRef.current = false;
-    // Go back: -1 for sentinel, -1 for the actual back
-    window.history.go(-2);
-  }, []);
+
+    if (pendingNavigationUrl) {
+      // Name link navigation — remove sentinel and navigate
+      if (sentinelPushedRef.current) {
+        window.history.back();
+        sentinelPushedRef.current = false;
+      }
+      const url = pendingNavigationUrl;
+      setPendingNavigationUrl(null);
+      navigate(url);
+    } else {
+      // Back button navigation
+      sentinelPushedRef.current = false;
+      window.history.go(-2);
+    }
+  }, [pendingNavigationUrl, navigate]);
 
   const handleLeaveSave = useCallback(async () => {
     setShowLeaveDialog(false);
@@ -184,15 +200,43 @@ function EditBlocks({
       await saveHandlerRef.current?.();
     } catch {
       // Save failed — stay on page
+      setPendingNavigationUrl(null);
       return;
     }
     hasUnsavedRef.current = false;
-    sentinelPushedRef.current = false;
-    window.history.go(-2);
-  }, []);
+
+    if (pendingNavigationUrl) {
+      // Name link navigation — remove sentinel and navigate
+      if (sentinelPushedRef.current) {
+        window.history.back();
+        sentinelPushedRef.current = false;
+      }
+      const url = pendingNavigationUrl;
+      setPendingNavigationUrl(null);
+      navigate(url);
+    } else {
+      // Back button navigation
+      sentinelPushedRef.current = false;
+      window.history.go(-2);
+    }
+  }, [pendingNavigationUrl, navigate]);
 
   const handleLeaveCancel = useCallback(() => {
     setShowLeaveDialog(false);
+    setPendingNavigationUrl(null);
+  }, []);
+
+  // Name link — intercept navigation when there are unsaved changes
+  const handleNavigateAway = useCallback((url: string) => {
+    setPendingNavigationUrl(url);
+    setShowLeaveDialog(true);
+  }, []);
+
+  // Tab switch — auto-save before changing tab
+  const handleBeforeTabChange = useCallback(async () => {
+    if (hasUnsavedRef.current && saveHandlerRef.current) {
+      await saveHandlerRef.current();
+    }
   }, []);
 
   // Sort blocks by order
@@ -253,6 +297,7 @@ function EditBlocks({
                 pageConfig={pageConfig}
                 spacePermissions={spacePermissions}
                 entityType={entityType}
+                onNavigateAway={handleNavigateAway}
               />
             </div>
           );
@@ -269,6 +314,7 @@ function EditBlocks({
                 onSaveReady,
                 entityType,
                 onDirtyChange,
+                onBeforeTabChange: handleBeforeTabChange,
               }}
               entity={selectedEntity}
               pageConfig={pageConfig}

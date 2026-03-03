@@ -85,6 +85,7 @@ interface TabOutletRendererProps {
   onSaveReady?: (handler: () => Promise<void>) => void;
   entityType?: string;
   onDirtyChange?: (dirty: boolean) => void;
+  onBeforeTabChange?: () => Promise<void>;
 }
 
 // Extended tab with internal ordering fields
@@ -211,6 +212,7 @@ export function TabOutletRenderer({
   onSaveReady,
   entityType,
   onDirtyChange,
+  onBeforeTabChange,
 }: TabOutletRendererProps) {
   const pageMenuRef = useRef<HTMLDivElement>(null);
   const [pageMenuHeight, setPageMenuHeight] = useState(0);
@@ -259,6 +261,14 @@ export function TabOutletRenderer({
     entityId,
   });
 
+  // Wrap tab change to auto-save before switching (edit mode)
+  const wrappedHandleTabChange = useCallback(async (fragment: string) => {
+    if (onBeforeTabChange) {
+      try { await onBeforeTabChange(); } catch { /* save failed, still switch */ }
+    }
+    handleTabChange(fragment);
+  }, [handleTabChange, onBeforeTabChange]);
+
   // Pass ref to parent if needed
   useEffect(() => {
     if (onPageMenuRef && pageMenuRef.current) {
@@ -288,7 +298,7 @@ export function TabOutletRenderer({
         <PageMenu
           tabs={tabs}
           activeTab={activeTab}
-          onTabChange={handleTabChange}
+          onTabChange={wrappedHandleTabChange}
           mode={tabMode}
         />
       </div>
@@ -298,7 +308,7 @@ export function TabOutletRenderer({
         tabs={tabs}
         mode={tabMode}
         activeTab={activeTab}
-        onTabChange={handleTabChange}
+        onTabChange={wrappedHandleTabChange}
         onVisibilityChange={handleVisibilityChange}
         tabHeaderTop={actualTabHeaderTop}
         entitySlug={entitySlug}
