@@ -49,7 +49,7 @@ interface FieldConfig {
   displayName: string;
   component: string;
   fieldType: string;
-  sortOrder: number;
+  order: number;
   required?: boolean;
   placeholder?: string;
   referencedTable?: string;
@@ -112,12 +112,12 @@ export function EditFormTab({ fields, onLoadedCount, entityType, onSaveReady, on
     onDirtyChange?.(hasChanges);
   }, [hasChanges, onDirtyChange]);
 
-  // Sort fields by sortOrder and group them
+  // Sort fields by order and group them
   const groupedFields = useMemo(() => {
     if (!fields) return [];
 
     const sorted = Object.entries(fields).sort(
-      ([, a], [, b]) => (a.sortOrder || 0) - (b.sortOrder || 0)
+      ([, a], [, b]) => (a.order || 0) - (b.order || 0)
     );
 
     // Build ordered groups preserving first-seen order
@@ -132,6 +132,18 @@ export function EditFormTab({ fields, onLoadedCount, entityType, onSaveReady, on
         groups.push({ label: groupKey, fields: arr });
       }
       groupMap.get(groupKey)!.push(entry);
+    }
+
+    // Debug: log groups once when fields change
+    for (const g of groups) {
+      const fullW = g.fields.filter(([, f]) => f.fullWidth);
+      const regular = g.fields.filter(([, f]) => !f.fullWidth);
+      const mid = Math.ceil(regular.length / 2);
+      console.log(`[EditFormTab] Group: "${g.label}"`,
+        '\nAll:', g.fields.map(([, f]) => `${f.displayName}(${f.order}${f.fullWidth ? ',fw' : ''})`),
+        '\nLeft:', regular.slice(0, mid).map(([, f]) => `${f.displayName}(${f.order})`),
+        '\nRight:', regular.slice(mid).map(([, f]) => `${f.displayName}(${f.order})`),
+      );
     }
 
     return groups;
@@ -187,7 +199,7 @@ export function EditFormTab({ fields, onLoadedCount, entityType, onSaveReady, on
       : { value: formChanges[dbFieldName] ?? selectedEntity?.[dbFieldName] ?? "" };
 
     return (
-      <div key={fieldId} className={field.fullWidth ? "sm:col-span-2" : ""}>
+      <div key={fieldId}>
         <Component
           label={field.displayName}
           {...valueProps}
@@ -213,9 +225,29 @@ export function EditFormTab({ fields, onLoadedCount, entityType, onSaveReady, on
               {group.label}
             </h3>
           )}
-          <div className="grid gap-x-3 gap-y-1 sm:grid-cols-2">
-            {group.fields.map(([fieldId, field]) => renderField(fieldId, field))}
-          </div>
+          {(() => {
+            const fullWidthFields = group.fields.filter(([, f]) => f.fullWidth);
+            const regularFields = group.fields.filter(([, f]) => !f.fullWidth);
+            const mid = Math.ceil(regularFields.length / 2);
+            const leftCol = regularFields.slice(0, mid);
+            const rightCol = regularFields.slice(mid);
+
+            return (
+              <>
+                {fullWidthFields.map(([fieldId, field]) => renderField(fieldId, field))}
+                {regularFields.length > 0 && (
+                  <div className="sm:grid sm:grid-cols-2 sm:gap-x-3">
+                    <div className="space-y-1">
+                      {leftCol.map(([fieldId, field]) => renderField(fieldId, field))}
+                    </div>
+                    <div className="space-y-1">
+                      {rightCol.map(([fieldId, field]) => renderField(fieldId, field))}
+                    </div>
+                  </div>
+                )}
+              </>
+            );
+          })()}
         </div>
       ))}
     </div>
