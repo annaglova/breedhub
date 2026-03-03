@@ -773,6 +773,7 @@ const AppConfig: React.FC = () => {
               <button
                 onClick={(e) => {
                   e.stopPropagation();
+                  if (!confirm(`Remove field "${field.id}" from this config?`)) return;
                   // Remove field from config deps
                   const config = workingConfigs.find(
                     (c) => c.id === selectedConfig
@@ -835,6 +836,7 @@ const AppConfig: React.FC = () => {
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
+                      if (!confirm(`Remove property "${prop.caption || propId}" from this field?`)) return;
                       appConfigStore.removeDependencyWithUI(field.id, propId);
                     }}
                     className="ml-1 text-slate-400 hover:text-red-600"
@@ -1057,6 +1059,7 @@ const AppConfig: React.FC = () => {
               <button
                 onClick={async (e) => {
                   e.stopPropagation();
+                  if (!confirm(`Remove "${node.id}" from this config?`)) return;
                   // Use the specific parent config passed from tree context
                   if (parentConfig) {
                     const updatedDeps = parentConfig.deps.filter(
