@@ -68,7 +68,7 @@ export function EditNameOutlet({
 
   return (
     <div
-      className={`relative bg-card-ground px-4 sm:px-0 pb-3 ${
+      className={`relative bg-card-ground px-4 sm:px-0 pt-4 sm:pt-0 pb-3 ${
         onTop ? "border-b border-surface-border" : ""
       }`}
     >

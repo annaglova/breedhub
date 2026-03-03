@@ -222,19 +222,18 @@ function EditBlocks({
 
         if (blockConfig.outlet === "AvatarOutlet") {
           return (
-            <div key={blockId} className="mb-3">
-              <BlockRenderer
-                blockConfig={{
-                  ...blockConfig,
-                  isFullscreenMode: true,
-                  onSave: handleSave,
-                }}
-                entity={selectedEntity}
-                pageConfig={pageConfig}
-                spacePermissions={spacePermissions}
-                isLoading={isBlocksLoading}
-              />
-            </div>
+            <BlockRenderer
+              key={blockId}
+              blockConfig={{
+                ...blockConfig,
+                isFullscreenMode: true,
+                onSave: handleSave,
+              }}
+              entity={selectedEntity}
+              pageConfig={pageConfig}
+              spacePermissions={spacePermissions}
+              isLoading={isBlocksLoading}
+            />
           );
         }
 
