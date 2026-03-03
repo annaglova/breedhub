@@ -61,6 +61,8 @@ interface FieldConfig {
   filterBy?: string;
   validation?: any;
   options?: Array<{ value: string; label: string }>;
+  fullWidth?: boolean;
+  group?: string;
 }
 
 interface EditFormTabProps {
@@ -110,20 +112,43 @@ export function EditFormTab({ fields, onLoadedCount, entityType, onSaveReady, on
     onDirtyChange?.(hasChanges);
   }, [hasChanges, onDirtyChange]);
 
-  // Sort fields by sortOrder
-  const sortedFields = useMemo(() => {
+  // Sort fields by sortOrder and group them
+  const groupedFields = useMemo(() => {
     if (!fields) return [];
-    return Object.entries(fields).sort(
+
+    const sorted = Object.entries(fields).sort(
       ([, a], [, b]) => (a.sortOrder || 0) - (b.sortOrder || 0)
     );
+
+    // Build ordered groups preserving first-seen order
+    const groups: Array<{ label: string | null; fields: Array<[string, FieldConfig]> }> = [];
+    const groupMap = new Map<string | null, Array<[string, FieldConfig]>>();
+
+    for (const entry of sorted) {
+      const groupKey = entry[1].group || null;
+      if (!groupMap.has(groupKey)) {
+        const arr: Array<[string, FieldConfig]> = [];
+        groupMap.set(groupKey, arr);
+        groups.push({ label: groupKey, fields: arr });
+      }
+      groupMap.get(groupKey)!.push(entry);
+    }
+
+    return groups;
   }, [fields]);
+
+  // Total field count for reporting
+  const totalFieldCount = useMemo(
+    () => groupedFields.reduce((sum, g) => sum + g.fields.length, 0),
+    [groupedFields]
+  );
 
   // Report field count
   useEffect(() => {
-    onLoadedCount?.(sortedFields.length);
-  }, [sortedFields.length, onLoadedCount]);
+    onLoadedCount?.(totalFieldCount);
+  }, [totalFieldCount, onLoadedCount]);
 
-  if (!fields || sortedFields.length === 0) {
+  if (!fields || totalFieldCount === 0) {
     return (
       <div className="py-8 text-center text-secondary">
         No fields configured
@@ -131,52 +156,68 @@ export function EditFormTab({ fields, onLoadedCount, entityType, onSaveReady, on
     );
   }
 
-  return (
-    <div className="grid gap-x-3 gap-y-1 sm:grid-cols-2 py-2">
-      {sortedFields.map(([fieldId, field]) => {
-        const Component = componentMap[field.component];
+  /**
+   * Render a single field
+   */
+  const renderField = (fieldId: string, field: FieldConfig) => {
+    const Component = componentMap[field.component];
 
-        if (!Component) {
-          if (process.env.NODE_ENV === "development") {
-            console.warn(
-              `[EditFormTab] Unknown component: ${field.component} for field ${fieldId}`
-            );
-          }
-          return null;
-        }
-
-        const dbFieldName = getDbFieldName(fieldId);
-        const isChecked = ONCHECKED_COMPONENTS.has(field.component);
-
-        // Change handler varies by component type
-        const changeProps = ONCHANGE_COMPONENTS.has(field.component)
-          ? { onChange: (e: React.ChangeEvent<HTMLInputElement>) => handleFieldChange(dbFieldName, e.target.value) }
-          : isChecked
-            ? { onCheckedChange: (checked: boolean) => handleFieldChange(dbFieldName, checked) }
-            : { onValueChange: (val: any) => handleFieldChange(dbFieldName, val) };
-
-        // Value prop varies: checked for checkbox/switch, value for all others
-        const valueProps = isChecked
-          ? { checked: formChanges[dbFieldName] ?? selectedEntity?.[dbFieldName] ?? false }
-          : { value: formChanges[dbFieldName] ?? selectedEntity?.[dbFieldName] ?? "" };
-
-        return (
-          <div key={fieldId} className="space-y-2">
-            <Component
-              label={field.displayName}
-              {...valueProps}
-              {...changeProps}
-              required={field.required}
-              placeholder={field.placeholder}
-              referencedTable={field.referencedTable}
-              referencedFieldID={field.referencedFieldID}
-              referencedFieldName={field.referencedFieldName}
-              {...(field.dataSource ? { dataSource: field.dataSource } : {})}
-              options={field.options || []}
-            />
-          </div>
+    if (!Component) {
+      if (process.env.NODE_ENV === "development") {
+        console.warn(
+          `[EditFormTab] Unknown component: ${field.component} for field ${fieldId}`
         );
-      })}
+      }
+      return null;
+    }
+
+    const dbFieldName = getDbFieldName(fieldId);
+    const isChecked = ONCHECKED_COMPONENTS.has(field.component);
+
+    // Change handler varies by component type
+    const changeProps = ONCHANGE_COMPONENTS.has(field.component)
+      ? { onChange: (e: React.ChangeEvent<HTMLInputElement>) => handleFieldChange(dbFieldName, e.target.value) }
+      : isChecked
+        ? { onCheckedChange: (checked: boolean) => handleFieldChange(dbFieldName, checked) }
+        : { onValueChange: (val: any) => handleFieldChange(dbFieldName, val) };
+
+    // Value prop varies: checked for checkbox/switch, value for all others
+    const valueProps = isChecked
+      ? { checked: formChanges[dbFieldName] ?? selectedEntity?.[dbFieldName] ?? false }
+      : { value: formChanges[dbFieldName] ?? selectedEntity?.[dbFieldName] ?? "" };
+
+    return (
+      <div key={fieldId} className={field.fullWidth ? "sm:col-span-2" : ""}>
+        <Component
+          label={field.displayName}
+          {...valueProps}
+          {...changeProps}
+          required={field.required}
+          placeholder={field.placeholder}
+          referencedTable={field.referencedTable}
+          referencedFieldID={field.referencedFieldID}
+          referencedFieldName={field.referencedFieldName}
+          {...(field.dataSource ? { dataSource: field.dataSource } : {})}
+          options={field.options || []}
+        />
+      </div>
+    );
+  };
+
+  return (
+    <div className="py-2 space-y-4">
+      {groupedFields.map((group, idx) => (
+        <div key={group.label ?? idx}>
+          {group.label && (
+            <h3 className="flex w-full items-center text-2xl leading-[30px] font-bold text-sub-header-color bg-header-ground/75 px-4 sm:px-6 py-2 mb-4 mt-4">
+              {group.label}
+            </h3>
+          )}
+          <div className="grid gap-x-3 gap-y-1 sm:grid-cols-2">
+            {group.fields.map(([fieldId, field]) => renderField(fieldId, field))}
+          </div>
+        </div>
+      ))}
     </div>
   );
 }
