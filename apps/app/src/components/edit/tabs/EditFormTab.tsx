@@ -207,7 +207,7 @@ export function EditFormTab({ fields, onLoadedCount, entityType, onSaveReady, on
   };
 
   return (
-    <div className="py-2 space-y-4">
+    <div className="space-y-4">
       {groupedFields.map((group, idx) => (
         <div key={group.label ?? idx}>
           {group.label && (
