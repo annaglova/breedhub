@@ -63,6 +63,7 @@ interface FieldConfig {
   options?: Array<{ value: string; label: string }>;
   fullWidth?: boolean;
   group?: string;
+  groupLayout?: "horizontal" | "vertical";
 }
 
 interface EditFormTabProps {
@@ -121,29 +122,18 @@ export function EditFormTab({ fields, onLoadedCount, entityType, onSaveReady, on
     );
 
     // Build ordered groups preserving first-seen order
-    const groups: Array<{ label: string | null; fields: Array<[string, FieldConfig]> }> = [];
-    const groupMap = new Map<string | null, Array<[string, FieldConfig]>>();
+    // groupLayout is taken from the first field in the group that has it set
+    const groups: Array<{ label: string | null; layout: "horizontal" | "vertical"; fields: Array<[string, FieldConfig]> }> = [];
+    const groupMap = new Map<string | null, { layout: "horizontal" | "vertical"; fields: Array<[string, FieldConfig]> }>();
 
     for (const entry of sorted) {
       const groupKey = entry[1].group || null;
       if (!groupMap.has(groupKey)) {
-        const arr: Array<[string, FieldConfig]> = [];
-        groupMap.set(groupKey, arr);
-        groups.push({ label: groupKey, fields: arr });
+        const group = { layout: (entry[1].groupLayout || "vertical") as "horizontal" | "vertical", fields: [] as Array<[string, FieldConfig]> };
+        groupMap.set(groupKey, group);
+        groups.push({ label: groupKey, ...group });
       }
-      groupMap.get(groupKey)!.push(entry);
-    }
-
-    // Debug: log groups once when fields change
-    for (const g of groups) {
-      const fullW = g.fields.filter(([, f]) => f.fullWidth);
-      const regular = g.fields.filter(([, f]) => !f.fullWidth);
-      const mid = Math.ceil(regular.length / 2);
-      console.log(`[EditFormTab] Group: "${g.label}"`,
-        '\nAll:', g.fields.map(([, f]) => `${f.displayName}(${f.order}${f.fullWidth ? ',fw' : ''})`),
-        '\nLeft:', regular.slice(0, mid).map(([, f]) => `${f.displayName}(${f.order})`),
-        '\nRight:', regular.slice(mid).map(([, f]) => `${f.displayName}(${f.order})`),
-      );
+      groupMap.get(groupKey)!.fields.push(entry);
     }
 
     return groups;
@@ -228,6 +218,24 @@ export function EditFormTab({ fields, onLoadedCount, entityType, onSaveReady, on
           {(() => {
             const fullWidthFields = group.fields.filter(([, f]) => f.fullWidth);
             const regularFields = group.fields.filter(([, f]) => !f.fullWidth);
+
+            if (regularFields.length === 0) {
+              return fullWidthFields.map(([fieldId, field]) => renderField(fieldId, field));
+            }
+
+            if (group.layout === "horizontal") {
+              // Horizontal: row-by-row (1|2, 3|4, 5|6)
+              return (
+                <>
+                  {fullWidthFields.map(([fieldId, field]) => renderField(fieldId, field))}
+                  <div className="sm:grid sm:grid-cols-2 sm:gap-x-3 gap-y-1">
+                    {regularFields.map(([fieldId, field]) => renderField(fieldId, field))}
+                  </div>
+                </>
+              );
+            }
+
+            // Vertical: column fill (first half left, second half right)
             const mid = Math.ceil(regularFields.length / 2);
             const leftCol = regularFields.slice(0, mid);
             const rightCol = regularFields.slice(mid);
@@ -235,16 +243,14 @@ export function EditFormTab({ fields, onLoadedCount, entityType, onSaveReady, on
             return (
               <>
                 {fullWidthFields.map(([fieldId, field]) => renderField(fieldId, field))}
-                {regularFields.length > 0 && (
-                  <div className="sm:grid sm:grid-cols-2 sm:gap-x-3">
-                    <div className="space-y-1">
-                      {leftCol.map(([fieldId, field]) => renderField(fieldId, field))}
-                    </div>
-                    <div className="space-y-1">
-                      {rightCol.map(([fieldId, field]) => renderField(fieldId, field))}
-                    </div>
+                <div className="sm:grid sm:grid-cols-2 sm:gap-x-3">
+                  <div className="space-y-1">
+                    {leftCol.map(([fieldId, field]) => renderField(fieldId, field))}
                   </div>
-                )}
+                  <div className="space-y-1">
+                    {rightCol.map(([fieldId, field]) => renderField(fieldId, field))}
+                  </div>
+                </div>
               </>
             );
           })()}
