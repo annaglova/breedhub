@@ -19,6 +19,7 @@ import {
 } from "@ui/components/dialog";
 import { cn } from "@ui/lib/utils";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { EditNameOutlet } from "./EditNameOutlet";
 
 interface EditPageTemplateProps {
   className?: string;
@@ -51,6 +52,62 @@ function EditBlocks({
   const isAboveFoldLoading = !isEntityFullyLoaded || !allBlocksReady;
   const shouldShowSkeleton = useSkeletonWithDelay(isAboveFoldLoading);
   const isBlocksLoading = !selectedEntity || shouldShowSkeleton;
+
+  // Sticky name bar state
+  const nameContainerRef = useRef<HTMLDivElement>(null);
+  const [nameOnTop, setNameOnTop] = useState(false);
+  const [nameBlockHeight, setNameBlockHeight] = useState(0);
+
+  const PAGE_MENU_TOP = nameBlockHeight > 0 ? nameBlockHeight : 0;
+
+  // Scroll listener for sticky detection
+  useEffect(() => {
+    if (!nameContainerRef.current) return;
+
+    let scrollContainer: HTMLElement | null =
+      nameContainerRef.current.parentElement;
+    while (scrollContainer) {
+      const overflowY = window.getComputedStyle(scrollContainer).overflowY;
+      if (overflowY === "auto" || overflowY === "scroll") {
+        break;
+      }
+      scrollContainer = scrollContainer.parentElement;
+    }
+
+    if (!scrollContainer) return;
+
+    const checkSticky = () => {
+      if (!nameContainerRef.current) return;
+
+      const containerTop = scrollContainer!.getBoundingClientRect().top;
+      const elementTop = nameContainerRef.current.getBoundingClientRect().top;
+
+      const isStuck = Math.abs(containerTop - elementTop) === 0;
+      setNameOnTop(isStuck);
+    };
+
+    scrollContainer.addEventListener("scroll", checkSticky);
+    checkSticky();
+
+    return () => {
+      scrollContainer?.removeEventListener("scroll", checkSticky);
+    };
+  }, [pageConfig, selectedEntity]);
+
+  // ResizeObserver for name bar height tracking
+  useEffect(() => {
+    if (!nameContainerRef.current) return;
+
+    const resizeObserver = new ResizeObserver((entries) => {
+      const entry = entries[0];
+      if (entry) {
+        setNameBlockHeight(entry.contentRect.height);
+      }
+    });
+
+    resizeObserver.observe(nameContainerRef.current);
+    return () => resizeObserver.disconnect();
+  }, []);
 
   // Save orchestration: active tab registers its save handler
   const saveHandlerRef = useRef<(() => Promise<void>) | null>(null);
@@ -165,18 +222,37 @@ function EditBlocks({
 
         if (blockConfig.outlet === "AvatarOutlet") {
           return (
-            <BlockRenderer
+            <div key={blockId} className="mb-3">
+              <BlockRenderer
+                blockConfig={{
+                  ...blockConfig,
+                  isFullscreenMode: true,
+                  onSave: handleSave,
+                }}
+                entity={selectedEntity}
+                pageConfig={pageConfig}
+                spacePermissions={spacePermissions}
+                isLoading={isBlocksLoading}
+              />
+            </div>
+          );
+        }
+
+        if (blockConfig.outlet === "NameOutlet") {
+          return (
+            <div
               key={blockId}
-              blockConfig={{
-                ...blockConfig,
-                isFullscreenMode: true,
-                onSave: handleSave,
-              }}
-              entity={selectedEntity}
-              pageConfig={pageConfig}
-              spacePermissions={spacePermissions}
-              isLoading={isBlocksLoading}
-            />
+              ref={nameContainerRef}
+              className="sticky top-0 z-30"
+            >
+              <EditNameOutlet
+                entity={selectedEntity}
+                onTop={nameOnTop}
+                isLoading={isBlocksLoading}
+                onSave={handleSave}
+                hasUnsavedChanges={hasUnsavedChanges}
+              />
+            </div>
           );
         }
 
@@ -187,6 +263,7 @@ function EditBlocks({
               blockConfig={{
                 ...blockConfig,
                 tabMode: "tabs",
+                pageMenuTop: PAGE_MENU_TOP,
                 onSaveReady,
                 entityType,
                 onDirtyChange,
@@ -199,7 +276,6 @@ function EditBlocks({
           );
         }
 
-        // Skip other outlet types for now (NameOutlet)
         return null;
       })}
 
