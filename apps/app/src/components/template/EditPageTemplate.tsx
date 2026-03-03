@@ -54,6 +54,9 @@ function EditBlocks({
   const shouldShowSkeleton = useSkeletonWithDelay(isAboveFoldLoading);
   const isBlocksLoading = !selectedEntity || shouldShowSkeleton;
 
+  // Compact mode: hide Cover/Avatar when non-default tab is active
+  const [isDefaultTabActive, setIsDefaultTabActive] = useState(true);
+
   // Sticky name bar state
   const nameContainerRef = useRef<HTMLDivElement>(null);
   const [nameOnTop, setNameOnTop] = useState(false);
@@ -88,12 +91,13 @@ function EditBlocks({
     };
 
     scrollContainer.addEventListener("scroll", checkSticky);
-    checkSticky();
+    // Use RAF to ensure DOM layout is settled after cover/avatar appear/disappear
+    requestAnimationFrame(checkSticky);
 
     return () => {
       scrollContainer?.removeEventListener("scroll", checkSticky);
     };
-  }, [pageConfig, selectedEntity]);
+  }, [pageConfig, selectedEntity, isDefaultTabActive]);
 
   // ResizeObserver for name bar height tracking
   useEffect(() => {
@@ -239,6 +243,7 @@ function EditBlocks({
     }
   }, []);
 
+
   // Sort blocks by order
   const sortedBlocks = Object.entries(pageConfig.blocks).sort(
     ([, a]: [string, any], [, b]: [string, any]) => (a.order || 0) - (b.order || 0)
@@ -248,6 +253,7 @@ function EditBlocks({
     <>
       {sortedBlocks.map(([blockId, blockConfig]: [string, any]) => {
         if (blockConfig.outlet === "CoverOutlet") {
+          if (!isDefaultTabActive) return null;
           return (
             <BlockRenderer
               key={blockId}
@@ -265,6 +271,7 @@ function EditBlocks({
         }
 
         if (blockConfig.outlet === "AvatarOutlet") {
+          if (!isDefaultTabActive) return null;
           return (
             <BlockRenderer
               key={blockId}
@@ -290,7 +297,7 @@ function EditBlocks({
             >
               <EditNameOutlet
                 entity={selectedEntity}
-                onTop={nameOnTop}
+                onTop={nameOnTop || !isDefaultTabActive}
                 isLoading={isBlocksLoading}
                 onSave={handleSave}
                 hasUnsavedChanges={hasUnsavedChanges}
@@ -298,6 +305,7 @@ function EditBlocks({
                 spacePermissions={spacePermissions}
                 entityType={entityType}
                 onNavigateAway={handleNavigateAway}
+                showActionButtons={isDefaultTabActive}
               />
             </div>
           );
@@ -315,6 +323,7 @@ function EditBlocks({
                 entityType,
                 onDirtyChange,
                 onBeforeTabChange: handleBeforeTabChange,
+                onDefaultTabChange: setIsDefaultTabActive,
               }}
               entity={selectedEntity}
               pageConfig={pageConfig}

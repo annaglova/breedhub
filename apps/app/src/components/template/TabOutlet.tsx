@@ -39,6 +39,7 @@ interface TabOutletProps {
   entityType?: string;
   onDirtyChange?: (dirty: boolean) => void;
   onBeforeTabChange?: () => Promise<void>;
+  onDefaultTabChange?: (isDefault: boolean) => void;
 
   // Component to render inside the outlet (not used - tabs have special handling)
   children?: React.ReactNode;
@@ -77,6 +78,7 @@ export function TabOutlet({
   entityType,
   onDirtyChange,
   onBeforeTabChange,
+  onDefaultTabChange,
   children,
 }: TabOutletProps) {
   // Show skeleton when loading - uses tabs config to show correct number of tab headers
@@ -174,6 +176,7 @@ export function TabOutlet({
         entityType={entityType}
         onDirtyChange={onDirtyChange}
         onBeforeTabChange={onBeforeTabChange}
+        onDefaultTabChange={onDefaultTabChange}
       />
     </div>
   );

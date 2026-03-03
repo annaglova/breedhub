@@ -22,6 +22,7 @@ interface EditNameOutletProps {
   spacePermissions?: SpacePermissions;
   entityType?: string;
   onNavigateAway?: (url: string) => void;
+  showActionButtons?: boolean;
 }
 
 /**
@@ -40,6 +41,7 @@ export function EditNameOutlet({
   spacePermissions = { canEdit: false, canDelete: false, canAdd: false },
   entityType,
   onNavigateAway,
+  showActionButtons = true,
 }: EditNameOutletProps) {
   const navigate = useNavigate();
   const displayName = entity?.name || "";
@@ -123,7 +125,7 @@ export function EditNameOutlet({
       )}
 
       {/* Action buttons - bottom right when sticky and has unsaved changes */}
-      {onTop && !isLoading && buttonItems.length > 0 && (
+      {onTop && showActionButtons && !isLoading && buttonItems.length > 0 && (
         <div className="absolute bottom-1 right-4 sm:right-0 flex gap-1">
           {buttonItems.map((item) => (
             <Tooltip key={item.id}>

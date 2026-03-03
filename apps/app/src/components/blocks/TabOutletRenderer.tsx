@@ -86,6 +86,7 @@ interface TabOutletRendererProps {
   entityType?: string;
   onDirtyChange?: (dirty: boolean) => void;
   onBeforeTabChange?: () => Promise<void>;
+  onDefaultTabChange?: (isDefault: boolean) => void;
 }
 
 // Extended tab with internal ordering fields
@@ -213,6 +214,7 @@ export function TabOutletRenderer({
   entityType,
   onDirtyChange,
   onBeforeTabChange,
+  onDefaultTabChange,
 }: TabOutletRendererProps) {
   const pageMenuRef = useRef<HTMLDivElement>(null);
   const [pageMenuHeight, setPageMenuHeight] = useState(0);
@@ -260,6 +262,11 @@ export function TabOutletRenderer({
     defaultTab,
     entityId,
   });
+
+  // Report whether the active tab is the default/first tab
+  useEffect(() => {
+    onDefaultTabChange?.(activeTab === defaultTab);
+  }, [activeTab, defaultTab, onDefaultTabChange]);
 
   // Wrap tab change to auto-save before switching (edit mode)
   const wrappedHandleTabChange = useCallback(async (fragment: string) => {
