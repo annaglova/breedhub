@@ -251,6 +251,9 @@ function EditBlocks({
                 isLoading={isBlocksLoading}
                 onSave={handleSave}
                 hasUnsavedChanges={hasUnsavedChanges}
+                pageConfig={pageConfig}
+                spacePermissions={spacePermissions}
+                entityType={entityType}
               />
             </div>
           );

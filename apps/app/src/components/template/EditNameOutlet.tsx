@@ -1,6 +1,16 @@
+import { Icon } from "@/components/shared/Icon";
+import { usePageActions } from "@/hooks/usePageActions";
+import { usePageMenuButtons } from "@/hooks/usePageMenu";
+import type { PageConfig } from "@/types/page-config.types";
+import type { SpacePermissions } from "@/types/page-menu.types";
 import { Button } from "@ui/components/button";
-import { Save } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@ui/components/tooltip";
 import { Link } from "react-router-dom";
+import { NavigationButtons } from "./cover/NavigationButtons";
 
 interface EditNameOutletProps {
   entity?: any;
@@ -8,13 +18,16 @@ interface EditNameOutletProps {
   isLoading?: boolean;
   onSave?: () => void;
   hasUnsavedChanges?: boolean;
+  pageConfig?: PageConfig | null;
+  spacePermissions?: SpacePermissions;
+  entityType?: string;
 }
 
 /**
  * EditNameOutlet - Sticky name bar for edit pages
  *
- * Shows entity name (truncated, links to public page) and Save button.
- * Save button appears only when sticky (onTop) and there are unsaved changes.
+ * Shows entity name (truncated, links to public page), navigation buttons,
+ * and config-driven action buttons (Save) when sticky with unsaved changes.
  */
 export function EditNameOutlet({
   entity,
@@ -22,25 +35,60 @@ export function EditNameOutlet({
   isLoading = false,
   onSave,
   hasUnsavedChanges = false,
+  pageConfig,
+  spacePermissions = { canEdit: false, canDelete: false, canAdd: false },
+  entityType,
 }: EditNameOutletProps) {
   const displayName = entity?.name || "";
   const slug = entity?.slug;
 
+  // Entity type display labels
+  const ENTITY_TYPE_LABELS: Record<string, string> = {
+    pet: "Pet profile",
+    breed: "Breed profile",
+    kennel: "Kennel profile",
+    litter: "Litter profile",
+    contact: "Contact profile",
+    event: "Event",
+  };
+  const entityTypeLabel = entityType ? ENTITY_TYPE_LABELS[entityType] || entityType : "";
+
+  // Get button items from config (duplicateOnDesktop items for sticky context)
+  const buttonItems = usePageMenuButtons({
+    pageConfig: pageConfig || null,
+    context: "sticky",
+    spacePermissions,
+    containerWidth: 1280,
+  });
+
+  // Action handlers with custom save
+  const { executeAction } = usePageActions(entity, {
+    ...(onSave ? { save: onSave } : {}),
+  });
+
   return (
     <div
-      className={`relative bg-card-ground px-4 sm:px-0 pb-4 flex items-center min-h-[44px] ${
+      className={`relative bg-card-ground px-4 sm:px-0 pb-3 ${
         onTop ? "border-b border-surface-border" : ""
       }`}
     >
       {/* Skeleton */}
       {isLoading && (
-        <div className="absolute inset-0 z-50 bg-card-ground flex items-center px-4 sm:px-0">
-          <div className="h-7 w-48 bg-slate-200 dark:bg-slate-700 rounded-full animate-pulse" />
+        <div className="absolute inset-0 z-50 bg-card-ground px-4 sm:px-0">
+          <div className="flex flex-col space-y-4 pt-1">
+            <div className="h-4 w-32 bg-slate-200 dark:bg-slate-700 rounded-full animate-pulse" />
+            <div className="h-7 w-72 bg-slate-200 dark:bg-slate-700 rounded-full animate-pulse" />
+          </div>
         </div>
       )}
 
-      {/* Name with link to public page */}
-      <div className={`flex-1 min-w-0 ${isLoading ? "invisible" : ""}`}>
+      {/* Entity type label + Name with link to public page */}
+      <div className={isLoading ? "invisible" : ""}>
+        <div className="text-md mb-2 min-h-[1.5rem]">
+          {entityTypeLabel && (
+            <span className="uppercase">{entityTypeLabel}</span>
+          )}
+        </div>
         <div className="truncate py-0.5 text-2xl sm:text-3xl font-bold">
           {slug ? (
             <Link
@@ -55,17 +103,33 @@ export function EditNameOutlet({
         </div>
       </div>
 
-      {/* Save button - visible when sticky and has unsaved changes */}
-      {onTop && hasUnsavedChanges && !isLoading && (
-        <Button
-          variant="outline-secondary"
-          className="rounded-full h-[2.25rem] px-4 text-base font-semibold ml-3 shrink-0"
-          onClick={onSave}
-          type="button"
-        >
-          <Save size={16} />
-          <span className="hidden sm:inline ml-2">Save</span>
-        </Button>
+      {/* Navigation buttons - top right when sticky */}
+      {onTop && (
+        <div className="absolute right-4 sm:right-0 top-0">
+          <NavigationButtons mode="default" entityType={entityType} />
+        </div>
+      )}
+
+      {/* Action buttons - bottom right when sticky and has unsaved changes */}
+      {onTop && !isLoading && buttonItems.length > 0 && (
+        <div className="absolute bottom-1 right-4 sm:right-0 flex gap-1">
+          {buttonItems.map((item) => (
+            <Tooltip key={item.id}>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="outline-secondary"
+                  className="rounded-full h-[2.25rem] w-[2.25rem] sm:w-auto sm:px-4 text-base font-semibold"
+                  onClick={() => executeAction(item.action, item.actionParams)}
+                  type="button"
+                >
+                  <Icon icon={item.icon} size={16} />
+                  <span className="hidden sm:inline ml-2">{item.label}</span>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">{item.label}</TooltipContent>
+            </Tooltip>
+          ))}
+        </div>
       )}
     </div>
   );
