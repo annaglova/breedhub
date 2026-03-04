@@ -1636,13 +1636,13 @@ class AppConfigStore {
           }
           structure.main[entityName].fields.push(field);
         } else if (field.tags.includes('child')) {
-          // Child entity field
-          const parentEntity = field.tags.find((t) => t !== 'child') || '';
-          if (parentEntity) {
+          // Child entity field — may belong to multiple parents
+          const parentEntities = field.tags.filter((t) => t !== 'child');
+          const category = field.category || 'unknown';
+          for (const parentEntity of parentEntities) {
             if (!structure.main[parentEntity]) {
               structure.main[parentEntity] = { fields: [], children: {} };
             }
-            const category = field.category || 'unknown';
             if (!structure.main[parentEntity].children[category]) {
               structure.main[parentEntity].children[category] = [];
             }

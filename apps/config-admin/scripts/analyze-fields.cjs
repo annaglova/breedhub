@@ -3,49 +3,59 @@ const path = require("path");
 const resources = require('../src/data/resourcesList.json');
 
 // Build child hierarchy from flat CHILD_RESOURCES array
+// A child can appear in multiple parent sections (e.g., junction tables)
 function buildChildHierarchy(childResources, mainResources, entitiesDir) {
   const hierarchy = {};
+  // Sort main resources by name length descending for longest prefix match first
+  const sortedMain = [...mainResources].sort((a, b) => b.length - a.length);
 
   for (const resource of childResources) {
-    let parentFound = false;
+    const parents = new Set();
 
-    // Method 1: Try finding parent by prefix (e.g., breed_division → breed)
-    for (const mainEntity of mainResources) {
+    // Method 1: Prefix match (e.g., breed_division → breed)
+    for (const mainEntity of sortedMain) {
       if (resource.startsWith(mainEntity + '_')) {
-        if (!hierarchy[mainEntity]) hierarchy[mainEntity] = [];
-        hierarchy[mainEntity].push(resource);
-        parentFound = true;
-        break;
+        parents.add(mainEntity);
+        break; // Only take the longest (first) prefix match
       }
     }
 
-    // Method 2: If prefix doesn't work, check foreign keys in entity JSON
-    if (!parentFound) {
-      const entityPath = path.join(entitiesDir, 'child', `${resource}.json`);
-      if (fs.existsSync(entityPath)) {
-        try {
-          const entityData = JSON.parse(fs.readFileSync(entityPath, 'utf-8'));
+    // Method 2: Pattern _in_PARENT / _for_PARENT (e.g., title_in_pet → pet)
+    for (const mainEntity of mainResources) {
+      if (resource.includes(`_in_${mainEntity}`) || resource.includes(`_for_${mainEntity}`)) {
+        parents.add(mainEntity);
+      }
+    }
 
-          // Look for foreign keys referencing main entities
-          for (const field of entityData.fields || []) {
-            if (field.isForeignKey && field.referencedTable) {
-              const refTable = field.referencedTable;
-              if (mainResources.includes(refTable)) {
-                if (!hierarchy[refTable]) hierarchy[refTable] = [];
-                hierarchy[refTable].push(resource);
-                parentFound = true;
-                break;
-              }
+    // Method 3: Field name PARENT_id (e.g., has pet_id field → pet)
+    const entityPath = path.join(entitiesDir, 'child', `${resource}.json`);
+    if (fs.existsSync(entityPath)) {
+      try {
+        const entityData = JSON.parse(fs.readFileSync(entityPath, 'utf-8'));
+        for (const field of entityData.fields || []) {
+          if (field.isSystem) continue;
+          const fieldName = field.name;
+          // Check if field name matches PARENT_id pattern
+          for (const mainEntity of mainResources) {
+            if (fieldName === `${mainEntity}_id`) {
+              parents.add(mainEntity);
             }
           }
-        } catch (err) {
-          console.warn(`Warning: Could not parse ${entityPath}: ${err.message}`);
         }
+      } catch (err) {
+        console.warn(`Warning: Could not parse ${entityPath}: ${err.message}`);
       }
     }
 
-    // If still no parent found, log a warning
-    if (!parentFound) {
+    // Add to all matched parent sections
+    for (const parent of parents) {
+      if (!hierarchy[parent]) hierarchy[parent] = [];
+      if (!hierarchy[parent].includes(resource)) {
+        hierarchy[parent].push(resource);
+      }
+    }
+
+    if (parents.size === 0) {
       console.warn(`Warning: Could not determine parent for child resource: ${resource}`);
     }
   }
@@ -524,28 +534,36 @@ function buildSemanticTree(fieldMap, fieldUsageByEntity) {
     const baseFieldId = `field_${fieldName}`;
     const baseField = tree.baseFields.find(f => f.id === baseFieldId);
     
-    // Determine entity tags
-    const entityTags = [];
+    // Determine entity tags — a child can belong to multiple parents
     const entityName = usage.entity;
-    
+    const parentEntities = [];
+    let isMain = false;
+    let isDictionary = false;
+
     // Check if it's a main entity
     if (entityCategories.main.includes(entityName)) {
-      entityTags.push('main', entityName);
+      isMain = true;
     }
-    // Check if it's a child entity
+    // Check if it's a child entity (collect ALL parents)
     else {
-      let isChild = false;
       for (const [parent, children] of Object.entries(entityCategories.child)) {
         if (children.includes(entityName)) {
-          entityTags.push('child', parent);
-          isChild = true;
-          break;
+          parentEntities.push(parent);
         }
       }
       // Check if it's a dictionary
-      if (!isChild && entityCategories.dictionaries.includes(entityName)) {
-        entityTags.push('dictionary');
+      if (parentEntities.length === 0 && entityCategories.dictionaries.includes(entityName)) {
+        isDictionary = true;
       }
+    }
+
+    const entityTags = [];
+    if (isMain) {
+      entityTags.push('main', entityName);
+    } else if (parentEntities.length > 0) {
+      entityTags.push('child', ...parentEntities);
+    } else if (isDictionary) {
+      entityTags.push('dictionary');
     }
     
     const entityField = {
@@ -689,7 +707,7 @@ function buildSemanticTree(fieldMap, fieldUsageByEntity) {
     
     tree.entityFields.push(entityField);
   }
-  
+
   return tree;
 }
 
