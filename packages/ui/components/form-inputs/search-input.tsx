@@ -12,7 +12,7 @@ const searchInputVariants = cva(
       variant: {
         default: "",
         /** Compact pill search for tab action headers */
-        tabSearch: "rounded-full h-8 text-sm",
+        tabSearch: "rounded-full h-8 text-sm bg-white/75 backdrop-blur-sm",
       },
     },
     defaultVariants: {
