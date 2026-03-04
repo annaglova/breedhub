@@ -1,5 +1,6 @@
 import { useRef, useState, useEffect, useMemo, useCallback } from "react";
 import { SearchInput } from "@ui/components/form-inputs/search-input";
+import { Plus } from "lucide-react";
 import { TabsContainer, Tab } from "../tabs/TabsContainer";
 import { TabActionsHeader } from "../tabs/TabActionsHeader";
 import { PageMenu } from "../tabs/PageMenu";
@@ -326,17 +327,30 @@ export function TabOutletRenderer({
           onTabChange={wrappedHandleTabChange}
           mode={tabMode}
         />
-        {/* Search actions header inside sticky wrapper (like fullscreen mode) */}
-        {activeTabData?.actionTypes?.includes("search") && (
+        {/* TabActionsHeader inside sticky wrapper (like fullscreen mode) */}
+        {activeTabData?.actionTypes?.length && (
           <TabActionsHeader
             left={
-              <SearchInput
-                variant="tabSearch"
-                placeholder={activeTabData.tabProps?.searchPlaceholder || "Search..."}
-                value={searchFilter}
-                onValueChange={setSearchFilter}
-                className="max-w-md"
-              />
+              activeTabData.actionTypes.includes("search") ? (
+                <SearchInput
+                  variant="tabSearch"
+                  placeholder={activeTabData.tabProps?.searchPlaceholder || "Search..."}
+                  value={searchFilter}
+                  onValueChange={setSearchFilter}
+                  className="max-w-md"
+                />
+              ) : undefined
+            }
+            right={
+              activeTabData.actionTypes.includes("add") ? (
+                <button
+                  type="button"
+                  className="flex items-center text-lg font-semibold text-sub-header-color hover:text-foreground/70 transition-colors focus:outline-none focus-visible:outline-none"
+                >
+                  <Plus className="mr-2 h-5 w-5" />
+                  Add
+                </button>
+              ) : undefined
             }
           />
         )}
