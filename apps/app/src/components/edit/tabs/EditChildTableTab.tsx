@@ -1,5 +1,5 @@
 import { useSelectedEntity } from "@/contexts/SpaceContext";
-import { useTabData } from "@breedhub/rxdb-store";
+import { dictionaryStore, useTabData } from "@breedhub/rxdb-store";
 import type { DataSourceConfig } from "@breedhub/rxdb-store";
 import { useSignals } from "@preact/signals-react/runtime";
 import { Button } from "@ui/components/button";
@@ -12,7 +12,7 @@ import {
 } from "@ui/components/dropdown-menu";
 import type { ColumnDef } from "@tanstack/react-table";
 import { MoreVertical, Pencil, Trash2 } from "lucide-react";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 interface FieldConfig {
   displayName: string;
@@ -73,11 +73,102 @@ function buildColumns(fields: Record<string, FieldConfig>): ColumnDef<any>[] {
     });
 }
 
+/** Resolve FK UUIDs to display names using DictionaryStore */
+function useEnrichedRecords(
+  records: any[] | undefined,
+  fields: Record<string, FieldConfig> | undefined,
+) {
+  const [enriched, setEnriched] = useState<any[]>([]);
+  const [isEnriching, setIsEnriching] = useState(false);
+
+  // Extract FK field metadata from config
+  const fkFields = useMemo(() => {
+    if (!fields) return [];
+    return Object.entries(fields)
+      .filter(([, config]) => config.isForeignKey)
+      .map(([key, config]) => ({
+        fieldName: extractFieldName(key),
+        referencedTable: config.referencedTable as string,
+        referencedFieldName: (config.referencedFieldName || "name") as string,
+      }));
+  }, [fields]);
+
+  useEffect(() => {
+    if (!records || records.length === 0) {
+      setEnriched(records || []);
+      return;
+    }
+    if (fkFields.length === 0) {
+      setEnriched(records);
+      return;
+    }
+
+    let cancelled = false;
+    setIsEnriching(true);
+
+    async function resolve() {
+      // Collect unique IDs per FK field and resolve in parallel
+      const lookups = new Map<string, Map<string, string>>();
+
+      await Promise.all(
+        fkFields.map(async (fk) => {
+          const ids = new Set<string>();
+          for (const r of records!) {
+            const val = r[fk.fieldName] ?? r.additional?.[fk.fieldName];
+            if (val) ids.add(val);
+          }
+
+          const resolved = new Map<string, string>();
+          await Promise.all(
+            [...ids].map(async (id) => {
+              const rec = await dictionaryStore.getRecordById(fk.referencedTable, id);
+              if (rec) {
+                resolved.set(id, String(rec[fk.referencedFieldName] || rec.name || ""));
+              }
+            }),
+          );
+          lookups.set(fk.fieldName, resolved);
+        }),
+      );
+
+      if (cancelled) return;
+
+      // Build enriched records with names instead of UUIDs
+      const result = records!.map((record) => {
+        const enrichedRecord = { ...record };
+        if (record.additional) {
+          enrichedRecord.additional = { ...record.additional };
+        }
+        for (const fk of fkFields) {
+          const resolved = lookups.get(fk.fieldName);
+          if (!resolved) continue;
+
+          if (enrichedRecord[fk.fieldName] && resolved.has(enrichedRecord[fk.fieldName])) {
+            enrichedRecord[fk.fieldName] = resolved.get(enrichedRecord[fk.fieldName]);
+          } else if (enrichedRecord.additional?.[fk.fieldName] && resolved.has(enrichedRecord.additional[fk.fieldName])) {
+            enrichedRecord.additional[fk.fieldName] = resolved.get(enrichedRecord.additional[fk.fieldName]);
+          }
+        }
+        return enrichedRecord;
+      });
+
+      setEnriched(result);
+      setIsEnriching(false);
+    }
+
+    resolve();
+    return () => { cancelled = true; };
+  }, [records, fkFields]);
+
+  return { enriched, isEnriching };
+}
+
 /**
  * EditChildTableTab - Child entity table for edit page
  *
  * Displays child records (identifiers, titles, health, etc.) using DataTable.
  * Columns are driven by fields config with showInTable flag.
+ * FK fields are resolved to display names via DictionaryStore.
  * CRUD operations will be added in next iteration.
  */
 export function EditChildTableTab({
@@ -100,6 +191,8 @@ export function EditChildTableTab({
     dataSource: dataSource?.[0]!,
     enabled: !!dataSource?.[0] && !!entityId,
   });
+
+  const { enriched: enrichedRecords, isEnriching } = useEnrichedRecords(records, fields);
 
   const columns = useMemo(() => {
     if (!fields) return [];
@@ -180,17 +273,15 @@ export function EditChildTableTab({
     );
   }
 
-  const recordsList = records || [];
-
   return (
     <div className="cursor-default">
       <DataTable
         columns={columns}
-        data={recordsList}
-        isLoading={isLoading}
+        data={enrichedRecords}
+        isLoading={isLoading || isEnriching}
         searchable
         searchPlaceholder={`Search ${label || "records"}...`}
-        paginated={recordsList.length > 20}
+        paginated={enrichedRecords.length > 20}
         defaultPageSize={20}
         emptyMessage={`No ${label || "records"} found`}
       />
