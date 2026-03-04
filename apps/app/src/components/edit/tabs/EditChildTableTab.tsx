@@ -11,7 +11,7 @@ import {
   DropdownMenuTrigger,
 } from "@ui/components/dropdown-menu";
 import type { ColumnDef } from "@tanstack/react-table";
-import { MoreHorizontal, Pencil, Trash2 } from "lucide-react";
+import { MoreVertical, Pencil, Trash2 } from "lucide-react";
 import { useEffect, useMemo } from "react";
 
 interface FieldConfig {
@@ -115,8 +115,8 @@ export function EditChildTableTab({
       cell: ({ row }) => (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="size-7">
-              <MoreHorizontal className="size-4" />
+            <Button variant="ghost-secondary" className="size-[2.25rem] rounded-full p-0">
+              <MoreVertical size={16} />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
