@@ -65,7 +65,7 @@ function DataTableColumnHeader<TData, TValue>({
     <Button
       variant="ghost"
       size="sm"
-      className={cn("-ml-3 h-8 text-[length:inherit] hover:bg-transparent hover:text-foreground", className)}
+      className={cn("-ml-3 h-8 text-[length:inherit] hover:bg-transparent hover:text-slate-600", className)}
       onClick={(e) => {
         // Multi-sort with Shift key
         column.toggleSorting(undefined, e.shiftKey);

@@ -271,7 +271,7 @@ function TabButton({ tab, isActive, onClick, onResize }: TabButtonProps) {
       <div
         className={cn(
           "flex shrink-0 items-center justify-center px-3 sm:px-5 py-2.5 sm:py-3.5 transition-colors",
-          isActive ? "text-primary" : "text-secondary"
+          isActive ? "text-primary" : "text-secondary hover:text-slate-600"
         )}
       >
         {/* Icon */}
