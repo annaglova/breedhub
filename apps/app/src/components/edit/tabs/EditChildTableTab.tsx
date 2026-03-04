@@ -29,6 +29,7 @@ interface EditChildTableTabProps {
   dataSource?: DataSourceConfig[];
   label?: string;
   onLoadedCount?: (count: number) => void;
+  searchFilter?: string;
 }
 
 function formatCellValue(value: unknown, fieldType?: string): string {
@@ -177,6 +178,7 @@ export function EditChildTableTab({
   dataSource,
   label,
   onLoadedCount,
+  searchFilter,
 }: EditChildTableTabProps) {
   useSignals();
 
@@ -280,15 +282,7 @@ export function EditChildTableTab({
         columns={columns}
         data={enrichedRecords}
         isLoading={isLoading || isEnriching}
-        searchable
-        searchPlaceholder={(() => {
-          const searchFields = fields
-            ? Object.values(fields).filter(f => f.searchable).map(f => f.displayName)
-            : [];
-          return searchFields.length > 0
-            ? `Search ${label || "records"} by ${searchFields.join(", ")}...`
-            : `Search ${label || "records"}...`;
-        })()}
+        globalFilter={searchFilter}
         paginated={enrichedRecords.length > 20}
         defaultPageSize={20}
         emptyMessage={`No ${label || "records"} found`}

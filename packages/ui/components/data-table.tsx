@@ -177,6 +177,8 @@ interface DataTableProps<TData> {
   data: TData[];
   searchable?: boolean;
   searchPlaceholder?: string;
+  globalFilter?: string;
+  onGlobalFilterChange?: (value: string) => void;
   paginated?: boolean;
   pageSizeOptions?: number[];
   defaultPageSize?: number;
@@ -193,6 +195,8 @@ function DataTable<TData>({
   data,
   searchable = false,
   searchPlaceholder = "Search...",
+  globalFilter: externalFilter,
+  onGlobalFilterChange: externalFilterChange,
   paginated = false,
   pageSizeOptions = [20, 30, 50],
   defaultPageSize = 20,
@@ -204,7 +208,13 @@ function DataTable<TData>({
   className,
 }: DataTableProps<TData>) {
   const [sorting, setSorting] = useState<SortingState>([]);
-  const [globalFilter, setGlobalFilter] = useState("");
+  const [internalFilter, setInternalFilter] = useState("");
+
+  const isControlled = externalFilter !== undefined;
+  const globalFilter = isControlled ? externalFilter : internalFilter;
+  const setGlobalFilter = isControlled
+    ? (value: string) => externalFilterChange?.(value)
+    : setInternalFilter;
 
   const table = useReactTable({
     data,
@@ -214,7 +224,7 @@ function DataTable<TData>({
       globalFilter,
     },
     onSortingChange: setSorting,
-    onGlobalFilterChange: setGlobalFilter,
+    onGlobalFilterChange: (value) => setGlobalFilter(typeof value === 'function' ? value(globalFilter) : value),
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),

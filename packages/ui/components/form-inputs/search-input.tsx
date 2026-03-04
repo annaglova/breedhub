@@ -1,10 +1,28 @@
 import React, { forwardRef, useState, useEffect, useCallback } from "react";
+import { cva, type VariantProps } from "class-variance-authority";
 import { Input } from "../input";
 import { FormField } from "../form-field";
 import { cn } from "@ui/lib/utils";
 import { Search, X } from "lucide-react";
 
-interface SearchInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'type' | 'value' | 'onChange' | 'size'> {
+const searchInputVariants = cva(
+  "",
+  {
+    variants: {
+      variant: {
+        default: "",
+        /** Compact pill search for tab action headers */
+        tabSearch: "rounded-full h-8 text-sm",
+      },
+    },
+    defaultVariants: {
+      variant: "default",
+    },
+  }
+);
+
+interface SearchInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'type' | 'value' | 'onChange' | 'size'>,
+  VariantProps<typeof searchInputVariants> {
   label?: string;
   error?: string;
   helperText?: string;
@@ -40,6 +58,7 @@ export const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(
     onValueChange,
     onImmediateChange,
     debounceMs = 0,
+    variant,
     pill = false,
     showClearButton = true,
     placeholder = "Search...",
@@ -47,6 +66,7 @@ export const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(
     disabledOnGray,
     ...props
   }, ref) => {
+    const isTabSearch = variant === "tabSearch";
     const hasError = touched && !!error;
 
     // Internal state for immediate updates
@@ -92,7 +112,7 @@ export const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(
         {/* Search icon */}
         <div className={cn(
           "absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none transition-colors z-10",
-          hasError ? "text-red-400" : "text-slate-400 group-focus-within/field:text-primary-600"
+          hasError ? "text-red-400" : isTabSearch ? "text-slate-400" : "text-slate-400 group-focus-within/field:text-primary-600"
         )}>
           <Search className="h-4 w-4" />
         </div>
@@ -106,12 +126,14 @@ export const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(
           disabled={disabled}
           className={cn(
             "peer pl-10 w-full transition-all duration-200",
+            searchInputVariants({ variant }),
             showClearButton && internalValue && "pr-10",
-            pill && "rounded-full",
+            (pill || isTabSearch) && "rounded-full",
             disabled && !disabledOnGray && "bg-slate-50 border-slate-200 text-slate-500 cursor-not-allowed",
             disabled && disabledOnGray && "bg-white/95 border-slate-300 text-slate-400 cursor-not-allowed",
             hasError && "border-red-500 hover:border-red-600 focus:border-red-500 focus:ring-2 focus:ring-red-500/20",
-            !hasError && !disabled && "border-slate-300 hover:border-slate-400 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20"
+            !hasError && !disabled && isTabSearch && "border-slate-300 hover:border-slate-400 focus:border-slate-400 focus:ring-2 focus:ring-secondary-200",
+            !hasError && !disabled && !isTabSearch && "border-slate-300 hover:border-slate-400 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20"
           )}
           aria-invalid={hasError ? "true" : undefined}
           aria-describedby={hasError ? `${props.id}-error` : undefined}

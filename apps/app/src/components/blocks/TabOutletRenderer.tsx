@@ -1,5 +1,7 @@
 import { useRef, useState, useEffect, useMemo, useCallback } from "react";
+import { SearchInput } from "@ui/components/form-inputs/search-input";
 import { TabsContainer, Tab } from "../tabs/TabsContainer";
+import { TabActionsHeader } from "../tabs/TabActionsHeader";
 import { PageMenu } from "../tabs/PageMenu";
 import { useTabNavigation } from "@/hooks/useTabNavigation";
 
@@ -69,6 +71,7 @@ interface TabConfig {
   dataSource?: any; // Config-driven data loading (see TAB_DATA_SERVICE_ARCHITECTURE.md)
   // Edit tab config
   fields?: Record<string, any>; // Fields config (EditFormTab, EditChildTableTab)
+  actionType?: string; // Tab action type: "pedigreeGenerations", "edit", "search"
 }
 
 interface TabOutletRendererProps {
@@ -126,6 +129,16 @@ function convertTabConfigToTabs(tabsConfig: Record<string, TabConfig>): Tab[] {
     if (config.fields) tabProps.fields = config.fields;
     if (config.label) tabProps.label = config.label;
 
+    // Build searchPlaceholder from searchable fields
+    if (config.actionType === "search" && config.fields) {
+      const searchFieldNames = Object.values(config.fields)
+        .filter((f: any) => f.searchable)
+        .map((f: any) => f.displayName);
+      tabProps.searchPlaceholder = searchFieldNames.length > 0
+        ? `Search ${config.label || "records"} by ${searchFieldNames.join(", ")}...`
+        : `Search ${config.label || "records"}...`;
+    }
+
     tabs.push({
       id: tabId,
       fragment,
@@ -138,6 +151,7 @@ function convertTabConfigToTabs(tabsConfig: Record<string, TabConfig>): Tab[] {
       expandAlways: config.expandAlways,
       dataSource: config.dataSource,
       focusMode: config.focusMode,
+      actionType: config.actionType as Tab["actionType"],
       // Pass edit-specific config as tabProps
       ...(Object.keys(tabProps).length > 0 ? { tabProps } : {}),
       // Internal fields
@@ -260,6 +274,13 @@ export function TabOutletRenderer({
     entityId,
   });
 
+  // Search filter for tabs with actionType "search" (reset on tab change)
+  const [searchFilter, setSearchFilter] = useState("");
+  useEffect(() => { setSearchFilter(""); }, [activeTab]);
+
+  // Active tab data for rendering TabActionsHeader
+  const activeTabData = tabs.find(t => t.fragment === activeTab);
+
   // Report whether the active tab is the default/first tab
   useEffect(() => {
     onDefaultTabChange?.(activeTab === defaultTab);
@@ -305,6 +326,20 @@ export function TabOutletRenderer({
           onTabChange={wrappedHandleTabChange}
           mode={tabMode}
         />
+        {/* Search actions header inside sticky wrapper (like fullscreen mode) */}
+        {activeTabData?.actionType === "search" && (
+          <TabActionsHeader
+            left={
+              <SearchInput
+                variant="tabSearch"
+                placeholder={activeTabData.tabProps?.searchPlaceholder || "Search..."}
+                value={searchFilter}
+                onValueChange={setSearchFilter}
+                className="max-w-md"
+              />
+            }
+          />
+        )}
       </div>
 
       {/* Tabs Section */}
@@ -317,6 +352,7 @@ export function TabOutletRenderer({
         tabHeaderTop={actualTabHeaderTop}
         entitySlug={entitySlug}
         entityId={entityId}
+        searchFilter={activeTabData?.actionType === "search" ? searchFilter : undefined}
       />
     </>
   );

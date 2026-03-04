@@ -60,7 +60,7 @@ export function TabActionsHeader({
       )}
       style={style}
     >
-      <div>{left}</div>
+      <div className="flex-1 min-w-0">{left}</div>
       <div>{right}</div>
     </div>
   );

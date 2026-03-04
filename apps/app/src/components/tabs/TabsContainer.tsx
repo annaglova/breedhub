@@ -20,7 +20,7 @@ export interface Tab {
    * - "edit": Edit button (only shown if canEdit in space config)
    * - undefined/null: No actions
    */
-  actionType?: "pedigreeGenerations" | "edit";
+  actionType?: "pedigreeGenerations" | "edit" | "search";
   focusMode?: boolean;
   zoomControl?: boolean;
   tabProps?: Record<string, any>; // Extra props passed from config to tab component
@@ -51,6 +51,7 @@ interface TabsContainerProps {
   tabHeaderTop?: number; // Top position for sticky TabHeader in scroll mode
   entitySlug?: string; // Entity slug for generating fullscreen URLs (e.g., "affenpinscher")
   entityId?: string; // Entity ID for storing loaded counts in spaceStore
+  searchFilter?: string; // External search filter from TabOutletRenderer (for actionType "search")
   className?: string;
 }
 
@@ -80,6 +81,7 @@ export function TabsContainer({
   tabHeaderTop = 0,
   entitySlug,
   entityId,
+  searchFilter,
   className,
 }: TabsContainerProps) {
   // Track loaded record counts per tab (for conditional fullscreen button)
@@ -198,6 +200,7 @@ export function TabsContainer({
           dataSource={activeTabData.dataSource}
           onLoadedCount={(count: number) => handleLoadedCount(activeTabData.id, count)}
           {...activeTabData.tabProps}
+          {...(searchFilter !== undefined ? { searchFilter } : {})}
         />
       </div>
     </div>
