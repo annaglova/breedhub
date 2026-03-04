@@ -71,7 +71,7 @@ interface TabConfig {
   dataSource?: any; // Config-driven data loading (see TAB_DATA_SERVICE_ARCHITECTURE.md)
   // Edit tab config
   fields?: Record<string, any>; // Fields config (EditFormTab, EditChildTableTab)
-  actionType?: string; // Tab action type: "pedigreeGenerations", "edit", "search"
+  actionTypes?: string[]; // Tab action types: ["search", "addRecord", ...]
 }
 
 interface TabOutletRendererProps {
@@ -130,7 +130,7 @@ function convertTabConfigToTabs(tabsConfig: Record<string, TabConfig>): Tab[] {
     if (config.label) tabProps.label = config.label;
 
     // Build searchPlaceholder from searchable fields
-    if (config.actionType === "search" && config.fields) {
+    if (config.actionTypes?.includes("search") && config.fields) {
       const searchFieldNames = Object.values(config.fields)
         .filter((f: any) => f.searchable)
         .map((f: any) => f.displayName);
@@ -151,7 +151,7 @@ function convertTabConfigToTabs(tabsConfig: Record<string, TabConfig>): Tab[] {
       expandAlways: config.expandAlways,
       dataSource: config.dataSource,
       focusMode: config.focusMode,
-      actionType: config.actionType as Tab["actionType"],
+      actionTypes: config.actionTypes,
       // Pass edit-specific config as tabProps
       ...(Object.keys(tabProps).length > 0 ? { tabProps } : {}),
       // Internal fields
@@ -327,7 +327,7 @@ export function TabOutletRenderer({
           mode={tabMode}
         />
         {/* Search actions header inside sticky wrapper (like fullscreen mode) */}
-        {activeTabData?.actionType === "search" && (
+        {activeTabData?.actionTypes?.includes("search") && (
           <TabActionsHeader
             left={
               <SearchInput
@@ -352,7 +352,7 @@ export function TabOutletRenderer({
         tabHeaderTop={actualTabHeaderTop}
         entitySlug={entitySlug}
         entityId={entityId}
-        searchFilter={activeTabData?.actionType === "search" ? searchFilter : undefined}
+        searchFilter={activeTabData?.actionTypes?.includes("search") ? searchFilter : undefined}
       />
     </>
   );

@@ -68,7 +68,7 @@ interface TabConfig {
   fullscreenButton?: boolean;
   expandAlways?: boolean; // Always show expand button (e.g., Pedigree tab)
   dataSource?: any; // Config-driven data loading
-  actionType?: "pedigreeGenerations" | "edit"; // Fullscreen mode action type
+  actionTypes?: string[]; // Action types: ["pedigreeGenerations", "edit", "search", ...]
   focusMode?: boolean; // Allow collapsing header/tabs to maximize content area
   zoomControl?: boolean; // Show zoom controls (80%, 90%, 100%)
 }
@@ -144,7 +144,7 @@ function convertFullscreenTabsToArray(
       fullscreenButton: config.fullscreenButton,
       expandAlways: config.expandAlways,
       dataSource: config.dataSource,
-      actionType: config.actionType,
+      actionTypes: config.actionTypes,
       focusMode: config.focusMode,
       zoomControl: config.zoomControl,
       _order: config.order,
@@ -532,7 +532,7 @@ export function TabPageTemplate({
               {/* TabActionsHeader - Renders actions based on tab's actionType */}
               <TabActionsHeader
                 left={
-                  currentTab.actionType === "pedigreeGenerations" ? (
+                  currentTab.actionTypes?.includes("pedigreeGenerations") ? (
                     <div className="flex items-center gap-4">
                       <PedigreeGenerationSelector
                         generations={pedigreeGenerations}
@@ -550,7 +550,7 @@ export function TabPageTemplate({
                   ) : undefined
                 }
                 right={
-                  currentTab.actionType === "edit" ? (
+                  currentTab.actionTypes?.includes("edit") ? (
                     <button
                       type="button"
                       className="flex items-center text-lg font-semibold text-sub-header-color hover:text-foreground/70 transition-colors focus:outline-none focus-visible:outline-none"

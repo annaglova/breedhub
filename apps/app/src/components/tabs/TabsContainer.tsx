@@ -14,13 +14,8 @@ export interface Tab {
   expandAlways?: boolean; // Always show expand button (e.g., for Pedigree tab)
   dataSource?: any; // Config-driven data loading (see TAB_DATA_SERVICE_ARCHITECTURE.md)
   component: React.ComponentType<any>;
-  /**
-   * Tab action type for fullscreen mode:
-   * - "pedigreeGenerations": Generation selector for pedigree tab
-   * - "edit": Edit button (only shown if canEdit in space config)
-   * - undefined/null: No actions
-   */
-  actionType?: "pedigreeGenerations" | "edit" | "search";
+  /** Tab action types: ["pedigreeGenerations", "edit", "search", "addRecord", ...] */
+  actionTypes?: string[];
   focusMode?: boolean;
   zoomControl?: boolean;
   tabProps?: Record<string, any>; // Extra props passed from config to tab component
