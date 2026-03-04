@@ -2,7 +2,16 @@ import { useSelectedEntity } from "@/contexts/SpaceContext";
 import { useTabData } from "@breedhub/rxdb-store";
 import type { DataSourceConfig } from "@breedhub/rxdb-store";
 import { useSignals } from "@preact/signals-react/runtime";
-import { cn } from "@ui/lib/utils";
+import { Button } from "@ui/components/button";
+import { DataTable, DataTableColumnHeader } from "@ui/components/data-table";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@ui/components/dropdown-menu";
+import type { ColumnDef } from "@tanstack/react-table";
+import { MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 import { useEffect, useMemo } from "react";
 
 interface EditChildTableTabProps {
@@ -13,10 +22,51 @@ interface EditChildTableTabProps {
   onLoadedCount?: (count: number) => void;
 }
 
+function formatCellValue(value: unknown, fieldType?: string): string {
+  if (value == null || value === "") return "";
+
+  if (fieldType === "boolean" || typeof value === "boolean") {
+    return value ? "Yes" : "No";
+  }
+
+  if (fieldType === "date" || fieldType === "datetime") {
+    const date = new Date(value as string);
+    if (!isNaN(date.getTime())) {
+      return fieldType === "datetime"
+        ? date.toLocaleString()
+        : date.toLocaleDateString();
+    }
+  }
+
+  return String(value);
+}
+
+function buildColumns(
+  displayFields: string[],
+  fields: Record<string, any>
+): ColumnDef<any>[] {
+  return displayFields.map((fieldName) => {
+    const fieldKey = Object.keys(fields).find(
+      (key) => key.endsWith(`_${fieldName}`) || key === fieldName
+    );
+    const fieldConfig = fieldKey ? fields[fieldKey] : null;
+    const displayName = fieldConfig?.displayName || fieldName;
+
+    return {
+      id: fieldName,
+      accessorFn: (row: any) => row[fieldName] ?? row.additional?.[fieldName] ?? "",
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title={displayName} />
+      ),
+      cell: ({ getValue }) => formatCellValue(getValue(), fieldConfig?.fieldType),
+    };
+  });
+}
+
 /**
  * EditChildTableTab - Child entity table for edit page
  *
- * Displays child records (identifiers, titles, health, etc.) in a basic table.
+ * Displays child records (identifiers, titles, health, etc.) using DataTable.
  * CRUD operations will be added in next iteration.
  */
 export function EditChildTableTab({
@@ -31,7 +81,6 @@ export function EditChildTableTab({
   const selectedEntity = useSelectedEntity();
   const entityId = selectedEntity?.id;
 
-  // Load child records via useTabData
   const {
     data: records,
     isLoading,
@@ -42,20 +91,51 @@ export function EditChildTableTab({
     enabled: !!dataSource?.[0] && !!entityId,
   });
 
-  // Get display columns from config
   const columns = useMemo(() => {
     if (!displayFields || !fields) return [];
-    return displayFields.map((fieldName) => {
-      // Find matching field config
-      const fieldKey = Object.keys(fields).find((key) =>
-        key.endsWith(`_${fieldName}`) || key === fieldName
-      );
-      const fieldConfig = fieldKey ? fields[fieldKey] : null;
-      return {
-        key: fieldName,
-        label: fieldConfig?.displayName || fieldName,
-      };
-    });
+
+    const dataColumns = buildColumns(displayFields, fields);
+
+    // Actions column
+    const actionsColumn: ColumnDef<any> = {
+      id: "actions",
+      enableSorting: false,
+      enableGlobalFilter: false,
+      header: () => null,
+      cell: ({ row }) => (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon" className="size-7">
+              <MoreHorizontal className="size-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem
+              onClick={() => {
+                // TODO: edit handler
+                console.log("Edit", row.original);
+              }}
+            >
+              <Pencil className="size-4 mr-2" />
+              Edit
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              className="text-destructive"
+              onClick={() => {
+                // TODO: delete handler
+                console.log("Delete", row.original);
+              }}
+            >
+              <Trash2 className="size-4 mr-2" />
+              Delete
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      ),
+      size: 50,
+    };
+
+    return [...dataColumns, actionsColumn];
   }, [displayFields, fields]);
 
   // Report count
@@ -72,43 +152,6 @@ export function EditChildTableTab({
         {childEntity
           ? `No data source configured for ${childEntity}`
           : "No child entity configured"}
-      </div>
-    );
-  }
-
-  // Loading skeleton
-  if (isLoading) {
-    return (
-      <div className="card card-rounded flex flex-col p-6 lg:px-8 animate-pulse">
-        <div
-          className="grid gap-3 border-b border-border px-6 py-3 lg:px-8"
-          style={{
-            gridTemplateColumns: `repeat(${columns.length || 3}, 1fr)`,
-          }}
-        >
-          {Array.from({ length: columns.length || 3 }).map((_, i) => (
-            <div
-              key={i}
-              className="h-4 bg-slate-200 dark:bg-slate-700 rounded-full w-20"
-            />
-          ))}
-        </div>
-        {Array.from({ length: 3 }).map((_, i) => (
-          <div
-            key={i}
-            className="grid gap-3 px-6 py-3 lg:px-8"
-            style={{
-              gridTemplateColumns: `repeat(${columns.length || 3}, 1fr)`,
-            }}
-          >
-            {Array.from({ length: columns.length || 3 }).map((_, j) => (
-              <div
-                key={j}
-                className="h-3.5 bg-slate-200 dark:bg-slate-700 rounded-full w-28"
-              />
-            ))}
-          </div>
-        ))}
       </div>
     );
   }
@@ -131,47 +174,18 @@ export function EditChildTableTab({
 
   return (
     <div className="card card-rounded flex flex-col p-6 lg:px-8 cursor-default">
-      {recordsList.length > 0 && columns.length > 0 ? (
-        <div className="grid">
-          {/* Header */}
-          <div
-            className="grid gap-3 border-b border-border px-6 py-3 font-bold text-secondary lg:px-8"
-            style={{
-              gridTemplateColumns: `repeat(${columns.length}, 1fr)`,
-            }}
-          >
-            {columns.map((col) => (
-              <div key={col.key}>{col.label}</div>
-            ))}
-          </div>
-
-          {/* Rows */}
-          {recordsList.map((record: any, index: number) => (
-            <div
-              key={record.id || index}
-              className={cn(
-                "grid items-center gap-3 px-6 py-2 lg:px-8",
-                index % 2 === 0 ? "bg-card-ground" : "bg-even-card-ground"
-              )}
-              style={{
-                gridTemplateColumns: `repeat(${columns.length}, 1fr)`,
-              }}
-            >
-              {columns.map((col) => (
-                <div key={col.key}>
-                  {record[col.key] ??
-                    record.additional?.[col.key] ??
-                    ""}
-                </div>
-              ))}
-            </div>
-          ))}
-        </div>
-      ) : (
-        <span className="text-secondary p-8 text-center">
-          No {childEntity || "records"} found
-        </span>
-      )}
+      <DataTable
+        columns={columns}
+        data={recordsList}
+        isLoading={isLoading}
+        searchable
+        searchPlaceholder={`Search ${childEntity || "records"}...`}
+        paginated={recordsList.length > 20}
+        defaultPageSize={20}
+        variant="bordered"
+        size="sm"
+        emptyMessage={`No ${childEntity || "records"} found`}
+      />
     </div>
   );
 }

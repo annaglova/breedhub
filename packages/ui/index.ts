@@ -13,6 +13,7 @@ export * from "./components/dialog";
 export * from "./components/alert-dialog";
 export * from "./components/badge";
 export * from "./components/table";
+export * from "./components/data-table";
 export * from "./components/avatar";
 export * from "./components/progress";
 export * from "./components/dropdown-menu";
