@@ -65,6 +65,7 @@ function buildColumns(fields: Record<string, FieldConfig>): ColumnDef<any>[] {
       return {
         id: fieldName,
         accessorFn: (row: any) => row[fieldName] ?? row.additional?.[fieldName] ?? "",
+        enableGlobalFilter: !!config.searchable,
         header: ({ column }) => (
           <DataTableColumnHeader column={column} title={config.displayName} />
         ),
@@ -280,7 +281,14 @@ export function EditChildTableTab({
         data={enrichedRecords}
         isLoading={isLoading || isEnriching}
         searchable
-        searchPlaceholder={`Search ${label || "records"}...`}
+        searchPlaceholder={(() => {
+          const searchFields = fields
+            ? Object.values(fields).filter(f => f.searchable).map(f => f.displayName)
+            : [];
+          return searchFields.length > 0
+            ? `Search ${label || "records"} by ${searchFields.join(", ")}...`
+            : `Search ${label || "records"}...`;
+        })()}
         paginated={enrichedRecords.length > 20}
         defaultPageSize={20}
         emptyMessage={`No ${label || "records"} found`}
