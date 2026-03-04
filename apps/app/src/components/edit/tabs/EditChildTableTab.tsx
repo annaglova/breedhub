@@ -14,11 +14,20 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 import { useEffect, useMemo } from "react";
 
+interface FieldConfig {
+  displayName: string;
+  fieldType: string;
+  showInTable?: boolean;
+  showInForm?: boolean;
+  order?: number;
+  sortOrder?: number;
+  [key: string]: any;
+}
+
 interface EditChildTableTabProps {
-  childEntity?: string;
-  displayFields?: string[];
-  fields?: Record<string, any>;
+  fields?: Record<string, FieldConfig>;
   dataSource?: DataSourceConfig[];
+  label?: string;
   onLoadedCount?: (count: number) => void;
 }
 
@@ -41,39 +50,40 @@ function formatCellValue(value: unknown, fieldType?: string): string {
   return String(value);
 }
 
-function buildColumns(
-  displayFields: string[],
-  fields: Record<string, any>
-): ColumnDef<any>[] {
-  return displayFields.map((fieldName) => {
-    const fieldKey = Object.keys(fields).find(
-      (key) => key.endsWith(`_${fieldName}`) || key === fieldName
-    );
-    const fieldConfig = fieldKey ? fields[fieldKey] : null;
-    const displayName = fieldConfig?.displayName || fieldName;
+/** Extract field name from config key: "title_in_pet_field_date" → "date" */
+function extractFieldName(configKey: string): string {
+  const match = configKey.match(/_field_(.+)$/);
+  return match ? match[1] : configKey;
+}
 
-    return {
-      id: fieldName,
-      accessorFn: (row: any) => row[fieldName] ?? row.additional?.[fieldName] ?? "",
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title={displayName} />
-      ),
-      cell: ({ getValue }) => formatCellValue(getValue(), fieldConfig?.fieldType),
-    };
-  });
+function buildColumns(fields: Record<string, FieldConfig>): ColumnDef<any>[] {
+  return Object.entries(fields)
+    .filter(([, config]) => config.showInTable)
+    .sort((a, b) => (a[1].order ?? a[1].sortOrder ?? 0) - (b[1].order ?? b[1].sortOrder ?? 0))
+    .map(([key, config]) => {
+      const fieldName = extractFieldName(key);
+      return {
+        id: fieldName,
+        accessorFn: (row: any) => row[fieldName] ?? row.additional?.[fieldName] ?? "",
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} title={config.displayName} />
+        ),
+        cell: ({ getValue }) => formatCellValue(getValue(), config.fieldType),
+      };
+    });
 }
 
 /**
  * EditChildTableTab - Child entity table for edit page
  *
  * Displays child records (identifiers, titles, health, etc.) using DataTable.
+ * Columns are driven by fields config with showInTable flag.
  * CRUD operations will be added in next iteration.
  */
 export function EditChildTableTab({
-  childEntity,
-  displayFields,
   fields,
   dataSource,
+  label,
   onLoadedCount,
 }: EditChildTableTabProps) {
   useSignals();
@@ -92,9 +102,9 @@ export function EditChildTableTab({
   });
 
   const columns = useMemo(() => {
-    if (!displayFields || !fields) return [];
+    if (!fields) return [];
 
-    const dataColumns = buildColumns(displayFields, fields);
+    const dataColumns = buildColumns(fields);
 
     // Actions column
     const actionsColumn: ColumnDef<any> = {
@@ -136,7 +146,7 @@ export function EditChildTableTab({
     };
 
     return [...dataColumns, actionsColumn];
-  }, [displayFields, fields]);
+  }, [fields]);
 
   // Report count
   useEffect(() => {
@@ -149,8 +159,8 @@ export function EditChildTableTab({
   if (!dataSource?.[0]) {
     return (
       <div className="py-8 text-center text-secondary">
-        {childEntity
-          ? `No data source configured for ${childEntity}`
+        {label
+          ? `No data source configured for ${label}`
           : "No child entity configured"}
       </div>
     );
@@ -162,7 +172,7 @@ export function EditChildTableTab({
       <div className="py-4">
         <div className="bg-red-50 border border-red-200 rounded-lg p-4">
           <p className="text-red-700 font-semibold">
-            Failed to load {childEntity || "records"}
+            Failed to load {label || "records"}
           </p>
           <p className="text-red-600 text-sm mt-1">{error.message}</p>
         </div>
@@ -179,12 +189,12 @@ export function EditChildTableTab({
         data={recordsList}
         isLoading={isLoading}
         searchable
-        searchPlaceholder={`Search ${childEntity || "records"}...`}
+        searchPlaceholder={`Search ${label || "records"}...`}
         paginated={recordsList.length > 20}
         defaultPageSize={20}
         variant="bordered"
         size="sm"
-        emptyMessage={`No ${childEntity || "records"} found`}
+        emptyMessage={`No ${label || "records"} found`}
       />
     </div>
   );

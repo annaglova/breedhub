@@ -68,9 +68,7 @@ interface TabConfig {
   focusMode?: boolean; // Allow collapsing header/tabs to maximize content area
   dataSource?: any; // Config-driven data loading (see TAB_DATA_SERVICE_ARCHITECTURE.md)
   // Edit tab config
-  fields?: Record<string, any>; // Form fields config (for EditFormTab)
-  childEntity?: string; // Child entity name (for EditChildTableTab)
-  displayFields?: string[]; // Display field names (for EditChildTableTab)
+  fields?: Record<string, any>; // Fields config (EditFormTab, EditChildTableTab)
 }
 
 interface TabOutletRendererProps {
@@ -123,11 +121,10 @@ function convertTabConfigToTabs(tabsConfig: Record<string, TabConfig>): Tab[] {
     // Use slug from config for URL fragment, fallback to tabId
     const fragment = config.slug || tabId;
 
-    // Build extra tabProps for edit tabs (fields, childEntity, displayFields)
+    // Build extra tabProps for edit tabs
     const tabProps: Record<string, any> = {};
     if (config.fields) tabProps.fields = config.fields;
-    if (config.childEntity) tabProps.childEntity = config.childEntity;
-    if (config.displayFields) tabProps.displayFields = config.displayFields;
+    if (config.label) tabProps.label = config.label;
 
     tabs.push({
       id: tabId,
