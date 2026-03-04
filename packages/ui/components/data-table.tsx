@@ -66,10 +66,7 @@ function DataTableColumnHeader<TData, TValue>({
       variant="ghost"
       size="sm"
       className={cn("-ml-3 h-8 text-[length:inherit] hover:bg-transparent hover:text-slate-600", className)}
-      onClick={(e) => {
-        // Multi-sort with Shift key
-        column.toggleSorting(undefined, e.shiftKey);
-      }}
+      onClick={() => column.toggleSorting()}
     >
       {title}
       {sorted === "asc" ? (
@@ -222,7 +219,7 @@ function DataTable<TData>({
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: paginated ? getPaginationRowModel() : undefined,
-    enableMultiSort: true,
+    enableMultiSort: false,
     initialState: {
       pagination: {
         pageSize: defaultPageSize,
