@@ -245,7 +245,12 @@ function DataTable<TData>({
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id} className="hover:bg-transparent">
                 {headerGroup.headers.map((header) => (
-                  <TableHead key={header.id} variant="default" className="font-bold text-secondary">
+                  <TableHead
+                    key={header.id}
+                    variant="default"
+                    className="font-bold text-secondary first:pl-4 last:pr-4"
+                    style={header.column.getSize() !== 150 ? { width: header.column.getSize() } : undefined}
+                  >
                     {header.isPlaceholder
                       ? null
                       : flexRender(
@@ -262,7 +267,7 @@ function DataTable<TData>({
               Array.from({ length: skeletonRows }).map((_, i) => (
                 <TableRow key={`skeleton-${i}`}>
                   {columns.map((_, j) => (
-                    <TableCell key={`skeleton-${i}-${j}`}>
+                    <TableCell key={`skeleton-${i}-${j}`} className="first:pl-4 last:pr-4">
                       <div className="h-4 bg-muted animate-pulse rounded" />
                     </TableCell>
                   ))}
@@ -272,7 +277,7 @@ function DataTable<TData>({
               table.getRowModel().rows.map((row) => (
                 <TableRow key={row.id} className="hover:bg-slate-50">
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
+                    <TableCell key={cell.id} className="first:pl-4 last:pr-4">
                       {flexRender(
                         cell.column.columnDef.cell,
                         cell.getContext()
