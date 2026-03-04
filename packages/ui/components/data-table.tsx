@@ -65,7 +65,7 @@ function DataTableColumnHeader<TData, TValue>({
     <Button
       variant="ghost"
       size="sm"
-      className={cn("-ml-3 h-8 text-[length:inherit]", className)}
+      className={cn("-ml-3 h-8 text-[length:inherit] hover:bg-transparent hover:text-foreground", className)}
       onClick={(e) => {
         // Multi-sort with Shift key
         column.toggleSorting(undefined, e.shiftKey);
@@ -246,7 +246,7 @@ function DataTable<TData>({
         <Table variant={variant}>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
+              <TableRow key={headerGroup.id} className="hover:bg-transparent">
                 {headerGroup.headers.map((header) => (
                   <TableHead key={header.id} variant="default" className="font-bold text-secondary">
                     {header.isPlaceholder
