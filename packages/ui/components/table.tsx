@@ -4,7 +4,7 @@ import * as React from "react";
 
 import { cn } from "@ui/lib/utils";
 
-const tableVariants = cva("w-full caption-bottom text-sm", {
+const tableVariants = cva("w-full caption-bottom", {
   variants: {
     variant: {
       default: "border-collapse",
@@ -13,7 +13,7 @@ const tableVariants = cva("w-full caption-bottom text-sm", {
     },
     size: {
       sm: "text-xs",
-      default: "text-sm",
+      default: "",
       lg: "text-base",
     },
   },
@@ -114,7 +114,7 @@ const tableCellVariants = cva(
       },
       size: {
         sm: "p-1 text-xs",
-        default: "p-2 text-sm",
+        default: "p-2",
         lg: "p-4 text-base",
       },
     },

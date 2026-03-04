@@ -183,7 +183,7 @@ export function EditChildTableTab({
   const recordsList = records || [];
 
   return (
-    <div className="card card-rounded flex flex-col p-6 lg:px-8 cursor-default">
+    <div className="cursor-default">
       <DataTable
         columns={columns}
         data={recordsList}
@@ -192,8 +192,6 @@ export function EditChildTableTab({
         searchPlaceholder={`Search ${label || "records"}...`}
         paginated={recordsList.length > 20}
         defaultPageSize={20}
-        variant="bordered"
-        size="sm"
         emptyMessage={`No ${label || "records"} found`}
       />
     </div>

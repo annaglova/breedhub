@@ -65,7 +65,7 @@ function DataTableColumnHeader<TData, TValue>({
     <Button
       variant="ghost"
       size="sm"
-      className={cn("-ml-3 h-8", className)}
+      className={cn("-ml-3 h-8 text-[length:inherit]", className)}
       onClick={(e) => {
         // Multi-sort with Shift key
         column.toggleSorting(undefined, e.shiftKey);
@@ -242,13 +242,13 @@ function DataTable<TData>({
           startIcon={<Search className="size-4" />}
         />
       )}
-      <div className="rounded-md border">
-        <Table variant={variant} size={size}>
+      <div className="border border-border">
+        <Table variant={variant}>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => (
-                  <TableHead key={header.id} size={size}>
+                  <TableHead key={header.id} variant="default" className="font-bold text-secondary">
                     {header.isPlaceholder
                       ? null
                       : flexRender(
@@ -265,7 +265,7 @@ function DataTable<TData>({
               Array.from({ length: skeletonRows }).map((_, i) => (
                 <TableRow key={`skeleton-${i}`}>
                   {columns.map((_, j) => (
-                    <TableCell key={`skeleton-${i}-${j}`} size={size}>
+                    <TableCell key={`skeleton-${i}-${j}`}>
                       <div className="h-4 bg-muted animate-pulse rounded" />
                     </TableCell>
                   ))}
@@ -273,9 +273,9 @@ function DataTable<TData>({
               ))
             ) : table.getRowModel().rows.length > 0 ? (
               table.getRowModel().rows.map((row) => (
-                <TableRow key={row.id}>
+                <TableRow key={row.id} className="hover:bg-slate-50">
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id} size={size}>
+                    <TableCell key={cell.id}>
                       {flexRender(
                         cell.column.columnDef.cell,
                         cell.getContext()
