@@ -13,13 +13,21 @@ interface DateInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement
   helperText?: string;
   required?: boolean;
   value?: Date | string | null;
-  onValueChange?: (date: Date | null) => void;
+  onValueChange?: (date: string | null) => void;
   minDate?: Date;
   maxDate?: Date;
   dateFormat?: string;
   placeholder?: string;
   fieldClassName?: string;
   disabled?: boolean;
+}
+
+/** Format Date to YYYY-MM-DD using local timezone (no UTC shift) */
+function toLocalDateString(date: Date): string {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
 }
 
 export const DateInput = forwardRef<HTMLInputElement, DateInputProps>(
@@ -93,7 +101,7 @@ export const DateInput = forwardRef<HTMLInputElement, DateInputProps>(
       } else {
         const parsedDate = parse(newValue, dateFormat, new Date());
         if (isValid(parsedDate)) {
-          onValueChange?.(parsedDate);
+          onValueChange?.(toLocalDateString(parsedDate));
         }
       }
     };
@@ -101,7 +109,7 @@ export const DateInput = forwardRef<HTMLInputElement, DateInputProps>(
     const handleCalendarSelect = (date: Date | undefined) => {
       if (date) {
         setInputValue(format(date, dateFormat));
-        onValueChange?.(date);
+        onValueChange?.(toLocalDateString(date));
         setIsOpen(false);
       }
     };
