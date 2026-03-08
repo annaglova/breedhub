@@ -309,13 +309,13 @@ export function EditChildTableTab({
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => handleEdit(row.original)}>
+            <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleEdit(row.original); }}>
               <Pencil className="size-4 mr-2" />
               Edit
             </DropdownMenuItem>
             <DropdownMenuItem
               className="text-destructive"
-              onClick={() => setDeletingRecord(row.original)}
+              onClick={(e) => { e.stopPropagation(); setDeletingRecord(row.original); }}
             >
               <Trash2 className="size-4 mr-2" />
               Delete
@@ -391,32 +391,34 @@ export function EditChildTableTab({
 
       {/* Delete confirmation dialog */}
       <Dialog open={!!deletingRecord} onOpenChange={() => setDeletingRecord(null)}>
-        <DialogContent className="max-w-sm">
+        <DialogContent className="max-w-sm" onOpenAutoFocus={(e) => e.preventDefault()}>
           <DialogHeader>
             <DialogTitle>Delete {label || "Record"}?</DialogTitle>
           </DialogHeader>
-          <div className="modal-card">
-            <p className="text-sm text-muted-foreground">
-              This action cannot be undone.
-            </p>
-          </div>
-          <div className="modal-actions">
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={() => setDeletingRecord(null)}
-              className="small-button bg-secondary-100 hover:bg-secondary-200 focus:bg-secondary-300 text-slate-800 dark:text-zinc-900 dark:bg-surface-400 dark:hover:bg-surface-300"
-            >
-              Cancel
-            </Button>
-            <Button
-              type="button"
-              onClick={handleDelete}
-              disabled={isDeleting}
-              className="small-button bg-red-100 hover:bg-red-200 focus:bg-red-300 text-red-700 dark:bg-red-900 dark:hover:bg-red-800 dark:text-red-200"
-            >
-              {isDeleting ? "Deleting..." : "Delete"}
-            </Button>
+          <div>
+            <div className="modal-card">
+              <p className="text-base">
+                This action cannot be undone.
+              </p>
+            </div>
+            <div className="modal-actions">
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => setDeletingRecord(null)}
+                className="small-button bg-secondary-100 hover:bg-secondary-200 focus-visible:bg-secondary-200 text-slate-800 dark:text-zinc-900 dark:bg-surface-400 dark:hover:bg-surface-300"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="button"
+                onClick={handleDelete}
+                disabled={isDeleting}
+                className="small-button bg-red-100 hover:bg-red-200 focus-visible:bg-red-300 text-red-700 dark:bg-red-900 dark:hover:bg-red-800 dark:text-red-200"
+              >
+                {isDeleting ? "Deleting..." : "Delete"}
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>

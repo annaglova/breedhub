@@ -362,7 +362,7 @@ function EditBlocks({
             <Button
               type="button"
               onClick={handleLeaveDiscard}
-              className="small-button bg-pink-50 hover:bg-pink-100 focus-visible:bg-pink-200 dark:bg-pink-300 dark:hover:bg-pink-200 dark:focus-visible:bg-pink-100 text-pink-600 dark:text-zinc-900"
+              className="small-button bg-red-100 hover:bg-red-200 focus-visible:bg-red-300 text-red-700 dark:bg-red-900 dark:hover:bg-red-800 dark:text-red-200"
             >
               Discard
             </Button>
