@@ -553,6 +553,7 @@ export function TabPageTemplate({
                   currentTab.actionTypes?.includes("edit") ? (
                     <button
                       type="button"
+                      onClick={() => navigate(`/${entitySlug}/edit#${activeTabSlug}`)}
                       className="flex items-center text-lg font-semibold text-sub-header-color hover:text-foreground/70 transition-colors focus:outline-none focus-visible:outline-none"
                     >
                       <Pencil className="mr-2 h-5 w-5" />
