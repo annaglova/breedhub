@@ -506,9 +506,15 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
     const filteredOptions = useMemo(() => {
       if (!value || !searchFilteredOptions.length || inputValue.trim()) return searchFilteredOptions;
       const selected = searchFilteredOptions.find(opt => opt.value === value);
-      if (!selected) return searchFilteredOptions;
-      return [selected, ...searchFilteredOptions.filter(opt => opt.value !== value)];
-    }, [searchFilteredOptions, value, inputValue]);
+      if (selected) {
+        return [selected, ...searchFilteredOptions.filter(opt => opt.value !== value)];
+      }
+      // Selected not in current page — prepend from cache if available
+      if (selectedOption) {
+        return [selectedOption, ...searchFilteredOptions];
+      }
+      return searchFilteredOptions;
+    }, [searchFilteredOptions, value, inputValue, selectedOption]);
 
     // Handle clicks outside — check both trigger and portal dropdown
     useEffect(() => {
