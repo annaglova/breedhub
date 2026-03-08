@@ -4310,11 +4310,15 @@ class SpaceStore {
     // Normalize VIEW name to base table for RxDB
     const normalizedTableType = tableType.replace(/_with_\w+$/, '');
 
+    // Sanitize data: ensure plain JSON (no Date objects, Proxy, etc.)
+    const plainData = JSON.parse(JSON.stringify(data));
+
     // Determine parent ID field
     const parentIdField = `${entityType}_id`;
 
     // Build Supabase row
-    const row: Record<string, any> = { id, [parentIdField]: parentId, ...data };
+    const now = new Date().toISOString();
+    const row: Record<string, any> = { id, [parentIdField]: parentId, ...plainData, created_at: now, updated_at: now };
 
     // Handle partition: add partition field if entity is partitioned
     const entitySchema = this.entitySchemas.get(entityType);
@@ -4347,7 +4351,7 @@ class SpaceStore {
         id,
         tableType: normalizedTableType,
         parentId,
-        additional: { ...data },
+        additional: { ...plainData },
         cachedAt: Date.now(),
       };
       if (partitionConfig && partitionValue) {
@@ -4375,11 +4379,14 @@ class SpaceStore {
   ): Promise<void> {
     const normalizedTableType = tableType.replace(/_with_\w+$/, '');
 
+    // Sanitize data: ensure plain JSON (no Date objects, Proxy, etc.)
+    const plainData = JSON.parse(JSON.stringify(data));
+
     // Update Supabase
     const { supabase } = await import('../supabase/client');
     const { error } = await supabase
       .from(normalizedTableType)
-      .update(data)
+      .update({ ...plainData, updated_at: new Date().toISOString() })
       .eq('id', recordId);
     if (error) {
       throw new Error(`Failed to update child record: ${error.message}`);
@@ -4392,7 +4399,7 @@ class SpaceStore {
       if (doc) {
         const currentAdditional = doc.toJSON().additional || {};
         await doc.patch({
-          additional: { ...currentAdditional, ...data },
+          additional: { ...currentAdditional, ...plainData },
           cachedAt: Date.now(),
         });
       }

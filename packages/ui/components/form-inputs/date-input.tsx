@@ -12,7 +12,7 @@ interface DateInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement
   error?: string;
   helperText?: string;
   required?: boolean;
-  value?: Date | null;
+  value?: Date | string | null;
   onValueChange?: (date: Date | null) => void;
   minDate?: Date;
   maxDate?: Date;
@@ -39,9 +39,16 @@ export const DateInput = forwardRef<HTMLInputElement, DateInputProps>(
     disabled,
     ...props 
   }, ref) => {
+    // Normalize value: accept both Date and ISO string
+    const normalizedValue = value
+      ? (value instanceof Date ? value : new Date(value))
+      : null;
+    // Guard against invalid dates
+    const safeValue = normalizedValue && !isNaN(normalizedValue.getTime()) ? normalizedValue : null;
+
     const [isOpen, setIsOpen] = useState(false);
     const [inputValue, setInputValue] = useState(
-      value ? format(value, dateFormat) : ""
+      safeValue ? format(safeValue, dateFormat) : ""
     );
     const triggerRef = useRef<HTMLDivElement>(null);
     const calendarRef = useRef<HTMLDivElement>(null);
@@ -73,8 +80,8 @@ export const DateInput = forwardRef<HTMLInputElement, DateInputProps>(
 
     // Update input value when value prop changes
     React.useEffect(() => {
-      setInputValue(value ? format(value, dateFormat) : "");
-    }, [value, dateFormat]);
+      setInputValue(safeValue ? format(safeValue, dateFormat) : "");
+    }, [safeValue?.getTime(), dateFormat]);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       const newValue = e.target.value;
@@ -138,7 +145,7 @@ export const DateInput = forwardRef<HTMLInputElement, DateInputProps>(
             style={{ top: calendarPos.top, left: calendarPos.left }}
           >
             <CustomCalendar
-              selected={value || undefined}
+              selected={safeValue || undefined}
               onSelect={handleCalendarSelect}
               fromYear={1900}
               toYear={2030}
