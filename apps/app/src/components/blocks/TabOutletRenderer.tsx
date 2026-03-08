@@ -279,6 +279,10 @@ export function TabOutletRenderer({
   const [searchFilter, setSearchFilter] = useState("");
   useEffect(() => { setSearchFilter(""); }, [activeTab]);
 
+  // Add dialog state for child table tabs (reset on tab change)
+  const [addDialogOpen, setAddDialogOpen] = useState(false);
+  useEffect(() => { setAddDialogOpen(false); }, [activeTab]);
+
   // Active tab data for rendering TabActionsHeader
   const activeTabData = tabs.find(t => t.fragment === activeTab);
 
@@ -346,6 +350,7 @@ export function TabOutletRenderer({
                 <button
                   type="button"
                   className="flex items-center text-lg font-semibold text-sub-header-color hover:text-foreground/70 transition-colors focus:outline-none focus-visible:outline-none"
+                  onClick={() => setAddDialogOpen(true)}
                 >
                   <Plus className="mr-2 h-5 w-5" />
                   Add
@@ -367,6 +372,8 @@ export function TabOutletRenderer({
         entitySlug={entitySlug}
         entityId={entityId}
         searchFilter={activeTabData?.actionTypes?.includes("search") ? searchFilter : undefined}
+        addDialogOpen={activeTabData?.actionTypes?.includes("add") ? addDialogOpen : undefined}
+        onAddDialogClose={() => setAddDialogOpen(false)}
       />
     </>
   );

@@ -187,6 +187,7 @@ interface DataTableProps<TData> {
   emptyMessage?: string;
   variant?: "default" | "bordered";
   size?: "sm" | "default" | "lg";
+  onRowClick?: (row: TData) => void;
   className?: string;
 }
 
@@ -205,6 +206,7 @@ function DataTable<TData>({
   emptyMessage = "No data available",
   variant = "default",
   size = "default",
+  onRowClick,
   className,
 }: DataTableProps<TData>) {
   const [sorting, setSorting] = useState<SortingState>([]);
@@ -285,7 +287,11 @@ function DataTable<TData>({
               ))
             ) : table.getRowModel().rows.length > 0 ? (
               table.getRowModel().rows.map((row) => (
-                <TableRow key={row.id} className="hover:bg-slate-50">
+                <TableRow
+                  key={row.id}
+                  className={cn("hover:bg-slate-50", onRowClick && "cursor-pointer")}
+                  onClick={onRowClick ? () => onRowClick(row.original) : undefined}
+                >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id} className="first:pl-4 last:pr-4">
                       {flexRender(

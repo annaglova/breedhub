@@ -47,6 +47,8 @@ interface TabsContainerProps {
   entitySlug?: string; // Entity slug for generating fullscreen URLs (e.g., "affenpinscher")
   entityId?: string; // Entity ID for storing loaded counts in spaceStore
   searchFilter?: string; // External search filter from TabOutletRenderer (for actionType "search")
+  addDialogOpen?: boolean; // External add dialog state from TabOutletRenderer (for actionType "add")
+  onAddDialogClose?: () => void; // Callback to reset add dialog state
   className?: string;
 }
 
@@ -77,6 +79,8 @@ export function TabsContainer({
   entitySlug,
   entityId,
   searchFilter,
+  addDialogOpen,
+  onAddDialogClose,
   className,
 }: TabsContainerProps) {
   // Track loaded record counts per tab (for conditional fullscreen button)
@@ -196,6 +200,7 @@ export function TabsContainer({
           onLoadedCount={(count: number) => handleLoadedCount(activeTabData.id, count)}
           {...activeTabData.tabProps}
           {...(searchFilter !== undefined ? { searchFilter } : {})}
+          {...(addDialogOpen !== undefined ? { addDialogOpen, onAddDialogClose } : {})}
         />
       </div>
     </div>

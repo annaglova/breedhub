@@ -1,9 +1,16 @@
 import { useSelectedEntity } from "@/contexts/SpaceContext";
-import { dictionaryStore, useTabData } from "@breedhub/rxdb-store";
+import { dictionaryStore, spaceStore, toast, useTabData } from "@breedhub/rxdb-store";
 import type { DataSourceConfig } from "@breedhub/rxdb-store";
 import { useSignals } from "@preact/signals-react/runtime";
 import { Button } from "@ui/components/button";
 import { DataTable, DataTableColumnHeader } from "@ui/components/data-table";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@ui/components/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,11 +19,13 @@ import {
 } from "@ui/components/dropdown-menu";
 import type { ColumnDef } from "@tanstack/react-table";
 import { MoreVertical, Pencil, Trash2 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { EditChildRecordDialog } from "../EditChildRecordDialog";
 
 interface FieldConfig {
   displayName: string;
   fieldType: string;
+  component?: string;
   showInTable?: boolean;
   showInForm?: boolean;
   order?: number;
@@ -30,6 +39,9 @@ interface EditChildTableTabProps {
   label?: string;
   onLoadedCount?: (count: number) => void;
   searchFilter?: string;
+  entityType?: string;
+  addDialogOpen?: boolean;
+  onAddDialogClose?: () => void;
 }
 
 function formatCellValue(value: unknown, fieldType?: string): string {
@@ -171,7 +183,7 @@ function useEnrichedRecords(
  * Displays child records (identifiers, titles, health, etc.) using DataTable.
  * Columns are driven by fields config with showInTable flag.
  * FK fields are resolved to display names via DictionaryStore.
- * CRUD operations will be added in next iteration.
+ * Supports Edit/Delete/Add via EditChildRecordDialog.
  */
 export function EditChildTableTab({
   fields,
@@ -179,16 +191,39 @@ export function EditChildTableTab({
   label,
   onLoadedCount,
   searchFilter,
+  entityType,
+  addDialogOpen,
+  onAddDialogClose,
 }: EditChildTableTabProps) {
   useSignals();
 
   const selectedEntity = useSelectedEntity();
   const entityId = selectedEntity?.id;
 
+  // Resolve entityType from dataSource if not provided directly
+  const resolvedEntityType = useMemo(() => {
+    if (entityType) return entityType;
+    const tableType = dataSource?.[0]?.childTable?.table;
+    if (!tableType) return '';
+    // Use spaceStore's internal logic: try common patterns
+    const normalized = tableType.replace(/_with_\w+$/, '');
+    if (normalized.includes('_in_breed') || normalized.startsWith('breed_')) return 'breed';
+    if (normalized.includes('_in_pet') || normalized.startsWith('pet_')) return 'pet';
+    if (normalized.includes('_in_litter') || normalized.startsWith('litter_')) return 'litter';
+    if (normalized.includes('_in_kennel') || normalized.startsWith('kennel_')) return 'account';
+    if (normalized.includes('_in_program') || normalized.startsWith('program_')) return 'program';
+    if (normalized.startsWith('contact_')) return 'contact';
+    if (normalized.startsWith('account_')) return 'account';
+    return '';
+  }, [entityType, dataSource]);
+
+  const tableType = dataSource?.[0]?.childTable?.table || '';
+
   const {
     data: records,
     isLoading,
     error,
+    refetch,
   } = useTabData({
     parentId: entityId,
     dataSource: dataSource?.[0]!,
@@ -196,6 +231,58 @@ export function EditChildTableTab({
   });
 
   const { enriched: enrichedRecords, isEnriching } = useEnrichedRecords(records, fields);
+
+  // Dialog state
+  const [editingRecord, setEditingRecord] = useState<Record<string, any> | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [deletingRecord, setDeletingRecord] = useState<Record<string, any> | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  // Handle Add button from parent (TabOutletRenderer)
+  useEffect(() => {
+    if (addDialogOpen) {
+      setEditingRecord(null);
+      setIsDialogOpen(true);
+    }
+  }, [addDialogOpen]);
+
+  // Sync dialog close back to parent
+  const handleDialogClose = useCallback((open: boolean) => {
+    setIsDialogOpen(open);
+    if (!open) {
+      setEditingRecord(null);
+      onAddDialogClose?.();
+    }
+  }, [onAddDialogClose]);
+
+  const handleEdit = useCallback((row: Record<string, any>) => {
+    setEditingRecord(row);
+    setIsDialogOpen(true);
+  }, []);
+
+  const handleRowClick = useCallback((row: any) => {
+    handleEdit(row);
+  }, [handleEdit]);
+
+  const handleDelete = async () => {
+    if (!deletingRecord || !resolvedEntityType) return;
+
+    setIsDeleting(true);
+    try {
+      await spaceStore.deleteChildRecord(resolvedEntityType, tableType, deletingRecord.id);
+      toast.success(`${label || "Record"} deleted`);
+      setDeletingRecord(null);
+      refetch();
+    } catch (err: any) {
+      toast.error(err.message || `Failed to delete ${label || "record"}`);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const handleSaved = useCallback(() => {
+    refetch();
+  }, [refetch]);
 
   const columns = useMemo(() => {
     if (!fields) return [];
@@ -211,26 +298,22 @@ export function EditChildTableTab({
       cell: ({ row }) => (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost-secondary" className="size-[2.25rem] rounded-full p-0">
+            <Button
+              variant="ghost-secondary"
+              className="size-[2.25rem] rounded-full p-0"
+              onClick={(e) => e.stopPropagation()}
+            >
               <MoreVertical size={16} />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem
-              onClick={() => {
-                // TODO: edit handler
-                console.log("Edit", row.original);
-              }}
-            >
+            <DropdownMenuItem onClick={() => handleEdit(row.original)}>
               <Pencil className="size-4 mr-2" />
               Edit
             </DropdownMenuItem>
             <DropdownMenuItem
               className="text-destructive"
-              onClick={() => {
-                // TODO: delete handler
-                console.log("Delete", row.original);
-              }}
+              onClick={() => setDeletingRecord(row.original)}
             >
               <Trash2 className="size-4 mr-2" />
               Delete
@@ -242,7 +325,7 @@ export function EditChildTableTab({
     };
 
     return [...dataColumns, actionsColumn];
-  }, [fields]);
+  }, [fields, handleEdit]);
 
   // Report count
   useEffect(() => {
@@ -286,7 +369,43 @@ export function EditChildTableTab({
         paginated={enrichedRecords.length > 20}
         defaultPageSize={20}
         emptyMessage={`No ${label || "records"} found`}
+        onRowClick={handleRowClick}
       />
+
+      {/* Edit/Create dialog */}
+      {fields && entityId && (
+        <EditChildRecordDialog
+          open={isDialogOpen}
+          onOpenChange={handleDialogClose}
+          record={editingRecord}
+          fields={fields}
+          tableType={tableType}
+          parentId={entityId}
+          entityType={resolvedEntityType}
+          label={label}
+          onSaved={handleSaved}
+        />
+      )}
+
+      {/* Delete confirmation dialog */}
+      <Dialog open={!!deletingRecord} onOpenChange={() => setDeletingRecord(null)}>
+        <DialogContent size="sm">
+          <DialogHeader>
+            <DialogTitle>Delete {label || "Record"}?</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            This action cannot be undone.
+          </p>
+          <DialogFooter>
+            <Button variant="secondary" onClick={() => setDeletingRecord(null)}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={handleDelete} disabled={isDeleting}>
+              {isDeleting ? "Deleting..." : "Delete"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

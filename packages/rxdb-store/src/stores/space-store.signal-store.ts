@@ -4286,6 +4286,153 @@ class SpaceStore {
     }
   }
 
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Child Tables: CRUD Operations
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /**
+   * Create a new child record (Supabase + RxDB)
+   *
+   * @param entityType - Parent entity type (e.g., 'pet', 'breed')
+   * @param tableType - Child table name (e.g., 'title_in_pet')
+   * @param parentId - Parent entity ID
+   * @param data - Record data (field values)
+   * @returns Created record ID
+   */
+  async createChildRecord(
+    entityType: string,
+    tableType: string,
+    parentId: string,
+    data: Record<string, any>
+  ): Promise<{ id: string }> {
+    const id = crypto.randomUUID();
+
+    // Normalize VIEW name to base table for RxDB
+    const normalizedTableType = tableType.replace(/_with_\w+$/, '');
+
+    // Determine parent ID field
+    const parentIdField = `${entityType}_id`;
+
+    // Build Supabase row
+    const row: Record<string, any> = { id, [parentIdField]: parentId, ...data };
+
+    // Handle partition: add partition field if entity is partitioned
+    const entitySchema = this.entitySchemas.get(entityType);
+    const partitionConfig = entitySchema?.partition;
+    let partitionValue: string | undefined;
+
+    if (partitionConfig) {
+      let parentEntity = await this.getById(entityType, parentId);
+      if (!parentEntity && this.db?.collections[entityType]) {
+        const doc = await this.db.collections[entityType].findOne(parentId).exec();
+        if (doc) parentEntity = doc.toJSON();
+      }
+      if (parentEntity) {
+        partitionValue = (parentEntity as any)[partitionConfig.keyField];
+        row[partitionConfig.childFilterField] = partitionValue;
+      }
+    }
+
+    // Insert into Supabase
+    const { supabase } = await import('../supabase/client');
+    const { error } = await supabase.from(normalizedTableType).insert(row);
+    if (error) {
+      throw new Error(`Failed to create child record: ${error.message}`);
+    }
+
+    // Upsert into RxDB
+    const collection = await this.ensureChildCollection(entityType);
+    if (collection) {
+      const rxdbRecord: Record<string, any> = {
+        id,
+        tableType: normalizedTableType,
+        parentId,
+        additional: { ...data },
+        cachedAt: Date.now(),
+      };
+      if (partitionConfig && partitionValue) {
+        rxdbRecord.partitionId = partitionValue;
+      }
+      await collection.upsert(rxdbRecord);
+    }
+
+    return { id };
+  }
+
+  /**
+   * Update an existing child record (Supabase + RxDB)
+   *
+   * @param entityType - Parent entity type (e.g., 'pet', 'breed')
+   * @param tableType - Child table name (e.g., 'title_in_pet')
+   * @param recordId - Record ID to update
+   * @param data - Fields to update
+   */
+  async updateChildRecord(
+    entityType: string,
+    tableType: string,
+    recordId: string,
+    data: Record<string, any>
+  ): Promise<void> {
+    const normalizedTableType = tableType.replace(/_with_\w+$/, '');
+
+    // Update Supabase
+    const { supabase } = await import('../supabase/client');
+    const { error } = await supabase
+      .from(normalizedTableType)
+      .update(data)
+      .eq('id', recordId);
+    if (error) {
+      throw new Error(`Failed to update child record: ${error.message}`);
+    }
+
+    // Update RxDB
+    const collection = await this.ensureChildCollection(entityType);
+    if (collection) {
+      const doc = await collection.findOne(recordId).exec();
+      if (doc) {
+        const currentAdditional = doc.toJSON().additional || {};
+        await doc.patch({
+          additional: { ...currentAdditional, ...data },
+          cachedAt: Date.now(),
+        });
+      }
+    }
+  }
+
+  /**
+   * Delete a child record (Supabase + RxDB)
+   *
+   * @param entityType - Parent entity type (e.g., 'pet', 'breed')
+   * @param tableType - Child table name (e.g., 'title_in_pet')
+   * @param recordId - Record ID to delete
+   */
+  async deleteChildRecord(
+    entityType: string,
+    tableType: string,
+    recordId: string
+  ): Promise<void> {
+    const normalizedTableType = tableType.replace(/_with_\w+$/, '');
+
+    // Delete from Supabase
+    const { supabase } = await import('../supabase/client');
+    const { error } = await supabase
+      .from(normalizedTableType)
+      .delete()
+      .eq('id', recordId);
+    if (error) {
+      throw new Error(`Failed to delete child record: ${error.message}`);
+    }
+
+    // Remove from RxDB
+    const collection = await this.ensureChildCollection(entityType);
+    if (collection) {
+      const doc = await collection.findOne(recordId).exec();
+      if (doc) {
+        await doc.remove();
+      }
+    }
+  }
+
   /**
    * Determine entity type from child table name
    * e.g., 'achievement_in_breed' -> 'breed'
