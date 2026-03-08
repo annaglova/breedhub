@@ -4413,17 +4413,17 @@ class SpaceStore {
   ): Promise<void> {
     const normalizedTableType = tableType.replace(/_with_\w+$/, '');
 
-    // Delete from Supabase
+    // Soft delete in Supabase (set deleted = true)
     const { supabase } = await import('../supabase/client');
     const { error } = await supabase
       .from(normalizedTableType)
-      .delete()
+      .update({ deleted: true })
       .eq('id', recordId);
     if (error) {
       throw new Error(`Failed to delete child record: ${error.message}`);
     }
 
-    // Remove from RxDB
+    // Remove from RxDB (local cache — no need to keep deleted records)
     const collection = await this.ensureChildCollection(entityType);
     if (collection) {
       const doc = await collection.findOne(recordId).exec();
