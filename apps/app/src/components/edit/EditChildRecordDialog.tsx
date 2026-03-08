@@ -3,7 +3,6 @@ import { Button } from "@ui/components/button";
 import {
   Dialog,
   DialogContent,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@ui/components/dialog";
@@ -25,7 +24,7 @@ import {
 } from "@ui/components/form-inputs";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
-// Component mapping (same as EditFormTab)
+// Component mapping (same as EditFormTab / FiltersDialog)
 const componentMap: Record<string, React.ComponentType<any>> = {
   TextInput,
   TextareaInput,
@@ -124,37 +123,10 @@ export function EditChildRecordDialog({
       .sort((a, b) => (a[1].order ?? a[1].sortOrder ?? 0) - (b[1].order ?? b[1].sortOrder ?? 0));
   }, [fields]);
 
-  // Group fields (same logic as EditFormTab)
-  const groupedFields = useMemo(() => {
-    const groups: Array<{
-      label: string | null;
-      layout: "horizontal" | "vertical";
-      fields: Array<[string, FieldConfig]>;
-    }> = [];
-    const groupMap = new Map<string | null, {
-      layout: "horizontal" | "vertical";
-      fields: Array<[string, FieldConfig]>;
-    }>();
-
-    for (const entry of formFields) {
-      const groupKey = entry[1].group || null;
-      if (!groupMap.has(groupKey)) {
-        const group = {
-          layout: (entry[1].groupLayout || "vertical") as "horizontal" | "vertical",
-          fields: [] as Array<[string, FieldConfig]>,
-        };
-        groupMap.set(groupKey, group);
-        groups.push({ label: groupKey, ...group });
-      }
-      groupMap.get(groupKey)!.fields.push(entry);
-    }
-
-    return groups;
-  }, [formFields]);
-
   const hasChanges = Object.keys(formChanges).length > 0;
 
-  const handleSave = async () => {
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault();
     if (!hasChanges) return;
 
     setIsSaving(true);
@@ -176,17 +148,17 @@ export function EditChildRecordDialog({
   };
 
   const renderField = (fieldId: string, field: FieldConfig) => {
-    const Component = componentMap[field.component];
+    const Component = componentMap[field.component!];
     if (!Component) return null;
 
     const fieldName = extractFieldName(fieldId);
-    const isChecked = ONCHECKED_COMPONENTS.has(field.component);
+    const isChecked = ONCHECKED_COMPONENTS.has(field.component!);
 
     // Get current value: form changes → record additional → record top-level → default
     const recordValue = record?.additional?.[fieldName] ?? record?.[fieldName];
     const currentValue = formChanges[fieldName] ?? recordValue;
 
-    const changeProps = ONCHANGE_COMPONENTS.has(field.component)
+    const changeProps = ONCHANGE_COMPONENTS.has(field.component!)
       ? { onChange: (e: React.ChangeEvent<HTMLInputElement>) => handleFieldChange(fieldName, e.target.value) }
       : isChecked
         ? { onCheckedChange: (checked: boolean) => handleFieldChange(fieldName, checked) }
@@ -197,7 +169,7 @@ export function EditChildRecordDialog({
       : { value: currentValue ?? "" };
 
     return (
-      <div key={fieldId}>
+      <div key={fieldId} className="space-y-2">
         <Component
           label={field.displayName}
           {...valueProps}
@@ -216,68 +188,51 @@ export function EditChildRecordDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent size="lg" onOpenAutoFocus={(e) => e.preventDefault()}>
+      <DialogContent
+        className="max-w-2xl max-h-[90vh] overflow-y-auto"
+        onOpenAutoFocus={(e) => e.preventDefault()}
+        onPointerDownOutside={(e) => {
+          const target = e.target as HTMLElement;
+          if (target.closest("[data-portal-dropdown]")) {
+            e.preventDefault();
+          }
+        }}
+        onFocusOutside={(e) => {
+          const target = e.target as HTMLElement;
+          if (target.closest("[data-portal-dropdown]")) {
+            e.preventDefault();
+          }
+        }}
+      >
         <DialogHeader>
           <DialogTitle>{isEditMode ? `Edit ${label}` : `Add ${label}`}</DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-4 max-h-[60vh] overflow-y-auto px-1">
-          {groupedFields.map((group, idx) => (
-            <div key={group.label ?? idx}>
-              {group.label && (
-                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-2 mt-2">
-                  {group.label}
-                </h3>
-              )}
-              {(() => {
-                const fullWidthFields = group.fields.filter(([, f]) => f.fullWidth);
-                const regularFields = group.fields.filter(([, f]) => !f.fullWidth);
-
-                if (regularFields.length === 0) {
-                  return fullWidthFields.map(([fieldId, field]) => renderField(fieldId, field));
-                }
-
-                if (group.layout === "horizontal") {
-                  return (
-                    <>
-                      {fullWidthFields.map(([fieldId, field]) => renderField(fieldId, field))}
-                      <div className="sm:grid sm:grid-cols-2 sm:gap-x-3 gap-y-1">
-                        {regularFields.map(([fieldId, field]) => renderField(fieldId, field))}
-                      </div>
-                    </>
-                  );
-                }
-
-                const mid = Math.ceil(regularFields.length / 2);
-                const leftCol = regularFields.slice(0, mid);
-                const rightCol = regularFields.slice(mid);
-
-                return (
-                  <>
-                    {fullWidthFields.map(([fieldId, field]) => renderField(fieldId, field))}
-                    <div className="sm:grid sm:grid-cols-2 sm:gap-x-3">
-                      <div className="space-y-1">
-                        {leftCol.map(([fieldId, field]) => renderField(fieldId, field))}
-                      </div>
-                      <div className="space-y-1">
-                        {rightCol.map(([fieldId, field]) => renderField(fieldId, field))}
-                      </div>
-                    </div>
-                  </>
-                );
-              })()}
+        <form onSubmit={handleSave}>
+          <div className="modal-card">
+            <div className="grid gap-x-3 gap-y-1 sm:grid-cols-2">
+              {formFields.map(([fieldId, field]) => renderField(fieldId, field))}
             </div>
-          ))}
-        </div>
+          </div>
 
-        <DialogFooter>
-          <Button variant="secondary" onClick={() => onOpenChange(false)}>
-            Cancel
-          </Button>
-          <Button onClick={handleSave} disabled={!hasChanges || isSaving}>
-            {isSaving ? "Saving..." : "Save"}
-          </Button>
-        </DialogFooter>
+          <div className="modal-actions">
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => onOpenChange(false)}
+              className="small-button bg-secondary-100 hover:bg-secondary-200 focus:bg-secondary-300 text-slate-800 dark:text-zinc-900 dark:bg-surface-400 dark:hover:bg-surface-300"
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              disabled={!hasChanges || isSaving}
+              className="small-button bg-primary-50 dark:bg-primary-300 hover:bg-primary-100 focus:bg-primary-200 dark:hover:bg-primary-300 dark:focus:bg-primary-200 text-primary dark:text-zinc-900"
+            >
+              {isSaving ? "Saving..." : "Save"}
+            </Button>
+          </div>
+        </form>
       </DialogContent>
     </Dialog>
   );
