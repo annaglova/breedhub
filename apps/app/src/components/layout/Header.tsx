@@ -131,6 +131,9 @@ export const Header = forwardRef<HTMLElement, HeaderProps>(
                               "px-6 sm:px-10 md:px-16 lg:px-22",
                               "py-3 transition-colors"
                             )}
+                            onClick={(e) => {
+                              if (isActive) e.preventDefault();
+                            }}
                           >
                             <Icon
                               icon={item.icon}

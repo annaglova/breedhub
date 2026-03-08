@@ -92,7 +92,13 @@ export function Sidebar({
                         : "bg-slate-200 font-semibold"),
                       isCollapsed && "justify-center"
                     )}
-                    onClick={onClose}
+                    onClick={(e) => {
+                      if (isActive) {
+                        e.preventDefault();
+                        return;
+                      }
+                      onClose?.();
+                    }}
                   >
                     <Icon
                       icon={item.icon}
