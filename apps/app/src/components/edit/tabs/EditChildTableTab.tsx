@@ -255,9 +255,12 @@ export function EditChildTableTab({
   }, [onAddDialogClose]);
 
   const handleEdit = useCallback((row: Record<string, any>) => {
-    setEditingRecord(row);
+    // Find the raw (non-enriched) record by ID for the dialog form
+    // Enriched records have FK UUIDs replaced with display names, which breaks form inputs
+    const rawRecord = records?.find((r: any) => r.id === row.id) || row;
+    setEditingRecord(rawRecord);
     setIsDialogOpen(true);
-  }, []);
+  }, [records]);
 
   const handleRowClick = useCallback((row: any) => {
     handleEdit(row);
