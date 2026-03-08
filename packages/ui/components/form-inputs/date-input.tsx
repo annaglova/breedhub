@@ -1,4 +1,5 @@
-import React, { forwardRef, useState, useRef } from "react";
+import React, { forwardRef, useState, useRef, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { Input } from "../input";
 import { FormField } from "../form-field";
 import { CustomCalendar } from "../custom-calendar";
@@ -42,12 +43,17 @@ export const DateInput = forwardRef<HTMLInputElement, DateInputProps>(
     const [inputValue, setInputValue] = useState(
       value ? format(value, dateFormat) : ""
     );
-    const dropdownRef = useRef<HTMLDivElement>(null);
+    const triggerRef = useRef<HTMLDivElement>(null);
+    const calendarRef = useRef<HTMLDivElement>(null);
+    const [calendarPos, setCalendarPos] = useState({ top: 0, left: 0, width: 0 });
 
-    // Handle clicks outside
+    // Handle clicks outside (check both trigger and portal calendar)
     React.useEffect(() => {
       const handleClickOutside = (e: MouseEvent) => {
-        if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        const target = e.target as Node;
+        const inTrigger = triggerRef.current?.contains(target);
+        const inCalendar = calendarRef.current?.contains(target);
+        if (!inTrigger && !inCalendar) {
           setIsOpen(false);
         }
       };
@@ -55,6 +61,15 @@ export const DateInput = forwardRef<HTMLInputElement, DateInputProps>(
       document.addEventListener("mousedown", handleClickOutside);
       return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
+
+    const openCalendar = useCallback(() => {
+      if (disabled) return;
+      if (triggerRef.current) {
+        const rect = triggerRef.current.getBoundingClientRect();
+        setCalendarPos({ top: rect.bottom + 4, left: rect.left, width: rect.width });
+      }
+      setIsOpen(true);
+    }, [disabled]);
 
     // Update input value when value prop changes
     React.useEffect(() => {
@@ -93,7 +108,7 @@ export const DateInput = forwardRef<HTMLInputElement, DateInputProps>(
     };
 
     const inputElement = (
-      <div className="relative" ref={dropdownRef}>
+      <div className="relative" ref={triggerRef}>
         <div className="relative">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
             <CalendarIcon className="h-4 w-4" />
@@ -103,7 +118,7 @@ export const DateInput = forwardRef<HTMLInputElement, DateInputProps>(
             type="text"
             value={inputValue}
             onChange={handleInputChange}
-            onFocus={() => !disabled && setIsOpen(true)}
+            onFocus={openCalendar}
             onKeyDown={handleKeyDown}
             placeholder={placeholder || dateFormat.toLowerCase()}
             disabled={disabled}
@@ -115,8 +130,13 @@ export const DateInput = forwardRef<HTMLInputElement, DateInputProps>(
           />
         </div>
 
-        {isOpen && !disabled && (
-          <div className="absolute z-50 mt-1 shadow-lg">
+        {isOpen && !disabled && createPortal(
+          <div
+            ref={calendarRef}
+            data-portal-dropdown
+            className="fixed z-[9999] pointer-events-auto shadow-lg"
+            style={{ top: calendarPos.top, left: calendarPos.left }}
+          >
             <CustomCalendar
               selected={value || undefined}
               onSelect={handleCalendarSelect}
@@ -128,7 +148,8 @@ export const DateInput = forwardRef<HTMLInputElement, DateInputProps>(
                 return false;
               }}
             />
-          </div>
+          </div>,
+          document.body
         )}
       </div>
     );
