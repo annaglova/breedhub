@@ -12,6 +12,7 @@ import { programChildrenSchema, programChildrenMigrationStrategies } from '../co
 import { contactChildrenSchema, contactChildrenMigrationStrategies } from '../collections/contact-children.schema';
 import { accountChildrenSchema, accountChildrenMigrationStrategies } from '../collections/account-children.schema';
 import { supabase } from '../supabase/client';
+import { userStore } from './user-store.signal-store';
 
 // Helpers
 import {
@@ -1502,11 +1503,13 @@ class SpaceStore {
     
     try {
       const id = crypto.randomUUID();
+      const userId = userStore.currentUserId.value;
       const newEntity = {
         ...data,
         id,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
+        ...(userId && { created_by: userId, updated_by: userId }),
         _deleted: false
       } as T;
       
@@ -1553,7 +1556,8 @@ class SpaceStore {
 
       const patchData = {
         ...updates,
-        updated_at: new Date().toISOString()
+        updated_at: new Date().toISOString(),
+        ...(userStore.currentUserId.value && { updated_by: userStore.currentUserId.value }),
       };
 
       // Update RxDB locally
@@ -1623,7 +1627,8 @@ class SpaceStore {
       // Soft delete
       await doc.patch({
         _deleted: true,
-        updated_at: new Date().toISOString()
+        updated_at: new Date().toISOString(),
+        ...(userStore.currentUserId.value && { updated_by: userStore.currentUserId.value }),
       });
       
       entityStore.removeOne(id);
@@ -4318,7 +4323,12 @@ class SpaceStore {
 
     // Build Supabase row
     const now = new Date().toISOString();
-    const row: Record<string, any> = { id, [parentIdField]: parentId, ...plainData, created_at: now, updated_at: now };
+    const userId = userStore.currentUserId.value;
+    const row: Record<string, any> = {
+      id, [parentIdField]: parentId, ...plainData,
+      created_at: now, updated_at: now,
+      ...(userId && { created_by: userId, updated_by: userId }),
+    };
 
     // Handle partition: add partition field if entity is partitioned
     const entitySchema = this.entitySchemas.get(entityType);
@@ -4386,7 +4396,11 @@ class SpaceStore {
     const { supabase } = await import('../supabase/client');
     const { error } = await supabase
       .from(normalizedTableType)
-      .update({ ...plainData, updated_at: new Date().toISOString() })
+      .update({
+        ...plainData,
+        updated_at: new Date().toISOString(),
+        ...(userStore.currentUserId.value && { updated_by: userStore.currentUserId.value }),
+      })
       .eq('id', recordId);
     if (error) {
       throw new Error(`Failed to update child record: ${error.message}`);
@@ -4424,7 +4438,11 @@ class SpaceStore {
     const { supabase } = await import('../supabase/client');
     const { error } = await supabase
       .from(normalizedTableType)
-      .update({ deleted: true })
+      .update({
+        deleted: true,
+        updated_at: new Date().toISOString(),
+        ...(userStore.currentUserId.value && { updated_by: userStore.currentUserId.value }),
+      })
       .eq('id', recordId);
     if (error) {
       throw new Error(`Failed to delete child record: ${error.message}`);

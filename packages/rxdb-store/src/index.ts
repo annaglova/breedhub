@@ -48,6 +48,10 @@ export { routeStore } from './stores/route-store.signal-store';
 export type { RouteCollection, ResolvedRoute } from './stores/route-store.signal-store';
 export type { RouteDocument } from './collections/routes.schema';
 
+// User Store - Current user identity (local-first, works offline)
+export { userStore } from './stores/user-store.signal-store';
+export type { UserProfile } from './stores/user-store.signal-store';
+
 // Loading Store - Global loading state management
 export { loadingStore } from './stores/loading-store';
 

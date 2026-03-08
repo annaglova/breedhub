@@ -4,7 +4,7 @@ import { queryClient } from '@/core/queryClient';
 import { AuthProvider } from '@/core/auth';
 import { AppRouter } from '@/router/AppRouter';
 import { useLoadingBar } from '@/hooks/useLoadingBar';
-import { spaceStore, appStore, toastStore } from '@breedhub/rxdb-store';
+import { spaceStore, appStore, userStore, toastStore } from '@breedhub/rxdb-store';
 import { Toaster } from '@ui/components/toast/Toaster';
 import "./app-theme.css";
 
@@ -39,6 +39,10 @@ function AppContent() {
 
       // Wait for appStore to be ready
       if (appStore.initialized.value && !spaceStore.initialized.value) {
+        // Initialize userStore first (uses cached session, no network)
+        if (!userStore.initialized.value) {
+          await userStore.initialize();
+        }
         console.log('[App] CONDITIONS MET! Calling spaceStore.initialize() at', new Date().toISOString());
         await spaceStore.initialize();
         console.log('[App] spaceStore.initialize() completed in', performance.now() - startTime, 'ms at', new Date().toISOString());
