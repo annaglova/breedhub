@@ -185,14 +185,7 @@ export function CustomCalendar({
       <div className="mt-2 px-4 mb-4">
         <button
           onClick={handleTodayClick}
-          className={cn(
-            "w-full py-2 px-4",
-            "bg-primary-50 border border-primary-50 rounded-md",
-            "text-sm  text-slate-700",
-            "hover:primary-100 hover:border-primary-500",
-            "focus:outline-none focus:ring-2 focus:ring-primary-500/20",
-            "transition-all"
-          )}
+          className="small-button w-full bg-primary-50 hover:bg-primary-100 focus-visible:bg-primary-200 text-primary rounded-md transition-all"
           type="button"
         >
           Today
