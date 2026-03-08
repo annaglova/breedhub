@@ -126,6 +126,7 @@ export const DateInput = forwardRef<HTMLInputElement, DateInputProps>(
             value={inputValue}
             onChange={handleInputChange}
             onFocus={openCalendar}
+            onClick={openCalendar}
             onKeyDown={handleKeyDown}
             placeholder={placeholder || dateFormat.toLowerCase()}
             disabled={disabled}
