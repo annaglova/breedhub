@@ -134,7 +134,7 @@ export const DateInput = forwardRef<HTMLInputElement, DateInputProps>(
           <div
             ref={calendarRef}
             data-portal-dropdown
-            className="fixed z-[9999] pointer-events-auto shadow-lg"
+            className="fixed z-[9999] pointer-events-auto bg-white border border-slate-200 rounded-md shadow-lg"
             style={{ top: calendarPos.top, left: calendarPos.left }}
           >
             <CustomCalendar

@@ -8,8 +8,8 @@ const inputVariants = cva(
   {
     variants: {
       variant: {
-        default: "border-slate-300",
-        destructive: "border-warning-500",
+        default: "border-slate-300 hover:border-slate-400 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20",
+        destructive: "border-warning-500 hover:border-warning-600 focus:border-warning-500 focus:ring-2 focus:ring-warning-500/20",
         ghost: "border-transparent bg-transparent",
       },
       size: {
