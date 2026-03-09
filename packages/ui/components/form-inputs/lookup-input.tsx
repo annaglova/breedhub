@@ -102,6 +102,7 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
     const prevSearchQueryRef = useRef<string>("");
     const cursorRef = useRef<string | null>(null); // ✅ Keyset pagination: last seen value
     const requestCounterRef = useRef(0); // 🔒 Track request ID to handle race conditions
+    const inputRef = useRef<HTMLInputElement | null>(null);
 
     const loading = externalLoading || internalLoading;
 
@@ -564,15 +565,21 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
     };
 
     const handleFocus = () => {
-      if (disabled) return; // Don't open if disabled
+      if (disabled) return;
       if (triggerRef.current) {
         const rect = triggerRef.current.getBoundingClientRect();
         setDropdownPos({ top: rect.bottom + 4, left: rect.left, width: rect.width });
       }
       setIsOpen(true);
-      if (!isEditing && value) {
-        // ✅ On focus with selected value - clear input for typing
-        setInputValue("");
+    };
+
+    const handleClick = () => {
+      if (disabled) return;
+      if (!isEditing) {
+        if (value) {
+          // ✅ On click with selected value - clear input for typing
+          setInputValue("");
+        }
         setIsEditing(true);
       }
     };
@@ -580,11 +587,11 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
     const handleBlur = () => {
       // ✅ Delay to allow handleSelect to execute first (when clicking option)
       setTimeout(() => {
-        // On blur - restore selected option label if input is empty but has value
-        if (!inputValue && value && selectedOption) {
+        if (value && selectedOption) {
+          // Restore selected option label on blur
           setInputValue(selectedOption.label);
-          setIsEditing(false);
         }
+        setIsEditing(false);
       }, 200);
     };
 
@@ -668,12 +675,17 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
             <Search className="h-4 w-4" />
           </div>
           <Input
-            ref={ref}
+            ref={(node) => {
+              inputRef.current = node;
+              if (typeof ref === 'function') ref(node);
+              else if (ref) ref.current = node;
+            }}
             type="text"
             autoComplete="off"
             value={isEditing ? inputValue : selectedOption?.label || ""}
             onChange={handleInputChange}
             onFocus={handleFocus}
+            onClick={handleClick}
             onBlur={handleBlur}
             onKeyDown={handleKeyDown}
             placeholder={placeholder}
