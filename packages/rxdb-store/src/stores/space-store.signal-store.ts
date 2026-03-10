@@ -1600,39 +1600,149 @@ class SpaceStore {
   }
 
   /**
-   * Delete an entity (soft delete)
+   * Dependency check configuration per entity type.
+   * Each entry: [tableName, fkColumn, humanLabel]
+   */
+  private readonly dependencyMap: Record<string, [string, string, string][]> = {
+    pet: [
+      ['title_in_pet', 'pet_id', 'Titles'],
+      ['pet_identifier', 'pet_id', 'Identifiers'],
+      ['pet_health_exam_result', 'pet_id', 'Health exams'],
+      ['dna_marker_in_pet', 'pet_id', 'DNA markers'],
+      ['contact_in_pet', 'pet_id', 'Contacts'],
+      ['pet_in_program', 'pet_id', 'Programs'],
+      ['activity', 'pet_id', 'Activities'],
+      ['pet', 'father_id', 'Children (as father)'],
+      ['pet', 'mother_id', 'Children (as mother)'],
+      ['litter', 'father_id', 'Litters (as father)'],
+      ['litter', 'mother_id', 'Litters (as mother)'],
+    ],
+    breed: [
+      ['pet', 'breed_id', 'Pets'],
+      ['breed_division', 'breed_id', 'Divisions'],
+      ['breed_synonym', 'breed_id', 'Synonyms'],
+      ['coat_color_in_breed', 'breed_id', 'Coat colors'],
+      ['coat_type_in_breed', 'breed_id', 'Coat types'],
+      ['size_in_breed', 'breed_id', 'Sizes'],
+      ['body_feature_in_breed', 'breed_id', 'Body features'],
+      ['achievement_in_breed', 'breed_id', 'Achievements'],
+      ['breed_in_kennel', 'breed_id', 'Kennels'],
+      ['related_breed', 'breed_id', 'Related breeds'],
+    ],
+    litter: [
+      ['pet_in_litter', 'litter_id', 'Puppies'],
+      ['title_in_litter', 'litter_id', 'Titles'],
+      ['contact_in_litter', 'litter_id', 'Contacts'],
+    ],
+    contact: [
+      ['contact_communication', 'contact_id', 'Communications'],
+      ['contact_language', 'contact_id', 'Languages'],
+      ['contact_in_pet', 'contact_id', 'Pets'],
+      ['contact_in_litter', 'contact_id', 'Litters'],
+    ],
+    account: [
+      ['account_communication', 'account_id', 'Communications'],
+      ['breed_in_kennel', 'account_id', 'Breeds'],
+      ['contact', 'account_id', 'Contacts'],
+      ['litter', 'kennel_id', 'Litters'],
+    ],
+  };
+
+  /**
+   * Check if an entity has dependent records that prevent deletion.
+   * Returns { canDelete, dependencies[] } where dependencies lists
+   * tables with record counts that block deletion.
+   */
+  async checkDependencies(entityType: string, id: string): Promise<{
+    canDelete: boolean;
+    dependencies: { label: string; count: number }[];
+  }> {
+    const checks = this.dependencyMap[entityType];
+    if (!checks || checks.length === 0) {
+      return { canDelete: true, dependencies: [] };
+    }
+
+    const dependencies: { label: string; count: number }[] = [];
+
+    // Run all count queries in parallel
+    const results = await Promise.all(
+      checks.map(async ([table, fkColumn, label]) => {
+        try {
+          const { count, error } = await supabase
+            .from(table)
+            .select('id', { count: 'exact', head: true })
+            .eq(fkColumn, id);
+
+          if (error) {
+            console.warn(`[SpaceStore] checkDependencies: ${table}.${fkColumn} query failed:`, error.message);
+            return { label, count: 0 };
+          }
+          return { label, count: count || 0 };
+        } catch {
+          return { label, count: 0 };
+        }
+      })
+    );
+
+    for (const result of results) {
+      if (result.count > 0) {
+        dependencies.push(result);
+      }
+    }
+
+    return {
+      canDelete: dependencies.length === 0,
+      dependencies,
+    };
+  }
+
+  /**
+   * Delete an entity (soft delete: RxDB first, then sync to Supabase)
    */
   async delete(entityType: string, id: string): Promise<void> {
     const entityStore = await this.getEntityStore<BusinessEntity>(entityType);
-    
+
     if (!entityStore) {
       console.error(`[SpaceStore] Entity store for ${entityType} not available`);
       return;
     }
-    
+
     const collection = (entityStore as any).collection;
-    
+
     if (!collection) {
       console.error(`[SpaceStore] Collection for ${entityType} not available`);
       return;
     }
-    
+
     try {
       const doc = await collection.findOne(id).exec();
-      
+
       if (!doc) {
         throw new Error(`${entityType} ${id} not found`);
       }
-      
-      // Soft delete
-      await doc.patch({
-        _deleted: true,
+
+      const patchData: Record<string, any> = {
+        deleted: true,
         updated_at: new Date().toISOString(),
-        ...(userStore.currentUserId.value && { updated_by: userStore.currentUserId.value }),
-      });
-      
+      };
+      if (userStore.currentUserId.value) {
+        patchData.updated_by = userStore.currentUserId.value;
+      }
+
+      // 1. Update RxDB locally (local-first)
+      await doc.patch(patchData);
       entityStore.removeOne(id);
-      
+
+      // 2. Sync to Supabase
+      const { error: supabaseError } = await supabase
+        .from(entityType)
+        .update(patchData)
+        .eq('id', id);
+
+      if (supabaseError) {
+        console.error(`[SpaceStore] Supabase sync failed for delete ${entityType}:`, supabaseError);
+      }
+
       console.log(`[SpaceStore] Deleted ${entityType}:`, id);
       
     } catch (error) {

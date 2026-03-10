@@ -1,4 +1,6 @@
 import { Icon } from "@/components/shared/Icon";
+import { useDeleteEntity } from "@/hooks/useDeleteEntity";
+import { useLocation } from "react-router-dom";
 import { usePageActions } from "@/hooks/usePageActions";
 import { usePageMenuButtons, usePageMenuDropdown } from "@/hooks/usePageMenu";
 import type { PageConfig } from "@/types/page-config.types";
@@ -111,11 +113,22 @@ export function AvatarOutlet({
     containerWidth,
   });
 
+  // Delete entity with dependency check
+  const location = useLocation();
+  const spaceSlug = location.pathname.split('/')[1]; // e.g. "pets" from "/pets/test-pet"
+  const entityType = spaceSlug?.endsWith('s') ? spaceSlug.slice(0, -1) : spaceSlug;
+  const { requestDelete, DeleteDialog } = useDeleteEntity(
+    entityType || undefined,
+    entity,
+    spaceSlug ? `/${spaceSlug}` : undefined,
+  );
+
   // Action handlers
   const { executeAction } = usePageActions(entity, {
     // Custom handlers can be passed here
     ...(onSave ? { save: onSave } : {}),
     edit: onEdit,
+    delete: requestDelete,
   });
 
   // Check if we have any buttons or menu items to show
@@ -215,6 +228,7 @@ export function AvatarOutlet({
           )}
         </div>
       )}
+      {DeleteDialog}
     </div>
   );
 }
