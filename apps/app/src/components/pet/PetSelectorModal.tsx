@@ -454,6 +454,7 @@ export function PetSelectorModal({
           <DialogTitle>{title}</DialogTitle>
         </DialogHeader>
 
+        <div className="flex-1 min-h-0 flex flex-col mt-1">
         {/* Filters with gray background */}
         <div className="bg-modal-card-ground rounded-lg px-6 py-4">
           {/* Filter dropdowns - 2 columns */}
@@ -517,7 +518,7 @@ export function PetSelectorModal({
         </div>
 
         {/* Pet list - padding on outer container, scroll inside */}
-        <div className="flex-1 min-h-0 flex flex-col rounded-lg border border-border p-2">
+        <div className="flex-1 min-h-0 flex flex-col rounded-lg border border-border p-2 mt-6">
           <div
             ref={scrollContainerRef}
             onScroll={handleScroll}
@@ -561,7 +562,7 @@ export function PetSelectorModal({
         </div>
 
         {/* Actions */}
-        <div className="mt-4 grid grid-cols-2 gap-3">
+        <div className="modal-actions">
           <Button
             type="button"
             variant="secondary"
@@ -578,6 +579,7 @@ export function PetSelectorModal({
           >
             Select
           </Button>
+        </div>
         </div>
       </DialogContent>
     </Dialog>
