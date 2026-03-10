@@ -1,3 +1,4 @@
+import { PetPickerInput } from "@/components/edit/inputs/PetPickerInput";
 import { useSelectedEntity } from "@/contexts/SpaceContext";
 import { useEditForm } from "@/hooks/useEditForm";
 import { useSignals } from "@preact/signals-react/runtime";
@@ -35,6 +36,7 @@ const componentMap: Record<string, React.ComponentType<any>> = {
   FileInput,
   RadioInput,
   SwitchInput,
+  PetPickerInput: PetPickerInput as any,
 };
 
 // Components using standard onChange (e.target.value)
@@ -64,6 +66,9 @@ interface FieldConfig {
   fullWidth?: boolean;
   group?: string;
   groupLayout?: "horizontal" | "vertical";
+  pairedField?: string;
+  sexFilter?: "male" | "female";
+  hidden?: boolean;
 }
 
 interface EditFormTabProps {
@@ -162,6 +167,30 @@ export function EditFormTab({ fields, onLoadedCount, entityType, onSaveReady, on
    * Render a single field
    */
   const renderField = (fieldId: string, field: FieldConfig) => {
+    if (field.hidden) return null;
+
+    const dbFieldName = getDbFieldName(fieldId);
+
+    // PetPickerInput: special rendering with paired field support
+    if (field.component === "PetPickerInput") {
+      return (
+        <div key={fieldId}>
+          <PetPickerInput
+            label={field.displayName}
+            value={formChanges[dbFieldName] ?? selectedEntity?.[dbFieldName] ?? ""}
+            pairedField={field.pairedField}
+            pairedValue={formChanges[field.pairedField!] ?? selectedEntity?.[field.pairedField!] ?? ""}
+            sexFilter={field.sexFilter}
+            handleFieldChange={handleFieldChange}
+            dbFieldName={dbFieldName}
+            selectedEntity={selectedEntity}
+            required={field.required}
+            placeholder={field.placeholder}
+          />
+        </div>
+      );
+    }
+
     const Component = componentMap[field.component];
 
     if (!Component) {
@@ -172,8 +201,6 @@ export function EditFormTab({ fields, onLoadedCount, entityType, onSaveReady, on
       }
       return null;
     }
-
-    const dbFieldName = getDbFieldName(fieldId);
     const isChecked = ONCHECKED_COMPONENTS.has(field.component);
 
     // Change handler varies by component type
