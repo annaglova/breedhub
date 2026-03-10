@@ -85,7 +85,7 @@ export function PetPickerInput({
             ...data.map((r: any) => r.connected_breed_id),
           ]);
         } else {
-          setAllowedBreedIds(null);
+          setAllowedBreedIds([selectedEntity.breed_id]);
         }
       });
   }, [selectedEntity?.breed_id]);
@@ -174,7 +174,7 @@ export function PetPickerInput({
         title={`Select ${label || "Pet"}`}
         excludeIds={selectedEntity?.id ? [selectedEntity.id] : []}
         initialPetTypeId={selectedEntity?.pet_type_id}
-        initialBreedId={pairedValue || undefined}
+        initialBreedId={pairedValue || selectedEntity?.breed_id || undefined}
         initialSelectedId={value || undefined}
         allowedBreedIds={allowedBreedIds}
         lockPetType={!!selectedEntity?.pet_type_id}
