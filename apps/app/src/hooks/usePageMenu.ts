@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { userStore } from '@breedhub/rxdb-store';
 import type { PageConfig } from '@/types/page-config.types';
 import type { MenuContext, PageMenuItem, SpacePermissions } from '@/types/page-menu.types';
 
@@ -9,8 +10,10 @@ interface UsePageMenuOptions {
   containerWidth?: number;  // Current container width for minWidth check
 }
 
-interface PageMenuItemWithId extends PageMenuItem {
+export interface PageMenuItemWithId extends PageMenuItem {
   id: string;
+  /** Item requires auth but user is not logged in */
+  authRequired?: boolean;
 }
 
 /**
@@ -49,6 +52,8 @@ export function usePageMenu({
       return [];
     }
 
+    const isAuthenticated = userStore.isAuthenticated.value;
+
     // Convert items object to array with IDs
     const items = Object.entries(menuConfig.items)
       .map(([id, item]) => ({
@@ -78,12 +83,13 @@ export function usePageMenu({
           }
         }
 
-        // Note: requiresPermission is stored in config but not checked here
-        // Permission checks will be handled by action handlers (e.g., edit action checks auth)
-        // This keeps menu rendering simple - show what's in config
-
         return true;
       })
+      .map(item => ({
+        ...item,
+        // Mark items that require auth when user is not logged in
+        authRequired: !isAuthenticated && !!item.visibility.requiresPermission,
+      }))
       .sort((a, b) => (a.order ?? 999) - (b.order ?? 999));
 
     return items;

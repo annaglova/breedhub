@@ -4,6 +4,7 @@ import { usePageActions } from "@/hooks/usePageActions";
 import { usePageMenuButtons, usePageMenuDropdown } from "@/hooks/usePageMenu";
 import type { PageConfig } from "@/types/page-config.types";
 import type { SpacePermissions } from "@/types/page-menu.types";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@ui/components/button";
 import {
   DropdownMenu,
@@ -93,6 +94,8 @@ export function AvatarOutlet({
   onMoreOptions,
   children,
 }: AvatarOutletProps) {
+  const navigate = useNavigate();
+
   // Select avatar config based on mode
   const avatarConfig = isFullscreenMode ? AVATAR_FULLSCREEN : AVATAR_DRAWER;
 
@@ -174,14 +177,16 @@ export function AvatarOutlet({
                 <Button
                   variant="outline-secondary"
                   className="rounded-full h-[2.25rem] w-[2.25rem] sm:w-auto sm:px-4 text-base"
-                  onClick={() => executeAction(item.action, item.actionParams)}
+                  onClick={() => item.authRequired ? navigate('/sign-in') : executeAction(item.action, item.actionParams)}
                   type="button"
                 >
                   <Icon icon={item.icon} size={16} />
                   <span className="hidden sm:inline ml-2">{item.label}</span>
                 </Button>
               </TooltipTrigger>
-              <TooltipContent side="bottom">{item.label}</TooltipContent>
+              <TooltipContent side="bottom">
+                {item.authRequired ? 'Log in to use' : item.label}
+              </TooltipContent>
             </Tooltip>
           ))}
 
@@ -207,8 +212,9 @@ export function AvatarOutlet({
                   <>
                     <DropdownMenuItem
                       key={item.id}
+                      disabled={item.authRequired}
                       onClick={() =>
-                        executeAction(item.action, item.actionParams)
+                        !item.authRequired && executeAction(item.action, item.actionParams)
                       }
                     >
                       <Icon icon={item.icon} size={16} />
@@ -219,6 +225,14 @@ export function AvatarOutlet({
                     )}
                   </>
                 ))}
+                {menuItems.some(item => item.authRequired) && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <div className="px-2 py-1.5 text-xs text-muted-foreground">
+                      Log in to unlock all features
+                    </div>
+                  </>
+                )}
               </DropdownMenuContent>
             </DropdownMenu>
           )}

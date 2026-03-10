@@ -6,6 +6,7 @@ import { usePageActions } from "@/hooks/usePageActions";
 import { usePageMenu } from "@/hooks/usePageMenu";
 import { spaceStore } from "@breedhub/rxdb-store";
 import { useSignals } from "@preact/signals-react/runtime";
+import { useNavigate } from "react-router-dom";
 import type { PageConfig } from "@/types/page-config.types";
 import type { SpacePermissions } from "@/types/page-menu.types";
 import { Button } from "@ui/components/button";
@@ -74,6 +75,7 @@ export function NameOutlet({
   children,
 }: NameOutletProps) {
   useSignals();
+  const navigate = useNavigate();
 
   // Check if screen is md+ (768px) and xl+ (1440px)
   const isMdScreen = useMediaQuery(mediaQueries.md);
@@ -158,14 +160,16 @@ export function NameOutlet({
                 <Button
                   variant="outline-secondary"
                   className="rounded-full h-[2.25rem] px-4 text-base font-semibold mr-4"
-                  onClick={() => executeAction("edit")}
+                  onClick={() => editMenuItem?.authRequired ? navigate('/sign-in') : executeAction("edit")}
                   type="button"
                 >
                   <Pencil size={16} />
                   <span className="ml-2">Edit</span>
                 </Button>
               </TooltipTrigger>
-              <TooltipContent side="bottom">Edit</TooltipContent>
+              <TooltipContent side="bottom">
+                {editMenuItem?.authRequired ? 'Log in to edit' : 'Edit'}
+              </TooltipContent>
             </Tooltip>
           )}
 
@@ -213,7 +217,10 @@ export function NameOutlet({
                   <>
                     <DropdownMenuItem
                       key={item.id}
-                      onClick={() => executeAction(item.action, item.actionParams)}
+                      disabled={item.authRequired}
+                      onClick={() =>
+                        !item.authRequired && executeAction(item.action, item.actionParams)
+                      }
                     >
                       <Icon icon={item.icon} size={16} />
                       {item.label}
@@ -223,6 +230,14 @@ export function NameOutlet({
                     )}
                   </>
                 ))}
+                {menuItems.some(item => item.authRequired) && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <div className="px-2 py-1.5 text-xs text-muted-foreground">
+                      Log in to unlock all features
+                    </div>
+                  </>
+                )}
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
