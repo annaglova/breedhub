@@ -4,7 +4,7 @@ import { usePageActions } from "@/hooks/usePageActions";
 import { usePageMenuButtons, usePageMenuDropdown } from "@/hooks/usePageMenu";
 import type { PageConfig } from "@/types/page-config.types";
 import type { SpacePermissions } from "@/types/page-menu.types";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@ui/components/button";
 import {
   DropdownMenu,
@@ -95,6 +95,12 @@ export function AvatarOutlet({
   children,
 }: AvatarOutletProps) {
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const navigateToSignIn = () => {
+    const currentUrl = location.pathname + location.search + location.hash;
+    navigate(`/sign-in?redirectURL=${encodeURIComponent(currentUrl)}`);
+  };
 
   // Select avatar config based on mode
   const avatarConfig = isFullscreenMode ? AVATAR_FULLSCREEN : AVATAR_DRAWER;
@@ -177,7 +183,7 @@ export function AvatarOutlet({
                 <Button
                   variant="outline-secondary"
                   className="rounded-full h-[2.25rem] w-[2.25rem] sm:w-auto sm:px-4 text-base"
-                  onClick={() => item.authRequired ? navigate('/sign-in') : executeAction(item.action, item.actionParams)}
+                  onClick={() => item.authRequired ? navigateToSignIn() : executeAction(item.action, item.actionParams)}
                   type="button"
                 >
                   <Icon icon={item.icon} size={16} />

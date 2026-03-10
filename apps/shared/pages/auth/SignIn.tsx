@@ -40,17 +40,20 @@ export default function SignIn() {
   const { toast } = useToast();
   const { signInWithEmail, signInWithGoogle, signInWithFacebook } = useAuth();
 
-  // Auto-redirect if user becomes authenticated (e.g., password reset in another tab)
+  // Redirect URL after successful login (from query params)
+  const redirectURL = searchParams.get("redirectURL") || "/";
+
+  // Auto-redirect if user becomes authenticated (e.g., OAuth callback, password reset in another tab)
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         if (session && (event === "SIGNED_IN" || event === "PASSWORD_RECOVERY")) {
-          navigate("/");
+          navigate(redirectURL);
         }
       }
     );
     return () => subscription.unsubscribe();
-  }, [navigate]);
+  }, [navigate, redirectURL]);
 
   const { checkRateLimit, recordAttempt, clearAttempts, remainingAttempts } =
     useRateLimiter("login");
@@ -161,8 +164,6 @@ export default function SignIn() {
         description: "You have successfully signed in.",
       });
 
-      // Get redirect URL from query params or default to /app
-      const redirectURL = searchParams.get("redirectURL") || "/app";
       navigate(redirectURL);
     } catch (error) {
       // Use secure error message

@@ -6,7 +6,7 @@ import { usePageActions } from "@/hooks/usePageActions";
 import { usePageMenu } from "@/hooks/usePageMenu";
 import { spaceStore } from "@breedhub/rxdb-store";
 import { useSignals } from "@preact/signals-react/runtime";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import type { PageConfig } from "@/types/page-config.types";
 import type { SpacePermissions } from "@/types/page-menu.types";
 import { Button } from "@ui/components/button";
@@ -76,6 +76,12 @@ export function NameOutlet({
 }: NameOutletProps) {
   useSignals();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const navigateToSignIn = () => {
+    const currentUrl = location.pathname + location.search + location.hash;
+    navigate(`/sign-in?redirectURL=${encodeURIComponent(currentUrl)}`);
+  };
 
   // Check if screen is md+ (768px) and xl+ (1440px)
   const isMdScreen = useMediaQuery(mediaQueries.md);
@@ -160,7 +166,7 @@ export function NameOutlet({
                 <Button
                   variant="outline-secondary"
                   className="rounded-full h-[2.25rem] px-4 text-base font-semibold mr-4"
-                  onClick={() => editMenuItem?.authRequired ? navigate('/sign-in') : executeAction("edit")}
+                  onClick={() => editMenuItem?.authRequired ? navigateToSignIn() : executeAction("edit")}
                   type="button"
                 >
                   <Pencil size={16} />
