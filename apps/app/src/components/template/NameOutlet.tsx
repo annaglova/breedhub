@@ -6,7 +6,6 @@ import { usePageActions } from "@/hooks/usePageActions";
 import { usePageMenu } from "@/hooks/usePageMenu";
 import { spaceStore } from "@breedhub/rxdb-store";
 import { useSignals } from "@preact/signals-react/runtime";
-import { useLocation } from "react-router-dom";
 import type { PageConfig } from "@/types/page-config.types";
 import type { SpacePermissions } from "@/types/page-menu.types";
 import { Button } from "@ui/components/button";
@@ -102,9 +101,7 @@ export function NameOutlet({
   const showEditButton = isMdScreen && isFullscreen && !!editMenuItem;
 
   // Delete entity with dependency check
-  const location = useLocation();
-  const spacePath = '/' + location.pathname.split('/')[1]; // e.g. "/pets" from "/pets/test-pet"
-  const { requestDelete, DeleteDialog } = useDeleteEntity(entityType, entity, spacePath);
+  const { requestDelete, DeleteDialog } = useDeleteEntity(entityType, entity);
 
   // Action handlers
   const { executeAction } = usePageActions(entity, {

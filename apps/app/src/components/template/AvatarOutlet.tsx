@@ -1,6 +1,5 @@
 import { Icon } from "@/components/shared/Icon";
 import { useDeleteEntity } from "@/hooks/useDeleteEntity";
-import { useLocation } from "react-router-dom";
 import { usePageActions } from "@/hooks/usePageActions";
 import { usePageMenuButtons, usePageMenuDropdown } from "@/hooks/usePageMenu";
 import type { PageConfig } from "@/types/page-config.types";
@@ -54,6 +53,9 @@ interface AvatarOutletProps {
   // Fullscreen mode - larger avatar from sm breakpoint
   isFullscreenMode?: boolean;
 
+  // Entity type for delete with dependency check
+  entityType?: string;
+
   // Save handler (from EditPageTemplate orchestration)
   onSave?: () => void;
 
@@ -85,6 +87,7 @@ export function AvatarOutlet({
   spacePermissions = { canEdit: false, canDelete: false, canAdd: false },
   isLoading = false,
   isFullscreenMode = false,
+  entityType,
   onSave,
   onEdit,
   onMoreOptions,
@@ -114,14 +117,7 @@ export function AvatarOutlet({
   });
 
   // Delete entity with dependency check
-  const location = useLocation();
-  const spaceSlug = location.pathname.split('/')[1]; // e.g. "pets" from "/pets/test-pet"
-  const entityType = spaceSlug?.endsWith('s') ? spaceSlug.slice(0, -1) : spaceSlug;
-  const { requestDelete, DeleteDialog } = useDeleteEntity(
-    entityType || undefined,
-    entity,
-    spaceSlug ? `/${spaceSlug}` : undefined,
-  );
+  const { requestDelete, DeleteDialog } = useDeleteEntity(entityType, entity);
 
   // Action handlers
   const { executeAction } = usePageActions(entity, {

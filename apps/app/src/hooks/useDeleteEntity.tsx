@@ -42,7 +42,6 @@ const INITIAL_STATE: DeleteState = {
 export function useDeleteEntity(
   entityType: string | undefined,
   entity: any,
-  spacePath?: string,
 ) {
   const navigate = useNavigate();
   const [state, setState] = useState<DeleteState>(INITIAL_STATE);
@@ -102,6 +101,9 @@ export function useDeleteEntity(
       await spaceStore.delete(entityType, entity.id);
       toast.success(`${entity.name || 'Record'} deleted`);
       setState(INITIAL_STATE);
+      // Navigate to public space list (e.g., /pets for pet entity)
+      const spaceConfig = spaceStore.getSpaceConfig(entityType);
+      const spacePath = spaceConfig?.slug ? `/${spaceConfig.slug}` : null;
       if (spacePath) {
         navigate(spacePath);
       } else {
@@ -112,7 +114,7 @@ export function useDeleteEntity(
       toast.error('Failed to delete');
       setState(prev => ({ ...prev, loading: false }));
     }
-  }, [entityType, entity?.id, entity?.name, spacePath, navigate]);
+  }, [entityType, entity?.id, entity?.name, navigate]);
 
   const handleClose = useCallback(() => {
     if (!state.loading) {

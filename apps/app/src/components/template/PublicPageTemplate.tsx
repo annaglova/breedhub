@@ -183,6 +183,7 @@ function AboveFoldBlocks({
               blockConfig={{
                 ...blockConfig,
                 isFullscreenMode,
+                entityType,
               }}
               entity={selectedEntity}
               pageConfig={pageConfig}

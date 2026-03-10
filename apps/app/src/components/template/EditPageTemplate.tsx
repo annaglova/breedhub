@@ -278,6 +278,7 @@ function EditBlocks({
               blockConfig={{
                 ...blockConfig,
                 isFullscreenMode: true,
+                entityType,
                 onSave: handleSave,
               }}
               entity={selectedEntity}
