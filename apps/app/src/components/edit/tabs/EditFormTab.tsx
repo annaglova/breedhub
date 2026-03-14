@@ -3,6 +3,7 @@ import { useSelectedEntity } from "@/contexts/SpaceContext";
 import { useDynamicFields, extractDbFieldName } from "@/hooks/useDynamicFields";
 import { useEditForm } from "@/hooks/useEditForm";
 import { useResolveConditions } from "@/hooks/useResolveConditions";
+import { useJunctionFilterIds } from "@breedhub/rxdb-store";
 import { useSignals } from "@preact/signals-react/runtime";
 import {
   CheckboxInput,
@@ -65,6 +66,40 @@ interface FieldConfig {
   pairedField?: string;
   sexFilter?: "male" | "female";
   hidden?: boolean;
+  // Junction table filtering (many-to-many)
+  junctionTable?: string;
+  junctionField?: string;
+  junctionFilterField?: string;
+}
+
+/**
+ * Wrapper for fields with junction table filtering (hooks can't be called in loops).
+ */
+function JunctionFilterField({
+  field,
+  Component,
+  parentFieldValue,
+  ...componentProps
+}: {
+  field: FieldConfig;
+  Component: React.ComponentType<any>;
+  parentFieldValue?: string;
+  [key: string]: any;
+}) {
+  const { filterByIds, junctionFilter } = useJunctionFilterIds({
+    junctionTable: field.junctionTable!,
+    junctionField: field.junctionField!,
+    junctionFilterField: field.junctionFilterField!,
+    filterValue: parentFieldValue,
+  });
+
+  return (
+    <Component
+      {...componentProps}
+      filterByIds={filterByIds}
+      junctionFilter={junctionFilter}
+    />
+  );
 }
 
 interface EditFormTabProps {
@@ -121,7 +156,7 @@ export function EditFormTab({ fields, onLoadedCount, entityType, onSaveReady, on
     [formChanges, selectedEntity]
   );
 
-  const { getFieldProps } = useDynamicFields({
+  const { getFieldProps, getParentFieldValue } = useDynamicFields({
     fields: fieldsList,
     getValue,
     onChange: handleFieldChange,
@@ -235,6 +270,21 @@ export function EditFormTab({ fields, onLoadedCount, entityType, onSaveReady, on
     }
 
     const fieldProps = getFieldProps(fieldId, field);
+
+    // Junction table filtering (many-to-many, e.g., coat_color filtered by breed)
+    if (field.junctionTable && field.junctionField && field.junctionFilterField) {
+      const parentFieldValue = getParentFieldValue(field);
+      return (
+        <div key={fieldId}>
+          <JunctionFilterField
+            field={field}
+            Component={Component}
+            parentFieldValue={parentFieldValue}
+            {...fieldProps}
+          />
+        </div>
+      );
+    }
 
     return (
       <div key={fieldId}>
