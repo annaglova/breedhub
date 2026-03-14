@@ -133,6 +133,7 @@ function EditBlocks({
   const hasUnsavedRef = useRef(false);
   const sentinelPushedRef = useRef(false);
   const [pendingNavigationUrl, setPendingNavigationUrl] = useState<string | null>(null);
+  const pendingNavigationRef = useRef<string | null>(null);
 
   const onDirtyChange = useCallback((dirty: boolean) => {
     setHasUnsavedChanges(dirty);
@@ -159,17 +160,15 @@ function EditBlocks({
     }
 
     if (!hasUnsavedChanges && sentinelPushedRef.current) {
-      // Changes were saved/discarded — remove sentinel
       window.history.back();
       sentinelPushedRef.current = false;
     }
   }, [hasUnsavedChanges]);
 
   useEffect(() => {
-    const handler = (e: PopStateEvent) => {
+    const handler = () => {
       if (!hasUnsavedRef.current) return;
 
-      // User pressed back — push sentinel back and show dialog
       window.history.pushState({ __unsavedGuard: true }, '');
       setShowLeaveDialog(true);
     };
@@ -178,63 +177,92 @@ function EditBlocks({
     return () => window.removeEventListener('popstate', handler);
   }, []);
 
-  const handleLeaveDiscard = useCallback(() => {
-    setShowLeaveDialog(false);
-    hasUnsavedRef.current = false;
+  // Intercept all internal link clicks when there are unsaved changes
+  useEffect(() => {
+    if (!hasUnsavedChanges) return;
 
-    if (pendingNavigationUrl) {
-      // Name link navigation — remove sentinel and navigate
+    const handler = (e: MouseEvent) => {
+      const anchor = (e.target as HTMLElement).closest('a[href]') as HTMLAnchorElement | null;
+      if (!anchor) return;
+
+      const href = anchor.getAttribute('href');
+      if (!href || href.startsWith('http') || href.startsWith('#')) return;
+
+      // Internal link — prevent default and show dialog
+      e.preventDefault();
+      e.stopPropagation();
+      pendingNavigationRef.current = href;
+      setPendingNavigationUrl(href);
+      setShowLeaveDialog(true);
+    };
+
+    document.addEventListener('click', handler, true);
+    return () => document.removeEventListener('click', handler, true);
+  }, [hasUnsavedChanges]);
+
+  /** Navigate to pending URL or go back (browser back button case) */
+  const proceedNavigation = useCallback(() => {
+    const url = pendingNavigationRef.current;
+    if (url) {
+      pendingNavigationRef.current = null;
+      setPendingNavigationUrl(null);
       if (sentinelPushedRef.current) {
         window.history.back();
         sentinelPushedRef.current = false;
       }
-      const url = pendingNavigationUrl;
-      setPendingNavigationUrl(null);
       navigate(url);
     } else {
-      // Back button navigation
       sentinelPushedRef.current = false;
       window.history.go(-2);
     }
-  }, [pendingNavigationUrl, navigate]);
+  }, [navigate]);
+
+  const handleLeaveDiscard = useCallback(() => {
+    setShowLeaveDialog(false);
+    hasUnsavedRef.current = false;
+    setHasUnsavedChanges(false);
+    // Let the useEffect clean up sentinel, then navigate on next tick
+    const url = pendingNavigationRef.current;
+    pendingNavigationRef.current = null;
+    setPendingNavigationUrl(null);
+    if (url) {
+      setTimeout(() => navigate(url), 0);
+    } else {
+      // Browser back — remove sentinel and go back
+      sentinelPushedRef.current = false;
+      window.history.go(-2);
+    }
+  }, [navigate]);
 
   const handleLeaveSave = useCallback(async () => {
     setShowLeaveDialog(false);
     try {
       await saveHandlerRef.current?.();
     } catch {
-      // Save failed — stay on page
+      pendingNavigationRef.current = null;
       setPendingNavigationUrl(null);
       return;
     }
     hasUnsavedRef.current = false;
-
-    if (pendingNavigationUrl) {
-      // Name link navigation — remove sentinel and navigate
-      if (sentinelPushedRef.current) {
-        window.history.back();
-        sentinelPushedRef.current = false;
-      }
-      const url = pendingNavigationUrl;
-      setPendingNavigationUrl(null);
-      navigate(url);
-    } else {
-      // Back button navigation
-      sentinelPushedRef.current = false;
-      window.history.go(-2);
-    }
-  }, [pendingNavigationUrl, navigate]);
+    proceedNavigation();
+  }, [proceedNavigation]);
 
   const handleLeaveCancel = useCallback(() => {
     setShowLeaveDialog(false);
+    pendingNavigationRef.current = null;
     setPendingNavigationUrl(null);
   }, []);
 
   // Name link — intercept navigation when there are unsaved changes
   const handleNavigateAway = useCallback((url: string) => {
-    setPendingNavigationUrl(url);
-    setShowLeaveDialog(true);
-  }, []);
+    if (hasUnsavedRef.current) {
+      pendingNavigationRef.current = url;
+      setPendingNavigationUrl(url);
+      setShowLeaveDialog(true);
+    } else {
+      navigate(url);
+    }
+  }, [navigate]);
 
   // Tab switch — auto-save before changing tab
   const handleBeforeTabChange = useCallback(async () => {
