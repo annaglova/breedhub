@@ -19,6 +19,8 @@ export interface DynamicFieldConfig {
   dependsOn?: string;
   disabledUntil?: string;
   filterBy?: string;
+  // Conditional readonly (resolved by useResolveConditions)
+  readonlyWhen?: string;
   [key: string]: any;
 }
 
@@ -46,6 +48,11 @@ interface UseDynamicFieldsOptions {
   getValue: (dbFieldName: string) => any;
   /** Set value for a field by its DB name */
   onChange: (dbFieldName: string, value: any) => void;
+  /** Resolved readonlyWhen conditions (from useResolveConditions) */
+  readonlyConditions?: {
+    conditions: Record<string, boolean>;
+    messages: Record<string, string>;
+  };
 }
 
 /**
@@ -57,7 +64,7 @@ interface UseDynamicFieldsOptions {
  * - Dependent field clearing on parent change
  * - Component props building (value, onChange, cascadeProps)
  */
-export function useDynamicFields({ fields, getValue, onChange }: UseDynamicFieldsOptions) {
+export function useDynamicFields({ fields, getValue, onChange, readonlyConditions }: UseDynamicFieldsOptions) {
 
   /**
    * Find dependent fields that should be cleared when a field changes.
@@ -204,7 +211,9 @@ export function useDynamicFields({ fields, getValue, onChange }: UseDynamicField
     (fieldId: string, config: DynamicFieldConfig) => {
       const dbFieldName = extractDbFieldName(fieldId);
       const componentName = config.component || "";
-      const disabled = isFieldDisabled(config);
+      const cascadeDisabled = isFieldDisabled(config);
+      const readonlyByCondition = !!(config.readonlyWhen && readonlyConditions?.conditions[config.readonlyWhen]);
+      const disabled = cascadeDisabled || readonlyByCondition;
 
       return {
         label: config.displayName,
@@ -219,10 +228,13 @@ export function useDynamicFields({ fields, getValue, onChange }: UseDynamicField
         options: config.options || [],
         disabled,
         disabledOnGray: disabled,
+        ...(readonlyByCondition && readonlyConditions?.messages[config.readonlyWhen!]
+          ? { helperText: readonlyConditions.messages[config.readonlyWhen!] }
+          : {}),
         ...getCascadeProps(config),
       };
     },
-    [isFieldDisabled, getValueProps, getChangeProps, getCascadeProps]
+    [isFieldDisabled, getValueProps, getChangeProps, getCascadeProps, readonlyConditions]
   );
 
   return {

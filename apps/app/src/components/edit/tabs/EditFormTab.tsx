@@ -2,6 +2,7 @@ import { PetPickerInput } from "@/components/edit/inputs/PetPickerInput";
 import { useSelectedEntity } from "@/contexts/SpaceContext";
 import { useDynamicFields, extractDbFieldName } from "@/hooks/useDynamicFields";
 import { useEditForm } from "@/hooks/useEditForm";
+import { useResolveConditions } from "@/hooks/useResolveConditions";
 import { useSignals } from "@preact/signals-react/runtime";
 import {
   CheckboxInput,
@@ -54,6 +55,7 @@ interface FieldConfig {
   dependsOn?: string;
   disabledUntil?: string;
   filterBy?: string;
+  readonlyWhen?: string;
   validation?: any;
   options?: Array<{ value: string; label: string }>;
   fullWidth?: boolean;
@@ -95,6 +97,23 @@ export function EditFormTab({ fields, onLoadedCount, entityType, onSaveReady, on
     return Object.entries(fields).map(([id, config]) => ({ id, config }));
   }, [fields]);
 
+  // Collect unique readonlyWhen condition names from field configs
+  const conditionNames = useMemo(() => {
+    if (!fields) return undefined;
+    const names = new Set<string>();
+    for (const config of Object.values(fields)) {
+      if (config.readonlyWhen) names.add(config.readonlyWhen);
+    }
+    return names.size > 0 ? Array.from(names) : undefined;
+  }, [fields]);
+
+  // Resolve readonlyWhen conditions
+  const { conditions, messages } = useResolveConditions(
+    entityType || '',
+    selectedEntity?.id,
+    conditionNames,
+  );
+
   // Value getter: formChanges → selectedEntity
   const getValue = useCallback(
     (dbFieldName: string) => formChanges[dbFieldName] ?? selectedEntity?.[dbFieldName],
@@ -105,6 +124,7 @@ export function EditFormTab({ fields, onLoadedCount, entityType, onSaveReady, on
     fields: fieldsList,
     getValue,
     onChange: handleFieldChange,
+    readonlyConditions: conditionNames ? { conditions, messages } : undefined,
   });
 
   // Register save handler with parent
