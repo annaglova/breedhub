@@ -267,14 +267,26 @@ export function FiltersDialog({
       }
     }
 
-    // Find fields that depend on this field and clear their values
-    const dependentFields = filterFields.filter(
-      (f) =>
-        f.dependsOn === fieldId ||
-        f.dependsOn?.endsWith(fieldId) ||
-        f.disabledUntil === fieldId ||
-        f.disabledUntil?.endsWith(fieldId),
-    );
+    // Recursively find all dependent fields (transitive cascade)
+    const allDependents: FilterFieldConfig[] = [];
+    const cleared = new Set<string>();
+    const collectDependents = (parentId: string) => {
+      const deps = filterFields.filter(
+        (f) =>
+          !cleared.has(f.id) && (
+            f.dependsOn === parentId ||
+            f.dependsOn?.endsWith(parentId) ||
+            f.disabledUntil === parentId ||
+            f.disabledUntil?.endsWith(parentId)
+          ),
+      );
+      for (const dep of deps) {
+        cleared.add(dep.id);
+        allDependents.push(dep);
+        collectDependents(dep.id);
+      }
+    };
+    collectDependents(fieldId);
 
     setFilterValues((prev) => {
       const newValues = {
@@ -282,8 +294,7 @@ export function FiltersDialog({
         [fieldId]: value,
       };
 
-      // Clear dependent field values when parent field changes
-      for (const depField of dependentFields) {
+      for (const depField of allDependents) {
         if (prev[depField.id] !== undefined) {
           newValues[depField.id] = "";
         }

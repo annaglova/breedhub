@@ -76,21 +76,30 @@ export function useDynamicFields({ fields, getValue, onChange }: UseDynamicField
   );
 
   /**
-   * Handle field value change with dependent field clearing.
+   * Handle field value change with recursive dependent field clearing.
+   * pet_type → breed → coat_type: changing pet_type clears breed, which clears coat_type.
    */
   const handleChange = useCallback(
     (fieldId: string, dbFieldName: string, value: any) => {
       onChange(dbFieldName, value);
 
-      // Clear dependent fields
-      const dependents = getDependentFields(fieldId);
-      for (const dep of dependents) {
-        const depDbName = extractDbFieldName(dep.id);
-        const currentVal = getValue(depDbName);
-        if (currentVal !== undefined && currentVal !== "" && currentVal !== null) {
-          onChange(depDbName, "");
+      // Recursively clear all dependent fields
+      const cleared = new Set<string>();
+      const clearDependents = (parentFieldId: string) => {
+        const dependents = getDependentFields(parentFieldId);
+        for (const dep of dependents) {
+          if (cleared.has(dep.id)) continue;
+          cleared.add(dep.id);
+          const depDbName = extractDbFieldName(dep.id);
+          const currentVal = getValue(depDbName);
+          if (currentVal !== undefined && currentVal !== "" && currentVal !== null) {
+            onChange(depDbName, "");
+          }
+          // Recurse: clear fields that depend on this dependent field
+          clearDependents(dep.id);
         }
-      }
+      };
+      clearDependents(fieldId);
     },
     [onChange, getValue, getDependentFields]
   );
