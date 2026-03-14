@@ -56,6 +56,7 @@ interface FieldConfig {
   disabledUntil?: string;
   filterBy?: string;
   readonlyWhen?: string;
+  visibleWhen?: { field: string; value: string | string[] };
   validation?: any;
   options?: Array<{ value: string; label: string }>;
   fullWidth?: boolean;
@@ -189,6 +190,16 @@ export function EditFormTab({ fields, onLoadedCount, entityType, onSaveReady, on
    */
   const renderField = (fieldId: string, field: FieldConfig) => {
     if (field.hidden) return null;
+
+    // Conditional visibility: show field only when another field has a specific value
+    if (field.visibleWhen) {
+      const depDbName = extractDbFieldName(field.visibleWhen.field);
+      const currentValue = formChanges[depDbName] ?? selectedEntity?.[depDbName];
+      const allowedValues = Array.isArray(field.visibleWhen.value)
+        ? field.visibleWhen.value
+        : [field.visibleWhen.value];
+      if (!currentValue || !allowedValues.includes(currentValue)) return null;
+    }
 
     const dbFieldName = extractDbFieldName(fieldId);
 
