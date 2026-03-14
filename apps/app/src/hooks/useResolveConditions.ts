@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { spaceStore } from '@breedhub/rxdb-store';
 
 interface ConditionResolver {
-  resolve: (entityType: string, entityId: string) => Promise<boolean>;
+  resolve: (entityType: string, entityId: string, entity?: Record<string, any>) => Promise<boolean>;
   message: string;
 }
 
@@ -15,10 +15,14 @@ interface ConditionResolver {
  */
 const CONDITION_RESOLVERS: Record<string, ConditionResolver> = {
   hasChildren: {
-    resolve: async (_entityType: string, entityId: string) => {
+    resolve: async (_entityType: string, entityId: string, entity?: Record<string, any>) => {
       // Check pet_children collection for child records of this pet
       // pet_child tableType stores children where this pet is father or mother
-      const children = await spaceStore.getChildRecords(entityId, 'pet_child', { limit: 1 });
+      // partitionId = breed_id (pet table is partitioned by breed_id)
+      const children = await spaceStore.getChildRecords(entityId, 'pet_child', {
+        limit: 1,
+        partitionId: entity?.breed_id,
+      });
       return children.length > 0;
     },
     message: 'Cannot be changed because the pet has children',
@@ -39,13 +43,14 @@ interface UseResolveConditionsResult {
  */
 export function useResolveConditions(
   entityType: string,
-  entityId?: string,
+  entity?: Record<string, any> | null,
   conditionNames?: string[],
 ): UseResolveConditionsResult {
   const [conditions, setConditions] = useState<Record<string, boolean>>({});
   const [messages, setMessages] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
 
+  const entityId = entity?.id;
   // Stable key for the conditions list
   const conditionsKey = conditionNames?.sort().join(',') || '';
 
@@ -69,7 +74,7 @@ export function useResolveConditions(
           console.warn(`[useResolveConditions] Unknown condition: ${name}`);
           return { name, value: false, message: '' };
         }
-        const value = await resolver.resolve(entityType, entityId);
+        const value = await resolver.resolve(entityType, entityId, entity ?? undefined);
         return { name, value, message: resolver.message };
       })
     ).then((results) => {

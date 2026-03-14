@@ -110,7 +110,7 @@ export function EditFormTab({ fields, onLoadedCount, entityType, onSaveReady, on
   // Resolve readonlyWhen conditions
   const { conditions, messages } = useResolveConditions(
     entityType || '',
-    selectedEntity?.id,
+    selectedEntity,
     conditionNames,
   );
 

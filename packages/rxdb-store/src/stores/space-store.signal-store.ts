@@ -4184,8 +4184,39 @@ class SpaceStore {
       return [];
     }
 
-    // Check if data already exists in RxDB
-    const existingRecords = await this.getChildRecords(parentId, tableType, options);
+    // Check for partition config in entity schema
+    const entitySchema = this.entitySchemas.get(entityType);
+    const partitionConfig = entitySchema?.partition;
+    let partitionValue: string | undefined;
+
+    // If entity is partitioned, get partition key value from parent entity
+    if (partitionConfig) {
+      // First try memory store (fast)
+      let parentEntity = await this.getById(entityType, parentId);
+      let partitionSource = 'memory';
+
+      // If not in memory, try RxDB collection
+      if (!parentEntity && this.db?.collections[entityType]) {
+        const doc = await this.db.collections[entityType].findOne(parentId).exec();
+        if (doc) {
+          parentEntity = doc.toJSON();
+          partitionSource = 'RxDB';
+        }
+      }
+
+      if (parentEntity) {
+        partitionValue = (parentEntity as any)[partitionConfig.keyField];
+        console.log(`[SpaceStore] Partition filter: ${partitionConfig.childFilterField}=${partitionValue} (from ${partitionSource})`);
+      } else {
+        console.warn(`[SpaceStore] Could not find parent entity for partition key. Table: ${tableType}, parentId: ${parentId}`);
+      }
+    }
+
+    // Check if data already exists in RxDB (with partition filter for partitioned entities)
+    const existingRecords = await this.getChildRecords(parentId, tableType, {
+      ...options,
+      partitionId: partitionValue,
+    });
     if (existingRecords.length > 0) {
       return existingRecords;
     }
@@ -4198,34 +4229,6 @@ class SpaceStore {
       // Determine the parent ID field name (e.g., 'breed_id' for breed children)
       // Use explicit parentField from config when provided (e.g., 'owner_kennel_id' for kennel views)
       const parentIdField = parentField || `${entityType}_id`;
-
-      // Check for partition config in entity schema
-      const entitySchema = this.entitySchemas.get(entityType);
-      const partitionConfig = entitySchema?.partition;
-      let partitionValue: string | undefined;
-
-      // If entity is partitioned, get partition key value from parent entity
-      if (partitionConfig) {
-        // First try memory store (fast)
-        let parentEntity = await this.getById(entityType, parentId);
-        let partitionSource = 'memory';
-
-        // If not in memory, try RxDB collection
-        if (!parentEntity && this.db?.collections[entityType]) {
-          const doc = await this.db.collections[entityType].findOne(parentId).exec();
-          if (doc) {
-            parentEntity = doc.toJSON();
-            partitionSource = 'RxDB';
-          }
-        }
-
-        if (parentEntity) {
-          partitionValue = (parentEntity as any)[partitionConfig.keyField];
-          console.log(`[SpaceStore] Partition filter: ${partitionConfig.childFilterField}=${partitionValue} (from ${partitionSource})`);
-        } else {
-          console.warn(`[SpaceStore] Could not find parent entity for partition key. Table: ${tableType}, parentId: ${parentId}`);
-        }
-      }
 
       // Build Supabase query
       let query = supabase
@@ -4313,7 +4316,7 @@ class SpaceStore {
   async getChildRecords(
     parentId: string,
     tableType: string,
-    options: { limit?: number; orderBy?: string; orderDirection?: 'asc' | 'desc' } = {}
+    options: { limit?: number; orderBy?: string; orderDirection?: 'asc' | 'desc'; partitionId?: string } = {}
   ): Promise<any[]> {
     if (!parentId || !tableType) {
       return [];
@@ -4336,20 +4339,25 @@ class SpaceStore {
     const normalizedTableType = tableType.replace(/_with_\w+$/, '');
 
     try {
-      const { limit = 50, orderBy, orderDirection = 'asc' } = options;
+      const { limit = 50, orderBy, orderDirection = 'asc', partitionId } = options;
 
-      // Child records schema only has: id, parentId, tableType, cachedAt, additional
+      // Child records schema only has: id, parentId, tableType, cachedAt, additional, partitionId
       // Fields like 'placement', 'rating', etc. are stored inside 'additional'
       // RxDB cannot sort by nested fields, so we sort in JS after fetching
-      const schemaFields = new Set(['id', 'parentId', 'tableType', 'cachedAt', 'additional']);
+      const schemaFields = new Set(['id', 'parentId', 'tableType', 'cachedAt', 'additional', 'partitionId']);
       const isSchemaField = orderBy ? schemaFields.has(orderBy) : false;
 
       // Build query options - RxDB doesn't allow undefined/null for limit
+      const selector: Record<string, any> = {
+        parentId: parentId,
+        tableType: normalizedTableType,
+      };
+      // Filter by partitionId for partitioned entities (e.g., pet by breed_id)
+      if (partitionId) {
+        selector.partitionId = partitionId;
+      }
       const queryOptions: { selector: Record<string, any>; limit?: number } = {
-        selector: {
-          parentId: parentId,
-          tableType: normalizedTableType
-        }
+        selector,
       };
 
       // Add limit to RxDB query when safe:
