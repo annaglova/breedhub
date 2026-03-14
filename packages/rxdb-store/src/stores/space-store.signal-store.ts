@@ -1444,6 +1444,12 @@ class SpaceStore {
     if (!properties.updated_at) {
       properties.updated_at = { type: 'string' };
     }
+    if (!properties.created_by) {
+      properties.created_by = { type: 'string' };
+    }
+    if (!properties.updated_by) {
+      properties.updated_by = { type: 'string' };
+    }
     if (!properties._deleted) {
       properties._deleted = { type: 'boolean' };
     }
@@ -1562,6 +1568,7 @@ class SpaceStore {
 
       // Update RxDB locally
       await doc.patch(patchData);
+      // Update in-memory signal store
       entityStore.updateOne(id, patchData);
 
       // Sync to Supabase
@@ -1572,9 +1579,7 @@ class SpaceStore {
         .eq('id', id);
 
       if (supabaseError) {
-        console.error(`[SpaceStore] Supabase sync failed for ${entityType}:`, supabaseError);
-      } else {
-        console.log(`[SpaceStore] Updated ${entityType}:`, id);
+        throw new Error(`Supabase sync failed for ${entityType}: ${supabaseError.message}`);
       }
 
     } catch (error) {
@@ -1740,10 +1745,8 @@ class SpaceStore {
         .eq('id', id);
 
       if (supabaseError) {
-        console.error(`[SpaceStore] Supabase sync failed for delete ${entityType}:`, supabaseError);
+        throw new Error(`Supabase sync failed for delete ${entityType}: ${supabaseError.message}`);
       }
-
-      console.log(`[SpaceStore] Deleted ${entityType}:`, id);
       
     } catch (error) {
       console.error(`[SpaceStore] Failed to delete ${entityType}:`, error);
