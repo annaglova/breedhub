@@ -1,5 +1,6 @@
 import { PetPickerInput } from "@/components/edit/inputs/PetPickerInput";
 import { useSelectedEntity } from "@/contexts/SpaceContext";
+import { useDynamicFields, extractDbFieldName } from "@/hooks/useDynamicFields";
 import { useEditForm } from "@/hooks/useEditForm";
 import { useSignals } from "@preact/signals-react/runtime";
 import {
@@ -18,9 +19,9 @@ import {
   TextareaInput,
   TimeInput,
 } from "@ui/components/form-inputs";
-import { useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 
-// Component mapping for dynamic rendering (same as FiltersDialog)
+// Component mapping for dynamic rendering
 const componentMap: Record<string, React.ComponentType<any>> = {
   TextInput,
   TextareaInput,
@@ -38,14 +39,6 @@ const componentMap: Record<string, React.ComponentType<any>> = {
   SwitchInput,
   PetPickerInput: PetPickerInput as any,
 };
-
-// Components using standard onChange (e.target.value)
-const ONCHANGE_COMPONENTS = new Set([
-  'TextInput', 'TextareaInput', 'NumberInput', 'EmailInput', 'PasswordInput',
-]);
-
-// Components using onCheckedChange (boolean)
-const ONCHECKED_COMPONENTS = new Set(['CheckboxInput', 'SwitchInput']);
 
 interface FieldConfig {
   displayName: string;
@@ -80,20 +73,10 @@ interface EditFormTabProps {
 }
 
 /**
- * Extract DB field name from config field ID
- * e.g., "pet_field_name" -> "name", "pet_field_breed_id" -> "breed_id"
- */
-function getDbFieldName(fieldId: string): string {
-  // Remove entity prefix: "pet_field_name" -> "name"
-  const match = fieldId.match(/^[a-z]+_field_(.+)$/);
-  return match ? match[1] : fieldId;
-}
-
-/**
  * EditFormTab - Dynamic form tab for edit page
  *
  * Reads fields from tab config and renders them using componentMap.
- * Same pattern as FiltersDialog but for entity editing.
+ * Uses useDynamicFields hook for cascade filtering and field props.
  * Uses useEditForm hook for form state and save via spaceStore.update().
  */
 export function EditFormTab({ fields, onLoadedCount, entityType, onSaveReady, onDirtyChange }: EditFormTabProps) {
@@ -104,6 +87,24 @@ export function EditFormTab({ fields, onLoadedCount, entityType, onSaveReady, on
   const { formChanges, hasChanges, handleFieldChange, handleSave } = useEditForm({
     entityType: entityType || '',
     entityId: selectedEntity?.id,
+  });
+
+  // Build fields array for useDynamicFields
+  const fieldsList = useMemo(() => {
+    if (!fields) return [];
+    return Object.entries(fields).map(([id, config]) => ({ id, config }));
+  }, [fields]);
+
+  // Value getter: formChanges → selectedEntity
+  const getValue = useCallback(
+    (dbFieldName: string) => formChanges[dbFieldName] ?? selectedEntity?.[dbFieldName],
+    [formChanges, selectedEntity]
+  );
+
+  const { getFieldProps } = useDynamicFields({
+    fields: fieldsList,
+    getValue,
+    onChange: handleFieldChange,
   });
 
   // Register save handler with parent
@@ -169,7 +170,7 @@ export function EditFormTab({ fields, onLoadedCount, entityType, onSaveReady, on
   const renderField = (fieldId: string, field: FieldConfig) => {
     if (field.hidden) return null;
 
-    const dbFieldName = getDbFieldName(fieldId);
+    const dbFieldName = extractDbFieldName(fieldId);
 
     // PetPickerInput: special rendering with paired field support
     if (field.component === "PetPickerInput") {
@@ -201,34 +202,12 @@ export function EditFormTab({ fields, onLoadedCount, entityType, onSaveReady, on
       }
       return null;
     }
-    const isChecked = ONCHECKED_COMPONENTS.has(field.component);
 
-    // Change handler varies by component type
-    const changeProps = ONCHANGE_COMPONENTS.has(field.component)
-      ? { onChange: (e: React.ChangeEvent<HTMLInputElement>) => handleFieldChange(dbFieldName, e.target.value) }
-      : isChecked
-        ? { onCheckedChange: (checked: boolean) => handleFieldChange(dbFieldName, checked) }
-        : { onValueChange: (val: any) => handleFieldChange(dbFieldName, val) };
-
-    // Value prop varies: checked for checkbox/switch, value for all others
-    const valueProps = isChecked
-      ? { checked: formChanges[dbFieldName] ?? selectedEntity?.[dbFieldName] ?? false }
-      : { value: formChanges[dbFieldName] ?? selectedEntity?.[dbFieldName] ?? "" };
+    const fieldProps = getFieldProps(fieldId, field);
 
     return (
       <div key={fieldId}>
-        <Component
-          label={field.displayName}
-          {...valueProps}
-          {...changeProps}
-          required={field.required}
-          placeholder={field.placeholder}
-          referencedTable={field.referencedTable}
-          referencedFieldID={field.referencedFieldID}
-          referencedFieldName={field.referencedFieldName}
-          {...(field.dataSource ? { dataSource: field.dataSource } : {})}
-          options={field.options || []}
-        />
+        <Component {...fieldProps} />
       </div>
     );
   };

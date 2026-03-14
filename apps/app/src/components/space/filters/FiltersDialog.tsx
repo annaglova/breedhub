@@ -1,3 +1,4 @@
+import { useDynamicFields } from "@/hooks/useDynamicFields";
 import { useJunctionFilterIds } from "@breedhub/rxdb-store";
 import { Button } from "@ui/components/button";
 import {
@@ -30,7 +31,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@ui/components/select";
-import React from "react";
+import React, { useCallback, useMemo } from "react";
 
 export interface FilterConfig {
   id: string;
@@ -49,27 +50,27 @@ export interface FilterFieldConfig {
   fieldType: string;
   required?: boolean;
   operator?: string;
-  slug?: string; // Short URL slug for filter (e.g., "type" instead of "breed_field_pet_type_id")
+  slug?: string;
   value?: any;
   validation?: any;
   order: number;
   options?: Array<{ value: string; label: string; disabled?: boolean }>;
-  mainFilterField?: boolean; // If true, this field is used for main search, not shown in filter dialog
+  mainFilterField?: boolean;
   // Dictionary loading props
   referencedTable?: string;
   referencedFieldID?: string;
   referencedFieldName?: string;
-  dataSource?: "dictionary" | "collection"; // How to load options: dictionary (default) or collection (for cascade filtering)
+  dataSource?: "dictionary" | "collection";
   // Filter behavior props
-  dependsOn?: string; // Field ID that this field depends on (cascade filter)
-  disabledUntil?: string; // Field ID - this field is disabled until that field has a value
-  filterBy?: string; // Field name in referenced table to filter options by dependsOn value
+  dependsOn?: string;
+  disabledUntil?: string;
+  filterBy?: string;
   // Junction table filtering (many-to-many)
-  junctionTable?: string; // Junction table name (e.g., 'coat_type_in_breed')
-  junctionField?: string; // Target field to extract IDs (e.g., 'coat_type_id')
-  junctionFilterField?: string; // Filter field in junction table (e.g., 'breed_id')
+  junctionTable?: string;
+  junctionField?: string;
+  junctionFilterField?: string;
   // OR fields (single filter applies to multiple DB fields with OR logic)
-  orFields?: string[]; // e.g., ['father_breed_id', 'mother_breed_id']
+  orFields?: string[];
 }
 
 interface FiltersDialogProps {
@@ -147,10 +148,8 @@ export function FiltersDialog({
     const words = text.split(" ");
     if (words.length === 0) return text;
 
-    // First word keeps first letter uppercase, rest lowercase
     const firstWord =
       words[0].charAt(0).toUpperCase() + words[0].slice(1).toLowerCase();
-    // Other words all lowercase
     const otherWords = words.slice(1).map((w) => w.toLowerCase());
 
     return [firstWord, ...otherWords].join(" ");
@@ -170,10 +169,30 @@ export function FiltersDialog({
   React.useEffect(() => {
     if (open) {
       setFilterValues(initialValues);
-      setErrors({}); // Clear errors when dialog opens
-      setTouched({}); // Clear touched state
+      setErrors({});
+      setTouched({});
     }
   }, [open, initialValues]);
+
+  // Build fields list for useDynamicFields
+  const fieldsList = useMemo(() => {
+    return filterFields.map((f) => ({ id: f.id, config: f }));
+  }, [filterFields]);
+
+  // getValue for useDynamicFields: filterValues uses field.id as key
+  const getValue = useCallback(
+    (fieldId: string) => filterValues[fieldId],
+    [filterValues]
+  );
+
+  // Dummy onChange — FiltersDialog handles its own state via handleValueChange
+  const noopOnChange = useCallback(() => {}, []);
+
+  const { isFieldDisabled, getCascadeProps, getParentFieldValue } = useDynamicFields({
+    fields: fieldsList,
+    getValue,
+    onChange: noopOnChange,
+  });
 
   // Validate required fields
   const validateForm = (): boolean => {
@@ -181,7 +200,6 @@ export function FiltersDialog({
     const newTouched: Record<string, boolean> = {};
 
     for (const field of filterFields) {
-      // Mark all fields as touched on submit
       newTouched[field.id] = true;
 
       if (field.required) {
@@ -201,17 +219,14 @@ export function FiltersDialog({
   const handleApply = (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Remove focus from submit button after click
     if (document.activeElement instanceof HTMLElement) {
       document.activeElement.blur();
     }
 
-    // Validate required fields
     if (!validateForm()) {
       return;
     }
 
-    // Check if there are any changes compared to initial values
     const hasChanges =
       JSON.stringify(filterValues) !== JSON.stringify(initialValues);
 
@@ -244,7 +259,6 @@ export function FiltersDialog({
           [fieldId]: `${toSentenceCase(fieldConfig.displayName)} is required`,
         }));
       } else {
-        // Clear error if value is valid
         setErrors((prev) => {
           const newErrors = { ...prev };
           delete newErrors[fieldId];
@@ -254,7 +268,6 @@ export function FiltersDialog({
     }
 
     // Find fields that depend on this field and clear their values
-    // dependsOn/disabledUntil can be full ID (pet_field_pet_type_id) or short ID (pet_type_id)
     const dependentFields = filterFields.filter(
       (f) =>
         f.dependsOn === fieldId ||
@@ -280,42 +293,20 @@ export function FiltersDialog({
     });
   };
 
-  // Check if a field should be disabled based on disabledUntil
-  const isFieldDisabled = (field: FilterFieldConfig): boolean => {
-    if (!field.disabledUntil) return false;
-
-    // Find the field that this depends on
-    // disabledUntil can be full ID (pet_field_pet_type_id) or short ID (pet_type_id)
-    // filterFields use short IDs (pet_type_id), filterValues also use short IDs
-    const dependsOnField = filterFields.find(
-      (f) =>
-        f.id === field.disabledUntil || // Exact match (short ID)
-        field.disabledUntil.endsWith(f.id), // Full ID ends with short ID (pet_field_pet_type_id ends with pet_type_id)
-    );
-
-    // Get value by the actual field ID used in filterValues
-    const dependsOnKey = dependsOnField?.id || field.disabledUntil;
-    const dependsOnValue = filterValues[dependsOnKey];
-    return !dependsOnValue || dependsOnValue === "";
-  };
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         className="max-w-2xl max-h-[90vh] overflow-y-auto"
         onOpenAutoFocus={(e) => {
-          // Prevent auto-focusing first input — it opens LookupInput dropdown
           e.preventDefault();
         }}
         onPointerDownOutside={(e) => {
-          // Prevent dialog from closing when clicking on portal dropdowns
           const target = e.target as HTMLElement;
           if (target.closest("[data-portal-dropdown]")) {
             e.preventDefault();
           }
         }}
         onFocusOutside={(e) => {
-          // Allow focus to move to portal dropdown inputs (e.g. DateRangeInput)
           const target = e.target as HTMLElement;
           if (target.closest("[data-portal-dropdown]")) {
             e.preventDefault();
@@ -340,30 +331,9 @@ export function FiltersDialog({
                 }
 
                 const disabled = isFieldDisabled(field);
+                const cascadeProps = getCascadeProps(field);
+                const parentFieldValue = getParentFieldValue(field);
 
-                // Get parent field value for filterBy (cascade filtering) - only for LookupInput
-                // dependsOn can be full ID (pet_field_pet_type_id) or short ID (pet_type_id)
-                // filterValues uses short IDs, so we need to find the matching field
-                let parentFieldValue: string | undefined;
-                if (field.dependsOn) {
-                  const parentField = filterFields.find(
-                    (f) =>
-                      f.id === field.dependsOn || // Exact match
-                      field.dependsOn?.endsWith(f.id), // Full ID ends with short ID
-                  );
-                  const parentKey = parentField?.id || field.dependsOn;
-                  parentFieldValue = filterValues[parentKey];
-                }
-
-                // Pass filterBy/filterByValue for cascade filtering (DropdownInput + LookupInput)
-                const cascadeProps = field.filterBy
-                  ? {
-                      filterBy: field.filterBy,
-                      filterByValue: parentFieldValue,
-                    }
-                  : {};
-
-                // Common props shared by both regular and junction filter fields
                 const commonProps = {
                   label: toSentenceCase(field.displayName),
                   placeholder: field.placeholder,
@@ -437,7 +407,6 @@ export function FiltersDialog({
                   {filters.map((filter) => (
                     <div key={filter.id} className="space-y-2">
                       {filter.component ? (
-                        // Custom component for complex filters
                         filter.component
                       ) : filter.type === "select" ? (
                         <>
@@ -461,7 +430,6 @@ export function FiltersDialog({
                           </Select>
                         </>
                       ) : (
-                        // Placeholder for other input types
                         <div>
                           <Label htmlFor={filter.id}>{filter.label}</Label>
                           <div className="text-sm text-muted-foreground">

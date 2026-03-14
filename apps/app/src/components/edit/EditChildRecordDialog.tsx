@@ -23,6 +23,7 @@ import {
   TimeInput,
 } from "@ui/components/form-inputs";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useDynamicFields, extractDbFieldName } from "@/hooks/useDynamicFields";
 
 // Component mapping (same as EditFormTab / FiltersDialog)
 const componentMap: Record<string, React.ComponentType<any>> = {
@@ -42,14 +43,6 @@ const componentMap: Record<string, React.ComponentType<any>> = {
   SwitchInput,
 };
 
-// Components using standard onChange (e.target.value)
-const ONCHANGE_COMPONENTS = new Set([
-  "TextInput", "TextareaInput", "NumberInput", "EmailInput", "PasswordInput",
-]);
-
-// Components using onCheckedChange (boolean)
-const ONCHECKED_COMPONENTS = new Set(["CheckboxInput", "SwitchInput"]);
-
 interface FieldConfig {
   displayName: string;
   component?: string;
@@ -63,6 +56,9 @@ interface FieldConfig {
   referencedFieldID?: string;
   referencedFieldName?: string;
   dataSource?: "dictionary" | "collection";
+  dependsOn?: string;
+  disabledUntil?: string;
+  filterBy?: string;
   options?: Array<{ value: string; label: string }>;
   fullWidth?: boolean;
   group?: string;
@@ -80,12 +76,6 @@ interface EditChildRecordDialogProps {
   entityType: string;
   label?: string;
   onSaved: () => void;
-}
-
-/** Extract field name from config key: "title_in_pet_field_date" → "date" */
-function extractFieldName(configKey: string): string {
-  const match = configKey.match(/_field_(.+)$/);
-  return match ? match[1] : configKey;
 }
 
 export function EditChildRecordDialog({
@@ -123,6 +113,26 @@ export function EditChildRecordDialog({
       .sort((a, b) => (a[1].order ?? a[1].sortOrder ?? 0) - (b[1].order ?? b[1].sortOrder ?? 0));
   }, [fields]);
 
+  // Build fields array for useDynamicFields
+  const fieldsList = useMemo(() => {
+    return formFields.map(([id, config]) => ({ id, config }));
+  }, [formFields]);
+
+  // Value getter: formChanges → record.additional → record top-level
+  const getValue = useCallback(
+    (dbFieldName: string) => {
+      if (formChanges[dbFieldName] !== undefined) return formChanges[dbFieldName];
+      return record?.additional?.[dbFieldName] ?? record?.[dbFieldName];
+    },
+    [formChanges, record]
+  );
+
+  const { getFieldProps } = useDynamicFields({
+    fields: fieldsList,
+    getValue,
+    onChange: handleFieldChange,
+  });
+
   const hasChanges = Object.keys(formChanges).length > 0;
 
   const handleSave = async (e: React.FormEvent) => {
@@ -151,37 +161,11 @@ export function EditChildRecordDialog({
     const Component = componentMap[field.component!];
     if (!Component) return null;
 
-    const fieldName = extractFieldName(fieldId);
-    const isChecked = ONCHECKED_COMPONENTS.has(field.component!);
-
-    // Get current value: form changes → record additional → record top-level → default
-    const recordValue = record?.additional?.[fieldName] ?? record?.[fieldName];
-    const currentValue = formChanges[fieldName] ?? recordValue;
-
-    const changeProps = ONCHANGE_COMPONENTS.has(field.component!)
-      ? { onChange: (e: React.ChangeEvent<HTMLInputElement>) => handleFieldChange(fieldName, e.target.value) }
-      : isChecked
-        ? { onCheckedChange: (checked: boolean) => handleFieldChange(fieldName, checked) }
-        : { onValueChange: (val: any) => handleFieldChange(fieldName, val) };
-
-    const valueProps = isChecked
-      ? { checked: currentValue ?? false }
-      : { value: currentValue ?? "" };
+    const fieldProps = getFieldProps(fieldId, field);
 
     return (
       <div key={fieldId} className="space-y-2">
-        <Component
-          label={field.displayName}
-          {...valueProps}
-          {...changeProps}
-          required={field.required}
-          placeholder={field.placeholder}
-          referencedTable={field.referencedTable}
-          referencedFieldID={field.referencedFieldID}
-          referencedFieldName={field.referencedFieldName}
-          {...(field.dataSource ? { dataSource: field.dataSource } : {})}
-          options={field.options || []}
-        />
+        <Component {...fieldProps} />
       </div>
     );
   };
