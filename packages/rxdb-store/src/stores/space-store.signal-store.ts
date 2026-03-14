@@ -1112,15 +1112,15 @@ class SpaceStore {
    * Get or create an entity store for the given entity type
    */
   async getEntityStore<T extends BusinessEntity>(entityType: string): Promise<EntityStore<T> | null> {
-    // Wait for config to be ready first (fast polling for instant response)
-    if (!this.configReady.value) {
-      let retries = 50;
-      while (!this.configReady.value && retries > 0) {
-        await new Promise(resolve => setTimeout(resolve, 50)); // 50ms polling
+    // Wait for full initialization (config + DB) before creating entity stores
+    if (!this.initialized.value) {
+      let retries = 100;
+      while (!this.initialized.value && retries > 0) {
+        await new Promise(resolve => setTimeout(resolve, 50)); // 50ms polling, up to 5s
         retries--;
       }
-      if (!this.configReady.value) {
-        console.error(`[SpaceStore] Config not ready after waiting for ${entityType}`);
+      if (!this.initialized.value) {
+        console.error(`[SpaceStore] Not initialized after waiting for ${entityType}`);
         return null;
       }
     }
