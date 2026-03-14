@@ -236,16 +236,27 @@ function EditBlocks({
 
   const handleLeaveSave = useCallback(async () => {
     setShowLeaveDialog(false);
+    // Capture navigation target before save clears state
+    const url = pendingNavigationRef.current;
+    pendingNavigationRef.current = null;
+    setPendingNavigationUrl(null);
+    // Prevent useEffect from doing history.back() when hasUnsavedChanges becomes false
+    hasUnsavedRef.current = false;
+    if (sentinelPushedRef.current) {
+      sentinelPushedRef.current = false;
+    }
     try {
       await saveHandlerRef.current?.();
     } catch {
-      pendingNavigationRef.current = null;
-      setPendingNavigationUrl(null);
       return;
     }
-    hasUnsavedRef.current = false;
-    proceedNavigation();
-  }, [proceedNavigation]);
+    setHasUnsavedChanges(false);
+    if (url) {
+      navigate(url);
+    } else {
+      window.history.back();
+    }
+  }, [navigate]);
 
   const handleLeaveCancel = useCallback(() => {
     setShowLeaveDialog(false);
