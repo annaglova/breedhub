@@ -25,6 +25,7 @@ import {
 } from "@ui/components/form-inputs";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useDynamicFields, extractDbFieldName } from "@/hooks/useDynamicFields";
+import { PetPickerInput } from "@/components/edit/inputs/PetPickerInput";
 
 // Component mapping (same as EditFormTab / FiltersDialog)
 const componentMap: Record<string, React.ComponentType<any>> = {
@@ -42,6 +43,7 @@ const componentMap: Record<string, React.ComponentType<any>> = {
   FileInput,
   RadioInput,
   SwitchInput,
+  PetPickerInput: PetPickerInput as any,
 };
 
 interface FieldConfig {
@@ -175,18 +177,57 @@ export function EditChildRecordDialog({
     setFormChanges(prev => ({ ...prev, [fieldName]: value }));
   }, []);
 
-  // Filter and sort form fields
-  const formFields = useMemo(() => {
-    if (!fields) return [];
-    return Object.entries(fields)
-      .filter(([, config]) => config.showInForm !== false && config.component)
-      .sort((a, b) => (a[1].order ?? a[1].sortOrder ?? 0) - (b[1].order ?? b[1].sortOrder ?? 0));
+  // Filter form fields
+  const formFieldsMap = useMemo(() => {
+    if (!fields) return {};
+    const result: Record<string, FieldConfig> = {};
+    for (const [key, config] of Object.entries(fields)) {
+      if (config.showInForm !== false && config.component) {
+        result[key] = config;
+      }
+    }
+    return result;
   }, [fields]);
+
+  // Sort fields by order and group them (same logic as EditFormTab)
+  const groupedFields = useMemo(() => {
+    const entries = Object.entries(formFieldsMap);
+    if (entries.length === 0) return [];
+
+    const sorted = entries.sort(
+      ([, a], [, b]) => (a.order ?? a.sortOrder ?? 0) - (b.order ?? b.sortOrder ?? 0)
+    );
+
+    const groups: Array<{
+      label: string | null;
+      layout: "horizontal" | "vertical";
+      fields: Array<[string, FieldConfig]>;
+    }> = [];
+    const groupMap = new Map<string | null, {
+      layout: "horizontal" | "vertical";
+      fields: Array<[string, FieldConfig]>;
+    }>();
+
+    for (const entry of sorted) {
+      const groupKey = entry[1].group || null;
+      if (!groupMap.has(groupKey)) {
+        const group = {
+          layout: (entry[1].groupLayout || "vertical") as "horizontal" | "vertical",
+          fields: [] as Array<[string, FieldConfig]>,
+        };
+        groupMap.set(groupKey, group);
+        groups.push({ label: groupKey, ...group });
+      }
+      groupMap.get(groupKey)!.fields.push(entry);
+    }
+
+    return groups;
+  }, [formFieldsMap]);
 
   // Build fields array for useDynamicFields
   const fieldsList = useMemo(() => {
-    return formFields.map(([id, config]) => ({ id, config }));
-  }, [formFields]);
+    return Object.entries(formFieldsMap).map(([id, config]) => ({ id, config }));
+  }, [formFieldsMap]);
 
   // Value getter: formChanges → record.additional → record top-level
   const getValue = useCallback(
@@ -253,7 +294,34 @@ export function EditChildRecordDialog({
     }
   };
 
+  // Current entity for PetPickerInput context (editing record or parent entity)
+  const currentEntity = isEditMode ? record : parentEntity;
+
   const renderField = (fieldId: string, field: FieldConfig) => {
+    if (field.hidden) return null;
+
+    const dbFieldName = extractDbFieldName(fieldId);
+
+    // PetPickerInput: special rendering with paired field support
+    if (field.component === "PetPickerInput") {
+      return (
+        <div key={fieldId}>
+          <PetPickerInput
+            label={field.displayName}
+            value={formChanges[dbFieldName] ?? currentEntity?.[dbFieldName] ?? ""}
+            pairedField={field.pairedField}
+            pairedValue={formChanges[field.pairedField!] ?? currentEntity?.[field.pairedField!] ?? ""}
+            sexFilter={field.sexFilter}
+            handleFieldChange={handleFieldChange}
+            dbFieldName={dbFieldName}
+            selectedEntity={currentEntity}
+            required={field.required}
+            placeholder={field.placeholder}
+          />
+        </div>
+      );
+    }
+
     const Component = componentMap[field.component!];
     if (!Component) return null;
 
@@ -289,10 +357,54 @@ export function EditChildRecordDialog({
         </DialogHeader>
 
         <form onSubmit={handleSave}>
-          <div className="modal-card">
-            <div className="grid gap-x-3 gap-y-1 sm:grid-cols-2">
-              {formFields.map(([fieldId, field]) => renderField(fieldId, field))}
-            </div>
+          <div className="modal-card space-y-4">
+            {groupedFields.map((group, idx) => (
+              <div key={group.label ?? idx}>
+                {group.label && (
+                  <h3 className="flex w-full items-center text-xl leading-[26px] font-bold text-sub-header-color mb-4">
+                    {group.label}
+                  </h3>
+                )}
+                {(() => {
+                  const fullWidthFields = group.fields.filter(([, f]) => f.fullWidth);
+                  const regularFields = group.fields.filter(([, f]) => !f.fullWidth);
+
+                  if (regularFields.length === 0) {
+                    return fullWidthFields.map(([fieldId, field]) => renderField(fieldId, field));
+                  }
+
+                  if (group.layout === "horizontal") {
+                    return (
+                      <>
+                        {fullWidthFields.map(([fieldId, field]) => renderField(fieldId, field))}
+                        <div className="sm:grid sm:grid-cols-2 sm:gap-x-3 gap-y-1">
+                          {regularFields.map(([fieldId, field]) => renderField(fieldId, field))}
+                        </div>
+                      </>
+                    );
+                  }
+
+                  // Vertical: column fill (first half left, second half right)
+                  const mid = Math.ceil(regularFields.length / 2);
+                  const leftCol = regularFields.slice(0, mid);
+                  const rightCol = regularFields.slice(mid);
+
+                  return (
+                    <>
+                      {fullWidthFields.map(([fieldId, field]) => renderField(fieldId, field))}
+                      <div className="sm:grid sm:grid-cols-2 sm:gap-x-3">
+                        <div className="space-y-1">
+                          {leftCol.map(([fieldId, field]) => renderField(fieldId, field))}
+                        </div>
+                        <div className="space-y-1">
+                          {rightCol.map(([fieldId, field]) => renderField(fieldId, field))}
+                        </div>
+                      </div>
+                    </>
+                  );
+                })()}
+              </div>
+            ))}
           </div>
 
           <div className="modal-actions">
