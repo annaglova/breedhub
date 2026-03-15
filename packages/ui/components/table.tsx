@@ -1,5 +1,4 @@
 import { cva, type VariantProps } from "class-variance-authority";
-import { FileText } from "lucide-react";
 import * as React from "react";
 
 import { cn } from "@ui/lib/utils";
@@ -212,9 +211,8 @@ const TableEmpty = ({
   <TableRow>
     <TableCell colSpan={columns} className="h-24 text-center">
       {children || (
-        <div className="flex flex-col items-center justify-center space-y-2 text-muted-foreground">
-          <FileText className="h-8 w-8" />
-          <p className="text-sm">{message}</p>
+        <div className="text-slate-500">
+          <p>{message}</p>
         </div>
       )}
     </TableCell>
