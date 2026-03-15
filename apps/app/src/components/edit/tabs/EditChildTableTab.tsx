@@ -21,6 +21,67 @@ import { MoreVertical, Pencil, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { EditChildRecordDialog } from "../EditChildRecordDialog";
 
+/**
+ * Hook to load data from multiple dataSource configs and merge results.
+ * Deduplicates by record ID.
+ */
+function useMultiTabData(
+  entityId: string | undefined,
+  dataSources: DataSourceConfig[] | undefined,
+) {
+  const primary = dataSources?.[0];
+  const secondary = dataSources?.[1];
+  const hasMultiple = !!secondary;
+
+  const {
+    data: primaryData,
+    isLoading: primaryLoading,
+    error: primaryError,
+    refetch: primaryRefetch,
+  } = useTabData({
+    parentId: entityId,
+    dataSource: primary!,
+    enabled: !!primary && !!entityId,
+  });
+
+  const {
+    data: secondaryData,
+    isLoading: secondaryLoading,
+    error: secondaryError,
+    refetch: secondaryRefetch,
+  } = useTabData({
+    parentId: entityId,
+    dataSource: secondary!,
+    enabled: hasMultiple && !!secondary && !!entityId,
+  });
+
+  // Merge and deduplicate by ID
+  const records = useMemo(() => {
+    if (!hasMultiple) return primaryData;
+    if (!primaryData?.length && !secondaryData?.length) return [];
+
+    const seen = new Set<string>();
+    const merged: any[] = [];
+    for (const record of [...(primaryData || []), ...(secondaryData || [])]) {
+      if (record.id && !seen.has(record.id)) {
+        seen.add(record.id);
+        merged.push(record);
+      }
+    }
+    return merged;
+  }, [primaryData, secondaryData, hasMultiple]);
+
+  const isLoading = primaryLoading || (hasMultiple && secondaryLoading);
+  const error = primaryError || secondaryError;
+
+  const refetch = useCallback(async () => {
+    await primaryRefetch();
+    if (hasMultiple) await secondaryRefetch();
+  }, [primaryRefetch, secondaryRefetch, hasMultiple]);
+
+  return { records, isLoading, error, refetch };
+}
+
 interface FieldConfig {
   displayName: string;
   fieldType: string;
@@ -199,13 +260,20 @@ export function EditChildTableTab({
   const selectedEntity = useSelectedEntity();
   const entityId = selectedEntity?.id;
 
+  const tableType = dataSource?.[0]?.childTable?.table || '';
+  const isEntityChild = dataSource?.[0]?.type === 'entity_child';
+
   // Resolve entityType from dataSource if not provided directly
   const resolvedEntityType = useMemo(() => {
     if (entityType) return entityType;
-    const tableType = dataSource?.[0]?.childTable?.table;
-    if (!tableType) return '';
+    // For entity_child, table IS the entity type
+    if (isEntityChild) {
+      return dataSource?.[0]?.childTable?.table || '';
+    }
+    const table = dataSource?.[0]?.childTable?.table;
+    if (!table) return '';
     // Use spaceStore's internal logic: try common patterns
-    const normalized = tableType.replace(/_with_\w+$/, '');
+    const normalized = table.replace(/_with_\w+$/, '');
     if (normalized.includes('_in_breed') || normalized.startsWith('breed_')) return 'breed';
     if (normalized.includes('_in_pet') || normalized.startsWith('pet_')) return 'pet';
     if (normalized.includes('_in_litter') || normalized.startsWith('litter_')) return 'litter';
@@ -214,20 +282,14 @@ export function EditChildTableTab({
     if (normalized.startsWith('contact_')) return 'contact';
     if (normalized.startsWith('account_')) return 'account';
     return '';
-  }, [entityType, dataSource]);
-
-  const tableType = dataSource?.[0]?.childTable?.table || '';
+  }, [entityType, dataSource, isEntityChild]);
 
   const {
-    data: records,
+    records,
     isLoading,
     error,
     refetch,
-  } = useTabData({
-    parentId: entityId,
-    dataSource: dataSource?.[0]!,
-    enabled: !!dataSource?.[0] && !!entityId,
-  });
+  } = useMultiTabData(entityId, dataSource);
 
   const { enriched: enrichedRecords, isEnriching } = useEnrichedRecords(records, fields);
 
@@ -271,7 +333,11 @@ export function EditChildTableTab({
 
     setIsDeleting(true);
     try {
-      await spaceStore.deleteChildRecord(resolvedEntityType, tableType, deletingRecord.id);
+      if (isEntityChild) {
+        await spaceStore.delete(resolvedEntityType, deletingRecord.id);
+      } else {
+        await spaceStore.deleteChildRecord(resolvedEntityType, tableType, deletingRecord.id);
+      }
       toast.success(`${label || "Record"} deleted`);
       setDeletingRecord(null);
       refetch();
@@ -386,6 +452,9 @@ export function EditChildTableTab({
           entityType={resolvedEntityType}
           label={label}
           onSaved={handleSaved}
+          isEntityChild={isEntityChild}
+          dataSources={isEntityChild ? dataSource : undefined}
+          parentEntity={isEntityChild ? selectedEntity : undefined}
         />
       )}
 

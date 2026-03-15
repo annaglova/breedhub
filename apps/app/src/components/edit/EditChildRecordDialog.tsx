@@ -1,4 +1,5 @@
 import { spaceStore, toast } from "@breedhub/rxdb-store";
+import type { DataSourceConfig } from "@breedhub/rxdb-store";
 import { Button } from "@ui/components/button";
 import {
   Dialog,
@@ -76,6 +77,72 @@ interface EditChildRecordDialogProps {
   entityType: string;
   label?: string;
   onSaved: () => void;
+  // Entity child support (entity_child dataSource type)
+  isEntityChild?: boolean;
+  dataSources?: DataSourceConfig[];
+  parentEntity?: Record<string, any> | null;
+}
+
+/**
+ * Resolve prefill values from dataSource config.
+ * Replaces "$parent.fieldName" with actual parent entity values.
+ * Also sets parentField = parentId for each dataSource.
+ */
+function resolvePrefill(
+  dataSources: DataSourceConfig[],
+  parentId: string,
+  parentEntity: Record<string, any> | null | undefined,
+  parentSex?: string,
+): Record<string, any> {
+  const result: Record<string, any> = {};
+
+  for (const ds of dataSources) {
+    if (!ds.childTable?.parentField) continue;
+
+    // Determine which dataSource to use for parentField based on parent sex
+    // e.g., male parent → father_id = parentId, female parent → mother_id = parentId
+    const parentField = ds.childTable.parentField;
+    const isFatherField = parentField.includes('father');
+    const isMotherField = parentField.includes('mother');
+
+    if (parentSex) {
+      // Only set parentField for matching sex
+      if (parentSex === 'male' && isFatherField) {
+        result[parentField] = parentId;
+      } else if (parentSex === 'female' && isMotherField) {
+        result[parentField] = parentId;
+      } else if (!isFatherField && !isMotherField) {
+        // Generic parent field — always set
+        result[parentField] = parentId;
+      }
+    } else {
+      // No sex info — set first dataSource's parentField
+      result[parentField] = parentId;
+    }
+
+    // Resolve prefill values from parent entity
+    if (ds.prefill && parentEntity) {
+      // Only apply prefill for matching sex dataSource
+      const shouldApplyPrefill = !parentSex
+        || (parentSex === 'male' && isFatherField)
+        || (parentSex === 'female' && isMotherField)
+        || (!isFatherField && !isMotherField);
+
+      if (shouldApplyPrefill) {
+        for (const [targetField, sourceExpr] of Object.entries(ds.prefill)) {
+          if (typeof sourceExpr === 'string' && sourceExpr.startsWith('$parent.')) {
+            const sourceField = sourceExpr.slice('$parent.'.length);
+            const value = parentEntity[sourceField];
+            if (value !== undefined && value !== null) {
+              result[targetField] = value;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  return result;
 }
 
 export function EditChildRecordDialog({
@@ -88,6 +155,9 @@ export function EditChildRecordDialog({
   entityType,
   label = "Record",
   onSaved,
+  isEntityChild,
+  dataSources,
+  parentEntity,
 }: EditChildRecordDialogProps) {
   const [formChanges, setFormChanges] = useState<Record<string, any>>({});
   const [isSaving, setIsSaving] = useState(false);
@@ -122,9 +192,13 @@ export function EditChildRecordDialog({
   const getValue = useCallback(
     (dbFieldName: string) => {
       if (formChanges[dbFieldName] !== undefined) return formChanges[dbFieldName];
+      if (isEntityChild) {
+        // Entity records have flat structure (no additional)
+        return record?.[dbFieldName];
+      }
       return record?.additional?.[dbFieldName] ?? record?.[dbFieldName];
     },
-    [formChanges, record]
+    [formChanges, record, isEntityChild]
   );
 
   const { getFieldProps } = useDynamicFields({
@@ -141,12 +215,34 @@ export function EditChildRecordDialog({
 
     setIsSaving(true);
     try {
-      if (isEditMode) {
-        await spaceStore.updateChildRecord(entityType, tableType, record!.id, formChanges);
-        toast.success(`${label} updated`);
+      if (isEntityChild && dataSources) {
+        // Entity child: create/update entity record
+        const entityTable = dataSources[0]?.childTable?.table || entityType;
+
+        if (isEditMode) {
+          await spaceStore.update(entityTable, record!.id, formChanges);
+          toast.success(`${label} updated`);
+        } else {
+          // Resolve prefill: parentField + $parent.field values
+          const prefillData = resolvePrefill(
+            dataSources,
+            parentId,
+            parentEntity,
+            parentEntity?.sex,
+          );
+          const createData = { ...prefillData, ...formChanges };
+          await spaceStore.create(entityTable, createData);
+          toast.success(`${label} created`);
+        }
       } else {
-        await spaceStore.createChildRecord(entityType, tableType, parentId, formChanges);
-        toast.success(`${label} created`);
+        // Standard child record
+        if (isEditMode) {
+          await spaceStore.updateChildRecord(entityType, tableType, record!.id, formChanges);
+          toast.success(`${label} updated`);
+        } else {
+          await spaceStore.createChildRecord(entityType, tableType, parentId, formChanges);
+          toast.success(`${label} created`);
+        }
       }
       onSaved();
       onOpenChange(false);

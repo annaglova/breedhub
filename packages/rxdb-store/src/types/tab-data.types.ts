@@ -97,6 +97,7 @@ export type DataSourceType =
   | 'child'                 // Simple child table (auto-detects VIEWs by name)
   | 'child_with_dictionary' // Child + dictionary merge
   | 'main_filtered'         // Main entity with filter
+  | 'entity_child'          // Entity record linked via parent field (e.g., pet children via father_id/mother_id)
   | 'rpc';                  // Supabase RPC function
 
 /**
@@ -138,7 +139,7 @@ export interface DataSourceConfig {
   /** Type determines loading strategy */
   type: DataSourceType;
 
-  /** Child table config (for child, child_with_dictionary) */
+  /** Child table config (for child, child_with_dictionary, entity_child) */
   childTable?: ChildTableConfig;
 
   /** Dictionary config (for child_with_dictionary) */
@@ -149,6 +150,13 @@ export interface DataSourceConfig {
 
   /** RPC config (for rpc) */
   rpc?: RpcConfig;
+
+  /**
+   * Auto-fill fields when creating records (for entity_child).
+   * Keys are target field names, values use "$parent.fieldName" to resolve from parent entity.
+   * Example: { "father_breed_id": "$parent.breed_id", "pet_type_id": "$parent.pet_type_id" }
+   */
+  prefill?: Record<string, string>;
 }
 
 /**

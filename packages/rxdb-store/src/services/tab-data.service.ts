@@ -53,6 +53,9 @@ class TabDataService {
       case 'main_filtered':
         return this.loadMainFiltered(parentId, dataSource);
 
+      case 'entity_child':
+        return this.loadEntityChild(parentId, dataSource);
+
       case 'rpc':
         return this.loadRpc(parentId, dataSource);
 
@@ -99,6 +102,9 @@ class TabDataService {
 
       case 'main_filtered':
         return this.loadMainFilteredPaginated(parentId, dataSource, pagination);
+
+      case 'entity_child':
+        return this.loadEntityChildPaginated(parentId, dataSource, pagination);
 
       case 'rpc':
         // RPC doesn't support pagination
@@ -415,6 +421,78 @@ class TabDataService {
       console.error(`[TabDataService] RPC failed:`, error);
       return [];
     }
+  }
+
+  /**
+   * Type: entity_child - Entity records linked via parent field
+   *
+   * Loads entity records where parentField = parentId.
+   * Uses SpaceStore.applyFilters() with ID-First pagination.
+   * Used for cases like pet children (father_id/mother_id → pet table).
+   */
+  private async loadEntityChild(
+    parentId: string,
+    dataSource: DataSourceConfig
+  ): Promise<any[]> {
+    const config = dataSource.childTable;
+
+    if (!config) {
+      console.error('[TabDataService] childTable config is required for type: entity_child');
+      return [];
+    }
+
+    const result = await spaceStore.applyFilters(
+      config.table,
+      { [config.parentField]: parentId },
+      {
+        limit: config.limit || 30,
+        orderBy: config.orderBy?.[0]
+          ? {
+              field: config.orderBy[0].field,
+              direction: config.orderBy[0].direction,
+            }
+          : undefined,
+        fieldConfigs: {
+          [config.parentField]: { fieldType: 'uuid', operator: 'eq' },
+        },
+      }
+    );
+
+    return result.records || [];
+  }
+
+  /**
+   * Type: entity_child - with ID-First pagination
+   */
+  private async loadEntityChildPaginated(
+    parentId: string,
+    dataSource: DataSourceConfig,
+    pagination?: PaginationOptions
+  ): Promise<PaginatedResult<any>> {
+    const config = dataSource.childTable;
+
+    if (!config) {
+      console.error('[TabDataService] childTable config is required for type: entity_child');
+      return { records: [], total: 0, hasMore: false, nextCursor: null };
+    }
+
+    return spaceStore.applyFilters(
+      config.table,
+      { [config.parentField]: parentId },
+      {
+        limit: pagination?.limit ?? config.limit ?? 30,
+        cursor: pagination?.cursor ?? null,
+        orderBy: config.orderBy?.[0]
+          ? {
+              field: config.orderBy[0].field,
+              direction: config.orderBy[0].direction,
+            }
+          : undefined,
+        fieldConfigs: {
+          [config.parentField]: { fieldType: 'uuid', operator: 'eq' },
+        },
+      }
+    );
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
