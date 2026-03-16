@@ -193,33 +193,35 @@ function buildSelfData(deps, ownData, allConfigs) {
   return mergedData;
 }
 
+// Paginated fetch helper — Supabase default limit is 1000
+async function fetchAllPaginated(queryBuilder, pageSize = 1000) {
+  const allRecords = [];
+  let offset = 0;
+  let hasMore = true;
+  while (hasMore) {
+    const { data: page, error } = await queryBuilder()
+      .range(offset, offset + pageSize - 1);
+    if (error) throw error;
+    if (page && page.length > 0) {
+      allRecords.push(...page);
+      offset += page.length;
+      hasMore = page.length === pageSize;
+    } else {
+      hasMore = false;
+    }
+  }
+  return allRecords;
+}
+
 // Load existing configurations from database
 async function loadExistingConfigs() {
   try {
-    // Paginated fetch — Supabase default limit is 1000
-    const pageSize = 1000;
-    let allRecords = [];
-    let offset = 0;
-    let hasMore = true;
-    while (hasMore) {
-      const { data: page, error } = await supabase
+    return await fetchAllPaginated(() =>
+      supabase
         .from('app_config')
         .select('id, override_data, data, deps')
         .in('type', ['property', 'field', 'entity_field'])
-        .range(offset, offset + pageSize - 1);
-      if (error) {
-        console.warn('Warning: Could not load existing configs:', error.message);
-        return allRecords;
-      }
-      if (page && page.length > 0) {
-        allRecords.push(...page);
-        offset += page.length;
-        hasMore = page.length === pageSize;
-      } else {
-        hasMore = false;
-      }
-    }
-    return allRecords;
+    );
   } catch (error) {
     console.warn('Warning: Could not load existing configs:', error.message);
     return [];
@@ -586,32 +588,16 @@ async function batchInsertToSupabase(configs, batchSize = 50) {
   let errors = 0;
   
   // First, fetch all existing records to preserve override_data and detect changes
-  // Note: Supabase default limit is 1000, we need all records (3000+)
   console.log('Fetching existing records for comparison and override preservation...');
   let existingRecords = [];
-  let fetchError = null;
-  {
-    const pageSize = 1000;
-    let offset = 0;
-    let hasMore = true;
-    while (hasMore) {
-      const { data: page, error } = await supabase
+  try {
+    existingRecords = await fetchAllPaginated(() =>
+      supabase
         .from('app_config')
-        .select('id, self_data, override_data, data, deps, tags, category, caption, deleted')
-        .range(offset, offset + pageSize - 1);
-      if (error) { fetchError = error; break; }
-      if (page && page.length > 0) {
-        existingRecords.push(...page);
-        offset += page.length;
-        hasMore = page.length === pageSize;
-      } else {
-        hasMore = false;
-      }
-    }
-  }
-
-  if (fetchError) {
-    console.error('Error fetching existing records:', fetchError);
+        .select('id, type, self_data, override_data, data, deps, tags, category, caption, deleted')
+    );
+  } catch (error) {
+    console.error('Error fetching existing records:', error);
   }
   
   // Create a map of existing records by id
@@ -673,14 +659,11 @@ async function batchInsertToSupabase(configs, batchSize = 50) {
   
   // Soft-delete stale entity_field records (columns removed from DB schema)
   const generatedIds = new Set(configsWithData.map(c => c.id));
-  const staleEntityFields = existingRecords
-    ? existingRecords.filter(r =>
-        r.id.includes('_field_') &&
-        !r.id.startsWith('field_') &&
-        !generatedIds.has(r.id) &&
-        !r.deleted
-      )
-    : [];
+  const staleEntityFields = existingRecords.filter(r =>
+    r.type === 'entity_field' &&
+    !generatedIds.has(r.id) &&
+    !r.deleted
+  );
 
   if (staleEntityFields.length > 0) {
     console.log(`\n🗑️  Soft-deleting ${staleEntityFields.length} stale entity fields (columns removed from DB):`);

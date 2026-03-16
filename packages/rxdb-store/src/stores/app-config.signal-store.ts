@@ -483,19 +483,19 @@ class AppConfigStore {
         // Remove records from RxDB that were soft-deleted in Supabase
         const fetchedIds = new Set(mappedData.map(d => d.id));
         const allLocal = await collection.find().exec();
-        const staleLocal = allLocal.filter((doc: AppConfigDocument) => !doc._deleted && !fetchedIds.has(doc.id));
-        if (staleLocal.length > 0) {
-          console.log(`[AppConfigStore] Removing ${staleLocal.length} stale records from RxDB (soft-deleted in Supabase)`);
-          for (const doc of staleLocal) {
-            await doc.remove();
-          }
+        const staleIds = allLocal
+          .filter((doc: AppConfigDocument) => !doc._deleted && !fetchedIds.has(doc.id))
+          .map((doc: AppConfigDocument) => doc.id);
+        if (staleIds.length > 0) {
+          console.log(`[AppConfigStore] Removing ${staleIds.length} stale records from RxDB (soft-deleted in Supabase)`);
+          await collection.bulkRemove(staleIds);
         }
 
-        // Force update the signal
-        const afterSync = await collection.find().exec();
+        // Build signal map from already-fetched local docs (minus stale ones)
+        const staleIdSet = new Set(staleIds);
         const newConfigsMap = new Map<string, AppConfig>();
-        afterSync.forEach((doc: AppConfigDocument) => {
-          if (!doc._deleted) {
+        allLocal.forEach((doc: AppConfigDocument) => {
+          if (!doc._deleted && !staleIdSet.has(doc.id)) {
             const configData = { ...doc.toJSON() } as AppConfig;
             configData.data = this.computeMergedData(configData);
             newConfigsMap.set(doc.id, configData);
