@@ -196,17 +196,30 @@ function buildSelfData(deps, ownData, allConfigs) {
 // Load existing configurations from database
 async function loadExistingConfigs() {
   try {
-    const { data, error } = await supabase
-      .from('app_config')
-      .select('id, override_data, data, deps')
-      .in('type', ['property', 'field', 'entity_field']);
-    
-    if (error) {
-      console.warn('Warning: Could not load existing configs:', error.message);
-      return [];
+    // Paginated fetch — Supabase default limit is 1000
+    const pageSize = 1000;
+    let allRecords = [];
+    let offset = 0;
+    let hasMore = true;
+    while (hasMore) {
+      const { data: page, error } = await supabase
+        .from('app_config')
+        .select('id, override_data, data, deps')
+        .in('type', ['property', 'field', 'entity_field'])
+        .range(offset, offset + pageSize - 1);
+      if (error) {
+        console.warn('Warning: Could not load existing configs:', error.message);
+        return allRecords;
+      }
+      if (page && page.length > 0) {
+        allRecords.push(...page);
+        offset += page.length;
+        hasMore = page.length === pageSize;
+      } else {
+        hasMore = false;
+      }
     }
-    
-    return data || [];
+    return allRecords;
   } catch (error) {
     console.warn('Warning: Could not load existing configs:', error.message);
     return [];
@@ -573,11 +586,30 @@ async function batchInsertToSupabase(configs, batchSize = 50) {
   let errors = 0;
   
   // First, fetch all existing records to preserve override_data and detect changes
+  // Note: Supabase default limit is 1000, we need all records (3000+)
   console.log('Fetching existing records for comparison and override preservation...');
-  const { data: existingRecords, error: fetchError } = await supabase
-    .from('app_config')
-    .select('id, self_data, override_data, data, deps, tags, category, caption');
-  
+  let existingRecords = [];
+  let fetchError = null;
+  {
+    const pageSize = 1000;
+    let offset = 0;
+    let hasMore = true;
+    while (hasMore) {
+      const { data: page, error } = await supabase
+        .from('app_config')
+        .select('id, self_data, override_data, data, deps, tags, category, caption, deleted')
+        .range(offset, offset + pageSize - 1);
+      if (error) { fetchError = error; break; }
+      if (page && page.length > 0) {
+        existingRecords.push(...page);
+        offset += page.length;
+        hasMore = page.length === pageSize;
+      } else {
+        hasMore = false;
+      }
+    }
+  }
+
   if (fetchError) {
     console.error('Error fetching existing records:', fetchError);
   }
@@ -639,12 +671,41 @@ async function batchInsertToSupabase(configs, batchSize = 50) {
   console.log(`  🔄 Changed records: ${changedRecords.length}`);
   console.log(`  ✅ Unchanged records: ${unchangedRecords.length}`);
   
+  // Soft-delete stale entity_field records (columns removed from DB schema)
+  const generatedIds = new Set(configsWithData.map(c => c.id));
+  const staleEntityFields = existingRecords
+    ? existingRecords.filter(r =>
+        r.id.includes('_field_') &&
+        !r.id.startsWith('field_') &&
+        !generatedIds.has(r.id) &&
+        !r.deleted
+      )
+    : [];
+
+  if (staleEntityFields.length > 0) {
+    console.log(`\n🗑️  Soft-deleting ${staleEntityFields.length} stale entity fields (columns removed from DB):`);
+    for (const stale of staleEntityFields) {
+      console.log(`  - ${stale.id}`);
+    }
+    const staleIds = staleEntityFields.map(r => r.id);
+    for (let i = 0; i < staleIds.length; i += batchSize) {
+      const batch = staleIds.slice(i, i + batchSize);
+      const { error } = await supabase
+        .from('app_config')
+        .update({ deleted: true })
+        .in('id', batch);
+      if (error) {
+        console.error('  Error soft-deleting stale fields:', error);
+      }
+    }
+  }
+
   // Only process new and changed records
   const recordsToUpsert = [...newRecords, ...changedRecords];
-  
+
   if (recordsToUpsert.length === 0) {
     console.log('\n✨ No changes detected! Database is already up to date.');
-    return { inserted: 0, updated: 0, unchanged: unchangedRecords.length, errors: 0 };
+    return { inserted: 0, updated: 0, unchanged: unchangedRecords.length, errors: 0, softDeleted: staleEntityFields.length };
   }
   
   console.log(`\n📝 Upserting ${recordsToUpsert.length} records (${newRecords.length} new, ${changedRecords.length} modified)...`);
@@ -680,7 +741,7 @@ async function batchInsertToSupabase(configs, batchSize = 50) {
   }
   
   unchanged = unchangedRecords.length;
-  
+
   // Cascade updates if any records were changed using optimized BatchProcessor
   if (changedRecords.length > 0) {
     // IMPORTANT: Include ALL generated configs in cascade, not just changed ones

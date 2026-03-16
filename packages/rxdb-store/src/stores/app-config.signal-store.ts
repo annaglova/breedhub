@@ -479,7 +479,18 @@ class AppConfigStore {
         }
         
         console.log('[AppConfigStore] Synced successfully, upserted:', result.success.length);
-        
+
+        // Remove records from RxDB that were soft-deleted in Supabase
+        const fetchedIds = new Set(mappedData.map(d => d.id));
+        const allLocal = await collection.find().exec();
+        const staleLocal = allLocal.filter((doc: AppConfigDocument) => !doc._deleted && !fetchedIds.has(doc.id));
+        if (staleLocal.length > 0) {
+          console.log(`[AppConfigStore] Removing ${staleLocal.length} stale records from RxDB (soft-deleted in Supabase)`);
+          for (const doc of staleLocal) {
+            await doc.remove();
+          }
+        }
+
         // Force update the signal
         const afterSync = await collection.find().exec();
         const newConfigsMap = new Map<string, AppConfig>();
