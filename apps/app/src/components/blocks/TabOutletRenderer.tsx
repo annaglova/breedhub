@@ -90,6 +90,7 @@ interface TabOutletRendererProps {
   onBeforeTabChange?: () => Promise<void>;
   onDefaultTabChange?: (isDefault: boolean) => void;
   isCreateMode?: boolean;
+  onCreateNameChange?: (name: string) => void;
 }
 
 // Extended tab with internal ordering fields
@@ -229,6 +230,7 @@ export function TabOutletRenderer({
   onBeforeTabChange,
   onDefaultTabChange,
   isCreateMode,
+  onCreateNameChange,
 }: TabOutletRendererProps) {
   const pageMenuRef = useRef<HTMLDivElement>(null);
   const [pageMenuHeight, setPageMenuHeight] = useState(0);
@@ -242,11 +244,12 @@ export function TabOutletRenderer({
     if (entityType) extraProps.entityType = entityType;
     if (onDirtyChange) extraProps.onDirtyChange = onDirtyChange;
     if (isCreateMode) extraProps.isCreateMode = isCreateMode;
+    if (onCreateNameChange) extraProps.onCreateNameChange = onCreateNameChange;
     return baseTabs.map(tab => ({
       ...tab,
       tabProps: { ...tab.tabProps, ...extraProps },
     }));
-  }, [tabsConfig, onSaveReady, entityType, onDirtyChange, isCreateMode]);
+  }, [tabsConfig, onSaveReady, entityType, onDirtyChange, isCreateMode, onCreateNameChange]);
 
   // Track PageMenu height for TabHeader positioning
   useEffect(() => {

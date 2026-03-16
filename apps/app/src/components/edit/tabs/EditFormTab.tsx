@@ -111,6 +111,7 @@ interface EditFormTabProps {
   onSaveReady?: (handler: () => Promise<void>) => void;
   onDirtyChange?: (dirty: boolean) => void;
   isCreateMode?: boolean;
+  onCreateNameChange?: (name: string) => void;
 }
 
 /**
@@ -121,7 +122,7 @@ interface EditFormTabProps {
  * Uses useEditForm hook for form state and save via spaceStore.update().
  * In create mode, creates a new entity on save and navigates to its edit page.
  */
-export function EditFormTab({ fields, onLoadedCount, entityType, onSaveReady, onDirtyChange, isCreateMode }: EditFormTabProps) {
+export function EditFormTab({ fields, onLoadedCount, entityType, onSaveReady, onDirtyChange, isCreateMode, onCreateNameChange }: EditFormTabProps) {
   useSignals();
 
   const selectedEntity = useSelectedEntity();
@@ -133,12 +134,20 @@ export function EditFormTab({ fields, onLoadedCount, entityType, onSaveReady, on
     navigate(`/${slug}/edit`, { replace: true });
   }, [navigate]);
 
-  const { formChanges, hasChanges, handleFieldChange, handleSave } = useEditForm({
+  const { formChanges, hasChanges, handleFieldChange: rawHandleFieldChange, handleSave } = useEditForm({
     entityType: entityType || '',
     entityId: selectedEntity?.id,
     isCreateMode,
     onCreated: isCreateMode ? handleCreated : undefined,
   });
+
+  // Wrap handleFieldChange to intercept name changes in create mode
+  const handleFieldChange = useCallback((fieldName: string, value: any) => {
+    rawHandleFieldChange(fieldName, value);
+    if (isCreateMode && fieldName === 'name' && onCreateNameChange) {
+      onCreateNameChange(value);
+    }
+  }, [rawHandleFieldChange, isCreateMode, onCreateNameChange]);
 
   // Build fields array for useDynamicFields
   const fieldsList = useMemo(() => {

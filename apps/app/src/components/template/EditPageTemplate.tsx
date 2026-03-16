@@ -60,6 +60,9 @@ function EditBlocks({
   // Compact mode: hide Cover/Avatar when non-default tab is active
   const [isDefaultTabActive, setIsDefaultTabActive] = useState(true);
 
+  // Create mode: track name from form for header display
+  const [createModeName, setCreateModeName] = useState("");
+
   // Sticky name bar state
   const nameContainerRef = useRef<HTMLDivElement>(null);
   const [nameOnTop, setNameOnTop] = useState(false);
@@ -349,6 +352,8 @@ function EditBlocks({
                 entityType={entityType}
                 onNavigateAway={handleNavigateAway}
                 showActionButtons={isDefaultTabActive}
+                isCreateMode={isCreateMode}
+                createModeName={createModeName}
               />
             </div>
           );
@@ -368,6 +373,7 @@ function EditBlocks({
                 onBeforeTabChange: handleBeforeTabChange,
                 onDefaultTabChange: setIsDefaultTabActive,
                 isCreateMode,
+                onCreateNameChange: isCreateMode ? setCreateModeName : undefined,
               }}
               entity={selectedEntity}
               pageConfig={pageConfig}

@@ -40,6 +40,8 @@ interface TabOutletProps {
   onDirtyChange?: (dirty: boolean) => void;
   onBeforeTabChange?: () => Promise<void>;
   onDefaultTabChange?: (isDefault: boolean) => void;
+  isCreateMode?: boolean;
+  onCreateNameChange?: (name: string) => void;
 
   // Component to render inside the outlet (not used - tabs have special handling)
   children?: React.ReactNode;
@@ -79,6 +81,8 @@ export function TabOutlet({
   onDirtyChange,
   onBeforeTabChange,
   onDefaultTabChange,
+  isCreateMode,
+  onCreateNameChange,
   children,
 }: TabOutletProps) {
   // Show skeleton when loading - uses tabs config to show correct number of tab headers
@@ -177,6 +181,8 @@ export function TabOutlet({
         onDirtyChange={onDirtyChange}
         onBeforeTabChange={onBeforeTabChange}
         onDefaultTabChange={onDefaultTabChange}
+        isCreateMode={isCreateMode}
+        onCreateNameChange={onCreateNameChange}
       />
     </div>
   );

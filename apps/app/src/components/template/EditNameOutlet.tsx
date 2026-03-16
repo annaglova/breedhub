@@ -23,6 +23,8 @@ interface EditNameOutletProps {
   entityType?: string;
   onNavigateAway?: (url: string) => void;
   showActionButtons?: boolean;
+  isCreateMode?: boolean;
+  createModeName?: string;
 }
 
 /**
@@ -42,9 +44,24 @@ export function EditNameOutlet({
   entityType,
   onNavigateAway,
   showActionButtons = true,
+  isCreateMode,
+  createModeName,
 }: EditNameOutletProps) {
   const navigate = useNavigate();
-  const displayName = entity?.name || "";
+
+  // Entity name labels for create mode
+  const ENTITY_NAME_LABELS: Record<string, string> = {
+    pet: "Pet",
+    breed: "Breed",
+    kennel: "Kennel",
+    litter: "Litter",
+    contact: "Contact",
+    event: "Event",
+  };
+
+  const displayName = isCreateMode
+    ? (createModeName || `New ${entityType ? ENTITY_NAME_LABELS[entityType] || entityType : ""}`)
+    : (entity?.name || "");
   const slug = entity?.slug;
 
   // Entity type display labels
