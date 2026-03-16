@@ -412,8 +412,8 @@
       "id": "field_name",
       "type": "field",
       "name": "name",
-      "frequency": 0.6511627906976745,
-      "occurrences": 168,
+      "frequency": 0.6472868217054264,
+      "occurrences": 167,
       "commonProps": {
         "required": true,
         "isSystem": false,
@@ -19103,7 +19103,7 @@
       "id": "pet_field_weight",
       "type": "entity_field",
       "deps": [
-        "property_required",
+        "property_not_required",
         "property_not_system",
         "property_not_primary_key",
         "property_not_unique"
@@ -19113,7 +19113,7 @@
       "self_data": {
         "fieldType": "number",
         "component": "NumberInput",
-        "required": true,
+        "required": false,
         "isSystem": false,
         "isPrimaryKey": false,
         "isUnique": false,
@@ -90829,44 +90829,6 @@
       ]
     },
     {
-      "id": "pet_service_feature_in_pet_field_name",
-      "type": "entity_field",
-      "deps": [
-        "field_name"
-      ],
-      "category": "pet_service_feature_in_pet",
-      "caption": "pet_service_feature_in_pet name field",
-      "self_data": {
-        "fieldType": "string",
-        "component": "TextInput",
-        "required": true,
-        "isSystem": false,
-        "isPrimaryKey": false,
-        "isUnique": false,
-        "sortOrder": 10,
-        "permissions": {
-          "read": [
-            "*"
-          ],
-          "write": [
-            "admin",
-            "editor"
-          ]
-        },
-        "maxLength": 250,
-        "displayName": "Name",
-        "placeholder": "Enter name",
-        "validation": {
-          "maxLength": 250
-        },
-        "defaultValue": ""
-      },
-      "tags": [
-        "child",
-        "pet"
-      ]
-    },
-    {
       "id": "pet_service_feature_in_pet_field_pet_id",
       "type": "entity_field",
       "deps": [
@@ -90881,7 +90843,7 @@
         "isSystem": false,
         "isPrimaryKey": false,
         "isUnique": false,
-        "sortOrder": 20,
+        "sortOrder": 10,
         "permissions": {
           "read": [
             "*"
@@ -90921,7 +90883,7 @@
         "isSystem": false,
         "isPrimaryKey": false,
         "isUnique": false,
-        "sortOrder": 30,
+        "sortOrder": 20,
         "permissions": {
           "read": [
             "*"
@@ -90936,46 +90898,6 @@
         "referencedFieldID": "id",
         "displayName": "Pet Service Feature",
         "placeholder": "Enter pet service feature",
-        "referencedFieldName": "name"
-      },
-      "tags": [
-        "child",
-        "pet"
-      ]
-    },
-    {
-      "id": "pet_service_feature_in_pet_field_pet_service_type_id",
-      "type": "entity_field",
-      "deps": [
-        "property_not_required",
-        "property_not_system",
-        "property_not_primary_key",
-        "property_not_unique"
-      ],
-      "category": "pet_service_feature_in_pet",
-      "caption": "pet_service_feature_in_pet pet_service_type_id field",
-      "self_data": {
-        "fieldType": "uuid",
-        "component": "DropdownInput",
-        "required": false,
-        "isSystem": false,
-        "isPrimaryKey": false,
-        "isUnique": false,
-        "sortOrder": 40,
-        "permissions": {
-          "read": [
-            "*"
-          ],
-          "write": [
-            "admin",
-            "editor"
-          ]
-        },
-        "isForeignKey": true,
-        "referencedTable": "pet_service",
-        "referencedFieldID": "id",
-        "displayName": "Pet Service Type",
-        "placeholder": "Enter pet service type",
         "referencedFieldName": "name"
       },
       "tags": [
@@ -91001,7 +90923,7 @@
         "isSystem": false,
         "isPrimaryKey": false,
         "isUnique": false,
-        "sortOrder": 50,
+        "sortOrder": 30,
         "permissions": {
           "read": [
             "*"
@@ -91012,8 +90934,8 @@
           ]
         },
         "isForeignKey": true,
-        "referencedTable": "pet_korthals_griffon",
-        "referencedFieldID": "breed_id",
+        "referencedTable": "pet_appenzell_cattle_dog",
+        "referencedFieldID": "id",
         "displayName": "Pet Breed",
         "placeholder": "Enter pet breed",
         "referencedFieldName": "name"
@@ -91038,7 +90960,7 @@
         "isSystem": true,
         "isPrimaryKey": true,
         "isUnique": true,
-        "sortOrder": 60,
+        "sortOrder": 40,
         "permissions": {
           "read": [
             "*"
@@ -91069,7 +90991,7 @@
         "isSystem": true,
         "isPrimaryKey": false,
         "isUnique": false,
-        "sortOrder": 70,
+        "sortOrder": 50,
         "permissions": {
           "read": [
             "*"
@@ -91100,7 +91022,7 @@
         "isSystem": true,
         "isPrimaryKey": false,
         "isUnique": false,
-        "sortOrder": 80,
+        "sortOrder": 60,
         "permissions": {
           "read": [
             "*"
@@ -91131,7 +91053,7 @@
         "isSystem": true,
         "isPrimaryKey": false,
         "isUnique": false,
-        "sortOrder": 90,
+        "sortOrder": 70,
         "permissions": {
           "read": [
             "*"
@@ -91162,7 +91084,7 @@
         "isSystem": true,
         "isPrimaryKey": false,
         "isUnique": false,
-        "sortOrder": 100,
+        "sortOrder": 80,
         "permissions": {
           "read": [
             "*"

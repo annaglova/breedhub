@@ -4,7 +4,7 @@
     "uniqueFields": 562,
     "baseFields": 37,
     "properties": 15,
-    "entityFieldsGenerated": 2959
+    "entityFieldsGenerated": 2957
   },
   "topFields": [
     {
@@ -34,8 +34,8 @@
     },
     {
       "name": "name",
-      "occurrences": 168,
-      "percentage": "63.2%"
+      "occurrences": 167,
+      "percentage": "62.8%"
     },
     {
       "name": "description",
@@ -123,8 +123,8 @@
   ],
   "analysis": {
     "fieldTypes": {
-      "unknown": 370,
-      "uuid": 95,
+      "unknown": 371,
+      "uuid": 94,
       "string": 30,
       "text": 8,
       "json": 4,

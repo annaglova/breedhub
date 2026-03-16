@@ -980,7 +980,7 @@
       "name": "weight",
       "fieldType": "number",
       "component": "NumberInput",
-      "required": true,
+      "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -1363,6 +1363,6 @@
     "totalFields": 55,
     "systemFields": 6,
     "customFields": 49,
-    "generatedAt": "2026-02-24T12:46:55.920Z"
+    "generatedAt": "2026-03-16T19:10:40.288Z"
   }
 }
