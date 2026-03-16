@@ -75,6 +75,7 @@ interface SpacePageProps {
   selectedSlug?: string; // Pretty URL slug (from SlugResolver) - for URL display
   tabSlug?: string; // Tab slug for tab fullscreen mode (from TabPageResolver)
   editMode?: boolean; // Edit mode - renders EditPageTemplate (from EditPageResolver)
+  createMode?: boolean; // Create mode - renders EditPageTemplate without entity (from CreatePageResolver)
 }
 
 /**
@@ -89,7 +90,7 @@ interface SpacePageProps {
  * Usage in AppRouter:
  * <Route path="breeds/*" element={<SpacePage entityType="breed" />} />
  */
-export function SpacePage({ entityType, selectedEntityId, selectedPartitionId, selectedPartitionField, selectedSlug, tabSlug, editMode }: SpacePageProps) {
+export function SpacePage({ entityType, selectedEntityId, selectedPartitionId, selectedPartitionField, selectedSlug, tabSlug, editMode, createMode }: SpacePageProps) {
   useSignals();
 
   // Get hook from registry
@@ -137,6 +138,24 @@ export function SpacePage({ entityType, selectedEntityId, selectedPartitionId, s
   // Config should be pre-generated and always available
   if (!spaceConfigSignal.value) {
     return null;
+  }
+
+  // Create mode: fullscreen edit form without entity (from CreatePageResolver)
+  if (createMode) {
+    return (
+      <SpaceComponent
+        key={`${entityType}-create`}
+        configSignal={spaceConfigSignal}
+        useEntitiesHook={useEntitiesHook}
+        createMode={true}
+      >
+        <EditPageTemplate
+          spaceConfigSignal={spaceConfigSignal}
+          entityType={entityType}
+          isCreateMode={true}
+        />
+      </SpaceComponent>
+    );
   }
 
   // When selectedEntityId is provided (from SlugResolver/TabPageResolver/EditPageResolver), render with pre-selected entity
@@ -247,8 +266,6 @@ export function SpacePage({ entityType, selectedEntityId, selectedPartitionId, s
           }
         />
 
-        {/* New entity form */}
-        <Route path="new" element={<div>New {entityType} Form</div>} />
       </Route>
 
       {/* Edit page - fullscreen, outside drawer layout */}

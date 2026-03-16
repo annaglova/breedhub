@@ -53,6 +53,8 @@ interface SpaceComponentProps<T> {
   initialSelectedSlug?: string;
   // Children to render in drawer (when initialSelectedEntityId is provided)
   children?: React.ReactNode;
+  // Create mode - fullscreen without entity (from CreatePageResolver)
+  createMode?: boolean;
 }
 
 export function SpaceComponent<T extends { id: string }>({
@@ -63,6 +65,7 @@ export function SpaceComponent<T extends { id: string }>({
   initialSelectedPartitionField,
   initialSelectedSlug,
   children,
+  createMode,
 }: SpaceComponentProps<T>) {
   useSignals();
 
@@ -299,7 +302,7 @@ export function SpaceComponent<T extends { id: string }>({
   // Skip in fullscreen/pretty URL mode - we don't need query params there
   useEffect(() => {
     // Skip URL modification in fullscreen mode (pretty URL like /affenpinscher#overview)
-    if (initialSelectedEntityId) return;
+    if (initialSelectedEntityId || createMode) return;
 
     const hasViewParam = searchParams.has("view");
 
@@ -315,7 +318,7 @@ export function SpaceComponent<T extends { id: string }>({
   // Skip in fullscreen/pretty URL mode - we don't need query params there
   useEffect(() => {
     // Skip URL modification in fullscreen mode (pretty URL like /affenpinscher#overview)
-    if (initialSelectedEntityId) return;
+    if (initialSelectedEntityId || createMode) return;
 
     const hasSortParam = searchParams.has("sort");
 
@@ -336,7 +339,7 @@ export function SpaceComponent<T extends { id: string }>({
   const hasAppliedSavedFilters = useRef(false);
   useEffect(() => {
     // Skip if already applied or in fullscreen mode
-    if (hasAppliedSavedFilters.current || initialSelectedEntityId) return;
+    if (hasAppliedSavedFilters.current || initialSelectedEntityId || createMode) return;
     // Wait for filterFields to be loaded
     if (filterFields.length === 0) return;
 
@@ -452,7 +455,7 @@ export function SpaceComponent<T extends { id: string }>({
       }
 
       const filterObj: Record<string, any> = {};
-      const reservedParams = ["sort", "view", "sortBy", "sortDir", "sortParam"];
+      const reservedParams = ["sort", "view", "sortBy", "sortDir", "sortParam", "entity"];
 
       try {
         const rxdb = await getDatabase();
@@ -592,8 +595,8 @@ export function SpaceComponent<T extends { id: string }>({
   // Auto-select first entity for xxl+ screens on initial load
   // Skip when initialSelectedEntityId is provided (pretty URL mode from SlugResolver)
   useEffect(() => {
-    // Don't auto-select in pretty URL mode - entity is already selected by SlugResolver
-    if (initialSelectedEntityId) return;
+    // Don't auto-select in pretty URL mode or create mode
+    if (initialSelectedEntityId || createMode) return;
 
     if (data?.entities && !isLoading && isMoreThan2XL) {
       if (data.entities.length > 0 && !selectedEntityId) {
@@ -1133,7 +1136,7 @@ export function SpaceComponent<T extends { id: string }>({
         isRequired: boolean;
         order: number;
       }> = [];
-      const reservedParams = ["sort", "view", "sortBy", "sortDir", "sortParam"];
+      const reservedParams = ["sort", "view", "sortBy", "sortDir", "sortParam", "entity"];
 
       const rxdb = await getDatabase();
 
@@ -1229,7 +1232,7 @@ export function SpaceComponent<T extends { id: string }>({
       }
 
       const values: Record<string, any> = {};
-      const reservedParams = ["sort", "view", "sortBy", "sortDir", "sortParam"];
+      const reservedParams = ["sort", "view", "sortBy", "sortDir", "sortParam", "entity"];
 
       try {
         const rxdb = await getDatabase();
@@ -1294,7 +1297,7 @@ export function SpaceComponent<T extends { id: string }>({
   }, [searchParams, filterFields, searchUrlSlug]);
 
   const handleCreateNew = () => {
-    navigate(`${location.pathname}/new`);
+    navigate(`/new?entity=${config.entitySchemaName}`);
   };
 
   const handleBackdropClick = () => {
@@ -1305,8 +1308,8 @@ export function SpaceComponent<T extends { id: string }>({
     // Navigate back to list
     // If we're in pretty URL mode (initialSelectedEntityId provided), go to entity list
     // Otherwise, get base path from current URL (e.g., /breeds/uuid → /breeds)
-    if (initialSelectedEntityId) {
-      // Pretty URL mode - navigate to entity list (e.g., /breeds)
+    if (initialSelectedEntityId || createMode) {
+      // Pretty URL / create mode - navigate to entity list (e.g., /breeds)
       const entityPath =
         config.entitySchemaName === "breed"
           ? "/breeds"
@@ -1358,13 +1361,13 @@ export function SpaceComponent<T extends { id: string }>({
   }
 
   // Fullscreen mode flag - used to control drawer size and hide space list
-  const showFullscreen = isFullscreen && initialSelectedEntityId;
+  const showFullscreen = (isFullscreen && initialSelectedEntityId) || createMode;
 
   // Show loading state only on initial load
   // SKIP loading state when initialSelectedEntityId is provided (pretty URL mode)
   // In this case, entity is fetched separately via fetchAndSelectEntity
   // and we render children (fullscreen content) directly
-  if (isInitialLoad && isLoading && !initialSelectedEntityId) {
+  if (isInitialLoad && isLoading && !initialSelectedEntityId && !createMode) {
     return (
       <div className="relative h-full overflow-hidden">
         <div

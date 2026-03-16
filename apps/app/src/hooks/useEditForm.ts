@@ -4,6 +4,8 @@ import { spaceStore, toast } from '@breedhub/rxdb-store';
 interface UseEditFormOptions {
   entityType: string;
   entityId?: string;
+  isCreateMode?: boolean;
+  onCreated?: (entity: any) => void;
 }
 
 interface UseEditFormReturn {
@@ -18,12 +20,15 @@ interface UseEditFormReturn {
  * Universal form state + save hook for edit pages.
  *
  * Tracks only changed fields and saves them via spaceStore.update().
+ * In create mode, saves via spaceStore.create() and calls onCreated.
  * handleSave is referentially stable (reads changes from ref)
  * so it can be safely passed up via onSaveReady without re-registering.
  */
-export function useEditForm({ entityType, entityId }: UseEditFormOptions): UseEditFormReturn {
+export function useEditForm({ entityType, entityId, isCreateMode, onCreated }: UseEditFormOptions): UseEditFormReturn {
   const [formChanges, setFormChanges] = useState<Record<string, any>>({});
   const formChangesRef = useRef<Record<string, any>>({});
+  const onCreatedRef = useRef(onCreated);
+  onCreatedRef.current = onCreated;
 
   const hasChanges = Object.keys(formChanges).length > 0;
 
@@ -52,6 +57,21 @@ export function useEditForm({ entityType, entityId }: UseEditFormOptions): UseEd
       return;
     }
 
+    if (isCreateMode) {
+      try {
+        const entity = await spaceStore.create(entityType, changes);
+        if (entity) {
+          toast.success('Created');
+          resetChanges();
+          onCreatedRef.current?.(entity);
+        }
+      } catch (error) {
+        console.error('[useEditForm] Create failed:', error);
+        toast.error('Failed to create');
+      }
+      return;
+    }
+
     if (!entityId) {
       toast.error('Entity not found');
       return;
@@ -65,7 +85,7 @@ export function useEditForm({ entityType, entityId }: UseEditFormOptions): UseEd
       console.error('[useEditForm] Save failed:', error);
       toast.error('Failed to save');
     }
-  }, [entityType, entityId, resetChanges]);
+  }, [entityType, entityId, isCreateMode, resetChanges]);
 
   return {
     formChanges,

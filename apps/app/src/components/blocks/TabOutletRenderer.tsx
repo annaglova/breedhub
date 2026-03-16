@@ -89,6 +89,7 @@ interface TabOutletRendererProps {
   onDirtyChange?: (dirty: boolean) => void;
   onBeforeTabChange?: () => Promise<void>;
   onDefaultTabChange?: (isDefault: boolean) => void;
+  isCreateMode?: boolean;
 }
 
 // Extended tab with internal ordering fields
@@ -227,6 +228,7 @@ export function TabOutletRenderer({
   onDirtyChange,
   onBeforeTabChange,
   onDefaultTabChange,
+  isCreateMode,
 }: TabOutletRendererProps) {
   const pageMenuRef = useRef<HTMLDivElement>(null);
   const [pageMenuHeight, setPageMenuHeight] = useState(0);
@@ -234,16 +236,17 @@ export function TabOutletRenderer({
   // Convert config to tabs array, merging edit-specific props into tabProps
   const tabs = useMemo(() => {
     const baseTabs = convertTabConfigToTabs(tabsConfig);
-    if (!onSaveReady && !entityType && !onDirtyChange) return baseTabs;
+    if (!onSaveReady && !entityType && !onDirtyChange && !isCreateMode) return baseTabs;
     const extraProps: Record<string, any> = {};
     if (onSaveReady) extraProps.onSaveReady = onSaveReady;
     if (entityType) extraProps.entityType = entityType;
     if (onDirtyChange) extraProps.onDirtyChange = onDirtyChange;
+    if (isCreateMode) extraProps.isCreateMode = isCreateMode;
     return baseTabs.map(tab => ({
       ...tab,
       tabProps: { ...tab.tabProps, ...extraProps },
     }));
-  }, [tabsConfig, onSaveReady, entityType, onDirtyChange]);
+  }, [tabsConfig, onSaveReady, entityType, onDirtyChange, isCreateMode]);
 
   // Track PageMenu height for TabHeader positioning
   useEffect(() => {

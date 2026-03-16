@@ -4,6 +4,7 @@ import { useDynamicFields, extractDbFieldName } from "@/hooks/useDynamicFields";
 import { useEditForm } from "@/hooks/useEditForm";
 import { useResolveConditions } from "@/hooks/useResolveConditions";
 import { useJunctionFilterIds } from "@breedhub/rxdb-store";
+import { normalizeForUrl } from "@/components/space/utils/filter-url-helpers";
 import { useSignals } from "@preact/signals-react/runtime";
 import {
   CheckboxInput,
@@ -22,6 +23,7 @@ import {
   TimeInput,
 } from "@ui/components/form-inputs";
 import { useCallback, useEffect, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 
 // Component mapping for dynamic rendering
 const componentMap: Record<string, React.ComponentType<any>> = {
@@ -108,6 +110,7 @@ interface EditFormTabProps {
   entityType?: string;
   onSaveReady?: (handler: () => Promise<void>) => void;
   onDirtyChange?: (dirty: boolean) => void;
+  isCreateMode?: boolean;
 }
 
 /**
@@ -116,15 +119,25 @@ interface EditFormTabProps {
  * Reads fields from tab config and renders them using componentMap.
  * Uses useDynamicFields hook for cascade filtering and field props.
  * Uses useEditForm hook for form state and save via spaceStore.update().
+ * In create mode, creates a new entity on save and navigates to its edit page.
  */
-export function EditFormTab({ fields, onLoadedCount, entityType, onSaveReady, onDirtyChange }: EditFormTabProps) {
+export function EditFormTab({ fields, onLoadedCount, entityType, onSaveReady, onDirtyChange, isCreateMode }: EditFormTabProps) {
   useSignals();
 
   const selectedEntity = useSelectedEntity();
+  const navigate = useNavigate();
+
+  const handleCreated = useCallback((entity: any) => {
+    const slug = entity.slug || normalizeForUrl(entity.name || entity.id);
+    // Navigate to edit page via top-level pretty URL (e.g., /my-pet-name/edit)
+    navigate(`/${slug}/edit`, { replace: true });
+  }, [navigate]);
 
   const { formChanges, hasChanges, handleFieldChange, handleSave } = useEditForm({
     entityType: entityType || '',
     entityId: selectedEntity?.id,
+    isCreateMode,
+    onCreated: isCreateMode ? handleCreated : undefined,
   });
 
   // Build fields array for useDynamicFields

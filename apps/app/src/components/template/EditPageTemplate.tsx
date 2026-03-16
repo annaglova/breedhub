@@ -26,6 +26,7 @@ interface EditPageTemplateProps {
   className?: string;
   spaceConfigSignal?: Signal<any>;
   entityType?: string;
+  isCreateMode?: boolean;
 }
 
 /**
@@ -37,6 +38,7 @@ interface EditBlocksProps {
   spacePermissions: any;
   entityType?: string;
   isEntityFullyLoaded: boolean;
+  isCreateMode?: boolean;
 }
 
 /**
@@ -48,11 +50,12 @@ function EditBlocks({
   spacePermissions,
   entityType,
   isEntityFullyLoaded,
+  isCreateMode,
 }: EditBlocksProps) {
   const allBlocksReady = useAllAboveFoldReady();
-  const isAboveFoldLoading = !isEntityFullyLoaded || !allBlocksReady;
+  const isAboveFoldLoading = !isCreateMode && (!isEntityFullyLoaded || !allBlocksReady);
   const shouldShowSkeleton = useSkeletonWithDelay(isAboveFoldLoading);
-  const isBlocksLoading = !selectedEntity || shouldShowSkeleton;
+  const isBlocksLoading = isCreateMode ? false : (!selectedEntity || shouldShowSkeleton);
 
   // Compact mode: hide Cover/Avatar when non-default tab is active
   const [isDefaultTabActive, setIsDefaultTabActive] = useState(true);
@@ -292,7 +295,7 @@ function EditBlocks({
     <>
       {sortedBlocks.map(([blockId, blockConfig]: [string, any]) => {
         if (blockConfig.outlet === "CoverOutlet") {
-          if (!isDefaultTabActive) return null;
+          if (!isDefaultTabActive || isCreateMode) return null;
           return (
             <BlockRenderer
               key={blockId}
@@ -310,7 +313,7 @@ function EditBlocks({
         }
 
         if (blockConfig.outlet === "AvatarOutlet") {
-          if (!isDefaultTabActive) return null;
+          if (!isDefaultTabActive || isCreateMode) return null;
           return (
             <BlockRenderer
               key={blockId}
@@ -364,6 +367,7 @@ function EditBlocks({
                 onDirtyChange,
                 onBeforeTabChange: handleBeforeTabChange,
                 onDefaultTabChange: setIsDefaultTabActive,
+                isCreateMode,
               }}
               entity={selectedEntity}
               pageConfig={pageConfig}
@@ -431,6 +435,7 @@ export function EditPageTemplate({
   className,
   spaceConfigSignal,
   entityType,
+  isCreateMode,
 }: EditPageTemplateProps) {
   useSignals();
 
@@ -485,6 +490,7 @@ export function EditPageTemplate({
                   spacePermissions={spacePermissions}
                   entityType={entityType}
                   isEntityFullyLoaded={isEntityFullyLoaded}
+                  isCreateMode={isCreateMode}
                 />
               </AboveFoldLoadingProvider>
             )}

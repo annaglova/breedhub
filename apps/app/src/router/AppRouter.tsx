@@ -4,6 +4,7 @@ import { AppLayout } from '@/layouts/AppLayout';
 import { SpacePage } from '@/pages/SpacePage';
 import { SlugResolver } from '@/pages/SlugResolver';
 import { EditPageResolver } from '@/pages/EditPageResolver';
+import { CreatePageResolver } from '@/pages/CreatePageResolver';
 import { TabPageResolver } from '@/pages/TabPageResolver';
 import { BillingPage } from '@/pages/BillingPage';
 import { ReferralPage } from '@/pages/ReferralPage';
@@ -251,6 +252,10 @@ export function AppRouter() {
 
           {/* Gift page */}
           <Route path="gift" element={<GiftPage />} />
+
+          {/* Create page - fullscreen create form */}
+          {/* Resolves /new?entity=pet → fullscreen create form */}
+          <Route path="new" element={<CreatePageResolver />} />
 
           {/* Slug resolver - catch-all for pretty URLs */}
           {/* Resolves /affenpinscher → /breeds/:id with fullscreen state */}
