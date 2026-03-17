@@ -1,3 +1,4 @@
+import { Fieldset, InfoRow } from "@/components/shared/InfoRow";
 import { PetCard, type Pet } from "@/components/shared/PetCard";
 import type { SexCode } from "@/components/shared/PetSexMark";
 import { useSelectedEntity } from "@/contexts/SpaceContext";
@@ -88,47 +89,6 @@ function BreedLinks({ breeds }: { breeds?: LinkEntity[] }) {
         </div>
       ))}
     </div>
-  );
-}
-
-/**
- * InfoRow - Single row in the info grid
- */
-function InfoRow({
-  icon,
-  label,
-  children,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <>
-      <span className="text-secondary-400">{icon}</span>
-      <span className="text-secondary">{label}</span>
-      <div>{children}</div>
-    </>
-  );
-}
-
-/**
- * Fieldset - Section wrapper with legend
- */
-function Fieldset({
-  legend,
-  children,
-}: {
-  legend: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <fieldset className="border border-border rounded-lg">
-      <legend className="ml-4 px-2 text-sm text-muted-foreground">
-        {legend}
-      </legend>
-      <div className="p-4 pt-2">{children}</div>
-    </fieldset>
   );
 }
 

@@ -1,3 +1,4 @@
+import { Fieldset, InfoRow } from "@/components/shared/InfoRow";
 import { useSelectedEntity } from "@/contexts/SpaceContext";
 import { dictionaryStore, spaceStore, useTabData } from "@breedhub/rxdb-store";
 import type { DataSourceConfig } from "@breedhub/rxdb-store";
@@ -26,47 +27,6 @@ function classifyCommunication(value: string): "email" | "phone" | "facebook" | 
   if (/facebook\.com/i.test(value)) return "facebook";
   if (/instagram\.com/i.test(value)) return "instagram";
   return null;
-}
-
-/**
- * InfoRow - Single row in the info grid
- */
-function InfoRow({
-  icon,
-  label,
-  children,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <>
-      <span className="text-secondary-400">{icon}</span>
-      <span className="text-secondary">{label}</span>
-      <div>{children}</div>
-    </>
-  );
-}
-
-/**
- * Fieldset - Section wrapper with legend
- */
-function Fieldset({
-  legend,
-  children,
-}: {
-  legend: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <fieldset className="border border-border rounded-lg">
-      <legend className="ml-4 px-2 text-sm text-muted-foreground">
-        {legend}
-      </legend>
-      <div className="p-4 pt-2">{children}</div>
-    </fieldset>
-  );
 }
 
 /**
