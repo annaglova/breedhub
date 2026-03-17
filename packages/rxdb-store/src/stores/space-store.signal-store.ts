@@ -5,12 +5,6 @@ import { RxCollection, RxDocument, RxJsonSchema } from 'rxdb';
 import { EntityStore } from './base/entity-store';
 import { appStore } from './app-store.signal-store';
 import { entityReplicationService } from '../services/entity-replication.service';
-import { breedChildrenSchema, breedChildrenMigrationStrategies, BreedChildrenDocument } from '../collections/breed-children.schema';
-import { petChildrenSchema, petChildrenMigrationStrategies, PetChildrenDocument } from '../collections/pet-children.schema';
-import { litterChildrenSchema, litterChildrenMigrationStrategies } from '../collections/litter-children.schema';
-import { programChildrenSchema, programChildrenMigrationStrategies } from '../collections/program-children.schema';
-import { contactChildrenSchema, contactChildrenMigrationStrategies } from '../collections/contact-children.schema';
-import { accountChildrenSchema, accountChildrenMigrationStrategies } from '../collections/account-children.schema';
 import { supabase } from '../supabase/client';
 import { userStore } from './user-store.signal-store';
 
@@ -28,6 +22,7 @@ import {
 // Utils
 import { removeFieldPrefix, addFieldPrefix } from '../utils/field-normalization';
 import * as F from '../utils/filter-builder';
+import * as CC from '../utils/child-collection-registry';
 
 // Universal entity interface for all business entities
 interface BusinessEntity {
@@ -3938,45 +3933,11 @@ class SpaceStore {
    * Get schema for child collection based on entity type
    */
   private getChildCollectionSchema(entityType: string): RxJsonSchema<any> | null {
-    switch (entityType.toLowerCase()) {
-      case 'breed':
-        return breedChildrenSchema;
-      case 'pet':
-        return petChildrenSchema;
-      case 'litter':
-        return litterChildrenSchema;
-      case 'program':
-        return programChildrenSchema;
-      case 'contact':
-        return contactChildrenSchema;
-      case 'account':
-        return accountChildrenSchema;
-      default:
-        console.warn(`[SpaceStore] No child schema defined for entity type: ${entityType}`);
-        return null;
-    }
+    return CC.getChildCollectionSchema(entityType);
   }
 
-  /**
-   * Get migration strategies for child collection based on entity type
-   */
   private getChildCollectionMigrationStrategies(entityType: string): any {
-    switch (entityType.toLowerCase()) {
-      case 'breed':
-        return breedChildrenMigrationStrategies;
-      case 'pet':
-        return petChildrenMigrationStrategies;
-      case 'litter':
-        return litterChildrenMigrationStrategies;
-      case 'program':
-        return programChildrenMigrationStrategies;
-      case 'contact':
-        return contactChildrenMigrationStrategies;
-      case 'account':
-        return accountChildrenMigrationStrategies;
-      default:
-        return {};
-    }
+    return CC.getChildCollectionMigrationStrategies(entityType);
   }
 
   /**
@@ -4411,63 +4372,7 @@ class SpaceStore {
    *       'litter' -> 'pet' (if configured)
    */
   private getEntityTypeFromTableType(tableType: string): string | null {
-    // Normalize VIEW name first (remove _with_xxx suffix)
-    // e.g., 'pet_identifier_with_type' -> 'pet_identifier'
-    const normalizedTable = tableType.replace(/_with_\w+$/, '');
-
-    // Explicit mapping takes priority over pattern matching
-    // (e.g., 'contact_breeder_kennel' contains '_breed' but belongs to 'contact')
-    const tableEntityMap: Record<string, string> = {
-      'breed_division': 'breed',
-      'breed_synonym': 'breed',
-      'breed_forecast': 'breed',
-      'related_breed': 'breed',
-      'litter': 'pet',
-      'pet_identifier': 'pet',
-      'pet_in_program': 'pet',
-      'pet_health_exam_result': 'pet',
-      'pet_sibling': 'pet',
-      'pet_child': 'pet',
-      'pet_child_for_sale': 'pet',
-      'program_result': 'program',
-      'judge_in_program': 'program',
-      'contact_communication': 'contact',
-      'contact_language': 'contact',
-      'contact_breeder_kennel': 'contact',
-      'contact_breeder_offspring': 'contact',
-      'account_communication': 'account',
-      'kennel_pet': 'account',
-      'kennel_offspring': 'account',
-      'kennel_offer': 'account',
-    };
-
-    // Try exact match first
-    if (tableEntityMap[normalizedTable]) {
-      return tableEntityMap[normalizedTable];
-    }
-
-    // Try prefix match (e.g., 'pet_child_for_sale' starts with 'pet_child')
-    for (const [prefix, entityType] of Object.entries(tableEntityMap)) {
-      if (normalizedTable.startsWith(prefix)) {
-        return entityType;
-      }
-    }
-
-    // Fallback: pattern matching for "_in_breed", "_in_pet", etc.
-    if (normalizedTable.includes('_in_breed') || normalizedTable.includes('_breed')) {
-      return 'breed';
-    }
-    if (normalizedTable.includes('_in_litter')) {
-      return 'litter';
-    }
-    if (normalizedTable.includes('_in_pet') || normalizedTable.includes('_pet')) {
-      return 'pet';
-    }
-    if (normalizedTable.includes('_in_kennel') || normalizedTable.includes('_kennel')) {
-      return 'kennel';
-    }
-
-    return null;
+    return CC.getEntityTypeFromTableType(tableType);
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
