@@ -96,14 +96,11 @@ const AppConfig: React.FC = () => {
     new Set(["main-entities"])
   );
   const [isTreeExpanded, setIsTreeExpanded] = useState(false);
-  const [fieldSearchQuery, setFieldSearchQuery] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
-  const [propertySearchQuery, setPropertySearchQuery] = useState("");
   const [propertyFilterType, setPropertyFilterType] = useState<string>("all");
   const [showSystemProperties, setShowSystemProperties] = useState(false);
   const [draggedProperty, setDraggedProperty] = useState<string | null>(null);
   const [draggedField, setDraggedField] = useState<string | null>(null);
-  const [draggedConfig, setDraggedConfig] = useState<string | null>(null);
   const [dragOverField, setDragOverField] = useState<string | null>(null);
   const [dragOverConfig, setDragOverConfig] = useState<string | null>(null);
   const [showPropertyDropdown, setShowPropertyDropdown] = useState<
