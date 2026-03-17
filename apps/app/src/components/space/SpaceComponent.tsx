@@ -1,5 +1,6 @@
 import { mediaQueries } from "@/config/breakpoints";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
+import { useSpaceSearch } from "@/hooks/space/useSpaceSearch";
 import {
   extractFieldName,
   getDatabase,
@@ -72,8 +73,6 @@ export function SpaceComponent<T extends { id: string }>({
   // Data loading state
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [totalCount, setTotalCount] = useState(0);
-  const [searchValue, setSearchValue] = useState("");
-  const [debouncedSearchValue, setDebouncedSearchValue] = useState("");
 
   // Use the reactive config value from signal
   const config = configSignal.value;
@@ -190,61 +189,10 @@ export function SpaceComponent<T extends { id: string }>({
     return field.slug || extractFieldName(field.id);
   };
 
-  // Read search value from URL on initial mount only
-  const isInitialMount = useRef(true);
-  useEffect(() => {
-    if (!searchUrlSlug || !isInitialMount.current) return;
-
-    // Use searchSlug to read from URL (e.g., "parent" for OR search)
-    const urlValue = searchParams.get(searchUrlSlug);
-
-    if (urlValue) {
-      setSearchValue(urlValue);
-      setDebouncedSearchValue(urlValue);
-    }
-
-    isInitialMount.current = false;
-  }, [searchUrlSlug, searchParams]);
-
-  // Debounce search value (faster on delete, slower on typing)
-  useEffect(() => {
-    // Check if user is deleting (length decreased)
-    const isDeleting = searchValue.length < debouncedSearchValue.length;
-    // Shorter delay for deleting (500ms), longer for typing (700ms)
-    const delay = isDeleting ? 500 : 700;
-
-    const timer = setTimeout(() => {
-      // Only search if 2+ characters or empty (for clearing)
-      if (searchValue.length === 0 || searchValue.length >= 2) {
-        setDebouncedSearchValue(searchValue);
-      }
-    }, delay);
-
-    return () => clearTimeout(timer);
-  }, [searchValue, debouncedSearchValue.length]);
-
-  // Update URL when debounced search value changes
-  useEffect(() => {
-    if (!searchUrlSlug) {
-      return;
-    }
-
-    // Use searchSlug for URL (e.g., "parent" for OR search)
-    const currentValue = searchParams.get(searchUrlSlug);
-    const newValue = debouncedSearchValue.trim() || null;
-
-    if (currentValue !== newValue) {
-      const newParams = new URLSearchParams(searchParams);
-
-      if (debouncedSearchValue.trim()) {
-        newParams.set(searchUrlSlug, debouncedSearchValue.trim());
-      } else {
-        newParams.delete(searchUrlSlug);
-      }
-
-      setSearchParams(newParams, { replace: true });
-    }
-  }, [debouncedSearchValue, searchUrlSlug, searchParams, setSearchParams]);
+  // Search with debounce and URL sync
+  const { searchValue, setSearchValue, debouncedSearchValue } = useSpaceSearch(
+    searchUrlSlug, searchParams, setSearchParams
+  );
 
   // Find default sort option
   const defaultSortOption = useMemo(() => {
