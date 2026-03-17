@@ -1,4 +1,5 @@
 import { useSelectedEntity } from "@/contexts/SpaceContext";
+import { formatDate } from "@/utils/format";
 import {
   spaceStore,
   useInfiniteTabData,
@@ -26,22 +27,6 @@ interface ShowResult {
     name?: string;
   };
   webLink?: string;
-}
-
-/**
- * Format date to locale string
- */
-function formatDate(dateString?: string): string {
-  if (!dateString) return "—";
-  try {
-    return new Date(dateString).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
-  } catch {
-    return dateString;
-  }
 }
 
 interface PetShowResultsTabProps {
@@ -222,7 +207,7 @@ export function PetShowResultsTab({
                 )}
               >
                 {/* Date */}
-                <span>{formatDate(showResult.date)}</span>
+                <span>{formatDate(showResult.date, "short")}</span>
 
                 {/* Show */}
                 <span

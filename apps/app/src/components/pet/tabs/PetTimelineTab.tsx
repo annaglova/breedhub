@@ -1,4 +1,5 @@
 import { useSelectedEntity } from "@/contexts/SpaceContext";
+import { formatDate } from "@/utils/format";
 import { spaceStore } from "@breedhub/rxdb-store";
 import { useSignals } from "@preact/signals-react/runtime";
 import { AlternatingTimeline } from "@ui/components/timeline";
@@ -59,18 +60,6 @@ const DEFAULT_TYPE_CONFIG = {
   variant: "inactive" as const,
   label: "Event"
 };
-
-/**
- * Format date for display
- */
-function formatDate(dateStr: string): string {
-  const date = new Date(dateStr);
-  return date.toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "long",
-    day: "numeric"
-  });
-}
 
 interface PetTimelineTabProps {
   onLoadedCount?: (count: number) => void;

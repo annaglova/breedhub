@@ -1,5 +1,6 @@
 import { useSelectedEntity } from "@/contexts/SpaceContext";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
+import { formatDate } from "@/utils/format";
 import { spaceStore, useTabData } from "@breedhub/rxdb-store";
 import type { DataSourceConfig, MergedDictionaryItem } from "@breedhub/rxdb-store";
 import { useSignals } from "@preact/signals-react/runtime";
@@ -29,17 +30,6 @@ function formatCurrency(value: number): string {
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
   }).format(value);
-}
-
-/**
- * Format date to locale string
- */
-function formatDate(dateString: string): string {
-  return new Date(dateString).toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
 }
 
 /**

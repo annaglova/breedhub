@@ -1,4 +1,5 @@
 import { useSelectedEntity } from "@/contexts/SpaceContext";
+import { formatDate } from "@/utils/format";
 import { spaceStore, dictionaryStore } from "@breedhub/rxdb-store";
 import { useSignals } from "@preact/signals-react/runtime";
 import { cn } from "@ui/lib/utils";
@@ -75,22 +76,6 @@ function EntityLink({ entity }: { entity?: LinkEntity }) {
   }
 
   return <span>{entity.name}</span>;
-}
-
-/**
- * Format date to locale string
- */
-function formatDate(dateString?: string): string {
-  if (!dateString) return "—";
-  try {
-    return new Date(dateString).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
-  } catch {
-    return dateString;
-  }
 }
 
 interface LitterGeneralTabProps {

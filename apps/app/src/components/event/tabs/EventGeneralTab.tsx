@@ -1,6 +1,7 @@
 import { Fieldset, InfoRow } from "@/components/shared/InfoRow";
 import { useSelectedEntity } from "@/contexts/SpaceContext";
 import { useDictionaryValue } from "@/hooks/useDictionaryValue";
+import { formatDate } from "@/utils/format";
 import { spaceStore, useTabData } from "@breedhub/rxdb-store";
 import type { DataSourceConfig } from "@breedhub/rxdb-store";
 import { useSignals } from "@preact/signals-react/runtime";
@@ -39,19 +40,6 @@ interface EventGeneralData {
   judges?: Judge[];
 }
 
-
-/**
- * Format date to locale string
- */
-function formatDate(dateString?: string): string {
-  if (!dateString) return "—";
-  const date = new Date(dateString);
-  return date.toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  });
-}
 
 /**
  * JudgeAvatar - Avatar with initial fallback
@@ -170,7 +158,7 @@ export function EventGeneralTab({ onLoadedCount, dataSource }: EventGeneralTabPr
               <span>{data.category?.name || "—"}</span>
             </InfoRow>
             <InfoRow icon={<Calendar size={iconSize} />} label="Date">
-              <span>{formatDate(data.startDate)}</span>
+              <span>{formatDate(data.startDate, "short")}</span>
             </InfoRow>
           </div>
 

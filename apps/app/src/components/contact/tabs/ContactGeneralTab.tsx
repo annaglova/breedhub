@@ -1,5 +1,6 @@
 import { Fieldset, InfoRow } from "@/components/shared/InfoRow";
 import { useSelectedEntity } from "@/contexts/SpaceContext";
+import { classifyCommunication, extractSocialHandle } from "@/utils/format";
 import { dictionaryStore, spaceStore, useTabData } from "@breedhub/rxdb-store";
 import type { DataSourceConfig, EnrichedChildItem } from "@breedhub/rxdb-store";
 import { useSignals } from "@preact/signals-react/runtime";
@@ -15,31 +16,6 @@ import {
   Phone,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-
-/**
- * Classify communication record by its `number` field
- */
-function classifyCommunication(value: string): "email" | "phone" | "facebook" | "instagram" | null {
-  if (/@.+\./.test(value)) return "email";
-  if (/^\+?\d[\d\s\-().]{5,}$/.test(value)) return "phone";
-  if (/facebook\.com/i.test(value)) return "facebook";
-  if (/instagram\.com/i.test(value)) return "instagram";
-  return null;
-}
-
-/**
- * Extract display name from social URL
- */
-function extractSocialHandle(url: string, platform: "facebook" | "instagram"): string {
-  try {
-    const cleaned = url.replace(/\/+$/, "");
-    const parts = cleaned.split("/");
-    const handle = parts[parts.length - 1] || url;
-    return platform === "instagram" ? `@${handle}` : handle;
-  } catch {
-    return url;
-  }
-}
 
 /**
  * Ensure URL has protocol

@@ -1,5 +1,6 @@
 import { PetLinkRow } from "@/components/shared/PetLinkRow";
 import { useSelectedEntity } from "@/contexts/SpaceContext";
+import { formatDate } from "@/utils/format";
 import {
   spaceStore,
   useInfiniteTabData,
@@ -69,22 +70,6 @@ function groupSiblingsByDate(siblings: SiblingPet[]): SiblingGroup[] {
   });
 
   return grouped;
-}
-
-/**
- * Format date to locale string
- */
-function formatDate(dateString?: string): string {
-  if (!dateString) return "—";
-  try {
-    return new Date(dateString).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
-  } catch {
-    return dateString;
-  }
 }
 
 interface PetSiblingsTabProps {
@@ -245,7 +230,7 @@ export function PetSiblingsTab({
             >
               {/* Group header - DOB date */}
               <div className="grid gap-3 border-b border-border px-6 py-3 font-semibold lg:px-8">
-                <div>{formatDate(group.date)}</div>
+                <div>{formatDate(group.date, "short")}</div>
               </div>
 
               {/* Sibling rows */}

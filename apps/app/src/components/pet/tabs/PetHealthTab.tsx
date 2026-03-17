@@ -1,4 +1,5 @@
 import { useSelectedEntity } from "@/contexts/SpaceContext";
+import { formatDate } from "@/utils/format";
 import {
   spaceStore,
   useInfiniteTabData,
@@ -22,22 +23,6 @@ interface HealthExam {
   healthExamResult?: {
     name?: string;
   };
-}
-
-/**
- * Format date to locale string
- */
-function formatDate(dateString?: string): string {
-  if (!dateString) return "—";
-  try {
-    return new Date(dateString).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
-  } catch {
-    return dateString;
-  }
 }
 
 interface PetHealthTabProps {
@@ -211,7 +196,7 @@ export function PetHealthTab({
                 <div
                   className={cn("hidden", isFullscreen ? "block" : "md:block")}
                 >
-                  {formatDate(healthExam.date)}
+                  {formatDate(healthExam.date, "short")}
                 </div>
 
                 {/* Object */}
