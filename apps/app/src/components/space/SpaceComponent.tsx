@@ -2,6 +2,7 @@ import { mediaQueries } from "@/config/breakpoints";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { useSpaceSearch } from "@/hooks/space/useSpaceSearch";
 import { useSortSelection } from "@/hooks/space/useSortSelection";
+import { useTotalCountCache } from "@/hooks/space/useTotalCountCache";
 import {
   extractFieldName,
   getDatabase,
@@ -71,9 +72,6 @@ export function SpaceComponent<T extends { id: string }>({
 }: SpaceComponentProps<T>) {
   useSignals();
 
-  // Data loading state
-  const [isInitialLoad, setIsInitialLoad] = useState(true);
-  const [totalCount, setTotalCount] = useState(0);
 
   // Use the reactive config value from signal
   const config = configSignal.value;
@@ -555,102 +553,15 @@ export function SpaceComponent<T extends { id: string }>({
     initialSelectedEntityId,
   ]);
 
-  // Cache totalCount to localStorage (separate from auto-select)
-  useEffect(() => {
-    if (data?.entities && !isLoading) {
-      setIsInitialLoad(false);
-
-      if (data.total) {
-        setTotalCount(data.total);
-
-        // Save totalCount to localStorage ONLY on FIRST load (not during pagination)
-        // For spaces with totalFilterKey, save with filter-specific key
-        const reservedParams = [
-          "sort",
-          "view",
-          "sortBy",
-          "sortDir",
-          "sortParam",
-          "type",
-        ];
-        const totalFilterKey = config.totalFilterKey;
-        // Use filters object (has normalized field names and actual IDs) instead of searchParams
-        const totalFilterValue =
-          totalFilterKey && filters ? filters[totalFilterKey] : null;
-
-        // Exclude totalFilterKey from "hasFilters" check
-        const filterParams = totalFilterKey
-          ? [...reservedParams, totalFilterKey]
-          : reservedParams;
-        const hasOtherFilters = Array.from(searchParams.keys()).some(
-          (key) => !filterParams.includes(key),
-        );
-
-        // For spaces with totalFilterKey: allow caching when only that filter is applied
-        // For spaces without: only cache when no filters
-        const canCache = totalFilterKey
-          ? totalFilterValue && !hasOtherFilters // Must have totalFilterKey filter, no other filters
-          : !hasOtherFilters; // No filters at all
-
-        if (canCache) {
-          try {
-            // Build cache key - include filter value if totalFilterKey is set
-            const cacheKey =
-              totalFilterKey && totalFilterValue
-                ? `totalCount_${config.entitySchemaName}_${totalFilterKey}_${totalFilterValue}`
-                : `totalCount_${config.entitySchemaName}`;
-            const cached = localStorage.getItem(cacheKey);
-            const TOTAL_COUNT_TTL_MS = 14 * 24 * 60 * 60 * 1000; // 14 days
-
-            let cachedTotal = 0;
-            let cacheExpired = false;
-
-            if (cached) {
-              // Try JSON format first (new format with TTL)
-              try {
-                const parsed = JSON.parse(cached);
-                if (
-                  typeof parsed === "object" &&
-                  parsed.value &&
-                  parsed.timestamp
-                ) {
-                  const age = Date.now() - parsed.timestamp;
-                  if (age < TOTAL_COUNT_TTL_MS && parsed.value > 0) {
-                    cachedTotal = parsed.value;
-                  } else {
-                    cacheExpired = true;
-                  }
-                }
-              } catch {
-                // Legacy format - treat as expired to force refresh
-                cacheExpired = true;
-              }
-            }
-
-            // Save when: no cache OR cache expired, and total is valid
-            const isRealTotal = data.total > data.entities.length;
-            const shouldSave =
-              (cachedTotal === 0 || cacheExpired) && isRealTotal;
-
-            if (shouldSave) {
-              const cacheData = { value: data.total, timestamp: Date.now() };
-              localStorage.setItem(cacheKey, JSON.stringify(cacheData));
-            }
-          } catch (e) {
-            console.warn("Failed to cache totalCount:", e);
-          }
-        }
-      }
-    }
-  }, [
+  // Cache totalCount to localStorage with TTL
+  const { totalCount, isInitialLoad } = useTotalCountCache({
     data,
     isLoading,
     searchParams,
-    config.entitySchemaName,
-    config.totalFilterKey,
+    entitySchemaName: config.entitySchemaName,
+    totalFilterKey: config.totalFilterKey,
     filters,
-    isInitialLoad,
-  ]);
+  });
 
   // Initialize selection from props (for pretty URLs via SlugResolver)
   // This runs ONCE on mount when initialSelectedEntityId is provided
