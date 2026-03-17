@@ -1,3 +1,4 @@
+import { FORM_COMPONENT_MAP } from "@/components/edit/componentMap";
 import { PetPickerInput } from "@/components/edit/inputs/PetPickerInput";
 import { useSelectedEntity } from "@/contexts/SpaceContext";
 import { useDynamicFields, extractDbFieldName } from "@/hooks/useDynamicFields";
@@ -6,43 +7,10 @@ import { useResolveConditions } from "@/hooks/useResolveConditions";
 import { useJunctionFilterIds } from "@breedhub/rxdb-store";
 import { normalizeForUrl } from "@/components/space/utils/filter-url-helpers";
 import { useSignals } from "@preact/signals-react/runtime";
-import {
-  CheckboxInput,
-  DateInput,
-  DateRangeInput,
-  DropdownInput,
-  EmailInput,
-  FileInput,
-  LookupInput,
-  NumberInput,
-  PasswordInput,
-  RadioInput,
-  SwitchInput,
-  TextInput,
-  TextareaInput,
-  TimeInput,
-} from "@ui/components/form-inputs";
 import { useCallback, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 
-// Component mapping for dynamic rendering
-const componentMap: Record<string, React.ComponentType<any>> = {
-  TextInput,
-  TextareaInput,
-  NumberInput,
-  CheckboxInput,
-  DateInput,
-  DateRangeInput,
-  TimeInput,
-  DropdownInput,
-  LookupInput,
-  EmailInput,
-  PasswordInput,
-  FileInput,
-  RadioInput,
-  SwitchInput,
-  PetPickerInput: PetPickerInput as any,
-};
+const componentMap = FORM_COMPONENT_MAP;
 
 interface FieldConfig {
   displayName: string;

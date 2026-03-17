@@ -1,3 +1,5 @@
+import { FORM_COMPONENT_MAP } from "@/components/edit/componentMap";
+import { PetPickerInput } from "@/components/edit/inputs/PetPickerInput";
 import { spaceStore, toast } from "@breedhub/rxdb-store";
 import type { DataSourceConfig } from "@breedhub/rxdb-store";
 import { Button } from "@ui/components/button";
@@ -7,44 +9,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@ui/components/dialog";
-import {
-  CheckboxInput,
-  DateInput,
-  DateRangeInput,
-  DropdownInput,
-  EmailInput,
-  FileInput,
-  LookupInput,
-  NumberInput,
-  PasswordInput,
-  RadioInput,
-  SwitchInput,
-  TextInput,
-  TextareaInput,
-  TimeInput,
-} from "@ui/components/form-inputs";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useDynamicFields, extractDbFieldName } from "@/hooks/useDynamicFields";
-import { PetPickerInput } from "@/components/edit/inputs/PetPickerInput";
 
-// Component mapping (same as EditFormTab / FiltersDialog)
-const componentMap: Record<string, React.ComponentType<any>> = {
-  TextInput,
-  TextareaInput,
-  NumberInput,
-  CheckboxInput,
-  DateInput,
-  DateRangeInput,
-  TimeInput,
-  DropdownInput,
-  LookupInput,
-  EmailInput,
-  PasswordInput,
-  FileInput,
-  RadioInput,
-  SwitchInput,
-  PetPickerInput: PetPickerInput as any,
-};
+const componentMap = FORM_COMPONENT_MAP;
 
 interface FieldConfig {
   displayName: string;

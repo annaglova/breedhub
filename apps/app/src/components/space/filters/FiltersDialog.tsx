@@ -1,3 +1,4 @@
+import { FORM_COMPONENT_MAP } from "@/components/edit/componentMap";
 import { useDynamicFields } from "@/hooks/useDynamicFields";
 import { useJunctionFilterIds } from "@breedhub/rxdb-store";
 import { Button } from "@ui/components/button";
@@ -7,22 +8,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@ui/components/dialog";
-import {
-  CheckboxInput,
-  DateInput,
-  DateRangeInput,
-  DropdownInput,
-  EmailInput,
-  FileInput,
-  LookupInput,
-  NumberInput,
-  PasswordInput,
-  RadioInput,
-  SwitchInput,
-  TextInput,
-  TextareaInput,
-  TimeInput,
-} from "@ui/components/form-inputs";
 import { Label } from "@ui/components/label";
 import {
   Select,
@@ -84,23 +69,7 @@ interface FiltersDialogProps {
   initialValues?: Record<string, any>;
 }
 
-// Component mapping для динамічного рендерингу
-const componentMap: Record<string, React.ComponentType<any>> = {
-  TextInput,
-  TextareaInput,
-  NumberInput,
-  CheckboxInput,
-  DateInput,
-  DateRangeInput,
-  TimeInput,
-  DropdownInput,
-  LookupInput,
-  EmailInput,
-  PasswordInput,
-  FileInput,
-  RadioInput,
-  SwitchInput,
-};
+const componentMap = FORM_COMPONENT_MAP;
 
 /**
  * Wrapper component for filter fields that use junction table filtering.
