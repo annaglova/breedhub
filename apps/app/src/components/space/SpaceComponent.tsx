@@ -3,6 +3,7 @@ import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { useSpaceSearch } from "@/hooks/space/useSpaceSearch";
 import { useSortSelection } from "@/hooks/space/useSortSelection";
 import { useTotalCountCache } from "@/hooks/space/useTotalCountCache";
+import { useFilterManagement } from "@/hooks/space/useFilterManagement";
 import {
   extractFieldName,
   getDatabase,
@@ -31,11 +32,7 @@ import {
 import { EntitiesCounter } from "./EntitiesCounter";
 import { FiltersSection } from "./filters";
 import { SpaceView } from "./SpaceView";
-import {
-  getLabelForValue,
-  getValueForLabel,
-  normalizeForUrl,
-} from "./utils/filter-url-helpers";
+import { normalizeForUrl } from "./utils/filter-url-helpers";
 import { ViewChanger } from "./ViewChanger";
 
 interface SpaceComponentProps<T> {
@@ -254,81 +251,6 @@ export function SpaceComponent<T extends { id: string }>({
     initialSelectedEntityId,
   ]);
 
-  // 🆕 Apply saved filters from localStorage on initial load (if no filters in URL)
-  const hasAppliedSavedFilters = useRef(false);
-  useEffect(() => {
-    // Skip if already applied or in fullscreen mode
-    if (hasAppliedSavedFilters.current || initialSelectedEntityId || createMode) return;
-    // Wait for filterFields to be loaded
-    if (filterFields.length === 0) return;
-
-    const reservedParams = ["sort", "view", "sortBy", "sortDir", "sortParam"];
-
-    // Check if URL already has any filter params
-    let hasFilterParams = false;
-    searchParams.forEach((_, key) => {
-      if (!reservedParams.includes(key)) {
-        hasFilterParams = true;
-      }
-    });
-
-    // If URL already has filters, don't override with localStorage
-    if (hasFilterParams) {
-      hasAppliedSavedFilters.current = true;
-      return;
-    }
-
-    // Try to read saved filters from localStorage
-    try {
-      const savedFilters = localStorage.getItem(filtersStorageKey);
-      if (savedFilters) {
-        const parsedFilters = JSON.parse(savedFilters) as Record<
-          string,
-          string
-        >;
-
-        // Apply saved filters to URL (convert IDs to labels)
-        const applyFilters = async () => {
-          const newParams = new URLSearchParams(searchParams);
-          const rxdb = await getDatabase();
-
-          for (const [fieldId, value] of Object.entries(parsedFilters)) {
-            if (value) {
-              const fieldConfig = filterFields.find((f) => f.id === fieldId);
-              const urlKey = fieldConfig?.slug || fieldId;
-
-              // Convert ID to label for URL
-              const label = await getLabelForValue(fieldConfig, value, rxdb);
-              const normalizedLabel = normalizeForUrl(label);
-
-              console.log(
-                "[SpaceComponent] Applying saved filter:",
-                fieldId,
-                "→",
-                normalizedLabel,
-              );
-              newParams.set(urlKey, normalizedLabel);
-            }
-          }
-
-          setSearchParams(newParams, { replace: true });
-        };
-
-        applyFilters();
-      }
-    } catch (e) {
-      // localStorage not available or parse error
-      console.warn("[SpaceComponent] Could not load saved filters:", e);
-    }
-
-    hasAppliedSavedFilters.current = true;
-  }, [
-    searchParams,
-    setSearchParams,
-    filterFields,
-    filtersStorageKey,
-    initialSelectedEntityId,
-  ]);
 
   // 🆕 Memoize orderBy to prevent infinite loop (new object on each render)
   const orderBy = useMemo(() => {
@@ -355,128 +277,25 @@ export function SpaceComponent<T extends { id: string }>({
     };
   }, [selectedSortOption]);
 
-  // 🆕 Build filters object from URL params (excluding system params)
-  // Slug (type) in URL → normalized field name (pet_type_id) for queries
-  // Label (dogs) in URL → ID (uuid) for queries
-  // Same pattern as orderBy: slug for URL, normalized field name for queries
-  const [filters, setFilters] = useState<Record<string, any> | undefined>(
-    undefined,
-  );
-
-  useEffect(() => {
-    const buildFilters = async () => {
-      // If config not loaded yet, don't build filters (wait for config to load)
-      // But allow proceeding when mainFilterField exists even if filterFields is empty
-      // (e.g., contact/event spaces that only have a mainFilterField for search)
-      if (filterFields.length === 0 && !mainFilterField) {
-        setFilters(undefined);
-        return;
-      }
-
-      const filterObj: Record<string, any> = {};
-      const reservedParams = ["sort", "view", "sortBy", "sortDir", "sortParam", "entity"];
-
-      try {
-        const rxdb = await getDatabase();
-
-        // Wait for dictionaries collection to be ready
-        // This is critical for label → ID conversion to work
-        let retries = 20;
-        while (!rxdb.collections["dictionaries"] && retries > 0) {
-          console.log(
-            "[SpaceComponent] Waiting for dictionaries collection...",
-          );
-          await new Promise((resolve) => setTimeout(resolve, 100));
-          retries--;
-        }
-
-        if (!rxdb.collections["dictionaries"]) {
-          console.warn(
-            "[SpaceComponent] Dictionaries collection not ready after retries, filters may not work correctly",
-          );
-        }
-
-        // Process all URL params
-        const promises: Promise<void>[] = [];
-        searchParams.forEach((urlValue, urlKey) => {
-          if (!reservedParams.includes(urlKey) && urlValue) {
-            promises.push(
-              (async () => {
-                // Try to find field by slug first (e.g., "type"), then by field ID
-                let fieldConfig = filterFields.find((f) => f.slug === urlKey);
-                if (!fieldConfig) {
-                  fieldConfig = filterFields.find((f) => f.id === urlKey);
-                }
-
-                // If not found in filterFields, check if it's the search URL slug
-                if (!fieldConfig && searchUrlSlug && urlKey === searchUrlSlug) {
-                  // Add ALL mainFilterFields to filters (for OR search)
-                  // When multiple fields have mainFilterField: true, search applies to all with OR
-                  if (mainFilterFields.length > 1) {
-                    console.log(
-                      "[SpaceComponent] 🔀 Adding OR search filters:",
-                      mainFilterFields.map((f) => f.id),
-                      "=",
-                      urlValue,
-                    );
-                    // Add same search value to all main filter fields
-                    // space-store will detect same value and combine with OR
-                    for (const field of mainFilterFields) {
-                      filterObj[field.id] = urlValue;
-                    }
-                  } else if (mainFilterField) {
-                    console.log(
-                      "[SpaceComponent] 🔍 Adding search filter:",
-                      mainFilterField.id,
-                      "=",
-                      urlValue,
-                    );
-                    filterObj[mainFilterField.id] = urlValue;
-                  }
-                  return;
-                }
-
-                if (fieldConfig) {
-                  // Try to convert label → ID (e.g., "dogs" → uuid)
-                  const valueId = await getValueForLabel(
-                    fieldConfig,
-                    urlValue,
-                    rxdb,
-                  );
-
-                  if (valueId) {
-                    // Found ID by label - use it
-                    filterObj[fieldConfig.id] = valueId;
-                  } else {
-                    // Couldn't find by label - maybe it's already an ID, use as-is
-                    filterObj[fieldConfig.id] = urlValue;
-                  }
-                }
-              })(),
-            );
-          }
-        });
-
-        await Promise.all(promises);
-
-        const finalFilters =
-          Object.keys(filterObj).length > 0 ? filterObj : undefined;
-        setFilters(finalFilters);
-      } catch (error) {
-        console.error("[SpaceComponent] Error building filters:", error);
-        setFilters(undefined);
-      }
-    };
-
-    buildFilters();
-  }, [
+  // Filter management: build from URL, persistence, apply/remove
+  const {
+    filters,
+    activeFilters,
+    currentFilterValues,
+    handleFiltersApply,
+    handleFilterRemove,
+  } = useFilterManagement({
     searchParams,
+    setSearchParams,
     filterFields,
     mainFilterField,
     mainFilterFields,
     searchUrlSlug,
-    config.entitySchemaName,
-  ]);
+    entitySchemaName: config.entitySchemaName,
+    filtersStorageKey,
+    initialSelectedEntityId,
+    createMode,
+  });
 
   // 🆕 ID-First: useEntities with orderBy + filters enables ID-First pagination
   const {
@@ -797,312 +616,6 @@ export function SpaceComponent<T extends { id: string }>({
     [viewStorageKey],
   );
 
-  // 🆕 Handle filters apply - update URL with filter params (using slugs)
-  // Convert ID values to readable labels for URL
-  const handleFiltersApply = useCallback(
-    async (filterValues: Record<string, any>) => {
-      const newParams = new URLSearchParams(searchParams);
-
-      try {
-        const rxdb = await getDatabase();
-
-        // Process all filter values (convert ID → label for URL)
-        for (const [fieldId, value] of Object.entries(filterValues)) {
-          if (value !== undefined && value !== null && value !== "") {
-            // Find field config to get slug
-            const fieldConfig = filterFields.find((f) => f.id === fieldId);
-            const urlKey = fieldConfig?.slug || fieldId; // Use slug if available
-
-            // Get readable label for value (ID → label)
-            const label = await getLabelForValue(fieldConfig, value, rxdb);
-            const normalizedLabel = normalizeForUrl(label);
-
-            console.log(
-              "[handleFiltersApply]",
-              fieldId,
-              ":",
-              value,
-              "→",
-              normalizedLabel,
-            );
-            newParams.set(urlKey, normalizedLabel);
-          } else {
-            // When clearing, need to remove both slug and field ID
-            const fieldConfig = filterFields.find((f) => f.id === fieldId);
-            if (fieldConfig?.slug) {
-              newParams.delete(fieldConfig.slug);
-            }
-            newParams.delete(fieldId);
-          }
-        }
-
-        // 🆕 Persist filter preferences to localStorage (store IDs, not labels)
-        try {
-          const filtersToStore: Record<string, string> = {};
-          for (const [fieldId, value] of Object.entries(filterValues)) {
-            if (value !== undefined && value !== null && value !== "") {
-              filtersToStore[fieldId] = String(value);
-            }
-          }
-          if (Object.keys(filtersToStore).length > 0) {
-            localStorage.setItem(
-              filtersStorageKey,
-              JSON.stringify(filtersToStore),
-            );
-          } else {
-            localStorage.removeItem(filtersStorageKey);
-          }
-        } catch (e) {
-          // localStorage not available, continue without persisting
-        }
-
-        setSearchParams(newParams);
-      } catch (error) {
-        console.error(
-          "[handleFiltersApply] Error converting IDs to labels:",
-          error,
-        );
-        // Fallback: use original values if conversion fails
-        Object.entries(filterValues).forEach(([fieldId, value]) => {
-          if (value !== undefined && value !== null && value !== "") {
-            const fieldConfig = filterFields.find((f) => f.id === fieldId);
-            const urlKey = fieldConfig?.slug || fieldId;
-            newParams.set(urlKey, String(value));
-          }
-        });
-        setSearchParams(newParams);
-      }
-    },
-    [searchParams, setSearchParams, filterFields, filtersStorageKey],
-  );
-
-  // 🆕 Handle filter remove - remove specific filter from URL and update localStorage
-  const handleFilterRemove = useCallback(
-    (filter: { id: string }) => {
-      const newParams = new URLSearchParams(searchParams);
-      newParams.delete(filter.id);
-
-      // 🆕 Update localStorage - remove this filter from saved preferences
-      try {
-        const savedFilters = localStorage.getItem(filtersStorageKey);
-        if (savedFilters) {
-          const parsedFilters = JSON.parse(savedFilters) as Record<
-            string,
-            string
-          >;
-          // Find the field ID from the slug (filter.id could be slug)
-          const fieldConfig = filterFields.find(
-            (f) => f.slug === filter.id || f.id === filter.id,
-          );
-          const fieldId = fieldConfig?.id || filter.id;
-
-          delete parsedFilters[fieldId];
-
-          if (Object.keys(parsedFilters).length > 0) {
-            localStorage.setItem(
-              filtersStorageKey,
-              JSON.stringify(parsedFilters),
-            );
-          } else {
-            localStorage.removeItem(filtersStorageKey);
-          }
-        }
-      } catch (e) {
-        // localStorage not available
-      }
-
-      setSearchParams(newParams);
-    },
-    [searchParams, setSearchParams, filtersStorageKey, filterFields],
-  );
-
-  // Helper to convert "Pet Type" → "Pet type" (sentence case)
-  const toSentenceCase = (text: string): string => {
-    const words = text.split(" ");
-    if (words.length === 0) return text;
-
-    // First word keeps first letter uppercase, rest lowercase
-    const firstWord =
-      words[0].charAt(0).toUpperCase() + words[0].slice(1).toLowerCase();
-    // Other words all lowercase
-    const otherWords = words.slice(1).map((w) => w.toLowerCase());
-
-    return [firstWord, ...otherWords].join(" ");
-  };
-
-  // 🆕 Read active filters from URL (excluding 'sort' and 'view')
-  // Convert normalized labels back to display labels
-  const [activeFilters, setActiveFilters] = useState<
-    Array<{ id: string; label: string; isRequired: boolean; order: number }>
-  >([]);
-
-  useEffect(() => {
-    const loadActiveFilters = async () => {
-      const filters: Array<{
-        id: string;
-        label: string;
-        isRequired: boolean;
-        order: number;
-      }> = [];
-      const reservedParams = ["sort", "view", "sortBy", "sortDir", "sortParam", "entity"];
-
-      const rxdb = await getDatabase();
-
-      // Wait for dictionaries collection to be available (same as buildFormValues)
-      let retries = 20;
-      while (!rxdb.collections["dictionaries"] && retries > 0) {
-        await new Promise((resolve) => setTimeout(resolve, 100));
-        retries--;
-      }
-
-      for (const [key, urlValue] of searchParams.entries()) {
-        if (!reservedParams.includes(key) && urlValue) {
-          // Skip search URL slug - it's used for search, not displayed as filter chip
-          if (searchUrlSlug && key === searchUrlSlug) {
-            continue;
-          }
-
-          // Find field config by slug or field ID
-          let fieldConfig = filterFields.find((f) => f.slug === key);
-          if (!fieldConfig) {
-            fieldConfig = filterFields.find((f) => f.id === key);
-          }
-
-          const displayName = fieldConfig
-            ? toSentenceCase(fieldConfig.displayName)
-            : key;
-
-          // Convert URL value → Display label
-          // URL can contain either UUID directly or slug/label
-          let displayValue = urlValue;
-          if (fieldConfig?.referencedTable) {
-            // Check if urlValue is a UUID (direct ID)
-            const isUUID =
-              /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
-                urlValue,
-              );
-
-            if (isUUID) {
-              // URL has UUID directly - get label for this ID
-              const label = await getLabelForValue(fieldConfig, urlValue, rxdb);
-              displayValue = label;
-            } else {
-              // URL has slug/label - find ID first, then get display label
-              const valueId = await getValueForLabel(
-                fieldConfig,
-                urlValue,
-                rxdb,
-              );
-              if (valueId) {
-                const label = await getLabelForValue(
-                  fieldConfig,
-                  valueId,
-                  rxdb,
-                );
-                displayValue = label;
-              }
-            }
-          }
-
-          filters.push({
-            id: key,
-            label: `${displayName}: ${displayValue}`,
-            isRequired: fieldConfig?.required ?? false,
-            order: fieldConfig?.order ?? 999,
-          });
-        }
-      }
-
-      // Sort by order from config
-      filters.sort((a, b) => a.order - b.order);
-
-      setActiveFilters(filters);
-    };
-
-    if (filterFields.length > 0) {
-      loadActiveFilters();
-    } else {
-      setActiveFilters([]);
-    }
-  }, [searchParams, filterFields, searchUrlSlug]);
-
-  // 🆕 Get current filter values for initializing FiltersDialog form
-  // Need to convert label → ID (same as filters logic)
-  const [currentFilterValues, setCurrentFilterValues] = useState<
-    Record<string, any>
-  >({});
-
-  useEffect(() => {
-    const buildFormValues = async () => {
-      if (filterFields.length === 0) {
-        setCurrentFilterValues({});
-        return;
-      }
-
-      const values: Record<string, any> = {};
-      const reservedParams = ["sort", "view", "sortBy", "sortDir", "sortParam", "entity"];
-
-      try {
-        const rxdb = await getDatabase();
-
-        // Wait for dictionaries collection (same as filters logic)
-        let retries = 20;
-        while (!rxdb.collections["dictionaries"] && retries > 0) {
-          await new Promise((resolve) => setTimeout(resolve, 100));
-          retries--;
-        }
-
-        // Process all URL params and convert label → ID
-        const promises: Promise<void>[] = [];
-        searchParams.forEach((urlValue, urlKey) => {
-          if (!reservedParams.includes(urlKey) && urlValue) {
-            promises.push(
-              (async () => {
-                // Skip search URL slug - it's used for search, not in FiltersDialog
-                if (searchUrlSlug && urlKey === searchUrlSlug) {
-                  return;
-                }
-
-                // Find field config by slug or field ID
-                let fieldConfig = filterFields.find((f) => f.slug === urlKey);
-                if (!fieldConfig) {
-                  fieldConfig = filterFields.find((f) => f.id === urlKey);
-                }
-
-                if (fieldConfig) {
-                  // Try to convert label → ID (e.g., "cat" → uuid)
-                  const valueId = await getValueForLabel(
-                    fieldConfig,
-                    urlValue,
-                    rxdb,
-                  );
-
-                  if (valueId) {
-                    // Found ID by label - use it for form
-                    values[fieldConfig.id] = valueId;
-                  } else {
-                    // Couldn't find by label - maybe it's already an ID, use as-is
-                    values[fieldConfig.id] = urlValue;
-                  }
-                }
-              })(),
-            );
-          }
-        });
-
-        await Promise.all(promises);
-        setCurrentFilterValues(values);
-      } catch (error) {
-        console.error(
-          "[currentFilterValues] Error building form values:",
-          error,
-        );
-        setCurrentFilterValues({});
-      }
-    };
-
-    buildFormValues();
-  }, [searchParams, filterFields, searchUrlSlug]);
 
   const handleCreateNew = () => {
     navigate(`/new?entity=${config.entitySchemaName}`);
