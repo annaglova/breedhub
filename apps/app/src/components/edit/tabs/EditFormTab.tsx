@@ -1,4 +1,5 @@
 import { FORM_COMPONENT_MAP } from "@/components/edit/componentMap";
+import { FormGroupLayout } from "@/components/edit/FormGroupLayout";
 import { useFormFieldGrouping } from "@/components/edit/useFormFieldGrouping";
 import { PetPickerInput } from "@/components/edit/inputs/PetPickerInput";
 import { useSelectedEntity } from "@/contexts/SpaceContext";
@@ -270,45 +271,11 @@ export function EditFormTab({ fields, onLoadedCount, entityType, onSaveReady, on
               {group.label}
             </h3>
           )}
-          {(() => {
-            const fullWidthFields = group.fields.filter(([, f]) => f.fullWidth);
-            const regularFields = group.fields.filter(([, f]) => !f.fullWidth);
-
-            if (regularFields.length === 0) {
-              return fullWidthFields.map(([fieldId, field]) => renderField(fieldId, field));
-            }
-
-            if (group.layout === "horizontal") {
-              // Horizontal: row-by-row (1|2, 3|4, 5|6)
-              return (
-                <>
-                  {fullWidthFields.map(([fieldId, field]) => renderField(fieldId, field))}
-                  <div className="sm:grid sm:grid-cols-2 sm:gap-x-3 gap-y-1">
-                    {regularFields.map(([fieldId, field]) => renderField(fieldId, field))}
-                  </div>
-                </>
-              );
-            }
-
-            // Vertical: column fill (first half left, second half right)
-            const mid = Math.ceil(regularFields.length / 2);
-            const leftCol = regularFields.slice(0, mid);
-            const rightCol = regularFields.slice(mid);
-
-            return (
-              <>
-                {fullWidthFields.map(([fieldId, field]) => renderField(fieldId, field))}
-                <div className="sm:grid sm:grid-cols-2 sm:gap-x-3">
-                  <div className="space-y-1">
-                    {leftCol.map(([fieldId, field]) => renderField(fieldId, field))}
-                  </div>
-                  <div className="space-y-1">
-                    {rightCol.map(([fieldId, field]) => renderField(fieldId, field))}
-                  </div>
-                </div>
-              </>
-            );
-          })()}
+          <FormGroupLayout
+            layout={group.layout}
+            fields={group.fields}
+            renderField={renderField}
+          />
         </div>
       ))}
     </div>
