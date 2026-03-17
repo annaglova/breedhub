@@ -71,10 +71,8 @@ const Properties: React.FC = () => {
     };
 
     loadProperties();
-
-    // Refresh every second
-    const interval = setInterval(loadProperties, 1000);
-    return () => clearInterval(interval);
+    const unsubscribe = appConfigStore.configs.subscribe(loadProperties);
+    return () => unsubscribe();
   }, []);
 
   // Filter properties based on search and type

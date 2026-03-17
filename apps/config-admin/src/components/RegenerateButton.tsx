@@ -50,16 +50,13 @@ export function RegenerateButton() {
               <code className="block bg-slate-900 text-green-400 p-3 rounded text-sm overflow-x-auto">
                 <span className="text-slate-400"># Navigate to config-admin directory:</span><br/>
                 cd apps/config-admin<br/><br/>
-                <span className="text-slate-400"># 0. Generate entity JSON structures from database (if DB schema changed):</span><br/>
-                node scripts/generate-entity-configs.cjs<br/>
-                <span className="text-slate-400"># This takes a while - reads all tables and generates JSON files</span><br/><br/>
-                <span className="text-slate-400"># 1. Generate semantic tree:</span><br/>
-                node scripts/analyze-fields.cjs<br/><br/>
-                <span className="text-slate-400"># 2. Generate SQL and run cascade:</span><br/>
-                node scripts/generate-sql-inserts.cjs<br/>
-                <span className="text-slate-400"># Answer 'y' when prompted to insert to database</span><br/><br/>
-                <span className="text-slate-400"># 3. (Optional) Rebuild full hierarchy:</span><br/>
-                node scripts/rebuild-hierarchy.cjs full
+                <span className="text-slate-400"># Run full pipeline (auto-confirms DB insert):</span><br/>
+                node scripts/generate-all.cjs --yes<br/><br/>
+                <span className="text-slate-400"># Or run steps individually:</span><br/>
+                <span className="text-slate-400"># 1. node scripts/generate-entity-configs.cjs</span><br/>
+                <span className="text-slate-400"># 2. node scripts/analyze-fields.cjs</span><br/>
+                <span className="text-slate-400"># 3. node scripts/generate-sql-inserts.cjs</span><br/>
+                <span className="text-slate-400"># 4. node scripts/rebuild-hierarchy.cjs full</span>
               </code>
             </div>
 

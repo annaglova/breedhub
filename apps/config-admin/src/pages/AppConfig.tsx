@@ -22,6 +22,7 @@ import {
 import React, { useEffect, useState } from "react";
 import ConfigEditModal from "../components/ConfigEditModal";
 import ConfigViewModal from "../components/ConfigViewModal";
+import { ErrorBoundary } from "../components/ErrorBoundary";
 import PropertyCategoryIcon from "../components/PropertyCategoryIcon";
 import WorkspaceHeader from "../components/WorkspaceHeader";
 import type { BaseConfig, TreeNode } from "../types/config-types";
@@ -183,10 +184,8 @@ const AppConfig: React.FC = () => {
     };
 
     loadData();
-
-    // Refresh every second
-    const interval = setInterval(loadData, 1000);
-    return () => clearInterval(interval);
+    const unsubscribe = appConfigStore.configs.subscribe(loadData);
+    return () => unsubscribe();
   }, []);
 
   // Auto-expand all nodes when searching Working Configs
@@ -1492,6 +1491,7 @@ const AppConfig: React.FC = () => {
       <div className="max-w-full mx-auto h-full">
         <div className="flex gap-4 h-[calc(100vh-7rem)]">
           {/* Left Column - Working Configs - 37.5% */}
+          <ErrorBoundary label="Working Configs">
           <div className="w-[37.5%] bg-white rounded-lg shadow-md p-6 h-full flex flex-col">
             <WorkspaceHeader
               title="Working Configs"
@@ -1575,8 +1575,10 @@ const AppConfig: React.FC = () => {
               )}
             </div>
           </div>
+          </ErrorBoundary>
 
           {/* Middle Column - Fields Tree - 37.5% */}
+          <ErrorBoundary label="Entity Fields">
           <div className="w-[37.5%] bg-white rounded-lg shadow-md p-6 h-full flex flex-col">
             <WorkspaceHeader
               title="Entity Fields"
@@ -1916,8 +1918,10 @@ const AppConfig: React.FC = () => {
               )}
             </div>
           </div>
+          </ErrorBoundary>
 
           {/* Right Column - Properties - 25% */}
+          <ErrorBoundary label="Properties">
           <div className="w-[25%] bg-white rounded-lg shadow-md p-6 h-full flex flex-col">
             <WorkspaceHeader
               title="Properties"
@@ -2029,6 +2033,7 @@ const AppConfig: React.FC = () => {
               )}
             </div>
           </div>
+          </ErrorBoundary>
         </div>
       </div>
 
