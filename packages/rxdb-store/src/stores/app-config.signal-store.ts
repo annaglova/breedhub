@@ -5,6 +5,7 @@ import { supabase } from '../supabase/client';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 import { getAvailableChildTypes } from '../../../../apps/config-admin/src/types/config-types';
 import { extractFieldName } from '../utils/field-normalization';
+import * as Q from './app-config-query';
 
 // Tree node interface for config tree
 export interface TreeNode {
@@ -1591,172 +1592,23 @@ class AppConfigStore {
   
   // Get color class based on property content
   getPropertyColor(property: AppConfig): string {
-    // Special styling for system properties
-    if (property.id === 'property_is_system' || property.id === 'property_not_system') {
-      return 'text-yellow-600';
-    }
-    const data = JSON.stringify(property.data || {});
-    if (data.includes('required')) return 'text-red-600';
-    if (data.includes('system')) return 'text-yellow-600';
-    if (data.includes('primary')) return 'text-purple-600';
-    if (data.includes('unique')) return 'text-blue-600';
-    if (data.includes('maxLength')) return 'text-green-600';
-    return 'text-slate-600';
+    return Q.getPropertyColor(property);
   }
-  
-  // Get property border color for cards
+
   getPropertyBorderColor(property: AppConfig): string {
-    // Special styling for system properties
-    if (property.id === 'property_is_system' || property.id === 'property_not_system') {
-      return 'border-yellow-400 bg-yellow-100';
-    }
-    const data = JSON.stringify(property.data || {});
-    if (data.includes('required')) return 'border-red-200 bg-red-50';
-    if (data.includes('system')) return 'border-yellow-200 bg-yellow-50';
-    if (data.includes('primary')) return 'border-purple-200 bg-purple-50';
-    if (data.includes('unique')) return 'border-blue-200 bg-blue-50';
-    if (data.includes('maxLength')) return 'border-green-200 bg-green-50';
-    return 'border-slate-200 bg-slate-50';
+    return Q.getPropertyBorderColor(property);
   }
-  
-  // Get field display name
+
   getFieldDisplayName(field: AppConfig): string {
-    return extractFieldName(field.id);
+    return Q.getFieldDisplayName(field);
   }
   
-  // Build hierarchical structure for fields
-  buildFieldsStructure(fields: AppConfig[]): any {
-    const structure = {
-      base: [] as AppConfig[],
-      main: {} as Record<string, { fields: AppConfig[]; children: Record<string, AppConfig[]> }>,
-      dictionaries: {} as Record<string, AppConfig[]>,
-    };
-    
-    fields.forEach((field) => {
-      // Base fields - all fields with type 'field' (includes base, common, frequent)
-      if (field.type === 'field') {
-        structure.base.push(field);
-      }
-      // Entity fields
-      else if (field.type === 'entity_field' && field.tags) {
-        if (field.tags.includes('main')) {
-          // Main entity field
-          const entityName = field.tags.find((t) => t !== 'main') || field.category || '';
-          if (!structure.main[entityName]) {
-            structure.main[entityName] = { fields: [], children: {} };
-          }
-          structure.main[entityName].fields.push(field);
-        } else if (field.tags.includes('child')) {
-          // Child entity field — may belong to multiple parents
-          const parentEntities = field.tags.filter((t) => t !== 'child');
-          const category = field.category || 'unknown';
-          for (const parentEntity of parentEntities) {
-            if (!structure.main[parentEntity]) {
-              structure.main[parentEntity] = { fields: [], children: {} };
-            }
-            if (!structure.main[parentEntity].children[category]) {
-              structure.main[parentEntity].children[category] = [];
-            }
-            structure.main[parentEntity].children[category].push(field);
-          }
-        } else if (field.tags.includes('dictionary')) {
-          // Dictionary field
-          const category = field.category || 'unknown';
-          if (!structure.dictionaries[category]) {
-            structure.dictionaries[category] = [];
-          }
-          structure.dictionaries[category].push(field);
-        }
-      }
-      // Fallback for entity fields without tags
-      else if (field.type === 'entity_field') {
-        const category = field.category || 'unknown';
-        if (!structure.dictionaries[category]) {
-          structure.dictionaries[category] = [];
-        }
-        structure.dictionaries[category].push(field);
-      }
-    });
-    
-    // Sort everything
-    structure.base.sort((a, b) => a.id.localeCompare(b.id));
-    Object.values(structure.main).forEach(entity => {
-      entity.fields.sort((a, b) => a.id.localeCompare(b.id));
-      Object.values(entity.children).forEach(childFields => {
-        childFields.sort((a, b) => a.id.localeCompare(b.id));
-      });
-    });
-    Object.values(structure.dictionaries).forEach(dictFields => {
-      dictFields.sort((a, b) => a.id.localeCompare(b.id));
-    });
-    
-    return structure;
+  buildFieldsStructure(fields: AppConfig[]): Q.FieldsStructure {
+    return Q.buildFieldsStructure(fields);
   }
   
-  // Build tree structure for working configs
   buildConfigTree(configs: AppConfig[]): TreeNode[] {
-    const nodeMap = new Map<string, TreeNode>();
-    const childIds = new Set<string>();
-
-    // First pass: Create all nodes
-    configs.forEach((config) => {
-      const node: TreeNode = {
-        id: config.id,
-        name: config.caption || config.id,
-        configType: config.type,
-        children: [],
-        data: config.data || {},
-        deps: config.deps,
-      };
-      nodeMap.set(config.id, node);
-    });
-
-    // Second pass: Build parent-child relationships and track children
-    configs.forEach((config) => {
-      const parentNode = nodeMap.get(config.id);
-      if (!parentNode) return;
-
-      if (config.deps && config.deps.length > 0) {
-        config.deps.forEach((childId) => {
-          // Check if it's a field dependency
-          if (childId.includes('field') &&
-              ['fields', 'sort', 'filter'].includes(config.type)) {
-            // Create a virtual node for the field
-            const fieldNode: TreeNode = {
-              id: childId,
-              name: childId,
-              configType: 'field_ref', // Special type for field references
-              children: [],
-              data: {},
-              deps: [],
-            };
-            parentNode.children.push(fieldNode);
-          } else {
-            // Regular config dependency
-            const childNode = nodeMap.get(childId);
-            const childConfig = configs.find((c) => c.id === childId);
-            if (childNode && childConfig) {
-              parentNode.children.push(childNode);
-              // Track this as a child so we don't include it in roots
-              childIds.add(childId);
-            }
-          }
-        });
-      }
-    });
-
-    // Third pass: Collect only root nodes (configs that are not children of any other config)
-    const roots: TreeNode[] = [];
-    configs.forEach((config) => {
-      if (!childIds.has(config.id)) {
-        const node = nodeMap.get(config.id);
-        if (node) {
-          roots.push(node);
-        }
-      }
-    });
-
-    return roots;
+    return Q.buildConfigTree(configs);
   }
   
   // Filter configs for display
@@ -1806,116 +1658,24 @@ class AppConfigStore {
     return availableTypes.includes(childType);
   }
   
-  // ============= FILTERING METHODS =============
-  
-  // Universal filter for any config items
+  // ============= FILTERING METHODS (delegated to app-config-query) =============
+
   filterConfigItems<T extends { id: string; caption?: string; data?: any }>(
-    items: T[],
-    searchQuery: string
+    items: T[], searchQuery: string
   ): T[] {
-    if (!searchQuery) return items;
-    
-    const query = searchQuery.toLowerCase();
-    return items.filter((item) => {
-      // Search in ID
-      if (item.id.toLowerCase().includes(query)) return true;
-      
-      // Search in caption
-      if (item.caption && item.caption.toLowerCase().includes(query)) return true;
-      
-      // Search in data (JSON)
-      if (item.data) {
-        const dataStr = JSON.stringify(item.data).toLowerCase();
-        if (dataStr.includes(query)) return true;
-      }
-      
-      return false;
-    });
+    return Q.filterConfigItems(items, searchQuery);
   }
-  
-  // Filter config tree nodes recursively
+
   filterConfigTree(nodes: TreeNode[], searchQuery: string): TreeNode[] {
-    if (!searchQuery) return nodes;
-    
-    const query = searchQuery.toLowerCase();
-    
-    return nodes.reduce<TreeNode[]>((acc, node) => {
-      const matchesSearch =
-        node.name.toLowerCase().includes(query) ||
-        node.id.toLowerCase().includes(query);
-      
-      const filteredChildren = this.filterConfigTree(node.children, searchQuery);
-      
-      if (matchesSearch || filteredChildren.length > 0) {
-        acc.push({
-          ...node,
-          children: filteredChildren,
-        });
-      }
-      
-      return acc;
-    }, []);
+    return Q.filterConfigTree(nodes, searchQuery);
   }
-  
-  // Get all node IDs from tree recursively (for auto-expand)
+
   getAllNodeIds(nodes: TreeNode[]): string[] {
-    const ids: string[] = [];
-    
-    const collectIds = (nodeList: TreeNode[]) => {
-      for (const node of nodeList) {
-        ids.push(node.id);
-        if (node.children && node.children.length > 0) {
-          collectIds(node.children);
-        }
-      }
-    };
-    
-    collectIds(nodes);
-    return ids;
+    return Q.getAllNodeIds(nodes);
   }
-  
-  // Filter fields structure with search
-  filterFieldsStructure(
-    structure: any,
-    searchQuery: string
-  ): any {
-    if (!searchQuery) return structure;
-    
-    const filtered = {
-      base: this.filterConfigItems(structure.base, searchQuery),
-      main: {} as Record<string, { fields: AppConfig[]; children: Record<string, AppConfig[]> }>,
-      dictionaries: {} as Record<string, AppConfig[]>,
-    };
-    
-    // Filter main entities
-    Object.entries(structure.main).forEach(([entityName, entityData]: [string, any]) => {
-      const filteredFields = this.filterConfigItems(entityData.fields, searchQuery);
-      const filteredChildren: Record<string, AppConfig[]> = {};
-      
-      Object.entries(entityData.children).forEach(([childName, childFields]: [string, any]) => {
-        const filteredChildFields = this.filterConfigItems(childFields, searchQuery);
-        if (filteredChildFields.length > 0) {
-          filteredChildren[childName] = filteredChildFields;
-        }
-      });
-      
-      if (filteredFields.length > 0 || Object.keys(filteredChildren).length > 0) {
-        filtered.main[entityName] = {
-          fields: filteredFields,
-          children: filteredChildren,
-        };
-      }
-    });
-    
-    // Filter dictionaries
-    Object.entries(structure.dictionaries).forEach(([dictName, dictFields]: [string, any]) => {
-      const filteredDictFields = this.filterConfigItems(dictFields, searchQuery);
-      if (filteredDictFields.length > 0) {
-        filtered.dictionaries[dictName] = filteredDictFields;
-      }
-    });
-    
-    return filtered;
+
+  filterFieldsStructure(structure: Q.FieldsStructure, searchQuery: string): Q.FieldsStructure {
+    return Q.filterFieldsStructure(structure, searchQuery);
   }
   
   // ============= BASE OPERATIONS =============
@@ -1943,39 +1703,8 @@ class AppConfigStore {
     return newSelfData;
   }
   
-  /**
-   * Get opposite property ID if exists
-   */
   getOppositeProperty(propertyId: string): string | null {
-    // Define opposite property mappings
-    const opposites: Record<string, string> = {
-      'property_unique': 'property_not_unique',
-      'property_not_unique': 'property_unique',
-      'property_required': 'property_not_required',
-      'property_not_required': 'property_required',
-      'property_nullable': 'property_not_nullable',
-      'property_not_nullable': 'property_nullable',
-      'property_readonly': 'property_not_readonly',
-      'property_not_readonly': 'property_readonly',
-      'property_indexed': 'property_not_indexed',
-      'property_not_indexed': 'property_indexed',
-      'property_primary': 'property_not_primary',
-      'property_not_primary': 'property_primary',
-      'property_searchable': 'property_not_searchable',
-      'property_not_searchable': 'property_searchable',
-      'property_sortable': 'property_not_sortable',
-      'property_not_sortable': 'property_sortable',
-      'property_filterable': 'property_not_filterable',
-      'property_not_filterable': 'property_filterable',
-      'property_hidden': 'property_not_hidden',
-      'property_not_hidden': 'property_hidden',
-      'property_editable': 'property_not_editable',
-      'property_not_editable': 'property_editable',
-      'property_visible': 'property_not_visible',
-      'property_not_visible': 'property_visible'
-    };
-    
-    return opposites[propertyId] || null;
+    return Q.getOppositeProperty(propertyId);
   }
 
   /**
