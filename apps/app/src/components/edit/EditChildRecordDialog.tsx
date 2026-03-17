@@ -1,4 +1,5 @@
 import { FORM_COMPONENT_MAP } from "@/components/edit/componentMap";
+import { useFormFieldGrouping } from "@/components/edit/useFormFieldGrouping";
 import { PetPickerInput } from "@/components/edit/inputs/PetPickerInput";
 import { spaceStore, toast } from "@breedhub/rxdb-store";
 import type { DataSourceConfig } from "@breedhub/rxdb-store";
@@ -157,40 +158,8 @@ export function EditChildRecordDialog({
     return result;
   }, [fields]);
 
-  // Sort fields by order and group them (same logic as EditFormTab)
-  const groupedFields = useMemo(() => {
-    const entries = Object.entries(formFieldsMap);
-    if (entries.length === 0) return [];
-
-    const sorted = entries.sort(
-      ([, a], [, b]) => (a.order ?? a.sortOrder ?? 0) - (b.order ?? b.sortOrder ?? 0)
-    );
-
-    const groups: Array<{
-      label: string | null;
-      layout: "horizontal" | "vertical";
-      fields: Array<[string, FieldConfig]>;
-    }> = [];
-    const groupMap = new Map<string | null, {
-      layout: "horizontal" | "vertical";
-      fields: Array<[string, FieldConfig]>;
-    }>();
-
-    for (const entry of sorted) {
-      const groupKey = entry[1].group || null;
-      if (!groupMap.has(groupKey)) {
-        const group = {
-          layout: (entry[1].groupLayout || "vertical") as "horizontal" | "vertical",
-          fields: [] as Array<[string, FieldConfig]>,
-        };
-        groupMap.set(groupKey, group);
-        groups.push({ label: groupKey, ...group });
-      }
-      groupMap.get(groupKey)!.fields.push(entry);
-    }
-
-    return groups;
-  }, [formFieldsMap]);
+  // Sort fields by order and group them
+  const groupedFields = useFormFieldGrouping(formFieldsMap);
 
   // Build fields array for useDynamicFields
   const fieldsList = useMemo(() => {

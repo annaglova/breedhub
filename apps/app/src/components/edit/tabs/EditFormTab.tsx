@@ -1,4 +1,5 @@
 import { FORM_COMPONENT_MAP } from "@/components/edit/componentMap";
+import { useFormFieldGrouping } from "@/components/edit/useFormFieldGrouping";
 import { PetPickerInput } from "@/components/edit/inputs/PetPickerInput";
 import { useSelectedEntity } from "@/contexts/SpaceContext";
 import { useDynamicFields, extractDbFieldName } from "@/hooks/useDynamicFields";
@@ -166,30 +167,7 @@ export function EditFormTab({ fields, onLoadedCount, entityType, onSaveReady, on
   }, [hasChanges, onDirtyChange]);
 
   // Sort fields by order and group them
-  const groupedFields = useMemo(() => {
-    if (!fields) return [];
-
-    const sorted = Object.entries(fields).sort(
-      ([, a], [, b]) => (a.order || 0) - (b.order || 0)
-    );
-
-    // Build ordered groups preserving first-seen order
-    // groupLayout is taken from the first field in the group that has it set
-    const groups: Array<{ label: string | null; layout: "horizontal" | "vertical"; fields: Array<[string, FieldConfig]> }> = [];
-    const groupMap = new Map<string | null, { layout: "horizontal" | "vertical"; fields: Array<[string, FieldConfig]> }>();
-
-    for (const entry of sorted) {
-      const groupKey = entry[1].group || null;
-      if (!groupMap.has(groupKey)) {
-        const group = { layout: (entry[1].groupLayout || "vertical") as "horizontal" | "vertical", fields: [] as Array<[string, FieldConfig]> };
-        groupMap.set(groupKey, group);
-        groups.push({ label: groupKey, ...group });
-      }
-      groupMap.get(groupKey)!.fields.push(entry);
-    }
-
-    return groups;
-  }, [fields]);
+  const groupedFields = useFormFieldGrouping(fields);
 
   // Total field count for reporting
   const totalFieldCount = useMemo(
