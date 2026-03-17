@@ -18,41 +18,8 @@ import { useTabNavigation } from "@/hooks/useTabNavigation";
  * This allows adding new tabs without modifying this file.
  * Just create MyNewTab.tsx and reference "MyNewTab" in config.
  */
-const breedTabModules = import.meta.glob('../breed/tabs/*Tab.tsx', { eager: true });
-const kennelTabModules = import.meta.glob('../kennel/tabs/*Tab.tsx', { eager: true });
-const petTabModules = import.meta.glob('../pet/tabs/*Tab.tsx', { eager: true });
-const litterTabModules = import.meta.glob('../litter/tabs/*Tab.tsx', { eager: true });
-const contactTabModules = import.meta.glob('../contact/tabs/*Tab.tsx', { eager: true });
-const eventTabModules = import.meta.glob('../event/tabs/*Tab.tsx', { eager: true });
-const editTabModules = import.meta.glob('../edit/tabs/*Tab.tsx', { eager: true });
-
-// Combine all tab modules into single registry
-const TAB_COMPONENT_REGISTRY: Record<string, React.ComponentType<any>> = {};
-
-// Helper to extract component name from path and register it
-function registerModules(modules: Record<string, any>) {
-  for (const [path, module] of Object.entries(modules)) {
-    // Extract component name from path: "../breed/tabs/BreedAchievementsTab.tsx" -> "BreedAchievementsTab"
-    const match = path.match(/\/([^/]+)Tab\.tsx$/);
-    if (match) {
-      const componentName = match[1] + 'Tab';
-      // Module might export as default or named export
-      const Component = (module as any)[componentName] || (module as any).default;
-      if (Component) {
-        TAB_COMPONENT_REGISTRY[componentName] = Component;
-      }
-    }
-  }
-}
-
-// Register all tab components
-registerModules(breedTabModules);
-registerModules(kennelTabModules);
-registerModules(petTabModules);
-registerModules(litterTabModules);
-registerModules(contactTabModules);
-registerModules(eventTabModules);
-registerModules(editTabModules);
+// Shared tab component registry (auto-discovers all *Tab.tsx components)
+import { TAB_COMPONENT_REGISTRY } from '../shared/tab-registry';
 
 // Tab config from database
 interface TabConfig {
