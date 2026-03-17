@@ -4,7 +4,7 @@ import { cn, getIconComponent } from "@ui/lib/utils";
 import { LogOut, X } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useUserMenu } from "@/hooks/useUserMenu";
-import { useAuth } from "@/core/auth";
+import { useAuth } from "@shared/core/auth";
 
 interface UserDrawerProps {
   isOpen: boolean;

@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClient } from '@/core/queryClient';
-import { AuthProvider } from '@/core/auth';
+import { AuthProvider } from '@shared/core/auth';
 import { AppRouter } from '@/router/AppRouter';
 import { useLoadingBar } from '@/hooks/useLoadingBar';
 import { spaceStore, appStore, userStore, toastStore } from '@breedhub/rxdb-store';

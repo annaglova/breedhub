@@ -27,6 +27,7 @@ import {
 
 // Utils
 import { removeFieldPrefix, addFieldPrefix } from '../utils/field-normalization';
+import * as F from '../utils/filter-builder';
 
 // Universal entity interface for all business entities
 interface BusinessEntity {
@@ -3422,204 +3423,29 @@ class SpaceStore {
   /**
    * Build RxDB Mango condition for a given operator and value.
    */
+  // Filter methods delegated to filter-builder utility
   private buildRxDBCondition(operator: string, value: any): any {
-    switch (operator) {
-      case 'ilike':
-      case 'contains': {
-        const escaped = String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-        return { $regex: escaped, $options: 'i' };
-      }
-      case 'eq': return value;
-      case 'ne': return { $ne: value };
-      case 'gt': return { $gt: value };
-      case 'gte': return { $gte: value };
-      case 'lt': return { $lt: value };
-      case 'lte': return { $lte: value };
-      case 'in': return { $in: Array.isArray(value) ? value : [value] };
-      default: return value;
-    }
+    return F.buildRxDBCondition(operator, value);
   }
 
-  /**
-   * Apply filter to RxDB selector with orFields support.
-   * If fieldConfig has orFields, builds $or condition across all fields.
-   */
-  private applyFilterToRxDBSelector(
-    selector: any,
-    fieldKey: string,
-    operator: string,
-    value: any,
-    fieldConfig: any
-  ): void {
-    const orFields: string[] | undefined = fieldConfig?.orFields;
-    const condition = this.buildRxDBCondition(operator, value);
-
-    if (orFields && orFields.length > 0) {
-      // Build $or condition: match value against any of the OR fields
-      const orConditions = orFields.map(field => ({ [field]: condition }));
-      // Use $and to combine with other conditions
-      if (!selector.$and) selector.$and = [];
-      selector.$and.push({ $or: orConditions });
-    } else {
-      selector[fieldKey] = condition;
-    }
+  private applyFilterToRxDBSelector(selector: any, fieldKey: string, operator: string, value: any, fieldConfig: any): void {
+    F.applyFilterToRxDBSelector(selector, fieldKey, operator, value, fieldConfig);
   }
 
-  /**
-   * Apply filter to RxDB query
-   * Translates operator to RxDB syntax
-   */
   private applyRxDBFilter(query: any, fieldName: string, operator: string, value: any): any {
-    switch (operator) {
-      case 'ilike':
-      case 'contains':
-        // Case-insensitive regex search
-        // Note: RxDB requires string patterns, not RegExp objects
-        const escapedValue = String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-        console.log('[SpaceStore] 🔍 RxDB regex pattern:', escapedValue);
-
-        // Use $regex selector syntax (string pattern with $options)
-        return query.where(fieldName).regex(escapedValue);  // Pass string, not RegExp
-
-      case 'eq':
-        return query.where(fieldName).eq(value);
-
-      case 'ne':
-        return query.where(fieldName).ne(value);
-
-      case 'gt':
-        return query.where(fieldName).gt(value);
-
-      case 'gte':
-        return query.where(fieldName).gte(value);
-
-      case 'lt':
-        return query.where(fieldName).lt(value);
-
-      case 'lte':
-        return query.where(fieldName).lte(value);
-
-      case 'in':
-        // Value should be array
-        const arrayValue = Array.isArray(value) ? value : [value];
-        return query.where(fieldName).in(arrayValue);
-
-      case 'between': {
-        const [from, to] = String(value).split('_');
-        if (from) query = query.where(fieldName).gte(from);
-        if (to) query = query.where(fieldName).lte(to);
-        return query;
-      }
-
-      default:
-        console.warn(`[SpaceStore] Unknown RxDB operator: ${operator}`);
-        return query;
-    }
+    return F.applyRxDBFilter(query, fieldName, operator, value);
   }
 
-  /**
-   * Apply filter to Supabase query
-   * Translates operator to Supabase syntax
-   */
   private applySupabaseFilter(query: any, fieldName: string, operator: string, value: any): any {
-    switch (operator) {
-      case 'ilike':
-        // Case-insensitive LIKE with wildcards
-        return query.ilike(fieldName, `%${value}%`);
-
-      case 'contains':
-        // Case-INsensitive LIKE for search (same as hybrid search in RxDB)
-        return query.ilike(fieldName, `%${value}%`);
-
-      case 'eq':
-        return query.eq(fieldName, value);
-
-      case 'ne':
-        return query.neq(fieldName, value);
-
-      case 'gt':
-        return query.gt(fieldName, value);
-
-      case 'gte':
-        return query.gte(fieldName, value);
-
-      case 'lt':
-        return query.lt(fieldName, value);
-
-      case 'lte':
-        return query.lte(fieldName, value);
-
-      case 'in':
-        // Value should be array
-        const arrayValue = Array.isArray(value) ? value : [value];
-        return query.in(fieldName, arrayValue);
-
-      case 'between': {
-        const [from, to] = String(value).split('_');
-        if (from) query = query.gte(fieldName, from);
-        if (to) query = query.lte(fieldName, to);
-        return query;
-      }
-
-      default:
-        console.warn(`[SpaceStore] Unknown Supabase operator: ${operator}`);
-        return query;
-    }
+    return F.applySupabaseFilter(query, fieldName, operator, value);
   }
 
-  /**
-   * Build PostgREST filter expression for a single field (e.g., "breed_id.eq.123")
-   */
   private buildPostgrestFilterExpr(fieldName: string, operator: string, value: any): string {
-    switch (operator) {
-      case 'ilike':
-      case 'contains':
-        return `${fieldName}.ilike.%${value}%`;
-      case 'eq':
-        return `${fieldName}.eq.${value}`;
-      case 'ne':
-        return `${fieldName}.neq.${value}`;
-      case 'gt':
-        return `${fieldName}.gt.${value}`;
-      case 'gte':
-        return `${fieldName}.gte.${value}`;
-      case 'lt':
-        return `${fieldName}.lt.${value}`;
-      case 'lte':
-        return `${fieldName}.lte.${value}`;
-      case 'in': {
-        const arr = Array.isArray(value) ? value : [value];
-        return `${fieldName}.in.(${arr.join(',')})`;
-      }
-      default:
-        return `${fieldName}.eq.${value}`;
-    }
+    return F.buildPostgrestFilterExpr(fieldName, operator, value);
   }
 
-  /**
-   * Apply filter with orFields support.
-   * If fieldConfig has orFields, builds OR condition across all fields.
-   * Otherwise delegates to applySupabaseFilter.
-   */
-  private applySupabaseFilterWithOrFields(
-    query: any,
-    fieldKey: string,
-    operator: string,
-    value: any,
-    fieldConfig: any
-  ): any {
-    const orFields: string[] | undefined = fieldConfig?.orFields;
-
-    if (orFields && orFields.length > 0) {
-      // Build OR condition: father_breed_id.eq.X,mother_breed_id.eq.X
-      const orCondition = orFields
-        .map(field => this.buildPostgrestFilterExpr(field, operator, value))
-        .join(',');
-      return query.or(orCondition);
-    }
-
-    // Standard single-field filter
-    return this.applySupabaseFilter(query, fieldKey, operator, value);
+  private applySupabaseFilterWithOrFields(query: any, fieldKey: string, operator: string, value: any, fieldConfig: any): any {
+    return F.applySupabaseFilterWithOrFields(query, fieldKey, operator, value, fieldConfig);
   }
 
   /**

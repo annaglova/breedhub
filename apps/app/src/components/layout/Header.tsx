@@ -2,7 +2,7 @@ import { useTheme } from "@/hooks/useTheme";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { useAppWorkspaces } from "@/hooks/useAppStore";
 import { useOnlineStatus } from "@/hooks/useOnlineStatus";
-import { useAuth } from "@/core/auth";
+import { useAuth } from "@shared/core/auth";
 import { Button } from "@ui/components/button";
 import { AvatarWithStatus } from "@ui/components/avatar";
 import {

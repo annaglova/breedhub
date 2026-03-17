@@ -1,4 +1,4 @@
-import { useAuth } from '@/core/auth';
+import { useAuth } from '@shared/core/auth';
 import { Navigate, useLocation } from 'react-router-dom';
 
 interface AuthGuardProps {
