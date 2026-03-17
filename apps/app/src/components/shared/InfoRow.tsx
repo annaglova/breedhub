@@ -1,4 +1,5 @@
 import type React from "react";
+import { SmartLink } from "./SmartLink";
 
 /**
  * InfoRow - Single row in an info grid (icon + label + value)
@@ -52,4 +53,30 @@ export function Fieldset({
       <div className="p-4 pt-2">{children}</div>
     </fieldset>
   );
+}
+
+/**
+ * LinkEntity - Interface for linked entities (Father, Mother, Breeder, etc.)
+ */
+export interface LinkEntity {
+  id?: string;
+  name: string;
+  url?: string;
+  slug?: string;
+}
+
+/**
+ * EntityLink - Renders entity name as SmartLink or plain text.
+ * Used across GeneralTab components for father, mother, breeder, kennel links.
+ */
+export function EntityLink({ entity }: { entity?: LinkEntity }) {
+  if (!entity) return <span className="text-muted-foreground">—</span>;
+
+  const url = entity.slug ? `/${entity.slug}` : entity.url;
+
+  if (url) {
+    return <SmartLink to={url}>{entity.name}</SmartLink>;
+  }
+
+  return <span>{entity.name}</span>;
 }

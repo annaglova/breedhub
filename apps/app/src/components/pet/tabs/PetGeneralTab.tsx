@@ -19,18 +19,7 @@ import {
   Waves,
 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { Fieldset, InfoRow } from "@/components/shared/InfoRow";
-import { SmartLink } from "@/components/shared/SmartLink";
-
-/**
- * Link entity (Father, Mother, Breeder, Owner, Kennel)
- */
-interface LinkEntity {
-  id?: string;
-  name: string;
-  url?: string;
-  slug?: string;
-}
+import { EntityLink, Fieldset, InfoRow, type LinkEntity } from "@/components/shared/InfoRow";
 
 /**
  * Dictionary value (Sex, Country, Status, etc.)
@@ -70,25 +59,6 @@ async function loadLookupById(
 ): Promise<Record<string, unknown> | null> {
   if (!id) return null;
   return dictionaryStore.getRecordById(table, id);
-}
-
-/**
- * EntityLink - Renders a link to an entity or plain text
- */
-function EntityLink({ entity }: { entity?: LinkEntity }) {
-  if (!entity) return <span className="text-muted-foreground">—</span>;
-
-  const url = entity.slug ? `/${entity.slug}` : entity.url;
-
-  if (url) {
-    return (
-      <SmartLink to={url}>
-        {entity.name}
-      </SmartLink>
-    );
-  }
-
-  return <span>{entity.name}</span>;
 }
 
 interface PetGeneralTabProps {
