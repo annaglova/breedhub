@@ -1,7 +1,6 @@
-import { FORM_COMPONENT_MAP } from "@/components/edit/componentMap";
+import { DynamicFormField } from "@/components/edit/DynamicFormField";
 import { FormGroupLayout } from "@/components/edit/FormGroupLayout";
 import { useFormFieldGrouping } from "@/components/edit/useFormFieldGrouping";
-import { PetPickerInput } from "@/components/edit/inputs/PetPickerInput";
 import { useSelectedEntity } from "@/contexts/SpaceContext";
 import { useDynamicFields, extractDbFieldName } from "@/hooks/useDynamicFields";
 import { useEditForm } from "@/hooks/useEditForm";
@@ -11,8 +10,6 @@ import { normalizeForUrl } from "@/components/space/utils/filter-url-helpers";
 import { useSignals } from "@preact/signals-react/runtime";
 import { useCallback, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-
-const componentMap = FORM_COMPONENT_MAP;
 
 interface FieldConfig {
   displayName: string;
@@ -192,55 +189,19 @@ export function EditFormTab({ fields, onLoadedCount, entityType, onSaveReady, on
   /**
    * Render a single field
    */
-  const renderField = (fieldId: string, field: FieldConfig) => {
-    if (field.hidden) return null;
+  // Conditional visibility check for visibleWhen fields
+  const shouldRenderField = useCallback((fieldId: string, field: FieldConfig) => {
+    if (!field.visibleWhen) return true;
+    const depDbName = extractDbFieldName(field.visibleWhen.field);
+    const currentValue = formChanges[depDbName] ?? selectedEntity?.[depDbName];
+    const allowedValues = Array.isArray(field.visibleWhen.value)
+      ? field.visibleWhen.value
+      : [field.visibleWhen.value];
+    return !!currentValue && allowedValues.includes(currentValue);
+  }, [formChanges, selectedEntity]);
 
-    // Conditional visibility: show field only when another field has a specific value
-    if (field.visibleWhen) {
-      const depDbName = extractDbFieldName(field.visibleWhen.field);
-      const currentValue = formChanges[depDbName] ?? selectedEntity?.[depDbName];
-      const allowedValues = Array.isArray(field.visibleWhen.value)
-        ? field.visibleWhen.value
-        : [field.visibleWhen.value];
-      if (!currentValue || !allowedValues.includes(currentValue)) return null;
-    }
-
-    const dbFieldName = extractDbFieldName(fieldId);
-
-    // PetPickerInput: special rendering with paired field support
-    if (field.component === "PetPickerInput") {
-      return (
-        <div key={fieldId}>
-          <PetPickerInput
-            label={field.displayName}
-            value={formChanges[dbFieldName] ?? selectedEntity?.[dbFieldName] ?? ""}
-            pairedField={field.pairedField}
-            pairedValue={formChanges[field.pairedField!] ?? selectedEntity?.[field.pairedField!] ?? ""}
-            sexFilter={field.sexFilter}
-            handleFieldChange={handleFieldChange}
-            dbFieldName={dbFieldName}
-            selectedEntity={selectedEntity}
-            required={field.required}
-            placeholder={field.placeholder}
-          />
-        </div>
-      );
-    }
-
-    const Component = componentMap[field.component];
-
-    if (!Component) {
-      if (process.env.NODE_ENV === "development") {
-        console.warn(
-          `[EditFormTab] Unknown component: ${field.component} for field ${fieldId}`
-        );
-      }
-      return null;
-    }
-
-    const fieldProps = getFieldProps(fieldId, field);
-
-    // Junction table filtering (many-to-many, e.g., coat_color filtered by breed)
+  // Junction table wrapper for many-to-many filtering
+  const wrapWithJunction = useCallback((fieldId: string, field: FieldConfig, Component: React.ComponentType<any>, fieldProps: any) => {
     if (field.junctionTable && field.junctionField && field.junctionFilterField) {
       const parentFieldValue = getParentFieldValue(field);
       return (
@@ -254,13 +215,21 @@ export function EditFormTab({ fields, onLoadedCount, entityType, onSaveReady, on
         </div>
       );
     }
+    return null;
+  }, [getParentFieldValue]);
 
-    return (
-      <div key={fieldId}>
-        <Component {...fieldProps} />
-      </div>
-    );
-  };
+  const renderField = (fieldId: string, field: FieldConfig) => (
+    <DynamicFormField
+      fieldId={fieldId}
+      field={field}
+      entity={selectedEntity}
+      formChanges={formChanges}
+      handleFieldChange={handleFieldChange}
+      getFieldProps={getFieldProps}
+      shouldRender={shouldRenderField}
+      wrapComponent={wrapWithJunction}
+    />
+  );
 
   return (
     <div className="space-y-4">

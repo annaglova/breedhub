@@ -1,7 +1,6 @@
-import { FORM_COMPONENT_MAP } from "@/components/edit/componentMap";
+import { DynamicFormField } from "@/components/edit/DynamicFormField";
 import { FormGroupLayout } from "@/components/edit/FormGroupLayout";
 import { useFormFieldGrouping } from "@/components/edit/useFormFieldGrouping";
-import { PetPickerInput } from "@/components/edit/inputs/PetPickerInput";
 import { spaceStore, toast } from "@breedhub/rxdb-store";
 import type { DataSourceConfig } from "@breedhub/rxdb-store";
 import { Button } from "@ui/components/button";
@@ -13,8 +12,6 @@ import {
 } from "@ui/components/dialog";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useDynamicFields, extractDbFieldName } from "@/hooks/useDynamicFields";
-
-const componentMap = FORM_COMPONENT_MAP;
 
 interface FieldConfig {
   displayName: string;
@@ -235,42 +232,17 @@ export function EditChildRecordDialog({
   // Current entity for PetPickerInput context (editing record or parent entity)
   const currentEntity = isEditMode ? record : parentEntity;
 
-  const renderField = (fieldId: string, field: FieldConfig) => {
-    if (field.hidden) return null;
-
-    const dbFieldName = extractDbFieldName(fieldId);
-
-    // PetPickerInput: special rendering with paired field support
-    if (field.component === "PetPickerInput") {
-      return (
-        <div key={fieldId}>
-          <PetPickerInput
-            label={field.displayName}
-            value={formChanges[dbFieldName] ?? currentEntity?.[dbFieldName] ?? ""}
-            pairedField={field.pairedField}
-            pairedValue={formChanges[field.pairedField!] ?? currentEntity?.[field.pairedField!] ?? ""}
-            sexFilter={field.sexFilter}
-            handleFieldChange={handleFieldChange}
-            dbFieldName={dbFieldName}
-            selectedEntity={currentEntity}
-            required={field.required}
-            placeholder={field.placeholder}
-          />
-        </div>
-      );
-    }
-
-    const Component = componentMap[field.component!];
-    if (!Component) return null;
-
-    const fieldProps = getFieldProps(fieldId, field);
-
-    return (
-      <div key={fieldId} className="space-y-2">
-        <Component {...fieldProps} />
-      </div>
-    );
-  };
+  const renderField = (fieldId: string, field: FieldConfig) => (
+    <DynamicFormField
+      fieldId={fieldId}
+      field={field}
+      entity={currentEntity}
+      formChanges={formChanges}
+      handleFieldChange={handleFieldChange}
+      getFieldProps={getFieldProps}
+      className="space-y-2"
+    />
+  );
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
