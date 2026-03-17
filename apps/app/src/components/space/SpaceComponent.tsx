@@ -1,6 +1,7 @@
 import { mediaQueries } from "@/config/breakpoints";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { useSpaceSearch } from "@/hooks/space/useSpaceSearch";
+import { useSortSelection } from "@/hooks/space/useSortSelection";
 import {
   extractFieldName,
   getDatabase,
@@ -194,41 +195,13 @@ export function SpaceComponent<T extends { id: string }>({
     searchUrlSlug, searchParams, setSearchParams
   );
 
-  // Find default sort option
-  const defaultSortOption = useMemo(() => {
-    return sortOptions.find((option) => option.isDefault) || sortOptions[0];
-  }, [sortOptions]);
-
-  // 🆕 localStorage key for persisting sort preference per entity type
+  // Sort selection from URL/localStorage/default
   const sortStorageKey = `breedhub:sort:${config.entitySchemaName}`;
-
-  // 🆕 localStorage key for persisting filter preferences per entity type
   const filtersStorageKey = `breedhub:filters:${config.entitySchemaName}`;
 
-  // 🆕 Read sort ID from URL, localStorage, or use default
-  const sortId = searchParams.get("sort");
-
-  const selectedSortOption = useMemo(() => {
-    // 1. If URL param exists, find matching sort option by ID (highest priority - for sharing links)
-    if (sortId) {
-      const found = sortOptions.find((option) => option.id === sortId);
-      if (found) return found;
-    }
-
-    // 2. Try to read from localStorage (persisted preference)
-    try {
-      const savedSortId = localStorage.getItem(sortStorageKey);
-      if (savedSortId) {
-        const found = sortOptions.find((option) => option.id === savedSortId);
-        if (found) return found;
-      }
-    } catch (e) {
-      // localStorage not available, continue to default
-    }
-
-    // 3. Otherwise use default
-    return defaultSortOption;
-  }, [sortId, sortOptions, defaultSortOption, sortStorageKey]);
+  const { selectedSortOption, defaultSortOption, handleSortChange } = useSortSelection(
+    searchParams, setSearchParams, sortOptions, sortStorageKey
+  );
 
   // 🧹 Cleanup legacy URL params on mount
   useEffect(() => {
@@ -900,30 +873,6 @@ export function SpaceComponent<T extends { id: string }>({
     }
   }, [loadMore]);
 
-  // 🆕 Handle sort change - update URL with sort ID and persist to localStorage
-  const handleSortChange = useCallback(
-    (option: any) => {
-      const newParams = new URLSearchParams(searchParams);
-
-      // Remove old sort params (cleanup legacy format)
-      newParams.delete("sortBy");
-      newParams.delete("sortDir");
-      newParams.delete("sortParam");
-
-      // Set new slug-based sort
-      newParams.set("sort", option.id);
-
-      // 🆕 Persist sort preference to localStorage
-      try {
-        localStorage.setItem(sortStorageKey, option.id);
-      } catch (e) {
-        // localStorage not available, continue without persisting
-      }
-
-      setSearchParams(newParams);
-    },
-    [searchParams, setSearchParams, sortStorageKey],
-  );
 
   // 🆕 Handle view change - persist to localStorage (URL is updated by ViewChanger)
   const handleViewChange = useCallback(
