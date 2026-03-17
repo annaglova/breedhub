@@ -3,11 +3,10 @@ import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { useSpaceSearch } from "@/hooks/space/useSpaceSearch";
 import { useSortSelection } from "@/hooks/space/useSortSelection";
 import { useTotalCountCache } from "@/hooks/space/useTotalCountCache";
+import { useEntitySelection } from "@/hooks/space/useEntitySelection";
 import { useFilterManagement } from "@/hooks/space/useFilterManagement";
 import {
   extractFieldName,
-  getDatabase,
-  routeStore,
   spaceStore,
 } from "@breedhub/rxdb-store";
 import { Signal } from "@preact/signals-react";
@@ -32,7 +31,6 @@ import {
 import { EntitiesCounter } from "./EntitiesCounter";
 import { FiltersSection } from "./filters";
 import { SpaceView } from "./SpaceView";
-import { normalizeForUrl } from "./utils/filter-url-helpers";
 import { ViewChanger } from "./ViewChanger";
 
 interface SpaceComponentProps<T> {
@@ -117,11 +115,6 @@ export function SpaceComponent<T extends { id: string }>({
     return gridTypes.includes(viewMode.toLowerCase());
   }, [viewMode]);
 
-  // Get selected entity ID from EntityStore as reactive signal
-  // Using .value makes the component re-render when selection changes
-  const selectedEntityId = spaceStore.getSelectedIdSignal(
-    config.entitySchemaName,
-  ).value;
 
   // Get records count from view config (динамічно!)
   const recordsCount = useMemo(() => {
@@ -313,12 +306,6 @@ export function SpaceComponent<T extends { id: string }>({
     orderBy,
   });
 
-  // UI state
-  // When initialSelectedEntityId is provided (from SlugResolver), drawer should be open
-  const [isDrawerOpen, setIsDrawerOpen] = useState(!!initialSelectedEntityId);
-  const [headerHeight, setHeaderHeight] = useState(0);
-  const headerRef = useRef<HTMLDivElement>(null);
-
   // Responsive breakpoints (synced with tailwind.config.js)
   const isMoreThanSM = useMediaQuery(mediaQueries.sm); // 640px
   const isMoreThanMD = useMediaQuery(mediaQueries.md); // 768px
@@ -330,47 +317,30 @@ export function SpaceComponent<T extends { id: string }>({
   // Get all entities directly from data (no accumulation needed)
   const allEntities = data?.entities || [];
 
-  // Auto-select first entity for xxl+ screens on initial load
-  // Skip when initialSelectedEntityId is provided (pretty URL mode from SlugResolver)
-  useEffect(() => {
-    // Don't auto-select in pretty URL mode or create mode
-    if (initialSelectedEntityId || createMode) return;
-
-    if (data?.entities && !isLoading && isMoreThan2XL) {
-      if (data.entities.length > 0 && !selectedEntityId) {
-        const pathSegments = location.pathname.split("/");
-        const hasEntityId =
-          pathSegments.length > 2 && pathSegments[2] !== "new";
-        if (!hasEntityId) {
-          // Use slug from DB if available, otherwise generate from name
-          const entity = data.entities[0];
-          const slug = entity.slug || normalizeForUrl(entity.name || entity.id);
-
-          // Save route for offline access (same as handleEntityClick)
-          routeStore.saveRoute({
-            slug,
-            entity: config.entitySchemaName,
-            entity_id: entity.id,
-            model: config.entitySchemaModel || config.entitySchemaName,
-          });
-
-          // Preserve query params (sort, filters, etc.) when auto-selecting
-          navigate(`${slug}${location.search}#overview`);
-        }
-      }
-    }
-  }, [
-    data,
-    isLoading,
-    isMoreThan2XL,
+  // Entity selection: URL↔Store sync, drawer, entity click
+  const {
     selectedEntityId,
-    navigate,
-    location.pathname,
-    location.search,
-    config.entitySchemaName,
-    config.entitySchemaModel,
+    isDrawerOpen,
+    setIsDrawerOpen,
+    handleEntityClick,
+    handleBackdropClick,
+  } = useEntitySelection({
+    config,
+    allEntities,
+    isLoading,
+    isGridView,
+    isMoreThan2XL,
     initialSelectedEntityId,
-  ]);
+    initialSelectedSlug,
+    initialSelectedPartitionId,
+    initialSelectedPartitionField,
+    createMode,
+  });
+
+  // UI state
+  const [headerHeight, setHeaderHeight] = useState(0);
+  const headerRef = useRef<HTMLDivElement>(null);
+
 
   // Cache totalCount to localStorage with TTL
   const { totalCount, isInitialLoad } = useTotalCountCache({
@@ -382,166 +352,6 @@ export function SpaceComponent<T extends { id: string }>({
     filters,
   });
 
-  // Initialize selection from props (for pretty URLs via SlugResolver)
-  // This runs ONCE on mount when initialSelectedEntityId is provided
-  useEffect(() => {
-    if (initialSelectedEntityId) {
-      console.log("[SpaceComponent] Initializing from SlugResolver:", {
-        entityId: initialSelectedEntityId,
-        slug: initialSelectedSlug,
-      });
-
-      // Fetch and select entity - it may not be in the paginated list yet
-      // This ensures the entity is loaded even if it's not in the first N items
-      // Pass partition ID for partitioned tables (enables partition pruning)
-      spaceStore.fetchAndSelectEntity(
-        config.entitySchemaName,
-        initialSelectedEntityId,
-        initialSelectedPartitionId,
-        initialSelectedPartitionField,
-      );
-
-      // Save route for offline access
-      if (initialSelectedSlug) {
-        routeStore.saveRoute({
-          slug: initialSelectedSlug,
-          entity: config.entitySchemaName,
-          entity_id: initialSelectedEntityId,
-          model: config.entitySchemaModel || config.entitySchemaName,
-        });
-      }
-    }
-  }, []); // Run only once on mount
-
-  // Check if drawer should be open based on route OR initialSelectedEntityId
-  // Sync EntityStore selection with URL (bidirectional)
-  useEffect(() => {
-    // If we have initialSelectedEntityId, drawer should be open (pretty URL mode)
-    // Skip URL-based logic in this case
-    if (initialSelectedEntityId) {
-      setIsDrawerOpen(true);
-      return;
-    }
-
-    const pathSegments = location.pathname.split("/");
-    const hasEntitySegment =
-      pathSegments.length > 2 && pathSegments[2] !== "new";
-    setIsDrawerOpen(hasEntitySegment);
-
-    // Clear fullscreen mode when NOT in pretty URL mode (drawer mode)
-    // This handles the case when navigating back from fullscreen to drawer
-    if (spaceStore.isFullscreen.value) {
-      spaceStore.clearFullscreen();
-    }
-
-    // Sync URL → EntityStore (URL is source of truth on route change)
-    if (hasEntitySegment) {
-      const urlSegment = pathSegments[2];
-
-      // Check if it's a UUID (contains hyphens and is 36 chars) or a friendly slug
-      const isUUID =
-        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
-          urlSegment,
-        );
-
-      let entityId: string | undefined;
-
-      if (isUUID) {
-        // Direct UUID - use as is
-        entityId = urlSegment;
-      } else {
-        // Friendly slug - find entity by normalized name or slug field
-        const matchingEntity = allEntities.find(
-          (entity) =>
-            normalizeForUrl(entity.name) === urlSegment ||
-            (entity as any).slug === urlSegment,
-        );
-
-        if (matchingEntity) {
-          entityId = matchingEntity.id;
-        } else if (allEntities.length > 0 && !isLoading) {
-          // Entity not found in current filtered list
-          // Check if current selection is still valid in the new list
-          const currentSelectedId = spaceStore.getSelectedId(
-            config.entitySchemaName,
-          );
-          const currentEntityStillInList =
-            currentSelectedId &&
-            allEntities.some((e) => e.id === currentSelectedId);
-
-          if (currentEntityStillInList) {
-            // Current selection is still valid - keep it, just update URL to match
-            const currentEntity = allEntities.find(
-              (e) => e.id === currentSelectedId,
-            );
-            if (currentEntity) {
-              const correctSlug =
-                (currentEntity as any).slug ||
-                normalizeForUrl(
-                  (currentEntity as any).name || currentEntity.id,
-                );
-              navigate(`${correctSlug}${location.search}${location.hash}`, {
-                replace: true,
-              });
-              entityId = currentSelectedId;
-            }
-          } else {
-            // Current entity not in list anymore (filter changed) - fallback to first
-            const firstEntity = allEntities[0];
-            entityId = firstEntity.id;
-            const newSlug =
-              (firstEntity as any).slug ||
-              normalizeForUrl((firstEntity as any).name || firstEntity.id);
-
-            // Update URL to match the actually selected entity
-            navigate(`${newSlug}${location.search}${location.hash}`, {
-              replace: true,
-            });
-          }
-        }
-      }
-
-      // Update selection if we found an ID and it's different
-      if (entityId) {
-        const currentSelectedId = spaceStore.getSelectedId(
-          config.entitySchemaName,
-        );
-        if (currentSelectedId !== entityId) {
-          spaceStore.selectEntity(config.entitySchemaName, entityId);
-        }
-
-        // Save route for offline access (when URL is restored or navigated directly)
-        // If urlSegment is UUID, find entity and get proper slug from it
-        let slugToSave = urlSegment;
-        if (isUUID) {
-          const entity = allEntities.find((e) => e.id === entityId);
-          if (entity) {
-            slugToSave =
-              (entity as any).slug ||
-              normalizeForUrl((entity as any).name || entity.id);
-          }
-        }
-
-        routeStore.saveRoute({
-          slug: slugToSave,
-          entity: config.entitySchemaName,
-          entity_id: entityId,
-          model: config.entitySchemaModel || config.entitySchemaName,
-        });
-      }
-    } else {
-      // Clear selection if no entity in URL
-      spaceStore.clearSelection(config.entitySchemaName);
-      // Clear fullscreen mode when no entity in URL (drawer closed)
-      spaceStore.clearFullscreen();
-    }
-  }, [
-    location.pathname,
-    config.entitySchemaName,
-    config.entitySchemaModel,
-    allEntities,
-    initialSelectedEntityId,
-  ]);
 
   // Measure header height
   useEffect(() => {
@@ -559,42 +369,6 @@ export function SpaceComponent<T extends { id: string }>({
   // View change is handled by RxDB replication automatically
   // No need to reset state here
 
-  const handleEntityClick = useCallback(
-    (entity: T) => {
-      // Update selection in EntityStore
-      spaceStore.selectEntity(config.entitySchemaName, entity.id);
-
-      // Navigate using friendly slug, preserving current query params (sort, filters, etc.)
-      // Use slug from DB if available, otherwise generate from name
-      const slug = entity.slug || normalizeForUrl(entity.name || entity.id);
-
-      // Save route to local cache for offline access to pretty URLs
-      routeStore.saveRoute({
-        slug,
-        entity: config.entitySchemaName,
-        entity_id: entity.id,
-        model: config.entitySchemaModel || config.entitySchemaName,
-      });
-
-      // For grid views (tab, grid, etc.) - go directly to fullscreen
-      // No intermediate drawer state
-      if (isGridView) {
-        spaceStore.setFullscreen(true);
-      }
-
-      // Note: Navigation history is only saved for fullscreen pages (in SlugResolver)
-      // Drawer mode clicks are quick previews, not "full visits"
-
-      navigate(`${slug}${location.search}#overview`);
-    },
-    [
-      navigate,
-      config.entitySchemaName,
-      config.entitySchemaModel,
-      location.search,
-      isGridView,
-    ],
-  );
 
   // 🆕 ID-First: Use loadMore from hook (with cursor pagination)
   const handleLoadMore = useCallback(async () => {
@@ -619,40 +393,6 @@ export function SpaceComponent<T extends { id: string }>({
 
   const handleCreateNew = () => {
     navigate(`/new?entity=${config.entitySchemaName}`);
-  };
-
-  const handleBackdropClick = () => {
-    setIsDrawerOpen(false);
-    // Clear fullscreen mode when closing drawer
-    spaceStore.clearFullscreen();
-
-    // Navigate back to list
-    // If we're in pretty URL mode (initialSelectedEntityId provided), go to entity list
-    // Otherwise, get base path from current URL (e.g., /breeds/uuid → /breeds)
-    if (initialSelectedEntityId || createMode) {
-      // Pretty URL / create mode - navigate to entity list (e.g., /breeds)
-      const entityPath =
-        config.entitySchemaName === "breed"
-          ? "/breeds"
-          : config.entitySchemaName === "pet"
-            ? "/pets"
-            : config.entitySchemaName === "kennel"
-              ? "/kennels"
-              : config.entitySchemaName === "contact"
-                ? "/contacts"
-                : config.entitySchemaName === "event"
-                  ? "/events"
-                  : config.entitySchemaName === "litter"
-                    ? "/litters"
-                    : config.entitySchemaName === "account"
-                      ? "/accounts"
-                      : "/";
-      navigate(entityPath);
-    } else {
-      // Normal mode - get base path from URL
-      const basePath = location.pathname.split("/").slice(0, 2).join("/");
-      navigate(basePath);
-    }
   };
 
   // Check if fullscreen mode is active (from store - set by SlugResolver or expand button)
