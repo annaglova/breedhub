@@ -11,8 +11,9 @@ import { getPageConfig } from "@/utils/getPageConfig";
 import { spaceStore } from "@breedhub/rxdb-store";
 import { Signal } from "@preact/signals-react";
 import { useSignals } from "@preact/signals-react/runtime";
+import { useStickyName } from "@/hooks/useStickyName";
 import { cn } from "@ui/lib/utils";
-import { useEffect, useRef, useState } from "react";
+import { useRef } from "react";
 
 /**
  * Get default tab fragment from page config
@@ -291,141 +292,16 @@ export function PublicPageTemplate({
   // This prevents "dribbling" effect where UI parts appear at different times
   const isEntityFullyLoaded = useEntityFullyLoaded(entityType, selectedEntity);
 
-  // Refs for sticky behavior and scroll
+  // Refs for scroll behavior
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const contentContainerRef = useRef<HTMLDivElement>(null);
-  const nameContainerRef = useRef<HTMLDivElement>(null);
 
-  // Track if name container is stuck to top
-  const [nameOnTop, setNameOnTop] = useState(false);
-  const [nameBlockHeight, setNameBlockHeight] = useState(0);
-
-  // Constants for sticky positioning
-  // PageMenu height is calculated inside TabOutletRenderer
+  // Sticky name bar
+  const { nameContainerRef, nameOnTop, nameBlockHeight } = useStickyName(
+    [pageConfig, selectedEntity]
+  );
   const PAGE_MENU_TOP = nameBlockHeight > 0 ? nameBlockHeight : 0;
   const TAB_HEADER_TOP = nameOnTop ? nameBlockHeight : 0;
-
-  useEffect(() => {
-    if (!nameContainerRef.current) return;
-
-    // Find the scrollable container (overflow-auto parent)
-    let scrollContainer: HTMLElement | null =
-      nameContainerRef.current.parentElement;
-    while (scrollContainer) {
-      const overflowY = window.getComputedStyle(scrollContainer).overflowY;
-      if (overflowY === "auto" || overflowY === "scroll") {
-        break;
-      }
-      scrollContainer = scrollContainer.parentElement;
-    }
-
-    if (!scrollContainer) return;
-
-    const checkSticky = () => {
-      if (!nameContainerRef.current) return;
-
-      const containerTop = scrollContainer!.getBoundingClientRect().top;
-      const elementTop = nameContainerRef.current.getBoundingClientRect().top;
-
-      // When element top equals container top, it's stuck
-      const isStuck = Math.abs(containerTop - elementTop) === 0;
-      setNameOnTop(isStuck);
-    };
-
-    // Check on scroll
-    scrollContainer.addEventListener("scroll", checkSticky);
-    // Check initially
-    checkSticky();
-
-    return () => {
-      scrollContainer?.removeEventListener("scroll", checkSticky);
-    };
-  }, [pageConfig, selectedEntity]); // Re-run when config or entity changes
-
-  // Track name container height
-  useEffect(() => {
-    if (!nameContainerRef.current) return;
-
-    const resizeObserver = new ResizeObserver((entries) => {
-      const entry = entries[0];
-      if (entry) {
-        setNameBlockHeight(entry.contentRect.height);
-      }
-    });
-
-    resizeObserver.observe(nameContainerRef.current);
-    return () => resizeObserver.disconnect();
-  }, []);
-
-  // TODO: mockBreed can be removed when entity data is fully dynamic
-  const mockBreed = {
-    Id: "mock-breed-1",
-    Name: "German Shepherd",
-    TopPatrons: [
-      {
-        Id: "1",
-        Contact: {
-          Name: "John Doe",
-          Url: "john-doe",
-          AvatarUrl: "https://i.pravatar.cc/150?img=12",
-        },
-        Place: 1,
-        Rating: 100,
-      },
-      {
-        Id: "2",
-        Contact: {
-          Name: "Jane Smith",
-          Url: "jane-smith",
-          AvatarUrl: "https://i.pravatar.cc/150?img=47",
-        },
-        Place: 2,
-        Rating: 90,
-      },
-      {
-        Id: "3",
-        Contact: {
-          Name: "Bob Johnson",
-          Url: "bob-johnson",
-          AvatarUrl: "https://i.pravatar.cc/150?img=33",
-        },
-        Place: 3,
-        Rating: 80,
-      },
-    ], // Top patrons
-    // TopPatrons: [
-    //   {
-    //     Id: "1",
-    //     Contact: {
-    //       Name: "John Doe",
-    //       Url: "john-doe",
-    //       AvatarUrl: "https://i.pravatar.cc/150?img=12",
-    //     },
-    //     Place: 1,
-    //     Rating: 100,
-    //   },
-    //   {
-    //     Id: "2",
-    //     Contact: {
-    //       Name: "Jane Smith",
-    //       Url: "jane-smith",
-    //       AvatarUrl: "https://i.pravatar.cc/150?img=47",
-    //     },
-    //     Place: 2,
-    //     Rating: 90,
-    //   },
-    //   {
-    //     Id: "3",
-    //     Contact: {
-    //       Name: "Bob Johnson",
-    //       Url: "bob-johnson",
-    //       AvatarUrl: "https://i.pravatar.cc/150?img=33",
-    //     },
-    //     Place: 3,
-    //     Rating: 80,
-    //   },
-    // ],
-  };
 
   return spaceConfigSignal ? (
     <SpaceProvider

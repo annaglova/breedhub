@@ -18,6 +18,7 @@ import {
   DialogTitle,
 } from "@ui/components/dialog";
 import { cn } from "@ui/lib/utils";
+import { useStickyName } from "@/hooks/useStickyName";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { EditNameOutlet } from "./EditNameOutlet";
@@ -63,62 +64,11 @@ function EditBlocks({
   // Create mode: track name from form for header display
   const [createModeName, setCreateModeName] = useState("");
 
-  // Sticky name bar state
-  const nameContainerRef = useRef<HTMLDivElement>(null);
-  const [nameOnTop, setNameOnTop] = useState(false);
-  const [nameBlockHeight, setNameBlockHeight] = useState(0);
-
+  // Sticky name bar
+  const { nameContainerRef, nameOnTop, nameBlockHeight } = useStickyName(
+    [pageConfig, selectedEntity, isDefaultTabActive]
+  );
   const PAGE_MENU_TOP = nameBlockHeight > 0 ? nameBlockHeight : 0;
-
-  // Scroll listener for sticky detection
-  useEffect(() => {
-    if (!nameContainerRef.current) return;
-
-    let scrollContainer: HTMLElement | null =
-      nameContainerRef.current.parentElement;
-    while (scrollContainer) {
-      const overflowY = window.getComputedStyle(scrollContainer).overflowY;
-      if (overflowY === "auto" || overflowY === "scroll") {
-        break;
-      }
-      scrollContainer = scrollContainer.parentElement;
-    }
-
-    if (!scrollContainer) return;
-
-    const checkSticky = () => {
-      if (!nameContainerRef.current) return;
-
-      const containerTop = scrollContainer!.getBoundingClientRect().top;
-      const elementTop = nameContainerRef.current.getBoundingClientRect().top;
-
-      const isStuck = Math.abs(containerTop - elementTop) === 0;
-      setNameOnTop(isStuck);
-    };
-
-    scrollContainer.addEventListener("scroll", checkSticky);
-    // Use RAF to ensure DOM layout is settled after cover/avatar appear/disappear
-    requestAnimationFrame(checkSticky);
-
-    return () => {
-      scrollContainer?.removeEventListener("scroll", checkSticky);
-    };
-  }, [pageConfig, selectedEntity, isDefaultTabActive]);
-
-  // ResizeObserver for name bar height tracking
-  useEffect(() => {
-    if (!nameContainerRef.current) return;
-
-    const resizeObserver = new ResizeObserver((entries) => {
-      const entry = entries[0];
-      if (entry) {
-        setNameBlockHeight(entry.contentRect.height);
-      }
-    });
-
-    resizeObserver.observe(nameContainerRef.current);
-    return () => resizeObserver.disconnect();
-  }, []);
 
   // Save orchestration: active tab registers its save handler
   const saveHandlerRef = useRef<(() => Promise<void>) | null>(null);
