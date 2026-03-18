@@ -7,6 +7,7 @@ import { getAvailableChildTypes } from '../../../../apps/config-admin/src/types/
 import { extractFieldName } from '../utils/field-normalization';
 import * as P from './app-config-property';
 import * as Q from './app-config-query';
+import * as T from './app-config-template';
 
 // Tree node interface for config tree
 export interface TreeNode {
@@ -733,211 +734,16 @@ class AppConfigStore {
     }
   }
   
-  // ============= TEMPLATE OPERATIONS =============
-  
-  // Build tree structure from templates
-  buildTemplateTree(templates: AppConfig[]): any[] {
-    const nodeMap = new Map<string, any>();
-    const roots: any[] = [];
-    
-    // Create nodes
-    templates.forEach((template) => {
-      const node = {
-        id: template.id,
-        name: template.caption || template.id.replace('template_', '').replace(/_/g, ' '),
-        templateType: template.type,
-        children: [],
-        data: template.self_data || {},
-      };
-      nodeMap.set(template.id, node);
-      roots.push(node); // Initially all are roots
-    });
-    
-    // Build parent-child relationships from deps
-    templates.forEach((template) => {
-      const parentNode = nodeMap.get(template.id);
-      if (!parentNode) return;
-      
-      // If this template has deps, those are its children
-      if (template.deps && template.deps.length > 0) {
-        template.deps.forEach((childId) => {
-          const childNode = nodeMap.get(childId);
-          if (childNode) {
-            parentNode.children.push(childNode);
-            // Remove child from roots since it has a parent
-            const rootIndex = roots.indexOf(childNode);
-            if (rootIndex > -1) {
-              roots.splice(rootIndex, 1);
-            }
-          }
-        });
-      }
-    });
-    
-    return roots;
-  }
-  
-  // Recalculate template data based on deps hierarchy
-  recalculateTemplateData(templates: AppConfig[]): AppConfig[] {
-    // For high-level structures, the self_data is already correctly maintained
-    // through rebuildParentSelfData and cascading updates.
-    // We should NOT recalculate self_data here as it would corrupt the hierarchical structure.
-    // Just ensure that data = self_data + override_data
-    return templates.map(template => ({
-      ...template,
-      data: {
-        ...(template.self_data || {}),
-        ...(template.override_data || {})
-      }
-    }));
-  }
-  
-  async createTemplate(type: string, parentId: string | null = null): Promise<AppConfig> {
-    // Check if this config type can be added to parent
-    if (parentId && !this.canAddConfigType(parentId, type)) {
-      throw new Error(`Cannot add ${type} template - it already exists in parent`);
-    }
-    
-    const timestamp = Date.now();
-    const newId = `template_${type}_${timestamp}`;
-    
-    const templateTypes: any = {
-      app: 'App',
-      workspace: 'Workspace',
-      space: 'Space',
-      view: 'View',
-      page: 'Page',
-      tab: 'Tab',
-      sort: 'Sort Config',
-      fields: 'Fields Config',
-      sort_fields: 'Sort Fields',
-      filter_fields: 'Filter Fields',
-      user_config: 'User Config',
-      menu_config: 'Menu Config',
-      menu_section: 'Menu Section',
-      menu_item: 'Menu Item'
-    };
-    
-    const newTemplate = {
-      id: newId,
-      type: type as AppConfig['type'],
-      tags: ['template'],
-      self_data: {},  // Always start with empty self_data
-      override_data: {},
-      deps: [],
-      caption: `New ${templateTypes[type] || type}`,
-      version: 1
-    };
-    
-    // Create the template
-    const created = await this.createConfig(newTemplate);
+  // ============= TEMPLATE OPERATIONS (delegated to app-config-template) =============
 
-    // If there's a parent, add child to parent using universal method
-    if (parentId) {
-      await this.addChildToParent(parentId, newId);
-    }
+  buildTemplateTree(templates: AppConfig[]) { return T.buildTemplateTree(templates); }
+  recalculateTemplateData(templates: AppConfig[]) { return T.recalculateTemplateData(templates); }
+  async createTemplate(type: string, parentId?: string | null) { return T.createTemplate(this, type, parentId); }
+  async deleteTemplateWithChildren(templateId: string) { return T.deleteTemplateWithChildren(this, templateId); }
+  async cloneTemplate(templateId: string) { return T.cloneTemplate(this, templateId); }
+  async createConfigFromTemplate(templateId: string, parentId?: string | null) { return T.createConfigFromTemplate(this, templateId, parentId); }
+  async createConfigFromExisting(sourceConfigId: string, parentId?: string | null) { return T.createConfigFromExisting(this, sourceConfigId, parentId); }
 
-    return created;
-  }
-  
-  async deleteTemplateWithChildren(templateId: string): Promise<void> {
-    // First find parent and remove from its self_data
-    const parents = Array.from(this.configs.value.values()).filter(
-      config => config.deps?.includes(templateId)
-    );
-    
-    for (const parent of parents) {
-      await this.removeChildFromParent(parent.id, templateId);
-    }
-    
-    // Then delete the template and its children
-    const result = await this.deleteWithDependencies(templateId, { deleteChildren: true });
-    if (!result.success) {
-      throw new Error(result.error || 'Failed to delete template');
-    }
-  }
-  
-  async cloneTemplate(templateId: string): Promise<AppConfig> {
-    const template = this.configs.value.get(templateId);
-    if (!template) throw new Error(`Template ${templateId} not found`);
-    
-    // Helper function to recursively clone template and its children
-    const cloneRecursive = async (originalId: string, parentCloneId: string | null = null): Promise<AppConfig> => {
-      const original = this.configs.value.get(originalId);
-      if (!original) throw new Error(`Template ${originalId} not found`);
-      
-      const timestamp = Date.now();
-      const cloneId = parentCloneId ? 
-        `${original.id}_copy_${timestamp}` : 
-        `${original.id}_copy_${timestamp}`;
-      
-      // Create the clone without children initially
-      const cloned = await this.createConfig({
-        ...original,
-        id: cloneId,
-        caption: parentCloneId ? original.caption : `${original.caption || original.id} (copy)`,
-        deps: [], // Will be populated with cloned children
-        _deleted: false,
-        _rev: undefined
-      });
-      
-      // Clone all children recursively
-      if (original.deps && original.deps.length > 0) {
-        const clonedChildIds: string[] = [];
-        
-        for (const childId of original.deps) {
-          const child = this.configs.value.get(childId);
-          
-          // Only clone configs that are part of the template structure
-          // Skip field references as they are shared
-          if (child && child.type !== 'field') {
-            const clonedChild = await cloneRecursive(childId, cloneId);
-            clonedChildIds.push(clonedChild.id);
-          } else if (child && child.type === 'field') {
-            // Keep field references as is
-            clonedChildIds.push(childId);
-          }
-        }
-        
-        // Update clone with children
-        if (clonedChildIds.length > 0) {
-          await this.updateConfig(cloneId, { deps: clonedChildIds });
-          
-          // Rebuild self_data for high-level structures
-          if (this.isHighLevelType(cloned.type)) {
-            await this.rebuildParentSelfData(cloneId);
-          }
-        }
-      }
-      
-      return cloned;
-    };
-    
-    // Clone the template and all its children
-    const clonedTemplate = await cloneRecursive(templateId);
-    
-    // Find parent template (template that has the original templateId in its deps)
-    const allConfigs = Array.from(this.configs.value.values());
-    const parent = allConfigs.find(config => 
-      config.tags?.includes('template') && 
-      config.deps?.includes(templateId)
-    );
-    
-    // If parent exists, add the cloned template to parent's deps and rebuild
-    if (parent) {
-      const updatedDeps = [...(parent.deps || []), clonedTemplate.id];
-      await this.updateConfig(parent.id, { deps: updatedDeps });
-      
-      // Rebuild parent's self_data
-      if (this.isHighLevelType(parent.type)) {
-        await this.rebuildParentSelfData(parent.id);
-        await this.cascadeUpdateUp(parent.id);
-      }
-    }
-    
-    return clonedTemplate;
-  }
-  
   // Unified update method for both templates and configs
   async updateConfigWithCascade(configId: string, updates: {
     caption?: string;
