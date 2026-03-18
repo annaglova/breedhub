@@ -11,7 +11,6 @@ import { userStore } from './user-store.signal-store';
 // Helpers
 import {
   DEFAULT_TTL,
-  cleanupExpiredDocuments,
   cleanupMultipleCollections,
   schedulePeriodicCleanup,
   runInitialCleanup,
@@ -23,6 +22,7 @@ import {
 import { removeFieldPrefix, addFieldPrefix } from '../utils/field-normalization';
 import * as F from '../utils/filter-builder';
 import * as CC from '../utils/child-collection-registry';
+import { generateSchemaForEntity as buildSchema, ENTITY_VIEW_SOURCES } from '../utils/schema-builder';
 
 // Universal entity interface for all business entities
 interface BusinessEntity {
@@ -125,13 +125,6 @@ function escapePostgrestValue(value: any): string {
  * was too slow (~1.1s) due to JOINs to the partitioned pet table.
  * Instead, LitterListCard uses useCollectionValue hooks for enrichment.
  */
-const ENTITY_VIEW_SOURCES: Record<string, {
-  viewName: string;
-  /** Extra fields provided by the VIEW (added to RxDB schema) */
-  extraFields: Record<string, { type: string; maxLength?: number }>;
-}> = {
-  // Currently empty - all entities use base tables with client-side enrichment
-};
 
 /**
  * Pedigree pet for UI (tree structure)
@@ -1348,139 +1341,11 @@ class SpaceStore {
    */
   private async generateSchemaForEntity(entityType: string): Promise<RxJsonSchema<BusinessEntity> | null> {
     const spaceConfig = this.spaceConfigs.get(entityType);
-
     if (!spaceConfig) {
       console.error(`[SpaceStore] No space configuration found for ${entityType}`);
       return null;
     }
-
-    // Debug logging
-    console.log(`[SpaceStore] Generating schema for ${entityType}:`);
-    console.log('  - Fields (single source of truth):', Object.keys(spaceConfig.fields || {}));
-
-    // Build schema properties from all field sources
-    const properties: any = {};
-    const required: string[] = [];
-
-    // Helper function to process field and add to schema
-    const addFieldToSchema = (fieldKey: string, fieldConfig: any) => {
-      // fieldKey is already normalized (pet_type_id, not breed_field_pet_type_id)
-      // Skip if already processed
-      if (properties[fieldKey]) return;
-
-      // Map fieldType to RxDB schema type
-      let schemaType = 'string';
-      const fieldType = fieldConfig?.fieldType || fieldConfig?.type || 'string';
-
-      switch (fieldType) {
-        case 'uuid':
-          schemaType = 'string';
-          break;
-        case 'string':
-        case 'text':
-          schemaType = 'string';
-          break;
-        case 'number':
-        case 'integer':
-          schemaType = 'number';
-          break;
-        case 'boolean':
-          schemaType = 'boolean';
-          break;
-        case 'json':
-          // JSONB can be object, array, or any valid JSON - don't restrict type
-          properties[fieldKey] = {};
-          return;
-        case 'object':
-          schemaType = 'object';
-          break;
-        case 'array':
-          schemaType = 'array';
-          break;
-      }
-
-      properties[fieldKey] = {
-        type: schemaType
-      };
-
-      // Add maxLength if specified (for strings)
-      if (schemaType === 'string') {
-        const maxLength = fieldConfig?.maxLength;
-        if (maxLength) {
-          properties[fieldKey].maxLength = maxLength;
-        } else if (fieldType === 'uuid') {
-          properties[fieldKey].maxLength = 36; // Standard UUID length
-        }
-      }
-
-      // Mark as required if needed
-      if (fieldConfig?.required || fieldConfig?.isPrimaryKey) {
-        required.push(fieldKey);
-      }
-    };
-
-    // Process fields from spaceConfig.fields - single source of truth for schema
-    if (spaceConfig.fields) {
-      Object.entries(spaceConfig.fields).forEach(([fieldKey, fieldConfig]) => {
-        addFieldToSchema(fieldKey, fieldConfig);
-      });
-    }
-    
-    // Ensure id field has proper configuration (UUID)
-    if (!properties.id) {
-      properties.id = { type: 'string', maxLength: 36 }; // Standard UUID length
-      required.push('id');
-    } else if (!properties.id.maxLength && properties.id.type === 'string') {
-      // Add maxLength if missing for existing id field
-      properties.id.maxLength = 36; // Standard UUID length
-    }
-    if (!properties.created_at) {
-      properties.created_at = { type: 'string' };
-    }
-    if (!properties.updated_at) {
-      properties.updated_at = { type: 'string' };
-    }
-    if (!properties.created_by) {
-      properties.created_by = { type: 'string' };
-    }
-    if (!properties.updated_by) {
-      properties.updated_by = { type: 'string' };
-    }
-    if (!properties._deleted) {
-      properties._deleted = { type: 'boolean' };
-    }
-    // Add cachedAt for TTL cleanup (same pattern as dictionaries and child collections)
-    if (!properties.cachedAt) {
-      properties.cachedAt = {
-        type: 'number',
-        multipleOf: 1,
-        minimum: 0,
-        maximum: 9999999999999
-      };
-    }
-
-    // Add VIEW-specific extra fields (e.g., father_name, mother_name for litter)
-    const viewConfig = ENTITY_VIEW_SOURCES[entityType];
-    if (viewConfig?.extraFields) {
-      for (const [fieldName, fieldSchema] of Object.entries(viewConfig.extraFields)) {
-        if (!properties[fieldName]) {
-          properties[fieldName] = { ...fieldSchema };
-          console.log(`[SpaceStore] Added VIEW extra field: ${fieldName}`);
-        }
-      }
-    }
-
-    // Create schema
-    const schema: RxJsonSchema<BusinessEntity> = {
-      version: 2, // Bumped from 1 to 2 for VIEW extra fields (father_name, mother_name, kennel_name for litter)
-      primaryKey: 'id',
-      type: 'object',
-      properties,
-      required: required.length > 0 ? required : ['id']
-    };
-    
-    console.log(`[SpaceStore] Generated schema for ${entityType} with ${Object.keys(properties).length} properties`);
-    return schema;
+    return buildSchema(entityType, spaceConfig);
   }
   
   // Universal CRUD operations
@@ -3370,49 +3235,7 @@ class SpaceStore {
    * Automatic operator selection for smart filtering
    */
   private detectOperator(fieldType: string, configOperator?: string): string {
-    // Use config operator if explicitly set
-    if (configOperator) {
-      console.log('[SpaceStore] 🎯 Using explicit operator from config:', configOperator);
-      return configOperator;
-    }
-
-    // Auto-detect by field type
-    let operator: string;
-    switch (fieldType) {
-      case 'string':
-      case 'text':
-        operator = 'ilike'; // Case-insensitive search
-        break;
-
-      case 'uuid':
-        operator = 'eq'; // Exact match
-        break;
-
-      case 'number':
-      case 'integer':
-        operator = 'eq'; // Exact match (can be 'gt', 'lt' if needed)
-        break;
-
-      case 'boolean':
-        operator = 'eq';
-        break;
-
-      case 'date':
-      case 'timestamp':
-        operator = 'gte'; // Greater than or equal (can be 'lte' for range end)
-        break;
-
-      default:
-        operator = 'eq'; // Default to exact match
-        break;
-    }
-
-    console.log('[SpaceStore] 🎯 Auto-detected operator:', {
-      fieldType,
-      operator
-    });
-
-    return operator;
+    return F.detectOperator(fieldType, configOperator);
   }
 
   /**

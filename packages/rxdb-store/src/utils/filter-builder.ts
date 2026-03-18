@@ -5,6 +5,31 @@
  * Extracted from SpaceStore to enable reuse and testing.
  */
 
+// ============= Operator Detection =============
+
+/**
+ * Detect filter operator from field type and optional config override.
+ */
+export function detectOperator(fieldType: string, configOperator?: string): string {
+  if (configOperator) return configOperator;
+
+  switch (fieldType) {
+    case 'string':
+    case 'text':
+      return 'ilike';
+    case 'uuid':
+    case 'number':
+    case 'integer':
+    case 'boolean':
+      return 'eq';
+    case 'date':
+    case 'timestamp':
+      return 'gte';
+    default:
+      return 'eq';
+  }
+}
+
 // ============= RxDB Filters =============
 
 /**
