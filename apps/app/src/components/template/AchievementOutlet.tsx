@@ -38,7 +38,7 @@ export function AchievementOutlet({
   children,
 }: AchievementOutletProps) {
   return (
-    <div className={`relative px-4 sm:px-0 ${className}`}>
+    <div className={`relative px-4 sm:px-0 ${isLoading ? "mt-3" : ""} ${className}`}>
       {/* Skeleton overlay - shown when loading */}
       {isLoading && (
         <div className="flex flex-wrap gap-2">
