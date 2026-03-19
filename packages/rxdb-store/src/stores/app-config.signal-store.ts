@@ -1358,10 +1358,10 @@ class AppConfigStore {
             continue;
         }
         
-        // Check if parent is a high-level type that needs special handling
-        if (this.isHighLevelType(parent.type)) {
-          // High-level types (fields, page, space, etc) need rebuildParentSelfData
-          // to maintain their hierarchical structure
+        // Check if parent is a high-level or grouping type that needs special handling
+        if (this.isHighLevelType(parent.type) || this.isGroupingConfigType(parent.type)) {
+          // High-level types (page, space, etc) and grouping types (fields, sort, filter)
+          // need rebuildParentSelfData to maintain their hierarchical structure
           await this.rebuildParentSelfData(parent.id);
           // Use cascadeUpdateUp for hierarchical propagation
           await this.cascadeUpdateUp(parent.id);
