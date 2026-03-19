@@ -280,7 +280,7 @@ function DataTable<TData>({
                 <TableRow key={`skeleton-${i}`}>
                   {columns.map((_, j) => (
                     <TableCell key={`skeleton-${i}-${j}`} className="first:pl-4 last:pr-4 py-4">
-                      <div className="h-4 bg-muted animate-pulse rounded-full" />
+                      <div className="h-4 bg-slate-200 dark:bg-slate-700 animate-pulse rounded-full" />
                     </TableCell>
                   ))}
                 </TableRow>
