@@ -8,7 +8,7 @@ import { useResolveConditions } from "@/hooks/useResolveConditions";
 import { useJunctionFilterIds } from "@breedhub/rxdb-store";
 import { normalizeForUrl } from "@/components/space/utils/filter-url-helpers";
 import { useSignals } from "@preact/signals-react/runtime";
-import { useCallback, useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 
 interface FieldConfig {
@@ -35,6 +35,7 @@ interface FieldConfig {
   pairedField?: string;
   sexFilter?: "male" | "female";
   hidden?: boolean;
+  prefillFromFilter?: boolean;
   // Junction table filtering (many-to-many)
   junctionTable?: string;
   junctionField?: string;
@@ -107,6 +108,36 @@ export function EditFormTab({ fields, onLoadedCount, entityType, onSaveReady, on
     isCreateMode,
     onCreated: isCreateMode ? handleCreated : undefined,
   });
+
+  // Pre-fill fields with prefillFromFilter: true from URL params in create mode
+  const prefillApplied = useRef(false);
+  useEffect(() => {
+    if (!isCreateMode || !fields || prefillApplied.current) return;
+    // Wait until fields are actually loaded (not empty)
+    if (Object.keys(fields).length === 0) return;
+    prefillApplied.current = true;
+
+    const params = new URLSearchParams(window.location.search);
+
+    // Collect prefill fields and sort by order (parent fields first, e.g., pet_type before breed)
+    const prefillFields = Object.entries(fields)
+      .filter(([, config]) => config.prefillFromFilter)
+      .sort(([, a], [, b]) => (a.order || 0) - (b.order || 0));
+
+    // Apply sequentially with delay so cascade dependencies (disabledUntil) resolve between fields
+    let delay = 0;
+    for (const [fieldId] of prefillFields) {
+      const dbName = fieldId.replace(/^[^_]+_field_/, '');
+      const value = params.get(dbName);
+      if (value) {
+        setTimeout(() => {
+          console.log(`[EditFormTab] Prefilling ${dbName} = ${value}`);
+          rawHandleFieldChange(dbName, value);
+        }, delay);
+        delay += 100;
+      }
+    }
+  }, [isCreateMode, fields, rawHandleFieldChange]);
 
   // Wrap handleFieldChange to intercept name changes in create mode
   const handleFieldChange = useCallback((fieldName: string, value: any) => {

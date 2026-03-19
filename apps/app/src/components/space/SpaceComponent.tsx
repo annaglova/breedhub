@@ -392,7 +392,20 @@ export function SpaceComponent<T extends { id: string }>({
 
 
   const handleCreateNew = () => {
-    navigate(`/new?entity=${config.entitySchemaName}`);
+    const params = new URLSearchParams({ entity: config.entitySchemaName });
+
+    // Pass active filter ID values so create form can prefill fields with prefillFromFilter: true
+    if (filters) {
+      for (const [fieldId, value] of Object.entries(filters)) {
+        if (value) {
+          // Extract DB field name from config field ID (e.g., pet_field_pet_type_id → pet_type_id)
+          const dbName = fieldId.replace(/^[^_]+_field_/, '');
+          params.set(dbName, String(value));
+        }
+      }
+    }
+
+    navigate(`/new?${params.toString()}`);
   };
 
   // Check if fullscreen mode is active (from store - set by SlugResolver or expand button)
