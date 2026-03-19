@@ -8,7 +8,7 @@ import { useResolveConditions } from "@/hooks/useResolveConditions";
 import { useJunctionFilterIds } from "@breedhub/rxdb-store";
 import { normalizeForUrl } from "@/components/space/utils/filter-url-helpers";
 import { useSignals } from "@preact/signals-react/runtime";
-import { useCallback, useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 interface FieldConfig {
@@ -110,12 +110,10 @@ export function EditFormTab({ fields, onLoadedCount, entityType, onSaveReady, on
   });
 
   // Pre-fill fields with prefillFromFilter: true from URL params in create mode
-  const prefillApplied = useRef(false);
+  const [prefillDone, setPrefillDone] = useState(false);
   useEffect(() => {
-    if (!isCreateMode || !fields || prefillApplied.current) return;
-    // Wait until fields are actually loaded (not empty)
+    if (!isCreateMode || !fields || prefillDone) return;
     if (Object.keys(fields).length === 0) return;
-    prefillApplied.current = true;
 
     const params = new URLSearchParams(window.location.search);
 
@@ -123,6 +121,11 @@ export function EditFormTab({ fields, onLoadedCount, entityType, onSaveReady, on
     const prefillFields = Object.entries(fields)
       .filter(([, config]) => config.prefillFromFilter)
       .sort(([, a], [, b]) => (a.order || 0) - (b.order || 0));
+
+    if (prefillFields.length === 0) {
+      setPrefillDone(true);
+      return;
+    }
 
     // Apply sequentially with delay so cascade dependencies (disabledUntil) resolve between fields
     const timeouts: ReturnType<typeof setTimeout>[] = [];
@@ -137,8 +140,11 @@ export function EditFormTab({ fields, onLoadedCount, entityType, onSaveReady, on
         delay += 100;
       }
     }
+    // Mark as done after last timeout
+    timeouts.push(setTimeout(() => setPrefillDone(true), delay));
+
     return () => timeouts.forEach(clearTimeout);
-  }, [isCreateMode, fields, rawHandleFieldChange]);
+  }, [isCreateMode, fields, rawHandleFieldChange, prefillDone]);
 
   // Wrap handleFieldChange to intercept name changes in create mode
   const handleFieldChange = useCallback((fieldName: string, value: any) => {
