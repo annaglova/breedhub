@@ -125,18 +125,19 @@ export function EditFormTab({ fields, onLoadedCount, entityType, onSaveReady, on
       .sort(([, a], [, b]) => (a.order || 0) - (b.order || 0));
 
     // Apply sequentially with delay so cascade dependencies (disabledUntil) resolve between fields
+    const timeouts: ReturnType<typeof setTimeout>[] = [];
     let delay = 0;
     for (const [fieldId] of prefillFields) {
       const dbName = fieldId.replace(/^[^_]+_field_/, '');
       const value = params.get(dbName);
       if (value) {
-        setTimeout(() => {
-          console.log(`[EditFormTab] Prefilling ${dbName} = ${value}`);
+        timeouts.push(setTimeout(() => {
           rawHandleFieldChange(dbName, value);
-        }, delay);
+        }, delay));
         delay += 100;
       }
     }
+    return () => timeouts.forEach(clearTimeout);
   }, [isCreateMode, fields, rawHandleFieldChange]);
 
   // Wrap handleFieldChange to intercept name changes in create mode
