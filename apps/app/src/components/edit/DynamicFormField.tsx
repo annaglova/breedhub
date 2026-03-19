@@ -49,7 +49,9 @@ export function DynamicFormField({
   const dbFieldName = extractDbFieldName(fieldId);
 
   // PetPickerInput: special rendering with paired field support
+  // Merge formChanges over entity so PetPicker sees current form values (e.g., pet_type_id, breed_id in create mode)
   if (field.component === "PetPickerInput") {
+    const mergedEntity = { ...entity, ...formChanges };
     return (
       <div key={fieldId} className={className}>
         <PetPickerInput
@@ -60,7 +62,7 @@ export function DynamicFormField({
           sexFilter={field.sexFilter}
           handleFieldChange={handleFieldChange}
           dbFieldName={dbFieldName}
-          selectedEntity={entity}
+          selectedEntity={mergedEntity}
           required={field.required}
           placeholder={field.placeholder}
         />
