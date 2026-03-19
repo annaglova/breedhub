@@ -36,6 +36,7 @@ interface FieldConfig {
   sexFilter?: "male" | "female";
   hidden?: boolean;
   prefillFromFilter?: boolean;
+  defaultValue?: string;
   // Junction table filtering (many-to-many)
   junctionTable?: string;
   junctionField?: string;
@@ -140,6 +141,20 @@ export function EditFormTab({ fields, onLoadedCount, entityType, onSaveReady, on
         delay += 100;
       }
     }
+    // Apply defaultValue for fields that haven't been prefilled
+    const appliedDbNames = new Set(prefillFields.map(([id]) => id.replace(/^[^_]+_field_/, '')));
+    for (const [fieldId, fieldConfig] of Object.entries(fields)) {
+      if (fieldConfig.defaultValue && fieldConfig.defaultValue !== '0' && fieldConfig.defaultValue !== '') {
+        const dbName = fieldId.replace(/^[^_]+_field_/, '');
+        if (!appliedDbNames.has(dbName)) {
+          timeouts.push(setTimeout(() => {
+            rawHandleFieldChange(dbName, fieldConfig.defaultValue);
+          }, delay));
+          delay += 50;
+        }
+      }
+    }
+
     // Mark as done after last timeout
     timeouts.push(setTimeout(() => setPrefillDone(true), delay));
 
