@@ -150,7 +150,7 @@ export function PetPickerInput({
         </>
       ) : (
         <span className="flex-1 text-slate-400">
-          {loading ? "Loading..." : placeholder || `Select ${label?.toLowerCase() || "pet"}...`}
+          {placeholder || `Select ${label?.toLowerCase() || "pet"}...`}
         </span>
       )}
     </div>
