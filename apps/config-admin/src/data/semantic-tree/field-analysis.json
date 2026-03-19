@@ -61101,7 +61101,7 @@
           "name": "pet_type_id",
           "fieldType": "uuid",
           "component": "DropdownInput",
-          "required": false,
+          "required": true,
           "isSystem": false,
           "isPrimaryKey": false,
           "isUnique": false,
@@ -61607,7 +61607,6 @@
     "commonProps": {
       "fieldType": "uuid",
       "component": "DropdownInput",
-      "required": false,
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -71946,6 +71945,7 @@
           "referencedFieldID": "id",
           "displayName": "Pet Status",
           "placeholder": "Enter pet status",
+          "defaultValue": "3048e1ef-7f68-4193-bc12-0006dc6c7eb3",
           "referencedFieldName": "name"
         }
       },
