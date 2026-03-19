@@ -14,6 +14,8 @@ interface UseEditFormReturn {
   handleFieldChange: (fieldName: string, value: any) => void;
   handleSave: () => Promise<void>;
   resetChanges: () => void;
+  /** Mark current formChanges keys as baseline (not user changes) */
+  markCurrentAsBaseline: () => void;
 }
 
 /**
@@ -27,10 +29,12 @@ interface UseEditFormReturn {
 export function useEditForm({ entityType, entityId, isCreateMode, onCreated }: UseEditFormOptions): UseEditFormReturn {
   const [formChanges, setFormChanges] = useState<Record<string, any>>({});
   const formChangesRef = useRef<Record<string, any>>({});
+  const baselineKeysRef = useRef<Set<string>>(new Set());
   const onCreatedRef = useRef(onCreated);
   onCreatedRef.current = onCreated;
 
-  const hasChanges = Object.keys(formChanges).length > 0;
+  // hasChanges ignores auto-filled baseline keys (prefill/defaults)
+  const hasChanges = Object.keys(formChanges).some(key => !baselineKeysRef.current.has(key));
 
   const resetChanges = useCallback(() => {
     setFormChanges({});
@@ -87,11 +91,16 @@ export function useEditForm({ entityType, entityId, isCreateMode, onCreated }: U
     }
   }, [entityType, entityId, isCreateMode, resetChanges]);
 
+  const markCurrentAsBaseline = useCallback(() => {
+    baselineKeysRef.current = new Set(Object.keys(formChangesRef.current));
+  }, []);
+
   return {
     formChanges,
     hasChanges,
     handleFieldChange,
     handleSave,
     resetChanges,
+    markCurrentAsBaseline,
   };
 }

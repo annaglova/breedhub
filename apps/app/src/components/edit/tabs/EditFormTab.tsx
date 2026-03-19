@@ -103,7 +103,7 @@ export function EditFormTab({ fields, onLoadedCount, entityType, onSaveReady, on
     navigate(`/${slug}/edit`, { replace: true });
   }, [navigate]);
 
-  const { formChanges, hasChanges, handleFieldChange: rawHandleFieldChange, handleSave } = useEditForm({
+  const { formChanges, hasChanges, handleFieldChange: rawHandleFieldChange, handleSave, markCurrentAsBaseline } = useEditForm({
     entityType: entityType || '',
     entityId: selectedEntity?.id,
     isCreateMode,
@@ -155,8 +155,11 @@ export function EditFormTab({ fields, onLoadedCount, entityType, onSaveReady, on
       }
     }
 
-    // Mark as done after last timeout
-    timeouts.push(setTimeout(() => setPrefillDone(true), delay));
+    // Mark as done after last timeout and set baseline (auto-filled values are not "user changes")
+    timeouts.push(setTimeout(() => {
+      setPrefillDone(true);
+      markCurrentAsBaseline();
+    }, delay));
 
     return () => timeouts.forEach(clearTimeout);
   }, [isCreateMode, fields, rawHandleFieldChange, prefillDone]);
