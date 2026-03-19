@@ -59,7 +59,27 @@ function EditBlocks({
   const isBlocksLoading = isCreateMode ? false : (!selectedEntity || shouldShowSkeleton);
 
   // Compact mode: hide Cover/Avatar when non-default tab is active
-  const [isDefaultTabActive, setIsDefaultTabActive] = useState(true);
+  // On mount: check URL hash to determine initial state (avoids page skeleton flash for non-default tabs)
+  const [isDefaultTabActive, setIsDefaultTabActive] = useState(() => {
+    const hash = window.location.hash.slice(1);
+    if (!hash || !pageConfig?.blocks) return true;
+
+    // Find TabOutlet block to check if hash matches default tab
+    const tabBlock = Object.values(pageConfig.blocks).find(
+      (b: any) => b.outlet === "TabOutlet" && b.tabs
+    ) as any;
+    if (!tabBlock?.tabs) return true;
+
+    // Check if hash matches any tab
+    const matchingTab = Object.entries(tabBlock.tabs).find(
+      ([, config]: [string, any]) => (config.slug || '') === hash
+    );
+    if (!matchingTab) return true;
+
+    // Check if matching tab is default
+    const [, tabConfig] = matchingTab as [string, any];
+    return tabConfig.isDefault === true || tabConfig.preferDefault === true;
+  });
 
   // Create mode: track name from form for header display
   const [createModeName, setCreateModeName] = useState("");

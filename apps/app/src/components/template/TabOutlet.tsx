@@ -90,7 +90,7 @@ export function TabOutlet({
     const tabCount = tabs ? Object.keys(tabs).length : 4;
 
     return (
-      <div className={`mt-9 ${className}`}>
+      <div className={`mt-4 ${className}`}>
         {/* Tab headers skeleton */}
         <div className="flex gap-4 border-b border-slate-200 dark:border-slate-700 pb-4">
           {Array.from({ length: tabCount }).map((_, i) => (

@@ -94,18 +94,15 @@ export function EditNameOutlet({
         onTop ? "border-b border-surface-border" : ""
       }`}
     >
-      {/* Skeleton */}
-      {isLoading && (
-        <div className="absolute inset-0 z-50 bg-card-ground px-4 sm:px-0">
-          <div className="flex flex-col space-y-4 pt-1">
-            <div className="h-4 w-32 bg-slate-200 dark:bg-slate-700 rounded-full animate-pulse" />
-            <div className="h-7 w-72 bg-slate-200 dark:bg-slate-700 rounded-full animate-pulse" />
-          </div>
+      {isLoading ? (
+        /* Skeleton — in normal flow so it contributes to parent height */
+        <div className="flex flex-col space-y-2 pt-1 pb-3">
+          <div className="h-5 w-32 bg-slate-200 dark:bg-slate-700 rounded-full animate-pulse" />
+          <div className="h-8 w-72 bg-slate-200 dark:bg-slate-700 rounded-full animate-pulse" />
         </div>
-      )}
-
-      {/* Entity type label + Name with link to public page */}
-      <div className={isLoading ? "invisible" : ""}>
+      ) : (
+      /* Entity type label + Name with link to public page */
+      <div>
         <div className="text-md mb-2 min-h-[1.5rem]">
           {entityTypeLabel && (
             <span className="uppercase">{entityTypeLabel}</span>
@@ -133,6 +130,7 @@ export function EditNameOutlet({
           )}
         </div>
       </div>
+      )}
 
       {/* Navigation buttons - top right when sticky */}
       {onTop && (
