@@ -279,8 +279,8 @@ function DataTable<TData>({
               Array.from({ length: skeletonRows }).map((_, i) => (
                 <TableRow key={`skeleton-${i}`}>
                   {columns.map((_, j) => (
-                    <TableCell key={`skeleton-${i}-${j}`} className="first:pl-4 last:pr-4">
-                      <div className="h-4 bg-muted animate-pulse rounded" />
+                    <TableCell key={`skeleton-${i}-${j}`} className="first:pl-4 last:pr-4 py-4">
+                      <div className="h-4 bg-muted animate-pulse rounded-full" />
                     </TableCell>
                   ))}
                 </TableRow>
