@@ -16,6 +16,7 @@ interface PetPickerInputProps {
   selectedEntity?: any;
   required?: boolean;
   placeholder?: string;
+  disabled?: boolean;
 }
 
 interface ResolvedPet {
@@ -36,6 +37,7 @@ export function PetPickerInput({
   selectedEntity,
   required,
   placeholder,
+  disabled,
 }: PetPickerInputProps) {
   const [modalOpen, setModalOpen] = useState(false);
   const [resolvedPet, setResolvedPet] = useState<ResolvedPet | null>(null);
@@ -123,11 +125,13 @@ export function PetPickerInput({
 
   const inputElement = (
     <div
-      onClick={() => setModalOpen(true)}
+      onClick={() => !disabled && setModalOpen(true)}
       className={cn(
-        "flex h-10 w-full items-center gap-2 rounded-md border border-slate-300 bg-white",
-        "px-3 py-2 text-base cursor-pointer",
-        "hover:border-slate-400 transition-colors"
+        "flex h-10 w-full items-center gap-2 rounded-md border border-slate-300",
+        "px-3 py-2 text-base transition-colors",
+        disabled
+          ? "bg-white/95 border-slate-300 text-slate-400 cursor-not-allowed"
+          : "bg-white cursor-pointer hover:border-slate-400"
       )}
     >
       <SexIcon className="w-4 h-4 flex-shrink-0 text-slate-400" />

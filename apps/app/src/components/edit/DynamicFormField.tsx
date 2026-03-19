@@ -52,6 +52,15 @@ export function DynamicFormField({
   // Merge formChanges over entity so PetPicker sees current form values (e.g., pet_type_id, breed_id in create mode)
   if (field.component === "PetPickerInput") {
     const mergedEntity = { ...entity, ...formChanges };
+
+    // Check disabledUntil — field is disabled if dependency field has no value
+    let isDisabled = false;
+    if (field.disabledUntil) {
+      const depDbName = extractDbFieldName(field.disabledUntil);
+      const depValue = formChanges[depDbName] ?? entity?.[depDbName];
+      isDisabled = !depValue;
+    }
+
     return (
       <div key={fieldId} className={className}>
         <PetPickerInput
@@ -65,6 +74,7 @@ export function DynamicFormField({
           selectedEntity={mergedEntity}
           required={field.required}
           placeholder={field.placeholder}
+          disabled={isDisabled}
         />
       </div>
     );
