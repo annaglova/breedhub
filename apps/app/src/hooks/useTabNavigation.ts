@@ -69,9 +69,13 @@ export function useTabNavigation({
   entityId,
 }: UseTabNavigationProps): UseTabNavigationReturn {
   // Initialize activeTab from URL hash or default
+  // For scroll mode (public page): always start from default tab on page load
+  // For tabs mode (edit page): restore tab from hash
   const getInitialTab = () => {
+    if (mode === "scroll") {
+      return defaultTab || tabs[0]?.fragment || "";
+    }
     const hash = window.location.hash.slice(1);
-    // Check if hash matches any tab fragment
     if (hash && tabs.some(tab => tab.fragment === hash)) {
       return hash;
     }
@@ -100,8 +104,11 @@ export function useTabNavigation({
   // Set initial hash on mount if not present, and detect explicit hash selection
   useEffect(() => {
     const hash = window.location.hash.slice(1);
-    if (hash && tabs.some(tab => tab.fragment === hash)) {
-      // URL has valid hash — treat as explicit tab selection (don't auto-sync)
+    if (mode === "scroll") {
+      // Public page: always reset hash to default tab on mount
+      updateUrlHash(activeTab);
+    } else if (hash && tabs.some(tab => tab.fragment === hash)) {
+      // Edit page: URL has valid hash — treat as explicit tab selection
       isExplicitTabRef.current = true;
     } else if (!hash && activeTab) {
       updateUrlHash(activeTab);
