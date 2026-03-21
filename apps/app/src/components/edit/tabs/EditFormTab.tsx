@@ -212,7 +212,6 @@ export function EditFormTab({ fields, onLoadedCount, entityType, onSaveReady, on
   // Validation
   const { errors, touched, validateAll, touchAndValidate } = useFormValidation();
 
-  const extractDbName = (fieldId: string) => fieldId.replace(/^[^_]+_field_/, '');
 
   // Wrap handleSave with validation
   const validatedSave = useCallback(async () => {
@@ -222,8 +221,8 @@ export function EditFormTab({ fields, onLoadedCount, entityType, onSaveReady, on
     );
     const isValid = validateAll(
       visibleFields,
-      (key) => formChanges[extractDbName(key)] ?? selectedEntity?.[extractDbName(key)],
-      extractDbName
+      (key) => formChanges[extractDbFieldName(key)] ?? selectedEntity?.[extractDbFieldName(key)],
+      extractDbFieldName
     );
     if (!isValid) return;
     await handleSave();
@@ -297,7 +296,7 @@ export function EditFormTab({ fields, onLoadedCount, entityType, onSaveReady, on
 
   // Wrap getFieldProps to inject error/touched and validated change handler
   const getFieldPropsWithValidation = useCallback((fieldId: string, field: FieldConfig) => {
-    const dbName = extractDbName(fieldId);
+    const dbName = extractDbFieldName(fieldId);
     const props = getFieldProps(fieldId, field);
 
     // Wrap change handlers to add real-time validation
