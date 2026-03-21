@@ -4,6 +4,7 @@ import { useFormFieldGrouping } from "@/components/edit/useFormFieldGrouping";
 import { useSelectedEntity } from "@/contexts/SpaceContext";
 import { useDynamicFields, extractDbFieldName } from "@/hooks/useDynamicFields";
 import { useEditForm } from "@/hooks/useEditForm";
+import { useFormValidation } from "@/hooks/useFormValidation";
 import { useResolveConditions } from "@/hooks/useResolveConditions";
 import { useJunctionFilterIds } from "@breedhub/rxdb-store";
 import { normalizeForUrl } from "@/components/space/utils/filter-url-helpers";
@@ -208,12 +209,32 @@ export function EditFormTab({ fields, onLoadedCount, entityType, onSaveReady, on
     readonlyConditions: conditionNames ? { conditions, messages } : undefined,
   });
 
-  // Register save handler with parent
+  // Validation
+  const { errors, touched, validateAll, touchAndValidate } = useFormValidation();
+
+  const extractDbName = (fieldId: string) => fieldId.replace(/^[^_]+_field_/, '');
+
+  // Wrap handleSave with validation
+  const validatedSave = useCallback(async () => {
+    if (!fields) return;
+    const visibleFields = Object.fromEntries(
+      Object.entries(fields).filter(([, c]) => !c.hidden)
+    );
+    const isValid = validateAll(
+      visibleFields,
+      (key) => formChanges[extractDbName(key)] ?? selectedEntity?.[extractDbName(key)],
+      extractDbName
+    );
+    if (!isValid) return;
+    await handleSave();
+  }, [fields, formChanges, selectedEntity, validateAll, handleSave]);
+
+  // Register save handler with parent (with validation)
   useEffect(() => {
     if (onSaveReady) {
-      onSaveReady(handleSave);
+      onSaveReady(validatedSave);
     }
-  }, [onSaveReady, handleSave]);
+  }, [onSaveReady, validatedSave]);
 
   // Notify parent about dirty state changes
   useEffect(() => {
@@ -274,6 +295,30 @@ export function EditFormTab({ fields, onLoadedCount, entityType, onSaveReady, on
     return null;
   }, [getParentFieldValue]);
 
+  // Wrap getFieldProps to inject error/touched and validated change handler
+  const getFieldPropsWithValidation = useCallback((fieldId: string, field: FieldConfig) => {
+    const dbName = extractDbName(fieldId);
+    const props = getFieldProps(fieldId, field);
+
+    // Wrap change handlers to add real-time validation
+    const wrapHandler = (originalHandler: any) => {
+      if (!originalHandler) return originalHandler;
+      return (value: any) => {
+        originalHandler(value);
+        touchAndValidate(dbName, field, value);
+      };
+    };
+
+    return {
+      ...props,
+      onValueChange: wrapHandler(props.onValueChange),
+      onChange: props.onChange ? wrapHandler(props.onChange) : undefined,
+      onCheckedChange: props.onCheckedChange ? wrapHandler(props.onCheckedChange) : undefined,
+      error: touched[dbName] ? errors[dbName] : undefined,
+      touched: touched[dbName],
+    };
+  }, [getFieldProps, errors, touched, touchAndValidate]);
+
   const renderField = (fieldId: string, field: FieldConfig) => (
     <DynamicFormField
       fieldId={fieldId}
@@ -281,7 +326,7 @@ export function EditFormTab({ fields, onLoadedCount, entityType, onSaveReady, on
       entity={selectedEntity}
       formChanges={formChanges}
       handleFieldChange={handleFieldChange}
-      getFieldProps={getFieldProps}
+      getFieldProps={getFieldPropsWithValidation}
       shouldRender={shouldRenderField}
       wrapComponent={wrapWithJunction}
     />
