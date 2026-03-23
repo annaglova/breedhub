@@ -773,7 +773,6 @@
       "commonProps": {
         "fieldType": "string",
         "component": "TextInput",
-        "required": true,
         "isSystem": false,
         "isPrimaryKey": false,
         "isUnique": false,
@@ -1191,7 +1190,6 @@
       "commonProps": {
         "fieldType": "string",
         "component": "TextInput",
-        "required": true,
         "isSystem": false,
         "isPrimaryKey": false,
         "isUnique": false,
@@ -18152,7 +18150,6 @@
         "referencedFieldID": "id",
         "displayName": "Pet Status",
         "placeholder": "Enter pet status",
-        "defaultValue": "3048e1ef-7f68-4193-bc12-0006dc6c7eb3",
         "referencedFieldName": "name"
       },
       "tags": [
@@ -18404,7 +18401,7 @@
       "id": "pet_field_titles",
       "type": "entity_field",
       "deps": [
-        "property_required",
+        "property_not_required",
         "property_not_system",
         "property_not_primary_key",
         "property_not_unique"
@@ -18414,7 +18411,7 @@
       "self_data": {
         "fieldType": "text",
         "component": "TextareaInput",
-        "required": true,
+        "required": false,
         "isSystem": false,
         "isPrimaryKey": false,
         "isUnique": false,
@@ -18485,7 +18482,7 @@
       "self_data": {
         "fieldType": "string",
         "component": "TextInput",
-        "required": true,
+        "required": false,
         "isSystem": false,
         "isPrimaryKey": false,
         "isUnique": false,
@@ -18685,7 +18682,7 @@
       "self_data": {
         "fieldType": "string",
         "component": "TextInput",
-        "required": true,
+        "required": false,
         "isSystem": false,
         "isPrimaryKey": false,
         "isUnique": false,
@@ -18869,7 +18866,7 @@
       "id": "pet_field_coi",
       "type": "entity_field",
       "deps": [
-        "property_required",
+        "property_not_required",
         "property_not_system",
         "property_not_primary_key",
         "property_not_unique"
@@ -18879,7 +18876,7 @@
       "self_data": {
         "fieldType": "number",
         "component": "NumberInput",
-        "required": true,
+        "required": false,
         "isSystem": false,
         "isPrimaryKey": false,
         "isUnique": false,
@@ -18946,7 +18943,7 @@
       "id": "pet_field_rating_placement_in_breed",
       "type": "entity_field",
       "deps": [
-        "property_required",
+        "property_not_required",
         "property_not_system",
         "property_not_primary_key",
         "property_not_unique"
@@ -18956,7 +18953,7 @@
       "self_data": {
         "fieldType": "number",
         "component": "NumberInput",
-        "required": true,
+        "required": false,
         "isSystem": false,
         "isPrimaryKey": false,
         "isUnique": false,

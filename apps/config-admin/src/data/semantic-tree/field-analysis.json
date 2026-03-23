@@ -16156,7 +16156,7 @@
           "name": "slug",
           "fieldType": "string",
           "component": "TextInput",
-          "required": true,
+          "required": false,
           "isSystem": false,
           "isPrimaryKey": false,
           "isUnique": false,
@@ -16431,7 +16431,6 @@
     "commonProps": {
       "fieldType": "string",
       "component": "TextInput",
-      "required": true,
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -16985,7 +16984,7 @@
           "name": "avatar_url",
           "fieldType": "string",
           "component": "TextInput",
-          "required": true,
+          "required": false,
           "isSystem": false,
           "isPrimaryKey": false,
           "isUnique": false,
@@ -17080,7 +17079,6 @@
     "commonProps": {
       "fieldType": "string",
       "component": "TextInput",
-      "required": true,
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -71945,7 +71943,6 @@
           "referencedFieldID": "id",
           "displayName": "Pet Status",
           "placeholder": "Enter pet status",
-          "defaultValue": "3048e1ef-7f68-4193-bc12-0006dc6c7eb3",
           "referencedFieldName": "name"
         }
       },
@@ -72744,7 +72741,7 @@
           "name": "titles",
           "fieldType": "text",
           "component": "TextareaInput",
-          "required": true,
+          "required": false,
           "isSystem": false,
           "isPrimaryKey": false,
           "isUnique": false,
@@ -72794,7 +72791,6 @@
     "commonProps": {
       "fieldType": "text",
       "component": "TextareaInput",
-      "required": true,
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -73659,7 +73655,7 @@
           "name": "coi",
           "fieldType": "number",
           "component": "NumberInput",
-          "required": true,
+          "required": false,
           "isSystem": false,
           "isPrimaryKey": false,
           "isUnique": false,
@@ -73709,7 +73705,6 @@
     "commonProps": {
       "fieldType": "number",
       "component": "NumberInput",
-      "required": true,
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,
@@ -73742,7 +73737,7 @@
           "name": "rating_placement_in_breed",
           "fieldType": "number",
           "component": "NumberInput",
-          "required": true,
+          "required": false,
           "isSystem": false,
           "isPrimaryKey": false,
           "isUnique": false,
@@ -73800,7 +73795,6 @@
     "commonProps": {
       "fieldType": "number",
       "component": "NumberInput",
-      "required": true,
       "isSystem": false,
       "isPrimaryKey": false,
       "isUnique": false,

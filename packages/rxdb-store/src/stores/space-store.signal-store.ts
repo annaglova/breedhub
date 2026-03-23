@@ -1245,6 +1245,13 @@ class SpaceStore {
     }
 
     if (collection) {
+      // Setup push-only replication (syncs local changes to Supabase)
+      const entitySchema = this.entitySchemas.get(entityType);
+      const partitionKey = entitySchema?.partition?.keyField;
+      entityReplicationService.setupPushOnlyReplication(this.db, entityType,
+        partitionKey ? { partitionKey } : undefined
+      );
+
       // LIFECYCLE HOOK: onInit - Load data from RxDB
       const allDocs = await collection.find().exec();
       const entities: T[] = allDocs.map((doc: RxDocument<T>) => doc.toJSON() as T);
@@ -1427,21 +1434,10 @@ class SpaceStore {
         ...(userStore.currentUserId.value && { updated_by: userStore.currentUserId.value }),
       };
 
-      // Update RxDB locally
+      // Update RxDB locally — push replication syncs to Supabase automatically
       await doc.patch(patchData);
       // Update in-memory signal store
       entityStore.updateOne(id, patchData);
-
-      // Sync to Supabase
-      const { supabase } = await import('../supabase/client');
-      const { error: supabaseError } = await supabase
-        .from(entityType)
-        .update(patchData)
-        .eq('id', id);
-
-      if (supabaseError) {
-        throw new Error(`Supabase sync failed for ${entityType}: ${supabaseError.message}`);
-      }
 
     } catch (error) {
       console.error(`[SpaceStore] Failed to update ${entityType}:`, error);

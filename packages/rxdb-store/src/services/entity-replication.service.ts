@@ -111,11 +111,13 @@ export class EntityReplicationService {
    */
   private mapRxDBToSupabase(entityType: string, rxdbDoc: any): any {
     const mapped: any = {};
+    // RxDB-only fields that don't exist in Supabase
+    const rxdbOnlyFields = new Set(['cachedAt']);
 
     for (const key in rxdbDoc) {
       if (key === '_deleted') {
         mapped.deleted = rxdbDoc._deleted || false;
-      } else if (!key.startsWith('_')) { // Skip RxDB internal fields
+      } else if (!key.startsWith('_') && !rxdbOnlyFields.has(key)) {
         mapped[key] = rxdbDoc[key];
       }
     }
@@ -481,6 +483,123 @@ export class EntityReplicationService {
       this.realtimeChannels.set(entityType, channel);
     } catch (error) {
       console.error(`[EntityReplication-${entityType}] Realtime setup failed:`, error);
+    }
+  }
+
+  /**
+   * Setup push-only replication for an entity type.
+   * Pull is a no-op stub — reads are handled by ID-First pagination.
+   * Push automatically syncs local changes (create/update/delete) to Supabase.
+   */
+  async setupPushOnlyReplication(
+    db: RxDatabase,
+    entityType: string,
+    options?: { partitionKey?: string }
+  ): Promise<boolean> {
+    // Check if collection exists
+    const collection = db[entityType] as RxCollection<any>;
+    if (!collection) {
+      console.error(`[EntityReplication] Collection ${entityType} not found`);
+      return false;
+    }
+
+    // Check if replication already exists
+    if (this.replicationStates.has(entityType)) {
+      return true;
+    }
+
+    try {
+      const replicationState = replicateRxCollection({
+        collection,
+        replicationIdentifier: `${entityType}-push-replication`,
+        deletedField: '_deleted',
+        live: true,
+        retryTime: 5 * 1000,
+        waitForLeadership: false,
+        autoStart: true,
+
+        // Pull stub — no-op, ID-First handles reads
+        pull: {
+          handler: async (checkpointOrNull) => ({
+            documents: [],
+            checkpoint: checkpointOrNull
+          }),
+          batchSize: 1,
+          modifier: (doc: any) => doc
+        },
+
+        // Push — sync local changes to Supabase
+        push: {
+          handler: async (rows) => {
+            const conflicts: any[] = [];
+            // For partitioned tables (e.g., pet), PK includes partition key
+            const onConflict = options?.partitionKey
+              ? `id,${options.partitionKey}`
+              : 'id';
+
+            for (const row of rows) {
+              try {
+                const supabaseData = this.mapRxDBToSupabase(
+                  entityType,
+                  row.newDocumentState
+                );
+
+                const isDeleted = row.newDocumentState._deleted === true;
+                const wasDeleted = row.assumedMasterState?._deleted === true;
+
+                if (wasDeleted || isDeleted) {
+                  const { error } = await this.supabase
+                    .from(entityType)
+                    .upsert({
+                      ...supabaseData,
+                      deleted: true,
+                      updated_at: new Date().toISOString()
+                    }, { onConflict });
+
+                  if (error) {
+                    console.error(`[PushReplication-${entityType}] Delete error:`, error);
+                    conflicts.push(row.newDocumentState);
+                  }
+                } else {
+                  const { error } = await this.supabase
+                    .from(entityType)
+                    .upsert(supabaseData, { onConflict });
+
+                  if (error) {
+                    console.error(`[PushReplication-${entityType}] Upsert error:`, error.message, error.details, error.hint);
+                    conflicts.push(row.newDocumentState);
+                  }
+                }
+              } catch (error) {
+                console.error(`[PushReplication-${entityType}] Push error:`, error);
+                conflicts.push(row.newDocumentState);
+              }
+            }
+
+            console.log(`[PushReplication-${entityType}] Push completed`, {
+              total: rows.length,
+              success: rows.length - conflicts.length,
+              failed: conflicts.length
+            });
+
+            return conflicts;
+          },
+          batchSize: 10,
+          modifier: (doc: any) => doc
+        }
+      });
+
+      this.replicationStates.set(entityType, replicationState);
+
+      replicationState.error$.subscribe((error: any) => {
+        console.error(`[PushReplication-${entityType}] Error:`, error);
+      });
+
+      console.log(`[PushReplication-${entityType}] ✅ Push-only replication active`);
+      return true;
+    } catch (error) {
+      console.error(`[PushReplication-${entityType}] Setup failed:`, error);
+      return false;
     }
   }
 

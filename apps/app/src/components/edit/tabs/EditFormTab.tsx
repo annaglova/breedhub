@@ -7,7 +7,7 @@ import { useEditForm } from "@/hooks/useEditForm";
 import { useFormValidation } from "@/hooks/useFormValidation";
 import { useResolveConditions } from "@/hooks/useResolveConditions";
 import { useJunctionFilterIds } from "@breedhub/rxdb-store";
-import { normalizeForUrl } from "@/components/space/utils/filter-url-helpers";
+import { generateSlug } from "@/components/space/utils/filter-url-helpers";
 import { useSignals } from "@preact/signals-react/runtime";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -99,7 +99,8 @@ export function EditFormTab({ fields, onLoadedCount, entityType, onSaveReady, on
   const navigate = useNavigate();
 
   const handleCreated = useCallback((entity: any) => {
-    const slug = entity.slug || normalizeForUrl(entity.name || entity.id);
+    // Use server-generated slug if available, otherwise generate client-side (same algorithm)
+    const slug = entity.slug || generateSlug(entity.name || '', entity.id);
     // Navigate to edit page via top-level pretty URL (e.g., /my-pet-name/edit)
     navigate(`/${slug}/edit`, { replace: true });
   }, [navigate]);
