@@ -1591,19 +1591,9 @@ class SpaceStore {
         patchData.updated_by = userStore.currentUserId.value;
       }
 
-      // 1. Update RxDB locally (local-first)
+      // Update RxDB locally — push replication syncs to Supabase automatically
       await doc.patch(patchData);
       entityStore.removeOne(id);
-
-      // 2. Sync to Supabase
-      const { error: supabaseError } = await supabase
-        .from(entityType)
-        .update(patchData)
-        .eq('id', id);
-
-      if (supabaseError) {
-        throw new Error(`Supabase sync failed for delete ${entityType}: ${supabaseError.message}`);
-      }
       
     } catch (error) {
       console.error(`[SpaceStore] Failed to delete ${entityType}:`, error);
