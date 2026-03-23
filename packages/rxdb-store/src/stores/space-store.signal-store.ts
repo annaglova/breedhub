@@ -3705,6 +3705,8 @@ class SpaceStore {
 
     // Check if already created in memory
     if (this.childCollections.has(collectionName)) {
+      // Ensure push replication is active (idempotent — skips if already set up)
+      this.ensureChildPushReplication(entityType);
       return this.childCollections.get(collectionName)!;
     }
 
@@ -3717,6 +3719,7 @@ class SpaceStore {
     const existingCollection = this.db.collections[collectionName];
     if (existingCollection) {
       this.childCollections.set(collectionName, existingCollection);
+      this.ensureChildPushReplication(entityType);
       return existingCollection;
     }
 
@@ -3741,11 +3744,25 @@ class SpaceStore {
 
       const collection = collections[collectionName];
       this.childCollections.set(collectionName, collection);
+
+      // Setup push-only replication for child collection
+      this.ensureChildPushReplication(entityType);
+
       return collection;
     } catch (error) {
       console.error(`[SpaceStore] Failed to create child collection ${collectionName}:`, error);
       return null;
     }
+  }
+
+  /** Idempotent: ensures push replication is active for a child collection */
+  private ensureChildPushReplication(entityType: string): void {
+    if (!this.db) return;
+    const entitySchema = this.entitySchemas.get(entityType);
+    const partitionConfig = entitySchema?.partition;
+    entityReplicationService.setupChildPushReplication(this.db, entityType,
+      partitionConfig ? { partitionConfig } : undefined
+    );
   }
 
   /**
@@ -4045,19 +4062,17 @@ class SpaceStore {
     // Sanitize data: ensure plain JSON (no Date objects, Proxy, etc.)
     const plainData = JSON.parse(JSON.stringify(data));
 
-    // Determine parent ID field
-    const parentIdField = `${entityType}_id`;
-
-    // Build Supabase row
+    // Include timestamps in additional so push handler sends them
     const now = new Date().toISOString();
     const userId = userStore.currentUserId.value;
-    const row: Record<string, any> = {
-      id, [parentIdField]: parentId, ...plainData,
-      created_at: now, updated_at: now,
+    const additionalWithMeta: Record<string, any> = {
+      ...plainData,
+      created_at: now,
+      updated_at: now,
       ...(userId && { created_by: userId, updated_by: userId }),
     };
 
-    // Handle partition: add partition field if entity is partitioned
+    // Handle partition: resolve partition value from parent entity
     const entitySchema = this.entitySchemas.get(entityType);
     const partitionConfig = entitySchema?.partition;
     let partitionValue: string | undefined;
@@ -4070,25 +4085,17 @@ class SpaceStore {
       }
       if (parentEntity) {
         partitionValue = (parentEntity as any)[partitionConfig.keyField];
-        row[partitionConfig.childFilterField] = partitionValue;
       }
     }
 
-    // Insert into Supabase
-    const { supabase } = await import('../supabase/client');
-    const { error } = await supabase.from(normalizedTableType).insert(row);
-    if (error) {
-      throw new Error(`Failed to create child record: ${error.message}`);
-    }
-
-    // Upsert into RxDB
+    // Insert into RxDB — push replication syncs to Supabase automatically
     const collection = await this.ensureChildCollection(entityType);
     if (collection) {
       const rxdbRecord: Record<string, any> = {
         id,
         tableType: normalizedTableType,
         parentId,
-        additional: { ...plainData },
+        additional: additionalWithMeta,
         cachedAt: Date.now(),
       };
       if (partitionConfig && partitionValue) {
@@ -4114,33 +4121,22 @@ class SpaceStore {
     recordId: string,
     data: Record<string, any>
   ): Promise<void> {
-    const normalizedTableType = tableType.replace(/_with_\w+$/, '');
-
     // Sanitize data: ensure plain JSON (no Date objects, Proxy, etc.)
     const plainData = JSON.parse(JSON.stringify(data));
 
-    // Update Supabase
-    const { supabase } = await import('../supabase/client');
-    const { error } = await supabase
-      .from(normalizedTableType)
-      .update({
-        ...plainData,
-        updated_at: new Date().toISOString(),
-        ...(userStore.currentUserId.value && { updated_by: userStore.currentUserId.value }),
-      })
-      .eq('id', recordId);
-    if (error) {
-      throw new Error(`Failed to update child record: ${error.message}`);
-    }
-
-    // Update RxDB
+    // Update RxDB — push replication syncs to Supabase automatically
     const collection = await this.ensureChildCollection(entityType);
     if (collection) {
       const doc = await collection.findOne(recordId).exec();
       if (doc) {
         const currentAdditional = doc.toJSON().additional || {};
         await doc.patch({
-          additional: { ...currentAdditional, ...plainData },
+          additional: {
+            ...currentAdditional,
+            ...plainData,
+            updated_at: new Date().toISOString(),
+            ...(userStore.currentUserId.value && { updated_by: userStore.currentUserId.value }),
+          },
           cachedAt: Date.now(),
         });
       }
@@ -4159,23 +4155,7 @@ class SpaceStore {
     tableType: string,
     recordId: string
   ): Promise<void> {
-    const normalizedTableType = tableType.replace(/_with_\w+$/, '');
-
-    // Soft delete in Supabase (set deleted = true)
-    const { supabase } = await import('../supabase/client');
-    const { error } = await supabase
-      .from(normalizedTableType)
-      .update({
-        deleted: true,
-        updated_at: new Date().toISOString(),
-        ...(userStore.currentUserId.value && { updated_by: userStore.currentUserId.value }),
-      })
-      .eq('id', recordId);
-    if (error) {
-      throw new Error(`Failed to delete child record: ${error.message}`);
-    }
-
-    // Remove from RxDB (local cache — no need to keep deleted records)
+    // Remove from RxDB — push replication sends soft-delete to Supabase
     const collection = await this.ensureChildCollection(entityType);
     if (collection) {
       const doc = await collection.findOne(recordId).exec();

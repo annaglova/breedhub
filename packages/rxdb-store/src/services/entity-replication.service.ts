@@ -604,6 +604,143 @@ export class EntityReplicationService {
   }
 
   /**
+   * Setup push-only replication for a child collection.
+   * Unpacks universal schema (tableType, parentId, additional) → flat Supabase row.
+   */
+  async setupChildPushReplication(
+    db: RxDatabase,
+    entityType: string,
+    options?: { partitionConfig?: { keyField: string; childFilterField: string } }
+  ): Promise<boolean> {
+    const collectionName = `${entityType}_children`;
+    const collection = db[collectionName] as RxCollection<any>;
+    if (!collection) {
+      console.error(`[PushReplication] Child collection ${collectionName} not found`);
+      return false;
+    }
+
+    if (this.replicationStates.has(collectionName)) {
+      return true;
+    }
+
+    try {
+      const replicationState = replicateRxCollection({
+        collection,
+        replicationIdentifier: `${collectionName}-push-replication`,
+        deletedField: '_deleted',
+        live: true,
+        retryTime: 5 * 1000,
+        waitForLeadership: false,
+        autoStart: true,
+
+        pull: {
+          handler: async (checkpointOrNull) => ({
+            documents: [],
+            checkpoint: checkpointOrNull
+          }),
+          batchSize: 1,
+          modifier: (doc: any) => doc
+        },
+
+        push: {
+          handler: async (rows) => {
+            const conflicts: any[] = [];
+            const parentIdField = `${entityType}_id`;
+
+            for (const row of rows) {
+              try {
+                const doc = row.newDocumentState;
+                const tableType = doc.tableType;
+                const additional = doc.additional || {};
+
+                if (doc._deleted) {
+                  // Try soft-delete, fall back to hard-delete if no 'deleted' column
+                  const { error } = await this.supabase
+                    .from(tableType)
+                    .update({
+                      deleted: true,
+                      updated_at: new Date().toISOString(),
+                    })
+                    .eq('id', doc.id);
+
+                  if (error) {
+                    // No 'deleted' column or table not found — try hard delete
+                    if (error.message.includes('schema cache') || error.message.includes('column')) {
+                      const { error: deleteError } = await this.supabase
+                        .from(tableType)
+                        .delete()
+                        .eq('id', doc.id);
+                      if (deleteError) {
+                        // Table doesn't exist or other issue — skip, don't retry
+                        console.warn(`[PushReplication-${collectionName}] Skipping delete for ${tableType}:${doc.id}`);
+                      }
+                    } else {
+                      conflicts.push(doc);
+                    }
+                  }
+                } else {
+                  // Unpack universal schema → flat Supabase row
+                  const supabaseRow: Record<string, any> = {
+                    id: doc.id,
+                    [parentIdField]: doc.parentId,
+                    ...additional,
+                    updated_at: new Date().toISOString(),
+                  };
+
+                  // Add partition field for partitioned entities
+                  if (doc.partitionId && options?.partitionConfig) {
+                    supabaseRow[options.partitionConfig.childFilterField] = doc.partitionId;
+                  }
+
+                  const { error } = await this.supabase
+                    .from(tableType)
+                    .upsert(supabaseRow, { onConflict: 'id' });
+
+                  if (error) {
+                    // Table not found (VIEW, non-existent) — skip, don't retry
+                    // These are old cached records loaded from Supabase, already exist on server
+                    if (error.message.includes('schema cache') || error.message.includes('not found')) {
+                      console.warn(`[PushReplication-${collectionName}] Skipping ${tableType}:${doc.id} (${error.message})`);
+                    } else {
+                      console.error(`[PushReplication-${collectionName}] Upsert error (${tableType}):`, error.message);
+                      conflicts.push(doc);
+                    }
+                  }
+                }
+              } catch (error) {
+                console.error(`[PushReplication-${collectionName}] Push error:`, error);
+                conflicts.push(row.newDocumentState);
+              }
+            }
+
+            console.log(`[PushReplication-${collectionName}] Push completed`, {
+              total: rows.length,
+              success: rows.length - conflicts.length,
+              failed: conflicts.length
+            });
+
+            return conflicts;
+          },
+          batchSize: 10,
+          modifier: (doc: any) => doc
+        }
+      });
+
+      this.replicationStates.set(collectionName, replicationState);
+
+      replicationState.error$.subscribe((error: any) => {
+        console.error(`[PushReplication-${collectionName}] Error:`, error);
+      });
+
+      console.log(`[PushReplication-${collectionName}] ✅ Push-only replication active`);
+      return true;
+    } catch (error) {
+      console.error(`[PushReplication-${collectionName}] Setup failed:`, error);
+      return false;
+    }
+  }
+
+  /**
    * Stop replication for a specific entity type
    */
   async stopReplication(entityType: string): Promise<void> {
