@@ -685,7 +685,11 @@ export class EntityReplicationService {
                     id: doc.id,
                     [parentIdField]: doc.parentId,
                     ...additional,
-                    updated_at: new Date().toISOString(),
+                    // Service fields from top-level (not additional)
+                    ...(doc.created_at && { created_at: doc.created_at }),
+                    ...(doc.created_by && { created_by: doc.created_by }),
+                    ...(doc.updated_by && { updated_by: doc.updated_by }),
+                    updated_at: doc.updated_at || new Date().toISOString(),
                   };
 
                   // Add partition field for partitioned entities

@@ -3847,7 +3847,15 @@ class SpaceStore {
       ...options,
       partitionId: partitionValue,
     });
+
     if (existingRecords.length > 0) {
+      // Staleness check: if oldest record cached > 5 min ago, refetch in background
+      const CHILD_STALE_MS = 5 * 60 * 1000; // 5 minutes
+      const oldestCachedAt = Math.min(...existingRecords.map((r: any) => r.cachedAt || 0));
+      if ((Date.now() - oldestCachedAt) > CHILD_STALE_MS) {
+        // Return stale data immediately, refresh in background
+        this.refreshChildRecordsInBackground(entityType, tableType, parentId, parentIdField, options, partitionConfig, partitionValue);
+      }
       return existingRecords;
     }
 
@@ -3892,27 +3900,29 @@ class SpaceStore {
       //       'top_patron_in_breed_with_contact' -> 'top_patron_in_breed'
       const normalizedTableType = tableType.replace(/_with_\w+$/, '');
 
-      // Transform records: extract core fields + put everything else in 'additional'
+      // Transform records: extract core + service fields as top-level, rest in 'additional'
       const transformedRecords = data.map((row: Record<string, any>) => {
         const { id, created_at, updated_at, created_by, updated_by, ...rest } = row;
 
         // Build additional object with all non-core fields
         const additional: Record<string, any> = {};
         for (const [key, value] of Object.entries(rest)) {
-          // Skip the parent ID field (e.g., pet_id)
           if (key === parentIdField) continue;
-          // Skip the partition filter field (e.g., pet_breed_id) - stored as top-level partitionId
           if (partitionConfig && key === partitionConfig.childFilterField) continue;
           if (value !== undefined && value !== null) {
             additional[key] = value;
           }
         }
 
-        // Build record with optional partitionId for partitioned entities
+        // Build record with service fields as top-level
         const record: Record<string, any> = {
           id,
           tableType: normalizedTableType,
           parentId,
+          updated_at: updated_at || undefined,
+          created_at: created_at || undefined,
+          created_by: created_by || undefined,
+          updated_by: updated_by || undefined,
           additional: Object.keys(additional).length > 0 ? additional : undefined,
           cachedAt: Date.now()
         };
@@ -3932,6 +3942,67 @@ class SpaceStore {
     } catch (error) {
       console.error(`[SpaceStore] Error loading child records:`, error);
       return [];
+    }
+  }
+
+  /** Background refresh for stale child records — fetches fresh data without blocking UI */
+  private async refreshChildRecordsInBackground(
+    entityType: string,
+    tableType: string,
+    parentId: string,
+    parentIdField: string,
+    options: any,
+    partitionConfig: any,
+    partitionValue: string | undefined
+  ): Promise<void> {
+    try {
+      const { supabase } = await import('../supabase/client');
+      const { limit = 50, orderBy, orderDirection = 'asc' } = options;
+
+      let query = supabase
+        .from(tableType)
+        .select('*')
+        .eq(parentIdField, parentId)
+        .limit(limit);
+
+      if (partitionConfig && partitionValue) {
+        query = query.eq(partitionConfig.childFilterField, partitionValue);
+      }
+      if (orderBy) {
+        query = query.order(orderBy, { ascending: orderDirection === 'asc', nullsFirst: false });
+      }
+
+      const { data, error } = await query;
+      if (error || !data || data.length === 0) return;
+
+      const normalizedTableType = tableType.replace(/_with_\w+$/, '');
+      const collection = await this.ensureChildCollection(entityType);
+      if (!collection) return;
+
+      const transformedRecords = data.map((row: Record<string, any>) => {
+        const { id, created_at, updated_at, created_by, updated_by, ...rest } = row;
+        const additional: Record<string, any> = {};
+        for (const [key, value] of Object.entries(rest)) {
+          if (key === parentIdField) continue;
+          if (partitionConfig && key === partitionConfig.childFilterField) continue;
+          if (value !== undefined && value !== null) additional[key] = value;
+        }
+        const record: Record<string, any> = {
+          id, tableType: normalizedTableType, parentId,
+          updated_at: updated_at || undefined,
+          created_at: created_at || undefined,
+          created_by: created_by || undefined,
+          updated_by: updated_by || undefined,
+          additional: Object.keys(additional).length > 0 ? additional : undefined,
+          cachedAt: Date.now()
+        };
+        if (partitionConfig && partitionValue) record.partitionId = partitionValue;
+        return record;
+      });
+
+      await collection.bulkUpsert(transformedRecords);
+    } catch {
+      // Silent background refresh — don't break UI
     }
   }
 
@@ -4069,15 +4140,8 @@ class SpaceStore {
     // Sanitize data: ensure plain JSON (no Date objects, Proxy, etc.)
     const plainData = JSON.parse(JSON.stringify(data));
 
-    // Include timestamps in additional so push handler sends them
     const now = new Date().toISOString();
     const userId = userStore.currentUserId.value;
-    const additionalWithMeta: Record<string, any> = {
-      ...plainData,
-      created_at: now,
-      updated_at: now,
-      ...(userId && { created_by: userId, updated_by: userId }),
-    };
 
     // Handle partition: resolve partition value from parent entity
     const entitySchema = this.entitySchemas.get(entityType);
@@ -4102,7 +4166,10 @@ class SpaceStore {
         id,
         tableType: normalizedTableType,
         parentId,
-        additional: additionalWithMeta,
+        created_at: now,
+        updated_at: now,
+        ...(userId && { created_by: userId, updated_by: userId }),
+        additional: { ...plainData },
         cachedAt: Date.now(),
       };
       if (partitionConfig && partitionValue) {
@@ -4138,11 +4205,11 @@ class SpaceStore {
       if (doc) {
         const currentAdditional = doc.toJSON().additional || {};
         await doc.patch({
+          updated_at: new Date().toISOString(),
+          ...(userStore.currentUserId.value && { updated_by: userStore.currentUserId.value }),
           additional: {
             ...currentAdditional,
             ...plainData,
-            updated_at: new Date().toISOString(),
-            ...(userStore.currentUserId.value && { updated_by: userStore.currentUserId.value }),
           },
           cachedAt: Date.now(),
         });

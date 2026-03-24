@@ -28,20 +28,19 @@ export interface PetChildrenDocument {
   parentId: string;  // pet_id reference
 
   // Partition key (optional)
-  // For partitioned entities, stores the partition key value (e.g., breed_id for pet)
-  // This enables partition pruning when querying child tables
   partitionId?: string;
 
-  // Additional fields (optional JSON object)
-  // Stores all table-specific fields like:
-  // - title_id, country_id, date (for title_in_pet)
-  // - title_name, title_rating, country_code (for title_in_pet_with_details VIEW)
-  // - health_exam_id, result, date (for health_exam_in_pet)
-  // - etc.
+  // Service fields (from Supabase)
+  updated_at?: string;
+  created_at?: string;
+  created_by?: string;
+  updated_by?: string;
+
+  // Additional fields (optional JSON object) — table-specific data only
   additional?: Record<string, any>;
 
   // Cache metadata
-  cachedAt: number;  // Unix timestamp for TTL cleanup
+  cachedAt: number;
 }
 
 /**
@@ -54,59 +53,28 @@ export interface PetChildrenDocument {
  * - partitionId stores breed_id for partition pruning (pet table is partitioned)
  */
 export const petChildrenSchema: RxJsonSchema<PetChildrenDocument> = {
-  version: 0,
+  version: 1,
   primaryKey: 'id',
   type: 'object',
   properties: {
-    // 1. Primary key
-    id: {
-      type: 'string',
-      maxLength: 100  // Flexible for different ID types
-    },
-
-    // 2. Child table type
-    tableType: {
-      type: 'string',
-      maxLength: 100  // Flexible for VIEW names like 'title_in_pet_with_details'
-    },
-
-    // 3. Parent entity ID
-    parentId: {
-      type: 'string',
-      maxLength: 36
-    },
-
-    // 4. Partition key (optional)
-    // For partitioned entities like pet (partitioned by breed_id)
-    partitionId: {
-      type: 'string',
-      maxLength: 36
-    },
-
-    // 5. Additional fields (optional JSON object)
-    // Stores all table-specific fields
-    additional: {
-      type: 'object'
-    },
-
-    // 6. Cache timestamp for TTL
-    cachedAt: {
-      type: 'number',
-      multipleOf: 1,
-      minimum: 0,
-      maximum: 9999999999999
-    }
+    id: { type: 'string', maxLength: 100 },
+    tableType: { type: 'string', maxLength: 100 },
+    parentId: { type: 'string', maxLength: 36 },
+    partitionId: { type: 'string', maxLength: 36 },
+    updated_at: { type: 'string' },
+    created_at: { type: 'string' },
+    created_by: { type: 'string', maxLength: 36 },
+    updated_by: { type: 'string', maxLength: 36 },
+    additional: { type: 'object' },
+    cachedAt: { type: 'number', multipleOf: 1, minimum: 0, maximum: 9999999999999 }
   },
   required: ['id', 'tableType', 'parentId', 'cachedAt'],
-  indexes: [
-    // Composite index for querying child records by parent and table type
-    ['parentId', 'tableType']
-  ]
+  indexes: [['parentId', 'tableType']]
 };
 
 /**
  * Migration strategies for pet_children collection
  */
 export const petChildrenMigrationStrategies = {
-  // No migrations needed yet (version 0)
+  1: (oldDoc: any) => oldDoc, // v0→v1: added service fields (updated_at, created_at, etc.)
 };
