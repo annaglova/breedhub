@@ -4955,7 +4955,7 @@ class SpaceStore {
     console.log('[SpaceStore] Disposing all resources...');
 
     // Stop all replications
-    await entityReplicationService.stopAll();
+    entityReplicationService.stopAll();
 
     // Clean up all entities
     this.availableEntityTypes.value.forEach(entityType => {
