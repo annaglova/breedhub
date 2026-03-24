@@ -3846,6 +3846,9 @@ class SpaceStore {
       partitionId: partitionValue,
     });
 
+    // Determine parent ID field early (needed for both staleness refresh and Supabase query)
+    const parentIdField = options.parentField || `${entityType}_id`;
+
     if (existingRecords.length > 0) {
       // Staleness check: if oldest record cached > 5 min ago, refetch in background
       const CHILD_STALE_MS = 5 * 60 * 1000; // 5 minutes
@@ -3860,11 +3863,7 @@ class SpaceStore {
     // Load from Supabase
     try {
       const { supabase } = await import('../supabase/client');
-      const { limit = 50, orderBy, orderDirection = 'asc', parentField } = options;
-
-      // Determine the parent ID field name (e.g., 'breed_id' for breed children)
-      // Use explicit parentField from config when provided (e.g., 'owner_kennel_id' for kennel views)
-      const parentIdField = parentField || `${entityType}_id`;
+      const { limit = 50, orderBy, orderDirection = 'asc' } = options;
 
       // Build Supabase query
       let query = supabase
