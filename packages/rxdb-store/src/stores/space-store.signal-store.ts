@@ -2159,7 +2159,7 @@ class SpaceStore {
       console.log('[SpaceStore] nextCursor extracted:', nextCursor);
 
       // 💾 PHASE 2: Check RxDB cache for these IDs
-      console.log('[SpaceStore] 💾 Phase 2: Checking RxDB cache...');
+      // Phase 2: Check RxDB cache
 
       if (!this.db) {
         console.warn('[SpaceStore] Database not initialized');
@@ -2226,8 +2226,6 @@ class SpaceStore {
           await collection.bulkUpsert(mapped);
           console.log(`[SpaceStore] 💾 Cached ${mapped.length} fresh records in RxDB`);
         }
-      } else {
-        console.log('[SpaceStore] ✨ All records in cache! (100% hit rate)');
       }
 
       // 🔀 PHASE 4: Merge cached + fresh, maintain order from IDs query
@@ -4419,7 +4417,7 @@ class SpaceStore {
       }
 
       // 💾 PHASE 2: Check RxDB cache
-      console.log('[SpaceStore] 💾 Phase 2: Checking RxDB cache...');
+      // Phase 2: Check RxDB cache
 
       const collection = await this.ensureChildCollection(entityType);
       if (!collection) {

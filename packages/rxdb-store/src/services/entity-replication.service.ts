@@ -429,10 +429,7 @@ export class EntityReplicationService {
             table: entityType
           },
           async (payload) => {
-            console.log(`[EntityReplication-${entityType}] 🔴 REALTIME EVENT:`, {
-              eventType: payload.eventType,
-              id: (payload.new as any)?.id || (payload.old as any)?.id
-            });
+            // Realtime event received
 
             const collection = db[entityType];
             if (!collection) return;
@@ -448,11 +445,9 @@ export class EntityReplicationService {
                   // Only update if Supabase version is newer
                   if (new Date(rxdbDoc.updated_at) > new Date(existing.updated_at)) {
                     await existing.patch(rxdbDoc);
-                    console.log(`[EntityReplication-${entityType}] Realtime: Updated`, rxdbDoc.id);
                   }
                 } else {
                   await collection.insert(rxdbDoc);
-                  console.log(`[EntityReplication-${entityType}] Realtime: Inserted`, rxdbDoc.id);
                 }
               } catch (err) {
                 console.error(`[EntityReplication-${entityType}] Realtime sync error:`, err);
@@ -467,7 +462,6 @@ export class EntityReplicationService {
                     _deleted: true,
                     updated_at: new Date().toISOString()
                   });
-                  console.log(`[EntityReplication-${entityType}] Realtime: Marked as deleted`, docId);
                 }
               } catch (err) {
                 console.error(`[EntityReplication-${entityType}] Realtime delete error:`, err);
@@ -475,12 +469,7 @@ export class EntityReplicationService {
             }
           }
         )
-        .subscribe((status) => {
-          console.log(`[EntityReplication-${entityType}] 🟢 Realtime status:`, status);
-          if (status === 'SUBSCRIBED') {
-            console.log(`[EntityReplication-${entityType}] ✅ REALTIME CONNECTED!`);
-          }
-        });
+        .subscribe();
 
       this.realtimeChannels.set(entityType, channel);
     } catch (error) {
