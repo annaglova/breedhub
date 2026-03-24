@@ -293,13 +293,6 @@ class SpaceStore {
         '[SpaceStore]'
       );
 
-      // ⚠️ DISABLED: Replication conflicts with ID-First pagination
-      // ID-First загружає дані через applyFilters з правильним orderBy
-      // Replication pull handler загружав би ІНШІ 30 записів (sorted by updated_at)
-      // setTimeout(async () => {
-      //   await this.setupEntityReplication('breed');
-      // }, 1000);
-
     } catch (err) {
       console.error('[SpaceStore] Failed to initialize:', err);
       this.error.value = err as Error;
@@ -1079,22 +1072,6 @@ class SpaceStore {
     }
 
     return { fields: mainFields, searchSlug };
-  }
-
-  /**
-   * Load more entities for pagination (manual pull)
-   * @param entityType - тип сутності
-   * @param viewType - тип view (list, grid, etc.)
-   * @returns Promise<number> - кількість нових записів
-   */
-  async loadMore(entityType: string, viewType: string): Promise<number> {
-    // Get rows from view config
-    const rows = this.getViewRows(entityType, viewType);
-
-    // Trigger manual pull
-    const count = await entityReplicationService.manualPull(entityType, rows);
-
-    return count;
   }
 
   /**
@@ -3293,52 +3270,6 @@ class SpaceStore {
    * Setup bidirectional replication for an entity
    * Uses EntityReplicationService for sync with Supabase
    */
-  async setupEntityReplication(entityType: string): Promise<boolean> {
-    if (!this.db) {
-      console.error('[SpaceStore] Database not initialized');
-      return false;
-    }
-
-    // Ensure collection exists
-    await this.ensureCollection(entityType);
-
-    // Check if collection was created
-    const collection = this.db.collections[entityType];
-    if (!collection) {
-      console.error(`[SpaceStore] Failed to create collection for ${entityType}`);
-      return false;
-    }
-
-    console.log(`[SpaceStore] Setting up replication for ${entityType}...`);
-
-    // Get batchSize from view config
-    const batchSize = this.getDefaultViewRows(entityType);
-    console.log(`[SpaceStore] Using batchSize ${batchSize} for ${entityType} replication`);
-
-    // Setup replication - it will handle all data loading
-    const success = await entityReplicationService.setupReplication(
-      this.db,
-      entityType,
-      {
-        batchSize,  // ✅ Dynamic from view config!
-        pullInterval: 5000, // 5 seconds for faster sync during development
-        enableRealtime: true,
-        conflictHandler: 'last-write-wins'
-      }
-    );
-
-    if (success) {
-      console.log(`[SpaceStore] ✅ Replication active for ${entityType}`);
-      console.log(`[SpaceStore] Data will be loaded through replication pull handler`);
-      // Note: totalFromServer setup moved to getEntityStore() for instant cache access
-    } else {
-      console.error(`[SpaceStore] ❌ Failed to setup replication for ${entityType}`);
-    }
-
-    return success;
-  }
-
-
   /**
    * Entity Selection Methods
    * Proxy calls to the underlying EntityStore for the given entity type
