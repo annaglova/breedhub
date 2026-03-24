@@ -475,20 +475,6 @@ class SpaceStore {
   }
 
   /**
-   * Get all space configurations for dynamic routing
-   * Returns array of space configs sorted by order
-   */
-  getAllSpaceConfigs(): SpaceConfig[] {
-    const configs = Array.from(this.spaceConfigs.values());
-    // Sort by order, undefined order goes to end
-    return configs.sort((a, b) => {
-      const orderA = a.order ?? 999;
-      const orderB = b.order ?? 999;
-      return orderA - orderB;
-    });
-  }
-
-  /**
    * Get space configuration for an entity type
    * Returns title, permissions, and other UI config
    */
@@ -558,51 +544,6 @@ class SpaceStore {
       viewTypes: viewConfigs.length > 0 ? viewConfigs.map(v => v.viewType) : undefined,
       viewConfigs: viewConfigs.length > 0 ? viewConfigs : undefined,
     };
-  }
-
-  /**
-   * Get default records count for entity (used for replication batch size)
-   * Takes the first view's recordsCount or falls back to space-level recordsCount
-   *
-   * @param entityType - Entity type (e.g., 'breed', 'animal')
-   * @returns Number of records, or default 50
-   */
-  getDefaultRecordsCount(entityType: string): number {
-    let spaceConfig = this.spaceConfigs.get(entityType);
-
-    if (!spaceConfig) {
-      const lowerEntityType = entityType.toLowerCase();
-      for (const [key, config] of this.spaceConfigs.entries()) {
-        if (key.toLowerCase() === lowerEntityType) {
-          spaceConfig = config;
-          break;
-        }
-      }
-    }
-
-    if (!spaceConfig) {
-      console.warn(`[SpaceStore] No space config found for ${entityType}, using default recordsCount: 50`);
-      return 50;
-    }
-
-    // Get recordsCount from first view (most common case)
-    if (spaceConfig.views) {
-      for (const [viewKey, viewConfig] of Object.entries(spaceConfig.views)) {
-        if (viewConfig.recordsCount) {
-          console.log(`[SpaceStore] Default recordsCount for ${entityType}: ${viewConfig.recordsCount} (from first view ${viewKey})`);
-          return viewConfig.recordsCount;
-        }
-      }
-    }
-
-    // Fallback to space level recordsCount
-    if (spaceConfig.recordsCount) {
-      console.log(`[SpaceStore] Default recordsCount for ${entityType}: ${spaceConfig.recordsCount} (from space config)`);
-      return spaceConfig.recordsCount;
-    }
-
-    console.warn(`[SpaceStore] No recordsCount config found for ${entityType}, using default: 50`);
-    return 50;
   }
 
   /**
@@ -2849,24 +2790,6 @@ class SpaceStore {
   }
 
   /**
-   * Deduplicate results by ID
-   * Removes duplicate records from combined local + remote results
-   */
-  private deduplicateResults(results: any[]): any[] {
-    const seen = new Set<string>();
-    const deduplicated: any[] = [];
-
-    for (const record of results) {
-      if (record.id && !seen.has(record.id)) {
-        seen.add(record.id);
-        deduplicated.push(record);
-      }
-    }
-
-    return deduplicated;
-  }
-
-  /**
    * Dispose of all resources
    * LIFECYCLE: Global cleanup
    */
@@ -4742,28 +4665,6 @@ class SpaceStore {
 
     // Use helper to cleanup all collections
     await cleanupMultipleCollections(collections, DEFAULT_TTL, '[SpaceStore]');
-  }
-
-  dispose() {
-    console.log('[SpaceStore] Disposing all resources...');
-
-    // Stop all replications
-    entityReplicationService.stopAll();
-
-    // Clean up all entities
-    this.availableEntityTypes.value.forEach(entityType => {
-      this.cleanupEntity(entityType);
-    });
-
-    // Clear configurations
-    this.spaceConfigs.clear();
-
-    // Reset state
-    this.initialized.value = false;
-    this.availableEntityTypes.value = [];
-    this.isFullscreen.value = false;
-
-    console.log('[SpaceStore] Disposed');
   }
 
   // UI state methods
