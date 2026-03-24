@@ -1665,195 +1665,6 @@ class SpaceStore {
   }
   
   /**
-   * Load data from Supabase for a specific entity type
-   */
-  async loadFromSupabase(
-    entityType: string,
-    options?: LoaderOptions,
-    syncOptions?: SyncOptions
-  ): Promise<boolean> {
-    if (!this.supabaseLoader) {
-      console.error('[SpaceStore] Supabase loader not initialized');
-      return false;
-    }
-
-    try {
-      this.isSyncing.value = true;
-      
-      const success = await this.supabaseLoader.loadAndSyncEntity(
-        entityType,
-        options,
-        {
-          ...syncOptions,
-          onProgress: (progress) => {
-            this.syncProgress.value = progress;
-            console.log(`[SpaceStore] Sync progress: ${progress.entity} - ${progress.loaded}/${progress.total}`);
-          }
-        }
-      );
-
-      if (success) {
-        console.log(`[SpaceStore] Successfully loaded ${entityType} from Supabase`);
-      }
-
-      return success;
-    } catch (error) {
-      console.error(`[SpaceStore] Failed to load ${entityType} from Supabase:`, error);
-      return false;
-    } finally {
-      this.isSyncing.value = false;
-      this.syncProgress.value = null;
-    }
-  }
-
-  /**
-   * Load multiple entity types from Supabase
-   */
-  async loadMultipleFromSupabase(
-    entityTypes: string[],
-    options?: LoaderOptions,
-    syncOptions?: SyncOptions
-  ): Promise<Map<string, boolean>> {
-    if (!this.supabaseLoader) {
-      console.error('[SpaceStore] Supabase loader not initialized');
-      return new Map();
-    }
-
-    try {
-      this.isSyncing.value = true;
-      
-      const results = await this.supabaseLoader.loadMultipleEntities(
-        entityTypes,
-        options,
-        {
-          ...syncOptions,
-          onProgress: (progress) => {
-            this.syncProgress.value = progress;
-          }
-        }
-      );
-
-      console.log(`[SpaceStore] Loaded ${results.size} entity types from Supabase`);
-      return results;
-    } catch (error) {
-      console.error(`[SpaceStore] Failed to load multiple entities from Supabase:`, error);
-      return new Map();
-    } finally {
-      this.isSyncing.value = false;
-      this.syncProgress.value = null;
-    }
-  }
-
-  /**
-   * Load all available entities from Supabase
-   */
-  async loadAllFromSupabase(
-    options?: LoaderOptions,
-    syncOptions?: SyncOptions
-  ): Promise<Map<string, boolean>> {
-    if (!this.supabaseLoader) {
-      console.error('[SpaceStore] Supabase loader not initialized');
-      return new Map();
-    }
-
-    try {
-      this.isSyncing.value = true;
-      
-      // First, check which tables are available
-      const availableTables = await this.supabaseLoader.checkAvailableTables();
-      console.log(`[SpaceStore] Found ${availableTables.length} available tables in Supabase`);
-
-      // Load only available tables
-      const results = await this.supabaseLoader.loadMultipleEntities(
-        availableTables,
-        options,
-        {
-          ...syncOptions,
-          onProgress: (progress) => {
-            this.syncProgress.value = progress;
-          }
-        }
-      );
-
-      console.log(`[SpaceStore] Loaded all available entities from Supabase`);
-      return results;
-    } catch (error) {
-      console.error(`[SpaceStore] Failed to load all entities from Supabase:`, error);
-      return new Map();
-    } finally {
-      this.isSyncing.value = false;
-      this.syncProgress.value = null;
-    }
-  }
-
-  /**
-   * Load data with specific filters from Supabase
-   * This is a generic method for loading filtered data for any entity type
-   */
-  async loadFilteredData(
-    entityType: string,
-    filters: Record<string, any>,
-    options?: LoaderOptions,
-    syncOptions?: SyncOptions
-  ): Promise<boolean> {
-    if (!this.supabaseLoader) {
-      console.error('[SpaceStore] Supabase loader not initialized');
-      return false;
-    }
-
-    try {
-      this.isSyncing.value = true;
-      
-      const success = await this.supabaseLoader.loadAndSyncEntity(
-        entityType,
-        { ...options, filters },
-        {
-          ...syncOptions,
-          onProgress: (progress) => {
-            this.syncProgress.value = progress;
-          }
-        }
-      );
-
-      console.log(`[SpaceStore] Loaded filtered ${entityType} data from Supabase`);
-      return success;
-    } catch (error) {
-      console.error(`[SpaceStore] Failed to load filtered data from Supabase:`, error);
-      return false;
-    } finally {
-      this.isSyncing.value = false;
-      this.syncProgress.value = null;
-    }
-  }
-
-  /**
-   * Enable realtime sync for an entity type
-   */
-  async enableRealtimeSync(entityType: string, filters?: Record<string, any>): Promise<void> {
-    if (!this.supabaseLoader) {
-      console.error('[SpaceStore] Supabase loader not initialized');
-      return;
-    }
-
-    await this.loadFromSupabase(
-      entityType,
-      { filters },
-      { realtime: true }
-    );
-  }
-
-  /**
-   * Disable all realtime syncs
-   */
-  async disableRealtimeSync(): Promise<void> {
-    if (!this.supabaseLoader) {
-      return;
-    }
-
-    await this.supabaseLoader.stopAllRealtimeSync();
-  }
-
-  /**
    * Apply filters to entity data
    * Universal filtering method used by both SpaceView and LookupInput
    *
@@ -5143,10 +4954,8 @@ class SpaceStore {
   dispose() {
     console.log('[SpaceStore] Disposing all resources...');
 
-    // Stop all realtime syncs
-    if (this.supabaseLoader) {
-      this.supabaseLoader.stopAllRealtimeSync();
-    }
+    // Stop all replications
+    await entityReplicationService.stopAll();
 
     // Clean up all entities
     this.availableEntityTypes.value.forEach(entityType => {
@@ -5159,7 +4968,6 @@ class SpaceStore {
     // Reset state
     this.initialized.value = false;
     this.availableEntityTypes.value = [];
-    this.supabaseLoader = null;
     this.isFullscreen.value = false;
 
     console.log('[SpaceStore] Disposed');
