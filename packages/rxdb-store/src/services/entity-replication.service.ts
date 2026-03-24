@@ -122,8 +122,10 @@ export class EntityReplicationService {
       }
     }
 
-    // Ensure timestamps
-    mapped.updated_at = new Date().toISOString();
+    // Ensure timestamps — don't override if already set (avoids false staleness)
+    if (!mapped.updated_at) {
+      mapped.updated_at = new Date().toISOString();
+    }
     if (!mapped.created_at) {
       mapped.created_at = mapped.updated_at;
     }
@@ -671,8 +673,7 @@ export class EntityReplicationService {
                         .delete()
                         .eq('id', doc.id);
                       if (deleteError) {
-                        // Table doesn't exist or other issue — skip, don't retry
-                        console.warn(`[PushReplication-${collectionName}] Skipping delete for ${tableType}:${doc.id}`);
+                        // Table doesn't exist or other issue — skip silently
                       }
                     } else {
                       conflicts.push(doc);
@@ -700,7 +701,7 @@ export class EntityReplicationService {
                     // Table not found (VIEW, non-existent) — skip, don't retry
                     // These are old cached records loaded from Supabase, already exist on server
                     if (error.message.includes('schema cache') || error.message.includes('not found')) {
-                      console.warn(`[PushReplication-${collectionName}] Skipping ${tableType}:${doc.id} (${error.message})`);
+                      // Old cached record from VIEW — skip silently
                     } else {
                       console.error(`[PushReplication-${collectionName}] Upsert error (${tableType}):`, error.message);
                       conflicts.push(doc);

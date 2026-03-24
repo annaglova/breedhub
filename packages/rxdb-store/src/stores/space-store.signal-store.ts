@@ -2187,18 +2187,35 @@ class SpaceStore {
       }).exec();
 
       const cachedMap = new Map(cached.map(d => [d.id, d.toJSON()]));
-      console.log(`[SpaceStore] 📦 Found ${cachedMap.size}/${ids.length} in cache (${Math.round(cachedMap.size / ids.length * 100)}% hit rate)`);
 
-      // 🌐 PHASE 3: Fetch missing full records from Supabase
-      const missingIds = ids.filter(id => !cachedMap.has(id));
+      // 🔍 Staleness check: compare cached updated_at with server updated_at
+      const serverUpdatedAtMap = new Map(idsData.map((r: any) => [r.id, r.updated_at]));
+      const missingIds: string[] = [];
+      const staleIds: string[] = [];
 
+      for (const id of ids) {
+        const cachedDoc = cachedMap.get(id);
+        if (!cachedDoc) {
+          missingIds.push(id);
+        } else {
+          const serverUpdatedAt = serverUpdatedAtMap.get(id);
+          if (serverUpdatedAt && cachedDoc.updated_at && serverUpdatedAt > cachedDoc.updated_at) {
+            staleIds.push(id);
+          }
+        }
+      }
+
+      const toFetchIds = [...missingIds, ...staleIds];
+      console.log(`[SpaceStore] 📦 Cache: ${cachedMap.size}/${ids.length} hit, ${missingIds.length} missing, ${staleIds.length} stale`);
+
+      // 🌐 PHASE 3: Fetch missing + stale full records from Supabase
       let freshRecords = [];
-      if (missingIds.length > 0) {
-        console.log(`[SpaceStore] 🌐 Phase 3: Fetching ${missingIds.length} missing full records...`);
+      if (toFetchIds.length > 0) {
+        console.log(`[SpaceStore] 🌐 Phase 3: Fetching ${toFetchIds.length} records (${missingIds.length} missing + ${staleIds.length} stale)...`);
 
         freshRecords = await this.fetchRecordsByIDs(
           entityType,
-          missingIds
+          toFetchIds
         );
 
         console.log(`[SpaceStore] ✅ Fetched ${freshRecords.length} fresh records`);
@@ -2742,7 +2759,7 @@ class SpaceStore {
       const sourceName = this.getSupabaseSource(entityType);
       let startsWithQuery = supabase
         .from(sourceName)
-        .select(`id, ${orderBy.field}`)
+        .select(`id, ${orderBy.field}, updated_at`)
         .or('deleted.is.null,deleted.eq.false');
 
       // Apply search filter: OR for multiple fields, single ilike for one field
@@ -2782,7 +2799,7 @@ class SpaceStore {
       if (remainingLimit > 0) {
         let containsQuery = supabase
           .from(sourceName)
-          .select(`id, ${orderBy.field}`)
+          .select(`id, ${orderBy.field}, updated_at`)
           .or('deleted.is.null,deleted.eq.false');
 
         // Apply contains filter: OR for multiple fields, single ilike for one field
@@ -2835,11 +2852,11 @@ class SpaceStore {
     }
 
     // 📄 REGULAR QUERY: No search or cursor pagination
-    // Include tieBreaker field in select for cursor pagination
+    // Include tieBreaker field + updated_at (for staleness check) in select
     const tieBreakerField = orderBy.tieBreaker?.field || 'id';
     const selectFields = tieBreakerField !== orderBy.field && tieBreakerField !== 'id'
-      ? `id, ${orderBy.field}, ${tieBreakerField}`
-      : `id, ${orderBy.field}`;
+      ? `id, ${orderBy.field}, ${tieBreakerField}, updated_at`
+      : `id, ${orderBy.field}, updated_at`;
 
     // Use VIEW source if configured (e.g., litter_with_parents for litter)
     const sourceName = this.getSupabaseSource(entityType);
