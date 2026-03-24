@@ -1,6 +1,7 @@
 import { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { dictionaryStore, toast } from '@breedhub/rxdb-store';
+import { generateSlug } from '@/components/space/utils/filter-url-helpers';
 
 interface NavigateToTabParams {
   tab: string;
@@ -23,17 +24,21 @@ export function usePageActions(
   customHandlers?: Record<string, (params?: ActionParams) => void>
 ) {
   const navigate = useNavigate();
+  const getSlug = useCallback(() => {
+    return entity?.slug || (entity?.name && entity?.id ? generateSlug(entity.name, entity.id) : null);
+  }, [entity]);
+
   const handleEdit = useCallback(() => {
-    const slug = entity?.slug;
+    const slug = getSlug();
     if (!slug) {
-      console.warn('[PageActions] Edit: missing entity slug');
+      console.warn('[PageActions] Edit: missing entity slug and name');
       return;
     }
     navigate(`/${slug}/edit`);
-  }, [entity, navigate]);
+  }, [getSlug, navigate]);
 
   const handleCopyLink = useCallback(() => {
-    const slug = entity?.slug;
+    const slug = getSlug();
     if (!slug) {
       toast.warning('No link to copy');
       return;
@@ -44,7 +49,7 @@ export function usePageActions(
     }).catch(() => {
       toast.error('Failed to copy link');
     });
-  }, [entity]);
+  }, [getSlug]);
 
   const handleCopyName = useCallback(() => {
     const name = entity?.name || entity?.label || '';
