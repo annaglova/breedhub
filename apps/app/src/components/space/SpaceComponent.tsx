@@ -8,7 +8,9 @@ import { useFilterManagement } from "@/hooks/space/useFilterManagement";
 import {
   extractFieldName,
   spaceStore,
+  getDatabase,
 } from "@breedhub/rxdb-store";
+import { getLabelForValue, normalizeForUrl } from "@/components/space/utils/filter-url-helpers";
 import { Signal } from "@preact/signals-react";
 import { useSignals } from "@preact/signals-react/runtime";
 import { Button } from "@ui/components/button";
@@ -391,22 +393,33 @@ export function SpaceComponent<T extends { id: string }>({
   );
 
 
-  const handleCreateNew = () => {
+  const handleCreateNew = useCallback(async () => {
     const params = new URLSearchParams({ entity: config.entitySchemaName });
 
-    // Pass active filter ID values so create form can prefill fields with prefillFromFilter: true
+    // Build slug-based URL params (e.g., breed=chihuahua instead of breed_id=UUID)
     if (filters) {
-      for (const [fieldId, value] of Object.entries(filters)) {
-        if (value) {
-          // Extract DB field name from config field ID (e.g., pet_field_pet_type_id → pet_type_id)
-          const dbName = fieldId.replace(/^[^_]+_field_/, '');
-          params.set(dbName, String(value));
+      try {
+        const rxdb = await getDatabase();
+        for (const [fieldId, value] of Object.entries(filters)) {
+          if (!value) continue;
+          const fieldConfig = filterFields.find((f: any) => f.id === fieldId);
+          const urlKey = fieldConfig?.slug || fieldId.replace(/^[^_]+_field_/, '');
+          const label = await getLabelForValue(fieldConfig, String(value), rxdb);
+          params.set(urlKey, normalizeForUrl(label));
+        }
+      } catch {
+        // Fallback: use raw IDs if resolution fails
+        for (const [fieldId, value] of Object.entries(filters)) {
+          if (value) {
+            const dbName = fieldId.replace(/^[^_]+_field_/, '');
+            params.set(dbName, String(value));
+          }
         }
       }
     }
 
     navigate(`/new?${params.toString()}`);
-  };
+  }, [config.entitySchemaName, filters, filterFields, navigate]);
 
   // Check if fullscreen mode is active (from store - set by SlugResolver or expand button)
   const isFullscreen = spaceStore.isFullscreen.value;

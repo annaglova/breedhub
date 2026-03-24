@@ -7,7 +7,8 @@ import { useEditForm } from "@/hooks/useEditForm";
 import { useFormValidation } from "@/hooks/useFormValidation";
 import { useResolveConditions } from "@/hooks/useResolveConditions";
 import { useJunctionFilterIds } from "@breedhub/rxdb-store";
-import { generateSlug } from "@/components/space/utils/filter-url-helpers";
+import { generateSlug, getValueForLabel } from "@/components/space/utils/filter-url-helpers";
+import { getDatabase } from "@breedhub/rxdb-store";
 import { useSignals } from "@preact/signals-react/runtime";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -113,12 +114,14 @@ export function EditFormTab({ fields, onLoadedCount, entityType, onSaveReady, on
   });
 
   // Pre-fill fields with prefillFromFilter: true from URL params in create mode
+  // Supports both UUID values (breed_id=UUID) and slug values (breed=chihuahua)
   const [prefillDone, setPrefillDone] = useState(false);
   useEffect(() => {
     if (!isCreateMode || !fields || prefillDone) return;
     if (Object.keys(fields).length === 0) return;
 
     const params = new URLSearchParams(window.location.search);
+    const isUUID = (v: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v);
 
     // Collect prefill fields and sort by order (parent fields first, e.g., pet_type before breed)
     const prefillFields = Object.entries(fields)
@@ -130,40 +133,82 @@ export function EditFormTab({ fields, onLoadedCount, entityType, onSaveReady, on
       return;
     }
 
-    // Apply sequentially with delay so cascade dependencies (disabledUntil) resolve between fields
-    const timeouts: ReturnType<typeof setTimeout>[] = [];
-    let delay = 0;
-    for (const [fieldId] of prefillFields) {
-      const dbName = fieldId.replace(/^[^_]+_field_/, '');
-      const value = params.get(dbName);
-      if (value) {
+    // Resolve all prefill values (slug → UUID if needed), then apply sequentially
+    const resolvePrefills = async () => {
+      const rxdb = await getDatabase();
+      const resolved: Array<{ dbName: string; value: string }> = [];
+
+      for (const [fieldId, fieldConfig] of prefillFields) {
+        const dbName = fieldId.replace(/^[^_]+_field_/, '');
+
+        // Try to find URL param: first by dbName (breed_id), then by slug variants
+        let value = params.get(dbName);
+        if (!value) {
+          // Try without _id suffix (breed_id → breed)
+          const withoutId = dbName.replace(/_id$/, '');
+          value = params.get(withoutId);
+        }
+        if (!value) {
+          // Try all remaining params — match by resolving against referencedTable
+          for (const [key, urlValue] of params.entries()) {
+            if (key === 'entity' || resolved.some(r => r.dbName === key)) continue;
+            if (fieldConfig.referencedTable && !isUUID(urlValue)) {
+              const resolvedId = await getValueForLabel(fieldConfig as any, urlValue, rxdb);
+              if (resolvedId) {
+                value = urlValue;
+                break;
+              }
+            }
+          }
+        }
+
+        if (value) {
+          // Resolve slug to UUID if needed
+          if (!isUUID(value) && fieldConfig.referencedTable) {
+            const resolvedId = await getValueForLabel(fieldConfig as any, value, rxdb);
+            resolved.push({ dbName, value: resolvedId || value });
+          } else {
+            resolved.push({ dbName, value });
+          }
+        }
+      }
+
+      // Apply sequentially with delay for cascade dependencies
+      const timeouts: ReturnType<typeof setTimeout>[] = [];
+      let delay = 0;
+
+      for (const { dbName, value } of resolved) {
         timeouts.push(setTimeout(() => {
           rawHandleFieldChange(dbName, value);
         }, delay));
         delay += 100;
       }
-    }
-    // Apply defaultValue for fields that haven't been prefilled
-    const appliedDbNames = new Set(prefillFields.map(([id]) => id.replace(/^[^_]+_field_/, '')));
-    for (const [fieldId, fieldConfig] of Object.entries(fields)) {
-      if (fieldConfig.defaultValue && fieldConfig.defaultValue !== '0' && fieldConfig.defaultValue !== '') {
-        const dbName = fieldId.replace(/^[^_]+_field_/, '');
-        if (!appliedDbNames.has(dbName)) {
-          timeouts.push(setTimeout(() => {
-            rawHandleFieldChange(dbName, fieldConfig.defaultValue);
-          }, delay));
-          delay += 50;
+
+      // Apply defaultValue for fields that haven't been prefilled
+      const appliedDbNames = new Set(resolved.map(r => r.dbName));
+      for (const [fieldId, fieldConfig] of Object.entries(fields)) {
+        if (fieldConfig.defaultValue && fieldConfig.defaultValue !== '0' && fieldConfig.defaultValue !== '') {
+          const dbName = fieldId.replace(/^[^_]+_field_/, '');
+          if (!appliedDbNames.has(dbName)) {
+            timeouts.push(setTimeout(() => {
+              rawHandleFieldChange(dbName, fieldConfig.defaultValue);
+            }, delay));
+            delay += 50;
+          }
         }
       }
-    }
 
-    // Mark as done after last timeout and set baseline (auto-filled values are not "user changes")
-    timeouts.push(setTimeout(() => {
-      setPrefillDone(true);
-      markCurrentAsBaseline();
-    }, delay));
+      // Mark as done after last timeout
+      timeouts.push(setTimeout(() => {
+        setPrefillDone(true);
+        markCurrentAsBaseline();
+      }, delay));
 
-    return () => timeouts.forEach(clearTimeout);
+      return () => timeouts.forEach(clearTimeout);
+    };
+
+    const cleanup = resolvePrefills();
+    return () => { cleanup.then(fn => fn?.()); };
   }, [isCreateMode, fields, rawHandleFieldChange, prefillDone]);
 
   // Wrap handleFieldChange to intercept name changes in create mode
