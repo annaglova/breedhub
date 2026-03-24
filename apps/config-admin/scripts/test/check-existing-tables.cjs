@@ -6,7 +6,7 @@ async function checkExistingTables() {
   console.log('🔍 Checking which tables exist in Supabase...\n');
 
   const supabaseUrl = process.env.VITE_SUPABASE_URL;
-  const supabaseKey = process.env.VITE_SUPABASE_SERVICE_KEY;
+  const supabaseKey = process.env.SUPABASE_SERVICE_KEY;
 
   if (!supabaseUrl || !supabaseKey) {
     console.error('❌ Missing Supabase environment variables');

@@ -36,7 +36,7 @@ Parent-child field inheritance patterns:
 ```bash
 # Required environment variables in .env
 VITE_SUPABASE_URL=your_supabase_url
-VITE_SUPABASE_SERVICE_KEY=your_service_key
+SUPABASE_SERVICE_KEY=your_service_key
 ```
 
 ### Installation

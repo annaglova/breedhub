@@ -29,7 +29,7 @@ cp .env.example .env
 # Supabase Configuration
 VITE_SUPABASE_URL=http://dev.dogarray.com:8020
 VITE_SUPABASE_ANON_KEY=<твій ключ>
-VITE_SUPABASE_SERVICE_KEY=<твій ключ>
+SUPABASE_SERVICE_KEY=<твій ключ>
 
 # Creatio API Configuration
 VITE_CREATIO_BASE_URL=https://dev.dogarray.com
