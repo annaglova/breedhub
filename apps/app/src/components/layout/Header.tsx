@@ -128,7 +128,7 @@ export const Header = forwardRef<HTMLElement, HeaderProps>(
                             to={item.path}
                             className={cn(
                               "group flex items-center justify-center",
-                              "px-6 sm:px-10 md:px-16 lg:px-22",
+                              "px-6 sm:px-10 md:px-16 lg:px-12 xl:px-22",
                               "py-3 transition-colors"
                             )}
                             onClick={(e) => {
