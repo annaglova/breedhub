@@ -375,7 +375,7 @@ class DictionaryStore {
       const ids = idsData.map(d => d.id);
       const nextCursor = idsData[idsData.length - 1]?.name ?? null;
 
-      // 💾 PHASE 2: Check RxDB cache for these IDs
+      // 💾 PHASE 2: Check RxDB cache for these IDs + staleness check
       const cached = await this.collection.find({
         selector: {
           table_name: tableName,
@@ -385,22 +385,37 @@ class DictionaryStore {
 
       const cachedMap = new Map(cached.map(doc => [doc.id, doc.toJSON()]));
 
-      // 🌐 PHASE 3: Fetch missing full records from Supabase
-      const missingIds = ids.filter(id => !cachedMap.has(id));
+      // Staleness check: records cached > 24h are considered stale
+      const DICT_STALE_MS = 24 * 60 * 60 * 1000; // 24 hours
+      const now = Date.now();
+      const missingIds: string[] = [];
+      const staleIds: string[] = [];
 
+      for (const id of ids) {
+        const cachedDoc = cachedMap.get(id);
+        if (!cachedDoc) {
+          missingIds.push(id);
+        } else if (cachedDoc.cachedAt && (now - cachedDoc.cachedAt) > DICT_STALE_MS) {
+          staleIds.push(id);
+        }
+      }
+
+      const toFetchIds = [...missingIds, ...staleIds];
+
+      // 🌐 PHASE 3: Fetch missing + stale records from Supabase
       let freshRecords: DictionaryDocument[] = [];
-      if (missingIds.length > 0) {
+      if (toFetchIds.length > 0) {
         freshRecords = await this.fetchDictionaryRecordsByIDs(
           tableName,
           idField,
           nameField,
-          missingIds,
+          toFetchIds,
           additionalFields
         );
 
-        // Cache fresh records in RxDB
+        // Cache fresh records in RxDB (upsert for stale, insert for missing)
         if (freshRecords.length > 0) {
-          await this.collection.bulkInsert(freshRecords);
+          await this.collection.bulkUpsert(freshRecords);
         }
       }
 
