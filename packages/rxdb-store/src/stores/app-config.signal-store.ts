@@ -3,7 +3,6 @@ import type { RxDatabase, RxCollection, RxDocument } from 'rxdb';
 import { getDatabase } from '../services/database.service';
 import { supabase } from '../supabase/client';
 import type { RealtimeChannel } from '@supabase/supabase-js';
-import { getAvailableChildTypes } from '../../../../apps/config-admin/src/types/config-types';
 import { extractFieldName } from '../utils/field-normalization';
 import * as P from './app-config-property';
 import * as Q from './app-config-query';
@@ -1150,7 +1149,7 @@ class AppConfigStore {
   
   // Check if a child type can be added to a parent type
   canAddChildType(parentType: string, childType: string): boolean {
-    const availableTypes = getAvailableChildTypes(parentType);
+    const availableTypes = childTypeMapping[parentType] || [];
     return availableTypes.includes(childType);
   }
   
