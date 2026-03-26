@@ -8,12 +8,12 @@ export interface ReplicationOptions {
   pullInterval?: number;
   enableRealtime?: boolean;
   conflictHandler?: 'last-write-wins' | 'custom';
-  customConflictHandler?: (conflict: any) => Promise<any>;
+  customConflictHandler?: (conflict: Record<string, any>) => Promise<Record<string, any>>;
 }
 
 export interface EntityMapping {
-  rxdbToSupabase?: (doc: any) => any;
-  supabaseToRxdb?: (doc: any) => any;
+  rxdbToSupabase?: (doc: Record<string, any>) => Record<string, any>;
+  supabaseToRxdb?: (doc: Record<string, any>) => Record<string, any>;
 }
 
 /**
@@ -28,15 +28,15 @@ export class EntityReplicationService {
   private maxConcurrentRequests = 3;
   private consecutiveFailures: Map<string, number> = new Map();
   private readonly MAX_CONSECUTIVE_FAILURES = 5;
-  private entityMetadata: Map<string, { total: number; lastSync: string; lastCheckpoint?: any }> = new Map();
+  private entityMetadata: Map<string, { total: number; lastSync: string; lastCheckpoint?: Record<string, any> }> = new Map();
   private totalCountCallbacks: Map<string, Array<(total: number) => void>> = new Map();
 
   /**
    * Generic field mapping for any entity
    * Maps between RxDB format (_deleted) and Supabase format (deleted)
    */
-  private mapSupabaseToRxDB(entityType: string, supabaseDoc: any, schema?: any): any {
-    const mapped: any = {};
+  private mapSupabaseToRxDB(entityType: string, supabaseDoc: Record<string, any>, schema?: { properties?: Record<string, any> }): Record<string, any> {
+    const mapped: Record<string, any> = {};
 
     // If we have schema, use it to map fields
     if (schema?.properties) {
@@ -90,8 +90,8 @@ export class EntityReplicationService {
   /**
    * Map RxDB document to Supabase format
    */
-  private mapRxDBToSupabase(entityType: string, rxdbDoc: any): any {
-    const mapped: any = {};
+  private mapRxDBToSupabase(entityType: string, rxdbDoc: Record<string, any>): Record<string, any> {
+    const mapped: Record<string, any> = {};
     // RxDB-only fields that don't exist in Supabase
     const rxdbOnlyFields = new Set(['cachedAt']);
 
@@ -389,7 +389,7 @@ export class EntityReplicationService {
   private async setupRealtimeSubscription(
     db: RxDatabase,
     entityType: string,
-    schema?: any
+    schema?: { properties?: Record<string, any> }
   ): Promise<void> {
     console.log(`[EntityReplication-${entityType}] Setting up realtime subscription...`);
 
