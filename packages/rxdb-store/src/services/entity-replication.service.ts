@@ -518,44 +518,56 @@ export class EntityReplicationService {
 
             let batchFailed = false;
 
+            // Split rows into upsert vs delete batches
+            const upsertBatch: any[] = [];
+            const deleteBatch: any[] = [];
+
             for (const row of rows) {
+              const supabaseData = this.mapRxDBToSupabase(entityType, row.newDocumentState);
+              const isDeleted = row.newDocumentState._deleted === true;
+              const wasDeleted = row.assumedMasterState?._deleted === true;
+
+              if (wasDeleted || isDeleted) {
+                deleteBatch.push({ ...supabaseData, deleted: true, updated_at: new Date().toISOString() });
+              } else {
+                upsertBatch.push(supabaseData);
+              }
+            }
+
+            // Batch upsert (single HTTP call instead of N)
+            if (upsertBatch.length > 0) {
               try {
-                const supabaseData = this.mapRxDBToSupabase(
-                  entityType,
-                  row.newDocumentState
-                );
+                const { error } = await this.supabase
+                  .from(entityType)
+                  .upsert(upsertBatch, { onConflict });
 
-                const isDeleted = row.newDocumentState._deleted === true;
-                const wasDeleted = row.assumedMasterState?._deleted === true;
-
-                if (wasDeleted || isDeleted) {
-                  const { error } = await this.supabase
-                    .from(entityType)
-                    .upsert({
-                      ...supabaseData,
-                      deleted: true,
-                      updated_at: new Date().toISOString()
-                    }, { onConflict });
-
-                  if (error) {
-                    console.error(`[PushReplication-${entityType}] Delete error:`, error);
-                    conflicts.push(row.newDocumentState);
-                    batchFailed = true;
-                  }
-                } else {
-                  const { error } = await this.supabase
-                    .from(entityType)
-                    .upsert(supabaseData, { onConflict });
-
-                  if (error) {
-                    console.error(`[PushReplication-${entityType}] Upsert error:`, error.message);
-                    conflicts.push(row.newDocumentState);
-                    batchFailed = true;
-                  }
+                if (error) {
+                  console.error(`[PushReplication-${entityType}] Batch upsert error:`, error.message);
+                  rows.filter(r => !r.newDocumentState._deleted).forEach(r => conflicts.push(r.newDocumentState));
+                  batchFailed = true;
                 }
               } catch (error) {
-                console.error(`[PushReplication-${entityType}] Push error:`, error);
-                conflicts.push(row.newDocumentState);
+                console.error(`[PushReplication-${entityType}] Batch upsert failed:`, error);
+                rows.filter(r => !r.newDocumentState._deleted).forEach(r => conflicts.push(r.newDocumentState));
+                batchFailed = true;
+              }
+            }
+
+            // Batch delete (single HTTP call)
+            if (deleteBatch.length > 0) {
+              try {
+                const { error } = await this.supabase
+                  .from(entityType)
+                  .upsert(deleteBatch, { onConflict });
+
+                if (error) {
+                  console.error(`[PushReplication-${entityType}] Batch delete error:`, error.message);
+                  rows.filter(r => r.newDocumentState._deleted).forEach(r => conflicts.push(r.newDocumentState));
+                  batchFailed = true;
+                }
+              } catch (error) {
+                console.error(`[PushReplication-${entityType}] Batch delete failed:`, error);
+                rows.filter(r => r.newDocumentState._deleted).forEach(r => conflicts.push(r.newDocumentState));
                 batchFailed = true;
               }
             }
@@ -641,74 +653,80 @@ export class EntityReplicationService {
 
             let batchFailed = false;
 
+            // Group rows by tableType for batch operations
+            const upsertGroups = new Map<string, { rows: any[]; docs: any[] }>();
+            const deleteRows: { doc: any; tableType: string }[] = [];
+
             for (const row of rows) {
-              try {
-                const doc = row.newDocumentState;
-                const tableType = doc.tableType;
+              const doc = row.newDocumentState;
+              const tableType = doc.tableType;
+
+              if (doc._deleted) {
+                deleteRows.push({ doc, tableType });
+              } else {
                 const additional = doc.additional || {};
+                const supabaseRow: Record<string, any> = {
+                  id: doc.id,
+                  [parentIdField]: doc.parentId,
+                  ...additional,
+                  ...(doc.created_at && { created_at: doc.created_at }),
+                  ...(doc.created_by && { created_by: doc.created_by }),
+                  ...(doc.updated_by && { updated_by: doc.updated_by }),
+                  updated_at: doc.updated_at || new Date().toISOString(),
+                };
+                if (doc.partitionId && options?.partitionConfig) {
+                  supabaseRow[options.partitionConfig.childFilterField] = doc.partitionId;
+                }
 
-                if (doc._deleted) {
-                  // Try soft-delete, fall back to hard-delete if no 'deleted' column
-                  const { error } = await this.supabase
-                    .from(tableType)
-                    .update({
-                      deleted: true,
-                      updated_at: new Date().toISOString(),
-                    })
-                    .eq('id', doc.id);
+                if (!upsertGroups.has(tableType)) {
+                  upsertGroups.set(tableType, { rows: [], docs: [] });
+                }
+                upsertGroups.get(tableType)!.rows.push(supabaseRow);
+                upsertGroups.get(tableType)!.docs.push(doc);
+              }
+            }
 
-                  if (error) {
-                    // No 'deleted' column or table not found — try hard delete
-                    if (error.message.includes('schema cache') || error.message.includes('column')) {
-                      const { error: deleteError } = await this.supabase
-                        .from(tableType)
-                        .delete()
-                        .eq('id', doc.id);
-                      if (deleteError) {
-                        // Table doesn't exist or other issue — skip silently
-                      }
-                    } else {
-                      conflicts.push(doc);
-                    }
-                  }
-                } else {
-                  // Unpack universal schema → flat Supabase row
-                  const supabaseRow: Record<string, any> = {
-                    id: doc.id,
-                    [parentIdField]: doc.parentId,
-                    ...additional,
-                    // Service fields from top-level (not additional)
-                    ...(doc.created_at && { created_at: doc.created_at }),
-                    ...(doc.created_by && { created_by: doc.created_by }),
-                    ...(doc.updated_by && { updated_by: doc.updated_by }),
-                    updated_at: doc.updated_at || new Date().toISOString(),
-                  };
+            // Batch upsert per tableType (1 HTTP call per table instead of N)
+            for (const [tableType, { rows: batch, docs }] of upsertGroups) {
+              try {
+                const { error } = await this.supabase
+                  .from(tableType)
+                  .upsert(batch, { onConflict: 'id' });
 
-                  // Add partition field for partitioned entities
-                  if (doc.partitionId && options?.partitionConfig) {
-                    supabaseRow[options.partitionConfig.childFilterField] = doc.partitionId;
-                  }
-
-                  const { error } = await this.supabase
-                    .from(tableType)
-                    .upsert(supabaseRow, { onConflict: 'id' });
-
-                  if (error) {
-                    // Table not found (VIEW, non-existent) — skip, don't retry
-                    // These are old cached records loaded from Supabase, already exist on server
-                    if (error.message.includes('schema cache') || error.message.includes('not found')) {
-                      // Old cached record from VIEW — skip silently
-                    } else {
-                      console.error(`[PushReplication-${collectionName}] Upsert error (${tableType}):`, error.message);
-                      conflicts.push(doc);
-                      batchFailed = true;
-                    }
+                if (error) {
+                  if (error.message.includes('schema cache') || error.message.includes('not found')) {
+                    // Old cached records from VIEW — skip silently
+                  } else {
+                    console.error(`[PushReplication-${collectionName}] Batch upsert error (${tableType}):`, error.message);
+                    docs.forEach((d: any) => conflicts.push(d));
+                    batchFailed = true;
                   }
                 }
               } catch (error) {
-                console.error(`[PushReplication-${collectionName}] Push error:`, error);
-                conflicts.push(row.newDocumentState);
+                console.error(`[PushReplication-${collectionName}] Batch error (${tableType}):`, error);
+                docs.forEach((d: any) => conflicts.push(d));
                 batchFailed = true;
+              }
+            }
+
+            // Deletes still sequential (different tables, soft-delete with fallback)
+            for (const { doc, tableType } of deleteRows) {
+              try {
+                const { error } = await this.supabase
+                  .from(tableType)
+                  .update({ deleted: true, updated_at: new Date().toISOString() })
+                  .eq('id', doc.id);
+
+                if (error) {
+                  if (error.message.includes('schema cache') || error.message.includes('column')) {
+                    await this.supabase.from(tableType).delete().eq('id', doc.id);
+                  } else {
+                    conflicts.push(doc);
+                    batchFailed = true;
+                  }
+                }
+              } catch {
+                // Skip silently
               }
             }
 
