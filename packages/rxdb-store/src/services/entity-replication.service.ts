@@ -1,7 +1,7 @@
 import { replicateRxCollection, RxReplicationState } from 'rxdb/plugins/replication';
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { RxCollection, RxDatabase } from 'rxdb';
 import { BusinessEntity } from '../types/business-entity.types';
+import { supabase } from '../supabase/client';
 
 export interface ReplicationOptions {
   batchSize?: number;
@@ -23,32 +23,13 @@ export interface EntityMapping {
 export class EntityReplicationService {
   private replicationStates: Map<string, RxReplicationState<any, any>> = new Map();
   private realtimeChannels: Map<string, any> = new Map();
-  private supabase: SupabaseClient;
+  private supabase = supabase; // Shared singleton — has auth session + auto-refresh
   private activeRequests: Map<string, number> = new Map();
   private maxConcurrentRequests = 3;
+  private consecutiveFailures: Map<string, number> = new Map();
+  private readonly MAX_CONSECUTIVE_FAILURES = 5;
   private entityMetadata: Map<string, { total: number; lastSync: string; lastCheckpoint?: any }> = new Map();
   private totalCountCallbacks: Map<string, Array<(total: number) => void>> = new Map();
-
-  constructor() {
-    const supabaseUrl = (import.meta as any).env?.VITE_SUPABASE_URL;
-    const supabaseKey = (import.meta as any).env?.VITE_SUPABASE_ANON_KEY;
-
-    if (!supabaseUrl || !supabaseKey) {
-      throw new Error('Missing Supabase environment variables. Please set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in .env file');
-    }
-
-    this.supabase = createClient(supabaseUrl, supabaseKey, {
-      auth: {
-        persistSession: false,
-        autoRefreshToken: false
-      },
-      realtime: {
-        params: {
-          eventsPerSecond: 2 // Limit realtime events
-        }
-      }
-    });
-  }
 
   /**
    * Generic field mapping for any entity
@@ -528,6 +509,15 @@ export class EntityReplicationService {
               ? `id,${options.partitionKey}`
               : 'id';
 
+            // Circuit breaker: stop retrying after too many consecutive failures
+            const failures = this.consecutiveFailures.get(entityType) || 0;
+            if (failures >= this.MAX_CONSECUTIVE_FAILURES) {
+              console.warn(`[PushReplication-${entityType}] Circuit breaker open (${failures} consecutive failures). Skipping push.`);
+              return [];
+            }
+
+            let batchFailed = false;
+
             for (const row of rows) {
               try {
                 const supabaseData = this.mapRxDBToSupabase(
@@ -550,6 +540,7 @@ export class EntityReplicationService {
                   if (error) {
                     console.error(`[PushReplication-${entityType}] Delete error:`, error);
                     conflicts.push(row.newDocumentState);
+                    batchFailed = true;
                   }
                 } else {
                   const { error } = await this.supabase
@@ -557,21 +548,24 @@ export class EntityReplicationService {
                     .upsert(supabaseData, { onConflict });
 
                   if (error) {
-                    console.error(`[PushReplication-${entityType}] Upsert error:`, error.message, error.details, error.hint);
+                    console.error(`[PushReplication-${entityType}] Upsert error:`, error.message);
                     conflicts.push(row.newDocumentState);
+                    batchFailed = true;
                   }
                 }
               } catch (error) {
                 console.error(`[PushReplication-${entityType}] Push error:`, error);
                 conflicts.push(row.newDocumentState);
+                batchFailed = true;
               }
             }
 
-            console.log(`[PushReplication-${entityType}] Push completed`, {
-              total: rows.length,
-              success: rows.length - conflicts.length,
-              failed: conflicts.length
-            });
+            // Update circuit breaker
+            if (batchFailed) {
+              this.consecutiveFailures.set(entityType, (this.consecutiveFailures.get(entityType) || 0) + 1);
+            } else {
+              this.consecutiveFailures.delete(entityType);
+            }
 
             return conflicts;
           },
@@ -638,6 +632,15 @@ export class EntityReplicationService {
             const conflicts: any[] = [];
             const parentIdField = `${entityType}_id`;
 
+            // Circuit breaker
+            const failures = this.consecutiveFailures.get(collectionName) || 0;
+            if (failures >= this.MAX_CONSECUTIVE_FAILURES) {
+              console.warn(`[PushReplication-${collectionName}] Circuit breaker open. Skipping push.`);
+              return [];
+            }
+
+            let batchFailed = false;
+
             for (const row of rows) {
               try {
                 const doc = row.newDocumentState;
@@ -698,20 +701,23 @@ export class EntityReplicationService {
                     } else {
                       console.error(`[PushReplication-${collectionName}] Upsert error (${tableType}):`, error.message);
                       conflicts.push(doc);
+                      batchFailed = true;
                     }
                   }
                 }
               } catch (error) {
                 console.error(`[PushReplication-${collectionName}] Push error:`, error);
                 conflicts.push(row.newDocumentState);
+                batchFailed = true;
               }
             }
 
-            console.log(`[PushReplication-${collectionName}] Push completed`, {
-              total: rows.length,
-              success: rows.length - conflicts.length,
-              failed: conflicts.length
-            });
+            // Update circuit breaker
+            if (batchFailed) {
+              this.consecutiveFailures.set(collectionName, (this.consecutiveFailures.get(collectionName) || 0) + 1);
+            } else {
+              this.consecutiveFailures.delete(collectionName);
+            }
 
             return conflicts;
           },
