@@ -474,25 +474,24 @@ class SpaceStore {
     this.availableEntityTypes.value = entityTypes;
   }
 
+  /** Case-insensitive lookup in spaceConfigs map */
+  private resolveSpaceConfig(entityType: string): SpaceConfig | undefined {
+    const exact = this.spaceConfigs.get(entityType);
+    if (exact) return exact;
+
+    const lower = entityType.toLowerCase();
+    for (const [key, config] of this.spaceConfigs.entries()) {
+      if (key.toLowerCase() === lower) return config;
+    }
+    return undefined;
+  }
+
   /**
    * Get space configuration for an entity type
    * Returns title, permissions, and other UI config
    */
   getSpaceConfig(entityType: string): any | null {
-    // Try exact match first
-    let spaceConfig = this.spaceConfigs.get(entityType);
-
-    // If not found, try case-insensitive match
-    if (!spaceConfig) {
-      const lowerEntityType = entityType.toLowerCase();
-      for (const [key, config] of this.spaceConfigs.entries()) {
-        if (key.toLowerCase() === lowerEntityType) {
-          spaceConfig = config;
-          console.log(`[SpaceStore] Found config with case-insensitive match: ${key} for requested ${entityType}`);
-          break;
-        }
-      }
-    }
+    const spaceConfig = this.resolveSpaceConfig(entityType);
 
     if (!spaceConfig) {
       console.warn(`[SpaceStore] No space config found for entity: ${entityType}`);
@@ -555,19 +554,7 @@ class SpaceStore {
    * @returns Number of records configured for this view, or default 50
    */
   getViewRecordsCount(entityType: string, viewType: string): number {
-    // Try exact match first
-    let spaceConfig = this.spaceConfigs.get(entityType);
-
-    // If not found, try case-insensitive match
-    if (!spaceConfig) {
-      const lowerEntityType = entityType.toLowerCase();
-      for (const [key, config] of this.spaceConfigs.entries()) {
-        if (key.toLowerCase() === lowerEntityType) {
-          spaceConfig = config;
-          break;
-        }
-      }
-    }
+    const spaceConfig = this.resolveSpaceConfig(entityType);
 
     if (!spaceConfig) {
       console.warn(`[SpaceStore] No space config found for ${entityType}, using default recordsCount: 50`);
@@ -602,19 +589,7 @@ class SpaceStore {
    * @returns View slug (e.g., 'list') or first view's slug as fallback
    */
   getDefaultView(entityType: string): string {
-    // Try exact match first
-    let spaceConfig = this.spaceConfigs.get(entityType);
-
-    // If not found, try case-insensitive match
-    if (!spaceConfig) {
-      const lowerEntityType = entityType.toLowerCase();
-      for (const [key, config] of this.spaceConfigs.entries()) {
-        if (key.toLowerCase() === lowerEntityType) {
-          spaceConfig = config;
-          break;
-        }
-      }
-    }
+    const spaceConfig = this.resolveSpaceConfig(entityType);
 
     if (!spaceConfig) {
       console.warn(`[SpaceStore] No space config found for ${entityType}, using default view: 'list'`);
@@ -668,19 +643,7 @@ class SpaceStore {
       parameter?: string;
     };
   }> {
-    // Try exact match first
-    let spaceConfig = this.spaceConfigs.get(entityType);
-
-    // If not found, try case-insensitive match
-    if (!spaceConfig) {
-      const lowerEntityType = entityType.toLowerCase();
-      for (const [key, config] of this.spaceConfigs.entries()) {
-        if (key.toLowerCase() === lowerEntityType) {
-          spaceConfig = config;
-          break;
-        }
-      }
-    }
+    const spaceConfig = this.resolveSpaceConfig(entityType);
 
     if (!spaceConfig) {
       console.warn(`[SpaceStore] No space config found for ${entityType}`);
@@ -792,19 +755,7 @@ class SpaceStore {
     // OR fields (single filter applies to multiple DB fields)
     orFields?: string[];
   }> {
-    // Try exact match first
-    let spaceConfig = this.spaceConfigs.get(entityType);
-
-    // If not found, try case-insensitive match
-    if (!spaceConfig) {
-      const lowerEntityType = entityType.toLowerCase();
-      for (const [key, config] of this.spaceConfigs.entries()) {
-        if (key.toLowerCase() === lowerEntityType) {
-          spaceConfig = config;
-          break;
-        }
-      }
-    }
+    const spaceConfig = this.resolveSpaceConfig(entityType);
 
     if (!spaceConfig) {
       console.warn(`[SpaceStore] No space config found for ${entityType}`);
@@ -904,19 +855,7 @@ class SpaceStore {
     operator?: string;
     slug?: string;
   } | null {
-    // Try exact match first
-    let spaceConfig = this.spaceConfigs.get(entityType);
-
-    // If not found, try case-insensitive match
-    if (!spaceConfig) {
-      const lowerEntityType = entityType.toLowerCase();
-      for (const [key, config] of this.spaceConfigs.entries()) {
-        if (key.toLowerCase() === lowerEntityType) {
-          spaceConfig = config;
-          break;
-        }
-      }
-    }
+    const spaceConfig = this.resolveSpaceConfig(entityType);
 
     if (!spaceConfig?.filter_fields) {
       return null;
@@ -962,19 +901,7 @@ class SpaceStore {
     /** Shared slug for URL when multiple mainFilterFields (e.g., "parent" for father_name + mother_name) */
     searchSlug?: string;
   } {
-    // Try exact match first
-    let spaceConfig = this.spaceConfigs.get(entityType);
-
-    // If not found, try case-insensitive match
-    if (!spaceConfig) {
-      const lowerEntityType = entityType.toLowerCase();
-      for (const [key, config] of this.spaceConfigs.entries()) {
-        if (key.toLowerCase() === lowerEntityType) {
-          spaceConfig = config;
-          break;
-        }
-      }
-    }
+    const spaceConfig = this.resolveSpaceConfig(entityType);
 
     if (!spaceConfig?.filter_fields) {
       return { fields: [] };
@@ -1041,16 +968,7 @@ class SpaceStore {
     }
 
     // Check if we have config for this entity (case-insensitive)
-    let hasConfig = this.spaceConfigs.has(entityType);
-    if (!hasConfig) {
-      const lowerEntityType = entityType.toLowerCase();
-      for (const key of this.spaceConfigs.keys()) {
-        if (key.toLowerCase() === lowerEntityType) {
-          hasConfig = true;
-          break;
-        }
-      }
-    }
+    const hasConfig = !!this.resolveSpaceConfig(entityType);
 
     if (!hasConfig) {
       console.error(`[SpaceStore] No space config found for entity type: ${entityType}`);
