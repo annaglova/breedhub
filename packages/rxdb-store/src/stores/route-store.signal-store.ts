@@ -1,5 +1,5 @@
 import { signal } from '@preact/signals-react';
-import type { RxCollection } from 'rxdb';
+import type { RxCollection, RxDatabase } from 'rxdb';
 import { getDatabase } from '../services/database.service';
 import { routesSchema, type RouteDocument } from '../collections/routes.schema';
 import { supabase } from '../supabase/client';
@@ -57,7 +57,7 @@ class RouteStore {
   error = signal<string | null>(null);
 
   // Database
-  private db: any = null;  // RxDatabase type is too strict
+  private db: RxDatabase | null = null;
   private collection: RouteCollection | null = null;
 
   // Cleanup interval reference

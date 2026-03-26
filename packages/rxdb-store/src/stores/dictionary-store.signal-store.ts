@@ -1,5 +1,5 @@
 import { signal } from '@preact/signals-react';
-import type { RxCollection } from 'rxdb';
+import type { RxCollection, RxDatabase } from 'rxdb';
 import { getDatabase } from '../services/database.service';
 import { dictionariesSchema, type DictionaryDocument } from '../collections/dictionaries.schema';
 import { supabase } from '../supabase/client';
@@ -48,7 +48,7 @@ class DictionaryStore {
   error = signal<string | null>(null);
 
   // Database
-  private db: any = null;  // RxDatabase type is too strict
+  private db: RxDatabase | null = null;
   private collection: DictionaryCollection | null = null;
 
   // Cleanup interval reference
@@ -557,7 +557,7 @@ class DictionaryStore {
         }
       } else {
         // Regular query (no search or with cursor)
-        const selector: any = { table_name: tableName, ...idFilter };
+        const selector: Record<string, any> = { table_name: tableName, ...idFilter };
 
         if (cursor) {
           selector[nameField] = { $gt: cursor };
