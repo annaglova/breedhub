@@ -4448,20 +4448,22 @@ class SpaceStore {
         }
 
         const { supabase } = await import('../supabase/client');
-        for (const [breedId, ids] of missingByBreed.entries()) {
-          const { data, error } = await supabase
-            .from('pet')
-            .select('*')
-            .eq('breed_id', breedId)
-            .in('id', ids);
 
-          if (error) {
-            console.error(`[SpaceStore] Failed to fetch ancestors for breed ${breedId}:`, error);
-            continue;
-          }
-
-          if (data) freshRecords.push(...data);
-        }
+        // Parallel fetch across breed partitions (instead of sequential N+1)
+        const results = await Promise.all(
+          Array.from(missingByBreed.entries()).map(([breedId, ids]) =>
+            supabase
+              .from('pet')
+              .select('*')
+              .eq('breed_id', breedId)
+              .in('id', ids)
+              .then(({ data, error }) => {
+                if (error) console.error(`[SpaceStore] Failed to fetch ancestors for breed ${breedId}:`, error);
+                return data || [];
+              })
+          )
+        );
+        freshRecords = results.flat();
 
         // Cache fresh records in RxDB
         if (freshRecords.length > 0 && collection) {
