@@ -810,42 +810,44 @@ export class EntityReplicationService {
     }
 
     const schema = collection.schema.jsonSchema;
+    const BATCH_SIZE = 1000;
+    let totalSynced = 0;
+    let lastUpdatedAt: string | null = null;
 
     try {
-      const { data, error } = await this.supabase
-        .from(entityType)
-        .select('*')
-        .eq('deleted', false)
-        .order('updated_at', { ascending: false });
+      while (true) {
+        let query = this.supabase
+          .from(entityType)
+          .select('*')
+          .or('deleted.is.null,deleted.eq.false')
+          .order('updated_at', { ascending: true })
+          .limit(BATCH_SIZE);
 
-      if (error) {
-        console.error(`[EntityReplication] Force sync error:`, error);
-        return false;
-      }
-
-      console.log(`[EntityReplication] Force sync got ${data?.length || 0} ${entityType} records`);
-
-      for (const supabaseDoc of (data || [])) {
-        const rxdbDoc = this.mapSupabaseToRxDB(entityType, supabaseDoc, schema);
-
-        try {
-          const existing = await collection.findOne(rxdbDoc.id).exec();
-
-          if (existing) {
-            if (new Date(rxdbDoc.updated_at) > new Date(existing.updated_at)) {
-              await existing.patch(rxdbDoc);
-              console.log(`[EntityReplication] Updated ${entityType}:`, rxdbDoc.id);
-            }
-          } else {
-            await collection.insert(rxdbDoc);
-            console.log(`[EntityReplication] Inserted ${entityType}:`, rxdbDoc.id);
-          }
-        } catch (err) {
-          console.error(`[EntityReplication] Error syncing ${entityType}:`, rxdbDoc.id, err);
+        if (lastUpdatedAt) {
+          query = query.gt('updated_at', lastUpdatedAt);
         }
+
+        const { data, error } = await query;
+
+        if (error) {
+          console.error(`[EntityReplication] Force sync error:`, error);
+          return false;
+        }
+
+        if (!data || data.length === 0) break;
+
+        const mapped = data.map(doc => this.mapSupabaseToRxDB(entityType, doc, schema));
+        await collection.bulkUpsert(mapped);
+
+        totalSynced += data.length;
+        lastUpdatedAt = data[data.length - 1].updated_at;
+
+        console.log(`[EntityReplication] Force sync: ${totalSynced} records synced`);
+
+        if (data.length < BATCH_SIZE) break;
       }
 
-      console.log(`[EntityReplication] Force sync completed for ${entityType}`);
+      console.log(`[EntityReplication] Force sync completed for ${entityType}: ${totalSynced} records`);
       return true;
     } catch (error) {
       console.error(`[EntityReplication] Force sync failed for ${entityType}:`, error);
