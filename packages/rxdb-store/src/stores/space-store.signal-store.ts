@@ -1264,11 +1264,34 @@ class SpaceStore {
         throw new Error(`${entityType} ${id} not found`);
       }
 
-      const patchData = {
+      const patchData: Record<string, any> = {
         ...updates,
         updated_at: new Date().toISOString(),
         ...(userStore.currentUserId.value && { updated_by: userStore.currentUserId.value }),
       };
+
+      // If date_of_birth or date_of_death changed, rebuild timeline locally
+      if ('date_of_birth' in updates || 'date_of_death' in updates) {
+        const currentData = doc.toJSON();
+        const dob = updates.date_of_birth ?? currentData.date_of_birth;
+        const dod = (updates as any).date_of_death ?? currentData.date_of_death;
+        const existingTimeline: any[] = currentData.timeline || [];
+
+        // Keep non-birthday/death entries (litters etc), rebuild birthday/death
+        const otherEvents = existingTimeline.filter((e: any) => e.t !== 'birthday' && e.t !== 'date of death');
+        const newEvents: any[] = [...otherEvents];
+
+        if (dob) {
+          const existingBirthday = existingTimeline.find((e: any) => e.t === 'birthday');
+          newEvents.push({ d: dob, t: 'birthday', id: existingBirthday?.id || crypto.randomUUID() });
+        }
+        if (dod) {
+          const existingDeath = existingTimeline.find((e: any) => e.t === 'date of death');
+          newEvents.push({ d: dod, t: 'date of death', id: existingDeath?.id || crypto.randomUUID() });
+        }
+
+        patchData.timeline = newEvents.sort((a: any, b: any) => a.d.localeCompare(b.d));
+      }
 
       // Update RxDB locally — push replication syncs to Supabase automatically
       await doc.patch(patchData);
