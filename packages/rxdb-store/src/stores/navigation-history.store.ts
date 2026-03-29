@@ -96,15 +96,10 @@ class NavigationHistoryStore {
    */
   getHistoryForType(entityType: string, currentPath?: string): NavigationEntry[] {
     const typeHistory = this._historyByType.value[entityType] || [];
-    const filtered = currentPath
+    // Titles already formatted in addEntry — no need to recreate objects
+    return currentPath
       ? typeHistory.filter(entry => entry.path !== currentPath)
       : typeHistory;
-
-    // Always format titles when returning
-    return filtered.map(entry => ({
-      ...entry,
-      title: this.formatTitle(entry.title),
-    }));
   }
 
   /**
@@ -138,10 +133,7 @@ class NavigationHistoryStore {
    */
   private formatTitle(title: string): string {
     if (!title) return '';
-    // Replace dashes with spaces and convert to UPPERCASE
-    const formatted = title.replace(/-/g, ' ').toUpperCase();
-    console.log('[NavigationHistory] formatTitle:', title, '->', formatted);
-    return formatted;
+    return title.replace(/-/g, ' ').toUpperCase();
   }
 
   /**
