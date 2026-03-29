@@ -288,7 +288,13 @@ export const DateRangeInput = forwardRef<HTMLInputElement, DateRangeInputProps>(
       // Calculate position from trigger element
       if (triggerRef.current) {
         const rect = triggerRef.current.getBoundingClientRect();
-        setDropdownPos({ top: rect.bottom + 4, left: rect.left });
+        const calendarHeight = 380;
+        const spaceBelow = window.innerHeight - rect.bottom;
+        const openUp = spaceBelow < calendarHeight && rect.top > calendarHeight;
+        setDropdownPos({
+          top: openUp ? rect.top - calendarHeight - 8 : rect.bottom + 4,
+          left: rect.left,
+        });
       }
       setIsOpen(true);
     }, [disabled, value, dateFormat]);

@@ -568,7 +568,14 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
       if (disabled) return;
       if (triggerRef.current) {
         const rect = triggerRef.current.getBoundingClientRect();
-        setDropdownPos({ top: rect.bottom + 4, left: rect.left, width: rect.width });
+        const dropdownHeight = 320;
+        const spaceBelow = window.innerHeight - rect.bottom;
+        const openUp = spaceBelow < dropdownHeight && rect.top > dropdownHeight;
+        setDropdownPos({
+          top: openUp ? rect.top - dropdownHeight - 8 : rect.bottom + 4,
+          left: rect.left,
+          width: rect.width,
+        });
       }
       setIsOpen(true);
     };
