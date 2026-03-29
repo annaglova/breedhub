@@ -427,8 +427,8 @@ export const DropdownInput = forwardRef<HTMLInputElement, DropdownInputProps>(
           <div
             ref={dropdownListRef}
             data-portal-dropdown
-            className="fixed z-[9999] pointer-events-auto bg-white border border-slate-200 rounded-md shadow-lg max-h-[40vh] overflow-auto text-base"
-            style={{ top: dropdownPos.top, left: dropdownPos.left, width: dropdownPos.width }}
+            className="fixed z-[9999] pointer-events-auto bg-white border border-slate-200 rounded-md shadow-lg overflow-auto text-base"
+            style={{ top: dropdownPos.top, left: dropdownPos.left, width: dropdownPos.width, maxHeight: `${window.innerHeight - dropdownPos.top - 8}px` }}
           >
             {loading && dynamicOptions.length === 0 ? (
               <div className="px-3 py-2 text-slate-500 text-center">
