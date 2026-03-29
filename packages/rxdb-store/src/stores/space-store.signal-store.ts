@@ -1214,9 +1214,20 @@ class SpaceStore {
     try {
       const id = crypto.randomUUID();
       const userId = userStore.currentUserId.value;
+      // Generate slug client-side (same algorithm as server trigger)
+      const name = (data as any).name || '';
+      let slug = name.toLowerCase().trim()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '')
+        .replace(/-+/g, '-')
+        .substring(0, 42).replace(/-+$/, '');
+      const uuid8 = id.slice(0, 8);
+      slug = slug ? `${slug}-${uuid8}` : uuid8;
+
       const newEntity = {
         ...data,
         id,
+        slug,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
         ...(userId && { created_by: userId, updated_by: userId }),
