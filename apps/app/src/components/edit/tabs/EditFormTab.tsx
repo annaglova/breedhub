@@ -114,20 +114,16 @@ export function EditFormTab({ fields, onLoadedCount, entityType, onSaveReady, on
 
     // Build initial timeline client-side (before push creates it on server)
     if (entity.date_of_birth || entity.date_of_death) {
-      const timeline: Array<{ d: string; t: string; id: string }> = [];
-      if (entity.date_of_birth) {
-        timeline.push({ d: entity.date_of_birth, t: 'birthday', id: crypto.randomUUID() });
-      }
-      if (entity.date_of_death) {
-        timeline.push({ d: entity.date_of_death, t: 'date of death', id: crypto.randomUUID() });
-      }
-      // Patch entity in RxDB so view page shows timeline immediately
       try {
-        const db = await getDatabase();
-        const collection = db.collections[entityType || ''];
-        if (collection) {
-          const doc = await collection.findOne(entity.id).exec();
-          if (doc) await doc.patch({ timeline });
+        const { buildInitialTimeline } = await import('@breedhub/rxdb-store/src/utils/timeline-builder');
+        const timeline = buildInitialTimeline(entity.date_of_birth, entity.date_of_death);
+        if (timeline) {
+          const db = await getDatabase();
+          const collection = db.collections[entityType || ''];
+          if (collection) {
+            const doc = await collection.findOne(entity.id).exec();
+            if (doc) await doc.patch({ timeline });
+          }
         }
       } catch { /* non-critical */ }
     }
