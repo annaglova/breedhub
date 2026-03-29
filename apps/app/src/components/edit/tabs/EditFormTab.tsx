@@ -115,7 +115,7 @@ export function EditFormTab({ fields, onLoadedCount, entityType, onSaveReady, on
     // Build initial timeline client-side (before push creates it on server)
     if (entity.date_of_birth || entity.date_of_death) {
       try {
-        const { buildInitialTimeline } = await import('@breedhub/rxdb-store/src/utils/timeline-builder');
+        const { buildInitialTimeline } = await import('@breedhub/rxdb-store');
         const timeline = buildInitialTimeline(entity.date_of_birth, entity.date_of_death);
         if (timeline) {
           const db = await getDatabase();

@@ -66,6 +66,9 @@ export type { Toast, ToastType, ToastOptions } from './stores/toast.store';
 // Mixin Engine
 export { mixinEngine, MixinEngineService } from './services/mixin-engine.service';
 
+// Utils
+export { buildInitialTimeline, rebuildTimelineOnDateChange } from './utils/timeline-builder';
+
 // Supabase utilities
 export { supabase, checkSupabaseConnection } from './supabase/client';
 
