@@ -661,11 +661,15 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
       };
     }, [handleScroll, isOpen]);
 
-    // Close dropdown on page/container scroll
+    // Close dropdown and blur field on page/container scroll
     useEffect(() => {
       if (!isOpen) return;
-      const handlePageScroll = () => setIsOpen(false);
-      // Listen on capture phase to catch scroll on any ancestor
+      const handlePageScroll = () => {
+        setIsOpen(false);
+        if (document.activeElement instanceof HTMLElement) {
+          document.activeElement.blur();
+        }
+      };
       window.addEventListener("scroll", handlePageScroll, true);
       return () => window.removeEventListener("scroll", handlePageScroll, true);
     }, [isOpen]);
