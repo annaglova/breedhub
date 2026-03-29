@@ -740,7 +740,7 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
             ref={dropdownListRef}
             data-portal-dropdown
             className="fixed z-[9999] pointer-events-auto bg-white border border-slate-200 rounded-md shadow-lg overflow-auto text-base"
-            style={{ top: dropdownPos.top, left: dropdownPos.left, width: dropdownPos.width, maxHeight: `${window.innerHeight - dropdownPos.top - 8}px` }}
+            style={{ top: dropdownPos.top, left: dropdownPos.left, width: dropdownPos.width, maxHeight: `${Math.min(window.innerHeight * 0.4, window.innerHeight - dropdownPos.top - 8)}px` }}
           >
             {/* 🔍 DEBUG: Total count */}
             <div className="px-3 py-1 text-xs text-slate-400 border-b border-slate-100 bg-slate-50 sticky top-0">
