@@ -363,6 +363,14 @@ export const DropdownInput = forwardRef<HTMLInputElement, DropdownInputProps>(
       setIsOpen(!isOpen);
     }, [disabled, isOpen]);
 
+    // Close dropdown on page/container scroll
+    useEffect(() => {
+      if (!isOpen) return;
+      const handlePageScroll = () => setIsOpen(false);
+      window.addEventListener("scroll", handlePageScroll, true);
+      return () => window.removeEventListener("scroll", handlePageScroll, true);
+    }, [isOpen]);
+
     const selectElement = (
       <div className="group/field relative" ref={triggerRef}>
         <div

@@ -93,6 +93,14 @@ export const DateInput = forwardRef<HTMLInputElement, DateInputProps>(
       setIsOpen(true);
     }, [disabled]);
 
+    // Close calendar on page/container scroll
+    React.useEffect(() => {
+      if (!isOpen) return;
+      const handlePageScroll = () => setIsOpen(false);
+      window.addEventListener("scroll", handlePageScroll, true);
+      return () => window.removeEventListener("scroll", handlePageScroll, true);
+    }, [isOpen]);
+
     // Update input value when value prop changes
     React.useEffect(() => {
       setInputValue(safeValue ? format(safeValue, dateFormat) : "");

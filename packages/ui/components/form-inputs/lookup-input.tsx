@@ -661,6 +661,15 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
       };
     }, [handleScroll, isOpen]);
 
+    // Close dropdown on page/container scroll
+    useEffect(() => {
+      if (!isOpen) return;
+      const handlePageScroll = () => setIsOpen(false);
+      // Listen on capture phase to catch scroll on any ancestor
+      window.addEventListener("scroll", handlePageScroll, true);
+      return () => window.removeEventListener("scroll", handlePageScroll, true);
+    }, [isOpen]);
+
     const inputElement = (
       <div className="group/field relative" ref={triggerRef}>
         <div className="relative">

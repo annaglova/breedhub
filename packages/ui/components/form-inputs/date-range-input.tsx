@@ -299,6 +299,14 @@ export const DateRangeInput = forwardRef<HTMLInputElement, DateRangeInputProps>(
       setIsOpen(true);
     }, [disabled, value, dateFormat]);
 
+    // Close calendar on page/container scroll
+    React.useEffect(() => {
+      if (!isOpen) return;
+      const handlePageScroll = () => setIsOpen(false);
+      window.addEventListener("scroll", handlePageScroll, true);
+      return () => window.removeEventListener("scroll", handlePageScroll, true);
+    }, [isOpen]);
+
     const handleDayClick = useCallback((day: Date) => {
       if (selectingField === "from") {
         setTempFrom(day);
