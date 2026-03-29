@@ -81,7 +81,14 @@ export const DateInput = forwardRef<HTMLInputElement, DateInputProps>(
       if (disabled) return;
       if (triggerRef.current) {
         const rect = triggerRef.current.getBoundingClientRect();
-        setCalendarPos({ top: rect.bottom + 4, left: rect.left, width: rect.width });
+        const calendarHeight = 320; // approximate calendar height
+        const spaceBelow = window.innerHeight - rect.bottom;
+        const openUp = spaceBelow < calendarHeight && rect.top > calendarHeight;
+        setCalendarPos({
+          top: openUp ? rect.top - calendarHeight - 4 : rect.bottom + 4,
+          left: rect.left,
+          width: rect.width,
+        });
       }
       setIsOpen(true);
     }, [disabled]);
