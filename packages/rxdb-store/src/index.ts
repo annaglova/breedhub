@@ -68,6 +68,7 @@ export { mixinEngine, MixinEngineService } from './services/mixin-engine.service
 
 // Utils
 export { buildInitialTimeline, rebuildTimelineOnDateChange } from './utils/timeline-builder';
+export { generateSlug } from './utils/slug-generator';
 
 // Supabase utilities
 export { supabase, checkSupabaseConnection } from './supabase/client';

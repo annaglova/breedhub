@@ -1,7 +1,6 @@
 import { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { dictionaryStore, toast } from '@breedhub/rxdb-store';
-import { generateSlug } from '@/components/space/utils/filter-url-helpers';
+import { dictionaryStore, toast, generateSlug } from '@breedhub/rxdb-store';
 
 interface NavigateToTabParams {
   tab: string;
