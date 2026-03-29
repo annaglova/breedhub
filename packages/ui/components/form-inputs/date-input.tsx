@@ -81,11 +81,11 @@ export const DateInput = forwardRef<HTMLInputElement, DateInputProps>(
       if (disabled) return;
       if (triggerRef.current) {
         const rect = triggerRef.current.getBoundingClientRect();
-        const calendarHeight = 320; // approximate calendar height
+        const calendarHeight = 380; // approximate calendar height with today button
         const spaceBelow = window.innerHeight - rect.bottom;
         const openUp = spaceBelow < calendarHeight && rect.top > calendarHeight;
         setCalendarPos({
-          top: openUp ? rect.top - calendarHeight - 4 : rect.bottom + 4,
+          top: openUp ? rect.top - calendarHeight - 8 : rect.bottom + 4,
           left: rect.left,
           width: rect.width,
         });
