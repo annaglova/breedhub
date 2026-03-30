@@ -23,6 +23,8 @@ import { removeFieldPrefix, addFieldPrefix } from '../utils/field-normalization'
 import * as F from '../utils/filter-builder';
 import * as CC from '../utils/child-collection-registry';
 import { generateSchemaForEntity as buildSchema, ENTITY_VIEW_SOURCES } from '../utils/schema-builder';
+import { buildEntityPayload, buildChildPayload, getOnConflict } from '../utils/sync-queue.helpers';
+import { syncQueueService } from '../services/sync-queue.service';
 
 // Universal entity interface for all business entities
 interface BusinessEntity {
@@ -268,6 +270,9 @@ class SpaceStore {
 
       // Get database instance from AppStore
       this.db = await getDatabase();
+
+      // Initialize sync queue service (V3 push)
+      await syncQueueService.initialize(this.db);
 
       // Create collections for all found entity types
       for (const entityType of this.availableEntityTypes.value) {
@@ -1081,13 +1086,6 @@ class SpaceStore {
     }
 
     if (collection) {
-      // Setup push-only replication (syncs local changes to Supabase)
-      const entitySchema = this.entitySchemas.get(entityType);
-      const partitionKey = entitySchema?.partition?.keyField;
-      entityReplicationService.setupPushOnlyReplication(this.db, entityType,
-        partitionKey ? { partitionKey } : undefined
-      );
-
       // LIFECYCLE HOOK: onInit - Load data from RxDB
       const allDocs = await collection.find().exec();
       const entities: T[] = allDocs.map((doc: RxDocument<T>) => doc.toJSON() as T);
@@ -1230,7 +1228,16 @@ class SpaceStore {
       
       await collection.insert(newEntity);
       entityStore.addOne(newEntity);
-      
+
+      // Enqueue for Supabase sync (V3 queue-based push)
+      const entitySchema = this.entitySchemas.get(entityType);
+      const partitionKey = entitySchema?.partition?.keyField;
+      await syncQueueService.enqueueEntity(
+        entityType, id, 'upsert',
+        buildEntityPayload(newEntity as Record<string, any>),
+        getOnConflict(entityType, partitionKey)
+      );
+
       console.log(`[SpaceStore] Created ${entityType}:`, id);
       return newEntity;
       
@@ -1286,10 +1293,20 @@ class SpaceStore {
         );
       }
 
-      // Update RxDB locally — push replication syncs to Supabase automatically
+      // Update RxDB locally
       await doc.patch(patchData);
       // Update in-memory signal store
       entityStore.updateOne(id, patchData);
+
+      // Enqueue for Supabase sync (V3 queue-based push)
+      const fullDoc = doc.toJSON();
+      const entitySchema = this.entitySchemas.get(entityType);
+      const partitionKey = entitySchema?.partition?.keyField;
+      await syncQueueService.enqueueEntity(
+        entityType, id, 'upsert',
+        buildEntityPayload(fullDoc),
+        getOnConflict(entityType, partitionKey)
+      );
 
     } catch (error) {
       console.error(`[SpaceStore] Failed to update ${entityType}:`, error);
@@ -1443,10 +1460,20 @@ class SpaceStore {
         patchData.updated_by = userStore.currentUserId.value;
       }
 
-      // Update RxDB locally — push replication syncs to Supabase automatically
+      // Update RxDB locally
       await doc.patch(patchData);
       entityStore.removeOne(id);
-      
+
+      // Enqueue for Supabase sync (V3 queue-based push)
+      const fullDoc = doc.toJSON();
+      const entitySchema = this.entitySchemas.get(entityType);
+      const partitionKey = entitySchema?.partition?.keyField;
+      await syncQueueService.enqueueEntity(
+        entityType, id, 'delete',
+        buildEntityPayload(fullDoc),
+        getOnConflict(entityType, partitionKey)
+      );
+
     } catch (error) {
       console.error(`[SpaceStore] Failed to delete ${entityType}:`, error);
       throw error;
@@ -3102,8 +3129,6 @@ class SpaceStore {
 
     // Check if already created in memory
     if (this.childCollections.has(collectionName)) {
-      // Ensure push replication is active (idempotent — skips if already set up)
-      this.ensureChildPushReplication(entityType);
       return this.childCollections.get(collectionName)!;
     }
 
@@ -3116,7 +3141,6 @@ class SpaceStore {
     const existingCollection = this.db.collections[collectionName];
     if (existingCollection) {
       this.childCollections.set(collectionName, existingCollection);
-      this.ensureChildPushReplication(entityType);
       return existingCollection;
     }
 
@@ -3142,9 +3166,6 @@ class SpaceStore {
       const collection = collections[collectionName];
       this.childCollections.set(collectionName, collection);
 
-      // Setup push-only replication for child collection
-      this.ensureChildPushReplication(entityType);
-
       return collection;
     } catch (error) {
       console.error(`[SpaceStore] Failed to create child collection ${collectionName}:`, error);
@@ -3152,15 +3173,6 @@ class SpaceStore {
     }
   }
 
-  /** Idempotent: ensures push replication is active for a child collection */
-  private ensureChildPushReplication(entityType: string): void {
-    if (!this.db) return;
-    const entitySchema = this.entitySchemas.get(entityType);
-    const partitionConfig = entitySchema?.partition;
-    entityReplicationService.setupChildPushReplication(this.db, entityType,
-      partitionConfig ? { partitionConfig } : undefined
-    );
-  }
 
   /**
    * Get schema for child collection based on entity type
@@ -3548,7 +3560,7 @@ class SpaceStore {
       }
     }
 
-    // Insert into RxDB — push replication syncs to Supabase automatically
+    // Insert into RxDB
     const collection = await this.ensureChildCollection(entityType);
     if (collection) {
       const rxdbRecord: Record<string, any> = {
@@ -3565,6 +3577,13 @@ class SpaceStore {
         rxdbRecord.partitionId = partitionValue;
       }
       await collection.upsert(rxdbRecord);
+
+      // Enqueue for Supabase sync (V3 queue-based push)
+      await syncQueueService.enqueueChild(
+        entityType, normalizedTableType, id, 'upsert',
+        buildChildPayload(rxdbRecord, entityType, partitionConfig),
+        'id'
+      );
     }
 
     return { id };
@@ -3587,7 +3606,7 @@ class SpaceStore {
     // Sanitize data: ensure plain JSON (no Date objects, Proxy, etc.)
     const plainData = JSON.parse(JSON.stringify(data));
 
-    // Update RxDB — push replication syncs to Supabase automatically
+    // Update RxDB
     const collection = await this.ensureChildCollection(entityType);
     if (collection) {
       const doc = await collection.findOne(recordId).exec();
@@ -3602,6 +3621,16 @@ class SpaceStore {
           },
           cachedAt: Date.now(),
         });
+
+        // Enqueue for Supabase sync (V3 queue-based push)
+        const updatedDoc = doc.toJSON();
+        const entitySchema = this.entitySchemas.get(entityType);
+        const partitionConfig = entitySchema?.partition;
+        await syncQueueService.enqueueChild(
+          entityType, tableType.replace(/_with_\w+$/, ''), recordId, 'upsert',
+          buildChildPayload(updatedDoc, entityType, partitionConfig),
+          'id'
+        );
       }
     }
   }
@@ -3618,11 +3647,19 @@ class SpaceStore {
     tableType: string,
     recordId: string
   ): Promise<void> {
-    // Remove from RxDB — push replication sends soft-delete to Supabase
+    // Enqueue delete BEFORE removing from RxDB (need doc data for payload)
     const collection = await this.ensureChildCollection(entityType);
     if (collection) {
       const doc = await collection.findOne(recordId).exec();
       if (doc) {
+        const docData = doc.toJSON();
+        const entitySchema = this.entitySchemas.get(entityType);
+        const partitionConfig = entitySchema?.partition;
+        await syncQueueService.enqueueChild(
+          entityType, tableType.replace(/_with_\w+$/, ''), recordId, 'delete',
+          buildChildPayload(docData, entityType, partitionConfig),
+          'id'
+        );
         await doc.remove();
       }
     }

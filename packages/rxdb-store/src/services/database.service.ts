@@ -1,6 +1,7 @@
 import {
   createRxDatabase,
   RxDatabase,
+  RxCollection,
   RxStorage,
   addRxPlugin,
   removeRxDatabase
@@ -17,6 +18,14 @@ import { appConfigSchema } from '../collections/app-config.schema';
 import { AppConfigCollection } from '../stores/app-config.signal-store';
 import { dictionariesSchema } from '../collections/dictionaries.schema';
 import type { DictionaryCollection } from '../stores/dictionary-store.signal-store';
+import {
+  entitySyncQueueSchema,
+  childSyncQueueSchema,
+  dictionarySyncQueueSchema,
+  type EntitySyncQueueDocument,
+  type ChildSyncQueueDocument,
+  type DictionarySyncQueueDocument,
+} from '../collections/sync-queue.schema';
 
 // Add plugins
 if (process.env.NODE_ENV !== 'production') {
@@ -31,6 +40,10 @@ addRxPlugin(RxDBCleanupPlugin);
 export type DatabaseCollections = {
   app_config: AppConfigCollection;
   dictionaries: DictionaryCollection;
+  // Sync queue collections (V3 push)
+  entity_sync_queue?: RxCollection<EntitySyncQueueDocument>;
+  child_sync_queue?: RxCollection<ChildSyncQueueDocument>;
+  dictionary_sync_queue?: RxCollection<DictionarySyncQueueDocument>;
 };
 
 export type AppDatabase = RxDatabase<DatabaseCollections>;
@@ -135,10 +148,19 @@ class DatabaseService {
     // Add collections with error handling
     try {
       const collectionsToAdd = {
-      app_config: {
-        schema: appConfigSchema
-      }
-    };
+        app_config: {
+          schema: appConfigSchema,
+        },
+        entity_sync_queue: {
+          schema: entitySyncQueueSchema,
+        },
+        child_sync_queue: {
+          schema: childSyncQueueSchema,
+        },
+        dictionary_sync_queue: {
+          schema: dictionarySyncQueueSchema,
+        },
+      };
     
       console.log('[DatabaseService] Adding collections:', Object.keys(collectionsToAdd));
       const result = await db.addCollections(collectionsToAdd);

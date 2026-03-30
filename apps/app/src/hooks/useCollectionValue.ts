@@ -3,26 +3,12 @@ import { useEffect, useState } from "react";
 
 /**
  * Hook to get a record from a collection by ID
- * Uses spaceStore which reads from RxDB for local-first access
+ * Uses spaceStore which reads from RxDB for local-first access.
  *
  * @param collection - Collection name (e.g., 'breed', 'pet')
  * @param id - The UUID to lookup
  * @param options - Optional: field to return, partition key for partitioned tables
  * @returns The record/field value or null while loading
- *
- * @example
- * const breed = useCollectionValue('breed', entity.breed_id);
- * // Returns { id, name, slug, ... } or null
- *
- * @example
- * const breedName = useCollectionValue('breed', entity.breed_id, { field: 'name' });
- * // Returns "German Shepherd" or null
- *
- * @example
- * // For partitioned tables (e.g., pet partitioned by breed_id)
- * const pet = useCollectionValue('pet', entity.father_id, {
- *   partitionKey: { field: 'breed_id', value: entity.father_breed_id }
- * });
  */
 export function useCollectionValue<T = Record<string, unknown>>(
   collection: string | undefined,

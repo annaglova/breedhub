@@ -63,6 +63,23 @@ class DictionaryStore {
     return DictionaryStore.instance;
   }
 
+  /** Wait for store initialization (polls every 100ms, max 10s) */
+  private waitForInitialization(): Promise<void> {
+    if (this.initialized.value) return Promise.resolve();
+    return new Promise((resolve) => {
+      const maxWait = 10_000;
+      const interval = 100;
+      let elapsed = 0;
+      const check = setInterval(() => {
+        elapsed += interval;
+        if (this.initialized.value || elapsed >= maxWait) {
+          clearInterval(check);
+          resolve();
+        }
+      }, interval);
+    });
+  }
+
   /**
    * Initialize dictionary store and create universal collection
    * Called by AppStore during app initialization
@@ -708,6 +725,11 @@ class DictionaryStore {
     options: { idField?: string; nameField?: string } = {}
   ): Promise<Record<string, unknown> | null> {
     const { idField = 'id', nameField = 'name' } = options;
+
+    // Wait for initialization if not ready yet (max 10s)
+    if (!this.initialized.value) {
+      await this.waitForInitialization();
+    }
 
     try {
       // First check local RxDB cache
