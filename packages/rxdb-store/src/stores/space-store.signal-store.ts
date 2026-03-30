@@ -1294,12 +1294,12 @@ class SpaceStore {
       }
 
       // Update RxDB locally
-      await doc.patch(patchData);
+      const patchedDoc = await doc.patch(patchData);
       // Update in-memory signal store
       entityStore.updateOne(id, patchData);
 
       // Enqueue for Supabase sync (V3 queue-based push)
-      const fullDoc = doc.toJSON();
+      const fullDoc = patchedDoc.toJSON();
       const entitySchema = this.entitySchemas.get(entityType);
       const partitionKey = entitySchema?.partition?.keyField;
       await syncQueueService.enqueueEntity(
@@ -3612,7 +3612,7 @@ class SpaceStore {
       const doc = await collection.findOne(recordId).exec();
       if (doc) {
         const currentAdditional = doc.toJSON().additional || {};
-        await doc.patch({
+        const patchedDoc = await doc.patch({
           updated_at: new Date().toISOString(),
           ...(userStore.currentUserId.value && { updated_by: userStore.currentUserId.value }),
           additional: {
@@ -3623,7 +3623,7 @@ class SpaceStore {
         });
 
         // Enqueue for Supabase sync (V3 queue-based push)
-        const updatedDoc = doc.toJSON();
+        const updatedDoc = patchedDoc.toJSON();
         const entitySchema = this.entitySchemas.get(entityType);
         const partitionConfig = entitySchema?.partition;
         await syncQueueService.enqueueChild(
