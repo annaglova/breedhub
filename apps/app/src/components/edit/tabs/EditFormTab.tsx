@@ -111,21 +111,53 @@ export function EditFormTab({ fields, onLoadedCount, entityType, onSaveReady, on
       model: entityType || '',
     });
 
-    // Build initial timeline client-side (before push creates it on server)
-    if (entity.date_of_birth || entity.date_of_death) {
-      try {
-        const { buildInitialTimeline } = await import('@breedhub/rxdb-store');
-        const timeline = buildInitialTimeline(entity.date_of_birth, entity.date_of_death);
-        if (timeline) {
-          const db = await getDatabase();
-          const collection = db.collections[entityType || ''];
-          if (collection) {
-            const doc = await collection.findOne(entity.id).exec();
-            if (doc) await doc.patch({ timeline });
+    // Build initial data client-side (before push creates it on server via triggers)
+    try {
+      const db = await getDatabase();
+      const collection = db.collections[entityType || ''];
+      if (collection) {
+        const doc = await collection.findOne(entity.id).exec();
+        if (doc) {
+          const patchData: Record<string, any> = {};
+
+          // Timeline from date_of_birth/date_of_death
+          if (entity.date_of_birth || entity.date_of_death) {
+            const { buildInitialTimeline } = await import('@breedhub/rxdb-store');
+            const timeline = buildInitialTimeline(entity.date_of_birth, entity.date_of_death);
+            if (timeline) patchData.timeline = timeline;
+          }
+
+          // Pedigree from father/mother (mirrors server trigger)
+          if (entity.father_id || entity.mother_id) {
+            const { buildInitialPedigree } = await import('@breedhub/rxdb-store');
+            const petCollection = db.collections['pet'];
+            let fatherPedigree = null;
+            let motherPedigree = null;
+
+            if (entity.father_id && petCollection) {
+              const father = await petCollection.findOne(entity.father_id).exec();
+              if (father) fatherPedigree = father.toJSON().pedigree;
+            }
+            if (entity.mother_id && petCollection) {
+              const mother = await petCollection.findOne(entity.mother_id).exec();
+              if (mother) motherPedigree = mother.toJSON().pedigree;
+            }
+
+            const pedigree = buildInitialPedigree(
+              entity.father_id, entity.father_breed_id || entity.breed_id,
+              fatherPedigree,
+              entity.mother_id, entity.mother_breed_id || entity.breed_id,
+              motherPedigree,
+            );
+            if (Object.keys(pedigree).length > 0) patchData.pedigree = pedigree;
+          }
+
+          if (Object.keys(patchData).length > 0) {
+            await doc.patch(patchData);
           }
         }
-      } catch { /* non-critical */ }
-    }
+      }
+    } catch { /* non-critical */ }
 
     navigate(`/${slug}`, { replace: true });
   }, [navigate, entityType]);
