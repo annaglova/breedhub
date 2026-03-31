@@ -118,7 +118,7 @@ export function BreedTopPetsTab({
       const pet = record.pet || (record as any).additional?.pet;
 
       return {
-        id: pet?.id || record.pet_id || record.id,
+        id: record.id,  // Use VIEW row id as unique key (pet.id can duplicate across categories)
         name: pet?.name || "Unknown",
         avatarUrl: pet?.avatar_url || "",
         url: pet?.slug ? `/${pet.slug}` : `/pet/${pet?.id || record.pet_id}`,
