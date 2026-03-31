@@ -221,15 +221,11 @@ class RouteStore {
       .from('routes')
       .select('slug, entity, entity_id, entity_partition_id, partition_field, model')
       .eq('slug', slug)
-      .single();
-
-    // console.debug('[RouteStore] Supabase response:', { data, error });
+      .maybeSingle();
 
     if (error) {
-      // PGRST116 = no rows returned
       // 42P01 = table does not exist
-      if (error.code === 'PGRST116' || error.code === '42P01') {
-        // console.debug('[RouteStore] Not in Supabase:', slug);
+      if (error.code === '42P01') {
         return null;
       }
       console.error('[RouteStore] Supabase error:', error);
