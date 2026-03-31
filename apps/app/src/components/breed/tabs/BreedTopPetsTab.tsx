@@ -9,7 +9,7 @@ import {
 import { useSignals } from "@preact/signals-react/runtime";
 import { cn } from "@ui/lib/utils";
 import { Loader2 } from "lucide-react";
-import { useCallback, useEffect, useMemo, useRef } from "react";
+import { memo, useCallback, useEffect, useMemo, useRef } from "react";
 
 /**
  * Raw pet data from VIEW (top_pet_in_breed_with_pet)
@@ -70,7 +70,7 @@ interface BreedTopPetsTabProps {
  *
  * @see docs/TAB_DATA_SERVICE_ARCHITECTURE.md
  */
-export function BreedTopPetsTab({
+export const BreedTopPetsTab = memo(function BreedTopPetsTab({
   dataSource,
   onLoadedCount,
 }: BreedTopPetsTabProps) {
@@ -79,12 +79,6 @@ export function BreedTopPetsTab({
   const selectedEntity = useSelectedEntity();
   const breedId = selectedEntity?.id;
   const isFullscreen = spaceStore.isFullscreen.value;
-
-  console.log("[BreedTopPetsTab] render:", {
-    breedId,
-    isFullscreen,
-    selectedEntity: selectedEntity?.name,
-  });
 
   // Drawer mode: load all at once (limited)
   const drawerResult = useTabData<TopPetViewRecord>({
@@ -155,29 +149,21 @@ export function BreedTopPetsTab({
   }, [isFullscreen, hasMore, isLoadingMore, loadMore]);
 
   // Report loaded count for conditional fullscreen button
+  const onLoadedCountRef = useRef(onLoadedCount);
+  onLoadedCountRef.current = onLoadedCount;
   useEffect(() => {
-    if (!isLoading && data && onLoadedCount) {
-      onLoadedCount(data.length);
+    if (!isLoading && data && onLoadedCountRef.current) {
+      onLoadedCountRef.current(data.length);
     }
-  }, [data, isLoading, onLoadedCount]);
+  }, [data, isLoading]);
 
   // IntersectionObserver for infinite scroll
   // Dependencies include `pets.length` to re-run when data loads and ref becomes available
   useEffect(() => {
-    console.log("[BreedTopPetsTab] IntersectionObserver effect:", {
-      isFullscreen,
-      hasRef: !!loadMoreRef.current,
-      petsLength: pets.length,
-    });
     if (!isFullscreen || !loadMoreRef.current) return;
 
     const observer = new IntersectionObserver(
       (entries) => {
-        console.log("[BreedTopPetsTab] IntersectionObserver fired:", {
-          isIntersecting: entries[0]?.isIntersecting,
-          hasMore,
-          isLoadingMore,
-        });
         if (entries[0]?.isIntersecting) {
           handleLoadMore();
         }
@@ -272,4 +258,4 @@ export function BreedTopPetsTab({
       )}
     </>
   );
-}
+});
