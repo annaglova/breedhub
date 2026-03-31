@@ -214,6 +214,8 @@ class SpaceStore {
 
   // UI state - fullscreen mode for drawer (when opened from pretty URL or expand button)
   isFullscreen = signal<boolean>(false);
+  /** Emitted after background child refresh completes — useTabData subscribes to auto-refetch */
+  childRefreshSignal = signal<{ tableType: string; parentId: string } | null>(null);
 
   // Tab loaded counts per entity - used to determine if fullscreen tab should be shown
   // Structure: { [entityId]: { [tabId]: loadedCount } }
@@ -273,6 +275,16 @@ class SpaceStore {
 
       // Initialize sync queue service (V3 push)
       await syncQueueService.initialize(this.db);
+
+      // Reconnect pull: refresh active entity stores when coming back online
+      syncQueueService.onReconnect(() => {
+        for (const [entityType, entityStore] of this.entityStores.entries()) {
+          if (entityStore.entityList.value.length > 0) {
+            console.log(`[SpaceStore] Reconnect refresh: ${entityType}`);
+            this.applyFilters(entityType, {});
+          }
+        }
+      });
 
       // Create collections for all found entity types
       for (const entityType of this.availableEntityTypes.value) {
@@ -3402,6 +3414,9 @@ class SpaceStore {
       });
 
       await collection.bulkUpsert(transformedRecords);
+
+      // Notify UI to refetch (useTabData subscribes to this signal)
+      this.childRefreshSignal.value = { tableType: normalizedTableType, parentId };
     } catch {
       // Silent background refresh — don't break UI
     }

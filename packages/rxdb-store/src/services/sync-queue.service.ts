@@ -1,4 +1,5 @@
 import type { RxCollection, RxDatabase } from 'rxdb';
+import { signal } from '@preact/signals-react';
 import { supabase } from '../supabase/client';
 import type {
   EntitySyncQueueDocument,
@@ -24,6 +25,12 @@ class SyncQueueService {
   private circuitBreakerTimer: ReturnType<typeof setTimeout> | null = null;
   private initialized = false;
   private processing = false;
+  private lastErrorMessage = '';
+  private onReconnectCallback: (() => void) | null = null;
+
+  // UI-observable signals
+  pendingCount = signal<number>(0);
+  failedCount = signal<number>(0);
 
   async initialize(db: RxDatabase): Promise<void> {
     if (this.initialized) return;
@@ -38,14 +45,21 @@ class SyncQueueService {
 
     this.initialized = true;
     this.startProcessing();
+    this.updateCounts();
 
-    // Process immediately when coming back online
+    // Process immediately when coming back online + trigger pull refresh
     window.addEventListener('online', () => {
-      console.log('[SyncQueue] Back online — processing queue');
+      console.log('[SyncQueue] Back online — processing queue + refreshing data');
       this.processAll();
+      this.onReconnectCallback?.();
     });
 
     console.log('[SyncQueue] Initialized');
+  }
+
+  /** Register callback to run on reconnect (used by SpaceStore for pull refresh) */
+  onReconnect(callback: () => void): void {
+    this.onReconnectCallback = callback;
   }
 
   // --- Enqueue methods ---
@@ -78,6 +92,7 @@ class SyncQueueService {
         retries: 0,
         createdAt: Date.now(),
       });
+      this.updateCounts();
     } catch (error) {
       console.error('[SyncQueue] Failed to enqueue entity:', error);
     }
@@ -113,6 +128,7 @@ class SyncQueueService {
         retries: 0,
         createdAt: Date.now(),
       });
+      this.updateCounts();
     } catch (error) {
       console.error('[SyncQueue] Failed to enqueue child:', error);
     }
@@ -133,13 +149,6 @@ class SyncQueueService {
     }
   }
 
-  async getPendingCount(): Promise<number> {
-    if (!this.entityQueue || !this.childQueue) return 0;
-    const entityCount = await this.entityQueue.count().exec();
-    const childCount = await this.childQueue.count().exec();
-    return entityCount + childCount;
-  }
-
   private async processAll(): Promise<void> {
     if (!this.initialized || this.processing) return;
     if (typeof navigator !== 'undefined' && !navigator.onLine) return;
@@ -149,6 +158,7 @@ class SyncQueueService {
     try {
       await this.processEntityQueue();
       await this.processChildQueue();
+      this.updateCounts();
     } finally {
       this.processing = false;
     }
@@ -158,7 +168,11 @@ class SyncQueueService {
     if (!this.entityQueue) return;
 
     const items = await this.entityQueue
-      .find({ sort: [{ createdAt: 'asc' }], limit: BATCH_SIZE })
+      .find({
+        selector: { status: { $ne: 'failed' } },
+        sort: [{ createdAt: 'asc' }],
+        limit: BATCH_SIZE,
+      })
       .exec();
 
     if (items.length === 0) return;
@@ -188,6 +202,7 @@ class SyncQueueService {
           await this.bulkRemoveItems(this.entityQueue, upsertItems.map(i => i.id));
           this.onSuccess();
         } else {
+          this.lastErrorMessage = error.message;
           console.error(`[SyncQueue] Entity upsert error (${entityType}):`, error.message);
           await this.incrementRetries(this.entityQueue, upsertItems);
           this.onFailure();
@@ -207,6 +222,7 @@ class SyncQueueService {
           await this.bulkRemoveItems(this.entityQueue, deleteItems.map(i => i.id));
           this.onSuccess();
         } else {
+          this.lastErrorMessage = error.message;
           console.error(`[SyncQueue] Entity delete error (${entityType}):`, error.message);
           await this.incrementRetries(this.entityQueue, deleteItems);
           this.onFailure();
@@ -219,7 +235,11 @@ class SyncQueueService {
     if (!this.childQueue) return;
 
     const items = await this.childQueue
-      .find({ sort: [{ createdAt: 'asc' }], limit: BATCH_SIZE })
+      .find({
+        selector: { status: { $ne: 'failed' } },
+        sort: [{ createdAt: 'asc' }],
+        limit: BATCH_SIZE,
+      })
       .exec();
 
     if (items.length === 0) return;
@@ -252,6 +272,7 @@ class SyncQueueService {
           if (error.message.includes('schema cache') || error.message.includes('not found')) {
             await this.bulkRemoveItems(this.childQueue, upsertItems.map(i => i.id));
           } else {
+            this.lastErrorMessage = error.message;
             console.error(`[SyncQueue] Child upsert error (${tableType}):`, error.message);
             await this.incrementRetries(this.childQueue, upsertItems);
             this.onFailure();
@@ -276,6 +297,7 @@ class SyncQueueService {
             await item.remove();
             this.onSuccess();
           } else {
+            this.lastErrorMessage = error.message;
             console.error(`[SyncQueue] Child delete error (${tableType}):`, error.message);
             await this.incrementRetry(this.childQueue, item);
             this.onFailure();
@@ -303,11 +325,31 @@ class SyncQueueService {
   private async incrementRetry(collection: RxCollection<any>, item: any): Promise<void> {
     const newRetries = (item.retries || 0) + 1;
     if (newRetries > MAX_RETRIES) {
-      // Give up — remove from queue
-      console.warn(`[SyncQueue] Max retries exceeded, removing item ${item.id}`);
-      await item.remove();
+      // Mark as failed — keep in queue for diagnostics, stop retrying
+      console.warn(`[SyncQueue] Max retries exceeded, marking as failed: ${item.id}`);
+      await item.patch({
+        retries: newRetries,
+        status: 'failed',
+        error: this.lastErrorMessage || 'Max retries exceeded',
+      });
     } else {
       await item.patch({ retries: newRetries });
+    }
+  }
+
+  /** Update pending/failed count signals for UI */
+  private async updateCounts(): Promise<void> {
+    if (!this.entityQueue || !this.childQueue) return;
+    try {
+      const entityPending = await this.entityQueue.count({ selector: { status: { $ne: 'failed' } } }).exec();
+      const childPending = await this.childQueue.count({ selector: { status: { $ne: 'failed' } } }).exec();
+      this.pendingCount.value = entityPending + childPending;
+
+      const entityFailed = await this.entityQueue.count({ selector: { status: 'failed' } }).exec();
+      const childFailed = await this.childQueue.count({ selector: { status: 'failed' } }).exec();
+      this.failedCount.value = entityFailed + childFailed;
+    } catch {
+      // Ignore count errors
     }
   }
 

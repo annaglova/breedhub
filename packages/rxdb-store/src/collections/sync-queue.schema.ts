@@ -11,6 +11,8 @@ export interface EntitySyncQueueDocument {
   onConflict: string;
   retries: number;
   createdAt: number;
+  status?: string;
+  error?: string;
 }
 
 export const entitySyncQueueSchema: RxJsonSchema<EntitySyncQueueDocument> = {
@@ -26,6 +28,8 @@ export const entitySyncQueueSchema: RxJsonSchema<EntitySyncQueueDocument> = {
     onConflict: { type: 'string', maxLength: 100 },
     retries: { type: 'number', minimum: 0, maximum: 100, multipleOf: 1 },
     createdAt: { type: 'number', minimum: 0, maximum: 9999999999999, multipleOf: 1 },
+    status: { type: 'string', maxLength: 10 },
+    error: { type: 'string', maxLength: 500 },
   },
   required: ['id', 'entityType', 'entityId', 'operation', 'payload', 'onConflict', 'retries', 'createdAt'],
   indexes: ['entityId', 'createdAt'],
@@ -43,6 +47,8 @@ export interface ChildSyncQueueDocument {
   onConflict: string;
   retries: number;
   createdAt: number;
+  status?: string;
+  error?: string;
 }
 
 export const childSyncQueueSchema: RxJsonSchema<ChildSyncQueueDocument> = {
@@ -59,6 +65,8 @@ export const childSyncQueueSchema: RxJsonSchema<ChildSyncQueueDocument> = {
     onConflict: { type: 'string', maxLength: 100 },
     retries: { type: 'number', minimum: 0, maximum: 100, multipleOf: 1 },
     createdAt: { type: 'number', minimum: 0, maximum: 9999999999999, multipleOf: 1 },
+    status: { type: 'string', maxLength: 10 },
+    error: { type: 'string', maxLength: 500 },
   },
   required: ['id', 'entityType', 'tableType', 'recordId', 'operation', 'payload', 'onConflict', 'retries', 'createdAt'],
   indexes: ['recordId', 'createdAt'],
@@ -75,6 +83,8 @@ export interface DictionarySyncQueueDocument {
   onConflict: string;
   retries: number;
   createdAt: number;
+  status?: string;
+  error?: string;
 }
 
 export const dictionarySyncQueueSchema: RxJsonSchema<DictionarySyncQueueDocument> = {
@@ -90,6 +100,8 @@ export const dictionarySyncQueueSchema: RxJsonSchema<DictionarySyncQueueDocument
     onConflict: { type: 'string', maxLength: 100 },
     retries: { type: 'number', minimum: 0, maximum: 100, multipleOf: 1 },
     createdAt: { type: 'number', minimum: 0, maximum: 9999999999999, multipleOf: 1 },
+    status: { type: 'string', maxLength: 10 },
+    error: { type: 'string', maxLength: 500 },
   },
   required: ['id', 'tableName', 'recordId', 'operation', 'payload', 'onConflict', 'retries', 'createdAt'],
   indexes: ['recordId', 'createdAt'],

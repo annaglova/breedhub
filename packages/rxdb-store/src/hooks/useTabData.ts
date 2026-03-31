@@ -4,16 +4,9 @@
  * Uses TabDataService to route to appropriate loading strategy
  * while maintaining Local-First architecture (all data through RxDB).
  *
- * @see docs/TAB_DATA_SERVICE_ARCHITECTURE.md
+ * Auto-refetches when background child refresh completes (via childRefreshSignal).
  *
- * @example
- * ```tsx
- * const { data, isLoading, error } = useTabData({
- *   parentId: breedId,
- *   dataSource: tabConfig.dataSource,
- *   enabled: !!breedId
- * });
- * ```
+ * @see docs/TAB_DATA_SERVICE_ARCHITECTURE.md
  */
 
 import { useState, useEffect, useCallback, useRef } from 'react';
@@ -92,6 +85,18 @@ export function useTabData<T = any>({
       mountedRef.current = false;
     };
   }, [loadData]);
+
+  // Auto-refetch when background child refresh completes for this table+parent
+  useEffect(() => {
+    const refreshInfo = spaceStore.childRefreshSignal.value;
+    if (!refreshInfo || !parentId || !dataSource?.childTable) return;
+
+    const tableType = dataSource.childTable.table?.replace(/_with_\w+$/, '');
+    if (refreshInfo.parentId === parentId && refreshInfo.tableType === tableType) {
+      loadingRef.current = false; // Allow reload
+      loadData();
+    }
+  }, [spaceStore.childRefreshSignal.value, parentId, dataSource, loadData]);
 
   // Manual refetch
   const refetch = useCallback(async () => {
