@@ -78,7 +78,7 @@ interface EditFormTabProps {
   fields?: Record<string, FieldConfig>;
   onLoadedCount?: (count: number) => void;
   entityType?: string;
-  onSaveReady?: (handler: () => Promise<void>) => void;
+  onSaveReady?: (handler: () => Promise<boolean | void>) => void;
   onDirtyChange?: (dirty: boolean) => void;
   isCreateMode?: boolean;
   onCreateNameChange?: (name: string) => void;
@@ -159,7 +159,8 @@ export function EditFormTab({ fields, onLoadedCount, entityType, onSaveReady, on
       }
     } catch { /* non-critical */ }
 
-    navigate(`/${slug}`, { replace: true });
+    // Stay on edit page after creation — allows continuing to fill child tabs
+    navigate(`/${slug}/edit`, { replace: true });
   }, [navigate, entityType]);
 
   const { formChanges, hasChanges, handleFieldChange: rawHandleFieldChange, handleSave, markCurrentAsBaseline } = useEditForm({
@@ -315,9 +316,9 @@ export function EditFormTab({ fields, onLoadedCount, entityType, onSaveReady, on
   const { errors, touched, validateAll, touchAndValidate } = useFormValidation();
 
 
-  // Wrap handleSave with validation
-  const validatedSave = useCallback(async () => {
-    if (!fields) return;
+  // Wrap handleSave with validation. Returns false if validation failed (used by tab switch to block).
+  const validatedSave = useCallback(async (): Promise<boolean> => {
+    if (!fields) return false;
     const visibleFields = Object.fromEntries(
       Object.entries(fields).filter(([, c]) => !c.hidden)
     );
@@ -326,8 +327,9 @@ export function EditFormTab({ fields, onLoadedCount, entityType, onSaveReady, on
       (key) => formChanges[extractDbFieldName(key)] ?? selectedEntity?.[extractDbFieldName(key)],
       extractDbFieldName
     );
-    if (!isValid) return;
+    if (!isValid) return false;
     await handleSave();
+    return true;
   }, [fields, formChanges, selectedEntity, validateAll, handleSave]);
 
   // Register save handler with parent (with validation)

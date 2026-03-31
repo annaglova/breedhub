@@ -54,7 +54,7 @@ interface TabOutletRendererProps {
   onSaveReady?: (handler: () => Promise<void>) => void;
   entityType?: string;
   onDirtyChange?: (dirty: boolean) => void;
-  onBeforeTabChange?: () => Promise<void>;
+  onBeforeTabChange?: () => Promise<boolean | void>;
   onDefaultTabChange?: (isDefault: boolean) => void;
   isCreateMode?: boolean;
   onCreateNameChange?: (name: string) => void;
@@ -265,9 +265,13 @@ export function TabOutletRenderer({
   }, [activeTab, defaultTab, onDefaultTabChange]);
 
   // Wrap tab change to auto-save before switching (edit mode)
+  // In create mode, onBeforeTabChange returns false to block switch if validation fails
   const wrappedHandleTabChange = useCallback(async (fragment: string) => {
     if (onBeforeTabChange) {
-      try { await onBeforeTabChange(); } catch { /* save failed, still switch */ }
+      try {
+        const canSwitch = await onBeforeTabChange();
+        if (canSwitch === false) return;
+      } catch { /* save failed, still switch in edit mode */ }
     }
     handleTabChange(fragment);
   }, [handleTabChange, onBeforeTabChange]);

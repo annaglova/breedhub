@@ -91,7 +91,7 @@ function EditBlocks({
   const PAGE_MENU_TOP = nameBlockHeight > 0 ? nameBlockHeight : 0;
 
   // Save orchestration: active tab registers its save handler
-  const saveHandlerRef = useRef<(() => Promise<void>) | null>(null);
+  const saveHandlerRef = useRef<(() => Promise<boolean | void>) | null>(null);
 
   const onSaveReady = useCallback((handler: () => Promise<void>) => {
     saveHandlerRef.current = handler;
@@ -252,11 +252,19 @@ function EditBlocks({
   }, [navigate]);
 
   // Tab switch — auto-save before changing tab
-  const handleBeforeTabChange = useCallback(async () => {
+  // In create mode: blocks tab switch if validation fails or no changes
+  const handleBeforeTabChange = useCallback(async (): Promise<boolean | void> => {
     if (hasUnsavedRef.current && saveHandlerRef.current) {
-      await saveHandlerRef.current();
+      const result = await saveHandlerRef.current();
+      if (isCreateMode && result === false) {
+        return false; // Block tab switch — required fields not filled
+      }
     }
-  }, []);
+    // In create mode with no changes — block (entity doesn't exist yet)
+    if (isCreateMode && !hasUnsavedRef.current) {
+      return false;
+    }
+  }, [isCreateMode]);
 
 
   // Sort blocks by order
