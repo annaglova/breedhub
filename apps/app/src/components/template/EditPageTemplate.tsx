@@ -252,17 +252,16 @@ function EditBlocks({
   }, [navigate]);
 
   // Tab switch — auto-save before changing tab
-  // In create mode: blocks tab switch if validation fails or no changes
+  // In create mode: always run validation (even with no changes) and block if fails
   const handleBeforeTabChange = useCallback(async (): Promise<boolean | void> => {
-    if (hasUnsavedRef.current && saveHandlerRef.current) {
+    if (isCreateMode && saveHandlerRef.current) {
+      // Always validate + attempt save in create mode
       const result = await saveHandlerRef.current();
-      if (isCreateMode && result === false) {
+      if (result === false) {
         return false; // Block tab switch — required fields not filled
       }
-    }
-    // In create mode with no changes — block (entity doesn't exist yet)
-    if (isCreateMode && !hasUnsavedRef.current) {
-      return false;
+    } else if (hasUnsavedRef.current && saveHandlerRef.current) {
+      await saveHandlerRef.current();
     }
   }, [isCreateMode]);
 
