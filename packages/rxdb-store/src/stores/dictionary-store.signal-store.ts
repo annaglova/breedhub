@@ -162,15 +162,16 @@ class DictionaryStore {
         filterValue: string;
       };
     }
-  ): Promise<Array<{ id: string; name: string }>> {
+  ): Promise<Array<{ id: string; name: string; updated_at?: string }>> {
     const { search, limit, cursor, filterByIds, junctionFilter } = options;
 
     // Determine select clause and filter strategy:
     // - junctionFilter: use PostgREST embedded !inner join (no URL length issues)
     // - filterByIds: use .in() (OK for small sets, URL too long for 100+ UUIDs)
+    // Include updated_at for staleness check (server-based instead of timer-based)
     const selectClause = junctionFilter
-      ? `${idField}, ${nameField}, ${junctionFilter.junctionTable}!inner(${junctionFilter.junctionFilterField})`
-      : `${idField}, ${nameField}`;
+      ? `${idField}, ${nameField}, updated_at, ${junctionFilter.junctionTable}!inner(${junctionFilter.junctionFilterField})`
+      : `${idField}, ${nameField}, updated_at`;
 
     // Helper: apply junction or ID filter to a query builder
     const applyFilter = (q: any) => {
@@ -202,9 +203,10 @@ class DictionaryStore {
         throw new Error(`Hybrid search (starts_with) failed: ${startsWithError.message}`);
       }
 
-      const startsWithResults = (startsWithData || []).map(record => ({
+      const startsWithResults = (startsWithData || []).map((record: any) => ({
         id: String(record[idField]),
-        name: String(record[nameField])
+        name: String(record[nameField]),
+        updated_at: record.updated_at as string | undefined,
       }));
 
       // Phase 2: Contains (lower priority) - only if we have room
@@ -224,9 +226,10 @@ class DictionaryStore {
         const { data: containsData, error: containsError } = await containsQuery;
 
         if (!containsError) {
-          const containsResults = (containsData || []).map(record => ({
+          const containsResults = (containsData || []).map((record: any) => ({
             id: String(record[idField]),
-            name: String(record[nameField])
+            name: String(record[nameField]),
+            updated_at: record.updated_at as string | undefined,
           }));
 
           // Merge: starts_with first, then contains
@@ -267,10 +270,11 @@ class DictionaryStore {
       throw new Error(`Failed to fetch IDs from ${tableName}: ${error.message}`);
     }
 
-    // Normalize to { id, name }
-    return (data || []).map(record => ({
+    // Normalize to { id, name, updated_at }
+    return (data || []).map((record: any) => ({
       id: String(record[idField]),
-      name: String(record[nameField])
+      name: String(record[nameField]),
+      updated_at: record.updated_at as string | undefined,
     }));
   }
 
@@ -402,9 +406,13 @@ class DictionaryStore {
 
       const cachedMap = new Map(cached.map(doc => [doc.id, doc.toJSON()]));
 
-      // Staleness check: records cached > 24h are considered stale
+      // Staleness check: compare server updated_at with cached updated_at
+      // Fallback to 24h cachedAt-based TTL if updated_at not available
       const DICT_STALE_MS = 24 * 60 * 60 * 1000; // 24 hours
       const now = Date.now();
+      const serverUpdatedAtMap = new Map(
+        idsData.filter(r => r.updated_at).map(r => [r.id, r.updated_at!])
+      );
       const missingIds: string[] = [];
       const staleIds: string[] = [];
 
@@ -412,8 +420,17 @@ class DictionaryStore {
         const cachedDoc = cachedMap.get(id);
         if (!cachedDoc) {
           missingIds.push(id);
-        } else if (cachedDoc.cachedAt && (now - cachedDoc.cachedAt) > DICT_STALE_MS) {
-          staleIds.push(id);
+        } else {
+          const serverUpdatedAt = serverUpdatedAtMap.get(id);
+          if (serverUpdatedAt && cachedDoc.additional?.updated_at) {
+            // Server-based staleness: compare updated_at timestamps
+            if (serverUpdatedAt > cachedDoc.additional.updated_at) {
+              staleIds.push(id);
+            }
+          } else if (cachedDoc.cachedAt && (now - cachedDoc.cachedAt) > DICT_STALE_MS) {
+            // Fallback: cachedAt-based TTL for tables without updated_at
+            staleIds.push(id);
+          }
         }
       }
 

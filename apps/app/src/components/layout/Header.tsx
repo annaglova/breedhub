@@ -16,6 +16,7 @@ import { Menu } from "lucide-react";
 import { useState, forwardRef } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { UserDrawer } from "./UserDrawer";
+import { SyncStatusIndicator } from "./SyncStatusIndicator";
 import { Icon } from "@/components/shared/Icon";
 import type { IconConfig } from "@breedhub/rxdb-store";
 
@@ -174,6 +175,9 @@ export const Header = forwardRef<HTMLElement, HeaderProps>(
               )}
               <span className="ml-2">Dark</span>
             </Button> */}
+
+            {/* Sync status indicator */}
+            <SyncStatusIndicator />
 
             {/* User menu with online/offline status */}
             <button
