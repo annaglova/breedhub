@@ -1,6 +1,7 @@
 import type { RxCollection, RxDatabase } from 'rxdb';
 import { signal } from '@preact/signals-react';
 import { supabase } from '../supabase/client';
+import { runPostSaveHooks } from '../utils/entity-hooks';
 import type {
   EntitySyncQueueDocument,
   ChildSyncQueueDocument,
@@ -201,6 +202,10 @@ class SyncQueueService {
         if (!error) {
           await this.bulkRemoveItems(this.entityQueue, upsertItems.map(i => i.id));
           this.onSuccess();
+          // Post-push hooks (fire-and-forget) — entity now exists in Supabase
+          for (const item of upsertItems) {
+            runPostSaveHooks(entityType, item.entityId, item.payload);
+          }
         } else {
           this.lastErrorMessage = error.message;
           console.error(`[SyncQueue] Entity upsert error (${entityType}):`, error.message);

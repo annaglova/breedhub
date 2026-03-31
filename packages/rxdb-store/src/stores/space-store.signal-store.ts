@@ -25,7 +25,6 @@ import * as CC from '../utils/child-collection-registry';
 import { generateSchemaForEntity as buildSchema, ENTITY_VIEW_SOURCES } from '../utils/schema-builder';
 import { buildEntityPayload, buildChildPayload, getOnConflict } from '../utils/sync-queue.helpers';
 import { syncQueueService } from '../services/sync-queue.service';
-import { runPostSaveHooks } from '../utils/entity-hooks';
 
 // Universal entity interface for all business entities
 interface BusinessEntity {
@@ -1252,10 +1251,6 @@ class SpaceStore {
       );
 
       console.log(`[SpaceStore] Created ${entityType}:`, id);
-
-      // Post-save hooks (fire-and-forget: litter linking, etc.)
-      runPostSaveHooks(entityType, id, newEntity as Record<string, any>);
-
       return newEntity;
 
     } catch (error) {
@@ -1324,9 +1319,6 @@ class SpaceStore {
         buildEntityPayload(fullDoc),
         getOnConflict(entityType, partitionKey)
       );
-
-      // Post-save hooks (fire-and-forget: litter linking, etc.)
-      runPostSaveHooks(entityType, id, fullDoc, Object.keys(updates as Record<string, any>));
 
     } catch (error) {
       console.error(`[SpaceStore] Failed to update ${entityType}:`, error);
