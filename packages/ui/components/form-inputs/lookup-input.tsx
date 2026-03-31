@@ -757,7 +757,7 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
           >
             {/* 🔍 DEBUG: Total count */}
             <div className="px-3 py-1 text-xs text-slate-400 border-b border-slate-100 bg-slate-50 sticky top-0">
-              Showing {filteredOptions.length} results
+              Showing {filteredOptions.length} {label ? label.toLowerCase() : 'results'}
             </div>
             {filteredOptions.map((option, index) => (
               <div
