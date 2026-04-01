@@ -1,6 +1,4 @@
 import { signal, computed } from '@preact/signals-react';
-import { getDatabase } from '../services/database.service';
-import { Subscription } from 'rxjs';
 import { dictionaryStore } from './dictionary-store.signal-store';
 import { routeStore } from './route-store.signal-store';
 import { appConfigReader } from './app-config-reader';
@@ -46,7 +44,6 @@ class AppStore {
   error = signal<Error | null>(null);
   initialized = signal<boolean>(false);
   
-  private dbSubscription: Subscription | null = null;
   
   // Computed values
   workspaces = computed(() => {
@@ -100,26 +97,6 @@ class AppStore {
       if (updated) {
         this.appConfig.value = { id: 'latest', data: appConfigReader.getConfig()! } as AppConfig;
         console.log('[AppStore] Config updated from server');
-      } else if (!cachedConfig) {
-        // No cache AND no server — try RxDB as last resort (first-ever load)
-        const db = await getDatabase();
-        if (db.app_config) {
-          const appConfigDoc = await db.app_config
-            .findOne({ selector: { type: 'app' } })
-            .exec();
-          if (appConfigDoc) {
-            const doc = appConfigDoc.toJSON() as AppConfig;
-            this.appConfig.value = doc;
-            // Cache for next time
-            try {
-              localStorage.setItem('breedhub_app_config', JSON.stringify({
-                version: Date.now(),
-                data: doc.data,
-              }));
-            } catch { /* localStorage full */ }
-            console.log('[AppStore] Loaded config from RxDB (fallback)');
-          }
-        }
       }
 
       if (!this.appConfig.value) {
@@ -186,10 +163,7 @@ class AppStore {
   }
   
   dispose() {
-    if (this.dbSubscription) {
-      this.dbSubscription.unsubscribe();
-      this.dbSubscription = null;
-    }
+    // Nothing to clean up — config loaded from static JSON
   }
 }
 

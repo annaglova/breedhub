@@ -14,7 +14,6 @@ import { RxDBUpdatePlugin } from 'rxdb/plugins/update';
 import { RxDBCleanupPlugin } from 'rxdb/plugins/cleanup';
 import { wrappedValidateAjvStorage } from 'rxdb/plugins/validate-ajv';
 
-import { appConfigSchema } from '../collections/app-config.schema';
 import { dictionariesSchema } from '../collections/dictionaries.schema';
 import type { DictionaryCollection } from '../stores/dictionary-store.signal-store';
 import {
@@ -146,9 +145,6 @@ class DatabaseService {
     // Add collections with error handling
     try {
       const collectionsToAdd = {
-        app_config: {
-          schema: appConfigSchema,
-        },
         entity_sync_queue: {
           schema: entitySyncQueueSchema,
         },
@@ -201,11 +197,7 @@ class DatabaseService {
   }
 
   public async clearAllData(): Promise<void> {
-    const db = await this.getDatabase();
-    // Clear app_config collection if it exists
-    if (db.app_config) {
-      await db.app_config.find().remove();
-    }
+    // No-op — config is in localStorage, entity data in RxDB collections
   }
 
   public async removeDatabase(): Promise<void> {
