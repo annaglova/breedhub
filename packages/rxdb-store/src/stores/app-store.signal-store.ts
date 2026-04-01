@@ -5,9 +5,7 @@ import { RxCollection, RxDocument } from 'rxdb';
 import { EntityStore } from './base/entity-store';
 import { dictionaryStore } from './dictionary-store.signal-store';
 import { routeStore } from './route-store.signal-store';
-
-// App config ID we're working with
-const APP_CONFIG_ID = 'config_app_1757849573544';
+import { appConfigReader } from './app-config-reader';
 
 // Types
 export interface IconConfig {
@@ -96,41 +94,45 @@ class AppStore {
       this.loading.value = true;
       this.error.value = null;
 
-      // Get RxDB database
-      const db = await getDatabase();
+      // 1. Instant load from localStorage (offline-first)
+      const cachedConfig = appConfigReader.loadFromCache();
+      if (cachedConfig) {
+        this.appConfig.value = { id: 'cached', data: cachedConfig } as AppConfig;
+        console.log('[AppStore] Loaded config from cache (v' + appConfigReader.getVersion() + ')');
+      }
 
-      if (!db.app_config) {
-        console.error('[AppStore] app_config collection not found');
-        this.error.value = new Error('app_config collection not initialized');
+      // 2. Fetch latest from static JSON (background)
+      const updated = await appConfigReader.fetchLatest();
+      if (updated) {
+        this.appConfig.value = { id: 'latest', data: appConfigReader.getConfig()! } as AppConfig;
+        console.log('[AppStore] Config updated from server');
+      } else if (!cachedConfig) {
+        // No cache AND no server — try RxDB as last resort (first-ever load)
+        const db = await getDatabase();
+        if (db.app_config) {
+          const appConfigDoc = await db.app_config
+            .findOne({ selector: { type: 'app' } })
+            .exec();
+          if (appConfigDoc) {
+            const doc = appConfigDoc.toJSON() as AppConfig;
+            this.appConfig.value = doc;
+            // Cache for next time
+            try {
+              localStorage.setItem('breedhub_app_config', JSON.stringify({
+                version: Date.now(),
+                data: doc.data,
+              }));
+            } catch { /* localStorage full */ }
+            console.log('[AppStore] Loaded config from RxDB (fallback)');
+          }
+        }
+      }
+
+      if (!this.appConfig.value) {
+        console.error('[AppStore] App config not available');
+        this.error.value = new Error('App config not available');
         return;
       }
-
-      // Load app config
-      const appConfigDoc = await db.app_config
-        .findOne()
-        .where('id')
-        .eq(APP_CONFIG_ID)
-        .exec();
-
-      if (appConfigDoc) {
-        this.appConfig.value = appConfigDoc.toJSON() as AppConfig;
-        console.log('[AppStore] Loaded app config:', APP_CONFIG_ID);
-      } else {
-        console.warn('[AppStore] App config not found:', APP_CONFIG_ID);
-      }
-
-      // Subscribe to changes
-      this.dbSubscription = db.app_config
-        .findOne()
-        .where('id')
-        .eq(APP_CONFIG_ID)
-        .$
-        .subscribe(doc => {
-          if (doc) {
-            this.appConfig.value = doc.toJSON() as AppConfig;
-            console.log('[AppStore] App config updated');
-          }
-        });
 
       this.initialized.value = true;
 

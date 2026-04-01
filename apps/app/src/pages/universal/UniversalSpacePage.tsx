@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 import { SpaceComponent } from '@/components/space/SpaceComponent';
-import { appConfigStore } from '@breedhub/rxdb-store';
+import { spaceStore } from '@breedhub/rxdb-store';
 import { useSignals } from '@preact/signals-react/runtime';
 import { SpaceConfig } from '@/core/space/types';
 import { 
@@ -29,13 +29,12 @@ export function UniversalSpacePage() {
   useSignals();
   const { entityType } = useParams<{ entityType: string }>();
   
-  // Get space config from appConfigStore
+  // Get space config from spaceStore
   const spaceConfig = useMemo(() => {
     if (!entityType) return null;
     
     // Find the space config for this entity type
-    const configKey = `${entityType}_space`;
-    const config = appConfigStore.getConfig(configKey);
+    const config = spaceStore.getSpaceConfig(entityType);
     
     if (!config?.data) {
       // Fallback to basic config if not found
