@@ -3,7 +3,6 @@ import { dictionaryStore } from './dictionary-store.signal-store';
 import { routeStore } from './route-store.signal-store';
 import { appConfigReader } from './app-config-reader';
 
-// Types
 export interface IconConfig {
   name: string;
   source: 'lucide' | 'custom';
@@ -11,10 +10,10 @@ export interface IconConfig {
 
 interface Workspace {
   id: string;
-  icon: string | IconConfig; // Support both string (legacy) and object (new)
+  icon: string | IconConfig;
   path: string;
   label: string;
-  order?: number; // Order for display sorting
+  order?: number;
   spaces?: any;
 }
 
@@ -23,61 +22,41 @@ interface AppConfig {
   data: {
     workspaces: Record<string, Workspace>;
   };
-  deps?: string[];
-  type?: string;
-  caption?: string;
-  version?: number;
-}
-
-// Universal entity interface
-interface EntityData {
-  id: string;
-  [key: string]: any;
 }
 
 class AppStore {
   private static instance: AppStore;
-  
-  // Core signals
+
   appConfig = signal<AppConfig | null>(null);
   loading = signal<boolean>(true);
   error = signal<Error | null>(null);
   initialized = signal<boolean>(false);
-  
-  
-  // Computed values
+
   workspaces = computed(() => {
-    // Return empty array if config not loaded yet
     if (!this.appConfig.value?.data?.workspaces) return [];
-    
-    // Convert workspaces object to array
     return Object.entries(this.appConfig.value.data.workspaces).map(([key, workspace]) => ({
       ...workspace,
       configKey: key
     }));
   });
-  
-  // Computed to check if data is really loaded
+
   isDataLoaded = computed(() => {
     return !this.loading.value && this.appConfig.value !== null;
   });
-  
+
   private constructor() {
     this.initialize();
   }
-  
+
   static getInstance(): AppStore {
     if (!AppStore.instance) {
       AppStore.instance = new AppStore();
     }
     return AppStore.instance;
   }
-  
+
   async initialize() {
-    // Prevent multiple initializations
-    if (this.initialized.value) {
-      return;
-    }
+    if (this.initialized.value) return;
 
     console.log('[AppStore] Initializing...');
 
@@ -107,8 +86,7 @@ class AppStore {
 
       this.initialized.value = true;
 
-      // Initialize stores асинхронно (без await!)
-      // Не блокуємо AppStore initialization
+      // Initialize stores async (don't block app startup)
       this.initializeDictionaryStore();
       this.initializeRouteStore();
 
@@ -120,52 +98,26 @@ class AppStore {
     }
   }
 
-  /**
-   * Initialize DictionaryStore in background
-   * Called after AppStore is initialized
-   * Runs asynchronously - doesn't block app startup
-   */
   private async initializeDictionaryStore() {
     try {
       await dictionaryStore.initialize();
     } catch (error) {
       console.error('[AppStore] DictionaryStore initialization failed:', error);
-      // Don't throw - app can work without dictionaries cache
     }
   }
 
-  /**
-   * Initialize RouteStore in background
-   * Called after AppStore is initialized
-   * Runs asynchronously - doesn't block app startup
-   */
   private async initializeRouteStore() {
     try {
       await routeStore.initialize();
     } catch (error) {
       console.error('[AppStore] RouteStore initialization failed:', error);
-      // Don't throw - app can work without route cache
     }
   }
-  
+
   async reloadConfig() {
-    console.log('[AppStore] Reloading config...');
     this.initialized.value = false;
     await this.initialize();
   }
-  
-  getWorkspaceById(id: string) {
-    return this.workspaces.value.find(w => w.id === id);
-  }
-  
-  getWorkspaceByPath(path: string) {
-    return this.workspaces.value.find(w => w.path === path);
-  }
-  
-  dispose() {
-    // Nothing to clean up — config loaded from static JSON
-  }
 }
 
-// Export singleton instance
 export const appStore = AppStore.getInstance();
