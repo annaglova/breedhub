@@ -1,0 +1,278 @@
+{
+  "id": "entity_account_review",
+  "type": "entity",
+  "name": "account_review",
+  "displayName": "Account Review",
+  "category": "child",
+  "fields": [
+    {
+      "id": "field_contact_id",
+      "name": "contact_id",
+      "fieldType": "uuid",
+      "component": "LookupInput",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 10,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "isForeignKey": true,
+      "referencedTable": "contact",
+      "referencedFieldID": "id",
+      "dataSource": "collection",
+      "displayName": "Contact",
+      "placeholder": "Enter contact",
+      "referencedFieldName": "name"
+    },
+    {
+      "id": "field_rating",
+      "name": "rating",
+      "fieldType": "number",
+      "component": "NumberInput",
+      "required": true,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 20,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "displayName": "Rating",
+      "placeholder": "Enter rating",
+      "validation": {
+        "precision": 32,
+        "scale": 0
+      },
+      "defaultValue": "0"
+    },
+    {
+      "id": "field_order_number",
+      "name": "order_number",
+      "fieldType": "number",
+      "component": "NumberInput",
+      "required": true,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 30,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "displayName": "Order Number",
+      "placeholder": "Enter order number",
+      "validation": {
+        "precision": 32,
+        "scale": 0
+      },
+      "defaultValue": "0"
+    },
+    {
+      "id": "field_review",
+      "name": "review",
+      "fieldType": "string",
+      "component": "TextInput",
+      "required": true,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 40,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "maxLength": 500,
+      "displayName": "Review",
+      "placeholder": "Enter review",
+      "validation": {
+        "maxLength": 500
+      },
+      "defaultValue": ""
+    },
+    {
+      "id": "field_account_id",
+      "name": "account_id",
+      "fieldType": "uuid",
+      "component": "LookupInput",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 50,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "isForeignKey": true,
+      "referencedTable": "account",
+      "referencedFieldID": "id",
+      "dataSource": "collection",
+      "displayName": "Account",
+      "placeholder": "Enter account",
+      "referencedFieldName": "name"
+    },
+    {
+      "id": "field_test",
+      "name": "test",
+      "fieldType": "string",
+      "component": "TextInput",
+      "required": true,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 60,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "maxLength": 50,
+      "displayName": "Test",
+      "placeholder": "Enter test",
+      "validation": {
+        "maxLength": 50
+      },
+      "defaultValue": ""
+    },
+    {
+      "id": "field_id",
+      "name": "id",
+      "fieldType": "uuid",
+      "component": "TextInput",
+      "required": true,
+      "isSystem": true,
+      "isPrimaryKey": true,
+      "isUnique": true,
+      "sortOrder": 70,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "system"
+        ]
+      },
+      "displayName": "Id"
+    },
+    {
+      "id": "field_created_at",
+      "name": "created_at",
+      "fieldType": "datetime",
+      "component": "DateInput",
+      "required": false,
+      "isSystem": true,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 80,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "system"
+        ]
+      },
+      "displayName": "Created At"
+    },
+    {
+      "id": "field_created_by",
+      "name": "created_by",
+      "fieldType": "uuid",
+      "component": "TextInput",
+      "required": false,
+      "isSystem": true,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 90,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "system"
+        ]
+      },
+      "displayName": "Created By"
+    },
+    {
+      "id": "field_updated_at",
+      "name": "updated_at",
+      "fieldType": "datetime",
+      "component": "DateInput",
+      "required": false,
+      "isSystem": true,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 100,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "system"
+        ]
+      },
+      "displayName": "Updated At"
+    },
+    {
+      "id": "field_updated_by",
+      "name": "updated_by",
+      "fieldType": "uuid",
+      "component": "TextInput",
+      "required": false,
+      "isSystem": true,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 110,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "system"
+        ]
+      },
+      "displayName": "Updated By"
+    }
+  ],
+  "metadata": {
+    "tableName": "account_review",
+    "totalFields": 11,
+    "systemFields": 5,
+    "customFields": 6,
+    "generatedAt": "2026-03-23T12:19:30.555Z"
+  }
+}

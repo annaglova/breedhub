@@ -1,0 +1,78 @@
+{
+  "entity": "breed",
+  "childCollectionName": "breed_children",
+  "childTables": [
+    {
+      "tableName": "achievement_in_breed",
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "fieldType": "uuid",
+          "required": true,
+          "isPrimaryKey": true,
+          "isSystem": true
+        },
+        {
+          "name": "breed_id",
+          "type": "string",
+          "fieldType": "uuid",
+          "required": false,
+          "isForeignKey": true,
+          "referencedTable": "breed",
+          "referencedFieldID": "id",
+          "referencedFieldName": "name"
+        },
+        {
+          "name": "achievement_id",
+          "type": "string",
+          "fieldType": "uuid",
+          "required": false,
+          "isForeignKey": true,
+          "referencedTable": "achievement",
+          "referencedFieldID": "id",
+          "referencedFieldName": "name"
+        },
+        {
+          "name": "date",
+          "type": "string",
+          "fieldType": "datetime",
+          "required": false
+        },
+        {
+          "name": "created_at",
+          "type": "string",
+          "fieldType": "datetime",
+          "required": false,
+          "isSystem": true
+        },
+        {
+          "name": "created_by",
+          "type": "string",
+          "fieldType": "uuid",
+          "required": false,
+          "isSystem": true
+        },
+        {
+          "name": "updated_at",
+          "type": "string",
+          "fieldType": "datetime",
+          "required": false,
+          "isSystem": true
+        },
+        {
+          "name": "updated_by",
+          "type": "string",
+          "fieldType": "uuid",
+          "required": false,
+          "isSystem": true
+        }
+      ]
+    }
+  ],
+  "metadata": {
+    "generatedAt": "2025-11-20T13:00:00.000Z",
+    "totalChildTables": 1,
+    "description": "Child tables configuration for breed entity, starting with achievement_in_breed"
+  }
+}

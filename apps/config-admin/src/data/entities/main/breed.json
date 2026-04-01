@@ -1,0 +1,711 @@
+{
+  "id": "entity_breed",
+  "type": "entity",
+  "name": "breed",
+  "displayName": "Breed",
+  "category": "main",
+  "fields": [
+    {
+      "id": "field_name",
+      "name": "name",
+      "fieldType": "string",
+      "component": "TextInput",
+      "required": true,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 10,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "maxLength": 250,
+      "displayName": "Name",
+      "placeholder": "Enter name",
+      "validation": {
+        "maxLength": 250
+      },
+      "defaultValue": ""
+    },
+    {
+      "id": "field_pet_type_id",
+      "name": "pet_type_id",
+      "fieldType": "uuid",
+      "component": "DropdownInput",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 20,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "isForeignKey": true,
+      "referencedTable": "pet_type",
+      "referencedFieldID": "id",
+      "displayName": "Pet Type",
+      "placeholder": "Enter pet type",
+      "referencedFieldName": "name"
+    },
+    {
+      "id": "field_differ_by_coat_color",
+      "name": "differ_by_coat_color",
+      "fieldType": "boolean",
+      "component": "CheckboxInput",
+      "required": true,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 30,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "displayName": "Differ By Coat Color",
+      "placeholder": "Enter differ by coat color",
+      "defaultValue": "false"
+    },
+    {
+      "id": "field_differ_by_coat_type",
+      "name": "differ_by_coat_type",
+      "fieldType": "boolean",
+      "component": "CheckboxInput",
+      "required": true,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 40,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "displayName": "Differ By Coat Type",
+      "placeholder": "Enter differ by coat type",
+      "defaultValue": "false"
+    },
+    {
+      "id": "field_differ_by_size",
+      "name": "differ_by_size",
+      "fieldType": "boolean",
+      "component": "CheckboxInput",
+      "required": true,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 50,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "displayName": "Differ By Size",
+      "placeholder": "Enter differ by size",
+      "defaultValue": "false"
+    },
+    {
+      "id": "field_language_id",
+      "name": "language_id",
+      "fieldType": "uuid",
+      "component": "DropdownInput",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 60,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "isForeignKey": true,
+      "referencedTable": "sys_language",
+      "referencedFieldID": "id",
+      "displayName": "Language",
+      "placeholder": "Enter language",
+      "referencedFieldName": "name"
+    },
+    {
+      "id": "field_authentic_name",
+      "name": "authentic_name",
+      "fieldType": "string",
+      "component": "TextInput",
+      "required": true,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 70,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "maxLength": 250,
+      "displayName": "Authentic Name",
+      "placeholder": "Enter authentic name",
+      "validation": {
+        "maxLength": 250
+      },
+      "defaultValue": ""
+    },
+    {
+      "id": "field_differ_by_body_feature",
+      "name": "differ_by_body_feature",
+      "fieldType": "boolean",
+      "component": "CheckboxInput",
+      "required": true,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 80,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "displayName": "Differ By Body Feature",
+      "placeholder": "Enter differ by body feature",
+      "defaultValue": "false"
+    },
+    {
+      "id": "field_category_id",
+      "name": "category_id",
+      "fieldType": "uuid",
+      "component": "DropdownInput",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 90,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "isForeignKey": true,
+      "referencedTable": "breed_category",
+      "referencedFieldID": "id",
+      "displayName": "Category",
+      "placeholder": "Enter category",
+      "referencedFieldName": "name"
+    },
+    {
+      "id": "field_has_related_breed",
+      "name": "has_related_breed",
+      "fieldType": "boolean",
+      "component": "CheckboxInput",
+      "required": true,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 100,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "displayName": "Has Related Breed",
+      "placeholder": "Enter has related breed",
+      "defaultValue": "false"
+    },
+    {
+      "id": "field_admin_name",
+      "name": "admin_name",
+      "fieldType": "string",
+      "component": "TextInput",
+      "required": true,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 110,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "maxLength": 250,
+      "displayName": "Admin Name",
+      "placeholder": "Enter admin name",
+      "validation": {
+        "maxLength": 250
+      },
+      "defaultValue": ""
+    },
+    {
+      "id": "field_slug",
+      "name": "slug",
+      "fieldType": "string",
+      "component": "TextInput",
+      "required": true,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 120,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "maxLength": 500,
+      "displayName": "Slug",
+      "placeholder": "Enter slug",
+      "validation": {
+        "maxLength": 500
+      },
+      "defaultValue": ""
+    },
+    {
+      "id": "field_account_id",
+      "name": "account_id",
+      "fieldType": "uuid",
+      "component": "LookupInput",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 130,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "isForeignKey": true,
+      "referencedTable": "account",
+      "referencedFieldID": "id",
+      "dataSource": "collection",
+      "displayName": "Account",
+      "placeholder": "Enter account",
+      "referencedFieldName": "name"
+    },
+    {
+      "id": "field_avatar_url",
+      "name": "avatar_url",
+      "fieldType": "string",
+      "component": "TextInput",
+      "required": true,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 140,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "maxLength": 500,
+      "displayName": "Avatar Url",
+      "placeholder": "Enter avatar url",
+      "validation": {
+        "maxLength": 500,
+        "pattern": "^https?://.+",
+        "message": "Invalid URL format"
+      },
+      "defaultValue": ""
+    },
+    {
+      "id": "field_cover_id",
+      "name": "cover_id",
+      "fieldType": "uuid",
+      "component": "LookupInput",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 150,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "isForeignKey": true,
+      "referencedTable": "cover",
+      "referencedFieldID": "id",
+      "dataSource": "collection",
+      "displayName": "Cover",
+      "placeholder": "Enter cover",
+      "referencedFieldName": "name"
+    },
+    {
+      "id": "field_public_data_id",
+      "name": "public_data_id",
+      "fieldType": "uuid",
+      "component": "LookupInput",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 160,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "isForeignKey": true,
+      "referencedTable": "public_data",
+      "referencedFieldID": "id",
+      "dataSource": "collection",
+      "displayName": "Public Data",
+      "placeholder": "Enter public data",
+      "referencedFieldName": "name"
+    },
+    {
+      "id": "field_measurements",
+      "name": "measurements",
+      "fieldType": "json",
+      "component": "TextareaInput",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 170,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "displayName": "Measurements",
+      "placeholder": "Enter measurements"
+    },
+    {
+      "id": "field_description",
+      "name": "description",
+      "fieldType": "text",
+      "component": "TextareaInput",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 180,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "displayName": "Description",
+      "placeholder": "Enter description",
+      "defaultValue": ""
+    },
+    {
+      "id": "field_rating",
+      "name": "rating",
+      "fieldType": "number",
+      "component": "NumberInput",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 190,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "displayName": "Rating",
+      "placeholder": "Enter rating",
+      "validation": {
+        "precision": 24
+      },
+      "defaultValue": "0"
+    },
+    {
+      "id": "field_support_level",
+      "name": "support_level",
+      "fieldType": "number",
+      "component": "NumberInput",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 200,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "displayName": "Support Level",
+      "placeholder": "Enter support level",
+      "validation": {
+        "precision": 24
+      },
+      "defaultValue": "0"
+    },
+    {
+      "id": "field_achievements",
+      "name": "achievements",
+      "fieldType": "json",
+      "component": "TextareaInput",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 210,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "displayName": "Achievements",
+      "placeholder": "Enter achievements"
+    },
+    {
+      "id": "field_support_data",
+      "name": "support_data",
+      "fieldType": "json",
+      "component": "TextareaInput",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 220,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "displayName": "Support Data",
+      "placeholder": "Enter support data"
+    },
+    {
+      "id": "field_top_patrons",
+      "name": "top_patrons",
+      "fieldType": "json",
+      "component": "TextareaInput",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 230,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "displayName": "Top Patrons",
+      "placeholder": "Enter top patrons",
+      "defaultValue": "{}"
+    },
+    {
+      "id": "field_id",
+      "name": "id",
+      "fieldType": "uuid",
+      "component": "TextInput",
+      "required": true,
+      "isSystem": true,
+      "isPrimaryKey": true,
+      "isUnique": true,
+      "sortOrder": 240,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "system"
+        ]
+      },
+      "displayName": "Id"
+    },
+    {
+      "id": "field_created_at",
+      "name": "created_at",
+      "fieldType": "datetime",
+      "component": "DateInput",
+      "required": false,
+      "isSystem": true,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 250,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "system"
+        ]
+      },
+      "displayName": "Created At"
+    },
+    {
+      "id": "field_created_by",
+      "name": "created_by",
+      "fieldType": "uuid",
+      "component": "TextInput",
+      "required": false,
+      "isSystem": true,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 260,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "system"
+        ]
+      },
+      "displayName": "Created By"
+    },
+    {
+      "id": "field_updated_at",
+      "name": "updated_at",
+      "fieldType": "datetime",
+      "component": "DateInput",
+      "required": false,
+      "isSystem": true,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 270,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "system"
+        ]
+      },
+      "displayName": "Updated At"
+    },
+    {
+      "id": "field_updated_by",
+      "name": "updated_by",
+      "fieldType": "uuid",
+      "component": "TextInput",
+      "required": false,
+      "isSystem": true,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 280,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "system"
+        ]
+      },
+      "displayName": "Updated By"
+    },
+    {
+      "id": "field_deleted",
+      "name": "deleted",
+      "fieldType": "boolean",
+      "component": "CheckboxInput",
+      "required": false,
+      "isSystem": true,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 290,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "system"
+        ]
+      },
+      "displayName": "Deleted"
+    }
+  ],
+  "metadata": {
+    "tableName": "breed",
+    "totalFields": 29,
+    "systemFields": 6,
+    "customFields": 23,
+    "generatedAt": "2026-03-23T12:19:02.736Z"
+  }
+}

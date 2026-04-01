@@ -1,0 +1,15 @@
+{
+  "total": 260,
+  "successful": 258,
+  "failed": [
+    {
+      "table": "contact_role_for_pet",
+      "reason": "No schema found"
+    },
+    {
+      "table": "contact_type",
+      "reason": "No schema found"
+    }
+  ],
+  "generatedAt": "2026-03-23T12:19:01.940Z"
+}

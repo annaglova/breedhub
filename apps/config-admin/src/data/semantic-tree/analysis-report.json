@@ -1,0 +1,137 @@
+{
+  "summary": {
+    "totalEntities": 266,
+    "uniqueFields": 562,
+    "baseFields": 37,
+    "properties": 15,
+    "entityFieldsGenerated": 2957
+  },
+  "topFields": [
+    {
+      "name": "id",
+      "occurrences": 265,
+      "percentage": "99.6%"
+    },
+    {
+      "name": "created_at",
+      "occurrences": 263,
+      "percentage": "98.9%"
+    },
+    {
+      "name": "updated_at",
+      "occurrences": 263,
+      "percentage": "98.9%"
+    },
+    {
+      "name": "created_by",
+      "occurrences": 261,
+      "percentage": "98.1%"
+    },
+    {
+      "name": "updated_by",
+      "occurrences": 261,
+      "percentage": "98.1%"
+    },
+    {
+      "name": "name",
+      "occurrences": 167,
+      "percentage": "62.8%"
+    },
+    {
+      "name": "description",
+      "occurrences": 149,
+      "percentage": "56.0%"
+    },
+    {
+      "name": "contact_id",
+      "occurrences": 36,
+      "percentage": "13.5%"
+    },
+    {
+      "name": "breed_id",
+      "occurrences": 36,
+      "percentage": "13.5%"
+    },
+    {
+      "name": "code",
+      "occurrences": 31,
+      "percentage": "11.7%"
+    },
+    {
+      "name": "pet_id",
+      "occurrences": 27,
+      "percentage": "10.2%"
+    },
+    {
+      "name": "account_id",
+      "occurrences": 24,
+      "percentage": "9.0%"
+    },
+    {
+      "name": "pet_breed_id",
+      "occurrences": 24,
+      "percentage": "9.0%"
+    },
+    {
+      "name": "notes",
+      "occurrences": 22,
+      "percentage": "8.3%"
+    },
+    {
+      "name": "pet_type_id",
+      "occurrences": 21,
+      "percentage": "7.9%"
+    },
+    {
+      "name": "owner_id",
+      "occurrences": 17,
+      "percentage": "6.4%"
+    },
+    {
+      "name": "type_id",
+      "occurrences": 17,
+      "percentage": "6.4%"
+    },
+    {
+      "name": "status_id",
+      "occurrences": 17,
+      "percentage": "6.4%"
+    },
+    {
+      "name": "slug",
+      "occurrences": 17,
+      "percentage": "6.4%"
+    },
+    {
+      "name": "date",
+      "occurrences": 17,
+      "percentage": "6.4%"
+    }
+  ],
+  "systemFields": [
+    "id",
+    "created_at",
+    "updated_at",
+    "created_by",
+    "updated_by"
+  ],
+  "commonFields": [
+    "name",
+    "description",
+    "breeder_id",
+    "kennel_id"
+  ],
+  "analysis": {
+    "fieldTypes": {
+      "unknown": 371,
+      "uuid": 94,
+      "string": 30,
+      "text": 8,
+      "json": 4,
+      "number": 26,
+      "datetime": 7,
+      "boolean": 15,
+      "date": 7
+    }
+  }
+}

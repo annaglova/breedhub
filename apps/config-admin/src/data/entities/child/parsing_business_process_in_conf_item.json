@@ -1,0 +1,246 @@
+{
+  "id": "entity_parsing_business_process_in_conf_item",
+  "type": "entity",
+  "name": "parsing_business_process_in_conf_item",
+  "displayName": "Parsing Business Process In Conf Item",
+  "category": "child",
+  "fields": [
+    {
+      "id": "field_priority",
+      "name": "priority",
+      "fieldType": "number",
+      "component": "NumberInput",
+      "required": true,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 10,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "displayName": "Priority",
+      "placeholder": "Enter priority",
+      "validation": {
+        "precision": 32,
+        "scale": 0
+      },
+      "defaultValue": "0"
+    },
+    {
+      "id": "field_business_process_id",
+      "name": "business_process_id",
+      "fieldType": "uuid",
+      "component": "DropdownInput",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 20,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "isForeignKey": true,
+      "referencedTable": "business_process",
+      "referencedFieldID": "id",
+      "displayName": "Business Process",
+      "placeholder": "Enter business process",
+      "referencedFieldName": "id"
+    },
+    {
+      "id": "field_conf_item_id",
+      "name": "conf_item_id",
+      "fieldType": "uuid",
+      "component": "LookupInput",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 30,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "isForeignKey": true,
+      "referencedTable": "conf_item",
+      "referencedFieldID": "id",
+      "dataSource": "collection",
+      "displayName": "Conf Item",
+      "placeholder": "Enter conf item",
+      "referencedFieldName": "name"
+    },
+    {
+      "id": "field_is_active",
+      "name": "is_active",
+      "fieldType": "boolean",
+      "component": "CheckboxInput",
+      "required": true,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 40,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "displayName": "Is Active",
+      "placeholder": "Enter is active",
+      "defaultValue": "false"
+    },
+    {
+      "id": "field_provider_class_name",
+      "name": "provider_class_name",
+      "fieldType": "string",
+      "component": "TextInput",
+      "required": true,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 50,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "maxLength": 250,
+      "displayName": "Provider Class Name",
+      "placeholder": "Enter provider class name",
+      "validation": {
+        "maxLength": 250
+      },
+      "defaultValue": ""
+    },
+    {
+      "id": "field_id",
+      "name": "id",
+      "fieldType": "uuid",
+      "component": "TextInput",
+      "required": true,
+      "isSystem": true,
+      "isPrimaryKey": true,
+      "isUnique": true,
+      "sortOrder": 60,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "system"
+        ]
+      },
+      "displayName": "Id"
+    },
+    {
+      "id": "field_created_at",
+      "name": "created_at",
+      "fieldType": "datetime",
+      "component": "DateInput",
+      "required": false,
+      "isSystem": true,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 70,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "system"
+        ]
+      },
+      "displayName": "Created At"
+    },
+    {
+      "id": "field_created_by",
+      "name": "created_by",
+      "fieldType": "uuid",
+      "component": "TextInput",
+      "required": false,
+      "isSystem": true,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 80,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "system"
+        ]
+      },
+      "displayName": "Created By"
+    },
+    {
+      "id": "field_updated_at",
+      "name": "updated_at",
+      "fieldType": "datetime",
+      "component": "DateInput",
+      "required": false,
+      "isSystem": true,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 90,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "system"
+        ]
+      },
+      "displayName": "Updated At"
+    },
+    {
+      "id": "field_updated_by",
+      "name": "updated_by",
+      "fieldType": "uuid",
+      "component": "TextInput",
+      "required": false,
+      "isSystem": true,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 100,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "system"
+        ]
+      },
+      "displayName": "Updated By"
+    }
+  ],
+  "metadata": {
+    "tableName": "parsing_business_process_in_conf_item",
+    "totalFields": 10,
+    "systemFields": 5,
+    "customFields": 5,
+    "generatedAt": "2026-03-23T12:19:36.531Z"
+  }
+}

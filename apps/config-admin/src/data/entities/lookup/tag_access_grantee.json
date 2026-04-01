@@ -1,0 +1,257 @@
+{
+  "id": "entity_tag_access_grantee",
+  "type": "entity",
+  "name": "tag_access_grantee",
+  "displayName": "Tag Access Grantee",
+  "category": "lookup",
+  "fields": [
+    {
+      "id": "field_tag_access_id",
+      "name": "tag_access_id",
+      "fieldType": "uuid",
+      "component": "DropdownInput",
+      "required": false,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 10,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "isForeignKey": true,
+      "referencedTable": "tag_access",
+      "referencedFieldID": "id",
+      "displayName": "Tag Access",
+      "placeholder": "Enter tag access",
+      "referencedFieldName": "name"
+    },
+    {
+      "id": "field_can_tag",
+      "name": "can_tag",
+      "fieldType": "boolean",
+      "component": "CheckboxInput",
+      "required": true,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 20,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "displayName": "Can Tag",
+      "placeholder": "Enter can tag",
+      "defaultValue": "false"
+    },
+    {
+      "id": "field_can_create",
+      "name": "can_create",
+      "fieldType": "boolean",
+      "component": "CheckboxInput",
+      "required": true,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 30,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "displayName": "Can Create",
+      "placeholder": "Enter can create",
+      "defaultValue": "false"
+    },
+    {
+      "id": "field_can_delete",
+      "name": "can_delete",
+      "fieldType": "boolean",
+      "component": "CheckboxInput",
+      "required": true,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 40,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "displayName": "Can Delete",
+      "placeholder": "Enter can delete",
+      "defaultValue": "false"
+    },
+    {
+      "id": "field_can_edit",
+      "name": "can_edit",
+      "fieldType": "boolean",
+      "component": "CheckboxInput",
+      "required": true,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 50,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "displayName": "Can Edit",
+      "placeholder": "Enter can edit",
+      "defaultValue": "false"
+    },
+    {
+      "id": "field_can_read",
+      "name": "can_read",
+      "fieldType": "boolean",
+      "component": "CheckboxInput",
+      "required": true,
+      "isSystem": false,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 60,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "admin",
+          "editor"
+        ]
+      },
+      "displayName": "Can Read",
+      "placeholder": "Enter can read",
+      "defaultValue": "false"
+    },
+    {
+      "id": "field_id",
+      "name": "id",
+      "fieldType": "uuid",
+      "component": "TextInput",
+      "required": true,
+      "isSystem": true,
+      "isPrimaryKey": true,
+      "isUnique": true,
+      "sortOrder": 70,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "system"
+        ]
+      },
+      "displayName": "Id"
+    },
+    {
+      "id": "field_created_at",
+      "name": "created_at",
+      "fieldType": "datetime",
+      "component": "DateInput",
+      "required": false,
+      "isSystem": true,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 80,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "system"
+        ]
+      },
+      "displayName": "Created At"
+    },
+    {
+      "id": "field_created_by",
+      "name": "created_by",
+      "fieldType": "uuid",
+      "component": "TextInput",
+      "required": false,
+      "isSystem": true,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 90,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "system"
+        ]
+      },
+      "displayName": "Created By"
+    },
+    {
+      "id": "field_updated_at",
+      "name": "updated_at",
+      "fieldType": "datetime",
+      "component": "DateInput",
+      "required": false,
+      "isSystem": true,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 100,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "system"
+        ]
+      },
+      "displayName": "Updated At"
+    },
+    {
+      "id": "field_updated_by",
+      "name": "updated_by",
+      "fieldType": "uuid",
+      "component": "TextInput",
+      "required": false,
+      "isSystem": true,
+      "isPrimaryKey": false,
+      "isUnique": false,
+      "sortOrder": 110,
+      "permissions": {
+        "read": [
+          "*"
+        ],
+        "write": [
+          "system"
+        ]
+      },
+      "displayName": "Updated By"
+    }
+  ],
+  "metadata": {
+    "tableName": "tag_access_grantee",
+    "totalFields": 11,
+    "systemFields": 5,
+    "customFields": 6,
+    "generatedAt": "2026-03-23T12:19:27.946Z"
+  }
+}
