@@ -363,10 +363,11 @@ export const DropdownInput = forwardRef<HTMLInputElement, DropdownInputProps>(
       setIsOpen(!isOpen);
     }, [disabled, isOpen]);
 
-    // Close dropdown and blur field on page/container scroll
+    // Close dropdown on page/container scroll (but NOT scroll inside dropdown)
     useEffect(() => {
       if (!isOpen) return;
-      const handlePageScroll = () => {
+      const handlePageScroll = (e: Event) => {
+        if (dropdownListRef.current?.contains(e.target as Node)) return;
         setIsOpen(false);
         if (document.activeElement instanceof HTMLElement) {
           document.activeElement.blur();

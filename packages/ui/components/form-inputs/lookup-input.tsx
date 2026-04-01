@@ -470,17 +470,12 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
       if (currentQuery !== prevQuery) {
         prevSearchQueryRef.current = currentQuery;
 
-        // Debounce: wait 500ms after user stops typing
+        // Debounce: wait 700ms after user stops typing
         searchTimeoutRef.current = setTimeout(() => {
-          console.log(
-            "[LookupInput] 🔍 Debounced search triggered:",
-            currentQuery
-          );
           setSearchQuery(currentQuery);
-          setDynamicOptions([]);
-          cursorRef.current = null; // ✅ Reset cursor
+          cursorRef.current = null;
           loadDictionaryOptions(currentQuery, false);
-        }, 500); // ✅ 500ms debounce
+        }, 700);
       }
 
       return () => {
@@ -661,11 +656,13 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
       };
     }, [handleScroll, isOpen]);
 
-    // Close dropdown and blur field on page/container scroll
+    // Close dropdown on page/container scroll (but NOT scroll inside dropdown)
     useEffect(() => {
       if (!isOpen) return;
-      const handlePageScroll = () => {
+      const handlePageScroll = (e: Event) => {
+        if (dropdownListRef.current?.contains(e.target as Node)) return;
         setIsOpen(false);
+        setIsEditing(false);
         if (document.activeElement instanceof HTMLElement) {
           document.activeElement.blur();
         }
@@ -688,6 +685,7 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
             <Search className="h-4 w-4" />
           </div>
           <Input
+            {...props}
             ref={(node) => {
               inputRef.current = node;
               if (typeof ref === 'function') ref(node);
@@ -720,7 +718,6 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
             )}
             style={{ caretColor: isEditing ? "auto" : "transparent" }}
             aria-invalid={hasError ? "true" : undefined}
-            {...props}
           />
           {loading && (
             <div className="absolute inset-y-0 right-0 pr-3 flex items-center">

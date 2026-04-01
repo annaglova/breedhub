@@ -93,10 +93,11 @@ export const DateInput = forwardRef<HTMLInputElement, DateInputProps>(
       setIsOpen(true);
     }, [disabled]);
 
-    // Close calendar and blur field on page/container scroll
+    // Close calendar on page/container scroll (but NOT scroll inside calendar)
     React.useEffect(() => {
       if (!isOpen) return;
-      const handlePageScroll = () => {
+      const handlePageScroll = (e: Event) => {
+        if (calendarRef.current?.contains(e.target as Node)) return;
         setIsOpen(false);
         if (document.activeElement instanceof HTMLElement) {
           document.activeElement.blur();

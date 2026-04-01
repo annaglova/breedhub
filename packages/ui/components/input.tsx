@@ -25,6 +25,14 @@ const inputVariants = cva(
   }
 );
 
+// Non-DOM props that pass through from config-driven forms — strip before <input>
+const NON_DOM_PROPS = new Set([
+  'referencedTable', 'referencedFieldID', 'referencedFieldName',
+  'disabledOnGray', 'onValueChange', 'onCheckedChange',
+  'junctionFilter', 'filterBy', 'filterByValue', 'filterByIds',
+  'dataSource', 'error', 'touched',
+]);
+
 interface InputProps
   extends Omit<React.ComponentProps<"input">, "size">,
     VariantProps<typeof inputVariants> {
@@ -33,7 +41,15 @@ interface InputProps
 }
 
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ className, variant, size, type, startIcon, endIcon, ...props }, ref) => {
+  ({ className, variant, size, type, startIcon, endIcon, ...rest }, ref) => {
+    // Strip non-DOM props to avoid React warnings
+    const props: Record<string, any> = {};
+    for (const key in rest) {
+      if (!NON_DOM_PROPS.has(key)) {
+        props[key] = (rest as any)[key];
+      }
+    }
+
     const hasIcons = startIcon || endIcon;
 
     if (hasIcons) {
