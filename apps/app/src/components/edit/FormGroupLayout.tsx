@@ -17,15 +17,15 @@ export function FormGroupLayout({ layout, fields, renderField }: FormGroupLayout
   const regularFields = fields.filter(([, f]) => !f.fullWidth);
 
   if (regularFields.length === 0) {
-    return <>{fullWidthFields.map(([fieldId, field]) => renderField(fieldId, field))}</>;
+    return <>{fullWidthFields.map(([fieldId, field]) => <React.Fragment key={fieldId}>{renderField(fieldId, field)}</React.Fragment>)}</>;
   }
 
   if (layout === "horizontal") {
     return (
       <>
-        {fullWidthFields.map(([fieldId, field]) => renderField(fieldId, field))}
+        {fullWidthFields.map(([fieldId, field]) => <React.Fragment key={fieldId}>{renderField(fieldId, field)}</React.Fragment>)}
         <div className="sm:grid sm:grid-cols-2 sm:gap-x-3 gap-y-1">
-          {regularFields.map(([fieldId, field]) => renderField(fieldId, field))}
+          {regularFields.map(([fieldId, field]) => <React.Fragment key={fieldId}>{renderField(fieldId, field)}</React.Fragment>)}
         </div>
       </>
     );
@@ -38,13 +38,13 @@ export function FormGroupLayout({ layout, fields, renderField }: FormGroupLayout
 
   return (
     <>
-      {fullWidthFields.map(([fieldId, field]) => renderField(fieldId, field))}
+      {fullWidthFields.map(([fieldId, field]) => <React.Fragment key={fieldId}>{renderField(fieldId, field)}</React.Fragment>)}
       <div className="sm:grid sm:grid-cols-2 sm:gap-x-3">
         <div className="space-y-1">
-          {leftCol.map(([fieldId, field]) => renderField(fieldId, field))}
+          {leftCol.map(([fieldId, field]) => <React.Fragment key={fieldId}>{renderField(fieldId, field)}</React.Fragment>)}
         </div>
         <div className="space-y-1">
-          {rightCol.map(([fieldId, field]) => renderField(fieldId, field))}
+          {rightCol.map(([fieldId, field]) => <React.Fragment key={fieldId}>{renderField(fieldId, field)}</React.Fragment>)}
         </div>
       </div>
     </>
