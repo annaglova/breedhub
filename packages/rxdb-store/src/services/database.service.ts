@@ -15,7 +15,6 @@ import { RxDBCleanupPlugin } from 'rxdb/plugins/cleanup';
 import { wrappedValidateAjvStorage } from 'rxdb/plugins/validate-ajv';
 
 import { appConfigSchema } from '../collections/app-config.schema';
-import { AppConfigCollection } from '../stores/app-config.signal-store';
 import { dictionariesSchema } from '../collections/dictionaries.schema';
 import type { DictionaryCollection } from '../stores/dictionary-store.signal-store';
 import {
@@ -38,7 +37,6 @@ addRxPlugin(RxDBCleanupPlugin);
 
 // Database type
 export type DatabaseCollections = {
-  app_config: AppConfigCollection;
   dictionaries: DictionaryCollection;
   // Sync queue collections (V3 push)
   entity_sync_queue?: RxCollection<EntitySyncQueueDocument>;

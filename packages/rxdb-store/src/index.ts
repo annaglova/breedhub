@@ -28,8 +28,6 @@ export type { JunctionFilterConfig } from './hooks/useJunctionFilterIds';
 export type { DatabaseCollections, AppDatabase } from './services/database.service';
 
 // App Config Store (used by config-admin only)
-export { appConfigStore, childTypeMapping } from './stores/app-config.signal-store';
-export type { AppConfig, AppConfigDocument, AppConfigCollection } from './stores/app-config.signal-store';
 
 // App Config Reader (lightweight, used by app)
 export { appConfigReader } from './stores/app-config-reader';

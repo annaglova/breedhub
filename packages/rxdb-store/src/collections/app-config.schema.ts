@@ -1,5 +1,5 @@
 import type { RxJsonSchema } from 'rxdb';
-import type { AppConfig } from '../stores/app-config.signal-store';
+// AppConfig type inlined for schema
 
 export const appConfigSchema: RxJsonSchema<AppConfig> = {
   version: 0, // Keep at 0 to avoid migration issues
