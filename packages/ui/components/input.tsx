@@ -48,12 +48,11 @@ interface InputProps
     VariantProps<typeof inputVariants> {
   startIcon?: React.ReactNode;
   endIcon?: React.ReactNode;
-  [key: string]: any; // Allow custom props to pass through without TS errors
 }
 
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
   ({ className, variant, size, type, startIcon, endIcon, ...props }, ref) => {
-    const domProps = filterDOMProps(props);
+    const domProps = filterDOMProps(props as Record<string, any>);
     const hasIcons = startIcon || endIcon;
 
     if (hasIcons) {
