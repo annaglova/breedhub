@@ -25,15 +25,35 @@ const inputVariants = cva(
   }
 );
 
+// Custom props that should NOT be passed to DOM <input>
+const CUSTOM_PROPS = new Set([
+  'referencedTable', 'referencedFieldID', 'referencedFieldName',
+  'disabledOnGray', 'onValueChange', 'onCheckedChange',
+  'junctionFilter', 'filterBy', 'filterByValue', 'filterByIds',
+  'dataSource', 'startIcon', 'endIcon',
+]);
+
+function filterDOMProps(props: Record<string, any>): Record<string, any> {
+  const filtered: Record<string, any> = {};
+  for (const key in props) {
+    if (!CUSTOM_PROPS.has(key)) {
+      filtered[key] = props[key];
+    }
+  }
+  return filtered;
+}
+
 interface InputProps
   extends Omit<React.ComponentProps<"input">, "size">,
     VariantProps<typeof inputVariants> {
   startIcon?: React.ReactNode;
   endIcon?: React.ReactNode;
+  [key: string]: any; // Allow custom props to pass through without TS errors
 }
 
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
   ({ className, variant, size, type, startIcon, endIcon, ...props }, ref) => {
+    const domProps = filterDOMProps(props);
     const hasIcons = startIcon || endIcon;
 
     if (hasIcons) {
@@ -52,7 +72,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
               endIcon && "pr-9"
             )}
             ref={ref}
-            {...props}
+            {...domProps}
           />
           {endIcon && (
             <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
@@ -68,7 +88,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
         type={type}
         className={cn(inputVariants({ variant, size, className }))}
         ref={ref}
-        {...props}
+        {...domProps}
       />
     );
   }
