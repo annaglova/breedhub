@@ -54,6 +54,10 @@ interface InputProps
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
   ({ className, variant, size, type, startIcon, endIcon, ...props }, ref) => {
     const domProps = filterDOMProps(props);
+    // Suppress React warning: value without onChange → add readOnly
+    if (domProps.value !== undefined && !domProps.onChange && !domProps.readOnly) {
+      domProps.readOnly = true;
+    }
     const hasIcons = startIcon || endIcon;
 
     if (hasIcons) {
