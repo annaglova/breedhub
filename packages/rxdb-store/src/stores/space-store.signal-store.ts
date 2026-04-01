@@ -209,7 +209,6 @@ class SpaceStore {
   availableEntityTypes = signal<string[]>([]);
   
   // Sync state
-  syncProgress = signal<{ entity: string; loaded: number; total: number } | null>(null);
   isSyncing = signal<boolean>(false);
 
   // UI state - fullscreen mode for drawer (when opened from pretty URL or expand button)
@@ -1538,46 +1537,6 @@ class SpaceStore {
    * Initialize entity with lifecycle hooks
    * Similar to Angular's withHooks onInit
    */
-  async initializeEntity(entityType: string): Promise<void> {
-    const entityStore = await this.getEntityStore(entityType);
-    
-    if (!entityStore) {
-      throw new Error(`Failed to initialize entity: ${entityType}`);
-    }
-    
-    console.log(`[SpaceStore] Entity ${entityType} initialized with ${entityStore.total.value} items`);
-    
-    // Auto-select first if not already selected
-    if (!entityStore.hasSelection.value && !entityStore.isEmpty.value) {
-      entityStore.selectFirst();
-      console.log(`[SpaceStore] Auto-selected first ${entityType}`);
-    }
-  }
-  
-  /**
-   * Cleanup entity with lifecycle hooks
-   * Similar to Angular's withHooks onDestroy
-   */
-  cleanupEntity(entityType: string): void {
-    console.log(`[SpaceStore] Cleaning up entity ${entityType}`);
-    
-    // Clean up subscription
-    const subscription = this.entitySubscriptions.get(entityType);
-    if (subscription) {
-      subscription.unsubscribe();
-      this.entitySubscriptions.delete(entityType);
-    }
-    
-    // Clear store data
-    const entityStore = this.entityStores.get(entityType);
-    if (entityStore) {
-      entityStore.reset();
-      this.entityStores.delete(entityType);
-    }
-    
-    console.log(`[SpaceStore] Entity ${entityType} cleaned up`);
-  }
-  
   /**
    * Apply filters to entity data
    * Universal filtering method used by both SpaceView and LookupInput
