@@ -159,8 +159,8 @@ export function EditFormTab({ fields, onLoadedCount, entityType, onSaveReady, on
       }
     } catch { /* non-critical */ }
 
-    // Stay on edit page after creation — allows continuing to fill child tabs
-    navigate(`/${slug}/edit`, { replace: true });
+    // Navigate to public page after creation
+    navigate(`/${slug}`, { replace: true });
   }, [navigate, entityType]);
 
   const { formChanges, hasChanges, handleFieldChange: rawHandleFieldChange, handleSave, markCurrentAsBaseline } = useEditForm({
