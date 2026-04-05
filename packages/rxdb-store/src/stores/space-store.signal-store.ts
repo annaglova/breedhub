@@ -25,7 +25,7 @@ import * as CC from '../utils/child-collection-registry';
 import { generateSchemaForEntity as buildSchema, ENTITY_VIEW_SOURCES } from '../utils/schema-builder';
 import { buildEntityPayload, buildChildPayload, getOnConflict } from '../utils/sync-queue.helpers';
 import { syncQueueService } from '../services/sync-queue.service';
-import { appConfigReader } from './app-config-reader';
+import { checkSchemaVersion } from '../utils/schema-version-check';
 
 // Universal entity interface for all business entities
 interface BusinessEntity {
@@ -270,28 +270,9 @@ class SpaceStore {
       this.configReady.value = true;
       console.log('[SpaceStore] ✅ CONFIG READY at', new Date().toISOString());
 
-      // Schema version check — auto-clear RxDB if config changed
-      const configVersion = String(appConfigReader.getVersion());
-      const savedVersion = localStorage.getItem('breedhub_schema_version');
-      if (savedVersion && savedVersion !== configVersion) {
-        console.log(`[SpaceStore] Schema version changed (${savedVersion} → ${configVersion}). Clearing RxDB cache...`);
-        try {
-          // Flush sync queue first (push unsent changes)
-          const tempDb = await getDatabase();
-          await syncQueueService.initialize(tempDb);
-          await syncQueueService.processNow?.();
-        } catch { /* best effort */ }
-        // Clear IndexedDB
-        indexedDB.deleteDatabase('rxdb-dexie-breedhub');
-        indexedDB.deleteDatabase('breedhub');
-        localStorage.setItem('breedhub_schema_version', configVersion);
-        console.log('[SpaceStore] RxDB cleared. Reloading...');
-        window.location.reload();
-        return;
-      }
-      if (!savedVersion) {
-        localStorage.setItem('breedhub_schema_version', configVersion);
-      }
+      // Auto-clear RxDB if config version changed (schema migration)
+      const reloading = await checkSchemaVersion();
+      if (reloading) return;
 
       // Get database instance from AppStore
       this.db = await getDatabase();
