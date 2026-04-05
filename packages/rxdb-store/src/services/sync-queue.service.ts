@@ -150,6 +150,11 @@ class SyncQueueService {
     }
   }
 
+  /** Force process all queues now (used before schema migration clear) */
+  async processNow(): Promise<void> {
+    return this.processAll();
+  }
+
   private async processAll(): Promise<void> {
     if (!this.initialized || this.processing) return;
     if (typeof navigator !== 'undefined' && !navigator.onLine) return;
