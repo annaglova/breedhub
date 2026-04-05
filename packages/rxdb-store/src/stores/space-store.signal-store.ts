@@ -191,6 +191,7 @@ class SpaceStore {
   
   // Dynamic entity stores - one EntityStore per entity type
   private entityStores = new Map<string, EntityStore<BusinessEntity>>();
+  private entityStoresVersion = signal<number>(0); // Bumped when entityStores Map changes
   private entitySubscriptions = new Map<string, Subscription>();
   private spaceConfigs = new Map<string, SpaceConfig>();
 
@@ -1007,6 +1008,7 @@ class SpaceStore {
 
       // Store it
       this.entityStores.set(entityType, entityStore as EntityStore<BusinessEntity>);
+      this.entityStoresVersion.value++; // Notify computed signals
 
       // Subscribe to totalCount updates from replication
       entityReplicationService.onTotalCountUpdate(entityType, (newTotal) => {
@@ -2756,13 +2758,14 @@ class SpaceStore {
    * Use this in React components for automatic re-renders on selection changes
    */
   getSelectedIdSignal(entityType: string): ReadonlySignal<string | null> {
-    const entityStore = this.entityStores.get(entityType.toLowerCase());
-    if (!entityStore) {
-      console.warn(`[SpaceStore] No entity store found for ${entityType}`);
-      return computed(() => null);
-    }
-    // Return a computed signal that tracks the selectedId
-    return computed(() => entityStore.selectedId.value);
+    return computed(() => {
+      void this.entityStoresVersion.value; // Subscribe to Map changes
+      const entityStore = this.entityStores.get(entityType.toLowerCase());
+      if (!entityStore) {
+        return null;
+      }
+      return entityStore.selectedId.value;
+    });
   }
 
   /**
@@ -3081,7 +3084,9 @@ class SpaceStore {
    */
   getSelectedEntity(entityType: string) {
     // Return a computed that checks for entity store reactively
+    // Read entityStoresVersion to re-evaluate when new stores are added
     return computed(() => {
+      void this.entityStoresVersion.value; // Subscribe to Map changes
       const entityStore = this.entityStores.get(entityType.toLowerCase());
       if (!entityStore) {
         return null;
