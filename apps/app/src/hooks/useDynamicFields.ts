@@ -237,7 +237,9 @@ export function useDynamicFields({ fields, getValue, onChange, readonlyCondition
       const componentName = config.component || "";
       const cascadeDisabled = isFieldDisabled(config);
       const readonlyByCondition = !!(config.readonlyWhen && readonlyConditions?.conditions[config.readonlyWhen]);
-      const disabled = cascadeDisabled || readonlyByCondition;
+      const writePerms = config.permissions?.write;
+      const isSystemOnly = Array.isArray(writePerms) && (writePerms.length === 0 || (writePerms.length === 1 && writePerms[0] === 'system'));
+      const disabled = cascadeDisabled || readonlyByCondition || isSystemOnly;
 
       return {
         label: config.displayName,

@@ -102,6 +102,7 @@ interface EditChildTableTabProps {
   entityType?: string;
   addDialogOpen?: boolean;
   onAddDialogClose?: () => void;
+  protectedWhen?: { field: string; value: any };
 }
 
 function formatCellValue(value: unknown, fieldType?: string): string {
@@ -254,6 +255,7 @@ export function EditChildTableTab({
   entityType,
   addDialogOpen,
   onAddDialogClose,
+  protectedWhen,
 }: EditChildTableTabProps) {
   useSignals();
 
@@ -363,32 +365,39 @@ export function EditChildTableTab({
       enableSorting: false,
       enableGlobalFilter: false,
       header: () => null,
-      cell: ({ row }) => (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="ghost-secondary"
-              className="size-[2.25rem] rounded-full p-0"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <MoreVertical size={16} />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleEdit(row.original); }}>
-              <Pencil className="size-4 mr-2" />
-              Edit
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              className="text-destructive"
-              onClick={(e) => { e.stopPropagation(); setDeletingRecord(row.original); }}
-            >
-              <Trash2 className="size-4 mr-2" />
-              Delete
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      ),
+      cell: ({ row }) => {
+        // Check if record is protected (e.g., is_primary=true)
+        const data = row.original.additional || row.original;
+        const isProtected = protectedWhen && data[protectedWhen.field] === protectedWhen.value;
+
+        return (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost-secondary"
+                className="size-[2.25rem] rounded-full p-0"
+                onClick={(e) => e.stopPropagation()}
+                disabled={isProtected}
+              >
+                <MoreVertical size={16} />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleEdit(row.original); }}>
+                <Pencil className="size-4 mr-2" />
+                Edit
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                className="text-destructive"
+                onClick={(e) => { e.stopPropagation(); setDeletingRecord(row.original); }}
+              >
+                <Trash2 className="size-4 mr-2" />
+                Delete
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        );
+      },
       size: 50,
     };
 
@@ -455,6 +464,7 @@ export function EditChildTableTab({
           isEntityChild={isEntityChild}
           dataSources={isEntityChild ? dataSource : undefined}
           parentEntity={isEntityChild ? selectedEntity : undefined}
+          readOnly={!!(protectedWhen && editingRecord && (editingRecord.additional || editingRecord)[protectedWhen.field] === protectedWhen.value)}
         />
       )}
 

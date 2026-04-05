@@ -98,6 +98,7 @@ function convertTabConfigToTabs(tabsConfig: Record<string, TabConfig>): Tab[] {
     const tabProps: Record<string, any> = {};
     if (config.fields) tabProps.fields = config.fields;
     if (config.label) tabProps.label = config.label;
+    if (config.protectedWhen) tabProps.protectedWhen = config.protectedWhen;
 
     // Build searchPlaceholder from searchable fields
     if (config.actionTypes?.includes("search") && config.fields) {

@@ -50,6 +50,7 @@ interface EditChildRecordDialogProps {
   isEntityChild?: boolean;
   dataSources?: DataSourceConfig[];
   parentEntity?: Record<string, any> | null;
+  readOnly?: boolean;
 }
 
 /**
@@ -127,6 +128,7 @@ export function EditChildRecordDialog({
   isEntityChild,
   dataSources,
   parentEntity,
+  readOnly,
 }: EditChildRecordDialogProps) {
   const [formChanges, setFormChanges] = useState<Record<string, any>>({});
   const [isSaving, setIsSaving] = useState(false);
@@ -177,11 +179,16 @@ export function EditChildRecordDialog({
     [formChanges, record, isEntityChild]
   );
 
-  const { getFieldProps } = useDynamicFields({
+  const { getFieldProps: baseGetFieldProps } = useDynamicFields({
     fields: fieldsList,
     getValue,
     onChange: handleFieldChange,
   });
+
+  // When readOnly, override all fields as disabled
+  const getFieldProps = readOnly
+    ? (fieldId: string, config: any) => ({ ...baseGetFieldProps(fieldId, config), disabled: true, disabledOnGray: true })
+    : baseGetFieldProps;
 
   const hasChanges = Object.keys(formChanges).length > 0;
 
@@ -291,8 +298,9 @@ export function EditChildRecordDialog({
               onClick={() => onOpenChange(false)}
               className="small-button bg-secondary-100 hover:bg-secondary-200 focus:bg-secondary-300 text-slate-800 dark:text-zinc-900 dark:bg-surface-400 dark:hover:bg-surface-300"
             >
-              Cancel
+              {readOnly ? "Close" : "Cancel"}
             </Button>
+            {!readOnly && (
             <Button
               type="submit"
               disabled={!hasChanges || isSaving}
@@ -300,6 +308,7 @@ export function EditChildRecordDialog({
             >
               {isSaving ? "Saving..." : "Save"}
             </Button>
+            )}
           </div>
         </form>
       </DialogContent>
