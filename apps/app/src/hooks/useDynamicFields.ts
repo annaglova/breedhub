@@ -258,6 +258,7 @@ export function useDynamicFields({ fields, getValue, onChange, readonlyCondition
           ? { helperText: readonlyConditions.messages[config.readonlyWhen!] }
           : {}),
         ...getCascadeProps(config),
+        ...(config.defaultFilters ? { defaultFilters: config.defaultFilters } : {}),
       };
     },
     [isFieldDisabled, getValueProps, getChangeProps, getCascadeProps, readonlyConditions]

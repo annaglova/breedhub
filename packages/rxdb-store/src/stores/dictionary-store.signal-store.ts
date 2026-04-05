@@ -161,9 +161,10 @@ class DictionaryStore {
         junctionFilterField: string;
         filterValue: string;
       };
+      defaultFilters?: Record<string, any>;
     }
   ): Promise<Array<{ id: string; name: string; updated_at?: string }>> {
-    const { search, limit, cursor, filterByIds, junctionFilter } = options;
+    const { search, limit, cursor, filterByIds, junctionFilter, defaultFilters } = options;
 
     // Determine select clause and filter strategy:
     // - junctionFilter: use PostgREST embedded !inner join (no URL length issues)
@@ -173,13 +174,18 @@ class DictionaryStore {
       ? `${idField}, ${nameField}, updated_at, ${junctionFilter.junctionTable}!inner(${junctionFilter.junctionFilterField})`
       : `${idField}, ${nameField}, updated_at`;
 
-    // Helper: apply junction or ID filter to a query builder
+    // Helper: apply junction, ID, or static filters to a query builder
     const applyFilter = (q: any) => {
       if (junctionFilter) {
-        return q.eq(`${junctionFilter.junctionTable}.${junctionFilter.junctionFilterField}`, junctionFilter.filterValue);
+        q = q.eq(`${junctionFilter.junctionTable}.${junctionFilter.junctionFilterField}`, junctionFilter.filterValue);
       }
       if (filterByIds && filterByIds.length > 0) {
-        return q.in(idField, filterByIds);
+        q = q.in(idField, filterByIds);
+      }
+      if (defaultFilters) {
+        for (const [key, value] of Object.entries(defaultFilters)) {
+          q = q.eq(key, value);
+        }
       }
       return q;
     };
@@ -352,6 +358,7 @@ class DictionaryStore {
         junctionFilterField: string;
         filterValue: string;
       };
+      defaultFilters?: Record<string, any>; // Static filter on referenced table (e.g. { for_pet: true })
     } = {}
   ): Promise<{ records: DictionaryDocument[]; total: number; hasMore: boolean; nextCursor: string | null }> {
     if (!this.collection) {
@@ -366,7 +373,8 @@ class DictionaryStore {
       cursor = null,
       additionalFields,
       filterByIds,
-      junctionFilter
+      junctionFilter,
+      defaultFilters
     } = options;
 
     // 📴 PREVENTIVE OFFLINE CHECK: Skip Supabase if browser is offline
@@ -380,7 +388,7 @@ class DictionaryStore {
         tableName,
         idField,
         nameField,
-        { search, limit, cursor, filterByIds, junctionFilter }
+        { search, limit, cursor, filterByIds, junctionFilter, defaultFilters }
       );
 
       if (!idsData || idsData.length === 0) {
@@ -482,6 +490,12 @@ class DictionaryStore {
           );
         } else if (filterByIds && filterByIds.length > 0) {
           countQuery = countQuery.in(idField, filterByIds);
+        }
+
+        if (defaultFilters) {
+          for (const [key, value] of Object.entries(defaultFilters)) {
+            countQuery = countQuery.eq(key, value);
+          }
         }
 
         if (search) {

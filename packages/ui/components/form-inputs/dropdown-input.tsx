@@ -45,6 +45,8 @@ interface DropdownInputProps
   filterByValue?: string;   // Parent value to match (e.g. selected pet_type UUID)
   // Junction table filtering (many-to-many: filter by allowed IDs from junction table)
   filterByIds?: string[] | null; // Allowed IDs from junction table query (null = no filtering)
+  // Static filter on referenced table (e.g. { for_pet: true })
+  defaultFilters?: Record<string, any>;
   // Style variant for disabled state
   disabledOnGray?: boolean; // Use white background when disabled (for gray backgrounds)
 }
@@ -70,6 +72,7 @@ export const DropdownInput = forwardRef<HTMLInputElement, DropdownInputProps>(
       filterBy,
       filterByValue,
       filterByIds,
+      defaultFilters,
       disabledOnGray,
       ...props
     },
@@ -152,6 +155,7 @@ export const DropdownInput = forwardRef<HTMLInputElement, DropdownInputProps>(
             limit: 30,
             cursor: currentCursor, // ✅ Pass cursor instead of offset
             additionalFields: filterBy ? [filterBy] : undefined,
+            defaultFilters: defaultFilters || undefined,
           });
 
           // Transform to dropdown options
@@ -222,7 +226,7 @@ export const DropdownInput = forwardRef<HTMLInputElement, DropdownInputProps>(
           setLoading(false);
         }
       },
-      [referencedTable, referencedFieldID, referencedFieldName, cursor, filterBy]
+      [referencedTable, referencedFieldID, referencedFieldName, cursor, filterBy, defaultFilters]
     );
 
     // Pre-load dictionary data on mount (for small dictionaries like pet_type)
