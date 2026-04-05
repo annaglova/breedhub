@@ -1,4 +1,5 @@
 import { useCallback, useMemo } from "react";
+import { spaceStore } from "@breedhub/rxdb-store";
 
 /**
  * Shared field config interface for dynamic form rendering.
@@ -21,6 +22,8 @@ export interface DynamicFieldConfig {
   filterBy?: string;
   // Conditional readonly (resolved by useResolveConditions)
   readonlyWhen?: string;
+  // Auto-fill sibling fields from source record when this field changes
+  fillDependent?: Array<{ sourceField: string; targetField: string }>;
   [key: string]: any;
 }
 
@@ -102,13 +105,34 @@ export function useDynamicFields({ fields, getValue, onChange, readonlyCondition
           if (currentVal !== undefined && currentVal !== "" && currentVal !== null) {
             onChange(depDbName, "");
           }
-          // Recurse: clear fields that depend on this dependent field
           clearDependents(dep.id);
         }
       };
       clearDependents(fieldId);
+
+      // Fill dependent fields from source record
+      const fieldConfig = fields.find(f => f.id === fieldId)?.config;
+      if (fieldConfig?.fillDependent && fieldConfig.referencedTable) {
+        if (value) {
+          spaceStore.getRecordById(fieldConfig.referencedTable, value).then(record => {
+            if (record) {
+              for (const dep of fieldConfig.fillDependent!) {
+                const sourceValue = (record as any)[dep.sourceField];
+                if (sourceValue) {
+                  onChange(dep.targetField, sourceValue);
+                }
+              }
+            }
+          }).catch(() => { /* silent — fillDependent is best-effort */ });
+        } else {
+          // Source cleared → clear dependent fields
+          for (const dep of fieldConfig.fillDependent) {
+            onChange(dep.targetField, "");
+          }
+        }
+      }
     },
-    [onChange, getValue, getDependentFields]
+    [onChange, getValue, getDependentFields, fields]
   );
 
   /**

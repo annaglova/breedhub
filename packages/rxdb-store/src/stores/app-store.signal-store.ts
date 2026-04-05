@@ -69,22 +69,31 @@ class AppStore {
       if (cachedConfig) {
         this.appConfig.value = { id: 'cached', data: cachedConfig } as AppConfig;
         console.log('[AppStore] Loaded config from cache (v' + appConfigReader.getVersion() + ')');
-      }
+        this.initialized.value = true;
 
-      // 2. Fetch latest from static JSON (background)
-      const updated = await appConfigReader.fetchLatest();
-      if (updated) {
-        this.appConfig.value = { id: 'latest', data: appConfigReader.getConfig()! } as AppConfig;
-        console.log('[AppStore] Config updated from server');
-      }
+        // Background update — don't block startup
+        appConfigReader.fetchLatest().then(updated => {
+          if (updated) {
+            this.appConfig.value = { id: 'latest', data: appConfigReader.getConfig()! } as AppConfig;
+            console.log('[AppStore] Config updated in background');
+          }
+        }).catch(() => {});
+      } else {
+        // No cache — must fetch (first-ever load)
+        const updated = await appConfigReader.fetchLatest();
+        if (updated) {
+          this.appConfig.value = { id: 'latest', data: appConfigReader.getConfig()! } as AppConfig;
+          console.log('[AppStore] Config loaded from server (first load)');
+        }
 
-      if (!this.appConfig.value) {
-        console.error('[AppStore] App config not available');
-        this.error.value = new Error('App config not available');
-        return;
-      }
+        if (!this.appConfig.value) {
+          console.error('[AppStore] App config not available');
+          this.error.value = new Error('App config not available');
+          return;
+        }
 
-      this.initialized.value = true;
+        this.initialized.value = true;
+      }
 
       // Initialize stores async (don't block app startup)
       this.initializeDictionaryStore();
