@@ -1,5 +1,6 @@
 import { useSelectedEntity } from "@/contexts/SpaceContext";
-import { dictionaryStore, spaceStore, toast, useTabData } from "@breedhub/rxdb-store";
+import { dictionaryStore, spaceStore, useTabData } from "@breedhub/rxdb-store";
+import { withCrudToast } from "@/utils/crudToast";
 import type { DataSourceConfig } from "@breedhub/rxdb-store";
 import { useSignals } from "@preact/signals-react/runtime";
 import { Button } from "@ui/components/button";
@@ -334,20 +335,21 @@ export function EditChildTableTab({
     if (!deletingRecord || !resolvedEntityType) return;
 
     setIsDeleting(true);
-    try {
-      if (isEntityChild) {
-        await spaceStore.delete(resolvedEntityType, deletingRecord.id);
-      } else {
-        await spaceStore.deleteChildRecord(resolvedEntityType, tableType, deletingRecord.id);
-      }
-      toast.success(`${label || "Record"} deleted`);
+    const baseLabel = label || 'Record';
+    const recordName = deletingRecord?.name;
+    const fullLabel = recordName ? `${baseLabel} ${recordName}` : baseLabel;
+
+    const result = await withCrudToast(
+      () => isEntityChild
+        ? spaceStore.delete(resolvedEntityType, deletingRecord.id)
+        : spaceStore.deleteChildRecord(resolvedEntityType, tableType, deletingRecord.id),
+      { label: fullLabel, verb: 'delete' }
+    );
+    if (result.ok) {
       setDeletingRecord(null);
       refetch();
-    } catch (err: any) {
-      toast.error(err.message || `Failed to delete ${label || "record"}`);
-    } finally {
-      setIsDeleting(false);
     }
+    setIsDeleting(false);
   };
 
   const handleSaved = useCallback(() => {

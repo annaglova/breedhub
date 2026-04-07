@@ -1,6 +1,7 @@
 import { useState, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { spaceStore, toast } from '@breedhub/rxdb-store';
+import { spaceStore } from '@breedhub/rxdb-store';
+import { withCrudToast, entityRecordLabel } from '@/utils/crudToast';
 import {
   Dialog,
   DialogContent,
@@ -97,9 +98,12 @@ export function useDeleteEntity(
     // Proceed with deletion
     setState(prev => ({ ...prev, loading: true }));
 
-    try {
-      await spaceStore.delete(entityType, entity.id);
-      toast.success(`${entity.name || 'Record'} deleted`);
+    const deleteResult = await withCrudToast(
+      () => spaceStore.delete(entityType, entity.id),
+      { label: entityRecordLabel(entityType, entity), verb: 'delete' }
+    );
+
+    if (deleteResult.ok) {
       setState(INITIAL_STATE);
       // Navigate to public space list (e.g., /pets for pet entity)
       const spaceConfig = spaceStore.getSpaceConfig(entityType);
@@ -109,9 +113,7 @@ export function useDeleteEntity(
       } else {
         navigate(-1);
       }
-    } catch (err) {
-      console.error('[useDeleteEntity] Failed to delete:', err);
-      toast.error('Failed to delete');
+    } else {
       setState(prev => ({ ...prev, loading: false }));
     }
   }, [entityType, entity?.id, entity?.name, navigate]);

@@ -7,7 +7,7 @@ import {
 import { SpaceProvider } from "@/contexts/SpaceContext";
 import { useEntityFullyLoaded } from "@/hooks/useEntityFullyLoaded";
 import { getPageConfig } from "@/utils/getPageConfig";
-import { spaceStore } from "@breedhub/rxdb-store";
+import { spaceStore, generateSlug } from "@breedhub/rxdb-store";
 import { Signal } from "@preact/signals-react";
 import { useSignals } from "@preact/signals-react/runtime";
 import { Button } from "@ui/components/button";
@@ -90,18 +90,28 @@ function EditBlocks({
   );
   const PAGE_MENU_TOP = nameBlockHeight > 0 ? nameBlockHeight : 0;
 
-  // Save orchestration: active tab registers its save handler
-  const saveHandlerRef = useRef<(() => Promise<boolean | void>) | null>(null);
+  const navigate = useNavigate();
 
-  const onSaveReady = useCallback((handler: () => Promise<void>) => {
+  // Save orchestration: active tab registers its save handler.
+  // Returns: false (validation failed) | true (saved) | { created: entity } (create succeeded)
+  type SaveResult = false | true | { created: any };
+  const saveHandlerRef = useRef<(() => Promise<SaveResult | void>) | null>(null);
+
+  const onSaveReady = useCallback((handler: () => Promise<SaveResult | void>) => {
     saveHandlerRef.current = handler;
   }, []);
 
-  const handleSave = useCallback(() => {
-    saveHandlerRef.current?.();
-  }, []);
-
-  const navigate = useNavigate();
+  // Save button click — navigates to public page after create
+  const handleSave = useCallback(async () => {
+    const result = await saveHandlerRef.current?.();
+    if (result && typeof result === 'object' && result.created) {
+      const entity = result.created;
+      const slug = entity.slug || (entity.name && entity.id ? generateSlug(entity.name, entity.id) : '');
+      if (slug) {
+        navigate(`/${slug}`, { replace: true });
+      }
+    }
+  }, [navigate]);
 
   // --- Unsaved changes guard ---
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
@@ -252,18 +262,27 @@ function EditBlocks({
   }, [navigate]);
 
   // Tab switch — auto-save before changing tab
-  // In create mode: always run validation (even with no changes) and block if fails
-  const handleBeforeTabChange = useCallback(async (): Promise<boolean | void> => {
+  // In create mode: validate + save, then navigate to edit page with target tab active.
+  // In edit mode: just save in-place (URL hash will update for tab change).
+  const handleBeforeTabChange = useCallback(async (targetFragment: string): Promise<boolean | void> => {
     if (isCreateMode && saveHandlerRef.current) {
-      // Always validate + attempt save in create mode
       const result = await saveHandlerRef.current();
       if (result === false) {
-        return false; // Block tab switch — required fields not filled
+        return false; // Block tab switch — validation failed
+      }
+      // Successful create → navigate to edit page with target tab in hash
+      if (result && typeof result === 'object' && result.created) {
+        const entity = result.created;
+        const slug = entity.slug || (entity.name && entity.id ? generateSlug(entity.name, entity.id) : '');
+        if (slug) {
+          navigate(`/${slug}/edit#${targetFragment}`, { replace: true });
+          return false; // Block local tab change — we already navigated
+        }
       }
     } else if (hasUnsavedRef.current && saveHandlerRef.current) {
       await saveHandlerRef.current();
     }
-  }, [isCreateMode]);
+  }, [isCreateMode, navigate]);
 
 
   // Sort blocks by order

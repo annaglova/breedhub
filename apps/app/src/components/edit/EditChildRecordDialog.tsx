@@ -1,8 +1,9 @@
 import { DynamicFormField } from "@/components/edit/DynamicFormField";
 import { FormGroupLayout } from "@/components/edit/FormGroupLayout";
 import { useFormFieldGrouping } from "@/components/edit/useFormFieldGrouping";
-import { spaceStore, toast } from "@breedhub/rxdb-store";
+import { spaceStore } from "@breedhub/rxdb-store";
 import type { DataSourceConfig } from "@breedhub/rxdb-store";
+import { withCrudToast } from "@/utils/crudToast";
 import { Button } from "@ui/components/button";
 import {
   Dialog,
@@ -197,43 +198,39 @@ export function EditChildRecordDialog({
     if (!hasChanges) return;
 
     setIsSaving(true);
-    try {
-      if (isEntityChild && dataSources) {
-        // Entity child: create/update entity record
-        const entityTable = dataSources[0]?.childTable?.table || entityType;
 
+    const verb = isEditMode ? 'update' : 'create';
+    const operation = async () => {
+      if (isEntityChild && dataSources) {
+        const entityTable = dataSources[0]?.childTable?.table || entityType;
         if (isEditMode) {
-          await spaceStore.update(entityTable, record!.id, formChanges);
-          toast.success(`${label} updated`);
-        } else {
-          // Resolve prefill: parentField + $parent.field values
-          const prefillData = resolvePrefill(
-            dataSources,
-            parentId,
-            parentEntity,
-            parentEntity?.sex,
-          );
-          const createData = { ...prefillData, ...formChanges };
-          await spaceStore.create(entityTable, createData);
-          toast.success(`${label} created`);
+          return spaceStore.update(entityTable, record!.id, formChanges);
         }
-      } else {
-        // Standard child record
-        if (isEditMode) {
-          await spaceStore.updateChildRecord(entityType, tableType, record!.id, formChanges);
-          toast.success(`${label} updated`);
-        } else {
-          await spaceStore.createChildRecord(entityType, tableType, parentId, formChanges);
-          toast.success(`${label} created`);
-        }
+        const prefillData = resolvePrefill(
+          dataSources,
+          parentId,
+          parentEntity,
+          parentEntity?.sex,
+        );
+        return spaceStore.create(entityTable, { ...prefillData, ...formChanges });
       }
+      // Standard child record
+      if (isEditMode) {
+        return spaceStore.updateChildRecord(entityType, tableType, record!.id, formChanges);
+      }
+      return spaceStore.createChildRecord(entityType, tableType, parentId, formChanges);
+    };
+
+    // Append record name to label when available (e.g. "Pet Rex" for entity children)
+    const recordName = formChanges.name || record?.name;
+    const fullLabel = recordName ? `${label} ${recordName}` : label;
+
+    const result = await withCrudToast(operation, { label: fullLabel, verb });
+    if (result.ok) {
       onSaved();
       onOpenChange(false);
-    } catch (err: any) {
-      toast.error(err.message || `Failed to save ${label}`);
-    } finally {
-      setIsSaving(false);
     }
+    setIsSaving(false);
   };
 
   // Current entity for PetPickerInput context (editing record or parent entity)

@@ -10,7 +10,6 @@ import { useJunctionFilterIds, routeStore, generateSlug, getDatabase } from "@br
 import { getValueForLabel } from "@/components/space/utils/filter-url-helpers";
 import { useSignals } from "@preact/signals-react/runtime";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
 
 interface FieldConfig {
   displayName: string;
@@ -96,7 +95,6 @@ export function EditFormTab({ fields, onLoadedCount, entityType, onSaveReady, on
   useSignals();
 
   const selectedEntity = useSelectedEntity();
-  const navigate = useNavigate();
 
   const handleCreated = useCallback(async (entity: any) => {
     const slug = entity.slug || generateSlug(entity.name || '', entity.id);
@@ -159,15 +157,16 @@ export function EditFormTab({ fields, onLoadedCount, entityType, onSaveReady, on
       }
     } catch { /* non-critical */ }
 
-    // Navigate to public page after creation
-    navigate(`/${slug}`, { replace: true });
-  }, [navigate, entityType]);
+    // Navigation moved to caller (EditPageTemplate) — depends on context
+    // (Save button → public page; Tab switch → edit page with target tab)
+  }, [entityType]);
 
   const { formChanges, hasChanges, handleFieldChange: rawHandleFieldChange, handleSave, markCurrentAsBaseline } = useEditForm({
     entityType: entityType || '',
     entityId: selectedEntity?.id,
     isCreateMode,
     onCreated: isCreateMode ? handleCreated : undefined,
+    currentEntity: selectedEntity,
   });
 
   // Pre-fill fields with prefillFromFilter: true from URL params in create mode
@@ -316,8 +315,10 @@ export function EditFormTab({ fields, onLoadedCount, entityType, onSaveReady, on
   const { errors, touched, validateAll, touchAndValidate } = useFormValidation();
 
 
-  // Wrap handleSave with validation. Returns false if validation failed (used by tab switch to block).
-  const validatedSave = useCallback(async (): Promise<boolean> => {
+  // Wrap handleSave with validation.
+  // Returns false if validation failed (used by tab switch to block).
+  // Returns { created: entity } when create mode succeeded, true otherwise.
+  const validatedSave = useCallback(async (): Promise<false | true | { created: any }> => {
     if (!fields) return false;
     const visibleFields = Object.fromEntries(
       Object.entries(fields).filter(([, c]) => !c.hidden)
@@ -328,7 +329,8 @@ export function EditFormTab({ fields, onLoadedCount, entityType, onSaveReady, on
       extractDbFieldName
     );
     if (!isValid) return false;
-    await handleSave();
+    const result = await handleSave();
+    if (result?.created) return { created: result.created };
     return true;
   }, [fields, formChanges, selectedEntity, validateAll, handleSave]);
 
