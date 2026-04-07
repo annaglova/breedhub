@@ -277,10 +277,7 @@ class SyncQueueService {
         if (!error) {
           await this.bulkRemoveItems(this.childQueue, upsertItems.map(i => i.id));
           this.onSuccess();
-          // Post-push hooks (fire-and-forget) — re-pull denormalized parent fields
-          for (const item of upsertItems) {
-            runChildPostPushHooks(tableType, item.payload);
-          }
+          this.firePostPushHooks(tableType, upsertItems);
         } else {
           // Skip schema-cache errors silently (old VIEW records)
           if (error.message.includes('schema cache') || error.message.includes('not found')) {
@@ -305,14 +302,13 @@ class SyncQueueService {
           if (!error) {
             await item.remove();
             this.onSuccess();
-            // Post-push hook — server-side trigger may have updated parent denorm fields
-            runChildPostPushHooks(tableType, item.payload);
+            this.firePostPushHooks(tableType, [item]);
           } else if (error.message.includes('column')) {
             // No 'deleted' column — hard delete
             await supabase.from(tableType).delete().eq('id', item.payload.id);
             await item.remove();
             this.onSuccess();
-            runChildPostPushHooks(tableType, item.payload);
+            this.firePostPushHooks(tableType, [item]);
           } else {
             this.lastErrorMessage = error.message;
             console.error(`[SyncQueue] Child delete error (${tableType}):`, error.message);
@@ -328,6 +324,18 @@ class SyncQueueService {
   }
 
   // --- Helpers ---
+
+  /**
+   * Fire-and-forget post-push hooks for child records.
+   * Called after successful Supabase sync (upsert, soft-delete, hard-delete paths).
+   * Currently no-op — reserved as extension point for cases where local rebuild
+   * is impossible (cross-pet aggregations, server-only data). See entity-hooks.ts.
+   */
+  private firePostPushHooks(tableType: string, items: Array<{ payload: Record<string, any> }>): void {
+    for (const item of items) {
+      runChildPostPushHooks(tableType, item.payload);
+    }
+  }
 
   private async bulkRemoveItems(collection: RxCollection<any>, ids: string[]): Promise<void> {
     await collection.bulkRemove(ids);
