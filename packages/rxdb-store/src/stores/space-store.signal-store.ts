@@ -3027,25 +3027,65 @@ class SpaceStore {
    * @returns Entity data or null
    */
   /**
+   * Get list of column names that the local RxDB schema cares about for an entity.
+   * Excludes RxDB internal meta fields. `_deleted` is mapped back to Supabase `deleted`.
+   * Used to fetch only the columns we'll actually store locally.
+   */
+  private getSchemaColumns(collectionName: string): string[] | null {
+    const collection = this.db?.collections[collectionName];
+    if (!collection) return null;
+    const schema: any = collection.schema?.jsonSchema;
+    if (!schema?.properties) return null;
+    const meta = new Set(['_meta', '_attachments', '_rev', 'cachedAt']);
+    const cols: string[] = [];
+    for (const fieldName of Object.keys(schema.properties)) {
+      if (meta.has(fieldName)) continue;
+      // RxDB stores _deleted but Supabase column is named 'deleted'
+      cols.push(fieldName === '_deleted' ? 'deleted' : fieldName);
+    }
+    return cols;
+  }
+
+  /**
    * Force-refresh an entity from Supabase: bypass RxDB cache, write fresh data
    * to RxDB and signal store. Used after server-side triggers update denormalized
    * fields (e.g. titles_display rebuilt by trigger after title_in_pet change).
    *
+   * Default fetches only the columns the RxDB schema declares (the trimmed local
+   * subset, not all Supabase columns). Pass `fields` to narrow further.
+   *
    * @param entityType — entity table name
    * @param id — entity id
    * @param partitionId — partition value (e.g. breed_id for pet) for partition pruning
+   * @param fields — optional narrower subset (e.g. ['titles_display']) when only one
+   *                 denormalized column needs refresh. Always implicitly includes id +
+   *                 partition key.
    */
   async refreshEntityFromServer<T = any>(
     entityType: string,
     id: string,
     partitionId?: string,
+    fields?: string[],
   ): Promise<T | null> {
     const collectionName = entityType.toLowerCase();
     try {
       const entitySchema = this.entitySchemas.get(entityType);
       const partitionKey = entitySchema?.partition?.keyField;
 
-      let query = supabase.from(entityType).select('*').eq('id', id);
+      // Build SELECT clause:
+      //   - explicit fields → those + id + partitionKey (targeted)
+      //   - default → schema columns (the trimmed local subset)
+      let selectClause: string;
+      if (fields && fields.length > 0) {
+        selectClause = Array.from(
+          new Set(['id', partitionKey, ...fields].filter(Boolean) as string[])
+        ).join(',');
+      } else {
+        const schemaCols = this.getSchemaColumns(collectionName);
+        selectClause = schemaCols && schemaCols.length > 0 ? schemaCols.join(',') : '*';
+      }
+
+      let query = supabase.from(entityType).select(selectClause).eq('id', id);
       if (partitionKey && partitionId) {
         query = query.eq(partitionKey, partitionId);
       }
@@ -3056,21 +3096,30 @@ class SpaceStore {
         return null;
       }
 
-      // Map to RxDB format (strips fields not in schema, handles _deleted etc.)
       const collection = this.db?.collections[collectionName];
-      if (collection) {
-        const mapped = this.mapToRxDBFormat(data, collectionName);
-        await collection.upsert(mapped);
+      if (!collection) return data as T;
 
-        // Update signal store with mapped (RxDB-shaped) data
-        const entityStore = this.entityStores.get(collectionName);
-        if (entityStore) {
-          entityStore.updateOne(id, mapped);
+      // Targeted: patch only requested fields, preserve everything else in cache
+      if (fields && fields.length > 0) {
+        const doc = await collection.findOne(id).exec();
+        if (doc) {
+          const patchData: Record<string, any> = {};
+          for (const f of fields) {
+            if ((data as any)[f] !== undefined) patchData[f] = (data as any)[f];
+          }
+          if (Object.keys(patchData).length > 0) await doc.patch(patchData);
+          const entityStore = this.entityStores.get(collectionName);
+          if (entityStore) entityStore.updateOne(id, patchData);
         }
-        return mapped as T;
+        return data as T;
       }
 
-      return data as T;
+      // Default: full schema-shaped refresh via mapToRxDBFormat + upsert
+      const mapped = this.mapToRxDBFormat(data, collectionName);
+      await collection.upsert(mapped);
+      const entityStore = this.entityStores.get(collectionName);
+      if (entityStore) entityStore.updateOne(id, mapped);
+      return mapped as T;
     } catch (err) {
       console.error(`[SpaceStore] refreshEntityFromServer failed:`, err);
       return null;
@@ -3554,6 +3603,106 @@ class SpaceStore {
   // ─────────────────────────────────────────────────────────────────────────────
 
   /**
+   * Registry of local-rebuild handlers per (parentEntityType, childTableType) pair.
+   * To add a new denormalized field: implement a private rebuild method, then
+   * add an entry here. See `breedhub-docs/general/DENORMALIZATION_PATTERN.md`.
+   */
+  private readonly denormRebuilders: Record<
+    string,
+    (parentId: string, partitionId?: string) => Promise<void>
+  > = {
+    'pet:title_in_pet': (parentId, partitionId) =>
+      this.rebuildPetTitlesDisplay(parentId, partitionId),
+  };
+
+  /**
+   * Rebuild denormalized parent fields after a child record changes.
+   * Mirrors server-side triggers — see `breedhub-docs/general/DENORMALIZATION_PATTERN.md`.
+   *
+   * Server trigger is canonical (still runs after sync); local rebuild gives
+   * instant UX without waiting for round-trip.
+   */
+  private async rebuildParentDenormFields(
+    parentEntityType: string,
+    childTableType: string,
+    parentId: string,
+    partitionId?: string,
+  ): Promise<void> {
+    const rebuilder = this.denormRebuilders[`${parentEntityType}:${childTableType}`];
+    if (!rebuilder) return;
+    try {
+      await rebuilder(parentId, partitionId);
+    } catch (e) {
+      console.error('[SpaceStore] rebuildParentDenormFields failed:', e);
+    }
+  }
+
+  /**
+   * Locally rebuild pet.titles_display from cached title_in_pet rows.
+   * Mirrors SQL trigger `trg_title_in_pet_rebuild_titles_display`.
+   * Pure builder lives in `utils/titles-display-builder.ts`.
+   */
+  private async rebuildPetTitlesDisplay(petId: string, petBreedId?: string): Promise<void> {
+    // 1. Read all title_in_pet rows for this pet from RxDB child cache
+    const childRecords = await this.getChildRecords(
+      petId,
+      'title_in_pet',
+      { partitionId: petBreedId, limit: 0 },
+    );
+
+    // Map RxDB child shape → builder input shape
+    const titlesInPet = childRecords
+      .map((r: any) => {
+        const a = r.additional || {};
+        return {
+          title_id: a.title_id,
+          country_id: a.country_id ?? null,
+          amount: a.amount ?? null,
+          date: a.date ?? null,
+          is_confirmed: a.is_confirmed ?? null,
+          deleted: a.deleted ?? r.deleted ?? null,
+        };
+      })
+      .filter((t) => !!t.title_id);
+
+    // 2. Lookup title name+rating from dictionary (parallel)
+    const titleIds = Array.from(new Set(titlesInPet.map((t) => t.title_id as string)));
+    const titleLookup = new Map<string, { name?: string | null; rating?: number | string | null }>();
+    if (titleIds.length > 0) {
+      const { dictionaryStore } = await import('./dictionary-store.signal-store');
+      const lookups = await Promise.all(
+        titleIds.map((id) => dictionaryStore.getRecordById('title', id)),
+      );
+      for (let i = 0; i < titleIds.length; i++) {
+        const rec = lookups[i];
+        if (rec) {
+          titleLookup.set(titleIds[i], {
+            name: rec.name as string | null,
+            rating: rec.rating as number | string | null,
+          });
+        }
+      }
+    }
+
+    // 3. Pure builder (mirrors SQL aggregation)
+    const { buildTitlesDisplay } = await import('../utils/titles-display-builder');
+    const titlesDisplay = buildTitlesDisplay(titlesInPet, titleLookup);
+
+    // 4. Patch local pet doc and signal store
+    const collection = this.db?.collections['pet'];
+    if (collection) {
+      const doc = await collection.findOne(petId).exec();
+      if (doc) {
+        await doc.patch({ titles_display: titlesDisplay });
+      }
+    }
+    const entityStore = this.entityStores.get('pet');
+    if (entityStore) {
+      entityStore.updateOne(petId, { titles_display: titlesDisplay });
+    }
+  }
+
+  /**
    * Create a new child record (Supabase + RxDB)
    *
    * @param entityType - Parent entity type (e.g., 'pet', 'breed')
@@ -3619,6 +3768,9 @@ class SpaceStore {
         buildChildPayload(rxdbRecord, entityType, partitionConfig),
         'id'
       );
+
+      // Local rebuild of denormalized parent fields (mirrors server triggers)
+      await this.rebuildParentDenormFields(entityType, normalizedTableType, parentId, partitionValue);
     }
 
     return { id };
@@ -3666,6 +3818,14 @@ class SpaceStore {
           buildChildPayload(updatedDoc, entityType, partitionConfig),
           'id'
         );
+
+        // Local rebuild of denormalized parent fields (mirrors server triggers)
+        await this.rebuildParentDenormFields(
+          entityType,
+          tableType.replace(/_with_\w+$/, ''),
+          updatedDoc.parentId,
+          updatedDoc.partitionId,
+        );
       }
     }
   }
@@ -3696,6 +3856,15 @@ class SpaceStore {
           'id'
         );
         await doc.remove();
+
+        // Local rebuild of denormalized parent fields (mirrors server triggers).
+        // Done AFTER remove so the deleted row is no longer in the cached set.
+        await this.rebuildParentDenormFields(
+          entityType,
+          tableType.replace(/_with_\w+$/, ''),
+          docData.parentId,
+          docData.partitionId,
+        );
       }
     }
   }
