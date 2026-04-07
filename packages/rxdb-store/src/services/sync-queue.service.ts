@@ -1,7 +1,7 @@
 import type { RxCollection, RxDatabase } from 'rxdb';
 import { signal } from '@preact/signals-react';
 import { supabase } from '../supabase/client';
-import { runPostSaveHooks } from '../utils/entity-hooks';
+import { runPostSaveHooks, runChildPostPushHooks } from '../utils/entity-hooks';
 import type {
   EntitySyncQueueDocument,
   ChildSyncQueueDocument,
@@ -277,6 +277,10 @@ class SyncQueueService {
         if (!error) {
           await this.bulkRemoveItems(this.childQueue, upsertItems.map(i => i.id));
           this.onSuccess();
+          // Post-push hooks (fire-and-forget) — re-pull denormalized parent fields
+          for (const item of upsertItems) {
+            runChildPostPushHooks(tableType, item.payload);
+          }
         } else {
           // Skip schema-cache errors silently (old VIEW records)
           if (error.message.includes('schema cache') || error.message.includes('not found')) {
@@ -301,11 +305,14 @@ class SyncQueueService {
           if (!error) {
             await item.remove();
             this.onSuccess();
+            // Post-push hook — server-side trigger may have updated parent denorm fields
+            runChildPostPushHooks(tableType, item.payload);
           } else if (error.message.includes('column')) {
             // No 'deleted' column — hard delete
             await supabase.from(tableType).delete().eq('id', item.payload.id);
             await item.remove();
             this.onSuccess();
+            runChildPostPushHooks(tableType, item.payload);
           } else {
             this.lastErrorMessage = error.message;
             console.error(`[SyncQueue] Child delete error (${tableType}):`, error.message);

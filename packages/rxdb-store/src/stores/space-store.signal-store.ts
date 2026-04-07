@@ -3026,6 +3026,57 @@ class SpaceStore {
    * @param id - Entity UUID
    * @returns Entity data or null
    */
+  /**
+   * Force-refresh an entity from Supabase: bypass RxDB cache, write fresh data
+   * to RxDB and signal store. Used after server-side triggers update denormalized
+   * fields (e.g. titles_display rebuilt by trigger after title_in_pet change).
+   *
+   * @param entityType — entity table name
+   * @param id — entity id
+   * @param partitionId — partition value (e.g. breed_id for pet) for partition pruning
+   */
+  async refreshEntityFromServer<T = any>(
+    entityType: string,
+    id: string,
+    partitionId?: string,
+  ): Promise<T | null> {
+    const collectionName = entityType.toLowerCase();
+    try {
+      const entitySchema = this.entitySchemas.get(entityType);
+      const partitionKey = entitySchema?.partition?.keyField;
+
+      let query = supabase.from(entityType).select('*').eq('id', id);
+      if (partitionKey && partitionId) {
+        query = query.eq(partitionKey, partitionId);
+      }
+
+      const { data, error } = await query.maybeSingle();
+      if (error || !data) {
+        if (error) console.error(`[SpaceStore] refreshEntityFromServer error:`, error.message);
+        return null;
+      }
+
+      // Map to RxDB format (strips fields not in schema, handles _deleted etc.)
+      const collection = this.db?.collections[collectionName];
+      if (collection) {
+        const mapped = this.mapToRxDBFormat(data, collectionName);
+        await collection.upsert(mapped);
+
+        // Update signal store with mapped (RxDB-shaped) data
+        const entityStore = this.entityStores.get(collectionName);
+        if (entityStore) {
+          entityStore.updateOne(id, mapped);
+        }
+        return mapped as T;
+      }
+
+      return data as T;
+    } catch (err) {
+      console.error(`[SpaceStore] refreshEntityFromServer failed:`, err);
+      return null;
+    }
+  }
+
   async fetchEntityById<T = any>(entityType: string, id: string): Promise<T | null> {
     const collectionName = entityType.toLowerCase();
 

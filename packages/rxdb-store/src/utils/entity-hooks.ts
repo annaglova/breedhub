@@ -31,6 +31,27 @@ export async function runPostSaveHooks(
 }
 
 /**
+ * Run post-push hooks for a child record.
+ * Called after a child record (e.g. title_in_pet) is successfully pushed to Supabase.
+ * Used to re-pull denormalized parent data updated by server-side triggers.
+ * Fire-and-forget — errors are logged but don't break the sync flow.
+ */
+export async function runChildPostPushHooks(
+  tableType: string,
+  payload: Record<string, any>
+): Promise<void> {
+  try {
+    if (tableType === 'title_in_pet' && payload.pet_id && payload.pet_breed_id) {
+      // Server trigger trg_title_in_pet_titles_display rebuilt pet.titles_display.
+      // Force-refresh pet from server so UI sees fresh denormalized data.
+      await spaceStore.refreshEntityFromServer('pet', payload.pet_id, payload.pet_breed_id);
+    }
+  } catch (error) {
+    console.error(`[EntityHooks] Child post-push hook failed for ${tableType}:`, error);
+  }
+}
+
+/**
  * Pet-specific post-save hooks.
  */
 async function petPostSaveHooks(
