@@ -122,6 +122,7 @@ export function ContactBreederTab({ onLoadedCount, dataSource }: ContactBreederT
   const selectedEntity = useSelectedEntity();
   const contactId = selectedEntity?.id;
   const isFullscreen = spaceStore.isFullscreen.value;
+  const isTabFullscreen = spaceStore.isTabFullscreen.value;
 
   // dataSource[0] → kennels (always load all — small dataset)
   const {
@@ -138,14 +139,14 @@ export function ContactBreederTab({ onLoadedCount, dataSource }: ContactBreederT
   const drawerOffspring = useTabData({
     parentId: contactId,
     dataSource: dataSource?.[1]!,
-    enabled: !!dataSource?.[1] && !!contactId && !isFullscreen,
+    0
   });
 
   // Fullscreen: infinite scroll with pagination
   const infiniteOffspring = useInfiniteTabData({
     parentId: contactId,
     dataSource: dataSource?.[1]!,
-    enabled: !!dataSource?.[1] && !!contactId && isFullscreen,
+    enabled: !!dataSource?.[1] && !!contactId && isTabFullscreen,
     pageSize: 30,
   });
 
@@ -257,10 +258,10 @@ export function ContactBreederTab({ onLoadedCount, dataSource }: ContactBreederT
   const { hasMore, isLoadingMore, loadMore } = infiniteOffspring;
 
   const handleLoadMore = useCallback(() => {
-    if (isFullscreen && hasMore && !isLoadingMore) {
+    if (isTabFullscreen && hasMore && !isLoadingMore) {
       loadMore();
     }
-  }, [isFullscreen, hasMore, isLoadingMore, loadMore]);
+  }, [isTabFullscreen, hasMore, isLoadingMore, loadMore]);
 
   // Report loaded count
   useEffect(() => {
@@ -271,7 +272,7 @@ export function ContactBreederTab({ onLoadedCount, dataSource }: ContactBreederT
 
   // IntersectionObserver for infinite scroll in fullscreen
   useEffect(() => {
-    if (!isFullscreen || !loadMoreRef.current) return;
+    if (!isTabFullscreen || !loadMoreRef.current) return;
 
     const observer = new IntersectionObserver(
       (entries) => {
@@ -284,7 +285,7 @@ export function ContactBreederTab({ onLoadedCount, dataSource }: ContactBreederT
 
     observer.observe(loadMoreRef.current);
     return () => observer.disconnect();
-  }, [isFullscreen, handleLoadMore, hasMore, isLoadingMore, totalOffspring]);
+  }, [isTabFullscreen, handleLoadMore, hasMore, isLoadingMore, totalOffspring]);
 
   const isLoading = kennelsLoading || offspringLoading;
 
@@ -356,7 +357,7 @@ export function ContactBreederTab({ onLoadedCount, dataSource }: ContactBreederT
       ))}
 
       {/* Infinite scroll trigger & loading indicator */}
-      {isFullscreen && (
+      {isTabFullscreen && (
         <div ref={loadMoreRef} className="py-4 flex justify-center">
           {isLoadingMore && (
             <div className="flex items-center gap-2 text-secondary">

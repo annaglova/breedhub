@@ -161,28 +161,29 @@ export function EventResultsTab({
   const selectedEntity = useSelectedEntity();
   const programId = selectedEntity?.id;
   const isFullscreen = spaceStore.isFullscreen.value;
+  const isTabFullscreen = spaceStore.isTabFullscreen.value;
 
   // Drawer mode: load limited data
   const drawerResult = useTabData({
     parentId: programId,
     dataSource: dataSource?.[0]!,
-    enabled: !!dataSource?.[0] && !!programId && !isFullscreen,
+    0
   });
 
   // Fullscreen mode: infinite scroll with pagination
   const infiniteResult = useInfiniteTabData({
     parentId: programId,
     dataSource: dataSource?.[0]!,
-    enabled: !!dataSource?.[0] && !!programId && isFullscreen,
+    enabled: !!dataSource?.[0] && !!programId && isTabFullscreen,
     pageSize: 50,
   });
 
   // Use appropriate data based on mode
-  const rawData = isFullscreen ? infiniteResult.data : drawerResult.data;
+  const rawData = isTabFullscreen ? infiniteResult.data : drawerResult.data;
   const isLoading = isFullscreen
     ? infiniteResult.isLoading
     : drawerResult.isLoading;
-  const error = isFullscreen ? infiniteResult.error : drawerResult.error;
+  const error = isTabFullscreen ? infiniteResult.error : drawerResult.error;
 
   // Group by breed
   const breeds = useMemo<BreedResults[]>(() => {
@@ -201,10 +202,10 @@ export function EventResultsTab({
   const { hasMore, isLoadingMore, loadMore } = infiniteResult;
 
   const handleLoadMore = useCallback(() => {
-    if (isFullscreen && hasMore && !isLoadingMore) {
+    if (isTabFullscreen && hasMore && !isLoadingMore) {
       loadMore();
     }
-  }, [isFullscreen, hasMore, isLoadingMore, loadMore]);
+  }, [isTabFullscreen, hasMore, isLoadingMore, loadMore]);
 
   // Report loaded count
   useEffect(() => {
@@ -215,7 +216,7 @@ export function EventResultsTab({
 
   // IntersectionObserver for infinite scroll
   useEffect(() => {
-    if (!isFullscreen || !loadMoreRef.current) return;
+    if (!isTabFullscreen || !loadMoreRef.current) return;
 
     const observer = new IntersectionObserver(
       (entries) => {
@@ -228,7 +229,7 @@ export function EventResultsTab({
 
     observer.observe(loadMoreRef.current);
     return () => observer.disconnect();
-  }, [isFullscreen, handleLoadMore, hasMore, isLoadingMore, totalCompetitors]);
+  }, [isTabFullscreen, handleLoadMore, hasMore, isLoadingMore, totalCompetitors]);
 
   // Don't render if no dataSource configured
   if (!dataSource?.[0]) {
@@ -307,14 +308,12 @@ export function EventResultsTab({
                 </div>
 
                 {/* Class - fullscreen lg+ only */}
-                {isFullscreen && (
                   <span className="hidden lg:block">
                     {competitor.class?.name}
                   </span>
                 )}
 
                 {/* Number - fullscreen lg+ only */}
-                {isFullscreen && (
                   <span className="hidden lg:block">{competitor.number}</span>
                 )}
 
@@ -324,7 +323,6 @@ export function EventResultsTab({
                 </div>
 
                 {/* Judge - fullscreen lg+ only */}
-                {isFullscreen && (
                   <div className="hidden lg:flex items-center">
                     <EntityLink entity={competitor.judge} entityRole="judge" />
                   </div>
@@ -339,7 +337,7 @@ export function EventResultsTab({
       </div>
 
       {/* Infinite scroll trigger & loading indicator */}
-      {isFullscreen && (
+      {isTabFullscreen && (
         <div ref={loadMoreRef} className="py-4 flex justify-center">
           {isLoadingMore && (
             <div className="flex items-center gap-2 text-secondary">
