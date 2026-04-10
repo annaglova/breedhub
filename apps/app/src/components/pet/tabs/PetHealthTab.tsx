@@ -220,7 +220,7 @@ export function PetHealthTab({
       </div>
 
       {/* Infinite scroll trigger & loading indicator */}
-      {isFullscreen && (
+      {isTabFullscreen && (
         <div ref={loadMoreRef} className="py-4 flex justify-center">
           {isLoadingMore && (
             <div className="flex items-center gap-2 text-secondary">

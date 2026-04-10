@@ -126,13 +126,25 @@ export function PetChildrenTab({
     : drawerResult.isLoading;
   const error = isTabFullscreen ? infiniteResult.error : drawerResult.error;
 
+  // Apply config limit when not in tab fullscreen (drawer + page fullscreen).
+  // RxDB cache may hold more records than config.limit (loaded by previous infinite scroll),
+  // so we slice at presentation layer for consistent UX.
+  const displayRaw = useMemo(() => {
+    if (isTabFullscreen || !childrenRaw) return childrenRaw;
+    const configLimit = dataSource?.[0]?.childTable?.limit;
+    if (configLimit && childrenRaw.length > configLimit) {
+      return childrenRaw.slice(0, configLimit);
+    }
+    return childrenRaw;
+  }, [childrenRaw, isTabFullscreen, dataSource]);
+
   // Transform and group children into litters
   const { litters, parentRole } = useMemo(() => {
-    if (!childrenRaw || childrenRaw.length === 0) {
+    if (!displayRaw || displayRaw.length === 0) {
       return { litters: [], parentRole: null };
     }
 
-    const children = childrenRaw.map((item: any) => ({
+    const children = displayRaw.map((item: any) => ({
       id: item.id,
       name: item.name || item.additional?.name || "",
       slug: item.slug || item.additional?.slug,
@@ -147,7 +159,7 @@ export function PetChildrenTab({
     }));
 
     return groupChildrenIntoLitters(children);
-  }, [childrenRaw]);
+  }, [displayRaw]);
 
   // Determine label for the other parent based on current pet's role
   // If current pet is "father", other parent is "Mother" and vice versa
@@ -269,7 +281,7 @@ export function PetChildrenTab({
       )}
 
       {/* Infinite scroll trigger & loading indicator */}
-      {isFullscreen && (
+      {isTabFullscreen && (
         <div ref={loadMoreRef} className="py-4 flex justify-center">
           {isLoadingMore && (
             <div className="flex items-center gap-2 text-secondary">
