@@ -89,11 +89,19 @@ export function BreedPatronsTab({
     : drawerResult.isLoading;
   const error = isTabFullscreen ? infiniteResult.error : drawerResult.error;
 
+  // Apply config limit when not in tab fullscreen
+  const displayData = useMemo(() => {
+    if (isTabFullscreen || !data) return data;
+    const configLimit = dataSource?.[0]?.childTable?.limit;
+    if (configLimit && data.length > configLimit) return data.slice(0, configLimit);
+    return data;
+  }, [data, isTabFullscreen, dataSource]);
+
   // Transform VIEW data to AvatarEntity format (must be before useEffect that uses patrons.length)
   const patrons = useMemo<AvatarEntity[]>(() => {
-    if (!data || data.length === 0) return [];
+    if (!displayData || displayData.length === 0) return [];
 
-    return data.map((record) => {
+    return displayData.map((record) => {
       // Contact data is embedded as JSONB in VIEW
       // For child records, data is in `additional` field
       const contact = record.contact || (record as any).additional?.contact;
@@ -110,7 +118,7 @@ export function BreedPatronsTab({
           : `/contact/${contact?.id || record.contact_id}`,
       };
     });
-  }, [data]);
+  }, [displayData]);
 
   // Infinite scroll refs and handlers (must be before any returns!)
   const loadMoreRef = useRef<HTMLDivElement>(null);

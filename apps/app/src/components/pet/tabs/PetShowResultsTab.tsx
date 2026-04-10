@@ -79,11 +79,19 @@ export function PetShowResultsTab({
     : drawerResult.isLoading;
   const error = isTabFullscreen ? infiniteResult.error : drawerResult.error;
 
+  // Apply config limit when not in tab fullscreen
+  const displayRaw = useMemo(() => {
+    if (isTabFullscreen || !resultsRaw) return resultsRaw;
+    const configLimit = dataSource?.[0]?.childTable?.limit;
+    if (configLimit && resultsRaw.length > configLimit) return resultsRaw.slice(0, configLimit);
+    return resultsRaw;
+  }, [resultsRaw, isTabFullscreen, dataSource]);
+
   // Transform raw data to UI format
   const results = useMemo<ShowResult[]>(() => {
-    if (!resultsRaw || resultsRaw.length === 0) return [];
+    if (!displayRaw || displayRaw.length === 0) return [];
 
-    return resultsRaw.map((item: any) => ({
+    return displayRaw.map((item: any) => ({
       id: item.id,
       date: item.date || item.additional?.date || "",
       project: {
@@ -97,7 +105,7 @@ export function PetShowResultsTab({
       },
       webLink: item.web_link || item.additional?.web_link,
     }));
-  }, [resultsRaw]);
+  }, [displayRaw]);
 
   // Infinite scroll refs and handlers
   const loadMoreRef = useRef<HTMLDivElement>(null);

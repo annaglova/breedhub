@@ -103,11 +103,19 @@ export const BreedTopPetsTab = memo(function BreedTopPetsTab({
     : drawerResult.isLoading;
   const error = isTabFullscreen ? infiniteResult.error : drawerResult.error;
 
+  // Apply config limit when not in tab fullscreen
+  const displayData = useMemo(() => {
+    if (isTabFullscreen || !data) return data;
+    const configLimit = dataSource?.[0]?.childTable?.limit;
+    if (configLimit && data.length > configLimit) return data.slice(0, configLimit);
+    return data;
+  }, [data, isTabFullscreen, dataSource]);
+
   // Transform VIEW data to Pet format (must be before useEffect that uses pets.length)
   const pets = useMemo<Pet[]>(() => {
-    if (!data || data.length === 0) return [];
+    if (!displayData || displayData.length === 0) return [];
 
-    return data.map((record) => {
+    return displayData.map((record) => {
       // Pet data is embedded as JSONB in VIEW
       // For child records, data is in `additional` field
       const pet = record.pet || (record as any).additional?.pet;
@@ -137,7 +145,7 @@ export const BreedTopPetsTab = memo(function BreedTopPetsTab({
           : undefined,
       };
     });
-  }, [data]);
+  }, [displayData]);
 
   // Infinite scroll refs and handlers (must be before any returns!)
   const loadMoreRef = useRef<HTMLDivElement>(null);

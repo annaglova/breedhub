@@ -119,11 +119,19 @@ export function PetSiblingsTab({
     : drawerResult.isLoading;
   const error = isTabFullscreen ? infiniteResult.error : drawerResult.error;
 
+  // Apply config limit when not in tab fullscreen
+  const displayRaw = useMemo(() => {
+    if (isTabFullscreen || !siblingsRaw) return siblingsRaw;
+    const configLimit = dataSource?.[0]?.childTable?.limit;
+    if (configLimit && siblingsRaw.length > configLimit) return siblingsRaw.slice(0, configLimit);
+    return siblingsRaw;
+  }, [siblingsRaw, isTabFullscreen, dataSource]);
+
   // Transform raw data to UI format
   const siblings = useMemo<SiblingPet[]>(() => {
-    if (!siblingsRaw || siblingsRaw.length === 0) return [];
+    if (!displayRaw || displayRaw.length === 0) return [];
 
-    return siblingsRaw.map((item: any) => ({
+    return displayRaw.map((item: any) => ({
       id: item.id,
       name: item.name || item.additional?.name || "",
       url: item.slug || item.additional?.slug,
@@ -134,7 +142,7 @@ export function PetSiblingsTab({
       dateOfBirth: item.date_of_birth || item.additional?.date_of_birth,
       availableForSale: item.available_for_sale || item.additional?.available_for_sale,
     }));
-  }, [siblingsRaw]);
+  }, [displayRaw]);
 
   // Group siblings by date
   const siblingGroups = useMemo(() => {

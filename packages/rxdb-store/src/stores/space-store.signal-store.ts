@@ -4766,7 +4766,9 @@ class SpaceStore {
    */
   setFullscreen(value: boolean): void {
     this.isFullscreen.value = value;
-    if (!value) this.isTabFullscreen.value = false;
+    // Always reset tab fullscreen — only setTabFullscreen() should set it.
+    // This ensures returning from tab→page fullscreen clears the flag.
+    this.isTabFullscreen.value = false;
   }
 
   /**
