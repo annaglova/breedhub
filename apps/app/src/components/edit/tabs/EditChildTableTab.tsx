@@ -445,8 +445,7 @@ export function EditChildTableTab({
         data={enrichedRecords}
         isLoading={isLoading || isEnriching}
         globalFilter={searchFilter}
-        paginated={enrichedRecords.length > 20}
-        defaultPageSize={20}
+        paginated={false}
         emptyMessage={`No ${label || "records"} found`}
         onRowClick={handleRowClick}
       />

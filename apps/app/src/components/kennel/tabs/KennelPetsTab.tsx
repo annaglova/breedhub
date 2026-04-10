@@ -71,7 +71,7 @@ export function KennelPetsTab({
   const drawerData = useTabData({
     parentId: accountId,
     dataSource: dataSource?.[0]!,
-    0
+    enabled: !!dataSource?.[0] && !!accountId && !isTabFullscreen,
   });
 
   // Fullscreen: infinite scroll
@@ -153,6 +153,8 @@ export function KennelPetsTab({
         ))}
       </div>
 
+      {/* Infinite scroll trigger & loading indicator */}
+      {isTabFullscreen && (
         <div ref={loadMoreRef} className="py-4 flex justify-center">
           {isLoadingMore && (
             <div className="flex items-center gap-2 text-secondary">

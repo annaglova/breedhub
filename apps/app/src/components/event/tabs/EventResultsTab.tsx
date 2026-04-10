@@ -167,7 +167,7 @@ export function EventResultsTab({
   const drawerResult = useTabData({
     parentId: programId,
     dataSource: dataSource?.[0]!,
-    0
+    enabled: !!dataSource?.[0] && !!programId && !isTabFullscreen,
   });
 
   // Fullscreen mode: infinite scroll with pagination
@@ -308,12 +308,14 @@ export function EventResultsTab({
                 </div>
 
                 {/* Class - fullscreen lg+ only */}
+                {isFullscreen && (
                   <span className="hidden lg:block">
                     {competitor.class?.name}
                   </span>
                 )}
 
                 {/* Number - fullscreen lg+ only */}
+                {isFullscreen && (
                   <span className="hidden lg:block">{competitor.number}</span>
                 )}
 
@@ -323,6 +325,7 @@ export function EventResultsTab({
                 </div>
 
                 {/* Judge - fullscreen lg+ only */}
+                {isFullscreen && (
                   <div className="hidden lg:flex items-center">
                     <EntityLink entity={competitor.judge} entityRole="judge" />
                   </div>

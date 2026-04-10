@@ -139,7 +139,7 @@ export function ContactBreederTab({ onLoadedCount, dataSource }: ContactBreederT
   const drawerOffspring = useTabData({
     parentId: contactId,
     dataSource: dataSource?.[1]!,
-    0
+    enabled: !!dataSource?.[1] && !!contactId && !isTabFullscreen,
   });
 
   // Fullscreen: infinite scroll with pagination
