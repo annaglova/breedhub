@@ -79,28 +79,29 @@ export const BreedTopPetsTab = memo(function BreedTopPetsTab({
   const selectedEntity = useSelectedEntity();
   const breedId = selectedEntity?.id;
   const isFullscreen = spaceStore.isFullscreen.value;
+  const isTabFullscreen = spaceStore.isTabFullscreen.value;
 
   // Drawer mode: load all at once (limited)
   const drawerResult = useTabData<TopPetViewRecord>({
     parentId: breedId,
     dataSource: dataSource?.[0]!,
-    enabled: !!dataSource?.[0] && !!breedId && !isFullscreen,
+    enabled: !!dataSource?.[0] && !!breedId && !isTabFullscreen,
   });
 
   // Fullscreen mode: infinite scroll with ID-First pagination
   const infiniteResult = useInfiniteTabData<TopPetViewRecord>({
     parentId: breedId,
     dataSource: dataSource?.[0]!,
-    enabled: !!dataSource?.[0] && !!breedId && isFullscreen,
+    enabled: !!dataSource?.[0] && !!breedId && isTabFullscreen,
     pageSize: 30,
   });
 
   // Use appropriate data based on mode
-  const data = isFullscreen ? infiniteResult.data : drawerResult.data;
-  const isLoading = isFullscreen
+  const data = isTabFullscreen ? infiniteResult.data : drawerResult.data;
+  const isLoading = isTabFullscreen
     ? infiniteResult.isLoading
     : drawerResult.isLoading;
-  const error = isFullscreen ? infiniteResult.error : drawerResult.error;
+  const error = isTabFullscreen ? infiniteResult.error : drawerResult.error;
 
   // Transform VIEW data to Pet format (must be before useEffect that uses pets.length)
   const pets = useMemo<Pet[]>(() => {
@@ -143,10 +144,10 @@ export const BreedTopPetsTab = memo(function BreedTopPetsTab({
   const { hasMore, isLoadingMore, loadMore } = infiniteResult;
 
   const handleLoadMore = useCallback(() => {
-    if (isFullscreen && hasMore && !isLoadingMore) {
+    if (isTabFullscreen && hasMore && !isLoadingMore) {
       loadMore();
     }
-  }, [isFullscreen, hasMore, isLoadingMore, loadMore]);
+  }, [isTabFullscreen, hasMore, isLoadingMore, loadMore]);
 
   // Report loaded count for conditional fullscreen button
   const onLoadedCountRef = useRef(onLoadedCount);
@@ -160,7 +161,7 @@ export const BreedTopPetsTab = memo(function BreedTopPetsTab({
   // IntersectionObserver for infinite scroll
   // Dependencies include `pets.length` to re-run when data loads and ref becomes available
   useEffect(() => {
-    if (!isFullscreen || !loadMoreRef.current) return;
+    if (!isTabFullscreen || !loadMoreRef.current) return;
 
     const observer = new IntersectionObserver(
       (entries) => {
@@ -173,7 +174,7 @@ export const BreedTopPetsTab = memo(function BreedTopPetsTab({
 
     observer.observe(loadMoreRef.current);
     return () => observer.disconnect();
-  }, [isFullscreen, handleLoadMore, hasMore, isLoadingMore, pets.length]);
+  }, [isTabFullscreen, handleLoadMore, hasMore, isLoadingMore, pets.length]);
 
   // No dataSource config - show warning
   if (!dataSource?.[0]) {

@@ -95,28 +95,29 @@ export function PetSiblingsTab({
   const selectedEntity = useSelectedEntity();
   const petId = selectedEntity?.id;
   const isFullscreen = spaceStore.isFullscreen.value;
+  const isTabFullscreen = spaceStore.isTabFullscreen.value;
 
   // Drawer mode: load limited data
   const drawerResult = useTabData({
     parentId: petId,
     dataSource: dataSource?.[0]!,
-    enabled: !!dataSource?.[0] && !!petId && !isFullscreen,
+    enabled: !!dataSource?.[0] && !!petId && !isTabFullscreen,
   });
 
   // Fullscreen mode: infinite scroll with pagination
   const infiniteResult = useInfiniteTabData({
     parentId: petId,
     dataSource: dataSource?.[0]!,
-    enabled: !!dataSource?.[0] && !!petId && isFullscreen,
+    enabled: !!dataSource?.[0] && !!petId && isTabFullscreen,
     pageSize: 30,
   });
 
   // Use appropriate data based on mode
-  const siblingsRaw = isFullscreen ? infiniteResult.data : drawerResult.data;
-  const isLoading = isFullscreen
+  const siblingsRaw = isTabFullscreen ? infiniteResult.data : drawerResult.data;
+  const isLoading = isTabFullscreen
     ? infiniteResult.isLoading
     : drawerResult.isLoading;
-  const error = isFullscreen ? infiniteResult.error : drawerResult.error;
+  const error = isTabFullscreen ? infiniteResult.error : drawerResult.error;
 
   // Transform raw data to UI format
   const siblings = useMemo<SiblingPet[]>(() => {
@@ -145,10 +146,10 @@ export function PetSiblingsTab({
   const { hasMore, isLoadingMore, loadMore } = infiniteResult;
 
   const handleLoadMore = useCallback(() => {
-    if (isFullscreen && hasMore && !isLoadingMore) {
+    if (isTabFullscreen && hasMore && !isLoadingMore) {
       loadMore();
     }
-  }, [isFullscreen, hasMore, isLoadingMore, loadMore]);
+  }, [isTabFullscreen, hasMore, isLoadingMore, loadMore]);
 
   // Report count after data loads
   useEffect(() => {
@@ -159,7 +160,7 @@ export function PetSiblingsTab({
 
   // IntersectionObserver for infinite scroll
   useEffect(() => {
-    if (!isFullscreen || !loadMoreRef.current) return;
+    if (!isTabFullscreen || !loadMoreRef.current) return;
 
     const observer = new IntersectionObserver(
       (entries) => {
@@ -172,7 +173,7 @@ export function PetSiblingsTab({
 
     observer.observe(loadMoreRef.current);
     return () => observer.disconnect();
-  }, [isFullscreen, handleLoadMore, hasMore, isLoadingMore, siblings.length]);
+  }, [isTabFullscreen, handleLoadMore, hasMore, isLoadingMore, siblings.length]);
 
   // Don't render if no dataSource configured
   if (!dataSource?.[0]) {
@@ -243,7 +244,7 @@ export function PetSiblingsTab({
                   sex={sibling.sex}
                   availableForSale={sibling.availableForSale}
                   gridCols={
-                    isFullscreen
+                    isTabFullscreen
                       ? "grid-cols-[110px_auto] lg:grid-cols-[115px_auto] xl:grid-cols-[130px_auto]"
                       : "grid-cols-[52px_auto] sm:grid-cols-[100px_auto] md:grid-cols-[110px_auto]"
                   }

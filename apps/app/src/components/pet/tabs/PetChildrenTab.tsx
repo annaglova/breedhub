@@ -102,28 +102,29 @@ export function PetChildrenTab({
   const selectedEntity = useSelectedEntity();
   const petId = selectedEntity?.id;
   const isFullscreen = spaceStore.isFullscreen.value;
+  const isTabFullscreen = spaceStore.isTabFullscreen.value;
 
-  // Drawer mode: load limited data
+  // Drawer + page fullscreen: load limited data (config limit applies)
   const drawerResult = useTabData({
     parentId: petId,
     dataSource: dataSource?.[0]!,
-    enabled: !!dataSource?.[0] && !!petId && !isFullscreen,
+    enabled: !!dataSource?.[0] && !!petId && !isTabFullscreen,
   });
 
-  // Fullscreen mode: infinite scroll with pagination
+  // Tab fullscreen only: infinite scroll with pagination (no config limit)
   const infiniteResult = useInfiniteTabData({
     parentId: petId,
     dataSource: dataSource?.[0]!,
-    enabled: !!dataSource?.[0] && !!petId && isFullscreen,
+    enabled: !!dataSource?.[0] && !!petId && isTabFullscreen,
     pageSize: 30,
   });
 
   // Use appropriate data based on mode
-  const childrenRaw = isFullscreen ? infiniteResult.data : drawerResult.data;
-  const isLoading = isFullscreen
+  const childrenRaw = isTabFullscreen ? infiniteResult.data : drawerResult.data;
+  const isLoading = isTabFullscreen
     ? infiniteResult.isLoading
     : drawerResult.isLoading;
-  const error = isFullscreen ? infiniteResult.error : drawerResult.error;
+  const error = isTabFullscreen ? infiniteResult.error : drawerResult.error;
 
   // Transform and group children into litters
   const { litters, parentRole } = useMemo(() => {
@@ -172,10 +173,10 @@ export function PetChildrenTab({
   const { hasMore, isLoadingMore, loadMore } = infiniteResult;
 
   const handleLoadMore = useCallback(() => {
-    if (isFullscreen && hasMore && !isLoadingMore) {
+    if (isTabFullscreen && hasMore && !isLoadingMore) {
       loadMore();
     }
-  }, [isFullscreen, hasMore, isLoadingMore, loadMore]);
+  }, [isTabFullscreen, hasMore, isLoadingMore, loadMore]);
 
   // Report count after data loads
   useEffect(() => {
@@ -186,7 +187,7 @@ export function PetChildrenTab({
 
   // IntersectionObserver for infinite scroll
   useEffect(() => {
-    if (!isFullscreen || !loadMoreRef.current) return;
+    if (!isTabFullscreen || !loadMoreRef.current) return;
 
     const observer = new IntersectionObserver(
       (entries) => {
@@ -199,7 +200,7 @@ export function PetChildrenTab({
 
     observer.observe(loadMoreRef.current);
     return () => observer.disconnect();
-  }, [isFullscreen, handleLoadMore, hasMore, isLoadingMore, totalChildren]);
+  }, [isTabFullscreen, handleLoadMore, hasMore, isLoadingMore, totalChildren]);
 
   // Don't render if no dataSource configured
   if (!dataSource?.[0]) {

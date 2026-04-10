@@ -215,6 +215,9 @@ class SpaceStore {
 
   // UI state - fullscreen mode for drawer (when opened from pretty URL or expand button)
   isFullscreen = signal<boolean>(false);
+  // Tab-level fullscreen (expand button on specific tab) — infinite scroll enabled.
+  // Distinct from page fullscreen (slug URL) where limits still apply.
+  isTabFullscreen = signal<boolean>(false);
   /** Emitted after background child refresh completes — useTabData subscribes to auto-refetch */
   childRefreshSignal = signal<{ tableType: string; parentId: string } | null>(null);
 
@@ -4763,6 +4766,16 @@ class SpaceStore {
    */
   setFullscreen(value: boolean): void {
     this.isFullscreen.value = value;
+    if (!value) this.isTabFullscreen.value = false;
+  }
+
+  /**
+   * Set tab-level fullscreen (expand button on specific tab).
+   * Enables infinite scroll. Distinct from page fullscreen where limits apply.
+   */
+  setTabFullscreen(value: boolean): void {
+    this.isTabFullscreen.value = value;
+    if (value) this.isFullscreen.value = true;
   }
 
   /**
@@ -4771,6 +4784,7 @@ class SpaceStore {
    */
   clearFullscreen(): void {
     this.isFullscreen.value = false;
+    this.isTabFullscreen.value = false;
   }
 
   // ==========================================

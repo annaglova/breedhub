@@ -69,7 +69,7 @@ export function TabPageResolver() {
     if (cached) {
       setResolvedRoute(cached);
       setIsResolving(false);
-      spaceStore.setFullscreen(true);
+      spaceStore.setTabFullscreen(true);
       return;
     }
 
@@ -99,8 +99,8 @@ export function TabPageResolver() {
       // Cache the resolved route
       resolvedRoutesCache.set(slugToResolve, route);
 
-      // Set fullscreen mode in store (tab pages are always fullscreen)
-      spaceStore.setFullscreen(true);
+      // Set TAB fullscreen mode (not page fullscreen — limits should still work on page)
+      spaceStore.setTabFullscreen(true);
 
       // Add to navigation history - save MAIN entity link (not tab link)
       // So user can quickly return to this entity from recent pages
