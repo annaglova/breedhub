@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { spaceStore } from '@breedhub/rxdb-store';
 
 interface ConditionResolver {
   resolve: (entityType: string, entityId: string, entity?: Record<string, any>) => Promise<boolean>;
@@ -15,15 +14,10 @@ interface ConditionResolver {
  */
 const CONDITION_RESOLVERS: Record<string, ConditionResolver> = {
   hasChildren: {
-    resolve: async (_entityType: string, entityId: string, entity?: Record<string, any>) => {
-      // Check pet_children collection for child records of this pet
-      // pet_child tableType stores children where this pet is father or mother
-      // partitionId = breed_id (pet table is partitioned by breed_id)
-      const children = await spaceStore.getChildRecords(entityId, 'pet_child', {
-        limit: 1,
-        partitionId: entity?.breed_id,
-      });
-      return children.length > 0;
+    resolve: async (_entityType: string, _entityId: string, entity?: Record<string, any>) => {
+      // Denormalized boolean on pet record — set by trg_pet_sync_pet_child trigger.
+      // No async queries needed, no RxDB cache dependency.
+      return entity?.has_children === true;
     },
     message: 'Cannot be changed because the pet has children',
   },
