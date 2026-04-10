@@ -1,4 +1,5 @@
 import { PetLinkRow } from "@/components/shared/PetLinkRow";
+import { useDisplayLimit } from "@/hooks/useDisplayLimit";
 import { useSelectedEntity } from "@/contexts/SpaceContext";
 import { formatDate } from "@/utils/format";
 import {
@@ -119,13 +120,7 @@ export function PetSiblingsTab({
     : drawerResult.isLoading;
   const error = isTabFullscreen ? infiniteResult.error : drawerResult.error;
 
-  // Apply config limit when not in tab fullscreen
-  const displayRaw = useMemo(() => {
-    if (isTabFullscreen || !siblingsRaw) return siblingsRaw;
-    const configLimit = dataSource?.[0]?.childTable?.limit;
-    if (configLimit && siblingsRaw.length > configLimit) return siblingsRaw.slice(0, configLimit);
-    return siblingsRaw;
-  }, [siblingsRaw, isTabFullscreen, dataSource]);
+  const displayRaw = useDisplayLimit(siblingsRaw, dataSource);
 
   // Transform raw data to UI format
   const siblings = useMemo<SiblingPet[]>(() => {

@@ -1,4 +1,5 @@
 import { PetCard, type Pet } from "@/components/shared/PetCard";
+import { useDisplayLimit } from "@/hooks/useDisplayLimit";
 import { useSelectedEntity } from "@/contexts/SpaceContext";
 import type { DataSourceConfig } from "@breedhub/rxdb-store";
 import {
@@ -103,13 +104,7 @@ export const BreedTopPetsTab = memo(function BreedTopPetsTab({
     : drawerResult.isLoading;
   const error = isTabFullscreen ? infiniteResult.error : drawerResult.error;
 
-  // Apply config limit when not in tab fullscreen
-  const displayData = useMemo(() => {
-    if (isTabFullscreen || !data) return data;
-    const configLimit = dataSource?.[0]?.childTable?.limit;
-    if (configLimit && data.length > configLimit) return data.slice(0, configLimit);
-    return data;
-  }, [data, isTabFullscreen, dataSource]);
+  const displayData = useDisplayLimit(data, dataSource);
 
   // Transform VIEW data to Pet format (must be before useEffect that uses pets.length)
   const pets = useMemo<Pet[]>(() => {

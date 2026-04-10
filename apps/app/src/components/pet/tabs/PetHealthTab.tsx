@@ -1,4 +1,5 @@
 import { useSelectedEntity } from "@/contexts/SpaceContext";
+import { useDisplayLimit } from "@/hooks/useDisplayLimit";
 import { formatDate } from "@/utils/format";
 import {
   spaceStore,
@@ -73,16 +74,7 @@ export function PetHealthTab({
     : drawerResult.isLoading;
   const error = isTabFullscreen ? infiniteResult.error : drawerResult.error;
 
-  // Apply config limit when not in tab fullscreen (drawer + page fullscreen).
-  // RxDB cache may hold more records than config.limit (loaded by previous infinite scroll).
-  const displayRaw = useMemo(() => {
-    if (isTabFullscreen || !resultsRaw) return resultsRaw;
-    const configLimit = dataSource?.[0]?.childTable?.limit;
-    if (configLimit && resultsRaw.length > configLimit) {
-      return resultsRaw.slice(0, configLimit);
-    }
-    return resultsRaw;
-  }, [resultsRaw, isTabFullscreen, dataSource]);
+  const displayRaw = useDisplayLimit(resultsRaw, dataSource);
 
   // Transform raw data to UI format
   const results = useMemo<HealthExam[]>(() => {

@@ -1,4 +1,5 @@
 import { AvatarCard, AvatarEntity } from "@/components/shared/AvatarCard";
+import { useDisplayLimit } from "@/hooks/useDisplayLimit";
 import { useSelectedEntity } from "@/contexts/SpaceContext";
 import type { DataSourceConfig } from "@breedhub/rxdb-store";
 import {
@@ -89,13 +90,7 @@ export function BreedPatronsTab({
     : drawerResult.isLoading;
   const error = isTabFullscreen ? infiniteResult.error : drawerResult.error;
 
-  // Apply config limit when not in tab fullscreen
-  const displayData = useMemo(() => {
-    if (isTabFullscreen || !data) return data;
-    const configLimit = dataSource?.[0]?.childTable?.limit;
-    if (configLimit && data.length > configLimit) return data.slice(0, configLimit);
-    return data;
-  }, [data, isTabFullscreen, dataSource]);
+  const displayData = useDisplayLimit(data, dataSource);
 
   // Transform VIEW data to AvatarEntity format (must be before useEffect that uses patrons.length)
   const patrons = useMemo<AvatarEntity[]>(() => {

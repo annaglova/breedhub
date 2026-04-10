@@ -1,5 +1,6 @@
 import { LitterCard, LitterData } from "@/components/shared/LitterCard";
 import { useSelectedEntity } from "@/contexts/SpaceContext";
+import { useDisplayLimit } from "@/hooks/useDisplayLimit";
 import {
   spaceStore,
   useInfiniteTabData,
@@ -126,17 +127,8 @@ export function PetChildrenTab({
     : drawerResult.isLoading;
   const error = isTabFullscreen ? infiniteResult.error : drawerResult.error;
 
-  // Apply config limit when not in tab fullscreen (drawer + page fullscreen).
-  // RxDB cache may hold more records than config.limit (loaded by previous infinite scroll),
-  // so we slice at presentation layer for consistent UX.
-  const displayRaw = useMemo(() => {
-    if (isTabFullscreen || !childrenRaw) return childrenRaw;
-    const configLimit = dataSource?.[0]?.childTable?.limit;
-    if (configLimit && childrenRaw.length > configLimit) {
-      return childrenRaw.slice(0, configLimit);
-    }
-    return childrenRaw;
-  }, [childrenRaw, isTabFullscreen, dataSource]);
+  // Apply config limit when not in tab fullscreen
+  const displayRaw = useDisplayLimit(childrenRaw, dataSource);
 
   // Transform and group children into litters
   const { litters, parentRole } = useMemo(() => {
