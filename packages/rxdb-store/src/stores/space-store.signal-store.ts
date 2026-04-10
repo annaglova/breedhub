@@ -1075,7 +1075,18 @@ class SpaceStore {
         }
       });
       console.log(`[SpaceStore] Created collection ${entityType}`);
-    } catch (error) {
+    } catch (error: any) {
+      // DB6 = schema mismatch — cached IndexedDB has old schema, config has new one.
+      // Auto-clear and reload (same as checkSchemaVersion flow).
+      if (error?.code === 'DB6' || error?.rxdb && error?.code === 'DB6') {
+        console.warn(`[SpaceStore] Schema mismatch for ${entityType}. Clearing RxDB and reloading...`);
+        try {
+          indexedDB.deleteDatabase('rxdb-dexie-breedhub');
+          indexedDB.deleteDatabase('breedhub');
+        } catch { /* best effort */ }
+        window.location.reload();
+        return;
+      }
       console.error(`[SpaceStore] Failed to create collection ${entityType}:`, error);
       throw error;
     }
