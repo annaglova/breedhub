@@ -685,15 +685,24 @@ class DictionaryStore {
     junctionTable: string,
     targetField: string,
     filterField: string,
-    filterValue: string
+    filterValue: string,
+    additionalFilters?: Array<{ field: string; value: string }>
   ): Promise<string[]> {
     // Online: query Supabase directly
     if (!isOffline()) {
       try {
-        const { data, error } = await supabase
+        let query = supabase
           .from(junctionTable)
           .select(targetField)
           .eq(filterField, filterValue);
+
+        if (additionalFilters) {
+          for (const f of additionalFilters) {
+            query = query.eq(f.field, f.value);
+          }
+        }
+
+        const { data, error } = await query;
 
         if (error) {
           throw new Error(`Junction query failed: ${error.message}`);

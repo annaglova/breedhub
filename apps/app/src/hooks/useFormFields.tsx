@@ -34,6 +34,8 @@ interface UseFormFieldsOptions {
   };
   /** Filter for which fields to include */
   fieldFilter?: (key: string, config: BaseFieldConfig) => boolean;
+  /** Parent entity for dependsOnParent junction filtering (child dialogs) */
+  parentEntity?: Record<string, any> | null;
 }
 
 export function useFormFields({
@@ -44,6 +46,7 @@ export function useFormFields({
   formChanges = {},
   readonlyConditions,
   fieldFilter,
+  parentEntity,
 }: UseFormFieldsOptions) {
   // Filter fields if needed (e.g., showInForm only)
   const filteredFields = useMemo(() => {
@@ -72,6 +75,7 @@ export function useFormFields({
     getValue,
     onChange,
     readonlyConditions,
+    parentEntity,
   });
 
   // Junction table wrapper callback — used by DynamicFormField's wrapComponent
@@ -81,21 +85,50 @@ export function useFormFields({
     Component: React.ComponentType<any>,
     fieldProps: any
   ) => {
-    if (field.junctionTable && field.junctionField && field.junctionFilterField) {
-      const parentFieldValue = getParentFieldValue(field);
+    const hasDependsOnParent = field.dependsOnParent && parentEntity;
+    const hasStandardJunction = field.junctionTable && field.junctionField && field.junctionFilterField;
+
+    if (!field.junctionTable || !field.junctionField || (!hasStandardJunction && !hasDependsOnParent)) {
+      return null;
+    }
+
+    // dependsOnParent: resolve all filter pairs from parent entity
+    if (hasDependsOnParent) {
+      const entries = Object.entries(field.dependsOnParent!);
+      const firstEntry = entries[0];
+      const primaryFilterField = firstEntry[0];
+      const primaryValue = parentEntity![firstEntry[1]];
+      const additional = entries.slice(1).map(([junctionCol, parentField]) => ({
+        field: junctionCol,
+        value: parentEntity![parentField],
+      }));
+
       return (
         <div key={fieldId}>
           <JunctionFilterField
-            field={field}
+            field={{ ...field, junctionFilterField: primaryFilterField }}
             Component={Component}
-            parentFieldValue={parentFieldValue}
+            parentFieldValue={primaryValue}
+            additionalFilters={additional.length > 0 ? additional : undefined}
             {...fieldProps}
           />
         </div>
       );
     }
-    return null;
-  }, [getParentFieldValue]);
+
+    // Standard: single filter from same form (coat_color pattern)
+    const parentFieldValue = getParentFieldValue(field);
+    return (
+      <div key={fieldId}>
+        <JunctionFilterField
+          field={field}
+          Component={Component}
+          parentFieldValue={parentFieldValue}
+          {...fieldProps}
+        />
+      </div>
+    );
+  }, [getParentFieldValue, parentEntity]);
 
   // Visibility check for visibleWhen fields
   const shouldRenderField = useCallback((fieldId: string, field: BaseFieldConfig) => {

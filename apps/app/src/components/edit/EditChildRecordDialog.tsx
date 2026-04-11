@@ -129,6 +129,7 @@ export function EditChildRecordDialog({
     entity: currentEntity,
     formChanges,
     fieldFilter: (_key, config) => (config as EditFieldConfig).showInForm !== false && !!config.component,
+    parentEntity,
   });
 
   // When readOnly, override all fields as disabled

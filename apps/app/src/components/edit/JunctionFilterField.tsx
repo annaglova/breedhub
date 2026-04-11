@@ -14,6 +14,7 @@ interface JunctionFilterFieldProps {
   field: BaseFieldConfig;
   Component: React.ComponentType<any>;
   parentFieldValue?: string;
+  additionalFilters?: Array<{ field: string; value: string | undefined }>;
   [key: string]: any;
 }
 
@@ -21,6 +22,7 @@ export function JunctionFilterField({
   field,
   Component,
   parentFieldValue,
+  additionalFilters,
   ...componentProps
 }: JunctionFilterFieldProps) {
   const { filterByIds, junctionFilter } = useJunctionFilterIds({
@@ -28,6 +30,7 @@ export function JunctionFilterField({
     junctionField: field.junctionField!,
     junctionFilterField: field.junctionFilterField!,
     filterValue: parentFieldValue,
+    additionalFilters,
   });
 
   return (

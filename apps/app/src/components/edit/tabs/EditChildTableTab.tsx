@@ -475,7 +475,7 @@ export function EditChildTableTab({
           onSaved={handleSaved}
           isEntityChild={isEntityChild}
           dataSources={isEntityChild ? dataSource : undefined}
-          parentEntity={isEntityChild ? selectedEntity : undefined}
+          parentEntity={selectedEntity}
           readOnly={!!(protectedWhen && editingRecord && (editingRecord.additional || editingRecord)[protectedWhen.field] === protectedWhen.value)}
         />
       )}

@@ -24,6 +24,9 @@ export interface DynamicFieldConfig {
   readonlyWhen?: string;
   // Auto-fill sibling fields from source record when this field changes
   fillDependent?: Array<{ sourceField: string; targetField: string }>;
+  // Junction filter from parent entity (child dialogs)
+  // Record: { junctionColumn: parentEntityField } — e.g. { sex_id: "sex_id", pet_status_id: "pet_status_id" }
+  dependsOnParent?: Record<string, string>;
   [key: string]: any;
 }
 
@@ -56,6 +59,8 @@ interface UseDynamicFieldsOptions {
     conditions: Record<string, boolean>;
     messages: Record<string, string>;
   };
+  /** Parent entity for dependsOnParent resolution (child dialogs) */
+  parentEntity?: Record<string, any> | null;
 }
 
 /**
@@ -67,7 +72,7 @@ interface UseDynamicFieldsOptions {
  * - Dependent field clearing on parent change
  * - Component props building (value, onChange, cascadeProps)
  */
-export function useDynamicFields({ fields, getValue, onChange, readonlyConditions }: UseDynamicFieldsOptions) {
+export function useDynamicFields({ fields, getValue, onChange, readonlyConditions, parentEntity }: UseDynamicFieldsOptions) {
 
   /**
    * Find dependent fields that should be cleared when a field changes.
@@ -164,6 +169,12 @@ export function useDynamicFields({ fields, getValue, onChange, readonlyCondition
    */
   const getParentFieldValue = useCallback(
     (config: DynamicFieldConfig): string | undefined => {
+      // dependsOnParent: get value from parent entity (for child dialogs)
+      if (config.dependsOnParent && parentEntity) {
+        const firstParentField = Object.values(config.dependsOnParent)[0];
+        return firstParentField ? (parentEntity[firstParentField] || undefined) : undefined;
+      }
+
       if (!config.dependsOn) return undefined;
 
       const parentField = fields.find(
@@ -178,7 +189,7 @@ export function useDynamicFields({ fields, getValue, onChange, readonlyCondition
 
       return getValue(parentDbName) || undefined;
     },
-    [fields, getValue]
+    [fields, getValue, parentEntity]
   );
 
   /**
