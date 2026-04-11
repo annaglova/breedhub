@@ -1,77 +1,18 @@
 import { DynamicFormField } from "@/components/edit/DynamicFormField";
 import { FormGroupLayout } from "@/components/edit/FormGroupLayout";
-import { useFormFieldGrouping } from "@/components/edit/useFormFieldGrouping";
 import { useSelectedEntity } from "@/contexts/SpaceContext";
-import { useDynamicFields, extractDbFieldName } from "@/hooks/useDynamicFields";
+import { extractDbFieldName } from "@/hooks/useDynamicFields";
 import { useEditForm } from "@/hooks/useEditForm";
 import { useFormValidation } from "@/hooks/useFormValidation";
 import { useResolveConditions } from "@/hooks/useResolveConditions";
-import { useJunctionFilterIds, routeStore, generateSlug, getDatabase } from "@breedhub/rxdb-store";
+import { useFormFields } from "@/hooks/useFormFields";
+import { routeStore, generateSlug, getDatabase } from "@breedhub/rxdb-store";
 import { getValueForLabel } from "@/components/space/utils/filter-url-helpers";
 import { useSignals } from "@preact/signals-react/runtime";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import type { EditFieldConfig } from "@/types/field-config";
 
-interface FieldConfig {
-  displayName: string;
-  component: string;
-  fieldType: string;
-  order: number;
-  required?: boolean;
-  placeholder?: string;
-  referencedTable?: string;
-  referencedFieldID?: string;
-  referencedFieldName?: string;
-  dataSource?: "dictionary" | "collection";
-  dependsOn?: string;
-  disabledUntil?: string;
-  filterBy?: string;
-  readonlyWhen?: string;
-  visibleWhen?: { field: string; value: string | string[] };
-  validation?: any;
-  options?: Array<{ value: string; label: string }>;
-  fullWidth?: boolean;
-  group?: string;
-  groupLayout?: "horizontal" | "vertical";
-  pairedField?: string;
-  sexFilter?: "male" | "female";
-  hidden?: boolean;
-  prefillFromFilter?: boolean;
-  defaultValue?: string;
-  // Junction table filtering (many-to-many)
-  junctionTable?: string;
-  junctionField?: string;
-  junctionFilterField?: string;
-}
-
-/**
- * Wrapper for fields with junction table filtering (hooks can't be called in loops).
- */
-function JunctionFilterField({
-  field,
-  Component,
-  parentFieldValue,
-  ...componentProps
-}: {
-  field: FieldConfig;
-  Component: React.ComponentType<any>;
-  parentFieldValue?: string;
-  [key: string]: any;
-}) {
-  const { filterByIds, junctionFilter } = useJunctionFilterIds({
-    junctionTable: field.junctionTable!,
-    junctionField: field.junctionField!,
-    junctionFilterField: field.junctionFilterField!,
-    filterValue: parentFieldValue,
-  });
-
-  return (
-    <Component
-      {...componentProps}
-      filterByIds={filterByIds}
-      junctionFilter={junctionFilter}
-    />
-  );
-}
+type FieldConfig = EditFieldConfig;
 
 interface EditFormTabProps {
   fields?: Record<string, FieldConfig>;
@@ -275,12 +216,6 @@ export function EditFormTab({ fields, onLoadedCount, entityType, onSaveReady, on
     }
   }, [rawHandleFieldChange, isCreateMode, onCreateNameChange]);
 
-  // Build fields array for useDynamicFields
-  const fieldsList = useMemo(() => {
-    if (!fields) return [];
-    return Object.entries(fields).map(([id, config]) => ({ id, config }));
-  }, [fields]);
-
   // Collect unique readonlyWhen condition names from field configs
   const conditionNames = useMemo(() => {
     if (!fields) return undefined;
@@ -304,10 +239,18 @@ export function EditFormTab({ fields, onLoadedCount, entityType, onSaveReady, on
     [formChanges, selectedEntity]
   );
 
-  const { getFieldProps, getParentFieldValue } = useDynamicFields({
-    fields: fieldsList,
+  // Shared form fields logic
+  const {
+    groupedFields,
+    getFieldProps,
+    wrapWithJunction,
+    shouldRenderField,
+  } = useFormFields({
+    fields,
     getValue,
     onChange: handleFieldChange,
+    entity: selectedEntity,
+    formChanges,
     readonlyConditions: conditionNames ? { conditions, messages } : undefined,
   });
 
@@ -346,9 +289,6 @@ export function EditFormTab({ fields, onLoadedCount, entityType, onSaveReady, on
     onDirtyChange?.(hasChanges);
   }, [hasChanges, onDirtyChange]);
 
-  // Sort fields by order and group them
-  const groupedFields = useFormFieldGrouping(fields);
-
   // Total field count for reporting
   const totalFieldCount = useMemo(
     () => groupedFields.reduce((sum, g) => sum + g.fields.length, 0),
@@ -371,35 +311,6 @@ export function EditFormTab({ fields, onLoadedCount, entityType, onSaveReady, on
   /**
    * Render a single field
    */
-  // Conditional visibility check for visibleWhen fields
-  const shouldRenderField = useCallback((fieldId: string, field: FieldConfig) => {
-    if (!field.visibleWhen) return true;
-    const depDbName = extractDbFieldName(field.visibleWhen.field);
-    const currentValue = formChanges[depDbName] ?? selectedEntity?.[depDbName];
-    const allowedValues = Array.isArray(field.visibleWhen.value)
-      ? field.visibleWhen.value
-      : [field.visibleWhen.value];
-    return !!currentValue && allowedValues.includes(currentValue);
-  }, [formChanges, selectedEntity]);
-
-  // Junction table wrapper for many-to-many filtering
-  const wrapWithJunction = useCallback((fieldId: string, field: FieldConfig, Component: React.ComponentType<any>, fieldProps: any) => {
-    if (field.junctionTable && field.junctionField && field.junctionFilterField) {
-      const parentFieldValue = getParentFieldValue(field);
-      return (
-        <div key={fieldId}>
-          <JunctionFilterField
-            field={field}
-            Component={Component}
-            parentFieldValue={parentFieldValue}
-            {...fieldProps}
-          />
-        </div>
-      );
-    }
-    return null;
-  }, [getParentFieldValue]);
-
   // Wrap getFieldProps to inject error/touched and validated change handler
   const getFieldPropsWithValidation = useCallback((fieldId: string, field: FieldConfig) => {
     const dbName = extractDbFieldName(fieldId);
