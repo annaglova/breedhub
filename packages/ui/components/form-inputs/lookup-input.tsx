@@ -294,6 +294,10 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
               currentCursor
             );
 
+            // Build defaultFilters for cascade filtering (e.g., filterBy: "object_id")
+            const defaultFilters: Record<string, any> | undefined =
+              filterBy && filterByValue ? { [filterBy]: filterByValue } : undefined;
+
             const {
               records,
               hasMore: dictHasMore,
@@ -306,6 +310,7 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
               cursor: currentCursor, // ✅ Use cursor instead of offset
               filterByIds: filterByIds || undefined, // Small ID sets (client-side)
               junctionFilter: junctionFilter || undefined, // Server-side join (large sets)
+              defaultFilters, // Cascade filter (e.g., object_id = selected value)
             });
 
             opts = records.map((record) => ({
