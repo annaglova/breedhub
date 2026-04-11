@@ -18,7 +18,7 @@ import {
   DropdownMenuTrigger,
 } from "@ui/components/dropdown-menu";
 import type { ColumnDef } from "@tanstack/react-table";
-import { MoreVertical, Pencil, Trash2 } from "lucide-react";
+import { Lock, MoreVertical, Pencil, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { EditChildRecordDialog } from "../EditChildRecordDialog";
 
@@ -368,9 +368,21 @@ export function EditChildTableTab({
       enableGlobalFilter: false,
       header: () => null,
       cell: ({ row }) => {
-        // Check if record is protected (e.g., is_primary=true)
-        const data = row.original.additional || row.original;
-        const isProtected = protectedWhen && data[protectedWhen.field] === protectedWhen.value;
+        // Check if record is protected (e.g., is_primary=true, service_type_id=X)
+        // Use RAW record (not enriched) because enrichment replaces FK UUIDs with display names
+        const rawRecord = records?.find((r: any) => r.id === row.original.id);
+        const rawData = rawRecord?.additional || rawRecord || row.original.additional || row.original;
+        const isProtected = protectedWhen && rawData[protectedWhen.field] === protectedWhen.value;
+
+        if (isProtected) {
+          return (
+            <div className="flex justify-center">
+              <div className="size-[2.25rem] flex items-center justify-center">
+                <Lock size={14} className="text-muted-foreground" />
+              </div>
+            </div>
+          );
+        }
 
         return (
           <DropdownMenu>
@@ -379,7 +391,6 @@ export function EditChildTableTab({
                 variant="ghost-secondary"
                 className="size-[2.25rem] rounded-full p-0"
                 onClick={(e) => e.stopPropagation()}
-                disabled={isProtected}
               >
                 <MoreVertical size={16} />
               </Button>

@@ -76,7 +76,7 @@ export function FormDialog({
               type="button"
               variant="secondary"
               onClick={handleCancel}
-              className="small-button bg-secondary-100 hover:bg-secondary-200 focus:bg-secondary-300 text-slate-800 dark:text-zinc-900 dark:bg-surface-400 dark:hover:bg-surface-300"
+              className={`small-button bg-secondary-100 hover:bg-secondary-200 focus:bg-secondary-300 text-slate-800 dark:text-zinc-900 dark:bg-surface-400 dark:hover:bg-surface-300${hideSubmit ? " col-start-2" : ""}`}
             >
               {cancelLabel}
             </Button>
