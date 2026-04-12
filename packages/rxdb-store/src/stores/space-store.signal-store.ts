@@ -1083,9 +1083,18 @@ class SpaceStore {
       // Auto-clear and reload (same as checkSchemaVersion flow).
       if (error?.code === 'DB6' || error?.rxdb && error?.code === 'DB6') {
         console.warn(`[SpaceStore] Schema mismatch for ${entityType}. Clearing RxDB and reloading...`);
+        // Prevent multiple concurrent clears
+        if ((window as any).__rxdbClearing) return;
+        (window as any).__rxdbClearing = true;
         try {
-          indexedDB.deleteDatabase('rxdb-dexie-breedhub');
-          indexedDB.deleteDatabase('breedhub');
+          await new Promise<void>((resolve) => {
+            let pending = 2;
+            const done = () => { if (--pending <= 0) resolve(); };
+            const r1 = indexedDB.deleteDatabase('rxdb-dexie-breedhub');
+            r1.onsuccess = r1.onerror = done;
+            const r2 = indexedDB.deleteDatabase('breedhub');
+            r2.onsuccess = r2.onerror = done;
+          });
         } catch { /* best effort */ }
         window.location.reload();
         return;
