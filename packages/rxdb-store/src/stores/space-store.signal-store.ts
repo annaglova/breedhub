@@ -3341,6 +3341,27 @@ class SpaceStore {
     }
   }
 
+  /** Force refresh child records from Supabase — use after operations with server-side triggers */
+  async forceRefreshChildRecords(
+    entityType: string,
+    tableType: string,
+    parentId: string,
+    parentField?: string
+  ): Promise<void> {
+    const parentIdField = parentField || `${entityType}_id`;
+    const entitySchema = this.entitySchemas.get(entityType);
+    const partitionConfig = entitySchema?.partition;
+    let partitionValue: string | undefined;
+    if (partitionConfig) {
+      const parent = await this.getById(entityType, parentId);
+      if (parent) partitionValue = (parent as any)[partitionConfig.keyField];
+    }
+    await this.refreshChildRecordsInBackground(
+      entityType, tableType, parentId, parentIdField,
+      { limit: 200 }, partitionConfig, partitionValue
+    );
+  }
+
   /** Background refresh for stale child records — fetches fresh data without blocking UI */
   private async refreshChildRecordsInBackground(
     entityType: string,
@@ -3685,6 +3706,11 @@ class SpaceStore {
 
       // Local rebuild of denormalized parent fields (mirrors server triggers)
       await this.rebuildParentDenormFields(entityType, normalizedTableType, parentId, partitionValue);
+
+      // Flush sync queue + refresh to pick up server-side trigger side-effects
+      syncQueueService.processNow().then(() => {
+        this.forceRefreshChildRecords(entityType, normalizedTableType, parentId);
+      });
     }
 
     return { id };
@@ -3734,12 +3760,18 @@ class SpaceStore {
         );
 
         // Local rebuild of denormalized parent fields (mirrors server triggers)
+        const normalizedType = tableType.replace(/_with_\w+$/, '');
         await this.rebuildParentDenormFields(
           entityType,
-          tableType.replace(/_with_\w+$/, ''),
+          normalizedType,
           updatedDoc.parentId,
           updatedDoc.partitionId,
         );
+
+        // Flush sync queue + refresh to pick up server-side trigger side-effects
+        syncQueueService.processNow().then(() => {
+          this.forceRefreshChildRecords(entityType, normalizedType, updatedDoc.parentId);
+        });
       }
     }
   }
