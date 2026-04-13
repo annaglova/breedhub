@@ -82,10 +82,8 @@ export function PetPickerInput({
       .eq("breed_id", selectedEntity.breed_id)
       .then(({ data }) => {
         if (data?.length) {
-          setAllowedBreedIds([
-            selectedEntity.breed_id,
-            ...data.map((r: any) => r.connected_breed_id),
-          ]);
+          // related_breed includes self-reference, no need to add manually
+          setAllowedBreedIds(data.map((r: any) => r.connected_breed_id));
         } else {
           setAllowedBreedIds([selectedEntity.breed_id]);
         }

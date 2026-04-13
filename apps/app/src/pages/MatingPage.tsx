@@ -142,11 +142,9 @@ export function MatingPage({ pageConfig, workspaceConfig }: MatingPageProps) {
           .eq("breed_id", mother.breedId);
 
         if (data && data.length > 0) {
-          // Has related breeds - allow those + the original breed
-          const relatedIds = data.map((r) => r.connected_breed_id);
-          setAllowedBreedsForFather([mother.breedId, ...relatedIds]);
+          // related_breed includes self-reference
+          setAllowedBreedsForFather(data.map((r) => r.connected_breed_id));
         } else {
-          // No related breeds - only allow the same breed (pure breeding)
           setAllowedBreedsForFather([mother.breedId]);
         }
       } catch (error) {
@@ -174,8 +172,8 @@ export function MatingPage({ pageConfig, workspaceConfig }: MatingPageProps) {
           .eq("breed_id", father.breedId);
 
         if (data && data.length > 0) {
-          const relatedIds = data.map((r) => r.connected_breed_id);
-          setAllowedBreedsForMother([father.breedId, ...relatedIds]);
+          // related_breed includes self-reference
+          setAllowedBreedsForMother(data.map((r) => r.connected_breed_id));
         } else {
           setAllowedBreedsForMother([father.breedId]);
         }

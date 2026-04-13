@@ -1,13 +1,9 @@
-import { DynamicFormField } from "@/components/edit/DynamicFormField";
-import { FormGroupLayout } from "@/components/edit/FormGroupLayout";
+import { DynamicForm } from "@/components/edit/DynamicForm";
 import { FormDialog } from "@/components/edit/FormDialog";
-import { useFormFields } from "@/hooks/useFormFields";
-import { spaceStore } from "@breedhub/rxdb-store";
+import { spaceStore, dictionaryStore } from "@breedhub/rxdb-store";
 import type { DataSourceConfig } from "@breedhub/rxdb-store";
 import { withCrudToast } from "@/utils/crudToast";
-import { useFormValidation } from "@/hooks/useFormValidation";
-import { extractDbFieldName } from "@/hooks/useDynamicFields";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { EditFieldConfig } from "@/types/field-config";
 
 interface EditChildRecordDialogProps {
@@ -93,13 +89,30 @@ export function EditChildRecordDialog({
 }: EditChildRecordDialogProps) {
   const [formChanges, setFormChanges] = useState<Record<string, any>>({});
   const [isSaving, setIsSaving] = useState(false);
+  const validateRef = useRef<() => boolean>();
 
   const isEditMode = !!record;
 
   // Reset form when dialog opens/closes or record changes
+  // In create mode, pre-fill from dataSource prefill config
   useEffect(() => {
-    if (open) setFormChanges({});
-  }, [open, record]);
+    if (!open) return;
+    if (!isEditMode && isEntityChild && dataSources && parentEntity) {
+      // Resolve sex_id → code (male/female) for correct father/mother assignment
+      const resolveAndPrefill = async () => {
+        let sexCode: string | undefined;
+        if (parentEntity.sex_id) {
+          const sexRecord = await dictionaryStore.getRecordById('sex', parentEntity.sex_id);
+          if (sexRecord) sexCode = sexRecord.code;
+        }
+        const prefill = resolvePrefill(dataSources, parentId, parentEntity, sexCode);
+        setFormChanges(prefill);
+      };
+      resolveAndPrefill();
+    } else {
+      setFormChanges({});
+    }
+  }, [open, record, isEditMode, isEntityChild, dataSources, parentId, parentEntity]);
 
   const handleFieldChange = useCallback((fieldName: string, value: any) => {
     setFormChanges(prev => ({ ...prev, [fieldName]: value }));
@@ -118,64 +131,14 @@ export function EditChildRecordDialog({
   // Current entity for PetPickerInput context
   const currentEntity = isEditMode ? record : parentEntity;
 
-  // Shared form fields logic (cascade, junction, visibility, grouping)
-  const {
-    groupedFields,
-    getFieldProps: baseGetFieldProps,
-    wrapWithJunction,
-    shouldRenderField,
-  } = useFormFields({
-    fields,
-    getValue,
-    onChange: handleFieldChange,
-    entity: currentEntity,
-    formChanges,
-    fieldFilter: (_key, config) => (config as EditFieldConfig).showInForm !== false && !!config.component,
-    parentEntity,
-  });
-
-  // Validation
-  const { errors, touched, validateAll, touchAndValidate } = useFormValidation();
-
-  // When readOnly, override all fields as disabled
-  // Otherwise, wrap with validation (error/touched + real-time validation on change)
-  const getFieldProps = readOnly
-    ? (fieldId: string, config: any) => ({ ...baseGetFieldProps(fieldId, config), disabled: true, disabledOnGray: true })
-    : (fieldId: string, config: any) => {
-        const dbName = extractDbFieldName(fieldId);
-        const props = baseGetFieldProps(fieldId, config);
-        const wrapHandler = (handler: any) => {
-          if (!handler) return handler;
-          return (value: any) => { handler(value); touchAndValidate(dbName, config, value); };
-        };
-        return {
-          ...props,
-          onValueChange: wrapHandler(props.onValueChange),
-          onChange: props.onChange ? wrapHandler(props.onChange) : undefined,
-          onCheckedChange: props.onCheckedChange ? wrapHandler(props.onCheckedChange) : undefined,
-          error: touched[dbName] ? errors[dbName] : undefined,
-          touched: touched[dbName],
-        };
-      };
-
   const hasChanges = Object.keys(formChanges).length > 0;
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!hasChanges) return;
 
-    // Validate all visible fields before save
-    if (fields) {
-      const visibleFields = Object.fromEntries(
-        Object.entries(fields).filter(([, c]) => (c as EditFieldConfig).showInForm !== false)
-      );
-      const isValid = validateAll(
-        visibleFields,
-        (key) => formChanges[extractDbFieldName(key)] ?? getValue(extractDbFieldName(key)),
-        extractDbFieldName
-      );
-      if (!isValid) return;
-    }
+    // Validate via DynamicForm
+    if (validateRef.current && !validateRef.current()) return;
 
     setIsSaving(true);
 
@@ -184,8 +147,8 @@ export function EditChildRecordDialog({
       if (isEntityChild && dataSources) {
         const entityTable = dataSources[0]?.childTable?.table || entityType;
         if (isEditMode) return spaceStore.update(entityTable, record!.id, formChanges);
-        const prefillData = resolvePrefill(dataSources, parentId, parentEntity, parentEntity?.sex);
-        return spaceStore.create(entityTable, { ...prefillData, ...formChanges });
+        // formChanges already includes prefill values from dialog open
+        return spaceStore.create(entityTable, formChanges);
       }
       if (isEditMode) return spaceStore.updateChildRecord(entityType, tableType, record!.id, formChanges);
       return spaceStore.createChildRecord(entityType, tableType, parentId, formChanges);
@@ -202,20 +165,6 @@ export function EditChildRecordDialog({
     setIsSaving(false);
   };
 
-  const renderField = (fieldId: string, field: EditFieldConfig) => (
-    <DynamicFormField
-      fieldId={fieldId}
-      field={field}
-      entity={currentEntity}
-      formChanges={formChanges}
-      handleFieldChange={handleFieldChange}
-      getFieldProps={getFieldProps}
-      wrapComponent={wrapWithJunction}
-      shouldRender={shouldRenderField}
-      className="space-y-2"
-    />
-  );
-
   if (!fields) return null;
 
   return (
@@ -229,22 +178,18 @@ export function EditChildRecordDialog({
       submitDisabled={!hasChanges || isSaving}
       hideSubmit={readOnly}
     >
-      <div className="space-y-4">
-        {groupedFields.map((group, idx) => (
-          <div key={group.label ?? idx}>
-            {group.label && (
-              <h3 className="flex w-full items-center text-xl leading-[26px] font-bold text-sub-header-color mb-4">
-                {group.label}
-              </h3>
-            )}
-            <FormGroupLayout
-              layout={group.layout}
-              fields={group.fields}
-              renderField={renderField}
-            />
-          </div>
-        ))}
-      </div>
+      <DynamicForm
+        fields={fields}
+        getValue={getValue}
+        onChange={handleFieldChange}
+        entity={currentEntity}
+        formChanges={formChanges}
+        readOnly={readOnly}
+        parentEntity={parentEntity}
+        fieldFilter={(_key, config) => (config as EditFieldConfig).showInForm !== false && !!config.component}
+        variant="dialog"
+        onValidateReady={(fn) => { validateRef.current = fn; }}
+      />
     </FormDialog>
   );
 }
