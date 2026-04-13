@@ -22,18 +22,22 @@ export function useTabData<T = any>({
   parentId,
   dataSource,
   enabled = true,
-}: UseTabDataOptions): TabDataResult<T> {
+  enrich,
+}: UseTabDataOptions & { enrich?: (records: any[]) => Promise<any[]> }): TabDataResult<T> {
   const [data, setData] = useState<T[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [loadPhase, setLoadPhase] = useState<'idle' | 'loading' | 'done'>('idle');
   const [error, setError] = useState<Error | null>(null);
   const loadingRef = useRef(false);
   const mountedRef = useRef(true);
+
+  // Derived: isLoading = true until load completes (no gap on first render)
+  const isLoading = enabled && loadPhase !== 'done';
 
   const loadData = useCallback(async () => {
     // Skip if disabled or missing required params
     if (!enabled || !parentId || !dataSource) {
       setData([]);
-      setIsLoading(false);
+      setLoadPhase('done');
       return;
     }
 
@@ -43,7 +47,7 @@ export function useTabData<T = any>({
     }
 
     loadingRef.current = true;
-    setIsLoading(true);
+    setLoadPhase('loading');
     setError(null);
 
     try {
@@ -59,22 +63,32 @@ export function useTabData<T = any>({
       }
 
       // Load data via TabDataService
-      const records = await tabDataService.loadTabData(parentId, dataSource);
+      let records = await tabDataService.loadTabData(parentId, dataSource);
+
+      // Enrich inline (FK resolution) — atomic: one setData with final enriched result
+      if (enrich && records.length > 0) {
+        records = await enrich(records);
+      }
 
       if (mountedRef.current) {
         setData(records as T[]);
-        setIsLoading(false);
+        setLoadPhase('done');
       }
     } catch (err) {
       console.error('[useTabData] Error:', err);
       if (mountedRef.current) {
         setError(err as Error);
-        setIsLoading(false);
+        setLoadPhase('done');
       }
     } finally {
       loadingRef.current = false;
     }
-  }, [parentId, dataSource, enabled]);
+  }, [parentId, dataSource, enabled, enrich]);
+
+  // Reset phase when params change (new entity, different tab)
+  useEffect(() => {
+    setLoadPhase('idle');
+  }, [parentId, dataSource]);
 
   // Load on mount and when params change
   useEffect(() => {

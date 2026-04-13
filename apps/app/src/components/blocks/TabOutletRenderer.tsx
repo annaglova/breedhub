@@ -58,6 +58,7 @@ interface TabOutletRendererProps {
   onDefaultTabChange?: (isDefault: boolean) => void;
   isCreateMode?: boolean;
   onCreateNameChange?: (name: string) => void;
+  isLoading?: boolean;
 }
 
 // Extended tab with internal ordering fields
@@ -197,6 +198,7 @@ export function TabOutletRenderer({
   entityType,
   onDirtyChange,
   onBeforeTabChange,
+  isLoading: pageLoading,
   onDefaultTabChange,
   isCreateMode,
   onCreateNameChange,

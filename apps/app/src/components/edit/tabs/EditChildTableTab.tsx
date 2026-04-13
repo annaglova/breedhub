@@ -33,6 +33,7 @@ import { EditChildRecordDialog } from "../EditChildRecordDialog";
 function useMultiTabData(
   entityId: string | undefined,
   dataSources: DataSourceConfig[] | undefined,
+  enrich?: (records: any[]) => Promise<any[]>,
 ) {
   const primary = dataSources?.[0];
   const secondary = dataSources?.[1];
@@ -47,6 +48,7 @@ function useMultiTabData(
     parentId: entityId,
     dataSource: primary!,
     enabled: !!primary && !!entityId,
+    enrich,
   });
 
   const {
@@ -58,6 +60,7 @@ function useMultiTabData(
     parentId: entityId,
     dataSource: secondary!,
     enabled: hasMultiple && !!secondary && !!entityId,
+    enrich,
   });
 
   // Merge and deduplicate by ID
@@ -158,6 +161,56 @@ function buildColumns(fields: Record<string, FieldConfig>): ColumnDef<any>[] {
         cell: ({ getValue }) => formatCellValue(getValue(), config.fieldType),
       };
     });
+}
+
+/** Resolve FK UUIDs to display names — standalone async function for atomic loading */
+async function enrichRecords(
+  records: any[],
+  fields: Record<string, FieldConfig>,
+): Promise<any[]> {
+  const fkFields = Object.entries(fields)
+    .filter(([, config]) => config.isForeignKey)
+    .map(([key, config]) => ({
+      fieldName: extractFieldName(key),
+      referencedTable: config.referencedTable as string,
+      referencedFieldName: (config.referencedFieldName || 'name') as string,
+    }));
+
+  if (fkFields.length === 0) return records;
+
+  const lookups = new Map<string, Map<string, string>>();
+  await Promise.all(
+    fkFields.map(async (fk) => {
+      const ids = new Set<string>();
+      for (const r of records) {
+        const val = r[fk.fieldName] ?? r.additional?.[fk.fieldName];
+        if (val) ids.add(val);
+      }
+      const resolved = new Map<string, string>();
+      await Promise.all(
+        [...ids].map(async (id) => {
+          const rec = await dictionaryStore.getRecordById(fk.referencedTable, id);
+          if (rec) resolved.set(id, String(rec[fk.referencedFieldName] || rec.name || ''));
+        }),
+      );
+      lookups.set(fk.fieldName, resolved);
+    }),
+  );
+
+  return records.map((record) => {
+    const enriched = { ...record };
+    if (record.additional) enriched.additional = { ...record.additional };
+    for (const fk of fkFields) {
+      const resolved = lookups.get(fk.fieldName);
+      if (!resolved) continue;
+      if (enriched[fk.fieldName] && resolved.has(enriched[fk.fieldName])) {
+        enriched[fk.fieldName] = resolved.get(enriched[fk.fieldName]);
+      } else if (enriched.additional?.[fk.fieldName] && resolved.has(enriched.additional[fk.fieldName])) {
+        enriched.additional[fk.fieldName] = resolved.get(enriched.additional[fk.fieldName]);
+      }
+    }
+    return enriched;
+  });
 }
 
 /** Resolve FK UUIDs to display names using DictionaryStore */
@@ -305,24 +358,28 @@ export function EditChildTableTab({
     return { ...dataSource[0], readFrom };
   }, [readFrom, dataSource]);
 
-  // Single useTabData for readFrom, useMultiTabData for legacy (multiple dataSources)
+  // Atomic enrich callback — FK resolution happens INSIDE useTabData, before setData
+  // One state transition: loading → enriched data. No intermediate raw-data frame.
+  const enrichFn = useCallback(async (recs: any[]) => {
+    if (!fields) return recs;
+    return enrichRecords(recs, fields);
+  }, [fields]);
+
+  // Single useTabData for readFrom, useMultiTabData for legacy — BOTH use atomic enrich
   const singleResult = useTabData({
     parentId: entityId,
     dataSource: effectiveDataSource!,
     enabled: !!readFrom && !!effectiveDataSource && !!entityId,
+    enrich: enrichFn,
   });
-  const legacyResult = useMultiTabData(entityId, readFrom ? undefined : dataSource);
+  const legacyResult = useMultiTabData(entityId, readFrom ? undefined : dataSource, enrichFn);
 
-  const {
-    records,
-    isLoading,
-    error,
-    refetch,
-  } = readFrom
-    ? { records: singleResult.data, isLoading: singleResult.isLoading, error: singleResult.error, refetch: singleResult.refetch }
-    : legacyResult;
-
-  const { enriched: enrichedRecords, isEnriching } = useEnrichedRecords(records, fields);
+  // useEnrichedRecords is no longer needed — enrichment is atomic inside useTabData
+  const records = readFrom ? singleResult.data : legacyResult.records;
+  const enrichedRecords = records || [];
+  const isLoading = readFrom ? singleResult.isLoading : legacyResult.isLoading;
+  const error = readFrom ? singleResult.error : legacyResult.error;
+  const refetch = readFrom ? singleResult.refetch : legacyResult.refetch;
 
   // Dialog state
   const [editingRecord, setEditingRecord] = useState<Record<string, any> | null>(null);
@@ -463,8 +520,7 @@ export function EditChildTableTab({
     );
   }
 
-  // Bridge the gap between isLoading→false and isEnriching→true (one React frame)
-  const showSkeleton = isLoading || isEnriching || (records !== null && records.length > 0 && enrichedRecords.length === 0);
+  const showSkeleton = isLoading;
 
   // Error state
   if (error) {
@@ -486,6 +542,7 @@ export function EditChildTableTab({
         columns={columns}
         data={enrichedRecords}
         isLoading={showSkeleton}
+        skeletonRows={records?.length || 5}
         globalFilter={searchFilter}
         paginated={false}
         emptyMessage={`No ${label || "records"} found`}

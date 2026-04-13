@@ -253,31 +253,35 @@ export function useShouldShowSkeleton(): boolean {
  * @param isLoading - your loading state (e.g., !isEntityFullyLoaded || !allBlocksReady)
  * @returns shouldShowSkeleton - true only when loading AND delay has elapsed
  */
-export function useSkeletonWithDelay(isLoading: boolean): boolean {
-  const [delayElapsed, setDelayElapsed] = useState(false);
+export function useSkeletonWithDelay(isLoading: boolean, minDisplayMs = 300): boolean {
+  const [showSkeleton, setShowSkeleton] = useState(isLoading);
+  const startTimeRef = useRef<number>(0);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     if (isLoading) {
-      // Start delay timer when loading begins
-      timerRef.current = setTimeout(() => {
-        setDelayElapsed(true);
-      }, 100); // 100ms delay
-    } else {
-      // Reset when loading ends
+      // Show skeleton IMMEDIATELY
+      setShowSkeleton(true);
+      startTimeRef.current = Date.now();
       if (timerRef.current) {
         clearTimeout(timerRef.current);
         timerRef.current = null;
       }
-      setDelayElapsed(false);
+    } else if (showSkeleton) {
+      // Delay hiding: keep skeleton for minimum display time to prevent flash
+      const elapsed = Date.now() - startTimeRef.current;
+      const remaining = Math.max(0, minDisplayMs - elapsed);
+      if (remaining > 0) {
+        timerRef.current = setTimeout(() => setShowSkeleton(false), remaining);
+      } else {
+        setShowSkeleton(false);
+      }
     }
 
     return () => {
-      if (timerRef.current) {
-        clearTimeout(timerRef.current);
-      }
+      if (timerRef.current) clearTimeout(timerRef.current);
     };
-  }, [isLoading]);
+  }, [isLoading, minDisplayMs]);
 
-  return isLoading && delayElapsed;
+  return showSkeleton;
 }
