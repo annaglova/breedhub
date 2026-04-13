@@ -5,6 +5,8 @@ import { useFormFields } from "@/hooks/useFormFields";
 import { spaceStore } from "@breedhub/rxdb-store";
 import type { DataSourceConfig } from "@breedhub/rxdb-store";
 import { withCrudToast } from "@/utils/crudToast";
+import { useFormValidation } from "@/hooks/useFormValidation";
+import { extractDbFieldName } from "@/hooks/useDynamicFields";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { EditFieldConfig } from "@/types/field-config";
 
@@ -132,16 +134,48 @@ export function EditChildRecordDialog({
     parentEntity,
   });
 
+  // Validation
+  const { errors, touched, validateAll, touchAndValidate } = useFormValidation();
+
   // When readOnly, override all fields as disabled
+  // Otherwise, wrap with validation (error/touched + real-time validation on change)
   const getFieldProps = readOnly
     ? (fieldId: string, config: any) => ({ ...baseGetFieldProps(fieldId, config), disabled: true, disabledOnGray: true })
-    : baseGetFieldProps;
+    : (fieldId: string, config: any) => {
+        const dbName = extractDbFieldName(fieldId);
+        const props = baseGetFieldProps(fieldId, config);
+        const wrapHandler = (handler: any) => {
+          if (!handler) return handler;
+          return (value: any) => { handler(value); touchAndValidate(dbName, config, value); };
+        };
+        return {
+          ...props,
+          onValueChange: wrapHandler(props.onValueChange),
+          onChange: props.onChange ? wrapHandler(props.onChange) : undefined,
+          onCheckedChange: props.onCheckedChange ? wrapHandler(props.onCheckedChange) : undefined,
+          error: touched[dbName] ? errors[dbName] : undefined,
+          touched: touched[dbName],
+        };
+      };
 
   const hasChanges = Object.keys(formChanges).length > 0;
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!hasChanges) return;
+
+    // Validate all visible fields before save
+    if (fields) {
+      const visibleFields = Object.fromEntries(
+        Object.entries(fields).filter(([, c]) => (c as EditFieldConfig).showInForm !== false)
+      );
+      const isValid = validateAll(
+        visibleFields,
+        (key) => formChanges[extractDbFieldName(key)] ?? getValue(extractDbFieldName(key)),
+        extractDbFieldName
+      );
+      if (!isValid) return;
+    }
 
     setIsSaving(true);
 

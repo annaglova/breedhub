@@ -18,7 +18,7 @@ import {
   DropdownMenuTrigger,
 } from "@ui/components/dropdown-menu";
 import type { ColumnDef } from "@tanstack/react-table";
-import { Lock, MoreVertical, Pencil, Trash2 } from "lucide-react";
+import { Lock, MoreVertical, Pencil, SquarePen, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { EditChildRecordDialog } from "../EditChildRecordDialog";
 
@@ -118,6 +118,7 @@ interface EditChildTableTabProps {
   onAddDialogClose?: () => void;
   protectedWhen?: { field: string; value: any };
   readFrom?: ReadFromConfig;
+  rowActions?: string[]; // "edit", "delete", "navigate" — default: ["edit", "delete"]
 }
 
 function formatCellValue(value: unknown, fieldType?: string): string {
@@ -322,6 +323,7 @@ export function EditChildTableTab({
   onAddDialogClose,
   protectedWhen,
   readFrom,
+  rowActions,
 }: EditChildTableTabProps) {
   useSignals();
 
@@ -404,6 +406,10 @@ export function EditChildTableTab({
     }
   }, [onAddDialogClose]);
 
+  const hasRowEdit = !rowActions || rowActions.includes('edit');
+  const hasRowDelete = !rowActions || rowActions.includes('delete');
+  const hasRowNavigate = rowActions?.includes('navigate');
+
   const handleEdit = useCallback((row: Record<string, any>) => {
     // Find the raw (non-enriched) record by ID for the dialog form
     // Enriched records have FK UUIDs replaced with display names, which breaks form inputs
@@ -412,9 +418,21 @@ export function EditChildTableTab({
     setIsDialogOpen(true);
   }, [records]);
 
+  const handleNavigate = useCallback((row: any) => {
+    const rawRecord = records?.find((r: any) => r.id === row.id) || row;
+    const slug = rawRecord.slug || row.slug;
+    if (slug) {
+      window.location.href = `/${slug}/edit`;
+    }
+  }, [records]);
+
   const handleRowClick = useCallback((row: any) => {
-    handleEdit(row);
-  }, [handleEdit]);
+    if (hasRowEdit) {
+      handleEdit(row);
+    } else if (hasRowNavigate) {
+      handleNavigate(row);
+    }
+  }, [hasRowEdit, hasRowNavigate, handleEdit, handleNavigate]);
 
   const handleDelete = async () => {
     if (!deletingRecord || !resolvedEntityType) return;
@@ -446,7 +464,10 @@ export function EditChildTableTab({
 
     const dataColumns = buildColumns(fields);
 
-    // Actions column
+    // Actions column — config-driven via rowActions
+    const hasAnyAction = hasRowEdit || hasRowDelete || hasRowNavigate;
+    if (!hasAnyAction) return dataColumns;
+
     const actionsColumn: ColumnDef<any> = {
       id: "actions",
       enableSorting: false,
@@ -454,7 +475,6 @@ export function EditChildTableTab({
       header: () => null,
       cell: ({ row }) => {
         // Check if record is protected (e.g., is_primary=true, service_type_id=X)
-        // Use RAW record (not enriched) because enrichment replaces FK UUIDs with display names
         const rawRecord = records?.find((r: any) => r.id === row.original.id);
         const rawData = rawRecord?.additional || rawRecord || row.original.additional || row.original;
         const isProtected = protectedWhen && rawData[protectedWhen.field] === protectedWhen.value;
@@ -481,17 +501,27 @@ export function EditChildTableTab({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleEdit(row.original); }}>
-                <Pencil className="size-4 mr-2" />
-                Edit
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                className="text-destructive"
-                onClick={(e) => { e.stopPropagation(); setDeletingRecord(row.original); }}
-              >
-                <Trash2 className="size-4 mr-2" />
-                Delete
-              </DropdownMenuItem>
+              {hasRowEdit && (
+                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleEdit(row.original); }}>
+                  <Pencil className="size-4 mr-2" />
+                  Edit
+                </DropdownMenuItem>
+              )}
+              {hasRowNavigate && (
+                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleNavigate(row.original); }}>
+                  <SquarePen className="size-4 mr-2" />
+                  Open full edit
+                </DropdownMenuItem>
+              )}
+              {hasRowDelete && (
+                <DropdownMenuItem
+                  className="text-destructive"
+                  onClick={(e) => { e.stopPropagation(); setDeletingRecord(row.original); }}
+                >
+                  <Trash2 className="size-4 mr-2" />
+                  Delete
+                </DropdownMenuItem>
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
         );
@@ -500,7 +530,7 @@ export function EditChildTableTab({
     };
 
     return [...dataColumns, actionsColumn];
-  }, [fields, handleEdit]);
+  }, [fields, handleEdit, handleNavigate, hasRowEdit, hasRowDelete, hasRowNavigate]);
 
   // Report count
   useEffect(() => {
