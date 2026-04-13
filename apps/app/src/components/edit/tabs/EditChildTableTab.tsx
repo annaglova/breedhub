@@ -463,7 +463,8 @@ export function EditChildTableTab({
     );
   }
 
-  const showSkeleton = isLoading || isEnriching;
+  // Bridge the gap between isLoading→false and isEnriching→true (one React frame)
+  const showSkeleton = isLoading || isEnriching || (records !== null && records.length > 0 && enrichedRecords.length === 0);
 
   // Error state
   if (error) {
