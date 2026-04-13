@@ -441,6 +441,18 @@ class TabDataService {
       return [];
     }
 
+    // Fast path: readFrom mapping table (e.g., pet_child → pet)
+    const readFrom = (dataSource as any).readFrom;
+    if (readFrom) {
+      return spaceStore.loadEntitiesViaMapping(
+        config.table,
+        readFrom.table,
+        readFrom.parentField,
+        parentId,
+        readFrom.partitionField,
+      );
+    }
+
     const result = await spaceStore.applyFilters(
       config.table,
       { [config.parentField]: parentId },
@@ -474,6 +486,15 @@ class TabDataService {
     if (!config) {
       console.error('[TabDataService] childTable config is required for type: entity_child');
       return { records: [], total: 0, hasMore: false, nextCursor: null };
+    }
+
+    // Fast path: readFrom mapping table
+    const readFrom = (dataSource as any).readFrom;
+    if (readFrom) {
+      const records = await spaceStore.loadEntitiesViaMapping(
+        config.table, readFrom.table, readFrom.parentField, parentId, readFrom.partitionField,
+      );
+      return { records, total: records.length, hasMore: false, nextCursor: null };
     }
 
     return spaceStore.applyFilters(

@@ -23,8 +23,12 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { EditChildRecordDialog } from "../EditChildRecordDialog";
 
 /**
+ * Hook to load entity children via readFrom mapping table.
+ * Fast path: gets IDs from mapping table, fetches full records by partition.
+ */
+/**
  * Hook to load data from multiple dataSource configs and merge results.
- * Deduplicates by record ID.
+ * Deduplicates by record ID. Skipped when readFrom is used.
  */
 function useMultiTabData(
   entityId: string | undefined,
@@ -94,6 +98,12 @@ interface FieldConfig {
   [key: string]: any;
 }
 
+interface ReadFromConfig {
+  table: string;
+  parentField: string;
+  partitionField?: string;
+}
+
 interface EditChildTableTabProps {
   fields?: Record<string, FieldConfig>;
   dataSource?: DataSourceConfig[];
@@ -104,6 +114,7 @@ interface EditChildTableTabProps {
   addDialogOpen?: boolean;
   onAddDialogClose?: () => void;
   protectedWhen?: { field: string; value: any };
+  readFrom?: ReadFromConfig;
 }
 
 function formatCellValue(value: unknown, fieldType?: string): string {
@@ -257,6 +268,7 @@ export function EditChildTableTab({
   addDialogOpen,
   onAddDialogClose,
   protectedWhen,
+  readFrom,
 }: EditChildTableTabProps) {
   useSignals();
 
@@ -287,12 +299,28 @@ export function EditChildTableTab({
     return '';
   }, [entityType, dataSource, isEntityChild]);
 
+  // Merge readFrom into primary dataSource for useTabData
+  const effectiveDataSource = useMemo(() => {
+    if (!readFrom || !dataSource?.[0]) return dataSource?.[0];
+    return { ...dataSource[0], readFrom };
+  }, [readFrom, dataSource]);
+
+  // Single useTabData for readFrom, useMultiTabData for legacy (multiple dataSources)
+  const singleResult = useTabData({
+    parentId: entityId,
+    dataSource: effectiveDataSource!,
+    enabled: !!readFrom && !!effectiveDataSource && !!entityId,
+  });
+  const legacyResult = useMultiTabData(entityId, readFrom ? undefined : dataSource);
+
   const {
     records,
     isLoading,
     error,
     refetch,
-  } = useMultiTabData(entityId, dataSource);
+  } = readFrom
+    ? { records: singleResult.data, isLoading: singleResult.isLoading, error: singleResult.error, refetch: singleResult.refetch }
+    : legacyResult;
 
   const { enriched: enrichedRecords, isEnriching } = useEnrichedRecords(records, fields);
 
@@ -435,6 +463,8 @@ export function EditChildTableTab({
     );
   }
 
+  const showSkeleton = isLoading || isEnriching;
+
   // Error state
   if (error) {
     return (
@@ -454,7 +484,7 @@ export function EditChildTableTab({
       <DataTable
         columns={columns}
         data={enrichedRecords}
-        isLoading={isLoading || isEnriching}
+        isLoading={showSkeleton}
         globalFilter={searchFilter}
         paginated={false}
         emptyMessage={`No ${label || "records"} found`}

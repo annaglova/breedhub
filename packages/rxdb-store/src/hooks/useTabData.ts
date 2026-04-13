@@ -87,16 +87,17 @@ export function useTabData<T = any>({
   }, [loadData]);
 
   // Auto-refetch when background child refresh completes for this table+parent
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const signalValue = enabled ? spaceStore.childRefreshSignal.value : null;
   useEffect(() => {
-    const refreshInfo = spaceStore.childRefreshSignal.value;
-    if (!refreshInfo || !parentId || !dataSource?.childTable) return;
+    if (!enabled || !signalValue || !parentId || !dataSource?.childTable) return;
 
     const tableType = dataSource.childTable.table?.replace(/_with_\w+$/, '');
-    if (refreshInfo.parentId === parentId && refreshInfo.tableType === tableType) {
-      loadingRef.current = false; // Allow reload
+    if (signalValue.parentId === parentId && signalValue.tableType === tableType) {
+      loadingRef.current = false;
       loadData();
     }
-  }, [spaceStore.childRefreshSignal.value, parentId, dataSource, loadData]);
+  }, [signalValue, parentId, dataSource, loadData, enabled]);
 
   // Manual refetch
   const refetch = useCallback(async () => {
