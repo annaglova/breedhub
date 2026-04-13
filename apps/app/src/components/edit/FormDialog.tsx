@@ -47,7 +47,7 @@ export function FormDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className="max-w-2xl max-h-[90vh] overflow-y-auto"
+        className="max-w-2xl max-h-[90vh] flex flex-col overflow-hidden"
         onOpenAutoFocus={(e) => e.preventDefault()}
         onPointerDownOutside={(e) => {
           const target = e.target as HTMLElement;
@@ -62,16 +62,16 @@ export function FormDialog({
           }
         }}
       >
-        <DialogHeader>
+        <DialogHeader className="shrink-0">
           <DialogTitle>{title}</DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={onSubmit}>
-          <div className="modal-card">
+        <form onSubmit={onSubmit} className="flex flex-col min-h-0">
+          <div className="modal-card overflow-y-auto">
             {children}
           </div>
 
-          <div className="modal-actions">
+          <div className="modal-actions shrink-0">
             <Button
               type="button"
               variant="secondary"
