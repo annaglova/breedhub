@@ -1518,7 +1518,8 @@ class SpaceStore {
 
       // Remove from RxDB locally (uses _deleted internally)
       await doc.remove();
-      entityStore.removeOne(id);
+      entityStore?.removeOne(id);
+      this.removeFromMappingCache(id);
 
       // Enqueue for Supabase sync
       await syncQueueService.enqueueEntity(
@@ -3397,6 +3398,16 @@ class SpaceStore {
     const existing = this.mappingCache.get(cacheKey) || [];
     if (!existing.some((r: any) => r.id === record.id)) {
       this.mappingCache.set(cacheKey, [...existing, record]);
+    }
+  }
+
+  /** Remove a specific record from mapping cache (after entity_child delete) */
+  removeFromMappingCache(recordId: string): void {
+    for (const [key, entries] of this.mappingCache) {
+      const filtered = entries.filter((r: any) => r.id !== recordId);
+      if (filtered.length !== entries.length) {
+        this.mappingCache.set(key, filtered);
+      }
     }
   }
 

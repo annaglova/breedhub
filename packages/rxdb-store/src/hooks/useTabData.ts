@@ -33,7 +33,7 @@ export function useTabData<T = any>({
   // Derived: isLoading = true until load completes (no gap on first render)
   const isLoading = enabled && loadPhase !== 'done';
 
-  const loadData = useCallback(async () => {
+  const loadData = useCallback(async (silent = false) => {
     // Skip if disabled or missing required params
     if (!enabled || !parentId || !dataSource) {
       setData([]);
@@ -47,7 +47,7 @@ export function useTabData<T = any>({
     }
 
     loadingRef.current = true;
-    setLoadPhase('loading');
+    if (!silent) setLoadPhase('loading');
     setError(null);
 
     try {
@@ -109,14 +109,14 @@ export function useTabData<T = any>({
     const tableType = dataSource.childTable.table?.replace(/_with_\w+$/, '');
     if (signalValue.parentId === parentId && signalValue.tableType === tableType) {
       loadingRef.current = false;
-      loadData();
+      loadData(true); // silent — no skeleton
     }
   }, [signalValue, parentId, dataSource, loadData, enabled]);
 
-  // Manual refetch
+  // Manual refetch (silent — data updates without skeleton)
   const refetch = useCallback(async () => {
     loadingRef.current = false;
-    await loadData();
+    await loadData(true);
   }, [loadData]);
 
   return {

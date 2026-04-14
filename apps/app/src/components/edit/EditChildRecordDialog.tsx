@@ -170,9 +170,7 @@ export function EditChildRecordDialog({
           );
         }
         // Background: sync to Supabase → server trigger creates real mapping
-        syncQueueService.processNow().then(() => {
-          spaceStore.invalidateMappingCache();
-        });
+        syncQueueService.processNow();
       }
       onSaved();
       onOpenChange(false);
