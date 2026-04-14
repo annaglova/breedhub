@@ -1,6 +1,6 @@
 import { DynamicForm } from "@/components/edit/DynamicForm";
 import { FormDialog } from "@/components/edit/FormDialog";
-import { spaceStore, dictionaryStore } from "@breedhub/rxdb-store";
+import { spaceStore, dictionaryStore, syncQueueService } from "@breedhub/rxdb-store";
 import type { DataSourceConfig } from "@breedhub/rxdb-store";
 import { withCrudToast } from "@/utils/crudToast";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -159,6 +159,15 @@ export function EditChildRecordDialog({
 
     const result = await withCrudToast(operation, { label: fullLabel, verb });
     if (result.ok) {
+      // For entity_child create: flush sync → server trigger creates mapping → refresh UI
+      if (isEntityChild && !isEditMode) {
+        syncQueueService.processNow().then(() => {
+          // Invalidate mapping cache so next load picks up new pet_child row
+          spaceStore.invalidateMappingCache();
+          // Signal UI to refetch (useTabData subscribes to this)
+          spaceStore.childRefreshSignal.value = { tableType, parentId };
+        });
+      }
       onSaved();
       onOpenChange(false);
     }

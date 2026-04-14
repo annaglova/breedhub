@@ -3374,6 +3374,11 @@ class SpaceStore {
   // Mapping ID cache: avoids Supabase call on tab switch
   private mappingCache = new Map<string, any[]>();
 
+  /** Clear mapping ID cache — call after entity_child create/delete to force re-fetch */
+  invalidateMappingCache(): void {
+    this.mappingCache.clear();
+  }
+
   /**
    * Load entities via a mapping table (e.g., pet_child → pet).
    * Local-first: cached mapping IDs → RxDB → return instantly.
