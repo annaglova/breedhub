@@ -144,9 +144,7 @@ export function useDeleteEntity(
                 </p>
                 <ul className="list-disc list-inside text-sm text-slate-600 space-y-1">
                   {state.dependencies.map((dep) => (
-                    <li key={dep.label}>
-                      {dep.label}: <span className="font-medium">{dep.count}</span>
-                    </li>
+                    <li key={dep.label}>{dep.label}</li>
                   ))}
                 </ul>
               </div>

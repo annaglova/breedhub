@@ -1377,17 +1377,10 @@ class SpaceStore {
    */
   private readonly dependencyMap: Record<string, [string, string, string][]> = {
     pet: [
+      ['pet_child', 'pet_id', 'Children'],
       ['title_in_pet', 'pet_id', 'Titles'],
-      ['pet_identifier', 'pet_id', 'Identifiers'],
-      ['pet_health_exam_result', 'pet_id', 'Health exams'],
-      ['dna_marker_in_pet', 'pet_id', 'DNA markers'],
-      ['contact_in_pet', 'pet_id', 'Contacts'],
-      ['pet_in_program', 'pet_id', 'Programs'],
-      ['activity', 'pet_id', 'Activities'],
-      ['pet', 'father_id', 'Children (as father)'],
-      ['pet', 'mother_id', 'Children (as mother)'],
-      ['litter', 'father_id', 'Litters (as father)'],
-      ['litter', 'mother_id', 'Litters (as mother)'],
+      ['pet_in_program', 'pet_id', 'Show results'],
+      ['pet_service_in_pet', 'pet_id', 'Services'],
     ],
     breed: [
       ['pet', 'breed_id', 'Pets'],
@@ -1436,31 +1429,49 @@ class SpaceStore {
 
     const dependencies: { label: string; count: number }[] = [];
 
-    // Run all count queries in parallel
-    const results = await Promise.all(
+    // Check RxDB first (fast, local), fallback to Supabase if RxDB says 0
+    await Promise.all(
       checks.map(async ([table, fkColumn, label]) => {
         try {
-          const { count, error } = await supabase
-            .from(table)
-            .select('id', { count: 'exact', head: true })
-            .eq(fkColumn, id);
+          // RxDB check: child collections
+          let found = false;
+          if (this.db) {
+            // Try child collection (e.g., pet_children for pet)
+            const childCollectionName = `${entityType}_children`;
+            const childCollection = this.db.collections[childCollectionName];
+            if (childCollection) {
+              const docs = await childCollection.find({
+                selector: { parentId: id, tableType: table }
+              }).exec();
+              if (docs.length > 0) found = true;
+            }
 
-          if (error) {
-            console.warn(`[SpaceStore] checkDependencies: ${table}.${fkColumn} query failed:`, error.message);
-            return { label, count: 0 };
+            // Try mapping table (e.g., pet_child)
+            if (!found && table === 'pet_child') {
+              const cached = this.mappingCache.get(`${table}:pet_id:${id}`);
+              if (cached && cached.length > 0) found = true;
+            }
           }
-          return { label, count: count || 0 };
+
+          // Supabase fallback if RxDB found nothing
+          if (!found) {
+            const { count, error } = await supabase
+              .from(table)
+              .select('id', { count: 'exact', head: true })
+              .eq(fkColumn, id)
+              .eq('deleted', false);
+
+            if (!error && count && count > 0) found = true;
+          }
+
+          if (found) {
+            dependencies.push({ label, count: 1 });
+          }
         } catch {
-          return { label, count: 0 };
+          // Silent — fail-open for local-first UX
         }
       })
     );
-
-    for (const result of results) {
-      if (result.count > 0) {
-        dependencies.push(result);
-      }
-    }
 
     return {
       canDelete: dependencies.length === 0,
