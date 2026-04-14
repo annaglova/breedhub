@@ -147,10 +147,10 @@ class TabDataService {
   }
 
   /**
-   * Type: child - with pagination (auto-detects VIEWs)
+   * Type: child - with pagination
    *
-   * Auto-detects VIEWs by table name pattern (`_with_`) and uses appropriate strategy:
-   * - VIEWs: Direct keyset pagination (more efficient for JOINed VIEWs)
+   * Uses `isView` config flag to select strategy:
+   * - VIEWs (isView: true): Direct keyset pagination (more efficient for JOINed VIEWs)
    * - Regular tables: ID-First pagination via applyChildFilters()
    */
   private async loadChildPaginated(
@@ -168,8 +168,7 @@ class TabDataService {
     const limit = pagination?.limit ?? config.limit ?? 30;
     const cursor = pagination?.cursor ?? null;
 
-    // Auto-detect VIEW by name pattern (VIEWs have `_with_` in name)
-    const isView = config.table.includes('_with_');
+    const isView = config.isView ?? false;
 
     if (isView) {
       // VIEWs with JOINs are slow with `WHERE id IN (...)`.

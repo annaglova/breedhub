@@ -32,6 +32,8 @@ export interface ChildTableConfig {
   orderBy?: OrderConfig[];
   /** Limit records (default: 50) */
   limit?: number;
+  /** Whether this table is a database VIEW (uses direct keyset pagination instead of ID-First) */
+  isView?: boolean;
 }
 
 /**
@@ -94,7 +96,7 @@ export interface RpcConfig {
  * DataSource type determines loading strategy
  */
 export type DataSourceType =
-  | 'child'                 // Simple child table (auto-detects VIEWs by name)
+  | 'child'                 // Simple child table (set isView: true for VIEWs)
   | 'child_with_dictionary' // Child + dictionary merge
   | 'main_filtered'         // Main entity with filter
   | 'entity_child'          // Entity record linked via parent field (e.g., pet children via father_id/mother_id)
@@ -122,11 +124,12 @@ export type DataSourceType =
  * }
  * ```
  *
- * @example Child view (patrons with contact) - auto-detected by `_with_` in table name
+ * @example Child view (patrons with contact) - uses isView flag for direct keyset pagination
  * ```json
  * {
  *   "type": "child",
  *   "childTable": {
+ *     "isView": true,
  *     "table": "top_patron_in_breed_with_contact",
  *     "parentField": "breed_id",
  *     "orderBy": [{ "field": "placement", "direction": "asc" }],

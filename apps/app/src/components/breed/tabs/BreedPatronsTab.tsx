@@ -66,29 +66,28 @@ export function BreedPatronsTab({
   const selectedEntity = useSelectedEntity();
   const breedId = selectedEntity?.id;
   const isFullscreen = spaceStore.isFullscreen.value;
-  const isTabFullscreen = spaceStore.isTabFullscreen.value;
 
   // Drawer mode: load all at once (limited)
   const drawerResult = useTabData<PatronViewRecord>({
     parentId: breedId,
     dataSource: dataSource?.[0]!,
-    enabled: !!dataSource?.[0] && !!breedId && !isTabFullscreen,
+    enabled: !!dataSource?.[0] && !!breedId && !isFullscreen,
   });
 
   // Fullscreen mode: infinite scroll with ID-First pagination
   const infiniteResult = useInfiniteTabData<PatronViewRecord>({
     parentId: breedId,
     dataSource: dataSource?.[0]!,
-    enabled: !!dataSource?.[0] && !!breedId && isTabFullscreen,
+    enabled: !!dataSource?.[0] && !!breedId && isFullscreen,
     pageSize: 30,
   });
 
   // Use appropriate data based on mode
-  const data = isTabFullscreen ? infiniteResult.data : drawerResult.data;
-  const isLoading = isTabFullscreen
+  const data = isFullscreen ? infiniteResult.data : drawerResult.data;
+  const isLoading = isFullscreen
     ? infiniteResult.isLoading
     : drawerResult.isLoading;
-  const error = isTabFullscreen ? infiniteResult.error : drawerResult.error;
+  const error = isFullscreen ? infiniteResult.error : drawerResult.error;
 
   const displayData = useDisplayLimit(data, dataSource);
 
@@ -120,10 +119,10 @@ export function BreedPatronsTab({
   const { hasMore, isLoadingMore, loadMore } = infiniteResult;
 
   const handleLoadMore = useCallback(() => {
-    if (isTabFullscreen && hasMore && !isLoadingMore) {
+    if (isFullscreen && hasMore && !isLoadingMore) {
       loadMore();
     }
-  }, [isTabFullscreen, hasMore, isLoadingMore, loadMore]);
+  }, [isFullscreen, hasMore, isLoadingMore, loadMore]);
 
   // Report loaded count for conditional fullscreen button
   useEffect(() => {
@@ -135,7 +134,7 @@ export function BreedPatronsTab({
   // IntersectionObserver for infinite scroll
   // Dependencies include `patrons.length` to re-run when data loads and ref becomes available
   useEffect(() => {
-    if (!isTabFullscreen || !loadMoreRef.current) return;
+    if (!isFullscreen || !loadMoreRef.current) return;
 
     const observer = new IntersectionObserver(
       (entries) => {
@@ -148,7 +147,7 @@ export function BreedPatronsTab({
 
     observer.observe(loadMoreRef.current);
     return () => observer.disconnect();
-  }, [isTabFullscreen, handleLoadMore, hasMore, isLoadingMore, patrons.length]);
+  }, [isFullscreen, handleLoadMore, hasMore, isLoadingMore, patrons.length]);
 
   // No dataSource config - show warning
   if (!dataSource?.[0]) {
@@ -216,7 +215,7 @@ export function BreedPatronsTab({
       </div>
 
       {/* Infinite scroll trigger & loading indicator */}
-      {isTabFullscreen && (
+      {isFullscreen && (
         <div ref={loadMoreRef} className="py-4 flex justify-center">
           {isLoadingMore && (
             <div className="flex items-center gap-2 text-secondary">

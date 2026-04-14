@@ -81,7 +81,6 @@ export function PetTimelineTab({ onLoadedCount }: PetTimelineTabProps) {
 
   const selectedEntity = useSelectedEntity();
   const isFullscreen = spaceStore.isFullscreen.value;
-  const isTabFullscreen = spaceStore.isTabFullscreen.value;
 
   // Get timeline from entity JSONB (sorted DESC - newest first for display)
   const timeline = useMemo(() => {
@@ -156,14 +155,14 @@ export function PetTimelineTab({ onLoadedCount }: PetTimelineTabProps) {
   }, [timelineItems]);
 
   // Use truncated in drawer + page fullscreen, full only in tab fullscreen
-  const displayItems = isTabFullscreen ? timelineItems : truncatedItems;
+  const displayItems = isFullscreen ? timelineItems : truncatedItems;
 
   return (
     <div className="cursor-default sm:pr-5">
       {displayItems.length > 0 ? (
         <AlternatingTimeline
           items={displayItems}
-          layout={isTabFullscreen ? "alternating" : "right"}
+          layout={isFullscreen ? "alternating" : "right"}
           showCards={true}
           connectorVariant="primary"
         />

@@ -85,14 +85,14 @@ export function KennelServicesTab({
   const drawerData = useTabData({
     parentId: accountId,
     dataSource: dataSource?.[0]!,
-    enabled: !!dataSource?.[0] && !!accountId && !isTabFullscreen,
+    enabled: !!dataSource?.[0] && !!accountId && !isFullscreen,
   });
 
   // Fullscreen: infinite scroll
   const infiniteData = useInfiniteTabData({
     parentId: accountId,
     dataSource: dataSource?.[0]!,
-    enabled: !!dataSource?.[0] && !!accountId && isTabFullscreen,
+    enabled: !!dataSource?.[0] && !!accountId && isFullscreen,
     pageSize: 30,
   });
 
@@ -117,13 +117,13 @@ export function KennelServicesTab({
   const { hasMore, isLoadingMore, loadMore } = infiniteData;
 
   const handleLoadMore = useCallback(() => {
-    if (isTabFullscreen && hasMore && !isLoadingMore) {
+    if (isFullscreen && hasMore && !isLoadingMore) {
       loadMore();
     }
-  }, [isTabFullscreen, hasMore, isLoadingMore, loadMore]);
+  }, [isFullscreen, hasMore, isLoadingMore, loadMore]);
 
   useEffect(() => {
-    if (!isTabFullscreen || !loadMoreRef.current) return;
+    if (!isFullscreen || !loadMoreRef.current) return;
 
     const observer = new IntersectionObserver(
       (entries) => {
@@ -136,7 +136,7 @@ export function KennelServicesTab({
 
     observer.observe(loadMoreRef.current);
     return () => observer.disconnect();
-  }, [isTabFullscreen, handleLoadMore, hasMore, isLoadingMore, pets.length]);
+  }, [isFullscreen, handleLoadMore, hasMore, isLoadingMore, pets.length]);
 
   if (isLoading) {
     return (
@@ -168,7 +168,7 @@ export function KennelServicesTab({
       </div>
 
       {/* Infinite scroll trigger & loading indicator */}
-      {isTabFullscreen && (
+      {isFullscreen && (
         <div ref={loadMoreRef} className="py-4 flex justify-center">
           {isLoadingMore && (
             <div className="flex items-center gap-2 text-secondary">

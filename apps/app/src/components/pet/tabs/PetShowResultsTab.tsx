@@ -56,29 +56,28 @@ export function PetShowResultsTab({
   const selectedEntity = useSelectedEntity();
   const petId = selectedEntity?.id;
   const isFullscreen = spaceStore.isFullscreen.value;
-  const isTabFullscreen = spaceStore.isTabFullscreen.value;
 
   // Drawer mode: load limited data
   const drawerResult = useTabData({
     parentId: petId,
     dataSource: dataSource?.[0]!,
-    enabled: !!dataSource?.[0] && !!petId && !isTabFullscreen,
+    enabled: !!dataSource?.[0] && !!petId && !isFullscreen,
   });
 
   // Fullscreen mode: infinite scroll with pagination
   const infiniteResult = useInfiniteTabData({
     parentId: petId,
     dataSource: dataSource?.[0]!,
-    enabled: !!dataSource?.[0] && !!petId && isTabFullscreen,
+    enabled: !!dataSource?.[0] && !!petId && isFullscreen,
     pageSize: 30,
   });
 
   // Use appropriate data based on mode
-  const resultsRaw = isTabFullscreen ? infiniteResult.data : drawerResult.data;
-  const isLoading = isTabFullscreen
+  const resultsRaw = isFullscreen ? infiniteResult.data : drawerResult.data;
+  const isLoading = isFullscreen
     ? infiniteResult.isLoading
     : drawerResult.isLoading;
-  const error = isTabFullscreen ? infiniteResult.error : drawerResult.error;
+  const error = isFullscreen ? infiniteResult.error : drawerResult.error;
 
   const displayRaw = useDisplayLimit(resultsRaw, dataSource);
 
@@ -107,10 +106,10 @@ export function PetShowResultsTab({
   const { hasMore, isLoadingMore, loadMore } = infiniteResult;
 
   const handleLoadMore = useCallback(() => {
-    if (isTabFullscreen && hasMore && !isLoadingMore) {
+    if (isFullscreen && hasMore && !isLoadingMore) {
       loadMore();
     }
-  }, [isTabFullscreen, hasMore, isLoadingMore, loadMore]);
+  }, [isFullscreen, hasMore, isLoadingMore, loadMore]);
 
   // Report count after data loads
   useEffect(() => {
@@ -121,7 +120,7 @@ export function PetShowResultsTab({
 
   // IntersectionObserver for infinite scroll
   useEffect(() => {
-    if (!isTabFullscreen || !loadMoreRef.current) return;
+    if (!isFullscreen || !loadMoreRef.current) return;
 
     const observer = new IntersectionObserver(
       (entries) => {
@@ -134,7 +133,7 @@ export function PetShowResultsTab({
 
     observer.observe(loadMoreRef.current);
     return () => observer.disconnect();
-  }, [isTabFullscreen, handleLoadMore, hasMore, isLoadingMore, results.length]);
+  }, [isFullscreen, handleLoadMore, hasMore, isLoadingMore, results.length]);
 
   // Don't render if no dataSource configured
   if (!dataSource?.[0]) {
@@ -182,7 +181,7 @@ export function PetShowResultsTab({
             <div
               className={cn(
                 "grid gap-3 border-b border-border px-6 py-3 font-bold text-secondary md:px-8",
-                isTabFullscreen
+                isFullscreen
                   ? "grid-cols-[132px_auto_44px] lg:grid-cols-[132px_226px_auto_176px_44px]"
                   : "grid-cols-[132px_auto_44px]"
               )}
@@ -204,7 +203,7 @@ export function PetShowResultsTab({
                 key={showResult.id}
                 className={cn(
                   "grid items-center gap-3 rounded-md px-6 py-2 md:px-8",
-                  isTabFullscreen
+                  isFullscreen
                     ? "grid-cols-[132px_auto_44px] lg:grid-cols-[132px_226px_auto_176px_44px]"
                     : "grid-cols-[132px_auto_44px]",
                   index % 2 === 0 ? "bg-card-ground" : "bg-even-card-ground"
@@ -260,7 +259,7 @@ export function PetShowResultsTab({
       </div>
 
       {/* Infinite scroll trigger & loading indicator */}
-      {isTabFullscreen && (
+      {isFullscreen && (
         <div ref={loadMoreRef} className="py-4 flex justify-center">
           {isLoadingMore && (
             <div className="flex items-center gap-2 text-secondary">

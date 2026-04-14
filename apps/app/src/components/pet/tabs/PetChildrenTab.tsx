@@ -103,29 +103,28 @@ export function PetChildrenTab({
   const selectedEntity = useSelectedEntity();
   const petId = selectedEntity?.id;
   const isFullscreen = spaceStore.isFullscreen.value;
-  const isTabFullscreen = spaceStore.isTabFullscreen.value;
 
   // Drawer + page fullscreen: load limited data (config limit applies)
   const drawerResult = useTabData({
     parentId: petId,
     dataSource: dataSource?.[0]!,
-    enabled: !!dataSource?.[0] && !!petId && !isTabFullscreen,
+    enabled: !!dataSource?.[0] && !!petId && !isFullscreen,
   });
 
   // Tab fullscreen only: infinite scroll with pagination (no config limit)
   const infiniteResult = useInfiniteTabData({
     parentId: petId,
     dataSource: dataSource?.[0]!,
-    enabled: !!dataSource?.[0] && !!petId && isTabFullscreen,
+    enabled: !!dataSource?.[0] && !!petId && isFullscreen,
     pageSize: 30,
   });
 
   // Use appropriate data based on mode
-  const childrenRaw = isTabFullscreen ? infiniteResult.data : drawerResult.data;
-  const isLoading = isTabFullscreen
+  const childrenRaw = isFullscreen ? infiniteResult.data : drawerResult.data;
+  const isLoading = isFullscreen
     ? infiniteResult.isLoading
     : drawerResult.isLoading;
-  const error = isTabFullscreen ? infiniteResult.error : drawerResult.error;
+  const error = isFullscreen ? infiniteResult.error : drawerResult.error;
 
   // Apply config limit when not in tab fullscreen
   const displayRaw = useDisplayLimit(childrenRaw, dataSource);
@@ -177,10 +176,10 @@ export function PetChildrenTab({
   const { hasMore, isLoadingMore, loadMore } = infiniteResult;
 
   const handleLoadMore = useCallback(() => {
-    if (isTabFullscreen && hasMore && !isLoadingMore) {
+    if (isFullscreen && hasMore && !isLoadingMore) {
       loadMore();
     }
-  }, [isTabFullscreen, hasMore, isLoadingMore, loadMore]);
+  }, [isFullscreen, hasMore, isLoadingMore, loadMore]);
 
   // Report count after data loads
   useEffect(() => {
@@ -191,7 +190,7 @@ export function PetChildrenTab({
 
   // IntersectionObserver for infinite scroll
   useEffect(() => {
-    if (!isTabFullscreen || !loadMoreRef.current) return;
+    if (!isFullscreen || !loadMoreRef.current) return;
 
     const observer = new IntersectionObserver(
       (entries) => {
@@ -204,7 +203,7 @@ export function PetChildrenTab({
 
     observer.observe(loadMoreRef.current);
     return () => observer.disconnect();
-  }, [isTabFullscreen, handleLoadMore, hasMore, isLoadingMore, totalChildren]);
+  }, [isFullscreen, handleLoadMore, hasMore, isLoadingMore, totalChildren]);
 
   // Don't render if no dataSource configured
   if (!dataSource?.[0]) {
@@ -273,7 +272,7 @@ export function PetChildrenTab({
       )}
 
       {/* Infinite scroll trigger & loading indicator */}
-      {isTabFullscreen && (
+      {isFullscreen && (
         <div ref={loadMoreRef} className="py-4 flex justify-center">
           {isLoadingMore && (
             <div className="flex items-center gap-2 text-secondary">
