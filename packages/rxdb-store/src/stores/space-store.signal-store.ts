@@ -3473,9 +3473,17 @@ class SpaceStore {
     try {
       const fresh = await this.fetchByPartition(supabase, entityTable, missing, partitionField);
       if (fresh.length > 0) {
-        await collection.bulkUpsert(fresh.map(r => ({ ...r, cachedAt: Date.now() })));
+        const mapped = fresh.map(r => this.mapToRxDBFormat(r, entityTable));
+        await collection.bulkUpsert(mapped);
       }
-      return [...cached, ...fresh];
+
+      // Always read from RxDB — source of truth (Supabase → RxDB → UI)
+      const allIds = mappingRows.map((r: any) => r.id);
+      const allDocs = await collection.findByIds(allIds).exec();
+      return allIds
+        .map(id => allDocs.get(id))
+        .filter(Boolean)
+        .map((d: any) => d.toJSON());
     } catch {
       return cached;
     }
@@ -3514,7 +3522,8 @@ class SpaceStore {
       const fresh = await this.fetchByPartition(supabase, entityTable, data, partitionField);
       const collection = this.db?.collections[entityTable];
       if (collection && fresh.length > 0) {
-        await collection.bulkUpsert(fresh.map(r => ({ ...r, cachedAt: Date.now() })));
+        const mapped = fresh.map(r => this.mapToRxDBFormat(r, entityTable));
+        await collection.bulkUpsert(mapped);
       }
     } catch { /* silent */ }
   }
