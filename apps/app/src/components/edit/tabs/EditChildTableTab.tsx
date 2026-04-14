@@ -367,25 +367,21 @@ export function EditChildTableTab({
     return enrichRecords(recs, fields);
   }, [fields]);
 
-  // readFrom: atomic enrich inside useTabData (one state change)
-  // legacy: separate useEnrichedRecords (child records need different timing)
+  // Both paths: raw data from useTabData, enrichment via useEnrichedRecords
+  // This keeps raw records (UUIDs) available for edit dialog
   const singleResult = useTabData({
     parentId: entityId,
     dataSource: effectiveDataSource!,
     enabled: !!readFrom && !!effectiveDataSource && !!entityId,
-    enrich: enrichFn,
   });
   const legacyResult = useMultiTabData(entityId, readFrom ? undefined : dataSource);
-  const { enriched: legacyEnriched, isEnriching } = useEnrichedRecords(
-    readFrom ? undefined : legacyResult.records,
-    readFrom ? undefined : fields,
-  );
 
   const records = readFrom ? singleResult.data : legacyResult.records;
-  const enrichedRecords = readFrom ? (singleResult.data || []) : legacyEnriched;
   const isLoading = readFrom ? singleResult.isLoading : legacyResult.isLoading;
   const error = readFrom ? singleResult.error : legacyResult.error;
   const refetch = readFrom ? singleResult.refetch : legacyResult.refetch;
+
+  const { enriched: enrichedRecords, isEnriching } = useEnrichedRecords(records, fields);
 
   // Dialog state
   const [editingRecord, setEditingRecord] = useState<Record<string, any> | null>(null);
@@ -556,7 +552,7 @@ export function EditChildTableTab({
 
   // readFrom: isLoading only (enrichment is atomic inside useTabData)
   // legacy: also wait for useEnrichedRecords
-  const showSkeleton = isLoading || (!readFrom && isEnriching);
+  const showSkeleton = isLoading || isEnriching;
 
   // Error state
   if (error) {
