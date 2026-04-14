@@ -1493,25 +1493,26 @@ class SpaceStore {
         throw new Error(`${entityType} ${id} not found`);
       }
 
-      const patchData: Record<string, any> = {
-        deleted: true,
-        updated_at: new Date().toISOString(),
-      };
-      if (userStore.currentUserId.value) {
-        patchData.updated_by = userStore.currentUserId.value;
-      }
-
-      // Update RxDB locally
-      await doc.patch(patchData);
-      entityStore.removeOne(id);
-
-      // Enqueue for Supabase sync (V3 queue-based push)
+      // Build payload for Supabase sync BEFORE removing from RxDB
       const fullDoc = doc.toJSON();
       const entitySchema = this.entitySchemas.get(entityType);
       const partitionKey = entitySchema?.partition?.keyField;
+      const payload = buildEntityPayload(fullDoc);
+      // Add deleted flag for Supabase (can't store in RxDB — reserved field name)
+      payload.deleted = true;
+      payload.updated_at = new Date().toISOString();
+      if (userStore.currentUserId.value) {
+        payload.updated_by = userStore.currentUserId.value;
+      }
+
+      // Remove from RxDB locally (uses _deleted internally)
+      await doc.remove();
+      entityStore.removeOne(id);
+
+      // Enqueue for Supabase sync
       await syncQueueService.enqueueEntity(
         entityType, id, 'delete',
-        buildEntityPayload(fullDoc),
+        payload,
         getOnConflict(entityType, partitionKey)
       );
 
