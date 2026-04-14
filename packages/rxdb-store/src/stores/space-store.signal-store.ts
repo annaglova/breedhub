@@ -3379,6 +3379,15 @@ class SpaceStore {
     this.mappingCache.clear();
   }
 
+  /** Optimistically add a record to mapping cache (before server trigger creates it) */
+  addToMappingCache(mappingTable: string, parentField: string, parentId: string, record: { id: string; [key: string]: any }): void {
+    const cacheKey = `${mappingTable}:${parentField}:${parentId}`;
+    const existing = this.mappingCache.get(cacheKey) || [];
+    if (!existing.some((r: any) => r.id === record.id)) {
+      this.mappingCache.set(cacheKey, [...existing, record]);
+    }
+  }
+
   /**
    * Load entities via a mapping table (e.g., pet_child → pet).
    * Local-first: cached mapping IDs → RxDB → return instantly.

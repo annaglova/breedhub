@@ -159,13 +159,18 @@ export function EditChildRecordDialog({
 
     const result = await withCrudToast(operation, { label: fullLabel, verb });
     if (result.ok) {
-      // For entity_child create: flush sync → server trigger creates mapping → refresh UI
-      if (isEntityChild && !isEditMode) {
+      if (isEntityChild && !isEditMode && (result as any).data?.id) {
+        // Optimistic: add to mapping cache so refetch finds record from RxDB immediately
+        const readFrom = dataSources?.[0]?.childTable;
+        if (readFrom) {
+          spaceStore.addToMappingCache(
+            'pet_child', 'pet_id', parentId,
+            { id: (result as any).data.id, breed_id: formChanges.breed_id },
+          );
+        }
+        // Background: sync to Supabase → server trigger creates real mapping
         syncQueueService.processNow().then(() => {
-          // Invalidate mapping cache so next load picks up new pet_child row
           spaceStore.invalidateMappingCache();
-          // Signal UI to refetch (useTabData subscribes to this)
-          spaceStore.childRefreshSignal.value = { tableType, parentId };
         });
       }
       onSaved();
