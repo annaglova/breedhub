@@ -33,6 +33,8 @@ interface DynamicFormProps {
   variant?: "page" | "dialog";
   /** Callback to expose validate function to parent */
   onValidateReady?: (validateFn: () => boolean) => void;
+  /** Apply defaultValue from field configs (create mode) */
+  applyDefaults?: boolean;
 }
 
 export function DynamicForm({
@@ -47,6 +49,7 @@ export function DynamicForm({
   fieldFilter,
   variant = "dialog",
   onValidateReady,
+  applyDefaults,
 }: DynamicFormProps) {
   // Shared form fields logic
   const {
@@ -64,6 +67,19 @@ export function DynamicForm({
     fieldFilter,
     parentEntity,
   });
+
+  // Apply defaultValue for fields not yet filled (create mode, idempotent)
+  useEffect(() => {
+    if (!applyDefaults || !fields) return;
+    for (const [fieldId, config] of Object.entries(fields)) {
+      if (config.defaultValue && config.defaultValue !== '0' && config.defaultValue !== '') {
+        const dbName = extractDbFieldName(fieldId);
+        if (formChanges[dbName] === undefined || formChanges[dbName] === null || formChanges[dbName] === '') {
+          onChange(dbName, config.defaultValue);
+        }
+      }
+    }
+  }, [applyDefaults, fields, formChanges, onChange]);
 
   // Validation
   const { errors, touched, validateAll, touchAndValidate } = useFormValidation();

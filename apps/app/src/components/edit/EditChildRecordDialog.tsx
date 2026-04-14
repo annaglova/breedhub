@@ -188,6 +188,7 @@ export function EditChildRecordDialog({
         parentEntity={parentEntity}
         fieldFilter={(_key, config) => (config as EditFieldConfig).showInForm !== false && !!config.component}
         variant="dialog"
+        applyDefaults={!isEditMode}
         onValidateReady={(fn) => { validateRef.current = fn; }}
       />
     </FormDialog>
