@@ -128,8 +128,9 @@ export function EditChildRecordDialog({
     [formChanges, record, isEntityChild]
   );
 
-  // Current entity for PetPickerInput context
-  const currentEntity = isEditMode ? record : parentEntity;
+  // Current entity: edit mode → record; create mode → formChanges (not parentEntity!)
+  // parentEntity is the PARENT pet — its fields (mother_id, etc.) would leak into child form
+  const currentEntity = isEditMode ? record : formChanges;
 
   const hasChanges = Object.keys(formChanges).length > 0;
 
