@@ -53,9 +53,9 @@ export function useEntitySelection({
 
   const [isDrawerOpen, setIsDrawerOpen] = useState(!!initialSelectedEntityId);
 
-  // Auto-select first entity for xxl+ screens on initial load
+  // Auto-select first entity for xxl+ screens on initial load (list view only)
   useEffect(() => {
-    if (initialSelectedEntityId || createMode) return;
+    if (initialSelectedEntityId || createMode || isGridView) return;
 
     if (allEntities.length > 0 && !isLoading && isMoreThan2XL) {
       if (!selectedEntityId) {
@@ -80,6 +80,7 @@ export function useEntitySelection({
   }, [
     allEntities,
     isLoading,
+    isGridView,
     isMoreThan2XL,
     selectedEntityId,
     navigate,
@@ -220,8 +221,6 @@ export function useEntitySelection({
   // Handle entity click
   const handleEntityClick = useCallback(
     (entity: any) => {
-      spaceStore.selectEntity(config.entitySchemaName, entity.id);
-
       const slug = entity.slug || normalizeForUrl(entity.name || entity.id);
 
       routeStore.saveRoute({
@@ -232,10 +231,13 @@ export function useEntitySelection({
       });
 
       if (isGridView) {
-        spaceStore.setFullscreen(true);
+        // Tab/grid view: navigate to standalone page (no drawer)
+        navigate(`/${slug}`);
+      } else {
+        // List view: open drawer within space
+        spaceStore.selectEntity(config.entitySchemaName, entity.id);
+        navigate(`${slug}${location.search}#overview`);
       }
-
-      navigate(`${slug}${location.search}#overview`);
     },
     [
       navigate,

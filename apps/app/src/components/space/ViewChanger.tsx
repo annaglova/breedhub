@@ -6,7 +6,7 @@ import {
   TooltipTrigger,
 } from "@ui/components/tooltip";
 import { cn, getIconComponent } from "@ui/lib/utils";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate, useLocation } from "react-router-dom";
 
 interface ViewChangerProps {
   views?: string[];
@@ -23,15 +23,19 @@ export function ViewChanger({
   viewConfigs,
   onViewChange,
 }: ViewChangerProps) {
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const location = useLocation();
   const currentView = searchParams.get("view") || views[0];
 
   const handleViewChange = (view: string) => {
-    setSearchParams((prev) => {
-      const newParams = new URLSearchParams(prev);
-      newParams.set("view", view);
-      return newParams;
-    });
+    const newParams = new URLSearchParams(searchParams);
+    newParams.set("view", view);
+
+    // When switching to grid/tab view, strip entity slug from path
+    // e.g., /pets/rosalago-mms-ronaldinho → /pets
+    const basePath = location.pathname.split("/").slice(0, 2).join("/");
+    navigate(`${basePath}?${newParams.toString()}`);
     onViewChange?.(view);
   };
 
