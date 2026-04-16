@@ -136,6 +136,7 @@ describe('TabDataService', () => {
           limit: 50,
           orderBy: 'position',
           orderDirection: 'asc',
+          parentField: 'parent_id',
         }
       );
     });

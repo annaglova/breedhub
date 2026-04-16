@@ -20,7 +20,7 @@ export * from "./components/dropdown-menu";
 export * from "./components/radio-group";
 
 // Date & Time Components
-export * from "./components/calendar";
+export * from "./components/custom-calendar";
 
 // Specialized Components
 export * from "./components/rating";

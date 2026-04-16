@@ -1,14 +1,16 @@
 {
   "extends": "../../tsconfig.app.json",
   "compilerOptions": {
-    "composite": true,
+    "noEmit": true,
     "baseUrl": "./",
     "paths": {
+      "@breedhub/rxdb-store": ["../../packages/rxdb-store/src/index.ts"],
+      "@breedhub/rxdb-store/*": ["../../packages/rxdb-store/src/*"],
       "@ui/*": ["../../packages/ui/*"],
       "@ui/components/*": ["../../packages/ui/components/*"],
       "@shared/*": ["../shared/*"],
       "@/*": ["src/*"]
     }
   },
-  "include": ["src", "../shared/**/*", "../../packages/ui/**/*"]
+  "include": ["src"]
 }

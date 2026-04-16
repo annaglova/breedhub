@@ -1,8 +1,6 @@
 {
-  "include": ["apps/**/*"],
+  "files": [],
   "references": [
-    { "path": "./apps/app" },
-    { "path": "./apps/landing" },
     { "path": "./tsconfig.node.json" },
     { "path": "./packages/ui" }
   ]
