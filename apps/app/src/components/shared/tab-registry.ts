@@ -7,36 +7,115 @@
  * To add a new tab: create MyNewTab.tsx in the appropriate entity folder
  * and reference "MyNewTab" in the config. No changes to this file needed.
  */
-import type React from 'react';
+import React from 'react';
+
+type TabModule = {
+  default?: React.ComponentType<any>;
+  [exportName: string]: React.ComponentType<any> | undefined;
+};
+
+type TabModuleLoader = () => Promise<TabModule>;
+
+function TabContentFallback() {
+  return React.createElement(
+    "div",
+    { className: "space-y-5 animate-pulse" },
+    React.createElement("div", {
+      className: "h-10 w-full rounded-lg bg-slate-200 dark:bg-slate-700",
+    }),
+    React.createElement(
+      "div",
+      { className: "space-y-5 px-5" },
+      React.createElement("div", {
+        className:
+          "mt-6 h-32 w-full rounded-lg bg-slate-200 dark:bg-slate-700",
+      }),
+      React.createElement("div", {
+        className:
+          "mt-6 h-32 w-full rounded-lg bg-slate-200 dark:bg-slate-700",
+      }),
+      React.createElement("div", {
+        className:
+          "mt-6 h-32 w-full rounded-lg bg-slate-200 dark:bg-slate-700",
+      }),
+    ),
+  );
+}
+
+function createLazyRegisteredTab(
+  loader: TabModuleLoader,
+  componentName: string,
+): React.ComponentType<any> {
+  const LazyComponent = React.lazy(async () => {
+    const module = await loader();
+    const resolvedComponent = module[componentName] || module.default;
+
+    if (!resolvedComponent) {
+      throw new Error(
+        `[tab-registry] Component "${componentName}" not found in lazy module`,
+      );
+    }
+
+    return { default: resolvedComponent };
+  });
+
+  function RegisteredLazyTab(props: any) {
+    return React.createElement(
+      React.Suspense,
+      { fallback: React.createElement(TabContentFallback) },
+      React.createElement(LazyComponent, props),
+    );
+  }
+
+  RegisteredLazyTab.displayName = `LazyTab(${componentName})`;
+
+  return RegisteredLazyTab;
+}
 
 // Auto-discover all tab components across entity folders
-const breedTabModules = import.meta.glob('../breed/tabs/*Tab.tsx', { eager: true });
-const kennelTabModules = import.meta.glob('../kennel/tabs/*Tab.tsx', { eager: true });
-const petTabModules = import.meta.glob('../pet/tabs/*Tab.tsx', { eager: true });
-const litterTabModules = import.meta.glob('../litter/tabs/*Tab.tsx', { eager: true });
-const contactTabModules = import.meta.glob('../contact/tabs/*Tab.tsx', { eager: true });
-const eventTabModules = import.meta.glob('../event/tabs/*Tab.tsx', { eager: true });
-const editTabModules = import.meta.glob('../edit/tabs/*Tab.tsx', { eager: true });
+const tabModules = {
+  ...(import.meta.glob('../breed/tabs/*Tab.tsx') as Record<
+    string,
+    TabModuleLoader
+  >),
+  ...(import.meta.glob('../kennel/tabs/*Tab.tsx') as Record<
+    string,
+    TabModuleLoader
+  >),
+  ...(import.meta.glob('../pet/tabs/*Tab.tsx') as Record<
+    string,
+    TabModuleLoader
+  >),
+  ...(import.meta.glob('../litter/tabs/*Tab.tsx') as Record<
+    string,
+    TabModuleLoader
+  >),
+  ...(import.meta.glob('../contact/tabs/*Tab.tsx') as Record<
+    string,
+    TabModuleLoader
+  >),
+  ...(import.meta.glob('../event/tabs/*Tab.tsx') as Record<
+    string,
+    TabModuleLoader
+  >),
+  ...(import.meta.glob('../edit/tabs/*Tab.tsx') as Record<
+    string,
+    TabModuleLoader
+  >),
+};
 
 export const TAB_COMPONENT_REGISTRY: Record<string, React.ComponentType<any>> = {};
 
-function registerModules(modules: Record<string, any>) {
-  for (const [path, module] of Object.entries(modules)) {
-    const match = path.match(/\/([^/]+)Tab\.tsx$/);
-    if (match) {
-      const componentName = match[1] + 'Tab';
-      const Component = (module as any)[componentName] || (module as any).default;
-      if (Component) {
-        TAB_COMPONENT_REGISTRY[componentName] = Component;
-      }
-    }
-  }
-}
+for (const [path, loader] of Object.entries(tabModules)) {
+  const match = path.match(/\/([^/]+)Tab\.tsx$/);
 
-registerModules(breedTabModules);
-registerModules(kennelTabModules);
-registerModules(petTabModules);
-registerModules(litterTabModules);
-registerModules(contactTabModules);
-registerModules(eventTabModules);
-registerModules(editTabModules);
+  if (!match) {
+    continue;
+  }
+
+  const componentName = `${match[1]}Tab`;
+  TAB_COMPONENT_REGISTRY[componentName] = createLazyRegisteredTab(
+    loader,
+    componentName,
+  );
+}
