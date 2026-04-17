@@ -65,10 +65,7 @@ function createManualChunks(id: string): string | undefined {
     return "rxdb-store";
   }
 
-  if (
-    normalizedId.includes("/packages/ui/") ||
-    normalizedId.includes("/apps/shared/")
-  ) {
+  if (normalizedId.includes("/packages/ui/")) {
     return "ui-shared";
   }
 

@@ -1,11 +1,19 @@
 import React from 'react';
 import type { SVGProps } from 'react';
-import * as CustomIcons from '@shared/icons';
+import { MenuBreedIcon, MenuLitterIcon } from '@shared/icons';
 import type { IconConfig } from '@breedhub/rxdb-store';
 import {
   LucideIconByName,
   resolveLucideIconComponent,
 } from '@ui/lib/lucide-icons';
+
+const customIconRegistry: Record<
+  string,
+  React.ComponentType<SVGProps<SVGSVGElement>>
+> = {
+  'menu/breed': MenuBreedIcon,
+  'menu/litter': MenuLitterIcon,
+};
 
 export interface IconProps extends Omit<SVGProps<SVGSVGElement>, 'name' | 'ref'> {
   icon: IconConfig;
@@ -68,20 +76,13 @@ export function Icon({ icon, size = 24, className = '', ...props }: IconProps) {
 
   // Render custom icon
   if (source === 'custom') {
-    // Convert path to export name (e.g., "menu/breed" → "MenuBreedIcon")
-    const toExportName = (path: string) =>
-      path
-        .split(/[-_/]/)
-        .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-        .join('') + 'Icon';
-
-    const exportName = toExportName(name);
-    const CustomIcon = (CustomIcons as any)[exportName];
+    const CustomIcon = customIconRegistry[name];
 
     if (!CustomIcon) {
-      console.warn(`[Icon] Custom icon not found: ${name} (trying: ${exportName})`);
+      console.warn(`[Icon] Custom icon not found: ${name}`);
       return <FallbackIcon />;
     }
+
     // Custom SVGs use fill, so we need to set fill style explicitly
     return (
       <CustomIcon
