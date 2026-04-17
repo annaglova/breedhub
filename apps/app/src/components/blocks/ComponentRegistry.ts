@@ -1,129 +1,177 @@
-import { BreedCoverV1 } from '../template/cover/BreedCoverV1';
-import { DefaultCover } from '../template/cover/DefaultCover';
-import { AvatarOutlet } from '../template/AvatarOutlet';
-import { CoverOutlet } from '../template/CoverOutlet';
-import { NameOutlet } from '../template/NameOutlet';
-import { AchievementOutlet } from '../template/AchievementOutlet';
-import { TabOutlet } from '../template/TabOutlet';
-import { EntityAvatar } from '../shared/EntityAvatar';
-import { BreedName } from '../breed/BreedName';
-import { BreedAchievements } from '../breed/BreedAchievements';
-import { PetName } from '../pet/PetName';
-import { PetAchievements } from '../pet/PetAchievements';
-import { LitterName } from '../litter/LitterName';
-import { LitterAchievements } from '../litter/LitterAchievements';
-import { KennelName } from '../kennel/KennelName';
-import { KennelAchievements } from '../kennel/KennelAchievements';
-import { ContactName } from '../contact/ContactName';
-import { ContactAchievements } from '../contact/ContactAchievements';
-import { EventName } from '../event/EventName';
-import { EventAchievements } from '../event/EventAchievements';
-import type React from 'react';
+import React from "react";
+
+type RegisteredComponent = React.ComponentType<any>;
+
+type ComponentModule = {
+  default?: RegisteredComponent;
+  [exportName: string]: RegisteredComponent | undefined;
+};
+
+type ComponentLoader = () => Promise<ComponentModule>;
+
+function createLazyRegisteredComponent(
+  loader: ComponentLoader,
+  exportName: string,
+): RegisteredComponent {
+  const LazyComponent = React.lazy(async () => {
+    const module = await loader();
+    const resolvedComponent = module[exportName] || module.default;
+
+    if (!resolvedComponent) {
+      throw new Error(
+        `[ComponentRegistry] Component "${exportName}" not found in lazy module`,
+      );
+    }
+
+    return { default: resolvedComponent };
+  });
+
+  function RegisteredLazyComponent(props: any) {
+    return React.createElement(
+      React.Suspense,
+      { fallback: null },
+      React.createElement(LazyComponent, props),
+    );
+  }
+
+  RegisteredLazyComponent.displayName = `LazyRegistry(${exportName})`;
+
+  return RegisteredLazyComponent;
+}
 
 /**
  * Registry of outlet components (universal structural wrappers)
  * Maps outlet names from config to actual React components
  */
-const OUTLET_COMPONENTS: Record<string, React.ComponentType<any>> = {
-  'CoverOutlet': CoverOutlet,
-  'AvatarOutlet': AvatarOutlet,
-  'NameOutlet': NameOutlet,
-  'AchievementOutlet': AchievementOutlet,
-  'TabOutlet': TabOutlet,
+const OUTLET_COMPONENTS: Record<string, RegisteredComponent> = {
+  CoverOutlet: createLazyRegisteredComponent(
+    () => import("../template/CoverOutlet"),
+    "CoverOutlet",
+  ),
+  AvatarOutlet: createLazyRegisteredComponent(
+    () => import("../template/AvatarOutlet"),
+    "AvatarOutlet",
+  ),
+  NameOutlet: createLazyRegisteredComponent(
+    () => import("../template/NameOutlet"),
+    "NameOutlet",
+  ),
+  AchievementOutlet: createLazyRegisteredComponent(
+    () => import("../template/AchievementOutlet"),
+    "AchievementOutlet",
+  ),
+  TabOutlet: createLazyRegisteredComponent(
+    () => import("../template/TabOutlet"),
+    "TabOutlet",
+  ),
 };
+
+const entityAvatarComponent = createLazyRegisteredComponent(
+  () => import("../shared/EntityAvatar"),
+  "EntityAvatar",
+);
 
 /**
  * Registry of block components (entity-specific content)
  * Maps component names from config to actual React components
  */
-const BLOCK_COMPONENTS: Record<string, React.ComponentType<any>> = {
-  'BreedCoverV1': BreedCoverV1,
-  'DefaultCover': DefaultCover,
-  'EntityAvatar': EntityAvatar,
-  'BreedAvatar': EntityAvatar, // Alias for backwards compatibility
-  'BreedName': BreedName,
-  'BreedAchievements': BreedAchievements,
-  'PetName': PetName,
-  'PetAchievements': PetAchievements,
-  'LitterName': LitterName,
-  'LitterAchievements': LitterAchievements,
-  'KennelName': KennelName,
-  'KennelAchievements': KennelAchievements,
-  'ContactName': ContactName,
-  'ContactAchievements': ContactAchievements,
-  'EventName': EventName,
-  'EventAchievements': EventAchievements,
-  // Add more block components here as needed
+const BLOCK_COMPONENTS: Record<string, RegisteredComponent> = {
+  BreedCoverV1: createLazyRegisteredComponent(
+    () => import("../template/cover/BreedCoverV1"),
+    "BreedCoverV1",
+  ),
+  DefaultCover: createLazyRegisteredComponent(
+    () => import("../template/cover/DefaultCover"),
+    "DefaultCover",
+  ),
+  EntityAvatar: entityAvatarComponent,
+  BreedAvatar: entityAvatarComponent,
+  BreedName: createLazyRegisteredComponent(
+    () => import("../breed/BreedName"),
+    "BreedName",
+  ),
+  BreedAchievements: createLazyRegisteredComponent(
+    () => import("../breed/BreedAchievements"),
+    "BreedAchievements",
+  ),
+  PetName: createLazyRegisteredComponent(
+    () => import("../pet/PetName"),
+    "PetName",
+  ),
+  PetAchievements: createLazyRegisteredComponent(
+    () => import("../pet/PetAchievements"),
+    "PetAchievements",
+  ),
+  LitterName: createLazyRegisteredComponent(
+    () => import("../litter/LitterName"),
+    "LitterName",
+  ),
+  LitterAchievements: createLazyRegisteredComponent(
+    () => import("../litter/LitterAchievements"),
+    "LitterAchievements",
+  ),
+  KennelName: createLazyRegisteredComponent(
+    () => import("../kennel/KennelName"),
+    "KennelName",
+  ),
+  KennelAchievements: createLazyRegisteredComponent(
+    () => import("../kennel/KennelAchievements"),
+    "KennelAchievements",
+  ),
+  ContactName: createLazyRegisteredComponent(
+    () => import("../contact/ContactName"),
+    "ContactName",
+  ),
+  ContactAchievements: createLazyRegisteredComponent(
+    () => import("../contact/ContactAchievements"),
+    "ContactAchievements",
+  ),
+  EventName: createLazyRegisteredComponent(
+    () => import("../event/EventName"),
+    "EventName",
+  ),
+  EventAchievements: createLazyRegisteredComponent(
+    () => import("../event/EventAchievements"),
+    "EventAchievements",
+  ),
 };
 
-/**
- * Get an outlet component by name from the registry
- * Returns undefined if outlet not found
- *
- * @param name - Outlet name from config (e.g., 'CoverOutlet')
- * @returns React component or undefined
- */
-export function getOutletComponent(name: string): React.ComponentType<any> | undefined {
+export function getOutletComponent(
+  name: string,
+): React.ComponentType<any> | undefined {
   const component = OUTLET_COMPONENTS[name];
 
-  if (!component && process.env.NODE_ENV === 'development') {
+  if (!component && process.env.NODE_ENV === "development") {
     console.error(`[ComponentRegistry] Unknown outlet: ${name}`);
   }
 
   return component;
 }
 
-/**
- * Get a block component by name from the registry
- * Returns undefined if component not found
- *
- * @param name - Component name from config (e.g., 'BreedCoverV1')
- * @returns React component or undefined
- */
-export function getBlockComponent(name: string): React.ComponentType<any> | undefined {
+export function getBlockComponent(
+  name: string,
+): React.ComponentType<any> | undefined {
   const component = BLOCK_COMPONENTS[name];
 
-  if (!component && process.env.NODE_ENV === 'development') {
+  if (!component && process.env.NODE_ENV === "development") {
     console.error(`[ComponentRegistry] Unknown component: ${name}`);
   }
 
   return component;
 }
 
-/**
- * Check if an outlet is registered
- *
- * @param name - Outlet name to check
- * @returns true if outlet exists in registry
- */
 export function hasOutletComponent(name: string): boolean {
   return name in OUTLET_COMPONENTS;
 }
 
-/**
- * Check if a component is registered
- *
- * @param name - Component name to check
- * @returns true if component exists in registry
- */
 export function hasBlockComponent(name: string): boolean {
   return name in BLOCK_COMPONENTS;
 }
 
-/**
- * Get list of all registered outlet names
- *
- * @returns Array of registered outlet names
- */
 export function getRegisteredOutlets(): string[] {
   return Object.keys(OUTLET_COMPONENTS);
 }
 
-/**
- * Get list of all registered component names
- *
- * @returns Array of registered component names
- */
 export function getRegisteredComponents(): string[] {
   return Object.keys(BLOCK_COMPONENTS);
 }
