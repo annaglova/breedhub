@@ -1,5 +1,5 @@
 import React, { forwardRef, useState, useRef } from "react";
-import { Input } from "../input";
+import { Input, type InputProps } from "../input";
 import { FormField } from "../form-field";
 import { cn } from "@ui/lib/utils";
 import { Clock } from "lucide-react";
@@ -9,7 +9,7 @@ interface TimeOption {
   label: string;
 }
 
-interface TimeInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'value' | 'onChange' | 'type'> {
+interface TimeInputProps extends Omit<InputProps, "value" | "onChange" | "type"> {
   label?: string;
   error?: string;
   helperText?: string;

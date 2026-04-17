@@ -99,7 +99,7 @@ export function withValidation<T extends WithValidationProps>(
 
     return (
       <Component
-        {...(restProps as T)}
+        {...(restProps as unknown as T)}
         ref={ref}
         value={value}
         onChange={handleChange}

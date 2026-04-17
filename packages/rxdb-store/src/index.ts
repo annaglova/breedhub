@@ -67,9 +67,6 @@ export type { NavigationEntry } from './stores/navigation-history.store';
 export { toastStore, toast } from './stores/toast.store';
 export type { Toast, ToastType, ToastOptions } from './stores/toast.store';
 
-// Mixin Engine
-export { mixinEngine, MixinEngineService } from './services/mixin-engine.service';
-
 // Utils
 export { buildInitialTimeline, rebuildTimelineOnDateChange } from './utils/timeline-builder';
 export { buildInitialPedigree } from './utils/pedigree-builder';

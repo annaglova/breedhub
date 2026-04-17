@@ -1,13 +1,13 @@
 import React, { forwardRef, useState, useRef, useCallback } from "react";
 import { createPortal } from "react-dom";
-import { Input } from "../input";
+import { Input, type InputProps } from "../input";
 import { FormField } from "../form-field";
 import { CustomCalendar } from "../custom-calendar";
 import { cn } from "@ui/lib/utils";
 import { CalendarIcon } from "lucide-react";
 import { format, parse, isValid } from "date-fns";
 
-interface DateInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'value' | 'onChange' | 'type'> {
+interface DateInputProps extends Omit<InputProps, "value" | "onChange" | "type"> {
   label?: string;
   error?: string;
   helperText?: string;

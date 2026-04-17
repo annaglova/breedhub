@@ -64,11 +64,13 @@ export const apiClient = axios.create({
 // Add request interceptor for debugging
 apiClient.interceptors.request.use(
   (config) => {
+    const baseUrl = config.baseURL ?? '';
+    const url = config.url ?? '';
     console.log('=== Axios Request ===');
-    console.log('URL:', config.url);
+    console.log('URL:', url);
     console.log('Method:', config.method);
-    console.log('Base URL:', config.baseURL);
-    console.log('Full URL:', config.baseURL + config.url);
+    console.log('Base URL:', baseUrl);
+    console.log('Full URL:', baseUrl + url);
     console.log('Headers:', config.headers);
     return config;
   },

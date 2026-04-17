@@ -3,7 +3,11 @@ import {
   GenerationCount,
   PedigreeTree,
 } from "@/components/shared/pedigree";
-import type { PedigreePet } from "@/components/shared/pedigree/types";
+import {
+  type PedigreePet,
+  normalizePedigreePet,
+  normalizeSexCode,
+} from "@/components/shared/pedigree/types";
 import { useSelectedEntity } from "@/contexts/SpaceContext";
 import { useDictionaryValue } from "@/hooks/useDictionaryValue";
 import { spaceStore, usePedigree } from "@breedhub/rxdb-store";
@@ -158,10 +162,10 @@ export function PetPedigreeTab({
       dateOfBirth: pet.date_of_birth,
       titles: pet.titles,
       avatarUrl: pet.avatar_url,
-      sex: sexCode ? { code: sexCode } : undefined,
+      sex: sexCode ? { code: normalizeSexCode(sexCode) } : undefined,
       countryOfBirth: countryCode ? { code: countryCode } : undefined,
-      father,
-      mother,
+      father: normalizePedigreePet(father),
+      mother: normalizePedigreePet(mother),
     };
   }, [selectedEntity, father, mother, sexCode, countryCode]);
 
@@ -181,7 +185,7 @@ export function PetPedigreeTab({
       name: pet.name || "",
       slug: pet.slug,
       avatarUrl: pet.avatar_url,
-      sex: sexCode ? { code: sexCode } : undefined,
+      sex: sexCode ? { code: normalizeSexCode(sexCode) } : undefined,
       father: buildSkeletonAncestor(generations - 1),
       mother: buildSkeletonAncestor(generations - 1),
     };

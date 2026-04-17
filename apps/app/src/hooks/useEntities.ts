@@ -135,8 +135,6 @@ export function useEntities({
     }
 
     let isMounted = true;
-    let unsubscribeTotal: (() => void) | null = null;
-
     const loadInitial = async () => {
       try {
         setIsLoading(true);
@@ -214,9 +212,6 @@ export function useEntities({
 
     return () => {
       isMounted = false;
-      if (unsubscribeTotal) {
-        unsubscribeTotal();
-      }
     };
   }, [entityType, filters, orderBy, recordsCount, useIDFirst, enabled, fieldConfigs]);
 

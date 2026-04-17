@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { userStore } from '@breedhub/rxdb-store';
 import type { PageConfig } from '@/types/page-config.types';
-import type { MenuContext, PageMenuItem, SpacePermissions } from '@/types/page-menu.types';
+import type { MenuContext, PageMenuConfig, PageMenuItem, SpacePermissions } from '@/types/page-menu.types';
 
 interface UsePageMenuOptions {
   pageConfig: PageConfig | null;
@@ -46,7 +46,9 @@ export function usePageMenu({
 
     // Get first menu config (we have one menu per page for now)
     const menuConfigKey = Object.keys(pageConfig.menus)[0];
-    const menuConfig = pageConfig.menus[menuConfigKey];
+    const menuConfig = menuConfigKey
+      ? (pageConfig.menus[menuConfigKey] as PageMenuConfig | undefined)
+      : undefined;
 
     if (!menuConfig?.items) {
       return [];
@@ -55,7 +57,7 @@ export function usePageMenu({
     const isAuthenticated = userStore.isAuthenticated.value;
 
     // Convert items object to array with IDs
-    const items = Object.entries(menuConfig.items)
+    const items = (Object.entries(menuConfig.items) as Array<[string, PageMenuItem]>)
       .map(([id, item]) => ({
         id,
         ...item

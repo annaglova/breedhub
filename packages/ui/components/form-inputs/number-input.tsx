@@ -1,9 +1,9 @@
 import React, { forwardRef, useState, useEffect } from "react";
-import { Input } from "../input";
+import { Input, type InputProps } from "../input";
 import { FormField } from "../form-field";
 import { cn } from "@ui/lib/utils";
 
-interface NumberInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'type' | 'onChange' | 'onBlur'> {
+interface NumberInputProps extends Omit<InputProps, "type" | "onChange" | "onBlur" | "value"> {
   label?: string;
   error?: string;
   helperText?: string;

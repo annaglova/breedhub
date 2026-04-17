@@ -11,7 +11,7 @@ import React, {
 } from "react";
 import { createPortal } from "react-dom";
 import { FormField } from "../form-field";
-import { Input } from "../input";
+import { Input, type InputProps } from "../input";
 
 interface DropdownOption {
   value: string;
@@ -20,10 +20,7 @@ interface DropdownOption {
 }
 
 interface DropdownInputProps
-  extends Omit<
-    React.InputHTMLAttributes<HTMLInputElement>,
-    "value" | "onChange"
-  > {
+  extends Omit<InputProps, "value" | "onChange" | "type"> {
   label?: string;
   error?: string;
   helperText?: string;

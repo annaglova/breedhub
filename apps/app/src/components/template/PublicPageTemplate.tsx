@@ -96,7 +96,7 @@ interface AboveFoldBlocksProps {
   isDrawerMode: boolean;
   isFullscreenMode: boolean;
   entityType?: string;
-  nameContainerRef: React.RefObject<HTMLDivElement>;
+  nameContainerRef: React.RefObject<HTMLDivElement | null>;
   nameOnTop: boolean;
   PAGE_MENU_TOP: number;
   TAB_HEADER_TOP: number;

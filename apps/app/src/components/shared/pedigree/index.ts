@@ -1,5 +1,6 @@
 // Types
 export type { PedigreePet, PedigreeMode, GenerationCount, OnSelectPetCallback } from "./types";
+export { normalizePedigreePet, normalizeSexCode } from "./types";
 export { GENERATION_OPTIONS } from "./types";
 
 // Mock data

@@ -1,10 +1,10 @@
 import { cn } from "@ui/lib/utils";
 import { AlertCircle, Eye, EyeOff, Lock } from "lucide-react";
 import React, { forwardRef, useState } from "react";
-import { Input } from "../input";
+import { Input, type InputProps } from "../input";
 
-interface PasswordInputProps
-  extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "type"> {
+export interface PasswordInputProps
+  extends Omit<InputProps, "type"> {
   label?: string;
   error?: string;
   helperText?: string;

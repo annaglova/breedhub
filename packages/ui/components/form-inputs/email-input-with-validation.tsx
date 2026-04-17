@@ -5,7 +5,7 @@ import { cn } from "@ui/lib/utils";
 import { AlertCircle, Info, Loader2, Mail } from "lucide-react";
 import React, { forwardRef, useEffect, useRef, useState } from "react";
 import { FormField } from "../form-field";
-import { Input } from "../input";
+import { Input, type InputProps } from "../input";
 import {
   Tooltip,
   TooltipContent,
@@ -14,7 +14,7 @@ import {
 } from "../tooltip";
 
 interface EmailInputWithValidationProps
-  extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "type"> {
+  extends Omit<InputProps, "type" | "value"> {
   label?: string;
   error?: string;
   helperText?: string;
@@ -25,6 +25,7 @@ interface EmailInputWithValidationProps
   showSuggestions?: boolean;
   validateAsync?: boolean;
   onValidationChange?: (isValid: boolean, error?: string) => void;
+  value?: string;
 }
 
 export const EmailInputWithValidation = forwardRef<
@@ -50,7 +51,7 @@ export const EmailInputWithValidation = forwardRef<
     },
     ref
   ) => {
-    const [localValue, setLocalValue] = useState(value || "");
+    const [localValue, setLocalValue] = useState(value ?? "");
     const [suggestion, setSuggestion] = useState<string | null>(null);
     const [isDisposable, setIsDisposable] = useState(false);
 
@@ -106,6 +107,10 @@ export const EmailInputWithValidation = forwardRef<
         onValidationChange(!validationError, validationError || undefined);
       }
     }, [validationError, hasValidated, onValidationChange]);
+
+    useEffect(() => {
+      setLocalValue(value ?? "");
+    }, [value]);
 
     // Combine external and validation errors
     const error = externalError || (touched && validationError) || "";

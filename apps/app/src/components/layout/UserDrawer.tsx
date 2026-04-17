@@ -35,8 +35,8 @@ export function UserDrawer({ isOpen, onClose }: UserDrawerProps) {
         <div className="flex items-center gap-4 px-4 py-3 border-b">
           <AvatarWithFallback
             size="default"
-            src={authenticated ? user.avatar : undefined}
-            name={authenticated ? user.name : undefined}
+            src={authenticated ? (user.avatar ?? undefined) : undefined}
+            name={authenticated ? (user.name ?? undefined) : undefined}
             className="shrink-0 border border-slate-300"
           />
           <div className="flex-1 min-w-0">

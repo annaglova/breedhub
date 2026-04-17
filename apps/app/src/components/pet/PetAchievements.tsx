@@ -58,7 +58,9 @@ export function PetAchievements({
 
   // Load country lookups for country_id resolution
   useEffect(() => {
-    if (!titlesDisplay?.length) {
+    const currentTitles = titlesDisplay ?? [];
+
+    if (currentTitles.length === 0) {
       setCountriesMap(new Map());
       return;
     }
@@ -73,7 +75,7 @@ export function PetAchievements({
 
       // Extract unique country IDs
       const countryIds = new Set<string>();
-      titlesDisplay.forEach((item) => {
+      currentTitles.forEach((item) => {
         if (item.country_id) countryIds.add(item.country_id);
       });
 

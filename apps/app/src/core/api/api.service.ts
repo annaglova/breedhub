@@ -1,5 +1,14 @@
 import { supabase } from '../supabase';
 
+interface QueryError {
+  message?: string;
+}
+
+interface QueryResult<T> {
+  data: T | null;
+  error: QueryError | null;
+}
+
 /**
  * Environment конфігурація для API
  * Адаптовано з Angular версії
@@ -81,7 +90,7 @@ export class ApiService {
    * Загальний метод для Supabase запитів з обробкою помилок
    */
   private async executeQuery<T>(
-    queryPromise: Promise<{ data: T | null; error: any }>
+    queryPromise: PromiseLike<QueryResult<T>>
   ): Promise<ApiResponse<T>> {
     try {
       const { data, error } = await queryPromise;
@@ -142,22 +151,48 @@ export class ApiService {
       query = query.range(from, to);
     }
 
-    const result = await this.executeQuery(query);
+    try {
+      const { data, error, count } = await query;
 
-    if (result.success && result.data) {
-      const { data, count } = result.data as any;
+      if (error) {
+        this.showErrorMessage(error.message || 'Unknown error occurred');
+        return {
+          data: {
+            data: [],
+            total: 0,
+            page: params?.page || 1,
+            pageSize: params?.pageSize || 0,
+          },
+          success: false,
+          error: error.message || 'Unknown error occurred',
+        };
+      }
+
+      const records = data ?? [];
+
       return {
         data: {
-          data,
+          data: records,
           total: count || 0,
           page: params?.page || 1,
-          pageSize: params?.pageSize || data.length,
+          pageSize: params?.pageSize || records.length,
         },
         success: true,
       };
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Network error occurred';
+      this.showErrorMessage(errorMessage);
+      return {
+        data: {
+          data: [],
+          total: 0,
+          page: params?.page || 1,
+          pageSize: params?.pageSize || 0,
+        },
+        success: false,
+        error: errorMessage,
+      };
     }
-
-    return result as ApiResponse<PaginatedResponse<T>>;
   }
 
   /**

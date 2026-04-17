@@ -1,6 +1,9 @@
 import { useMutation, useQuery, useQueryClient, UseQueryOptions } from '@tanstack/react-query';
 import { apiService, ApiResponse, PaginatedResponse, QueryParams } from './api.service';
-import { BaseEntity } from '../../shared/types/common';
+
+type BaseEntity = {
+  id: string;
+};
 
 /**
  * React Query hooks для роботи з API

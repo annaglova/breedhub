@@ -2,6 +2,7 @@ import type { RxCollection, RxDatabase } from 'rxdb';
 import { signal } from '@preact/signals-react';
 import { supabase } from '../supabase/client';
 import { runPostSaveHooks, runChildPostPushHooks } from '../utils/entity-hooks';
+import type { AppDatabase } from './database.service';
 import type {
   EntitySyncQueueDocument,
   ChildSyncQueueDocument,
@@ -33,7 +34,7 @@ class SyncQueueService {
   pendingCount = signal<number>(0);
   failedCount = signal<number>(0);
 
-  async initialize(db: RxDatabase): Promise<void> {
+  async initialize(db: RxDatabase | AppDatabase): Promise<void> {
     if (this.initialized) return;
 
     this.entityQueue = db.collections['entity_sync_queue'] as RxCollection<EntitySyncQueueDocument>;

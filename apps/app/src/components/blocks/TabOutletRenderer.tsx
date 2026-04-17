@@ -5,6 +5,7 @@ import { TabsContainer, Tab } from "../tabs/TabsContainer";
 import { TabActionsHeader } from "../tabs/TabActionsHeader";
 import { PageMenu } from "../tabs/PageMenu";
 import { useTabNavigation } from "@/hooks/useTabNavigation";
+import type { IconConfig } from "@breedhub/rxdb-store";
 
 /**
  * Dynamic tab component registry using Vite's glob imports
@@ -22,14 +23,14 @@ import { useTabNavigation } from "@/hooks/useTabNavigation";
 import { TAB_COMPONENT_REGISTRY } from '../shared/tab-registry';
 
 // Tab config from database
-interface TabConfig {
+export interface TabConfig {
   isDefault?: boolean; // Fallback default tab (used if no preferDefault tabs are visible)
   preferDefault?: boolean; // Preferred default tab (highest priority for initial tab selection)
   hideWhenEmpty?: boolean; // Hide tab when entity has no relevant data
   order: number;
   component: string;
   label?: string;
-  icon?: { name: string; source: string };
+  icon?: IconConfig;
   slug?: string; // URL-friendly identifier for the tab (e.g., "achievements", "patrons")
   // New config options
   badge?: string; // "Coming soon", "New", "Beta", etc.
@@ -40,6 +41,7 @@ interface TabConfig {
   // Edit tab config
   fields?: Record<string, any>; // Fields config (EditFormTab, EditChildTableTab)
   actionTypes?: string[]; // Tab action types: ["search", "addRecord", ...]
+  protectedWhen?: { field: string; value: unknown };
 }
 
 interface TabOutletRendererProps {

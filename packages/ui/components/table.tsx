@@ -125,7 +125,7 @@ const tableCellVariants = cva(
 );
 
 interface TableHeadProps
-  extends React.HTMLAttributes<HTMLTableCellElement>,
+  extends React.ThHTMLAttributes<HTMLTableCellElement>,
     VariantProps<typeof tableCellVariants> {}
 
 const TableHead = React.forwardRef<HTMLTableCellElement, TableHeadProps>(
@@ -140,7 +140,7 @@ const TableHead = React.forwardRef<HTMLTableCellElement, TableHeadProps>(
 TableHead.displayName = "TableHead";
 
 interface TableCellProps
-  extends React.HTMLAttributes<HTMLTableCellElement>,
+  extends React.TdHTMLAttributes<HTMLTableCellElement>,
     VariantProps<typeof tableCellVariants> {}
 
 const TableCell = React.forwardRef<HTMLTableCellElement, TableCellProps>(

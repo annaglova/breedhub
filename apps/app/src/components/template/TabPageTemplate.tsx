@@ -268,7 +268,7 @@ export function TabPageTemplate({
       // Otherwise, load data for each fullscreen-enabled tab
       const counts: Record<string, number> = {};
 
-      for (const [tabId, config] of Object.entries(tabsConfig)) {
+      for (const [tabId, config] of Object.entries(tabsConfig) as Array<[string, TabConfig]>) {
         if (!config.fullscreenButton || !config.dataSource) continue;
 
         try {

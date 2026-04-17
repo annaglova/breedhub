@@ -1,9 +1,9 @@
 import React, { forwardRef } from "react";
-import { Input } from "../input";
+import { Input, type InputProps } from "../input";
 import { FormField } from "../form-field";
 import { cn } from "@ui/lib/utils";
 
-interface TextInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'type'> {
+interface TextInputProps extends Omit<InputProps, "type"> {
   label?: string;
   error?: string;
   helperText?: string;

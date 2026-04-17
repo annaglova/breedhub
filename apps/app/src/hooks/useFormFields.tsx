@@ -94,8 +94,11 @@ export function useFormFields({
 
     // dependsOnParent: resolve all filter pairs from parent entity
     if (hasDependsOnParent) {
-      const entries = Object.entries(field.dependsOnParent!);
+      const entries = Object.entries(field.dependsOnParent as Record<string, string>);
       const firstEntry = entries[0];
+      if (!firstEntry) {
+        return null;
+      }
       const primaryFilterField = firstEntry[0];
       const primaryValue = parentEntity![firstEntry[1]];
       const additional = entries.slice(1).map(([junctionCol, parentField]) => ({

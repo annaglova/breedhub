@@ -1,3 +1,4 @@
+import { signal } from '@preact/signals-react';
 import React, { useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 import { SpaceComponent } from '@/components/space/SpaceComponent';
@@ -50,7 +51,7 @@ export function UniversalSpacePage() {
           },
           {
             ...DEFAULT_GRID_VIEW,
-            component: () => import('@/components/space/GenericGridCard').then(m => ({ default: m.GenericGridCard })),
+            component: () => import('@/components/space/GenericListCard').then(m => ({ default: m.GenericListCard })),
           },
         ],
         
@@ -120,17 +121,22 @@ export function UniversalSpacePage() {
       },
     }) as SpaceConfig;
   }, [entityType]);
+
+  const spaceConfigSignal = useMemo(
+    () => (spaceConfig ? signal(spaceConfig) : null),
+    [spaceConfig]
+  );
   
   // Create entities hook for this entity type
   const useEntitiesHook = useGenericEntities(entityType || '');
   
-  if (!spaceConfig) {
+  if (!spaceConfig || !spaceConfigSignal) {
     return <div>Entity type not found</div>;
   }
   
   return (
     <SpaceComponent 
-      config={spaceConfig} 
+      configSignal={spaceConfigSignal}
       useEntitiesHook={useEntitiesHook}
     />
   );

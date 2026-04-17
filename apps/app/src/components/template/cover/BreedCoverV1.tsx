@@ -121,7 +121,8 @@ export function BreedCoverV1({
             return;
           }
 
-          const breedCollection = db.collections["breed"];
+          const collections = db.collections as Record<string, any>;
+          const breedCollection = collections["breed"];
           if (!breedCollection) {
             console.warn("[BreedCoverV1] Breed collection not found");
             return;

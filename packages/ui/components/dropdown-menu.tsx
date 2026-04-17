@@ -27,10 +27,10 @@ function unregisterDropdown(closeCallback: CloseCallback) {
  * Enhanced DropdownMenu that automatically closes other dropdowns when opened.
  * Wraps Radix DropdownMenu.Root with global state management.
  */
-const DropdownMenu = React.forwardRef<
-  React.ElementRef<typeof DropdownMenuPrimitive.Root>,
-  React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Root>
->(({ onOpenChange, ...props }, ref) => {
+function DropdownMenu({
+  onOpenChange,
+  ...props
+}: React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Root>) {
   const [internalOpen, setInternalOpen] = React.useState(props.open ?? false)
   const isControlled = props.open !== undefined
 
@@ -69,13 +69,12 @@ const DropdownMenu = React.forwardRef<
   return (
     <DropdownMenuPrimitive.Root
       {...props}
-      // modal={false} allows tooltips to work while dropdown is open
       modal={props.modal ?? false}
       open={isControlled ? props.open : internalOpen}
       onOpenChange={handleOpenChange}
     />
   )
-})
+}
 DropdownMenu.displayName = "DropdownMenu"
 
 const DropdownMenuTrigger = DropdownMenuPrimitive.Trigger

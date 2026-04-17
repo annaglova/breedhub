@@ -49,9 +49,11 @@ const brokenImageCache = new Set<string>();
 function PetImage({
   src,
   alt,
+  className,
 }: {
   src?: string;
   alt: string;
+  className?: string;
 }) {
   const isBroken = src ? brokenImageCache.has(src) : false;
   const showRealImage = !!src && !isBroken;
@@ -77,7 +79,7 @@ function PetImage({
       <img className="w-2/3 h-auto" src={defaultPetLogo} alt={alt} />
       {showRealImage && !imgFailed && (
         <img
-          className="absolute inset-0 size-full object-cover"
+          className={className || "absolute inset-0 size-full object-cover"}
           src={src}
           alt={alt}
           loading="lazy"

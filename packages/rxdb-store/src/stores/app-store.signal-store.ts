@@ -15,12 +15,15 @@ interface Workspace {
   label: string;
   order?: number;
   spaces?: any;
+  pages?: any;
 }
 
 interface AppConfig {
   id: string;
   data: {
     workspaces: Record<string, Workspace>;
+    entities?: Record<string, any>;
+    user_config?: Record<string, any>;
   };
 }
 

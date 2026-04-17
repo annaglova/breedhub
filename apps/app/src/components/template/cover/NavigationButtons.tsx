@@ -10,7 +10,6 @@ import {
   DropdownMenuTrigger,
 } from "@ui/components/dropdown-menu";
 import { ArrowLeft, ChevronDown, Clock } from "lucide-react";
-import { useMemo } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { navigationHistoryStore } from "@breedhub/rxdb-store";
 import { useSignals } from "@preact/signals-react/runtime";
@@ -40,9 +39,9 @@ export function NavigationButtons({
   const location = useLocation();
 
   // Get history for current entity type (excluding current page)
-  const historyEntries = useMemo(() => entityType
+  const historyEntries = entityType
     ? navigationHistoryStore.getHistoryForType(entityType, location.pathname)
-    : [], [entityType, location.pathname, navigationHistoryStore._historyByType.value]);
+    : [];
   const hasHistory = historyEntries.length > 0;
 
   const handleBack = () => {

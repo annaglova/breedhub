@@ -1,10 +1,10 @@
 import { cn } from "@ui/lib/utils";
 import { Mail } from "lucide-react";
 import React, { forwardRef } from "react";
-import { EmailInput } from "../form-inputs/email-input";
+import { EmailInput, type EmailInputProps } from "../form-inputs/email-input";
 
 interface AuthEmailInputProps
-  extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "type"> {
+  extends Omit<EmailInputProps, "icon"> {
   label?: string;
   error?: string;
   touched?: boolean;

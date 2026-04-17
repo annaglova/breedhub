@@ -39,7 +39,7 @@ export function ContactAchievements({
     let isMounted = true;
 
     async function loadKennels() {
-      const results = await Promise.all(
+      const results: Array<EnrichedEntity | null> = await Promise.all(
         kennelIds!.map(async (k) => {
           const record = await dictionaryStore.getRecordById("account", k.id);
           return record ? { id: k.id, name: record.name as string, slug: record.slug as string } : null;
@@ -64,7 +64,7 @@ export function ContactAchievements({
     let isMounted = true;
 
     async function loadTopPets() {
-      const results = await Promise.all(
+      const results: Array<EnrichedEntity | null> = await Promise.all(
         topPetIds!.map(async (tp) => {
           const record = await dictionaryStore.getRecordById("pet", tp.id);
           return record ? { id: tp.id, name: record.name as string, slug: record.slug as string } : null;

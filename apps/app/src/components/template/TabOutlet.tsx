@@ -1,20 +1,8 @@
 import { TabOutletRenderer } from "@/components/blocks/TabOutletRenderer";
+import type { TabConfig } from "@/components/blocks/TabOutletRenderer";
 import type { PageConfig } from "@/types/page-config.types";
 import type { SpacePermissions } from "@/types/page-menu.types";
 import { useMemo } from "react";
-
-/**
- * Tab config from database
- */
-interface TabConfig {
-  isDefault?: boolean; // Fallback default tab
-  preferDefault?: boolean; // Preferred default tab (highest priority for initial tab selection)
-  hideWhenEmpty?: boolean; // Hide tab when entity has no relevant data (e.g., no services, no breeder role)
-  order: number;
-  component: string;
-  label?: string;
-  icon?: { name: string; source: string };
-}
 
 interface TabOutletProps {
   entity?: any;

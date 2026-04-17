@@ -1,4 +1,5 @@
 import { PetCard, type Pet } from "@/components/shared/PetCard";
+import { normalizeSexCode } from "@/components/shared/pedigree/types";
 import { useSelectedEntity } from "@/contexts/SpaceContext";
 import { spaceStore, dictionaryStore, useTabData, supabase } from "@breedhub/rxdb-store";
 import type { DataSourceConfig } from "@breedhub/rxdb-store";
@@ -39,7 +40,7 @@ async function enrichPetForCard(rawPet: any): Promise<Pet> {
     name: rawPet.name || "Unknown",
     avatarUrl: rawPet.avatar_url || "",
     url: rawPet.slug ? `/${rawPet.slug}` : `/pet/${rawPet.id}`,
-    sex: (sex?.code as string) || undefined,
+    sex: normalizeSexCode((sex?.code as string) || undefined),
     countryOfBirth: (country?.code as string) || undefined,
     dateOfBirth: rawPet.date_of_birth,
     titles: rawPet.titles,

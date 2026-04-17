@@ -10,7 +10,17 @@ import { useCallback, useMemo } from "react";
 
 interface SortOption {
   id: string;
+  name: string;
+  field?: string;
+  direction?: string;
+  parameter?: string;
+  icon?: string;
   isDefault?: boolean;
+  tieBreaker?: {
+    field: string;
+    direction: string;
+    parameter?: string;
+  };
   [key: string]: any;
 }
 

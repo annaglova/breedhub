@@ -116,7 +116,6 @@ export function PetTimelineTab({ onLoadedCount }: PetTimelineTabProps) {
       items.unshift({
         id: "future-events",
         title: "The adventure continues",
-        description: "More exciting moments to come",
         date: "",
         icon: <Sparkles className="h-4 w-4" />,
         variant: "success" as const,

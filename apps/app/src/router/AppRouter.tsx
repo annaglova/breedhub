@@ -10,7 +10,6 @@ import { BillingPage } from '@/pages/BillingPage';
 import { ReferralPage } from '@/pages/ReferralPage';
 import { GiftPage } from '@/pages/GiftPage';
 import { WelcomePage } from '@/pages/WelcomePage';
-import { SupabaseLoader } from '@/components/test/SupabaseLoader';
 import { AuthCallbackPage } from '@/pages/AuthCallbackPage';
 import { SignInSkeleton, SignUpSkeleton, ForgotPasswordSkeleton, ResetPasswordSkeleton } from '@shared/components/auth/AuthFormSkeleton';
 import { lazy } from 'react';
@@ -236,7 +235,6 @@ export function AppRouter() {
 
           {/* Test routes */}
           <Route path="test">
-            <Route path="supabase" element={<SupabaseLoader />} />
             <Route path="dictionary" element={<TestDictionaryPage />} />
             <Route path="page" element={<TestPage />} />
           </Route>

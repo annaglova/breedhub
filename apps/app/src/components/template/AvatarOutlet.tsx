@@ -128,13 +128,16 @@ export function AvatarOutlet({
   // Delete entity with dependency check
   const { requestDelete, DeleteDialog } = useDeleteEntity(entityType, entity);
 
+  const customActionHandlers = {
+    ...(onSave ? { save: () => onSave() } : {}),
+    ...(onEdit ? { edit: () => onEdit() } : {}),
+    delete: () => {
+      void requestDelete();
+    },
+  };
+
   // Action handlers
-  const { executeAction } = usePageActions(entity, {
-    // Custom handlers can be passed here
-    ...(onSave ? { save: onSave } : {}),
-    edit: onEdit,
-    delete: requestDelete,
-  });
+  const { executeAction } = usePageActions(entity, customActionHandlers);
 
   // Check if we have any buttons or menu items to show
   const hasButtons = buttonItems.length > 0;

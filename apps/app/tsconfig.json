@@ -12,5 +12,12 @@
       "@/*": ["src/*"]
     }
   },
-  "include": ["src"]
+  "include": ["src"],
+  "exclude": [
+    "src/mocks/**/*",
+    "src/components/test/**/*",
+    "src/core/api/mock.hooks.ts",
+    "src/domain/breed/BreedNameComponent.tsx",
+    "src/scripts/**/*"
+  ]
 }

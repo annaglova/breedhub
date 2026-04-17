@@ -37,8 +37,8 @@ export function PageMenu({
   const [tabWidths, setTabWidths] = useState<number[]>([]);
   const [showLeftButton, setShowLeftButton] = useState(false);
   const [showRightButton, setShowRightButton] = useState(false);
-  const previousActiveTabRef = useRef<string>(activeTab);
-  const scrollTimeoutRef = useRef<NodeJS.Timeout>();
+  const previousActiveTabRef = useRef(activeTab);
+  const scrollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const BUTTON_OFFSET = 27;
 
   // Memoize calculated values to prevent unnecessary re-renders
@@ -81,6 +81,14 @@ export function PageMenu({
       }
     }, 50); // Throttle to 50ms
   };
+
+  useEffect(() => {
+    return () => {
+      if (scrollTimeoutRef.current) {
+        clearTimeout(scrollTimeoutRef.current);
+      }
+    };
+  }, []);
 
   // Update button visibility based on scroll position (viewport-based, pure manual scroll logic)
   useEffect(() => {

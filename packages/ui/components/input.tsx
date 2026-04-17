@@ -33,7 +33,7 @@ const NON_DOM_PROPS = new Set([
   'dataSource', 'error', 'touched',
 ]);
 
-interface InputProps
+export interface InputProps
   extends Omit<React.ComponentProps<"input">, "size">,
     VariantProps<typeof inputVariants> {
   startIcon?: React.ReactNode;

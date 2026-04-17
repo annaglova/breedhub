@@ -3,6 +3,7 @@
 import { ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 import * as Icons from 'lucide-react';
+import type { LucideIcon } from "lucide-react";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -12,7 +13,7 @@ export function cn(...inputs: ClassValue[]) {
  * Get lucide icon component by kebab-case name
  * Converts "arrow-down-narrow-wide" to "ArrowDownNarrowWide"
  */
-export function getIconComponent(iconName?: string): React.ComponentType<{ className?: string }> {
+export function getIconComponent(iconName?: string): LucideIcon {
   if (!iconName) return Icons.List; // Default fallback
 
   // Convert icon name to PascalCase (e.g., "arrow-down-narrow-wide" -> "ArrowDownNarrowWide")

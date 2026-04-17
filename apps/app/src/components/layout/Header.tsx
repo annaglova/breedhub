@@ -187,8 +187,8 @@ export const Header = forwardRef<HTMLElement, HeaderProps>(
             >
               <AvatarWithStatus
                 size={isMD ? "default" : "sm"}
-                name={authenticated ? user.name : undefined}
-                src={authenticated ? user.avatar : undefined}
+                name={authenticated ? (user.name ?? undefined) : undefined}
+                src={authenticated ? (user.avatar ?? undefined) : undefined}
                 isOnline={isOnline}
                 showStatus={!isOnline}
                 statusPosition="top-right"

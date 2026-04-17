@@ -11,7 +11,7 @@ import React, {
 } from "react";
 import { createPortal } from "react-dom";
 import { FormField } from "../form-field";
-import { Input } from "../input";
+import { Input, type InputProps } from "../input";
 
 interface LookupOption {
   value: string;
@@ -20,10 +20,7 @@ interface LookupOption {
 }
 
 interface LookupInputProps
-  extends Omit<
-    React.InputHTMLAttributes<HTMLInputElement>,
-    "value" | "onChange"
-  > {
+  extends Omit<InputProps, "value" | "onChange" | "type"> {
   label?: string;
   error?: string;
   helperText?: string;
@@ -98,7 +95,7 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
     const triggerRef = useRef<HTMLDivElement>(null);
     const dropdownListRef = useRef<HTMLDivElement>(null);
     const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0, width: 0 });
-    const searchTimeoutRef = useRef<NodeJS.Timeout>();
+    const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const prevSearchQueryRef = useRef<string>("");
     const cursorRef = useRef<string | null>(null); // ✅ Keyset pagination: last seen value
     const requestCounterRef = useRef(0); // 🔒 Track request ID to handle race conditions

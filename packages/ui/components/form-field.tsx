@@ -10,7 +10,12 @@ interface FormFieldProps {
   required?: boolean;
   className?: string;
   labelClassName?: string;
-  children: React.ReactElement;
+  children: React.ReactElement<{
+    className?: string;
+    id?: string;
+    "aria-invalid"?: React.AriaAttributes["aria-invalid"];
+    "aria-describedby"?: string;
+  }>;
 }
 
 export const FormField = forwardRef<HTMLDivElement, FormFieldProps>(

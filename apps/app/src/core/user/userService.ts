@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { useAuth } from '../auth';
+import { useAuth } from '@shared/core/auth';
 import { apiService } from '../api';
 
 /**
@@ -8,6 +8,7 @@ import { apiService } from '../api';
  */
 export interface UserContact {
   id: string;
+  user_id?: string;
   name?: string;
   email?: string;
   phone?: string;
@@ -89,9 +90,9 @@ export function useUserService() {
   const createProfile = async (profileData: Partial<UserContact>) => {
     const newContact = {
       ...profileData,
-      user_id: user.id,
-      email: user.email,
-      name: user.name,
+      user_id: user.id ?? undefined,
+      email: user.email ?? undefined,
+      name: user.name ?? undefined,
     };
 
     const response = await apiService.create<UserContact>('contacts', newContact);

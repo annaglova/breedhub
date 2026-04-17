@@ -6,6 +6,7 @@ import {
   PedigreeGenerationSelector,
   PedigreeTree,
   type PedigreePet,
+  normalizePedigreePet,
 } from "@/components/shared/pedigree";
 import { PetSexMark } from "@/components/shared/PetSexMark";
 import { mediaQueries } from "@/config/breakpoints";
@@ -128,7 +129,8 @@ export function MatingPage({ pageConfig, workspaceConfig }: MatingPageProps) {
 
   // Fetch allowed breeds when mother is selected (for father selection)
   useEffect(() => {
-    if (!mother?.breedId) {
+    const motherBreedId = mother?.breedId;
+    if (!motherBreedId) {
       setAllowedBreedsForFather(null);
       return;
     }
@@ -139,18 +141,22 @@ export function MatingPage({ pageConfig, workspaceConfig }: MatingPageProps) {
         const { data } = await supabase
           .from("related_breed")
           .select("connected_breed_id")
-          .eq("breed_id", mother.breedId);
+          .eq("breed_id", motherBreedId);
 
         if (data && data.length > 0) {
           // related_breed includes self-reference
-          setAllowedBreedsForFather(data.map((r) => r.connected_breed_id));
+          setAllowedBreedsForFather(
+            data
+              .map((r) => r.connected_breed_id)
+              .filter((id): id is string => typeof id === "string"),
+          );
         } else {
-          setAllowedBreedsForFather([mother.breedId]);
+          setAllowedBreedsForFather([motherBreedId]);
         }
       } catch (error) {
         console.error("[MatingPage] Failed to fetch allowed breeds:", error);
         // On error, allow only same breed
-        setAllowedBreedsForFather([mother.breedId]);
+        setAllowedBreedsForFather([motherBreedId]);
       }
     };
 
@@ -159,7 +165,8 @@ export function MatingPage({ pageConfig, workspaceConfig }: MatingPageProps) {
 
   // Fetch allowed breeds when father is selected (for mother selection)
   useEffect(() => {
-    if (!father?.breedId) {
+    const fatherBreedId = father?.breedId;
+    if (!fatherBreedId) {
       setAllowedBreedsForMother(null);
       return;
     }
@@ -169,17 +176,21 @@ export function MatingPage({ pageConfig, workspaceConfig }: MatingPageProps) {
         const { data } = await supabase
           .from("related_breed")
           .select("connected_breed_id")
-          .eq("breed_id", father.breedId);
+          .eq("breed_id", fatherBreedId);
 
         if (data && data.length > 0) {
           // related_breed includes self-reference
-          setAllowedBreedsForMother(data.map((r) => r.connected_breed_id));
+          setAllowedBreedsForMother(
+            data
+              .map((r) => r.connected_breed_id)
+              .filter((id): id is string => typeof id === "string"),
+          );
         } else {
-          setAllowedBreedsForMother([father.breedId]);
+          setAllowedBreedsForMother([fatherBreedId]);
         }
       } catch (error) {
         console.error("[MatingPage] Failed to fetch allowed breeds:", error);
-        setAllowedBreedsForMother([father.breedId]);
+        setAllowedBreedsForMother([fatherBreedId]);
       }
     };
 
@@ -304,13 +315,13 @@ export function MatingPage({ pageConfig, workspaceConfig }: MatingPageProps) {
     name: "Offspring",
     father: father ? {
       ...father,
-      father: fatherAncestorFather,
-      mother: fatherAncestorMother,
+      father: normalizePedigreePet(fatherAncestorFather),
+      mother: normalizePedigreePet(fatherAncestorMother),
     } : undefined,
     mother: mother ? {
       ...mother,
-      father: motherAncestorFather,
-      mother: motherAncestorMother,
+      father: normalizePedigreePet(motherAncestorFather),
+      mother: normalizePedigreePet(motherAncestorMother),
     } : undefined,
   };
 

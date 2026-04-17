@@ -1,10 +1,10 @@
 import React, { forwardRef } from "react";
-import { Input } from "../input";
+import { Input, type InputProps } from "../input";
 import { FormField } from "../form-field";
 import { cn } from "@ui/lib/utils";
 import { Mail } from "lucide-react";
 
-interface EmailInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'type'> {
+export interface EmailInputProps extends Omit<InputProps, "type"> {
   label?: string;
   error?: string;
   helperText?: string;

@@ -1,4 +1,5 @@
 import { signal, computed } from '@preact/signals-react';
+import type { ReadonlySignal } from '@preact/signals-react';
 import { getDatabase } from '../services/database.service';
 import { Subscription } from 'rxjs';
 import { RxCollection, RxDocument, RxJsonSchema } from 'rxdb';
@@ -51,6 +52,7 @@ interface SpaceConfig {
   sort_fields?: Record<string, any>;
   filter_fields?: Record<string, any>;
   recordsCount?: number;
+  rows?: number; // Legacy batch-size config
   pages?: Record<string, any>;
   views?: Record<string, any>;
   canAdd?: boolean;
@@ -71,6 +73,7 @@ interface FieldConfig {
   permissions?: any;
   defaultValue?: any;
   component?: string;
+  originalConfigKey?: string;
 }
 
 /**
@@ -97,9 +100,11 @@ interface EntitySchemaConfig {
 export interface OrderBy {
   field: string;
   direction: 'asc' | 'desc';
+  parameter?: string;
   tieBreaker?: {
     field: string;
     direction: 'asc' | 'desc';
+    parameter?: string;
   };
 }
 
@@ -1265,7 +1270,7 @@ class SpaceStore {
         updated_at: new Date().toISOString(),
         ...(userId && { created_by: userId, updated_by: userId }),
         _deleted: false
-      } as T;
+      } as unknown as T;
       
       await collection.insert(newEntity);
       entityStore.addOne(newEntity);
@@ -1337,7 +1342,7 @@ class SpaceStore {
       // Update RxDB locally
       const patchedDoc = await doc.patch(patchData);
       // Update in-memory signal store
-      entityStore.updateOne(id, patchData);
+      entityStore.updateOne(id, patchData as Partial<T>);
 
       // Enqueue for Supabase sync (V3 queue-based push)
       const fullDoc = patchedDoc.toJSON();
@@ -1890,7 +1895,9 @@ class SpaceStore {
         selector: { id: { $in: ids } }
       }).exec();
 
-      const cachedMap = new Map(cached.map(d => [d.id, d.toJSON()]));
+      const cachedMap = new Map<string, Record<string, any>>(
+        cached.map((doc: any): [string, Record<string, any>] => [doc.id, doc.toJSON()]),
+      );
 
       // 🔍 Staleness check: compare cached updated_at with server updated_at
       const serverUpdatedAtMap = new Map(idsData.map((r: any) => [r.id, r.updated_at]));
@@ -1933,9 +1940,9 @@ class SpaceStore {
       }
 
       // 🔀 PHASE 4: Merge cached + fresh, maintain order from IDs query
-      const recordsMap = new Map([
-        ...cachedMap,
-        ...freshRecords.map(r => [r.id, r])
+      const recordsMap = new Map<string, Record<string, any>>([
+        ...Array.from(cachedMap.entries()),
+        ...freshRecords.map((record: any): [string, Record<string, any>] => [record.id, record]),
       ]);
 
       // CRITICAL: Maintain exact order from IDs query!
@@ -2190,7 +2197,7 @@ class SpaceStore {
         }
 
         const startsWithDocs = await collection.find(queryOptions).exec();
-        let startsWithResults = startsWithDocs.map(doc => doc.toJSON());
+        let startsWithResults = startsWithDocs.map((doc: any) => doc.toJSON());
 
         // Sort in JavaScript (handles both regular and JSONB fields)
         startsWithResults = sortResults(startsWithResults);
@@ -2245,10 +2252,10 @@ class SpaceStore {
           const containsDocs = await collection.find(containsQueryOptions).exec();
 
           // Filter out records that start with search (already in startsWithResults)
-          const startsWithIds = new Set(startsWithResults.map(r => r.id));
+          const startsWithIds = new Set(startsWithResults.map((record: any) => record.id));
           let containsResults = containsDocs
-            .map(doc => doc.toJSON())
-            .filter(record => !startsWithIds.has(record.id));
+            .map((doc: any) => doc.toJSON())
+            .filter((record: any) => !startsWithIds.has(record.id));
 
           // Sort in JavaScript (handles both regular and JSONB fields)
           containsResults = sortResults(containsResults);
@@ -2343,8 +2350,9 @@ class SpaceStore {
 
         // For JSONB fields with cursor, filter in JavaScript (RxDB can't filter by nested fields)
         if (cursor !== null && orderBy.parameter) {
+          const parameter = orderBy.parameter;
           results = results.filter((record: any) => {
-            const value = record[orderBy.field]?.[orderBy.parameter];
+            const value = record[orderBy.field]?.[parameter];
             if (orderBy.direction === 'asc') {
               return value > cursor;
             } else {
@@ -2545,12 +2553,12 @@ class SpaceStore {
           const mergedResults = [...startsWithResults, ...uniqueContainsResults];
 
           console.log(`[SpaceStore] ✅ Fetched ${mergedResults.length} IDs (~${Math.round(mergedResults.length * 0.1)}KB) via HYBRID SEARCH`);
-          return mergedResults;
+          return mergedResults as unknown as Array<{ [key: string]: any; id: string }>;
         }
       }
 
       console.log(`[SpaceStore] ✅ Fetched ${startsWithResults.length} IDs (~${Math.round(startsWithResults.length * 0.1)}KB) via HYBRID SEARCH`);
-      return startsWithResults;
+      return startsWithResults as unknown as Array<{ [key: string]: any; id: string }>;
     }
 
     // 📄 REGULAR QUERY: No search or cursor pagination
@@ -2601,7 +2609,8 @@ class SpaceStore {
       console.log(`[SpaceStore] 🔑 Cursor parsed:`, cursorData);
 
       // Use tieBreakerField from cursor (or fallback to config)
-      const tbField = cursorData.tieBreakerField || tieBreakerField;
+      const parsedCursor = cursorData ?? { value: cursor, tieBreaker: '', tieBreakerField: 'id' };
+      const tbField = parsedCursor.tieBreakerField || tieBreakerField;
       const tbDirection = orderBy.tieBreaker?.direction || 'asc';
 
       // Composite cursor with tie-breaker from config
@@ -2609,8 +2618,8 @@ class SpaceStore {
       const mainOp = orderBy.direction === 'asc' ? 'gt' : 'lt';
       const tbOp = tbDirection === 'asc' ? 'gt' : 'lt';
 
-      const escapedValue = escapePostgrestValue(cursorData.value);
-      const escapedTieBreaker = escapePostgrestValue(cursorData.tieBreaker);
+      const escapedValue = escapePostgrestValue(parsedCursor.value);
+      const escapedTieBreaker = escapePostgrestValue(parsedCursor.tieBreaker);
       const orCondition = `${orderBy.field}.${mainOp}.${escapedValue},and(${orderBy.field}.eq.${escapedValue},${tbField}.${tbOp}.${escapedTieBreaker})`;
 
       console.log(`[SpaceStore] 🔑 Applying composite cursor filter:`, orCondition);
@@ -2800,7 +2809,7 @@ class SpaceStore {
       if (!entityStore) {
         return null;
       }
-      return entityStore.selectedId.value;
+      return entityStore.getSelectedId();
     });
   }
 
@@ -2911,7 +2920,7 @@ class SpaceStore {
     }
 
     // Check if entity is already in store
-    if (entityStore.entities.value.has(id)) {
+    if (entityStore.entityMap.value.has(id)) {
       console.log(`[SpaceStore] Entity ${id} already in store, selecting`);
       entityStore.selectEntity(id);
       return true;
@@ -2994,7 +3003,7 @@ class SpaceStore {
 
       if (route?.entity_id && route.partition_field && route.entity_partition_id) {
         // Partition-pruned query using route info
-        const { data, error } = await supabase
+        const { data, error } = await (supabase as any)
           .from(entityType)
           .select('*')
           .eq(route.partition_field, route.entity_partition_id)
@@ -3287,7 +3296,7 @@ class SpaceStore {
       const { limit = 50, orderBy, orderDirection = 'asc' } = options;
 
       // Build Supabase query
-      let query = supabase
+      let query: any = supabase
         .from(tableType)
         .select('*')
         .eq(parentIdField, parentId)
@@ -3471,7 +3480,7 @@ class SpaceStore {
     const cached: any[] = [];
     const missing: any[] = [];
     for (const row of mappingRows) {
-      const doc = cachedDocs.get(row.id);
+      const doc = cachedDocs.get((row as any).id);
       if (doc && (Date.now() - (doc.toJSON().cachedAt || 0)) < STALE_MS) {
         cached.push(doc.toJSON());
       } else {
@@ -3560,10 +3569,10 @@ class SpaceStore {
         .limit(limit);
 
       if (partitionConfig && partitionValue) {
-        query = query.eq(partitionConfig.childFilterField, partitionValue);
+        query = (query as any).eq(partitionConfig.childFilterField, partitionValue);
       }
       if (orderBy) {
-        query = query.order(orderBy, { ascending: orderDirection === 'asc', nullsFirst: false });
+        query = (query as any).order(orderBy, { ascending: orderDirection === 'asc', nullsFirst: false });
       }
 
       const { data, error } = await query;
@@ -4212,9 +4221,9 @@ class SpaceStore {
       }
 
       // 🔀 PHASE 4: Merge & maintain order
-      const recordsMap = new Map([
-        ...cachedMap,
-        ...freshRecords.map(r => [r.id, r])
+      const recordsMap = new Map<string, any>([
+        ...Array.from(cachedMap.entries()),
+        ...freshRecords.map((record: any): [string, any] => [record.id, record])
       ]);
 
       const orderedRecords = ids
@@ -4333,7 +4342,7 @@ class SpaceStore {
       throw error;
     }
 
-    return data || [];
+    return (data || []) as unknown as Array<{ [key: string]: any; id: string }>;
   }
 
   /**

@@ -1,4 +1,6 @@
+import { useQuery } from '@tanstack/react-query';
 import { useEntities } from './useEntities';
+import { api } from '@/services/api';
 
 /**
  * Hook for fetching breeds from RxDB

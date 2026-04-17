@@ -22,6 +22,12 @@ interface BreedEntity {
   [key: string]: any;
 }
 
+interface Patron {
+  name: string;
+  contributions?: number;
+  avatar?: string;
+}
+
 interface BreedListCardProps {
   entity: BreedEntity;
   selected?: boolean;
@@ -46,7 +52,15 @@ export function BreedListCard({
     SupportLabel: entity.support_data?.label || "",
     HasNotes: Math.random() > 0.7, // Random for visual testing
     // Top patrons from top_patrons JSONB field (object with order keys: {"1": {...}, "2": {...}})
-    TopPatrons: entity.top_patrons ? Object.values(entity.top_patrons) : [],
+    TopPatrons: entity.top_patrons
+      ? Object.values(entity.top_patrons).filter(
+          (patron): patron is Patron =>
+            typeof patron === "object" &&
+            patron !== null &&
+            "name" in patron &&
+            typeof patron.name === "string",
+        )
+      : [],
   };
   return (
     <EntityListCardWrapper

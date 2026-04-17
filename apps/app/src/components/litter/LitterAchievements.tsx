@@ -8,6 +8,7 @@ interface Parent {
   id?: string;
   name?: string;
   slug?: string;
+  url?: string;
 }
 
 interface LitterAchievementsProps {

@@ -4,6 +4,7 @@ import { VerificationBadge } from "@/components/shared/VerificationBadge";
 import { TierMark } from "@/components/shared/TierMark";
 import { PetServices } from "@/components/shared/PetServices";
 import { PetSexMark } from "@/components/shared/PetSexMark";
+import { normalizeSexCode } from "@/components/shared/pedigree/types";
 import { useDictionaryValue } from "@/hooks/useDictionaryValue";
 import defaultPetLogo from "@/assets/images/pettypes/dog-logo.svg";
 
@@ -139,7 +140,7 @@ export function PetTabCard({
         {/* Info row */}
         <div className="flex items-center">
           {/* Sex mark - round style */}
-          <PetSexMark sex={sexCode} style="round" className="mr-2" />
+          <PetSexMark sex={normalizeSexCode(sexCode)} style="round" className="mr-2" />
 
           {/* Status and date */}
           <div className="text-slate-600 dark:text-slate-400 flex space-x-1 truncate text-sm">

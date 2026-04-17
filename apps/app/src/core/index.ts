@@ -1,6 +1,5 @@
 export * from './queryClient';
-export * from './database';
 export * from './supabase';
-export * from './auth';
 export * from './api';
 export * from './user';
+export { AuthProvider, useAuth } from '@shared/core/auth';

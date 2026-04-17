@@ -5,8 +5,8 @@ import { FormField } from "../form-field";
 
 interface CheckboxInputProps
   extends Omit<
-    React.InputHTMLAttributes<HTMLInputElement>,
-    "type" | "value" | "onChange"
+    React.ComponentPropsWithoutRef<typeof Checkbox>,
+    "checked" | "onCheckedChange"
   > {
   label?: string;
   error?: string;
@@ -19,7 +19,10 @@ interface CheckboxInputProps
   indeterminate?: boolean;
 }
 
-export const CheckboxInput = forwardRef<HTMLInputElement, CheckboxInputProps>(
+export const CheckboxInput = forwardRef<
+  React.ElementRef<typeof Checkbox>,
+  CheckboxInputProps
+>(
   (
     {
       label,

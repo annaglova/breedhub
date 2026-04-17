@@ -3,6 +3,7 @@ import {
   GenerationCount,
   PedigreeTree,
   type PedigreePet,
+  normalizePedigreePet,
 } from "@/components/shared/pedigree";
 import { useSelectedEntity } from "@/contexts/SpaceContext";
 import { spaceStore, useLitterPedigree } from "@breedhub/rxdb-store";
@@ -121,8 +122,8 @@ export function LitterPedigreeTab({
     ? {
         id: selectedEntity.id,
         name: selectedEntity.name || "Litter",
-        father,
-        mother,
+        father: normalizePedigreePet(father),
+        mother: normalizePedigreePet(mother),
       }
     : null;
 

@@ -89,7 +89,7 @@ export function EditChildRecordDialog({
 }: EditChildRecordDialogProps) {
   const [formChanges, setFormChanges] = useState<Record<string, any>>({});
   const [isSaving, setIsSaving] = useState(false);
-  const validateRef = useRef<() => boolean>();
+  const validateRef = useRef<(() => boolean) | undefined>(undefined);
 
   const isEditMode = !!record;
 
@@ -103,7 +103,7 @@ export function EditChildRecordDialog({
         let sexCode: string | undefined;
         if (parentEntity.sex_id) {
           const sexRecord = await dictionaryStore.getRecordById('sex', parentEntity.sex_id);
-          if (sexRecord) sexCode = sexRecord.code;
+          if (sexRecord) sexCode = sexRecord.code as string | undefined;
         }
         const prefill = resolvePrefill(dataSources, parentId, parentEntity, sexCode);
         setFormChanges(prefill);

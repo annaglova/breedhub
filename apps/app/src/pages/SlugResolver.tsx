@@ -102,7 +102,8 @@ export function SlugResolver() {
       let entityName = slugToResolve; // fallback to slug
       try {
         const db = await getDatabase();
-        const collection = db.collections[route.entity];
+        const collections = db.collections as Record<string, any>;
+        const collection = collections[route.entity];
         if (collection) {
           const entity = await collection.findOne(route.entity_id).exec();
           if (entity?.name) {

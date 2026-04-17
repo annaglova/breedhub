@@ -36,8 +36,8 @@ export function LoadingBar() {
   const [isVisible, setIsVisible] = useState(false);
   const [isFadingOut, setIsFadingOut] = useState(false);
 
-  const showTimeRef = useRef<number>(0);
-  const fadeOutTimerRef = useRef<ReturnType<typeof setTimeout>>();
+  const showTimeRef = useRef(0);
+  const fadeOutTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     if (isActuallyLoading) {

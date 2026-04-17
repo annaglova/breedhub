@@ -15,7 +15,7 @@ interface EditFormTabProps {
   fields?: Record<string, FieldConfig>;
   onLoadedCount?: (count: number) => void;
   entityType?: string;
-  onSaveReady?: (handler: () => Promise<boolean | void>) => void;
+  onSaveReady?: (handler: () => Promise<false | true | { created: any } | void>) => void;
   onDirtyChange?: (dirty: boolean) => void;
   isCreateMode?: boolean;
   onCreateNameChange?: (name: string) => void;
@@ -32,7 +32,7 @@ export function EditFormTab({ fields, onLoadedCount, entityType, onSaveReady, on
   useSignals();
 
   const selectedEntity = useSelectedEntity();
-  const validateRef = useRef<() => boolean>();
+  const validateRef = useRef<(() => boolean) | undefined>(undefined);
 
   const handleCreated = useCallback(async (entity: any) => {
     const slug = entity.slug || generateSlug(entity.name || '', entity.id);
@@ -50,7 +50,8 @@ export function EditFormTab({ fields, onLoadedCount, entityType, onSaveReady, on
     // Build initial data client-side (before push creates it on server via triggers)
     try {
       const db = await getDatabase();
-      const collection = db.collections[entityType || ''];
+      const collections = db.collections as Record<string, any>;
+      const collection = collections[entityType || ''];
       if (collection) {
         const doc = await collection.findOne(entity.id).exec();
         if (doc) {
@@ -66,7 +67,7 @@ export function EditFormTab({ fields, onLoadedCount, entityType, onSaveReady, on
           // Pedigree from father/mother (mirrors server trigger)
           if (entity.father_id || entity.mother_id) {
             const { buildInitialPedigree } = await import('@breedhub/rxdb-store');
-            const petCollection = db.collections['pet'];
+            const petCollection = collections.pet;
             let fatherPedigree = null;
             let motherPedigree = null;
 
@@ -140,7 +141,7 @@ export function EditFormTab({ fields, onLoadedCount, entityType, onSaveReady, on
           for (const [key, urlValue] of params.entries()) {
             if (key === 'entity' || resolved.some(r => r.dbName === key)) continue;
             if (fieldConfig.referencedTable && !isUUID(urlValue)) {
-              const resolvedId = await getValueForLabel(fieldConfig as any, urlValue, rxdb);
+              const resolvedId = await getValueForLabel(fieldConfig as any, urlValue, rxdb as any);
               if (resolvedId) {
                 value = urlValue;
                 break;
@@ -150,7 +151,7 @@ export function EditFormTab({ fields, onLoadedCount, entityType, onSaveReady, on
         }
         if (value) {
           if (!isUUID(value) && fieldConfig.referencedTable) {
-            const resolvedId = await getValueForLabel(fieldConfig as any, value, rxdb);
+            const resolvedId = await getValueForLabel(fieldConfig as any, value, rxdb as any);
             resolved.push({ dbName, value: resolvedId || value });
           } else {
             resolved.push({ dbName, value });

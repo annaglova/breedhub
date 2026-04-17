@@ -37,11 +37,28 @@ import { ViewChanger } from "./ViewChanger";
 
 interface SpaceComponentProps<T> {
   configSignal: Signal<any>; // TODO: Define proper SpaceConfig type from DB structure
-  useEntitiesHook: (params: { recordsCount: number; from: number }) => {
+  useEntitiesHook: (params: {
+    recordsCount: number;
+    from: number;
+    filters?: Record<string, any>;
+    orderBy?: {
+      field: string;
+      direction: "asc" | "desc";
+      parameter?: string;
+      tieBreaker?: {
+        field: string;
+        direction: string;
+        parameter?: string;
+      };
+    };
+  }) => {
     data: { entities: T[]; total: number } | undefined;
     isLoading: boolean;
     error: Error | null;
     isFetching: boolean;
+    hasMore?: boolean;
+    isLoadingMore?: boolean;
+    loadMore?: () => Promise<void>;
   };
   // Pre-selected entity ID (from SlugResolver for pretty URLs)
   initialSelectedEntityId?: string;
@@ -298,8 +315,8 @@ export function SpaceComponent<T extends { id: string }>({
     isLoading,
     error,
     isFetching,
-    hasMore,
-    isLoadingMore,
+    hasMore = false,
+    isLoadingMore = false,
     loadMore,
   } = useEntitiesHook({
     recordsCount: recordsCount,
@@ -404,7 +421,7 @@ export function SpaceComponent<T extends { id: string }>({
           if (!value) continue;
           const fieldConfig = filterFields.find((f: any) => f.id === fieldId);
           const urlKey = fieldConfig?.slug || fieldId.replace(/^[^_]+_field_/, '');
-          const label = await getLabelForValue(fieldConfig, String(value), rxdb);
+          const label = await getLabelForValue(fieldConfig, String(value), rxdb as any);
           params.set(urlKey, normalizeForUrl(label));
         }
       } catch {
@@ -434,6 +451,10 @@ export function SpaceComponent<T extends { id: string }>({
   };
   const drawerMode = getDrawerMode();
   const scrollHeight = `calc(100vh - ${headerHeight}px - 3px)`;
+  const currentViewConfig = useMemo(
+    () => finalConfig.viewConfigs?.find((v: any) => v.viewType === viewMode),
+    [finalConfig.viewConfigs, viewMode],
+  );
 
   if (error) {
     return (
@@ -474,7 +495,7 @@ export function SpaceComponent<T extends { id: string }>({
                 <h1 className="text-3xl sm:text-4xl">{finalConfig.title}</h1>
                 <ViewChanger
                   views={finalConfig.viewTypes || []}
-                  viewConfigs={finalConfig.viewConfigs?.map((v) => ({
+                  viewConfigs={finalConfig.viewConfigs?.map((v: any) => ({
                     id: v.viewType,
                     icon: v.icon,
                     tooltip: v.tooltip,
@@ -543,23 +564,15 @@ export function SpaceComponent<T extends { id: string }>({
 
           {/* SpaceView with skeletons */}
           <div className="relative flex-1 overflow-hidden">
-            <SpaceView
-              viewConfig={{
-                viewType: viewMode,
-                component:
-                  finalConfig.viewConfigs?.find((v) => v.viewType === viewMode)
-                    ?.component || "GenericListCard",
-                itemHeight:
-                  finalConfig.viewConfigs?.find((v) => v.viewType === viewMode)
-                    ?.itemHeight || 68,
-                dividers:
-                  finalConfig.viewConfigs?.find((v) => v.viewType === viewMode)
-                    ?.dividers ?? true,
-                overscan:
-                  finalConfig.viewConfigs?.find((v) => v.viewType === viewMode)
-                    ?.overscan || 3,
-                skeletonCount: Math.ceil(recordsCount / 2),
-              }}
+              <SpaceView
+                viewConfig={{
+                  viewType: viewMode,
+                  component: currentViewConfig?.component || "GenericListCard",
+                  itemHeight: currentViewConfig?.itemHeight || 68,
+                  dividers: currentViewConfig?.dividers ?? true,
+                  overscan: currentViewConfig?.overscan || 3,
+                  skeletonCount: Math.ceil(recordsCount / 2),
+                }}
               entities={[]}
               isLoading={true}
             />
@@ -620,7 +633,7 @@ export function SpaceComponent<T extends { id: string }>({
                   <h1 className="text-3xl sm:text-4xl">{finalConfig.title}</h1>
                   <ViewChanger
                     views={finalConfig.viewTypes || []}
-                    viewConfigs={finalConfig.viewConfigs?.map((v) => ({
+                  viewConfigs={finalConfig.viewConfigs?.map((v: any) => ({
                       id: v.viewType,
                       icon: v.icon,
                       tooltip: v.tooltip,
@@ -703,26 +716,14 @@ export function SpaceComponent<T extends { id: string }>({
               <SpaceView
                 viewConfig={{
                   viewType: viewMode,
-                  component:
-                    finalConfig.viewConfigs?.find(
-                      (v) => v.viewType === viewMode,
-                    )?.component || "GenericListCard",
-                  itemHeight:
-                    finalConfig.viewConfigs?.find(
-                      (v) => v.viewType === viewMode,
-                    )?.itemHeight || 68,
-                  dividers:
-                    finalConfig.viewConfigs?.find(
-                      (v) => v.viewType === viewMode,
-                    )?.dividers ?? true,
-                  overscan:
-                    finalConfig.viewConfigs?.find(
-                      (v) => v.viewType === viewMode,
-                    )?.overscan || 3,
+                  component: currentViewConfig?.component || "GenericListCard",
+                  itemHeight: currentViewConfig?.itemHeight || 68,
+                  dividers: currentViewConfig?.dividers ?? true,
+                  overscan: currentViewConfig?.overscan || 3,
                   skeletonCount: Math.ceil(recordsCount / 2),
                 }}
                 entities={allEntities}
-                selectedId={isGridView ? undefined : selectedEntityId}
+                selectedId={isGridView ? undefined : (selectedEntityId ?? undefined)}
                 onEntityClick={handleEntityClick}
                 onLoadMore={handleLoadMore}
                 hasMore={hasMore}

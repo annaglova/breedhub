@@ -6,7 +6,7 @@ interface UseAutoFillDetectionOptions {
 }
 
 export function useAutoFillDetection<T extends HTMLInputElement>(
-  ref: RefObject<T>,
+  ref: RefObject<T | null>,
   options: UseAutoFillDetectionOptions = {}
 ) {
   const { onAutoFill, checkInterval = 200 } = options;
@@ -38,7 +38,7 @@ export function useAutoFillDetection<T extends HTMLInputElement>(
     // Method 2: Fallback detection based on value changes
     const checkAutoFillFallback = () => {
       // Check if input has value but no focus/blur events fired
-      const hasValue = input.value && input.value.length > 0;
+      const hasValue = input.value.length > 0;
       const computedStyles = window.getComputedStyle(input);
       
       // Chrome/Edge specific: background color changes on autofill

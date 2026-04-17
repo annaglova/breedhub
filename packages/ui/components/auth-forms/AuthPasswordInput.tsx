@@ -1,9 +1,12 @@
 import { cn } from "@ui/lib/utils";
 import React, { forwardRef, useState } from "react";
-import { PasswordInput } from "../form-inputs/password-input";
+import {
+  PasswordInput,
+  type PasswordInputProps,
+} from "../form-inputs/password-input";
 
 interface AuthPasswordInputProps
-  extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "type"> {
+  extends PasswordInputProps {
   label?: string;
   error?: string;
   touched?: boolean;

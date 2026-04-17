@@ -30,7 +30,7 @@ export const kennelSpaceConfig: SpaceConfig<Kennel> = createSpaceConfig({
     },
     {
       ...DEFAULT_GRID_VIEW,
-      component: () => import('@/components/kennel/KennelGridCard').then(m => ({ default: m.KennelGridCard })),
+      component: () => import('@/components/kennel/KennelListCard').then(m => ({ default: m.KennelListCard })),
     },
   ],
   

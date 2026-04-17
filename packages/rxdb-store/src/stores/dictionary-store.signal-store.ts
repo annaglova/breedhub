@@ -1,6 +1,7 @@
 import { signal } from '@preact/signals-react';
-import type { RxCollection, RxDatabase } from 'rxdb';
+import type { RxCollection } from 'rxdb';
 import { getDatabase } from '../services/database.service';
+import type { AppDatabase } from '../services/database.service';
 import { dictionariesSchema, type DictionaryDocument } from '../collections/dictionaries.schema';
 import { supabase } from '../supabase/client';
 
@@ -48,7 +49,7 @@ class DictionaryStore {
   error = signal<string | null>(null);
 
   // Database
-  private db: RxDatabase | null = null;
+  private db: AppDatabase | null = null;
   private collection: DictionaryCollection | null = null;
 
   // Cleanup interval reference
@@ -96,12 +97,13 @@ class DictionaryStore {
 
     try {
       // Get database
-      this.db = await getDatabase();
+      const db = await getDatabase();
+      this.db = db;
 
       // Check if collection already exists, create if needed
       // Note: DictionaryStore needs migration strategies, so we can't use getOrCreateCollection helper
-      if (!this.db.dictionaries) {
-        await this.db.addCollections({
+      if (!db.dictionaries) {
+        await db.addCollections({
           dictionaries: {
             schema: dictionariesSchema,
             migrationStrategies: {
@@ -114,7 +116,7 @@ class DictionaryStore {
         });
       }
 
-      this.collection = this.db.dictionaries as DictionaryCollection;
+      this.collection = db.dictionaries as DictionaryCollection;
       this.initialized.value = true;
 
       // Run initial cleanup using helper
@@ -313,7 +315,8 @@ class DictionaryStore {
     }
 
     // Transform to DictionaryDocument
-    return (data || []).map(record => {
+    return (data || []).map((row) => {
+      const record = row as unknown as Record<string, unknown>;
       // Extract additional fields into object
       const additional: Record<string, any> = {};
       if (additionalFields?.length) {
@@ -462,9 +465,9 @@ class DictionaryStore {
       }
 
       // 🔀 PHASE 4: Merge cached + fresh, maintain order from IDs query
-      const recordsMap = new Map([
-        ...cachedMap,
-        ...freshRecords.map(r => [r.id, r])
+      const recordsMap = new Map<string, DictionaryDocument>([
+        ...Array.from(cachedMap.entries()),
+        ...freshRecords.map((record): [string, DictionaryDocument] => [record.id, record])
       ]);
 
       // CRITICAL: Maintain exact order from IDs query (sorted A-Z by name)!
@@ -620,7 +623,7 @@ class DictionaryStore {
         records = cached.map(doc => doc.toJSON());
       }
 
-      const nextCursor = records.length > 0 ? records[records.length - 1][nameField] : null;
+      const nextCursor = records.length > 0 ? records[records.length - 1]?.name ?? null : null;
       const hasMore = records.length >= limit;
 
       return {
@@ -709,11 +712,11 @@ class DictionaryStore {
         }
 
         // Extract unique IDs
-        const ids = (data || [])
-          .map(row => String(row[targetField]))
+        const ids: string[] = (data || [])
+          .map((row) => String((row as unknown as Record<string, unknown>)[targetField] ?? ''))
           .filter(id => id && id !== 'null' && id !== 'undefined');
 
-        return [...new Set(ids)];
+        return Array.from(new Set<string>(ids));
       } catch (error) {
         if (!isNetworkError(error)) {
           console.error(`[DictionaryStore] getJunctionIds failed for ${junctionTable}:`, error);
@@ -728,7 +731,8 @@ class DictionaryStore {
       // Derive parent entity from junction table (e.g., 'coat_type_in_breed' → 'breed_children')
       const parentEntity = junctionTable.split('_in_').pop();
       const collectionName = `${parentEntity}_children`;
-      const collection = db.collections[collectionName];
+      const collections = db.collections as Record<string, any>;
+      const collection = collections[collectionName];
 
       if (!collection) {
         return [];
@@ -748,7 +752,7 @@ class DictionaryStore {
         })
         .filter((id: string) => id && id !== 'null' && id !== 'undefined');
 
-      return [...new Set(ids)];
+      return Array.from(new Set<string>(ids));
     } catch {
       return [];
     }

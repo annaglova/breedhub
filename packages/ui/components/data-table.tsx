@@ -1,6 +1,7 @@
 import {
   type ColumnDef,
   type SortingState,
+  type Table as TanstackTable,
   flexRender,
   getCoreRowModel,
   getFilteredRowModel,
@@ -82,15 +83,15 @@ function DataTableColumnHeader<TData, TValue>({
 
 // --- DataTablePagination ---
 
-interface DataTablePaginationProps {
-  table: ReturnType<typeof useReactTable>;
+interface DataTablePaginationProps<TData> {
+  table: TanstackTable<TData>;
   pageSizeOptions: number[];
 }
 
-function DataTablePagination({
+function DataTablePagination<TData>({
   table,
   pageSizeOptions,
-}: DataTablePaginationProps) {
+}: DataTablePaginationProps<TData>) {
   const { pageIndex, pageSize } = table.getState().pagination;
   const totalRows = table.getFilteredRowModel().rows.length;
   const start = pageIndex * pageSize + 1;

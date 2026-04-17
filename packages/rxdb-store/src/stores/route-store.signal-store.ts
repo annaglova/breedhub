@@ -1,6 +1,7 @@
 import { signal } from '@preact/signals-react';
-import type { RxCollection, RxDatabase } from 'rxdb';
+import type { RxCollection } from 'rxdb';
 import { getDatabase } from '../services/database.service';
+import type { AppDatabase } from '../services/database.service';
 import { routesSchema, type RouteDocument } from '../collections/routes.schema';
 import { supabase } from '../supabase/client';
 
@@ -57,7 +58,7 @@ class RouteStore {
   error = signal<string | null>(null);
 
   // Database
-  private db: RxDatabase | null = null;
+  private db: AppDatabase | null = null;
   private collection: RouteCollection | null = null;
 
   // Cleanup interval reference
@@ -84,12 +85,13 @@ class RouteStore {
     this.error.value = null;
 
     try {
-      this.db = await getDatabase();
+      const db = await getDatabase();
+      this.db = db;
 
       // Use helper for collection creation
       // Migration strategy for v0 → v1: add optional entity_partition_id field
       this.collection = await getOrCreateCollection<RouteDocument>(
-        this.db,
+        db as any,
         'routes',
         routesSchema,
         {

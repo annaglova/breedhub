@@ -7,11 +7,11 @@ import { useState, useEffect, useCallback } from 'react';
 import { 
   RxCollection, 
   RxDocument, 
-  RxDatabase,
   RxQuery,
   MangoQuery
 } from 'rxdb';
 import { databaseService } from '../services/database.service';
+import type { AppDatabase } from '../services/database.service';
 
 /**
  * Generic hook for reactive RxDB queries
@@ -80,7 +80,7 @@ export function useRxData<T>(
  * Hook for accessing RxDB database
  */
 export function useRxDB() {
-  const [db, setDb] = useState<RxDatabase | null>(null);
+  const [db, setDb] = useState<AppDatabase | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   
@@ -149,8 +149,9 @@ export function useRxCollection<T>(collectionName: string) {
   const [collection, setCollection] = useState<RxCollection<T> | null>(null);
   
   useEffect(() => {
-    if (db && collectionName in db) {
-      setCollection(db[collectionName]);
+    const collections = db?.collections as Record<string, RxCollection<T>> | undefined;
+    if (collections?.[collectionName]) {
+      setCollection(collections[collectionName]);
     }
   }, [db, collectionName]);
   

@@ -11,21 +11,14 @@
  */
 import { useCallback, useEffect, useRef, useState } from "react";
 import { getDatabase } from "@breedhub/rxdb-store";
+import type { FilterFieldConfig } from "@/types/field-config";
 import {
   getLabelForValue,
   getValueForLabel,
   normalizeForUrl,
 } from "@/components/space/utils/filter-url-helpers";
 
-interface FilterField {
-  id: string;
-  slug?: string;
-  displayName: string;
-  required?: boolean;
-  order?: number;
-  referencedTable?: string;
-  [key: string]: any;
-}
+type FilterField = FilterFieldConfig;
 
 interface MainFilterField {
   id: string;
@@ -137,7 +130,7 @@ export function useFilterManagement({
                   const valueId = await getValueForLabel(
                     fieldConfig,
                     urlValue,
-                    rxdb,
+                    rxdb as any,
                   );
                   filterObj[fieldConfig.id] = valueId || urlValue;
                 }
@@ -201,7 +194,7 @@ export function useFilterManagement({
             if (value) {
               const fieldConfig = filterFields.find((f) => f.id === fieldId);
               const urlKey = fieldConfig?.slug || fieldId;
-              const label = await getLabelForValue(fieldConfig, value, rxdb);
+              const label = await getLabelForValue(fieldConfig, value, rxdb as any);
               const normalizedLabel = normalizeForUrl(label);
               newParams.set(urlKey, normalizedLabel);
             }
@@ -238,7 +231,7 @@ export function useFilterManagement({
           if (value !== undefined && value !== null && value !== "") {
             const fieldConfig = filterFields.find((f) => f.id === fieldId);
             const urlKey = fieldConfig?.slug || fieldId;
-            const label = await getLabelForValue(fieldConfig, value, rxdb);
+            const label = await getLabelForValue(fieldConfig, value, rxdb as any);
             const normalizedLabel = normalizeForUrl(label);
             newParams.set(urlKey, normalizedLabel);
           } else {
@@ -353,12 +346,12 @@ export function useFilterManagement({
               );
 
             if (isUUID) {
-              const label = await getLabelForValue(fieldConfig, urlValue, rxdb);
+              const label = await getLabelForValue(fieldConfig, urlValue, rxdb as any);
               displayValue = label;
             } else {
-              const valueId = await getValueForLabel(fieldConfig, urlValue, rxdb);
+              const valueId = await getValueForLabel(fieldConfig, urlValue, rxdb as any);
               if (valueId) {
-                const label = await getLabelForValue(fieldConfig, valueId, rxdb);
+                const label = await getLabelForValue(fieldConfig, valueId, rxdb as any);
                 displayValue = label;
               }
             }
@@ -420,7 +413,7 @@ export function useFilterManagement({
                 }
 
                 if (fieldConfig) {
-                  const valueId = await getValueForLabel(fieldConfig, urlValue, rxdb);
+                  const valueId = await getValueForLabel(fieldConfig, urlValue, rxdb as any);
                   values[fieldConfig.id] = valueId || urlValue;
                 }
               })(),
