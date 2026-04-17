@@ -4,6 +4,77 @@ import { defineConfig } from "vite";
 import svgr from "vite-plugin-svgr";
 import { VitePWA } from 'vite-plugin-pwa';
 
+function createManualChunks(id: string): string | undefined {
+  const normalizedId = id.replace(/\\/g, "/");
+
+  if (normalizedId.includes("/node_modules/")) {
+    if (
+      normalizedId.includes("/react/") ||
+      normalizedId.includes("/react-dom/") ||
+      normalizedId.includes("/react-router") ||
+      normalizedId.includes("/scheduler/")
+    ) {
+      return "react-core";
+    }
+
+    if (
+      normalizedId.includes("/@preact/signals-react/") ||
+      normalizedId.includes("/rxdb/") ||
+      normalizedId.includes("/dexie/") ||
+      normalizedId.includes("/rxjs/") ||
+      normalizedId.includes("/@supabase/")
+    ) {
+      return "data-layer";
+    }
+
+    if (
+      normalizedId.includes("/lucide-react/")
+    ) {
+      return "icon-vendor";
+    }
+
+    if (
+      normalizedId.includes("/@radix-ui/")
+    ) {
+      return "radix-vendor";
+    }
+
+    if (
+      normalizedId.includes("/tailwind-merge/") ||
+      normalizedId.includes("/clsx/")
+    ) {
+      return "ui-vendor";
+    }
+
+    if (
+      normalizedId.includes("/@tanstack/") ||
+      normalizedId.includes("/react-hook-form/") ||
+      normalizedId.includes("/@hookform/") ||
+      normalizedId.includes("/zod/") ||
+      normalizedId.includes("/axios/") ||
+      normalizedId.includes("/date-fns/") ||
+      normalizedId.includes("/react-day-picker/")
+    ) {
+      return "app-utils";
+    }
+
+    return "vendor";
+  }
+
+  if (normalizedId.includes("/packages/rxdb-store/")) {
+    return "rxdb-store";
+  }
+
+  if (
+    normalizedId.includes("/packages/ui/") ||
+    normalizedId.includes("/apps/shared/")
+  ) {
+    return "ui-shared";
+  }
+
+  return undefined;
+}
+
 export default defineConfig({
   root: __dirname,
   envDir: path.resolve(__dirname, '../../'), // Read .env from monorepo root
@@ -93,6 +164,11 @@ export default defineConfig({
   build: {
     outDir: "../../dist/app",
     emptyOutDir: true,
+    rollupOptions: {
+      output: {
+        manualChunks: createManualChunks,
+      },
+    },
   },
   server: {
     port: 5174,
