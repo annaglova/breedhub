@@ -1,6 +1,7 @@
 import React from 'react';
 import type { SVGProps } from 'react';
-import { MenuBreedIcon, MenuLitterIcon } from '@shared/icons';
+import MenuBreedIcon from '@shared/icons/menu/breed.svg?react';
+import MenuLitterIcon from '@shared/icons/menu/litter.svg?react';
 import type { IconConfig } from '@breedhub/rxdb-store';
 import {
   LucideIconByName,

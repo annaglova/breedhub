@@ -1,5 +1,5 @@
 import { useDictionaryValue } from "@/hooks/useDictionaryValue";
-import { CommonVerifiedIcon } from "@shared/icons";
+import CommonVerifiedIcon from "@shared/icons/common/verified.svg?react";
 import { cn } from "@ui/lib/utils";
 import {
   Tooltip,
