@@ -1091,14 +1091,23 @@ class SpaceStore {
         // Prevent multiple concurrent clears
         if ((window as any).__rxdbClearing) return;
         (window as any).__rxdbClearing = true;
+        // Reset schema hash so checkSchemaVersion re-validates on next load
+        localStorage.removeItem('breedhub_schema_hash');
+        try {
+          // db.remove() closes connections AND deletes underlying storage
+          if (this.db) {
+            await this.db.remove();
+          }
+        } catch { /* best effort */ }
+        // Fallback: manual delete in case db.remove() missed something
         try {
           await new Promise<void>((resolve) => {
             let pending = 2;
             const done = () => { if (--pending <= 0) resolve(); };
             const r1 = indexedDB.deleteDatabase('rxdb-dexie-breedhub');
-            r1.onsuccess = r1.onerror = done;
+            r1.onsuccess = r1.onerror = r1.onblocked = done;
             const r2 = indexedDB.deleteDatabase('breedhub');
-            r2.onsuccess = r2.onerror = done;
+            r2.onsuccess = r2.onerror = r2.onblocked = done;
           });
         } catch { /* best effort */ }
         window.location.reload();

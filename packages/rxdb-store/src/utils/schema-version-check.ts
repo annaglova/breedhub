@@ -57,10 +57,22 @@ export async function checkSchemaVersion(): Promise<boolean> {
       const db = await getDatabase();
       await syncQueueService.initialize(db);
       await syncQueueService.processNow();
+      // Close all connections before deleting IndexedDB
+      await db.remove();
     } catch { /* best effort */ }
 
-    indexedDB.deleteDatabase('rxdb-dexie-breedhub');
-    indexedDB.deleteDatabase('breedhub');
+    // Fallback: manual delete in case db.remove() missed something
+    try {
+      await new Promise<void>((resolve) => {
+        let pending = 2;
+        const done = () => { if (--pending <= 0) resolve(); };
+        const r1 = indexedDB.deleteDatabase('rxdb-dexie-breedhub');
+        r1.onsuccess = r1.onerror = r1.onblocked = done;
+        const r2 = indexedDB.deleteDatabase('breedhub');
+        r2.onsuccess = r2.onerror = r2.onblocked = done;
+      });
+    } catch { /* best effort */ }
+
     localStorage.setItem(SCHEMA_HASH_KEY, currentHash);
 
     console.log('[SchemaCheck] RxDB cleared. Reloading...');
