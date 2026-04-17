@@ -1,8 +1,11 @@
 import React from 'react';
 import type { SVGProps } from 'react';
-import * as LucideIcons from 'lucide-react';
 import * as CustomIcons from '@shared/icons';
 import type { IconConfig } from '@breedhub/rxdb-store';
+import {
+  LucideIconByName,
+  resolveLucideIconComponent,
+} from '@ui/lib/lucide-icons';
 
 export interface IconProps extends Omit<SVGProps<SVGSVGElement>, 'name' | 'ref'> {
   icon: IconConfig;
@@ -46,15 +49,21 @@ export function Icon({ icon, size = 24, className = '', ...props }: IconProps) {
 
   // Render Lucide icon
   if (source === 'lucide') {
-    // Get icon component from pre-imported lucide-react
-    const LucideIcon = (LucideIcons as any)[name];
+    const LucideIcon = resolveLucideIconComponent(name);
 
     if (!LucideIcon) {
       console.warn(`[Icon] Lucide icon not found: ${name}`);
       return <FallbackIcon />;
     }
 
-    return <LucideIcon size={size} className={className} {...props} />;
+    return (
+      <LucideIconByName
+        name={name}
+        size={size}
+        className={className}
+        {...props}
+      />
+    );
   }
 
   // Render custom icon

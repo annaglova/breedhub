@@ -1,6 +1,7 @@
 import { Button } from "@ui/components/button";
 import { AvatarWithFallback } from "@ui/components/avatar";
-import { cn, getIconComponent } from "@ui/lib/utils";
+import { LucideIconByName } from "@ui/lib/lucide-icons";
+import { cn } from "@ui/lib/utils";
 import { LogOut, X } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useUserMenu } from "@/hooks/useUserMenu";
@@ -70,7 +71,6 @@ export function UserDrawer({ isOpen, onClose }: UserDrawerProps) {
                   );
                 }
 
-                const Icon = getIconComponent(item.icon);
                 return (
                   <Link
                     key={item.id || item.path}
@@ -82,7 +82,12 @@ export function UserDrawer({ isOpen, onClose }: UserDrawerProps) {
                     )}
                   >
                     <div className="flex items-center gap-3">
-                      {Icon && <Icon className="h-5 w-5 text-slate-400" />}
+                      {item.icon && (
+                        <LucideIconByName
+                          name={item.icon}
+                          className="h-5 w-5 text-slate-400"
+                        />
+                      )}
                       <span>{item.label}</span>
                     </div>
                     {item.badge && (

@@ -5,7 +5,8 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@ui/components/tooltip";
-import { cn, getIconComponent } from "@ui/lib/utils";
+import { LucideIconByName } from "@ui/lib/lucide-icons";
+import { cn } from "@ui/lib/utils";
 import { useSearchParams, useNavigate, useLocation } from "react-router-dom";
 
 interface ViewChangerProps {
@@ -49,7 +50,7 @@ export function ViewChanger({
 
     return {
       id: viewId,
-      icon: getIconComponent(config?.icon || viewId),
+      iconName: config?.icon || viewId,
       tooltip:
         config?.tooltip ||
         `${viewId.charAt(0).toUpperCase()}${viewId.slice(1)} view`,
@@ -60,7 +61,6 @@ export function ViewChanger({
     <TooltipProvider>
       <ButtonGroup>
         {availableViews.map((view, index) => {
-          const Icon = view.icon;
           const isFirst = index === 0;
           const isLast = index === availableViews.length - 1;
           const isActive = currentView === view.id;
@@ -81,7 +81,10 @@ export function ViewChanger({
                   )}
                   aria-label={view.tooltip}
                 >
-                  <Icon className="h-4 w-4" />
+                  <LucideIconByName
+                    name={view.iconName}
+                    className="h-4 w-4"
+                  />
                 </ButtonGroupItem>
               </TooltipTrigger>
               <TooltipContent side="bottom">
