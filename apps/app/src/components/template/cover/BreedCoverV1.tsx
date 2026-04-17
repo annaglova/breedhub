@@ -1,12 +1,12 @@
 import { getDatabase, spaceStore, supabase } from "@breedhub/rxdb-store";
 import { useSignals } from "@preact/signals-react/runtime";
-import * as PatronIcons from "@shared/icons";
 import { Button } from "@ui/components/button";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@ui/components/tooltip";
+import { FirstPatronPlaceIcon } from "@/components/shared/patron-place-icons";
 import { mediaQueries } from "@/config/breakpoints";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { Heart } from "lucide-react";
@@ -289,7 +289,7 @@ export function BreedCoverV1({
                       </text>
                     </svg>
                     <div className="bg-accent-700 absolute -right-2 top-0 rounded-full p-1">
-                      <PatronIcons.PatronPlacesPlace1Icon
+                      <FirstPatronPlaceIcon
                         width={14}
                         height={14}
                         style={{ fill: "rgb(255, 255, 255)" }}
@@ -384,13 +384,13 @@ export function BreedCoverV1({
                   <div className="bg-accent-700 absolute -right-2 top-0 rounded-full p-1">
                     {!isLgDrawer ? (
                       <>
-                        <PatronIcons.PatronPlacesPlace1Icon
+                        <FirstPatronPlaceIcon
                           width={14}
                           height={14}
                           style={{ fill: "rgb(255, 255, 255)" }}
                           className="sm:hidden"
                         />
-                        <PatronIcons.PatronPlacesPlace1Icon
+                        <FirstPatronPlaceIcon
                           width={18}
                           height={18}
                           style={{ fill: "rgb(255, 255, 255)" }}
@@ -398,7 +398,7 @@ export function BreedCoverV1({
                         />
                       </>
                     ) : (
-                      <PatronIcons.PatronPlacesPlace1Icon
+                      <FirstPatronPlaceIcon
                         width={14}
                         height={14}
                         style={{ fill: "rgb(255, 255, 255)" }}

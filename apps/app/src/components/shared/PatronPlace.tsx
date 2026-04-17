@@ -1,5 +1,5 @@
 import { cn } from "@ui/lib/utils";
-import * as CustomIcons from "@shared/icons";
+import { resolvePatronPlaceIcon } from "./patron-place-icons";
 
 /**
  * Props for PatronPlace component
@@ -15,7 +15,7 @@ interface PatronPlaceProps {
  * PatronPlace component
  * Displays placement badge icon with appropriate styling
  *
- * Uses custom SVG icons from @shared/icons (patron-places)
+ * Uses the local patron-place icon registry
  * Similar to Angular patron-place.component.ts
  */
 export function PatronPlace({
@@ -24,13 +24,10 @@ export function PatronPlace({
   mode = "default",
   className
 }: PatronPlaceProps) {
-  // Convert iconName to export name (e.g., "place-1" -> "PatronPlacesPlace1Icon")
-  const placeNumber = iconName.replace("place-", "");
-  const exportName = `PatronPlacesPlace${placeNumber}Icon`;
-  const IconComponent = (CustomIcons as any)[exportName];
+  const IconComponent = resolvePatronPlaceIcon(iconName);
 
   if (!IconComponent) {
-    console.warn(`[PatronPlace] Icon not found: ${exportName}`);
+    console.warn(`[PatronPlace] Icon not found: ${iconName}`);
     return null;
   }
 

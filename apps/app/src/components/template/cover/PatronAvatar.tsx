@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import * as PatronIcons from '@shared/icons';
+import { resolvePatronPlaceIcon } from '@/components/shared/patron-place-icons';
 
 interface Patron {
   Id: string;
@@ -58,20 +58,13 @@ export function PatronAvatar({ patron, imgLink }: PatronAvatarProps) {
 
 /**
  * PatronPlaceBadge - Badge with place icon
- * Shows SVG icon from @shared/icons/patron-places
+ * Shows SVG icon from the local patron-place registry
  */
 function PatronPlaceBadge({ iconName, size }: { iconName: string; size: number }) {
-  // Convert "place-1" to "PatronPlacesPlace1Icon"
-  const toIconName = (name: string) => {
-    const num = name.replace('place-', '');
-    return `PatronPlacesPlace${num}Icon`;
-  };
-
-  const iconExportName = toIconName(iconName);
-  const IconComponent = (PatronIcons as any)[iconExportName];
+  const IconComponent = resolvePatronPlaceIcon(iconName);
 
   if (!IconComponent) {
-    console.warn(`[PatronPlaceBadge] Icon not found: ${iconExportName}`);
+    console.warn(`[PatronPlaceBadge] Icon not found: ${iconName}`);
     return (
       <div
         className="bg-accent-700 rounded-full p-1 flex items-center justify-center"
