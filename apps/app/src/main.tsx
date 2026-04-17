@@ -3,12 +3,8 @@ import "./index.css";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import App from "./App";
-import { registerAllComponents } from "./components/registerComponents";
 import { dictionaryStore, appStore, spaceStore } from "@breedhub/rxdb-store";
 import { registerSW } from 'virtual:pwa-register';
-
-// Register all components for dynamic loading
-registerAllComponents();
 
 // Expose stores to window for debugging
 if (import.meta.env.DEV) {

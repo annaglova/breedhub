@@ -4,10 +4,13 @@ import { SpaceComponent } from '@/components/space/SpaceComponent';
 import { PublicPageTemplate } from '@/components/template/PublicPageTemplate';
 import { EditPageTemplate } from '@/components/template/EditPageTemplate';
 import { TabPageTemplate } from '@/components/template/TabPageTemplate';
+import { registerAllComponents } from '@/components/registerComponents';
 import { getEntityHook } from '@/hooks/hookRegistry';
 import { appStore, spaceStore } from '@breedhub/rxdb-store';
 import { useSignals } from '@preact/signals-react/runtime';
 import { getComponent } from '@/components/space/componentRegistry';
+
+registerAllComponents();
 
 /**
  * Wrapper component that reads location.state.fullscreen
