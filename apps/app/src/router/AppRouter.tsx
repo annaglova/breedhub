@@ -1,29 +1,76 @@
 import React, { useMemo } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AppLayout } from '@/layouts/AppLayout';
-import { SpacePage } from '@/pages/SpacePage';
-import { SlugResolver } from '@/pages/SlugResolver';
-import { EditPageResolver } from '@/pages/EditPageResolver';
-import { CreatePageResolver } from '@/pages/CreatePageResolver';
-import { TabPageResolver } from '@/pages/TabPageResolver';
-import { BillingPage } from '@/pages/BillingPage';
-import { ReferralPage } from '@/pages/ReferralPage';
-import { GiftPage } from '@/pages/GiftPage';
-import { WelcomePage } from '@/pages/WelcomePage';
-import { AuthCallbackPage } from '@/pages/AuthCallbackPage';
 import { SignInSkeleton, SignUpSkeleton, ForgotPasswordSkeleton, ResetPasswordSkeleton } from '@shared/components/auth/AuthFormSkeleton';
 import { lazy } from 'react';
-import { TestDictionaryPage } from '@/pages/TestDictionaryPage';
 
 // Auth pages (lazy loaded)
 const SignIn = lazy(() => import('@shared/pages/auth/SignIn'));
 const SignUp = lazy(() => import('@shared/pages/auth/SignUp'));
 const ForgotPassword = lazy(() => import('@shared/pages/auth/ForgotPassword'));
 const ResetPassword = lazy(() => import('@shared/pages/auth/ResetPassword'));
-import { TestPage } from '@/pages/TestPage';
 import { getPage, PageNotFound } from '@/pages/pageRegistry';
 import { appStore } from '@breedhub/rxdb-store';
 import { useSignals } from '@preact/signals-react/runtime';
+
+function RouteFallback() {
+  return (
+    <div className="flex min-h-[40vh] items-center justify-center">
+      <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary/20 border-t-primary" />
+    </div>
+  );
+}
+
+function lazyRoute(
+  loader: () => Promise<{ default: React.ComponentType<any> }>
+): React.ComponentType<any> {
+  const LazyComponent = lazy(loader);
+
+  return function LazyRouteComponent(props: any) {
+    return (
+      <React.Suspense fallback={<RouteFallback />}>
+        <LazyComponent {...props} />
+      </React.Suspense>
+    );
+  };
+}
+
+const SpacePage = lazyRoute(() =>
+  import('@/pages/SpacePage').then((module) => ({ default: module.SpacePage }))
+);
+const SlugResolver = lazyRoute(() =>
+  import('@/pages/SlugResolver').then((module) => ({ default: module.SlugResolver }))
+);
+const EditPageResolver = lazyRoute(() =>
+  import('@/pages/EditPageResolver').then((module) => ({ default: module.EditPageResolver }))
+);
+const CreatePageResolver = lazyRoute(() =>
+  import('@/pages/CreatePageResolver').then((module) => ({ default: module.CreatePageResolver }))
+);
+const TabPageResolver = lazyRoute(() =>
+  import('@/pages/TabPageResolver').then((module) => ({ default: module.TabPageResolver }))
+);
+const BillingPage = lazyRoute(() =>
+  import('@/pages/BillingPage').then((module) => ({ default: module.BillingPage }))
+);
+const ReferralPage = lazyRoute(() =>
+  import('@/pages/ReferralPage').then((module) => ({ default: module.ReferralPage }))
+);
+const GiftPage = lazyRoute(() =>
+  import('@/pages/GiftPage').then((module) => ({ default: module.GiftPage }))
+);
+const WelcomePage = lazyRoute(() =>
+  import('@/pages/WelcomePage').then((module) => ({ default: module.WelcomePage }))
+);
+const AuthCallbackPage = lazyRoute(() =>
+  import('@/pages/AuthCallbackPage').then((module) => ({ default: module.AuthCallbackPage }))
+);
+const TestDictionaryPage = lazyRoute(() =>
+  import('@/pages/TestDictionaryPage').then((module) => ({ default: module.TestDictionaryPage }))
+);
+const TestPage = lazyRoute(() =>
+  import('@/pages/TestPage').then((module) => ({ default: module.TestPage }))
+);
 
 // Temporary placeholder component
 function PlaceholderPage({ title }: { title: string }) {
