@@ -8,6 +8,7 @@ import { appStore } from './app-store.signal-store';
 import { entityReplicationService } from '../services/entity-replication.service';
 import { supabase } from '../supabase/client';
 import { userStore } from './user-store.signal-store';
+import { dictionaryStore } from './dictionary-store.signal-store';
 
 // Helpers
 import {
@@ -24,6 +25,8 @@ import { removeFieldPrefix, addFieldPrefix } from '../utils/field-normalization'
 import * as F from '../utils/filter-builder';
 import * as CC from '../utils/child-collection-registry';
 import { generateSchemaForEntity as buildSchema, ENTITY_VIEW_SOURCES } from '../utils/schema-builder';
+import { rebuildTimelineOnDateChange } from '../utils/timeline-builder';
+import { generateSlug } from '../utils/slug-generator';
 import { buildEntityPayload, buildChildPayload, getOnConflict } from '../utils/sync-queue.helpers';
 import { syncQueueService } from '../services/sync-queue.service';
 import { checkSchemaVersion } from '../utils/schema-version-check';
@@ -1268,7 +1271,6 @@ class SpaceStore {
       const id = crypto.randomUUID();
       const userId = userStore.currentUserId.value;
       // Generate slug client-side (same algorithm as server trigger)
-      const { generateSlug } = await import('../utils/slug-generator');
       const slug = generateSlug((data as any).name || '', id);
 
       const newEntity = {
@@ -1340,7 +1342,6 @@ class SpaceStore {
       // If date_of_birth or date_of_death changed, rebuild timeline locally
       if ('date_of_birth' in updates || 'date_of_death' in updates) {
         const currentData = doc.toJSON();
-        const { rebuildTimelineOnDateChange } = await import('../utils/timeline-builder');
         patchData.timeline = rebuildTimelineOnDateChange(
           currentData.timeline || [],
           updates.date_of_birth ?? currentData.date_of_birth,
@@ -1799,8 +1800,6 @@ class SpaceStore {
         } else if (shouldFetchCount) {
           // Fetch fresh count if needed
           try {
-            const { supabase } = await import('../supabase/client');
-
             // Build query - add filter if totalFilterKey is set
             let countQuery = supabase
               .from(entityType)
@@ -2433,8 +2432,6 @@ class SpaceStore {
     cursor: string | null,
     orderBy: OrderBy
   ): Promise<Array<{ id: string; [key: string]: any }>> {
-    const { supabase } = await import('../supabase/client');
-
     console.log(`[SpaceStore] 🆔 Fetching IDs for ${entityType}...`);
 
     // 🎯 HYBRID SEARCH: Detect string filters with 'contains' operator
@@ -2664,8 +2661,6 @@ class SpaceStore {
       return [];
     }
 
-    const { supabase } = await import('../supabase/client');
-
     // Use VIEW source if configured (e.g., litter_with_parents for litter)
     const sourceName = this.getSupabaseSource(entityType);
     console.log(`[SpaceStore] 🌐 Fetching ${ids.length} full records by IDs from ${sourceName}...`);
@@ -2879,8 +2874,6 @@ class SpaceStore {
    */
   private async fetchEntityFromSupabase(entityType: string, id: string, entityStore: EntityStore<any>): Promise<void> {
     try {
-      const { supabase } = await import('../supabase/client');
-
       const { data, error } = await supabase
         .from(entityType)
         .select('*')
@@ -3301,7 +3294,6 @@ class SpaceStore {
 
     // Load from Supabase
     try {
-      const { supabase } = await import('../supabase/client');
       const { limit = 50, orderBy, orderDirection = 'asc' } = options;
 
       // Build Supabase query
@@ -3474,7 +3466,6 @@ class SpaceStore {
     }
 
     // Step 2: First load — get mapping IDs from Supabase
-    const { supabase } = await import('../supabase/client');
     const selectFields = partitionField ? `id, ${partitionField}` : 'id';
     const { data: mappingRows } = await supabase
       .from(mappingTable).select(selectFields).eq(parentField, parentId);
@@ -3543,7 +3534,6 @@ class SpaceStore {
     parentId: string, partitionField?: string
   ): Promise<void> {
     try {
-      const { supabase } = await import('../supabase/client');
       const selectFields = partitionField ? `id, ${partitionField}` : 'id';
       const { data } = await supabase.from(mappingTable).select(selectFields).eq(parentField, parentId);
       if (!data?.length) return;
@@ -3568,7 +3558,6 @@ class SpaceStore {
     partitionValue: string | undefined
   ): Promise<void> {
     try {
-      const { supabase } = await import('../supabase/client');
       const { limit = 50, orderBy, orderDirection = 'asc' } = options;
 
       let query = supabase
@@ -3799,7 +3788,6 @@ class SpaceStore {
     const titleIds = Array.from(new Set(titlesInPet.map((t) => t.title_id as string)));
     const titleLookup = new Map<string, { name?: string | null; rating?: number | string | null }>();
     if (titleIds.length > 0) {
-      const { dictionaryStore } = await import('./dictionary-store.signal-store');
       const lookups = await Promise.all(
         titleIds.map((id) => dictionaryStore.getRecordById('title', id)),
       );
@@ -4293,8 +4281,6 @@ class SpaceStore {
     partitionField?: string,
     partitionValue?: string
   ): Promise<Array<{ id: string; [key: string]: any }>> {
-    const { supabase } = await import('../supabase/client');
-
     // Select only id + orderBy fields for lightweight query
     const tieBreakerField = orderBy.tieBreaker?.field || 'id';
     const selectFields = tieBreakerField !== orderBy.field && tieBreakerField !== 'id'
@@ -4366,8 +4352,6 @@ class SpaceStore {
     partitionValue?: string
   ): Promise<any[]> {
     if (ids.length === 0) return [];
-
-    const { supabase } = await import('../supabase/client');
 
     const { data, error } = await supabase
       .from(tableType)
@@ -4534,8 +4518,6 @@ class SpaceStore {
     }
 
     try {
-      const { supabase } = await import('../supabase/client');
-
       // 🌐 PHASE 1: Query VIEW directly with full records
       console.log('[SpaceStore] 🌐 Phase 1: Fetching VIEW records...');
 
@@ -4845,8 +4827,6 @@ class SpaceStore {
           missingByBreed.get(bid)!.push(id);
         }
 
-        const { supabase } = await import('../supabase/client');
-
         // Parallel fetch across breed partitions (instead of sequential N+1)
         const results = await Promise.all(
           Array.from(missingByBreed.entries()).map(([breedId, ids]) =>
@@ -4875,8 +4855,6 @@ class SpaceStore {
       const allAncestors = [...cachedMap.values(), ...freshRecords];
 
       // Resolve sex and country codes via dictionaryStore (local-first, RxDB cached)
-      const { dictionaryStore } = await import('./dictionary-store.signal-store');
-
       const countryIds = new Set<string>();
       const sexIds = new Set<string>();
       for (const a of allAncestors) {

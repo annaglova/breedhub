@@ -9,6 +9,7 @@
 
 import { spaceStore, type OrderBy } from '../stores/space-store.signal-store';
 import { dictionaryStore } from '../stores/dictionary-store.signal-store';
+import { supabase } from '../supabase/client';
 import type {
   DataSourceConfig,
   OrderConfig,
@@ -407,7 +408,6 @@ class TabDataService {
     }
 
     try {
-      const { supabase } = await import('../supabase/client');
       const { data, error } = await supabase.rpc(config.function, params);
 
       if (error) {
