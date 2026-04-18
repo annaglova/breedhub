@@ -16,8 +16,7 @@ import {
   useSearchParams,
 } from "react-router-dom";
 import { SpaceDrawer } from "./SpaceDrawer";
-import { SpaceHeader } from "./SpaceHeader";
-import { SpaceView } from "./SpaceView";
+import { SpaceListShell } from "./SpaceListShell";
 
 interface SpaceComponentProps<T> {
   configSignal: Signal<any>; // TODO: Define proper SpaceConfig type from DB structure
@@ -131,7 +130,6 @@ export function SpaceComponent<T extends { id: string }>({
     data,
     isLoading,
     error,
-    isFetching,
     hasMore = false,
     isLoadingMore = false,
     loadMore,
@@ -156,7 +154,6 @@ export function SpaceComponent<T extends { id: string }>({
   const {
     selectedEntityId,
     isDrawerOpen,
-    setIsDrawerOpen,
     handleEntityClick,
     handleBackdropClick,
   } = useEntitySelection({
@@ -229,6 +226,11 @@ export function SpaceComponent<T extends { id: string }>({
   );
   const totalFilterValue =
     config.totalFilterKey && filters ? filters[config.totalFilterKey] : null;
+  const searchPlaceholder =
+    config?.naming?.searchPlaceholder ||
+    `Search ${config?.label || "entities"}...`;
+  const showDrawerBackdrop =
+    !isGridView && (drawerMode === "side" || drawerMode === "over");
 
   if (error) {
     return (
@@ -254,60 +256,44 @@ export function SpaceComponent<T extends { id: string }>({
   if (isInitialLoad && isLoading && !initialSelectedEntityId && !createMode) {
     return (
       <div className="relative h-full overflow-hidden">
-        <div className={cn(listShellClassName, "transition-none")}>
-          <SpaceHeader
-            title={finalConfig.title}
-            viewTypes={finalConfig.viewTypes || []}
-            viewConfigs={viewChangerConfigs}
-            onViewChange={handleViewChange}
-            entitySchemaName={config.entitySchemaName}
-            entitiesCount={0}
-            total={0}
-            recordsCount={recordsCount}
-            totalFilterKey={config.totalFilterKey}
-            totalFilterValue={totalFilterValue}
-            loading={true}
-            searchPlaceholder={
-              config?.naming?.searchPlaceholder ||
-              `Search ${config?.label || "entities"}...`
-            }
-            searchValue=""
-            canAdd={finalConfig.canAdd}
-            needCardClass={needCardClass}
-            sortOptions={sortOptions}
-            defaultSortOption={selectedSortOption}
-            filterFields={filterFields}
-            filters={[]}
-            currentFilterValues={{}}
-          />
+        <SpaceListShell
+          className={cn(listShellClassName, "transition-none")}
+          headerProps={{
+            title: finalConfig.title,
+            viewTypes: finalConfig.viewTypes || [],
+            viewConfigs: viewChangerConfigs,
+            onViewChange: handleViewChange,
+            entitySchemaName: config.entitySchemaName,
+            entitiesCount: 0,
+            total: 0,
+            recordsCount,
+            totalFilterKey: config.totalFilterKey,
+            totalFilterValue,
+            loading: true,
+            searchPlaceholder,
+            searchValue: "",
+            canAdd: finalConfig.canAdd,
+            needCardClass,
+            sortOptions,
+            defaultSortOption: selectedSortOption,
+            filterFields,
+            filters: [],
+            currentFilterValues: {},
+          }}
+          viewConfig={spaceViewConfig}
+          entities={[]}
+          isLoading={true}
+        />
 
-          {/* SpaceView with skeletons */}
-          <div className="relative flex-1 overflow-hidden">
-            <SpaceView
-              viewConfig={spaceViewConfig}
-              entities={[]}
-              isLoading={true}
-            />
-            <div
-              className="bg-card-ground w-full absolute bottom-0"
-              style={{ height: "var(--content-padding)" }}
-            />
-          </div>
-        </div>
-
-        {/* Drawer for side-transparent mode - always visible on xxl+ (only for list views) */}
-        {!isGridView && drawerMode === "side-transparent" && (
-          <div
-            className={cn(
-              "absolute top-0 right-0 h-full z-40",
-              "w-[45rem]",
-              needCardClass ? "fake-card" : "card-surface",
-              "rounded-l-xl overflow-hidden",
-            )}
-          >
-            {drawerContent}
-          </div>
-        )}
+        <SpaceDrawer
+          drawerMode={drawerMode}
+          isDrawerOpen={false}
+          isGridView={isGridView}
+          needCardClass={needCardClass}
+          showFullscreen={false}
+        >
+          {drawerContent}
+        </SpaceDrawer>
       </div>
     );
   }
@@ -322,73 +308,50 @@ export function SpaceComponent<T extends { id: string }>({
       >
         {/* Main Content - hidden when fullscreen */}
         {!showFullscreen && (
-          <div className={listShellClassName}>
-            <SpaceHeader
-              title={finalConfig.title}
-              viewTypes={finalConfig.viewTypes || []}
-              viewConfigs={viewChangerConfigs}
-              onViewChange={handleViewChange}
-              entitySchemaName={config.entitySchemaName}
-              entitiesCount={spaceStore.configReady.value ? allEntities.length : 0}
-              total={spaceStore.configReady.value ? totalCount : 0}
-              recordsCount={recordsCount}
-              totalFilterKey={config.totalFilterKey}
-              totalFilterValue={totalFilterValue}
-              searchPlaceholder={
-                config?.naming?.searchPlaceholder ||
-                `Search ${config?.label || "entities"}...`
-              }
-              searchValue={searchValue}
-              onSearchChange={setSearchValue}
-              canAdd={finalConfig.canAdd}
-              onCreateNew={handleCreateNew}
-              needCardClass={needCardClass}
-              sortOptions={sortOptions}
-              defaultSortOption={selectedSortOption}
-              onSortChange={handleSortChange}
-              filterFields={filterFields}
-              filters={activeFilters}
-              onFilterRemove={handleFilterRemove}
-              onFiltersApply={handleFiltersApply}
-              currentFilterValues={currentFilterValues}
-              showCounter={spaceStore.configReady.value}
-            />
-
-            {/* Content Scroller */}
-            <div className="relative flex-1 overflow-hidden">
-              <SpaceView
-                viewConfig={spaceViewConfig}
-                entities={allEntities}
-                selectedId={isGridView ? undefined : (selectedEntityId ?? undefined)}
-                onEntityClick={handleEntityClick}
-                onLoadMore={handleLoadMore}
-                hasMore={hasMore}
-                isLoadingMore={isLoadingMore}
-                isLoading={isLoading}
-                searchQuery={debouncedSearchValue}
-              />
-              {/* Bottom spacer like in Angular - hidden on mobile where footer nav is visible */}
-              <div
-                className="hidden sm:block bg-card-ground w-full absolute bottom-0"
-                style={{ height: "var(--content-padding)" }}
-              />
-            </div>
-
-            {/* Backdrop for drawer (only for side/over modes inside content, not in grid view) */}
-            {!isGridView &&
-              (drawerMode === "side" || drawerMode === "over") && (
-                <div
-                  className={cn(
-                    "absolute inset-0 z-30 transition-opacity duration-300",
-                    isMoreThanLG && "rounded-xl",
-                    isDrawerOpen
-                      ? "bg-black/40 opacity-100"
-                      : "opacity-0 pointer-events-none",
-                  )}
-                  onClick={handleBackdropClick}
-                />
-              )}
-          </div>
+          <SpaceListShell
+            className={listShellClassName}
+            headerProps={{
+              title: finalConfig.title,
+              viewTypes: finalConfig.viewTypes || [],
+              viewConfigs: viewChangerConfigs,
+              onViewChange: handleViewChange,
+              entitySchemaName: config.entitySchemaName,
+              entitiesCount: spaceStore.configReady.value ? allEntities.length : 0,
+              total: spaceStore.configReady.value ? totalCount : 0,
+              recordsCount,
+              totalFilterKey: config.totalFilterKey,
+              totalFilterValue,
+              searchPlaceholder,
+              searchValue,
+              onSearchChange: setSearchValue,
+              canAdd: finalConfig.canAdd,
+              onCreateNew: handleCreateNew,
+              needCardClass,
+              sortOptions,
+              defaultSortOption: selectedSortOption,
+              onSortChange: handleSortChange,
+              filterFields,
+              filters: activeFilters,
+              onFilterRemove: handleFilterRemove,
+              onFiltersApply: handleFiltersApply,
+              currentFilterValues,
+              showCounter: spaceStore.configReady.value,
+            }}
+            viewConfig={spaceViewConfig}
+            entities={allEntities}
+            selectedId={isGridView ? undefined : (selectedEntityId ?? undefined)}
+            onEntityClick={handleEntityClick}
+            onLoadMore={handleLoadMore}
+            hasMore={hasMore}
+            isLoadingMore={isLoadingMore}
+            isLoading={isLoading}
+            searchQuery={debouncedSearchValue}
+            bottomSpacerClassName="hidden sm:block"
+            showBackdrop={showDrawerBackdrop}
+            isBackdropVisible={isDrawerOpen}
+            backdropRounded={isMoreThanLG}
+            onBackdropClick={handleBackdropClick}
+          />
         )}
 
         <SpaceDrawer

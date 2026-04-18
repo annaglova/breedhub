@@ -9,7 +9,7 @@ import { ListCardSkeletonList } from "./EntityListCardWrapper";
 import { GridCardSkeleton } from "./GridCardSkeleton";
 
 // View configuration interface that matches our config structure
-interface ViewConfig {
+export interface ViewConfig {
   viewType: string;
   component: string;
   itemHeight: number;
