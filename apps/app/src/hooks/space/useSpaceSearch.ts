@@ -8,6 +8,7 @@
  * Extracted from SpaceComponent.
  */
 import { useEffect, useRef, useState } from "react";
+import { ensureSearchParam } from "./space-query.utils";
 
 export function useSpaceSearch(
   searchUrlSlug: string | null,
@@ -32,6 +33,17 @@ export function useSpaceSearch(
     isInitialMount.current = false;
   }, [searchUrlSlug, searchParams]);
 
+  // Keep local search state in sync when URL changes externally
+  useEffect(() => {
+    if (!searchUrlSlug || isInitialMount.current) return;
+
+    const urlValue = searchParams.get(searchUrlSlug) || "";
+    if (urlValue !== debouncedSearchValue) {
+      setSearchValue(urlValue);
+      setDebouncedSearchValue(urlValue);
+    }
+  }, [debouncedSearchValue, searchParams, searchUrlSlug]);
+
   // Debounce search value (faster on delete, slower on typing)
   useEffect(() => {
     const isDeleting = searchValue.length < debouncedSearchValue.length;
@@ -50,19 +62,20 @@ export function useSpaceSearch(
   useEffect(() => {
     if (!searchUrlSlug) return;
 
-    const currentValue = searchParams.get(searchUrlSlug);
-    const newValue = debouncedSearchValue.trim() || null;
+    const trimmedValue = debouncedSearchValue.trim();
+    const nextParams = trimmedValue
+      ? ensureSearchParam(searchParams, searchUrlSlug, trimmedValue)
+      : (() => {
+          if (!searchParams.has(searchUrlSlug)) {
+            return null;
+          }
+          const params = new URLSearchParams(searchParams);
+          params.delete(searchUrlSlug);
+          return params;
+        })();
 
-    if (currentValue !== newValue) {
-      const newParams = new URLSearchParams(searchParams);
-
-      if (debouncedSearchValue.trim()) {
-        newParams.set(searchUrlSlug, debouncedSearchValue.trim());
-      } else {
-        newParams.delete(searchUrlSlug);
-      }
-
-      setSearchParams(newParams, { replace: true });
+    if (nextParams) {
+      setSearchParams(nextParams, { replace: true });
     }
   }, [debouncedSearchValue, searchUrlSlug, searchParams, setSearchParams]);
 
