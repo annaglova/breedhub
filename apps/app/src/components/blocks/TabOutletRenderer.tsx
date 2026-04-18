@@ -5,7 +5,12 @@ import { TabsContainer, Tab } from "../tabs/TabsContainer";
 import { TabActionsHeader } from "../tabs/TabActionsHeader";
 import { PageMenu } from "../tabs/PageMenu";
 import { useTabNavigation } from "@/hooks/useTabNavigation";
-import type { IconConfig } from "@breedhub/rxdb-store";
+import {
+  getDefaultTabFragment,
+  getTabFragment,
+  getTabLabel,
+  type TabConfig,
+} from "@/utils/tab-config";
 
 /**
  * Dynamic tab component registry using Vite's glob imports
@@ -21,28 +26,6 @@ import type { IconConfig } from "@breedhub/rxdb-store";
  */
 // Shared tab component registry (auto-discovers all *Tab.tsx components)
 import { TAB_COMPONENT_REGISTRY } from '../shared/tab-registry';
-
-// Tab config from database
-export interface TabConfig {
-  isDefault?: boolean; // Fallback default tab (used if no preferDefault tabs are visible)
-  preferDefault?: boolean; // Preferred default tab (highest priority for initial tab selection)
-  hideWhenEmpty?: boolean; // Hide tab when entity has no relevant data
-  order: number;
-  component: string;
-  label?: string;
-  icon?: IconConfig;
-  slug?: string; // URL-friendly identifier for the tab (e.g., "achievements", "patrons")
-  // New config options
-  badge?: string; // "Coming soon", "New", "Beta", etc.
-  fullscreenButton?: boolean; // Show fullscreen button
-  expandAlways?: boolean; // Always show expand button (e.g., Pedigree tab)
-  focusMode?: boolean; // Allow collapsing header/tabs to maximize content area
-  dataSource?: any; // Config-driven data loading (see TAB_DATA_SERVICE_ARCHITECTURE.md)
-  // Edit tab config
-  fields?: Record<string, any>; // Fields config (EditFormTab, EditChildTableTab)
-  actionTypes?: string[]; // Tab action types: ["search", "addRecord", ...]
-  protectedWhen?: { field: string; value: unknown };
-}
 
 interface TabOutletRendererProps {
   tabsConfig: Record<string, TabConfig>;
@@ -88,14 +71,8 @@ function convertTabConfigToTabs(tabsConfig: Record<string, TabConfig>): Tab[] {
 
     // Generate label from component name if not provided
     // "BreedAchievementsTab" -> "Breed Achievements"
-    const label = config.label ||
-      config.component
-        .replace(/Tab$/, '')
-        .replace(/([A-Z])/g, ' $1')
-        .trim();
-
-    // Use slug from config for URL fragment, fallback to tabId
-    const fragment = config.slug || tabId;
+    const label = getTabLabel(config.component, config.label);
+    const fragment = getTabFragment(tabId, config);
 
     // Build extra tabProps for edit tabs
     const tabProps: Record<string, any> = {};
@@ -137,47 +114,6 @@ function convertTabConfigToTabs(tabsConfig: Record<string, TabConfig>): Tab[] {
   }
 
   return tabs.sort((a, b) => a._order - b._order);
-}
-
-/**
- * Get default tab fragment (slug) from tabs config
- *
- * Priority:
- * 1. First tab with preferDefault: true (sorted by order) - for tabs that should be default when they have data
- * 2. Tab with isDefault: true - fallback default
- * 3. First tab by order - ultimate fallback
- *
- * Note: In future, preferDefault tabs will only be selected if they have data.
- * For now, preferDefault is treated same as highest priority default.
- */
-function getDefaultTabFragment(tabsConfig: Record<string, TabConfig>): string | undefined {
-  // Sort all tabs by order for consistent processing
-  const sortedEntries = Object.entries(tabsConfig).sort(
-    ([, a], [, b]) => (a.order || 0) - (b.order || 0)
-  );
-
-  // 1. Find first tab with preferDefault: true (by order)
-  // TODO: In future, also check if tab has data/is visible
-  const preferDefaultEntry = sortedEntries.find(([, config]) => config.preferDefault);
-  if (preferDefaultEntry) {
-    const [tabId, config] = preferDefaultEntry;
-    return config.slug || tabId;
-  }
-
-  // 2. Find tab with isDefault: true
-  const defaultEntry = sortedEntries.find(([, config]) => config.isDefault);
-  if (defaultEntry) {
-    const [tabId, config] = defaultEntry;
-    return config.slug || tabId;
-  }
-
-  // 3. Fallback to first tab by order
-  if (sortedEntries.length > 0) {
-    const [tabId, config] = sortedEntries[0];
-    return config.slug || tabId;
-  }
-
-  return undefined;
 }
 
 /**

@@ -6,8 +6,12 @@ import {
 } from "@/contexts/AboveFoldLoadingContext";
 import { SpaceProvider } from "@/contexts/SpaceContext";
 import { useEntityFullyLoaded } from "@/hooks/useEntityFullyLoaded";
-import { getPageConfig } from "@/utils/getPageConfig";
-import { spaceStore, generateSlug } from "@breedhub/rxdb-store";
+import { useSpaceTemplateContext } from "@/hooks/useSpaceTemplateContext";
+import {
+  getTabsConfigFromPage,
+  isPreferredDefaultTabFragment,
+} from "@/utils/tab-config";
+import { generateSlug } from "@breedhub/rxdb-store";
 import { Signal } from "@preact/signals-react";
 import { useSignals } from "@preact/signals-react/runtime";
 import { Button } from "@ui/components/button";
@@ -62,32 +66,16 @@ function EditBlocks({
   // On mount: check URL hash to determine initial state (avoids page skeleton flash for non-default tabs)
   const [isDefaultTabActive, setIsDefaultTabActive] = useState(() => {
     const hash = window.location.hash.slice(1);
-    if (!hash || !pageConfig?.blocks) return true;
-
-    // Find TabOutlet block to check if hash matches default tab
-    const tabBlock = Object.values(pageConfig.blocks).find(
-      (b: any) => b.outlet === "TabOutlet" && b.tabs
-    ) as any;
-    if (!tabBlock?.tabs) return true;
-
-    // Check if hash matches any tab
-    const matchingTab = Object.entries(tabBlock.tabs).find(
-      ([, config]: [string, any]) => (config.slug || '') === hash
-    );
-    if (!matchingTab) return true;
-
-    // Check if matching tab is default
-    const [, tabConfig] = matchingTab as [string, any];
-    return tabConfig.isDefault === true || tabConfig.preferDefault === true;
+    return isPreferredDefaultTabFragment(getTabsConfigFromPage(pageConfig), hash);
   });
 
   // Create mode: track name from form for header display
   const [createModeName, setCreateModeName] = useState("");
 
   // Sticky name bar
-  const { nameContainerRef, nameOnTop, nameBlockHeight } = useStickyName(
-    [pageConfig, selectedEntity, isDefaultTabActive]
-  );
+  const { nameContainerRef, nameOnTop, nameBlockHeight } = useStickyName({
+    deps: [pageConfig, selectedEntity, isDefaultTabActive],
+  });
   const PAGE_MENU_TOP = nameBlockHeight > 0 ? nameBlockHeight : 0;
 
   const navigate = useNavigate();
@@ -441,21 +429,16 @@ export function EditPageTemplate({
 }: EditPageTemplateProps) {
   useSignals();
 
-  const spaceConfig = spaceConfigSignal?.value;
-
-  // Get edit page config specifically
-  const pageConfig = getPageConfig(spaceConfig, { pageType: 'edit' });
-
-  const spacePermissions = {
-    canEdit: spaceConfig?.canEdit ?? false,
-    canDelete: spaceConfig?.canDelete ?? false,
-    canAdd: spaceConfig?.canAdd ?? false,
-  };
-
-  const selectedEntitySignal = entityType
-    ? spaceStore.getSelectedEntity(entityType)
-    : null;
-  const selectedEntity = selectedEntitySignal?.value;
+  const {
+    pageConfig,
+    selectedEntity,
+    selectedEntitySignal,
+    spacePermissions,
+  } = useSpaceTemplateContext({
+    spaceConfigSignal,
+    entityType,
+    pageType: "edit",
+  });
 
   const isEntityFullyLoaded = useEntityFullyLoaded(entityType, selectedEntity);
 

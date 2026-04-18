@@ -48,14 +48,12 @@ function TabDetailWrapper({
   entityPartitionId,
   entitySlug,
   tabSlug,
-  spaceConfigSignal
 }: {
   entityType: string;
   entityId: string;
   entityPartitionId?: string;
   entitySlug: string;
   tabSlug: string;
-  spaceConfigSignal: any;
 }) {
   return (
     <TabPageTemplate
@@ -66,6 +64,97 @@ function TabDetailWrapper({
       tabSlug={tabSlug}
       isDrawerMode={false}
       isFullscreenMode={true}
+    />
+  );
+}
+
+interface SpaceShellProps {
+  shellKey: string;
+  configSignal: any;
+  useEntitiesHook: any;
+  createMode?: boolean;
+  initialSelectedEntityId?: string;
+  initialSelectedPartitionId?: string;
+  initialSelectedPartitionField?: string;
+  initialSelectedSlug?: string;
+  children?: React.ReactNode;
+}
+
+function SpaceShell({
+  shellKey,
+  configSignal,
+  useEntitiesHook,
+  createMode = false,
+  initialSelectedEntityId,
+  initialSelectedPartitionId,
+  initialSelectedPartitionField,
+  initialSelectedSlug,
+  children,
+}: SpaceShellProps) {
+  return (
+    <SpaceComponent
+      key={shellKey}
+      configSignal={configSignal}
+      useEntitiesHook={useEntitiesHook}
+      createMode={createMode}
+      initialSelectedEntityId={initialSelectedEntityId}
+      initialSelectedPartitionId={initialSelectedPartitionId}
+      initialSelectedPartitionField={initialSelectedPartitionField}
+      initialSelectedSlug={initialSelectedSlug}
+    >
+      {children}
+    </SpaceComponent>
+  );
+}
+
+interface SelectedEntityContentProps {
+  DetailComponent: React.ComponentType<any>;
+  spaceConfigSignal: any;
+  entityType: string;
+  selectedEntityId: string;
+  selectedPartitionId?: string;
+  selectedSlug?: string;
+  tabSlug?: string;
+  editMode?: boolean;
+}
+
+function SelectedEntityContent({
+  DetailComponent,
+  spaceConfigSignal,
+  entityType,
+  selectedEntityId,
+  selectedPartitionId,
+  selectedSlug,
+  tabSlug,
+  editMode = false,
+}: SelectedEntityContentProps) {
+  if (editMode) {
+    return (
+      <EditPageTemplate
+        spaceConfigSignal={spaceConfigSignal}
+        entityType={entityType}
+      />
+    );
+  }
+
+  if (tabSlug && selectedSlug) {
+    return (
+      <TabDetailWrapper
+        entityType={entityType}
+        entityId={selectedEntityId}
+        entityPartitionId={selectedPartitionId}
+        entitySlug={selectedSlug}
+        tabSlug={tabSlug}
+      />
+    );
+  }
+
+  return (
+    <DetailComponent
+      isDrawerMode={false}
+      isFullscreenMode={true}
+      spaceConfigSignal={spaceConfigSignal}
+      entityType={entityType}
     />
   );
 }
@@ -124,6 +213,16 @@ export function SpacePage({ entityType, selectedEntityId, selectedPartitionId, s
     [entityType]
   );
 
+  const selectedEntityShellProps = useMemo(
+    () => ({
+      initialSelectedEntityId: selectedEntityId,
+      initialSelectedPartitionId: selectedPartitionId,
+      initialSelectedPartitionField: selectedPartitionField,
+      initialSelectedSlug: selectedSlug,
+    }),
+    [selectedEntityId, selectedPartitionId, selectedPartitionField, selectedSlug]
+  );
+
   // Early returns AFTER all hooks are called (React rules of hooks)
   if (!useEntitiesHook) {
     return (
@@ -146,8 +245,8 @@ export function SpacePage({ entityType, selectedEntityId, selectedPartitionId, s
   // Create mode: fullscreen edit form without entity (from CreatePageResolver)
   if (createMode) {
     return (
-      <SpaceComponent
-        key={`${entityType}-create`}
+      <SpaceShell
+        shellKey={`${entityType}-create`}
         configSignal={spaceConfigSignal}
         useEntitiesHook={useEntitiesHook}
         createMode={true}
@@ -157,76 +256,31 @@ export function SpacePage({ entityType, selectedEntityId, selectedPartitionId, s
           entityType={entityType}
           isCreateMode={true}
         />
-      </SpaceComponent>
+      </SpaceShell>
     );
   }
 
   // When selectedEntityId is provided (from SlugResolver/TabPageResolver/EditPageResolver), render with pre-selected entity
   // This is used for pretty URLs like /affenpinscher or /affenpinscher/patrons or /affenpinscher/edit
   if (selectedEntityId) {
-    // Edit mode: render EditPageTemplate fullscreen
-    if (editMode) {
-      return (
-        <SpaceComponent
-          key={entityType}
-          configSignal={spaceConfigSignal}
-          useEntitiesHook={useEntitiesHook}
-          initialSelectedEntityId={selectedEntityId}
-          initialSelectedPartitionId={selectedPartitionId}
-          initialSelectedPartitionField={selectedPartitionField}
-          initialSelectedSlug={selectedSlug}
-        >
-          <EditPageTemplate
-            spaceConfigSignal={spaceConfigSignal}
-            entityType={entityType}
-          />
-        </SpaceComponent>
-      );
-    }
-
-    // Tab fullscreen mode: render TabPageTemplate in drawer fullscreen
-    if (tabSlug && selectedSlug) {
-      return (
-        <SpaceComponent
-          key={entityType}
-          configSignal={spaceConfigSignal}
-          useEntitiesHook={useEntitiesHook}
-          initialSelectedEntityId={selectedEntityId}
-          initialSelectedPartitionId={selectedPartitionId}
-          initialSelectedPartitionField={selectedPartitionField}
-          initialSelectedSlug={selectedSlug}
-        >
-          <TabDetailWrapper
-            entityType={entityType}
-            entityId={selectedEntityId}
-            entityPartitionId={selectedPartitionId}
-            entitySlug={selectedSlug}
-            tabSlug={tabSlug}
-            spaceConfigSignal={spaceConfigSignal}
-          />
-        </SpaceComponent>
-      );
-    }
-
-    // Normal fullscreen mode: render PublicPageTemplate
-    // Pretty URL always means fullscreen mode (no drawer)
     return (
-      <SpaceComponent
-        key={entityType}
+      <SpaceShell
+        shellKey={entityType}
         configSignal={spaceConfigSignal}
         useEntitiesHook={useEntitiesHook}
-        initialSelectedEntityId={selectedEntityId}
-        initialSelectedPartitionId={selectedPartitionId}
-        initialSelectedPartitionField={selectedPartitionField}
-        initialSelectedSlug={selectedSlug}
+        {...selectedEntityShellProps}
       >
-        <DetailComponent
-          isDrawerMode={false}
-          isFullscreenMode={true}
+        <SelectedEntityContent
+          DetailComponent={DetailComponent}
           spaceConfigSignal={spaceConfigSignal}
           entityType={entityType}
+          selectedEntityId={selectedEntityId}
+          selectedPartitionId={selectedPartitionId}
+          selectedSlug={selectedSlug}
+          tabSlug={tabSlug}
+          editMode={editMode}
         />
-      </SpaceComponent>
+      </SpaceShell>
     );
   }
 
@@ -236,8 +290,8 @@ export function SpacePage({ entityType, selectedEntityId, selectedPartitionId, s
       <Route
         path="/"
         element={
-          <SpaceComponent
-            key={entityType}
+          <SpaceShell
+            shellKey={entityType}
             configSignal={spaceConfigSignal}
             useEntitiesHook={useEntitiesHook}
           />
@@ -275,8 +329,8 @@ export function SpacePage({ entityType, selectedEntityId, selectedPartitionId, s
       <Route
         path=":id/edit"
         element={
-          <SpaceComponent
-            key={`${entityType}-edit`}
+          <SpaceShell
+            shellKey={`${entityType}-edit`}
             configSignal={spaceConfigSignal}
             useEntitiesHook={useEntitiesHook}
           >
@@ -284,7 +338,7 @@ export function SpacePage({ entityType, selectedEntityId, selectedPartitionId, s
               spaceConfigSignal={spaceConfigSignal}
               entityType={entityType}
             />
-          </SpaceComponent>
+          </SpaceShell>
         }
       />
     </Routes>

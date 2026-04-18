@@ -10,8 +10,15 @@ import {
 import { Switch } from "@ui/components/switch";
 import { BlockRenderer } from "@/components/blocks/BlockRenderer";
 import { SpaceProvider } from "@/contexts/SpaceContext";
+import { useSpaceTemplateContext } from "@/hooks/useSpaceTemplateContext";
+import { useStickyName } from "@/hooks/useStickyName";
 import { ScrollToTopButton } from "@/components/shared/ScrollToTopButton";
-import { getPageConfig } from "@/utils/getPageConfig";
+import {
+  getTabFragment,
+  getTabLabel,
+  getTabsConfigFromPage,
+  type TabConfig,
+} from "@/utils/tab-config";
 import { spaceStore, tabDataService } from "@breedhub/rxdb-store";
 import { useSignals } from "@preact/signals-react/runtime";
 import { cn } from "@ui/lib/utils";
@@ -26,25 +33,6 @@ import { mediaQueries } from "@/config/breakpoints";
 
 // Shared tab component registry (auto-discovers all *Tab.tsx components)
 import { TAB_COMPONENT_REGISTRY } from '../shared/tab-registry';
-
-// Tab config from database
-interface TabConfig {
-  isDefault?: boolean; // Fallback default tab
-  preferDefault?: boolean; // Preferred default tab (highest priority for initial tab selection)
-  hideWhenEmpty?: boolean; // Hide tab when entity has no relevant data
-  order: number;
-  component: string;
-  label?: string;
-  icon?: { name: string; source: string };
-  slug?: string;
-  badge?: string;
-  fullscreenButton?: boolean;
-  expandAlways?: boolean; // Always show expand button (e.g., Pedigree tab)
-  dataSource?: any; // Config-driven data loading
-  actionTypes?: string[]; // Action types: ["pedigreeGenerations", "edit", "search", ...]
-  focusMode?: boolean; // Allow collapsing header/tabs to maximize content area
-  zoomControl?: boolean; // Show zoom controls (80%, 90%, 100%)
-}
 
 interface TabPageTemplateProps {
   entityType: string;
@@ -99,13 +87,8 @@ function convertFullscreenTabsToArray(
       continue;
     }
 
-    const label = config.label ||
-      config.component
-        .replace(/Tab$/, '')
-        .replace(/([A-Z])/g, ' $1')
-        .trim();
-
-    const fragment = config.slug || tabId;
+    const label = getTabLabel(config.component, config.label);
+    const fragment = getTabFragment(tabId, config);
 
     tabs.push({
       id: tabId,
@@ -158,11 +141,6 @@ export function TabPageTemplate({
   // Refs for sticky behavior and scroll button positioning
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const contentContainerRef = useRef<HTMLDivElement>(null);
-  const nameContainerRef = useRef<HTMLDivElement>(null);
-
-  // Track if name container is stuck to top
-  const [nameOnTop, setNameOnTop] = useState(false);
-  const [nameBlockHeight, setNameBlockHeight] = useState(0);
 
   // Pedigree generations state - persisted in sessionStorage for navigation
   const PEDIGREE_GENERATIONS_KEY = "pedigree-generations";
@@ -213,14 +191,16 @@ export function TabPageTemplate({
     () => spaceStore.getSpaceConfigSignal(entityType),
     [entityType]
   );
-  const spaceConfig = spaceConfigSignal?.value;
-
-  // Get page config
-  const pageConfig = getPageConfig(spaceConfig);
-
-  // Get selected entity signal
-  const selectedEntitySignal = spaceStore.getSelectedEntity(entityType);
-  const selectedEntity = selectedEntitySignal?.value;
+  const {
+    pageConfig,
+    selectedEntity,
+    selectedEntitySignal,
+    spaceConfig,
+    spacePermissions,
+  } = useSpaceTemplateContext({
+    spaceConfigSignal,
+    entityType,
+  });
 
   // Ensure correct entity is selected based on URL entityId
   // If selectedEntity is different from entityId, fetch and select the correct one
@@ -237,11 +217,7 @@ export function TabPageTemplate({
 
   // Get tabs config from page config
   const tabsConfig = useMemo(() => {
-    if (!pageConfig?.blocks) return {};
-    const tabOutletBlock = Object.values(pageConfig.blocks).find(
-      (block: any) => block.outlet === 'TabOutlet' && block.tabs
-    ) as any;
-    return tabOutletBlock?.tabs || {};
+    return getTabsConfigFromPage(pageConfig);
   }, [pageConfig]);
 
   // State for loaded counts - fetched directly for fullscreen page
@@ -313,6 +289,11 @@ export function TabPageTemplate({
 
   // Only allow collapse on pedigree tab
   const isPedigreeFocusMode = isPedigreeCollapsed && currentTab?.focusMode;
+  const { nameContainerRef, nameOnTop, nameBlockHeight } = useStickyName({
+    deps: [pageConfig, selectedEntity, currentTab],
+    scrollContainerRef,
+    threshold: 1,
+  });
 
   // Handle tab change - update local state immediately, then update URL
   const handleTabChange = (fragment: string) => {
@@ -328,54 +309,6 @@ export function TabPageTemplate({
     // Navigate to entity page with tab hash
     navigate(`/${entitySlug}#${tabSlug}`);
   };
-
-  const spacePermissions = {
-    canEdit: spaceConfig?.canEdit ?? false,
-    canDelete: spaceConfig?.canDelete ?? false,
-    canAdd: spaceConfig?.canAdd ?? false,
-  };
-
-  // Sticky detection - check if name container is stuck
-  useEffect(() => {
-    if (!nameContainerRef.current || !scrollContainerRef.current) return;
-
-    const scrollContainer = scrollContainerRef.current;
-
-    const checkSticky = () => {
-      if (!nameContainerRef.current) return;
-
-      const containerTop = scrollContainer.getBoundingClientRect().top;
-      const elementTop = nameContainerRef.current.getBoundingClientRect().top;
-
-      // When element top equals container top, it's stuck
-      const isStuck = Math.abs(containerTop - elementTop) <= 1;
-      setNameOnTop(isStuck);
-    };
-
-    // Check on scroll
-    scrollContainer.addEventListener("scroll", checkSticky);
-    // Check initially
-    checkSticky();
-
-    return () => {
-      scrollContainer.removeEventListener("scroll", checkSticky);
-    };
-  }, [pageConfig, selectedEntity, currentTab]);
-
-  // Track name container height for PageMenu positioning
-  useEffect(() => {
-    if (!nameContainerRef.current) return;
-
-    const resizeObserver = new ResizeObserver((entries) => {
-      const entry = entries[0];
-      if (entry) {
-        setNameBlockHeight(entry.contentRect.height);
-      }
-    });
-
-    resizeObserver.observe(nameContainerRef.current);
-    return () => resizeObserver.disconnect();
-  }, [pageConfig, selectedEntity, currentTab]);
 
   // PageMenu top position (under Name when sticky)
   // In collapsed mode: compact bar (40px), no PageMenu

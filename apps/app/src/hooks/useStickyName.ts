@@ -4,11 +4,21 @@
  * Detects when a sticky element is "stuck" to the top of its scroll container,
  * and tracks its height via ResizeObserver.
  *
- * Used by PublicPageTemplate and EditPageTemplate.
+ * Used by PublicPageTemplate, EditPageTemplate, and TabPageTemplate.
  */
 import { useEffect, useRef, useState } from "react";
 
-export function useStickyName(deps: any[] = []) {
+interface UseStickyNameOptions {
+  deps?: any[];
+  scrollContainerRef?: React.RefObject<HTMLElement | null>;
+  threshold?: number;
+}
+
+export function useStickyName({
+  deps = [],
+  scrollContainerRef,
+  threshold = 0,
+}: UseStickyNameOptions = {}) {
   const nameContainerRef = useRef<HTMLDivElement>(null);
   const [nameOnTop, setNameOnTop] = useState(false);
   const [nameBlockHeight, setNameBlockHeight] = useState(0);
@@ -17,14 +27,17 @@ export function useStickyName(deps: any[] = []) {
   useEffect(() => {
     if (!nameContainerRef.current) return;
 
-    let scrollContainer: HTMLElement | null =
-      nameContainerRef.current.parentElement;
-    while (scrollContainer) {
-      const overflowY = window.getComputedStyle(scrollContainer).overflowY;
-      if (overflowY === "auto" || overflowY === "scroll") {
-        break;
+    let scrollContainer = scrollContainerRef?.current ?? null;
+
+    if (!scrollContainer) {
+      scrollContainer = nameContainerRef.current.parentElement;
+      while (scrollContainer) {
+        const overflowY = window.getComputedStyle(scrollContainer).overflowY;
+        if (overflowY === "auto" || overflowY === "scroll") {
+          break;
+        }
+        scrollContainer = scrollContainer.parentElement;
       }
-      scrollContainer = scrollContainer.parentElement;
     }
 
     if (!scrollContainer) return;
@@ -35,7 +48,7 @@ export function useStickyName(deps: any[] = []) {
       const containerTop = scrollContainer!.getBoundingClientRect().top;
       const elementTop = nameContainerRef.current.getBoundingClientRect().top;
 
-      const isStuck = Math.abs(containerTop - elementTop) === 0;
+      const isStuck = Math.abs(containerTop - elementTop) <= threshold;
       setNameOnTop(isStuck);
     };
 
@@ -46,7 +59,7 @@ export function useStickyName(deps: any[] = []) {
       scrollContainer?.removeEventListener("scroll", checkSticky);
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, deps);
+  }, [scrollContainerRef, threshold, ...deps]);
 
   // ResizeObserver for height tracking
   useEffect(() => {

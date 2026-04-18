@@ -1,7 +1,7 @@
 import { TabOutletRenderer } from "@/components/blocks/TabOutletRenderer";
-import type { TabConfig } from "@/components/blocks/TabOutletRenderer";
 import type { PageConfig } from "@/types/page-config.types";
 import type { SpacePermissions } from "@/types/page-menu.types";
+import type { TabConfig } from "@/utils/tab-config";
 import { useMemo } from "react";
 
 interface TabOutletProps {

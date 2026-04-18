@@ -7,76 +7,13 @@ import {
 } from "@/contexts/AboveFoldLoadingContext";
 import { SpaceProvider } from "@/contexts/SpaceContext";
 import { useEntityFullyLoaded } from "@/hooks/useEntityFullyLoaded";
-import { getPageConfig } from "@/utils/getPageConfig";
-import { spaceStore } from "@breedhub/rxdb-store";
+import { useSpaceTemplateContext } from "@/hooks/useSpaceTemplateContext";
+import { getDefaultTabFragment, getTabsConfigFromPage } from "@/utils/tab-config";
 import { Signal } from "@preact/signals-react";
 import { useSignals } from "@preact/signals-react/runtime";
 import { useStickyName } from "@/hooks/useStickyName";
 import { cn } from "@ui/lib/utils";
 import { useRef } from "react";
-
-/**
- * Get default tab fragment from page config
- * Looks for TabOutlet block and finds default tab
- *
- * Priority:
- * 1. First tab with preferDefault: true (by order) - for tabs that should be default when they have data
- * 2. Tab with isDefault: true - fallback default
- * 3. First tab by order - ultimate fallback
- *
- * Note: In future, preferDefault tabs will only be selected if they have data.
- */
-function getDefaultTabFragment(pageConfig: any): string | undefined {
-  if (!pageConfig?.blocks) {
-    return undefined;
-  }
-
-  // Find TabOutlet block which contains tabs config
-  const tabOutletBlock = Object.values(pageConfig.blocks).find(
-    (block: any) => block.outlet === "TabOutlet" && block.tabs
-  ) as any;
-
-  if (!tabOutletBlock?.tabs) {
-    return undefined;
-  }
-
-  const tabsConfig = tabOutletBlock.tabs;
-
-  // Sort all tabs by order for consistent processing
-  const sortedTabs = Object.entries(tabsConfig).sort(
-    ([, a]: [string, any], [, b]: [string, any]) =>
-      (a.order || 0) - (b.order || 0)
-  );
-
-  // 1. Find first tab with preferDefault: true (by order)
-  // TODO: In future, also check if tab has data/is visible
-  const preferDefaultEntry = sortedTabs.find(
-    ([, config]: [string, any]) => config.preferDefault === true
-  );
-
-  if (preferDefaultEntry) {
-    const [tabId, config] = preferDefaultEntry as [string, any];
-    return config.slug || tabId;
-  }
-
-  // 2. Find tab with isDefault: true
-  const defaultEntry = sortedTabs.find(
-    ([, config]: [string, any]) => config.isDefault === true
-  );
-
-  if (defaultEntry) {
-    const [tabId, config] = defaultEntry as [string, any];
-    return config.slug || tabId;
-  }
-
-  // 3. Fallback to first tab by order
-  if (sortedTabs.length > 0) {
-    const [tabId, config] = sortedTabs[0] as [string, any];
-    return config.slug || tabId;
-  }
-
-  return undefined;
-}
 
 interface PublicPageTemplateProps {
   className?: string;
@@ -91,6 +28,7 @@ interface PublicPageTemplateProps {
  */
 interface AboveFoldBlocksProps {
   pageConfig: any;
+  defaultTabFragment?: string;
   selectedEntity: any;
   spacePermissions: any;
   isDrawerMode: boolean;
@@ -113,6 +51,7 @@ interface AboveFoldBlocksProps {
  */
 function AboveFoldBlocks({
   pageConfig,
+  defaultTabFragment,
   selectedEntity,
   spacePermissions,
   isDrawerMode,
@@ -165,7 +104,7 @@ function AboveFoldBlocks({
               blockConfig={{
                 ...blockConfig,
                 isDrawerMode,
-                defaultTab: getDefaultTabFragment(pageConfig),
+                defaultTab: defaultTabFragment,
                 entityType,
               }}
               entity={selectedEntity}
@@ -268,25 +207,17 @@ export function PublicPageTemplate({
 }: PublicPageTemplateProps) {
   useSignals();
 
-  // Use spaceConfig from signal
-  const spaceConfig = spaceConfigSignal?.value;
-
-  // Get page config without specifying pageType - will use isDefault or first page
-  // pageType is defined IN the page config itself, not passed as prop
-  const pageConfig = getPageConfig(spaceConfig);
-
-  const spacePermissions = {
-    canEdit: spaceConfig?.canEdit ?? false,
-    canDelete: spaceConfig?.canDelete ?? false,
-    canAdd: spaceConfig?.canAdd ?? false,
-  };
-
-  // Get selectedEntity signal from store using entityType
-  // This is called INSIDE the component, after entity store is created
-  const selectedEntitySignal = entityType
-    ? spaceStore.getSelectedEntity(entityType)
-    : null;
-  const selectedEntity = selectedEntitySignal?.value;
+  const {
+    pageConfig,
+    selectedEntity,
+    selectedEntitySignal,
+    spacePermissions,
+  } = useSpaceTemplateContext({
+    spaceConfigSignal,
+    entityType,
+  });
+  const tabsConfig = getTabsConfigFromPage(pageConfig);
+  const defaultTabFragment = getDefaultTabFragment(tabsConfig);
 
   // Check if entity and all critical related data is fully loaded
   // This prevents "dribbling" effect where UI parts appear at different times
@@ -297,9 +228,9 @@ export function PublicPageTemplate({
   const contentContainerRef = useRef<HTMLDivElement>(null);
 
   // Sticky name bar
-  const { nameContainerRef, nameOnTop, nameBlockHeight } = useStickyName(
-    [pageConfig, selectedEntity]
-  );
+  const { nameContainerRef, nameOnTop, nameBlockHeight } = useStickyName({
+    deps: [pageConfig, selectedEntity],
+  });
   const PAGE_MENU_TOP = nameBlockHeight > 0 ? nameBlockHeight : 0;
   const TAB_HEADER_TOP = nameOnTop ? nameBlockHeight : 0;
 
@@ -341,6 +272,7 @@ export function PublicPageTemplate({
               <AboveFoldLoadingProvider>
                 <AboveFoldBlocks
                   pageConfig={pageConfig}
+                  defaultTabFragment={defaultTabFragment}
                   selectedEntity={selectedEntity}
                   spacePermissions={spacePermissions}
                   isDrawerMode={isDrawerMode}
