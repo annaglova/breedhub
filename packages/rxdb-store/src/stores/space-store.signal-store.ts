@@ -44,6 +44,15 @@ import {
   normalizeChildTableType,
   sortLocalChildRecords,
 } from './space-child.helpers';
+import {
+  buildMappingCacheKey,
+  getMappingSelectFields,
+  groupMappingRowsByPartition,
+  hasStaleMappedRecords,
+  orderMappedRecordsByIds,
+  splitCachedAndMissingMappingRows,
+  type MappingRow,
+} from './space-mapping.helpers';
 
 // Helpers
 import {
@@ -1127,7 +1136,9 @@ class SpaceStore {
 
             // Try mapping table (e.g., pet_child)
             if (!found && table === 'pet_child') {
-              const cached = this.mappingCache.get(`${table}:pet_id:${id}`);
+              const cached = this.mappingCache.get(
+                buildMappingCacheKey(table, 'pet_id', id),
+              );
               if (cached && cached.length > 0) found = true;
             }
           }
@@ -2697,7 +2708,7 @@ class SpaceStore {
 
   /** Optimistically add a record to mapping cache (before server trigger creates it) */
   addToMappingCache(mappingTable: string, parentField: string, parentId: string, record: { id: string; [key: string]: any }): void {
-    const cacheKey = `${mappingTable}:${parentField}:${parentId}`;
+    const cacheKey = buildMappingCacheKey(mappingTable, parentField, parentId);
     const existing = this.mappingCache.get(cacheKey) || [];
     if (!existing.some((r: any) => r.id === record.id)) {
       this.mappingCache.set(cacheKey, [...existing, record]);
@@ -2728,7 +2739,7 @@ class SpaceStore {
   ): Promise<any[]> {
     await this.ensureCollection(entityTable);
     const collection = this.db?.collections[entityTable];
-    const cacheKey = `${mappingTable}:${parentField}:${parentId}`;
+    const cacheKey = buildMappingCacheKey(mappingTable, parentField, parentId);
     const STALE_MS = 5 * 60 * 1000;
 
     // Step 1: Try cached mapping IDs → RxDB (instant, zero Supabase calls)
@@ -2737,13 +2748,9 @@ class SpaceStore {
       const ids = cachedMapping.map((r: any) => r.id);
       const docs = await collection.findByIds(ids).exec();
       if (docs.size > 0) {
-        const results = ids
-          .map(id => docs.get(id))
-          .filter(Boolean)
-          .map((d: any) => d.toJSON());
+        const results = orderMappedRecordsByIds<any>(ids, docs);
         // Background refresh if stale
-        const oldest = Math.min(...results.map((r: any) => r.cachedAt || 0));
-        if (!isOffline() && (Date.now() - oldest) > STALE_MS) {
+        if (!isOffline() && hasStaleMappedRecords(results, STALE_MS)) {
           this.refreshViaMapping(entityTable, mappingTable, parentField, parentId, partitionField);
         }
         return results;
@@ -2759,27 +2766,23 @@ class SpaceStore {
     }
 
     // Step 2: First load — get mapping IDs from Supabase
-    const selectFields = partitionField ? `id, ${partitionField}` : 'id';
+    const selectFields = getMappingSelectFields(partitionField);
     const { data: mappingRows } = await supabase
       .from(mappingTable).select(selectFields).eq(parentField, parentId);
 
     if (!mappingRows?.length) return [];
-    this.mappingCache.set(cacheKey, mappingRows);
+    const safeMappingRows = mappingRows as unknown as MappingRow[];
+    this.mappingCache.set(cacheKey, safeMappingRows);
 
     // Step 3: Check RxDB, fetch missing
-    if (!collection) return this.fetchByPartition(supabase, entityTable, mappingRows, partitionField);
+    if (!collection) return this.fetchByPartition(supabase, entityTable, safeMappingRows, partitionField);
 
-    const cachedDocs = await collection.findByIds(mappingRows.map((r: any) => r.id)).exec();
-    const cached: any[] = [];
-    const missing: any[] = [];
-    for (const row of mappingRows) {
-      const doc = cachedDocs.get((row as any).id);
-      if (doc && (Date.now() - (doc.toJSON().cachedAt || 0)) < STALE_MS) {
-        cached.push(doc.toJSON());
-      } else {
-        missing.push(row);
-      }
-    }
+    const cachedDocs = await collection.findByIds(safeMappingRows.map((r: any) => r.id)).exec();
+    const { cached, missing } = splitCachedAndMissingMappingRows(
+      safeMappingRows,
+      cachedDocs,
+      STALE_MS,
+    );
     if (missing.length === 0) return cached;
 
     // Step 4: Fetch missing, cache, return all
@@ -2791,12 +2794,9 @@ class SpaceStore {
       }
 
       // Always read from RxDB — source of truth (Supabase → RxDB → UI)
-      const allIds = mappingRows.map((r: any) => r.id);
+      const allIds = safeMappingRows.map((r: any) => r.id);
       const allDocs = await collection.findByIds(allIds).exec();
-      return allIds
-        .map(id => allDocs.get(id))
-        .filter(Boolean)
-        .map((d: any) => d.toJSON());
+      return orderMappedRecordsByIds<any>(allIds, allDocs);
     } catch {
       return cached;
     }
@@ -2807,13 +2807,7 @@ class SpaceStore {
       const { data } = await supabase.from(table).select('*').in('id', rows.map((r: any) => r.id));
       return data || [];
     }
-    const groups = new Map<string, string[]>();
-    for (const row of rows) {
-      const pk = row[partitionField];
-      if (!pk) continue;
-      if (!groups.has(pk)) groups.set(pk, []);
-      groups.get(pk)!.push(row.id);
-    }
+    const groups = groupMappingRowsByPartition(rows, partitionField);
     const results: any[] = [];
     for (const [pk, ids] of groups) {
       const { data } = await supabase.from(table).select('*').eq(partitionField, pk).in('id', ids);
@@ -2827,10 +2821,10 @@ class SpaceStore {
     parentId: string, partitionField?: string
   ): Promise<void> {
     try {
-      const selectFields = partitionField ? `id, ${partitionField}` : 'id';
+      const selectFields = getMappingSelectFields(partitionField);
       const { data } = await supabase.from(mappingTable).select(selectFields).eq(parentField, parentId);
       if (!data?.length) return;
-      this.mappingCache.set(`${mappingTable}:${parentField}:${parentId}`, data);
+      this.mappingCache.set(buildMappingCacheKey(mappingTable, parentField, parentId), data);
       const fresh = await this.fetchByPartition(supabase, entityTable, data, partitionField);
       const collection = this.db?.collections[entityTable];
       if (collection && fresh.length > 0) {
