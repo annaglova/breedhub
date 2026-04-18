@@ -36,7 +36,9 @@ import {
   buildNextKeysetCursorFromAdditional,
   getSelectFieldsForOrderBy,
   parseKeysetCursor,
+  type KeysetOrderBy,
 } from './space-keyset.helpers';
+import { executeLocalEntityQuery } from './space-local-query.helpers';
 
 // Helpers
 import {
@@ -88,16 +90,7 @@ interface EntitySchemaConfig {
 }
 
 // OrderBy configuration with tie-breaker support
-export interface OrderBy {
-  field: string;
-  direction: 'asc' | 'desc';
-  parameter?: string;
-  tieBreaker?: {
-    field: string;
-    direction: 'asc' | 'desc';
-    parameter?: string;
-  };
-}
+export type OrderBy = KeysetOrderBy;
 
 /**
  * VIEW source mapping for entities that should fetch from a VIEW instead of base table.
@@ -1322,7 +1315,7 @@ class SpaceStore {
     if (isOffline()) {
 
       try {
-        const localResults = await this.filterLocalEntities(
+        const localQuery = await this.filterLocalEntities(
           entityType,
           filters,
           fieldConfigs,
@@ -1330,6 +1323,7 @@ class SpaceStore {
           cursor,
           orderBy
         );
+        const localResults = localQuery.records;
 
         // Get total count
         if (!this.db) {
@@ -1350,12 +1344,8 @@ class SpaceStore {
         const allMatchingDocs = await collection.find({ selector: countSelector }).exec();
         const totalCount = allMatchingDocs.length;
 
-        const hasMore = localResults.length >= limit;
-        const nextCursor = localResults.length > 0
-          ? (orderBy.parameter
-              ? localResults[localResults.length - 1]?.[orderBy.field]?.[orderBy.parameter]
-              : localResults[localResults.length - 1]?.[orderBy.field]) ?? null
-          : null;
+        const hasMore = localQuery.hasMore;
+        const nextCursor = localQuery.nextCursor;
 
         console.log(`[SpaceStore] 📴 Offline mode (preventive): returning ${localResults.length}/${totalCount} records (hasMore: ${hasMore})`);
 
@@ -1638,7 +1628,7 @@ class SpaceStore {
         }
 
         // Use proper filterLocalEntities() for offline mode
-        const localResults = await this.filterLocalEntities(
+        const localQuery = await this.filterLocalEntities(
           entityType,
           filters,
           fieldConfigs,
@@ -1646,6 +1636,7 @@ class SpaceStore {
           cursor,
           orderBy
         );
+        const localResults = localQuery.records;
 
         // Get total count from RxDB (with same filters, no limit)
         // Build selector for count query
@@ -1665,13 +1656,8 @@ class SpaceStore {
         const totalCount = allMatchingDocs.length;
 
         // Calculate hasMore based on cursor
-        const hasMore = localResults.length >= limit;
-        // For JSONB fields, extract nested value for cursor
-        const nextCursor = localResults.length > 0
-          ? (orderBy.parameter
-              ? localResults[localResults.length - 1]?.[orderBy.field]?.[orderBy.parameter]
-              : localResults[localResults.length - 1]?.[orderBy.field]) ?? null
-          : null;
+        const hasMore = localQuery.hasMore;
+        const nextCursor = localQuery.nextCursor;
 
         console.log(`[SpaceStore] 📴 Offline mode: returning ${localResults.length}/${totalCount} records (hasMore: ${hasMore})`);
 
@@ -1706,244 +1692,43 @@ class SpaceStore {
     limit: number,
     cursor: string | null,
     orderBy: OrderBy
-  ): Promise<any[]> {
+  ): Promise<{ records: any[]; hasMore: boolean; nextCursor: any }> {
     if (!this.db) {
-      return [];
+      return { records: [], hasMore: false, nextCursor: null };
     }
 
     const collection = this.db.collections[entityType];
     if (!collection) {
       console.warn(`[SpaceStore] Collection ${entityType} not found for local filtering`);
-      return [];
+      return { records: [], hasMore: false, nextCursor: null };
     }
-
-    // Helper function for JavaScript sorting (for RxDB offline mode)
-    // Supports tieBreaker from config for stable sorting when primary values are equal
-    const sortResults = (results: any[]): any[] => {
-      // Get tieBreaker from config, fallback to id
-      const tieBreaker = orderBy.tieBreaker || { field: 'id', direction: 'asc' as const };
-
-      return results.sort((a, b) => {
-        const aVal = a[orderBy.field];
-        const bVal = b[orderBy.field];
-
-        // Handle null/undefined (push to end)
-        if (aVal === null || aVal === undefined) return 1;
-        if (bVal === null || bVal === undefined) return -1;
-
-        // Compare primary field values
-        let primaryCompare: number;
-        if (orderBy.direction === 'asc') {
-          primaryCompare = aVal < bVal ? -1 : aVal > bVal ? 1 : 0;
-        } else {
-          primaryCompare = aVal > bVal ? -1 : aVal < bVal ? 1 : 0;
-        }
-
-        // If primary values are equal, use tieBreaker
-        if (primaryCompare === 0) {
-          const aTieVal = a[tieBreaker.field];
-          const bTieVal = b[tieBreaker.field];
-
-          // Handle null/undefined in tieBreaker
-          if (aTieVal === null || aTieVal === undefined) return 1;
-          if (bTieVal === null || bTieVal === undefined) return -1;
-
-          if (tieBreaker.direction === 'asc') {
-            return aTieVal < bTieVal ? -1 : aTieVal > bTieVal ? 1 : 0;
-          } else {
-            return aTieVal > bTieVal ? -1 : aTieVal < bTieVal ? 1 : 0;
-          }
-        }
-
-        return primaryCompare;
-      });
-    };
 
     // orderBy.field is already normalized (e.g., pet_type_id)
     try {
       // First check: how many docs in collection?
       const totalDocs = await collection.count().exec();
       console.log(`[SpaceStore] 📊 Collection ${entityType} has ${totalDocs} docs in RxDB`);
-
-      // 🎯 HYBRID SEARCH: Detect if we have a string/text filter for hybrid search
-      const stringFilters = getStringSearchFilters(filters, fieldConfigs, {
+      const result = await executeLocalEntityQuery({
+        collection,
         entityType,
-        requireSearchOperator: false,
+        filters,
+        fieldConfigs,
+        limit,
+        cursor,
+        orderBy,
       });
 
-      // Use hybrid search if: (1) has string filter, (2) no cursor (first page)
-      const useHybridSearch = stringFilters.length > 0 && cursor === null;
+      console.log(`[SpaceStore] 📦 Local query returned ${result.records.length} results`);
 
-      if (useHybridSearch) {
-        console.log('[SpaceStore] 🔍 HYBRID SEARCH mode (starts_with 70% + contains 30%)');
-
-        // Phase 1: Starts with (high priority, 70% of limit)
-        const startsWithLimit = Math.ceil(limit * 0.7);
-
-        // Build selector for starts_with
-        const startsWithSelector: any = { _deleted: false };
-
-        // Apply string filters as starts_with (using $regex string pattern)
-        for (const [fieldKey, value] of stringFilters) {
-          const escapedValue = String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-          startsWithSelector[fieldKey] = { $regex: `^${escapedValue}`, $options: 'i' };
-        }
-
-        // Apply non-string filters to selector (with orFields support)
-        applyFiltersToRxdbSelector(startsWithSelector, filters, fieldConfigs, {
-          entityType,
-          skipKeys: stringFilters.map(([key]) => key),
-        });
-
-        // Execute starts_with query
-        // For JSONB fields, don't use RxDB sort (not supported), sort in JS instead
-        const queryOptions: any = { selector: startsWithSelector };
-        if (!orderBy.parameter) {
-          // Only use RxDB sort for regular fields, include tieBreaker for stable sorting
-          const tieBreaker = orderBy.tieBreaker || { field: 'id', direction: 'asc' as const };
-          queryOptions.sort = [
-            { [orderBy.field]: orderBy.direction === 'asc' ? 'asc' : 'desc' },
-            { [tieBreaker.field]: tieBreaker.direction === 'asc' ? 'asc' : 'desc' }
-          ];
-        }
-
-        const startsWithDocs = await collection.find(queryOptions).exec();
-        let startsWithResults = startsWithDocs.map((doc: any) => doc.toJSON());
-
-        // Sort in JavaScript (handles both regular and JSONB fields)
-        startsWithResults = sortResults(startsWithResults);
-
-        // Apply limit after sorting
-        startsWithResults = startsWithResults.slice(0, startsWithLimit);
-
-        console.log(`[SpaceStore] ✅ Got ${startsWithResults.length} starts_with results`);
-
-        // Phase 2: Contains (lower priority, 30% of limit)
-        const remainingLimit = limit - startsWithResults.length;
-        let allResults = startsWithResults;
-
-        if (remainingLimit > 0) {
-          // Build selector for contains
-          const containsSelector: any = { _deleted: false };
-
-          // Apply string filters as contains (using $regex string pattern)
-          for (const [fieldKey, value] of stringFilters) {
-            const escapedValue = String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-            containsSelector[fieldKey] = { $regex: escapedValue, $options: 'i' };
-          }
-
-          // Apply non-string filters to selector (with orFields support)
-          applyFiltersToRxdbSelector(containsSelector, filters, fieldConfigs, {
-            entityType,
-            skipKeys: stringFilters.map(([key]) => key),
-          });
-
-          // Execute contains query
-          // For JSONB fields, don't use RxDB sort (not supported), sort in JS instead
-          const containsQueryOptions: any = { selector: containsSelector };
-          if (!orderBy.parameter) {
-            // Only use RxDB sort for regular fields, include tieBreaker for stable sorting
-            const tieBreaker = orderBy.tieBreaker || { field: 'id', direction: 'asc' as const };
-            containsQueryOptions.sort = [
-              { [orderBy.field]: orderBy.direction === 'asc' ? 'asc' : 'desc' },
-              { [tieBreaker.field]: tieBreaker.direction === 'asc' ? 'asc' : 'desc' }
-            ];
-          }
-
-          const containsDocs = await collection.find(containsQueryOptions).exec();
-
-          // Filter out records that start with search (already in startsWithResults)
-          const startsWithIds = new Set(startsWithResults.map((record: any) => record.id));
-          let containsResults = containsDocs
-            .map((doc: any) => doc.toJSON())
-            .filter((record: any) => !startsWithIds.has(record.id));
-
-          // Sort in JavaScript (handles both regular and JSONB fields)
-          containsResults = sortResults(containsResults);
-
-          // Apply limit after sorting
-          containsResults = containsResults.slice(0, remainingLimit);
-
-          console.log(`[SpaceStore] ✅ Got ${containsResults.length} contains results (after filtering)`);
-
-          allResults = [...startsWithResults, ...containsResults];
-        }
-
-        console.log(`[SpaceStore] 📦 Hybrid search returned ${allResults.length} total results`);
-        return allResults;
-
-      } else {
-        // Regular search (no hybrid) - use selector approach
-        console.log('[SpaceStore] 🔍 Regular search mode (cursor or no string filters)');
-
-        // Build selector
-        const selector: any = { _deleted: false };
-
-        applyFiltersToRxdbSelector(selector, filters, fieldConfigs, {
-          entityType,
-          preferStringSearchOperator: true,
-        });
-
-        // ✅ KEYSET PAGINATION: Apply cursor to selector
-        // Note: For JSONB fields, we can't use RxDB selector, will filter in JS after query
-        if (cursor !== null && !orderBy.parameter) {
-          // Only apply cursor in selector for regular fields
-          if (orderBy.direction === 'asc') {
-            selector[orderBy.field] = { $gt: cursor };
-          } else {
-            selector[orderBy.field] = { $lt: cursor };
-          }
-          console.log(`[SpaceStore] 🔑 Applied cursor: ${orderBy.field} ${orderBy.direction === 'asc' ? '>' : '<'} '${cursor}'`);
-        } else if (cursor !== null && orderBy.parameter) {
-          console.log(`[SpaceStore] 🔑 JSONB cursor (will filter in JS): ${orderBy.field}.${orderBy.parameter} ${orderBy.direction === 'asc' ? '>' : '<'} '${cursor}'`);
-        }
-
-        // Execute query with selector
-        // For JSONB fields, don't use RxDB sort (not supported), sort in JS instead
-        const regularQueryOptions: any = { selector };
-        if (!orderBy.parameter) {
-          // Only use RxDB sort for regular fields, include tieBreaker for stable sorting
-          const tieBreaker = orderBy.tieBreaker || { field: 'id', direction: 'asc' as const };
-          regularQueryOptions.sort = [
-            { [orderBy.field]: orderBy.direction === 'asc' ? 'asc' : 'desc' },
-            { [tieBreaker.field]: tieBreaker.direction === 'asc' ? 'asc' : 'desc' }
-          ];
-        }
-        // Don't apply limit in RxDB query if we have JSONB sorting (need to sort all, then limit)
-        if (!orderBy.parameter && limit > 0) {
-          regularQueryOptions.limit = limit;
-        }
-
-        const docs = await collection.find(regularQueryOptions).exec();
-        let results = docs.map((doc: any) => doc.toJSON());
-
-        // For JSONB fields with cursor, filter in JavaScript (RxDB can't filter by nested fields)
-        if (cursor !== null && orderBy.parameter) {
-          const parameter = orderBy.parameter;
-          results = results.filter((record: any) => {
-            const value = record[orderBy.field]?.[parameter];
-            if (orderBy.direction === 'asc') {
-              return value > cursor;
-            } else {
-              return value < cursor;
-            }
-          });
-          console.log(`[SpaceStore] 🔍 Filtered ${results.length} results after cursor`);
-        }
-
-        console.log(`[SpaceStore] 📦 Local query returned ${results.length} results`);
-
-        // Log first result for debugging
-        if (results.length > 0) {
-          console.log('[SpaceStore] 👁️ First result:', results[0]);
-        }
-
-        return results;
+      if (result.records.length > 0) {
+        console.log('[SpaceStore] 👁️ First result:', result.records[0]);
       }
+
+      return result;
 
     } catch (error) {
       console.error('[SpaceStore] ❌ Local filtering error:', error);
-      return [];
+      return { records: [], hasMore: false, nextCursor: null };
     }
   }
 
