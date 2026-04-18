@@ -9,6 +9,18 @@ import { entityReplicationService } from '../services/entity-replication.service
 import { supabase } from '../supabase/client';
 import { userStore } from './user-store.signal-store';
 import { dictionaryStore } from './dictionary-store.signal-store';
+import {
+  buildUiSpaceConfig,
+  FieldConfig,
+  getDefaultViewFromConfig,
+  getFilterFieldsFromConfig,
+  getMainFilterFieldFromConfig,
+  getMainFilterFieldsFromConfig,
+  getSortOptionsFromConfig,
+  getViewRecordsCountFromConfig,
+  resolveSpaceConfig,
+  SpaceConfig,
+} from './space-config.helpers';
 
 // Helpers
 import {
@@ -38,45 +50,6 @@ interface BusinessEntity {
   updated_at?: string;
   _deleted?: boolean;
   [key: string]: any;
-}
-
-// Configuration interfaces
-interface SpaceConfig {
-  id: string;
-  icon?: string;
-  slug?: string;
-  path?: string;  // @deprecated use slug instead
-  label?: string;
-  order?: number;
-  entitySchemaName?: string;
-  entitySchemaModel?: string; // Rendering model (e.g., 'breed', 'kennel', 'club')
-  totalFilterKey?: string; // Field to group totalCount by (e.g., 'breed_id' for pet, 'pet_type_id' for breed)
-  fields?: Record<string, FieldConfig>;
-  sort_fields?: Record<string, any>;
-  filter_fields?: Record<string, any>;
-  recordsCount?: number;
-  rows?: number; // Legacy batch-size config
-  pages?: Record<string, any>;
-  views?: Record<string, any>;
-  canAdd?: boolean;
-  canEdit?: boolean;
-  canDelete?: boolean;
-  defaultFilters?: Record<string, any>; // Always applied (e.g., type_id for kennel)
-}
-
-interface FieldConfig {
-  fieldType: string;
-  displayName: string;
-  required?: boolean;
-  isSystem?: boolean;
-  isUnique?: boolean;
-  isPrimaryKey?: boolean;
-  maxLength?: number;
-  validation?: any;
-  permissions?: any;
-  defaultValue?: any;
-  component?: string;
-  originalConfigKey?: string;
 }
 
 /**
@@ -509,14 +482,7 @@ class SpaceStore {
 
   /** Case-insensitive lookup in spaceConfigs map */
   private resolveSpaceConfig(entityType: string): SpaceConfig | undefined {
-    const exact = this.spaceConfigs.get(entityType);
-    if (exact) return exact;
-
-    const lower = entityType.toLowerCase();
-    for (const [key, config] of this.spaceConfigs.entries()) {
-      if (key.toLowerCase() === lower) return config;
-    }
-    return undefined;
+    return resolveSpaceConfig(this.spaceConfigs, entityType);
   }
 
   /**
@@ -538,44 +504,7 @@ class SpaceStore {
       canDelete: spaceConfig.canDelete,
       rawConfig: spaceConfig
     });
-
-    // Extract views for convenience (viewTypes and viewConfigs)
-    const viewConfigs: Array<{
-      viewType: string;
-      icon?: string;
-      tooltip?: string;
-      component?: string;
-      itemHeight?: number;
-      dividers?: boolean;
-      overscan?: number;
-      recordsCount?: number;
-    }> = [];
-
-    if (spaceConfig.views) {
-      Object.values(spaceConfig.views).forEach((view: any) => {
-        if (view && view.viewType) {
-          viewConfigs.push({
-            viewType: view.viewType,
-            icon: view.icon,
-            tooltip: view.tooltip,
-            component: view.component,
-            itemHeight: view.itemHeight,
-            dividers: view.dividers,
-            overscan: view.overscan,
-            recordsCount: view.recordsCount,
-          });
-        }
-      });
-    }
-
-    // Return FULL configuration with additional parsed fields
-    return {
-      ...spaceConfig,
-      // Add convenience fields
-      title: spaceConfig.label || spaceConfig.entitySchemaName || entityType,
-      viewTypes: viewConfigs.length > 0 ? viewConfigs.map(v => v.viewType) : undefined,
-      viewConfigs: viewConfigs.length > 0 ? viewConfigs : undefined,
-    };
+    return buildUiSpaceConfig(spaceConfig, entityType);
   }
 
   /**
@@ -587,31 +516,11 @@ class SpaceStore {
    * @returns Number of records configured for this view, or default 50
    */
   getViewRecordsCount(entityType: string, viewType: string): number {
-    const spaceConfig = this.resolveSpaceConfig(entityType);
-
-    if (!spaceConfig) {
-      console.warn(`[SpaceStore] No space config found for ${entityType}, using default recordsCount: 50`);
-      return 50;
-    }
-
-    // Try to find view config by viewType inside views object
-    // views structure: { "config_view_123": { viewType: "list", recordsCount: 60, ... }, ... }
-    if (spaceConfig.views) {
-      for (const [viewKey, viewConfig] of Object.entries(spaceConfig.views)) {
-        if (viewConfig.viewType === viewType && viewConfig.recordsCount) {
-          return viewConfig.recordsCount;
-        }
-      }
-    }
-
-    // Fallback to space level recordsCount
-    if (spaceConfig.recordsCount) {
-      return spaceConfig.recordsCount;
-    }
-
-    // Final fallback
-    console.warn(`[SpaceStore] No recordsCount config found for ${entityType}/${viewType}, using default: 50`);
-    return 50;
+    return getViewRecordsCountFromConfig(
+      this.resolveSpaceConfig(entityType),
+      entityType,
+      viewType,
+    );
   }
 
   /**
@@ -622,36 +531,7 @@ class SpaceStore {
    * @returns View slug (e.g., 'list') or first view's slug as fallback
    */
   getDefaultView(entityType: string): string {
-    const spaceConfig = this.resolveSpaceConfig(entityType);
-
-    if (!spaceConfig) {
-      console.warn(`[SpaceStore] No space config found for ${entityType}, using default view: 'list'`);
-      return 'list';
-    }
-
-    // Find view with isDefault: true
-    if (spaceConfig.views) {
-      for (const [viewKey, viewConfig] of Object.entries(spaceConfig.views)) {
-        if (viewConfig.isDefault && viewConfig.slug) {
-          return viewConfig.slug;
-        }
-      }
-
-      // Fallback: return first view's slug
-      const firstView = Object.values(spaceConfig.views)[0];
-      if (firstView?.slug) {
-        return firstView.slug;
-      }
-
-      // Fallback: return first view's viewType
-      if (firstView?.viewType) {
-        return firstView.viewType;
-      }
-    }
-
-    // Final fallback
-    console.warn(`[SpaceStore] No views config found for ${entityType}, using default: 'list'`);
-    return 'list';
+    return getDefaultViewFromConfig(this.resolveSpaceConfig(entityType), entityType);
   }
 
   /**
@@ -676,79 +556,7 @@ class SpaceStore {
       parameter?: string;
     };
   }> {
-    const spaceConfig = this.resolveSpaceConfig(entityType);
-
-    if (!spaceConfig) {
-      console.warn(`[SpaceStore] No space config found for ${entityType}`);
-      return [];
-    }
-
-    // Read sort_fields directly from space config (not from view)
-    const sortFields = spaceConfig.sort_fields;
-
-    if (!sortFields) {
-      console.warn(`[SpaceStore] No sort_fields found for ${entityType}`);
-      return [];
-    }
-
-    const sortOptions: Array<{
-      id: string;
-      name: string;
-      icon?: string;
-      field: string;
-      direction?: string;
-      parameter?: string;
-      isDefault?: boolean;
-      fieldOrder?: number;
-      optionOrder?: number;
-    }> = [];
-
-    for (const [fieldId, fieldConfig] of Object.entries(sortFields)) {
-      const field = fieldConfig as any;
-      const fieldOrder = field.order || 0;
-
-      if (field.sortOrder && Array.isArray(field.sortOrder)) {
-        // Each sortOrder item is a separate sort option
-        field.sortOrder.forEach((sortOption: any) => {
-          // Use slug from config if available, otherwise generate ID
-          const optionId = sortOption.slug || (
-            sortOption.parametr
-              ? `${fieldId}_${sortOption.parametr}_${sortOption.direction}`
-              : `${fieldId}_${sortOption.direction}`
-          );
-
-          const option = {
-            id: optionId,
-            name: sortOption.label || field.displayName || fieldId,
-            icon: sortOption.icon,
-            field: fieldId,
-            direction: sortOption.direction,
-            parameter: sortOption.parametr, // For JSON fields
-            isDefault: sortOption.isDefault === 'true' || sortOption.isDefault === true,
-            fieldOrder,
-            optionOrder: sortOption.order || 0,
-            tieBreaker: sortOption.tieBreaker ? {
-              field: sortOption.tieBreaker.field,
-              direction: sortOption.tieBreaker.direction,
-              parameter: sortOption.tieBreaker.parameter
-            } : undefined
-          };
-
-          sortOptions.push(option);
-        });
-      }
-    }
-
-    // Sort by field order, then by option order within each field
-    sortOptions.sort((a, b) => {
-      if (a.fieldOrder !== b.fieldOrder) {
-        return (a.fieldOrder || 0) - (b.fieldOrder || 0);
-      }
-      return (a.optionOrder || 0) - (b.optionOrder || 0);
-    });
-
-    // Remove temporary ordering fields
-    return sortOptions.map(({ fieldOrder, optionOrder, ...rest }) => rest);
+    return getSortOptionsFromConfig(this.resolveSpaceConfig(entityType), entityType);
   }
 
   /**
@@ -788,88 +596,7 @@ class SpaceStore {
     // OR fields (single filter applies to multiple DB fields)
     orFields?: string[];
   }> {
-    const spaceConfig = this.resolveSpaceConfig(entityType);
-
-    if (!spaceConfig) {
-      console.warn(`[SpaceStore] No space config found for ${entityType}`);
-      return [];
-    }
-
-    // Read filter_fields directly from space config (not from view)
-    const filterFields = spaceConfig.filter_fields;
-
-    if (!filterFields) {
-      console.warn(`[SpaceStore] No filter_fields found for ${entityType}`);
-      return [];
-    }
-
-    const filterOptions: Array<{
-      id: string;
-      displayName: string;
-      component: string;
-      placeholder?: string;
-      fieldType: string;
-      required?: boolean;
-      operator?: string;
-      slug?: string;
-      value?: any;
-      validation?: any;
-      order: number;
-      referencedTable?: string;
-      referencedFieldID?: string;
-      referencedFieldName?: string;
-      dataSource?: 'dictionary' | 'collection';
-      dependsOn?: string;
-      disabledUntil?: string;
-      filterBy?: string;
-      junctionTable?: string;
-      junctionField?: string;
-      junctionFilterField?: string;
-      orFields?: string[];
-    }> = [];
-
-    // Parse filter fields (exclude mainFilterField - it's for search bar, not modal)
-    for (const [fieldId, fieldConfig] of Object.entries(filterFields)) {
-      const field = fieldConfig as any;
-
-      // Skip main filter field - it's used for primary search, not in filter dialog
-      if (field.mainFilterField === true) {
-        continue;
-      }
-
-      filterOptions.push({
-        id: fieldId,
-        displayName: field.displayName || fieldId,
-        component: field.component || 'TextInput',
-        placeholder: field.placeholder,
-        fieldType: field.fieldType || 'string',
-        required: field.required,
-        operator: field.operator,
-        slug: field.slug,
-        value: field.value,
-        validation: field.validation,
-        order: field.order || 0,
-        referencedTable: field.referencedTable,
-        referencedFieldID: field.referencedFieldID,
-        referencedFieldName: field.referencedFieldName,
-        dataSource: field.dataSource,
-        // Filter behavior props
-        dependsOn: field.dependsOn,
-        disabledUntil: field.disabledUntil,
-        filterBy: field.filterBy,
-        // Junction table filtering (many-to-many)
-        junctionTable: field.junctionTable,
-        junctionField: field.junctionField,
-        junctionFilterField: field.junctionFilterField,
-        // OR fields
-        orFields: field.orFields
-      });
-    }
-
-    // Sort by order
-    filterOptions.sort((a, b) => a.order - b.order);
-
-    return filterOptions;
+    return getFilterFieldsFromConfig(this.resolveSpaceConfig(entityType), entityType);
   }
 
   /**
@@ -888,29 +615,7 @@ class SpaceStore {
     operator?: string;
     slug?: string;
   } | null {
-    const spaceConfig = this.resolveSpaceConfig(entityType);
-
-    if (!spaceConfig?.filter_fields) {
-      return null;
-    }
-
-    // Find field with mainFilterField: true
-    for (const [fieldId, fieldConfig] of Object.entries(spaceConfig.filter_fields)) {
-      const field = fieldConfig as any;
-      if (field.mainFilterField === true) {
-        return {
-          id: fieldId,
-          displayName: field.displayName || fieldId,
-          component: field.component || 'TextInput',
-          placeholder: field.placeholder,
-          fieldType: field.fieldType || 'string',
-          operator: field.operator, // Use operator from config
-          slug: field.slug
-        };
-      }
-    }
-
-    return null;
+    return getMainFilterFieldFromConfig(this.resolveSpaceConfig(entityType));
   }
 
   /**
@@ -934,45 +639,7 @@ class SpaceStore {
     /** Shared slug for URL when multiple mainFilterFields (e.g., "parent" for father_name + mother_name) */
     searchSlug?: string;
   } {
-    const spaceConfig = this.resolveSpaceConfig(entityType);
-
-    if (!spaceConfig?.filter_fields) {
-      return { fields: [] };
-    }
-
-    const mainFields: Array<{
-      id: string;
-      displayName: string;
-      component: string;
-      placeholder?: string;
-      fieldType: string;
-      operator?: string;
-      slug?: string;
-    }> = [];
-
-    let searchSlug: string | undefined;
-
-    // Find ALL fields with mainFilterField: true
-    for (const [fieldId, fieldConfig] of Object.entries(spaceConfig.filter_fields)) {
-      const field = fieldConfig as any;
-      if (field.mainFilterField === true) {
-        mainFields.push({
-          id: fieldId,
-          displayName: field.displayName || fieldId,
-          component: field.component || 'TextInput',
-          placeholder: field.placeholder,
-          fieldType: field.fieldType || 'string',
-          operator: field.operator,
-          slug: field.slug
-        });
-        // Use searchSlug from any of the mainFilterFields (they should all have the same)
-        if (field.searchSlug && !searchSlug) {
-          searchSlug = field.searchSlug;
-        }
-      }
-    }
-
-    return { fields: mainFields, searchSlug };
+    return getMainFilterFieldsFromConfig(this.resolveSpaceConfig(entityType));
   }
 
   /**
