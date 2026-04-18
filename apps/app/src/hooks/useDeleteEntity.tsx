@@ -2,6 +2,7 @@ import { useState, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { spaceStore } from '@breedhub/rxdb-store';
 import { withCrudToast, entityRecordLabel } from '@/utils/crudToast';
+import { getSpaceListPath } from '@/utils/entity-navigation';
 import {
   Dialog,
   DialogContent,
@@ -105,9 +106,7 @@ export function useDeleteEntity(
 
     if (deleteResult.ok) {
       setState(INITIAL_STATE);
-      // Navigate to public space list (e.g., /pets for pet entity)
-      const spaceConfig = spaceStore.getSpaceConfig(entityType);
-      const spacePath = spaceConfig?.slug ? `/${spaceConfig.slug}` : null;
+      const spacePath = getSpaceListPath(entityType);
       if (spacePath) {
         navigate(spacePath);
       } else {

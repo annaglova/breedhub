@@ -11,8 +11,16 @@
  */
 import { useCallback, useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { routeStore, spaceStore } from "@breedhub/rxdb-store";
-import { normalizeForUrl } from "@/components/space/utils/filter-url-helpers";
+import { spaceStore } from "@breedhub/rxdb-store";
+import {
+  EntityNavigationRecord,
+  findEntityByRouteSegment,
+  getEntitySlug,
+  getPathEntitySegment,
+  getSpaceListPath,
+  resolveEntityRouteSelection,
+  saveEntityRoute,
+} from "@/utils/entity-navigation";
 
 interface EntitySelectionConfig {
   entitySchemaName: string;
@@ -46,6 +54,7 @@ export function useEntitySelection({
 }: UseEntitySelectionOptions) {
   const navigate = useNavigate();
   const location = useLocation();
+  const entities = allEntities as EntityNavigationRecord[];
 
   const selectedEntityId = spaceStore.getSelectedIdSignal(
     config.entitySchemaName,
@@ -59,26 +68,17 @@ export function useEntitySelection({
 
     if (allEntities.length > 0 && !isLoading && isMoreThan2XL) {
       if (!selectedEntityId) {
-        const pathSegments = location.pathname.split("/");
-        const hasEntityId =
-          pathSegments.length > 2 && pathSegments[2] !== "new";
-        if (!hasEntityId) {
-          const entity = allEntities[0];
-          const slug = entity.slug || normalizeForUrl(entity.name || entity.id);
-
-          routeStore.saveRoute({
-            slug,
-            entity: config.entitySchemaName,
-            entity_id: entity.id,
-            model: config.entitySchemaModel || config.entitySchemaName,
-          });
-
+        if (!getPathEntitySegment(location.pathname)) {
+          const entity = entities[0];
+          const slug = getEntitySlug(entity);
+          saveEntityRoute(config, entity, slug);
           navigate(`${slug}${location.search}#overview`);
         }
       }
     }
   }, [
     allEntities,
+    entities,
     isLoading,
     isGridView,
     isMoreThan2XL,
@@ -102,12 +102,11 @@ export function useEntitySelection({
       );
 
       if (initialSelectedSlug) {
-        routeStore.saveRoute({
-          slug: initialSelectedSlug,
-          entity: config.entitySchemaName,
-          entity_id: initialSelectedEntityId,
-          model: config.entitySchemaModel || config.entitySchemaName,
-        });
+        saveEntityRoute(
+          config,
+          { id: initialSelectedEntityId },
+          initialSelectedSlug,
+        );
       }
     }
   }, []); // Run only once on mount
@@ -119,9 +118,16 @@ export function useEntitySelection({
       return;
     }
 
-    const pathSegments = location.pathname.split("/");
-    const hasEntitySegment =
-      pathSegments.length > 2 && pathSegments[2] !== "new";
+    const routeSelection = resolveEntityRouteSelection({
+      pathname: location.pathname,
+      search: location.search,
+      hash: location.hash,
+      entities,
+      isLoading,
+      currentSelectedId: spaceStore.getSelectedId(config.entitySchemaName),
+    });
+    const hasEntitySegment = !!routeSelection.urlSegment;
+
     setIsDrawerOpen(hasEntitySegment);
 
     if (spaceStore.isFullscreen.value) {
@@ -129,59 +135,11 @@ export function useEntitySelection({
     }
 
     if (hasEntitySegment) {
-      const urlSegment = pathSegments[2];
-      const isUUID =
-        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
-          urlSegment,
-        );
-
-      let entityId: string | undefined;
-
-      if (isUUID) {
-        entityId = urlSegment;
-      } else {
-        const matchingEntity = allEntities.find(
-          (entity) =>
-            normalizeForUrl(entity.name) === urlSegment ||
-            entity.slug === urlSegment,
-        );
-
-        if (matchingEntity) {
-          entityId = matchingEntity.id;
-        } else if (allEntities.length > 0 && !isLoading) {
-          const currentSelectedId = spaceStore.getSelectedId(
-            config.entitySchemaName,
-          );
-          const currentEntityStillInList =
-            currentSelectedId &&
-            allEntities.some((e) => e.id === currentSelectedId);
-
-          if (currentEntityStillInList) {
-            const currentEntity = allEntities.find(
-              (e) => e.id === currentSelectedId,
-            );
-            if (currentEntity) {
-              const correctSlug =
-                currentEntity.slug ||
-                normalizeForUrl(currentEntity.name || currentEntity.id);
-              navigate(`${correctSlug}${location.search}${location.hash}`, {
-                replace: true,
-              });
-              entityId = currentSelectedId;
-            }
-          } else {
-            const firstEntity = allEntities[0];
-            entityId = firstEntity.id;
-            const newSlug =
-              firstEntity.slug ||
-              normalizeForUrl(firstEntity.name || firstEntity.id);
-            navigate(`${newSlug}${location.search}${location.hash}`, {
-              replace: true,
-            });
-          }
-        }
+      if (routeSelection.redirectPath) {
+        navigate(routeSelection.redirectPath, { replace: true });
       }
 
+      const entityId = routeSelection.entityId;
       if (entityId) {
         const currentSelectedId = spaceStore.getSelectedId(
           config.entitySchemaName,
@@ -190,21 +148,16 @@ export function useEntitySelection({
           spaceStore.selectEntity(config.entitySchemaName, entityId);
         }
 
-        let slugToSave = urlSegment;
-        if (isUUID) {
-          const entity = allEntities.find((e) => e.id === entityId);
-          if (entity) {
-            slugToSave =
-              entity.slug || normalizeForUrl(entity.name || entity.id);
-          }
-        }
+        const matchedEntity = findEntityByRouteSegment(
+          entities,
+          routeSelection.routeSlug || routeSelection.urlSegment || "",
+        );
 
-        routeStore.saveRoute({
-          slug: slugToSave,
-          entity: config.entitySchemaName,
-          entity_id: entityId,
-          model: config.entitySchemaModel || config.entitySchemaName,
-        });
+        saveEntityRoute(
+          config,
+          matchedEntity || { id: entityId },
+          routeSelection.routeSlug || routeSelection.urlSegment || entityId,
+        );
       }
     } else {
       spaceStore.clearSelection(config.entitySchemaName);
@@ -212,23 +165,22 @@ export function useEntitySelection({
     }
   }, [
     location.pathname,
+    location.search,
+    location.hash,
     config.entitySchemaName,
     config.entitySchemaModel,
     allEntities,
+    entities,
+    isLoading,
     initialSelectedEntityId,
+    navigate,
   ]);
 
   // Handle entity click
   const handleEntityClick = useCallback(
-    (entity: any) => {
-      const slug = entity.slug || normalizeForUrl(entity.name || entity.id);
-
-      routeStore.saveRoute({
-        slug,
-        entity: config.entitySchemaName,
-        entity_id: entity.id,
-        model: config.entitySchemaModel || config.entitySchemaName,
-      });
+    (entity: EntityNavigationRecord) => {
+      const slug = getEntitySlug(entity);
+      saveEntityRoute(config, entity, slug);
 
       if (isGridView) {
         // Tab/grid view: navigate to standalone page (no drawer)
@@ -254,23 +206,7 @@ export function useEntitySelection({
     spaceStore.clearFullscreen();
 
     if (initialSelectedEntityId || createMode) {
-      const entityPath =
-        config.entitySchemaName === "breed"
-          ? "/breeds"
-          : config.entitySchemaName === "pet"
-            ? "/pets"
-            : config.entitySchemaName === "kennel"
-              ? "/kennels"
-              : config.entitySchemaName === "contact"
-                ? "/contacts"
-                : config.entitySchemaName === "event"
-                  ? "/events"
-                  : config.entitySchemaName === "litter"
-                    ? "/litters"
-                    : config.entitySchemaName === "account"
-                      ? "/accounts"
-                      : "/";
-      navigate(entityPath);
+      navigate(getSpaceListPath(config.entitySchemaName) || "/");
     } else {
       const basePath = location.pathname.split("/").slice(0, 2).join("/");
       navigate(basePath);
