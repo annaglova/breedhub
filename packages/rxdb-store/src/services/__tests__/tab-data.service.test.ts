@@ -29,6 +29,12 @@ vi.mock('../../stores/dictionary-store.signal-store', () => ({
   },
 }));
 
+vi.mock('../../supabase/client', () => ({
+  supabase: {
+    rpc: vi.fn(),
+  },
+}));
+
 describe('TabDataService', () => {
   beforeEach(() => {
     vi.clearAllMocks();
