@@ -2499,6 +2499,69 @@ class SpaceStore {
     return CC.getChildCollectionMigrationStrategies(entityType);
   }
 
+  private async loadParentEntityForPartition(
+    entityType: string,
+    parentId: string,
+  ): Promise<{ parentEntity: any | null; source: 'memory' | 'RxDB' | null }> {
+    let parentEntity = await this.getById(entityType, parentId);
+    if (parentEntity) {
+      return { parentEntity, source: 'memory' };
+    }
+
+    if (this.db?.collections[entityType]) {
+      const doc = await this.db.collections[entityType].findOne(parentId).exec();
+      if (doc) {
+        return { parentEntity: doc.toJSON(), source: 'RxDB' };
+      }
+    }
+
+    return { parentEntity: null, source: null };
+  }
+
+  private async resolveChildPartitionContext(
+    entityType: string,
+    parentId: string,
+    options: {
+      contextLabel?: string;
+      targetLabel?: string;
+      logResolved?: boolean;
+      warnIfMissing?: boolean;
+    } = {},
+  ): Promise<{ partitionConfig?: PartitionConfig; partitionValue?: string }> {
+    const entitySchema = this.entitySchemas.get(entityType);
+    const partitionConfig = entitySchema?.partition;
+    if (!partitionConfig) {
+      return {};
+    }
+
+    const { parentEntity, source } = await this.loadParentEntityForPartition(
+      entityType,
+      parentId,
+    );
+
+    if (!parentEntity) {
+      if (options.warnIfMissing !== false) {
+        console.warn(
+          `[SpaceStore] Could not find parent entity for partition key. ${
+            options.targetLabel || `Entity: ${entityType}`
+          }, parentId: ${parentId}`,
+        );
+      }
+      return { partitionConfig };
+    }
+
+    const partitionValue = (parentEntity as any)[partitionConfig.keyField];
+
+    if (options.logResolved !== false) {
+      const label = options.contextLabel ? `${options.contextLabel} ` : '';
+      console.log(
+        `[SpaceStore] ${label}partition filter: ${partitionConfig.childFilterField}=${partitionValue} (from ${source})`,
+      );
+    }
+
+    return { partitionConfig, partitionValue };
+  }
+
   /**
    * Load child records from Supabase for a specific parent entity
    *
@@ -2530,33 +2593,10 @@ class SpaceStore {
       return [];
     }
 
-    // Check for partition config in entity schema
-    const entitySchema = this.entitySchemas.get(entityType);
-    const partitionConfig = entitySchema?.partition;
-    let partitionValue: string | undefined;
-
-    // If entity is partitioned, get partition key value from parent entity
-    if (partitionConfig) {
-      // First try memory store (fast)
-      let parentEntity = await this.getById(entityType, parentId);
-      let partitionSource = 'memory';
-
-      // If not in memory, try RxDB collection
-      if (!parentEntity && this.db?.collections[entityType]) {
-        const doc = await this.db.collections[entityType].findOne(parentId).exec();
-        if (doc) {
-          parentEntity = doc.toJSON();
-          partitionSource = 'RxDB';
-        }
-      }
-
-      if (parentEntity) {
-        partitionValue = (parentEntity as any)[partitionConfig.keyField];
-        console.log(`[SpaceStore] Partition filter: ${partitionConfig.childFilterField}=${partitionValue} (from ${partitionSource})`);
-      } else {
-        console.warn(`[SpaceStore] Could not find parent entity for partition key. Table: ${tableType}, parentId: ${parentId}`);
-      }
-    }
+    const { partitionConfig, partitionValue } =
+      await this.resolveChildPartitionContext(entityType, parentId, {
+        targetLabel: `Table: ${tableType}`,
+      });
 
     // Check if data already exists in RxDB (with partition filter for partitioned entities)
     const existingRecords = await this.getChildRecords(parentId, tableType, {
@@ -2635,13 +2675,12 @@ class SpaceStore {
     parentField?: string
   ): Promise<void> {
     const parentIdField = parentField || `${entityType}_id`;
-    const entitySchema = this.entitySchemas.get(entityType);
-    const partitionConfig = entitySchema?.partition;
-    let partitionValue: string | undefined;
-    if (partitionConfig) {
-      const parent = await this.getById(entityType, parentId);
-      if (parent) partitionValue = (parent as any)[partitionConfig.keyField];
-    }
+    const { partitionConfig, partitionValue } =
+      await this.resolveChildPartitionContext(entityType, parentId, {
+        contextLabel: 'forceRefreshChildRecords',
+        targetLabel: `Table: ${tableType}`,
+        warnIfMissing: false,
+      });
     await this.refreshChildRecordsInBackground(
       entityType, tableType, parentId, parentIdField,
       { limit: 200 }, partitionConfig, partitionValue
@@ -3070,31 +3109,20 @@ class SpaceStore {
   ): Promise<{ id: string }> {
     const id = crypto.randomUUID();
 
-    // Normalize VIEW name to base table for RxDB
-    const normalizedTableType = tableType.replace(/_with_\w+$/, '');
-
     // Sanitize data: ensure plain JSON (no Date objects, Proxy, etc.)
     const plainData = JSON.parse(JSON.stringify(data));
 
     const now = new Date().toISOString();
     const userId = userStore.currentUserId.value;
 
-    // Handle partition: resolve partition value from parent entity
-    const entitySchema = this.entitySchemas.get(entityType);
-    const partitionConfig = entitySchema?.partition;
-    let partitionValue: string | undefined;
-
-    if (partitionConfig) {
-      let parentEntity = await this.getById(entityType, parentId);
-      if (!parentEntity && this.db?.collections[entityType]) {
-        const doc = await this.db.collections[entityType].findOne(parentId).exec();
-        if (doc) parentEntity = doc.toJSON();
-      }
-      if (parentEntity) {
-        partitionValue = (parentEntity as any)[partitionConfig.keyField];
-      }
-    }
-
+    const normalizedTableType = normalizeChildTableType(tableType);
+    const { partitionConfig, partitionValue } =
+      await this.resolveChildPartitionContext(entityType, parentId, {
+        contextLabel: 'createChildRecord',
+        targetLabel: `Table: ${normalizedTableType}`,
+        logResolved: false,
+        warnIfMissing: false,
+      });
     // Insert into RxDB
     const collection = await this.ensureChildCollection(entityType);
     if (collection) {
@@ -3169,14 +3197,14 @@ class SpaceStore {
         const updatedDoc = patchedDoc.toJSON();
         const entitySchema = this.entitySchemas.get(entityType);
         const partitionConfig = entitySchema?.partition;
+        const normalizedType = normalizeChildTableType(tableType);
         await syncQueueService.enqueueChild(
-          entityType, tableType.replace(/_with_\w+$/, ''), recordId, 'upsert',
+          entityType, normalizedType, recordId, 'upsert',
           buildChildPayload(updatedDoc, entityType, partitionConfig),
           'id'
         );
 
         // Local rebuild of denormalized parent fields (mirrors server triggers)
-        const normalizedType = tableType.replace(/_with_\w+$/, '');
         await this.rebuildParentDenormFields(
           entityType,
           normalizedType,
@@ -3212,8 +3240,9 @@ class SpaceStore {
         const docData = doc.toJSON();
         const entitySchema = this.entitySchemas.get(entityType);
         const partitionConfig = entitySchema?.partition;
+        const normalizedType = normalizeChildTableType(tableType);
         await syncQueueService.enqueueChild(
-          entityType, tableType.replace(/_with_\w+$/, ''), recordId, 'delete',
+          entityType, normalizedType, recordId, 'delete',
           buildChildPayload(docData, entityType, partitionConfig),
           'id'
         );
@@ -3223,7 +3252,7 @@ class SpaceStore {
         // Done AFTER remove so the deleted row is no longer in the cached set.
         await this.rebuildParentDenormFields(
           entityType,
-          tableType.replace(/_with_\w+$/, ''),
+          normalizedType,
           docData.parentId,
           docData.partitionId,
         );
@@ -3285,33 +3314,11 @@ class SpaceStore {
 
     const parentIdField = `${entityType}_id`;
 
-    // Check for partition config in entity schema
-    const entitySchema = this.entitySchemas.get(entityType);
-    const partitionConfig = entitySchema?.partition;
-    let partitionValue: string | undefined;
-
-    // If entity is partitioned, get partition key value from parent entity
-    if (partitionConfig) {
-      // First try memory store (fast)
-      let parentEntity = await this.getById(entityType, parentId);
-      let partitionSource = 'memory';
-
-      // If not in memory, try RxDB collection
-      if (!parentEntity && this.db?.collections[entityType]) {
-        const doc = await this.db.collections[entityType].findOne(parentId).exec();
-        if (doc) {
-          parentEntity = doc.toJSON();
-          partitionSource = 'RxDB';
-        }
-      }
-
-      if (parentEntity) {
-        partitionValue = (parentEntity as any)[partitionConfig.keyField];
-        console.log(`[SpaceStore] applyChildFilters partition filter: ${partitionConfig.childFilterField}=${partitionValue} (from ${partitionSource})`);
-      } else {
-        console.warn(`[SpaceStore] Could not find parent entity for partition key. Table: ${tableType}, parentId: ${parentId}`);
-      }
-    }
+    const { partitionConfig, partitionValue } =
+      await this.resolveChildPartitionContext(entityType, parentId, {
+        contextLabel: 'applyChildFilters',
+        targetLabel: `Table: ${tableType}`,
+      });
 
     console.log('[SpaceStore] applyChildFilters (ID-First):', {
       parentId,
@@ -3615,33 +3622,11 @@ class SpaceStore {
       return { records: [], total: 0, hasMore: false, nextCursor: null };
     }
 
-    // Check for partition config in entity schema (e.g., pet partitioned by breed_id)
-    const entitySchema = this.entitySchemas.get(entityType);
-    const partitionConfig = entitySchema?.partition;
-    let partitionValue: string | undefined;
-
-    // If entity is partitioned, get partition key value from parent entity
-    if (partitionConfig) {
-      // First try memory store (fast)
-      let parentEntity = await this.getById(entityType, parentId);
-      let partitionSource = 'memory';
-
-      // If not in memory, try RxDB collection
-      if (!parentEntity && this.db?.collections[entityType]) {
-        const doc = await this.db.collections[entityType].findOne(parentId).exec();
-        if (doc) {
-          parentEntity = doc.toJSON();
-          partitionSource = 'RxDB';
-        }
-      }
-
-      if (parentEntity) {
-        partitionValue = (parentEntity as any)[partitionConfig.keyField];
-        console.log(`[SpaceStore] VIEW partition filter: ${partitionConfig.childFilterField}=${partitionValue} (from ${partitionSource})`);
-      } else {
-        console.warn(`[SpaceStore] Could not find parent entity for partition key. VIEW: ${viewName}, parentId: ${parentId}`);
-      }
-    }
+    const { partitionConfig, partitionValue } =
+      await this.resolveChildPartitionContext(entityType, parentId, {
+        contextLabel: 'VIEW',
+        targetLabel: `VIEW: ${viewName}`,
+      });
 
     console.log('[SpaceStore] loadChildViewDirect (Local-First):', {
       viewName,
