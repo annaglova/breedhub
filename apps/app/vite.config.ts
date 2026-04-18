@@ -69,6 +69,22 @@ function createManualChunks(id: string): string | undefined {
     return "ui-shared";
   }
 
+  if (
+    normalizedId.includes("/apps/app/src/pages/SpacePage.tsx") ||
+    normalizedId.includes("/apps/app/src/pages/SlugResolver.tsx") ||
+    normalizedId.includes("/apps/app/src/pages/EditPageResolver.tsx") ||
+    normalizedId.includes("/apps/app/src/pages/CreatePageResolver.tsx") ||
+    normalizedId.includes("/apps/app/src/pages/TabPageResolver.tsx") ||
+    normalizedId.includes("/apps/app/src/components/template/") ||
+    normalizedId.includes("/apps/app/src/components/blocks/") ||
+    normalizedId.includes("/apps/app/src/components/space/SpaceComponent.tsx") ||
+    normalizedId.includes("/apps/app/src/components/registerComponents.ts") ||
+    normalizedId.includes("/apps/app/src/hooks/space/") ||
+    normalizedId.includes("/apps/app/src/contexts/AboveFoldLoadingContext.tsx")
+  ) {
+    return "space-core";
+  }
+
   return undefined;
 }
 
