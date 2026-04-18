@@ -1,14 +1,14 @@
 import React, { useMemo } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AppLayout } from '@/layouts/AppLayout';
+// Core pages — eager, used on 90%+ of routes
+import { SpacePage } from '@/pages/SpacePage';
+import { SlugResolver } from '@/pages/SlugResolver';
+import { EditPageResolver } from '@/pages/EditPageResolver';
+import { CreatePageResolver } from '@/pages/CreatePageResolver';
+import { TabPageResolver } from '@/pages/TabPageResolver';
 import { SignInSkeleton, SignUpSkeleton, ForgotPasswordSkeleton, ResetPasswordSkeleton } from '@shared/components/auth/AuthFormSkeleton';
 import { lazy } from 'react';
-
-// Auth pages (lazy loaded)
-const SignIn = lazy(() => import('@shared/pages/auth/SignIn'));
-const SignUp = lazy(() => import('@shared/pages/auth/SignUp'));
-const ForgotPassword = lazy(() => import('@shared/pages/auth/ForgotPassword'));
-const ResetPassword = lazy(() => import('@shared/pages/auth/ResetPassword'));
 import { getPage, PageNotFound } from '@/pages/pageRegistry';
 import { appStore } from '@breedhub/rxdb-store';
 import { useSignals } from '@preact/signals-react/runtime';
@@ -35,21 +35,13 @@ function lazyRoute(
   };
 }
 
-const SpacePage = lazyRoute(() =>
-  import('@/pages/SpacePage').then((module) => ({ default: module.SpacePage }))
-);
-const SlugResolver = lazyRoute(() =>
-  import('@/pages/SlugResolver').then((module) => ({ default: module.SlugResolver }))
-);
-const EditPageResolver = lazyRoute(() =>
-  import('@/pages/EditPageResolver').then((module) => ({ default: module.EditPageResolver }))
-);
-const CreatePageResolver = lazyRoute(() =>
-  import('@/pages/CreatePageResolver').then((module) => ({ default: module.CreatePageResolver }))
-);
-const TabPageResolver = lazyRoute(() =>
-  import('@/pages/TabPageResolver').then((module) => ({ default: module.TabPageResolver }))
-);
+// Auth pages (lazy — only needed on auth routes)
+const SignIn = lazy(() => import('@shared/pages/auth/SignIn'));
+const SignUp = lazy(() => import('@shared/pages/auth/SignUp'));
+const ForgotPassword = lazy(() => import('@shared/pages/auth/ForgotPassword'));
+const ResetPassword = lazy(() => import('@shared/pages/auth/ResetPassword'));
+
+// Tool pages (lazy — rarely visited)
 const BillingPage = lazyRoute(() =>
   import('@/pages/BillingPage').then((module) => ({ default: module.BillingPage }))
 );
