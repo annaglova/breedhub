@@ -9,6 +9,12 @@
  * Extracted from SpaceComponent.
  */
 import { useEffect, useState } from "react";
+import {
+  hasUnreservedSearchParams,
+  readStorageValue,
+  TOTAL_COUNT_RESERVED_QUERY_PARAMS,
+  writeStorageValue,
+} from "./space-query.utils";
 
 interface UseTotalCountCacheOptions {
   data: { entities?: any[]; total?: number } | null | undefined;
@@ -20,15 +26,6 @@ interface UseTotalCountCacheOptions {
 }
 
 const TOTAL_COUNT_TTL_MS = 14 * 24 * 60 * 60 * 1000; // 14 days
-
-const RESERVED_PARAMS = [
-  "sort",
-  "view",
-  "sortBy",
-  "sortDir",
-  "sortParam",
-  "type",
-];
 
 export function useTotalCountCache({
   data,
@@ -54,11 +51,12 @@ export function useTotalCountCache({
           totalFilterKey && filters ? filters[totalFilterKey] : null;
 
         // Exclude totalFilterKey from "hasFilters" check
-        const filterParams = totalFilterKey
-          ? [...RESERVED_PARAMS, totalFilterKey]
-          : RESERVED_PARAMS;
-        const hasOtherFilters = Array.from(searchParams.keys()).some(
-          (key) => !filterParams.includes(key),
+        const reservedParams = totalFilterKey
+          ? [...TOTAL_COUNT_RESERVED_QUERY_PARAMS, totalFilterKey]
+          : TOTAL_COUNT_RESERVED_QUERY_PARAMS;
+        const hasOtherFilters = hasUnreservedSearchParams(
+          searchParams,
+          reservedParams,
         );
 
         // For spaces with totalFilterKey: allow caching when only that filter is applied
@@ -73,7 +71,7 @@ export function useTotalCountCache({
               totalFilterKey && totalFilterValue
                 ? `totalCount_${entitySchemaName}_${totalFilterKey}_${totalFilterValue}`
                 : `totalCount_${entitySchemaName}`;
-            const cached = localStorage.getItem(cacheKey);
+            const cached = readStorageValue(cacheKey);
 
             let cachedTotal = 0;
             let cacheExpired = false;
@@ -104,7 +102,7 @@ export function useTotalCountCache({
 
             if (shouldSave) {
               const cacheData = { value: data.total, timestamp: Date.now() };
-              localStorage.setItem(cacheKey, JSON.stringify(cacheData));
+              writeStorageValue(cacheKey, JSON.stringify(cacheData));
             }
           } catch (e) {
             console.warn("Failed to cache totalCount:", e);

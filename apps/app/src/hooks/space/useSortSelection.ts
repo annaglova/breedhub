@@ -7,6 +7,11 @@
  * Extracted from SpaceComponent.
  */
 import { useCallback, useMemo } from "react";
+import {
+  readStorageValue,
+  removeLegacySortQueryParams,
+  writeStorageValue,
+} from "@/hooks/space/space-query.utils";
 
 interface SortOption {
   id: string;
@@ -44,14 +49,10 @@ export function useSortSelection(
     }
 
     // 2. localStorage (persisted preference)
-    try {
-      const savedSortId = localStorage.getItem(sortStorageKey);
-      if (savedSortId) {
-        const found = sortOptions.find((option) => option.id === savedSortId);
-        if (found) return found;
-      }
-    } catch {
-      // localStorage not available
+    const savedSortId = readStorageValue(sortStorageKey);
+    if (savedSortId) {
+      const found = sortOptions.find((option) => option.id === savedSortId);
+      if (found) return found;
     }
 
     // 3. Default
@@ -60,20 +61,12 @@ export function useSortSelection(
 
   const handleSortChange = useCallback(
     (option: SortOption) => {
-      const newParams = new URLSearchParams(searchParams);
-
-      // Remove legacy sort params
-      newParams.delete("sortBy");
-      newParams.delete("sortDir");
-      newParams.delete("sortParam");
+      const newParams =
+        removeLegacySortQueryParams(searchParams) ||
+        new URLSearchParams(searchParams);
 
       newParams.set("sort", option.id);
-
-      try {
-        localStorage.setItem(sortStorageKey, option.id);
-      } catch {
-        // localStorage not available
-      }
+      writeStorageValue(sortStorageKey, option.id);
 
       setSearchParams(newParams);
     },

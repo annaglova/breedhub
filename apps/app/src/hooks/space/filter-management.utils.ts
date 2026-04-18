@@ -5,6 +5,13 @@ import {
   getValueForLabel,
   normalizeForUrl,
 } from "@/components/space/utils/filter-url-helpers";
+import {
+  FILTER_RESERVED_QUERY_PARAMS,
+  hasUnreservedSearchParams,
+  readStorageValue,
+  removeStorageValue,
+  writeStorageValue,
+} from "./space-query.utils";
 
 export type FilterField = FilterFieldConfig;
 
@@ -20,15 +27,6 @@ export interface ActiveFilter {
   isRequired: boolean;
   order: number;
 }
-
-const RESERVED_FILTER_PARAMS = new Set([
-  "sort",
-  "view",
-  "sortBy",
-  "sortDir",
-  "sortParam",
-  "entity",
-]);
 
 const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -73,13 +71,7 @@ async function getFilterLookupDatabase() {
 }
 
 export function hasFilterSearchParams(searchParams: URLSearchParams): boolean {
-  for (const key of searchParams.keys()) {
-    if (!RESERVED_FILTER_PARAMS.has(key)) {
-      return true;
-    }
-  }
-
-  return false;
+  return hasUnreservedSearchParams(searchParams, FILTER_RESERVED_QUERY_PARAMS);
 }
 
 export async function buildFiltersFromSearchParams({
@@ -104,7 +96,7 @@ export async function buildFiltersFromSearchParams({
   const promises: Promise<void>[] = [];
 
   searchParams.forEach((urlValue, urlKey) => {
-    if (RESERVED_FILTER_PARAMS.has(urlKey) || !urlValue) {
+    if (FILTER_RESERVED_QUERY_PARAMS.includes(urlKey) || !urlValue) {
       return;
     }
 
@@ -206,9 +198,9 @@ export function persistFilterValues(
   }
 
   if (Object.keys(filtersToStore).length > 0) {
-    localStorage.setItem(filtersStorageKey, JSON.stringify(filtersToStore));
+    writeStorageValue(filtersStorageKey, JSON.stringify(filtersToStore));
   } else {
-    localStorage.removeItem(filtersStorageKey);
+    removeStorageValue(filtersStorageKey);
   }
 }
 
@@ -221,7 +213,7 @@ export function removeFilterFromStorage({
   filterId: string;
   filtersStorageKey: string;
 }) {
-  const savedFilters = localStorage.getItem(filtersStorageKey);
+  const savedFilters = readStorageValue(filtersStorageKey);
   if (!savedFilters) {
     return;
   }
@@ -233,9 +225,9 @@ export function removeFilterFromStorage({
   delete parsedFilters[fieldId];
 
   if (Object.keys(parsedFilters).length > 0) {
-    localStorage.setItem(filtersStorageKey, JSON.stringify(parsedFilters));
+    writeStorageValue(filtersStorageKey, JSON.stringify(parsedFilters));
   } else {
-    localStorage.removeItem(filtersStorageKey);
+    removeStorageValue(filtersStorageKey);
   }
 }
 
@@ -252,7 +244,7 @@ export async function buildActiveFilters({
   const rxdb = await getFilterLookupDatabase();
 
   for (const [key, urlValue] of searchParams.entries()) {
-    if (RESERVED_FILTER_PARAMS.has(key) || !urlValue) {
+    if (FILTER_RESERVED_QUERY_PARAMS.includes(key) || !urlValue) {
       continue;
     }
 
@@ -304,7 +296,7 @@ export async function buildCurrentFilterValues({
   const promises: Promise<void>[] = [];
 
   searchParams.forEach((urlValue, urlKey) => {
-    if (RESERVED_FILTER_PARAMS.has(urlKey) || !urlValue) {
+    if (FILTER_RESERVED_QUERY_PARAMS.includes(urlKey) || !urlValue) {
       return;
     }
 

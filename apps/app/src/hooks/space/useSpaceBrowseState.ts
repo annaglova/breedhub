@@ -1,6 +1,13 @@
 import { useCallback, useEffect, useMemo } from "react";
 import type { SetURLSearchParams } from "react-router-dom";
 import { extractFieldName, spaceStore } from "@breedhub/rxdb-store";
+import {
+  ensureSearchParam,
+  getSpaceStorageKeys,
+  readStorageValue,
+  removeLegacySortQueryParams,
+  writeStorageValue,
+} from "@/hooks/space/space-query.utils";
 import { useSpaceSearch } from "@/hooks/space/useSpaceSearch";
 import { useSortSelection } from "@/hooks/space/useSortSelection";
 
@@ -26,19 +33,16 @@ export function useSpaceBrowseState({
     return spaceStore.getDefaultView(config.entitySchemaName);
   }, [config, config?.entitySchemaName, spaceStore.configReady.value]);
 
-  const viewStorageKey = `breedhub:view:${config.entitySchemaName}`;
-  const sortStorageKey = `breedhub:sort:${config.entitySchemaName}`;
-  const filtersStorageKey = `breedhub:filters:${config.entitySchemaName}`;
+  const { viewStorageKey, sortStorageKey, filtersStorageKey } =
+    getSpaceStorageKeys(config.entitySchemaName);
 
   const viewMode = useMemo(() => {
     const urlView = searchParams.get("view");
     if (urlView) return urlView;
 
-    try {
-      const savedView = localStorage.getItem(viewStorageKey);
-      if (savedView) return savedView;
-    } catch {
-      // Ignore localStorage access errors and fall back to config default.
+    const savedView = readStorageValue(viewStorageKey);
+    if (savedView) {
+      return savedView;
     }
 
     return defaultView;
@@ -110,27 +114,20 @@ export function useSpaceBrowseState({
   );
 
   useEffect(() => {
-    const hasLegacyParams =
-      searchParams.has("sortBy") ||
-      searchParams.has("sortDir") ||
-      searchParams.has("sortParam");
-
-    if (hasLegacyParams) {
-      const newParams = new URLSearchParams(searchParams);
-      newParams.delete("sortBy");
-      newParams.delete("sortDir");
-      newParams.delete("sortParam");
-      setSearchParams(newParams, { replace: true });
+    const sanitizedParams = removeLegacySortQueryParams(searchParams);
+    if (sanitizedParams) {
+      setSearchParams(sanitizedParams, { replace: true });
     }
   }, [searchParams, setSearchParams]);
 
   useEffect(() => {
     if (initialSelectedEntityId || createMode) return;
 
-    if (!searchParams.has("view") && viewMode) {
-      const newParams = new URLSearchParams(searchParams);
-      newParams.set("view", viewMode);
-      setSearchParams(newParams, { replace: true });
+    if (!searchParams.has("view")) {
+      const nextParams = ensureSearchParam(searchParams, "view", viewMode);
+      if (nextParams) {
+        setSearchParams(nextParams, { replace: true });
+      }
     }
   }, [
     createMode,
@@ -143,10 +140,15 @@ export function useSpaceBrowseState({
   useEffect(() => {
     if (initialSelectedEntityId || createMode) return;
 
-    if (!searchParams.has("sort") && selectedSortOption?.id) {
-      const newParams = new URLSearchParams(searchParams);
-      newParams.set("sort", selectedSortOption.id);
-      setSearchParams(newParams, { replace: true });
+    if (!searchParams.has("sort")) {
+      const nextParams = ensureSearchParam(
+        searchParams,
+        "sort",
+        selectedSortOption?.id,
+      );
+      if (nextParams) {
+        setSearchParams(nextParams, { replace: true });
+      }
     }
   }, [
     createMode,
@@ -182,11 +184,7 @@ export function useSpaceBrowseState({
 
   const handleViewChange = useCallback(
     (view: string) => {
-      try {
-        localStorage.setItem(viewStorageKey, view);
-      } catch {
-        // Ignore localStorage access errors and keep runtime behavior intact.
-      }
+      writeStorageValue(viewStorageKey, view);
     },
     [viewStorageKey],
   );

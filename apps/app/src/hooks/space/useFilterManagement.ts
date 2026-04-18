@@ -24,6 +24,7 @@ import {
   type MainFilterField,
   removeFilterFromStorage,
 } from "./filter-management.utils";
+import { readStorageValue } from "./space-query.utils";
 
 interface UseFilterManagementOptions {
   searchParams: URLSearchParams;
@@ -93,7 +94,7 @@ export function useFilterManagement({
     }
 
     try {
-      const savedFilters = localStorage.getItem(filtersStorageKey);
+      const savedFilters = readStorageValue(filtersStorageKey);
       if (savedFilters) {
         const parsedFilters = JSON.parse(savedFilters) as Record<string, string>;
 
