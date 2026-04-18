@@ -1,10 +1,4 @@
 import React from 'react';
-import { OverviewTab } from './tabs';
-import { ContactGeneralTab } from '../contact/tabs/ContactGeneralTab';
-import { KennelGeneralTab } from '../kennel/tabs/KennelGeneralTab';
-import { KennelPetsTab } from '../kennel/tabs/KennelPetsTab';
-import { KennelOffspringsTab } from '../kennel/tabs/KennelOffspringsTab';
-import { KennelServicesTab } from '../kennel/tabs/KennelServicesTab';
 import { EditPageTemplate } from '../template/EditPageTemplate';
 
 // Component registry for dynamic component loading
@@ -16,14 +10,6 @@ export function registerComponent(name: string, component: React.ComponentType<a
 
 // Register page templates
 registerComponent('EditPageTemplate', EditPageTemplate);
-
-// Register default tab components
-registerComponent('OverviewTab', OverviewTab);
-registerComponent('ContactGeneralTab', ContactGeneralTab);
-registerComponent('KennelGeneralTab', KennelGeneralTab);
-registerComponent('KennelPetsTab', KennelPetsTab);
-registerComponent('KennelOffspringsTab', KennelOffspringsTab);
-registerComponent('KennelServicesTab', KennelServicesTab);
 
 export function getComponent(name: string): React.ComponentType<any> | undefined {
   return componentRegistry.get(name);

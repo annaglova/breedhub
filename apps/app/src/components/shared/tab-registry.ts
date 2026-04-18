@@ -74,6 +74,10 @@ function createLazyRegisteredTab(
 
 // Auto-discover all tab components across entity folders
 const tabModules = {
+  ...(import.meta.glob('../space/tabs/*Tab.tsx') as Record<
+    string,
+    TabModuleLoader
+  >),
   ...(import.meta.glob('../breed/tabs/*Tab.tsx') as Record<
     string,
     TabModuleLoader
