@@ -14,9 +14,14 @@ import { cn } from "@ui/lib/utils";
 import { MoreVertical } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { appStore, dictionaryStore, routeStore, spaceStore, toast } from "@breedhub/rxdb-store";
+import { appStore, dictionaryStore, spaceStore, toast } from "@breedhub/rxdb-store";
 import type { IconConfig } from "@breedhub/rxdb-store";
 import { Icon } from "@/components/shared/Icon";
+import {
+  extractResolvableSlug,
+  getCachedResolvedRoute,
+  resolveRouteBySlug,
+} from "@/pages/route-resolution";
 
 /**
  * Menu item from config
@@ -55,13 +60,6 @@ interface SmartLinkProps {
   className?: string;
   /** Disable quick actions menu */
   disableActions?: boolean;
-}
-
-/**
- * Extract slug from URL path (remove leading slash)
- */
-function extractSlug(to: string): string {
-  return to.startsWith("/") ? to.slice(1) : to;
 }
 
 /**
@@ -146,35 +144,70 @@ export function SmartLink({
   const navigate = useNavigate();
   const [isHovered, setIsHovered] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [resolved, setResolved] = useState<ResolvedInfo | null>(null);
-  const [menuItems, setMenuItems] = useState<ConfigMenuItem[]>([]);
+  const [resolved, setResolved] = useState<ResolvedInfo | null>(() => {
+    const slug = extractResolvableSlug(to);
+    const route = slug ? getCachedResolvedRoute(slug) : null;
+
+    if (!route) {
+      return null;
+    }
+
+    return {
+      entity: route.entity,
+      entityId: route.entity_id,
+      model: route.model,
+    };
+  });
+  const [menuItems, setMenuItems] = useState<ConfigMenuItem[]>(() => {
+    const slug = extractResolvableSlug(to);
+    const route = slug ? getCachedResolvedRoute(slug) : null;
+
+    if (!route) {
+      return [];
+    }
+
+    return getMenuItemsForModel(route.entity, route.model);
+  });
 
   // Resolve slug → entity + model via routeStore
   useEffect(() => {
-    if (disableActions) return;
+    if (disableActions) {
+      setResolved(null);
+      setMenuItems([]);
+      return;
+    }
 
-    const slug = extractSlug(to);
-    if (!slug) return;
+    const slug = extractResolvableSlug(to);
+    if (!slug) {
+      setResolved(null);
+      setMenuItems([]);
+      return;
+    }
 
     let cancelled = false;
 
-    routeStore.resolveRoute(slug).then((route) => {
-      if (cancelled) return;
-
-      if (route) {
-        setResolved({
-          entity: route.entity,
-          entityId: route.entity_id,
-          model: route.model,
-        });
-
-        // Get menu items filtered by model
-        const items = getMenuItemsForModel(route.entity, route.model);
-        setMenuItems(items);
+    void resolveRouteBySlug(slug).then((route) => {
+      if (cancelled) {
+        return;
       }
+
+      if (!route) {
+        setResolved(null);
+        setMenuItems([]);
+        return;
+      }
+
+      setResolved({
+        entity: route.entity,
+        entityId: route.entity_id,
+        model: route.model,
+      });
+      setMenuItems(getMenuItemsForModel(route.entity, route.model));
     });
 
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [to, disableActions]);
 
   const hasActions = !disableActions && resolved && menuItems.length > 0;
@@ -198,11 +231,12 @@ export function SmartLink({
       e.preventDefault();
       e.stopPropagation();
 
-      const slug = extractSlug(to);
+      const slug = extractResolvableSlug(to);
       const action = item.action;
 
       switch (action) {
         case "copy_link": {
+          if (!slug) break;
           const url = `${window.location.origin}/${slug}`;
           navigator.clipboard.writeText(url).then(() => {
             toast.success("Link copied");

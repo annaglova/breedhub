@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { navigationHistoryStore, spaceStore } from '@breedhub/rxdb-store';
 import { SpacePage } from './SpacePage';
 import { RouteResolutionError } from './RouteResolutionError';
-import { useResolvedRoute } from './route-resolution';
+import { getResolvedEntityName, useResolvedRoute } from './route-resolution';
 
 /**
  * TabPageResolver - Resolves /slug/tabSlug URLs for tab fullscreen mode
@@ -54,7 +54,19 @@ export function TabPageResolver() {
       return;
     }
 
-    navigationHistoryStore.addEntry(`/${slug}`, slug, resolvedRoute.entity);
+    let cancelled = false;
+
+    void getResolvedEntityName(resolvedRoute, slug).then((entityName) => {
+      if (cancelled) {
+        return;
+      }
+
+      navigationHistoryStore.addEntry(`/${slug}`, entityName, resolvedRoute.entity);
+    });
+
+    return () => {
+      cancelled = true;
+    };
   }, [slug, resolvedRoute]);
 
   // Error state - 404 page

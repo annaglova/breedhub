@@ -11,6 +11,29 @@ export interface ResolvedRoute {
 
 const resolvedRoutesCache = new Map<string, ResolvedRoute>();
 
+export function extractResolvableSlug(path?: string | null): string | null {
+  if (!path) {
+    return null;
+  }
+
+  const normalizedPath = path.trim();
+  if (!normalizedPath || normalizedPath === "#" || normalizedPath.startsWith("http")) {
+    return null;
+  }
+
+  const withoutHash = normalizedPath.split("#", 1)[0];
+  const withoutQuery = withoutHash.split("?", 1)[0];
+  const withoutLeadingSlash = withoutQuery.startsWith("/")
+    ? withoutQuery.slice(1)
+    : withoutQuery;
+
+  if (!withoutLeadingSlash || withoutLeadingSlash.includes("/")) {
+    return null;
+  }
+
+  return withoutLeadingSlash;
+}
+
 export function getCachedResolvedRoute(slug?: string | null): ResolvedRoute | null {
   if (!slug) {
     return null;
@@ -24,6 +47,11 @@ export function hasCachedResolvedRoute(slug?: string | null): boolean {
 }
 
 export async function resolveRouteBySlug(slug: string): Promise<ResolvedRoute | null> {
+  const cached = resolvedRoutesCache.get(slug);
+  if (cached) {
+    return cached;
+  }
+
   if (!routeStore.initialized.value) {
     await routeStore.initialize();
   }
