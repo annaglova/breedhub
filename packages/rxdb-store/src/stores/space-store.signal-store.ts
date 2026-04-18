@@ -21,6 +21,14 @@ import {
   resolveSpaceConfig,
   SpaceConfig,
 } from './space-config.helpers';
+import {
+  applySupabaseKeysetCursor,
+  applySupabaseOrderBy,
+  buildNextKeysetCursor,
+  buildNextKeysetCursorFromAdditional,
+  getSelectFieldsForOrderBy,
+  parseKeysetCursor,
+} from './space-keyset.helpers';
 
 // Helpers
 import {
@@ -82,22 +90,6 @@ export interface OrderBy {
     direction: 'asc' | 'desc';
     parameter?: string;
   };
-}
-
-/**
- * Escape a value for use in PostgREST filter strings.
- * Values containing special characters (comma, parentheses, quotes) must be quoted.
- * @see https://postgrest.org/en/stable/references/api/tables_views.html#reserved-characters
- */
-function escapePostgrestValue(value: any): string {
-  if (value === null || value === undefined) return 'null';
-  const str = String(value);
-  // If value contains special chars (comma, parentheses, quotes), wrap in double quotes
-  if (/[,()"]/.test(str)) {
-    // Escape internal double quotes by doubling them
-    return `"${str.replace(/"/g, '""')}"`;
-  }
-  return str;
 }
 
 /**
@@ -1534,11 +1526,14 @@ class SpaceStore {
         const tieBreakerValue = lastRecord[tieBreakerField] ?? null;
 
         // Composite cursor: {value, tieBreaker, tieBreakerField} for proper pagination
-        nextCursor = JSON.stringify({
-          value: orderValue,
-          tieBreaker: tieBreakerValue,
-          tieBreakerField
-        });
+        nextCursor = buildNextKeysetCursor(
+          {
+            [orderBy.field]: orderValue,
+            [tieBreakerField]: tieBreakerValue,
+            id: lastRecord.id,
+          },
+          orderBy,
+        );
       }
       console.log('[SpaceStore] nextCursor extracted:', nextCursor);
 
@@ -2062,15 +2057,7 @@ class SpaceStore {
     query: any,
     orderBy: OrderBy
   ): any {
-    // Primary orderBy (NULLS LAST to keep empty values at the end)
-    query = query.order(orderBy.field, { ascending: orderBy.direction === 'asc', nullsFirst: false });
-
-    // TieBreaker orderBy (if provided)
-    if (orderBy.tieBreaker) {
-      query = query.order(orderBy.tieBreaker.field, { ascending: orderBy.tieBreaker.direction === 'asc', nullsFirst: false });
-    }
-
-    return query;
+    return applySupabaseOrderBy(query, orderBy);
   }
 
   /**
@@ -2117,6 +2104,9 @@ class SpaceStore {
 
     if (useHybridSearch) {
       console.log('[SpaceStore] 🔍 HYBRID SEARCH mode (starts_with 70% + contains 30%)');
+      const hybridSelectFields = getSelectFieldsForOrderBy(orderBy, {
+        includeUpdatedAt: true,
+      });
 
       // 🔀 OR LOGIC: Check if multiple search fields have the same value (main filter fields)
       // Group search filters by value to detect OR-combined main filter fields
@@ -2142,7 +2132,7 @@ class SpaceStore {
       const sourceName = this.getSupabaseSource(entityType);
       let startsWithQuery = supabase
         .from(sourceName)
-        .select(`id, ${orderBy.field}, updated_at`)
+        .select(hybridSelectFields)
         .or('deleted.is.null,deleted.eq.false');
 
       // Apply search filter: OR for multiple fields, single ilike for one field
@@ -2182,7 +2172,7 @@ class SpaceStore {
       if (remainingLimit > 0) {
         let containsQuery = supabase
           .from(sourceName)
-          .select(`id, ${orderBy.field}, updated_at`)
+          .select(hybridSelectFields)
           .or('deleted.is.null,deleted.eq.false');
 
         // Apply contains filter: OR for multiple fields, single ilike for one field
@@ -2235,11 +2225,9 @@ class SpaceStore {
     }
 
     // 📄 REGULAR QUERY: No search or cursor pagination
-    // Include tieBreaker field + updated_at (for staleness check) in select
-    const tieBreakerField = orderBy.tieBreaker?.field || 'id';
-    const selectFields = tieBreakerField !== orderBy.field && tieBreakerField !== 'id'
-      ? `id, ${orderBy.field}, ${tieBreakerField}, updated_at`
-      : `id, ${orderBy.field}, updated_at`;
+    const selectFields = getSelectFieldsForOrderBy(orderBy, {
+      includeUpdatedAt: true,
+    });
 
     // Use VIEW source if configured (e.g., litter_with_parents for litter)
     const sourceName = this.getSupabaseSource(entityType);
@@ -2266,37 +2254,16 @@ class SpaceStore {
     }
 
     // Apply cursor (keyset pagination with tie-breaker from config)
-    let cursorData: { value: any; tieBreaker: any; tieBreakerField: string } | null = null;
     let data: any[] = [];
     let error: any = null;
 
     if (cursor !== null) {
-      // Parse composite cursor {value, tieBreaker, tieBreakerField}
-      try {
-        cursorData = JSON.parse(cursor);
-      } catch (e) {
-        // Fallback for old cursor format
-        cursorData = { value: cursor, tieBreaker: '', tieBreakerField: 'id' };
-      }
+      const cursorData = parseKeysetCursor(cursor, orderBy);
 
       console.log(`[SpaceStore] 🔑 Cursor parsed:`, cursorData);
-
-      // Use tieBreakerField from cursor (or fallback to config)
-      const parsedCursor = cursorData ?? { value: cursor, tieBreaker: '', tieBreakerField: 'id' };
-      const tbField = parsedCursor.tieBreakerField || tieBreakerField;
-      const tbDirection = orderBy.tieBreaker?.direction || 'asc';
-
-      // Composite cursor with tie-breaker from config
-      // WHERE (field > value) OR (field = value AND tieBreakerField > tieBreakerValue)
-      const mainOp = orderBy.direction === 'asc' ? 'gt' : 'lt';
-      const tbOp = tbDirection === 'asc' ? 'gt' : 'lt';
-
-      const escapedValue = escapePostgrestValue(parsedCursor.value);
-      const escapedTieBreaker = escapePostgrestValue(parsedCursor.tieBreaker);
-      const orCondition = `${orderBy.field}.${mainOp}.${escapedValue},and(${orderBy.field}.eq.${escapedValue},${tbField}.${tbOp}.${escapedTieBreaker})`;
-
-      console.log(`[SpaceStore] 🔑 Applying composite cursor filter:`, orCondition);
-      query = query.or(orCondition);
+      if (cursorData) {
+        query = applySupabaseKeysetCursor(query, orderBy, cursorData);
+      }
     }
 
     // Apply order and limit
@@ -3819,20 +3786,14 @@ class SpaceStore {
       // Extract IDs and calculate nextCursor
       const ids = idsData.map(d => d.id);
       const lastRecord = idsData[idsData.length - 1];
-      const tieBreakerField = orderBy.tieBreaker?.field || 'id';
-
       let nextCursor: string | null = null;
       if (lastRecord && idsData.length >= limit) {
-        nextCursor = JSON.stringify({
-          value: lastRecord[orderBy.field] ?? null,
-          tieBreaker: lastRecord[tieBreakerField] ?? lastRecord.id,
-          tieBreakerField
-        });
+        nextCursor = buildNextKeysetCursor(lastRecord, orderBy);
         console.log('[SpaceStore] 📍 nextCursor calculated:', {
           lastRecord,
           orderByField: orderBy.field,
           value: lastRecord[orderBy.field],
-          tieBreaker: lastRecord[tieBreakerField],
+          tieBreaker: lastRecord[orderBy.tieBreaker?.field || 'id'],
           nextCursor
         });
       } else {
@@ -3948,11 +3909,7 @@ class SpaceStore {
     partitionField?: string,
     partitionValue?: string
   ): Promise<Array<{ id: string; [key: string]: any }>> {
-    // Select only id + orderBy fields for lightweight query
-    const tieBreakerField = orderBy.tieBreaker?.field || 'id';
-    const selectFields = tieBreakerField !== orderBy.field && tieBreakerField !== 'id'
-      ? `id, ${orderBy.field}, ${tieBreakerField}`
-      : `id, ${orderBy.field}`;
+    const selectFields = getSelectFieldsForOrderBy(orderBy);
 
     let query = supabase
       .from(tableType)
@@ -3972,27 +3929,11 @@ class SpaceStore {
 
     // Apply cursor (composite keyset pagination)
     if (cursor) {
-      try {
-        const cursorData = JSON.parse(cursor);
-        const tbField = cursorData.tieBreakerField || tieBreakerField;
-        const mainOp = orderBy.direction === 'asc' ? 'gt' : 'lt';
-        const tbDirection = orderBy.tieBreaker?.direction || 'asc';
-        const tbOp = tbDirection === 'asc' ? 'gt' : 'lt';
-
-        const escapedValue = escapePostgrestValue(cursorData.value);
-      const escapedTieBreaker = escapePostgrestValue(cursorData.tieBreaker);
-      const orCondition = `${orderBy.field}.${mainOp}.${escapedValue},and(${orderBy.field}.eq.${escapedValue},${tbField}.${tbOp}.${escapedTieBreaker})`;
-        query = query.or(orCondition);
-      } catch (e) {
-        console.warn('[SpaceStore] Failed to parse child cursor:', e);
-      }
+      const cursorData = parseKeysetCursor(cursor, orderBy);
+      query = applySupabaseKeysetCursor(query, orderBy, cursorData);
     }
 
-    // Apply order (NULLS LAST)
-    query = query.order(orderBy.field, { ascending: orderBy.direction === 'asc', nullsFirst: false });
-    if (orderBy.tieBreaker) {
-      query = query.order(orderBy.tieBreaker.field, { ascending: orderBy.tieBreaker.direction === 'asc', nullsFirst: false });
-    }
+    query = applySupabaseOrderBy(query, orderBy);
 
     // Apply limit
     query = query.limit(limit);
@@ -4164,12 +4105,8 @@ class SpaceStore {
 
         const hasMore = localResults.length >= limit;
         const lastRecord = localResults[localResults.length - 1];
-        const nextCursor = hasMore && lastRecord
-          ? JSON.stringify({
-              value: lastRecord.additional?.[orderBy.field] ?? lastRecord[orderBy.field],
-              tieBreaker: lastRecord.id,
-              tieBreakerField: 'id'
-            })
+        const nextCursor = hasMore
+          ? buildNextKeysetCursorFromAdditional(lastRecord, orderBy)
           : null;
 
         return {
@@ -4201,27 +4138,11 @@ class SpaceStore {
 
       // Apply cursor (keyset pagination)
       if (cursor) {
-        try {
-          const cursorData = JSON.parse(cursor);
-          const tieBreakerField = cursorData.tieBreakerField || orderBy.tieBreaker?.field || 'id';
-          const mainOp = orderBy.direction === 'asc' ? 'gt' : 'lt';
-          const tbDirection = orderBy.tieBreaker?.direction || 'asc';
-          const tbOp = tbDirection === 'asc' ? 'gt' : 'lt';
-
-          const escapedValue = escapePostgrestValue(cursorData.value);
-          const escapedTieBreaker = escapePostgrestValue(cursorData.tieBreaker);
-          const orCondition = `${orderBy.field}.${mainOp}.${escapedValue},and(${orderBy.field}.eq.${escapedValue},${tieBreakerField}.${tbOp}.${escapedTieBreaker})`;
-          query = query.or(orCondition);
-        } catch (e) {
-          console.warn('[SpaceStore] Failed to parse VIEW cursor:', e);
-        }
+        const cursorData = parseKeysetCursor(cursor, orderBy);
+        query = applySupabaseKeysetCursor(query, orderBy, cursorData);
       }
 
-      // Apply order (NULLS LAST)
-      query = query.order(orderBy.field, { ascending: orderBy.direction === 'asc', nullsFirst: false });
-      if (orderBy.tieBreaker) {
-        query = query.order(orderBy.tieBreaker.field, { ascending: orderBy.tieBreaker.direction === 'asc', nullsFirst: false });
-      }
+      query = applySupabaseOrderBy(query, orderBy);
 
       // Apply limit
       query = query.limit(limit);
@@ -4245,12 +4166,8 @@ class SpaceStore {
         // Still return records even without caching
         const hasMore = rawRecords.length >= limit;
         const lastRecord = rawRecords[rawRecords.length - 1];
-        const nextCursor = hasMore && lastRecord
-          ? JSON.stringify({
-              value: lastRecord[orderBy.field] ?? null,
-              tieBreaker: lastRecord[orderBy.tieBreaker?.field || 'id'] ?? lastRecord.id,
-              tieBreakerField: orderBy.tieBreaker?.field || 'id'
-            })
+        const nextCursor = hasMore
+          ? buildNextKeysetCursor(lastRecord, orderBy)
           : null;
         return { records: rawRecords, total: rawRecords.length, hasMore, nextCursor };
       }
@@ -4291,12 +4208,7 @@ class SpaceStore {
       let nextCursor: string | null = null;
       if (rawRecords.length >= limit) {
         const lastRecord = rawRecords[rawRecords.length - 1];
-        const tieBreakerField = orderBy.tieBreaker?.field || 'id';
-        nextCursor = JSON.stringify({
-          value: lastRecord[orderBy.field] ?? null,
-          tieBreaker: lastRecord[tieBreakerField] ?? lastRecord.id,
-          tieBreakerField
-        });
+        nextCursor = buildNextKeysetCursor(lastRecord, orderBy);
       }
 
       const hasMore = rawRecords.length >= limit;
