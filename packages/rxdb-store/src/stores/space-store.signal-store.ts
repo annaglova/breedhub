@@ -33,12 +33,17 @@ import {
   applySupabaseKeysetCursor,
   applySupabaseOrderBy,
   buildNextKeysetCursor,
-  buildNextKeysetCursorFromAdditional,
   getSelectFieldsForOrderBy,
   parseKeysetCursor,
   type KeysetOrderBy,
 } from './space-keyset.helpers';
 import { executeLocalEntityQuery } from './space-local-query.helpers';
+import {
+  executeLocalChildQuery,
+  mapChildRowsToCacheRecords,
+  normalizeChildTableType,
+  sortLocalChildRecords,
+} from './space-child.helpers';
 
 // Helpers
 import {
@@ -2604,44 +2609,12 @@ class SpaceStore {
         return [];
       }
 
-      // Normalize VIEW name to base table name for RxDB storage
-      // e.g., 'top_pet_in_breed_with_pet' -> 'top_pet_in_breed'
-      //       'top_patron_in_breed_with_contact' -> 'top_patron_in_breed'
-      const normalizedTableType = tableType.replace(/_with_\w+$/, '');
-
-      // Transform records: extract core + service fields as top-level, rest in 'additional'
-      const transformedRecords = data.map((row: Record<string, any>) => {
-        const { id, created_at, updated_at, created_by, updated_by, ...rest } = row;
-
-        // Build additional object with all non-core fields
-        const additional: Record<string, any> = {};
-        for (const [key, value] of Object.entries(rest)) {
-          if (key === parentIdField) continue;
-          if (partitionConfig && key === partitionConfig.childFilterField) continue;
-          if (value !== undefined && value !== null) {
-            additional[key] = value;
-          }
-        }
-
-        // Build record with service fields as top-level
-        const record: Record<string, any> = {
-          id,
-          tableType: normalizedTableType,
-          parentId,
-          updated_at: updated_at || undefined,
-          created_at: created_at || undefined,
-          created_by: created_by || undefined,
-          updated_by: updated_by || undefined,
-          additional: Object.keys(additional).length > 0 ? additional : undefined,
-          cachedAt: Date.now()
-        };
-
-        // Add partitionId as top-level field if entity is partitioned
-        if (partitionConfig && partitionValue) {
-          record.partitionId = partitionValue;
-        }
-
-        return record;
+      const transformedRecords = mapChildRowsToCacheRecords(data, {
+        tableType,
+        parentId,
+        parentField: parentIdField,
+        partitionField: partitionConfig?.childFilterField,
+        partitionValue,
       });
 
       // Bulk upsert into RxDB collection (update if exists, insert if not)
@@ -2857,35 +2830,24 @@ class SpaceStore {
       const { data, error } = await query;
       if (error || !data || data.length === 0) return;
 
-      const normalizedTableType = tableType.replace(/_with_\w+$/, '');
       const collection = await this.ensureChildCollection(entityType);
       if (!collection) return;
 
-      const transformedRecords = data.map((row: Record<string, any>) => {
-        const { id, created_at, updated_at, created_by, updated_by, ...rest } = row;
-        const additional: Record<string, any> = {};
-        for (const [key, value] of Object.entries(rest)) {
-          if (key === parentIdField) continue;
-          if (partitionConfig && key === partitionConfig.childFilterField) continue;
-          if (value !== undefined && value !== null) additional[key] = value;
-        }
-        const record: Record<string, any> = {
-          id, tableType: normalizedTableType, parentId,
-          updated_at: updated_at || undefined,
-          created_at: created_at || undefined,
-          created_by: created_by || undefined,
-          updated_by: updated_by || undefined,
-          additional: Object.keys(additional).length > 0 ? additional : undefined,
-          cachedAt: Date.now()
-        };
-        if (partitionConfig && partitionValue) record.partitionId = partitionValue;
-        return record;
+      const transformedRecords = mapChildRowsToCacheRecords(data, {
+        tableType,
+        parentId,
+        parentField: parentIdField,
+        partitionField: partitionConfig?.childFilterField,
+        partitionValue,
       });
 
       await collection.bulkUpsert(transformedRecords);
 
       // Notify UI to refetch (useTabData subscribes to this signal)
-      this.childRefreshSignal.value = { tableType: normalizedTableType, parentId };
+      this.childRefreshSignal.value = {
+        tableType: normalizeChildTableType(tableType),
+        parentId,
+      };
     } catch {
       // Silent background refresh — don't break UI
     }
@@ -2922,7 +2884,7 @@ class SpaceStore {
 
     // Normalize VIEW name to base table name for RxDB query
     // e.g., 'top_pet_in_breed_with_pet' -> 'top_pet_in_breed'
-    const normalizedTableType = tableType.replace(/_with_\w+$/, '');
+    const normalizedTableType = normalizeChildTableType(tableType);
 
     try {
       const { limit = 50, orderBy, orderDirection = 'asc', partitionId } = options;
@@ -2966,23 +2928,13 @@ class SpaceStore {
 
       // For non-schema fields (stored in 'additional'), sort in JavaScript
       if (orderBy && !isSchemaField) {
-        records.sort((a: any, b: any) => {
-          const aVal = a.additional?.[orderBy] ?? null;
-          const bVal = b.additional?.[orderBy] ?? null;
-
-          // Handle nulls - push to end
-          if (aVal === null && bVal === null) return 0;
-          if (aVal === null) return 1;
-          if (bVal === null) return -1;
-
-          // Numeric comparison
-          if (typeof aVal === 'number' && typeof bVal === 'number') {
-            return orderDirection === 'asc' ? aVal - bVal : bVal - aVal;
-          }
-
-          // String comparison
-          const comparison = String(aVal).localeCompare(String(bVal));
-          return orderDirection === 'asc' ? comparison : -comparison;
+        records = sortLocalChildRecords(records, {
+          field: orderBy,
+          direction: orderDirection,
+          tieBreaker: {
+            field: 'id',
+            direction: 'asc',
+          },
         });
 
         // Apply limit after sorting
@@ -3376,7 +3328,7 @@ class SpaceStore {
     if (isOffline()) {
       console.log('[SpaceStore] 📴 Offline mode for child records');
       try {
-        const localResults = await this.filterLocalChildEntities(
+        const localQuery = await this.filterLocalChildEntities(
           parentId,
           tableType,
           filters,
@@ -3384,22 +3336,13 @@ class SpaceStore {
           cursor,
           orderBy
         );
-
-        const hasMore = localResults.length >= limit;
-        const lastRecord = localResults[localResults.length - 1];
-        const nextCursor = hasMore && lastRecord
-          ? JSON.stringify({
-              value: lastRecord.additional?.[orderBy.field] ?? lastRecord[orderBy.field],
-              tieBreaker: lastRecord.id,
-              tieBreakerField: 'id'
-            })
-          : null;
+        const localResults = localQuery.records;
 
         return {
           records: localResults,
           total: localResults.length,
-          hasMore,
-          nextCursor
+          hasMore: localQuery.hasMore,
+          nextCursor: localQuery.nextCursor
         };
       } catch (error) {
         console.error('[SpaceStore] Offline child loading failed:', error);
@@ -3520,7 +3463,7 @@ class SpaceStore {
       }
 
       try {
-        const localResults = await this.filterLocalChildEntities(
+        const localQuery = await this.filterLocalChildEntities(
           parentId,
           tableType,
           filters,
@@ -3528,12 +3471,13 @@ class SpaceStore {
           cursor,
           orderBy
         );
+        const localResults = localQuery.records;
 
         return {
           records: localResults,
           total: localResults.length,
-          hasMore: localResults.length >= limit,
-          nextCursor: null
+          hasMore: localQuery.hasMore,
+          nextCursor: localQuery.nextCursor
         };
       } catch (offlineError) {
         console.error('[SpaceStore] Offline fallback failed:', offlineError);
@@ -3620,38 +3564,12 @@ class SpaceStore {
 
     if (!data) return [];
 
-    // Normalize VIEW name for RxDB storage
-    const normalizedTableType = tableType.replace(/_with_\w+$/, '');
-
-    // Transform to RxDB format
-    return data.map((row: Record<string, any>) => {
-      const { id, created_at, updated_at, created_by, updated_by, ...rest } = row;
-
-      const additional: Record<string, any> = {};
-      for (const [key, value] of Object.entries(rest)) {
-        // Skip parentIdField and partitionField - stored as top-level fields
-        if (key === parentIdField) continue;
-        if (partitionField && key === partitionField) continue;
-        if (value !== undefined && value !== null) {
-          additional[key] = value;
-        }
-      }
-
-      // Build record with optional partitionId for partitioned entities
-      const record: Record<string, any> = {
-        id,
-        tableType: normalizedTableType,
-        parentId,
-        additional: Object.keys(additional).length > 0 ? additional : undefined,
-        cachedAt: Date.now()
-      };
-
-      // Add partitionId as top-level field if entity is partitioned
-      if (partitionValue) {
-        record.partitionId = partitionValue;
-      }
-
-      return record;
+    return mapChildRowsToCacheRecords(data, {
+      tableType,
+      parentId,
+      parentField: parentIdField,
+      partitionField,
+      partitionValue,
     });
   }
 
@@ -3741,7 +3659,7 @@ class SpaceStore {
     if (isOffline()) {
       console.log('[SpaceStore] 📴 Offline mode for VIEW');
       try {
-        const localResults = await this.filterLocalChildEntities(
+        const localQuery = await this.filterLocalChildEntities(
           parentId,
           viewName,
           {},
@@ -3749,18 +3667,13 @@ class SpaceStore {
           cursor,
           orderBy
         );
-
-        const hasMore = localResults.length >= limit;
-        const lastRecord = localResults[localResults.length - 1];
-        const nextCursor = hasMore
-          ? buildNextKeysetCursorFromAdditional(lastRecord, orderBy)
-          : null;
+        const localResults = localQuery.records;
 
         return {
           records: localResults,
           total: localResults.length,
-          hasMore,
-          nextCursor
+          hasMore: localQuery.hasMore,
+          nextCursor: localQuery.nextCursor
         };
       } catch (error) {
         console.error('[SpaceStore] Offline VIEW loading failed:', error);
@@ -3819,30 +3732,12 @@ class SpaceStore {
         return { records: rawRecords, total: rawRecords.length, hasMore, nextCursor };
       }
 
-      // Normalize VIEW name to base table for RxDB storage
-      // e.g., 'top_pet_in_breed_with_pet' -> 'top_pet_in_breed'
-      const normalizedTableType = viewName.replace(/_with_\w+$/, '');
-
-      // Transform to RxDB format (breed_children schema)
-      const transformedRecords = rawRecords.map((row: Record<string, any>) => {
-        const { id, created_at, updated_at, created_by, updated_by, ...rest } = row;
-
-        // Build additional object with all non-core fields
-        const additional: Record<string, any> = {};
-        for (const [key, value] of Object.entries(rest)) {
-          // Skip the parent ID field (e.g., breed_id)
-          if (key !== parentField && value !== undefined && value !== null) {
-            additional[key] = value;
-          }
-        }
-
-        return {
-          id,
-          tableType: normalizedTableType,
-          parentId,
-          additional: Object.keys(additional).length > 0 ? additional : undefined,
-          cachedAt: Date.now()
-        };
+      const transformedRecords = mapChildRowsToCacheRecords(rawRecords, {
+        tableType: viewName,
+        parentId,
+        parentField,
+        partitionField: partitionConfig?.childFilterField,
+        partitionValue,
       });
 
       // Bulk upsert into RxDB collection (update if exists, insert if not)
@@ -3878,7 +3773,7 @@ class SpaceStore {
 
       try {
         console.log('[SpaceStore] 📴 Falling back to local cache...');
-        const localResults = await this.filterLocalChildEntities(
+        const localQuery = await this.filterLocalChildEntities(
           parentId,
           viewName,
           {},
@@ -3886,12 +3781,13 @@ class SpaceStore {
           cursor,
           orderBy
         );
+        const localResults = localQuery.records;
 
         return {
           records: localResults,
           total: localResults.length,
-          hasMore: localResults.length >= limit,
-          nextCursor: null
+          hasMore: localQuery.hasMore,
+          nextCursor: localQuery.nextCursor
         };
       } catch (offlineError) {
         console.error('[SpaceStore] Offline fallback failed:', offlineError);
@@ -3910,86 +3806,27 @@ class SpaceStore {
     limit: number,
     cursor: string | null,
     orderBy: OrderBy
-  ): Promise<any[]> {
+  ): Promise<{ records: any[]; hasMore: boolean; nextCursor: string | null }> {
     const entityType = this.getEntityTypeFromTableType(tableType);
-    if (!entityType) return [];
+    if (!entityType) {
+      return { records: [], hasMore: false, nextCursor: null };
+    }
 
     const collectionName = `${entityType}_children`;
     const collection = this.childCollections.get(collectionName) || this.db?.collections[collectionName];
-    if (!collection) return [];
+    if (!collection) {
+      return { records: [], hasMore: false, nextCursor: null };
+    }
 
-    const normalizedTableType = tableType.replace(/_with_\w+$/, '');
-
-    // Build selector
-    const selector: any = {
+    return executeLocalChildQuery({
+      collection,
       parentId,
-      tableType: normalizedTableType
-    };
-
-    // Apply additional filters
-    for (const [key, value] of Object.entries(filters)) {
-      if (value !== undefined && value !== null && value !== '') {
-        selector[`additional.${key}`] = value;
-      }
-    }
-
-    const results = await collection.find({ selector }).exec();
-    let records = results.map((doc: any) => doc.toJSON());
-
-    // Sort by orderBy field (in additional)
-    const tieBreaker = orderBy.tieBreaker || { field: 'id', direction: 'asc' as const };
-
-    records.sort((a: any, b: any) => {
-      const aVal = a.additional?.[orderBy.field] ?? a[orderBy.field];
-      const bVal = b.additional?.[orderBy.field] ?? b[orderBy.field];
-
-      if (aVal === null || aVal === undefined) return 1;
-      if (bVal === null || bVal === undefined) return -1;
-
-      let cmp: number;
-      if (orderBy.direction === 'asc') {
-        cmp = aVal < bVal ? -1 : aVal > bVal ? 1 : 0;
-      } else {
-        cmp = aVal > bVal ? -1 : aVal < bVal ? 1 : 0;
-      }
-
-      if (cmp === 0) {
-        const aTie = a[tieBreaker.field];
-        const bTie = b[tieBreaker.field];
-        if (tieBreaker.direction === 'asc') {
-          return aTie < bTie ? -1 : aTie > bTie ? 1 : 0;
-        } else {
-          return aTie > bTie ? -1 : aTie < bTie ? 1 : 0;
-        }
-      }
-
-      return cmp;
+      tableType,
+      filters,
+      limit,
+      cursor,
+      orderBy,
     });
-
-    // Apply cursor filter
-    if (cursor) {
-      try {
-        const cursorData = JSON.parse(cursor);
-        const cursorValue = cursorData.value;
-        const cursorTieBreaker = cursorData.tieBreaker;
-
-        records = records.filter((r: any) => {
-          const val = r.additional?.[orderBy.field] ?? r[orderBy.field];
-          const tie = r[tieBreaker.field];
-
-          if (orderBy.direction === 'asc') {
-            return val > cursorValue || (val === cursorValue && tie > cursorTieBreaker);
-          } else {
-            return val < cursorValue || (val === cursorValue && tie > cursorTieBreaker);
-          }
-        });
-      } catch (e) {
-        // Ignore cursor parse errors
-      }
-    }
-
-    // Apply limit
-    return records.slice(0, limit);
   }
 
   // ==========================================
