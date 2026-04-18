@@ -10,38 +10,20 @@
  * Extracted from SpaceComponent.
  */
 import { useCallback, useEffect, useRef, useState } from "react";
-import { getDatabase } from "@breedhub/rxdb-store";
 import type { FilterFieldConfig } from "@/types/field-config";
 import {
-  getLabelForValue,
-  getValueForLabel,
-  normalizeForUrl,
-} from "@/components/space/utils/filter-url-helpers";
-
-type FilterField = FilterFieldConfig;
-
-interface MainFilterField {
-  id: string;
-  slug?: string;
-  [key: string]: any;
-}
-
-interface ActiveFilter {
-  id: string;
-  label: string;
-  isRequired: boolean;
-  order: number;
-}
-
-// Helper to convert "Pet Type" → "Pet type" (sentence case)
-function toSentenceCase(text: string): string {
-  const words = text.split(" ");
-  if (words.length === 0) return text;
-  const firstWord =
-    words[0].charAt(0).toUpperCase() + words[0].slice(1).toLowerCase();
-  const otherWords = words.slice(1).map((w) => w.toLowerCase());
-  return [firstWord, ...otherWords].join(" ");
-}
+  ActiveFilter,
+  applyRawFilterValuesToSearchParams,
+  buildActiveFilters,
+  buildCurrentFilterValues,
+  buildFiltersFromSearchParams,
+  buildSearchParamsWithResolvedFilters,
+  hasFilterSearchParams,
+  persistFilterValues,
+  type FilterField,
+  type MainFilterField,
+  removeFilterFromStorage,
+} from "./filter-management.utils";
 
 interface UseFilterManagementOptions {
   searchParams: URLSearchParams;
@@ -50,7 +32,6 @@ interface UseFilterManagementOptions {
   mainFilterField: MainFilterField | null;
   mainFilterFields: MainFilterField[];
   searchUrlSlug: string | null;
-  entitySchemaName: string;
   filtersStorageKey: string;
   initialSelectedEntityId?: string;
   createMode?: boolean;
@@ -63,7 +44,6 @@ export function useFilterManagement({
   mainFilterField,
   mainFilterFields,
   searchUrlSlug,
-  entitySchemaName,
   filtersStorageKey,
   initialSelectedEntityId,
   createMode,
@@ -76,74 +56,15 @@ export function useFilterManagement({
 
   useEffect(() => {
     const buildFilters = async () => {
-      if (filterFields.length === 0 && !mainFilterField) {
-        setFilters(undefined);
-        return;
-      }
-
-      const filterObj: Record<string, any> = {};
-      const reservedParams = ["sort", "view", "sortBy", "sortDir", "sortParam", "entity"];
-
       try {
-        const rxdb = await getDatabase();
-
-        // Wait for dictionaries collection to be ready
-        let retries = 20;
-        while (!rxdb.collections["dictionaries"] && retries > 0) {
-          console.log(
-            "[useFilterManagement] Waiting for dictionaries collection...",
-          );
-          await new Promise((resolve) => setTimeout(resolve, 100));
-          retries--;
-        }
-
-        if (!rxdb.collections["dictionaries"]) {
-          console.warn(
-            "[useFilterManagement] Dictionaries collection not ready after retries",
-          );
-        }
-
-        // Process all URL params
-        const promises: Promise<void>[] = [];
-        searchParams.forEach((urlValue, urlKey) => {
-          if (!reservedParams.includes(urlKey) && urlValue) {
-            promises.push(
-              (async () => {
-                let fieldConfig = filterFields.find((f) => f.slug === urlKey);
-                if (!fieldConfig) {
-                  fieldConfig = filterFields.find((f) => f.id === urlKey);
-                }
-
-                // If not found in filterFields, check if it's the search URL slug
-                if (!fieldConfig && searchUrlSlug && urlKey === searchUrlSlug) {
-                  if (mainFilterFields.length > 1) {
-                    for (const field of mainFilterFields) {
-                      filterObj[field.id] = urlValue;
-                    }
-                  } else if (mainFilterField) {
-                    filterObj[mainFilterField.id] = urlValue;
-                  }
-                  return;
-                }
-
-                if (fieldConfig) {
-                  const valueId = await getValueForLabel(
-                    fieldConfig,
-                    urlValue,
-                    rxdb as any,
-                  );
-                  filterObj[fieldConfig.id] = valueId || urlValue;
-                }
-              })(),
-            );
-          }
+        const nextFilters = await buildFiltersFromSearchParams({
+          filterFields,
+          mainFilterField,
+          mainFilterFields,
+          searchParams,
+          searchUrlSlug,
         });
-
-        await Promise.all(promises);
-
-        const finalFilters =
-          Object.keys(filterObj).length > 0 ? filterObj : undefined;
-        setFilters(finalFilters);
+        setFilters(nextFilters);
       } catch (error) {
         console.error("[useFilterManagement] Error building filters:", error);
         setFilters(undefined);
@@ -157,7 +78,6 @@ export function useFilterManagement({
     mainFilterField,
     mainFilterFields,
     searchUrlSlug,
-    entitySchemaName,
   ]);
 
   // ============= Apply saved filters from localStorage =============
@@ -167,16 +87,7 @@ export function useFilterManagement({
     if (hasAppliedSavedFilters.current || initialSelectedEntityId || createMode) return;
     if (filterFields.length === 0) return;
 
-    const reservedParams = ["sort", "view", "sortBy", "sortDir", "sortParam"];
-
-    let hasFilterParams = false;
-    searchParams.forEach((_, key) => {
-      if (!reservedParams.includes(key)) {
-        hasFilterParams = true;
-      }
-    });
-
-    if (hasFilterParams) {
+    if (hasFilterSearchParams(searchParams)) {
       hasAppliedSavedFilters.current = true;
       return;
     }
@@ -187,19 +98,11 @@ export function useFilterManagement({
         const parsedFilters = JSON.parse(savedFilters) as Record<string, string>;
 
         const applyFilters = async () => {
-          const newParams = new URLSearchParams(searchParams);
-          const rxdb = await getDatabase();
-
-          for (const [fieldId, value] of Object.entries(parsedFilters)) {
-            if (value) {
-              const fieldConfig = filterFields.find((f) => f.id === fieldId);
-              const urlKey = fieldConfig?.slug || fieldId;
-              const label = await getLabelForValue(fieldConfig, value, rxdb as any);
-              const normalizedLabel = normalizeForUrl(label);
-              newParams.set(urlKey, normalizedLabel);
-            }
-          }
-
+          const newParams = await buildSearchParamsWithResolvedFilters({
+            filterFields,
+            filterValues: parsedFilters,
+            searchParams,
+          });
           setSearchParams(newParams, { replace: true });
         };
 
@@ -216,59 +119,28 @@ export function useFilterManagement({
     filterFields,
     filtersStorageKey,
     initialSelectedEntityId,
+    createMode,
   ]);
 
   // ============= Handle filter apply =============
 
   const handleFiltersApply = useCallback(
     async (filterValues: Record<string, any>) => {
-      const newParams = new URLSearchParams(searchParams);
-
       try {
-        const rxdb = await getDatabase();
+        const newParams = await buildSearchParamsWithResolvedFilters({
+          filterFields,
+          filterValues,
+          searchParams,
+        });
 
-        for (const [fieldId, value] of Object.entries(filterValues)) {
-          if (value !== undefined && value !== null && value !== "") {
-            const fieldConfig = filterFields.find((f) => f.id === fieldId);
-            const urlKey = fieldConfig?.slug || fieldId;
-            const label = await getLabelForValue(fieldConfig, value, rxdb as any);
-            const normalizedLabel = normalizeForUrl(label);
-            newParams.set(urlKey, normalizedLabel);
-          } else {
-            const fieldConfig = filterFields.find((f) => f.id === fieldId);
-            if (fieldConfig?.slug) {
-              newParams.delete(fieldConfig.slug);
-            }
-            newParams.delete(fieldId);
-          }
-        }
-
-        // Persist to localStorage
-        try {
-          const filtersToStore: Record<string, string> = {};
-          for (const [fieldId, value] of Object.entries(filterValues)) {
-            if (value !== undefined && value !== null && value !== "") {
-              filtersToStore[fieldId] = String(value);
-            }
-          }
-          if (Object.keys(filtersToStore).length > 0) {
-            localStorage.setItem(filtersStorageKey, JSON.stringify(filtersToStore));
-          } else {
-            localStorage.removeItem(filtersStorageKey);
-          }
-        } catch {
-          // localStorage not available
-        }
-
+        persistFilterValues(filtersStorageKey, filterValues);
         setSearchParams(newParams);
       } catch (error) {
         console.error("[handleFiltersApply] Error:", error);
-        Object.entries(filterValues).forEach(([fieldId, value]) => {
-          if (value !== undefined && value !== null && value !== "") {
-            const fieldConfig = filterFields.find((f) => f.id === fieldId);
-            const urlKey = fieldConfig?.slug || fieldId;
-            newParams.set(urlKey, String(value));
-          }
+        const newParams = applyRawFilterValuesToSearchParams({
+          filterFields,
+          filterValues,
+          searchParams,
         });
         setSearchParams(newParams);
       }
@@ -284,21 +156,11 @@ export function useFilterManagement({
       newParams.delete(filter.id);
 
       try {
-        const savedFilters = localStorage.getItem(filtersStorageKey);
-        if (savedFilters) {
-          const parsedFilters = JSON.parse(savedFilters) as Record<string, string>;
-          const fieldConfig = filterFields.find(
-            (f) => f.slug === filter.id || f.id === filter.id,
-          );
-          const fieldId = fieldConfig?.id || filter.id;
-          delete parsedFilters[fieldId];
-
-          if (Object.keys(parsedFilters).length > 0) {
-            localStorage.setItem(filtersStorageKey, JSON.stringify(parsedFilters));
-          } else {
-            localStorage.removeItem(filtersStorageKey);
-          }
-        }
+        removeFilterFromStorage({
+          filterFields,
+          filterId: filter.id,
+          filtersStorageKey,
+        });
       } catch {
         // localStorage not available
       }
@@ -314,59 +176,11 @@ export function useFilterManagement({
 
   useEffect(() => {
     const loadActiveFilters = async () => {
-      const result: ActiveFilter[] = [];
-      const reservedParams = ["sort", "view", "sortBy", "sortDir", "sortParam", "entity"];
-
-      const rxdb = await getDatabase();
-
-      let retries = 20;
-      while (!rxdb.collections["dictionaries"] && retries > 0) {
-        await new Promise((resolve) => setTimeout(resolve, 100));
-        retries--;
-      }
-
-      for (const [key, urlValue] of searchParams.entries()) {
-        if (!reservedParams.includes(key) && urlValue) {
-          if (searchUrlSlug && key === searchUrlSlug) continue;
-
-          let fieldConfig = filterFields.find((f) => f.slug === key);
-          if (!fieldConfig) {
-            fieldConfig = filterFields.find((f) => f.id === key);
-          }
-
-          const displayName = fieldConfig
-            ? toSentenceCase(fieldConfig.displayName)
-            : key;
-
-          let displayValue = urlValue;
-          if (fieldConfig?.referencedTable) {
-            const isUUID =
-              /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
-                urlValue,
-              );
-
-            if (isUUID) {
-              const label = await getLabelForValue(fieldConfig, urlValue, rxdb as any);
-              displayValue = label;
-            } else {
-              const valueId = await getValueForLabel(fieldConfig, urlValue, rxdb as any);
-              if (valueId) {
-                const label = await getLabelForValue(fieldConfig, valueId, rxdb as any);
-                displayValue = label;
-              }
-            }
-          }
-
-          result.push({
-            id: key,
-            label: `${displayName}: ${displayValue}`,
-            isRequired: fieldConfig?.required ?? false,
-            order: fieldConfig?.order ?? 999,
-          });
-        }
-      }
-
-      result.sort((a, b) => a.order - b.order);
+      const result = await buildActiveFilters({
+        filterFields,
+        searchParams,
+        searchUrlSlug,
+      });
       setActiveFilters(result);
     };
 
@@ -383,45 +197,12 @@ export function useFilterManagement({
 
   useEffect(() => {
     const buildFormValues = async () => {
-      if (filterFields.length === 0) {
-        setCurrentFilterValues({});
-        return;
-      }
-
-      const values: Record<string, any> = {};
-      const reservedParams = ["sort", "view", "sortBy", "sortDir", "sortParam", "entity"];
-
       try {
-        const rxdb = await getDatabase();
-
-        let retries = 20;
-        while (!rxdb.collections["dictionaries"] && retries > 0) {
-          await new Promise((resolve) => setTimeout(resolve, 100));
-          retries--;
-        }
-
-        const promises: Promise<void>[] = [];
-        searchParams.forEach((urlValue, urlKey) => {
-          if (!reservedParams.includes(urlKey) && urlValue) {
-            promises.push(
-              (async () => {
-                if (searchUrlSlug && urlKey === searchUrlSlug) return;
-
-                let fieldConfig = filterFields.find((f) => f.slug === urlKey);
-                if (!fieldConfig) {
-                  fieldConfig = filterFields.find((f) => f.id === urlKey);
-                }
-
-                if (fieldConfig) {
-                  const valueId = await getValueForLabel(fieldConfig, urlValue, rxdb as any);
-                  values[fieldConfig.id] = valueId || urlValue;
-                }
-              })(),
-            );
-          }
+        const values = await buildCurrentFilterValues({
+          filterFields,
+          searchParams,
+          searchUrlSlug,
         });
-
-        await Promise.all(promises);
         setCurrentFilterValues(values);
       } catch (error) {
         console.error("[currentFilterValues] Error:", error);

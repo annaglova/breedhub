@@ -133,7 +133,6 @@ export function SpaceComponent<T extends { id: string }>({
     mainFilterField,
     mainFilterFields,
     searchUrlSlug,
-    entitySchemaName: config.entitySchemaName,
     filtersStorageKey,
     initialSelectedEntityId,
     createMode,
