@@ -1,35 +1,23 @@
 import { useSpaceBrowseState } from "@/hooks/space/useSpaceBrowseState";
+import { useCreateEntityNavigation } from "@/hooks/space/useCreateEntityNavigation";
 import { useSpaceLayoutState } from "@/hooks/space/useSpaceLayoutState";
 import { useTotalCountCache } from "@/hooks/space/useTotalCountCache";
 import { useEntitySelection } from "@/hooks/space/useEntitySelection";
 import { useFilterManagement } from "@/hooks/space/useFilterManagement";
-import {
-  spaceStore,
-  getDatabase,
-} from "@breedhub/rxdb-store";
-import { getLabelForValue, normalizeForUrl } from "@/components/space/utils/filter-url-helpers";
+import { spaceStore } from "@breedhub/rxdb-store";
 import { Signal } from "@preact/signals-react";
 import { useSignals } from "@preact/signals-react/runtime";
-import { Button } from "@ui/components/button";
-import { SearchInput } from "@ui/components/form-inputs";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@ui/components/tooltip";
+import { TooltipProvider } from "@ui/components/tooltip";
 import { cn } from "@ui/lib/utils";
-import { Plus } from "lucide-react";
 import { useCallback, useMemo } from "react";
 import {
   Outlet,
   useNavigate,
   useSearchParams,
 } from "react-router-dom";
-import { EntitiesCounter } from "./EntitiesCounter";
-import { FiltersSection } from "./filters";
+import { SpaceDrawer } from "./SpaceDrawer";
+import { SpaceHeader } from "./SpaceHeader";
 import { SpaceView } from "./SpaceView";
-import { ViewChanger } from "./ViewChanger";
 
 interface SpaceComponentProps<T> {
   configSignal: Signal<any>; // TODO: Define proper SpaceConfig type from DB structure
@@ -206,34 +194,41 @@ export function SpaceComponent<T extends { id: string }>({
     }
   }, [loadMore]);
 
-
-  const handleCreateNew = useCallback(async () => {
-    const params = new URLSearchParams({ entity: config.entitySchemaName });
-
-    // Build slug-based URL params (e.g., breed=chihuahua instead of breed_id=UUID)
-    if (filters) {
-      try {
-        const rxdb = await getDatabase();
-        for (const [fieldId, value] of Object.entries(filters)) {
-          if (!value) continue;
-          const fieldConfig = filterFields.find((f: any) => f.id === fieldId);
-          const urlKey = fieldConfig?.slug || fieldId.replace(/^[^_]+_field_/, '');
-          const label = await getLabelForValue(fieldConfig, String(value), rxdb as any);
-          params.set(urlKey, normalizeForUrl(label));
-        }
-      } catch {
-        // Fallback: use raw IDs if resolution fails
-        for (const [fieldId, value] of Object.entries(filters)) {
-          if (value) {
-            const dbName = fieldId.replace(/^[^_]+_field_/, '');
-            params.set(dbName, String(value));
-          }
-        }
-      }
-    }
-
-    navigate(`/new?${params.toString()}`);
-  }, [config.entitySchemaName, filters, filterFields, navigate]);
+  const handleCreateNew = useCreateEntityNavigation({
+    entitySchemaName: config.entitySchemaName,
+    filterFields,
+    filters,
+    navigate,
+  });
+  const drawerContent = children || <Outlet />;
+  const viewChangerConfigs = useMemo(
+    () =>
+      finalConfig.viewConfigs?.map((viewConfig: any) => ({
+        id: viewConfig.viewType,
+        icon: viewConfig.icon,
+        tooltip: viewConfig.tooltip,
+      })) || [],
+    [finalConfig.viewConfigs],
+  );
+  const spaceViewConfig = useMemo(
+    () => ({
+      viewType: viewMode,
+      component: currentViewConfig?.component || "GenericListCard",
+      itemHeight: currentViewConfig?.itemHeight || 68,
+      dividers: currentViewConfig?.dividers ?? true,
+      overscan: currentViewConfig?.overscan || 3,
+      skeletonCount: Math.ceil(recordsCount / 2),
+    }),
+    [currentViewConfig, recordsCount, viewMode],
+  );
+  const listShellClassName = cn(
+    "relative flex flex-col cursor-default h-full overflow-hidden",
+    needCardClass ? "fake-card" : "card-surface",
+    "transition-all duration-300 ease-out",
+    !isGridView && drawerMode === "side-transparent" && "mr-[46.25rem]",
+  );
+  const totalFilterValue =
+    config.totalFilterKey && filters ? filters[config.totalFilterKey] : null;
 
   if (error) {
     return (
@@ -248,7 +243,9 @@ export function SpaceComponent<T extends { id: string }>({
   }
 
   // Fullscreen mode flag - used to control drawer size and hide space list
-  const showFullscreen = (isFullscreen && initialSelectedEntityId) || createMode;
+  const showFullscreen = Boolean(
+    (isFullscreen && initialSelectedEntityId) || createMode,
+  );
 
   // Show loading state only on initial load
   // SKIP loading state when initialSelectedEntityId is provided (pretty URL mode)
@@ -257,100 +254,37 @@ export function SpaceComponent<T extends { id: string }>({
   if (isInitialLoad && isLoading && !initialSelectedEntityId && !createMode) {
     return (
       <div className="relative h-full overflow-hidden">
-        <div
-          className={cn(
-            "flex flex-col cursor-default h-full overflow-hidden",
-            needCardClass ? "fake-card" : "card-surface",
-            // For side-transparent mode (xxl+): reserve space for drawer (only for list views)
-            !isGridView && drawerMode === "side-transparent" && "mr-[46.25rem]",
-          )}
-        >
-          <div
-            className="z-20 flex flex-col justify-between border-b border-surface-border space-padding"
-          >
-            <div className="w-full">
-              <div className="flex w-full justify-between">
-                <h1 className="text-3xl sm:text-4xl">{finalConfig.title}</h1>
-                <ViewChanger
-                  views={finalConfig.viewTypes || []}
-                  viewConfigs={finalConfig.viewConfigs?.map((v: any) => ({
-                    id: v.viewType,
-                    icon: v.icon,
-                    tooltip: v.tooltip,
-                  }))}
-                  onViewChange={handleViewChange}
-                />
-              </div>
-              <EntitiesCounter
-                entitiesCount={0}
-                total={0}
-                entityType={config.entitySchemaName}
-                initialCount={recordsCount}
-                totalFilterKey={config.totalFilterKey}
-                totalFilterValue={
-                  config.totalFilterKey && filters
-                    ? filters[config.totalFilterKey]
-                    : null
-                }
-              />
-            </div>
-
-            {/* Search + Add button */}
-            <div className="mt-4 flex items-center space-x-3">
-              <SearchInput
-                value=""
-                placeholder={
-                  config?.naming?.searchPlaceholder ||
-                  `Search ${config?.label || "entities"}...`
-                }
-                pill
-                disabled
-                showClearButton={false}
-                className="w-full"
-              />
-
-              {finalConfig.canAdd && (
-                <Button
-                  className={cn(
-                    "rounded-full font-bold flex-shrink-0",
-                    needCardClass
-                      ? "h-[2.25rem] px-4"
-                      : "h-[2.25rem] w-[2.25rem] flex items-center justify-center",
-                  )}
-                >
-                  <Plus className="h-4 w-4 flex-shrink-0" />
-                  {needCardClass && (
-                    <span className="text-base font-semibold">Add</span>
-                  )}
-                </Button>
-              )}
-            </div>
-
-            {/* Filters */}
-            <FiltersSection
-              className="mt-4"
-              sortOptions={sortOptions}
-              defaultSortOption={selectedSortOption}
-              onSortChange={() => {}}
-              filterFields={filterFields}
-              filters={[]}
-              onFilterRemove={() => {}}
-              onFiltersApply={() => {}}
-              currentFilterValues={{}}
-            />
-          </div>
+        <div className={cn(listShellClassName, "transition-none")}>
+          <SpaceHeader
+            title={finalConfig.title}
+            viewTypes={finalConfig.viewTypes || []}
+            viewConfigs={viewChangerConfigs}
+            onViewChange={handleViewChange}
+            entitySchemaName={config.entitySchemaName}
+            entitiesCount={0}
+            total={0}
+            recordsCount={recordsCount}
+            totalFilterKey={config.totalFilterKey}
+            totalFilterValue={totalFilterValue}
+            loading={true}
+            searchPlaceholder={
+              config?.naming?.searchPlaceholder ||
+              `Search ${config?.label || "entities"}...`
+            }
+            searchValue=""
+            canAdd={finalConfig.canAdd}
+            needCardClass={needCardClass}
+            sortOptions={sortOptions}
+            defaultSortOption={selectedSortOption}
+            filterFields={filterFields}
+            filters={[]}
+            currentFilterValues={{}}
+          />
 
           {/* SpaceView with skeletons */}
           <div className="relative flex-1 overflow-hidden">
-              <SpaceView
-                viewConfig={{
-                  viewType: viewMode,
-                  component: currentViewConfig?.component || "GenericListCard",
-                  itemHeight: currentViewConfig?.itemHeight || 68,
-                  dividers: currentViewConfig?.dividers ?? true,
-                  overscan: currentViewConfig?.overscan || 3,
-                  skeletonCount: Math.ceil(recordsCount / 2),
-                }}
+            <SpaceView
+              viewConfig={spaceViewConfig}
               entities={[]}
               isLoading={true}
             />
@@ -371,8 +305,7 @@ export function SpaceComponent<T extends { id: string }>({
               "rounded-l-xl overflow-hidden",
             )}
           >
-            {/* PublicPageTemplate handles its own loading skeletons via outlets */}
-            {children || <Outlet />}
+            {drawerContent}
           </div>
         )}
       </div>
@@ -389,116 +322,42 @@ export function SpaceComponent<T extends { id: string }>({
       >
         {/* Main Content - hidden when fullscreen */}
         {!showFullscreen && (
-          <div
-            className={cn(
-              "relative flex flex-col cursor-default h-full overflow-hidden",
-              needCardClass ? "fake-card" : "card-surface",
-              "transition-all duration-300 ease-out",
-              // For side-transparent mode (xxl+): reserve space for drawer (only for list views)
-              // Grid views don't have side drawer - they go directly to fullscreen
-              !isGridView &&
-                drawerMode === "side-transparent" &&
-                "mr-[46.25rem]", // 45rem + 1.25rem gap
-            )}
-          >
-            {/* Header */}
-            <div
-              className="z-20 flex flex-col justify-between border-b border-surface-border space-padding"
-            >
-              <div className="w-full">
-                <div className="flex w-full justify-between">
-                  <h1 className="text-3xl sm:text-4xl">{finalConfig.title}</h1>
-                  <ViewChanger
-                    views={finalConfig.viewTypes || []}
-                  viewConfigs={finalConfig.viewConfigs?.map((v: any) => ({
-                      id: v.viewType,
-                      icon: v.icon,
-                      tooltip: v.tooltip,
-                    }))}
-                    onViewChange={handleViewChange}
-                  />
-                </div>
-                {spaceStore.configReady.value && (
-                  <EntitiesCounter
-                    entitiesCount={allEntities.length}
-                    total={totalCount}
-                    entityType={config.entitySchemaName}
-                    initialCount={recordsCount}
-                    totalFilterKey={config.totalFilterKey}
-                    totalFilterValue={
-                      config.totalFilterKey && filters
-                        ? filters[config.totalFilterKey]
-                        : null
-                    }
-                  />
-                )}
-              </div>
-
-              {/* Main actions */}
-              <div className="mt-4 flex items-center space-x-3">
-                {/* Search */}
-                <SearchInput
-                  value={searchValue}
-                  onValueChange={setSearchValue}
-                  placeholder={
-                    config?.naming?.searchPlaceholder ||
-                    `Search ${config?.label || "entities"}...`
-                  }
-                  pill
-                  className="w-full"
-                />
-
-                {/* Add button */}
-                {finalConfig.canAdd && (
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        onClick={handleCreateNew}
-                        className={cn(
-                          "rounded-full font-bold flex-shrink-0",
-                          needCardClass
-                            ? "h-[2.25rem] px-4"
-                            : "h-[2.25rem] w-[2.25rem] flex items-center justify-center",
-                        )}
-                      >
-                        <Plus className="h-4 w-4 flex-shrink-0" />
-                        {needCardClass && (
-                          <span className="text-base font-semibold">Add</span>
-                        )}
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent side="bottom">
-                      <p>Add new record</p>
-                    </TooltipContent>
-                  </Tooltip>
-                )}
-              </div>
-
-              {/* Filters */}
-              <FiltersSection
-                className="mt-4"
-                sortOptions={sortOptions}
-                defaultSortOption={selectedSortOption}
-                onSortChange={handleSortChange}
-                filterFields={filterFields}
-                filters={activeFilters}
-                onFilterRemove={handleFilterRemove}
-                onFiltersApply={handleFiltersApply}
-                currentFilterValues={currentFilterValues}
-              />
-            </div>
+          <div className={listShellClassName}>
+            <SpaceHeader
+              title={finalConfig.title}
+              viewTypes={finalConfig.viewTypes || []}
+              viewConfigs={viewChangerConfigs}
+              onViewChange={handleViewChange}
+              entitySchemaName={config.entitySchemaName}
+              entitiesCount={spaceStore.configReady.value ? allEntities.length : 0}
+              total={spaceStore.configReady.value ? totalCount : 0}
+              recordsCount={recordsCount}
+              totalFilterKey={config.totalFilterKey}
+              totalFilterValue={totalFilterValue}
+              searchPlaceholder={
+                config?.naming?.searchPlaceholder ||
+                `Search ${config?.label || "entities"}...`
+              }
+              searchValue={searchValue}
+              onSearchChange={setSearchValue}
+              canAdd={finalConfig.canAdd}
+              onCreateNew={handleCreateNew}
+              needCardClass={needCardClass}
+              sortOptions={sortOptions}
+              defaultSortOption={selectedSortOption}
+              onSortChange={handleSortChange}
+              filterFields={filterFields}
+              filters={activeFilters}
+              onFilterRemove={handleFilterRemove}
+              onFiltersApply={handleFiltersApply}
+              currentFilterValues={currentFilterValues}
+              showCounter={spaceStore.configReady.value}
+            />
 
             {/* Content Scroller */}
             <div className="relative flex-1 overflow-hidden">
               <SpaceView
-                viewConfig={{
-                  viewType: viewMode,
-                  component: currentViewConfig?.component || "GenericListCard",
-                  itemHeight: currentViewConfig?.itemHeight || 68,
-                  dividers: currentViewConfig?.dividers ?? true,
-                  overscan: currentViewConfig?.overscan || 3,
-                  skeletonCount: Math.ceil(recordsCount / 2),
-                }}
+                viewConfig={spaceViewConfig}
                 entities={allEntities}
                 selectedId={isGridView ? undefined : (selectedEntityId ?? undefined)}
                 onEntityClick={handleEntityClick}
@@ -532,53 +391,15 @@ export function SpaceComponent<T extends { id: string }>({
           </div>
         )}
 
-        {/* Unified Drawer - single element for all modes with smooth transitions */}
-        {/* For grid view: only render when fullscreen. For list view: normal drawer behavior */}
-        {(isGridView
-          ? showFullscreen
-          : showFullscreen ||
-            isDrawerOpen ||
-            drawerMode === "side-transparent") && (
-          <div
-            className={cn(
-              "absolute top-0 bottom-0 right-0 z-40",
-              "transition-all duration-300 ease-out",
-              // Width based on mode and fullscreen state - use percentages for smooth transition
-              (showFullscreen || drawerMode === "over") && "w-full",
-              !showFullscreen && drawerMode === "side" && "w-[70%] xl:w-[60%]",
-              !showFullscreen &&
-                drawerMode === "side-transparent" &&
-                "w-[45rem]",
-              // Background
-              showFullscreen
-                ? needCardClass
-                  ? "fake-card"
-                  : "card-surface"
-                : drawerMode === "side-transparent"
-                  ? needCardClass
-                    ? "fake-card"
-                    : "card-surface"
-                  : "bg-white",
-              // Rounded corners
-              showFullscreen && "md:rounded-xl overflow-hidden",
-              !showFullscreen &&
-                drawerMode !== "over" &&
-                (needCardClass
-                  ? "rounded-xl overflow-hidden"
-                  : "rounded-l-xl overflow-hidden"),
-              // Shadow for side mode only
-              !showFullscreen && drawerMode === "side" && "shadow-xl",
-              // Show/hide animation (always visible in fullscreen or side-transparent for list views)
-              showFullscreen || drawerMode === "side-transparent"
-                ? "opacity-100"
-                : isDrawerOpen
-                  ? "opacity-100"
-                  : "translate-x-full opacity-0 pointer-events-none",
-            )}
-          >
-            <div className="h-full overflow-auto">{children || <Outlet />}</div>
-          </div>
-        )}
+        <SpaceDrawer
+          drawerMode={drawerMode}
+          isDrawerOpen={isDrawerOpen}
+          isGridView={isGridView}
+          needCardClass={needCardClass}
+          showFullscreen={showFullscreen}
+        >
+          {drawerContent}
+        </SpaceDrawer>
       </div>
     </TooltipProvider>
   );

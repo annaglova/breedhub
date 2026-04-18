@@ -14,7 +14,7 @@ export function useSpaceLayoutState({
   const isMoreThan2XL = useMediaQuery(mediaQueries["2xl"]);
   const needCardClass = isMoreThanLG;
 
-  const drawerMode = useMemo(() => {
+  const drawerMode = useMemo<"over" | "side" | "side-transparent">(() => {
     if (isFullscreen) return "over";
     if (isMoreThan2XL) return "side-transparent";
     if (isMoreThanMD) return "side";
