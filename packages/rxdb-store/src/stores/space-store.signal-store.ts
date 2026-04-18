@@ -53,6 +53,12 @@ import {
   splitCachedAndMissingMappingRows,
   type MappingRow,
 } from './space-mapping.helpers';
+import {
+  getMissingIds,
+  getStaleIdsByUpdatedAt,
+  mapDocsToRecordMap,
+  mergeOrderedRecordsByIds,
+} from './space-id-cache.helpers';
 
 // Helpers
 import {
@@ -1563,26 +1569,18 @@ class SpaceStore {
         selector: { id: { $in: ids } }
       }).exec();
 
-      const cachedMap = new Map<string, Record<string, any>>(
-        cached.map((doc: any): [string, Record<string, any>] => [doc.id, doc.toJSON()]),
-      );
+      const cachedMap = mapDocsToRecordMap<BusinessEntity>(cached);
 
       // 🔍 Staleness check: compare cached updated_at with server updated_at
-      const serverUpdatedAtMap = new Map(idsData.map((r: any) => [r.id, r.updated_at]));
-      const missingIds: string[] = [];
-      const staleIds: string[] = [];
-
-      for (const id of ids) {
-        const cachedDoc = cachedMap.get(id);
-        if (!cachedDoc) {
-          missingIds.push(id);
-        } else {
-          const serverUpdatedAt = serverUpdatedAtMap.get(id);
-          if (serverUpdatedAt && cachedDoc.updated_at && serverUpdatedAt > cachedDoc.updated_at) {
-            staleIds.push(id);
-          }
-        }
-      }
+      const serverUpdatedAtMap = new Map<string, string | undefined>(
+        idsData.map((r: any) => [r.id, r.updated_at]),
+      );
+      const missingIds = getMissingIds(ids, cachedMap);
+      const staleIds = getStaleIdsByUpdatedAt(
+        ids,
+        cachedMap,
+        serverUpdatedAtMap,
+      );
 
       const toFetchIds = [...missingIds, ...staleIds];
       console.log(`[SpaceStore] 📦 Cache: ${cachedMap.size}/${ids.length} hit, ${missingIds.length} missing, ${staleIds.length} stale`);
@@ -1608,15 +1606,11 @@ class SpaceStore {
       }
 
       // 🔀 PHASE 4: Merge cached + fresh, maintain order from IDs query
-      const recordsMap = new Map<string, Record<string, any>>([
-        ...Array.from(cachedMap.entries()),
-        ...freshRecords.map((record: any): [string, Record<string, any>] => [record.id, record]),
-      ]);
-
-      // CRITICAL: Maintain exact order from IDs query!
-      const orderedRecords = ids
-        .map(id => recordsMap.get(id))
-        .filter(Boolean);
+      const orderedRecords = mergeOrderedRecordsByIds(
+        ids,
+        cachedMap,
+        freshRecords as BusinessEntity[],
+      );
 
       console.log(`[SpaceStore] ✅ Returning ${orderedRecords.length} records (hasMore: ${idsData.length >= limit})`);
 
@@ -3408,11 +3402,11 @@ class SpaceStore {
         selector: { id: { $in: ids } }
       }).exec();
 
-      const cachedMap = new Map(cached.map(d => [d.id, d.toJSON()]));
+      const cachedMap = mapDocsToRecordMap<BusinessEntity>(cached);
       console.log(`[SpaceStore] 📦 Found ${cachedMap.size}/${ids.length} in cache`);
 
       // 🌐 PHASE 3: Fetch missing full records
-      const missingIds = ids.filter(id => !cachedMap.has(id));
+      const missingIds = getMissingIds(ids, cachedMap);
 
       let freshRecords: any[] = [];
       if (missingIds.length > 0) {
@@ -3437,14 +3431,11 @@ class SpaceStore {
       }
 
       // 🔀 PHASE 4: Merge & maintain order
-      const recordsMap = new Map<string, any>([
-        ...Array.from(cachedMap.entries()),
-        ...freshRecords.map((record: any): [string, any] => [record.id, record])
-      ]);
-
-      const orderedRecords = ids
-        .map(id => recordsMap.get(id))
-        .filter(Boolean);
+      const orderedRecords = mergeOrderedRecordsByIds(
+        ids,
+        cachedMap,
+        freshRecords as BusinessEntity[],
+      );
 
       const hasMore = idsData.length >= limit;
 
@@ -3842,13 +3833,13 @@ class SpaceStore {
 
     // Phase 2: Check RxDB cache
     const collection = this.db?.collections['pet'];
-    let cachedMap = new Map<string, any>();
+    let cachedMap = new Map<string, BusinessEntity>();
 
     if (collection) {
       const cached = await collection.find({
         selector: { id: { $in: allIds } }
       }).exec();
-      cachedMap = new Map(cached.map((d: any) => [d.id, d.toJSON()]));
+      cachedMap = mapDocsToRecordMap<BusinessEntity>(cached);
     }
 
     const cacheHitRate = allIds.length > 0
@@ -3857,7 +3848,7 @@ class SpaceStore {
     console.log(`[SpaceStore] Pedigree cache: ${cachedMap.size}/${allIds.length} ancestors in RxDB (${cacheHitRate}% hit rate)`);
 
     // Phase 3: Fetch only missing ancestors from Supabase (grouped by breed_id for partition pruning)
-    const missingIds = allIds.filter(id => !cachedMap.has(id));
+    const missingIds = getMissingIds(allIds, cachedMap);
     let freshRecords: any[] = [];
 
     try {
@@ -3894,7 +3885,11 @@ class SpaceStore {
       }
 
       // Phase 4: Merge cached + fresh
-      const allAncestors = [...cachedMap.values(), ...freshRecords];
+      const allAncestors = mergeOrderedRecordsByIds(
+        allIds,
+        cachedMap,
+        freshRecords as BusinessEntity[],
+      );
 
       // Resolve sex and country codes via dictionaryStore (local-first, RxDB cached)
       const countryIds = new Set<string>();

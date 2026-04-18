@@ -1,0 +1,63 @@
+import { describe, expect, it } from "vitest";
+import {
+  buildRecordMapById,
+  getMissingIds,
+  getStaleIdsByUpdatedAt,
+  mapDocsToRecordMap,
+  mergeOrderedRecordsByIds,
+} from "../space-id-cache.helpers";
+
+describe("space-id-cache.helpers", () => {
+  it("maps docs to records and detects missing ids", () => {
+    const docs = [
+      { id: "a", toJSON: () => ({ id: "a", value: 1 }) },
+      { id: "b", toJSON: () => ({ id: "b", value: 2 }) },
+    ];
+
+    const recordMap = mapDocsToRecordMap(docs);
+
+    expect(recordMap.get("a")).toEqual({ id: "a", value: 1 });
+    expect(getMissingIds(["a", "c"], recordMap)).toEqual(["c"]);
+  });
+
+  it("detects stale ids from server updated_at map", () => {
+    const cachedMap = buildRecordMapById([
+      { id: "a", updated_at: "2024-01-01" },
+      { id: "b", updated_at: "2024-01-05" },
+    ]);
+
+    const staleIds = getStaleIdsByUpdatedAt(
+      ["a", "b", "c"],
+      cachedMap,
+      new Map([
+        ["a", "2024-01-02"],
+        ["b", "2024-01-05"],
+        ["c", "2024-01-10"],
+      ]),
+    );
+
+    expect(staleIds).toEqual(["a"]);
+  });
+
+  it("merges fresh records over cached records and preserves requested order", () => {
+    const cachedMap = buildRecordMapById([
+      { id: "a", value: "cached-a" },
+      { id: "b", value: "cached-b" },
+    ]);
+
+    const merged = mergeOrderedRecordsByIds(
+      ["b", "c", "a"],
+      cachedMap,
+      [
+        { id: "c", value: "fresh-c" },
+        { id: "b", value: "fresh-b" },
+      ],
+    );
+
+    expect(merged).toEqual([
+      { id: "b", value: "fresh-b" },
+      { id: "c", value: "fresh-c" },
+      { id: "a", value: "cached-a" },
+    ]);
+  });
+});
