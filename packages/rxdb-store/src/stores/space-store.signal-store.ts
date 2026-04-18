@@ -22,6 +22,14 @@ import {
   SpaceConfig,
 } from './space-config.helpers';
 import {
+  applyFiltersToRxdbSelector,
+  applyFiltersToSupabaseQuery,
+  getActiveFilterEntries,
+  getStringSearchFilters,
+  hasFilterValue,
+  resolveFieldFilter,
+} from './space-filter.helpers';
+import {
   applySupabaseKeysetCursor,
   applySupabaseOrderBy,
   buildNextKeysetCursor,
@@ -41,8 +49,7 @@ import {
 } from '../helpers';
 
 // Utils
-import { removeFieldPrefix, addFieldPrefix } from '../utils/field-normalization';
-import * as F from '../utils/filter-builder';
+import { removeFieldPrefix } from '../utils/field-normalization';
 import * as CC from '../utils/child-collection-registry';
 import { generateSchemaForEntity as buildSchema, ENTITY_VIEW_SOURCES } from '../utils/schema-builder';
 import { rebuildTimelineOnDateChange } from '../utils/timeline-builder';
@@ -1336,24 +1343,9 @@ class SpaceStore {
 
         const countSelector: any = { _deleted: false };
         // Apply same filters for count (simplified version)
-        for (const [fieldKey, value] of Object.entries(filters)) {
-          if (value !== undefined && value !== null && value !== '') {
-            let fieldConfig = fieldConfigs[fieldKey];
-            if (!fieldConfig) {
-              const prefixedKey = addFieldPrefix(fieldKey, entityType);
-              fieldConfig = fieldConfigs[prefixedKey];
-            }
-            const fieldType = fieldConfig?.fieldType || 'string';
-            const operator = this.detectOperator(fieldType, fieldConfig?.operator);
-
-            if (operator === 'ilike' || operator === 'contains') {
-              const escapedValue = String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-              countSelector[fieldKey] = { $regex: escapedValue, $options: 'i' };
-            } else if (operator === 'eq') {
-              countSelector[fieldKey] = value;
-            }
-          }
-        }
+        applyFiltersToRxdbSelector(countSelector, filters, fieldConfigs, {
+          entityType,
+        });
 
         const allMatchingDocs = await collection.find({ selector: countSelector }).exec();
         const totalCount = allMatchingDocs.length;
@@ -1660,43 +1652,10 @@ class SpaceStore {
         const countSelector: any = { _deleted: false };
 
         // Apply same filters for count
-        for (const [fieldKey, value] of Object.entries(filters)) {
-          if (value === undefined || value === null || value === '') continue;
-
-          let fieldConfig = fieldConfigs[fieldKey];
-          if (!fieldConfig) {
-            const prefixedKey = addFieldPrefix(fieldKey, entityType);
-            fieldConfig = fieldConfigs[prefixedKey];
-          }
-
-          const finalFieldConfig = fieldConfig || {};
-          const fieldType = finalFieldConfig.fieldType || 'string';
-
-          // For string/text fields in search, always use 'ilike' (ignore 'eq' from config)
-          let configOperator = finalFieldConfig.operator;
-          if ((fieldType === 'string' || fieldType === 'text') && configOperator === 'eq') {
-            configOperator = undefined; // Let detectOperator use default 'ilike' for string
-          }
-
-          const operator = this.detectOperator(fieldType, configOperator);
-
-          // Add to selector
-          if (operator === 'ilike' || operator === 'contains') {
-            // Escape regex special characters and use string pattern
-            const escapedValue = String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-            countSelector[fieldKey] = { $regex: escapedValue, $options: 'i' };
-          } else if (operator === 'eq') {
-            countSelector[fieldKey] = value;
-          } else if (operator === 'gt') {
-            countSelector[fieldKey] = { $gt: value };
-          } else if (operator === 'gte') {
-            countSelector[fieldKey] = { $gte: value };
-          } else if (operator === 'lt') {
-            countSelector[fieldKey] = { $lt: value };
-          } else if (operator === 'lte') {
-            countSelector[fieldKey] = { $lte: value };
-          }
-        }
+        applyFiltersToRxdbSelector(countSelector, filters, fieldConfigs, {
+          entityType,
+          preferStringSearchOperator: true,
+        });
 
         // Get total count by fetching all matching records (without limit)
         // Note: We use find() instead of count() to avoid "slow count" errors when selector doesn't match index
@@ -1807,17 +1766,9 @@ class SpaceStore {
       console.log(`[SpaceStore] 📊 Collection ${entityType} has ${totalDocs} docs in RxDB`);
 
       // 🎯 HYBRID SEARCH: Detect if we have a string/text filter for hybrid search
-      const stringFilters = Object.entries(filters).filter(([fieldKey, value]) => {
-        if (value === undefined || value === null || value === '') return false;
-
-        let fieldConfig = fieldConfigs[fieldKey];
-        if (!fieldConfig) {
-          const prefixedKey = addFieldPrefix(fieldKey, entityType);
-          fieldConfig = fieldConfigs[prefixedKey];
-        }
-
-        const fieldType = fieldConfig?.fieldType || 'string';
-        return fieldType === 'string' || fieldType === 'text';
+      const stringFilters = getStringSearchFilters(filters, fieldConfigs, {
+        entityType,
+        requireSearchOperator: false,
       });
 
       // Use hybrid search if: (1) has string filter, (2) no cursor (first page)
@@ -1839,20 +1790,10 @@ class SpaceStore {
         }
 
         // Apply non-string filters to selector (with orFields support)
-        for (const [fieldKey, value] of Object.entries(filters)) {
-          if (stringFilters.some(([k]) => k === fieldKey)) continue; // Skip string filters
-          if (value === undefined || value === null || value === '') continue;
-
-          let fieldConfig = fieldConfigs[fieldKey];
-          if (!fieldConfig) {
-            const prefixedKey = addFieldPrefix(fieldKey, entityType);
-            fieldConfig = fieldConfigs[prefixedKey];
-          }
-
-          const fieldType = fieldConfig?.fieldType || 'string';
-          const operator = this.detectOperator(fieldType, fieldConfig?.operator);
-          this.applyFilterToRxDBSelector(startsWithSelector, fieldKey, operator, value, fieldConfig);
-        }
+        applyFiltersToRxdbSelector(startsWithSelector, filters, fieldConfigs, {
+          entityType,
+          skipKeys: stringFilters.map(([key]) => key),
+        });
 
         // Execute starts_with query
         // For JSONB fields, don't use RxDB sort (not supported), sort in JS instead
@@ -1892,20 +1833,10 @@ class SpaceStore {
           }
 
           // Apply non-string filters to selector (with orFields support)
-          for (const [fieldKey, value] of Object.entries(filters)) {
-            if (stringFilters.some(([k]) => k === fieldKey)) continue;
-            if (value === undefined || value === null || value === '') continue;
-
-            let fieldConfig = fieldConfigs[fieldKey];
-            if (!fieldConfig) {
-              const prefixedKey = addFieldPrefix(fieldKey, entityType);
-              fieldConfig = fieldConfigs[prefixedKey];
-            }
-
-            const fieldType = fieldConfig?.fieldType || 'string';
-            const operator = this.detectOperator(fieldType, fieldConfig?.operator);
-            this.applyFilterToRxDBSelector(containsSelector, fieldKey, operator, value, fieldConfig);
-          }
+          applyFiltersToRxdbSelector(containsSelector, filters, fieldConfigs, {
+            entityType,
+            skipKeys: stringFilters.map(([key]) => key),
+          });
 
           // Execute contains query
           // For JSONB fields, don't use RxDB sort (not supported), sort in JS instead
@@ -1948,42 +1879,10 @@ class SpaceStore {
         // Build selector
         const selector: any = { _deleted: false };
 
-        // Apply each filter to selector
-        for (const [fieldKey, value] of Object.entries(filters)) {
-          if (value === undefined || value === null || value === '') {
-            continue; // Skip empty filters
-          }
-
-          // Try to find field config (with and without prefix)
-          let fieldConfig = fieldConfigs[fieldKey];
-          if (!fieldConfig) {
-            const prefixedKey = addFieldPrefix(fieldKey, entityType);
-            fieldConfig = fieldConfigs[prefixedKey];
-          }
-
-          const finalFieldConfig = fieldConfig || {};
-          const fieldType = finalFieldConfig.fieldType || 'string';
-
-          // For string/text fields in search, always use 'ilike' (ignore 'eq' from config)
-          let configOperator = finalFieldConfig.operator;
-          if ((fieldType === 'string' || fieldType === 'text') && configOperator === 'eq') {
-            configOperator = undefined; // Let detectOperator use default 'ilike' for string
-          }
-
-          const operator = this.detectOperator(fieldType, configOperator);
-
-          console.log('[SpaceStore] 🔍 Applying filter:', {
-            fieldKey,
-            fieldType,
-            operator,
-            value,
-            hasFieldConfig: !!fieldConfig,
-            orFields: finalFieldConfig.orFields
-          });
-
-          // Apply filter to selector (with orFields support)
-          this.applyFilterToRxDBSelector(selector, fieldKey, operator, value, finalFieldConfig);
-        }
+        applyFiltersToRxdbSelector(selector, filters, fieldConfigs, {
+          entityType,
+          preferStringSearchOperator: true,
+        });
 
         // ✅ KEYSET PAGINATION: Apply cursor to selector
         // Note: For JSONB fields, we can't use RxDB selector, will filter in JS after query
@@ -2089,14 +1988,8 @@ class SpaceStore {
     console.log(`[SpaceStore] 🆔 Fetching IDs for ${entityType}...`);
 
     // 🎯 HYBRID SEARCH: Detect string filters with 'contains' operator
-    const searchFilters = Object.entries(filters).filter(([fieldKey, value]) => {
-      if (value === undefined || value === null || value === '') return false;
-
-      const fieldConfig = fieldConfigs[fieldKey] || {};
-      const fieldType = fieldConfig.fieldType || 'string';
-      const operator = this.detectOperator(fieldType, fieldConfig.operator);
-
-      return (fieldType === 'string' || fieldType === 'text') && (operator === 'contains' || operator === 'ilike');
+    const searchFilters = getStringSearchFilters(filters, fieldConfigs, {
+      requireSearchOperator: true,
     });
 
     // Use hybrid search if: (1) has search filter, (2) no cursor (first page)
@@ -2120,7 +2013,7 @@ class SpaceStore {
 
       // Remove all OR search fields from filters
       const otherFilters = Object.fromEntries(
-        Object.entries(filters).filter(([key]) => !orSearchFields.includes(key))
+        getActiveFilterEntries(filters).filter(([key]) => !orSearchFields.includes(key))
       );
 
       if (isOrSearch) {
@@ -2147,13 +2040,11 @@ class SpaceStore {
       }
 
       // Apply other filters (with orFields support)
-      for (const [fieldKey, value] of Object.entries(otherFilters)) {
-        if (value === undefined || value === null || value === '') continue;
-        const fieldConfig = fieldConfigs[fieldKey] || {};
-        const fieldType = fieldConfig.fieldType || 'string';
-        const operator = this.detectOperator(fieldType, fieldConfig.operator);
-        startsWithQuery = this.applySupabaseFilterWithOrFields(startsWithQuery, fieldKey, operator, value, fieldConfig);
-      }
+      startsWithQuery = applyFiltersToSupabaseQuery(
+        startsWithQuery,
+        otherFilters,
+        fieldConfigs,
+      );
 
       startsWithQuery = this.applyOrderBy(startsWithQuery, orderBy).limit(startsWithLimit);
 
@@ -2192,13 +2083,11 @@ class SpaceStore {
         }
 
         // Apply other filters (with orFields support)
-        for (const [fieldKey, value] of Object.entries(otherFilters)) {
-          if (value === undefined || value === null || value === '') continue;
-          const fieldConfig = fieldConfigs[fieldKey] || {};
-          const fieldType = fieldConfig.fieldType || 'string';
-          const operator = this.detectOperator(fieldType, fieldConfig.operator);
-          containsQuery = this.applySupabaseFilterWithOrFields(containsQuery, fieldKey, operator, value, fieldConfig);
-        }
+        containsQuery = applyFiltersToSupabaseQuery(
+          containsQuery,
+          otherFilters,
+          fieldConfigs,
+        );
 
         containsQuery = this.applyOrderBy(containsQuery, orderBy).limit(remainingLimit);
 
@@ -2239,19 +2128,7 @@ class SpaceStore {
     query = query.or('deleted.is.null,deleted.eq.false');
 
     // Apply filters (AND logic, with orFields support for OR across multiple DB fields)
-    for (const [fieldKey, value] of Object.entries(filters)) {
-      if (value === undefined || value === null || value === '') {
-        continue;
-      }
-
-      // fieldKey is already normalized (pet_type_id), so direct lookup works
-      const fieldConfig = fieldConfigs[fieldKey] || {};
-      const fieldType = fieldConfig.fieldType || 'string';
-      const operator = this.detectOperator(fieldType, fieldConfig.operator);
-
-      // Apply filter (with orFields support for OR across multiple DB fields)
-      query = this.applySupabaseFilterWithOrFields(query, fieldKey, operator, value, fieldConfig);
-    }
+    query = applyFiltersToSupabaseQuery(query, filters, fieldConfigs);
 
     // Apply cursor (keyset pagination with tie-breaker from config)
     let data: any[] = [];
@@ -2394,21 +2271,6 @@ class SpaceStore {
     delete mapped._rev;
 
     return mapped;
-  }
-
-  /**
-   * Detect operator based on field type
-   */
-  private detectOperator(fieldType: string, configOperator?: string): string {
-    return F.detectOperator(fieldType, configOperator);
-  }
-
-  private applyFilterToRxDBSelector(selector: any, fieldKey: string, operator: string, value: any, fieldConfig: any): void {
-    F.applyFilterToRxDBSelector(selector, fieldKey, operator, value, fieldConfig);
-  }
-
-  private applySupabaseFilterWithOrFields(query: any, fieldKey: string, operator: string, value: any, fieldConfig: any): any {
-    return F.applySupabaseFilterWithOrFields(query, fieldKey, operator, value, fieldConfig);
   }
 
   /**
