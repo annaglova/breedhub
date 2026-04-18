@@ -47,13 +47,23 @@ function createManualChunks(id: string): string | undefined {
     }
 
     if (
-      normalizedId.includes("/@tanstack/") ||
+      normalizedId.includes("/@tanstack/")
+    ) {
+      return "query-utils";
+    }
+
+    if (
       normalizedId.includes("/react-hook-form/") ||
       normalizedId.includes("/@hookform/") ||
       normalizedId.includes("/zod/") ||
-      normalizedId.includes("/axios/") ||
       normalizedId.includes("/date-fns/") ||
       normalizedId.includes("/react-day-picker/")
+    ) {
+      return "form-utils";
+    }
+
+    if (
+      normalizedId.includes("/axios/")
     ) {
       return "app-utils";
     }
@@ -70,19 +80,35 @@ function createManualChunks(id: string): string | undefined {
   }
 
   if (
-    normalizedId.includes("/apps/app/src/pages/SpacePage.tsx") ||
     normalizedId.includes("/apps/app/src/pages/SlugResolver.tsx") ||
     normalizedId.includes("/apps/app/src/pages/EditPageResolver.tsx") ||
     normalizedId.includes("/apps/app/src/pages/CreatePageResolver.tsx") ||
-    normalizedId.includes("/apps/app/src/pages/TabPageResolver.tsx") ||
+    normalizedId.includes("/apps/app/src/pages/TabPageResolver.tsx")
+  ) {
+    return "space-resolvers";
+  }
+
+  if (
     normalizedId.includes("/apps/app/src/components/template/") ||
-    normalizedId.includes("/apps/app/src/components/blocks/") ||
-    normalizedId.includes("/apps/app/src/components/space/SpaceComponent.tsx") ||
+    normalizedId.includes("/apps/app/src/components/blocks/")
+  ) {
+    return "space-templates";
+  }
+
+  if (
     normalizedId.includes("/apps/app/src/components/registerComponents.ts") ||
+    /\/apps\/app\/src\/components\/(?:breed|contact|event|kennel|litter|note|pet|space)\/(?:.+(?:ListCard|TabCard)|GenericListCard)\.tsx$/.test(normalizedId)
+  ) {
+    return "space-cards";
+  }
+
+  if (
+    normalizedId.includes("/apps/app/src/pages/SpacePage.tsx") ||
+    normalizedId.includes("/apps/app/src/components/space/") ||
     normalizedId.includes("/apps/app/src/hooks/space/") ||
     normalizedId.includes("/apps/app/src/contexts/AboveFoldLoadingContext.tsx")
   ) {
-    return "space-core";
+    return "space-shell";
   }
 
   return undefined;
