@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState, useEffect, useCallback } from "react";
+import { useMemo, useRef, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Pencil, Minimize2, Maximize2, Minus, Plus } from "lucide-react";
 import { NavigationButtons } from "@/components/template/cover/NavigationButtons";
@@ -9,30 +9,21 @@ import {
 } from "@ui/components/tooltip";
 import { Switch } from "@ui/components/switch";
 import { BlockRenderer } from "@/components/blocks/BlockRenderer";
+import { type FullscreenTab, useFullscreenTabs } from "@/hooks/useFullscreenTabs";
+import { usePedigreeFullscreenControls } from "@/hooks/usePedigreeFullscreenControls";
 import { SpaceProvider } from "@/contexts/SpaceContext";
 import { useSpaceTemplateContext } from "@/hooks/useSpaceTemplateContext";
 import { useStickyName } from "@/hooks/useStickyName";
 import { ScrollToTopButton } from "@/components/shared/ScrollToTopButton";
-import {
-  getTabFragment,
-  getTabLabel,
-  getTabsConfigFromPage,
-  type TabConfig,
-} from "@/utils/tab-config";
-import { spaceStore, tabDataService } from "@breedhub/rxdb-store";
+import { getTabsConfigFromPage } from "@/utils/tab-config";
+import { spaceStore } from "@breedhub/rxdb-store";
 import { useSignals } from "@preact/signals-react/runtime";
 import { cn } from "@ui/lib/utils";
-import { Tab } from "@/components/tabs/TabsContainer";
 import { PageMenu, PageMenuSkeleton } from "@/components/tabs/PageMenu";
 import { TabActionsHeader } from "@/components/tabs/TabActionsHeader";
 import {
   PedigreeGenerationSelector,
-  type GenerationCount,
 } from "@/components/shared/pedigree";
-import { mediaQueries } from "@/config/breakpoints";
-
-// Shared tab component registry (auto-discovers all *Tab.tsx components)
-import { TAB_COMPONENT_REGISTRY } from '../shared/tab-registry';
 
 interface TabPageTemplateProps {
   entityType: string;
@@ -43,71 +34,6 @@ interface TabPageTemplateProps {
   className?: string;
   isDrawerMode?: boolean;
   isFullscreenMode?: boolean;
-}
-
-/**
- * Determine if tab should be shown in fullscreen PageMenu
- * Simple local-first logic:
- * - expandAlways: true → always show (e.g., Pedigree tab)
- * - Otherwise → show if RxDB has any data (loadedCount > 0)
- */
-function shouldShowInFullscreenMenu(
-  fullscreenButton: boolean | undefined,
-  expandAlways: boolean | undefined,
-  loadedCount: number | undefined
-): boolean {
-  if (!fullscreenButton) return false;
-  if (expandAlways) return true;
-  return (loadedCount ?? 0) > 0;
-}
-
-/**
- * Convert tab config object to Tab[] array
- * Only includes tabs that should be shown in fullscreen mode
- * (expandAlways: true OR loadedCount > 0)
- */
-function convertFullscreenTabsToArray(
-  tabsConfig: Record<string, TabConfig>,
-  loadedCounts: Record<string, number>
-): Tab[] {
-  const tabs: Tab[] = [];
-
-  for (const [tabId, config] of Object.entries(tabsConfig)) {
-    // Check if tab should be shown (expandAlways OR has data)
-    const shouldShow = shouldShowInFullscreenMenu(
-      config.fullscreenButton,
-      config.expandAlways,
-      loadedCounts[tabId]
-    );
-    if (!shouldShow) continue;
-
-    const Component = TAB_COMPONENT_REGISTRY[config.component];
-    if (!Component) {
-      console.warn(`[TabPageTemplate] Component "${config.component}" not found in registry`);
-      continue;
-    }
-
-    const label = getTabLabel(config.component, config.label);
-    const fragment = getTabFragment(tabId, config);
-
-    tabs.push({
-      id: tabId,
-      fragment,
-      label,
-      icon: config.icon || { name: 'Circle', source: 'lucide' },
-      component: Component,
-      badge: config.badge,
-      fullscreenButton: config.fullscreenButton,
-      expandAlways: config.expandAlways,
-      dataSource: config.dataSource,
-      actionTypes: config.actionTypes,
-      focusMode: config.focusMode,
-      zoomControl: config.zoomControl,
-      _order: config.order,
-    } as Tab & { _order: number });
-  }
-
-  return tabs.sort((a: any, b: any) => a._order - b._order);
 }
 
 /**
@@ -142,50 +68,6 @@ export function TabPageTemplate({
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const contentContainerRef = useRef<HTMLDivElement>(null);
 
-  // Pedigree generations state - persisted in sessionStorage for navigation
-  const PEDIGREE_GENERATIONS_KEY = "pedigree-generations";
-  const [pedigreeGenerations, setPedigreeGenerations] = useState<GenerationCount>(() => {
-    const saved = sessionStorage.getItem(PEDIGREE_GENERATIONS_KEY);
-    if (saved) return Number(saved) as GenerationCount;
-    return window.matchMedia(mediaQueries['2xl']).matches ? 5 : 4;
-  });
-  const handleGenerationsChange = useCallback((count: GenerationCount) => {
-    setPedigreeGenerations(count);
-    sessionStorage.setItem(PEDIGREE_GENERATIONS_KEY, String(count));
-  }, []);
-
-  // Pedigree focus mode - collapse header and tabs to maximize tree space
-  const [isPedigreeCollapsed, setIsPedigreeCollapsed] = useState(true);
-
-  // Pedigree navigation mode - when ON, pet links go to /pet-slug/pedigree
-  // Persisted in sessionStorage so it survives navigation between pedigrees
-  const LINK_TO_PEDIGREE_KEY = "pedigree-link-mode";
-  const [linkToPedigree, setLinkToPedigree] = useState(
-    () => sessionStorage.getItem(LINK_TO_PEDIGREE_KEY) === "1"
-  );
-  const handleLinkToPedigreeChange = useCallback((checked: boolean) => {
-    setLinkToPedigree(checked);
-    if (checked) {
-      sessionStorage.setItem(LINK_TO_PEDIGREE_KEY, "1");
-    } else {
-      sessionStorage.removeItem(LINK_TO_PEDIGREE_KEY);
-    }
-  }, []);
-
-  // Pedigree zoom control - persisted in sessionStorage for navigation
-  const PEDIGREE_ZOOM_KEY = "pedigree-zoom";
-  const ZOOM_PRESETS = [80, 90, 100] as const;
-  const [pedigreeZoom, setPedigreeZoom] = useState(() => {
-    const saved = sessionStorage.getItem(PEDIGREE_ZOOM_KEY);
-    if (saved) return Number(saved);
-    return 100;
-  });
-  const zoomIndex = ZOOM_PRESETS.indexOf(pedigreeZoom as typeof ZOOM_PRESETS[number]);
-  const canZoomOut = zoomIndex > 0;
-  const canZoomIn = zoomIndex < ZOOM_PRESETS.length - 1;
-  const handleZoomOut = () => { if (canZoomOut) { const z = ZOOM_PRESETS[zoomIndex - 1]; setPedigreeZoom(z); sessionStorage.setItem(PEDIGREE_ZOOM_KEY, String(z)); } };
-  const handleZoomIn = () => { if (canZoomIn) { const z = ZOOM_PRESETS[zoomIndex + 1]; setPedigreeZoom(z); sessionStorage.setItem(PEDIGREE_ZOOM_KEY, String(z)); } };
-
   // Get spaceConfig signal
   const spaceConfigSignal = useMemo(
     () => spaceStore.getSpaceConfigSignal(entityType),
@@ -219,90 +101,39 @@ export function TabPageTemplate({
   const tabsConfig = useMemo(() => {
     return getTabsConfigFromPage(pageConfig);
   }, [pageConfig]);
-
-  // State for loaded counts - fetched directly for fullscreen page
-  const [loadedCounts, setLoadedCounts] = useState<Record<string, number>>({});
-  const [countsLoading, setCountsLoading] = useState(true);
-
-  // Load counts for all fullscreen-enabled tabs
-  // This runs on direct fullscreen URL navigation (no sessionStorage data)
-  useEffect(() => {
-    const loadTabCounts = async () => {
-      if (!entityId || !tabsConfig || Object.keys(tabsConfig).length === 0) {
-        setCountsLoading(false);
-        return;
-      }
-
-      // First try to get from spaceStore (if coming from main page)
-      const storedCounts = spaceStore.getTabLoadedCounts(entityId);
-      if (Object.keys(storedCounts).length > 0) {
-        setLoadedCounts(storedCounts);
-        setCountsLoading(false);
-        return;
-      }
-
-      // Otherwise, load data for each fullscreen-enabled tab
-      const counts: Record<string, number> = {};
-
-      for (const [tabId, config] of Object.entries(tabsConfig) as Array<[string, TabConfig]>) {
-        if (!config.fullscreenButton || !config.dataSource) continue;
-
-        try {
-          const records = await tabDataService.loadTabData(entityId, config.dataSource);
-          counts[tabId] = records.length;
-          // Also save to spaceStore for consistency
-          spaceStore.setTabLoadedCount(entityId, tabId, records.length);
-        } catch (error) {
-          console.error(`[TabPageTemplate] Error loading tab ${tabId}:`, error);
-          counts[tabId] = 0;
-        }
-      }
-
-      setLoadedCounts(counts);
-      setCountsLoading(false);
-    };
-
-    loadTabCounts();
-  }, [entityId, tabsConfig]);
-
-  // Get only fullscreen-enabled tabs with sufficient records
-  const fullscreenTabs = useMemo(
-    () => convertFullscreenTabsToArray(tabsConfig, loadedCounts),
-    [tabsConfig, loadedCounts]
-  );
-
-  // Local state for active tab to prevent flickering on tab change
-  const [activeTabSlug, setActiveTabSlug] = useState(tabSlug);
-
-  // Sync with URL when tabSlug prop changes (e.g., direct URL navigation)
-  useEffect(() => {
-    if (tabSlug !== activeTabSlug) {
-      setActiveTabSlug(tabSlug);
-    }
-  }, [tabSlug]);
-
-  // Find current tab using local state
-  const currentTab = useMemo(
-    () => fullscreenTabs.find(tab => tab.fragment === activeTabSlug),
-    [fullscreenTabs, activeTabSlug]
-  );
-
-  // Only allow collapse on pedigree tab
-  const isPedigreeFocusMode = isPedigreeCollapsed && currentTab?.focusMode;
+  const {
+    activeTabSlug,
+    countsLoading,
+    currentTab,
+    fullscreenTabs,
+    handleTabChange,
+  } = useFullscreenTabs({
+    entityId,
+    entitySlug,
+    tabSlug,
+    tabsConfig,
+  });
+  const {
+    canZoomIn,
+    canZoomOut,
+    handleGenerationsChange,
+    handleLinkToPedigreeChange,
+    handleZoomIn,
+    handleZoomOut,
+    isPedigreeCollapsed,
+    isPedigreeFocusMode,
+    linkToPedigree,
+    pedigreeGenerations,
+    pedigreeZoom,
+    setIsPedigreeCollapsed,
+  } = usePedigreeFullscreenControls({
+    focusModeEnabled: currentTab?.focusMode,
+  });
   const { nameContainerRef, nameOnTop, nameBlockHeight } = useStickyName({
     deps: [pageConfig, selectedEntity, currentTab],
     scrollContainerRef,
     threshold: 1,
   });
-
-  // Handle tab change - update local state immediately, then update URL
-  const handleTabChange = (fragment: string) => {
-    // Update local state immediately (no flickering)
-    setActiveTabSlug(fragment);
-    // Update URL without triggering React Router re-render
-    // Using history.replaceState to update URL without navigation
-    window.history.replaceState(null, '', `/${entitySlug}/${fragment}`);
-  };
 
   // Handle back navigation
   const handleBack = () => {
@@ -354,7 +185,7 @@ export function TabPageTemplate({
   ) as any;
 
   // Get tab component
-  const TabComponent = currentTab.component;
+  const TabComponent = currentTab.component as FullscreenTab["component"];
 
   return (
     <SpaceProvider

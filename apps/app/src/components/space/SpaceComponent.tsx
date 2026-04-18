@@ -1,12 +1,9 @@
-import { mediaQueries } from "@/config/breakpoints";
-import { useMediaQuery } from "@/hooks/useMediaQuery";
-import { useSpaceSearch } from "@/hooks/space/useSpaceSearch";
-import { useSortSelection } from "@/hooks/space/useSortSelection";
+import { useSpaceBrowseState } from "@/hooks/space/useSpaceBrowseState";
+import { useSpaceLayoutState } from "@/hooks/space/useSpaceLayoutState";
 import { useTotalCountCache } from "@/hooks/space/useTotalCountCache";
 import { useEntitySelection } from "@/hooks/space/useEntitySelection";
 import { useFilterManagement } from "@/hooks/space/useFilterManagement";
 import {
-  extractFieldName,
   spaceStore,
   getDatabase,
 } from "@breedhub/rxdb-store";
@@ -23,10 +20,9 @@ import {
 } from "@ui/components/tooltip";
 import { cn } from "@ui/lib/utils";
 import { Plus } from "lucide-react";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo } from "react";
 import {
   Outlet,
-  useLocation,
   useNavigate,
   useSearchParams,
 } from "react-router-dom";
@@ -95,199 +91,33 @@ export function SpaceComponent<T extends { id: string }>({
 
   // Navigation and routing
   const navigate = useNavigate();
-  const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
 
-  // Get default view from app_config (isDefault: true)
-  const defaultView = useMemo(() => {
-    if (!spaceStore.configReady.value || !config) {
-      return "list"; // Default fallback
-    }
-    return spaceStore.getDefaultView(config.entitySchemaName);
-  }, [config, config?.entitySchemaName, spaceStore.configReady.value]);
-
-  // 🆕 localStorage key for persisting view preference per entity type
-  const viewStorageKey = `breedhub:view:${config.entitySchemaName}`;
-
-  // 🆕 Read view from URL, localStorage, or use default (same pattern as sort)
-  const viewMode = useMemo(() => {
-    // 1. URL param has highest priority (for sharing links)
-    const urlView = searchParams.get("view");
-    if (urlView) return urlView;
-
-    // 2. Try to read from localStorage (persisted preference)
-    try {
-      const savedView = localStorage.getItem(viewStorageKey);
-      if (savedView) return savedView;
-    } catch (e) {
-      // localStorage not available, continue to default
-    }
-
-    // 3. Otherwise use default from config
-    return defaultView;
-  }, [searchParams, viewStorageKey, defaultView]);
-
-  // Check if current view is a grid-like view (tab, grid, cards, etc.)
-  // Grid views don't have selection/drawer - clicking goes directly to fullscreen
-  const isGridView = useMemo(() => {
-    const gridTypes = ["grid", "cards", "tiles", "masonry", "tab"];
-    return gridTypes.includes(viewMode.toLowerCase());
-  }, [viewMode]);
-
-
-  // Get records count from view config (динамічно!)
-  const recordsCount = useMemo(() => {
-    if (!spaceStore.configReady.value) {
-      return 30; // Simple fallback - won't cause loading because useEntities waits for configReady
-    }
-    return spaceStore.getViewRecordsCount(config.entitySchemaName, viewMode);
-  }, [config.entitySchemaName, viewMode, spaceStore.configReady.value]);
-
-  // Get sort options from view config
-  const sortOptions = useMemo(() => {
-    if (!spaceStore.configReady.value) {
-      return []; // Simple fallback - won't cause loading because useEntities waits for configReady
-    }
-    return spaceStore.getSortOptions(config.entitySchemaName, viewMode);
-  }, [config.entitySchemaName, viewMode, spaceStore.configReady.value]);
-
-  // Get filter fields from view config (already excludes mainFilterField)
-  const filterFields = useMemo(() => {
-    if (!spaceStore.configReady.value) {
-      return []; // Simple fallback - won't cause loading because useEntities waits for configReady
-    }
-    return spaceStore.getFilterFields(config.entitySchemaName, viewMode);
-  }, [config.entitySchemaName, viewMode, spaceStore.configReady.value]);
-
-  // Get the main filter field for search (from SpaceStore)
-  // Used for URL handling (first mainFilterField's slug is used for URL)
-  const mainFilterField = useMemo(() => {
-    if (!spaceStore.configReady.value) {
-      return null; // Simple fallback - won't cause loading because useEntities waits for configReady
-    }
-    return spaceStore.getMainFilterField(config.entitySchemaName);
-  }, [config.entitySchemaName, spaceStore.configReady.value]);
-
-  // Get ALL main filter fields for OR logic search
-  // When multiple fields have mainFilterField: true, search applies to all with OR
-  const mainFilterFieldsResult = useMemo(() => {
-    if (!spaceStore.configReady.value) {
-      return { fields: [], searchSlug: undefined };
-    }
-    return spaceStore.getMainFilterFields(config.entitySchemaName);
-  }, [config.entitySchemaName, spaceStore.configReady.value]);
-
-  // Extract fields array for easier use
-  const mainFilterFields = mainFilterFieldsResult.fields;
-
-  // Get the URL slug for search: use searchSlug if multiple fields, otherwise first field's slug
-  const searchUrlSlug = useMemo(() => {
-    if (mainFilterFieldsResult.searchSlug) {
-      return mainFilterFieldsResult.searchSlug;
-    }
-    if (mainFilterField) {
-      return mainFilterField.slug || extractFieldName(mainFilterField.id);
-    }
-    return null;
-  }, [mainFilterFieldsResult.searchSlug, mainFilterField]);
-
-  // Generate URL-friendly slug from field ID
-  // If slug exists in config - use it, otherwise extract from field ID
-  const getFieldSlug = (field: { id: string; slug?: string }): string => {
-    return field.slug || extractFieldName(field.id);
-  };
-
-  // Search with debounce and URL sync
-  const { searchValue, setSearchValue, debouncedSearchValue } = useSpaceSearch(
-    searchUrlSlug, searchParams, setSearchParams
-  );
-
-  // Sort selection from URL/localStorage/default
-  const sortStorageKey = `breedhub:sort:${config.entitySchemaName}`;
-  const filtersStorageKey = `breedhub:filters:${config.entitySchemaName}`;
-
-  const { selectedSortOption, defaultSortOption, handleSortChange } = useSortSelection(
-    searchParams, setSearchParams, sortOptions, sortStorageKey
-  );
-
-  // 🧹 Cleanup legacy URL params on mount
-  useEffect(() => {
-    const hasLegacyParams =
-      searchParams.has("sortBy") ||
-      searchParams.has("sortDir") ||
-      searchParams.has("sortParam");
-
-    if (hasLegacyParams) {
-      const newParams = new URLSearchParams(searchParams);
-      newParams.delete("sortBy");
-      newParams.delete("sortDir");
-      newParams.delete("sortParam");
-      setSearchParams(newParams, { replace: true }); // replace to not add history entry
-    }
-  }, [searchParams, setSearchParams]);
-
-  // 🎯 Set view in URL if no view param exists (uses localStorage preference or default)
-  // Skip in fullscreen/pretty URL mode - we don't need query params there
-  useEffect(() => {
-    // Skip URL modification in fullscreen mode (pretty URL like /affenpinscher#overview)
-    if (initialSelectedEntityId || createMode) return;
-
-    const hasViewParam = searchParams.has("view");
-
-    // If no view param, add viewMode (which already considers localStorage preference)
-    if (!hasViewParam && viewMode) {
-      const newParams = new URLSearchParams(searchParams);
-      newParams.set("view", viewMode);
-      setSearchParams(newParams, { replace: true }); // replace to not add history entry
-    }
-  }, [searchParams, setSearchParams, viewMode, initialSelectedEntityId]);
-
-  // 🎯 Set sort in URL if no sort param exists (uses localStorage preference or default)
-  // Skip in fullscreen/pretty URL mode - we don't need query params there
-  useEffect(() => {
-    // Skip URL modification in fullscreen mode (pretty URL like /affenpinscher#overview)
-    if (initialSelectedEntityId || createMode) return;
-
-    const hasSortParam = searchParams.has("sort");
-
-    // If no sort param, add selectedSortOption (which already considers localStorage preference)
-    if (!hasSortParam && selectedSortOption?.id) {
-      const newParams = new URLSearchParams(searchParams);
-      newParams.set("sort", selectedSortOption.id);
-      setSearchParams(newParams, { replace: true }); // replace to not add history entry
-    }
-  }, [
+  const {
+    currentViewConfig,
+    debouncedSearchValue,
+    filterFields,
+    filtersStorageKey,
+    handleSortChange,
+    handleViewChange,
+    isGridView,
+    mainFilterField,
+    mainFilterFields,
+    orderBy,
+    recordsCount,
+    searchUrlSlug,
+    searchValue,
+    selectedSortOption,
+    setSearchValue,
+    sortOptions,
+    viewMode,
+  } = useSpaceBrowseState({
+    config,
+    createMode,
+    initialSelectedEntityId,
     searchParams,
     setSearchParams,
-    selectedSortOption,
-    initialSelectedEntityId,
-  ]);
-
-
-  // 🆕 Memoize orderBy to prevent infinite loop (new object on each render)
-  const orderBy = useMemo(() => {
-    if (!selectedSortOption?.field) {
-      return {
-        field: "name",
-        direction: "asc" as const,
-        tieBreaker: {
-          field: "id",
-          direction: "asc" as const,
-        },
-      }; // Fallback to name with id tie-breaker
-    }
-
-    return {
-      field: selectedSortOption.field,
-      direction: selectedSortOption.direction as "asc" | "desc",
-      ...(selectedSortOption.parameter && {
-        parameter: selectedSortOption.parameter,
-      }),
-      ...(selectedSortOption.tieBreaker && {
-        tieBreaker: selectedSortOption.tieBreaker,
-      }),
-    };
-  }, [selectedSortOption]);
+  });
 
   // Filter management: build from URL, persistence, apply/remove
   const {
@@ -325,16 +155,15 @@ export function SpaceComponent<T extends { id: string }>({
     orderBy,
   });
 
-  // Responsive breakpoints (synced with tailwind.config.js)
-  const isMoreThanSM = useMediaQuery(mediaQueries.sm); // 640px
-  const isMoreThanMD = useMediaQuery(mediaQueries.md); // 768px
-  const isMoreThanLG = useMediaQuery(mediaQueries.lg); // 1024px
-  const isMoreThanXL = useMediaQuery(mediaQueries.xl); // 1280px
-  const isMoreThan2XL = useMediaQuery(mediaQueries["2xl"]); // 1536px
-  const needCardClass = isMoreThanLG;
-
   // Get all entities directly from data (no accumulation needed)
   const allEntities = data?.entities || [];
+
+  // Check if fullscreen mode is active (from store - set by SlugResolver or expand button)
+  const isFullscreen = spaceStore.isFullscreen.value;
+  const { drawerMode, isMoreThan2XL, isMoreThanLG, needCardClass } =
+    useSpaceLayoutState({
+      isFullscreen,
+    });
 
   // Entity selection: URL↔Store sync, drawer, entity click
   const {
@@ -356,10 +185,6 @@ export function SpaceComponent<T extends { id: string }>({
     createMode,
   });
 
-  // UI state
-  const [headerHeight, setHeaderHeight] = useState(0);
-  const headerRef = useRef<HTMLDivElement>(null);
-
 
   // Cache totalCount to localStorage with TTL
   const { totalCount, isInitialLoad } = useTotalCountCache({
@@ -371,20 +196,6 @@ export function SpaceComponent<T extends { id: string }>({
     filters,
   });
 
-
-  // Measure header height
-  useEffect(() => {
-    if (headerRef.current) {
-      const observer = new ResizeObserver((entries) => {
-        for (const entry of entries) {
-          setHeaderHeight(entry.contentRect.height);
-        }
-      });
-      observer.observe(headerRef.current);
-      return () => observer.disconnect();
-    }
-  }, []);
-
   // View change is handled by RxDB replication automatically
   // No need to reset state here
 
@@ -395,19 +206,6 @@ export function SpaceComponent<T extends { id: string }>({
       await loadMore();
     }
   }, [loadMore]);
-
-
-  // 🆕 Handle view change - persist to localStorage (URL is updated by ViewChanger)
-  const handleViewChange = useCallback(
-    (view: string) => {
-      try {
-        localStorage.setItem(viewStorageKey, view);
-      } catch (e) {
-        // localStorage not available, continue without persisting
-      }
-    },
-    [viewStorageKey],
-  );
 
 
   const handleCreateNew = useCallback(async () => {
@@ -437,24 +235,6 @@ export function SpaceComponent<T extends { id: string }>({
 
     navigate(`/new?${params.toString()}`);
   }, [config.entitySchemaName, filters, filterFields, navigate]);
-
-  // Check if fullscreen mode is active (from store - set by SlugResolver or expand button)
-  const isFullscreen = spaceStore.isFullscreen.value;
-
-  // Drawer mode depends on screen size (using custom breakpoints)
-  // When fullscreen mode is active, always use "over" mode
-  const getDrawerMode = () => {
-    if (isFullscreen) return "over"; // Force fullscreen from store
-    if (isMoreThan2XL) return "side-transparent"; // 2xl+ (1536px+) - transparent background, gap between cards
-    if (isMoreThanMD) return "side"; // md (768px+) - side drawer with backdrop
-    return "over"; // < md (less than 768px) - fullscreen overlay
-  };
-  const drawerMode = getDrawerMode();
-  const scrollHeight = `calc(100vh - ${headerHeight}px - 3px)`;
-  const currentViewConfig = useMemo(
-    () => finalConfig.viewConfigs?.find((v: any) => v.viewType === viewMode),
-    [finalConfig.viewConfigs, viewMode],
-  );
 
   if (error) {
     return (
@@ -487,7 +267,6 @@ export function SpaceComponent<T extends { id: string }>({
           )}
         >
           <div
-            ref={headerRef}
             className="z-20 flex flex-col justify-between border-b border-surface-border space-padding"
           >
             <div className="w-full">
@@ -625,7 +404,6 @@ export function SpaceComponent<T extends { id: string }>({
           >
             {/* Header */}
             <div
-              ref={headerRef}
               className="z-20 flex flex-col justify-between border-b border-surface-border space-padding"
             >
               <div className="w-full">

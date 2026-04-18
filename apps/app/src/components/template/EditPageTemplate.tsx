@@ -6,6 +6,7 @@ import {
 } from "@/contexts/AboveFoldLoadingContext";
 import { SpaceProvider } from "@/contexts/SpaceContext";
 import { useEntityFullyLoaded } from "@/hooks/useEntityFullyLoaded";
+import { type SaveResult, useUnsavedChangesGuard } from "@/hooks/useUnsavedChangesGuard";
 import { useSpaceTemplateContext } from "@/hooks/useSpaceTemplateContext";
 import {
   getTabsConfigFromPage,
@@ -23,7 +24,7 @@ import {
 } from "@ui/components/dialog";
 import { cn } from "@ui/lib/utils";
 import { useStickyName } from "@/hooks/useStickyName";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { EditNameOutlet } from "./EditNameOutlet";
 
@@ -82,7 +83,6 @@ function EditBlocks({
 
   // Save orchestration: active tab registers its save handler.
   // Returns: false (validation failed) | true (saved) | { created: entity } (create succeeded)
-  type SaveResult = false | true | { created: any };
   const saveHandlerRef = useRef<(() => Promise<SaveResult | void>) | null>(null);
 
   const onSaveReady = useCallback((handler: () => Promise<SaveResult | void>) => {
@@ -100,177 +100,21 @@ function EditBlocks({
       }
     }
   }, [navigate]);
-
-  // --- Unsaved changes guard ---
-  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
-  const [showLeaveDialog, setShowLeaveDialog] = useState(false);
-  const hasUnsavedRef = useRef(false);
-  const sentinelPushedRef = useRef(false);
-  const [pendingNavigationUrl, setPendingNavigationUrl] = useState<string | null>(null);
-  const pendingNavigationRef = useRef<string | null>(null);
-
-  const onDirtyChange = useCallback((dirty: boolean) => {
-    setHasUnsavedChanges(dirty);
-    hasUnsavedRef.current = dirty;
-  }, []);
-
-  // beforeunload — browser close/refresh
-  useEffect(() => {
-    if (!hasUnsavedChanges) return;
-
-    const handler = (e: BeforeUnloadEvent) => {
-      e.preventDefault();
-    };
-
-    window.addEventListener('beforeunload', handler);
-    return () => window.removeEventListener('beforeunload', handler);
-  }, [hasUnsavedChanges]);
-
-  // popstate + pushState sentinel — browser back/forward
-  useEffect(() => {
-    if (hasUnsavedChanges && !sentinelPushedRef.current) {
-      window.history.pushState({ __unsavedGuard: true }, '');
-      sentinelPushedRef.current = true;
-    }
-
-    if (!hasUnsavedChanges && sentinelPushedRef.current) {
-      window.history.back();
-      sentinelPushedRef.current = false;
-    }
-  }, [hasUnsavedChanges]);
-
-  useEffect(() => {
-    const handler = () => {
-      if (!hasUnsavedRef.current) return;
-
-      window.history.pushState({ __unsavedGuard: true }, '');
-      setShowLeaveDialog(true);
-    };
-
-    window.addEventListener('popstate', handler);
-    return () => window.removeEventListener('popstate', handler);
-  }, []);
-
-  // Intercept all internal link clicks when there are unsaved changes
-  useEffect(() => {
-    if (!hasUnsavedChanges) return;
-
-    const handler = (e: MouseEvent) => {
-      const anchor = (e.target as HTMLElement).closest('a[href]') as HTMLAnchorElement | null;
-      if (!anchor) return;
-
-      const href = anchor.getAttribute('href');
-      if (!href || href.startsWith('http') || href.startsWith('#')) return;
-
-      // Internal link — prevent default and show dialog
-      e.preventDefault();
-      e.stopPropagation();
-      pendingNavigationRef.current = href;
-      setPendingNavigationUrl(href);
-      setShowLeaveDialog(true);
-    };
-
-    document.addEventListener('click', handler, true);
-    return () => document.removeEventListener('click', handler, true);
-  }, [hasUnsavedChanges]);
-
-  /** Navigate to pending URL or go back (browser back button case) */
-  const proceedNavigation = useCallback(() => {
-    const url = pendingNavigationRef.current;
-    if (url) {
-      pendingNavigationRef.current = null;
-      setPendingNavigationUrl(null);
-      if (sentinelPushedRef.current) {
-        window.history.back();
-        sentinelPushedRef.current = false;
-      }
-      navigate(url);
-    } else {
-      sentinelPushedRef.current = false;
-      window.history.go(-2);
-    }
-  }, [navigate]);
-
-  const handleLeaveDiscard = useCallback(() => {
-    setShowLeaveDialog(false);
-    hasUnsavedRef.current = false;
-    setHasUnsavedChanges(false);
-    // Let the useEffect clean up sentinel, then navigate on next tick
-    const url = pendingNavigationRef.current;
-    pendingNavigationRef.current = null;
-    setPendingNavigationUrl(null);
-    if (url) {
-      setTimeout(() => navigate(url), 0);
-    } else {
-      // Browser back — remove sentinel and go back
-      sentinelPushedRef.current = false;
-      window.history.go(-2);
-    }
-  }, [navigate]);
-
-  const handleLeaveSave = useCallback(async () => {
-    setShowLeaveDialog(false);
-    // Capture navigation target before save clears state
-    const url = pendingNavigationRef.current;
-    pendingNavigationRef.current = null;
-    setPendingNavigationUrl(null);
-    // Prevent useEffect from doing history.back() when hasUnsavedChanges becomes false
-    hasUnsavedRef.current = false;
-    if (sentinelPushedRef.current) {
-      sentinelPushedRef.current = false;
-    }
-    try {
-      await saveHandlerRef.current?.();
-    } catch {
-      return;
-    }
-    setHasUnsavedChanges(false);
-    if (url) {
-      navigate(url);
-    } else {
-      window.history.back();
-    }
-  }, [navigate]);
-
-  const handleLeaveCancel = useCallback(() => {
-    setShowLeaveDialog(false);
-    pendingNavigationRef.current = null;
-    setPendingNavigationUrl(null);
-  }, []);
-
-  // Name link — intercept navigation when there are unsaved changes
-  const handleNavigateAway = useCallback((url: string) => {
-    if (hasUnsavedRef.current) {
-      pendingNavigationRef.current = url;
-      setPendingNavigationUrl(url);
-      setShowLeaveDialog(true);
-    } else {
-      navigate(url);
-    }
-  }, [navigate]);
-
-  // Tab switch — auto-save before changing tab
-  // In create mode: validate + save, then navigate to edit page with target tab active.
-  // In edit mode: just save in-place (URL hash will update for tab change).
-  const handleBeforeTabChange = useCallback(async (targetFragment: string): Promise<boolean | void> => {
-    if (isCreateMode && saveHandlerRef.current) {
-      const result = await saveHandlerRef.current();
-      if (result === false) {
-        return false; // Block tab switch — validation failed
-      }
-      // Successful create → navigate to edit page with target tab in hash
-      if (result && typeof result === 'object' && result.created) {
-        const entity = result.created;
-        const slug = entity.slug || (entity.name && entity.id ? generateSlug(entity.name, entity.id) : '');
-        if (slug) {
-          navigate(`/${slug}/edit#${targetFragment}`, { replace: true });
-          return false; // Block local tab change — we already navigated
-        }
-      }
-    } else if (hasUnsavedRef.current && saveHandlerRef.current) {
-      await saveHandlerRef.current();
-    }
-  }, [isCreateMode, navigate]);
+  const {
+    handleBeforeTabChange,
+    handleLeaveCancel,
+    handleLeaveDiscard,
+    handleLeaveSave,
+    handleNavigateAway,
+    hasUnsavedChanges,
+    onDirtyChange,
+    setShowLeaveDialog,
+    showLeaveDialog,
+  } = useUnsavedChangesGuard({
+    isCreateMode,
+    navigate,
+    saveHandlerRef,
+  });
 
 
   // Sort blocks by order
