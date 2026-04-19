@@ -65,6 +65,25 @@ describe("space-id-cache.helpers", () => {
     });
   });
 
+  it("treats server records without updated_at as missing-only analysis", () => {
+    const cachedMap = buildRecordMapById([
+      { id: "a", updated_at: "2024-01-01" },
+      { id: "b", updated_at: "2024-01-05" },
+    ]);
+
+    expect(
+      analyzeCachedIdsByUpdatedAt(
+        ["a", "b", "c"],
+        cachedMap,
+        [{ id: "a" }, { id: "b" }, { id: "c" }],
+      ),
+    ).toEqual({
+      missingIds: ["c"],
+      staleIds: [],
+      toFetchIds: ["c"],
+    });
+  });
+
   it("merges fresh records over cached records and preserves requested order", () => {
     const cachedMap = buildRecordMapById([
       { id: "a", value: "cached-a" },

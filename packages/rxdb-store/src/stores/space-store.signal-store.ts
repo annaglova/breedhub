@@ -62,7 +62,6 @@ import {
 import {
   analyzeCachedIdsByUpdatedAt,
   docMapToRecordMap,
-  getMissingIds,
   mapDocsToRecordMap,
   mergeOrderedRecordsByIds,
 } from './space-id-cache.helpers';
@@ -3574,18 +3573,20 @@ class SpaceStore {
       }).exec();
 
       const cachedMap = mapDocsToRecordMap<BusinessEntity>(cached);
-      console.log(`[SpaceStore] 📦 Found ${cachedMap.size}/${ids.length} in cache`);
-
-      // 🌐 PHASE 3: Fetch missing full records
-      const missingIds = getMissingIds(ids, cachedMap);
+      const { missingIds, staleIds, toFetchIds } = analyzeCachedIdsByUpdatedAt(
+        ids,
+        cachedMap,
+        idsData as Array<{ id: string; updated_at?: string }>,
+      );
+      console.log(`[SpaceStore] 📦 Child cache: ${cachedMap.size}/${ids.length} hit, ${missingIds.length} missing, ${staleIds.length} stale`);
 
       let freshRecords: any[] = [];
-      if (missingIds.length > 0) {
-        console.log(`[SpaceStore] 🌐 Phase 3: Fetching ${missingIds.length} missing records...`);
+      if (toFetchIds.length > 0) {
+        console.log(`[SpaceStore] 🌐 Phase 3: Fetching ${toFetchIds.length} child records (${missingIds.length} missing + ${staleIds.length} stale)...`);
 
         freshRecords = await this.fetchChildRecordsByIDs(
           tableType,
-          missingIds,
+          toFetchIds,
           parentId,
           parentIdField,
           partitionConfig?.childFilterField,
