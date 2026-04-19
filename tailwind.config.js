@@ -125,6 +125,7 @@ export default {
       fontFamily: {
         mono: ['"Roboto Mono"', ..._fontFamily.mono],
         sans: ['"Nunito"', '"Roboto"', ..._fontFamily.sans],
+        display: ['"Fraunces"', 'Georgia', 'serif'],
       },
       spacing: {
         0.75: "0.1875rem",

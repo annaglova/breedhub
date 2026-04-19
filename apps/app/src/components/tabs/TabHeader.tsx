@@ -43,11 +43,12 @@ export function TabHeader({
       <div className={cn(className)} style={style}>
         <div
           className={cn(
-            "mb-6 flex w-full items-center text-2xl font-bold",
+            "mb-6 flex w-full items-center text-2xl font-display font-medium tracking-tight",
             "text-sub-header-color bg-header-ground/75 backdrop-blur-sm",
-            "px-4 sm:px-6 py-2",
+            "px-4 sm:px-6 py-3",
             isFirst ? "mt-6" : "mt-12"
           )}
+          style={{ fontVariationSettings: '"opsz" 24, "SOFT" 50' }}
         >
           {/* Icon */}
           <div className="mr-3 flex-shrink-0">
@@ -55,11 +56,11 @@ export function TabHeader({
           </div>
 
           {/* Label */}
-          <span>{label}</span>
+          <h2 className="text-2xl font-display font-medium tracking-tight">{label}</h2>
 
           {/* Badge label (Coming soon, New, Beta, etc.) */}
           {badge && (
-            <div className="text-center text-sm font-bold uppercase text-primary ml-auto">
+            <div className="text-center text-sm font-sans font-bold uppercase tracking-wide text-primary ml-auto">
               {badge}
             </div>
           )}

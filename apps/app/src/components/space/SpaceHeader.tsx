@@ -76,7 +76,12 @@ export function SpaceHeader({
     <div className="z-20 flex flex-col justify-between border-b border-surface-border space-padding">
       <div className="w-full">
         <div className="flex w-full justify-between">
-          <h1 className="text-3xl sm:text-4xl">{title}</h1>
+          <h1
+            className="text-2xl sm:text-[2rem] font-display font-medium tracking-tight"
+            style={{ fontVariationSettings: '"opsz" 48, "SOFT" 50' }}
+          >
+            {title}
+          </h1>
           <ViewChanger
             views={viewTypes || []}
             viewConfigs={viewConfigs}

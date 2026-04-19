@@ -76,7 +76,10 @@ export function PetName({
 
       {/* Pet name with verification and note flag */}
       <div className="flex space-x-1.5">
-        <div className="truncate py-0.5 text-2xl sm:text-3xl font-bold">
+        <h1
+          className="truncate py-0.5 text-2xl sm:text-3xl font-display font-medium uppercase tracking-wider"
+          style={{ fontVariationSettings: '"opsz" 48, "SOFT" 50' }}
+        >
           {linkToFullscreen && entity?.slug ? (
             <Link
               to={`/${entity.slug}`}
@@ -87,7 +90,7 @@ export function PetName({
           ) : (
             <span className="cursor-default">{displayName}</span>
           )}
-        </div>
+        </h1>
 
         {/* Verification badge */}
         <VerificationBadge
