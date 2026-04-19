@@ -2187,44 +2187,19 @@ class SpaceStore {
         console.log(`[SpaceStore] Loaded entity ${id} from RxDB, adding to store`);
         entityStore.addOne(entity);
       } else {
-        console.log(`[SpaceStore] Entity ${id} not found in RxDB, will fetch from Supabase`);
-        // Entity not in RxDB - fetch from Supabase
-        this.fetchEntityFromSupabase(entityType, id, entityStore);
+        console.log(`[SpaceStore] Entity ${id} not found in RxDB, will use shared fetch-by-id path`);
+        const data = await this.fetchEntityById<BusinessEntity>(entityType, id);
+
+        if (!data) {
+          console.warn(`[SpaceStore] Entity ${id} not found by shared fetch-by-id path`);
+          return;
+        }
+
+        console.log(`[SpaceStore] Loaded entity ${id} via shared fetch-by-id path`);
+        entityStore.addOne(data);
       }
     } catch (err) {
       console.error(`[SpaceStore] Error loading entity from RxDB:`, err);
-    }
-  }
-
-  /**
-   * Fetch entity from Supabase and add to both RxDB and entityStore
-   */
-  private async fetchEntityFromSupabase(entityType: string, id: string, entityStore: EntityStore<any>): Promise<void> {
-    try {
-      const { data, error } = await supabase
-        .from(entityType)
-        .select('*')
-        .eq('id', id)
-        .single();
-
-      if (error || !data) {
-        console.warn(`[SpaceStore] Entity ${id} not found in Supabase`);
-        return;
-      }
-
-      console.log(`[SpaceStore] Fetched entity ${id} from Supabase`);
-
-      // Add to RxDB collection
-      const collection = this.db?.collections[entityType];
-      if (collection) {
-        const mapped = this.mapToRxDBFormat(data, entityType);
-        await collection.upsert(mapped);
-      }
-
-      // Add to entityStore
-      entityStore.addOne(data);
-    } catch (err) {
-      console.error(`[SpaceStore] Error fetching entity from Supabase:`, err);
     }
   }
 
@@ -4203,48 +4178,19 @@ class SpaceStore {
   ): Promise<Record<string, unknown> | null> {
     if (!id) return null;
 
-    const collection = this.db?.collections?.[tableName];
+    const data = await this.fetchEntityById<Record<string, unknown>>(
+      tableName,
+      id,
+      partitionKey?.value,
+      partitionKey?.field,
+    );
 
-    if (!collection) {
-      console.warn(`[SpaceStore] Collection ${tableName} not found`);
+    if (!data) {
+      console.warn(`[SpaceStore] getRecordById: ${tableName}/${id} not found`);
       return null;
     }
 
-    try {
-      // Phase 1: Check RxDB cache
-      const doc = await collection.findOne(id).exec();
-      if (doc) {
-        return doc.toJSON();
-      }
-
-      // Phase 2: Fetch from Supabase
-      // For partitioned tables (e.g., pet), include partition key for efficient query
-      let query = supabase
-        .from(tableName)
-        .select('*')
-        .eq('id', id);
-
-      // Add partition key filter if provided (enables partition pruning)
-      if (partitionKey?.field && partitionKey?.value) {
-        query = query.eq(partitionKey.field, partitionKey.value);
-      }
-
-      const { data, error } = await query.single();
-
-      if (error || !data) {
-        console.warn(`[SpaceStore] getRecordById: ${tableName}/${id} not found in Supabase`);
-        return null;
-      }
-
-      // Phase 3: Cache in RxDB
-      const mapped = this.mapToRxDBFormat(data, tableName);
-      await collection.upsert(mapped);
-
-      return data;
-    } catch (error) {
-      console.error(`[SpaceStore] getRecordById failed for ${tableName}/${id}:`, error);
-      return null;
-    }
+    return data;
   }
 }
 
