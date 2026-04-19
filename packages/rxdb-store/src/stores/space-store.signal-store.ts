@@ -62,6 +62,11 @@ import {
   mergeOrderedRecordsByIds,
 } from './space-id-cache.helpers';
 import {
+  buildTotalCountCacheKey,
+  getTotalCountFilterInfo,
+  inspectCachedTotalCount,
+} from './space-total-count.helpers';
+import {
   groupPartitionedEntityRefs,
   normalizePartitionedEntityRefs,
   orderRecordsByPartitionRefs,
@@ -1402,42 +1407,38 @@ class SpaceStore {
         const totalFilterKey = spaceConfig?.totalFilterKey;
         const totalFilterValue = totalFilterKey ? filters[totalFilterKey] : null;
         const hasFilterKey = totalFilterKey && totalFilterValue;
+        const filterInfo = getTotalCountFilterInfo(
+          totalFilterKey,
+          totalFilterValue,
+        );
+        const cacheKey = buildTotalCountCacheKey(entityType, {
+          defaultFilters,
+          totalFilterKey,
+          totalFilterValue,
+        });
 
-        // Build cache key - include filter value if totalFilterKey is set and active
-        // Also include defaultFilters in cache key (e.g., account with type_id=kennel vs type_id=federation)
-        const defaultFiltersSuffix = Object.keys(defaultFilters).length > 0
-          ? '_df_' + Object.entries(defaultFilters).map(([k, v]) => `${k}=${v}`).join('_')
-          : '';
-        const cacheKey = hasFilterKey
-          ? `totalCount_${entityType}_${totalFilterKey}_${totalFilterValue}${defaultFiltersSuffix}`
-          : `totalCount_${entityType}${defaultFiltersSuffix}`;
-
-        // Check if we need to fetch (no cache or expired TTL)
+        let cachedRaw: string | null = null;
         try {
-          const cached = localStorage.getItem(cacheKey);
+          cachedRaw = localStorage.getItem(cacheKey);
+        } catch {
+          // localStorage may throw in private mode / when disabled
+        }
+        const cachedState = inspectCachedTotalCount(
+          cachedRaw,
+          TOTAL_COUNT_TTL_MS,
+        );
 
-          if (cached) {
-            const { value, timestamp } = JSON.parse(cached);
-            const age = Date.now() - timestamp;
-
-            if (age < TOTAL_COUNT_TTL_MS && value > 0) {
-              // Cache is valid - use it
-              if (entityStore && entityStore.totalFromServer.value === null) {
-                entityStore.setTotalFromServer(value);
-              }
-              const filterInfo = hasFilterKey ? ` (${totalFilterKey}=${totalFilterValue})` : '';
-              console.log(`[SpaceStore] 📊 Using cached total: ${value}${filterInfo} (age: ${Math.round(age / 1000 / 60 / 60)}h)`);
-            } else {
-              // Cache expired
-              shouldFetchCount = true;
-              console.log(`[SpaceStore] 📊 Cache expired, will refresh total count`);
-            }
-          } else {
-            // No cache
-            shouldFetchCount = true;
+        if (cachedState.status === 'hit') {
+          if (entityStore && entityStore.totalFromServer.value === null) {
+            entityStore.setTotalFromServer(cachedState.value!);
           }
-        } catch (e) {
-          // Invalid cache format or error - fetch fresh
+          console.log(
+            `[SpaceStore] 📊 Using cached total: ${cachedState.value}${filterInfo} (age: ${Math.round((cachedState.ageMs || 0) / 1000 / 60 / 60)}h)`,
+          );
+        } else if (cachedState.status === 'refresh') {
+          shouldFetchCount = true;
+          console.log(`[SpaceStore] 📊 Cache expired, will refresh total count`);
+        } else {
           shouldFetchCount = true;
         }
 
@@ -1470,7 +1471,6 @@ class SpaceStore {
             const { count: totalCount, error: countError } = await countQuery;
 
             if (!countError && totalCount !== null) {
-              const filterInfo = hasFilterKey ? ` (${totalFilterKey}=${totalFilterValue})` : '';
               console.log(`[SpaceStore] 📊 Fresh total count: ${totalCount}${filterInfo}`);
               if (entityStore) {
                 entityStore.setTotalFromServer(totalCount);
