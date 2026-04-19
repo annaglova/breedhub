@@ -16,10 +16,12 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { spaceStore } from '../stores/space-store.signal-store';
 import type { PedigreePet, PedigreeResult } from '../stores/space-store.signal-store';
+import type { PedigreeJsonb } from '../stores/space-pedigree.helpers';
+import { waitForSpaceStoreReady } from './space-store-ready.helpers';
 
 export interface UsePedigreeOptions {
   /** Pedigree JSONB from pet entity */
-  pedigree: Record<string, { id: string; bid: string }> | null | undefined;
+  pedigree: PedigreeJsonb | null | undefined;
   /** Enable/disable loading */
   enabled?: boolean;
 }
@@ -73,16 +75,7 @@ export function usePedigree({
     setError(null);
 
     try {
-      // Wait for SpaceStore initialization
-      let retries = 20;
-      while (!spaceStore.initialized.value && retries > 0) {
-        await new Promise((resolve) => setTimeout(resolve, 100));
-        retries--;
-      }
-
-      if (!spaceStore.initialized.value) {
-        throw new Error('SpaceStore not initialized');
-      }
+      await waitForSpaceStoreReady();
 
       const pedigreeResult = await spaceStore.loadPedigreeFromJsonb(pedigree);
 

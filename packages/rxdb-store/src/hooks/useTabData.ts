@@ -13,10 +13,10 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { tabDataService } from '../services/tab-data.service';
 import { spaceStore } from '../stores/space-store.signal-store';
 import type {
-  DataSourceConfig,
   TabDataResult,
   UseTabDataOptions,
 } from '../types/tab-data.types';
+import { waitForSpaceStoreReady } from './space-store-ready.helpers';
 
 export function useTabData<T = any>({
   parentId,
@@ -51,16 +51,7 @@ export function useTabData<T = any>({
     setError(null);
 
     try {
-      // Wait for SpaceStore initialization
-      let retries = 20;
-      while (!spaceStore.initialized.value && retries > 0) {
-        await new Promise((resolve) => setTimeout(resolve, 100));
-        retries--;
-      }
-
-      if (!spaceStore.initialized.value) {
-        throw new Error('SpaceStore not initialized');
-      }
+      await waitForSpaceStoreReady();
 
       // Load data via TabDataService
       let records = await tabDataService.loadTabData(parentId, dataSource);

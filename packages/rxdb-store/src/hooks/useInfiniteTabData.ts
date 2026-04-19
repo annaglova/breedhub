@@ -27,11 +27,11 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { tabDataService } from '../services/tab-data.service';
-import { spaceStore } from '../stores/space-store.signal-store';
 import type {
   InfiniteTabDataResult,
   UseInfiniteTabDataOptions,
 } from '../types/tab-data.types';
+import { waitForSpaceStoreReady } from './space-store-ready.helpers';
 
 const DEFAULT_PAGE_SIZE = 30;
 
@@ -85,16 +85,7 @@ export function useInfiniteTabData<T = any>({
     cursorRef.current = null;
 
     try {
-      // Wait for SpaceStore initialization
-      let retries = 20;
-      while (!spaceStore.initialized.value && retries > 0) {
-        await new Promise((resolve) => setTimeout(resolve, 100));
-        retries--;
-      }
-
-      if (!spaceStore.initialized.value) {
-        throw new Error('SpaceStore not initialized');
-      }
+      await waitForSpaceStoreReady();
 
       // Load first page via TabDataService (no cursor = first page)
       console.log('[useInfiniteTabData] Loading initial data, pageSize:', pageSize);
