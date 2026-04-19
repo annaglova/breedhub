@@ -108,9 +108,11 @@ export function LitterChildrenTab({
         }
 
         // Extract pet_id and pet_breed_id from junction records
+        // NOTE: child cache transform (space-child.helpers.ts::mapChildRowsToCacheRecords)
+        // stores partition field as top-level `partitionId`, not in `additional`.
         const petRefs = junctionRecords.map((record: any) => ({
           petId: record.additional?.pet_id || record.pet_id,
-          breedId: record.additional?.pet_breed_id || record.pet_breed_id,
+          breedId: record.partitionId || record.additional?.pet_breed_id || record.pet_breed_id,
         }));
 
         // Group by breed for batch queries (partition pruning)
