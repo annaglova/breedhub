@@ -15,6 +15,10 @@ export interface ChildCacheTransformOptions {
   cachedAt?: number;
 }
 
+export interface ChildCacheCollectionLike {
+  bulkUpsert(records: any[]): Promise<unknown>;
+}
+
 export interface LocalChildQueryResult {
   records: any[];
   hasMore: boolean;
@@ -99,6 +103,27 @@ export function mapChildRowsToCacheRecords(
 
     return record;
   });
+}
+
+export async function mapAndCacheChildRows(
+  rows: Record<string, any>[],
+  options: ChildCacheTransformOptions & {
+    collection?: ChildCacheCollectionLike;
+  },
+): Promise<{
+  transformedRecords: any[];
+  cachedRecordsCount: number;
+}> {
+  const transformedRecords = mapChildRowsToCacheRecords(rows, options);
+
+  if (options.collection && transformedRecords.length > 0) {
+    await options.collection.bulkUpsert(transformedRecords);
+  }
+
+  return {
+    transformedRecords,
+    cachedRecordsCount: options.collection ? transformedRecords.length : 0,
+  };
 }
 
 function getChildFieldValue(

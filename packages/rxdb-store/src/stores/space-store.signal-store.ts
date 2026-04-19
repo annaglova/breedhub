@@ -56,7 +56,7 @@ import {
   createEmptyChildPageResult,
   executeLocalChildQuery,
   getDefaultChildOrderBy,
-  mapChildRowsToCacheRecords,
+  mapAndCacheChildRows,
   normalizeChildTableType,
   sortLocalChildRecords,
   toChildPageResult,
@@ -2713,18 +2713,16 @@ class SpaceStore {
         return [];
       }
 
-      const transformedRecords = mapChildRowsToCacheRecords(data, {
+      const hydrationResult = await mapAndCacheChildRows(data, {
         tableType,
         parentId,
         parentField: parentIdField,
         partitionField: partitionConfig?.childFilterField,
         partitionValue,
+        collection,
       });
 
-      // Bulk upsert into RxDB collection (update if exists, insert if not)
-      await collection.bulkUpsert(transformedRecords);
-
-      return transformedRecords;
+      return hydrationResult.transformedRecords;
     } catch (error) {
       console.error(`[SpaceStore] Error loading child records:`, error);
       return [];
@@ -2921,15 +2919,14 @@ class SpaceStore {
       const collection = await this.ensureChildCollection(entityType);
       if (!collection) return;
 
-      const transformedRecords = mapChildRowsToCacheRecords(data, {
+      await mapAndCacheChildRows(data, {
         tableType,
         parentId,
         parentField: parentIdField,
         partitionField: partitionConfig?.childFilterField,
         partitionValue,
+        collection,
       });
-
-      await collection.bulkUpsert(transformedRecords);
 
       // Notify UI to refetch (useTabData subscribes to this signal)
       this.childRefreshSignal.value = {
@@ -3600,13 +3597,15 @@ class SpaceStore {
 
     if (!data) return [];
 
-    return mapChildRowsToCacheRecords(data, {
+    const hydrationResult = await mapAndCacheChildRows(data, {
       tableType,
       parentId,
       parentField: parentIdField,
       partitionField,
       partitionValue,
     });
+
+    return hydrationResult.transformedRecords;
   }
 
   /**
@@ -3734,18 +3733,18 @@ class SpaceStore {
         return { records: rawRecords, total: rawRecords.length, hasMore, nextCursor };
       }
 
-      const transformedRecords = mapChildRowsToCacheRecords(rawRecords, {
+      const hydrationResult = await mapAndCacheChildRows(rawRecords, {
         tableType: viewName,
         parentId,
         parentField,
         partitionField: partitionConfig?.childFilterField,
         partitionValue,
+        collection,
       });
+      const transformedRecords = hydrationResult.transformedRecords;
 
-      // Bulk upsert into RxDB collection (update if exists, insert if not)
-      if (transformedRecords.length > 0) {
-        await collection.bulkUpsert(transformedRecords);
-        console.log(`[SpaceStore] 💾 Cached ${transformedRecords.length} records in RxDB`);
+      if (hydrationResult.cachedRecordsCount > 0) {
+        console.log(`[SpaceStore] 💾 Cached ${hydrationResult.cachedRecordsCount} records in RxDB`);
       }
 
       // Calculate nextCursor from raw records

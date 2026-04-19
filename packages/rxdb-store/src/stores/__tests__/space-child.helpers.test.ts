@@ -3,6 +3,7 @@ import {
   createEmptyChildPageResult,
   executeLocalChildQuery,
   getDefaultChildOrderBy,
+  mapAndCacheChildRows,
   mapChildRowsToCacheRecords,
   toChildPageResult,
 } from "../space-child.helpers";
@@ -92,6 +93,72 @@ describe("space-child.helpers", () => {
         cachedAt: 123,
       },
     ]);
+  });
+
+  it("maps and caches child rows when a collection is provided", async () => {
+    const upserted: any[] = [];
+
+    const result = await mapAndCacheChildRows(
+      [
+        {
+          id: "row-1",
+          breed_id: "breed-1",
+          pet_breed_id: "partition-1",
+          updated_at: "2024-01-02",
+          placement: 3,
+          name: "Alpha",
+        },
+      ],
+      {
+        tableType: "top_pet_in_breed_with_pet",
+        parentId: "breed-1",
+        parentField: "breed_id",
+        partitionField: "pet_breed_id",
+        partitionValue: "partition-1",
+        cachedAt: 123,
+        collection: {
+          async bulkUpsert(records) {
+            upserted.push(...records);
+          },
+        },
+      },
+    );
+
+    expect(result.cachedRecordsCount).toBe(1);
+    expect(result.transformedRecords).toEqual(upserted);
+  });
+
+  it("maps child rows without caching when no collection is provided", async () => {
+    const result = await mapAndCacheChildRows(
+      [
+        {
+          id: "row-1",
+          breed_id: "breed-1",
+          name: "Alpha",
+        },
+      ],
+      {
+        tableType: "achievement_in_breed",
+        parentId: "breed-1",
+        parentField: "breed_id",
+        cachedAt: 123,
+      },
+    );
+
+    expect(result).toEqual({
+      transformedRecords: [
+        {
+          id: "row-1",
+          tableType: "achievement_in_breed",
+          parentId: "breed-1",
+          additional: {
+            name: "Alpha",
+          },
+          cachedAt: 123,
+        },
+      ],
+      cachedRecordsCount: 0,
+    });
   });
 
   it("applies child cursor using tie-breaker direction", async () => {
