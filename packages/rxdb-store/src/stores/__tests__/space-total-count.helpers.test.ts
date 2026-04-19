@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  applyTotalCountFiltersToQuery,
   buildDefaultFiltersSuffix,
   buildTotalCountCacheKey,
   getTotalCountFilterInfo,
@@ -77,5 +78,54 @@ describe("space-total-count.helpers", () => {
   it("builds empty default filter suffix when no defaults are provided", () => {
     expect(buildDefaultFiltersSuffix()).toBe("");
     expect(buildDefaultFiltersSuffix({})).toBe("");
+  });
+
+  it("applies default filters and grouped filter to total count query", () => {
+    const calls: Array<[string, any]> = [];
+    const query = {
+      eq(column: string, value: any) {
+        calls.push([column, value]);
+        return this;
+      },
+    };
+
+    const result = applyTotalCountFiltersToQuery(query, {
+      defaultFilters: {
+        type_id: "kennel",
+        status: "active",
+      },
+      totalFilterKey: "breed_id",
+      totalFilterValue: "breed-1",
+    });
+
+    expect(result).toBe(query);
+    expect(calls).toEqual([
+      ["type_id", "kennel"],
+      ["status", "active"],
+      ["breed_id", "breed-1"],
+    ]);
+  });
+
+  it("skips empty default filters and missing grouped filter values", () => {
+    const calls: Array<[string, any]> = [];
+    const query = {
+      eq(column: string, value: any) {
+        calls.push([column, value]);
+        return this;
+      },
+    };
+
+    applyTotalCountFiltersToQuery(query, {
+      defaultFilters: {
+        type_id: "kennel",
+        status: "",
+        archived: null,
+        owner_id: undefined,
+      },
+      totalFilterKey: "breed_id",
+      totalFilterValue: "",
+    });
+
+    expect(calls).toEqual([["type_id", "kennel"]]);
   });
 });

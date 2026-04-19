@@ -62,6 +62,7 @@ import {
   mergeOrderedRecordsByIds,
 } from './space-id-cache.helpers';
 import {
+  applyTotalCountFiltersToQuery,
   buildTotalCountCacheKey,
   getTotalCountFilterInfo,
   inspectCachedTotalCount,
@@ -1406,7 +1407,6 @@ class SpaceStore {
         // Check if this space has a totalFilterKey (e.g., breed_id for pet, pet_type_id for breed)
         const totalFilterKey = spaceConfig?.totalFilterKey;
         const totalFilterValue = totalFilterKey ? filters[totalFilterKey] : null;
-        const hasFilterKey = totalFilterKey && totalFilterValue;
         const filterInfo = getTotalCountFilterInfo(
           totalFilterKey,
           totalFilterValue,
@@ -1450,23 +1450,17 @@ class SpaceStore {
         } else if (shouldFetchCount) {
           // Fetch fresh count if needed
           try {
-            // Build query - add filter if totalFilterKey is set
-            let countQuery = supabase
-              .from(entityType)
-              .select('*', { count: 'exact', head: true })
-              .or('deleted.is.null,deleted.eq.false');
-
-            // Apply defaultFilters to count query (e.g., type_id for kennel)
-            for (const [key, value] of Object.entries(defaultFilters)) {
-              if (value !== undefined && value !== null && value !== '') {
-                countQuery = countQuery.eq(key, value);
-              }
-            }
-
-            // Add filter for grouped count
-            if (hasFilterKey) {
-              countQuery = countQuery.eq(totalFilterKey, totalFilterValue);
-            }
+            const countQuery = applyTotalCountFiltersToQuery(
+              supabase
+                .from(entityType)
+                .select('*', { count: 'exact', head: true })
+                .or('deleted.is.null,deleted.eq.false'),
+              {
+                defaultFilters,
+                totalFilterKey,
+                totalFilterValue,
+              },
+            );
 
             const { count: totalCount, error: countError } = await countQuery;
 

@@ -10,6 +10,10 @@ export interface CachedTotalCountState {
   ageMs?: number;
 }
 
+export interface TotalCountFilterableQuery<TQuery> {
+  eq(column: string, value: any): TQuery;
+}
+
 export function buildDefaultFiltersSuffix(
   defaultFilters: Record<string, any> = {},
 ): string {
@@ -81,4 +85,29 @@ export function inspectCachedTotalCount(
   } catch {
     return { status: "invalid" };
   }
+}
+
+export function applyTotalCountFiltersToQuery<
+  TQuery extends TotalCountFilterableQuery<TQuery>,
+>(
+  query: TQuery,
+  {
+    defaultFilters = {},
+    totalFilterKey,
+    totalFilterValue,
+  }: TotalCountCacheKeyOptions = {},
+): TQuery {
+  let nextQuery = query;
+
+  for (const [key, value] of Object.entries(defaultFilters)) {
+    if (value !== undefined && value !== null && value !== "") {
+      nextQuery = nextQuery.eq(key, value);
+    }
+  }
+
+  if (totalFilterKey && totalFilterValue) {
+    nextQuery = nextQuery.eq(totalFilterKey, totalFilterValue);
+  }
+
+  return nextQuery;
 }
