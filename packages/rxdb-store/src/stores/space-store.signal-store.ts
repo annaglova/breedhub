@@ -67,6 +67,14 @@ import {
   splitCachedAndMissingPartitionRefs,
   type PartitionedEntityRef,
 } from './space-partition.helpers';
+import {
+  buildPedigreeResult,
+  collectPedigreeLookupIds,
+  getPedigreeAncestorRefs,
+  type PedigreeJsonb,
+  type PedigreePet as HelperPedigreePet,
+  type PedigreeResult as HelperPedigreeResult,
+} from './space-pedigree.helpers';
 
 // Helpers
 import {
@@ -130,36 +138,8 @@ export type OrderBy = KeysetOrderBy;
  * Instead, LitterListCard uses useCollectionValue hooks for enrichment.
  */
 
-/**
- * Pedigree pet for UI (tree structure)
- */
-export interface PedigreePet {
-  id: string;
-  name: string;
-  slug?: string;
-  breedId?: string;
-  dateOfBirth?: string;
-  titles?: string;
-  avatarUrl?: string;
-  sex?: {
-    code?: string;
-    name?: string;
-  };
-  countryOfBirth?: {
-    code?: string;
-  };
-  father?: PedigreePet;
-  mother?: PedigreePet;
-}
-
-/**
- * Result from loadPedigree method
- */
-export interface PedigreeResult {
-  father?: PedigreePet;
-  mother?: PedigreePet;
-  ancestors: any[];
-}
+export type PedigreePet = HelperPedigreePet;
+export type PedigreeResult = HelperPedigreeResult<BusinessEntity>;
 
 /**
  * SpaceStore - Universal dynamic store for ALL business entities
@@ -4029,93 +4009,38 @@ class SpaceStore {
    * Each value is { id: string, bid: string } (pet ID + breed ID for partition pruning)
    *
    * This method:
-   * 1. Groups ancestor IDs by breed_id for efficient partition-pruned queries
-   * 2. Batch fetches all ancestors from supabase
+   * 1. Normalizes ancestor refs with partition context
+   * 2. Loads ancestors through the shared local-first partition-aware path
    * 3. Builds tree structure from JSONB keys
    *
    * @param pedigree - JSONB pedigree object from pet entity
    * @returns Pedigree tree with father and mother branches
    */
   async loadPedigreeFromJsonb(
-    pedigree: Record<string, { id: string; bid: string }>,
+    pedigree: PedigreeJsonb,
   ): Promise<PedigreeResult> {
     if (!pedigree || Object.keys(pedigree).length === 0) {
       return { ancestors: [] };
     }
 
     console.log(`[SpaceStore] Loading pedigree from JSONB (${Object.keys(pedigree).length} entries)`);
-
-    // Phase 1: Extract unique IDs from JSONB (dedup for inbreeding — same ancestor in multiple positions)
-    const allIds = [...new Set(Object.values(pedigree).map(e => e.id))];
-    const idToBreed = new Map(Object.values(pedigree).map(e => [e.id, e.bid]));
-
-    // Phase 2: Check RxDB cache
-    const collection = this.db?.collections['pet'];
-    let cachedMap = new Map<string, BusinessEntity>();
-
-    if (collection) {
-      const cached = await collection.find({
-        selector: { id: { $in: allIds } }
-      }).exec();
-      cachedMap = mapDocsToRecordMap<BusinessEntity>(cached);
+    const ancestorRefs = getPedigreeAncestorRefs(pedigree);
+    if (ancestorRefs.length === 0) {
+      return { ancestors: [] };
     }
 
-    const cacheHitRate = allIds.length > 0
-      ? Math.round((cachedMap.size / allIds.length) * 100)
-      : 0;
-    console.log(`[SpaceStore] Pedigree cache: ${cachedMap.size}/${allIds.length} ancestors in RxDB (${cacheHitRate}% hit rate)`);
-
-    // Phase 3: Fetch only missing ancestors from Supabase (grouped by breed_id for partition pruning)
-    const missingIds = getMissingIds(allIds, cachedMap);
-    let freshRecords: any[] = [];
-
     try {
-      if (missingIds.length > 0) {
-        const missingByBreed = new Map<string, string[]>();
-        for (const id of missingIds) {
-          const bid = idToBreed.get(id)!;
-          if (!missingByBreed.has(bid)) missingByBreed.set(bid, []);
-          missingByBreed.get(bid)!.push(id);
-        }
-
-        // Parallel fetch across breed partitions (instead of sequential N+1)
-        const results = await Promise.all(
-          Array.from(missingByBreed.entries()).map(([breedId, ids]) =>
-            supabase
-              .from('pet')
-              .select('*')
-              .eq('breed_id', breedId)
-              .in('id', ids)
-              .then(({ data, error }) => {
-                if (error) console.error(`[SpaceStore] Failed to fetch ancestors for breed ${breedId}:`, error);
-                return data || [];
-              })
-          )
-        );
-        freshRecords = results.flat();
-
-        // Cache fresh records in RxDB
-        if (freshRecords.length > 0 && collection) {
-          const mapped = freshRecords.map(r => this.mapToRxDBFormat(r, 'pet'));
-          await collection.bulkUpsert(mapped);
-          console.log(`[SpaceStore] Pedigree: cached ${freshRecords.length} fresh records in RxDB`);
-        }
-      }
-
-      // Phase 4: Merge cached + fresh
-      const allAncestors = mergeOrderedRecordsByIds(
-        allIds,
-        cachedMap,
-        freshRecords as BusinessEntity[],
+      const allAncestors = await this.loadEntitiesByPartitionRefs<BusinessEntity>(
+        'pet',
+        ancestorRefs,
+        { partitionField: 'breed_id' },
+      );
+      console.log(
+        `[SpaceStore] Pedigree: resolved ${allAncestors.length}/${ancestorRefs.length} unique ancestor refs`,
       );
 
       // Resolve sex and country codes via dictionaryStore (local-first, RxDB cached)
-      const countryIds = new Set<string>();
-      const sexIds = new Set<string>();
-      for (const a of allAncestors) {
-        if (a.country_of_birth_id) countryIds.add(a.country_of_birth_id);
-        if (a.sex_id) sexIds.add(a.sex_id);
-      }
+      const { sexIds, countryIds } = collectPedigreeLookupIds(allAncestors);
 
       // Parallel lookup via dictionaryStore.getRecordById()
       const lookupPromises: Promise<[string, string, Record<string, unknown> | null]>[] = [];
@@ -4143,49 +4068,10 @@ class SpaceStore {
         if (type === 'country' && record.code) countryCodeMap.set(id, String(record.code));
       }
 
-      // Build ancestor map
-      const ancestorMap = new Map<string, any>();
-      for (const a of allAncestors) {
-        ancestorMap.set(a.id, a);
-      }
-
-      // Build tree from JSONB keys
-      // Key 'f' = father, 'fm' = father.mother, 'mff' = mother.father.father, etc.
-      const buildNode = (key: string): PedigreePet | undefined => {
-        const entry = pedigree[key];
-        if (!entry) return undefined;
-
-        const ancestor = ancestorMap.get(entry.id);
-        if (!ancestor) return undefined;
-
-        const countryCode = ancestor.country_of_birth_id
-          ? countryCodeMap.get(ancestor.country_of_birth_id)
-          : undefined;
-
-        return {
-          id: ancestor.id,
-          name: ancestor.name,
-          slug: ancestor.slug || undefined,
-          breedId: ancestor.breed_id,
-          dateOfBirth: ancestor.date_of_birth || undefined,
-          titles: ancestor.titles || undefined,
-          avatarUrl: ancestor.avatar_url || undefined,
-          sex: ancestor.sex_id ? {
-            code: sexCodeMap.get(ancestor.sex_id),
-          } : undefined,
-          countryOfBirth: countryCode ? {
-            code: countryCode
-          } : undefined,
-          father: buildNode(key + 'f'),
-          mother: buildNode(key + 'm'),
-        };
-      };
-
-      return {
-        father: buildNode('f'),
-        mother: buildNode('m'),
-        ancestors: allAncestors,
-      };
+      return buildPedigreeResult(pedigree, allAncestors, {
+        sexCodeMap,
+        countryCodeMap,
+      });
     } catch (error) {
       console.error('[SpaceStore] Error loading pedigree from JSONB:', error);
       throw error;
