@@ -22,6 +22,12 @@ import {
   SpaceConfig,
 } from './space-config.helpers';
 import {
+  buildEntityCollectionConfig,
+  getCollectionReuseStatus,
+  isCollectionSchemaMismatchError,
+  recoverCollectionSchemaMismatch,
+} from './space-collection.helpers';
+import {
   buildHybridBaseQuery,
   buildHybridSearchPhaseQuery,
   buildHybridSearchPlan,
@@ -726,16 +732,14 @@ class SpaceStore {
 
     // Check if collection already exists and is valid
     const existingCollection = this.db.collections[entityType];
-    if (existingCollection && existingCollection.name === entityType) {
-      // Verify collection is actually working
-      try {
-        await existingCollection.count().exec();
-        console.log(`[SpaceStore] Collection ${entityType} already exists and is valid`);
-        return;
-      } catch (err) {
-        console.warn(`[SpaceStore] Collection ${entityType} exists but is broken, will recreate`);
-        // Collection is broken, continue to recreate it
-      }
+    const reuseStatus = await getCollectionReuseStatus(entityType, existingCollection);
+    if (reuseStatus === 'ready') {
+      console.log(`[SpaceStore] Collection ${entityType} already exists and is valid`);
+      return;
+    }
+
+    if (existingCollection) {
+      console.warn(`[SpaceStore] Collection ${entityType} exists but is broken, will recreate`);
     }
     
     // Generate schema from config
@@ -749,51 +753,23 @@ class SpaceStore {
     // Create collection
     try {
       await this.db.addCollections({
-        [entityType]: {
-          schema: schema,
-          migrationStrategies: {
-            // Version 0→1: Add cachedAt field for TTL cleanup
-            1: (oldDoc: any) => {
-              return {
-                ...oldDoc,
-                cachedAt: Date.now()
-              };
-            },
-            // Version 1→2: Add VIEW extra fields (pass through, fields added on next fetch)
-            2: (oldDoc: any) => oldDoc
-          }
-        }
+        [entityType]: buildEntityCollectionConfig(schema),
       });
       console.log(`[SpaceStore] Created collection ${entityType}`);
     } catch (error: any) {
       // DB6 = schema mismatch — cached IndexedDB has old schema, config has new one.
       // Auto-clear and reload (same as checkSchemaVersion flow).
-      if (error?.code === 'DB6' || error?.rxdb && error?.code === 'DB6') {
+      if (isCollectionSchemaMismatchError(error)) {
         console.warn(`[SpaceStore] Schema mismatch for ${entityType}. Clearing RxDB and reloading...`);
-        // Prevent multiple concurrent clears
-        if ((window as any).__rxdbClearing) return;
-        (window as any).__rxdbClearing = true;
-        // Reset schema hash so checkSchemaVersion re-validates on next load
-        localStorage.removeItem('breedhub_schema_hash');
-        try {
-          // db.remove() closes connections AND deletes underlying storage
-          if (this.db) {
-            await this.db.remove();
-          }
-        } catch { /* best effort */ }
-        // Fallback: manual delete in case db.remove() missed something
-        try {
-          await new Promise<void>((resolve) => {
-            let pending = 2;
-            const done = () => { if (--pending <= 0) resolve(); };
-            const r1 = indexedDB.deleteDatabase('rxdb-dexie-breedhub');
-            r1.onsuccess = r1.onerror = r1.onblocked = done;
-            const r2 = indexedDB.deleteDatabase('breedhub');
-            r2.onsuccess = r2.onerror = r2.onblocked = done;
-          });
-        } catch { /* best effort */ }
-        window.location.reload();
-        return;
+        const recovered = await recoverCollectionSchemaMismatch({
+          db: this.db,
+          indexedDb: indexedDB,
+          localStorage,
+          window,
+        });
+        if (recovered) {
+          return;
+        }
       }
       console.error(`[SpaceStore] Failed to create collection ${entityType}:`, error);
       throw error;
