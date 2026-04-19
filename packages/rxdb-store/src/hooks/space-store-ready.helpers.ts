@@ -1,4 +1,5 @@
 import { spaceStore } from '../stores/space-store.signal-store';
+import { waitForReady } from '../stores/space-ready.helpers';
 
 export interface WaitForSpaceStoreReadyOptions {
   retries?: number;
@@ -11,12 +12,12 @@ export async function waitForSpaceStoreReady(
     delayMs = 100,
   }: WaitForSpaceStoreReadyOptions = {},
 ): Promise<void> {
-  while (!spaceStore.initialized.value && retries > 0) {
-    await new Promise((resolve) => setTimeout(resolve, delayMs));
-    retries--;
-  }
-
-  if (!spaceStore.initialized.value) {
-    throw new Error('SpaceStore not initialized');
-  }
+  await waitForReady(
+    () => spaceStore.initialized.value,
+    {
+      retries,
+      delayMs,
+      errorMessage: 'SpaceStore not initialized',
+    },
+  );
 }

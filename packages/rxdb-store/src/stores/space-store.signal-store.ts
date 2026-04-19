@@ -29,6 +29,7 @@ import {
   isCollectionSchemaMismatchError,
   recoverCollectionSchemaMismatch,
 } from './space-collection.helpers';
+import { waitForReady } from './space-ready.helpers';
 import {
   buildHybridBaseQuery,
   buildHybridSearchPhaseQuery,
@@ -673,12 +674,16 @@ class SpaceStore {
   async getEntityStore<T extends BusinessEntity>(entityType: string): Promise<EntityStore<T> | null> {
     // Wait for full initialization (config + DB) before creating entity stores
     if (!this.initialized.value) {
-      let retries = 100;
-      while (!this.initialized.value && retries > 0) {
-        await new Promise(resolve => setTimeout(resolve, 50)); // 50ms polling, up to 5s
-        retries--;
-      }
-      if (!this.initialized.value) {
+      try {
+        await waitForReady(
+          () => this.initialized.value,
+          {
+            retries: 100,
+            delayMs: 50,
+            errorMessage: 'SpaceStore not initialized',
+          },
+        );
+      } catch {
         console.error(`[SpaceStore] Not initialized after waiting for ${entityType}`);
         return null;
       }
