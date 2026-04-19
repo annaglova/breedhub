@@ -4,6 +4,7 @@ import {
   getStringSearchFilters,
 } from "./space-filter.helpers";
 import type { KeysetOrderBy } from "./space-keyset.helpers";
+import { compareValues, getTieBreaker } from "./space-sort.helpers";
 
 export interface LocalEntityQueryResult {
   records: any[];
@@ -29,10 +30,6 @@ interface LocalSelectorQueryOptions {
 
 function escapeRegexValue(value: any): string {
   return String(value).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-}
-
-function getTieBreaker(orderBy: KeysetOrderBy) {
-  return orderBy.tieBreaker || { field: "id", direction: "asc" as const };
 }
 
 export function getLocalOrderValue(
@@ -62,21 +59,6 @@ function getLocalTieBreakerValue(
     : record[tieBreaker.field];
 
   return tieBreakerValue ?? record.id ?? null;
-}
-
-function compareValues(
-  left: any,
-  right: any,
-  direction: "asc" | "desc",
-): number {
-  if (left === null || left === undefined) return 1;
-  if (right === null || right === undefined) return -1;
-
-  if (direction === "asc") {
-    return left < right ? -1 : left > right ? 1 : 0;
-  }
-
-  return left > right ? -1 : left < right ? 1 : 0;
 }
 
 export function sortLocalRecords(
