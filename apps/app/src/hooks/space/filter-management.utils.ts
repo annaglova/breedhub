@@ -6,6 +6,7 @@ import {
   normalizeForUrl,
 } from "@/components/space/utils/filter-url-helpers";
 import {
+  FILTER_BUILD_RESERVED_QUERY_PARAMS,
   FILTER_RESERVED_QUERY_PARAMS,
   hasUnreservedSearchParams,
   readStorageValue,
@@ -96,7 +97,7 @@ export async function buildFiltersFromSearchParams({
   const promises: Promise<void>[] = [];
 
   searchParams.forEach((urlValue, urlKey) => {
-    if (FILTER_RESERVED_QUERY_PARAMS.includes(urlKey) || !urlValue) {
+    if (FILTER_BUILD_RESERVED_QUERY_PARAMS.includes(urlKey) || !urlValue) {
       return;
     }
 
@@ -244,7 +245,7 @@ export async function buildActiveFilters({
   const rxdb = await getFilterLookupDatabase();
 
   for (const [key, urlValue] of searchParams.entries()) {
-    if (FILTER_RESERVED_QUERY_PARAMS.includes(key) || !urlValue) {
+    if (FILTER_BUILD_RESERVED_QUERY_PARAMS.includes(key) || !urlValue) {
       continue;
     }
 
@@ -296,7 +297,7 @@ export async function buildCurrentFilterValues({
   const promises: Promise<void>[] = [];
 
   searchParams.forEach((urlValue, urlKey) => {
-    if (FILTER_RESERVED_QUERY_PARAMS.includes(urlKey) || !urlValue) {
+    if (FILTER_BUILD_RESERVED_QUERY_PARAMS.includes(urlKey) || !urlValue) {
       return;
     }
 

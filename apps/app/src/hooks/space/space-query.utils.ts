@@ -10,8 +10,16 @@ export const SPACE_RESERVED_QUERY_PARAMS: readonly string[] = [
   ...LEGACY_SORT_QUERY_PARAMS,
 ] as const;
 
+// Used by hasFilterSearchParams heuristic (should localStorage filters be applied?).
+// `entity` is intentionally NOT included here — URL `?entity=X` alone means "no filters",
+// so saved filters from localStorage should still apply.
 export const FILTER_RESERVED_QUERY_PARAMS: readonly string[] = [
   ...SPACE_RESERVED_QUERY_PARAMS,
+] as const;
+
+// Used by buildFiltersFromSearchParams — `entity` is a routing param, never a filter value.
+export const FILTER_BUILD_RESERVED_QUERY_PARAMS: readonly string[] = [
+  ...FILTER_RESERVED_QUERY_PARAMS,
   "entity",
 ] as const;
 
