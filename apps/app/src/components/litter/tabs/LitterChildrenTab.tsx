@@ -1,10 +1,10 @@
 import { PetCard, type Pet } from "@/components/shared/PetCard";
 import { normalizeSexCode } from "@/components/shared/pedigree/types";
 import { useSelectedEntity } from "@/contexts/SpaceContext";
-import { spaceStore, dictionaryStore, useTabData, supabase } from "@breedhub/rxdb-store";
+import { spaceStore, dictionaryStore, useTabData } from "@breedhub/rxdb-store";
 import type { DataSourceConfig } from "@breedhub/rxdb-store";
 import { useSignals } from "@preact/signals-react/runtime";
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState } from "react";
 
 interface LitterChildrenTabProps {
   onLoadedCount?: (count: number) => void;
@@ -60,7 +60,7 @@ async function enrichPetForCard(rawPet: any): Promise<Pet> {
  *
  * Data flow:
  * 1. Load pet_in_litter records via useTabData (cached in litter_children)
- * 2. Fetch full pet data using pet_id + pet_breed_id (partition pruning)
+ * 2. Load full pet data via SpaceStore using pet_id + partitionId (local-first)
  * 3. Enrich with dictionaries (sex, breed, status, country)
  *
  * Displays in grid format using PetCard (litter mode).
@@ -115,30 +115,17 @@ export function LitterChildrenTab({
           breedId: record.partitionId || record.additional?.pet_breed_id || record.pet_breed_id,
         }));
 
-        // Group by breed for batch queries (partition pruning)
-        const byBreed = new Map<string, string[]>();
-        for (const ref of petRefs) {
-          if (!ref.petId || !ref.breedId) continue;
-          if (!byBreed.has(ref.breedId)) {
-            byBreed.set(ref.breedId, []);
-          }
-          byBreed.get(ref.breedId)!.push(ref.petId);
-        }
-
-        // Fetch pets from each breed partition
-        const allPets: any[] = [];
-        for (const [breedId, petIds] of byBreed.entries()) {
-          const { data, error } = await supabase
-            .from("pet")
-            .select("*")
-            .eq("breed_id", breedId)
-            .in("id", petIds)
-            .or("deleted.is.null,deleted.eq.false");
-
-          if (!error && data) {
-            allPets.push(...data);
-          }
-        }
+        const allPets = await spaceStore.loadEntitiesByPartitionRefs("pet", petRefs
+          .filter(
+            (ref): ref is { petId: string; breedId: string } =>
+              !!ref.petId && !!ref.breedId,
+          )
+          .map((ref) => ({
+            id: ref.petId,
+            partitionId: ref.breedId,
+          })), {
+          partitionField: "breed_id",
+        });
 
         // Enrich each pet with dictionaries
         const enrichedPets = await Promise.all(

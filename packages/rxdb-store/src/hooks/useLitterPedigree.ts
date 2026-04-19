@@ -18,8 +18,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { spaceStore } from '../stores/space-store.signal-store';
-import type { PedigreePet, PedigreeResult } from '../stores/space-store.signal-store';
-import { supabase } from '../supabase/client';
+import type { PedigreePet } from '../stores/space-store.signal-store';
 import { dictionaryStore } from '../stores/dictionary-store.signal-store';
 
 export interface UseLitterPedigreeOptions {
@@ -127,71 +126,34 @@ export function useLitterPedigree({
       let motherPet: any = null;
       let totalAncestorCount = 0;
 
-      // ID-First: Check RxDB cache for parent pets first
-      const petCollection = spaceStore.db?.collections['pet'];
-      const cachedPets = new Map<string, any>();
+      const parentPets = await spaceStore.loadEntitiesByPartitionRefs(
+        'pet',
+        [
+          fatherId && fatherBreedId
+            ? { id: fatherId, partitionId: fatherBreedId }
+            : null,
+          motherId && motherBreedId
+            ? { id: motherId, partitionId: motherBreedId }
+            : null,
+        ].filter(Boolean) as Array<{ id: string; partitionId: string }>,
+        { partitionField: 'breed_id' },
+      );
 
-      if (petCollection) {
-        const idsToCheck = [fatherId, motherId].filter(Boolean) as string[];
-        if (idsToCheck.length > 0) {
-          const cached = await petCollection.find({
-            selector: { id: { $in: idsToCheck } }
-          }).exec();
-          for (const doc of cached) {
-            const pet = doc.toJSON();
-            cachedPets.set(pet.id, pet);
-          }
-          console.log(`[useLitterPedigree] Cache check: ${cachedPets.size}/${idsToCheck.length} parents in RxDB`);
-        }
-      }
+      fatherPet = fatherId
+        ? parentPets.find(
+            (pet) =>
+              pet.id === fatherId &&
+              (!fatherBreedId || pet.breed_id === fatherBreedId),
+          ) || null
+        : null;
 
-      // Load father pet (from cache or Supabase with partition pruning)
-      if (fatherId && fatherBreedId) {
-        if (cachedPets.has(fatherId)) {
-          fatherPet = cachedPets.get(fatherId);
-        } else {
-          const { data, error: fetchError } = await supabase
-            .from('pet')
-            .select('*')
-            .eq('breed_id', fatherBreedId)
-            .eq('id', fatherId)
-            .single();
-
-          if (fetchError) {
-            console.error('[useLitterPedigree] Failed to load father:', fetchError);
-          } else {
-            fatherPet = data;
-            // Cache in RxDB
-            if (petCollection && data) {
-              await petCollection.upsert(spaceStore.mapToRxDBFormat(data, 'pet'));
-            }
-          }
-        }
-      }
-
-      // Load mother pet (from cache or Supabase with partition pruning)
-      if (motherId && motherBreedId) {
-        if (cachedPets.has(motherId)) {
-          motherPet = cachedPets.get(motherId);
-        } else {
-          const { data, error: fetchError } = await supabase
-            .from('pet')
-            .select('*')
-            .eq('breed_id', motherBreedId)
-            .eq('id', motherId)
-            .single();
-
-          if (fetchError) {
-            console.error('[useLitterPedigree] Failed to load mother:', fetchError);
-          } else {
-            motherPet = data;
-            // Cache in RxDB
-            if (petCollection && data) {
-              await petCollection.upsert(spaceStore.mapToRxDBFormat(data, 'pet'));
-            }
-          }
-        }
-      }
+      motherPet = motherId
+        ? parentPets.find(
+            (pet) =>
+              pet.id === motherId &&
+              (!motherBreedId || pet.breed_id === motherBreedId),
+          ) || null
+        : null;
 
       // Load father's pedigree (his ancestors become ff, fm, fff, etc.)
       let fatherAncestors: { father?: PedigreePet; mother?: PedigreePet } = {};

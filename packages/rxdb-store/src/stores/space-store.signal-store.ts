@@ -60,6 +60,13 @@ import {
   mapDocsToRecordMap,
   mergeOrderedRecordsByIds,
 } from './space-id-cache.helpers';
+import {
+  groupPartitionedEntityRefs,
+  normalizePartitionedEntityRefs,
+  orderRecordsByPartitionRefs,
+  splitCachedAndMissingPartitionRefs,
+  type PartitionedEntityRef,
+} from './space-partition.helpers';
 
 // Helpers
 import {
@@ -1988,6 +1995,78 @@ class SpaceStore {
   }
 
   /**
+   * 🌐 Fetch full records by ID with optional partition pruning
+   */
+  private async fetchRecordsByPartitionRefs(
+    entityType: string,
+    refs: PartitionedEntityRef[],
+    partitionField?: string,
+  ): Promise<any[]> {
+    const normalizedRefs = normalizePartitionedEntityRefs(refs);
+    if (normalizedRefs.length === 0) {
+      return [];
+    }
+
+    const sourceName = this.getSupabaseSource(entityType);
+
+    if (!partitionField) {
+      const { data, error } = await supabase
+        .from(sourceName)
+        .select('*')
+        .in('id', normalizedRefs.map((ref) => ref.id))
+        .or('deleted.is.null,deleted.eq.false');
+
+      if (error) {
+        console.error('[SpaceStore] ❌ Partition ref fetch error:', error);
+        throw error;
+      }
+
+      return data || [];
+    }
+
+    const { partitionedIds, unpartitionedIds } =
+      groupPartitionedEntityRefs(normalizedRefs);
+    const results: any[] = [];
+
+    if (unpartitionedIds.length > 0) {
+      const { data, error } = await supabase
+        .from(sourceName)
+        .select('*')
+        .in('id', unpartitionedIds)
+        .or('deleted.is.null,deleted.eq.false');
+
+      if (error) {
+        console.error('[SpaceStore] ❌ Unpartitioned ref fetch error:', error);
+        throw error;
+      }
+
+      if (data) {
+        results.push(...data);
+      }
+    }
+
+    for (const [partitionId, ids] of partitionedIds) {
+      const { data, error } = await supabase
+        .from(sourceName)
+        .select('*')
+        .eq(partitionField, partitionId)
+        .in('id', ids)
+        .or('deleted.is.null,deleted.eq.false');
+
+      if (error) {
+        console.error('[SpaceStore] ❌ Partition-pruned ref fetch error:', error);
+        throw error;
+      }
+
+      if (data) {
+        results.push(...data);
+      }
+    }
+
+    return results;
+  }
+
+  /**
    * Map Supabase record to RxDB format
    * Extracted from fetchFilteredFromSupabase for reusability
    */
@@ -2402,6 +2481,125 @@ class SpaceStore {
     } catch (err) {
       console.error(`[SpaceStore] Error fetching by id from Supabase:`, err);
       return null;
+    }
+  }
+
+  /**
+   * Load entities by ID + partition refs (Local-First: RxDB → Supabase fallback).
+   *
+   * Useful for partitioned entity lookups like pet records referenced from child tables.
+   */
+  async loadEntitiesByPartitionRefs<T extends BusinessEntity = BusinessEntity>(
+    entityType: string,
+    refs: PartitionedEntityRef[],
+    options: {
+      partitionField?: string;
+    } = {},
+  ): Promise<T[]> {
+    const normalizedRefs = normalizePartitionedEntityRefs(refs);
+    if (normalizedRefs.length === 0) {
+      return [];
+    }
+
+    const partitionField =
+      options.partitionField ||
+      this.entitySchemas.get(entityType)?.partition?.keyField;
+
+    if (this.db && !this.db.collections[entityType]) {
+      try {
+        await this.ensureCollection(entityType);
+      } catch (error) {
+        console.warn(
+          `[SpaceStore] Failed to ensure collection for ${entityType}:`,
+          error,
+        );
+      }
+    }
+
+    const collection = this.db?.collections[entityType];
+    let cachedRecords: T[] = [];
+
+    if (collection) {
+      const cachedDocs = await collection
+        .findByIds(normalizedRefs.map((ref) => ref.id))
+        .exec();
+      const cachedMap = docMapToRecordMap<T>(cachedDocs);
+      const split = splitCachedAndMissingPartitionRefs(
+        normalizedRefs,
+        cachedMap,
+        partitionField,
+      );
+
+      cachedRecords = split.cached;
+
+      if (split.missing.length === 0 || isOffline()) {
+        return orderRecordsByPartitionRefs(
+          normalizedRefs,
+          cachedRecords,
+          partitionField,
+        );
+      }
+
+      try {
+        const freshRecords = (await this.fetchRecordsByPartitionRefs(
+          entityType,
+          split.missing,
+          partitionField,
+        )) as T[];
+
+        if (freshRecords.length > 0) {
+          const mapped = freshRecords.map((record) =>
+            this.mapToRxDBFormat(record, entityType),
+          );
+          await collection.bulkUpsert(mapped);
+        }
+
+        return orderRecordsByPartitionRefs(
+          normalizedRefs,
+          [...cachedRecords, ...freshRecords],
+          partitionField,
+        );
+      } catch (error) {
+        if (!isNetworkError(error)) {
+          console.error(
+            `[SpaceStore] Failed to load partition refs for ${entityType}:`,
+            error,
+          );
+        }
+
+        return orderRecordsByPartitionRefs(
+          normalizedRefs,
+          cachedRecords,
+          partitionField,
+        );
+      }
+    }
+
+    if (isOffline()) {
+      return [];
+    }
+
+    try {
+      const freshRecords = (await this.fetchRecordsByPartitionRefs(
+        entityType,
+        normalizedRefs,
+        partitionField,
+      )) as T[];
+
+      return orderRecordsByPartitionRefs(
+        normalizedRefs,
+        freshRecords,
+        partitionField,
+      );
+    } catch (error) {
+      if (!isNetworkError(error)) {
+        console.error(
+          `[SpaceStore] Failed to load partition refs for ${entityType}:`,
+          error,
+        );
+      }
+
+      return [];
     }
   }
 
