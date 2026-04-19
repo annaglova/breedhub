@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
 import {
+  applyChildListQueryOptions,
   createEmptyChildPageResult,
   executeLocalChildQuery,
   getDefaultChildOrderBy,
+  hasStaleChildRecords,
   mapAndCacheChildRows,
   mapChildRowsToCacheRecords,
   toChildPageResult,
@@ -50,6 +52,68 @@ describe("space-child.helpers", () => {
       hasMore: false,
       nextCursor: null,
     });
+  });
+
+  it("detects stale child records using the oldest cached timestamp", () => {
+    expect(
+      hasStaleChildRecords(
+        [
+          { cachedAt: 1_000 },
+          { cachedAt: 1_500 },
+        ],
+        400,
+        1_500,
+      ),
+    ).toBe(true);
+
+    expect(
+      hasStaleChildRecords(
+        [
+          { cachedAt: 1_000 },
+          { cachedAt: 1_500 },
+        ],
+        600,
+        1_500,
+      ),
+    ).toBe(false);
+
+    expect(hasStaleChildRecords([], 600, 1_500)).toBe(false);
+  });
+
+  it("applies child list query options in parent-partition-order sequence", () => {
+    const calls: Array<[string, ...any[]]> = [];
+    const query = {
+      eq(column: string, value: any) {
+        calls.push(["eq", column, value]);
+        return this;
+      },
+      limit(value: number) {
+        calls.push(["limit", value]);
+        return this;
+      },
+      order(column: string, options: { ascending: boolean; nullsFirst: boolean }) {
+        calls.push(["order", column, options]);
+        return this;
+      },
+    };
+
+    const result = applyChildListQueryOptions(query, {
+      parentField: "breed_id",
+      parentId: "breed-1",
+      limit: 25,
+      orderBy: "placement",
+      orderDirection: "desc",
+      partitionField: "pet_breed_id",
+      partitionValue: "breed-2",
+    });
+
+    expect(result).toBe(query);
+    expect(calls).toEqual([
+      ["eq", "breed_id", "breed-1"],
+      ["limit", 25],
+      ["eq", "pet_breed_id", "breed-2"],
+      ["order", "placement", { ascending: false, nullsFirst: false }],
+    ]);
   });
 
   it("maps child rows to cache records with service fields preserved", () => {

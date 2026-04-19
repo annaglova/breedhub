@@ -19,6 +19,18 @@ export interface ChildCacheCollectionLike {
   bulkUpsert(records: any[]): Promise<unknown>;
 }
 
+export interface ChildListQueryLike<TQuery> {
+  eq(column: string, value: any): TQuery;
+  limit(limit: number): TQuery;
+  order(
+    column: string,
+    options: {
+      ascending: boolean;
+      nullsFirst: boolean;
+    },
+  ): TQuery;
+}
+
 export interface LocalChildQueryResult {
   records: any[];
   hasMore: boolean;
@@ -62,6 +74,49 @@ export function createEmptyChildPageResult<TRecord = any>(): ChildPageResult<TRe
     hasMore: false,
     nextCursor: null,
   };
+}
+
+export function hasStaleChildRecords(
+  records: Array<{ cachedAt?: number }>,
+  staleMs: number,
+  now = Date.now(),
+): boolean {
+  if (records.length === 0) {
+    return false;
+  }
+
+  const oldestCachedAt = Math.min(...records.map((record) => record.cachedAt || 0));
+  return (now - oldestCachedAt) > staleMs;
+}
+
+export function applyChildListQueryOptions<TQuery extends ChildListQueryLike<TQuery>>(
+  query: TQuery,
+  options: {
+    parentField: string;
+    parentId: string;
+    limit: number;
+    orderBy?: string;
+    orderDirection?: "asc" | "desc";
+    partitionField?: string;
+    partitionValue?: string;
+  },
+): TQuery {
+  let nextQuery = query
+    .eq(options.parentField, options.parentId)
+    .limit(options.limit);
+
+  if (options.partitionField && options.partitionValue) {
+    nextQuery = nextQuery.eq(options.partitionField, options.partitionValue);
+  }
+
+  if (options.orderBy) {
+    nextQuery = nextQuery.order(options.orderBy, {
+      ascending: options.orderDirection === "asc",
+      nullsFirst: false,
+    });
+  }
+
+  return nextQuery;
 }
 
 export function normalizeChildTableType(tableType: string): string {

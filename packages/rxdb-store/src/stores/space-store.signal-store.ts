@@ -53,9 +53,11 @@ import {
 } from './space-keyset.helpers';
 import { executeLocalEntityQuery } from './space-local-query.helpers';
 import {
+  applyChildListQueryOptions,
   createEmptyChildPageResult,
   executeLocalChildQuery,
   getDefaultChildOrderBy,
+  hasStaleChildRecords,
   mapAndCacheChildRows,
   normalizeChildTableType,
   sortLocalChildRecords,
@@ -2674,8 +2676,7 @@ class SpaceStore {
     if (existingRecords.length > 0) {
       // Staleness check: if oldest record cached > 5 min ago, refetch in background
       const CHILD_STALE_MS = 5 * 60 * 1000; // 5 minutes
-      const oldestCachedAt = Math.min(...existingRecords.map((r: any) => r.cachedAt || 0));
-      if ((Date.now() - oldestCachedAt) > CHILD_STALE_MS) {
+      if (hasStaleChildRecords(existingRecords, CHILD_STALE_MS)) {
         // Return stale data immediately, refresh in background
         this.refreshChildRecordsInBackground(entityType, tableType, parentId, parentIdField, options, partitionConfig, partitionValue);
       }
@@ -2685,22 +2686,20 @@ class SpaceStore {
     // Load from Supabase
     try {
       const { limit = 50, orderBy, orderDirection = 'asc' } = options;
-
-      // Build Supabase query
-      let query: any = supabase
-        .from(tableType)
-        .select('*')
-        .eq(parentIdField, parentId)
-        .limit(limit);
-
-      // Add partition filter if configured (for partition pruning)
-      if (partitionConfig && partitionValue) {
-        query = query.eq(partitionConfig.childFilterField, partitionValue);
-      }
-
-      if (orderBy) {
-        query = query.order(orderBy, { ascending: orderDirection === 'asc', nullsFirst: false });
-      }
+      const query = applyChildListQueryOptions(
+        (supabase as any)
+          .from(tableType)
+          .select('*'),
+        {
+          parentField: parentIdField,
+          parentId,
+          limit,
+          orderBy,
+          orderDirection,
+          partitionField: partitionConfig?.childFilterField,
+          partitionValue,
+        },
+      );
 
       const { data, error } = await query;
 
@@ -2899,19 +2898,20 @@ class SpaceStore {
   ): Promise<void> {
     try {
       const { limit = 50, orderBy, orderDirection = 'asc' } = options;
-
-      let query = supabase
-        .from(tableType)
-        .select('*')
-        .eq(parentIdField, parentId)
-        .limit(limit);
-
-      if (partitionConfig && partitionValue) {
-        query = (query as any).eq(partitionConfig.childFilterField, partitionValue);
-      }
-      if (orderBy) {
-        query = (query as any).order(orderBy, { ascending: orderDirection === 'asc', nullsFirst: false });
-      }
+      const query = applyChildListQueryOptions(
+        (supabase as any)
+          .from(tableType)
+          .select('*'),
+        {
+          parentField: parentIdField,
+          parentId,
+          limit,
+          orderBy,
+          orderDirection,
+          partitionField: partitionConfig?.childFilterField,
+          partitionValue,
+        },
+      );
 
       const { data, error } = await query;
       if (error || !data || data.length === 0) return;
