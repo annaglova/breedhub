@@ -35,6 +35,18 @@ export interface HybridSearchPlan {
 
 export type HybridSearchPhase = "starts_with" | "contains";
 
+export interface HybridBaseQuery<TQuery> {
+  or(condition: string): TQuery;
+}
+
+export interface HybridBaseQuerySource<TQuery> {
+  select(columns: string): TQuery;
+}
+
+export interface HybridBaseQueryClient<TQuery extends HybridBaseQuery<TQuery>> {
+  from(sourceName: string): HybridBaseQuerySource<TQuery>;
+}
+
 export interface HybridSearchPhaseQuery<TQuery> {
   or(condition: string): TQuery;
   ilike(column: string, pattern: string): TQuery;
@@ -172,6 +184,19 @@ export function buildHybridSearchPlan(
     ),
     startsWithLimit: Math.ceil(limit * 0.7),
   };
+}
+
+export function buildHybridBaseQuery<
+  TQuery extends HybridBaseQuery<TQuery>,
+>(
+  client: HybridBaseQueryClient<TQuery>,
+  sourceName: string,
+  selectFields: string,
+): TQuery {
+  return client
+    .from(sourceName)
+    .select(selectFields)
+    .or("deleted.is.null,deleted.eq.false");
 }
 
 export function buildHybridSearchPhaseQuery<

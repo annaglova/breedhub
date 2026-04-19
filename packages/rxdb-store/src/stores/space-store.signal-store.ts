@@ -22,6 +22,7 @@ import {
   SpaceConfig,
 } from './space-config.helpers';
 import {
+  buildHybridBaseQuery,
   buildHybridSearchPhaseQuery,
   buildHybridSearchPlan,
   buildRxdbCountSelector,
@@ -1786,10 +1787,11 @@ class SpaceStore {
       // Phase 1: Starts with (high priority, 70% of limit)
       const sourceName = this.getSupabaseSource(entityType);
       let startsWithQuery = buildHybridSearchPhaseQuery(
-        supabase
-          .from(sourceName)
-          .select(hybridSelectFields)
-          .or('deleted.is.null,deleted.eq.false'),
+        buildHybridBaseQuery(
+          supabase,
+          sourceName,
+          hybridSelectFields,
+        ),
         hybridSearchPlan,
         {
           phase: 'starts_with',
@@ -1813,10 +1815,11 @@ class SpaceStore {
       const remainingLimit = limit - startsWithResults.length;
       if (remainingLimit > 0) {
         let containsQuery = buildHybridSearchPhaseQuery(
-          supabase
-            .from(sourceName)
-            .select(hybridSelectFields)
-            .or('deleted.is.null,deleted.eq.false'),
+          buildHybridBaseQuery(
+            supabase,
+            sourceName,
+            hybridSelectFields,
+          ),
           hybridSearchPlan,
           {
             phase: 'contains',

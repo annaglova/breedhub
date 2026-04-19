@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  buildHybridBaseQuery,
   buildHybridSearchPhaseQuery,
   buildHybridSearchPlan,
   buildRxdbCountSelector,
@@ -29,6 +30,26 @@ describe("space-filter.helpers", () => {
     };
 
     return { calls, query };
+  }
+
+  function createSupabaseClientMock() {
+    const { calls, query } = createSupabaseQueryMock();
+
+    return {
+      calls,
+      query,
+      client: {
+        from(sourceName: string) {
+          calls.push(["from", sourceName]);
+          return {
+            select(columns: string) {
+              calls.push(["select", columns]);
+              return query;
+            },
+          };
+        },
+      },
+    };
   }
 
   it("merges default filters and injects eq field configs for missing default keys", () => {
@@ -176,6 +197,23 @@ describe("space-filter.helpers", () => {
         10,
       ),
     ).toBeNull();
+  });
+
+  it("builds hybrid base query from source, select fields, and deleted filter", () => {
+    const { calls, client, query } = createSupabaseClientMock();
+
+    const result = buildHybridBaseQuery(
+      client,
+      "litter_with_parents",
+      "id,name,updated_at",
+    );
+
+    expect(result).toBe(query);
+    expect(calls).toEqual([
+      ["from", "litter_with_parents"],
+      ["select", "id,name,updated_at"],
+      ["or", "deleted.is.null,deleted.eq.false"],
+    ]);
   });
 
   it("builds starts_with hybrid query for OR search fields and applies other filters", () => {
