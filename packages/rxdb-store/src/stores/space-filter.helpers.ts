@@ -35,6 +35,11 @@ export interface HybridSearchPlan {
 
 export type HybridSearchPhase = "starts_with" | "contains";
 
+export interface HybridSearchRecord {
+  id: string;
+  [key: string]: any;
+}
+
 export interface HybridBaseQuery<TQuery> {
   or(condition: string): TQuery;
 }
@@ -243,6 +248,23 @@ export function buildHybridSearchPhaseQuery<
     fieldConfigs,
     filterOptions,
   );
+}
+
+export function mergeHybridPhaseResults<TRecord extends HybridSearchRecord>(
+  startsWithResults: TRecord[],
+  containsResults: TRecord[],
+  limit: number,
+): TRecord[] {
+  if (startsWithResults.length >= limit || containsResults.length === 0) {
+    return startsWithResults.slice(0, limit);
+  }
+
+  const startsWithIds = new Set(startsWithResults.map((record) => record.id));
+  const uniqueContainsResults = containsResults.filter(
+    (record) => !startsWithIds.has(record.id),
+  );
+
+  return [...startsWithResults, ...uniqueContainsResults].slice(0, limit);
 }
 
 export function applyFiltersToRxdbSelector(

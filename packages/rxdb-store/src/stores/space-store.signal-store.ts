@@ -26,6 +26,7 @@ import {
   buildHybridSearchPhaseQuery,
   buildHybridSearchPlan,
   buildRxdbCountSelector,
+  mergeHybridPhaseResults,
   applyFiltersToSupabaseQuery,
   getActiveFilterEntries,
   hasFilterValue,
@@ -1808,7 +1809,10 @@ class SpaceStore {
         throw startsWithError;
       }
 
-      const startsWithResults = startsWithData || [];
+      const startsWithResults = (startsWithData || []) as Array<{
+        id: string;
+        [key: string]: any;
+      }>;
       console.log(`[SpaceStore] ✅ Starts with: ${startsWithResults.length} results`);
 
       // Phase 2: Contains (lower priority) - only if we have room
@@ -1834,13 +1838,17 @@ class SpaceStore {
         if (containsError) {
           console.warn('[SpaceStore] Contains search failed:', containsError);
         } else {
-          const containsResults = containsData || [];
+          const containsResults = (containsData || []) as Array<{
+            id: string;
+            [key: string]: any;
+          }>;
           console.log(`[SpaceStore] ✅ Contains: ${containsResults.length} results`);
 
-          // Merge: starts_with first, then contains (deduplicate for OR search)
-          const startsWithIds = new Set(startsWithResults.map((r: any) => r.id));
-          const uniqueContainsResults = containsResults.filter((r: any) => !startsWithIds.has(r.id));
-          const mergedResults = [...startsWithResults, ...uniqueContainsResults];
+          const mergedResults = mergeHybridPhaseResults(
+            startsWithResults,
+            containsResults,
+            limit,
+          );
 
           console.log(`[SpaceStore] ✅ Fetched ${mergedResults.length} IDs (~${Math.round(mergedResults.length * 0.1)}KB) via HYBRID SEARCH`);
           return mergedResults as unknown as Array<{ [key: string]: any; id: string }>;

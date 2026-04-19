@@ -4,6 +4,7 @@ import {
   buildHybridSearchPhaseQuery,
   buildHybridSearchPlan,
   buildRxdbCountSelector,
+  mergeHybridPhaseResults,
   prepareFiltersWithDefaults,
 } from "../space-filter.helpers";
 
@@ -319,6 +320,62 @@ describe("space-filter.helpers", () => {
       ["ilike", "title", "%Alpha%"],
       ["not", "title", "ilike", "Alpha%"],
       ["eq", "country_id", "ua"],
+    ]);
+  });
+
+  it("merges hybrid phase results preserving starts_with order and removing duplicates", () => {
+    expect(
+      mergeHybridPhaseResults(
+        [
+          { id: "1", label: "starts-1" },
+          { id: "2", label: "starts-2" },
+        ],
+        [
+          { id: "2", label: "contains-2" },
+          { id: "3", label: "contains-3" },
+        ],
+        4,
+      ),
+    ).toEqual([
+      { id: "1", label: "starts-1" },
+      { id: "2", label: "starts-2" },
+      { id: "3", label: "contains-3" },
+    ]);
+  });
+
+  it("returns starts_with results unchanged when contains results are empty", () => {
+    expect(
+      mergeHybridPhaseResults(
+        [
+          { id: "1", label: "starts-1" },
+          { id: "2", label: "starts-2" },
+        ],
+        [],
+        4,
+      ),
+    ).toEqual([
+      { id: "1", label: "starts-1" },
+      { id: "2", label: "starts-2" },
+    ]);
+  });
+
+  it("caps merged hybrid results to the requested limit", () => {
+    expect(
+      mergeHybridPhaseResults(
+        [
+          { id: "1", label: "starts-1" },
+          { id: "2", label: "starts-2" },
+        ],
+        [
+          { id: "3", label: "contains-3" },
+          { id: "4", label: "contains-4" },
+        ],
+        3,
+      ),
+    ).toEqual([
+      { id: "1", label: "starts-1" },
+      { id: "2", label: "starts-2" },
+      { id: "3", label: "contains-3" },
     ]);
   });
 });
