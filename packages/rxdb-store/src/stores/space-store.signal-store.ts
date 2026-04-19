@@ -2255,31 +2255,18 @@ class SpaceStore {
       return true;
     }
 
-    // Fetch from Supabase using imported client
-    console.log(`[SpaceStore] Fetching entity ${id} from Supabase`, partitionId ? `(partition: ${partitionId})` : '');
+    // Shared local-first lookup with partition-aware fallback
+    console.log(`[SpaceStore] Fetching entity ${id}`, partitionId ? `(partition: ${partitionId})` : '');
     try {
-      // Get partition config from entity schema, with fallback to route-provided field name
-      const entitySchema = this.entitySchemas.get(entityType);
-      const partitionKeyField = entitySchema?.partition?.keyField || partitionField;
-
-      // Build query with partition pruning if available
-      let query = supabase.from(entityType).select('*');
-
-      if (partitionId && partitionKeyField) {
-        // Use partition key for partition pruning (much faster for partitioned tables)
-        console.log(`[SpaceStore] Using partition pruning: ${partitionKeyField}=${partitionId}`);
-        query = query.eq(partitionKeyField, partitionId);
-      }
-
-      const { data, error } = await query.eq('id', id).single();
-
-      if (error) {
-        console.error(`[SpaceStore] Error fetching entity ${id}:`, error);
-        return false;
-      }
+      const data = await this.fetchEntityById<BusinessEntity>(
+        entityType,
+        id,
+        partitionId,
+        partitionField,
+      );
 
       if (!data) {
-        console.warn(`[SpaceStore] Entity ${id} not found in Supabase`);
+        console.warn(`[SpaceStore] Entity ${id} not found`);
         return false;
       }
 
