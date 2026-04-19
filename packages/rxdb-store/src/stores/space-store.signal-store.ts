@@ -2442,9 +2442,25 @@ class SpaceStore {
    *
    * @param entityType - Entity type (e.g., 'pet', 'breed')
    * @param id - Entity UUID
+   * @param partitionId - Optional partition key value for partitioned tables
+   * @param partitionField - Optional partition key column name override
    * @returns Entity data or null
    */
-  async fetchEntityById<T = any>(entityType: string, id: string): Promise<T | null> {
+  async fetchEntityById<T = any>(
+    entityType: string,
+    id: string,
+    partitionId?: string,
+    partitionField?: string,
+  ): Promise<T | null> {
+    if (partitionId) {
+      const records = await this.loadEntitiesByPartitionRefs<T & BusinessEntity>(
+        entityType,
+        [{ id, partitionId }],
+        { partitionField },
+      );
+      return records[0] ?? null;
+    }
+
     const collectionName = entityType.toLowerCase();
 
     // 1. Try RxDB collection directly (instant if cached)
@@ -2465,7 +2481,8 @@ class SpaceStore {
         .from(entityType)
         .select('*')
         .eq('id', id)
-        .single();
+        .or('deleted.is.null,deleted.eq.false')
+        .maybeSingle();
 
       if (error || !data) {
         return null;

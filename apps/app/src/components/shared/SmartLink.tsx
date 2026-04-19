@@ -41,6 +41,8 @@ interface ConfigMenuItem {
 interface ResolvedInfo {
   entity: string;
   entityId: string;
+  entityPartitionId?: string;
+  partitionField?: string;
   model: string;
 }
 
@@ -155,6 +157,8 @@ export function SmartLink({
     return {
       entity: route.entity,
       entityId: route.entity_id,
+      entityPartitionId: route.entity_partition_id,
+      partitionField: route.partition_field,
       model: route.model,
     };
   });
@@ -200,6 +204,8 @@ export function SmartLink({
       setResolved({
         entity: route.entity,
         entityId: route.entity_id,
+        entityPartitionId: route.entity_partition_id,
+        partitionField: route.partition_field,
         model: route.model,
       });
       setMenuItems(getMenuItemsForModel(route.entity, route.model));
@@ -263,20 +269,30 @@ export function SmartLink({
         case "test_mating": {
           if (!resolved?.entityId || !slug) break;
           // Fetch entity to get sex_id, then navigate
-          spaceStore.fetchEntityById("pet", resolved.entityId).then(async (entity) => {
-            let param = "father";
-            if (entity?.sex_id) {
-              try {
-                const record = await dictionaryStore.getRecordById("sex", entity.sex_id);
-                if (record?.code === "female") {
-                  param = "mother";
+          spaceStore
+            .fetchEntityById(
+              "pet",
+              resolved.entityId,
+              resolved.entityPartitionId,
+              resolved.partitionField,
+            )
+            .then(async (entity) => {
+              let param = "father";
+              if (entity?.sex_id) {
+                try {
+                  const record = await dictionaryStore.getRecordById(
+                    "sex",
+                    entity.sex_id,
+                  );
+                  if (record?.code === "female") {
+                    param = "mother";
+                  }
+                } catch {
+                  // fallback to father
                 }
-              } catch {
-                // fallback to father
               }
-            }
-            navigate(`/mating?${param}=${slug}`);
-          });
+              navigate(`/mating?${param}=${slug}`);
+            });
           break;
         }
 
