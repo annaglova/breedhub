@@ -1833,6 +1833,54 @@ class SpaceStore {
     return startsWithResults;
   }
 
+  private async executeRegularIdFetch(
+    entityType: string,
+    filters: Record<string, any>,
+    fieldConfigs: Record<string, any>,
+    limit: number,
+    cursor: string | null,
+    orderBy: OrderBy,
+  ): Promise<HybridSearchRecord[]> {
+    const selectFields = getSelectFieldsForOrderBy(orderBy, {
+      includeUpdatedAt: true,
+    });
+
+    const sourceName = this.getSupabaseSource(entityType);
+    let query = supabase
+      .from(sourceName)
+      .select(selectFields);
+
+    query = query.or('deleted.is.null,deleted.eq.false');
+    query = applyFiltersToSupabaseQuery(query, filters, fieldConfigs);
+
+    let data: any[] = [];
+    let error: any = null;
+
+    if (cursor !== null) {
+      const cursorData = parseKeysetCursor(cursor, orderBy);
+
+      console.log(`[SpaceStore] 🔑 Cursor parsed:`, cursorData);
+      if (cursorData) {
+        query = applySupabaseKeysetCursor(query, orderBy, cursorData);
+      }
+    }
+
+    query = this.applyOrderBy(query, orderBy).limit(limit);
+
+    const { data: queryData, error: queryError } = await query;
+    data = queryData || [];
+    error = queryError;
+
+    if (error) {
+      if (!isNetworkError(error)) {
+        console.error('[SpaceStore] IDs query error:', error);
+      }
+      throw error;
+    }
+
+    return data || [];
+  }
+
   /**
    * 🆔 ID-First Phase 1: Fetch IDs + ordering field from Supabase
    * Lightweight query (~1KB for 30 records instead of ~30KB)
@@ -1866,52 +1914,14 @@ class SpaceStore {
         orderBy,
       );
     }
-
-    // 📄 REGULAR QUERY: No search or cursor pagination
-    const selectFields = getSelectFieldsForOrderBy(orderBy, {
-      includeUpdatedAt: true,
-    });
-
-    // Use VIEW source if configured (e.g., litter_with_parents for litter)
-    const sourceName = this.getSupabaseSource(entityType);
-    let query = supabase
-      .from(sourceName)
-      .select(selectFields);
-
-    // Filter out deleted records
-    query = query.or('deleted.is.null,deleted.eq.false');
-
-    // Apply filters (AND logic, with orFields support for OR across multiple DB fields)
-    query = applyFiltersToSupabaseQuery(query, filters, fieldConfigs);
-
-    // Apply cursor (keyset pagination with tie-breaker from config)
-    let data: any[] = [];
-    let error: any = null;
-
-    if (cursor !== null) {
-      const cursorData = parseKeysetCursor(cursor, orderBy);
-
-      console.log(`[SpaceStore] 🔑 Cursor parsed:`, cursorData);
-      if (cursorData) {
-        query = applySupabaseKeysetCursor(query, orderBy, cursorData);
-      }
-    }
-
-    // Apply order and limit
-    query = this.applyOrderBy(query, orderBy).limit(limit);
-
-    const { data: queryData, error: queryError } = await query;
-    data = queryData || [];
-    error = queryError;
-
-    if (error) {
-      if (!isNetworkError(error)) {
-        console.error('[SpaceStore] IDs query error:', error);
-      }
-      throw error;
-    }
-
-    return data || [];
+    return this.executeRegularIdFetch(
+      entityType,
+      filters,
+      fieldConfigs,
+      limit,
+      cursor,
+      orderBy,
+    );
   }
 
   /**
