@@ -22,7 +22,7 @@ import {
   SpaceConfig,
 } from './space-config.helpers';
 import {
-  applyFiltersToRxdbSelector,
+  buildRxdbCountSelector,
   applyFiltersToSupabaseQuery,
   getActiveFilterEntries,
   getStringSearchFilters,
@@ -1345,9 +1345,7 @@ class SpaceStore {
           throw new Error(`Collection ${entityType} not found`);
         }
 
-        const countSelector: any = { _deleted: false };
-        // Apply same filters for count (simplified version)
-        applyFiltersToRxdbSelector(countSelector, filters, fieldConfigs, {
+        const countSelector = buildRxdbCountSelector(filters, fieldConfigs, {
           entityType,
         });
 
@@ -1638,10 +1636,7 @@ class SpaceStore {
 
         // Get total count from RxDB (with same filters, no limit)
         // Build selector for count query
-        const countSelector: any = { _deleted: false };
-
-        // Apply same filters for count
-        applyFiltersToRxdbSelector(countSelector, filters, fieldConfigs, {
+        const countSelector = buildRxdbCountSelector(filters, fieldConfigs, {
           entityType,
           preferStringSearchOperator: true,
         });

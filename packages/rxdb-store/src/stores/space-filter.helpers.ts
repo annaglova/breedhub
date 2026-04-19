@@ -145,6 +145,18 @@ export function applyFiltersToRxdbSelector(
   }
 }
 
+export function buildRxdbCountSelector(
+  filters: Record<string, any>,
+  fieldConfigs: Record<string, any>,
+  options: FilterApplicationOptions = {},
+): Record<string, any> {
+  const selector: Record<string, any> = { _deleted: false };
+
+  applyFiltersToRxdbSelector(selector, filters, fieldConfigs, options);
+
+  return selector;
+}
+
 export function applyFiltersToSupabaseQuery<TQuery>(
   query: TQuery,
   filters: Record<string, any>,

@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { prepareFiltersWithDefaults } from "../space-filter.helpers";
+import {
+  buildRxdbCountSelector,
+  prepareFiltersWithDefaults,
+} from "../space-filter.helpers";
 
 describe("space-filter.helpers", () => {
   it("merges default filters and injects eq field configs for missing default keys", () => {
@@ -55,6 +58,31 @@ describe("space-filter.helpers", () => {
     expect(defaultFilters).toEqual({ type_id: "kennel" });
     expect(baseFieldConfigs).toEqual({
       country_id: { fieldType: "uuid", operator: "eq" },
+    });
+  });
+
+  it("builds count selector with exact-match string filters by default", () => {
+    expect(
+      buildRxdbCountSelector(
+        { name: "Alpha" },
+        { name: { fieldType: "string", operator: "eq" } },
+      ),
+    ).toEqual({
+      _deleted: false,
+      name: "Alpha",
+    });
+  });
+
+  it("builds count selector with search-style string filters when preferred", () => {
+    expect(
+      buildRxdbCountSelector(
+        { name: "Alpha" },
+        { name: { fieldType: "string", operator: "eq" } },
+        { preferStringSearchOperator: true },
+      ),
+    ).toEqual({
+      _deleted: false,
+      name: { $regex: "Alpha", $options: "i" },
     });
   });
 });
