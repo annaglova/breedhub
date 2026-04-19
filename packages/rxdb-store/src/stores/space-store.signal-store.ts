@@ -75,6 +75,7 @@ import {
 } from './space-mapping.helpers';
 import {
   analyzeCachedIdsByUpdatedAt,
+  cacheRecords,
   cacheAndMergeOrderedRecordsByIds,
   docMapToRecordMap,
   mapDocsToRecordMap,
@@ -2218,41 +2219,25 @@ class SpaceStore {
 
     // 2. Resolve via routes table (fast PK lookup → partition-pruned query)
     try {
-      const { data: route } = await supabase
+      const { data: route, error } = await supabase
         .from('routes')
         .select('entity_id, entity_partition_id, partition_field')
         .eq('slug', slug)
-        .single();
+        .maybeSingle();
 
-      if (route?.entity_id && route.partition_field && route.entity_partition_id) {
-        // Partition-pruned query using route info
-        const { data, error } = await (supabase as any)
-          .from(entityType)
-          .select('*')
-          .eq(route.partition_field, route.entity_partition_id)
-          .eq('id', route.entity_id)
-          .single();
+      if (error) {
+        throw error;
+      }
 
-        if (!error && data) {
-          if (this.db?.collections[collectionName]) {
-            const mapped = this.mapToRxDBFormat(data, collectionName);
-            await this.db.collections[collectionName].upsert(mapped);
-          }
-          return data as T;
-        }
-      } else if (route?.entity_id) {
-        // Route found but no partition info — direct ID lookup
-        const { data, error } = await supabase
-          .from(entityType)
-          .select('*')
-          .eq('id', route.entity_id)
-          .single();
+      if (route?.entity_id) {
+        const data = await this.fetchEntityById<T & BusinessEntity>(
+          entityType,
+          route.entity_id,
+          route.entity_partition_id ?? undefined,
+          route.partition_field ?? undefined,
+        );
 
-        if (!error && data) {
-          if (this.db?.collections[collectionName]) {
-            const mapped = this.mapToRxDBFormat(data, collectionName);
-            await this.db.collections[collectionName].upsert(mapped);
-          }
+        if (data) {
           return data as T;
         }
       }
@@ -2266,7 +2251,8 @@ class SpaceStore {
         .from(entityType)
         .select('*')
         .eq('slug', slug)
-        .single();
+        .or('deleted.is.null,deleted.eq.false')
+        .maybeSingle();
 
       if (error || !data) {
         return null;
@@ -2845,10 +2831,10 @@ class SpaceStore {
     // Step 4: Fetch missing, cache, return all
     try {
       const fresh = await this.fetchByPartition(supabase, entityTable, missing, partitionField);
-      if (fresh.length > 0) {
-        const mapped = fresh.map(r => this.mapToRxDBFormat(r, entityTable));
-        await collection.bulkUpsert(mapped);
-      }
+      await cacheRecords(fresh, {
+        collection,
+        mapRecordForCache: (record) => this.mapToRxDBFormat(record, entityTable),
+      });
 
       // Always read from RxDB — source of truth (Supabase → RxDB → UI)
       const allIds = safeMappingRows.map((r: any) => r.id);
@@ -2884,9 +2870,11 @@ class SpaceStore {
       this.mappingCache.set(buildMappingCacheKey(mappingTable, parentField, parentId), data);
       const fresh = await this.fetchByPartition(supabase, entityTable, data, partitionField);
       const collection = this.db?.collections[entityTable];
-      if (collection && fresh.length > 0) {
-        const mapped = fresh.map(r => this.mapToRxDBFormat(r, entityTable));
-        await collection.bulkUpsert(mapped);
+      if (collection) {
+        await cacheRecords(fresh, {
+          collection,
+          mapRecordForCache: (record) => this.mapToRxDBFormat(record, entityTable),
+        });
       }
     } catch { /* silent */ }
   }

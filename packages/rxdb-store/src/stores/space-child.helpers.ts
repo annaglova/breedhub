@@ -1,5 +1,9 @@
 import type { RxCollection, RxDocument } from "rxdb";
 import {
+  cacheRecords,
+  type BulkUpsertCollection,
+} from "./space-id-cache.helpers";
+import {
   buildNextKeysetCursorFromAdditional,
   parseKeysetCursor,
   type KeysetOrderBy,
@@ -13,10 +17,6 @@ export interface ChildCacheTransformOptions {
   partitionField?: string;
   partitionValue?: string;
   cachedAt?: number;
-}
-
-export interface ChildCacheCollectionLike {
-  bulkUpsert(records: any[]): Promise<unknown>;
 }
 
 export interface ChildListQueryLike<TQuery> {
@@ -163,21 +163,20 @@ export function mapChildRowsToCacheRecords(
 export async function mapAndCacheChildRows(
   rows: Record<string, any>[],
   options: ChildCacheTransformOptions & {
-    collection?: ChildCacheCollectionLike;
+    collection?: BulkUpsertCollection<any>;
   },
 ): Promise<{
   transformedRecords: any[];
   cachedRecordsCount: number;
 }> {
   const transformedRecords = mapChildRowsToCacheRecords(rows, options);
-
-  if (options.collection && transformedRecords.length > 0) {
-    await options.collection.bulkUpsert(transformedRecords);
-  }
+  const { cachedRecordsCount } = await cacheRecords(transformedRecords, {
+    collection: options.collection,
+  });
 
   return {
     transformedRecords,
-    cachedRecordsCount: options.collection ? transformedRecords.length : 0,
+    cachedRecordsCount,
   };
 }
 

@@ -84,6 +84,35 @@ export interface BulkUpsertCollection<TRecord> {
   bulkUpsert(records: TRecord[]): Promise<unknown>;
 }
 
+export async function cacheRecords<TRecord, TCachedRecord = TRecord>(
+  records: TRecord[],
+  options: {
+    collection?: BulkUpsertCollection<TCachedRecord>;
+    mapRecordForCache?: (record: TRecord) => TCachedRecord;
+  },
+): Promise<{
+  cachedRecords: TCachedRecord[];
+  cachedRecordsCount: number;
+}> {
+  if (!options.collection || records.length === 0) {
+    return {
+      cachedRecords: [],
+      cachedRecordsCount: 0,
+    };
+  }
+
+  const cachedRecords = options.mapRecordForCache
+    ? records.map(options.mapRecordForCache)
+    : (records as unknown as TCachedRecord[]);
+
+  await options.collection.bulkUpsert(cachedRecords);
+
+  return {
+    cachedRecords,
+    cachedRecordsCount: cachedRecords.length,
+  };
+}
+
 export function mergeOrderedRecordsByIds<TRecord extends { id: string }>(
   ids: string[],
   cachedMap: Map<string, TRecord>,
@@ -114,16 +143,10 @@ export async function cacheAndMergeOrderedRecordsByIds<
   orderedRecords: TRecord[];
   cachedRecordsCount: number;
 }> {
-  let cachedRecordsCount = 0;
-
-  if (freshRecords.length > 0) {
-    const recordsToCache = options.mapFreshRecordForCache
-      ? freshRecords.map(options.mapFreshRecordForCache)
-      : (freshRecords as unknown as TCachedRecord[]);
-
-    await options.collection.bulkUpsert(recordsToCache);
-    cachedRecordsCount = recordsToCache.length;
-  }
+  const { cachedRecordsCount } = await cacheRecords(freshRecords, {
+    collection: options.collection,
+    mapRecordForCache: options.mapFreshRecordForCache,
+  });
 
   return {
     orderedRecords: mergeOrderedRecordsByIds(ids, cachedMap, freshRecords),

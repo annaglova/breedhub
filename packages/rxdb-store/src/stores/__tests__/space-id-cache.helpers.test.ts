@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   analyzeCachedIdsByUpdatedAt,
   buildRecordMapById,
+  cacheRecords,
   cacheAndMergeOrderedRecordsByIds,
   getMissingIds,
   getStaleIdsByUpdatedAt,
@@ -171,6 +172,52 @@ describe("space-id-cache.helpers", () => {
         { id: "b", value: "fresh-b" },
       ],
       cachedRecordsCount: 1,
+    });
+  });
+
+  it("caches mapped records through the shared cacheRecords primitive", async () => {
+    const upserted: Array<{ id: string; cached: true }> = [];
+
+    const result = await cacheRecords(
+      [
+        { id: "a", value: "fresh-a" },
+        { id: "b", value: "fresh-b" },
+      ],
+      {
+        collection: {
+          async bulkUpsert(records) {
+            upserted.push(...records);
+          },
+        },
+        mapRecordForCache: (record) => ({
+          id: record.id,
+          cached: true as const,
+        }),
+      },
+    );
+
+    expect(upserted).toEqual([
+      { id: "a", cached: true },
+      { id: "b", cached: true },
+    ]);
+    expect(result).toEqual({
+      cachedRecords: [
+        { id: "a", cached: true },
+        { id: "b", cached: true },
+      ],
+      cachedRecordsCount: 2,
+    });
+  });
+
+  it("skips caching when no collection is provided", async () => {
+    await expect(
+      cacheRecords(
+        [{ id: "a", value: "fresh-a" }],
+        {},
+      ),
+    ).resolves.toEqual({
+      cachedRecords: [],
+      cachedRecordsCount: 0,
     });
   });
 });
