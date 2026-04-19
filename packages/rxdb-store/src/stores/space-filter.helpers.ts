@@ -33,6 +33,19 @@ export interface HybridSearchPlan {
   startsWithLimit: number;
 }
 
+export type HybridSearchPhase = "starts_with" | "contains";
+
+export interface HybridSearchPhaseQuery<TQuery> {
+  or(condition: string): TQuery;
+  ilike(column: string, pattern: string): TQuery;
+  not(column: string, operator: string, value: any): TQuery;
+}
+
+interface BuildHybridSearchPhaseQueryOptions extends FilterApplicationOptions {
+  phase: HybridSearchPhase;
+  fieldConfigs: Record<string, any>;
+}
+
 export function hasFilterValue(value: any): boolean {
   return value !== undefined && value !== null && value !== "";
 }
@@ -159,6 +172,52 @@ export function buildHybridSearchPlan(
     ),
     startsWithLimit: Math.ceil(limit * 0.7),
   };
+}
+
+export function buildHybridSearchPhaseQuery<
+  TQuery extends HybridSearchPhaseQuery<TQuery>,
+>(
+  query: TQuery,
+  plan: HybridSearchPlan,
+  {
+    phase,
+    fieldConfigs,
+    ...filterOptions
+  }: BuildHybridSearchPhaseQueryOptions,
+): TQuery {
+  let nextQuery = query;
+  const [primarySearchField] = plan.orSearchFields;
+
+  if (plan.isOrSearch) {
+    const searchPattern =
+      phase === "starts_with"
+        ? `${plan.searchValue}%`
+        : `%${plan.searchValue}%`;
+
+    const orCondition = plan.orSearchFields
+      .map((field) => `${field}.ilike.${searchPattern}`)
+      .join(",");
+
+    nextQuery = nextQuery.or(orCondition);
+  } else if (primarySearchField) {
+    if (phase === "starts_with") {
+      nextQuery = nextQuery.ilike(
+        primarySearchField,
+        `${plan.searchValue}%`,
+      );
+    } else {
+      nextQuery = nextQuery
+        .ilike(primarySearchField, `%${plan.searchValue}%`)
+        .not(primarySearchField, "ilike", `${plan.searchValue}%`);
+    }
+  }
+
+  return applyFiltersToSupabaseQuery(
+    nextQuery,
+    plan.otherFilters,
+    fieldConfigs,
+    filterOptions,
+  );
 }
 
 export function applyFiltersToRxdbSelector(

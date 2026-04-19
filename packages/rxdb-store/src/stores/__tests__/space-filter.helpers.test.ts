@@ -1,11 +1,36 @@
 import { describe, expect, it } from "vitest";
 import {
+  buildHybridSearchPhaseQuery,
   buildHybridSearchPlan,
   buildRxdbCountSelector,
   prepareFiltersWithDefaults,
 } from "../space-filter.helpers";
 
 describe("space-filter.helpers", () => {
+  function createSupabaseQueryMock() {
+    const calls: Array<[string, ...any[]]> = [];
+    const query = {
+      or(condition: string) {
+        calls.push(["or", condition]);
+        return query;
+      },
+      ilike(column: string, pattern: string) {
+        calls.push(["ilike", column, pattern]);
+        return query;
+      },
+      not(column: string, operator: string, value: any) {
+        calls.push(["not", column, operator, value]);
+        return query;
+      },
+      eq(column: string, value: any) {
+        calls.push(["eq", column, value]);
+        return query;
+      },
+    };
+
+    return { calls, query };
+  }
+
   it("merges default filters and injects eq field configs for missing default keys", () => {
     expect(
       prepareFiltersWithDefaults(
@@ -151,5 +176,111 @@ describe("space-filter.helpers", () => {
         10,
       ),
     ).toBeNull();
+  });
+
+  it("builds starts_with hybrid query for OR search fields and applies other filters", () => {
+    const { calls, query } = createSupabaseQueryMock();
+
+    const result = buildHybridSearchPhaseQuery(
+      query,
+      {
+        searchValue: "John",
+        orSearchFields: ["father_name", "mother_name"],
+        isOrSearch: true,
+        otherFilters: { status: "active" },
+        startsWithLimit: 7,
+      },
+      {
+        phase: "starts_with",
+        fieldConfigs: {
+          status: { fieldType: "string", operator: "eq" },
+        },
+      },
+    );
+
+    expect(result).toBe(query);
+    expect(calls).toEqual([
+      ["or", "father_name.ilike.John%,mother_name.ilike.John%"],
+      ["eq", "status", "active"],
+    ]);
+  });
+
+  it("builds contains hybrid query for OR search fields without starts_with exclusion", () => {
+    const { calls, query } = createSupabaseQueryMock();
+
+    buildHybridSearchPhaseQuery(
+      query,
+      {
+        searchValue: "John",
+        orSearchFields: ["father_name", "mother_name"],
+        isOrSearch: true,
+        otherFilters: { status: "active" },
+        startsWithLimit: 7,
+      },
+      {
+        phase: "contains",
+        fieldConfigs: {
+          status: { fieldType: "string", operator: "eq" },
+        },
+      },
+    );
+
+    expect(calls).toEqual([
+      ["or", "father_name.ilike.%John%,mother_name.ilike.%John%"],
+      ["eq", "status", "active"],
+    ]);
+  });
+
+  it("builds starts_with hybrid query for a single search field", () => {
+    const { calls, query } = createSupabaseQueryMock();
+
+    buildHybridSearchPhaseQuery(
+      query,
+      {
+        searchValue: "Alpha",
+        orSearchFields: ["title"],
+        isOrSearch: false,
+        otherFilters: { country_id: "ua" },
+        startsWithLimit: 7,
+      },
+      {
+        phase: "starts_with",
+        fieldConfigs: {
+          country_id: { fieldType: "uuid", operator: "eq" },
+        },
+      },
+    );
+
+    expect(calls).toEqual([
+      ["ilike", "title", "Alpha%"],
+      ["eq", "country_id", "ua"],
+    ]);
+  });
+
+  it("builds contains hybrid query for a single search field with starts_with exclusion", () => {
+    const { calls, query } = createSupabaseQueryMock();
+
+    buildHybridSearchPhaseQuery(
+      query,
+      {
+        searchValue: "Alpha",
+        orSearchFields: ["title"],
+        isOrSearch: false,
+        otherFilters: { country_id: "ua" },
+        startsWithLimit: 7,
+      },
+      {
+        phase: "contains",
+        fieldConfigs: {
+          country_id: { fieldType: "uuid", operator: "eq" },
+        },
+      },
+    );
+
+    expect(calls).toEqual([
+      ["ilike", "title", "%Alpha%"],
+      ["not", "title", "ilike", "Alpha%"],
+      ["eq", "country_id", "ua"],
+    ]);
   });
 });

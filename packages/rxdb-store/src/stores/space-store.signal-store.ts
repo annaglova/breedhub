@@ -22,6 +22,7 @@ import {
   SpaceConfig,
 } from './space-config.helpers';
 import {
+  buildHybridSearchPhaseQuery,
   buildHybridSearchPlan,
   buildRxdbCountSelector,
   applyFiltersToSupabaseQuery,
@@ -1774,7 +1775,6 @@ class SpaceStore {
       const {
         isOrSearch,
         orSearchFields,
-        otherFilters,
         searchValue,
         startsWithLimit,
       } = hybridSearchPlan;
@@ -1785,27 +1785,16 @@ class SpaceStore {
 
       // Phase 1: Starts with (high priority, 70% of limit)
       const sourceName = this.getSupabaseSource(entityType);
-      let startsWithQuery = supabase
-        .from(sourceName)
-        .select(hybridSelectFields)
-        .or('deleted.is.null,deleted.eq.false');
-
-      // Apply search filter: OR for multiple fields, single ilike for one field
-      if (isOrSearch) {
-        // Build OR condition: father_name.ilike.John%,mother_name.ilike.John%
-        const orCondition = orSearchFields
-          .map(field => `${field}.ilike.${searchValue}%`)
-          .join(',');
-        startsWithQuery = startsWithQuery.or(orCondition);
-      } else {
-        startsWithQuery = startsWithQuery.ilike(orSearchFields[0], `${searchValue}%`);
-      }
-
-      // Apply other filters (with orFields support)
-      startsWithQuery = applyFiltersToSupabaseQuery(
-        startsWithQuery,
-        otherFilters,
-        fieldConfigs,
+      let startsWithQuery = buildHybridSearchPhaseQuery(
+        supabase
+          .from(sourceName)
+          .select(hybridSelectFields)
+          .or('deleted.is.null,deleted.eq.false'),
+        hybridSearchPlan,
+        {
+          phase: 'starts_with',
+          fieldConfigs,
+        },
       );
 
       startsWithQuery = this.applyOrderBy(startsWithQuery, orderBy).limit(startsWithLimit);
@@ -1823,32 +1812,16 @@ class SpaceStore {
       // Phase 2: Contains (lower priority) - only if we have room
       const remainingLimit = limit - startsWithResults.length;
       if (remainingLimit > 0) {
-        let containsQuery = supabase
-          .from(sourceName)
-          .select(hybridSelectFields)
-          .or('deleted.is.null,deleted.eq.false');
-
-        // Apply contains filter: OR for multiple fields, single ilike for one field
-        if (isOrSearch) {
-          // For OR search: contains in any field, excluding starts_with matches
-          // Build: (father_name ILIKE %val% AND father_name NOT ILIKE val%) OR (mother_name ILIKE %val% AND mother_name NOT ILIKE val%)
-          // This is complex in PostgREST, so we use a simpler approach:
-          // Contains in any field, then filter out starts_with results client-side (already done via mergedResults)
-          const orContainsCondition = orSearchFields
-            .map(field => `${field}.ilike.%${searchValue}%`)
-            .join(',');
-          containsQuery = containsQuery.or(orContainsCondition);
-        } else {
-          containsQuery = containsQuery
-            .ilike(orSearchFields[0], `%${searchValue}%`)
-            .not(orSearchFields[0], 'ilike', `${searchValue}%`);
-        }
-
-        // Apply other filters (with orFields support)
-        containsQuery = applyFiltersToSupabaseQuery(
-          containsQuery,
-          otherFilters,
-          fieldConfigs,
+        let containsQuery = buildHybridSearchPhaseQuery(
+          supabase
+            .from(sourceName)
+            .select(hybridSelectFields)
+            .or('deleted.is.null,deleted.eq.false'),
+          hybridSearchPlan,
+          {
+            phase: 'contains',
+            fieldConfigs,
+          },
         );
 
         containsQuery = this.applyOrderBy(containsQuery, orderBy).limit(remainingLimit);
