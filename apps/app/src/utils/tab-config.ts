@@ -39,6 +39,12 @@ export function getTabFragment<T extends Pick<TabConfig, "slug">>(
   tabId: string,
   config: T,
 ): string {
+  if (!config.slug) {
+    // Tabs without slug fall back to tabId — surfaces in URL hash. Config should define slug.
+    console.warn(
+      `[tab-config] Tab "${tabId}" has no slug in app_config; using tabId as URL fragment. Define \`slug\` in config.`,
+    );
+  }
   return config.slug || tabId;
 }
 
