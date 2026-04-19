@@ -22,10 +22,10 @@ import {
   SpaceConfig,
 } from './space-config.helpers';
 import {
+  buildHybridSearchPlan,
   buildRxdbCountSelector,
   applyFiltersToSupabaseQuery,
   getActiveFilterEntries,
-  getStringSearchFilters,
   hasFilterValue,
   prepareFiltersWithDefaults,
   resolveFieldFilter,
@@ -1759,41 +1759,31 @@ class SpaceStore {
   ): Promise<Array<{ id: string; [key: string]: any }>> {
     console.log(`[SpaceStore] 🆔 Fetching IDs for ${entityType}...`);
 
-    // 🎯 HYBRID SEARCH: Detect string filters with 'contains' operator
-    const searchFilters = getStringSearchFilters(filters, fieldConfigs, {
-      requireSearchOperator: true,
-    });
-
     // Use hybrid search if: (1) has search filter, (2) no cursor (first page)
-    const useHybridSearch = searchFilters.length > 0 && cursor === null;
+    const hybridSearchPlan =
+      cursor === null
+        ? buildHybridSearchPlan(filters, fieldConfigs, limit)
+        : null;
+    const useHybridSearch = hybridSearchPlan !== null;
 
     if (useHybridSearch) {
       console.log('[SpaceStore] 🔍 HYBRID SEARCH mode (starts_with 70% + contains 30%)');
       const hybridSelectFields = getSelectFieldsForOrderBy(orderBy, {
         includeUpdatedAt: true,
       });
-
-      // 🔀 OR LOGIC: Check if multiple search fields have the same value (main filter fields)
-      // Group search filters by value to detect OR-combined main filter fields
-      const firstSearchValue = searchFilters[0][1];
-      const orSearchFields = searchFilters
-        .filter(([_, value]) => value === firstSearchValue)
-        .map(([fieldKey]) => fieldKey);
-
-      const isOrSearch = orSearchFields.length > 1;
-      const searchValue = firstSearchValue;
-
-      // Remove all OR search fields from filters
-      const otherFilters = Object.fromEntries(
-        getActiveFilterEntries(filters).filter(([key]) => !orSearchFields.includes(key))
-      );
+      const {
+        isOrSearch,
+        orSearchFields,
+        otherFilters,
+        searchValue,
+        startsWithLimit,
+      } = hybridSearchPlan;
 
       if (isOrSearch) {
         console.log(`[SpaceStore] 🔀 OR SEARCH: Searching "${searchValue}" in fields:`, orSearchFields);
       }
 
       // Phase 1: Starts with (high priority, 70% of limit)
-      const startsWithLimit = Math.ceil(limit * 0.7);
       const sourceName = this.getSupabaseSource(entityType);
       let startsWithQuery = supabase
         .from(sourceName)

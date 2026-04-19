@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  buildHybridSearchPlan,
   buildRxdbCountSelector,
   prepareFiltersWithDefaults,
 } from "../space-filter.helpers";
@@ -84,5 +85,71 @@ describe("space-filter.helpers", () => {
       _deleted: false,
       name: { $regex: "Alpha", $options: "i" },
     });
+  });
+
+  it("builds hybrid search plan for OR search fields sharing the same value", () => {
+    expect(
+      buildHybridSearchPlan(
+        {
+          father_name: "John",
+          mother_name: "John",
+          status: "active",
+        },
+        {
+          father_name: { fieldType: "string", operator: "contains" },
+          mother_name: { fieldType: "string", operator: "contains" },
+          status: { fieldType: "string", operator: "eq" },
+        },
+        10,
+      ),
+    ).toEqual({
+      searchValue: "John",
+      orSearchFields: ["father_name", "mother_name"],
+      isOrSearch: true,
+      otherFilters: {
+        status: "active",
+      },
+      startsWithLimit: 7,
+    });
+  });
+
+  it("keeps non-grouped search filters in hybrid plan otherFilters", () => {
+    expect(
+      buildHybridSearchPlan(
+        {
+          title: "Alpha",
+          subtitle: "Beta",
+          country_id: "ua",
+        },
+        {
+          title: { fieldType: "string", operator: "contains" },
+          subtitle: { fieldType: "string", operator: "contains" },
+          country_id: { fieldType: "uuid", operator: "eq" },
+        },
+        9,
+      ),
+    ).toEqual({
+      searchValue: "Alpha",
+      orSearchFields: ["title"],
+      isOrSearch: false,
+      otherFilters: {
+        subtitle: "Beta",
+        country_id: "ua",
+      },
+      startsWithLimit: 7,
+    });
+  });
+
+  it("returns null when there are no search-operator string filters", () => {
+    expect(
+      buildHybridSearchPlan(
+        { status: "active", country_id: "ua" },
+        {
+          status: { fieldType: "string", operator: "eq" },
+          country_id: { fieldType: "uuid", operator: "eq" },
+        },
+        10,
+      ),
+    ).toBeNull();
   });
 });

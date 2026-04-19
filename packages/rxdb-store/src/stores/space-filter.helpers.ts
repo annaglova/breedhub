@@ -25,6 +25,14 @@ export interface PreparedFiltersWithDefaults {
   fieldConfigs: Record<string, any>;
 }
 
+export interface HybridSearchPlan {
+  searchValue: any;
+  orSearchFields: string[];
+  isOrSearch: boolean;
+  otherFilters: Record<string, any>;
+  startsWithLimit: number;
+}
+
 export function hasFilterValue(value: any): boolean {
   return value !== undefined && value !== null && value !== "";
 }
@@ -120,6 +128,37 @@ export function getStringSearchFilters(
 
     return true;
   });
+}
+
+export function buildHybridSearchPlan(
+  filters: Record<string, any>,
+  fieldConfigs: Record<string, any>,
+  limit: number,
+): HybridSearchPlan | null {
+  const searchFilters = getStringSearchFilters(filters, fieldConfigs, {
+    requireSearchOperator: true,
+  });
+
+  if (searchFilters.length === 0) {
+    return null;
+  }
+
+  const firstSearchValue = searchFilters[0][1];
+  const orSearchFields = searchFilters
+    .filter(([, value]) => value === firstSearchValue)
+    .map(([fieldKey]) => fieldKey);
+
+  return {
+    searchValue: firstSearchValue,
+    orSearchFields,
+    isOrSearch: orSearchFields.length > 1,
+    otherFilters: Object.fromEntries(
+      getActiveFilterEntries(filters).filter(
+        ([key]) => !orSearchFields.includes(key),
+      ),
+    ),
+    startsWithLimit: Math.ceil(limit * 0.7),
+  };
 }
 
 export function applyFiltersToRxdbSelector(
