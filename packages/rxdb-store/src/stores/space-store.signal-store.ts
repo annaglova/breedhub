@@ -60,9 +60,9 @@ import {
   type MappingRow,
 } from './space-mapping.helpers';
 import {
+  analyzeCachedIdsByUpdatedAt,
   docMapToRecordMap,
   getMissingIds,
-  getStaleIdsByUpdatedAt,
   mapDocsToRecordMap,
   mergeOrderedRecordsByIds,
 } from './space-id-cache.helpers';
@@ -1555,19 +1555,11 @@ class SpaceStore {
       }).exec();
 
       const cachedMap = mapDocsToRecordMap<BusinessEntity>(cached);
-
-      // 🔍 Staleness check: compare cached updated_at with server updated_at
-      const serverUpdatedAtMap = new Map<string, string | undefined>(
-        idsData.map((r: any) => [r.id, r.updated_at]),
-      );
-      const missingIds = getMissingIds(ids, cachedMap);
-      const staleIds = getStaleIdsByUpdatedAt(
+      const { missingIds, staleIds, toFetchIds } = analyzeCachedIdsByUpdatedAt(
         ids,
         cachedMap,
-        serverUpdatedAtMap,
+        idsData as Array<{ id: string; updated_at?: string }>,
       );
-
-      const toFetchIds = [...missingIds, ...staleIds];
       console.log(`[SpaceStore] 📦 Cache: ${cachedMap.size}/${ids.length} hit, ${missingIds.length} missing, ${staleIds.length} stale`);
 
       // 🌐 PHASE 3: Fetch missing + stale full records from Supabase

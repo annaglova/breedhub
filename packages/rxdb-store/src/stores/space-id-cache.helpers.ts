@@ -55,6 +55,31 @@ export function getStaleIdsByUpdatedAt<TRecord extends { updated_at?: string }>(
   return staleIds;
 }
 
+export function analyzeCachedIdsByUpdatedAt<
+  TCachedRecord extends { updated_at?: string },
+  TServerRecord extends { id: string; updated_at?: string },
+>(
+  ids: string[],
+  cachedMap: Map<string, TCachedRecord>,
+  serverRecords: TServerRecord[],
+): {
+  missingIds: string[];
+  staleIds: string[];
+  toFetchIds: string[];
+} {
+  const serverUpdatedAtMap = new Map<string, string | undefined>(
+    serverRecords.map((record) => [record.id, record.updated_at]),
+  );
+  const missingIds = getMissingIds(ids, cachedMap);
+  const staleIds = getStaleIdsByUpdatedAt(ids, cachedMap, serverUpdatedAtMap);
+
+  return {
+    missingIds,
+    staleIds,
+    toFetchIds: [...missingIds, ...staleIds],
+  };
+}
+
 export function mergeOrderedRecordsByIds<TRecord extends { id: string }>(
   ids: string[],
   cachedMap: Map<string, TRecord>,

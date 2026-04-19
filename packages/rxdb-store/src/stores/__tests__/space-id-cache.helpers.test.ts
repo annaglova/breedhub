@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  analyzeCachedIdsByUpdatedAt,
   buildRecordMapById,
   getMissingIds,
   getStaleIdsByUpdatedAt,
@@ -37,6 +38,31 @@ describe("space-id-cache.helpers", () => {
     );
 
     expect(staleIds).toEqual(["a"]);
+  });
+
+  it("analyzes missing and stale ids from ordered server records", () => {
+    const cachedMap = buildRecordMapById([
+      { id: "a", updated_at: "2024-01-01" },
+      { id: "b", updated_at: "2024-01-05" },
+      { id: "c", updated_at: "2024-01-03" },
+    ]);
+
+    expect(
+      analyzeCachedIdsByUpdatedAt(
+        ["a", "b", "c", "d"],
+        cachedMap,
+        [
+          { id: "a", updated_at: "2024-01-02" },
+          { id: "b", updated_at: "2024-01-05" },
+          { id: "c", updated_at: undefined },
+          { id: "d", updated_at: "2024-01-10" },
+        ],
+      ),
+    ).toEqual({
+      missingIds: ["d"],
+      staleIds: ["a"],
+      toFetchIds: ["d", "a"],
+    });
   });
 
   it("merges fresh records over cached records and preserves requested order", () => {
