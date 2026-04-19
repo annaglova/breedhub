@@ -54,6 +54,7 @@ import {
   type MappingRow,
 } from './space-mapping.helpers';
 import {
+  docMapToRecordMap,
   getMissingIds,
   getStaleIdsByUpdatedAt,
   mapDocsToRecordMap,
@@ -2742,7 +2743,8 @@ class SpaceStore {
       const ids = cachedMapping.map((r: any) => r.id);
       const docs = await collection.findByIds(ids).exec();
       if (docs.size > 0) {
-        const results = orderMappedRecordsByIds<any>(ids, docs);
+        const cachedMap = docMapToRecordMap<any>(docs);
+        const results = orderMappedRecordsByIds<any>(ids, cachedMap);
         // Background refresh if stale
         if (!isOffline() && hasStaleMappedRecords(results, STALE_MS)) {
           this.refreshViaMapping(entityTable, mappingTable, parentField, parentId, partitionField);
@@ -2772,9 +2774,10 @@ class SpaceStore {
     if (!collection) return this.fetchByPartition(supabase, entityTable, safeMappingRows, partitionField);
 
     const cachedDocs = await collection.findByIds(safeMappingRows.map((r: any) => r.id)).exec();
+    const cachedMap = docMapToRecordMap<any>(cachedDocs);
     const { cached, missing } = splitCachedAndMissingMappingRows(
       safeMappingRows,
-      cachedDocs,
+      cachedMap,
       STALE_MS,
     );
     if (missing.length === 0) return cached;
@@ -2790,7 +2793,7 @@ class SpaceStore {
       // Always read from RxDB — source of truth (Supabase → RxDB → UI)
       const allIds = safeMappingRows.map((r: any) => r.id);
       const allDocs = await collection.findByIds(allIds).exec();
-      return orderMappedRecordsByIds<any>(allIds, allDocs);
+      return orderMappedRecordsByIds<any>(allIds, docMapToRecordMap<any>(allDocs));
     } catch {
       return cached;
     }

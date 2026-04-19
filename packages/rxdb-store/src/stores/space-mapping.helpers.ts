@@ -35,7 +35,7 @@ export function hasStaleMappedRecords(
 
 export function splitCachedAndMissingMappingRows<TRecord extends { cachedAt?: number }>(
   mappingRows: MappingRow[],
-  docsById: Map<string, { toJSON(): TRecord }>,
+  cachedMap: Map<string, TRecord>,
   staleMs: number,
   now = Date.now(),
 ): MappingSplitResult<TRecord> {
@@ -43,8 +43,7 @@ export function splitCachedAndMissingMappingRows<TRecord extends { cachedAt?: nu
   const missing: MappingRow[] = [];
 
   for (const row of mappingRows) {
-    const doc = docsById.get(row.id);
-    const record = doc?.toJSON();
+    const record = cachedMap.get(row.id);
 
     if (record && now - (record.cachedAt || 0) < staleMs) {
       cached.push(record);
@@ -58,10 +57,10 @@ export function splitCachedAndMissingMappingRows<TRecord extends { cachedAt?: nu
 
 export function orderMappedRecordsByIds<TRecord extends { id: string }>(
   ids: string[],
-  docsById: Map<string, { toJSON(): TRecord }>,
+  cachedMap: Map<string, TRecord>,
 ): TRecord[] {
   return ids
-    .map((id) => docsById.get(id)?.toJSON())
+    .map((id) => cachedMap.get(id))
     .filter(Boolean) as TRecord[];
 }
 

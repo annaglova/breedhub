@@ -6,6 +6,16 @@ export function mapDocsToRecordMap<TRecord>(
   );
 }
 
+export function docMapToRecordMap<TRecord>(
+  docMap: Map<string, { toJSON(): unknown }>,
+): Map<string, TRecord> {
+  const result = new Map<string, TRecord>();
+  for (const [id, doc] of docMap) {
+    result.set(id, doc.toJSON() as TRecord);
+  }
+  return result;
+}
+
 export function buildRecordMapById<TRecord extends { id: string }>(
   records: TRecord[],
 ): Map<string, TRecord> {

@@ -19,12 +19,12 @@ describe("space-mapping.helpers", () => {
 
   it("splits cached and missing mapping rows by staleness", () => {
     const rows = [{ id: "a" }, { id: "b" }, { id: "c" }];
-    const docs = new Map([
-      ["a", { toJSON: () => ({ id: "a", cachedAt: 950 }) }],
-      ["b", { toJSON: () => ({ id: "b", cachedAt: 200 }) }],
+    const cachedMap = new Map([
+      ["a", { id: "a", cachedAt: 950 }],
+      ["b", { id: "b", cachedAt: 200 }],
     ]);
 
-    const result = splitCachedAndMissingMappingRows(rows, docs, 100, 1000);
+    const result = splitCachedAndMissingMappingRows(rows, cachedMap, 100, 1000);
 
     expect(result.cached).toEqual([{ id: "a", cachedAt: 950 }]);
     expect(result.missing).toEqual([{ id: "b" }, { id: "c" }]);
@@ -49,9 +49,9 @@ describe("space-mapping.helpers", () => {
     const ordered = orderMappedRecordsByIds(
       ["b", "a", "c"],
       new Map([
-        ["a", { toJSON: () => ({ id: "a", name: "A" }) }],
-        ["b", { toJSON: () => ({ id: "b", name: "B" }) }],
-        ["c", { toJSON: () => ({ id: "c", name: "C" }) }],
+        ["a", { id: "a", name: "A" }],
+        ["b", { id: "b", name: "B" }],
+        ["c", { id: "c", name: "C" }],
       ]),
     );
 
