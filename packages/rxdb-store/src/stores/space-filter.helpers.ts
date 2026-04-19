@@ -20,8 +20,33 @@ interface FilterApplicationOptions extends FilterResolutionOptions {
   skipKeys?: string[];
 }
 
+export interface PreparedFiltersWithDefaults {
+  filters: Record<string, any>;
+  fieldConfigs: Record<string, any>;
+}
+
 export function hasFilterValue(value: any): boolean {
   return value !== undefined && value !== null && value !== "";
+}
+
+export function prepareFiltersWithDefaults(
+  filters: Record<string, any>,
+  defaultFilters: Record<string, any> = {},
+  baseFieldConfigs: Record<string, any> = {},
+): PreparedFiltersWithDefaults {
+  const preparedFilters = { ...defaultFilters, ...filters };
+  const preparedFieldConfigs = { ...baseFieldConfigs };
+
+  for (const key of Object.keys(defaultFilters)) {
+    if (!preparedFieldConfigs[key]) {
+      preparedFieldConfigs[key] = { fieldType: "uuid", operator: "eq" };
+    }
+  }
+
+  return {
+    filters: preparedFilters,
+    fieldConfigs: preparedFieldConfigs,
+  };
 }
 
 export function getActiveFilterEntries(

@@ -27,6 +27,7 @@ import {
   getActiveFilterEntries,
   getStringSearchFilters,
   hasFilterValue,
+  prepareFiltersWithDefaults,
   resolveFieldFilter,
 } from './space-filter.helpers';
 import {
@@ -1303,7 +1304,14 @@ class SpaceStore {
     // Get space config and merge defaultFilters (e.g., type_id for kennel)
     const spaceConfig = this.spaceConfigs.get(entityType);
     const defaultFilters = spaceConfig?.defaultFilters || {};
-    filters = { ...defaultFilters, ...filters };
+    const baseFieldConfigs = options?.fieldConfigs || spaceConfig?.filter_fields || {};
+    const preparedFilters = prepareFiltersWithDefaults(
+      filters,
+      defaultFilters,
+      baseFieldConfigs,
+    );
+    filters = preparedFilters.filters;
+    const fieldConfigs = preparedFilters.fieldConfigs;
 
     console.log('[SpaceStore] applyFilters (ID-First):', {
       entityType,
@@ -1312,14 +1320,6 @@ class SpaceStore {
       cursor,
       orderBy
     });
-    // Inject field configs for defaultFilter keys so they use 'eq' operator (not ilike)
-    const baseFieldConfigs = options?.fieldConfigs || spaceConfig?.filter_fields || {};
-    const fieldConfigs = { ...baseFieldConfigs };
-    for (const key of Object.keys(defaultFilters)) {
-      if (!fieldConfigs[key]) {
-        fieldConfigs[key] = { fieldType: 'uuid', operator: 'eq' };
-      }
-    }
 
     // 📴 PREVENTIVE OFFLINE CHECK: Skip Supabase if browser is offline
     if (isOffline()) {
