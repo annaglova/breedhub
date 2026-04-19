@@ -5,6 +5,15 @@ export interface CountableCollectionLike {
   };
 }
 
+export interface CollectionViewConfigLike {
+  rows?: number;
+}
+
+export interface CollectionSpaceConfigLike {
+  views?: Record<string, CollectionViewConfigLike>;
+  rows?: number;
+}
+
 export type CollectionReuseStatus = 'ready' | 'recreate';
 
 export function buildEntityCollectionConfig<TSchema>(schema: TSchema): {
@@ -46,6 +55,105 @@ export async function getCollectionReuseStatus(
 
 export function isCollectionSchemaMismatchError(error: unknown): boolean {
   return (error as { code?: string } | null | undefined)?.code === 'DB6';
+}
+
+export function getExpectedCollectionBatchSize(
+  spaceConfig?: CollectionSpaceConfigLike | null,
+  fallback = 50,
+): number {
+  if (spaceConfig?.views) {
+    for (const viewConfig of Object.values(spaceConfig.views)) {
+      if (viewConfig.rows) {
+        return viewConfig.rows;
+      }
+    }
+
+    return fallback;
+  }
+
+  if (spaceConfig?.rows) {
+    return spaceConfig.rows;
+  }
+
+  return fallback;
+}
+
+export interface BufferedEntityStoreLike<TRecord extends { id: string }> {
+  addMany(records: TRecord[]): void;
+  upsertOne(record: TRecord): void;
+  removeOne(id: string): void;
+}
+
+export interface CollectionChangeEventLike<TRecord extends { id: string }> {
+  operation?: string;
+  documentData?: TRecord | null;
+  documentId?: string;
+}
+
+export function createBufferedEntityChangeHandler<TRecord extends { id: string }>(
+  entityStore: BufferedEntityStoreLike<TRecord>,
+  expectedBatchSize: number,
+  options: {
+    delayMs?: number;
+    setTimeoutFn?: typeof setTimeout;
+    clearTimeoutFn?: typeof clearTimeout;
+  } = {},
+): (changeEvent: CollectionChangeEventLike<TRecord>) => void {
+  const delayMs = options.delayMs ?? 100;
+  const setTimeoutFn = options.setTimeoutFn ?? setTimeout;
+  const clearTimeoutFn = options.clearTimeoutFn ?? clearTimeout;
+
+  let insertBuffer: TRecord[] = [];
+  let insertTimeout: ReturnType<typeof setTimeout> | null = null;
+
+  const flushInserts = () => {
+    if (insertBuffer.length > 0) {
+      entityStore.addMany(insertBuffer);
+      insertBuffer = [];
+    }
+
+    if (insertTimeout) {
+      clearTimeoutFn(insertTimeout);
+      insertTimeout = null;
+    }
+  };
+
+  return (changeEvent: CollectionChangeEventLike<TRecord>) => {
+    if (changeEvent.operation === 'INSERT') {
+      const data = changeEvent.documentData;
+      if (!data?.id) {
+        return;
+      }
+
+      insertBuffer.push(data);
+
+      if (insertBuffer.length >= expectedBatchSize) {
+        flushInserts();
+        return;
+      }
+
+      if (insertTimeout) {
+        clearTimeoutFn(insertTimeout);
+      }
+      insertTimeout = setTimeoutFn(flushInserts, delayMs);
+      return;
+    }
+
+    if (changeEvent.operation === 'UPDATE') {
+      const data = changeEvent.documentData;
+      if (data?.id) {
+        entityStore.upsertOne(data);
+      }
+      return;
+    }
+
+    if (changeEvent.operation === 'DELETE') {
+      const deleteId = changeEvent.documentId || changeEvent.documentData?.id;
+      if (deleteId) {
+        entityStore.removeOne(deleteId);
+      }
+    }
+  };
 }
 
 export interface DeleteDatabaseRequestLike {

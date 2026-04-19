@@ -23,7 +23,9 @@ import {
 } from './space-config.helpers';
 import {
   buildEntityCollectionConfig,
+  createBufferedEntityChangeHandler,
   getCollectionReuseStatus,
+  getExpectedCollectionBatchSize,
   isCollectionSchemaMismatchError,
   recoverCollectionSchemaMismatch,
 } from './space-collection.helpers';
@@ -818,69 +820,12 @@ class SpaceStore {
       if (existingSubscription) {
         existingSubscription.unsubscribe();
       }
-
-      // Get expected batch size from space config once (not on every INSERT)
-      const spaceConfig = this.spaceConfigs.get(entityType);
-      let expectedBatchSize = 50; // RxDB default
-
-      // Try to find rows from any view config
-      if (spaceConfig?.views) {
-        for (const viewConfig of Object.values(spaceConfig.views)) {
-          if (viewConfig.rows) {
-            expectedBatchSize = viewConfig.rows;
-            break;
-          }
-        }
-      } else if (spaceConfig?.rows) {
-        expectedBatchSize = spaceConfig.rows;
-      }
-
-      // Batch buffer for INSERT operations to avoid UI flickering
-      let insertBuffer: any[] = [];
-      let insertTimeout: any = null;
-
-      const flushInserts = () => {
-        if (insertBuffer.length > 0) {
-          entityStore.addMany(insertBuffer);
-          insertBuffer = [];
-        }
-        if (insertTimeout) {
-          clearTimeout(insertTimeout);
-          insertTimeout = null;
-        }
-      };
-
-      // Subscribe to changes
-      const subscription = collection.$.subscribe((changeEvent: any) => {
-        if (changeEvent.operation === 'INSERT') {
-          const data = changeEvent.documentData;
-          if (data && data.id) {
-            // Batch INSERT operations
-            insertBuffer.push(data);
-
-            // Flush immediately if we reached the expected batch size
-            if (insertBuffer.length >= expectedBatchSize) {
-              flushInserts();
-            } else {
-              // Otherwise, set/reset timeout as fallback (100ms)
-              if (insertTimeout) {
-                clearTimeout(insertTimeout);
-              }
-              insertTimeout = setTimeout(flushInserts, 100);
-            }
-          }
-        } else if (changeEvent.operation === 'UPDATE') {
-          const data = changeEvent.documentData;
-          if (data && data.id) {
-            entityStore.upsertOne(data);
-          }
-        } else if (changeEvent.operation === 'DELETE') {
-          const deleteId = changeEvent.documentId || changeEvent.documentData?.id;
-          if (deleteId) {
-            entityStore.removeOne(deleteId);
-          }
-        }
-      });
+      const expectedBatchSize = getExpectedCollectionBatchSize(
+        this.spaceConfigs.get(entityType),
+      );
+      const subscription = collection.$.subscribe(
+        createBufferedEntityChangeHandler(entityStore, expectedBatchSize),
+      );
 
       this.entitySubscriptions.set(entityType, subscription);
       
