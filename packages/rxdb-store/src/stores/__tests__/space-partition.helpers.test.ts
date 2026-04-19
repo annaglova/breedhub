@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  cacheAndOrderRecordsByPartitionRefs,
   groupPartitionedEntityRefs,
   normalizePartitionedEntityRefs,
   orderRecordsByPartitionRefs,
@@ -94,5 +95,79 @@ describe("space-partition.helpers", () => {
         "breed-3",
       ),
     ).toBe(false);
+  });
+
+  it("caches mapped fresh records and rebuilds partition-aware order", async () => {
+    const upserted: Array<{ id: string; cached: true }> = [];
+
+    const result = await cacheAndOrderRecordsByPartitionRefs(
+      [
+        { id: "pet-1", partitionId: "breed-1" },
+        { id: "pet-1", partitionId: "breed-2" },
+        { id: "pet-2", partitionId: "breed-2" },
+      ],
+      [{ id: "pet-1", breed_id: "breed-1", name: "Cached Alpha" }],
+      [
+        { id: "pet-1", breed_id: "breed-2", name: "Fresh Beta" },
+        { id: "pet-2", breed_id: "breed-2", name: "Fresh Gamma" },
+      ],
+      {
+        partitionField: "breed_id",
+        collection: {
+          async bulkUpsert(records) {
+            upserted.push(...records);
+          },
+        },
+        mapFreshRecordForCache: (record) => ({
+          id: record.id,
+          cached: true as const,
+        }),
+      },
+    );
+
+    expect(upserted).toEqual([
+      { id: "pet-1", cached: true },
+      { id: "pet-2", cached: true },
+    ]);
+    expect(result).toEqual({
+      orderedRecords: [
+        { id: "pet-1", breed_id: "breed-1", name: "Cached Alpha" },
+        { id: "pet-1", breed_id: "breed-2", name: "Fresh Beta" },
+        { id: "pet-2", breed_id: "breed-2", name: "Fresh Gamma" },
+      ],
+      cachedRecordsCount: 2,
+    });
+  });
+
+  it("reuses fresh records directly for cache when no mapper is provided", async () => {
+    const upserted: Array<{ id: string; breed_id?: string; name: string }> = [];
+
+    const result = await cacheAndOrderRecordsByPartitionRefs(
+      [
+        { id: "pet-1", partitionId: "breed-1" },
+        { id: "pet-2", partitionId: "breed-2" },
+      ],
+      [{ id: "pet-1", breed_id: "breed-1", name: "Cached Alpha" }],
+      [{ id: "pet-2", breed_id: "breed-2", name: "Fresh Beta" }],
+      {
+        partitionField: "breed_id",
+        collection: {
+          async bulkUpsert(records) {
+            upserted.push(...records);
+          },
+        },
+      },
+    );
+
+    expect(upserted).toEqual([
+      { id: "pet-2", breed_id: "breed-2", name: "Fresh Beta" },
+    ]);
+    expect(result).toEqual({
+      orderedRecords: [
+        { id: "pet-1", breed_id: "breed-1", name: "Cached Alpha" },
+        { id: "pet-2", breed_id: "breed-2", name: "Fresh Beta" },
+      ],
+      cachedRecordsCount: 1,
+    });
   });
 });

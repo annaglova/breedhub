@@ -73,6 +73,7 @@ import {
 } from './space-total-count.helpers';
 import {
   groupPartitionedEntityRefs,
+  cacheAndOrderRecordsByPartitionRefs,
   normalizePartitionedEntityRefs,
   orderRecordsByPartitionRefs,
   splitCachedAndMissingPartitionRefs,
@@ -2481,19 +2482,19 @@ class SpaceStore {
           split.missing,
           partitionField,
         )) as T[];
-
-        if (freshRecords.length > 0) {
-          const mapped = freshRecords.map((record) =>
-            this.mapToRxDBFormat(record, entityType),
-          );
-          await collection.bulkUpsert(mapped);
-        }
-
-        return orderRecordsByPartitionRefs(
+        const hydrationResult = await cacheAndOrderRecordsByPartitionRefs(
           normalizedRefs,
-          [...cachedRecords, ...freshRecords],
-          partitionField,
+          cachedRecords,
+          freshRecords,
+          {
+            partitionField,
+            collection,
+            mapFreshRecordForCache: (record) =>
+              this.mapToRxDBFormat(record, entityType),
+          },
         );
+
+        return hydrationResult.orderedRecords;
       } catch (error) {
         if (!isNetworkError(error)) {
           console.error(

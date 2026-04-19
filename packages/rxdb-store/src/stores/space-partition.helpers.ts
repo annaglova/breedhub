@@ -1,3 +1,5 @@
+import type { BulkUpsertCollection } from "./space-id-cache.helpers";
+
 export interface PartitionedEntityRef {
   id: string;
   partitionId?: string | null;
@@ -127,4 +129,41 @@ export function orderRecordsByPartitionRefs<TRecord extends { id: string }>(
   }
 
   return ordered;
+}
+
+export async function cacheAndOrderRecordsByPartitionRefs<
+  TRecord extends { id: string },
+  TCachedRecord = TRecord,
+>(
+  refs: PartitionedEntityRef[],
+  cachedRecords: TRecord[],
+  freshRecords: TRecord[],
+  options: {
+    partitionField?: string;
+    collection: BulkUpsertCollection<TCachedRecord>;
+    mapFreshRecordForCache?: (record: TRecord) => TCachedRecord;
+  },
+): Promise<{
+  orderedRecords: TRecord[];
+  cachedRecordsCount: number;
+}> {
+  let cachedRecordsCount = 0;
+
+  if (freshRecords.length > 0) {
+    const recordsToCache = options.mapFreshRecordForCache
+      ? freshRecords.map(options.mapFreshRecordForCache)
+      : (freshRecords as unknown as TCachedRecord[]);
+
+    await options.collection.bulkUpsert(recordsToCache);
+    cachedRecordsCount = recordsToCache.length;
+  }
+
+  return {
+    orderedRecords: orderRecordsByPartitionRefs(
+      refs,
+      [...cachedRecords, ...freshRecords],
+      options.partitionField,
+    ),
+    cachedRecordsCount,
+  };
 }
