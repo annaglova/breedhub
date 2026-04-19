@@ -1,8 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import {
+  buildPedigreeLeafPet,
   buildPedigreeResult,
   collectPedigreeLookupIds,
   getPedigreeAncestorRefs,
+  resolvePedigreeCodeMaps,
 } from '../space-pedigree.helpers';
 
 describe('space-pedigree.helpers', () => {
@@ -46,6 +48,82 @@ describe('space-pedigree.helpers', () => {
       sexIds: ['sex-m', 'sex-f'],
       countryIds: ['country-us'],
     });
+  });
+
+  it('builds a pedigree leaf pet with code maps and nested parents', () => {
+    const father = { id: 'father-1', name: 'Father' };
+    const mother = { id: 'mother-1', name: 'Mother' };
+
+    expect(
+      buildPedigreeLeafPet(
+        {
+          id: 'pet-1',
+          name: 'Alpha',
+          breed_id: 'breed-1',
+          sex_id: 'sex-f',
+          country_of_birth_id: 'country-ua',
+          avatar_url: 'alpha.png',
+        },
+        {
+          sexCodeMap: new Map([['sex-f', 'F']]),
+          countryCodeMap: new Map([['country-ua', 'UA']]),
+          father,
+          mother,
+        },
+      ),
+    ).toMatchObject({
+      id: 'pet-1',
+      name: 'Alpha',
+      breedId: 'breed-1',
+      avatarUrl: 'alpha.png',
+      sex: { code: 'F' },
+      countryOfBirth: { code: 'UA' },
+      father,
+      mother,
+    });
+  });
+
+  it('resolves pedigree code maps with deduplicated dictionary lookups', async () => {
+    const lookupCalls: Array<[string, string]> = [];
+
+    const codeMaps = await resolvePedigreeCodeMaps(
+      [
+        {
+          id: 'pet-1',
+          name: 'Alpha',
+          sex_id: 'sex-m',
+          country_of_birth_id: 'country-ua',
+        },
+        {
+          id: 'pet-2',
+          name: 'Beta',
+          sex_id: 'sex-f',
+          country_of_birth_id: 'country-ua',
+        },
+      ],
+      async (type, id) => {
+        lookupCalls.push([type, id]);
+
+        if (type === 'sex') {
+          return { code: id === 'sex-m' ? 'M' : 'F' };
+        }
+
+        return { code: 'UA' };
+      },
+    );
+
+    expect(lookupCalls).toEqual([
+      ['sex', 'sex-m'],
+      ['sex', 'sex-f'],
+      ['country', 'country-ua'],
+    ]);
+    expect([...codeMaps.sexCodeMap.entries()]).toEqual([
+      ['sex-m', 'M'],
+      ['sex-f', 'F'],
+    ]);
+    expect([...codeMaps.countryCodeMap.entries()]).toEqual([
+      ['country-ua', 'UA'],
+    ]);
   });
 
   it('builds pedigree tree using composite ref lookups', () => {

@@ -54,6 +54,23 @@ export interface PedigreeCodeMaps {
   countryCodeMap?: Map<string, string>;
 }
 
+export type PedigreeLookupType = 'sex' | 'country';
+export type PedigreeLookupRecord = Record<string, unknown> | null;
+export type PedigreeLookupResult = [
+  PedigreeLookupType,
+  string,
+  PedigreeLookupRecord,
+];
+export type PedigreeLookupFn = (
+  type: PedigreeLookupType,
+  id: string,
+) => Promise<PedigreeLookupRecord>;
+
+export interface BuildPedigreeLeafPetOptions extends PedigreeCodeMaps {
+  father?: PedigreePet;
+  mother?: PedigreePet;
+}
+
 export function buildPedigreeRefKey(
   id: string,
   breedId?: string | null,
@@ -116,6 +133,94 @@ export function buildPedigreeAncestorMap<
   return ancestorMap;
 }
 
+export function buildPedigreeCodeMaps(
+  lookupResults: PedigreeLookupResult[],
+): Required<PedigreeCodeMaps> {
+  const sexCodeMap = new Map<string, string>();
+  const countryCodeMap = new Map<string, string>();
+
+  for (const [type, id, record] of lookupResults) {
+    if (!record) {
+      continue;
+    }
+
+    if (type === 'sex' && record.code) {
+      sexCodeMap.set(id, String(record.code));
+    }
+
+    if (type === 'country' && record.code) {
+      countryCodeMap.set(id, String(record.code));
+    }
+  }
+
+  return {
+    sexCodeMap,
+    countryCodeMap,
+  };
+}
+
+export async function resolvePedigreeCodeMaps<
+  TRecord extends PedigreeAncestorRecord,
+>(
+  ancestors: TRecord[],
+  lookupRecordById: PedigreeLookupFn,
+): Promise<Required<PedigreeCodeMaps>> {
+  const { sexIds, countryIds } = collectPedigreeLookupIds(ancestors);
+  const lookupPromises: Promise<PedigreeLookupResult>[] = [];
+
+  for (const id of sexIds) {
+    lookupPromises.push(
+      lookupRecordById('sex', id).then((record) => ['sex', id, record]),
+    );
+  }
+
+  for (const id of countryIds) {
+    lookupPromises.push(
+      lookupRecordById('country', id).then((record) => ['country', id, record]),
+    );
+  }
+
+  return buildPedigreeCodeMaps(await Promise.all(lookupPromises));
+}
+
+export function buildPedigreeLeafPet<
+  TRecord extends PedigreeAncestorRecord,
+>(
+  pet: TRecord,
+  {
+    sexCodeMap,
+    countryCodeMap,
+    father,
+    mother,
+  }: BuildPedigreeLeafPetOptions = {},
+): PedigreePet {
+  const countryCode = pet.country_of_birth_id
+    ? countryCodeMap?.get(pet.country_of_birth_id)
+    : undefined;
+
+  return {
+    id: pet.id,
+    name: pet.name || '',
+    slug: pet.slug || undefined,
+    breedId: pet.breed_id || undefined,
+    dateOfBirth: pet.date_of_birth || undefined,
+    titles: pet.titles || undefined,
+    avatarUrl: pet.avatar_url || undefined,
+    sex: pet.sex_id
+      ? {
+          code: sexCodeMap?.get(pet.sex_id),
+        }
+      : undefined,
+    countryOfBirth: countryCode
+      ? {
+          code: countryCode,
+        }
+      : undefined,
+    father,
+    mother,
+  };
+}
+
 export function buildPedigreeResult<
   TRecord extends PedigreeAncestorRecord,
 >(
@@ -136,31 +241,12 @@ export function buildPedigreeResult<
       return undefined;
     }
 
-    const countryCode = ancestor.country_of_birth_id
-      ? countryCodeMap?.get(ancestor.country_of_birth_id)
-      : undefined;
-
-    return {
-      id: ancestor.id,
-      name: ancestor.name || '',
-      slug: ancestor.slug || undefined,
-      breedId: ancestor.breed_id || undefined,
-      dateOfBirth: ancestor.date_of_birth || undefined,
-      titles: ancestor.titles || undefined,
-      avatarUrl: ancestor.avatar_url || undefined,
-      sex: ancestor.sex_id
-        ? {
-            code: sexCodeMap?.get(ancestor.sex_id),
-          }
-        : undefined,
-      countryOfBirth: countryCode
-        ? {
-            code: countryCode,
-          }
-        : undefined,
+    return buildPedigreeLeafPet(ancestor, {
+      sexCodeMap,
+      countryCodeMap,
       father: buildNode(key + 'f'),
       mother: buildNode(key + 'm'),
-    };
+    });
   };
 
   return {

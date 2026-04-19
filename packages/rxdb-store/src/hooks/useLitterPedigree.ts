@@ -20,6 +20,10 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { spaceStore } from '../stores/space-store.signal-store';
 import type { PedigreePet } from '../stores/space-store.signal-store';
 import { dictionaryStore } from '../stores/dictionary-store.signal-store';
+import {
+  buildPedigreeLeafPet,
+  resolvePedigreeCodeMaps,
+} from '../stores/space-pedigree.helpers';
 
 export interface UseLitterPedigreeOptions {
   /** Father pet ID */
@@ -45,34 +49,6 @@ export interface UseLitterPedigreeResult {
   isLoading: boolean;
   /** Error if any */
   error: Error | null;
-}
-
-/**
- * Build PedigreePet from raw pet data with sex/country codes
- */
-async function buildPedigreePetFromRaw(
-  pet: any,
-  ancestors?: { father?: PedigreePet; mother?: PedigreePet }
-): Promise<PedigreePet> {
-  // Resolve sex and country codes
-  const [sex, country] = await Promise.all([
-    pet.sex_id ? dictionaryStore.getRecordById('sex', pet.sex_id) : null,
-    pet.country_of_birth_id ? dictionaryStore.getRecordById('country', pet.country_of_birth_id) : null,
-  ]);
-
-  return {
-    id: pet.id,
-    name: pet.name,
-    slug: pet.slug || undefined,
-    breedId: pet.breed_id,
-    dateOfBirth: pet.date_of_birth || undefined,
-    titles: pet.titles || undefined,
-    avatarUrl: pet.avatar_url || undefined,
-    sex: sex ? { code: String(sex.code) } : undefined,
-    countryOfBirth: country ? { code: String(country.code) } : undefined,
-    father: ancestors?.father,
-    mother: ancestors?.mother,
-  };
 }
 
 export function useLitterPedigree({
@@ -177,17 +153,32 @@ export function useLitterPedigree({
         totalAncestorCount += pedigreeResult.ancestors.length;
       }
 
+      const { sexCodeMap, countryCodeMap } = await resolvePedigreeCodeMaps(
+        [fatherPet, motherPet].filter(Boolean),
+        (type, id) => dictionaryStore.getRecordById(type, id),
+      );
+
       // Build the litter pedigree tree
       let father: PedigreePet | undefined;
       let mother: PedigreePet | undefined;
 
       if (fatherPet) {
-        father = await buildPedigreePetFromRaw(fatherPet, fatherAncestors);
+        father = buildPedigreeLeafPet(fatherPet, {
+          sexCodeMap,
+          countryCodeMap,
+          father: fatherAncestors.father,
+          mother: fatherAncestors.mother,
+        });
         totalAncestorCount++; // Count father himself
       }
 
       if (motherPet) {
-        mother = await buildPedigreePetFromRaw(motherPet, motherAncestors);
+        mother = buildPedigreeLeafPet(motherPet, {
+          sexCodeMap,
+          countryCodeMap,
+          father: motherAncestors.father,
+          mother: motherAncestors.mother,
+        });
         totalAncestorCount++; // Count mother herself
       }
 

@@ -69,8 +69,8 @@ import {
 } from './space-partition.helpers';
 import {
   buildPedigreeResult,
-  collectPedigreeLookupIds,
   getPedigreeAncestorRefs,
+  resolvePedigreeCodeMaps,
   type PedigreeJsonb,
   type PedigreePet as HelperPedigreePet,
   type PedigreeResult as HelperPedigreeResult,
@@ -4039,34 +4039,10 @@ class SpaceStore {
         `[SpaceStore] Pedigree: resolved ${allAncestors.length}/${ancestorRefs.length} unique ancestor refs`,
       );
 
-      // Resolve sex and country codes via dictionaryStore (local-first, RxDB cached)
-      const { sexIds, countryIds } = collectPedigreeLookupIds(allAncestors);
-
-      // Parallel lookup via dictionaryStore.getRecordById()
-      const lookupPromises: Promise<[string, string, Record<string, unknown> | null]>[] = [];
-
-      for (const id of sexIds) {
-        lookupPromises.push(
-          dictionaryStore.getRecordById('sex', id)
-            .then(record => ['sex', id, record] as [string, string, Record<string, unknown> | null])
-        );
-      }
-      for (const id of countryIds) {
-        lookupPromises.push(
-          dictionaryStore.getRecordById('country', id)
-            .then(record => ['country', id, record] as [string, string, Record<string, unknown> | null])
-        );
-      }
-
-      const lookupResults = await Promise.all(lookupPromises);
-
-      const sexCodeMap = new Map<string, string>();
-      const countryCodeMap = new Map<string, string>();
-      for (const [type, id, record] of lookupResults) {
-        if (!record) continue;
-        if (type === 'sex' && record.code) sexCodeMap.set(id, String(record.code));
-        if (type === 'country' && record.code) countryCodeMap.set(id, String(record.code));
-      }
+      const { sexCodeMap, countryCodeMap } = await resolvePedigreeCodeMaps(
+        allAncestors,
+        (type, id) => dictionaryStore.getRecordById(type, id),
+      );
 
       return buildPedigreeResult(pedigree, allAncestors, {
         sexCodeMap,
