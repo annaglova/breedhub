@@ -127,9 +127,18 @@ export function buildNextKeysetCursor(
   }
 
   const tieBreakerField = getTieBreakerField(orderBy);
+  const orderValue = orderBy.parameter
+    ? record[orderBy.field]?.[orderBy.parameter] ?? null
+    : record[orderBy.field] ?? null;
+  const tieBreakerValue = orderBy.tieBreaker?.parameter
+    ? record[tieBreakerField]?.[orderBy.tieBreaker.parameter] ??
+      record.id ??
+      null
+    : record[tieBreakerField] ?? record.id ?? null;
+
   return JSON.stringify({
-    value: record[orderBy.field] ?? null,
-    tieBreaker: record[tieBreakerField] ?? record.id ?? null,
+    value: orderValue,
+    tieBreaker: tieBreakerValue,
     tieBreakerField,
   });
 }
@@ -143,13 +152,24 @@ export function buildNextKeysetCursorFromAdditional(
   }
 
   const tieBreakerField = getTieBreakerField(orderBy);
-  return JSON.stringify({
-    value: record.additional?.[orderBy.field] ?? record[orderBy.field] ?? null,
-    tieBreaker:
-      record.additional?.[tieBreakerField] ??
+  const orderValue = orderBy.parameter
+    ? record.additional?.[orderBy.field]?.[orderBy.parameter] ??
+      record[orderBy.field]?.[orderBy.parameter] ??
+      null
+    : record.additional?.[orderBy.field] ?? record[orderBy.field] ?? null;
+  const tieBreakerValue = orderBy.tieBreaker?.parameter
+    ? record.additional?.[tieBreakerField]?.[orderBy.tieBreaker.parameter] ??
+      record[tieBreakerField]?.[orderBy.tieBreaker.parameter] ??
+      record.id ??
+      null
+    : record.additional?.[tieBreakerField] ??
       record[tieBreakerField] ??
       record.id ??
-      null,
+      null;
+
+  return JSON.stringify({
+    value: orderValue,
+    tieBreaker: tieBreakerValue,
     tieBreakerField,
   });
 }

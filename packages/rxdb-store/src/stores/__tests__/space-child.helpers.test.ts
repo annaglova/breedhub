@@ -106,4 +106,104 @@ describe("space-child.helpers", () => {
     expect(result.hasMore).toBe(false);
     expect(result.nextCursor).toBeNull();
   });
+
+  it("sorts child records by JSONB parameter and builds nested cursor values", async () => {
+    const collection = createMockCollection([
+      {
+        id: "a",
+        parentId: "breed-1",
+        tableType: "top_pet_in_breed",
+        additional: { metrics: { score: 5 }, rank: 1 },
+      },
+      {
+        id: "b",
+        parentId: "breed-1",
+        tableType: "top_pet_in_breed",
+        additional: { metrics: { score: 12 }, rank: 3 },
+      },
+      {
+        id: "c",
+        parentId: "breed-1",
+        tableType: "top_pet_in_breed",
+        additional: { metrics: { score: 9 }, rank: 2 },
+      },
+    ]);
+
+    const result = await executeLocalChildQuery({
+      collection,
+      parentId: "breed-1",
+      tableType: "top_pet_in_breed_with_pet",
+      filters: {},
+      limit: 2,
+      cursor: null,
+      orderBy: {
+        field: "metrics",
+        parameter: "score",
+        direction: "desc",
+        tieBreaker: {
+          field: "rank",
+          direction: "desc",
+        },
+      },
+    });
+
+    expect(result.records.map((record) => record.id)).toEqual(["b", "c"]);
+    expect(result.hasMore).toBe(true);
+    expect(result.nextCursor).toBe(
+      JSON.stringify({
+        value: 9,
+        tieBreaker: 2,
+        tieBreakerField: "rank",
+      }),
+    );
+  });
+
+  it("applies JSONB parameter cursor after local child sort", async () => {
+    const collection = createMockCollection([
+      {
+        id: "a",
+        parentId: "breed-1",
+        tableType: "top_pet_in_breed",
+        additional: { metrics: { score: 5 }, rank: 1 },
+      },
+      {
+        id: "b",
+        parentId: "breed-1",
+        tableType: "top_pet_in_breed",
+        additional: { metrics: { score: 12 }, rank: 3 },
+      },
+      {
+        id: "c",
+        parentId: "breed-1",
+        tableType: "top_pet_in_breed",
+        additional: { metrics: { score: 9 }, rank: 2 },
+      },
+    ]);
+
+    const result = await executeLocalChildQuery({
+      collection,
+      parentId: "breed-1",
+      tableType: "top_pet_in_breed_with_pet",
+      filters: {},
+      limit: 2,
+      cursor: JSON.stringify({
+        value: 9,
+        tieBreaker: 2,
+        tieBreakerField: "rank",
+      }),
+      orderBy: {
+        field: "metrics",
+        parameter: "score",
+        direction: "desc",
+        tieBreaker: {
+          field: "rank",
+          direction: "desc",
+        },
+      },
+    });
+
+    expect(result.records.map((record) => record.id)).toEqual(["a"]);
+    expect(result.hasMore).toBe(false);
+    expect(result.nextCursor).toBeNull();
+  });
 });

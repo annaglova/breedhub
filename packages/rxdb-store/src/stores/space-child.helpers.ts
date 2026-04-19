@@ -62,15 +62,30 @@ export function mapChildRowsToCacheRecords(
   });
 }
 
-function getChildOrderValue(
+function getChildFieldValue(
   record: Record<string, any> | null | undefined,
-  orderBy: KeysetOrderBy,
+  field: string,
+  parameter?: string,
 ): any {
   if (!record) {
     return null;
   }
 
-  return record.additional?.[orderBy.field] ?? record[orderBy.field] ?? null;
+  const additionalValue = record.additional?.[field];
+  const topLevelValue = record[field];
+
+  if (!parameter) {
+    return additionalValue ?? topLevelValue ?? null;
+  }
+
+  return additionalValue?.[parameter] ?? topLevelValue?.[parameter] ?? null;
+}
+
+function getChildOrderValue(
+  record: Record<string, any> | null | undefined,
+  orderBy: KeysetOrderBy,
+): any {
+  return getChildFieldValue(record, orderBy.field, orderBy.parameter);
 }
 
 function getChildTieBreakerValue(
@@ -81,10 +96,9 @@ function getChildTieBreakerValue(
     return null;
   }
 
-  const tieBreakerField = getTieBreaker(orderBy).field;
+  const tieBreaker = getTieBreaker(orderBy);
   return (
-    record.additional?.[tieBreakerField] ??
-    record[tieBreakerField] ??
+    getChildFieldValue(record, tieBreaker.field, tieBreaker.parameter) ??
     record.id ??
     null
   );
