@@ -32,6 +32,8 @@ import {
   hasFilterValue,
   prepareFiltersWithDefaults,
   resolveFieldFilter,
+  type HybridSearchPlan,
+  type HybridSearchRecord,
 } from './space-filter.helpers';
 import {
   applySupabaseKeysetCursor,
@@ -1743,6 +1745,94 @@ class SpaceStore {
     return viewConfig?.viewName || entityType;
   }
 
+  private async executeHybridSearch(
+    entityType: string,
+    hybridSearchPlan: HybridSearchPlan,
+    fieldConfigs: Record<string, any>,
+    limit: number,
+    orderBy: OrderBy,
+  ): Promise<HybridSearchRecord[]> {
+    console.log('[SpaceStore] 🔍 HYBRID SEARCH mode (starts_with 70% + contains 30%)');
+    const hybridSelectFields = getSelectFieldsForOrderBy(orderBy, {
+      includeUpdatedAt: true,
+    });
+    const {
+      isOrSearch,
+      orSearchFields,
+      searchValue,
+      startsWithLimit,
+    } = hybridSearchPlan;
+
+    if (isOrSearch) {
+      console.log(`[SpaceStore] 🔀 OR SEARCH: Searching "${searchValue}" in fields:`, orSearchFields);
+    }
+
+    const sourceName = this.getSupabaseSource(entityType);
+    let startsWithQuery = buildHybridSearchPhaseQuery(
+      buildHybridBaseQuery(
+        supabase,
+        sourceName,
+        hybridSelectFields,
+      ),
+      hybridSearchPlan,
+      {
+        phase: 'starts_with',
+        fieldConfigs,
+      },
+    );
+
+    startsWithQuery = this.applyOrderBy(startsWithQuery, orderBy).limit(startsWithLimit);
+
+    const { data: startsWithData, error: startsWithError } = await startsWithQuery;
+
+    if (startsWithError) {
+      console.error('[SpaceStore] ❌ Hybrid search (starts_with) failed:', startsWithError);
+      throw startsWithError;
+    }
+
+    const startsWithResults = (startsWithData || []) as HybridSearchRecord[];
+    console.log(`[SpaceStore] ✅ Starts with: ${startsWithResults.length} results`);
+
+    const remainingLimit = limit - startsWithResults.length;
+    if (remainingLimit > 0) {
+      let containsQuery = buildHybridSearchPhaseQuery(
+        buildHybridBaseQuery(
+          supabase,
+          sourceName,
+          hybridSelectFields,
+        ),
+        hybridSearchPlan,
+        {
+          phase: 'contains',
+          fieldConfigs,
+        },
+      );
+
+      containsQuery = this.applyOrderBy(containsQuery, orderBy).limit(remainingLimit);
+
+      const { data: containsData, error: containsError } = await containsQuery;
+
+      if (containsError) {
+        console.warn('[SpaceStore] Contains search failed:', containsError);
+      } else {
+        const containsResults = (containsData || []) as HybridSearchRecord[];
+        console.log(`[SpaceStore] ✅ Contains: ${containsResults.length} results`);
+
+        const mergedResults = mergeHybridPhaseResults(
+          startsWithResults,
+          containsResults,
+          limit,
+        );
+
+        console.log(`[SpaceStore] ✅ Fetched ${mergedResults.length} IDs (~${Math.round(mergedResults.length * 0.1)}KB) via HYBRID SEARCH`);
+        return mergedResults;
+      }
+    }
+
+    console.log(`[SpaceStore] ✅ Fetched ${startsWithResults.length} IDs (~${Math.round(startsWithResults.length * 0.1)}KB) via HYBRID SEARCH`);
+    return startsWithResults;
+  }
+
   /**
    * 🆔 ID-First Phase 1: Fetch IDs + ordering field from Supabase
    * Lightweight query (~1KB for 30 records instead of ~30KB)
@@ -1767,96 +1857,14 @@ class SpaceStore {
       cursor === null
         ? buildHybridSearchPlan(filters, fieldConfigs, limit)
         : null;
-    const useHybridSearch = hybridSearchPlan !== null;
-
-    if (useHybridSearch) {
-      console.log('[SpaceStore] 🔍 HYBRID SEARCH mode (starts_with 70% + contains 30%)');
-      const hybridSelectFields = getSelectFieldsForOrderBy(orderBy, {
-        includeUpdatedAt: true,
-      });
-      const {
-        isOrSearch,
-        orSearchFields,
-        searchValue,
-        startsWithLimit,
-      } = hybridSearchPlan;
-
-      if (isOrSearch) {
-        console.log(`[SpaceStore] 🔀 OR SEARCH: Searching "${searchValue}" in fields:`, orSearchFields);
-      }
-
-      // Phase 1: Starts with (high priority, 70% of limit)
-      const sourceName = this.getSupabaseSource(entityType);
-      let startsWithQuery = buildHybridSearchPhaseQuery(
-        buildHybridBaseQuery(
-          supabase,
-          sourceName,
-          hybridSelectFields,
-        ),
+    if (hybridSearchPlan) {
+      return this.executeHybridSearch(
+        entityType,
         hybridSearchPlan,
-        {
-          phase: 'starts_with',
-          fieldConfigs,
-        },
+        fieldConfigs,
+        limit,
+        orderBy,
       );
-
-      startsWithQuery = this.applyOrderBy(startsWithQuery, orderBy).limit(startsWithLimit);
-
-      const { data: startsWithData, error: startsWithError } = await startsWithQuery;
-
-      if (startsWithError) {
-        console.error('[SpaceStore] ❌ Hybrid search (starts_with) failed:', startsWithError);
-        throw startsWithError;
-      }
-
-      const startsWithResults = (startsWithData || []) as Array<{
-        id: string;
-        [key: string]: any;
-      }>;
-      console.log(`[SpaceStore] ✅ Starts with: ${startsWithResults.length} results`);
-
-      // Phase 2: Contains (lower priority) - only if we have room
-      const remainingLimit = limit - startsWithResults.length;
-      if (remainingLimit > 0) {
-        let containsQuery = buildHybridSearchPhaseQuery(
-          buildHybridBaseQuery(
-            supabase,
-            sourceName,
-            hybridSelectFields,
-          ),
-          hybridSearchPlan,
-          {
-            phase: 'contains',
-            fieldConfigs,
-          },
-        );
-
-        containsQuery = this.applyOrderBy(containsQuery, orderBy).limit(remainingLimit);
-
-        const { data: containsData, error: containsError } = await containsQuery;
-
-        if (containsError) {
-          console.warn('[SpaceStore] Contains search failed:', containsError);
-        } else {
-          const containsResults = (containsData || []) as Array<{
-            id: string;
-            [key: string]: any;
-          }>;
-          console.log(`[SpaceStore] ✅ Contains: ${containsResults.length} results`);
-
-          const mergedResults = mergeHybridPhaseResults(
-            startsWithResults,
-            containsResults,
-            limit,
-          );
-
-          console.log(`[SpaceStore] ✅ Fetched ${mergedResults.length} IDs (~${Math.round(mergedResults.length * 0.1)}KB) via HYBRID SEARCH`);
-          return mergedResults as unknown as Array<{ [key: string]: any; id: string }>;
-        }
-      }
-
-      console.log(`[SpaceStore] ✅ Fetched ${startsWithResults.length} IDs (~${Math.round(startsWithResults.length * 0.1)}KB) via HYBRID SEARCH`);
-      return startsWithResults as unknown as Array<{ [key: string]: any; id: string }>;
     }
 
     // 📄 REGULAR QUERY: No search or cursor pagination
