@@ -1,7 +1,10 @@
 import { describe, expect, it } from "vitest";
 import {
+  createEmptyChildPageResult,
   executeLocalChildQuery,
+  getDefaultChildOrderBy,
   mapChildRowsToCacheRecords,
+  toChildPageResult,
 } from "../space-child.helpers";
 
 function createMockCollection(records: Record<string, any>[]) {
@@ -16,6 +19,38 @@ function createMockCollection(records: Record<string, any>[]) {
 }
 
 describe("space-child.helpers", () => {
+  it("builds the default child orderBy with id tie-breaker", () => {
+    expect(getDefaultChildOrderBy()).toEqual({
+      field: "id",
+      direction: "asc",
+      tieBreaker: {
+        field: "id",
+        direction: "asc",
+      },
+    });
+  });
+
+  it("maps local child query results to paginated child page results", () => {
+    expect(
+      toChildPageResult({
+        records: [{ id: "a" }, { id: "b" }],
+        hasMore: true,
+        nextCursor: "cursor-1",
+      }),
+    ).toEqual({
+      records: [{ id: "a" }, { id: "b" }],
+      total: 2,
+      hasMore: true,
+      nextCursor: "cursor-1",
+    });
+    expect(createEmptyChildPageResult()).toEqual({
+      records: [],
+      total: 0,
+      hasMore: false,
+      nextCursor: null,
+    });
+  });
+
   it("maps child rows to cache records with service fields preserved", () => {
     const rows = [
       {

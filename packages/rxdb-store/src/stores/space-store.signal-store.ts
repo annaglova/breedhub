@@ -53,10 +53,13 @@ import {
 } from './space-keyset.helpers';
 import { executeLocalEntityQuery } from './space-local-query.helpers';
 import {
+  createEmptyChildPageResult,
   executeLocalChildQuery,
+  getDefaultChildOrderBy,
   mapChildRowsToCacheRecords,
   normalizeChildTableType,
   sortLocalChildRecords,
+  toChildPageResult,
 } from './space-child.helpers';
 import {
   buildMappingCacheKey,
@@ -3345,17 +3348,13 @@ class SpaceStore {
   ): Promise<{ records: any[]; total: number; hasMore: boolean; nextCursor: string | null }> {
     const limit = options.limit || 30;
     const cursor = options.cursor ?? null;
-    const orderBy: OrderBy = options.orderBy || {
-      field: 'id',
-      direction: 'asc',
-      tieBreaker: { field: 'id', direction: 'asc' }
-    };
+    const orderBy: OrderBy = options.orderBy || getDefaultChildOrderBy();
 
     // Determine entity type from table name
     const entityType = this.getEntityTypeFromTableType(tableType);
     if (!entityType) {
       console.error(`[SpaceStore] Cannot determine entity type from table: ${tableType}`);
-      return { records: [], total: 0, hasMore: false, nextCursor: null };
+      return createEmptyChildPageResult();
     }
 
     const parentIdField = `${entityType}_id`;
@@ -3381,25 +3380,17 @@ class SpaceStore {
     if (isOffline()) {
       console.log('[SpaceStore] 📴 Offline mode for child records');
       try {
-        const localQuery = await this.filterLocalChildEntities(
+        return await this.loadLocalChildPage(
           parentId,
           tableType,
           filters,
           limit,
           cursor,
-          orderBy
+          orderBy,
         );
-        const localResults = localQuery.records;
-
-        return {
-          records: localResults,
-          total: localResults.length,
-          hasMore: localQuery.hasMore,
-          nextCursor: localQuery.nextCursor
-        };
       } catch (error) {
         console.error('[SpaceStore] Offline child loading failed:', error);
-        return { records: [], total: 0, hasMore: false, nextCursor: null };
+        return createEmptyChildPageResult();
       }
     }
 
@@ -3421,7 +3412,7 @@ class SpaceStore {
 
       if (!idsData || idsData.length === 0) {
         console.log('[SpaceStore] ⚠️ No child IDs returned');
-        return { records: [], total: 0, hasMore: false, nextCursor: null };
+        return createEmptyChildPageResult();
       }
 
       console.log(`[SpaceStore] ✅ Got ${idsData.length} child IDs`, idsData.slice(0, 3));
@@ -3453,7 +3444,7 @@ class SpaceStore {
 
       const collection = await this.ensureChildCollection(entityType);
       if (!collection) {
-        return { records: [], total: 0, hasMore: false, nextCursor: null };
+        return createEmptyChildPageResult();
       }
 
       const cached = await collection.find({
@@ -3516,25 +3507,17 @@ class SpaceStore {
       }
 
       try {
-        const localQuery = await this.filterLocalChildEntities(
+        return await this.loadLocalChildPage(
           parentId,
           tableType,
           filters,
           limit,
           cursor,
-          orderBy
+          orderBy,
         );
-        const localResults = localQuery.records;
-
-        return {
-          records: localResults,
-          total: localResults.length,
-          hasMore: localQuery.hasMore,
-          nextCursor: localQuery.nextCursor
-        };
       } catch (offlineError) {
         console.error('[SpaceStore] Offline fallback failed:', offlineError);
-        return { records: [], total: 0, hasMore: false, nextCursor: null };
+        return createEmptyChildPageResult();
       }
     }
   }
@@ -3655,17 +3638,13 @@ class SpaceStore {
   ): Promise<{ records: any[]; total: number; hasMore: boolean; nextCursor: string | null }> {
     const limit = options.limit || 30;
     const cursor = options.cursor ?? null;
-    const orderBy: OrderBy = options.orderBy || {
-      field: 'id',
-      direction: 'asc',
-      tieBreaker: { field: 'id', direction: 'asc' }
-    };
+    const orderBy: OrderBy = options.orderBy || getDefaultChildOrderBy();
 
     // Determine entity type from VIEW name
     const entityType = this.getEntityTypeFromTableType(viewName);
     if (!entityType) {
       console.error(`[SpaceStore] Cannot determine entity type from VIEW: ${viewName}`);
-      return { records: [], total: 0, hasMore: false, nextCursor: null };
+      return createEmptyChildPageResult();
     }
 
     const { partitionConfig, partitionValue } =
@@ -3690,25 +3669,17 @@ class SpaceStore {
     if (isOffline()) {
       console.log('[SpaceStore] 📴 Offline mode for VIEW');
       try {
-        const localQuery = await this.filterLocalChildEntities(
+        return await this.loadLocalChildPage(
           parentId,
           viewName,
           {},
           limit,
           cursor,
-          orderBy
+          orderBy,
         );
-        const localResults = localQuery.records;
-
-        return {
-          records: localResults,
-          total: localResults.length,
-          hasMore: localQuery.hasMore,
-          nextCursor: localQuery.nextCursor
-        };
       } catch (error) {
         console.error('[SpaceStore] Offline VIEW loading failed:', error);
-        return { records: [], total: 0, hasMore: false, nextCursor: null };
+        return createEmptyChildPageResult();
       }
     }
 
@@ -3804,27 +3775,39 @@ class SpaceStore {
 
       try {
         console.log('[SpaceStore] 📴 Falling back to local cache...');
-        const localQuery = await this.filterLocalChildEntities(
+        return await this.loadLocalChildPage(
           parentId,
           viewName,
           {},
           limit,
           cursor,
-          orderBy
+          orderBy,
         );
-        const localResults = localQuery.records;
-
-        return {
-          records: localResults,
-          total: localResults.length,
-          hasMore: localQuery.hasMore,
-          nextCursor: localQuery.nextCursor
-        };
       } catch (offlineError) {
         console.error('[SpaceStore] Offline fallback failed:', offlineError);
-        return { records: [], total: 0, hasMore: false, nextCursor: null };
+        return createEmptyChildPageResult();
       }
     }
+  }
+
+  private async loadLocalChildPage(
+    parentId: string,
+    tableType: string,
+    filters: Record<string, any>,
+    limit: number,
+    cursor: string | null,
+    orderBy: OrderBy,
+  ): Promise<{ records: any[]; total: number; hasMore: boolean; nextCursor: string | null }> {
+    const localQuery = await this.filterLocalChildEntities(
+      parentId,
+      tableType,
+      filters,
+      limit,
+      cursor,
+      orderBy,
+    );
+
+    return toChildPageResult(localQuery);
   }
 
   /**

@@ -21,6 +21,45 @@ export interface LocalChildQueryResult {
   nextCursor: string | null;
 }
 
+export interface ChildPageResult<TRecord = any> {
+  records: TRecord[];
+  total: number;
+  hasMore: boolean;
+  nextCursor: string | null;
+}
+
+export function getDefaultChildOrderBy(): KeysetOrderBy {
+  return {
+    field: "id",
+    direction: "asc",
+    tieBreaker: { field: "id", direction: "asc" },
+  };
+}
+
+export function toChildPageResult<TRecord>(
+  queryResult: {
+    records: TRecord[];
+    hasMore: boolean;
+    nextCursor: string | null;
+  },
+): ChildPageResult<TRecord> {
+  return {
+    records: queryResult.records,
+    total: queryResult.records.length,
+    hasMore: queryResult.hasMore,
+    nextCursor: queryResult.nextCursor,
+  };
+}
+
+export function createEmptyChildPageResult<TRecord = any>(): ChildPageResult<TRecord> {
+  return {
+    records: [],
+    total: 0,
+    hasMore: false,
+    nextCursor: null,
+  };
+}
+
 export function normalizeChildTableType(tableType: string): string {
   return tableType.replace(/_with_\w+$/, "");
 }
