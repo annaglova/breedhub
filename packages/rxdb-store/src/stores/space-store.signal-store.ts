@@ -61,9 +61,9 @@ import {
 } from './space-mapping.helpers';
 import {
   analyzeCachedIdsByUpdatedAt,
+  cacheAndMergeOrderedRecordsByIds,
   docMapToRecordMap,
   mapDocsToRecordMap,
-  mergeOrderedRecordsByIds,
 } from './space-id-cache.helpers';
 import {
   applyTotalCountFiltersToQuery,
@@ -1572,21 +1572,25 @@ class SpaceStore {
         );
 
         console.log(`[SpaceStore] ✅ Fetched ${freshRecords.length} fresh records`);
-
-        // Cache fresh records in RxDB
-        if (freshRecords.length > 0) {
-          const mapped = freshRecords.map(r => this.mapToRxDBFormat(r, entityType));
-          await collection.bulkUpsert(mapped);
-          console.log(`[SpaceStore] 💾 Cached ${mapped.length} fresh records in RxDB`);
-        }
       }
 
-      // 🔀 PHASE 4: Merge cached + fresh, maintain order from IDs query
-      const orderedRecords = mergeOrderedRecordsByIds(
+      const hydrationResult = await cacheAndMergeOrderedRecordsByIds(
         ids,
         cachedMap,
         freshRecords as BusinessEntity[],
+        {
+          collection,
+          mapFreshRecordForCache: (record) =>
+            this.mapToRxDBFormat(record, entityType),
+        },
       );
+      const orderedRecords = hydrationResult.orderedRecords;
+
+      if (hydrationResult.cachedRecordsCount > 0) {
+        console.log(
+          `[SpaceStore] 💾 Cached ${hydrationResult.cachedRecordsCount} fresh records in RxDB`,
+        );
+      }
 
       console.log(`[SpaceStore] ✅ Returning ${orderedRecords.length} records (hasMore: ${idsData.length >= limit})`);
 
@@ -3594,20 +3598,21 @@ class SpaceStore {
         );
 
         console.log(`[SpaceStore] ✅ Fetched ${freshRecords.length} fresh child records`);
-
-        // Cache fresh records
-        if (freshRecords.length > 0) {
-          await collection.bulkUpsert(freshRecords);
-          console.log(`[SpaceStore] 💾 Cached ${freshRecords.length} records`);
-        }
       }
 
-      // 🔀 PHASE 4: Merge & maintain order
-      const orderedRecords = mergeOrderedRecordsByIds(
+      const hydrationResult = await cacheAndMergeOrderedRecordsByIds(
         ids,
         cachedMap,
         freshRecords as BusinessEntity[],
+        {
+          collection,
+        },
       );
+      const orderedRecords = hydrationResult.orderedRecords;
+
+      if (hydrationResult.cachedRecordsCount > 0) {
+        console.log(`[SpaceStore] 💾 Cached ${hydrationResult.cachedRecordsCount} records`);
+      }
 
       const hasMore = idsData.length >= limit;
 

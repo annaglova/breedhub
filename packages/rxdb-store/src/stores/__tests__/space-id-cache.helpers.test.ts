@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   analyzeCachedIdsByUpdatedAt,
   buildRecordMapById,
+  cacheAndMergeOrderedRecordsByIds,
   getMissingIds,
   getStaleIdsByUpdatedAt,
   mapDocsToRecordMap,
@@ -104,5 +105,72 @@ describe("space-id-cache.helpers", () => {
       { id: "c", value: "fresh-c" },
       { id: "a", value: "cached-a" },
     ]);
+  });
+
+  it("caches mapped fresh records before merging ordered results", async () => {
+    const upserted: Array<{ id: string; cached: boolean }> = [];
+    const cachedMap = buildRecordMapById([
+      { id: "a", value: "cached-a" },
+      { id: "b", value: "cached-b" },
+    ]);
+
+    const result = await cacheAndMergeOrderedRecordsByIds(
+      ["b", "c", "a"],
+      cachedMap,
+      [
+        { id: "c", value: "fresh-c" },
+        { id: "b", value: "fresh-b" },
+      ],
+      {
+        collection: {
+          async bulkUpsert(records) {
+            upserted.push(...records);
+          },
+        },
+        mapFreshRecordForCache: (record) => ({
+          id: record.id,
+          cached: true,
+        }),
+      },
+    );
+
+    expect(upserted).toEqual([
+      { id: "c", cached: true },
+      { id: "b", cached: true },
+    ]);
+    expect(result).toEqual({
+      orderedRecords: [
+        { id: "b", value: "fresh-b" },
+        { id: "c", value: "fresh-c" },
+        { id: "a", value: "cached-a" },
+      ],
+      cachedRecordsCount: 2,
+    });
+  });
+
+  it("reuses fresh records directly for cache when no mapper is provided", async () => {
+    const upserted: Array<{ id: string; value: string }> = [];
+
+    const result = await cacheAndMergeOrderedRecordsByIds(
+      ["a", "b"],
+      buildRecordMapById([{ id: "a", value: "cached-a" }]),
+      [{ id: "b", value: "fresh-b" }],
+      {
+        collection: {
+          async bulkUpsert(records) {
+            upserted.push(...records);
+          },
+        },
+      },
+    );
+
+    expect(upserted).toEqual([{ id: "b", value: "fresh-b" }]);
+    expect(result).toEqual({
+      orderedRecords: [
+        { id: "a", value: "cached-a" },
+        { id: "b", value: "fresh-b" },
+      ],
+      cachedRecordsCount: 1,
+    });
   });
 });

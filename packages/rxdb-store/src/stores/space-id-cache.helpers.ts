@@ -80,6 +80,10 @@ export function analyzeCachedIdsByUpdatedAt<
   };
 }
 
+export interface BulkUpsertCollection<TRecord> {
+  bulkUpsert(records: TRecord[]): Promise<unknown>;
+}
+
 export function mergeOrderedRecordsByIds<TRecord extends { id: string }>(
   ids: string[],
   cachedMap: Map<string, TRecord>,
@@ -93,4 +97,36 @@ export function mergeOrderedRecordsByIds<TRecord extends { id: string }>(
   return ids
     .map((id) => merged.get(id))
     .filter(Boolean) as TRecord[];
+}
+
+export async function cacheAndMergeOrderedRecordsByIds<
+  TRecord extends { id: string },
+  TCachedRecord = TRecord,
+>(
+  ids: string[],
+  cachedMap: Map<string, TRecord>,
+  freshRecords: TRecord[],
+  options: {
+    collection: BulkUpsertCollection<TCachedRecord>;
+    mapFreshRecordForCache?: (record: TRecord) => TCachedRecord;
+  },
+): Promise<{
+  orderedRecords: TRecord[];
+  cachedRecordsCount: number;
+}> {
+  let cachedRecordsCount = 0;
+
+  if (freshRecords.length > 0) {
+    const recordsToCache = options.mapFreshRecordForCache
+      ? freshRecords.map(options.mapFreshRecordForCache)
+      : (freshRecords as unknown as TCachedRecord[]);
+
+    await options.collection.bulkUpsert(recordsToCache);
+    cachedRecordsCount = recordsToCache.length;
+  }
+
+  return {
+    orderedRecords: mergeOrderedRecordsByIds(ids, cachedMap, freshRecords),
+    cachedRecordsCount,
+  };
 }
