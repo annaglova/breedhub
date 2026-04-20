@@ -115,6 +115,10 @@ import {
 
 // Utils
 import { removeFieldPrefix } from '../utils/field-normalization';
+import {
+  findDocumentById,
+  findDocumentDataById,
+} from '../utils/rxdb-document.helpers';
 import * as CC from '../utils/child-collection-registry';
 import { generateSchemaForEntity as buildSchema, ENTITY_VIEW_SOURCES } from '../utils/schema-builder';
 import { rebuildTimelineOnDateChange } from '../utils/timeline-builder';
@@ -924,7 +928,7 @@ class SpaceStore {
     const { entityStore, collection } = context;
     
     try {
-      const doc = await collection.findOne(id).exec();
+      const doc = await findDocumentById(collection, id);
 
       if (!doc) {
         throw new Error(`${entityType} ${id} not found`);
@@ -1105,7 +1109,7 @@ class SpaceStore {
     const { entityStore, collection } = context;
 
     try {
-      const doc = await collection.findOne(id).exec();
+      const doc = await findDocumentById(collection, id);
 
       if (!doc) {
         throw new Error(`${entityType} ${id} not found`);
@@ -2341,8 +2345,7 @@ class SpaceStore {
     }
 
     try {
-      const doc = await collection.findOne(id).exec();
-      return doc ? (doc.toJSON() as T) : null;
+      return await findDocumentDataById(collection, id);
     } catch (err) {
       console.warn(`[SpaceStore] Error querying RxDB by id:`, err);
       return null;
@@ -3147,7 +3150,7 @@ class SpaceStore {
     // 4. Patch local pet doc and signal store
     const collection = this.db?.collections['pet'];
     if (collection) {
-      const doc = await collection.findOne(petId).exec();
+      const doc = await findDocumentById(collection, petId);
       if (doc) {
         await doc.patch({ titles_display: titlesDisplay });
       }
@@ -3246,7 +3249,7 @@ class SpaceStore {
     // Update RxDB
     const collection = await this.ensureChildCollection(entityType);
     if (collection) {
-      const doc = await collection.findOne(recordId).exec();
+      const doc = await findDocumentById(collection, recordId);
       if (doc) {
         const currentAdditional = doc.toJSON().additional || {};
         const patchedDoc = await doc.patch({
@@ -3301,7 +3304,7 @@ class SpaceStore {
     // Enqueue delete BEFORE removing from RxDB (need doc data for payload)
     const collection = await this.ensureChildCollection(entityType);
     if (collection) {
-      const doc = await collection.findOne(recordId).exec();
+      const doc = await findDocumentById(collection, recordId);
       if (doc) {
         const docData = doc.toJSON();
         const entitySchema = this.entitySchemas.get(entityType);
