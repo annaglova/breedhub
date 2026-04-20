@@ -1,6 +1,10 @@
 import { signal, computed, Signal } from '@preact/signals-react';
 import type { RxCollection, RxDocument, MangoQuery } from 'rxdb';
 import type { Subscription } from 'rxjs';
+import {
+  findDocumentById,
+  findDocumentDataById,
+} from './utils/rxdb-document.helpers';
 
 /**
  * RxDB + Signals Integration
@@ -95,7 +99,7 @@ export class RxDBSignalStore<T> {
       this.loading.value = true;
       this.error.value = null;
       
-      const doc = await this.collection.findOne(id).exec();
+      const doc = await findDocumentById(this.collection, id);
       if (doc) {
         await doc.patch(updates);
         return true;
@@ -115,7 +119,7 @@ export class RxDBSignalStore<T> {
       this.loading.value = true;
       this.error.value = null;
       
-      const doc = await this.collection.findOne(id).exec();
+      const doc = await findDocumentById(this.collection, id);
       if (doc) {
         await doc.remove();
         return true;
@@ -132,8 +136,7 @@ export class RxDBSignalStore<T> {
   
   async findById(id: string): Promise<T | null> {
     try {
-      const doc = await this.collection.findOne(id).exec();
-      return doc ? doc.toJSON() : null;
+      return await findDocumentDataById(this.collection, id);
     } catch (err) {
       this.error.value = err as Error;
       return null;

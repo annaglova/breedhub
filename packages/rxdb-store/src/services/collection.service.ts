@@ -1,10 +1,13 @@
 import { signal, computed, Signal, ReadonlySignal } from '@preact/signals-react';
 import { 
   RxCollection, 
-  RxDocument, 
   MangoQuery,
   RxChangeEvent
 } from 'rxdb';
+import {
+  findDocumentById,
+  findDocumentDataById,
+} from '../utils/rxdb-document.helpers';
 
 /**
  * Base Collection Service Pattern inspired by ngx-odm
@@ -104,7 +107,7 @@ export abstract class CollectionService<T> {
     this._error.value = null;
     
     try {
-      const doc = await this.collection.findOne(id).exec();
+      const doc = await findDocumentById(this.collection, id);
       if (!doc) {
         throw new Error(`Document with id ${id} not found`);
       }
@@ -126,7 +129,7 @@ export abstract class CollectionService<T> {
     this._error.value = null;
     
     try {
-      const doc = await this.collection.findOne(id).exec();
+      const doc = await findDocumentById(this.collection, id);
       if (!doc) {
         throw new Error(`Document with id ${id} not found`);
       }
@@ -169,8 +172,7 @@ export abstract class CollectionService<T> {
     this._error.value = null;
     
     try {
-      const doc = await this.collection.findOne(id).exec();
-      return doc ? doc.toJSON() : null;
+      return await findDocumentDataById(this.collection, id);
     } catch (error) {
       this._error.value = error as Error;
       throw error;

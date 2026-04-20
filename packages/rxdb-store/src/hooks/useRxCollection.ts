@@ -12,6 +12,7 @@ import {
 } from 'rxdb';
 import { databaseService } from '../services/database.service';
 import type { AppDatabase } from '../services/database.service';
+import { findDocumentById } from '../utils/rxdb-document.helpers';
 
 /**
  * Generic hook for reactive RxDB queries
@@ -163,14 +164,14 @@ export function useRxCollection<T>(collectionName: string) {
   
   const update = useCallback(async (id: string, changes: Partial<T>) => {
     if (!collection) throw new Error('Collection not ready');
-    const doc = await collection.findOne(id).exec();
+    const doc = await findDocumentById(collection, id);
     if (!doc) throw new Error(`Document ${id} not found`);
     return await doc.patch(changes);
   }, [collection]);
   
   const remove = useCallback(async (id: string) => {
     if (!collection) throw new Error('Collection not ready');
-    const doc = await collection.findOne(id).exec();
+    const doc = await findDocumentById(collection, id);
     if (!doc) throw new Error(`Document ${id} not found`);
     return await doc.remove();
   }, [collection]);
