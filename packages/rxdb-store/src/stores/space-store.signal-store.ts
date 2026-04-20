@@ -2200,21 +2200,10 @@ class SpaceStore {
    * @returns Entity data or null
    */
   async fetchEntityBySlug<T = any>(entityType: string, slug: string): Promise<T | null> {
-    const collectionName = entityType.toLowerCase();
-
     // 1. Try RxDB collection directly (instant if collection exists)
-    if (this.db?.collections[collectionName]) {
-      try {
-        const docs = await this.db.collections[collectionName]
-          .find({ selector: { slug } })
-          .exec();
-
-        if (docs.length > 0) {
-          return docs[0].toJSON() as T;
-        }
-      } catch (err) {
-        console.warn(`[SpaceStore] Error querying RxDB by slug:`, err);
-      }
+    const cachedEntity = await this.findCachedEntityBySlug<T>(entityType, slug);
+    if (cachedEntity) {
+      return cachedEntity;
     }
 
     // 2. Resolve via routes table (fast PK lookup → partition-pruned query)
@@ -2258,10 +2247,7 @@ class SpaceStore {
         return null;
       }
 
-      if (this.db?.collections[collectionName]) {
-        const mapped = this.mapToRxDBFormat(data, collectionName);
-        await this.db.collections[collectionName].upsert(mapped);
-      }
+      await this.cacheFetchedEntity(entityType, data);
 
       return data as T;
     } catch (err) {
@@ -2297,18 +2283,10 @@ class SpaceStore {
       return records[0] ?? null;
     }
 
-    const collectionName = entityType.toLowerCase();
-
     // 1. Try RxDB collection directly (instant if cached)
-    if (this.db?.collections[collectionName]) {
-      try {
-        const doc = await this.db.collections[collectionName].findOne(id).exec();
-        if (doc) {
-          return doc.toJSON() as T;
-        }
-      } catch (err) {
-        console.warn(`[SpaceStore] Error querying RxDB by id:`, err);
-      }
+    const cachedEntity = await this.findCachedEntityById<T>(entityType, id);
+    if (cachedEntity) {
+      return cachedEntity;
     }
 
     // 2. Fallback to Supabase
@@ -2324,17 +2302,64 @@ class SpaceStore {
         return null;
       }
 
-      // Cache in RxDB if collection exists
-      if (this.db?.collections[collectionName]) {
-        const mapped = this.mapToRxDBFormat(data, collectionName);
-        await this.db.collections[collectionName].upsert(mapped);
-      }
+      await this.cacheFetchedEntity(entityType, data);
 
       return data as T;
     } catch (err) {
       console.error(`[SpaceStore] Error fetching by id from Supabase:`, err);
       return null;
     }
+  }
+
+  private async findCachedEntityBySlug<T = any>(
+    entityType: string,
+    slug: string,
+  ): Promise<T | null> {
+    const collection = this.db?.collections[entityType.toLowerCase()];
+    if (!collection) {
+      return null;
+    }
+
+    try {
+      const docs = await collection.find({ selector: { slug } }).exec();
+      const doc = docs[0];
+      return doc ? (doc.toJSON() as T) : null;
+    } catch (err) {
+      console.warn(`[SpaceStore] Error querying RxDB by slug:`, err);
+      return null;
+    }
+  }
+
+  private async findCachedEntityById<T = any>(
+    entityType: string,
+    id: string,
+  ): Promise<T | null> {
+    const collection = this.db?.collections[entityType.toLowerCase()];
+    if (!collection) {
+      return null;
+    }
+
+    try {
+      const doc = await collection.findOne(id).exec();
+      return doc ? (doc.toJSON() as T) : null;
+    } catch (err) {
+      console.warn(`[SpaceStore] Error querying RxDB by id:`, err);
+      return null;
+    }
+  }
+
+  private async cacheFetchedEntity(
+    entityType: string,
+    data: Record<string, any>,
+  ): Promise<void> {
+    const collectionName = entityType.toLowerCase();
+    const collection = this.db?.collections[collectionName];
+    if (!collection) {
+      return;
+    }
+
+    const mapped = this.mapToRxDBFormat(data, collectionName);
+    await collection.upsert(mapped);
   }
 
   /**
