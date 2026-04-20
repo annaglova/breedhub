@@ -227,6 +227,14 @@ class SpaceStore {
   // Computed values
   isLoading = computed(() => this.loading.value);
   hasError = computed(() => this.error.value !== null);
+
+  private get partitionContextDeps() {
+    return {
+      entitySchemas: this.entitySchemas,
+      loadFromMemory: this.getById.bind(this),
+      loadFromCache: this.findCachedEntityById.bind(this),
+    };
+  }
   
   private constructor() {
     // Initialization happens externally when AppStore is ready
@@ -2361,11 +2369,9 @@ class SpaceStore {
 
     const { partitionConfig, partitionValue } =
       await resolveChildPartitionContext({
-        entitySchemas: this.entitySchemas,
+        ...this.partitionContextDeps,
         entityType,
         parentId,
-        loadFromMemory: this.getById.bind(this),
-        loadFromCache: this.findCachedEntityById.bind(this),
         targetLabel: `Table: ${tableType}`,
       });
 
@@ -2443,11 +2449,9 @@ class SpaceStore {
     const parentIdField = parentField || `${entityType}_id`;
     const { partitionConfig, partitionValue } =
       await resolveChildPartitionContext({
-        entitySchemas: this.entitySchemas,
+        ...this.partitionContextDeps,
         entityType,
         parentId,
-        loadFromMemory: this.getById.bind(this),
-        loadFromCache: this.findCachedEntityById.bind(this),
         contextLabel: 'forceRefreshChildRecords',
         targetLabel: `Table: ${tableType}`,
         warnIfMissing: false,
@@ -2892,11 +2896,9 @@ class SpaceStore {
     const { normalizedType } = getChildMutationMetadata(this.entitySchemas, entityType, tableType);
     const { partitionConfig, partitionValue } =
       await resolveChildPartitionContext({
-        entitySchemas: this.entitySchemas,
+        ...this.partitionContextDeps,
         entityType,
         parentId,
-        loadFromMemory: this.getById.bind(this),
-        loadFromCache: this.findCachedEntityById.bind(this),
         contextLabel: 'createChildRecord',
         targetLabel: `Table: ${normalizedType}`,
         logResolved: false,
@@ -3087,11 +3089,9 @@ class SpaceStore {
 
     const { partitionConfig, partitionValue } =
       await resolveChildPartitionContext({
-        entitySchemas: this.entitySchemas,
+        ...this.partitionContextDeps,
         entityType,
         parentId,
-        loadFromMemory: this.getById.bind(this),
-        loadFromCache: this.findCachedEntityById.bind(this),
         contextLabel: 'applyChildFilters',
         targetLabel: `Table: ${tableType}`,
       });
@@ -3382,11 +3382,9 @@ class SpaceStore {
 
     const { partitionConfig, partitionValue } =
       await resolveChildPartitionContext({
-        entitySchemas: this.entitySchemas,
+        ...this.partitionContextDeps,
         entityType,
         parentId,
-        loadFromMemory: this.getById.bind(this),
-        loadFromCache: this.findCachedEntityById.bind(this),
         contextLabel: 'VIEW',
         targetLabel: `VIEW: ${viewName}`,
       });
