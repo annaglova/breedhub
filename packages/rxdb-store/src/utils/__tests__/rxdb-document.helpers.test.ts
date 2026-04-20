@@ -1,10 +1,25 @@
 import { describe, expect, it, vi } from 'vitest';
 import {
   findDocumentById,
+  findDocumentByPrimaryKey,
   findDocumentDataById,
 } from '../rxdb-document.helpers';
 
 describe('rxdb-document.helpers', () => {
+  it('returns an RxDocument by primary key when it exists', async () => {
+    const doc = {
+      slug: 'akita',
+      toJSON: vi.fn(() => ({ slug: 'akita' })),
+    };
+    const exec = vi.fn().mockResolvedValue(doc);
+    const findOne = vi.fn().mockReturnValue({ exec });
+    const collection = { findOne } as any;
+
+    await expect(findDocumentByPrimaryKey(collection, 'akita')).resolves.toBe(doc);
+    expect(findOne).toHaveBeenCalledWith('akita');
+    expect(exec).toHaveBeenCalledTimes(1);
+  });
+
   it('returns an RxDocument when it exists', async () => {
     const doc = {
       id: 'pet-1',

@@ -4,6 +4,7 @@ import { getDatabase } from '../services/database.service';
 import type { AppDatabase } from '../services/database.service';
 import { routesSchema, type RouteDocument } from '../collections/routes.schema';
 import { supabase } from '../supabase/client';
+import { findDocumentByPrimaryKey } from '../utils/rxdb-document.helpers';
 
 // Helpers
 import {
@@ -145,7 +146,7 @@ class RouteStore {
     }
 
     // 1. Check RxDB cache first (exact match by primary key)
-    const cached = await this.collection.findOne(slug).exec();
+    const cached = await findDocumentByPrimaryKey(this.collection, slug);
     // Cache lookup is silent — only log on hit
 
     if (cached) {
@@ -296,7 +297,7 @@ class RouteStore {
   async invalidateRoute(slug: string): Promise<void> {
     if (!this.collection) return;
 
-    const doc = await this.collection.findOne(slug).exec();
+    const doc = await findDocumentByPrimaryKey(this.collection, slug);
     if (doc) {
       await doc.remove();
     }

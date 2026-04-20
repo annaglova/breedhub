@@ -2,6 +2,7 @@ import { replicateRxCollection, RxReplicationState } from 'rxdb/plugins/replicat
 import { RxCollection, RxDatabase } from 'rxdb';
 import { BusinessEntity } from '../types/business-entity.types';
 import { supabase } from '../supabase/client';
+import { findDocumentByPrimaryKey } from '../utils/rxdb-document.helpers';
 
 export interface ReplicationOptions {
   batchSize?: number;
@@ -420,7 +421,7 @@ export class EntityReplicationService {
               const rxdbDoc = this.mapSupabaseToRxDB(entityType, supabaseDoc, schema);
 
               try {
-                const existing = await collection.findOne(rxdbDoc.id).exec();
+                const existing = await findDocumentByPrimaryKey(collection, rxdbDoc.id);
 
                 if (existing) {
                   // Only update if Supabase version is newer
@@ -437,7 +438,7 @@ export class EntityReplicationService {
               const docId = (payload.old as any).id;
 
               try {
-                const existing = await collection.findOne(docId).exec();
+                const existing = await findDocumentByPrimaryKey(collection, docId);
                 if (existing) {
                   await existing.patch({
                     _deleted: true,
