@@ -18,7 +18,6 @@ import {
   getMainFilterFieldFromConfig,
   getMainFilterFieldsFromConfig,
   parseSpaceConfigurations,
-  type PartitionConfig,
   getSortOptionsFromConfig,
   getViewRecordsCountFromConfig,
   resolveSpaceConfig,
@@ -100,6 +99,7 @@ import {
   normalizePartitionedEntityRefs,
   orderRecordsByPartitionRefs,
   recordMatchesPartition,
+  resolveChildPartitionContext,
   splitCachedAndMissingPartitionRefs,
   type PartitionedEntityRef,
 } from './space-partition.helpers';
@@ -2328,72 +2328,6 @@ class SpaceStore {
       return null;
     }
   }
-
-
-  private async loadParentEntityForPartition(
-    entityType: string,
-    parentId: string,
-  ): Promise<{ parentEntity: any | null; source: 'memory' | 'RxDB' | null }> {
-    const parentEntityFromMemory = await this.getById(entityType, parentId);
-    if (parentEntityFromMemory) {
-      return { parentEntity: parentEntityFromMemory, source: 'memory' };
-    }
-
-    const parentEntityFromCache = await this.findCachedEntityById(
-      entityType,
-      parentId,
-    );
-    if (parentEntityFromCache) {
-      return { parentEntity: parentEntityFromCache, source: 'RxDB' };
-    }
-
-    return { parentEntity: null, source: null };
-  }
-
-  private async resolveChildPartitionContext(
-    entityType: string,
-    parentId: string,
-    options: {
-      contextLabel?: string;
-      targetLabel?: string;
-      logResolved?: boolean;
-      warnIfMissing?: boolean;
-    } = {},
-  ): Promise<{ partitionConfig?: PartitionConfig; partitionValue?: string }> {
-    const entitySchema = this.entitySchemas.get(entityType);
-    const partitionConfig = entitySchema?.partition;
-    if (!partitionConfig) {
-      return {};
-    }
-
-    const { parentEntity, source } = await this.loadParentEntityForPartition(
-      entityType,
-      parentId,
-    );
-
-    if (!parentEntity) {
-      if (options.warnIfMissing !== false) {
-        console.warn(
-          `[SpaceStore] Could not find parent entity for partition key. ${
-            options.targetLabel || `Entity: ${entityType}`
-          }, parentId: ${parentId}`,
-        );
-      }
-      return { partitionConfig };
-    }
-
-    const partitionValue = (parentEntity as any)[partitionConfig.keyField];
-
-    if (options.logResolved !== false) {
-      const label = options.contextLabel ? `${options.contextLabel} ` : '';
-      console.log(
-        `[SpaceStore] ${label}partition filter: ${partitionConfig.childFilterField}=${partitionValue} (from ${source})`,
-      );
-    }
-
-    return { partitionConfig, partitionValue };
-  }
-
   /**
    * Load child records from Supabase for a specific parent entity
    *
@@ -2426,7 +2360,12 @@ class SpaceStore {
     }
 
     const { partitionConfig, partitionValue } =
-      await this.resolveChildPartitionContext(entityType, parentId, {
+      await resolveChildPartitionContext({
+        entitySchemas: this.entitySchemas,
+        entityType,
+        parentId,
+        loadFromMemory: this.getById.bind(this),
+        loadFromCache: this.findCachedEntityById.bind(this),
         targetLabel: `Table: ${tableType}`,
       });
 
@@ -2503,7 +2442,12 @@ class SpaceStore {
   ): Promise<void> {
     const parentIdField = parentField || `${entityType}_id`;
     const { partitionConfig, partitionValue } =
-      await this.resolveChildPartitionContext(entityType, parentId, {
+      await resolveChildPartitionContext({
+        entitySchemas: this.entitySchemas,
+        entityType,
+        parentId,
+        loadFromMemory: this.getById.bind(this),
+        loadFromCache: this.findCachedEntityById.bind(this),
         contextLabel: 'forceRefreshChildRecords',
         targetLabel: `Table: ${tableType}`,
         warnIfMissing: false,
@@ -2947,7 +2891,12 @@ class SpaceStore {
 
     const { normalizedType } = getChildMutationMetadata(this.entitySchemas, entityType, tableType);
     const { partitionConfig, partitionValue } =
-      await this.resolveChildPartitionContext(entityType, parentId, {
+      await resolveChildPartitionContext({
+        entitySchemas: this.entitySchemas,
+        entityType,
+        parentId,
+        loadFromMemory: this.getById.bind(this),
+        loadFromCache: this.findCachedEntityById.bind(this),
         contextLabel: 'createChildRecord',
         targetLabel: `Table: ${normalizedType}`,
         logResolved: false,
@@ -3137,7 +3086,12 @@ class SpaceStore {
     const parentIdField = `${entityType}_id`;
 
     const { partitionConfig, partitionValue } =
-      await this.resolveChildPartitionContext(entityType, parentId, {
+      await resolveChildPartitionContext({
+        entitySchemas: this.entitySchemas,
+        entityType,
+        parentId,
+        loadFromMemory: this.getById.bind(this),
+        loadFromCache: this.findCachedEntityById.bind(this),
         contextLabel: 'applyChildFilters',
         targetLabel: `Table: ${tableType}`,
       });
@@ -3427,7 +3381,12 @@ class SpaceStore {
     }
 
     const { partitionConfig, partitionValue } =
-      await this.resolveChildPartitionContext(entityType, parentId, {
+      await resolveChildPartitionContext({
+        entitySchemas: this.entitySchemas,
+        entityType,
+        parentId,
+        loadFromMemory: this.getById.bind(this),
+        loadFromCache: this.findCachedEntityById.bind(this),
         contextLabel: 'VIEW',
         targetLabel: `VIEW: ${viewName}`,
       });

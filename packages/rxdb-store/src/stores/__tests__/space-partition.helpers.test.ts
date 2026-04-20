@@ -2,9 +2,11 @@ import { describe, expect, it } from "vitest";
 import {
   cacheAndOrderRecordsByPartitionRefs,
   groupPartitionedEntityRefs,
+  loadParentEntityForPartition,
   normalizePartitionedEntityRefs,
   orderRecordsByPartitionRefs,
   recordMatchesPartition,
+  resolveChildPartitionContext,
   splitCachedAndMissingPartitionRefs,
 } from "../space-partition.helpers";
 
@@ -179,5 +181,106 @@ describe("space-partition.helpers", () => {
       ],
       cachedRecordsCount: 1,
     });
+  });
+
+  it("loads parent entity from memory before cache", async () => {
+    await expect(
+      loadParentEntityForPartition({
+        entityType: "pet",
+        parentId: "pet-1",
+        loadFromMemory: async () => ({ id: "pet-1", breed_id: "breed-1" }),
+        loadFromCache: async () => ({ id: "pet-1", breed_id: "breed-2" }),
+      }),
+    ).resolves.toEqual({
+      parentEntity: { id: "pet-1", breed_id: "breed-1" },
+      source: "memory",
+    });
+  });
+
+  it("resolves child partition context with logged source and partition value", async () => {
+    const logCalls: any[][] = [];
+    const originalLog = console.log;
+    console.log = (...args: any[]) => {
+      logCalls.push(args);
+    };
+
+    try {
+      const result = await resolveChildPartitionContext({
+        entitySchemas: new Map([
+          [
+            "pet",
+            {
+              partition: {
+                keyField: "breed_id",
+                childFilterField: "pet_breed_id",
+              },
+            },
+          ],
+        ]),
+        entityType: "pet",
+        parentId: "pet-1",
+        loadFromMemory: async () => undefined,
+        loadFromCache: async () => ({ id: "pet-1", breed_id: "breed-9" }),
+        contextLabel: "forceRefreshChildRecords",
+      });
+
+      expect(result).toEqual({
+        partitionConfig: {
+          keyField: "breed_id",
+          childFilterField: "pet_breed_id",
+        },
+        partitionValue: "breed-9",
+      });
+      expect(logCalls).toEqual([
+        [
+          "[SpaceStore] forceRefreshChildRecords partition filter: pet_breed_id=breed-9 (from RxDB)",
+        ],
+      ]);
+    } finally {
+      console.log = originalLog;
+    }
+  });
+
+  it("warns and returns partition config when parent entity is missing", async () => {
+    const warnCalls: any[][] = [];
+    const originalWarn = console.warn;
+    console.warn = (...args: any[]) => {
+      warnCalls.push(args);
+    };
+
+    try {
+      const result = await resolveChildPartitionContext({
+        entitySchemas: new Map([
+          [
+            "pet",
+            {
+              partition: {
+                keyField: "breed_id",
+                childFilterField: "pet_breed_id",
+              },
+            },
+          ],
+        ]),
+        entityType: "pet",
+        parentId: "pet-1",
+        loadFromMemory: async () => undefined,
+        loadFromCache: async () => null,
+        targetLabel: "Table: title_in_pet",
+      });
+
+      expect(result).toEqual({
+        partitionConfig: {
+          keyField: "breed_id",
+          childFilterField: "pet_breed_id",
+        },
+      });
+      expect(warnCalls).toEqual([
+        [
+          "[SpaceStore] Could not find parent entity for partition key. Table: title_in_pet, parentId: pet-1",
+        ],
+      ]);
+    } finally {
+      console.warn = originalWarn;
+    }
   });
 });

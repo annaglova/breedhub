@@ -2,6 +2,7 @@ import {
   cacheRecords,
   type BulkUpsertCollection,
 } from "./space-id-cache.helpers";
+import type { PartitionConfig } from "./space-config.helpers";
 
 export interface PartitionedEntityRef {
   id: string;
@@ -12,6 +13,8 @@ export interface PartitionedRefGroups {
   partitionedIds: Map<string, string[]>;
   unpartitionedIds: string[];
 }
+
+export type ParentPartitionLookupSource = "memory" | "RxDB" | null;
 
 export function normalizePartitionedEntityRefs(
   refs: PartitionedEntityRef[],
@@ -163,4 +166,90 @@ export async function cacheAndOrderRecordsByPartitionRefs<
     ),
     cachedRecordsCount,
   };
+}
+
+export async function loadParentEntityForPartition<TRecord>(options: {
+  entityType: string;
+  parentId: string;
+  loadFromMemory: (
+    entityType: string,
+    parentId: string,
+  ) => Promise<TRecord | undefined>;
+  loadFromCache: (
+    entityType: string,
+    parentId: string,
+  ) => Promise<TRecord | null>;
+}): Promise<{
+  parentEntity: TRecord | null;
+  source: ParentPartitionLookupSource;
+}> {
+  const parentEntityFromMemory = await options.loadFromMemory(
+    options.entityType,
+    options.parentId,
+  );
+  if (parentEntityFromMemory) {
+    return { parentEntity: parentEntityFromMemory, source: "memory" };
+  }
+
+  const parentEntityFromCache = await options.loadFromCache(
+    options.entityType,
+    options.parentId,
+  );
+  if (parentEntityFromCache) {
+    return { parentEntity: parentEntityFromCache, source: "RxDB" };
+  }
+
+  return { parentEntity: null, source: null };
+}
+
+export async function resolveChildPartitionContext(options: {
+  entitySchemas: ReadonlyMap<string, { partition?: PartitionConfig }>;
+  entityType: string;
+  parentId: string;
+  loadFromMemory: (
+    entityType: string,
+    parentId: string,
+  ) => Promise<Record<string, any> | undefined>;
+  loadFromCache: (
+    entityType: string,
+    parentId: string,
+  ) => Promise<Record<string, any> | null>;
+  contextLabel?: string;
+  targetLabel?: string;
+  logResolved?: boolean;
+  warnIfMissing?: boolean;
+}): Promise<{ partitionConfig?: PartitionConfig; partitionValue?: string }> {
+  const partitionConfig = options.entitySchemas.get(options.entityType)?.partition;
+  if (!partitionConfig) {
+    return {};
+  }
+
+  const { parentEntity, source } = await loadParentEntityForPartition({
+    entityType: options.entityType,
+    parentId: options.parentId,
+    loadFromMemory: options.loadFromMemory,
+    loadFromCache: options.loadFromCache,
+  });
+
+  if (!parentEntity) {
+    if (options.warnIfMissing !== false) {
+      console.warn(
+        `[SpaceStore] Could not find parent entity for partition key. ${
+          options.targetLabel || `Entity: ${options.entityType}`
+        }, parentId: ${options.parentId}`,
+      );
+    }
+    return { partitionConfig };
+  }
+
+  const partitionValue = parentEntity[partitionConfig.keyField];
+
+  if (options.logResolved !== false) {
+    const label = options.contextLabel ? `${options.contextLabel} ` : "";
+    console.log(
+      `[SpaceStore] ${label}partition filter: ${partitionConfig.childFilterField}=${partitionValue} (from ${source})`,
+    );
+  }
+
+  return { partitionConfig, partitionValue };
 }
