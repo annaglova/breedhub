@@ -1,12 +1,14 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import {
   applyChildListQueryOptions,
   createEmptyChildPageResult,
   executeLocalChildQuery,
   getDefaultChildOrderBy,
+  getChildMutationMetadata,
   hasStaleChildRecords,
   mapAndCacheChildRows,
   mapChildRowsToCacheRecords,
+  queueChildMutationRefresh,
   toChildPageResult,
 } from "../space-child.helpers";
 
@@ -114,6 +116,58 @@ describe("space-child.helpers", () => {
       ["eq", "pet_breed_id", "breed-2"],
       ["order", "placement", { ascending: false, nullsFirst: false }],
     ]);
+  });
+
+  it("derives child mutation metadata from normalized table type and entity partition config", () => {
+    const entitySchemas = new Map([
+      [
+        "pet",
+        {
+          partition: {
+            keyField: "breed_id",
+            childFilterField: "pet_breed_id",
+          },
+        },
+      ],
+    ]);
+
+    expect(getChildMutationMetadata(entitySchemas, "pet", "title_in_pet_with_pet")).toEqual({
+      normalizedType: "title_in_pet",
+      partitionConfig: {
+        keyField: "breed_id",
+        childFilterField: "pet_breed_id",
+      },
+    });
+  });
+
+  it("flushes the queue before triggering child mutation refresh", async () => {
+    let resolveProcess: (() => void) | undefined;
+    const processNow = vi.fn(
+      () =>
+        new Promise<void>((resolve) => {
+          resolveProcess = resolve;
+        }),
+    );
+    const refresh = vi.fn();
+
+    queueChildMutationRefresh(
+      processNow,
+      refresh,
+      "pet",
+      "title_in_pet",
+      "pet-1",
+    );
+
+    expect(processNow).toHaveBeenCalledOnce();
+    expect(refresh).not.toHaveBeenCalled();
+
+    resolveProcess?.();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(refresh).toHaveBeenCalledWith("pet", "title_in_pet", "pet-1");
+    expect(processNow.mock.invocationCallOrder[0]).toBeLessThan(
+      refresh.mock.invocationCallOrder[0],
+    );
   });
 
   it("maps child rows to cache records with service fields preserved", () => {

@@ -19,6 +19,15 @@ export interface ChildCacheTransformOptions {
   cachedAt?: number;
 }
 
+export interface ChildMutationPartitionConfig {
+  keyField: string;
+  childFilterField: string;
+}
+
+export interface ChildMutationEntitySchema {
+  partition?: ChildMutationPartitionConfig;
+}
+
 export interface ChildListQueryLike<TQuery> {
   eq(column: string, value: any): TQuery;
   limit(limit: number): TQuery;
@@ -121,6 +130,36 @@ export function applyChildListQueryOptions<TQuery extends ChildListQueryLike<TQu
 
 export function normalizeChildTableType(tableType: string): string {
   return tableType.replace(/_with_\w+$/, "");
+}
+
+export function getChildMutationMetadata(
+  entitySchemas: ReadonlyMap<string, ChildMutationEntitySchema>,
+  entityType: string,
+  tableType: string,
+): {
+  normalizedType: string;
+  partitionConfig?: ChildMutationPartitionConfig;
+} {
+  return {
+    normalizedType: normalizeChildTableType(tableType),
+    partitionConfig: entitySchemas.get(entityType)?.partition,
+  };
+}
+
+export function queueChildMutationRefresh(
+  processNow: () => Promise<unknown>,
+  refresh: (
+    entityType: string,
+    normalizedType: string,
+    parentId: string,
+  ) => unknown,
+  entityType: string,
+  normalizedType: string,
+  parentId: string,
+): void {
+  void processNow().then(() => {
+    void refresh(entityType, normalizedType, parentId);
+  });
 }
 
 export function mapChildRowsToCacheRecords(

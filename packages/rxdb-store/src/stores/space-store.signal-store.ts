@@ -58,9 +58,11 @@ import {
   createEmptyChildPageResult,
   executeLocalChildQuery,
   getDefaultChildOrderBy,
+  getChildMutationMetadata,
   hasStaleChildRecords,
   mapAndCacheChildRows,
   normalizeChildTableType,
+  queueChildMutationRefresh,
   sortLocalChildRecords,
   toChildPageResult,
 } from './space-child.helpers';
@@ -3184,29 +3186,6 @@ class SpaceStore {
     }
   }
 
-  private getChildMutationMetadata(
-    entityType: string,
-    tableType: string,
-  ): {
-    normalizedType: string;
-    partitionConfig?: PartitionConfig;
-  } {
-    return {
-      normalizedType: normalizeChildTableType(tableType),
-      partitionConfig: this.entitySchemas.get(entityType)?.partition,
-    };
-  }
-
-  private queueChildMutationRefresh(
-    entityType: string,
-    normalizedType: string,
-    parentId: string,
-  ): void {
-    syncQueueService.processNow().then(() => {
-      this.forceRefreshChildRecords(entityType, normalizedType, parentId);
-    });
-  }
-
   /**
    * Create a new child record (Supabase + RxDB)
    *
@@ -3230,10 +3209,7 @@ class SpaceStore {
     const now = new Date().toISOString();
     const userId = userStore.currentUserId.value;
 
-    const { normalizedType } = this.getChildMutationMetadata(
-      entityType,
-      tableType,
-    );
+    const { normalizedType } = getChildMutationMetadata(this.entitySchemas, entityType, tableType);
     const { partitionConfig, partitionValue } =
       await this.resolveChildPartitionContext(entityType, parentId, {
         contextLabel: 'createChildRecord',
@@ -3270,7 +3246,13 @@ class SpaceStore {
       await this.rebuildParentDenormFields(entityType, normalizedType, parentId, partitionValue);
 
       // Flush sync queue + refresh to pick up server-side trigger side-effects
-      this.queueChildMutationRefresh(entityType, normalizedType, parentId);
+      queueChildMutationRefresh(
+        () => syncQueueService.processNow(),
+        this.forceRefreshChildRecords.bind(this),
+        entityType,
+        normalizedType,
+        parentId,
+      );
     }
 
     return { id };
@@ -3292,10 +3274,7 @@ class SpaceStore {
   ): Promise<void> {
     // Sanitize data: ensure plain JSON (no Date objects, Proxy, etc.)
     const plainData = JSON.parse(JSON.stringify(data));
-    const { normalizedType, partitionConfig } = this.getChildMutationMetadata(
-      entityType,
-      tableType,
-    );
+    const { normalizedType, partitionConfig } = getChildMutationMetadata(this.entitySchemas, entityType, tableType);
 
     // Update RxDB
     const collection = await this.ensureChildCollection(entityType);
@@ -3330,7 +3309,13 @@ class SpaceStore {
         );
 
         // Flush sync queue + refresh to pick up server-side trigger side-effects
-        this.queueChildMutationRefresh(entityType, normalizedType, updatedDoc.parentId);
+        queueChildMutationRefresh(
+          () => syncQueueService.processNow(),
+          this.forceRefreshChildRecords.bind(this),
+          entityType,
+          normalizedType,
+          updatedDoc.parentId,
+        );
       }
     }
   }
@@ -3347,10 +3332,7 @@ class SpaceStore {
     tableType: string,
     recordId: string
   ): Promise<void> {
-    const { normalizedType, partitionConfig } = this.getChildMutationMetadata(
-      entityType,
-      tableType,
-    );
+    const { normalizedType, partitionConfig } = getChildMutationMetadata(this.entitySchemas, entityType, tableType);
 
     // Enqueue delete BEFORE removing from RxDB (need doc data for payload)
     const collection = await this.ensureChildCollection(entityType);
