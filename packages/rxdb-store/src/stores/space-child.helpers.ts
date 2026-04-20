@@ -46,6 +46,16 @@ export interface LocalChildQueryResult {
   nextCursor: string | null;
 }
 
+export interface FilterLocalChildEntitiesOptions {
+  collection?: RxCollection<any>;
+  parentId: string;
+  tableType: string;
+  filters: Record<string, any>;
+  limit: number;
+  cursor: string | null;
+  orderBy: KeysetOrderBy;
+}
+
 export interface ChildPageResult<TRecord = any> {
   records: TRecord[];
   total: number;
@@ -351,4 +361,22 @@ export async function executeLocalChildQuery(options: {
       : null;
 
   return { records, hasMore, nextCursor };
+}
+
+export async function filterLocalChildEntities(
+  options: FilterLocalChildEntitiesOptions,
+): Promise<LocalChildQueryResult> {
+  if (!options.collection) {
+    return { records: [], hasMore: false, nextCursor: null };
+  }
+
+  return executeLocalChildQuery({
+    collection: options.collection,
+    parentId: options.parentId,
+    tableType: options.tableType,
+    filters: options.filters,
+    limit: options.limit,
+    cursor: options.cursor,
+    orderBy: options.orderBy,
+  });
 }

@@ -1,8 +1,14 @@
 import { describe, expect, it, vi } from "vitest";
-import { executeLocalEntityQuery } from "../space-local-query.helpers";
+import {
+  executeLocalEntityQuery,
+  filterLocalEntities,
+} from "../space-local-query.helpers";
 
 function createMockCollection(records: Record<string, any>[]) {
   return {
+    count: vi.fn(() => ({
+      exec: vi.fn(async () => records.length),
+    })),
     find: vi.fn((options: Record<string, any>) => ({
       exec: vi.fn(async () => {
         let matched = records.filter((record) =>
@@ -83,6 +89,68 @@ function sortBySpec(
 }
 
 describe("space-local-query.helpers", () => {
+  it("filters local entities through the collection wrapper", async () => {
+    const collection = createMockCollection([
+      { id: "1", name: "Alpha", _deleted: false },
+      { id: "2", name: "Beta", _deleted: false },
+    ]);
+
+    const result = await filterLocalEntities({
+      collection,
+      entityType: "pet",
+      filters: { name: "Alpha" },
+      fieldConfigs: {
+        name: {
+          fieldType: "string",
+          operator: "eq",
+        },
+      },
+      limit: 10,
+      cursor: null,
+      orderBy: {
+        field: "id",
+        direction: "asc",
+        tieBreaker: {
+          field: "id",
+          direction: "asc",
+        },
+      },
+    });
+
+    expect(result.records.map((record) => record.id)).toEqual(["1"]);
+    expect(result.hasMore).toBe(false);
+    expect(result.nextCursor).toBe("1");
+  });
+
+  it("returns an empty local result when the collection is missing", async () => {
+    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+
+    const result = await filterLocalEntities({
+      entityType: "pet",
+      filters: {},
+      fieldConfigs: {},
+      limit: 10,
+      cursor: null,
+      orderBy: {
+        field: "id",
+        direction: "asc",
+        tieBreaker: {
+          field: "id",
+          direction: "asc",
+        },
+      },
+    });
+
+    expect(result).toEqual({
+      records: [],
+      hasMore: false,
+      nextCursor: null,
+    });
+    expect(warnSpy).toHaveBeenCalledWith(
+      "[SpaceStore] Collection pet not found for local filtering",
+    );
+  });
+
   it("sorts and limits JSONB parameter queries in local mode", async () => {
     const collection = createMockCollection([
       { id: "1", metrics: { score: 5 }, _deleted: false },

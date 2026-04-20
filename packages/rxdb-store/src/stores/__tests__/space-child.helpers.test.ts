@@ -3,6 +3,7 @@ import {
   applyChildListQueryOptions,
   createEmptyChildPageResult,
   executeLocalChildQuery,
+  filterLocalChildEntities,
   getDefaultChildOrderBy,
   getChildMutationMetadata,
   hasStaleChildRecords,
@@ -14,11 +15,21 @@ import {
 
 function createMockCollection(records: Record<string, any>[]) {
   return {
-    find: () => ({
+    find: (options?: { selector?: Record<string, any> }) => ({
       exec: async () =>
-        records.map((record) => ({
-          toJSON: () => record,
-        })),
+        records
+          .filter((record) => {
+            const selector = options?.selector || {};
+            return Object.entries(selector).every(([field, value]) => {
+              if (field.startsWith("additional.")) {
+                return record.additional?.[field.replace("additional.", "")] === value;
+              }
+              return record[field] === value;
+            });
+          })
+          .map((record) => ({
+            toJSON: () => record,
+          })),
     }),
   } as any;
 }
@@ -244,6 +255,66 @@ describe("space-child.helpers", () => {
 
     expect(result.cachedRecordsCount).toBe(1);
     expect(result.transformedRecords).toEqual(upserted);
+  });
+
+  it("filters local child entities through the collection wrapper", async () => {
+    const result = await filterLocalChildEntities({
+      collection: createMockCollection([
+        {
+          id: "row-1",
+          parentId: "breed-1",
+          tableType: "achievement_in_breed",
+          additional: { name: "Alpha" },
+        },
+        {
+          id: "row-2",
+          parentId: "breed-1",
+          tableType: "achievement_in_breed",
+          additional: { name: "Beta" },
+        },
+      ]),
+      parentId: "breed-1",
+      tableType: "achievement_in_breed",
+      filters: { name: "Alpha" },
+      limit: 10,
+      cursor: null,
+      orderBy: {
+        field: "id",
+        direction: "asc",
+        tieBreaker: {
+          field: "id",
+          direction: "asc",
+        },
+      },
+    });
+
+    expect(result.records.map((record) => record.id)).toEqual(["row-1"]);
+    expect(result.hasMore).toBe(false);
+    expect(result.nextCursor).toBeNull();
+  });
+
+  it("returns an empty child result when the collection is missing", async () => {
+    await expect(
+      filterLocalChildEntities({
+        parentId: "breed-1",
+        tableType: "achievement_in_breed",
+        filters: {},
+        limit: 10,
+        cursor: null,
+        orderBy: {
+          field: "id",
+          direction: "asc",
+          tieBreaker: {
+            field: "id",
+            direction: "asc",
+          },
+        },
+      }),
+    ).resolves.toEqual({
+      records: [],
+      hasMore: false,
+      nextCursor: null,
+    });
   });
 
   it("maps child rows without caching when no collection is provided", async () => {

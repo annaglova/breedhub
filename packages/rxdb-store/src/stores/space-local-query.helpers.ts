@@ -28,6 +28,17 @@ interface LocalSelectorQueryOptions {
   skipIds?: Set<string>;
 }
 
+export interface FilterLocalEntitiesOptions {
+  collection?: RxCollection<any>;
+  entityType: string;
+  filters: Record<string, any>;
+  fieldConfigs: Record<string, any>;
+  limit: number;
+  cursor: string | null;
+  orderBy: KeysetOrderBy;
+  logMissingCollection?: boolean;
+}
+
 function escapeRegexValue(value: any): string {
   return String(value).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
@@ -275,4 +286,47 @@ export async function executeLocalEntityQuery(
     hasMore: records.length >= limit,
     nextCursor: getLocalOrderValue(records[records.length - 1], orderBy) ?? null,
   };
+}
+
+export async function filterLocalEntities(
+  options: FilterLocalEntitiesOptions,
+): Promise<LocalEntityQueryResult> {
+  if (!options.collection) {
+    if (options.logMissingCollection !== false) {
+      console.warn(
+        `[SpaceStore] Collection ${options.entityType} not found for local filtering`,
+      );
+    }
+    return { records: [], hasMore: false, nextCursor: null };
+  }
+
+  try {
+    const totalDocs = await options.collection.count().exec();
+    console.log(
+      `[SpaceStore] 📊 Collection ${options.entityType} has ${totalDocs} docs in RxDB`,
+    );
+
+    const result = await executeLocalEntityQuery({
+      collection: options.collection,
+      entityType: options.entityType,
+      filters: options.filters,
+      fieldConfigs: options.fieldConfigs,
+      limit: options.limit,
+      cursor: options.cursor,
+      orderBy: options.orderBy,
+    });
+
+    console.log(
+      `[SpaceStore] 📦 Local query returned ${result.records.length} results`,
+    );
+
+    if (result.records.length > 0) {
+      console.log("[SpaceStore] 👁️ First result:", result.records[0]);
+    }
+
+    return result;
+  } catch (error) {
+    console.error("[SpaceStore] ❌ Local filtering error:", error);
+    return { records: [], hasMore: false, nextCursor: null };
+  }
 }

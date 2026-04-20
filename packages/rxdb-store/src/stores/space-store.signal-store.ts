@@ -55,11 +55,13 @@ import {
   parseKeysetCursor,
   type KeysetOrderBy,
 } from './space-keyset.helpers';
-import { executeLocalEntityQuery } from './space-local-query.helpers';
+import {
+  filterLocalEntities,
+} from './space-local-query.helpers';
 import {
   applyChildListQueryOptions,
   createEmptyChildPageResult,
-  executeLocalChildQuery,
+  filterLocalChildEntities,
   getDefaultChildOrderBy,
   getChildMutationMetadata,
   hasStaleChildRecords,
@@ -1097,14 +1099,16 @@ class SpaceStore {
     if (isOffline()) {
 
       try {
-        const localQuery = await this.filterLocalEntities(
+        const localQuery = await filterLocalEntities({
+          collection: this.db?.collections[entityType],
           entityType,
           filters,
           fieldConfigs,
           limit,
           cursor,
-          orderBy
-        );
+          orderBy,
+          logMissingCollection: !!this.db,
+        });
         const localResults = localQuery.records;
 
         // Get total count
@@ -1380,14 +1384,16 @@ class SpaceStore {
         }
 
         // Use proper filterLocalEntities() for offline mode
-        const localQuery = await this.filterLocalEntities(
+        const localQuery = await filterLocalEntities({
+          collection: this.db?.collections[entityType],
           entityType,
           filters,
           fieldConfigs,
           limit,
           cursor,
-          orderBy
-        );
+          orderBy,
+          logMissingCollection: !!this.db,
+        });
         const localResults = localQuery.records;
 
         // Get total count from RxDB (with same filters, no limit)
@@ -1427,57 +1433,6 @@ class SpaceStore {
           offline: true
         } as any;
       }
-    }
-  }
-
-  /**
-   * Filter entities locally in RxDB
-   * Builds RxDB query with AND logic for all filters
-   */
-  private async filterLocalEntities(
-    entityType: string,
-    filters: Record<string, any>,
-    fieldConfigs: Record<string, any>,
-    limit: number,
-    cursor: string | null,
-    orderBy: OrderBy
-  ): Promise<{ records: any[]; hasMore: boolean; nextCursor: any }> {
-    if (!this.db) {
-      return { records: [], hasMore: false, nextCursor: null };
-    }
-
-    const collection = this.db.collections[entityType];
-    if (!collection) {
-      console.warn(`[SpaceStore] Collection ${entityType} not found for local filtering`);
-      return { records: [], hasMore: false, nextCursor: null };
-    }
-
-    // orderBy.field is already normalized (e.g., pet_type_id)
-    try {
-      // First check: how many docs in collection?
-      const totalDocs = await collection.count().exec();
-      console.log(`[SpaceStore] 📊 Collection ${entityType} has ${totalDocs} docs in RxDB`);
-      const result = await executeLocalEntityQuery({
-        collection,
-        entityType,
-        filters,
-        fieldConfigs,
-        limit,
-        cursor,
-        orderBy,
-      });
-
-      console.log(`[SpaceStore] 📦 Local query returned ${result.records.length} results`);
-
-      if (result.records.length > 0) {
-        console.log('[SpaceStore] 👁️ First result:', result.records[0]);
-      }
-
-      return result;
-
-    } catch (error) {
-      console.error('[SpaceStore] ❌ Local filtering error:', error);
-      return { records: [], hasMore: false, nextCursor: null };
     }
   }
 
@@ -3622,42 +3577,12 @@ class SpaceStore {
     cursor: string | null,
     orderBy: OrderBy,
   ): Promise<{ records: any[]; total: number; hasMore: boolean; nextCursor: string | null }> {
-    const localQuery = await this.filterLocalChildEntities(
-      parentId,
-      tableType,
-      filters,
-      limit,
-      cursor,
-      orderBy,
-    );
-
-    return toChildPageResult(localQuery);
-  }
-
-  /**
-   * 📴 Filter child entities from local RxDB cache (offline mode)
-   */
-  private async filterLocalChildEntities(
-    parentId: string,
-    tableType: string,
-    filters: Record<string, any>,
-    limit: number,
-    cursor: string | null,
-    orderBy: OrderBy
-  ): Promise<{ records: any[]; hasMore: boolean; nextCursor: string | null }> {
     const entityType = CC.getEntityTypeFromTableType(tableType);
-    if (!entityType) {
-      return { records: [], hasMore: false, nextCursor: null };
-    }
-
-    const collectionName = `${entityType}_children`;
-    const collection = this.childCollections.get(collectionName) || this.db?.collections[collectionName];
-    if (!collection) {
-      return { records: [], hasMore: false, nextCursor: null };
-    }
-
-    return executeLocalChildQuery({
-      collection,
+    const collectionName = entityType ? `${entityType}_children` : null;
+    const localQuery = await filterLocalChildEntities({
+      collection: collectionName
+        ? this.childCollections.get(collectionName) || this.db?.collections[collectionName]
+        : undefined,
       parentId,
       tableType,
       filters,
@@ -3665,6 +3590,8 @@ class SpaceStore {
       cursor,
       orderBy,
     });
+
+    return toChildPageResult(localQuery);
   }
 
   // ==========================================
