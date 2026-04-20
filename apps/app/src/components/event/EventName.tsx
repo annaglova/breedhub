@@ -59,10 +59,7 @@ export function EventName({
 
       {/* Event name with note flag */}
       <div className="flex space-x-1.5">
-        <h1
-          className="truncate py-0.5 text-2xl sm:text-3xl font-display font-medium uppercase tracking-wider"
-          style={{ fontVariationSettings: '"opsz" 48, "SOFT" 50' }}
-        >
+        <h1 className="truncate py-0.5 text-2xl sm:text-3xl font-display font-semibold uppercase tracking-wide">
           {linkToFullscreen && slug ? (
             <Link
               to={`/${slug}`}
