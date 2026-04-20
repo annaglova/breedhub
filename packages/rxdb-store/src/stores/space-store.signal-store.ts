@@ -589,9 +589,13 @@ class SpaceStore {
       console.warn(`[SpaceStore] Collection ${entityType} exists but is broken, will recreate`);
     }
     
-    // Generate schema from config
-    const schema = await this.generateSchemaForEntity(entityType);
-    
+    const spaceConfig = this.spaceConfigs.get(entityType);
+    if (!spaceConfig) {
+      console.error(`[SpaceStore] No space configuration found for ${entityType}`);
+      return;
+    }
+
+    const schema = buildSchema(entityType, spaceConfig);
     if (!schema) {
       console.warn(`[SpaceStore] Could not generate schema for ${entityType}`);
       return;
@@ -678,18 +682,6 @@ class SpaceStore {
       entityStore.setLoading(false);
       entityStore.setError(`Failed to create collection for ${entityType}`);
     }
-  }
-  
-  /**
-   * Generate RxDB schema from space configuration
-   */
-  private async generateSchemaForEntity(entityType: string): Promise<RxJsonSchema<BusinessEntity> | null> {
-    const spaceConfig = this.spaceConfigs.get(entityType);
-    if (!spaceConfig) {
-      console.error(`[SpaceStore] No space configuration found for ${entityType}`);
-      return null;
-    }
-    return buildSchema(entityType, spaceConfig);
   }
   
   // Universal CRUD operations
@@ -2354,15 +2346,14 @@ class SpaceStore {
     }
 
     // Get schema for child collection
-    const schema = this.getChildCollectionSchema(entityType);
+    const schema = CC.getChildCollectionSchema(entityType);
     if (!schema) {
       console.error(`[SpaceStore] No schema found for child collection: ${collectionName}`);
       return null;
     }
 
     try {
-      // Get migration strategies for this entity type
-      const migrationStrategies = this.getChildCollectionMigrationStrategies(entityType);
+      const migrationStrategies = CC.getChildCollectionMigrationStrategies(entityType);
 
       // Create collection
       const collections = await this.db.addCollections({
@@ -2382,17 +2373,6 @@ class SpaceStore {
     }
   }
 
-
-  /**
-   * Get schema for child collection based on entity type
-   */
-  private getChildCollectionSchema(entityType: string): RxJsonSchema<any> | null {
-    return CC.getChildCollectionSchema(entityType);
-  }
-
-  private getChildCollectionMigrationStrategies(entityType: string): any {
-    return CC.getChildCollectionMigrationStrategies(entityType);
-  }
 
   private async loadParentEntityForPartition(
     entityType: string,
