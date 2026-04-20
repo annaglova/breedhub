@@ -1,4 +1,5 @@
 import { removeFieldPrefix } from "../utils/field-normalization";
+import { ENTITY_VIEW_SOURCES } from "../utils/schema-builder";
 
 export interface FieldConfig {
   fieldType: string;
@@ -262,6 +263,10 @@ export function parseSpaceConfigurations(
     spaceConfigs,
     entityTypes,
   };
+}
+
+export function getSupabaseSource(entityType: string): string {
+  return ENTITY_VIEW_SOURCES[entityType]?.viewName || entityType;
 }
 
 export function resolveSpaceConfig(

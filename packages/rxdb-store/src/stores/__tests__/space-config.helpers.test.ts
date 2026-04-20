@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   buildEntitySchemasMap,
+  getSupabaseSource,
   getEntityFieldsSchema,
   parseSpaceConfigurations,
 } from "../space-config.helpers";
@@ -141,6 +142,10 @@ describe("space-config.helpers", () => {
     expect(parsed?.spaceConfigs.get("pet")?.fields?.name?.originalConfigKey).toBe(
       "pet_field_name",
     );
+  });
+
+  it("falls back to the base entity name when no VIEW source is configured", () => {
+    expect(getSupabaseSource("pet")).toBe("pet");
   });
 
   it("returns null and warns when workspaces are missing", () => {

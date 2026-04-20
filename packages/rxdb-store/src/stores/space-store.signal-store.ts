@@ -14,6 +14,7 @@ import {
   getDefaultViewFromConfig,
   type EntitySchemaConfig,
   getFilterFieldsFromConfig,
+  getSupabaseSource,
   getMainFilterFieldFromConfig,
   getMainFilterFieldsFromConfig,
   parseSpaceConfigurations,
@@ -123,7 +124,7 @@ import {
   findDocumentDataById,
 } from '../utils/rxdb-document.helpers';
 import * as CC from '../utils/child-collection-registry';
-import { generateSchemaForEntity as buildSchema, ENTITY_VIEW_SOURCES } from '../utils/schema-builder';
+import { generateSchemaForEntity as buildSchema } from '../utils/schema-builder';
 import { rebuildTimelineOnDateChange } from '../utils/timeline-builder';
 import { generateSlug } from '../utils/slug-generator';
 import { buildEntityPayload, buildChildPayload, getOnConflict } from '../utils/sync-queue.helpers';
@@ -1487,27 +1488,6 @@ class SpaceStore {
     }
   }
 
-  /**
-   * Helper: Apply orderBy with optional tieBreaker to Supabase query
-   * Adds .order() calls for primary sort and tie-breaker sort
-   * Uses nullsFirst: false to push NULL values to the end (NULLS LAST)
-   */
-  private applyOrderBy<T>(
-    query: any,
-    orderBy: OrderBy
-  ): any {
-    return applySupabaseOrderBy(query, orderBy);
-  }
-
-  /**
-   * Get Supabase source table/VIEW name for an entity type.
-   * If entity has a VIEW configured, returns VIEW name; otherwise returns entity type.
-   */
-  private getSupabaseSource(entityType: string): string {
-    const viewConfig = ENTITY_VIEW_SOURCES[entityType];
-    return viewConfig?.viewName || entityType;
-  }
-
   private async executeHybridSearch(
     entityType: string,
     hybridSearchPlan: HybridSearchPlan,
@@ -1530,7 +1510,7 @@ class SpaceStore {
       console.log(`[SpaceStore] 🔀 OR SEARCH: Searching "${searchValue}" in fields:`, orSearchFields);
     }
 
-    const sourceName = this.getSupabaseSource(entityType);
+    const sourceName = getSupabaseSource(entityType);
     let startsWithQuery = buildHybridSearchPhaseQuery(
       buildHybridBaseQuery(
         supabase,
@@ -1544,7 +1524,7 @@ class SpaceStore {
       },
     );
 
-    startsWithQuery = this.applyOrderBy(startsWithQuery, orderBy).limit(startsWithLimit);
+    startsWithQuery = applySupabaseOrderBy(startsWithQuery, orderBy).limit(startsWithLimit);
 
     const { data: startsWithData, error: startsWithError } = await startsWithQuery;
 
@@ -1571,7 +1551,7 @@ class SpaceStore {
         },
       );
 
-      containsQuery = this.applyOrderBy(containsQuery, orderBy).limit(remainingLimit);
+      containsQuery = applySupabaseOrderBy(containsQuery, orderBy).limit(remainingLimit);
 
       const { data: containsData, error: containsError } = await containsQuery;
 
@@ -1608,7 +1588,7 @@ class SpaceStore {
       includeUpdatedAt: true,
     });
 
-    const sourceName = this.getSupabaseSource(entityType);
+    const sourceName = getSupabaseSource(entityType);
     let query = supabase
       .from(sourceName)
       .select(selectFields);
@@ -1628,7 +1608,7 @@ class SpaceStore {
       }
     }
 
-    query = this.applyOrderBy(query, orderBy).limit(limit);
+    query = applySupabaseOrderBy(query, orderBy).limit(limit);
 
     const { data: queryData, error: queryError } = await query;
     data = queryData || [];
@@ -1700,7 +1680,7 @@ class SpaceStore {
     }
 
     // Use VIEW source if configured (e.g., litter_with_parents for litter)
-    const sourceName = this.getSupabaseSource(entityType);
+    const sourceName = getSupabaseSource(entityType);
     console.log(`[SpaceStore] 🌐 Fetching ${ids.length} full records by IDs from ${sourceName}...`);
 
     const { data, error } = await supabase
@@ -1731,7 +1711,7 @@ class SpaceStore {
       return [];
     }
 
-    const sourceName = this.getSupabaseSource(entityType);
+    const sourceName = getSupabaseSource(entityType);
 
     if (!partitionField) {
       const { data, error } = await supabase
@@ -2497,7 +2477,7 @@ class SpaceStore {
     }
 
     // Determine entity type from table name (e.g., 'achievement_in_breed' -> 'breed')
-    const entityType = this.getEntityTypeFromTableType(tableType);
+    const entityType = CC.getEntityTypeFromTableType(tableType);
     if (!entityType) {
       console.error(`[SpaceStore] Cannot determine entity type from table: ${tableType}`);
       return [];
@@ -2807,7 +2787,7 @@ class SpaceStore {
       return [];
     }
 
-    const entityType = this.getEntityTypeFromTableType(tableType);
+    const entityType = CC.getEntityTypeFromTableType(tableType);
     if (!entityType) {
       return [];
     }
@@ -3185,15 +3165,6 @@ class SpaceStore {
     }
   }
 
-  /**
-   * Determine entity type from child table name
-   * e.g., 'achievement_in_breed' -> 'breed'
-   *       'litter' -> 'pet' (if configured)
-   */
-  private getEntityTypeFromTableType(tableType: string): string | null {
-    return CC.getEntityTypeFromTableType(tableType);
-  }
-
   // ─────────────────────────────────────────────────────────────────────────────
   // Child Tables: ID-First Loading (same pattern as main entities)
   // ─────────────────────────────────────────────────────────────────────────────
@@ -3227,7 +3198,7 @@ class SpaceStore {
     const orderBy: OrderBy = options.orderBy || getDefaultChildOrderBy();
 
     // Determine entity type from table name
-    const entityType = this.getEntityTypeFromTableType(tableType);
+    const entityType = CC.getEntityTypeFromTableType(tableType);
     if (!entityType) {
       console.error(`[SpaceStore] Cannot determine entity type from table: ${tableType}`);
       return createEmptyChildPageResult();
@@ -3519,7 +3490,7 @@ class SpaceStore {
     const orderBy: OrderBy = options.orderBy || getDefaultChildOrderBy();
 
     // Determine entity type from VIEW name
-    const entityType = this.getEntityTypeFromTableType(viewName);
+    const entityType = CC.getEntityTypeFromTableType(viewName);
     if (!entityType) {
       console.error(`[SpaceStore] Cannot determine entity type from VIEW: ${viewName}`);
       return createEmptyChildPageResult();
@@ -3699,7 +3670,7 @@ class SpaceStore {
     cursor: string | null,
     orderBy: OrderBy
   ): Promise<{ records: any[]; hasMore: boolean; nextCursor: string | null }> {
-    const entityType = this.getEntityTypeFromTableType(tableType);
+    const entityType = CC.getEntityTypeFromTableType(tableType);
     if (!entityType) {
       return { records: [], hasMore: false, nextCursor: null };
     }
