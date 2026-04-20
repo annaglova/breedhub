@@ -864,19 +864,12 @@ class SpaceStore {
    * Create a new entity
    */
   async create<T extends BusinessEntity>(entityType: string, data: Partial<T>): Promise<T | null> {
-    const entityStore = await this.getEntityStore<T>(entityType);
-    
-    if (!entityStore) {
-      console.error(`[SpaceStore] Entity store for ${entityType} not available`);
+    const context = await this.getEntityCollectionContext<T>(entityType);
+    if (!context) {
       return null;
     }
-    
-    const collection = (entityStore as any).collection;
-    
-    if (!collection) {
-      console.error(`[SpaceStore] Collection for ${entityType} not available`);
-      return null;
-    }
+
+    const { entityStore, collection } = context;
     
     try {
       const id = crypto.randomUUID();
@@ -923,19 +916,12 @@ class SpaceStore {
     id: string, 
     updates: Partial<T>
   ): Promise<void> {
-    const entityStore = await this.getEntityStore<T>(entityType);
-    
-    if (!entityStore) {
-      console.error(`[SpaceStore] Entity store for ${entityType} not available`);
+    const context = await this.getEntityCollectionContext<T>(entityType);
+    if (!context) {
       return;
     }
-    
-    const collection = (entityStore as any).collection;
-    
-    if (!collection) {
-      console.error(`[SpaceStore] Collection for ${entityType} not available`);
-      return;
-    }
+
+    const { entityStore, collection } = context;
     
     try {
       const doc = await collection.findOne(id).exec();
@@ -961,7 +947,7 @@ class SpaceStore {
       }
 
       // Update RxDB locally
-      const patchedDoc = await doc.patch(patchData);
+      const patchedDoc = await doc.patch(patchData as Partial<T>);
       // Update in-memory signal store
       entityStore.updateOne(id, patchData as Partial<T>);
 
@@ -1111,19 +1097,12 @@ class SpaceStore {
    * Delete an entity (soft delete: RxDB first, then sync to Supabase)
    */
   async delete(entityType: string, id: string): Promise<void> {
-    const entityStore = await this.getEntityStore<BusinessEntity>(entityType);
-
-    if (!entityStore) {
-      console.error(`[SpaceStore] Entity store for ${entityType} not available`);
+    const context = await this.getEntityCollectionContext<BusinessEntity>(entityType);
+    if (!context) {
       return;
     }
 
-    const collection = (entityStore as any).collection;
-
-    if (!collection) {
-      console.error(`[SpaceStore] Collection for ${entityType} not available`);
-      return;
-    }
+    const { entityStore, collection } = context;
 
     try {
       const doc = await collection.findOne(id).exec();
@@ -1202,6 +1181,29 @@ class SpaceStore {
     }
     
     return entityStore.selectWhere(predicate);
+  }
+
+  private async getEntityCollectionContext<T extends BusinessEntity>(
+    entityType: string,
+  ): Promise<{
+    entityStore: EntityStore<T>;
+    collection: RxCollection<T>;
+  } | null> {
+    const entityStore = await this.getEntityStore<T>(entityType);
+
+    if (!entityStore) {
+      console.error(`[SpaceStore] Entity store for ${entityType} not available`);
+      return null;
+    }
+
+    const collection = (entityStore as any).collection as RxCollection<T> | undefined;
+
+    if (!collection) {
+      console.error(`[SpaceStore] Collection for ${entityType} not available`);
+      return null;
+    }
+
+    return { entityStore, collection };
   }
   
   /**
