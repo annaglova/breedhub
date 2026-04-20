@@ -97,6 +97,16 @@ describe("space-partition.helpers", () => {
     ).toBe(false);
   });
 
+  it("treats missing partition id as a permissive match", () => {
+    expect(
+      recordMatchesPartition(
+        { id: "pet-2", breed_id: "breed-2" },
+        "breed_id",
+        undefined,
+      ),
+    ).toBe(true);
+  });
+
   it("caches mapped fresh records and rebuilds partition-aware order", async () => {
     const upserted: Array<{ id: string; cached: true }> = [];
 

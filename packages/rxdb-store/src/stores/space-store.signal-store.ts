@@ -91,6 +91,7 @@ import {
   cacheAndOrderRecordsByPartitionRefs,
   normalizePartitionedEntityRefs,
   orderRecordsByPartitionRefs,
+  recordMatchesPartition,
   splitCachedAndMissingPartitionRefs,
   type PartitionedEntityRef,
 } from './space-partition.helpers';
@@ -3148,16 +3149,38 @@ class SpaceStore {
     const titlesDisplay = buildTitlesDisplay(titlesInPet, titleLookup);
 
     // 4. Patch local pet doc and signal store
+    // Pet cache is keyed only by id, so guard against cross-breed collisions
+    // before mutating denormalized local state.
     const collection = this.db?.collections['pet'];
     if (collection) {
       const doc = await findDocumentById(collection, petId);
       if (doc) {
-        await doc.patch({ titles_display: titlesDisplay });
+        const petRecord = doc.toJSON() as Record<string, any>;
+        const cachedBreedId = petRecord.breed_id;
+        if (recordMatchesPartition(petRecord, 'breed_id', petBreedId)) {
+          await doc.patch({ titles_display: titlesDisplay });
+        } else {
+          console.warn('[SpaceStore] Skipping titles_display patch for mismatched pet partition', {
+            petId,
+            expectedBreedId: petBreedId,
+            cachedBreedId,
+          });
+        }
       }
     }
     const entityStore = this.entityStores.get('pet');
     if (entityStore) {
-      entityStore.updateOne(petId, { titles_display: titlesDisplay });
+      const cachedPet = entityStore.entityMap.value.get(petId) as Record<string, any> | undefined;
+      const cachedBreedId = cachedPet?.breed_id;
+      if (recordMatchesPartition(cachedPet, 'breed_id', petBreedId)) {
+        entityStore.updateOne(petId, { titles_display: titlesDisplay });
+      } else if (cachedPet) {
+        console.warn('[SpaceStore] Skipping titles_display store update for mismatched pet partition', {
+          petId,
+          expectedBreedId: petBreedId,
+          cachedBreedId,
+        });
+      }
     }
   }
 
