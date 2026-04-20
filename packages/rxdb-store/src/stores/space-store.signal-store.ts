@@ -11,11 +11,13 @@ import { userStore } from './user-store.signal-store';
 import { dictionaryStore } from './dictionary-store.signal-store';
 import {
   buildUiSpaceConfig,
-  FieldConfig,
   getDefaultViewFromConfig,
+  type EntitySchemaConfig,
   getFilterFieldsFromConfig,
   getMainFilterFieldFromConfig,
   getMainFilterFieldsFromConfig,
+  parseSpaceConfigurations,
+  type PartitionConfig,
   getSortOptionsFromConfig,
   getViewRecordsCountFromConfig,
   resolveSpaceConfig,
@@ -116,8 +118,6 @@ import {
   isOffline
 } from '../helpers';
 
-// Utils
-import { removeFieldPrefix } from '../utils/field-normalization';
 import {
   findDocumentById,
   findDocumentDataById,
@@ -137,26 +137,6 @@ interface BusinessEntity {
   updated_at?: string;
   _deleted?: boolean;
   [key: string]: any;
-}
-
-/**
- * Partition configuration for partitioned tables (e.g., pet partitioned by breed_id)
- * When present, child table queries will include the partition filter field
- */
-interface PartitionConfig {
-  /** Field name in the main entity (e.g., 'breed_id' for pet) */
-  keyField: string;
-  /** Corresponding field name in child tables (e.g., 'pet_breed_id') */
-  childFilterField: string;
-}
-
-/**
- * Entity schema configuration (from entities container in app_config)
- */
-interface EntitySchemaConfig {
-  entitySchemaName: string;
-  fields: Record<string, any>;
-  partition?: PartitionConfig;
 }
 
 // OrderBy configuration with tie-breaker support
@@ -283,7 +263,12 @@ class SpaceStore {
       const mergedConfig = appConfig.data || appConfig;
 
       // Parse space configurations
-      this.parseSpaceConfigurations(mergedConfig);
+      const parsedSpaceConfigurations = parseSpaceConfigurations(mergedConfig);
+      if (parsedSpaceConfigurations) {
+        this.entitySchemas = parsedSpaceConfigurations.entitySchemas;
+        this.spaceConfigs = parsedSpaceConfigurations.spaceConfigs;
+        this.availableEntityTypes.value = parsedSpaceConfigurations.entityTypes;
+      }
 
       // Config is ready for UI - signal this immediately
       this.configReady.value = true;
@@ -355,165 +340,6 @@ class SpaceStore {
    * - page can have fields and tabs
    * - tab can have fields
    */
-  /**
-   * Build entity schemas map from appConfig.entities
-   * Key is entitySchemaName, value is the schema config
-   */
-  private buildEntitySchemasMap(appConfig: any): Map<string, EntitySchemaConfig> {
-    const entitySchemas = new Map<string, EntitySchemaConfig>();
-
-    if (!appConfig?.entities) {
-      console.warn('[SpaceStore] No entities found in app config');
-      return entitySchemas;
-    }
-
-    // Iterate through entities container (config_schema_xxx -> schema)
-    Object.entries(appConfig.entities).forEach(([schemaKey, schema]: [string, any]) => {
-      if (schema.entitySchemaName) {
-        entitySchemas.set(schema.entitySchemaName, schema);
-      }
-    });
-
-    console.log(`[SpaceStore] Built entity schemas map with ${entitySchemas.size} schemas:`, Array.from(entitySchemas.keys()));
-    return entitySchemas;
-  }
-
-  /**
-   * Get field schema from entity schema (from entities container)
-   * entities.fields is the single source of truth for all available fields
-   */
-  private getEntityFieldsSchema(entitySchema: any, entitySchemaName: string): Map<string, FieldConfig> {
-    const uniqueFields = new Map<string, FieldConfig>();
-
-    // Get fields from entity schema
-    if (!entitySchema?.fields || typeof entitySchema.fields !== 'object') {
-      return uniqueFields;
-    }
-
-    Object.entries(entitySchema.fields).forEach(([fieldKey, fieldValue]: [string, any]) => {
-      // Normalize field name: remove entity prefix (breed_field_pet_type_id -> pet_type_id)
-      const normalizedFieldName = removeFieldPrefix(fieldKey, entitySchemaName);
-
-      // In static config, fieldValue is already merged data
-      const fieldData = fieldValue;
-
-      // Collect only schema-critical parameters for RxDB
-      const fieldConfig: FieldConfig = {
-        fieldType: fieldData.fieldType || 'string',
-        displayName: fieldData.displayName || fieldKey,
-        required: fieldData.required || false,
-        isSystem: fieldData.isSystem || false,
-        isUnique: fieldData.isUnique || false,
-        isPrimaryKey: fieldData.isPrimaryKey || false,
-        maxLength: fieldData.maxLength,
-        validation: fieldData.validation,
-        permissions: fieldData.permissions,
-        defaultValue: fieldData.defaultValue,
-        component: fieldData.component,
-        originalConfigKey: fieldKey // Keep original for debugging
-      };
-
-      uniqueFields.set(normalizedFieldName, fieldConfig);
-    });
-
-    return uniqueFields;
-  }
-  
-  /**
-   * Parse space configurations from app config hierarchy
-   * NOTE: appConfig is already the merged data (appConfig.data from DB)
-   * In production it will be static pre-generated config from localStorage
-   *
-   * Fields are now sourced from appConfig.entities (entity schemas)
-   * instead of from space.fields directly.
-   */
-  private parseSpaceConfigurations(appConfig: any) {
-    if (!appConfig?.workspaces) {
-      console.warn('[SpaceStore] No workspaces found in app config');
-      return;
-    }
-
-    const entityTypes: string[] = [];
-    this.spaceConfigs.clear();
-
-    // Build entity schemas map from appConfig.entities and store as class property
-    this.entitySchemas = this.buildEntitySchemasMap(appConfig);
-    const entitySchemas = this.entitySchemas;
-
-    // Iterate through workspaces
-    Object.entries(appConfig.workspaces).forEach(([workspaceKey, workspace]: [string, any]) => {
-      if (workspace.spaces) {
-        // Iterate through spaces in workspace
-        Object.entries(workspace.spaces).forEach(([spaceKey, space]: [string, any]) => {
-          // Check for entitySchemaName
-          if (space.entitySchemaName) {
-            // Get entity schema from entities map
-            const entitySchema = entitySchemas.get(space.entitySchemaName);
-
-            // Get field schema from entities (single source of truth)
-            const uniqueFields = entitySchema
-              ? this.getEntityFieldsSchema(entitySchema, space.entitySchemaName)
-              : new Map<string, FieldConfig>();
-
-            if (!entitySchema) {
-              console.warn(`[SpaceStore] No entity schema found for ${space.entitySchemaName}`);
-            }
-
-            // Normalize keys in sort_fields and filter_fields too
-            const normalizedSortFields = space.sort_fields
-              ? Object.fromEntries(
-                  Object.entries(space.sort_fields).map(([key, value]) => [
-                    removeFieldPrefix(key, space.entitySchemaName),
-                    value
-                  ])
-                )
-              : undefined;
-
-            const normalizedFilterFields = space.filter_fields
-              ? Object.fromEntries(
-                  Object.entries(space.filter_fields).map(([key, value]) => [
-                    removeFieldPrefix(key, space.entitySchemaName),
-                    value
-                  ])
-                )
-              : undefined;
-
-            // entitySchemaModel defines UI rendering model, should come from space config
-            // Same schema (e.g., "account") can have different models in different spaces (e.g., "kennel", "federation")
-            const entitySchemaModel = space.entitySchemaModel || space.entitySchemaName;
-
-            const spaceConfig: SpaceConfig = {
-              id: space.id || spaceKey,
-              icon: space.icon,
-              slug: space.slug || space.path?.replace(/^\//, ''), // Use slug or extract from path
-              path: space.path, // @deprecated - keep for backwards compatibility
-              label: space.label,
-              order: space.order,
-              entitySchemaName: space.entitySchemaName,
-              entitySchemaModel: entitySchemaModel, // UI rendering model from space config
-              totalFilterKey: space.totalFilterKey, // Field to group totalCount by
-              fields: Object.fromEntries(uniqueFields),
-              sort_fields: normalizedSortFields,
-              filter_fields: normalizedFilterFields,
-              recordsCount: space.recordsCount,
-              pages: space.pages,
-              views: space.views,
-              canAdd: !!space.canAdd,
-              canEdit: !!space.canEdit,
-              canDelete: !!space.canDelete,
-              defaultFilters: space.defaultFilters
-            };
-
-            this.spaceConfigs.set(space.entitySchemaName, spaceConfig);
-            entityTypes.push(space.entitySchemaName);
-          }
-        });
-      }
-    });
-
-    this.availableEntityTypes.value = entityTypes;
-  }
-
   /** Case-insensitive lookup in spaceConfigs map */
   private resolveSpaceConfig(entityType: string): SpaceConfig | undefined {
     return resolveSpaceConfig(this.spaceConfigs, entityType);

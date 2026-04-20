@@ -1,3 +1,5 @@
+import { removeFieldPrefix } from "../utils/field-normalization";
+
 export interface FieldConfig {
   fieldType: string;
   displayName: string;
@@ -106,6 +108,160 @@ export interface UiSpaceConfig extends SpaceConfig {
   title: string;
   viewTypes?: string[];
   viewConfigs?: SpaceViewConfig[];
+}
+
+export interface PartitionConfig {
+  keyField: string;
+  childFilterField: string;
+}
+
+export interface EntitySchemaConfig {
+  entitySchemaName: string;
+  fields: Record<string, any>;
+  partition?: PartitionConfig;
+}
+
+export interface ParsedSpaceConfigurations {
+  entitySchemas: Map<string, EntitySchemaConfig>;
+  spaceConfigs: Map<string, SpaceConfig>;
+  entityTypes: string[];
+}
+
+export function buildEntitySchemasMap(appConfig: any): Map<string, EntitySchemaConfig> {
+  const entitySchemas = new Map<string, EntitySchemaConfig>();
+
+  if (!appConfig?.entities) {
+    console.warn("[SpaceStore] No entities found in app config");
+    return entitySchemas;
+  }
+
+  Object.entries(appConfig.entities).forEach(([_, schema]: [string, any]) => {
+    if (schema.entitySchemaName) {
+      entitySchemas.set(schema.entitySchemaName, schema);
+    }
+  });
+
+  console.log(
+    `[SpaceStore] Built entity schemas map with ${entitySchemas.size} schemas:`,
+    Array.from(entitySchemas.keys()),
+  );
+  return entitySchemas;
+}
+
+export function getEntityFieldsSchema(
+  entitySchema: any,
+  entitySchemaName: string,
+): Map<string, FieldConfig> {
+  const uniqueFields = new Map<string, FieldConfig>();
+
+  if (!entitySchema?.fields || typeof entitySchema.fields !== "object") {
+    return uniqueFields;
+  }
+
+  Object.entries(entitySchema.fields).forEach(([fieldKey, fieldValue]: [string, any]) => {
+    const normalizedFieldName = removeFieldPrefix(fieldKey, entitySchemaName);
+    const fieldData = fieldValue;
+
+    uniqueFields.set(normalizedFieldName, {
+      fieldType: fieldData.fieldType || "string",
+      displayName: fieldData.displayName || fieldKey,
+      required: fieldData.required || false,
+      isSystem: fieldData.isSystem || false,
+      isUnique: fieldData.isUnique || false,
+      isPrimaryKey: fieldData.isPrimaryKey || false,
+      maxLength: fieldData.maxLength,
+      validation: fieldData.validation,
+      permissions: fieldData.permissions,
+      defaultValue: fieldData.defaultValue,
+      component: fieldData.component,
+      originalConfigKey: fieldKey,
+    });
+  });
+
+  return uniqueFields;
+}
+
+export function parseSpaceConfigurations(
+  appConfig: any,
+): ParsedSpaceConfigurations | null {
+  if (!appConfig?.workspaces) {
+    console.warn("[SpaceStore] No workspaces found in app config");
+    return null;
+  }
+
+  const entityTypes: string[] = [];
+  const spaceConfigs = new Map<string, SpaceConfig>();
+  const entitySchemas = buildEntitySchemasMap(appConfig);
+
+  Object.entries(appConfig.workspaces).forEach(([_, workspace]: [string, any]) => {
+    if (!workspace.spaces) {
+      return;
+    }
+
+    Object.entries(workspace.spaces).forEach(([spaceKey, space]: [string, any]) => {
+      if (!space.entitySchemaName) {
+        return;
+      }
+
+      const entitySchema = entitySchemas.get(space.entitySchemaName);
+      const uniqueFields = entitySchema
+        ? getEntityFieldsSchema(entitySchema, space.entitySchemaName)
+        : new Map<string, FieldConfig>();
+
+      if (!entitySchema) {
+        console.warn(`[SpaceStore] No entity schema found for ${space.entitySchemaName}`);
+      }
+
+      const normalizedSortFields = space.sort_fields
+        ? Object.fromEntries(
+            Object.entries(space.sort_fields).map(([key, value]) => [
+              removeFieldPrefix(key, space.entitySchemaName),
+              value,
+            ]),
+          )
+        : undefined;
+
+      const normalizedFilterFields = space.filter_fields
+        ? Object.fromEntries(
+            Object.entries(space.filter_fields).map(([key, value]) => [
+              removeFieldPrefix(key, space.entitySchemaName),
+              value,
+            ]),
+          )
+        : undefined;
+
+      const entitySchemaModel = space.entitySchemaModel || space.entitySchemaName;
+
+      spaceConfigs.set(space.entitySchemaName, {
+        id: space.id || spaceKey,
+        icon: space.icon,
+        slug: space.slug || space.path?.replace(/^\//, ""),
+        path: space.path,
+        label: space.label,
+        order: space.order,
+        entitySchemaName: space.entitySchemaName,
+        entitySchemaModel,
+        totalFilterKey: space.totalFilterKey,
+        fields: Object.fromEntries(uniqueFields),
+        sort_fields: normalizedSortFields,
+        filter_fields: normalizedFilterFields,
+        recordsCount: space.recordsCount,
+        pages: space.pages,
+        views: space.views,
+        canAdd: !!space.canAdd,
+        canEdit: !!space.canEdit,
+        canDelete: !!space.canDelete,
+        defaultFilters: space.defaultFilters,
+      });
+      entityTypes.push(space.entitySchemaName);
+    });
+  });
+
+  return {
+    entitySchemas,
+    spaceConfigs,
+    entityTypes,
+  };
 }
 
 export function resolveSpaceConfig(
