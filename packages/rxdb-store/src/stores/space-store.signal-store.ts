@@ -2114,9 +2114,8 @@ class SpaceStore {
     }
 
     try {
-      const doc = await collection.findOne(id).exec();
-      if (doc) {
-        const entity = doc.toJSON();
+      const entity = await this.findCachedEntityById(entityType, id);
+      if (entity) {
         console.log(`[SpaceStore] Loaded entity ${id} from RxDB, adding to store`);
         entityStore.addOne(entity);
       } else {
@@ -2585,16 +2584,17 @@ class SpaceStore {
     entityType: string,
     parentId: string,
   ): Promise<{ parentEntity: any | null; source: 'memory' | 'RxDB' | null }> {
-    let parentEntity = await this.getById(entityType, parentId);
-    if (parentEntity) {
-      return { parentEntity, source: 'memory' };
+    const parentEntityFromMemory = await this.getById(entityType, parentId);
+    if (parentEntityFromMemory) {
+      return { parentEntity: parentEntityFromMemory, source: 'memory' };
     }
 
-    if (this.db?.collections[entityType]) {
-      const doc = await this.db.collections[entityType].findOne(parentId).exec();
-      if (doc) {
-        return { parentEntity: doc.toJSON(), source: 'RxDB' };
-      }
+    const parentEntityFromCache = await this.findCachedEntityById(
+      entityType,
+      parentId,
+    );
+    if (parentEntityFromCache) {
+      return { parentEntity: parentEntityFromCache, source: 'RxDB' };
     }
 
     return { parentEntity: null, source: null };
