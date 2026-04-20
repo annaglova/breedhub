@@ -52,7 +52,7 @@ export function BreedName({
       </div>
 
       {/* Breed name with note flag */}
-      <div className="flex space-x-1.5">
+      <div className="flex space-x-1.5 mb-1">
         <h1 className="truncate py-0.5 text-2xl sm:text-3xl font-display font-semibold uppercase tracking-wide">
           {linkToFullscreen && entity?.slug ? (
             <Link
