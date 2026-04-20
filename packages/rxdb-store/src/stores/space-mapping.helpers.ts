@@ -1,3 +1,8 @@
+import {
+  cacheRecords,
+  type BulkUpsertCollection,
+} from "./space-id-cache.helpers";
+
 export interface MappingRow {
   id: string;
   [key: string]: any;
@@ -85,4 +90,55 @@ export function groupMappingRowsByPartition(
   }
 
   return groups;
+}
+
+export async function fetchRecordsByMappingRows<TRecord>(
+  rows: MappingRow[],
+  options: {
+    partitionField?: string;
+    fetchAll: (ids: string[]) => Promise<TRecord[]>;
+    fetchPartition: (partitionValue: string, ids: string[]) => Promise<TRecord[]>;
+  },
+): Promise<TRecord[]> {
+  if (!options.partitionField) {
+    return options.fetchAll(rows.map((row) => row.id));
+  }
+
+  const groups = groupMappingRowsByPartition(rows, options.partitionField);
+  const results: TRecord[] = [];
+
+  for (const [partitionValue, ids] of groups) {
+    const partitionRecords = await options.fetchPartition(partitionValue, ids);
+    results.push(...partitionRecords);
+  }
+
+  return results;
+}
+
+export async function refreshMappingCache<TRecord, TCachedRecord = TRecord>(
+  options: {
+    loadMappingRows: () => Promise<MappingRow[] | null | undefined>;
+    cacheKey: string;
+    mappingCache: Map<string, MappingRow[]>;
+    fetchRecords: (rows: MappingRow[]) => Promise<TRecord[]>;
+    collection?: BulkUpsertCollection<TCachedRecord>;
+    mapRecordForCache?: (record: TRecord) => TCachedRecord;
+  },
+): Promise<void> {
+  try {
+    const mappingRows = await options.loadMappingRows();
+    if (!mappingRows?.length) {
+      return;
+    }
+
+    options.mappingCache.set(options.cacheKey, mappingRows);
+    const freshRecords = await options.fetchRecords(mappingRows);
+
+    await cacheRecords(freshRecords, {
+      collection: options.collection,
+      mapRecordForCache: options.mapRecordForCache,
+    });
+  } catch {
+    // Silent background refresh — don't break UI
+  }
 }

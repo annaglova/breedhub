@@ -1,10 +1,12 @@
 import { describe, expect, it } from "vitest";
 import {
   buildMappingCacheKey,
+  fetchRecordsByMappingRows,
   getMappingSelectFields,
   groupMappingRowsByPartition,
   hasStaleMappedRecords,
   orderMappedRecordsByIds,
+  refreshMappingCache,
   splitCachedAndMissingMappingRows,
 } from "../space-mapping.helpers";
 
@@ -74,5 +76,75 @@ describe("space-mapping.helpers", () => {
         1000,
       ),
     ).toBe(true);
+  });
+
+  it("fetches mapping records through unpartitioned and partitioned callbacks", async () => {
+    const fetchAll = async (ids: string[]) => ids.map((id) => ({ id, source: "all" }));
+    const fetchPartition = async (partitionValue: string, ids: string[]) =>
+      ids.map((id) => ({ id, partitionValue }));
+
+    await expect(
+      fetchRecordsByMappingRows(
+        [{ id: "a" }, { id: "b" }],
+        {
+          fetchAll,
+          fetchPartition,
+        },
+      ),
+    ).resolves.toEqual([
+      { id: "a", source: "all" },
+      { id: "b", source: "all" },
+    ]);
+
+    await expect(
+      fetchRecordsByMappingRows(
+        [
+          { id: "a", breed_id: "x" },
+          { id: "b", breed_id: "x" },
+          { id: "c", breed_id: "y" },
+          { id: "d" },
+        ],
+        {
+          partitionField: "breed_id",
+          fetchAll,
+          fetchPartition,
+        },
+      ),
+    ).resolves.toEqual([
+      { id: "a", partitionValue: "x" },
+      { id: "b", partitionValue: "x" },
+      { id: "c", partitionValue: "y" },
+    ]);
+  });
+
+  it("refreshes mapping cache and caches fetched records", async () => {
+    const mappingCache = new Map();
+    const upserted: Array<{ id: string; cached: true }> = [];
+
+    await refreshMappingCache({
+      loadMappingRows: async () => [{ id: "a" }, { id: "b" }],
+      cacheKey: "map:parent:1",
+      mappingCache,
+      fetchRecords: async (rows) =>
+        rows.map((row) => ({
+          id: row.id,
+          value: `fresh-${row.id}`,
+        })),
+      collection: {
+        async bulkUpsert(records) {
+          upserted.push(...records);
+        },
+      },
+      mapRecordForCache: (record) => ({
+        id: record.id,
+        cached: true as const,
+      }),
+    });
+
+    expect(mappingCache.get("map:parent:1")).toEqual([{ id: "a" }, { id: "b" }]);
+    expect(upserted).toEqual([
+      { id: "a", cached: true },
+      { id: "b", cached: true },
+    ]);
   });
 });
