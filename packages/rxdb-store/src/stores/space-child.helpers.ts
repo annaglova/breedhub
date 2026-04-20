@@ -63,12 +63,29 @@ export interface ChildPageResult<TRecord = any> {
   nextCursor: string | null;
 }
 
+export interface ChildCollectionLookupOptions<TCollection> {
+  childCollections: ReadonlyMap<string, TCollection>;
+  dbCollections?: Record<string, TCollection>;
+}
+
 export function getDefaultChildOrderBy(): KeysetOrderBy {
   return {
     field: "id",
     direction: "asc",
     tieBreaker: { field: "id", direction: "asc" },
   };
+}
+
+export function getChildCollectionName(entityType: string): string {
+  return `${entityType}_children`;
+}
+
+export function getExistingChildCollection<TCollection>(
+  entityType: string,
+  options: ChildCollectionLookupOptions<TCollection>,
+): TCollection | undefined {
+  const collectionName = getChildCollectionName(entityType);
+  return options.childCollections.get(collectionName) || options.dbCollections?.[collectionName];
 }
 
 export function toChildPageResult<TRecord>(

@@ -61,6 +61,8 @@ import {
   applyChildListQueryOptions,
   createEmptyChildPageResult,
   filterLocalChildEntities,
+  getChildCollectionName,
+  getExistingChildCollection,
   getDefaultChildOrderBy,
   getChildMutationMetadata,
   hasStaleChildRecords,
@@ -2290,23 +2292,16 @@ class SpaceStore {
    * Uses pre-defined schemas (breed_children, pet_children, kennel_children).
    */
   async ensureChildCollection(entityType: string): Promise<RxCollection<any> | null> {
-    const collectionName = `${entityType}_children`;
-
-    // Check if already created in memory
-    if (this.childCollections.has(collectionName)) {
-      return this.childCollections.get(collectionName)!;
+    const collectionName = getChildCollectionName(entityType);
+    const existingCollection = getExistingChildCollection(entityType, { childCollections: this.childCollections, dbCollections: this.db?.collections });
+    if (existingCollection) {
+      this.childCollections.set(collectionName, existingCollection);
+      return existingCollection;
     }
 
     if (!this.db) {
       console.error('[SpaceStore] Database not initialized for child collection');
       return null;
-    }
-
-    // Check if RxDB collection already exists
-    const existingCollection = this.db.collections[collectionName];
-    if (existingCollection) {
-      this.childCollections.set(collectionName, existingCollection);
-      return existingCollection;
     }
 
     // Get schema for child collection
@@ -2670,9 +2665,7 @@ class SpaceStore {
       return [];
     }
 
-    const collectionName = `${entityType}_children`;
-    const collection = this.childCollections.get(collectionName) || this.db?.collections[collectionName];
-
+    const collection = getExistingChildCollection(entityType, { childCollections: this.childCollections, dbCollections: this.db?.collections });
     if (!collection) {
       return [];
     }
@@ -3535,10 +3528,9 @@ class SpaceStore {
     orderBy: OrderBy,
   ): Promise<{ records: any[]; total: number; hasMore: boolean; nextCursor: string | null }> {
     const entityType = CC.getEntityTypeFromTableType(tableType);
-    const collectionName = entityType ? `${entityType}_children` : null;
     const localQuery = await filterLocalChildEntities({
-      collection: collectionName
-        ? this.childCollections.get(collectionName) || this.db?.collections[collectionName]
+      collection: entityType
+        ? getExistingChildCollection(entityType, { childCollections: this.childCollections, dbCollections: this.db?.collections })
         : undefined,
       parentId,
       tableType,

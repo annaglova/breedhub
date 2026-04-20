@@ -4,6 +4,8 @@ import {
   createEmptyChildPageResult,
   executeLocalChildQuery,
   filterLocalChildEntities,
+  getChildCollectionName,
+  getExistingChildCollection,
   getDefaultChildOrderBy,
   getChildMutationMetadata,
   hasStaleChildRecords,
@@ -44,6 +46,37 @@ describe("space-child.helpers", () => {
         direction: "asc",
       },
     });
+  });
+
+  it("builds the canonical child collection name from entity type", () => {
+    expect(getChildCollectionName("pet")).toBe("pet_children");
+  });
+
+  it("prefers in-memory child collections over db collections", () => {
+    const memoryCollection = { source: "memory" };
+    const dbCollection = { source: "db" };
+
+    expect(
+      getExistingChildCollection("pet", {
+        childCollections: new Map([["pet_children", memoryCollection]]),
+        dbCollections: {
+          pet_children: dbCollection,
+        },
+      }),
+    ).toBe(memoryCollection);
+  });
+
+  it("falls back to db child collections when memory cache is empty", () => {
+    const dbCollection = { source: "db" };
+
+    expect(
+      getExistingChildCollection("pet", {
+        childCollections: new Map(),
+        dbCollections: {
+          pet_children: dbCollection,
+        },
+      }),
+    ).toBe(dbCollection);
   });
 
   it("maps local child query results to paginated child page results", () => {
