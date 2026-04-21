@@ -33,20 +33,16 @@ import {
 } from './space-collection.helpers';
 import { waitForReady } from './space-ready.helpers';
 import {
-  buildHybridBaseQuery,
-  buildHybridSearchPhaseQuery,
   buildHybridSearchPlan,
   buildRxdbCountSelector,
+  executeHybridSearch,
   executeOfflineFilterFlow,
+  executeRegularIdFetch,
   hydrateFilteredEntities,
-  mergeHybridPhaseResults,
-  applyFiltersToSupabaseQuery,
   getActiveFilterEntries,
   hasFilterValue,
   prepareFiltersWithDefaults,
   resolveFieldFilter,
-  type HybridSearchPlan,
-  type HybridSearchRecord,
 } from './space-filter.helpers';
 import {
   buildCompositeNextCursor,
@@ -1242,142 +1238,6 @@ class SpaceStore {
     }
   }
 
-  private async executeHybridSearch(
-    entityType: string,
-    hybridSearchPlan: HybridSearchPlan,
-    fieldConfigs: Record<string, any>,
-    limit: number,
-    orderBy: OrderBy,
-  ): Promise<HybridSearchRecord[]> {
-    console.log('[SpaceStore] 🔍 HYBRID SEARCH mode (starts_with 70% + contains 30%)');
-    const hybridSelectFields = getSelectFieldsForOrderBy(orderBy, {
-      includeUpdatedAt: true,
-    });
-    const {
-      isOrSearch,
-      orSearchFields,
-      searchValue,
-      startsWithLimit,
-    } = hybridSearchPlan;
-
-    if (isOrSearch) {
-      console.log(`[SpaceStore] 🔀 OR SEARCH: Searching "${searchValue}" in fields:`, orSearchFields);
-    }
-
-    const sourceName = getSupabaseSource(entityType);
-    let startsWithQuery = buildHybridSearchPhaseQuery(
-      buildHybridBaseQuery(
-        supabase,
-        sourceName,
-        hybridSelectFields,
-      ),
-      hybridSearchPlan,
-      {
-        phase: 'starts_with',
-        fieldConfigs,
-      },
-    );
-
-    startsWithQuery = applySupabaseOrderBy(startsWithQuery, orderBy).limit(startsWithLimit);
-
-    const { data: startsWithData, error: startsWithError } = await startsWithQuery;
-
-    if (startsWithError) {
-      console.error('[SpaceStore] ❌ Hybrid search (starts_with) failed:', startsWithError);
-      throw startsWithError;
-    }
-
-    const startsWithResults = (startsWithData || []) as HybridSearchRecord[];
-    console.log(`[SpaceStore] ✅ Starts with: ${startsWithResults.length} results`);
-
-    const remainingLimit = limit - startsWithResults.length;
-    if (remainingLimit > 0) {
-      let containsQuery = buildHybridSearchPhaseQuery(
-        buildHybridBaseQuery(
-          supabase,
-          sourceName,
-          hybridSelectFields,
-        ),
-        hybridSearchPlan,
-        {
-          phase: 'contains',
-          fieldConfigs,
-        },
-      );
-
-      containsQuery = applySupabaseOrderBy(containsQuery, orderBy).limit(remainingLimit);
-
-      const { data: containsData, error: containsError } = await containsQuery;
-
-      if (containsError) {
-        console.warn('[SpaceStore] Contains search failed:', containsError);
-      } else {
-        const containsResults = (containsData || []) as HybridSearchRecord[];
-        console.log(`[SpaceStore] ✅ Contains: ${containsResults.length} results`);
-
-        const mergedResults = mergeHybridPhaseResults(
-          startsWithResults,
-          containsResults,
-          limit,
-        );
-
-        console.log(`[SpaceStore] ✅ Fetched ${mergedResults.length} IDs (~${Math.round(mergedResults.length * 0.1)}KB) via HYBRID SEARCH`);
-        return mergedResults;
-      }
-    }
-
-    console.log(`[SpaceStore] ✅ Fetched ${startsWithResults.length} IDs (~${Math.round(startsWithResults.length * 0.1)}KB) via HYBRID SEARCH`);
-    return startsWithResults;
-  }
-
-  private async executeRegularIdFetch(
-    entityType: string,
-    filters: Record<string, any>,
-    fieldConfigs: Record<string, any>,
-    limit: number,
-    cursor: string | null,
-    orderBy: OrderBy,
-  ): Promise<HybridSearchRecord[]> {
-    const selectFields = getSelectFieldsForOrderBy(orderBy, {
-      includeUpdatedAt: true,
-    });
-
-    const sourceName = getSupabaseSource(entityType);
-    let query = supabase
-      .from(sourceName)
-      .select(selectFields);
-
-    query = query.or('deleted.is.null,deleted.eq.false');
-    query = applyFiltersToSupabaseQuery(query, filters, fieldConfigs);
-
-    let data: any[] = [];
-    let error: any = null;
-
-    if (cursor !== null) {
-      const cursorData = parseKeysetCursor(cursor, orderBy);
-
-      console.log(`[SpaceStore] 🔑 Cursor parsed:`, cursorData);
-      if (cursorData) {
-        query = applySupabaseKeysetCursor(query, orderBy, cursorData);
-      }
-    }
-
-    query = applySupabaseOrderBy(query, orderBy).limit(limit);
-
-    const { data: queryData, error: queryError } = await query;
-    data = queryData || [];
-    error = queryError;
-
-    if (error) {
-      if (!isNetworkError(error)) {
-        console.error('[SpaceStore] IDs query error:', error);
-      }
-      throw error;
-    }
-
-    return data || [];
-  }
-
   /**
    * 🆔 ID-First Phase 1: Fetch IDs + ordering field from Supabase
    * Lightweight query (~1KB for 30 records instead of ~30KB)
@@ -1396,6 +1256,7 @@ class SpaceStore {
     orderBy: OrderBy
   ): Promise<Array<{ id: string; [key: string]: any }>> {
     console.log(`[SpaceStore] 🆔 Fetching IDs for ${entityType}...`);
+    const sourceName = getSupabaseSource(entityType);
 
     // Use hybrid search if: (1) has search filter, (2) no cursor (first page)
     const hybridSearchPlan =
@@ -1403,22 +1264,24 @@ class SpaceStore {
         ? buildHybridSearchPlan(filters, fieldConfigs, limit)
         : null;
     if (hybridSearchPlan) {
-      return this.executeHybridSearch(
-        entityType,
+      return executeHybridSearch({
+        supabase,
+        sourceName,
         hybridSearchPlan,
         fieldConfigs,
         limit,
         orderBy,
-      );
+      });
     }
-    return this.executeRegularIdFetch(
-      entityType,
+    return executeRegularIdFetch({
+      supabase,
+      sourceName,
       filters,
       fieldConfigs,
       limit,
       cursor,
       orderBy,
-    );
+    });
   }
 
   /**

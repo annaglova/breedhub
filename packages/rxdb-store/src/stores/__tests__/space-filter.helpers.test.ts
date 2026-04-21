@@ -4,7 +4,9 @@ import {
   buildHybridSearchPhaseQuery,
   buildHybridSearchPlan,
   buildRxdbCountSelector,
+  executeHybridSearch,
   executeOfflineFilterFlow,
+  executeRegularIdFetch,
   hydrateFilteredEntities,
   mergeHybridPhaseResults,
   prepareFiltersWithDefaults,
@@ -56,6 +58,83 @@ describe("space-filter.helpers", () => {
           };
         },
       },
+    };
+  }
+
+  function createExecutableSupabaseClientMock(
+    responses: Array<{ data?: any[] | null; error?: any }>,
+  ) {
+    const calls: Array<[number, string, ...any[]]> = [];
+    let responseIndex = 0;
+
+    return {
+      calls,
+      client: {
+        from(sourceName: string) {
+          const queryIndex = responseIndex++;
+          const response = responses[queryIndex] || {};
+          const query = {
+            data: response.data ?? null,
+            error: response.error ?? null,
+            or(condition: string) {
+              calls.push([queryIndex, "or", condition]);
+              return query;
+            },
+            ilike(column: string, pattern: string) {
+              calls.push([queryIndex, "ilike", column, pattern]);
+              return query;
+            },
+            not(column: string, operator: string, value: any) {
+              calls.push([queryIndex, "not", column, operator, value]);
+              return query;
+            },
+            eq(column: string, value: any) {
+              calls.push([queryIndex, "eq", column, value]);
+              return query;
+            },
+            order(
+              field: string,
+              options: { ascending: boolean; nullsFirst: boolean },
+            ) {
+              calls.push([queryIndex, "order", field, options]);
+              return query;
+            },
+            limit(value: number) {
+              calls.push([queryIndex, "limit", value]);
+              return query;
+            },
+          };
+
+          calls.push([queryIndex, "from", sourceName]);
+          return {
+            select(columns: string) {
+              calls.push([queryIndex, "select", columns]);
+              return query;
+            },
+          };
+        },
+      },
+    };
+  }
+
+  function overrideNavigatorOnLine(value: boolean): () => void {
+    const descriptor = Object.getOwnPropertyDescriptor(
+      globalThis.navigator,
+      "onLine",
+    );
+
+    Object.defineProperty(globalThis.navigator, "onLine", {
+      configurable: true,
+      value,
+    });
+
+    return () => {
+      if (descriptor) {
+        Object.defineProperty(globalThis.navigator, "onLine", descriptor);
+        return;
+      }
+
+      delete (globalThis.navigator as Record<string, unknown>).onLine;
     };
   }
 
@@ -854,5 +933,306 @@ describe("space-filter.helpers", () => {
       { id: "2", label: "starts-2" },
       { id: "3", label: "contains-3" },
     ]);
+  });
+
+  it("executes regular ID fetch with cursor, filters, orderBy, and limit", async () => {
+    const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+    const { calls, client } = createExecutableSupabaseClientMock([
+      {
+        data: [
+          { id: "pet-3", name: "Cora", updated_at: "2024-01-03T00:00:00Z" },
+        ],
+      },
+    ]);
+
+    await expect(
+      executeRegularIdFetch({
+        supabase: client,
+        sourceName: "pets_with_breed",
+        filters: { breed_id: "breed-1" },
+        fieldConfigs: {
+          breed_id: { fieldType: "uuid", operator: "eq" },
+        },
+        limit: 2,
+        cursor: JSON.stringify({
+          value: "Beta",
+          tieBreaker: "pet-2",
+          tieBreakerField: "id",
+        }),
+        orderBy: { field: "name", direction: "asc" },
+      }),
+    ).resolves.toEqual([
+      { id: "pet-3", name: "Cora", updated_at: "2024-01-03T00:00:00Z" },
+    ]);
+
+    expect(logSpy).toHaveBeenCalledWith("[SpaceStore] 🔑 Cursor parsed:", {
+      value: "Beta",
+      tieBreaker: "pet-2",
+      tieBreakerField: "id",
+    });
+    expect(calls).toEqual([
+      [0, "from", "pets_with_breed"],
+      [0, "select", "id, name, updated_at"],
+      [0, "or", "deleted.is.null,deleted.eq.false"],
+      [0, "eq", "breed_id", "breed-1"],
+      [0, "or", "name.gt.Beta,and(name.eq.Beta,id.gt.pet-2)"],
+      [0, "order", "name", { ascending: true, nullsFirst: false }],
+      [0, "limit", 2],
+    ]);
+  });
+
+  it("throws regular ID fetch errors while only logging non-network failures", async () => {
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    const restoreOnLine = overrideNavigatorOnLine(true);
+    const nonNetworkError = new Error("boom");
+    const networkError = new TypeError("Failed to fetch");
+
+    try {
+      const nonNetworkClient = createExecutableSupabaseClientMock([
+        { error: nonNetworkError },
+      ]).client;
+
+      await expect(
+        executeRegularIdFetch({
+          supabase: nonNetworkClient,
+          sourceName: "pets",
+          filters: {},
+          fieldConfigs: {},
+          limit: 5,
+          cursor: null,
+          orderBy: { field: "created_at", direction: "desc" },
+        }),
+      ).rejects.toBe(nonNetworkError);
+
+      expect(errorSpy).toHaveBeenCalledWith(
+        "[SpaceStore] IDs query error:",
+        nonNetworkError,
+      );
+
+      errorSpy.mockClear();
+
+      const networkClient = createExecutableSupabaseClientMock([
+        { error: networkError },
+      ]).client;
+
+      await expect(
+        executeRegularIdFetch({
+          supabase: networkClient,
+          sourceName: "pets",
+          filters: {},
+          fieldConfigs: {},
+          limit: 5,
+          cursor: null,
+          orderBy: { field: "created_at", direction: "desc" },
+        }),
+      ).rejects.toBe(networkError);
+
+      expect(errorSpy).not.toHaveBeenCalled();
+    } finally {
+      restoreOnLine();
+    }
+  });
+
+  it("returns an empty array when regular ID fetch yields no rows", async () => {
+    const { client } = createExecutableSupabaseClientMock([
+      { data: null, error: null },
+    ]);
+
+    await expect(
+      executeRegularIdFetch({
+        supabase: client,
+        sourceName: "pets",
+        filters: {},
+        fieldConfigs: {},
+        limit: 5,
+        cursor: null,
+        orderBy: { field: "created_at", direction: "desc" },
+      }),
+    ).resolves.toEqual([]);
+  });
+
+  it("logs OR-search details before running hybrid search", async () => {
+    const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+    const { client } = createExecutableSupabaseClientMock([
+      {
+        data: [
+          { id: "pet-1", name: "Atlas", updated_at: "2024-01-01T00:00:00Z" },
+          { id: "pet-2", name: "Atom", updated_at: "2024-01-02T00:00:00Z" },
+        ],
+      },
+    ]);
+
+    await expect(
+      executeHybridSearch({
+        supabase: client,
+        sourceName: "pets_view",
+        hybridSearchPlan: {
+          searchValue: "At",
+          orSearchFields: ["father_name", "mother_name"],
+          isOrSearch: true,
+          otherFilters: {},
+          startsWithLimit: 2,
+        },
+        fieldConfigs: {},
+        limit: 2,
+        orderBy: { field: "name", direction: "asc" },
+      }),
+    ).resolves.toEqual([
+      { id: "pet-1", name: "Atlas", updated_at: "2024-01-01T00:00:00Z" },
+      { id: "pet-2", name: "Atom", updated_at: "2024-01-02T00:00:00Z" },
+    ]);
+
+    expect(logSpy).toHaveBeenCalledWith(
+      '[SpaceStore] 🔀 OR SEARCH: Searching "At" in fields:',
+      ["father_name", "mother_name"],
+    );
+  });
+
+  it("throws when the hybrid starts_with phase fails", async () => {
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    const startsWithError = new Error("starts_with failed");
+    const { client } = createExecutableSupabaseClientMock([
+      { error: startsWithError },
+    ]);
+
+    await expect(
+      executeHybridSearch({
+        supabase: client,
+        sourceName: "pets_view",
+        hybridSearchPlan: {
+          searchValue: "At",
+          orSearchFields: ["name"],
+          isOrSearch: false,
+          otherFilters: {},
+          startsWithLimit: 2,
+        },
+        fieldConfigs: {},
+        limit: 3,
+        orderBy: { field: "name", direction: "asc" },
+      }),
+    ).rejects.toBe(startsWithError);
+
+    expect(errorSpy).toHaveBeenCalledWith(
+      "[SpaceStore] ❌ Hybrid search (starts_with) failed:",
+      startsWithError,
+    );
+  });
+
+  it("warns on contains-phase failure and falls back to starts_with results", async () => {
+    const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const containsError = new Error("contains failed");
+    const { client } = createExecutableSupabaseClientMock([
+      {
+        data: [
+          { id: "pet-1", name: "Atlas", updated_at: "2024-01-01T00:00:00Z" },
+        ],
+      },
+      { error: containsError },
+    ]);
+
+    await expect(
+      executeHybridSearch({
+        supabase: client,
+        sourceName: "pets_view",
+        hybridSearchPlan: {
+          searchValue: "At",
+          orSearchFields: ["name"],
+          isOrSearch: false,
+          otherFilters: {},
+          startsWithLimit: 2,
+        },
+        fieldConfigs: {},
+        limit: 3,
+        orderBy: { field: "name", direction: "asc" },
+      }),
+    ).resolves.toEqual([
+      { id: "pet-1", name: "Atlas", updated_at: "2024-01-01T00:00:00Z" },
+    ]);
+
+    expect(warnSpy).toHaveBeenCalledWith(
+      "[SpaceStore] Contains search failed:",
+      containsError,
+    );
+    expect(logSpy).toHaveBeenCalledWith(
+      "[SpaceStore] ✅ Fetched 1 IDs (~0KB) via HYBRID SEARCH",
+    );
+  });
+
+  it("merges starts_with and contains hybrid results when both phases succeed", async () => {
+    const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+    const { client } = createExecutableSupabaseClientMock([
+      {
+        data: [
+          { id: "pet-1", name: "Atlas", updated_at: "2024-01-01T00:00:00Z" },
+          { id: "pet-2", name: "Atom", updated_at: "2024-01-02T00:00:00Z" },
+        ],
+      },
+      {
+        data: [
+          { id: "pet-2", name: "Atom", updated_at: "2024-01-02T00:00:00Z" },
+          { id: "pet-3", name: "Beta", updated_at: "2024-01-03T00:00:00Z" },
+        ],
+      },
+    ]);
+
+    await expect(
+      executeHybridSearch({
+        supabase: client,
+        sourceName: "pets_view",
+        hybridSearchPlan: {
+          searchValue: "At",
+          orSearchFields: ["name"],
+          isOrSearch: false,
+          otherFilters: {},
+          startsWithLimit: 2,
+        },
+        fieldConfigs: {},
+        limit: 3,
+        orderBy: { field: "name", direction: "asc" },
+      }),
+    ).resolves.toEqual([
+      { id: "pet-1", name: "Atlas", updated_at: "2024-01-01T00:00:00Z" },
+      { id: "pet-2", name: "Atom", updated_at: "2024-01-02T00:00:00Z" },
+      { id: "pet-3", name: "Beta", updated_at: "2024-01-03T00:00:00Z" },
+    ]);
+
+    expect(logSpy).toHaveBeenCalledWith("[SpaceStore] ✅ Contains: 2 results");
+    expect(logSpy).toHaveBeenCalledWith(
+      "[SpaceStore] ✅ Fetched 3 IDs (~0KB) via HYBRID SEARCH",
+    );
+  });
+
+  it("returns starts_with results directly when there is no remaining hybrid limit", async () => {
+    const { calls, client } = createExecutableSupabaseClientMock([
+      {
+        data: [
+          { id: "pet-1", name: "Atlas", updated_at: "2024-01-01T00:00:00Z" },
+          { id: "pet-2", name: "Atom", updated_at: "2024-01-02T00:00:00Z" },
+        ],
+      },
+    ]);
+
+    await expect(
+      executeHybridSearch({
+        supabase: client,
+        sourceName: "pets_view",
+        hybridSearchPlan: {
+          searchValue: "At",
+          orSearchFields: ["name"],
+          isOrSearch: false,
+          otherFilters: {},
+          startsWithLimit: 2,
+        },
+        fieldConfigs: {},
+        limit: 2,
+        orderBy: { field: "name", direction: "asc" },
+      }),
+    ).resolves.toEqual([
+      { id: "pet-1", name: "Atlas", updated_at: "2024-01-01T00:00:00Z" },
+      { id: "pet-2", name: "Atom", updated_at: "2024-01-02T00:00:00Z" },
+    ]);
+
+    expect(calls.filter(([, method]) => method === "from")).toHaveLength(1);
   });
 });
