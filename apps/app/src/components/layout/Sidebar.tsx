@@ -91,8 +91,8 @@ export function Sidebar({
                           : "hover:bg-slate-200/60"),
                       isActive &&
                         (onClose
-                          ? "bg-primary-50 font-semibold cursor-default shadow-[0_1px_1px_rgba(17,17,26,0.12),0_1px_3px_rgba(17,17,26,0.06)]"
-                          : "bg-slate-200 font-semibold cursor-default shadow-[0_1px_1px_rgba(17,17,26,0.12),0_1px_3px_rgba(17,17,26,0.06)]"),
+                          ? "bg-primary-50 font-semibold cursor-default shadow-[0_1px_1px_rgba(17,17,26,0.09),0_1px_3px_rgba(17,17,26,0.04)]"
+                          : "bg-slate-200 font-semibold cursor-default shadow-[0_1px_1px_rgba(17,17,26,0.09),0_1px_3px_rgba(17,17,26,0.04)]"),
                       isCollapsed && "justify-center"
                     )}
                     onClick={(e) => {

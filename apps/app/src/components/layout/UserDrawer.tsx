@@ -78,7 +78,7 @@ export function UserDrawer({ isOpen, onClose }: UserDrawerProps) {
                     onClick={onClose}
                     className={cn(
                       "flex items-center justify-between px-3 py-2 rounded-lg transition-colors",
-                      "text-slate-800 hover:bg-primary-50/60 hover:font-semibold hover:shadow-[0_1px_1px_rgba(17,17,26,0.12),0_1px_3px_rgba(17,17,26,0.06)]"
+                      "text-slate-800 hover:bg-primary-50/60 hover:font-semibold hover:shadow-[0_1px_1px_rgba(17,17,26,0.09),0_1px_3px_rgba(17,17,26,0.04)]"
                     )}
                   >
                     <div className="flex items-center gap-3">
