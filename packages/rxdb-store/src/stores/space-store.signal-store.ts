@@ -360,13 +360,6 @@ class SpaceStore {
       return null;
     }
 
-    console.log(`[SpaceStore] getSpaceConfig for ${entityType}:`, {
-      label: spaceConfig.label,
-      canAdd: spaceConfig.canAdd,
-      canEdit: spaceConfig.canEdit,
-      canDelete: spaceConfig.canDelete,
-      rawConfig: spaceConfig
-    });
     return buildUiSpaceConfig(spaceConfig, entityType);
   }
 
@@ -1086,14 +1079,6 @@ class SpaceStore {
     filters = preparedFilters.filters;
     const fieldConfigs = preparedFilters.fieldConfigs;
 
-    console.log('[SpaceStore] applyFilters (ID-First):', {
-      entityType,
-      filters,
-      limit,
-      cursor,
-      orderBy
-    });
-
     // 📴 PREVENTIVE OFFLINE CHECK: Skip Supabase if browser is offline
     if (isOffline()) {
       return executeOfflineFilterFlow({
@@ -1228,11 +1213,7 @@ class SpaceStore {
           orderBy,
         );
       }
-      console.log('[SpaceStore] nextCursor extracted:', nextCursor);
-
       // 💾 PHASE 2: Check RxDB cache for these IDs
-      // Phase 2: Check RxDB cache
-
       if (!this.db) {
         console.warn('[SpaceStore] Database not initialized');
         return {
@@ -1668,22 +1649,10 @@ class SpaceStore {
     return mapped;
   }
 
-  /**
-   * Dispose of all resources
-   * LIFECYCLE: Global cleanup
-   */
-  /**
-   * Setup bidirectional replication for an entity
-   * Uses EntityReplicationService for sync with Supabase
-   */
-  /**
-   * Entity Selection Methods
-   * Proxy calls to the underlying EntityStore for the given entity type
-   */
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Entity Selection (proxy to EntityStore)
+  // ─────────────────────────────────────────────────────────────────────────────
 
-  /**
-   * Get the selected entity ID for a given entity type (static value)
-   */
   getSelectedId(entityType: string): string | null {
     const entityStore = this.entityStores.get(entityType.toLowerCase());
     if (!entityStore) {
@@ -2750,17 +2719,6 @@ class SpaceStore {
         targetLabel: `Table: ${tableType}`,
       });
 
-    console.log('[SpaceStore] applyChildFilters (ID-First):', {
-      parentId,
-      tableType,
-      filters,
-      limit,
-      cursor,
-      orderBy,
-      partitionField: partitionConfig?.childFilterField,
-      partitionValue
-    });
-
     // 📴 PREVENTIVE OFFLINE CHECK
     if (isOffline()) {
       console.log('[SpaceStore] 📴 Offline mode for child records');
@@ -2805,28 +2763,12 @@ class SpaceStore {
       // Extract IDs and calculate nextCursor
       const ids = idsData.map(d => d.id);
       const lastRecord = idsData[idsData.length - 1];
-      let nextCursor: string | null = null;
-      if (lastRecord && idsData.length >= limit) {
-        nextCursor = buildNextKeysetCursor(lastRecord, orderBy);
-        console.log('[SpaceStore] 📍 nextCursor calculated:', {
-          lastRecord,
-          orderByField: orderBy.field,
-          value: lastRecord[orderBy.field],
-          tieBreaker: lastRecord[orderBy.tieBreaker?.field || 'id'],
-          nextCursor
-        });
-      } else {
-        console.log('[SpaceStore] ⚠️ No nextCursor:', {
-          hasLastRecord: !!lastRecord,
-          idsDataLength: idsData.length,
-          limit,
-          condition: `${idsData.length} >= ${limit} = ${idsData.length >= limit}`
-        });
-      }
+      const nextCursor: string | null =
+        lastRecord && idsData.length >= limit
+          ? buildNextKeysetCursor(lastRecord, orderBy)
+          : null;
 
       // 💾 PHASE 2: Check RxDB cache
-      // Phase 2: Check RxDB cache
-
       const collection = await this.ensureChildCollection(entityType);
       if (!collection) {
         return createEmptyChildPageResult();
@@ -3009,18 +2951,6 @@ class SpaceStore {
         contextLabel: 'VIEW',
         targetLabel: `VIEW: ${viewName}`,
       });
-
-    console.log('[SpaceStore] loadChildViewDirect (Local-First):', {
-      viewName,
-      parentId,
-      parentField,
-      entityType,
-      limit,
-      cursor: cursor ? '(set)' : null,
-      orderBy,
-      partitionField: partitionConfig?.childFilterField,
-      partitionValue
-    });
 
     // 📴 PREVENTIVE OFFLINE CHECK - use cached data
     if (isOffline()) {
