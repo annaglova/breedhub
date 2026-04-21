@@ -94,6 +94,9 @@ import {
   rebuildPetTitlesDisplayFlow,
 } from './space-denorm.helpers';
 import {
+  wireReconnectRefresh,
+} from './space-store.helpers';
+import {
   buildPedigreeResult,
   getPedigreeAncestorRefs,
   resolvePedigreeCodeMaps,
@@ -288,22 +291,19 @@ class SpaceStore {
       await syncQueueService.initialize(this.db);
 
       // Reconnect pull: refresh active entity stores when coming back online
-      syncQueueService.onReconnect(() => {
-        for (const [entityType, entityStore] of this.entityStores.entries()) {
-          if (entityStore.entityList.value.length > 0) {
-            console.log(`[SpaceStore] Reconnect refresh: ${entityType}`);
-            this.applyFilters(entityType, {});
-          }
-        }
+      wireReconnectRefresh({
+        syncQueueService,
+        entityStores: this.entityStores,
+        hasActiveData: (_entityType, store) => store.entityList.value.length > 0,
+        refreshEntity: (entityType) => {
+          this.applyFilters(entityType, {});
+        },
       });
 
       // Create collections for all found entity types
       for (const entityType of this.availableEntityTypes.value) {
         await this.ensureCollection(entityType);
       }
-
-      // Subscribe to app config changes
-      // TODO: Add subscription to appConfig changes
 
       this.initialized.value = true;
       const totalTime = performance.now() - startTime;
@@ -328,21 +328,7 @@ class SpaceStore {
       this.loading.value = false;
     }
   }
-  
-  /**
-   * Collect all unique fields from all levels of space config
-   *
-   * Fields can be found in:
-   * - space.sort_fields (space level - shared across all views)
-   * - space.filter_fields (space level - shared across all views)
-   * - space.fields, pages.fields, views.fields, tabs.fields
-   *
-   * According to config-types.ts:
-   * - space can have sort_fields, filter_fields
-   * - view can have fields
-   * - page can have fields and tabs
-   * - tab can have fields
-   */
+
   /** Case-insensitive lookup in spaceConfigs map */
   private resolveSpaceConfig(entityType: string): SpaceConfig | undefined {
     return resolveSpaceConfig(this.spaceConfigs, entityType);
