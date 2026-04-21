@@ -66,6 +66,7 @@ import {
   getChildCollectionName,
   getExistingChildCollection,
   getDefaultChildOrderBy,
+  loadChildViewPage,
   getChildMutationMetadata,
   hasStaleChildRecords,
   mapAndCacheChildRows,
@@ -3245,88 +3246,38 @@ class SpaceStore {
     }
 
     try {
-      // 🌐 PHASE 1: Query VIEW directly with full records
-      console.log('[SpaceStore] 🌐 Phase 1: Fetching VIEW records...');
-
-      let query = supabase
-        .from(viewName)
-        .select('*')
-        .eq(parentField, parentId);
-
-      // Add partition filter if configured (for partition pruning on partitioned tables)
-      if (partitionConfig && partitionValue) {
-        query = query.eq(partitionConfig.childFilterField, partitionValue);
-        console.log(`[SpaceStore] 🔧 Partition filter: ${partitionConfig.childFilterField} = ${partitionValue}`);
-      }
-
-      // Apply cursor (keyset pagination)
-      if (cursor) {
-        const cursorData = parseKeysetCursor(cursor, orderBy);
-        query = applySupabaseKeysetCursor(query, orderBy, cursorData);
-      }
-
-      query = applySupabaseOrderBy(query, orderBy);
-
-      // Apply limit
-      query = query.limit(limit);
-
-      const { data, error } = await query;
-
-      if (error) {
-        console.error('[SpaceStore] loadChildViewDirect error:', error);
-        throw error;
-      }
-
-      const rawRecords = data || [];
-      console.log(`[SpaceStore] ✅ Fetched ${rawRecords.length} VIEW records`);
-
-      // 💾 PHASE 2: Transform & Cache in RxDB (Local-First!)
-      console.log('[SpaceStore] 💾 Phase 2: Caching in RxDB...');
-
       const collection = await this.ensureChildCollection(entityType);
-      if (!collection) {
-        console.warn('[SpaceStore] ⚠️ No collection, returning raw records');
-        // Still return records even without caching
-        const hasMore = rawRecords.length >= limit;
-        const lastRecord = rawRecords[rawRecords.length - 1];
-        const nextCursor = hasMore
-          ? buildNextKeysetCursor(lastRecord, orderBy)
-          : null;
-        return { records: rawRecords, total: rawRecords.length, hasMore, nextCursor };
-      }
-
-      const hydrationResult = await mapAndCacheChildRows(rawRecords, {
-        tableType: viewName,
+      return await loadChildViewPage({
+        viewName,
         parentId,
         parentField,
-        partitionField: partitionConfig?.childFilterField,
+        limit,
+        orderBy,
+        partitionConfig,
         partitionValue,
-        collection,
+        collection: collection || undefined,
+        fetchViewRecords: async () => {
+          let query = supabase
+            .from(viewName)
+            .select('*')
+            .eq(parentField, parentId);
+
+          if (partitionConfig && partitionValue) {
+            query = query.eq(partitionConfig.childFilterField, partitionValue);
+            console.log(`[SpaceStore] 🔧 Partition filter: ${partitionConfig.childFilterField} = ${partitionValue}`);
+          }
+
+          if (cursor) {
+            const cursorData = parseKeysetCursor(cursor, orderBy);
+            query = applySupabaseKeysetCursor(query, orderBy, cursorData);
+          }
+
+          query = applySupabaseOrderBy(query, orderBy);
+          query = query.limit(limit);
+
+          return await query;
+        },
       });
-      const transformedRecords = hydrationResult.transformedRecords;
-
-      if (hydrationResult.cachedRecordsCount > 0) {
-        console.log(`[SpaceStore] 💾 Cached ${hydrationResult.cachedRecordsCount} records in RxDB`);
-      }
-
-      // Calculate nextCursor from raw records
-      let nextCursor: string | null = null;
-      if (rawRecords.length >= limit) {
-        const lastRecord = rawRecords[rawRecords.length - 1];
-        nextCursor = buildNextKeysetCursor(lastRecord, orderBy);
-      }
-
-      const hasMore = rawRecords.length >= limit;
-
-      console.log(`[SpaceStore] ✅ loadChildViewDirect: ${transformedRecords.length} records (hasMore: ${hasMore})`);
-
-      // Return transformed records (RxDB format with additional field)
-      return {
-        records: transformedRecords,
-        total: transformedRecords.length,
-        hasMore,
-        nextCursor
-      };
 
     } catch (error) {
       // 📴 OFFLINE FALLBACK

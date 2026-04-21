@@ -4,6 +4,7 @@ import {
   type BulkUpsertCollection,
 } from "./space-id-cache.helpers";
 import {
+  buildNextKeysetCursor,
   buildNextKeysetCursorFromAdditional,
   parseKeysetCursor,
   type KeysetOrderBy,
@@ -66,6 +67,25 @@ export interface ChildPageResult<TRecord = any> {
 export interface ChildCollectionLookupOptions<TCollection> {
   childCollections: ReadonlyMap<string, TCollection>;
   dbCollections?: Record<string, TCollection>;
+}
+
+export interface LoadChildViewPageOptions<TRawRecord extends Record<string, any>> {
+  viewName: string;
+  parentId: string;
+  parentField: string;
+  limit: number;
+  orderBy: KeysetOrderBy;
+  partitionConfig?: ChildMutationPartitionConfig;
+  partitionValue?: string;
+  collection?: BulkUpsertCollection<any>;
+  fetchViewRecords: () => Promise<{ data: TRawRecord[] | null; error: any }>;
+}
+
+export interface LoadChildViewPageResult<TRecord = any> {
+  records: TRecord[];
+  total: number;
+  hasMore: boolean;
+  nextCursor: string | null;
 }
 
 export function getDefaultChildOrderBy(): KeysetOrderBy {
@@ -243,6 +263,75 @@ export async function mapAndCacheChildRows(
   return {
     transformedRecords,
     cachedRecordsCount,
+  };
+}
+
+export async function loadChildViewPage<
+  TRawRecord extends Record<string, any>,
+>(
+  options: LoadChildViewPageOptions<TRawRecord>,
+): Promise<LoadChildViewPageResult> {
+  console.log("[SpaceStore] 🌐 Phase 1: Fetching VIEW records...");
+
+  const { data, error } = await options.fetchViewRecords();
+
+  if (error) {
+    console.error("[SpaceStore] loadChildViewDirect error:", error);
+    throw error;
+  }
+
+  const rawRecords = data || [];
+  console.log(`[SpaceStore] ✅ Fetched ${rawRecords.length} VIEW records`);
+
+  console.log("[SpaceStore] 💾 Phase 2: Caching in RxDB...");
+
+  if (!options.collection) {
+    console.warn("[SpaceStore] ⚠️ No collection, returning raw records");
+    const hasMore = rawRecords.length >= options.limit;
+    const lastRecord = rawRecords[rawRecords.length - 1];
+    const nextCursor = hasMore
+      ? buildNextKeysetCursor(lastRecord, options.orderBy)
+      : null;
+
+    return {
+      records: rawRecords,
+      total: rawRecords.length,
+      hasMore,
+      nextCursor,
+    };
+  }
+
+  const hydrationResult = await mapAndCacheChildRows(rawRecords, {
+    tableType: options.viewName,
+    parentId: options.parentId,
+    parentField: options.parentField,
+    partitionField: options.partitionConfig?.childFilterField,
+    partitionValue: options.partitionValue,
+    collection: options.collection,
+  });
+  const transformedRecords = hydrationResult.transformedRecords;
+
+  if (hydrationResult.cachedRecordsCount > 0) {
+    console.log(
+      `[SpaceStore] 💾 Cached ${hydrationResult.cachedRecordsCount} records in RxDB`,
+    );
+  }
+
+  const hasMore = rawRecords.length >= options.limit;
+  const lastRecord = rawRecords[rawRecords.length - 1];
+  const nextCursor = hasMore
+    ? buildNextKeysetCursor(lastRecord, options.orderBy)
+    : null;
+
+  console.log(
+    `[SpaceStore] ✅ loadChildViewDirect: ${transformedRecords.length} records (hasMore: ${hasMore})`,
+  );
+
+  return {
+    records: transformedRecords,
+    total: transformedRecords.length,
+    hasMore,
+    nextCursor,
   };
 }
 

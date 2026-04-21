@@ -9,6 +9,7 @@ import {
   getDefaultChildOrderBy,
   getChildMutationMetadata,
   hasStaleChildRecords,
+  loadChildViewPage,
   mapAndCacheChildRows,
   mapChildRowsToCacheRecords,
   queueChildMutationRefresh,
@@ -288,6 +289,262 @@ describe("space-child.helpers", () => {
 
     expect(result.cachedRecordsCount).toBe(1);
     expect(result.transformedRecords).toEqual(upserted);
+  });
+
+  it("loads, caches, and paginates VIEW child records", async () => {
+    const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+    const upserted: any[] = [];
+
+    try {
+      const result = await loadChildViewPage({
+        viewName: "top_pet_in_breed_with_pet",
+        parentId: "breed-1",
+        parentField: "breed_id",
+        limit: 2,
+        orderBy: {
+          field: "id",
+          direction: "asc",
+          tieBreaker: {
+            field: "id",
+            direction: "asc",
+          },
+        },
+        partitionConfig: {
+          keyField: "breed_id",
+          childFilterField: "pet_breed_id",
+        },
+        partitionValue: "breed-9",
+        collection: {
+          async bulkUpsert(records) {
+            upserted.push(...records);
+          },
+        },
+        fetchViewRecords: async () => ({
+          data: [
+            {
+              id: "pet-1",
+              breed_id: "breed-1",
+              pet_breed_id: "breed-9",
+              name: "Alpha",
+            },
+            {
+              id: "pet-2",
+              breed_id: "breed-1",
+              pet_breed_id: "breed-9",
+              name: "Beta",
+            },
+          ],
+          error: null,
+        }),
+      });
+
+      expect(result).toEqual({
+        records: upserted,
+        total: 2,
+        hasMore: true,
+        nextCursor: JSON.stringify({
+          value: "pet-2",
+          tieBreaker: "pet-2",
+          tieBreakerField: "id",
+        }),
+      });
+      expect(logSpy.mock.calls.map(([message]) => message)).toEqual([
+        "[SpaceStore] 🌐 Phase 1: Fetching VIEW records...",
+        "[SpaceStore] ✅ Fetched 2 VIEW records",
+        "[SpaceStore] 💾 Phase 2: Caching in RxDB...",
+        "[SpaceStore] 💾 Cached 2 records in RxDB",
+        "[SpaceStore] ✅ loadChildViewDirect: 2 records (hasMore: true)",
+      ]);
+    } finally {
+      logSpy.mockRestore();
+    }
+  });
+
+  it("returns raw VIEW records when the child collection is unavailable", async () => {
+    const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const rawRecords = [
+      { id: "pet-1", breed_id: "breed-1", name: "Alpha" },
+      { id: "pet-2", breed_id: "breed-1", name: "Beta" },
+    ];
+
+    try {
+      const result = await loadChildViewPage({
+        viewName: "top_pet_in_breed_with_pet",
+        parentId: "breed-1",
+        parentField: "breed_id",
+        limit: 2,
+        orderBy: {
+          field: "id",
+          direction: "asc",
+          tieBreaker: {
+            field: "id",
+            direction: "asc",
+          },
+        },
+        fetchViewRecords: async () => ({
+          data: rawRecords,
+          error: null,
+        }),
+      });
+
+      expect(result).toEqual({
+        records: rawRecords,
+        total: 2,
+        hasMore: true,
+        nextCursor: JSON.stringify({
+          value: "pet-2",
+          tieBreaker: "pet-2",
+          tieBreakerField: "id",
+        }),
+      });
+      expect(warnSpy).toHaveBeenCalledWith(
+        "[SpaceStore] ⚠️ No collection, returning raw records",
+      );
+      expect(logSpy.mock.calls.map(([message]) => message)).toEqual([
+        "[SpaceStore] 🌐 Phase 1: Fetching VIEW records...",
+        "[SpaceStore] ✅ Fetched 2 VIEW records",
+        "[SpaceStore] 💾 Phase 2: Caching in RxDB...",
+      ]);
+    } finally {
+      logSpy.mockRestore();
+      warnSpy.mockRestore();
+    }
+  });
+
+  it("logs and rethrows VIEW fetch errors", async () => {
+    const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    const fetchError = new Error("view fetch failed");
+
+    try {
+      await expect(
+        loadChildViewPage({
+          viewName: "top_pet_in_breed_with_pet",
+          parentId: "breed-1",
+          parentField: "breed_id",
+          limit: 2,
+          orderBy: {
+            field: "id",
+            direction: "asc",
+            tieBreaker: {
+              field: "id",
+              direction: "asc",
+            },
+          },
+          fetchViewRecords: async () => ({
+            data: null,
+            error: fetchError,
+          }),
+        }),
+      ).rejects.toBe(fetchError);
+
+      expect(logSpy).toHaveBeenCalledWith(
+        "[SpaceStore] 🌐 Phase 1: Fetching VIEW records...",
+      );
+      expect(errorSpy).toHaveBeenCalledWith(
+        "[SpaceStore] loadChildViewDirect error:",
+        fetchError,
+      );
+    } finally {
+      logSpy.mockRestore();
+      errorSpy.mockRestore();
+    }
+  });
+
+  it("returns hasMore false and null nextCursor for partial VIEW pages", async () => {
+    const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+    const upserted: any[] = [];
+
+    try {
+      const result = await loadChildViewPage({
+        viewName: "top_pet_in_breed_with_pet",
+        parentId: "breed-1",
+        parentField: "breed_id",
+        limit: 3,
+        orderBy: {
+          field: "id",
+          direction: "asc",
+          tieBreaker: {
+            field: "id",
+            direction: "asc",
+          },
+        },
+        collection: {
+          async bulkUpsert(records) {
+            upserted.push(...records);
+          },
+        },
+        fetchViewRecords: async () => ({
+          data: [
+            { id: "pet-1", breed_id: "breed-1", name: "Alpha" },
+          ],
+          error: null,
+        }),
+      });
+
+      expect(result).toEqual({
+        records: upserted,
+        total: 1,
+        hasMore: false,
+        nextCursor: null,
+      });
+      expect(logSpy).toHaveBeenCalledWith(
+        "[SpaceStore] ✅ loadChildViewDirect: 1 records (hasMore: false)",
+      );
+    } finally {
+      logSpy.mockRestore();
+    }
+  });
+
+  it("returns an empty VIEW page without caching logs when no rows are fetched", async () => {
+    const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const upserted: any[] = [];
+
+    try {
+      const result = await loadChildViewPage({
+        viewName: "top_pet_in_breed_with_pet",
+        parentId: "breed-1",
+        parentField: "breed_id",
+        limit: 2,
+        orderBy: {
+          field: "id",
+          direction: "asc",
+          tieBreaker: {
+            field: "id",
+            direction: "asc",
+          },
+        },
+        collection: {
+          async bulkUpsert(records) {
+            upserted.push(...records);
+          },
+        },
+        fetchViewRecords: async () => ({
+          data: [],
+          error: null,
+        }),
+      });
+
+      expect(result).toEqual({
+        records: [],
+        total: 0,
+        hasMore: false,
+        nextCursor: null,
+      });
+      expect(upserted).toEqual([]);
+      expect(warnSpy).not.toHaveBeenCalled();
+      expect(logSpy.mock.calls.map(([message]) => message)).toEqual([
+        "[SpaceStore] 🌐 Phase 1: Fetching VIEW records...",
+        "[SpaceStore] ✅ Fetched 0 VIEW records",
+        "[SpaceStore] 💾 Phase 2: Caching in RxDB...",
+        "[SpaceStore] ✅ loadChildViewDirect: 0 records (hasMore: false)",
+      ]);
+    } finally {
+      logSpy.mockRestore();
+      warnSpy.mockRestore();
+    }
   });
 
   it("filters local child entities through the collection wrapper", async () => {
