@@ -2,7 +2,10 @@ import { replicateRxCollection, RxReplicationState } from 'rxdb/plugins/replicat
 import { RxCollection, RxDatabase } from 'rxdb';
 import { BusinessEntity } from '../types/business-entity.types';
 import { supabase } from '../supabase/client';
-import { findDocumentByPrimaryKey } from '../utils/rxdb-document.helpers';
+import {
+  findDocumentByPrimaryKey,
+  mapSupabaseToRxDBDoc,
+} from '../utils/rxdb-document.helpers';
 
 export interface ReplicationOptions {
   batchSize?: number;
@@ -37,55 +40,8 @@ export class EntityReplicationService {
    * Maps between RxDB format (_deleted) and Supabase format (deleted)
    */
   private mapSupabaseToRxDB(entityType: string, supabaseDoc: Record<string, any>, schema?: { properties?: Record<string, any> }): Record<string, any> {
-    const mapped: Record<string, any> = {};
-
-    // If we have schema, use it to map fields
-    if (schema?.properties) {
-      for (const fieldName in schema.properties) {
-        if (fieldName === '_deleted') {
-          // Special handling for deleted field
-          mapped._deleted = Boolean(supabaseDoc.deleted);
-        } else if (supabaseDoc.hasOwnProperty(fieldName)) {
-          mapped[fieldName] = supabaseDoc[fieldName];
-        }
-      }
-    } else {
-      // Fallback: copy all fields, handling special cases
-      // ⚠️ CRITICAL: Exclude RxDB service fields (_meta, _attachments, _rev)
-      const serviceFields = ['_meta', '_attachments', '_rev'];
-
-      for (const key in supabaseDoc) {
-        // Skip RxDB service fields
-        if (serviceFields.includes(key)) {
-          continue;
-        }
-
-        if (key === 'deleted') {
-          mapped._deleted = Boolean(supabaseDoc.deleted);
-        } else {
-          mapped[key] = supabaseDoc[key];
-        }
-      }
-    }
-
-    // Ensure required fields
-    mapped.id = mapped.id || supabaseDoc.id;
-    mapped.created_at = mapped.created_at || supabaseDoc.created_at;
-    mapped.updated_at = mapped.updated_at || supabaseDoc.updated_at;
-
-    // ✅ IMPORTANT: Remove service fields that might have been copied
-    delete mapped._meta;
-    delete mapped._attachments;
-    delete mapped._rev;
-
-    // Commented out for less noise - uncomment for debugging
-    // console.log(`[EntityReplication-${entityType}] Mapped from Supabase:`, {
-    //   id: mapped.id,
-    //   deleted_supabase: supabaseDoc.deleted,
-    //   deleted_rxdb: mapped._deleted
-    // });
-
-    return mapped;
+    void entityType;
+    return mapSupabaseToRxDBDoc(supabaseDoc, schema);
   }
 
   /**
