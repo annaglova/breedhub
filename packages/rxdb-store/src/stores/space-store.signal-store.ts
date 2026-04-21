@@ -94,6 +94,7 @@ import {
   rebuildPetTitlesDisplayFlow,
 } from './space-denorm.helpers';
 import {
+  fetchEntityBySlugFlow,
   wireReconnectRefresh,
 } from './space-store.helpers';
 import {
@@ -1500,65 +1501,26 @@ class SpaceStore {
    * Unlike fetchAndSelectEntity, this doesn't wait for config/store initialization.
    * It queries RxDB collection directly if available, then falls back to Supabase.
    *
-   * @param entityType - Entity type (e.g., 'pet')
-   * @param slug - Entity slug
-   * @returns Entity data or null
-   */
+  * @param entityType - Entity type (e.g., 'pet')
+  * @param slug - Entity slug
+  * @returns Entity data or null
+  */
   async fetchEntityBySlug<T = any>(entityType: string, slug: string): Promise<T | null> {
-    // 1. Try RxDB collection directly (instant if collection exists)
-    const cachedEntity = await this.findCachedEntityBySlug<T>(entityType, slug);
-    if (cachedEntity) {
-      return cachedEntity;
-    }
-
-    // 2. Resolve via routes table (fast PK lookup → partition-pruned query)
-    try {
-      const { data: route, error } = await supabase
-        .from('routes')
-        .select('entity_id, entity_partition_id, partition_field')
-        .eq('slug', slug)
-        .maybeSingle();
-
-      if (error) {
-        throw error;
-      }
-
-      if (route?.entity_id) {
-        const data = await this.fetchEntityById<T & BusinessEntity>(
-          entityType,
-          route.entity_id,
-          route.entity_partition_id ?? undefined,
-          route.partition_field ?? undefined,
-        );
-
-        if (data) {
-          return data as T;
-        }
-      }
-    } catch (err) {
-      console.warn(`[SpaceStore] Route lookup failed, falling back to slug query:`, err);
-    }
-
-    // 3. Fallback: direct slug query (for entities without routes)
-    try {
-      const { data, error } = await supabase
-        .from(entityType)
-        .select('*')
-        .eq('slug', slug)
-        .or('deleted.is.null,deleted.eq.false')
-        .maybeSingle();
-
-      if (error || !data) {
-        return null;
-      }
-
-      await this.cacheFetchedEntity(entityType, data);
-
-      return data as T;
-    } catch (err) {
-      console.error(`[SpaceStore] Error fetching by slug from Supabase:`, err);
-      return null;
-    }
+    return fetchEntityBySlugFlow<T>({
+      supabase,
+      entityType,
+      slug,
+      loadCachedBySlug: (eType, entitySlug) =>
+        this.findCachedEntityBySlug<T>(eType, entitySlug),
+      loadEntityById: (eType, id, partitionId, partitionField) =>
+        this.fetchEntityById<T & BusinessEntity>(
+          eType,
+          id,
+          partitionId,
+          partitionField,
+        ),
+      cacheEntity: (eType, data) => this.cacheFetchedEntity(eType, data),
+    });
   }
 
   /**

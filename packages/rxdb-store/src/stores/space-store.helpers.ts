@@ -8,6 +8,20 @@ export interface WireReconnectRefreshOptions<TStore> {
   logPrefix?: string;
 }
 
+export interface FetchEntityBySlugFlowOptions<TRecord> {
+  supabase: any;
+  entityType: string;
+  slug: string;
+  loadCachedBySlug: (entityType: string, slug: string) => Promise<TRecord | null>;
+  loadEntityById: (
+    entityType: string,
+    id: string,
+    partitionId?: string,
+    partitionField?: string,
+  ) => Promise<TRecord | null>;
+  cacheEntity: (entityType: string, data: Record<string, any>) => Promise<void>;
+}
+
 export function wireReconnectRefresh<TStore>(
   options: WireReconnectRefreshOptions<TStore>,
 ): void {
@@ -23,4 +37,59 @@ export function wireReconnectRefresh<TStore>(
       options.refreshEntity(entityType);
     }
   });
+}
+
+export async function fetchEntityBySlugFlow<TRecord>(
+  options: FetchEntityBySlugFlowOptions<TRecord>,
+): Promise<TRecord | null> {
+  const cached = await options.loadCachedBySlug(options.entityType, options.slug);
+  if (cached) {
+    return cached;
+  }
+
+  try {
+    const { data: route, error } = await options.supabase
+      .from("routes")
+      .select("entity_id, entity_partition_id, partition_field")
+      .eq("slug", options.slug)
+      .maybeSingle();
+
+    if (error) {
+      throw error;
+    }
+
+    if (route?.entity_id) {
+      const data = await options.loadEntityById(
+        options.entityType,
+        route.entity_id,
+        route.entity_partition_id ?? undefined,
+        route.partition_field ?? undefined,
+      );
+
+      if (data) {
+        return data;
+      }
+    }
+  } catch (err) {
+    console.warn("[SpaceStore] Route lookup failed, falling back to slug query:", err);
+  }
+
+  try {
+    const { data, error } = await options.supabase
+      .from(options.entityType)
+      .select("*")
+      .eq("slug", options.slug)
+      .or("deleted.is.null,deleted.eq.false")
+      .maybeSingle();
+
+    if (error || !data) {
+      return null;
+    }
+
+    await options.cacheEntity(options.entityType, data);
+    return data as TRecord;
+  } catch (err) {
+    console.error("[SpaceStore] Error fetching by slug from Supabase:", err);
+    return null;
+  }
 }
