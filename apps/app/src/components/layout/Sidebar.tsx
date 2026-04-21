@@ -84,12 +84,15 @@ export function Sidebar({
                     to={item.path}
                     className={cn(
                       "flex items-center gap-3 px-3 py-2 rounded-lg transition-colors",
-                      onClose
-                        ? "text-slate-800 hover:bg-primary-50 hover:font-semibold"
-                        : "text-slate-900 hover:bg-slate-200",
-                      isActive && (onClose
-                        ? "bg-primary-50 font-semibold"
-                        : "bg-slate-200 font-semibold"),
+                      onClose ? "text-slate-800" : "text-slate-900",
+                      !isActive &&
+                        (onClose
+                          ? "hover:bg-primary-50/60 hover:font-semibold"
+                          : "hover:bg-slate-200/60"),
+                      isActive &&
+                        (onClose
+                          ? "bg-primary-50 font-semibold cursor-default shadow-[0_1px_1px_rgba(103,58,183,0.18),0_1px_3px_rgba(103,58,183,0.1)]"
+                          : "bg-slate-200 font-semibold cursor-default shadow-[0_1px_1px_rgba(17,17,26,0.12),0_1px_3px_rgba(17,17,26,0.06)]"),
                       isCollapsed && "justify-center"
                     )}
                     onClick={(e) => {
