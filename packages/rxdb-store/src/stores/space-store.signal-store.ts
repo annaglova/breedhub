@@ -87,10 +87,12 @@ import {
   groupPartitionedEntityRefs,
   loadPartitionedEntitiesByRefs,
   normalizePartitionedEntityRefs,
-  recordMatchesPartition,
   resolveChildPartitionContext,
   type PartitionedEntityRef,
 } from './space-partition.helpers';
+import {
+  rebuildPetTitlesDisplayFlow,
+} from './space-denorm.helpers';
 import {
   buildPedigreeResult,
   getPedigreeAncestorRefs,
@@ -2131,84 +2133,16 @@ class SpaceStore {
    * Pure builder lives in `utils/titles-display-builder.ts`.
    */
   private async rebuildPetTitlesDisplay(petId: string, petBreedId?: string): Promise<void> {
-    // 1. Read all title_in_pet rows for this pet from RxDB child cache
-    const childRecords = await this.getChildRecords(
+    await rebuildPetTitlesDisplayFlow({
       petId,
-      'title_in_pet',
-      { partitionId: petBreedId, limit: 0 },
-    );
-
-    // Map RxDB child shape → builder input shape
-    const titlesInPet = childRecords
-      .map((r: any) => {
-        const a = r.additional || {};
-        return {
-          title_id: a.title_id,
-          country_id: a.country_id ?? null,
-          amount: a.amount ?? null,
-          date: a.date ?? null,
-          is_confirmed: a.is_confirmed ?? null,
-          deleted: a.deleted ?? r.deleted ?? null,
-        };
-      })
-      .filter((t) => !!t.title_id);
-
-    // 2. Lookup title name+rating from dictionary (parallel)
-    const titleIds = Array.from(new Set(titlesInPet.map((t) => t.title_id as string)));
-    const titleLookup = new Map<string, { name?: string | null; rating?: number | string | null }>();
-    if (titleIds.length > 0) {
-      const lookups = await Promise.all(
-        titleIds.map((id) => dictionaryStore.getRecordById('title', id)),
-      );
-      for (let i = 0; i < titleIds.length; i++) {
-        const rec = lookups[i];
-        if (rec) {
-          titleLookup.set(titleIds[i], {
-            name: rec.name as string | null,
-            rating: rec.rating as number | string | null,
-          });
-        }
-      }
-    }
-
-    // 3. Pure builder (mirrors SQL aggregation)
-    const { buildTitlesDisplay } = await import('../utils/titles-display-builder');
-    const titlesDisplay = buildTitlesDisplay(titlesInPet, titleLookup);
-
-    // 4. Patch local pet doc and signal store
-    // Pet cache is keyed only by id, so guard against cross-breed collisions
-    // before mutating denormalized local state.
-    const collection = this.db?.collections['pet'];
-    if (collection) {
-      const doc = await findDocumentById(collection, petId);
-      if (doc) {
-        const petRecord = doc.toJSON() as Record<string, any>;
-        const cachedBreedId = petRecord.breed_id;
-        if (recordMatchesPartition(petRecord, 'breed_id', petBreedId)) {
-          await doc.patch({ titles_display: titlesDisplay });
-        } else {
-          console.warn('[SpaceStore] Skipping titles_display patch for mismatched pet partition', {
-            petId,
-            expectedBreedId: petBreedId,
-            cachedBreedId,
-          });
-        }
-      }
-    }
-    const entityStore = this.entityStores.get('pet');
-    if (entityStore) {
-      const cachedPet = entityStore.entityMap.value.get(petId) as Record<string, any> | undefined;
-      const cachedBreedId = cachedPet?.breed_id;
-      if (recordMatchesPartition(cachedPet, 'breed_id', petBreedId)) {
-        entityStore.updateOne(petId, { titles_display: titlesDisplay });
-      } else if (cachedPet) {
-        console.warn('[SpaceStore] Skipping titles_display store update for mismatched pet partition', {
-          petId,
-          expectedBreedId: petBreedId,
-          cachedBreedId,
-        });
-      }
-    }
+      petBreedId,
+      loadTitleInPetRecords: (id, breedId) =>
+        this.getChildRecords(id, 'title_in_pet', { partitionId: breedId, limit: 0 }),
+      lookupTitleDictionary: (titleId) =>
+        dictionaryStore.getRecordById('title', titleId),
+      collection: this.db?.collections['pet'],
+      entityStore: this.entityStores.get('pet'),
+    });
   }
 
   /**
