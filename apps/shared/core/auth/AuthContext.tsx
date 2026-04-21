@@ -49,30 +49,10 @@ interface AuthProviderProps {
 }
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-  const [state, setState] = useState<AuthState>(() => {
-    const cachedToken = localStorage.getItem('accessToken') ?? '';
-    const cachedUser = AuthUtils.getUserFromToken(cachedToken, 100);
-
-    return {
-      authenticated: !!cachedUser,
-      token: cachedUser ? cachedToken : '',
-      user: cachedUser || initialUser,
-      loading: true,
-    };
-  });
+  const [state, setState] = useState<AuthState>(initialState);
 
   const updateState = (newState: Partial<AuthState>) => {
-    setState(prev => {
-      const updated = { ...prev, ...newState };
-      if (newState.token !== undefined) {
-        if (newState.token) {
-          localStorage.setItem('accessToken', newState.token);
-        } else {
-          localStorage.removeItem('accessToken');
-        }
-      }
-      return updated;
-    });
+    setState(prev => ({ ...prev, ...newState }));
   };
 
   const convertSupabaseUser = (user: User): SimpleUser => ({
@@ -156,6 +136,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const signInWithGoogle = async () => {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback`,
+      },
     });
 
     return { error };
@@ -164,6 +147,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const signInWithFacebook = async () => {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'facebook',
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback`,
+      },
     });
 
     return { error };

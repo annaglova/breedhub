@@ -7,40 +7,69 @@ import { supabase } from '@/core/supabase';
  * Supabase redirects here after:
  * - OAuth login (Google, Facebook)
  * - Email confirmation link click
- * - Password reset link click
+ * - Password reset link click (emits PASSWORD_RECOVERY → /reset-password)
  *
- * The URL contains tokens in the hash fragment that Supabase JS
- * processes automatically via detectSessionInUrl: true.
+ * In PKCE mode, Supabase exchanges the auth code automatically via
+ * detectSessionInUrl: true, then emits SIGNED_IN or PASSWORD_RECOVERY
+ * once the session is ready.
  */
 export function AuthCallbackPage() {
   const navigate = useNavigate();
 
   useEffect(() => {
+    let settled = false;
+
+    const finish = (target: string) => {
+      if (settled) {
+        return;
+      }
+
+      settled = true;
+      navigate(target, { replace: true });
+    };
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        if (!session) {
+          return;
+        }
+
+        if (event === 'PASSWORD_RECOVERY') {
+          finish('/reset-password');
+          return;
+        }
+
+        if (event === 'SIGNED_IN') {
+          finish('/');
+        }
+      }
+    );
+
     const handleCallback = async () => {
       const { data: { session }, error } = await supabase.auth.getSession();
 
       if (error) {
         console.error('Auth callback error:', error);
-        navigate('/sign-in?error=callback_failed');
+        finish('/sign-in?error=callback_failed');
         return;
       }
 
       if (session) {
-        // Check if this is a password recovery flow
-        const hashParams = new URLSearchParams(window.location.hash.substring(1));
-        const type = hashParams.get('type');
-
-        if (type === 'recovery') {
-          navigate('/reset-password');
-        } else {
-          navigate('/');
-        }
-      } else {
-        navigate('/sign-in');
+        finish('/');
+        return;
       }
     };
 
-    handleCallback();
+    void handleCallback();
+
+    const fallbackTimer = window.setTimeout(() => {
+      finish('/sign-in');
+    }, 3000);
+
+    return () => {
+      window.clearTimeout(fallbackTimer);
+      subscription.unsubscribe();
+    };
   }, [navigate]);
 
   return (
