@@ -2210,22 +2210,19 @@ class SpaceStore {
         targetLabel: `Table: ${tableType}`,
       });
 
+    const tryLocalChildPage = async (errorLabel: string) => {
+      try {
+        return await this.loadLocalChildPage(parentId, tableType, filters, limit, cursor, orderBy);
+      } catch (err) {
+        console.error(`[SpaceStore] ${errorLabel}:`, err);
+        return createEmptyChildPageResult();
+      }
+    };
+
     // 📴 PREVENTIVE OFFLINE CHECK
     if (isOffline()) {
       console.log('[SpaceStore] 📴 Offline mode for child records');
-      try {
-        return await this.loadLocalChildPage(
-          parentId,
-          tableType,
-          filters,
-          limit,
-          cursor,
-          orderBy,
-        );
-      } catch (error) {
-        console.error('[SpaceStore] Offline child loading failed:', error);
-        return createEmptyChildPageResult();
-      }
+      return tryLocalChildPage('Offline child loading failed');
     }
 
     try {
@@ -2291,20 +2288,7 @@ class SpaceStore {
       if (!isNetworkError(error)) {
         console.error('[SpaceStore] applyChildFilters error:', error);
       }
-
-      try {
-        return await this.loadLocalChildPage(
-          parentId,
-          tableType,
-          filters,
-          limit,
-          cursor,
-          orderBy,
-        );
-      } catch (offlineError) {
-        console.error('[SpaceStore] Offline fallback failed:', offlineError);
-        return createEmptyChildPageResult();
-      }
+      return tryLocalChildPage('Offline fallback failed');
     }
   }
 
