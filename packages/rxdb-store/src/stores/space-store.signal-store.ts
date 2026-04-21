@@ -1079,39 +1079,40 @@ class SpaceStore {
     );
     filters = preparedFilters.filters;
     const fieldConfigs = preparedFilters.fieldConfigs;
+    const offlineFlowBase = {
+      entityType,
+      filters,
+      fieldConfigs,
+      runLocalQuery: () =>
+        filterLocalEntities({
+          collection: this.db?.collections[entityType],
+          entityType,
+          filters,
+          fieldConfigs,
+          limit,
+          cursor,
+          orderBy,
+          logMissingCollection: !!this.db,
+        }),
+      buildCountSelector: buildRxdbCountSelector,
+      countByCollection: async (selector: any) => {
+        if (!this.db) {
+          throw new Error('Database not initialized');
+        }
+
+        const collection = this.db.collections[entityType];
+        if (!collection) {
+          throw new Error(`Collection ${entityType} not found`);
+        }
+
+        const allMatchingDocs = await collection.find({ selector }).exec();
+        return allMatchingDocs.length;
+      },
+    };
 
     // 📴 PREVENTIVE OFFLINE CHECK: Skip Supabase if browser is offline
     if (isOffline()) {
-      return executeOfflineFilterFlow({
-        entityType,
-        filters,
-        fieldConfigs,
-        runLocalQuery: () =>
-          filterLocalEntities({
-            collection: this.db?.collections[entityType],
-            entityType,
-            filters,
-            fieldConfigs,
-            limit,
-            cursor,
-            orderBy,
-            logMissingCollection: !!this.db,
-          }),
-        buildCountSelector: buildRxdbCountSelector,
-        countByCollection: async (selector) => {
-          if (!this.db) {
-            throw new Error('Database not initialized');
-          }
-
-          const collection = this.db.collections[entityType];
-          if (!collection) {
-            throw new Error(`Collection ${entityType} not found`);
-          }
-
-          const allMatchingDocs = await collection.find({ selector }).exec();
-          return allMatchingDocs.length;
-        },
-      });
+      return executeOfflineFilterFlow(offlineFlowBase);
     }
 
     try {
@@ -1233,34 +1234,7 @@ class SpaceStore {
         console.error('[SpaceStore] applyFilters error:', error);
       }
       return executeOfflineFilterFlow({
-        entityType,
-        filters,
-        fieldConfigs,
-        runLocalQuery: () =>
-          filterLocalEntities({
-            collection: this.db?.collections[entityType],
-            entityType,
-            filters,
-            fieldConfigs,
-            limit,
-            cursor,
-            orderBy,
-            logMissingCollection: !!this.db,
-          }),
-        buildCountSelector: buildRxdbCountSelector,
-        countByCollection: async (selector) => {
-          if (!this.db) {
-            throw new Error('Database not initialized');
-          }
-
-          const collection = this.db.collections[entityType];
-          if (!collection) {
-            throw new Error(`Collection ${entityType} not found`);
-          }
-
-          const allMatchingDocs = await collection.find({ selector }).exec();
-          return allMatchingDocs.length;
-        },
+        ...offlineFlowBase,
         logPrefix: 'Offline mode',
         catchLogPrefix: 'Offline fallback also failed:',
         countSelectorExtraOptions: { preferStringSearchOperator: true },
