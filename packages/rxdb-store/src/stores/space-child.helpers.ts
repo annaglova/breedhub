@@ -9,6 +9,7 @@ import {
   parseKeysetCursor,
   type KeysetOrderBy,
 } from "./space-keyset.helpers";
+import type { PartitionConfig } from "./space-config.helpers";
 import { compareValues, getTieBreaker } from "./space-sort.helpers";
 
 export interface ChildCacheTransformOptions {
@@ -20,13 +21,8 @@ export interface ChildCacheTransformOptions {
   cachedAt?: number;
 }
 
-export interface ChildMutationPartitionConfig {
-  keyField: string;
-  childFilterField: string;
-}
-
 export interface ChildMutationEntitySchema {
-  partition?: ChildMutationPartitionConfig;
+  partition?: PartitionConfig;
 }
 
 export interface ChildListQueryLike<TQuery> {
@@ -104,7 +100,7 @@ export interface LoadChildViewPageOptions<TRawRecord extends Record<string, any>
   parentField: string;
   limit: number;
   orderBy: KeysetOrderBy;
-  partitionConfig?: ChildMutationPartitionConfig;
+  partitionConfig?: PartitionConfig;
   partitionValue?: string;
   collection?: BulkUpsertCollection<any>;
   fetchViewRecords: () => Promise<{ data: TRawRecord[] | null; error: any }>;
@@ -280,7 +276,7 @@ export function getChildMutationMetadata(
   tableType: string,
 ): {
   normalizedType: string;
-  partitionConfig?: ChildMutationPartitionConfig;
+  partitionConfig?: PartitionConfig;
 } {
   return {
     normalizedType: normalizeChildTableType(tableType),
