@@ -16,10 +16,7 @@
       "@breedhub/rxdb-store/*": ["packages/rxdb-store/src/*"],
       "@ui/components/*": ["packages/ui/components/*"],
       "@ui/utils/*": ["packages/ui/utils/*"],
-      "@ui/lib/*": ["packages/ui/lib/*"],
-
-      "@types/*": ["packages/types/*"],
-      "@utils/*": ["packages/utils/*"]
+      "@ui/lib/*": ["packages/ui/lib/*"]
     }
   }
 }
