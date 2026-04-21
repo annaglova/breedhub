@@ -14,6 +14,22 @@ export interface TotalCountFilterableQuery<TQuery> {
   eq(column: string, value: any): TQuery;
 }
 
+export interface FetchOrCacheTotalCountOptions {
+  entityType: string;
+  filters: Record<string, any>;
+  defaultFilters?: Record<string, any>;
+  totalFilterKey?: string | null;
+  ttlMs: number;
+  readCache: (key: string) => string | null;
+  writeCache: (key: string, value: string) => void;
+  fetchFreshCount: (
+    applyFilters: <TQuery extends TotalCountFilterableQuery<TQuery>>(
+      query: TQuery,
+    ) => TQuery,
+  ) => PromiseLike<{ count: number | null; error: any }>;
+  onCountResolved: (count: number, source: "cache" | "fresh") => void;
+}
+
 export function buildDefaultFiltersSuffix(
   defaultFilters: Record<string, any> = {},
 ): string {
@@ -110,4 +126,82 @@ export function applyTotalCountFiltersToQuery<
   }
 
   return nextQuery;
+}
+
+export async function fetchOrCacheTotalCount(
+  options: FetchOrCacheTotalCountOptions,
+): Promise<void> {
+  const totalFilterValue = options.totalFilterKey
+    ? options.filters[options.totalFilterKey]
+    : null;
+
+  if (options.totalFilterKey && !totalFilterValue) {
+    console.log(
+      `[SpaceStore] 📊 Waiting for ${options.totalFilterKey} filter to be selected`,
+    );
+    return;
+  }
+
+  const filterInfo = getTotalCountFilterInfo(
+    options.totalFilterKey,
+    totalFilterValue,
+  );
+  const cacheKey = buildTotalCountCacheKey(options.entityType, {
+    defaultFilters: options.defaultFilters,
+    totalFilterKey: options.totalFilterKey,
+    totalFilterValue,
+  });
+
+  let cachedRaw: string | null = null;
+  try {
+    cachedRaw = options.readCache(cacheKey);
+  } catch {
+    // localStorage may throw in private mode / when disabled
+  }
+
+  const cachedState = inspectCachedTotalCount(cachedRaw, options.ttlMs);
+
+  if (cachedState.status === "hit" && cachedState.value !== undefined) {
+    options.onCountResolved(cachedState.value, "cache");
+    console.log(
+      `[SpaceStore] 📊 Using cached total: ${cachedState.value}${filterInfo} (age: ${Math.round((cachedState.ageMs || 0) / 1000 / 60 / 60)}h)`,
+    );
+    return;
+  }
+
+  if (cachedState.status === "refresh") {
+    console.log(`[SpaceStore] 📊 Cache expired, will refresh total count`);
+  }
+
+  try {
+    const { count: totalCount, error: countError } =
+      await options.fetchFreshCount((query) =>
+        applyTotalCountFiltersToQuery(query, {
+          defaultFilters: options.defaultFilters,
+          totalFilterKey: options.totalFilterKey,
+          totalFilterValue,
+        }),
+      );
+
+    if (countError) {
+      console.warn(`[SpaceStore] Failed to fetch total count:`, countError);
+      return;
+    }
+
+    if (totalCount !== null) {
+      console.log(`[SpaceStore] 📊 Fresh total count: ${totalCount}${filterInfo}`);
+      options.onCountResolved(totalCount, "fresh");
+
+      try {
+        options.writeCache(
+          cacheKey,
+          JSON.stringify({ value: totalCount, timestamp: Date.now() }),
+        );
+      } catch (e) {
+        console.warn(`[SpaceStore] Failed to cache totalCount:`, e);
+      }
+    }
+  } catch (e) {
+    console.warn(`[SpaceStore] Failed to fetch total count:`, e);
+  }
 }

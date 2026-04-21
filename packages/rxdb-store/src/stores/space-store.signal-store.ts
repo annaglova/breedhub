@@ -90,10 +90,7 @@ import {
   mapDocsToRecordMap,
 } from './space-id-cache.helpers';
 import {
-  applyTotalCountFiltersToQuery,
-  buildTotalCountCacheKey,
-  getTotalCountFilterInfo,
-  inspectCachedTotalCount,
+  fetchOrCacheTotalCount,
 } from './space-total-count.helpers';
 import {
   groupPartitionedEntityRefs,
@@ -1182,85 +1179,48 @@ class SpaceStore {
 
       if (cursor === null) {
         const entityStore = this.entityStores.get(entityType);
-        let shouldFetchCount = false;
-
-        // Check if this space has a totalFilterKey (e.g., breed_id for pet, pet_type_id for breed)
-        const totalFilterKey = spaceConfig?.totalFilterKey;
-        const totalFilterValue = totalFilterKey ? filters[totalFilterKey] : null;
-        const filterInfo = getTotalCountFilterInfo(
-          totalFilterKey,
-          totalFilterValue,
-        );
-        const cacheKey = buildTotalCountCacheKey(entityType, {
+        await fetchOrCacheTotalCount({
+          entityType,
+          filters,
           defaultFilters,
-          totalFilterKey,
-          totalFilterValue,
-        });
-
-        let cachedRaw: string | null = null;
-        try {
-          cachedRaw = localStorage.getItem(cacheKey);
-        } catch {
-          // localStorage may throw in private mode / when disabled
-        }
-        const cachedState = inspectCachedTotalCount(
-          cachedRaw,
-          TOTAL_COUNT_TTL_MS,
-        );
-
-        if (cachedState.status === 'hit') {
-          if (entityStore && entityStore.totalFromServer.value === null) {
-            entityStore.setTotalFromServer(cachedState.value!);
-          }
-          console.log(
-            `[SpaceStore] 📊 Using cached total: ${cachedState.value}${filterInfo} (age: ${Math.round((cachedState.ageMs || 0) / 1000 / 60 / 60)}h)`,
-          );
-        } else if (cachedState.status === 'refresh') {
-          shouldFetchCount = true;
-          console.log(`[SpaceStore] 📊 Cache expired, will refresh total count`);
-        } else {
-          shouldFetchCount = true;
-        }
-
-        // Skip fetching if totalFilterKey is required but not provided
-        // (user hasn't selected the mandatory filter yet)
-        if (totalFilterKey && !totalFilterValue) {
-          console.log(`[SpaceStore] 📊 Waiting for ${totalFilterKey} filter to be selected`);
-          // Don't fetch - let UI show "..." until filter is selected
-        } else if (shouldFetchCount) {
-          // Fetch fresh count if needed
-          try {
-            const countQuery = applyTotalCountFiltersToQuery(
+          totalFilterKey: spaceConfig?.totalFilterKey,
+          ttlMs: TOTAL_COUNT_TTL_MS,
+          readCache: (key) => {
+            try {
+              return localStorage.getItem(key);
+            } catch {
+              return null;
+            }
+          },
+          writeCache: (key, value) => {
+            try {
+              localStorage.setItem(key, value);
+            } catch (e) {
+              console.warn(`[SpaceStore] Failed to cache totalCount:`, e);
+            }
+          },
+          fetchFreshCount: (applyFilters) =>
+            applyFilters(
               supabase
                 .from(entityType)
                 .select('*', { count: 'exact', head: true })
                 .or('deleted.is.null,deleted.eq.false'),
-              {
-                defaultFilters,
-                totalFilterKey,
-                totalFilterValue,
-              },
-            );
-
-            const { count: totalCount, error: countError } = await countQuery;
-
-            if (!countError && totalCount !== null) {
-              console.log(`[SpaceStore] 📊 Fresh total count: ${totalCount}${filterInfo}`);
-              if (entityStore) {
-                entityStore.setTotalFromServer(totalCount);
-              }
-              // Cache to localStorage with timestamp
-              try {
-                const cacheData = { value: totalCount, timestamp: Date.now() };
-                localStorage.setItem(cacheKey, JSON.stringify(cacheData));
-              } catch (e) {
-                console.warn(`[SpaceStore] Failed to cache totalCount:`, e);
-              }
+            ),
+          onCountResolved: (count, source) => {
+            if (!entityStore) {
+              return;
             }
-          } catch (e) {
-            console.warn(`[SpaceStore] Failed to fetch total count:`, e);
-          }
-        }
+
+            if (source === 'cache') {
+              if (entityStore.totalFromServer.value === null) {
+                entityStore.setTotalFromServer(count);
+              }
+              return;
+            }
+
+            entityStore.setTotalFromServer(count);
+          },
+        });
       }
 
       if (!idsData || idsData.length === 0) {
