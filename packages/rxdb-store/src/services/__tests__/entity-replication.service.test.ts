@@ -564,6 +564,30 @@ describe("entity-replication.service", () => {
     );
   });
 
+  it("migrates a legacy plain-number-string cache into the new TTL JSON format", () => {
+    const service = new EntityReplicationService();
+    const { localStorageMock, storage } = createLocalStorageMock({
+      totalCount_pet: "42",
+      totalCount_breed: "not-a-number",
+    });
+
+    Object.defineProperty(globalThis, "localStorage", {
+      configurable: true,
+      value: localStorageMock,
+    });
+
+    expect(service.getTotalCount("pet")).toBe(42);
+
+    const migrated = storage.get("totalCount_pet");
+    expect(migrated).toBeDefined();
+    const parsed = JSON.parse(migrated!);
+    expect(parsed.value).toBe(42);
+    expect(typeof parsed.timestamp).toBe("number");
+
+    expect(service.getTotalCount("breed")).toBe(0);
+    expect(storage.get("totalCount_breed")).toBe("not-a-number");
+  });
+
   it("removes a totalCount subscriber when the unsubscribe function is called", async () => {
     const service = new EntityReplicationService();
     const callback = vi.fn();

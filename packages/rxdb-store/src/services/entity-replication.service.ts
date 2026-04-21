@@ -571,28 +571,42 @@ export class EntityReplicationService {
     try {
       const cached = localStorage.getItem(`totalCount_${entityType}`);
       if (cached) {
-        // Try JSON format first (new format with TTL)
+        // Try JSON format first (new format with TTL). Note: JSON.parse
+        // succeeds on bare numeric strings like "13" (returns a number),
+        // so the legacy-migration path must also handle the
+        // parsed-as-number case, not just the JSON.parse-throws case.
+        let parsed: unknown;
+        let parseThrew = false;
         try {
-          const parsed = JSON.parse(cached);
-          if (typeof parsed === 'object' && parsed.value && parsed.timestamp) {
-            const age = Date.now() - parsed.timestamp;
-            if (age < TOTAL_COUNT_TTL_MS && parsed.value > 0) {
-              console.log(`[EntityReplication-${entityType}] 📦 Using cached totalCount: ${parsed.value} (age: ${Math.round(age / 1000 / 60 / 60)}h)`);
-              return parsed.value;
+          parsed = JSON.parse(cached);
+        } catch {
+          parseThrew = true;
+        }
+
+        if (!parseThrew && parsed && typeof parsed === 'object') {
+          const objParsed = parsed as { value?: number; timestamp?: number };
+          if (objParsed.value && objParsed.timestamp) {
+            const age = Date.now() - objParsed.timestamp;
+            if (age < TOTAL_COUNT_TTL_MS && objParsed.value > 0) {
+              console.log(`[EntityReplication-${entityType}] 📦 Using cached totalCount: ${objParsed.value} (age: ${Math.round(age / 1000 / 60 / 60)}h)`);
+              return objParsed.value;
             }
             // Cache expired
             console.log(`[EntityReplication-${entityType}] 📦 Cache expired, returning 0`);
             return 0;
           }
-        } catch {
-          // Legacy format (plain number string) - migrate it
-          const count = parseInt(cached, 10);
-          if (!isNaN(count) && count > 0) {
-            const cacheData = { value: count, timestamp: Date.now() };
-            localStorage.setItem(`totalCount_${entityType}`, JSON.stringify(cacheData));
-            console.log(`[EntityReplication-${entityType}] 📦 Migrated legacy cache: ${count}`);
-            return count;
-          }
+        }
+
+        // Legacy format (plain number string) - migrate it. Reached when
+        // JSON.parse returned a bare number (typeof 'number'), or threw
+        // on a non-JSON string that parseInt can still read.
+        const count =
+          typeof parsed === 'number' ? parsed : parseInt(cached, 10);
+        if (!isNaN(count) && count > 0) {
+          const cacheData = { value: count, timestamp: Date.now() };
+          localStorage.setItem(`totalCount_${entityType}`, JSON.stringify(cacheData));
+          console.log(`[EntityReplication-${entityType}] 📦 Migrated legacy cache: ${count}`);
+          return count;
         }
       }
     } catch (e) {
