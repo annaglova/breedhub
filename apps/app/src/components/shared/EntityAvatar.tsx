@@ -121,25 +121,28 @@ export function EntityAvatar({
 
   return (
     <div className={`relative ${sizeClasses} ${className}`} style={sizeStyles}>
-      {/* Avatar image or fallback logo on gray */}
-      <div className="flex size-full items-center justify-center overflow-hidden rounded-full border border-slate-200 ring-4 ring-white">
-        {isShowingFallback ? (
-          <div className="flex size-full items-center justify-center bg-slate-50 dark:bg-slate-700">
+      {/* Outer frame — white padding backing (clips inner shadow) */}
+      <div className="size-full rounded-full bg-white p-1.5 overflow-hidden">
+        {/* Inner — actual image content with small shadow (clipped by outer) */}
+        <div className="flex size-full items-center justify-center overflow-hidden rounded-full shadow-[0_0_0_1px_rgba(17,17,26,0.06),0_-1px_2px_rgba(17,17,26,0.05),0_2px_4px_rgba(17,17,26,0.14)]">
+          {isShowingFallback ? (
+            <div className="flex size-full items-center justify-center bg-slate-50 dark:bg-slate-700">
+              <img
+                className="w-2/3 h-auto"
+                src={defaultImage}
+                alt={altText}
+              />
+            </div>
+          ) : (
             <img
-              className="w-2/3 h-auto"
-              src={defaultImage}
+              className="size-full object-cover"
+              src={imgSrc}
               alt={altText}
+              loading="lazy"
+              onError={handleError}
             />
-          </div>
-        ) : (
-          <img
-            className="size-full object-cover"
-            src={imgSrc}
-            alt={altText}
-            loading="lazy"
-            onError={handleError}
-          />
-        )}
+          )}
+        </div>
       </div>
 
       {/*
