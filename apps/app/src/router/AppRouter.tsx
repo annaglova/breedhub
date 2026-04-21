@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import { AppLayout } from '@/layouts/AppLayout';
+import { AuthGuard } from '@/components/auth/AuthGuard';
 // Core pages — eager, used on 90%+ of routes
 import { SpacePage } from '@/pages/SpacePage';
 import { SlugResolver } from '@/pages/SlugResolver';
@@ -222,87 +223,88 @@ export function AppRouter() {
 
         {/* App routes (inside AppLayout) */}
         <Route path="/" element={<AppLayout />}>
-          {/* Default redirect to first space */}
-          <Route index element={<Navigate to={`/${defaultSlug}`} replace />} />
+          <Route element={<AuthGuard><Outlet /></AuthGuard>}>
+            {/* Default redirect to first space */}
+            <Route index element={<Navigate to={`/${defaultSlug}`} replace />} />
 
-          {/* Workspace redirects - redirect /my to /my/notes etc. */}
-          {workspaceRedirects.map((redirect) => (
-            <Route
-              key={`redirect-${redirect.from}`}
-              path={redirect.from}
-              element={<Navigate to={redirect.to} replace />}
-            />
-          ))}
+            {/* Workspace redirects - redirect /my to /my/notes etc. */}
+            {workspaceRedirects.map((redirect) => (
+              <Route
+                key={`redirect-${redirect.from}`}
+                path={redirect.from}
+                element={<Navigate to={redirect.to} replace />}
+              />
+            ))}
 
-          {/* Dynamic space routes from app_config */}
-          {spaceConfigs.map((space) => (
-            <Route
-              key={`${space.workspaceId}-${space.id}`}
-              path={`${space.path}/*`}
-              element={<SpacePage entityType={space.entitySchemaName} />}
-            />
-          ))}
+            {/* Dynamic space routes from app_config */}
+            {spaceConfigs.map((space) => (
+              <Route
+                key={`${space.workspaceId}-${space.id}`}
+                path={`${space.path}/*`}
+                element={<SpacePage entityType={space.entitySchemaName} />}
+              />
+            ))}
 
-          {/* Dynamic page routes from workspace config (tool pages) */}
-          {pageRoutes.map((page) => {
-            const PageComponent = getPage(page.component);
-            if (!PageComponent) {
+            {/* Dynamic page routes from workspace config (tool pages) */}
+            {pageRoutes.map((page) => {
+              const PageComponent = getPage(page.component);
+              if (!PageComponent) {
+                return (
+                  <Route
+                    key={page.workspaceId}
+                    path={page.path}
+                    element={<PageNotFound componentName={page.component} />}
+                  />
+                );
+              }
+
+              // All tool pages use query params for data (e.g., /mating?father=slug&mother=slug)
               return (
                 <Route
                   key={page.workspaceId}
                   path={page.path}
-                  element={<PageNotFound componentName={page.component} />}
+                  element={<PageComponent pageConfig={page.pageConfig} workspaceConfig={page.workspaceConfig} />}
                 />
               );
-            }
+            })}
 
-            // All tool pages use query params for data (e.g., /mating?father=slug&mother=slug)
-            return (
-              <Route
-                key={page.workspaceId}
-                path={page.path}
-                element={<PageComponent pageConfig={page.pageConfig} workspaceConfig={page.workspaceConfig} />}
-              />
-            );
-          })}
+            {/* Marketplace routes - TODO: make dynamic from workspaces */}
+            <Route path="marketplace">
+              <Route index element={<Navigate to="/marketplace/pets" replace />} />
+              <Route path="pets" element={<PlaceholderPage title="Marketplace - Pets" />} />
+            </Route>
 
-          {/* Marketplace routes - TODO: make dynamic from workspaces */}
-          <Route path="marketplace">
-            <Route index element={<Navigate to="/marketplace/pets" replace />} />
-            <Route path="pets" element={<PlaceholderPage title="Marketplace - Pets" />} />
+            {/* Test routes */}
+            <Route path="test">
+              <Route path="dictionary" element={<TestDictionaryPage />} />
+              <Route path="page" element={<TestPage />} />
+            </Route>
+
+            {/* Welcome/onboarding page */}
+            <Route path="welcome" element={<WelcomePage />} />
+
+            {/* Billing page */}
+            <Route path="billing" element={<BillingPage />} />
+
+            {/* Referral page */}
+            <Route path="referral" element={<ReferralPage />} />
+
+            {/* Gift page */}
+            <Route path="gift" element={<GiftPage />} />
+
+            {/* Create page - fullscreen create form */}
+            {/* Resolves /new?entity=pet → fullscreen create form */}
+            <Route path="new" element={<CreatePageResolver />} />
+
+            {/* Edit page resolver - for edit mode via pretty URL */}
+            {/* Resolves /my-pet-name/edit → edit page fullscreen */}
+            <Route path=":slug/edit" element={<EditPageResolver />} />
           </Route>
 
-          {/* Test routes */}
-          <Route path="test">
-            <Route path="dictionary" element={<TestDictionaryPage />} />
-            <Route path="page" element={<TestPage />} />
-          </Route>
-
-          {/* Welcome/onboarding page */}
-          <Route path="welcome" element={<WelcomePage />} />
-
-          {/* Billing page */}
-          <Route path="billing" element={<BillingPage />} />
-
-          {/* Referral page */}
-          <Route path="referral" element={<ReferralPage />} />
-
-          {/* Gift page */}
-          <Route path="gift" element={<GiftPage />} />
-
-          {/* Create page - fullscreen create form */}
-          {/* Resolves /new?entity=pet → fullscreen create form */}
-          <Route path="new" element={<CreatePageResolver />} />
-
-          {/* Slug resolver - catch-all for pretty URLs */}
+          {/* Public pretty URLs stay open for public pages */}
           {/* Resolves /affenpinscher → /breeds/:id with fullscreen state */}
           <Route path=":slug" element={<SlugResolver />} />
 
-          {/* Edit page resolver - for edit mode via pretty URL */}
-          {/* Resolves /my-pet-name/edit → edit page fullscreen */}
-          <Route path=":slug/edit" element={<EditPageResolver />} />
-
-          {/* Tab page resolver - for tab fullscreen mode */}
           {/* Resolves /affenpinscher/achievements → single tab view */}
           <Route path=":slug/:tabSlug" element={<TabPageResolver />} />
         </Route>
