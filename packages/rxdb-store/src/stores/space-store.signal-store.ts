@@ -335,10 +335,7 @@ class SpaceStore {
     return resolveSpaceConfig(this.spaceConfigs, entityType);
   }
 
-  /**
-   * Get space configuration for an entity type
-   * Returns title, permissions, and other UI config
-   */
+  /** Space config for entity type (title, permissions, UI config). */
   getSpaceConfig(entityType: string): any | null {
     const spaceConfig = this.resolveSpaceConfig(entityType);
 
@@ -366,25 +363,12 @@ class SpaceStore {
     );
   }
 
-  /**
-   * Get default view (slug) from space config
-   * Finds the view with isDefault: true
-   *
-   * @param entityType - Entity type (e.g., 'breed', 'animal')
-   * @returns View slug (e.g., 'list') or first view's slug as fallback
-   */
+  /** Default view slug from space config (view with isDefault: true, or first view). */
   getDefaultView(entityType: string): string {
     return getDefaultViewFromConfig(this.resolveSpaceConfig(entityType), entityType);
   }
 
-  /**
-   * Get sort options from space config's sort_fields
-   * Sort options are defined at space level and shared across all views
-   *
-   * @param entityType - Entity type (e.g., 'breed', 'animal')
-   * @param viewType - Deprecated parameter, kept for backward compatibility
-   * @returns Array of sort options with id, name, icon, direction, parameter
-   */
+  /** Sort options from space.sort_fields (shared across views). viewType kept for backward compat. */
   getSortOptions(entityType: string, viewType?: string): Array<{
     id: string;
     name: string;
@@ -403,14 +387,8 @@ class SpaceStore {
   }
 
   /**
-   * Get filter fields from space config's filter_fields
-   * Filter fields are defined at space level and shared across all views
-   *
-   * Note: Fields with mainFilterField=true are excluded (they're for search bar, not modal)
-   *
-   * @param entityType - Entity type (e.g., 'breed', 'animal')
-   * @param viewType - Deprecated parameter, kept for backward compatibility
-   * @returns Array of filter field configurations (excluding main filter field)
+   * Filter fields from space.filter_fields, excluding mainFilterField entries
+   * (those belong to search bar, not the filter modal).
    */
   getFilterFields(entityType: string, viewType?: string): Array<{
     id: string;
@@ -442,13 +420,7 @@ class SpaceStore {
     return getFilterFieldsFromConfig(this.resolveSpaceConfig(entityType), entityType);
   }
 
-  /**
-   * Get main filter field for primary search (search bar)
-   * This field is excluded from filter dialog modal
-   *
-   * @param entityType - Entity type (e.g., 'breed', 'animal')
-   * @returns Main filter field configuration or null if not found
-   */
+  /** Main filter field for the search bar (excluded from filter modal). */
   getMainFilterField(entityType: string): {
     id: string;
     displayName: string;
@@ -462,12 +434,8 @@ class SpaceStore {
   }
 
   /**
-   * Get ALL main filter fields from space config's filter_fields
-   * Used when multiple fields have mainFilterField: true (e.g., litter: father_name, mother_name)
-   * These fields will be searched with OR logic
-   *
-   * @param entityType - Entity type (e.g., 'breed', 'litter')
-   * @returns Object with fields array and optional searchSlug for URL
+   * All main filter fields (when multiple mainFilterField: true entries exist,
+   * e.g. litter: father_name + mother_name) — searched with OR logic.
    */
   getMainFilterFields(entityType: string): {
     fields: Array<{
@@ -775,10 +743,7 @@ class SpaceStore {
     }
   }
   
-  /**
-   * Get reactive space config as computed signal
-   * Returns a computed signal that updates when config changes
-   */
+  /** Reactive space config as a computed signal. */
   getSpaceConfigSignal(entityType: string) {
     return computed(() => {
       // Return null if not ready
@@ -979,10 +944,6 @@ class SpaceStore {
     return { entityStore, collection };
   }
   
-  /**
-   * Initialize entity with lifecycle hooks
-   * Similar to Angular's withHooks onInit
-   */
   /**
    * Apply filters to entity data
    * Universal filtering method used by both SpaceView and LookupInput
@@ -1239,10 +1200,7 @@ class SpaceStore {
     });
   }
 
-  /**
-   * 🌐 ID-First Phase 3: Fetch full records by IDs
-   * Only fetches missing records that aren't in RxDB cache
-   */
+  /** 🌐 Phase 3: fetch full records for ids not cached in RxDB. */
   private async fetchRecordsByIDs(
     entityType: string,
     ids: string[]
@@ -1342,10 +1300,7 @@ class SpaceStore {
     return results;
   }
 
-  /**
-   * Map Supabase record to RxDB format
-   * Extracted from fetchFilteredFromSupabase for reusability
-   */
+  /** Map Supabase record to RxDB shape via the collection's jsonSchema. */
   public mapToRxDBFormat(supabaseDoc: any, entityType: string): any {
     const collection = this.db?.collections[entityType];
     if (!collection) {
@@ -1369,10 +1324,7 @@ class SpaceStore {
     return entityStore.getSelectedId();
   }
 
-  /**
-   * Get the selected entity ID as a reactive signal for a given entity type
-   * Use this in React components for automatic re-renders on selection changes
-   */
+  /** Selected entity ID as reactive signal for React re-renders. */
   getSelectedIdSignal(entityType: string): ReadonlySignal<string | null> {
     return computed(() => {
       void this.entityStoresVersion.value; // Subscribe to Map changes
@@ -1384,10 +1336,7 @@ class SpaceStore {
     });
   }
 
-  /**
-   * Select an entity by ID for a given entity type
-   * If entity is not in memory, loads it from RxDB collection
-   */
+  /** Select entity by ID; lazy-loads from RxDB if not in memory. */
   selectEntity(entityType: string, id: string | null): void {
     const entityStore = this.entityStores.get(entityType.toLowerCase());
     if (!entityStore) {
@@ -1404,10 +1353,7 @@ class SpaceStore {
     }
   }
 
-  /**
-   * Load entity from RxDB collection and add to entityStore
-   * This ensures selectedEntity works even when entity is not in paginated list
-   */
+  /** Load entity from RxDB and add to entityStore (for selection outside paginated list). */
   private async loadEntityFromRxDB(entityType: string, id: string, entityStore: EntityStore<any>): Promise<void> {
     if (!this.db) {
       console.warn('[SpaceStore] Database not initialized');
@@ -1443,14 +1389,10 @@ class SpaceStore {
   }
 
   /**
-   * Fetch entity by ID from Supabase and add to store if not already present.
-   * Used when navigating directly to entity via pretty URL (e.g., /akita).
-   * The entity may not be in the paginated list, so we need to fetch it directly.
-   *
-   * @param entityType - Entity type (e.g., 'pet', 'breed')
-   * @param id - Entity UUID
-   * @param partitionId - Optional partition key value for partition pruning (e.g., breed_id for pet)
-   * @param partitionField - Optional partition key column name (e.g., 'breed_id') - fallback when entitySchemas not ready
+   * Fetch entity by ID from Supabase and add to store if absent. Used on direct
+   * navigation via pretty URL (e.g. /akita) where the entity may not be in the
+   * paginated list. partitionField is the fallback override when entitySchemas
+   * isn't ready yet.
    */
   async fetchAndSelectEntity(entityType: string, id: string, partitionId?: string, partitionField?: string): Promise<boolean> {
     // Use getEntityStore which will create the store if it doesn't exist
@@ -1496,15 +1438,9 @@ class SpaceStore {
   }
 
   /**
-   * Fetch entity by slug - fast local-first lookup
-   *
-   * Unlike fetchAndSelectEntity, this doesn't wait for config/store initialization.
-   * It queries RxDB collection directly if available, then falls back to Supabase.
-   *
-  * @param entityType - Entity type (e.g., 'pet')
-  * @param slug - Entity slug
-  * @returns Entity data or null
-  */
+   * Fetch entity by slug — fast local-first lookup. Unlike fetchAndSelectEntity
+   * this doesn't wait for config/store init: RxDB direct → Supabase fallback.
+   */
   async fetchEntityBySlug<T = any>(entityType: string, slug: string): Promise<T | null> {
     return fetchEntityBySlugFlow<T>({
       supabase,
@@ -1710,10 +1646,9 @@ class SpaceStore {
   // ============================================================
 
   /**
-   * Ensure child collection exists for entity type (lazy creation)
-   *
-   * Creates collection on first access, reuses existing one for subsequent calls.
-   * Uses pre-defined schemas (breed_children, pet_children, kennel_children).
+   * Lazy-create child collection for entity type (reuses if already in
+   * this.childCollections or this.db.collections). Uses pre-defined child
+   * schemas (breed_children, pet_children, kennel_children).
    */
   async ensureChildCollection(entityType: string): Promise<RxCollection<any> | null> {
     const collectionName = getChildCollectionName(entityType);
@@ -1755,14 +1690,7 @@ class SpaceStore {
       return null;
     }
   }
-  /**
-   * Load child records from Supabase for a specific parent entity
-   *
-   * @param parentId - ID of the parent entity (e.g., breed ID)
-   * @param tableType - Type of child table (e.g., 'achievement_in_breed')
-   * @param options - Loading options (limit, orderBy)
-   * @returns Loaded records
-   */
+  /** Load child records from Supabase for a specific parent entity. */
   async loadChildRecords(
     parentId: string,
     tableType: string,
@@ -2001,14 +1929,7 @@ class SpaceStore {
     }
   }
 
-  /**
-   * Get child records from RxDB (local cache)
-   *
-   * @param parentId - ID of the parent entity
-   * @param tableType - Type of child table
-   * @param options - Query options
-   * @returns Records from local RxDB collection
-   */
+  /** Get child records from RxDB local cache. */
   async getChildRecords(
     parentId: string,
     tableType: string,
@@ -2093,15 +2014,7 @@ class SpaceStore {
     });
   }
 
-  /**
-   * Create a new child record (Supabase + RxDB)
-   *
-   * @param entityType - Parent entity type (e.g., 'pet', 'breed')
-   * @param tableType - Child table name (e.g., 'title_in_pet')
-   * @param parentId - Parent entity ID
-   * @param data - Record data (field values)
-   * @returns Created record ID
-   */
+  /** Create a new child record (Supabase + RxDB). Returns created id. */
   async createChildRecord(
     entityType: string,
     tableType: string,
@@ -2168,14 +2081,7 @@ class SpaceStore {
     return { id };
   }
 
-  /**
-   * Update an existing child record (Supabase + RxDB)
-   *
-   * @param entityType - Parent entity type (e.g., 'pet', 'breed')
-   * @param tableType - Child table name (e.g., 'title_in_pet')
-   * @param recordId - Record ID to update
-   * @param data - Fields to update
-   */
+  /** Update an existing child record (Supabase + RxDB). */
   async updateChildRecord(
     entityType: string,
     tableType: string,
@@ -2230,13 +2136,7 @@ class SpaceStore {
     }
   }
 
-  /**
-   * Delete a child record (Supabase + RxDB)
-   *
-   * @param entityType - Parent entity type (e.g., 'pet', 'breed')
-   * @param tableType - Child table name (e.g., 'title_in_pet')
-   * @param recordId - Record ID to delete
-   */
+  /** Delete a child record (Supabase + RxDB). */
   async deleteChildRecord(
     entityType: string,
     tableType: string,
@@ -2274,18 +2174,9 @@ class SpaceStore {
   // ─────────────────────────────────────────────────────────────────────────────
 
   /**
-   * Load child records with ID-First architecture (same as applyFilters)
-   *
-   * 4-phase loading:
-   * 1. Fetch IDs + orderBy field from Supabase (lightweight ~1KB)
-   * 2. Check RxDB cache for these IDs
-   * 3. Fetch missing full records from Supabase
-   * 4. Merge cached + fresh, maintain order
-   *
-   * @param parentId - Parent entity ID (e.g., breed_id)
-   * @param tableType - Child table/view name (e.g., 'top_pet_in_breed_with_pet')
-   * @param filters - Optional additional filters
-   * @param options - Pagination options
+   * Load child records with ID-First architecture (mirrors applyFilters):
+   * fetch IDs from Supabase → check RxDB cache → fetch missing → merge
+   * cached + fresh preserving order.
    */
   async applyChildFilters(
     parentId: string,
@@ -2737,10 +2628,7 @@ class SpaceStore {
 
   // UI state methods
 
-  /**
-   * Set fullscreen mode for drawer
-   * Called when opening entity from pretty URL or expand button
-   */
+  /** Set drawer fullscreen (pretty-URL open or expand button). */
   setFullscreen(value: boolean): void {
     this.isFullscreen.value = value;
     // Always reset tab fullscreen — only setTabFullscreen() should set it.
@@ -2748,19 +2636,13 @@ class SpaceStore {
     this.isTabFullscreen.value = false;
   }
 
-  /**
-   * Set tab-level fullscreen (expand button on specific tab).
-   * Enables infinite scroll. Distinct from page fullscreen where limits apply.
-   */
+  /** Set tab-level fullscreen — enables infinite scroll (page fullscreen keeps limits). */
   setTabFullscreen(value: boolean): void {
     this.isTabFullscreen.value = value;
     if (value) this.isFullscreen.value = true;
   }
 
-  /**
-   * Clear fullscreen mode
-   * Called when closing drawer or navigating away
-   */
+  /** Clear drawer fullscreen (on close / navigate away). */
   clearFullscreen(): void {
     this.isFullscreen.value = false;
     this.isTabFullscreen.value = false;
@@ -2772,11 +2654,7 @@ class SpaceStore {
 
   private readonly TAB_COUNTS_STORAGE_KEY = 'breedhub_tab_loaded_counts';
 
-  /**
-   * Set loaded count for a specific tab
-   * Called by TabsContainer when tab data is loaded
-   * Also persists to sessionStorage for cross-navigation access
-   */
+  /** Set tab loaded count + persist to sessionStorage for cross-navigation access. */
   setTabLoadedCount(entityId: string, tabId: string, count: number): void {
     const current = this.tabLoadedCountsMap.value;
     const entityCounts = current[entityId] || {};
@@ -2802,10 +2680,7 @@ class SpaceStore {
     }
   }
 
-  /**
-   * Get loaded count for a specific tab
-   * Lazy loads from sessionStorage if needed
-   */
+  /** Get tab loaded count (lazy-loads from sessionStorage). */
   getTabLoadedCount(entityId: string, tabId: string): number | undefined {
     // Lazy load from storage if empty
     if (Object.keys(this.tabLoadedCountsMap.value).length === 0) {
@@ -2814,10 +2689,7 @@ class SpaceStore {
     return this.tabLoadedCountsMap.value[entityId]?.[tabId];
   }
 
-  /**
-   * Get all loaded counts for an entity
-   * Lazy loads from sessionStorage if needed
-   */
+  /** Get all tab loaded counts for an entity (lazy-loads from sessionStorage). */
   getTabLoadedCounts(entityId: string): Record<string, number> {
     // Lazy load from storage if empty
     if (Object.keys(this.tabLoadedCountsMap.value).length === 0) {
@@ -2869,10 +2741,6 @@ class SpaceStore {
     return this.tabLoadedCountsMap;
   }
 
-  /**
-   * Get a single record by ID from a collection
-   * Used for pre-loading selected values in LookupInput
-   */
   /**
    * Get a single record by ID (ID-First pattern)
    *
