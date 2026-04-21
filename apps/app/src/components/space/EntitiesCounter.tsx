@@ -30,7 +30,7 @@ export function EntitiesCounter({
   if (totalFilterKey && !totalFilterValue) {
     const displayEntitiesCount = entitiesCount > 0 ? entitiesCount : initialCount;
     return (
-      <div className="text-sm text-muted-foreground mt-2">
+      <div className="text-sm text-muted-foreground mt-1">
         Showing {formatNumber(displayEntitiesCount)} of <span className="inline-block animate-pulse">...</span>
       </div>
     );
@@ -89,7 +89,7 @@ export function EntitiesCounter({
   // Waiting for total (no cache, no server total yet)
   if (displayTotal === 0) {
     return (
-      <div className="text-sm text-muted-foreground mt-2">
+      <div className="text-sm text-muted-foreground mt-1">
         Showing {formatNumber(displayEntitiesCount)} of <span className="inline-block animate-pulse">...</span>
       </div>
     );
@@ -100,7 +100,7 @@ export function EntitiesCounter({
   const isConfirmedTotal = total > entitiesCount || cachedTotal > 0;
   if (entitiesCount > 0 && entitiesCount >= displayTotal && isConfirmedTotal) {
     return (
-      <div className="text-sm text-muted-foreground mt-2">
+      <div className="text-sm text-muted-foreground mt-1">
         Showing all {formatNumber(displayTotal)}
       </div>
     );
@@ -108,7 +108,7 @@ export function EntitiesCounter({
 
   // Default: show current count vs total
   return (
-    <div className="text-sm text-muted-foreground mt-2">
+    <div className="text-sm text-muted-foreground mt-1">
       Showing {formatNumber(displayEntitiesCount)} of {formatNumber(displayTotal)}
     </div>
   );
