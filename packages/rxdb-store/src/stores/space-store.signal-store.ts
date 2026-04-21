@@ -37,6 +37,7 @@ import {
   buildHybridSearchPhaseQuery,
   buildHybridSearchPlan,
   buildRxdbCountSelector,
+  executeOfflineFilterFlow,
   mergeHybridPhaseResults,
   applyFiltersToSupabaseQuery,
   getActiveFilterEntries,
@@ -1104,59 +1105,36 @@ class SpaceStore {
 
     // 📴 PREVENTIVE OFFLINE CHECK: Skip Supabase if browser is offline
     if (isOffline()) {
+      return executeOfflineFilterFlow({
+        entityType,
+        filters,
+        fieldConfigs,
+        runLocalQuery: () =>
+          filterLocalEntities({
+            collection: this.db?.collections[entityType],
+            entityType,
+            filters,
+            fieldConfigs,
+            limit,
+            cursor,
+            orderBy,
+            logMissingCollection: !!this.db,
+          }),
+        buildCountSelector: buildRxdbCountSelector,
+        countByCollection: async (selector) => {
+          if (!this.db) {
+            throw new Error('Database not initialized');
+          }
 
-      try {
-        const localQuery = await filterLocalEntities({
-          collection: this.db?.collections[entityType],
-          entityType,
-          filters,
-          fieldConfigs,
-          limit,
-          cursor,
-          orderBy,
-          logMissingCollection: !!this.db,
-        });
-        const localResults = localQuery.records;
+          const collection = this.db.collections[entityType];
+          if (!collection) {
+            throw new Error(`Collection ${entityType} not found`);
+          }
 
-        // Get total count
-        if (!this.db) {
-          throw new Error('Database not initialized');
-        }
-
-        const collection = this.db.collections[entityType];
-        if (!collection) {
-          throw new Error(`Collection ${entityType} not found`);
-        }
-
-        const countSelector = buildRxdbCountSelector(filters, fieldConfigs, {
-          entityType,
-        });
-
-        const allMatchingDocs = await collection.find({ selector: countSelector }).exec();
-        const totalCount = allMatchingDocs.length;
-
-        const hasMore = localQuery.hasMore;
-        const nextCursor = localQuery.nextCursor;
-
-        console.log(`[SpaceStore] 📴 Offline mode (preventive): returning ${localResults.length}/${totalCount} records (hasMore: ${hasMore})`);
-
-        return {
-          records: localResults,
-          total: totalCount,
-          hasMore,
-          nextCursor,
-          offline: true
-        } as any;
-      } catch (error) {
-        console.error('[SpaceStore] Offline mode failed:', error);
-        return {
-          records: [],
-          total: 0,
-          hasMore: false,
-          nextCursor: null,
-          offline: true
-        } as any;
-      }
+          const allMatchingDocs = await collection.find({ selector }).exec();
+          return allMatchingDocs.length;
+        },
+      });
     }
 
     try {

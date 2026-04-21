@@ -1,14 +1,19 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   buildHybridBaseQuery,
   buildHybridSearchPhaseQuery,
   buildHybridSearchPlan,
   buildRxdbCountSelector,
+  executeOfflineFilterFlow,
   mergeHybridPhaseResults,
   prepareFiltersWithDefaults,
 } from "../space-filter.helpers";
 
 describe("space-filter.helpers", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   function createSupabaseQueryMock() {
     const calls: Array<[string, ...any[]]> = [];
     const query = {
@@ -132,6 +137,138 @@ describe("space-filter.helpers", () => {
       _deleted: false,
       name: { $regex: "Alpha", $options: "i" },
     });
+  });
+
+  it("executes preventive offline flow with local records and collection-backed count", async () => {
+    const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+
+    await expect(
+      executeOfflineFilterFlow({
+        entityType: "pet",
+        filters: { status: "active" },
+        fieldConfigs: {
+          status: { fieldType: "string", operator: "eq" },
+        },
+        runLocalQuery: async () => ({
+          records: [{ id: "1" }, { id: "2" }],
+          hasMore: true,
+          nextCursor: "cursor-1",
+        }),
+        buildCountSelector: buildRxdbCountSelector,
+        countByCollection: async (selector) => {
+          expect(selector).toEqual({
+            _deleted: false,
+            status: "active",
+          });
+          return 5;
+        },
+      }),
+    ).resolves.toEqual({
+      records: [{ id: "1" }, { id: "2" }],
+      total: 5,
+      hasMore: true,
+      nextCursor: "cursor-1",
+      offline: true,
+    });
+
+    expect(logSpy).toHaveBeenCalledWith(
+      "[SpaceStore] 📴 Offline mode (preventive): returning 2/5 records (hasMore: true)",
+    );
+  });
+
+  it("returns empty offline shape and logs when collection count lookup fails", async () => {
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    const error = new Error("Collection pet not found");
+
+    await expect(
+      executeOfflineFilterFlow({
+        entityType: "pet",
+        filters: {},
+        fieldConfigs: {},
+        runLocalQuery: async () => ({
+          records: [{ id: "1" }],
+          hasMore: false,
+          nextCursor: null,
+        }),
+        buildCountSelector: buildRxdbCountSelector,
+        countByCollection: async () => {
+          throw error;
+        },
+      }),
+    ).resolves.toEqual({
+      records: [],
+      total: 0,
+      hasMore: false,
+      nextCursor: null,
+      offline: true,
+    });
+
+    expect(errorSpy).toHaveBeenCalledWith(
+      "[SpaceStore] Offline mode failed:",
+      error,
+    );
+  });
+
+  it("returns empty offline shape and logs when db is not initialized", async () => {
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    const error = new Error("Database not initialized");
+
+    await expect(
+      executeOfflineFilterFlow({
+        entityType: "pet",
+        filters: {},
+        fieldConfigs: {},
+        runLocalQuery: async () => ({
+          records: [{ id: "1" }],
+          hasMore: false,
+          nextCursor: null,
+        }),
+        buildCountSelector: buildRxdbCountSelector,
+        countByCollection: async () => {
+          throw error;
+        },
+      }),
+    ).resolves.toEqual({
+      records: [],
+      total: 0,
+      hasMore: false,
+      nextCursor: null,
+      offline: true,
+    });
+
+    expect(errorSpy).toHaveBeenCalledWith(
+      "[SpaceStore] Offline mode failed:",
+      error,
+    );
+  });
+
+  it("returns empty offline shape and logs when local query throws", async () => {
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    const error = new Error("Local query failed");
+
+    await expect(
+      executeOfflineFilterFlow({
+        entityType: "pet",
+        filters: {},
+        fieldConfigs: {},
+        runLocalQuery: async () => {
+          throw error;
+        },
+        buildCountSelector: buildRxdbCountSelector,
+        countByCollection: async () => 0,
+      }),
+    ).resolves.toEqual({
+      records: [],
+      total: 0,
+      hasMore: false,
+      nextCursor: null,
+      offline: true,
+    });
+
+    expect(errorSpy).toHaveBeenCalledWith(
+      "[SpaceStore] Offline mode failed:",
+      error,
+    );
   });
 
   it("builds hybrid search plan for OR search fields sharing the same value", () => {

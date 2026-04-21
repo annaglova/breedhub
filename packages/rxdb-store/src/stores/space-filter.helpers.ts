@@ -40,6 +40,36 @@ export interface HybridSearchRecord {
   [key: string]: any;
 }
 
+export interface OfflineFilterFlowResult<TRecord = any> {
+  records: TRecord[];
+  total: number;
+  hasMore: boolean;
+  nextCursor: string | null;
+  offline: true;
+}
+
+export interface OfflineFilterQueryResult<TRecord = any> {
+  records: TRecord[];
+  hasMore: boolean;
+  nextCursor: string | null;
+}
+
+export interface ExecuteOfflineFilterFlowOptions<
+  TSelector = any,
+  TRecord = any,
+> {
+  entityType: string;
+  filters: Record<string, any>;
+  fieldConfigs: Record<string, any>;
+  runLocalQuery: () => Promise<OfflineFilterQueryResult<TRecord>>;
+  buildCountSelector: (
+    filters: Record<string, any>,
+    fieldConfigs: Record<string, any>,
+    options: FilterApplicationOptions,
+  ) => TSelector;
+  countByCollection: (selector: TSelector) => Promise<number>;
+}
+
 export interface HybridBaseQuery<TQuery> {
   or(condition: string): TQuery;
 }
@@ -300,6 +330,47 @@ export function buildRxdbCountSelector(
   applyFiltersToRxdbSelector(selector, filters, fieldConfigs, options);
 
   return selector;
+}
+
+export async function executeOfflineFilterFlow<
+  TSelector = any,
+  TRecord = any,
+>(
+  options: ExecuteOfflineFilterFlowOptions<TSelector, TRecord>,
+): Promise<OfflineFilterFlowResult<TRecord>> {
+  try {
+    const localQuery = await options.runLocalQuery();
+    const localResults = localQuery.records;
+    const countSelector = options.buildCountSelector(
+      options.filters,
+      options.fieldConfigs,
+      { entityType: options.entityType },
+    );
+    const totalCount = await options.countByCollection(countSelector);
+    const hasMore = localQuery.hasMore;
+    const nextCursor = localQuery.nextCursor;
+
+    console.log(
+      `[SpaceStore] 📴 Offline mode (preventive): returning ${localResults.length}/${totalCount} records (hasMore: ${hasMore})`,
+    );
+
+    return {
+      records: localResults,
+      total: totalCount,
+      hasMore,
+      nextCursor,
+      offline: true,
+    };
+  } catch (error) {
+    console.error("[SpaceStore] Offline mode failed:", error);
+    return {
+      records: [],
+      total: 0,
+      hasMore: false,
+      nextCursor: null,
+      offline: true,
+    };
+  }
 }
 
 export function applyFiltersToSupabaseQuery<TQuery>(
