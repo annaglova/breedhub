@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import { AppLayout } from '@/layouts/AppLayout';
 import { AuthGuard } from '@/components/auth/AuthGuard';
+import { PageErrorBoundary } from '@/components/error-boundary/ErrorBoundary';
 // Core pages — eager, used on 90%+ of routes
 import { SpacePage } from '@/pages/SpacePage';
 import { SlugResolver } from '@/pages/SlugResolver';
@@ -34,6 +35,17 @@ function lazyRoute(
       </React.Suspense>
     );
   };
+}
+
+function withPageErrorBoundary(
+  element: React.ReactNode,
+  contextLabel: string,
+) {
+  return (
+    <PageErrorBoundary contextLabel={contextLabel}>
+      {element}
+    </PageErrorBoundary>
+  );
 }
 
 // Auth pages (lazy — only needed on auth routes)
@@ -215,11 +227,38 @@ export function AppRouter() {
     <BrowserRouter>
       <Routes>
         {/* Auth routes (outside AppLayout) */}
-        <Route path="/sign-in" element={<React.Suspense fallback={<SignInSkeleton />}><SignIn /></React.Suspense>} />
-        <Route path="/sign-up" element={<React.Suspense fallback={<SignUpSkeleton />}><SignUp /></React.Suspense>} />
-        <Route path="/forgot-password" element={<React.Suspense fallback={<ForgotPasswordSkeleton />}><ForgotPassword /></React.Suspense>} />
-        <Route path="/reset-password" element={<React.Suspense fallback={<ResetPasswordSkeleton />}><ResetPassword /></React.Suspense>} />
-        <Route path="/auth/callback" element={<AuthCallbackPage />} />
+        <Route
+          path="/sign-in"
+          element={withPageErrorBoundary(
+            <React.Suspense fallback={<SignInSkeleton />}><SignIn /></React.Suspense>,
+            '/sign-in',
+          )}
+        />
+        <Route
+          path="/sign-up"
+          element={withPageErrorBoundary(
+            <React.Suspense fallback={<SignUpSkeleton />}><SignUp /></React.Suspense>,
+            '/sign-up',
+          )}
+        />
+        <Route
+          path="/forgot-password"
+          element={withPageErrorBoundary(
+            <React.Suspense fallback={<ForgotPasswordSkeleton />}><ForgotPassword /></React.Suspense>,
+            '/forgot-password',
+          )}
+        />
+        <Route
+          path="/reset-password"
+          element={withPageErrorBoundary(
+            <React.Suspense fallback={<ResetPasswordSkeleton />}><ResetPassword /></React.Suspense>,
+            '/reset-password',
+          )}
+        />
+        <Route
+          path="/auth/callback"
+          element={withPageErrorBoundary(<AuthCallbackPage />, '/auth/callback')}
+        />
 
         {/* App routes (inside AppLayout) */}
         <Route path="/" element={<AppLayout />}>

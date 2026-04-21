@@ -1,5 +1,6 @@
 import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
+import { PageErrorBoundary } from "@/components/error-boundary/ErrorBoundary";
 import { LoadingBar } from "@/components/shared/LoadingBar";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
@@ -7,10 +8,11 @@ import { spaceStore } from "@breedhub/rxdb-store";
 import { useSignals } from "@preact/signals-react/runtime";
 import { cn } from "@ui/lib/utils";
 import { useEffect, useRef, useState } from "react";
-import { Outlet } from "react-router-dom";
+import { Outlet, useLocation } from "react-router-dom";
 
 export function AppLayout() {
   useSignals();
+  const location = useLocation();
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
@@ -54,6 +56,7 @@ export function AppLayout() {
   }, []);
 
   const mainHeight = screenHeight - topBarHeight - footerHeight;
+  const pageKey = `${location.pathname}${location.search}${location.hash}`;
 
   return (
     <div className="layout-container bg-slate-100 flex flex-col h-screen">
@@ -112,7 +115,12 @@ export function AppLayout() {
                 className="flex-1 overflow-hidden 3xl:max-w-[1504px]"
                 style={isLG ? { height: `${mainHeight - 20}px` } : undefined}
               >
-                <Outlet />
+                <PageErrorBoundary
+                  contextLabel={pageKey}
+                  resetKeys={[pageKey]}
+                >
+                  <Outlet />
+                </PageErrorBoundary>
               </main>
 
               {/* Right spacer column - only on 3xl */}

@@ -1,6 +1,7 @@
 import { useMemo, useRef, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Pencil, Minimize2, Maximize2, Minus, Plus } from "lucide-react";
+import { TabErrorBoundary } from "@/components/error-boundary/ErrorBoundary";
 import { NavigationButtons } from "@/components/template/cover/NavigationButtons";
 import {
   Tooltip,
@@ -367,16 +368,21 @@ export function TabPageTemplate({
                 activeTabSlug !== "pedigree" && "max-w-5xl lg:max-w-6xl xxl:max-w-7xl"
               )}
             >
-              <TabComponent
-                entity={selectedEntity}
-                mode="fullscreen"
-                dataSource={currentTab.dataSource}
-                pedigreeGenerations={pedigreeGenerations}
-                onPedigreeGenerationsChange={handleGenerationsChange}
-                pedigreeZoom={pedigreeZoom}
-                stickyScrollbarTop={isPedigreeFocusMode ? (COMPACT_BAR_HEIGHT + 52) : (PAGE_MENU_TOP + 102)}
-                linkToPedigree={linkToPedigree}
-              />
+              <TabErrorBoundary
+                contextLabel={currentTab.label}
+                resetKeys={[entityId, activeTabSlug]}
+              >
+                <TabComponent
+                  entity={selectedEntity}
+                  mode="fullscreen"
+                  dataSource={currentTab.dataSource}
+                  pedigreeGenerations={pedigreeGenerations}
+                  onPedigreeGenerationsChange={handleGenerationsChange}
+                  pedigreeZoom={pedigreeZoom}
+                  stickyScrollbarTop={isPedigreeFocusMode ? (COMPACT_BAR_HEIGHT + 52) : (PAGE_MENU_TOP + 102)}
+                  linkToPedigree={linkToPedigree}
+                />
+              </TabErrorBoundary>
             </div>
           </div>
         </div>

@@ -1,4 +1,5 @@
 import { useState, useCallback } from "react";
+import { TabErrorBoundary } from "@/components/error-boundary/ErrorBoundary";
 import { cn } from "@ui/lib/utils";
 import { TabHeader } from "./TabHeader";
 import { ScrollableTab } from "./ScrollableTab";
@@ -148,12 +149,17 @@ export function TabsContainer({
                 onVisibilityChange={handleVisibilityChange}
                 className="px-4 sm:px-0"
               >
-                <Component
-                  dataSource={tab.dataSource}
-                  onLoadedCount={(count: number) => handleLoadedCount(tab.id, count)}
-                  tabHeaderTop={tabHeaderTop}
-                  {...tab.tabProps}
-                />
+                <TabErrorBoundary
+                  contextLabel={tab.label}
+                  resetKeys={[entityId, tab.id, mode]}
+                >
+                  <Component
+                    dataSource={tab.dataSource}
+                    onLoadedCount={(count: number) => handleLoadedCount(tab.id, count)}
+                    tabHeaderTop={tabHeaderTop}
+                    {...tab.tabProps}
+                  />
+                </TabErrorBoundary>
               </ScrollableTab>
             </section>
           );
@@ -195,13 +201,18 @@ export function TabsContainer({
 
       {/* Active Tab Content */}
       <div className="px-4 sm:px-0">
-        <Component
-          dataSource={activeTabData.dataSource}
-          onLoadedCount={(count: number) => handleLoadedCount(activeTabData.id, count)}
-          {...activeTabData.tabProps}
-          {...(searchFilter !== undefined ? { searchFilter } : {})}
-          {...(addDialogOpen !== undefined ? { addDialogOpen, onAddDialogClose } : {})}
-        />
+        <TabErrorBoundary
+          contextLabel={activeTabData.label}
+          resetKeys={[entityId, activeTabData.id, activeTab]}
+        >
+          <Component
+            dataSource={activeTabData.dataSource}
+            onLoadedCount={(count: number) => handleLoadedCount(activeTabData.id, count)}
+            {...activeTabData.tabProps}
+            {...(searchFilter !== undefined ? { searchFilter } : {})}
+            {...(addDialogOpen !== undefined ? { addDialogOpen, onAddDialogClose } : {})}
+          />
+        </TabErrorBoundary>
       </div>
     </div>
   );
