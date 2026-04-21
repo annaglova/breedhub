@@ -107,22 +107,6 @@ export function useApiMassDelete(tableName: string) {
 }
 
 /**
- * Hook для виконання raw SQL запитів
- */
-export function useApiRawQuery<T>(
-  queryName: string,
-  query: string,
-  params?: any[],
-  options?: Omit<UseQueryOptions<ApiResponse<T[]>>, 'queryKey' | 'queryFn'>
-) {
-  return useQuery({
-    queryKey: ['api', 'raw', queryName, query, params],
-    queryFn: () => apiService.rawQuery<T>(query, params),
-    ...options,
-  });
-}
-
-/**
  * Типізовані hooks для конкретних сутностей
  */
 

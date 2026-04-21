@@ -314,39 +314,6 @@ export class ApiService {
     };
   }
 
-  /**
-   * Виконати Raw SQL запит (для складних операцій)
-   */
-  async rawQuery<T>(query: string, params?: any[]): Promise<ApiResponse<T[]>> {
-    try {
-      const { data, error } = await supabase.rpc('execute_sql', { 
-        query_text: query, 
-        query_params: params 
-      });
-
-      if (error) {
-        this.showErrorMessage(error.message);
-        return {
-          data: [],
-          success: false,
-          error: error.message,
-        };
-      }
-
-      return {
-        data: data || [],
-        success: true,
-      };
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Query execution failed';
-      this.showErrorMessage(errorMessage);
-      return {
-        data: [],
-        success: false,
-        error: errorMessage,
-      };
-    }
-  }
 }
 
 // Експорт singleton instance
