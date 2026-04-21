@@ -5,6 +5,7 @@ import {
   buildHybridSearchPlan,
   buildRxdbCountSelector,
   executeOfflineFilterFlow,
+  hydrateFilteredEntities,
   mergeHybridPhaseResults,
   prepareFiltersWithDefaults,
 } from "../space-filter.helpers";
@@ -268,6 +269,249 @@ describe("space-filter.helpers", () => {
     expect(errorSpy).toHaveBeenCalledWith(
       "[SpaceStore] Offline mode failed:",
       error,
+    );
+  });
+
+  it("hydrates filtered entities with mixed cached, missing, and stale records", async () => {
+    const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+    const upserted: any[] = [];
+    let lastSelector: Record<string, any> | undefined;
+    const cachedRecords = [
+      { id: "a", updated_at: "2024-01-01", label: "cached-a" },
+      { id: "b", updated_at: "2024-01-01", label: "cached-b-old" },
+    ];
+    const collection = {
+      find(options: { selector: Record<string, any> }) {
+        lastSelector = options.selector;
+        return {
+          exec: async () =>
+            cachedRecords.map((record) => ({
+              id: record.id,
+              toJSON: () => record,
+            })),
+        };
+      },
+      async bulkUpsert(records: any[]) {
+        upserted.push(...records);
+      },
+    };
+    const fetchRecords = vi.fn(async (ids: string[]) => {
+      expect(ids).toEqual(["c", "b"]);
+      return [
+        { id: "c", updated_at: "2024-03-01", label: "fresh-c" },
+        { id: "b", updated_at: "2024-02-01", label: "fresh-b" },
+      ];
+    });
+
+    await expect(
+      hydrateFilteredEntities({
+        ids: ["a", "b", "c"],
+        idsData: [
+          { id: "a", updated_at: "2024-01-01" },
+          { id: "b", updated_at: "2024-02-01" },
+          { id: "c", updated_at: "2024-03-01" },
+        ],
+        limit: 3,
+        nextCursor: "cursor-1",
+        collection,
+        fetchRecords,
+        mapRecordForCache: (record) => ({
+          id: record.id,
+          cached: true,
+        }),
+      }),
+    ).resolves.toEqual({
+      records: [
+        { id: "a", updated_at: "2024-01-01", label: "cached-a" },
+        { id: "b", updated_at: "2024-02-01", label: "fresh-b" },
+        { id: "c", updated_at: "2024-03-01", label: "fresh-c" },
+      ],
+      total: 3,
+      hasMore: true,
+      nextCursor: "cursor-1",
+    });
+
+    expect(lastSelector).toEqual({ id: { $in: ["a", "b", "c"] } });
+    expect(upserted).toEqual([
+      { id: "c", cached: true },
+      { id: "b", cached: true },
+    ]);
+    expect(logSpy).toHaveBeenCalledWith(
+      "[SpaceStore] 📦 Cache: 2/3 hit, 1 missing, 1 stale",
+    );
+    expect(logSpy).toHaveBeenCalledWith(
+      "[SpaceStore] 🌐 Phase 3: Fetching 2 records (1 missing + 1 stale)...",
+    );
+    expect(logSpy).toHaveBeenCalledWith(
+      "[SpaceStore] ✅ Fetched 2 fresh records",
+    );
+    expect(logSpy).toHaveBeenCalledWith(
+      "[SpaceStore] 💾 Cached 2 fresh records in RxDB",
+    );
+    expect(logSpy).toHaveBeenCalledWith(
+      "[SpaceStore] ✅ Returning 3 records (hasMore: true)",
+    );
+  });
+
+  it("hydrates filtered entities without Phase 3 fetch when cache is fully fresh", async () => {
+    const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+    const fetchRecords = vi.fn();
+    const collection = {
+      find() {
+        return {
+          exec: async () => [
+            {
+              id: "a",
+              toJSON: () => ({ id: "a", updated_at: "2024-01-01" }),
+            },
+            {
+              id: "b",
+              toJSON: () => ({ id: "b", updated_at: "2024-01-02" }),
+            },
+          ],
+        };
+      },
+      async bulkUpsert() {},
+    };
+
+    await expect(
+      hydrateFilteredEntities({
+        ids: ["a", "b"],
+        idsData: [
+          { id: "a", updated_at: "2024-01-01" },
+          { id: "b", updated_at: "2024-01-02" },
+        ],
+        limit: 3,
+        nextCursor: null,
+        collection,
+        fetchRecords,
+        mapRecordForCache: (record) => record,
+      }),
+    ).resolves.toEqual({
+      records: [
+        { id: "a", updated_at: "2024-01-01" },
+        { id: "b", updated_at: "2024-01-02" },
+      ],
+      total: 2,
+      hasMore: false,
+      nextCursor: null,
+    });
+
+    expect(fetchRecords).not.toHaveBeenCalled();
+    expect(
+      logSpy.mock.calls.some(([message]) =>
+        String(message).includes("🌐 Phase 3: Fetching"),
+      ),
+    ).toBe(false);
+  });
+
+  it("skips RxDB cache log when no fresh records were cached", async () => {
+    const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+    const collection = {
+      find() {
+        return {
+          exec: async () => [
+            {
+              id: "a",
+              toJSON: () => ({ id: "a", updated_at: "2024-01-01" }),
+            },
+          ],
+        };
+      },
+      async bulkUpsert() {},
+    };
+
+    await expect(
+      hydrateFilteredEntities({
+        ids: ["a", "b"],
+        idsData: [
+          { id: "a", updated_at: "2024-01-01" },
+          { id: "b", updated_at: "2024-02-01" },
+        ],
+        limit: 2,
+        nextCursor: "cursor-2",
+        collection,
+        fetchRecords: async () => [],
+        mapRecordForCache: (record) => record,
+      }),
+    ).resolves.toEqual({
+      records: [{ id: "a", updated_at: "2024-01-01" }],
+      total: 1,
+      hasMore: true,
+      nextCursor: "cursor-2",
+    });
+
+    expect(
+      logSpy.mock.calls.some(([message]) =>
+        String(message).includes("💾 Cached"),
+      ),
+    ).toBe(false);
+  });
+
+  it("supports custom offline success and error log prefixes", async () => {
+    const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    const offlineError = new Error("offline failed");
+
+    await executeOfflineFilterFlow({
+      entityType: "pet",
+      filters: {},
+      fieldConfigs: {},
+      runLocalQuery: async () => ({
+        records: [{ id: "1" }],
+        hasMore: false,
+        nextCursor: null,
+      }),
+      buildCountSelector: buildRxdbCountSelector,
+      countByCollection: async () => 1,
+      logPrefix: "Offline mode",
+    });
+
+    await executeOfflineFilterFlow({
+      entityType: "pet",
+      filters: {},
+      fieldConfigs: {},
+      runLocalQuery: async () => {
+        throw offlineError;
+      },
+      buildCountSelector: buildRxdbCountSelector,
+      countByCollection: async () => 0,
+      catchLogPrefix: "Offline fallback also failed:",
+    });
+
+    expect(logSpy).toHaveBeenCalledWith(
+      "[SpaceStore] 📴 Offline mode: returning 1/1 records (hasMore: false)",
+    );
+    expect(errorSpy).toHaveBeenCalledWith(
+      "[SpaceStore] Offline fallback also failed:",
+      offlineError,
+    );
+  });
+
+  it("passes count selector extra options through the offline flow", async () => {
+    const buildCountSelector = vi.fn(() => ({ _deleted: false }));
+
+    await executeOfflineFilterFlow({
+      entityType: "pet",
+      filters: { name: "Alpha" },
+      fieldConfigs: { name: { fieldType: "string", operator: "eq" } },
+      runLocalQuery: async () => ({
+        records: [],
+        hasMore: false,
+        nextCursor: null,
+      }),
+      buildCountSelector,
+      countByCollection: async () => 0,
+      countSelectorExtraOptions: { preferStringSearchOperator: true },
+    });
+
+    expect(buildCountSelector).toHaveBeenCalledWith(
+      { name: "Alpha" },
+      { name: { fieldType: "string", operator: "eq" } },
+      {
+        entityType: "pet",
+        preferStringSearchOperator: true,
+      },
     );
   });
 

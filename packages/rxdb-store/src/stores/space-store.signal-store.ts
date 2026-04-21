@@ -38,6 +38,7 @@ import {
   buildHybridSearchPlan,
   buildRxdbCountSelector,
   executeOfflineFilterFlow,
+  hydrateFilteredEntities,
   mergeHybridPhaseResults,
   applyFiltersToSupabaseQuery,
   getActiveFilterEntries,
@@ -1262,125 +1263,54 @@ class SpaceStore {
           nextCursor: null
         };
       }
-
-      const cached = await collection.find({
-        selector: { id: { $in: ids } }
-      }).exec();
-
-      const cachedMap = mapDocsToRecordMap<BusinessEntity>(cached);
-      const { missingIds, staleIds, toFetchIds } = analyzeCachedIdsByUpdatedAt(
+      return hydrateFilteredEntities({
         ids,
-        cachedMap,
-        idsData as Array<{ id: string; updated_at?: string }>,
-      );
-      console.log(`[SpaceStore] 📦 Cache: ${cachedMap.size}/${ids.length} hit, ${missingIds.length} missing, ${staleIds.length} stale`);
-
-      // 🌐 PHASE 3: Fetch missing + stale full records from Supabase
-      let freshRecords = [];
-      if (toFetchIds.length > 0) {
-        console.log(`[SpaceStore] 🌐 Phase 3: Fetching ${toFetchIds.length} records (${missingIds.length} missing + ${staleIds.length} stale)...`);
-
-        freshRecords = await this.fetchRecordsByIDs(
-          entityType,
-          toFetchIds
-        );
-
-        console.log(`[SpaceStore] ✅ Fetched ${freshRecords.length} fresh records`);
-      }
-
-      const hydrationResult = await cacheAndMergeOrderedRecordsByIds(
-        ids,
-        cachedMap,
-        freshRecords as BusinessEntity[],
-        {
-          collection,
-          mapFreshRecordForCache: (record) =>
-            this.mapToRxDBFormat(record, entityType),
-        },
-      );
-      const orderedRecords = hydrationResult.orderedRecords;
-
-      if (hydrationResult.cachedRecordsCount > 0) {
-        console.log(
-          `[SpaceStore] 💾 Cached ${hydrationResult.cachedRecordsCount} fresh records in RxDB`,
-        );
-      }
-
-      console.log(`[SpaceStore] ✅ Returning ${orderedRecords.length} records (hasMore: ${idsData.length >= limit})`);
-
-      return {
-        records: orderedRecords,
-        total: orderedRecords.length,
-        hasMore: idsData.length >= limit,
-        nextCursor
-      };
+        idsData: idsData as Array<{ id: string; updated_at?: string }>,
+        limit,
+        nextCursor,
+        collection,
+        fetchRecords: (idsToFetch) => this.fetchRecordsByIDs(entityType, idsToFetch),
+        mapRecordForCache: (record) => this.mapToRxDBFormat(record, entityType),
+      });
 
     } catch (error) {
       // 📴 OFFLINE FALLBACK: Use RxDB cache with proper filtering
       if (!isNetworkError(error)) {
         console.error('[SpaceStore] applyFilters error:', error);
       }
+      return executeOfflineFilterFlow({
+        entityType,
+        filters,
+        fieldConfigs,
+        runLocalQuery: () =>
+          filterLocalEntities({
+            collection: this.db?.collections[entityType],
+            entityType,
+            filters,
+            fieldConfigs,
+            limit,
+            cursor,
+            orderBy,
+            logMissingCollection: !!this.db,
+          }),
+        buildCountSelector: buildRxdbCountSelector,
+        countByCollection: async (selector) => {
+          if (!this.db) {
+            throw new Error('Database not initialized');
+          }
 
-      try {
-        if (!this.db) {
-          throw new Error('Database not initialized');
-        }
+          const collection = this.db.collections[entityType];
+          if (!collection) {
+            throw new Error(`Collection ${entityType} not found`);
+          }
 
-        const collection = this.db.collections[entityType];
-        if (!collection) {
-          throw new Error(`Collection ${entityType} not found`);
-        }
-
-        // Use proper filterLocalEntities() for offline mode
-        const localQuery = await filterLocalEntities({
-          collection: this.db?.collections[entityType],
-          entityType,
-          filters,
-          fieldConfigs,
-          limit,
-          cursor,
-          orderBy,
-          logMissingCollection: !!this.db,
-        });
-        const localResults = localQuery.records;
-
-        // Get total count from RxDB (with same filters, no limit)
-        // Build selector for count query
-        const countSelector = buildRxdbCountSelector(filters, fieldConfigs, {
-          entityType,
-          preferStringSearchOperator: true,
-        });
-
-        // Get total count by fetching all matching records (without limit)
-        // Note: We use find() instead of count() to avoid "slow count" errors when selector doesn't match index
-        const allMatchingDocs = await collection.find({
-          selector: countSelector
-        }).exec();
-        const totalCount = allMatchingDocs.length;
-
-        // Calculate hasMore based on cursor
-        const hasMore = localQuery.hasMore;
-        const nextCursor = localQuery.nextCursor;
-
-        console.log(`[SpaceStore] 📴 Offline mode: returning ${localResults.length}/${totalCount} records (hasMore: ${hasMore})`);
-
-        return {
-          records: localResults,
-          total: totalCount,
-          hasMore,
-          nextCursor,
-          offline: true  // ✅ Flag for UI to show "You're offline" message
-        } as any;
-      } catch (offlineError) {
-        console.error('[SpaceStore] Offline fallback also failed:', offlineError);
-        return {
-          records: [],
-          total: 0,
-          hasMore: false,
-          nextCursor: null,
-          offline: true
-        } as any;
-      }
+          const allMatchingDocs = await collection.find({ selector }).exec();
+          return allMatchingDocs.length;
+        },
+        logPrefix: 'Offline mode',
+        catchLogPrefix: 'Offline fallback also failed:',
+        countSelectorExtraOptions: { preferStringSearchOperator: true },
+      });
     }
   }
 

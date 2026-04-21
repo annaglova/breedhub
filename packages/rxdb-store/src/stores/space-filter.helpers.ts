@@ -1,5 +1,11 @@
 import { addFieldPrefix } from "../utils/field-normalization";
 import * as F from "../utils/filter-builder";
+import {
+  analyzeCachedIdsByUpdatedAt,
+  cacheAndMergeOrderedRecordsByIds,
+  mapDocsToRecordMap,
+  type BulkUpsertCollection,
+} from "./space-id-cache.helpers";
 
 export interface ResolvedFieldFilter {
   fieldConfig: any;
@@ -54,6 +60,37 @@ export interface OfflineFilterQueryResult<TRecord = any> {
   nextCursor: string | null;
 }
 
+export interface HydrateFilteredEntitiesCollection<
+  TRecord,
+  TCachedRecord = any,
+> extends BulkUpsertCollection<TCachedRecord> {
+  find(options: {
+    selector: Record<string, any>;
+  }): {
+    exec(): Promise<Array<{ id: string; toJSON(): unknown }>>;
+  };
+}
+
+export interface HydrateFilteredEntitiesOptions<
+  TRecord extends { id: string; updated_at?: string },
+  TCachedRecord = any,
+> {
+  ids: string[];
+  idsData: Array<{ id: string; updated_at?: string }>;
+  limit: number;
+  nextCursor: string | null;
+  collection: HydrateFilteredEntitiesCollection<TRecord, TCachedRecord>;
+  fetchRecords: (ids: string[]) => Promise<TRecord[]>;
+  mapRecordForCache: (record: TRecord) => TCachedRecord;
+}
+
+export interface HydrateFilteredEntitiesResult<TRecord = any> {
+  records: TRecord[];
+  total: number;
+  hasMore: boolean;
+  nextCursor: string | null;
+}
+
 export interface ExecuteOfflineFilterFlowOptions<
   TSelector = any,
   TRecord = any,
@@ -68,6 +105,9 @@ export interface ExecuteOfflineFilterFlowOptions<
     options: FilterApplicationOptions,
   ) => TSelector;
   countByCollection: (selector: TSelector) => Promise<number>;
+  logPrefix?: string;
+  catchLogPrefix?: string;
+  countSelectorExtraOptions?: Partial<FilterApplicationOptions>;
 }
 
 export interface HybridBaseQuery<TQuery> {
@@ -332,26 +372,92 @@ export function buildRxdbCountSelector(
   return selector;
 }
 
+export async function hydrateFilteredEntities<
+  TRecord extends { id: string; updated_at?: string },
+  TCachedRecord = any,
+>(
+  options: HydrateFilteredEntitiesOptions<TRecord, TCachedRecord>,
+): Promise<HydrateFilteredEntitiesResult<TRecord>> {
+  const cached = await options.collection.find({
+    selector: { id: { $in: options.ids } },
+  }).exec();
+
+  const cachedMap = mapDocsToRecordMap<TRecord>(cached);
+  const { missingIds, staleIds, toFetchIds } = analyzeCachedIdsByUpdatedAt(
+    options.ids,
+    cachedMap,
+    options.idsData,
+  );
+  console.log(
+    `[SpaceStore] 📦 Cache: ${cachedMap.size}/${options.ids.length} hit, ${missingIds.length} missing, ${staleIds.length} stale`,
+  );
+
+  let freshRecords: TRecord[] = [];
+  if (toFetchIds.length > 0) {
+    console.log(
+      `[SpaceStore] 🌐 Phase 3: Fetching ${toFetchIds.length} records (${missingIds.length} missing + ${staleIds.length} stale)...`,
+    );
+
+    freshRecords = await options.fetchRecords(toFetchIds);
+
+    console.log(`[SpaceStore] ✅ Fetched ${freshRecords.length} fresh records`);
+  }
+
+  const hydrationResult = await cacheAndMergeOrderedRecordsByIds(
+    options.ids,
+    cachedMap,
+    freshRecords,
+    {
+      collection: options.collection,
+      mapFreshRecordForCache: options.mapRecordForCache,
+    },
+  );
+
+  if (hydrationResult.cachedRecordsCount > 0) {
+    console.log(
+      `[SpaceStore] 💾 Cached ${hydrationResult.cachedRecordsCount} fresh records in RxDB`,
+    );
+  }
+
+  const hasMore = options.ids.length >= options.limit;
+  console.log(
+    `[SpaceStore] ✅ Returning ${hydrationResult.orderedRecords.length} records (hasMore: ${hasMore})`,
+  );
+
+  return {
+    records: hydrationResult.orderedRecords,
+    total: hydrationResult.orderedRecords.length,
+    hasMore,
+    nextCursor: options.nextCursor,
+  };
+}
+
 export async function executeOfflineFilterFlow<
   TSelector = any,
   TRecord = any,
 >(
   options: ExecuteOfflineFilterFlowOptions<TSelector, TRecord>,
 ): Promise<OfflineFilterFlowResult<TRecord>> {
+  const logPrefix = options.logPrefix || "Offline mode (preventive)";
+  const catchLogPrefix = options.catchLogPrefix || "Offline mode failed:";
+
   try {
     const localQuery = await options.runLocalQuery();
     const localResults = localQuery.records;
     const countSelector = options.buildCountSelector(
       options.filters,
       options.fieldConfigs,
-      { entityType: options.entityType },
+      {
+        entityType: options.entityType,
+        ...options.countSelectorExtraOptions,
+      },
     );
     const totalCount = await options.countByCollection(countSelector);
     const hasMore = localQuery.hasMore;
     const nextCursor = localQuery.nextCursor;
 
     console.log(
-      `[SpaceStore] 📴 Offline mode (preventive): returning ${localResults.length}/${totalCount} records (hasMore: ${hasMore})`,
+      `[SpaceStore] 📴 ${logPrefix}: returning ${localResults.length}/${totalCount} records (hasMore: ${hasMore})`,
     );
 
     return {
@@ -362,7 +468,7 @@ export async function executeOfflineFilterFlow<
       offline: true,
     };
   } catch (error) {
-    console.error("[SpaceStore] Offline mode failed:", error);
+    console.error(`[SpaceStore] ${catchLogPrefix}`, error);
     return {
       records: [],
       total: 0,
