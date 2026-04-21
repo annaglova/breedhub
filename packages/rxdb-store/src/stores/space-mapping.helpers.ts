@@ -44,6 +44,30 @@ export interface LoadEntitiesViaMappingOptions<
   offlineScanPredicate: (record: TRecord) => boolean;
 }
 
+export interface DependencyCheckTuple {
+  table: string;
+  fkColumn: string;
+  label: string;
+}
+
+export interface ProbeDependentRecordsOptions {
+  entityType: string;
+  id: string;
+  checks: DependencyCheckTuple[];
+  childCollections?: Record<
+    string,
+    {
+      find(options: {
+        selector: Record<string, any>;
+      }): {
+        exec(): Promise<Array<{ id: string }>>;
+      };
+    }
+  >;
+  mappingCache: Map<string, any[]>;
+  supabase: any;
+}
+
 export function buildMappingCacheKey(
   mappingTable: string,
   parentField: string,
@@ -144,6 +168,67 @@ export async function fetchRecordsByMappingRows<TRecord>(
   }
 
   return results;
+}
+
+export async function probeDependentRecords(
+  options: ProbeDependentRecordsOptions,
+): Promise<Array<{ label: string; count: number }>> {
+  const dependencies: Array<{ label: string; count: number }> = [];
+
+  await Promise.all(
+    options.checks.map(async ({ table, fkColumn, label }) => {
+      try {
+        let found = false;
+
+        if (options.childCollections) {
+          const childCollectionName = `${options.entityType}_children`;
+          const childCollection = options.childCollections[childCollectionName];
+
+          if (childCollection) {
+            const docs = await childCollection
+              .find({
+                selector: { parentId: options.id, tableType: table },
+              })
+              .exec();
+
+            if (docs.length > 0) {
+              found = true;
+            }
+          }
+
+          if (!found && table === "pet_child") {
+            const cached = options.mappingCache.get(
+              buildMappingCacheKey(table, "pet_id", options.id),
+            );
+
+            if (cached && cached.length > 0) {
+              found = true;
+            }
+          }
+        }
+
+        if (!found) {
+          const { count, error } = await options.supabase
+            .from(table)
+            .select("id", { count: "exact", head: true })
+            .eq(fkColumn, options.id)
+            .eq("deleted", false);
+
+          if (!error && count && count > 0) {
+            found = true;
+          }
+        }
+
+        if (found) {
+          dependencies.push({ label, count: 1 });
+        }
+      } catch {
+        // Silent — fail-open for local-first UX
+      }
+    }),
+  );
+
+  return dependencies;
 }
 
 export async function loadEntitiesViaMappingFlow<

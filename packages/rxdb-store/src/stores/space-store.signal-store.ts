@@ -77,6 +77,7 @@ import {
   fetchRecordsByMappingRows,
   getMappingSelectFields,
   loadEntitiesViaMappingFlow,
+  probeDependentRecords,
   type MappingRow,
 } from './space-mapping.helpers';
 import {
@@ -852,58 +853,23 @@ class SpaceStore {
     canDelete: boolean;
     dependencies: { label: string; count: number }[];
   }> {
-    const checks = this.dependencyMap[entityType];
-    if (!checks || checks.length === 0) {
+    const rawChecks = this.dependencyMap[entityType];
+    if (!rawChecks || rawChecks.length === 0) {
       return { canDelete: true, dependencies: [] };
     }
 
-    const dependencies: { label: string; count: number }[] = [];
-
-    // Check RxDB first (fast, local), fallback to Supabase if RxDB says 0
-    await Promise.all(
-      checks.map(async ([table, fkColumn, label]) => {
-        try {
-          // RxDB check: child collections
-          let found = false;
-          if (this.db) {
-            // Try child collection (e.g., pet_children for pet)
-            const childCollectionName = `${entityType}_children`;
-            const childCollection = this.db.collections[childCollectionName];
-            if (childCollection) {
-              const docs = await childCollection.find({
-                selector: { parentId: id, tableType: table }
-              }).exec();
-              if (docs.length > 0) found = true;
-            }
-
-            // Try mapping table (e.g., pet_child)
-            if (!found && table === 'pet_child') {
-              const cached = this.mappingCache.get(
-                buildMappingCacheKey(table, 'pet_id', id),
-              );
-              if (cached && cached.length > 0) found = true;
-            }
-          }
-
-          // Supabase fallback if RxDB found nothing
-          if (!found) {
-            const { count, error } = await supabase
-              .from(table)
-              .select('id', { count: 'exact', head: true })
-              .eq(fkColumn, id)
-              .eq('deleted', false);
-
-            if (!error && count && count > 0) found = true;
-          }
-
-          if (found) {
-            dependencies.push({ label, count: 1 });
-          }
-        } catch {
-          // Silent — fail-open for local-first UX
-        }
-      })
-    );
+    const dependencies = await probeDependentRecords({
+      entityType,
+      id,
+      checks: rawChecks.map(([table, fkColumn, label]) => ({
+        table,
+        fkColumn,
+        label,
+      })),
+      childCollections: this.db?.collections,
+      mappingCache: this.mappingCache,
+      supabase,
+    });
 
     return {
       canDelete: dependencies.length === 0,

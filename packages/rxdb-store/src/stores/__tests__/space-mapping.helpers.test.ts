@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   buildMappingCacheKey,
   fetchRecordsByMappingRows,
@@ -7,6 +7,7 @@ import {
   hasStaleMappedRecords,
   loadEntitiesViaMappingFlow,
   orderMappedRecordsByIds,
+  probeDependentRecords,
   refreshMappingCache,
   splitCachedAndMissingMappingRows,
 } from "../space-mapping.helpers";
@@ -58,7 +59,93 @@ function createMappingCollection(initialRecords: Record<string, any>[]) {
   return { collection, calls, upserted, recordsById };
 }
 
+function createDependencyChildCollectionsMock(
+  entityType: string,
+  responses: Record<
+    string,
+    {
+      docs?: Array<{ id: string }>;
+      error?: Error;
+    }
+  >,
+) {
+  const calls: Array<Record<string, any>> = [];
+  const collectionName = `${entityType}_children`;
+
+  return {
+    calls,
+    childCollections: {
+      [collectionName]: {
+        find(options: { selector: Record<string, any> }) {
+          calls.push(options.selector);
+          const response = responses[options.selector.tableType] || {};
+
+          return {
+            exec: async () => {
+              if (response.error) {
+                throw response.error;
+              }
+
+              return response.docs || [];
+            },
+          };
+        },
+      },
+    } as Record<
+      string,
+      {
+        find(options: {
+          selector: Record<string, any>;
+        }): {
+          exec(): Promise<Array<{ id: string }>>;
+        };
+      }
+    >,
+  };
+}
+
+function createDependencySupabaseMock(
+  responses: Record<
+    string,
+    {
+      count?: number | null;
+      error?: any;
+    }
+  >,
+) {
+  const calls: Array<[string, string, ...any[]]> = [];
+
+  return {
+    calls,
+    client: {
+      from(table: string) {
+        calls.push([table, "from"]);
+        const response = responses[table] || {};
+        const query = {
+          count: response.count ?? null,
+          error: response.error ?? null,
+          eq(column: string, value: any) {
+            calls.push([table, "eq", column, value]);
+            return query;
+          },
+        };
+
+        return {
+          select(columns: string, options?: any) {
+            calls.push([table, "select", columns, options]);
+            return query;
+          },
+        };
+      },
+    },
+  };
+}
+
 describe("space-mapping.helpers", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   it("builds stable cache keys and select fields", () => {
     expect(buildMappingCacheKey("pet_child", "pet_id", "123")).toBe(
       "pet_child:pet_id:123",
@@ -522,5 +609,270 @@ describe("space-mapping.helpers", () => {
     expect(result).toEqual([
       { id: "a", cachedAt: now, name: "A" },
     ]);
+  });
+
+  it("records a dependency from the RxDB child collection without calling Supabase", async () => {
+    const { childCollections, calls: childCalls } =
+      createDependencyChildCollectionsMock("pet", {
+        pet_in_litter: { docs: [{ id: "litter-1" }] },
+      });
+    const { client, calls: supabaseCalls } = createDependencySupabaseMock({});
+
+    await expect(
+      probeDependentRecords({
+        entityType: "pet",
+        id: "pet-1",
+        checks: [
+          {
+            table: "pet_in_litter",
+            fkColumn: "pet_id",
+            label: "Litters",
+          },
+        ],
+        childCollections,
+        mappingCache: new Map(),
+        supabase: client,
+      }),
+    ).resolves.toEqual([{ label: "Litters", count: 1 }]);
+
+    expect(childCalls).toEqual([
+      { parentId: "pet-1", tableType: "pet_in_litter" },
+    ]);
+    expect(supabaseCalls).toEqual([]);
+  });
+
+  it("uses the pet_child mapping cache fallback without calling Supabase", async () => {
+    const { childCollections } = createDependencyChildCollectionsMock("pet", {
+      pet_child: { docs: [] },
+    });
+    const mappingCache = new Map([
+      [buildMappingCacheKey("pet_child", "pet_id", "pet-1"), [{ id: "c-1" }]],
+    ]);
+    const mappingGetSpy = vi.spyOn(mappingCache, "get");
+    const { client, calls: supabaseCalls } = createDependencySupabaseMock({});
+
+    await expect(
+      probeDependentRecords({
+        entityType: "pet",
+        id: "pet-1",
+        checks: [
+          {
+            table: "pet_child",
+            fkColumn: "other_fk",
+            label: "Children",
+          },
+        ],
+        childCollections,
+        mappingCache,
+        supabase: client,
+      }),
+    ).resolves.toEqual([{ label: "Children", count: 1 }]);
+
+    expect(mappingGetSpy).toHaveBeenCalledWith(
+      buildMappingCacheKey("pet_child", "pet_id", "pet-1"),
+    );
+    expect(supabaseCalls).toEqual([]);
+  });
+
+  it("skips the mapping cache for non-pet_child checks and falls through to Supabase", async () => {
+    const { childCollections } = createDependencyChildCollectionsMock("pet", {
+      pet_in_litter: { docs: [] },
+    });
+    const mappingCache = new Map<string, any[]>();
+    const mappingGetSpy = vi.spyOn(mappingCache, "get");
+    const { client, calls: supabaseCalls } = createDependencySupabaseMock({
+      pet_in_litter: { count: 2 },
+    });
+
+    await expect(
+      probeDependentRecords({
+        entityType: "pet",
+        id: "pet-1",
+        checks: [
+          {
+            table: "pet_in_litter",
+            fkColumn: "pet_id",
+            label: "Litters",
+          },
+        ],
+        childCollections,
+        mappingCache,
+        supabase: client,
+      }),
+    ).resolves.toEqual([{ label: "Litters", count: 1 }]);
+
+    expect(mappingGetSpy).not.toHaveBeenCalled();
+    expect(supabaseCalls).toEqual([
+      ["pet_in_litter", "from"],
+      ["pet_in_litter", "select", "id", { count: "exact", head: true }],
+      ["pet_in_litter", "eq", "pet_id", "pet-1"],
+      ["pet_in_litter", "eq", "deleted", false],
+    ]);
+  });
+
+  it("records a dependency when the Supabase fallback count is greater than zero", async () => {
+    const { childCollections } = createDependencyChildCollectionsMock("pet", {
+      pet_child: { docs: [] },
+    });
+    const { client } = createDependencySupabaseMock({
+      pet_child: { count: 4 },
+    });
+
+    await expect(
+      probeDependentRecords({
+        entityType: "pet",
+        id: "pet-1",
+        checks: [
+          {
+            table: "pet_child",
+            fkColumn: "pet_id",
+            label: "Children",
+          },
+        ],
+        childCollections,
+        mappingCache: new Map(),
+        supabase: client,
+      }),
+    ).resolves.toEqual([{ label: "Children", count: 1 }]);
+  });
+
+  it("returns no dependency when the Supabase fallback count is zero", async () => {
+    const { childCollections } = createDependencyChildCollectionsMock("pet", {
+      pet_child: { docs: [] },
+    });
+    const { client } = createDependencySupabaseMock({
+      pet_child: { count: 0 },
+    });
+
+    await expect(
+      probeDependentRecords({
+        entityType: "pet",
+        id: "pet-1",
+        checks: [
+          {
+            table: "pet_child",
+            fkColumn: "pet_id",
+            label: "Children",
+          },
+        ],
+        childCollections,
+        mappingCache: new Map(),
+        supabase: client,
+      }),
+    ).resolves.toEqual([]);
+  });
+
+  it("fails open silently when the Supabase fallback returns an error", async () => {
+    const { childCollections } = createDependencyChildCollectionsMock("pet", {
+      pet_child: { docs: [] },
+    });
+    const { client } = createDependencySupabaseMock({
+      pet_child: { error: new Error("count failed") },
+    });
+
+    await expect(
+      probeDependentRecords({
+        entityType: "pet",
+        id: "pet-1",
+        checks: [
+          {
+            table: "pet_child",
+            fkColumn: "pet_id",
+            label: "Children",
+          },
+        ],
+        childCollections,
+        mappingCache: new Map(),
+        supabase: client,
+      }),
+    ).resolves.toEqual([]);
+  });
+
+  it("goes straight to Supabase when child collections are unavailable", async () => {
+    const mappingCache = new Map<string, any[]>();
+    const mappingGetSpy = vi.spyOn(mappingCache, "get");
+    const { client, calls: supabaseCalls } = createDependencySupabaseMock({
+      pet_child: { count: 1 },
+    });
+
+    await expect(
+      probeDependentRecords({
+        entityType: "pet",
+        id: "pet-1",
+        checks: [
+          {
+            table: "pet_child",
+            fkColumn: "pet_id",
+            label: "Children",
+          },
+        ],
+        mappingCache,
+        supabase: client,
+      }),
+    ).resolves.toEqual([{ label: "Children", count: 1 }]);
+
+    expect(mappingGetSpy).not.toHaveBeenCalled();
+    expect(supabaseCalls).toEqual([
+      ["pet_child", "from"],
+      ["pet_child", "select", "id", { count: "exact", head: true }],
+      ["pet_child", "eq", "pet_id", "pet-1"],
+      ["pet_child", "eq", "deleted", false],
+    ]);
+  });
+
+  it("keeps probing other checks when one check throws in the middle of the batch", async () => {
+    const { childCollections } = createDependencyChildCollectionsMock("pet", {
+      pet_in_litter: { error: new Error("local child lookup failed") },
+      contact_in_litter: { docs: [] },
+    });
+    const { client, calls: supabaseCalls } = createDependencySupabaseMock({
+      contact_in_litter: { count: 1 },
+    });
+
+    await expect(
+      probeDependentRecords({
+        entityType: "pet",
+        id: "pet-1",
+        checks: [
+          {
+            table: "pet_in_litter",
+            fkColumn: "pet_id",
+            label: "Litters",
+          },
+          {
+            table: "contact_in_litter",
+            fkColumn: "pet_id",
+            label: "Contacts",
+          },
+        ],
+        childCollections,
+        mappingCache: new Map(),
+        supabase: client,
+      }),
+    ).resolves.toEqual([{ label: "Contacts", count: 1 }]);
+
+    expect(supabaseCalls).toEqual([
+      ["contact_in_litter", "from"],
+      ["contact_in_litter", "select", "id", { count: "exact", head: true }],
+      ["contact_in_litter", "eq", "pet_id", "pet-1"],
+      ["contact_in_litter", "eq", "deleted", false],
+    ]);
+  });
+
+  it("returns an empty array when there are no dependency checks", async () => {
+    const { client, calls: supabaseCalls } = createDependencySupabaseMock({});
+
+    await expect(
+      probeDependentRecords({
+        entityType: "pet",
+        id: "pet-1",
+        checks: [],
+        childCollections: undefined,
+        mappingCache: new Map(),
+        supabase: client,
+      }),
+    ).resolves.toEqual([]);
+
+    expect(supabaseCalls).toEqual([]);
   });
 });
