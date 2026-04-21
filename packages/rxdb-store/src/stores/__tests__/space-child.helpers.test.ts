@@ -12,6 +12,7 @@ import {
   loadChildViewPage,
   mapAndCacheChildRows,
   mapChildRowsToCacheRecords,
+  queryLocalChildRecords,
   queueChildMutationRefresh,
   toChildPageResult,
 } from "../space-child.helpers";
@@ -35,6 +36,64 @@ function createMockCollection(records: Record<string, any>[]) {
           })),
     }),
   } as any;
+}
+
+function createQueryableChildCollection(records: Record<string, any>[]) {
+  const calls = {
+    find: [] as Array<{ selector: Record<string, any>; limit?: number }>,
+    sort: [] as Array<Record<string, "asc" | "desc">>,
+  };
+
+  const collection = {
+    find(options: { selector: Record<string, any>; limit?: number }) {
+      calls.find.push(options);
+      let sortArg: Record<string, "asc" | "desc"> | undefined;
+
+      const runExec = async () =>
+        records
+          .filter((record) =>
+            Object.entries(options.selector).every(
+              ([field, value]) => record[field] === value,
+            ),
+          )
+          .sort((left, right) => {
+            if (!sortArg) {
+              return 0;
+            }
+
+            const [[field, direction]] = Object.entries(sortArg);
+            const leftValue = left[field];
+            const rightValue = right[field];
+
+            if (leftValue === rightValue) {
+              return 0;
+            }
+
+            if (direction === "asc") {
+              return leftValue < rightValue ? -1 : 1;
+            }
+
+            return leftValue > rightValue ? -1 : 1;
+          })
+          .slice(0, options.limit ?? records.length)
+          .map((record) => ({
+            toJSON: () => record,
+          }));
+
+      return {
+        sort(sort: Record<string, "asc" | "desc">) {
+          calls.sort.push(sort);
+          sortArg = sort;
+          return {
+            exec: runExec,
+          };
+        },
+        exec: runExec,
+      };
+    },
+  };
+
+  return { collection, calls };
 }
 
 describe("space-child.helpers", () => {
@@ -544,6 +603,215 @@ describe("space-child.helpers", () => {
     } finally {
       logSpy.mockRestore();
       warnSpy.mockRestore();
+    }
+  });
+
+  it("queries local child records with RxDB sort and limit for schema fields", async () => {
+    const { collection, calls } = createQueryableChildCollection([
+      { id: "b", parentId: "breed-1", tableType: "title_in_pet", cachedAt: 2 },
+      { id: "a", parentId: "breed-1", tableType: "title_in_pet", cachedAt: 1 },
+      { id: "c", parentId: "breed-2", tableType: "title_in_pet", cachedAt: 0 },
+    ]);
+
+    const result = await queryLocalChildRecords({
+      collection,
+      parentId: "breed-1",
+      tableType: "title_in_pet_with_pet",
+      limit: 1,
+      orderBy: "cachedAt",
+      orderDirection: "asc",
+    });
+
+    expect(calls.find).toEqual([
+      {
+        selector: {
+          parentId: "breed-1",
+          tableType: "title_in_pet",
+        },
+        limit: 1,
+      },
+    ]);
+    expect(calls.sort).toEqual([{ cachedAt: "asc" }]);
+    expect(result).toEqual([
+      { id: "a", parentId: "breed-1", tableType: "title_in_pet", cachedAt: 1 },
+    ]);
+  });
+
+  it("queries local child records with JS sort and post-sort slice for non-schema fields", async () => {
+    const { collection, calls } = createQueryableChildCollection([
+      {
+        id: "a",
+        parentId: "breed-1",
+        tableType: "top_pet_in_breed",
+        additional: { placement: 5 },
+      },
+      {
+        id: "c",
+        parentId: "breed-1",
+        tableType: "top_pet_in_breed",
+        additional: { placement: 1 },
+      },
+      {
+        id: "b",
+        parentId: "breed-1",
+        tableType: "top_pet_in_breed",
+        additional: { placement: 1 },
+      },
+    ]);
+
+    const result = await queryLocalChildRecords({
+      collection,
+      parentId: "breed-1",
+      tableType: "top_pet_in_breed_with_pet",
+      limit: 2,
+      orderBy: "placement",
+      orderDirection: "asc",
+    });
+
+    expect(calls.find).toEqual([
+      {
+        selector: {
+          parentId: "breed-1",
+          tableType: "top_pet_in_breed",
+        },
+      },
+    ]);
+    expect(calls.sort).toEqual([]);
+    expect(result.map((record) => record.id)).toEqual(["b", "c"]);
+  });
+
+  it("queries local child records without sorting when orderBy is omitted", async () => {
+    const { collection, calls } = createQueryableChildCollection([
+      { id: "a", parentId: "breed-1", tableType: "achievement_in_breed" },
+      { id: "b", parentId: "breed-1", tableType: "achievement_in_breed" },
+    ]);
+
+    const result = await queryLocalChildRecords({
+      collection,
+      parentId: "breed-1",
+      tableType: "achievement_in_breed",
+      limit: 1,
+    });
+
+    expect(calls.find).toEqual([
+      {
+        selector: {
+          parentId: "breed-1",
+          tableType: "achievement_in_breed",
+        },
+        limit: 1,
+      },
+    ]);
+    expect(calls.sort).toEqual([]);
+    expect(result).toEqual([
+      { id: "a", parentId: "breed-1", tableType: "achievement_in_breed" },
+    ]);
+  });
+
+  it("includes partitionId in the selector when provided", async () => {
+    const { collection, calls } = createQueryableChildCollection([
+      {
+        id: "a",
+        parentId: "breed-1",
+        tableType: "title_in_pet",
+        partitionId: "breed-9",
+      },
+    ]);
+
+    await queryLocalChildRecords({
+      collection,
+      parentId: "breed-1",
+      tableType: "title_in_pet",
+      partitionId: "breed-9",
+    });
+
+    expect(calls.find[0]?.selector).toEqual({
+      parentId: "breed-1",
+      tableType: "title_in_pet",
+      partitionId: "breed-9",
+    });
+  });
+
+  it("omits partitionId from the selector when not provided", async () => {
+    const { collection, calls } = createQueryableChildCollection([
+      {
+        id: "a",
+        parentId: "breed-1",
+        tableType: "title_in_pet",
+      },
+    ]);
+
+    await queryLocalChildRecords({
+      collection,
+      parentId: "breed-1",
+      tableType: "title_in_pet",
+    });
+
+    expect(calls.find[0]?.selector).toEqual({
+      parentId: "breed-1",
+      tableType: "title_in_pet",
+    });
+    expect("partitionId" in calls.find[0]!.selector).toBe(false);
+  });
+
+  it("skips query limit and post-slice when limit is zero", async () => {
+    const { collection, calls } = createQueryableChildCollection([
+      {
+        id: "a",
+        parentId: "breed-1",
+        tableType: "top_pet_in_breed",
+        additional: { placement: 3 },
+      },
+      {
+        id: "b",
+        parentId: "breed-1",
+        tableType: "top_pet_in_breed",
+        additional: { placement: 1 },
+      },
+    ]);
+
+    const result = await queryLocalChildRecords({
+      collection,
+      parentId: "breed-1",
+      tableType: "top_pet_in_breed",
+      limit: 0,
+      orderBy: "placement",
+      orderDirection: "asc",
+    });
+
+    expect(calls.find).toEqual([
+      {
+        selector: {
+          parentId: "breed-1",
+          tableType: "top_pet_in_breed",
+        },
+      },
+    ]);
+    expect(result.map((record) => record.id)).toEqual(["b", "a"]);
+  });
+
+  it("logs and returns an empty array when local child querying fails", async () => {
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    const error = new Error("query failed");
+
+    try {
+      const result = await queryLocalChildRecords({
+        collection: {
+          find() {
+            throw error;
+          },
+        } as any,
+        parentId: "breed-1",
+        tableType: "title_in_pet",
+      });
+
+      expect(result).toEqual([]);
+      expect(errorSpy).toHaveBeenCalledWith(
+        "[SpaceStore] Error querying child records:",
+        error,
+      );
+    } finally {
+      errorSpy.mockRestore();
     }
   });
 

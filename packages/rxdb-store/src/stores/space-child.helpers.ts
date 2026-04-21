@@ -69,6 +69,25 @@ export interface ChildCollectionLookupOptions<TCollection> {
   dbCollections?: Record<string, TCollection>;
 }
 
+export interface QueryLocalChildRecordsCollection {
+  find(options: { selector: Record<string, any>; limit?: number }): {
+    sort(sort: Record<string, "asc" | "desc">): {
+      exec(): Promise<Array<{ toJSON(): unknown }>>;
+    };
+    exec(): Promise<Array<{ toJSON(): unknown }>>;
+  };
+}
+
+export interface QueryLocalChildRecordsOptions<TCollection> {
+  collection: TCollection;
+  parentId: string;
+  tableType: string;
+  limit?: number;
+  orderBy?: string;
+  orderDirection?: "asc" | "desc";
+  partitionId?: string;
+}
+
 export interface LoadChildViewPageOptions<TRawRecord extends Record<string, any>> {
   viewName: string;
   parentId: string;
@@ -177,6 +196,72 @@ export function applyChildListQueryOptions<TQuery extends ChildListQueryLike<TQu
 
 export function normalizeChildTableType(tableType: string): string {
   return tableType.replace(/_with_\w+$/, "");
+}
+
+export async function queryLocalChildRecords<TRecord = any>(
+  options: QueryLocalChildRecordsOptions<QueryLocalChildRecordsCollection>,
+): Promise<TRecord[]> {
+  const normalizedTableType = normalizeChildTableType(options.tableType);
+
+  try {
+    const {
+      limit = 50,
+      orderBy,
+      orderDirection = "asc",
+      partitionId,
+    } = options;
+
+    const schemaFields = new Set([
+      "id",
+      "parentId",
+      "tableType",
+      "cachedAt",
+      "additional",
+      "partitionId",
+    ]);
+    const isSchemaField = orderBy ? schemaFields.has(orderBy) : false;
+
+    const selector: Record<string, any> = {
+      parentId: options.parentId,
+      tableType: normalizedTableType,
+    };
+    if (partitionId) {
+      selector.partitionId = partitionId;
+    }
+
+    const queryOptions: { selector: Record<string, any>; limit?: number } = {
+      selector,
+    };
+    if (limit > 0 && (!orderBy || isSchemaField)) {
+      queryOptions.limit = limit;
+    }
+
+    const query = options.collection.find(queryOptions);
+    const results = orderBy && isSchemaField
+      ? await query.sort({ [orderBy]: orderDirection }).exec()
+      : await query.exec();
+    let records = results.map((doc) => doc.toJSON() as TRecord);
+
+    if (orderBy && !isSchemaField) {
+      records = sortLocalChildRecords(records as Record<string, any>[], {
+        field: orderBy,
+        direction: orderDirection,
+        tieBreaker: {
+          field: "id",
+          direction: "asc",
+        },
+      }) as TRecord[];
+
+      if (limit > 0) {
+        records = records.slice(0, limit);
+      }
+    }
+
+    return records;
+  } catch (error) {
+    console.error("[SpaceStore] Error querying child records:", error);
+    return [];
+  }
 }
 
 export function getChildMutationMetadata(

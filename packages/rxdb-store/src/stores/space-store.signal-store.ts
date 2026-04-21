@@ -71,8 +71,8 @@ import {
   hasStaleChildRecords,
   mapAndCacheChildRows,
   normalizeChildTableType,
+  queryLocalChildRecords,
   queueChildMutationRefresh,
-  sortLocalChildRecords,
   toChildPageResult,
 } from './space-child.helpers';
 import {
@@ -2463,72 +2463,12 @@ class SpaceStore {
       return [];
     }
 
-    // Normalize VIEW name to base table name for RxDB query
-    // e.g., 'top_pet_in_breed_with_pet' -> 'top_pet_in_breed'
-    const normalizedTableType = normalizeChildTableType(tableType);
-
-    try {
-      const { limit = 50, orderBy, orderDirection = 'asc', partitionId } = options;
-
-      // Child records schema only has: id, parentId, tableType, cachedAt, additional, partitionId
-      // Fields like 'placement', 'rating', etc. are stored inside 'additional'
-      // RxDB cannot sort by nested fields, so we sort in JS after fetching
-      const schemaFields = new Set(['id', 'parentId', 'tableType', 'cachedAt', 'additional', 'partitionId']);
-      const isSchemaField = orderBy ? schemaFields.has(orderBy) : false;
-
-      // Build query options - RxDB doesn't allow undefined/null for limit
-      const selector: Record<string, any> = {
-        parentId: parentId,
-        tableType: normalizedTableType,
-      };
-      // Filter by partitionId for partitioned entities (e.g., pet by breed_id)
-      if (partitionId) {
-        selector.partitionId = partitionId;
-      }
-      const queryOptions: { selector: Record<string, any>; limit?: number } = {
-        selector,
-      };
-
-      // Add limit to RxDB query when safe:
-      // - No sorting needed (no orderBy) → safe to limit in query
-      // - Sorting by schema field → RxDB handles sort + limit
-      // - Sorting by additional field → need all records for JS sort, limit applied after
-      if (limit > 0 && (!orderBy || isSchemaField)) {
-        queryOptions.limit = limit;
-      }
-
-      let query = collection.find(queryOptions);
-
-      // Only use RxDB sort for schema fields
-      if (orderBy && isSchemaField) {
-        query = query.sort({ [orderBy]: orderDirection });
-      }
-
-      const results = await query.exec();
-      let records = results.map((doc: RxDocument<any>) => doc.toJSON());
-
-      // For non-schema fields (stored in 'additional'), sort in JavaScript
-      if (orderBy && !isSchemaField) {
-        records = sortLocalChildRecords(records, {
-          field: orderBy,
-          direction: orderDirection,
-          tieBreaker: {
-            field: 'id',
-            direction: 'asc',
-          },
-        });
-
-        // Apply limit after sorting
-        if (limit > 0) {
-          records = records.slice(0, limit);
-        }
-      }
-
-      return records;
-    } catch (error) {
-      console.error(`[SpaceStore] Error querying child records:`, error);
-      return [];
-    }
+    return queryLocalChildRecords({
+      collection,
+      parentId,
+      tableType,
+      ...options,
+    });
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
