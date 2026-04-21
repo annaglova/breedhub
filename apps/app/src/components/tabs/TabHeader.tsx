@@ -44,7 +44,7 @@ export function TabHeader({
         <div
           className={cn(
             "mb-6 flex w-full items-center text-2xl font-display font-semibold tracking-wide",
-            "text-sub-header-color bg-header-ground/75 backdrop-blur-sm shadow-[0_1px_2px_rgba(17,17,26,0.1),0_2px_6px_rgba(17,17,26,0.08)]",
+            "text-sub-header-color bg-header-ground/75 backdrop-blur-sm shadow-[0_1px_2px_rgba(17,17,26,0.07),0_2px_6px_rgba(17,17,26,0.05)]",
             "px-4 sm:px-6 py-3",
             isFirst ? "mt-6" : "mt-12"
           )}

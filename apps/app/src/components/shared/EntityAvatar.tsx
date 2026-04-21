@@ -124,7 +124,7 @@ export function EntityAvatar({
       {/* Outer frame — white padding backing (clips inner shadow) */}
       <div className="size-full rounded-full bg-white p-1 overflow-hidden">
         {/* Inner — actual image content with small shadow (clipped by outer) */}
-        <div className="flex size-full items-center justify-center overflow-hidden rounded-full shadow-[0_0_0_1px_rgba(17,17,26,0.06),0_-1px_2px_rgba(17,17,26,0.05),0_2px_4px_rgba(17,17,26,0.14)]">
+        <div className="flex size-full items-center justify-center overflow-hidden rounded-full shadow-[0_0_0_1px_rgba(17,17,26,0.04),0_-1px_2px_rgba(17,17,26,0.04),0_2px_4px_rgba(17,17,26,0.1)]">
           {isShowingFallback ? (
             <div className="flex size-full items-center justify-center bg-slate-50 dark:bg-slate-700">
               <img
