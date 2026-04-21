@@ -1,4 +1,5 @@
-import { PetCard, type Pet } from "@/components/shared/PetCard";
+import { InfinitePetGridTab } from "@/components/shared/InfinitePetGridTab";
+import type { Pet } from "@/components/shared/PetCard";
 import { useDisplayLimit } from "@/hooks/useDisplayLimit";
 import { useSelectedEntity } from "@/contexts/SpaceContext";
 import type { DataSourceConfig } from "@breedhub/rxdb-store";
@@ -8,9 +9,7 @@ import {
   useTabData,
 } from "@breedhub/rxdb-store";
 import { useSignals } from "@preact/signals-react/runtime";
-import { cn } from "@ui/lib/utils";
-import { Loader2 } from "lucide-react";
-import { memo, useCallback, useEffect, useMemo, useRef } from "react";
+import { memo, useEffect, useMemo, useRef } from "react";
 
 /**
  * Raw pet data from VIEW (top_pet_in_breed_with_pet)
@@ -141,15 +140,7 @@ export const BreedTopPetsTab = memo(function BreedTopPetsTab({
     });
   }, [displayData]);
 
-  // Infinite scroll refs and handlers (must be before any returns!)
-  const loadMoreRef = useRef<HTMLDivElement>(null);
   const { hasMore, isLoadingMore, loadMore } = infiniteResult;
-
-  const handleLoadMore = useCallback(() => {
-    if (isFullscreen && hasMore && !isLoadingMore) {
-      loadMore();
-    }
-  }, [isFullscreen, hasMore, isLoadingMore, loadMore]);
 
   // Report loaded count for conditional fullscreen button
   const onLoadedCountRef = useRef(onLoadedCount);
@@ -159,24 +150,6 @@ export const BreedTopPetsTab = memo(function BreedTopPetsTab({
       onLoadedCountRef.current(data.length);
     }
   }, [data, isLoading]);
-
-  // IntersectionObserver for infinite scroll
-  // Dependencies include `pets.length` to re-run when data loads and ref becomes available
-  useEffect(() => {
-    if (!isFullscreen || !loadMoreRef.current) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0]?.isIntersecting) {
-          handleLoadMore();
-        }
-      },
-      { threshold: 0.1, rootMargin: "100px" }
-    );
-
-    observer.observe(loadMoreRef.current);
-    return () => observer.disconnect();
-  }, [isFullscreen, handleLoadMore, hasMore, isLoadingMore, pets.length]);
 
   // No dataSource config - show warning
   if (!dataSource?.[0]) {
@@ -230,35 +203,24 @@ export const BreedTopPetsTab = memo(function BreedTopPetsTab({
   }
 
   return (
-    <>
-      <div
-        className={cn(
-          "grid gap-3 sm:grid-cols-2",
-          // In fullscreen mode, show more columns on larger screens
-          isFullscreen && "lg:grid-cols-3 xxl:grid-cols-4"
-        )}
-      >
-        {pets.map((pet) => (
-          <PetCard key={pet.id} pet={pet} mode="default" />
-        ))}
-      </div>
-
-      {/* Infinite scroll trigger & loading indicator */}
-      {isFullscreen && (
-        <div ref={loadMoreRef} className="py-4 flex justify-center">
-          {isLoadingMore && (
-            <div className="flex items-center gap-2 text-secondary">
-              <Loader2 className="h-4 w-4 animate-spin" />
-              <span>Loading more...</span>
+    <InfinitePetGridTab
+      pets={pets}
+      isLoading={isLoading}
+      isFullscreen={isFullscreen}
+      hasMore={hasMore}
+      isLoadingMore={isLoadingMore}
+      onLoadMore={loadMore}
+      emptyMessage="No pets data available"
+      loadingFallback={
+        <div className="grid gap-3 sm:grid-cols-2 animate-pulse">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="card card-rounded p-4 space-y-3">
+              <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded-full w-3/4" />
+              <div className="h-3 bg-slate-200 dark:bg-slate-700 rounded-full w-1/2" />
             </div>
-          )}
-          {!hasMore && pets.length > 0 && (
-            <span className="text-muted-foreground text-sm">
-              All {pets.length} pets loaded
-            </span>
-          )}
+          ))}
         </div>
-      )}
-    </>
+      }
+    />
   );
 });
