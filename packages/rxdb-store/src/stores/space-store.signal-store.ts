@@ -80,16 +80,9 @@ import {
   buildMappingCacheKey,
   fetchRecordsByMappingRows,
   getMappingSelectFields,
-  hasStaleMappedRecords,
-  orderMappedRecordsByIds,
-  refreshMappingCache,
-  splitCachedAndMissingMappingRows,
+  loadEntitiesViaMappingFlow,
   type MappingRow,
 } from './space-mapping.helpers';
-import {
-  cacheRecords,
-  docMapToRecordMap,
-} from './space-id-cache.helpers';
 import {
   fetchOrCacheTotalCount,
 } from './space-total-count.helpers';
@@ -2278,95 +2271,45 @@ class SpaceStore {
     const collection = this.db?.collections[entityTable];
     const cacheKey = buildMappingCacheKey(mappingTable, parentField, parentId);
     const STALE_MS = 5 * 60 * 1000;
-    const fetchMappingRecords = (rows: MappingRow[]) =>
-      fetchRecordsByMappingRows(rows, {
-        partitionField,
-        fetchAll: async (ids) => {
-          const { data } = await supabase.from(entityTable).select('*').in('id', ids);
-          return data || [];
-        },
-        fetchPartition: async (partitionValue, ids) => {
-          const { data } = await supabase.from(entityTable)
-            .select('*')
-            .eq(partitionField!, partitionValue)
-            .in('id', ids);
-          return data || [];
-        },
-      });
-    const refreshMapping = () =>
-      refreshMappingCache({
-        loadMappingRows: async () => {
-          const selectFields = getMappingSelectFields(partitionField);
-          const { data } = await supabase.from(mappingTable).select(selectFields).eq(parentField, parentId);
-          return data as MappingRow[] | null | undefined;
-        },
-        cacheKey,
-        mappingCache: this.mappingCache,
-        fetchRecords: fetchMappingRecords,
-        collection,
-        mapRecordForCache: (record) => this.mapToRxDBFormat(record, entityTable),
-      });
 
-    // Step 1: Try cached mapping IDs → RxDB (instant, zero Supabase calls)
-    const cachedMapping = this.mappingCache.get(cacheKey);
-    if (cachedMapping && cachedMapping.length > 0 && collection) {
-      const ids = cachedMapping.map((r: any) => r.id);
-      const docs = await collection.findByIds(ids).exec();
-      if (docs.size > 0) {
-        const cachedMap = docMapToRecordMap<any>(docs);
-        const results = orderMappedRecordsByIds<any>(ids, cachedMap);
-        // Background refresh if stale
-        if (!isOffline() && hasStaleMappedRecords(results, STALE_MS)) {
-          refreshMapping();
-        }
-        return results;
-      }
-    }
-
-    // Offline without cached mapping: scan RxDB
-    if (isOffline()) {
-      if (!collection) return [];
-      const allDocs = await collection.find().exec();
-      return allDocs.map((d: any) => d.toJSON())
-        .filter((r: any) => r.father_id === parentId || r.mother_id === parentId);
-    }
-
-    // Step 2: First load — get mapping IDs from Supabase
-    const selectFields = getMappingSelectFields(partitionField);
-    const { data: mappingRows } = await supabase
-      .from(mappingTable).select(selectFields).eq(parentField, parentId);
-
-    if (!mappingRows?.length) return [];
-    const safeMappingRows = mappingRows as unknown as MappingRow[];
-    this.mappingCache.set(cacheKey, safeMappingRows);
-
-    // Step 3: Check RxDB, fetch missing
-    if (!collection) return fetchMappingRecords(safeMappingRows);
-
-    const cachedDocs = await collection.findByIds(safeMappingRows.map((r: any) => r.id)).exec();
-    const cachedMap = docMapToRecordMap<any>(cachedDocs);
-    const { cached, missing } = splitCachedAndMissingMappingRows(
-      safeMappingRows,
-      cachedMap,
-      STALE_MS,
-    );
-    if (missing.length === 0) return cached;
-
-    // Step 4: Fetch missing, cache, return all
-    try {
-      const fresh = await fetchMappingRecords(missing);
-      await cacheRecords(fresh, {
-        collection,
-        mapRecordForCache: (record) => this.mapToRxDBFormat(record, entityTable),
-      });
-
-      // Always read from RxDB — source of truth (Supabase → RxDB → UI)
-      const allIds = safeMappingRows.map((r: any) => r.id);
-      const allDocs = await collection.findByIds(allIds).exec();
-      return orderMappedRecordsByIds<any>(allIds, docMapToRecordMap<any>(allDocs));
-    } catch {
-      return cached;
-    }
+    return loadEntitiesViaMappingFlow({
+      entityTable,
+      mappingTable,
+      parentField,
+      parentId,
+      partitionField,
+      cacheKey,
+      staleMs: STALE_MS,
+      mappingCache: this.mappingCache,
+      collection,
+      isOffline: isOffline(),
+      loadMappingRows: async () => {
+        const selectFields = getMappingSelectFields(partitionField);
+        const { data } = await supabase
+          .from(mappingTable)
+          .select(selectFields)
+          .eq(parentField, parentId);
+        return data as MappingRow[] | null | undefined;
+      },
+      fetchRecords: (rows) =>
+        fetchRecordsByMappingRows(rows, {
+          partitionField,
+          fetchAll: async (ids) => {
+            const { data } = await supabase.from(entityTable).select('*').in('id', ids);
+            return data || [];
+          },
+          fetchPartition: async (partitionValue, ids) => {
+            const { data } = await supabase.from(entityTable)
+              .select('*')
+              .eq(partitionField!, partitionValue)
+              .in('id', ids);
+            return data || [];
+          },
+        }),
+      mapRecordForCache: (record) => this.mapToRxDBFormat(record, entityTable),
+      offlineScanPredicate: (record: any) =>
+        record.father_id === parentId || record.mother_id === parentId,
+    });
   }
 
   /** Background refresh for stale child records — fetches fresh data without blocking UI */

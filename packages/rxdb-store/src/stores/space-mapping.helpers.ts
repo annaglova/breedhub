@@ -1,5 +1,6 @@
 import {
   cacheRecords,
+  docMapToRecordMap,
   type BulkUpsertCollection,
 } from "./space-id-cache.helpers";
 
@@ -11,6 +12,36 @@ export interface MappingRow {
 export interface MappingSplitResult<TRecord> {
   cached: TRecord[];
   missing: MappingRow[];
+}
+
+export interface LoadEntitiesViaMappingCollection<TCachedRecord = any>
+  extends BulkUpsertCollection<TCachedRecord> {
+  findByIds(ids: string[]): {
+    exec(): Promise<Map<string, { toJSON(): unknown }>>;
+  };
+  find(): {
+    exec(): Promise<Array<{ toJSON(): unknown }>>;
+  };
+}
+
+export interface LoadEntitiesViaMappingOptions<
+  TRecord extends { id: string; cachedAt?: number },
+  TCachedRecord = TRecord,
+> {
+  entityTable: string;
+  mappingTable: string;
+  parentField: string;
+  parentId: string;
+  partitionField?: string;
+  cacheKey: string;
+  staleMs: number;
+  mappingCache: Map<string, MappingRow[]>;
+  collection?: LoadEntitiesViaMappingCollection<TCachedRecord>;
+  isOffline: boolean;
+  loadMappingRows: () => Promise<MappingRow[] | null | undefined>;
+  fetchRecords: (rows: MappingRow[]) => Promise<TRecord[]>;
+  mapRecordForCache?: (record: TRecord) => TCachedRecord;
+  offlineScanPredicate: (record: TRecord) => boolean;
 }
 
 export function buildMappingCacheKey(
@@ -113,6 +144,88 @@ export async function fetchRecordsByMappingRows<TRecord>(
   }
 
   return results;
+}
+
+export async function loadEntitiesViaMappingFlow<
+  TRecord extends { id: string; cachedAt?: number },
+  TCachedRecord = TRecord,
+>(
+  options: LoadEntitiesViaMappingOptions<TRecord, TCachedRecord>,
+): Promise<TRecord[]> {
+  const cachedMapping = options.mappingCache.get(options.cacheKey);
+  if (cachedMapping && cachedMapping.length > 0 && options.collection) {
+    const ids = cachedMapping.map((row) => row.id);
+    const docs = await options.collection.findByIds(ids).exec();
+
+    if (docs.size > 0) {
+      const cachedMap = docMapToRecordMap<TRecord>(docs);
+      const results = orderMappedRecordsByIds<TRecord>(ids, cachedMap);
+
+      if (!options.isOffline && hasStaleMappedRecords(results, options.staleMs)) {
+        void refreshMappingCache({
+          loadMappingRows: options.loadMappingRows,
+          cacheKey: options.cacheKey,
+          mappingCache: options.mappingCache,
+          fetchRecords: options.fetchRecords,
+          collection: options.collection,
+          mapRecordForCache: options.mapRecordForCache,
+        });
+      }
+
+      return results;
+    }
+  }
+
+  if (options.isOffline) {
+    if (!options.collection) {
+      return [];
+    }
+
+    const allDocs = await options.collection.find().exec();
+    return allDocs
+      .map((doc) => doc.toJSON() as TRecord)
+      .filter(options.offlineScanPredicate);
+  }
+
+  const mappingRows = await options.loadMappingRows();
+  if (!mappingRows?.length) {
+    return [];
+  }
+
+  const safeMappingRows = mappingRows as MappingRow[];
+  options.mappingCache.set(options.cacheKey, safeMappingRows);
+
+  if (!options.collection) {
+    return options.fetchRecords(safeMappingRows);
+  }
+
+  const cachedDocs = await options.collection
+    .findByIds(safeMappingRows.map((row) => row.id))
+    .exec();
+  const cachedMap = docMapToRecordMap<TRecord>(cachedDocs);
+  const { cached, missing } = splitCachedAndMissingMappingRows(
+    safeMappingRows,
+    cachedMap,
+    options.staleMs,
+  );
+
+  if (missing.length === 0) {
+    return cached;
+  }
+
+  try {
+    const fresh = await options.fetchRecords(missing);
+    await cacheRecords(fresh, {
+      collection: options.collection,
+      mapRecordForCache: options.mapRecordForCache,
+    });
+
+    const allIds = safeMappingRows.map((row) => row.id);
+    const allDocs = await options.collection.findByIds(allIds).exec();
+    return orderMappedRecordsByIds<TRecord>(allIds, docMapToRecordMap<TRecord>(allDocs));
+  } catch {
+    return cached;
+  }
 }
 
 export async function refreshMappingCache<TRecord, TCachedRecord = TRecord>(
