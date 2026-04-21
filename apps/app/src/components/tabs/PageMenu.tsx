@@ -297,7 +297,7 @@ function TabButton({ tab, isActive, onClick, onResize }: TabButtonProps) {
           "border-b-2 transition-colors",
           isActive
             ? "border-primary"
-            : "border-transparent group-hover:border-surface-400"
+            : "border-transparent group-hover:border-slate-300"
         )}
       />
     </button>
