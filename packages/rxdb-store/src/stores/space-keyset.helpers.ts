@@ -15,6 +15,12 @@ export interface KeysetCursorData {
   tieBreakerField: string;
 }
 
+export interface BuildCompositeNextCursorOptions {
+  lastRecord: Record<string, any> | undefined;
+  orderBy: KeysetOrderBy;
+  hasMorePages?: boolean;
+}
+
 function escapePostgrestValue(value: any): string {
   if (value === null || value === undefined) {
     return "null";
@@ -141,6 +147,33 @@ export function buildNextKeysetCursor(
     tieBreaker: tieBreakerValue,
     tieBreakerField,
   });
+}
+
+export function buildCompositeNextCursor({
+  lastRecord,
+  orderBy,
+  hasMorePages,
+}: BuildCompositeNextCursorOptions): string | null {
+  if (!lastRecord) {
+    return null;
+  }
+
+  if (hasMorePages === false) {
+    return null;
+  }
+
+  const tieBreakerField = getTieBreakerField(orderBy);
+  const orderValue = lastRecord[orderBy.field] ?? null;
+  const tieBreakerValue = lastRecord[tieBreakerField] ?? null;
+
+  return buildNextKeysetCursor(
+    {
+      [orderBy.field]: orderValue,
+      [tieBreakerField]: tieBreakerValue,
+      id: lastRecord.id,
+    },
+    orderBy,
+  );
 }
 
 export function buildNextKeysetCursorFromAdditional(

@@ -49,9 +49,9 @@ import {
   type HybridSearchRecord,
 } from './space-filter.helpers';
 import {
+  buildCompositeNextCursor,
   applySupabaseKeysetCursor,
   applySupabaseOrderBy,
-  buildNextKeysetCursor,
   getSelectFieldsForOrderBy,
   parseKeysetCursor,
   type KeysetOrderBy,
@@ -1193,27 +1193,9 @@ class SpaceStore {
 
       // Extract IDs and calculate nextCursor
       const ids = idsData.map(d => d.id);
-
       const lastRecord = idsData[idsData.length - 1];
+      const nextCursor = buildCompositeNextCursor({ lastRecord, orderBy });
 
-      // ✅ Use COMPOSITE cursor (value + tieBreaker) for stable pagination
-      // tieBreaker field comes from config (e.g., "name" or "id")
-      const tieBreakerField = orderBy.tieBreaker?.field || 'id';
-      let nextCursor: any = null;
-      if (lastRecord) {
-        const orderValue = lastRecord[orderBy.field] ?? null;
-        const tieBreakerValue = lastRecord[tieBreakerField] ?? null;
-
-        // Composite cursor: {value, tieBreaker, tieBreakerField} for proper pagination
-        nextCursor = buildNextKeysetCursor(
-          {
-            [orderBy.field]: orderValue,
-            [tieBreakerField]: tieBreakerValue,
-            id: lastRecord.id,
-          },
-          orderBy,
-        );
-      }
       // 💾 PHASE 2: Check RxDB cache for these IDs
       if (!this.db) {
         console.warn('[SpaceStore] Database not initialized');
@@ -2696,10 +2678,11 @@ class SpaceStore {
       // Extract IDs and calculate nextCursor
       const ids = idsData.map(d => d.id);
       const lastRecord = idsData[idsData.length - 1];
-      const nextCursor: string | null =
-        lastRecord && idsData.length >= limit
-          ? buildNextKeysetCursor(lastRecord, orderBy)
-          : null;
+      const nextCursor = buildCompositeNextCursor({
+        lastRecord,
+        orderBy,
+        hasMorePages: idsData.length >= limit,
+      });
 
       // 💾 PHASE 2: Check RxDB cache
       const collection = await this.ensureChildCollection(entityType);

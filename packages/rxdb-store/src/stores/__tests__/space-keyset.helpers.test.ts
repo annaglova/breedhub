@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  buildCompositeNextCursor,
   buildNextKeysetCursor,
   buildNextKeysetCursorFromAdditional,
 } from "../space-keyset.helpers";
@@ -126,6 +127,114 @@ describe("space-keyset.helpers", () => {
       expect(cursor).toBe(
         JSON.stringify({
           value: 7,
+          tieBreaker: 3,
+          tieBreakerField: "rank",
+        }),
+      );
+    });
+  });
+
+  describe("buildCompositeNextCursor", () => {
+    it("returns null when lastRecord is missing", () => {
+      expect(
+        buildCompositeNextCursor({
+          lastRecord: undefined,
+          orderBy: { field: "name", direction: "asc" },
+        }),
+      ).toBeNull();
+    });
+
+    it("returns null when hasMorePages is explicitly false", () => {
+      expect(
+        buildCompositeNextCursor({
+          lastRecord: { id: "r-1", name: "Alpha" },
+          orderBy: { field: "name", direction: "asc" },
+          hasMorePages: false,
+        }),
+      ).toBeNull();
+    });
+
+    it("builds a cursor when hasMorePages is undefined", () => {
+      expect(
+        buildCompositeNextCursor({
+          lastRecord: { id: "r-1", name: "Alpha", rating: 9 },
+          orderBy: {
+            field: "name",
+            direction: "asc",
+            tieBreaker: { field: "rating", direction: "desc" },
+          },
+        }),
+      ).toBe(
+        JSON.stringify({
+          value: "Alpha",
+          tieBreaker: 9,
+          tieBreakerField: "rating",
+        }),
+      );
+    });
+
+    it("builds a cursor when hasMorePages is true", () => {
+      expect(
+        buildCompositeNextCursor({
+          lastRecord: { id: "r-1", name: "Alpha" },
+          orderBy: { field: "name", direction: "asc" },
+          hasMorePages: true,
+        }),
+      ).toBe(
+        JSON.stringify({
+          value: "Alpha",
+          tieBreaker: "r-1",
+          tieBreakerField: "id",
+        }),
+      );
+    });
+
+    it("coalesces a missing orderBy field value to null", () => {
+      expect(
+        buildCompositeNextCursor({
+          lastRecord: { id: "r-1" },
+          orderBy: { field: "name", direction: "asc" },
+        }),
+      ).toBe(
+        JSON.stringify({
+          value: null,
+          tieBreaker: "r-1",
+          tieBreakerField: "id",
+        }),
+      );
+    });
+
+    it("falls back to id when tieBreaker.field is missing", () => {
+      expect(
+        buildCompositeNextCursor({
+          lastRecord: { id: "r-1", name: "Alpha" },
+          orderBy: {
+            field: "name",
+            direction: "asc",
+          },
+        }),
+      ).toBe(
+        JSON.stringify({
+          value: "Alpha",
+          tieBreaker: "r-1",
+          tieBreakerField: "id",
+        }),
+      );
+    });
+
+    it("writes the composite cursor shape using order and tieBreaker fields", () => {
+      expect(
+        buildCompositeNextCursor({
+          lastRecord: { id: "r-1", name: "Alpha", rank: 3 },
+          orderBy: {
+            field: "name",
+            direction: "asc",
+            tieBreaker: { field: "rank", direction: "asc" },
+          },
+        }),
+      ).toBe(
+        JSON.stringify({
+          value: "Alpha",
           tieBreaker: 3,
           tieBreakerField: "rank",
         }),
