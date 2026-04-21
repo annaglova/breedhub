@@ -85,11 +85,8 @@ import {
   type MappingRow,
 } from './space-mapping.helpers';
 import {
-  analyzeCachedIdsByUpdatedAt,
   cacheRecords,
-  cacheAndMergeOrderedRecordsByIds,
   docMapToRecordMap,
-  mapDocsToRecordMap,
 } from './space-id-cache.helpers';
 import {
   fetchOrCacheTotalCount,
@@ -3038,59 +3035,26 @@ class SpaceStore {
       if (!collection) {
         return createEmptyChildPageResult();
       }
-
-      const cached = await collection.find({
-        selector: { id: { $in: ids } }
-      }).exec();
-
-      const cachedMap = mapDocsToRecordMap<BusinessEntity>(cached);
-      const { missingIds, staleIds, toFetchIds } = analyzeCachedIdsByUpdatedAt(
+      return hydrateFilteredEntities({
         ids,
-        cachedMap,
-        idsData as Array<{ id: string; updated_at?: string }>,
-      );
-      console.log(`[SpaceStore] 📦 Child cache: ${cachedMap.size}/${ids.length} hit, ${missingIds.length} missing, ${staleIds.length} stale`);
-
-      let freshRecords: any[] = [];
-      if (toFetchIds.length > 0) {
-        console.log(`[SpaceStore] 🌐 Phase 3: Fetching ${toFetchIds.length} child records (${missingIds.length} missing + ${staleIds.length} stale)...`);
-
-        freshRecords = await this.fetchChildRecordsByIDs(
+        idsData: idsData as Array<{ id: string; updated_at?: string }>,
+        limit,
+        nextCursor,
+        collection,
+        fetchRecords: (idsToFetch) => this.fetchChildRecordsByIDs(
           tableType,
-          toFetchIds,
+          idsToFetch,
           parentId,
           parentIdField,
           partitionConfig?.childFilterField,
           partitionValue
-        );
-
-        console.log(`[SpaceStore] ✅ Fetched ${freshRecords.length} fresh child records`);
-      }
-
-      const hydrationResult = await cacheAndMergeOrderedRecordsByIds(
-        ids,
-        cachedMap,
-        freshRecords as BusinessEntity[],
-        {
-          collection,
+        ),
+        logLabels: {
+          cacheTitle: 'Child cache',
+          recordNoun: 'child records',
+          cachedFreshDescriptor: 'records',
         },
-      );
-      const orderedRecords = hydrationResult.orderedRecords;
-
-      if (hydrationResult.cachedRecordsCount > 0) {
-        console.log(`[SpaceStore] 💾 Cached ${hydrationResult.cachedRecordsCount} records`);
-      }
-
-      const hasMore = idsData.length >= limit;
-
-      console.log(`[SpaceStore] ✅ Returning ${orderedRecords.length} child records (hasMore: ${hasMore})`);
-
-      return {
-        records: orderedRecords,
-        total: orderedRecords.length,
-        hasMore,
-        nextCursor
-      };
+      });
 
     } catch (error) {
       // 📴 OFFLINE FALLBACK

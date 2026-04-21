@@ -81,7 +81,8 @@ export interface HydrateFilteredEntitiesOptions<
   nextCursor: string | null;
   collection: HydrateFilteredEntitiesCollection<TRecord, TCachedRecord>;
   fetchRecords: (ids: string[]) => Promise<TRecord[]>;
-  mapRecordForCache: (record: TRecord) => TCachedRecord;
+  mapRecordForCache?: (record: TRecord) => TCachedRecord;
+  logLabels?: HydrateFilteredEntitiesLogLabels;
 }
 
 export interface HydrateFilteredEntitiesResult<TRecord = any> {
@@ -89,6 +90,12 @@ export interface HydrateFilteredEntitiesResult<TRecord = any> {
   total: number;
   hasMore: boolean;
   nextCursor: string | null;
+}
+
+export interface HydrateFilteredEntitiesLogLabels {
+  cacheTitle?: string;
+  recordNoun?: string;
+  cachedFreshDescriptor?: string;
 }
 
 export interface ExecuteOfflineFilterFlowOptions<
@@ -378,6 +385,11 @@ export async function hydrateFilteredEntities<
 >(
   options: HydrateFilteredEntitiesOptions<TRecord, TCachedRecord>,
 ): Promise<HydrateFilteredEntitiesResult<TRecord>> {
+  const cacheTitle = options.logLabels?.cacheTitle || "Cache";
+  const recordNoun = options.logLabels?.recordNoun || "records";
+  const cachedFreshDescriptor =
+    options.logLabels?.cachedFreshDescriptor || "fresh records in RxDB";
+
   const cached = await options.collection.find({
     selector: { id: { $in: options.ids } },
   }).exec();
@@ -389,18 +401,20 @@ export async function hydrateFilteredEntities<
     options.idsData,
   );
   console.log(
-    `[SpaceStore] 📦 Cache: ${cachedMap.size}/${options.ids.length} hit, ${missingIds.length} missing, ${staleIds.length} stale`,
+    `[SpaceStore] 📦 ${cacheTitle}: ${cachedMap.size}/${options.ids.length} hit, ${missingIds.length} missing, ${staleIds.length} stale`,
   );
 
   let freshRecords: TRecord[] = [];
   if (toFetchIds.length > 0) {
     console.log(
-      `[SpaceStore] 🌐 Phase 3: Fetching ${toFetchIds.length} records (${missingIds.length} missing + ${staleIds.length} stale)...`,
+      `[SpaceStore] 🌐 Phase 3: Fetching ${toFetchIds.length} ${recordNoun} (${missingIds.length} missing + ${staleIds.length} stale)...`,
     );
 
     freshRecords = await options.fetchRecords(toFetchIds);
 
-    console.log(`[SpaceStore] ✅ Fetched ${freshRecords.length} fresh records`);
+    console.log(
+      `[SpaceStore] ✅ Fetched ${freshRecords.length} fresh ${recordNoun}`,
+    );
   }
 
   const hydrationResult = await cacheAndMergeOrderedRecordsByIds(
@@ -415,13 +429,13 @@ export async function hydrateFilteredEntities<
 
   if (hydrationResult.cachedRecordsCount > 0) {
     console.log(
-      `[SpaceStore] 💾 Cached ${hydrationResult.cachedRecordsCount} fresh records in RxDB`,
+      `[SpaceStore] 💾 Cached ${hydrationResult.cachedRecordsCount} ${cachedFreshDescriptor}`,
     );
   }
 
   const hasMore = options.ids.length >= options.limit;
   console.log(
-    `[SpaceStore] ✅ Returning ${hydrationResult.orderedRecords.length} records (hasMore: ${hasMore})`,
+    `[SpaceStore] ✅ Returning ${hydrationResult.orderedRecords.length} ${recordNoun} (hasMore: ${hasMore})`,
   );
 
   return {

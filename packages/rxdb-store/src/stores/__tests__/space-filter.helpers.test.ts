@@ -448,6 +448,102 @@ describe("space-filter.helpers", () => {
     ).toBe(false);
   });
 
+  it("hydrates filtered entities with custom log labels for child-flow strings", async () => {
+    const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+    const collection = {
+      find() {
+        return {
+          exec: async () => [
+            {
+              id: "a",
+              toJSON: () => ({ id: "a", updated_at: "2024-01-01" }),
+            },
+          ],
+        };
+      },
+      async bulkUpsert(records: any[]) {
+        return records;
+      },
+    };
+
+    await expect(
+      hydrateFilteredEntities({
+        ids: ["a", "b"],
+        idsData: [
+          { id: "a", updated_at: "2024-01-01" },
+          { id: "b", updated_at: "2024-02-01" },
+        ],
+        limit: 2,
+        nextCursor: "cursor-2",
+        collection,
+        fetchRecords: async () => [{ id: "b", updated_at: "2024-02-01" }],
+        logLabels: {
+          cacheTitle: "Child cache",
+          recordNoun: "child records",
+          cachedFreshDescriptor: "records",
+        },
+      }),
+    ).resolves.toEqual({
+      records: [
+        { id: "a", updated_at: "2024-01-01" },
+        { id: "b", updated_at: "2024-02-01" },
+      ],
+      total: 2,
+      hasMore: true,
+      nextCursor: "cursor-2",
+    });
+
+    expect(logSpy).toHaveBeenCalledWith(
+      "[SpaceStore] 📦 Child cache: 1/2 hit, 1 missing, 0 stale",
+    );
+    expect(logSpy).toHaveBeenCalledWith(
+      "[SpaceStore] 🌐 Phase 3: Fetching 1 child records (1 missing + 0 stale)...",
+    );
+    expect(logSpy).toHaveBeenCalledWith(
+      "[SpaceStore] ✅ Fetched 1 fresh child records",
+    );
+    expect(logSpy).toHaveBeenCalledWith(
+      "[SpaceStore] 💾 Cached 1 records",
+    );
+    expect(logSpy).toHaveBeenCalledWith(
+      "[SpaceStore] ✅ Returning 2 child records (hasMore: true)",
+    );
+  });
+
+  it("omits record cache mapper when hydrateFilteredEntities is called without one", async () => {
+    const upserted: any[] = [];
+    const collection = {
+      find() {
+        return {
+          exec: async () => [],
+        };
+      },
+      async bulkUpsert(records: any[]) {
+        upserted.push(...records);
+      },
+    };
+
+    await expect(
+      hydrateFilteredEntities({
+        ids: ["b"],
+        idsData: [{ id: "b", updated_at: "2024-02-01" }],
+        limit: 1,
+        nextCursor: null,
+        collection,
+        fetchRecords: async () => [{ id: "b", updated_at: "2024-02-01", label: "fresh-b" }],
+      }),
+    ).resolves.toEqual({
+      records: [{ id: "b", updated_at: "2024-02-01", label: "fresh-b" }],
+      total: 1,
+      hasMore: true,
+      nextCursor: null,
+    });
+
+    expect(upserted).toEqual([
+      { id: "b", updated_at: "2024-02-01", label: "fresh-b" },
+    ]);
+  });
+
   it("supports custom offline success and error log prefixes", async () => {
     const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
     const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
