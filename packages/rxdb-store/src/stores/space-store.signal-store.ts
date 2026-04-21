@@ -66,6 +66,7 @@ import {
   getChildCollectionName,
   getExistingChildCollection,
   getDefaultChildOrderBy,
+  fetchAndCacheChildRecords,
   loadChildViewPage,
   getChildMutationMetadata,
   hasStaleChildRecords,
@@ -2182,49 +2183,33 @@ class SpaceStore {
       return existingRecords;
     }
 
-    // Load from Supabase
-    try {
-      const { limit = 50, orderBy, orderDirection = 'asc' } = options;
-      const query = applyChildListQueryOptions(
-        (supabase as any)
-          .from(tableType)
-          .select('*'),
-        {
-          parentField: parentIdField,
-          parentId,
-          limit,
-          orderBy,
-          orderDirection,
-          partitionField: partitionConfig?.childFilterField,
-          partitionValue,
-        },
-      );
+    return fetchAndCacheChildRecords({
+      tableType,
+      parentId,
+      parentIdField,
+      partitionField: partitionConfig?.childFilterField,
+      partitionValue,
+      collection,
+      fetchChildRecords: async () => {
+        const { limit = 50, orderBy, orderDirection = 'asc' } = options;
+        const query = applyChildListQueryOptions(
+          (supabase as any)
+            .from(tableType)
+            .select('*'),
+          {
+            parentField: parentIdField,
+            parentId,
+            limit,
+            orderBy,
+            orderDirection,
+            partitionField: partitionConfig?.childFilterField,
+            partitionValue,
+          },
+        );
 
-      const { data, error } = await query;
-
-      if (error) {
-        console.error(`[SpaceStore] Failed to load child records from ${tableType}:`, error);
-        return [];
-      }
-
-      if (!data || data.length === 0) {
-        return [];
-      }
-
-      const hydrationResult = await mapAndCacheChildRows(data, {
-        tableType,
-        parentId,
-        parentField: parentIdField,
-        partitionField: partitionConfig?.childFilterField,
-        partitionValue,
-        collection,
-      });
-
-      return hydrationResult.transformedRecords;
-    } catch (error) {
-      console.error(`[SpaceStore] Error loading child records:`, error);
-      return [];
-    }
+        return await query;
+      },
+    });
   }
 
   /** Force refresh child records from Supabase — use after operations with server-side triggers */

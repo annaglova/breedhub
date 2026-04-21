@@ -3,6 +3,7 @@ import {
   applyChildListQueryOptions,
   createEmptyChildPageResult,
   executeLocalChildQuery,
+  fetchAndCacheChildRecords,
   filterLocalChildEntities,
   getChildCollectionName,
   getExistingChildCollection,
@@ -348,6 +349,159 @@ describe("space-child.helpers", () => {
 
     expect(result.cachedRecordsCount).toBe(1);
     expect(result.transformedRecords).toEqual(upserted);
+  });
+
+  it("fetches and caches child records from Supabase rows", async () => {
+    const upserted: any[] = [];
+
+    const result = await fetchAndCacheChildRecords({
+      tableType: "top_pet_in_breed_with_pet",
+      parentId: "breed-1",
+      parentIdField: "breed_id",
+      partitionField: "pet_breed_id",
+      partitionValue: "breed-9",
+      collection: {
+        async bulkUpsert(records) {
+          upserted.push(...records);
+        },
+      },
+      fetchChildRecords: async () => ({
+        data: [
+          {
+            id: "pet-1",
+            breed_id: "breed-1",
+            pet_breed_id: "breed-9",
+            name: "Alpha",
+          },
+        ],
+        error: null,
+      }),
+    });
+
+    expect(result).toEqual(upserted);
+    expect(result).toEqual([
+      {
+        id: "pet-1",
+        tableType: "top_pet_in_breed",
+        parentId: "breed-1",
+        partitionId: "breed-9",
+        additional: {
+          name: "Alpha",
+        },
+        cachedAt: expect.any(Number),
+      },
+    ]);
+  });
+
+  it("logs Supabase child-record errors and returns an empty array", async () => {
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    const supabaseError = new Error("supabase failed");
+
+    try {
+      const result = await fetchAndCacheChildRecords({
+        tableType: "title_in_pet",
+        parentId: "pet-1",
+        parentIdField: "pet_id",
+        collection: {
+          async bulkUpsert() {
+            return;
+          },
+        },
+        fetchChildRecords: async () => ({
+          data: null,
+          error: supabaseError,
+        }),
+      });
+
+      expect(result).toEqual([]);
+      expect(errorSpy).toHaveBeenCalledWith(
+        "[SpaceStore] Failed to load child records from title_in_pet:",
+        supabaseError,
+      );
+    } finally {
+      errorSpy.mockRestore();
+    }
+  });
+
+  it("returns an empty array without logging when child fetch returns an empty array", async () => {
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+
+    try {
+      const result = await fetchAndCacheChildRecords({
+        tableType: "title_in_pet",
+        parentId: "pet-1",
+        parentIdField: "pet_id",
+        collection: {
+          async bulkUpsert() {
+            return;
+          },
+        },
+        fetchChildRecords: async () => ({
+          data: [],
+          error: null,
+        }),
+      });
+
+      expect(result).toEqual([]);
+      expect(errorSpy).not.toHaveBeenCalled();
+    } finally {
+      errorSpy.mockRestore();
+    }
+  });
+
+  it("logs outer child-record loading errors and returns an empty array when fetch throws", async () => {
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    const thrownError = new Error("network exploded");
+
+    try {
+      const result = await fetchAndCacheChildRecords({
+        tableType: "title_in_pet",
+        parentId: "pet-1",
+        parentIdField: "pet_id",
+        collection: {
+          async bulkUpsert() {
+            return;
+          },
+        },
+        fetchChildRecords: async () => {
+          throw thrownError;
+        },
+      });
+
+      expect(result).toEqual([]);
+      expect(errorSpy).toHaveBeenCalledWith(
+        "[SpaceStore] Error loading child records:",
+        thrownError,
+      );
+    } finally {
+      errorSpy.mockRestore();
+    }
+  });
+
+  it("returns an empty array without logging when child fetch returns null data", async () => {
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+
+    try {
+      const result = await fetchAndCacheChildRecords({
+        tableType: "title_in_pet",
+        parentId: "pet-1",
+        parentIdField: "pet_id",
+        collection: {
+          async bulkUpsert() {
+            return;
+          },
+        },
+        fetchChildRecords: async () => ({
+          data: null,
+          error: null,
+        }),
+      });
+
+      expect(result).toEqual([]);
+      expect(errorSpy).not.toHaveBeenCalled();
+    } finally {
+      errorSpy.mockRestore();
+    }
   });
 
   it("loads, caches, and paginates VIEW child records", async () => {

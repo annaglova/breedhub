@@ -88,6 +88,16 @@ export interface QueryLocalChildRecordsOptions<TCollection> {
   partitionId?: string;
 }
 
+export interface FetchAndCacheChildRecordsOptions<TCollection> {
+  tableType: string;
+  parentId: string;
+  parentIdField: string;
+  partitionField?: string;
+  partitionValue?: string;
+  collection: TCollection;
+  fetchChildRecords: () => Promise<{ data: any[] | null; error: any }>;
+}
+
 export interface LoadChildViewPageOptions<TRawRecord extends Record<string, any>> {
   viewName: string;
   parentId: string;
@@ -349,6 +359,40 @@ export async function mapAndCacheChildRows(
     transformedRecords,
     cachedRecordsCount,
   };
+}
+
+export async function fetchAndCacheChildRecords<TRecord = any>(
+  options: FetchAndCacheChildRecordsOptions<BulkUpsertCollection<any>>,
+): Promise<TRecord[]> {
+  try {
+    const { data, error } = await options.fetchChildRecords();
+
+    if (error) {
+      console.error(
+        `[SpaceStore] Failed to load child records from ${options.tableType}:`,
+        error,
+      );
+      return [];
+    }
+
+    if (!data || data.length === 0) {
+      return [];
+    }
+
+    const hydrationResult = await mapAndCacheChildRows(data, {
+      tableType: options.tableType,
+      parentId: options.parentId,
+      parentField: options.parentIdField,
+      partitionField: options.partitionField,
+      partitionValue: options.partitionValue,
+      collection: options.collection,
+    });
+
+    return hydrationResult.transformedRecords as TRecord[];
+  } catch (error) {
+    console.error("[SpaceStore] Error loading child records:", error);
+    return [];
+  }
 }
 
 export async function loadChildViewPage<
