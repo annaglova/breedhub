@@ -1,8 +1,10 @@
 import {
   cacheRecords,
+  docMapToRecordMap,
   type BulkUpsertCollection,
 } from "./space-id-cache.helpers";
 import type { PartitionConfig } from "./space-config.helpers";
+import { isNetworkError } from "../helpers";
 
 export interface PartitionedEntityRef {
   id: string;
@@ -15,6 +17,26 @@ export interface PartitionedRefGroups {
 }
 
 export type ParentPartitionLookupSource = "memory" | "RxDB" | null;
+
+export interface LoadPartitionedEntitiesCollection<TCachedRecord = any>
+  extends BulkUpsertCollection<TCachedRecord> {
+  findByIds(ids: string[]): {
+    exec(): Promise<Map<string, { toJSON(): unknown }>>;
+  };
+}
+
+export interface LoadPartitionedEntitiesByRefsOptions<
+  TRecord extends Record<string, any> & { id: string },
+  TCachedRecord = TRecord,
+> {
+  entityType: string;
+  refs: PartitionedEntityRef[];
+  partitionField?: string;
+  collection?: LoadPartitionedEntitiesCollection<TCachedRecord>;
+  isOffline: boolean;
+  fetchMissing: (missingRefs: PartitionedEntityRef[]) => Promise<TRecord[]>;
+  mapRecordForCache?: (record: TRecord) => TCachedRecord;
+}
 
 export function normalizePartitionedEntityRefs(
   refs: PartitionedEntityRef[],
@@ -166,6 +188,85 @@ export async function cacheAndOrderRecordsByPartitionRefs<
     ),
     cachedRecordsCount,
   };
+}
+
+export async function loadPartitionedEntitiesByRefs<
+  TRecord extends Record<string, any> & { id: string },
+  TCachedRecord = TRecord,
+>(
+  options: LoadPartitionedEntitiesByRefsOptions<TRecord, TCachedRecord>,
+): Promise<TRecord[]> {
+  if (options.collection) {
+    const cachedDocs = await options.collection
+      .findByIds(options.refs.map((ref) => ref.id))
+      .exec();
+    const cachedMap = docMapToRecordMap<TRecord>(cachedDocs);
+    const split = splitCachedAndMissingPartitionRefs(
+      options.refs,
+      cachedMap,
+      options.partitionField,
+    );
+
+    if (split.missing.length === 0 || options.isOffline) {
+      return orderRecordsByPartitionRefs(
+        options.refs,
+        split.cached,
+        options.partitionField,
+      );
+    }
+
+    try {
+      const freshRecords = await options.fetchMissing(split.missing);
+      const hydrationResult = await cacheAndOrderRecordsByPartitionRefs(
+        options.refs,
+        split.cached,
+        freshRecords,
+        {
+          partitionField: options.partitionField,
+          collection: options.collection,
+          mapFreshRecordForCache: options.mapRecordForCache,
+        },
+      );
+
+      return hydrationResult.orderedRecords;
+    } catch (error) {
+      if (!isNetworkError(error)) {
+        console.error(
+          `[SpaceStore] Failed to load partition refs for ${options.entityType}:`,
+          error,
+        );
+      }
+
+      return orderRecordsByPartitionRefs(
+        options.refs,
+        split.cached,
+        options.partitionField,
+      );
+    }
+  }
+
+  if (options.isOffline) {
+    return [];
+  }
+
+  try {
+    const freshRecords = await options.fetchMissing(options.refs);
+
+    return orderRecordsByPartitionRefs(
+      options.refs,
+      freshRecords,
+      options.partitionField,
+    );
+  } catch (error) {
+    if (!isNetworkError(error)) {
+      console.error(
+        `[SpaceStore] Failed to load partition refs for ${options.entityType}:`,
+        error,
+      );
+    }
+
+    return [];
+  }
 }
 
 export async function loadParentEntityForPartition<TRecord>(options: {

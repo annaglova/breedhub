@@ -1,7 +1,8 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import {
   cacheAndOrderRecordsByPartitionRefs,
   groupPartitionedEntityRefs,
+  loadPartitionedEntitiesByRefs,
   loadParentEntityForPartition,
   normalizePartitionedEntityRefs,
   orderRecordsByPartitionRefs,
@@ -9,6 +10,55 @@ import {
   resolveChildPartitionContext,
   splitCachedAndMissingPartitionRefs,
 } from "../space-partition.helpers";
+
+function createPartitionCollection(records: Array<Record<string, any>>) {
+  const upserted: any[] = [];
+  const docs = new Map(
+    records.map((record) => [
+      record.id,
+      {
+        toJSON: () => record,
+      },
+    ]),
+  );
+
+  return {
+    collection: {
+      findByIds(ids: string[]) {
+        return {
+          exec: async () =>
+            new Map(
+              ids
+                .filter((id) => docs.has(id))
+                .map((id) => [id, docs.get(id)!]),
+            ),
+        };
+      },
+      async bulkUpsert(recordsToUpsert: any[]) {
+        upserted.push(...recordsToUpsert);
+      },
+    },
+    upserted,
+  };
+}
+
+function overrideNavigatorOnLine(value: boolean): () => void {
+  const descriptor = Object.getOwnPropertyDescriptor(globalThis.navigator, "onLine");
+
+  Object.defineProperty(globalThis.navigator, "onLine", {
+    configurable: true,
+    value,
+  });
+
+  return () => {
+    if (descriptor) {
+      Object.defineProperty(globalThis.navigator, "onLine", descriptor);
+      return;
+    }
+
+    delete (globalThis.navigator as Record<string, unknown>).onLine;
+  };
+}
 
 describe("space-partition.helpers", () => {
   it("normalizes partition refs by dropping empty ids and duplicate composite refs", () => {
@@ -181,6 +231,231 @@ describe("space-partition.helpers", () => {
       ],
       cachedRecordsCount: 1,
     });
+  });
+
+  it("returns ordered cached partition records without fetching when nothing is missing", async () => {
+    const fetchMissing = vi.fn();
+    const { collection } = createPartitionCollection([
+      { id: "pet-1", breed_id: "breed-1", name: "Alpha" },
+      { id: "pet-2", breed_id: "breed-2", name: "Beta" },
+    ]);
+
+    const result = await loadPartitionedEntitiesByRefs({
+      entityType: "pet",
+      refs: [
+        { id: "pet-2", partitionId: "breed-2" },
+        { id: "pet-1", partitionId: "breed-1" },
+      ],
+      partitionField: "breed_id",
+      collection,
+      isOffline: false,
+      fetchMissing,
+    });
+
+    expect(result).toEqual([
+      { id: "pet-2", breed_id: "breed-2", name: "Beta" },
+      { id: "pet-1", breed_id: "breed-1", name: "Alpha" },
+    ]);
+    expect(fetchMissing).not.toHaveBeenCalled();
+  });
+
+  it("returns ordered cached partition records without fetching when offline", async () => {
+    const fetchMissing = vi.fn();
+    const { collection } = createPartitionCollection([
+      { id: "pet-1", breed_id: "breed-1", name: "Alpha" },
+    ]);
+
+    const result = await loadPartitionedEntitiesByRefs({
+      entityType: "pet",
+      refs: [
+        { id: "pet-1", partitionId: "breed-1" },
+        { id: "pet-2", partitionId: "breed-2" },
+      ],
+      partitionField: "breed_id",
+      collection,
+      isOffline: true,
+      fetchMissing,
+    });
+
+    expect(result).toEqual([
+      { id: "pet-1", breed_id: "breed-1", name: "Alpha" },
+    ]);
+    expect(fetchMissing).not.toHaveBeenCalled();
+  });
+
+  it("fetches missing partition refs, caches them, and returns partition-aware order", async () => {
+    const fetchMissing = vi.fn(async () => [
+      { id: "pet-2", breed_id: "breed-2", name: "Fresh Beta" },
+    ]);
+    const { collection, upserted } = createPartitionCollection([
+      { id: "pet-1", breed_id: "breed-1", name: "Cached Alpha" },
+    ]);
+
+    const result = await loadPartitionedEntitiesByRefs({
+      entityType: "pet",
+      refs: [
+        { id: "pet-1", partitionId: "breed-1" },
+        { id: "pet-2", partitionId: "breed-2" },
+      ],
+      partitionField: "breed_id",
+      collection,
+      isOffline: false,
+      fetchMissing,
+      mapRecordForCache: (record) => ({
+        id: record.id,
+        cached: true as const,
+      }),
+    });
+
+    expect(fetchMissing).toHaveBeenCalledOnce();
+    expect(fetchMissing).toHaveBeenCalledWith([
+      { id: "pet-2", partitionId: "breed-2" },
+    ]);
+    expect(upserted).toEqual([
+      { id: "pet-2", cached: true },
+    ]);
+    expect(result).toEqual([
+      { id: "pet-1", breed_id: "breed-1", name: "Cached Alpha" },
+      { id: "pet-2", breed_id: "breed-2", name: "Fresh Beta" },
+    ]);
+  });
+
+  it("logs and falls back to ordered cached records when collection fetch throws a non-network error", async () => {
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    const restoreOnLine = overrideNavigatorOnLine(true);
+    const fetchMissing = vi.fn(async () => {
+      throw new Error("boom");
+    });
+    const { collection } = createPartitionCollection([
+      { id: "pet-1", breed_id: "breed-1", name: "Cached Alpha" },
+    ]);
+
+    try {
+      const result = await loadPartitionedEntitiesByRefs({
+        entityType: "pet",
+        refs: [
+          { id: "pet-1", partitionId: "breed-1" },
+          { id: "pet-2", partitionId: "breed-2" },
+        ],
+        partitionField: "breed_id",
+        collection,
+        isOffline: false,
+        fetchMissing,
+      });
+
+      expect(result).toEqual([
+        { id: "pet-1", breed_id: "breed-1", name: "Cached Alpha" },
+      ]);
+      expect(errorSpy).toHaveBeenCalledWith(
+        "[SpaceStore] Failed to load partition refs for pet:",
+        expect.any(Error),
+      );
+    } finally {
+      restoreOnLine();
+      errorSpy.mockRestore();
+    }
+  });
+
+  it("suppresses logging and falls back to ordered cached records on network errors", async () => {
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    const restoreOnLine = overrideNavigatorOnLine(true);
+    const fetchMissing = vi.fn(async () => {
+      throw new Error("Failed to fetch");
+    });
+    const { collection } = createPartitionCollection([
+      { id: "pet-1", breed_id: "breed-1", name: "Cached Alpha" },
+    ]);
+
+    try {
+      const result = await loadPartitionedEntitiesByRefs({
+        entityType: "pet",
+        refs: [
+          { id: "pet-1", partitionId: "breed-1" },
+          { id: "pet-2", partitionId: "breed-2" },
+        ],
+        partitionField: "breed_id",
+        collection,
+        isOffline: false,
+        fetchMissing,
+      });
+
+      expect(result).toEqual([
+        { id: "pet-1", breed_id: "breed-1", name: "Cached Alpha" },
+      ]);
+      expect(errorSpy).not.toHaveBeenCalled();
+    } finally {
+      restoreOnLine();
+      errorSpy.mockRestore();
+    }
+  });
+
+  it("returns an empty result without fetching when no collection exists and the store is offline", async () => {
+    const fetchMissing = vi.fn();
+
+    const result = await loadPartitionedEntitiesByRefs({
+      entityType: "pet",
+      refs: [{ id: "pet-1", partitionId: "breed-1" }],
+      partitionField: "breed_id",
+      isOffline: true,
+      fetchMissing,
+    });
+
+    expect(result).toEqual([]);
+    expect(fetchMissing).not.toHaveBeenCalled();
+  });
+
+  it("fetches and orders partition refs when no collection exists", async () => {
+    const fetchMissing = vi.fn(async () => [
+      { id: "pet-1", breed_id: "breed-1", name: "Alpha" },
+      { id: "pet-2", breed_id: "breed-2", name: "Beta" },
+    ]);
+
+    const result = await loadPartitionedEntitiesByRefs({
+      entityType: "pet",
+      refs: [
+        { id: "pet-2", partitionId: "breed-2" },
+        { id: "pet-1", partitionId: "breed-1" },
+      ],
+      partitionField: "breed_id",
+      isOffline: false,
+      fetchMissing,
+    });
+
+    expect(fetchMissing).toHaveBeenCalledWith([
+      { id: "pet-2", partitionId: "breed-2" },
+      { id: "pet-1", partitionId: "breed-1" },
+    ]);
+    expect(result).toEqual([
+      { id: "pet-2", breed_id: "breed-2", name: "Beta" },
+      { id: "pet-1", breed_id: "breed-1", name: "Alpha" },
+    ]);
+  });
+
+  it("logs and returns an empty result when no-collection fetch throws a non-network error", async () => {
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    const restoreOnLine = overrideNavigatorOnLine(true);
+    const fetchMissing = vi.fn(async () => {
+      throw new Error("boom");
+    });
+
+    try {
+      const result = await loadPartitionedEntitiesByRefs({
+        entityType: "pet",
+        refs: [{ id: "pet-1", partitionId: "breed-1" }],
+        partitionField: "breed_id",
+        isOffline: false,
+        fetchMissing,
+      });
+
+      expect(result).toEqual([]);
+      expect(errorSpy).toHaveBeenCalledWith(
+        "[SpaceStore] Failed to load partition refs for pet:",
+        expect.any(Error),
+      );
+    } finally {
+      restoreOnLine();
+      errorSpy.mockRestore();
+    }
   });
 
   it("loads parent entity from memory before cache", async () => {

@@ -94,12 +94,10 @@ import {
 } from './space-total-count.helpers';
 import {
   groupPartitionedEntityRefs,
-  cacheAndOrderRecordsByPartitionRefs,
+  loadPartitionedEntitiesByRefs,
   normalizePartitionedEntityRefs,
-  orderRecordsByPartitionRefs,
   recordMatchesPartition,
   resolveChildPartitionContext,
-  splitCachedAndMissingPartitionRefs,
   type PartitionedEntityRef,
 } from './space-partition.helpers';
 import {
@@ -2031,91 +2029,20 @@ class SpaceStore {
       }
     }
 
-    const collection = this.db?.collections[entityType];
-    let cachedRecords: T[] = [];
-
-    if (collection) {
-      const cachedDocs = await collection
-        .findByIds(normalizedRefs.map((ref) => ref.id))
-        .exec();
-      const cachedMap = docMapToRecordMap<T>(cachedDocs);
-      const split = splitCachedAndMissingPartitionRefs(
-        normalizedRefs,
-        cachedMap,
-        partitionField,
-      );
-
-      cachedRecords = split.cached;
-
-      if (split.missing.length === 0 || isOffline()) {
-        return orderRecordsByPartitionRefs(
-          normalizedRefs,
-          cachedRecords,
-          partitionField,
-        );
-      }
-
-      try {
-        const freshRecords = (await this.fetchRecordsByPartitionRefs(
+    return loadPartitionedEntitiesByRefs<T>({
+      entityType,
+      refs: normalizedRefs,
+      partitionField,
+      collection: this.db?.collections[entityType],
+      isOffline: isOffline(),
+      fetchMissing: async (missingRefs) =>
+        (await this.fetchRecordsByPartitionRefs(
           entityType,
-          split.missing,
+          missingRefs,
           partitionField,
-        )) as T[];
-        const hydrationResult = await cacheAndOrderRecordsByPartitionRefs(
-          normalizedRefs,
-          cachedRecords,
-          freshRecords,
-          {
-            partitionField,
-            collection,
-            mapFreshRecordForCache: (record) =>
-              this.mapToRxDBFormat(record, entityType),
-          },
-        );
-
-        return hydrationResult.orderedRecords;
-      } catch (error) {
-        if (!isNetworkError(error)) {
-          console.error(
-            `[SpaceStore] Failed to load partition refs for ${entityType}:`,
-            error,
-          );
-        }
-
-        return orderRecordsByPartitionRefs(
-          normalizedRefs,
-          cachedRecords,
-          partitionField,
-        );
-      }
-    }
-
-    if (isOffline()) {
-      return [];
-    }
-
-    try {
-      const freshRecords = (await this.fetchRecordsByPartitionRefs(
-        entityType,
-        normalizedRefs,
-        partitionField,
-      )) as T[];
-
-      return orderRecordsByPartitionRefs(
-        normalizedRefs,
-        freshRecords,
-        partitionField,
-      );
-    } catch (error) {
-      if (!isNetworkError(error)) {
-        console.error(
-          `[SpaceStore] Failed to load partition refs for ${entityType}:`,
-          error,
-        );
-      }
-
-      return [];
-    }
+        )) as T[],
+      mapRecordForCache: (record) => this.mapToRxDBFormat(record, entityType),
+    });
   }
 
   /**
