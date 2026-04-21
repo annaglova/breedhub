@@ -116,6 +116,7 @@ import {
 import {
   findDocumentById,
   findDocumentDataById,
+  mapSupabaseToRxDBDoc,
 } from '../utils/rxdb-document.helpers';
 import * as CC from '../utils/child-collection-registry';
 import { generateSchemaForEntity as buildSchema } from '../utils/schema-builder';
@@ -1578,75 +1579,7 @@ class SpaceStore {
       return supabaseDoc;
     }
 
-    const schema = collection.schema.jsonSchema;
-    const mapped: any = {};
-
-    // Helper to check if schema allows null for a field
-    const allowsNull = (fieldSchema: any): boolean => {
-      if (!fieldSchema) return false;
-      // Check if type is array with "null" in it: ["string", "null"]
-      if (Array.isArray(fieldSchema.type)) {
-        return fieldSchema.type.includes('null');
-      }
-      return false;
-    };
-
-    // If we have schema, use it to map fields
-    if (schema?.properties) {
-      for (const fieldName in schema.properties) {
-        if (fieldName === '_deleted') {
-          // Special handling for deleted field
-          mapped._deleted = Boolean(supabaseDoc.deleted);
-        } else if (supabaseDoc.hasOwnProperty(fieldName)) {
-          const value = supabaseDoc[fieldName];
-          const fieldSchema = schema.properties[fieldName];
-
-          // Skip null values for fields that don't allow null
-          if (value === null && !allowsNull(fieldSchema)) {
-            continue;
-          }
-
-          mapped[fieldName] = value;
-        }
-      }
-    } else {
-      // Fallback: copy all fields, handling special cases
-      // ⚠️ CRITICAL: Exclude RxDB service fields (_meta, _attachments, _rev)
-      const serviceFields = ['_meta', '_attachments', '_rev'];
-
-      for (const key in supabaseDoc) {
-        // Skip RxDB service fields
-        if (serviceFields.includes(key)) {
-          continue;
-        }
-
-        // Skip null values in fallback mode
-        if (supabaseDoc[key] === null) {
-          continue;
-        }
-
-        if (key === 'deleted') {
-          mapped._deleted = Boolean(supabaseDoc.deleted);
-        } else {
-          mapped[key] = supabaseDoc[key];
-        }
-      }
-    }
-
-    // Ensure required fields
-    mapped.id = mapped.id || supabaseDoc.id;
-    mapped.created_at = mapped.created_at || supabaseDoc.created_at;
-    mapped.updated_at = mapped.updated_at || supabaseDoc.updated_at;
-
-    // Add cachedAt for TTL cleanup (same pattern as dictionaries and child collections)
-    mapped.cachedAt = Date.now();
-
-    // ✅ IMPORTANT: Remove service fields that might have been copied
-    delete mapped._meta;
-    delete mapped._attachments;
-    delete mapped._rev;
-
-    return mapped;
+    return mapSupabaseToRxDBDoc(supabaseDoc, collection.schema.jsonSchema);
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
