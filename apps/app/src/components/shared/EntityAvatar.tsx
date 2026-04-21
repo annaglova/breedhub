@@ -39,8 +39,8 @@ interface EntityAvatarProps {
 // - До sm: size-40 (обидва режими)
 // - sm до xl: drawer size-40, fullscreen size-44
 // - Від xl: size-44 (обидва режими)
-const SIZE_DRAWER = "size-32 xl:size-40";
-const SIZE_FULLSCREEN = "size-32 sm:size-40";
+const SIZE_DRAWER = "size-[128px] xl:size-[160px]";
+const SIZE_FULLSCREEN = "size-[128px] sm:size-[160px]";
 
 export function EntityAvatar({
   entity,
@@ -122,7 +122,7 @@ export function EntityAvatar({
   return (
     <div className={`relative ${sizeClasses} ${className}`} style={sizeStyles}>
       {/* Outer frame — white padding backing (clips inner shadow) */}
-      <div className="size-full rounded-full bg-white p-1.5 overflow-hidden">
+      <div className="size-full rounded-full bg-white p-1 overflow-hidden">
         {/* Inner — actual image content with small shadow (clipped by outer) */}
         <div className="flex size-full items-center justify-center overflow-hidden rounded-full shadow-[0_0_0_1px_rgba(17,17,26,0.06),0_-1px_2px_rgba(17,17,26,0.05),0_2px_4px_rgba(17,17,26,0.14)]">
           {isShowingFallback ? (

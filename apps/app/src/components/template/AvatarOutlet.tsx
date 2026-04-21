@@ -25,13 +25,13 @@ import { MoreVertical } from "lucide-react";
 // - sm до xl: drawer size-40/-mt-[88px], fullscreen size-44/-mt-[108px]
 // - Від xl: size-44, -mt-[108px] (обидва режими)
 const AVATAR_DRAWER = {
-  size: "size-32 xl:size-40",
+  size: "size-[128px] xl:size-[160px]",
   offset: "-mt-[88px] xl:-mt-[102px]",
   padding: "sm:pl-6 xl:pl-12",
   skeletonLeft: "left-6 xl:left-12",
 };
 const AVATAR_FULLSCREEN = {
-  size: "size-32 sm:size-40",
+  size: "size-[128px] sm:size-[160px]",
   offset: "-mt-[88px] sm:-mt-[102px]",
   padding: "pl-6 sm:pl-12",
   skeletonLeft: "left-6 sm:left-12",
