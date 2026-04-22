@@ -26,6 +26,7 @@ export type { JunctionFilterConfig } from './hooks/useJunctionFilterIds';
 
 // Database types
 export type { DatabaseCollections, AppDatabase } from './services/database.service';
+export type { BusinessEntity } from './types/business-entity.types';
 
 // App Config Store (used by config-admin only)
 
@@ -38,6 +39,7 @@ export type { IconConfig } from './stores/app-store.signal-store';
 
 // Space Store - Universal dynamic store for all business entities
 export { spaceStore } from './stores/space-store.signal-store';
+export type { UiSpaceConfig } from './stores/space-config.helpers';
 
 // Sync Queue Service - Queue-based push (V3)
 export { syncQueueService } from './services/sync-queue.service';

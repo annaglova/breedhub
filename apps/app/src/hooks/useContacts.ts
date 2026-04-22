@@ -1,19 +1,16 @@
-import { useEntities } from './useEntities';
+import {
+  useEntities,
+  type EntityListHookParams,
+  type EntityListHookResult,
+} from './useEntities';
 
 /**
  * Hook for fetching contacts from RxDB
  * Uses the universal useEntities hook with ID-First support
  */
-export function useContacts(params: {
-  recordsCount?: number;
-  from?: number;
-  filters?: any;
-  orderBy?: {
-    field: string;
-    direction: 'asc' | 'desc';
-    parameter?: string; // For JSONB fields
-  };
-} = {}) {
+export function useContacts(
+  params: EntityListHookParams = {},
+): EntityListHookResult {
   return useEntities({
     entityType: 'contact',
     recordsCount: params.recordsCount || 50,

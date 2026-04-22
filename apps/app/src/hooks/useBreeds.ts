@@ -1,21 +1,18 @@
 import { useQuery } from '@tanstack/react-query';
-import { useEntities } from './useEntities';
+import {
+  useEntities,
+  type EntityListHookParams,
+  type EntityListHookResult,
+} from './useEntities';
 import { api } from '@/services/api';
 
 /**
  * Hook for fetching breeds from RxDB
  * Now uses the universal useEntities hook with ID-First support
  */
-export function useBreeds(params: {
-  recordsCount?: number;
-  from?: number;
-  filters?: any;
-  orderBy?: {
-    field: string;
-    direction: 'asc' | 'desc';
-    parameter?: string; // For JSONB fields
-  };
-} = {}) {
+export function useBreeds(
+  params: EntityListHookParams = {},
+): EntityListHookResult {
   return useEntities({
     entityType: 'breed',
     recordsCount: params.recordsCount || 50,

@@ -200,7 +200,11 @@ export function SpaceComponent<T extends { id: string }>({
   const drawerContent = children || <Outlet />;
   const viewChangerConfigs = useMemo(
     () =>
-      finalConfig.viewConfigs?.map((viewConfig: any) => ({
+      finalConfig.viewConfigs?.map((viewConfig: {
+        viewType: string;
+        icon?: string;
+        tooltip?: string;
+      }) => ({
         id: viewConfig.viewType,
         icon: viewConfig.icon,
         tooltip: viewConfig.tooltip,

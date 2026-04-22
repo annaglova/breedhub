@@ -21,7 +21,8 @@ import {
   getSortOptionsFromConfig,
   getViewRecordsCountFromConfig,
   resolveSpaceConfig,
-  SpaceConfig,
+  type SpaceConfig,
+  type UiSpaceConfig,
 } from './space-config.helpers';
 import {
   buildEntityCollectionConfig,
@@ -746,7 +747,7 @@ class SpaceStore {
   }
   
   /** Reactive space config as a computed signal. */
-  getSpaceConfigSignal(entityType: string) {
+  getSpaceConfigSignal(entityType: string): ReadonlySignal<UiSpaceConfig | null> {
     return computed(() => {
       // Return null if not ready
       if (!this.configReady.value) {
@@ -1639,7 +1640,7 @@ class SpaceStore {
    * Get the selected entity signal for reactive updates
    * Returns a computed signal that automatically updates when entity store becomes available
    */
-  getSelectedEntity(entityType: string) {
+  getSelectedEntity(entityType: string): ReadonlySignal<BusinessEntity | null> {
     // Return a computed that checks for entity store reactively
     // Read entityStoresVersion to re-evaluate when new stores are added
     return computed(() => {

@@ -1,26 +1,52 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
-import { spaceStore } from '@breedhub/rxdb-store';
+import {
+  spaceStore,
+  type BusinessEntity,
+  type OrderBy,
+} from '@breedhub/rxdb-store';
 import { useSignals } from '@preact/signals-react/runtime';
 
-interface UseEntitiesParams {
-  entityType: string;
+export type EntityListFilters = Record<string, unknown>;
+
+export interface EntityFieldConfig {
+  fieldType?: string;
+  operator?: string;
+}
+
+export interface EntityListHookParams {
   recordsCount?: number;
   from?: number;
-  filters?: Record<string, any>;
-  orderBy?: {
-    field: string;
-    direction: 'asc' | 'desc';
-    parameter?: string; // For JSONB fields (e.g., measurements->achievement_progress)
-    tieBreaker?: {
-      field: string;
-      direction: 'asc' | 'desc';
-    };
-  };
+  filters?: EntityListFilters;
+  orderBy?: OrderBy;
+}
+
+interface UseEntitiesParams extends EntityListHookParams {
+  entityType: string;
   /** If false, data fetching is disabled */
   enabled?: boolean;
   /** Field configs for filter operator detection (e.g., { name: { fieldType: 'string', operator: 'contains' } }) */
-  fieldConfigs?: Record<string, { fieldType?: string; operator?: string }>;
+  fieldConfigs?: Record<string, EntityFieldConfig>;
 }
+
+export interface EntityListData {
+  entities: BusinessEntity[];
+  total: number;
+}
+
+export interface EntityListHookResult {
+  data: EntityListData | undefined;
+  isLoading: boolean;
+  isLoadingMore: boolean;
+  isFetching: boolean;
+  error: Error | null;
+  hasMore: boolean;
+  loadMore: () => Promise<void>;
+  refetch: () => void;
+}
+
+export type EntityListHook = (
+  params?: EntityListHookParams,
+) => EntityListHookResult;
 
 /**
  * Universal hook for fetching entities from RxDB through SpaceStore
@@ -39,10 +65,10 @@ export function useEntities({
   orderBy,
   enabled = true,
   fieldConfigs
-}: UseEntitiesParams) {
+}: UseEntitiesParams): EntityListHookResult {
   useSignals();
 
-  const [data, setData] = useState<{ entities: any[]; total: number }>({
+  const [data, setData] = useState<EntityListData>({
     entities: [],
     total: 0
   });
@@ -56,7 +82,7 @@ export function useEntities({
   const isLoadingRef = useRef(false);
 
   // Determine mode based on filters/orderBy
-  const useIDFirst = filters || orderBy;
+  const useIDFirst = Boolean(filters || orderBy);
 
   // ID-First mode: loadMore with cursor pagination
   const loadMore = useCallback(async () => {
@@ -91,7 +117,7 @@ export function useEntities({
       // Append new records to existing (with deduplication)
       setData(prev => {
         const existingIds = new Set(prev.entities.map(e => e.id));
-        const newRecords = result.records.filter(r => !existingIds.has(r.id));
+        const newRecords = result.records.filter((record) => !existingIds.has(record.id));
 
         console.log('[useEntities] Dedupe:', {
           existing: prev.entities.length,

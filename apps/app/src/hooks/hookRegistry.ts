@@ -6,6 +6,7 @@ import { useNotes } from './useNotes';
 import { usePets } from './usePets';
 import { usePrograms } from './usePrograms';
 import { useProjects } from './useProjects';
+import type { EntityListHook } from './useEntities';
 
 /**
  * Hook Registry - maps entity types to their data hooks
@@ -15,7 +16,7 @@ import { useProjects } from './useProjects';
  *
  * Add new entity hooks here as they are created
  */
-export const hookRegistry: Record<string, any> = {
+export const hookRegistry: Partial<Record<string, EntityListHook>> = {
   'account': useAccounts,
   'breed': useBreeds,
   'contact': useContacts,
@@ -32,6 +33,6 @@ export const hookRegistry: Record<string, any> = {
  * Get hook for entity type
  * Returns undefined if hook not found (allows graceful fallback)
  */
-export function getEntityHook(entityType: string) {
+export function getEntityHook(entityType: string): EntityListHook | undefined {
   return hookRegistry[entityType];
 }

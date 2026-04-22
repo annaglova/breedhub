@@ -27,6 +27,7 @@ import { useStickyName } from "@/hooks/useStickyName";
 import { useCallback, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { EditNameOutlet } from "./EditNameOutlet";
+import type { BlockConfig, PageConfig } from "@/types/page-config.types";
 
 interface EditPageTemplateProps {
   className?: string;
@@ -39,7 +40,7 @@ interface EditPageTemplateProps {
  * Props for EditBlocks inner component
  */
 interface EditBlocksProps {
-  pageConfig: any;
+  pageConfig: PageConfig;
   selectedEntity: any;
   spacePermissions: any;
   entityType?: string;
@@ -119,12 +120,12 @@ function EditBlocks({
 
   // Sort blocks by order
   const sortedBlocks = Object.entries(pageConfig.blocks).sort(
-    ([, a]: [string, any], [, b]: [string, any]) => (a.order || 0) - (b.order || 0)
+    ([, a], [, b]) => (a.order || 0) - (b.order || 0)
   );
 
   return (
     <>
-      {sortedBlocks.map(([blockId, blockConfig]: [string, any]) => {
+      {sortedBlocks.map(([blockId, blockConfig]: [string, BlockConfig]) => {
         if (blockConfig.outlet === "CoverOutlet") {
           if (!isDefaultTabActive || isCreateMode) return null;
           return (

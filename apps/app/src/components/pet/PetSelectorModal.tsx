@@ -28,6 +28,16 @@ interface PetEntity {
   pedigree?: Record<string, { id: string; bid: string }> | null;
 }
 
+interface SexDictionaryRecord {
+  id: string;
+  code?: string;
+  pet_type_id?: string;
+  additional?: {
+    code?: string;
+    pet_type_id?: string;
+  };
+}
+
 interface PetSelectorModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -233,7 +243,8 @@ export function PetSelectorModal({
 
         // Find sex record matching both code AND pet_type_id
         // Note: cached records have fields in 'additional' object
-        const sexRecord = records.find((r: any) => {
+        const sexRecord = records.find((record) => {
+          const r = record as SexDictionaryRecord;
           const code = r.code || r.additional?.code;
           const petType = r.pet_type_id || r.additional?.pet_type_id;
           return code === sexFilter && petType === petTypeId;
@@ -256,7 +267,7 @@ export function PetSelectorModal({
 
   // Build filters based on props and filter state
   const filters = useMemo(() => {
-    const f: Record<string, any> = {};
+    const f: Record<string, unknown> = {};
 
     // Add sex filter if resolved (sexId is UUID from dictionary)
     if (sexId) {
@@ -322,20 +333,21 @@ export function PetSelectorModal({
     enabled: shouldFetch,
     fieldConfigs,
   });
+  const petEntities = (data?.entities ?? []) as PetEntity[];
 
   // Filter out excluded IDs and always show preloaded pet first
   const filteredEntities = useMemo(() => {
     const excludeSet = new Set(excludeIds);
-    let entities = data.entities.filter((e) => !excludeSet.has(e.id));
+    let entities = petEntities.filter((pet) => !excludeSet.has(pet.id));
 
     // Always show preloaded pet first (remove from list if exists, then prepend)
     if (preloadedPet) {
-      entities = entities.filter((e) => e.id !== preloadedPet.id);
+      entities = entities.filter((pet) => pet.id !== preloadedPet.id);
       entities = [preloadedPet, ...entities];
     }
 
     return entities;
-  }, [data.entities, excludeIds, preloadedPet]);
+  }, [excludeIds, petEntities, preloadedPet]);
 
   // Delay skeleton to prevent flash on fast loads
   const showLoadingSkeleton = useSkeletonWithDelay(isLoading && filteredEntities.length === 0);

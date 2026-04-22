@@ -14,6 +14,7 @@ import { useSignals } from "@preact/signals-react/runtime";
 import { useStickyName } from "@/hooks/useStickyName";
 import { cn } from "@ui/lib/utils";
 import { useRef } from "react";
+import type { BlockConfig, PageConfig } from "@/types/page-config.types";
 
 interface PublicPageTemplateProps {
   className?: string;
@@ -27,7 +28,7 @@ interface PublicPageTemplateProps {
  * Props for AboveFoldBlocks inner component
  */
 interface AboveFoldBlocksProps {
-  pageConfig: any;
+  pageConfig: PageConfig;
   defaultTabFragment?: string;
   selectedEntity: any;
   spacePermissions: any;
@@ -80,7 +81,7 @@ function AboveFoldBlocks({
 
   // Sort blocks by order
   const sortedBlocks = Object.entries(pageConfig.blocks).sort(
-    ([, a]: [string, any], [, b]: [string, any]) => (a.order || 0) - (b.order || 0)
+    ([, a], [, b]) => (a.order || 0) - (b.order || 0)
   );
 
   if (process.env.NODE_ENV === "development") {
@@ -95,7 +96,7 @@ function AboveFoldBlocks({
 
   return (
     <>
-      {sortedBlocks.map(([blockId, blockConfig]: [string, any]) => {
+      {sortedBlocks.map(([blockId, blockConfig]: [string, BlockConfig]) => {
         // CoverOutlet calculates its own dimensions + needs defaultTab for expand
         if (blockConfig.outlet === "CoverOutlet") {
           return (
