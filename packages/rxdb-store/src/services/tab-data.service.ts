@@ -11,15 +11,47 @@ import { spaceStore, type OrderBy } from '../stores/space-store.signal-store';
 import { dictionaryStore } from '../stores/dictionary-store.signal-store';
 import { supabase } from '../supabase/client';
 import type {
+  ChildTabDataRecord,
   DataSourceConfig,
+  DictionaryTabDataRecord,
   OrderConfig,
+  TabDataRecord,
   MergedDictionaryItem,
   EnrichedChildItem,
+  EnrichedDictionaryValue,
   PaginationOptions,
   PaginatedResult,
 } from '../types/tab-data.types';
 
+interface UntypedPaginatedResult {
+  records: unknown[];
+  total: number;
+  hasMore: boolean;
+  nextCursor: string | null;
+}
+
 class TabDataService {
+  private asRecords<TRecord extends TabDataRecord>(records: unknown[]): TRecord[] {
+    return records as TRecord[];
+  }
+
+  private asPaginatedResult<TRecord extends TabDataRecord>(
+    result: UntypedPaginatedResult,
+  ): PaginatedResult<TRecord> {
+    return {
+      ...result,
+      records: this.asRecords<TRecord>(result.records),
+    };
+  }
+
+  private getLinkedRecordId(
+    record: ChildTabDataRecord | DictionaryTabDataRecord,
+    linkField: string,
+  ): string | null {
+    const value = record.additional?.[linkField] ?? record[linkField];
+    return typeof value === 'string' ? value : null;
+  }
+
   /**
    * Load tab data based on config
    *
@@ -33,7 +65,7 @@ class TabDataService {
   async loadTabData(
     parentId: string,
     dataSource: DataSourceConfig
-  ): Promise<any[]> {
+  ): Promise<TabDataRecord[]> {
     if (!parentId) {
       console.warn('[TabDataService] parentId is required');
       return [];
@@ -61,7 +93,7 @@ class TabDataService {
         return this.loadRpc(parentId, dataSource);
 
       default:
-        console.error(`[TabDataService] Unknown dataSource type: ${(dataSource as any).type}`);
+        console.error(`[TabDataService] Unknown dataSource type: ${dataSource.type}`);
         return [];
     }
   }
@@ -81,7 +113,7 @@ class TabDataService {
     parentId: string,
     dataSource: DataSourceConfig,
     pagination?: PaginationOptions
-  ): Promise<PaginatedResult<any>> {
+  ): Promise<PaginatedResult<TabDataRecord>> {
     if (!parentId) {
       console.warn('[TabDataService] parentId is required');
       return { records: [], total: 0, hasMore: false, nextCursor: null };
@@ -113,7 +145,7 @@ class TabDataService {
         return { records: rpcResult, total: rpcResult.length, hasMore: false, nextCursor: null };
 
       default:
-        console.error(`[TabDataService] Unknown dataSource type: ${(dataSource as any).type}`);
+        console.error(`[TabDataService] Unknown dataSource type: ${dataSource.type}`);
         return { records: [], total: 0, hasMore: false, nextCursor: null };
     }
   }
@@ -131,7 +163,7 @@ class TabDataService {
   private async loadChild(
     parentId: string,
     dataSource: DataSourceConfig
-  ): Promise<any[]> {
+  ): Promise<ChildTabDataRecord[]> {
     const config = dataSource.childTable;
 
     if (!config) {
@@ -139,13 +171,14 @@ class TabDataService {
       return [];
     }
 
-    return spaceStore.loadChildRecords(parentId, config.table, {
+    const records = await spaceStore.loadChildRecords(parentId, config.table, {
       limit: config.limit,
       orderBy: config.orderBy?.[0]?.field,
       orderDirection: config.orderBy?.[0]?.direction,
       parentField: config.parentField,
       select: config.select,
     });
+    return this.asRecords<ChildTabDataRecord>(records);
   }
 
   /**
@@ -159,7 +192,7 @@ class TabDataService {
     parentId: string,
     dataSource: DataSourceConfig,
     pagination?: PaginationOptions
-  ): Promise<PaginatedResult<any>> {
+  ): Promise<PaginatedResult<ChildTabDataRecord>> {
     const config = dataSource.childTable;
 
     if (!config) {
@@ -186,7 +219,7 @@ class TabDataService {
         orderField
       });
 
-      return spaceStore.loadChildViewDirect(
+      const result = await spaceStore.loadChildViewDirect(
         parentId,
         config.table,
         config.parentField,
@@ -201,6 +234,7 @@ class TabDataService {
           }
         }
       );
+      return this.asPaginatedResult<ChildTabDataRecord>(result);
     }
 
     // Regular tables: Use ID-First pagination
@@ -218,7 +252,7 @@ class TabDataService {
       orderBy: orderBy.field
     });
 
-    return spaceStore.applyChildFilters(
+    const result = await spaceStore.applyChildFilters(
       parentId,
       config.table,
       {}, // No additional filters
@@ -229,6 +263,7 @@ class TabDataService {
         orderBy,
       }
     );
+    return this.asPaginatedResult<ChildTabDataRecord>(result);
   }
 
   /**
@@ -240,7 +275,7 @@ class TabDataService {
     parentId: string,
     dataSource: DataSourceConfig,
     pagination?: PaginationOptions
-  ): Promise<PaginatedResult<any>> {
+  ): Promise<PaginatedResult<TabDataRecord>> {
     const config = dataSource.mainEntity;
 
     if (!config) {
@@ -248,7 +283,7 @@ class TabDataService {
       return { records: [], total: 0, hasMore: false, nextCursor: null };
     }
 
-    return spaceStore.applyFilters(
+    const result = await spaceStore.applyFilters(
       config.entity,
       { [config.filterField]: parentId },
       {
@@ -263,6 +298,7 @@ class TabDataService {
           : undefined,
       }
     );
+    return this.asPaginatedResult<TabDataRecord>(result);
   }
 
   /**
@@ -300,7 +336,7 @@ class TabDataService {
     }
 
     // 1. Load child records via SpaceStore (Local-First)
-    const childRecords = await spaceStore.loadChildRecords(
+    const childRecords = this.asRecords<ChildTabDataRecord>(await spaceStore.loadChildRecords(
       parentId,
       childConfig.table,
       {
@@ -308,7 +344,7 @@ class TabDataService {
         parentField: childConfig.parentField,
         select: childConfig.select,
       }
-    );
+    ));
 
     // 2. Load dictionary via DictionaryStore (Local-First with ID-First)
     // Ensure DictionaryStore is initialized
@@ -316,7 +352,7 @@ class TabDataService {
       await dictionaryStore.initialize();
     }
 
-    const { records: dictRecords } = await dictionaryStore.getDictionary(
+    const { records: rawDictRecords } = await dictionaryStore.getDictionary(
       dictConfig.table,
       {
         idField: dictConfig.idField,
@@ -325,6 +361,7 @@ class TabDataService {
         limit: 200, // Dictionaries are usually small
       }
     );
+    const dictRecords = this.asRecords<DictionaryTabDataRecord>(rawDictRecords);
 
     // 3. Apply dictionary filter (e.g., { entity: 'breed' })
     let filteredDict = dictRecords;
@@ -364,7 +401,7 @@ class TabDataService {
   private async loadMainFiltered(
     parentId: string,
     dataSource: DataSourceConfig
-  ): Promise<any[]> {
+  ): Promise<TabDataRecord[]> {
     const config = dataSource.mainEntity;
 
     if (!config) {
@@ -386,7 +423,7 @@ class TabDataService {
       }
     );
 
-    return result.records || [];
+    return this.asRecords<TabDataRecord>(result.records || []);
   }
 
   /**
@@ -398,7 +435,7 @@ class TabDataService {
   private async loadRpc(
     parentId: string,
     dataSource: DataSourceConfig
-  ): Promise<any[]> {
+  ): Promise<TabDataRecord[]> {
     const config = dataSource.rpc;
 
     if (!config) {
@@ -407,7 +444,7 @@ class TabDataService {
     }
 
     // Replace $parentId placeholder in params
-    const params: Record<string, any> = {};
+    const params: Record<string, string> = {};
     if (config.params) {
       for (const [key, value] of Object.entries(config.params)) {
         params[key] = value === '$parentId' ? parentId : value;
@@ -422,7 +459,7 @@ class TabDataService {
         return [];
       }
 
-      return data || [];
+      return this.asRecords<TabDataRecord>(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error(`[TabDataService] RPC failed:`, error);
       return [];
@@ -439,7 +476,7 @@ class TabDataService {
   private async loadEntityChild(
     parentId: string,
     dataSource: DataSourceConfig
-  ): Promise<any[]> {
+  ): Promise<TabDataRecord[]> {
     const config = dataSource.childTable;
 
     if (!config) {
@@ -450,13 +487,14 @@ class TabDataService {
     // Fast path: readFrom mapping table (e.g., pet_child → pet)
     const readFrom = dataSource.readFrom;
     if (readFrom) {
-      return spaceStore.loadEntitiesViaMapping(
+      const records = await spaceStore.loadEntitiesViaMapping(
         config.table,
         readFrom.table,
         readFrom.parentField,
         parentId,
         readFrom.partitionField,
       );
+      return this.asRecords<TabDataRecord>(records);
     }
 
     const result = await spaceStore.applyFilters(
@@ -476,7 +514,7 @@ class TabDataService {
       }
     );
 
-    return result.records || [];
+    return this.asRecords<TabDataRecord>(result.records || []);
   }
 
   /**
@@ -486,7 +524,7 @@ class TabDataService {
     parentId: string,
     dataSource: DataSourceConfig,
     pagination?: PaginationOptions
-  ): Promise<PaginatedResult<any>> {
+  ): Promise<PaginatedResult<TabDataRecord>> {
     const config = dataSource.childTable;
 
     if (!config) {
@@ -497,13 +535,13 @@ class TabDataService {
     // Fast path: readFrom mapping table
     const readFrom = dataSource.readFrom;
     if (readFrom) {
-      const records = await spaceStore.loadEntitiesViaMapping(
+      const records = this.asRecords<TabDataRecord>(await spaceStore.loadEntitiesViaMapping(
         config.table, readFrom.table, readFrom.parentField, parentId, readFrom.partitionField,
-      );
+      ));
       return { records, total: records.length, hasMore: false, nextCursor: null };
     }
 
-    return spaceStore.applyFilters(
+    const result = await spaceStore.applyFilters(
       config.table,
       { [config.parentField]: parentId },
       {
@@ -520,6 +558,7 @@ class TabDataService {
         },
       }
     );
+    return this.asPaginatedResult<TabDataRecord>(result);
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
@@ -531,10 +570,10 @@ class TabDataService {
    *
    * Handles both flat records and DictionaryStore format (with `additional` field)
    */
-  private applyFilter(
-    records: any[],
-    filter: Record<string, any>
-  ): any[] {
+  private applyFilter<TRecord extends TabDataRecord & { additional?: Record<string, unknown> }>(
+    records: TRecord[],
+    filter: Record<string, unknown>
+  ): TRecord[] {
     return records.filter((record) => {
       for (const [key, value] of Object.entries(filter)) {
         // Check in `additional` field first (DictionaryStore format)
@@ -554,10 +593,10 @@ class TabDataService {
    * Handles both flat records and DictionaryStore format (with `additional` field)
    * Uses NULLS LAST behavior: null/undefined values are pushed to the end
    */
-  private sortRecords(
-    records: any[],
+  private sortRecords<TRecord extends TabDataRecord & { additional?: Record<string, unknown> }>(
+    records: TRecord[],
     orderBy: OrderConfig[]
-  ): any[] {
+  ): TRecord[] {
     return [...records].sort((a, b) => {
       for (const order of orderBy) {
         // Check in `additional` field first (DictionaryStore format)
@@ -573,7 +612,11 @@ class TabDataService {
         if (bIsNull) return -1; // b is null, push to end
 
         if (aVal !== bVal) {
-          const comparison = aVal < bVal ? -1 : 1;
+          const comparison =
+            (aVal as string | number | boolean | Date) <
+            (bVal as string | number | boolean | Date)
+              ? -1
+              : 1;
           return order.direction === 'asc' ? comparison : -comparison;
         }
       }
@@ -588,16 +631,16 @@ class TabDataService {
    * Used for tabs like achievements where we show all levels.
    */
   private mergeDictWithChildren(
-    dictRecords: any[],
-    childRecords: any[],
+    dictRecords: DictionaryTabDataRecord[],
+    childRecords: ChildTabDataRecord[],
     linkField: string
   ): MergedDictionaryItem[] {
     // Build map of achieved items by dictionary ID
-    const achievedMap = new Map<string, any>();
+    const achievedMap = new Map<string, ChildTabDataRecord>();
 
     for (const child of childRecords) {
       // linkField value is in `additional` (SpaceStore child format)
-      const dictId = child.additional?.[linkField] ?? child[linkField];
+      const dictId = this.getLinkedRecordId(child, linkField);
       if (dictId) {
         achievedMap.set(dictId, child);
       }
@@ -626,26 +669,27 @@ class TabDataService {
    * Used for tabs where we only show achieved items with extra info.
    */
   private enrichChildrenWithDict(
-    childRecords: any[],
-    dictRecords: any[],
+    childRecords: ChildTabDataRecord[],
+    dictRecords: DictionaryTabDataRecord[],
     linkField: string
   ): EnrichedChildItem[] {
     // Build map of dictionary items by ID
-    const dictMap = new Map(dictRecords.map((d) => [d.id, d]));
+    const dictMap = new Map(dictRecords.map((record) => [record.id, record] as const));
 
     return childRecords.map((child) => {
-      const dictId = child.additional?.[linkField] ?? child[linkField];
+      const dictId = this.getLinkedRecordId(child, linkField);
       const dict = dictId ? dictMap.get(dictId) : null;
+      const dictionaryValue: EnrichedDictionaryValue | null = dict
+        ? {
+            id: dict.id,
+            name: dict.name,
+            ...(dict.additional || {}),
+          }
+        : null;
 
       return {
         ...child,
-        _dictionary: dict
-          ? {
-              id: dict.id,
-              name: dict.name,
-              ...(dict.additional || {}),
-            }
-          : null,
+        _dictionary: dictionaryValue,
       };
     });
   }

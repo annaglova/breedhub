@@ -63,7 +63,7 @@ export interface DictionaryMergeConfig {
   /** Additional fields to fetch from dictionary */
   additionalFields?: string[];
   /** Filter to apply on dictionary records */
-  filter?: Record<string, any>;
+  filter?: Record<string, unknown>;
   /** Ordering for dictionary items */
   orderBy?: OrderConfig[];
   /**
@@ -205,35 +205,64 @@ export interface UseTabDataOptions {
 }
 
 /**
+ * Generic tab-data record shape.
+ * Used when service orchestration knows it's working with object rows,
+ * but the exact entity schema is config-driven.
+ */
+export interface TabDataRecord extends Record<string, unknown> {}
+
+/**
+ * Child-table row shape returned by SpaceStore child loaders.
+ */
+export interface ChildTabDataRecord extends TabDataRecord {
+  id: string;
+  additional?: Record<string, unknown> & {
+    date?: string;
+  };
+}
+
+/**
+ * Dictionary row shape returned by DictionaryStore.
+ */
+export interface DictionaryTabDataRecord extends TabDataRecord {
+  id: string;
+  name: string;
+  additional?: Record<string, unknown>;
+}
+
+/**
+ * Flattened dictionary payload attached to enriched child rows.
+ */
+export interface EnrichedDictionaryValue extends TabDataRecord {
+  id: string;
+  name: string;
+}
+
+/**
  * Merged dictionary item with achievement status
  * Output format when dictionary.showAll is true
  */
-export interface MergedDictionaryItem {
+export interface MergedDictionaryItem extends TabDataRecord {
   /** Dictionary item ID */
   id: string;
   /** Dictionary item name */
   name: string;
-  /** Additional fields from dictionary */
-  [key: string]: any;
+  /** Common flattened dictionary fields used by timeline/support tabs */
+  description?: string;
+  int_value?: number;
   /** Whether this item is achieved (has child record) */
   _achieved: boolean;
   /** The child record if achieved, null otherwise */
-  _achievedRecord: any | null;
+  _achievedRecord: ChildTabDataRecord | null;
 }
 
 /**
  * Enriched child item with dictionary lookup
  * Output format when dictionary.showAll is false
  */
-export interface EnrichedChildItem {
-  /** Child record fields */
-  [key: string]: any;
+export interface EnrichedChildItem extends ChildTabDataRecord {
   /** Looked up dictionary data */
-  _dictionary: {
-    id: string;
-    name: string;
-    [key: string]: any;
-  } | null;
+  _dictionary: EnrichedDictionaryValue | null;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
