@@ -117,6 +117,7 @@ import {
 } from '../helpers';
 
 import {
+  buildSupabaseSelectFromRxDBSchema,
   findDocumentById,
   findDocumentDataById,
   mapSupabaseToRxDBDoc,
@@ -1211,11 +1212,14 @@ class SpaceStore {
 
     // Use VIEW source if configured (e.g., litter_with_parents for litter)
     const sourceName = getSupabaseSource(entityType);
+    const selectFields = buildSupabaseSelectFromRxDBSchema(
+      this.db?.collections[entityType]?.schema?.jsonSchema,
+    );
     console.log(`[SpaceStore] 🌐 Fetching ${ids.length} full records by IDs from ${sourceName}...`);
 
     const { data, error } = await supabase
       .from(sourceName)
-      .select('*')
+      .select(selectFields)
       .in('id', ids);
 
     if (error) {
@@ -1242,11 +1246,14 @@ class SpaceStore {
     }
 
     const sourceName = getSupabaseSource(entityType);
+    const selectFields = buildSupabaseSelectFromRxDBSchema(
+      this.db?.collections[entityType]?.schema?.jsonSchema,
+    );
 
     if (!partitionField) {
       const { data, error } = await supabase
         .from(sourceName)
-        .select('*')
+        .select(selectFields)
         .in('id', normalizedRefs.map((ref) => ref.id))
         .or('deleted.is.null,deleted.eq.false');
 
@@ -1265,7 +1272,7 @@ class SpaceStore {
     if (unpartitionedIds.length > 0) {
       const { data, error } = await supabase
         .from(sourceName)
-        .select('*')
+        .select(selectFields)
         .in('id', unpartitionedIds)
         .or('deleted.is.null,deleted.eq.false');
 
@@ -1282,7 +1289,7 @@ class SpaceStore {
     for (const [partitionId, ids] of partitionedIds) {
       const { data, error } = await supabase
         .from(sourceName)
-        .select('*')
+        .select(selectFields)
         .eq(partitionField, partitionId)
         .in('id', ids)
         .or('deleted.is.null,deleted.eq.false');
@@ -1494,9 +1501,12 @@ class SpaceStore {
 
     // 2. Fallback to Supabase
     try {
+      const selectFields = buildSupabaseSelectFromRxDBSchema(
+        this.db?.collections[entityType]?.schema?.jsonSchema,
+      );
       const { data, error } = await supabase
         .from(entityType)
-        .select('*')
+        .select(selectFields)
         .eq('id', id)
         .or('deleted.is.null,deleted.eq.false')
         .maybeSingle();
@@ -1836,6 +1846,9 @@ class SpaceStore {
     const collection = this.db?.collections[entityTable];
     const cacheKey = buildMappingCacheKey(mappingTable, parentField, parentId);
     const STALE_MS = 5 * 60 * 1000;
+    const selectFields = buildSupabaseSelectFromRxDBSchema(
+      collection?.schema?.jsonSchema,
+    );
 
     return loadEntitiesViaMappingFlow({
       entityTable,
@@ -1860,12 +1873,15 @@ class SpaceStore {
         fetchRecordsByMappingRows(rows, {
           partitionField,
           fetchAll: async (ids) => {
-            const { data } = await supabase.from(entityTable).select('*').in('id', ids);
+            const { data } = await supabase
+              .from(entityTable)
+              .select(selectFields)
+              .in('id', ids);
             return data || [];
           },
           fetchPartition: async (partitionValue, ids) => {
             const { data } = await supabase.from(entityTable)
-              .select('*')
+              .select(selectFields)
               .eq(partitionField!, partitionValue)
               .in('id', ids);
             return data || [];

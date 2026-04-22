@@ -3,6 +3,7 @@ import { RxCollection, RxDatabase } from 'rxdb';
 import { BusinessEntity } from '../types/business-entity.types';
 import { supabase } from '../supabase/client';
 import {
+  buildSupabaseSelectFromRxDBSchema,
   findDocumentByPrimaryKey,
   mapSupabaseToRxDBDoc,
 } from '../utils/rxdb-document.helpers';
@@ -96,6 +97,7 @@ export class EntityReplicationService {
 
     // Get schema for field mapping
     const schema = collection.schema.jsonSchema;
+    const selectFields = buildSupabaseSelectFromRxDBSchema(schema);
 
     // Initialize request counter
     this.activeRequests.set(entityType, 0);
@@ -156,7 +158,7 @@ export class EntityReplicationService {
               // Fetch data
               const { data, error } = await this.supabase
                 .from(entityType)
-                .select('*')
+                .select(selectFields)
                 .gt('updated_at', checkpointDate)
                 .order('updated_at', { ascending: true })
                 .limit(limit);
@@ -470,6 +472,7 @@ export class EntityReplicationService {
     }
 
     const schema = collection.schema.jsonSchema;
+    const selectFields = buildSupabaseSelectFromRxDBSchema(schema);
     const BATCH_SIZE = 1000;
     let totalSynced = 0;
     let lastUpdatedAt: string | null = null;
@@ -478,7 +481,7 @@ export class EntityReplicationService {
       while (true) {
         let query = this.supabase
           .from(entityType)
-          .select('*')
+          .select(selectFields)
           .or('deleted.is.null,deleted.eq.false')
           .order('updated_at', { ascending: true })
           .limit(BATCH_SIZE);
@@ -494,17 +497,18 @@ export class EntityReplicationService {
           return false;
         }
 
-        if (!data || data.length === 0) break;
+        const rows = (data || []) as Array<Record<string, any>>;
+        if (rows.length === 0) break;
 
-        const mapped = data.map(doc => this.mapSupabaseToRxDB(entityType, doc, schema));
+        const mapped = rows.map(doc => this.mapSupabaseToRxDB(entityType, doc, schema));
         await collection.bulkUpsert(mapped);
 
-        totalSynced += data.length;
-        lastUpdatedAt = data[data.length - 1].updated_at;
+        totalSynced += rows.length;
+        lastUpdatedAt = rows[rows.length - 1].updated_at;
 
         console.log(`[EntityReplication] Force sync: ${totalSynced} records synced`);
 
-        if (data.length < BATCH_SIZE) break;
+        if (rows.length < BATCH_SIZE) break;
       }
 
       console.log(`[EntityReplication] Force sync completed for ${entityType}: ${totalSynced} records`);
@@ -634,6 +638,7 @@ export class EntityReplicationService {
       // Get collection and checkpoint
       const collection = replicationState.collection;
       const schema = collection.schema.jsonSchema;
+      const selectFields = buildSupabaseSelectFromRxDBSchema(schema);
 
       // Get current checkpoint by finding the latest document in RxDB
       // This ensures we always continue from where RxDB actually is
@@ -658,7 +663,7 @@ export class EntityReplicationService {
       // Direct fetch from Supabase
       const { data, error } = await this.supabase
         .from(entityType)
-        .select('*')
+        .select(selectFields)
         .gt('updated_at', checkpointDate)
         .order('updated_at', { ascending: true })
         .limit(limit || 30);

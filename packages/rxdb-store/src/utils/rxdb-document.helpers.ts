@@ -1,15 +1,49 @@
 import type { RxCollection, RxDocument } from 'rxdb';
 
 export interface RxDBDocumentSchema {
-  properties?: Record<string, { type?: string | string[] }>;
+  properties?: Record<string, { type?: string | readonly string[] }>;
 }
 
-function allowsNull(fieldSchema: { type?: string | string[] } | undefined): boolean {
+const RXDB_ONLY_FIELDS = new Set([
+  '_deleted',
+  'cachedAt',
+  '_meta',
+  '_attachments',
+  '_rev',
+]);
+
+function allowsNull(fieldSchema: { type?: string | readonly string[] } | undefined): boolean {
   if (!fieldSchema) {
     return false;
   }
 
   return Array.isArray(fieldSchema.type) && fieldSchema.type.includes('null');
+}
+
+export function buildSupabaseSelectFromRxDBSchema(
+  jsonSchema: RxDBDocumentSchema | null | undefined,
+): string {
+  const properties = jsonSchema?.properties;
+  if (!properties || Object.keys(properties).length === 0) {
+    return '*';
+  }
+
+  const selectFields: string[] = [];
+
+  for (const fieldName of Object.keys(properties)) {
+    if (fieldName === '_deleted') {
+      selectFields.push('deleted');
+      continue;
+    }
+
+    if (RXDB_ONLY_FIELDS.has(fieldName)) {
+      continue;
+    }
+
+    selectFields.push(fieldName);
+  }
+
+  return selectFields.length > 0 ? selectFields.join(', ') : '*';
 }
 
 export function mapSupabaseToRxDBDoc(

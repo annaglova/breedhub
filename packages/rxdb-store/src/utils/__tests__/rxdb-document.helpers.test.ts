@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import {
+  buildSupabaseSelectFromRxDBSchema,
   findDocumentById,
   findDocumentByPrimaryKey,
   findDocumentDataById,
@@ -69,6 +70,38 @@ describe('rxdb-document.helpers', () => {
     } as any;
 
     await expect(findDocumentDataById(collection, 'missing')).resolves.toBeNull();
+  });
+
+  it('builds a Supabase select list from schema fields and remaps _deleted to deleted', () => {
+    expect(
+      buildSupabaseSelectFromRxDBSchema({
+        properties: {
+          id: { type: 'string' },
+          breed_id: { type: 'string' },
+          name: { type: 'string' },
+          _deleted: { type: 'boolean' },
+          cachedAt: { type: 'number' },
+        },
+      }),
+    ).toBe('id, breed_id, name, deleted');
+  });
+
+  it('filters RxDB service fields out of the Supabase select list', () => {
+    expect(
+      buildSupabaseSelectFromRxDBSchema({
+        properties: {
+          id: { type: 'string' },
+          _meta: { type: 'object' },
+          _attachments: { type: 'object' },
+          _rev: { type: 'string' },
+        },
+      }),
+    ).toBe('id');
+  });
+
+  it('falls back to wildcard select when schema properties are unavailable', () => {
+    expect(buildSupabaseSelectFromRxDBSchema(undefined)).toBe('*');
+    expect(buildSupabaseSelectFromRxDBSchema({ properties: {} })).toBe('*');
   });
 
   it('skips null schema fields when the schema does not allow null', () => {

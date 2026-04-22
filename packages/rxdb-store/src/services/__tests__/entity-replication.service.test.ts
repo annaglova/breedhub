@@ -336,6 +336,9 @@ describe("entity-replication.service", () => {
     );
     expect(callback).toHaveBeenCalledWith(42);
     expect(service.getTotalCount("pet")).toBe(42);
+    expect(mockState.queryLog[0].selectArgs?.columns).toBe(
+      "id, name, updated_at, created_at, deleted",
+    );
     expect(localStorageMock.setItem).toHaveBeenCalledWith(
       "totalCount_pet",
       JSON.stringify({
@@ -524,6 +527,9 @@ describe("entity-replication.service", () => {
         expect.objectContaining({ id: "pet-0", _deleted: false }),
       ]),
     );
+    expect(mockState.queryLog[0].selectArgs?.columns).toBe(
+      "id, name, updated_at, created_at, deleted",
+    );
     expect(mockState.queryLog[1].gtCalls).toEqual([
       { field: "updated_at", value: firstBatch[firstBatch.length - 1].updated_at },
     ]);
@@ -658,6 +664,9 @@ describe("entity-replication.service", () => {
     const inserted = await service.manualPull("pet", 5);
 
     expect(inserted).toBe(2);
+    expect(mockState.queryLog[0].selectArgs?.columns).toBe(
+      "id, name, updated_at, created_at, deleted",
+    );
     expect(mockState.queryLog[0].gtCalls).toEqual([
       { field: "updated_at", value: "2026-04-21T09:00:00.000Z" },
     ]);
