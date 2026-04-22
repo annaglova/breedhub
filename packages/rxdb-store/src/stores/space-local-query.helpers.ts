@@ -1,22 +1,51 @@
-import type { RxCollection, RxDocument } from "rxdb";
 import {
   applyFiltersToRxdbSelector,
   getStringSearchFilters,
 } from "./space-filter.helpers";
 import type { KeysetOrderBy } from "./space-keyset.helpers";
-import { compareValues, getTieBreaker } from "./space-sort.helpers";
+import {
+  compareValues,
+  getTieBreaker,
+  type ComparableValue,
+} from "./space-sort.helpers";
 
-export interface LocalEntityQueryResult {
-  records: any[];
-  hasMore: boolean;
-  nextCursor: any;
+export interface LocalEntityRecord extends Record<string, unknown> {
+  id?: string;
+  _deleted?: boolean;
 }
 
-interface LocalEntityQueryOptions {
-  collection: RxCollection<any>;
+export interface LocalQueryCollection<
+  TRecord extends LocalEntityRecord = LocalEntityRecord,
+> {
+  count(): {
+    exec(): Promise<unknown>;
+  };
+  find(options: LocalFindQueryOptions): {
+    exec(): Promise<Array<{ toJSON(): TRecord }>>;
+  };
+}
+
+export interface LocalFindQueryOptions {
+  selector: Record<string, unknown>;
+  sort?: Array<Record<string, "asc" | "desc">>;
+  limit?: number;
+}
+
+export interface LocalEntityQueryResult<
+  TRecord extends LocalEntityRecord = LocalEntityRecord,
+> {
+  records: TRecord[];
+  hasMore: boolean;
+  nextCursor: string | null;
+}
+
+interface LocalEntityQueryOptions<
+  TRecord extends LocalEntityRecord = LocalEntityRecord,
+> {
+  collection: LocalQueryCollection<TRecord>;
   entityType: string;
-  filters: Record<string, any>;
-  fieldConfigs: Record<string, any>;
+  filters: Record<string, unknown>;
+  fieldConfigs: Record<string, unknown>;
   limit: number;
   cursor: string | null;
   orderBy: KeysetOrderBy;
@@ -29,53 +58,70 @@ interface LocalSelectorQueryOptions {
 }
 
 export interface FilterLocalEntitiesOptions {
-  collection?: RxCollection<any>;
+  collection?: LocalQueryCollection;
   entityType: string;
-  filters: Record<string, any>;
-  fieldConfigs: Record<string, any>;
+  filters: Record<string, unknown>;
+  fieldConfigs: Record<string, unknown>;
   limit: number;
   cursor: string | null;
   orderBy: KeysetOrderBy;
   logMissingCollection?: boolean;
 }
 
-function escapeRegexValue(value: any): string {
+function getParameterizedValue(
+  value: unknown,
+  parameter?: string,
+): ComparableValue | null {
+  if (!parameter) {
+    return (value as ComparableValue | null | undefined) ?? null;
+  }
+
+  if (typeof value !== "object" || value === null) {
+    return null;
+  }
+
+  return ((value as Record<string, unknown>)[parameter] as
+    | ComparableValue
+    | null
+    | undefined) ?? null;
+}
+
+function escapeRegexValue(value: unknown): string {
   return String(value).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
 export function getLocalOrderValue(
-  record: Record<string, any> | null | undefined,
+  record: LocalEntityRecord | null | undefined,
   orderBy: KeysetOrderBy,
-): any {
+): ComparableValue | null {
   if (!record) {
     return null;
   }
 
-  return orderBy.parameter
-    ? record[orderBy.field]?.[orderBy.parameter]
-    : record[orderBy.field];
+  return getParameterizedValue(record[orderBy.field], orderBy.parameter);
 }
 
 function getLocalTieBreakerValue(
-  record: Record<string, any> | null | undefined,
+  record: LocalEntityRecord | null | undefined,
   orderBy: KeysetOrderBy,
-): any {
+): ComparableValue | null {
   if (!record) {
     return null;
   }
 
   const tieBreaker = getTieBreaker(orderBy);
-  const tieBreakerValue = tieBreaker.parameter
-    ? record[tieBreaker.field]?.[tieBreaker.parameter]
-    : record[tieBreaker.field];
+  const tieBreakerValue = getParameterizedValue(
+    record[tieBreaker.field],
+    tieBreaker.parameter,
+  );
 
   return tieBreakerValue ?? record.id ?? null;
 }
 
-export function sortLocalRecords(
-  records: Record<string, any>[],
+export function sortLocalRecords<TRecord extends LocalEntityRecord>(
+  records: TRecord[],
   orderBy: KeysetOrderBy,
-): Record<string, any>[] {
+): TRecord[] {
   const tieBreaker = getTieBreaker(orderBy);
 
   return [...records].sort((leftRecord, rightRecord) => {
@@ -98,11 +144,11 @@ export function sortLocalRecords(
 }
 
 function buildLocalQueryOptions(
-  selector: Record<string, any>,
+  selector: Record<string, unknown>,
   orderBy: KeysetOrderBy,
   limit: number,
-): Record<string, any> {
-  const queryOptions: Record<string, any> = { selector };
+): LocalFindQueryOptions {
+  const queryOptions: LocalFindQueryOptions = { selector };
 
   if (!orderBy.parameter) {
     const tieBreaker = getTieBreaker(orderBy);
@@ -119,16 +165,20 @@ function buildLocalQueryOptions(
 }
 
 function applyLocalJsonbCursor(
-  records: Record<string, any>[],
+  records: LocalEntityRecord[],
   orderBy: KeysetOrderBy,
   cursor: string | null | undefined,
-): Record<string, any>[] {
+): LocalEntityRecord[] {
   if (!cursor || !orderBy.parameter) {
     return records;
   }
 
   return records.filter((record) => {
     const value = getLocalOrderValue(record, orderBy);
+    if (value === null || value === undefined) {
+      return false;
+    }
+
     if (orderBy.direction === "asc") {
       return value > cursor;
     }
@@ -138,19 +188,21 @@ function applyLocalJsonbCursor(
 }
 
 async function executeLocalSelectorQuery(
-  collection: RxCollection<any>,
-  selector: Record<string, any>,
+  collection: LocalQueryCollection,
+  selector: Record<string, unknown>,
   orderBy: KeysetOrderBy,
   options: LocalSelectorQueryOptions,
-): Promise<Record<string, any>[]> {
+): Promise<LocalEntityRecord[]> {
   const docs = await collection
     .find(buildLocalQueryOptions(selector, orderBy, options.limit))
     .exec();
 
-  let records = docs.map((doc: RxDocument<any>) => doc.toJSON());
+  let records = docs.map((doc) => doc.toJSON());
 
   if (options.skipIds?.size) {
-    records = records.filter((record) => !options.skipIds!.has(record.id));
+    records = records.filter(
+      (record) => record.id === undefined || !options.skipIds?.has(record.id),
+    );
   }
 
   records = sortLocalRecords(records, orderBy);
@@ -181,7 +233,7 @@ export async function executeLocalEntityQuery(
 
     const skipKeys = stringFilters.map(([key]) => key);
     const startsWithLimit = Math.ceil(limit * 0.7);
-    const startsWithSelector: Record<string, any> = { _deleted: false };
+    const startsWithSelector: Record<string, unknown> = { _deleted: false };
 
     for (const [fieldKey, value] of stringFilters) {
       startsWithSelector[fieldKey] = {
@@ -210,7 +262,7 @@ export async function executeLocalEntityQuery(
     let records = startsWithResults;
 
     if (remainingLimit > 0) {
-      const containsSelector: Record<string, any> = { _deleted: false };
+      const containsSelector: Record<string, unknown> = { _deleted: false };
       for (const [fieldKey, value] of stringFilters) {
         containsSelector[fieldKey] = {
           $regex: escapeRegexValue(value),
@@ -229,7 +281,11 @@ export async function executeLocalEntityQuery(
         orderBy,
         {
           limit: remainingLimit,
-          skipIds: new Set(startsWithResults.map((record) => record.id)),
+          skipIds: new Set(
+            startsWithResults
+              .map((record) => record.id)
+              .filter((id): id is string => Boolean(id)),
+          ),
         },
       );
 
@@ -247,13 +303,17 @@ export async function executeLocalEntityQuery(
     return {
       records,
       hasMore: records.length >= limit,
-      nextCursor: getLocalOrderValue(records[records.length - 1], orderBy) ?? null,
+      nextCursor:
+        (getLocalOrderValue(
+          records[records.length - 1],
+          orderBy,
+        ) as string | null) ?? null,
     };
   }
 
   console.log("[SpaceStore] 🔍 Regular search mode (cursor or no string filters)");
 
-  const selector: Record<string, any> = { _deleted: false };
+  const selector: Record<string, unknown> = { _deleted: false };
   applyFiltersToRxdbSelector(selector, filters, fieldConfigs, {
     entityType,
     preferStringSearchOperator: true,
@@ -284,7 +344,11 @@ export async function executeLocalEntityQuery(
   return {
     records,
     hasMore: records.length >= limit,
-    nextCursor: getLocalOrderValue(records[records.length - 1], orderBy) ?? null,
+    nextCursor:
+      (getLocalOrderValue(
+        records[records.length - 1],
+        orderBy,
+      ) as string | null) ?? null,
   };
 }
 

@@ -15,24 +15,27 @@ export interface CollectionSpaceConfigLike {
 }
 
 export type CollectionReuseStatus = 'ready' | 'recreate';
+type CollectionMigrationDoc = Record<string, unknown>;
 
 export function buildEntityCollectionConfig<TSchema>(schema: TSchema): {
   schema: TSchema;
   migrationStrategies: {
-    1: (oldDoc: any) => any;
-    2: (oldDoc: any) => any;
+    1: (
+      oldDoc: CollectionMigrationDoc,
+    ) => CollectionMigrationDoc & { cachedAt: number };
+    2: (oldDoc: CollectionMigrationDoc) => CollectionMigrationDoc;
   };
 } {
   return {
     schema,
     migrationStrategies: {
       // Version 0→1: Add cachedAt field for TTL cleanup
-      1: (oldDoc: any) => ({
+      1: (oldDoc: CollectionMigrationDoc) => ({
         ...oldDoc,
         cachedAt: Date.now(),
       }),
       // Version 1→2: Add VIEW extra fields (pass through, fields added on next fetch)
-      2: (oldDoc: any) => oldDoc,
+      2: (oldDoc: CollectionMigrationDoc) => oldDoc,
     },
   };
 }
@@ -157,9 +160,9 @@ export function createBufferedEntityChangeHandler<TRecord extends { id: string }
 }
 
 export interface DeleteDatabaseRequestLike {
-  onsuccess: ((...args: any[]) => void) | null;
-  onerror: ((...args: any[]) => void) | null;
-  onblocked: ((...args: any[]) => void) | null;
+  onsuccess: ((event: Event) => void) | null;
+  onerror: ((event: Event) => void) | null;
+  onblocked: ((event: IDBVersionChangeEvent) => void) | null;
 }
 
 export interface IndexedDbLike {

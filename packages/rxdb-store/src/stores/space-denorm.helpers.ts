@@ -1,5 +1,25 @@
 import { findDocumentById } from "../utils/rxdb-document.helpers";
+import type {
+  TitleDictionaryEntry,
+  TitleInPetRow,
+} from "../utils/titles-display-builder";
 import { recordMatchesPartition } from "./space-partition.helpers";
+
+type DenormRecord = Record<string, unknown>;
+
+interface TitleInPetChildRecord {
+  additional?:
+    | {
+        title_id?: string | null;
+        country_id?: string | null;
+        amount?: number | null;
+        date?: string | null;
+        is_confirmed?: boolean | null;
+        deleted?: boolean | null;
+      }
+    | null;
+  deleted?: boolean | null;
+}
 
 export interface GuardedPartitionPatchCollection<TRecord> {
   findOne(id: string): {
@@ -19,7 +39,7 @@ export interface GuardedPartitionPatchEntityStore<TRecord> {
 }
 
 export interface GuardedPartitionPatchOptions<
-  TRecord extends Record<string, any>,
+  TRecord extends DenormRecord,
 > {
   id: string;
   patch: Partial<TRecord>;
@@ -37,23 +57,26 @@ export interface GuardedPartitionPatchOptions<
 export interface RebuildPetTitlesDisplayFlowOptions {
   petId: string;
   petBreedId?: string;
-  loadTitleInPetRecords: (petId: string, petBreedId?: string) => Promise<any[]>;
+  loadTitleInPetRecords: (
+    petId: string,
+    petBreedId?: string,
+  ) => Promise<TitleInPetChildRecord[]>;
   lookupTitleDictionary: (
     titleId: string,
-  ) => Promise<{ name?: string | null; rating?: number | string | null } | null>;
-  collection?: GuardedPartitionPatchCollection<Record<string, any>>;
-  entityStore?: GuardedPartitionPatchEntityStore<Record<string, any>>;
+  ) => Promise<TitleDictionaryEntry | null>;
+  collection?: GuardedPartitionPatchCollection<DenormRecord>;
+  entityStore?: GuardedPartitionPatchEntityStore<DenormRecord>;
 }
 
 function buildPartitionMismatchPayload(
   options: Pick<
-    GuardedPartitionPatchOptions<Record<string, any>>,
+    GuardedPartitionPatchOptions<DenormRecord>,
     "id" | "expectedPartitionId" | "recordIdField" | "expectedPartitionField"
   > & {
     cachedPartitionField: string;
-    cachedPartitionId: any;
+    cachedPartitionId: unknown;
   },
-): Record<string, any> {
+): Record<string, unknown> {
   return {
     [options.recordIdField]: options.id,
     [options.expectedPartitionField]: options.expectedPartitionId,
@@ -62,13 +85,16 @@ function buildPartitionMismatchPayload(
 }
 
 export async function applyPartitionGuardedPatch<
-  TRecord extends Record<string, any>,
+  TRecord extends DenormRecord,
 >(options: GuardedPartitionPatchOptions<TRecord>): Promise<void> {
   if (options.collection) {
-    const doc = await findDocumentById(options.collection as any, options.id);
+    const doc = await findDocumentById(
+      options.collection as unknown as Parameters<typeof findDocumentById<TRecord>>[0],
+      options.id,
+    );
 
     if (doc) {
-      const cachedRecord = doc.toJSON() as Record<string, any>;
+      const cachedRecord = doc.toJSON() as TRecord;
       const cachedPartitionId = cachedRecord[options.partitionField];
 
       if (
@@ -97,7 +123,7 @@ export async function applyPartitionGuardedPatch<
 
   if (options.entityStore) {
     const cachedRecord = options.entityStore.entityMap.value.get(options.id) as
-      | Record<string, any>
+      | TRecord
       | undefined;
     const cachedPartitionId = cachedRecord?.[options.partitionField];
 
@@ -133,28 +159,30 @@ export async function rebuildPetTitlesDisplayFlow(
     options.petBreedId,
   );
 
-  const titlesInPet = childRecords
-    .map((record: any) => {
-      const additional = record.additional || {};
+  const titlesInPet = childRecords.reduce<TitleInPetRow[]>((records, record) => {
+      const additional = record.additional ?? {};
+      const titleId = additional.title_id;
 
-      return {
-        title_id: additional.title_id,
+      if (!titleId) {
+        return records;
+      }
+
+      records.push({
+        title_id: titleId,
         country_id: additional.country_id ?? null,
         amount: additional.amount ?? null,
         date: additional.date ?? null,
         is_confirmed: additional.is_confirmed ?? null,
         deleted: additional.deleted ?? record.deleted ?? null,
-      };
-    })
-    .filter((record) => !!record.title_id);
+      });
+
+      return records;
+    }, []);
 
   const titleIds = Array.from(
-    new Set(titlesInPet.map((record) => record.title_id as string)),
+    new Set(titlesInPet.map((record) => record.title_id)),
   );
-  const titleLookup = new Map<
-    string,
-    { name?: string | null; rating?: number | string | null }
-  >();
+  const titleLookup = new Map<string, TitleDictionaryEntry>();
 
   if (titleIds.length > 0) {
     const lookups = await Promise.all(
@@ -166,8 +194,8 @@ export async function rebuildPetTitlesDisplayFlow(
 
       if (record) {
         titleLookup.set(titleIds[i], {
-          name: record.name as string | null,
-          rating: record.rating as number | string | null,
+          name: record.name ?? null,
+          rating: record.rating ?? null,
         });
       }
     }

@@ -4,8 +4,10 @@ import {
   rebuildPetTitlesDisplayFlow,
 } from "../space-denorm.helpers";
 
-function createPatchableCollection(record?: Record<string, any> | null) {
-  const patch = vi.fn(async (_patch: Record<string, any>) => {});
+type DenormRecord = Record<string, unknown>;
+
+function createPatchableCollection(record?: DenormRecord | null) {
+  const patch = vi.fn(async (_patch: DenormRecord) => {});
   const findOne = vi.fn((_id: string) => ({
     exec: async () =>
       record
@@ -25,7 +27,7 @@ function createPatchableCollection(record?: Record<string, any> | null) {
   };
 }
 
-function createEntityStore(records: Record<string, Record<string, any>>) {
+function createEntityStore(records: Record<string, DenormRecord>) {
   const updateOne = vi.fn();
 
   return {
@@ -40,7 +42,9 @@ function createEntityStore(records: Record<string, Record<string, any>>) {
 }
 
 function createBasePatchOptions(
-  overrides: Partial<Parameters<typeof applyPartitionGuardedPatch<Record<string, any>>>[0]> = {},
+  overrides: Partial<
+    Parameters<typeof applyPartitionGuardedPatch<DenormRecord>>[0]
+  > = {},
 ) {
   return {
     id: "pet-1",

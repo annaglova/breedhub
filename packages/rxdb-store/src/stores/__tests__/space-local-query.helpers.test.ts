@@ -2,14 +2,32 @@ import { describe, expect, it, vi } from "vitest";
 import {
   executeLocalEntityQuery,
   filterLocalEntities,
+  type LocalEntityRecord,
+  type LocalFindQueryOptions,
+  type LocalQueryCollection,
 } from "../space-local-query.helpers";
 
-function createMockCollection(records: Record<string, any>[]) {
-  return {
+interface SelectorCondition {
+  $regex?: string;
+  $options?: string;
+  $gt?: string;
+  $lt?: string;
+}
+
+function isObjectRecord(
+  value: unknown,
+): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
+
+function createMockCollection(
+  records: LocalEntityRecord[],
+): LocalQueryCollection<LocalEntityRecord> {
+  const collection = {
     count: vi.fn(() => ({
       exec: vi.fn(async () => records.length),
     })),
-    find: vi.fn((options: Record<string, any>) => ({
+    find: vi.fn((options: LocalFindQueryOptions) => ({
       exec: vi.fn(async () => {
         let matched = records.filter((record) =>
           matchesSelector(record, options.selector || {}),
@@ -28,35 +46,41 @@ function createMockCollection(records: Record<string, any>[]) {
         }));
       }),
     })),
-  } as any;
+  } satisfies LocalQueryCollection<LocalEntityRecord>;
+
+  return collection;
 }
 
 function matchesSelector(
-  record: Record<string, any>,
-  selector: Record<string, any>,
+  record: LocalEntityRecord,
+  selector: Record<string, unknown>,
 ): boolean {
   return Object.entries(selector).every(([field, condition]) => {
     if (field === "_deleted") {
       return (record._deleted ?? false) === condition;
     }
 
-    if (
-      condition &&
-      typeof condition === "object" &&
-      "$regex" in condition &&
-      typeof condition.$regex === "string"
-    ) {
-      return new RegExp(condition.$regex, condition.$options || "").test(
-        String(record[field] ?? ""),
-      );
-    }
+    if (isObjectRecord(condition)) {
+      const typedCondition = condition as SelectorCondition;
 
-    if (condition && typeof condition === "object" && "$gt" in condition) {
-      return record[field] > condition.$gt;
-    }
+      if (typeof typedCondition.$regex === "string") {
+        return new RegExp(
+          typedCondition.$regex,
+          typeof typedCondition.$options === "string"
+            ? typedCondition.$options
+            : "",
+        ).test(String(record[field] ?? ""));
+      }
 
-    if (condition && typeof condition === "object" && "$lt" in condition) {
-      return record[field] < condition.$lt;
+      if (typedCondition.$gt !== undefined) {
+        const value = record[field] as string | undefined;
+        return value !== undefined && value > typedCondition.$gt;
+      }
+
+      if (typedCondition.$lt !== undefined) {
+        const value = record[field] as string | undefined;
+        return value !== undefined && value < typedCondition.$lt;
+      }
     }
 
     return record[field] === condition;
@@ -64,18 +88,21 @@ function matchesSelector(
 }
 
 function sortBySpec(
-  records: Record<string, any>[],
+  records: LocalEntityRecord[],
   sortSpec: Array<Record<string, "asc" | "desc">>,
 ) {
   return [...records].sort((left, right) => {
     for (const part of sortSpec) {
       const [[field, direction]] = Object.entries(part);
-      const leftValue = left[field];
-      const rightValue = right[field];
+      const leftValue = left[field] as string | number | undefined;
+      const rightValue = right[field] as string | number | undefined;
 
       if (leftValue === rightValue) {
         continue;
       }
+
+      if (leftValue === undefined) return direction === "asc" ? -1 : 1;
+      if (rightValue === undefined) return direction === "asc" ? 1 : -1;
 
       if (direction === "asc") {
         return leftValue < rightValue ? -1 : 1;

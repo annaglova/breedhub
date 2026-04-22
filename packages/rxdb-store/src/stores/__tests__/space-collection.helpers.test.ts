@@ -176,7 +176,7 @@ describe("space-collection.helpers", () => {
             onblocked: null,
           };
           queueMicrotask(() => {
-            request.onsuccess?.();
+            request.onsuccess?.(new Event("success"));
           });
           return request;
         },
