@@ -9,6 +9,8 @@ import {
 } from "../space-total-count.helpers";
 
 describe("space-total-count.helpers", () => {
+  type QueryCall = [string, unknown];
+
   afterEach(() => {
     vi.restoreAllMocks();
   });
@@ -86,9 +88,9 @@ describe("space-total-count.helpers", () => {
   });
 
   it("applies default filters and grouped filter to total count query", () => {
-    const calls: Array<[string, any]> = [];
+    const calls: QueryCall[] = [];
     const query = {
-      eq(column: string, value: any) {
+      eq(column: string, value: unknown) {
         calls.push([column, value]);
         return this;
       },
@@ -112,9 +114,9 @@ describe("space-total-count.helpers", () => {
   });
 
   it("skips empty default filters and missing grouped filter values", () => {
-    const calls: Array<[string, any]> = [];
+    const calls: QueryCall[] = [];
     const query = {
-      eq(column: string, value: any) {
+      eq(column: string, value: unknown) {
         calls.push([column, value]);
         return this;
       },
@@ -171,8 +173,8 @@ describe("space-total-count.helpers", () => {
     const onCountResolved = vi.fn();
     const fetchFreshCount = vi.fn(async (applyFilters) => {
       const query = {
-        calls: [] as Array<[string, any]>,
-        eq(column: string, value: any) {
+        calls: [] as QueryCall[],
+        eq(column: string, value: unknown) {
           this.calls.push([column, value]);
           return this;
         },

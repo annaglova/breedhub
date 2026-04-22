@@ -21,13 +21,13 @@ function createSlugSupabaseMock(
   responses: Record<
     string,
     {
-      data?: any;
-      error?: any;
+      data?: Record<string, unknown> | null;
+      error?: unknown;
       thrown?: Error;
     }
   >,
 ) {
-  const calls: Array<[string, string, ...any[]]> = [];
+  const calls: Array<[string, string, ...unknown[]]> = [];
 
   return {
     calls,
@@ -37,7 +37,7 @@ function createSlugSupabaseMock(
         const response = responses[table] || {};
 
         const query = {
-          eq(column: string, value: any) {
+          eq(column: string, value: unknown) {
             calls.push([table, "eq", column, value]);
             return query;
           },

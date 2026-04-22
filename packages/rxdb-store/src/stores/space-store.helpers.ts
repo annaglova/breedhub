@@ -8,8 +8,33 @@ export interface WireReconnectRefreshOptions<TStore> {
   logPrefix?: string;
 }
 
+interface MaybeSingleResult<TData> {
+  data: TData | null;
+  error: unknown;
+}
+
+interface FetchEntityBySlugQuery<TData> {
+  eq(column: string, value: unknown): FetchEntityBySlugQuery<TData>;
+  or(condition: string): FetchEntityBySlugQuery<TData>;
+  maybeSingle(): PromiseLike<MaybeSingleResult<TData>>;
+}
+
+interface FetchEntityBySlugSelectBuilder<TData> {
+  select(columns: string): FetchEntityBySlugQuery<TData>;
+}
+
+export interface FetchEntityBySlugSupabaseClient {
+  from(table: string): FetchEntityBySlugSelectBuilder<Record<string, unknown>>;
+}
+
+interface RouteLookupRecord {
+  entity_id?: string | null;
+  entity_partition_id?: string | null;
+  partition_field?: string | null;
+}
+
 export interface FetchEntityBySlugFlowOptions<TRecord> {
-  supabase: any;
+  supabase: unknown;
   entityType: string;
   slug: string;
   loadCachedBySlug: (entityType: string, slug: string) => Promise<TRecord | null>;
@@ -19,7 +44,10 @@ export interface FetchEntityBySlugFlowOptions<TRecord> {
     partitionId?: string,
     partitionField?: string,
   ) => Promise<TRecord | null>;
-  cacheEntity: (entityType: string, data: Record<string, any>) => Promise<void>;
+  cacheEntity: (
+    entityType: string,
+    data: Record<string, unknown>,
+  ) => Promise<void>;
 }
 
 export function wireReconnectRefresh<TStore>(
@@ -42,17 +70,19 @@ export function wireReconnectRefresh<TStore>(
 export async function fetchEntityBySlugFlow<TRecord>(
   options: FetchEntityBySlugFlowOptions<TRecord>,
 ): Promise<TRecord | null> {
+  const supabase = options.supabase as FetchEntityBySlugSupabaseClient;
   const cached = await options.loadCachedBySlug(options.entityType, options.slug);
   if (cached) {
     return cached;
   }
 
   try {
-    const { data: route, error } = await options.supabase
+    const { data: routeData, error } = await supabase
       .from("routes")
       .select("entity_id, entity_partition_id, partition_field")
       .eq("slug", options.slug)
       .maybeSingle();
+    const route = routeData as RouteLookupRecord | null;
 
     if (error) {
       throw error;
@@ -75,7 +105,7 @@ export async function fetchEntityBySlugFlow<TRecord>(
   }
 
   try {
-    const { data, error } = await options.supabase
+    const { data, error } = await supabase
       .from(options.entityType)
       .select("*")
       .eq("slug", options.slug)

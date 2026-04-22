@@ -1,6 +1,14 @@
 import type { KeysetOrderBy } from "./space-keyset.helpers";
 
 export type SortDirection = "asc" | "desc";
+export type ComparableValue =
+  | string
+  | number
+  | bigint
+  | boolean
+  | Date
+  | null
+  | undefined;
 
 export function getTieBreaker(
   orderBy: KeysetOrderBy,
@@ -9,8 +17,8 @@ export function getTieBreaker(
 }
 
 export function compareValues(
-  left: any,
-  right: any,
+  left: ComparableValue,
+  right: ComparableValue,
   direction: SortDirection,
 ): number {
   if (left === null || left === undefined) return 1;

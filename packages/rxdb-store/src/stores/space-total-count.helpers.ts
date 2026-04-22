@@ -1,7 +1,7 @@
 export interface TotalCountCacheKeyOptions {
-  defaultFilters?: Record<string, any>;
+  defaultFilters?: Record<string, unknown>;
   totalFilterKey?: string | null;
-  totalFilterValue?: any;
+  totalFilterValue?: unknown;
 }
 
 export interface CachedTotalCountState {
@@ -11,13 +11,13 @@ export interface CachedTotalCountState {
 }
 
 export interface TotalCountFilterableQuery<TQuery> {
-  eq(column: string, value: any): TQuery;
+  eq(column: string, value: unknown): TQuery;
 }
 
 export interface FetchOrCacheTotalCountOptions {
   entityType: string;
-  filters: Record<string, any>;
-  defaultFilters?: Record<string, any>;
+  filters: Record<string, unknown>;
+  defaultFilters?: Record<string, unknown>;
   totalFilterKey?: string | null;
   ttlMs: number;
   readCache: (key: string) => string | null;
@@ -26,12 +26,12 @@ export interface FetchOrCacheTotalCountOptions {
     applyFilters: <TQuery extends TotalCountFilterableQuery<TQuery>>(
       query: TQuery,
     ) => TQuery,
-  ) => PromiseLike<{ count: number | null; error: any }>;
+  ) => PromiseLike<{ count: number | null; error: unknown }>;
   onCountResolved: (count: number, source: "cache" | "fresh") => void;
 }
 
 export function buildDefaultFiltersSuffix(
-  defaultFilters: Record<string, any> = {},
+  defaultFilters: Record<string, unknown> = {},
 ): string {
   if (Object.keys(defaultFilters).length === 0) {
     return "";
@@ -64,7 +64,7 @@ export function buildTotalCountCacheKey(
 
 export function getTotalCountFilterInfo(
   totalFilterKey?: string | null,
-  totalFilterValue?: any,
+  totalFilterValue?: unknown,
 ): string {
   if (!totalFilterKey || !totalFilterValue) {
     return "";

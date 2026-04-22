@@ -10,18 +10,54 @@ export interface KeysetOrderBy {
 }
 
 export interface KeysetCursorData {
-  value: any;
-  tieBreaker: any;
+  value: unknown;
+  tieBreaker: unknown;
   tieBreakerField: string;
 }
 
+interface KeysetRecord extends Record<string, unknown> {
+  id?: unknown;
+  additional?: Record<string, unknown>;
+}
+
 export interface BuildCompositeNextCursorOptions {
-  lastRecord: Record<string, any> | undefined;
+  lastRecord: KeysetRecord | undefined;
   orderBy: KeysetOrderBy;
   hasMorePages?: boolean;
 }
 
-function escapePostgrestValue(value: any): string {
+function isObjectRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
+
+function getParameterizedValue(
+  fieldValue: unknown,
+  parameter?: string,
+): unknown {
+  if (!parameter) {
+    return fieldValue;
+  }
+
+  return isObjectRecord(fieldValue) ? fieldValue[parameter] : undefined;
+}
+
+function getRecordFieldValue(
+  record: KeysetRecord,
+  fieldName: string,
+  parameter?: string,
+): unknown {
+  return getParameterizedValue(record[fieldName], parameter);
+}
+
+function getAdditionalFieldValue(
+  record: KeysetRecord,
+  fieldName: string,
+  parameter?: string,
+): unknown {
+  return getParameterizedValue(record.additional?.[fieldName], parameter);
+}
+
+function escapePostgrestValue(value: unknown): string {
   if (value === null || value === undefined) {
     return "null";
   }
@@ -125,7 +161,7 @@ export function applySupabaseOrderBy<TQuery extends { order: (field: string, opt
 }
 
 export function buildNextKeysetCursor(
-  record: Record<string, any> | null | undefined,
+  record: KeysetRecord | null | undefined,
   orderBy: KeysetOrderBy,
 ): string | null {
   if (!record) {
@@ -133,11 +169,17 @@ export function buildNextKeysetCursor(
   }
 
   const tieBreakerField = getTieBreakerField(orderBy);
-  const orderValue = orderBy.parameter
-    ? record[orderBy.field]?.[orderBy.parameter] ?? null
-    : record[orderBy.field] ?? null;
+  const orderValue = getRecordFieldValue(
+    record,
+    orderBy.field,
+    orderBy.parameter,
+  ) ?? null;
   const tieBreakerValue = orderBy.tieBreaker?.parameter
-    ? record[tieBreakerField]?.[orderBy.tieBreaker.parameter] ??
+    ? getRecordFieldValue(
+        record,
+        tieBreakerField,
+        orderBy.tieBreaker.parameter,
+      ) ??
       record.id ??
       null
     : record[tieBreakerField] ?? record.id ?? null;
@@ -177,7 +219,7 @@ export function buildCompositeNextCursor({
 }
 
 export function buildNextKeysetCursorFromAdditional(
-  record: Record<string, any> | null | undefined,
+  record: KeysetRecord | null | undefined,
   orderBy: KeysetOrderBy,
 ): string | null {
   if (!record) {
@@ -185,17 +227,27 @@ export function buildNextKeysetCursorFromAdditional(
   }
 
   const tieBreakerField = getTieBreakerField(orderBy);
-  const orderValue = orderBy.parameter
-    ? record.additional?.[orderBy.field]?.[orderBy.parameter] ??
-      record[orderBy.field]?.[orderBy.parameter] ??
-      null
-    : record.additional?.[orderBy.field] ?? record[orderBy.field] ?? null;
+  const orderValue = getAdditionalFieldValue(
+    record,
+    orderBy.field,
+    orderBy.parameter,
+  ) ??
+    getRecordFieldValue(record, orderBy.field, orderBy.parameter) ??
+    null;
   const tieBreakerValue = orderBy.tieBreaker?.parameter
-    ? record.additional?.[tieBreakerField]?.[orderBy.tieBreaker.parameter] ??
-      record[tieBreakerField]?.[orderBy.tieBreaker.parameter] ??
+    ? getAdditionalFieldValue(
+        record,
+        tieBreakerField,
+        orderBy.tieBreaker.parameter,
+      ) ??
+      getRecordFieldValue(
+        record,
+        tieBreakerField,
+        orderBy.tieBreaker.parameter,
+      ) ??
       record.id ??
       null
-    : record.additional?.[tieBreakerField] ??
+    : getAdditionalFieldValue(record, tieBreakerField) ??
       record[tieBreakerField] ??
       record.id ??
       null;
