@@ -9,6 +9,18 @@ import { spaceStore } from '../stores/space-store.signal-store';
 
 const LITTER_FIELDS = ['father_id', 'mother_id', 'father_breed_id', 'mother_breed_id', 'date_of_birth'];
 const CONTACT_FIELDS = ['breeder_id', 'owner_id'];
+const CONTACT_IN_PET_SELECT_FIELDS = [
+  'id',
+  'pet_id',
+  'pet_breed_id',
+  'contact_id',
+  'contact_role_id',
+  'is_primary',
+  'created_at',
+  'updated_at',
+  'created_by',
+  'updated_by',
+].join(', ');
 
 /**
  * Run post-save hooks for an entity.
@@ -71,7 +83,7 @@ async function petPostSaveHooks(
     try {
       const { data } = await supabase
         .from('contact_in_pet')
-        .select('*')
+        .select(CONTACT_IN_PET_SELECT_FIELDS)
         .eq('pet_id', petId)
         .eq('pet_breed_id', entity.breed_id)
         .eq('deleted', false);

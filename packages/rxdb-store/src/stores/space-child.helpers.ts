@@ -37,6 +37,13 @@ export interface ChildListQueryLike<TQuery> {
   ): TQuery;
 }
 
+export interface BuildChildSelectClauseOptions {
+  select?: string[];
+  parentField: string;
+  partitionField?: string;
+  orderingFields?: string[];
+}
+
 export interface LocalChildQueryResult {
   records: any[];
   hasMore: boolean;
@@ -198,6 +205,41 @@ export function applyChildListQueryOptions<TQuery extends ChildListQueryLike<TQu
   }
 
   return nextQuery;
+}
+
+export function buildChildSelectClause(
+  options: BuildChildSelectClauseOptions,
+): string {
+  if (!options.select || options.select.length === 0) {
+    return "*";
+  }
+
+  const fields = new Set<string>([
+    "id",
+    options.parentField,
+    "created_at",
+    "updated_at",
+    "created_by",
+    "updated_by",
+  ]);
+
+  if (options.partitionField) {
+    fields.add(options.partitionField);
+  }
+
+  for (const field of options.orderingFields || []) {
+    if (field) {
+      fields.add(field);
+    }
+  }
+
+  for (const field of options.select) {
+    if (field) {
+      fields.add(field);
+    }
+  }
+
+  return Array.from(fields).join(", ");
 }
 
 export function normalizeChildTableType(tableType: string): string {

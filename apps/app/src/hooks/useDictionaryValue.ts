@@ -28,7 +28,11 @@ export function useDictionaryValue(
 
     const loadValue = async () => {
       try {
-        const record = await dictionaryStore.getRecordById(table, id);
+        const record = field === 'name'
+          ? await dictionaryStore.getRecordById(table, id)
+          : await dictionaryStore.getRecordById(table, id, {
+              additionalFields: [field],
+            });
         if (isMounted && record) {
           setValue(record[field] as string);
         }

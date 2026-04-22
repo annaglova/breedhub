@@ -7,6 +7,7 @@ interface UseChildRecordsParams {
   limit?: number;
   orderBy?: string;
   orderDirection?: 'asc' | 'desc';
+  select?: string[];
   enabled?: boolean;
 }
 
@@ -38,6 +39,7 @@ export function useChildRecords<T = any>({
   limit = 50,
   orderBy,
   orderDirection = 'asc',
+  select,
   enabled = true
 }: UseChildRecordsParams): UseChildRecordsResult<T> {
   const [data, setData] = useState<T[]>([]);
@@ -79,7 +81,7 @@ export function useChildRecords<T = any>({
       const records = await spaceStore.loadChildRecords(
         parentId,
         tableType,
-        { limit, orderBy, orderDirection }
+        { limit, orderBy, orderDirection, select }
       );
 
       if (mountedRef.current) {
@@ -95,7 +97,7 @@ export function useChildRecords<T = any>({
     } finally {
       loadingRef.current = false;
     }
-  }, [parentId, tableType, limit, orderBy, orderDirection, enabled]);
+  }, [parentId, tableType, limit, orderBy, orderDirection, select, enabled]);
 
   // Load on mount and when params change
   useEffect(() => {

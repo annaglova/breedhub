@@ -17,7 +17,9 @@ import type { DataSourceConfig } from '../../types/tab-data.types';
 vi.mock('../../stores/space-store.signal-store', () => ({
   spaceStore: {
     loadChildRecords: vi.fn(),
+    applyChildFilters: vi.fn(),
     applyFilters: vi.fn(),
+    loadChildViewDirect: vi.fn(),
   },
 }));
 
@@ -122,7 +124,7 @@ describe('TabDataService', () => {
   // ─────────────────────────────────────────────────────────────────────────────
 
   describe('loadChild', () => {
-    it('should pass limit and orderBy to SpaceStore', async () => {
+    it('should pass limit, orderBy, and select to SpaceStore', async () => {
       vi.mocked(spaceStore.loadChildRecords).mockResolvedValue([]);
 
       await tabDataService.loadTabData('parent-id', {
@@ -131,6 +133,7 @@ describe('TabDataService', () => {
           table: 'test_table',
           parentField: 'parent_id',
           limit: 50,
+          select: ['position', 'description'],
           orderBy: [{ field: 'position', direction: 'asc' }],
         },
       });
@@ -143,6 +146,7 @@ describe('TabDataService', () => {
           orderBy: 'position',
           orderDirection: 'asc',
           parentField: 'parent_id',
+          select: ['position', 'description'],
         }
       );
     });
@@ -319,6 +323,120 @@ describe('TabDataService', () => {
           limit: 200,
         })
       );
+    });
+
+    it('passes childTable.select through to SpaceStore for child_with_dictionary loads', async () => {
+      vi.mocked(spaceStore.loadChildRecords).mockResolvedValue([]);
+      vi.mocked(dictionaryStore.getDictionary).mockResolvedValue({ records: [], total: 0 });
+
+      await tabDataService.loadTabData('parent-id', {
+        ...baseConfig,
+        childTable: {
+          ...baseConfig.childTable!,
+          select: ['achievement_id', 'date'],
+        },
+      });
+
+      expect(spaceStore.loadChildRecords).toHaveBeenCalledWith(
+        'parent-id',
+        'achievement_in_breed',
+        {
+          limit: 100,
+          parentField: 'breed_id',
+          select: ['achievement_id', 'date'],
+        },
+      );
+    });
+  });
+
+  describe('loadTabDataPaginated', () => {
+    it('passes childTable.select through to applyChildFilters for table pagination', async () => {
+      vi.mocked(spaceStore.applyChildFilters).mockResolvedValue({
+        records: [{ id: 'child-1' }],
+        total: 1,
+        hasMore: false,
+        nextCursor: null,
+      });
+
+      const result = await tabDataService.loadTabDataPaginated('parent-id', {
+        type: 'child',
+        childTable: {
+          table: 'contact_language',
+          parentField: 'contact_id',
+          select: ['language_id', 'is_primary'],
+          orderBy: [{ field: 'position', direction: 'asc' }],
+        },
+      }, {
+        limit: 20,
+        cursor: 'cursor-1',
+      });
+
+      expect(spaceStore.applyChildFilters).toHaveBeenCalledWith(
+        'parent-id',
+        'contact_language',
+        {},
+        {
+          limit: 20,
+          cursor: 'cursor-1',
+          select: ['language_id', 'is_primary'],
+          orderBy: {
+            field: 'position',
+            direction: 'asc',
+            tieBreaker: { field: 'id', direction: 'asc' },
+          },
+        },
+      );
+      expect(result).toEqual({
+        records: [{ id: 'child-1' }],
+        total: 1,
+        hasMore: false,
+        nextCursor: null,
+      });
+    });
+
+    it('passes childTable.select through to loadChildViewDirect for VIEW pagination', async () => {
+      vi.mocked(spaceStore.loadChildViewDirect).mockResolvedValue({
+        records: [{ id: 'view-1' }],
+        total: 1,
+        hasMore: true,
+        nextCursor: 'cursor-2',
+      });
+
+      const result = await tabDataService.loadTabDataPaginated('parent-id', {
+        type: 'child',
+        childTable: {
+          table: 'top_pet_in_breed_with_pet',
+          isView: true,
+          parentField: 'breed_id',
+          select: ['placement', 'pet_name', 'rating'],
+          orderBy: [{ field: 'placement', direction: 'asc' }],
+        },
+      }, {
+        limit: 30,
+        cursor: 'cursor-1',
+      });
+
+      expect(spaceStore.loadChildViewDirect).toHaveBeenCalledWith(
+        'parent-id',
+        'top_pet_in_breed_with_pet',
+        'breed_id',
+        {
+          limit: 30,
+          cursor: 'cursor-1',
+          select: ['placement', 'pet_name', 'rating'],
+          orderBy: {
+            field: 'placement',
+            direction: 'asc',
+            tieBreaker: { field: 'id', direction: 'asc' },
+          },
+        },
+      );
+      expect(result).toEqual({
+        records: [{ id: 'view-1' }],
+        total: 1,
+        hasMore: true,
+        nextCursor: 'cursor-2',
+      });
     });
   });
 

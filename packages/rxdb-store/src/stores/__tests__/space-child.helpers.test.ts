@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import {
   applyChildListQueryOptions,
+  buildChildSelectClause,
   createEmptyChildPageResult,
   executeLocalChildQuery,
   fetchAndCacheChildRecords,
@@ -98,6 +99,38 @@ function createQueryableChildCollection(records: Record<string, any>[]) {
 }
 
 describe("space-child.helpers", () => {
+  it("returns * when no explicit child select fields are provided", () => {
+    expect(
+      buildChildSelectClause({
+        parentField: "pet_id",
+      }),
+    ).toBe("*");
+  });
+
+  it("builds a safe child select clause with required cache and partition fields", () => {
+    expect(
+      buildChildSelectClause({
+        select: ["contact_id", "is_primary"],
+        parentField: "pet_id",
+        partitionField: "pet_breed_id",
+      }),
+    ).toBe(
+      "id, pet_id, created_at, updated_at, created_by, updated_by, pet_breed_id, contact_id, is_primary",
+    );
+  });
+
+  it("deduplicates explicit child select fields and includes ordering fields for cache reuse", () => {
+    expect(
+      buildChildSelectClause({
+        select: ["contact_id", "contact_id", "id"],
+        parentField: "pet_id",
+        orderingFields: ["position", "id"],
+      }),
+    ).toBe(
+      "id, pet_id, created_at, updated_at, created_by, updated_by, position, contact_id",
+    );
+  });
+
   it("builds the default child orderBy with id tie-breaker", () => {
     expect(getDefaultChildOrderBy()).toEqual({
       field: "id",

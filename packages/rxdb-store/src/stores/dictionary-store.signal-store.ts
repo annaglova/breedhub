@@ -761,14 +761,22 @@ class DictionaryStore {
   /**
    * Get a single record by ID from dictionary table
    * Used for pre-loading selected values in LookupInput and dictionary lookups
-   * Fetches ALL fields (id, name, code, etc.) for flexibility
+   * Fetches ALL fields by default, or a narrow projection when additionalFields is provided
    */
   async getRecordById(
     tableName: string,
     id: string,
-    options: { idField?: string; nameField?: string } = {}
+    options: {
+      idField?: string;
+      nameField?: string;
+      additionalFields?: string[];
+    } = {}
   ): Promise<Record<string, unknown> | null> {
-    const { idField = 'id', nameField = 'name' } = options;
+    const {
+      idField = 'id',
+      nameField = 'name',
+      additionalFields,
+    } = options;
 
     // Wait for initialization if not ready yet (max 10s)
     if (!this.initialized.value) {
@@ -786,23 +794,36 @@ class DictionaryStore {
         }).exec();
 
         if (cached && cached.additional) {
-          // Return cached data with all fields (fully resolved record)
-          const result: Record<string, unknown> = {
-            [idField]: cached.id,
-            [nameField]: cached.name
-          };
-          Object.assign(result, cached.additional);
-          return result;
+          const hasRequestedAdditionalFields = !additionalFields?.length
+            || additionalFields.every((field) =>
+              field === idField
+              || field === nameField
+              || Object.prototype.hasOwnProperty.call(cached.additional || {}, field),
+            );
+
+          if (hasRequestedAdditionalFields) {
+            // Return cached data with all fields (fully resolved record)
+            const result: Record<string, unknown> = {
+              [idField]: cached.id,
+              [nameField]: cached.name
+            };
+            Object.assign(result, cached.additional);
+            return result;
+          }
         }
         // If cached without additional fields (e.g. from batch getDictionary),
-        // fall through to Supabase to fetch full record with all fields
+        // or requested fields are missing, fall through to Supabase
       }
 
-      // If not in cache, fetch from Supabase (fetch ALL fields for flexibility)
+      const selectFields = additionalFields?.length
+        ? Array.from(new Set([idField, nameField, ...additionalFields])).join(', ')
+        : '*';
+
+      // If not in cache, fetch from Supabase
       if (!isOffline()) {
         const { data, error } = await supabase
           .from(tableName)
-          .select('*')
+          .select(selectFields)
           .eq(idField, id)
           .single();
 
@@ -814,16 +835,21 @@ class DictionaryStore {
         // Cache the record for future use
         if (data && this.collection) {
           try {
+            const row = data as unknown as Record<string, unknown>;
             // Extract additional fields (everything except id, name)
-            const { [idField]: fetchedId, [nameField]: fetchedName, ...additionalFields } = data;
-            const hasAdditional = Object.keys(additionalFields).length > 0;
+            const {
+              [idField]: fetchedId,
+              [nameField]: fetchedName,
+              ...fetchedAdditionalFields
+            } = row;
+            const hasAdditional = Object.keys(fetchedAdditionalFields).length > 0;
 
             await this.collection.upsert({
-              composite_id: `${tableName}::${data[idField]}`,
+              composite_id: `${tableName}::${row[idField]}`,
               table_name: tableName,
-              id: String(data[idField]),
-              name: String(data[nameField]),
-              additional: hasAdditional ? additionalFields : undefined,
+              id: String(row[idField]),
+              name: String(row[nameField]),
+              additional: hasAdditional ? fetchedAdditionalFields : undefined,
               cachedAt: Date.now()
             });
           } catch (cacheError) {
@@ -832,7 +858,7 @@ class DictionaryStore {
           }
         }
 
-        return data;
+        return data as unknown as Record<string, unknown>;
       }
 
       return null;

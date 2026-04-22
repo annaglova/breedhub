@@ -57,6 +57,7 @@ import {
 } from './space-local-query.helpers';
 import {
   applyChildListQueryOptions,
+  buildChildSelectClause,
   createEmptyChildPageResult,
   filterLocalChildEntities,
   getChildCollectionName,
@@ -1704,7 +1705,13 @@ class SpaceStore {
   async loadChildRecords(
     parentId: string,
     tableType: string,
-    options: { limit?: number; orderBy?: string; orderDirection?: 'asc' | 'desc'; parentField?: string } = {}
+    options: {
+      limit?: number;
+      orderBy?: string;
+      orderDirection?: 'asc' | 'desc';
+      parentField?: string;
+      select?: string[];
+    } = {}
   ): Promise<any[]> {
     if (!parentId || !tableType) {
       console.warn('[SpaceStore] loadChildRecords: parentId and tableType are required');
@@ -1740,6 +1747,12 @@ class SpaceStore {
 
     // Determine parent ID field early (needed for both staleness refresh and Supabase query)
     const parentIdField = options.parentField || `${entityType}_id`;
+    const selectFields = buildChildSelectClause({
+      select: options.select,
+      parentField: parentIdField,
+      partitionField: partitionConfig?.childFilterField,
+      orderingFields: options.orderBy ? [options.orderBy] : undefined,
+    });
 
     if (existingRecords.length > 0) {
       // Staleness check: if oldest record cached > 5 min ago, refetch in background
@@ -1763,7 +1776,7 @@ class SpaceStore {
         const query = applyChildListQueryOptions(
           (supabase as any)
             .from(tableType)
-            .select('*'),
+            .select(selectFields),
           {
             parentField: parentIdField,
             parentId,
@@ -1905,10 +1918,16 @@ class SpaceStore {
   ): Promise<void> {
     try {
       const { limit = 50, orderBy, orderDirection = 'asc' } = options;
+      const selectFields = buildChildSelectClause({
+        select: options.select,
+        parentField: parentIdField,
+        partitionField: partitionConfig?.childFilterField,
+        orderingFields: orderBy ? [orderBy] : undefined,
+      });
       const query = applyChildListQueryOptions(
         (supabase as any)
           .from(tableType)
-          .select('*'),
+          .select(selectFields),
         {
           parentField: parentIdField,
           parentId,
@@ -2024,7 +2043,9 @@ class SpaceStore {
       loadTitleInPetRecords: (id, breedId) =>
         this.getChildRecords(id, 'title_in_pet', { partitionId: breedId, limit: 0 }),
       lookupTitleDictionary: (titleId) =>
-        dictionaryStore.getRecordById('title', titleId),
+        dictionaryStore.getRecordById('title', titleId, {
+          additionalFields: ['rating'],
+        }),
       collection: this.db?.collections['pet'],
       entityStore: this.entityStores.get('pet'),
     });
@@ -2202,6 +2223,7 @@ class SpaceStore {
       limit?: number;
       cursor?: string | null;
       orderBy?: OrderBy;
+      select?: string[];
     } = {}
   ): Promise<{ records: any[]; total: number; hasMore: boolean; nextCursor: string | null }> {
     const limit = options.limit || 30;
@@ -2289,6 +2311,8 @@ class SpaceStore {
           idsToFetch,
           parentId,
           parentIdField,
+          orderBy,
+          options.select,
           partitionConfig?.childFilterField,
           partitionValue
         ),
@@ -2369,14 +2393,25 @@ class SpaceStore {
     ids: string[],
     parentId: string,
     parentIdField: string,
+    orderBy?: OrderBy,
+    select?: string[],
     partitionField?: string,
     partitionValue?: string
   ): Promise<any[]> {
     if (ids.length === 0) return [];
 
+    const selectFields = buildChildSelectClause({
+      select,
+      parentField: parentIdField,
+      partitionField,
+      orderingFields: orderBy
+        ? [orderBy.field, orderBy.tieBreaker?.field || 'id']
+        : undefined,
+    });
+
     const { data, error } = await supabase
       .from(tableType)
-      .select('*')
+      .select(selectFields)
       .in('id', ids);
 
     if (error) {
@@ -2422,6 +2457,7 @@ class SpaceStore {
       limit?: number;
       cursor?: string | null;
       orderBy?: OrderBy;
+      select?: string[];
     } = {}
   ): Promise<{ records: any[]; total: number; hasMore: boolean; nextCursor: string | null }> {
     const limit = options.limit || 30;
@@ -2443,6 +2479,12 @@ class SpaceStore {
         contextLabel: 'VIEW',
         targetLabel: `VIEW: ${viewName}`,
       });
+    const selectFields = buildChildSelectClause({
+      select: options.select,
+      parentField,
+      partitionField: partitionConfig?.childFilterField,
+      orderingFields: [orderBy.field, orderBy.tieBreaker?.field || 'id'],
+    });
 
     // 📴 PREVENTIVE OFFLINE CHECK - use cached data
     if (isOffline()) {
@@ -2476,7 +2518,7 @@ class SpaceStore {
         fetchViewRecords: async () => {
           let query = supabase
             .from(viewName)
-            .select('*')
+            .select(selectFields)
             .eq(parentField, parentId);
 
           if (partitionConfig && partitionValue) {
