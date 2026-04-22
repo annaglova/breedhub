@@ -5,12 +5,63 @@
  * Extracted from SpaceStore to enable reuse and testing.
  */
 
+export type FilterOperator =
+  | "ilike"
+  | "contains"
+  | "eq"
+  | "ne"
+  | "gt"
+  | "gte"
+  | "lt"
+  | "lte"
+  | "in"
+  | "between"
+  | (string & {});
+
+export interface FilterBuilderFieldConfig {
+  orFields?: string[];
+}
+
+export interface RxDBSelectorLike extends Record<string, unknown> {
+  $and?: Array<{ $or: Array<Record<string, unknown>> }>;
+}
+
+export interface RxDBWhereQuery<TQuery> {
+  regex(pattern: string): TQuery;
+  eq(value: unknown): TQuery;
+  ne(value: unknown): TQuery;
+  gt(value: unknown): TQuery;
+  gte(value: unknown): TQuery;
+  lt(value: unknown): TQuery;
+  lte(value: unknown): TQuery;
+  in(values: unknown[]): TQuery;
+}
+
+export interface RxDBFilterQuery<TQuery> {
+  where(fieldName: string): RxDBWhereQuery<TQuery>;
+}
+
+export interface SupabaseFilterQuery<TQuery> {
+  ilike(fieldName: string, value: string): TQuery;
+  eq(fieldName: string, value: unknown): TQuery;
+  neq(fieldName: string, value: unknown): TQuery;
+  gt(fieldName: string, value: unknown): TQuery;
+  gte(fieldName: string, value: unknown): TQuery;
+  lt(fieldName: string, value: unknown): TQuery;
+  lte(fieldName: string, value: unknown): TQuery;
+  in(fieldName: string, values: unknown[]): TQuery;
+  or(condition: string): TQuery;
+}
+
 // ============= Operator Detection =============
 
 /**
  * Detect filter operator from field type and optional config override.
  */
-export function detectOperator(fieldType: string, configOperator?: string): string {
+export function detectOperator(
+  fieldType: string,
+  configOperator?: string,
+): FilterOperator {
   if (configOperator) return configOperator;
 
   switch (fieldType) {
@@ -35,7 +86,10 @@ export function detectOperator(fieldType: string, configOperator?: string): stri
 /**
  * Build RxDB condition object from operator + value
  */
-export function buildRxDBCondition(operator: string, value: any): any {
+export function buildRxDBCondition(
+  operator: FilterOperator,
+  value: unknown,
+): unknown {
   switch (operator) {
     case 'ilike':
     case 'contains': {
@@ -58,11 +112,11 @@ export function buildRxDBCondition(operator: string, value: any): any {
  * Mutates the selector object in place.
  */
 export function applyFilterToRxDBSelector(
-  selector: any,
+  selector: RxDBSelectorLike,
   fieldKey: string,
-  operator: string,
-  value: any,
-  fieldConfig: any
+  operator: FilterOperator,
+  value: unknown,
+  fieldConfig?: FilterBuilderFieldConfig,
 ): void {
   const orFields: string[] | undefined = fieldConfig?.orFields;
   const condition = buildRxDBCondition(operator, value);
@@ -79,34 +133,42 @@ export function applyFilterToRxDBSelector(
 /**
  * Apply filter to RxDB query chain (fluent API)
  */
-export function applyRxDBFilter(query: any, fieldName: string, operator: string, value: any): any {
+export function applyRxDBFilter<TQuery>(
+  query: TQuery,
+  fieldName: string,
+  operator: FilterOperator,
+  value: unknown,
+): TQuery {
+  const rxdbQuery = query as RxDBFilterQuery<TQuery>;
+
   switch (operator) {
     case 'ilike':
     case 'contains': {
       const escapedValue = String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-      return query.where(fieldName).regex(escapedValue);
+      return rxdbQuery.where(fieldName).regex(escapedValue);
     }
     case 'eq':
-      return query.where(fieldName).eq(value);
+      return rxdbQuery.where(fieldName).eq(value);
     case 'ne':
-      return query.where(fieldName).ne(value);
+      return rxdbQuery.where(fieldName).ne(value);
     case 'gt':
-      return query.where(fieldName).gt(value);
+      return rxdbQuery.where(fieldName).gt(value);
     case 'gte':
-      return query.where(fieldName).gte(value);
+      return rxdbQuery.where(fieldName).gte(value);
     case 'lt':
-      return query.where(fieldName).lt(value);
+      return rxdbQuery.where(fieldName).lt(value);
     case 'lte':
-      return query.where(fieldName).lte(value);
+      return rxdbQuery.where(fieldName).lte(value);
     case 'in': {
       const arrayValue = Array.isArray(value) ? value : [value];
-      return query.where(fieldName).in(arrayValue);
+      return rxdbQuery.where(fieldName).in(arrayValue);
     }
     case 'between': {
       const [from, to] = String(value).split('_');
-      if (from) query = query.where(fieldName).gte(from);
-      if (to) query = query.where(fieldName).lte(to);
-      return query;
+      let nextQuery = query;
+      if (from) nextQuery = (nextQuery as RxDBFilterQuery<TQuery>).where(fieldName).gte(from);
+      if (to) nextQuery = (nextQuery as RxDBFilterQuery<TQuery>).where(fieldName).lte(to);
+      return nextQuery;
     }
     default:
       console.warn(`[FilterBuilder] Unknown RxDB operator: ${operator}`);
@@ -119,32 +181,40 @@ export function applyRxDBFilter(query: any, fieldName: string, operator: string,
 /**
  * Apply filter to Supabase query chain
  */
-export function applySupabaseFilter(query: any, fieldName: string, operator: string, value: any): any {
+export function applySupabaseFilter<TQuery>(
+  query: TQuery,
+  fieldName: string,
+  operator: FilterOperator,
+  value: unknown,
+): TQuery {
+  const supabaseQuery = query as SupabaseFilterQuery<TQuery>;
+
   switch (operator) {
     case 'ilike':
     case 'contains':
-      return query.ilike(fieldName, `%${value}%`);
+      return supabaseQuery.ilike(fieldName, `%${value}%`);
     case 'eq':
-      return query.eq(fieldName, value);
+      return supabaseQuery.eq(fieldName, value);
     case 'ne':
-      return query.neq(fieldName, value);
+      return supabaseQuery.neq(fieldName, value);
     case 'gt':
-      return query.gt(fieldName, value);
+      return supabaseQuery.gt(fieldName, value);
     case 'gte':
-      return query.gte(fieldName, value);
+      return supabaseQuery.gte(fieldName, value);
     case 'lt':
-      return query.lt(fieldName, value);
+      return supabaseQuery.lt(fieldName, value);
     case 'lte':
-      return query.lte(fieldName, value);
+      return supabaseQuery.lte(fieldName, value);
     case 'in': {
       const arrayValue = Array.isArray(value) ? value : [value];
-      return query.in(fieldName, arrayValue);
+      return supabaseQuery.in(fieldName, arrayValue);
     }
     case 'between': {
       const [from, to] = String(value).split('_');
-      if (from) query = query.gte(fieldName, from);
-      if (to) query = query.lte(fieldName, to);
-      return query;
+      let nextQuery = query;
+      if (from) nextQuery = (nextQuery as SupabaseFilterQuery<TQuery>).gte(fieldName, from);
+      if (to) nextQuery = (nextQuery as SupabaseFilterQuery<TQuery>).lte(fieldName, to);
+      return nextQuery;
     }
     default:
       console.warn(`[FilterBuilder] Unknown Supabase operator: ${operator}`);
@@ -157,7 +227,11 @@ export function applySupabaseFilter(query: any, fieldName: string, operator: str
 /**
  * Build PostgREST filter expression string (e.g., "breed_id.eq.123")
  */
-export function buildPostgrestFilterExpr(fieldName: string, operator: string, value: any): string {
+export function buildPostgrestFilterExpr(
+  fieldName: string,
+  operator: FilterOperator,
+  value: unknown,
+): string {
   switch (operator) {
     case 'ilike':
     case 'contains':
@@ -188,20 +262,21 @@ export function buildPostgrestFilterExpr(fieldName: string, operator: string, va
  * If fieldConfig has orFields, builds OR condition across all fields.
  * Otherwise delegates to applySupabaseFilter.
  */
-export function applySupabaseFilterWithOrFields(
-  query: any,
+export function applySupabaseFilterWithOrFields<TQuery>(
+  query: TQuery,
   fieldKey: string,
-  operator: string,
-  value: any,
-  fieldConfig: any
-): any {
+  operator: FilterOperator,
+  value: unknown,
+  fieldConfig?: FilterBuilderFieldConfig,
+): TQuery {
+  const supabaseQuery = query as SupabaseFilterQuery<TQuery>;
   const orFields: string[] | undefined = fieldConfig?.orFields;
 
   if (orFields && orFields.length > 0) {
     const orCondition = orFields
       .map(field => buildPostgrestFilterExpr(field, operator, value))
       .join(',');
-    return query.or(orCondition);
+    return supabaseQuery.or(orCondition);
   }
 
   return applySupabaseFilter(query, fieldKey, operator, value);

@@ -13,6 +13,8 @@ import {
   applySupabaseFilter,
   buildPostgrestFilterExpr,
   applySupabaseFilterWithOrFields,
+  type RxDBSelectorLike,
+  type SupabaseFilterQuery,
 } from '../filter-builder';
 
 // ============= buildRxDBCondition =============
@@ -55,13 +57,13 @@ describe('buildRxDBCondition', () => {
 
 describe('applyFilterToRxDBSelector', () => {
   it('sets simple field condition', () => {
-    const selector: any = {};
+    const selector: RxDBSelectorLike = {};
     applyFilterToRxDBSelector(selector, 'name', 'eq', 'Rex', {});
     expect(selector.name).toBe('Rex');
   });
 
   it('builds $or condition with orFields', () => {
-    const selector: any = {};
+    const selector: RxDBSelectorLike = {};
     applyFilterToRxDBSelector(selector, 'breed_id', 'eq', '123', {
       orFields: ['father_breed_id', 'mother_breed_id'],
     });
@@ -72,7 +74,7 @@ describe('applyFilterToRxDBSelector', () => {
   });
 
   it('accumulates $and conditions', () => {
-    const selector: any = {};
+    const selector: RxDBSelectorLike = {};
     applyFilterToRxDBSelector(selector, 'f1', 'eq', 'a', { orFields: ['x', 'y'] });
     applyFilterToRxDBSelector(selector, 'f2', 'eq', 'b', { orFields: ['z'] });
     expect(selector.$and).toHaveLength(2);
@@ -109,8 +111,16 @@ describe('buildPostgrestFilterExpr', () => {
 
 describe('applySupabaseFilterWithOrFields', () => {
   it('delegates to applySupabaseFilter without orFields', () => {
-    const query = {
-      eq: (field: string, value: any) => ({ type: 'eq', field, value }),
+    const query: SupabaseFilterQuery<{ type: string; field: string; value: unknown }> = {
+      ilike: () => ({ type: 'ilike', field: '', value: '' }),
+      eq: (field: string, value: unknown) => ({ type: 'eq', field, value }),
+      neq: () => ({ type: 'neq', field: '', value: '' }),
+      gt: () => ({ type: 'gt', field: '', value: '' }),
+      gte: () => ({ type: 'gte', field: '', value: '' }),
+      lt: () => ({ type: 'lt', field: '', value: '' }),
+      lte: () => ({ type: 'lte', field: '', value: '' }),
+      in: () => ({ type: 'in', field: '', value: '' }),
+      or: () => ({ type: 'or', field: '', value: '' }),
     };
     const result = applySupabaseFilterWithOrFields(query, 'breed_id', 'eq', '123', {});
     expect(result).toEqual({ type: 'eq', field: 'breed_id', value: '123' });
@@ -118,7 +128,16 @@ describe('applySupabaseFilterWithOrFields', () => {
 
   it('builds OR condition with orFields', () => {
     let orArg = '';
-    const query = {
+    type OrQuery = SupabaseFilterQuery<OrQuery>;
+    const query: OrQuery = {
+      ilike: () => query,
+      eq: () => query,
+      neq: () => query,
+      gt: () => query,
+      gte: () => query,
+      lt: () => query,
+      lte: () => query,
+      in: () => query,
       or: (condition: string) => { orArg = condition; return query; },
     };
     applySupabaseFilterWithOrFields(query, 'breed_id', 'eq', '123', {
@@ -132,13 +151,47 @@ describe('applySupabaseFilterWithOrFields', () => {
 
 describe('applySupabaseFilter', () => {
   function mockQuery() {
-    const calls: any[] = [];
-    const proxy: any = new Proxy({}, {
-      get: (_, method: string) => (...args: any[]) => {
-        calls.push({ method, args });
+    type CallRecord = { method: string; args: unknown[] };
+    type ProxyQuery = SupabaseFilterQuery<ProxyQuery>;
+    const calls: CallRecord[] = [];
+    const proxy = {
+      ilike: (fieldName: string, value: string) => {
+        calls.push({ method: 'ilike', args: [fieldName, value] });
         return proxy;
       },
-    });
+      eq: (fieldName: string, value: unknown) => {
+        calls.push({ method: 'eq', args: [fieldName, value] });
+        return proxy;
+      },
+      neq: (fieldName: string, value: unknown) => {
+        calls.push({ method: 'neq', args: [fieldName, value] });
+        return proxy;
+      },
+      gt: (fieldName: string, value: unknown) => {
+        calls.push({ method: 'gt', args: [fieldName, value] });
+        return proxy;
+      },
+      gte: (fieldName: string, value: unknown) => {
+        calls.push({ method: 'gte', args: [fieldName, value] });
+        return proxy;
+      },
+      lt: (fieldName: string, value: unknown) => {
+        calls.push({ method: 'lt', args: [fieldName, value] });
+        return proxy;
+      },
+      lte: (fieldName: string, value: unknown) => {
+        calls.push({ method: 'lte', args: [fieldName, value] });
+        return proxy;
+      },
+      in: (fieldName: string, values: unknown[]) => {
+        calls.push({ method: 'in', args: [fieldName, values] });
+        return proxy;
+      },
+      or: (condition: string) => {
+        calls.push({ method: 'or', args: [condition] });
+        return proxy;
+      },
+    } satisfies ProxyQuery;
     return { proxy, calls };
   }
 
