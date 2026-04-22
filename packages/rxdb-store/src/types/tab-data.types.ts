@@ -37,6 +37,19 @@ export interface ChildTableConfig {
 }
 
 /**
+ * Mapping table configuration for entity_child fast-path loading.
+ * Used when entity rows are reached through a separate mapping table.
+ */
+export interface ReadFromConfig {
+  /** Mapping table name (e.g., 'pet_child') */
+  table: string;
+  /** Field in mapping table that points to parent entity */
+  parentField: string;
+  /** Optional partition field for mapped entity fetches */
+  partitionField?: string;
+}
+
+/**
  * Dictionary configuration for merge operations
  * Used for type: child_with_dictionary
  */
@@ -144,6 +157,9 @@ export interface DataSourceConfig {
 
   /** Child table config (for child, child_with_dictionary, entity_child) */
   childTable?: ChildTableConfig;
+
+  /** Mapping table config for entity_child fast path */
+  readFrom?: ReadFromConfig;
 
   /** Dictionary config (for child_with_dictionary) */
   dictionary?: DictionaryMergeConfig;

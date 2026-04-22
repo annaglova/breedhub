@@ -1,7 +1,11 @@
 import { useSelectedEntity } from "@/contexts/SpaceContext";
 import { dictionaryStore, spaceStore, useTabData } from "@breedhub/rxdb-store";
 import { withCrudToast } from "@/utils/crudToast";
-import type { DataSourceConfig } from "@breedhub/rxdb-store";
+import type {
+  DataSourceConfig,
+  ReadFromConfig,
+} from "@breedhub/rxdb-store";
+import type { EditFieldConfig } from "@/types/field-config";
 import { useSignals } from "@preact/signals-react/runtime";
 import { Button } from "@ui/components/button";
 import { DataTable, DataTableColumnHeader } from "@ui/components/data-table";
@@ -90,22 +94,7 @@ function useMultiTabData(
   return { records, isLoading, error, refetch };
 }
 
-interface FieldConfig {
-  displayName: string;
-  fieldType: string;
-  component?: string;
-  showInTable?: boolean;
-  showInForm?: boolean;
-  order?: number;
-  sortOrder?: number;
-  [key: string]: any;
-}
-
-interface ReadFromConfig {
-  table: string;
-  parentField: string;
-  partitionField?: string;
-}
+type FieldConfig = EditFieldConfig;
 
 interface EditChildTableTabProps {
   fields?: Record<string, FieldConfig>;

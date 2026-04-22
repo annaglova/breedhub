@@ -1,4 +1,4 @@
-import type { IconConfig } from "@breedhub/rxdb-store";
+import type { IconConfig, ReadFromConfig } from "@breedhub/rxdb-store";
 import type { PageConfig } from "@/types/page-config.types";
 
 export interface TabConfig {
@@ -16,6 +16,7 @@ export interface TabConfig {
   focusMode?: boolean;
   zoomControl?: boolean;
   dataSource?: any;
+  readFrom?: ReadFromConfig;
   fields?: Record<string, any>;
   actionTypes?: string[];
   protectedWhen?: { field: string; value: unknown };

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import type { FilterFieldConfig } from "@/types/field-config";
 import { Chip } from '@ui/components/chip';
 import { SortFilterSelector, SortOption } from './SortFilterSelector';
 import { cn } from '@ui/lib/utils';
@@ -7,33 +8,6 @@ export interface FilterField {
   id: string;
   label: string;
   isRequired?: boolean;
-}
-
-export interface FilterFieldConfig {
-  id: string;
-  displayName: string;
-  component: string;
-  placeholder?: string;
-  fieldType: string;
-  required?: boolean;
-  operator?: string;
-  slug?: string; // Short URL slug for filter (e.g., "type" instead of "breed_field_pet_type_id")
-  value?: any;
-  validation?: any;
-  order: number;
-  referencedTable?: string;
-  referencedFieldID?: string;
-  referencedFieldName?: string;
-  // Filter behavior props
-  dependsOn?: string; // Field ID that this field depends on (cascade filter)
-  disabledUntil?: string; // Field ID - this field is disabled until that field has a value
-  filterBy?: string; // Field name in referenced table to filter options by dependsOn value
-  // Junction table filtering (many-to-many)
-  junctionTable?: string;
-  junctionField?: string;
-  junctionFilterField?: string;
-  // OR fields (single filter applies to multiple DB fields with OR logic)
-  orFields?: string[];
 }
 
 interface FiltersSectionProps {

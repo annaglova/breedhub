@@ -448,7 +448,7 @@ class TabDataService {
     }
 
     // Fast path: readFrom mapping table (e.g., pet_child → pet)
-    const readFrom = (dataSource as any).readFrom;
+    const readFrom = dataSource.readFrom;
     if (readFrom) {
       return spaceStore.loadEntitiesViaMapping(
         config.table,
@@ -495,7 +495,7 @@ class TabDataService {
     }
 
     // Fast path: readFrom mapping table
-    const readFrom = (dataSource as any).readFrom;
+    const readFrom = dataSource.readFrom;
     if (readFrom) {
       const records = await spaceStore.loadEntitiesViaMapping(
         config.table, readFrom.table, readFrom.parentField, parentId, readFrom.partitionField,

@@ -81,6 +81,7 @@ export type {
   DataSourceConfig,
   DataSourceType,
   ChildTableConfig,
+  ReadFromConfig,
   DictionaryMergeConfig,
   MainEntityConfig,
   RpcConfig,
