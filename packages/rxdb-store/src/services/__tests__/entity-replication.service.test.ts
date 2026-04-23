@@ -110,7 +110,12 @@ vi.mock("../../supabase/client", () => {
       };
     },
     channel(name: string) {
-      const channel = {
+      interface MockChannel {
+        name: string;
+        on: ReturnType<typeof vi.fn>;
+        subscribe: ReturnType<typeof vi.fn>;
+      }
+      const channel: MockChannel = {
         name,
         on: vi.fn(
           (
@@ -121,11 +126,11 @@ vi.mock("../../supabase/client", () => {
             mockState.channelHandlers.set(name, callback);
             return channel;
           },
-        ),
+        ) as unknown as ReturnType<typeof vi.fn>,
         subscribe: vi.fn(() => {
           mockState.channelObjects.set(name, channel);
           return channel;
-        }),
+        }) as unknown as ReturnType<typeof vi.fn>,
       };
 
       return channel;
@@ -160,13 +165,13 @@ function createLocalStorageMock(initialValues: Record<string, string> = {}) {
   const storage = new Map(Object.entries(initialValues));
 
   const localStorageMock: LocalStorageMock = {
-    getItem: vi.fn((key: string) => storage.get(key) ?? null),
+    getItem: vi.fn((key: string) => storage.get(key) ?? null) as unknown as ReturnType<typeof vi.fn>,
     setItem: vi.fn((key: string, value: string) => {
       storage.set(key, value);
-    }),
+    }) as unknown as ReturnType<typeof vi.fn>,
     removeItem: vi.fn((key: string) => {
       storage.delete(key);
-    }),
+    }) as unknown as ReturnType<typeof vi.fn>,
   };
 
   return { localStorageMock, storage };

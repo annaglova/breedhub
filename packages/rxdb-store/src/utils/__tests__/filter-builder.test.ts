@@ -26,7 +26,7 @@ describe('buildRxDBCondition', () => {
   });
 
   it('escapes regex special characters', () => {
-    const result = buildRxDBCondition('contains', 'test.value');
+    const result = buildRxDBCondition('contains', 'test.value') as { $regex: string };
     expect(result.$regex).toBe('test\\.value');
   });
 
@@ -67,10 +67,11 @@ describe('applyFilterToRxDBSelector', () => {
     applyFilterToRxDBSelector(selector, 'breed_id', 'eq', '123', {
       orFields: ['father_breed_id', 'mother_breed_id'],
     });
-    expect(selector.$and).toHaveLength(1);
-    expect(selector.$and[0].$or).toHaveLength(2);
-    expect(selector.$and[0].$or[0]).toEqual({ father_breed_id: '123' });
-    expect(selector.$and[0].$or[1]).toEqual({ mother_breed_id: '123' });
+    const and = selector.$and as Array<{ $or: Array<Record<string, unknown>> }>;
+    expect(and).toHaveLength(1);
+    expect(and[0].$or).toHaveLength(2);
+    expect(and[0].$or[0]).toEqual({ father_breed_id: '123' });
+    expect(and[0].$or[1]).toEqual({ mother_breed_id: '123' });
   });
 
   it('accumulates $and conditions', () => {
@@ -154,7 +155,7 @@ describe('applySupabaseFilter', () => {
     type CallRecord = { method: string; args: unknown[] };
     type ProxyQuery = SupabaseFilterQuery<ProxyQuery>;
     const calls: CallRecord[] = [];
-    const proxy = {
+    const proxy: ProxyQuery = {
       ilike: (fieldName: string, value: string) => {
         calls.push({ method: 'ilike', args: [fieldName, value] });
         return proxy;
@@ -191,7 +192,7 @@ describe('applySupabaseFilter', () => {
         calls.push({ method: 'or', args: [condition] });
         return proxy;
       },
-    } satisfies ProxyQuery;
+    };
     return { proxy, calls };
   }
 

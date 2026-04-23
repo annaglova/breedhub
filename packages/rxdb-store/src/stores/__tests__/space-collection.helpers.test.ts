@@ -170,7 +170,11 @@ describe("space-collection.helpers", () => {
       indexedDb: {
         deleteDatabase(name: string) {
           deletedDatabases.push(name);
-          const request = {
+          const request: {
+            onsuccess: ((event: Event) => void) | null;
+            onerror: ((event: Event) => void) | null;
+            onblocked: ((event: Event) => void) | null;
+          } = {
             onsuccess: null,
             onerror: null,
             onblocked: null,

@@ -115,7 +115,10 @@ describe("space-id-cache.helpers", () => {
       { id: "b", value: "cached-b" },
     ]);
 
-    const result = await cacheAndMergeOrderedRecordsByIds(
+    const result = await cacheAndMergeOrderedRecordsByIds<
+      { id: string; value: string },
+      { id: string; cached: boolean }
+    >(
       ["b", "c", "a"],
       cachedMap,
       [
@@ -178,7 +181,10 @@ describe("space-id-cache.helpers", () => {
   it("caches mapped records through the shared cacheRecords primitive", async () => {
     const upserted: Array<{ id: string; cached: true }> = [];
 
-    const result = await cacheRecords(
+    const result = await cacheRecords<
+      { id: string; value: string },
+      { id: string; cached: true }
+    >(
       [
         { id: "a", value: "fresh-a" },
         { id: "b", value: "fresh-b" },

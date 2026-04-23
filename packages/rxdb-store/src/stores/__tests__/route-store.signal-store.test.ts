@@ -422,7 +422,10 @@ describe("route-store.signal-store", () => {
       cachedDoc: { remove: removeSingle },
     });
 
-    harness.collectionCalls.docsForFind.push({ remove: removeA }, { remove: removeB });
+    harness.collectionCalls.docsForFind.push(
+      { remove: removeA as unknown as ReturnType<typeof vi.fn> },
+      { remove: removeB as unknown as ReturnType<typeof vi.fn> },
+    );
 
     await harness.routeStore.initialize();
     await harness.routeStore.invalidateRoute("affenpinscher");

@@ -107,7 +107,10 @@ describe('useTabData', () => {
           enabled,
         }),
       {
-        initialProps: { parentId: 'pet-1', enabled: false },
+        initialProps: { parentId: 'pet-1', enabled: false } as {
+          parentId?: string;
+          enabled?: boolean;
+        },
       },
     );
 

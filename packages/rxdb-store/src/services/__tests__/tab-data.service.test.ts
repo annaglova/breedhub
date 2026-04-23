@@ -12,6 +12,36 @@ import { tabDataService } from '../tab-data.service';
 import { spaceStore } from '../../stores/space-store.signal-store';
 import { dictionaryStore } from '../../stores/dictionary-store.signal-store';
 import type { DataSourceConfig } from '../../types/tab-data.types';
+import type { DictionaryDocument } from '../../collections/dictionaries.schema';
+
+// Test fixture helper: DictionaryDocument requires composite_id / table_name /
+// cachedAt plus id/name/additional; these tests only care about the latter
+// three and lean on defaults for the rest.
+function makeDictDoc(
+  partial: { id: string; name: string; additional?: Record<string, unknown> },
+  table = 'achievement',
+): DictionaryDocument {
+  return {
+    composite_id: `${table}::${partial.id}`,
+    table_name: table,
+    id: partial.id,
+    name: partial.name,
+    additional: partial.additional,
+    cachedAt: 0,
+  };
+}
+
+// Paginated dictionary response: getDictionary returns {records, total, hasMore, nextCursor}.
+function makeDictResult(
+  records: DictionaryDocument[],
+): { records: DictionaryDocument[]; total: number; hasMore: boolean; nextCursor: string | null } {
+  return {
+    records,
+    total: records.length,
+    hasMore: false,
+    nextCursor: null,
+  };
+}
 
 // Mock stores
 vi.mock('../../stores/space-store.signal-store', () => ({
@@ -186,14 +216,13 @@ describe('TabDataService', () => {
       ]);
 
       // Mock dictionary
-      vi.mocked(dictionaryStore.getDictionary).mockResolvedValue({
-        records: [
-          { id: 'ach-1', name: 'Bronze', additional: { position: 1 } },
-          { id: 'ach-2', name: 'Silver', additional: { position: 2 } },
-          { id: 'ach-3', name: 'Gold', additional: { position: 3 } },
-        ],
-        total: 3,
-      });
+      vi.mocked(dictionaryStore.getDictionary).mockResolvedValue(
+        makeDictResult([
+          makeDictDoc({ id: 'ach-1', name: 'Bronze', additional: { position: 1 } }),
+          makeDictDoc({ id: 'ach-2', name: 'Silver', additional: { position: 2 } }),
+          makeDictDoc({ id: 'ach-3', name: 'Gold', additional: { position: 3 } }),
+        ]),
+      );
 
       const result = await tabDataService.loadTabData('parent-id', baseConfig);
 
@@ -228,13 +257,12 @@ describe('TabDataService', () => {
         { id: 'child-1', additional: { achievement_id: 'ach-2' } },
       ]);
 
-      vi.mocked(dictionaryStore.getDictionary).mockResolvedValue({
-        records: [
-          { id: 'ach-1', name: 'Bronze', additional: {} },
-          { id: 'ach-2', name: 'Silver', additional: {} },
-        ],
-        total: 2,
-      });
+      vi.mocked(dictionaryStore.getDictionary).mockResolvedValue(
+        makeDictResult([
+          makeDictDoc({ id: 'ach-1', name: 'Bronze', additional: {} }),
+          makeDictDoc({ id: 'ach-2', name: 'Silver', additional: {} }),
+        ]),
+      );
 
       const result = await tabDataService.loadTabData('parent-id', {
         ...baseConfig,
@@ -258,13 +286,12 @@ describe('TabDataService', () => {
     it('should filter dictionary by filter config', async () => {
       vi.mocked(spaceStore.loadChildRecords).mockResolvedValue([]);
 
-      vi.mocked(dictionaryStore.getDictionary).mockResolvedValue({
-        records: [
-          { id: 'ach-1', name: 'Breed Achievement', additional: { entity: 'breed' } },
-          { id: 'ach-2', name: 'Pet Achievement', additional: { entity: 'pet' } },
-        ],
-        total: 2,
-      });
+      vi.mocked(dictionaryStore.getDictionary).mockResolvedValue(
+        makeDictResult([
+          makeDictDoc({ id: 'ach-1', name: 'Breed Achievement', additional: { entity: 'breed' } }),
+          makeDictDoc({ id: 'ach-2', name: 'Pet Achievement', additional: { entity: 'pet' } }),
+        ]),
+      );
 
       const result = await tabDataService.loadTabData('parent-id', {
         ...baseConfig,
@@ -282,14 +309,13 @@ describe('TabDataService', () => {
     it('should sort dictionary by orderBy config', async () => {
       vi.mocked(spaceStore.loadChildRecords).mockResolvedValue([]);
 
-      vi.mocked(dictionaryStore.getDictionary).mockResolvedValue({
-        records: [
-          { id: 'ach-3', name: 'Gold', additional: { position: 3 } },
-          { id: 'ach-1', name: 'Bronze', additional: { position: 1 } },
-          { id: 'ach-2', name: 'Silver', additional: { position: 2 } },
-        ],
-        total: 3,
-      });
+      vi.mocked(dictionaryStore.getDictionary).mockResolvedValue(
+        makeDictResult([
+          makeDictDoc({ id: 'ach-3', name: 'Gold', additional: { position: 3 } }),
+          makeDictDoc({ id: 'ach-1', name: 'Bronze', additional: { position: 1 } }),
+          makeDictDoc({ id: 'ach-2', name: 'Silver', additional: { position: 2 } }),
+        ]),
+      );
 
       const result = await tabDataService.loadTabData('parent-id', {
         ...baseConfig,
@@ -306,7 +332,7 @@ describe('TabDataService', () => {
 
     it('should call getDictionary with correct params', async () => {
       vi.mocked(spaceStore.loadChildRecords).mockResolvedValue([]);
-      vi.mocked(dictionaryStore.getDictionary).mockResolvedValue({ records: [], total: 0 });
+      vi.mocked(dictionaryStore.getDictionary).mockResolvedValue(makeDictResult([]));
 
       await tabDataService.loadTabData('parent-id', {
         ...baseConfig,
@@ -327,7 +353,7 @@ describe('TabDataService', () => {
 
     it('passes childTable.select through to SpaceStore for child_with_dictionary loads', async () => {
       vi.mocked(spaceStore.loadChildRecords).mockResolvedValue([]);
-      vi.mocked(dictionaryStore.getDictionary).mockResolvedValue({ records: [], total: 0 });
+      vi.mocked(dictionaryStore.getDictionary).mockResolvedValue(makeDictResult([]));
 
       await tabDataService.loadTabData('parent-id', {
         ...baseConfig,
@@ -450,6 +476,7 @@ describe('TabDataService', () => {
         records: [{ id: '1' }],
         total: 1,
         hasMore: false,
+        nextCursor: null,
       });
 
       const result = await tabDataService.loadTabData('parent-id', {

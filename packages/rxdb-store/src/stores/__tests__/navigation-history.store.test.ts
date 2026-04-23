@@ -10,13 +10,13 @@ function createLocalStorageMock(initialValues: Record<string, string> = {}) {
   const storage = new Map(Object.entries(initialValues));
 
   const localStorageMock: LocalStorageMock = {
-    getItem: vi.fn((key: string) => storage.get(key) ?? null),
+    getItem: vi.fn((key: string) => storage.get(key) ?? null) as unknown as ReturnType<typeof vi.fn>,
     setItem: vi.fn((key: string, value: string) => {
       storage.set(key, value);
-    }),
+    }) as unknown as ReturnType<typeof vi.fn>,
     removeItem: vi.fn((key: string) => {
       storage.delete(key);
-    }),
+    }) as unknown as ReturnType<typeof vi.fn>,
   };
 
   return { localStorageMock, storage };
